@@ -1,0 +1,127 @@
+/* =====================================================
+   ANIME BATTLE - FULL STYLE
+   ===================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #05070d;
+  font-family: Arial, Helvetica, sans-serif;
+  user-select: none;
+}
+
+body {
+  position: relative;
+}
+
+#gameCanvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(50, 70, 120, 0.18), transparent 35%),
+    linear-gradient(to bottom, #0b1020 0%, #111827 45%, #151515 100%);
+  cursor: pointer;
+}
+
+/* Optional HUD shells if you want to add DOM UI later */
+.hud-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.health-bar-shell {
+  position: absolute;
+  width: 320px;
+  height: 22px;
+  background: rgba(60, 15, 15, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.45);
+}
+
+.health-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(to right, #20c94f, #67ff7a);
+  transition: width 0.08s linear;
+}
+
+.energy-bar-shell {
+  position: absolute;
+  width: 320px;
+  height: 16px;
+  background: rgba(10, 10, 40, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
+}
+
+.energy-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(to right, #2b8cff, #74d6ff);
+  transition: width 0.08s linear;
+}
+
+.energy-bar-fill.enemy {
+  background: linear-gradient(to right, #ff9f1a, #ffd166);
+}
+
+/* Optional text panels */
+.panel {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.45);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 14px;
+  backdrop-filter: blur(4px);
+}
+
+.center-banner {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 20px;
+  min-width: 180px;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Optional floating damage numbers */
+.damage-number {
+  position: absolute;
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 18px;
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.9),
+    0 0 8px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  animation: floatUp 0.6s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-36px);
+    opacity: 0;
+  }
+}

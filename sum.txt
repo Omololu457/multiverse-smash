@@ -1,0 +1,34 @@
+{
+  "project": {
+    "name": "ExampleProject",
+    "description": "This is a sample project description to illustrate structure. It is NOT the actual project."
+  },
+  "files": [
+    {
+      "filename": "main.py",
+      "description": "Example: Handles core logic and program flow.",
+      "status": "Example: basic functionality completed.",
+      "notes": "Example: could refactor functions and add error handling."
+    },
+    {
+      "filename": "utils.py",
+      "description": "Example: Contains utility functions supporting main.py.",
+      "status": "Example: functions implemented and tested.",
+      "notes": "Example: consider optimizing loops and reducing redundancy."
+    },
+    {
+      "filename": "config.json",
+      "description": "Example: Stores configuration and environment variables.",
+      "status": "Example: basic config ready.",
+      "notes": "Example: validate values and add missing environment variables."
+    }
+  ],
+  "next_steps": [
+    "Example: Refactor main.py for efficiency and maintainability.",
+    "Example: Add comprehensive error handling and logging.",
+    "Example: Optimize utility functions to reduce redundancy.",
+    "Example: Review configuration file for completeness.",
+    "Example: Write integration tests for major workflows."
+  ],
+  "ai_optimization_notes": "This JSON is structured for ChatGPT token-efficient parsing. All entries are illustrative examples, not actual code."
+}

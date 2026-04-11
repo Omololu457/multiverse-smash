@@ -1,15 +1,15 @@
 // game.js
 import { characters } from "./characters.js"
 import { camera } from "./camera.js"
-import { SpriteHandler } from "./sprite.js" // NEW: Import the animation handler
+import { SpriteHandler } from "./sprite.js" 
 import {
   keys,
   mouse,
   setupMouseInput,
   pointInRect,
   consumeMouseClick,
-  inputSettings, // NEW: Settings object
-  getFighterInput, // NEW: Unified input reader (Keyboard + Gamepad Buffer)
+  inputSettings, 
+  getFighterInput, 
   updateDebugInputToggles,
   getDebugInputState,
   recordInputFrame,
@@ -82,7 +82,7 @@ canvas.height = window.innerHeight
 setupMouseInput(canvas)
 
 // ------------------------------------------------------------------
-// NEW: PRE-LOAD GOJO SPRITE SHEETS
+// PRE-LOAD SPRITE SHEETS (Currently Gojo, scalable for roster)
 // ------------------------------------------------------------------
 const gojoSprites = {};
 const gojoSheets = [
@@ -113,7 +113,7 @@ const EDGE_SPAWN_PADDING = 80
 
 const GAME_STATES = {
   START: "start",
-  SETTINGS: "settings", // NEW: Settings state added
+  SETTINGS: "settings",
   GAMEPLAY_SELECT: "gameplaySelect",
   AI_DIFFICULTY: "aiDifficulty",
   SELECT_UNIVERSE: "selectUniverse",
@@ -158,7 +158,7 @@ const P1_CONTROLS = {
   charge: "o",
   toggle: "q",
   dash: "shift",
-  grab: "g" // NEW: Grab added
+  grab: "g"
 }
 
 const P2_CONTROLS = {
@@ -175,7 +175,7 @@ const P2_CONTROLS = {
   charge: "6",
   toggle: "7",
   dash: "0",
-  grab: "9" // NEW: Grab added
+  grab: "9" 
 }
 
 const stages = [
@@ -287,7 +287,7 @@ const trainingState = {
 }
 
 const p2AI = createAIController("easy")
-const settingsButtonRect = { x: window.innerWidth - 220, y: 30, w: 180, h: 50 } // Settings UI Button
+const settingsButtonRect = { x: window.innerWidth - 220, y: 30, w: 180, h: 50 } 
 
 function toFiniteNumber(value, fallback) {
   const parsed = Number(value)
@@ -500,7 +500,8 @@ function createFighter(charKey, char, x, facing, controls, side) {
       damageMultiplier, attackMultiplier, speedMultiplier, defenseMultiplier,
       isSpecial: false, kiDrainPerSecond: 0
     },
-    spriteHandler: charKey === 'gojo' ? new SpriteHandler() : null
+    // DATA-DRIVEN SPRITE ATTACHMENT
+    spriteHandler: char?.hasSprites ? new SpriteHandler() : null
   }
 }
 
@@ -863,19 +864,22 @@ function checkRoundEnd() {
 }
 
 // ------------------------------------------------------------------
-// HYBRID RENDERER (Wrapper for drawFighter)
+// DATA-DRIVEN HYBRID RENDERER
 // ------------------------------------------------------------------
 function renderHybridFighter(fighter) {
   if (!fighter) return;
-  // If it's Gojo, use your custom Sprite sheets
-  if (fighter.rosterKey === 'gojo' && fighter.spriteHandler) {
-      if (gojoSprites['idle'].complete && gojoSprites['idle'].naturalWidth > 0) {
+
+  // Uses the global boolean we added to characters.js
+  if (fighter.hasSprites && fighter.spriteHandler) {
+      // Assuming gojoSprites dictionary is loaded for now. 
+      // You can expand this to load generic 'fighterSprites' later.
+      if (gojoSprites['idle']?.complete && gojoSprites['idle']?.naturalWidth > 0) {
           fighter.spriteHandler.draw(ctx, fighter, gojoSprites);
       } else {
-          drawFighter(ctx, fighter, camera); // Fallback
+          drawFighter(ctx, fighter, camera); // Fallback box while PNGs are loading
       }
   } else {
-      // Anyone else uses the ui.js blackbox drawing
+      // WIP Characters just render as black boxes 
       drawFighter(ctx, fighter, camera);
   }
 }
@@ -1102,7 +1106,7 @@ function drawBattleScene() {
   drawProjectiles(ctx, projectiles, camera)
   drawActiveSummons(ctx)
   
-  // NEW: Hybrid renderer used here
+  // THE NEW HYBRID RENDERER WRAPPERS
   renderHybridFighter(p1)
   renderHybridFighter(p2)
   

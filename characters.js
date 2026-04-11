@@ -33,7 +33,37 @@ export const characters = {
     archetypes: ["melee", "ranged"], primary: "ranged", secondary: ["melee"],
     traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "high", scaling: "control", animeMovement: true },
     stats: { maxHealth: 1160, maxEnergy: 220, attack: 91, defense: 88, speed: 87, maxJumps: 2, dashSpeed: 18, dashDuration: 8, dashCooldownMax: 35 },
-    animationData: { ...DEFAULT_ANIM_DATA }
+    
+    // GOJO HYBRID ENGINE DATA
+    hasSprites: true, 
+    spriteSheet: "assets/gojo_atlas.png", 
+    animationData: { 
+      idle: { frames: 6, width: 128, height: 128, speed: 8 },
+      walk: { frames: 8, width: 128, height: 128, speed: 5 },
+      hurt: { frames: 2, width: 128, height: 128, speed: 10 },
+      up: { frames: 6, width: 128, height: 128 },
+      air: { frames: 5, width: 128, height: 128 },
+      down_air: { frames: 6, width: 128, height: 128 },
+      grab: { frames: 6, width: 128, height: 128 },
+      light: { 
+        frames: 5, width: 128, height: 128, speed: 4,
+        startup: [0, 1],   
+        active: [2, 3],    
+        recovery: [4]      
+      },
+      heavy: { 
+        frames: 7, width: 128, height: 128, speed: 5,
+        startup: [0, 1, 2], 
+        active: [3, 4], 
+        recovery: [5, 6] 
+      },
+      special_purple: {
+        frames: 10, width: 256, height: 128, speed: 6,
+        startup: [0, 1, 2, 3, 4], 
+        active: [5, 6, 7, 8],     
+        recovery: [9]
+      }
+    }
   },
   megumi: {
     rosterKey: "megumi", name: "Megumi Fushiguro", universe: "jujutsu_kaisen",

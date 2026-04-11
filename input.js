@@ -1,6 +1,6 @@
 /**
  * INPUT MANAGER
- * Handles Keyboard, Gamepads, and Input Buffering (Input Eating Prevention).
+ * Handles Keyboard, Gamepads, Mouse, Input Buffering, Debug Toggles, and Input History.
  */
 
 export const keys = {};
@@ -9,7 +9,7 @@ const p2Buffer = { light: 0, heavy: 0, ultimate: 0, dash: 0, jump: 0, special: 0
 const BUFFER_WINDOW = 10; // Frames to keep an input "active"
 
 export const inputSettings = {
-    p1Type: "keyboard", 
+    p1Type: "keyboard",
     p2Type: "keyboard"
 };
 
@@ -21,15 +21,15 @@ const PS5_MAP = {
 };
 
 export const defaultControls = {
-  left: "a", right: "d", jump: "w", down: "s",
-  light: "j", heavy: "k", up: "i", downAir: "l",
-  ultimate: "u", special: "o", dash: "shift", charge: "c", grab: "g"
+    left: "a", right: "d", jump: "w", down: "s",
+    light: "j", heavy: "k", up: "i", downAir: "l",
+    ultimate: "u", special: "o", dash: "shift", charge: "c", grab: "g"
 };
 
 export const defaultControlsP2 = {
-  left: "arrowleft", right: "arrowright", jump: "arrowup", down: "arrowdown",
-  light: "1", heavy: "2", up: "3", downAir: "4",
-  ultimate: "5", special: "6", dash: "0", charge: "8", grab: "9"
+    left: "arrowleft", right: "arrowright", jump: "arrowup", down: "arrowdown",
+    light: "1", heavy: "2", up: "3", downAir: "4",
+    ultimate: "5", special: "6", dash: "0", charge: "8", grab: "9"
 };
 
 // ------------------------------
@@ -48,6 +48,85 @@ document.addEventListener("keyup", (e) => {
 });
 
 // ------------------------------
+// MOUSE INPUT
+// ------------------------------
+export const mouse = { x: 0, y: 0, clicked: false, _pendingClick: false };
+
+export function setupMouseInput(canvas) {
+    canvas.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+    });
+    canvas.addEventListener("mousedown", () => {
+        mouse._pendingClick = true;
+    });
+    canvas.addEventListener("mouseup", () => {
+        if (mouse._pendingClick) mouse.clicked = true;
+        mouse._pendingClick = false;
+    });
+}
+
+export function pointInRect(x, y, rect) {
+    return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+}
+
+export function consumeMouseClick() {
+    mouse.clicked = false;
+}
+
+// ------------------------------
+// FRAME LIFECYCLE
+// ------------------------------
+export function endInputFrame() {
+    // Safety net: clear click state at end of every frame
+    // so a click never persists if consumeMouseClick() was missed
+    mouse.clicked = false;
+}
+
+// ------------------------------
+// DEBUG / TRAINING TOGGLES
+// ------------------------------
+const debugState = { trainingMode: false };
+let f1WasDown = false;
+
+export function updateDebugInputToggles() {
+    const f1Down = !!keys["f1"];
+    if (f1Down && !f1WasDown) {
+        debugState.trainingMode = !debugState.trainingMode;
+    }
+    f1WasDown = f1Down;
+}
+
+export function getDebugInputState() {
+    return { ...debugState };
+}
+
+// ------------------------------
+// INPUT HISTORY (Training Mode)
+// ------------------------------
+const inputHistory = [];
+const MAX_HISTORY = 120; // frames to retain
+
+export function recordInputFrame(label, controls, fighter, frame) {
+    if (!fighter) return;
+    const entry = { frame, label, inputs: [] };
+    for (const [action, key] of Object.entries(controls)) {
+        if (keys[key]) entry.inputs.push(action);
+    }
+    inputHistory.push(entry);
+    if (inputHistory.length > MAX_HISTORY) inputHistory.shift();
+}
+
+export function recordInputSequence(controls) {
+    // Placeholder — extend here for motion input detection (e.g. quarter-circle)
+}
+
+export function getInputHistory() {
+    return inputHistory;
+}
+
+// ------------------------------
 // POLLING & BUFFERING
 // ------------------------------
 function updateBuffer(buffer) {
@@ -56,7 +135,7 @@ function updateBuffer(buffer) {
 
 function pollGamepad(playerNum, buffer) {
     const gamepads = navigator.getGamepads();
-    const gp = gamepads[playerNum === 1 ? 0 : 1]; 
+    const gp = gamepads[playerNum === 1 ? 0 : 1];
     if (!gp) return null;
 
     if (gp.buttons[PS5_MAP.X].pressed) buffer.light = BUFFER_WINDOW;

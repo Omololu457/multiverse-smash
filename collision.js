@@ -29,7 +29,9 @@ export function updateAttackBox(fighter) {
     }
 
     fighter.attackBox.x =
-        fighter.x + (fighter.facing === 1 ? fighter.w : -fighter.attackBox.w)
+        fighter.facing === 1
+            ? fighter.x + fighter.w
+            : fighter.x - fighter.attackBox.w
 
     fighter.attackBox.y = fighter.y + 30
 }
@@ -82,18 +84,38 @@ export function applyAttack(attacker, target, attackType) {
     return true
 }
 
+// Helper: check if fighter is airborne
+function isAirborne(fighter) {
+    if (!fighter) return false
+
+    return !!(
+        fighter.isJumping ||
+        fighter.inAir ||
+        fighter.airborne ||
+        fighter.onGround === false
+    )
+}
+
 // Legacy exports kept for compatibility with older files.
 // Main combat behavior is now handled in combat.js.
 
 export function launcherAttack(attacker, target) {
     if (!attacker || !target) return
+
+    // Launch the target only
     target.vy = -12
-    attacker.vy = -8
+
+    // Keep grounded attacker from being pushed upward
+    if (!isAirborne(attacker)) {
+        attacker.vy = 0
+    }
+
     attacker.airHits = 0
 }
 
 export function airCombo(attacker, target) {
     if (!attacker || !target) return
+
     attacker.airHits = attacker.airHits || 0
     attacker.maxAirHits = attacker.maxAirHits || 3
 
@@ -105,5 +127,9 @@ export function airCombo(attacker, target) {
 
 export function downAirSpike(attacker, target) {
     if (!attacker || !target) return
+
+    // Optional safety so grounded attacks do not spike
+    if (!isAirborne(attacker)) return
+
     target.vy = 15
 }

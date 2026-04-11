@@ -15,6 +15,9 @@ export const physics = {
 
     if (fighter.vx == null) fighter.vx = 0
     if (fighter.vy == null) fighter.vy = 0
+    if (fighter.h == null) fighter.h = fighter.height || 80
+    if (fighter.w == null) fighter.w = fighter.width || 50
+
     if (fighter.jumpForce == null) {
       fighter.jumpForce = -(fighter.jump || 14)
     }
@@ -50,6 +53,7 @@ export const physics = {
       fighter.onGround = false
       fighter.grounded = false
       fighter.ground = false
+      fighter.isLaunched = true
     }
 
     fighter.x += fighter.vx
@@ -62,6 +66,26 @@ export const physics = {
     if (fighter.vy == null) fighter.vy = 0
     if (fighter.h == null) fighter.h = fighter.height || 80
 
+    const floor =
+      fighter.groundY != null
+        ? fighter.groundY
+        : fighter.floorY != null
+        ? fighter.floorY
+        : this.groundY
+
+    // Keep grounded fighters locked to the floor unless they are actually jumping/launched
+    const groundedNow =
+      fighter.onGround || fighter.grounded || fighter.ground
+
+    if (groundedNow && fighter.vy >= 0 && !fighter.isLaunched) {
+      fighter.y = floor - fighter.h
+      fighter.vy = 0
+      fighter.onGround = true
+      fighter.grounded = true
+      fighter.ground = true
+      return
+    }
+
     fighter.vy += this.gravity
 
     if (fighter.vy > this.maxFallSpeed) {
@@ -69,13 +93,6 @@ export const physics = {
     }
 
     fighter.y += fighter.vy
-
-    const floor =
-      fighter.groundY != null
-        ? fighter.groundY
-        : fighter.floorY != null
-        ? fighter.floorY
-        : this.groundY
 
     if (fighter.y + fighter.h >= floor) {
       fighter.y = floor - fighter.h
@@ -111,18 +128,34 @@ export const physics = {
     fighter.attackBox.y = (fighter.y || 0) + 30
   },
 
-  launcherAttack(attacker, target, launchY = -12, selfLift = -8) {
+  launcherAttack(attacker, target, launchY = -12, selfLift = 0) {
     if (!attacker || !target) return
 
     target.vy = launchY
-    attacker.vy = selfLift
+    target.onGround = false
+    target.grounded = false
+    target.ground = false
+    target.isLaunched = true
+
+    // Do not lift grounded attacker
+    const attackerAirborne =
+      attacker.isJumping ||
+      attacker.inAir ||
+      attacker.airborne ||
+      attacker.onGround === false
+
+    if (attackerAirborne && selfLift < 0) {
+      attacker.vy = selfLift
+      attacker.isLaunched = true
+    } else {
+      attacker.vy = 0
+      attacker.isLaunched = false
+    }
 
     attacker.airHits = 0
-    attacker.isLaunched = true
-    target.isLaunched = true
   },
 
-  airCombo(attacker, target, launchY = -2) {
+  airCombo(attacker, target, launchY = -6) {
     if (!attacker || !target) return
 
     attacker.airHits = attacker.airHits || 0
@@ -131,11 +164,21 @@ export const physics = {
     if (attacker.airHits >= attacker.maxAirHits) return
 
     target.vy = launchY
+    target.onGround = false
+    target.grounded = false
+    target.ground = false
+    target.isLaunched = true
+
     attacker.airHits++
   },
 
   downAirSpike(attacker, target, force = 14) {
     if (!attacker || !target) return
+
     target.vy = force
+    target.onGround = false
+    target.grounded = false
+    target.ground = false
+    target.isLaunched = true
   }
 }

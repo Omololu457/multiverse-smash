@@ -1,32 +1,24 @@
 // physics.js
-// Hyper-Fighter speed tuning (SSF2 / MK1 feel)
+// Hyper-Fighter speed tuning (SSF2 / MK1 feel) - High Jump Edition
 
 export const physics = {
-  // EXTREME GRAVITY: Characters fall like rocks for instant air-to-ground combos
   gravity: 2.2, 
   groundY: 520,
-  
-  // INSTANT STOPPING: Friction is heavily reduced so you stop exactly when you let go of the keys
   friction: 0.4, 
   airFriction: 0.85, 
-  
-  // UNCAPPED FALLING: Fast-falling is much more aggressive
   maxFallSpeed: 35,
 
   moveFighter(fighter, keys = {}, controls = {}) {
     if (!fighter) return
     if (fighter.hitstop > 0) return 
 
-    // BLISTERING BASE SPEED
     const speed = fighter.speed || 18
 
     if (fighter.vx == null) fighter.vx = 0
     if (fighter.vy == null) fighter.vy = 0
     if (fighter.h == null) fighter.h = fighter.height || 80
     if (fighter.w == null) fighter.w = fighter.width || 50
-    
-    // MASSIVE JUMP FORCE to fight the extreme gravity
-    if (fighter.jumpForce == null) fighter.jumpForce = -(fighter.jump || 28)
+    if (fighter.jumpForce == null) fighter.jumpForce = -(fighter.jump || 36)
 
     if (fighter.jumpCount == null) fighter.jumpCount = 0
     if (fighter.maxJumps == null) fighter.maxJumps = fighter.stats?.maxJumps || 1 
@@ -53,14 +45,12 @@ export const physics = {
 
     if (canMove) {
       if (dashPressed && fighter.dashCooldown <= 0) {
-          // MK1/SSF2 Dashes are incredibly short but cover massive distance instantly
           fighter.dashTimer = fighter.dashDuration || 5; 
           fighter.dashCooldown = fighter.dashCooldownMax || 20; 
       }
 
       if (fighter.dashTimer > 0) {
           fighter.dashTimer--;
-          // BLINK SPEED DASH
           fighter.vx = fighter.facing * (fighter.dashSpeed || 45);
           fighter.vy = 0; 
       } 
@@ -112,15 +102,8 @@ export const physics = {
     if (fighter.vy == null) fighter.vy = 0
     if (fighter.h == null) fighter.h = fighter.height || 80
 
-    const floor =
-      fighter.groundY != null
-        ? fighter.groundY
-        : fighter.floorY != null
-        ? fighter.floorY
-        : this.groundY
-
-    const groundedNow =
-      fighter.onGround || fighter.grounded || fighter.ground
+    const floor = fighter.groundY != null ? fighter.groundY : fighter.floorY != null ? fighter.floorY : this.groundY
+    const groundedNow = fighter.onGround || fighter.grounded || fighter.ground
 
     if (groundedNow && fighter.vy >= 0 && !fighter.isLaunched) {
       fighter.y = floor - fighter.h
@@ -164,7 +147,7 @@ export const physics = {
     fighter.attackBox.y = (fighter.y || 0) + 30
   },
 
-  launcherAttack(attacker, target, launchY = -28, selfLift = -18) { // Scaled up to beat the new gravity
+  launcherAttack(attacker, target, launchY = -36, selfLift = -22) { 
     if (!attacker || !target) return
     target.vy = launchY
     target.onGround = false
@@ -183,7 +166,7 @@ export const physics = {
     attacker.airHits = 0
   },
 
-  airCombo(attacker, target, launchY = -14) { 
+  airCombo(attacker, target, launchY = -18) { 
     if (!attacker || !target) return
     attacker.airHits = attacker.airHits || 0
     attacker.maxAirHits = attacker.maxAirHits || 3
@@ -197,7 +180,7 @@ export const physics = {
     attacker.airHits++
   },
 
-  downAirSpike(attacker, target, force = 30) { // Instant slam to the ground
+  downAirSpike(attacker, target, force = 30) { 
     if (!attacker || !target) return
     target.vy = force
     target.onGround = false

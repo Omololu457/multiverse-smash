@@ -1,26 +1,23 @@
-// physics.js
-// Hyper-Fighter speed tuning (SSF2 / MK1 feel) - High Jump Edition
+// physics.js - High Jump + Screen Clamping Edition
 
 export const physics = {
-  gravity: 1.25,       // Reduced from 2.2 to allow for higher, more fluid arcs
+  gravity: 1.25,
   groundY: 520,
   friction: 0.4, 
-  airFriction: 0.92,   // Slightly increased to give better control in the air
-  maxFallSpeed: 25,    // Reduced from 35 to prevent the "heavy rock" falling feel
+  airFriction: 0.92,
+  maxFallSpeed: 25,
 
-  moveFighter(fighter, keys = {}, controls = {}) {
+  moveFighter(fighter, keys = {}, controls = {}, camera = null) {
     if (!fighter) return
     if (fighter.hitstop > 0) return 
 
     const speed = fighter.speed || 18
 
-    // Initialization of properties
     if (fighter.vx == null) fighter.vx = 0
     if (fighter.vy == null) fighter.vy = 0
     if (fighter.h == null) fighter.h = fighter.height || 80
     if (fighter.w == null) fighter.w = fighter.width || 50
     
-    // Jump Stats based on Archetype
     if (fighter.maxJumps == null) fighter.maxJumps = fighter.stats?.maxJumps || 1 
     if (fighter.jumpForce == null) fighter.jumpForce = -(fighter.stats?.jumpPower || 32)
     
@@ -29,7 +26,6 @@ export const physics = {
     if (fighter.dashTimer == null) fighter.dashTimer = 0
     if (fighter.dashCooldown == null) fighter.dashCooldown = 0
     
-    // External Forces (Knockback, etc)
     if (fighter.externalForces && fighter.externalForces.length > 0) {
         fighter.externalForces.forEach(force => {
             fighter.vx += force.x || 0;
@@ -48,7 +44,6 @@ export const physics = {
     const canMove = !(fighter.stun > 0 || fighter.hitstun > 0 || fighter.blockstun > 0 || fighter.isGrabbed)
 
     if (canMove) {
-      // Dash Logic
       if (dashPressed && fighter.dashCooldown <= 0) {
           fighter.dashTimer = fighter.dashDuration || 5; 
           fighter.dashCooldown = fighter.dashCooldownMax || 20; 
@@ -72,21 +67,16 @@ export const physics = {
           }
       }
 
-      // Jump Logic with Archetype Support
-      if (fighter.onGround) {
-          fighter.jumpCount = 0;
-      }
-
+      if (fighter.onGround) fighter.jumpCount = 0;
       const canJump = fighter.canJump !== false && fighter.jumpCount < fighter.maxJumps;
 
       if (upPressed && !fighter.jumpHeld && canJump) {
         fighter.vy = fighter.jumpForce
         fighter.jumpCount++
         fighter.onGround = false
-        fighter.grounded = false
-        fighter.isLaunched = true // Prevents floor-snapping in applyGravity
+        fighter.isLaunched = true 
         fighter.jumpHeld = true
-        fighter.airHits = 0 // Reset air combo counter on new jump
+        fighter.airHits = 0 
       } else if (!upPressed) {
         fighter.jumpHeld = false
       }
@@ -97,34 +87,41 @@ export const physics = {
     }
 
     fighter.x += fighter.vx
+
+    // MK1 SCREEN BOUNDARY CLAMPING
+    if (camera && !fighter.ignoreCameraBounds) {
+        this.clampToCamera(fighter, camera);
+    }
+  },
+
+  clampToCamera(fighter, camera) {
+    // Calculate the world coordinates of the camera edges
+    // Adding a small padding (e.g. 10px) so they don't look glued to the edge
+    const padding = 20;
+    const viewWidth = window.innerWidth / camera.zoom;
+    const leftEdge = camera.x - viewWidth / 2 + padding;
+    const rightEdge = camera.x + viewWidth / 2 - fighter.w - padding;
+
+    if (fighter.x < leftEdge) {
+        fighter.x = leftEdge;
+        fighter.vx = 0;
+    } else if (fighter.x > rightEdge) {
+        fighter.x = rightEdge;
+        fighter.vx = 0;
+    }
   },
 
   applyGravity(fighter) {
-    if (!fighter) return
-    if (fighter.hitstop > 0) return 
-    if (fighter.dashTimer > 0) return
-
+    if (!fighter || fighter.hitstop > 0 || fighter.dashTimer > 0) return
     const floor = fighter.groundY != null ? fighter.groundY : this.groundY
-    const groundedNow = fighter.onGround || fighter.grounded
-
-    // Ground Snap Check
-    if (groundedNow && fighter.vy >= 0 && !fighter.isLaunched) {
+    if ((fighter.onGround || fighter.grounded) && fighter.vy >= 0 && !fighter.isLaunched) {
       fighter.y = floor - fighter.h
       fighter.vy = 0
       return
     }
-
-    // Apply Gravity
     fighter.vy += this.gravity
-
-    // Cap Fall Speed
-    if (fighter.vy > this.maxFallSpeed) {
-      fighter.vy = this.maxFallSpeed
-    }
-
+    if (fighter.vy > this.maxFallSpeed) fighter.vy = this.maxFallSpeed
     fighter.y += fighter.vy
-
-    // Floor Collision Detection
     if (fighter.y + fighter.h >= floor) {
       fighter.y = floor - fighter.h
       fighter.vy = 0
@@ -140,9 +137,7 @@ export const physics = {
 
   updateAttackBox(fighter) {
     if (!fighter) return
-    if (!fighter.attackBox) {
-      fighter.attackBox = { x: 0, y: 0, w: 60, h: 40 }
-    }
+    if (!fighter.attackBox) fighter.attackBox = { x: 0, y: 0, w: 60, h: 40 }
     const width = fighter.attackBox.w || 60
     fighter.attackBox.x = fighter.x + (fighter.facing === 1 ? fighter.w : -width)
     fighter.attackBox.y = fighter.y + 30
@@ -153,7 +148,6 @@ export const physics = {
     target.vy = launchY
     target.onGround = false
     target.isLaunched = true
-
     if (attacker.onGround === false && selfLift < 0) {
       attacker.vy = selfLift
       attacker.isLaunched = true
@@ -168,7 +162,6 @@ export const physics = {
     attacker.airHits = attacker.airHits || 0
     attacker.maxAirHits = attacker.maxAirHits || 3
     if (attacker.airHits >= attacker.maxAirHits) return
-
     target.vy = launchY
     target.onGround = false
     target.isLaunched = true

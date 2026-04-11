@@ -24,7 +24,8 @@ function getMoveData(fighter, moveKey) {
     case "air": return basic.airAttack || basic.air || null
     case "down_air": return basic.downAir || basic.down_air || null
     case "grab": return basic.grab || { damage: 30, hitstun: 18, throw_force_x: 5, throw_force_y: -4 }
-    default: return null
+    // NEW: Fallback for custom specials mapped in character data (e.g., "special_purple")
+    default: return basic[moveKey] || fighter?.specials?.[moveKey] || { damage: 40, hitstun: 20 }
   }
 }
 
@@ -136,24 +137,53 @@ function buildBaseAttack({ fighter, name, startup, active, recovery, damage, ran
   return { name, damage, total, timer: total, activeStart: Math.max(1, startup), activeEnd: Math.max(startup + 1, startup + active), rangeX, rangeY, hitstun, hitstop, pushX, launchY, hasHit: false }
 }
 
+// NEW: Helper function to sync combat frames with visual sprite animations
+function getSyncedFrames(fighter, moveKey, defaultFrames) {
+  if (fighter?.hasSprites && fighter?.animationData?.[moveKey]) {
+      const anim = fighter.animationData[moveKey];
+      const speed = anim.speed || 5; // Fallback speed
+      return {
+          startup: anim.startup ? anim.startup.length * speed : defaultFrames.startup,
+          active: anim.active ? anim.active.length * speed : defaultFrames.active,
+          recovery: anim.recovery ? anim.recovery.length * speed : defaultFrames.recovery
+      };
+  }
+  return defaultFrames;
+}
+
 export function buildAttackConfig(fighter, moveKey, moveData) {
   if (!moveData) return null
-  if (moveKey === "light") return buildBaseAttack({ fighter, name: "light", startup: moveData.startup || 4, active: moveData.active || 3, recovery: moveData.recovery || 10, damage: moveData.damage || 35, rangeX: moveData.rangeX || 55, rangeY: moveData.rangeY || 40, hitstun: moveData.hitstun || 14, hitstop: 4, pushX: moveData.knockbackX || 3, launchY: moveData.knockbackY ?? -2 })
-  if (moveKey === "heavy") return buildBaseAttack({ fighter, name: "heavy", startup: moveData.startup || 7, active: moveData.active || 4, recovery: moveData.recovery || 15, damage: moveData.damage || 60, rangeX: moveData.rangeX || 70, rangeY: moveData.rangeY || 45, hitstun: moveData.hitstun || 20, hitstop: 8, pushX: moveData.knockbackX || 6, launchY: moveData.knockbackY ?? -4 })
+  
+  if (moveKey === "light") {
+    const frames = getSyncedFrames(fighter, moveKey, { startup: moveData.startup || 4, active: moveData.active || 3, recovery: moveData.recovery || 10 });
+    return buildBaseAttack({ fighter, name: "light", startup: frames.startup, active: frames.active, recovery: frames.recovery, damage: moveData.damage || 35, rangeX: moveData.rangeX || 55, rangeY: moveData.rangeY || 40, hitstun: moveData.hitstun || 14, hitstop: 4, pushX: moveData.knockbackX || 3, launchY: moveData.knockbackY ?? -2 })
+  }
+  if (moveKey === "heavy") {
+    const frames = getSyncedFrames(fighter, moveKey, { startup: moveData.startup || 7, active: moveData.active || 4, recovery: moveData.recovery || 15 });
+    return buildBaseAttack({ fighter, name: "heavy", startup: frames.startup, active: frames.active, recovery: frames.recovery, damage: moveData.damage || 60, rangeX: moveData.rangeX || 70, rangeY: moveData.rangeY || 45, hitstun: moveData.hitstun || 20, hitstop: 8, pushX: moveData.knockbackX || 6, launchY: moveData.knockbackY ?? -4 })
+  }
   if (moveKey === "up") {
-    const atk = buildBaseAttack({ fighter, name: "up", startup: moveData.startup || 6, active: moveData.active || 4, recovery: moveData.recovery || 16, damage: moveData.damage || 55, rangeX: moveData.rangeX || 44, rangeY: moveData.rangeY || 72, hitstun: moveData.hitstun || 18, hitstop: 6, pushX: moveData.knockbackX || 2, launchY: moveData.knockbackY ?? -36 })
+    const frames = getSyncedFrames(fighter, moveKey, { startup: moveData.startup || 6, active: moveData.active || 4, recovery: moveData.recovery || 16 });
+    const atk = buildBaseAttack({ fighter, name: "up", startup: frames.startup, active: frames.active, recovery: frames.recovery, damage: moveData.damage || 55, rangeX: moveData.rangeX || 44, rangeY: moveData.rangeY || 72, hitstun: moveData.hitstun || 18, hitstop: 6, pushX: moveData.knockbackX || 2, launchY: moveData.knockbackY ?? -36 })
     atk.launcher = true; atk.selfLift = moveData.selfLift ?? -22; return atk
   }
-  if (moveKey === "air") return buildBaseAttack({ fighter, name: "air", startup: moveData.startup || 5, active: moveData.active || 4, recovery: moveData.recovery || 10, damage: moveData.damage || 45, rangeX: moveData.rangeX || 56, rangeY: moveData.rangeY || 40, hitstun: moveData.hitstun || 14, hitstop: 5, pushX: moveData.knockbackX || 3, launchY: moveData.knockbackY ?? -18 })
+  if (moveKey === "air") {
+    const frames = getSyncedFrames(fighter, moveKey, { startup: moveData.startup || 5, active: moveData.active || 4, recovery: moveData.recovery || 10 });
+    return buildBaseAttack({ fighter, name: "air", startup: frames.startup, active: frames.active, recovery: frames.recovery, damage: moveData.damage || 45, rangeX: moveData.rangeX || 56, rangeY: moveData.rangeY || 40, hitstun: moveData.hitstun || 14, hitstop: 5, pushX: moveData.knockbackX || 3, launchY: moveData.knockbackY ?? -18 })
+  }
   if (moveKey === "down_air") {
-    const atk = buildBaseAttack({ fighter, name: "down_air", startup: moveData.startup || 7, active: moveData.active || 5, recovery: moveData.recovery || 14, damage: moveData.damage || 60, rangeX: moveData.rangeX || 48, rangeY: moveData.rangeY || 50, hitstun: moveData.hitstun || 18, hitstop: 8, pushX: moveData.knockbackX || 2, launchY: moveData.knockbackY ?? 30 })
+    const frames = getSyncedFrames(fighter, moveKey, { startup: moveData.startup || 7, active: moveData.active || 5, recovery: moveData.recovery || 14 });
+    const atk = buildBaseAttack({ fighter, name: "down_air", startup: frames.startup, active: frames.active, recovery: frames.recovery, damage: moveData.damage || 60, rangeX: moveData.rangeX || 48, rangeY: moveData.rangeY || 50, hitstun: moveData.hitstun || 18, hitstop: 8, pushX: moveData.knockbackX || 2, launchY: moveData.knockbackY ?? 30 })
     atk.spike = true; atk.spikeForce = moveData.spike || moveData.knockbackY || 30; return atk
   }
   if (moveKey === "grab") {
     const total = getAttackDuration(22, fighter)
     return { name: "grab", damage: moveData.damage || 30, total, timer: total, activeStart: Math.max(3, Math.floor(total * 0.2)), activeEnd: Math.max(6, Math.floor(total * 0.45)), rangeX: moveData.rangeX || 36, rangeY: moveData.rangeY || 42, hitstun: moveData.hitstun || moveData.stun || 18, hitstop: 0, pushX: moveData.throw_force_x || 5, launchY: moveData.throw_force_y || -4, isGrab: true, hasHit: false }
   }
-  return null
+  
+  // NEW: Catch-all for Custom Specials (e.g. "special_purple")
+  const frames = getSyncedFrames(fighter, moveKey, { startup: moveData.startup || 10, active: moveData.active || 8, recovery: moveData.recovery || 12 });
+  return buildBaseAttack({ fighter, name: moveKey, startup: frames.startup, active: frames.active, recovery: frames.recovery, damage: moveData.damage || 50, rangeX: moveData.rangeX || 80, rangeY: moveData.rangeY || 40, hitstun: moveData.hitstun || 20, hitstop: moveData.hitstop || 6, pushX: moveData.knockbackX || 5, launchY: moveData.knockbackY || -2 });
 }
 
 export function startMove(fighter, moveKey, moveData) {
@@ -185,12 +215,14 @@ export function updateStunTimers(fighter) {
 
 export function beginMoveFromInput(fighter, controls) {
   if (!fighter || !controls) return false
-  if (controls.upAttack) { const moveData = getMoveData(fighter, "up"); if (canStartMove(fighter, moveData)) return startMove(fighter, "up", moveData) }
-  if (controls.grab) { const moveData = getMoveData(fighter, "grab"); if (canStartMove(fighter, moveData)) return startMove(fighter, "grab", moveData) }
-  if (controls.downAir) { const moveData = getMoveData(fighter, "down_air"); if (canStartMove(fighter, moveData)) return startMove(fighter, "down_air", moveData) }
-  if (controls.air) { const moveData = getMoveData(fighter, "air"); if (canStartMove(fighter, moveData)) return startMove(fighter, "air", moveData) }
-  if (controls.light) { const moveData = getMoveData(fighter, "light"); if (canStartMove(fighter, moveData)) return startMove(fighter, "light", moveData) }
-  if (controls.heavy) { const moveData = getMoveData(fighter, "heavy"); if (canStartMove(fighter, moveData)) return startMove(fighter, "heavy", moveData) }
+  // Added basic parsing to support any custom special mapped to a control key
+  for (const key of Object.keys(controls)) {
+    if (controls[key]) {
+      const mappedKey = key === "downAir" ? "down_air" : key === "upAttack" ? "up" : key;
+      const moveData = getMoveData(fighter, mappedKey);
+      if (canStartMove(fighter, moveData)) return startMove(fighter, mappedKey, moveData);
+    }
+  }
   return false
 }
 

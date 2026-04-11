@@ -82,9 +82,10 @@ canvas.height = window.innerHeight
 setupMouseInput(canvas)
 
 // ------------------------------------------------------------------
-// PRE-LOAD SPRITE SHEETS (Currently Gojo, scalable for roster)
+// PRE-LOAD SPRITE SHEETS (Matched exactly to your GitHub filenames)
 // ------------------------------------------------------------------
 const gojoSprites = {};
+// Note: 'hollow_purple' in code maps to 'gojo_hollow_purple_sheet.png' in repo
 const gojoSheets = [
   'idle', 'walk', 'jump', 'light', 'heavy', 'hurt', 
   'blue', 'red', 'hollow_purple', 'infinity', 'teleport'
@@ -92,8 +93,8 @@ const gojoSheets = [
 
 gojoSheets.forEach(sheet => {
   gojoSprites[sheet] = new Image();
-  // Adjust this path if your images are in a folder (e.g., 'assets/gojo_' + sheet + '.png')
-  gojoSprites[sheet].src = `gojo_${sheet}.png`; 
+  // Using relative pathing for root files + exact naming convention in your repo
+  gojoSprites[sheet].src = `./gojo_${sheet}_sheet.png`; 
 });
 
 const FLOOR_HEIGHT = 120
@@ -427,7 +428,7 @@ function createFighter(charKey, char, x, facing, controls, side) {
   const jump = Math.max(DEFAULT_JUMP, toFiniteNumber(char?.jump ?? movement?.jump, 7))
   const groundedY = getGroundedYForHeight(height)
   
-  // FIX: Explicitly define variables before they are referenced in the return object
+  // FIX: Define variables before they are referenced in the return object
   const attackMultiplier = toFiniteNumber(char?.attackMultiplier, 1)
   const damageMultiplier = toFiniteNumber(char?.damageMultiplier, 1)
   const speedMultiplier = toFiniteNumber(char?.speedMultiplier, 1)
@@ -867,7 +868,7 @@ function checkRoundEnd() {
 
   roundNumber++
   roundBreakTimer = ROUND_BREAK_DURATION
-  gameState = GAME_STATES.ROUND_BREAK
+  gameState = GAME_STATES.BATTLE
 }
 
 // ------------------------------------------------------------------
@@ -876,17 +877,15 @@ function checkRoundEnd() {
 function renderHybridFighter(fighter) {
   if (!fighter) return;
 
-  // Uses the global boolean we added to characters.js
   if (fighter.hasSprites && fighter.spriteHandler) {
-      // Assuming gojoSprites dictionary is loaded for now. 
-      // You can expand this to load generic 'fighterSprites' later.
+      // Logic for multi-character sprite sheets can be expanded here
+      // For now, it uses the gojoSprites dictionary pre-loaded above
       if (gojoSprites['idle']?.complete && gojoSprites['idle']?.naturalWidth > 0) {
           fighter.spriteHandler.draw(ctx, fighter, gojoSprites);
       } else {
-          drawFighter(ctx, fighter, camera); // Fallback box while PNGs are loading
+          drawFighter(ctx, fighter, camera); 
       }
   } else {
-      // WIP Characters just render as black boxes 
       drawFighter(ctx, fighter, camera);
   }
 }
@@ -978,9 +977,6 @@ function updateHoverIndices() {
   }
 }
 
-// ------------------------------------------------------------------
-// SETTINGS MENU RECTS
-// ------------------------------------------------------------------
 const p1SettingRect = { x: window.innerWidth/2 - 200, y: 300, w: 400, h: 60 };
 const p2SettingRect = { x: window.innerWidth/2 - 200, y: 400, w: 400, h: 60 };
 const backSettingRect = { x: window.innerWidth/2 - 100, y: 550, w: 200, h: 50 };
@@ -1113,7 +1109,6 @@ function drawBattleScene() {
   drawProjectiles(ctx, projectiles, camera)
   drawActiveSummons(ctx)
   
-  // THE NEW HYBRID RENDERER WRAPPERS
   renderHybridFighter(p1)
   renderHybridFighter(p2)
   
@@ -1148,7 +1143,6 @@ function renderCurrentState() {
   switch (gameState) {
     case GAME_STATES.START:
       drawStartScreen(ctx, canvas)
-      // Render Settings Button Overlay on Start Screen
       ctx.fillStyle = "#444"; 
       ctx.fillRect(settingsButtonRect.x, settingsButtonRect.y, settingsButtonRect.w, settingsButtonRect.h);
       ctx.fillStyle = "#FFF"; 

@@ -1,5 +1,7 @@
+// game.js
 import { characters } from "./characters.js"
 import { camera } from "./camera.js"
+import { SpriteHandler } from "./sprite.js" // NEW: Import the animation handler
 import {
   keys,
   mouse,
@@ -77,6 +79,20 @@ canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 setupMouseInput(canvas)
 
+// ------------------------------------------------------------------
+// NEW: PRE-LOAD GOJO SPRITE SHEETS
+// ------------------------------------------------------------------
+const gojoSprites = {};
+const gojoSheets = [
+    'idle', 'walk', 'jump', 'light', 'heavy', 'hurt', 
+    'blue', 'red', 'hollow_purple', 'infinity', 'teleport'
+];
+
+gojoSheets.forEach(sheet => {
+    gojoSprites[sheet] = new Image();
+    gojoSprites[sheet].src = `gojo_${sheet}_sheet.png`;
+});
+
 const FLOOR_HEIGHT = 120
 const WORLD_WIDTH = 3200
 const WORLD_HEIGHT = 1600
@@ -117,7 +133,8 @@ const P1_CONTROLS = {
   ultimate: "l",
   transform: "u",
   charge: "o",
-  toggle: "q"
+  toggle: "q",
+  dash: "shift" // Added standard dash key for physics
 }
 
 const P2_CONTROLS = {
@@ -132,7 +149,8 @@ const P2_CONTROLS = {
   ultimate: "4",
   transform: "5",
   charge: "6",
-  toggle: "7"
+  toggle: "7",
+  dash: "0"
 }
 
 const stages = [
@@ -252,18 +270,14 @@ function toFiniteNumber(value, fallback) {
 
 function buildUniverseMap() {
   const map = {}
-
   for (const key of allCharacterKeys) {
     const char = characters[key]
     const universe = char?.universe || "other"
-
     if (!map[universe]) {
       map[universe] = []
     }
-
     map[universe].push(key)
   }
-
   return map
 }
 
@@ -278,7 +292,6 @@ function getUniverseCharacters() {
   if (!matchConfig.selectedUniverse || !universeMap[matchConfig.selectedUniverse]) {
     return []
   }
-
   return universeMap[matchConfig.selectedUniverse]
 }
 
@@ -309,11 +322,7 @@ function getOpponent(fighter) {
 
 function getAbilityContext() {
   return {
-    p1,
-    p2,
-    getOpponent,
-    camera,
-    activeDomains,
+    p1, p2, getOpponent, camera, activeDomains,
     worldWidth: getStageWorldWidth(),
     createFighter,
     deltaMs: 1000 / 60
@@ -322,15 +331,12 @@ function getAbilityContext() {
 
 function updateCameraBounds() {
   const visibleWorldHeight = canvas.height
-
   if (typeof camera.setWorldBounds === "function") {
     camera.setWorldBounds(getStageWorldWidth(), visibleWorldHeight)
   }
-
   if (typeof camera.setVerticalLimits === "function") {
     camera.setVerticalLimits(0, visibleWorldHeight)
   }
-
   camera.minZoom = 0.72
   camera.maxZoom = 1.0
   camera.moveSmooth = 0.1
@@ -346,11 +352,9 @@ function updateCameraBounds() {
 
 function syncPhysicsBounds() {
   refreshStageMetrics()
-
   if (typeof physics.setGroundY === "function") {
     physics.setGroundY(groundY)
   }
-
   if (typeof physics.setStageBounds === "function") {
     physics.setStageBounds(0, getStageWorldWidth())
   }
@@ -377,23 +381,8 @@ function getSpawnPositions() {
   const p1Width = toFiniteNumber(matchConfig.p1Char?.w ?? matchConfig.p1Char?.width, 60)
   const p2Width = toFiniteNumber(matchConfig.p2Char?.w ?? matchConfig.p2Char?.width, 60)
   const stageCenter = stageWorldWidth * 0.5
-
-  const p1X = Math.max(
-    EDGE_SPAWN_PADDING,
-    Math.min(
-      stageWorldWidth - p1Width - EDGE_SPAWN_PADDING,
-      stageCenter - CENTER_SPAWN_GAP - p1Width
-    )
-  )
-
-  const p2X = Math.max(
-    EDGE_SPAWN_PADDING,
-    Math.min(
-      stageWorldWidth - p2Width - EDGE_SPAWN_PADDING,
-      stageCenter + CENTER_SPAWN_GAP
-    )
-  )
-
+  const p1X = Math.max(EDGE_SPAWN_PADDING, Math.min(stageWorldWidth - p1Width - EDGE_SPAWN_PADDING, stageCenter - CENTER_SPAWN_GAP - p1Width))
+  const p2X = Math.max(EDGE_SPAWN_PADDING, Math.min(stageWorldWidth - p2Width - EDGE_SPAWN_PADDING, stageCenter + CENTER_SPAWN_GAP))
   return { p1X, p2X }
 }
 
@@ -404,32 +393,13 @@ function createFighter(charKey, char, x, facing, controls, side) {
 
   const width = toFiniteNumber(char?.w ?? char?.width, 60)
   const height = toFiniteNumber(char?.h ?? char?.height, 100)
-  const maxHealth = Math.max(
-    1,
-    toFiniteNumber(char?.maxHealth ?? char?.health, 1000)
-  )
-  const maxEnergy = Math.max(
-    1,
-    toFiniteNumber(char?.maxEnergy ?? char?.energy ?? char?.meter, DEFAULT_MAX_ENERGY)
-  )
-  const startingEnergy = Math.max(
-    0,
-    toFiniteNumber(char?.energy, maxEnergy)
-  )
-  const speed = Math.max(
-    DEFAULT_SPEED,
-    toFiniteNumber(char?.speed ?? movement?.speed, 7)
-  )
-  const jump = Math.max(
-    DEFAULT_JUMP,
-    toFiniteNumber(char?.jump ?? movement?.jump, 7)
-  )
+  const maxHealth = Math.max(1, toFiniteNumber(char?.maxHealth ?? char?.health, 1000))
+  const maxEnergy = Math.max(1, toFiniteNumber(char?.maxEnergy ?? char?.energy ?? char?.meter, DEFAULT_MAX_ENERGY))
+  const startingEnergy = Math.max(0, toFiniteNumber(char?.energy, maxEnergy))
+  const speed = Math.max(DEFAULT_SPEED, toFiniteNumber(char?.speed ?? movement?.speed, 7))
+  const jump = Math.max(DEFAULT_JUMP, toFiniteNumber(char?.jump ?? movement?.jump, 7))
   const groundedY = getGroundedYForHeight(height)
-  const attackMultiplier = toFiniteNumber(char?.attackMultiplier, 1)
-  const damageMultiplier = toFiniteNumber(char?.damageMultiplier, 1)
-  const speedMultiplier = toFiniteNumber(char?.speedMultiplier, 1)
-  const defenseMultiplier = toFiniteNumber(char?.defenseMultiplier, 1)
-
+  
   return {
     ...char,
     rosterKey: charKey,
@@ -451,18 +421,17 @@ function createFighter(charKey, char, x, facing, controls, side) {
     baseJump: jump,
     speed,
     jump,
-    attackMultiplier,
-    damageMultiplier,
-    speedMultiplier,
-    defenseMultiplier,
+    attackMultiplier: toFiniteNumber(char?.attackMultiplier, 1),
+    damageMultiplier: toFiniteNumber(char?.damageMultiplier, 1),
+    speedMultiplier: toFiniteNumber(char?.speedMultiplier, 1),
+    defenseMultiplier: toFiniteNumber(char?.defenseMultiplier, 1),
     moveMultiplier: movement.moveMultiplier || 1,
     attackSpeedMultiplier: movement.attackSpeedMultiplier || 1,
-    maxJumps: movement.jumpCount || 1,
+    maxJumps: char?.stats?.maxJumps || movement.jumpCount || 1,
     jumpsUsed: 0,
-    wallJump: !!movement.wallJump,
-    dashTeleport: !!movement.dashTeleport,
     hitstun: 0,
     blockstun: 0,
+    hitstop: 0,
     attackCooldown: 0,
     currentAttack: null,
     attacking: false,
@@ -498,20 +467,13 @@ function createFighter(charKey, char, x, facing, controls, side) {
     deathRitual: false,
     ritualActive: false,
     pendingCharacterSwap: null,
-    attackBox: {
-      x,
-      y: groundedY + 30,
-      w: 60,
-      h: 40
-    },
+    attackBox: { x, y: groundedY + 30, w: 60, h: 40 },
     baseForm: {
-      damageMultiplier,
-      attackMultiplier,
-      speedMultiplier,
-      defenseMultiplier,
-      isSpecial: false,
-      kiDrainPerSecond: 0
-    }
+      damageMultiplier: 1, attackMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1,
+      isSpecial: false, kiDrainPerSecond: 0
+    },
+    // NEW: Only give SpriteHandler to Gojo
+    spriteHandler: charKey === 'gojo' ? new SpriteHandler() : null
   }
 }
 
@@ -520,20 +482,10 @@ function getFallbackCharacterKey() {
 }
 
 function ensureTrainingOpponent() {
-  if (matchConfig.mode !== "training") {
-    return
-  }
-
-  if (matchConfig.p2CharKey && matchConfig.p2Char) {
-    return
-  }
-
+  if (matchConfig.mode !== "training") return
+  if (matchConfig.p2CharKey && matchConfig.p2Char) return
   const fallbackKey = matchConfig.p1CharKey || getFallbackCharacterKey()
-
-  if (!fallbackKey) {
-    return
-  }
-
+  if (!fallbackKey) return
   matchConfig.p2CharKey = fallbackKey
   matchConfig.p2Char = characters[fallbackKey]
 }
@@ -541,376 +493,172 @@ function ensureTrainingOpponent() {
 function resetRound() {
   syncPhysicsBounds()
   ensureTrainingOpponent()
-
   const { p1X, p2X } = getSpawnPositions()
 
-  p1 = createFighter(
-    matchConfig.p1CharKey,
-    matchConfig.p1Char,
-    p1X,
-    1,
-    P1_CONTROLS,
-    "p1"
-  )
-
-  p2 = createFighter(
-    matchConfig.p2CharKey,
-    matchConfig.p2Char,
-    p2X,
-    -1,
-    P2_CONTROLS,
-    "p2"
-  )
+  p1 = createFighter(matchConfig.p1CharKey, matchConfig.p1Char, p1X, 1, P1_CONTROLS, "p1")
+  p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, P2_CONTROLS, "p2")
 
   countdown = ROUND_START_COUNTDOWN
-
   clearAbilityState()
   hitSparks.length = 0
   activeDomains.length = 0
   roundBreakTimer = 0
 
   resetAIController(p2AI)
-  setAIDifficulty(
-    p2AI,
-    matchConfig.mode === "training" ? "dummy" : matchConfig.aiDifficulty
-  )
-
+  setAIDifficulty(p2AI, matchConfig.mode === "training" ? "dummy" : matchConfig.aiDifficulty)
   clearAIControlKeys(p2)
 
-  if (typeof camera.reset === "function") {
-    camera.reset()
-  }
-
+  if (typeof camera.reset === "function") camera.reset()
   updateCameraBounds()
-
-  if (p1 && p2 && typeof camera.update === "function") {
-    camera.update(p1, p2, canvas)
-  }
+  if (p1 && p2 && typeof camera.update === "function") camera.update(p1, p2, canvas)
 }
 
 function startMatch() {
-  roundNumber = 1
-  roundWins = { p1: 0, p2: 0 }
-  winnerText = ""
-  resetRound()
-  gameState = GAME_STATES.BATTLE
+  roundNumber = 1; roundWins = { p1: 0, p2: 0 }; winnerText = ""; resetRound(); gameState = GAME_STATES.BATTLE
 }
 
 function resetSelections() {
-  matchConfig.selectedUniverse = null
-  matchConfig.selectedStage = null
-  matchConfig.selectingSide = "p1"
-  matchConfig.p1Char = null
-  matchConfig.p2Char = null
-  matchConfig.p1CharKey = null
-  matchConfig.p2CharKey = null
-
-  hoverUniverseIndex = 0
-  hoverCharacterIndex = 0
-  hoverStageIndex = 0
+  matchConfig.selectedUniverse = null; matchConfig.selectedStage = null; matchConfig.selectingSide = "p1"
+  matchConfig.p1Char = null; matchConfig.p2Char = null; matchConfig.p1CharKey = null; matchConfig.p2CharKey = null
+  hoverUniverseIndex = 0; hoverCharacterIndex = 0; hoverStageIndex = 0
 }
 
 function resetToStart() {
   gameState = GAME_STATES.START
-  matchConfig.mode = null
-  matchConfig.aiDifficulty = "easy"
-  resetSelections()
-  p1 = null
-  p2 = null
-  winnerText = ""
-  countdown = ROUND_START_COUNTDOWN
-  roundBreakTimer = 0
-
-  if (typeof camera.reset === "function") {
-    camera.reset()
-  }
+  matchConfig.mode = null; matchConfig.aiDifficulty = "easy"; resetSelections()
+  p1 = null; p2 = null; winnerText = ""; countdown = ROUND_START_COUNTDOWN; roundBreakTimer = 0
+  if (typeof camera.reset === "function") camera.reset()
 }
 
 function beginUniverseSelect() {
-  matchConfig.selectedUniverse = null
-  hoverUniverseIndex = 0
-  hoverCharacterIndex = 0
-  gameState = GAME_STATES.SELECT_UNIVERSE
+  matchConfig.selectedUniverse = null; hoverUniverseIndex = 0; hoverCharacterIndex = 0; gameState = GAME_STATES.SELECT_UNIVERSE
 }
 
 function chooseMode(mode) {
-  matchConfig.mode = mode
-  resetSelections()
-
-  if (mode === "training") {
-    matchConfig.aiDifficulty = "dummy"
-    beginUniverseSelect()
-    return
-  }
-
+  matchConfig.mode = mode; resetSelections()
+  if (mode === "training") { matchConfig.aiDifficulty = "dummy"; beginUniverseSelect(); return }
   gameState = GAME_STATES.AI_DIFFICULTY
 }
 
 function chooseDifficulty(difficulty) {
-  matchConfig.aiDifficulty = difficulty
-  beginUniverseSelect()
+  matchConfig.aiDifficulty = difficulty; beginUniverseSelect()
 }
 
 function updateFacing() {
-  if (!p1 || !p2) {
-    return
-  }
-
-  if (p1.x < p2.x) {
-    p1.facing = 1
-    p2.facing = -1
-  } else {
-    p1.facing = -1
-    p2.facing = 1
-  }
+  if (!p1 || !p2) return
+  if (p1.x < p2.x) { p1.facing = 1; p2.facing = -1 } 
+  else { p1.facing = -1; p2.facing = 1 }
 }
 
 function handleToggleInputs(fighter, key) {
-  if (!fighter) {
-    return
-  }
-
+  if (!fighter) return
   const c = fighter.controls
-
-  if (key === c.toggle && fighter.name === "Satoru Gojo") {
-    fighter.infinityActive = !fighter.infinityActive
-  }
-
-  if (key === c.transform) {
-    triggerTransformation(fighter, getAbilityContext())
-  }
+  if (key === c.toggle && fighter.name === "Satoru Gojo") fighter.infinityActive = !fighter.infinityActive
+  if (key === c.transform) triggerTransformation(fighter, getAbilityContext())
 }
 
 function recordDirectionInput(fighter, key) {
-  if (!fighter) {
-    return
-  }
-
-  const c = fighter.controls
-  let dir = null
-
+  if (!fighter) return
+  const c = fighter.controls; let dir = null
   if (key === c.left) dir = "L"
   if (key === c.right) dir = "R"
   if (key === c.up) dir = "U"
   if (key === c.down) dir = "D"
-
-  if (!dir) {
-    return
-  }
+  if (!dir) return
 
   fighter.directionHistory.push({ dir, time: performance.now() })
-
-  if (fighter.directionHistory.length > 16) {
-    fighter.directionHistory.shift()
-  }
+  if (fighter.directionHistory.length > 16) fighter.directionHistory.shift()
 }
 
 function getRelativeDirectionsFromHistory(fighter, maxAge = COMMAND_INPUT_MAX_AGE) {
-  if (!fighter) {
-    return []
-  }
-
+  if (!fighter) return []
   const now = performance.now()
   const recent = (fighter.directionHistory || []).filter((d) => now - d.time <= maxAge)
-
   return recent.map((d) => {
-    if (d.dir === "U" || d.dir === "D") {
-      return d.dir
-    }
-
-    if (fighter.facing === 1) {
-      return d.dir === "R" ? "F" : "B"
-    }
-
+    if (d.dir === "U" || d.dir === "D") return d.dir
+    if (fighter.facing === 1) return d.dir === "R" ? "F" : "B"
     return d.dir === "L" ? "F" : "B"
   })
 }
 
 function teleportBehindTarget(fighter) {
   const target = getOpponent(fighter)
-
-  if (!target) {
-    return
-  }
-
+  if (!target) return
   const stageWorldWidth = getStageWorldWidth()
-
-  if (fighter.x < target.x) {
-    fighter.x = target.x - fighter.w - 8
-  } else {
-    fighter.x = target.x + target.w + 8
-  }
-
+  if (fighter.x < target.x) fighter.x = target.x - fighter.w - 8
+  else fighter.x = target.x + target.w + 8
+  
   fighter.x = Math.max(0, Math.min(stageWorldWidth - fighter.w, fighter.x))
-  fighter.y = target.y
-  fighter.vx = 0
-  fighter.vy = 0
-  fighter.teleportFlash = 12
+  fighter.y = target.y; fighter.vx = 0; fighter.vy = 0; fighter.teleportFlash = 12
   fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 10)
-
-  if (typeof camera.focusBetween === "function") {
-    camera.focusBetween(fighter, target, 1.0, 10)
-  }
+  if (typeof camera.focusBetween === "function") camera.focusBetween(fighter, target, 1.0, 10)
 }
 
 function detectDoubleTapDashTeleport(fighter, key) {
-  if (!fighter || !fighter.dashTeleport) {
-    return
-  }
-
-  if (fighter.hitstun > 0 || fighter.blockstun > 0) {
-    return
-  }
-
-  const now = performance.now()
-  const c = fighter.controls
+  if (!fighter || !fighter.dashTeleport) return
+  if (fighter.hitstun > 0 || fighter.blockstun > 0) return
+  const now = performance.now(); const c = fighter.controls
 
   if (key === c.left) {
-    if (now - fighter.leftTapTime < DOUBLE_TAP_TIME) {
-      teleportBehindTarget(fighter)
-      fighter.leftTapTime = 0
-    } else {
-      fighter.leftTapTime = now
-    }
+    if (now - fighter.leftTapTime < DOUBLE_TAP_TIME) { teleportBehindTarget(fighter); fighter.leftTapTime = 0 } 
+    else fighter.leftTapTime = now
   }
-
   if (key === c.right) {
-    if (now - fighter.rightTapTime < DOUBLE_TAP_TIME) {
-      teleportBehindTarget(fighter)
-      fighter.rightTapTime = 0
-    } else {
-      fighter.rightTapTime = now
-    }
+    if (now - fighter.rightTapTime < DOUBLE_TAP_TIME) { teleportBehindTarget(fighter); fighter.rightTapTime = 0 } 
+    else fighter.rightTapTime = now
   }
 }
 
 function updateMiscTimers(fighter) {
-  if (!fighter) {
-    return
-  }
-
+  if (!fighter) return
   if (fighter.teleportFlash > 0) fighter.teleportFlash--
   if (fighter.summonCooldown > 0) fighter.summonCooldown--
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
-
-  if (fighter.restrainTimer > 0) {
-    fighter.restrainTimer--
-
-    if (fighter.restrainTimer <= 0) {
-      fighter.restrained = false
-    }
-  }
-
-  if (fighter.obscuredTimer > 0) {
-    fighter.obscuredTimer--
-
-    if (fighter.obscuredTimer <= 0) {
-      fighter.obscured = false
-    }
-  }
+  if (fighter.restrainTimer > 0) { fighter.restrainTimer--; if (fighter.restrainTimer <= 0) fighter.restrained = false }
+  if (fighter.obscuredTimer > 0) { fighter.obscuredTimer--; if (fighter.obscuredTimer <= 0) fighter.obscured = false }
 }
 
 function clearAIControlKeys(fighter) {
   if (!fighter) return
-
   const c = fighter.controls
-  const aiKeys = [
-    c.left,
-    c.right,
-    c.up,
-    c.down,
-    c.light,
-    c.heavy,
-    c.special,
-    c.ultimate,
-    c.charge
-  ]
-
-  aiKeys.forEach((key) => {
-    if (key) keys[key] = false
-  })
+  const aiKeys = [c.left, c.right, c.up, c.down, c.light, c.heavy, c.special, c.ultimate, c.charge]
+  aiKeys.forEach((key) => { if (key) keys[key] = false })
 }
 
 function applyAIInputToKeys(fighter, aiInput) {
   if (!fighter || !aiInput) return
-
-  const c = fighter.controls
-  clearAIControlKeys(fighter)
-
+  const c = fighter.controls; clearAIControlKeys(fighter)
   if (aiInput.left) keys[c.left] = true
   if (aiInput.right) keys[c.right] = true
   if (aiInput.jump) keys[c.up] = true
-
   if (aiInput.lightAttack) keys[c.light] = true
   if (aiInput.heavyAttack) keys[c.heavy] = true
-
-  if (aiInput.upAttack) {
-    keys[c.up] = true
-    keys[c.light] = true
-  }
-
-  if (aiInput.downAir) {
-    keys[c.heavy] = true
-  }
-
-  if (aiInput.special1 || aiInput.special2) {
-    keys[c.special] = true
-  }
-
-  if (aiInput.ultimate) {
-    keys[c.ultimate] = true
-  }
+  if (aiInput.upAttack) { keys[c.up] = true; keys[c.light] = true }
+  if (aiInput.downAir) { keys[c.heavy] = true }
+  if (aiInput.special1 || aiInput.special2) { keys[c.special] = true }
+  if (aiInput.ultimate) { keys[c.ultimate] = true }
 }
 
 function updateCPUInput() {
   if (!p2) return
-  if (gameState !== GAME_STATES.BATTLE) {
-    clearAIControlKeys(p2)
-    return
-  }
-
+  if (gameState !== GAME_STATES.BATTLE) { clearAIControlKeys(p2); return }
   const cpuEnabled = matchConfig.mode === "vs" || matchConfig.mode === "training"
-
-  if (!cpuEnabled) {
-    clearAIControlKeys(p2)
-    return
-  }
-
-  const aiInput = getAIInput(p2AI, p2, p1, {
-    stage: getStageTheme(),
-    roundNumber,
-    mode: matchConfig.mode
-  })
-
+  if (!cpuEnabled) { clearAIControlKeys(p2); return }
+  const aiInput = getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode })
   applyAIInputToKeys(p2, aiInput)
 }
 
 function updateMovementInput(fighter) {
-  if (!fighter) {
-    return
-  }
-
+  if (!fighter) return
   fighter.isBlocking = false
-
-  if (fighter.hitstun > 0 || fighter.blockstun > 0) {
-    return
-  }
-
-  if (keys[fighter.controls.down]) {
-    fighter.isBlocking = true
-  }
-
-  if (keys[fighter.controls.charge]) {
-    doEnergyCharge(fighter)
-  }
-
+  if (fighter.hitstun > 0 || fighter.blockstun > 0) return
+  if (keys[fighter.controls.down]) fighter.isBlocking = true
+  if (keys[fighter.controls.charge]) doEnergyCharge(fighter)
   physics.moveFighter(fighter, keys, fighter.controls)
 }
 
 function buildNormalControlState(fighter) {
-  const c = fighter.controls
-  const onGround = !!fighter.onGround
-
+  const c = fighter.controls; const onGround = !!fighter.onGround
   return {
     upAttack: onGround && keys[c.up] && (keys[c.light] || keys[c.heavy]),
     grab: onGround && keys[c.down] && keys[c.light],
@@ -922,118 +670,53 @@ function buildNormalControlState(fighter) {
 }
 
 function updatePlayerCombat(fighter) {
-  if (!fighter) {
-    return
-  }
-
-  if (fighter.hitstun > 0 || fighter.blockstun > 0) {
-    return
-  }
-
+  if (!fighter) return
+  if (fighter.hitstun > 0 || fighter.blockstun > 0) return
   const canStartAbility = !fighter.attacking && !fighter.currentMove
-
-  if (canStartAbility && keys[fighter.controls.special]) {
-    triggerSpecial(fighter, getAbilityContext())
-    return
-  }
-
-  if (canStartAbility && keys[fighter.controls.ultimate]) {
-    triggerUltimate(fighter, getAbilityContext())
-    return
-  }
-
+  if (canStartAbility && keys[fighter.controls.special]) { triggerSpecial(fighter, getAbilityContext()); return }
+  if (canStartAbility && keys[fighter.controls.ultimate]) { triggerUltimate(fighter, getAbilityContext()); return }
   const controls = buildNormalControlState(fighter)
-
-  updateCombat(fighter, getOpponent(fighter), controls, {
-    hitEffects: hitSparks
-  })
+  updateCombat(fighter, getOpponent(fighter), controls, { hitEffects: hitSparks })
 }
 
 function updateFighterState(fighter) {
-  if (!fighter) {
-    return fighter
-  }
-
+  if (!fighter) return fighter
   const updated = updateTransformationState(fighter, getAbilityContext()) || fighter
-
-  applyGojoPassiveSystems(updated)
-  updateMiscTimers(updated)
-  physics.applyGravity(updated)
-  physics.updateAttackBox(updated)
-  regenEnergy(updated)
-
+  applyGojoPassiveSystems(updated); updateMiscTimers(updated)
+  physics.applyGravity(updated); physics.updateAttackBox(updated); regenEnergy(updated)
   return updated
 }
 
 function applyGojoInfinityField(gojo, target) {
-  if (!gojo || !target) {
-    return
-  }
-
-  if (gojo.name !== "Satoru Gojo" || !gojo.infinityActive) {
-    return
-  }
-
-  const gx = gojo.x + gojo.w / 2
-  const gy = gojo.y + gojo.h / 2
-  const tx = target.x + target.w / 2
-  const ty = target.y + target.h / 2
-  const dx = tx - gx
-  const dy = ty - gy
+  if (!gojo || !target) return
+  if (gojo.name !== "Satoru Gojo" || !gojo.infinityActive) return
+  const gx = gojo.x + gojo.w / 2; const gy = gojo.y + gojo.h / 2
+  const tx = target.x + target.w / 2; const ty = target.y + target.h / 2
+  const dx = tx - gx; const dy = ty - gy
   const dist = Math.sqrt(dx * dx + dy * dy)
-
-  if (dist > GOJO_INFINITY_RADIUS) {
-    return
-  }
-
-  const ratio = Math.max(0.015, dist / GOJO_INFINITY_RADIUS)
-  const slow = ratio * ratio
-
-  target.vx *= slow
-  target.vy *= Math.max(0.22, slow)
-
+  if (dist > GOJO_INFINITY_RADIUS) return
+  const ratio = Math.max(0.015, dist / GOJO_INFINITY_RADIUS); const slow = ratio * ratio
+  target.vx *= slow; target.vy *= Math.max(0.22, slow)
   if (Math.abs(target.vx) < 0.05) target.vx = 0
   if (Math.abs(target.vy) < 0.05) target.vy = 0
 }
 
 function applyGojoInfinityBarrier(gojo, target) {
-  if (!gojo || !target) {
-    return
-  }
-
-  if (gojo.name !== "Satoru Gojo" || !gojo.infinityActive) {
-    return
-  }
-
-  if (target.health <= 0) {
-    return
-  }
-
-  const gx = gojo.x + gojo.w / 2
-  const tx = target.x + target.w / 2
-  const dx = tx - gx
-  const dist = Math.abs(dx)
-
-  if (dist <= 52) {
-    target.x += dx > 0 ? 3 : -3
-  }
+  if (!gojo || !target) return
+  if (gojo.name !== "Satoru Gojo" || !gojo.infinityActive) return
+  if (target.health <= 0) return
+  const gx = gojo.x + gojo.w / 2; const tx = target.x + target.w / 2
+  const dx = tx - gx; const dist = Math.abs(dx)
+  if (dist <= 52) target.x += dx > 0 ? 3 : -3
 }
 
 function updateDomains() {
   for (let i = activeDomains.length - 1; i >= 0; i--) {
     const domain = activeDomains[i]
-
-    if (!domain) {
-      activeDomains.splice(i, 1)
-      continue
-    }
-
+    if (!domain) { activeDomains.splice(i, 1); continue }
     if (typeof domain.timer === "number") {
       domain.timer--
-
-      if (domain.timer <= 0) {
-        activeDomains.splice(i, 1)
-      }
+      if (domain.timer <= 0) activeDomains.splice(i, 1)
     }
   }
 }
@@ -1041,21 +724,14 @@ function updateDomains() {
 function updateEffects() {
   for (let i = hitSparks.length - 1; i >= 0; i--) {
     hitSparks[i].timer--
-
-    if (hitSparks[i].timer <= 0) {
-      hitSparks.splice(i, 1)
-    }
+    if (hitSparks[i].timer <= 0) hitSparks.splice(i, 1)
   }
 }
 
 function updateTrainingMode() {
   const debug = getDebugInputState()
   trainingState.enabled = matchConfig.mode === "training" || !!debug.trainingMode
-
-  if (!trainingState.enabled || !p1 || !p2) {
-    return
-  }
-
+  if (!trainingState.enabled || !p1 || !p2) return
   recordInputFrame("P1", getControlsForHistory("p1"), p1, globalFrameCount)
   recordInputFrame("P2", getControlsForHistory("p2"), p2, globalFrameCount)
   recordInputSequence(getControlsForHistory("p1"))
@@ -1063,43 +739,38 @@ function updateTrainingMode() {
 }
 
 function checkRoundEnd() {
-  if (!p1 || !p2) {
-    return
-  }
-
-  if (matchConfig.mode === "training") {
-    return
-  }
-
-  if (p1.health > 0 && p2.health > 0) {
-    return
-  }
-
-  if (p1.health <= 0 && p2.health <= 0) {
-    winnerText = "Double KO"
-  } else if (p1.health > 0) {
-    roundWins.p1++
-    winnerText = "Player 1 Wins Round"
-  } else {
-    roundWins.p2++
-    winnerText = "CPU Wins Round"
-  }
+  if (!p1 || !p2 || matchConfig.mode === "training" || (p1.health > 0 && p2.health > 0)) return
+  if (p1.health <= 0 && p2.health <= 0) winnerText = "Double KO"
+  else if (p1.health > 0) { roundWins.p1++; winnerText = "Player 1 Wins Round" } 
+  else { roundWins.p2++; winnerText = "CPU Wins Round" }
 
   if (roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS) {
     gameState = GAME_STATES.MATCH_END
-
-    if (roundWins.p1 === roundWins.p2) {
-      winnerText = "Draw Match"
-    } else {
-      winnerText = roundWins.p1 > roundWins.p2 ? "Player 1 Wins Match" : "CPU Wins Match"
-    }
-
+    winnerText = roundWins.p1 === roundWins.p2 ? "Draw Match" : (roundWins.p1 > roundWins.p2 ? "Player 1 Wins Match" : "CPU Wins Match")
     return
   }
+  roundNumber++; roundBreakTimer = ROUND_BREAK_DURATION; gameState = GAME_STATES.ROUND_BREAK
+}
 
-  roundNumber++
-  roundBreakTimer = ROUND_BREAK_DURATION
-  gameState = GAME_STATES.ROUND_BREAK
+// ------------------------------------------------------------------
+// NEW: HYBRID RENDERER (Wrapper for drawFighter)
+// ------------------------------------------------------------------
+function renderHybridFighter(fighter) {
+    if (!fighter) return;
+
+    // If it's Gojo, use your custom Sprite sheets
+    if (fighter.rosterKey === 'gojo' && fighter.spriteHandler) {
+        // Only draw if images are somewhat loaded
+        if (gojoSprites['idle'].complete && gojoSprites['idle'].naturalWidth > 0) {
+            fighter.spriteHandler.draw(ctx, fighter, gojoSprites);
+        } else {
+            // Fallback while loading
+            drawFighter(ctx, fighter, camera);
+        }
+    } else {
+        // Anyone else uses the ui.js blackbox drawing
+        drawFighter(ctx, fighter, camera);
+    }
 }
 
 function updateBattle() {
@@ -1120,9 +791,7 @@ function updateBattle() {
   applyGojoInfinityBarrier(p1, p2)
   applyGojoInfinityBarrier(p2, p1)
 
-  if (typeof physics.resolvePlayerCollision === "function") {
-    physics.resolvePlayerCollision(p1, p2)
-  }
+  if (typeof physics.resolvePlayerCollision === "function") physics.resolvePlayerCollision(p1, p2)
 
   updateFacing()
   updateDomains()
@@ -1137,250 +806,135 @@ function updateBattle() {
   updateActiveSummons()
   updateEffects()
 
-  if (typeof camera.update === "function") {
-    camera.update(p1, p2, canvas)
-  }
+  if (typeof camera.update === "function") camera.update(p1, p2, canvas)
 
   checkRoundEnd()
 }
 
 function getUniverseList() {
-  return universeKeys.map((key) => ({
-    name: formatUniverseName(key),
-    id: key
-  }))
+  return universeKeys.map((key) => ({ name: formatUniverseName(key), id: key }))
 }
 
 function getCharacterRosterForSelectedUniverse() {
   return getUniverseCharacters().map((key) => {
     const char = characters[key]
-
-    return {
-      id: key,
-      name: char?.name || key,
-      universe: char?.universe ? formatUniverseName(char.universe) : ""
-    }
+    return { id: key, name: char?.name || key, universe: char?.universe ? formatUniverseName(char.universe) : "" }
   })
 }
 
 function updateHoverIndices() {
   if (gameState === GAME_STATES.START) {
     const rects = getStartMenuRects(canvas)
-    hoverStartIndex = Math.max(
-      0,
-      rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
-    )
-    if (hoverStartIndex < 0) hoverStartIndex = 0
+    const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
+    hoverStartIndex = Math.max(0, found)
     return
   }
-
   if (gameState === GAME_STATES.GAMEPLAY_SELECT) {
-    const rects = getGameplaySelectRects(canvas)
-    const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
-    if (found >= 0) hoverGameplayIndex = found
-    return
+    const rects = getGameplaySelectRects(canvas); const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
+    if (found >= 0) hoverGameplayIndex = found; return
   }
-
   if (gameState === GAME_STATES.AI_DIFFICULTY) {
-    const rects = getAIDifficultyRects(canvas)
-    const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
-    if (found >= 0) hoverDifficultyIndex = found
-    return
+    const rects = getAIDifficultyRects(canvas); const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
+    if (found >= 0) hoverDifficultyIndex = found; return
   }
-
   if (gameState === GAME_STATES.SELECT_UNIVERSE) {
-    const rects = getUniverseCardRects(canvas, getUniverseList())
-    const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
-    if (found >= 0) hoverUniverseIndex = found
-    return
+    const rects = getUniverseCardRects(canvas, getUniverseList()); const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
+    if (found >= 0) hoverUniverseIndex = found; return
   }
-
   if (gameState === GAME_STATES.SELECT_CHARACTER) {
-    const rects = getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse())
-    const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
-    if (found >= 0) hoverCharacterIndex = found
-    return
+    const rects = getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse()); const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
+    if (found >= 0) hoverCharacterIndex = found; return
   }
-
   if (gameState === GAME_STATES.SELECT_STAGE) {
-    const rects = getStageCardRects(canvas, stages)
-    const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
+    const rects = getStageCardRects(canvas, stages); const found = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
     if (found >= 0) hoverStageIndex = found
   }
 }
 
 function handleStartMenuClick() {
-  const rects = getStartMenuRects(canvas)
-  const clicked = rects.find((rect) => pointInRect(mouse.x, mouse.y, rect))
-
-  if (!clicked) {
-    return
-  }
-
-  if (clicked.id === "play") {
-    gameState = GAME_STATES.GAMEPLAY_SELECT
-  }
+  const rects = getStartMenuRects(canvas); const clicked = rects.find((rect) => pointInRect(mouse.x, mouse.y, rect))
+  if (clicked && clicked.id === "play") gameState = GAME_STATES.GAMEPLAY_SELECT
 }
 
 function handleGameplaySelectClick() {
-  const rects = getGameplaySelectRects(canvas)
-  const clicked = rects.find((rect) => pointInRect(mouse.x, mouse.y, rect))
-
-  if (!clicked) {
-    return
-  }
-
-  if (clicked.id === "training") {
-    chooseMode("training")
-    return
-  }
-
-  if (clicked.id === "vs") {
-    chooseMode("vs")
-    return
-  }
-
-  if (clicked.id === "back") {
-    gameState = GAME_STATES.START
-  }
+  const rects = getGameplaySelectRects(canvas); const clicked = rects.find((rect) => pointInRect(mouse.x, mouse.y, rect))
+  if (!clicked) return
+  if (clicked.id === "training") { chooseMode("training"); return }
+  if (clicked.id === "vs") { chooseMode("vs"); return }
+  if (clicked.id === "back") { gameState = GAME_STATES.START }
 }
 
 function handleDifficultyClick() {
-  const rects = getAIDifficultyRects(canvas)
-  const clicked = rects.find((rect) => pointInRect(mouse.x, mouse.y, rect))
-
-  if (!clicked) {
-    return
-  }
-
-  if (clicked.id === "back") {
-    gameState = GAME_STATES.GAMEPLAY_SELECT
-    return
-  }
-
+  const rects = getAIDifficultyRects(canvas); const clicked = rects.find((rect) => pointInRect(mouse.x, mouse.y, rect))
+  if (!clicked) return
+  if (clicked.id === "back") { gameState = GAME_STATES.GAMEPLAY_SELECT; return }
   chooseDifficulty(clicked.id)
 }
 
 function handleUniverseClick() {
-  const universes = getUniverseList()
-  const rects = getUniverseCardRects(canvas, universes)
+  const universes = getUniverseList(); const rects = getUniverseCardRects(canvas, universes)
   const idx = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
-
-  if (idx < 0 || !universes[idx]) {
-    return
-  }
-
-  matchConfig.selectedUniverse = universes[idx].id
-  gameState = GAME_STATES.SELECT_CHARACTER
+  if (idx < 0 || !universes[idx]) return
+  matchConfig.selectedUniverse = universes[idx].id; gameState = GAME_STATES.SELECT_CHARACTER
 }
 
 function handleCharacterClick() {
-  const roster = getCharacterRosterForSelectedUniverse()
-  const rects = getCharacterCardRects(canvas, roster)
+  const roster = getCharacterRosterForSelectedUniverse(); const rects = getCharacterCardRects(canvas, roster)
   const idx = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
-
-  if (idx < 0 || !roster[idx]) {
-    return
-  }
-
-  const chosenKey = roster[idx].id
-  const chosen = characters[chosenKey]
+  if (idx < 0 || !roster[idx]) return
+  const chosenKey = roster[idx].id; const chosen = characters[chosenKey]
 
   if (matchConfig.selectingSide === "p1") {
-    matchConfig.p1Char = chosen
-    matchConfig.p1CharKey = chosenKey
-
+    matchConfig.p1Char = chosen; matchConfig.p1CharKey = chosenKey
     if (matchConfig.mode === "training") {
-      matchConfig.p2Char = chosen
-      matchConfig.p2CharKey = chosenKey
-      gameState = GAME_STATES.SELECT_STAGE
+      matchConfig.p2Char = chosen; matchConfig.p2CharKey = chosenKey; gameState = GAME_STATES.SELECT_STAGE
       return
     }
-
-    matchConfig.selectingSide = "p2"
-    matchConfig.selectedUniverse = null
-    gameState = GAME_STATES.SELECT_UNIVERSE
+    matchConfig.selectingSide = "p2"; matchConfig.selectedUniverse = null; gameState = GAME_STATES.SELECT_UNIVERSE
     return
   }
-
-  matchConfig.p2Char = chosen
-  matchConfig.p2CharKey = chosenKey
-  gameState = GAME_STATES.SELECT_STAGE
+  matchConfig.p2Char = chosen; matchConfig.p2CharKey = chosenKey; gameState = GAME_STATES.SELECT_STAGE
 }
 
 function handleStageClick() {
-  const rects = getStageCardRects(canvas, stages)
-  const idx = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
-
-  if (idx < 0 || !stages[idx]) {
-    return
-  }
-
-  matchConfig.selectedStage = stages[idx]
-  startMatch()
+  const rects = getStageCardRects(canvas, stages); const idx = rects.findIndex((rect) => pointInRect(mouse.x, mouse.y, rect))
+  if (idx < 0 || !stages[idx]) return
+  matchConfig.selectedStage = stages[idx]; startMatch()
 }
 
-function handleMatchEndClick() {
-  resetToStart()
-}
+function handleMatchEndClick() { resetToStart() }
 
 function handleMenuClicks() {
-  if (!mouse.clicked) {
-    return
-  }
-
+  if (!mouse.clicked) return
   switch (gameState) {
-    case GAME_STATES.START:
-      handleStartMenuClick()
-      break
-
-    case GAME_STATES.GAMEPLAY_SELECT:
-      handleGameplaySelectClick()
-      break
-
-    case GAME_STATES.AI_DIFFICULTY:
-      handleDifficultyClick()
-      break
-
-    case GAME_STATES.SELECT_UNIVERSE:
-      handleUniverseClick()
-      break
-
-    case GAME_STATES.SELECT_CHARACTER:
-      handleCharacterClick()
-      break
-
-    case GAME_STATES.SELECT_STAGE:
-      handleStageClick()
-      break
-
-    case GAME_STATES.MATCH_END:
-      handleMatchEndClick()
-      break
+    case GAME_STATES.START: handleStartMenuClick(); break
+    case GAME_STATES.GAMEPLAY_SELECT: handleGameplaySelectClick(); break
+    case GAME_STATES.AI_DIFFICULTY: handleDifficultyClick(); break
+    case GAME_STATES.SELECT_UNIVERSE: handleUniverseClick(); break
+    case GAME_STATES.SELECT_CHARACTER: handleCharacterClick(); break
+    case GAME_STATES.SELECT_STAGE: handleStageClick(); break
+    case GAME_STATES.MATCH_END: handleMatchEndClick(); break
   }
-
   consumeMouseClick()
 }
 
 function drawBattleScene() {
   const stage = getStageTheme()
-
   ctx.save()
 
-  if (typeof camera.applyTransform === "function") {
-    camera.applyTransform(ctx)
-  }
+  if (typeof camera.applyTransform === "function") camera.applyTransform(ctx)
 
   drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight())
   drawProjectiles(ctx, projectiles, camera)
   drawActiveSummons(ctx)
-  drawFighter(ctx, p1, camera)
-  drawFighter(ctx, p2, camera)
+  
+  // NEW: Replaced standard drawFighter calls with our Hybrid version
+  renderHybridFighter(p1)
+  renderHybridFighter(p2)
+  
   drawHitSparks(ctx, hitSparks, camera)
 
-  if (trainingState.enabled) {
-    drawTrainingCollisionBoxes(ctx, [p1, p2], camera)
-  }
+  if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], camera)
 
   ctx.restore()
 }
@@ -1388,119 +942,43 @@ function drawBattleScene() {
 function drawBattleHud() {
   drawHealthAndEnergyBars(ctx, p1, p2, canvas)
   drawControlsInfo(ctx, canvas)
-
-  if (!trainingState.enabled) {
-    return
-  }
-
-  drawTrainingOverlay(ctx, canvas, {
-    combo: Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0),
-    damage: 0,
-    state: matchConfig.mode === "training" ? "training" : "debug",
-    meterGain: 0,
-    frame: globalFrameCount,
-    p1Inputs: getRelativeDirectionsFromHistory(p1),
-    p2Inputs: getRelativeDirectionsFromHistory(p2),
-    history: getInputHistory()
-  })
+  if (!trainingState.enabled) return
+  drawTrainingOverlay(ctx, canvas, { combo: Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0), damage: 0, state: matchConfig.mode === "training" ? "training" : "debug", meterGain: 0, frame: globalFrameCount, p1Inputs: getRelativeDirectionsFromHistory(p1), p2Inputs: getRelativeDirectionsFromHistory(p2), history: getInputHistory() })
 }
 
 function drawBattle() {
-  drawBattleScene()
-  drawBattleHud()
-
-  if (countdown > 0) {
-    drawCountdown(ctx, canvas, countdown)
-  }
+  drawBattleScene(); drawBattleHud()
+  if (countdown > 0) drawCountdown(ctx, canvas, countdown)
 }
 
 function renderCurrentState() {
   switch (gameState) {
-    case GAME_STATES.START:
-      drawStartScreen(ctx, canvas)
-      break
-
-    case GAME_STATES.GAMEPLAY_SELECT:
-      drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex)
-      break
-
-    case GAME_STATES.AI_DIFFICULTY:
-      drawAIDifficultyScreen(ctx, canvas, hoverDifficultyIndex)
-      break
-
-    case GAME_STATES.SELECT_UNIVERSE:
-      drawUniverseSelectScreen(ctx, canvas, getUniverseList(), hoverUniverseIndex)
-      break
-
-    case GAME_STATES.SELECT_CHARACTER:
-      drawCharacterSelectScreen(ctx, canvas, {
-        roster: getCharacterRosterForSelectedUniverse(),
-        selectedIndex: hoverCharacterIndex,
-        p1Selected: matchConfig.p1CharKey,
-        p2Selected: matchConfig.p2CharKey,
-        currentPlayer: matchConfig.selectingSide === "p1" ? 1 : 2,
-        title:
-          matchConfig.mode === "training"
-            ? "TRAINING CHARACTER SELECT"
-            : "CHARACTER SELECT"
-      })
-      break
-
-    case GAME_STATES.SELECT_STAGE:
-      drawStageSelectScreen(ctx, canvas, stages, hoverStageIndex)
-      break
-
-    case GAME_STATES.BATTLE:
-      drawBattle()
-      break
-
-    case GAME_STATES.ROUND_BREAK:
-      drawBattleScene()
-      drawBattleHud()
-      drawRoundBreak(ctx, canvas, winnerText || "ROUND BREAK")
-      break
-
-    case GAME_STATES.MATCH_END:
-      drawBattleScene()
-      drawBattleHud()
-      drawMatchEnd(ctx, canvas, winnerText || "MATCH OVER")
-      break
+    case GAME_STATES.START: drawStartScreen(ctx, canvas); break
+    case GAME_STATES.GAMEPLAY_SELECT: drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex); break
+    case GAME_STATES.AI_DIFFICULTY: drawAIDifficultyScreen(ctx, canvas, hoverDifficultyIndex); break
+    case GAME_STATES.SELECT_UNIVERSE: drawUniverseSelectScreen(ctx, canvas, getUniverseList(), hoverUniverseIndex); break
+    case GAME_STATES.SELECT_CHARACTER: drawCharacterSelectScreen(ctx, canvas, { roster: getCharacterRosterForSelectedUniverse(), selectedIndex: hoverCharacterIndex, p1Selected: matchConfig.p1CharKey, p2Selected: matchConfig.p2CharKey, currentPlayer: matchConfig.selectingSide === "p1" ? 1 : 2, title: matchConfig.mode === "training" ? "TRAINING CHARACTER SELECT" : "CHARACTER SELECT" }); break
+    case GAME_STATES.SELECT_STAGE: drawStageSelectScreen(ctx, canvas, stages, hoverStageIndex); break
+    case GAME_STATES.BATTLE: drawBattle(); break
+    case GAME_STATES.ROUND_BREAK: drawBattleScene(); drawBattleHud(); drawRoundBreak(ctx, canvas, winnerText || "ROUND BREAK"); break
+    case GAME_STATES.MATCH_END: drawBattleScene(); drawBattleHud(); drawMatchEnd(ctx, canvas, winnerText || "MATCH OVER"); break
   }
 }
 
 function updateCurrentState() {
-  updateHoverIndices()
-  handleMenuClicks()
-
+  updateHoverIndices(); handleMenuClicks()
   switch (gameState) {
     case GAME_STATES.BATTLE:
       if (countdown > 0) {
-        updateDebugInputToggles()
-        updateTrainingMode()
-        updateCPUInput()
+        updateDebugInputToggles(); updateTrainingMode(); updateCPUInput()
         countdown = Math.max(0, countdown - 1)
-
-        if (typeof camera.update === "function" && p1 && p2) {
-          camera.update(p1, p2, canvas)
-        }
-      } else {
-        updateBattle()
-      }
+        if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
+      } else { updateBattle() }
       break
-
     case GAME_STATES.ROUND_BREAK:
-      updateDebugInputToggles()
-      updateTrainingMode()
-      roundBreakTimer--
-
-      if (typeof camera.update === "function" && p1 && p2) {
-        camera.update(p1, p2, canvas)
-      }
-
-      if (roundBreakTimer <= 0) {
-        resetRound()
-        gameState = GAME_STATES.BATTLE
-      }
+      updateDebugInputToggles(); updateTrainingMode(); roundBreakTimer--
+      if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
+      if (roundBreakTimer <= 0) { resetRound(); gameState = GAME_STATES.BATTLE }
       break
   }
 }
@@ -1508,56 +986,31 @@ function updateCurrentState() {
 function gameLoop() {
   globalFrameCount++
   ctx.clearRect(0, 0, canvas.width, canvas.height)
-
   updateCurrentState()
   renderCurrentState()
   endInputFrame()
-
   requestAnimationFrame(gameLoop)
 }
 
 window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
-
-  syncPhysicsBounds()
-  updateCameraBounds()
-
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight
+  syncPhysicsBounds(); updateCameraBounds()
   if (p1) p1.y = Math.min(p1.y, getGroundedYForFighter(p1))
   if (p2) p2.y = Math.min(p2.y, getGroundedYForFighter(p2))
-
   if (p1 && p2) {
-    if (typeof camera.reset === "function") {
-      camera.reset()
-    }
-
-    if (typeof camera.update === "function") {
-      camera.update(p1, p2, canvas)
-    }
+    if (typeof camera.reset === "function") camera.reset()
+    if (typeof camera.update === "function") camera.update(p1, p2, canvas)
   }
 })
 
 window.addEventListener("keydown", (e) => {
   const key = String(e.key || "").toLowerCase()
-
-  if (p1) {
-    recordDirectionInput(p1, key)
-    detectDoubleTapDashTeleport(p1, key)
-    handleToggleInputs(p1, key)
-  }
-
+  if (p1) { recordDirectionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key) }
   if (p2) {
     recordDirectionInput(p2, key)
-
-    if (matchConfig.mode !== "vs" && matchConfig.mode !== "training") {
-      detectDoubleTapDashTeleport(p2, key)
-      handleToggleInputs(p2, key)
-    }
+    if (matchConfig.mode !== "vs" && matchConfig.mode !== "training") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key) }
   }
-
-  if (gameState === GAME_STATES.MATCH_END && key === "enter") {
-    resetToStart()
-  }
+  if (gameState === GAME_STATES.MATCH_END && key === "enter") resetToStart()
 })
 
 syncPhysicsBounds()

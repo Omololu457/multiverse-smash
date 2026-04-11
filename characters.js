@@ -2,6 +2,22 @@
 // Central roster keyed for systems like abilities.js, movesets, summons, and transformations.
 // Includes both named and default export so either import style works.
 
+// ------------------------------------------------------------------
+// NEW: Default Animation Configuration
+// This feeds into the sprite.js handler. You can override these per character.
+// ------------------------------------------------------------------
+const DEFAULT_ANIM_DATA = {
+  idle: { frames: 6, width: 128, height: 128, speed: 8 },
+  walk: { frames: 8, width: 128, height: 128, speed: 5 },
+  hurt: { frames: 2, width: 128, height: 128, speed: 10 },
+  light: { frames: 5, width: 128, height: 128 },
+  heavy: { frames: 7, width: 128, height: 128 },
+  up: { frames: 6, width: 128, height: 128 },
+  air: { frames: 5, width: 128, height: 128 },
+  down_air: { frames: 6, width: 128, height: 128 },
+  grab: { frames: 6, width: 128, height: 128 }
+};
+
 export const characters = {
   goku: {
     rosterKey: "goku",
@@ -20,6 +36,7 @@ export const characters = {
 
     traits: {
       hasEnergy: true,
+      energyType: "ki", // NEW: For UI and Abilities
       mobility: "high",
       scaling: "burst",
       animeMovement: true
@@ -30,8 +47,14 @@ export const characters = {
       maxEnergy: 200,
       attack: 92,
       defense: 86,
-      speed: 88
-    }
+      speed: 88,
+      // NEW: Physics Overrides
+      maxJumps: 2,
+      dashSpeed: 16,
+      dashDuration: 10,
+      dashCooldownMax: 40
+    },
+    animationData: { ...DEFAULT_ANIM_DATA }
   },
 
   naruto: {
@@ -51,6 +74,7 @@ export const characters = {
 
     traits: {
       hasEnergy: true,
+      energyType: "chakra",
       mobility: "high",
       scaling: "versatile",
       animeMovement: true
@@ -61,8 +85,13 @@ export const characters = {
       maxEnergy: 190,
       attack: 89,
       defense: 84,
-      speed: 90
-    }
+      speed: 90,
+      maxJumps: 2,
+      dashSpeed: 15,
+      dashDuration: 12,
+      dashCooldownMax: 45
+    },
+    animationData: { ...DEFAULT_ANIM_DATA }
   },
 
   gojo: {
@@ -82,6 +111,7 @@ export const characters = {
 
     traits: {
       hasEnergy: true,
+      energyType: "cursed_energy",
       mobility: "high",
       scaling: "control",
       animeMovement: true
@@ -92,8 +122,14 @@ export const characters = {
       maxEnergy: 220,
       attack: 91,
       defense: 88,
-      speed: 87
-    }
+      speed: 87,
+      maxJumps: 2,
+      dashSpeed: 18, // Faster, teleport-like dash
+      dashDuration: 8,
+      dashCooldownMax: 35
+    },
+    // Gojo might have custom animations for Blue/Red that you inject here later
+    animationData: { ...DEFAULT_ANIM_DATA }
   },
 
   megumi: {
@@ -113,6 +149,7 @@ export const characters = {
 
     traits: {
       hasEnergy: true,
+      energyType: "cursed_energy",
       mobility: "medium",
       scaling: "setup",
       animeMovement: true
@@ -123,8 +160,13 @@ export const characters = {
       maxEnergy: 210,
       attack: 84,
       defense: 82,
-      speed: 83
-    }
+      speed: 83,
+      maxJumps: 2,
+      dashSpeed: 14,
+      dashDuration: 10,
+      dashCooldownMax: 45
+    },
+    animationData: { ...DEFAULT_ANIM_DATA }
   },
 
   sukuna: {
@@ -144,6 +186,7 @@ export const characters = {
 
     traits: {
       hasEnergy: true,
+      energyType: "cursed_energy",
       mobility: "high",
       scaling: "damage",
       animeMovement: true
@@ -154,8 +197,13 @@ export const characters = {
       maxEnergy: 210,
       attack: 95,
       defense: 87,
-      speed: 86
-    }
+      speed: 86,
+      maxJumps: 2,
+      dashSpeed: 16,
+      dashDuration: 10,
+      dashCooldownMax: 40
+    },
+    animationData: { ...DEFAULT_ANIM_DATA }
   },
 
   omololu: {
@@ -175,6 +223,7 @@ export const characters = {
 
     traits: {
       hasEnergy: true,
+      energyType: "stamina",
       mobility: "medium",
       scaling: "ramp",
       animeMovement: true
@@ -185,8 +234,13 @@ export const characters = {
       maxEnergy: 180,
       attack: 88,
       defense: 90,
-      speed: 80
-    }
+      speed: 80,
+      maxJumps: 2,
+      dashSpeed: 14,
+      dashDuration: 10,
+      dashCooldownMax: 40
+    },
+    animationData: { ...DEFAULT_ANIM_DATA }
   },
 
   toji: {
@@ -206,6 +260,7 @@ export const characters = {
 
     traits: {
       hasEnergy: false,
+      energyType: "none", // UI will hide his energy bar based on this
       mobility: "very_high",
       scaling: "constant_pressure",
       animeMovement: true
@@ -216,8 +271,14 @@ export const characters = {
       maxEnergy: 0,
       attack: 96,
       defense: 89,
-      speed: 98
-    }
+      speed: 98,
+      // NEW: Toji's signature movement advantages
+      maxJumps: 3,         // Triple Jump!
+      dashSpeed: 24,       // Extremely fast dash
+      dashDuration: 14,    // Longest dash distance
+      dashCooldownMax: 20  // Can spam dashes
+    },
+    animationData: { ...DEFAULT_ANIM_DATA }
   },
 
   mahoraga: {
@@ -237,6 +298,7 @@ export const characters = {
 
     traits: {
       hasEnergy: false,
+      energyType: "none",
       mobility: "medium",
       scaling: "adaptation",
       animeMovement: true
@@ -247,8 +309,14 @@ export const characters = {
       maxEnergy: 0,
       attack: 104,
       defense: 100,
-      speed: 82
-    }
+      speed: 82,
+      // Heavy fighter movement constraints
+      maxJumps: 1,         // Only single jump
+      dashSpeed: 12,       // Slow burst speed
+      dashDuration: 8,
+      dashCooldownMax: 60  
+    },
+    animationData: { ...DEFAULT_ANIM_DATA }
   }
 }
 

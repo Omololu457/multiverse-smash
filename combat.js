@@ -55,6 +55,10 @@ function ensureCombatState(fighter) {
   if (fighter.attackCooldown == null) fighter.attackCooldown = 0
   if (fighter.hitstun == null) fighter.hitstun = 0
   if (fighter.blockstun == null) fighter.blockstun = 0
+  // NEW: Hitstop gives attacks "weight" by freezing characters for a few frames on impact
+  if (fighter.hitstop == null) fighter.hitstop = 0 
+  if (fighter.isGrabbed == null) fighter.isGrabbed = false
+  
   if (fighter.invulnTimer == null) fighter.invulnTimer = 0
   if (fighter.comboCounter == null) fighter.comboCounter = 0
   if (fighter.comboTimer == null) fighter.comboTimer = 0
@@ -169,6 +173,8 @@ export function canStartMove(fighter, moveData) {
   if (fighter.attackCooldown > 0) return false
   if (fighter.hitstun > 0) return false
   if (fighter.blockstun > 0) return false
+  // NEW: Prevent attacks while grabbed
+  if (fighter.isGrabbed) return false 
   if (moveData.airOK === false && !fighter.grounded) return false
   if (moveData.groundOK === false && fighter.grounded) return false
   return true
@@ -185,7 +191,8 @@ function buildBaseAttack({
   rangeY,
   hitstun,
   pushX,
-  launchY
+  launchY,
+  hitstop = 4 // NEW: Default hitstop value
 }) {
   const total = getAttackDuration(startup + active + recovery, fighter)
 
@@ -199,6 +206,7 @@ function buildBaseAttack({
     rangeX,
     rangeY,
     hitstun,
+    hitstop,
     pushX,
     launchY,
     hasHit: false
@@ -219,6 +227,7 @@ export function buildAttackConfig(fighter, moveKey, moveData) {
       rangeX: moveData.rangeX || 55,
       rangeY: moveData.rangeY || 40,
       hitstun: moveData.hitstun || 14,
+      hitstop: moveData.hitstop || 3, // Less freeze for lights
       pushX: moveData.knockbackX || 3,
       launchY: moveData.knockbackY ?? -2
     })
@@ -235,6 +244,7 @@ export function buildAttackConfig(fighter, moveKey, moveData) {
       rangeX: moveData.rangeX || 70,
       rangeY: moveData.rangeY || 45,
       hitstun: moveData.hitstun || 20,
+      hitstop: moveData.hitstop || 6, // Heavy impact freeze
       pushX: moveData.knockbackX || 6,
       launchY: moveData.knockbackY ?? -4
     })
@@ -251,6 +261,7 @@ export function buildAttackConfig(fighter, moveKey, moveData) {
       rangeX: moveData.rangeX || 44,
       rangeY: moveData.rangeY || 72,
       hitstun: moveData.hitstun || 18,
+      hitstop: moveData.hitstop || 5,
       pushX: moveData.knockbackX || 2,
       launchY: moveData.knockbackY ?? -12
     })
@@ -270,6 +281,7 @@ export function buildAttackConfig(fighter, moveKey, moveData) {
       rangeX: moveData.rangeX || 56,
       rangeY: moveData.rangeY || 40,
       hitstun: moveData.hitstun || 14,
+      hitstop: moveData.hitstop || 4,
       pushX: moveData.knockbackX || 3,
       launchY: moveData.knockbackY ?? -2
     })
@@ -286,6 +298,7 @@ export function buildAttackConfig(fighter, moveKey, moveData) {
       rangeX: moveData.rangeX || 48,
       rangeY: moveData.rangeY || 50,
       hitstun: moveData.hitstun || 18,
+      hitstop: moveData.hitstop || 7, // Big freeze on spikes
       pushX: moveData.knockbackX || 2,
       launchY: moveData.knockbackY ?? 10
     })
@@ -307,6 +320,7 @@ export function buildAttackConfig(fighter, moveKey, moveData) {
       rangeX: moveData.rangeX || 36,
       rangeY: moveData.rangeY || 42,
       hitstun: moveData.hitstun || moveData.stun || 18,
+      hitstop: 0, // Grabs usually don't have freeze frames on whiff
       pushX: moveData.throw_force_x || 5,
       launchY: moveData.throw_force_y || -4,
       isGrab: true,
@@ -351,8 +365,13 @@ export function endMove(fighter) {
 
 export function updateStunTimers(fighter) {
   if (!fighter) return
+  // NEW: Do not count down stuns if character is in hitstop (frozen)
+  if (fighter.hitstop > 0) return 
+
   if (fighter.hitstun > 0) fighter.hitstun--
   if (fighter.blockstun > 0) fighter.blockstun--
+  
+  if (fighter.hitstun <= 0) fighter.isGrabbed = false
 }
 
 export function beginMoveFromInput(fighter, controls) {
@@ -397,14 +416,30 @@ function pushHitEffect(hitEffects, effect) {
   }
 }
 
-function applyBlockReaction(attacker, defender) {
+function applyBlockReaction(attacker, defender, atk) {
   defender.blockstun = Math.max(defender.blockstun || 0, 10)
   defender.vx = (attacker.facing || 1) * 2
+  
+  // NEW: Add hitstop to blocking to give blocks impact
+  const stopFrames = Math.max(2, Math.floor((atk.hitstop || 4) * 0.75))
+  attacker.hitstop = stopFrames
+  defender.hitstop = stopFrames
 }
 
 function applyNormalHitReaction(attacker, defender, atk) {
   defender.hitstun = Math.max(defender.hitstun || 0, atk.hitstun || 16)
   defender.vx = (attacker.facing || 1) * (atk.pushX || 3)
+
+  // NEW: Apply hitstop freeze frames
+  const stopFrames = atk.hitstop || 4
+  attacker.hitstop = stopFrames
+  defender.hitstop = stopFrames
+
+  if (atk.isGrab) {
+      defender.isGrabbed = true
+      defender.vx = 0 // Keep them locked during grab
+      defender.vy = 0
+  }
 
   if (atk.launcher) {
     defender.vy = atk.launchY || -12
@@ -443,7 +478,9 @@ function applyNormalHitReaction(attacker, defender, atk) {
     return
   }
 
-  defender.vy = atk.launchY || -2
+  if (!atk.isGrab) {
+      defender.vy = atk.launchY || -2
+  }
 }
 
 export function resolveAttackHit(attacker, defender, hitEffects = null) {
@@ -480,11 +517,13 @@ export function resolveAttackHit(attacker, defender, hitEffects = null) {
   if (defender.isBlocking && !atk.launcher && !atk.spike && !atk.isGrab) {
     damage = Math.floor(damage * 0.25)
     applyBlockReaction(attacker, defender, atk)
+    // NEW: Chip damage protection (stops at 1 HP)
+    defender.health = Math.max(1, defender.health - damage) 
   } else {
     applyNormalHitReaction(attacker, defender, atk)
+    defender.health = Math.max(0, defender.health - damage)
   }
 
-  defender.health = Math.max(0, defender.health - damage)
   applyUltraEgoReaction(defender)
   defender.colorFlash = 6
 
@@ -510,6 +549,11 @@ export function applyMoveHit(fighter, opponent, moveKey, moveData, hitEffects = 
 
 export function updateActiveMove(fighter, opponent, hitEffects = null) {
   if (!fighter) return
+
+  // NEW: Freeze animation if in hitstop
+  if (fighter.hitstop > 0) {
+      return; 
+  }
 
   const moveData = fighter.currentMoveData
   const atk = fighter.currentAttack
@@ -572,13 +616,15 @@ export function resolveProjectileHits(projectiles, p1, p2, hitEffects = null) {
     if (defender.isBlocking) {
       damage = Math.floor(damage * 0.3)
       defender.blockstun = Math.max(defender.blockstun || 0, 8)
+      // NEW: Chip damage protection for projectiles
+      defender.health = Math.max(1, defender.health - damage)
     } else {
       defender.hitstun = Math.max(defender.hitstun || 0, 18)
       defender.vx = (attacker.facing || 1) * 4
       defender.vy = -4
+      defender.health = Math.max(0, defender.health - damage)
     }
 
-    defender.health = Math.max(0, defender.health - damage)
     applyUltraEgoReaction(defender)
     defender.colorFlash = 6
 
@@ -636,6 +682,11 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   const hitEffects = options.hitEffects || null
   const abilityContext = options.abilityContext || {}
 
+  // NEW: Process hitstop decrement
+  if (fighter.hitstop > 0) {
+      fighter.hitstop--
+  }
+
   updateStunTimers(fighter)
 
   if (fighter.comboTimer > 0) {
@@ -671,7 +722,8 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
     performUltimate(fighter, abilityContext)
   }
 
-  if ((fighter.maxEnergy || 0) > 0 && fighter.energy < fighter.maxEnergy) {
+  // NEW: Toji rule applied here (no energy regen if character has no energy system)
+  if (fighter.energyType !== 'none' && (fighter.maxEnergy || 0) > 0 && fighter.energy < fighter.maxEnergy) {
     fighter.energy += 0.2
     if (fighter.energy > fighter.maxEnergy) {
       fighter.energy = fighter.maxEnergy

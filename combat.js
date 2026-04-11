@@ -1,4 +1,6 @@
 // combat.js
+// Central melee combat + projectile hit resolution
+
 import { checkCollision } from "./collision.js"
 import { physics } from "./physics.js"
 import { performUltimate } from "./abilities.js"
@@ -129,23 +131,23 @@ export function canStartMove(fighter, moveData) {
   return true
 }
 
-function buildBaseAttack({ fighter, name, startup, active, recovery, damage, rangeX, rangeY, hitstun, pushX, launchY, hitstop = 4 }) {
+function buildBaseAttack({ fighter, name, startup, active, recovery, damage, rangeX, rangeY, hitstun, pushX, launchY, hitstop = 6 }) {
   const total = getAttackDuration(startup + active + recovery, fighter)
   return { name, damage, total, timer: total, activeStart: Math.max(1, startup), activeEnd: Math.max(startup + 1, startup + active), rangeX, rangeY, hitstun, hitstop, pushX, launchY, hasHit: false }
 }
 
 export function buildAttackConfig(fighter, moveKey, moveData) {
   if (!moveData) return null
-  if (moveKey === "light") return buildBaseAttack({ fighter, name: "light", startup: moveData.startup || 4, active: moveData.active || 3, recovery: moveData.recovery || 10, damage: moveData.damage || 35, rangeX: moveData.rangeX || 55, rangeY: moveData.rangeY || 40, hitstun: moveData.hitstun || 14, hitstop: moveData.hitstop || 3, pushX: moveData.knockbackX || 3, launchY: moveData.knockbackY ?? -2 })
-  if (moveKey === "heavy") return buildBaseAttack({ fighter, name: "heavy", startup: moveData.startup || 7, active: moveData.active || 4, recovery: moveData.recovery || 15, damage: moveData.damage || 60, rangeX: moveData.rangeX || 70, rangeY: moveData.rangeY || 45, hitstun: moveData.hitstun || 20, hitstop: moveData.hitstop || 6, pushX: moveData.knockbackX || 6, launchY: moveData.knockbackY ?? -4 })
+  if (moveKey === "light") return buildBaseAttack({ fighter, name: "light", startup: moveData.startup || 4, active: moveData.active || 3, recovery: moveData.recovery || 10, damage: moveData.damage || 35, rangeX: moveData.rangeX || 55, rangeY: moveData.rangeY || 40, hitstun: moveData.hitstun || 14, hitstop: 4, pushX: moveData.knockbackX || 3, launchY: moveData.knockbackY ?? -2 })
+  if (moveKey === "heavy") return buildBaseAttack({ fighter, name: "heavy", startup: moveData.startup || 7, active: moveData.active || 4, recovery: moveData.recovery || 15, damage: moveData.damage || 60, rangeX: moveData.rangeX || 70, rangeY: moveData.rangeY || 45, hitstun: moveData.hitstun || 20, hitstop: 8, pushX: moveData.knockbackX || 6, launchY: moveData.knockbackY ?? -4 })
   if (moveKey === "up") {
-    const atk = buildBaseAttack({ fighter, name: "up", startup: moveData.startup || 6, active: moveData.active || 4, recovery: moveData.recovery || 16, damage: moveData.damage || 55, rangeX: moveData.rangeX || 44, rangeY: moveData.rangeY || 72, hitstun: moveData.hitstun || 18, hitstop: moveData.hitstop || 5, pushX: moveData.knockbackX || 2, launchY: moveData.knockbackY ?? -12 })
-    atk.launcher = true; atk.selfLift = moveData.selfLift ?? -8; return atk
+    const atk = buildBaseAttack({ fighter, name: "up", startup: moveData.startup || 6, active: moveData.active || 4, recovery: moveData.recovery || 16, damage: moveData.damage || 55, rangeX: moveData.rangeX || 44, rangeY: moveData.rangeY || 72, hitstun: moveData.hitstun || 18, hitstop: 6, pushX: moveData.knockbackX || 2, launchY: moveData.knockbackY ?? -36 })
+    atk.launcher = true; atk.selfLift = moveData.selfLift ?? -22; return atk
   }
-  if (moveKey === "air") return buildBaseAttack({ fighter, name: "air", startup: moveData.startup || 5, active: moveData.active || 4, recovery: moveData.recovery || 10, damage: moveData.damage || 45, rangeX: moveData.rangeX || 56, rangeY: moveData.rangeY || 40, hitstun: moveData.hitstun || 14, hitstop: moveData.hitstop || 4, pushX: moveData.knockbackX || 3, launchY: moveData.knockbackY ?? -2 })
+  if (moveKey === "air") return buildBaseAttack({ fighter, name: "air", startup: moveData.startup || 5, active: moveData.active || 4, recovery: moveData.recovery || 10, damage: moveData.damage || 45, rangeX: moveData.rangeX || 56, rangeY: moveData.rangeY || 40, hitstun: moveData.hitstun || 14, hitstop: 5, pushX: moveData.knockbackX || 3, launchY: moveData.knockbackY ?? -18 })
   if (moveKey === "down_air") {
-    const atk = buildBaseAttack({ fighter, name: "down_air", startup: moveData.startup || 7, active: moveData.active || 5, recovery: moveData.recovery || 14, damage: moveData.damage || 60, rangeX: moveData.rangeX || 48, rangeY: moveData.rangeY || 50, hitstun: moveData.hitstun || 18, hitstop: moveData.hitstop || 7, pushX: moveData.knockbackX || 2, launchY: moveData.knockbackY ?? 10 })
-    atk.spike = true; atk.spikeForce = moveData.spike || moveData.knockbackY || 14; return atk
+    const atk = buildBaseAttack({ fighter, name: "down_air", startup: moveData.startup || 7, active: moveData.active || 5, recovery: moveData.recovery || 14, damage: moveData.damage || 60, rangeX: moveData.rangeX || 48, rangeY: moveData.rangeY || 50, hitstun: moveData.hitstun || 18, hitstop: 8, pushX: moveData.knockbackX || 2, launchY: moveData.knockbackY ?? 30 })
+    atk.spike = true; atk.spikeForce = moveData.spike || moveData.knockbackY || 30; return atk
   }
   if (moveKey === "grab") {
     const total = getAttackDuration(22, fighter)
@@ -240,6 +242,41 @@ function applyNormalHitReaction(attacker, defender, atk) {
   if (!atk.isGrab) defender.vy = atk.launchY || -2
 }
 
+// MATCHES game.js IMPORT: resolveProjectileHits
+export function resolveProjectileHits(projectiles, p1, p2, hitEffects = null) {
+  if (!Array.isArray(projectiles)) return
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i]
+    const defender = p.owner === p1 ? p2 : p1
+    const attacker = p.owner
+    if (!defender || !attacker) continue
+
+    const pRect = { x: p.x ?? 0, y: p.y ?? 0, w: p.w ?? p.width ?? 20, h: p.h ?? p.height ?? 20 }
+    const hurtbox = getHurtbox(defender)
+    if (!rectsOverlap(pRect, hurtbox)) continue
+
+    if (shouldGojoAutoDodge(defender)) {
+      pushHitEffect(hitEffects, { x: defender.x + defender.w / 2, y: defender.y + defender.h / 2, timer: 12, color: "#ffffff" })
+      projectiles.splice(i, 1); continue
+    }
+
+    let damage = Math.floor((p.damage || 50) * getComboScale(attacker))
+    if (defender.isBlocking) {
+      damage = Math.floor(damage * 0.3)
+      defender.blockstun = Math.max(defender.blockstun || 0, 8)
+      defender.health = Math.max(1, defender.health - damage)
+    } else {
+      defender.hitstun = Math.max(defender.hitstun || 0, 18)
+      defender.vx = (attacker.facing || 1) * 4
+      defender.vy = -4
+      defender.health = Math.max(0, defender.health - damage)
+    }
+    applyUltraEgoReaction(defender); defender.colorFlash = 6
+    pushHitEffect(hitEffects, { x: defender.x + defender.w / 2, y: defender.y + defender.h / 2, timer: 16, color: "#ffd700" })
+    projectiles.splice(i, 1)
+  }
+}
+
 export function resolveAttackHit(attacker, defender, hitEffects = null) {
   if (!attacker?.currentAttack || !defender || attacker.currentAttack.hasHit || !attackIsActive(attacker.currentAttack) || (defender.invulnTimer || 0) > 0) return false
   const hitbox = getAttackHitbox(attacker)
@@ -254,22 +291,12 @@ export function resolveAttackHit(attacker, defender, hitEffects = null) {
 
   const atk = attacker.currentAttack
   let damage = Math.max(8, Math.floor((atk.damage || 0) * getComboScale(attacker)))
-  damage = Math.floor(damage * (attacker.attackMultiplier || 1))
-  damage = Math.floor(damage * (attacker.damageMultiplier || 1))
-  if (attacker.domainBuff) damage = Math.floor(damage * 1.15)
-  damage = Math.floor(damage / (defender.defenseMultiplier || 1))
-
   if (defender.isBlocking && !atk.launcher && !atk.spike && !atk.isGrab) {
-    damage = Math.floor(damage * 0.25)
-    applyBlockReaction(attacker, defender, atk)
-    defender.health = Math.max(1, defender.health - damage) 
+    damage = Math.floor(damage * 0.25); applyBlockReaction(attacker, defender, atk); defender.health = Math.max(1, defender.health - damage) 
   } else {
-    applyNormalHitReaction(attacker, defender, atk)
-    defender.health = Math.max(0, defender.health - damage)
+    applyNormalHitReaction(attacker, defender, atk); defender.health = Math.max(0, defender.health - damage)
   }
-
-  applyUltraEgoReaction(defender)
-  defender.colorFlash = 6
+  applyUltraEgoReaction(defender); defender.colorFlash = 6
   attacker.currentAttack.hasHit = true; attacker.hasHitThisMove = true
   attacker.comboCounter = (attacker.comboCounter || 0) + 1; attacker.comboTimer = 90
   pushHitEffect(hitEffects, { x: defender.x + defender.w / 2, y: defender.y + defender.h / 2, timer: 18, color: "#ffd700" })
@@ -277,17 +304,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null) {
 }
 
 export function updateActiveMove(fighter, opponent, hitEffects = null) {
-  if (!fighter) return
-  if (fighter.hitstop > 0) return; 
-
-  const moveData = fighter.currentMoveData
-  const atk = fighter.currentAttack
+  if (!fighter || fighter.hitstop > 0) return
+  const moveData = fighter.currentMoveData; const atk = fighter.currentAttack
   if (!moveData || !atk) { endMove(fighter); return }
-
   fighter.moveTimer++; atk.timer--
-  const phase = getAttackPhase(fighter)
-  fighter.movePhase = phase
-
+  const phase = getAttackPhase(fighter); fighter.movePhase = phase
   if (phase === "active") resolveAttackHit(fighter, opponent, hitEffects)
   if (atk.timer <= 0) endMove(fighter)
 }
@@ -297,15 +318,12 @@ export function updateProjectiles(projectiles, worldWidth, infinityUsers = []) {
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const p = projectiles[i]
     p.x += p.vx || 0; p.y += p.vy || 0; p.life = (p.life ?? 0) - 1
-
     for (const gojo of infinityUsers) {
       if (!gojo || p.owner === gojo || !gojo.infinityActive) continue
-      const pw = p.w ?? p.width ?? 20; const ph = p.h ?? p.height ?? 20
-      const dx = p.x + pw / 2 - (gojo.x + gojo.w / 2); const dy = p.y + ph / 2 - (gojo.y + gojo.h / 2)
+      const dx = p.x + (p.w||20)/2 - (gojo.x + gojo.w/2); const dy = p.y + (p.h||20)/2 - (gojo.y + gojo.h/2)
       const dist = Math.sqrt(dx * dx + dy * dy)
       if (dist < GOJO_INFINITY_RADIUS) {
-        const ratio = Math.max(0.015, dist / GOJO_INFINITY_RADIUS)
-        const slow = ratio * ratio
+        const ratio = Math.max(0.015, dist / GOJO_INFINITY_RADIUS); const slow = ratio * ratio
         p.vx *= slow; p.vy *= Math.max(0.22, slow)
       }
     }
@@ -318,32 +336,22 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   ensureCombatState(fighter); ensureCombatState(opponent)
   const hitEffects = options.hitEffects || null
   const abilityContext = options.abilityContext || {}
-
   if (fighter.hitstop > 0) fighter.hitstop--
-
   updateStunTimers(fighter)
   if (fighter.comboTimer > 0) fighter.comboTimer--
   else fighter.comboCounter = 0
-
   if (fighter.colorFlash > 0) fighter.colorFlash--
   if (fighter.invulnTimer > 0) fighter.invulnTimer--
   if (fighter.attackCooldown > 0) fighter.attackCooldown--
-
   if (fighter.grounded) fighter.airHits = 0
   if (opponent.grounded && opponent.hitstun <= 0) opponent.comboCounter = 0
-
   if (!fighter.attacking) beginMoveFromInput(fighter, controls)
   else updateActiveMove(fighter, opponent, hitEffects)
-
   if (controls.ultimate && !fighter.attacking && fighter.hitstun <= 0 && (fighter.energy || 0) >= (fighter.ultimate?.cost || 0)) {
     performUltimate(fighter, abilityContext)
   }
-
   if (fighter.energyType !== 'none' && (fighter.maxEnergy || 0) > 0 && fighter.energy < fighter.maxEnergy) {
-    fighter.energy += 0.2
-    if (fighter.energy > fighter.maxEnergy) fighter.energy = fighter.maxEnergy
+    fighter.energy += 0.2; if (fighter.energy > fighter.maxEnergy) fighter.energy = fighter.maxEnergy
   }
-
-  fighter.health = Math.max(0, fighter.health)
-  opponent.health = Math.max(0, opponent.health)
+  fighter.health = Math.max(0, fighter.health); opponent.health = Math.max(0, opponent.health)
 }

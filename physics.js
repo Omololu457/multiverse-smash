@@ -2,35 +2,40 @@
 // Core movement, anime-style mechanics, and gravity helpers used by game.js and combat.js
 
 export const physics = {
-  gravity: 0.7,
+  // NEW: Increased global gravity and max fall speed for snappier, less "floaty" aerial combat
+  gravity: 1.2, 
   groundY: 520,
-  friction: 0.8,
-  airFriction: 0.96,
-  maxFallSpeed: 18,
+  friction: 0.75, // Lowered slightly so characters stop faster instead of sliding like they are on ice
+  airFriction: 0.95,
+  maxFallSpeed: 24,
 
   moveFighter(fighter, keys = {}, controls = {}) {
     if (!fighter) return
     
-    // NEW: Freeze all movement instantly during hitstop
+    // Freeze all movement instantly during hitstop
     if (fighter.hitstop > 0) return 
 
-    const speed = fighter.speed || 6
+    // NEW: Huge default base speed increase (14 instead of 6) so EVERYONE is fast
+    const speed = fighter.speed || 14
 
     // Ensure state variables exist
     if (fighter.vx == null) fighter.vx = 0
     if (fighter.vy == null) fighter.vy = 0
     if (fighter.h == null) fighter.h = fighter.height || 80
     if (fighter.w == null) fighter.w = fighter.width || 50
-    if (fighter.jumpForce == null) fighter.jumpForce = -(fighter.jump || 14)
+    
+    // NEW: Increased default jump force to fight against the higher gravity
+    if (fighter.jumpForce == null) fighter.jumpForce = -(fighter.jump || 18)
 
-    // NEW: Multi-jump & Dash state tracking
+    // Multi-jump & Dash state tracking
     if (fighter.jumpCount == null) fighter.jumpCount = 0
-    if (fighter.maxJumps == null) fighter.maxJumps = 1 // Change to 2 or 3 in characters.js for Toji/Maki
+    // Reads from stats if available, defaults to 1
+    if (fighter.maxJumps == null) fighter.maxJumps = fighter.stats?.maxJumps || 1 
     if (fighter.jumpHeld == null) fighter.jumpHeld = false
     if (fighter.dashTimer == null) fighter.dashTimer = 0
     if (fighter.dashCooldown == null) fighter.dashCooldown = 0
     
-    // NEW: Apply External Forces (e.g., Gojo's Blue pulling the opponent)
+    // Apply External Forces (e.g., Gojo's Blue pulling the opponent)
     if (fighter.externalForces && fighter.externalForces.length > 0) {
         fighter.externalForces.forEach(force => {
             fighter.vx += force.x || 0;
@@ -51,16 +56,17 @@ export const physics = {
     const canMove = !(fighter.stun > 0 || fighter.hitstun > 0 || fighter.blockstun > 0 || fighter.isGrabbed)
 
     if (canMove) {
-      // NEW: Dash Logic
+      // Dash Logic
       if (dashPressed && fighter.dashCooldown <= 0) {
-          fighter.dashTimer = fighter.dashDuration || 10; // Dash lasts 10 frames
-          fighter.dashCooldown = fighter.dashCooldownMax || 45; // Cannot dash for 45 frames
+          fighter.dashTimer = fighter.dashDuration || 8; // NEW: Shorter, snappier dash animation (8 frames)
+          fighter.dashCooldown = fighter.dashCooldownMax || 25; // NEW: Lower cooldown so everyone can dash frequently
       }
 
       // If dashing, override normal movement with high-speed burst
       if (fighter.dashTimer > 0) {
           fighter.dashTimer--;
-          fighter.vx = fighter.facing * (fighter.dashSpeed || 15);
+          // NEW: Massive default dash speed (28) for an instant "teleport" feel
+          fighter.vx = fighter.facing * (fighter.dashSpeed || 28);
           fighter.vy = 0; // Anime dash: suspend gravity momentarily
       } 
       // Normal horizontal movement
@@ -78,7 +84,7 @@ export const physics = {
           }
       }
 
-      // NEW: Multi-Jump Logic
+      // Multi-Jump Logic
       if (fighter.onGround) {
           fighter.jumpCount = 0; // Reset jumps on floor
       }
@@ -99,7 +105,7 @@ export const physics = {
       }
       
     } else {
-      // FIX: If stunned, players can't move, BUT they still need friction applied 
+      // If stunned, players can't move, BUT they still need friction applied 
       // so knockback gracefully slows down instead of sliding forever.
       fighter.vx *= fighter.onGround ? this.friction : this.airFriction
       if (Math.abs(fighter.vx) < 0.05) fighter.vx = 0
@@ -112,10 +118,10 @@ export const physics = {
   applyGravity(fighter) {
     if (!fighter) return
     
-    // NEW: Freeze gravity during hitstop
+    // Freeze gravity during hitstop
     if (fighter.hitstop > 0) return 
     
-    // NEW: Suspend gravity if performing an anime dash
+    // Suspend gravity if performing an anime dash
     if (fighter.dashTimer > 0) return
 
     if (fighter.vx == null) fighter.vx = 0
@@ -184,7 +190,7 @@ export const physics = {
     fighter.attackBox.y = (fighter.y || 0) + 30
   },
 
-  launcherAttack(attacker, target, launchY = -12, selfLift = 0) {
+  launcherAttack(attacker, target, launchY = -16, selfLift = -10) { // NEW: Launchers send players higher now
     if (!attacker || !target) return
 
     target.vy = launchY
@@ -210,7 +216,7 @@ export const physics = {
     attacker.airHits = 0
   },
 
-  airCombo(attacker, target, launchY = -6) {
+  airCombo(attacker, target, launchY = -8) { // NEW: Air combos keep them bouncing slightly higher
     if (!attacker || !target) return
 
     attacker.airHits = attacker.airHits || 0
@@ -227,7 +233,7 @@ export const physics = {
     attacker.airHits++
   },
 
-  downAirSpike(attacker, target, force = 14) {
+  downAirSpike(attacker, target, force = 20) { // NEW: Spikes blast them to the ground much faster
     if (!attacker || !target) return
 
     target.vy = force

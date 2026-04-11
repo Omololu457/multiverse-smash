@@ -215,7 +215,69 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       fighter.attackCooldown = 10;
     }
   }
+// ------------------------------
+// PROJECTILE UPDATES & HIT RESOLUTION
+// ------------------------------
+export function updateProjectiles(projectiles = [], stageWidth = 3200, fighters = []) {
+  if (!Array.isArray(projectiles)) return;
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    if (!p) { projectiles.splice(i, 1); continue; }
 
+    p.x += p.vx || 0;
+    p.y += p.vy || 0;
+    if (p.lifetime != null) p.lifetime--;
+
+    const oob = p.x < -200 || p.x > stageWidth + 200 || p.y < -400 || p.y > 2000;
+    const expired = p.lifetime != null && p.lifetime <= 0;
+    if (oob || expired) { projectiles.splice(i, 1); }
+  }
+}
+
+export function resolveProjectileHits(projectiles = [], p1, p2, hitEffects = []) {
+  if (!Array.isArray(projectiles)) return;
+  const fighters = [p1, p2].filter(Boolean);
+
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const proj = projectiles[i];
+    if (!proj) continue;
+
+    for (const fighter of fighters) {
+      // Don't hit the fighter who owns the projectile
+      if (proj.owner === fighter || proj.ownerId === fighter.side) continue;
+      if ((fighter.invulnTimer || 0) > 0) continue;
+
+      const hurtbox = getHurtbox(fighter);
+      const projBox = {
+        x: proj.x - (proj.radius || proj.size || 10),
+        y: proj.y - (proj.radius || proj.size || 10),
+        w: (proj.radius || proj.size || 10) * 2,
+        h: (proj.radius || proj.size || 10) * 2
+      };
+
+      if (rectsOverlap(projBox, hurtbox)) {
+        let damage = proj.damage || 30;
+        if (fighter.isBlocking) {
+          damage *= 0.15;
+          fighter.blockstun = 12;
+        } else {
+          fighter.hitstun = proj.hitstun || 18;
+          fighter.vx = (proj.vx > 0 ? 1 : -1) * (proj.knockbackX || 5);
+          fighter.vy = proj.knockbackY || -3;
+          fighter.colorFlash = 6;
+        }
+        fighter.health -= Math.floor(damage);
+
+        if (Array.isArray(hitEffects)) {
+          hitEffects.push({ x: proj.x, y: proj.y, timer: 12, size: 20, color: proj.color || "#fff1a8" });
+        }
+
+        projectiles.splice(i, 1);
+        break;
+      }
+    }
+  }
+}
   // Energy Regen
   if (fighter.energy < fighter.maxEnergy) fighter.energy += 0.1;
 }

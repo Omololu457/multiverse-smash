@@ -1,6 +1,5 @@
 // camera.js
-// Simple MK-style fighting game camera
-// Copy-paste replacement
+// Optimized MK1-Style Dynamic Panning & Zooming
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value))
@@ -19,19 +18,14 @@ function getCenterY(entity) {
 }
 
 function getCanvasMetrics(canvasOrCtx) {
-  const canvas =
-    canvasOrCtx?.canvas ||
-    canvasOrCtx ||
-    null
-
+  const canvas = canvasOrCtx?.canvas || canvasOrCtx || null
   return {
-    width: canvas?.width || canvas?.clientWidth || window.innerWidth || 1280,
-    height: canvas?.height || canvas?.clientHeight || window.innerHeight || 720
+    width: canvas?.width || window.innerWidth || 1280,
+    height: canvas?.height || window.innerHeight || 720
   }
 }
 
 export const camera = {
-  // Camera center in world space
   x: 0,
   y: 0,
   zoom: 1,
@@ -40,227 +34,112 @@ export const camera = {
   targetY: 0,
   targetZoom: 1,
 
-  // World/stage size
   worldWidth: 3200,
-  worldHeight: 900,
+  worldHeight: 1600,
 
-  // Vertical limits
+  // Vertical limits (Clamps camera to stage floor)
   minY: 0,
-  maxY: 900,
+  maxY: 1600,
 
-  // Zoom limits
-  minZoom: 0.78,
+  // Zoom limits: 0.7 allows significant pan out, 1.0 is default
+  minZoom: 0.7, 
   maxZoom: 1.0,
 
-  // Smoothing
-  moveSmooth: 0.12,
-  zoomSmooth: 0.08,
-  verticalMoveSmooth: 0.04,
+  // Smoothing (Lower = smoother/slower)
+  moveSmooth: 0.1,
+  zoomSmooth: 0.06,
+  verticalMoveSmooth: 0.08,
 
-  // Padding / framing
-  horizontalPadding: 340,
-  verticalPadding: 180,
-  verticalOffset: -40,
-  verticalBias: 0,
-  lookAheadStrength: 0,
-  topSafeMargin: 0,
-  bottomSafeMargin: 0,
+  // Framing
+  horizontalPadding: 250, // Distance players can get to the edge before zoom/pan
+  verticalOffset: -60,    // Shifts camera upward to show more of the air
 
-  // Shake
+  // Shake system
   shakeTimer: 0,
   shakeStrength: 0,
   shakeX: 0,
   shakeY: 0,
 
   setWorldBounds(width, height) {
-    this.worldWidth = Math.max(1, width || this.worldWidth)
-    this.worldHeight = Math.max(1, height || this.worldHeight)
-
-    if (!Number.isFinite(this.maxY) || this.maxY <= this.minY) {
-      this.minY = 0
-      this.maxY = this.worldHeight
-    }
+    this.worldWidth = width || this.worldWidth
+    this.worldHeight = height || this.worldHeight
   },
 
   setVerticalLimits(minY, maxY) {
-    this.minY = Number.isFinite(minY) ? minY : 0
-    this.maxY = Number.isFinite(maxY) ? maxY : this.worldHeight
-
-    if (this.maxY < this.minY) {
-      const temp = this.minY
-      this.minY = this.maxY
-      this.maxY = temp
-    }
+    this.minY = minY;
+    this.maxY = maxY;
   },
 
   reset() {
     this.x = this.worldWidth * 0.5
-    this.y = (this.minY + this.maxY) * 0.5
+    this.y = 400
     this.zoom = 1
-
-    this.targetX = this.x
-    this.targetY = this.y
-    this.targetZoom = 1
-
     this.shakeTimer = 0
-    this.shakeStrength = 0
-    this.shakeX = 0
-    this.shakeY = 0
   },
 
-  shake(strength = 8, duration = 10) {
-    this.shakeStrength = Math.max(this.shakeStrength, strength || 0)
-    this.shakeTimer = Math.max(this.shakeTimer, duration || 0)
-  },
-
-  focusOnPoint(x, y, zoom = 1, frames = 10) {
-    this.targetX = x
-    this.targetY = y
-    this.targetZoom = clamp(zoom, this.minZoom, this.maxZoom)
-  },
-
-  focusOnFighter(fighter, zoom = 1, frames = 10) {
-    if (!fighter) return
-    this.focusOnPoint(getCenterX(fighter), getCenterY(fighter), zoom, frames)
-  },
-
-  focusBetween(a, b, zoom = 1, frames = 10) {
-    if (!a && !b) return
-    if (!a) return this.focusOnFighter(b, zoom, frames)
-    if (!b) return this.focusOnFighter(a, zoom, frames)
-
-    const midX = (getCenterX(a) + getCenterX(b)) * 0.5
-    const midY = (getCenterY(a) + getCenterY(b)) * 0.5
-    this.focusOnPoint(midX, midY, zoom, frames)
-  },
-
-  getDesiredState(f1, f2, canvas) {
-    const { width: canvasWidth } = getCanvasMetrics(canvas)
-
-    const c1x = getCenterX(f1)
-    const c2x = getCenterX(f2)
-    const c1y = getCenterY(f1)
-    const c2y = getCenterY(f2)
-
-    const midX = (c1x + c2x) * 0.5
-    const midY = (c1y + c2y) * 0.5
-
-    const distanceX = Math.abs(c2x - c1x)
-
-    // MK-style zoom: mostly horizontal separation
-    const neededWidth = distanceX + this.horizontalPadding * 2
-    let desiredZoom = canvasWidth / Math.max(1, neededWidth)
-    desiredZoom = clamp(desiredZoom, this.minZoom, this.maxZoom)
-
-    // Optional look-ahead using fighter movement
-    const v1 = f1?.vx || 0
-    const v2 = f2?.vx || 0
-    const avgVelocityX = (v1 + v2) * 0.5
-    const lookAheadX = avgVelocityX * this.lookAheadStrength
-
-    // Horizontal camera follows midpoint
-    const desiredX = midX + lookAheadX
-
-    // Vertical camera stays stable but still supports your existing settings
-    const desiredY = midY + this.verticalOffset + this.verticalBias
-
-    return {
-      x: desiredX,
-      y: desiredY,
-      zoom: desiredZoom
-    }
+  shake(strength = 10, duration = 15) {
+    this.shakeStrength = strength
+    this.shakeTimer = duration
   },
 
   update(f1, f2, canvas) {
+    if (!f1 || !f2) return;
     const { width: canvasWidth, height: canvasHeight } = getCanvasMetrics(canvas)
 
-    const desired = this.getDesiredState(f1, f2, canvas)
+    // 1. CALCULATE MIDPOINT
+    const midX = (getCenterX(f1) + getCenterX(f2)) * 0.5
+    const midY = (getCenterY(f1) + getCenterY(f2)) * 0.5
 
-    this.targetZoom = desired.zoom
+    // 2. CALCULATE ZOOM BASED ON DISTANCE
+    const distanceX = Math.abs(getCenterX(f1) - getCenterX(f2))
+    const neededWidth = distanceX + this.horizontalPadding * 2
+    
+    this.targetZoom = canvasWidth / Math.max(1, neededWidth)
+    this.targetZoom = clamp(this.targetZoom, this.minZoom, this.maxZoom)
+    
+    // Smoothly apply zoom
     this.zoom = lerp(this.zoom, this.targetZoom, this.zoomSmooth)
 
-    this.targetX = desired.x
-    this.targetY = desired.y
+    // 3. APPLY TARGETS
+    this.targetX = midX
+    this.targetY = midY + this.verticalOffset
 
+    // 4. SMOOTH MOVEMENT (LERP)
     this.x = lerp(this.x, this.targetX, this.moveSmooth)
     this.y = lerp(this.y, this.targetY, this.verticalMoveSmooth)
 
-    const halfViewW = canvasWidth / this.zoom / 2
-    const halfViewH = canvasHeight / this.zoom / 2
+    // 5. BOUNDARY CLAMPING (Keep camera inside world)
+    const viewW = canvasWidth / this.zoom
+    const viewH = canvasHeight / this.zoom
 
-    // Clamp horizontally to stage width
-    this.x = clamp(
-      this.x,
-      halfViewW,
-      Math.max(halfViewW, this.worldWidth - halfViewW)
-    )
+    this.x = clamp(this.x, viewW / 2, this.worldWidth - viewW / 2)
+    this.y = clamp(this.y, viewH / 2, this.worldHeight - viewH / 2)
 
-    // Clamp vertically to provided limits
-    const minCameraY = this.minY + halfViewH + this.topSafeMargin
-    const maxCameraY = this.maxY - halfViewH - this.bottomSafeMargin
-
-    if (minCameraY <= maxCameraY) {
-      this.y = clamp(this.y, minCameraY, maxCameraY)
-    } else {
-      this.y = (this.minY + this.maxY) * 0.5
-    }
-
+    // 6. SHAKE LOGIC
     if (this.shakeTimer > 0) {
       this.shakeTimer--
-      this.shakeX = (Math.random() * 2 - 1) * this.shakeStrength
-      this.shakeY = (Math.random() * 2 - 1) * this.shakeStrength * 0.35
-
-      if (this.shakeTimer <= 0) {
-        this.shakeTimer = 0
-        this.shakeStrength = 0
-        this.shakeX = 0
-        this.shakeY = 0
-      }
+      this.shakeX = (Math.random() - 0.5) * this.shakeStrength
+      this.shakeY = (Math.random() - 0.5) * this.shakeStrength
     } else {
       this.shakeX = 0
       this.shakeY = 0
     }
   },
 
-  begin(ctx, canvas) {
+  applyTransform(ctx, canvas) {
     if (!ctx) return
-
     const { width: canvasWidth, height: canvasHeight } = getCanvasMetrics(canvas || ctx)
 
     ctx.save()
+    // Center the scale/transform to the middle of the screen
     ctx.translate(canvasWidth * 0.5, canvasHeight * 0.5)
     ctx.scale(this.zoom, this.zoom)
+    // Move the world relative to camera position + shake
     ctx.translate(-this.x + this.shakeX, -this.y + this.shakeY)
   },
 
-  end(ctx) {
+  clearTransform(ctx) {
     if (!ctx) return
     ctx.restore()
-  },
-
-  applyTransform(ctx, canvas) {
-    this.begin(ctx, canvas || ctx)
-  },
-
-  clearTransform(ctx) {
-    this.end(ctx)
-  },
-
-  worldToScreen(x, y, canvas) {
-    const { width: canvasWidth, height: canvasHeight } = getCanvasMetrics(canvas)
-
-    return {
-      x: (x - this.x) * this.zoom + canvasWidth * 0.5 + this.shakeX * this.zoom,
-      y: (y - this.y) * this.zoom + canvasHeight * 0.5 + this.shakeY * this.zoom
-    }
-  },
-
-  screenToWorld(x, y, canvas) {
-    const { width: canvasWidth, height: canvasHeight } = getCanvasMetrics(canvas)
-
-    return {
-      x: (x - canvasWidth * 0.5) / this.zoom + this.x - this.shakeX,
-      y: (y - canvasHeight * 0.5) / this.zoom + this.y - this.shakeY
-    }
   }
 }

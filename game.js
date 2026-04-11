@@ -92,7 +92,8 @@ const gojoSheets = [
 
 gojoSheets.forEach(sheet => {
   gojoSprites[sheet] = new Image();
-  gojoSprites[sheet].src = `gojo_${sheet}_sheet.png`;
+  // Adjust this path if your images are in a folder (e.g., 'assets/gojo_' + sheet + '.png')
+  gojoSprites[sheet].src = `gojo_${sheet}.png`; 
 });
 
 const FLOOR_HEIGHT = 120
@@ -426,6 +427,12 @@ function createFighter(charKey, char, x, facing, controls, side) {
   const jump = Math.max(DEFAULT_JUMP, toFiniteNumber(char?.jump ?? movement?.jump, 7))
   const groundedY = getGroundedYForHeight(height)
   
+  // FIX: Explicitly define variables before they are referenced in the return object
+  const attackMultiplier = toFiniteNumber(char?.attackMultiplier, 1)
+  const damageMultiplier = toFiniteNumber(char?.damageMultiplier, 1)
+  const speedMultiplier = toFiniteNumber(char?.speedMultiplier, 1)
+  const defenseMultiplier = toFiniteNumber(char?.defenseMultiplier, 1)
+
   return {
     ...char,
     rosterKey: charKey,
@@ -447,10 +454,10 @@ function createFighter(charKey, char, x, facing, controls, side) {
     baseJump: jump,
     speed,
     jump,
-    attackMultiplier: toFiniteNumber(char?.attackMultiplier, 1),
-    damageMultiplier: toFiniteNumber(char?.damageMultiplier, 1),
-    speedMultiplier: toFiniteNumber(char?.speedMultiplier, 1),
-    defenseMultiplier: toFiniteNumber(char?.defenseMultiplier, 1),
+    attackMultiplier,
+    damageMultiplier,
+    speedMultiplier,
+    defenseMultiplier,
     moveMultiplier: movement.moveMultiplier || 1,
     attackSpeedMultiplier: movement.attackSpeedMultiplier || 1,
     maxJumps: char?.stats?.maxJumps || movement.jumpCount || 1,

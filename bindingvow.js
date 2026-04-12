@@ -7,114 +7,102 @@ export const activeVows = new Map()
 // Activate Binding Vow
 // ======================================================
 
-export function activateBindingVow(fighter, vow){
+export function activateBindingVow(fighter, vow) {
+  if (!fighter || !vow) return
 
-    if(activeVows.has(fighter)){
-        return
-    }
+  if (activeVows.has(fighter)) {
+    return
+  }
 
-    activeVows.set(fighter, vow)
+  activeVows.set(fighter, vow)
 
-    applyVowReward(fighter, vow)
-    applyVowRestriction(fighter, vow)
-
+  applyVowReward(fighter, vow)
+  applyVowRestriction(fighter, vow)
 }
 
 // ======================================================
 // Apply Reward
 // ======================================================
 
-function applyVowReward(fighter, vow){
+function applyVowReward(fighter, vow) {
+  if (!vow.reward) return
 
-    if(!vow.reward) return
+  switch (vow.reward.type) {
+    case "infiniteEnergy":
+      fighter.energy = Infinity
+      break
 
-    switch(vow.reward.type){
+    case "damageBoost":
+      fighter.damageMultiplier =
+        (fighter.damageMultiplier || 1) * vow.reward.value
+      break
 
-        case "infiniteEnergy":
+    case "speedBoost":
+      fighter.speed *= vow.reward.value
+      break
 
-            fighter.energy = Infinity
-
-        break
-
-        case "damageBoost":
-
-            fighter.damageMultiplier =
-                (fighter.damageMultiplier || 1) * vow.reward.value
-
-        break
-
-        case "speedBoost":
-
-            fighter.speed *= vow.reward.value
-
-        break
-
-        case "healthBoost":
-
-            fighter.health *= vow.reward.value
-
-        break
-
-    }
-
+    case "healthBoost":
+      fighter.health *= vow.reward.value
+      break
+  }
 }
 
 // ======================================================
 // Apply Restriction
 // ======================================================
 
-function applyVowRestriction(fighter, vow){
+function applyVowRestriction(fighter, vow) {
+  if (!vow.restriction) return
 
-    if(!vow.restriction) return
+  switch (vow.restriction.type) {
+    case "noSpecials":
+      fighter.canUseSpecials = false
+      break
 
-    switch(vow.restriction.type){
+    case "noJump":
+      fighter.canJump = false
+      break
 
-        case "noSpecials":
+    case "noBlock":
+      fighter.canBlock = false
+      break
 
-            fighter.canUseSpecials = false
+    case "reducedHealth":
+      fighter.health *= vow.restriction.value
+      break
 
-        break
-
-        case "noJump":
-
-            fighter.canJump = false
-
-        break
-
-        case "noBlock":
-
-            fighter.canBlock = false
-
-        break
-
-        case "reducedHealth":
-
-            fighter.health *= vow.restriction.value
-
-        break
-
-    }
-
+    case "speedBoost":
+      fighter.speed *= vow.restriction.value
+      break
+  }
 }
 
 // ======================================================
 // Check if Fighter Has Vow
 // ======================================================
 
-export function hasBindingVow(fighter){
-
-    return activeVows.has(fighter)
-
+export function hasBindingVow(fighter) {
+  return activeVows.has(fighter)
 }
 
 // ======================================================
 // Get Fighter Vow
 // ======================================================
 
-export function getBindingVow(fighter){
+export function getBindingVow(fighter) {
+  return activeVows.get(fighter)
+}
 
-    return activeVows.get(fighter)
+// ======================================================
+// Clear Fighter Vow / All Vows
+// ======================================================
 
+export function clearBindingVow(fighter) {
+  activeVows.delete(fighter)
+}
+
+export function clearAllBindingVows() {
+  activeVows.clear()
 }
 
 // ======================================================
@@ -122,51 +110,43 @@ export function getBindingVow(fighter){
 // ======================================================
 
 export const bindingVows = {
+  infiniteEnergy: {
+    name: "Infinite Energy Vow",
 
-    infiniteEnergy: {
-
-        name: "Infinite Energy Vow",
-
-        reward: {
-            type: "infiniteEnergy"
-        },
-
-        restriction: {
-            type: "noSpecials"
-        }
-
+    reward: {
+      type: "infiniteEnergy"
     },
 
-    powerForLife: {
-
-        name: "Power For Life",
-
-        reward: {
-            type: "damageBoost",
-            value: 2
-        },
-
-        restriction: {
-            type: "reducedHealth",
-            value: 0.5
-        }
-
-    },
-
-    speedSacrifice: {
-
-        name: "Speed Sacrifice",
-
-        reward: {
-            type: "damageBoost",
-            value: 1.8
-        },
-
-        restriction: {
-            type: "speedBoost",
-            value: 0.6
-        }
-
+    restriction: {
+      type: "noSpecials"
     }
+  },
 
+  powerForLife: {
+    name: "Power For Life",
+
+    reward: {
+      type: "damageBoost",
+      value: 2
+    },
+
+    restriction: {
+      type: "reducedHealth",
+      value: 0.5
+    }
+  },
+
+  speedSacrifice: {
+    name: "Speed Sacrifice",
+
+    reward: {
+      type: "damageBoost",
+      value: 1.8
+    },
+
+    restriction: {
+      type: "speedBoost",
+      value: 0.6
+    }
+  }
 }

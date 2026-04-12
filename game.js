@@ -60,6 +60,8 @@ import {
   drawUniverseSelectScreen,
   drawGameplaySelectScreen,
   drawAIDifficultyScreen,
+  drawPauseMenu,
+  PAUSE_MENU_ITEMS,
   getStartMenuRects,
   getGameplaySelectRects,
   getAIDifficultyRects,
@@ -138,7 +140,8 @@ const GAME_STATES = {
   SELECT_STAGE:     "selectStage",
   BATTLE:           "battle",
   ROUND_BREAK:      "roundBreak",
-  MATCH_END:        "matchEnd"
+  MATCH_END:        "matchEnd",
+  PAUSED:           "paused"
 }
 
 // ------------------------------------------------------------------
@@ -204,6 +207,8 @@ let roundWins       = { p1: 0, p2: 0 }
 let countdown       = ROUND_START_COUNTDOWN
 let winnerText      = ""
 let roundBreakTimer = 0
+let pauseMenuIndex   = 0
+let stateBeforePause = null
 let p1              = null
 let p2              = null
 
@@ -514,6 +519,8 @@ function resetToStart() {
   winnerText      = ""
   countdown       = ROUND_START_COUNTDOWN
   roundBreakTimer = 0
+  pauseMenuIndex  = 0
+  stateBeforePause = null
   clearDomains()
   if (typeof camera.reset === "function") camera.reset()
 }
@@ -573,6 +580,51 @@ function updateCPUInput() {
   if (!cpuEnabled) { clearAIControlKeys(p2); return }
   const aiInput = getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode })
   applyAIInputToKeys(p2, aiInput)
+}
+
+function handlePauseInput(key) {
+  if (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.ROUND_BREAK) {
+    if (key === "escape") {
+      stateBeforePause = gameState
+      gameState        = GAME_STATES.PAUSED
+      pauseMenuIndex   = 0
+      clearAIControlKeys(p2)
+    }
+    return
+  }
+
+  if (gameState !== GAME_STATES.PAUSED) return
+
+  if (key === "escape") {
+    gameState = stateBeforePause || GAME_STATES.BATTLE
+    return
+  }
+
+  const itemCount = PAUSE_MENU_ITEMS.length
+
+  if (key === "w" || key === "arrowup") {
+    pauseMenuIndex = (pauseMenuIndex - 1 + itemCount) % itemCount
+    return
+  }
+  if (key === "s" || key === "arrowdown") {
+    pauseMenuIndex = (pauseMenuIndex + 1) % itemCount
+    return
+  }
+
+  if (key === "enter" || key === "j") {
+    const selected = PAUSE_MENU_ITEMS[pauseMenuIndex]
+
+    if (selected === "resume") {
+      gameState = stateBeforePause || GAME_STATES.BATTLE
+    }
+    else if (selected === "restartRound") {
+      gameState = stateBeforePause || GAME_STATES.BATTLE
+      resetRound()
+    }
+    else if (selected === "quitToMenu") {
+      resetToStart()
+    }
+  }
 }
 
 // ------------------------------------------------------------------
@@ -730,14 +782,10 @@ function applyGojoInfinityBarrier(gojo, target) {
 // DOMAIN / EFFECT UPDATES
 // ------------------------------------------------------------------
 function updateEffectsAndDomains() {
-  // domains.js handles its own list; pass fighters so opponents get slowed
   updateDomains([p1, p2].filter(Boolean))
-
-  // effects.js buff/debuff timers
   updateEffects()
   updateEnergyRegen([p1, p2].filter(Boolean))
 
-  // hit spark timers
   for (let i = hitSparks.length - 1; i >= 0; i--) {
     hitSparks[i].timer--
     if (hitSparks[i].timer <= 0) hitSparks.splice(i, 1)
@@ -856,7 +904,7 @@ function drawBattleScene() {
 }
 
 function drawBattleHud() {
-  drawHealthAndEnergyBars(ctx, p1, p2, canvas)
+  drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins)
   drawControlsInfo(ctx, canvas)
   if (!trainingState.enabled) return
   drawTrainingOverlay(ctx, canvas, {
@@ -945,6 +993,11 @@ function renderCurrentState() {
       drawBattleScene()
       drawBattleHud()
       drawMatchEnd(ctx, canvas, winnerText || "MATCH OVER")
+      break
+    case GAME_STATES.PAUSED:
+      drawBattleScene()
+      drawBattleHud()
+      drawPauseMenu(ctx, canvas, pauseMenuIndex)
       break
   }
 }
@@ -1126,6 +1179,9 @@ function updateCurrentState() {
         gameState = GAME_STATES.BATTLE
       }
       break
+
+    case GAME_STATES.PAUSED:
+      break
   }
 }
 
@@ -1143,6 +1199,7 @@ function gameLoop() {
 // ------------------------------------------------------------------
 window.addEventListener("keydown", e => {
   const key = String(e.key || "").toLowerCase()
+  handlePauseInput(key)
   if (p1) { recordDirectionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key) }
   if (p2) {
     recordDirectionInput(p2, key)

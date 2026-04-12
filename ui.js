@@ -2,6 +2,8 @@
 // Shared UI rendering and menu layout helpers.
 // HUD LAYOUT: Health bars → TOP of screen | Energy bars → BOTTOM of screen
 
+import { drawCharacter } from "./fighters.js"
+
 const startScreenImage = new Image()
 startScreenImage.src = "./start-screen.png"
 
@@ -99,12 +101,12 @@ function drawCenteredText(ctx, text, x, y, options = {}) {
     shadowColor = "transparent"
   } = options
   ctx.save()
-  ctx.font        = font
-  ctx.fillStyle   = fill
-  ctx.textAlign   = align
+  ctx.font         = font
+  ctx.fillStyle    = fill
+  ctx.textAlign    = align
   ctx.textBaseline = baseline
-  ctx.shadowBlur  = shadowBlur
-  ctx.shadowColor = shadowColor
+  ctx.shadowBlur   = shadowBlur
+  ctx.shadowColor  = shadowColor
   ctx.fillText(text, x, y)
   ctx.restore()
 }
@@ -143,7 +145,7 @@ function drawBackdrop(ctx, canvas, top = "#070d1b", bottom = "#17243f") {
 }
 
 function getGridLayout(count, canvas, options = {}) {
-  const { width: w, height: h } = getCanvasSize(canvas)
+  const { width: w } = getCanvasSize(canvas)
   const cols   = options.cols  || 3
   const cardW  = options.cardW || 300
   const cardH  = options.cardH || 120
@@ -421,8 +423,8 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
 
   const rects = getCharacterCardRects(canvas, roster)
   roster.forEach((fighter, i) => {
-    const rect     = rects[i]
-    const isCursor = i === selectedIndex
+    const rect      = rects[i]
+    const isCursor  = i === selectedIndex
     const fighterId = fighter?.id || fighter?.key || fighter?.name || String(i)
     const isP1 = p1Selected === fighterId || p1Selected === i
     const isP2 = p2Selected === fighterId || p2Selected === i
@@ -518,10 +520,10 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
   const parsedWorldWidth = Number(stage?.worldWidth)
   const worldWidth       = Number.isFinite(parsedWorldWidth) ? Math.max(parsedWorldWidth, w) : w
 
-  const sky    = stage?.sky   || "#6fb5ff"
-  const mid    = stage?.mid   || "#6cb27f"
-  const floor  = stage?.floor || "#4d5c41"
-  const accent = stage?.accent || "#ffffff"
+  const sky     = stage?.sky   || "#6fb5ff"
+  const mid     = stage?.mid   || "#6cb27f"
+  const floor   = stage?.floor || "#4d5c41"
+  const accent  = stage?.accent || "#ffffff"
   const bgImage = getStageBackgroundImage(stage)
 
   const bg = ctx.createLinearGradient(0, 0, 0, h)
@@ -543,7 +545,6 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
     ctx.restore()
   }
 
-  // Distant mountains
   ctx.save()
   ctx.globalAlpha = 0.18
   ctx.fillStyle   = "rgba(20,30,50,0.55)"
@@ -581,67 +582,15 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
 // ─────────────────────────────────────────────
 export function drawFighter(ctx, fighter, camera = null) {
   if (!fighter) return
-
-  const x      = fighter.x ?? 0
-  const y      = fighter.y ?? 0
-  const width  = fighter.width  ?? fighter.w ?? 80
-  const height = fighter.height ?? fighter.h ?? 120
-  const faceRight = typeof fighter.facingRight === "boolean"
-    ? fighter.facingRight
-    : (fighter.facing ?? 1) >= 0
-
-  const bodyColor = fighter.color || fighter.fill || (fighter.isCPU ? "#ff8b8b" : "#8ec5ff")
-
-  ctx.save()
-
-  // Drop shadow
-  ctx.globalAlpha = 0.22
-  ctx.fillStyle   = "#000"
-  ctx.beginPath()
-  ctx.ellipse(x + width / 2, y + height + 8, width * 0.42, 14, 0, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.globalAlpha = 1
-
-  // Flash white on hit
-  if ((fighter.colorFlash || 0) > 0) {
-    ctx.fillStyle = "#ffffff"
-    fighter.colorFlash--
-  } else {
-    ctx.fillStyle = bodyColor
-  }
-  fillRoundRect(ctx, x, y, width, height, 14)
-
-  ctx.strokeStyle = "rgba(255,255,255,0.32)"
-  ctx.lineWidth   = 2
-  strokeRoundRect(ctx, x, y, width, height, 14)
-
-  // Head
-  ctx.fillStyle = "rgba(255,255,255,0.85)"
-  ctx.beginPath()
-  ctx.arc(x + width / 2, y + 24, 13, 0, Math.PI * 2)
-  ctx.fill()
-
-  // Facing dot
-  ctx.fillStyle = "rgba(20,24,40,0.75)"
-  if (faceRight) ctx.fillRect(x + width - 18, y + 18, 8, 8)
-  else           ctx.fillRect(x + 10,          y + 18, 8, 8)
-
-  // Name tag
-  if (fighter.name) {
-    drawCenteredText(ctx, fighter.name, x + width / 2, y - 12, {
-      font: "700 12px Arial", fill: "#ffffff"
-    })
-  }
-
-  ctx.restore()
+  drawCharacter(ctx, fighter)
 }
 
 export function drawProjectiles(ctx, projectiles = [], camera = null) {
   if (!Array.isArray(projectiles)) return
   projectiles.forEach(p => {
-    const x    = p.x ?? 0
-    const y    = p.y ?? 0
-    const size = p.radius || p.size || 12
+    const x     = p.x ?? 0
+    const y     = p.y ?? 0
+    const size  = p.radius || p.size || 12
     const color = p.color || "#ffd166"
     ctx.save()
     ctx.fillStyle   = color
@@ -685,11 +634,10 @@ export function drawTrainingCollisionBoxes(ctx, fighters = []) {
     const h = fighter.height ?? fighter.h ?? 120
 
     ctx.save()
-    // Hurtbox (blue)
     ctx.strokeStyle = "rgba(90, 180, 255, 0.8)"
     ctx.lineWidth   = 2
     ctx.strokeRect(x, y, w, h)
-    // Hitbox (red)
+
     if (fighter.attackHitbox) {
       const hb = fighter.attackHitbox
       ctx.strokeStyle = "rgba(255, 90, 90, 0.9)"
@@ -706,110 +654,204 @@ export function drawTrainingCollisionBoxes(ctx, fighters = []) {
 // ─────────────────────────────────────────────
 // HUD — Health TOP, Energy BOTTOM
 // ─────────────────────────────────────────────
-export function drawHealthAndEnergyBars(ctx, p1, p2, canvas) {
-  const { width: w, height: h } = getCanvasSize(canvas)
+export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0, p2: 0 }) {
+  const cw = canvas?.width  || window.innerWidth
+  const ch = canvas?.height || window.innerHeight
 
-  const barW     = clamp(w * 0.28, 240, 440)
-  const barH     = 20
-  const energyH  = 14
-  const padding  = 16
-  const radius   = 6
+  function clampLocal(v, mn, mx) { return Math.max(mn, Math.min(mx, v)) }
 
-  const p1MaxHp  = Math.max(1, p1?.maxHealth || 100)
-  const p2MaxHp  = Math.max(1, p2?.maxHealth || 100)
-  const p1MaxEn  = Math.max(1, p1?.maxEnergy || 100)
-  const p2MaxEn  = Math.max(1, p2?.maxEnergy || 100)
+  function roundRectLocal(ctx, x, y, w, h, r = 6) {
+    const radius = Math.min(r, w / 2, h / 2)
+    ctx.beginPath()
+    ctx.moveTo(x + radius, y)
+    ctx.lineTo(x + w - radius, y)
+    ctx.quadraticCurveTo(x + w, y, x + w, y + radius)
+    ctx.lineTo(x + w, y + h - radius)
+    ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h)
+    ctx.lineTo(x + radius, y + h)
+    ctx.quadraticCurveTo(x, y + h, x, y + h - radius)
+    ctx.lineTo(x, y + radius)
+    ctx.quadraticCurveTo(x, y, x + radius, y)
+    ctx.closePath()
+  }
 
-  const p1HpRatio = clamp((p1?.health ?? p1MaxHp) / p1MaxHp, 0, 1)
-  const p2HpRatio = clamp((p2?.health ?? p2MaxHp) / p2MaxHp, 0, 1)
-  const p1EnRatio = clamp((p1?.energy ?? 0)        / p1MaxEn, 0, 1)
-  const p2EnRatio = clamp((p2?.energy ?? 0)        / p2MaxEn, 0, 1)
+  const barW  = clampLocal(cw * 0.28, 220, 420)
+  const barH  = 20
+  const enH   = 13
+  const pad   = 14
 
-  // ── HEALTH BARS — top of screen ────────────────────────────────
-  const hpY = padding
+  const hpY = pad
 
-  // P1 health panel (left)
-  drawPanel(ctx, padding, hpY, barW + 24, barH + 28, {
-    radius: 10, fill: "rgba(0,0,0,0.52)", stroke: "rgba(255,255,255,0.14)", lineWidth: 1
-  })
-  // P1 name
-  drawCenteredText(ctx, p1?.name || "P1", padding + 8, hpY + 10, {
-    font: "700 12px Arial", fill: "#8fd0ff", align: "left", baseline: "alphabetic"
-  })
-  // P1 health track
-  ctx.fillStyle = "rgba(255,255,255,0.12)"
-  ctx.beginPath(); roundRect(ctx, padding + 8, hpY + 14, barW, barH, radius); ctx.fill()
-  // P1 health fill — red when low
-  const p1HpColor = p1HpRatio > 0.4 ? "#52d46b" : p1HpRatio > 0.2 ? "#f59e0b" : "#ef4444"
-  ctx.fillStyle = p1HpColor
-  ctx.beginPath(); roundRect(ctx, padding + 8, hpY + 14, barW * p1HpRatio, barH, radius); ctx.fill()
+  const p1MaxHp = Math.max(1, p1?.maxHealth || 100)
+  const p2MaxHp = Math.max(1, p2?.maxHealth || 100)
+  const p1Hp    = clampLocal((p1?.health ?? p1MaxHp) / p1MaxHp, 0, 1)
+  const p2Hp    = clampLocal((p2?.health ?? p2MaxHp) / p2MaxHp, 0, 1)
 
-  // P2 health panel (right, fills right-to-left)
-  const p2PanelX = w - padding - barW - 24
-  drawPanel(ctx, p2PanelX, hpY, barW + 24, barH + 28, {
-    radius: 10, fill: "rgba(0,0,0,0.52)", stroke: "rgba(255,255,255,0.14)", lineWidth: 1
-  })
-  drawCenteredText(ctx, p2?.name || "P2", w - padding - 8, hpY + 10, {
-    font: "700 12px Arial", fill: "#ff9f9f", align: "right", baseline: "alphabetic"
-  })
-  // P2 health track
-  ctx.fillStyle = "rgba(255,255,255,0.12)"
-  ctx.beginPath(); roundRect(ctx, p2PanelX + 8, hpY + 14, barW, barH, radius); ctx.fill()
-  // P2 health fill — fills right to left
-  const p2HpColor = p2HpRatio > 0.4 ? "#52d46b" : p2HpRatio > 0.2 ? "#f59e0b" : "#ef4444"
-  const p2FillX = p2PanelX + 8 + barW * (1 - p2HpRatio)
-  ctx.fillStyle = p2HpColor
-  ctx.beginPath(); roundRect(ctx, p2FillX, hpY + 14, barW * p2HpRatio, barH, radius); ctx.fill()
+  function hpColor(ratio) {
+    if (ratio > 0.5) return "#22c55e"
+    if (ratio > 0.25) return "#f59e0b"
+    return "#ef4444"
+  }
 
-  // ── ENERGY BARS — bottom of screen ────────────────────────────
-  // Only draw if the character actually uses energy
+  ctx.fillStyle = "rgba(0,0,0,0.55)"
+  roundRectLocal(ctx, pad, hpY, barW + 20, barH + 26, 10)
+  ctx.fill()
+  ctx.strokeStyle = "rgba(255,255,255,0.12)"
+  ctx.lineWidth   = 1
+  roundRectLocal(ctx, pad, hpY, barW + 20, barH + 26, 10)
+  ctx.stroke()
+
+  ctx.font         = "bold 11px Arial"
+  ctx.textAlign    = "left"
+  ctx.textBaseline = "alphabetic"
+  ctx.fillStyle    = "#7dd3fc"
+  ctx.fillText(p1?.name || "P1", pad + 8, hpY + 12)
+
+  ctx.fillStyle = "rgba(255,255,255,0.1)"
+  roundRectLocal(ctx, pad + 8, hpY + 14, barW, barH, 5)
+  ctx.fill()
+  ctx.fillStyle = hpColor(p1Hp)
+  roundRectLocal(ctx, pad + 8, hpY + 14, barW * p1Hp, barH, 5)
+  ctx.fill()
+
+  const p2PanelX = cw - pad - barW - 20
+  ctx.fillStyle   = "rgba(0,0,0,0.55)"
+  roundRectLocal(ctx, p2PanelX, hpY, barW + 20, barH + 26, 10)
+  ctx.fill()
+  ctx.strokeStyle = "rgba(255,255,255,0.12)"
+  roundRectLocal(ctx, p2PanelX, hpY, barW + 20, barH + 26, 10)
+  ctx.stroke()
+
+  ctx.font         = "bold 11px Arial"
+  ctx.textAlign    = "right"
+  ctx.fillStyle    = "#fca5a5"
+  ctx.fillText(p2?.name || "P2", cw - pad - 8, hpY + 12)
+
+  ctx.fillStyle = "rgba(255,255,255,0.1)"
+  roundRectLocal(ctx, p2PanelX + 8, hpY + 14, barW, barH, 5)
+  ctx.fill()
+  ctx.fillStyle = hpColor(p2Hp)
+  const p2FillX = p2PanelX + 8 + barW * (1 - p2Hp)
+  roundRectLocal(ctx, p2FillX, hpY + 14, barW * p2Hp, barH, 5)
+  ctx.fill()
+
+  const pipCX   = cw / 2
+  const pipY    = hpY + 22
+  const pipR    = 7
+  const pipGap  = 20
+  const maxWins = 2
+
+  for (let i = 0; i < maxWins; i++) {
+    const px = pipCX - pipGap - pipR - i * (pipR * 2 + 5)
+    const won = i < (roundWins?.p1 || 0)
+
+    ctx.beginPath()
+    ctx.arc(px, pipY, pipR, 0, Math.PI * 2)
+
+    if (won) {
+      ctx.fillStyle = "#7dd3fc"
+      ctx.fill()
+      ctx.shadowBlur  = 10
+      ctx.shadowColor = "#7dd3fc"
+      ctx.strokeStyle = "#bae6fd"
+      ctx.lineWidth   = 1.5
+      ctx.stroke()
+      ctx.shadowBlur  = 0
+    } else {
+      ctx.fillStyle   = "rgba(255,255,255,0.10)"
+      ctx.fill()
+      ctx.strokeStyle = "rgba(255,255,255,0.25)"
+      ctx.lineWidth   = 1.5
+      ctx.stroke()
+    }
+  }
+
+  for (let i = 0; i < maxWins; i++) {
+    const px = pipCX + pipGap + pipR + i * (pipR * 2 + 5)
+    const won = i < (roundWins?.p2 || 0)
+
+    ctx.beginPath()
+    ctx.arc(px, pipY, pipR, 0, Math.PI * 2)
+
+    if (won) {
+      ctx.fillStyle = "#fca5a5"
+      ctx.fill()
+      ctx.shadowBlur  = 10
+      ctx.shadowColor = "#fca5a5"
+      ctx.strokeStyle = "#fecaca"
+      ctx.lineWidth   = 1.5
+      ctx.stroke()
+      ctx.shadowBlur  = 0
+    } else {
+      ctx.fillStyle   = "rgba(255,255,255,0.10)"
+      ctx.fill()
+      ctx.strokeStyle = "rgba(255,255,255,0.25)"
+      ctx.lineWidth   = 1.5
+      ctx.stroke()
+    }
+  }
+
+  ctx.font         = "bold 12px Arial"
+  ctx.textAlign    = "center"
+  ctx.textBaseline = "middle"
+  ctx.fillStyle    = "rgba(255,255,255,0.55)"
+  ctx.fillText(`RD ${(roundWins?.p1 || 0) + (roundWins?.p2 || 0) + 1}`, pipCX, pipY)
+
   const p1HasEnergy = (p1?.maxEnergy || 0) > 0
   const p2HasEnergy = (p2?.maxEnergy || 0) > 0
 
-  const enY = h - energyH - padding - 12
+  const p1MaxEn = Math.max(1, p1?.maxEnergy || 100)
+  const p2MaxEn = Math.max(1, p2?.maxEnergy || 100)
+  const p1En    = clampLocal((p1?.energy ?? 0) / p1MaxEn, 0, 1)
+  const p2En    = clampLocal((p2?.energy ?? 0) / p2MaxEn, 0, 1)
+
+  const enY = ch - enH - pad - 14
 
   if (p1HasEnergy) {
-    drawPanel(ctx, padding, enY - 16, barW + 24, energyH + 24, {
-      radius: 8, fill: "rgba(0,0,0,0.52)", stroke: "rgba(255,255,255,0.12)", lineWidth: 1
-    })
-    drawCenteredText(ctx, "ENERGY", padding + 8, enY - 6, {
-      font: "600 10px Arial", fill: "rgba(91,180,255,0.8)", align: "left", baseline: "alphabetic"
-    })
+    ctx.fillStyle = "rgba(0,0,0,0.52)"
+    roundRectLocal(ctx, pad, enY - 14, barW + 20, enH + 22, 8)
+    ctx.fill()
+    ctx.strokeStyle = "rgba(255,255,255,0.10)"
+    ctx.lineWidth   = 1
+    roundRectLocal(ctx, pad, enY - 14, barW + 20, enH + 22, 8)
+    ctx.stroke()
+
+    ctx.font         = "bold 9px Arial"
+    ctx.textAlign    = "left"
+    ctx.textBaseline = "alphabetic"
+    ctx.fillStyle    = "rgba(125,211,252,0.75)"
+    ctx.fillText("ENERGY", pad + 8, enY - 2)
+
     ctx.fillStyle = "rgba(255,255,255,0.10)"
-    ctx.beginPath(); roundRect(ctx, padding + 8, enY, barW, energyH, 4); ctx.fill()
-    ctx.fillStyle = "#5bb4ff"
-    ctx.beginPath(); roundRect(ctx, padding + 8, enY, barW * p1EnRatio, energyH, 4); ctx.fill()
+    roundRectLocal(ctx, pad + 8, enY, barW, enH, 4)
+    ctx.fill()
+    ctx.fillStyle = "#38bdf8"
+    roundRectLocal(ctx, pad + 8, enY, barW * p1En, enH, 4)
+    ctx.fill()
   }
 
   if (p2HasEnergy) {
-    const p2EnPanelX = w - padding - barW - 24
-    drawPanel(ctx, p2EnPanelX, enY - 16, barW + 24, energyH + 24, {
-      radius: 8, fill: "rgba(0,0,0,0.52)", stroke: "rgba(255,255,255,0.12)", lineWidth: 1
-    })
-    drawCenteredText(ctx, "ENERGY", w - padding - 8, enY - 6, {
-      font: "600 10px Arial", fill: "rgba(255,159,159,0.8)", align: "right", baseline: "alphabetic"
-    })
-    ctx.fillStyle = "rgba(255,255,255,0.10)"
-    ctx.beginPath(); roundRect(ctx, p2EnPanelX + 8, enY, barW, energyH, 4); ctx.fill()
-    const p2EnFillX = p2EnPanelX + 8 + barW * (1 - p2EnRatio)
-    ctx.fillStyle = "#ff9f9f"
-    ctx.beginPath(); roundRect(ctx, p2EnFillX, enY, barW * p2EnRatio, energyH, 4); ctx.fill()
-  }
-
-  // ── ROUND PIPS (center top) ────────────────────────────────────
-  // Small dots showing round wins — 2 wins needed
-  const pipCX  = w / 2
-  const pipY   = hpY + 14
-  const pipR   = 6
-  const pipGap = 18
-
-  ;[0, 1].forEach(i => {
-    const px = pipCX - pipGap / 2 - pipR + i * (pipGap + pipR * 2)
-    ctx.beginPath()
-    ctx.arc(px, pipY + barH / 2, pipR, 0, Math.PI * 2)
-    ctx.fillStyle = "rgba(255,255,255,0.18)"
+    const p2EnX = cw - pad - barW - 20
+    ctx.fillStyle = "rgba(0,0,0,0.52)"
+    roundRectLocal(ctx, p2EnX, enY - 14, barW + 20, enH + 22, 8)
     ctx.fill()
-  })
+    ctx.strokeStyle = "rgba(255,255,255,0.10)"
+    roundRectLocal(ctx, p2EnX, enY - 14, barW + 20, enH + 22, 8)
+    ctx.stroke()
+
+    ctx.font         = "bold 9px Arial"
+    ctx.textAlign    = "right"
+    ctx.fillStyle    = "rgba(252,165,165,0.75)"
+    ctx.fillText("ENERGY", cw - pad - 8, enY - 2)
+
+    ctx.fillStyle = "rgba(255,255,255,0.10)"
+    roundRectLocal(ctx, p2EnX + 8, enY, barW, enH, 4)
+    ctx.fill()
+    const p2EnFillX = p2EnX + 8 + barW * (1 - p2En)
+    ctx.fillStyle   = "#f87171"
+    roundRectLocal(ctx, p2EnFillX, enY, barW * p2En, enH, 4)
+    ctx.fill()
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -818,7 +860,6 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas) {
 export function drawControlsInfo(ctx, canvas) {
   const { height: h } = getCanvasSize(canvas)
 
-  // Positioned above the energy bar
   const panelY = h - 170
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.45)"
@@ -876,7 +917,6 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
   const p1Inputs = Array.isArray(info.p1Inputs) ? info.p1Inputs.join(" ") : ""
   const p2Inputs = Array.isArray(info.p2Inputs) ? info.p2Inputs.join(" ") : ""
 
-  // Push below the health bar (which is ~60px tall at top)
   const panelY = 70
 
   ctx.save()
@@ -937,3 +977,112 @@ export function drawMatchEnd(ctx, canvas, winnerText = "MATCH OVER") {
   drawSubText(ctx, "Click or press Enter to return to title", w / 2, h / 2 + 42, { font: "18px Arial", fill: "rgba(220,230,255,0.80)" })
   ctx.restore()
 }
+
+// ─────────────────────────────────────────────────────────────────
+// NEW — PAUSE MENU
+// Call drawPauseMenu(ctx, canvas, selectedIndex) from game.js
+// when gameState === "paused"
+// ─────────────────────────────────────────────────────────────────
+export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
+  const cw = canvas?.width  || window.innerWidth
+  const ch = canvas?.height || window.innerHeight
+
+  ctx.fillStyle = "rgba(0,0,0,0.62)"
+  ctx.fillRect(0, 0, cw, ch)
+
+  const panelW = 380
+  const panelH = 320
+  const panelX = cw / 2 - panelW / 2
+  const panelY = ch / 2 - panelH / 2
+
+  ctx.fillStyle   = "rgba(8,14,30,0.94)"
+  ctx.strokeStyle = "rgba(255,255,255,0.18)"
+  ctx.lineWidth   = 2
+  _roundRectPath(ctx, panelX, panelY, panelW, panelH, 20)
+  ctx.fill()
+  ctx.stroke()
+
+  ctx.font         = "900 28px Arial"
+  ctx.textAlign    = "center"
+  ctx.textBaseline = "middle"
+  ctx.fillStyle    = "#f1f5f9"
+  ctx.shadowBlur   = 14
+  ctx.shadowColor  = "rgba(120,170,255,0.4)"
+  ctx.fillText("PAUSED", cw / 2, panelY + 44)
+  ctx.shadowBlur   = 0
+
+  ctx.strokeStyle = "rgba(255,255,255,0.12)"
+  ctx.lineWidth   = 1
+  ctx.beginPath()
+  ctx.moveTo(panelX + 32, panelY + 68)
+  ctx.lineTo(panelX + panelW - 32, panelY + 68)
+  ctx.stroke()
+
+  const items = [
+    { label: "Resume",        sub: "Continue the match" },
+    { label: "Restart Round", sub: "Reset this round" },
+    { label: "Quit to Menu",  sub: "Return to the title screen" }
+  ]
+
+  const itemH   = 58
+  const itemGap = 10
+  const startY  = panelY + 88
+
+  items.forEach((item, i) => {
+    const iy     = startY + i * (itemH + itemGap)
+    const active = i === selectedIndex
+    const ix     = panelX + 24
+    const iw     = panelW - 48
+
+    ctx.fillStyle = active
+      ? "rgba(59,130,246,0.28)"
+      : "rgba(255,255,255,0.05)"
+    _roundRectPath(ctx, ix, iy, iw, itemH, 12)
+    ctx.fill()
+
+    ctx.strokeStyle = active ? "#93c5fd" : "rgba(255,255,255,0.14)"
+    ctx.lineWidth   = active ? 2 : 1
+    _roundRectPath(ctx, ix, iy, iw, itemH, 12)
+    ctx.stroke()
+
+    if (active) {
+      ctx.save()
+      ctx.shadowBlur  = 18
+      ctx.shadowColor = "#3b82f6"
+      _roundRectPath(ctx, ix, iy, iw, itemH, 12)
+      ctx.stroke()
+      ctx.restore()
+    }
+
+    ctx.font      = "700 18px Arial"
+    ctx.textAlign = "center"
+    ctx.fillStyle = active ? "#f0f9ff" : "#e2e8f0"
+    ctx.fillText(item.label, cw / 2, iy + itemH * 0.38)
+
+    ctx.font      = "400 12px Arial"
+    ctx.fillStyle = active ? "rgba(186,230,253,0.85)" : "rgba(200,210,230,0.55)"
+    ctx.fillText(item.sub, cw / 2, iy + itemH * 0.72)
+  })
+
+  ctx.font      = "13px Arial"
+  ctx.textAlign = "center"
+  ctx.fillStyle = "rgba(200,210,230,0.5)"
+  ctx.fillText("↑↓ / W S  to navigate   •   Enter / J to select   •   Esc to resume", cw / 2, panelY + panelH - 18)
+}
+
+function _roundRectPath(ctx, x, y, w, h, r = 10) {
+  const radius = Math.min(r, w / 2, h / 2)
+  ctx.beginPath()
+  ctx.moveTo(x + radius, y)
+  ctx.lineTo(x + w - radius, y)
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radius)
+  ctx.lineTo(x + w, y + h - radius)
+  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h)
+  ctx.lineTo(x + radius, y + h)
+  ctx.quadraticCurveTo(x, y + h, x, y + h - radius)
+  ctx.lineTo(x, y + radius)
+  ctx.quadraticCurveTo(x, y, x + radius, y)
+  ctx.closePath()
+}
+
+export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "quitToMenu"]

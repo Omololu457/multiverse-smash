@@ -1,4 +1,10 @@
 // game.js
+import {
+  bindingVows,
+  activateBindingVow,
+  hasBindingVow,
+  activeVows
+} from "./bindingvow.js"
 import { characters } from "./characters.js"
 import { camera } from "./camera.js"
 import { SpriteHandler } from "./sprite.js"

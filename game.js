@@ -29,8 +29,7 @@ import {
 import {
   activeSummons,
   updateSummons as updateActiveSummons,
-  drawSummons as drawActiveSummons,
-  spawnAssistSummon
+  drawSummons as drawActiveSummons
 } from "./summons.js"
 import { physics } from "./physics.js"
 import {

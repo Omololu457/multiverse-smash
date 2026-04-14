@@ -115,18 +115,18 @@ function drawGoku(ctx, x, y, w, h, fighter) {
 
   // Wristbands
   ctx.fillStyle = "#1d4ed8"
-  ctx.fillRect(x,         y + h * 0.65, w * 0.18, h * 0.12)
+  ctx.fillRect(x, y + h * 0.65, w * 0.18, h * 0.12)
   ctx.fillRect(x + w - w * 0.18, y + h * 0.65, w * 0.18, h * 0.12)
 
   // Boots
   ctx.fillStyle = "#1e3a8a"
-  ctx.fillRect(x + 4,       y + h * 0.86, w * 0.35, h * 0.14)
+  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
   ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
 
   // Head
   const hx = x + w / 2
   const hy = y + h * 0.12
-  ctx.fillStyle = "#fde68a"  // skin
+  ctx.fillStyle = "#fde68a"
   ctx.beginPath()
   ctx.arc(hx, hy, h * 0.11, 0, Math.PI * 2)
   ctx.fill()
@@ -137,11 +137,10 @@ function drawGoku(ctx, x, y, w, h, fighter) {
     : "#ffd700"
 
   ctx.fillStyle = hairColor
-  // Main hair mass above head
   ctx.beginPath()
   ctx.arc(hx, hy - h * 0.06, h * 0.1, Math.PI, 0)
   ctx.fill()
-  // Spikes
+
   const spikeCount = 5
   for (let i = 0; i < spikeCount; i++) {
     const angle = Math.PI + (i / (spikeCount - 1)) * Math.PI
@@ -207,10 +206,10 @@ function drawNaruto(ctx, x, y, w, h, fighter) {
 
   // Boots
   ctx.fillStyle = "#1a1a1a"
-  ctx.fillRect(x + 4,               y + h * 0.86, w * 0.35, h * 0.14)
+  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
   ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
-  ctx.fillStyle = "#fdba74"  // boot straps
-  ctx.fillRect(x + 4,               y + h * 0.86, w * 0.35, 4)
+  ctx.fillStyle = "#fdba74"
+  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, 4)
   ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, 4)
 
   // Head
@@ -225,7 +224,7 @@ function drawNaruto(ctx, x, y, w, h, fighter) {
   ctx.fillStyle = "#6b7280"
   ctx.fillRect(hx - h * 0.11, hy - h * 0.13, h * 0.22, h * 0.05)
   ctx.fillStyle = "#d1d5db"
-  ctx.fillRect(hx - 8, hy - h * 0.125, 16, h * 0.04)  // leaf symbol placeholder
+  ctx.fillRect(hx - 8, hy - h * 0.125, 16, h * 0.04)
 
   // Hair — blonde spiky
   const hairColor = form === "baryonMode" ? "#ff8800"
@@ -252,7 +251,7 @@ function drawNaruto(ctx, x, y, w, h, fighter) {
   ctx.arc(hx + eyeOff, hy - 1, 3, 0, Math.PI * 2)
   ctx.fill()
 
-  // Whisker marks (3 lines each cheek)
+  // Whisker marks
   ctx.strokeStyle = "#92400e"
   ctx.lineWidth   = 1
   for (let i = -1; i <= 1; i++) {
@@ -278,7 +277,6 @@ function drawGojo(ctx, x, y, w, h, fighter) {
 
   if (fighter.infinityActive) {
     drawAura(ctx, x, y, w, h, "#a5f3fc", 0.3, 22)
-    // Infinity ripple ring
     ctx.save()
     ctx.globalAlpha = 0.15
     ctx.strokeStyle = "#38bdf8"
@@ -303,7 +301,7 @@ function drawGojo(ctx, x, y, w, h, fighter) {
   ctx.lineWidth   = 2
   ctx.beginPath()
   ctx.moveTo(x + w / 2 - 5, y + h * 0.22)
-  ctx.lineTo(x + w / 2,     y + h * 0.3)
+  ctx.lineTo(x + w / 2, y + h * 0.3)
   ctx.lineTo(x + w / 2 + 5, y + h * 0.22)
   ctx.stroke()
 
@@ -313,10 +311,10 @@ function drawGojo(ctx, x, y, w, h, fighter) {
 
   // Boots
   ctx.fillStyle = "#0f172a"
-  ctx.fillRect(x + 4,               y + h * 0.86, w * 0.35, h * 0.14)
+  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
   ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
 
-  // Head (skin)
+  // Head
   const hx = x + w / 2
   const hy = y + h * 0.12
   ctx.fillStyle = "#fde68a"
@@ -329,15 +327,13 @@ function drawGojo(ctx, x, y, w, h, fighter) {
   ctx.beginPath()
   ctx.arc(hx, hy - h * 0.06, h * 0.1, Math.PI, 0)
   ctx.fill()
-  // Flowing side hair
   ctx.fillRect(hx - h * 0.1, hy - h * 0.06, h * 0.07, h * 0.1)
   ctx.fillRect(hx + h * 0.03, hy - h * 0.06, h * 0.07, h * 0.1)
 
-  // Blindfold — black strip across eyes
+  // Blindfold
   ctx.fillStyle = "#0f172a"
   ctx.fillRect(hx - h * 0.1, hy - h * 0.025, h * 0.2, h * 0.04)
 
-  // Six eyes glow through blindfold when infinity is active
   if (fighter.infinityActive) {
     ctx.save()
     ctx.globalAlpha = 0.7
@@ -360,7 +356,7 @@ function drawGojo(ctx, x, y, w, h, fighter) {
 // Dark uniform, shadow hands detail; transforms into Mahoraga wheel
 // ─────────────────────────────────────────────────────────────────
 function drawMegumi(ctx, x, y, w, h, fighter) {
-  const facing    = fighter.facing ?? 1
+  const facing     = fighter.facing ?? 1
   const isMahoraga = !!fighter.isMahoraga
 
   if (isMahoraga) {
@@ -386,10 +382,10 @@ function drawMegumi(ctx, x, y, w, h, fighter) {
 
   // Boots
   ctx.fillStyle = "#0f172a"
-  ctx.fillRect(x + 4,               y + h * 0.86, w * 0.35, h * 0.14)
+  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
   ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
 
-  // Shadow hand effect (purple wisps from hands)
+  // Shadow hand effect
   ctx.save()
   ctx.globalAlpha = 0.35
   ctx.fillStyle   = "#7c3aed"
@@ -418,12 +414,12 @@ function drawMegumi(ctx, x, y, w, h, fighter) {
     const bx = hx - h * 0.08 + i * h * 0.08
     ctx.beginPath()
     ctx.moveTo(bx - 4, hy - h * 0.12)
-    ctx.lineTo(bx,     hy - h * 0.21)
+    ctx.lineTo(bx, hy - h * 0.21)
     ctx.lineTo(bx + 4, hy - h * 0.12)
     ctx.fill()
   }
 
-  // Eyes — blue-grey
+  // Eyes
   ctx.fillStyle = "#475569"
   const eyeOff  = facing >= 0 ? 4 : -4
   ctx.beginPath()
@@ -441,10 +437,9 @@ function drawMahoraga(ctx, x, y, w, h, fighter) {
   const cx     = x + w / 2
   const cy     = y + h / 2
 
-  // Dark purple aura
   drawAura(ctx, x, y, w, h, "#6d28d9", 0.35, 22)
 
-  // Body — dark imposing form (wider, taller feel via color treatment)
+  // Body
   const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
   bodyGrad.addColorStop(0, "#3b0764")
   bodyGrad.addColorStop(0.5, "#581c87")
@@ -453,7 +448,7 @@ function drawMahoraga(ctx, x, y, w, h, fighter) {
   roundRect(ctx, x, y + h * 0.15, w, h * 0.85, 8)
   ctx.fill()
 
-  // Eight-handled wheel on back (signature mark)
+  // Eight-handled wheel
   ctx.save()
   ctx.strokeStyle = "#a78bfa"
   ctx.lineWidth   = 2
@@ -464,7 +459,6 @@ function drawMahoraga(ctx, x, y, w, h, fighter) {
   ctx.beginPath()
   ctx.arc(wx, wy, wr, 0, Math.PI * 2)
   ctx.stroke()
-  // 8 spokes
   for (let i = 0; i < 8; i++) {
     const angle = (i / 8) * Math.PI * 2
     ctx.beginPath()
@@ -474,29 +468,29 @@ function drawMahoraga(ctx, x, y, w, h, fighter) {
   }
   ctx.restore()
 
-  // Head — more menacing, larger
+  // Head
   ctx.fillStyle = "#fde68a"
   ctx.beginPath()
   ctx.arc(cx, y + h * 0.11, h * 0.12, 0, Math.PI * 2)
   ctx.fill()
 
-  // Dark hair with purple sheen
+  // Hair
   ctx.fillStyle = "#2e1065"
   ctx.beginPath()
   ctx.arc(cx, y + h * 0.05, h * 0.11, Math.PI, 0)
   ctx.fill()
 
-  // Glowing eyes — yellow
-  ctx.fillStyle  = "#fbbf24"
-  ctx.shadowBlur = 8
+  // Glowing eyes
+  ctx.fillStyle   = "#fbbf24"
+  ctx.shadowBlur  = 8
   ctx.shadowColor = "#fbbf24"
-  const eyeOff  = facing >= 0 ? 5 : -5
+  const eyeOff    = facing >= 0 ? 5 : -5
   ctx.beginPath()
   ctx.arc(cx + eyeOff, y + h * 0.1, 3.5, 0, Math.PI * 2)
   ctx.fill()
   ctx.shadowBlur = 0
 
-  // Adaptation level marks (small tally marks on arm)
+  // Adaptation level marks
   const adaptTotal = Object.values(fighter.adaptationLevels || {}).reduce((a, b) => a + b, 0)
   ctx.fillStyle = "#a78bfa"
   for (let i = 0; i < Math.floor(adaptTotal); i++) {
@@ -518,7 +512,7 @@ function drawSukuna(ctx, x, y, w, h, fighter) {
 
   drawAura(ctx, x, y, w, h, "#dc2626", 0.18, 14)
 
-  // Body — grey/pale cursed body
+  // Body
   const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
   bodyGrad.addColorStop(0, "#9ca3af")
   bodyGrad.addColorStop(1, "#6b7280")
@@ -526,25 +520,22 @@ function drawSukuna(ctx, x, y, w, h, fighter) {
   roundRect(ctx, x, y + h * 0.18, w, h * 0.82, 10)
   ctx.fill()
 
-  // Tattoo lines (red geometric marks)
+  // Tattoo lines
   ctx.strokeStyle = "#dc2626"
   ctx.lineWidth   = 2
 
-  // Left arm tattoo
   for (let i = 0; i < 3; i++) {
     ctx.beginPath()
     ctx.moveTo(x + 4, y + h * (0.3 + i * 0.1))
     ctx.lineTo(x + 16, y + h * (0.3 + i * 0.1))
     ctx.stroke()
   }
-  // Right arm tattoo
   for (let i = 0; i < 3; i++) {
     ctx.beginPath()
     ctx.moveTo(x + w - 4, y + h * (0.3 + i * 0.1))
     ctx.lineTo(x + w - 16, y + h * (0.3 + i * 0.1))
     ctx.stroke()
   }
-  // Chest tattoo
   ctx.beginPath()
   ctx.moveTo(x + w / 2 - 12, y + h * 0.32)
   ctx.lineTo(x + w / 2 + 12, y + h * 0.32)
@@ -554,17 +545,17 @@ function drawSukuna(ctx, x, y, w, h, fighter) {
   ctx.lineTo(x + w / 2, y + h * 0.44)
   ctx.stroke()
 
-  // Hakama/robe bottom — dark red
+  // Hakama/robe bottom
   ctx.fillStyle = "#7f1d1d"
   roundRect(ctx, x + 2, y + h * 0.56, w - 4, h * 0.44, 6)
   ctx.fill()
 
   // Boots
   ctx.fillStyle = "#450a0a"
-  ctx.fillRect(x + 4,               y + h * 0.86, w * 0.35, h * 0.14)
+  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
   ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
 
-  // Head — grey/pale skin
+  // Head
   const hx = x + w / 2
   const hy = y + h * 0.12
   ctx.fillStyle = "#d1d5db"
@@ -581,7 +572,7 @@ function drawSukuna(ctx, x, y, w, h, fighter) {
     const bx = hx - h * 0.1 + i * h * 0.05
     ctx.beginPath()
     ctx.moveTo(bx - 3, hy - h * 0.12)
-    ctx.lineTo(bx,     hy - h * 0.22)
+    ctx.lineTo(bx, hy - h * 0.22)
     ctx.lineTo(bx + 3, hy - h * 0.12)
     ctx.fill()
   }
@@ -589,21 +580,20 @@ function drawSukuna(ctx, x, y, w, h, fighter) {
   // Face tattoos
   ctx.strokeStyle = "#dc2626"
   ctx.lineWidth   = 1.5
-  // Under eye lines
-  const eyeOff = facing >= 0 ? 5 : -5
+  const eyeOff    = facing >= 0 ? 5 : -5
   ctx.beginPath()
   ctx.moveTo(hx + eyeOff - 4, hy + 3)
   ctx.lineTo(hx + eyeOff + 4, hy + 3)
   ctx.stroke()
 
-  // Eyes — narrow, menacing
+  // Eyes
   ctx.fillStyle = "#dc2626"
   ctx.beginPath()
   ctx.arc(hx + eyeOff, hy - 1, 3, 0, Math.PI * 2)
   ctx.fill()
 
-  // Second set of eyes on cheeks (Sukuna's four-eyes look)
-  ctx.fillStyle  = "#dc2626"
+  // Second set of eyes
+  ctx.fillStyle   = "#dc2626"
   ctx.globalAlpha = 0.6
   ctx.beginPath()
   ctx.arc(hx - eyeOff * 1.5, hy + 5, 2, 0, Math.PI * 2)
@@ -622,13 +612,13 @@ function drawSukuna(ctx, x, y, w, h, fighter) {
 // ─────────────────────────────────────────────────────────────────
 function drawOmololu(ctx, x, y, w, h, fighter) {
   const facing = fighter.facing ?? 1
-  const ramp   = Math.min((fighter.damageMultiplier || 1) - 1, 0.5) / 0.5  // 0→1
+  const ramp   = Math.min((fighter.damageMultiplier || 1) - 1, 0.5) / 0.5
 
   if (ramp > 0.1) {
     drawAura(ctx, x, y, w, h, `rgba(251,191,36,${ramp * 0.3})`, ramp * 0.25, 16)
   }
 
-  // Body — dark athletic gear
+  // Body
   const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
   bodyGrad.addColorStop(0, "#1c1917")
   bodyGrad.addColorStop(0.5, "#292524")
@@ -637,12 +627,12 @@ function drawOmololu(ctx, x, y, w, h, fighter) {
   roundRect(ctx, x, y + h * 0.18, w, h * 0.82, 10)
   ctx.fill()
 
-  // Accent stripe — gold, gets brighter with ramp
+  // Accent stripe
   const stripeColor = `hsl(43, 96%, ${40 + ramp * 30}%)`
   ctx.fillStyle     = stripeColor
   ctx.fillRect(x + w * 0.35, y + h * 0.22, w * 0.08, h * 0.56)
 
-  // Analysis glyphs on torso (faint lines representing data processing)
+  // Analysis glyphs
   ctx.save()
   ctx.strokeStyle = "#fbbf24"
   ctx.lineWidth   = 1
@@ -659,12 +649,12 @@ function drawOmololu(ctx, x, y, w, h, fighter) {
   ctx.fillStyle = "#44403c"
   ctx.fillRect(x + 4, y + h * 0.6, w - 8, h * 0.28)
 
-  // Boots/feet
+  // Boots
   ctx.fillStyle = "#1c1917"
-  ctx.fillRect(x + 4,               y + h * 0.86, w * 0.35, h * 0.14)
+  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
   ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
 
-  // Head — darker skin tone
+  // Head
   const hx = x + w / 2
   const hy = y + h * 0.12
   ctx.fillStyle = "#92400e"
@@ -672,22 +662,22 @@ function drawOmololu(ctx, x, y, w, h, fighter) {
   ctx.arc(hx, hy, h * 0.11, 0, Math.PI * 2)
   ctx.fill()
 
-  // Close-cropped hair
+  // Hair
   ctx.fillStyle = "#1c1917"
   ctx.beginPath()
   ctx.arc(hx, hy - h * 0.04, h * 0.11, Math.PI, 0)
   ctx.fill()
 
-  // Eyes — analytical, sharp
+  // Eyes
   ctx.fillStyle = "#fbbf24"
   const eyeOff  = facing >= 0 ? 4 : -4
   ctx.beginPath()
   ctx.arc(hx + eyeOff, hy - 1, 2.5, 0, Math.PI * 2)
   ctx.fill()
 
-  // Ramp indicator marks on forearm
+  // Ramp indicator marks
   const markCount = Math.floor(ramp * 5)
-  ctx.fillStyle   = "#fbbf24"
+  ctx.fillStyle = "#fbbf24"
   for (let i = 0; i < markCount; i++) {
     ctx.fillRect(x + 5, y + h * 0.65 + i * 5, 8, 3)
   }
@@ -703,7 +693,7 @@ function drawOmololu(ctx, x, y, w, h, fighter) {
 // Scar on lip, sleeveless, muscular, weapon chain detail
 // ─────────────────────────────────────────────────────────────────
 function drawToji(ctx, x, y, w, h, fighter) {
-  const facing = fighter.facing ?? 1
+  const facing  = fighter.facing ?? 1
   const surging = fighter.isUltimateActive
 
   if (surging) drawAura(ctx, x, y, w, h, "#f43f5e", 0.28, 20)
@@ -711,16 +701,14 @@ function drawToji(ctx, x, y, w, h, fighter) {
   // Body — tan skin, sleeveless
   const skinColor = "#d97706"
 
-  // Arms (exposed, muscular — wider at shoulder)
+  // Arms
   ctx.fillStyle = skinColor
-  // Left arm
   roundRect(ctx, x - 4, y + h * 0.24, w * 0.2, h * 0.46, 6)
   ctx.fill()
-  // Right arm
   roundRect(ctx, x + w - w * 0.2 + 4, y + h * 0.24, w * 0.2, h * 0.46, 6)
   ctx.fill()
 
-  // Torso — sleeveless black top
+  // Torso
   ctx.fillStyle = "#1c1917"
   roundRect(ctx, x + w * 0.15, y + h * 0.2, w * 0.7, h * 0.45, 8)
   ctx.fill()
@@ -730,28 +718,28 @@ function drawToji(ctx, x, y, w, h, fighter) {
   ctx.lineWidth   = 1
   ctx.beginPath()
   ctx.moveTo(x + w / 2 - 8, y + h * 0.22)
-  ctx.lineTo(x + w / 2,     y + h * 0.36)
+  ctx.lineTo(x + w / 2, y + h * 0.36)
   ctx.lineTo(x + w / 2 + 8, y + h * 0.22)
   ctx.stroke()
 
-  // Weapon chain (coiled at waist)
+  // Weapon chain
   ctx.strokeStyle = "#9ca3af"
   ctx.lineWidth   = 2
-  const chainX   = x + (facing >= 0 ? w - 10 : 10)
+  const chainX = x + (facing >= 0 ? w - 10 : 10)
   ctx.beginPath()
   ctx.arc(chainX, y + h * 0.56, 8, 0, Math.PI * 2)
   ctx.stroke()
 
-  // Pants/dark trousers
+  // Pants
   ctx.fillStyle = "#292524"
   ctx.fillRect(x + 4, y + h * 0.62, w - 8, h * 0.38)
 
   // Boots
   ctx.fillStyle = "#1c1917"
-  ctx.fillRect(x + 4,               y + h * 0.86, w * 0.35, h * 0.14)
+  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
   ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
 
-  // Head — tan skin
+  // Head
   const hx = x + w / 2
   const hy = y + h * 0.12
   ctx.fillStyle = skinColor
@@ -759,23 +747,22 @@ function drawToji(ctx, x, y, w, h, fighter) {
   ctx.arc(hx, hy, h * 0.11, 0, Math.PI * 2)
   ctx.fill()
 
-  // Dark swept-back hair
+  // Hair
   ctx.fillStyle = "#1c1917"
   ctx.beginPath()
   ctx.arc(hx, hy - h * 0.06, h * 0.1, Math.PI, 0)
   ctx.fill()
-  // Swept back
   ctx.beginPath()
   ctx.moveTo(hx - h * 0.1, hy - h * 0.08)
   ctx.quadraticCurveTo(hx - h * 0.15, hy - h * 0.18, hx + h * 0.1, hy - h * 0.14)
   ctx.fill()
 
-  // Eyes — sharp, half-lidded
+  // Eyes
   ctx.fillStyle = "#1c1917"
   const eyeOff  = facing >= 0 ? 5 : -5
   ctx.fillRect(hx + eyeOff - 5, hy - 3, 10, 4)
 
-  // Mouth scar (signature)
+  // Mouth scar
   ctx.strokeStyle = "#dc2626"
   ctx.lineWidth   = 1.5
   ctx.beginPath()
@@ -813,7 +800,7 @@ export function drawCharacter(ctx, fighter) {
 
   const x = fighter.x ?? 0
   const y = fighter.y ?? 0
-  const w = fighter.w ?? fighter.width  ?? 60
+  const w = fighter.w ?? fighter.width ?? 60
   const h = fighter.h ?? fighter.height ?? 110
 
   const key = (fighter.rosterKey || fighter.id || fighter.name || "").toLowerCase()
@@ -831,6 +818,7 @@ export function drawCharacter(ctx, fighter) {
     default:        drawFallback(ctx, x, y, w, h, fighter); break
   }
 
+  _drawCombatFlashes(ctx, x, y, w, h, fighter)
   ctx.restore()
 }
 
@@ -853,4 +841,102 @@ function drawFallback(ctx, x, y, w, h, fighter) {
 
   drawNameTag(ctx, fighter.name || "?", x + w / 2, y, "#ffffff")
   drawShadow(ctx, x, y, w, h)
+}
+
+function _drawCombatFlashes(ctx, x, y, w, h, fighter) {
+  const cx = x + w / 2
+  const cy = y + h / 2
+  const r  = Math.max(w, h) * 0.6
+
+  // ── PARRY FLASH — blue ring, indicates successful parry ─────────
+  if ((fighter.parryFlash || 0) > 0) {
+    const alpha = fighter.parryFlash / 12
+    ctx.save()
+    ctx.globalAlpha = alpha * 0.9
+    ctx.strokeStyle = "#38bdf8"
+    ctx.lineWidth   = 4
+    ctx.shadowBlur  = 16
+    ctx.shadowColor = "#38bdf8"
+    ctx.beginPath()
+    ctx.arc(cx, cy, r * (1 + (1 - alpha) * 0.4), 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.globalAlpha = alpha * 0.5
+    ctx.lineWidth   = 2
+    ctx.beginPath()
+    ctx.arc(cx, cy, r * 0.85, 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.shadowBlur  = 0
+    ctx.restore()
+  }
+
+  // ── ARMOR FLASH — gold ring, indicates super armor absorption ───
+  if ((fighter.armorFlash || 0) > 0) {
+    const alpha = fighter.armorFlash / 8
+    ctx.save()
+    ctx.globalAlpha = alpha * 0.85
+    ctx.strokeStyle = "#fbbf24"
+    ctx.lineWidth   = 5
+    ctx.shadowBlur  = 18
+    ctx.shadowColor = "#fbbf24"
+    ctx.beginPath()
+    ctx.arc(cx, cy, r * 1.05, 0, Math.PI * 2)
+    ctx.stroke()
+    ctx.globalAlpha = alpha * 0.18
+    ctx.fillStyle   = "#fbbf24"
+    ctx.beginPath()
+    ctx.arc(cx, cy, r * 0.9, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.shadowBlur  = 0
+    ctx.restore()
+  }
+
+  // ── CLASH FLASH — white outline, indicates clash event ──────────
+  if ((fighter.clashFlash || 0) > 0) {
+    const alpha = fighter.clashFlash / 10
+    ctx.save()
+    ctx.globalAlpha = alpha * 0.9
+    ctx.strokeStyle = "#ffffff"
+    ctx.lineWidth   = 4
+    ctx.shadowBlur  = 12
+    ctx.shadowColor = "#ffffff"
+    const pad = 6
+    _roundRectStroke(ctx, x - pad, y - pad, w + pad * 2, h + pad * 2, 10)
+    ctx.shadowBlur = 0
+    ctx.restore()
+  }
+
+  // ── INVULN FLASH — white alpha overlay during tech roll ─────────
+  if ((fighter.invulnTimer || 0) > 0 && (fighter.colorFlash || 0) > 0) {
+    const alpha = Math.min(1, fighter.invulnTimer / 18) * 0.35
+    ctx.save()
+    ctx.globalAlpha = alpha
+    ctx.fillStyle   = "#ffffff"
+    _roundRectFill(ctx, x, y, w, h, 12)
+    ctx.restore()
+  }
+}
+
+function _roundRectStroke(ctx, x, y, w, h, r = 10) {
+  _rr(ctx, x, y, w, h, r)
+  ctx.stroke()
+}
+
+function _roundRectFill(ctx, x, y, w, h, r = 10) {
+  _rr(ctx, x, y, w, h, r)
+  ctx.fill()
+}
+
+function _rr(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2)
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+  ctx.lineTo(x + r, y + h)
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+  ctx.lineTo(x, y + r)
+  ctx.quadraticCurveTo(x, y, x + r, y)
+  ctx.closePath()
 }

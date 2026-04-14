@@ -604,24 +604,50 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
 }
 
 export function drawHitSparks(ctx, hitSparks = [], camera = null) {
-  if (!Array.isArray(hitSparks)) return
-  hitSparks.forEach(spark => {
-    const x     = spark.x ?? 0
-    const y     = spark.y ?? 0
-    const size  = spark.size  || 18
-    const color = spark.color || "#fff1a8"
+  if (!Array.isArray(hitSparks) || !hitSparks.length) return
+
+  for (const spark of hitSparks) {
+    const { x, y, category = "light", color, timer, maxTimer, lines, radius } = spark
+    const mt    = maxTimer || timer || 10
+    const alpha = Math.min(1, timer / Math.max(1, mt))
+    const c     = color || "#fff1a8"
+    const n     = lines  || _defaultLines(category)
+    const r     = radius || _defaultRadius(category)
+
     ctx.save()
-    ctx.strokeStyle = color
-    ctx.lineWidth   = 3
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI * 2 * i) / 6
+    ctx.globalAlpha = alpha
+    ctx.strokeStyle = c
+    ctx.lineWidth   = category === "ultimate" ? 4 : category === "clash" ? 3 : category === "special" ? 3 : 2
+    if (category !== "light") { ctx.shadowBlur = 10; ctx.shadowColor = c }
+
+    for (let i = 0; i < n; i++) {
+      const angle = (Math.PI * 2 * i) / n
+      const len   = r * (0.65 + (i % 3) * 0.18)
       ctx.beginPath()
       ctx.moveTo(x, y)
-      ctx.lineTo(x + Math.cos(angle) * size, y + Math.sin(angle) * size)
+      ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len)
       ctx.stroke()
     }
+    ctx.shadowBlur = 0
+
+    if (category !== "light") {
+      ctx.fillStyle = c + "44"
+      ctx.beginPath(); ctx.arc(x, y, r * 0.32, 0, Math.PI * 2); ctx.fill()
+    }
+
+    if (category === "ultimate" || category === "clash") {
+      const ringR = r * 0.4 + r * 1.6 * (1 - alpha)
+      ctx.strokeStyle = c + "55"; ctx.lineWidth = 2
+      ctx.beginPath(); ctx.arc(x, y, ringR, 0, Math.PI * 2); ctx.stroke()
+    }
+
+    if (category === "parry") {
+      ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 3
+      ctx.beginPath(); ctx.arc(x, y, r * (0.4 + 0.6 * (1 - alpha)), 0, Math.PI * 2); ctx.stroke()
+    }
+
     ctx.restore()
-  })
+  }
 }
 
 export function drawTrainingCollisionBoxes(ctx, fighters = []) {
@@ -654,38 +680,27 @@ export function drawTrainingCollisionBoxes(ctx, fighters = []) {
 // ─────────────────────────────────────────────
 // HUD — Health TOP, Energy BOTTOM
 // ─────────────────────────────────────────────
-export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0, p2: 0 }) {
+export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0, p2: 0 }, globalFrameCount = 0) {
   const cw = canvas?.width  || window.innerWidth
   const ch = canvas?.height || window.innerHeight
 
-  function clampLocal(v, mn, mx) { return Math.max(mn, Math.min(mx, v)) }
+  function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)) }
 
-  function roundRectLocal(ctx, x, y, w, h, r = 6) {
-    const radius = Math.min(r, w / 2, h / 2)
+  function rrect(ctx, x, y, w, h, r = 6) {
+    r = Math.min(r, w / 2, h / 2)
     ctx.beginPath()
-    ctx.moveTo(x + radius, y)
-    ctx.lineTo(x + w - radius, y)
-    ctx.quadraticCurveTo(x + w, y, x + w, y + radius)
-    ctx.lineTo(x + w, y + h - radius)
-    ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h)
-    ctx.lineTo(x + radius, y + h)
-    ctx.quadraticCurveTo(x, y + h, x, y + h - radius)
-    ctx.lineTo(x, y + radius)
-    ctx.quadraticCurveTo(x, y, x + radius, y)
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r)
+    ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h)
+    ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r)
+    ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y)
     ctx.closePath()
   }
 
-  const barW  = clampLocal(cw * 0.28, 220, 420)
+  const barW  = clamp(cw * 0.28, 220, 420)
   const barH  = 20
   const enH   = 13
   const pad   = 14
-
-  const hpY = pad
-
-  const p1MaxHp = Math.max(1, p1?.maxHealth || 100)
-  const p2MaxHp = Math.max(1, p2?.maxHealth || 100)
-  const p1Hp    = clampLocal((p1?.health ?? p1MaxHp) / p1MaxHp, 0, 1)
-  const p2Hp    = clampLocal((p2?.health ?? p2MaxHp) / p2MaxHp, 0, 1)
+  const hpY   = pad
 
   function hpColor(ratio) {
     if (ratio > 0.5) return "#22c55e"
@@ -693,165 +708,142 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     return "#ef4444"
   }
 
-  ctx.fillStyle = "rgba(0,0,0,0.55)"
-  roundRectLocal(ctx, pad, hpY, barW + 20, barH + 26, 10)
-  ctx.fill()
-  ctx.strokeStyle = "rgba(255,255,255,0.12)"
-  ctx.lineWidth   = 1
-  roundRectLocal(ctx, pad, hpY, barW + 20, barH + 26, 10)
-  ctx.stroke()
+  function drawHealthPanel(x, flip, fighter) {
+    if (!fighter) return
+    const maxHp = Math.max(1, fighter.maxHealth || 100)
+    const ratio = clamp((fighter.health ?? maxHp) / maxHp, 0, 1)
 
-  ctx.font         = "bold 11px Arial"
-  ctx.textAlign    = "left"
-  ctx.textBaseline = "alphabetic"
-  ctx.fillStyle    = "#7dd3fc"
-  ctx.fillText(p1?.name || "P1", pad + 8, hpY + 12)
+    ctx.fillStyle = "rgba(0,0,0,0.55)"
+    rrect(ctx, x, hpY, barW + 20, barH + 26, 10); ctx.fill()
+    ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1
+    rrect(ctx, x, hpY, barW + 20, barH + 26, 10); ctx.stroke()
 
-  ctx.fillStyle = "rgba(255,255,255,0.1)"
-  roundRectLocal(ctx, pad + 8, hpY + 14, barW, barH, 5)
-  ctx.fill()
-  ctx.fillStyle = hpColor(p1Hp)
-  roundRectLocal(ctx, pad + 8, hpY + 14, barW * p1Hp, barH, 5)
-  ctx.fill()
+    const nameX = flip ? x + barW + 12 : x + 8
+    const nameAlign = flip ? "right" : "left"
+    const nameColor = flip ? "#fca5a5" : "#7dd3fc"
+    ctx.font = "bold 11px Arial"; ctx.textAlign = nameAlign; ctx.textBaseline = "alphabetic"
+    ctx.fillStyle = nameColor
+    ctx.fillText(fighter.name || (flip ? "P2" : "P1"), nameX, hpY + 12)
 
-  const p2PanelX = cw - pad - barW - 20
-  ctx.fillStyle   = "rgba(0,0,0,0.55)"
-  roundRectLocal(ctx, p2PanelX, hpY, barW + 20, barH + 26, 10)
-  ctx.fill()
-  ctx.strokeStyle = "rgba(255,255,255,0.12)"
-  roundRectLocal(ctx, p2PanelX, hpY, barW + 20, barH + 26, 10)
-  ctx.stroke()
+    ctx.fillStyle = "rgba(255,255,255,0.1)"
+    rrect(ctx, x + 8, hpY + 14, barW, barH, 5); ctx.fill()
 
-  ctx.font         = "bold 11px Arial"
-  ctx.textAlign    = "right"
-  ctx.fillStyle    = "#fca5a5"
-  ctx.fillText(p2?.name || "P2", cw - pad - 8, hpY + 12)
-
-  ctx.fillStyle = "rgba(255,255,255,0.1)"
-  roundRectLocal(ctx, p2PanelX + 8, hpY + 14, barW, barH, 5)
-  ctx.fill()
-  ctx.fillStyle = hpColor(p2Hp)
-  const p2FillX = p2PanelX + 8 + barW * (1 - p2Hp)
-  roundRectLocal(ctx, p2FillX, hpY + 14, barW * p2Hp, barH, 5)
-  ctx.fill()
-
-  const pipCX   = cw / 2
-  const pipY    = hpY + 22
-  const pipR    = 7
-  const pipGap  = 20
-  const maxWins = 2
-
-  for (let i = 0; i < maxWins; i++) {
-    const px = pipCX - pipGap - pipR - i * (pipR * 2 + 5)
-    const won = i < (roundWins?.p1 || 0)
-
-    ctx.beginPath()
-    ctx.arc(px, pipY, pipR, 0, Math.PI * 2)
-
-    if (won) {
-      ctx.fillStyle = "#7dd3fc"
-      ctx.fill()
-      ctx.shadowBlur  = 10
-      ctx.shadowColor = "#7dd3fc"
-      ctx.strokeStyle = "#bae6fd"
-      ctx.lineWidth   = 1.5
-      ctx.stroke()
-      ctx.shadowBlur  = 0
-    } else {
-      ctx.fillStyle   = "rgba(255,255,255,0.10)"
-      ctx.fill()
-      ctx.strokeStyle = "rgba(255,255,255,0.25)"
-      ctx.lineWidth   = 1.5
-      ctx.stroke()
-    }
+    const fillW = barW * ratio
+    const fillX = flip ? x + 8 + barW - fillW : x + 8
+    ctx.fillStyle = hpColor(ratio)
+    rrect(ctx, fillX, hpY + 14, fillW, barH, 5); ctx.fill()
   }
 
+  drawHealthPanel(pad, false, p1)
+  drawHealthPanel(cw - pad - barW - 20, true,  p2)
+
+  const pipCX = cw / 2, pipY = hpY + 22, pipR = 7, pipGap = 20, maxWins = 2
   for (let i = 0; i < maxWins; i++) {
-    const px = pipCX + pipGap + pipR + i * (pipR * 2 + 5)
-    const won = i < (roundWins?.p2 || 0)
+    const px1 = pipCX - pipGap - pipR - i * (pipR * 2 + 5)
+    ctx.beginPath(); ctx.arc(px1, pipY, pipR, 0, Math.PI*2)
+    const p1Won = i < (roundWins?.p1 || 0)
+    ctx.fillStyle = p1Won ? "#7dd3fc" : "rgba(255,255,255,0.10)"; ctx.fill()
+    if (p1Won) { ctx.shadowBlur=10; ctx.shadowColor="#7dd3fc"; ctx.strokeStyle="#bae6fd"; ctx.lineWidth=1.5; ctx.stroke(); ctx.shadowBlur=0 }
 
-    ctx.beginPath()
-    ctx.arc(px, pipY, pipR, 0, Math.PI * 2)
-
-    if (won) {
-      ctx.fillStyle = "#fca5a5"
-      ctx.fill()
-      ctx.shadowBlur  = 10
-      ctx.shadowColor = "#fca5a5"
-      ctx.strokeStyle = "#fecaca"
-      ctx.lineWidth   = 1.5
-      ctx.stroke()
-      ctx.shadowBlur  = 0
-    } else {
-      ctx.fillStyle   = "rgba(255,255,255,0.10)"
-      ctx.fill()
-      ctx.strokeStyle = "rgba(255,255,255,0.25)"
-      ctx.lineWidth   = 1.5
-      ctx.stroke()
-    }
+    const px2 = pipCX + pipGap + pipR + i * (pipR * 2 + 5)
+    ctx.beginPath(); ctx.arc(px2, pipY, pipR, 0, Math.PI*2)
+    const p2Won = i < (roundWins?.p2 || 0)
+    ctx.fillStyle = p2Won ? "#fca5a5" : "rgba(255,255,255,0.10)"; ctx.fill()
+    if (p2Won) { ctx.shadowBlur=10; ctx.shadowColor="#fca5a5"; ctx.strokeStyle="#fecaca"; ctx.lineWidth=1.5; ctx.stroke(); ctx.shadowBlur=0 }
   }
-
-  ctx.font         = "bold 12px Arial"
-  ctx.textAlign    = "center"
-  ctx.textBaseline = "middle"
-  ctx.fillStyle    = "rgba(255,255,255,0.55)"
-  ctx.fillText(`RD ${(roundWins?.p1 || 0) + (roundWins?.p2 || 0) + 1}`, pipCX, pipY)
-
-  const p1HasEnergy = (p1?.maxEnergy || 0) > 0
-  const p2HasEnergy = (p2?.maxEnergy || 0) > 0
-
-  const p1MaxEn = Math.max(1, p1?.maxEnergy || 100)
-  const p2MaxEn = Math.max(1, p2?.maxEnergy || 100)
-  const p1En    = clampLocal((p1?.energy ?? 0) / p1MaxEn, 0, 1)
-  const p2En    = clampLocal((p2?.energy ?? 0) / p2MaxEn, 0, 1)
+  ctx.font="bold 12px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillStyle="rgba(255,255,255,0.5)"
+  ctx.fillText(`RD ${(roundWins?.p1||0)+(roundWins?.p2||0)+1}`, pipCX, pipY)
 
   const enY = ch - enH - pad - 14
 
-  if (p1HasEnergy) {
+  function drawEnergyPanel(x, flip, fighter) {
+    if (!fighter) return
+    const ec      = fighter.energyConfig || {}
+    const label   = ec.label   || "ENERGY"
+    const mainCol = ec.color   || "#38bdf8"
+    const emptyC  = ec.emptyColor || "rgba(255,255,255,0.08)"
+    const glowC   = ec.glowColor  || mainCol
+    const hasEnergy = (fighter.maxEnergy || 0) > 0 && ec.regenRate !== "none"
+    const isHeavRes = label === "——"
+
     ctx.fillStyle = "rgba(0,0,0,0.52)"
-    roundRectLocal(ctx, pad, enY - 14, barW + 20, enH + 22, 8)
-    ctx.fill()
-    ctx.strokeStyle = "rgba(255,255,255,0.10)"
-    ctx.lineWidth   = 1
-    roundRectLocal(ctx, pad, enY - 14, barW + 20, enH + 22, 8)
-    ctx.stroke()
+    rrect(ctx, x, enY - 14, barW + 20, enH + 22, 8); ctx.fill()
+    ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 1
+    rrect(ctx, x, enY - 14, barW + 20, enH + 22, 8); ctx.stroke()
 
-    ctx.font         = "bold 9px Arial"
-    ctx.textAlign    = "left"
-    ctx.textBaseline = "alphabetic"
-    ctx.fillStyle    = "rgba(125,211,252,0.75)"
-    ctx.fillText("ENERGY", pad + 8, enY - 2)
+    const labelX = flip ? x + barW + 12 : x + 8
+    const labelAlign = flip ? "right" : "left"
+    ctx.font = "bold 9px Arial"; ctx.textAlign = labelAlign; ctx.textBaseline = "alphabetic"
 
-    ctx.fillStyle = "rgba(255,255,255,0.10)"
-    roundRectLocal(ctx, pad + 8, enY, barW, enH, 4)
-    ctx.fill()
-    ctx.fillStyle = "#38bdf8"
-    roundRectLocal(ctx, pad + 8, enY, barW * p1En, enH, 4)
-    ctx.fill()
+    if (isHeavRes) {
+      ctx.fillStyle = "rgba(107,114,128,0.6)"
+      ctx.fillText("HEAVENLY RESTRICTION", labelX, enY - 2)
+      ctx.fillStyle = "#111827"
+      rrect(ctx, x + 8, enY, barW, enH, 4); ctx.fill()
+      return
+    }
+
+    ctx.fillStyle = (ec.color || "#38bdf8") + "bb"
+    ctx.fillText(label, labelX, enY - 2)
+
+    if (!hasEnergy) return
+
+    const maxEn  = Math.max(1, fighter.maxEnergy || 100)
+    const ratio  = clamp((fighter.energy || 0) / maxEn, 0, 1)
+    const isCrit = ratio < 0.15
+    const isHigh = ratio > 0.80
+
+    ctx.fillStyle = emptyC
+    rrect(ctx, x + 8, enY, barW, enH, 4); ctx.fill()
+
+    let fillColor = mainCol
+    if (isCrit) {
+      const pulse = Math.sin(globalFrameCount * 0.2) * 0.5 + 0.5
+      fillColor = _lerpHex(mainCol, emptyC, pulse * 0.5)
+    }
+
+    if (isHigh) {
+      ctx.shadowBlur  = 8
+      ctx.shadowColor = glowC
+    }
+
+    const fillW = barW * ratio
+    const fillX = flip ? x + 8 + barW - fillW : x + 8
+    ctx.fillStyle = fillColor
+    rrect(ctx, fillX, enY, fillW, enH, 4); ctx.fill()
+    ctx.shadowBlur = 0
   }
 
-  if (p2HasEnergy) {
-    const p2EnX = cw - pad - barW - 20
-    ctx.fillStyle = "rgba(0,0,0,0.52)"
-    roundRectLocal(ctx, p2EnX, enY - 14, barW + 20, enH + 22, 8)
-    ctx.fill()
-    ctx.strokeStyle = "rgba(255,255,255,0.10)"
-    roundRectLocal(ctx, p2EnX, enY - 14, barW + 20, enH + 22, 8)
-    ctx.stroke()
+  drawEnergyPanel(pad, false, p1)
+  drawEnergyPanel(cw - pad - barW - 20, true, p2)
+}
 
-    ctx.font         = "bold 9px Arial"
-    ctx.textAlign    = "right"
-    ctx.fillStyle    = "rgba(252,165,165,0.75)"
-    ctx.fillText("ENERGY", cw - pad - 8, enY - 2)
+// Simple hex color lerp helper
+function _lerpHex(a, b, t) {
+  try {
+    const pr = (hex) => {
+      const n = hex.replace("#","")
+      if (n.length < 6) return [128,128,128]
+      return [parseInt(n.slice(0,2),16),parseInt(n.slice(2,4),16),parseInt(n.slice(4,6),16)]
+    }
+    const [ar,ag,ab] = pr(a), [br,bg,bb] = pr(b)
+    const r = Math.round(ar+(br-ar)*t), g = Math.round(ag+(bg-ag)*t), bv = Math.round(ab+(bb-ab)*t)
+    return `#${r.toString(16).padStart(2,"0")}${g.toString(16).padStart(2,"0")}${bv.toString(16).padStart(2,"0")}`
+  } catch (_) { return a }
+}
 
-    ctx.fillStyle = "rgba(255,255,255,0.10)"
-    roundRectLocal(ctx, p2EnX + 8, enY, barW, enH, 4)
-    ctx.fill()
-    const p2EnFillX = p2EnX + 8 + barW * (1 - p2En)
-    ctx.fillStyle   = "#f87171"
-    roundRectLocal(ctx, p2EnFillX, enY, barW * p2En, enH, 4)
-    ctx.fill()
-  }
+function _defaultLines(cat) {
+  if (cat === "ultimate" || cat === "clash") return 16
+  if (cat === "special" || cat === "parry")  return 10
+  if (cat === "heavy")  return 8
+  return 6
+}
+
+function _defaultRadius(cat) {
+  if (cat === "ultimate" || cat === "clash") return 40
+  if (cat === "special" || cat === "parry")  return 28
+  if (cat === "heavy")   return 22
+  return 14
 }
 
 // ─────────────────────────────────────────────

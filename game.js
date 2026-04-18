@@ -14,7 +14,9 @@ import {
 } from "./camera.js"
 
 import {
-  SpriteHandler
+  SpriteHandler,
+  processPendingSpawns,
+  preloadCharacterSprites
 } from "./sprite.js"
 
 import {
@@ -125,6 +127,22 @@ import {
   MUSIC
 } from "./sound.js"
 
+import {
+  createMatchStats,
+  createVictoryState,
+  recordHit,
+  recordRoundEnd,
+  drawRoundCountdown,
+  drawRoundBreak as drawRoundBreakFlow,
+  drawVictoryScreen,
+  drawMatchIntro,
+  drawLowHealthWarning,
+  drawRoundTimer,
+  updateVictoryState,
+  handleVictoryClick,
+  handleVictoryKey,
+  resetFighterForRematch
+} from "./matchFlow.js"
 
 
 
@@ -139,7 +157,6 @@ canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 
 setupMouseInput(canvas)
-
 
 
 
@@ -171,7 +188,6 @@ gojoSheets.forEach(sheet => {
 
 
 
-
 // ------------------------------------------------------------------
 // CONSTANTS
 // ------------------------------------------------------------------
@@ -189,6 +205,7 @@ const DEFAULT_SPEED = 9
 const DEFAULT_JUMP = 9
 const CENTER_SPAWN_GAP = 220
 const EDGE_SPAWN_PADDING = 80
+const ROUND_TIME = 5400  // 90 seconds at 60fps
 
 const GAME_STATES = {
   START: "start",
@@ -201,9 +218,10 @@ const GAME_STATES = {
   BATTLE: "battle",
   ROUND_BREAK: "roundBreak",
   MATCH_END: "matchEnd",
-  PAUSED: "paused"
+  PAUSED: "paused",
+  VICTORY: "victory",
+  INTRO: "intro"
 }
-
 
 
 
@@ -244,7 +262,6 @@ const P2_CONTROLS = {
   dash: "0",
   grab: "9"
 }
-
 
 
 
@@ -319,7 +336,6 @@ const stages = [
 
 
 
-
 // ------------------------------------------------------------------
 // STATE
 // ------------------------------------------------------------------
@@ -335,6 +351,12 @@ let pauseMenuIndex = 0
 let stateBeforePause = null
 let p1 = null
 let p2 = null
+
+// matchFlow state
+let matchStats      = createMatchStats()
+let victoryState    = createVictoryState()
+let matchIntroTimer = 0
+let roundTimer      = ROUND_TIME
 
 const projectiles = activeProjectiles
 const hitSparks = []
@@ -373,7 +395,7 @@ let hoverCharacterIndex = 0
 let hoverStageIndex = 0
 
 const matchConfig = {
-  mode: null,
+  mode: null,           // "vs" (AI), "pvp" (local 2P), "training"
   aiDifficulty: "easy",
   selectedUniverse: null,
   selectingSide: "p1",
@@ -396,7 +418,6 @@ const settingsButtonRect = {
   w: 180,
   h: 50
 }
-
 
 
 
@@ -555,12 +576,13 @@ function getSpawnPositions() {
     )
   )
 
-  return {
-    p1X,
-    p2X
-  }
+  return { p1X, p2X }
 }
 
+// Returns true when p2 should be human-controlled
+function isPvP() {
+  return matchConfig.mode === "pvp"
+}
 
 
 
@@ -589,7 +611,6 @@ function mapInputToVirtualKeys(inputState, controls) {
 
   return vKeys
 }
-
 
 
 
@@ -723,7 +744,6 @@ function createFighter(charKey, char, x, facing, controls, side) {
 
 
 
-
 // ------------------------------------------------------------------
 // MATCH / ROUND MANAGEMENT
 // ------------------------------------------------------------------
@@ -743,10 +763,18 @@ function ensureTrainingOpponent() {
 }
 
 function resetRound() {
+  // Reset visual/state first
   damageNumbers.length = 0
   knockoutFlash = 0
   slowdownTimer = 0
   slowdownTarget = null
+  roundTimer = ROUND_TIME
+
+  // Record round start health for stats
+  matchStats.roundStartHealth = matchStats.roundStartHealth || {}
+  matchStats.roundStartHealth.p1 = matchConfig.p1Char?.stats?.maxHealth || 1000
+  matchStats.roundStartHealth.p2 = matchConfig.p2Char?.stats?.maxHealth || 1000
+
   comboDisplay.p1.opacity = 0
   comboDisplay.p1.fadeDir = "out"
   comboDisplay.p1.lastCount = 0
@@ -759,10 +787,7 @@ function resetRound() {
   syncPhysicsBounds()
   ensureTrainingOpponent()
 
-  const {
-    p1X,
-    p2X
-  } = getSpawnPositions()
+  const { p1X, p2X } = getSpawnPositions()
 
   p1 = createFighter(matchConfig.p1CharKey, matchConfig.p1Char, p1X, 1, P1_CONTROLS, "p1")
   p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, P2_CONTROLS, "p2")
@@ -777,8 +802,13 @@ function resetRound() {
   activeDomains.length = 0
   roundBreakTimer = 0
 
+  // AI setup — in PvP or training p2 is human/dummy
   resetAIController(p2AI)
-  setAIDifficulty(p2AI, matchConfig.mode === "training" ? "dummy" : matchConfig.aiDifficulty)
+  if (isPvP()) {
+    setAIDifficulty(p2AI, "dummy")
+  } else {
+    setAIDifficulty(p2AI, matchConfig.mode === "training" ? "dummy" : matchConfig.aiDifficulty)
+  }
   clearAIControlKeys(p2)
 
   if (typeof camera.reset === "function") {
@@ -793,20 +823,26 @@ function resetRound() {
 }
 
 function startMatch() {
-  roundNumber = 1
-  roundWins = {
-    p1: 0,
-    p2: 0
-  }
-  winnerText = ""
+  roundNumber  = 1
+  roundWins    = { p1: 0, p2: 0 }
+  winnerText   = ""
+  matchStats   = createMatchStats()
+  victoryState = createVictoryState()
+  roundTimer   = ROUND_TIME
+
+  // Pre-warm sprites
+  if (matchConfig.p1CharKey) preloadCharacterSprites?.(matchConfig.p1CharKey)
+  if (matchConfig.p2CharKey) preloadCharacterSprites?.(matchConfig.p2CharKey)
 
   resetRound()
+
+  // Show match intro before first round
+  matchIntroTimer = 90
+  gameState = GAME_STATES.INTRO
 
   sound.stopMusic?.()
   sound.playStageMusic?.(matchConfig.selectedStage?.name || "")
   sound.play?.(SFX.UI_MATCH_START)
-
-  gameState = GAME_STATES.BATTLE
 }
 
 function resetSelections() {
@@ -837,6 +873,11 @@ function resetToStart() {
   roundBreakTimer = 0
   pauseMenuIndex = 0
   stateBeforePause = null
+
+  victoryState    = createVictoryState()
+  matchStats      = createMatchStats()
+  matchIntroTimer = 0
+  roundTimer      = ROUND_TIME
 
   clearDomains()
 
@@ -880,6 +921,13 @@ function chooseMode(mode) {
     return
   }
 
+  if (mode === "pvp") {
+    // PvP: skip AI difficulty, go straight to character select
+    beginUniverseSelect()
+    return
+  }
+
+  // vs AI: go to difficulty picker
   gameState = GAME_STATES.AI_DIFFICULTY
 }
 
@@ -888,6 +936,66 @@ function chooseDifficulty(difficulty) {
   beginUniverseSelect()
 }
 
+// ── Match-over helper ────────────────────────────────────────────
+function _checkMatchOver() {
+  if (roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS) {
+    const winner = roundWins.p1 > roundWins.p2
+      ? "p1"
+      : roundWins.p2 > roundWins.p1
+        ? "p2"
+        : "draw"
+
+    victoryState.active     = true
+    victoryState.fadeAlpha  = 0
+    victoryState.winnerSide = winner
+    victoryState.winnerName = winner === "p1"
+      ? (p1?.name || "Player 1")
+      : winner === "p2"
+        ? (p2?.name || (isPvP() ? "Player 2" : "CPU"))
+        : "Draw"
+    victoryState.stats = matchStats
+
+    recordRoundEnd?.(matchStats, winner, p1?.health || 0, p2?.health || 0)
+
+    sound.stopMusic?.()
+    sound.play?.(SFX.KO)
+
+    gameState = GAME_STATES.VICTORY
+  } else {
+    roundNumber++
+    roundBreakTimer = ROUND_BREAK_DURATION
+    gameState = GAME_STATES.ROUND_BREAK
+  }
+}
+
+// ── Rematch helper ───────────────────────────────────────────────
+function _doRematch() {
+  victoryState = createVictoryState()
+  matchStats   = createMatchStats()
+  roundNumber  = 1
+  roundWins    = { p1: 0, p2: 0 }
+  winnerText   = ""
+
+  if (p1) resetFighterForRematch?.(p1)
+  if (p2) resetFighterForRematch?.(p2)
+
+  const { p1X, p2X } = getSpawnPositions()
+  if (p1) { p1.x = p1X; p1.y = getGroundedYForFighter(p1) }
+  if (p2) { p2.x = p2X; p2.y = getGroundedYForFighter(p2) }
+
+  clearInputBuffers?.([p1, p2].filter(Boolean))
+  clearDomains()
+  damageNumbers.length = 0
+  knockoutFlash  = 0
+  slowdownTimer  = 0
+  hitSparks.length = 0
+  roundTimer     = ROUND_TIME
+  countdown      = ROUND_START_COUNTDOWN
+
+  gameState = GAME_STATES.BATTLE
+  sound.stopMusic?.()
+  sound.playStageMusic?.(matchConfig.selectedStage?.name || "")
+}
 
 
 
@@ -900,22 +1008,11 @@ function clearAIControlKeys(fighter) {
 
   const c = fighter.controls
   const aiKeys = [
-    c.left,
-    c.right,
-    c.up,
-    c.down,
-    c.light,
-    c.heavy,
-    c.special,
-    c.ultimate,
-    c.charge
+    c.left, c.right, c.up, c.down,
+    c.light, c.heavy, c.special, c.ultimate, c.charge
   ]
 
-  aiKeys.forEach(key => {
-    if (key) {
-      keys[key] = false
-    }
-  })
+  aiKeys.forEach(key => { if (key) keys[key] = false })
 }
 
 function applyAIInputToKeys(fighter, aiInput) {
@@ -925,24 +1022,27 @@ function applyAIInputToKeys(fighter, aiInput) {
 
   clearAIControlKeys(fighter)
 
-  if (aiInput.left) keys[c.left] = true
-  if (aiInput.right) keys[c.right] = true
-  if (aiInput.jump) keys[c.up] = true
-  if (aiInput.lightAttack) keys[c.light] = true
-  if (aiInput.heavyAttack) keys[c.heavy] = true
-  if (aiInput.upAttack) {
-    keys[c.up] = true
-    keys[c.light] = true
-  }
-  if (aiInput.downAir) keys[c.heavy] = true
-  if (aiInput.special1 || aiInput.special2) keys[c.special] = true
-  if (aiInput.ultimate) keys[c.ultimate] = true
+  if (aiInput.left)                          keys[c.left]   = true
+  if (aiInput.right)                         keys[c.right]  = true
+  if (aiInput.jump)                          keys[c.up]     = true
+  if (aiInput.lightAttack)                   keys[c.light]  = true
+  if (aiInput.heavyAttack)                   keys[c.heavy]  = true
+  if (aiInput.upAttack) { keys[c.up] = true; keys[c.light]  = true }
+  if (aiInput.downAir)                       keys[c.heavy]  = true
+  if (aiInput.special1 || aiInput.special2)  keys[c.special] = true
+  if (aiInput.ultimate)                      keys[c.ultimate] = true
 }
 
 function updateCPUInput() {
   if (!p2) return
 
   if (gameState !== GAME_STATES.BATTLE) {
+    clearAIControlKeys(p2)
+    return
+  }
+
+  // In PvP mode p2 is a human — never inject AI input
+  if (isPvP()) {
     clearAIControlKeys(p2)
     return
   }
@@ -1015,7 +1115,6 @@ function handlePauseInput(key) {
 
 
 
-
 // ------------------------------------------------------------------
 // FIGHTER UPDATE LOGIC
 // ------------------------------------------------------------------
@@ -1051,17 +1150,14 @@ function recordDirectionInput(fighter, key) {
   const c = fighter.controls
   let dir = null
 
-  if (key === c.left) dir = "L"
+  if (key === c.left)  dir = "L"
   if (key === c.right) dir = "R"
-  if (key === c.up) dir = "U"
-  if (key === c.down) dir = "D"
+  if (key === c.up)    dir = "U"
+  if (key === c.down)  dir = "D"
 
   if (!dir) return
 
-  fighter.directionHistory.push({
-    dir,
-    time: performance.now()
-  })
+  fighter.directionHistory.push({ dir, time: performance.now() })
 
   if (fighter.directionHistory.length > 16) {
     fighter.directionHistory.shift()
@@ -1134,13 +1230,15 @@ function detectDoubleTapDashTeleport(fighter, key) {
 function updateMiscTimers(fighter) {
   if (!fighter) return
 
-  if (fighter.teleportFlash > 0) fighter.teleportFlash--
+  if (fighter.teleportFlash > 0)  fighter.teleportFlash--
   if (fighter.summonCooldown > 0) fighter.summonCooldown--
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
+
   if (fighter.restrainTimer > 0) {
     fighter.restrainTimer--
     if (fighter.restrainTimer <= 0) fighter.restrained = false
   }
+
   if (fighter.obscuredTimer > 0) {
     fighter.obscuredTimer--
     if (fighter.obscuredTimer <= 0) fighter.obscured = false
@@ -1173,12 +1271,12 @@ function buildNormalControlState(fighter, vKeys) {
   const onGround = !!fighter.onGround
 
   return {
-    upAttack: onGround && vKeys[c.up] && (vKeys[c.light] || vKeys[c.heavy]),
-    grab: onGround && vKeys[c.down] && vKeys[c.light],
-    air: !onGround && vKeys[c.light],
-    downAir: !onGround && vKeys[c.heavy],
-    light: onGround && vKeys[c.light] && !vKeys[c.down] && !vKeys[c.up],
-    heavy: onGround && vKeys[c.heavy] && !vKeys[c.up]
+    upAttack: onGround && vKeys[c.up]   && (vKeys[c.light] || vKeys[c.heavy]),
+    grab:     onGround && vKeys[c.down] && vKeys[c.light],
+    air:      !onGround && vKeys[c.light],
+    downAir:  !onGround && vKeys[c.heavy],
+    light:    onGround && vKeys[c.light] && !vKeys[c.down] && !vKeys[c.up],
+    heavy:    onGround && vKeys[c.heavy] && !vKeys[c.up]
   }
 }
 
@@ -1230,7 +1328,6 @@ function updateFighterState(fighter) {
 
 
 
-
 // ------------------------------------------------------------------
 // GOJO SPECIAL SYSTEMS
 // ------------------------------------------------------------------
@@ -1249,7 +1346,7 @@ function applyGojoInfinityField(gojo, target) {
   if (dist > GOJO_INFINITY_RADIUS) return
 
   const ratio = Math.max(0.015, dist / GOJO_INFINITY_RADIUS)
-  const slow = ratio * ratio
+  const slow  = ratio * ratio
 
   target.vx *= slow
   target.vy *= Math.max(0.22, slow)
@@ -1275,7 +1372,6 @@ function applyGojoInfinityBarrier(gojo, target) {
 
 
 
-
 // ------------------------------------------------------------------
 // DOMAIN / EFFECT UPDATES
 // ------------------------------------------------------------------
@@ -1283,10 +1379,10 @@ function spawnDamageNumber(effect) {
   if (!effect || effect.damage == null) return
 
   const colorMap = {
-    light: "#ffffff",
-    heavy: "#fbbf24",
+    light:   "#ffffff",
+    heavy:   "#fbbf24",
     special: "#f97316",
-    ultimate: "#ef4444"
+    ultimate:"#ef4444"
   }
 
   damageNumbers.push({
@@ -1308,22 +1404,20 @@ function updateDamageNumbers() {
     d.y -= 1.2
     d.timer--
     d.opacity = d.timer / d.maxTimer
-    if (d.timer <= 0) {
-      damageNumbers.splice(i, 1)
-    }
+    if (d.timer <= 0) damageNumbers.splice(i, 1)
   }
 }
 
 function updateComboDisplay(fighter, side) {
   if (!fighter) return
 
-  const ds = comboDisplay[side]
+  const ds    = comboDisplay[side]
   const count = fighter.comboCounter || 0
 
   if (count >= 2) {
     ds.lastCount = count
     ds.holdTimer = 30
-    ds.fadeDir = "in"
+    ds.fadeDir   = "in"
   } else if (ds.holdTimer > 0) {
     ds.holdTimer--
   } else {
@@ -1348,14 +1442,18 @@ function updateEffectsAndDomains() {
     if (spark && spark._fresh !== false) {
       spark.maxTimer = spark.maxTimer || spark.timer
       spawnDamageNumber(spark)
+
+      // Record hit into match stats
+      const attSide = p1?.comboCounter >= (p2?.comboCounter || 0) ? "p1" : "p2"
+      const isSp    = spark.category === "special" || spark.category === "ultimate"
+      const isUlt   = spark.category === "ultimate"
+      recordHit?.(matchStats, attSide, spark.damage || 0, Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0), isSp, isUlt)
+
       spark._fresh = false
     }
 
     spark.timer--
-
-    if (spark.timer <= 0) {
-      hitSparks.splice(i, 1)
-    }
+    if (spark.timer <= 0) hitSparks.splice(i, 1)
   }
 
   updateDamageNumbers()
@@ -1378,13 +1476,32 @@ function updateTrainingMode() {
 
 
 
-
 // ------------------------------------------------------------------
 // ROUND END CHECK
 // ------------------------------------------------------------------
 function checkRoundEnd() {
   if (!p1 || !p2) return
   if (matchConfig.mode === "training") return
+
+  // Time over
+  if (roundTimer <= 0) {
+    const p1Hp = p1?.health || 0
+    const p2Hp = p2?.health || 0
+
+    if (p1Hp > p2Hp) {
+      roundWins.p1++
+      winnerText = isPvP() ? "Time Over — Player 1 Wins" : "Time Over — Player 1 Wins"
+    } else if (p2Hp > p1Hp) {
+      roundWins.p2++
+      winnerText = isPvP() ? "Time Over — Player 2 Wins" : "Time Over — CPU Wins"
+    } else {
+      winnerText = "Time Over — Draw"
+    }
+
+    _checkMatchOver()
+    return
+  }
+
   if (p1.health > 0 && p2.health > 0) return
 
   if ((p1?.health <= 0 || p2?.health <= 0) && knockoutFlash === 0) {
@@ -1398,26 +1515,11 @@ function checkRoundEnd() {
     winnerText = "Player 1 Wins Round"
   } else {
     roundWins.p2++
-    winnerText = "CPU Wins Round"
+    winnerText = isPvP() ? "Player 2 Wins Round" : "CPU Wins Round"
   }
 
-  if (roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS) {
-    gameState = GAME_STATES.MATCH_END
-
-    if (roundWins.p1 === roundWins.p2) {
-      winnerText = "Draw Match"
-    } else {
-      winnerText = roundWins.p1 > roundWins.p2 ? "Player 1 Wins Match" : "CPU Wins Match"
-    }
-
-    return
-  }
-
-  roundNumber++
-  roundBreakTimer = ROUND_BREAK_DURATION
-  gameState = GAME_STATES.ROUND_BREAK
+  _checkMatchOver()
 }
-
 
 
 
@@ -1431,6 +1533,7 @@ function _runClashCheck() {
 }
 
 function updateBattle() {
+  // Slowdown effect
   if (slowdownTimer > 0) {
     slowdownTimer--
 
@@ -1452,6 +1555,9 @@ function updateBattle() {
       return
     }
   }
+
+  // Decrement round timer
+  if (roundTimer > 0) roundTimer--
 
   updateDebugInputToggles()
   updateTrainingMode()
@@ -1495,7 +1601,14 @@ function updateBattle() {
 
   updateActiveSummons()
 
+  // Process pending spawns (from abilities/summons state machine)
   for (const fighter of [p1, p2].filter(Boolean)) {
+    processPendingSpawns?.(fighter, {
+      spawnProjectile: spawnProjectileFromMove,
+      spawnSummon:     spawnAssistSummon,
+      getOpponent
+    })
+
     if (fighter.domainSummonPending?.length) {
       const summonId = fighter.domainSummonPending.shift()
       const target = getOpponent(fighter)
@@ -1512,7 +1625,6 @@ function updateBattle() {
 
   checkRoundEnd()
 }
-
 
 
 
@@ -1544,16 +1656,7 @@ function drawHitSparksEnhanced() {
   }
 
   for (const spark of hitSparks) {
-    const {
-      x,
-      y,
-      category,
-      color,
-      timer,
-      maxTimer,
-      lines,
-      radius
-    } = spark
+    const { x, y, category, color, timer, maxTimer, lines, radius } = spark
 
     const alpha = Math.min(1, timer / Math.max(1, maxTimer || timer))
 
@@ -1566,36 +1669,26 @@ function drawHitSparksEnhanced() {
 
     ctx.strokeStyle = c
     ctx.lineWidth =
-      category === "ultimate"
-        ? 4
-        : category === "special"
-          ? 3
-          : category === "clash"
-            ? 3
-            : 2
-    ctx.shadowBlur = category === "ultimate" || category === "special" ? 12 : 0
+      category === "ultimate" ? 4
+      : category === "special" ? 3
+      : category === "clash"   ? 3
+      : 2
+
+    ctx.shadowBlur  = category === "ultimate" || category === "special" ? 12 : 0
     ctx.shadowColor = c
 
     for (let i = 0; i < n; i++) {
       const angle = (Math.PI * 2 * i) / n
-      const len = r * (0.6 + (i % 3) * 0.2)
+      const len   = r * (0.6 + (i % 3) * 0.2)
 
       ctx.beginPath()
       ctx.moveTo(x, y)
-      ctx.lineTo(
-        x + Math.cos(angle) * len,
-        y + Math.sin(angle) * len
-      )
+      ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len)
       ctx.stroke()
     }
 
-    if (
-      category === "heavy" ||
-      category === "special" ||
-      category === "ultimate" ||
-      category === "clash"
-    ) {
-      ctx.fillStyle = c + "44"
+    if (category === "heavy" || category === "special" || category === "ultimate" || category === "clash") {
+      ctx.fillStyle  = c + "44"
       ctx.shadowBlur = 0
       ctx.beginPath()
       ctx.arc(x, y, r * 0.35, 0, Math.PI * 2)
@@ -1605,8 +1698,8 @@ function drawHitSparksEnhanced() {
     if (category === "ultimate" || category === "clash") {
       const ringR = r * 0.5 + r * 1.5 * (1 - alpha)
       ctx.strokeStyle = c + "66"
-      ctx.lineWidth = 2
-      ctx.shadowBlur = 0
+      ctx.lineWidth   = 2
+      ctx.shadowBlur  = 0
       ctx.beginPath()
       ctx.arc(x, y, ringR, 0, Math.PI * 2)
       ctx.stroke()
@@ -1614,15 +1707,9 @@ function drawHitSparksEnhanced() {
 
     if (category === "parry") {
       ctx.strokeStyle = "#38bdf8"
-      ctx.lineWidth = 3
+      ctx.lineWidth   = 3
       ctx.beginPath()
-      ctx.arc(
-        x,
-        y,
-        r * (0.5 + 0.5 * (1 - alpha)),
-        0,
-        Math.PI * 2
-      )
+      ctx.arc(x, y, r * (0.5 + 0.5 * (1 - alpha)), 0, Math.PI * 2)
       ctx.stroke()
     }
 
@@ -1664,18 +1751,20 @@ function drawBattleScene() {
 function drawBattleHud() {
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
   drawControlsInfo(ctx, canvas)
+  drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
+  drawLowHealthWarning?.(ctx, canvas, p1, p2, globalFrameCount)
 
   if (!trainingState.enabled) return
 
   drawTrainingOverlay(ctx, canvas, {
-    combo: Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0),
-    damage: 0,
-    state: matchConfig.mode === "training" ? "training" : "debug",
+    combo:    Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0),
+    damage:   0,
+    state:    matchConfig.mode === "training" ? "training" : "debug",
     meterGain: 0,
-    frame: globalFrameCount,
+    frame:    globalFrameCount,
     p1Inputs: getRelativeDirectionsFromHistory(p1),
     p2Inputs: getRelativeDirectionsFromHistory(p2),
-    history: getInputHistory()
+    history:  getInputHistory()
   })
 }
 
@@ -1690,64 +1779,59 @@ function _drawDamageNumbers() {
   if (!damageNumbers.length) return
 
   ctx.save()
-  ctx.textAlign = "center"
+  ctx.textAlign    = "center"
   ctx.textBaseline = "middle"
 
   for (const d of damageNumbers) {
     const s = _worldToScreen(d.x, d.y)
 
     ctx.globalAlpha = Math.max(0, d.opacity)
-    ctx.font = `bold ${d.fontSize || 22}px Arial`
-    ctx.fillStyle = d.color || "#ffffff"
-    ctx.shadowBlur = 5
+    ctx.font        = `bold ${d.fontSize || 22}px Arial`
+    ctx.fillStyle   = d.color || "#ffffff"
+    ctx.shadowBlur  = 5
     ctx.shadowColor = d.color || "#ffffff"
     ctx.fillText(d.text, s.x, s.y)
   }
 
-  ctx.shadowBlur = 0
+  ctx.shadowBlur  = 0
   ctx.globalAlpha = 1
   ctx.restore()
 }
 
 function _drawComboCounters() {
-  const cw = canvas.width
-  const ch = canvas.height
+  const cw    = canvas.width
+  const ch    = canvas.height
   const baseY = ch * 0.38
 
   for (const side of ["p1", "p2"]) {
-    const ds = comboDisplay[side]
+    const ds    = comboDisplay[side]
     const count = ds.lastCount
 
-    if (ds.opacity <= 0 || count < 2) {
-      continue
-    }
+    if (ds.opacity <= 0 || count < 2) continue
 
-    const isP1 = side === "p1"
+    const isP1  = side === "p1"
     const baseX = isP1 ? cw * 0.22 : cw * 0.78
 
     const color =
-      count >= 15
-        ? "#ef4444"
-        : count >= 9
-          ? "#f97316"
-          : count >= 5
-            ? "#fbbf24"
-            : "#ffffff"
+      count >= 15 ? "#ef4444"
+      : count >= 9  ? "#f97316"
+      : count >= 5  ? "#fbbf24"
+      : "#ffffff"
 
     const fontSize = Math.min(72, 48 + (count - 2) * 2)
 
     ctx.save()
-    ctx.globalAlpha = Math.max(0, ds.opacity)
-    ctx.textAlign = "center"
+    ctx.globalAlpha  = Math.max(0, ds.opacity)
+    ctx.textAlign    = "center"
     ctx.textBaseline = "middle"
 
-    ctx.font = `900 ${fontSize}px Arial`
-    ctx.fillStyle = color
-    ctx.shadowBlur = 18
+    ctx.font        = `900 ${fontSize}px Arial`
+    ctx.fillStyle   = color
+    ctx.shadowBlur  = 18
     ctx.shadowColor = color
     ctx.fillText(String(count), baseX, baseY - 14)
 
-    ctx.font = `700 ${Math.floor(fontSize * 0.42)}px Arial`
+    ctx.font      = `700 ${Math.floor(fontSize * 0.42)}px Arial`
     ctx.fillStyle = "rgba(255,255,255,0.85)"
     ctx.shadowBlur = 0
     ctx.fillText("HIT COMBO", baseX, baseY + fontSize * 0.36)
@@ -1758,7 +1842,6 @@ function _drawComboCounters() {
 
 function _rrectPath(ctx, x, y, w, h, r = 6) {
   r = Math.min(r, w / 2, h / 2)
-
   ctx.beginPath()
   ctx.moveTo(x + r, y)
   ctx.lineTo(x + w - r, y)
@@ -1788,7 +1871,7 @@ function _drawDomainHUDBar() {
   const data = getDomainHUDData?.()
   if (!data) return
 
-  const cw = canvas.width
+  const cw   = canvas.width
   const barW = 220
   const barH = 12
   const barX = cw / 2 - barW / 2
@@ -1800,13 +1883,13 @@ function _drawDomainHUDBar() {
   _rrectFill(ctx, barX - 10, barY - 18, barW + 20, barH + 30, 8)
 
   ctx.strokeStyle = "rgba(255,255,255,0.12)"
-  ctx.lineWidth = 1
+  ctx.lineWidth   = 1
   _rrectStroke(ctx, barX - 10, barY - 18, barW + 20, barH + 30, 8)
 
-  ctx.font = "700 11px Arial"
-  ctx.textAlign = "center"
+  ctx.font         = "700 11px Arial"
+  ctx.textAlign    = "center"
   ctx.textBaseline = "alphabetic"
-  ctx.fillStyle = data.color || "#a78bfa"
+  ctx.fillStyle    = data.color || "#a78bfa"
   ctx.fillText(data.name, cw / 2, barY - 3)
 
   ctx.fillStyle = "rgba(255,255,255,0.08)"
@@ -1826,7 +1909,7 @@ function _drawKOFlash() {
   if (knockoutFlash <= 0) return
 
   ctx.save()
-  ctx.fillStyle = "#ffffff"
+  ctx.fillStyle   = "#ffffff"
   ctx.globalAlpha = Math.min(1, knockoutFlash / 18) * 0.9
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.restore()
@@ -1839,7 +1922,7 @@ function drawBattle() {
   drawBattleHud()
 
   if (countdown > 0) {
-    drawCountdown(ctx, canvas, countdown)
+    drawRoundCountdown?.(ctx, canvas, countdown, roundNumber)
   }
 
   _drawDamageNumbers()
@@ -1847,7 +1930,6 @@ function drawBattle() {
   _drawDomainHUDBar()
   _drawKOFlash()
 }
-
 
 
 
@@ -1880,9 +1962,9 @@ function drawSettingsScreen() {
   ctx.fillStyle = "#111"
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-  ctx.fillStyle = "#FFF"
-  ctx.font = "40px Arial"
-  ctx.textAlign = "center"
+  ctx.fillStyle   = "#FFF"
+  ctx.font        = "40px Arial"
+  ctx.textAlign   = "center"
   ctx.fillText("CONTROLLER SETTINGS", canvas.width / 2, 150)
 
   ctx.fillStyle = "#333"
@@ -1893,7 +1975,7 @@ function drawSettingsScreen() {
   ctx.fillRect(backSettingRect.x, backSettingRect.y, backSettingRect.w, backSettingRect.h)
 
   ctx.fillStyle = "#FFF"
-  ctx.font = "24px Arial"
+  ctx.font      = "24px Arial"
   ctx.fillText(`P1 Input: ${inputSettings.p1Type.toUpperCase()}`, canvas.width / 2, p1SettingRect.y + 40)
   ctx.fillText(`P2 Input: ${inputSettings.p2Type.toUpperCase()}`, canvas.width / 2, p2SettingRect.y + 40)
   ctx.fillText("BACK", canvas.width / 2, backSettingRect.y + 35)
@@ -1905,9 +1987,9 @@ function renderCurrentState() {
       drawStartScreen(ctx, canvas)
       ctx.fillStyle = "#444"
       ctx.fillRect(settingsButtonRect.x, settingsButtonRect.y, settingsButtonRect.w, settingsButtonRect.h)
-      ctx.fillStyle = "#FFF"
-      ctx.font = "20px Arial"
-      ctx.textAlign = "center"
+      ctx.fillStyle   = "#FFF"
+      ctx.font        = "20px Arial"
+      ctx.textAlign   = "center"
       ctx.fillText("SETTINGS", settingsButtonRect.x + settingsButtonRect.w / 2, settingsButtonRect.y + 32)
       break
 
@@ -1929,17 +2011,31 @@ function renderCurrentState() {
 
     case GAME_STATES.SELECT_CHARACTER:
       drawCharacterSelectScreen(ctx, canvas, {
-        roster: getCharacterRosterForSelectedUniverse(),
+        roster:        getCharacterRosterForSelectedUniverse(),
         selectedIndex: hoverCharacterIndex,
-        p1Selected: matchConfig.p1CharKey,
-        p2Selected: matchConfig.p2CharKey,
+        p1Selected:    matchConfig.p1CharKey,
+        p2Selected:    matchConfig.p2CharKey,
         currentPlayer: matchConfig.selectingSide === "p1" ? 1 : 2,
-        title: matchConfig.mode === "training" ? "TRAINING CHARACTER SELECT" : "CHARACTER SELECT"
+        title: matchConfig.mode === "training"
+          ? "TRAINING CHARACTER SELECT"
+          : matchConfig.mode === "pvp"
+            ? `SELECT CHARACTER — PLAYER ${matchConfig.selectingSide === "p1" ? 1 : 2}`
+            : "CHARACTER SELECT"
       })
       break
 
     case GAME_STATES.SELECT_STAGE:
       drawStageSelectScreen(ctx, canvas, stages, hoverStageIndex)
+      break
+
+    case GAME_STATES.INTRO:
+      drawBattleScene()
+      drawMatchIntro?.(ctx, canvas, {
+        p1Name:   matchConfig.p1Char?.name || "Player 1",
+        p2Name:   matchConfig.p2Char?.name || (isPvP() ? "Player 2" : "CPU"),
+        timer:    matchIntroTimer,
+        maxTimer: 90
+      })
       break
 
     case GAME_STATES.BATTLE:
@@ -1960,6 +2056,11 @@ function renderCurrentState() {
       _drawKOFlash()
       break
 
+    case GAME_STATES.VICTORY:
+      drawBattleScene()
+      drawVictoryScreen?.(ctx, canvas, victoryState)
+      break
+
     case GAME_STATES.PAUSED:
       drawBattleScene()
       drawBattleHud()
@@ -1972,14 +2073,13 @@ function renderCurrentState() {
 
 
 
-
 // ------------------------------------------------------------------
 // MENU CLICK HANDLERS
 // ------------------------------------------------------------------
 function getUniverseList() {
   return universeKeys.map(key => ({
     name: formatUniverseName(key),
-    id: key
+    id:   key
   }))
 }
 
@@ -1988,8 +2088,8 @@ function getCharacterRosterForSelectedUniverse() {
     const char = characters[key]
 
     return {
-      id: key,
-      name: char?.name || key,
+      id:       key,
+      name:     char?.name || key,
       universe: char?.universe ? formatUniverseName(char.universe) : ""
     }
   })
@@ -2013,10 +2113,7 @@ function updateHoverIndices() {
 
     if (found >= 0 && found !== hoverGameplayIndex) {
       hoverGameplayIndex = found
-      if (hoverThrottle <= 0) {
-        sound.play?.(SFX.UI_HOVER)
-        hoverThrottle = 6
-      }
+      if (hoverThrottle <= 0) { sound.play?.(SFX.UI_HOVER); hoverThrottle = 6 }
     }
 
     return
@@ -2028,10 +2125,7 @@ function updateHoverIndices() {
 
     if (found >= 0 && found !== hoverDifficultyIndex) {
       hoverDifficultyIndex = found
-      if (hoverThrottle <= 0) {
-        sound.play?.(SFX.UI_HOVER)
-        hoverThrottle = 6
-      }
+      if (hoverThrottle <= 0) { sound.play?.(SFX.UI_HOVER); hoverThrottle = 6 }
     }
 
     return
@@ -2043,10 +2137,7 @@ function updateHoverIndices() {
 
     if (found >= 0 && found !== hoverUniverseIndex) {
       hoverUniverseIndex = found
-      if (hoverThrottle <= 0) {
-        sound.play?.(SFX.UI_HOVER)
-        hoverThrottle = 6
-      }
+      if (hoverThrottle <= 0) { sound.play?.(SFX.UI_HOVER); hoverThrottle = 6 }
     }
 
     return
@@ -2058,10 +2149,7 @@ function updateHoverIndices() {
 
     if (found >= 0 && found !== hoverCharacterIndex) {
       hoverCharacterIndex = found
-      if (hoverThrottle <= 0) {
-        sound.play?.(SFX.UI_HOVER)
-        hoverThrottle = 6
-      }
+      if (hoverThrottle <= 0) { sound.play?.(SFX.UI_HOVER); hoverThrottle = 6 }
     }
 
     return
@@ -2073,10 +2161,7 @@ function updateHoverIndices() {
 
     if (found >= 0 && found !== hoverStageIndex) {
       hoverStageIndex = found
-      if (hoverThrottle <= 0) {
-        sound.play?.(SFX.UI_HOVER)
-        hoverThrottle = 6
-      }
+      if (hoverThrottle <= 0) { sound.play?.(SFX.UI_HOVER); hoverThrottle = 6 }
     }
   }
 }
@@ -2087,7 +2172,7 @@ function handleStartMenuClick() {
     return
   }
 
-  const rects = getStartMenuRects(canvas)
+  const rects   = getStartMenuRects(canvas)
   const clicked = rects.find(rect => pointInRect(mouse.x, mouse.y, rect))
 
   if (!clicked) return
@@ -2112,44 +2197,32 @@ function handleSettingsClick() {
 }
 
 function handleGameplaySelectClick() {
-  const rects = getGameplaySelectRects(canvas)
+  const rects   = getGameplaySelectRects(canvas)
   const clicked = rects.find(rect => pointInRect(mouse.x, mouse.y, rect))
 
   if (!clicked) return
 
-  if (clicked.id === "training") {
-    chooseMode("training")
-    return
-  }
-
-  if (clicked.id === "vs") {
-    chooseMode("vs")
-    return
-  }
-
-  if (clicked.id === "back") {
-    gameState = GAME_STATES.START
-  }
+  if (clicked.id === "training") { chooseMode("training"); return }
+  if (clicked.id === "vs")       { chooseMode("vs");       return }
+  if (clicked.id === "pvp")      { chooseMode("pvp");      return }
+  if (clicked.id === "back")     { gameState = GAME_STATES.START }
 }
 
 function handleDifficultyClick() {
-  const rects = getAIDifficultyRects(canvas)
+  const rects   = getAIDifficultyRects(canvas)
   const clicked = rects.find(rect => pointInRect(mouse.x, mouse.y, rect))
 
   if (!clicked) return
 
-  if (clicked.id === "back") {
-    gameState = GAME_STATES.GAMEPLAY_SELECT
-    return
-  }
+  if (clicked.id === "back") { gameState = GAME_STATES.GAMEPLAY_SELECT; return }
 
   chooseDifficulty(clicked.id)
 }
 
 function handleUniverseClick() {
   const universes = getUniverseList()
-  const rects = getUniverseCardRects(canvas, universes)
-  const idx = rects.findIndex(rect => pointInRect(mouse.x, mouse.y, rect))
+  const rects     = getUniverseCardRects(canvas, universes)
+  const idx       = rects.findIndex(rect => pointInRect(mouse.x, mouse.y, rect))
 
   if (idx < 0 || !universes[idx]) return
 
@@ -2159,39 +2232,42 @@ function handleUniverseClick() {
 
 function handleCharacterClick() {
   const roster = getCharacterRosterForSelectedUniverse()
-  const rects = getCharacterCardRects(canvas, roster)
-  const idx = rects.findIndex(rect => pointInRect(mouse.x, mouse.y, rect))
+  const rects  = getCharacterCardRects(canvas, roster)
+  const idx    = rects.findIndex(rect => pointInRect(mouse.x, mouse.y, rect))
 
   if (idx < 0 || !roster[idx]) return
 
   const chosenKey = roster[idx].id
-  const chosen = characters[chosenKey]
+  const chosen    = characters[chosenKey]
 
   if (matchConfig.selectingSide === "p1") {
-    matchConfig.p1Char = chosen
+    matchConfig.p1Char    = chosen
     matchConfig.p1CharKey = chosenKey
 
     if (matchConfig.mode === "training") {
-      matchConfig.p2Char = chosen
+      // Training: mirror p1 to p2 and jump to stage
+      matchConfig.p2Char    = chosen
       matchConfig.p2CharKey = chosenKey
       gameState = GAME_STATES.SELECT_STAGE
       return
     }
 
-    matchConfig.selectingSide = "p2"
+    // PvP or vs AI: p2 picks separately
+    matchConfig.selectingSide    = "p2"
     matchConfig.selectedUniverse = null
     gameState = GAME_STATES.SELECT_UNIVERSE
     return
   }
 
-  matchConfig.p2Char = chosen
+  // p2 has now picked
+  matchConfig.p2Char    = chosen
   matchConfig.p2CharKey = chosenKey
   gameState = GAME_STATES.SELECT_STAGE
 }
 
 function handleStageClick() {
   const rects = getStageCardRects(canvas, stages)
-  const idx = rects.findIndex(rect => pointInRect(mouse.x, mouse.y, rect))
+  const idx   = rects.findIndex(rect => pointInRect(mouse.x, mouse.y, rect))
 
   if (idx < 0 || !stages[idx]) return
 
@@ -2240,11 +2316,17 @@ function handleMenuClicks() {
     case GAME_STATES.MATCH_END:
       handleMatchEndClick()
       break
+
+    case GAME_STATES.VICTORY: {
+      const action = handleVictoryClick?.(victoryState, mouse, canvas)
+      if (action === "rematch") _doRematch()
+      if (action === "menu")    resetToStart()
+      break
+    }
   }
 
   consumeMouseClick()
 }
-
 
 
 
@@ -2257,6 +2339,14 @@ function updateCurrentState() {
   handleMenuClicks()
 
   switch (gameState) {
+    case GAME_STATES.INTRO:
+      matchIntroTimer--
+      if (matchIntroTimer <= 0) {
+        gameState = GAME_STATES.BATTLE
+        countdown = ROUND_START_COUNTDOWN
+      }
+      break
+
     case GAME_STATES.BATTLE:
       if (countdown > 0) {
         updateDebugInputToggles()
@@ -2292,13 +2382,17 @@ function updateCurrentState() {
       }
       break
 
+    case GAME_STATES.VICTORY:
+      updateVictoryState?.(victoryState, mouse, canvas)
+      break
+
     case GAME_STATES.PAUSED:
       break
   }
 }
 
 function triggerSlowdown(frames = 45, target = null) {
-  slowdownTimer = frames
+  slowdownTimer  = frames
   slowdownTarget = target || null
 }
 
@@ -2314,12 +2408,19 @@ function gameLoop() {
 
 
 
-
 // ------------------------------------------------------------------
 // KEYBOARD EVENTS
 // ------------------------------------------------------------------
 window.addEventListener("keydown", e => {
   const key = String(e.key || "").toLowerCase()
+
+  // Victory screen input
+  if (gameState === GAME_STATES.VICTORY) {
+    const action = handleVictoryKey?.(victoryState, key)
+    if (action === "rematch") _doRematch()
+    if (action === "menu")    resetToStart()
+    return
+  }
 
   handlePauseInput(key)
 
@@ -2332,7 +2433,9 @@ window.addEventListener("keydown", e => {
   if (p2) {
     recordDirectionInput(p2, key)
 
-    if (matchConfig.mode !== "vs" && matchConfig.mode !== "training") {
+    // In PvP, p2 controls are always live for both teleport/toggle
+    // In AI modes, only allow if not being AI-driven
+    if (isPvP() || matchConfig.mode !== "vs") {
       detectDoubleTapDashTeleport(p2, key)
       handleToggleInputs(p2, key)
     }
@@ -2346,36 +2449,24 @@ window.addEventListener("keydown", e => {
 
 
 
-
 // ------------------------------------------------------------------
 // RESIZE
 // ------------------------------------------------------------------
 window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth
+  canvas.width  = window.innerWidth
   canvas.height = window.innerHeight
 
   syncPhysicsBounds()
   updateCameraBounds()
 
-  if (p1) {
-    p1.y = Math.min(p1.y, getGroundedYForFighter(p1))
-  }
-
-  if (p2) {
-    p2.y = Math.min(p2.y, getGroundedYForFighter(p2))
-  }
+  if (p1) p1.y = Math.min(p1.y, getGroundedYForFighter(p1))
+  if (p2) p2.y = Math.min(p2.y, getGroundedYForFighter(p2))
 
   if (p1 && p2) {
-    if (typeof camera.reset === "function") {
-      camera.reset()
-    }
-
-    if (typeof camera.update === "function") {
-      camera.update(p1, p2, canvas)
-    }
+    if (typeof camera.reset === "function") camera.reset()
+    if (typeof camera.update === "function") camera.update(p1, p2, canvas)
   }
 })
-
 
 
 

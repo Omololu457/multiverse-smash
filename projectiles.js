@@ -136,6 +136,39 @@ export const projectiles = {
     }
 
 }
+// Add this to the bottom of projectiles.js
+
+/**
+ * Spawns a projectile based on move data
+ * @param {Object} fighter - The character firing the projectile
+ * @param {Object} moveData - The data from the character's move
+ */
+export function spawnProjectileFromMove(fighter, moveData) {
+    const projConfig = projectiles[moveData.projectileId];
+    
+    if (!projConfig) {
+        console.warn(`Projectile ID "${moveData.projectileId}" not found in projectiles.js`);
+        return;
+    }
+
+    const proj = {
+        id: moveData.projectileId,
+        x: fighter.facing === 1 ? fighter.x + fighter.w : fighter.x - projConfig.width,
+        y: fighter.y + fighter.h / 3, // Spawn at chest height
+        vx: projConfig.speed * fighter.facing,
+        vy: 0,
+        w: projConfig.width,
+        h: projConfig.height,
+        damage: projConfig.damage * (fighter.attackMultiplier || 1),
+        owner: fighter,
+        type: projConfig.type,
+        active: true,
+        category: moveData.category || "special"
+    };
+
+    activeProjectiles.push(proj);
+    return proj;
+}
 
 // Optional: export an empty array for active projectiles (used in abilities.js)
 export const activeProjectiles = []

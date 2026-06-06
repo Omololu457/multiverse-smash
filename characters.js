@@ -597,6 +597,37 @@ const rickPrime = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// BEN 10
+// His real movesets/stats live in the Omnitrix pool (fighters.js) and are
+// applied LIVE by setupBen10()/applyAlien() — physics.js auto-runs this on the
+// first frame a "ben10" fighter moves. This entry just makes him SELECTABLE on
+// the universe/character screens (which read from this file). The values below
+// are a sensible first-frame placeholder that the Omnitrix overrides instantly;
+// they're matched to the default starting alien (Four Arms) so the HUD is right.
+// ─────────────────────────────────────────────────────────────────
+const ben10 = {
+  rosterKey: "ben10", name: "Ben 10", universe: "ben_10",
+  archetypes: ["transformations", "melee"],
+  primary: "transformations", secondary: ["melee"],
+  traits: { hasEnergy: true, energyType: "omnitrix", mobility: "high", scaling: "burst" },
+  passive: { name: "Omnitrix", effect: "Press the transform/charge button to cycle through 5 aliens, each with its own moveset" },
+  stats: { maxHealth: 1250, maxEnergy: 100, attack: 90, defense: 85, speed: 5, maxJumps: 1, jumpPower: 19, dashSpeed: 15, dashDuration: 8, dashCooldownMax: 30 },
+  basic_attacks: {
+    light:     { damage: 53, startup: 6, active: 3, recovery: 12, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 106, startup: 11, active: 5, recovery: 20, hitstun: 18, knockbackX: 6, knockbackY: 1, superArmor: true },
+    upAttack:  { damage: 85, startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: -8 },
+    airAttack: { damage: 70, startup: 6, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 98, startup: 10, active: 4, recovery: 16, hitstun: 18, knockbackX: 1, knockbackY: 11 },
+    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
+  },
+  specials: {},
+  ultimate: { name: "Omnitrix Overload", cost: 100, duration: 8, effect: "Active alien's ultimate" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
@@ -604,7 +635,8 @@ export const characters = {
   gojo, megumi, sukuna, omololu, toji, mahoraga,
   naruto,
   tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,
-  rick, morty, evilMorty, rickPrime
+  rick, morty, evilMorty, rickPrime,
+  ben10
 }
 
 // The 7 characters shown in the starter roster select screen

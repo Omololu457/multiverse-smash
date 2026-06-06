@@ -129,9 +129,15 @@ export const physics = {
       // Jump
       if (fighter.onGround) fighter.jumpCount = 0
 
+      // Up and Jump share a key. If the player holds an ATTACK button while
+      // grounded, treat Up as an UP-ATTACK (launcher) instead of a jump — this
+      // keeps the launcher reachable. Combat reads onGround to start the up
+      // attack, so we must NOT leave the ground in that case.
+      const attackHeld = !!(keys[controls.light] || keys[controls.heavy])
+      const suppressJumpForUpAttack = fighter.onGround && attackHeld
       const canJump = fighter.canJump !== false && fighter.jumpCount < fighter.maxJumps
 
-      if (U && !fighter.jumpHeld && canJump) {
+      if (U && !fighter.jumpHeld && canJump && !suppressJumpForUpAttack) {
         fighter.vy = fighter.jumpForce
         fighter.jumpCount++
         fighter.onGround = false
@@ -266,14 +272,39 @@ export const physics = {
 
   launcherAttack(attacker, target, launchY = -28, selfLift = -16) {
     if (!attacker || !target) return
-    target.vy = launchY
+
+    // ── Launch the TARGET into the air for a juggle ──
+    // A MODERATE, guaranteed pop-up (even if the move's knockbackY is weak, e.g.
+    // -8). Kept moderate on purpose so the enemy doesn't sail out of reach — the
+    // point is a follow-up air combo, not a launch-to-the-moon.
+    const targetLaunch = Math.min(launchY ?? -17, -17)
+    target.vy = targetLaunch
     target.onGround = false
     target.isLaunched = true
+    target.jumpCount = 0
 
-    if (!attacker.onGround && selfLift < 0) {
-      attacker.vy = selfLift
-      attacker.isLaunched = true
-    }
+    // ── Lift the ATTACKER up WITH the target (always, not just when airborne) ──
+    // Rise almost as high as the target — only ~2px/frame slower — so the two
+    // stay vertically close and the air follow-up reliably connects, with the
+    // enemy kept just above for an upward juggle. selfLift is the high floor.
+    const selfRise = Math.max(selfLift ?? -16, targetLaunch + 2)
+    attacker.vy = selfRise
+
+    // Drift the attacker TOWARD the enemy so they track them up into the juggle
+    // (the enemy keeps a small forward push from the hit, so chase a bit faster).
+    // This closes any horizontal gap and makes the air follow-up forgiving.
+    const toward = attacker.facing || (target.x >= attacker.x ? 1 : -1)
+    attacker.vx = toward * 4
+    attacker.onGround = false
+    attacker.isLaunched = false   // attacker is comboing, not hit-stunned
+    attacker.jumpCount = 0         // refresh jumps so they can chase / double-jump
+    attacker.airHits = 0           // reset air-combo counter for the follow-up
+    attacker.airDashCount = 0
+    // The player is almost certainly still HOLDING Up (it shares the attack
+    // input). Mark the jump as held so that held Up doesn't instantly burn a
+    // double-jump and fling the attacker out of juggle range — they must release
+    // and re-press Up to actually jump in the air.
+    attacker.jumpHeld = true
   },
 
   airCombo(attacker, target, launchY = -14) {

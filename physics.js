@@ -1,7 +1,18 @@
 /**
  * PHYSICS ENGINE — unified version
  * Movement, gravity, dash (ground + air), collision, knockback, bounds.
+ *
+ * CHANGES IN THIS VERSION:
+ *  - Triple jump is now granted ONLY to the characters in TRIPLE_JUMP_CHARACTERS.
+ *    Everyone else keeps their normal jump count (usually 2).
+ *  - Ben 10 aliens carry their own maxJumps (set by ben10.js applyAlien),
+ *    so fast aliens like XLR8 / Grey Matter can triple jump too.
+ *  - Raised the air ceiling so triple jumps + air combos have room to breathe.
  */
+
+// Characters that get a third jump. Keyed by rosterKey / id / name (lowercase).
+const TRIPLE_JUMP_CHARACTERS = new Set(["toji", "gojo", "sukuna"])
+
 export const physics = {
   gravity: 0.85,
   groundY: 520,
@@ -33,6 +44,14 @@ export const physics = {
       airDashTimer: 0
     }
     for (const k in defaults) if (fighter[k] == null) fighter[k] = defaults[k]
+
+    // ── TRIPLE JUMP ALLOWLIST ────────────────────────
+    // Only the priority characters get a 3rd jump. Ben 10 aliens that should
+    // triple jump set their own maxJumps via ben10.js, so we never lower it.
+    const _key = (fighter.rosterKey || fighter.id || fighter.name || "").toLowerCase()
+    if (TRIPLE_JUMP_CHARACTERS.has(_key)) {
+      fighter.maxJumps = Math.max(fighter.maxJumps || 0, 3)
+    }
 
     // External forces
     if (Array.isArray(fighter.externalForces) && fighter.externalForces.length) {
@@ -159,9 +178,9 @@ export const physics = {
 
     const floor = fighter.groundY != null ? fighter.groundY : this.groundY
 
-    // Ceiling cap
-    if (fighter.y < -200) {
-      fighter.y = -200
+    // Ceiling cap — raised so triple jumps + air combos have headroom.
+    if (fighter.y < -360) {
+      fighter.y = -360
       fighter.vy = 0
     }
 

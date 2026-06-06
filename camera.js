@@ -1,14 +1,5 @@
-// camera.js — dynamic camera that FRAMES BOTH FIGHTERS and guarantees they stay
-// on screen, including during triple jumps / air combos.
-//
-// What changed from the last version:
-//  - The camera now fits the full BOUNDING BOX of both fighters (including their
-//    heights), not just the midpoint. If one fighter rockets upward, the camera
-//    zooms out and rises to keep BOTH in view.
-//  - An anti-lag "fit guarantee" pass: if smoothing falls behind a fast jump, the
-//    camera snaps just enough to keep nobody off the top/bottom edge.
-//  - Lower minZoom so it can pull out far enough for a sky-high triple jump.
-//  - Same exported API, so it's still a straight drop-in replacement.
+// camera.js — smooth dynamic camera. Frames BOTH fighters, follows high jumps,
+// and NEVER hard-snaps, so attacks/knockback/shake can't make the screen jerk.
 
 function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)) }
 function lerp(a, b, t) { return a + (b - a) * t }
@@ -35,32 +26,27 @@ export const camera = {
 
   worldWidth: 3200,
   worldHeight: 2000,
-
-  // Soft vertical limits — a safety net, not a fixed frame. minY is very negative
-  // so the camera can chase a triple jump straight up.
   minY: -1600,
   maxY: 2000,
 
-  // Zoom range — lower floor so it can fit a tall vertical fight.
   minZoom: 0.40,
   maxZoom: 1.15,
 
-  // Smoothing — snappier so the camera keeps up with a fast rise.
-  moveSmooth: 0.15,
-  zoomSmooth: 0.12,
-  verticalMoveSmooth: 0.15,
+  // Smoothing
+  moveSmooth: 0.12,
+  zoomSmooth: 0.08,
+  verticalMoveSmooth: 0.12,
 
-  // Padding around the fighters' bounding box.
-  horizontalPadding: 200,
-  verticalPadding: 160,
+  // Max change per frame — prevents pops/jerks even on big position swings.
+  maxZoomStep: 0.02,   // zoom units per frame
+  maxPanStep: 60,      // world px per frame
 
-  // Horizontal lead toward where fighters are moving.
-  leadStrength: 5,
+  // Generous padding so the smoothed camera keeps both fighters framed without snapping.
+  horizontalPadding: 280,
+  verticalPadding: 260,
 
-  // Margin kept between a fighter and the screen edge (world units).
-  edgeMargin: 50,
+  leadStrength: 4,
 
-  // Shake
   shakeTimer: 0,
   shakeStrength: 0,
   shakeX: 0,
@@ -90,6 +76,8 @@ export const camera = {
   },
 
   shake(strength = 10, duration = 15) {
+    // Cap shake so it can never look like a glitch.
+    strength = Math.min(strength, 14)
     this.shakeStrength = Math.max(this.shakeTimer > 0 ? this.shakeStrength : 0, strength)
     this.shakeTimer = Math.max(this.shakeTimer, duration)
   },
@@ -98,7 +86,6 @@ export const camera = {
     if (!f1 || !f2) return
     const { width: cw, height: ch } = getCanvasMetrics(canvas)
 
-    // ── BOUNDING BOX of both fighters (full height included) ──
     const a = boxOf(f1), b = boxOf(f2)
     const bbL = Math.min(a.l, b.l)
     const bbR = Math.max(a.r, b.r)
@@ -107,52 +94,32 @@ export const camera = {
 
     const avgVx = ((f1.vx || 0) + (f2.vx || 0)) * 0.5
 
-    const centerX = (bbL + bbR) / 2 + clamp(avgVx * this.leadStrength, -160, 160)
-    const centerY = (bbT + bbB) / 2
+    // ── TARGETS ──
+    this.targetX = (bbL + bbR) / 2 + clamp(avgVx * this.leadStrength, -140, 140)
+    this.targetY = (bbT + bbB) / 2
 
-    // ── ZOOM to fit the whole box ──
     const needW = (bbR - bbL) + this.horizontalPadding * 2
     const needH = (bbB - bbT) + this.verticalPadding * 2
-
     this.targetZoom = clamp(Math.min(cw / needW, ch / needH), this.minZoom, this.maxZoom)
-    this.zoom = lerp(this.zoom, this.targetZoom, this.zoomSmooth)
 
-    // ── POSITION (free vertical follow) ──
-    this.targetX = centerX
-    this.targetY = centerY
-    this.x = lerp(this.x, this.targetX, this.moveSmooth)
-    this.y = lerp(this.y, this.targetY, this.verticalMoveSmooth)
+    // ── SMOOTH + RATE-LIMIT (no snapping) ──
+    let nextZoom = lerp(this.zoom, this.targetZoom, this.zoomSmooth)
+    nextZoom = this.zoom + clamp(nextZoom - this.zoom, -this.maxZoomStep, this.maxZoomStep)
+    this.zoom = clamp(nextZoom, this.minZoom, this.maxZoom)
+
+    let nx = lerp(this.x, this.targetX, this.moveSmooth)
+    let ny = lerp(this.y, this.targetY, this.verticalMoveSmooth)
+    nx = this.x + clamp(nx - this.x, -this.maxPanStep, this.maxPanStep)
+    ny = this.y + clamp(ny - this.y, -this.maxPanStep, this.maxPanStep)
+    this.x = nx
+    this.y = ny
 
     // ── WORLD CLAMP (only when the world is bigger than the view) ──
-    let halfVW = (cw / this.zoom) / 2
-    let halfVH = (ch / this.zoom) / 2
-
-    if (this.worldWidth > halfVW * 2) this.x = clamp(this.x, halfVW, this.worldWidth - halfVW)
+    const halfVW = (cw / this.zoom) / 2
+    const halfVH = (ch / this.zoom) / 2
+    if (this.worldWidth  > halfVW * 2) this.x = clamp(this.x, halfVW, this.worldWidth - halfVW)
     else this.x = this.worldWidth / 2
-
     if (this.worldHeight > halfVH * 2) this.y = clamp(this.y, this.minY + halfVH, this.worldHeight - halfVH)
-
-    // ── FIT GUARANTEE (anti-lag): never let a fighter leave top/bottom ──
-    const m = this.edgeMargin
-    const boxH = (bbB - bbT) + m * 2
-
-    if (boxH > halfVH * 2) {
-      // Box is taller than the view even after smoothing → pull zoom out hard and center.
-      this.zoom = clamp(ch / boxH, this.minZoom, this.maxZoom)
-      halfVH = (ch / this.zoom) / 2
-      halfVW = (cw / this.zoom) / 2
-      this.y = (bbT + bbB) / 2
-    } else {
-      // It fits — just make sure smoothing didn't leave someone past an edge.
-      const viewT = this.y - halfVH
-      const viewB = this.y + halfVH
-      if (bbT < viewT + m) this.y = bbT - m + halfVH
-      if (bbB > viewB - m) this.y = bbB + m - halfVH
-    }
-
-    // Re-clamp X in case the zoom changed.
-    if (this.worldWidth > halfVW * 2) this.x = clamp(this.x, halfVW, this.worldWidth - halfVW)
-    else this.x = this.worldWidth / 2
 
     // ── SHAKE ──
     if (this.shakeTimer > 0) {
@@ -166,7 +133,7 @@ export const camera = {
       this.shakeY = 0
     }
 
-    // Keep fighters from sliding off the SIDES only (never vertical).
+    // Keep fighters on-screen horizontally only (never vertical).
     this.clampFightersToView(f1, f2, canvas)
   },
 
@@ -180,7 +147,6 @@ export const camera = {
       const fw = f.w || f.width || 60
       if (f.x < vL + pad) { f.x = vL + pad; f.vx = Math.max(0, f.vx || 0) }
       if (f.x + fw > vR - pad) { f.x = vR - pad - fw; f.vx = Math.min(0, f.vx || 0) }
-      // No vertical clamp — fighters jump as high as they like; the camera frames them.
     }
   },
 

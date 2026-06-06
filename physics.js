@@ -2,13 +2,16 @@
  * PHYSICS ENGINE — unified version
  * Movement, gravity, dash (ground + air), collision, knockback, bounds.
  *
- * CHANGES IN THIS VERSION:
- *  - Triple jump is now granted ONLY to the characters in TRIPLE_JUMP_CHARACTERS.
- *    Everyone else keeps their normal jump count (usually 2).
- *  - Ben 10 aliens carry their own maxJumps (set by ben10.js applyAlien),
- *    so fast aliens like XLR8 / Grey Matter can triple jump too.
- *  - Raised the air ceiling so triple jumps + air combos have room to breathe.
+ * BEN 10: This file auto-drives the Omnitrix so you DON'T need to edit game.js.
+ *  - First frame a "ben10" fighter moves, setupBen10() runs automatically.
+ *  - updateOmnitrix() ticks the transform cooldown every frame.
+ *  - Pressing the "charge" button (default: C for P1, 8 for P2) cycles aliens.
+ *
+ * Triple jump: only TRIPLE_JUMP_CHARACTERS get a 3rd jump; Ben 10 speed aliens
+ * carry their own maxJumps. Air ceiling raised for triple jumps / air combos.
  */
+
+import { setupBen10, updateOmnitrix, switchAlien } from "./fighters.js"
 
 // Characters that get a third jump. Keyed by rosterKey / id / name (lowercase).
 const TRIPLE_JUMP_CHARACTERS = new Set(["toji", "gojo", "sukuna"])
@@ -24,6 +27,17 @@ export const physics = {
 
   moveFighter(fighter, keys = {}, controls = {}, camera = null) {
     if (!fighter || fighter.hitstop > 0) return
+
+    // ── BEN 10 OMNITRIX (self-driving) ────────────────
+    // Auto-setup on first frame, tick the cooldown, and cycle aliens on the
+    // "charge" button. No game.js wiring needed.
+    if (fighter.rosterKey === "ben10") {
+      if (!fighter.omnitrix) setupBen10(fighter)
+      updateOmnitrix(fighter)
+      const switchPressed = !!keys[controls.charge]
+      if (switchPressed && !fighter._omnitrixHeld) switchAlien(fighter, 1)
+      fighter._omnitrixHeld = switchPressed
+    }
 
     // ── INIT ─────────────────────────────────────────
     const rawSpeed = fighter.baseSpeed || fighter.speed || 9
@@ -46,8 +60,6 @@ export const physics = {
     for (const k in defaults) if (fighter[k] == null) fighter[k] = defaults[k]
 
     // ── TRIPLE JUMP ALLOWLIST ────────────────────────
-    // Only the priority characters get a 3rd jump. Ben 10 aliens that should
-    // triple jump set their own maxJumps via ben10.js, so we never lower it.
     const _key = (fighter.rosterKey || fighter.id || fighter.name || "").toLowerCase()
     if (TRIPLE_JUMP_CHARACTERS.has(_key)) {
       fighter.maxJumps = Math.max(fighter.maxJumps || 0, 3)
@@ -83,7 +95,6 @@ export const physics = {
     if (canMove) {
       const maxAirDash = (fighter.stats?.mobility === "very_high") ? 2 : 1
 
-      // Air dash
       if (air && dash && fighter.airDashCount < maxAirDash && fighter.dashCooldown <= 0) {
         fighter.vx = (fighter.facing || 1) * (fighter.dashSpeed || 14) * 0.8
         fighter.vy = 0
@@ -92,7 +103,6 @@ export const physics = {
         fighter.airDashTimer = 10
         fighter.dashCooldown = 22
       }
-      // Ground dash
       else if (!air && dash && fighter.dashCooldown <= 0) {
         fighter.dashTimer = fighter.dashDuration || 8
         fighter.dashCooldown = fighter.dashCooldownMax || 28

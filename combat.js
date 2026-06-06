@@ -182,13 +182,26 @@ export function getAttackHitbox(fighter) {
   const a = fighter?.currentAttack
   if (!fighter || !a) return null
 
-  const w = a.rangeX || 50
-  const h = a.rangeY || 40
-  const x = fighter.facing === 1 ? fighter.x + fighter.w : fighter.x - w
+  let w = a.rangeX || 50
+  let h = a.rangeY || 40
+  let x = fighter.facing === 1 ? fighter.x + fighter.w : fighter.x - w
   let y = fighter.y + 20
 
-  if (a.name === "up") y = fighter.y - 30
-  if (a.name === "down_air") y = fighter.y + 30
+  if (a.name === "up") {
+    y = fighter.y - 30
+  } else if (a.name === "down_air") {
+    y = fighter.y + 30
+  } else if (a.name === "air") {
+    // Air normals use a forgiving bubble: a behind-margin + the attacker's body +
+    // full forward reach, and extended ABOVE — so air combos connect whether the
+    // juggled enemy is in front of or stacked above the attacker.
+    const behind = 16
+    const reach  = a.rangeX || 60
+    w = behind + fighter.w + reach
+    h = (a.rangeY || 40) + 45
+    x = fighter.facing === 1 ? fighter.x - behind : fighter.x + fighter.w + behind - w
+    y = fighter.y - 25
+  }
 
   return { x, y, w, h }
 }
@@ -407,6 +420,11 @@ export function startMove(fighter, moveKey, moveData) {
   const rc = moveData.recovery || 10
   const total = _dur(st + ac + rc, fighter)
 
+  // Launchers (up attacks) get a more generous hitbox so they're not
+  // pixel-precise: wider reach and a taller box that also catches an enemy who
+  // is already slightly airborne — this is what makes the air combo reliable.
+  const isLauncher = moveKey === "up"
+
   fighter.attacking = true
   fighter.currentAttack = {
     name: moveKey,
@@ -416,8 +434,8 @@ export function startMove(fighter, moveKey, moveData) {
     timer: total,
     activeStart: st,
     activeEnd: st + ac,
-    rangeX: moveData.rangeX || 60,
-    rangeY: moveData.rangeY || 40,
+    rangeX: moveData.rangeX || (isLauncher ? 95 : 60),
+    rangeY: moveData.rangeY || (isLauncher ? 80 : 40),
     hitstun: moveData.hitstun || 15,
     pushX: moveData.knockbackX || 4,
     launchY: moveData.knockbackY ?? -2,
@@ -676,7 +694,16 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       })
     }
 
-    if (fighter.currentAttack.timer <= 0) {
+    // LAUNCHER CANCEL: when an up-attack connects it sends both fighters airborne
+    // (see physics.launcherAttack). Cancel the attacker's long recovery so they
+    // can immediately jump / air-attack to start the juggle, instead of being
+    // stuck on the ground while the enemy floats away.
+    if (fighter.currentAttack && fighter.currentAttack.launcher && fighter.currentAttack.hasHit) {
+      fighter.attacking = false
+      fighter.currentAttack = null
+      fighter.currentMove = null
+      fighter.attackCooldown = 0
+    } else if (fighter.currentAttack && fighter.currentAttack.timer <= 0) {
       fighter.attacking = false
       fighter.currentAttack = null
       fighter.currentMove = null

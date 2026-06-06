@@ -951,8 +951,9 @@ function renderHybridFighter(fighter) {
 
 function drawHitSparksEnhanced() {
   if (!hitSparks.length) return
-  ctx.save()
-  if (typeof camera.applyTransform === "function") camera.applyTransform(ctx, canvas)
+  // NOTE: this runs INSIDE drawBattleScene's active camera transform — do NOT
+  // re-apply it here or sparks get double-transformed (drawn way off-screen as
+  // giant glowing artifacts: the "screen glitches out on attack" bug).
   for (const spark of hitSparks) {
     const { x, y, category, color, timer, maxTimer, lines, radius } = spark
     const alpha = Math.min(1, timer / Math.max(1, maxTimer || timer))
@@ -985,13 +986,13 @@ function drawHitSparksEnhanced() {
     }
     ctx.restore()
   }
-  ctx.restore()
 }
 
 function drawBattleScene() {
   const stage = getStageTheme()
+  const hasTransform = typeof camera.applyTransform === "function"
   ctx.save()
-  if (typeof camera.applyTransform === "function") camera.applyTransform(ctx, canvas)
+  if (hasTransform) camera.applyTransform(ctx, canvas)   // applyTransform does its own ctx.save()
   if (typeof drawDomainBackground === "function") drawDomainBackground(ctx, canvas, groundY, getStageFloorHeight())
   if (activeDomains.length === 0) drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight())
   drawDomains(ctx)
@@ -1001,6 +1002,9 @@ function drawBattleScene() {
   renderHybridFighter(p2)
   drawHitSparksEnhanced()
   if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], camera)
+  // Balance applyTransform's internal save() so the canvas state stack doesn't
+  // leak one save() per frame.
+  if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
   ctx.restore()
 }
 

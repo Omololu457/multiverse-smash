@@ -198,5 +198,36 @@ export const roster = {
     ultimate: { name: "Full Demon Transformation", cost: 100, duration: 8, effect: "Increased speed, damage, and regeneration" }
   },
 
+  // ======================
+  // BEN 10 (single selectable fighter — transforms between 5 aliens in-match)
+  // ======================
+  ben10: {
+    name: "Ben 10",
+    id: "ben10",
+    rosterKey: "ben10",
+    universe: "Ben 10",
+    isBen10: true,
+    health: 1000,
+    speed: 7,
+    jump: 7,
+    weight: "medium",
+    maxEnergy: 100,
+    energyType: "omnitrix",
+    passive: { name: "Omnitrix", effect: "Press the transform button to cycle through 5 aliens, each with its own moveset" },
+    // Default moveset shown before the first transform (Heatblast). The real per-alien
+    // movesets/stats are applied live by the Omnitrix (see fighters.js / physics.js).
+    basic_attacks: {
+      light_attack: { damage: 42 },
+      heavy_attack: { damage: 85 },
+      up_attack: { damage: 68, launch_force: 12 },
+      air_attack: { damage: 56 },
+      down_air: { damage: 78, spike_force: 12 }
+    },
+    specials: {
+      fireball: { cost: 25, damage: 110, effect: "Heatblast fireball (default alien)" }
+    },
+    ultimate: { name: "Supernova", cost: 100, duration: 8, effect: "Default-alien ultimate; changes per active alien" }
+  },
+
   // Other series can be added similarly...
 };

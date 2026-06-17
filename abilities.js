@@ -745,16 +745,37 @@ function executeFallbackSpecial(fighter, context) {
   const specials = Object.entries(fighter?.specials || {})
   if (!specials.length) return false
 
-  const [moveName, moveData] = specials[0]
+  // Direction-selected specials, so EVERY character can reach all of their
+  // specials (not just the first). Mirrors how the 7 starter characters work:
+  //   neutral Special        → special #1
+  //   Down  + Special        → special #2
+  //   Forward + Special      → special #3  (usually the mobility move)
+  //   Back  + Special        → special #4  (if present)
+  const dirs = getRelativeDirections(fighter)
+  let index = 0
+  if      (endsWithPattern(dirs, ["B"]) && specials[3]) index = 3
+  else if (endsWithPattern(dirs, ["F"]) && specials[2]) index = 2
+  else if (endsWithPattern(dirs, ["D"]) && specials[1]) index = 1
+
+  const [moveName, moveData] = specials[index]
   if (!spendEnergy(fighter, moveData.cost || 0)) return false
 
   if (moveData.subtype === "summon" || moveData.summonId) {
     return spawnCharacterSummon(fighter, moveName, moveData, context)
   }
 
+  // Mobility-flavoured specials lunge the user forward for a reposition.
+  if (moveData.subtype === "mobility") {
+    fighter.vx = (fighter.facing || 1) * (moveData.dashSpeed || 22)
+    fighter.teleportFlash = 8
+  }
+
   const attack = createAttackFromMove(fighter, moveName, moveData, {
-    startup: 10, active: 5, recovery: 18, damage: 90,
-    rangeX: 85, rangeY: 50, hitstun: 26, pushX: 7, launchY: -8
+    startup: moveData.startup ?? 10, active: moveData.active ?? 5,
+    recovery: moveData.recovery ?? 18, damage: moveData.damage ?? 90,
+    rangeX: moveData.rangeX ?? 85, rangeY: moveData.rangeY ?? 50,
+    hitstun: moveData.hitstun ?? 26, pushX: moveData.knockbackX ?? 7,
+    launchY: moveData.knockbackY ?? -8
   })
   setAttackState(fighter, attack, 24)
   return true

@@ -1,9 +1,11 @@
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows } from "./bindingvow.js"
-import { characters } from "./characters.js"
+import { characters, characterList } from "./characters.js"
+import { switchAlien, BEN10_ALIEN_POOL } from "./fighters.js"
 import { camera } from "./camera.js"
 import { SpriteHandler, processPendingSpawns, preloadCharacterSprites } from "./sprite.js"
+import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
 import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
@@ -37,8 +39,12 @@ import {
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
   PAUSE_MENU_ITEMS, getStartMenuRects, getGameplaySelectRects,
   getAIDifficultyRects, getUniverseCardRects, getCharacterCardRects,
-  getStageCardRects
+  getStageCardRects, drawStartInfoPanel,
+  drawAlienSelectScreen, getAlienSelectCardRects, getAlienSelectButtons,
+  getMainMenuRects, drawMainMenuScreen,
+  drawMoveListScreen, getMoveListCardRects, getMoveListButtons
 } from "./ui.js"
+import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
 import {
   activateDomain, updateDomains, drawDomains, clearDomains,
@@ -63,16 +69,6 @@ canvas.height = window.innerHeight
 setupMouseInput(canvas)
 
 // ------------------------------------------------------------------
-// SPRITE PRE-LOAD (Gojo)
-// ------------------------------------------------------------------
-const gojoSprites = {}
-const gojoSheets  = ["idle","walk","jump","light","heavy","hurt","blue","red","hollow_purple","infinity","teleport"]
-gojoSheets.forEach(sheet => {
-  gojoSprites[sheet]     = new Image()
-  gojoSprites[sheet].src = `./gojo_${sheet}_sheet.png`
-})
-
-// ------------------------------------------------------------------
 // CONSTANTS
 // ------------------------------------------------------------------
 const FLOOR_HEIGHT          = 120
@@ -93,11 +89,14 @@ const ROUND_TIME            = 5400   // 90 seconds @ 60fps
 
 const GAME_STATES = {
   START:            "start",
+  MAIN_MENU:        "mainMenu",
+  MOVE_LIST:        "moveList",
   SETTINGS:         "settings",
   GAMEPLAY_SELECT:  "gameplaySelect",
   AI_DIFFICULTY:    "aiDifficulty",
   SELECT_UNIVERSE:  "selectUniverse",
   SELECT_CHARACTER: "selectCharacter",
+  SELECT_ALIENS:    "selectAliens",
   SELECT_STAGE:     "selectStage",
   BATTLE:           "battle",
   ROUND_BREAK:      "roundBreak",
@@ -179,6 +178,14 @@ let hoverDifficultyIndex = 0
 let hoverUniverseIndex   = 0
 let hoverCharacterIndex  = 0
 let hoverStageIndex      = 0
+let hoverMainMenuIndex   = 0
+let moveListIndex        = 0
+let moveListShowControls = false
+
+// Fighters listed on the MOVE LIST screen (every selectable character).
+function getMoveListFighters() {
+  return characterList.map(c => ({ key: c.rosterKey, name: c.name, universe: c.universe }))
+}
 
 const matchConfig = {
   mode:             null,
@@ -187,7 +194,10 @@ const matchConfig = {
   selectingSide:    "p1",
   selectedStage:    null,
   p1Char: null, p2Char: null,
-  p1CharKey: null, p2CharKey: null
+  p1CharKey: null, p2CharKey: null,
+  // Ben 10: the 5 aliens each player picked, plus the in-progress draft.
+  p1Aliens: null, p2Aliens: null,
+  alienDraft: [], alienSelectSide: "p1"
 }
 
 const trainingState    = { enabled: false }
@@ -325,6 +335,8 @@ function createFighter(charKey, char, x, facing, controls, side) {
     ...char,
     rosterKey: charKey,
     playerNumber: side === "p1" ? 1 : 2,
+    // Ben 10's chosen 5-alien Omnitrix loadout (read by setupBen10 on frame 1).
+    selectedAliens: (side === "p1" ? matchConfig.p1Aliens : matchConfig.p2Aliens) || null,
     side, controls, x,
     y: groundedY,
     groundY: groundedY + height,
@@ -452,8 +464,8 @@ function startMatch() {
   victoryState = createVictoryState()
   roundTimer   = ROUND_TIME
 
-  if (matchConfig.p1CharKey) preloadCharacterSprites?.(matchConfig.p1CharKey)
-  if (matchConfig.p2CharKey) preloadCharacterSprites?.(matchConfig.p2CharKey)
+  if (matchConfig.p1CharKey) { preloadCharacterSprites?.(matchConfig.p1CharKey); loadSpriteSheets(matchConfig.p1CharKey) }
+  if (matchConfig.p2CharKey) { preloadCharacterSprites?.(matchConfig.p2CharKey); loadSpriteSheets(matchConfig.p2CharKey) }
 
   resetRound()
   matchIntroTimer = 90
@@ -470,9 +482,31 @@ function resetSelections() {
   matchConfig.selectingSide    = "p1"
   matchConfig.p1Char = null; matchConfig.p2Char = null
   matchConfig.p1CharKey = null; matchConfig.p2CharKey = null
+  matchConfig.p1Aliens = null; matchConfig.p2Aliens = null
+  matchConfig.alienDraft = []
   hoverUniverseIndex  = 0
   hoverCharacterIndex = 0
   hoverStageIndex     = 0
+}
+
+// After a character (and, for Ben 10, an alien loadout) is locked in for a side,
+// advance the select flow: P1 → P2's universe pick (or stage in training);
+// P2 → stage select.
+function proceedAfterCharacter(side) {
+  if (side === "p1") {
+    if (matchConfig.mode === "training") {
+      matchConfig.p2Char    = matchConfig.p1Char
+      matchConfig.p2CharKey = matchConfig.p1CharKey
+      matchConfig.p2Aliens  = matchConfig.p1Aliens ? matchConfig.p1Aliens.slice() : null
+      gameState = GAME_STATES.SELECT_STAGE
+    } else {
+      matchConfig.selectingSide    = "p2"
+      matchConfig.selectedUniverse = null
+      gameState = GAME_STATES.SELECT_UNIVERSE
+    }
+  } else {
+    gameState = GAME_STATES.SELECT_STAGE
+  }
 }
 
 function resetToStart() {
@@ -517,7 +551,14 @@ function chooseMode(mode) {
   matchConfig.mode = mode
   resetSelections()
   if (mode === "training") { matchConfig.aiDifficulty = "dummy"; beginUniverseSelect(); return }
-  if (mode === "pvp")      { beginUniverseSelect(); return }
+  if (mode === "pvp")      {
+    // Local two-player default: P1 on keyboard, P2 on a gamepad. Either can be
+    // flipped on the SETTINGS screen.
+    inputSettings.p1Type = "keyboard"
+    inputSettings.p2Type = "controller"
+    beginUniverseSelect()
+    return
+  }
   gameState = GAME_STATES.AI_DIFFICULTY
 }
 
@@ -706,10 +747,38 @@ function updateMovementInput(fighter) {
   const inputState = getFighterInput(fighter)
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   fighter.isBlocking = false
+  if (fighter.rosterKey === "ben10") handleOmnitrixSwitch(fighter, inputState)
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
   if (inputState.down)   fighter.isBlocking = true
-  if (inputState.charge) doEnergyCharge(fighter)
+  // For Ben 10 the charge button is the Omnitrix dial, not an energy charge.
+  if (inputState.charge && fighter.rosterKey !== "ben10") doEnergyCharge(fighter)
   physics.moveFighter(fighter, vKeys, fighter.controls)
+}
+
+// ── BEN 10 OMNITRIX — in-fight alien switching ─────────────────────
+// MK1 "Ghostface" style: your 5 aliens are loaded; a combo cycles through them.
+//   • Hold CHARGE + tap RIGHT → next alien,  CHARGE + tap LEFT → previous alien.
+//   • Tap CHARGE alone           → next alien (quick cycle).
+// This combo is identical on keyboard (Charge = O for P1) and controller
+// (Charge = R1), and is conflict-free with the opponent's / AI's inputs.
+// switchAlien() enforces the Omnitrix recharge cooldown, so holding the combo
+// can't spam-transform.
+function handleOmnitrixSwitch(fighter, inputState) {
+  if (!fighter?.omnitrix) return
+  const held = (fighter._omx = fighter._omx || {})
+
+  const charge = !!inputState.charge
+  const left   = !!inputState.left
+  const right  = !!inputState.right
+
+  if (charge) {
+    if (right && !held.right)                  switchAlien(fighter,  1)
+    else if (left && !held.left)               switchAlien(fighter, -1)
+    else if (!held.charge && !left && !right)  switchAlien(fighter,  1)
+  }
+  held.charge = charge
+  held.left   = left
+  held.right  = right
 }
 
 function buildNormalControlState(fighter, vKeys) {
@@ -942,8 +1011,12 @@ function updateBattle() {
 // ------------------------------------------------------------------
 function renderHybridFighter(fighter) {
   if (!fighter) return
-  if (fighter.hasSprites && fighter.spriteHandler && gojoSprites["idle"]?.complete && gojoSprites["idle"]?.naturalWidth > 0) {
-    fighter.spriteHandler.draw(ctx, fighter, gojoSprites)
+  // Draw with sprites when this character has a loaded sheet set; otherwise the
+  // procedural art (drawFighter) renders. Falls back per-fighter, so a sprited
+  // character and a procedural one can share the screen.
+  const key = fighter.rosterKey
+  if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
+    fighter.spriteHandler.draw(ctx, fighter, getSpriteSheets(key))
   } else {
     drawFighter(ctx, fighter, camera)
   }
@@ -1166,6 +1239,17 @@ function renderCurrentState() {
       ctx.fillText("SETTINGS", settingsButtonRect.x + settingsButtonRect.w / 2, settingsButtonRect.y + 32)
       break
     case GAME_STATES.SETTINGS:        drawSettingsScreen(); break
+    case GAME_STATES.MAIN_MENU:       drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex); break
+    case GAME_STATES.MOVE_LIST: {
+      const fighters = getMoveListFighters()
+      const sel      = fighters[moveListIndex]
+      const kit      = sel ? getKit(sel.key, characters[sel.key]) : null
+      drawMoveListScreen(ctx, canvas, {
+        fighters, selectedIndex: moveListIndex, kit,
+        showControls: moveListShowControls, controlRef: CONTROL_REFERENCE
+      })
+      break
+    }
     case GAME_STATES.GAMEPLAY_SELECT: drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex); break
     case GAME_STATES.AI_DIFFICULTY:   drawAIDifficultyScreen(ctx, canvas, hoverDifficultyIndex); break
     case GAME_STATES.SELECT_UNIVERSE:
@@ -1182,6 +1266,12 @@ function renderCurrentState() {
           : matchConfig.mode === "pvp"
             ? `SELECT CHARACTER — PLAYER ${matchConfig.selectingSide === "p1" ? 1 : 2}`
             : "CHARACTER SELECT"
+      }); break
+    case GAME_STATES.SELECT_ALIENS:
+      drawAlienSelectScreen(ctx, canvas, {
+        aliens: getAlienPoolList(),
+        draft:  matchConfig.alienDraft,
+        player: matchConfig.alienSelectSide === "p1" ? 1 : 2
       }); break
     case GAME_STATES.SELECT_STAGE: drawStageSelectScreen(ctx, canvas, stages, hoverStageIndex); break
     case GAME_STATES.INTRO:
@@ -1217,6 +1307,38 @@ function getUniverseList() {
   return universeKeys.map(k => ({ name: formatUniverseName(k), id: k }))
 }
 
+// Flat list of every Omnitrix alien for the Ben 10 loadout screen.
+let _alienPoolListCache = null
+function getAlienPoolList() {
+  if (!_alienPoolListCache) {
+    _alienPoolListCache = Object.entries(BEN10_ALIEN_POOL).map(([key, a]) => ({
+      key, name: a.name, color: a.color
+    }))
+  }
+  return _alienPoolListCache
+}
+
+// Roster + control data for the loading-screen info panel.
+let _startInfoCache = null
+function getStartInfoData() {
+  if (!_startInfoCache) {
+    const fighters = Object.keys(characters).map(k => {
+      const c = characters[k]
+      const specials = c?.specials ? Object.keys(c.specials) : []
+      return {
+        name:     c?.name || k,
+        universe: c?.universe ? formatUniverseName(c.universe) : "",
+        type:     c?.traits?.archetype || c?.traits?.scaling || c?.passive?.name || "Fighter",
+        hp:       Math.round(c?.stats?.maxHealth || c?.maxHealth || c?.health || 1000),
+        speed:    Math.round(c?.stats?.speed || c?.speed || 7),
+        hint:     c?.ultimate?.name || specials[0] || ""
+      }
+    })
+    _startInfoCache = { fighters, p1Controls: P1_CONTROLS }
+  }
+  return _startInfoCache
+}
+
 function getCharacterRosterForSelectedUniverse() {
   return getUniverseCharacters().map(k => {
     const c = characters[k]
@@ -1236,6 +1358,7 @@ function updateHoverIndices() {
   }
 
   if (gameState === GAME_STATES.START)            { const r = getStartMenuRects(canvas);                    const f = r.findIndex(x => pointInRect(mouse.x,mouse.y,x)); hoverStartIndex = Math.max(0,f); return }
+  if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v); return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
   if (gameState === GAME_STATES.AI_DIFFICULTY)    { tryHover(getAIDifficultyRects(canvas),    hoverDifficultyIndex, v => hoverDifficultyIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
@@ -1251,7 +1374,25 @@ function handleMenuClicks() {
     case GAME_STATES.START: {
       if (pointInRect(mouse.x, mouse.y, settingsButtonRect)) { gameState = GAME_STATES.SETTINGS; break }
       const clicked = getStartMenuRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
-      if (clicked?.id === "play") gameState = GAME_STATES.GAMEPLAY_SELECT
+      if (clicked?.id === "play") gameState = GAME_STATES.MAIN_MENU
+      break
+    }
+    case GAME_STATES.MAIN_MENU: {
+      const c = getMainMenuRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if      (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
+      else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; gameState = GAME_STATES.MOVE_LIST }
+      else if (c.id === "settings") gameState = GAME_STATES.SETTINGS
+      else if (c.id === "back")     gameState = GAME_STATES.START
+      break
+    }
+    case GAME_STATES.MOVE_LIST: {
+      const fighters = getMoveListFighters()
+      const idx = getMoveListCardRects(canvas, fighters.length).findIndex(r => pointInRect(mouse.x, mouse.y, r))
+      if (idx >= 0) { moveListIndex = idx; break }
+      const btn = getMoveListButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (btn?.id === "back")     gameState = GAME_STATES.MAIN_MENU
+      if (btn?.id === "controls") moveListShowControls = !moveListShowControls
       break
     }
     case GAME_STATES.SETTINGS:
@@ -1265,7 +1406,7 @@ function handleMenuClicks() {
       if (c.id === "training") chooseMode("training")
       else if (c.id === "vs")  chooseMode("vs")
       else if (c.id === "pvp") chooseMode("pvp")
-      else if (c.id === "back")gameState = GAME_STATES.START
+      else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
       break
     }
     case GAME_STATES.AI_DIFFICULTY: {
@@ -1286,12 +1427,37 @@ function handleMenuClicks() {
       const idx    = getCharacterCardRects(canvas, roster).findIndex(r => pointInRect(mouse.x, mouse.y, r))
       if (idx < 0 || !roster[idx]) break
       const key = roster[idx].id, char = characters[key]
-      if (matchConfig.selectingSide === "p1") {
-        matchConfig.p1Char = char; matchConfig.p1CharKey = key
-        if (matchConfig.mode === "training") { matchConfig.p2Char = char; matchConfig.p2CharKey = key; gameState = GAME_STATES.SELECT_STAGE }
-        else { matchConfig.selectingSide = "p2"; matchConfig.selectedUniverse = null; gameState = GAME_STATES.SELECT_UNIVERSE }
+      const side = matchConfig.selectingSide
+      matchConfig[side + "Char"]    = char
+      matchConfig[side + "CharKey"] = key
+      if (key === "ben10") {
+        // Ben 10 → detour to the Omnitrix loadout screen before moving on.
+        matchConfig.alienSelectSide = side
+        matchConfig.alienDraft = (matchConfig[side + "Aliens"] || []).slice()
+        gameState = GAME_STATES.SELECT_ALIENS
       } else {
-        matchConfig.p2Char = char; matchConfig.p2CharKey = key; gameState = GAME_STATES.SELECT_STAGE
+        proceedAfterCharacter(side)
+      }
+      break
+    }
+    case GAME_STATES.SELECT_ALIENS: {
+      const side  = matchConfig.alienSelectSide
+      const draft = matchConfig.alienDraft
+      // Card click → toggle an alien in/out of the 5-slot loadout.
+      const cardIdx = getAlienSelectCardRects(canvas, getAlienPoolList())
+        .findIndex(r => pointInRect(mouse.x, mouse.y, r))
+      if (cardIdx >= 0) {
+        const aKey = getAlienPoolList()[cardIdx].key
+        const at   = draft.indexOf(aKey)
+        if (at >= 0)            draft.splice(at, 1)
+        else if (draft.length < 5) draft.push(aKey)
+        break
+      }
+      const btn = getAlienSelectButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (btn?.id === "back") { gameState = GAME_STATES.SELECT_CHARACTER }
+      else if (btn?.id === "confirm" && draft.length === 5) {
+        matchConfig[side + "Aliens"] = draft.slice()
+        proceedAfterCharacter(side)
       }
       break
     }

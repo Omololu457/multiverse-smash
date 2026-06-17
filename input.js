@@ -31,6 +31,11 @@ export const inputSettings = {
 // ─────────────────────────────────────────────────────────────────
 // GAMEPAD MAPPING
 // ─────────────────────────────────────────────────────────────────
+// Standard-gamepad / PS5 button indices.
+//   X (0)        → light          Square (2)  → heavy
+//   Triangle (3) → special        Circle (1)  → dash
+//   L1 (4)       → grab           R1 (5)      → charge / Omnitrix switch
+//   L2 (6)       → ultimate       R2 (7)      → ultimate (alt)
 const PS5_MAP = {
   X: 0,
   CIRCLE: 1,
@@ -47,6 +52,8 @@ const PS5_MAP = {
   ANALOG_L_X: 0,
   ANALOG_L_Y: 1
 }
+
+const STICK_DEADZONE = 0.4
 
 // ─────────────────────────────────────────────────────────────────
 // DEFAULT CONTROL MAPS
@@ -214,31 +221,38 @@ function updateBuffer(buffer) {
 // ─────────────────────────────────────────────────────────────────
 function pollGamepad(playerNum, buffer) {
   const gamepads = navigator.getGamepads ? navigator.getGamepads() : []
+  // Player 1 → first connected pad, Player 2 → second. (When P1 is on keyboard,
+  // a single pad still reads as gamepad[0], so P2-only-pad setups also work.)
   const gp = gamepads[playerNum === 1 ? 0 : 1]
   if (!gp) return null
 
-  if (gp.buttons[PS5_MAP.X]?.pressed) buffer.light = BUFFER_WINDOW
-  if (gp.buttons[PS5_MAP.CIRCLE]?.pressed) buffer.heavy = BUFFER_WINDOW
-  if (gp.buttons[PS5_MAP.TRIANGLE]?.pressed) buffer.special = BUFFER_WINDOW
-  if (gp.buttons[PS5_MAP.SQUARE]?.pressed) buffer.dash = BUFFER_WINDOW
-  if (
-    gp.buttons[PS5_MAP.UP]?.pressed ||
-    (gp.axes[PS5_MAP.ANALOG_L_Y] || 0) < -0.4
-  ) {
-    buffer.jump = BUFFER_WINDOW
-  }
+  const btn  = (i) => !!gp.buttons[i]?.pressed
+  const axisX = gp.axes[PS5_MAP.ANALOG_L_X] || 0
+  const axisY = gp.axes[PS5_MAP.ANALOG_L_Y] || 0
+
+  const upHeld = btn(PS5_MAP.UP) || axisY < -STICK_DEADZONE
+
+  // Buffer the "press" actions so a quick tap survives a few frames.
+  if (btn(PS5_MAP.X))        buffer.light    = BUFFER_WINDOW
+  if (btn(PS5_MAP.SQUARE))   buffer.heavy    = BUFFER_WINDOW
+  if (btn(PS5_MAP.TRIANGLE)) buffer.special  = BUFFER_WINDOW
+  if (btn(PS5_MAP.CIRCLE))   buffer.dash     = BUFFER_WINDOW
+  if (btn(PS5_MAP.L2) || btn(PS5_MAP.R2)) buffer.ultimate = BUFFER_WINDOW
+  if (upHeld)                buffer.jump     = BUFFER_WINDOW
 
   return {
-    left: gp.buttons[PS5_MAP.LEFT]?.pressed || (gp.axes[PS5_MAP.ANALOG_L_X] || 0) < -0.4,
-    right: gp.buttons[PS5_MAP.RIGHT]?.pressed || (gp.axes[PS5_MAP.ANALOG_L_X] || 0) > 0.4,
-    down: gp.buttons[PS5_MAP.DOWN]?.pressed || (gp.axes[PS5_MAP.ANALOG_L_Y] || 0) > 0.4,
-    jump: buffer.jump > 0,
-    light: buffer.light > 0,
-    heavy: buffer.heavy > 0,
-    special: buffer.special > 0,
-    dash: buffer.dash > 0,
-    grab: gp.buttons[PS5_MAP.L1]?.pressed,
-    ultimate: gp.buttons[PS5_MAP.L2]?.pressed
+    left:     btn(PS5_MAP.LEFT)  || axisX < -STICK_DEADZONE,
+    right:    btn(PS5_MAP.RIGHT) || axisX >  STICK_DEADZONE,
+    down:     btn(PS5_MAP.DOWN)  || axisY >  STICK_DEADZONE,
+    up:       upHeld,
+    jump:     buffer.jump     > 0,
+    light:    buffer.light    > 0,
+    heavy:    buffer.heavy    > 0,
+    special:  buffer.special  > 0,
+    ultimate: buffer.ultimate > 0,
+    dash:     buffer.dash     > 0,
+    grab:     btn(PS5_MAP.L1),
+    charge:   btn(PS5_MAP.R1)
   }
 }
 

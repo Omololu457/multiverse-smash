@@ -718,6 +718,75 @@ function drawToji(ctx, x, y, w, h, fighter) {
 // ─────────────────────────────────────────────────────────────────
 // MAIN EXPORT — drawCharacter()
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// POSE / EXPRESSION LAYER
+// Procedural squash-stretch + lean applied around the fighter's feet BEFORE
+// the per-character body is drawn. Because every drawX() renders relative to
+// the logical (x,y,w,h) box, a single canvas transform here makes ALL
+// characters (and the fallback + Ben 10) react to combat state — idle
+// breathing, run lean, jump stretch, fall squash, attack windup→lunge→settle,
+// and a hurt recoil/flinch — with no per-frame allocations and no per-character
+// rewrites. Feet stay planted (pivot at bottom-center) so motion reads cleanly.
+// ─────────────────────────────────────────────────────────────────
+function _applyPoseTransform(ctx, fighter, x, y, w, h) {
+  const pivotX = x + w / 2
+  const pivotY = y + h            // feet
+  const t  = (fighter._poseClock = (fighter._poseClock || 0) + 1)
+  const dir = fighter.facing >= 0 ? 1 : -1
+
+  let dx = 0, dy = 0, sx = 1, sy = 1, rot = 0
+
+  const grounded = fighter.grounded ?? fighter.onGround ?? true
+  const atk = fighter.attacking ? fighter.currentAttack : null
+
+  if ((fighter.hitstun || 0) > 0) {
+    // HURT — recoil away from facing, tip back, and jitter for the first frames.
+    const f = Math.min(1, (fighter.hitstun || 0) / 12)
+    dx  = -dir * 6 * f + Math.sin(t * 1.7) * 2.2 * f
+    rot = -dir * 0.13 * f
+    sy  = 1 - 0.06 * f
+    sx  = 1 + 0.04 * f
+  } else if (atk && atk.total) {
+    // ATTACK — windup (coil back) → active (lunge + extend) → recovery (settle).
+    const elapsed = (atk.total || 1) - (atk.timer || 0)
+    if (elapsed < atk.activeStart) {
+      const p = atk.activeStart ? elapsed / atk.activeStart : 1
+      dx = -dir * 5 * p; rot = -dir * 0.07 * p; sy = 1 - 0.05 * p; sx = 1 + 0.03 * p
+    } else if (elapsed <= atk.activeEnd) {
+      const heavy = atk.category === "heavy" || atk.launcher || atk.spike || atk.isSpecial || atk.isUltimate
+      const a = heavy ? 1 : 0.7
+      dx = dir * 13 * a; rot = dir * 0.16 * a; sx = 1 + 0.13 * a; sy = 1 - 0.05 * a
+      if (atk.launcher) { dy = -6 * a; rot = -dir * 0.12 }      // up-attack arcs upward
+      if (atk.spike)    { dy =  4 * a; rot =  dir * 0.22 }      // down-air drives down
+    } else {
+      const span = Math.max(1, (atk.total || 1) - atk.activeEnd)
+      const p = 1 - Math.min(1, (elapsed - atk.activeEnd) / span)
+      dx = dir * 6 * p; rot = dir * 0.05 * p
+    }
+  } else if (!grounded) {
+    // AIRBORNE — rising stretches tall/thin, falling squashes wide; slight lean.
+    const vy = fighter.vy || 0
+    if (vy < 0) { sy = 1 + Math.min(0.18, -vy * 0.007); sx = 1 - Math.min(0.11, -vy * 0.004) }
+    else        { sy = 1 - Math.min(0.11,  vy * 0.005); sx = 1 + Math.min(0.09,  vy * 0.004) }
+    rot = dir * 0.05
+  } else if (Math.abs(fighter.vx || 0) > 0.4) {
+    // RUN — lean into travel with a light footfall bounce.
+    const runDir = (fighter.vx || 0) > 0 ? 1 : -1
+    rot = runDir * 0.07
+    dy  = -Math.abs(Math.sin(t * 0.45)) * 2.5
+    sy  = 1 + Math.abs(Math.sin(t * 0.45)) * 0.02
+  } else {
+    // IDLE — gentle breathing bob.
+    const b = Math.sin(t * 0.06)
+    sy = 1 + b * 0.02; sx = 1 - b * 0.012; dy = b * 1.4
+  }
+
+  ctx.translate(pivotX + dx, pivotY + dy)
+  if (rot) ctx.rotate(rot)
+  if (sx !== 1 || sy !== 1) ctx.scale(sx, sy)
+  ctx.translate(-pivotX, -pivotY)
+}
+
 export function drawCharacter(ctx, fighter) {
   if (!fighter || !ctx) return
 
@@ -729,6 +798,7 @@ export function drawCharacter(ctx, fighter) {
   const key = (fighter.rosterKey || fighter.id || fighter.name || "").toLowerCase()
 
   ctx.save()
+  _applyPoseTransform(ctx, fighter, x, y, w, h)
 
   switch (key) {
     case "goku":    drawGoku(ctx, x, y, w, h, fighter);    break
@@ -747,21 +817,59 @@ export function drawCharacter(ctx, fighter) {
 }
 
 function drawFallback(ctx, x, y, w, h, fighter) {
-  const color = fighter.color || (fighter.side === "p1" ? "#3b82f6" : "#ef4444")
-  ctx.fillStyle = color
-  roundRect(ctx, x, y, w, h, 12)
+  const facing = fighter.facing >= 0 ? 1 : -1
+  const color  = fighter.color || (fighter.side === "p1" ? "#3b82f6" : "#ef4444")
+  const hx = x + w / 2
+  const hy = y + h * 0.13
+
+  // Limbs first (behind torso) so even an unkeyed character reads as a body
+  // with arms and legs rather than a plain box. The pose transform above gives
+  // these motion; the lead arm extends toward facing while attacking.
+  const reach = fighter.attacking ? 0.30 : 0.16
+  ctx.strokeStyle = color
+  ctx.lineCap     = "round"
+  ctx.lineWidth   = Math.max(5, w * 0.16)
+  // arms
+  ctx.beginPath()
+  ctx.moveTo(hx, y + h * 0.40)
+  ctx.lineTo(hx + facing * w * reach, y + h * (fighter.attacking ? 0.42 : 0.55))
+  ctx.moveTo(hx, y + h * 0.40)
+  ctx.lineTo(hx - facing * w * 0.14, y + h * 0.58)
+  ctx.stroke()
+  // legs
+  ctx.lineWidth = Math.max(6, w * 0.18)
+  ctx.beginPath()
+  ctx.moveTo(hx, y + h * 0.82)
+  ctx.lineTo(x + w * 0.30, y + h)
+  ctx.moveTo(hx, y + h * 0.82)
+  ctx.lineTo(x + w * 0.70, y + h)
+  ctx.stroke()
+
+  // Torso
+  const grad = ctx.createLinearGradient(x, y, x, y + h)
+  grad.addColorStop(0, color)
+  grad.addColorStop(1, "rgba(0,0,0,0.35)")
+  ctx.fillStyle = grad
+  roundRect(ctx, x + w * 0.12, y + h * 0.24, w * 0.76, h * 0.6, 10)
   ctx.fill()
   ctx.strokeStyle = "rgba(255,255,255,0.3)"
   ctx.lineWidth   = 2
-  roundRect(ctx, x, y, w, h, 12)
+  roundRect(ctx, x + w * 0.12, y + h * 0.24, w * 0.76, h * 0.6, 10)
   ctx.stroke()
 
+  // Head + a facing eye so the silhouette has a clear front.
   ctx.fillStyle = "#fde68a"
   ctx.beginPath()
-  ctx.arc(x + w / 2, y + h * 0.12, h * 0.1, 0, Math.PI * 2)
+  ctx.arc(hx, hy, h * 0.1, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = "#1a1a1a"
+  ctx.beginPath()
+  ctx.arc(hx + facing * 4, hy - 1, 2.4, 0, Math.PI * 2)
   ctx.fill()
 
-  drawNameTag(ctx, fighter.name || "?", x + w / 2, y, "#ffffff")
+  drawHitFlash(ctx, x, y, w, h, fighter.colorFlash)
+  drawNameTag(ctx, fighter.name || "?", hx, y, "#ffffff")
+  drawFacingDot(ctx, x, y, w, facing, "#fff")
   drawShadow(ctx, x, y, w, h)
 }
 

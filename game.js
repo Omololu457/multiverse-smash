@@ -42,8 +42,11 @@ import {
   getStageCardRects, drawStartInfoPanel,
   drawAlienSelectScreen, getAlienSelectCardRects, getAlienSelectButtons,
   getMainMenuRects, drawMainMenuScreen,
-  drawMoveListScreen, getMoveListCardRects, getMoveListButtons
+  drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
+  drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
+  drawAccountScreen, getAccountButtons
 } from "./ui.js"
+import { createAccount, getCurrentAccount, isValidUsername, listAccounts } from "./account.js"
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
 import {
@@ -91,6 +94,8 @@ const GAME_STATES = {
   START:            "start",
   MAIN_MENU:        "mainMenu",
   MOVE_LIST:        "moveList",
+  TUTORIAL:         "tutorial",
+  ACCOUNT:          "account",
   SETTINGS:         "settings",
   GAMEPLAY_SELECT:  "gameplaySelect",
   AI_DIFFICULTY:    "aiDifficulty",
@@ -123,14 +128,42 @@ const P2_CONTROLS = {
 // ------------------------------------------------------------------
 // STAGES
 // ------------------------------------------------------------------
-const stages = [
-  { name: "Jujutsu High Courtyard", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png", groundOffset: 100, worldWidth: 3200, floorHeight: 120 },
-  { name: "Shibuya Incident",       sky: "#1f2937", mid: "#374151", floor: "#4b5563", accent: "#ef4444", groundOffset: 100, worldWidth: 3200, floorHeight: 120 },
-  { name: "Planet Namek",           sky: "#5eead4", mid: "#34d399", floor: "#65a30d", accent: "#fef08a", groundOffset: 100, worldWidth: 3200, floorHeight: 120 },
-  { name: "World Tournament Arena", sky: "#93c5fd", mid: "#fde68a", floor: "#b45309", accent: "#ffffff", groundOffset: 100, worldWidth: 3200, floorHeight: 120 },
-  { name: "Hidden Leaf Village",    sky: "#bfdbfe", mid: "#86efac", floor: "#a16207", accent: "#22c55e", groundOffset: 100, worldWidth: 3200, floorHeight: 120 },
-  { name: "Shadow Garden",          sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed", groundOffset: 100, worldWidth: 3200, floorHeight: 120 }
+// One track per series. Filenames are user-supplied and live alongside the
+// game files. JJK + Naruto are wired now; drop a single .mp3 in for each other
+// series here and every stage in that series picks it up automatically. Leave
+// null to fall back to the procedural theme (sound._proceduralThemeForStage).
+const SERIES_MUSIC = {
+  jjk:         "jjk_delirious.mp3",
+  naruto:      "naruto_fighting_spirit.mp3",
+  dragonball:  null,   // TODO: e.g. "dragonball_battle.mp3"
+  demonslayer: null,   // TODO: e.g. "demonslayer_theme.mp3"
+  rickmorty:   null,   // TODO: e.g. "rickmorty_theme.mp3"
+  ben10:       null,   // TODO: e.g. "ben10_theme.mp3"
+  other:       null
+}
+
+// Data-driven stage table — add a stage here (palette + series + landmark id)
+// and it shows up in stage select, renders its procedural background (ui.js
+// drawStageLandmarks keys off `landmark`), and plays its series track.
+const STAGE_DEFS = [
+  { name: "Jujutsu High Courtyard", series: "jjk",         landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png" },
+  { name: "Shibuya Incident",       series: "jjk",         landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444" },
+  { name: "Hidden Leaf Village",    series: "naruto",      landmark: "hidden_leaf",  sky: "#bfdbfe", mid: "#86efac", floor: "#a16207", accent: "#22c55e" },
+  { name: "Valley of the End",      series: "naruto",      landmark: "valley_of_end",sky: "#9fb6c9", mid: "#5b7184", floor: "#2f3b46", accent: "#e2e8f0" },
+  { name: "Planet Namek",           series: "dragonball",  landmark: "namek",        sky: "#5eead4", mid: "#34d399", floor: "#15803d", accent: "#fef08a" },
+  { name: "World Tournament Arena", series: "dragonball",  landmark: "tournament",   sky: "#93c5fd", mid: "#fde68a", floor: "#b45309", accent: "#ffffff" },
+  { name: "Mugen Train",            series: "demonslayer", landmark: "mugen_train",  sky: "#0c1330", mid: "#241a3a", floor: "#1a1326", accent: "#f59e0b" },
+  { name: "Citadel of Ricks",       series: "rickmorty",   landmark: "citadel",      sky: "#11182b", mid: "#1e293b", floor: "#0f172a", accent: "#39ff14" },
+  { name: "Null Void",              series: "ben10",       landmark: "null_void",    sky: "#1a0b2e", mid: "#2e1065", floor: "#170a28", accent: "#22d3ee" },
+  { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" }
 ]
+
+// Finalize each stage: shared world/ground metrics + resolved music filename.
+const stages = STAGE_DEFS.map(s => ({
+  groundOffset: 100, worldWidth: 3200, floorHeight: 120,
+  ...s,
+  music: SERIES_MUSIC[s.series] || null
+}))
 
 // ------------------------------------------------------------------
 // STATE
@@ -181,6 +214,9 @@ let hoverStageIndex      = 0
 let hoverMainMenuIndex   = 0
 let moveListIndex        = 0
 let moveListShowControls = false
+let tutorialPage         = 0
+let accountDraftName     = ""
+let accountMessage       = ""
 
 // Fighters listed on the MOVE LIST screen (every selectable character).
 function getMoveListFighters() {
@@ -472,7 +508,7 @@ function startMatch() {
   gameState       = GAME_STATES.INTRO
 
   sound.stopMusic?.()
-  sound.playStageMusic?.(matchConfig.selectedStage?.name || "")
+  sound.playStageTrack?.(matchConfig.selectedStage)
   sound.play?.(SFX.UI_MATCH_START)
 }
 
@@ -567,6 +603,29 @@ function chooseDifficulty(difficulty) {
   beginUniverseSelect()
 }
 
+// ── ACCOUNT (front-end stub, see account.js) ───────────────────────────────
+function tryCreateAccount() {
+  const name = accountDraftName.trim()
+  if (!isValidUsername(name)) {
+    accountMessage = "Username must be 2–16 characters."
+    return
+  }
+  const acc = createAccount(name)
+  accountMessage = acc ? `Account created — welcome, ${acc.username}!` : "Could not create account."
+}
+
+// Text entry for the ACCOUNT screen. Uses the raw event key so case is kept.
+function handleAccountTyping(e) {
+  const k = e.key
+  if (k === "Enter")      { tryCreateAccount(); return }
+  if (k === "Backspace")  { accountDraftName = accountDraftName.slice(0, -1); e.preventDefault(); return }
+  if (k === "Escape")     { gameState = GAME_STATES.MAIN_MENU; return }
+  // Accept a single printable character (letters/numbers/space/_-), cap length.
+  if (k && k.length === 1 && /[A-Za-z0-9 _-]/.test(k) && accountDraftName.length < 16) {
+    accountDraftName += k
+  }
+}
+
 function _checkMatchOver() {
   if (roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS) {
     const winner = roundWins.p1 > roundWins.p2 ? "p1" : roundWins.p2 > roundWins.p1 ? "p2" : "draw"
@@ -609,7 +668,7 @@ function _doRematch() {
   countdown  = ROUND_START_COUNTDOWN
   gameState  = GAME_STATES.BATTLE
   sound.stopMusic?.()
-  sound.playStageMusic?.(matchConfig.selectedStage?.name || "")
+  sound.playStageTrack?.(matchConfig.selectedStage)
 }
 
 // ------------------------------------------------------------------
@@ -795,14 +854,25 @@ function buildNormalControlState(fighter, vKeys) {
 }
 
 function updatePlayerCombat(fighter) {
-  if (!fighter || fighter.hitstun > 0 || fighter.blockstun > 0) return
+  if (!fighter) return
+  const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() }
+
+  // CRITICAL: updateCombat() is the ONLY place hitstun/hitstop/blockstun and the
+  // attack-recovery timers decrement. It must run EVERY frame or a hit fighter
+  // gets stuck forever (the timer that locks them never ticks down). While
+  // stunned we still call it — just with EMPTY controls so no new move starts
+  // and inputs aren't read — guaranteeing a clean recovery.
+  if (fighter.hitstun > 0 || fighter.blockstun > 0) {
+    updateCombat(fighter, getOpponent(fighter), {}, opts)
+    return
+  }
+
   const inputState = getFighterInput(fighter)
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   const canStart   = !fighter.attacking && !fighter.currentMove
   if (canStart && inputState.special)  { triggerSpecial(fighter,  getAbilityContext()); return }
   if (canStart && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
-  updateCombat(fighter, getOpponent(fighter), buildNormalControlState(fighter, vKeys),
-    { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() })
+  updateCombat(fighter, getOpponent(fighter), buildNormalControlState(fighter, vKeys), opts)
 }
 
 function updateFighterState(fighter) {
@@ -1239,7 +1309,17 @@ function renderCurrentState() {
       ctx.fillText("SETTINGS", settingsButtonRect.x + settingsButtonRect.w / 2, settingsButtonRect.y + 32)
       break
     case GAME_STATES.SETTINGS:        drawSettingsScreen(); break
-    case GAME_STATES.MAIN_MENU:       drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex); break
+    case GAME_STATES.MAIN_MENU:       drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex, getCurrentAccount()); break
+    case GAME_STATES.TUTORIAL:
+      // Source key labels from the SAME map the engine wires to fighters
+      // (P1_CONTROLS) so the tutorial always matches real in-play bindings.
+      drawTutorialScreen(ctx, canvas, { page: tutorialPage, controls: P1_CONTROLS, mouse }); break
+    case GAME_STATES.ACCOUNT:
+      drawAccountScreen(ctx, canvas, {
+        account: getCurrentAccount(), draftName: accountDraftName,
+        message: accountMessage, accounts: listAccounts(), mouse,
+        caretOn: Math.floor(globalFrameCount / 30) % 2 === 0
+      }); break
     case GAME_STATES.MOVE_LIST: {
       const fighters = getMoveListFighters()
       const sel      = fighters[moveListIndex]
@@ -1382,8 +1462,24 @@ function handleMenuClicks() {
       if (!c) break
       if      (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; gameState = GAME_STATES.MOVE_LIST }
+      else if (c.id === "tutorial") { tutorialPage = 0; gameState = GAME_STATES.TUTORIAL }
+      else if (c.id === "account")  { accountMessage = ""; accountDraftName = getCurrentAccount()?.username || ""; gameState = GAME_STATES.ACCOUNT }
       else if (c.id === "settings") gameState = GAME_STATES.SETTINGS
       else if (c.id === "back")     gameState = GAME_STATES.START
+      break
+    }
+    case GAME_STATES.TUTORIAL: {
+      const b = getTutorialButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (b?.id === "menu") gameState = GAME_STATES.MAIN_MENU
+      else if (b?.id === "next") tutorialPage = Math.min(getTutorialPageCount(P1_CONTROLS) - 1, tutorialPage + 1)
+      else if (b?.id === "prev") tutorialPage = Math.max(0, tutorialPage - 1)
+      break
+    }
+    case GAME_STATES.ACCOUNT: {
+      const b = getAccountButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (b?.id === "menu") gameState = GAME_STATES.MAIN_MENU
+      else if (b?.id === "generate") tryCreateAccount()
+      else if (b?.id === "new")      { accountDraftName = ""; accountMessage = "Type a new username, then Generate." }
       break
     }
     case GAME_STATES.MOVE_LIST: {
@@ -1533,6 +1629,18 @@ function gameLoop() {
 // ------------------------------------------------------------------
 window.addEventListener("keydown", e => {
   const key = String(e.key || "").toLowerCase()
+
+  // ACCOUNT screen captures typing before any gameplay key handling.
+  if (gameState === GAME_STATES.ACCOUNT) { handleAccountTyping(e); return }
+
+  // TUTORIAL: arrow keys flip pages, Esc exits to the menu.
+  if (gameState === GAME_STATES.TUTORIAL) {
+    if (key === "arrowright" || key === "d") tutorialPage = Math.min(getTutorialPageCount(P1_CONTROLS) - 1, tutorialPage + 1)
+    else if (key === "arrowleft" || key === "a") tutorialPage = Math.max(0, tutorialPage - 1)
+    else if (key === "escape") gameState = GAME_STATES.MAIN_MENU
+    return
+  }
+
   if (gameState === GAME_STATES.VICTORY) {
     const action = handleVictoryKey?.(victoryState, key)
     if (action === "rematch") _doRematch()

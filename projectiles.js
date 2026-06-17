@@ -1,5 +1,13 @@
 // projectiles.js
 
+// Move-spawned projectiles must live in the SAME array the main loop (game.js)
+// updates, draws, and collides against — which is the one exported by
+// abilities.js. Re-export it here so spawnProjectileFromMove() and any importer
+// of this module share one source of truth instead of an orphaned second array.
+// (abilities.js does not import this file, so there is no circular dependency.)
+import { activeProjectiles } from "./abilities.js"
+export { activeProjectiles }
+
 // 1. Projectile definitions (the data)
 export const projectiles = {
     // Dragon Ball ki attacks
@@ -27,10 +35,7 @@ export const projectiles = {
     nerve_strike: { damage: 100, speed: 15, width: 18, height: 18, type: "anxiety_power" }
 };
 
-// 2. The dynamic state (the live projectiles on screen)
-export const activeProjectiles = [];
-
-// 3. The spawning logic (the function the game calls)
+// 2. The spawning logic (the function the game calls)
 /**
  * Spawns a projectile based on move data
  * @param {Object} fighter - The character firing the projectile
@@ -53,6 +58,11 @@ export function spawnProjectileFromMove(fighter, moveData) {
         vy: 0,
         w: projConfig.width,
         h: projConfig.height,
+        // Collision is circle-based in combat.resolveProjectileHits (reads
+        // radius/size); derive it from the sprite box so spawned projectiles
+        // actually connect instead of falling back to a default 10px bubble.
+        radius: Math.max(projConfig.width, projConfig.height) / 2,
+        size: Math.max(projConfig.width, projConfig.height) / 2,
         damage: projConfig.damage * (fighter.attackMultiplier || 1),
         owner: fighter,
         type: projConfig.type,

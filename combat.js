@@ -482,11 +482,18 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   const isCounter = !!(defender.wasInStartup && getAttackPhase(defender) === "startup")
 
+  // damageMultiplier and attackMultiplier are the SAME concept (an offensive
+  // scalar). transformations.js sets both to a form's value and domains.js
+  // multiplies attackMultiplier on top — so multiplying by BOTH squared the
+  // buff (a 2x transform dealt 4x). Take the max instead: that preserves
+  // transform×domain stacking (transform sets both to 2, a domain pushes
+  // attackMultiplier to 3 → max = 3 = 2×1.5) without the double-count.
+  const offenseMult = Math.max(attacker.damageMultiplier || 1, attacker.attackMultiplier || 1)
+
   let dmg = Math.floor(
     (atk.damage || 40) *
     getComboScale(attacker) *
-    (attacker.damageMultiplier || 1) *
-    (attacker.attackMultiplier || 1) /
+    offenseMult /
     Math.max(0.5, defender.defenseMultiplier || 1)
   )
 
@@ -524,6 +531,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     defender.hitstop = hs
 
     defender.hitstun = Math.max(defender.hitstun || 0, atk.hitstun || 0)
+    // Getting hit interrupts the defender's own swing so they don't keep
+    // attacking (or sit on a never-cleared currentAttack) during hitstun.
+    defender.attacking    = false
+    defender.currentAttack = null
+    defender.currentMove   = null
     defender.vx = (attacker.facing || 1) * (atk.pushX || 4)
 
     if (atk.launcher) {
@@ -756,7 +768,10 @@ export function resolveProjectileHits(projectiles = [], p1, p2, hitEffects = [],
       if ((fighter.invulnTimer || 0) > 0) continue
 
       const hurtbox = getHurtbox(fighter)
-      const r = proj.radius || proj.size || 10
+      // Prefer an explicit circle radius, but fall back to the sprite box so
+      // projectiles authored with only {w,h} still collide at their true size.
+      const r = proj.radius || proj.size ||
+        (proj.w && proj.h ? Math.max(proj.w, proj.h) / 2 : 10)
       const pb = { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
       if (!rectsOverlap(pb, hurtbox)) continue

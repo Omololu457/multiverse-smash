@@ -1,0 +1,8 @@
+   89  git status
+   90  git status 
+   91  git add .
+   92  git commit
+   93  git commit -m revisions
+   94  ggit push
+   95  git push
+   96  history

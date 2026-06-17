@@ -46,6 +46,12 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value))
 }
 
+// Local hit-test (input.js owns the exported pointInRect; ui.js stays
+// dependency-light and just needs this for hover highlighting).
+function _inRect(x, y, r) {
+  return !!r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h
+}
+
 function normalizeToArray(value) {
   return Array.isArray(value) ? value : []
 }
@@ -516,18 +522,31 @@ export function getMainMenuRects(canvas) {
   return getVerticalMenuLayout(canvas, [
     { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player"        },
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
+    { id: "tutorial", label: "HOW TO PLAY", subLabel: "Controls & mechanics walkthrough"  },
+    { id: "account",  label: "ACCOUNT",   subLabel: "Create / switch local profile"       },
     { id: "settings", label: "SETTINGS",  subLabel: "Keyboard / controller setup"         },
     { id: "back",     label: "BACK",      subLabel: "Return to title"                     }
   ])
 }
 
-export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0) {
+export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) {
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
   drawBackdrop(ctx, canvas, "#08111f", "#182845")
   drawHeader(ctx, canvas, "MAIN MENU", "Where do you want to go?")
+
+  // Logged-in-as banner (top-right) so the current account is always visible.
+  const { width: w } = getCanvasSize(canvas)
+  const label = account ? `Logged in as ${account.username}` : "Not logged in"
+  ctx.save(); ctx.font = "700 14px Arial"; ctx.textBaseline = "middle"
+  const bw = ctx.measureText(label).width + 28
+  drawPanel(ctx, w - bw - 24, 24, bw, 34, { fill: "rgba(8,14,30,0.8)", stroke: account ? "#86efac" : "rgba(255,255,255,0.18)", lineWidth: 1.5, radius: 10 })
+  ctx.fillStyle = account ? "#bbf7d0" : "rgba(220,230,255,0.7)"
+  ctx.textAlign = "center"; ctx.fillText(label, w - bw / 2 - 24, 41)
+  ctx.restore()
+
   const rects = getMainMenuRects(canvas)
   rects.forEach((r, i) => drawButton(ctx, r, { label: r.label, subLabel: r.subLabel, active: i === hoverIndex }))
-  drawFooterHint(ctx, canvas, "Tip: open MOVE LIST to learn every fighter's specials and combos")
+  drawFooterHint(ctx, canvas, "Tip: new here? Open HOW TO PLAY for the controls and core mechanics")
 }
 
 // ─────────────────────────────────────────────
@@ -879,6 +898,215 @@ export function drawStageSelectScreen(ctx, canvas, stages = [], selectedIndex = 
 // ─────────────────────────────────────────────
 // BATTLE BACKGROUND
 // ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// PROCEDURAL STAGE LANDMARKS
+// Distinct, series-recognizable skylines drawn behind the fighters. Keyed by
+// stage.landmark. Sits above groundY (the floor covers their base). Returns
+// true when it drew a custom landmark, false to use the generic mountains.
+// Window/light patterns are deterministic (no per-frame flicker).
+// ─────────────────────────────────────────────
+function _litWindows(ctx, x, y, w, h, cols, rows, color, seed = 1) {
+  const cw = w / cols, ch = h / rows
+  for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) {
+    if (((c * 7 + r * 13 + seed * 5) % 5) < 2) continue
+    ctx.fillStyle = color
+    ctx.fillRect(x + c * cw + cw * 0.2, y + r * ch + ch * 0.2, cw * 0.55, ch * 0.5)
+  }
+}
+
+function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
+  const id = stage?.landmark
+  if (!id) return false
+  const t = performance.now() * 0.001
+  ctx.save()
+
+  switch (id) {
+    case "jujutsu_high": {
+      // Rolling hills + a Japanese school hall with a sloped tiled roof + sakura.
+      ctx.fillStyle = "rgba(40,80,55,0.5)"
+      ctx.beginPath(); ctx.moveTo(0, groundY)
+      for (let x = 0; x <= worldWidth; x += worldWidth / 6) ctx.lineTo(x, groundY - 120 - Math.sin(x * 0.002) * 50)
+      ctx.lineTo(worldWidth, groundY); ctx.closePath(); ctx.fill()
+      const bx = worldWidth * 0.4, bw = worldWidth * 0.2, by = groundY - 200
+      ctx.fillStyle = "#cbd5e1"; ctx.fillRect(bx, by, bw, 200)
+      ctx.fillStyle = "#475569"; ctx.beginPath()
+      ctx.moveTo(bx - 24, by); ctx.lineTo(bx + bw / 2, by - 60); ctx.lineTo(bx + bw + 24, by); ctx.closePath(); ctx.fill()
+      _litWindows(ctx, bx, by + 20, bw, 160, 8, 4, "rgba(120,170,255,0.5)", 2)
+      for (const sx of [worldWidth * 0.12, worldWidth * 0.7, worldWidth * 0.88]) {
+        ctx.fillStyle = "#5b3a29"; ctx.fillRect(sx, groundY - 90, 10, 90)
+        ctx.fillStyle = "rgba(249,168,212,0.8)"
+        ctx.beginPath(); ctx.arc(sx + 5, groundY - 100, 34, 0, Math.PI * 2); ctx.fill()
+      }
+      break
+    }
+    case "shibuya": {
+      // Night skyscrapers + a giant neon billboard + crossing glow.
+      const cols = 9
+      for (let i = 0; i < cols; i++) {
+        const bw = worldWidth / cols, bx = i * bw
+        const bh = 180 + ((i * 53) % 160)
+        ctx.fillStyle = i % 2 ? "#0a0f1f" : "#11182b"
+        ctx.fillRect(bx + 6, groundY - bh, bw - 12, bh)
+        _litWindows(ctx, bx + 6, groundY - bh, bw - 12, bh, 5, Math.floor(bh / 26), "rgba(255,210,120,0.45)", i)
+      }
+      const sx = worldWidth * 0.55, sy = groundY - 320
+      ctx.fillStyle = "#020308"; ctx.fillRect(sx, sy, 220, 130)
+      const glow = ctx.createLinearGradient(sx, sy, sx + 220, sy + 130)
+      glow.addColorStop(0, "#ef4444"); glow.addColorStop(0.5, "#a855f7"); glow.addColorStop(1, "#3b82f6")
+      ctx.globalAlpha = 0.55 + Math.sin(t * 3) * 0.2; ctx.fillStyle = glow
+      ctx.fillRect(sx + 8, sy + 8, 204, 114); ctx.globalAlpha = 1
+      ctx.fillStyle = "rgba(120,180,255,0.10)"; ctx.fillRect(0, groundY - 24, worldWidth, 24)
+      break
+    }
+    case "hidden_leaf": {
+      // Hokage Rock cliff with carved faces on the left + village rooftops.
+      const cw = worldWidth * 0.34
+      ctx.fillStyle = "#6b4f2a"; ctx.fillRect(0, groundY - 300, cw, 300)
+      ctx.fillStyle = "#7c5a30"
+      ctx.beginPath(); ctx.moveTo(cw, groundY - 300); ctx.lineTo(cw + 90, groundY - 230); ctx.lineTo(cw + 60, groundY); ctx.lineTo(cw, groundY); ctx.closePath(); ctx.fill()
+      for (let f = 0; f < 4; f++) {
+        const fx = 30 + f * (cw - 60) / 4
+        ctx.fillStyle = "rgba(40,28,14,0.55)"; ctx.fillRect(fx, groundY - 250, (cw - 60) / 4 - 16, 90)
+        ctx.fillStyle = "rgba(20,14,6,0.7)"
+        ctx.fillRect(fx + 10, groundY - 225, 8, 8); ctx.fillRect(fx + 34, groundY - 225, 8, 8)
+      }
+      for (let i = 0; i < 7; i++) {
+        const rx = cw + 40 + i * (worldWidth - cw) / 7
+        ctx.fillStyle = "#b45309"; ctx.fillRect(rx, groundY - 70, 90, 70)
+        ctx.fillStyle = "#7c2d12"; ctx.beginPath()
+        ctx.moveTo(rx - 8, groundY - 70); ctx.lineTo(rx + 45, groundY - 100); ctx.lineTo(rx + 98, groundY - 70); ctx.closePath(); ctx.fill()
+      }
+      break
+    }
+    case "valley_of_end": {
+      // Two colossal facing statues over a waterfall + mist.
+      const wf = worldWidth * 0.5
+      ctx.fillStyle = "#cbd5e1"; ctx.globalAlpha = 0.8
+      ctx.fillRect(wf - 70, groundY - 360, 140, 360); ctx.globalAlpha = 1
+      const drawStatue = (sx, dir) => {
+        ctx.fillStyle = "#445"
+        ctx.fillRect(sx - 50 * dir, groundY - 330, 100, 330)              // body
+        ctx.beginPath(); ctx.arc(sx, groundY - 350, 40, 0, Math.PI * 2); ctx.fill()  // head
+        ctx.fillRect(sx, groundY - 250, 130 * dir, 28)                    // outstretched arm
+      }
+      drawStatue(worldWidth * 0.16, 1)
+      drawStatue(worldWidth * 0.84, -1)
+      ctx.fillStyle = "rgba(226,232,240,0.18)"
+      ctx.fillRect(0, groundY - 60, worldWidth, 60)
+      break
+    }
+    case "namek": {
+      // Twin suns + jagged blue-green spires and a rock arch.
+      ctx.fillStyle = "rgba(254,240,138,0.7)"
+      ctx.beginPath(); ctx.arc(worldWidth * 0.2, 120, 60, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(worldWidth * 0.78, 90, 40, 0, Math.PI * 2); ctx.fill()
+      ctx.fillStyle = "#0f766e"
+      for (let i = 0; i < 6; i++) {
+        const sx = worldWidth * (0.08 + i * 0.16)
+        ctx.beginPath(); ctx.moveTo(sx, groundY); ctx.lineTo(sx + 40, groundY - 200 - (i % 3) * 60); ctx.lineTo(sx + 80, groundY); ctx.closePath(); ctx.fill()
+      }
+      ctx.strokeStyle = "#115e59"; ctx.lineWidth = 26
+      ctx.beginPath(); ctx.arc(worldWidth * 0.5, groundY, 120, Math.PI, 0); ctx.stroke()
+      break
+    }
+    case "tournament": {
+      // Bright stadium: tiered stands with a crowd + banner flags + ring apron.
+      ctx.fillStyle = "#7c5236"; ctx.fillRect(0, groundY - 150, worldWidth, 150)
+      for (let tier = 0; tier < 3; tier++) {
+        const ty = groundY - 150 + tier * 46
+        ctx.fillStyle = tier % 2 ? "#92400e" : "#a3540f"; ctx.fillRect(0, ty, worldWidth, 42)
+        for (let x = 0; x < worldWidth; x += 22) {
+          ctx.fillStyle = `hsl(${(x + tier * 40) % 360}, 60%, 60%)`
+          ctx.beginPath(); ctx.arc(x + 11, ty + 14, 5, 0, Math.PI * 2); ctx.fill()
+        }
+      }
+      for (let i = 0; i <= 8; i++) {
+        const fx = i * worldWidth / 8
+        ctx.fillStyle = i % 2 ? "#ef4444" : "#fde68a"
+        ctx.beginPath(); ctx.moveTo(fx, groundY - 170); ctx.lineTo(fx + 26, groundY - 162); ctx.lineTo(fx, groundY - 154); ctx.closePath(); ctx.fill()
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fx, groundY - 170); ctx.lineTo(fx, groundY - 150); ctx.stroke()
+      }
+      break
+    }
+    case "mugen_train": {
+      // Full moon + a steam locomotive on rails with rising smoke.
+      ctx.fillStyle = "#f1f5f9"; ctx.globalAlpha = 0.9
+      ctx.beginPath(); ctx.arc(worldWidth * 0.78, 110, 64, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1
+      const tx = worldWidth * 0.16, ty = groundY - 120
+      ctx.fillStyle = "#0b0b12"; ctx.fillRect(tx, ty, worldWidth * 0.6, 90)               // carriages
+      ctx.fillStyle = "#15151f"; ctx.fillRect(tx - 130, ty - 20, 150, 110)               // engine
+      ctx.fillStyle = "#1f2937"; ctx.fillRect(tx - 70, ty - 60, 36, 44)                  // funnel
+      ctx.fillStyle = "rgba(245,158,11,0.8)"
+      for (let i = 0; i < 10; i++) ctx.fillRect(tx + 14 + i * (worldWidth * 0.6 / 10), ty + 30, 22, 26)  // windows
+      ctx.fillStyle = "#334155"; ctx.fillRect(tx - 140, ty + 92, worldWidth * 0.66, 8)   // rail
+      ctx.globalAlpha = 0.5; ctx.fillStyle = "#cbd5e1"
+      for (let i = 0; i < 5; i++) { const sx = tx - 50 + Math.sin(t + i) * 14; ctx.beginPath(); ctx.arc(sx, ty - 70 - i * 26, 16 + i * 5, 0, Math.PI * 2); ctx.fill() }
+      ctx.globalAlpha = 1
+      break
+    }
+    case "citadel": {
+      // Sci-fi spires + swirling green portals in an alien sky.
+      ctx.fillStyle = "#0b1020"
+      for (let i = 0; i < 7; i++) {
+        const bx = i * worldWidth / 7 + 20, bh = 200 + ((i * 71) % 180)
+        ctx.fillRect(bx, groundY - bh, worldWidth / 12, bh)
+        ctx.fillStyle = "rgba(57,255,20,0.35)"; ctx.fillRect(bx + 4, groundY - bh, 4, bh)
+        ctx.fillStyle = "#0b1020"
+      }
+      for (const [px, py, pr] of [[worldWidth * 0.3, 160, 70], [worldWidth * 0.72, 220, 95]]) {
+        for (let k = 4; k >= 0; k--) {
+          ctx.globalAlpha = 0.18 + k * 0.12
+          ctx.strokeStyle = k % 2 ? "#39ff14" : "#16a34a"; ctx.lineWidth = 6
+          ctx.beginPath(); ctx.arc(px, py, pr - k * 11, t * (1 + k * 0.3) % (Math.PI * 2), Math.PI * 1.6 + t); ctx.stroke()
+        }
+        ctx.globalAlpha = 1
+      }
+      break
+    }
+    case "null_void": {
+      // Purple void: floating rock islands, a green rift glow, flickering bolts.
+      const glow = ctx.createRadialGradient(worldWidth * 0.5, groundY - 200, 20, worldWidth * 0.5, groundY - 200, 360)
+      glow.addColorStop(0, "rgba(34,211,238,0.4)"); glow.addColorStop(1, "transparent")
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, worldWidth, groundY)
+      ctx.fillStyle = "#3b1d63"
+      for (const [ix, iy, iw] of [[worldWidth * 0.18, groundY - 260, 220], [worldWidth * 0.62, groundY - 320, 180], [worldWidth * 0.85, groundY - 200, 140]]) {
+        ctx.beginPath(); ctx.moveTo(ix, iy); ctx.lineTo(ix + iw, iy); ctx.lineTo(ix + iw * 0.7, iy + 70); ctx.lineTo(ix + iw * 0.3, iy + 60); ctx.closePath(); ctx.fill()
+        ctx.fillStyle = "#4c1d95"; ctx.fillRect(ix + iw * 0.2, iy - 16, iw * 0.6, 16); ctx.fillStyle = "#3b1d63"
+      }
+      if (Math.sin(t * 6) > 0.6) {
+        ctx.strokeStyle = "rgba(34,211,238,0.8)"; ctx.lineWidth = 3
+        ctx.beginPath(); ctx.moveTo(worldWidth * 0.5, 40)
+        ctx.lineTo(worldWidth * 0.46, groundY * 0.4); ctx.lineTo(worldWidth * 0.54, groundY * 0.55); ctx.lineTo(worldWidth * 0.48, groundY - 180); ctx.stroke()
+      }
+      break
+    }
+    case "shadow_garden": {
+      // Gothic pillars in mist with drifting red rose petals.
+      ctx.fillStyle = "rgba(30,20,45,0.7)"
+      for (let i = 0; i < 6; i++) {
+        const px = worldWidth * (0.08 + i * 0.17)
+        ctx.fillRect(px, groundY - 280, 46, 280)
+        ctx.fillRect(px - 12, groundY - 280, 70, 18)
+        ctx.fillRect(px - 12, groundY - 30, 70, 18)
+      }
+      ctx.fillStyle = "rgba(124,58,237,0.12)"; ctx.fillRect(0, groundY - 120, worldWidth, 120)
+      ctx.fillStyle = "rgba(239,68,68,0.7)"
+      for (let i = 0; i < 14; i++) {
+        const rx = (i * worldWidth / 14 + t * 30) % worldWidth
+        const ry = (groundY - 260 + ((i * 80 + t * 40) % 240))
+        ctx.beginPath(); ctx.arc(rx, ry, 4, 0, Math.PI * 2); ctx.fill()
+      }
+      break
+    }
+    default:
+      ctx.restore()
+      return false
+  }
+
+  ctx.restore()
+  return true
+}
+
 export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, floorHeight = 120) {
   const { width: w, height: h } = getCanvasSize(canvas)
   const parsedWorldWidth = Number(stage?.worldWidth)
@@ -909,21 +1137,29 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
     ctx.restore()
   }
 
-  ctx.save()
-  ctx.globalAlpha = 0.18
-  ctx.fillStyle   = "rgba(20,30,50,0.55)"
-  ctx.beginPath()
-  ctx.moveTo(-60, groundY - 180)
-  ctx.lineTo(worldWidth * 0.18, groundY - 280)
-  ctx.lineTo(worldWidth * 0.36, groundY - 190)
-  ctx.lineTo(worldWidth * 0.56, groundY - 310)
-  ctx.lineTo(worldWidth * 0.76, groundY - 210)
-  ctx.lineTo(worldWidth + 80,   groundY - 290)
-  ctx.lineTo(worldWidth + 80,   groundY)
-  ctx.lineTo(-60, groundY)
-  ctx.closePath()
-  ctx.fill()
-  ctx.restore()
+  // Per-stage procedural landmarks (skyline/landmarks). Skipped when a real
+  // background image is present; falls back to a generic mountain silhouette.
+  const drewLandmark = (bgImage && bgImage.complete && bgImage.naturalWidth > 0)
+    ? true
+    : drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent)
+
+  if (!drewLandmark) {
+    ctx.save()
+    ctx.globalAlpha = 0.18
+    ctx.fillStyle   = "rgba(20,30,50,0.55)"
+    ctx.beginPath()
+    ctx.moveTo(-60, groundY - 180)
+    ctx.lineTo(worldWidth * 0.18, groundY - 280)
+    ctx.lineTo(worldWidth * 0.36, groundY - 190)
+    ctx.lineTo(worldWidth * 0.56, groundY - 310)
+    ctx.lineTo(worldWidth * 0.76, groundY - 210)
+    ctx.lineTo(worldWidth + 80,   groundY - 290)
+    ctx.lineTo(worldWidth + 80,   groundY)
+    ctx.lineTo(-60, groundY)
+    ctx.closePath()
+    ctx.fill()
+    ctx.restore()
+  }
 
   ctx.fillStyle = "rgba(255,255,255,0.08)"
   ctx.fillRect(0, groundY - 20, worldWidth, 10)
@@ -1442,3 +1678,228 @@ function _roundRectPath(ctx, x, y, w, h, r = 10) {
 }
 
 export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "quitToMenu"]
+
+// ═════════════════════════════════════════════════════════════════════════
+// TUTORIAL / HOW TO PLAY
+// Key LABELS are derived from the live control map passed in (controls) so the
+// page stays in sync with whatever bindings the engine actually uses — nothing
+// is hardcoded as a separate string. The prose explains how the engine truly
+// behaves (combined inputs like up+attack, hold-down to block, parry on heavy).
+// ═════════════════════════════════════════════════════════════════════════
+
+// Pretty-print a raw key binding ("arrowup", "shift", "j") for display.
+function prettyKey(k) {
+  if (k == null) return "—"
+  const map = {
+    arrowup: "↑", arrowdown: "↓", arrowleft: "←", arrowright: "→",
+    " ": "Space", shift: "Shift", control: "Ctrl", escape: "Esc", enter: "Enter"
+  }
+  const s = String(k).toLowerCase()
+  if (map[s]) return map[s]
+  return s.length === 1 ? s.toUpperCase() : s.charAt(0).toUpperCase() + s.slice(1)
+}
+// Combine two bindings into "A + B".
+function comboKeys(a, b) { return `${prettyKey(a)} + ${prettyKey(b)}` }
+
+// Build the page list. c = live controls map (P1_CONTROLS). Each "row" is
+// [actionLabel, keyLabel, description]. keyLabel is always derived from c.
+function buildTutorialPages(c = {}) {
+  return [
+    {
+      title: "MOVEMENT", accent: "#7fd3ff",
+      blurb: "Stay mobile — spacing wins fights. Dash to close gaps or bait attacks.",
+      rows: [
+        ["Move left / right", `${prettyKey(c.left)} / ${prettyKey(c.right)}`, "Walk and control spacing."],
+        ["Jump",              prettyKey(c.jump),  "Tap to leap; some fighters can double-jump."],
+        ["Crouch",            prettyKey(c.down),  "Lowers your profile — also the guard input (see Defense)."],
+        ["Dash",              prettyKey(c.dash),  "Quick burst; some characters teleport on a double-tap."]
+      ]
+    },
+    {
+      title: "ATTACKS", accent: "#ffd27f",
+      blurb: "Normals are direction-sensitive: the same buttons do different moves on the ground, in the air, or with up/down held.",
+      rows: [
+        ["Light attack", prettyKey(c.light), "Fast poke. Chains into combos."],
+        ["Heavy attack", prettyKey(c.heavy), "Slower, bigger damage and knockback."],
+        ["Up attack (launcher)", comboKeys(c.up, c.light), "Hold Up + an attack to pop the enemy airborne."],
+        ["Air attack",   `${prettyKey(c.light)} (airborne)`, "Press Light while jumping to juggle."],
+        ["Down-air spike", `${prettyKey(c.heavy)} (airborne)`, "Press Heavy in the air to slam them down."],
+        ["Grab / throw", comboKeys(c.down, c.light), "Beats blocking. Hold Down + Light up close."]
+      ]
+    },
+    {
+      title: "DEFENSE", accent: "#86efac",
+      blurb: "You can't act out of hitstun, so blocking and parries are how you survive pressure.",
+      rows: [
+        ["Block", `Hold ${prettyKey(c.down)}`, "Hold to guard. Blocking bleeds small CHIP damage but stops the combo."],
+        ["Parry", `${prettyKey(c.heavy)} (timed)`, "Tap Heavy just as an attack STARTS up to deflect it and stagger the attacker."],
+        ["Tech roll", `${prettyKey(c.left)} / ${prettyKey(c.right)} on knockdown`, "Hold a direction as you land to roll and recover safely."]
+      ]
+    },
+    {
+      title: "METER & SPECIALS", accent: "#c4b5fd",
+      blurb: "Specials and Ultimates spend your energy meter (it also regenerates slowly). Bigger moves cost more.",
+      rows: [
+        ["Special", prettyKey(c.special),   "Signature move — costs energy. Some are projectiles."],
+        ["Ultimate", prettyKey(c.ultimate), "Highest-cost finisher. Save meter for it."],
+        ["Charge energy", `Hold ${prettyKey(c.charge)}`, "Stand and build meter (leaves you open)."],
+        ["Transform", prettyKey(c.transform), "Enter a stronger form (e.g. Super Saiyan) — boosts damage."]
+      ]
+    },
+    {
+      title: "COMBOS & GIMMICKS", accent: "#ff9fc4",
+      blurb: "Launch, jump, juggle: Up-attack → jump → air attacks → down-air spike is the core combo. Each fighter also has a unique system.",
+      rows: [
+        ["Combo scaling", "—", "Each hit in a combo does a little less — open with your heavy hitters."],
+        ["Gojo: Infinity", prettyKey(c.toggle), "Toggle a field that slows anything approaching you."],
+        ["Ben 10: Omnitrix", `${prettyKey(c.charge)} + ${prettyKey(c.left)}/${prettyKey(c.right)}`, "Cycle your 5 aliens mid-fight (tap Charge for next)."],
+        ["Domain Expansion", "—", "Some fighters can activate a damage-boosting domain — watch the meter bar."]
+      ]
+    }
+  ]
+}
+
+let _tutorialPageCache = null
+let _tutorialCacheKey  = null
+function getTutorialPages(controls) {
+  // Re-derive only if the bindings object identity changes (cheap & in-sync).
+  if (controls !== _tutorialCacheKey) {
+    _tutorialPageCache = buildTutorialPages(controls)
+    _tutorialCacheKey  = controls
+  }
+  return _tutorialPageCache
+}
+
+export function getTutorialPageCount(controls) {
+  return getTutorialPages(controls).length
+}
+
+export function getTutorialButtons(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return [
+    { id: "prev", label: "‹ BACK",  x: 24,             y: h - 70, w: 150, h: 48 },
+    { id: "next", label: "NEXT ›",  x: w - 24 - 150,   y: h - 70, w: 150, h: 48 },
+    { id: "menu", label: "MAIN MENU", x: w / 2 - 90,   y: h - 70, w: 180, h: 48 }
+  ]
+}
+
+// opts = { page, controls, mouse }
+export function drawTutorialScreen(ctx, canvas, opts = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const pages = getTutorialPages(opts.controls)
+  const page  = clamp(opts.page || 0, 0, pages.length - 1)
+  const P     = pages[page]
+
+  ctx.clearRect(0, 0, w, h)
+  drawBackdrop(ctx, canvas, "#0a1020", "#1a1530")
+  drawHeader(ctx, canvas, "HOW TO PLAY", `${P.title}   —   page ${page + 1} of ${pages.length}`)
+
+  // Page-dot indicator
+  const dotY = 138, dotGap = 22, dotX0 = w / 2 - ((pages.length - 1) * dotGap) / 2
+  for (let i = 0; i < pages.length; i++) {
+    ctx.fillStyle = i === page ? P.accent : "rgba(255,255,255,0.25)"
+    ctx.beginPath(); ctx.arc(dotX0 + i * dotGap, dotY, i === page ? 6 : 4, 0, Math.PI * 2); ctx.fill()
+  }
+
+  // Content panel
+  const panelX = clamp(w * 0.5 - 430, 40, w)
+  const panelW = Math.min(860, w - panelX * 2)
+  const panelY = 168
+  const panelH = h - panelY - 100
+  drawPanel(ctx, panelX, panelY, panelW, panelH, { fill: "rgba(8,14,30,0.82)", stroke: P.accent, lineWidth: 2, radius: 16 })
+
+  const pad = 28
+  let cy = panelY + 34
+  drawCenteredText(ctx, P.title, panelX + pad, cy, { font: "800 24px Arial", fill: P.accent, align: "left", baseline: "middle" })
+  cy += 30
+  cy = wrapText(ctx, P.blurb, panelX + pad, cy, panelW - pad * 2, 20, { font: "15px Arial", fill: "rgba(220,230,255,0.82)" })
+  cy += 14
+
+  // Rows: action | KEY chip | description
+  const keyColX = panelX + pad + 230
+  const descX   = keyColX + 150
+  for (const [action, keyLabel, desc] of P.rows) {
+    ctx.save(); ctx.textBaseline = "middle"
+    ctx.textAlign = "left"; ctx.font = "700 15px Arial"; ctx.fillStyle = "#ffffff"
+    ctx.fillText(action, panelX + pad, cy)
+    // key chip
+    ctx.font = "700 14px Arial"
+    const chipW = Math.max(46, ctx.measureText(keyLabel).width + 22)
+    ctx.fillStyle = "rgba(120,170,255,0.18)"
+    fillRoundRect(ctx, keyColX, cy - 14, chipW, 28, 8)
+    ctx.strokeStyle = P.accent; ctx.lineWidth = 1.5; strokeRoundRect(ctx, keyColX, cy - 14, chipW, 28, 8)
+    ctx.fillStyle = "#eaf1ff"; ctx.textAlign = "center"
+    ctx.fillText(keyLabel, keyColX + chipW / 2, cy)
+    ctx.restore()
+    cy = wrapText(ctx, desc, descX, cy, panelX + panelW - pad - descX, 18, { font: "14px Arial", fill: "rgba(220,230,255,0.75)" })
+    cy += 12
+  }
+
+  // Nav buttons (hover highlight via mouse)
+  const m = opts.mouse
+  for (const b of getTutorialButtons(canvas)) {
+    const active = m ? _inRect(m.x, m.y, b) : false
+    drawButton(ctx, b, { label: b.label, active, accent: P.accent })
+  }
+  drawFooterHint(ctx, canvas, "← / → to flip pages • Esc returns to the menu")
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// ACCOUNT SCREEN (front-end stub — see account.js)
+// opts = { account, draftName, message, accounts, mouse, caretOn }
+// ═════════════════════════════════════════════════════════════════════════
+export function getAccountButtons(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const cx = w / 2
+  return [
+    { id: "generate", label: "GENERATE ACCOUNT", x: cx - 170, y: 360, w: 340, h: 56 },
+    { id: "new",      label: "NEW / SWITCH",      x: cx - 170, y: 430, w: 160, h: 48 },
+    { id: "menu",     label: "MAIN MENU",         x: cx + 10,  y: 430, w: 160, h: 48 }
+  ]
+}
+
+export function drawAccountScreen(ctx, canvas, opts = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const cx = w / 2
+  ctx.clearRect(0, 0, w, h)
+  drawBackdrop(ctx, canvas, "#08111f", "#101a33")
+  drawHeader(ctx, canvas, "ACCOUNT", "Local profile (no server yet — saved in memory only)")
+
+  // Current account banner
+  const acc = opts.account
+  const bannerW = 520, bannerX = cx - bannerW / 2, bannerY = 150
+  drawPanel(ctx, bannerX, bannerY, bannerW, 70, { fill: "rgba(8,14,30,0.8)", stroke: acc ? "#86efac" : "rgba(255,255,255,0.18)", lineWidth: 2, radius: 14 })
+  if (acc) {
+    drawCenteredText(ctx, `Logged in as ${acc.username}`, bannerX + 20, bannerY + 28, { font: "800 20px Arial", fill: "#bbf7d0", align: "left", baseline: "middle" })
+    drawCenteredText(ctx, `id: ${acc.accountId}`, bannerX + 20, bannerY + 50, { font: "12px Arial", fill: "rgba(220,230,255,0.6)", align: "left", baseline: "middle" })
+  } else {
+    drawCenteredText(ctx, "No account yet — type a username and generate one.", cx, bannerY + 35, { font: "16px Arial", fill: "rgba(220,230,255,0.75)" })
+  }
+
+  // Username entry field
+  const fieldW = 340, fieldX = cx - fieldW / 2, fieldY = 270, fieldH = 56
+  drawCenteredText(ctx, "USERNAME", fieldX, fieldY - 14, { font: "700 13px Arial", fill: "#8fb3ff", align: "left", baseline: "middle" })
+  drawPanel(ctx, fieldX, fieldY, fieldW, fieldH, { fill: "rgba(255,255,255,0.06)", stroke: "#8fb3ff", lineWidth: 2, radius: 10 })
+  const draft = String(opts.draftName || "")
+  const caret = opts.caretOn ? "|" : ""
+  ctx.save(); ctx.textBaseline = "middle"; ctx.textAlign = "left"
+  ctx.font = "700 22px Arial"
+  ctx.fillStyle = draft ? "#ffffff" : "rgba(220,230,255,0.4)"
+  ctx.fillText(draft ? draft + caret : "enter name…" , fieldX + 16, fieldY + fieldH / 2)
+  ctx.restore()
+
+  // Buttons
+  const m = opts.mouse
+  for (const b of getAccountButtons(canvas)) {
+    const active = m ? _inRect(m.x, m.y, b) : false
+    drawButton(ctx, b, { label: b.label, active, accent: b.id === "generate" ? "#86efac" : "#8fb3ff" })
+  }
+
+  // Message / saved-accounts count
+  if (opts.message) {
+    drawCenteredText(ctx, opts.message, cx, 510, { font: "15px Arial", fill: "#ffd27f" })
+  }
+  const count = normalizeToArray(opts.accounts).length
+  if (count > 0) drawFooterHint(ctx, canvas, `${count} local account${count === 1 ? "" : "s"} this session • type to edit name • Enter to generate`)
+  else           drawFooterHint(ctx, canvas, "Type a username • Enter to generate • Esc to go back")
+}

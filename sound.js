@@ -36,6 +36,16 @@ export const SFX = {
   TRANSFORMATION:  "transformation",
 }
 
+// ─────────────────────────────────────────────────────────────────
+// AUDIO FILE BASE PATH (single source of truth)
+// All user-provided music files (.mp3) resolve against this. They live
+// alongside index.html, so "./" resolves relative to the served document —
+// works whether the server roots at the project dir or a parent. Change THIS
+// one line if the files move (e.g. "./audio/"); never hardcode a subfolder
+// elsewhere.
+// ─────────────────────────────────────────────────────────────────
+export const AUDIO_BASE = "./"
+
 export const MUSIC = {
   MENU:           "music_menu",
   JUJUTSU_HIGH:   "music_jujutsu_high",
@@ -409,6 +419,17 @@ class SoundManager {
     this._musicVol = 0.55
     this._muted    = false
     this._ready    = false
+    // Real-audio-file music (user-provided .mp3 per stage). Played through an
+    // HTMLAudioElement (its own pipeline, NOT the AudioContext graph), so its
+    // level/mute are applied directly to the element below. Procedural THEMES
+    // stay as the fallback when a stage has no assigned file.
+    this._musicFile    = null   // HTMLAudioElement
+    this._musicFileSrc = null   // current resolved src (avoid restart on rematch)
+    // Autoplay gating: browsers block audio until a user gesture. We never start
+    // playback before one — instead we remember the LAST requested track and
+    // flush it on the first gesture (see init()'s resume handler).
+    this._gestured     = false
+    this._pendingMusic = null   // { kind: "theme"|"stage", id?, stage? }
   }
 
   // ── INIT ──────────────────────────────────────────────────────
@@ -454,9 +475,10 @@ class SoundManager {
     this.play(`combo_hit_${Math.min(comboCount, 5)}`)
   }
 
-  // ── MUSIC ─────────────────────────────────────────────────────
+  // ── MUSIC (procedural) ────────────────────────────────────────
   playMusic(id, _loop = true) {
     if (!this._ready || !this._musicPlayer) return
+    this.stopMusicFile()   // procedural and file music never overlap
     if (this._ctx.state === "suspended") {
       this._ctx.resume().then(() => this._musicPlayer.play(id))
       return
@@ -466,20 +488,80 @@ class SoundManager {
 
   stopMusic() {
     this._musicPlayer?.stop()
+    this.stopMusicFile()
   }
 
-  // Stage name → music id
-  playStageMusic(stageName = "") {
-    const name = stageName.toLowerCase().replace(/\s+/g, "_")
-    const map  = {
-      jujutsu_high_courtyard: MUSIC.JUJUTSU_HIGH,
-      shibuya_incident:       MUSIC.SHIBUYA,
-      planet_namek:           MUSIC.NAMEK,
-      world_tournament_arena: MUSIC.TOURNAMENT,
-      hidden_leaf_village:    MUSIC.HIDDEN_LEAF,
-      shadow_garden:          MUSIC.SHADOW_GARDEN,
+  // ── MUSIC (real audio file) ───────────────────────────────────
+  _resolveSrc(filename) {
+    if (!filename) return null
+    if (/^(\.\/|\.\.\/|\/|https?:)/.test(filename)) return filename
+    return `./${filename}`
+  }
+
+  // Play a user-provided .mp3 (looping). Honors the same mute/volume as the
+  // procedural music. Returns false if the file can't be started.
+  playMusicFile(filename, loop = true) {
+    const src = this._resolveSrc(filename)
+    if (!src) return false
+    try {
+      if (!this._musicFile) {
+        this._musicFile = new Audio()
+        this._musicFile.preload = "auto"
+      }
+      const a = this._musicFile
+      this._musicPlayer?.stop()   // silence procedural layer
+      // Only (re)load when the track actually changes, so a rematch on the same
+      // stage doesn't restart the song.
+      if (this._musicFileSrc !== src) { a.src = src; this._musicFileSrc = src }
+      a.loop   = !!loop
+      a.muted  = this._muted
+      a.volume = this._musicVol
+      const p = a.play()
+      if (p && p.catch) p.catch(() => {})   // autoplay gating resolves after a user gesture
+      return true
+    } catch (_) { return false }
+  }
+
+  stopMusicFile() {
+    if (this._musicFile) {
+      try { this._musicFile.pause(); this._musicFile.currentTime = 0 } catch (_) {}
     }
-    this.playMusic(map[name] || MUSIC.MENU, true)
+    this._musicFileSrc = null
+  }
+
+  // Preferred entry point: play a stage's assigned audio file, else fall back
+  // to the procedural theme that best fits the stage/series.
+  playStageTrack(stage) {
+    if (stage?.music && this.playMusicFile(stage.music, true)) return
+    this.playMusic(this._proceduralThemeForStage(stage), true)
+  }
+
+  _proceduralThemeForStage(stage) {
+    const byName = {
+      "jujutsu high courtyard": MUSIC.JUJUTSU_HIGH,
+      "shibuya incident":       MUSIC.SHIBUYA,
+      "planet namek":           MUSIC.NAMEK,
+      "world tournament arena": MUSIC.TOURNAMENT,
+      "hidden leaf village":    MUSIC.HIDDEN_LEAF,
+      "shadow garden":          MUSIC.SHADOW_GARDEN,
+    }
+    const n = String(stage?.name || "").toLowerCase()
+    if (byName[n]) return byName[n]
+    const bySeries = {
+      jjk:         MUSIC.SHIBUYA,
+      naruto:      MUSIC.HIDDEN_LEAF,
+      dragonball:  MUSIC.NAMEK,
+      demonslayer: MUSIC.SHADOW_GARDEN,
+      rickmorty:   MUSIC.TOURNAMENT,
+      ben10:       MUSIC.SHADOW_GARDEN,
+    }
+    return bySeries[stage?.series] || MUSIC.MENU
+  }
+
+  // Back-compat: stage name → procedural theme (file-aware callers use
+  // playStageTrack instead).
+  playStageMusic(stageName = "") {
+    this.playMusic(this._proceduralThemeForStage({ name: stageName }), true)
   }
 
   // ── VOLUME / MUTE ─────────────────────────────────────────────
@@ -489,16 +571,19 @@ class SoundManager {
     if (this._master && !this._muted)
       this._master.gain.setTargetAtTime(this._sfxVol, this._ctx.currentTime, 0.05)
     this._musicPlayer?.setVolume(this._musicVol)
+    if (this._musicFile) this._musicFile.volume = this._musicVol
   }
 
   mute() {
     this._muted = true
     if (this._master) this._master.gain.setTargetAtTime(0, this._ctx.currentTime, 0.05)
+    if (this._musicFile) this._musicFile.muted = true
   }
 
   unmute() {
     this._muted = false
     if (this._master) this._master.gain.setTargetAtTime(this._sfxVol, this._ctx.currentTime, 0.05)
+    if (this._musicFile) this._musicFile.muted = false
   }
 
   // ── PRELOAD stub — kept for API compatibility, does nothing ───

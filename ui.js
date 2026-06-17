@@ -248,9 +248,10 @@ export function getStartMenuRects(canvas) {
 
 export function getGameplaySelectRects(canvas) {
   return getVerticalMenuLayout(canvas, [
-    { id: "training", label: "TRAINING",  subLabel: "1 player practice mode" },
-    { id: "vs",       label: "VS MATCH",  subLabel: "Fight the CPU"          },
-    { id: "back",     label: "BACK",      subLabel: "Return to title"        }
+    { id: "training", label: "TRAINING",  subLabel: "1 player practice mode"      },
+    { id: "vs",       label: "VS MATCH",  subLabel: "1 player vs the CPU"         },
+    { id: "pvp",      label: "2 PLAYER",  subLabel: "Local versus — P1 vs P2"     },
+    { id: "back",     label: "BACK",      subLabel: "Return to title"             }
   ])
 }
 
@@ -341,6 +342,369 @@ export function drawStartScreen(ctx, canvas) {
   })
 
   drawFooterHint(ctx, canvas, "Click PLAY to continue")
+}
+
+// ─────────────────────────────────────────────
+// START INFO PANEL
+// Cycling fighter spotlight + control legends shown on the title screen.
+// data = { fighters: [{name,universe,type,hp,speed,hint}], p1Controls }
+// ─────────────────────────────────────────────
+function drawControlList(ctx, x, y, w, h, title, accent, rows) {
+  drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.78)", stroke: accent, lineWidth: 2, radius: 14 })
+  drawCenteredText(ctx, title, x + 16, y + 26, { font: "800 15px Arial", fill: accent, align: "left", baseline: "middle" })
+  ctx.save()
+  ctx.font = "13px Arial"
+  ctx.textBaseline = "middle"
+  let ry = y + 52
+  for (const [label, value] of rows) {
+    ctx.textAlign = "left"
+    ctx.fillStyle = "rgba(220,230,255,0.72)"
+    ctx.fillText(label, x + 16, ry)
+    ctx.textAlign = "right"
+    ctx.fillStyle = "#ffffff"
+    ctx.fillText(value, x + w - 16, ry)
+    ry += 21
+  }
+  ctx.restore()
+}
+
+export function drawStartInfoPanel(ctx, canvas, data = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const fighters = normalizeToArray(data.fighters)
+  const c = data.p1Controls || {}
+  const up = (s) => String(s || "—").toUpperCase()
+
+  // ── Fighter spotlight (left) — auto-cycles through the roster ──
+  if (fighters.length) {
+    const idx = Math.floor(performance.now() / 2600) % fighters.length
+    const f   = fighters[idx]
+    const pw  = clamp(w * 0.26, 270, 360)
+    const ph  = 212
+    const px  = 28
+    const py  = h * 0.5 - ph * 0.5 + 30
+
+    drawPanel(ctx, px, py, pw, ph, { fill: "rgba(8,14,30,0.78)", stroke: "rgba(130,170,255,0.5)", lineWidth: 2, radius: 16 })
+    drawCenteredText(ctx, "FIGHTER SPOTLIGHT", px + 18, py + 26, { font: "800 14px Arial", fill: "#8fb3ff", align: "left", baseline: "middle" })
+    drawCenteredText(ctx, f.name, px + 18, py + 58, { font: "800 24px Arial", fill: "#ffffff", align: "left", baseline: "middle" })
+    drawCenteredText(ctx, `${f.universe}${f.universe && f.type ? "  •  " : ""}${f.type}`, px + 18, py + 84, { font: "13px Arial", fill: "rgba(220,230,255,0.72)", align: "left", baseline: "middle" })
+
+    // HP + SPEED bars
+    const barX = px + 18, barW = pw - 36
+    const drawStat = (label, val, max, color, yy) => {
+      drawCenteredText(ctx, label, barX, yy, { font: "700 12px Arial", fill: "rgba(220,230,255,0.8)", align: "left", baseline: "middle" })
+      ctx.fillStyle = "rgba(255,255,255,0.12)"; fillRoundRect(ctx, barX + 64, yy - 7, barW - 64, 12, 6)
+      ctx.fillStyle = color; fillRoundRect(ctx, barX + 64, yy - 7, (barW - 64) * clamp(val / max, 0, 1), 12, 6)
+      drawCenteredText(ctx, String(val), barX + barW, yy - 22, { font: "700 12px Arial", fill: "#fff", align: "right", baseline: "middle" })
+    }
+    drawStat("HEALTH", f.hp, 1500, "#ff7a7a", py + 122)
+    drawStat("SPEED", f.speed, 12, "#7fe0ff", py + 152)
+    if (f.hint) drawCenteredText(ctx, `★ ${f.hint}`, px + 18, py + 184, { font: "italic 13px Arial", fill: "rgba(255,220,150,0.9)", align: "left", baseline: "middle" })
+    drawCenteredText(ctx, `${idx + 1}/${fighters.length}`, px + pw - 16, py + 26, { font: "700 12px Arial", fill: "rgba(220,230,255,0.5)", align: "right", baseline: "middle" })
+  }
+
+  // ── Control legends (right) — P1 keyboard + P2 controller ──
+  const cw = clamp(w * 0.24, 250, 320)
+  const cx = w - cw - 28
+  const kbRows = [
+    ["Move",          `${up(c.left)} / ${up(c.right)}`],
+    ["Jump / Up",     up(c.up)],
+    ["Crouch / Block",up(c.down)],
+    ["Light",         up(c.light)],
+    ["Heavy",         up(c.heavy)],
+    ["Special",       up(c.special)],
+    ["Ultimate",      up(c.ultimate)],
+    ["Dash",          up(c.dash)],
+    ["Grab",          up(c.grab)]
+  ]
+  const padRows = [
+    ["Move / Jump", "L-Stick / D-Pad"],
+    ["Light",       "✕ (Cross)"],
+    ["Heavy",       "□ (Square)"],
+    ["Special",     "△ (Triangle)"],
+    ["Dash",        "○ (Circle)"],
+    ["Ultimate",    "L2 / R2"],
+    ["Grab",        "L1"],
+    ["Omnitrix",    "R1  (+ ← / →)"]
+  ]
+  const kbH = 52 + kbRows.length * 21 + 10
+  const padH = 52 + padRows.length * 21 + 10
+  const totalH = kbH + padH + 14
+  let cy = clamp(h * 0.5 - totalH * 0.5 + 30, 90, h - totalH - 20)
+  drawControlList(ctx, cx, cy, cw, kbH, "PLAYER 1 — KEYBOARD", "#7fd3ff", kbRows)
+  drawControlList(ctx, cx, cy + kbH + 14, cw, padH, "PLAYER 2 — CONTROLLER", "#ff9f9f", padRows)
+  drawCenteredText(ctx, "Toggle keyboard/controller in SETTINGS", cx + cw / 2, cy + totalH + 6, { font: "12px Arial", fill: "rgba(220,230,255,0.6)" })
+}
+
+// ─────────────────────────────────────────────
+// BEN 10 — OMNITRIX LOADOUT SELECT (pick 5 aliens)
+// ─────────────────────────────────────────────
+function alienCardMetrics(canvas) {
+  const { width: w } = getCanvasSize(canvas)
+  const gap   = 12
+  const cols  = 7
+  const cardW = clamp((Math.min(w, 1280) * 0.92 - (cols - 1) * gap) / cols, 96, 168)
+  const cardH = 58
+  return { gap, cols, cardW, cardH, startY: 168 }
+}
+
+export function getAlienSelectCardRects(canvas, aliens = []) {
+  aliens = normalizeToArray(aliens)
+  const { gap, cols, cardW, cardH, startY } = alienCardMetrics(canvas)
+  return getGridLayout(aliens.length, canvas, { cols, cardW, cardH, gap, startY })
+}
+
+export function getAlienSelectButtons(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const bw = 200, bh = 56, gap = 24
+  const y = h - bh - 28
+  return [
+    { id: "back",    label: "BACK",    x: w / 2 - bw - gap / 2, y, w: bw, h: bh },
+    { id: "confirm", label: "CONFIRM", x: w / 2 + gap / 2,      y, w: bw, h: bh }
+  ]
+}
+
+export function drawAlienSelectScreen(ctx, canvas, options = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const aliens = normalizeToArray(options.aliens)
+  const draft  = normalizeToArray(options.draft)
+  const player = options.player || 1
+
+  ctx.clearRect(0, 0, w, h)
+  drawBackdrop(ctx, canvas, "#0a1810", "#16241a")
+  drawHeader(ctx, canvas, `PLAYER ${player} — OMNITRIX LOADOUT`, `Pick 5 aliens for Ben 10  (${draft.length}/5)`)
+
+  const rects = getAlienSelectCardRects(canvas, aliens)
+  aliens.forEach((a, i) => {
+    const r = rects[i]
+    if (!r) return
+    const slot = draft.indexOf(a.key)
+    const picked = slot >= 0
+    drawPanel(ctx, r.x, r.y, r.w, r.h, {
+      fill: picked ? "rgba(34,197,94,0.28)" : "rgba(255,255,255,0.06)",
+      stroke: picked ? "#22c55e" : "rgba(255,255,255,0.14)",
+      lineWidth: picked ? 3 : 2, radius: 10
+    })
+    // colour swatch
+    ctx.fillStyle = a.color || "#888"
+    fillRoundRect(ctx, r.x + 8, r.y + r.h / 2 - 9, 18, 18, 5)
+    drawCenteredText(ctx, a.name, r.x + 34, r.y + r.h / 2, {
+      font: "700 13px Arial", fill: "#fff", align: "left", baseline: "middle"
+    })
+    if (picked) {
+      ctx.fillStyle = "#052e16"; ctx.beginPath(); ctx.arc(r.x + r.w - 16, r.y + 16, 11, 0, Math.PI * 2); ctx.fill()
+      drawCenteredText(ctx, String(slot + 1), r.x + r.w - 16, r.y + 16, { font: "800 13px Arial", fill: "#bbf7d0" })
+    }
+  })
+
+  // buttons
+  const buttons = getAlienSelectButtons(canvas)
+  for (const b of buttons) {
+    const enabled = b.id !== "confirm" || draft.length === 5
+    drawButton(ctx, b, { label: b.label, active: enabled, accent: enabled ? "#86efac" : "#555" })
+    if (!enabled) {
+      ctx.save(); ctx.globalAlpha = 0.45; ctx.fillStyle = "#000"
+      fillRoundRect(ctx, b.x, b.y, b.w, b.h, 22); ctx.restore()
+    }
+  }
+  drawFooterHint(ctx, canvas, "Click aliens to add/remove • each alien has its own moveset • switch in-fight with Charge + ← / →")
+}
+
+// ─────────────────────────────────────────────
+// MAIN MENU (after pressing PLAY on the title)
+// ─────────────────────────────────────────────
+export function getMainMenuRects(canvas) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player"        },
+    { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
+    { id: "settings", label: "SETTINGS",  subLabel: "Keyboard / controller setup"         },
+    { id: "back",     label: "BACK",      subLabel: "Return to title"                     }
+  ])
+}
+
+export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#08111f", "#182845")
+  drawHeader(ctx, canvas, "MAIN MENU", "Where do you want to go?")
+  const rects = getMainMenuRects(canvas)
+  rects.forEach((r, i) => drawButton(ctx, r, { label: r.label, subLabel: r.subLabel, active: i === hoverIndex }))
+  drawFooterHint(ctx, canvas, "Tip: open MOVE LIST to learn every fighter's specials and combos")
+}
+
+// ─────────────────────────────────────────────
+// MOVE LIST / KIT BROWSER
+// opts = { fighters:[{key,name,universe}], selectedIndex, kit, showControls, controlRef }
+// ─────────────────────────────────────────────
+function moveListLayout(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const top    = 116
+  const listX  = 24
+  const listCols = 2
+  const listGap  = 8
+  const listW  = clamp(w * 0.30, 300, 430)
+  const colW   = (listW - listGap * (listCols - 1)) / listCols
+  const rowH   = 30
+  const panelX = listX + listW + 24
+  const panelW = w - panelX - 24
+  return { w, h, top, listX, listW, listCols, listGap, colW, rowH, panelX, panelW }
+}
+
+export function getMoveListCardRects(canvas, count) {
+  const L = moveListLayout(canvas)
+  const rows = Math.ceil(count / L.listCols)
+  const rects = []
+  for (let i = 0; i < count; i++) {
+    const col = Math.floor(i / rows)   // fill column-by-column (alphabetical-ish down each column)
+    const row = i % rows
+    rects.push({
+      x: L.listX + col * (L.colW + L.listGap),
+      y: L.top + row * (L.rowH + 4),
+      w: L.colW, h: L.rowH
+    })
+  }
+  return rects
+}
+
+export function getMoveListButtons(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return [
+    { id: "back",     label: "BACK",     x: 24,        y: h - 64, w: 150, h: 44 },
+    { id: "controls", label: "CONTROLS", x: w - 24 - 200, y: h - 64, w: 200, h: 44 }
+  ]
+}
+
+function drawKitPanel(ctx, x, y, w, h, kit) {
+  drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.8)", stroke: "rgba(130,170,255,0.4)", lineWidth: 2, radius: 14 })
+  if (!kit) { drawCenteredText(ctx, "Select a fighter", x + w / 2, y + h / 2, { font: "18px Arial", fill: "rgba(220,230,255,0.6)" }); return }
+
+  const pad = 18
+  let cy = y + 26
+  const left = x + pad
+  const colR = x + w - pad
+
+  drawCenteredText(ctx, kit.name || "", left, cy, { font: "800 22px Arial", fill: "#fff", align: "left", baseline: "middle" })
+  drawCenteredText(ctx, kit.difficulty || "", colR, cy, { font: "700 13px Arial", fill: "#ffd27f", align: "right", baseline: "middle" })
+  cy += 22
+  drawCenteredText(ctx, `${kit.type || ""}   •   Energy: ${kit.energy || "—"}`, left, cy, { font: "13px Arial", fill: "#8fb3ff", align: "left", baseline: "middle" })
+  cy += 20
+  // summary (wrapped)
+  cy = wrapText(ctx, kit.summary || "", left, cy, w - pad * 2, 16, { font: "13px Arial", fill: "rgba(220,230,255,0.8)" })
+  cy += 4
+
+  const section = (title) => {
+    cy += 8
+    drawCenteredText(ctx, title, left, cy, { font: "800 13px Arial", fill: "#7fd3ff", align: "left", baseline: "middle" })
+    cy += 16
+  }
+  const row = (a, b, c) => {
+    ctx.save(); ctx.textBaseline = "middle"; ctx.font = "12px Arial"
+    ctx.textAlign = "left";  ctx.fillStyle = "#fff";                 ctx.fillText(a, left, cy)
+    ctx.textAlign = "left";  ctx.fillStyle = "rgba(150,200,255,0.95)"; ctx.fillText(b, left + 150, cy)
+    if (c != null) { ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,210,140,0.9)"; ctx.fillText(c, colR, cy) }
+    ctx.restore(); cy += 16
+  }
+
+  if (kit.passive) { section("PASSIVE"); row(kit.passive.name, "", ""); cy -= 16
+    cy = wrapText(ctx, kit.passive.effect || "", left + 150, cy, w - pad * 2 - 150, 14, { font: "italic 11px Arial", fill: "rgba(220,230,255,0.7)" }); cy += 2 }
+
+  section("SPECIALS  (cost)")
+  for (const s of kit.specials || []) row(s.name, s.input, s.cost ? `${s.cost} CE` : "free")
+  if (kit.mobility) { row(kit.mobility.name, kit.mobility.input, kit.mobility.cost ? `${kit.mobility.cost} CE` : "free") }
+  if (kit.ultimate) { row(kit.ultimate.name, kit.ultimate.input, kit.ultimate.cost ? `${kit.ultimate.cost} CE` : "free") }
+
+  section("COMBOS")
+  for (const c of kit.combos || []) {
+    drawCenteredText(ctx, `${c.name}:`, left, cy, { font: "700 12px Arial", fill: "#ffd27f", align: "left", baseline: "middle" })
+    drawCenteredText(ctx, c.sequence, left + 130, cy, { font: "12px Arial", fill: "#cfe0ff", align: "left", baseline: "middle" })
+    cy += 16
+  }
+
+  section("BASIC ATTACKS  (no energy)")
+  for (const b of kit.basics || []) row(b.name, b.input, "")
+}
+
+function drawControlsPanel(ctx, x, y, w, h, ref) {
+  drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.8)", stroke: "rgba(130,170,255,0.4)", lineWidth: 2, radius: 14 })
+  if (!ref) return
+  const pad = 18
+  const colW = (w - pad * 2 - 24) / 3
+  const cols = [
+    { title: "PLAYER 1 — KEYBOARD", rows: ref.keyboardP1, accent: "#7fd3ff" },
+    { title: "PLAYER 2 — KEYBOARD", rows: ref.keyboardP2, accent: "#ffd27f" },
+    { title: "CONTROLLER",          rows: ref.controller, accent: "#ff9f9f" }
+  ]
+  cols.forEach((col, ci) => {
+    const cx = x + pad + ci * (colW + 12)
+    let cy = y + 28
+    drawCenteredText(ctx, col.title, cx, cy, { font: "800 13px Arial", fill: col.accent, align: "left", baseline: "middle" })
+    cy += 20
+    ctx.save(); ctx.font = "12px Arial"; ctx.textBaseline = "middle"
+    for (const [label, key] of col.rows) {
+      ctx.textAlign = "left";  ctx.fillStyle = "rgba(220,230,255,0.78)"; ctx.fillText(label, cx, cy)
+      ctx.textAlign = "right"; ctx.fillStyle = "#fff";                   ctx.fillText(key, cx + colW - 8, cy)
+      cy += 20
+    }
+    ctx.restore()
+  })
+  // how-to-specials footer
+  let hy = y + h - 16 - (ref.howToSpecials.length * 16)
+  drawCenteredText(ctx, "HOW TO PERFORM SPECIAL MOVES", x + pad, hy, { font: "800 13px Arial", fill: "#86efac", align: "left", baseline: "middle" })
+  hy += 18
+  for (const line of ref.howToSpecials) {
+    drawCenteredText(ctx, "• " + line, x + pad, hy, { font: "12px Arial", fill: "rgba(220,230,255,0.82)", align: "left", baseline: "middle" })
+    hy += 16
+  }
+}
+
+export function drawMoveListScreen(ctx, canvas, opts = {}) {
+  const L = moveListLayout(canvas)
+  const fighters = normalizeToArray(opts.fighters)
+  const selectedIndex = opts.selectedIndex ?? 0
+
+  ctx.clearRect(0, 0, L.w, L.h)
+  drawBackdrop(ctx, canvas, "#0b1021", "#1b2240")
+  drawHeader(ctx, canvas, "MOVE LIST", opts.showControls ? "Controls & how to perform specials" : "Pick a fighter to see their kit")
+
+  // left list
+  const rects = getMoveListCardRects(canvas, fighters.length)
+  fighters.forEach((f, i) => {
+    const r = rects[i]
+    const sel = i === selectedIndex
+    drawPanel(ctx, r.x, r.y, r.w, r.h, {
+      fill: sel ? "rgba(70,110,210,0.4)" : "rgba(255,255,255,0.05)",
+      stroke: sel ? "#dbe7ff" : "rgba(255,255,255,0.12)", lineWidth: sel ? 2 : 1, radius: 8
+    })
+    drawCenteredText(ctx, f.name, r.x + 12, r.y + r.h / 2, { font: sel ? "700 13px Arial" : "13px Arial", fill: sel ? "#fff" : "rgba(220,230,255,0.85)", align: "left", baseline: "middle" })
+  })
+
+  // right panel
+  const panelY = L.top
+  const panelH = L.h - panelY - 80
+  if (opts.showControls) drawControlsPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.controlRef)
+  else                   drawKitPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.kit)
+
+  // buttons
+  for (const b of getMoveListButtons(canvas)) {
+    const active = b.id === "controls" ? !!opts.showControls : false
+    drawButton(ctx, b, { label: b.id === "controls" && opts.showControls ? "MOVES" : b.label, active })
+  }
+}
+
+// Simple word-wrap helper — returns the new y after drawing.
+function wrapText(ctx, text, x, y, maxW, lineH, style = {}) {
+  ctx.save()
+  ctx.font = style.font || "13px Arial"; ctx.fillStyle = style.fill || "#fff"
+  ctx.textAlign = "left"; ctx.textBaseline = "middle"
+  const words = String(text).split(/\s+/)
+  let line = ""
+  for (const word of words) {
+    const test = line ? line + " " + word : word
+    if (ctx.measureText(test).width > maxW && line) {
+      ctx.fillText(line, x, y); y += lineH; line = word
+    } else line = test
+  }
+  if (line) { ctx.fillText(line, x, y); y += lineH }
+  ctx.restore()
+  return y
 }
 
 // ─────────────────────────────────────────────

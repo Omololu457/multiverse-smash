@@ -11,7 +11,7 @@
  * carry their own maxJumps. Air ceiling raised for triple jumps / air combos.
  */
 
-import { setupBen10, updateOmnitrix, switchAlien } from "./fighters.js"
+import { setupBen10, updateOmnitrix } from "./fighters.js"
 
 // Characters that get a third jump. Keyed by rosterKey / id / name (lowercase).
 const TRIPLE_JUMP_CHARACTERS = new Set(["toji", "gojo", "sukuna"])
@@ -28,15 +28,13 @@ export const physics = {
   moveFighter(fighter, keys = {}, controls = {}, camera = null) {
     if (!fighter || fighter.hitstop > 0) return
 
-    // ── BEN 10 OMNITRIX (self-driving) ────────────────
-    // Auto-setup on first frame, tick the cooldown, and cycle aliens on the
-    // "charge" button. No game.js wiring needed.
+    // ── BEN 10 OMNITRIX (self-driving setup) ──────────
+    // Auto-setup on first frame from the player's chosen 5-alien loadout, then
+    // tick the transform cooldown. The actual SWITCH input (charge + direction /
+    // number keys) is handled in game.js, where the full input state is known.
     if (fighter.rosterKey === "ben10") {
-      if (!fighter.omnitrix) setupBen10(fighter)
+      if (!fighter.omnitrix) setupBen10(fighter, fighter.selectedAliens || undefined)
       updateOmnitrix(fighter)
-      const switchPressed = !!keys[controls.charge]
-      if (switchPressed && !fighter._omnitrixHeld) switchAlien(fighter, 1)
-      fighter._omnitrixHeld = switchPressed
     }
 
     // ── INIT ─────────────────────────────────────────

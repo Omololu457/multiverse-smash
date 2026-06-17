@@ -401,7 +401,9 @@ const nezuko = {
     downAir:   { damage: 70, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 }
   },
   specials: {
-    bloodDemonArt: { cost: 0, damage: 140, startup: 12, active: 5, recovery: 21, hitstun: 24, knockbackX: 9, knockbackY: -2, effect: "explosive demonic attack" }
+    bloodDemonArt:  { cost: 0, damage: 140, startup: 12, active: 5, recovery: 21, hitstun: 24, knockbackX: 9, knockbackY: -2, effect: "explosive demonic attack" },
+    explodingBlood: { cost: 0, damage: 95,  startup: 9,  active: 5, recovery: 17, hitstun: 18, knockbackX: 6, knockbackY: -1, effect: "close-range blood detonation" },
+    demonLunge:     { cost: 0, damage: 80,  startup: 7,  active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 22, effect: "pouncing claw rush" }
   },
   ultimate: { name: "Full Demon Transformation", cost: 0, duration: 8, effect: "Increased speed, damage, and regeneration" },
   transformationOrder: ["base","fullDemon"],
@@ -426,7 +428,9 @@ const zenitsu = {
     downAir:   { damage: 80, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
-    thunderClapStrike: { cost: 0, damage: 150, startup: 8, active: 4, recovery: 18, hitstun: 25, knockbackX: 10, knockbackY: -2, effect: "instant high-speed lightning attack" }
+    thunderClapStrike: { cost: 0, damage: 150, startup: 8, active: 4, recovery: 18, hitstun: 25, knockbackX: 10, knockbackY: -2, effect: "instant high-speed lightning attack" },
+    sixfold:           { cost: 0, damage: 95,  startup: 6, active: 6, recovery: 16, hitstun: 16, knockbackX: 5,  knockbackY: -1, effect: "stationary multi-strike thunderclap volley" },
+    godspeed:          { cost: 0, damage: 80,  startup: 5, active: 4, recovery: 12, hitstun: 14, knockbackX: 5,  knockbackY: -1, subtype: "mobility", dashSpeed: 26, effect: "flash-step that crosses the screen" }
   },
   ultimate: { name: "Thunder Breathing Mastery", cost: 0, duration: 6, effect: "Extreme speed, multi-strike combos, high crit chance" },
   transformationOrder: ["base","sleepingThunder"],
@@ -451,7 +455,9 @@ const inosuke = {
     downAir:   { damage: 75, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 }
   },
   specials: {
-    dualSwordFrenzy: { cost: 0, damage: 140, startup: 10, active: 6, recovery: 20, hitstun: 23, knockbackX: 8, knockbackY: -1, effect: "spinning multi-slash attack" }
+    dualSwordFrenzy: { cost: 0, damage: 140, startup: 10, active: 6, recovery: 20, hitstun: 23, knockbackX: 8, knockbackY: -1, effect: "spinning multi-slash attack" },
+    piercingFang:    { cost: 0, damage: 90,  startup: 8,  active: 4, recovery: 16, hitstun: 16, knockbackX: 5, knockbackY: 0,  effect: "low erratic stab under highs" },
+    beastPounce:     { cost: 0, damage: 85,  startup: 7,  active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 22, effect: "feral leaping double-slash" }
   },
   ultimate: { name: "Beast Breathing Dragon Head", cost: 0, duration: 8, effect: "Massive speed and attack boost, unpredictable combo patterns" },
   transformationOrder: ["base"],
@@ -473,7 +479,9 @@ const rengoku = {
     downAir:   { damage: 80, startup: 8, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
-    flameBreathingFirstForm: { cost: 0, damage: 150, startup: 11, active: 5, recovery: 21, hitstun: 24, knockbackX: 10, knockbackY: -2, effect: "fiery single slash" }
+    flameBreathingFirstForm: { cost: 0, damage: 150, startup: 11, active: 5, recovery: 21, hitstun: 24, knockbackX: 10, knockbackY: -2, effect: "fiery single slash" },
+    risingScorchingSun:      { cost: 0, damage: 95,  startup: 9,  active: 4, recovery: 17, hitstun: 20, knockbackX: 3,  knockbackY: -8, effect: "upward flame arc that pops up" },
+    flameTiger:              { cost: 0, damage: 110, startup: 10, active: 5, recovery: 18, hitstun: 20, knockbackX: 8,  knockbackY: -1, subtype: "mobility", dashSpeed: 22, effect: "charging beast of flame" }
   },
   ultimate: { name: "Flame Pillar's Might", cost: 0, duration: 8, effect: "Enhanced attack, speed, and fiery AoE strikes" },
   transformationOrder: ["base"],
@@ -495,7 +503,9 @@ const akaza = {
     downAir:   { damage: 90, startup: 9, active: 4, recovery: 15, hitstun: 19, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
-    destructiveStrike: { cost: 0, damage: 160, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -2, effect: "powerful destructive attack" }
+    destructiveStrike: { cost: 0, damage: 160, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -2, effect: "powerful destructive attack" },
+    annihilationType:  { cost: 0, damage: 105, startup: 11, active: 6, recovery: 20, hitstun: 20, knockbackX: 7,  knockbackY: -2, effect: "compass-needle ground shockwaves" },
+    disorder:          { cost: 0, damage: 90,  startup: 8,  active: 5, recovery: 16, hitstun: 16, knockbackX: 6,  knockbackY: -1, subtype: "mobility", dashSpeed: 24, effect: "rushing accelerating flurry" }
   },
   ultimate: { name: "Upper Moon Three Form", cost: 0, duration: 8, effect: "Increased damage, speed, and regeneration" },
   transformationOrder: ["base"],
@@ -544,7 +554,9 @@ const morty = {
     downAir:   { damage: 65, startup: 9, active: 4, recovery: 14, hitstun: 15, knockbackX: 1, knockbackY: 9 }
   },
   specials: {
-    nerveStrike: { cost: 25, damage: 100, startup: 9, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: -1, effect: "quick panic-fueled strike" }
+    nerveStrike:   { cost: 25, damage: 100, startup: 9, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: -1, effect: "quick panic-fueled strike" },
+    franticFlurry: { cost: 20, damage: 80,  startup: 7, active: 6, recovery: 16, hitstun: 14, knockbackX: 4, knockbackY: 0,  effect: "wild flailing barrage" },
+    scramble:      { cost: 10, damage: 50,  startup: 6, active: 3, recovery: 12, hitstun: 12, knockbackX: 4, knockbackY: -1, subtype: "mobility", dashSpeed: 20, effect: "desperate scrambling dash" }
   },
   ultimate: { name: "Morty's Courage", cost: 100, duration: 6, effect: "Dramatically boosts attack and speed temporarily" },
   transformationOrder: ["base"],
@@ -566,7 +578,9 @@ const evilMorty = {
     downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
-    manipulativeBlast: { cost: 30, damage: 140, startup: 12, active: 5, recovery: 21, hitstun: 23, knockbackX: 9, knockbackY: -2, effect: "psychic energy attack" }
+    manipulativeBlast: { cost: 30, damage: 140, startup: 12, active: 5, recovery: 21, hitstun: 23, knockbackX: 9, knockbackY: -2, effect: "psychic energy attack" },
+    override:          { cost: 25, damage: 90,  startup: 10, active: 5, recovery: 19, hitstun: 18, knockbackX: 5, knockbackY: -1, effect: "controlling pulse that saps enemy speed" },
+    coldStep:          { cost: 15, damage: 60,  startup: 6,  active: 3, recovery: 13, hitstun: 12, knockbackX: 4, knockbackY: -1, subtype: "mobility", dashSpeed: 22, effect: "calculated portal-step reposition" }
   },
   ultimate: { name: "Evil Morty's Takeover", cost: 100, duration: 8, effect: "Increased speed, damage, and enemy debuffs" },
   transformationOrder: ["base"],
@@ -588,7 +602,9 @@ const rickPrime = {
     downAir:   { damage: 90, startup: 9, active: 4, recovery: 15, hitstun: 19, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
-    primePortalBlast: { cost: 35, damage: 160, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -2, effect: "extremely powerful multiverse energy attack" }
+    primePortalBlast: { cost: 35, damage: 160, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -2, effect: "extremely powerful multiverse energy attack" },
+    annihilationMine: { cost: 30, damage: 110, startup: 13, active: 8, recovery: 22, hitstun: 20, knockbackX: 7,  knockbackY: -2, effect: "portal-tech charge that detonates" },
+    primePortal:      { cost: 15, damage: 60,  startup: 6,  active: 3, recovery: 12, hitstun: 12, knockbackX: 4,  knockbackY: -1, subtype: "mobility", dashSpeed: 26, effect: "instant high-speed portal warp" }
   },
   ultimate: { name: "Rick Prime's Supremacy", cost: 100, duration: 10, effect: "Massive speed, attack boost, and random gadget chaos" },
   transformationOrder: ["base"],
@@ -628,6 +644,123 @@ const ben10 = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// POWER RANGERS SPD
+// Space Patrol Delta. Resource = SPD Energy (Morpher). All rangers keep the
+// standard rules: no-cost basic melee + SPD Energy specials (incl. a mobility
+// move) + a "Judgment / Battlizer" ultimate.
+// ─────────────────────────────────────────────────────────────────
+const SPD_BASICS = {
+  light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+  heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
+  upAttack:  { damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
+  airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+  downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
+  grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
+}
+
+const jackRed = {
+  rosterKey: "jackRed", name: "Jack Landors (SPD Red)", universe: "power_rangers_spd",
+  archetypes: ["melee", "rushdown"], primary: "melee", secondary: ["rushdown"],
+  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "high", scaling: "burst", animeMovement: false },
+  passive: { name: "Probability Field", effect: "Former thief's instincts — slightly faster Dash recovery and SPD Energy regen" },
+  stats: { maxHealth: 1150, maxEnergy: 170, attack: 90, defense: 84, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 36 },
+  basic_attacks: { ...SPD_BASICS, light: { damage: 48, startup: 4, active: 3, recovery: 9, hitstun: 12, knockbackX: 3, knockbackY: 0 } },
+  specials: {
+    deltaBlasters:  { cost: 25, damage: 110, startup: 9,  active: 5, recovery: 18, hitstun: 20, knockbackX: 8, knockbackY: -2, effect: "twin SPD blaster shots" },
+    battleSlash:    { cost: 35, damage: 150, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -3, effect: "Delta Saber heavy slash" },
+    deltaRush:      { cost: 15, damage: 80,  startup: 6,  active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 24, effect: "blitz dash strike" }
+  },
+  ultimate: { name: "S.W.A.T. Battlizer", cost: 100, duration: 8, effect: "Cannon mode: massive attack + speed surge" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+const skyBlue = {
+  rosterKey: "skyBlue", name: "Sky Tate (SPD Blue)", universe: "power_rangers_spd",
+  archetypes: ["melee", "defense"], primary: "melee", secondary: ["defense"],
+  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "medium", scaling: "control", animeMovement: false },
+  passive: { name: "Force Field", effect: "Holding block briefly projects a shield that negates chip damage" },
+  stats: { maxHealth: 1220, maxEnergy: 160, attack: 86, defense: 94, speed: 82, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 42 },
+  basic_attacks: { ...SPD_BASICS, heavy: { damage: 92, startup: 9, active: 4, recovery: 19, hitstun: 19, knockbackX: 7, knockbackY: 1, superArmor: true } },
+  specials: {
+    forceBlast:     { cost: 25, damage: 105, startup: 10, active: 5, recovery: 18, hitstun: 20, knockbackX: 8, knockbackY: -2, effect: "kinetic force projectile" },
+    barrierSlam:    { cost: 35, damage: 145, startup: 13, active: 5, recovery: 22, hitstun: 24, knockbackX: 10, knockbackY: -2, superArmor: true, effect: "shield-charge with armor" },
+    guardStep:      { cost: 15, damage: 70,  startup: 7,  active: 4, recovery: 14, hitstun: 14, knockbackX: 5, knockbackY: -1, subtype: "mobility", dashSpeed: 20, effect: "shielded advance" }
+  },
+  ultimate: { name: "Delta Squad Megazord", cost: 100, duration: 8, effect: "Fortress mode: heavy armor + power" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+const bridgeGreen = {
+  rosterKey: "bridgeGreen", name: "Bridge Carson (SPD Green)", universe: "power_rangers_spd",
+  archetypes: ["ranged", "psychic"], primary: "ranged", secondary: ["psychic"],
+  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "medium", scaling: "control", animeMovement: false },
+  passive: { name: "Aura Sight", effect: "Reads aura — first hit of each combo on a blocking foe deals bonus chip" },
+  stats: { maxHealth: 1080, maxEnergy: 190, attack: 85, defense: 82, speed: 84, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 44 },
+  basic_attacks: { ...SPD_BASICS },
+  specials: {
+    psychicBolt:    { cost: 22, damage: 100, startup: 9,  active: 5, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: -2, effect: "telekinetic energy bolt" },
+    energyField:    { cost: 35, damage: 135, startup: 14, active: 6, recovery: 22, hitstun: 22, knockbackX: 6, knockbackY: -1, effect: "expanding psychic field" },
+    phaseStep:      { cost: 15, damage: 60,  startup: 6,  active: 3, recovery: 13, hitstun: 12, knockbackX: 4, knockbackY: -1, subtype: "mobility", dashSpeed: 22, effect: "telekinetic blink-dash" }
+  },
+  ultimate: { name: "Delta Command Crawler", cost: 100, duration: 8, effect: "Psychic overdrive: range + control" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+const zYellow = {
+  rosterKey: "zYellow", name: "Z Delgado (SPD Yellow)", universe: "power_rangers_spd",
+  archetypes: ["melee", "speed"], primary: "melee", secondary: ["speed"],
+  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "very_high", scaling: "constant_pressure", animeMovement: false },
+  passive: { name: "Duplication", effect: "Specials occasionally spawn a fleeting copy that adds an extra hit" },
+  stats: { maxHealth: 1050, maxEnergy: 170, attack: 86, defense: 80, speed: 95, maxJumps: 3, jumpPower: 32, dashSpeed: 22, dashDuration: 10, dashCooldownMax: 32 },
+  basic_attacks: { ...SPD_BASICS, light: { damage: 44, startup: 3, active: 2, recovery: 8, hitstun: 12, knockbackX: 3, knockbackY: 0 } },
+  specials: {
+    cloneStrike:    { cost: 25, damage: 105, startup: 8,  active: 6, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: -1, effect: "duplicate rush attack" },
+    deltaSpin:      { cost: 30, damage: 130, startup: 10, active: 6, recovery: 20, hitstun: 22, knockbackX: 9, knockbackY: -2, effect: "spinning multi-clone slash" },
+    afterimageDash: { cost: 12, damage: 70,  startup: 5,  active: 4, recovery: 12, hitstun: 14, knockbackX: 5, knockbackY: -1, subtype: "mobility", dashSpeed: 26, effect: "afterimage blitz" }
+  },
+  ultimate: { name: "Omega Morph", cost: 100, duration: 7, effect: "Extreme speed; copies overwhelm" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+const sydPink = {
+  rosterKey: "sydPink", name: "Syd Drew (SPD Pink)", universe: "power_rangers_spd",
+  archetypes: ["melee", "power"], primary: "melee", secondary: ["power"],
+  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "medium", scaling: "burst", animeMovement: false },
+  passive: { name: "Crystal Fists", effect: "Heavy attacks harden to crystal — extra knockback and armor on startup" },
+  stats: { maxHealth: 1160, maxEnergy: 160, attack: 91, defense: 86, speed: 83, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 40 },
+  basic_attacks: { ...SPD_BASICS, heavy: { damage: 95, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 8, knockbackY: 1 } },
+  specials: {
+    crystalSmash:   { cost: 25, damage: 115, startup: 10, active: 5, recovery: 19, hitstun: 21, knockbackX: 9, knockbackY: -2, effect: "crystallized super-strength blow" },
+    deltaMaxStrike: { cost: 35, damage: 150, startup: 13, active: 5, recovery: 23, hitstun: 26, knockbackX: 11, knockbackY: -3, effect: "Delta Max blaster smash" },
+    powerLunge:     { cost: 15, damage: 78,  startup: 7,  active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 21, effect: "charging shoulder lunge" }
+  },
+  ultimate: { name: "Delta Runner Charge", cost: 100, duration: 8, effect: "Super-strength surge: crushing power" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+const doggieShadow = {
+  rosterKey: "doggieShadow", name: "Doggie Cruger (Shadow Ranger)", universe: "power_rangers_spd",
+  archetypes: ["melee", "sword"], primary: "melee", secondary: ["sword"],
+  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "high", scaling: "damage", animeMovement: false },
+  passive: { name: "Sirian Blade Master", effect: "Shadow Saber gives all attacks extended reach; specials cost slightly less" },
+  stats: { maxHealth: 1280, maxEnergy: 180, attack: 97, defense: 90, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 36 },
+  basic_attacks: { ...SPD_BASICS, light: { damage: 52, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: 0 }, heavy: { damage: 100, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 7, knockbackY: 1 } },
+  specials: {
+    shadowSlash:    { cost: 25, damage: 130, startup: 9,  active: 5, recovery: 18, hitstun: 24, knockbackX: 9, knockbackY: -2, effect: "long-reach saber slash" },
+    vortexBlade:    { cost: 40, damage: 170, startup: 14, active: 6, recovery: 24, hitstun: 28, knockbackX: 12, knockbackY: -3, effect: "spinning blade vortex" },
+    shadowStep:     { cost: 15, damage: 85,  startup: 6,  active: 4, recovery: 13, hitstun: 18, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 24, effect: "Sirian flash-step cut" }
+  },
+  ultimate: { name: "Shadow Saber: Judgment", cost: 100, duration: 9, effect: "Master swordsman surge: max damage + reach" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
@@ -636,7 +769,8 @@ export const characters = {
   naruto,
   tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,
   rick, morty, evilMorty, rickPrime,
-  ben10
+  ben10,
+  jackRed, skyBlue, bridgeGreen, zYellow, sydPink, doggieShadow
 }
 
 // The 7 characters shown in the starter roster select screen

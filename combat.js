@@ -34,6 +34,18 @@ const HITSTOP = {
 }
 
 // ========================
+// HITSTUN / COMBO TUNING
+// ========================
+// Hitstun is the action-lock the DEFENDER suffers after being hit, letting the
+// attacker link follow-ups into a combo. Per-move base durations live in each
+// fighter's basic_attacks/specials data (heavier moves = longer stun, so it's
+// already tied to attack strength). HITSTUN_SCALE is a single global knob to
+// tune combo-ability across the whole game without editing every move.
+// (Combo damage falloff is handled by getComboScale; blockstun + the
+// charging-can't-defend rule are handled in resolveAttackHit / game.js.)
+const HITSTUN_SCALE = 1.0
+
+// ========================
 // HELPERS
 // ========================
 
@@ -530,12 +542,14 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     attacker.hitstop = hs
     defender.hitstop = hs
 
-    defender.hitstun = Math.max(defender.hitstun || 0, atk.hitstun || 0)
+    defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE))
     // Getting hit interrupts the defender's own swing so they don't keep
     // attacking (or sit on a never-cleared currentAttack) during hitstun.
     defender.attacking    = false
     defender.currentAttack = null
     defender.currentMove   = null
+    // A hit also interrupts a transform-device charge (Ben/Albedo).
+    defender.isCharging   = false
     defender.vx = (attacker.facing || 1) * (atk.pushX || 4)
 
     if (atk.launcher) {

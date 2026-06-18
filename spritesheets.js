@@ -22,8 +22,38 @@
 // up, air, down_air. (Specials show idle frames unless you also map them.)
 // ─────────────────────────────────────────────────────────────────
 
+// ═══════════════════════════════════════════════════════════════════
+// GOJO SPRITE SPEC — replacement-art contract  (DO NOT delete current sheets)
+// ───────────────────────────────────────────────────────────────────
+// The Gojo art is being replaced with higher-quality sheets the user supplies.
+// To swap them in: overwrite each file below IN PLACE with a new strip that
+// matches its { frames × width × height }. Filenames and the manifest stay the
+// same, so the game keeps running on the current sheets until each is replaced.
+// Frame counts / dimensions are the engine's source of truth in
+// characters.js → gojo.animationData (mirrored here for the artist's reference).
+// If a new sheet uses a different layout, change BOTH this list and that block.
+//
+//   FILE                            FRAMES  CELL (WxH)   NOTES
+//   gojo_idle_sheet.png              6       128×128     breathing loop
+//   gojo_walk_sheet.png              8       128×128     walk cycle
+//   gojo_jump_sheet.png              4       128×128     jump/rise→fall
+//   gojo_hurt_sheet.png              2       128×128     flinch
+//   gojo_light_sheet.png             5       128×128     jab (startup 0-1 / active 2-3 / recovery 4)
+//   gojo_heavy_sheet.png             7       128×128     heavy (0-2 / 3-4 / 5-6)
+//   gojo_blue_sheet.png              6       128×128     Blue special
+//   gojo_red_sheet.png               6       128×128     Red special
+//   gojo_hollow_purple_sheet.png    10       256×128     Purple — WIDE cells (0-4 / 5-8 / 9)
+//   gojo_infinity_sheet.png          4       128×128     Infinity aura loop
+//   gojo_teleport_sheet.png          4       128×128     teleport blink
+//
+// Strip format: frames laid left→right, every cell identical size, transparent
+// background, character centered/feet-aligned consistently across all sheets.
+// (gojo_win.png is a single still, not an animation strip.)
+// ═══════════════════════════════════════════════════════════════════
 export const SPRITE_MANIFEST = {
-  // Reference entry — Gojo's existing ./gojo_<action>_sheet.png files.
+  // Gojo's existing ./gojo_<action>_sheet.png strips. Replacement art must keep
+  // these exact filenames + the per-action layout documented in GOJO SPRITE SPEC
+  // above. Sheets that haven't been replaced yet still load fine.
   gojo: {
     prefix: "gojo",
     actions: ["idle", "walk", "jump", "light", "heavy", "hurt", "blue", "red", "hollow_purple", "infinity", "teleport"]

@@ -787,6 +787,99 @@ function _applyPoseTransform(ctx, fighter, x, y, w, h) {
   ctx.translate(-pivotX, -pivotY)
 }
 
+// ─────────────────────────────────────────────────────────────────
+// ── OMNI-MAN (Viltrumite) ─────────────────────────────────────────
+// White suit, red Viltrumite emblem + cape, black hair and signature 'stache.
+// ─────────────────────────────────────────────────────────────────
+function drawOmniMan(ctx, x, y, w, h, fighter) {
+  const facing = fighter.facing ?? 1
+  // Cape
+  ctx.fillStyle = "#b91c1c"
+  ctx.beginPath()
+  ctx.moveTo(x + w * 0.2, y + h * 0.2)
+  ctx.lineTo(x - w * 0.1, y + h * 0.95)
+  ctx.lineTo(x + w * 1.1, y + h * 0.95)
+  ctx.lineTo(x + w * 0.8, y + h * 0.2)
+  ctx.closePath(); ctx.fill()
+
+  // Body (white suit)
+  const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
+  bodyGrad.addColorStop(0, "#f8fafc"); bodyGrad.addColorStop(1, "#cbd5e1")
+  ctx.fillStyle = bodyGrad
+  roundRect(ctx, x, y + h * 0.18, w, h * 0.82, 10); ctx.fill()
+
+  // Red emblem band + chest mark
+  ctx.fillStyle = "#dc2626"
+  ctx.fillRect(x + 4, y + h * 0.5, w - 8, h * 0.07)
+  ctx.beginPath()
+  ctx.moveTo(x + w / 2, y + h * 0.30); ctx.lineTo(x + w / 2 - 10, y + h * 0.44); ctx.lineTo(x + w / 2 + 10, y + h * 0.44)
+  ctx.closePath(); ctx.fill()
+
+  // Boots
+  ctx.fillStyle = "#b91c1c"
+  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
+  ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
+
+  // Head + black hair + mustache
+  const hx = x + w / 2, hy = y + h * 0.12
+  ctx.fillStyle = "#fcd9b6"; ctx.beginPath(); ctx.arc(hx, hy, h * 0.11, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = "#111827"
+  ctx.beginPath(); ctx.arc(hx, hy - h * 0.05, h * 0.1, Math.PI, 0); ctx.fill()
+  ctx.fillRect(hx - h * 0.045, hy + h * 0.02, h * 0.09, h * 0.022)   // mustache
+  ctx.fillStyle = "#0f172a"
+  const eo = facing >= 0 ? 4 : -4
+  ctx.beginPath(); ctx.arc(hx + eo, hy - 1, 2.4, 0, Math.PI * 2); ctx.fill()
+
+  drawHitFlash(ctx, x, y, w, h, fighter.colorFlash)
+  drawNameTag(ctx, "Omni-Man", hx, y, "#dc2626")
+  drawFacingDot(ctx, x, y, w, facing, "#fff")
+  drawShadow(ctx, x, y, w, h)
+}
+
+// ─────────────────────────────────────────────────────────────────
+// ── THRAGG (Viltrumite warlord) ───────────────────────────────────
+// Hulking dark-red armor, horned helm, glowing eyes — bigger silhouette.
+// ─────────────────────────────────────────────────────────────────
+function drawThragg(ctx, x, y, w, h, fighter) {
+  const facing = fighter.facing ?? 1
+  const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
+  bodyGrad.addColorStop(0, "#7f1d1d"); bodyGrad.addColorStop(1, "#3b0a0a")
+  ctx.fillStyle = bodyGrad
+  roundRect(ctx, x - 4, y + h * 0.16, w + 8, h * 0.84, 12); ctx.fill()
+
+  // Armor plates
+  ctx.fillStyle = "#facc15"
+  ctx.fillRect(x + 2, y + h * 0.46, w - 4, h * 0.06)
+  ctx.fillStyle = "#1c1917"
+  ctx.fillRect(x + w * 0.5 - 4, y + h * 0.2, 8, h * 0.6)   // central armor ridge
+
+  // Shoulder spikes
+  ctx.fillStyle = "#a16207"
+  ctx.beginPath(); ctx.moveTo(x - 4, y + h * 0.22); ctx.lineTo(x - 16, y + h * 0.05); ctx.lineTo(x + w * 0.12, y + h * 0.24); ctx.closePath(); ctx.fill()
+  ctx.beginPath(); ctx.moveTo(x + w + 4, y + h * 0.22); ctx.lineTo(x + w + 16, y + h * 0.05); ctx.lineTo(x + w * 0.88, y + h * 0.24); ctx.closePath(); ctx.fill()
+
+  // Boots
+  ctx.fillStyle = "#1c1917"
+  ctx.fillRect(x, y + h * 0.86, w * 0.4, h * 0.14)
+  ctx.fillRect(x + w - w * 0.4, y + h * 0.86, w * 0.4, h * 0.14)
+
+  // Horned helm + glowing eyes
+  const hx = x + w / 2, hy = y + h * 0.11
+  ctx.fillStyle = "#450a0a"; ctx.beginPath(); ctx.arc(hx, hy, h * 0.12, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = "#a16207"
+  ctx.beginPath(); ctx.moveTo(hx - h * 0.1, hy - h * 0.02); ctx.lineTo(hx - h * 0.18, hy - h * 0.16); ctx.lineTo(hx - h * 0.05, hy - h * 0.06); ctx.closePath(); ctx.fill()
+  ctx.beginPath(); ctx.moveTo(hx + h * 0.1, hy - h * 0.02); ctx.lineTo(hx + h * 0.18, hy - h * 0.16); ctx.lineTo(hx + h * 0.05, hy - h * 0.06); ctx.closePath(); ctx.fill()
+  ctx.fillStyle = "#fde047"; ctx.shadowBlur = 8; ctx.shadowColor = "#fde047"
+  const eo = facing >= 0 ? 4 : -4
+  ctx.beginPath(); ctx.arc(hx + eo - 3, hy, 2.4, 0, Math.PI * 2); ctx.arc(hx + eo + 3, hy, 2.4, 0, Math.PI * 2); ctx.fill()
+  ctx.shadowBlur = 0
+
+  drawHitFlash(ctx, x, y, w, h, fighter.colorFlash)
+  drawNameTag(ctx, "Thragg", hx, y, "#facc15")
+  drawFacingDot(ctx, x, y, w, facing, "#fde047")
+  drawShadow(ctx, x, y, w, h)
+}
+
 export function drawCharacter(ctx, fighter) {
   if (!fighter || !ctx) return
 
@@ -809,6 +902,9 @@ export function drawCharacter(ctx, fighter) {
     case "omololu": drawOmololu(ctx, x, y, w, h, fighter); break
     case "toji":    drawToji(ctx, x, y, w, h, fighter);    break
     case "ben10":   drawBen10(ctx, fighter);               break   // ★ Ben 10
+    case "albedo":  drawBen10(ctx, fighter);               break   // ★ Albedo (Ben's clone, red tint)
+    case "omniman": drawOmniMan(ctx, x, y, w, h, fighter); break   // ★ Invincible
+    case "thragg":  drawThragg(ctx, x, y, w, h, fighter);  break   // ★ Invincible
     default:        drawFallback(ctx, x, y, w, h, fighter); break
   }
 
@@ -1159,7 +1255,9 @@ export function applyAlien(fighter, alienKey) {
 
   fighter.activeAlien = alienKey
   fighter.activeAlienName = alien.name
-  fighter.name = `Ben 10 (${alien.name})`
+  // Albedo is Ben's clone: same aliens, different identity label.
+  const who = (fighter.rosterKey || "").toLowerCase() === "albedo" ? "Albedo" : "Ben 10"
+  fighter.name = `${who} (${alien.name})`
   fighter.color = alien.color
 
   fighter.basic_attacks = alien.basic_attacks
@@ -1211,10 +1309,125 @@ export function updateOmnitrix(fighter) {
   if (omx && omx.switchCooldown > 0) omx.switchCooldown--
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// TRANSFORM-DEVICE ENERGY SYSTEM   (Omnitrix = Ben, Ultimatrix = Albedo)
+// Shared by every transform-device fighter. While transformed into an alien a
+// drain meter (the fighter's energy bar) depletes — stronger forms drain
+// faster. Holding Charge (no direction) refills it fast, BUT you can't block
+// while charging and a hit interrupts it. At zero energy the fighter is
+// FORCE-REVERTED to a weak human form and must wait out a recharge before
+// transforming again. Human form regenerates energy slowly on its own.
+// All rates are per-SECOND and tuned here.
+// ═══════════════════════════════════════════════════════════════════
+export const TRANSFORM_ENERGY = {
+  DRAIN_PER_SEC:          6,    // base meter lost/sec while transformed
+  ATTACK_DRAIN_BONUS:     10,   // extra drain/sec while an attack is active
+  STRONG_FORM_SCALE:      1.0,  // how much (alienHP/1000) amplifies drain (titans drain more)
+  CHARGE_RESTORE_PER_SEC: 45,   // refill/sec while holding Charge alone
+  HUMAN_REGEN_PER_SEC:    10,   // passive regen/sec while human
+  MIN_TRANSFORM_ENERGY:   15,   // energy needed to (re)transform
+  RECHARGE_FRAMES:        150   // forced-revert lockout (~2.5s @60fps)
+}
+
+// Weak un-transformed baseline so a reverted fighter is functional, never stuck.
+const HUMAN_FORM = {
+  basic_attacks: {
+    light:    { damage: 28, startup: 5, active: 3, recovery: 11, hitstun: 10, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 52, startup: 9, active: 4, recovery: 19, hitstun: 15, knockbackX: 4, knockbackY: 1 },
+    up:       { damage: 44, startup: 8, active: 4, recovery: 17, hitstun: 17, knockbackX: 2, knockbackY: -7 },
+    air:      { damage: 38, startup: 6, active: 3, recovery: 11, hitstun: 11, knockbackX: 2, knockbackY: -2 },
+    down_air: { damage: 50, startup: 9, active: 4, recovery: 15, hitstun: 15, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 24, startup: 6, active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
+  },
+  stats: { maxJumps: 2, jumpPower: 20, speed: 7 },
+  baseW: 56, baseH: 108
+}
+
+export function isTransformDevice(fighter) {
+  const k = (fighter?.rosterKey || "").toLowerCase()
+  return k === "ben10" || k === "albedo"
+}
+
+function _isAlbedo(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "albedo" }
+
+// Snap to human form (feet-anchored). Always clears attack state so a forced
+// revert can never leave the fighter locked mid-swing.
+export function revertToHuman(fighter, { forced = false } = {}) {
+  if (!fighter) return
+  const oldH = fighter.h ?? fighter.height ?? 110
+  fighter.transformed    = false
+  fighter.isCharging     = false
+  fighter.basic_attacks  = HUMAN_FORM.basic_attacks
+  fighter.specials       = {}
+  fighter.ultimate       = null
+  fighter.activeAlien    = null
+  fighter.activeAlienName = "Human"
+  fighter.name  = _isAlbedo(fighter) ? "Albedo" : "Ben"
+  fighter.color = _isAlbedo(fighter) ? "#dc2626" : "#84cc16"
+  fighter.maxJumps  = HUMAN_FORM.stats.maxJumps
+  fighter.jumpForce = -HUMAN_FORM.stats.jumpPower
+  fighter.baseSpeed = HUMAN_FORM.stats.speed
+  fighter.speed     = HUMAN_FORM.stats.speed
+  const nw = HUMAN_FORM.baseW, nh = HUMAN_FORM.baseH
+  fighter.w = nw; fighter.width = nw
+  fighter.y = (fighter.y ?? 0) + (oldH - nh)
+  fighter.h = nh; fighter.height = nh
+  fighter.attacking = false
+  fighter.currentAttack = null
+  fighter.currentMove = null
+  if (forced) {
+    fighter.deviceRecharge = TRANSFORM_ENERGY.RECHARGE_FRAMES
+    fighter.colorFlash = 12
+    fighter.teleportFlash = 12
+  }
+}
+
+// (Re)transform into the device's currently-selected alien, if allowed.
+export function tryTransform(fighter) {
+  if (!isTransformDevice(fighter) || !fighter.omnitrix) return false
+  if (fighter.transformed) return false
+  if ((fighter.deviceRecharge || 0) > 0) return false
+  if ((fighter.energy || 0) < TRANSFORM_ENERGY.MIN_TRANSFORM_ENERGY) return false
+  applyAlien(fighter, fighter.omnitrix.aliens[fighter.omnitrix.index])
+  fighter.transformed = true
+  fighter.teleportFlash = 10
+  return true
+}
+
+// Per-frame device update — call from the game loop with real delta ms.
+export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
+  if (!isTransformDevice(fighter) || !fighter.omnitrix) return
+  const dt  = Math.max(0, deltaMs) / 1000
+  const max = fighter.maxEnergy || 100
+  if ((fighter.deviceRecharge || 0) > 0) fighter.deviceRecharge--
+
+  if (!fighter.transformed) {
+    fighter.energy = Math.min(max, (fighter.energy || 0) + TRANSFORM_ENERGY.HUMAN_REGEN_PER_SEC * dt)
+    return
+  }
+
+  if (fighter.hitstun > 0) fighter.isCharging = false   // a hit interrupts the charge
+
+  if (fighter.isCharging) {
+    fighter.energy = Math.min(max, (fighter.energy || 0) + TRANSFORM_ENERGY.CHARGE_RESTORE_PER_SEC * dt)
+  } else {
+    const alien  = BEN10_ALIEN_POOL[fighter.activeAlien]
+    const strong = alien ? Math.max(0.6, (alien.maxHealth || 1000) / 1000) : 1   // titans drain faster
+    let drain = TRANSFORM_ENERGY.DRAIN_PER_SEC * (1 + (strong - 1) * TRANSFORM_ENERGY.STRONG_FORM_SCALE)
+    if (fighter.attacking && fighter.currentAttack) drain += TRANSFORM_ENERGY.ATTACK_DRAIN_BONUS
+    fighter.energy = Math.max(0, (fighter.energy || 0) - drain * dt)
+  }
+
+  if ((fighter.energy || 0) <= 0) revertToHuman(fighter, { forced: true })
+}
+
 export function setupBen10(fighter, selected = DEFAULT_OMNITRIX) {
   if (!fighter) return
-  fighter.rosterKey = "ben10"
-  fighter.omnitrix = createOmnitrixState(selected)
+  if (!fighter.rosterKey) fighter.rosterKey = "ben10"   // don't clobber a clone (Albedo)
+  fighter.omnitrix       = createOmnitrixState(selected)
+  fighter.deviceRecharge = 0
+  fighter.isCharging     = false
+  fighter.transformed    = true   // start in the first alien; the drain meter ticks from here
   applyAlien(fighter, fighter.omnitrix.aliens[0])
 }
 
@@ -1247,29 +1460,50 @@ export function drawBen10(ctx, fighter) {
   const w = fighter.w ?? fighter.width ?? 60
   const h = fighter.h ?? fighter.height ?? 110
   const facing = fighter.facing ?? 1
-  const alien = BEN10_ALIEN_POOL[fighter.activeAlien] || BEN10_ALIEN_POOL.heatblast
-  const col = alien.color
+
+  const albedo      = _isAlbedo(fighter)
+  const transformed = fighter.transformed !== false   // legacy ben (no flag) = transformed
+  const alien       = transformed ? BEN10_ALIEN_POOL[fighter.activeAlien] : null
+  // Human form uses Ben-green / Albedo-red; alien form uses the alien palette.
+  const col       = (transformed && alien) ? alien.color : (albedo ? "#dc2626" : "#84cc16")
+  const label     = (transformed && alien) ? alien.name : (albedo ? "Albedo" : "Ben")
+  const symbolCol = albedo ? "#ef4444" : "#22c55e"    // Albedo's Ultimatrix dial glows red
+  const symbolRim = albedo ? "#450a0a" : "#052e16"
 
   ctx.save()
+
+  // Charging glow (refilling, vulnerable) / forced-revert recharge ring.
+  const t = performance.now() * 0.001
+  if (fighter.isCharging) {
+    ctx.save(); ctx.globalAlpha = 0.4 + Math.sin(t * 12) * 0.2
+    ctx.strokeStyle = symbolCol; ctx.lineWidth = 4; ctx.shadowBlur = 18; ctx.shadowColor = symbolCol
+    _benRR(ctx, x - 5, y - 5, w + 10, h + 10, 14); ctx.stroke(); ctx.restore()
+  } else if (!transformed && (fighter.deviceRecharge || 0) > 0) {
+    ctx.save(); ctx.globalAlpha = 0.5; ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 3
+    ctx.setLineDash([6, 6]); _benRR(ctx, x - 4, y - 4, w + 8, h + 8, 14); ctx.stroke(); ctx.restore()
+  }
 
   const g = ctx.createLinearGradient(x, y, x, y + h)
   g.addColorStop(0, col); g.addColorStop(1, _benShade(col, -0.35))
   ctx.fillStyle = g
   _benRR(ctx, x, y + h * 0.18, w, h * 0.82, 10); ctx.fill()
 
+  // Omnitrix / Ultimatrix chest dial.
   const bx = x + w / 2, by = y + h * 0.42
-  ctx.fillStyle = "#052e16"; ctx.beginPath(); ctx.arc(bx, by, 9, 0, Math.PI * 2); ctx.fill()
-  ctx.fillStyle = "#22c55e"; ctx.beginPath(); ctx.arc(bx, by, 6, 0, Math.PI * 2); ctx.fill()
-  ctx.strokeStyle = "#052e16"; ctx.lineWidth = 2
+  ctx.fillStyle = symbolRim; ctx.beginPath(); ctx.arc(bx, by, 9, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = symbolCol; ctx.beginPath(); ctx.arc(bx, by, 6, 0, Math.PI * 2); ctx.fill()
+  ctx.strokeStyle = symbolRim; ctx.lineWidth = 2
   ctx.beginPath(); ctx.moveTo(bx - 5, by); ctx.lineTo(bx + 5, by); ctx.stroke()
 
   const hx = x + w / 2, hy = y + h * 0.12
   ctx.fillStyle = _benShade(col, 0.15)
   ctx.beginPath(); ctx.arc(hx, hy, h * 0.11, 0, Math.PI * 2); ctx.fill()
 
-  ctx.fillStyle = "#0f172a"
+  // Albedo has red eyes (Galvan-clone "Negative" tell); Ben's are dark.
+  ctx.fillStyle = albedo ? "#ef4444" : "#0f172a"
   const eyeOff = facing >= 0 ? 4 : -4
   ctx.beginPath(); ctx.arc(hx + eyeOff, hy - 1, 2.6, 0, Math.PI * 2); ctx.fill()
+  if (albedo) { ctx.shadowBlur = 6; ctx.shadowColor = "#ef4444"; ctx.fill(); ctx.shadowBlur = 0 }
 
   ctx.fillStyle = _benShade(col, -0.5)
   ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
@@ -1282,7 +1516,7 @@ export function drawBen10(ctx, fighter) {
 
   ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "bottom"
   ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(hx - 40, y - 18, 80, 16)
-  ctx.fillStyle = col; ctx.fillText(alien.name, hx, y - 4)
+  ctx.fillStyle = col; ctx.fillText(label, hx, y - 4)
 
   ctx.globalAlpha = 0.25; ctx.fillStyle = "#000"
   ctx.beginPath(); ctx.ellipse(hx, y + h + 6, w * 0.45, 10, 0, 0, Math.PI * 2); ctx.fill()

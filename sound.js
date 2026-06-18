@@ -46,6 +46,11 @@ export const SFX = {
 // ─────────────────────────────────────────────────────────────────
 export const AUDIO_BASE = "./"
 
+// Music for EVERY non-stadium context — loading/menu, character select, win
+// screen, etc. Only actual fight stages override this (via playStageTrack).
+// NOTE: exact on-disk filename — the file is literally "Passion_fruitmp3.mp3".
+export const MENU_MUSIC_FILE = "Passion_fruitmp3.mp3"
+
 export const MUSIC = {
   MENU:           "music_menu",
   JUJUTSU_HIGH:   "music_jujutsu_high",
@@ -445,13 +450,36 @@ class SoundManager {
       this._ready  = true
     } catch(_) { return }
 
-    // Resume on first interaction
+    // AUTOPLAY: do nothing audible until the first user gesture. On that gesture
+    // we mark _gestured, resume the AudioContext, and flush whatever track was
+    // requested while we were waiting (e.g. the menu/stage music queued at boot).
     const resume = () => {
+      this._gestured = true
       if (this._ctx?.state === "suspended") this._ctx.resume()
+      this._flushPendingMusic()
     }
-    document.addEventListener("keydown",   resume, { once: true })
-    document.addEventListener("mousedown", resume, { once: true })
-    document.addEventListener("touchstart",resume, { once: true })
+    document.addEventListener("pointerdown", resume, { once: true })
+    document.addEventListener("keydown",     resume, { once: true })
+    document.addEventListener("touchstart",  resume, { once: true })
+  }
+
+  _flushPendingMusic() {
+    const p = this._pendingMusic
+    if (!p) return
+    this._pendingMusic = null
+    if (p.kind === "theme")      this.playMusic(p.id, true)
+    else if (p.kind === "stage") this.playStageTrack(p.stage)
+    else if (p.kind === "menu")  this.playMenuMusic()
+  }
+
+  // Centralized non-stadium music. Plays MENU_MUSIC_FILE (looping), honoring the
+  // same first-gesture gate as everything else — queues until the user interacts,
+  // and falls back to the procedural MENU theme if the file 404s.
+  playMenuMusic() {
+    if (!this._ready) return
+    if (!this._gestured) { this._pendingMusic = { kind: "menu" }; return }
+    this._fileFallbackTheme = MUSIC.MENU
+    if (!this.playMusicFile(MENU_MUSIC_FILE, true)) this.playMusic(MUSIC.MENU, true)
   }
 
   // ── PLAY SFX ──────────────────────────────────────────────────
@@ -478,6 +506,9 @@ class SoundManager {
   // ── MUSIC (procedural) ────────────────────────────────────────
   playMusic(id, _loop = true) {
     if (!this._ready || !this._musicPlayer) return
+    // Before the first user gesture, queue instead of starting (avoids the
+    // "AudioContext was not allowed to start" warning).
+    if (!this._gestured) { this._pendingMusic = { kind: "theme", id }; return }
     this.stopMusicFile()   // procedural and file music never overlap
     if (this._ctx.state === "suspended") {
       this._ctx.resume().then(() => this._musicPlayer.play(id))
@@ -494,12 +525,16 @@ class SoundManager {
   // ── MUSIC (real audio file) ───────────────────────────────────
   _resolveSrc(filename) {
     if (!filename) return null
+    // Absolute / already-relative paths pass through; bare names resolve under
+    // the single configurable AUDIO_BASE.
     if (/^(\.\/|\.\.\/|\/|https?:)/.test(filename)) return filename
-    return `./${filename}`
+    return `${AUDIO_BASE}${filename}`
   }
 
   // Play a user-provided .mp3 (looping). Honors the same mute/volume as the
-  // procedural music. Returns false if the file can't be started.
+  // procedural music. On a load failure (e.g. 404 / wrong filename) it logs a
+  // clear warning and falls back to the procedural theme. Returns false if the
+  // file can't even be requested.
   playMusicFile(filename, loop = true) {
     const src = this._resolveSrc(filename)
     if (!src) return false
@@ -510,6 +545,11 @@ class SoundManager {
       }
       const a = this._musicFile
       this._musicPlayer?.stop()   // silence procedural layer
+      a.onerror = () => {
+        console.warn(`[sound] music file failed to load: ${src} — falling back to procedural theme`)
+        this._musicFileSrc = null
+        if (this._fileFallbackTheme) this.playMusic(this._fileFallbackTheme, true)
+      }
       // Only (re)load when the track actually changes, so a rematch on the same
       // stage doesn't restart the song.
       if (this._musicFileSrc !== src) { a.src = src; this._musicFileSrc = src }
@@ -517,7 +557,7 @@ class SoundManager {
       a.muted  = this._muted
       a.volume = this._musicVol
       const p = a.play()
-      if (p && p.catch) p.catch(() => {})   // autoplay gating resolves after a user gesture
+      if (p && p.catch) p.catch(() => {})   // gesture-gating handled by _gestured; 404s handled by onerror
       return true
     } catch (_) { return false }
   }
@@ -532,8 +572,11 @@ class SoundManager {
   // Preferred entry point: play a stage's assigned audio file, else fall back
   // to the procedural theme that best fits the stage/series.
   playStageTrack(stage) {
+    // Queue until the first gesture, then resolve file → procedural fallback.
+    if (!this._gestured) { this._pendingMusic = { kind: "stage", stage }; return }
+    this._fileFallbackTheme = this._proceduralThemeForStage(stage)
     if (stage?.music && this.playMusicFile(stage.music, true)) return
-    this.playMusic(this._proceduralThemeForStage(stage), true)
+    this.playMusic(this._fileFallbackTheme, true)
   }
 
   _proceduralThemeForStage(stage) {

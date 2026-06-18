@@ -2,7 +2,10 @@
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows } from "./bindingvow.js"
 import { characters, characterList } from "./characters.js"
-import { switchAlien, BEN10_ALIEN_POOL } from "./fighters.js"
+import {
+  switchAlien, BEN10_ALIEN_POOL, setupBen10,
+  isTransformDevice, updateTransformDevice, tryTransform, revertToHuman
+} from "./fighters.js"
 import { camera } from "./camera.js"
 import { SpriteHandler, processPendingSpawns, preloadCharacterSprites } from "./sprite.js"
 import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
@@ -133,8 +136,10 @@ const P2_CONTROLS = {
 // series here and every stage in that series picks it up automatically. Leave
 // null to fall back to the procedural theme (sound._proceduralThemeForStage).
 const SERIES_MUSIC = {
-  jjk:         "jjk_delirious.mp3",
-  naruto:      "naruto_fighting_spirit.mp3",
+  // NOTE: these MUST match the real files on disk exactly (the server is
+  // case-sensitive). The Naruto file is spelled "sprit" (not "spirit").
+  jjk:         "JJK-Delirious.mp3",
+  naruto:      "Naruto_fighting_sprit.mp3",
   dragonball:  null,   // TODO: e.g. "dragonball_battle.mp3"
   demonslayer: null,   // TODO: e.g. "demonslayer_theme.mp3"
   rickmorty:   null,   // TODO: e.g. "rickmorty_theme.mp3"
@@ -562,7 +567,7 @@ function resetToStart() {
   roundTimer      = ROUND_TIME
   clearDomains()
   sound.stopMusic?.()
-  sound.playMusic?.(MUSIC.MENU, true)
+  sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
   knockoutFlash  = 0
   slowdownTimer  = 0
@@ -640,12 +645,25 @@ function _checkMatchOver() {
     recordRoundEnd?.(matchStats, winner, p1?.health || 0, p2?.health || 0)
     sound.stopMusic?.()
     sound.play?.(SFX.KO)
+    sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
     gameState = GAME_STATES.VICTORY
   } else {
     roundNumber++
     roundBreakTimer = ROUND_BREAK_DURATION
     gameState = GAME_STATES.ROUND_BREAK
   }
+}
+
+// Re-arm a Ben/Albedo transform device after a generic rematch reset: restore a
+// full meter and rebuild the Omnitrix so they re-enter their first alien form
+// (setupBen10 re-applies the alien's basics/specials/ultimate/size/color/name).
+function reinitTransformDevice(f) {
+  if (!isTransformDevice(f)) return
+  const loadout = f.omnitrix?.aliens || f.selectedAliens || undefined
+  f.energy         = f.maxEnergy || 100
+  f.isCharging     = false
+  f.deviceRecharge = 0
+  setupBen10(f, loadout)
 }
 
 function _doRematch() {
@@ -656,6 +674,12 @@ function _doRematch() {
   winnerText   = ""
   if (p1) resetFighterForRematch?.(p1)
   if (p2) resetFighterForRematch?.(p2)
+  // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
+  // in whatever form the match ended in). Re-arm the device so they start the
+  // rematch transformed into their first alien with a full drain meter, at the
+  // correct size — BEFORE we recompute spawn Y from height.
+  reinitTransformDevice(p1)
+  reinitTransformDevice(p2)
   const { p1X, p2X } = getSpawnPositions()
   if (p1) { p1.x = p1X; p1.y = getGroundedYForFighter(p1) }
   if (p2) { p2.x = p2X; p2.y = getGroundedYForFighter(p2) }
@@ -701,6 +725,10 @@ function updateCPUInput() {
   if (isPvP()) { clearAIControlKeys(p2); return }
   const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training"
   if (!cpu)  { clearAIControlKeys(p2); return }
+  // The AI doesn't manage the transform device, so auto re-engage its alien form
+  // once it has recharged — otherwise a CPU Ben/Albedo would stay weak human after
+  // its first forced revert.
+  if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
   applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode }))
 }
 
@@ -806,22 +834,23 @@ function updateMovementInput(fighter) {
   const inputState = getFighterInput(fighter)
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   fighter.isBlocking = false
-  if (fighter.rosterKey === "ben10") handleOmnitrixSwitch(fighter, inputState)
+  if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
-  if (inputState.down)   fighter.isBlocking = true
-  // For Ben 10 the charge button is the Omnitrix dial, not an energy charge.
-  if (inputState.charge && fighter.rosterKey !== "ben10") doEnergyCharge(fighter)
+  // Can't block while charging the transform device (deliberate vulnerability).
+  if (inputState.down && !fighter.isCharging) fighter.isBlocking = true
+  // For Ben/Albedo the charge button is the device dial (energy refill / switch),
+  // handled in handleOmnitrixSwitch — not the generic energy charge.
+  if (inputState.charge && !isTransformDevice(fighter)) doEnergyCharge(fighter)
   physics.moveFighter(fighter, vKeys, fighter.controls)
 }
 
-// ── BEN 10 OMNITRIX — in-fight alien switching ─────────────────────
-// MK1 "Ghostface" style: your 5 aliens are loaded; a combo cycles through them.
-//   • Hold CHARGE + tap RIGHT → next alien,  CHARGE + tap LEFT → previous alien.
-//   • Tap CHARGE alone           → next alien (quick cycle).
-// This combo is identical on keyboard (Charge = O for P1) and controller
-// (Charge = R1), and is conflict-free with the opponent's / AI's inputs.
-// switchAlien() enforces the Omnitrix recharge cooldown, so holding the combo
-// can't spam-transform.
+// ── OMNITRIX / ULTIMATRIX — in-fight transform device (Ben & Albedo) ───────
+// Same input scheme for both, now gated by the energy/uptime rules (Task 2):
+//   • CHARGE + tap RIGHT/LEFT → cycle to next/prev alien (only while transformed).
+//   • CHARGE alone, while HUMAN (and recharged) → transform into the current alien.
+//   • CHARGE alone, while TRANSFORMED → CHARGE the meter (fast refill, but you
+//     can't block and a hit interrupts it — see updateMovementInput / combat.js).
+// switchAlien() still enforces the per-switch recharge cooldown.
 function handleOmnitrixSwitch(fighter, inputState) {
   if (!fighter?.omnitrix) return
   const held = (fighter._omx = fighter._omx || {})
@@ -830,11 +859,22 @@ function handleOmnitrixSwitch(fighter, inputState) {
   const left   = !!inputState.left
   const right  = !!inputState.right
 
+  fighter.isCharging = false   // re-evaluated each frame below
+
   if (charge) {
-    if (right && !held.right)                  switchAlien(fighter,  1)
-    else if (left && !held.left)               switchAlien(fighter, -1)
-    else if (!held.charge && !left && !right)  switchAlien(fighter,  1)
+    if (right && !held.right) {
+      if (fighter.transformed) switchAlien(fighter,  1)
+    } else if (left && !held.left) {
+      if (fighter.transformed) switchAlien(fighter, -1)
+    } else if (!left && !right) {
+      if (!fighter.transformed) {
+        if (!held.charge) tryTransform(fighter)   // tap to re-engage once recharged
+      } else {
+        fighter.isCharging = true                 // hold to refill the drain meter
+      }
+    }
   }
+
   held.charge = charge
   held.left   = left
   held.right  = right
@@ -882,7 +922,11 @@ function updateFighterState(fighter) {
   updateMiscTimers(updated)
   physics.applyGravity(updated)
   physics.updateAttackBox(updated)
-  regenEnergy(updated)
+  // Ben/Albedo run the transform-device drain/charge/revert system instead of
+  // the generic passive regen (which would fight the drain). Driven by real
+  // per-frame delta ms.
+  if (isTransformDevice(updated)) updateTransformDevice(updated, getAbilityContext().deltaMs)
+  else regenEnergy(updated)
   return updated
 }
 
@@ -1676,7 +1720,7 @@ window.addEventListener("resize", () => {
 // BOOT
 // ------------------------------------------------------------------
 sound.init?.()
-sound.playMusic?.(MUSIC.MENU, true)
+sound.playMenuMusic?.()   // boot/loading screen → Passion_fruitmp3.mp3 (queued until first gesture)
 syncPhysicsBounds()
 updateCameraBounds()
 gameLoop()

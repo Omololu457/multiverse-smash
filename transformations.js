@@ -74,6 +74,16 @@ export function applyTransformation(fighter, transformationName) {
 
     applyFormStats(fighter, form)
 
+    // Opt-in HEALTH SPIKE (Adult Gon etc.). Snapshot the pre-transform max once
+    // so revert can restore it; heal by the gained headroom on entry.
+    if (form.healthMultiplier && form.healthMultiplier !== 1) {
+        if (fighter._preTransformMaxHealth == null) fighter._preTransformMaxHealth = fighter.maxHealth || 1000
+        const newMax = Math.round(fighter._preTransformMaxHealth * form.healthMultiplier)
+        const gain   = newMax - (fighter.maxHealth || newMax)
+        fighter.maxHealth = newMax
+        fighter.health    = Math.min(newMax, (fighter.health || 0) + Math.max(0, gain))
+    }
+
     // Duration tracking
     if (form.duration && !form.permanent) {
         fighter.transformationTimer = form.duration * 1000 // ms
@@ -110,6 +120,15 @@ export function updateTransformations(fighter, deltaTime) {
         if (fighter.energy < 0) fighter.energy = 0
     }
 
+    // Opt-in FORCE-REVERT at zero fuel (Adult Gon etc.). Existing forms omit the
+    // `revertOnEmpty` flag, so their duration-only behavior is unchanged.
+    const cf = fighter.transformations?.[fighter.currentForm]
+    if (cf && cf.revertOnEmpty && (fighter.energy || 0) <= 0 &&
+        !fighter.permanentForm && !fighter.oneWayTransformation && !fighter.deathRitual) {
+        revertTransformation(fighter)
+        return
+    }
+
     // Permanent / one-way forms do not revert automatically
     if (fighter.permanentForm || fighter.oneWayTransformation || fighter.deathRitual) {
         return
@@ -132,6 +151,9 @@ export function revertTransformation(fighter) {
     if (fighter.permanentForm || fighter.oneWayTransformation || fighter.deathRitual) {
         return false
     }
+
+    // Capture the form we're leaving BEFORE we wipe currentForm below.
+    const leaving = fighter.transformations?.[fighter.currentForm]
 
     const base = fighter.baseForm
 
@@ -160,6 +182,22 @@ export function revertTransformation(fighter) {
     fighter.deathRitual = false
     fighter.ritualActive = false
     fighter.lockSpecials = []
+
+    // Extended revert for energy-fuelled forms (Adult Gon etc.) — opt-in so
+    // existing characters are untouched. abilities.js updateTransformationState
+    // re-applies multipliers from currentFormData every frame, so we MUST point
+    // it back at the base form or the boost would persist after reverting.
+    if (leaving && (leaving.revertOnEmpty || leaving.reusable || leaving.healthMultiplier)) {
+        const baseKey = fighter.transformationOrder?.[0] || "base"
+        fighter.currentFormData = fighter.transformations?.[baseKey] || null
+        if (fighter._preTransformMaxHealth != null) {
+            fighter.maxHealth = fighter._preTransformMaxHealth
+            if ((fighter.health || 0) > fighter.maxHealth) fighter.health = fighter.maxHealth
+            fighter._preTransformMaxHealth = null
+        }
+        // Re-usable forms can be triggered again once fuel is rebuilt.
+        if (leaving.reusable) fighter.transformIndex = 0
+    }
 
     return true
 }

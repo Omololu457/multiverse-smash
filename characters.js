@@ -172,6 +172,8 @@ const gojo = {
   traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "high", scaling: "control", animeMovement: true },
   stats: { maxHealth: 1160, maxEnergy: 220, attack: 91, defense: 88, speed: 87, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 8, dashCooldownMax: 35 },
   hasSprites: true,
+  // Strip-based sprites load via spritesheets.js SPRITE_MANIFEST (./gojo_<action>_sheet.png).
+  // (spriteSheet below is a legacy atlas hint, unused by the strip loader.)
   spriteSheet: "assets/gojo_atlas.png",
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
@@ -190,11 +192,26 @@ const gojo = {
   domain: { name: "Unlimited Void", priority: 3, background: "void" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  // ── GOJO SPRITE SPEC — the contract the replacement art must match ──
+  // Each entry = one ./gojo_<action>_sheet.png horizontal strip: `frames` cells
+  // left→right, every cell `width`×`height` px, advanced every `speed` ticks.
+  // Update these numbers to match the NEW sheets if their layout differs; the
+  // existing sheets keep loading until then (see spritesheets.js GOJO_SPRITE_SPEC).
   animationData: {
     ...DEFAULT_ANIM,
-    light: { frames: 5, width: 128, height: 128, speed: 4, startup: [0,1], active: [2,3], recovery: [4] },
-    heavy: { frames: 7, width: 128, height: 128, speed: 5, startup: [0,1,2], active: [3,4], recovery: [5,6] },
-    special_purple: { frames: 10, width: 256, height: 128, speed: 6, startup: [0,1,2,3,4], active: [5,6,7,8], recovery: [9] }
+    idle:          { frames: 6,  width: 128, height: 128, speed: 8 },
+    walk:          { frames: 8,  width: 128, height: 128, speed: 5 },
+    jump:          { frames: 4,  width: 128, height: 128, speed: 6 },
+    hurt:          { frames: 2,  width: 128, height: 128, speed: 10 },
+    light:         { frames: 5,  width: 128, height: 128, speed: 4, startup: [0,1], active: [2,3], recovery: [4] },
+    heavy:         { frames: 7,  width: 128, height: 128, speed: 5, startup: [0,1,2], active: [3,4], recovery: [5,6] },
+    blue:          { frames: 6,  width: 128, height: 128, speed: 5 },
+    red:           { frames: 6,  width: 128, height: 128, speed: 5 },
+    hollow_purple: { frames: 10, width: 256, height: 128, speed: 6, startup: [0,1,2,3,4], active: [5,6,7,8], recovery: [9] },
+    infinity:      { frames: 4,  width: 128, height: 128, speed: 8 },
+    teleport:      { frames: 4,  width: 128, height: 128, speed: 4 },
+    // Back-compat alias (SpriteHandler may resolve the purple special to this key).
+    special_purple:{ frames: 10, width: 256, height: 128, speed: 6, startup: [0,1,2,3,4], active: [5,6,7,8], recovery: [9] }
   }
 }
 
@@ -761,6 +778,347 @@ const doggieShadow = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// ALBEDO  (Ben's clone — Ultimatrix)
+// Mechanically identical to Ben 10: same alien roster + same energy/transform
+// system (see fighters.js setupBen10 / updateTransformDevice). This entry just
+// makes Albedo SELECTABLE and flags him as the clone so the device/draw code
+// gives him his own red "Negative" identity. physics.js auto-runs setupBen10()
+// for rosterKey "albedo" the same way it does for "ben10".
+// ─────────────────────────────────────────────────────────────────
+const albedo = {
+  rosterKey: "albedo", name: "Albedo", universe: "ben_10",
+  isAlbedo: true, deviceType: "ultimatrix",
+  spriteSheet: "sprites/albedo/albedo_atlas.png",   // deferred art — SpriteHandler falls back to procedural
+  archetypes: ["transformations", "melee"],
+  primary: "transformations", secondary: ["melee"],
+  traits: { hasEnergy: true, energyType: "ultimatrix", mobility: "high", scaling: "burst" },
+  passive: { name: "Ultimatrix", effect: "Same as the Omnitrix — cycle aliens; the form drains energy and force-reverts to human at zero" },
+  stats: { maxHealth: 1250, maxEnergy: 100, attack: 90, defense: 85, speed: 5, maxJumps: 1, jumpPower: 19, dashSpeed: 15, dashDuration: 8, dashCooldownMax: 30 },
+  basic_attacks: {
+    light:     { damage: 53, startup: 6, active: 3, recovery: 12, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 106, startup: 11, active: 5, recovery: 20, hitstun: 18, knockbackX: 6, knockbackY: 1, superArmor: true },
+    upAttack:  { damage: 85, startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: -8 },
+    airAttack: { damage: 70, startup: 6, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 98, startup: 10, active: 4, recovery: 16, hitstun: 18, knockbackX: 1, knockbackY: 11 },
+    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
+  },
+  specials: {},
+  ultimate: { name: "Ultimatrix Overload", cost: 100, duration: 8, effect: "Active alien's ultimate" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// INVINCIBLE — Viltrumites
+// Always base form (NO energy/transform system). Pure stats: overwhelming power
+// tied to slow startup + punishable recovery + high knockback so they're strong
+// but beatable. maxEnergy 0 → all specials cost 0 (raw power, like Toji).
+// ─────────────────────────────────────────────────────────────────
+const omniMan = {
+  rosterKey: "omniman", name: "Omni-Man", universe: "invincible",
+  archetypes: ["melee", "flight"],
+  primary: "melee", secondary: ["flight"],
+  traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "damage", animeMovement: false },
+  passive: { name: "Viltrumite Physiology", effect: "Superhuman strength and flight — high air mobility and knockback" },
+  stats: { maxHealth: 1400, maxEnergy: 0, attack: 98, defense: 88, speed: 90, maxJumps: 3, jumpPower: 36, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 36 },
+  basic_attacks: {
+    light:     { damage: 50, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 4, knockbackY: 0 },
+    heavy:     { damage: 120, startup: 13, active: 5, recovery: 26, hitstun: 22, knockbackX: 11, knockbackY: 2, superArmor: true },
+    upAttack:  { damage: 92, startup: 10, active: 4, recovery: 20, hitstun: 22, knockbackX: 3, knockbackY: -11 },
+    airAttack: { damage: 78, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: -2 },
+    downAir:   { damage: 105, startup: 11, active: 4, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: 13 },
+    grab:      { damage: 36, startup: 6, active: 3, recovery: 15, hitstun: 22, throwForceX: 7, throwForceY: -5 }
+  },
+  specials: {
+    flightSlam:    { cost: 0, damage: 150, startup: 14, active: 5, recovery: 28, hitstun: 28, knockbackX: 13, knockbackY: -4, effect: "soaring slam — huge knockback, very punishable on whiff" },
+    skeweringRush: { cost: 0, damage: 130, startup: 11, active: 5, recovery: 24, hitstun: 24, knockbackX: 12, knockbackY: -2, subtype: "mobility", dashSpeed: 22, effect: "flying tackle across the screen" }
+  },
+  ultimate: { name: "Viltrumite Onslaught", cost: 0, duration: 8, effect: "Relentless flying assault: heavy damage and knockback surge" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+const thragg = {
+  rosterKey: "thragg", name: "Thragg", universe: "invincible",
+  archetypes: ["melee", "grappler"],
+  primary: "melee", secondary: ["grappler"],
+  traits: { hasEnergy: false, energyType: "none", mobility: "low", scaling: "damage", animeMovement: false },
+  passive: { name: "Warlord's Might", effect: "Strongest and toughest Viltrumite — top-tier power but the slowest mover" },
+  stats: { maxHealth: 1600, maxEnergy: 0, attack: 106, defense: 95, speed: 76, maxJumps: 1, jumpPower: 26, dashSpeed: 12, dashDuration: 8, dashCooldownMax: 54 },
+  basic_attacks: {
+    light:     { damage: 55, startup: 6, active: 3, recovery: 13, hitstun: 14, knockbackX: 4, knockbackY: 0 },
+    heavy:     { damage: 132, startup: 15, active: 5, recovery: 30, hitstun: 24, knockbackX: 12, knockbackY: 2, superArmor: true },
+    upAttack:  { damage: 100, startup: 12, active: 5, recovery: 22, hitstun: 24, knockbackX: 3, knockbackY: -11 },
+    airAttack: { damage: 86, startup: 7, active: 4, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: -2 },
+    downAir:   { damage: 116, startup: 12, active: 5, recovery: 20, hitstun: 22, knockbackX: 2, knockbackY: 14 },
+    grab:      { damage: 44, startup: 6, active: 3, recovery: 16, hitstun: 24, throwForceX: 8, throwForceY: -5 }
+  },
+  specials: {
+    crushingGrip: { cost: 0, damage: 175, startup: 12, active: 4, recovery: 30, hitstun: 30, knockbackX: 6, knockbackY: -4, subtype: "command_grab", rangeX: 70, superArmor: true, effect: "armored command grab — massive close-range damage, slow recovery" },
+    warHammerBlow:{ cost: 0, damage: 150, startup: 14, active: 5, recovery: 28, hitstun: 28, knockbackX: 12, knockbackY: -3, effect: "two-fisted overhead smash" }
+  },
+  ultimate: { name: "Conqueror's Verdict", cost: 0, duration: 8, effect: "Unstoppable assault: max damage and armor, devastating throws" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// HUNTER × HUNTER
+// Phase-1 roster: shared basic-attack template (HXH_BASICS) with per-fighter
+// stat profiles + a thematic special/ultimate, so each plays distinctly even
+// before bespoke movesets. `color` drives the procedural fallback silhouette;
+// `spriteSheets` lists the art each fighter still needs (hasSprites:false → the
+// procedural fallback renders until those sheets exist). Energy = "nen".
+// ─────────────────────────────────────────────────────────────────
+const HXH_BASICS = {
+  light:     { damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+  heavy:     { damage: 84, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
+  upAttack:  { damage: 68, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
+  airAttack: { damage: 58, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+  downAir:   { damage: 76, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
+  grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
+}
+// Sprite-sheet filename set per fighter (naming convention: <key>_<action>_sheet.png).
+const hxhSheets = (n) => ({
+  idle: `${n}_idle_sheet.png`, walk: `${n}_walk_sheet.png`, attack: `${n}_attack_sheet.png`,
+  jump: `${n}_jump_sheet.png`, hurt: `${n}_hurt_sheet.png`
+})
+
+const gon = {
+  rosterKey: "gon", name: "Gon Freecss", universe: "hunter_x_hunter", color: "#16a34a",
+  archetypes: ["melee", "transformations"], primary: "melee", secondary: ["transformations"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "high", scaling: "burst", animeMovement: true },
+  passive: { name: "Enhancer", effect: "Strong, straightforward strikes; can tap into Adult Gon at the cost of all his nen" },
+  stats: { maxHealth: 1150, maxEnergy: 120, attack: 90, defense: 84, speed: 86, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 40 },
+  basic_attacks: { ...HXH_BASICS, heavy: { damage: 92, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1 } },
+  specials: {
+    rockSmash:   { cost: 25, damage: 120, startup: 12, active: 5, recovery: 20, hitstun: 24, knockbackX: 9, knockbackY: -2, effect: "charged enhancer punch" },
+    paperToss:   { cost: 20, damage: 90,  startup: 9,  active: 4, recovery: 16, hitstun: 16, knockbackX: 6, knockbackY: -1, rangeX: 170, effect: "ranged nen disc" }
+  },
+  ultimate: { name: "First Comes Rock", cost: 100, duration: 8, effect: "Huge committed nen smash" },
+  // Phase 2 — Adult Gon reuses the standard transformation energy system
+  // (transformations.js): large nen cost to enter, drains fast while active,
+  // health/strength spike, and FORCE-REVERTS to base Gon when nen hits zero.
+  // All values below are the tunable knobs.
+  transformationOrder: ["base", "adultGon"],
+  transformations: {
+    base:     { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
+    adultGon: {
+      cost: 60,                // large nen cost to transform
+      kiDrainPerSecond: 24,    // drains fast while active
+      revertOnEmpty: true,     // force-revert to base Gon at zero nen
+      reusable: true,          // can transform again once nen is rebuilt
+      healthMultiplier: 1.4,   // health spike
+      damageMultiplier: 1.9, speedMultiplier: 1.3, defenseMultiplier: 1.25,
+      isSpecial: true, duration: 12
+    }
+  },
+  spriteSheets: { ...hxhSheets("gon"), adult: hxhSheets("adult_gon") },
+  animationData: { ...DEFAULT_ANIM }
+}
+
+const killua = {
+  rosterKey: "killua", name: "Killua Zoldyck", universe: "hunter_x_hunter", color: "#38bdf8",
+  archetypes: ["melee", "speed"], primary: "melee", secondary: ["speed"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "very_high", scaling: "rushdown", animeMovement: true },
+  passive: { name: "Godspeed", effect: "Fastest fighter — rapid attacks and an electric dash, but fragile" },
+  stats: { maxHealth: 1000, maxEnergy: 130, attack: 86, defense: 78, speed: 98, maxJumps: 3, jumpPower: 34, dashSpeed: 24, dashDuration: 8, dashCooldownMax: 28 },
+  basic_attacks: { ...HXH_BASICS, light: { damage: 42, startup: 3, active: 2, recovery: 8, hitstun: 12, knockbackX: 3, knockbackY: 0 }, airAttack: { damage: 56, startup: 4, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: -2 } },
+  specials: {
+    lightningDash: { cost: 15, damage: 80,  startup: 4, active: 4, recovery: 11, hitstun: 14, knockbackX: 5, knockbackY: -1, subtype: "mobility", dashSpeed: 28, effect: "electric flash-step strike" },
+    thunderPalm:   { cost: 25, damage: 115, startup: 8, active: 5, recovery: 18, hitstun: 22, knockbackX: 8, knockbackY: -2, effect: "high-voltage palm" }
+  },
+  ultimate: { name: "Speed of Lightning", cost: 100, duration: 7, effect: "Extreme speed and rapid multi-hits" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("killua"), animationData: { ...DEFAULT_ANIM }
+}
+
+const kurapika = {
+  rosterKey: "kurapika", name: "Kurapika", universe: "hunter_x_hunter", color: "#dc2626",
+  archetypes: ["melee", "ranged"], primary: "melee", secondary: ["ranged"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "medium", scaling: "control", animeMovement: true },
+  passive: { name: "Scarlet Eyes", effect: "Chain-based reach; lands a heavy conditional spike when his eyes turn scarlet" },
+  stats: { maxHealth: 1080, maxEnergy: 140, attack: 88, defense: 82, speed: 84, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 42 },
+  basic_attacks: { ...HXH_BASICS, light: { damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 4, knockbackY: 0 } },
+  specials: {
+    chainJail:    { cost: 25, damage: 100, startup: 10, active: 5, recovery: 20, hitstun: 26, knockbackX: 4, knockbackY: 0,  rangeX: 200, effect: "long-range chain bind" },
+    judgmentChain:{ cost: 45, damage: 180, startup: 16, active: 5, recovery: 26, hitstun: 30, knockbackX: 10, knockbackY: -2, effect: "conditional high-damage spike" }
+  },
+  ultimate: { name: "Emperor Time", cost: 100, duration: 8, effect: "Mastery surge: all nen output rises sharply" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("kurapika"), animationData: { ...DEFAULT_ANIM }
+}
+
+const leorio = {
+  rosterKey: "leorio", name: "Leorio Paradinight", universe: "hunter_x_hunter", color: "#a16207",
+  archetypes: ["melee", "power"], primary: "melee", secondary: ["power"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "low", scaling: "burst", animeMovement: false },
+  passive: { name: "Emission Punch", effect: "Slow but hits like a truck — huge single-hit damage" },
+  stats: { maxHealth: 1300, maxEnergy: 110, attack: 96, defense: 90, speed: 74, maxJumps: 1, jumpPower: 26, dashSpeed: 12, dashDuration: 8, dashCooldownMax: 50 },
+  basic_attacks: { ...HXH_BASICS, heavy: { damage: 110, startup: 12, active: 5, recovery: 24, hitstun: 22, knockbackX: 10, knockbackY: 2, superArmor: true }, light: { damage: 50, startup: 6, active: 3, recovery: 12, hitstun: 13, knockbackX: 4, knockbackY: 0 } },
+  specials: {
+    remotePunch: { cost: 25, damage: 160, startup: 16, active: 5, recovery: 28, hitstun: 28, knockbackX: 12, knockbackY: -3, rangeX: 150, effect: "emitted long-distance haymaker" }
+  },
+  ultimate: { name: "Doctor's Resolve", cost: 100, duration: 8, effect: "Power surge: devastating slow blows" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("leorio"), animationData: { ...DEFAULT_ANIM }
+}
+
+const hisoka = {
+  rosterKey: "hisoka", name: "Hisoka Morow", universe: "hunter_x_hunter", color: "#db2777",
+  archetypes: ["ranged", "trickster"], primary: "ranged", secondary: ["trickster"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "high", scaling: "burst", animeMovement: true },
+  passive: { name: "Bungee Gum", effect: "Pulls foes in from range; big damage but very punishable on a whiff" },
+  stats: { maxHealth: 1100, maxEnergy: 140, attack: 94, defense: 80, speed: 86, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 10, dashCooldownMax: 40 },
+  basic_attacks: { ...HXH_BASICS },
+  specials: {
+    bungeePull:  { cost: 30, damage: 130, startup: 12, active: 6, recovery: 30, hitstun: 24, knockbackX: -6, knockbackY: -2, rangeX: 210, effect: "elastic pull-in — punishable on whiff" },
+    textureTrap: { cost: 20, damage: 95,  startup: 9,  active: 5, recovery: 22, hitstun: 18, knockbackX: 7, knockbackY: -1, effect: "deceptive close burst" }
+  },
+  ultimate: { name: "Bloodlust Unleashed", cost: 100, duration: 8, effect: "Predatory surge: damage and range spike" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("hisoka"), animationData: { ...DEFAULT_ANIM }
+}
+
+const chrollo = {
+  rosterKey: "chrollo", name: "Chrollo Lucilfer", universe: "hunter_x_hunter", color: "#6d28d9",
+  archetypes: ["melee", "counter"], primary: "melee", secondary: ["counter"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "medium", scaling: "versatile", animeMovement: true },
+  passive: { name: "Skill Hunter", effect: "Well-rounded; a reactive special that turns the opponent's pressure around" },
+  stats: { maxHealth: 1150, maxEnergy: 140, attack: 89, defense: 88, speed: 85, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 40 },
+  basic_attacks: { ...HXH_BASICS },
+  specials: {
+    skillSteal:    { cost: 25, damage: 60,  startup: 6,  active: 6, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: -1, subtype: "counter", effect: "reactive parry-strike" },
+    stolenArsenal: { cost: 30, damage: 125, startup: 11, active: 5, recovery: 20, hitstun: 22, knockbackX: 8, knockbackY: -2, rangeX: 150, effect: "borrowed nen barrage" }
+  },
+  ultimate: { name: "Bandit's Secret", cost: 100, duration: 8, effect: "Versatile surge: copies and overwhelms" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("chrollo"), animationData: { ...DEFAULT_ANIM }
+}
+
+const netero = {
+  rosterKey: "netero", name: "Isaac Netero", universe: "hunter_x_hunter", color: "#f59e0b",
+  archetypes: ["melee", "speed"], primary: "melee", secondary: ["speed"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "high", scaling: "burst", animeMovement: true },
+  passive: { name: "Hundred-Type Guanyin", effect: "Veteran speed and power — overwhelming offense balanced by frailty" },
+  stats: { maxHealth: 980, maxEnergy: 150, attack: 98, defense: 82, speed: 94, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 34 },
+  basic_attacks: { ...HXH_BASICS, light: { damage: 46, startup: 3, active: 3, recovery: 9, hitstun: 12, knockbackX: 3, knockbackY: 0 } },
+  specials: {
+    prayerFlurry: { cost: 25, damage: 18, startup: 5, active: 14, recovery: 18, hitstun: 8, knockbackX: 3, knockbackY: 0, effect: "blistering multi-hit palm flurry" },
+    zeroHand:     { cost: 45, damage: 175, startup: 18, active: 6, recovery: 28, hitstun: 30, knockbackX: 12, knockbackY: -3, effect: "enormous committed strike" }
+  },
+  ultimate: { name: "First Hand of Guanyin", cost: 100, duration: 7, effect: "Relentless flurry: speed and hit-count surge" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("netero"), animationData: { ...DEFAULT_ANIM }
+}
+
+const ging = {
+  rosterKey: "ging", name: "Ging Freecss", universe: "hunter_x_hunter", color: "#0d9488",
+  archetypes: ["melee", "versatile"], primary: "melee", secondary: ["versatile"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "high", scaling: "versatile", animeMovement: true },
+  passive: { name: "Prodigy", effect: "No glaring weakness and no dominant strength — rewards skilled, varied play" },
+  stats: { maxHealth: 1120, maxEnergy: 140, attack: 90, defense: 86, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 38 },
+  basic_attacks: { ...HXH_BASICS },
+  specials: {
+    adaptiveStrike: { cost: 25, damage: 115, startup: 10, active: 5, recovery: 18, hitstun: 22, knockbackX: 8, knockbackY: -2, effect: "reads the situation and strikes" },
+    ingeniumTrap:   { cost: 20, damage: 90,  startup: 12, active: 6, recovery: 20, hitstun: 18, knockbackX: 5, knockbackY: -1, rangeX: 160, effect: "clever nen snare" }
+  },
+  ultimate: { name: "Whatever It Takes", cost: 100, duration: 8, effect: "All-around surge across every stat" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("ging"), animationData: { ...DEFAULT_ANIM }
+}
+
+const meruem = {
+  rosterKey: "meruem", name: "Meruem", universe: "hunter_x_hunter", color: "#7e22ce",
+  archetypes: ["melee", "boss"], primary: "melee", secondary: ["boss"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "low", scaling: "damage", animeMovement: true },
+  passive: { name: "King's Aura", effect: "Highest stats in the roster — but slow startup and punishing recovery keep him beatable" },
+  stats: { maxHealth: 1700, maxEnergy: 150, attack: 112, defense: 100, speed: 80, maxJumps: 1, jumpPower: 28, dashSpeed: 13, dashDuration: 8, dashCooldownMax: 52 },
+  basic_attacks: {
+    light:     { damage: 58, startup: 6, active: 3, recovery: 13, hitstun: 14, knockbackX: 4, knockbackY: 0 },
+    heavy:     { damage: 138, startup: 16, active: 5, recovery: 32, hitstun: 24, knockbackX: 13, knockbackY: 2, superArmor: true },
+    upAttack:  { damage: 104, startup: 13, active: 5, recovery: 24, hitstun: 24, knockbackX: 3, knockbackY: -11 },
+    airAttack: { damage: 88, startup: 8, active: 4, recovery: 15, hitstun: 16, knockbackX: 4, knockbackY: -2 },
+    downAir:   { damage: 120, startup: 13, active: 5, recovery: 22, hitstun: 22, knockbackX: 2, knockbackY: 14 },
+    grab:      { damage: 46, startup: 7, active: 3, recovery: 17, hitstun: 24, throwForceX: 8, throwForceY: -5 }
+  },
+  specials: {
+    auraAnnihilation: { cost: 35, damage: 200, startup: 22, active: 6, recovery: 34, hitstun: 32, knockbackX: 14, knockbackY: -4, superArmor: true, effect: "colossal slow nen blast — huge whiff punish window" },
+    photonRush:       { cost: 25, damage: 130, startup: 14, active: 5, recovery: 26, hitstun: 24, knockbackX: 10, knockbackY: -2, effect: "advancing royal strike" }
+  },
+  ultimate: { name: "Rose of the King", cost: 100, duration: 8, effect: "Overwhelming assault: max damage, slow and committal" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("meruem"), animationData: { ...DEFAULT_ANIM }
+}
+
+const kite = {
+  rosterKey: "kite", name: "Kite", universe: "hunter_x_hunter", color: "#0ea5e9",
+  archetypes: ["melee", "ranged"], primary: "melee", secondary: ["ranged"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "medium", scaling: "versatile", animeMovement: true },
+  passive: { name: "Crazy Slots", effect: "A conjured weapon that cycles, changing his special's properties each use" },
+  stats: { maxHealth: 1100, maxEnergy: 140, attack: 88, defense: 84, speed: 86, maxJumps: 2, jumpPower: 30, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 40 },
+  basic_attacks: { ...HXH_BASICS },
+  specials: {
+    slotCycle:   { cost: 20, damage: 105, startup: 10, active: 5, recovery: 18, hitstun: 20, knockbackX: 7, knockbackY: -2, subtype: "cycle", rangeX: 150, effect: "weapon-roulette strike — properties shift per use" },
+    scytheSweep: { cost: 25, damage: 120, startup: 12, active: 6, recovery: 20, hitstun: 22, knockbackX: 8, knockbackY: -1, effect: "wide reaping arc" }
+  },
+  ultimate: { name: "Full Arsenal", cost: 100, duration: 8, effect: "Every slot at once: shifting damage and reach" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("kite"), animationData: { ...DEFAULT_ANIM }
+}
+
+const feitan = {
+  rosterKey: "feitan", name: "Feitan Portor", universe: "hunter_x_hunter", color: "#1f2937",
+  archetypes: ["melee", "rushdown"], primary: "melee", secondary: ["rushdown"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "high", scaling: "ramp", animeMovement: true },
+  passive: { name: "Pain Packer", effect: "The longer he stays on the offensive, the more his damage ramps up" },
+  stats: { maxHealth: 1040, maxEnergy: 130, attack: 92, defense: 80, speed: 92, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 36 },
+  basic_attacks: { ...HXH_BASICS, light: { damage: 44, startup: 3, active: 2, recovery: 9, hitstun: 12, knockbackX: 3, knockbackY: 0 } },
+  specials: {
+    risingSun:  { cost: 30, damage: 150, startup: 14, active: 6, recovery: 22, hitstun: 26, knockbackX: 9, knockbackY: -3, effect: "scorching heat burst — bigger after a long offense" },
+    rapidStab:  { cost: 20, damage: 85,  startup: 6,  active: 6, recovery: 14, hitstun: 14, knockbackX: 5, knockbackY: -1, effect: "relentless blade flurry" }
+  },
+  ultimate: { name: "Rising Sun's Verdict", cost: 100, duration: 8, effect: "Heat overload: damage ramps even faster" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("feitan"), animationData: { ...DEFAULT_ANIM }
+}
+
+const illumi = {
+  rosterKey: "illumi", name: "Illumi Zoldyck", universe: "hunter_x_hunter", color: "#475569",
+  archetypes: ["ranged", "control"], primary: "ranged", secondary: ["control"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "medium", scaling: "control", animeMovement: true },
+  passive: { name: "Needle Manipulation", effect: "Zones with needles and debuffs that sap the opponent's mobility" },
+  stats: { maxHealth: 1090, maxEnergy: 140, attack: 87, defense: 82, speed: 84, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 42 },
+  basic_attacks: { ...HXH_BASICS },
+  specials: {
+    needleVolley: { cost: 22, damage: 95,  startup: 9,  active: 5, recovery: 18, hitstun: 16, knockbackX: 6, knockbackY: -1, rangeX: 200, effect: "long-range needle throw" },
+    pinControl:   { cost: 25, damage: 70,  startup: 12, active: 6, recovery: 20, hitstun: 22, knockbackX: 3, knockbackY: 0,  subtype: "debuff", effect: "needle implant that slows the foe" }
+  },
+  ultimate: { name: "Puppeteer's Will", cost: 100, duration: 8, effect: "Control surge: relentless needles and debuffs" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("illumi"), animationData: { ...DEFAULT_ANIM }
+}
+
+const biscuit = {
+  rosterKey: "biscuit", name: "Biscuit Krueger", universe: "hunter_x_hunter", color: "#ec4899",
+  archetypes: ["melee", "trickster"], primary: "melee", secondary: ["trickster"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "medium", scaling: "burst", animeMovement: true },
+  passive: { name: "Deceptive Strength", effect: "Unassuming stats hide one devastating burst special" },
+  stats: { maxHealth: 1060, maxEnergy: 130, attack: 84, defense: 84, speed: 84, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 42 },
+  basic_attacks: { ...HXH_BASICS, light: { damage: 40, startup: 4, active: 3, recovery: 10, hitstun: 11, knockbackX: 2, knockbackY: 0 } },
+  specials: {
+    cookieCrush: { cost: 45, damage: 190, startup: 16, active: 5, recovery: 28, hitstun: 30, knockbackX: 12, knockbackY: -3, superArmor: true, effect: "true-strength burst — huge but costly" },
+    quickJab:    { cost: 15, damage: 80,  startup: 6,  active: 4, recovery: 14, hitstun: 14, knockbackX: 5, knockbackY: -1, effect: "unassuming poke" }
+  },
+  ultimate: { name: "Magical Esthe", cost: 100, duration: 8, effect: "Hidden might unleashed: massive power surge" },
+  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  spriteSheets: hxhSheets("biscuit"), animationData: { ...DEFAULT_ANIM }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
@@ -769,8 +1127,11 @@ export const characters = {
   naruto,
   tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,
   rick, morty, evilMorty, rickPrime,
-  ben10,
-  jackRed, skyBlue, bridgeGreen, zYellow, sydPink, doggieShadow
+  ben10, albedo,
+  omniMan, thragg,
+  jackRed, skyBlue, bridgeGreen, zYellow, sydPink, doggieShadow,
+  gon, killua, kurapika, leorio, hisoka, chrollo, netero,
+  ging, meruem, kite, feitan, illumi, biscuit
 }
 
 // The 7 characters shown in the starter roster select screen

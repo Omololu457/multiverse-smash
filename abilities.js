@@ -814,12 +814,23 @@ export function triggerTransformation(fighter, context = {}) {
 
   fighter.transformIndex = (fighter.transformIndex || 0) + 1
   const nextForm = fighter.transformationOrder[fighter.transformIndex]
-  const ok       = applyTransformation(fighter, nextForm)
+
+  // Opt-in ENERGY COST to enter a form (Adult Gon etc.). Existing forms set no
+  // `cost`, so they transform for free exactly as before.
+  const cost = fighter.transformations?.[nextForm]?.cost || 0
+  if (cost > 0 && (fighter.energy || 0) < cost) {
+    fighter.transformIndex--
+    return false
+  }
+
+  const ok = applyTransformation(fighter, nextForm)
 
   if (!ok) {
     fighter.transformIndex--
     return false
   }
+
+  if (cost > 0) fighter.energy = Math.max(0, (fighter.energy || 0) - cost)
 
   fighter.currentForm     = nextForm
   fighter.currentFormData = fighter.transformations?.[nextForm]

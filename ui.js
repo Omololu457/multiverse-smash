@@ -1359,12 +1359,29 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
   function drawEnergyPanel(x, flip, fighter) {
     if (!fighter) return
     const ec      = fighter.energyConfig || {}
-    const label   = ec.label   || "ENERGY"
-    const mainCol = ec.color   || "#38bdf8"
+    let   label   = ec.label   || "ENERGY"
+    let   mainCol = ec.color   || "#38bdf8"
     const emptyC  = ec.emptyColor || "rgba(255,255,255,0.08)"
-    const glowC   = ec.glowColor  || mainCol
+    let   glowC   = ec.glowColor  || mainCol
     const hasEnergy = (fighter.maxEnergy || 0) > 0 && ec.regenRate !== "none"
     const isHeavRes = label === "——"
+
+    // Transform device (Ben/Albedo): this meter IS the drain gauge. Relabel and
+    // recolor it to read as the Omnitrix/Ultimatrix, and reflect its 3 live
+    // states — transformed (draining), CHARGING (refilling, vulnerable), and the
+    // forced-revert RECHARGE lockout while human.
+    const isDevice = fighter.rosterKey === "ben10" || fighter.rosterKey === "albedo"
+    const charging = isDevice && !!fighter.isCharging
+    const reverted = isDevice && fighter.transformed === false
+    if (isDevice) {
+      const albedo = fighter.rosterKey === "albedo"
+      mainCol = albedo ? "#ef4444" : "#22c55e"
+      glowC   = mainCol
+      label   = charging ? "CHARGING"
+              : reverted ? "RECHARGE"
+              : (albedo ? "ULTIMATRIX" : "OMNITRIX")
+      if (reverted) mainCol = "#f59e0b"   // amber while locked out in human form
+    }
 
     ctx.fillStyle = "rgba(0,0,0,0.52)"
     rrect(ctx, x, enY - 14, barW + 20, enH + 22, 8); ctx.fill()
@@ -1407,11 +1424,31 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       ctx.shadowColor = glowC
     }
 
+    // CHARGING: bright pulsing fill + strong glow so the refill (and its
+    // can't-defend vulnerability window) is unmistakable.
+    if (charging) {
+      const pulse = Math.sin(globalFrameCount * 0.4) * 0.5 + 0.5
+      fillColor = _lerpHex(mainCol, "#ffffff", 0.35 + pulse * 0.45)
+      ctx.shadowBlur  = 14
+      ctx.shadowColor = glowC
+    }
+
     const fillW = barW * ratio
     const fillX = flip ? x + 8 + barW - fillW : x + 8
     ctx.fillStyle = fillColor
     rrect(ctx, fillX, enY, fillW, enH, 4); ctx.fill()
     ctx.shadowBlur = 0
+
+    // Device: notch at the minimum energy needed to (re)transform (mirrors
+    // fighters.js TRANSFORM_ENERGY.MIN_TRANSFORM_ENERGY = 15 of 100), so the
+    // player can see when a forced-reverted fighter may transform again.
+    if (isDevice) {
+      const notch = 0.15
+      const nx = flip ? x + 8 + barW - barW * notch : x + 8 + barW * notch
+      ctx.strokeStyle = reverted ? "#fde047" : "rgba(255,255,255,0.5)"
+      ctx.lineWidth = 1.5
+      ctx.beginPath(); ctx.moveTo(nx, enY - 1); ctx.lineTo(nx, enY + enH + 1); ctx.stroke()
+    }
   }
 
   drawEnergyPanel(pad, false, p1)

@@ -455,7 +455,10 @@ export function resetFighterForRematch(fighter) {
   // Reset all live combat state
   const resetFields = {
     health:        fighter.maxHealth,
-    energy:        0,
+    // Start a rematch with a full meter, matching how round-start (createFighter)
+    // initializes energy. (For Ben/Albedo a full meter is also required so they
+    // begin the rematch transformed rather than instantly force-reverting.)
+    energy:        fighter.maxEnergy,
     vx: 0, vy: 0,
     facing:        fighter.side === "p1" ? 1 : -1,
     onGround:      true,

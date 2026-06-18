@@ -32,7 +32,8 @@ export const physics = {
     // Auto-setup on first frame from the player's chosen 5-alien loadout, then
     // tick the transform cooldown. The actual SWITCH input (charge + direction /
     // number keys) is handled in game.js, where the full input state is known.
-    if (fighter.rosterKey === "ben10") {
+    // Ben 10 and his clone Albedo (Ultimatrix) share the same transform device.
+    if (fighter.rosterKey === "ben10" || fighter.rosterKey === "albedo") {
       if (!fighter.omnitrix) setupBen10(fighter, fighter.selectedAliens || undefined)
       updateOmnitrix(fighter)
     }

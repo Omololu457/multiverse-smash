@@ -57,6 +57,26 @@ export const SPRITE_MANIFEST = {
   gojo: {
     prefix: "gojo",
     actions: ["idle", "walk", "jump", "light", "heavy", "hurt", "blue", "red", "hollow_purple", "infinity", "teleport"]
+  },
+
+  // Sukuna. NOTE: actual per-action rendering reads the `sheet` path from
+  // characters.js → animationData (via animationProfile.js), NOT this list — this
+  // manifest entry exists only so getSpriteSheets()/spritesReady() can decode the
+  // idle sheet and gate Sukuna onto the SpriteHandler. The movement filenames
+  // below happen to match the ./sukuna_<action>_sheet.png convention.
+  sukuna: {
+    prefix: "sukuna",
+    actions: ["idle", "walk", "jump", "dash", "hurt"]
+  },
+
+  // Megumi & Toji: idle strip is non-convention (stance / row03), so use OBJECT
+  // form to point `idle` at the real file — this is only the spritesReady() gate;
+  // per-action rendering reads the `sheet` path from animationData.
+  megumi: {
+    actions: { idle: "./megumi_stance_sheet.png" }
+  },
+  toji: {
+    actions: { idle: "./toji_row03_sheet.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

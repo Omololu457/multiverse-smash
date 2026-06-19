@@ -33,6 +33,42 @@ function getStageBackgroundImage(stage) {
 }
 
 // ─────────────────────────────────────────────
+// CHARACTER PORTRAITS (per-rosterKey, lazily loaded + cached)
+// Files: ./<rosterKey>_portrait.png. Never blocks: callers must check
+// _imageReady() and fall back to their existing rendering if not loaded/404.
+// ─────────────────────────────────────────────
+const portraitImages = new Map()
+
+function getPortraitImage(rosterKey) {
+  // Keep EXACT rosterKey case — files follow <rosterKey>_portrait.png and some
+  // keys are camelCase (omniMan, evilMorty, rickPrime…); a case-sensitive server
+  // needs the exact name.
+  const key = String(rosterKey || "").trim()
+  if (!key) return null
+  if (!portraitImages.has(key)) {
+    const img = new Image()
+    img.src = `./${key}_portrait.png`
+    portraitImages.set(key, img)
+  }
+  return portraitImages.get(key)
+}
+
+function _imageReady(img) {
+  return !!(img && img.complete && img.naturalWidth > 0)
+}
+
+// cover-fit a square-ish portrait into a rect: scale to fill, center-crop,
+// biased slightly toward the TOP so the face (upper-center of a headshot) stays
+// in frame rather than being cropped at the chin.
+function _coverDrawImage(ctx, img, x, y, w, h, topBias = 0.30) {
+  const iw = img.naturalWidth, ih = img.naturalHeight
+  if (!iw || !ih) return
+  const scale = Math.max(w / iw, h / ih)
+  const dw = iw * scale, dh = ih * scale
+  ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) * topBias, dw, dh)
+}
+
+// ─────────────────────────────────────────────
 // BASIC HELPERS
 // ─────────────────────────────────────────────
 function getCanvasSize(canvas) {
@@ -820,12 +856,41 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
     else if (isP1)      { fill = "rgba(70,190,255,0.28)";  stroke = "#7fd3ff" }
     else if (isP2)      { fill = "rgba(255,110,110,0.28)"; stroke = "#ff9f9f" }
 
-    drawPanel(ctx, rect.x, rect.y, rect.w, rect.h, { fill, stroke, lineWidth: 2 })
+    // Portrait fill behind the panel (cover-fit, clipped to the card). Falls back
+    // to the plain box below when the image isn't loaded/decoded or 404s.
+    const portrait = getPortraitImage(fighter?.rosterKey || fighter?.id || fighter?.key)
+    const hasPortrait = _imageReady(portrait)
+    if (hasPortrait) {
+      ctx.save()
+      roundRect(ctx, rect.x, rect.y, rect.w, rect.h, 18)
+      ctx.clip()
+      _coverDrawImage(ctx, portrait, rect.x, rect.y, rect.w, rect.h)
+      // Legibility scrim — darker top (name) and bottom (universe), portrait
+      // stays visible through the middle.
+      const scrim = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.h)
+      scrim.addColorStop(0,    "rgba(8,12,26,0.55)")
+      scrim.addColorStop(0.45, "rgba(8,12,26,0.18)")
+      scrim.addColorStop(1,    "rgba(8,12,26,0.62)")
+      ctx.fillStyle = scrim
+      ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
+      ctx.restore()
+    }
+
+    // Panel: when a portrait shows, only the selection TINT + border go on top
+    // (a transparent base fill so the art isn't washed out); otherwise the
+    // original opaque box renders exactly as before.
+    drawPanel(ctx, rect.x, rect.y, rect.w, rect.h, {
+      fill: hasPortrait && fill === "rgba(255,255,255,0.07)" ? "rgba(0,0,0,0)" : fill,
+      stroke, lineWidth: 2
+    })
 
     const fighterName = fighter?.name || fighter?.id || fighter?.displayName || fighter?.label || `Fighter ${i + 1}`
     const universe    = fighter?.universe || fighter?.series || fighter?.origin || ""
 
-    drawCenteredText(ctx, fighterName, rect.x + rect.w / 2, rect.y + 38, { font: "700 20px Arial", fill: "#ffffff" })
+    drawCenteredText(ctx, fighterName, rect.x + rect.w / 2, rect.y + 38, {
+      font: "700 20px Arial", fill: "#ffffff",
+      shadowBlur: hasPortrait ? 4 : 0, shadowColor: "rgba(0,0,0,0.85)"
+    })
     if (universe) {
       drawSubText(ctx, universe, rect.x + rect.w / 2, rect.y + 68, { font: "13px Arial", fill: "rgba(220,230,255,0.72)" })
     }

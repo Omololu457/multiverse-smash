@@ -53,6 +53,7 @@ import { createAccount, getCurrentAccount, isValidUsername, listAccounts } from 
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
 import {
+  activeDomains,
   activateDomain, updateDomains, drawDomains, clearDomains,
   drawDomainBackground, getDomainHUDData
 } from "./domains.js"
@@ -150,24 +151,29 @@ const SERIES_MUSIC = {
 // Data-driven stage table — add a stage here (palette + series + landmark id)
 // and it shows up in stage select, renders its procedural background (ui.js
 // drawStageLandmarks keys off `landmark`), and plays its series track.
+// Per-stage `music` overrides the per-series fallback so each map plays its own
+// universe-specific track (slot order = position within its series). Filenames
+// are case-sensitive and must match the files on disk exactly; a missing file
+// falls back gracefully to the procedural theme (sound.playMusicFile onerror).
 const STAGE_DEFS = [
-  { name: "Jujutsu High Courtyard", series: "jjk",         landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png" },
-  { name: "Shibuya Incident",       series: "jjk",         landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444" },
+  { name: "Jujutsu High Courtyard", series: "jjk",         music: "JJK_1.mp3", landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png" },
+  { name: "Shibuya Incident",       series: "jjk",         music: "JJK_2.mp3", landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444" },
   { name: "Hidden Leaf Village",    series: "naruto",      landmark: "hidden_leaf",  sky: "#bfdbfe", mid: "#86efac", floor: "#a16207", accent: "#22c55e" },
   { name: "Valley of the End",      series: "naruto",      landmark: "valley_of_end",sky: "#9fb6c9", mid: "#5b7184", floor: "#2f3b46", accent: "#e2e8f0" },
-  { name: "Planet Namek",           series: "dragonball",  landmark: "namek",        sky: "#5eead4", mid: "#34d399", floor: "#15803d", accent: "#fef08a" },
-  { name: "World Tournament Arena", series: "dragonball",  landmark: "tournament",   sky: "#93c5fd", mid: "#fde68a", floor: "#b45309", accent: "#ffffff" },
+  { name: "Planet Namek",           series: "dragonball",  music: "DB_1.mp3",  landmark: "namek",        sky: "#5eead4", mid: "#34d399", floor: "#15803d", accent: "#fef08a" },
+  { name: "World Tournament Arena", series: "dragonball",  music: "DB_2.mp3",  landmark: "tournament",   sky: "#93c5fd", mid: "#fde68a", floor: "#b45309", accent: "#ffffff" },
   { name: "Mugen Train",            series: "demonslayer", landmark: "mugen_train",  sky: "#0c1330", mid: "#241a3a", floor: "#1a1326", accent: "#f59e0b" },
   { name: "Citadel of Ricks",       series: "rickmorty",   landmark: "citadel",      sky: "#11182b", mid: "#1e293b", floor: "#0f172a", accent: "#39ff14" },
   { name: "Null Void",              series: "ben10",       landmark: "null_void",    sky: "#1a0b2e", mid: "#2e1065", floor: "#170a28", accent: "#22d3ee" },
   { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" }
 ]
 
-// Finalize each stage: shared world/ground metrics + resolved music filename.
+// Finalize each stage: shared world/ground metrics + resolved music filename
+// (explicit per-stage `music` wins; otherwise fall back to the series track).
 const stages = STAGE_DEFS.map(s => ({
   groundOffset: 100, worldWidth: 3200, floorHeight: 120,
   ...s,
-  music: SERIES_MUSIC[s.series] || null
+  music: s.music ?? SERIES_MUSIC[s.series] ?? null
 }))
 
 // ------------------------------------------------------------------
@@ -193,7 +199,8 @@ let roundTimer       = ROUND_TIME
 // Use the imported activeProjectiles array directly — do NOT create a second one
 const projectiles  = activeProjectiles
 const hitSparks    = []
-const activeDomains= []
+// activeDomains is the SINGLE domains.js module array (imported above) so the
+// domains abilities.js pushes are the same ones updateDomains() ticks & draws.
 const damageNumbers= []
 
 let knockoutFlash  = 0
@@ -474,6 +481,12 @@ function resetRound() {
   p1 = createFighter(matchConfig.p1CharKey, matchConfig.p1Char, p1X,  1, P1_CONTROLS, "p1")
   p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, P2_CONTROLS, "p2")
 
+  // Sprite-scale verification (temporary — safe to delete). Confirms spriteScale
+  // and animationData survive createFighter; for Gojo expect spriteScale 2, true.
+  for (const f of [p1, p2]) {
+    console.log("[sprite]", f.rosterKey, "spriteScale=", f.spriteScale, "hasAnimData=", !!f.animationData)
+  }
+
   countdown = ROUND_START_COUNTDOWN
   clearAbilityState()
   clearDomains()
@@ -511,6 +524,10 @@ function startMatch() {
   resetRound()
   matchIntroTimer = 90
   gameState       = GAME_STATES.INTRO
+  // BUG_9: play the intro/transform strip during the intro window (cleared when
+  // BATTLE starts). Harmless for non-sprite fighters (they render procedurally).
+  if (p1) p1._introPlaying = true
+  if (p2) p2._introPlaying = true
 
   sound.stopMusic?.()
   sound.playStageTrack?.(matchConfig.selectedStage)
@@ -762,7 +779,7 @@ function updateFacing() {
 function handleToggleInputs(fighter, key) {
   if (!fighter) return
   const c = fighter.controls
-  if (key === c.toggle && fighter.name === "Satoru Gojo") fighter.infinityActive = !fighter.infinityActive
+  if (key === c.toggle && fighter.rosterKey === "gojo") fighter.infinityActive = !fighter.infinityActive
   if (key === c.transform) triggerTransformation(fighter, getAbilityContext())
 }
 
@@ -822,6 +839,7 @@ function updateMiscTimers(fighter) {
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
   if (fighter.summonCooldown  > 0) fighter.summonCooldown--
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
+  if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--
   if (fighter.armorFlash      > 0) fighter.armorFlash--
   if (fighter.clashFlash      > 0) fighter.clashFlash--
@@ -934,7 +952,7 @@ function updateFighterState(fighter) {
 // GOJO SPECIAL SYSTEMS
 // ------------------------------------------------------------------
 function applyGojoInfinityField(gojo, target) {
-  if (!gojo || !target || gojo.name !== "Gojo Satoru" || !gojo.infinityActive) return
+  if (!gojo || !target || gojo.rosterKey !== "gojo" || !gojo.infinityActive) return
   const dx   = (target.x + target.w / 2) - (gojo.x + gojo.w / 2)
   const dy   = (target.y + target.h / 2) - (gojo.y + gojo.h / 2)
   const dist = Math.sqrt(dx * dx + dy * dy)
@@ -947,7 +965,7 @@ function applyGojoInfinityField(gojo, target) {
 }
 
 function applyGojoInfinityBarrier(gojo, target) {
-  if (!gojo || !target || gojo.name !== "Gojo Satoru" || !gojo.infinityActive || target.health <= 0) return
+  if (!gojo || !target || gojo.rosterKey !== "gojo" || !gojo.infinityActive || target.health <= 0) return
   const dx = (target.x + target.w / 2) - (gojo.x + gojo.w / 2)
   if (Math.abs(dx) <= 52) target.x += dx > 0 ? 3 : -3
 }
@@ -1628,7 +1646,11 @@ function updateCurrentState() {
   switch (gameState) {
     case GAME_STATES.INTRO:
       matchIntroTimer--
-      if (matchIntroTimer <= 0) { gameState = GAME_STATES.BATTLE; countdown = ROUND_START_COUNTDOWN }
+      if (matchIntroTimer <= 0) {
+        gameState = GAME_STATES.BATTLE; countdown = ROUND_START_COUNTDOWN
+        if (p1) p1._introPlaying = false   // BUG_9: back to idle once the fight starts
+        if (p2) p2._introPlaying = false
+      }
       break
     case GAME_STATES.BATTLE:
       if (countdown > 0) {

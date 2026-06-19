@@ -1,0 +1,12 @@
+Megumi Fushiguro (Jujutsu Kaisen) sprite sheet
+==============================================
+Sheet author : FinhJ
+Edit/credit  : saxcreed (noted on the sheet)
+
+Sliced into 15 per-action transparent strips. Background brown RGB(107,90,82)
+keyed to transparency (JPG source, so a small tolerance + speck cleanup were
+used). Section labels, the detached shikigami (Gama toad, Divine Dogs, Datto
+rabbits, Nue, Orochi, Max Elephant/Bansho, Makora), the domain shadow, and the
+"by saxcreed" note were excluded from the character strips. The Tokusa no Kage
+Bojutsu rows share the same summon motion, each paired on the sheet with its
+shikigami.

@@ -172,6 +172,11 @@ const gojo = {
   traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "high", scaling: "control", animeMovement: true },
   stats: { maxHealth: 1160, maxEnergy: 220, attack: 91, defense: 88, speed: 87, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 8, dashCooldownMax: 35 },
   hasSprites: true,
+  // Source frames are small pixel art (idle 28×64); scale the DRAWN size up ×1.8
+  // (64 → ~115px ≈ hitbox height) so Gojo reads as a full-size fighter over the
+  // ~60×110 hitbox. Applied in SpriteHandler.draw() to the DESTINATION size only
+  // — native slicing is unchanged. (Drop to 1.6 if too tall, raise to 2.0 if short.)
+  spriteScale: 1.8,
   // Strip-based sprites load via spritesheets.js SPRITE_MANIFEST (./gojo_<action>_sheet.png).
   // (spriteSheet below is a legacy atlas hint, unused by the strip loader.)
   spriteSheet: "assets/gojo_atlas.png",
@@ -192,26 +197,37 @@ const gojo = {
   domain: { name: "Unlimited Void", priority: 3, background: "void" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  // ── GOJO SPRITE SPEC — the contract the replacement art must match ──
-  // Each entry = one ./gojo_<action>_sheet.png horizontal strip: `frames` cells
-  // left→right, every cell `width`×`height` px, advanced every `speed` ticks.
-  // Update these numbers to match the NEW sheets if their layout differs; the
-  // existing sheets keep loading until then (see spritesheets.js GOJO_SPRITE_SPEC).
+  // ── GOJO SPRITES ──────────────────────────────────────────────────
+  // Keyed to the engine's REAL action names (sprite.js _resolveAction /
+  // MOVE_TO_ACTION) so the strips actually play. Each entry: native SOURCE cell
+  // size (width×height, measured = stripWidth/frames), frame count, speed, and
+  // the exact `sheet` file. animationProfile.js forwards `sheet` → SpriteHandler
+  // _loadSheet(), so the non-convention filenames load directly (e.g. light uses
+  // the A-jab strip, "up" uses the B-attack strip gojo_light). Display size is
+  // scaled by gojo.spriteScale; the box fallback covers any unmapped/404 action.
   animationData: {
-    ...DEFAULT_ANIM,
-    idle:          { frames: 6,  width: 128, height: 128, speed: 8 },
-    walk:          { frames: 8,  width: 128, height: 128, speed: 5 },
-    jump:          { frames: 4,  width: 128, height: 128, speed: 6 },
-    hurt:          { frames: 2,  width: 128, height: 128, speed: 10 },
-    light:         { frames: 5,  width: 128, height: 128, speed: 4, startup: [0,1], active: [2,3], recovery: [4] },
-    heavy:         { frames: 7,  width: 128, height: 128, speed: 5, startup: [0,1,2], active: [3,4], recovery: [5,6] },
-    blue:          { frames: 6,  width: 128, height: 128, speed: 5 },
-    red:           { frames: 6,  width: 128, height: 128, speed: 5 },
-    hollow_purple: { frames: 10, width: 256, height: 128, speed: 6, startup: [0,1,2,3,4], active: [5,6,7,8], recovery: [9] },
-    infinity:      { frames: 4,  width: 128, height: 128, speed: 8 },
-    teleport:      { frames: 4,  width: 128, height: 128, speed: 4 },
-    // Back-compat alias (SpriteHandler may resolve the purple special to this key).
-    special_purple:{ frames: 10, width: 256, height: 128, speed: 6, startup: [0,1,2,3,4], active: [5,6,7,8], recovery: [9] }
+    // movement / state
+    idle:     { frames: 4, width: 28, height: 64, speed: 6, sheet: "./gojo_idle_sheet.png"  },
+    walk:     { frames: 8, width: 34, height: 63, speed: 5, sheet: "./gojo_walk_sheet.png"  },
+    run:      { frames: 8, width: 34, height: 63, speed: 4, sheet: "./gojo_walk_sheet.png"  },
+    jump:     { frames: 2, width: 45, height: 63, speed: 6, sheet: "./gojo_jump_sheet.png"  },
+    fall:     { frames: 2, width: 45, height: 63, speed: 6, sheet: "./gojo_jump_sheet.png"  },
+    dash:     { frames: 1, width: 65, height: 42, speed: 6, sheet: "./gojo_dash_sheet.png"  },
+    hurt:     { frames: 6, width: 72, height: 62, speed: 6, sheet: "./gojo_hurt_sheet.png"  },
+    // basic attacks
+    light:    { frames: 6, width: 49, height: 63, speed: 4, sheet: "./gojo_ajab_sheet.png"  },  // A jab
+    heavy:    { frames: 5, width: 55, height: 59, speed: 5, sheet: "./gojo_heavy_sheet.png" },  // C
+    up:       { frames: 5, width: 56, height: 62, speed: 5, sheet: "./gojo_light_sheet.png" },  // B (launcher)
+    air:      { frames: 6, width: 49, height: 63, speed: 4, sheet: "./gojo_ajab_sheet.png"  },  // reuse jab (air)
+    down_air: { frames: 5, width: 55, height: 59, speed: 5, sheet: "./gojo_heavy_sheet.png" },  // reuse C (down)
+    grab:     { frames: 6, width: 49, height: 63, speed: 5, sheet: "./gojo_ajab_sheet.png"  },  // reuse jab
+    // cinematic / specials
+    transform:          { frames: 5, width: 42, height: 64, speed: 6, sheet: "./gojo_intro_sheet.png", loop: false, lockLastFrame: true },  // intro: play once, hold (FIX_3)
+    ultimate:           { frames: 3, width: 39, height: 64, speed: 6, sheet: "./gojo_ultimate_sheet.png" },
+    domain:             { frames: 5, width: 42, height: 64, speed: 6, sheet: "./gojo_intro_sheet.png" },  // reuse intro
+    blue_cast:          { frames: 5, width: 50, height: 64, speed: 5, sheet: "./gojo_max_output_blue_sheet.png" },
+    red_cast:           { frames: 5, width: 56, height: 62, speed: 5, sheet: "./gojo_ctr_attack_sheet.png" },
+    hollow_purple_cast: { frames: 4, width: 43, height: 63, speed: 5, sheet: "./gojo_hollowpurple_release_sheet.png" }
   }
 }
 
@@ -244,7 +260,37 @@ const megumi = {
   mahoragaStats: { name: "Mahoraga", maxHealth: 1600, damageMultiplier: 1.5, speedMultiplier: 0.9, defenseMultiplier: 1.35, color: "#7c3aed", maxAdaptationLevel: 3 },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  hasSprites: true,
+  spriteScale: 1.7,   // source frames ~55–61px tall → ×1.7 ≈ hitbox height
+  // ── MEGUMI SPRITES ── engine action keys → strip; native cell = stripWidth/frames.
+  // Summon casts use the MOVE_TO_ACTION names (divine_dogs/nue/toad/rabbit_escape/
+  // max_elephant); executeMegumiSpecial sets _spriteCastMove so they play.
+  animationData: {
+    idle:     { frames: 4,  width: 27, height: 61, speed: 6, sheet: "./megumi_stance_sheet.png" },
+    walk:     { frames: 10, width: 32, height: 62, speed: 5, sheet: "./megumi_walk_sheet.png" },
+    run:      { frames: 10, width: 32, height: 62, speed: 4, sheet: "./megumi_walk_sheet.png" },
+    jump:     { frames: 2,  width: 37, height: 56, speed: 6, sheet: "./megumi_jump_sheet.png" },
+    fall:     { frames: 2,  width: 37, height: 56, speed: 6, sheet: "./megumi_jump_sheet.png" },
+    dash:     { frames: 10, width: 32, height: 62, speed: 4, sheet: "./megumi_walk_sheet.png" },  // no dash strip → reuse walk
+    hurt:     { frames: 3,  width: 58, height: 55, speed: 6, sheet: "./megumi_hurt_sheet.png" },
+    // attacks (single attack strip reused)
+    light:    { frames: 10, width: 81, height: 55, speed: 4, sheet: "./megumi_attack_sheet.png" },
+    heavy:    { frames: 10, width: 81, height: 55, speed: 4, sheet: "./megumi_attack_sheet.png" },
+    up:       { frames: 10, width: 81, height: 55, speed: 4, sheet: "./megumi_attack_sheet.png" },
+    air:      { frames: 10, width: 81, height: 55, speed: 4, sheet: "./megumi_attack_sheet.png" },
+    down_air: { frames: 10, width: 81, height: 55, speed: 4, sheet: "./megumi_attack_sheet.png" },
+    grab:     { frames: 10, width: 81, height: 55, speed: 4, sheet: "./megumi_attack_sheet.png" },
+    // summon casts (shadow techniques)
+    divine_dogs:  { frames: 5, width: 38, height: 56, speed: 5, sheet: "./megumi_gama_sheet.png" },
+    nue:          { frames: 5, width: 35, height: 50, speed: 5, sheet: "./megumi_nue_sheet.png" },
+    toad:         { frames: 5, width: 38, height: 51, speed: 5, sheet: "./megumi_gyokuken_sheet.png" },
+    rabbit_escape:{ frames: 5, width: 38, height: 54, speed: 5, sheet: "./megumi_datto_sheet.png" },
+    max_elephant: { frames: 5, width: 40, height: 56, speed: 5, sheet: "./megumi_bansho_sheet.png" },
+    // cinematic
+    domain:   { frames: 2, width: 37, height: 56, speed: 6, sheet: "./megumi_domain_sheet.png" },
+    ultimate: { frames: 2, width: 38, height: 56, speed: 6, sheet: "./megumi_makora_sheet.png" },
+    transform:{ frames: 2, width: 38, height: 56, speed: 6, sheet: "./megumi_makora_sheet.png" }
+  }
 }
 
 const sukuna = {
@@ -269,7 +315,41 @@ const sukuna = {
   domain: { name: "Malevolent Shrine", priority: 4, background: "shrine" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  hasSprites: true,
+  // Source frames are small pixel art (idle 27×64); scale the DRAWN size up ×1.8
+  // (64 → ~115px ≈ hitbox height). Applied in SpriteHandler.draw() to the
+  // DESTINATION size only — native slicing is unchanged.
+  spriteScale: 1.8,
+  // ── SUKUNA SPRITES ────────────────────────────────────────────────
+  // Keyed to the engine's REAL action names (sprite.js _resolveAction /
+  // MOVE_TO_ACTION). Each entry: native SOURCE cell size (width×height =
+  // stripWidth/frames), frame count, speed, and the exact `sheet` file
+  // (forwarded to SpriteHandler via animationProfile.js → _loadSheet). Only one
+  // attack strip exists, so light/heavy/up/air/down_air/grab + cleave/dismantle
+  // all reuse it for now. Display size is scaled by spriteScale; unmapped actions
+  // fall back to the procedural box.
+  animationData: {
+    // movement / state
+    idle:     { frames: 4,  width: 27, height: 64, speed: 6, sheet: "./sukuna_idle_sheet.png" },
+    walk:     { frames: 10, width: 31, height: 63, speed: 5, sheet: "./sukuna_walk_sheet.png" },
+    run:      { frames: 10, width: 31, height: 63, speed: 4, sheet: "./sukuna_walk_sheet.png" },
+    jump:     { frames: 2,  width: 28, height: 61, speed: 6, sheet: "./sukuna_jump_sheet.png" },
+    fall:     { frames: 2,  width: 28, height: 61, speed: 6, sheet: "./sukuna_jump_sheet.png" },
+    dash:     { frames: 3,  width: 52, height: 59, speed: 6, sheet: "./sukuna_dash_sheet.png" },
+    hurt:     { frames: 2,  width: 42, height: 57, speed: 6, sheet: "./sukuna_hurt_sheet.png" },
+    // attacks (single attack strip reused until distinct strips exist)
+    light:    { frames: 3, width: 51, height: 51, speed: 4, sheet: "./sukuna_attack_sheet.png" },
+    heavy:    { frames: 3, width: 51, height: 51, speed: 4, sheet: "./sukuna_attack_sheet.png" },
+    up:       { frames: 3, width: 51, height: 51, speed: 4, sheet: "./sukuna_attack_sheet.png" },
+    air:      { frames: 3, width: 51, height: 51, speed: 4, sheet: "./sukuna_attack_sheet.png" },
+    down_air: { frames: 3, width: 51, height: 51, speed: 4, sheet: "./sukuna_attack_sheet.png" },
+    grab:     { frames: 3, width: 51, height: 51, speed: 4, sheet: "./sukuna_attack_sheet.png" },
+    cleave:   { frames: 3, width: 51, height: 51, speed: 4, sheet: "./sukuna_attack_sheet.png" },
+    dismantle:{ frames: 3, width: 51, height: 51, speed: 4, sheet: "./sukuna_attack_sheet.png" },
+    // cinematic
+    ultimate: { frames: 4, width: 37, height: 62, speed: 6, sheet: "./sukuna_ultimate_sheet.png" },
+    domain:   { frames: 7, width: 36, height: 62, speed: 5, sheet: "./sukuna_domain_sheet.png" }
+  }
 }
 
 const omololu = {
@@ -316,7 +396,39 @@ const toji = {
   ultimate: { name: "Heavenly Restriction", cost: 0, duration: 8, effect: "1.8x speed and 1.6x damage surge" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  hasSprites: true,
+  spriteScale: 1.7,   // source frames ~60–74px tall → ×1.7 ≈ hitbox height
+  // ── TOJI SPRITES ── UNLABELED rows, mapping confirmed by viewing each strip.
+  // Native cell = stripWidth/frames. NOTE (sheet gaps): no real walk or hurt
+  // frames exist — walk reuses the stance, hurt reuses the guard pose (row10).
+  // special_1/special_2 play via executeToji_Special's createAttackFromMove
+  // (MOVE_TO_ACTION: inventorySmash→special_1, rapidStrike→special_2).
+  animationData: {
+    idle:     { frames: 7,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },  // row03 fighting idle
+    walk:     { frames: 7,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },  // no walk row → reuse stance
+    light:    { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" },  // row02 punch combo
+    heavy:    { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // row07 sword slash combo
+    up:       { frames: 7,  width: 47, height: 74, speed: 5, sheet: "./toji_row04_sheet.png" },  // row04 kicks (launcher)
+    air:      { frames: 5,  width: 65, height: 71, speed: 5, sheet: "./toji_row08_sheet.png" },  // row08 aerial sword
+    down_air: { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // reuse slash combo
+    dash:     { frames: 10, width: 90, height: 64, speed: 4, sheet: "./toji_row06_sheet.png" },  // row06 sword dash-lunge
+    block:    { frames: 9,  width: 37, height: 70, speed: 6, sheet: "./toji_row10_sheet.png" },  // row10 guard
+    hurt:     { frames: 9,  width: 37, height: 70, speed: 6, sheet: "./toji_row10_sheet.png" },  // no hurt row → reuse guard
+    transform:{ frames: 7,  width: 76, height: 67, speed: 6, sheet: "./toji_row01_sheet.png" },  // row01 sword-draw flourish (intro)
+    special_1:{ frames: 14, width: 52, height: 63, speed: 4, sheet: "./toji_row09_sheet.png" },  // Inventory Smash → big slash rekka
+    special_2:{ frames: 8,  width: 57, height: 63, speed: 4, sheet: "./toji_row05_sheet.png" },  // Rapid Strike → thrust
+    // run/jump/fall/grab aren't on the supplied table, but a MANIFESTED character
+    // can't fall back to the procedural box per-action (unmapped → idle sheet at
+    // 128px = garbage), so reuse the closest real strips:
+    run:      { frames: 10, width: 90, height: 64, speed: 4, sheet: "./toji_row06_sheet.png" },  // reuse dash-lunge
+    jump:     { frames: 5,  width: 65, height: 71, speed: 6, sheet: "./toji_row08_sheet.png" },  // reuse aerial
+    fall:     { frames: 5,  width: 65, height: 71, speed: 6, sheet: "./toji_row08_sheet.png" },
+    grab:     { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" }   // reuse punch
+    // UNMAPPED — chain / Inverted Spear of Heaven throw sequence (special not yet
+    // wired). Register for future chain-special work; frame counts TBD (view to
+    // slice): toji_row11_sheet.png 480×69, row12 540×69, row13 575×85,
+    // row14 847×87, row15 424×78.
+  }
 }
 
 const mahoraga = {

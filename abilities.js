@@ -4,6 +4,8 @@
 
 import { characters } from "./characters.js"
 import { moveset }    from "./moveset.js"
+import { sound }      from "./sound.js"
+import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
 import { activeSummons, spawnSummon as spawnAssistSummon } from "./summons.js"
 import {
   applyTransformation,
@@ -342,6 +344,8 @@ function executeGojoSpecial(fighter, context) {
       color: "#c084fc", w: 32, h: 32
     }, context)
     fighter.attackCooldown = getAttackDuration(38, fighter)
+    fighter._spriteCastMove  = "hollowPurple"   // play hollow_purple_cast strip (BUG_7)
+    fighter._spriteCastTimer = 36
     shakeCamera(context, 14, 12)
     focusCameraOnAction(context, fighter, target, 0.93, 18)
     return true
@@ -368,6 +372,8 @@ function executeGojoSpecial(fighter, context) {
     color: "#60a5fa", w: 18, h: 18
   }, context)
   fighter.attackCooldown = getAttackDuration(22, fighter)
+  fighter._spriteCastMove  = "blue"   // play blue_cast strip (BUG_7)
+  fighter._spriteCastTimer = 24
   focusCameraOnAction(context, fighter, target, 1.0, 8)
   return true
 }
@@ -375,28 +381,20 @@ function executeGojoSpecial(fighter, context) {
 function executeGojoUltimate(fighter, context) {
   if (!spendEnergy(fighter, 100)) return false
 
-  // Unlimited Void — domain expansion
-  if (Array.isArray(context?.activeDomains)) {
-    context.activeDomains.push({
-      owner:      fighter,
-      name:       "Unlimited Void",
-      priority:   3,
-      timer:      360,
-      timerMax:   360,
-      range:      380,
-      background: "void",
-      damageBoost: 1.4,
-      speedPenalty: 0.6
-    })
-  }
+  // Unlimited Void — create the ONE shared-array domain. activateDomain sets
+  // rosterKey (so the void/video bg + in-range lock match), the white-flash,
+  // camera shake, video restart, and domainBuff/activeDomainTimer. 30s.
+  // cost:0 because energy was already spent above.
+  // range: 1e5 makes the domain cover the ENTIRE map — the sure-hit zone
+  // (updateDomains in-range branch) then applies to the opponent anywhere on the
+  // stage, not just a circle around the caster. drawDomains skips the world ring
+  // for gojo/sukuna so this huge radius isn't drawn.
+  activateDomain(fighter, { cost: 0, duration: 30, range: 1e5 }, context)
 
-  fighter.activeDomainTimer = 360
-  fighter.domainBuff        = true
-  fighter.infinityActive    = true  // auto-dodge for duration
-  fighter.teleportFlash     = 24
-  fighter.attackCooldown    = getAttackDuration(44, fighter)
-
-  shakeCamera(context, 18, 20)
+  fighter.infinityActive   = true   // auto-dodge for the domain's duration
+  fighter.attackCooldown   = getAttackDuration(44, fighter)
+  fighter._spriteCastMove  = "domain"   // play the hand-sign 'domain' strip (BUG_8)
+  fighter._spriteCastTimer = 40
   focusCameraOnAction(context, fighter, null, 0.88, 24)
   return true
 }
@@ -446,6 +444,10 @@ function executeMegumiSpecial(fighter, context) {
 
   fighter.summonCooldown = Math.ceil(data.cooldown / 4)
   fighter.attackCooldown = getAttackDuration(18, fighter)
+  // Play the summon-motion cast strip (MOVE_TO_ACTION maps the summonId to its
+  // action key, e.g. divineDogs→divine_dogs). Same mechanism as Gojo's casts.
+  fighter._spriteCastMove  = summonId
+  fighter._spriteCastTimer = 30
   return true
 }
 
@@ -453,6 +455,8 @@ function executeMegumiUltimate(fighter, context) {
   // Mahoraga Ritual — permanent one-way transformation
   if (isSpecialDisabled(fighter, "mahoragaRitual")) return false
   if (!spendEnergy(fighter, 100)) return false
+  fighter._spriteCastMove  = "mahoragaRitual"   // MOVE_TO_ACTION → "ultimate" (makora strip)
+  fighter._spriteCastTimer = 36
   return transformIntoMahoraga(fighter, context)
 }
 
@@ -492,31 +496,20 @@ function executeSukunaSpecial(fighter, context) {
 function executeSukunaUltimate(fighter, context) {
   if (!spendEnergy(fighter, 100)) return false
 
-  // Malevolent Shrine domain
-  if (Array.isArray(context?.activeDomains)) {
-    context.activeDomains.push({
-      owner:       fighter,
-      name:        "Malevolent Shrine",
-      priority:    4,
-      timer:       420,
-      timerMax:    420,
-      range:       420,
-      damageBoost: 1.5,
-      speedPenalty: 0.55,
-      // Deals passive damage inside domain
-      effect: (target, owner, dist, maxDist) => {
-        if (Math.random() < 0.03) {
-          target.health = Math.max(0, (target.health || 0) - 8)
-          target.colorFlash = 3
-        }
-      }
-    })
-  }
+  // Malevolent Shrine — create the ONE shared-array domain. activateDomain sets
+  // rosterKey (so the shrine bg + in-range chip/lock match), the white-flash,
+  // camera shake, domainBuff/activeDomainTimer, AND Sukuna's bespoke voice line
+  // + looping theme (its rosterKey==='sukuna' branch). 30s. Per-frame chip
+  // damage is applied by updateDomains' sukuna branch. cost:0 (spent above).
+  // range: 1e5 makes the domain cover the ENTIRE map — the sure-hit zone
+  // (updateDomains in-range branch) then applies to the opponent anywhere on the
+  // stage, not just a circle around the caster. drawDomains skips the world ring
+  // for gojo/sukuna so this huge radius isn't drawn.
+  activateDomain(fighter, { cost: 0, duration: 30, range: 1e5 }, context)
 
-  fighter.activeDomainTimer = 420
-  fighter.domainBuff        = true
-  fighter.attackCooldown    = getAttackDuration(44, fighter)
-  shakeCamera(context, 20, 22)
+  fighter.attackCooldown   = getAttackDuration(44, fighter)
+  fighter._spriteCastMove  = "domain"   // play the hand-sign 'domain' strip (BUG_8)
+  fighter._spriteCastTimer = 40
   focusCameraOnAction(context, fighter, null, 0.85, 28)
   return true
 }

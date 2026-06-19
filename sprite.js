@@ -36,6 +36,7 @@ try {
   // animationProfile.js not present — fallback rendering will be used
 }
 
+
 // ─────────────────────────────────────────────────────────────────
 // SPRITE SHEET CACHE
 // ─────────────────────────────────────────────────────────────────
@@ -137,6 +138,9 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Freeze visible animation during hitstop
   if ((fighter.hitstop || 0) > 0) return currentAction || fighter._lastSpriteAction || "idle";
 
+  // BUG_9: match-intro pose — play the intro/transform strip while the intro flag is set.
+  if (fighter._introPlaying) return "transform";
+
   // Knockdown handling
   if (fighter.knockdownState) {
     if ((fighter.knockdownTimer || 0) > 12) return "hurt";
@@ -150,6 +154,13 @@ function _resolveAction(fighter, currentAction = "idle") {
 
   // Blocking fallback
   if (fighter.isBlocking) return "idle";
+
+  // BUG_7/8: brief "sprite cast" window — projectile specials & domain opens set
+  // a move + timer so their cast strip (blue_cast / hollow_purple_cast / domain
+  // hand-sign) plays even though they don't go through the normal attacking path.
+  if ((fighter._spriteCastTimer || 0) > 0 && fighter._spriteCastMove) {
+    return MOVE_TO_ACTION[fighter._spriteCastMove] || fighter._spriteCastMove;
+  }
 
   // Attack animation links directly to move name
   // Example: "light", "heavy", "special_purple"
@@ -254,16 +265,25 @@ export class SpriteHandler {
     const fighterW = fighter.w ?? fighter.width ?? 60;
     const fighterH = fighter.h ?? fighter.height ?? 110;
 
-    // Center horizontally over the hitbox
-    const offsetX = (drawWidth - fighterW) / 2 + (frameData.anchorX || 0);
+    // Per-character DISPLAY scale. Source frames are small pixel art; scale the
+    // DESTINATION draw size up to roughly fill the hitbox. Source slicing stays
+    // at native drawWidth/drawHeight (the SOURCE rect below); only the drawn size
+    // scales. Defaults to 1 → identical to before for every other character.
+    const scale = fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1;
+    const dstW = drawWidth * scale;
+    const dstH = drawHeight * scale;
 
-    // Anchor to the bottom of the hitbox
-    const offsetY = (drawHeight - fighterH) + (frameData.anchorY || 0);
+    // Center horizontally over the hitbox (using SCALED width)
+    const offsetX = (dstW - fighterW) / 2 + (frameData.anchorX || 0);
+
+    // Anchor to the bottom of the hitbox (using SCALED height) so feet stay planted
+    const offsetY = (dstH - fighterH) + (frameData.anchorY || 0);
 
     const sx = this.frameIndex * drawWidth;
     const sy = 0;
 
     ctx.save();
+    ctx.imageSmoothingEnabled = false;   // crisp upscaled pixel art
 
     if (_sheetReady(sheet)) {
       if ((fighter.facing ?? 1) === -1) {
@@ -273,24 +293,24 @@ export class SpriteHandler {
           sheet,
           sx,
           sy,
-          drawWidth,
+          drawWidth,         // source rect = native frame size
           drawHeight,
-          -fighter.x + offsetX - drawWidth,
+          -fighter.x + offsetX - dstW,   // flip math uses SCALED width
           fighter.y - offsetY,
-          drawWidth,
-          drawHeight
+          dstW,              // destination size = scaled
+          dstH
         );
       } else {
         ctx.drawImage(
           sheet,
           sx,
           sy,
-          drawWidth,
+          drawWidth,         // source rect = native frame size
           drawHeight,
           fighter.x - offsetX,
           fighter.y - offsetY,
-          drawWidth,
-          drawHeight
+          dstW,              // destination size = scaled
+          dstH
         );
       }
     } else {

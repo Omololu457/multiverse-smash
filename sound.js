@@ -467,9 +467,10 @@ class SoundManager {
     const p = this._pendingMusic
     if (!p) return
     this._pendingMusic = null
-    if (p.kind === "theme")      this.playMusic(p.id, true)
-    else if (p.kind === "stage") this.playStageTrack(p.stage)
-    else if (p.kind === "menu")  this.playMenuMusic()
+    if (p.kind === "theme")       this.playMusic(p.id, true)
+    else if (p.kind === "stage")  this.playStageTrack(p.stage)
+    else if (p.kind === "menu")   this.playMenuMusic()
+    else if (p.kind === "domainAudio") this.playDomainAudio(p.voiceFile, p.themeFile)
   }
 
   // Centralized non-stadium music. Plays MENU_MUSIC_FILE (looping), honoring the
@@ -572,11 +573,56 @@ class SoundManager {
   // Preferred entry point: play a stage's assigned audio file, else fall back
   // to the procedural theme that best fits the stage/series.
   playStageTrack(stage) {
+    this._lastStage = stage   // remembered so a domain can restore it on collapse
     // Queue until the first gesture, then resolve file → procedural fallback.
     if (!this._gestured) { this._pendingMusic = { kind: "stage", stage }; return }
     this._fileFallbackTheme = this._proceduralThemeForStage(stage)
     if (stage?.music && this.playMusicFile(stage.music, true)) return
     this.playMusic(this._fileFallbackTheme, true)
+  }
+
+  // Restore the current map's own track (used when a domain that hijacked the
+  // music collapses). Falls back to menu music if no stage was ever set.
+  restoreStageMusic() {
+    if (this._lastStage) this.playStageTrack(this._lastStage)
+    else this.playMenuMusic()
+  }
+
+  // ── ONE-SHOT FILE SFX (e.g. a voice line) ─────────────────────
+  // play() only triggers procedural SOUNDS and playMusicFile() loops, so this
+  // is the missing piece: a non-looping audio FILE played once. Honors mute and
+  // SFX volume; needs the first-gesture unlock (callers route domain audio
+  // through playDomainAudio, which queues pre-gesture).
+  // One-shot file SFX, played on SFX volume. Optional `fallbackId` is a
+  // procedural SOUNDS id triggered if the file can't be requested OR 404s
+  // (via the element's onerror) — so the cue is never fully silent.
+  playSfxFile(filename, fallbackId = null) {
+    if (this._muted || !this._gestured) return false
+    const src = this._resolveSrc(filename)
+    if (!src) { if (fallbackId) this.play(fallbackId); return false }
+    try {
+      const a = new Audio(src)        // fresh element: fire-and-forget one-shot
+      a.volume = this._sfxVol
+      if (fallbackId) a.onerror = () => this.play(fallbackId)   // 404 → procedural cue
+      const p = a.play()
+      if (p && p.catch) p.catch(() => {})
+      return true
+    } catch (_) { if (fallbackId) this.play(fallbackId); return false }
+  }
+
+  // Domain-expansion audio: a one-shot voice line + a looping domain theme,
+  // started together. Gesture-gated like all other music so it queues cleanly
+  // if a domain somehow opens before the first interaction. If a file 404s it
+  // falls back to the existing procedural equivalent (voice → DOMAIN_ACTIVATE,
+  // theme → DOMAIN_LOOP) so audio never goes fully silent.
+  playDomainAudio(voiceFile, themeFile) {
+    if (!this._ready) return
+    if (!this._gestured) { this._pendingMusic = { kind: "domainAudio", voiceFile, themeFile }; return }
+    if (voiceFile) this.playSfxFile(voiceFile, SFX.DOMAIN_ACTIVATE)
+    if (themeFile) {
+      this._fileFallbackTheme = MUSIC.DOMAIN_LOOP   // playMusicFile.onerror uses this
+      if (!this.playMusicFile(themeFile, true)) this.playMusic(MUSIC.DOMAIN_LOOP, true)
+    }
   }
 
   _proceduralThemeForStage(stage) {

@@ -1,0 +1,13 @@
+CREDITS / ATTRIBUTION
+=====================
+
+Gojo Satoru sprite art (Shinjuku-arc M.U.G.E.N sheet)
+  Sheet by: FinhJ
+  Additional credits: ZeurasBlack, Rob4n
+
+These sprites are used with the attribution required by the sheet's terms.
+Source files: gojo_*_sheet.png  (and the original full sheet if re-added as
+gojo_sheet_source.png).
+
+This is a non-commercial personal fan project. All characters and source
+material are the property of their respective creators and rights holders.

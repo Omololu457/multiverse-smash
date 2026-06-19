@@ -19,6 +19,15 @@ let _domainFadeIn = 0
 let _domainFadeOut = 0
 let _lastDomainBg = null
 
+// Gojo "Unlimited Void" — optional VIDEO-backed background (visual only: muted,
+// kept OUT of any audio graph). Lazily created on first use; if the file is
+// missing/unready/decode-fails it falls back to the procedural _drawUnlimitedVoid().
+let _gojoVideo       = null
+let _gojoVideoFailed = false
+let _gojoActiveOwner = null   // tracks the live Gojo domain so a new one replays from 0
+let _gojoEndImg      = null
+let _gojoEndImgReady = false
+
 // ─────────────────────────────────────────────────────────────────
 // ACTIVATION
 // ─────────────────────────────────────────────────────────────────
@@ -63,8 +72,20 @@ export function activateDomain(fighter, options = {}, context = {}) {
   _domainFadeOut = 0
   _lastDomainBg = domain.rosterKey
 
-  sound?.play?.(SFX.DOMAIN_ACTIVATE)
-  sound?.playMusic?.(MUSIC.DOMAIN_LOOP, true)
+  // Gojo's video-backed background restarts from frame 0 on (re)activation so a
+  // rematch replays cleanly. Visual only — Gojo's AUDIO path below is unchanged.
+  if (domain.rosterKey === "gojo") _restartGojoVideo()
+
+  // Sukuna gets bespoke domain audio (voice line + Malevolent Shrine theme),
+  // fired on the SAME frame the white-flash fade-in begins. Every other domain
+  // keeps the generic activate SFX + procedural domain loop unchanged.
+  if (domain.rosterKey === "sukuna") {
+    // EXACT on-disk filenames (case-sensitive): voice line is "Sukuna_saying_Domain.mp3".
+    sound?.playDomainAudio?.("Sukuna_saying_Domain.mp3", "Sukuna_Theme.mp3")
+  } else {
+    sound?.play?.(SFX.DOMAIN_ACTIVATE)
+    sound?.playMusic?.(MUSIC.DOMAIN_LOOP, true)
+  }
 
   if (context?.camera?.shake) context.camera.shake(18, 20)
 
@@ -96,6 +117,23 @@ function collapseDomain(domain) {
 
   owner.domainBuff = false
   owner.activeDomainTimer = 0
+
+  // Sukuna's domain hijacked the music with its own looping theme — on collapse
+  // (timer expiry, conflict, or clearDomains) stop it and restore the map's own
+  // track. Other domains are untouched (their loop behavior is unchanged).
+  if (domain.rosterKey === "sukuna") {
+    sound?.stopMusicFile?.()
+    sound?.restoreStageMusic?.()
+  }
+
+  // Gojo's background video: pause on collapse (no reverse — HTML5 reverse is
+  // unreliable); the existing _domainFadeOut alpha handles the fade. Owner-keyed
+  // because abilities.js domains carry no rosterKey. Reset so the next activation
+  // replays from the start.
+  if ((domain.owner?.rosterKey || domain.rosterKey) === "gojo") {
+    _gojoActiveOwner = null
+    if (_gojoVideo && !_gojoVideoFailed) { try { _gojoVideo.pause() } catch (_) {} }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -133,16 +171,17 @@ export function updateDomains(fighters = []) {
 
       if (dist > domain.range) continue
 
-      if (domain.rosterKey === "gojo") {
+      if (domain.rosterKey === "gojo" || domain.rosterKey === "sukuna") {
+        // BUG_4: inside Gojo's Void / Sukuna's Shrine the trapped opponent can't
+        // move — refresh hitstun every frame (physics.moveFighter blocks input
+        // while hitstun>0) and kill momentum. The caster (owner) is excluded above.
         fighter.hitstun = Math.max(fighter.hitstun || 0, 4)
-        fighter.vx = (fighter.vx || 0) * 0.8
-        fighter.vy = (fighter.vy || 0) * 0.8
-      } else if (domain.rosterKey === "sukuna") {
-        if (Math.random() < 0.06) {
+        fighter.vx = 0
+        fighter.vy = (fighter.vy || 0) * 0.2
+        // Sukuna's domain also chips away at the trapped fighter.
+        if (domain.rosterKey === "sukuna" && Math.random() < 0.06) {
           fighter.health = Math.max(0, (fighter.health || 0) - 12)
           fighter.colorFlash = 4
-          fighter.hitstun = Math.max(fighter.hitstun || 0, 4)
-          fighter.vx = (fighter.vx || 0) * 0.5
           if (fighter.health <= 0) sound?.play?.(SFX.KO)
         }
       } else if (domain.rosterKey === "megumi") {
@@ -177,7 +216,18 @@ export function drawDomainBackground(ctx, canvas, groundY, floorHeight) {
   const cw = canvas?.width || window.innerWidth
   const ch = canvas?.height || window.innerHeight
   const domain = activeDomains[0]
-  const bgType = domain?.rosterKey || _lastDomainBg
+  // Resolve which background to draw. Domains pushed from abilities.js carry no
+  // `rosterKey`, so recognize Gojo via the owner (GOJO-ONLY — every other domain
+  // resolves to null exactly as before, so their rendering is untouched).
+  // Remember it so the fade-OUT frames after the domain object is gone keep
+  // showing the right background.
+  let bgType
+  if (domain) {
+    bgType = domain.rosterKey || (domain.owner?.rosterKey === "gojo" ? "gojo" : null)
+    _lastDomainBg = bgType
+  } else {
+    bgType = _lastDomainBg
+  }
   const fadeAlpha = domain ? 1 : Math.max(0, _domainFadeOut / 20)
 
   if (fadeAlpha <= 0) return
@@ -187,7 +237,7 @@ export function drawDomainBackground(ctx, canvas, groundY, floorHeight) {
 
   switch (bgType) {
     case "gojo":
-      _drawUnlimitedVoid(ctx, cw, ch)
+      _drawGojoDomain(ctx, cw, ch)   // video-backed; _drawUnlimitedVoid is the fallback
       break
     case "sukuna":
       _drawMalevolentShrine(ctx, cw, ch)
@@ -208,6 +258,80 @@ export function drawDomainBackground(ctx, canvas, groundY, floorHeight) {
     ctx.globalAlpha = (_domainFadeIn / 6) * 0.85
     ctx.fillRect(0, 0, cw, ch)
     ctx.restore()
+  }
+}
+
+// ── GOJO VIDEO-BACKED BACKGROUND ─────────────────────────────────
+// Lazily create the hidden, muted <video> (and an optional end-frame still).
+function _ensureGojoVideo() {
+  if (_gojoVideo || _gojoVideoFailed) return
+  if (typeof document === "undefined") { _gojoVideoFailed = true; return }
+  try {
+    const v = document.createElement("video")
+    v.src       = "./gojo_domain.mp4"
+    v.muted     = true       // muted → can play mid-match without a user gesture
+    v.playsInline = true
+    v.loop      = false
+    v.preload   = "auto"
+    v.onerror   = () => { _gojoVideoFailed = true }   // 404/decode → clean fallback, never black
+    _gojoVideo  = v
+
+    // Optional end-frame still. Absent → we simply freeze on the video's last frame.
+    const img = new Image()
+    img.onload  = () => { _gojoEndImgReady = true }
+    img.onerror = () => { _gojoEndImgReady = false }
+    img.src = "./gojo_domain_end.jpg"
+    _gojoEndImg = img
+  } catch (_) { _gojoVideoFailed = true }
+}
+
+// Restart from frame 0 and play (ignore the autoplay promise rejection).
+function _restartGojoVideo() {
+  if (!_gojoVideo || _gojoVideoFailed) return
+  try {
+    _gojoVideo.currentTime = 0
+    const p = _gojoVideo.play()
+    if (p && p.catch) p.catch(() => {})
+  } catch (_) {}
+}
+
+// cover-fit: scale to fill, center-crop, preserve aspect.
+function _coverDraw(ctx, src, sw, sh, cw, ch) {
+  if (!sw || !sh) return
+  const scale = Math.max(cw / sw, ch / sh)
+  const dw = sw * scale, dh = sh * scale
+  ctx.drawImage(src, (cw - dw) / 2, (ch - dh) / 2, dw, dh)
+}
+
+function _drawGojoDomain(ctx, cw, ch) {
+  _ensureGojoVideo()
+
+  // Live (re)activation trigger: a NEW Gojo domain owner → replay from the top
+  // (so a rematch starts clean). In this build domains are created in
+  // abilities.js, so this render-path detection is what actually fires;
+  // activateDomain() also calls _restartGojoVideo() to honor that contract.
+  const gojoDomain = activeDomains.find(d => d?.owner?.rosterKey === "gojo")
+  if (gojoDomain && gojoDomain.owner !== _gojoActiveOwner) {
+    _gojoActiveOwner = gojoDomain.owner
+    _restartGojoVideo()
+  }
+
+  const v = _gojoVideo
+  if (_gojoVideoFailed || !v) { _drawUnlimitedVoid(ctx, cw, ch); return }
+
+  // Ended → a paused/ended <video> holds its final frame, so drawing it stays
+  // seamless; if an end-frame still was supplied + loaded, draw that instead.
+  if (v.ended && _gojoEndImgReady && _gojoEndImg) {
+    _coverDraw(ctx, _gojoEndImg, _gojoEndImg.naturalWidth, _gojoEndImg.naturalHeight, cw, ch)
+    return
+  }
+
+  // readyState >= 2 (HAVE_CURRENT_DATA) with real dimensions → draw the frame;
+  // otherwise the procedural void still renders so the domain is never blank.
+  if (v.readyState >= 2 && v.videoWidth > 0) {
+    _coverDraw(ctx, v, v.videoWidth, v.videoHeight, cw, ch)
+  } else {
+    _drawUnlimitedVoid(ctx, cw, ch)
   }
 }
 
@@ -381,6 +505,12 @@ export function drawDomains(ctx) {
   for (const domain of activeDomains) {
     if (!domain?.owner) continue
 
+    // Gojo/Sukuna domains span the whole map (range ~1e5); a world-space ring/fill
+    // of that radius would be absurd. Their fullscreen drawDomainBackground +
+    // the screen-space HUD bar convey the domain, so skip the world ring here.
+    // Other domains keep their normal circular ring.
+    if (domain.rosterKey === "gojo" || domain.rosterKey === "sukuna") continue
+
     const owner = domain.owner
     const cx = (owner.x || 0) + (owner.w || 0) / 2
     const cy = (owner.y || 0) + (owner.h || 0) / 2
@@ -464,3 +594,4 @@ export function clearDomains() {
   _lastDomainBg = null
   sound?.stopMusic?.()
 }
+

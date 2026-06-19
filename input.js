@@ -16,8 +16,8 @@ export const keys = {}
 // ─────────────────────────────────────────────────────────────────
 const BUFFER_WINDOW = 10 // frames
 
-const p1Buffer = { light: 0, heavy: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
-const p2Buffer = { light: 0, heavy: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
+const p1Buffer = { light: 0, heavy: 0, upAttack: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
+const p2Buffer = { light: 0, heavy: 0, upAttack: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
 
 function zeroBuffer(buf) {
   for (const k in buf) buf[k] = 0
@@ -36,7 +36,7 @@ export const inputSettings = {
 //   Triangle (3) → special        Circle (1)  → dash
 //   L1 (4)       → grab           R1 (5)      → charge / Omnitrix switch
 //   L2 (6)       → ultimate       R2 (7)      → ultimate (alt)
-const PS5_MAP = {
+export const PS5_MAP = {
   X: 0,
   CIRCLE: 1,
   SQUARE: 2,
@@ -53,7 +53,7 @@ const PS5_MAP = {
   ANALOG_L_Y: 1
 }
 
-const STICK_DEADZONE = 0.4
+export const STICK_DEADZONE = 0.4
 
 // ─────────────────────────────────────────────────────────────────
 // DEFAULT CONTROL MAPS
@@ -230,29 +230,46 @@ function pollGamepad(playerNum, buffer) {
   const axisX = gp.axes[PS5_MAP.ANALOG_L_X] || 0
   const axisY = gp.axes[PS5_MAP.ANALOG_L_Y] || 0
 
-  const upHeld = btn(PS5_MAP.UP) || axisY < -STICK_DEADZONE
+  const upHeld    = btn(PS5_MAP.UP)    || axisY < -STICK_DEADZONE
+  const downHeld  = btn(PS5_MAP.DOWN)  || axisY >  STICK_DEADZONE
+  const leftHeld  = btn(PS5_MAP.LEFT)  || axisX < -STICK_DEADZONE
+  const rightHeld = btn(PS5_MAP.RIGHT) || axisX >  STICK_DEADZONE
 
-  // Buffer the "press" actions so a quick tap survives a few frames.
-  if (btn(PS5_MAP.X))        buffer.light    = BUFFER_WINDOW
-  if (btn(PS5_MAP.SQUARE))   buffer.heavy    = BUFFER_WINDOW
-  if (btn(PS5_MAP.TRIANGLE)) buffer.special  = BUFFER_WINDOW
-  if (btn(PS5_MAP.CIRCLE))   buffer.dash     = BUFFER_WINDOW
-  if (btn(PS5_MAP.L2) || btn(PS5_MAP.R2)) buffer.ultimate = BUFFER_WINDOW
-  if (upHeld)                buffer.jump     = BUFFER_WINDOW
+  // DualSense → canonical actions (full keyboard parity):
+  //   Square=light(J)  Triangle=heavy(K)  X=jump(W)  R1=special(L)  R2=ultimate(U)
+  //   L1=grab(O, held)  L2=charge/toggle(P, held; tap handled in updateGamepadEdges)
+  //   Up + attack = grounded up-attack/launcher (X alone stays jump → no collision).
+  // Dash (double-tap d-pad) + the L2 tap-toggle are edge-detected in
+  // game.js updateGamepadEdges; here we only read held/buffered state.
+  const lightBtn = btn(PS5_MAP.SQUARE)
+  const heavyBtn = btn(PS5_MAP.TRIANGLE)
+  const doingUpAttack = upHeld && (lightBtn || heavyBtn)
+
+  if (btn(PS5_MAP.X))   buffer.jump = BUFFER_WINDOW        // X always jumps
+  if (doingUpAttack) {
+    buffer.upAttack = BUFFER_WINDOW                        // up + attack = launcher (the up does NOT jump)
+  } else {
+    if (lightBtn) buffer.light = BUFFER_WINDOW
+    if (heavyBtn) buffer.heavy = BUFFER_WINDOW
+    if (upHeld)   buffer.jump  = BUFFER_WINDOW             // up alone = jump
+  }
+  if (btn(PS5_MAP.R1)) buffer.special  = BUFFER_WINDOW
+  if (btn(PS5_MAP.R2)) buffer.ultimate = BUFFER_WINDOW
 
   return {
-    left:     btn(PS5_MAP.LEFT)  || axisX < -STICK_DEADZONE,
-    right:    btn(PS5_MAP.RIGHT) || axisX >  STICK_DEADZONE,
-    down:     btn(PS5_MAP.DOWN)  || axisY >  STICK_DEADZONE,
-    up:       upHeld,
+    left:     leftHeld,
+    right:    rightHeld,
+    down:     downHeld,
+    up:       upHeld && !doingUpAttack,   // suppress the jump when it's an up-attack
     jump:     buffer.jump     > 0,
     light:    buffer.light    > 0,
     heavy:    buffer.heavy    > 0,
+    upAttack: buffer.upAttack > 0,
     special:  buffer.special  > 0,
     ultimate: buffer.ultimate > 0,
-    dash:     buffer.dash     > 0,
+    dash:     buffer.dash     > 0,        // set by updateGamepadEdges on double-tap
     grab:     btn(PS5_MAP.L1),
-    charge:   btn(PS5_MAP.R1)
+    charge:   btn(PS5_MAP.L2)
   }
 }
 
@@ -279,6 +296,7 @@ export function getFighterInput(fighter) {
   // 2. Keyboard buffering
   if (keys[ctrl.light]) buffer.light = BUFFER_WINDOW
   if (keys[ctrl.heavy]) buffer.heavy = BUFFER_WINDOW
+  if (keys[ctrl.upAttack]) buffer.upAttack = BUFFER_WINDOW    // dedicated I = up-attack/launcher
   if (keys[ctrl.special]) buffer.special = BUFFER_WINDOW
   if (keys[ctrl.ultimate]) buffer.ultimate = BUFFER_WINDOW
   if (keys[ctrl.jump] || keys[ctrl.up]) buffer.jump = BUFFER_WINDOW
@@ -291,9 +309,10 @@ export function getFighterInput(fighter) {
     jump: buffer.jump > 0,
     light: buffer.light > 0,
     heavy: buffer.heavy > 0,
+    upAttack: buffer.upAttack > 0,
     special: buffer.special > 0,
     ultimate: buffer.ultimate > 0,
-    dash: !!keys[ctrl.dash],
+    dash: !!keys[ctrl.dash],                  // unbound key ("") → always false; dash = double-tap
     grab: !!keys[ctrl.grab],
     charge: !!keys[ctrl.charge]
   }

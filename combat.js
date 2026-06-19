@@ -43,7 +43,7 @@ const HITSTOP = {
 // tune combo-ability across the whole game without editing every move.
 // (Combo damage falloff is handled by getComboScale; blockstun + the
 // charging-can't-defend rule are handled in resolveAttackHit / game.js.)
-const HITSTUN_SCALE = 1.0
+const HITSTUN_SCALE = 1.15   // MK12-style flow: links connect without frame-perfect timing (falloff via getComboScale keeps it safe)
 
 // ========================
 // HELPERS
@@ -241,8 +241,13 @@ export function rectsOverlap(a, b) {
 // ========================
 
 export function shouldGojoAutoDodge(defender) {
-  if (!defender?.currentFormData?.autoDodge) return false
-  const c = defender.currentFormData.autoDodgeKiCost || 5
+  // Auto-dodge when the active FORM grants it (Ultra Instinct / Unlimited Void)
+  // OR when Gojo's player-toggled Infinity is ON. Either way it costs ki per
+  // dodge; if too low to pay, the hit lands (and the passive drain will drop
+  // Infinity at 0 energy — see applyGojoPassiveSystems).
+  const infinityOn = (defender?.rosterKey || "").toLowerCase() === "gojo" && !!defender?.infinityActive
+  if (!defender?.currentFormData?.autoDodge && !infinityOn) return false
+  const c = defender.currentFormData?.autoDodgeKiCost || 5
   if ((defender.energy || 0) < c) return false
   defender.energy -= c
   defender.teleportFlash = 8
@@ -737,9 +742,9 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
     }
   }
 
-  if ((fighter.energy || 0) < (fighter.maxEnergy || 0)) {
-    fighter.energy += 0.1
-  }
+  // Energy regen is owned by abilities.js regenEnergy() (per-character/domain
+  // tuning + the infinite-energy vow). Removing the duplicate passive +0.1 here
+  // that used to run alongside it every frame and double-fill the meter.
 }
 
 // ========================

@@ -76,7 +76,10 @@ export const physics = {
     const L = !!keys[controls.left]
     const R = !!keys[controls.right]
     const U = !!keys[controls.up]
-    const dash = !!keys[controls.dash]
+    // Dash = double-tap A/D (game.js sets _dashTap; there is no dash KEY anymore).
+    // Six Eyes Focus binding vow disables dashing.
+    const dash = (!!keys[controls.dash] || !!fighter._dashTap) && !fighter.noDash
+    fighter._dashTap = false   // one-shot: consume the double-tap this frame
 
     if (fighter.dashCooldown > 0) fighter.dashCooldown--
     if (fighter.airDashTimer > 0 && --fighter.airDashTimer <= 0) fighter.airDashing = false
@@ -105,6 +108,8 @@ export const physics = {
       else if (!air && dash && fighter.dashCooldown <= 0) {
         fighter.dashTimer = fighter.dashDuration || 8
         fighter.dashCooldown = fighter.dashCooldownMax || 28
+        // Binding vow (Toji — Assassin's Oath): i-frames at dash start.
+        if (fighter.dashInvuln) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, fighter.dashDuration || 8)
       }
 
       if (!air && fighter.dashTimer > 0) {

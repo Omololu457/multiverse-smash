@@ -15,6 +15,23 @@ import {
 
 export const activeProjectiles = []
 
+// Frame-counted deferred spawns (replaces setTimeout, which used wall-clock time
+// and ignored pause/hitstop/round-reset). Ticked by updatePendingSpawns() from
+// the game loop; cleared by clearAbilityState() on round reset.
+const pendingSpawns = []
+export function schedulePendingSpawn(framesLeft, fn) {
+  if (typeof fn === "function") pendingSpawns.push({ framesLeft: Math.max(1, framesLeft | 0), fn })
+}
+export function updatePendingSpawns() {
+  for (let i = pendingSpawns.length - 1; i >= 0; i--) {
+    const s = pendingSpawns[i]
+    if (--s.framesLeft <= 0) {
+      pendingSpawns.splice(i, 1)
+      try { s.fn() } catch (_) {}
+    }
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────────────────────────
@@ -35,13 +52,26 @@ function getAttackDuration(base, fighter) {
 
 function canSpendEnergy(fighter, cost = 0) {
   if (!cost) return true
+  if (fighter?.infiniteEnergy) return true   // Infinite Energy binding vow
   return (fighter?.energy || 0) >= cost
 }
 
 function spendEnergy(fighter, cost = 0) {
   if (!fighter || !cost) return true
+  if (fighter.infiniteEnergy) return true   // vow: fire freely, never deduct
   if (!canSpendEnergy(fighter, cost)) return false
   fighter.energy = Math.max(0, (fighter.energy || 0) - cost)
+  return true
+}
+
+// Domain expansions cost the FULL bar: require a 100%-full meter, then drain to 0.
+// Combined with the 50% round-start energy, a domain can NEVER open at round start
+// and only returns once the meter has fully refilled. Returns false if not full.
+function spendFullBarForDomain(fighter) {
+  if (!fighter) return false
+  if (fighter.infiniteEnergy) return true   // vow keeps the bar full; don't zero it
+  if ((fighter.energy || 0) < (fighter.maxEnergy || 0)) return false
+  fighter.energy = 0
   return true
 }
 
@@ -119,11 +149,18 @@ function normalizeMotionToken(token) {
 }
 
 function endsWithPattern(list, pattern) {
-  if (list.length < pattern.length) return false
-  for (let i = 0; i < pattern.length; i++) {
-    if (list[list.length - pattern.length + i] !== pattern[i]) return false
+  if (!Array.isArray(list) || list.length < pattern.length) return false
+  // FORGIVING match (not pixel-frame-perfect): the pattern must appear IN ORDER
+  // within the last (pattern.length + 1) recent inputs — tolerating ONE stray or
+  // diagonal input so motions register reliably. Order is still required (D before
+  // B/F), which keeps Blue (neutral) / Red (D,F) / Hollow Purple (D,B) distinct
+  // and avoids false triggers from plain walking.
+  const window = list.slice(-(pattern.length + 1))
+  let pi = 0
+  for (let i = 0; i < window.length && pi < pattern.length; i++) {
+    if (window[i] === pattern[pi]) pi++
   }
-  return true
+  return pi === pattern.length
 }
 
 function getRelativeDirections(fighter, maxAge = COMMAND_INPUT_MAX_AGE) {
@@ -282,8 +319,8 @@ function executeNarutoSpecial(fighter, context) {
       hitstun: 18, knockbackX: 6, knockbackY: -1,
       color: "#ffd166", w: 18, h: 18
     }, context)
-    // Spawn a second clone at slight offset
-    setTimeout(() => {
+    // Spawn a second clone ~5 frames later (frame-counted, pause/reset-safe).
+    schedulePendingSpawn(5, () => {
       if (activeProjectiles.length < 20) {
         spawnProjectile(fighter, "shadowClone2", {
           damage: 80, speed: 9, lifetime: 90, vy: -1,
@@ -291,7 +328,7 @@ function executeNarutoSpecial(fighter, context) {
           color: "#ffd166", w: 18, h: 18
         }, context)
       }
-    }, 80)
+    })
     fighter.attackCooldown = getAttackDuration(22, fighter)
     return true
   }
@@ -335,8 +372,31 @@ function executeGojoSpecial(fighter, context) {
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
 
+  // UP + Special = Teleport blink BEHIND the opponent (space-time contraction).
+  // Cheap, short cooldown; usable on defense and to start combos. Checked FIRST
+  // and via a strict last-input test so it stays distinct from neutral Blue, and
+  // it uses its OWN cooldown so it never blocks Blue/Red/Hollow Purple.
+  if (dirs.length > 0 && dirs[dirs.length - 1] === "U") {
+    if ((fighter.teleportCooldown || 0) > 0) return false
+    if (!spendEnergy(fighter, 8)) return false
+    if (target) {
+      const sw = context?.worldWidth || 3200
+      fighter.x = (fighter.x < target.x) ? target.x + target.w + 8 : target.x - fighter.w - 8
+      fighter.x = Math.max(0, Math.min(sw - fighter.w, fighter.x))
+      fighter.y = target.y
+      fighter.facing = (target.x >= fighter.x) ? 1 : -1   // face the opponent
+      fighter.vx = 0; fighter.vy = 0                       // zero residual velocity
+    }
+    fighter.teleportFlash    = 16
+    fighter.teleportCooldown = 120          // ~2s
+    fighter.attackCooldown   = getAttackDuration(8, fighter)
+    focusCameraOnAction(context, fighter, target, 1.0, 8)
+    return true
+  }
+
   // D→B = Hollow Purple — wide slow convergence beam
   if (endsWithPattern(dirs, ["D", "B"])) {
+    if (isSpecialDisabled(fighter, "hollowPurple")) return false   // binding vow (Limitless Sacrifice)
     if (!spendEnergy(fighter, 70)) return false
     spawnProjectile(fighter, "hollowPurple", {
       damage: 200, speed: 10, lifetime: 150,
@@ -351,8 +411,10 @@ function executeGojoSpecial(fighter, context) {
     return true
   }
 
-  // QCF (D→F) = Red — repulsion burst (launches target away)
-  if (endsWithPattern(dirs, ["D", "F"])) {
+  // D+L (forward) = Red — repulsion burst (launches target away). Checked AFTER
+  // Hollow Purple (S,A+L = D,B) so the longer motion isn't shadowed by this one.
+  if (endsWithPattern(dirs, ["F"])) {
+    if (isSpecialDisabled(fighter, "red")) return false   // binding vow (Limitless Sacrifice)
     if (!spendEnergy(fighter, 40)) return false
     const attack = createAttackFromMove(fighter, "red", {
       damage: 130, startup: 12, active: 5, recovery: 22,
@@ -365,6 +427,7 @@ function executeGojoSpecial(fighter, context) {
   }
 
   // Default = Blue — attraction pull projectile
+  if (isSpecialDisabled(fighter, "blue")) return false   // binding vow (Limitless Sacrifice)
   if (!spendEnergy(fighter, 30)) return false
   spawnProjectile(fighter, "blue", {
     damage: 110, speed: 12, lifetime: 110,
@@ -379,7 +442,7 @@ function executeGojoSpecial(fighter, context) {
 }
 
 function executeGojoUltimate(fighter, context) {
-  if (!spendEnergy(fighter, 100)) return false
+  if (!spendFullBarForDomain(fighter)) return false   // needs a FULL meter; drains to 0
 
   // Unlimited Void — create the ONE shared-array domain. activateDomain sets
   // rosterKey (so the void/video bg + in-range lock match), the white-flash,
@@ -468,15 +531,39 @@ function executeSukunaSpecial(fighter, context) {
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
 
-  // QCB (D→B) = Dismantle — ranged slash
+  // S,A+L (down→back) = Dismantle — ranged slash. LONGEST motion → checked first.
   if (endsWithPattern(dirs, ["D", "B"])) {
+    if (isSpecialDisabled(fighter, "dismantle")) return false   // binding vow (Flame Focus)
     if (!spendEnergy(fighter, 35)) return false
     spawnProjectile(fighter, "dismantle", {
       damage: 140, speed: 13, lifetime: 100,
       hitstun: 24, knockbackX: 9, knockbackY: -2,
-      color: "#f87171", w: 22, h: 12
+      color: "#f87171", w: 40, h: 22   // larger so the ranged slash actually reads on screen
     }, context)
+    // BROKEN LINK FIX: play Sukuna's slash on the CASTER. spawnProjectile alone
+    // left him idle while the projectile flew, so the move "didn't show". This
+    // mirrors Gojo's projectile-special cast hook (_spriteCastTimer is ticked in
+    // game.js updateMiscTimers; MOVE_TO_ACTION maps dismantle→dismantle strip).
+    fighter._spriteCastMove  = "dismantle"
+    fighter._spriteCastTimer = 24
     fighter.attackCooldown = getAttackDuration(24, fighter)
+    return true
+  }
+
+  // D+L (forward) = Flame Arrow — explosive projectile (TASK 3). Checked after the
+  // longer Dismantle motion so it isn't shadowed.
+  if (endsWithPattern(dirs, ["F"])) {
+    if (isSpecialDisabled(fighter, "flameArrow")) return false   // binding vow (True King)
+    if (!spendEnergy(fighter, 35)) return false
+    spawnProjectile(fighter, "flameArrow", {
+      damage: 140, speed: 11, lifetime: 110,
+      hitstun: 26, knockbackX: 11, knockbackY: -4,
+      color: "#fb923c", w: 30, h: 24   // orange explosive bolt — clearly drawn
+    }, context)
+    fighter._spriteCastMove  = "dismantle"   // reuse the slash strip for the cast
+    fighter._spriteCastTimer = 24
+    fighter.attackCooldown   = getAttackDuration(26, fighter)   // ~ cd 8
+    shakeCamera(context, 8, 6)
     return true
   }
 
@@ -493,8 +580,31 @@ function executeSukunaSpecial(fighter, context) {
   return true
 }
 
+// Malevolent Dash (TASK 3): fast forward dash strike that BREAKS incoming
+// projectiles and starts combos. Bound to double-tap-toward (game.js), so it's a
+// movement-tech entry, not a triggerSpecial branch — hence its own cooldown field.
+export function executeSukunaMalevolentDash(fighter) {
+  if (!fighter || (fighter.malevolentDashCooldown || 0) > 0) return false
+  if (!spendEnergy(fighter, 15)) return false
+  // Break enemy projectiles near Sukuna as he dashes through.
+  const cx = (fighter.x || 0) + (fighter.w || 0) / 2
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+    const p = activeProjectiles[i]
+    if (p && p.owner !== fighter && Math.abs((p.x ?? cx) - cx) < 170) activeProjectiles.splice(i, 1)
+  }
+  const attack = createAttackFromMove(fighter, "malevolentDash", {
+    damage: 80, startup: 3, active: 5, recovery: 9,
+    hitstun: 18, knockbackX: 7, knockbackY: -2, rangeX: 92, rangeY: 52
+  })
+  setAttackState(fighter, attack, 10)
+  fighter.vx = (fighter.facing || 1) * 13      // fast forward burst
+  fighter.malevolentDashCooldown = 48          // short cd (~0.8s) so it isn't an infinite
+  fighter.teleportFlash = 8
+  return true
+}
+
 function executeSukunaUltimate(fighter, context) {
-  if (!spendEnergy(fighter, 100)) return false
+  if (!spendFullBarForDomain(fighter)) return false   // needs a FULL meter; drains to 0
 
   // Malevolent Shrine — create the ONE shared-array domain. activateDomain sets
   // rosterKey (so the shrine bg + in-range chip/lock match), the white-flash,
@@ -581,6 +691,21 @@ function executeToji_Special(fighter, context) {
   fighter.vx = fighter.facing * 5
   focusCameraOnAction(context, fighter, target, 0.98, 8)
   shakeCamera(context, 8, 8)
+  return true
+}
+
+// Toji's teleport-dash follow-up: the quick strike fired the instant he blinks
+// behind the enemy (the blink/reposition is done by teleportBehindTarget in
+// game.js). Movement tech, NOT an energy special — no cursed-energy cost.
+export function tojiTeleportStrike(fighter) {
+  if (!fighter) return false
+  const attack = createAttackFromMove(fighter, "rapidStrike", {
+    damage: 60, startup: 3, active: 4, recovery: 10,
+    hitstun: 16, knockbackX: 5, knockbackY: -1,
+    rangeX: 78, rangeY: 46
+  })
+  setAttackState(fighter, attack, 12)
+  fighter.vx = fighter.facing * 4
   return true
 }
 
@@ -714,6 +839,7 @@ export function triggerUltimate(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
   if (fighter.attacking) return false
+  if (isSpecialDisabled(fighter, "ultimate")) return false   // binding vow (Limitless Sacrifice / Assassin's Oath)
 
   const key = (fighter.rosterKey || fighter.id || "").toLowerCase()
 
@@ -892,8 +1018,15 @@ export function applyGojoPassiveSystems(fighter) {
     if ((fighter.energy || 0) > 0) {
       fighter.energy = Math.max(0, fighter.energy - 0.14)
     } else {
-      // If energy runs out, infinity drops
+      // Energy ran out → Infinity drops. TASK 5: depleting CE while Infinity is up
+      // backlashes — a one-time small health penalty + a brief vulnerable stagger
+      // (this branch runs only on the frame infinityActive flips off, so it's once).
       fighter.infinityActive = false
+      if (!fighter.infiniteEnergy) {
+        fighter.health  = Math.max(1, (fighter.health || 0) - (fighter.maxHealth || 1000) * 0.05)
+        fighter.hitstun = Math.max(fighter.hitstun || 0, 18)   // briefly vulnerable
+        fighter.teleportFlash = 12
+      }
     }
   }
 }
@@ -951,6 +1084,7 @@ export function doEnergyCharge(fighter) {
 // ─────────────────────────────────────────────────────────────────
 export function regenEnergy(fighter) {
   if (!fighter?.maxEnergy || fighter.maxEnergy <= 0) return
+  if (fighter.infiniteEnergy) return   // vow: don't clamp the meter back down
 
   let regen = 0.06
 
@@ -1000,6 +1134,7 @@ export function drawProjectiles(ctx) {
 export function clearAbilityState() {
   activeProjectiles.length = 0
   activeSummons.length     = 0
+  pendingSpawns.length     = 0   // cancel any deferred spawns on round reset
 }
 
 // ─────────────────────────────────────────────────────────────────

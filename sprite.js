@@ -320,8 +320,10 @@ export class SpriteHandler {
 
     ctx.restore();
 
-    // Pause animation completely during hitstop
-    if ((fighter.hitstop || 0) <= 0) {
+    // Pause animation during hitstop OR while the game is paused. The pause
+    // render path still calls draw(), which would otherwise keep advancing
+    // frames; game.js sets fighter._animFrozen while in the PAUSED state.
+    if ((fighter.hitstop || 0) <= 0 && !fighter._animFrozen) {
       this.updateFrames(frameData, fighter);
     }
 

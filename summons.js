@@ -158,6 +158,15 @@ export function spawnSummon(owner, summonData, target) {
     return null
   }
 
+  // Binding vow (Megumi — Shadow Overload): hard cap on TOTAL summons for this
+  // owner across all ids, plus damage / lifespan boosts.
+  if (owner.maxSummons != null) {
+    const ownerTotal = activeSummons.filter(s => s.owner === owner).length
+    if (ownerTotal >= owner.maxSummons) return null
+  }
+  if (owner.summonDamageMultiplier)   mergedData.damage   = (mergedData.damage || summonDefaults.damage) * owner.summonDamageMultiplier
+  if (owner.summonLifespanMultiplier) mergedData.duration = (mergedData.duration || summonDefaults.duration) * owner.summonLifespanMultiplier
+
   const summon = {
     ...mergedData,
     owner,

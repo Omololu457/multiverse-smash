@@ -41,6 +41,17 @@ export function updateEffects() {
   }
 }
 
+// Drop every active timed effect (buffs/stuns/regen/etc.) so nothing carries over
+// across a round reset / rematch. Runs each effect's remove() first so any stat
+// mutation it applied is reverted, not stranded on a recreated/reused fighter.
+export function clearEffects() {
+  for (let i = activeEffects.length - 1; i >= 0; i--) {
+    const eff = activeEffects[i]
+    if (eff?.remove) { try { eff.remove(eff.target) } catch (_) {} }
+  }
+  activeEffects.length = 0
+}
+
 // ---------- CAMERA EFFECTS ----------
 
 export function triggerShake(strength = 8, duration = 10) {

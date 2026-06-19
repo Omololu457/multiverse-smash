@@ -455,10 +455,11 @@ export function resetFighterForRematch(fighter) {
   // Reset all live combat state
   const resetFields = {
     health:        fighter.maxHealth,
-    // Start a rematch with a full meter, matching how round-start (createFighter)
-    // initializes energy. (For Ben/Albedo a full meter is also required so they
-    // begin the rematch transformed rather than instantly force-reverting.)
-    energy:        fighter.maxEnergy,
+    // Start a rematch at 50% energy, matching round-start (createFighter) so a
+    // domain can't open at the start of a rematch either. (Ben/Albedo's Omnitrix
+    // drain meter is separate and re-armed by reinitTransformDevice in _doRematch,
+    // so they still begin the rematch transformed.)
+    energy:        fighter.maxEnergy * 0.5,
     vx: 0, vy: 0,
     facing:        fighter.side === "p1" ? 1 : -1,
     onGround:      true,

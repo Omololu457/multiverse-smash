@@ -224,7 +224,7 @@ const gojo = {
     // cinematic / specials
     transform:          { frames: 5, width: 42, height: 64, speed: 6, sheet: "./gojo_intro_sheet.png", loop: false, lockLastFrame: true },  // intro: play once, hold (FIX_3)
     ultimate:           { frames: 3, width: 39, height: 64, speed: 6, sheet: "./gojo_ultimate_sheet.png" },
-    domain:             { frames: 5, width: 42, height: 64, speed: 6, sheet: "./gojo_intro_sheet.png" },  // reuse intro
+    domain:             { frames: 4, width: 37, height: 64, speed: 6, sheet: "./gojo_domain_sheet.png" },  // Unlimited Void HAND-SIGN (NOT the gojo_intro coat-throw)
     blue_cast:          { frames: 5, width: 50, height: 64, speed: 5, sheet: "./gojo_max_output_blue_sheet.png" },
     red_cast:           { frames: 5, width: 56, height: 62, speed: 5, sheet: "./gojo_ctr_attack_sheet.png" },
     hollow_purple_cast: { frames: 4, width: 43, height: 63, speed: 5, sheet: "./gojo_hollowpurple_release_sheet.png" }
@@ -379,6 +379,10 @@ const toji = {
   rosterKey: "toji", name: "Toji", universe: "jujutsu_kaisen",
   archetypes: ["melee", "speed"],
   primary: "melee", secondary: ["speed"],
+  // dashTeleport: double-tap TOWARD the enemy → blink behind + instant strike
+  // (MK-style teleport-dash). His identity tech — no cursed energy. (game.js
+  // detectDoubleTapDashTeleport + abilities.tojiTeleportStrike).
+  movement: { dashTeleport: true },
   traits: { hasEnergy: false, energyType: "none", mobility: "very_high", scaling: "constant_pressure", animeMovement: true },
   stats: { maxHealth: 1260, maxEnergy: 0, attack: 96, defense: 89, speed: 98, maxJumps: 3, jumpPower: 36, dashSpeed: 24, dashDuration: 14, dashCooldownMax: 20 },
   basic_attacks: {
@@ -433,6 +437,10 @@ const toji = {
 
 const mahoraga = {
   rosterKey: "mahoraga", name: "Mahoraga", universe: "jujutsu_kaisen",
+  // NOT selectable — Mahoraga is the form Megumi becomes via her ultimate
+  // (abilities.js transformIntoMahoraga reads this block as characters.mahoraga).
+  // `hidden` excludes it from character-select / move-list / fallback.
+  hidden: true,
   archetypes: ["melee", "adaptation"],
   primary: "melee", secondary: ["adaptation"],
   traits: { hasEnergy: false, energyType: "none", mobility: "medium", scaling: "adaptation", animeMovement: true },

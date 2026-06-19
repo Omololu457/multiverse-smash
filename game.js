@@ -1,6 +1,6 @@
 // game.js
 
-import { bindingVows, activateBindingVow, hasBindingVow, activeVows } from "./bindingvow.js"
+import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
 import { characters, characterList } from "./characters.js"
 import {
   switchAlien, BEN10_ALIEN_POOL, setupBen10,
@@ -13,7 +13,7 @@ import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
-  defaultControls, defaultControlsP2, clearInputBuffers
+  defaultControls, defaultControlsP2, clearInputBuffers, PS5_MAP, STICK_DEADZONE
 } from "./input.js"
 import {
   activeSummons,
@@ -31,7 +31,7 @@ import {
   activeProjectiles,
   triggerSpecial, triggerUltimate, triggerTransformation,
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
-  regenEnergy, updateProjectiles as updateAbilityProjectiles, clearAbilityState
+  regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -57,7 +57,7 @@ import {
   activateDomain, updateDomains, drawDomains, clearDomains,
   drawDomainBackground, getDomainHUDData
 } from "./domains.js"
-import { activeEffects, addEffect, updateEffects, updateEnergyRegen } from "./effects.js"
+import { activeEffects, addEffect, updateEffects, updateEnergyRegen, clearEffects } from "./effects.js"
 import { sound, SFX, MUSIC } from "./sound.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
@@ -118,15 +118,61 @@ const GAME_STATES = {
 // ------------------------------------------------------------------
 // CONTROLS
 // ------------------------------------------------------------------
+// CANONICAL INPUT SCHEME — ONLY W A S D U I O P J K L are bound.
+//   W=jump/up  A=left  S=crouch/down  D=right  (double-tap A/D = dash)
+//   J=light  K=heavy  I=up-attack/launcher  L=special  U=ultimate/domain  O=grab
+//   P=charge (HOLD) / per-character toggle (TAP — Gojo: Infinity).
+// `dash` is intentionally unbound to a key ("") — dashing is double-tap A/D.
+// `toggle` shares the P key; tap-vs-hold is disambiguated on keyup (handleChargeTap).
 const P1_CONTROLS = {
   left: "a", right: "d", up: "w", down: "s", jump: "w",
-  light: "j", heavy: "k", special: "i", ultimate: "l",
-  transform: "u", charge: "o", toggle: "q", dash: "shift", grab: "g"
+  light: "j", heavy: "k", upAttack: "i", special: "l", ultimate: "u",
+  grab: "o", charge: "p", toggle: "p", transform: "p", dash: ""
 }
+// P2 (local-versus only) must use physically-distinct keys, so it necessarily
+// falls outside the 11-key rule; arrows + a right-hand cluster mirror P1's layout.
 const P2_CONTROLS = {
   left: "arrowleft", right: "arrowright", up: "arrowup", down: "arrowdown", jump: "arrowup",
-  light: "1", heavy: "2", special: "3", ultimate: "4",
-  transform: "5", charge: "6", toggle: "7", dash: "0", grab: "9"
+  light: "1", heavy: "2", upAttack: "3", special: "4", ultimate: "5",
+  grab: "6", charge: "7", toggle: "7", transform: "7", dash: ""
+}
+
+// ── KEYBIND UI (Task 2) — P1 keyboard rebinds, IN-MEMORY ONLY (sandbox blocks
+// localStorage). Restricted to the 11 allowed keys. ────────────────────────────
+const ALLOWED_KEYS = ["w", "a", "s", "d", "u", "i", "o", "p", "j", "k", "l"]
+const DEFAULT_P1_CONTROLS = { ...P1_CONTROLS }
+// action key in P1_CONTROLS → label. (up also drives jump — rebound together.)
+const REBINDABLE = [
+  ["up", "Jump / Up"], ["left", "Left"], ["down", "Crouch"], ["right", "Right"],
+  ["light", "Light (J)"], ["heavy", "Heavy (K)"], ["upAttack", "Up-Attack (I)"],
+  ["special", "Special (L)"], ["ultimate", "Ultimate (U)"], ["grab", "Grab (O)"],
+  ["charge", "Charge/Toggle (P)"]
+]
+let rebindAction  = null   // action currently awaiting a key, or null
+let rebindWarning = ""     // dup-key / invalid-key message
+
+const KEYBIND_Y0 = 350, KEYBIND_ROW_H = 38
+function getKeybindRects() {
+  const rects = []
+  const colW = 250, x0 = canvas.width / 2 - colW - 20
+  REBINDABLE.forEach(([action, label], i) => {
+    const col = i % 2, row = Math.floor(i / 2)
+    rects.push({ action, label, x: x0 + col * (colW + 40), y: KEYBIND_Y0 + row * KEYBIND_ROW_H, w: colW, h: KEYBIND_ROW_H - 8 })
+  })
+  return rects
+}
+const resetBindRect = () => ({ x: canvas.width / 2 - 110, y: KEYBIND_Y0 + Math.ceil(REBINDABLE.length / 2) * KEYBIND_ROW_H + 10, w: 220, h: 40 })
+
+// Apply a captured key to an action (P1 keyboard). Returns true on success.
+function applyRebind(action, key) {
+  if (!ALLOWED_KEYS.includes(key)) { rebindWarning = `"${key.toUpperCase()}" is not an allowed key (W A S D U I O P J K L).`; return false }
+  // Warn (but allow) if another action already uses this key.
+  const clash = REBINDABLE.find(([a]) => a !== action && P1_CONTROLS[a] === key)
+  rebindWarning = clash ? `Warning: ${key.toUpperCase()} also used by ${clash[1]}.` : ""
+  P1_CONTROLS[action] = key
+  if (action === "up") P1_CONTROLS.jump = key          // up + jump share a key
+  if (action === "charge") { P1_CONTROLS.toggle = key; P1_CONTROLS.transform = key }
+  return true
 }
 
 // ------------------------------------------------------------------
@@ -196,6 +242,22 @@ let victoryState     = createVictoryState()
 let matchIntroTimer  = 0
 let roundTimer       = ROUND_TIME
 
+// "BINDING VOW ACTIVATED" cue (text + white flash) shown when a directional vow
+// sequence is committed. timer counts down in updateBattle; drawn in BATTLE/ROUND.
+let vowCue = { timer: 0, sub: "" }
+function _triggerVowCue(vow) {
+  vowCue = { timer: 150, sub: (vow?.name || "BINDING VOW").toUpperCase() }
+}
+
+// ── DOMAIN EXPANSION CINEMATIC ──────────────────────────────────────
+// When Gojo/Sukuna open a domain: a brief tight zoom on the caster doing the
+// hand-sign (combat frozen, hitstop-style), then the camera pulls back to reveal
+// the fullscreen domain. State is restored cleanly AND defensively so the screen
+// can never get stuck zoomed (see endDomainCinematic / updateDomainCinematic).
+const DOMAIN_ZOOM_FRAMES = 28      // hand-sign beat length (~0.47s @60fps)
+const DOMAIN_ZOOM        = 1.55    // tight cinematic zoom on the caster
+const domainCine = { caster: null, domain: null, timer: 0, savedMaxZoom: null, savedMaxStep: null }
+
 // Use the imported activeProjectiles array directly — do NOT create a second one
 const projectiles  = activeProjectiles
 const hitSparks    = []
@@ -213,7 +275,7 @@ const comboDisplay = {
   p2: { opacity: 0, fadeDir: "out", lastCount: 0, holdTimer: 0 }
 }
 
-const allCharacterKeys = Object.keys(characters)
+const allCharacterKeys = Object.keys(characters).filter(k => !characters[k].hidden)
 const universeMap      = buildUniverseMap()
 const universeKeys     = Object.keys(universeMap)
 
@@ -232,7 +294,7 @@ let accountMessage       = ""
 
 // Fighters listed on the MOVE LIST screen (every selectable character).
 function getMoveListFighters() {
-  return characterList.map(c => ({ key: c.rosterKey, name: c.name, universe: c.universe }))
+  return characterList.filter(c => !c.hidden).map(c => ({ key: c.rosterKey, name: c.name, universe: c.universe }))
 }
 
 const matchConfig = {
@@ -263,6 +325,7 @@ function toFiniteNumber(value, fallback) {
 function buildUniverseMap() {
   const map = {}
   for (const key of Object.keys(characters)) {
+    if (characters[key]?.hidden) continue   // e.g. Mahoraga — a transform form, not selectable
     const u = characters[key]?.universe || "other"
     if (!map[u]) map[u] = []
     map[u].push(key)
@@ -349,6 +412,7 @@ function mapInputToVirtualKeys(inputState, controls) {
   if (inputState.down)    v[controls.down]    = true
   if (inputState.light)   v[controls.light]   = true
   if (inputState.heavy)   v[controls.heavy]   = true
+  if (inputState.upAttack)v[controls.upAttack]= true
   if (inputState.dash)    v[controls.dash]    = true
   if (inputState.special) v[controls.special] = true
   if (inputState.ultimate)v[controls.ultimate]= true
@@ -370,7 +434,9 @@ function createFighter(charKey, char, x, facing, controls, side) {
   const height  = toFiniteNumber(char?.h ?? char?.height, 100)
   const maxHealth  = Math.max(1, toFiniteNumber(stats.maxHealth  ?? char?.maxHealth  ?? char?.health,  1000))
   const maxEnergy  = Math.max(1, toFiniteNumber(stats.maxEnergy  ?? char?.maxEnergy  ?? char?.energy  ?? char?.meter, DEFAULT_MAX_ENERGY))
-  const startingEnergy = Math.max(0, toFiniteNumber(char?.energy, maxEnergy))
+  // Balance: EVERY fighter starts each round at 50% of max energy, so no domain
+  // (which costs a FULL bar — see spendFullBarForDomain) can open at round start.
+  const startingEnergy = maxEnergy * 0.5
   const speed   = Math.max(DEFAULT_SPEED, toFiniteNumber(stats.speed  ?? char?.speed  ?? movement?.speed, 7))
   const jump    = Math.max(DEFAULT_JUMP,  toFiniteNumber(char?.jump   ?? movement?.jump, 7))
   const groundedY = getGroundedYForHeight(height)
@@ -488,7 +554,10 @@ function resetRound() {
   }
 
   countdown = ROUND_START_COUNTDOWN
-  clearAbilityState()
+  clearAbilityState()      // activeProjectiles (shared), activeSummons, pending Naruto clones
+  clearEffects()           // activeEffects — timed buffs/stuns/regen (reverts each effect first)
+  clearAllBindingVows()    // activeVows — drop stale fighter refs (fighters are recreated below)
+  vowCue.timer = 0
   clearDomains()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
@@ -505,6 +574,7 @@ function resetRound() {
   }
   clearAIControlKeys(p2)
 
+  endDomainCinematic()   // guarantee camera limits restore even if a domain was mid-cinematic
   if (typeof camera.reset  === "function") camera.reset()
   updateCameraBounds()
   if (p1 && p2 && typeof camera.update === "function") camera.update(p1, p2, canvas)
@@ -595,6 +665,7 @@ function resetToStart() {
     comboDisplay[side].lastCount = 0
     comboDisplay[side].holdTimer = 0
   }
+  endDomainCinematic()   // defensive: never return to menu with the cinematic zoom stuck
   if (typeof camera.reset === "function") camera.reset()
 }
 
@@ -701,6 +772,12 @@ function _doRematch() {
   if (p1) { p1.x = p1X; p1.y = getGroundedYForFighter(p1) }
   if (p2) { p2.x = p2X; p2.y = getGroundedYForFighter(p2) }
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
+  // Rematch REUSES the fighter objects (resetFighterForRematch), so transient
+  // global state must be wiped here too — resetRound (which does this) is not called.
+  clearAbilityState()      // was missing: projectiles/summons/pending clones could carry into the rematch
+  clearEffects()
+  clearAllBindingVows()
+  for (const f of [p1, p2]) if (f) f._pendingSpawn = null   // reused objects → clear sprite deferred-spawn
   clearDomains()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
@@ -708,7 +785,10 @@ function _doRematch() {
   roundTimer = ROUND_TIME
   countdown  = ROUND_START_COUNTDOWN
   gameState  = GAME_STATES.BATTLE
-  sound.stopMusic?.()
+  // Rematch is the SAME stage: playStageTrack alone keeps the song going (the
+  // _musicFileSrc guard prevents reloading the same src) or switches from the
+  // victory-screen menu music. The old stopMusic() here nulled _musicFileSrc and
+  // bypassed that guard, needlessly restarting the song.
   sound.playStageTrack?.(matchConfig.selectedStage)
 }
 
@@ -718,7 +798,7 @@ function _doRematch() {
 function clearAIControlKeys(fighter) {
   if (!fighter) return
   const c = fighter.controls
-  ;[c.left, c.right, c.up, c.down, c.light, c.heavy, c.special, c.ultimate, c.charge]
+  ;[c.left, c.right, c.up, c.down, c.light, c.heavy, c.upAttack, c.special, c.ultimate, c.grab, c.charge]
     .forEach(k => { if (k) keys[k] = false })
 }
 
@@ -731,8 +811,8 @@ function applyAIInputToKeys(fighter, aiInput) {
   if (aiInput.jump)                         keys[c.up]      = true
   if (aiInput.lightAttack)                  keys[c.light]   = true
   if (aiInput.heavyAttack)                  keys[c.heavy]   = true
-  if (aiInput.upAttack) { keys[c.up] = true; keys[c.light]  = true }
-  if (aiInput.downAir)                      keys[c.heavy]   = true
+  if (aiInput.upAttack)                     keys[c.upAttack] = true        // dedicated I
+  if (aiInput.downAir) { keys[c.down] = true; keys[c.light] = true }       // air S+J
   if (aiInput.special1 || aiInput.special2) keys[c.special] = true
   if (aiInput.ultimate)                     keys[c.ultimate]= true
 }
@@ -776,11 +856,34 @@ function updateFacing() {
   else             { p1.facing = -1; p2.facing =  1 }
 }
 
+// P (charge) is HOLD-to-charge / TAP-to-toggle. On keydown we only remember when
+// it went down (ignoring OS key-repeat via _chargeHeld); the tap-vs-hold decision
+// happens on keyup in handleChargeRelease.
 function handleToggleInputs(fighter, key) {
   if (!fighter) return
   const c = fighter.controls
-  if (key === c.toggle && fighter.rosterKey === "gojo") fighter.infinityActive = !fighter.infinityActive
-  if (key === c.transform) triggerTransformation(fighter, getAbilityContext())
+  if (key === c.charge && !fighter._chargeHeld) {
+    fighter._chargeHeld     = true
+    fighter._chargeDownTime = performance.now()
+  }
+}
+
+// P-TAP (released within 200ms) = per-character toggle: Gojo → Infinity on/off;
+// transform-capable characters → cycle transformation. A longer HOLD is a charge
+// (handled by inputState.charge → doEnergyCharge) and does NOT toggle.
+function handleChargeRelease(fighter, key) {
+  if (!fighter || key !== fighter.controls.charge) return
+  const wasTap = fighter._chargeHeld && (performance.now() - (fighter._chargeDownTime || 0)) < 200
+  fighter._chargeHeld = false
+  if (!wasTap) return
+  if (fighter.rosterKey === "gojo") {
+    if (!fighter.disabledSpecials?.includes("infinity")) {   // Limitless Sacrifice vow disables Infinity
+      fighter.infinityActive = !fighter.infinityActive
+      fighter.teleportFlash  = Math.max(fighter.teleportFlash || 0, 10)
+    }
+  } else if (fighter.transformationOrder?.length) {
+    triggerTransformation(fighter, getAbilityContext())
+  }
 }
 
 function recordDirectionInput(fighter, key) {
@@ -820,24 +923,84 @@ function teleportBehindTarget(fighter) {
   if (typeof camera.focusBetween === "function") camera.focusBetween(fighter, target, 1.0, 10)
 }
 
+// Double-tap A/D. For EVERYONE this is a dash (physics consumes fighter._dashTap).
+// For teleport-strike characters (dashTeleport), a double-tap TOWARD the enemy is
+// the blink-behind + strike instead — and it must NOT come from the jump key.
 function detectDoubleTapDashTeleport(fighter, key) {
-  if (!fighter?.dashTeleport || fighter.hitstun > 0 || fighter.blockstun > 0) return
+  if (!fighter || fighter.hitstun > 0 || fighter.blockstun > 0) return
   const now = performance.now()
   const c   = fighter.controls
-  if (key === c.left) {
-    if (now - fighter.leftTapTime < DOUBLE_TAP_TIME) { teleportBehindTarget(fighter); fighter.leftTapTime = 0 }
-    else fighter.leftTapTime = now
+  const target    = getOpponent(fighter)
+  const towardKey = target ? (target.x >= fighter.x ? c.right : c.left) : null
+
+  const onDoubleTap = (isToward) => {
+    if (fighter.dashTeleport && isToward && (fighter.dashTeleportCooldown || 0) <= 0) {
+      teleportBehindTarget(fighter)                                   // Toji: blink behind
+      if (fighter.rosterKey === "toji" && typeof tojiTeleportStrike === "function") tojiTeleportStrike(fighter)
+      fighter.dashTeleportCooldown = 48
+    } else if (fighter.rosterKey === "sukuna" && isToward && typeof executeSukunaMalevolentDash === "function") {
+      if (!executeSukunaMalevolentDash(fighter)) fighter._dashTap = true   // Sukuna: Malevolent Dash (fallback to dash)
+    } else {
+      fighter._dashTap = true                                         // everyone else: normal dash
+    }
   }
-  if (key === c.right) {
-    if (now - fighter.rightTapTime < DOUBLE_TAP_TIME) { teleportBehindTarget(fighter); fighter.rightTapTime = 0 }
+
+  if (key === c.left) {
+    if (now - (fighter.leftTapTime || 0) < DOUBLE_TAP_TIME) { onDoubleTap(c.left === towardKey); fighter.leftTapTime = 0 }
+    else fighter.leftTapTime = now
+  } else if (key === c.right) {
+    if (now - (fighter.rightTapTime || 0) < DOUBLE_TAP_TIME) { onDoubleTap(c.right === towardKey); fighter.rightTapTime = 0 }
     else fighter.rightTapTime = now
   }
+}
+
+// Bridge a CONTROLLER player's EDGE actions into the same handlers the keyboard
+// uses. Held/buffered actions (move, attacks, special, ultimate, grab, charge) already
+// flow via pollGamepad → getFighterInput → vKeys. This only covers what needs press
+// edges: d-pad presses feed directionHistory (motion specials) + double-tap dash/
+// teleport, and L2 press/release drives charge-hold vs P-tap toggle. Called per
+// battle frame for any controller player. No-op for keyboard players / no pad.
+function updateGamepadEdges(fighter) {
+  if (!fighter) return
+  const isP1 = fighter.playerNumber === 1
+  const type = isP1 ? inputSettings.p1Type : inputSettings.p2Type
+  if (type !== "controller") return
+  const gp = (navigator.getGamepads?.() || [])[isP1 ? 0 : 1]
+  if (!gp) return
+  const c    = fighter.controls
+  const prev = fighter._gpPrev || (fighter._gpPrev = {})
+  const btn  = (i) => !!gp.buttons[i]?.pressed
+  const ax   = gp.axes || []
+  const dz   = STICK_DEADZONE
+
+  const dirs = [
+    ["left",  c.left,  btn(PS5_MAP.LEFT)  || (ax[0] || 0) < -dz],
+    ["right", c.right, btn(PS5_MAP.RIGHT) || (ax[0] || 0) >  dz],
+    ["up",    c.up,    btn(PS5_MAP.UP)    || (ax[1] || 0) < -dz],
+    ["down",  c.down,  btn(PS5_MAP.DOWN)  || (ax[1] || 0) >  dz]
+  ]
+  for (const [name, key, held] of dirs) {
+    if (held && !prev[name]) {                  // PRESS edge
+      recordDirectionInput(fighter, key)        // motion-special history (Hollow Purple etc.)
+      detectDoubleTapDashTeleport(fighter, key) // double-tap dash / teleport-strike
+    }
+    prev[name] = held
+  }
+
+  // L2 = charge (hold) / per-character toggle (tap) — reuse the keyboard handlers.
+  const l2 = btn(PS5_MAP.L2)
+  if (l2 && !prev.l2) handleToggleInputs(fighter, c.charge)    // press → record charge-down time
+  if (!l2 && prev.l2) handleChargeRelease(fighter, c.charge)   // release → toggle if it was a quick tap
+  prev.l2 = l2
 }
 
 function updateMiscTimers(fighter) {
   if (!fighter) return
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
   if (fighter.summonCooldown  > 0) fighter.summonCooldown--
+  if (fighter.teleportCooldown      > 0) fighter.teleportCooldown--       // Gojo Up+Special blink
+  if (fighter.dashTeleportCooldown  > 0) fighter.dashTeleportCooldown--   // Toji teleport-dash
+  if (fighter.malevolentDashCooldown > 0) fighter.malevolentDashCooldown-- // Sukuna Malevolent Dash
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--
@@ -902,12 +1065,12 @@ function buildNormalControlState(fighter, vKeys) {
   const c = fighter.controls
   const g = !!fighter.onGround
   return {
-    upAttack: g  && vKeys[c.up]   && (vKeys[c.light] || vKeys[c.heavy]),
-    grab:     g  && vKeys[c.down] && vKeys[c.light],
-    air:      !g && vKeys[c.light],
-    downAir:  !g && vKeys[c.heavy],
-    light:    g  && vKeys[c.light] && !vKeys[c.down] && !vKeys[c.up],
-    heavy:    g  && vKeys[c.heavy] && !vKeys[c.up]
+    upAttack: g  && vKeys[c.upAttack],                 // dedicated I = up-attack/launcher
+    grab:     g  && vKeys[c.grab],                      // dedicated O = grab
+    air:      !g && vKeys[c.light] && !vKeys[c.down],   // airborne J = air attack
+    downAir:  !g && vKeys[c.light] &&  vKeys[c.down],   // airborne S+J = down-air spike
+    light:    g  && vKeys[c.light],                     // J
+    heavy:    g  && vKeys[c.heavy]                      // K
   }
 }
 
@@ -928,6 +1091,10 @@ function updatePlayerCombat(fighter) {
   const inputState = getFighterInput(fighter)
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   const canStart   = !fighter.attacking && !fighter.currentMove
+
+  // Specials are L (direction-modified inside executeXSpecial). Gojo's Infinity
+  // toggle moved to P-TAP (handleChargeRelease), so Down+Special is free for the
+  // S+L motion specials (e.g. Hollow Purple = S,A+L).
   if (canStart && inputState.special)  { triggerSpecial(fighter,  getAbilityContext()); return }
   if (canStart && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
   updateCombat(fighter, getOpponent(fighter), buildNormalControlState(fighter, vKeys), opts)
@@ -951,6 +1118,31 @@ function updateFighterState(fighter) {
 // ------------------------------------------------------------------
 // GOJO SPECIAL SYSTEMS
 // ------------------------------------------------------------------
+// TASK 4: Infinity as a READABLE zone. Enemy projectiles that enter the radius
+// decelerate and SHRINK as they approach, then despawn at an inner boundary in
+// front of Gojo — "attack slows, shrinks, stops before Gojo" instead of an instant
+// invisible dodge. (Melee approach is halted by applyGojoInfinityField slowing the
+// attacker to a stop near Gojo.) Energy-drain + 0-CE shutoff are unchanged.
+const GOJO_INFINITY_INNER = 72   // despawn boundary (px from Gojo's center)
+function applyGojoInfinityToProjectiles(gojo) {
+  if (!gojo || gojo.rosterKey !== "gojo" || !gojo.infinityActive) return
+  const gcx = gojo.x + gojo.w / 2, gcy = gojo.y + gojo.h / 2
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+    const p = activeProjectiles[i]
+    if (!p || p.owner === gojo) continue
+    const dist = Math.hypot((p.x ?? 0) - gcx, (p.y ?? 0) - gcy)
+    if (dist > GOJO_INFINITY_RADIUS) continue
+    p.vx = (p.vx || 0) * 0.72        // decelerate the closer it gets
+    p.vy = (p.vy || 0) * 0.72
+    if (p.radius != null) p.radius *= 0.9   // shrink (drawProjectiles reads radius)
+    p.w = (p.w || 0) * 0.9
+    p.h = (p.h || 0) * 0.9
+    if (dist <= GOJO_INFINITY_INNER || (p.radius != null && p.radius < 2)) {
+      activeProjectiles.splice(i, 1)        // stopped/despawned before touching Gojo
+    }
+  }
+}
+
 function applyGojoInfinityField(gojo, target) {
   if (!gojo || !target || gojo.rosterKey !== "gojo" || !gojo.infinityActive) return
   const dx   = (target.x + target.w / 2) - (gojo.x + gojo.w / 2)
@@ -1069,6 +1261,55 @@ function _runClashCheck() {
   checkClash?.(p1, p2, hitSparks, camera)
 }
 
+// ── DOMAIN CINEMATIC DRIVER ─────────────────────────────────────────
+// Detects a freshly-opened Gojo/Sukuna domain, runs the hand-sign zoom beat, and
+// restores the camera afterward. Called once per frame from updateBattle.
+function updateDomainCinematic() {
+  const dom    = activeDomains[0]
+  const isCine = !!(dom && (dom.rosterKey === "gojo" || dom.rosterKey === "sukuna"))
+
+  if (isCine && dom !== domainCine.domain) {
+    // START — new cinematic domain: begin the hand-sign zoom beat.
+    domainCine.domain = dom
+    domainCine.caster = dom.owner || dom.caster || null
+    domainCine.timer  = DOMAIN_ZOOM_FRAMES
+    if (domainCine.savedMaxZoom == null) {        // capture limits once
+      domainCine.savedMaxZoom = camera.maxZoom
+      domainCine.savedMaxStep = camera.maxZoomStep
+    }
+    camera.maxZoom     = DOMAIN_ZOOM              // allow the tight zoom
+    camera.maxZoomStep = 0.05                     // reach it within the beat (still smoothed)
+  } else if (!isCine && domainCine.domain) {
+    // END — domain gone (timeout / KO / interrupt): restore everything.
+    endDomainCinematic()
+  }
+
+  if (domainCine.timer > 0) {
+    domainCine.timer--
+    if (domainCine.timer === 0) _restoreCinematicCameraLimits()  // beat done → pull back at normal rate
+  }
+}
+
+// Restore only the camera rate/zoom LIMITS so framing resumes normally. Idempotent.
+function _restoreCinematicCameraLimits() {
+  if (domainCine.savedMaxZoom != null) camera.maxZoom     = domainCine.savedMaxZoom
+  if (domainCine.savedMaxStep != null) camera.maxZoomStep = domainCine.savedMaxStep
+}
+
+// ALWAYS-RUN cleanup — guarantees camera limits + cinematic state reset even if
+// the domain ends early or the match resets mid-domain, so the screen can never
+// stay stuck zoomed in. Idempotent; safe to call from any reset path.
+function endDomainCinematic() {
+  _restoreCinematicCameraLimits()
+  domainCine.savedMaxZoom = null
+  domainCine.savedMaxStep = null
+  domainCine.caster = null
+  domainCine.domain = null
+  domainCine.timer  = 0
+}
+
+function isDomainZoomBeat() { return domainCine.timer > 0 }
+
 function updateBattle() {
   if (slowdownTimer > 0) {
     slowdownTimer--
@@ -1087,7 +1328,30 @@ function updateBattle() {
   updateDebugInputToggles()
   updateTrainingMode()
   updateCPUInput()
+  updateGamepadEdges(p1)   // controller players: feed motion history + double-tap + L2 tap-toggle
+  updateGamepadEdges(p2)
   updateFacing()
+
+  // DOMAIN CINEMATIC: on a new Gojo/Sukuna domain, freeze combat (hitstop-style)
+  // and drive the camera with the shared smoothing toward a tight focus on the
+  // caster's hand-sign for ~28 frames, then fall through to normal play (the
+  // camera pulls back to reveal the fullscreen domain).
+  updateDomainCinematic()
+  if (isDomainZoomBeat()) {
+    if (domainCine.caster && camera.focusOnFighter) camera.focusOnFighter(domainCine.caster, DOMAIN_ZOOM)
+    updateEffectsAndDomains()                 // white flash fades + domain bg renders
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
+  // BINDING VOWS: match each player's recent RAW directional sequence (own
+  // character's vows only). AI fighters have no directionHistory → never match.
+  if (vowCue.timer > 0) vowCue.timer--
+  for (const f of [p1, p2]) {
+    if (!f) continue
+    const vow = tryActivateBindingVow(f)
+    if (vow) { _triggerVowCue(vow); f.teleportFlash = 20; knockoutFlash = Math.max(knockoutFlash, 8) }
+  }
 
   _runClashCheck()
 
@@ -1096,6 +1360,8 @@ function updateBattle() {
 
   applyGojoInfinityField(p1, p2)
   applyGojoInfinityField(p2, p1)
+  applyGojoInfinityToProjectiles(p1)   // TASK 4: slow/shrink/despawn enemy projectiles in the zone
+  applyGojoInfinityToProjectiles(p2)
 
   p1 = updateFighterState(p1)
   p2 = updateFighterState(p2)
@@ -1114,9 +1380,11 @@ function updateBattle() {
   updatePlayerCombat(p1)
   updatePlayerCombat(p2)
 
-  // Use activeProjectiles directly (same reference as the imported array)
+  // ONE projectile update path on the shared activeProjectiles array (combat.js
+  // owns movement + collision). The old second updateAbilityProjectiles() call
+  // moved every projectile twice per frame — removed.
   updateCombatProjectiles(activeProjectiles, getStageWorldWidth(), [p1, p2])
-  updateAbilityProjectiles(getStageWorldWidth(), WORLD_HEIGHT)
+  updatePendingSpawns()   // frame-counted deferred spawns (e.g. Naruto 2nd clone)
   resolveProjectileHits(activeProjectiles, p1, p2, hitSparks)
 
   updateActiveSummons()
@@ -1143,6 +1411,9 @@ function updateBattle() {
 // ------------------------------------------------------------------
 function renderHybridFighter(fighter) {
   if (!fighter) return
+  // Freeze sprite frame-advance while paused (the pause state still renders this
+  // frame, so draw() must not keep ticking animations). sprite.js reads this flag.
+  fighter._animFrozen = (gameState === GAME_STATES.PAUSED)
   // Draw with sprites when this character has a loaded sheet set; otherwise the
   // procedural art (drawFighter) renders. Falls back per-fighter, so a sprited
   // character and a procedural one can share the screen.
@@ -1193,23 +1464,60 @@ function drawHitSparksEnhanced() {
   }
 }
 
+// Persistent visual cue that Gojo's Infinity is active (works with sprites, since
+// the procedural drawGojo aura isn't used when he's sprite-rendered): a pulsing
+// cyan ring around him. Drawn in world space (inside the camera transform).
+function _drawInfinityAura(f) {
+  if (!f || !f.infinityActive) return
+  const cx = f.x + f.w / 2, cy = f.y + f.h / 2
+  const r  = Math.max(f.w, f.h) * 0.72
+  const t  = globalFrameCount * 0.12
+  ctx.save()
+  ctx.strokeStyle = "#67e8f9"
+  ctx.shadowBlur  = 16; ctx.shadowColor = "#22d3ee"
+  ctx.lineWidth   = 3
+  ctx.globalAlpha = 0.30 + Math.sin(t) * 0.08
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke()
+  ctx.globalAlpha = 0.14
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.78, 0, Math.PI * 2); ctx.stroke()
+  ctx.restore()
+}
+
 function drawBattleScene() {
   const stage = getStageTheme()
   const hasTransform = typeof camera.applyTransform === "function"
   ctx.save()
+
+  // 1) Stage background — WORLD space. Skipped while a domain fully covers the
+  //    screen (kept during the fade-out so the domain dissolves back to it).
   if (hasTransform) camera.applyTransform(ctx, canvas)   // applyTransform does its own ctx.save()
-  if (typeof drawDomainBackground === "function") drawDomainBackground(ctx, canvas, groundY, getStageFloorHeight())
   if (activeDomains.length === 0) drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight())
+  if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+
+  // 2) Domain background — SCREEN space, fullscreen. Drawn outside the camera
+  //    transform so the Gojo void video / Sukuna shrine covers the ENTIRE
+  //    viewport regardless of zoom/pan (was world-clipped to a small region),
+  //    and on top of the stage so the fade-out reveals it. No-ops when idle.
+  if (typeof drawDomainBackground === "function") drawDomainBackground(ctx, canvas, groundY, getStageFloorHeight())
+
+  // 3) Everything else — WORLD space, on top of the domain backdrop.
+  if (hasTransform) camera.applyTransform(ctx, canvas)
   drawDomains(ctx)
   drawProjectiles(ctx, activeProjectiles, camera)
-  drawActiveSummons(ctx)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
+  // Shikigami/summons drawn AFTER the fighters (world space) so Megumi's Divine
+  // Dog / Nue / Toad etc. are never hidden behind a fighter sprite — they were
+  // previously drawn underneath and could be occluded near the action.
+  drawActiveSummons(ctx)
+  _drawInfinityAura(p1)
+  _drawInfinityAura(p2)
   drawHitSparksEnhanced()
   if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], camera)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+
   ctx.restore()
 }
 
@@ -1337,27 +1645,78 @@ function drawBattle() {
   _drawComboCounters()
   _drawDomainHUDBar()
   _drawKOFlash()
+  _drawVowCue()
+}
+
+// "BINDING VOW ACTIVATED" overlay — a brief white flash + chained vow name.
+function _drawVowCue() {
+  if (vowCue.timer <= 0) return
+  const t = vowCue.timer, cw = canvas.width, ch = canvas.height
+  ctx.save()
+  if (t > 138) { ctx.globalAlpha = ((t - 138) / 12) * 0.55; ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cw, ch) }
+  ctx.globalAlpha = Math.min(1, t / 28)
+  ctx.textAlign = "center"
+  ctx.shadowColor = "#a21caf"; ctx.shadowBlur = 20
+  ctx.fillStyle = "#f0abfc"; ctx.font = "bold 46px sans-serif"
+  ctx.fillText("⛓  BINDING VOW  ⛓", cw / 2, ch * 0.30)
+  ctx.shadowBlur = 8; ctx.fillStyle = "#ffffff"; ctx.font = "bold 28px sans-serif"
+  ctx.fillText(vowCue.sub, cw / 2, ch * 0.30 + 42)
+  ctx.restore()
 }
 
 // ------------------------------------------------------------------
 // MENU RENDERING
 // ------------------------------------------------------------------
-const p1SettingRect   = { x: window.innerWidth / 2 - 200, y: 300, w: 400, h: 60 }
-const p2SettingRect   = { x: window.innerWidth / 2 - 200, y: 400, w: 400, h: 60 }
-const backSettingRect = { x: window.innerWidth / 2 - 100, y: 550, w: 200, h: 50 }
+const p1SettingRect   = { x: window.innerWidth / 2 - 200, y: 150, w: 400, h: 44 }
+const p2SettingRect   = { x: window.innerWidth / 2 - 200, y: 202, w: 400, h: 44 }
+const backSettingRect = { x: window.innerWidth / 2 - 100, y: 686, w: 200, h: 44 }
 
 function drawSettingsScreen() {
   ctx.fillStyle = "#111"; ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.fillStyle = "#FFF"; ctx.font = "40px Arial"; ctx.textAlign = "center"
-  ctx.fillText("CONTROLLER SETTINGS", canvas.width / 2, 150)
+  ctx.textAlign = "center"
+  ctx.fillStyle = "#FFF"; ctx.font = "36px Arial"
+  ctx.fillText("INPUT SETTINGS", canvas.width / 2, 120)
+
+  // ── Per-player device (Task 4) + Two Keyboards placeholder (Task 3) ──
   ctx.fillStyle = "#333"
-  ctx.fillRect(p1SettingRect.x,   p1SettingRect.y,   p1SettingRect.w,   p1SettingRect.h)
-  ctx.fillRect(p2SettingRect.x,   p2SettingRect.y,   p2SettingRect.w,   p2SettingRect.h)
-  ctx.fillStyle = "#A00"
-  ctx.fillRect(backSettingRect.x, backSettingRect.y, backSettingRect.w, backSettingRect.h)
-  ctx.fillStyle = "#FFF"; ctx.font = "24px Arial"
-  ctx.fillText(`P1 Input: ${inputSettings.p1Type.toUpperCase()}`, canvas.width / 2, p1SettingRect.y + 40)
-  ctx.fillText(`P2 Input: ${inputSettings.p2Type.toUpperCase()}`, canvas.width / 2, p2SettingRect.y + 40)
+  ctx.fillRect(p1SettingRect.x, p1SettingRect.y, p1SettingRect.w, p1SettingRect.h)
+  ctx.fillRect(p2SettingRect.x, p2SettingRect.y, p2SettingRect.w, p2SettingRect.h)
+  ctx.fillStyle = "#FFF"; ctx.font = "22px Arial"
+  ctx.fillText(`P1 Device: ${inputSettings.p1Type.toUpperCase()}  (click to change)`, canvas.width / 2, p1SettingRect.y + 38)
+  ctx.fillText(`P2 Device: ${inputSettings.p2Type.toUpperCase()}  (click to change)`, canvas.width / 2, p2SettingRect.y + 38)
+  // Two Keyboards — DISABLED placeholder.
+  const tk = { x: canvas.width / 2 - 200, y: 254, w: 400, h: 44 }
+  ctx.fillStyle = "#1c1c1c"; ctx.fillRect(tk.x, tk.y, tk.w, tk.h)
+  ctx.strokeStyle = "#555"; ctx.strokeRect(tk.x, tk.y, tk.w, tk.h)
+  ctx.fillStyle = "#666"; ctx.font = "18px Arial"
+  ctx.fillText("Two Keyboards — coming soon", canvas.width / 2, tk.y + 20)
+  ctx.font = "12px Arial"
+  ctx.fillText("(browsers can't yet distinguish two keyboards)", canvas.width / 2, tk.y + 37)
+
+  // ── Keybind grid (Task 2) ──
+  ctx.fillStyle = "#9cf"; ctx.font = "16px Arial"
+  ctx.fillText("P1 KEYBOARD BINDINGS — click an action, then press a key (W A S D U I O P J K L)", canvas.width / 2, KEYBIND_Y0 - 16)
+  for (const r of getKeybindRects()) {
+    const awaiting = rebindAction === r.action
+    ctx.fillStyle = awaiting ? "#3a5" : "#2a2a2a"
+    ctx.fillRect(r.x, r.y, r.w, r.h)
+    ctx.fillStyle = "#FFF"; ctx.font = "15px Arial"
+    const keyLabel = awaiting ? "press a key…" : `[ ${(P1_CONTROLS[r.action] || "—").toUpperCase()} ]`
+    ctx.fillText(`${r.label}: ${keyLabel}`, r.x + r.w / 2, r.y + 21)
+  }
+  const rb = resetBindRect()
+  ctx.fillStyle = "#444"; ctx.fillRect(rb.x, rb.y, rb.w, rb.h)
+  ctx.fillStyle = "#FFF"; ctx.font = "18px Arial"
+  ctx.fillText("Reset to Defaults", canvas.width / 2, rb.y + 26)
+
+  // Warning + in-memory note.
+  if (rebindWarning) { ctx.fillStyle = "#fbbf24"; ctx.font = "15px Arial"; ctx.fillText(rebindWarning, canvas.width / 2, rb.y + 58) }
+  ctx.fillStyle = "#888"; ctx.font = "13px Arial"
+  ctx.fillText("Changes are in-memory only — not saved (sandbox blocks storage).", canvas.width / 2, rb.y + 80)
+
+  // Back.
+  ctx.fillStyle = "#A00"; ctx.fillRect(backSettingRect.x, backSettingRect.y, backSettingRect.w, backSettingRect.h)
+  ctx.fillStyle = "#FFF"; ctx.font = "22px Arial"
   ctx.fillText("BACK", canvas.width / 2, backSettingRect.y + 35)
 }
 
@@ -1553,11 +1912,20 @@ function handleMenuClicks() {
       if (btn?.id === "controls") moveListShowControls = !moveListShowControls
       break
     }
-    case GAME_STATES.SETTINGS:
+    case GAME_STATES.SETTINGS: {
+      // Per-player device select (Task 4): cycle keyboard ↔ controller. "Two
+      // Keyboards" is intentionally NOT reachable (disabled placeholder, Task 3).
       if (pointInRect(mouse.x, mouse.y, p1SettingRect))    inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
       if (pointInRect(mouse.x, mouse.y, p2SettingRect))    inputSettings.p2Type = inputSettings.p2Type === "keyboard" ? "controller" : "keyboard"
-      if (pointInRect(mouse.x, mouse.y, backSettingRect))  gameState = GAME_STATES.START
+      // Keybind rows (Task 2): click an action → await a key.
+      const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
+      if (kb) { rebindAction = kb.action; rebindWarning = "" }
+      if (pointInRect(mouse.x, mouse.y, resetBindRect())) {
+        Object.assign(P1_CONTROLS, DEFAULT_P1_CONTROLS); rebindAction = null; rebindWarning = "Defaults restored."
+      }
+      if (pointInRect(mouse.x, mouse.y, backSettingRect)) { rebindAction = null; gameState = GAME_STATES.START }
       break
+    }
     case GAME_STATES.GAMEPLAY_SELECT: {
       const c = getGameplaySelectRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
       if (!c) break
@@ -1696,6 +2064,15 @@ function gameLoop() {
 window.addEventListener("keydown", e => {
   const key = String(e.key || "").toLowerCase()
 
+  // KEYBIND CAPTURE: on the SETTINGS screen, if an action is awaiting a key, the
+  // next keypress (re)binds it. Esc cancels. Restricted to the allowed key set.
+  if (gameState === GAME_STATES.SETTINGS && rebindAction) {
+    e.preventDefault()
+    if (key === "escape") { rebindAction = null; rebindWarning = "" }
+    else if (applyRebind(rebindAction, key)) rebindAction = null
+    return
+  }
+
   // ACCOUNT screen captures typing before any gameplay key handling.
   if (gameState === GAME_STATES.ACCOUNT) { handleAccountTyping(e); return }
 
@@ -1722,6 +2099,13 @@ window.addEventListener("keydown", e => {
   if (gameState === GAME_STATES.MATCH_END && key === "enter") resetToStart()
 })
 
+// P-tap toggle is resolved on RELEASE (tap vs hold-to-charge).
+window.addEventListener("keyup", e => {
+  const key = String(e.key || "").toLowerCase()
+  if (p1) handleChargeRelease(p1, key)
+  if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleChargeRelease(p2, key)
+})
+
 // ------------------------------------------------------------------
 // RESIZE
 // ------------------------------------------------------------------
@@ -1733,6 +2117,7 @@ window.addEventListener("resize", () => {
   if (p1) p1.y = Math.min(p1.y, getGroundedYForFighter(p1))
   if (p2) p2.y = Math.min(p2.y, getGroundedYForFighter(p2))
   if (p1 && p2) {
+    endDomainCinematic()   // defensive cleanup on rematch/resume
     if (typeof camera.reset  === "function") camera.reset()
     if (typeof camera.update === "function") camera.update(p1, p2, canvas)
   }

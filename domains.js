@@ -82,6 +82,11 @@ export function activateDomain(fighter, options = {}, context = {}) {
   if (domain.rosterKey === "sukuna") {
     // EXACT on-disk filenames (case-sensitive): voice line is "Sukuna_saying_Domain.mp3".
     sound?.playDomainAudio?.("Sukuna_saying_Domain.mp3", "Sukuna_Theme.mp3")
+  } else if (domain.rosterKey === "gojo") {
+    // Unlimited Void theme (looping), replacing the stage track. playDomainAudio
+    // gesture-gates and falls back to the procedural DOMAIN_LOOP if the file 404s.
+    // No voice line for Gojo (null). EXACT case-sensitive filename below.
+    sound?.playDomainAudio?.(null, "Gojo_domain_theme.mp3")
   } else {
     sound?.play?.(SFX.DOMAIN_ACTIVATE)
     sound?.playMusic?.(MUSIC.DOMAIN_LOOP, true)
@@ -133,6 +138,10 @@ function collapseDomain(domain) {
   if ((domain.owner?.rosterKey || domain.rosterKey) === "gojo") {
     _gojoActiveOwner = null
     if (_gojoVideo && !_gojoVideoFailed) { try { _gojoVideo.pause() } catch (_) {} }
+    // Gojo's domain replaced the stage track with its theme — restore the map's
+    // own music on collapse (mirrors Sukuna). stopMusicFile() clears the theme.
+    sound?.stopMusicFile?.()
+    sound?.restoreStageMusic?.()
   }
 }
 
@@ -178,9 +187,12 @@ export function updateDomains(fighters = []) {
         fighter.hitstun = Math.max(fighter.hitstun || 0, 4)
         fighter.vx = 0
         fighter.vy = (fighter.vy || 0) * 0.2
-        // Sukuna's domain also chips away at the trapped fighter.
-        if (domain.rosterKey === "sukuna" && Math.random() < 0.06) {
-          fighter.health = Math.max(0, (fighter.health || 0) - 12)
+        // TASK 6: BOTH domains apply continuous CE damage to the trapped fighter
+        // (was Sukuna-only). Sukuna's Malevolent Shrine hits harder than Gojo's
+        // Unlimited Void. (Owner's +attack buff is applied in activateDomain.)
+        if (Math.random() < 0.06) {
+          const chip = domain.rosterKey === "sukuna" ? 12 : 8
+          fighter.health = Math.max(0, (fighter.health || 0) - chip)
           fighter.colorFlash = 4
           if (fighter.health <= 0) sound?.play?.(SFX.KO)
         }
@@ -201,7 +213,9 @@ export function updateDomains(fighters = []) {
       collapseDomain(domain)
       activeDomains.splice(i, 1)
       _domainFadeOut = 20
-      if (activeDomains.length === 0) sound?.stopMusic?.()
+      // Last domain expired mid-round — RESUME the map's stage track (don't go
+      // silent). collapseDomain already stopped the domain theme/loop above.
+      if (activeDomains.length === 0) sound?.restoreStageMusic?.()
     }
   }
 }
@@ -268,12 +282,22 @@ function _ensureGojoVideo() {
   if (typeof document === "undefined") { _gojoVideoFailed = true; return }
   try {
     const v = document.createElement("video")
-    v.src       = "./gojo_domain.mp4"
-    v.muted     = true       // muted → can play mid-match without a user gesture
-    v.playsInline = true
+    v.muted        = true     // muted → exempt from the autoplay-without-gesture block
+    v.defaultMuted = true
+    v.playsInline  = true
+    v.setAttribute("muted", "")
+    v.setAttribute("playsinline", "")
     v.loop      = false
     v.preload   = "auto"
+    v.autoplay  = true
     v.onerror   = () => { _gojoVideoFailed = true }   // 404/decode → clean fallback, never black
+    v.src       = "./gojo_domain.mp4"
+    // Attach OFF-SCREEN (not display:none, which can stop frame decoding) so the
+    // browser reliably loads & decodes frames for canvas drawImage. A detached
+    // <video> often never advances past readyState 0/1 → only the void showed.
+    v.style.cssText = "position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;"
+    document.body.appendChild(v)
+    v.load()
     _gojoVideo  = v
 
     // Optional end-frame still. Absent → we simply freeze on the video's last frame.
@@ -285,12 +309,15 @@ function _ensureGojoVideo() {
   } catch (_) { _gojoVideoFailed = true }
 }
 
-// Restart from frame 0 and play (ignore the autoplay promise rejection).
+// Restart from frame 0 and play. The seek is in its OWN try so a seek error on a
+// not-yet-loaded video can NEVER skip the .play() call (the bug that left the
+// video stuck on the void fallback the first time the domain opened).
 function _restartGojoVideo() {
-  if (!_gojoVideo || _gojoVideoFailed) return
+  const v = _gojoVideo
+  if (!v || _gojoVideoFailed) return
+  try { v.currentTime = 0 } catch (_) {}
   try {
-    _gojoVideo.currentTime = 0
-    const p = _gojoVideo.play()
+    const p = v.play()
     if (p && p.catch) p.catch(() => {})
   } catch (_) {}
 }
@@ -587,11 +614,17 @@ export function isInsideDomain(fighter) {
 }
 
 export function clearDomains() {
+  const hadDomain = activeDomains.length > 0
   for (const d of activeDomains) collapseDomain(d)
   activeDomains.length = 0
   _domainFadeIn = 0
   _domainFadeOut = 0
   _lastDomainBg = null
-  sound?.stopMusic?.()
+  // clearDomains() runs on EVERY round reset (game.js resetRound) — it must NOT
+  // stop the stage music, or the track dies at round end and never comes back.
+  // Only touch audio if a domain was actually hijacking the channel, and then
+  // RESTORE the map track. Match-end / menu / stage-change handle their own music
+  // explicitly in the callers (resetToStart, _doRematch, startMatch).
+  if (hadDomain) sound?.restoreStageMusic?.()
 }
 

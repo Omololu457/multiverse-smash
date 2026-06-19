@@ -102,6 +102,20 @@ export const camera = {
     const needH = (bbB - bbT) + this.verticalPadding * 2
     this.targetZoom = clamp(Math.min(cw / needW, ch / needH), this.minZoom, this.maxZoom)
 
+    // Smooth toward those targets (shared with the cinematic path), then keep both
+    // fighters framed.
+    this.advance(canvas)
+    this.clampFightersToView(f1, f2, canvas)
+  },
+
+  // Smooth + rate-limit the camera toward its CURRENT targets (targetX/Y/Zoom) and
+  // tick shake — WITHOUT recomputing the two-fighter framing. update() calls this
+  // after setting the framing targets; the domain cinematic calls it after
+  // focusOnFighter() so a tight caster focus uses the exact same smoothing and
+  // never hard-snaps.
+  advance(canvas) {
+    const { width: cw, height: ch } = getCanvasMetrics(canvas)
+
     // ── SMOOTH + RATE-LIMIT (no snapping) ──
     let nextZoom = lerp(this.zoom, this.targetZoom, this.zoomSmooth)
     nextZoom = this.zoom + clamp(nextZoom - this.zoom, -this.maxZoomStep, this.maxZoomStep)
@@ -132,9 +146,6 @@ export const camera = {
       this.shakeX = 0
       this.shakeY = 0
     }
-
-    // Keep fighters on-screen horizontally only (never vertical).
-    this.clampFightersToView(f1, f2, canvas)
   },
 
   clampFightersToView(f1, f2, canvas) {

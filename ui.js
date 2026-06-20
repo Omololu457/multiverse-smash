@@ -3,6 +3,8 @@
 // HUD LAYOUT: Health bars → TOP of screen | Energy bars → BOTTOM of screen
 
 import { drawCharacter } from "./fighters.js"
+import { characters } from "./characters.js"
+import { isDevUnlocked } from "./progression.js"
 
 const startScreenImage = new Image()
 startScreenImage.src = "./start-screen.png"
@@ -40,14 +42,15 @@ function getStageBackgroundImage(stage) {
 const portraitImages = new Map()
 
 function getPortraitImage(rosterKey) {
-  // Keep EXACT rosterKey case — files follow <rosterKey>_portrait.png and some
-  // keys are camelCase (omniMan, evilMorty, rickPrime…); a case-sensitive server
-  // needs the exact name.
+  // Prefer the character's EXPLICIT `portrait` field (exact on-disk filename incl.
+  // extension + case — GitHub is case-sensitive). Falls back to the legacy
+  // ./<rosterKey>_portrait.png convention for any character without the field.
   const key = String(rosterKey || "").trim()
   if (!key) return null
   if (!portraitImages.has(key)) {
+    const src = characters?.[key]?.portrait || `./${key}_portrait.png`
     const img = new Image()
-    img.src = `./${key}_portrait.png`
+    img.src = src
     portraitImages.set(key, img)
   }
   return portraitImages.get(key)
@@ -224,6 +227,8 @@ function getVerticalMenuLayout(canvas, labels = []) {
     id:       label.id       || String(index),
     label:    label.label    || String(label),
     subLabel: label.subLabel || "",
+    locked:   !!label.locked,            // carried through for greyed/disabled rendering
+    lockNote: label.lockNote || "",
     x: startX,
     y: startY + index * (buttonHeight + gap),
     w: menuWidth,
@@ -293,6 +298,7 @@ export function getGameplaySelectRects(canvas) {
     { id: "training", label: "TRAINING",  subLabel: "1 player practice mode"      },
     { id: "vs",       label: "VS MATCH",  subLabel: "1 player vs the CPU"         },
     { id: "pvp",      label: "2 PLAYER",  subLabel: "Local versus — P1 vs P2"     },
+    { id: "tower",    label: "TOWER",     subLabel: "Climb a ladder of CPU fights" },
     { id: "back",     label: "BACK",      subLabel: "Return to title"             }
   ])
 }
@@ -556,7 +562,11 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
 // ─────────────────────────────────────────────
 export function getMainMenuRects(canvas) {
   return getVerticalMenuLayout(canvas, [
-    { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player"        },
+    { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player • Tower" },
+    // ONLINE is locked until the dev code is entered (Task 5/6). isDevUnlocked()
+    // flips it selectable (leads to a placeholder screen — no netcode yet).
+    { id: "online",   label: "ONLINE",    subLabel: isDevUnlocked() ? "Dev-unlocked (placeholder)" : "Coming soon — online play", locked: !isDevUnlocked(), lockNote: "Online play is coming soon" },
+    { id: "devcode",  label: "DEV CODE",  subLabel: isDevUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
     { id: "tutorial", label: "HOW TO PLAY", subLabel: "Controls & mechanics walkthrough"  },
     { id: "account",  label: "ACCOUNT",   subLabel: "Create / switch local profile"       },
@@ -581,7 +591,19 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) 
   ctx.restore()
 
   const rects = getMainMenuRects(canvas)
-  rects.forEach((r, i) => drawButton(ctx, r, { label: r.label, subLabel: r.subLabel, active: i === hoverIndex }))
+  rects.forEach((r, i) => {
+    drawButton(ctx, r, { label: r.label, subLabel: r.subLabel, active: i === hoverIndex && !r.locked })
+    if (r.locked) {
+      // LOCKED placeholder (e.g. ONLINE): grey wash + lock glyph + "Coming Soon".
+      ctx.save()
+      ctx.fillStyle = "rgba(8,12,24,0.6)"; roundRect(ctx, r.x, r.y, r.w, r.h, 12); ctx.fill()
+      ctx.fillStyle = "#94a3b8"; ctx.textAlign = "right"; ctx.textBaseline = "middle"
+      ctx.font = "700 22px Arial"; ctx.fillText("🔒", r.x + r.w - 18, r.y + r.h / 2 - 8)
+      ctx.font = "600 12px Arial"; ctx.fillStyle = "#cbd5e1"
+      ctx.fillText("Coming Soon", r.x + r.w - 16, r.y + r.h / 2 + 16)
+      ctx.restore()
+    }
+  })
   drawFooterHint(ctx, canvas, "Tip: new here? Open HOW TO PLAY for the controls and core mechanics")
 }
 
@@ -1250,11 +1272,44 @@ export function drawFighter(ctx, fighter, camera = null) {
   drawCharacter(ctx, fighter)
 }
 
+// Lazy image cache for OPTIONAL projectile sprite sheets (Task 3 seam).
+const _projImgCache = new Map()
+function _projImg(src) {
+  if (!src) return null
+  let img = _projImgCache.get(src)
+  if (!img) { img = new Image(); img.src = src; _projImgCache.set(src, img) }
+  return img
+}
+
 export function drawProjectiles(ctx, projectiles = [], camera = null) {
   if (!Array.isArray(projectiles)) return
   projectiles.forEach(p => {
-    const x     = p.x ?? 0
-    const y     = p.y ?? 0
+    const x = p.x ?? 0
+    const y = p.y ?? 0
+
+    // OPTIONAL SPRITE HOOK (Task 3): if the projectile carries a `sheet` (a
+    // horizontal strip of `spriteFrames` cells of `spriteW`×`spriteH`), draw the
+    // animated sprite, flipped to its travel direction. Until art is dropped in,
+    // `sheet` is null and the colored shape below renders unchanged.
+    const img = p.sheet ? _projImg(p.sheet) : null
+    if (img && img.complete && img.naturalWidth > 0) {
+      const frames = p.spriteFrames || 1
+      const fw = p.spriteW || (img.naturalWidth / frames)
+      const fh = p.spriteH || img.naturalHeight
+      p._animT = (p._animT || 0) + 1
+      const fi = Math.floor(p._animT / (p.spriteSpeed || 4)) % frames
+      const scale = p.spriteScale || 1
+      const dw = fw * scale, dh = fh * scale
+      const dir = (p.vx || 0) < 0 ? -1 : 1
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.scale(dir, 1)
+      ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      ctx.restore()
+      return
+    }
+
+    // FALLBACK: current procedural colored shape.
     const size  = p.radius || p.size || 12
     const color = p.color || "#ffd166"
     ctx.save()

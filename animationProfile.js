@@ -23,11 +23,14 @@
 // ─────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js";
 
-export function getAction(charKey, actionKey) {
+export function getAction(charKey, actionKey, skinAnim = null) {
   const c = characters[String(charKey || "").toLowerCase()];
-  if (!c || !c.hasSprites || !c.animationData) return null;
+  // SKIN OVERRIDE: a per-fighter skin animationData (complete: own + borrowed
+  // defaults) takes precedence so mirror matches with different skins both work.
+  const data = skinAnim || ((c && c.hasSprites) ? c.animationData : null);
+  if (!data) return null;
 
-  const a = c.animationData[actionKey];
+  const a = data[actionKey];
   if (!a || a.width == null || a.height == null) return null;
 
   return {

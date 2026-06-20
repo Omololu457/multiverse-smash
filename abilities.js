@@ -38,6 +38,10 @@ export function updatePendingSpawns() {
 const WORLD_WIDTH_FALLBACK  = 3200
 const WORLD_HEIGHT_FALLBACK = 1600
 const COMMAND_INPUT_MAX_AGE = 700
+// Brief CHARGE windup (frames) before a charge→release special fires. The charge
+// sprite strip plays during this window, then the projectile/attack spawns and the
+// cast/fire strip plays. Ticked by the pending-spawn list (updatePendingSpawns).
+const SPRITE_CHARGE_FRAMES = 8
 
 // ─────────────────────────────────────────────────────────────────
 // UTIL
@@ -204,7 +208,16 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     knockbackX: moveData.knockbackX || 5,
     knockbackY: moveData.knockbackY || -2,
     lifetime:   moveData.lifetime || 110,
-    color:      moveData.color || attacker.color || "#ffd166"
+    color:      moveData.color || attacker.color || "#ffd166",
+    // OPTIONAL projectile sprite (Task 3) — null until the user adds art. When a
+    // `sheet` is set, ui.drawProjectiles animates it instead of the colored shape.
+    sheet:        moveData.sheet        || null,
+    spriteKey:    moveData.spriteKey    || null,
+    spriteFrames: moveData.spriteFrames || 1,
+    spriteW:      moveData.spriteW      || null,
+    spriteH:      moveData.spriteH      || null,
+    spriteSpeed:  moveData.spriteSpeed  || 4,
+    spriteScale:  moveData.spriteScale  || 1
   }
 
   activeProjectiles.push(proj)
@@ -394,49 +407,64 @@ function executeGojoSpecial(fighter, context) {
     return true
   }
 
-  // D→B = Hollow Purple — wide slow convergence beam
+  // D→B = Hollow Purple — wide slow convergence beam. CHARGE → RELEASE (Task 1b).
   if (endsWithPattern(dirs, ["D", "B"])) {
     if (isSpecialDisabled(fighter, "hollowPurple")) return false   // binding vow (Limitless Sacrifice)
     if (!spendEnergy(fighter, 70)) return false
-    spawnProjectile(fighter, "hollowPurple", {
-      damage: 200, speed: 10, lifetime: 150,
-      hitstun: 32, knockbackX: 14, knockbackY: -4,
-      color: "#c084fc", w: 32, h: 32
-    }, context)
-    fighter.attackCooldown = getAttackDuration(38, fighter)
-    fighter._spriteCastMove  = "hollowPurple"   // play hollow_purple_cast strip (BUG_7)
-    fighter._spriteCastTimer = 36
-    shakeCamera(context, 14, 12)
+    fighter._spriteCastMove  = "hollow_purple_charge"   // CHARGE strip (gojo_hollowpurple_charge)
+    fighter._spriteCastTimer = SPRITE_CHARGE_FRAMES
+    fighter.attackCooldown   = getAttackDuration(38 + SPRITE_CHARGE_FRAMES, fighter)
+    schedulePendingSpawn(SPRITE_CHARGE_FRAMES, () => {
+      spawnProjectile(fighter, "hollowPurple", {
+        damage: 200, speed: 10, lifetime: 150,
+        hitstun: 32, knockbackX: 14, knockbackY: -4,
+        color: "#c084fc", w: 32, h: 32
+      }, context)
+      fighter._spriteCastMove  = "hollowPurple"   // RELEASE → hollow_purple_cast strip
+      fighter._spriteCastTimer = 36
+      shakeCamera(context, 14, 12)
+    })
     focusCameraOnAction(context, fighter, target, 0.93, 18)
     return true
   }
 
-  // D+L (forward) = Red — repulsion burst (launches target away). Checked AFTER
+  // D+L (forward) = Red — repulsion burst. CHARGE → RELEASE (Task 1b). Checked AFTER
   // Hollow Purple (S,A+L = D,B) so the longer motion isn't shadowed by this one.
   if (endsWithPattern(dirs, ["F"])) {
     if (isSpecialDisabled(fighter, "red")) return false   // binding vow (Limitless Sacrifice)
     if (!spendEnergy(fighter, 40)) return false
-    const attack = createAttackFromMove(fighter, "red", {
-      damage: 130, startup: 12, active: 5, recovery: 22,
-      hitstun: 26, knockbackX: 12, knockbackY: -3,
-      rangeX: 90, rangeY: 60
+    fighter._spriteCastMove  = "red_charge"             // CHARGE strip (gojo_ctr_charge)
+    fighter._spriteCastTimer = SPRITE_CHARGE_FRAMES
+    fighter.attackCooldown   = getAttackDuration(SPRITE_CHARGE_FRAMES + 2, fighter)
+    schedulePendingSpawn(SPRITE_CHARGE_FRAMES, () => {
+      const attack = createAttackFromMove(fighter, "red", {
+        damage: 130, startup: 12, active: 5, recovery: 22,
+        hitstun: 26, knockbackX: 12, knockbackY: -3,
+        rangeX: 90, rangeY: 60
+      })
+      setAttackState(fighter, attack, 26)   // currentMove="red" → red_cast strip
+      fighter._spriteCastMove  = null        // hand off to currentMove
+      fighter._spriteCastTimer = 0
     })
-    setAttackState(fighter, attack, 26)
     focusCameraOnAction(context, fighter, target, 0.98, 10)
     return true
   }
 
-  // Default = Blue — attraction pull projectile
+  // Default = Blue — attraction pull projectile. CHARGE → RELEASE (Task 1b).
   if (isSpecialDisabled(fighter, "blue")) return false   // binding vow (Limitless Sacrifice)
   if (!spendEnergy(fighter, 30)) return false
-  spawnProjectile(fighter, "blue", {
-    damage: 110, speed: 12, lifetime: 110,
-    hitstun: 20, knockbackX: -6, knockbackY: -1, // negative = pulls toward Gojo
-    color: "#60a5fa", w: 18, h: 18
-  }, context)
-  fighter.attackCooldown = getAttackDuration(22, fighter)
-  fighter._spriteCastMove  = "blue"   // play blue_cast strip (BUG_7)
-  fighter._spriteCastTimer = 24
+  fighter._spriteCastMove  = "blue_charge"   // CHARGE strip (gojo_lapse_blue)
+  fighter._spriteCastTimer = SPRITE_CHARGE_FRAMES
+  fighter.attackCooldown   = getAttackDuration(22 + SPRITE_CHARGE_FRAMES, fighter)
+  schedulePendingSpawn(SPRITE_CHARGE_FRAMES, () => {
+    spawnProjectile(fighter, "blue", {
+      damage: 110, speed: 12, lifetime: 110,
+      hitstun: 20, knockbackX: -6, knockbackY: -1, // negative = pulls toward Gojo
+      color: "#60a5fa", w: 18, h: 18
+    }, context)
+    fighter._spriteCastMove  = "blue"   // RELEASE → blue_cast strip
+    fighter._spriteCastTimer = 24
+  })
   focusCameraOnAction(context, fighter, target, 1.0, 8)
   return true
 }
@@ -555,15 +583,19 @@ function executeSukunaSpecial(fighter, context) {
   if (endsWithPattern(dirs, ["F"])) {
     if (isSpecialDisabled(fighter, "flameArrow")) return false   // binding vow (True King)
     if (!spendEnergy(fighter, 35)) return false
-    spawnProjectile(fighter, "flameArrow", {
-      damage: 140, speed: 11, lifetime: 110,
-      hitstun: 26, knockbackX: 11, knockbackY: -4,
-      color: "#fb923c", w: 30, h: 24   // orange explosive bolt — clearly drawn
-    }, context)
-    fighter._spriteCastMove  = "dismantle"   // reuse the slash strip for the cast
-    fighter._spriteCastTimer = 24
-    fighter.attackCooldown   = getAttackDuration(26, fighter)   // ~ cd 8
-    shakeCamera(context, 8, 6)
+    fighter._spriteCastMove  = "flame_arrow_charge"   // CHARGE strip (sukuna_firearrow_charge)
+    fighter._spriteCastTimer = SPRITE_CHARGE_FRAMES
+    fighter.attackCooldown   = getAttackDuration(26 + SPRITE_CHARGE_FRAMES, fighter)
+    schedulePendingSpawn(SPRITE_CHARGE_FRAMES, () => {
+      spawnProjectile(fighter, "flameArrow", {
+        damage: 140, speed: 11, lifetime: 110,
+        hitstun: 26, knockbackX: 11, knockbackY: -4,
+        color: "#fb923c", w: 30, h: 24   // orange explosive bolt
+      }, context)
+      fighter._spriteCastMove  = "flame_arrow_fire"   // FIRE strip (sukuna_firearrow_fire)
+      fighter._spriteCastTimer = 24
+      shakeCamera(context, 8, 6)
+    })
     return true
   }
 

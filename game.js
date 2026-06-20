@@ -50,6 +50,12 @@ import {
   drawAccountScreen, getAccountButtons
 } from "./ui.js"
 import { createAccount, getCurrentAccount, isValidUsername, listAccounts } from "./account.js"
+import {
+  awardMatchXp, awardXp, getLevel, xpProgress, isUnlocked, requiredLevel,
+  loadProgressionFromAccount, PROGRESS_DOES_NOT_PERSIST,
+  setDevUnlock, isDevUnlocked, DEV_CODE
+} from "./progression.js"
+import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked } from "./skins.js"
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
 import {
@@ -64,7 +70,7 @@ import {
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
   drawVictoryScreen, drawMatchIntro, drawLowHealthWarning, drawRoundTimer,
   updateVictoryState, handleVictoryClick, handleVictoryKey, resetFighterForRematch
-} from "./matchFlow.js"
+} from "./matchflow.js"
 
 // ------------------------------------------------------------------
 // CANVAS SETUP
@@ -105,6 +111,7 @@ const GAME_STATES = {
   AI_DIFFICULTY:    "aiDifficulty",
   SELECT_UNIVERSE:  "selectUniverse",
   SELECT_CHARACTER: "selectCharacter",
+  SELECT_SKIN:      "selectSkin",
   SELECT_ALIENS:    "selectAliens",
   SELECT_STAGE:     "selectStage",
   BATTLE:           "battle",
@@ -112,7 +119,8 @@ const GAME_STATES = {
   MATCH_END:        "matchEnd",
   PAUSED:           "paused",
   VICTORY:          "victory",
-  INTRO:            "intro"
+  INTRO:            "intro",
+  ONLINE_PLACEHOLDER: "onlinePlaceholder"   // dev-unlocked Online stub (no netcode)
 }
 
 // ------------------------------------------------------------------
@@ -150,6 +158,11 @@ const REBINDABLE = [
 ]
 let rebindAction  = null   // action currently awaiting a key, or null
 let rebindWarning = ""     // dup-key / invalid-key message
+
+// Developer unlock code entry (Task 6) — in-memory only.
+let devCodeEntry   = false
+let devCodeBuffer  = ""
+let devCodeMessage = ""
 
 const KEYBIND_Y0 = 350, KEYBIND_ROW_H = 38
 function getKeybindRects() {
@@ -307,7 +320,94 @@ const matchConfig = {
   p1CharKey: null, p2CharKey: null,
   // Ben 10: the 5 aliens each player picked, plus the in-progress draft.
   p1Aliens: null, p2Aliens: null,
-  alienDraft: [], alienSelectSide: "p1"
+  alienDraft: [], alienSelectSide: "p1",
+  // Skins (Task 4): selected skin id per side; default until the skin-select picks one.
+  p1Skin: "default", p2Skin: "default"
+}
+
+// Apply a selected skin's complete animationData (own + borrowed) + display scale
+// onto a fighter. null skinAnim = the character's default art. Per-fighter, so a
+// mirror match can have two different skins.
+function applySkin(fighter, skinId) {
+  if (!fighter) return
+  fighter._skinAnim = getSkinAnimationData(fighter.rosterKey, skinId)
+  const skin = getSkin(fighter.rosterKey, skinId)
+  if (skin?.spriteScale) fighter.spriteScale = skin.spriteScale
+  fighter.skinId = skinId
+}
+
+// ── TOWER MODE (Task 6) — MKX-style ladder of escalating CPU fights. ──────────
+// MODULAR: add floors, or define alternate TOWERS (themed variants) and pass the
+// id to startTower(). `healthCarry`: "full" | "partial" (default) | "none".
+// Difficulty per floor feeds ai.js via setAIDifficulty (easy → … → impossible).
+const TOWERS = {
+  jjkGauntlet: {
+    name: "Jujutsu Gauntlet",
+    healthCarry: "partial",
+    floors: [
+      { opponent: "megumi", difficulty: "easy"       },
+      { opponent: "toji",   difficulty: "normal"     },
+      { opponent: "sukuna", difficulty: "hard"       },
+      { opponent: "gojo",   difficulty: "adaptive"   },
+      { opponent: "gojo",   difficulty: "impossible" }   // boss floor
+    ]
+  }
+}
+const towerState = { active: false, floor: 0, tower: null, carryPct: 1, _lastWon: false, _applyCarry: false }
+
+function isTower() { return matchConfig.mode === "tower" }
+
+function startTower(towerId = "jjkGauntlet") {
+  const tower = TOWERS[towerId]
+  if (!tower) return
+  towerState.active = true; towerState.floor = 0; towerState.tower = tower
+  towerState.carryPct = 1; towerState._applyCarry = false
+  matchConfig.mode = "tower"
+  resetSelections()
+  beginUniverseSelect()   // player picks THEIR fighter; the opponent comes from the floor
+}
+
+// Force the current floor's opponent + difficulty onto matchConfig (P1 unchanged).
+function applyTowerFloor() {
+  if (!towerState.active || !towerState.tower) return
+  const f = towerState.tower.floors[towerState.floor]
+  if (!f) return
+  matchConfig.p2CharKey   = f.opponent
+  matchConfig.p2Char      = characters[f.opponent]
+  matchConfig.aiDifficulty = f.difficulty
+}
+
+// Called from _checkMatchOver. Win → XP + remember carry-over health; lose → end.
+function updateTowerOutcome(winner) {
+  if (!towerState.active) return
+  if (winner === "p1") {
+    towerState._lastWon = true
+    awardXp(60 + towerState.floor * 20)
+    const pct  = p1 ? Math.max(0, (p1.health || 0) / (p1.maxHealth || 1)) : 1
+    const mode = towerState.tower.healthCarry
+    towerState.carryPct = mode === "full" ? 1 : mode === "none" ? pct : Math.min(1, pct + 0.35) // partial: +35% heal
+  } else {
+    towerState._lastWon = false
+    awardXp(20)
+  }
+  // The actual advance/teardown happens when the player continues from the victory screen.
+}
+
+// From the victory screen: advance to the next floor or finish/abort the tower.
+function continueTower() {
+  if (!towerState.active) { resetToStart(); return }
+  if (!towerState._lastWon) { towerState.active = false; resetToStart(); return }   // lost → tower ends
+  towerState.floor++
+  if (towerState.floor >= towerState.tower.floors.length) {
+    towerState.active = false
+    awardXp(150)            // tower-complete bonus
+    resetToStart()
+    return
+  }
+  applyTowerFloor()
+  towerState._applyCarry = true   // resetRound applies the carry-over health to P1
+  victoryState = createVictoryState()
+  startMatch()
 }
 
 const trainingState    = { enabled: false }
@@ -546,6 +646,15 @@ function resetRound() {
   const { p1X, p2X } = getSpawnPositions()
   p1 = createFighter(matchConfig.p1CharKey, matchConfig.p1Char, p1X,  1, P1_CONTROLS, "p1")
   p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, P2_CONTROLS, "p2")
+  applySkin(p1, matchConfig.p1Skin)   // Task 4: load the selected skin's art
+  applySkin(p2, matchConfig.p2Skin)
+  applyMirrorTint(p1, p2)   // same-character mirror → red wash on P2 (Task 1)
+  // Tower health carry-over: at the START of a new floor (not between rounds),
+  // set P1's health to the carried %. _applyCarry is one-shot (set in continueTower).
+  if (towerState._applyCarry && p1) {
+    p1.health = Math.max(1, Math.round((p1.maxHealth || 1000) * towerState.carryPct))
+    towerState._applyCarry = false
+  }
 
   // Sprite-scale verification (temporary — safe to delete). Confirms spriteScale
   // and animationData survive createFighter; for Gojo expect spriteScale 2, true.
@@ -612,17 +721,33 @@ function resetSelections() {
   matchConfig.p1CharKey = null; matchConfig.p2CharKey = null
   matchConfig.p1Aliens = null; matchConfig.p2Aliens = null
   matchConfig.alienDraft = []
+  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
   hoverUniverseIndex  = 0
   hoverCharacterIndex = 0
   hoverStageIndex     = 0
 }
 
-// After a character (and, for Ben 10, an alien loadout) is locked in for a side,
-// advance the select flow: P1 → P2's universe pick (or stage in training);
-// P2 → stage select.
+// Skin-select state (Task 4).
+let skinSelectSide = "p1"
+let hoverSkinIndex = 0
+
+// After a character is locked in for a side, open the SKIN-SELECT for that side's
+// character. Confirming a skin there calls _proceedAfterSkin() to continue.
 function proceedAfterCharacter(side) {
+  skinSelectSide = side
+  hoverSkinIndex = 0
+  matchConfig[side + "Skin"] = "default"   // reset to default until a skin is picked
+  gameState = GAME_STATES.SELECT_SKIN
+}
+
+// Advance the select flow after the skin is chosen: P1 → P2's universe pick (or
+// stage in training/tower); P2 → stage select.
+function _proceedAfterSkin(side) {
   if (side === "p1") {
-    if (matchConfig.mode === "training") {
+    if (matchConfig.mode === "tower") {
+      applyTowerFloor()                       // opponent comes from the current floor
+      gameState = GAME_STATES.SELECT_STAGE
+    } else if (matchConfig.mode === "training") {
       matchConfig.p2Char    = matchConfig.p1Char
       matchConfig.p2CharKey = matchConfig.p1CharKey
       matchConfig.p2Aliens  = matchConfig.p1Aliens ? matchConfig.p1Aliens.slice() : null
@@ -635,6 +760,57 @@ function proceedAfterCharacter(side) {
   } else {
     gameState = GAME_STATES.SELECT_STAGE
   }
+}
+
+// Layout for the skin cards on the SELECT_SKIN screen.
+function getSkinSelectRects(canvas, count) {
+  const rects = []
+  const cardW = 180, cardH = 230, gap = 28
+  const total = count * cardW + (count - 1) * gap
+  const x0 = canvas.width / 2 - total / 2, y = canvas.height / 2 - cardH / 2
+  for (let i = 0; i < count; i++) rects.push({ x: x0 + i * (cardW + gap), y, w: cardW, h: cardH, index: i })
+  return rects
+}
+
+function drawSkinSelectScreen() {
+  ctx.fillStyle = "#0a1322"; ctx.fillRect(0, 0, canvas.width, canvas.height)
+  const charKey = matchConfig[skinSelectSide + "CharKey"]
+  const skins = getSkins(charKey)
+  ctx.textAlign = "center"; ctx.fillStyle = "#e2e8f0"; ctx.font = "700 32px Arial"
+  ctx.fillText(`SELECT SKIN — ${charKey?.toUpperCase() || ""}  (P${skinSelectSide === "p1" ? 1 : 2})`, canvas.width / 2, 110)
+  const rects = getSkinSelectRects(canvas, skins.length)
+  rects.forEach((r, i) => {
+    const skin = skins[i]
+    const unlocked = isSkinUnlocked(charKey, skin.id)
+    ctx.save()
+    ctx.fillStyle = i === hoverSkinIndex ? "#1e3a5f" : "#152030"
+    ctx.fillRect(r.x, r.y, r.w, r.h)
+    ctx.strokeStyle = i === hoverSkinIndex ? "#7dd3fc" : "#334155"; ctx.lineWidth = 2
+    ctx.strokeRect(r.x, r.y, r.w, r.h)
+    const img = _skinPortrait(skin.portrait)
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.save(); ctx.beginPath(); ctx.rect(r.x + 10, r.y + 10, r.w - 20, r.h - 70); ctx.clip()
+      ctx.imageSmoothingEnabled = false
+      ctx.drawImage(img, r.x + 10, r.y + 10, r.w - 20, r.h - 70); ctx.restore()
+    }
+    ctx.fillStyle = "#e2e8f0"; ctx.font = "700 16px Arial"
+    ctx.fillText(skin.name, r.x + r.w / 2, r.y + r.h - 40)
+    if (!unlocked) {
+      ctx.fillStyle = "rgba(8,12,24,0.66)"; ctx.fillRect(r.x, r.y, r.w, r.h)
+      ctx.fillStyle = "#94a3b8"; ctx.font = "700 22px Arial"; ctx.fillText("🔒", r.x + r.w / 2, r.y + r.h / 2 - 10)
+      ctx.fillStyle = "#cbd5e1"; ctx.font = "600 14px Arial"; ctx.fillText(`Unlocks at Lv. ${skin.unlockLevel}`, r.x + r.w / 2, r.y + r.h / 2 + 18)
+    }
+    ctx.restore()
+  })
+  ctx.fillStyle = "#94a3b8"; ctx.font = "14px Arial"
+  ctx.fillText("Click an unlocked skin to continue · locked skins need the level (or the dev code)", canvas.width / 2, canvas.height - 60)
+}
+
+const _skinPortraitCache = new Map()
+function _skinPortrait(src) {
+  if (!src) return null
+  if (!_skinPortraitCache.has(src)) { const i = new Image(); i.src = src; _skinPortraitCache.set(src, i) }
+  return _skinPortraitCache.get(src)
 }
 
 function resetToStart() {
@@ -731,6 +907,13 @@ function _checkMatchOver() {
       : "Draw"
     victoryState.stats = matchStats
     recordRoundEnd?.(matchStats, winner, p1?.health || 0, p2?.health || 0)
+    // PROGRESSION (Task 3): award XP from the local player's (P1) perspective.
+    // Skip training. Tower mode handles its own flow (advance/end) in updateTowerOutcome.
+    if (matchConfig.mode !== "training") {
+      const p1Won  = winner === "p1"
+      victoryState.xpResult = awardMatchXp({ won: p1Won, roundsWon: roundWins.p1, perfect: p1Won && roundWins.p2 === 0 })
+    }
+    if (towerState.active) updateTowerOutcome(winner)
     sound.stopMusic?.()
     sound.play?.(SFX.KO)
     sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
@@ -762,6 +945,7 @@ function _doRematch() {
   winnerText   = ""
   if (p1) resetFighterForRematch?.(p1)
   if (p2) resetFighterForRematch?.(p2)
+  applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
   // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
   // in whatever form the match ended in). Re-arm the device so they start the
   // rematch transformed into their first alien with a full drain meter, at the
@@ -820,7 +1004,7 @@ function applyAIInputToKeys(fighter, aiInput) {
 function updateCPUInput() {
   if (!p2 || gameState !== GAME_STATES.BATTLE) { clearAIControlKeys(p2); return }
   if (isPvP()) { clearAIControlKeys(p2); return }
-  const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training"
+  const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training" || matchConfig.mode === "tower"
   if (!cpu)  { clearAIControlKeys(p2); return }
   // The AI doesn't manage the transform device, so auto re-engage its alien form
   // once it has recharged — otherwise a CPU Ben/Albedo would stay weak human after
@@ -923,9 +1107,11 @@ function teleportBehindTarget(fighter) {
   if (typeof camera.focusBetween === "function") camera.focusBetween(fighter, target, 1.0, 10)
 }
 
-// Double-tap A/D. For EVERYONE this is a dash (physics consumes fighter._dashTap).
-// For teleport-strike characters (dashTeleport), a double-tap TOWARD the enemy is
-// the blink-behind + strike instead — and it must NOT come from the jump key.
+// Double-tap A/D = DASH (HOLD never dashes — see the e.repeat guard in keydown).
+// For the FAST characters (dashTeleport: Toji, Gojo, Sukuna) a double-tap TOWARD
+// the enemy is a TELEPORT-DASH: blink BEHIND the opponent, facing them, ready to
+// attack. Toji & Sukuna also land their quick follow-up strike; Gojo just
+// repositions. Everyone else (and away-taps) gets a normal ground dash.
 function detectDoubleTapDashTeleport(fighter, key) {
   if (!fighter || fighter.hitstun > 0 || fighter.blockstun > 0) return
   const now = performance.now()
@@ -935,13 +1121,13 @@ function detectDoubleTapDashTeleport(fighter, key) {
 
   const onDoubleTap = (isToward) => {
     if (fighter.dashTeleport && isToward && (fighter.dashTeleportCooldown || 0) <= 0) {
-      teleportBehindTarget(fighter)                                   // Toji: blink behind
-      if (fighter.rosterKey === "toji" && typeof tojiTeleportStrike === "function") tojiTeleportStrike(fighter)
+      teleportBehindTarget(fighter)                                   // blink BEHIND, facing the opponent
+      if (fighter.rosterKey === "toji"   && typeof tojiTeleportStrike === "function")        tojiTeleportStrike(fighter)
+      else if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
+      // Gojo: reposition only — "ready to attack".
       fighter.dashTeleportCooldown = 48
-    } else if (fighter.rosterKey === "sukuna" && isToward && typeof executeSukunaMalevolentDash === "function") {
-      if (!executeSukunaMalevolentDash(fighter)) fighter._dashTap = true   // Sukuna: Malevolent Dash (fallback to dash)
     } else {
-      fighter._dashTap = true                                         // everyone else: normal dash
+      fighter._dashTap = true                                         // normal ground dash
     }
   }
 
@@ -1409,20 +1595,124 @@ function updateBattle() {
 // ------------------------------------------------------------------
 // RENDERING
 // ------------------------------------------------------------------
+// SKIN/TINT seam (Task 1). A fighter with `tintColor` is washed with that color
+// at draw time (MK-style same-character mirror). `skinId` is reserved for future
+// real skins — see applyMirrorTint(). Works for BOTH sprite + procedural fighters
+// because it washes only the fighter's own drawn pixels (offscreen source-atop).
+let _tintCanvas = null, _tintCtx = null
 function renderHybridFighter(fighter) {
   if (!fighter) return
   // Freeze sprite frame-advance while paused (the pause state still renders this
   // frame, so draw() must not keep ticking animations). sprite.js reads this flag.
   fighter._animFrozen = (gameState === GAME_STATES.PAUSED)
-  // Draw with sprites when this character has a loaded sheet set; otherwise the
-  // procedural art (drawFighter) renders. Falls back per-fighter, so a sprited
-  // character and a procedural one can share the screen.
   const key = fighter.rosterKey
-  if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
-    fighter.spriteHandler.draw(ctx, fighter, getSpriteSheets(key))
-  } else {
-    drawFighter(ctx, fighter, camera)
+  const drawTo = (c) => {
+    if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
+      fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
+    } else {
+      drawFighter(c, fighter, camera)
+    }
   }
+
+  if (!fighter.tintColor) { drawTo(ctx); return }
+
+  // Tinted: render the fighter to an offscreen layer that mirrors the live camera
+  // transform, wash ONLY its pixels with tintColor (source-atop), then composite
+  // the layer back in screen space. This tints the character, not the background.
+  if (!_tintCanvas) { _tintCanvas = document.createElement("canvas"); _tintCtx = _tintCanvas.getContext("2d") }
+  if (_tintCanvas.width !== canvas.width || _tintCanvas.height !== canvas.height) {
+    _tintCanvas.width = canvas.width; _tintCanvas.height = canvas.height
+  }
+  const cam = ctx.getTransform()
+  _tintCtx.setTransform(1, 0, 0, 1, 0, 0)
+  _tintCtx.clearRect(0, 0, _tintCanvas.width, _tintCanvas.height)
+  _tintCtx.setTransform(cam.a, cam.b, cam.c, cam.d, cam.e, cam.f)
+  drawTo(_tintCtx)
+  _tintCtx.setTransform(1, 0, 0, 1, 0, 0)
+  _tintCtx.globalCompositeOperation = "source-atop"
+  _tintCtx.globalAlpha = fighter.tintStrength || 0.42
+  _tintCtx.fillStyle = fighter.tintColor
+  _tintCtx.fillRect(0, 0, _tintCanvas.width, _tintCanvas.height)
+  _tintCtx.globalCompositeOperation = "source-over"
+  _tintCtx.globalAlpha = 1
+
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.drawImage(_tintCanvas, 0, 0)
+  ctx.restore()
+}
+
+// Developer-code input overlay (Task 6) + the unlock confirmation, drawn on the menu.
+function _drawDevCodeOverlay() {
+  const cw = canvas.width, ch = canvas.height
+  if (devCodeEntry) {
+    ctx.save()
+    ctx.fillStyle = "rgba(0,0,0,0.72)"; ctx.fillRect(0, 0, cw, ch)
+    const w = 460, h = 170, x = cw / 2 - w / 2, y = ch / 2 - h / 2
+    ctx.fillStyle = "#0e1626"; ctx.fillRect(x, y, w, h)
+    ctx.strokeStyle = "#7dd3fc"; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h)
+    ctx.textAlign = "center"; ctx.fillStyle = "#e2e8f0"; ctx.font = "700 22px Arial"
+    ctx.fillText("DEVELOPER CODE", cw / 2, y + 36)
+    ctx.fillStyle = "#0a0f1a"; ctx.fillRect(x + 30, y + 56, w - 60, 40)
+    ctx.strokeStyle = "#334155"; ctx.strokeRect(x + 30, y + 56, w - 60, 40)
+    ctx.fillStyle = "#fbbf24"; ctx.font = "600 20px monospace"
+    ctx.fillText((devCodeBuffer || "") + "▍", cw / 2, y + 82)
+    ctx.fillStyle = "#94a3b8"; ctx.font = "13px Arial"
+    ctx.fillText("Type the code · Enter to submit · Esc to cancel", cw / 2, y + 124)
+    ctx.fillStyle = "rgba(248,180,80,0.85)"; ctx.font = "12px Arial"
+    ctx.fillText("Unlocks are session-only (not saved across reloads)", cw / 2, y + 146)
+    ctx.restore()
+  } else if (devCodeMessage) {
+    ctx.save(); ctx.textAlign = "center"
+    ctx.fillStyle = devCodeMessage.startsWith("✓") ? "#86efac" : "#fca5a5"
+    ctx.font = "700 16px Arial"; ctx.fillText(devCodeMessage, cw / 2, 90)
+    ctx.restore()
+  }
+}
+
+// Dev-unlocked Online stub (Task 6) — no netcode; a clearly-labelled placeholder.
+function _drawOnlinePlaceholder() {
+  const cw = canvas.width, ch = canvas.height
+  ctx.fillStyle = "#08111f"; ctx.fillRect(0, 0, cw, ch)
+  ctx.textAlign = "center"; ctx.fillStyle = "#e2e8f0"; ctx.font = "700 40px Arial"
+  ctx.fillText("ONLINE", cw / 2, ch * 0.4)
+  ctx.fillStyle = "#94a3b8"; ctx.font = "18px Arial"
+  ctx.fillText("Placeholder — netcode is not implemented yet.", cw / 2, ch * 0.4 + 44)
+  ctx.fillText("(Dev-unlocked entry point for future matchmaking.)", cw / 2, ch * 0.4 + 72)
+  ctx.fillStyle = "#A00"; ctx.fillRect(cw / 2 - 100, ch * 0.4 + 110, 200, 46)
+  ctx.fillStyle = "#fff"; ctx.font = "20px Arial"; ctx.fillText("BACK", cw / 2, ch * 0.4 + 138)
+}
+
+// Progression badge (Task 3): level + XP bar + the explicit non-persistence notice.
+function _drawProgressionBadge() {
+  const pr = xpProgress()
+  const x = 24, y = canvas.height - 72, w = 300, h = 48
+  ctx.save()
+  ctx.textAlign = "left"; ctx.textBaseline = "middle"
+  if (PROGRESS_DOES_NOT_PERSIST) {
+    ctx.fillStyle = "rgba(248,180,80,0.9)"; ctx.font = "11px Arial"
+    ctx.fillText("Progress is session-only — not saved across reloads (no backend yet)", x, y - 10)
+  }
+  ctx.fillStyle = "rgba(8,14,30,0.82)"; ctx.fillRect(x, y, w, h)
+  ctx.strokeStyle = "rgba(150,180,255,0.30)"; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h)
+  ctx.fillStyle = "#fbbf24"; ctx.font = "700 18px Arial"; ctx.fillText("LV " + pr.level, x + 12, y + 15)
+  ctx.fillStyle = "#cbd5e1"; ctx.font = "12px Arial"; ctx.fillText(`${pr.into} / ${pr.need} XP`, x + 70, y + 15)
+  const bx = x + 12, by = y + 28, bw = w - 24, bh = 7
+  ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fillRect(bx, by, bw, bh)
+  ctx.fillStyle = "#fbbf24"; ctx.fillRect(bx, by, bw * Math.max(0, Math.min(1, pr.pct)), bh)
+  ctx.restore()
+}
+
+// Same-character mirror (Task 1): when both fighters are the same rosterKey, wash
+// P2 red so the two are distinguishable. Extend later by setting tintColor/skinId
+// from a chosen skin instead. Safe to call every reset.
+const MIRROR_TINT = "#e2493b"
+function applyMirrorTint(a, b) {
+  if (!a || !b) return
+  const mirror = a.rosterKey && a.rosterKey === b.rosterKey
+  // P1 keeps its native look; P2 gets the red wash only in a mirror match.
+  a.tintColor = a.skinTint || null
+  b.tintColor = b.skinTint || (mirror ? MIRROR_TINT : null)
 }
 
 function drawHitSparksEnhanced() {
@@ -1467,9 +1757,31 @@ function drawHitSparksEnhanced() {
 // Persistent visual cue that Gojo's Infinity is active (works with sprites, since
 // the procedural drawGojo aura isn't used when he's sprite-rendered): a pulsing
 // cyan ring around him. Drawn in world space (inside the camera transform).
+// OPTIONAL Infinity-barrier/aura sprite (Task 3). Set INFINITY_SHEET to a valid
+// horizontal strip to use art; null → the procedural ring below. (NOTE: the
+// existing gojo_infinity_sheet.png is a 1408×768 GRID, not a single-row strip, so
+// it must be re-laid-out before it can go here — see the report.)
+const INFINITY_SHEET = { src: null, frames: 1, w: 0, h: 0, speed: 4, scale: 1 }
+let _infinityImg = null
 function _drawInfinityAura(f) {
   if (!f || !f.infinityActive) return
   const cx = f.x + f.w / 2, cy = f.y + f.h / 2
+
+  if (INFINITY_SHEET.src) {
+    if (!_infinityImg) { _infinityImg = new Image(); _infinityImg.src = INFINITY_SHEET.src }
+    if (_infinityImg.complete && _infinityImg.naturalWidth > 0) {
+      const frames = INFINITY_SHEET.frames || 1
+      const fw = INFINITY_SHEET.w || (_infinityImg.naturalWidth / frames)
+      const fh = INFINITY_SHEET.h || _infinityImg.naturalHeight
+      const fi = Math.floor(globalFrameCount / (INFINITY_SHEET.speed || 4)) % frames
+      const s  = INFINITY_SHEET.scale || 1
+      ctx.save(); ctx.globalAlpha = 0.85
+      ctx.drawImage(_infinityImg, fi * fw, 0, fw, fh, cx - fw * s / 2, cy - fh * s / 2, fw * s, fh * s)
+      ctx.restore()
+      return
+    }
+  }
+
   const r  = Math.max(f.w, f.h) * 0.72
   const t  = globalFrameCount * 0.12
   ctx.save()
@@ -1730,7 +2042,12 @@ function renderCurrentState() {
       ctx.fillText("SETTINGS", settingsButtonRect.x + settingsButtonRect.w / 2, settingsButtonRect.y + 32)
       break
     case GAME_STATES.SETTINGS:        drawSettingsScreen(); break
-    case GAME_STATES.MAIN_MENU:       drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex, getCurrentAccount()); break
+    case GAME_STATES.MAIN_MENU:
+      drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex, getCurrentAccount())
+      _drawProgressionBadge()
+      _drawDevCodeOverlay()
+      break
+    case GAME_STATES.ONLINE_PLACEHOLDER: _drawOnlinePlaceholder(); break
     case GAME_STATES.TUTORIAL:
       // Source key labels from the SAME map the engine wires to fighters
       // (P1_CONTROLS) so the tutorial always matches real in-play bindings.
@@ -1774,6 +2091,7 @@ function renderCurrentState() {
         draft:  matchConfig.alienDraft,
         player: matchConfig.alienSelectSide === "p1" ? 1 : 2
       }); break
+    case GAME_STATES.SELECT_SKIN: drawSkinSelectScreen(); break
     case GAME_STATES.SELECT_STAGE: drawStageSelectScreen(ctx, canvas, stages, hoverStageIndex); break
     case GAME_STATES.INTRO:
       drawBattleScene()
@@ -1881,7 +2199,10 @@ function handleMenuClicks() {
     case GAME_STATES.MAIN_MENU: {
       const c = getMainMenuRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
       if (!c) break
-      if      (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
+      if (c.locked) break          // locked items (e.g. ONLINE pre-dev-unlock) — not selectable
+      if      (c.id === "devcode")  { devCodeEntry = true; devCodeBuffer = ""; devCodeMessage = "" }
+      else if (c.id === "online")   gameState = GAME_STATES.ONLINE_PLACEHOLDER   // only reachable when dev-unlocked (unlocked above)
+      else if (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; gameState = GAME_STATES.MOVE_LIST }
       else if (c.id === "tutorial") { tutorialPage = 0; gameState = GAME_STATES.TUTORIAL }
       else if (c.id === "account")  { accountMessage = ""; accountDraftName = getCurrentAccount()?.username || ""; gameState = GAME_STATES.ACCOUNT }
@@ -1889,6 +2210,9 @@ function handleMenuClicks() {
       else if (c.id === "back")     gameState = GAME_STATES.START
       break
     }
+    case GAME_STATES.ONLINE_PLACEHOLDER:
+      gameState = GAME_STATES.MAIN_MENU   // any click (the BACK button) returns to the menu
+      break
     case GAME_STATES.TUTORIAL: {
       const b = getTutorialButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
       if (b?.id === "menu") gameState = GAME_STATES.MAIN_MENU
@@ -1932,6 +2256,7 @@ function handleMenuClicks() {
       if (c.id === "training") chooseMode("training")
       else if (c.id === "vs")  chooseMode("vs")
       else if (c.id === "pvp") chooseMode("pvp")
+      else if (c.id === "tower") startTower()   // Task 6: begin the ladder
       else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
       break
     }
@@ -1987,6 +2312,17 @@ function handleMenuClicks() {
       }
       break
     }
+    case GAME_STATES.SELECT_SKIN: {
+      const charKey = matchConfig[skinSelectSide + "CharKey"]
+      const skins = getSkins(charKey)
+      const r = getSkinSelectRects(canvas, skins.length).find(rr => pointInRect(mouse.x, mouse.y, rr))
+      if (!r) break
+      const skin = skins[r.index]
+      if (!isSkinUnlocked(charKey, skin.id)) break          // locked → not selectable
+      matchConfig[skinSelectSide + "Skin"] = skin.id        // remember the choice
+      _proceedAfterSkin(skinSelectSide)                     // continue the select flow
+      break
+    }
     case GAME_STATES.SELECT_STAGE: {
       const idx = getStageCardRects(canvas, stages).findIndex(r => pointInRect(mouse.x, mouse.y, r))
       if (idx >= 0 && stages[idx]) { matchConfig.selectedStage = stages[idx]; startMatch() }
@@ -1995,8 +2331,8 @@ function handleMenuClicks() {
     case GAME_STATES.MATCH_END: resetToStart(); break
     case GAME_STATES.VICTORY: {
       const action = handleVictoryClick?.(victoryState, mouse, canvas)
-      if (action === "rematch") _doRematch()
-      if (action === "menu")    resetToStart()
+      if (action === "rematch") { if (towerState.active) continueTower(); else _doRematch() }   // Tower: advance floor
+      if (action === "menu")    { towerState.active = false; resetToStart() }
       break
     }
   }
@@ -2064,6 +2400,19 @@ function gameLoop() {
 window.addEventListener("keydown", e => {
   const key = String(e.key || "").toLowerCase()
 
+  // DEV CODE entry (Task 6): typing on the main menu. Enter submits, Esc cancels.
+  if (devCodeEntry) {
+    e.preventDefault()
+    if (key === "escape") { devCodeEntry = false; devCodeBuffer = "" }
+    else if (key === "enter") {
+      if (setDevUnlock(devCodeBuffer)) { devCodeMessage = "✓ ALL UNLOCKED (session only)"; devCodeEntry = false }
+      else { devCodeMessage = "Invalid code"; devCodeBuffer = "" }
+    }
+    else if (key === "backspace") devCodeBuffer = devCodeBuffer.slice(0, -1)
+    else if (e.key && e.key.length === 1 && devCodeBuffer.length < 24) devCodeBuffer += e.key
+    return
+  }
+
   // KEYBIND CAPTURE: on the SETTINGS screen, if an action is awaiting a key, the
   // next keypress (re)binds it. Esc cancels. Restricted to the allowed key set.
   if (gameState === GAME_STATES.SETTINGS && rebindAction) {
@@ -2086,15 +2435,22 @@ window.addEventListener("keydown", e => {
 
   if (gameState === GAME_STATES.VICTORY) {
     const action = handleVictoryKey?.(victoryState, key)
-    if (action === "rematch") _doRematch()
-    if (action === "menu")    resetToStart()
+    if (action === "rematch") { if (towerState.active) continueTower(); else _doRematch() }   // Tower: advance floor
+    if (action === "menu")    { towerState.active = false; resetToStart() }
     return
   }
   handlePauseInput(key)
-  if (p1) { recordDirectionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key) }
-  if (p2) {
-    recordDirectionInput(p2, key)
-    if (isPvP() || matchConfig.mode !== "vs") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key) }
+  // CRITICAL (Task 2): only act on a REAL key PRESS, never OS auto-repeat. While a
+  // key is HELD the browser fires repeated keydown events; feeding those into
+  // directionHistory / the double-tap detector is what made "hold A" dash AND
+  // spuriously trigger a binding vow. Movement itself reads the held key state
+  // elsewhere (keys[]/getFighterInput), so skipping repeats here costs nothing.
+  if (!e.repeat) {
+    if (p1) { recordDirectionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key) }
+    if (p2) {
+      recordDirectionInput(p2, key)
+      if (isPvP() || matchConfig.mode !== "vs") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key) }
+    }
   }
   if (gameState === GAME_STATES.MATCH_END && key === "enter") resetToStart()
 })

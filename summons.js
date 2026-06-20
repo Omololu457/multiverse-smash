@@ -50,7 +50,9 @@ const summonTemplates = {
     knockbackX:      6,
     knockbackY:      -1,
     oneHit:          true,
-    color:           "#d1fae5"
+    color:           "#d1fae5",
+    // Divine Dogs (white) — clean 5-frame strip, measured 210x47 → 42x47 cells.
+    sheet: "./megumi2_divine_dogs_white_proj_sheet.png", spriteFrames: 5, spriteW: 42, spriteH: 47, spriteSpeed: 4, spriteScale: 1.3
   },
 
   nue: {
@@ -70,7 +72,9 @@ const summonTemplates = {
     knockbackY:      -6,
     launch:          10,
     oneHit:          true,
-    color:           "#fde68a"
+    color:           "#fde68a",
+    // Nue — clean 9-frame strip, measured 648x77 → 72x77 cells.
+    sheet: "./megumi2_nue_proj_sheet.png", spriteFrames: 9, spriteW: 72, spriteH: 77, spriteSpeed: 4, spriteScale: 1.0
   },
 
   toad: {
@@ -89,7 +93,10 @@ const summonTemplates = {
     knockbackX:      2,
     knockbackY:      0,
     oneHit:          true,
-    color:           "#86efac"
+    color:           "#86efac",
+    // Toad — REGION crop (not frame-sliced): drawn as a single image for now.
+    // FLAG: re-cut megumi2_toad_proj_region.png (393x81) into frames later.
+    sheet: "./megumi2_toad_proj_region.png", spriteFrames: 1, spriteW: 393, spriteH: 81, spriteSpeed: 6, spriteScale: 0.33
   },
 
   rabbitEscape: {
@@ -109,7 +116,10 @@ const summonTemplates = {
     knockbackX:      0,
     knockbackY:      0,
     oneHit:          false,
-    color:           "#f8fafc"
+    color:           "#f8fafc",
+    // Rabbit Escape — REGION crop (single image for now).
+    // FLAG: re-cut megumi2_rabbit_proj_region.png (387x200) into frames later.
+    sheet: "./megumi2_rabbit_proj_region.png", spriteFrames: 1, spriteW: 387, spriteH: 200, spriteSpeed: 6, spriteScale: 0.3
   },
 
   maxElephant: {
@@ -127,7 +137,9 @@ const summonTemplates = {
     knockbackX:      9,
     knockbackY:      -2,
     oneHit:          true,
-    color:           "#93c5fd"
+    color:           "#93c5fd",
+    // Max Elephant — clean 4-frame strip, measured 456x137 → 114x137 cells.
+    sheet: "./megumi2_max_elephant_proj_sheet.png", spriteFrames: 4, spriteW: 114, spriteH: 137, spriteSpeed: 5, spriteScale: 1.0
   }
 }
 
@@ -376,12 +388,43 @@ function cleanupSummonEffects(summon) {
 // ─────────────────────────────────────────────────────────────────
 // DRAW
 // ─────────────────────────────────────────────────────────────────
+// Lazy image cache for shikigami sprite sheets (Task 3).
+const _summonImgCache = new Map()
+function _summonImg(src) {
+  if (!src) return null
+  if (typeof Image === "undefined") return null
+  let img = _summonImgCache.get(src)
+  if (!img) { img = new Image(); img.src = src; _summonImgCache.set(src, img) }
+  return img
+}
+
 export function drawSummons(ctx) {
   for (const s of activeSummons) {
     ctx.save()
 
     if (s.lifetime < 12) {
       ctx.globalAlpha = s.lifetime / 12
+    }
+
+    // SHIKIGAMI SPRITE HOOK (Task 3): if the summon carries a `sheet`, draw the
+    // animated shikigami art (frame strip of `spriteFrames` cells, flipped to face
+    // its target), else fall through to the procedural box below. Single-image
+    // region crops set spriteFrames:1 → the whole image draws.
+    const img = s.sheet ? _summonImg(s.sheet) : null
+    if (img && img.complete && img.naturalWidth > 0) {
+      const frames = s.spriteFrames || 1
+      const fw = s.spriteW || (img.naturalWidth / frames)
+      const fh = s.spriteH || img.naturalHeight
+      s._animT = (s._animT || 0) + 1
+      const fi = Math.floor(s._animT / (s.spriteSpeed || 5)) % frames
+      const sc = s.spriteScale || 1
+      const dw = fw * sc, dh = fh * sc
+      const cx = s.x + (s.w || 0) / 2, cy = s.y + (s.h || 0) / 2
+      const dir = (s.facing || 1) < 0 ? -1 : 1
+      ctx.translate(cx, cy); ctx.scale(dir, 1)
+      ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      ctx.restore()
+      continue
     }
 
     ctx.fillStyle = s.color || "#0ff"

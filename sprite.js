@@ -226,8 +226,8 @@ export class SpriteHandler {
 
     const charKey = (fighter.rosterKey || fighter.id || "").toLowerCase();
 
-    // Prefer animationProfile action definition if available
-    const profileAction = this._getActionDef(charKey, action);
+    // Prefer animationProfile action definition if available (skin-aware).
+    const profileAction = this._getActionDef(charKey, action, fighter._skinAnim);
     this._actionDef = profileAction;
 
     // Support legacy passed-in spritesheets/actionData too
@@ -368,9 +368,9 @@ export class SpriteHandler {
     }
   }
 
-  _getActionDef(charKey, actionKey) {
+  _getActionDef(charKey, actionKey, skinAnim = null) {
     try {
-      const def = _getAction(charKey, actionKey);
+      const def = _getAction(charKey, actionKey, skinAnim);
       if (def) return def;
     } catch (_) {}
 

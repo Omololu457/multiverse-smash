@@ -167,8 +167,10 @@ const cell = {
 // ─────────────────────────────────────────────────────────────────
 const gojo = {
   rosterKey: "gojo", name: "Gojo Satoru", universe: "jujutsu_kaisen",
+  portrait: "./gojo_portrait.png",   // EXACT on-disk filename (case + extension)
   archetypes: ["ranged", "melee"],
   primary: "ranged", secondary: ["melee"],
+  movement: { dashTeleport: true },   // double-tap toward = teleport-dash (blink behind)
   traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "high", scaling: "control", animeMovement: true },
   stats: { maxHealth: 1160, maxEnergy: 220, attack: 91, defense: 88, speed: 87, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 8, dashCooldownMax: 35 },
   hasSprites: true,
@@ -227,12 +229,18 @@ const gojo = {
     domain:             { frames: 4, width: 37, height: 64, speed: 6, sheet: "./gojo_domain_sheet.png" },  // Unlimited Void HAND-SIGN (NOT the gojo_intro coat-throw)
     blue_cast:          { frames: 5, width: 50, height: 64, speed: 5, sheet: "./gojo_max_output_blue_sheet.png" },
     red_cast:           { frames: 5, width: 56, height: 62, speed: 5, sheet: "./gojo_ctr_attack_sheet.png" },
-    hollow_purple_cast: { frames: 4, width: 43, height: 63, speed: 5, sheet: "./gojo_hollowpurple_release_sheet.png" }
+    hollow_purple_cast: { frames: 4, width: 43, height: 63, speed: 5, sheet: "./gojo_hollowpurple_release_sheet.png" },
+    // CHARGE strips (Task 1b) — played briefly before the cast strip. Dims MEASURED
+    // from the PNGs (frames via alpha-gutter detection, cell = stripWidth/frames).
+    blue_charge:          { frames: 4, width: 45, height: 64, speed: 4, sheet: "./gojo_lapse_blue_sheet.png" },          // 180x64
+    red_charge:           { frames: 5, width: 50, height: 63, speed: 4, sheet: "./gojo_ctr_charge_sheet.png" },          // 250x63
+    hollow_purple_charge: { frames: 7, width: 36, height: 71, speed: 4, sheet: "./gojo_hollowpurple_charge_sheet.png" }  // 252x71
   }
 }
 
 const megumi = {
   rosterKey: "megumi", name: "Megumi Fushiguro", universe: "jujutsu_kaisen",
+  portrait: "./megumi_pfp.jpeg",   // EXACT on-disk filename (case + extension)
   archetypes: ["melee", "summons"],
   primary: "melee", secondary: ["summons"],
   traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "medium", scaling: "setup", animeMovement: true },
@@ -295,8 +303,10 @@ const megumi = {
 
 const sukuna = {
   rosterKey: "sukuna", name: "Sukuna", universe: "jujutsu_kaisen",
+  portrait: "./sukuna_portrait.jpg",   // EXACT on-disk filename (case + extension)
   archetypes: ["melee", "curse"],
   primary: "melee", secondary: ["curse"],
+  movement: { dashTeleport: true },   // double-tap toward = teleport-dash (blink behind)
   traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "high", scaling: "damage", animeMovement: true },
   stats: { maxHealth: 1240, maxEnergy: 210, attack: 95, defense: 87, speed: 86, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 40 },
   basic_attacks: {
@@ -348,7 +358,10 @@ const sukuna = {
     dismantle:{ frames: 3, width: 51, height: 51, speed: 4, sheet: "./sukuna_attack_sheet.png" },
     // cinematic
     ultimate: { frames: 4, width: 37, height: 62, speed: 6, sheet: "./sukuna_ultimate_sheet.png" },
-    domain:   { frames: 7, width: 36, height: 62, speed: 5, sheet: "./sukuna_domain_sheet.png" }
+    domain:   { frames: 7, width: 36, height: 62, speed: 5, sheet: "./sukuna_domain_sheet.png" },
+    // Flame Arrow CHARGE → FIRE strips (Task 1b). Dims MEASURED from the PNGs.
+    flame_arrow_charge: { frames: 7, width: 36, height: 62, speed: 4, sheet: "./sukuna_firearrow_charge_sheet.png" }, // 252x62
+    flame_arrow_fire:   { frames: 4, width: 59, height: 62, speed: 5, sheet: "./sukuna_firearrow_fire_sheet.png" }    // 236x62
   }
 }
 
@@ -377,6 +390,7 @@ const omololu = {
 
 const toji = {
   rosterKey: "toji", name: "Toji", universe: "jujutsu_kaisen",
+  portrait: "./toji_pfp.jpg",   // EXACT on-disk filename (case + extension)
   archetypes: ["melee", "speed"],
   primary: "melee", secondary: ["speed"],
   // dashTeleport: double-tap TOWARD the enemy → blink behind + instant strike

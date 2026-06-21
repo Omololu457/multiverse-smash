@@ -45,6 +45,13 @@ const HITSTOP = {
 // charging-can't-defend rule are handled in resolveAttackHit / game.js.)
 const HITSTUN_SCALE = 1.15   // MK12-style flow: links connect without frame-perfect timing (falloff via getComboScale keeps it safe)
 
+// GLOBAL PACING (Task 1): single lever to slow matches down. Matches were ending
+// in 2-3 hits; every point of dealt damage (melee, projectile, throw) is scaled
+// by this one constant so RELATIVE balance between characters is untouched —
+// it's mathematically identical to raising everyone's health by 1/scale, but in
+// one place instead of 45 maxHealth edits. 0.60 ≈ +66% time-to-kill. Tune here.
+const GLOBAL_DAMAGE_SCALE = 0.60
+
 // ========================
 // HELPERS
 // ========================
@@ -413,7 +420,7 @@ export function updateGrab(attacker, defender) {
     defender.vx = (attacker?.facing || 1) * 9
     defender.onGround = false
     defender.isLaunched = true
-    defender.health = Math.max(0, (defender.health || 0) - 90)
+    defender.health = Math.max(0, (defender.health || 0) - Math.floor(90 * GLOBAL_DAMAGE_SCALE))
     defender.hitstun = 20
     defender.colorFlash = 8
 
@@ -484,6 +491,13 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   const hurtbox = getHurtbox(defender)
   if (!rectsOverlap(hitbox, hurtbox)) return
 
+  // Task 4: inside Sukuna's Malevolent Shrine the trapped enemy is UNTOUCHABLE by
+  // the player's manual attacks — only the domain's auto-slashes (domains.js) deal
+  // damage. The swing whiffs cleanly (consume it so it doesn't re-test every frame).
+  // Projectiles (e.g. Sukuna's Fuga) go through resolveProjectileHits and are NOT
+  // gated here, so Fuga still connects.
+  if (defender.domainUntouchable) { attacker.currentAttack.hasHit = true; return }
+
   if (attacker.currentAttack?.superArmor) attacker.armorFlash = 8
 
   if (shouldGojoAutoDodge(defender)) {
@@ -510,7 +524,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   let dmg = Math.floor(
     (atk.damage || 40) *
     getComboScale(attacker) *
-    offenseMult /
+    offenseMult *
+    GLOBAL_DAMAGE_SCALE /
     Math.max(0.5, defender.defenseMultiplier || 1)
   )
 
@@ -795,7 +810,7 @@ export function resolveProjectileHits(projectiles = [], p1, p2, hitEffects = [],
 
       if (!rectsOverlap(pb, hurtbox)) continue
 
-      let dmg = proj.damage || 30
+      let dmg = (proj.damage || 30) * GLOBAL_DAMAGE_SCALE
 
       if (fighter.isBlocking) {
         dmg *= 0.15

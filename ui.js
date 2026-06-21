@@ -216,12 +216,19 @@ function getGridLayout(count, canvas, options = {}) {
 
 function getVerticalMenuLayout(canvas, labels = []) {
   const { width: w, height: h } = getCanvasSize(canvas)
-  const menuWidth    = clamp(w * 0.32, 320, 500)
-  const buttonHeight = clamp(h * 0.095, 72, 100)
-  const gap          = 22
-  const totalHeight  = labels.length * buttonHeight + Math.max(0, labels.length - 1) * gap
+  const n = Math.max(1, labels.length)
+  const menuWidth  = clamp(w * 0.34, 320, 520)
+  // Fit the buttons in the band BELOW the header and ABOVE the footer at any
+  // screen size / item count — shrink the row height + gap instead of overflowing.
+  const topMargin    = 150
+  const bottomMargin = 70
+  const avail        = Math.max(140, h - topMargin - bottomMargin)
+  const gap          = n > 6 ? 12 : 18
+  let buttonHeight   = (avail - (n - 1) * gap) / n
+  buttonHeight       = clamp(buttonHeight, 46, 92)
+  const totalHeight  = n * buttonHeight + (n - 1) * gap
   const startX       = w / 2 - menuWidth / 2
-  const startY       = h / 2 - totalHeight / 2 + 50
+  const startY       = topMargin + Math.max(0, (avail - totalHeight) / 2)
 
   return labels.map((label, index) => ({
     id:       label.id       || String(index),
@@ -254,14 +261,18 @@ function drawButton(ctx, rect, options = {}) {
     ctx.shadowBlur  = 0
   }
 
-  drawCenteredText(ctx, label, rect.x + rect.w / 2, rect.y + rect.h * 0.42, {
-    font: "700 26px Arial",
+  // Scale text to the row height so labels never clip on a compact menu.
+  const labelSize = Math.round(clamp(rect.h * 0.34, 16, 26))
+  const subSize   = Math.round(clamp(rect.h * 0.18, 11, 15))
+  const showSub   = subLabel && rect.h >= 58
+  const labelY    = showSub ? rect.y + rect.h * 0.40 : rect.y + rect.h * 0.52
+  drawCenteredText(ctx, label, rect.x + rect.w / 2, labelY, {
+    font: `700 ${labelSize}px Arial`,
     fill: "#ffffff"
   })
-
-  if (subLabel) {
-    drawSubText(ctx, subLabel, rect.x + rect.w / 2, rect.y + rect.h * 0.72, {
-      font: "15px Arial",
+  if (showSub) {
+    drawSubText(ctx, subLabel, rect.x + rect.w / 2, rect.y + rect.h * 0.74, {
+      font: `${subSize}px Arial`,
       fill: "rgba(220,230,255,0.76)"
     })
   }
@@ -594,13 +605,15 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) 
   rects.forEach((r, i) => {
     drawButton(ctx, r, { label: r.label, subLabel: r.subLabel, active: i === hoverIndex && !r.locked })
     if (r.locked) {
-      // LOCKED placeholder (e.g. ONLINE): grey wash + lock glyph + "Coming Soon".
+      // LOCKED placeholder (e.g. ONLINE): grey wash + a single lock pill on the
+      // right, vertically centered so it never collides with the label/sub.
       ctx.save()
-      ctx.fillStyle = "rgba(8,12,24,0.6)"; roundRect(ctx, r.x, r.y, r.w, r.h, 12); ctx.fill()
-      ctx.fillStyle = "#94a3b8"; ctx.textAlign = "right"; ctx.textBaseline = "middle"
-      ctx.font = "700 22px Arial"; ctx.fillText("🔒", r.x + r.w - 18, r.y + r.h / 2 - 8)
-      ctx.font = "600 12px Arial"; ctx.fillStyle = "#cbd5e1"
-      ctx.fillText("Coming Soon", r.x + r.w - 16, r.y + r.h / 2 + 16)
+      ctx.fillStyle = "rgba(8,12,24,0.55)"; roundRect(ctx, r.x, r.y, r.w, r.h, 18); ctx.fill()
+      const pillW = 96, pillH = 26, px = r.x + r.w - pillW - 16, py = r.y + r.h / 2 - pillH / 2
+      ctx.fillStyle = "rgba(30,41,59,0.95)"; roundRect(ctx, px, py, pillW, pillH, 13); ctx.fill()
+      ctx.strokeStyle = "rgba(148,163,184,0.5)"; ctx.lineWidth = 1; roundRect(ctx, px, py, pillW, pillH, 13); ctx.stroke()
+      ctx.fillStyle = "#cbd5e1"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+      ctx.font = "600 13px Arial"; ctx.fillText("🔒 Locked", px + pillW / 2, py + pillH / 2 + 1)
       ctx.restore()
     }
   })
@@ -1309,16 +1322,26 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
       return
     }
 
-    // FALLBACK: current procedural colored shape.
-    const size  = p.radius || p.size || 12
+    // FALLBACK: procedural energy orb. Drawn as an outer glow + colored body +
+    // bright white core + dark outline so it reads clearly on ANY background
+    // (the plain single-arc version could wash out — Task 2 visibility). The
+    // draw size has a floor so small orbs (e.g. Gojo Blue, r≈9) still register;
+    // collision still uses the data radius, so hitboxes are unchanged.
+    const size  = Math.max(13, p.radius || p.size || 12)
     const color = p.color || "#ffd166"
     ctx.save()
-    ctx.fillStyle   = color
-    ctx.shadowBlur  = 18
+    ctx.shadowBlur  = 24
     ctx.shadowColor = color
-    ctx.beginPath()
-    ctx.arc(x, y, size, 0, Math.PI * 2)
-    ctx.fill()
+    ctx.fillStyle   = color
+    ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill()
+    ctx.shadowBlur = 0
+    ctx.globalAlpha = 0.9
+    ctx.fillStyle = "#ffffff"
+    ctx.beginPath(); ctx.arc(x, y, size * 0.42, 0, Math.PI * 2); ctx.fill()
+    ctx.globalAlpha = 1
+    ctx.lineWidth = 2
+    ctx.strokeStyle = "rgba(0,0,0,0.35)"
+    ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.stroke()
     ctx.restore()
   })
 }

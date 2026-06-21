@@ -435,12 +435,28 @@ const toji = {
     transform:{ frames: 7,  width: 76, height: 67, speed: 6, sheet: "./toji_row01_sheet.png" },  // row01 sword-draw flourish (intro)
     special_1:{ frames: 14, width: 52, height: 63, speed: 4, sheet: "./toji_row09_sheet.png" },  // Inventory Smash → big slash rekka
     special_2:{ frames: 8,  width: 57, height: 63, speed: 4, sheet: "./toji_row05_sheet.png" },  // Rapid Strike → thrust
+    // Chain-Knife / Inverted Spear of Heaven (S,A+L) — confirmed rows: 11 windup,
+    // 12 extension, 14 retract, 15 spin (folded into the same move). Dims measured.
+    chain_windup:  { frames: 5, width: 96,  height: 69, speed: 4, sheet: "./toji_row11_sheet.png" },  // 480x69
+    chain_extend:  { frames: 5, width: 108, height: 69, speed: 4, sheet: "./toji_row12_sheet.png" },  // 540x69
+    chain_retract: { frames: 7, width: 121, height: 87, speed: 4, sheet: "./toji_row14_sheet.png" },  // 847x87
+    chain_spin:    { frames: 5, width: 85,  height: 78, speed: 4, sheet: "./toji_row15_sheet.png" },  // 424x78
     // run/jump/fall/grab aren't on the supplied table, but a MANIFESTED character
     // can't fall back to the procedural box per-action (unmapped → idle sheet at
     // 128px = garbage), so reuse the closest real strips:
-    run:      { frames: 10, width: 90, height: 64, speed: 4, sheet: "./toji_row06_sheet.png" },  // reuse dash-lunge
-    jump:     { frames: 5,  width: 65, height: 71, speed: 6, sheet: "./toji_row08_sheet.png" },  // reuse aerial
-    fall:     { frames: 5,  width: 65, height: 71, speed: 6, sheet: "./toji_row08_sheet.png" },
+    // Polish (Task 3): run/jump/fall had no real strips and borrowed ATTACK rows,
+    // which made plain locomotion play a sword sequence on loop. Fixes:
+    //  • run  → reuse the fighting STANCE (row03), not the row06 sword dash-lunge,
+    //    so sliding momentum (vx>10) doesn't draw the sword. The dash TECH still
+    //    uses row06 via the `dash` slot.
+    //  • jump/fall → hold the neutral STANCE (row03), NOT the row08 aerial-SWORD
+    //    pose. row08 is a weapon attack; using it (even a single held frame) made a
+    //    plain jump read as a sword pose. The real air attack (`air`) keeps row08's
+    //    full 5-frame swing. FLAG: no true jump/fall art exists — a held stance is
+    //    the least-wrong neutral option until a real jump strip is provided.
+    run:      { frames: 7,  width: 39, height: 64, speed: 5, sheet: "./toji_row03_sheet.png" },  // reuse stance (was sword-lunge)
+    jump:     { frames: 1,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },  // neutral stance held (was row08 air-attack)
+    fall:     { frames: 1,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },
     grab:     { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" }   // reuse punch
     // UNMAPPED — chain / Inverted Spear of Heaven throw sequence (special not yet
     // wired). Register for future chain-special work; frame counts TBD (view to

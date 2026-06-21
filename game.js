@@ -28,7 +28,7 @@ import {
   checkClash, checkParry, resolveGrab, updateGrab
 } from "./combat.js"
 import {
-  activeProjectiles,
+  activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation,
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash
@@ -53,7 +53,8 @@ import { createAccount, getCurrentAccount, isValidUsername, listAccounts } from 
 import {
   awardMatchXp, awardXp, getLevel, xpProgress, isUnlocked, requiredLevel,
   loadProgressionFromAccount, PROGRESS_DOES_NOT_PERSIST,
-  setDevUnlock, isDevUnlocked, DEV_CODE
+  setDevUnlock, isDevUnlocked, DEV_CODE,
+  applyUnlockCode, isBetaUnlocked, isJJKKey
 } from "./progression.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked } from "./skins.js"
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
@@ -333,6 +334,10 @@ function applySkin(fighter, skinId) {
   fighter._skinAnim = getSkinAnimationData(fighter.rosterKey, skinId)
   const skin = getSkin(fighter.rosterKey, skinId)
   if (skin?.spriteScale) fighter.spriteScale = skin.spriteScale
+  // A skin may carry a colour wash (Task 4 "Pink Fit" = default art + pink tint,
+  // since no bespoke pink sheets exist). applyMirrorTint() reads skinTint and sets
+  // tintColor; null clears it so non-tinted skins render natively.
+  fighter.skinTint = skin?.skinTint || null
   fighter.skinId = skinId
 }
 
@@ -439,7 +444,12 @@ function formatUniverseName(u) {
 
 function getUniverseCharacters() {
   if (!matchConfig.selectedUniverse || !universeMap[matchConfig.selectedUniverse]) return []
-  return universeMap[matchConfig.selectedUniverse]
+  const keys = universeMap[matchConfig.selectedUniverse]
+  // Beta code (GojoV1): hard-restrict selectable fighters to the JJK four, even if
+  // a non-JJK universe somehow got selected (defense-in-depth alongside the
+  // universe-list filter). Dev/full-unlock is unaffected.
+  if (isBetaUnlocked() && !isDevUnlocked()) return keys.filter(isJJKKey)
+  return keys
 }
 
 function getStageTheme()        { return matchConfig.selectedStage || stages[0] }
@@ -1187,6 +1197,7 @@ function updateMiscTimers(fighter) {
   if (fighter.teleportCooldown      > 0) fighter.teleportCooldown--       // Gojo Up+Special blink
   if (fighter.dashTeleportCooldown  > 0) fighter.dashTeleportCooldown--   // Toji teleport-dash
   if (fighter.malevolentDashCooldown > 0) fighter.malevolentDashCooldown-- // Sukuna Malevolent Dash
+  if (fighter.chainCooldown > 0) fighter.chainCooldown--                   // Toji Chain-Knife
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--
@@ -1202,12 +1213,17 @@ function updateMovementInput(fighter) {
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   fighter.isBlocking = false
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
+  else fighter.isCharging = false   // reset each frame for normal characters (devices set their own)
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
   // Can't block while charging the transform device (deliberate vulnerability).
   if (inputState.down && !fighter.isCharging) fighter.isBlocking = true
-  // For Ben/Albedo the charge button is the device dial (energy refill / switch),
-  // handled in handleOmnitrixSwitch — not the generic energy charge.
-  if (inputState.charge && !isTransformDevice(fighter)) doEnergyCharge(fighter)
+  // HOLD-TO-CHARGE (Task 2): a meter character holding P (charge), not attacking,
+  // builds cursed energy AND enters the charging state (drives the charge aura +
+  // sprite). For Ben/Albedo the charge button is the device dial (handled above).
+  if (inputState.charge && !isTransformDevice(fighter) && !fighter.attacking && (fighter.maxEnergy || 0) > 0) {
+    doEnergyCharge(fighter)
+    fighter.isCharging = true
+  }
   physics.moveFighter(fighter, vKeys, fighter.controls)
 }
 
@@ -1386,7 +1402,7 @@ function updateComboDisplay(fighter, side) {
 }
 
 function updateEffectsAndDomains() {
-  updateDomains([p1, p2].filter(Boolean))
+  updateDomains([p1, p2].filter(Boolean), hitSparks)
   updateEffects()
   updateEnergyRegen([p1, p2].filter(Boolean))
   for (let i = hitSparks.length - 1; i >= 0; i--) {
@@ -1577,7 +1593,15 @@ function updateBattle() {
 
   for (const fighter of [p1, p2].filter(Boolean)) {
     processPendingSpawns?.(fighter, {
-      spawnProjectile: spawnProjectileFromMove,
+      // Bug-sweep #1 fix: sprite.js calls spawnProjectile(fighter, "<key>", {}, ctx)
+      // — a STRING 2nd arg. The old binding (projectiles.js spawnProjectileFromMove)
+      // expected a moveData OBJECT and read moveData.projectileId, so it always
+      // console.warned and spawned nothing. abilities.js's spawnProjectile has the
+      // matching (attacker, type, moveData, ctx) signature, so frame-driven spawns
+      // now produce a real projectile. (Gojo's Blue/Purple + Sukuna's Fuga DON'T
+      // use this path — they call spawnProjectile directly — so they were never
+      // affected by the mismatch; this only repairs the dormant sprite-frame path.)
+      spawnProjectile: spawnProjectile,
       spawnSummon:     spawnAssistSummon,
       getOpponent
     })
@@ -1795,6 +1819,34 @@ function _drawInfinityAura(f) {
   ctx.restore()
 }
 
+// HOLD-TO-CHARGE aura (Task 2): a visible, rising energy effect while a meter
+// character holds P to build cursed energy. Universal (works for sprite AND
+// procedural fighters) — rising particles + a pulsing ground ring, tinted to the
+// character's energy colour. Brighter as the meter fills.
+function _drawChargeAura(f) {
+  if (!f || !f.isCharging) return
+  const cx = f.x + f.w / 2, baseY = f.y + f.h
+  const pct = Math.max(0, Math.min(1, (f.energy || 0) / (f.maxEnergy || 1)))
+  const col = f.energyColor || "#fcd34d"
+  const t = globalFrameCount * 0.25
+  ctx.save()
+  ctx.shadowBlur = 14; ctx.shadowColor = col; ctx.strokeStyle = col; ctx.fillStyle = col
+  // pulsing ground ring
+  ctx.globalAlpha = 0.35 + Math.sin(t) * 0.12
+  ctx.lineWidth = 3
+  ctx.beginPath(); ctx.ellipse(cx, baseY - 2, f.w * 0.62, f.h * 0.10, 0, 0, Math.PI * 2); ctx.stroke()
+  // rising energy motes (deterministic from frame count — no Math.random in the loop)
+  const n = 6
+  for (let i = 0; i < n; i++) {
+    const ph = (globalFrameCount * 0.06 + i / n) % 1
+    const px = cx + Math.sin((i * 1.7) + t) * f.w * 0.4
+    const py = baseY - ph * f.h * (0.9 + pct * 0.4)
+    ctx.globalAlpha = (1 - ph) * 0.8
+    ctx.beginPath(); ctx.arc(px, py, 2.5 + (1 - ph) * 2, 0, Math.PI * 2); ctx.fill()
+  }
+  ctx.restore()
+}
+
 function drawBattleScene() {
   const stage = getStageTheme()
   const hasTransform = typeof camera.applyTransform === "function"
@@ -1824,6 +1876,8 @@ function drawBattleScene() {
   drawActiveSummons(ctx)
   _drawInfinityAura(p1)
   _drawInfinityAura(p2)
+  _drawChargeAura(p1)
+  _drawChargeAura(p2)
   drawHitSparksEnhanced()
   if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], camera)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
@@ -1982,9 +2036,20 @@ function _drawVowCue() {
 const p1SettingRect   = { x: window.innerWidth / 2 - 200, y: 150, w: 400, h: 44 }
 const p2SettingRect   = { x: window.innerWidth / 2 - 200, y: 202, w: 400, h: 44 }
 const backSettingRect = { x: window.innerWidth / 2 - 100, y: 686, w: 200, h: 44 }
+// Keep the settings rects centered on the CURRENT canvas + the BACK button always
+// on-screen (bottom-anchored) so nothing clips at smaller window sizes. Called by
+// both the render and the click handler so they stay in sync.
+function _layoutSettings() {
+  const cx = canvas.width / 2
+  p1SettingRect.x   = cx - 200
+  p2SettingRect.x   = cx - 200
+  backSettingRect.x = cx - 100
+  backSettingRect.y = Math.min(686, canvas.height - 56)
+}
 
 function drawSettingsScreen() {
-  ctx.fillStyle = "#111"; ctx.fillRect(0, 0, canvas.width, canvas.height)
+  _layoutSettings()
+  ctx.fillStyle = "#0a1322"; ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.textAlign = "center"
   ctx.fillStyle = "#FFF"; ctx.font = "36px Arial"
   ctx.fillText("INPUT SETTINGS", canvas.width / 2, 120)
@@ -2123,7 +2188,11 @@ function renderCurrentState() {
 // MENU CLICK HANDLERS
 // ------------------------------------------------------------------
 function getUniverseList() {
-  return universeKeys.map(k => ({ name: formatUniverseName(k), id: k }))
+  let keys = universeKeys
+  // Beta code (GojoV1): only the Jujutsu Kaisen universe is selectable. Dev code
+  // (full unlock) is unaffected and still sees every universe.
+  if (isBetaUnlocked() && !isDevUnlocked()) keys = keys.filter(k => k === "jujutsu_kaisen")
+  return keys.map(k => ({ name: formatUniverseName(k), id: k }))
 }
 
 // Flat list of every Omnitrix alien for the Ben 10 loadout screen.
@@ -2237,6 +2306,7 @@ function handleMenuClicks() {
       break
     }
     case GAME_STATES.SETTINGS: {
+      _layoutSettings()   // keep rects in sync with the render before hit-testing
       // Per-player device select (Task 4): cycle keyboard ↔ controller. "Two
       // Keyboards" is intentionally NOT reachable (disabled placeholder, Task 3).
       if (pointInRect(mouse.x, mouse.y, p1SettingRect))    inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
@@ -2405,7 +2475,9 @@ window.addEventListener("keydown", e => {
     e.preventDefault()
     if (key === "escape") { devCodeEntry = false; devCodeBuffer = "" }
     else if (key === "enter") {
-      if (setDevUnlock(devCodeBuffer)) { devCodeMessage = "✓ ALL UNLOCKED (session only)"; devCodeEntry = false }
+      const mode = applyUnlockCode(devCodeBuffer)
+      if (mode === "dev")       { devCodeMessage = "✓ ALL UNLOCKED (session only)"; devCodeEntry = false }
+      else if (mode === "beta") { devCodeMessage = "✓ JJK BETA: Jujutsu Kaisen roster + skins only"; devCodeEntry = false }
       else { devCodeMessage = "Invalid code"; devCodeBuffer = "" }
     }
     else if (key === "backspace") devCodeBuffer = devCodeBuffer.slice(0, -1)

@@ -135,6 +135,12 @@ const MOVE_TO_ACTION = {
 function _resolveAction(fighter, currentAction = "idle") {
   if (!fighter) return "idle";
 
+  // Task 3: Gojo's Unlimited Void FREEZES the trapped enemy on the exact frame
+  // they were in. Hold whatever action was last resolved (mid-jump → "jump",
+  // mid-walk → "walk") and never switch to a hurt pose, even though they're
+  // locked. Frame advancement is also halted in updateFrames() below.
+  if (fighter.domainFrozen) return fighter._lastSpriteAction || currentAction || "idle";
+
   // Freeze visible animation during hitstop
   if ((fighter.hitstop || 0) > 0) return currentAction || fighter._lastSpriteAction || "idle";
 
@@ -323,7 +329,9 @@ export class SpriteHandler {
     // Pause animation during hitstop OR while the game is paused. The pause
     // render path still calls draw(), which would otherwise keep advancing
     // frames; game.js sets fighter._animFrozen while in the PAUSED state.
-    if ((fighter.hitstop || 0) <= 0 && !fighter._animFrozen) {
+    // domainFrozen (Task 3) holds the current frame as well as the action, so the
+    // enemy is locked on a single still pose for the whole of Gojo's domain.
+    if ((fighter.hitstop || 0) <= 0 && !fighter._animFrozen && !fighter.domainFrozen) {
       this.updateFrames(frameData, fighter);
     }
 

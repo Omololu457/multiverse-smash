@@ -19,6 +19,13 @@ let _domainFadeIn = 0
 let _domainFadeOut = 0
 let _lastDomainBg = null
 
+// Task 4: Sukuna's Malevolent Shrine auto-slash cadence. A Cleave/Dismantle slash
+// auto-connects on the trapped (untouchable) enemy every SUKUNA_SLASH_INTERVAL
+// frames for SUKUNA_SLASH_DAMAGE each — THIS is the domain's only damage source.
+// At 15s (900f) that's ~30 slashes → ~420 dmg: a strong burst, not a round-ender.
+const SUKUNA_SLASH_INTERVAL = 30
+const SUKUNA_SLASH_DAMAGE   = 14
+
 // Gojo "Unlimited Void" — optional VIDEO-backed background (visual only: muted,
 // kept OUT of any audio graph). Lazily created on first use; if the file is
 // missing/unready/decode-fails it falls back to the procedural _drawUnlimitedVoid().
@@ -148,11 +155,19 @@ function collapseDomain(domain) {
 // ─────────────────────────────────────────────────────────────────
 // UPDATE
 // ─────────────────────────────────────────────────────────────────
-export function updateDomains(fighters = []) {
+export function updateDomains(fighters = [], hitEffects = []) {
   resolveConflicts()
 
   if (_domainFadeIn > 0) _domainFadeIn--
   if (_domainFadeOut > 0) _domainFadeOut--
+
+  // Per-frame reset of the domain-state flags (Tasks 3 & 4). They're re-asserted
+  // below only for fighters currently trapped in a freezing/untouchable domain,
+  // so they CLEAR THEMSELVES the moment the domain expires — no collapse-time
+  // bookkeeping needed (collapseDomain only has the owner, not the trapped foe).
+  for (const f of fighters) {
+    if (f) { f.domainFrozen = false; f.domainUntouchable = false }
+  }
 
   for (let i = activeDomains.length - 1; i >= 0; i--) {
     const domain = activeDomains[i]
@@ -165,6 +180,10 @@ export function updateDomains(fighters = []) {
     if (domain.owner) {
       domain.owner.activeDomainTimer = Math.max(0, domain.timer)
     }
+
+    // Task 4: tick Sukuna's auto-slash clock once per frame (domain-level, not
+    // per-fighter, so two targets can't make it fire twice as fast).
+    if (domain.rosterKey === "sukuna" && (domain.slashClock || 0) > 0) domain.slashClock--
 
     for (const fighter of fighters) {
       if (!fighter || fighter === domain.owner) continue
@@ -180,20 +199,52 @@ export function updateDomains(fighters = []) {
 
       if (dist > domain.range) continue
 
-      if (domain.rosterKey === "gojo" || domain.rosterKey === "sukuna") {
-        // BUG_4: inside Gojo's Void / Sukuna's Shrine the trapped opponent can't
-        // move — refresh hitstun every frame (physics.moveFighter blocks input
-        // while hitstun>0) and kill momentum. The caster (owner) is excluded above.
+      if (domain.rosterKey === "gojo") {
+        // TASK 3 — Unlimited Void = FREEZE ONLY, no damage. The trapped enemy is
+        // locked on the single sprite frame they were caught in (sprite.js reads
+        // domainFrozen) and cannot move or act (hitstun blocks physics input).
+        // Gravity is left UNTOUCHED, so if they were airborne they still fall to
+        // the ground normally — they just hold the pose. NO tick/CE damage here:
+        // Gojo's "sure hit" is that they can't escape, and HE lands hits manually
+        // (domainUntouchable is NOT set, so combat resolves his attacks normally).
+        fighter.domainFrozen = true
+        fighter.hitstun = Math.max(fighter.hitstun || 0, 4)   // can't move/act
+        fighter.vx = 0                                        // no horizontal drift
+        // NOTE: fighter.vy intentionally NOT damped → physics.applyGravity pulls
+        // an airborne, frozen enemy down to the floor.
+      } else if (domain.rosterKey === "sukuna") {
+        // TASK 4 — Malevolent Shrine = SURE-HIT auto-slashes; enemy UNTOUCHABLE by
+        // the player. They can't move/act, and combat.js refuses Sukuna's manual
+        // hits (domainUntouchable). The ONLY damage is the auto Cleave/Dismantle
+        // slashes that fire on SUKUNA_SLASH_INTERVAL. (Sukuna's Fuga is a
+        // projectile and still connects — it isn't gated by domainUntouchable.)
+        fighter.domainUntouchable = true
         fighter.hitstun = Math.max(fighter.hitstun || 0, 4)
         fighter.vx = 0
         fighter.vy = (fighter.vy || 0) * 0.2
-        // TASK 6: BOTH domains apply continuous CE damage to the trapped fighter
-        // (was Sukuna-only). Sukuna's Malevolent Shrine hits harder than Gojo's
-        // Unlimited Void. (Owner's +attack buff is applied in activateDomain.)
-        if (Math.random() < 0.06) {
-          const chip = domain.rosterKey === "sukuna" ? 12 : 8
-          fighter.health = Math.max(0, (fighter.health || 0) - chip)
-          fighter.colorFlash = 4
+
+        if ((domain.slashClock || 0) <= 0) {
+          domain.slashClock = SUKUNA_SLASH_INTERVAL
+          domain._slashParity = (domain._slashParity || 0) + 1
+          const isCleave = domain._slashParity % 2 === 0
+          fighter.health = Math.max(0, (fighter.health || 0) - SUKUNA_SLASH_DAMAGE)
+          fighter.colorFlash = 6
+          // Push a visible slash through the existing hit-spark pipeline (the
+          // game loop spawns a damage number + records the hit from this). Cleave
+          // = wide red flash, Dismantle = thin crimson line.
+          if (Array.isArray(hitEffects)) {
+            hitEffects.push({
+              x: fighterCX,
+              y: fighterCY + (isCleave ? 0 : -10),
+              timer: 10, maxTimer: 10,
+              category: "special",
+              color: isCleave ? "#f87171" : "#ef4444",
+              damage: SUKUNA_SLASH_DAMAGE,
+              lines: isCleave ? 7 : 4,
+              radius: isCleave ? 20 : 12
+            })
+          }
+          sound?.play?.(SFX.HIT_HEAVY)
           if (fighter.health <= 0) sound?.play?.(SFX.KO)
         }
       } else if (domain.rosterKey === "megumi") {

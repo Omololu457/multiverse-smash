@@ -90,6 +90,40 @@ export function setDevUnlock(code) {
   }
   return ok
 }
+
+// ── BETA-ACCESS CODE "GojoV1" (Task 1) ───────────────────────────────────────
+// A SECOND, narrower code for beta testers. It unlocks the Jujutsu Kaisen roster
+// + JJK skins ONLY, and locks every non-JJK character out of selection. It grants
+// NOTHING related to non-JJK characters/features (that stays the DEV_CODE's job).
+// Matching is case-insensitive (so testers can't fat-finger the casing); the
+// canonical string to hand out is exactly "GojoV1". Both flags are independent —
+// entering one never affects the other, so the full-unlock code stays intact.
+export const BETA_CODE = "GojoV1"
+let _betaUnlock = false
+export function isBetaUnlocked() { return _betaUnlock }
+
+// The ONLY characters selectable under the beta code (also the skin allow-list).
+export const JJK_ROSTER = ["gojo", "sukuna", "megumi", "toji"]
+export function isJJKKey(key) { return JJK_ROSTER.includes(String(key || "").toLowerCase()) }
+
+// Unified code entry. Returns "dev" | "beta" | null so the UI can show the right
+// message. Keeps setDevUnlock() working for any existing callers.
+export function applyUnlockCode(code) {
+  const c = String(code || "").trim().toLowerCase()
+  if (c === DEV_CODE.toLowerCase()) {
+    _devUnlock = true
+    const acct = getCurrentAccount()
+    if (acct) { acct.devUnlock = true; persistence.save(acct) }
+    return "dev"
+  }
+  if (c === BETA_CODE.toLowerCase()) {
+    _betaUnlock = true
+    const acct = getCurrentAccount()
+    if (acct) { acct.betaUnlock = true; persistence.save(acct) }   // TODO(backend)
+    return "beta"
+  }
+  return null
+}
 export function requiredLevel(featureId) { return FEATURES[featureId]?.unlocksAtLevel || 1 }
 export function unlocksBetween(fromLevel, toLevel) {
   return Object.entries(FEATURES)

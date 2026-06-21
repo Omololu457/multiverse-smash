@@ -14,7 +14,7 @@
 // with different skins work). Default skin returns null = use existing art.
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
-import { getLevel, isDevUnlocked } from "./progression.js"
+import { getLevel, isDevUnlocked, isBetaUnlocked, isJJKKey } from "./progression.js"
 
 // ── OWN art per non-default skin (overrides; everything else is borrowed) ──────
 // Dimensions MEASURED from the PNGs (frames × cell W×H). "[guess]" rows are noted
@@ -104,9 +104,16 @@ export const SKINS = {
     { id: "default", name: "Default",         unlockLevel: 0, portrait: characters.gojo?.portrait,   spriteScale: characters.gojo?.spriteScale,   animationData: null },
     { id: "gojo2",   name: "Limitless (Alt)", unlockLevel: 5, portrait: "./gojo2_idle_sheet.png",    spriteScale: SKIN_SCALE.gojo2,   animationData: buildComplete("gojo", "gojo2") }
   ],
+  // THREE Sukuna skins (Task 4). Only two have bespoke art on disk:
+  //   • "regular"  = the iconic pink-haired Sukuna  → default sukuna_* sheets.
+  //   • "megaFit"  = the Heian full-body Sukuna     → sukuna3_* sheets (real art).
+  //   • "pinkFit"  = NO bespoke sheets exist. Synthesised as the DEFAULT art with a
+  //     pink colour wash (skinTint) so it's a distinct, selectable skin now; swap
+  //     in real pink sheets later by giving it its own OWN[...] block + sheets.
   sukuna: [
-    { id: "default", name: "Default",            unlockLevel: 0, portrait: characters.sukuna?.portrait, spriteScale: characters.sukuna?.spriteScale, animationData: null },
-    { id: "sukuna3", name: "King of Curses (Alt)", unlockLevel: 8, portrait: "./sukuna3_idle_sheet.png",  spriteScale: SKIN_SCALE.sukuna3, animationData: buildComplete("sukuna", "sukuna3") }
+    { id: "default", name: "Regular",  unlockLevel: 0, portrait: characters.sukuna?.portrait,  spriteScale: characters.sukuna?.spriteScale, animationData: null },
+    { id: "sukuna3", name: "Mega Fit", unlockLevel: 8, portrait: "./sukuna3_idle_sheet.png",    spriteScale: SKIN_SCALE.sukuna3, animationData: buildComplete("sukuna", "sukuna3") },
+    { id: "pinkFit", name: "Pink Fit", unlockLevel: 5, portrait: characters.sukuna?.portrait,   spriteScale: characters.sukuna?.spriteScale, animationData: null, skinTint: "#f472b6", placeholderArt: true }
   ],
   megumi: [
     { id: "default", name: "Default",          unlockLevel: 0, portrait: characters.megumi?.portrait, spriteScale: characters.megumi?.spriteScale, animationData: null },
@@ -128,5 +135,7 @@ export function isSkinUnlocked(rosterKey, skinId) {
   const skin = getSkin(rosterKey, skinId)
   if (!skin || skin.unlockLevel <= 0) return true
   if (isDevUnlocked()) return true
+  // Beta code (GojoV1) unlocks ALL skins for the JJK roster only (Task 1/4).
+  if (isBetaUnlocked() && isJJKKey(rosterKey)) return true
   return getLevel() >= skin.unlockLevel
 }

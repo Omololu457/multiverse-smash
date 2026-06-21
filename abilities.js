@@ -42,6 +42,10 @@ const COMMAND_INPUT_MAX_AGE = 700
 // sprite strip plays during this window, then the projectile/attack spawns and the
 // cast/fire strip plays. Ticked by the pending-spawn list (updatePendingSpawns).
 const SPRITE_CHARGE_FRAMES = 8
+// Charge phase length per Gojo special = the FULL play length of its charge strip
+// (frames × speed) so the windup ANIMATION completes before the release spawns.
+// (blue_charge 4×4=16 · red_charge 5×4=20 · hollow_purple_charge 7×4=28.)
+const GOJO_CHARGE = { blue: 16, red: 20, hollowPurple: 28 }
 
 // ─────────────────────────────────────────────────────────────────
 // UTIL
@@ -412,9 +416,9 @@ function executeGojoSpecial(fighter, context) {
     if (isSpecialDisabled(fighter, "hollowPurple")) return false   // binding vow (Limitless Sacrifice)
     if (!spendEnergy(fighter, 70)) return false
     fighter._spriteCastMove  = "hollow_purple_charge"   // CHARGE strip (gojo_hollowpurple_charge)
-    fighter._spriteCastTimer = SPRITE_CHARGE_FRAMES
-    fighter.attackCooldown   = getAttackDuration(38 + SPRITE_CHARGE_FRAMES, fighter)
-    schedulePendingSpawn(SPRITE_CHARGE_FRAMES, () => {
+    fighter._spriteCastTimer = GOJO_CHARGE.hollowPurple  // full windup play length
+    fighter.attackCooldown   = getAttackDuration(38 + GOJO_CHARGE.hollowPurple, fighter)
+    schedulePendingSpawn(GOJO_CHARGE.hollowPurple, () => {
       spawnProjectile(fighter, "hollowPurple", {
         damage: 200, speed: 10, lifetime: 150,
         hitstun: 32, knockbackX: 14, knockbackY: -4,
@@ -434,9 +438,9 @@ function executeGojoSpecial(fighter, context) {
     if (isSpecialDisabled(fighter, "red")) return false   // binding vow (Limitless Sacrifice)
     if (!spendEnergy(fighter, 40)) return false
     fighter._spriteCastMove  = "red_charge"             // CHARGE strip (gojo_ctr_charge)
-    fighter._spriteCastTimer = SPRITE_CHARGE_FRAMES
-    fighter.attackCooldown   = getAttackDuration(SPRITE_CHARGE_FRAMES + 2, fighter)
-    schedulePendingSpawn(SPRITE_CHARGE_FRAMES, () => {
+    fighter._spriteCastTimer = GOJO_CHARGE.red          // full windup play length
+    fighter.attackCooldown   = getAttackDuration(GOJO_CHARGE.red + 2, fighter)
+    schedulePendingSpawn(GOJO_CHARGE.red, () => {
       const attack = createAttackFromMove(fighter, "red", {
         damage: 130, startup: 12, active: 5, recovery: 22,
         hitstun: 26, knockbackX: 12, knockbackY: -3,
@@ -454,9 +458,9 @@ function executeGojoSpecial(fighter, context) {
   if (isSpecialDisabled(fighter, "blue")) return false   // binding vow (Limitless Sacrifice)
   if (!spendEnergy(fighter, 30)) return false
   fighter._spriteCastMove  = "blue_charge"   // CHARGE strip (gojo_lapse_blue)
-  fighter._spriteCastTimer = SPRITE_CHARGE_FRAMES
-  fighter.attackCooldown   = getAttackDuration(22 + SPRITE_CHARGE_FRAMES, fighter)
-  schedulePendingSpawn(SPRITE_CHARGE_FRAMES, () => {
+  fighter._spriteCastTimer = GOJO_CHARGE.blue          // full windup play length
+  fighter.attackCooldown   = getAttackDuration(22 + GOJO_CHARGE.blue, fighter)
+  schedulePendingSpawn(GOJO_CHARGE.blue, () => {
     spawnProjectile(fighter, "blue", {
       damage: 110, speed: 12, lifetime: 110,
       hitstun: 20, knockbackX: -6, knockbackY: -1, // negative = pulls toward Gojo
@@ -480,7 +484,8 @@ function executeGojoUltimate(fighter, context) {
   // (updateDomains in-range branch) then applies to the opponent anywhere on the
   // stage, not just a circle around the caster. drawDomains skips the world ring
   // for gojo/sukuna so this huge radius isn't drawn.
-  activateDomain(fighter, { cost: 0, duration: 30, range: 1e5 }, context)
+  // Task 2: 30s → 15s. A domain is a strong burst window, not a round-ender.
+  activateDomain(fighter, { cost: 0, duration: 15, range: 1e5 }, context)
 
   fighter.infinityActive   = true   // auto-dodge for the domain's duration
   fighter.attackCooldown   = getAttackDuration(44, fighter)
@@ -647,7 +652,8 @@ function executeSukunaUltimate(fighter, context) {
   // (updateDomains in-range branch) then applies to the opponent anywhere on the
   // stage, not just a circle around the caster. drawDomains skips the world ring
   // for gojo/sukuna so this huge radius isn't drawn.
-  activateDomain(fighter, { cost: 0, duration: 30, range: 1e5 }, context)
+  // Task 2: 30s → 15s. A domain is a strong burst window, not a round-ender.
+  activateDomain(fighter, { cost: 0, duration: 15, range: 1e5 }, context)
 
   fighter.attackCooldown   = getAttackDuration(44, fighter)
   fighter._spriteCastMove  = "domain"   // play the hand-sign 'domain' strip (BUG_8)
@@ -700,6 +706,37 @@ function executeToji_Special(fighter, context) {
   const dirs = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
+
+  // S,A+L (down→back) = CHAIN-KNIFE / Inverted Spear of Heaven. Movement tech, NO
+  // cursed energy. Sequenced animation: windup → extension (chain shoots out + hits)
+  // → retract → spin finisher (row 15 folded in). Checked first (longest motion).
+  if (endsWithPattern(dirs, ["D", "B"])) {
+    if ((fighter.chainCooldown || 0) > 0) return false
+    fighter.chainCooldown    = 96
+    fighter.attackCooldown   = getAttackDuration(64, fighter)   // committal
+    fighter._spriteCastMove  = "chain_windup"
+    fighter._spriteCastTimer = 14
+    schedulePendingSpawn(14, () => {                            // windup → extension
+      fighter._spriteCastMove  = "chain_extend"
+      fighter._spriteCastTimer = 18
+      spawnProjectile(fighter, "chainKnife", {                 // the chain shoots forward + hits
+        damage: 95, speed: 17, lifetime: 24,
+        hitstun: 22, knockbackX: 9, knockbackY: -2,
+        color: "#d1d5db", w: 44, h: 12
+      }, context)
+      shakeCamera(context, 6, 6)
+      schedulePendingSpawn(18, () => {                          // extension → retract
+        fighter._spriteCastMove  = "chain_retract"
+        fighter._spriteCastTimer = 18
+        schedulePendingSpawn(18, () => {                        // retract → spin (folded in)
+          fighter._spriteCastMove  = "chain_spin"
+          fighter._spriteCastTimer = 16
+        })
+      })
+    })
+    focusCameraOnAction(context, fighter, target, 0.95, 10)
+    return true
+  }
 
   // F→F = Rapid dash strike — fast low damage
   if (endsWithPattern(dirs, ["F", "F"])) {

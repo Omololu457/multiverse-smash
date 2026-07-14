@@ -6,7 +6,11 @@ import { characters } from "./characters.js"
 import { moveset }    from "./moveset.js"
 import { sound }      from "./sound.js"
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
-import { activeSummons, spawnSummon as spawnAssistSummon } from "./summons.js"
+import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
+import {
+  activeSummons, spawnSummon as spawnAssistSummon,
+  spawnShadowClone, dispelShadowClones, countShadowClones
+} from "./summons.js"
 import {
   applyTransformation,
   updateTransformations,
@@ -323,61 +327,91 @@ function executeGokuUltimate(fighter, context) {
 // ── NARUTO ────────────────────────────────────────────────────────
 // Specials: Rasengan (melee close-range), Shadow Clone Blast (summon)
 // Ultimate: Sage Mode (transformation)
+// Naruto's chakra is a SHARED POOL split evenly across all live bodies (himself +
+// clones). His usable SHARE = energy / bodyCount, so an ability costing C requires
+// energy >= C * bodyCount; the pool is then charged the single cost C. More clones
+// → less usable chakra each (the "cost" of running clones).
+function narutoBodyCount(fighter) { return 1 + countShadowClones(fighter) }
+function spendNarutoChakra(fighter, cost) {
+  const bodies = narutoBodyCount(fighter)
+  if ((fighter.energy || 0) < cost * bodies) return false   // share must cover the cost
+  return spendEnergy(fighter, cost)
+}
+
 function executeNarutoSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
 
-  // B→F = Shadow Clone — projectile that chases
-  if (endsWithPattern(dirs, ["B", "F"])) {
-    if (!spendEnergy(fighter, 25)) return false
-    spawnProjectile(fighter, "shadowClone", {
-      damage: 80, speed: 9, lifetime: 90,
-      hitstun: 18, knockbackX: 6, knockbackY: -1,
-      color: "#ffd166", w: 18, h: 18
-    }, context)
-    // Spawn a second clone ~5 frames later (frame-counted, pause/reset-safe).
-    schedulePendingSpawn(5, () => {
-      if (activeProjectiles.length < 20) {
-        spawnProjectile(fighter, "shadowClone2", {
-          damage: 80, speed: 9, lifetime: 90, vy: -1,
-          hitstun: 18, knockbackX: 6, knockbackY: -1,
-          color: "#ffd166", w: 18, h: 18
-        }, context)
-      }
-    })
-    fighter.attackCooldown = getAttackDuration(22, fighter)
+  // D→F = SHADOW CLONE spawn (Down-Forward + Special). Cap 3; over cap → no-op.
+  // No upfront chakra cost — the cost is the pool split (summons.js). Puff on spawn.
+  if (endsWithPattern(dirs, ["D", "F"])) {
+    if (!spawnShadowClone(fighter, target)) return false      // at cap → nothing happens
+    fighter.attackCooldown = getAttackDuration(16, fighter)
+    shakeCamera(context, 5, 5)
     return true
   }
 
-  // Default = Rasengan — close-range high damage melee
-  if (!spendEnergy(fighter, 35)) return false
-  const attack = createAttackFromMove(fighter, "rasengan", {
-    damage: 140, startup: 10, active: 5, recovery: 20,
+  // D→B = DISPEL all clones (Down-Back + Special). Each lost share is gone for good.
+  if (endsWithPattern(dirs, ["D", "B"])) {
+    if (!dispelShadowClones(fighter)) return false            // no clones → nothing
+    fighter.attackCooldown = getAttackDuration(10, fighter)
+    return true
+  }
+
+  // B→F = Rasenshuriken — thrown spinning wind-shuriken (long range projectile).
+  // Visible-projectile contract: `sheet` animates the re-sliced FX; if it fails to
+  // load, ui.drawProjectiles falls back to the colored energy orb (never invisible).
+  if (endsWithPattern(dirs, ["B", "F"])) {
+    if (!spendNarutoChakra(fighter, 40)) return false
+    spawnProjectile(fighter, "rasenshuriken", {
+      damage: 150, speed: 15, lifetime: 130,
+      hitstun: 26, knockbackX: 11, knockbackY: -3,
+      color: "#7dd3fc", w: 34, h: 30,
+      sheet: "./naruto_kcm_fx_rasenshuriken.png",
+      spriteFrames: 2, spriteW: 186, spriteH: 106, spriteSpeed: 3, spriteScale: 0.7
+    }, context)
+    fighter._spriteCastMove  = "rasenshuriken_cast"   // 6-koma body plays on the caster
+    fighter._spriteCastTimer = 26
+    fighter.attackCooldown = getAttackDuration(26, fighter)
+    focusCameraOnAction(context, fighter, target, 0.99, 8)
+    shakeCamera(context, 7, 7)
+    return true
+  }
+
+  // Default = Rasengan — close/dashing spiral-orb projectile (short lifetime).
+  if (!spendNarutoChakra(fighter, 35)) return false
+  fighter.vx = fighter.facing * 6   // dash in with the thrust
+  spawnProjectile(fighter, "rasengan", {
+    damage: 140, speed: 9, lifetime: 60,
     hitstun: 24, knockbackX: 10, knockbackY: -4,
-    rangeX: 80, rangeY: 50
-  })
-  setAttackState(fighter, attack, 24)
-  fighter.vx = fighter.facing * 5
+    color: "#38bdf8", w: 30, h: 30,
+    sheet: "./naruto_kcm_fx_rasengan_sphere.png",
+    spriteFrames: 4, spriteW: 64, spriteH: 85, spriteSpeed: 4, spriteScale: 0.6
+  }, context)
+  fighter._spriteCastMove  = "rasengan_cast"   // 4-koma body plays on the caster
+  fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(24, fighter)
   focusCameraOnAction(context, fighter, target, 0.99, 8)
   shakeCamera(context, 6, 6)
   return true
 }
 
 function executeNarutoUltimate(fighter, context) {
-  if (!spendEnergy(fighter, 100)) return false
-  // Enter Sage Mode (next transformation)
-  const nextIdx = Math.min((fighter.transformIndex || 0) + 1, (fighter.transformationOrder?.length || 1) - 1)
-  const formKey = fighter.transformationOrder?.[nextIdx]
-  if (formKey && fighter.transformations?.[formKey]) {
-    applyTransformation(fighter, formKey)
-    fighter.transformIndex  = nextIdx
-    fighter.currentForm     = formKey
-    fighter.currentFormData = fighter.transformations[formKey]
-    fighter.teleportFlash   = 18
-    fighter.attackCooldown  = 22
-    shakeCamera(context, 10, 12)
-  }
+  // Kurama Avatar / Tailed Beast Bomb — CINEMATIC ultimate (kurama.js), built on
+  // the Gojo/Sukuna domain-cinematic pattern. NOT a transformation/playable form.
+  // Costs 50% of the max meter (fighters spawn at half): can't reliably open at
+  // round start because any prior chakra use drops you below the half-bar gate.
+  // spendEnergy gates on having the cost, then drains it.
+  const cost = Math.ceil((fighter.maxEnergy || 100) * 0.5)
+  if (!spendEnergy(fighter, cost)) return false
+
+  const getOpponent = getTargetResolver(context)
+  const opponent    = getOpponent(fighter)
+
+  activateKuramaUltimate(fighter, opponent)   // game.js freezes combat + drives the beats
+  fighter.attackCooldown = 22
+  shakeCamera(context, 12, 14)
   return true
 }
 

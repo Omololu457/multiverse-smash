@@ -2,6 +2,10 @@
 // Handles assist/summon logic for characters.
 // All timing values are in FRAMES at 60fps.
 
+// Shadow clones read the fighters' live attack state to mimic / to poof when hit.
+// combat.js imports only physics + sound → no cycle back to summons.
+import { getAttackHitbox, rectsOverlap, attackIsActive } from "./combat.js"
+
 export const activeSummons = []
 
 // ─────────────────────────────────────────────────────────────────
@@ -210,6 +214,15 @@ export function updateSummons() {
       continue
     }
 
+    // Shadow clones follow their own path (mimic / poof / persist) — they do NOT
+    // rush the target, auto-attack on interval, or expire by lifetime.
+    if (s.id === "shadowClone") {
+      const r = updateShadowClone(s)
+      if (r === "destroy") { loseCloneShare(s.owner); spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2); activeSummons.splice(i, 1) }
+      else if (r === "remove") { activeSummons.splice(i, 1) }
+      continue
+    }
+
     updateSummonMovement(s)
 
     s.attackTimer++
@@ -235,6 +248,8 @@ export function updateSummons() {
       activeSummons.splice(i, 1)
     }
   }
+
+  tickClonePuffs()   // advance/expire the cosmetic clone spawn/dispel smoke
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -427,6 +442,15 @@ export function drawSummons(ctx) {
       continue
     }
 
+    // Clone whose body sprite hasn't decoded yet — faint silhouette, no lifebar.
+    if (s.id === "shadowClone") {
+      ctx.globalAlpha = 0.45
+      ctx.fillStyle = s.color || "#ffb400"
+      ctx.fillRect(s.x, s.y, s.w, s.h)
+      ctx.restore()
+      continue
+    }
+
     ctx.fillStyle = s.color || "#0ff"
     ctx.fillRect(s.x, s.y, s.w, s.h)
 
@@ -458,6 +482,8 @@ export function drawSummons(ctx) {
 
     ctx.restore()
   }
+
+  drawClonePuffs(ctx)   // clone spawn/dispel smoke, on top of the bodies
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -465,4 +491,159 @@ export function drawSummons(ctx) {
 // ─────────────────────────────────────────────────────────────────
 export function clearSummons() {
   activeSummons.length = 0
+  clonePuffs.length = 0
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SHADOW CLONES (Naruto) — BASIC version.
+// Persistent lookalike bodies that MIMIC the owner's basic attacks, poof when hit
+// once (or dispelled), and SPLIT the owner's chakra pool evenly across all bodies
+// (a destroyed clone's share is LOST). Built on this summon list but with a
+// clone-specific update/draw path (no rush, no auto-attack, no lifetime expiry).
+// No independent AI yet — clones only mirror the owner.
+// ═══════════════════════════════════════════════════════════════════
+const CLONE_CAP          = 3                 // max simultaneous clones (spawn past cap = no-op)
+const CLONE_OFFSETS      = [-70, 70, -120]   // flank x-offsets relative to owner facing
+const CLONE_HIT_RANGE    = 150               // px: a mimic hit lands only if the enemy is this close to the clone
+const CLONE_DAMAGE_SCALE = 0.5               // clone mimic hits deal half the owner's attack damage (balance knob)
+const CLONE_ATTACK_ANIM  = 18                // frames the clone holds its attack pose after mimicking
+const CLONE_W = 70, CLONE_H = 120            // clone hurtbox = the destruction box
+
+// Clone body sprites (reuse Naruto's existing strips). scale 2.0 ≈ his on-screen size.
+const CLONE_SPRITES = {
+  idle:   { sheet: "./naruto_kcm_stance.png",   frames: 4, w: 36, h: 63, speed: 6, scale: 2.0 },
+  attack: { sheet: "./naruto_kcm_b_attack.png", frames: 4, w: 52, h: 53, speed: 4, scale: 2.0 }
+}
+function setCloneSheet(s, mode) {
+  const c = CLONE_SPRITES[mode] || CLONE_SPRITES.idle
+  s.sheet = c.sheet; s.spriteFrames = c.frames; s.spriteW = c.w; s.spriteH = c.h
+  s.spriteSpeed = c.speed; s.spriteScale = c.scale; s._animT = 0
+}
+
+export function countShadowClones(owner) {
+  return activeSummons.filter(s => s.id === "shadowClone" && s.owner === owner).length
+}
+
+// Lose ONE even chakra share as a clone is destroyed. Called while the clone is
+// STILL in activeSummons, so bodies = 1 (Naruto) + clones counts it; share =
+// energy/bodies; the destroyed clone's share is removed (never returned).
+function loseCloneShare(owner) {
+  if (!owner) return
+  const bodies = 1 + countShadowClones(owner)     // includes the clone being destroyed
+  if (bodies > 1) owner.energy = Math.max(0, (owner.energy || 0) * (bodies - 1) / bodies)
+}
+
+// SPAWN — cap-limited (over cap → no-op, returns null). No upfront chakra cost:
+// the "cost" is the split (each new body lowers everyone's share). Puffs on spawn.
+export function spawnShadowClone(owner, target) {
+  if (!owner) return null
+  if (countShadowClones(owner) >= CLONE_CAP) return null   // CAP behavior: do nothing
+  const slot = countShadowClones(owner)
+  const facing = owner.facing || 1
+  const s = {
+    id: "shadowClone", owner, target, _slot: slot,
+    w: CLONE_W, h: CLONE_H,
+    x: owner.x - facing * 70, y: owner.y || 0,
+    facing, lifetime: Infinity,        // persists until hit or dispelled
+    _atkTimer: 0, _mimicked: null, color: "#ffb400"
+  }
+  setCloneSheet(s, "idle")
+  activeSummons.push(s)
+  spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)
+  return s
+}
+
+// DISPEL — intentional recall: poof every clone WITHOUT calling loseCloneShare,
+// so the shared pool is untouched and each removed body's split folds back into
+// the survivors (dispel all → owner's bar returns to full). This is the tactical
+// asymmetry vs. a clone DESTROYED in combat (updateSummons → loseCloneShare),
+// which permanently removes that share. Recall = safe; getting hit = lossy.
+export function dispelShadowClones(owner) {
+  let n = 0
+  for (let i = activeSummons.length - 1; i >= 0; i--) {
+    const s = activeSummons[i]
+    if (s && s.id === "shadowClone" && s.owner === owner) {
+      spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)
+      activeSummons.splice(i, 1); n++
+    }
+  }
+  return n
+}
+
+// Per-frame clone logic. Returns "destroy" (hit → poof + lose share), "remove"
+// (owner gone), or null.
+function updateShadowClone(s) {
+  const owner = s.owner, enemy = s.target
+  if (!owner) return "remove"
+
+  // FOLLOW — settle into a flank slot beside the owner (smoothed, never snaps).
+  const off = CLONE_OFFSETS[s._slot % CLONE_OFFSETS.length]
+  const desiredX = owner.x + (owner.facing || 1) * off
+  s.x += (desiredX - s.x) * 0.25
+  s.y += ((owner.y || 0) - s.y) * 0.25
+  if (enemy) s.facing = (enemy.x >= s.x) ? 1 : -1
+
+  // attack-pose hold
+  if (s._atkTimer > 0) { s._atkTimer--; if (s._atkTimer === 0) setCloneSheet(s, "idle") }
+
+  // MIMIC — mirror each of the owner's basic attacks once (skip specials/ultimate).
+  const atk = owner.currentAttack
+  if (atk && !atk.isSpecial && !atk.isUltimate) {
+    if (atk !== s._mimicked && attackIsActive(atk)) {
+      s._mimicked = atk
+      setCloneSheet(s, "attack"); s._atkTimer = CLONE_ATTACK_ANIM
+      cloneMimicHit(s, atk, enemy)
+    }
+  } else if (!atk) {
+    s._mimicked = null
+  }
+
+  // DESTRUCTION — one touch of an active enemy melee hitbox poofs the clone.
+  if (enemy && attackIsActive(enemy.currentAttack)) {
+    const hb = getAttackHitbox(enemy)
+    if (hb && rectsOverlap(hb, { x: s.x, y: s.y, w: s.w, h: s.h })) return "destroy"
+  }
+  return null
+}
+
+// A mimicked hit: an extra (scaled) instance of the owner's attack, landing only
+// if the enemy is within CLONE_HIT_RANGE of the clone (else it whiffs).
+function cloneMimicHit(s, atk, enemy) {
+  if (!enemy) return
+  const cx = s.x + s.w / 2, cy = s.y + s.h / 2
+  const ex = enemy.x + (enemy.w || 60) / 2, ey = enemy.y + (enemy.h || 100) / 2
+  if (Math.hypot(ex - cx, ey - cy) > CLONE_HIT_RANGE) return
+  const dmg = Math.round((atk.damage || 40) * CLONE_DAMAGE_SCALE)
+  enemy.health = Math.max(0, (enemy.health || 0) - dmg)
+  enemy.colorFlash = 6
+  enemy.hitstun = Math.max(enemy.hitstun || 0, Math.round((atk.hitstun || 12) * 0.7))
+  enemy.vx = (atk.pushX || 3) * (s.facing || 1) * 0.7
+  if (atk.launchY) { enemy.vy = atk.launchY * 0.7; enemy.onGround = false }
+}
+
+// ── clone spawn/dispel smoke puffs (cosmetic) ──────────────────────
+// FLAG: naruto_kcm_fx_smoke_poof.png is not on disk yet → PROCEDURAL puff below.
+// When the real sprite lands, swap drawClonePuffs to draw its frames (tell me its
+// frame count/cell dims and I'll animate it — until then this reads as a puff).
+const clonePuffs = []
+function spawnClonePuff(x, y) { clonePuffs.push({ x, y, t: 0, max: 16 }) }
+function tickClonePuffs() {
+  for (let i = clonePuffs.length - 1; i >= 0; i--) {
+    if (++clonePuffs[i].t >= clonePuffs[i].max) clonePuffs.splice(i, 1)
+  }
+}
+function drawClonePuffs(ctx) {
+  if (!ctx) return
+  for (const p of clonePuffs) {
+    const k = p.t / p.max                    // 0 → 1
+    const r = 18 + k * 44
+    ctx.save()
+    ctx.globalAlpha = (1 - k) * 0.8
+    const g = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, r)
+    g.addColorStop(0, "rgba(240,240,245,0.95)")
+    g.addColorStop(1, "rgba(200,200,210,0)")
+    ctx.fillStyle = g
+    ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill()
+    ctx.restore()
+  }
 }

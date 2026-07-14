@@ -75,7 +75,10 @@ export const physics = {
 
     const L = !!keys[controls.left]
     const R = !!keys[controls.right]
-    const U = !!keys[controls.up]
+    // Jump reads the dedicated jump binding first, falling back to `up` for
+    // maps that share one key (the live P1/P2 maps set up===jump). This keeps
+    // jumping correct even if a future config splits the two bindings.
+    const U = !!(keys[controls.jump] || keys[controls.up])
     // Dash = double-tap A/D (game.js sets _dashTap; there is no dash KEY anymore).
     // Six Eyes Focus binding vow disables dashing.
     const dash = (!!keys[controls.dash] || !!fighter._dashTap) && !fighter.noDash

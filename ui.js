@@ -5,6 +5,7 @@
 import { drawCharacter } from "./fighters.js"
 import { characters } from "./characters.js"
 import { isDevUnlocked } from "./progression.js"
+import { countShadowClones } from "./summons.js"
 
 const startScreenImage = new Image()
 startScreenImage.src = "./start-screen.png"
@@ -1549,7 +1550,15 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     if (!hasEnergy) return
 
     const maxEn  = Math.max(1, fighter.maxEnergy || 100)
-    const ratio  = clamp((fighter.energy || 0) / maxEn, 0, 1)
+    // Naruto's chakra is ONE shared pool (fighter.energy is the single source of
+    // truth) split evenly across live bodies (him + clones). Spawning a clone
+    // spends NOTHING — it only DIVIDES the displayed share, so the bar drops to
+    // the per-body split (½ with 1 clone, ⅓ with 2, ¼ with 3) with NO net pool
+    // loss. Chakra is permanently lost only when a clone is DESTROYED
+    // (summons.loseCloneShare shrinks the pool). Mirrors spendNarutoChakra's
+    // gate (usable share = energy / bodies), so the bar shows what you can spend.
+    const bodies = fighter.rosterKey === "naruto" ? 1 + countShadowClones(fighter) : 1
+    const ratio  = clamp((fighter.energy || 0) / (maxEn * bodies), 0, 1)
     const isCrit = ratio < 0.15
     const isHigh = ratio > 0.80
 

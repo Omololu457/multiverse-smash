@@ -1,0 +1,37 @@
+block,file,type,action,confidence,sheet_x,sheet_y,det_frames,cell_w,cell_h,note
+B00,goku_ssj_god_idle_and_golden_variants_RAW.png,raw_isolated,idle_and_golden_variants,MIXED,0-1277,4-72,10,1277,68,idle stance (red) + golden SSJ frames merged into one row; manual split needed
+B01,goku_ssj_god_idle_single.png,uniform_strip,idle_single,reliable,0-43,84-150,1,51,74,lone red standing/idle frame
+B02,goku_ssj_god_crouch_hit_poses.png,uniform_strip,crouch_hit_poses,reliable,586-753,77-133,4,48,64,crouch / damage poses (red)
+B03,goku_ssj_god_golden_ssj_pose.png,uniform_strip,golden_ssj_pose,reliable,1004-1291,85-140,6,52,63,GOLDEN-hair SSJ variant (different form)
+B04,goku_ssj_god_walk_RAW.png,raw_isolated,walk,reliable(visual),0-682,170-237,3,682,67,"walk cycle (red); frames touch, can't auto-slice"
+B05,goku_ssj_god_golden_ssj_walk_RAW.png,raw_isolated,golden_ssj_walk,approx,1004-1377,159-207,5,373,48,GOLDEN SSJ walk + knockback; 1 wide seg (verify)
+B06,goku_ssj_god_transform_forms.png,uniform_strip,transform_forms,reliable,1002-1274,218-285,6,72,74,red power-up + grey/white (SSJ-Blue/UI) head variants
+B07,goku_ssj_god_walk_run_b_RAW.png,raw_isolated,walk_run_b,reliable(visual),0-711,252-323,7,711,71,2nd walk/run cycle (red); frames touch
+B08,goku_ssj_god_run_RAW.png,raw_isolated,run,reliable(visual),0-343,336-401,3,343,65,run cycle (red); frames touch
+B09,goku_ssj_god_crouch_walk_RAW.png,raw_isolated,crouch_walk,reliable(visual),1-393,430-473,2,392,43,crouch-walk (red); frames touch
+B10,goku_ssj_god_jump_RAW.png,raw_isolated,jump,reliable(visual),0-579,482-554,2,579,72,jump arc (red); frames touch
+B11,goku_ssj_god_air_spin_flip.png,uniform_strip,air_spin_flip,reliable,973-1241,480-548,6,66,76,aerial spin/flip frames (red)
+B12,goku_ssj_god_attack_startup.png,uniform_strip,attack_startup,reliable,881-1053,568-632,4,47,70,guard/stance into punch startup (red)
+B13,goku_ssj_god_attacks_merged_1_RAW.png,raw_isolated,attacks_merged_1,MULTI,1-1271,563-779,1,1270,216,LARGE merged mass: multiple attack animations fused; manual split needed
+B14,goku_ssj_god_punch_combo.png,uniform_strip,punch_combo,reliable,875-1216,727-781,6,65,62,punch combo (red)
+B15,goku_ssj_god_attack_punch_RAW.png,raw_isolated,attack_punch,reliable(visual),2-285,782-849,1,283,67,punch sequence (red); frames touch
+B16,goku_ssj_god_dash_rush_attack_RAW.png,raw_isolated,dash_rush_attack,reliable(visual),442-779,795-849,1,337,54,dash/rush + projectile (red); frames touch
+B17,goku_ssj_god_combo_string.png,uniform_strip,combo_string,reliable,873-1291,789-847,9,56,64,longer combo string (red)
+B18,goku_ssj_god_attack_b_RAW.png,raw_isolated,attack_b,reliable(visual),1-319,852-910,1,318,58,attack sequence (red); frames touch
+B19,goku_ssj_god_kick_combo.png,uniform_strip,kick_combo,reliable,861-1303,868-915,7,88,51,kick combo w/ extended-leg frames (red)
+B20,goku_ssj_god_attack_launch_RAW.png,raw_isolated,attack_launch,reliable(visual),1-484,915-970,2,483,55,attack into launch (red); frames touch
+B21,goku_ssj_god_air_combo_RAW.png,raw_isolated,air_combo,reliable(visual),811-1400,915-986,6,589,71,aerial combo (red); frames touch
+B22,goku_ssj_god_attack_c_RAW.png,raw_isolated,attack_c,reliable(visual),1-395,971-1037,1,394,66,attack sequence (red); frames touch
+B23,goku_ssj_god_jump_kick.png,uniform_strip,jump_kick,reliable,807-1124,996-1064,6,74,74,jumping kick (red)
+B24,goku_ssj_god_crouch_attack_RAW.png,raw_isolated,crouch_attack,approx,1-446,1042-1102,6,445,60,crouch attack (red); 1 wide seg (verify)
+B25,goku_ssj_god_air_attack.png,uniform_strip,air_attack,reliable,806-1208,1066-1137,8,54,75,aerial attack (red)
+B26,goku_ssj_god_special_attack_RAW.png,raw_isolated,special_attack,reliable(visual),0-493,1110-1169,3,493,59,attack + energy/ki figure (red); frames touch
+B27,goku_ssj_god_hit_stagger_RAW.png,raw_isolated,hit_stagger,reliable(visual),3-228,1190-1257,1,225,67,hit/stagger (red); frames touch
+B28,goku_ssj_god_knockback_and_dive_RAW.png,raw_isolated,knockback_and_dive,MIXED,2-721,1246-1321,7,719,75,"red knockback + skin-tone head-first dive/flip; two anims, manual split"
+B29,goku_ssj_god_launch_fall_dive_RAW.png,raw_isolated,launch_fall_dive,approx,753-1167,1257-1307,4,414,50,"head-first falling/dive frames (skin); wide frames, verify count"
+B30,goku_ssj_god_getup_knockback_RAW.png,raw_isolated,getup_knockback,reliable(visual),4-579,1322-1396,2,575,74,knockback / get-up (red); frames touch
+B31,goku_ssj_god_kick_a_RAW.png,raw_isolated,kick_a,reliable(visual),2-589,1404-1474,2,587,70,kick sequence (red); frames touch
+B32,goku_ssj_god_kick_b_RAW.png,raw_isolated,kick_b,reliable(visual),0-300,1483-1534,1,300,51,kick (red); frames touch
+B33,goku_ssj_god_energy_wave_attack_RAW.png,raw_isolated,energy_wave_attack,reliable(visual),4-814,1542-1605,3,810,63,rush + energy-wave projectile (red); frames touch
+B34,goku_ssj_god_run_attack_merged_2_RAW.png,raw_isolated,run_attack_merged_2,MULTI,1-877,1611-1763,1,876,152,LARGE merged mass: run cycle + attack fused; manual split needed
+B35,goku_ssj_god_run_attack_RAW.png,raw_isolated,run_attack,approx,3-807,1754-1823,16,804,69,run + attack + slash arc (red); 1 wide seg among frames

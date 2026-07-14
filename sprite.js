@@ -149,7 +149,11 @@ function _resolveAction(fighter, currentAction = "idle") {
 
   // Knockdown handling
   if (fighter.knockdownState) {
-    if ((fighter.knockdownTimer || 0) > 12) return "hurt";
+    // Prefer a dedicated knockdown pose when the fighter defines one (skin anim or
+    // base animationData); otherwise keep the existing hurt fallback — unchanged
+    // for every character WITHOUT a `knockdown` strip (Gojo/Sukuna/…).
+    const kd = (fighter._skinAnim?.knockdown || fighter.animationData?.knockdown) ? "knockdown" : "hurt";
+    if ((fighter.knockdownTimer || 0) > 12) return kd;
     if ((fighter._techDash || 0) > 0) return "dash";
     return "idle";
   }
@@ -158,8 +162,12 @@ function _resolveAction(fighter, currentAction = "idle") {
   if ((fighter.hitstun || 0) > 0) return "hurt";
   if ((fighter.stun || 0) > 0) return "hurt";
 
-  // Blocking fallback
-  if (fighter.isBlocking) return "idle";
+  // Blocking — show a dedicated guard pose when the fighter defines one (skin anim
+  // or base animationData); otherwise hold idle. Unchanged for every character
+  // WITHOUT a `guard` strip (Gojo/Sukuna/… still show idle while blocking).
+  if (fighter.isBlocking) {
+    return (fighter._skinAnim?.guard || fighter.animationData?.guard) ? "guard" : "idle";
+  }
 
   // BUG_7/8: brief "sprite cast" window — projectile specials & domain opens set
   // a move + timer so their cast strip (blue_cast / hollow_purple_cast / domain
@@ -187,10 +195,15 @@ function _resolveAction(fighter, currentAction = "idle") {
     return "jump";
   }
 
-  // Ground movement
+  // Ground movement. Backpedalling (moving OPPOSITE to facing = away from the
+  // opponent) plays WALK, never run — only forward momentum or an actual dash uses
+  // the run/dash strip. The sprite still faces the enemy either way, so a backward
+  // walk reads as a proper retreat instead of a sprint. (Applies to all fighters.)
   if ((fighter.dashTimer || 0) > 0) return "dash";
-  if (Math.abs(fighter.vx || 0) > 10) return "run";
-  if (Math.abs(fighter.vx || 0) > 0.1) return "walk";
+  const gvx = fighter.vx || 0;
+  const movingForward = Math.sign(gvx) === (fighter.facing ?? 1);
+  if (Math.abs(gvx) > 10 && movingForward) return "run";
+  if (Math.abs(gvx) > 0.1) return "walk";
 
   // Default fallback
   return "idle";
@@ -258,6 +271,10 @@ export class SpriteHandler {
       lockLastFrame: profileAction.lockLastFrame ?? !!fighter.attacking,
       anchorX: profileAction.anchorX ?? 0,
       anchorY: profileAction.anchorY ?? 0,
+      // Atlas support: top-left source origin of this action's frames inside the
+      // sheet. Default 0/0 → frames start at (0,0) = every existing strip is unchanged.
+      sourceX: profileAction.sourceX ?? legacyFrameData?.sourceX ?? 0,
+      sourceY: profileAction.sourceY ?? legacyFrameData?.sourceY ?? 0,
       spawn: profileAction.spawn,
       behavior: profileAction.behavior
     };
@@ -285,8 +302,8 @@ export class SpriteHandler {
     // Anchor to the bottom of the hitbox (using SCALED height) so feet stay planted
     const offsetY = (dstH - fighterH) + (frameData.anchorY || 0);
 
-    const sx = this.frameIndex * drawWidth;
-    const sy = 0;
+    const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
+    const sy = (frameData.sourceY || 0);
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;   // crisp upscaled pixel art

@@ -118,6 +118,20 @@ export const SKINS = {
   megumi: [
     { id: "default", name: "Default",          unlockLevel: 0, portrait: characters.megumi?.portrait, spriteScale: characters.megumi?.spriteScale, animationData: null },
     { id: "megumi2", name: "Ten Shadows (Alt)", unlockLevel: 3, portrait: "./megumi2_idle_sheet.png",  spriteScale: SKIN_SCALE.megumi2,  animationData: buildComplete("megumi", "megumi2") }
+  ],
+  // Base Goku. Needs a default skin so applySkin() pulls THIS spriteScale from the
+  // character; without an entry, getSkins() returns the spriteScale:1 fallback and
+  // Goku renders at native 37px. No alt skins yet. (Dragon Ball → not a JJK-beta skin.)
+  goku: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku?.portrait, spriteScale: characters.goku?.spriteScale, animationData: null }
+  ],
+
+  // KCM Naruto. Same reason as Goku above: WITHOUT a default skin, applySkin()
+  // (game.js) pulls the getSkins() spriteScale:1 fallback and Naruto renders at
+  // native ~63px (half size). This entry sources his real spriteScale from the
+  // character. No alt skins yet. (Naruto universe → not a JJK-beta skin.)
+  naruto: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naruto?.portrait, spriteScale: characters.naruto?.spriteScale, animationData: null }
   ]
 }
 

@@ -45,7 +45,23 @@ const goku = {
     ssblue:        { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.2, kiDrainPerSecond: 8, isSpecial: true, duration: 720 },
     ultraInstinct: { damageMultiplier: 2.5, speedMultiplier: 2, defenseMultiplier: 1.5, autoDodge: true, autoDodgeKiCost: 10, kiDrainPerSecond: 12, isSpecial: true, duration: 480 }
   },
-  animationData: { ...DEFAULT_ANIM }
+  hasSprites: true,
+  // Base (black-hair) Goku sprites sliced from goku_base_FULLSHEET_transparent.png.
+  // Idle source cell 34×37 → ×3.2 ≈ Sukuna/Gojo on-screen height (their 64px cells
+  // ×1.8 ≈ 115px; 37×3.2 ≈ 118). His idle is a WIDE stance, so at equal height he
+  // reads wider/stockier than the lean JJK sprites — expected, not a bug.
+  // ⚠ Goku MUST keep his skins.js SKINS entry: applySkin() pulls spriteScale from the
+  // default skin; without it getSkins() forces spriteScale:1 and he shrinks to 37px.
+  // BASE only (NOT goku_ssj_god_*); universe "dragon_ball" keeps him out of GojoV1 beta.
+  spriteScale: 3.2,
+  animationData: {
+    ...DEFAULT_ANIM,   // unmapped actions (walk/attacks/…) fall back to the box until their rows are sliced+wired
+    // ── ATLAS coords into goku_base_FULLSHEET_transparent.png: sourceX/sourceY = row's
+    // top-left; `width` = frame pitch (frames step right by it); `height` = cell height.
+    // idle: 6 touching frames, uniform 34px pitch (confirmed even-split). anchorY plants
+    // feet on the floor (screen px, scale-independent; more negative = lower).
+    idle: { frames: 6, width: 34, height: 37, speed: 6, anchorY: -3, sourceX: 0, sourceY: 10, sheet: "./goku_base_FULLSHEET_transparent.png" }
+  }
 }
 
 const vegeta = {
@@ -497,6 +513,7 @@ const mahoraga = {
 // ─────────────────────────────────────────────────────────────────
 const naruto = {
   rosterKey: "naruto", name: "Naruto", universe: "naruto",
+  portrait: "./naruto_kcm_portrait.png",   // KCM mugshot bust sliced from naruto_kcm_mugshot_lifebars.png (lifebar strips excluded)
   archetypes: ["melee", "summons", "ranged"],
   primary: "melee", secondary: ["summons", "ranged"],
   traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
@@ -510,10 +527,16 @@ const naruto = {
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -4 }
   },
   specials: {
-    rasengan:         { cost: 35, damage: 140, startup: 10, active: 5, recovery: 20, hitstun: 24, knockbackX: 9, knockbackY: -2, effect: "spiraling chakra sphere" },
+    rasengan:         { cost: 35, damage: 140, startup: 10, active: 5, recovery: 20, hitstun: 24, knockbackX: 9, knockbackY: -2, subtype: "projectile", effect: "spiraling chakra sphere (close/dashing)" },
+    rasenshuriken:    { cost: 40, damage: 150, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -3, subtype: "projectile", effect: "thrown wind-chakra shuriken" },
+    // Phase 3: rebuilt as a real clone entity on summons.js (not wired this phase).
     shadowCloneBlast: { cost: 25, damage: 80, startup: 8, active: 6, recovery: 16, hitstun: 16, knockbackX: 6, knockbackY: -1, subtype: "summon", effect: "shadow clone rush attack" }
   },
-  ultimate: { name: "Sage Mode", cost: 100, duration: 10, effect: "Triggers next transformation" },
+  // Kurama Avatar — CINEMATIC ultimate (kurama.js), NOT a transformation. Full-meter
+  // gate; the Tailed Beast Bomb sequence is a guaranteed sure-hit. The old
+  // sageMode/kcmMode/baryonMode forms below are now UNUSED by the ultimate (kept as
+  // dead data; executeNarutoUltimate no longer reads them).
+  ultimate: { name: "Kurama Avatar", cost: 100, duration: 3, effect: "Tailed Beast Bomb cinematic — guaranteed sure-hit blast" },
   transformationOrder: ["base","sageMode","kcmMode","baryonMode"],
   transformations: {
     base:       { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
@@ -521,7 +544,67 @@ const naruto = {
     kcmMode:    { damageMultiplier: 1.8, speedMultiplier: 1.5, defenseMultiplier: 1.1, kiDrainPerSecond: 7, isSpecial: true, duration: 840 },
     baryonMode: { damageMultiplier: 2.8, speedMultiplier: 2, defenseMultiplier: 0.8, kiDrainPerSecond: 20, isSpecial: true, duration: 360 }
   },
-  animationData: { ...DEFAULT_ANIM }
+  hasSprites: true,
+  // ── KCM NARUTO SPRITES (Phase 1: core, playable) ───────────────────
+  // JUS rip sliced into one PNG per action. Source cells ~36–79px wide × 55–92px
+  // tall; ×1.8 ≈ JJK on-screen height (their 63px cells ×1.8 ≈ 113px). Frame counts
+  // MEASURED via alpha-gutter detection (stripWidth / frames = cell pitch). Non-
+  // convention filenames load directly via each entry's `sheet` (animationProfile.js
+  // → SpriteHandler._loadSheet). anchorY -4 plants feet on the floor (each strip has
+  // a ~2px transparent bottom gap ×1.8 ≈ 4px). Display size scaled by spriteScale.
+  // NOTE: `guard`/`knockdown` render via the guarded hooks added in sprite.js
+  // _resolveAction (they only fire because these entries exist).
+  // spriteScale 2.0 → idle content (59px) ×2.0 ≈ 118px ≈ Sukuna/Gojo on-screen
+  // height (their 62px content ×1.8 ≈ 112px). REQUIRES the skins.js `naruto` entry
+  // — otherwise applySkin() overrides this with the spriteScale:1 fallback (he was
+  // rendering at native size = "too small"). anchorY -4 = -(2px source bottom-gap
+  // ×2.0) plants the feet exactly on the floor at this scale.
+  spriteScale: 2.0,
+  animationData: {
+    // ── movement / state ──
+    idle:      { frames: 4,  width: 36, height: 63, speed: 6, anchorY: -4, sheet: "./naruto_kcm_stance.png" },
+    // move.png has a stray sliver at rows 55–63 (leftover under frame 0); real sprite
+    // is rows 2–51. height 54 crops to feet(51)+2px, excluding the bleed. (was 66)
+    walk:      { frames: 6,  width: 48, height: 54, speed: 5, anchorY: -4, sheet: "./naruto_kcm_move.png" },
+    run:       { frames: 6,  width: 48, height: 54, speed: 4, anchorY: -4, sheet: "./naruto_kcm_move.png" },   // no dash/run strip → reuse move (faster)
+    dash:      { frames: 6,  width: 48, height: 54, speed: 4, anchorY: -4, sheet: "./naruto_kcm_move.png" },   // no dash strip → reuse move
+    jump:      { frames: 4,  width: 49, height: 69, speed: 6, anchorY: -4, sourceX: 0,   sheet: "./naruto_kcm_jump.png" },  // first half = rise (ASSUMED split of the 8-frame arc)
+    fall:      { frames: 4,  width: 49, height: 69, speed: 6, anchorY: -4, sourceX: 196, sheet: "./naruto_kcm_jump.png" },  // second half = descend
+    guard:     { frames: 4,  width: 41, height: 59, speed: 6, anchorY: -4, sheet: "./naruto_kcm_guard.png" },  // shown via sprite.js isBlocking→"guard" hook
+    hurt:      { frames: 4,  width: 46, height: 55, speed: 6, anchorY: -4, sheet: "./naruto_kcm_taking_damage.png" },       // flinch (hitstun)
+    knockdown: { frames: 6,  width: 63, height: 49, speed: 6, anchorY: -4, sheet: "./naruto_kcm_knocked_out_a.png" },       // shown via sprite.js knockdown→"knockdown" hook
+    // INTRO/entrance — sprite.js returns "transform" while fighter._introPlaying
+    // (game.js sets it for the ~90-frame INTRO state, cleared at fight start).
+    // Round-start victory flourish from the win strip (replaced the old
+    // ultimate_action chakra-flare intro, which read poorly — ultimate_action.png
+    // is now unused). naruto_kcm_win.png is 133×80 with "REPEAT" text label bands at
+    // rows 2–21; the 3 figure frames occupy rows 25–78 (~44px pitch) → sourceY 24
+    // skips the labels, height 56 = feet+2px gap, loop:true cycles it through intro.
+    transform: { frames: 3, width: 44, height: 56, speed: 6, anchorY: -4, sourceY: 24, loop: true, sheet: "./naruto_kcm_win.png" },
+    // ── basic attacks — B-attack set sliced from naruto_kcm_sheet.png (Phase 2).
+    // These new strips are content-tight crops (feet at the very bottom row → no
+    // bottom gap), so anchorY 0 plants them; heavy keeps the Phase-1 y_attack strip
+    // (which has a ~2px gap → anchorY -4). Frame counts = gutter-detected blob counts.
+    light:     { frames: 4,  width: 52, height: 53, speed: 4, anchorY: 0,  sheet: "./naruto_kcm_b_attack.png" },        // B ATTACK (jab)
+    // y_attack.png real sprite is rows 14–89; stray sliver at rows 2–10 (TOP). sourceY
+    // 12 skips it, height 80 keeps the bottom crop at row 91 so feet stay planted. (was sourceY 0, height 92)
+    heavy:     { frames: 7,  width: 51, height: 80, speed: 4, anchorY: -4, sourceY: 12, sheet: "./naruto_kcm_y_attack.png" },        // Y ATTACK (heavy)
+    up:        { frames: 7,  width: 51, height: 53, speed: 4, anchorY: 0,  sheet: "./naruto_kcm_b_up_attack.png" },     // B+UP (launcher)
+    air:       { frames: 7,  width: 55, height: 60, speed: 3, anchorY: 0,  sheet: "./naruto_kcm_b_jump_attack.png" },   // B+JUMP (aerial)
+    down_air:  { frames: 3,  width: 39, height: 52, speed: 4, anchorY: 0,  sheet: "./naruto_kcm_b_down_attack.png" },   // B+DOWN
+    grab:      { frames: 4,  width: 52, height: 53, speed: 4, anchorY: 0,  sheet: "./naruto_kcm_b_attack.png" },        // reuse B ATTACK
+    // naruto_kcm_b_forward_attack.png (5f, 58x47) + naruto_kcm_fx_b_down_fist.png sliced
+    // & saved, but the engine has no forward-normal slot → reserved for later use.
+    // ── SPECIAL CAST bodies — play on the CASTER while the projectile flies
+    //    (abilities.executeNarutoSpecial sets _spriteCastMove; sprite.js _resolveAction
+    //    plays the matching action; MOVE_TO_ACTION passes these keys through unchanged).
+    rasengan_cast:      { frames: 11, width: 52, height: 55, speed: 3, anchorY: 0, sheet: "./naruto_kcm_4_koma_body.png" }, // 4 KOMA A
+    rasenshuriken_cast: { frames: 12, width: 51, height: 56, speed: 3, anchorY: 0, sheet: "./naruto_kcm_6_koma_body.png" }  // 6 KOMA A
+  }
+  // ── Phase 2 (specials, NOT wired yet — awaiting floor-check): rasengan / shadow-
+  //    CloneBlast → body strip + fx_* effect; ultimate → naruto_kcm_ultimate_action.
+  //    Reserved for Avatar/Tailed-Beast form (leave unwired): none of the fx_fox /
+  //    fx_tbb / fx_kurama files exist on disk yet.
 }
 
 // ─────────────────────────────────────────────────────────────────

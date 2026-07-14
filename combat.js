@@ -72,12 +72,15 @@ function _dur(base, fighter) {
 
 function _getMD(fighter, key) {
   const b = fighter?.basic_attacks || {}
+  // Accepts both the canonical schema (characters.js: light/heavy/upAttack/…)
+  // and the legacy `*_attack` naming used by data-driven roster entries, so no
+  // data source can silently whiff an attack by using the wrong key spelling.
   switch (key) {
-    case "light": return b.light || null
-    case "heavy": return b.heavy || null
-    case "up": return b.upAttack || b.up || null
-    case "air": return b.airAttack || b.air || null
-    case "down_air": return b.downAir || b.down_air || null
+    case "light": return b.light || b.light_attack || null
+    case "heavy": return b.heavy || b.heavy_attack || null
+    case "up": return b.upAttack || b.up || b.up_attack || null
+    case "air": return b.airAttack || b.air || b.air_attack || null
+    case "down_air": return b.downAir || b.down_air || b.downAir_attack || null
     case "grab": return b.grab || { damage: 30, hitstun: 18, throwForceX: 5, throwForceY: -4 }
     default: return b[key] || fighter?.specials?.[key] || { damage: 40, hitstun: 20 }
   }

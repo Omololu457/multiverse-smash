@@ -65,6 +65,9 @@ import {
   drawDomainBackground, getDomainHUDData
 } from "./domains.js"
 import { activeEffects, addEffect, updateEffects, updateEnergyRegen, clearEffects } from "./effects.js"
+import {
+  updateKuramaUltimate, isKuramaCinematicActive, drawKuramaCinematic, clearKuramaUltimate
+} from "./kurama.js"
 import { sound, SFX, MUSIC } from "./sound.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
@@ -678,6 +681,7 @@ function resetRound() {
   clearAllBindingVows()    // activeVows — drop stale fighter refs (fighters are recreated below)
   vowCue.timer = 0
   clearDomains()
+  clearKuramaUltimate()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
 
@@ -839,6 +843,7 @@ function resetToStart() {
   matchIntroTimer = 0
   roundTimer      = ROUND_TIME
   clearDomains()
+  clearKuramaUltimate()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
@@ -973,6 +978,7 @@ function _doRematch() {
   clearAllBindingVows()
   for (const f of [p1, p2]) if (f) f._pendingSpawn = null   // reused objects → clear sprite deferred-spawn
   clearDomains()
+  clearKuramaUltimate()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
   hitSparks.length = 0
@@ -1009,6 +1015,8 @@ function applyAIInputToKeys(fighter, aiInput) {
   if (aiInput.downAir) { keys[c.down] = true; keys[c.light] = true }       // air S+J
   if (aiInput.special1 || aiInput.special2) keys[c.special] = true
   if (aiInput.ultimate)                     keys[c.ultimate]= true
+  if (aiInput.grab)                         keys[c.grab]    = true         // AI throws vs turtles
+  if (aiInput.toggle)                       keys[c.charge]  = true         // AI Infinity tap (ai.js pulses 1 frame)
 }
 
 function updateCPUInput() {
@@ -1546,6 +1554,15 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // KURAMA ULTIMATE CINEMATIC: same freeze contract as the domain zoom beat —
+  // the Tailed Beast Bomb sequence drives the camera + deals its guaranteed hit
+  // while combat/physics are paused, then combat resumes when it ends.
+  if (isKuramaCinematicActive()) {
+    updateKuramaUltimate({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // BINDING VOWS: match each player's recent RAW directional sequence (own
   // character's vows only). AI fighters have no directionHistory → never match.
   if (vowCue.timer > 0) vowCue.timer--
@@ -2012,6 +2029,7 @@ function drawBattle() {
   _drawDomainHUDBar()
   _drawKOFlash()
   _drawVowCue()
+  drawKuramaCinematic(ctx, canvas)   // fullscreen Tailed Beast Bomb overlay, on top of all
 }
 
 // "BINDING VOW ACTIVATED" overlay — a brief white flash + chained vow name.

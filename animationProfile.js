@@ -50,6 +50,9 @@ export function getAction(charKey, actionKey, skinAnim = null) {
     lockLastFrame:a.lockLastFrame,
     anchorX: a.anchorX || 0,
     anchorY: a.anchorY || 0,
+    // Atlas source origin into a shared sheet (default 0/0 = legacy top-left).
+    sourceX: a.sourceX || 0,
+    sourceY: a.sourceY || 0,
     spriteScale: c.spriteScale,   // also surfaced via fighter.spriteScale in draw()
   };
 }

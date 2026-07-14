@@ -77,6 +77,27 @@ export const SPRITE_MANIFEST = {
   },
   toji: {
     actions: { idle: "./toji_row03_sheet.png" }
+  },
+
+  // Base Goku (Dragon Ball). Sliced from goku_base_FULLSHEET_transparent.png.
+  // This entry only GATES spritesReady() (decodes idle → flips Goku from box to
+  // sprite); per-action rendering reads the `sheet` paths from characters.js →
+  // goku.animationData. Files follow the ./goku_<action>_sheet.png convention.
+  // BASE only — kept separate from the goku_ssj_god_* set.
+  goku: {
+    // ATLAS: one shared sheet; per-action source rects (sourceX/sourceY/width/height)
+    // live in characters.js → goku.animationData. This entry only gates spritesReady()
+    // by decoding the shared sheet once.
+    actions: { idle: "./goku_base_FULLSHEET_transparent.png" }
+  },
+
+  // KCM Naruto (universe: naruto — his own universe, NOT the GojoV1 JJK beta).
+  // Sliced JUS strips, one PNG per action; per-action rendering reads the `sheet`
+  // paths from characters.js → naruto.animationData. This entry ONLY gates
+  // spritesReady() by decoding the stance (idle) strip → flips Naruto from box to
+  // sprite. Non-convention filenames → object form.
+  naruto: {
+    actions: { idle: "./naruto_kcm_stance.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

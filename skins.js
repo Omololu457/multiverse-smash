@@ -132,6 +132,13 @@ export const SKINS = {
   // character. No alt skins yet. (Naruto universe → not a JJK-beta skin.)
   naruto: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naruto?.portrait, spriteScale: characters.naruto?.spriteScale, animationData: null }
+  ],
+
+  // Sasuke (Naruto universe). Same reason as Naruto/Goku: WITHOUT a default skin, applySkin()
+  // pulls the getSkins() spriteScale:1 fallback and he renders at native ~57px (half size). This
+  // entry sources his real spriteScale from the character. Phase 1: no alt skins yet.
+  sasuke: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke?.portrait, spriteScale: characters.sasuke?.spriteScale, animationData: null }
   ]
 }
 

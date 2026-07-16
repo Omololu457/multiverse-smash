@@ -103,6 +103,69 @@ export const AI_DIFFICULTIES = {
   }
 }
 
+// ── PASSIVITY FLOOR ──────────────────────────────────────────────
+// Deterministic anti-turtle. If the OPPONENT does nothing meaningful — no attack,
+// grounded (not airborne), velocity ~0 — for a sustained streak of frames, the AI is
+// FORCED to close distance and attack: no chance()/aggression/attackChance roll. The
+// TRIGGER is identical for every combat tier (easy/adaptive/impossible) — same frame
+// threshold, same guarantee; only the opener's QUALITY scales by tier once it fires
+// (single light poke vs a real string, see PASSIVITY_STRING_MIN). Retune here.
+const PASSIVITY_FLOOR_FRAMES  = 60    // consecutive idle frames before the floor engages (~1s @ 60fps)
+const PASSIVITY_MOVE_VELOCITY = 1.0   // |vx| at/above this = a real move (walk), not friction residue → resets the streak
+const PASSIVITY_STRIKE_RANGE  = 100   // within this horizontal gap the floor presses the attack; beyond it, it approaches
+const PASSIVITY_STRING_MIN    = 0.5   // tiers with stringChance >= this open with a forced STRING; below → a single light
+
+// ── SIGNATURE MOVES (Gojo only, for now) ─────────────────────────
+// After decideSignatureMove commits to a plan, block it from re-triggering for this many
+// frames so signatures don't fire back-to-back (reads as skillful, not janky/spammy).
+const SIGNATURE_COOLDOWN_FRAMES = 90   // ~1.5s @ 60fps
+
+// ── SIGNATURE MOTION ENABLER (generic, all characters) ───────────
+// The move-recognition system (abilities.executeXSpecial → getRelativeDirections +
+// endsWithPattern) picks WHICH special fires from the fighter's directionHistory. AI fighters
+// never populate that history (game.js feeds it only from real p1 keydowns), so an AI special
+// press always falls through to the NEUTRAL variant. This table maps a chosen _sigTarget to the
+// exact RELATIVE motion (F/B/U/D — the same frame getRelativeDirections resolves to) that the
+// move requires; applySignatureMotion() writes it into directionHistory the frame the special is
+// pressed, so the game reads it as if a human input the motion. Empty [] = the NEUTRAL special
+// (no directional prefix). GENERIC: add a target here for any future character; no per-character
+// branching in the enabler itself. Motions verified against abilities.js executeXSpecial:
+//   Gojo   — blue [] (neutral) | red F | hollowPurple D,B
+//   Sukuna — cleave [] (neutral) | dismantle D,B | flameArrow F
+//   Naruto — rasengan [] (neutral) | shadowClone D,F | chakraArm F,F   (forward-compat; layer TBD)
+const SIGNATURE_MOTIONS = {
+  blue: [],        red: ["F"],       hollowPurple: ["D", "B"],
+  cleave: [],      dismantle: ["D", "B"], flameArrow: ["F"],
+  rasengan: [],    shadowClone: ["D", "F"], chakraArm: ["F", "F"],
+  ultimate: []     // fires on the dedicated ultimate key — no motion needed
+}
+const SIGNATURE_MOTION_FRAME_MS = 1000 / 60   // ~16.7ms — one frame of spacing between synthesized inputs
+
+// Convert a RELATIVE direction (F/B/U/D) to the RAW key direction (L/R/U/D) that directionHistory
+// stores, honoring the fighter's current facing — the exact inverse of getRelativeDirections.
+function relToRaw(rel, facing) {
+  if (rel === "U" || rel === "D") return rel
+  if (rel === "F") return (facing || 1) >= 0 ? "R" : "L"
+  return (facing || 1) >= 0 ? "L" : "R"   // "B"
+}
+
+// Write the motion for `target` into the AI fighter's directionHistory. Clears first (the AI's
+// history is owned solely by this enabler — game.js only feeds real p1 input) so ONLY the intended
+// motion is present, then stamps each entry ONE FRAME apart within the 700ms command window (newest
+// last), so it reads as a real multi-frame motion in the correct order — not a same-instant dump.
+function applySignatureMotion(fighter, target) {
+  if (!fighter) return
+  if (!Array.isArray(fighter.directionHistory)) fighter.directionHistory = []
+  const seq = SIGNATURE_MOTIONS[target] || []
+  fighter.directionHistory.length = 0            // neutral ([]) → empty history → the neutral special fires
+  const now = (typeof performance !== "undefined" ? performance.now() : 0)
+  const facing = fighter.facing || 1
+  for (let i = 0; i < seq.length; i++) {
+    const age = (seq.length - 1 - i) * SIGNATURE_MOTION_FRAME_MS   // oldest first; newest entry has age 0
+    fighter.directionHistory.push({ dir: relToRaw(seq[i], facing), time: now - age })
+  }
+}
+
 function rand() {
   return Math.random()
 }
@@ -342,6 +405,23 @@ function recordOpponentPattern(controller, opponent) {
   }
 }
 
+// PASSIVITY FLOOR — rolling streak of consecutive frames the OPPONENT has done nothing.
+// Increments while they're idle; RESETS to 0 the instant they do anything meaningful:
+// attack, leave the ground (jump), or move with real velocity. (A directional tap always
+// shows up as velocity, so "no direction change" is covered by the velocity test — and we
+// deliberately do NOT key off `facing`, which the engine auto-flips based on our own
+// position and would false-reset as the AI crosses over.) Runs every frame, independent
+// of the AI's own busy state, so the count reflects the opponent alone.
+function updatePassivityStreak(controller, opponent) {
+  if (!controller || !opponent) return
+  const m = controller.memory
+  const attacking = !!(opponent.attacking || opponent.currentMove)
+  const airborne  = isAirborne(opponent)
+  const moving     = Math.abs(opponent.vx || 0) >= PASSIVITY_MOVE_VELOCITY
+  const meaningful = attacking || airborne || moving
+  m.passiveStreak = meaningful ? 0 : (m.passiveStreak || 0) + 1
+}
+
 function getRepeatedAction(controller) {
   if (!controller) return null
 
@@ -413,6 +493,11 @@ export function createAIController(difficulty = "easy") {
       zoningBias: 0,
       aggressionBias: 0,
       stringQueue: [],          // queued attack-string actions (chained pokes)
+      passiveStreak: 0,         // PASSIVITY FLOOR: consecutive idle-opponent frames
+      _passivityForce: false,   // PASSIVITY FLOOR: floor engaged AND in strike range → guarantee the hit
+      _sigCooldown: 0,          // SIGNATURE: frames until a signature move can fire again
+      _sigTarget: null,         // SIGNATURE: chosen move id → drives motion synthesis (SIGNATURE_MOTIONS)
+      _sigActive: false,        // SIGNATURE: current plan came from a signature layer this decision (gates motion synth)
       _arsenalKey: null,
       _arsenal: null
     }
@@ -435,6 +520,11 @@ export function resetAIController(controller) {
     zoningBias: 0,
     aggressionBias: 0,
     stringQueue: [],
+    passiveStreak: 0,           // PASSIVITY FLOOR: consecutive idle-opponent frames
+    _passivityForce: false,     // PASSIVITY FLOOR: floor engaged AND in strike range → guarantee the hit
+    _sigCooldown: 0,            // SIGNATURE: frames until a signature move can fire again
+    _sigTarget: null,           // SIGNATURE: chosen move id → drives motion synthesis (SIGNATURE_MOTIONS)
+    _sigActive: false,          // SIGNATURE: current plan came from a signature layer this decision (gates motion synth)
     _arsenalKey: null,
     _arsenal: null
   }
@@ -502,7 +592,147 @@ function chooseAdaptiveRange(controller, baseRange, counter) {
   return baseRange + (counter?.rangeAdj || 0)
 }
 
+// ─────────────────────────────────────────────────────────────────
+// SIGNATURE-MOVE DECISION LAYER  (GOJO ONLY)
+// ─────────────────────────────────────────────────────────────────
+// Called from choosePlan ONLY when fighter.rosterKey === "gojo" (never invoked for anyone
+// else → zero behavior change for other characters). Returns a plan string that OVERRIDES
+// the normal plan for this decision, or null to fall through to the normal logic unchanged.
+//
+// GATE: one chance(situationalIQ) roll up front — fail → null immediately (so Dummy/Easy
+// rarely engage this layer, Impossible engages often). If it passes, a prioritized checklist
+// runs (first match wins), each branch ALSO rolling its own IQ-scaled probability.
+//
+// USES EXISTING SIGNALS (design note): energy via the shared getEnergy/getMaxEnergy helpers
+// (same ones decideSituational/choosePlan use), distance via getHorizontalDistance, the
+// per-character costs straight off fighter.specials (single source = characters.js). The
+// scoped branches are range/energy/combo-driven, so they don't need the getCounterBias
+// zoning/repeated read — but controller.memory._counter is there if a future branch wants it.
+function decideSignatureMove(controller, fighter, opponent) {
+  if ((controller.memory._sigCooldown || 0) > 0) return null   // COOLDOWN: no back-to-back signatures
+  const profile = controller.profile
+  const iq = profile.situationalIQ || 0
+  if (iq <= 0) return null
+
+  // TOP-LEVEL GATE — one roll. Fail → normal plan logic runs exactly as it does today.
+  if (!chance(iq)) return null
+
+  const arsenal   = analyzeArsenal(controller, fighter)
+  const distanceX = getHorizontalDistance(fighter, opponent)
+  const energy    = getEnergy(fighter)
+  const maxEnergy = getMaxEnergy(fighter)
+  const sp        = fighter.specials || {}
+  const blueCost   = sp.blue?.cost         ?? 30
+  const redCost    = sp.red?.cost          ?? 40
+  const purpleCost = sp.hollowPurple?.cost ?? 70
+  // "A domain is up": Gojo's own ult active, or either fighter trapped/frozen by a domain.
+  // (decideSignatureMove's fixed signature has no `world`, so this reads per-fighter flags —
+  // a proxy for the activeDomains array the AI isn't handed; flagged in the task report.)
+  const domainActive = !!(fighter.isUltimateActive || fighter.domainFrozen || opponent.domainFrozen)
+  // "mid-combo-on-Gojo": Gojo is in hitstun, or the opponent has a live combo counter running
+  // (i.e. they're comboing us) — so we don't throw a slow special straight into a punish.
+  const beingComboed = (fighter.hitstun || 0) > 0 || (opponent.comboCounter || 0) > 0
+
+  // (a) DOMAIN ULTIMATE — energy maxed AND no domain currently active. Deliberately RARE
+  //     even at high IQ (iq*0.3) since it's a huge commitment. Returns "ultimate", reusing
+  //     the existing downstream ultimate/domain path (chooseAttackAction presses it).
+  if (energy >= maxEnergy && !domainActive && chance(iq * 0.3)) {
+    controller.memory._sigTarget = "ultimate"
+    return "ultimate"
+  }
+
+  // (b) BLINK — opponent mid-attack & close (<150) OR lots of open space (>300); roll iq*0.5.
+  //     SKIPPED (no roll consumed): Gojo HAS a blink — Up+Special = teleport, plus the
+  //     double-tap `dashTeleport` movement — but NEITHER is reachable by the AI input model
+  //     (the AI has no directionHistory and can't emit a timed double-tap), so there is no
+  //     AI-usable blink to hook into today. Documented so the future input-pipeline task can
+  //     wire it; for now we fall straight through to the special checklist. (See task report.)
+
+  // (c) HOLLOW PURPLE — mid/far (150–300), enough meter, and NOT being comboed on. Roll iq*0.6.
+  if (distanceX >= 150 && distanceX <= 300 && energy >= purpleCost && !beingComboed && chance(iq * 0.6)) {
+    controller.memory._sigTarget = "hollowPurple"
+    return "special"
+  }
+
+  // (d) RED — close-to-medium (<200) and enough meter for Red. Roll iq*0.5.
+  if (distanceX < 200 && energy >= redCost && chance(iq * 0.5)) {
+    controller.memory._sigTarget = "red"
+    return "special"
+  }
+
+  // (e) BLUE (default) — any workable range with at least some meter. Roll iq*0.4.
+  if (distanceX <= 380 && energy >= blueCost && chance(iq * 0.4)) {
+    controller.memory._sigTarget = "blue"
+    return "special"
+  }
+
+  // (f) nothing matched → fall through to normal logic.
+  return null
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SIGNATURE-MOVE DECISION LAYER  (SUKUNA ONLY)
+// ─────────────────────────────────────────────────────────────────
+// Parallel to Gojo's decideSignatureMove — SAME architecture (cooldown → IQ gate →
+// prioritized IQ-scaled menu, first match wins), SAME shared _sigCooldown constant.
+// Called from choosePlan ONLY when fighter.rosterKey === "sukuna". Gojo's function above is
+// left 100% untouched. Returns a plan string to override the plan, or null to fall through.
+function decideSukunaSignatureMove(controller, fighter, opponent) {
+  if ((controller.memory._sigCooldown || 0) > 0) return null   // shared COOLDOWN (same as Gojo)
+  const profile = controller.profile
+  const iq = profile.situationalIQ || 0
+  if (iq <= 0) return null
+
+  // TOP-LEVEL GATE — one roll (mirror of Gojo). Fail → normal plan logic runs unchanged.
+  if (!chance(iq)) return null
+
+  const distanceX = getHorizontalDistance(fighter, opponent)
+  const energy    = getEnergy(fighter)
+  const maxEnergy = getMaxEnergy(fighter)
+  const sp        = fighter.specials || {}
+  const cleaveCost    = sp.cleave?.cost    ?? 40
+  const dismantleCost = sp.dismantle?.cost ?? 35
+  const flameCost     = 35   // Flame Arrow (Fuga) isn't in specials{}; executeSukunaSpecial spends 35 inline
+  const domainActive  = !!(fighter.isUltimateActive || fighter.domainFrozen || opponent.domainFrozen)
+  // REUSE getCounterBias's repeated-action detection via the already-computed counter (refreshed
+  // in updateAIController) — do NOT recompute it. "closeIn"/repeated "projectile" == opponent zoning.
+  const counter   = controller.memory._counter || {}
+  const oppZoning = (counter.closeIn || 0) > 0 || counter.repeated === "projectile"
+
+  // (a) DOMAIN ULTIMATE (Malevolent Shrine) — energy maxed AND no domain up. Rare (iq*0.3),
+  //     same weighting as Gojo. Returns "ultimate", reusing the existing domain path.
+  if (energy >= maxEnergy && !domainActive && chance(iq * 0.3)) {
+    controller.memory._sigTarget = "ultimate"
+    return "ultimate"
+  }
+
+  // (b) CLOSE-DISTANCE DASH (Malevolent Dash) — condition: opponent far (>300) OR reading as
+  //     zoning (oppZoning); would roll iq*0.5. SKIPPED (no roll consumed): executeSukunaMalevolentDash
+  //     EXISTS, but it's a double-tap-toward teleport-strike wired ONLY for p1
+  //     (detectDoubleTapDashTeleport(p1,…)) and needs keydown timing the AI can't emit — so, exactly
+  //     like Gojo's blink last time, there is NO AI-reachable dash to hook into. Documented; we fall
+  //     straight through to the special checklist. (oppZoning shown to prove the signal is wired.)
+  void oppZoning
+
+  // (c) MID-LONG RANGE SPECIAL — Dismantle (nearer) vs Flame Arrow / Fuga (farther) by spacing.
+  //     Band 150–340; midpoint ~245 splits closer→Dismantle, farther→Flame Arrow. Roll iq*0.5.
+  if (distanceX >= 150 && distanceX <= 340 && energy >= Math.min(dismantleCost, flameCost) && chance(iq * 0.5)) {
+    controller.memory._sigTarget = (distanceX <= 245) ? "dismantle" : "flameArrow"
+    return "special"
+  }
+
+  // (d) CLEAVE (default melee) — close range, enough meter for Cleave. Roll iq*0.4.
+  if (distanceX < 200 && energy >= cleaveCost && chance(iq * 0.4)) {
+    controller.memory._sigTarget = "cleave"
+    return "special"
+  }
+
+  // (e) nothing matched → fall through to normal logic.
+  return null
+}
+
 function choosePlan(controller, fighter, opponent, world = {}) {
+  controller.memory._sigActive = false   // reset each decision; a signature layer below sets it true if it fires
   const profile = controller.profile
   const arsenal = analyzeArsenal(controller, fighter)
   const counter = getCounterBias(controller)
@@ -519,6 +749,29 @@ function choosePlan(controller, fighter, opponent, world = {}) {
   // Signature/situational tools get first refusal (data-driven per character).
   if (decideSituational(controller, fighter, opponent, arsenal)) {
     return controller.currentPlan   // "ultimate"
+  }
+
+  // GOJO-ONLY signature-move layer — a NEW step between the situational-tool refusal and the
+  // normal plan logic. Invoked ONLY for Gojo (never even called for anyone else). On a hit it
+  // arms the signature cooldown and overrides the plan; on null, normal logic runs unchanged.
+  if (fighter.rosterKey === "gojo") {
+    const sigPlan = decideSignatureMove(controller, fighter, opponent)
+    if (sigPlan) {
+      controller.memory._sigCooldown = SIGNATURE_COOLDOWN_FRAMES
+      controller.memory._sigActive   = true   // gates motion synthesis for this signature cast
+      return sigPlan
+    }
+  }
+
+  // SUKUNA-ONLY signature-move layer — same shape/step as Gojo's above, separate function so
+  // Gojo's checklist is untouched. Invoked ONLY for Sukuna; shares the same _sigCooldown constant.
+  if (fighter.rosterKey === "sukuna") {
+    const sigPlan = decideSukunaSignatureMove(controller, fighter, opponent)
+    if (sigPlan) {
+      controller.memory._sigCooldown = SIGNATURE_COOLDOWN_FRAMES
+      controller.memory._sigActive   = true
+      return sigPlan
+    }
   }
 
   // Counter bias shifts the spacing the AI wants to keep.
@@ -702,6 +955,23 @@ function chooseAttackAction(controller, fighter, opponent, input) {
   const energyRatio = getMaxEnergy(fighter) > 0 ? getEnergy(fighter) / getMaxEnergy(fighter) : 0
   const closeRange = distanceX < 96
 
+  // ── PASSIVITY FLOOR — guaranteed opener ──────────────────────────
+  // Set by the override in updateAIController only when the idle streak has crossed the
+  // threshold AND we're in strike range. Fires with NO chance() gate. Quality scales by
+  // tier: string-capable tiers (stringChance >= PASSIVITY_STRING_MIN) force a REAL string
+  // via the existing startString/advanceString path; lower tiers throw a single light.
+  // Continues an in-progress string first so a fresh string isn't re-queued mid-combo.
+  if (controller.memory._passivityForce && !fighterAir) {
+    const energyOk = energyRatio > 0.14
+    if (advanceString(controller, input, closeRange || distanceX < 120, energyOk)) return
+    if ((profile.stringChance || 0) >= PASSIVITY_STRING_MIN && (profile.maxStringLen || 0) > 0) {
+      startString(controller, energyOk)
+      if (advanceString(controller, input, true, energyOk)) return
+    }
+    press(input, "lightAttack")
+    return
+  }
+
   if (controller.currentPlan === "ultimate" && getEnergy(fighter) >= (arsenal.ultCost || 0)) {
     press(input, "ultimate")
     return
@@ -844,6 +1114,7 @@ export function updateAIController(controller, fighter, opponent, world = {}) {
 
   controller.frameCounter += 1
   recordOpponentPattern(controller, opponent)
+  updatePassivityStreak(controller, opponent)   // PASSIVITY FLOOR: track opponent idleness every frame
   applyFacing(fighter, opponent)
 
   if (isBusy(fighter)) {
@@ -852,6 +1123,7 @@ export function updateAIController(controller, fighter, opponent, world = {}) {
   }
 
   controller.decisionCooldown -= 1
+  if ((controller.memory._sigCooldown || 0) > 0) controller.memory._sigCooldown -= 1   // Gojo signature-move cooldown
 
   if (controller.decisionCooldown <= 0) {
     controller.memory._counter = getCounterBias(controller)   // refresh counter read
@@ -864,10 +1136,35 @@ export function updateAIController(controller, fighter, opponent, world = {}) {
     return input
   }
 
+  // ── PASSIVITY FLOOR ──────────────────────────────────────────────
+  // Deterministic override: once the opponent has been idle for the threshold streak,
+  // FORCE the plan every frame — approach until in strike range, then attack — replacing
+  // whatever probabilistic plan choosePlan produced. The trigger is identical for every
+  // tier (only `passiveStreak` and the fixed threshold gate it); tier only affects the
+  // opener's quality in chooseAttackAction via `_passivityForce`. The "dummy" training
+  // target already returned above, so it is never dragged into this.
+  if ((controller.memory.passiveStreak || 0) >= PASSIVITY_FLOOR_FRAMES) {
+    const distanceX     = getHorizontalDistance(fighter, opponent)
+    const inStrikeRange = distanceX <= PASSIVITY_STRIKE_RANGE && !isAirborne(fighter)
+    controller.currentPlan       = inStrikeRange ? "attack" : "approach"
+    controller.memory._passivityForce = inStrikeRange
+  } else {
+    controller.memory._passivityForce = false
+  }
+
   applyMovementPlan(input, controller.currentPlan, fighter, opponent, controller.profile)
   maybeJump(controller, fighter, opponent, input)
   chooseAttackAction(controller, fighter, opponent, input)
   maybeToggleInfinity(controller, fighter, input)
+
+  // SIGNATURE MOTION ENABLER — if this frame's action is a signature-driven special press,
+  // synthesize the target move's motion into directionHistory BEFORE the input is handed back
+  // (game.js applies the keys, then combat reads directionHistory this same frame), so the game
+  // casts the SPECIFIC special (Hollow Purple/Red/Dismantle/…) rather than the neutral fallback.
+  // Only fires for a signature special press (_sigActive) — normal special presses are untouched.
+  if (controller.memory._sigActive && (input.special1 || input.special2)) {
+    applySignatureMotion(fighter, controller.memory._sigTarget)
+  }
 
   controller.lastInput = input
   return input

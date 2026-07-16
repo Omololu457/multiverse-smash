@@ -615,6 +615,50 @@ const naruto = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SASUKE — PHASE 1: idle + selectability ONLY (no attacks/specials/ultimate yet).
+// Sprite gate: hasSprites needs a working idle before anything else renders.
+// ─────────────────────────────────────────────────────────────────
+const sasuke = {
+  rosterKey: "sasuke", name: "Sasuke", universe: "naruto",
+  portrait: "./sasuke_pfp.png",
+  archetypes: ["melee"],
+  primary: "melee", secondary: [],
+  // Placeholder base stats — templated off Naruto (fellow chakra/taijutsu ninja); tune later.
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  stats: { maxHealth: 1180, maxEnergy: 190, attack: 89, defense: 84, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 15, dashDuration: 12, dashCooldownMax: 45 },
+  // PHASE 2 = basic movement + attacks. Placeholder taijutsu values between Naruto & Toji
+  // (combat.js _getMD reads THIS `basic_attacks` — moveset.js has no naruto/toji/sasuke entry).
+  // Specials/ultimate still deliberately ABSENT (Phase 3). light=forward-kick combo,
+  // heavy=dash sword-slash (has a baked slash trail → reads as the stronger hit), downAir=down/spike.
+  basic_attacks: {
+    light:  { damage: 46, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:  { damage: 92, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1 },
+    downAir:{ damage: 78, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 }
+  },
+  hasSprites: true,
+  // saske_stance_2.png (existing filename typo — referenced AS-IS, not "fixed"): MEASURED 112×57,
+  // 4 frames → 28×57 cells; vertical content rows 0–55 → ~2px transparent bottom gap. spriteScale
+  // 2.1 lands the ~55px content at ~115px on-screen ≈ Naruto/Sukuna height. anchorY -4 = -(2px gap
+  // ×~2.1) plants the feet on the floor. REQUIRES the skins.js `sasuke` entry (else applySkin()
+  // pulls the spriteScale:1 fallback → native size) + the spritesheets.js SPRITE_MANIFEST idle gate.
+  spriteScale: 2.1,
+  // ── PHASE 2 sprites. Frame counts + cell widths MEASURED via alpha-gutter detection
+  // (stripWidth / frames = pitch); height = full sheet height (frames slice horizontally
+  // only). anchorY = -(bottom transparent gap × spriteScale 2.1), plants feet on the floor
+  // (verified per sheet against the content-bottom row). Attack sprite `speed` ≈ move
+  // duration / frames so the swing reads across the move. Missing actions (walk/run/up/air)
+  // fall back to idle gracefully. hurt/dash/light/heavy/down_air are Phase 2; specials later.
+  animationData: {
+    idle:     { frames: 4, width: 28, height: 57, speed: 6, anchorY: -4,  sheet: "./saske_stance_2.png" },
+    dash:     { frames: 2, width: 66, height: 49, speed: 5, anchorY: -13, sheet: "./sasuke_dash.png" },            // 131×49 → 2×(66×49), 6px bottom gap
+    hurt:     { frames: 4, width: 53, height: 57, speed: 6, anchorY: -6,  sheet: "./sasuke_damage.png" },          // 211×57 → 4×(53×57), 3px bottom gap
+    light:    { frames: 9, width: 68, height: 71, speed: 2, anchorY: -36, sheet: "./sasuke_foward_attack.png" },   // 611×71 → 9×(68×71), 17px bottom gap (feet high in cell)
+    heavy:    { frames: 7, width: 71, height: 58, speed: 4, anchorY: -4,  sheet: "./sasuke_dash_attack.png" },     // 496×58 → 7×(71×58), sword slash + trail
+    down_air: { frames: 6, width: 50, height: 62, speed: 4, anchorY: -6,  sheet: "./sasuke_down_attack.png" }      // 298×62 → 6×(50×62)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // DEMON SLAYER
 // ─────────────────────────────────────────────────────────────────
 const tanjiro = {
@@ -1364,7 +1408,7 @@ const biscuit = {
 export const characters = {
   goku, vegeta, piccolo, frieza, cell,
   gojo, megumi, sukuna, omololu, toji, mahoraga,
-  naruto,
+  naruto, sasuke,
   tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,
   rick, morty, evilMorty, rickPrime,
   ben10, albedo,

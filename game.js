@@ -1106,6 +1106,19 @@ function resetRound() {
   if (p1 && p2 && typeof camera.update === "function") camera.update(p1, p2, canvas)
 }
 
+// ── PRE-MATCH INTRO SELECTION ─────────────────────────────────────────────────
+// Generic "pick one of N intros at random" for the pre-round entrance. A character
+// can declare `introPool: ["actionA", "actionB", ...]` in characters.js (animationData
+// action names); this returns one at random each match so intros vary across rounds.
+// Not gated to any count — add a 4th pool entry and it joins the rotation automatically.
+// No pool → returns null, and sprite.js falls back to the shared "transform" intro slot,
+// so every existing character's behaviour is unchanged.
+function pickIntroVariant(fighter) {
+  const pool = fighter && fighter.introPool
+  if (!Array.isArray(pool) || pool.length === 0) return null
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
 // ── PRE-MATCH CHARACTER ANNOUNCEMENT ──────────────────────────────────────────
 // Runs inside the existing round-1 INTRO phase (so it's first-round-only, matching
 // the intro convention): zoom on P1 then P2, playing each side's name-call clip if
@@ -1186,8 +1199,11 @@ function startMatch() {
   gameState       = GAME_STATES.INTRO
   // BUG_9: play the intro/transform strip during the intro window (cleared when
   // BATTLE starts). Harmless for non-sprite fighters (they render procedurally).
-  if (p1) p1._introPlaying = true
-  if (p2) p2._introPlaying = true
+  // pickIntroVariant randomly selects one entry from the fighter's `introPool` (if any) so
+  // characters with multiple intros (e.g. Sasuke) get visual variety across matches; fighters
+  // with no pool get null → sprite.js falls back to the shared "transform" intro (unchanged).
+  if (p1) { p1._introPlaying = true; p1._introVariant = pickIntroVariant(p1) }
+  if (p2) { p2._introPlaying = true; p2._introVariant = pickIntroVariant(p2) }
 
   sound.stopMusic?.()
   sound.playStageTrack?.(matchConfig.selectedStage)
@@ -1652,6 +1668,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
       teleportBehindTarget(fighter)                                   // blink BEHIND, facing the opponent
       if (fighter.rosterKey === "toji"   && typeof tojiTeleportStrike === "function")        tojiTeleportStrike(fighter)
       else if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
+      else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
       // Gojo: reposition only — "ready to attack".
       fighter.dashTeleportCooldown = 48
     } else {

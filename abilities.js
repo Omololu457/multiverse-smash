@@ -1349,15 +1349,18 @@ const SUSANOO_STAGE = {
 // TWO deliberate choices here, both driven by the sprite sheets being NON-UNIFORM (gap-scan:
 // lvl_1's 5 poses are 125–219px wide, lvl_2's 4 are ~200px with flame-wisps between — they do
 // NOT divide evenly, so a uniform slicer tears/misaligns → the "glitch"):
-//   (1) frames:1 — render ONE clean full-body pose (sourceX 0), no multi-frame slicing = no
-//       glitch. A giant summon reads fine static (like a manifestation).
-//   (2) EVERY action key maps to that same body cell — including hurt/light/heavy/up/air/grab
-//       and the susanoo* attacks. A key the giant's action machine picks but we DIDN'T define
-//       would fall back to a 128² box (the real glitch source when the giant got hit or threw a
-//       normal). Attacks' actual art is a SEPARATE spawned FX (this engine has no per-fighter
-//       attack-FX slot, see characters.js:600).
-function _susanooBody(sheet, width, height) {
-  const cell = { frames: 1, width, height, speed: 8, anchorY: 0, sourceX: 0, sheet }
+//   (1) The raw sheets are NON-UNIFORM so a uniform slicer tore them. They've been REPACKED
+//       into uniform-cell anim sheets (sasuke_susanoo_lvl_*_anim.png — each pose cropped and
+//       re-centered into equal cells) so the giant can ANIMATE through its frames cleanly with
+//       loop:true instead of sitting on one static frame. speed 8 ≈ Sasuke's own idle/walk
+//       range (6/5) — a slow, majestic idle cycle, not frozen.
+//   (2) EVERY action key maps to that same animated body cell — including hurt/light/heavy/up/
+//       air/grab and the susanoo* attacks. A key the giant's action machine picks but we DIDN'T
+//       define would fall back to a 128² box (the real glitch source when the giant got hit or
+//       threw a normal). Attacks' actual art is a SEPARATE spawned FX (this engine has no
+//       per-fighter attack-FX slot, see characters.js:600).
+function _susanooBody(sheet, frames, width, height) {
+  const cell = { frames, width, height, speed: 8, loop: true, anchorY: 0, sourceX: 0, sheet }
   return {
     idle: cell, walk: cell, run: cell, jump: cell, fall: cell,
     hurt: cell, light: cell, heavy: cell, up: cell, air: cell, down_air: cell,
@@ -1365,9 +1368,9 @@ function _susanooBody(sheet, width, height) {
     susanooGrab: cell, susanooSword: cell, susanooArrow: cell, susanooIntro: cell
   }
 }
-// width = a single frame's span (lvl_1 frame0 content 7–177 → 190; lvl_2 frame0 4–233 → 250).
-const SUSANOO_LVL1_ANIM = _susanooBody("./sasuke_susanoo_lvl_1.png", 190, 277)
-const SUSANOO_LVL2_ANIM = _susanooBody("./sasuke_susanoo_lvl_2.png", 250, 298)
+// Uniform repacked sheets — cell dims from the repack script (lvl1 5×231, lvl2 4×247).
+const SUSANOO_LVL1_ANIM = _susanooBody("./sasuke_susanoo_lvl_1_anim.png", 5, 231, 277)
+const SUSANOO_LVL2_ANIM = _susanooBody("./sasuke_susanoo_lvl_2_anim.png", 4, 247, 298)
 
 export function sasukeInSusanoo(fighter) { return (fighter && (fighter._susanooStage || 0) > 0) }
 
@@ -1435,15 +1438,24 @@ function executeSasukeUltimate(fighter, context) {
     _enterSusanooStage(fighter, 1)
     fighter._susanooTimer = SUSANOO_DURATION_FRAMES
     fighter._suppressUltCooldown = true          // no cooldown yet — allow Stage-2 escalation
+    // ESCALATION GATE (diagnosed 2026-07-16 via live logging): the OLD 30-frame attackCooldown
+    // silently swallowed the Stage-2 re-press for ~0.5s, so escalation "never" fired. Now use a
+    // SHORT recovery (15f, still > the 10f input BUFFER_WINDOW so a single tap's lingering buffer
+    // can't auto-escalate) AND require the ultimate button to be RELEASED before Stage 2 (so a
+    // HELD button can't auto-escalate either). _ultReleasedSinceStage1 is flipped true on keyup.
+    fighter._ultReleasedSinceStage1 = false
     // Giant body appears instantly; the intro sheet plays as an activation FX burst over it.
     _spawnSusanooFx(fighter, "./sasuke_susanoo_intro.png",
       { frames: 6, w: 113, h: 70, scale: 3.4, life: 40, drift: 0, yOff: -210, color: "#b39ddf" }, context)
-    fighter.attackCooldown   = getAttackDuration(30, fighter)
+    fighter.attackCooldown   = getAttackDuration(15, fighter)
     focusCameraOnAction(context, fighter, null, 0.9, 20)
     shakeCamera(context, 8, 10)
     return true
   }
   if (stage === 1) {
+    // Require a genuine SECOND press: the ultimate must have been released since Stage 1 (blocks
+    // a held button from escalating on its own). The short atkCd above blocks a single tap's buffer.
+    if (!fighter._ultReleasedSinceStage1) return false
     // STAGE 2 — drain ALL remaining energy to 0, escalate. Timer is NOT reset (one 20s window).
     fighter.energy = 0
     _enterSusanooStage(fighter, 2)

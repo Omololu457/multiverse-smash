@@ -275,6 +275,42 @@ export function applyUltraEgoReaction(defender) {
   )
 }
 
+// Kurama Shroud Intensify comeback (combo #23) — SAME SHAPE as applyUltraEgoReaction's
+// rage-heal, reskinned: at deep shroud stages Naruto draws Kurama's chakra to knit his
+// wounds, healing a little WHEN HIT (deeper stage = more). Health-gated via the passive
+// fighter.shroudStage (set in game.applyKuramaShroudSystem) and FREE — the shroud costs
+// no ki/chakra. Guarded so a KO blow is never undone. Stages 1-2 give no heal (visual only).
+export function applyKuramaShroudReaction(defender) {
+  const stage = defender?.shroudStage || 0
+  if (stage < 3) return                      // buff unlocks at stage 3
+  if ((defender.health || 0) <= 0) return    // don't resurrect from a killing blow
+  const heal = (stage - 2) * 6               // stage 3→+6, 4→+12, 5→+18 HP per hit taken
+  defender.health = Math.min(defender.maxHealth || 1000, (defender.health || 0) + heal)
+}
+
+// NARUTO-ONLY escalated combo-finisher recoil. When a real combo string against Naruto is
+// capped by a heavy / launcher / special hit, show his naruto_kcm_knocked_out_a burst pose
+// (routed through sprite.js's "knockdown" action) for the recoil instead of the standard
+// naruto_kcm_taking_damage flinch — selling "that combo really landed". PURELY VISUAL: it
+// only sets a self-timer (_comboFinisherReactTimer) read by sprite.js; it does NOT touch
+// knockdownState / tech / hitstun / combo counters / damage. No-op for every other character.
+// Called from resolveAttackHit AFTER attacker.comboCounter has been incremented for this hit,
+// so `comboCounter >= NARUTO_COMBO_FINISHER_MIN` means this is the Nth+ hit of an active string.
+const NARUTO_COMBO_FINISHER_MIN    = 3    // this hit must be the 3rd+ link (a real combo, not a poke)
+const NARUTO_COMBO_FINISHER_FRAMES = 26   // recoil-pose window (~5 of the 6 burst frames)
+export function applyNarutoComboFinisherReaction(defender, attacker) {
+  if (!defender || defender.rosterKey !== "naruto") return
+  if ((attacker?.comboCounter || 0) < NARUTO_COMBO_FINISHER_MIN) return   // not (yet) a combo
+  const a = attacker.currentAttack
+  if (!a) return
+  // "Combo-ending" class of hit: a heavy, an up-launcher, a special/ultimate, or any strong
+  // blow-away (the hits that actually cap a string) — NOT the light jabs that link into it.
+  const finisher = a.name === "heavy" || a.launcher || a.isSpecial || a.isUltimate ||
+    Math.abs(a.pushX || 0) >= 8
+  if (!finisher) return
+  defender._comboFinisherReactTimer = NARUTO_COMBO_FINISHER_FRAMES
+}
+
 // ========================
 // PARRY / CLASH / GRAB
 // ========================
@@ -379,14 +415,17 @@ export function checkClash(p1, p2, hitSparks, camera) {
   return true
 }
 
-export function resolveGrab(attacker, defender, context = {}) {
+export function resolveGrab(attacker, defender, context = {}, range = 75) {
   if (!attacker || !defender) return false
   if (!attacker.onGround || !defender.onGround) return false
   if (attacker.comboCounter > 0) return false
 
   const aCX = attacker.x + attacker.w / 2
   const dCX = defender.x + defender.w / 2
-  if (Math.abs(aCX - dCX) > 75) return false
+  // `range` defaults to the standard 75px reach; extended-reach grabs (e.g. Naruto's
+  // shroud-gated Chakra Arm Grab) pass a larger value. Everything else — tech window,
+  // grab state, and the updateGrab() pop-up-and-drop throw — is shared unchanged.
+  if (Math.abs(aCX - dCX) > range) return false
 
   const canTech = !(defender.hitstun > 0 || defender.blockstun > 0)
   if (canTech && (defender.grabInputBuffer || 0) > 0) {
@@ -652,6 +691,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   try { sound?.playCombo?.(attacker.comboCounter) } catch (_) {}
 
   applyUltraEgoReaction(defender)
+  applyKuramaShroudReaction(defender)   // Kurama Shroud comeback heal-on-hit (stage 3+)
+  applyNarutoComboFinisherReaction(defender, attacker)   // Naruto-only escalated combo-ender recoil pose
 }
 
 // ========================
@@ -676,6 +717,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   }
 
   if (fighter.hitstun > 0) fighter.hitstun--
+  if ((fighter._comboFinisherReactTimer || 0) > 0) fighter._comboFinisherReactTimer--   // Naruto combo-ender recoil pose window
   if (fighter.blockstun > 0) fighter.blockstun--
   if (fighter.comboTimer > 0) fighter.comboTimer--
   else fighter.comboCounter = 0
@@ -799,6 +841,7 @@ export function resolveProjectileHits(projectiles = [], p1, p2, hitEffects = [],
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const proj = projectiles[i]
     if (!proj) continue
+    if (proj.visualOnly) continue   // pure FX (e.g. AOE ring bloom) — never collides
 
     for (const fighter of [p1, p2].filter(Boolean)) {
       if (proj.owner === fighter || proj.ownerId === fighter.side) continue
@@ -828,6 +871,15 @@ export function resolveProjectileHits(projectiles = [], p1, p2, hitEffects = [],
       }
 
       fighter.health = Math.max(0, (fighter.health || 0) - Math.floor(dmg))
+
+      // Lingering damage-over-time (e.g. Naruto Rasenshuriken wind-chip). Only on a
+      // clean (non-blocked) connect, and only if the hit didn't already KO. Ticked in
+      // game.updateMiscTimers. `delay` starts one interval out so the first tick lands
+      // after the initial hit, not on the same frame.
+      if (!fighter.isBlocking && proj.dot && (fighter.health || 0) > 0) {
+        const iv = Math.max(1, proj.dot.interval | 0)
+        fighter._dot = { ticks: proj.dot.ticks | 0, interval: iv, dmg: proj.dot.dmg | 0, delay: iv }
+      }
 
       if (fighter.health <= 0) {
         try { sound?.play?.(SFX?.KO) } catch (_) {}

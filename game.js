@@ -19,7 +19,9 @@ import {
   activeSummons,
   updateSummons as updateActiveSummons,
   drawSummons as drawActiveSummons,
-  spawnSummon as spawnAssistSummon   // ← fixed: alias included
+  spawnSummon as spawnAssistSummon,  // ← fixed: alias included
+  summonShadowClone, dispelShadowClones,   // debug hotkeys (",", ".") wire straight to these
+  countShadowClones                        // #21 Clone Rendan Storm gate (Naruto light-string extension)
 } from "./summons.js"
 import { physics } from "./physics.js"
 import {
@@ -31,7 +33,8 @@ import {
   activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation,
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
-  regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash
+  regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
+  applyCloneRendanStorm   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -49,14 +52,15 @@ import {
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
   drawAccountScreen, getAccountButtons
 } from "./ui.js"
-import { createAccount, getCurrentAccount, isValidUsername, listAccounts } from "./account.js"
+import { createAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, persistence, setSnapshotDecorator } from "./account.js"
 import {
   awardMatchXp, awardXp, getLevel, xpProgress, isUnlocked, requiredLevel,
   loadProgressionFromAccount, PROGRESS_DOES_NOT_PERSIST,
   setDevUnlock, isDevUnlocked, DEV_CODE,
-  applyUnlockCode, isBetaUnlocked, isJJKKey
+  applyUnlockCode, isBetaUnlocked, isJJKKey,
+  FEATURES, levelFromXp
 } from "./progression.js"
-import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked } from "./skins.js"
+import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
 import {
@@ -68,7 +72,7 @@ import { activeEffects, addEffect, updateEffects, updateEnergyRegen, clearEffect
 import {
   updateKuramaUltimate, isKuramaCinematicActive, drawKuramaCinematic, clearKuramaUltimate
 } from "./kurama.js"
-import { sound, SFX, MUSIC } from "./sound.js"
+import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -84,6 +88,73 @@ const ctx    = canvas.getContext("2d")
 canvas.width  = window.innerWidth
 canvas.height = window.innerHeight
 setupMouseInput(canvas)
+
+// SAVE FILE picker must fire from a REAL user gesture (transient activation) — the
+// File System Access pickers throw if called from the rAF-driven handleMenuClicks().
+// So we hook mouseup directly: if the click lands on the MAIN MENU "SAVE FILE" button,
+// invoke the picker synchronously here. mouse.x/mouse.y are the same canvas-space coords
+// handleMenuClicks uses (kept current by setupMouseInput's mousemove handler).
+canvas.addEventListener("mouseup", () => {
+  if (gameState !== GAME_STATES.MAIN_MENU) return
+  const hit = getMainMenuRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+  if (hit?.id !== "savefile") return
+  if (isFileConnected()) return   // already granted this session → auto-saving; don't re-prompt
+  // Not awaited: runs synchronously up to the picker's await, preserving the gesture.
+  // On a successful load, hydrate ALL systems from the save BEFORE anything else runs.
+  connectSaveFile().then(res => { if (res?.ok) hydrateFromLoadedSave() })
+})
+
+// ──────────────────────────────────────────────────────────────────
+// SAVE-FILE SCHEMA — full game_player_data.json read/write pipeline.
+// The account object IS the per-player schema (progression / unlocks / skins /
+// settings / stats); persistence.save(acct) always rewrites the WHOLE file, so any
+// change persisted below writes the full current snapshot, never a partial field.
+// ──────────────────────────────────────────────────────────────────
+
+// Registered ONCE: enrich each account's DERIVED fields at serialization time so
+// every save (from any module's persistence.save) emits a complete, fresh snapshot.
+// Derived strictly from the account's OWN data (level/dev/beta) — no session globals —
+// so it's correct even for a non-current account. account.js can't compute these
+// (importing progression/skins there would cycle), hence this decorator seam.
+setSnapshotDecorator(acct => {
+  if (!acct || typeof acct !== "object") return acct
+  const xp    = acct.progression?.xp || 0
+  const level = acct.progression?.level ?? levelFromXp(xp)
+  if (!acct.unlocks || typeof acct.unlocks !== "object") acct.unlocks = { devUnlock: false, betaUnlock: false, featuresUnlocked: [] }
+  const dev  = !!acct.unlocks.devUnlock
+  const beta = !!acct.unlocks.betaUnlock
+  // featuresUnlocked: FEATURES ids reachable at this level (dev unlocks all). DERIVED.
+  acct.unlocks.featuresUnlocked = Object.entries(FEATURES)
+    .filter(([, f]) => dev || level >= (f.unlocksAtLevel || 1))
+    .map(([id]) => id)
+  // skins: read-only per-character unlocked-id snapshot (skins.js persists no state). DERIVED.
+  acct.skins = buildUnlockedSkinsSnapshot(level, dev, beta)
+  return acct
+})
+
+// Persist the current audio SETTINGS onto the account, then write the full snapshot.
+// Called after every settings mutation (mute toggles, playlist reorder) so the file
+// tracks them live. progression/unlock changes persist through their own modules.
+function persistCurrentSettings() {
+  const acct = getCurrentAccount()
+  if (!acct) return
+  acct.settings = sound.getSettings?.() || acct.settings
+  persistence.save(acct)   // decorator refreshes derived fields; whole file rewritten
+}
+
+// Hydrate ALL systems from a freshly-loaded save, fully overriding the fresh-start
+// defaults. progression + unlock flags via progression.js; audio settings via sound.js;
+// skins are DERIVED (recomputed from level/dev/beta, nothing to hydrate). Runs the moment
+// a save loads (the File System Access picker requires a user gesture, so this IS boot).
+function hydrateFromLoadedSave() {
+  loadProgressionFromAccount()                 // xp/matches/wins + dev/beta unlock flags
+  const acct = getCurrentAccount()
+  if (acct?.settings) {
+    sound.applySettings?.(acct.settings)       // volumes/mutes/playlist order → override defaults
+    audioSettings.sfxMuted   = !!acct.settings.sfxMuted    // keep the Settings-screen mirror in sync
+    audioSettings.musicMuted = !!acct.settings.musicMuted
+  }
+}
 
 // ------------------------------------------------------------------
 // CONSTANTS
@@ -155,7 +226,7 @@ const ALLOWED_KEYS = ["w", "a", "s", "d", "u", "i", "o", "p", "j", "k", "l"]
 const DEFAULT_P1_CONTROLS = { ...P1_CONTROLS }
 // action key in P1_CONTROLS → label. (up also drives jump — rebound together.)
 const REBINDABLE = [
-  ["up", "Jump / Up"], ["left", "Left"], ["down", "Crouch"], ["right", "Right"],
+  ["up", "Jump / Up"], ["left", "Left"], ["down", "Crouch / Block"], ["right", "Right"],
   ["light", "Light (J)"], ["heavy", "Heavy (K)"], ["upAttack", "Up-Attack (I)"],
   ["special", "Special (L)"], ["ultimate", "Ultimate (U)"], ["grab", "Grab (O)"],
   ["charge", "Charge/Toggle (P)"]
@@ -179,6 +250,25 @@ function getKeybindRects() {
   return rects
 }
 const resetBindRect = () => ({ x: canvas.width / 2 - 110, y: KEYBIND_Y0 + Math.ceil(REBINDABLE.length / 2) * KEYBIND_ROW_H + 10, w: 220, h: 40 })
+
+// Menu-music playlist reorder panel — sits in the LEFT margin (left of the centered
+// keybind grid, which starts at cx-270), so it never overlaps existing controls. One
+// row per MENU_PLAYLIST track with ▲/▼ buttons; clicking swaps order via sound.moveMenuTrack.
+const PLAYLIST_X0 = 24, PLAYLIST_W = 330, PLAYLIST_Y0 = KEYBIND_Y0, PLAYLIST_ROW_H = 34, PLAYLIST_BTN = 26
+function getPlaylistRects() {
+  const rects = []
+  for (let i = 0; i < MENU_PLAYLIST.length; i++) {
+    const y = PLAYLIST_Y0 + i * PLAYLIST_ROW_H
+    rects.push({
+      index: i,
+      file:  MENU_PLAYLIST[i],
+      rowRect:  { x: PLAYLIST_X0, y, w: PLAYLIST_W, h: PLAYLIST_ROW_H - 6 },
+      upRect:   { x: PLAYLIST_X0 + PLAYLIST_W - PLAYLIST_BTN * 2 - 6, y: y + 2, w: PLAYLIST_BTN, h: PLAYLIST_ROW_H - 10 },
+      downRect: { x: PLAYLIST_X0 + PLAYLIST_W - PLAYLIST_BTN,         y: y + 2, w: PLAYLIST_BTN, h: PLAYLIST_ROW_H - 10 }
+    })
+  }
+  return rects
+}
 
 // Apply a captured key to an action (P1 keyboard). Returns true on success.
 function applyRebind(action, key) {
@@ -211,6 +301,15 @@ const SERIES_MUSIC = {
   other:       null
 }
 
+// Pre-match name-call clips, keyed by rosterKey (same shape as SERIES_MUSIC). Any
+// character NOT listed here simply gets NO announcement beat — the pre-countdown
+// sequence skips that fighter cleanly (see beginNamecallSequence). Case-sensitive.
+const NAMECALL_AUDIO = {
+  naruto: "naruto_namecall.mp3",
+  gojo:   "gojo_namecall.mp3",
+  sukuna: "sukuna_namecall.mp3"
+}
+
 // Data-driven stage table — add a stage here (palette + series + landmark id)
 // and it shows up in stage select, renders its procedural background (ui.js
 // drawStageLandmarks keys off `landmark`), and plays its series track.
@@ -220,9 +319,9 @@ const SERIES_MUSIC = {
 // falls back gracefully to the procedural theme (sound.playMusicFile onerror).
 const STAGE_DEFS = [
   { name: "Jujutsu High Courtyard", series: "jjk",         music: "JJK_1.mp3", landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png" },
-  { name: "Shibuya Incident",       series: "jjk",         music: "JJK_2.mp3", landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444" },
+  { name: "Shibuya Incident",       series: "jjk",         music: "JJK_2.mp3", landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444", backgroundImage: "shibuya_incident_bg.png" },
   { name: "Hidden Leaf Village",    series: "naruto",      landmark: "hidden_leaf",  sky: "#bfdbfe", mid: "#86efac", floor: "#a16207", accent: "#22c55e" },
-  { name: "Valley of the End",      series: "naruto",      landmark: "valley_of_end",sky: "#9fb6c9", mid: "#5b7184", floor: "#2f3b46", accent: "#e2e8f0" },
+  { name: "Valley of the End",      series: "naruto",      music: "valley_of_the_end_theme.mp3", landmark: "valley_of_end",sky: "#9fb6c9", mid: "#5b7184", floor: "#2f3b46", accent: "#e2e8f0", backgroundImage: "valley_of_the_end_bg.png" },
   { name: "Planet Namek",           series: "dragonball",  music: "DB_1.mp3",  landmark: "namek",        sky: "#5eead4", mid: "#34d399", floor: "#15803d", accent: "#fef08a" },
   { name: "World Tournament Arena", series: "dragonball",  music: "DB_2.mp3",  landmark: "tournament",   sky: "#93c5fd", mid: "#fde68a", floor: "#b45309", accent: "#ffffff" },
   { name: "Mugen Train",            series: "demonslayer", landmark: "mugen_train",  sky: "#0c1330", mid: "#241a3a", floor: "#1a1326", accent: "#f59e0b" },
@@ -383,6 +482,13 @@ function applyTowerFloor() {
   matchConfig.p2CharKey   = f.opponent
   matchConfig.p2Char      = characters[f.opponent]
   matchConfig.aiDifficulty = f.difficulty
+  // Tower AUTO-ASSIGNS the stage per floor — no player stage-select screen. FIXED by
+  // floor index (deterministic, a distinct backdrop each floor); an optional floor.stage
+  // name overrides. Regular vs/local matches keep the manual SELECT_STAGE screen (this
+  // only runs while towerState.active).
+  matchConfig.selectedStage =
+    (f.stage && stages.find(s => s.name === f.stage)) ||
+    stages[towerState.floor % stages.length]
 }
 
 // Called from _checkMatchOver. Win → XP + remember carry-over health; lose → end.
@@ -471,6 +577,19 @@ function getAbilityContext() {
     deltaMs: 1000 / 60,
     triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }
   }
+}
+
+// #21 CLONE RENDAN STORM detection — fire the clone flurry ONCE, the frame Naruto's basic
+// light-string hit lands, while clones are alive. `currentAttack` lives for the whole swing
+// and `hasHit` latches true on contact, so the `_cloneRendanDone` marker guarantees exactly
+// one flurry per swing. No-op for non-Naruto, non-light, or no-clone cases.
+function maybeCloneRendanStorm(fighter) {
+  if (!fighter || fighter.rosterKey !== "naruto") return
+  const ca = fighter.currentAttack
+  if (!ca || ca.name !== "light" || !ca.hasHit || ca._cloneRendanDone) return
+  if (countShadowClones(fighter) <= 0) return
+  ca._cloneRendanDone = true
+  applyCloneRendanStorm(fighter, getOpponent(fighter), getAbilityContext())
 }
 
 function updateCameraBounds() {
@@ -601,6 +720,7 @@ function createFighter(charKey, char, x, facing, controls, side) {
     currentForm:     baseFormKey,
     currentFormData: baseForm,
     transformIndex:  0,
+    ultimateCooldown: 0,
     summonCooldown:  0,
     domainBuff:      false,
     activeDomainTimer: 0,
@@ -703,6 +823,64 @@ function resetRound() {
   if (p1 && p2 && typeof camera.update === "function") camera.update(p1, p2, canvas)
 }
 
+// ── PRE-MATCH CHARACTER ANNOUNCEMENT ──────────────────────────────────────────
+// Runs inside the existing round-1 INTRO phase (so it's first-round-only, matching
+// the intro convention): zoom on P1 then P2, playing each side's name-call clip if
+// mapped. Sides whose character has NO NAMECALL_AUDIO entry are omitted entirely —
+// no zoom, no pause, no dead air. If neither side is mapped the sequence never
+// activates and the INTRO/countdown play exactly as before (zero added delay).
+const NAMECALL_HOLD = 110    // frames to hold the zoom per announced fighter (~1.8s @ 60fps)
+const NAMECALL_ZOOM = 1.1    // tight zoom on the announced fighter (camera maxZoom is 1.15)
+let namecallBeats  = []      // [{ side, fighter, clip }] — ONLY sides with a mapped clip
+let namecallIndex  = 0
+let namecallTimer  = 0
+let namecallActive = false
+
+function buildNamecallBeats() {
+  namecallBeats = []
+  for (const side of ["p1", "p2"]) {          // side-based order (P1 then P2), NOT roster order
+    const f    = side === "p1" ? p1 : p2
+    const clip = f && NAMECALL_AUDIO[f.rosterKey]
+    if (f && clip) namecallBeats.push({ side, fighter: f, clip })
+  }
+}
+
+function startNamecallBeat(i) {
+  const beat = namecallBeats[i]
+  if (!beat) return
+  if (camera.focusOnFighter) camera.focusOnFighter(beat.fighter, NAMECALL_ZOOM)
+  sound.playSfxFile?.(beat.clip, null)        // one-shot; honors mute/_sfxVol internally
+  namecallTimer = NAMECALL_HOLD
+}
+
+// Called from startMatch (after fighters exist). No-op when no side is mapped.
+function beginNamecallSequence() {
+  buildNamecallBeats()
+  namecallIndex  = 0
+  namecallActive = namecallBeats.length > 0
+  if (namecallActive) startNamecallBeat(0)
+}
+
+// The current fighter's name banner, drawn during the announcement (camera already
+// zoomed on them). Lower-third so it doesn't cover the fighter.
+function drawNamecallBanner() {
+  const beat = namecallBeats[namecallIndex]
+  if (!beat) return
+  const name = (beat.side === "p1" ? matchConfig.p1Char?.name : matchConfig.p2Char?.name)
+    || beat.fighter.rosterKey || (beat.side === "p1" ? "Player 1" : "Player 2")
+  const cw = canvas.width, ch = canvas.height
+  const accent = beat.side === "p1" ? "#38bdf8" : "#f87171"
+  ctx.save()
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  ctx.font = "900 44px Arial"
+  const bw = ctx.measureText(name).width + 80, bx = cw / 2 - bw / 2, by = ch * 0.72
+  ctx.fillStyle = "rgba(8,12,24,0.82)"; ctx.fillRect(bx, by, bw, 64)
+  ctx.strokeStyle = accent; ctx.lineWidth = 3; ctx.strokeRect(bx, by, bw, 64)
+  ctx.fillStyle = "#f1f5f9"; ctx.shadowBlur = 18; ctx.shadowColor = accent
+  ctx.fillText(name, cw / 2, by + 32)
+  ctx.restore()
+}
+
 function startMatch() {
   roundNumber  = 1
   roundWins    = { p1: 0, p2: 0 }
@@ -715,6 +893,7 @@ function startMatch() {
   if (matchConfig.p2CharKey) { preloadCharacterSprites?.(matchConfig.p2CharKey); loadSpriteSheets(matchConfig.p2CharKey) }
 
   resetRound()
+  beginNamecallSequence()   // pre-countdown P1→P2 character announcement (skipped if unmapped)
   matchIntroTimer = 90
   gameState       = GAME_STATES.INTRO
   // BUG_9: play the intro/transform strip during the intro window (cleared when
@@ -759,8 +938,8 @@ function proceedAfterCharacter(side) {
 function _proceedAfterSkin(side) {
   if (side === "p1") {
     if (matchConfig.mode === "tower") {
-      applyTowerFloor()                       // opponent comes from the current floor
-      gameState = GAME_STATES.SELECT_STAGE
+      applyTowerFloor()                       // opponent + difficulty + auto-assigned stage
+      startMatch()                            // SKIP SELECT_STAGE — Tower picks its own stage
     } else if (matchConfig.mode === "training") {
       matchConfig.p2Char    = matchConfig.p1Char
       matchConfig.p2CharKey = matchConfig.p1CharKey
@@ -872,9 +1051,12 @@ function chooseMode(mode) {
   resetSelections()
   if (mode === "training") { matchConfig.aiDifficulty = "dummy"; beginUniverseSelect(); return }
   if (mode === "pvp")      {
-    // Local two-player default: P1 on keyboard, P2 on a gamepad. Either can be
-    // flipped on the SETTINGS screen.
-    inputSettings.p1Type = "keyboard"
+    // Local two-player default: P2 on a gamepad. P1 keeps whatever the SETTINGS
+    // screen has it set to (defaults to keyboard via inputSettings init) so a player
+    // who flipped P1 → controller can run TWO controllers — this no longer force-
+    // resets p1Type. Both device types are independently settable on the SETTINGS
+    // screen (P1 Device / P2 Device), enabling any combination: kb/kb, kb/pad,
+    // pad/kb, pad/pad.
     inputSettings.p2Type = "controller"
     beginUniverseSelect()
     return
@@ -1008,6 +1190,7 @@ function applyAIInputToKeys(fighter, aiInput) {
   clearAIControlKeys(fighter)
   if (aiInput.left)                         keys[c.left]    = true
   if (aiInput.right)                        keys[c.right]   = true
+  if (aiInput.down)                         keys[c.down]    = true         // hold Down = block/crouch (no attack)
   if (aiInput.jump)                         keys[c.up]      = true
   if (aiInput.lightAttack)                  keys[c.light]   = true
   if (aiInput.heavyAttack)                  keys[c.heavy]   = true
@@ -1201,7 +1384,9 @@ function updateGamepadEdges(fighter) {
 function updateMiscTimers(fighter) {
   if (!fighter) return
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
+  if (fighter.ultimateCooldown > 0) fighter.ultimateCooldown--            // universal ultimate recast lockout
   if (fighter.summonCooldown  > 0) fighter.summonCooldown--
+  if (fighter._cloneSummonWindow > 0) fighter._cloneSummonWindow--        // clone-summon audio window (summons.js)
   if (fighter.teleportCooldown      > 0) fighter.teleportCooldown--       // Gojo Up+Special blink
   if (fighter.dashTeleportCooldown  > 0) fighter.dashTeleportCooldown--   // Toji teleport-dash
   if (fighter.malevolentDashCooldown > 0) fighter.malevolentDashCooldown-- // Sukuna Malevolent Dash
@@ -1213,6 +1398,17 @@ function updateMiscTimers(fighter) {
   if (fighter.clashFlash      > 0) fighter.clashFlash--
   if (fighter.restrainTimer   > 0) { fighter.restrainTimer--;  if (fighter.restrainTimer  <= 0) fighter.restrained = false }
   if (fighter.obscuredTimer   > 0) { fighter.obscuredTimer--;  if (fighter.obscuredTimer  <= 0) fighter.obscured   = false }
+  // Generic damage-over-time (e.g. Naruto Rasenshuriken wind-chip). Applies `dmg` every
+  // `interval` frames for `ticks` counts, then clears. Stamped by resolveProjectileHits.
+  if (fighter._dot && fighter._dot.ticks > 0) {
+    if (--fighter._dot.delay <= 0) {
+      fighter.health = Math.max(0, (fighter.health || 0) - fighter._dot.dmg)
+      fighter._dot.delay = fighter._dot.interval
+      fighter._dot.ticks--
+      fighter.colorFlash = Math.max(fighter.colorFlash || 0, 3)
+    }
+    if (fighter._dot.ticks <= 0 || (fighter.health || 0) <= 0) fighter._dot = null
+  }
 }
 
 function updateMovementInput(fighter) {
@@ -1310,10 +1506,68 @@ function updatePlayerCombat(fighter) {
   updateCombat(fighter, getOpponent(fighter), buildNormalControlState(fighter, vKeys), opts)
 }
 
+// ------------------------------------------------------------------
+// NARUTO — KURAMA SHROUD INTENSIFY (comeback mechanic, combo #23)
+// ------------------------------------------------------------------
+// Auto-triggering, health-gated 5-stage buff. NO input / chakra / clone cost — purely
+// passive: the lower Naruto's health, the deeper the shroud stage. Stages 1-2 are
+// COSMETIC (aura only). Stage 3+ unlocks Kurama's regeneration (heal-on-hit — see
+// combat.applyKuramaShroudReaction, which reuses Vegeta's Ultra Ego rage-heal shape).
+//
+// fighter.shroudStage (0-5) is a PUBLIC field so follow-up shroud-gated specials can
+// read it directly (e.g. `if (fighter.shroudStage >= 4) ...`). fighter.shroudArt is the
+// "a".."e" frame for the KOMA-7A shroud strip (naruto_kcm_fx_7_koma_special_a_shroud_*.png,
+// not yet on disk → the aura renders procedurally for now, like the clone smoke poof).
+//
+// THRESHOLDS: health FRACTION at/below which each successive stage activates. Retune here.
+const KURAMA_SHROUD_THRESHOLDS = [0.80, 0.60, 0.40, 0.22, 0.10]  // → stages 1,2,3,4,5
+const KURAMA_SHROUD_BUFF_STAGE = 3   // first stage that unlocks a real stat effect (the heal)
+
+function applyKuramaShroudSystem(fighter) {
+  if (!fighter || fighter.rosterKey !== "naruto") return
+  const frac = Math.max(0, fighter.health || 0) / (fighter.maxHealth || 1)
+  let stage = 0
+  for (const t of KURAMA_SHROUD_THRESHOLDS) { if (frac <= t) stage++ }
+  fighter.shroudStage  = stage                                   // 0-5, PUBLIC (gates future moves)
+  fighter.shroudArt    = stage > 0 ? "abcde"[stage - 1] : null   // shroud_a .. shroud_e for this stage
+  fighter.shroudBuffed = stage >= KURAMA_SHROUD_BUFF_STAGE       // convenience flag: buff is live
+}
+
+// Procedural shroud aura — escalating orange→deep-red glow behind Naruto, brighter and
+// wider at deeper stages, with a slow pulse. Drawn in world space in renderHybridFighter
+// (before the body/sprite) so it shows on BOTH the sprite and vector render paths.
+const KURAMA_SHROUD_COLORS = ["#fdba74", "#fb923c", "#f97316", "#ea580c", "#dc2626"]
+function drawKuramaShroudAura(c, fighter) {
+  const stage = fighter?.shroudStage || 0
+  if (stage <= 0 || !c) return
+  const x = fighter.x ?? 0, y = fighter.y ?? 0
+  const w = fighter.w ?? 60, h = fighter.h ?? 110
+  const color  = KURAMA_SHROUD_COLORS[Math.min(stage, 5) - 1]
+  const pulse  = 0.5 + 0.5 * Math.sin(fighter._shroudPulse = (fighter._shroudPulse || 0) + 0.15)
+  const spread = 8 + stage * 4
+  c.save()
+  c.globalAlpha  = 0.12 + stage * 0.05 + pulse * 0.06
+  c.shadowBlur   = spread * 2
+  c.shadowColor  = color
+  c.strokeStyle  = color
+  c.lineWidth    = spread
+  const rx = x - spread / 2, ry = y - spread / 2, rw = w + spread, rh = h + spread, r = 16
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r)
+  c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r)
+  c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath()
+  c.stroke()
+  c.restore()
+}
+
 function updateFighterState(fighter) {
   if (!fighter) return fighter
   const updated = updateTransformationState(fighter, getAbilityContext()) || fighter
   applyGojoPassiveSystems(updated)
+  applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
   physics.updateAttackBox(updated)
@@ -1599,6 +1853,13 @@ function updateBattle() {
   updatePlayerCombat(p1)
   updatePlayerCombat(p2)
 
+  // #21 CLONE RENDAN STORM — when Naruto's BASIC light-string hit connects with clones alive,
+  // each live clone chains a flurry follow-up onto the string. Detected here (not in shared
+  // combat.js, which must not import abilities.js → no cycle): fire ONCE per swing via a
+  // per-attack marker the instant its hit lands.
+  maybeCloneRendanStorm(p1)
+  maybeCloneRendanStorm(p2)
+
   // ONE projectile update path on the shared activeProjectiles array (combat.js
   // owns movement + collision). The old second updateAbilityProjectiles() call
   // moved every projectile twice per frame — removed.
@@ -1648,6 +1909,7 @@ function renderHybridFighter(fighter) {
   fighter._animFrozen = (gameState === GAME_STATES.PAUSED)
   const key = fighter.rosterKey
   const drawTo = (c) => {
+    drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
     } else {
@@ -2054,6 +2316,11 @@ function _drawVowCue() {
 const p1SettingRect   = { x: window.innerWidth / 2 - 200, y: 150, w: 400, h: 44 }
 const p2SettingRect   = { x: window.innerWidth / 2 - 200, y: 202, w: 400, h: 44 }
 const backSettingRect = { x: window.innerWidth / 2 - 100, y: 686, w: 200, h: 44 }
+// Two independent audio mute toggles on the Settings screen (side-by-side row).
+// Session-only, like the input/keybind settings ("in-memory only" per the on-screen note).
+const audioSettings   = { sfxMuted: false, musicMuted: false }
+const sfxToggleRect   = { x: window.innerWidth / 2 - 200, y: 302, w: 196, h: 30 }
+const musicToggleRect = { x: window.innerWidth / 2 + 4,   y: 302, w: 196, h: 30 }
 // Keep the settings rects centered on the CURRENT canvas + the BACK button always
 // on-screen (bottom-anchored) so nothing clips at smaller window sizes. Called by
 // both the render and the click handler so they stay in sync.
@@ -2061,6 +2328,8 @@ function _layoutSettings() {
   const cx = canvas.width / 2
   p1SettingRect.x   = cx - 200
   p2SettingRect.x   = cx - 200
+  sfxToggleRect.x   = cx - 200
+  musicToggleRect.x = cx + 4
   backSettingRect.x = cx - 100
   backSettingRect.y = Math.min(686, canvas.height - 56)
 }
@@ -2088,6 +2357,18 @@ function drawSettingsScreen() {
   ctx.font = "12px Arial"
   ctx.fillText("(browsers can't yet distinguish two keyboards)", canvas.width / 2, tk.y + 37)
 
+  // ── Audio: two INDEPENDENT mute toggles (SFX / Music) ──
+  const drawAudioToggle = (r, label, muted) => {
+    ctx.fillStyle   = muted ? "#4a1717" : "#173a24"      // red = muted, green = on
+    ctx.fillRect(r.x, r.y, r.w, r.h)
+    ctx.strokeStyle = muted ? "#f87171" : "#4ade80"; ctx.lineWidth = 2
+    ctx.strokeRect(r.x, r.y, r.w, r.h)
+    ctx.fillStyle = "#FFF"; ctx.font = "15px Arial"
+    ctx.fillText(`${label}: ${muted ? "MUTED" : "ON"}`, r.x + r.w / 2, r.y + 20)
+  }
+  drawAudioToggle(sfxToggleRect,   "Sound Effects", audioSettings.sfxMuted)
+  drawAudioToggle(musicToggleRect, "Music",         audioSettings.musicMuted)
+
   // ── Keybind grid (Task 2) ──
   ctx.fillStyle = "#9cf"; ctx.font = "16px Arial"
   ctx.fillText("P1 KEYBOARD BINDINGS — click an action, then press a key (W A S D U I O P J K L)", canvas.width / 2, KEYBIND_Y0 - 16)
@@ -2108,6 +2389,34 @@ function drawSettingsScreen() {
   if (rebindWarning) { ctx.fillStyle = "#fbbf24"; ctx.font = "15px Arial"; ctx.fillText(rebindWarning, canvas.width / 2, rb.y + 58) }
   ctx.fillStyle = "#888"; ctx.font = "13px Arial"
   ctx.fillText("Changes are in-memory only — not saved (sandbox blocks storage).", canvas.width / 2, rb.y + 80)
+
+  // ── Menu music playlist (reorder) — left margin ──
+  ctx.textAlign = "left"
+  ctx.fillStyle = "#9cf"; ctx.font = "16px Arial"
+  ctx.fillText("MENU MUSIC — playlist order (▲/▼)", PLAYLIST_X0, PLAYLIST_Y0 - 16)
+  for (const r of getPlaylistRects()) {
+    ctx.fillStyle = "#1e2836"
+    ctx.fillRect(r.rowRect.x, r.rowRect.y, r.rowRect.w, r.rowRect.h)
+    ctx.strokeStyle = "rgba(120,170,255,0.25)"; ctx.lineWidth = 1
+    ctx.strokeRect(r.rowRect.x, r.rowRect.y, r.rowRect.w, r.rowRect.h)
+    // track number + clean name (clipped to the label area)
+    ctx.fillStyle = "#e6edf7"; ctx.font = "13px Arial"
+    ctx.save()
+    ctx.beginPath(); ctx.rect(r.rowRect.x + 8, r.rowRect.y, r.rowRect.w - PLAYLIST_BTN * 2 - 20, r.rowRect.h); ctx.clip()
+    ctx.fillText(`${r.index + 1}. ${menuTrackDisplayName(r.file)}`, r.rowRect.x + 8, r.rowRect.y + 18)
+    ctx.restore()
+    // ▲ up (disabled on first row) / ▼ down (disabled on last row)
+    const drawArrow = (br, glyph, enabled) => {
+      ctx.fillStyle = enabled ? "#2f4460" : "#242a33"
+      ctx.fillRect(br.x, br.y, br.w, br.h)
+      ctx.fillStyle = enabled ? "#cfe0ff" : "#55606e"; ctx.font = "15px Arial"; ctx.textAlign = "center"
+      ctx.fillText(glyph, br.x + br.w / 2, br.y + br.h / 2 + 5)
+      ctx.textAlign = "left"
+    }
+    drawArrow(r.upRect,   "▲", r.index > 0)
+    drawArrow(r.downRect, "▼", r.index < MENU_PLAYLIST.length - 1)
+  }
+  ctx.textAlign = "center"
 
   // Back.
   ctx.fillStyle = "#A00"; ctx.fillRect(backSettingRect.x, backSettingRect.y, backSettingRect.w, backSettingRect.h)
@@ -2178,11 +2487,16 @@ function renderCurrentState() {
     case GAME_STATES.SELECT_STAGE: drawStageSelectScreen(ctx, canvas, stages, hoverStageIndex); break
     case GAME_STATES.INTRO:
       drawBattleScene()
-      drawMatchIntro?.(ctx, canvas, {
-        p1Name: matchConfig.p1Char?.name || "Player 1",
-        p2Name: matchConfig.p2Char?.name || (isPvP() ? "Player 2" : "CPU"),
-        timer: matchIntroTimer, maxTimer: 90
-      }); break
+      if (namecallActive) {
+        drawNamecallBanner()   // announcing a fighter (camera zoomed on them)
+      } else {
+        drawMatchIntro?.(ctx, canvas, {
+          p1Name: matchConfig.p1Char?.name || "Player 1",
+          p2Name: matchConfig.p2Char?.name || (isPvP() ? "Player 2" : "CPU"),
+          timer: matchIntroTimer, maxTimer: 90
+        })
+      }
+      break
     case GAME_STATES.BATTLE:      drawBattle(); break
     case GAME_STATES.ROUND_BREAK:
       drawBattleScene(); drawBattleHud()
@@ -2293,6 +2607,7 @@ function handleMenuClicks() {
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; gameState = GAME_STATES.MOVE_LIST }
       else if (c.id === "tutorial") { tutorialPage = 0; gameState = GAME_STATES.TUTORIAL }
       else if (c.id === "account")  { accountMessage = ""; accountDraftName = getCurrentAccount()?.username || ""; gameState = GAME_STATES.ACCOUNT }
+      else if (c.id === "savefile") { /* handled by the dedicated mouseup listener (needs a real user gesture for the file picker) */ }
       else if (c.id === "settings") gameState = GAME_STATES.SETTINGS
       else if (c.id === "back")     gameState = GAME_STATES.START
       break
@@ -2327,13 +2642,33 @@ function handleMenuClicks() {
       _layoutSettings()   // keep rects in sync with the render before hit-testing
       // Per-player device select (Task 4): cycle keyboard ↔ controller. "Two
       // Keyboards" is intentionally NOT reachable (disabled placeholder, Task 3).
-      if (pointInRect(mouse.x, mouse.y, p1SettingRect))    inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
+      if (pointInRect(mouse.x, mouse.y, p1SettingRect)) {
+        inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
+        console.log("[DEBUG-P1PAD] 1 TOGGLE clicked → inputSettings.p1Type =", inputSettings.p1Type)
+      }
       if (pointInRect(mouse.x, mouse.y, p2SettingRect))    inputSettings.p2Type = inputSettings.p2Type === "keyboard" ? "controller" : "keyboard"
+      // Audio toggles — each independently mutes its own category (SFX / Music).
+      if (pointInRect(mouse.x, mouse.y, sfxToggleRect)) {
+        audioSettings.sfxMuted = !audioSettings.sfxMuted
+        sound.setSfxMuted?.(audioSettings.sfxMuted)
+        persistCurrentSettings()   // settings changed → rewrite full save snapshot
+      }
+      if (pointInRect(mouse.x, mouse.y, musicToggleRect)) {
+        audioSettings.musicMuted = !audioSettings.musicMuted
+        sound.setMusicMuted?.(audioSettings.musicMuted)
+        persistCurrentSettings()
+      }
       // Keybind rows (Task 2): click an action → await a key.
       const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
       if (kb) { rebindAction = kb.action; rebindWarning = "" }
       if (pointInRect(mouse.x, mouse.y, resetBindRect())) {
         Object.assign(P1_CONTROLS, DEFAULT_P1_CONTROLS); rebindAction = null; rebindWarning = "Defaults restored."
+      }
+      // Menu-music playlist reorder: ▲ moves a track up, ▼ moves it down. sound.moveMenuTrack
+      // mutates MENU_PLAYLIST in place (live sequence) and keeps the now-playing cursor pinned.
+      for (const r of getPlaylistRects()) {
+        if (pointInRect(mouse.x, mouse.y, r.upRect))   { sound.moveMenuTrack?.(r.index, -1); persistCurrentSettings(); break }
+        if (pointInRect(mouse.x, mouse.y, r.downRect)) { sound.moveMenuTrack?.(r.index, +1); persistCurrentSettings(); break }
       }
       if (pointInRect(mouse.x, mouse.y, backSettingRect)) { rebindAction = null; gameState = GAME_STATES.START }
       break
@@ -2437,12 +2772,26 @@ function updateCurrentState() {
 
   switch (gameState) {
     case GAME_STATES.INTRO:
-      matchIntroTimer--
-      if (matchIntroTimer <= 0) {
-        gameState = GAME_STATES.BATTLE; countdown = ROUND_START_COUNTDOWN
-        if (p1) p1._introPlaying = false   // BUG_9: back to idle once the fight starts
-        if (p2) p2._introPlaying = false
+      if (namecallActive) {
+        // Announcement phase: hold each side's zoom, then advance to the next mapped
+        // side; when done, ease the camera back to normal framing. The VS-banner /
+        // countdown below is held until every announcement resolves.
+        if (--namecallTimer <= 0) {
+          namecallIndex++
+          if (namecallIndex < namecallBeats.length) startNamecallBeat(namecallIndex)
+          else { namecallActive = false; if (camera.focusBetween && p1 && p2) camera.focusBetween(p1, p2, 0.85) }
+        }
+      } else {
+        matchIntroTimer--
+        if (matchIntroTimer <= 0) {
+          gameState = GAME_STATES.BATTLE; countdown = ROUND_START_COUNTDOWN
+          if (p1) p1._introPlaying = false   // BUG_9: back to idle once the fight starts
+          if (p2) p2._introPlaying = false
+        }
       }
+      // Smooth the camera every intro frame: zoom IN during announcements, ease BACK
+      // to default framing afterward. No-op for the no-clip case (target == current).
+      if (typeof camera.advance === "function") camera.advance(canvas)
       break
     case GAME_STATES.BATTLE:
       if (countdown > 0) {
@@ -2530,6 +2879,20 @@ window.addEventListener("keydown", e => {
     return
   }
   handlePauseInput(key)
+
+  // DEBUG HOTKEYS — Naruto shadow clones: "," spawns a clone on P1, "." dispels all
+  // of P1's clones. Bypasses the D→F / D→B + special motion so clones can be summoned
+  // and recalled directly for testing. Battle only; owner = p1, target = the opponent.
+  // (spawn/dispel own all chakra-split + lifecycle logic in summons.js — untouched.)
+  // Shadow clones are exclusively a Naruto mechanic: gate the debug hotkeys on the
+  // CASTER's identity exactly like triggerSpecial's dispatch does. If P1 is anyone
+  // else, these keys are inert (same as pressing a special a character doesn't have).
+  if (!e.repeat && gameState === GAME_STATES.BATTLE && p1 &&
+      (p1.rosterKey || p1.id || "").toLowerCase() === "naruto") {
+    if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); return }
+    if (key === ".") { dispelShadowClones(p1); return }
+  }
+
   // CRITICAL (Task 2): only act on a REAL key PRESS, never OS auto-repeat. While a
   // key is HELD the browser fires repeated keydown events; feeding those into
   // directionHistory / the double-tap detector is what made "hold A" dash AND

@@ -7,9 +7,12 @@ import { moveset }    from "./moveset.js"
 import { sound }      from "./sound.js"
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
+import { resolveGrab } from "./combat.js"   // shared grab pipeline (combat.js doesn't import abilities.js → no cycle)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
-  spawnShadowClone, dispelShadowClones, countShadowClones
+  summonShadowClone, dispelShadowClones, countShadowClones,
+  spawnClonePuff,        // cosmetic smoke poof (reused by Kawarimi — no clone involvement)
+  consumeShadowClones    // pop N clones for the multi-clone combo tier (lossy share)
 } from "./summons.js"
 import {
   applyTransformation,
@@ -42,6 +45,10 @@ export function updatePendingSpawns() {
 const WORLD_WIDTH_FALLBACK  = 3200
 const WORLD_HEIGHT_FALLBACK = 1600
 const COMMAND_INPUT_MAX_AGE = 700
+// Universal ultimate cooldown (frames @60fps): after ANY character's ultimate fires,
+// the ultimate input is dead until this drains, so a refilled meter can't instantly
+// recast. Set in triggerUltimate, ticked down in game.updateMiscTimers. Retune here.
+const ULTIMATE_COOLDOWN_FRAMES = 1200   // 20s @ 60fps
 // Brief CHARGE windup (frames) before a charge→release special fires. The charge
 // sprite strip plays during this window, then the projectile/attack spawns and the
 // cast/fire strip plays. Ticked by the pending-spawn list (updatePendingSpawns).
@@ -225,7 +232,13 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     spriteW:      moveData.spriteW      || null,
     spriteH:      moveData.spriteH      || null,
     spriteSpeed:  moveData.spriteSpeed  || 4,
-    spriteScale:  moveData.spriteScale  || 1
+    spriteScale:  moveData.spriteScale  || 1,
+    // OPTIONAL lingering damage-over-time stamped on the target when this projectile
+    // connects (resolveProjectileHits) — e.g. Naruto Rasenshuriken's wind-chip.
+    dot:        moveData.dot        || null,
+    // Pure-visual projectiles (e.g. an in-place AOE ring bloom): skipped by hit
+    // resolution so they never stun/despawn on contact — they fade out via lifetime.
+    visualOnly: moveData.visualOnly || false
   }
 
   activeProjectiles.push(proj)
@@ -338,6 +351,70 @@ function spendNarutoChakra(fighter, cost) {
   return spendEnergy(fighter, cost)
 }
 
+// 3-WAY CHAKRA SPLIT for multi-clone COMBO casts (#16-18). The cost is shared evenly
+// across every live body, so the pool is charged baseCost / (cloneCount + 1). With 2
+// clones out that's Naruto + 2 clones = a 3-way split → he pays a THIRD of the nominal
+// cost. This is the established `energy / (cloneCount + 1)` share model.
+function spendCloneComboChakra(fighter, baseCost) {
+  const bodies = narutoBodyCount(fighter)            // Naruto + N clones (= cloneCount + 1)
+  const share  = Math.ceil(baseCost / bodies)        // baseCost / (cloneCount + 1)
+  if ((fighter.energy || 0) < share) return false
+  return spendEnergy(fighter, share)
+}
+
+// A GUARANTEED clone-combo hit: spawn `type`'s orb ALREADY overlapping the target so
+// combat.resolveProjectileHits connects it the same frame (no spacing/whiff), running the
+// normal damage pipeline (global scale, hit sparks, damage numbers). Reuses the Rasengan
+// orb FX. `dirSign` sets which side the hit knocks toward; `offsetX` places it front/back.
+function spawnGuaranteedCloneHit(fighter, target, type, opts = {}, context = {}) {
+  if (!target) return null
+  const proj = spawnProjectile(fighter, type, {
+    speed: 0, lifetime: opts.lifetime || 16,
+    damage: opts.damage || 60, hitstun: opts.hitstun || 18,
+    knockbackX: opts.knockbackX || 6, knockbackY: opts.knockbackY ?? -3,
+    color: opts.color || "#38bdf8", w: opts.w || 28, h: opts.h || 28,
+    sheet: "./naruto_kcm_fx_rasengan_sphere.png",
+    spriteFrames: 4, spriteW: 64, spriteH: 85, spriteSpeed: 4, spriteScale: opts.spriteScale || 0.55
+  }, context)
+  if (proj) {
+    proj.x  = target.x + (target.w || 0) / 2 + (opts.offsetX || 0)   // overlap the target
+    proj.y  = target.y + (target.h || 100) * 0.4
+    proj.vx = (opts.dirSign || 1) * 0.01   // sign only (resolveProjectileHits reads proj.vx>0 for knockback dir)
+  }
+  return proj
+}
+
+// #21 CLONE RENDAN STORM — taijutsu-string extension. Called from game.js each time Naruto's
+// BASIC light-string hit connects while clones are alive: every live clone (up to 3) piles on
+// with a quick guaranteed follow-up, chaining extra flurry hits onto the J,J,J string — more
+// clones alive → more hits. Reuses the same schedulePendingSpawn + spawnGuaranteedCloneHit
+// pattern the special-tier combos use. Clones are NOT consumed (they keep joining the string
+// until popped) and there is NO meter cost — this is a basic-string extension, not a cast.
+// Returns how many flurry hits were queued.
+export function applyCloneRendanStorm(fighter, target, context = {}) {
+  if (!fighter || !target) return 0
+  const n = Math.min(countShadowClones(fighter), 3)   // one flurry hit per live clone, cap 3
+  for (let i = 0; i < n; i++) {
+    schedulePendingSpawn(4 + i * 5, () => {            // staggered so they read as a chained flurry
+      spawnGuaranteedCloneHit(fighter, target, "rasengan", {
+        damage: 22, hitstun: 12, knockbackX: 3, knockbackY: -1,
+        dirSign: fighter.facing, offsetX: (i - 1) * 10, w: 24, h: 24, spriteScale: 0.4
+      }, context)
+      shakeCamera(context, 3, 3)
+    })
+  }
+  return n
+}
+
+// Rasengan-family charge tuning. Holding P (charge) then pressing Special reads the
+// SAME held-charge state Gojo/Ben use — fighter.isCharging + fighter._chargeDownTime,
+// both set in game.updateMovementInput EARLIER in the same frame (before triggerSpecial
+// runs in updatePlayerCombat). All four moves are meter-cost solo specials (spendEnergy);
+// none touch the shadow-clone pool / chakra-split math (spendNarutoChakra left unused).
+const NARUTO_FULL_CHARGE_MS  = 600   // hold P ≥ this while pressing Special → Rasenshuriken
+const NARUTO_BIGBALL_WINDUP  = 14    // scripted growth windup before Big Ball fires
+const NARUTO_SHURIKEN_WINDUP = 20    // longer spin-up windup before Rasenshuriken releases
+
 function executeNarutoSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
@@ -345,53 +422,380 @@ function executeNarutoSpecial(fighter, context) {
 
   // D→F = SHADOW CLONE spawn (Down-Forward + Special). Cap 3; over cap → no-op.
   // No upfront chakra cost — the cost is the pool split (summons.js). Puff on spawn.
+  // UNCHANGED — shadow-clone mechanic, outside this task's scope.
   if (endsWithPattern(dirs, ["D", "F"])) {
-    if (!spawnShadowClone(fighter, target)) return false      // at cap → nothing happens
+    // Audio/visual sequencing lives in summonShadowClone: first press = clip + short camera
+    // beat + poof-synced delayed spawn; repeats within the window spawn silently. Cap/chakra
+    // unchanged (returns false only when a FIRST press is already at cap).
+    if (!summonShadowClone(fighter, target, { onFocus: () => focusCameraOnAction(context, fighter, null, 1.02, 12) })) return false
     fighter.attackCooldown = getAttackDuration(16, fighter)
     shakeCamera(context, 5, 5)
     return true
   }
 
   // D→B = DISPEL all clones (Down-Back + Special). Each lost share is gone for good.
+  // UNCHANGED — shadow-clone mechanic, outside this task's scope.
   if (endsWithPattern(dirs, ["D", "B"])) {
     if (!dispelShadowClones(fighter)) return false            // no clones → nothing
     fighter.attackCooldown = getAttackDuration(10, fighter)
     return true
   }
 
-  // B→F = Rasenshuriken — thrown spinning wind-shuriken (long range projectile).
-  // Visible-projectile contract: `sheet` animates the re-sliced FX; if it fails to
-  // load, ui.drawProjectiles falls back to the colored energy orb (never invisible).
-  if (endsWithPattern(dirs, ["B", "F"])) {
-    if (!spendNarutoChakra(fighter, 40)) return false
-    spawnProjectile(fighter, "rasenshuriken", {
-      damage: 150, speed: 15, lifetime: 130,
-      hitstun: 26, knockbackX: 11, knockbackY: -3,
-      color: "#7dd3fc", w: 34, h: 30,
-      sheet: "./naruto_kcm_fx_rasenshuriken.png",
-      spriteFrames: 2, spriteW: 186, spriteH: 106, spriteSpeed: 3, spriteScale: 0.7
+  // CHAKRA ARM GRAB (shroud-gated) — F→F (double-tap toward the opponent) + Special, ONLY
+  // at shroud stage 3+ (deep shroud, when Kurama's chakra arms manifest). Reuses the SHARED
+  // grab pipeline: combat.resolveGrab sets the grab state and the standard updateGrab() (run
+  // each frame in game.js) does the pop-up-and-drop throw — the ONLY difference is a longer
+  // reach (NARUTO_CHAKRA_ARM_RANGE vs the default 75px). Below stage 3 this input falls
+  // through to the normal Rasengan handling. A whiff (out of range / teched) still commits
+  // recovery so it isn't a free spam.
+  if ((fighter.shroudStage || 0) >= 3 && endsWithPattern(dirs, ["F", "F"])) {
+    const NARUTO_CHAKRA_ARM_RANGE = 170
+    const grabbed = resolveGrab(fighter, target, context, NARUTO_CHAKRA_ARM_RANGE)
+    fighter._spriteCastMove  = "rasengan_cast"   // reach pose (no dedicated arm-grab strip)
+    fighter._spriteCastTimer = 24
+    // Chakra-arm reach FX toward the target (Kurama fox-arm art; visualOnly so it never hits).
+    const arm = spawnProjectile(fighter, "chakraArm", {
+      damage: 0, speed: 0, lifetime: 20, w: 60, h: 40, visualOnly: true, color: "#f97316",
+      sheet: fighter.facing >= 0 ? "./naruto_kcm_fx_fox_right.png" : "./naruto_kcm_fx_fox_left.png",
+      spriteFrames: 1, spriteScale: 0.7
     }, context)
-    fighter._spriteCastMove  = "rasenshuriken_cast"   // 6-koma body plays on the caster
-    fighter._spriteCastTimer = 26
-    fighter.attackCooldown = getAttackDuration(26, fighter)
-    focusCameraOnAction(context, fighter, target, 0.99, 8)
-    shakeCamera(context, 7, 7)
+    if (arm) {
+      arm.x = target ? (fighter.x + fighter.w / 2 + target.x + target.w / 2) / 2 : fighter.x + fighter.facing * 60
+      arm.y = fighter.y + (fighter.h || 100) * 0.4
+    }
+    if (!grabbed) fighter.attackCooldown = getAttackDuration(20, fighter)   // whiff recovery
+    focusCameraOnAction(context, fighter, target, 0.98, 10)
+    shakeCamera(context, 6, 6)
     return true
   }
 
-  // Default = Rasengan — close/dashing spiral-orb projectile (short lifetime).
-  if (!spendNarutoChakra(fighter, 35)) return false
-  fighter.vx = fighter.facing * 6   // dash in with the thrust
-  spawnProjectile(fighter, "rasengan", {
-    damage: 140, speed: 9, lifetime: 60,
-    hitstun: 24, knockbackX: 10, knockbackY: -4,
-    color: "#38bdf8", w: 30, h: 30,
-    sheet: "./naruto_kcm_fx_rasengan_sphere.png",
+  // ── RASENGAN FAMILY — solo specials, meter-cost only, ZERO clone involvement ──
+
+  // HOLD-CHARGE branch: player is holding P (charge) as they press Special. The held
+  // duration selects the move — full charge → Rasenshuriken (can't release early);
+  // anything short of that → a Big Ball Rasengan whose size + damage scale with charge.
+  if (fighter.isCharging) {
+    // #20 TEAM CHAKRA-ORB ASSIST / COMBINED RASENGAN — needs 3 clones. Holding charge with
+    // all 3 clones out, Naruto + the 3 clones form the KOMA 5A "team orb" pose and lift ONE
+    // large combined sphere, thrown as a SINGLE big hit (vs #19's three separate orbs). Gated
+    // AHEAD of Rasenshuriken/Big Ball so a full-team hold becomes the combined orb; with 0-2
+    // clones this whole branch is skipped and the normal charge specials fire unchanged.
+    // Consumes all 3 clones; pays the 4-way chakra split (Naruto + 3 clones).
+    // FLAG: intended team-pose art (naruto_kcm_5_koma_special_a_body/_scene/_arms_big +
+    // fx_5_koma_special_a_orb) not yet on disk → the orb reuses the Rasengan sphere sheet
+    // (scaled up), same fallback convention as Dark Rasengan's ring bloom.
+    if (countShadowClones(fighter) >= 3) {
+      if (!spendCloneComboChakra(fighter, 40)) return false
+      consumeShadowClones(fighter, 3)                 // whole team commits to the one orb
+      fighter._spriteCastMove  = "rasengan_cast"      // team-lift pose (no dedicated 5A strip on disk)
+      fighter._spriteCastTimer = 28
+      fighter.attackCooldown   = getAttackDuration(30, fighter)
+      schedulePendingSpawn(6, () => {                 // brief windup, then the combined sphere lands
+        spawnGuaranteedCloneHit(fighter, target, "rasengan", {
+          damage: 200, hitstun: 30, knockbackX: 12, knockbackY: -6, dirSign: fighter.facing,
+          w: 60, h: 60, spriteScale: 1.1            // one BIG orb (single hit, not a barrage)
+        }, context)
+        sound.playSfxFile("naruto_rasengan.mp3", null)
+        shakeCamera(context, 11, 9)
+      })
+      focusCameraOnAction(context, fighter, target, 0.97, 12)
+      return true
+    }
+
+    const heldMs = performance.now() - (fighter._chargeDownTime || performance.now())
+
+    // RASENSHURIKEN — FULL charge required. Strongest non-clone special: high cost,
+    // high damage, PLUS a lingering wind-chip DOT applied on hit (see resolveProjectileHits).
+    if (heldMs >= NARUTO_FULL_CHARGE_MS) {
+      if (!spendEnergy(fighter, 80)) return false
+      fighter._spriteCastMove  = "rasenshuriken_cast"   // 6-koma body spin-up on the caster
+      fighter._spriteCastTimer = NARUTO_SHURIKEN_WINDUP + 18
+      fighter.attackCooldown   = getAttackDuration(NARUTO_SHURIKEN_WINDUP + 30, fighter)
+      schedulePendingSpawn(NARUTO_SHURIKEN_WINDUP, () => {
+        spawnProjectile(fighter, "rasenshuriken", {
+          damage: 260, speed: 14, lifetime: 130,
+          hitstun: 34, knockbackX: 15, knockbackY: -3,
+          color: "#7dd3fc", w: 40, h: 36,
+          sheet: "./naruto_kcm_fx_rasenshuriken.png",
+          spriteFrames: 2, spriteW: 186, spriteH: 106, spriteSpeed: 2, spriteScale: 0.85,
+          // lingering wind-chip DOT: 5 extra ticks of 8 dmg, one every 12 frames after the hit.
+          dot: { ticks: 5, interval: 12, dmg: 8 }
+        }, context)
+        sound.playSfxFile("naruto_rasenshuriken.mp3", null)   // release/throw cue (same beat as its FX)
+        shakeCamera(context, 8, 8)
+      })
+      focusCameraOnAction(context, fighter, target, 0.98, 10)
+      return true
+    }
+
+    // BIG BALL RASENGAN — released before full charge. Steps through the sphere-growth
+    // strip during the windup; size + damage scale with how long P was held, capped.
+    if (!spendEnergy(fighter, 55)) return false
+    const chargeT = Math.min(heldMs / NARUTO_FULL_CHARGE_MS, 1)   // 0..1 partial charge
+    const dmg  = Math.round(150 + 60 * chargeT)   // 150 → 210 damage
+    const size = Math.round(34 + 26 * chargeT)    // 34 → 60 px sphere (visual)
+    fighter._spriteCastMove  = "rasengan_cast"     // 4-koma body while the sphere grows
+    fighter._spriteCastTimer = NARUTO_BIGBALL_WINDUP + 12
+    fighter.attackCooldown   = getAttackDuration(NARUTO_BIGBALL_WINDUP + 22, fighter)
+    // Big Ball is STILL a close-range rush — just a bigger, charged ram (never thrown).
+    // The growth windup plays, then on release Naruto lunges in and connects a MELEE hitbox
+    // (bigger reach/knockback than base). Deferred setAttackState = same as Gojo Red's release.
+    schedulePendingSpawn(NARUTO_BIGBALL_WINDUP, () => {
+      const attack = createAttackFromMove(fighter, "bigBallRasengan", {
+        damage: dmg, startup: 2, active: 6, recovery: 20,
+        hitstun: 30, knockbackX: 13, knockbackY: -4,
+        rangeX: 78 + Math.round(24 * chargeT), rangeY: 62   // reach grows a touch with charge
+      })
+      setAttackState(fighter, attack, 22)
+      fighter.vx = fighter.facing * 7              // dash in to ram it home
+      const orb = spawnProjectile(fighter, "bigBallRasenganOrb", {
+        damage: 0, speed: 0, lifetime: 22, w: size, h: size, visualOnly: true,
+        color: "#38bdf8", sheet: "./naruto_kcm_fx_rasengan_sphere.png",
+        spriteFrames: 4, spriteW: 64, spriteH: 85, spriteSpeed: 3, spriteScale: 0.6 + 0.5 * chargeT
+      }, context)
+      if (orb) {
+        orb.x  = fighter.x + (fighter.facing >= 0 ? fighter.w : 0)
+        orb.y  = fighter.y + (fighter.h || 100) * 0.4
+        orb.vx = fighter.facing * 7
+      }
+      sound.playSfxFile("naruto_rasengan.mp3", null)   // ram cue (same Rasengan sound as base)
+      shakeCamera(context, 6 + Math.round(4 * chargeT), 6)
+    })
+    focusCameraOnAction(context, fighter, target, 0.99, 8)
+    return true
+  }
+
+  // #18 / #22 SUBSTITUTION CHAIN — Block+Special during an INCOMING attack WHILE clones are
+  // in reserve: a clone takes Naruto's place (no-sell) instead of spending meter. Pops ONE
+  // clone per use, so the SAME input scales with the reserve — 2 clones = Double Substitution
+  // Chain (#18, two no-sells), 3 clones = TRIPLE SUBSTITUTION WALL (#22, three separate taps
+  // no-selling three separate incoming hits). No cap beyond the live clone count; once the
+  // clones run out the SAME input falls through to the meter-cost Kawarimi below (untouched).
+  // Reuses the Clone-Substitution idea: consume the swing + brief i-frames. Checked BEFORE
+  // Kawarimi so clone-shares are spent first while any remain.
+  if (fighter.isBlocking && countShadowClones(fighter) >= 1) {
+    const t = target && target.currentAttack
+    const incoming = !!(t && target.attacking && !t.hasHit &&
+      ((t.total || 0) - (t.timer || 0)) <= (t.activeEnd || 0))
+    if (incoming) {
+      consumeShadowClones(fighter, 1)                 // a clone eats the hit (pop, lose its share)
+      t.hasHit = true                                  // the swing whiffs, guaranteed — no damage
+      fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 12)
+      fighter.teleportFlash = 14
+      spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 100) / 2)
+      fighter.vx = -fighter.facing * 4                 // light hop back (lighter than Kawarimi's teleport)
+      fighter.attackCooldown = getAttackDuration(14, fighter)
+      focusCameraOnAction(context, fighter, target, 1.0, 8)
+      return true
+    }
+    // blocking with clones but nothing incoming → fall through (Kawarimi window is also closed).
+  }
+
+  // BLOCK + SPECIAL, during a WHIFF-PUNISH WINDOW = KAWARIMI SUBSTITUTION — defensive
+  // teleport-swap. Only usable while the opponent has an active/about-to-land attack
+  // (not a free anytime button); with no incoming attack this falls through to Dark
+  // Rasengan (both are Down+Special — block = holding Down). Meter cost, NOT a clone
+  // share. On success the incoming swing is CONSUMED (whiffs cleanly, no damage) using
+  // the same hasHit pattern the domain / Gojo auto-dodge escapes use, then Naruto poofs
+  // out (reusing the exact clone smoke FX) and re-appears behind the opponent.
+  if (fighter.isBlocking) {
+    const threat = target && target.currentAttack
+    // Window = from the attack's startup through the end of its active frames
+    // (elapsed = total - timer ≤ activeEnd), and it hasn't already connected.
+    const incoming = !!(threat && target.attacking && !threat.hasHit &&
+      ((threat.total || 0) - (threat.timer || 0)) <= (threat.activeEnd || 0))
+    if (incoming) {
+      if (!spendEnergy(fighter, 25)) return false
+      threat.hasHit = true                                        // the swing whiffs, guaranteed
+      fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 14)  // also covers stray projectiles
+      fighter.teleportFlash = 16
+      spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 100) / 2)   // poof OUT
+      // WINDUP (startup) → re-appear behind the opponent (reposition math = Gojo's
+      // Up+Special blink) with a second poof. attackCooldown = startup + recovery gives
+      // it a real recovery tail (same frame-shape all Naruto specials use) so it's a
+      // committed defensive tool, not a zero-downside panic button.
+      const KAWARIMI_STARTUP = 6
+      fighter.attackCooldown = getAttackDuration(KAWARIMI_STARTUP + 20, fighter)
+      schedulePendingSpawn(KAWARIMI_STARTUP, () => {
+        if (target) {
+          const sw = context?.worldWidth || 3200
+          fighter.x = (fighter.x < target.x) ? target.x + target.w + 8 : target.x - fighter.w - 8
+          fighter.x = Math.max(0, Math.min(sw - fighter.w, fighter.x))
+          fighter.y = target.y
+          fighter.facing = (target.x >= fighter.x) ? 1 : -1
+          fighter.vx = 0; fighter.vy = 0
+        }
+        spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 100) / 2)   // poof IN
+      })
+      focusCameraOnAction(context, fighter, target, 1.0, 8)
+      return true
+    }
+    // block+special with nothing incoming → not a valid Kawarimi; fall through below.
+  }
+
+  // TOAD SUMMON (Gamakichi-style) — B→F (Back→Forward + Special). A summoned toad leaps in,
+  // lands ONE strike, then curls up and vanishes. This is a SUMMON, NOT a shadow clone: it
+  // costs normal energy (spendEnergy) with NO chakra-split / clone-share, and reuses Megumi's
+  // shikigami summon-entity path (spawnAssistSummon → summons.js narutoToad template: spawn →
+  // brief lifetime → one action → despawn). B→F is unused by every other Naruto special
+  // (D,F / D,B / F,F / B,U / *,D are all taken), so it never collides. Placed after the
+  // charge/block-gated branches (same as the other pure-motion specials) and before the
+  // neutral clone barrages / base Rasengan so the motion is honoured first.
+  if (endsWithPattern(dirs, ["B", "F"])) {
+    if (!spendEnergy(fighter, 35)) return false
+    spawnAssistSummon(fighter, "narutoToad", target)
+    fighter._spriteCastMove  = "rasengan_cast"   // brief summon-gesture pose (no dedicated summon strip)
+    fighter._spriteCastTimer = 20
+    fighter.attackCooldown   = getAttackDuration(22, fighter)
+    focusCameraOnAction(context, fighter, target, 0.98, 10)
+    shakeCamera(context, 5, 6)
+    return true
+  }
+
+  // #17 PINCER RENDAN — needs 2 clones. B→U (Back→Up + Special): one clone strikes from the
+  // FRONT, one from BEHIND the opponent — two GUARANTEED juggle hits (strong upward launch,
+  // opposite offsets) that pop the opponent up so Naruto's own B-up follow-up can connect.
+  // Consumes both clones (pop after use); pays the 3-way chakra split.
+  if (endsWithPattern(dirs, ["B", "U"]) && countShadowClones(fighter) >= 2) {
+    if (!spendCloneComboChakra(fighter, 35)) return false
+    consumeShadowClones(fighter, 2)   // pop both clones
+    const halfW = (target?.w || 40) * 0.4
+    schedulePendingSpawn(2, () => {   // FRONT clone (Naruto's facing side)
+      spawnGuaranteedCloneHit(fighter, target, "rasengan",
+        { damage: 60, hitstun: 24, knockbackX: 3, knockbackY: -11, dirSign: fighter.facing, offsetX: halfW, spriteScale: 0.5 }, context)
+      shakeCamera(context, 5, 6)
+    })
+    schedulePendingSpawn(8, () => {   // BACK clone (opposite side)
+      spawnGuaranteedCloneHit(fighter, target, "rasengan",
+        { damage: 60, hitstun: 24, knockbackX: 3, knockbackY: -10, dirSign: -fighter.facing, offsetX: -halfW, spriteScale: 0.5 }, context)
+      shakeCamera(context, 5, 6)
+    })
+    fighter._spriteCastMove = "rasengan_cast"; fighter._spriteCastTimer = 24
+    fighter.attackCooldown = getAttackDuration(26, fighter)
+    focusCameraOnAction(context, fighter, target, 0.96, 12)
+    return true
+  }
+
+  // Down + Special = DARK RASENGAN / Compressed TBB — close-range AOE that DETONATES
+  // IN PLACE (does not travel). A stationary createAttackFromMove hitbox bubbles around
+  // Naruto (wide rangeX/rangeY), plus a damage-less ring-bloom visual centred on him.
+  if (dirs.length > 0 && dirs[dirs.length - 1] === "D") {
+    if (!spendEnergy(fighter, 45)) return false
+    fighter._spriteCastMove  = "rasengan_cast"
+    fighter._spriteCastTimer = 20
+    const attack = createAttackFromMove(fighter, "darkRasengan", {
+      damage: 180, startup: 12, active: 8, recovery: 22,
+      hitstun: 28, knockbackX: 10, knockbackY: -6,
+      rangeX: 95, rangeY: 85          // wide + tall = a burst bubble at close range only
+    })
+    setAttackState(fighter, attack, 42)
+    // In-place ring bloom — stationary (speed 0), damage-less, flagged visualOnly so it
+    // never collides; re-centred on Naruto (spawnProjectile places it in front by default).
+    // BUG FIX: was pointing at naruto_kcm_fx_tbb_dark_sphere_growth.png (a solid BLACK ORB
+    // — the TBB growth sphere), so the detonation drew a dark ball instead of the ring
+    // burst. The intended koma_special_b "orange_rings" sheet isn't on disk; the real
+    // orange ring-burst is the tbb shockwave set — shockwave_2 reads as an expanding ring.
+    const rings = spawnProjectile(fighter, "darkRasenganRings", {
+      damage: 0, speed: 0, lifetime: 22, w: 150, h: 150, visualOnly: true,
+      color: "#f59e0b",
+      sheet: "./naruto_kcm_fx_tbb_shockwave_2.png",
+      spriteFrames: 1, spriteScale: 0.9
+    }, context)
+    if (rings) {
+      rings.x = fighter.x + fighter.w / 2
+      rings.y = fighter.y + (fighter.h || 100) * 0.45
+    }
+    focusCameraOnAction(context, fighter, target, 0.97, 12)
+    shakeCamera(context, 10, 8)
+    return true
+  }
+
+  // #19 FULL RASENGAN BARRAGE — needs 3 clones. Neutral Special with ALL 3 clones out: the
+  // full-barrage escalation of #16 — Naruto throws his own orb and each of the 3 clones hurls
+  // one in rapid sequence → THREE guaranteed extra hits stacked onto his throw. Checked BEFORE
+  // the 2-clone case so a full team fires the bigger barrage. Consumes all 3 clones; pays the
+  // 4-way chakra split (Naruto + 3 clones).
+  // FLAG: intended KOMA 5B clone-burst art (fx_5_koma_special_b_mid_strip.png cluster) not yet
+  // on disk → the orbs reuse the Rasengan sphere sheet, same convention as #16.
+  if (countShadowClones(fighter) >= 3) {
+    if (!spendCloneComboChakra(fighter, 30)) return false
+    consumeShadowClones(fighter, 3)   // pop all three clones
+    fighter.vx = fighter.facing * 5   // Naruto's own orb — the combo anchor (normal traveling shot)
+    spawnProjectile(fighter, "rasengan", {
+      damage: 90, speed: 10, lifetime: 55, hitstun: 20, knockbackX: 7, knockbackY: -2,
+      color: "#38bdf8", w: 28, h: 28,
+      sheet: "./naruto_kcm_fx_rasengan_sphere.png",
+      spriteFrames: 4, spriteW: 64, spriteH: 85, spriteSpeed: 4, spriteScale: 0.55
+    }, context)
+    ;[4, 11, 18].forEach((delay) => schedulePendingSpawn(delay, () => {   // 3 clone orbs, rapid sequence
+      spawnGuaranteedCloneHit(fighter, target, "rasengan",
+        { damage: 70, hitstun: 18, knockbackX: 6, knockbackY: -2, dirSign: fighter.facing, spriteScale: 0.5 }, context)
+      shakeCamera(context, 4, 4)
+    }))
+    fighter._spriteCastMove = "rasengan_cast"; fighter._spriteCastTimer = 24
+    fighter.attackCooldown = getAttackDuration(26, fighter)
+    focusCameraOnAction(context, fighter, target, 0.98, 8)
+    return true
+  }
+
+  // #16 RASENGAN BARRAGE (small) — needs 2 clones. With both clones out, a neutral Special
+  // becomes a barrage: Naruto throws his own Rasengan and each of the 2 clones hurls one too
+  // in rapid sequence — two GUARANTEED extra hits stacked onto his throw (reuses the base
+  // Rasengan orb FX). Consumes both clones (pop after use); pays the 3-way chakra split.
+  // Checked AFTER the motion specials (Pincer / Dark Rasengan) so it's the neutral 2-clone case.
+  if (countShadowClones(fighter) >= 2) {
+    if (!spendCloneComboChakra(fighter, 30)) return false
+    consumeShadowClones(fighter, 2)   // pop both clones
+    fighter.vx = fighter.facing * 5   // Naruto's own orb — his combo anchor (normal traveling shot)
+    spawnProjectile(fighter, "rasengan", {
+      damage: 90, speed: 10, lifetime: 55, hitstun: 20, knockbackX: 7, knockbackY: -2,
+      color: "#38bdf8", w: 28, h: 28,
+      sheet: "./naruto_kcm_fx_rasengan_sphere.png",
+      spriteFrames: 4, spriteW: 64, spriteH: 85, spriteSpeed: 4, spriteScale: 0.55
+    }, context)
+    schedulePendingSpawn(4,  () => {  // clone orb #1 (guaranteed) …
+      spawnGuaranteedCloneHit(fighter, target, "rasengan",
+        { damage: 70, hitstun: 18, knockbackX: 6, knockbackY: -2, dirSign: fighter.facing, spriteScale: 0.5 }, context)
+      shakeCamera(context, 4, 4)
+    })
+    schedulePendingSpawn(12, () => {  // … clone orb #2, in rapid sequence
+      spawnGuaranteedCloneHit(fighter, target, "rasengan",
+        { damage: 70, hitstun: 18, knockbackX: 6, knockbackY: -2, dirSign: fighter.facing, spriteScale: 0.5 }, context)
+      shakeCamera(context, 4, 4)
+    })
+    fighter._spriteCastMove = "rasengan_cast"; fighter._spriteCastTimer = 22
+    fighter.attackCooldown = getAttackDuration(24, fighter)
+    focusCameraOnAction(context, fighter, target, 0.98, 8)
+    return true
+  }
+
+  // Default (neutral L, no charge held) = BASE RASENGAN — a close-range RUSH STRIKE.
+  // Rasengan is NEVER thrown: Naruto dashes in and rams the spiral orb point-blank. This
+  // is the Dragon-Fist melee-rush pattern (createAttackFromMove + setAttackState + forward
+  // lunge), NOT a traveling projectile. (Only Rasenshuriken is thrown; Dark Rasengan is AOE.)
+  if (!spendEnergy(fighter, 30)) return false
+  const attack = createAttackFromMove(fighter, "rasengan", {
+    damage: 120, startup: 8, active: 5, recovery: 16,
+    hitstun: 22, knockbackX: 9, knockbackY: -3,
+    rangeX: 72, rangeY: 55          // short reach — point-blank ram, no ranged travel
+  })
+  setAttackState(fighter, attack, 20)          // sets attacking + attackCooldown
+  fighter.vx = fighter.facing * 8              // dash in to close the gap
+  // Sphere FX only — visualOnly (no damage, no collision) so the MELEE hitbox above is
+  // what connects; carried forward with the lunge, not thrown ahead as a separate object.
+  const orb = spawnProjectile(fighter, "rasenganOrb", {
+    damage: 0, speed: 0, lifetime: 20, w: 30, h: 30, visualOnly: true,
+    color: "#38bdf8", sheet: "./naruto_kcm_fx_rasengan_sphere.png",
     spriteFrames: 4, spriteW: 64, spriteH: 85, spriteSpeed: 4, spriteScale: 0.6
   }, context)
-  fighter._spriteCastMove  = "rasengan_cast"   // 4-koma body plays on the caster
-  fighter._spriteCastTimer = 24
-  fighter.attackCooldown = getAttackDuration(24, fighter)
+  if (orb) {
+    orb.x  = fighter.x + (fighter.facing >= 0 ? fighter.w : 0)
+    orb.y  = fighter.y + (fighter.h || 100) * 0.4
+    orb.vx = fighter.facing * 8   // rides the lunge, then fades
+  }
+  sound.playSfxFile("naruto_rasengan.mp3", null)   // ram cue (shared with Big Ball — same technique)
+  fighter._spriteCastMove  = "rasengan_cast"   // 4-koma body plays on the caster (the ram)
+  fighter._spriteCastTimer = 20
   focusCameraOnAction(context, fighter, target, 0.99, 8)
   shakeCamera(context, 6, 6)
   return true
@@ -460,6 +864,7 @@ function executeGojoSpecial(fighter, context) {
       }, context)
       fighter._spriteCastMove  = "hollowPurple"   // RELEASE → hollow_purple_cast strip
       fighter._spriteCastTimer = 36
+      sound.playSfxFile("gojo_hollow_purple.mp3", null)   // cast/release cue
       shakeCamera(context, 14, 12)
     })
     focusCameraOnAction(context, fighter, target, 0.93, 18)
@@ -483,6 +888,7 @@ function executeGojoSpecial(fighter, context) {
       setAttackState(fighter, attack, 26)   // currentMove="red" → red_cast strip
       fighter._spriteCastMove  = null        // hand off to currentMove
       fighter._spriteCastTimer = 0
+      sound.playSfxFile("gojo_red.mp3", null)   // cast/release cue
     })
     focusCameraOnAction(context, fighter, target, 0.98, 10)
     return true
@@ -614,6 +1020,7 @@ function executeSukunaSpecial(fighter, context) {
     fighter._spriteCastMove  = "dismantle"
     fighter._spriteCastTimer = 24
     fighter.attackCooldown = getAttackDuration(24, fighter)
+    sound.playSfxFile("sukuna_slash.mp3", null)   // slash cue (shared with Cleave)
     return true
   }
 
@@ -633,6 +1040,7 @@ function executeSukunaSpecial(fighter, context) {
       }, context)
       fighter._spriteCastMove  = "flame_arrow_fire"   // FIRE strip (sukuna_firearrow_fire)
       fighter._spriteCastTimer = 24
+      sound.playSfxFile("sukuna_fuga.mp3", null)   // Fuga = Sukuna's flame-arrow technique — release cue
       shakeCamera(context, 8, 6)
     })
     return true
@@ -646,6 +1054,7 @@ function executeSukunaSpecial(fighter, context) {
     rangeX: 110, rangeY: 65  // extra wide hitbox
   })
   setAttackState(fighter, attack, 24)
+  sound.playSfxFile("sukuna_slash.mp3", null)   // slash cue (shared with Dismantle)
   focusCameraOnAction(context, fighter, target, 0.97, 8)
   shakeCamera(context, 10, 8)
   return true
@@ -940,24 +1349,34 @@ export function triggerSpecial(fighter, context = {}) {
 
 export function triggerUltimate(fighter, context = {}) {
   if (!fighter) return false
+  if ((fighter.ultimateCooldown || 0) > 0) return false      // on cooldown → do nothing (same as too little meter)
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
   if (fighter.attacking) return false
   if (isSpecialDisabled(fighter, "ultimate")) return false   // binding vow (Limitless Sacrifice / Assassin's Oath)
 
   const key = (fighter.rosterKey || fighter.id || "").toLowerCase()
 
-  if (fighter.isMahoraga) return executeMahoragaUltimate(fighter, context)
-
-  switch (key) {
-    case "goku":    return executeGokuUltimate(fighter, context)
-    case "naruto":  return executeNarutoUltimate(fighter, context)
-    case "gojo":    return executeGojoUltimate(fighter, context)
-    case "megumi":  return executeMegumiUltimate(fighter, context)
-    case "sukuna":  return executeSukunaUltimate(fighter, context)
-    case "omololu": return executeOmoluUltimate(fighter, context)
-    case "toji":    return executeToji_Ultimate(fighter, context)
-    default:        return executeFallbackUltimate(fighter, context)
+  let cast
+  if (fighter.isMahoraga) {
+    cast = executeMahoragaUltimate(fighter, context)
+  } else {
+    switch (key) {
+      case "goku":    cast = executeGokuUltimate(fighter, context);    break
+      case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
+      case "gojo":    cast = executeGojoUltimate(fighter, context);    break
+      case "megumi":  cast = executeMegumiUltimate(fighter, context);  break
+      case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break
+      case "omololu": cast = executeOmoluUltimate(fighter, context);   break
+      case "toji":    cast = executeToji_Ultimate(fighter, context);   break
+      default:        cast = executeFallbackUltimate(fighter, context); break
+    }
   }
+
+  // UNIVERSAL COOLDOWN: only start it when the ultimate ACTUALLY fired — executeX
+  // returns false if it bailed (e.g. not enough meter), so a failed attempt never
+  // locks the ultimate out. Applies to every character through this one dispatch.
+  if (cast) fighter.ultimateCooldown = ULTIMATE_COOLDOWN_FRAMES
+  return cast
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1117,13 +1536,19 @@ export function applyGojoPassiveSystems(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gojo") return
 
   if (fighter.infinityActive) {
-    // Infinity drains energy while active
-    if ((fighter.energy || 0) > 0) {
-      fighter.energy = Math.max(0, fighter.energy - 0.14)
+    // Infinity drains energy while active. Drop it as soon as the meter can't cover
+    // the per-frame drain — NOT only at exactly 0. The old `> 0` check let passive
+    // regen (regenEnergy, run later the SAME frame) top the meter back up by a sliver
+    // each frame, so energy never actually reached 0 at check time and Infinity stayed
+    // on forever with an empty-looking bar.
+    const drain = 0.14
+    if ((fighter.energy || 0) >= drain) {
+      fighter.energy = Math.max(0, fighter.energy - drain)
     } else {
-      // Energy ran out → Infinity drops. TASK 5: depleting CE while Infinity is up
+      // Energy exhausted → Infinity drops. TASK 5: depleting CE while Infinity is up
       // backlashes — a one-time small health penalty + a brief vulnerable stagger
       // (this branch runs only on the frame infinityActive flips off, so it's once).
+      fighter.energy         = 0
       fighter.infinityActive = false
       if (!fighter.infiniteEnergy) {
         fighter.health  = Math.max(1, (fighter.health || 0) - (fighter.maxHealth || 1000) * 0.05)

@@ -27,6 +27,7 @@ export const AI_DIFFICULTIES = {
     retreatChance: 0,
     comboChance: 0,
     antiAirChance: 0,
+    blockChance: 0,       // base chance/frame to hold guard vs an incoming attack (boosted vs special/ultimate)
     desiredRange: 120,
     aggression: 0,
     // ── new behavior tuning ──
@@ -48,6 +49,7 @@ export const AI_DIFFICULTIES = {
     retreatChance: 0.22,
     comboChance: 0.28,
     antiAirChance: 0.16,
+    blockChance: 0.18,
     desiredRange: 145,
     aggression: 0.42,
     zoningChance: 0.22,
@@ -68,6 +70,7 @@ export const AI_DIFFICULTIES = {
     retreatChance: 0.14,
     comboChance: 0.58,
     antiAirChance: 0.48,
+    blockChance: 0.45,
     desiredRange: 125,
     aggression: 0.64,
     zoningChance: 0.50,
@@ -88,6 +91,7 @@ export const AI_DIFFICULTIES = {
     retreatChance: 0.06,
     comboChance: 0.86,
     antiAirChance: 0.78,
+    blockChance: 0.75,
     desiredRange: 105,
     aggression: 0.88,
     zoningChance: 0.70,
@@ -168,6 +172,7 @@ function buildNeutralInput() {
   return {
     left: false,
     right: false,
+    down: false,     // hold to crouch/guard (game maps to c.down → fighter.isBlocking)
     jump: false,
     lightAttack: false,
     heavyAttack: false,
@@ -533,6 +538,20 @@ function choosePlan(controller, fighter, opponent, world = {}) {
     return "airPressure"
   }
 
+  // DEFENSE — hold block against an incoming attack. Reactive ONLY: the opponent must
+  // be actively attacking and in range, so it stays baitable/punishable rather than a
+  // permanent turtle (when they're idle the AI never blocks). Telegraphed specials/
+  // ultimates get a boosted roll so higher-tier AI won't eat them for free. The re-
+  // decision cadence (reactionFrames) already makes higher difficulty react faster.
+  // Grounded only — air defense stays movement-based.
+  if (!fighterAir && opponent?.attacking && distanceX < 170) {
+    const atk = opponent.currentAttack
+    let blockRoll = profile.blockChance
+    if (atk?.isUltimate)     blockRoll = clamp(blockRoll * 1.8, 0, 0.98)
+    else if (atk?.isSpecial) blockRoll = clamp(blockRoll * 1.4, 0, 0.95)
+    if (chance(blockRoll)) return "block"
+  }
+
   // If the opponent is zoning us, close in / jump in rather than sit at range.
   if (counter.closeIn > 0 && distanceX > desiredRange && !opponentBusy) {
     return "approach"
@@ -592,6 +611,13 @@ function applyMovementPlan(input, plan, fighter, opponent, profile) {
       if (chance(profile.jumpChance * 0.18) && !isAirborne(fighter)) {
         press(input, "jump")
       }
+      break
+
+    case "block":
+      // Hold Down to guard (game.js maps aiInput.down → keys[c.down] → fighter.isBlocking).
+      // Stand still — no move/attack/jump inputs — so the guard isn't cancelled;
+      // chooseAttackAction and maybeJump both bail out on the "block" plan.
+      press(input, "down")
       break
 
     case "zone":
@@ -665,6 +691,7 @@ function advanceString(controller, input, inRange, energyOk) {
 }
 
 function chooseAttackAction(controller, fighter, opponent, input) {
+  if (controller.currentPlan === "block") return   // committed to guarding — no attacks this frame
   const profile = controller.profile
   const arsenal = analyzeArsenal(controller, fighter)
   const counter = controller.memory._counter || { antiAir: 0, pressure: 0, spaceOut: 0 }
@@ -776,7 +803,8 @@ function maybeJump(controller, fighter, opponent, input) {
 
   if (isAirborne(fighter)) return
   if (input.jump) return
-  if (controller.currentPlan === "zone") return   // don't hop out of our throw stance
+  if (controller.currentPlan === "zone") return    // don't hop out of our throw stance
+  if (controller.currentPlan === "block") return   // don't hop out of our guard
 
   if (distanceX > 180 && chance(profile.jumpChance * 0.35)) {
     press(input, "jump")

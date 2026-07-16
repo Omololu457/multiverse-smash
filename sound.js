@@ -51,6 +51,40 @@ export const AUDIO_BASE = "./"
 // NOTE: exact on-disk filename — the file is literally "Passion_fruitmp3.mp3".
 export const MENU_MUSIC_FILE = "Passion_fruitmp3.mp3"
 
+// ── MENU BACKGROUND PLAYLIST ──────────────────────────────────────
+// Ordered list of tracks the game plays (in order, looping back to the top)
+// while the player is on ANY menu/settings/select screen — NEVER during a
+// match (playStageTrack takes over there). This is the single source of truth
+// for the sequence; playMenuMusic() reads straight from it and the Settings
+// reorder UI mutates it in place. Filenames are EXACT on-disk names (case
+// sensitive). Missing files degrade gracefully via playMusicFile's onerror
+// fallback (procedural MENU theme), so a not-yet-added track never crashes.
+export const MENU_PLAYLIST = [
+  "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3",
+  "Future___Young_Thug_-_No_Cap__Official_Audio_.mp3",
+  "jhene__aiko_-_stay_ready__instrumental_.mp3",
+  "Noble_f3mii_Instrumental.mp3",
+  "Rema_-_Dumebi.mp3",
+  "Rochelle_Jordan_-_Lowkey___sped_up__.mp3"
+]
+
+// Clean, human-readable labels for the Settings playlist UI (only these 6 fixed
+// files, so a hardcoded map is fine). menuTrackDisplayName() falls back to a
+// prettified filename if a track is ever missing from the map.
+export const MENU_TRACK_NAMES = {
+  "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3": "Love Nwantiti (Remix)",
+  "Future___Young_Thug_-_No_Cap__Official_Audio_.mp3": "Future & Young Thug — No Cap",
+  "jhene__aiko_-_stay_ready__instrumental_.mp3":       "Jhené Aiko — Stay Ready (Instrumental)",
+  "Noble_f3mii_Instrumental.mp3":                       "Noble F3mii (Instrumental)",
+  "Rema_-_Dumebi.mp3":                                  "Rema — Dumebi",
+  "Rochelle_Jordan_-_Lowkey___sped_up__.mp3":          "Rochelle Jordan — Lowkey (Sped Up)"
+}
+
+export function menuTrackDisplayName(file) {
+  if (MENU_TRACK_NAMES[file]) return MENU_TRACK_NAMES[file]
+  return String(file || "").replace(/\.mp3$/i, "").replace(/_+/g, " ").trim()
+}
+
 export const MUSIC = {
   MENU:           "music_menu",
   JUJUTSU_HIGH:   "music_jujutsu_high",
@@ -412,6 +446,10 @@ class MusicPlayer {
   }
 }
 
+// AUDIO DUCKING — while a file-based voice/significant cue (playSfxFile) is playing,
+// music drops to this fraction of its normal level, then ramps back when the cue ends.
+const MUSIC_DUCK_FACTOR = 0.35   // 35% (within the requested 30-40% range)
+
 // ─────────────────────────────────────────────────────────────────
 // SOUND MANAGER
 // ─────────────────────────────────────────────────────────────────
@@ -422,7 +460,13 @@ class SoundManager {
     this._musicPlayer = null
     this._sfxVol   = 0.8
     this._musicVol = 0.55
-    this._muted    = false
+    // Independent mutes: SFX (play() + playSfxFile — combat/voice/ability cues) and
+    // MUSIC (procedural themes + stage .mp3s). Kept separate so one can't silence the
+    // other. NOTE: procedural music routes through the SFX _master gain, so SFX mute is
+    // gated at the SOURCES (play()/playSfxFile early-return) rather than by zeroing
+    // _master — otherwise it would silence music too.
+    this._sfxMuted   = false
+    this._musicMuted = false
     this._ready    = false
     // Real-audio-file music (user-provided .mp3 per stage). Played through an
     // HTMLAudioElement (its own pipeline, NOT the AudioContext graph), so its
@@ -435,6 +479,18 @@ class SoundManager {
     // flush it on the first gesture (see init()'s resume handler).
     this._gestured     = false
     this._pendingMusic = null   // { kind: "theme"|"stage", id?, stage? }
+    // Menu playlist cursor: which MENU_PLAYLIST index is currently playing, and
+    // whether the auto-advance (onended → next track) is armed. Cleared the moment
+    // a match's stage music takes over (_stopMenuPlaylist) so it never advances
+    // over the top of in-match music.
+    this._menuPlaylistIndex  = 0
+    this._menuPlaylistActive = false
+    // Ducking state: how many voice/significant cues are currently playing (ref-counted
+    // so overlapping cues keep music ducked until the LAST finishes), the active scale
+    // (1 = normal, MUSIC_DUCK_FACTOR = ducked), and the real-file fade interval handle.
+    this._duckCount      = 0
+    this._musicDuckScale = 1
+    this._musicFileFade  = null
   }
 
   // ── INIT ──────────────────────────────────────────────────────
@@ -473,19 +529,85 @@ class SoundManager {
     else if (p.kind === "domainAudio") this.playDomainAudio(p.voiceFile, p.themeFile)
   }
 
-  // Centralized non-stadium music. Plays MENU_MUSIC_FILE (looping), honoring the
-  // same first-gesture gate as everything else — queues until the user interacts,
-  // and falls back to the procedural MENU theme if the file 404s.
+  // Centralized non-stadium music. Plays through MENU_PLAYLIST in order (looping
+  // back to the top), honoring the same first-gesture gate as everything else —
+  // queues until the user interacts, and falls back to the procedural MENU theme
+  // if a track file 404s. RESUMES from the current cursor (doesn't restart the
+  // song each time you re-open a menu). Stage music (playStageTrack) cleanly halts
+  // this via _stopMenuPlaylist so the playlist never plays over a match.
   playMenuMusic() {
     if (!this._ready) return
     if (!this._gestured) { this._pendingMusic = { kind: "menu" }; return }
-    this._fileFallbackTheme = MUSIC.MENU
-    if (!this.playMusicFile(MENU_MUSIC_FILE, true)) this.playMusic(MUSIC.MENU, true)
+    // Empty playlist (or all-missing) → keep the legacy single-file / procedural path.
+    if (!MENU_PLAYLIST.length) {
+      this._fileFallbackTheme = MUSIC.MENU
+      if (!this.playMusicFile(MENU_MUSIC_FILE, true)) this.playMusic(MUSIC.MENU, true)
+      return
+    }
+    this._playMenuTrack(this._menuPlaylistIndex)
+  }
+
+  // Play one playlist entry (no per-track loop) and arm the onended auto-advance
+  // to the NEXT entry, wrapping at the end. Reuses the exact playMusicFile one-shot
+  // path — no new audio-loading system.
+  _playMenuTrack(i) {
+    const n = MENU_PLAYLIST.length
+    if (!n) return
+    this._menuPlaylistIndex  = ((i % n) + n) % n
+    this._menuPlaylistActive = true
+    this._fileFallbackTheme  = MUSIC.MENU
+    const file = MENU_PLAYLIST[this._menuPlaylistIndex]
+    // loop=false so the track ENDS and we advance; if the file can't be requested,
+    // fall back to the procedural menu theme (matches single-file behavior).
+    if (!this.playMusicFile(file, false)) { this.playMusic(MUSIC.MENU, true); return }
+    if (this._musicFile) {
+      this._musicFile.onended = () => {
+        if (!this._menuPlaylistActive) return   // a match started → don't advance
+        this._playMenuTrack(this._menuPlaylistIndex + 1)
+      }
+    }
+  }
+
+  // Disarm the playlist auto-advance (called when stage music / stopMusic takes
+  // over). Leaves the cursor where it is so re-entering a menu resumes in order.
+  _stopMenuPlaylist() {
+    this._menuPlaylistActive = false
+    if (this._musicFile) this._musicFile.onended = null
+  }
+
+  // ── MENU PLAYLIST — public API for the Settings reorder UI ────
+  getMenuPlaylist() { return MENU_PLAYLIST }
+
+  // Swap the track at `index` with its neighbor in `direction` (-1 up / +1 down),
+  // mutating MENU_PLAYLIST in place so the live play sequence updates. Keeps the
+  // "now playing" cursor pinned to the SAME song across the swap so playback
+  // continuity is preserved. Returns true if the move happened.
+  moveMenuTrack(index, direction) {
+    const n = MENU_PLAYLIST.length
+    const j = index + (direction < 0 ? -1 : 1)
+    if (index < 0 || index >= n || j < 0 || j >= n) return false
+    const t = MENU_PLAYLIST[index]; MENU_PLAYLIST[index] = MENU_PLAYLIST[j]; MENU_PLAYLIST[j] = t
+    if (this._menuPlaylistIndex === index)      this._menuPlaylistIndex = j
+    else if (this._menuPlaylistIndex === j)     this._menuPlaylistIndex = index
+    return true
+  }
+
+  // Restore a saved order (persistence): reorder MENU_PLAYLIST in place to match
+  // `order` (an array of filenames), ignoring unknown/missing entries and keeping
+  // any not listed. Session-only today, but ready if Settings ever persists.
+  setMenuPlaylistOrder(order) {
+    if (!Array.isArray(order)) return
+    const known = new Set(MENU_PLAYLIST)
+    const next = order.filter(f => known.has(f))
+    for (const f of MENU_PLAYLIST) if (!next.includes(f)) next.push(f)
+    MENU_PLAYLIST.length = 0
+    for (const f of next) MENU_PLAYLIST.push(f)
+    this._menuPlaylistIndex = 0
   }
 
   // ── PLAY SFX ──────────────────────────────────────────────────
   play(id) {
-    if (this._muted || !this._ctx || !this._ready) return
+    if (this._sfxMuted || !this._ctx || !this._ready) return   // procedural SFX gated by SFX mute
     if (this._ctx.state === "suspended") {
       this._ctx.resume().then(() => this._trigger(id))
       return
@@ -519,6 +641,7 @@ class SoundManager {
   }
 
   stopMusic() {
+    this._stopMenuPlaylist()   // disarm playlist auto-advance before killing playback
     this._musicPlayer?.stop()
     this.stopMusicFile()
   }
@@ -555,8 +678,8 @@ class SoundManager {
       // stage doesn't restart the song.
       if (this._musicFileSrc !== src) { a.src = src; this._musicFileSrc = src }
       a.loop   = !!loop
-      a.muted  = this._muted
-      a.volume = this._musicVol
+      a.muted  = this._musicMuted
+      a.volume = this._musicVol * (this._musicDuckScale || 1)   // start ducked if a cue is mid-play
       const p = a.play()
       if (p && p.catch) p.catch(() => {})   // gesture-gating handled by _gestured; 404s handled by onerror
       return true
@@ -573,6 +696,7 @@ class SoundManager {
   // Preferred entry point: play a stage's assigned audio file, else fall back
   // to the procedural theme that best fits the stage/series.
   playStageTrack(stage) {
+    this._stopMenuPlaylist()  // MATCH START: menu playlist stops cleanly, stage music takes over
     this._lastStage = stage   // remembered so a domain can restore it on collapse
     // Queue until the first gesture, then resolve file → procedural fallback.
     if (!this._gestured) { this._pendingMusic = { kind: "stage", stage }; return }
@@ -597,15 +721,24 @@ class SoundManager {
   // procedural SOUNDS id triggered if the file can't be requested OR 404s
   // (via the element's onerror) — so the cue is never fully silent.
   playSfxFile(filename, fallbackId = null) {
-    if (this._muted || !this._gestured) return false
+    if (this._sfxMuted || !this._gestured) return false   // SFX mute: skip BEFORE ducking → a muted cue never ducks music
     const src = this._resolveSrc(filename)
     if (!src) { if (fallbackId) this.play(fallbackId); return false }
     try {
       const a = new Audio(src)        // fresh element: fire-and-forget one-shot
       a.volume = this._sfxVol
       if (fallbackId) a.onerror = () => this.play(fallbackId)   // 404 → procedural cue
+      // DUCK: this is a file-based voice/significant cue → drop music while it plays and
+      // restore when it ENDS (real duration, not a guessed timeout). Ref-counted, so
+      // overlapping cues keep music ducked until the last finishes. Guarded release fires
+      // on ended / error / play-rejection so the duck can never get stuck.
+      this._duckBegin()
+      let released = false
+      const release = () => { if (!released) { released = true; this._duckEnd() } }
+      a.addEventListener("ended", release, { once: true })
+      a.addEventListener("error", release, { once: true })
       const p = a.play()
-      if (p && p.catch) p.catch(() => {})
+      if (p && p.catch) p.catch(() => release())   // playback rejected → un-duck immediately
       return true
     } catch (_) { if (fallbackId) this.play(fallbackId); return false }
   }
@@ -657,22 +790,102 @@ class SoundManager {
   setVolume(sfxVol = 0.8, musicVol = 0.55) {
     this._sfxVol   = Math.max(0, Math.min(1, sfxVol))
     this._musicVol = Math.max(0, Math.min(1, musicVol))
-    if (this._master && !this._muted)
+    // _master carries procedural MUSIC too, so keep it at _sfxVol regardless of SFX mute
+    // (SFX mute is source-gated in play()/playSfxFile, not here).
+    if (this._master)
       this._master.gain.setTargetAtTime(this._sfxVol, this._ctx.currentTime, 0.05)
-    this._musicPlayer?.setVolume(this._musicVol)
-    if (this._musicFile) this._musicFile.volume = this._musicVol
+    this._applyMusicLevel()   // applies _musicVol × current duck scale (or 0 if music-muted) to both paths
   }
 
-  mute() {
-    this._muted = true
-    if (this._master) this._master.gain.setTargetAtTime(0, this._ctx.currentTime, 0.05)
-    if (this._musicFile) this._musicFile.muted = true
+  // ── INDEPENDENT SFX / MUSIC MUTE ──────────────────────────────
+  // SFX mute: source-gated (play()/playSfxFile early-return). _master is left at _sfxVol
+  // so procedural music (which flows through _master) is NOT affected.
+  setSfxMuted(m)   { this._sfxMuted = !!m }
+  isSfxMuted()     { return this._sfxMuted }
+
+  // Music mute: silences BOTH music paths and nothing else. Procedural theme → _musicGain
+  // ramped to 0 via _applyMusicLevel; real-file element → hard-muted + faded to 0.
+  setMusicMuted(m) {
+    this._musicMuted = !!m
+    if (this._musicFile) this._musicFile.muted = this._musicMuted
+    this._applyMusicLevel()
+  }
+  isMusicMuted()   { return this._musicMuted }
+
+  // Back-compat combined controls (no external callers, kept for API stability).
+  mute()   { this.setSfxMuted(true);  this.setMusicMuted(true) }
+  unmute() { this.setSfxMuted(false); this.setMusicMuted(false) }
+
+  // ── SETTINGS SNAPSHOT (for the save-file schema) ──────────────
+  // Reads the CURRENT audio settings into the exact `settings` shape persisted in
+  // game_player_data.json. menuPlaylistOrder is a copy of the live MENU_PLAYLIST so
+  // the saved sequence reflects the player's reorders. All fields already exist —
+  // this just gathers them; it does NOT introduce new audio state.
+  getSettings() {
+    return {
+      sfxVolume:         this._sfxVol,
+      musicVolume:       this._musicVol,
+      sfxMuted:          this._sfxMuted,
+      musicMuted:        this._musicMuted,
+      menuPlaylistOrder: MENU_PLAYLIST.slice()
+    }
   }
 
-  unmute() {
-    this._muted = false
-    if (this._master) this._master.gain.setTargetAtTime(this._sfxVol, this._ctx.currentTime, 0.05)
-    if (this._musicFile) this._musicFile.muted = false
+  // Applies a loaded `settings` blob back onto the live audio state (used on save-file
+  // load so a restored save fully overrides the constructor defaults). Tolerant of
+  // missing/partial data — any absent field keeps its current value.
+  applySettings(s) {
+    if (!s || typeof s !== "object") return
+    const sfx = (typeof s.sfxVolume   === "number") ? s.sfxVolume   : this._sfxVol
+    const mus = (typeof s.musicVolume === "number") ? s.musicVolume : this._musicVol
+    this.setVolume(sfx, mus)
+    if (typeof s.sfxMuted   === "boolean") this.setSfxMuted(s.sfxMuted)
+    if (typeof s.musicMuted === "boolean") this.setMusicMuted(s.musicMuted)
+    if (Array.isArray(s.menuPlaylistOrder) && s.menuPlaylistOrder.length) {
+      this.setMenuPlaylistOrder(s.menuPlaylistOrder)
+    }
+  }
+
+  // ── AUDIO DUCKING ─────────────────────────────────────────────
+  // Applies the current effective music level (_musicVol × _musicDuckScale) to BOTH
+  // music paths, so whichever is active gets ducked/restored. Also the single place
+  // setVolume routes through, so a user volume change mid-duck keeps the duck intact.
+  _applyMusicLevel() {
+    const level = this._musicMuted ? 0 : this._musicVol * (this._musicDuckScale || 1)
+    this._musicPlayer?.setVolume(level)      // procedural: setTargetAtTime ramp (smooth) inside setVolume
+    this._fadeMusicFileVolume(level)         // real-file element: short manual fade (no setTargetAtTime on HTMLAudio)
+  }
+
+  // Smoothly ramp the HTMLAudioElement music file's volume toward `target` over a
+  // short window (element .volume has no AudioParam, so we step it — a fade, not a jump).
+  _fadeMusicFileVolume(target) {
+    const el = this._musicFile
+    if (!el) return
+    target = Math.max(0, Math.min(1, target))
+    if (this._musicFileFade) { clearInterval(this._musicFileFade); this._musicFileFade = null }
+    const start = el.volume
+    const delta = target - start
+    if (Math.abs(delta) < 0.01) { el.volume = target; return }
+    const steps = 8, total = 160   // ~160ms fade, matching the ~0.05s music gain ramps
+    let i = 0
+    this._musicFileFade = setInterval(() => {
+      i++
+      el.volume = Math.max(0, Math.min(1, start + delta * (i / steps)))
+      if (i >= steps) { clearInterval(this._musicFileFade); this._musicFileFade = null; el.volume = target }
+    }, total / steps)
+  }
+
+  // Ref-counted duck. First active cue → duck; last one to finish → restore. Called by
+  // playSfxFile for every file cue (voice lines / significant one-shots); NOT by play()
+  // (procedural hit sounds), so routine combat SFX never duck the music.
+  _duckBegin() {
+    this._duckCount++
+    if (this._duckCount === 1) { this._musicDuckScale = MUSIC_DUCK_FACTOR; this._applyMusicLevel() }
+  }
+  _duckEnd() {
+    if (this._duckCount <= 0) return
+    this._duckCount--
+    if (this._duckCount === 0) { this._musicDuckScale = 1; this._applyMusicLevel() }
   }
 
   // ── PRELOAD stub — kept for API compatibility, does nothing ───

@@ -158,6 +158,15 @@ function _resolveAction(fighter, currentAction = "idle") {
     return "idle";
   }
 
+  // ESCALATED combo-finisher recoil: when a real combo string against this fighter was capped
+  // by a heavy/launcher (combat.applyNarutoComboFinisherReaction set the timer), play the
+  // dedicated knockdown burst (Naruto → knocked_out_a) for the recoil instead of the standard
+  // flinch. Gated on the fighter actually HAVING a knockdown strip, so it's a no-op for every
+  // character without one (Gojo/Sukuna/… keep their normal "hurt"). Checked before the plain
+  // hitstun→hurt fallback so it overrides it during the window.
+  if ((fighter._comboFinisherReactTimer || 0) > 0 &&
+      (fighter._skinAnim?.knockdown || fighter.animationData?.knockdown)) return "knockdown";
+
   // Hurt state takes priority once hitstun begins
   if ((fighter.hitstun || 0) > 0) return "hurt";
   if ((fighter.stun || 0) > 0) return "hurt";

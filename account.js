@@ -21,25 +21,172 @@
 //   generateAccountId()          -> string  (placeholder id)
 // ──────────────────────────────────────────────────────────────────────────
 
-// ── PERSISTENCE STUB ───────────────────────────────────────────────────────
-// In-memory only for now. Each method is where the real backend attaches.
+// ── PERSISTENCE ────────────────────────────────────────────────────────────
+// In-memory store is the SOURCE OF TRUTH and the always-available FALLBACK. When
+// the player grants a local save file via the File System Access API (see
+// connectSaveFile / createSaveFile below), the same in-memory writes are ALSO
+// mirrored to that file as JSON — so the public save()/load()/remove() interface
+// stays 100% SYNCHRONOUS (callers like progression._save don't change) while gaining
+// real persistence. The async file write is fire-and-forget + coalesced.
 const _store = new Map()   // accountId -> account
 let _currentId = null
 
+const SAVE_FILE_NAME = "game_player_data.json"
+const SAVE_PICKER_TYPES = [{ description: "Save data", accept: { "application/json": [".json"] } }]
+
+let _fileHandle    = null                    // granted FileSystemFileHandle (null = in-memory only)
+let _writeInFlight = false                   // an async write is running now
+let _dirty         = false                   // a save arrived mid-write → write again after
+let _createArmed   = false                   // user cancelled OPEN → next click CREATEs a fresh file
+let _statusText    = "In-memory only — pick a save file to persist progress"
+
 export const persistence = {
-  // TODO(backend): replace with GET /accounts (authenticated) — hydrate _store.
+  // In-memory snapshot (also the fallback when no file is connected). The file is
+  // hydrated INTO this store by connectSaveFile(), so reads here are always current.
   load() {
-    // No-op: in-memory store is already "loaded". Returns current snapshot.
     return Array.from(_store.values())
   },
-  // TODO(backend): replace with POST/PUT /accounts to persist server-side.
+  // SYNCHRONOUS: update the in-memory store immediately (unchanged contract), then
+  // mirror to the granted file asynchronously (no await → callers stay sync).
   save(account) {
     if (account?.accountId) _store.set(account.accountId, account)
+    if (_fileHandle) _writeSnapshot()          // fire-and-forget; coalesced against in-flight writes
     return account
   },
-  // TODO(backend): replace with DELETE /accounts/:id.
   remove(accountId) {
-    return _store.delete(accountId)
+    const ok = _store.delete(accountId)
+    if (_fileHandle) _writeSnapshot()
+    return ok
+  }
+}
+
+// ── FILE SYSTEM ACCESS API (local save file) ────────────────────────────────
+// GOTCHA: showOpenFilePicker/showSaveFilePicker require (a) a SECURE CONTEXT —
+// https:// OR http://localhost (file:// is NOT secure → API absent), and (b)
+// TRANSIENT USER ACTIVATION — they must be called synchronously from a real click/
+// key handler, not from a rAF tick or a timer. The menu wiring calls connectSaveFile
+// directly inside a DOM mouseup handler for exactly this reason. Unsupported browsers
+// (notably Safari, and Firefox for showSaveFilePicker as of 2025) fall back to
+// in-memory transparently.
+export function isFileApiSupported() {
+  return typeof window !== "undefined"
+    && typeof window.showOpenFilePicker === "function"
+    && typeof window.showSaveFilePicker === "function"
+}
+export function isFileConnected()  { return !!_fileHandle }
+export function saveFileStatus()   { return _statusText }
+export function saveFileName()     { return SAVE_FILE_NAME }
+
+// Optional enrichment hook run over each account right before serialization. game.js
+// registers a decorator that fills the DERIVED fields (unlocks.featuresUnlocked + the
+// skins snapshot) from the account's own level/dev/beta — so EVERY save (from any
+// path) writes a complete, fresh snapshot without account.js needing to import the
+// progression/skins modules (which would create an import cycle).
+let _snapshotDecorator = null
+export function setSnapshotDecorator(fn) { _snapshotDecorator = (typeof fn === "function") ? fn : null }
+
+function _buildSnapshot() {
+  // Serialises the FULL account objects — the account IS the unit of storage, so
+  // progression, unlocks, skins, settings and stats all persist together. The
+  // decorator refreshes derived fields on each write.
+  const accounts = Array.from(_store.values()).map(a => {
+    try { return _snapshotDecorator ? (_snapshotDecorator(a) || a) : a } catch (_) { return a }
+  })
+  return {
+    format:   "multiverse-smash-save",
+    version:  1,
+    savedAt:  new Date().toISOString(),
+    currentId: _currentId,
+    accounts
+  }
+}
+
+// Async, coalesced writer. Never throws to callers; on failure it drops the handle
+// and reverts to in-memory so the game keeps running.
+async function _writeSnapshot() {
+  if (!_fileHandle) return
+  if (_writeInFlight) { _dirty = true; return }     // don't open two writables at once
+  _writeInFlight = true
+  try {
+    const writable = await _fileHandle.createWritable()
+    await writable.write(JSON.stringify(_buildSnapshot(), null, 2))
+    await writable.close()
+    _statusText = `Auto-saving to ${SAVE_FILE_NAME}`
+  } catch (err) {
+    _fileHandle = null
+    _statusText = "Save file disconnected — playing in-memory"
+    if (typeof console !== "undefined") console.warn("[persistence] file write failed; in-memory fallback:", err)
+  } finally {
+    _writeInFlight = false
+    if (_dirty) { _dirty = false; _writeSnapshot() }  // flush the save that arrived mid-write
+  }
+}
+
+// Read the granted file into the store. An empty/new file is seeded with current data.
+async function _hydrateFromHandle() {
+  const file = await _fileHandle.getFile()
+  const text = (await file.text()).trim()
+  if (!text) { await _writeSnapshot(); return 0 }     // brand-new empty file → write defaults
+  let data = null
+  try { data = JSON.parse(text) } catch (_) { data = null }
+  const accounts = Array.isArray(data) ? data
+    : (data && Array.isArray(data.accounts) ? data.accounts : [])
+  if (accounts.length) {
+    _store.clear()
+    for (const a of accounts) { if (a && a.accountId) _store.set(a.accountId, a) }
+    const cid = data && data.currentId
+    if (cid && _store.has(cid)) _currentId = cid
+    else if (accounts[0] && accounts[0].accountId) _currentId = accounts[0].accountId
+  }
+  return accounts.length
+}
+
+// PRIMARY entry (must be called from a user gesture). Tries to OPEN an existing save
+// and load it. If the user cancels (or there's nothing to open on first run), it ARMS
+// creation so the NEXT click makes a fresh file via createSaveFile() — each picker gets
+// its own gesture, since chaining two pickers on one gesture is rejected by browsers.
+export async function connectSaveFile() {
+  if (!isFileApiSupported()) {
+    _statusText = "File saves unsupported in this browser (e.g. Safari) — in-memory only"
+    return { ok: false, reason: "unsupported" }
+  }
+  if (_createArmed) { _createArmed = false; return createSaveFile() }
+  try {
+    const [handle] = await window.showOpenFilePicker({ multiple: false, types: SAVE_PICKER_TYPES })
+    _fileHandle = handle
+    const n = await _hydrateFromHandle()
+    _statusText = `Loaded ${SAVE_FILE_NAME} (${n} profile${n === 1 ? "" : "s"}) — auto-saving`
+    return { ok: true, created: false, count: n }
+  } catch (err) {
+    if (err && err.name === "AbortError") {
+      _createArmed = true
+      _statusText = "No file opened — click again to CREATE a new save file"
+      return { ok: false, reason: "cancelled" }
+    }
+    _statusText = "Couldn't open save file — in-memory only"
+    return { ok: false, reason: "error", error: String((err && err.message) || err) }
+  }
+}
+
+// First-run creation (also user-gesture-bound): make a new game_player_data.json and
+// seed it with the current (default) data.
+export async function createSaveFile() {
+  if (!isFileApiSupported()) {
+    _statusText = "File saves unsupported in this browser (e.g. Safari) — in-memory only"
+    return { ok: false, reason: "unsupported" }
+  }
+  try {
+    _fileHandle = await window.showSaveFilePicker({ suggestedName: SAVE_FILE_NAME, types: SAVE_PICKER_TYPES })
+    await _writeSnapshot()
+    _statusText = `Created ${SAVE_FILE_NAME} — auto-saving`
+    return { ok: true, created: true, count: _store.size }
+  } catch (err) {
+    if (err && err.name === "AbortError") {
+      _statusText = "Save file creation cancelled — in-memory only"
+      return { ok: false, reason: "cancelled" }
+    }
+    _statusText = "Couldn't create save file — in-memory only"
+    return { ok: false, reason: "error", error: String((err && err.message) || err) }
   }
 }
 
@@ -72,6 +219,16 @@ function _newAccountObject(username) {
     accountId: generateAccountId(),
     createdAt: new Date().toISOString(),
     isLocalStub: true,            // flag so future code can spot un-migrated accounts
+    // ── FULL game_player_data.json per-account schema ──────────────────────────
+    // Each group is owned/hydrated by its module: progression + unlocks by
+    // progression.js, settings by sound.js (getSettings/applySettings), skins is a
+    // DERIVED read-only snapshot enriched at save time by the snapshot decorator.
+    progression: { xp: 0, matches: 0, wins: 0, level: 1 },   // progression.js _save() keeps this current
+    unlocks: { devUnlock: false, betaUnlock: false, featuresUnlocked: [] }, // progression.js codes; features derived
+    skins: {},                     // { rosterKey: [unlockedSkinIds] } — filled by the snapshot decorator
+    settings: {                    // sound.js getSettings()/applySettings()
+      sfxVolume: 0.8, musicVolume: 0.55, sfxMuted: false, musicMuted: false, menuPlaylistOrder: []
+    },
     // Stats placeholder — a real profile/service will own these later.
     stats: { wins: 0, losses: 0, matches: 0, favoriteCharacter: null }
   }

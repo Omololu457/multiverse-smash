@@ -69,6 +69,11 @@ const WIDE_ZOOM = 0.55
 // isn't a pure round-ender.
 const KURAMA_DAMAGE = 600
 
+// If the opponent is already holding block as the bomb lands, the TBB is CHIPPED
+// rather than a clean hit: this fraction of KURAMA_DAMAGE goes through (0.20 → ~120).
+// The cinematic/freeze is unchanged — a held block only reduces the damage. Retune here.
+const KURAMA_BLOCKED_DAMAGE_RATIO = 0.20
+
 const kuramaCine = {
   active: false,
   frame: 0,
@@ -156,6 +161,16 @@ export function updateKuramaUltimate(ctx = {}) {
     snd?.play?.(SFX.DOMAIN_ACTIVATE)       // activation boom (shared domain SFX)
   }
 
+  // TBB blast + Kurama's laugh at the START (f===0 = the frame the ultimate activates /
+  // the fox begins rising) so they LEAD the rise→charge buildup — "once I press it, it
+  // starts." MOVED here from f===T_CHARGE_END (frame 150), where they played ~2.5s late,
+  // right as the beam fired. Not cam-gated so the cue never depends on the camera; fresh
+  // Audio per call → the two overlap rather than queue.
+  if (f === 0) {
+    snd?.playSfxFile?.("naruto_ten_tails_bomb.mp3", null)
+    snd?.playSfxFile?.("kurama_laugh.mp3", null)
+  }
+
   // Camera takeover: WIDEN the arena (framing BOTH fighters, zoomed out) and hold
   // it wide through the fox rise / charge / blast, then ease back on SETTLE.
   // game.js calls camera.advance() after this so the movement uses the shared
@@ -184,6 +199,9 @@ export function updateKuramaUltimate(ctx = {}) {
     }
   }
 
+  // (TBB blast + Kurama's laugh MOVED to f===0 above so they lead the cinematic instead of
+  // firing here at the CHARGE→FIRE launch. The cam.shake beats above are unchanged.)
+
   // GUARANTEED HIT at the bomb-impact beat (dodge hook lives inside applyKuramaDamage).
   if (f === T_IMPACT && !kuramaCine.damageDealt) {
     kuramaCine.damageDealt = true
@@ -211,25 +229,49 @@ function applyKuramaDamage(ctx, snd) {
   // ═══════════════════════════════════════════════════════════════════════════
   if (dodged) return
 
-  opp.health = Math.max(0, (opp.health || 0) - KURAMA_DAMAGE)
-  opp.hitstun = Math.max(opp.hitstun || 0, 30)
+  // [DEBUG-TBB] block state at the EXACT impact frame. NOTE (see diagnosis): during
+  // the cinematic, updateBattle early-returns before updateMovementInput runs, so
+  // opp.isBlocking is FROZEN at its last pre-cinematic value — a block held only
+  // during the TBB never registers here.
+  console.log("[DEBUG-TBB] impact — opp.isBlocking =", opp.isBlocking,
+    "| kuramaCine.frame =", kuramaCine.frame, "T_IMPACT =", T_IMPACT,
+    "| KURAMA_DAMAGE =", KURAMA_DAMAGE, "BLOCKED_RATIO =", KURAMA_BLOCKED_DAMAGE_RATIO,
+    "→ damage would be", opp.isBlocking ? Math.round(KURAMA_DAMAGE * KURAMA_BLOCKED_DAMAGE_RATIO) : KURAMA_DAMAGE)
+
+  // BLOCK CHECK — the bomb always connects (no dodging the cinematic), but if the
+  // opponent was already holding block the instant it lands, it's CHIPPED, not clean.
+  const blocked = !!opp.isBlocking
+  const damage  = blocked ? Math.round(KURAMA_DAMAGE * KURAMA_BLOCKED_DAMAGE_RATIO) : KURAMA_DAMAGE
+
+  opp.health = Math.max(0, (opp.health || 0) - damage)
   opp.vx = 0
-  opp.colorFlash = 10
-  opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+  if (blocked) {
+    // Lighter blocked reaction: blockstun (not the 30f hitstun) and NO colorFlash /
+    // teleportFlash knockback treatment. Value mirrors combat.js's blocked-special
+    // stun (10 + 4 for specials) so a guarded TBB feels like any other blocked special.
+    opp.blockstun = Math.max(opp.blockstun || 0, 14)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 30)
+    opp.colorFlash = 10
+    opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+  }
 
   const ocx = (opp.x || 0) + (opp.w || 0) / 2
   const ocy = (opp.y || 0) + (opp.h || 0) / 2
   // Push ONE hit spark carrying the damage — the game's hitSparks processor spawns
   // the floating damage number + records the hit from it (same path as Sukuna's
-  // domain slashes), so we don't hand-roll the number or double-count it.
+  // domain slashes), so we don't hand-roll the number or double-count it. A blocked
+  // hit uses the lighter "light"/isBlocking spark (matches combat.js's block spark).
   if (Array.isArray(ctx.hitEffects)) {
     ctx.hitEffects.push({
       x: ocx, y: ocy, timer: 18, maxTimer: 18,
-      category: "ultimate", color: "#ff7a1a",
-      damage: KURAMA_DAMAGE, lines: 12, radius: 40
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#ff7a1a",
+      damage, lines: blocked ? 6 : 12, radius: blocked ? 14 : 40,
+      ...(blocked ? { isBlocking: true } : {})
     })
   }
-  snd?.play?.(SFX.HIT_HEAVY)
+  snd?.play?.(blocked ? SFX.BLOCK : SFX.HIT_HEAVY)
   if (opp.health <= 0) snd?.play?.(SFX.KO)
 }
 

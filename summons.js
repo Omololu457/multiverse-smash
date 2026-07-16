@@ -4,7 +4,9 @@
 
 // Shadow clones read the fighters' live attack state to mimic / to poof when hit.
 // combat.js imports only physics + sound → no cycle back to summons.
-import { getAttackHitbox, rectsOverlap, attackIsActive } from "./combat.js"
+import { getAttackHitbox, getHurtbox, rectsOverlap, attackIsActive } from "./combat.js"
+import { physics } from "./physics.js" // clones fall + rest on the floor via the SAME applyGravity fighters use
+import { sound } from "./sound.js"   // one-shot clone spawn/despawn SFX (playSfxFile)
 
 export const activeSummons = []
 
@@ -144,7 +146,57 @@ const summonTemplates = {
     color:           "#93c5fd",
     // Max Elephant — clean 4-frame strip, measured 456x137 → 114x137 cells.
     sheet: "./megumi2_max_elephant_proj_sheet.png", spriteFrames: 4, spriteW: 114, spriteH: 137, spriteSpeed: 5, spriteScale: 1.0
+  },
+
+  // NARUTO TOAD SUMMON (Gamakichi-style) — a separate summon special, NOT a shadow clone:
+  // normal energy cost (paid in abilities.executeNarutoSpecial via spendEnergy), no chakra
+  // share. Reuses this generic shikigami entity path (rush → one hit → despawn). Its three
+  // single-frame poses are sliced from the JUS sheet's 2-KOMA band (right of the koma
+  // clusters): frog_a (rearing) is the active/attack sheet here; updateNarutoToadPose swaps
+  // to frog_b (transition) then frog_c (curl) as it despawns. Distinct id from Megumi's `toad`.
+  narutoToad: {
+    id:              "narutoToad",
+    duration:        90,    // ~1.5s: leaps in, strikes once, curls up + fades
+    maxSimultaneous: 1,
+    attackInterval:  14,    // first strike window after the brief rear-up
+    damage:          90,
+    w:               60,
+    h:               54,
+    speed:           7,     // hops toward the target
+    behavior:        "rush",
+    hitstun:         20,
+    knockbackX:      6,
+    knockbackY:      -2,
+    oneHit:          true,
+    color:           "#b45309",   // toad-brown fallback box if the sheet hasn't decoded
+    sheet: "./fx_2_koma_special_frog_a.png", spriteFrames: 1, spriteW: 120, spriteH: 135, spriteSpeed: 6, spriteScale: 0.8
   }
+}
+
+// NARUTO TOAD pose swap — the summon shows the rearing frog_a while active/attacking, then a
+// brief frog_b transition and the curled frog_c as it despawns. All three are single-frame
+// crops with different dims, so a swap just re-points sheet + spriteW/H (drawSummons reads
+// them each frame). Purely visual; no effect on hitbox/damage/lifetime.
+const NARUTO_TOAD_DESPAWN_FRAMES = 22   // last stretch of life → play the collapse sequence
+const NARUTO_TOAD_CURL_FRAMES    = 12   // final frames show the fully-curled pose
+const NARUTO_TOAD_POSES = {
+  a: { sheet: "./fx_2_koma_special_frog_a.png", spriteW: 120, spriteH: 135 },  // rearing (active/attack)
+  b: { sheet: "./fx_2_koma_special_frog_b.png", spriteW: 90,  spriteH: 113 },  // transitional lean
+  c: { sheet: "./fx_2_koma_special_frog_c.png", spriteW: 94,  spriteH: 53  }   // curled / collapsed (despawn)
+}
+function setNarutoToadPose(s, key) {
+  if (!s || s._toadPose === key) return
+  const p = NARUTO_TOAD_POSES[key]
+  if (!p) return
+  s._toadPose = key
+  s.sheet = p.sheet; s.spriteW = p.spriteW; s.spriteH = p.spriteH
+}
+function updateNarutoToadPose(s) {
+  // Despawning = it already struck (oneHit clamps lifetime low) OR it's near end of life.
+  const despawning = s.hasHit || s.lifetime <= NARUTO_TOAD_DESPAWN_FRAMES
+  if (!despawning) setNarutoToadPose(s, "a")
+  else if (s.lifetime > NARUTO_TOAD_CURL_FRAMES) setNarutoToadPose(s, "b")
+  else setNarutoToadPose(s, "c")
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -207,6 +259,15 @@ export function spawnSummon(owner, summonData, target) {
 // UPDATE — called once per game frame
 // ─────────────────────────────────────────────────────────────────
 export function updateSummons() {
+  // Fire any first-press clone spawns whose poof-sync delay has elapsed (visual lands
+  // with the ~2.45s poof of the summon clip that started on the press).
+  for (let i = pendingCloneSpawns.length - 1; i >= 0; i--) {
+    if (--pendingCloneSpawns[i].framesLeft <= 0) {
+      const { owner, target } = pendingCloneSpawns.splice(i, 1)[0]
+      spawnShadowClone(owner, target)   // entity + puff appear now; chakra/cap unchanged
+    }
+  }
+
   for (let i = activeSummons.length - 1; i >= 0; i--) {
     const s = activeSummons[i]
     if (!s) {
@@ -218,7 +279,11 @@ export function updateSummons() {
     // rush the target, auto-attack on interval, or expire by lifetime.
     if (s.id === "shadowClone") {
       const r = updateShadowClone(s)
-      if (r === "destroy") { loseCloneShare(s.owner); spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2); activeSummons.splice(i, 1) }
+      if (r === "destroy") {
+        loseCloneShare(s.owner); spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)
+        if (s.owner?.rosterKey === "naruto") sound.playSfxFile("naruto_clone_cancel.mp3", null)  // DESPAWN (hit → poof) cue
+        activeSummons.splice(i, 1)
+      }
       else if (r === "remove") { activeSummons.splice(i, 1) }
       continue
     }
@@ -242,6 +307,8 @@ export function updateSummons() {
 
     s.lifetime--
     s.frame++
+
+    if (s.id === "narutoToad") updateNarutoToadPose(s)   // rearing → transition → curl by lifecycle
 
     if (s.lifetime <= 0) {
       cleanupSummonEffects(s)
@@ -413,8 +480,20 @@ function _summonImg(src) {
   return img
 }
 
+let _cloneDbgFrame = 0
 export function drawSummons(ctx) {
+  // [DEBUG-CLONE 2] once per ~second: is the entity still in the SAME array the draw
+  // loop iterates, or did something clear it? Also reports how many are shadowClones
+  // and how many are currently _hidden (spawn-poof) vs visible.
+  if (++_cloneDbgFrame % 60 === 0) {
+    const clones = activeSummons.filter(s => s.id === "shadowClone")
+    console.log("[DEBUG-CLONE] 2 DRAW TICK — activeSummons.length =", activeSummons.length,
+      "shadowClones =", clones.length, "hidden =", clones.filter(s => s._hidden).length,
+      "states =", clones.map(s => s._state))
+  }
   for (const s of activeSummons) {
+    if (s.id === "shadowClone" && s._hidden) continue   // body stays hidden under the spawn smoke
+
     ctx.save()
 
     if (s.lifetime < 12) {
@@ -492,6 +571,7 @@ export function drawSummons(ctx) {
 export function clearSummons() {
   activeSummons.length = 0
   clonePuffs.length = 0
+  pendingCloneSpawns.length = 0   // drop any not-yet-spawned first-press clones on reset
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -502,17 +582,17 @@ export function clearSummons() {
 // clone-specific update/draw path (no rush, no auto-attack, no lifetime expiry).
 // No independent AI yet — clones only mirror the owner.
 // ═══════════════════════════════════════════════════════════════════
-const CLONE_CAP          = 3                 // max simultaneous clones (spawn past cap = no-op)
-const CLONE_OFFSETS      = [-70, 70, -120]   // flank x-offsets relative to owner facing
-const CLONE_HIT_RANGE    = 150               // px: a mimic hit lands only if the enemy is this close to the clone
-const CLONE_DAMAGE_SCALE = 0.5               // clone mimic hits deal half the owner's attack damage (balance knob)
-const CLONE_ATTACK_ANIM  = 18                // frames the clone holds its attack pose after mimicking
+const CLONE_CAP  = 3                          // max simultaneous clones (spawn past cap = no-op)
 const CLONE_W = 70, CLONE_H = 120            // clone hurtbox = the destruction box
+const CLONE_POOF_FRAMES = 16                 // spawn/despawn smoke duration (matches clonePuff lifetime)
+const CLONE_HURT_FRAMES = 24                 // frames the hit-recoil pose plays before the clone poofs out
 
-// Clone body sprites (reuse Naruto's existing strips). scale 2.0 ≈ his on-screen size.
+// Clone body sprites — REUSE Naruto's own animationData strips (characters.js):
+//   idle = naruto_kcm_stance.png (4f 36x63), hurt = naruto_kcm_taking_damage.png (4f 46x55).
+// scale 2.0 ≈ his on-screen size. No new art, no separate animationData entry.
 const CLONE_SPRITES = {
-  idle:   { sheet: "./naruto_kcm_stance.png",   frames: 4, w: 36, h: 63, speed: 6, scale: 2.0 },
-  attack: { sheet: "./naruto_kcm_b_attack.png", frames: 4, w: 52, h: 53, speed: 4, scale: 2.0 }
+  idle: { sheet: "./naruto_kcm_stance.png",        frames: 4, w: 36, h: 63, speed: 6, scale: 2.0 },
+  hurt: { sheet: "./naruto_kcm_taking_damage.png", frames: 4, w: 46, h: 55, speed: 6, scale: 2.0 }
 }
 function setCloneSheet(s, mode) {
   const c = CLONE_SPRITES[mode] || CLONE_SPRITES.idle
@@ -533,23 +613,68 @@ function loseCloneShare(owner) {
   if (bodies > 1) owner.energy = Math.max(0, (owner.energy || 0) * (bodies - 1) / bodies)
 }
 
+// ── CLONE SUMMON AUDIO/VISUAL SEQUENCING ─────────────────────────────────────
+// The hand-sign/jutsu clip (naruto_clone_summon.mp3) is ~4.55s long; its "poof"
+// transient (MEASURED from the waveform) lands at ~2.45s. So the FIRST press opens a
+// summon-audio WINDOW for the full clip length, plays the clip ONCE, does a short camera
+// beat, and DELAYS the visual clone spawn to the poof moment so the smoke/body land with
+// the sound. Repeat presses inside the window spawn extra clones immediately + SILENTLY
+// (no audio restart / overlap). When the window elapses, the next press starts fresh.
+// Chakra-split / cap / lifecycle are untouched — spawnShadowClone still owns all of that.
+const CLONE_SUMMON_WINDOW_FRAMES = 273   // 4.55s @60fps — full clip length (the audio window)
+const CLONE_SUMMON_POOF_FRAMES   = 147   // 2.45s @60fps — poof transient (visual spawn sync point)
+const pendingCloneSpawns = []            // first-press spawns delayed to the poof; ticked in updateSummons
+
+export function summonShadowClone(owner, target, opts = {}) {
+  if (!owner) return false
+  // REPEAT inside an active window → spawn NOW, silently (no audio, no camera beat).
+  if ((owner._cloneSummonWindow || 0) > 0) return !!spawnShadowClone(owner, target)
+  // FIRST press: already at cap → nothing at all (preserves existing behavior; no audio/window).
+  if (countShadowClones(owner) >= CLONE_CAP) return false
+  // Open the window, play the clip ONCE, run the caller's short camera beat, and delay the
+  // actual entity + puff to the poof frame so the visual lands with the sound.
+  owner._cloneSummonWindow = CLONE_SUMMON_WINDOW_FRAMES
+  if (owner.rosterKey === "naruto") sound.playSfxFile?.("naruto_clone_summon.mp3", null)
+  if (typeof opts.onFocus === "function") { try { opts.onFocus() } catch (_) {} }
+  pendingCloneSpawns.push({ owner, target, framesLeft: CLONE_SUMMON_POOF_FRAMES })
+  return true
+}
+
 // SPAWN — cap-limited (over cap → no-op, returns null). No upfront chakra cost:
 // the "cost" is the split (each new body lowers everyone's share). Puffs on spawn.
 export function spawnShadowClone(owner, target) {
-  if (!owner) return null
-  if (countShadowClones(owner) >= CLONE_CAP) return null   // CAP behavior: do nothing
-  const slot = countShadowClones(owner)
+  // [DEBUG-CLONE 1a] entry — did we even get here, and where is the caster?
+  console.log("[DEBUG-CLONE] 1a ENTRY — owner?", !!owner, "x:", owner?.x, "y:", owner?.y,
+    "facing:", owner?.facing, "existing clones:", owner ? countShadowClones(owner) : "n/a", "cap:", CLONE_CAP)
+  if (!owner) { console.log("[DEBUG-CLONE] BAILED — no owner"); return null }
+  if (countShadowClones(owner) >= CLONE_CAP) { console.log("[DEBUG-CLONE] BAILED — at cap"); return null }   // CAP behavior: do nothing
   const facing = owner.facing || 1
   const s = {
-    id: "shadowClone", owner, target, _slot: slot,
+    id: "shadowClone", owner, target,
     w: CLONE_W, h: CLONE_H,
+    // Static decoy: spawns beside the owner and STAYS put horizontally (no follow),
+    // but is subject to gravity so it FALLS to the floor and stands (see updateShadowClone).
     x: owner.x - facing * 70, y: owner.y || 0,
+    // Gravity/ground-collision fields, same contract fighters use. groundY inherits the
+    // owner's floor (== the stage groundY) so the clone rests exactly where Naruto would;
+    // applyGravity falls back to physics.groundY if it's ever absent.
+    vy: 0, groundY: owner.groundY, onGround: false,
     facing, lifetime: Infinity,        // persists until hit or dispelled
-    _atkTimer: 0, _mimicked: null, color: "#ffb400"
+    _state: "spawn", _stateT: 0, _hidden: true, color: "#ffb400"
   }
   setCloneSheet(s, "idle")
+  // [DEBUG-CLONE 1b] entity created — position, size, and which sprite sheet is attached.
+  console.log("[DEBUG-CLONE] 1b ENTITY —", { id: s.id, x: s.x, y: s.y, w: s.w, h: s.h,
+    sheet: s.sheet, spriteFrames: s.spriteFrames, spriteW: s.spriteW, spriteH: s.spriteH,
+    scale: s.spriteScale, _hidden: s._hidden, _state: s._state })
   activeSummons.push(s)
-  spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)
+  // [DEBUG-CLONE 1c] confirm the push actually landed in the array.
+  console.log("[DEBUG-CLONE] 1c PUSHED — activeSummons.length =", activeSummons.length)
+  spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)   // spawn-in smoke; body reveals once it clears
+  // NOTE: the summon SFX is NOT played here anymore — it's played ONCE per audio window in
+  // summonShadowClone (so rapid presses / delayed spawns never restack the clip). This
+  // function is now purely the entity+puff spawn (called delayed for a first press, or
+  // immediately for a repeat within the window).
   return s
 }
 
@@ -567,66 +692,81 @@ export function dispelShadowClones(owner) {
       activeSummons.splice(i, 1); n++
     }
   }
+  // Same DESPAWN cue as a hit-pop, fired ONCE for the dispel action (recall pops all at
+  // once). Naruto-only. This covers both the "." debug key and the D→B dispel input.
+  if (n > 0 && owner?.rosterKey === "naruto") sound.playSfxFile("naruto_clone_cancel.mp3", null)
   return n
 }
 
-// Per-frame clone logic. Returns "destroy" (hit → poof + lose share), "remove"
-// (owner gone), or null.
+// CONSUME up to `n` of owner's clones as a COMBO cost (the multi-clone combo tier spends
+// clones to land guaranteed hits / no-sell incoming attacks). Unlike dispel (safe recall),
+// each consumed body is LOSSY — loseCloneShare removes its chakra share, same as a clone
+// destroyed in combat. Poofs each and returns the {x,y,w,h} spots consumed (length = count).
+export function consumeShadowClones(owner, n = 1) {
+  const spots = []
+  for (let i = activeSummons.length - 1; i >= 0 && spots.length < n; i--) {
+    const s = activeSummons[i]
+    if (s && s.id === "shadowClone" && s.owner === owner) {
+      loseCloneShare(owner)                          // lose this body's share (lossy, like a hit)
+      spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)   // poof
+      spots.push({ x: s.x, y: s.y, w: s.w, h: s.h })
+      activeSummons.splice(i, 1)
+    }
+  }
+  return spots
+}
+
+// Per-frame clone logic — a STATIC, non-damaging DECOY. No follow, no mimic, no
+// attacks; it just stands and can be hit once. Lifecycle:
+//   spawn-poof (body hidden) → idle loop → (hit) hurt-recoil → poof → removed.
+// Returns "destroy" (poof + lose share, fired at the END of the hurt pose),
+// "remove" (owner gone), or null.
 function updateShadowClone(s) {
   const owner = s.owner, enemy = s.target
   if (!owner) return "remove"
+  if (enemy) s.facing = (enemy.x >= s.x) ? 1 : -1   // faces the enemy; never moves toward it
 
-  // FOLLOW — settle into a flank slot beside the owner (smoothed, never snaps).
-  const off = CLONE_OFFSETS[s._slot % CLONE_OFFSETS.length]
-  const desiredX = owner.x + (owner.facing || 1) * off
-  s.x += (desiredX - s.x) * 0.25
-  s.y += ((owner.y || 0) - s.y) * 0.25
-  if (enemy) s.facing = (enemy.x >= s.x) ? 1 : -1
+  // Gravity + ground collision — reuse the fighters' resolver verbatim so a standard-summon
+  // clone falls to the stage floor and stands on it (instead of freezing at its spawn y).
+  // A grounded clone gets pinned to floor - h and stays; if a future scripted action ever
+  // launches one (gives it negative vy), applyGravity arcs it back down naturally.
+  physics.applyGravity(s)
 
-  // attack-pose hold
-  if (s._atkTimer > 0) { s._atkTimer--; if (s._atkTimer === 0) setCloneSheet(s, "idle") }
-
-  // MIMIC — mirror each of the owner's basic attacks once (skip specials/ultimate).
-  const atk = owner.currentAttack
-  if (atk && !atk.isSpecial && !atk.isUltimate) {
-    if (atk !== s._mimicked && attackIsActive(atk)) {
-      s._mimicked = atk
-      setCloneSheet(s, "attack"); s._atkTimer = CLONE_ATTACK_ANIM
-      cloneMimicHit(s, atk, enemy)
+  // SPAWN — stay hidden behind the spawn smoke, then reveal the idle body.
+  if (s._state === "spawn") {
+    if (++s._stateT >= CLONE_POOF_FRAMES) {
+      s._state = "idle"; s._hidden = false; setCloneSheet(s, "idle")
     }
-  } else if (!atk) {
-    s._mimicked = null
+    return null
   }
 
-  // DESTRUCTION — one touch of an active enemy melee hitbox poofs the clone.
+  // HURT — hold the hit-recoil pose, then poof out (updateSummons does the removal).
+  if (s._state === "hurt") {
+    if (++s._stateT >= CLONE_HURT_FRAMES) return "destroy"
+    return null
+  }
+
+  // IDLE — just stand there. One touch of an active enemy melee hitbox starts the
+  // hurt→poof lifecycle. Hurtbox reuses combat.js getHurtbox, sized to the clone.
   if (enemy && attackIsActive(enemy.currentAttack)) {
     const hb = getAttackHitbox(enemy)
-    if (hb && rectsOverlap(hb, { x: s.x, y: s.y, w: s.w, h: s.h })) return "destroy"
+    if (hb && rectsOverlap(hb, getHurtbox(s))) {
+      s._state = "hurt"; s._stateT = 0; setCloneSheet(s, "hurt")
+    }
   }
   return null
 }
 
-// A mimicked hit: an extra (scaled) instance of the owner's attack, landing only
-// if the enemy is within CLONE_HIT_RANGE of the clone (else it whiffs).
-function cloneMimicHit(s, atk, enemy) {
-  if (!enemy) return
-  const cx = s.x + s.w / 2, cy = s.y + s.h / 2
-  const ex = enemy.x + (enemy.w || 60) / 2, ey = enemy.y + (enemy.h || 100) / 2
-  if (Math.hypot(ex - cx, ey - cy) > CLONE_HIT_RANGE) return
-  const dmg = Math.round((atk.damage || 40) * CLONE_DAMAGE_SCALE)
-  enemy.health = Math.max(0, (enemy.health || 0) - dmg)
-  enemy.colorFlash = 6
-  enemy.hitstun = Math.max(enemy.hitstun || 0, Math.round((atk.hitstun || 12) * 0.7))
-  enemy.vx = (atk.pushX || 3) * (s.facing || 1) * 0.7
-  if (atk.launchY) { enemy.vy = atk.launchY * 0.7; enemy.onGround = false }
-}
-
 // ── clone spawn/dispel smoke puffs (cosmetic) ──────────────────────
-// FLAG: naruto_kcm_fx_smoke_poof.png is not on disk yet → PROCEDURAL puff below.
-// When the real sprite lands, swap drawClonePuffs to draw its frames (tell me its
-// frame count/cell dims and I'll animate it — until then this reads as a puff).
+// Fires on spawn (body hidden until it clears), on dispel, and on hit-destruction.
+// FLAG: naruto_kcm_fx_smoke_poof.png is STILL not on disk (verified 2026-07) → this
+// stays PROCEDURAL. When the sprite lands, tell me its frame count/cell dims and I'll
+// animate its frames here (CLONE_POOF_FRAMES already gates the body reveal); until
+// then this expanding gradient reads as the smoke poof.
 const clonePuffs = []
-function spawnClonePuff(x, y) { clonePuffs.push({ x, y, t: 0, max: 16 }) }
+// Exported so non-clone techniques can reuse the EXACT same smoke poof (e.g. Naruto's
+// Kawarimi substitution teleport). Purely cosmetic — no clone lifecycle / chakra-split.
+export function spawnClonePuff(x, y) { clonePuffs.push({ x, y, t: 0, max: 16 }) }
 function tickClonePuffs() {
   for (let i = clonePuffs.length - 1; i >= 0; i--) {
     if (++clonePuffs[i].t >= clonePuffs[i].max) clonePuffs.splice(i, 1)

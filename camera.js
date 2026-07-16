@@ -89,8 +89,20 @@ export const camera = {
     const a = boxOf(f1), b = boxOf(f2)
     const bbL = Math.min(a.l, b.l)
     const bbR = Math.max(a.r, b.r)
-    const bbT = Math.min(a.t, b.t)
+    let   bbT = Math.min(a.t, b.t)
     const bbB = Math.max(a.b, b.b)
+
+    // GIANT sprites (Sasuke's Susanoo): the drawn figure towers ~ch*frac ABOVE the feet —
+    // far beyond the hitbox boxOf() sees — so the default framing cut the head off. Expand
+    // the framed region upward to the sprite's real top; the zoom-to-fit below then pulls the
+    // camera OUT so the whole figure fits (same intent as kurama's arena widen). Guarded by
+    // _canvasHeightFrac → zero effect on normal fighters.
+    for (const f of [f1, f2]) {
+      if (f && f._canvasHeightFrac) {
+        const feetY = (f.y || 0) + (f.h || f.height || 110)
+        bbT = Math.min(bbT, feetY - ch * f._canvasHeightFrac)
+      }
+    }
 
     const avgVx = ((f1.vx || 0) + (f2.vx || 0)) * 0.5
 

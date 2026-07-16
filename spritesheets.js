@@ -98,6 +98,13 @@ export const SPRITE_MANIFEST = {
   // sprite. Non-convention filenames → object form.
   naruto: {
     actions: { idle: "./naruto_kcm_stance.png" }
+  },
+
+  // Sasuke (universe: naruto) — PHASE 1: idle only. This entry ONLY gates spritesReady() by
+  // decoding the stance strip → flips Sasuke from box to sprite. Per-action rendering reads
+  // characters.js → sasuke.animationData. Note the existing filename typo "saske" — as-is.
+  sasuke: {
+    actions: { idle: "./saske_stance_2.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

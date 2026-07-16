@@ -5,6 +5,7 @@
 import { drawCharacter } from "./fighters.js"
 import { characters } from "./characters.js"
 import { isDevUnlocked } from "./progression.js"
+import { isFileApiSupported, saveFileStatus } from "./account.js"
 import { countShadowClones } from "./summons.js"
 
 const startScreenImage = new Image()
@@ -582,6 +583,9 @@ export function getMainMenuRects(canvas) {
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
     { id: "tutorial", label: "HOW TO PLAY", subLabel: "Controls & mechanics walkthrough"  },
     { id: "account",  label: "ACCOUNT",   subLabel: "Create / switch local profile"       },
+    // SAVE FILE (File System Access API). Loads/creates a local game_player_data.json so
+    // progress persists; subLabel reflects live status (or that the browser can't do it).
+    { id: "savefile", label: "SAVE FILE", subLabel: isFileApiSupported() ? saveFileStatus() : "Not supported here — progress stays in-memory" },
     { id: "settings", label: "SETTINGS",  subLabel: "Keyboard / controller setup"         },
     { id: "back",     label: "BACK",      subLabel: "Return to title"                     }
   ])
@@ -1545,7 +1549,10 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     }
 
     ctx.fillStyle = (ec.color || "#38bdf8") + "bb"
-    ctx.fillText(label, labelX, enY - 2)
+    // Ultimate-cooldown hint (optional): while the universal recast lockout ticks,
+    // append "· ULT Ns" to the meter label so ULT-not-ready is visible even at full meter.
+    const ultCd = (fighter.ultimateCooldown || 0) > 0 ? `  · ULT ${Math.ceil(fighter.ultimateCooldown / 60)}s` : ""
+    ctx.fillText(label + ultCd, labelX, enY - 2)
 
     if (!hasEnergy) return
 
@@ -1655,7 +1662,7 @@ export function drawControlsInfo(ctx, canvas) {
 
   ctx.font      = "12px Arial"
   ctx.fillStyle = "rgba(255,255,255,0.82)"
-  ctx.fillText("Move: A/D  Jump: W  Down: S", 32, panelY + 42)
+  ctx.fillText("Move: A/D  Jump: W  Down: Crouch/Block (hold S)", 32, panelY + 42)
   ctx.fillText("Light: J  Heavy: K  Special: I  Ultimate: L", 32, panelY + 58)
   ctx.fillText("Dash: Shift  Grab: Down+Light (S+J)", 32, panelY + 74)
   ctx.fillText("Charge: C  Transform: U  Toggle: Q", 32, panelY + 90)

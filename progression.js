@@ -86,9 +86,18 @@ export function setDevUnlock(code) {
   if (ok) {
     _devUnlock = true
     const acct = getCurrentAccount()
-    if (acct) { acct.devUnlock = true; persistence.save(acct) }   // TODO(backend): persists here later
+    if (acct) { _ensureUnlocks(acct).devUnlock = true; persistence.save(acct) }   // TODO(backend): persists here later
   }
   return ok
+}
+
+// Save-schema helper: the unlock flags live under acct.unlocks in game_player_data.json.
+// Guarantees the group exists (older saves / freshly-hydrated objects may lack it).
+function _ensureUnlocks(acct) {
+  if (!acct.unlocks || typeof acct.unlocks !== "object") {
+    acct.unlocks = { devUnlock: false, betaUnlock: false, featuresUnlocked: [] }
+  }
+  return acct.unlocks
 }
 
 // ── BETA-ACCESS CODE "GojoV1" (Task 1) ───────────────────────────────────────
@@ -113,13 +122,13 @@ export function applyUnlockCode(code) {
   if (c === DEV_CODE.toLowerCase()) {
     _devUnlock = true
     const acct = getCurrentAccount()
-    if (acct) { acct.devUnlock = true; persistence.save(acct) }
+    if (acct) { _ensureUnlocks(acct).devUnlock = true; persistence.save(acct) }
     return "dev"
   }
   if (c === BETA_CODE.toLowerCase()) {
     _betaUnlock = true
     const acct = getCurrentAccount()
-    if (acct) { acct.betaUnlock = true; persistence.save(acct) }   // TODO(backend)
+    if (acct) { _ensureUnlocks(acct).betaUnlock = true; persistence.save(acct) }   // TODO(backend)
     return "beta"
   }
   return null
@@ -141,12 +150,22 @@ function _save(p) {
   persistence.save(acct)                      // TODO(backend) lives in account.js
 }
 
-// Call after selecting/creating an account to hydrate from its stored progression.
+// Call after selecting/creating an account — or after loading a save file — to
+// hydrate progression AND the session unlock flags from the stored account object.
 export function loadProgressionFromAccount() {
   const acct = getCurrentAccount()
-  if (!acct?.progression) return
-  const p = _get()
-  p.xp = acct.progression.xp || 0
-  p.matches = acct.progression.matches || 0
-  p.wins = acct.progression.wins || 0
+  if (!acct) return
+  if (acct.progression) {
+    const p = _get()
+    p.xp = acct.progression.xp || 0
+    p.matches = acct.progression.matches || 0
+    p.wins = acct.progression.wins || 0
+  }
+  // Restore unlock flags persisted on the account (dev/beta codes) so a loaded save
+  // re-applies them — otherwise these session-only booleans would reset on load.
+  // Read the grouped acct.unlocks (current schema); fall back to the legacy flat
+  // acct.devUnlock/betaUnlock so older save files still hydrate.
+  const u = acct.unlocks || {}
+  if (u.devUnlock  || acct.devUnlock)  _devUnlock  = true
+  if (u.betaUnlock || acct.betaUnlock) _betaUnlock = true
 }

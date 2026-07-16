@@ -153,3 +153,18 @@ export function isSkinUnlocked(rosterKey, skinId) {
   if (isBetaUnlocked() && isJJKKey(rosterKey)) return true
   return getLevel() >= skin.unlockLevel
 }
+
+// DERIVED snapshot of which skins are unlocked, per character — for the save-file
+// `skins` section. skins.js persists NO unlock state of its own (unlock is computed
+// from level + dev/beta), so this is a read-only projection recomputed from the SAME
+// rule as isSkinUnlocked(), taking level/dev/beta as explicit args so it can be built
+// for any account object (not just the current session). Returns { rosterKey: [ids] }.
+export function buildUnlockedSkinsSnapshot(level = 1, dev = false, beta = false) {
+  const out = {}
+  for (const [rosterKey, list] of Object.entries(SKINS)) {
+    out[rosterKey] = list
+      .filter(s => s.unlockLevel <= 0 || dev || (beta && isJJKKey(rosterKey)) || level >= s.unlockLevel)
+      .map(s => s.id)
+  }
+  return out
+}

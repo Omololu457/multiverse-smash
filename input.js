@@ -219,11 +219,74 @@ function updateBuffer(buffer) {
 // ─────────────────────────────────────────────────────────────────
 // GAMEPAD POLLING
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// PAD → PLAYER BINDING (by gamepad.index, NOT array slot)
+// ─────────────────────────────────────────────────────────────────
+// navigator.getGamepads() is indexed by each pad's browser-assigned .index, whose
+// ORDER depends on connection/activation timing — so the old gamepads[0]=P1 /
+// gamepads[1]=P2 slot assumption mis-routed a pad to the wrong fighter when two pads
+// were live (P1's pad could drive P2). Fix: capture each pad's .index the instant it
+// connects (gamepadconnected fires immediately, independent of poll timing) and bind
+// players to a specific .index. AUTO-ASSIGN by connection order: 1st pad → P1, 2nd →
+// P2. Assignment itself resolves at poll time and is DEVICE-AWARE (only players set to
+// "controller" ever claim a pad), so a keyboard-P1 / controller-P2 setup still hands
+// the single pad to P2. (Manual per-pad assignment = future follow-up.)
+const connectedPads  = []                     // pad.index values, in connection order (from the event)
+const padAssignments = { 1: null, 2: null }   // playerNum → bound gamepad.index (or null)
+
+if (typeof window !== "undefined" && window.addEventListener) {
+  window.addEventListener("gamepadconnected", (e) => {
+    const i = e.gamepad?.index
+    if (i != null && !connectedPads.includes(i)) connectedPads.push(i)
+  })
+  window.addEventListener("gamepaddisconnected", (e) => {
+    const i = e.gamepad?.index
+    const at = connectedPads.indexOf(i)
+    if (at !== -1) connectedPads.splice(at, 1)
+    if (padAssignments[1] === i) padAssignments[1] = null   // free the slot for a re-plug
+    if (padAssignments[2] === i) padAssignments[2] = null
+  })
+}
+
+// Resolve the gamepad.index THIS player reads. Keeps an existing binding while that
+// pad stays connected; otherwise claims the first connected pad not owned by the other
+// player (connection order from the event; falls back to live getGamepads() for pads
+// that existed before the listeners registered — gamepadconnected won't re-fire those).
+function resolvePadIndex(playerNum, gamepads) {
+  const other = padAssignments[playerNum === 1 ? 2 : 1]
+  if (padAssignments[playerNum] != null && connectedPads.includes(padAssignments[playerNum])) {
+    return padAssignments[playerNum]
+  }
+  const order = connectedPads.length
+    ? connectedPads
+    : Array.from(gamepads).filter(Boolean).map(g => g.index)
+  for (const idx of order) {
+    if (idx !== other) { padAssignments[playerNum] = idx; return idx }
+  }
+  padAssignments[playerNum] = null
+  return null
+}
+
+const _padDbgTick = { 1: 0, 2: 0 }
 function pollGamepad(playerNum, buffer) {
   const gamepads = navigator.getGamepads ? navigator.getGamepads() : []
-  // Player 1 → first connected pad, Player 2 → second. (When P1 is on keyboard,
-  // a single pad still reads as gamepad[0], so P2-only-pad setups also work.)
-  const gp = gamepads[playerNum === 1 ? 0 : 1]
+  // Read THIS player's BOUND pad by gamepad.index (getGamepads() is indexed by .index),
+  // never by array position — that's what fixes the two-pad cross-talk.
+  const assignedIdx = resolvePadIndex(playerNum, gamepads)
+  const gp = assignedIdx == null
+    ? null
+    : (gamepads[assignedIdx] || Array.from(gamepads).find(g => g && g.index === assignedIdx) || null)
+  // [DEBUG-PAD] per-player, throttled: the pad.index bound to this player, whether it's
+  // pressed, the live assignments map, and all connected pads — so binding is visible.
+  if ((++_padDbgTick[playerNum] % 30) === 0) {
+    const anyPressed = gp ? gp.buttons.some(b => b?.pressed) : false
+    const all = []
+    for (let k = 0; k < gamepads.length; k++) if (gamepads[k]) all.push(`slot${k}:index=${gamepads[k].index},id="${gamepads[k].id}"`)
+    console.log(`[DEBUG-PAD] pollGamepad P${playerNum} → bound index=${assignedIdx}:`,
+      gp ? `id="${gp.id}"` : "ABSENT",
+      "| pressed:", anyPressed, "| assignments:", JSON.stringify(padAssignments),
+      "| connected:", all.join("  ") || "none")
+  }
   if (!gp) return null
 
   const btn  = (i) => !!gp.buttons[i]?.pressed
@@ -277,6 +340,7 @@ function pollGamepad(playerNum, buffer) {
 // getFighterInput
 // Returns a unified input object for combat/physics engines.
 // ─────────────────────────────────────────────────────────────────
+const _giDbgTick = { 1: 0, 2: 0 }
 export function getFighterInput(fighter) {
   if (!fighter) return null
 
@@ -284,6 +348,16 @@ export function getFighterInput(fighter) {
   const buffer = isP1 ? p1Buffer : p2Buffer
   const type = isP1 ? inputSettings.p1Type : inputSettings.p2Type
   const ctrl = fighter.controls
+
+  // [DEBUG-PAD 2] per-player, throttled: confirm each fighter's playerNumber, its live
+  // device type, and the playerNum it will hand to pollGamepad — so we can catch both
+  // fighters resolving to the same playerNum, or a wrong playerNumber on P1/P2.
+  const _pn = fighter.playerNumber
+  if ((_pn === 1 || _pn === 2) && (++_giDbgTick[_pn] % 30 === 0)) {
+    console.log(`[DEBUG-PAD] getFighterInput P${_pn} — playerNumber=${_pn}`,
+      "| type:", type, "| controller?", type === "controller",
+      "| will call pollGamepad(", isP1 ? 1 : 2, ")")
+  }
 
   updateBuffer(buffer)
 

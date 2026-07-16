@@ -144,8 +144,10 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Freeze visible animation during hitstop
   if ((fighter.hitstop || 0) > 0) return currentAction || fighter._lastSpriteAction || "idle";
 
-  // BUG_9: match-intro pose — play the intro/transform strip while the intro flag is set.
-  if (fighter._introPlaying) return "transform";
+  // BUG_9: match-intro pose — play the intro strip while the intro flag is set. If the fighter
+  // was assigned a specific intro variant this match (game.pickIntroVariant, e.g. Sasuke's random
+  // intro pool) use that action; otherwise fall back to the shared "transform" intro slot.
+  if (fighter._introPlaying) return fighter._introVariant || "transform";
 
   // Knockdown handling
   if (fighter.knockdownState) {
@@ -258,6 +260,19 @@ export class SpriteHandler {
     const profileAction = this._getActionDef(charKey, action, fighter._skinAnim);
     this._actionDef = profileAction;
 
+    // Reset frame state when the underlying SHEET changes even if the action NAME
+    // is unchanged. Needed for _skinAnim body-swaps that keep the same action key
+    // (e.g. Sasuke Susanoo Lvl1→Lvl2: both are "idle" but lvl_1.png has 5 frames /
+    // lvl_2.png has 4 — a stale frameIndex would slice out-of-bounds garbage and the
+    // handler could keep animating the old sheet's frame). Keying on the sheet path
+    // forces a clean restart on the swap.
+    if (this._lastSheetKey !== profileAction.sheet) {
+      this._lastSheetKey = profileAction.sheet;
+      this.frameIndex = 0;
+      this.frameTimer = 0;
+      this._spawnFired = false;
+    }
+
     // Support legacy passed-in spritesheets/actionData too
     const legacySheet =
       spritesheets?.[action] ||
@@ -301,7 +316,18 @@ export class SpriteHandler {
     // DESTINATION draw size up to roughly fill the hitbox. Source slicing stays
     // at native drawWidth/drawHeight (the SOURCE rect below); only the drawn size
     // scales. Defaults to 1 → identical to before for every other character.
-    const scale = fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1;
+    let scale = fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1;
+
+    // CANVAS-RELATIVE GIANT SIZING: a fighter can request a display height as a
+    // FRACTION of the live canvas height (mirrors kurama.js sizing its fox at
+    // bodyH = ch * 0.74) so giant forms read as massive on any resolution instead
+    // of a small fixed multiple of their sprite cells. `_canvasHeightRefH` is the
+    // REFERENCE native cell height (the body cell) so every action — body, grab,
+    // arrow — scales by the SAME factor and stays proportional to the body.
+    if (fighter._canvasHeightFrac && fighter._canvasHeightRefH && ctx.canvas?.height) {
+      scale = (ctx.canvas.height * fighter._canvasHeightFrac) / fighter._canvasHeightRefH;
+    }
+
     const dstW = drawWidth * scale;
     const dstH = drawHeight * scale;
 

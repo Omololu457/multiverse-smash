@@ -626,6 +626,9 @@ const sasuke = {
   // Placeholder base stats — templated off Naruto (fellow chakra/taijutsu ninja); tune later.
   traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
   stats: { maxHealth: 1180, maxEnergy: 190, attack: 89, defense: 84, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 15, dashDuration: 12, dashCooldownMax: 45 },
+  // dashTeleport: double-tap TOWARD the opponent = blink BEHIND them (Sharingan speed) — the
+  // SAME mechanic + timing window (DOUBLE_TAP_TIME) as Gojo/Toji/Sukuna via detectDoubleTapDashTeleport.
+  movement: { dashTeleport: true },
   // PHASE 2 = basic movement + attacks. Placeholder taijutsu values between Naruto & Toji
   // (combat.js _getMD reads THIS `basic_attacks` — moveset.js has no naruto/toji/sasuke entry).
   // Specials/ultimate still deliberately ABSENT (Phase 3). light=forward-kick combo,
@@ -633,8 +636,16 @@ const sasuke = {
   basic_attacks: {
     light:  { damage: 46, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:  { damage: 92, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1 },
+    // upAttack = LAUNCHER (combat.js `case "up"` reads b.upAttack; startMove "up" → animationData.up).
+    // Mid-weight numbers modeled on the moveset.js launcher pattern (Naruto upAttack 70/-8).
+    upAttack:{ type: "launcher", damage: 62, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
     downAir:{ damage: 78, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 }
   },
+  // ── PHASE 3: two-stage Susanoo ULTIMATE (logic lives in abilities.js executeSasukeUltimate).
+  // This field is HUD-only (game.js reads c?.ultimate?.name for the move hint); the real cost is
+  // enforced in abilities.js — Stage 1 spends 50% of maxEnergy, Stage 2 drains all remaining to 0.
+  // Attacks (Susanoo grab / Lv2 arrow) fire on the SPECIAL button while in Susanoo.
+  ultimate: { name: "Susanoo", cost: 95, description: "Stage 1: buffed Susanoo Lv1 + ribcage grab. Press again to escalate to Lv2 (drains all energy): heavier grab + ranged arrow." },
   hasSprites: true,
   // saske_stance_2.png (existing filename typo — referenced AS-IS, not "fixed"): MEASURED 112×57,
   // 4 frames → 28×57 cells; vertical content rows 0–55 → ~2px transparent bottom gap. spriteScale
@@ -650,12 +661,50 @@ const sasuke = {
   // fall back to idle gracefully. hurt/dash/light/heavy/down_air are Phase 2; specials later.
   animationData: {
     idle:     { frames: 4, width: 28, height: 57, speed: 6, anchorY: -4,  sheet: "./saske_stance_2.png" },
+    // walk/run — sasuke_running.png. MEASURED 449×53 → 8 frames (transparent-gutter verified,
+    // content-tight/non-uniform so NOT a round divisor) @ 56px cell pitch (449/8 = 56.1). Without
+    // these keys sprite.js used the 128×128 _FALLBACK and sliced garbage from the idle sheet
+    // ("random sprite"). speed 5 = roster walk baseline (Naruto/Gojo/Sukuna); run reuses the same
+    // strip a touch faster (Naruto's move.png pattern). anchorY -10 = -(5px bottom gap × 2.1).
+    walk:     { frames: 8, width: 56, height: 53, speed: 5, anchorY: -10, sheet: "./sasuke_running.png" },
+    run:      { frames: 8, width: 56, height: 53, speed: 4, anchorY: -10, sheet: "./sasuke_running.png" },
+    // jump/fall — sasuke_jump.png. MEASURED 406×78 → 8 frames (transparent-gutter verified) @ 51px
+    // pitch (406/8=50.8). The arc is crouch→rise→peak→descend→land, so split like Naruto's jump:
+    // jump = rise half (cells 0–3, sourceX 0), fall = descend half (cells 4–7, sourceX 4×51=204).
+    // Without these keys sprite.js used the 128×128 _FALLBACK and sliced garbage. speed 6 = roster
+    // jump baseline (Gojo/Sukuna/Naruto). anchorY -15 = -(7px bottom gap × 2.1).
+    jump:     { frames: 4, width: 51, height: 78, speed: 6, anchorY: -15, sourceX: 0,   sheet: "./sasuke_jump.png" },
+    fall:     { frames: 4, width: 51, height: 78, speed: 6, anchorY: -15, sourceX: 204, sheet: "./sasuke_jump.png" },
     dash:     { frames: 2, width: 66, height: 49, speed: 5, anchorY: -13, sheet: "./sasuke_dash.png" },            // 131×49 → 2×(66×49), 6px bottom gap
     hurt:     { frames: 4, width: 53, height: 57, speed: 6, anchorY: -6,  sheet: "./sasuke_damage.png" },          // 211×57 → 4×(53×57), 3px bottom gap
     light:    { frames: 9, width: 68, height: 71, speed: 2, anchorY: -36, sheet: "./sasuke_foward_attack.png" },   // 611×71 → 9×(68×71), 17px bottom gap (feet high in cell)
     heavy:    { frames: 7, width: 71, height: 58, speed: 4, anchorY: -4,  sheet: "./sasuke_dash_attack.png" },     // 496×58 → 7×(71×58), sword slash + trail
-    down_air: { frames: 6, width: 50, height: 62, speed: 4, anchorY: -6,  sheet: "./sasuke_down_attack.png" }      // 298×62 → 6×(50×62)
-  }
+    up:       { frames: 9, width: 58, height: 60, speed: 3, anchorY: -10, sheet: "./sasuke_up_attack.png" },       // 527×60 → 9×(58×60) gap-scanned; launcher swing. anchorY -10 = -(5px botGap ×2.1)
+    down_air: { frames: 6, width: 50, height: 62, speed: 4, anchorY: -6,  sheet: "./sasuke_down_attack.png" },     // 298×62 → 6×(50×62)
+    // ── PHASE 3a: pre-match INTRO POOL. game.js picks one of `introPool` at random each match
+    // (see pickIntroVariant); sprite.js plays it while _introPlaying is set. loop:false +
+    // lockLastFrame → each plays ONCE then holds its final pose, snapping cleanly to idle when
+    // the fight starts. Cell width = sheetW / real-frame-count (keeps the true pitch); anchorY =
+    // -(bottom gap × 2.1). NOTE: `intro` plays only the first 6 of sasuke_intro.png's 9 cells —
+    // this deliberately EXCLUDES the wire/kunai-throw action (cells ~6–8), which is a combat move,
+    // not an idle intro. Those frames stay in the file for a possible future "wire kunai" move.
+    // `intro` (sasuke_intro.png) is EXCLUDED from introPool below — kept for reference only.
+    // Its only clean "settled fighting stance" frame is the LAST cell (8), which sits AFTER the
+    // kunai-wire combat action (cells 6–7). The engine plays cells sequentially and can't skip the
+    // wire, so trimming the wire (required — a combat action shouldn't play in an intro) forces the
+    // hold onto a mid-motion arm-point pose (cell 5) that doesn't read as an arrival stance. It's
+    // also thematically redundant with introCloakAlt. Re-enable only if the sheet is re-sliced to
+    // separate the wire, freeing the settled stance.
+    intro:         { frames: 6, width: 57, height: 63, speed: 6, anchorY: -15, loop: false, lockLastFrame: true, sheet: "./sasuke_intro.png"   },
+    introAkatsuki: { frames: 5, width: 45, height: 76, speed: 6, anchorY: -17, loop: false, lockLastFrame: true, sheet: "./sasuke_intro_2.png" }, // Akatsuki (red-cloud) cloak unfurl → holds clean settled stance
+    introCloakAlt: { frames: 6, width: 34, height: 70, speed: 6, anchorY: -29, loop: false, lockLastFrame: true, sheet: "./sasuke_intro_3.png" }  // black cloak unfurl → holds clean settled stance
+  },
+  // Generic pre-match intro pool — game.pickIntroVariant() picks one at random each match; add a
+  // 4th entry here later and it drops into the rotation with no other wiring. (Any character can
+  // define this; those without it fall back to the shared "transform" intro slot.)
+  // `intro` intentionally NOT pooled — see the note above (holds on a mid-combat arm-point, wire
+  // can't be skipped). Only the two that settle into a clean stance stay in rotation.
+  introPool: ["introAkatsuki", "introCloakAlt"]
 }
 
 // ─────────────────────────────────────────────────────────────────

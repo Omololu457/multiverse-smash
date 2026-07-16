@@ -164,12 +164,30 @@ export const physics = {
 
     // ── STAGE / CAMERA BOUNDS ────────────────────────
     const stageW = this.stageWidth
-    if (fighter.x < this.stageLeft) {
-      fighter.x = this.stageLeft
+    let boundL = this.stageLeft
+    let boundR = stageW
+
+    // GIANT-SUMMON HALF-ARENA CONFINEMENT (e.g. Sasuke's Susanoo): while active,
+    // restrict THIS fighter to the half of the stage it activated in — a body that
+    // size shouldn't roam the whole map. The anchor half is latched once on the
+    // first frame (based on where the fighter stood at activation) so it never
+    // teleports across. Opponent is untouched (flag is per-fighter). Cleared by the
+    // ability on revert.
+    if (fighter._susanooActive) {
+      const mid = this.stageLeft + (stageW - this.stageLeft) * 0.5
+      if (fighter._arenaHalfLock == null) {
+        fighter._arenaHalfLock = (fighter.x + fighter.w / 2) < mid ? "left" : "right"
+      }
+      if (fighter._arenaHalfLock === "left") boundR = mid
+      else boundL = mid
+    }
+
+    if (fighter.x < boundL) {
+      fighter.x = boundL
       fighter.vx = Math.max(0, fighter.vx)
     }
-    if (fighter.x + fighter.w > stageW) {
-      fighter.x = stageW - fighter.w
+    if (fighter.x + fighter.w > boundR) {
+      fighter.x = boundR - fighter.w
       fighter.vx = Math.min(0, fighter.vx)
     }
 

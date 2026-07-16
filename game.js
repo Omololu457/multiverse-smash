@@ -3538,6 +3538,10 @@ window.addEventListener("keyup", e => {
   const key = String(e.key || "").toLowerCase()
   if (p1) handleChargeRelease(p1, key)
   if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleChargeRelease(p2, key)
+  // Sasuke Susanoo Stage-2 gate: mark the ultimate button as released so a genuine SECOND
+  // press (not a held one) is required to escalate Lv1→Lv2. See executeSasukeUltimate.
+  if (p1 && key === (p1.controls?.ultimate || "u")) p1._ultReleasedSinceStage1 = true
+  if (p2 && key === (p2.controls?.ultimate || "5")) p2._ultReleasedSinceStage1 = true
 })
 
 // ------------------------------------------------------------------

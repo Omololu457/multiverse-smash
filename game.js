@@ -35,7 +35,8 @@ import {
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
-  sasukeInSusanoo, SUSANOO_DURATION_FRAMES   // Susanoo: pause round clock + purple duration readout
+  sasukeInSusanoo, SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout
+  maybeSasukeAirShuriken   // Sasuke basic kit: air-heavy shuriken poke
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -1533,6 +1534,9 @@ function updatePlayerCombat(fighter) {
   // S+L motion specials (e.g. Hollow Purple = S,A+L).
   if (canStart && inputState.special)  { triggerSpecial(fighter,  getAbilityContext()); return }
   if (canStart && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
+  // Sasuke BASIC KIT: air-heavy shuriken poke (K while airborne). Sasuke-only + airborne-only, so
+  // it never disturbs the shared ground kit or any other fighter. Checked before the normal combat.
+  if (canStart && maybeSasukeAirShuriken(fighter, inputState, getAbilityContext())) return
   updateCombat(fighter, getOpponent(fighter), buildNormalControlState(fighter, vKeys), opts)
 }
 
@@ -3076,6 +3080,8 @@ gameLoop()
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
     setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
+    healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false } },  // reset dummy between damage checks
+    liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
     hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
     // Force the pre-match INTRO with a specific variant, held open (no auto-advance / namecall)
     // so intro-rotation coverage can render + step each pose. Resets P1's sprite so the intro

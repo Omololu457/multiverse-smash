@@ -3042,6 +3042,10 @@ gameLoop()
     rooted:           !!f._rooted,
     attacking:        !!f.attacking,
     currentMove:      f.currentMove || null,
+    introVariant:     f._introVariant || null,
+    spriteSheet:      f.spriteHandler?._actionDef?.sheet ?? null,
+    spriteFrames:     f.spriteHandler?._actionDef?.frames ?? null,
+    spriteReady:      !!(f.spriteHandler?._actionDef?.sheet),
     hasSkinAnim:      !!f._skinAnim,
     canvasHeightFrac: f._canvasHeightFrac || null,
     action:           f._lastSpriteAction || null,
@@ -3072,6 +3076,22 @@ gameLoop()
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
     setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
-    hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } }  // simulate getting hit (cancel tests)
+    hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
+    // Force the pre-match INTRO with a specific variant, held open (no auto-advance / namecall)
+    // so intro-rotation coverage can render + step each pose. Resets P1's sprite so the intro
+    // action re-resolves cleanly.
+    forceIntro: variant => {
+      startHarnessMatch()
+      gameState = GAME_STATES.INTRO
+      namecallActive = false
+      matchIntroTimer = 9999
+      countdown = ROUND_START_COUNTDOWN
+      if (p1) {
+        p1._introPlaying = true
+        p1._introVariant = variant
+        if (p1.spriteHandler) { p1.spriteHandler.currentAction = null; p1.spriteHandler.frameIndex = 0; p1.spriteHandler.frameTimer = 0; p1.spriteHandler.locked = false }
+      }
+      if (p2) p2._introPlaying = false
+    }
   }
 })()

@@ -7,7 +7,8 @@
     "test:susanoo": "node harness/susanoo.test.mjs",
     "test:susanoo-refinements": "node harness/susanoo_refinements.test.mjs",
     "test:round4": "node harness/round4.test.mjs",
-    "test:sharingan": "node harness/sharingan.test.mjs"
+    "test:sharingan": "node harness/sharingan.test.mjs",
+    "test:intros": "node harness/intros.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

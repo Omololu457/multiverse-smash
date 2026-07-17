@@ -28,7 +28,8 @@ import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   updateProjectiles as updateCombatProjectiles,
   checkClash, checkParry, resolveGrab, updateGrab,
-  getAttackPhase, getAttackHitbox   // training overlay: live frame data + real attack hitbox
+  getAttackPhase, getAttackHitbox,   // training overlay: live frame data + real attack hitbox
+  getHurtbox                          // harness: verify the Susanoo giant hurtbox
 } from "./combat.js"
 import {
   activeProjectiles, spawnProjectile,
@@ -3679,6 +3680,12 @@ gameLoop()
     bootVs: () => { startHarnessMatch({ mode: "vs", difficulty: "easy" }); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
     // Pause-menu introspection: current selection + item id (drive with real esc/↓/enter keys).
     pauseSel: () => ({ gameState, index: pauseMenuIndex, item: PAUSE_MENU_ITEMS[pauseMenuIndex] }),
+    // Camera introspection (zoom regression diagnosis).
+    camera: () => ({ zoom: camera.zoom, targetZoom: camera.targetZoom, x: camera.x, y: camera.y }),
+    // Expire an active Susanoo so the normal update loop auto-reverts it (recovery timing).
+    expireSusanoo: () => { if (p1 && (p1._susanooStage || 0) > 0) p1._susanooTimer = 1 },
+    // Hurtbox introspection (Susanoo giant-hurtbox fix): the box combat uses for hits.
+    hurtbox: who => { const f = who === "p2" ? p2 : p1; const hb = getHurtbox(f); return f && hb ? { ...hb, fx: f.x, fy: f.y, fw: f.w, fh: f.h, drawTop: f._lastDrawY ?? null, drawH: f._lastDrawH ?? null } : null },
     state: () => ({ gameState, countdown, frame: globalFrameCount }),
     arena: () => ({ left: physics.stageLeft, width: physics.stageWidth,
                     mid: physics.stageLeft + (physics.stageWidth - physics.stageLeft) * 0.5 }),

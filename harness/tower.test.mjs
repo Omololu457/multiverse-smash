@@ -105,6 +105,49 @@ try{
   check("stages are randomized (≥3 distinct across 16 floors)", stgs.size>=3, `distinct stages=${stgs.size}`);
   console.log("  difficulty-by-floor:", JSON.stringify(diffByFloor.map(d=>`${d.n}:${d.diff}`).join(" ")));
 
+  // ── STEP 4: FLAWLESS VICTORY banner (reuses matchflow perfectRounds) ──────
+  const vinfo=()=>page.evaluate(()=>window.__harness.victoryInfo());
+  section("STEP 4 — FLAWLESS VICTORY (zero damage) in a Tower floor");
+  await page.evaluate(()=>window.__harness.towerStart("tier1","gojo")); await wf(2);
+  const wonClean=await winMatch();   // forceP1Win KOs P2 each round → P1 never takes damage
+  check("tower floor won", wonClean, `gs=${await gs()}`);
+  await wf(6);
+  const vf=await vinfo();
+  check("FLAWLESS flagged when P1 took ZERO damage", vf.flawless===true, `flawless=${vf.flawless} perfectP1=${vf.perfectP1} roundsWonP1=${vf.roundsWonP1}`);
+  check("tower result shows the floor-cleared subtitle", /FLOOR 1 CLEARED/.test(vf.subtitle), `subtitle="${vf.subtitle}"`);
+  check("primary button becomes NEXT FLOOR", vf.primaryLabel==="NEXT FLOOR", `label=${vf.primaryLabel}`);
+  await wf(30);   // let the victory screen fully fade in for a crisp banner shot
+  await page.screenshot({path:path.join(OUT,"TOWER_flawless.png")});
+  await page.evaluate(()=>window.__harness.towerContinue()); await wf(2);
+
+  section("STEP 4 — NOT flawless when damage IS taken");
+  await page.evaluate(()=>window.__harness.towerStart("tier1","gojo")); await wf(2);
+  // Round 1: chip P1 before KOing P2 (that round is not perfect); Round 2: clean win.
+  let dmgApplied=false;
+  for(let i=0;i<80;i++){ const g=await gs(); if(g==="victory")break;
+    if(g==="intro"){await page.evaluate(()=>{try{window.__harness.skipToBattle();}catch(e){}});await wf(2);continue;}
+    if(g==="battle"){ if(!dmgApplied){await page.evaluate(()=>window.__harness.damageP1(150));dmgApplied=true;await wf(2);} await page.evaluate(()=>window.__harness.forceP1Win());await wf(6);continue; }
+    await wf(4);
+  }
+  await wf(6);
+  const vnf=await vinfo();
+  check("P1 damage WAS applied in a round", dmgApplied, `applied=${dmgApplied}`);
+  check("NOT flawless when a round was imperfect", vnf.flawless===false, `flawless=${vnf.flawless} perfectP1=${vnf.perfectP1} roundsWonP1=${vnf.roundsWonP1}`);
+  await page.evaluate(()=>window.__harness.towerContinue()); await wf(2);
+
+  section("STEP 4 — FLAWLESS also works in a NORMAL (non-tower) match");
+  await page.evaluate(()=>window.__harness.bootVs());   // real vs-CPU match
+  await wf(3);
+  await page.evaluate(()=>window.__harness.forceP1Win());  // KO round 1 instantly
+  for(let i=0;i<80;i++){ const g=await gs(); if(g==="victory")break;
+    if(g==="intro"){await page.evaluate(()=>{try{window.__harness.skipToBattle();}catch(e){}});await wf(2);continue;}
+    if(g==="battle"){await page.evaluate(()=>window.__harness.forceP1Win());await wf(6);continue;}
+    await wf(4);
+  }
+  await wf(6);
+  const vn=await vinfo();
+  check("normal-match flawless flagged (no tower subtitle)", vn.flawless===true && vn.subtitle==="", `flawless=${vn.flawless} subtitle="${vn.subtitle}"`);
+
   section("errors");
   check("no uncaught JS exceptions", jsErrors.length===0, jsErrors.slice(0,4).join(" | "));
 }catch(e){console.error("ERR",e);FAIL++;try{await page.screenshot({path:path.join(OUT,"TOWER_ERR.png")});}catch{}}

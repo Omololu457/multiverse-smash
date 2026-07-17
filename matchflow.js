@@ -155,7 +155,10 @@ export function drawVictoryScreen(ctx, canvas, state) {
     stats         = createMatchStats(),
     rematchHover  = false,
     menuHover     = false,
-    fadeAlpha     = 1
+    fadeAlpha     = 1,
+    flawless      = false,
+    subtitle      = "",
+    primaryLabel  = "REMATCH"
   } = state
 
   const cw = canvas.width, ch = canvas.height
@@ -182,6 +185,17 @@ export function drawVictoryScreen(ctx, canvas, state) {
   ctx.textAlign    = "center"
   ctx.textBaseline = "middle"
 
+  // ── FLAWLESS VICTORY banner (MK-style) — winner took ZERO damage all match ──
+  if (flawless) {
+    ctx.font        = `900 ${Math.min(46, Math.floor(cw * 0.036))}px Arial`
+    const pulse     = 0.6 + 0.4 * Math.abs(Math.sin(fadeAlpha * 3.14159))
+    ctx.fillStyle   = "#fde047"
+    ctx.shadowBlur  = 26 * pulse
+    ctx.shadowColor = "#f59e0b"
+    ctx.fillText("FLAWLESS VICTORY", cw / 2, ch * 0.10)
+    ctx.shadowBlur  = 0
+  }
+
   ctx.font      = "700 18px Arial"
   ctx.fillStyle = "rgba(200,210,230,0.6)"
   ctx.fillText("WINNER", cw / 2, ch * 0.18)
@@ -192,6 +206,13 @@ export function drawVictoryScreen(ctx, canvas, state) {
   ctx.shadowColor  = winnerSide === "p1" ? "#38bdf8" : "#f87171"
   ctx.fillText(winnerName, cw / 2, ch * 0.27)
   ctx.shadowBlur   = 0
+
+  // Context line (Tower floor / cleared).
+  if (subtitle) {
+    ctx.font      = "700 16px Arial"
+    ctx.fillStyle = "rgba(196,181,253,0.9)"
+    ctx.fillText(subtitle, cw / 2, ch * 0.32)
+  }
 
   // ── MATCH STATS ────────────────────────────────────────────────
   const statY  = ch * 0.4
@@ -265,8 +286,8 @@ export function drawVictoryScreen(ctx, canvas, state) {
   const btn1X = cw / 2 - btnW - btnGap / 2
   const btn2X = cw / 2 + btnGap / 2
 
-  _drawVictoryBtn(ctx, btn1X, btnsY, btnW, btnH, "REMATCH",   rematchHover, "#3b82f6", "#60a5fa")
-  _drawVictoryBtn(ctx, btn2X, btnsY, btnW, btnH, "MAIN MENU", menuHover,   "#374151", "#9ca3af")
+  _drawVictoryBtn(ctx, btn1X, btnsY, btnW, btnH, primaryLabel, rematchHover, "#3b82f6", "#60a5fa")
+  _drawVictoryBtn(ctx, btn2X, btnsY, btnW, btnH, "MAIN MENU",  menuHover,   "#374151", "#9ca3af")
 
   // Footer hint
   ctx.font      = "13px Arial"
@@ -375,7 +396,10 @@ export function createVictoryState() {
     winnerSide:   "p1",
     stats:        createMatchStats(),
     rematchHover: false,
-    menuHover:    false
+    menuHover:    false,
+    flawless:     false,       // winner took ZERO damage all match → FLAWLESS VICTORY banner
+    subtitle:     "",          // context line (e.g. Tower floor / cleared)
+    primaryLabel: "REMATCH"    // label for the primary button (Tower → "NEXT FLOOR" etc.)
   }
 }
 

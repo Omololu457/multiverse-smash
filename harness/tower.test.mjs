@@ -78,17 +78,32 @@ try{
   const afterLoss=await info();
   check("continuing after a loss ends the tower (inactive → menu)", afterLoss.active===false && afterLoss.gameState==="start", `active=${afterLoss.active} gs=${afterLoss.gameState}`);
 
-  // ── broad randomization proof (opp + stage genuinely vary) ────────────────
-  section("randomization proof — opponents & stages vary across many floors");
-  await page.evaluate(()=>window.__harness.towerStart("tier5","gojo")); await wf(2);   // endless → advance freely
-  const opps=new Set(), stgs=new Set();
+  // ── STEP 3: Tier 5 infinite + escalation + randomization + floor HUD ──────
+  section("STEP 3 — Tier 5: infinite, difficulty escalates by floor, floor HUD");
+  await page.evaluate(()=>window.__harness.towerStart("tier5","gojo")); await wf(2);
+  const t5=await info();
+  check("Tier 5 is endless (Infinity floors)", t5.endless===true && t5.floors==="Infinity", `endless=${t5.endless} floors=${t5.floors}`);
+  // capture the running floor HUD mid-battle (floor 1)
+  await page.evaluate(()=>{try{window.__harness.skipToBattle();}catch(e){}}); await wf(3);
+  await page.screenshot({path:path.join(OUT,"TOWER_floor_hud.png")});
+  const opps=new Set(), stgs=new Set(); const diffByFloor=[];
   for(let i=0;i<16;i++){
-    const cur=await info(); opps.add(cur.p2); stgs.add(cur.stage);
+    const cur=await info(); opps.add(cur.p2); stgs.add(cur.stage); diffByFloor.push({n:cur.floor+1, diff:cur.difficulty});
     await winMatch();
     await page.evaluate(()=>window.__harness.towerContinue()); await wf(2);
   }
-  check("opponents are randomized (≥4 distinct across 16 floors)", opps.size>=4, `distinct opps=${opps.size} [${[...opps].join(",")}]`);
+  // escalation schedule: 1-5 easy, 6-15 adaptive, 16+ impossible
+  const badEasy = diffByFloor.filter(d=>d.n<=5 && d.diff!=="easy");
+  const badAdap = diffByFloor.filter(d=>d.n>=6 && d.n<=15 && d.diff!=="adaptive");
+  const f16 = diffByFloor.find(d=>d.n===16);
+  check("floors 1-5 are EASY", badEasy.length===0, `offenders=${JSON.stringify(badEasy)}`);
+  check("floors 6-15 are ADAPTIVE", badAdap.length===0, `offenders=${JSON.stringify(badAdap)}`);
+  check("floor 16 is IMPOSSIBLE (escalation reached top tier)", f16 && f16.diff==="impossible", `floor16=${JSON.stringify(f16)}`);
+  const afterDeep=await info();
+  check("Tier 5 still active + uncleared after 16 floors (truly infinite)", afterDeep.active===true && afterDeep.cleared===false, `active=${afterDeep.active} cleared=${afterDeep.cleared} floor=${afterDeep.floor+1}`);
+  check("opponents are randomized (≥4 distinct across 16 floors)", opps.size>=4, `distinct opps=${opps.size}`);
   check("stages are randomized (≥3 distinct across 16 floors)", stgs.size>=3, `distinct stages=${stgs.size}`);
+  console.log("  difficulty-by-floor:", JSON.stringify(diffByFloor.map(d=>`${d.n}:${d.diff}`).join(" ")));
 
   section("errors");
   check("no uncaught JS exceptions", jsErrors.length===0, jsErrors.slice(0,4).join(" | "));

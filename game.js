@@ -2927,13 +2927,44 @@ function triggerSlowdown(frames = 45, target = null) {
   slowdownTarget = target || null
 }
 
-function gameLoop() {
+// ── FIXED-TIMESTEP LOOP (60Hz) ────────────────────────────────────────────────
+// requestAnimationFrame fires at the DISPLAY refresh rate. This game is frame-COUNT
+// driven — physics, timers, cooldowns AND animation frame-advancement (which lives in
+// sprite.draw(), i.e. the render pass) all advance exactly once per loop pass. So running
+// the pass every rAF made the whole game run FASTER than 60fps on 120/144/165Hz displays
+// (the Toji jitter / apparent dual-render / jump-shrink / too-fast-intro regressions — all
+// one root cause). Fix: gate the ENTIRE update+render pass to a fixed 60Hz via a real-time
+// accumulator, skipping rAF callbacks that arrive too soon. Because sprite advancement is
+// coupled to render, gating the whole pass (not just logic) is what keeps ANIMATION speed
+// fixed too — and there is at most ONE pass per rAF, so nothing that assumed
+// one-frame-per-pass (hitstop/freeze/cinematic timelines, cooldowns, input) changes.
+const FIXED_DT = 1000 / 60      // ms per 60Hz logic frame
+let _loopAccum = 0
+let _loopLast  = null
+
+function gameLoop(now) {
+  requestAnimationFrame(gameLoop)
+  if (now == null) now = (typeof performance !== "undefined" ? performance.now() : Date.now())
+  if (_loopLast == null) _loopLast = now
+  let elapsed = now - _loopLast
+  _loopLast = now
+  if (elapsed < 0) elapsed = 0
+  // A long stall (backgrounded tab, breakpoint) must not burst-advance many frames — clamp
+  // to a single frame so the game resumes at real speed instead of fast-forwarding.
+  if (elapsed > 100) elapsed = FIXED_DT
+  _loopAccum += elapsed
+  if (_loopAccum < FIXED_DT) return   // too soon for the next 60Hz frame → skip (no update/render)
+  _loopAccum -= FIXED_DT
+  // Backlog cap: on a display SLOWER than 60Hz, run at the display rate rather than
+  // spiralling. No multi-tick catch-up on purpose — sprite advancement is in draw(), so one
+  // update+render pass per frame keeps logic and animation in lockstep.
+  if (_loopAccum > FIXED_DT) _loopAccum = FIXED_DT
+
   globalFrameCount++
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   updateCurrentState()
   renderCurrentState()
   endInputFrame()
-  requestAnimationFrame(gameLoop)
 }
 
 // ------------------------------------------------------------------

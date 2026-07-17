@@ -1142,14 +1142,34 @@ function _checkMatchOver() {
       : winner === "p2" ? (p2?.name || (isPvP() ? "Player 2" : "CPU"))
       : "Draw"
     victoryState.stats = matchStats
-    recordRoundEnd?.(matchStats, winner, p1?.health || 0, p2?.health || 0)
+    // recordRoundEnd is now called PER ROUND (checkRoundEnd) so perfectRounds reflects the
+    // whole match — NOT re-called here (that would double-count the final round).
+    // FLAWLESS VICTORY: the winner swept every round (opponent won none) with ZERO damage
+    // taken — i.e. all their won rounds are perfect. Reuses matchflow perfectRounds detection.
+    const loser = winner === "p1" ? "p2" : "p1"
+    const ws = matchStats?.[winner], ls = matchStats?.[loser]
+    victoryState.flawless = !!(winner !== "draw" && ws && ls &&
+      ls.roundsWon === 0 && ws.roundsWon > 0 && ws.perfectRounds === ws.roundsWon)
+    victoryState.subtitle = ""
+    victoryState.primaryLabel = "REMATCH"
     // PROGRESSION (Task 3): award XP from the local player's (P1) perspective.
     // Skip training. Tower mode handles its own flow (advance/end) in updateTowerOutcome.
     if (matchConfig.mode !== "training") {
       const p1Won  = winner === "p1"
       victoryState.xpResult = awardMatchXp({ won: p1Won, roundsWon: roundWins.p1, perfect: p1Won && roundWins.p2 === 0 })
     }
-    if (towerState.active) updateTowerOutcome(winner)
+    if (towerState.active) {
+      updateTowerOutcome(winner)
+      // Tower-aware result screen: floor context + a "NEXT FLOOR" / "TOWER CLEARED" prompt.
+      const floorNum = towerState.floor + 1
+      if (winner === "p1") {
+        if (towerState.cleared) { victoryState.subtitle = `${towerState.tierLabel} CLEARED — ${towerState.floors} FLOORS`; victoryState.primaryLabel = "CONTINUE" }
+        else                    { victoryState.subtitle = `${towerState.tierLabel} · FLOOR ${floorNum} CLEARED`;          victoryState.primaryLabel = "NEXT FLOOR" }
+      } else {
+        victoryState.subtitle = `${towerState.tierLabel} · FELL ON FLOOR ${floorNum}`
+        victoryState.primaryLabel = "MAIN MENU"
+      }
+    }
     sound.stopMusic?.()
     sound.play?.(SFX.KO)
     sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
@@ -1812,16 +1832,20 @@ function checkRoundEnd() {
   if (!p1 || !p2 || trainingState.enabled) return
   if (roundTimer <= 0) {
     const p1h = p1?.health || 0, p2h = p2?.health || 0
-    if      (p1h > p2h) { roundWins.p1++; winnerText = isPvP() ? "Time Over — Player 1 Wins" : "Time Over — Player 1 Wins" }
-    else if (p2h > p1h) { roundWins.p2++; winnerText = isPvP() ? "Time Over — Player 2 Wins" : "Time Over — CPU Wins" }
+    let rw = null
+    if      (p1h > p2h) { roundWins.p1++; rw = "p1"; winnerText = isPvP() ? "Time Over — Player 1 Wins" : "Time Over — Player 1 Wins" }
+    else if (p2h > p1h) { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Time Over — Player 2 Wins" : "Time Over — CPU Wins" }
     else                { winnerText = "Time Over — Draw" }
+    recordRoundEnd?.(matchStats, rw, p1h, p2h)   // per-round (drives perfectRounds → FLAWLESS)
     _checkMatchOver(); return
   }
   if (p1.health > 0 && p2.health > 0) return
   if ((p1.health <= 0 || p2.health <= 0) && knockoutFlash === 0) knockoutFlash = 18
+  let rw = null
   if      (p1.health <= 0 && p2.health <= 0) winnerText = "Double KO"
-  else if (p1.health > 0) { roundWins.p1++; winnerText = "Player 1 Wins Round" }
-  else                    { roundWins.p2++; winnerText = isPvP() ? "Player 2 Wins Round" : "CPU Wins Round" }
+  else if (p1.health > 0) { roundWins.p1++; rw = "p1"; winnerText = "Player 1 Wins Round" }
+  else                    { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Player 2 Wins Round" : "CPU Wins Round" }
+  recordRoundEnd?.(matchStats, rw, p1?.health || 0, p2?.health || 0)   // per-round (drives perfectRounds)
   _checkMatchOver()
 }
 
@@ -3155,6 +3179,7 @@ gameLoop()
 
   function startHarnessMatch(opts = {}) {
     resetSelections()
+    towerState.active = false   // a plain harness match is never a tower (clear any stale run)
     // Default: training vs a dummy. Pass { mode:"vs", difficulty:"easy" } for a real
     // CPU match (used to test the pause-menu → Training Mode transition).
     matchConfig.mode          = opts.mode || "training"
@@ -3261,6 +3286,8 @@ gameLoop()
     towerContinue: () => continueTower(),
     forceP1Win: () => { if (p2) p2.health = 0 },
     forceP1Lose: () => { if (p1) p1.health = 0 },
+    damageP1: (v = 100) => { if (p1) p1.health = Math.max(1, (p1.health || 0) - v) },   // chip P1 so a round isn't perfect
+    victoryInfo: () => ({ flawless: !!victoryState.flawless, subtitle: victoryState.subtitle || "", primaryLabel: victoryState.primaryLabel || "", winner: victoryState.winnerSide, perfectP1: matchStats?.p1?.perfectRounds, roundsWonP1: matchStats?.p1?.roundsWon }),
     // Force the pre-match INTRO with a specific variant, held open (no auto-advance / namecall)
     // so intro-rotation coverage can render + step each pose. Resets P1's sprite so the intro
     // action re-resolves cleanly.

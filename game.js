@@ -3727,6 +3727,9 @@ gameLoop()
         canAct: !f.attacking && (f.attackCooldown || 0) <= 0 && (f.hitstun || 0) <= 0
       }
     },
+    // Render-scale introspection: the resolved action + its rendered cell height (dstH).
+    // Used to confirm old-row-sheet actions (guard/grab/…) render at correct proportion.
+    renderInfo: who => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, dstH: f._lastDstH ?? null } : null },
     // Hurtbox introspection (Susanoo giant-hurtbox fix): the box combat uses for hits.
     hurtbox: who => { const f = who === "p2" ? p2 : p1; const hb = getHurtbox(f); return f && hb ? { ...hb, fx: f.x, fy: f.y, fw: f.w, fh: f.h, drawTop: f._lastDrawY ?? null, drawH: f._lastDrawH ?? null } : null },
     state: () => ({ gameState, countdown, frame: globalFrameCount }),

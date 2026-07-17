@@ -135,6 +135,26 @@ try {
     check("shuriken deals damage on hit", hp1 < hp0, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
   }
 
+  // ── DASH-STRIKE sprite integrity (neutral L / special, close range) ─────
+  // Regression: L = special (P1_CONTROLS), and the dash-strike used to flash a 128² NULL-sheet
+  // fallback box during its recovery (dashStrike not in MOVE_TO_ACTION, _spriteCastTimer expired).
+  section("dash-strike sprite integrity — neutral L, close range (no garbage flash)");
+  for (let rep = 0; rep < 3; rep++) {
+    await setupAdjacent(55);
+    const hp0 = (await p2()).health;
+    await page.keyboard.down("l"); await waitFrames(1); await page.keyboard.up("l");
+    const sheets = new Set(); let nulls = 0;
+    for (let i = 0; i < 24; i++) {
+      const p = await p1();
+      if (p.attacking) { sheets.add((p.spriteSheet || "NULL").split("/").pop()); if (!p.spriteSheet) nulls++; }
+      await waitFrames(1);
+    }
+    const hp1 = (await p2()).health;
+    check(`rep${rep}: dash-strike plays ONLY sasuke_dash.png (no NULL/box flash)`, nulls === 0 && sheets.has("sasuke_dash.png") && sheets.size === 1, `sheets=[${[...sheets].join(",")}] nulls=${nulls}`);
+    check(`rep${rep}: dash-strike still connects for damage`, hp1 < hp0, `−${(hp0 - hp1).toFixed(0)}`);
+    await waitFrames(18);
+  }
+
   section("errors");
   check("no uncaught JS exceptions", jsErrors.length === 0, jsErrors.slice(0, 4).join(" | "));
 

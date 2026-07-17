@@ -1285,6 +1285,65 @@ function executeToji_Ultimate(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// TOJI — 3-STANCE WEAPON SYSTEM  (FOUNDATION / Phase 1 — placeholder content)
+// ─────────────────────────────────────────────────────────────────
+// Toji-ONLY for now (not a generic system). fighter.weaponStance ∈ blade|chain|gun.
+// INPUT: the CHARGE button (P) cycles the stance. Chosen because Toji's grab (throw),
+// special (chain/curse/rapid/inventory) and ultimate (Heavenly Restriction) slots are all
+// occupied, whereas charge is a genuine no-op for Toji (0 energy → no charge, base-only
+// transform → triggerTransformation returns false). CORE MECHANIC: a switch pressed during
+// an attack's RECOVERY phase CANCELS the recovery early (same state-clear as combat.js's
+// launcher-cancel) and swaps stance — so the player can act again after only
+// STANCE_SWITCH_FRAMES instead of sitting out the full recovery.
+export const TOJI_STANCES = ["blade", "chain", "gun"]
+const STANCE_SWITCH_FRAMES = 4   // near-instant switch cost (also the post-cancel gap)
+
+// PLACEHOLDER light per stance — Phase-1 content only. Reuses basic-attack shapes with a
+// DISTINCT name + params per stance so the harness can prove the right one fires. NOT the
+// real design-doc moveset (Quick Draw / Inverted Spear / etc. come in Phase 2+).
+const TOJI_STANCE_LIGHT = {
+  blade: { name: "bladeLight", damage: 52, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 4, knockbackY: 0,  rangeX: 60,  rangeY: 40 },
+  chain: { name: "chainLight", damage: 40, startup: 5, active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, rangeX: 110, rangeY: 40 },
+  gun:   { name: "gunLight",   damage: 30, startup: 4, active: 2, recovery: 12, hitstun: 10, knockbackX: 3, knockbackY: 0,  rangeX: 90,  rangeY: 30 }
+}
+
+export function getTojiStance(fighter) { return (fighter && fighter.weaponStance) || "blade" }
+
+// Fire the CURRENT stance's placeholder light (gated by attackCooldown/attacking like any move).
+export function fireTojiStanceLight(fighter, context) {
+  if (!fighter) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const md = TOJI_STANCE_LIGHT[getTojiStance(fighter)] || TOJI_STANCE_LIGHT.blade
+  const attack = createAttackFromMove(fighter, md.name, md)
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  return true
+}
+
+// Stance-switch (CHARGE tap, edge-detected via `chargeHeld` + fighter._stancePrevCharge).
+// Returns "switch" | "cancel" | false. Interrupts only the RECOVERY phase (never startup/active).
+export function updateTojiStanceSwitch(fighter, chargeHeld, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji") return false
+  if (fighter.weaponStance == null) fighter.weaponStance = "blade"
+  const edge = !!chargeHeld && !fighter._stancePrevCharge
+  fighter._stancePrevCharge = !!chargeHeld
+  if (!edge) return false
+
+  let kind = "switch"
+  if (fighter.attacking && fighter.currentAttack) {
+    const phase = (typeof getPhase === "function") ? getPhase(fighter) : null
+    if (phase !== "recovery") return false            // can't cancel startup/active — only recovery
+    fighter.attacking     = false                     // RECOVERY CANCEL (mirror launcher-cancel clear)
+    fighter.currentAttack = null
+    fighter.currentMove   = null
+    kind = "cancel"
+  }
+  fighter.attackCooldown = STANCE_SWITCH_FRAMES        // near-instant switch cost / post-cancel gap
+  const i = TOJI_STANCES.indexOf(getTojiStance(fighter))
+  fighter.weaponStance = TOJI_STANCES[(i + 1) % TOJI_STANCES.length]
+  return kind
+}
+
+// ─────────────────────────────────────────────────────────────────
 // MAHORAGA TRANSFORMATION (Megumi's Ultimate)
 // ─────────────────────────────────────────────────────────────────
 export function transformIntoMahoraga(fighter, context = {}) {

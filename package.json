@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:susanoo": "node harness/susanoo.test.mjs"
+    "test:susanoo": "node harness/susanoo.test.mjs",
+    "test:susanoo-refinements": "node harness/susanoo_refinements.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

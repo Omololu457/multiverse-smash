@@ -34,7 +34,8 @@ import {
   triggerSpecial, triggerUltimate, triggerTransformation,
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
-  applyCloneRendanStorm   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
+  applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
+  sasukeInSusanoo, SUSANOO_DURATION_FRAMES   // Susanoo: pause round clock + purple duration readout
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -76,7 +77,7 @@ import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
-  drawVictoryScreen, drawMatchIntro, drawLowHealthWarning, drawRoundTimer,
+  drawVictoryScreen, drawMatchIntro, drawLowHealthWarning, drawRoundTimer, drawSusanooTimer,
   updateVictoryState, handleVictoryClick, handleVictoryKey, resetFighterForRematch
 } from "./matchflow.js"
 
@@ -576,6 +577,7 @@ function getAbilityContext() {
   return {
     p1, p2, getOpponent, camera, activeDomains,
     worldWidth: getStageWorldWidth(),
+    canvasHeight: canvas?.height,     // giant FX (Susanoo arm-height spawns) mirror sprite.js's canvas-relative sizing
     createFighter,
     deltaMs: 1000 / 60,
     triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }
@@ -1807,7 +1809,12 @@ function updateBattle() {
     }
   }
 
-  if (roundTimer > 0) roundTimer--
+  // Susanoo (either fighter) PAUSES the round clock — a 20s sustained giant form shouldn't
+  // eat into the round timer. The Susanoo DURATION timer (_susanooTimer) keeps ticking
+  // regardless (updateTransformationState → updateSasukeSusanoo); only the ROUND clock freezes.
+  // Uses the exported sasukeInSusanoo helper so this stays correct if the flag changes.
+  const sustainedFormActive = sasukeInSusanoo(p1) || sasukeInSusanoo(p2)
+  if (roundTimer > 0 && !sustainedFormActive) roundTimer--
 
   updateDebugInputToggles()
   updateTrainingMode()
@@ -2190,6 +2197,9 @@ function drawBattleHud() {
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
   drawControlsInfo(ctx, canvas)
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
+  // Purple Susanoo duration clock, shown beside the round timer while either fighter is transformed.
+  const susFighter = sasukeInSusanoo(p1) ? p1 : (sasukeInSusanoo(p2) ? p2 : null)
+  if (susFighter) drawSusanooTimer?.(ctx, canvas, susFighter._susanooTimer || 0, SUSANOO_DURATION_FRAMES)
   drawLowHealthWarning?.(ctx, canvas, p1, p2, globalFrameCount)
   if (!trainingState.enabled) return
   drawTrainingOverlay(ctx, canvas, {
@@ -3008,6 +3018,7 @@ gameLoop()
     key: f.rosterKey, x: f.x, y: f.y, w: f.w, h: f.h, facing: f.facing,
     energy: f.energy, maxEnergy: f.maxEnergy,
     susanooStage:     f._susanooStage || 0,
+    susanooTimer:     f._susanooTimer || 0,
     hasSkinAnim:      !!f._skinAnim,
     canvasHeightFrac: f._canvasHeightFrac || null,
     action:           f._lastSpriteAction || null,
@@ -3032,7 +3043,10 @@ gameLoop()
     keys:  () => ({ ...keys }),                      // proves key delivery to input.js
     p1:    () => snap(p1),
     p2:    () => snap(p2),
+    roundTimer: () => roundTimer,
+    projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, visualOnly: !!p.visualOnly, sheet: p.sheet })),
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
-    setEnergy:  v => { if (p1) p1.energy = v }
+    setEnergy:  v => { if (p1) p1.energy = v },
+    setP2X:     x => { if (p2) p2.x = x }         // reposition the dummy (e.g. close range → Lv2 sword)
   }
 })()

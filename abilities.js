@@ -1211,6 +1211,24 @@ function executeToji_Special(fighter, context) {
     return true
   }
 
+  // S,A+F (down→forward, qcf) = CURSE SPIRIT — a FREE thrown creature projectile.
+  // Toji has NO cursed energy, so unlike a normal ki special this costs nothing; it's
+  // his cheap ranged poke. Uses the projectile sprite pipeline (curse_effect_2 = the
+  // clean 3-frame flying creature). Checked after D,B (chain) so the motions stay distinct.
+  if (endsWithPattern(dirs, ["D", "F"])) {
+    if ((fighter.attackCooldown || 0) > 0) return false
+    fighter.attackCooldown = getAttackDuration(20, fighter)   // brief commit / recast gate — NO energy spent
+    spawnProjectile(fighter, "curseSpirit", {
+      damage: 70, speed: 9, lifetime: 100,
+      hitstun: 18, knockbackX: 6, knockbackY: -2,
+      w: 40, h: 30,
+      sheet: "./toji_curse_effect_2.png", spriteFrames: 3,
+      spriteW: 24, spriteH: 22, spriteSpeed: 5, spriteScale: 2.4
+    }, context)
+    focusCameraOnAction(context, fighter, target, 0.98, 6)
+    return true
+  }
+
   // F→F = Rapid dash strike — fast low damage
   if (endsWithPattern(dirs, ["F", "F"])) {
     const attack = createAttackFromMove(fighter, "rapidStrike", {

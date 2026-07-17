@@ -110,8 +110,9 @@ try {
   await page.screenshot({ path: path.join(OUT, "R3a_lv1_grab.png") });
   await waitFrames(55);   // let the grab attack (startup+active+recovery ≈42f) fully finish before escalating
 
-  // escalate to Lv2
+  // escalate to Lv2 (plays the Sharingan cinematic first; wait until it FULLY ends so combat resumed)
   await tapKey("u");
+  await page.waitForFunction(() => !window.__harness.sasukeCine().active && window.__harness.p1().susanooStage === 2, null, { timeout: 9000, polling: 16 });
   await waitFrames(6);
   const p1s2 = await page.evaluate(() => window.__harness.p1());
   check("escalated to Stage 2", p1s2.susanooStage === 2, `stage=${p1s2.susanooStage}`);

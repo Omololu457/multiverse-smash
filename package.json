@@ -11,7 +11,8 @@
     "test:ffa": "node harness/ffa.test.mjs",
     "test:team": "node harness/team.test.mjs",
     "test:susanoo-refinements": "node harness/susanoo_refinements.test.mjs",
-    "test:round4": "node harness/round4.test.mjs"
+    "test:round4": "node harness/round4.test.mjs",
+    "test:sharingan": "node harness/sharingan.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

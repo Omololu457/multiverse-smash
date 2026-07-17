@@ -228,8 +228,30 @@ export function getAttackHitbox(fighter) {
   return { x, y, w, h }
 }
 
+// GIANT hurtbox (Susanoo): the physics box (fighter.x/y/w/h) stays small & ground-anchored
+// for correct movement/collision, so a hurtbox built from it would sit at the giant's FEET —
+// hits on the towering upper body wouldn't register. When _canvasHeightFrac is set, sprite.js
+// has recorded the giant's RENDERED box (_lastDrawY top + _lastDrawW/_lastDrawH from the same
+// canvasHeight×frac/refH sizing math). Build a hurtbox spanning the visible body, VERTICALLY
+// CENTERED on the giant (not the feet), and roughly torso-wide (trims the wide cell + arm reach).
+const GIANT_BODY_W_FRAC = 0.5    // hittable core width as a fraction of the rendered cell width
+const GIANT_BODY_H_FRAC = 0.92   // trims the small top/bottom transparent cell padding
+function _giantHurtbox(fighter) {
+  const top = fighter._lastDrawY, gh = fighter._lastDrawH, gw = fighter._lastDrawW
+  if (top == null || !gh || !gw) return null   // not rendered yet (e.g. activation frame) → caller falls back
+  const centerX = fighter.x + (fighter.w || 0) / 2   // giant is drawn centered over the physics box
+  const centerY = top + gh / 2                        // vertical center of the visible giant
+  const w = gw * GIANT_BODY_W_FRAC
+  const h = gh * GIANT_BODY_H_FRAC
+  return { x: centerX - w / 2, y: centerY - h / 2, w: Math.max(1, w), h: Math.max(1, h) }
+}
+
 export function getHurtbox(fighter) {
   if (!fighter) return null
+  if (fighter._canvasHeightFrac) {
+    const giant = _giantHurtbox(fighter)
+    if (giant) return giant   // else fall through to the normal box for the pre-first-draw frame
+  }
   return {
     x: fighter.x + 6,
     y: fighter.y + 6,

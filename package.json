@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test:input-wiring": "node harness/input_wiring.test.mjs",
-    "test:training": "node harness/training.test.mjs"
+    "test:training": "node harness/training.test.mjs",
+    "test:tower": "node harness/tower.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

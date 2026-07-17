@@ -44,6 +44,7 @@ import {
   drawProjectiles, drawRoundBreak, drawStartScreen, drawStageSelectScreen,
   drawTrainingCollisionBoxes, drawTrainingOverlay, drawUniverseSelectScreen,
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
+  drawTowerSelectScreen, getTowerSelectRects,
   PAUSE_MENU_ITEMS, getStartMenuRects, getGameplaySelectRects,
   getAIDifficultyRects, getUniverseCardRects, getCharacterCardRects,
   getStageCardRects, drawStartInfoPanel,
@@ -187,6 +188,7 @@ const GAME_STATES = {
   ACCOUNT:          "account",
   SETTINGS:         "settings",
   GAMEPLAY_SELECT:  "gameplaySelect",
+  TOWER_SELECT:     "towerSelect",     // pick a Tower tier (3/10/25/40/∞ floors)
   AI_DIFFICULTY:    "aiDifficulty",
   SELECT_UNIVERSE:  "selectUniverse",
   SELECT_CHARACTER: "selectCharacter",
@@ -401,6 +403,7 @@ const universeKeys     = Object.keys(universeMap)
 
 let hoverStartIndex      = 0
 let hoverGameplayIndex   = 0
+let hoverTowerIndex      = 0
 let hoverDifficultyIndex = 0
 let hoverUniverseIndex   = 0
 let hoverCharacterIndex  = 0
@@ -447,63 +450,79 @@ function applySkin(fighter, skinId) {
   fighter.skinId = skinId
 }
 
-// ── TOWER MODE (Task 6) — MKX-style ladder of escalating CPU fights. ──────────
-// MODULAR: add floors, or define alternate TOWERS (themed variants) and pass the
-// id to startTower(). `healthCarry`: "full" | "partial" (default) | "none".
-// Difficulty per floor feeds ai.js via setAIDifficulty (easy → … → impossible).
-const TOWERS = {
-  jjkGauntlet: {
-    name: "Jujutsu Gauntlet",
-    healthCarry: "partial",
-    floors: [
-      { opponent: "megumi", difficulty: "easy"       },
-      { opponent: "toji",   difficulty: "normal"     },
-      { opponent: "sukuna", difficulty: "hard"       },
-      { opponent: "gojo",   difficulty: "adaptive"   },
-      { opponent: "gojo",   difficulty: "impossible" }   // boss floor
-    ]
-  }
+// ── TOWER MODE — tiered ladder of RANDOM CPU fights. ─────────────────────────
+// FIVE TIERS by floor count (Tier 5 = endless). Each floor is a RANDOMLY chosen
+// opponent on a RANDOMLY chosen stage. Difficulty escalates by FLOOR NUMBER using the
+// SAME schedule for every tier (so Tier 5 escalates naturally, and longer fixed tiers
+// get harder the deeper you go): floors 1-5 easy → 6-15 adaptive → 16+ impossible.
+// Reuses the existing plumbing: applyTowerFloor seam, updateTowerOutcome, continueTower,
+// health-carry (_applyCarry), and the victory→continue wiring.
+const TOWER_TIERS = [
+  { id: "tier1", tier: 1, label: "TIER 1", floors: 3,        endless: false, sub: "3 opponents"  },
+  { id: "tier2", tier: 2, label: "TIER 2", floors: 10,       endless: false, sub: "10 opponents" },
+  { id: "tier3", tier: 3, label: "TIER 3", floors: 25,       endless: false, sub: "25 opponents" },
+  { id: "tier4", tier: 4, label: "TIER 4", floors: 40,       endless: false, sub: "40 opponents" },
+  { id: "tier5", tier: 5, label: "TIER 5", floors: Infinity, endless: true,  sub: "INFINITE — endless escalation" }
+]
+// tier/floors/endless describe the CHOSEN tier; floor is the 0-indexed current floor.
+const towerState = {
+  active: false, tierId: null, tierLabel: "", tier: 0, floors: 0, endless: false,
+  floor: 0, carryPct: 1, cleared: false, _lastWon: false, _applyCarry: false
 }
-const towerState = { active: false, floor: 0, tower: null, carryPct: 1, _lastWon: false, _applyCarry: false }
 
 function isTower() { return matchConfig.mode === "tower" }
+function getTowerTier(id) { return TOWER_TIERS.find(t => t.id === id) }
 
-function startTower(towerId = "jjkGauntlet") {
-  const tower = TOWERS[towerId]
-  if (!tower) return
-  towerState.active = true; towerState.floor = 0; towerState.tower = tower
-  towerState.carryPct = 1; towerState._applyCarry = false
+// Difficulty by 1-indexed floor number — shared by ALL tiers. Only the valid ai.js keys
+// (easy/adaptive/impossible) are used, so nothing silently falls back to easy.
+function towerDifficultyForFloor(floorNum) {
+  if (floorNum <= 5)  return "easy"
+  if (floorNum <= 15) return "adaptive"
+  return "impossible"
+}
+
+function startTower(tierId = "tier1") {
+  const t = getTowerTier(tierId)
+  if (!t) return
+  towerState.active = true; towerState.tierId = t.id; towerState.tierLabel = t.label
+  towerState.tier = t.tier; towerState.floors = t.floors; towerState.endless = t.endless
+  towerState.floor = 0; towerState.carryPct = 1; towerState.cleared = false
+  towerState._lastWon = false; towerState._applyCarry = false
   matchConfig.mode = "tower"
   resetSelections()
-  beginUniverseSelect()   // player picks THEIR fighter; the opponent comes from the floor
+  beginUniverseSelect()   // player picks THEIR fighter; opponents are random per floor
 }
 
-// Force the current floor's opponent + difficulty onto matchConfig (P1 unchanged).
+// Random opponent (any non-hidden fighter) + random stage + escalating difficulty.
+function _towerPickOpponent() {
+  const pool = allCharacterKeys                                  // non-hidden roster
+  return pool[Math.floor(Math.random() * pool.length)] || "gojo"
+}
+function _towerPickStage() {
+  return stages[Math.floor(Math.random() * stages.length)] || stages[0]
+}
+// Force the current floor's RANDOM opponent + RANDOM stage + floor-scaled difficulty
+// onto matchConfig (P1 unchanged). No player stage-select screen while a tower is active.
 function applyTowerFloor() {
-  if (!towerState.active || !towerState.tower) return
-  const f = towerState.tower.floors[towerState.floor]
-  if (!f) return
-  matchConfig.p2CharKey   = f.opponent
-  matchConfig.p2Char      = characters[f.opponent]
-  matchConfig.aiDifficulty = f.difficulty
-  // Tower AUTO-ASSIGNS the stage per floor — no player stage-select screen. FIXED by
-  // floor index (deterministic, a distinct backdrop each floor); an optional floor.stage
-  // name overrides. Regular vs/local matches keep the manual SELECT_STAGE screen (this
-  // only runs while towerState.active).
-  matchConfig.selectedStage =
-    (f.stage && stages.find(s => s.name === f.stage)) ||
-    stages[towerState.floor % stages.length]
+  if (!towerState.active) return
+  const opp = _towerPickOpponent()
+  matchConfig.p2CharKey    = opp
+  matchConfig.p2Char       = characters[opp]
+  matchConfig.aiDifficulty = towerDifficultyForFloor(towerState.floor + 1)   // floor is 0-indexed
+  matchConfig.selectedStage = _towerPickStage()
 }
 
-// Called from _checkMatchOver. Win → XP + remember carry-over health; lose → end.
+// Called from _checkMatchOver. Win → XP + remember carry-over health (+ mark cleared on the
+// final floor of a FIXED tier); lose → end.
 function updateTowerOutcome(winner) {
   if (!towerState.active) return
   if (winner === "p1") {
     towerState._lastWon = true
     awardXp(60 + towerState.floor * 20)
-    const pct  = p1 ? Math.max(0, (p1.health || 0) / (p1.maxHealth || 1)) : 1
-    const mode = towerState.tower.healthCarry
-    towerState.carryPct = mode === "full" ? 1 : mode === "none" ? pct : Math.min(1, pct + 0.35) // partial: +35% heal
+    const pct = p1 ? Math.max(0, (p1.health || 0) / (p1.maxHealth || 1)) : 1
+    towerState.carryPct = Math.min(1, pct + 0.35)   // partial heal between floors
+    // Endless tier never "clears"; a fixed tier clears when its last floor is beaten.
+    if (!towerState.endless && (towerState.floor + 1) >= towerState.floors) towerState.cleared = true
   } else {
     towerState._lastWon = false
     awardXp(20)
@@ -516,7 +535,7 @@ function continueTower() {
   if (!towerState.active) { resetToStart(); return }
   if (!towerState._lastWon) { towerState.active = false; resetToStart(); return }   // lost → tower ends
   towerState.floor++
-  if (towerState.floor >= towerState.tower.floors.length) {
+  if (!towerState.endless && towerState.floor >= towerState.floors) {
     towerState.active = false
     awardXp(150)            // tower-complete bonus
     resetToStart()
@@ -2569,6 +2588,7 @@ function renderCurrentState() {
       break
     }
     case GAME_STATES.GAMEPLAY_SELECT: drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex); break
+    case GAME_STATES.TOWER_SELECT:    drawTowerSelectScreen(ctx, canvas, hoverTowerIndex); break
     case GAME_STATES.AI_DIFFICULTY:   drawAIDifficultyScreen(ctx, canvas, hoverDifficultyIndex); break
     case GAME_STATES.SELECT_UNIVERSE:
       drawUniverseSelectScreen(ctx, canvas, getUniverseList(), hoverUniverseIndex); break
@@ -2688,6 +2708,7 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.START)            { const r = getStartMenuRects(canvas);                    const f = r.findIndex(x => pointInRect(mouse.x,mouse.y,x)); hoverStartIndex = Math.max(0,f); return }
   if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v); return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
+  if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
   if (gameState === GAME_STATES.AI_DIFFICULTY)    { tryHover(getAIDifficultyRects(canvas),    hoverDifficultyIndex, v => hoverDifficultyIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
   if (gameState === GAME_STATES.SELECT_CHARACTER) { tryHover(getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse()), hoverCharacterIndex, v => hoverCharacterIndex = v); return }
@@ -2784,8 +2805,15 @@ function handleMenuClicks() {
       if (c.id === "training") chooseMode("training")
       else if (c.id === "vs")  chooseMode("vs")
       else if (c.id === "pvp") chooseMode("pvp")
-      else if (c.id === "tower") startTower()   // Task 6: begin the ladder
+      else if (c.id === "tower") gameState = GAME_STATES.TOWER_SELECT   // pick a tier first
       else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
+      break
+    }
+    case GAME_STATES.TOWER_SELECT: {
+      const c = getTowerSelectRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if (c.id === "back") gameState = GAME_STATES.GAMEPLAY_SELECT
+      else startTower(c.id)                       // c.id === "tier1".."tier5"
       break
     }
     case GAME_STATES.AI_DIFFICULTY: {
@@ -3179,6 +3207,46 @@ gameLoop()
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
-    setEnergy:  v => { if (p1) p1.energy = v }
+    setEnergy:  v => { if (p1) p1.energy = v },
+    setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
+    healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false } },  // reset dummy between damage checks
+    liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
+    hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
+    // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
+    towerInfo: () => ({
+      active: towerState.active, floor: towerState.floor,
+      tier: towerState.tier, tierLabel: towerState.tierLabel,
+      floors: towerState.endless ? "Infinity" : towerState.floors, endless: towerState.endless,
+      cleared: towerState.cleared, lastWon: towerState._lastWon, carryPct: towerState.carryPct,
+      mode: matchConfig.mode, gameState,
+      p2: matchConfig.p2CharKey, stage: matchConfig.selectedStage ? matchConfig.selectedStage.name : null,
+      difficulty: matchConfig.aiDifficulty
+    }),
+    // Drive the REAL tower state machine, bypassing only the manual P1 fighter-pick UI.
+    towerStart: (tierId = "tier1", p1Key = "gojo") => {
+      startTower(tierId)
+      matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key] || characters.gojo; matchConfig.p1Skin = "default"
+      applyTowerFloor(); startMatch()
+    },
+    towerContinue: () => continueTower(),
+    forceP1Win: () => { if (p2) p2.health = 0 },
+    forceP1Lose: () => { if (p1) p1.health = 0 },
+    // Force the pre-match INTRO with a specific variant, held open (no auto-advance / namecall)
+    // so intro-rotation coverage can render + step each pose. Resets P1's sprite so the intro
+    // action re-resolves cleanly.
+    forceIntro: variant => {
+      startHarnessMatch()
+      gameState = GAME_STATES.INTRO
+      namecallActive = false
+      matchIntroTimer = 9999
+      countdown = ROUND_START_COUNTDOWN
+      if (p1) {
+        p1._introPlaying = true
+        p1._introSeq     = null          // force a single held variant (bypass any introSequence stepper)
+        p1._introVariant = variant
+        if (p1.spriteHandler) { p1.spriteHandler.currentAction = null; p1.spriteHandler.frameIndex = 0; p1.spriteHandler.frameTimer = 0; p1.spriteHandler.locked = false }
+      }
+      if (p2) p2._introPlaying = false
+    }
   }
 })()

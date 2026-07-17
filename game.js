@@ -35,8 +35,7 @@ import {
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
-  sasukeInSusanoo, SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout
-  maybeSasukeAirShuriken   // Sasuke basic kit: air-heavy shuriken poke
+  sasukeInSusanoo, SUSANOO_DURATION_FRAMES   // Susanoo: pause round clock + purple duration readout
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -1534,9 +1533,6 @@ function updatePlayerCombat(fighter) {
   // S+L motion specials (e.g. Hollow Purple = S,A+L).
   if (canStart && inputState.special)  { triggerSpecial(fighter,  getAbilityContext()); return }
   if (canStart && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
-  // Sasuke BASIC KIT: air-heavy shuriken poke (K while airborne). Sasuke-only + airborne-only, so
-  // it never disturbs the shared ground kit or any other fighter. Checked before the normal combat.
-  if (canStart && maybeSasukeAirShuriken(fighter, inputState, getAbilityContext())) return
   updateCombat(fighter, getOpponent(fighter), buildNormalControlState(fighter, vKeys), opts)
 }
 

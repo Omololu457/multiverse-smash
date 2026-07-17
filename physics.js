@@ -91,7 +91,8 @@ export const physics = {
       fighter.stun > 0 ||
       fighter.hitstun > 0 ||
       fighter.blockstun > 0 ||
-      fighter.isGrabbed
+      fighter.isGrabbed ||
+      fighter._rooted            // opt-in root (e.g. Sasuke's lightning handseals) — defaults falsy → no effect
     )
 
     const air = !fighter.onGround

@@ -27,7 +27,8 @@ import { physics } from "./physics.js"
 import {
   updateCombat, resolveProjectileHits,
   updateProjectiles as updateCombatProjectiles,
-  checkClash, checkParry, resolveGrab, updateGrab
+  checkClash, checkParry, resolveGrab, updateGrab,
+  getAttackPhase, getAttackHitbox   // training overlay: live frame data + real attack hitbox
 } from "./combat.js"
 import {
   activeProjectiles, spawnProjectile,
@@ -527,7 +528,17 @@ function continueTower() {
   startMatch()
 }
 
-const trainingState    = { enabled: false }
+// Training mode state. `enabled` is derived each frame (menu mode OR F1 debug). The
+// rest are training-only toggles driven by hotkeys (F2 reset / F3 infinite / F4 dummy):
+//   infiniteResources — pin BOTH fighters' health+energy to max each frame (toggle via
+//     F3; default OFF so damage/combo/meter read naturally and the dummy visibly takes
+//     hits — turn ON for long practice so nobody dies or runs out of meter). KO already
+//     can't end a training session (checkRoundEnd skips), so this is purely convenience.
+//   dummyBehavior     — "stand" | "block" | "jump": training-only override applied in
+//     updateCPUInput (does NOT touch ai.js's shared "dummy" zero-baseline profile).
+const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand" }
+const DUMMY_BEHAVIORS = ["stand", "block", "jump"]
+const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
 const p2AI             = createAIController("easy")
 const settingsButtonRect = { x: window.innerWidth - 220, y: 30, w: 180, h: 50 }
 
@@ -1216,6 +1227,15 @@ function updateCPUInput() {
   // its first forced revert.
   if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
   applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode }))
+
+  // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied
+  // AFTER the AI keys are written, and ONLY in training — this is training-specific state,
+  // NOT a change to ai.js's shared zero-baseline "dummy" profile.
+  if (trainingState.enabled && trainingState.dummyBehavior !== "stand") {
+    const c = p2.controls
+    if (trainingState.dummyBehavior === "block") keys[c.down] = true           // hold guard
+    else if (trainingState.dummyBehavior === "jump" && p2.onGround) keys[c.up] = true  // hop when grounded
+  }
 }
 
 function handlePauseInput(key) {
@@ -1691,10 +1711,57 @@ function updateEffectsAndDomains() {
   updateComboDisplay(p2, "p2")
 }
 
+// Edge-detect a raw key (true only on the frame it goes down). Used for the training
+// hotkeys so a held key fires once, not every frame.
+function _trainingKeyPressed(k) {
+  const down = !!keys[k]
+  const fired = down && !_trainingKeyPrev[k]
+  _trainingKeyPrev[k] = down
+  return fired
+}
+
+// Snap both fighters back to neutral: spawn positions/facing, full resources, and
+// clear all combat state (hitstun/knockdown/combo/attack) so a move can be re-tested
+// immediately without leaving the mode.
+function resetTraining() {
+  if (!p1 || !p2) return
+  const { p1X, p2X } = getSpawnPositions()
+  ;[[p1, p1X, 1], [p2, p2X, -1]].forEach(([f, x, facing]) => {
+    f.x = x; f.facing = facing
+    if (f.groundY != null) f.y = f.groundY - (f.h || 0)   // each fighter stores its own floor
+    f.vx = 0; f.vy = 0
+    f.onGround = true; f.grounded = true
+    f.health = f.maxHealth || f.health
+    f.energy = f.maxEnergy || 0
+    f.hitstun = 0; f.blockstun = 0; f.stun = 0; f.hitstop = 0
+    f.knockdownState = false; f.knockdownTimer = 0
+    f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
+    f.attacking = false; f.isBlocking = false; f.isLaunched = false
+  })
+}
+
 function updateTrainingMode() {
   const debug = getDebugInputState()
   trainingState.enabled = matchConfig.mode === "training" || !!debug.trainingMode
   if (!trainingState.enabled || !p1 || !p2) return
+
+  // Training hotkeys (edge-detected): F2 reset · F3 infinite health/energy · F4 dummy behavior.
+  if (_trainingKeyPressed("f2")) resetTraining()
+  if (_trainingKeyPressed("f3")) trainingState.infiniteResources = !trainingState.infiniteResources
+  if (_trainingKeyPressed("f4")) {
+    const i = DUMMY_BEHAVIORS.indexOf(trainingState.dummyBehavior)
+    trainingState.dummyBehavior = DUMMY_BEHAVIORS[(i + 1) % DUMMY_BEHAVIORS.length]
+  }
+
+  // Infinite health/energy: pin BOTH fighters to max each frame. Damage numbers still
+  // pop (so combo/damage readouts work) but neither fighter drains or dies.
+  if (trainingState.infiniteResources) {
+    for (const f of [p1, p2]) {
+      if (f.maxHealth) f.health = f.maxHealth
+      if (f.maxEnergy) f.energy = f.maxEnergy
+    }
+  }
+
   recordInputFrame("P1", getControlsForHistory("p1"), p1, globalFrameCount)
   recordInputFrame("P2", getControlsForHistory("p2"), p2, globalFrameCount)
   recordInputSequence(getControlsForHistory("p1"))
@@ -1705,7 +1772,10 @@ function updateTrainingMode() {
 // ROUND END
 // ------------------------------------------------------------------
 function checkRoundEnd() {
-  if (!p1 || !p2 || matchConfig.mode === "training") return
+  // Skip ALL round-end handling (timer/KO/victory) whenever training is active — via the
+  // menu (matchConfig.mode) OR the F1 debug toggle. Previously only the menu path skipped,
+  // so F1-training in a match could still trigger a KO/victory screen mid-session.
+  if (!p1 || !p2 || trainingState.enabled) return
   if (roundTimer <= 0) {
     const p1h = p1?.health || 0, p2h = p2?.health || 0
     if      (p1h > p2h) { roundWins.p1++; winnerText = isPvP() ? "Time Over — Player 1 Wins" : "Time Over — Player 1 Wins" }
@@ -2162,7 +2232,7 @@ function drawBattleScene() {
   _drawChargeAura(p1)
   _drawChargeAura(p2)
   drawHitSparksEnhanced()
-  if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], camera)
+  if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
@@ -2176,15 +2246,34 @@ function drawBattleHud() {
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
   drawLowHealthWarning?.(ctx, canvas, p1, p2, globalFrameCount)
   if (!trainingState.enabled) return
+  const lastDmg = damageNumbers.length ? (damageNumbers[damageNumbers.length - 1].value || 0) : 0
   drawTrainingOverlay(ctx, canvas, {
     combo:     Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0),
-    damage:    0,
+    damage:    lastDmg,
     state:     matchConfig.mode === "training" ? "training" : "debug",
     meterGain: 0, frame: globalFrameCount,
+    frameData: buildTrainingFrameData(),
+    infinite:  trainingState.infiniteResources,
+    dummy:     trainingState.dummyBehavior,
     p1Inputs:  getRelativeDirectionsFromHistory(p1),
     p2Inputs:  getRelativeDirectionsFromHistory(p2),
     history:   getInputHistory()
   })
+}
+
+// Live frame-data string for whichever fighter is mid-attack (P1 preferred). The
+// startup/active/recovery numbers already exist on the attack object; derive them from
+// activeStart/activeEnd/total and show the current phase + elapsed frame.
+function buildTrainingFrameData() {
+  const f = (p1?.currentAttack ? p1 : (p2?.currentAttack ? p2 : null))
+  if (!f) return null
+  const a = f.currentAttack
+  const startup  = a.activeStart
+  const active   = (a.activeEnd - a.activeStart) + 1
+  const recovery = a.total - a.activeEnd
+  const elapsed  = a.total - a.timer
+  const name = a.name || f.currentMove || "move"
+  return { who: f === p1 ? "P1" : "P2", name, startup, active, recovery, phase: getAttackPhase(f), elapsed, total: a.total }
 }
 
 function _worldToScreen(wx, wy) {
@@ -2983,8 +3072,21 @@ gameLoop()
 
   const snap = f => f && ({
     key: f.rosterKey, x: f.x, y: f.y, w: f.w, h: f.h, facing: f.facing,
-    energy: f.energy, maxEnergy: f.maxEnergy,
+    energy: f.energy, maxEnergy: f.maxEnergy, health: f.health, maxHealth: f.maxHealth,
+    vy: f.vy || 0, grounded: !!(f.onGround ?? f.grounded), canJump: f.canJump !== false,
     susanooStage:     f._susanooStage || 0,
+    susanooTimer:     f._susanooTimer || 0,
+    lightningPhase:   f._lightningPhase || null,
+    rooted:           !!f._rooted,
+    attacking:        !!f.attacking,
+    blocking:         !!f.isBlocking,
+    hitstun:          f.hitstun || 0,
+    currentMove:      f.currentMove || null,
+    introVariant:     f._introVariant || null,
+    spriteSheet:      f.spriteHandler?._actionDef?.sheet ?? null,
+    spriteFrames:     f.spriteHandler?._actionDef?.frames ?? null,
+    spriteScale:      f.spriteScale ?? null,
+    spriteReady:      !!(f.spriteHandler?._actionDef?.sheet),
     hasSkinAnim:      !!f._skinAnim,
     canvasHeightFrac: f._canvasHeightFrac || null,
     action:           f._lastSpriteAction || null,
@@ -3013,6 +3115,16 @@ gameLoop()
     // Wiring proof: getFighterInput() call tally per player. Both advancing every
     // frame proves each fighter's input routes through input.js.getFighterInput.
     inputWiring: () => ({ ...inputCallCount, p1Type: inputSettings.p1Type, p2Type: inputSettings.p2Type }),
+    // Training-mode introspection (audit + feature tests).
+    training: () => ({
+      enabled: trainingState.enabled,
+      infiniteResources: trainingState.infiniteResources,
+      dummyBehavior: trainingState.dummyBehavior,
+      mode: matchConfig.mode,
+      frameData: buildTrainingFrameData(),
+      combo: Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0)
+    }),
+    damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v }

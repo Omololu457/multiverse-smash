@@ -85,6 +85,7 @@ try {
   s = await p1(); await page.keyboard.up("d");
   check("walk uses toji_walk.png", base_(s.spriteSheet) === "toji_walk.png", `sheet=${base_(s.spriteSheet)} action=${s.action}`);
   check("walk/run action while moving", (s.action === "walk" || s.action === "run"), `action=${s.action}`);
+  check("walk re-verified 7 frames (was mis-sliced as 6)", s.spriteFrames === 7, `frames=${s.spriteFrames}`);
   await page.screenshot({ path: path.join(OUT, "TOJI_walk.png") });
   await waitFrames(6);
 
@@ -94,6 +95,7 @@ try {
   s = await p1();
   check("jump leaves the ground", s.grounded === false, `grounded=${s.grounded} vy=${s.vy?.toFixed?.(1)}`);
   check("jump/fall uses toji_jump.png", base_(s.spriteSheet) === "toji_jump.png", `sheet=${base_(s.spriteSheet)} action=${s.action}`);
+  check("jump slices airborne frames only (5, crouch excluded → no shrink glitch)", s.spriteFrames === 5, `frames=${s.spriteFrames}`);
   await page.screenshot({ path: path.join(OUT, "TOJI_jump.png") });
   // wait to land
   await page.waitForFunction(() => window.__harness.p1().grounded === true, null, { timeout: 8000, polling: 16 });
@@ -184,6 +186,36 @@ try {
   // FREE: casting never DEDUCTED energy (it stayed at the drained floor, never went negative)
   const after = await p1();
   check("cast deducted NO energy (stayed at drained floor, not negative)", after.energy >= before.energy && after.energy >= 0, `energy ${before.energy} → ${after.energy}`);
+
+  // ───────────────────────────────────────────────────────────────────────
+  // PIXEL-LEVEL jitter guard — the shipped bug (frames sliced at sheetWidth/N instead
+  // of the true padded pitch) made the body drift ~30px horizontally per idle cycle,
+  // which STATE checks can't see. Measure the dark-navy body center-of-mass across the
+  // idle cycle with a settled camera; a stable slice keeps it within a few px.
+  section("VISUAL: idle horizontal jitter (regression guard for the slicing bug)");
+  await page.evaluate(() => { window.__harness.boot(); window.__harness.setP2X(2200); });
+  await waitFrames(150);   // let the camera fully settle so any COM swing is sprite-only
+  const bodyCOM = () => page.evaluate(() => {
+    const cv = document.querySelector("canvas"), g = cv.getContext("2d");
+    const CX = 60, CY = 250, CW = 520, CH = 220;
+    const d = g.getImageData(CX, CY, CW, CH).data;
+    let sx = 0, n = 0;
+    for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) {
+      const i = (y * CW + x) * 4, r = d[i], gg = d[i + 1], bb = d[i + 2];
+      if (r < 85 && gg < 80 && bb < 115 && (r + gg + bb) < 230) { sx += x; n++; }
+    }
+    return n < 50 ? null : sx / n + CX;
+  });
+  const seenCom = new Map();
+  for (let i = 0; i < 50 && seenCom.size < 6; i++) {
+    const sp = await p1(), c = await bodyCOM();
+    if (c != null && !seenCom.has(sp.frameIndex)) seenCom.set(sp.frameIndex, c);
+    await waitFrames(1);
+  }
+  const comVals = [...seenCom.values()];
+  const comSwing = comVals.length ? Math.max(...comVals) - Math.min(...comVals) : 999;
+  check("idle body does NOT jitter horizontally (COM swing < 8px across the cycle)", comSwing < 8, `swing=${comSwing.toFixed(1)}px over ${comVals.length} frames`);
+  await page.screenshot({ path: path.join(OUT, "TOJI_idle_jittercheck.png") });
 
   // ───────────────────────────────────────────────────────────────────────
   section("asset load / errors");

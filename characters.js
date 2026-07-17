@@ -445,8 +445,12 @@ const toji = {
   // special_1/special_2 play via executeToji_Special's createAttackFromMove
   // (MOVE_TO_ACTION: inventorySmash→special_1, rapidStrike→special_2).
   animationData: {
-    idle:     { frames: 6,  width: 37, height: 54, speed: 8, loop: true, anchorY: -2,  sheet: "./toji_stance_idle.png" },  // NEW: verified 6f (not 5) via alpha-gutter+overlay
-    walk:     { frames: 6,  width: 40, height: 48, speed: 6, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // NEW dedicated walk (240/6=40 exact)
+    // JITTER FIX: sheets have leading+trailing transparent padding, so the true frame
+    // PITCH is smaller than sheetWidth/frames. Slice with sourceX (content-left) + width
+    // (true pitch) or the figure drifts within each cell → horizontal wobble. Verified
+    // via per-cell leg-COM (idle drift 14px→<3px after fix) + boundary overlays.
+    idle:     { frames: 6,  width: 34, sourceX: 9, height: 54, speed: 8, loop: true, anchorY: -2,  sheet: "./toji_stance_idle.png" },  // 6f, true pitch 34 (was 37 → wobble)
+    walk:     { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 6, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // 7f (re-verified, was mis-counted 6), pitch 34 (was 40)
     light:    { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" },  // row02 punch combo
     heavy:    { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // row07 sword slash combo
     up:       { frames: 7,  width: 47, height: 74, speed: 5, sheet: "./toji_row04_sheet.png" },  // row04 kicks (launcher)
@@ -454,8 +458,8 @@ const toji = {
     down_air: { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // reuse slash combo
     dash:     { frames: 10, width: 90, height: 64, speed: 4, sheet: "./toji_row06_sheet.png" },  // row06 sword dash-lunge
     block:    { frames: 9,  width: 37, height: 70, speed: 6, sheet: "./toji_row10_sheet.png" },  // row10 guard
-    hurt:     { frames: 8,  width: 48, height: 54, speed: 5, anchorY: -7,  sheet: "./toji_hit.png" },  // NEW grounded hurt (385/8=48); was reused guard
-    hurt_air: { frames: 6,  width: 52, height: 49, speed: 5, anchorY: -2,  sheet: "./toji_air_hit.png" },  // NEW airborne hurt — 6 verified-distinct frames; sprite.js picks this when hitstun && airborne
+    hurt:     { frames: 8,  width: 48, sourceX: 0, height: 54, speed: 5, anchorY: -7,  sheet: "./toji_hit.png" },  // 8f, content fills width (pitch 48 exact)
+    hurt_air: { frames: 6,  width: 51, sourceX: 1, height: 49, speed: 5, anchorY: -2,  sheet: "./toji_air_hit.png" },  // 6f, pitch 51 (was 52); sprite.js picks this when hitstun && airborne
     transform:{ frames: 7,  width: 76, height: 67, speed: 6, sheet: "./toji_row01_sheet.png" },  // row01 sword-draw flourish (intro)
     special_1:{ frames: 14, width: 52, height: 63, speed: 4, sheet: "./toji_row09_sheet.png" },  // Inventory Smash → big slash rekka
     special_2:{ frames: 8,  width: 57, height: 63, speed: 4, sheet: "./toji_row05_sheet.png" },  // Rapid Strike → thrust
@@ -466,8 +470,8 @@ const toji = {
     chain_retract: { frames: 7, width: 121, height: 87, speed: 4, sheet: "./toji_row14_sheet.png" },  // 847x87
     chain_spin:    { frames: 5, width: 85,  height: 78, speed: 4, sheet: "./toji_row15_sheet.png" },  // 424x78
     // NEW two-part intro — plays in fixed order (introSequence), NOT pooled/random.
-    introWalkIn: { frames: 17, width: 31, height: 45, speed: 2, loop: false, lockLastFrame: true, anchorY: -7, sheet: "./toji_intro_first_part.png" },   // walk-in (526/17≈31)
-    introReady:  { frames: 15, width: 35, height: 47, speed: 3, loop: false, lockLastFrame: true, anchorY: 0,  sheet: "./toji_intro_second_part.png" },  // weapon-draw / ready-up (531/15≈35)
+    introWalkIn: { frames: 17, width: 30, sourceX: 3, height: 45, speed: 2, loop: false, lockLastFrame: true, anchorY: -7, sheet: "./toji_intro_first_part.png" },   // walk-in, pitch 30 + srcX 3
+    introReady:  { frames: 15, width: 35, sourceX: 2, height: 47, speed: 3, loop: false, lockLastFrame: true, anchorY: 0,  sheet: "./toji_intro_second_part.png" },  // ready-up, pitch 35 + srcX 2
     // run/jump/fall/grab aren't on the supplied table, but a MANIFESTED character
     // can't fall back to the procedural box per-action (unmapped → idle sheet at
     // 128px = garbage), so reuse the closest real strips:
@@ -481,9 +485,13 @@ const toji = {
     //    plain jump read as a sword pose. The real air attack (`air`) keeps row08's
     //    full 5-frame swing. FLAG: no true jump/fall art exists — a held stance is
     //    the least-wrong neutral option until a real jump strip is provided.
-    run:      { frames: 6,  width: 40, height: 48, speed: 5, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // NEW: reuse walk sheet (keeps locomotion on new art; was old row03)
-    jump:     { frames: 7,  width: 37, height: 64, speed: 5, anchorY: -25, sheet: "./toji_jump.png" },  // NEW jump arc (262/7≈37)
-    fall:     { frames: 7,  width: 37, height: 64, speed: 5, anchorY: -25, sheet: "./toji_jump.png" },  // NEW: reuse jump-arc sheet
+    run:      { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 5, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // reuse walk sheet, 7f pitch 34
+    // JUMP SIZE FIX: the jump sheet's frame 0 (takeoff crouch) and frame 6 (land crouch)
+    // draw the figure ~35px tall vs ~48px airborne — switching to them read as "sprite
+    // gets smaller". Slice ONLY the airborne frames 1–5 (sourceX = 6 + 1×35 = 41), all
+    // ~full height, so jump/fall never flash a shrunken crouch. Pitch 35 (was 37 → wobble).
+    jump:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -32, sheet: "./toji_jump.png" },  // airborne arc only (no crouch)
+    fall:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -32, sheet: "./toji_jump.png" },  // same airborne frames
     grab:     { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" }   // reuse punch
     // UNMAPPED — chain / Inverted Spear of Heaven throw sequence (special not yet
     // wired). Register for future chain-special work; frame counts TBD (view to

@@ -58,37 +58,14 @@ export const STICK_DEADZONE = 0.4
 // ─────────────────────────────────────────────────────────────────
 // DEFAULT CONTROL MAPS
 // ─────────────────────────────────────────────────────────────────
-export const defaultControls = {
-  left: "a",
-  right: "d",
-  jump: "w",
-  down: "s",
-  light: "j",
-  heavy: "k",
-  up: "i",
-  downAir: "l",
-  ultimate: "u",
-  special: "o",
-  dash: "shift",
-  charge: "c",
-  grab: "g"
-}
-
-export const defaultControlsP2 = {
-  left: "arrowleft",
-  right: "arrowright",
-  jump: "arrowup",
-  down: "arrowdown",
-  light: "1",
-  heavy: "2",
-  up: "3",
-  downAir: "4",
-  ultimate: "5",
-  special: "6",
-  dash: "0",
-  charge: "8",
-  grab: "9"
-}
+// KEYBOARD DEFAULTS: SINGLE SOURCE OF TRUTH lives in game.js (P1_CONTROLS /
+// P2_CONTROLS) — those are the real, rebindable, runtime binds passed to
+// createFighter and mutated by the rebind UI. This module deliberately keeps NO
+// second copy (the old one had drifted: special:"o" not "l", an `up`/`downAir`
+// schema that didn't even match getFighterInput's `upAttack`/`up`/`jump` reads).
+// getFighterInput() reads each fighter's OWN `fighter.controls`, and
+// clearInputBuffers() clears via the passed-in fighters' controls — neither needs
+// a module-level default here.
 
 // ─────────────────────────────────────────────────────────────────
 // KEYBOARD EVENTS
@@ -238,6 +215,14 @@ if (typeof window !== "undefined" && window.addEventListener) {
   window.addEventListener("gamepadconnected", (e) => {
     const i = e.gamepad?.index
     if (i != null && !connectedPads.includes(i)) connectedPads.push(i)
+    // AUTO-ACTIVATE the controller device type. getFighterInput() only routes to
+    // pollGamepad() when a player's type is "controller"; nothing else flips it, so
+    // before this a freshly-plugged pad did NOTHING in play (the reported bug). Assign
+    // by connection order to the first player still on keyboard (P1 first, then P2), so
+    // "plug in a pad → it drives a fighter". A player can switch back on the SETTINGS
+    // screen. Keyboard-only users (no pad) never hit this, so keyboard play is untouched.
+    if (inputSettings.p1Type !== "controller") inputSettings.p1Type = "controller"
+    else if (inputSettings.p2Type !== "controller") inputSettings.p2Type = "controller"
   })
   window.addEventListener("gamepaddisconnected", (e) => {
     const i = e.gamepad?.index
@@ -267,7 +252,6 @@ function resolvePadIndex(playerNum, gamepads) {
   return null
 }
 
-const _padDbgTick = { 1: 0, 2: 0 }
 function pollGamepad(playerNum, buffer) {
   const gamepads = navigator.getGamepads ? navigator.getGamepads() : []
   // Read THIS player's BOUND pad by gamepad.index (getGamepads() is indexed by .index),
@@ -276,17 +260,6 @@ function pollGamepad(playerNum, buffer) {
   const gp = assignedIdx == null
     ? null
     : (gamepads[assignedIdx] || Array.from(gamepads).find(g => g && g.index === assignedIdx) || null)
-  // [DEBUG-PAD] per-player, throttled: the pad.index bound to this player, whether it's
-  // pressed, the live assignments map, and all connected pads — so binding is visible.
-  if ((++_padDbgTick[playerNum] % 30) === 0) {
-    const anyPressed = gp ? gp.buttons.some(b => b?.pressed) : false
-    const all = []
-    for (let k = 0; k < gamepads.length; k++) if (gamepads[k]) all.push(`slot${k}:index=${gamepads[k].index},id="${gamepads[k].id}"`)
-    console.log(`[DEBUG-PAD] pollGamepad P${playerNum} → bound index=${assignedIdx}:`,
-      gp ? `id="${gp.id}"` : "ABSENT",
-      "| pressed:", anyPressed, "| assignments:", JSON.stringify(padAssignments),
-      "| connected:", all.join("  ") || "none")
-  }
   if (!gp) return null
 
   const btn  = (i) => !!gp.buttons[i]?.pressed
@@ -340,7 +313,10 @@ function pollGamepad(playerNum, buffer) {
 // getFighterInput
 // Returns a unified input object for combat/physics engines.
 // ─────────────────────────────────────────────────────────────────
-const _giDbgTick = { 1: 0, 2: 0 }
+// Per-player call tally — the single per-frame input entry point for EVERY fighter
+// (keyboard AND controller route through here). Exposed so a harness can PROVE the
+// wiring is connected (both counters advancing = getFighterInput ran for both).
+export const inputCallCount = { 1: 0, 2: 0 }
 export function getFighterInput(fighter) {
   if (!fighter) return null
 
@@ -348,16 +324,7 @@ export function getFighterInput(fighter) {
   const buffer = isP1 ? p1Buffer : p2Buffer
   const type = isP1 ? inputSettings.p1Type : inputSettings.p2Type
   const ctrl = fighter.controls
-
-  // [DEBUG-PAD 2] per-player, throttled: confirm each fighter's playerNumber, its live
-  // device type, and the playerNum it will hand to pollGamepad — so we can catch both
-  // fighters resolving to the same playerNum, or a wrong playerNumber on P1/P2.
-  const _pn = fighter.playerNumber
-  if ((_pn === 1 || _pn === 2) && (++_giDbgTick[_pn] % 30 === 0)) {
-    console.log(`[DEBUG-PAD] getFighterInput P${_pn} — playerNumber=${_pn}`,
-      "| type:", type, "| controller?", type === "controller",
-      "| will call pollGamepad(", isP1 ? 1 : 2, ")")
-  }
+  if (fighter.playerNumber === 1 || fighter.playerNumber === 2) inputCallCount[fighter.playerNumber]++
 
   updateBuffer(buffer)
 
@@ -400,14 +367,8 @@ export function clearInputBuffers(fighters = []) {
   zeroBuffer(p1Buffer)
   zeroBuffer(p2Buffer)
 
-  const allControls = [defaultControls, defaultControlsP2]
-
-  for (const ctrlSet of allControls) {
-    for (const key of Object.values(ctrlSet)) {
-      if (key) keys[key] = false
-    }
-  }
-
+  // Clear each live fighter's actual binds (its real controls object — the single
+  // source of truth from game.js), so held keys can't ghost into the next round.
   for (const fighter of fighters) {
     if (!fighter?.controls) continue
     for (const key of Object.values(fighter.controls)) {

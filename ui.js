@@ -316,6 +316,18 @@ export function getGameplaySelectRects(canvas) {
   ])
 }
 
+// TOWER TIER SELECT — 5 tiers by floor count (labels mirror game.js TOWER_TIERS ids).
+export function getTowerSelectRects(canvas) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "tier1", label: "TIER 1", subLabel: "3 opponents"                       },
+    { id: "tier2", label: "TIER 2", subLabel: "10 opponents"                      },
+    { id: "tier3", label: "TIER 3", subLabel: "25 opponents"                      },
+    { id: "tier4", label: "TIER 4", subLabel: "40 opponents"                      },
+    { id: "tier5", label: "TIER 5", subLabel: "INFINITE — difficulty escalates"   },
+    { id: "back",  label: "BACK",   subLabel: "Return to mode select"             }
+  ])
+}
+
 export function getAIDifficultyRects(canvas) {
   return getVerticalMenuLayout(canvas, [
     { id: "easy",       label: "EASY",       subLabel: "Low pressure, simple AI"    },
@@ -813,6 +825,19 @@ export function drawGameplaySelectScreen(ctx, canvas, selectedIndex = 0) {
     drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
   })
   drawFooterHint(ctx, canvas, "Training = 1 player practice • VS Match = player vs CPU")
+}
+
+// ─────────────────────────────────────────────
+// TOWER TIER SELECT
+// ─────────────────────────────────────────────
+export function drawTowerSelectScreen(ctx, canvas, selectedIndex = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#2a1c3d")
+  drawHeader(ctx, canvas, "TOWER", "Pick a tier — beat every floor to clear it")
+  getTowerSelectRects(canvas).forEach((button, index) => {
+    drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
+  })
+  drawFooterHint(ctx, canvas, "Random opponent + stage each floor • Tier 5 never ends — how high can you climb?")
 }
 
 // ─────────────────────────────────────────────

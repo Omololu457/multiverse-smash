@@ -19,6 +19,7 @@
     "test:toji-oldart": "node harness/toji_oldart.test.mjs",
     "test:toji": "node harness/toji.test.mjs",
     "test:toji-command": "node harness/toji_command.test.mjs",
+    "test:tower": "node harness/tower.test.mjs",
     "test:toji-motion": "node harness/toji_motion.test.mjs",
     "test:input-wiring": "node harness/input_wiring.test.mjs"
   },

@@ -7,6 +7,7 @@ import { moveset }    from "./moveset.js"
 import { sound }      from "./sound.js"
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
+import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
 import { resolveGrab } from "./combat.js"   // shared grab pipeline (combat.js doesn't import abilities.js → no cycle)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
@@ -1542,13 +1543,17 @@ function executeSasukeUltimate(fighter, context) {
     // Require a genuine SECOND press: the ultimate must have been released since Stage 1 (blocks
     // a held button from escalating on its own). The short atkCd above blocks a single tap's buffer.
     if (!fighter._ultReleasedSinceStage1) return false
-    // STAGE 2 — drain ALL remaining energy to 0, escalate. Timer is NOT reset (one 20s window).
-    fighter.energy = 0
-    _enterSusanooStage(fighter, 2)
-    fighter._suppressUltCooldown = true
-    fighter.attackCooldown   = getAttackDuration(24, fighter)
-    focusCameraOnAction(context, fighter, null, 0.88, 20)
-    shakeCamera(context, 10, 12)
+    // STAGE 2 is now gated behind a short SHARINGAN-AWAKENING cinematic (sasukeCinematic.js —
+    // mirrors kurama.js: combat freezes while it plays). The actual escalation — drain ALL
+    // remaining energy to 0 + swap stats/sprite to Lv2 — is applied by onResolve() at the
+    // cinematic's RESOLVE beat, so it lands as the cinematic ends, not before it starts.
+    fighter._suppressUltCooldown = true   // still mid-Susanoo → suppress the universal ult lockout NOW
+    activateSasukeEyesCinematic(fighter, () => {
+      fighter.energy = 0
+      _enterSusanooStage(fighter, 2)
+      fighter._suppressUltCooldown = true
+      fighter.attackCooldown = getAttackDuration(24, fighter)
+    })
     return true
   }
   return false   // already Lv2 — no-op; the timer (or revert) ends it

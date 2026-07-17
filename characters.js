@@ -639,7 +639,10 @@ const sasuke = {
     // upAttack = LAUNCHER (combat.js `case "up"` reads b.upAttack; startMove "up" → animationData.up).
     // Mid-weight numbers modeled on the moveset.js launcher pattern (Naruto upAttack 70/-8).
     upAttack:{ type: "launcher", damage: 62, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
-    downAir:{ damage: 78, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 }
+    downAir:{ damage: 78, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
+    // NEUTRAL AIR (J while airborne) — the missing basic (was undefined → J in the air whiffed).
+    // Mid-weight aerial between light (46) and heavy (92); airborne spin-slash (animationData.air).
+    airAttack:{ damage: 54, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 }
   },
   // ── PHASE 3: two-stage Susanoo ULTIMATE (logic lives in abilities.js executeSasukeUltimate).
   // This field is HUD-only (game.js reads c?.ultimate?.name for the move hint); the real cost is
@@ -681,6 +684,9 @@ const sasuke = {
     heavy:    { frames: 7, width: 71, height: 58, speed: 4, anchorY: -4,  sheet: "./sasuke_dash_attack.png" },     // 496×58 → 7×(71×58), sword slash + trail
     up:       { frames: 9, width: 58, height: 60, speed: 3, anchorY: -10, sheet: "./sasuke_up_attack.png" },       // 527×60 → 9×(58×60) gap-scanned; launcher swing. anchorY -10 = -(5px botGap ×2.1)
     down_air: { frames: 6, width: 50, height: 62, speed: 4, anchorY: -6,  sheet: "./sasuke_down_attack.png" },     // 298×62 → 6×(50×62)
+    air:      { frames: 6, width: 68, height: 83, speed: 3, anchorY: -12, sheet: "./sasuke_jump_attack.png" },     // 409×83 → 6×(68×83) aerial spin-slash (neutral J in air)
+    // Shuriken THROW pose — plays via _spriteCastMove while the shuriken projectile flies (air+heavy poke).
+    shurikenThrow: { frames: 2, width: 57, height: 56, speed: 4, anchorY: -8, loop: false, lockLastFrame: true, sheet: "./sasuke_throwing_shuriken.png" }, // 114×56 → 2×(57×56)
     // ── PHASE 3a: pre-match INTRO POOL. game.js picks one of `introPool` at random each match
     // (see pickIntroVariant); sprite.js plays it while _introPlaying is set. loop:false +
     // lockLastFrame → each plays ONCE then holds its final pose, snapping cleanly to idle when

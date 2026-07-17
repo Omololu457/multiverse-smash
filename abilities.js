@@ -1585,6 +1585,37 @@ function executeSasukeDashStrike(fighter, target, context) {
   return true
 }
 
+// SHURIKEN POKE — a BASIC-kit aerial projectile toss on HEAVY-while-airborne (K in air). Free
+// (no energy — it's a basic), rate-limited by attackCooldown so it can't be spammed. Ground heavy
+// is untouched (buildNormalControlState.heavy is grounded-only, so air-heavy is otherwise unused).
+// Aims down-and-forward at the opponent from the air, so it doubles as an approach/poke tool.
+function executeSasukeShuriken(fighter, target, context) {
+  const aim = _oppCenter(target)
+  fighter._spriteCastMove  = "shurikenThrow"     // throw pose over the aerial body
+  fighter._spriteCastTimer = 14
+  spawnProjectile(fighter, "sasukeShuriken", {
+    damage: 34, speed: 14, lifetime: 60, hitstun: 14, knockbackX: 5, knockbackY: 0,
+    w: 26, h: 26, color: "#d7ecff",
+    spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.35,
+    aimAt: aim,
+    sheet: "./sasuke_shuriken.png", spriteFrames: 3, spriteW: 52, spriteH: 54, spriteSpeed: 2, spriteScale: 0.85
+  }, context)
+  fighter.attackCooldown = getAttackDuration(16, fighter)   // brief recovery (rate limit); no energy cost
+  shakeCamera(context, 2, 3)
+  return true
+}
+
+// Gate + dispatch for the air-shuriken basic (called from game.js updatePlayerCombat). Sasuke-only,
+// airborne-only, and only when free to act — so it never disturbs any other fighter or the ground kit.
+export function maybeSasukeAirShuriken(fighter, inputState, context = {}) {
+  if (!fighter || (fighter.rosterKey || fighter.id) !== "sasuke") return false
+  if (fighter.onGround || fighter.attacking || (fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0) return false
+  if (!inputState?.heavy) return false
+  if ((fighter._susanooStage || 0) > 0) return false        // in Susanoo the kit is grab/arrow/sword
+  const target = getTargetResolver(context)(fighter)
+  return executeSasukeShuriken(fighter, target, context)
+}
+
 // ─────────────────────────────────────────────────────────────────
 // SASUKE — TWO-STRIKE LIGHTNING (base-kit special, DOWN,FORWARD + special / "qcf")
 // ─────────────────────────────────────────────────────────────────

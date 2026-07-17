@@ -11,7 +11,8 @@
     "test:intros": "node harness/intros.test.mjs",
     "test:basickit": "node harness/basickit.test.mjs",
     "test:training": "node harness/training.test.mjs",
-    "test:susanoo-hurtbox": "node harness/susanoo_hurtbox.test.mjs"
+    "test:susanoo-hurtbox": "node harness/susanoo_hurtbox.test.mjs",
+    "test:toji-stance": "node harness/toji_stance.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

@@ -15,6 +15,7 @@
     "test:toji-stance": "node harness/toji_stance.test.mjs",
     "test:toji-blade": "node harness/toji_blade.test.mjs",
     "test:toji-chain": "node harness/toji_chain.test.mjs",
+    "test:toji-oldart": "node harness/toji_oldart.test.mjs",
     "test:toji": "node harness/toji.test.mjs",
     "test:input-wiring": "node harness/input_wiring.test.mjs"
   },

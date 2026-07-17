@@ -75,6 +75,7 @@ try {
     await setupAdjacent();
     const hp0 = (await p2()).health;
     await page.keyboard.down(key); await waitFrames(4); await page.keyboard.up(key);
+    if (key === "k") { await waitFrames(2); await page.screenshot({ path: path.join(OUT, "BK_heavy_sword.png") }); }
     await waitFrames(18);
     const hp1 = (await p2()).health;
     check(`${name} connects and deals damage`, hp1 < hp0, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
@@ -115,17 +116,17 @@ try {
   }
   await waitGrounded(); await waitFrames(10);
 
-  // ── SHURIKEN poke (K while airborne → projectile) ───────────────────────
-  section("SHURIKEN poke — air-heavy (K in air)");
-  await setupAdjacent(120);   // a bit of range so the thrown shuriken travels
-  await page.waitForFunction(() => (window.__harness.p1().attackCooldown ?? 0) === 0 || true, null, { polling: 16 });
-  await waitFrames(10);       // settle: clear any leftover attackCooldown from the prior move
+  // ── SHURIKEN poke (DOWN + special → grounded ranged poke) ───────────────
+  section("SHURIKEN poke — down + special (S then L)");
+  await setupAdjacent(150);   // range so the thrown shuriken travels to the dummy
+  await waitFrames(10);       // settle any leftover attackCooldown
   {
     const hp0 = (await p2()).health;
-    await page.evaluate(() => window.__harness.liftP1(40));   // airborne (air-heavy = K in air)
-    await page.keyboard.down("k"); await waitFrames(3); await page.keyboard.up("k");
+    // down feeds a "D" into directionHistory; special then reads it → shuriken (not dash-strike).
+    await page.keyboard.down("s"); await waitFrames(2); await page.keyboard.up("s");
+    await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l");
     const proj = await page.evaluate(() => window.__harness.projectiles());
-    check("air-heavy spawns a shuriken projectile", proj.some(p => p.name === "sasukeShuriken"), `projectiles=${JSON.stringify(proj.map(p => p.name))}`);
+    check("down+special spawns a shuriken projectile (not dash-strike)", proj.some(p => p.name === "sasukeShuriken"), `projectiles=${JSON.stringify(proj.map(p => p.name))}`);
     const shuriken = proj.find(p => p.name === "sasukeShuriken");
     check("shuriken aims toward the opponent (vx>0)", !!shuriken && shuriken.vx > 0, shuriken ? `vx=${shuriken.vx.toFixed(1)} vy=${shuriken.vy.toFixed(1)}` : "");
     await page.screenshot({ path: path.join(OUT, "BK_shuriken.png") });

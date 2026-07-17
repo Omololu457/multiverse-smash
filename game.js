@@ -38,7 +38,7 @@ import {
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
   sasukeInSusanoo, SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout
-  updateTojiStanceSwitch, fireTojiStanceLight, getTojiStance   // Toji 3-stance weapon system (foundation)
+  updateTojiStanceSwitch, updateTojiStanceCombat, getTojiStance   // Toji 3-stance weapon system (+ Blade moveset)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -1612,14 +1612,17 @@ function updatePlayerCombat(fighter) {
   if (canStart && inputState.special)  { triggerSpecial(fighter,  getAbilityContext()); return }
   if (canStart && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
 
-  // TOJI stance-specific placeholder LIGHT (grounded J, not down): fires the current
-  // stance's move so the correct one provably plays per stance. fireTojiStanceLight
-  // respects attackCooldown → the post-switch/cancel gap applies.
-  if (isToji && canStart && inputState.light && (fighter.onGround ?? fighter.grounded) && !inputState.down) {
-    if (fireTojiStanceLight(fighter, getAbilityContext())) return
-  }
+  // TOJI stance combat: Blade stance fires its real normals + drives the rekka; Chain/Gun
+  // fire the Phase-1 placeholder light. Consumes the grounded light/heavy/up press when it
+  // acts (returns true → skip the normal path).
+  if (isToji && updateTojiStanceCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
-  updateCombat(fighter, getOpponent(fighter), buildNormalControlState(fighter, vKeys), opts)
+  // Toji's grounded normals are stance-driven, so SUPPRESS the built-in light/heavy/up here
+  // (else updateCombat would also start the old row-sheet normals / double-fire). Aerials
+  // (air/downAir) and grab stay on the normal path. Other characters are unaffected.
+  let ctrlState = buildNormalControlState(fighter, vKeys)
+  if (isToji) ctrlState = { ...ctrlState, light: false, heavy: false, upAttack: false }
+  updateCombat(fighter, getOpponent(fighter), ctrlState, opts)
 }
 
 // ------------------------------------------------------------------
@@ -3281,6 +3284,7 @@ gameLoop()
         phase: getAttackPhase(f),
         move: f.currentMove || (f.currentAttack && f.currentAttack.name) || null,
         attackCooldown: f.attackCooldown || 0,
+        rekkaNext: f._rekkaNext || null,   // Blade rekka: the next hit a fresh light would chain to
         canAct: !f.attacking && (f.attackCooldown || 0) <= 0 && (f.hitstun || 0) <= 0
       }
     },

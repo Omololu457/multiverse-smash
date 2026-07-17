@@ -78,7 +78,7 @@ document.addEventListener("keydown", e => {
   const key = normalizeKey(e.key)
   keys[key] = true
 
-  if (["arrowup", "arrowdown", " ", "f1", "f2"].includes(key)) {
+  if (["arrowup", "arrowdown", " ", "f1", "f2", "f3", "f4"].includes(key)) {
     e.preventDefault()
   }
 })

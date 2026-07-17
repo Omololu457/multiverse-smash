@@ -1398,7 +1398,10 @@ export function drawHitSparks(ctx, hitSparks = [], camera = null) {
   }
 }
 
-export function drawTrainingCollisionBoxes(ctx, fighters = []) {
+// `getHitbox(fighter)` (optional) returns the LIVE attack hitbox {x,y,w,h} or null when
+// the fighter isn't attacking — so the red box tracks the real move (combat.getAttackHitbox)
+// instead of the stale static fighter.attackBox. Blue = body/hurtbox (always).
+export function drawTrainingCollisionBoxes(ctx, fighters = [], getHitbox = null) {
   if (!Array.isArray(fighters)) return
   fighters.forEach(fighter => {
     if (!fighter) return
@@ -1408,18 +1411,16 @@ export function drawTrainingCollisionBoxes(ctx, fighters = []) {
     const h = fighter.height ?? fighter.h ?? 120
 
     ctx.save()
-    ctx.strokeStyle = "rgba(90, 180, 255, 0.8)"
+    ctx.strokeStyle = "rgba(90, 180, 255, 0.8)"   // body / hurtbox
     ctx.lineWidth   = 2
     ctx.strokeRect(x, y, w, h)
 
-    if (fighter.attackHitbox) {
-      const hb = fighter.attackHitbox
+    // Live attack hitbox (only present mid-attack). Prefer the passed-in getter.
+    const hb = (typeof getHitbox === "function" ? getHitbox(fighter) : null)
+      || fighter.attackHitbox || null
+    if (hb) {
       ctx.strokeStyle = "rgba(255, 90, 90, 0.9)"
-      ctx.strokeRect(hb.x, hb.y, hb.width, hb.height)
-    } else if (fighter.attackBox) {
-      const hb = fighter.attackBox
-      ctx.strokeStyle = "rgba(255, 90, 90, 0.9)"
-      ctx.strokeRect(hb.x, hb.y, hb.w, hb.h)
+      ctx.strokeRect(hb.x, hb.y, hb.w ?? hb.width, hb.h ?? hb.height)
     }
     ctx.restore()
   })
@@ -1693,12 +1694,17 @@ export function drawCountdown(ctx, canvas, countdown = 0) {
 export function drawTrainingOverlay(ctx, canvas, info = {}) {
   const { width: w } = getCanvasSize(canvas)
 
+  const fd = info.frameData
+  const fdLine = fd
+    ? `${fd.who} ${fd.name}: ${fd.startup}/${fd.active}/${fd.recovery}  [${fd.phase} ${fd.elapsed}/${fd.total}]`
+    : "Move: —  (start/active/recovery)"
+
   const lines = [
     "Training Mode",
-    `Combo: ${info.combo ?? 0}`,
-    `Damage: ${info.damage ?? 0}`,
-    `State: ${info.state ?? "idle"}`,
-    `Meter Gain: ${info.meterGain ?? 0}`,
+    `Combo: ${info.combo ?? 0}    Last Dmg: ${info.damage ?? 0}`,
+    fdLine,
+    `Infinite HP/EN: ${info.infinite ? "ON" : "OFF"} [F3]`,
+    `Dummy: ${info.dummy ?? "stand"} [F4]    Reset [F2]`,
     `Frame: ${info.frame ?? 0}`
   ]
 
@@ -1706,32 +1712,36 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
   const p2Inputs = Array.isArray(info.p2Inputs) ? info.p2Inputs.join(" ") : ""
 
   const panelY = 70
+  const panelW = 320
 
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.5)"
-  ctx.fillRect(16, panelY, 270, 190)
+  ctx.fillRect(16, panelY, panelW, 196)
   ctx.strokeStyle = "rgba(255,255,255,0.16)"
-  ctx.strokeRect(16, panelY, 270, 190)
+  ctx.strokeRect(16, panelY, panelW, 196)
 
   ctx.fillStyle = "#fff"
-  ctx.font      = "14px Arial"
+  ctx.font      = "13px Arial"
   ctx.textAlign = "left"
 
   lines.forEach((line, i) => {
+    // Highlight the live frame-data line while a move is active.
+    if (i === 2) ctx.fillStyle = fd ? "#ffe08a" : "rgba(255,255,255,0.55)"
+    else ctx.fillStyle = "#fff"
     ctx.fillText(line, 28, panelY + 22 + i * 18)
   })
 
   if (p1Inputs) {
     ctx.fillStyle = "#7fd3ff"
-    ctx.fillText(`P1: ${p1Inputs}`, 28, panelY + 148)
+    ctx.fillText(`P1: ${p1Inputs}`, 28, panelY + 152)
   }
   if (p2Inputs) {
     ctx.fillStyle = "#ff9f9f"
-    ctx.fillText(`P2: ${p2Inputs}`, 28, panelY + 166)
+    ctx.fillText(`P2: ${p2Inputs}`, 28, panelY + 170)
   }
   if (Array.isArray(info.history) && info.history.length && w >= 980) {
     ctx.fillStyle = "rgba(255,255,255,0.75)"
-    ctx.fillText(`Last: ${info.history[0]?.display || "Neutral"}`, 28, panelY + 184)
+    ctx.fillText(`Last: ${info.history[0]?.display || "Neutral"}`, 28, panelY + 188)
   }
 
   ctx.restore()

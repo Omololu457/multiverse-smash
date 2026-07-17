@@ -68,7 +68,10 @@ async function enterSusanoo() {
   await tapKey("u"); await waitFrames(4);   // Stage 1
 }
 async function escalateSusanoo() {
-  await waitFrames(20); await tapKey("u"); await waitFrames(6);   // Stage 2
+  await waitFrames(20); await tapKey("u");                        // triggers the Sharingan cinematic
+  // Wait for the cinematic to FULLY end (combat frozen until then; Lv2 + attackCooldown apply at resolve).
+  await page.waitForFunction(() => !window.__harness.sasukeCine().active && window.__harness.p1().susanooStage === 2, null, { timeout: 9000, polling: 16 });
+  await waitFrames(6);
 }
 // qcf = down, forward, then special. Movement keys feed directionHistory (recordDirectionInput).
 async function qcfSpecial() {

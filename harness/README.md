@@ -74,6 +74,18 @@ Run: `node harness/round4.test.mjs`.
   separate blockable hits, and a hit during handseals cancels the cast.
 - **ITEM 4** — Naruto's Tailed Beast Bomb arms a 4800f/80s recast cooldown (4× the universal 1200).
 
+## What `sharingan.test.mjs` covers
+
+Run: `node harness/sharingan.test.mjs`.
+
+The Sharingan-awakening cinematic on Susanoo Lv1→Lv2 (the 2nd ultimate press): (a) combat
+FREEZES while it plays (holding right doesn't move Sasuke — same freeze contract as Kurama),
+(b) the eye rows step 0→1→2→3 top-to-bottom, (c) the Lv2 escalation lands only when the
+cinematic resolves, then combat resumes. Note: because the escalation now plays a ~134-frame
+cinematic (combat frozen throughout, incl. the RESOLVE tail), tests that escalate to Lv2 must
+wait for `!sasukeCine().active && p1().susanooStage === 2` before pressing further inputs, not
+just `susanooStage === 2` (which flips at the resolve beat while combat is still frozen).
+
 ## P1 control keys (from game.js `P1_CONTROLS`)
 
 `a/d` move, `w` jump, `s` down, `j` light, `k` heavy, `i` up-attack, **`l` special**,

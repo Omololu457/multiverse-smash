@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:susanoo": "node harness/susanoo.test.mjs"
+    "test:input-wiring": "node harness/input_wiring.test.mjs",
+    "test:training": "node harness/training.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

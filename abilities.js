@@ -1346,21 +1346,28 @@ const SUSANOO_STAGE = {
   2: { dmg: 1.9, def: 1.5, grabDmg: 210, arrowDmg: 230, swordDmg: 265 }   // Lv2 hits HARDER + unlocks arrow & sword
 }
 // Sprite body-swap animationData (attached to fighter._skinAnim while in Susanoo).
-// TWO deliberate choices here, both driven by the sprite sheets being NON-UNIFORM (gap-scan:
-// lvl_1's 5 poses are 125–219px wide, lvl_2's 4 are ~200px with flame-wisps between — they do
-// NOT divide evenly, so a uniform slicer tears/misaligns → the "glitch"):
-//   (1) The raw sheets are NON-UNIFORM so a uniform slicer tore them. They've been REPACKED
-//       into uniform-cell anim sheets (sasuke_susanoo_lvl_*_anim.png — each pose cropped and
-//       re-centered into equal cells) so the giant can ANIMATE through its frames cleanly with
-//       loop:true instead of sitting on one static frame. speed 8 ≈ Sasuke's own idle/walk
-//       range (6/5) — a slow, majestic idle cycle, not frozen.
-//   (2) EVERY action key maps to that same animated body cell — including hurt/light/heavy/up/
-//       air/grab and the susanoo* attacks. A key the giant's action machine picks but we DIDN'T
-//       define would fall back to a 128² box (the real glitch source when the giant got hit or
-//       threw a normal). Attacks' actual art is a SEPARATE spawned FX (this engine has no
-//       per-fighter attack-FX slot, see characters.js:600).
-function _susanooBody(sheet, frames, width, height) {
-  const cell = { frames, width, height, speed: 8, loop: true, anchorY: 0, sourceX: 0, sheet }
+// THREE deliberate choices here:
+//   (1) The uniform-cell anim sheets (sasuke_susanoo_lvl_*_anim.png — lvl1 5×231, lvl2 4×247)
+//       slice CLEANLY: boundary-overlay verification (2026-07-17, sasuke_susanoo_lvl_*_OVERLAY.png)
+//       confirmed every pose sits fully inside its uniform cell with the divider lines landing in
+//       genuine empty gaps (mid-x jitter 0px, no edge-touching). So the reported "bleeding" is NOT
+//       a runtime slice tear — the slicer math (sx = frameIndex*width) is exact.
+//   (2) The real cause of the choppy/"bleeding" look was ANIMATION DESIGN: the body used to loop
+//       ALL 5/4 poses — including the dramatic weapon-brandish poses (lvl1's mace swing f2/f3,
+//       lvl2's bow draw) — as a permanent idle at speed 8. The arm snapped between wildly different
+//       positions ~2×/sec, reading as a glitchy flail. FIX: idle only on the CALMEST ADJACENT pair
+//       (measured by min inter-frame delta) at a slow, majestic cadence, mirroring kurama.js holding
+//       each phase — plus a continuous sine bob added in sprite.js. `idleStart`/`idleFrames` select
+//       a contiguous window; sourceX = idleStart*width offsets the slice into it.
+//         lvl1 → poses 0–1 (both standing, hand on the planted mace; Δ≈30, the calmest standing pair).
+//         lvl2 → poses 2–3 (arm-across hold; Δ≈9, nearly seamless — by far the smoothest transition).
+//   (3) EVERY action key maps to that same calm idle cell — including hurt/light/heavy/up/air/grab
+//       and the susanoo* attacks. A key the giant's action machine picks but we DIDN'T define would
+//       fall back to a 128² box (a real glitch source when the giant got hit or threw a normal).
+//       Attacks' actual art is a SEPARATE spawned FX (this engine has no per-fighter attack-FX slot,
+//       see characters.js:600), so the body never needs its dramatic poses.
+function _susanooBody(sheet, width, height, idleStart, idleFrames, speed = 40) {
+  const cell = { frames: idleFrames, width, height, speed, loop: true, anchorY: 0, sourceX: idleStart * width, sheet }
   return {
     idle: cell, walk: cell, run: cell, jump: cell, fall: cell,
     hurt: cell, light: cell, heavy: cell, up: cell, air: cell, down_air: cell,
@@ -1368,9 +1375,9 @@ function _susanooBody(sheet, frames, width, height) {
     susanooGrab: cell, susanooSword: cell, susanooArrow: cell, susanooIntro: cell
   }
 }
-// Uniform repacked sheets — cell dims from the repack script (lvl1 5×231, lvl2 4×247).
-const SUSANOO_LVL1_ANIM = _susanooBody("./sasuke_susanoo_lvl_1_anim.png", 5, 231, 277)
-const SUSANOO_LVL2_ANIM = _susanooBody("./sasuke_susanoo_lvl_2_anim.png", 4, 247, 298)
+// Uniform repacked sheets (lvl1 5×231, lvl2 4×247). Idle windows chosen by inter-frame delta scan.
+const SUSANOO_LVL1_ANIM = _susanooBody("./sasuke_susanoo_lvl_1_anim.png", 231, 277, 0, 2)   // calm poses 0–1
+const SUSANOO_LVL2_ANIM = _susanooBody("./sasuke_susanoo_lvl_2_anim.png", 247, 298, 2, 2)   // calm poses 2–3
 
 export function sasukeInSusanoo(fighter) { return (fighter && (fighter._susanooStage || 0) > 0) }
 

@@ -139,6 +139,14 @@ export const SKINS = {
   // entry sources his real spriteScale from the character. Phase 1: no alt skins yet.
   sasuke: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke?.portrait, spriteScale: characters.sasuke?.spriteScale, animationData: null }
+  ],
+
+  // Toji (JJK). Same reason as Naruto/Goku/Sasuke: WITHOUT a default skin, applySkin()
+  // pulls the getSkins() spriteScale:1 fallback and he renders at native ~54px (half
+  // size) — THIS is why he looked undersized. This entry sources his real spriteScale
+  // (2.3) from the character. No alt skins yet.
+  toji: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.toji?.portrait, spriteScale: characters.toji?.spriteScale, animationData: null }
   ]
 }
 

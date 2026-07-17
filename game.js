@@ -847,6 +847,37 @@ function pickIntroVariant(fighter) {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
+// FIXED-ORDER multi-part intro (e.g. Toji: walk-in → ready-up). A character declares
+// `introSequence: [actionA, actionB, ...]` whose steps play back-to-back IN ORDER —
+// distinct from introPool (random pick). Each step holds for its own play duration
+// (frames × speed), then advanceIntroSequence() flips to the next; the last step holds.
+function introStepFrames(fighter, action) {
+  const d = fighter && fighter.animationData && fighter.animationData[action]
+  if (!d) return 30
+  return Math.max(1, (d.frames || 1) * (d.speed || 5))
+}
+function initIntroVariant(fighter) {
+  if (!fighter) return
+  const seq = fighter.introSequence
+  if (Array.isArray(seq) && seq.length) {
+    fighter._introSeq      = seq
+    fighter._introSeqIdx   = 0
+    fighter._introVariant  = seq[0]
+    fighter._introSeqTimer = introStepFrames(fighter, seq[0])
+  } else {
+    fighter._introSeq     = null
+    fighter._introVariant = pickIntroVariant(fighter)
+  }
+}
+function advanceIntroSequence(fighter) {
+  if (!fighter || !fighter._introSeq) return
+  if (fighter._introSeqIdx >= fighter._introSeq.length - 1) return   // hold final step
+  if (--fighter._introSeqTimer > 0) return
+  fighter._introSeqIdx++
+  fighter._introVariant  = fighter._introSeq[fighter._introSeqIdx]
+  fighter._introSeqTimer = introStepFrames(fighter, fighter._introVariant)
+}
+
 // ── PRE-MATCH CHARACTER ANNOUNCEMENT ──────────────────────────────────────────
 // Runs inside the existing round-1 INTRO phase (so it's first-round-only, matching
 // the intro convention): zoom on P1 then P2, playing each side's name-call clip if
@@ -925,8 +956,8 @@ function startMatch() {
   // pickIntroVariant randomly selects one entry from the fighter's `introPool` (if any) so
   // characters with multiple intros (e.g. Sasuke) get visual variety across matches; fighters
   // with no pool get null → sprite.js falls back to the shared "transform" intro (unchanged).
-  if (p1) { p1._introPlaying = true; p1._introVariant = pickIntroVariant(p1) }
-  if (p2) { p2._introPlaying = true; p2._introVariant = pickIntroVariant(p2) }
+  if (p1) { p1._introPlaying = true; initIntroVariant(p1) }
+  if (p2) { p2._introPlaying = true; initIntroVariant(p2) }
 
   sound.stopMusic?.()
   sound.playStageTrack?.(matchConfig.selectedStage)
@@ -2820,6 +2851,10 @@ function updateCurrentState() {
 
   switch (gameState) {
     case GAME_STATES.INTRO:
+      // Step any fixed-order intro sequence (Toji walk-in → ready-up) every intro frame,
+      // during namecall AND the countdown window, so both parts play in order.
+      if (p1 && p1._introPlaying) advanceIntroSequence(p1)
+      if (p2 && p2._introPlaying) advanceIntroSequence(p2)
       if (namecallActive) {
         // Announcement phase: hold each side's zoom, then advance to the next mapped
         // side; when done, ease the camera back to normal framing. The VS-banner /
@@ -3045,6 +3080,7 @@ gameLoop()
     introVariant:     f._introVariant || null,
     spriteSheet:      f.spriteHandler?._actionDef?.sheet ?? null,
     spriteFrames:     f.spriteHandler?._actionDef?.frames ?? null,
+    spriteScale:      f.spriteScale ?? null,
     spriteReady:      !!(f.spriteHandler?._actionDef?.sheet),
     hasSkinAnim:      !!f._skinAnim,
     canvasHeightFrac: f._canvasHeightFrac || null,
@@ -3090,6 +3126,7 @@ gameLoop()
       countdown = ROUND_START_COUNTDOWN
       if (p1) {
         p1._introPlaying = true
+        p1._introSeq     = null          // force a single held variant (bypass any introSequence stepper)
         p1._introVariant = variant
         if (p1.spriteHandler) { p1.spriteHandler.currentAction = null; p1.spriteHandler.frameIndex = 0; p1.spriteHandler.frameTimer = 0; p1.spriteHandler.locked = false }
       }

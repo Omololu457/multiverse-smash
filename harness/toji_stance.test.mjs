@@ -59,7 +59,8 @@ try{
   check("CHAIN stance fires shortLash (Phase-3 real normal)", (await ts()).move==="shortLash", `move=${(await ts()).move}`);
   await waitIdle(); await tapCharge(); // → gun
   await waitIdle(); await tapLight(); await wf(1);
-  check("GUN stance fires gunLight", (await ts()).move==="gunLight", `move=${(await ts()).move}`);
+  const gproj=await page.evaluate(()=>window.__harness.projectiles());
+  check("GUN stance fires a snapShot projectile (Phase-4 real ranged normal)", gproj.some(p=>p.name==="snapShot"), `projectiles=${JSON.stringify(gproj.map(p=>p.name))}`);
 
   section("(c) CANCEL-ON-RECOVERY shortens the recovery window (frame evidence)");
   // put stance on chain (long recovery) for a clear window; measure same move both ways.

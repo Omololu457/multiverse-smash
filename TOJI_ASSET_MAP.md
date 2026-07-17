@@ -50,6 +50,28 @@ Verified live via `harness/toji.test.mjs` (31/31; regression intros/susanoo/basi
 transform/special_1/special_2/chain_*/grab. These render oversized at scale 2.3 until re-sliced — a
 known transitional wart, not exercised by the core-pass test.
 
+### ✅ SLICING FIX (2026-07-17, follow-up) — jitter / "dual-render" / jump-shrink
+
+Post-wiring bug reports (multiple-sprites, horizontal wobble, wrong-moment splits, jump shrinks) all
+traced to **ONE root cause**, not four bugs, and **not** a dual-render (draw path confirmed single:
+`renderHybridFighter` → one `spriteHandler.draw` per fighter). The new sheets have **leading + trailing
+transparent padding**, so the true per-frame PITCH is smaller than `sheetWidth ÷ frames`. Slicing at
+`sheetWidth/N` made each successive frame's figure drift within its cell → ~30px horizontal wobble per
+idle cycle (which reads as "multiple overlapping sprites"). Fix = slice with **`sourceX` (content-left
+offset) + `width` (true pitch)**, re-derived per action via per-cell leg-COM + boundary overlays:
+
+| action | frames | sourceX | width (was) | note |
+|---|---|---|---|---|
+| idle | 6 | 9 | 34 (was 37) | leg-COM drift 14px → <3px |
+| walk | **7** (was mis-counted 6) | 4 | 34 (was 40) | 6-cell overlay cut through figures; 7 is correct |
+| jump/fall | **5** (airborne only) | 41 | 35 (was 37) | skips frame 0/6 crouches (~35px) → fixes "jump gets smaller" |
+| hurt | 8 | 0 | 48 | content fills width (no change) |
+| hurt_air | 6 | 1 | 51 (was 52) | — |
+| introWalkIn / introReady | 17 / 15 | 3 / 2 | 30 / 35 | — |
+
+In-game verified: idle COM swing **30px → 4.3px**; airborne sprite full-height (matches grounded).
+`harness/toji.test.mjs` now includes a **pixel-level jitter guard** (state checks couldn't catch this).
+
 ---
 
 ## MOVEMENT / STATE (standard action keys every character uses)

@@ -479,8 +479,13 @@ const toji = {
     chain_retract: { frames: 7, width: 121, height: 87, speed: 4, actionScale: 0.56, sheet: "./toji_row14_sheet.png" },
     chain_spin:    { frames: 5, width: 85,  height: 78, speed: 4, actionScale: 0.63, sheet: "./toji_row15_sheet.png" },
     // NEW two-part intro — plays in fixed order (introSequence), NOT pooled/random.
-    introWalkIn: { frames: 17, width: 30, sourceX: 3, height: 45, speed: 2, loop: false, lockLastFrame: true, anchorY: -7, sheet: "./toji_intro_first_part.png" },   // walk-in, pitch 30 + srcX 3
-    introReady:  { frames: 15, width: 35, sourceX: 2, height: 47, speed: 3, loop: false, lockLastFrame: true, anchorY: 0,  sheet: "./toji_intro_second_part.png" },  // ready-up, pitch 35 + srcX 2
+    // Intro PACING (deliberate, NOT a timing bug): at the correctly-locked 60Hz, each step's
+    // on-screen duration = frames×speed÷60. walk-in 17×5=85t=1.42s (deliberate ~12fps stride),
+    // ready-up 15×4=60t=1.00s (crisper settle) → ~2.42s total entrance. (Prev speed 2/3 = 1.32s
+    // total, tuned for frame-rate-independence verification, read as a blink once the loop was
+    // locked to 60Hz — this re-tunes purely for how the entrance FEELS.)
+    introWalkIn: { frames: 17, width: 30, sourceX: 3, height: 45, speed: 5, loop: false, lockLastFrame: true, anchorY: -7, sheet: "./toji_intro_first_part.png" },   // walk-in, pitch 30 + srcX 3
+    introReady:  { frames: 15, width: 35, sourceX: 2, height: 47, speed: 4, loop: false, lockLastFrame: true, anchorY: 0,  sheet: "./toji_intro_second_part.png" },  // ready-up, pitch 35 + srcX 2
     // BLADE-STANCE normals (Phase 2). action key == the move name so sprite.js resolves it
     // directly. Sliced sourceX+true-pitch (alpha-gutter verified). Attack `speed` is auto-fit
     // to the move's duration by sprite.updateFrames, so it just needs frames/width/sourceX.

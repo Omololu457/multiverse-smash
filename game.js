@@ -578,6 +578,7 @@ function getAbilityContext() {
     p1, p2, getOpponent, camera, activeDomains,
     worldWidth: getStageWorldWidth(),
     canvasHeight: canvas?.height,     // giant FX (Susanoo arm-height spawns) mirror sprite.js's canvas-relative sizing
+    groundY,                          // floor line — lightning strikes plant their column on it
     createFighter,
     deltaMs: 1000 / 60,
     triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }
@@ -3016,9 +3017,14 @@ gameLoop()
 
   const snap = f => f && ({
     key: f.rosterKey, x: f.x, y: f.y, w: f.w, h: f.h, facing: f.facing,
-    energy: f.energy, maxEnergy: f.maxEnergy,
+    energy: f.energy, maxEnergy: f.maxEnergy, health: f.health,
+    vy: f.vy || 0, grounded: !!(f.onGround ?? f.grounded), canJump: f.canJump !== false,
     susanooStage:     f._susanooStage || 0,
     susanooTimer:     f._susanooTimer || 0,
+    lightningPhase:   f._lightningPhase || null,
+    rooted:           !!f._rooted,
+    attacking:        !!f.attacking,
+    currentMove:      f.currentMove || null,
     hasSkinAnim:      !!f._skinAnim,
     canvasHeightFrac: f._canvasHeightFrac || null,
     action:           f._lastSpriteAction || null,
@@ -3044,9 +3050,10 @@ gameLoop()
     p1:    () => snap(p1),
     p2:    () => snap(p2),
     roundTimer: () => roundTimer,
-    projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, visualOnly: !!p.visualOnly, sheet: p.sheet })),
+    projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
-    setP2X:     x => { if (p2) p2.x = x }         // reposition the dummy (e.g. close range → Lv2 sword)
+    setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
+    hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } }  // simulate getting hit (cancel tests)
   }
 })()

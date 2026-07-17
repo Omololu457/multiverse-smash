@@ -124,12 +124,12 @@ try {
   const arrowFx = projArrow.find(p => p.name === "susanooArrow");
   check("Lv2 (spaced) fires a susanooArrow", !!arrowFx, `projectiles=${JSON.stringify(projArrow.map(p => p.name))}`);
   if (arrowFx) {
-    const armY = expectedArmY(p1s2, 0.50);
     const feet = p1s2.y + p1s2.h;
-    const err = Math.abs(arrowFx.y - armY);
     const heightAbove = feet - arrowFx.y;
-    check("arrow fires at ~arm height (matches 0.50 frac math)", err < 70, `fxY=${arrowFx.y.toFixed(0)} expected≈${armY.toFixed(0)} (err ${err.toFixed(0)})`);
-    check("arrow well ABOVE the feet (not ground level)", heightAbove > 300, `${heightAbove.toFixed(0)}px above feet`);
+    // NOTE (round 4): the arrow now AUTO-AIMS down at the opponent (vy>0), so by sample time it
+    // has descended below its arm-height spawn — it starts high and travels down-and-forward.
+    check("arrow starts high, well ABOVE the feet (fired from up high)", heightAbove > 250, `${heightAbove.toFixed(0)}px above feet`);
+    check("arrow descends toward the opponent (vy>0)", arrowFx.vy > 0, `vy=${(arrowFx.vy ?? 0).toFixed(2)}`);
   }
   await page.screenshot({ path: path.join(OUT, "R3b_lv2_arrow.png") });
   await waitFrames(40);

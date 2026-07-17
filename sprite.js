@@ -339,6 +339,18 @@ export class SpriteHandler {
     // Anchor to the bottom of the hitbox (using SCALED height) so feet stay planted
     const offsetY = (dstH - fighterH) + (frameData.anchorY || 0);
 
+    // GIANT idle bob (Kurama-style continuous motion): giant forms (canvas-relative sizing) add a
+    // slow, continuous sine RISE so the towering body reads as smoothly alive between the slow
+    // pose-holds, instead of snapping frame-to-frame. Rectified sine (0..1) → the sprite only ever
+    // rises above its planted rest, never sinks below the floor, so feet stay planted. Guarded on
+    // _canvasHeightFrac → exactly zero effect on every normal-scale fighter.
+    let bobUp = 0;
+    if (fighter._canvasHeightFrac) {
+      this._giantBobClock = (this._giantBobClock || 0) + 1;
+      bobUp = (Math.sin(this._giantBobClock * 0.045) * 0.5 + 0.5) * dstH * 0.018;
+    }
+    const drawY = fighter.y - offsetY - bobUp;
+
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);
 
@@ -356,7 +368,7 @@ export class SpriteHandler {
           drawWidth,         // source rect = native frame size
           drawHeight,
           -fighter.x + offsetX - dstW,   // flip math uses SCALED width
-          fighter.y - offsetY,
+          drawY,
           dstW,              // destination size = scaled
           dstH
         );
@@ -368,7 +380,7 @@ export class SpriteHandler {
           drawWidth,         // source rect = native frame size
           drawHeight,
           fighter.x - offsetX,
-          fighter.y - offsetY,
+          drawY,
           dstW,              // destination size = scaled
           dstH
         );

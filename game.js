@@ -13,7 +13,7 @@ import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
-  defaultControls, defaultControlsP2, clearInputBuffers, PS5_MAP, STICK_DEADZONE
+  clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount
 } from "./input.js"
 import {
   activeSummons,
@@ -626,7 +626,8 @@ function syncPhysicsBounds() {
   physics.groundY = groundY
 }
 
-function getControlsForHistory(side) { return side === "p1" ? defaultControls : defaultControlsP2 }
+// Single source of truth: the live P1/P2 bind maps (rebindable at runtime).
+function getControlsForHistory(side) { return side === "p1" ? P1_CONTROLS : P2_CONTROLS }
 function getGroundedYForHeight(h)    { return groundY - toFiniteNumber(h, 100) }
 function getGroundedYForFighter(f)   { return getGroundedYForHeight(f?.h ?? f?.height) }
 
@@ -2721,11 +2722,8 @@ function handleMenuClicks() {
       _layoutSettings()   // keep rects in sync with the render before hit-testing
       // Per-player device select (Task 4): cycle keyboard ↔ controller. "Two
       // Keyboards" is intentionally NOT reachable (disabled placeholder, Task 3).
-      if (pointInRect(mouse.x, mouse.y, p1SettingRect)) {
-        inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
-        console.log("[DEBUG-P1PAD] 1 TOGGLE clicked → inputSettings.p1Type =", inputSettings.p1Type)
-      }
-      if (pointInRect(mouse.x, mouse.y, p2SettingRect))    inputSettings.p2Type = inputSettings.p2Type === "keyboard" ? "controller" : "keyboard"
+      if (pointInRect(mouse.x, mouse.y, p1SettingRect)) inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
+      if (pointInRect(mouse.x, mouse.y, p2SettingRect)) inputSettings.p2Type = inputSettings.p2Type === "keyboard" ? "controller" : "keyboard"
       // Audio toggles — each independently mutes its own category (SFX / Music).
       if (pointInRect(mouse.x, mouse.y, sfxToggleRect)) {
         audioSettings.sfxMuted = !audioSettings.sfxMuted
@@ -3107,6 +3105,9 @@ gameLoop()
     p1:    () => snap(p1),
     p2:    () => snap(p2),
     roundTimer: () => roundTimer,
+    // Wiring proof: getFighterInput() call tally per player. Both advancing every
+    // frame proves each fighter's input routes through input.js.getFighterInput.
+    inputWiring: () => ({ ...inputCallCount, p1Type: inputSettings.p1Type, p2Type: inputSettings.p2Type }),
     sasukeCine: () => getSasukeCinematicStatus(),
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },

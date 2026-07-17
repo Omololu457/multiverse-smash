@@ -1,0 +1,96 @@
+// harness/tower.test.mjs — Tower Mode.
+// STEP 1: tier-select menu (real clicks GAMEPLAY_SELECT → TOWER → TOWER_SELECT → tier).
+// STEP 2: Tier 1 (3 floors) — random opponent+stage per floor, win advances, beating
+//         floor 3 clears, losing ends the run. Plus a broad randomization proof.
+import { chromium } from "playwright";
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");const OUT=path.join(ROOT,"harness","shots");fs.mkdirSync(OUT,{recursive:true});
+const MIME={".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".jpg":"image/jpeg",".mp3":"audio/mpeg",".mp4":"video/mp4",".json":"application/json",".csv":"text/csv"};
+function srv(){const s=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split("?")[0]);const f=path.join(ROOT,u==="/"?"/index.html":u);if(!f.startsWith(ROOT)){r.writeHead(403).end();return;}fs.readFile(f,(e,d)=>{if(e){r.writeHead(404).end();return;}r.writeHead(200,{"content-type":MIME[path.extname(f)]||"application/octet-stream"});r.end(d);});});return new Promise(x=>s.listen(0,"127.0.0.1",()=>x(s)));}
+let PASS=0,FAIL=0;const check=(n,c,d="")=>{(c?PASS++:FAIL++);console.log(`  ${c?"✅ PASS":"❌ FAIL"}  ${n}${d?`  — ${d}`:""}`);};
+const section=t=>console.log(`\n── ${t} ─────────────────────────────`);
+const server=await srv();const base=`http://127.0.0.1:${server.address().port}`;
+const b=await chromium.launch({headless:true});const page=await b.newPage({viewport:{width:1280,height:720}});
+const jsErrors=[];page.on("pageerror",e=>jsErrors.push(String(e)));
+const info=()=>page.evaluate(()=>window.__harness.towerInfo());
+const gs=()=>page.evaluate(()=>window.__harness.state().gameState);
+const frame=()=>page.evaluate(()=>window.__harness.state().frame);
+async function wf(n){const s=await frame();try{await page.waitForFunction(([a,x])=>window.__harness.state().frame>=a+x,[s,n],{timeout:8000,polling:8});}catch{}}
+// Win the current match (best-of-3): KO P2 each battle, ride round-breaks/intros to VICTORY.
+async function winMatch(){for(let i=0;i<80;i++){const g=await gs();if(g==="victory")return true;if(g==="intro"){await page.evaluate(()=>{try{window.__harness.skipToBattle();}catch(e){}});await wf(2);continue;}if(g==="battle"){await page.evaluate(()=>window.__harness.forceP1Win());await wf(6);continue;}await wf(4);}return (await gs())==="victory";}
+async function loseMatch(){for(let i=0;i<80;i++){const g=await gs();if(g==="victory")return true;if(g==="intro"){await page.evaluate(()=>{try{window.__harness.skipToBattle();}catch(e){}});await wf(2);continue;}if(g==="battle"){await page.evaluate(()=>window.__harness.forceP1Lose());await wf(6);continue;}await wf(4);}return (await gs())==="victory";}
+
+try{
+  await page.goto(`${base}/index.html?harness=1`,{waitUntil:"load"});
+  await page.waitForFunction(()=>!!window.__harness);await page.waitForTimeout(150);
+
+  // ── STEP 1: tier-select menu via REAL clicks ──────────────────────────────
+  section("STEP 1 — tier-select menu (real menu clicks)");
+  await page.mouse.click(640,400); await page.waitForTimeout(80);   // START → play
+  await page.mouse.click(640,173); await page.waitForTimeout(80);   // MAIN_MENU → play
+  check("reached GAMEPLAY_SELECT", (await gs())==="gameplaySelect", `gs=${await gs()}`);
+  await page.mouse.click(640,503); await page.waitForTimeout(80);   // GAMEPLAY_SELECT → TOWER (index3)
+  check("TOWER opens the TIER SELECT screen (not straight into a fight)", (await gs())==="towerSelect", `gs=${await gs()}`);
+  await page.screenshot({path:path.join(OUT,"TOWER_tier_select.png")});
+  // TIER 1 is index 0 of the vertical menu (6 items): compute its center.
+  // n=6 → gap12, avail500, bh=(500-60)/6=73.3, startY=150+(500-(6*73.3+5*12))/2≈150 → item0 center y≈150+36.6
+  await page.mouse.click(640,187); await page.waitForTimeout(100);  // TIER 1
+  const afterTier=await info();
+  check("clicking TIER 1 launches the tower flow (mode=tower, → fighter pick)", afterTier.mode==="tower" && (await gs())==="selectUniverse", `mode=${afterTier.mode} gs=${await gs()}`);
+
+  // ── STEP 2: Tier 1 = 3 floors, random opp+stage, advance/clear ────────────
+  section("STEP 2 — Tier 1: 3 floors, random opponent+stage each floor, clear on floor 3");
+  await page.evaluate(()=>window.__harness.towerStart("tier1","gojo"));
+  await wf(2);
+  let f0=await info();
+  check("Tier 1 declares 3 floors", f0.floors===3 && f0.endless===false, `floors=${f0.floors} endless=${f0.endless}`);
+  check("floor 0 set up with a random opponent + stage + difficulty", !!f0.p2 && !!f0.stage && !!f0.difficulty, `opp=${f0.p2} stage=${f0.stage} diff=${f0.difficulty}`);
+
+  const seq=[];
+  for(let fl=0; fl<3; fl++){
+    const cur=await info();
+    seq.push({floor:cur.floor, opp:cur.p2, stage:cur.stage, diff:cur.difficulty, cleared:cur.cleared});
+    const won=await winMatch();
+    check(`floor ${fl}: match resolves to VICTORY`, won, `gs=${await gs()}`);
+    const atVict=await info();
+    if(fl<2){
+      check(`floor ${fl} win records lastWon`, atVict.lastWon===true, `lastWon=${atVict.lastWon}`);
+      await page.evaluate(()=>window.__harness.towerContinue()); await wf(2);
+      const nxt=await info();
+      check(`advanced to floor ${fl+1} with a fresh opponent+stage`, nxt.active && nxt.floor===fl+1, `floor=${nxt.floor} opp=${nxt.opp} active=${nxt.active}`);
+    } else {
+      check("beating floor 3 marks the tower CLEARED", atVict.cleared===true, `cleared=${atVict.cleared}`);
+      await page.evaluate(()=>window.__harness.towerContinue()); await wf(2);
+      const done=await info();
+      check("clearing the tower ends the run (inactive → back to menu)", done.active===false && done.gameState==="start", `active=${done.active} gs=${done.gameState}`);
+    }
+  }
+  console.log("  Tier1 floor sequence:", JSON.stringify(seq));
+
+  // ── loss ends the run ─────────────────────────────────────────────────────
+  section("STEP 2 — losing a floor ends the run cleanly");
+  await page.evaluate(()=>window.__harness.towerStart("tier1","gojo")); await wf(2);
+  const beforeLoss=await info();
+  await loseMatch();
+  const lossVict=await info();
+  check("losing reaches the result screen with lastWon=false", lossVict.gameState==="victory" && lossVict.lastWon===false, `gs=${lossVict.gameState} lastWon=${lossVict.lastWon}`);
+  await page.evaluate(()=>window.__harness.towerContinue()); await wf(2);
+  const afterLoss=await info();
+  check("continuing after a loss ends the tower (inactive → menu)", afterLoss.active===false && afterLoss.gameState==="start", `active=${afterLoss.active} gs=${afterLoss.gameState}`);
+
+  // ── broad randomization proof (opp + stage genuinely vary) ────────────────
+  section("randomization proof — opponents & stages vary across many floors");
+  await page.evaluate(()=>window.__harness.towerStart("tier5","gojo")); await wf(2);   // endless → advance freely
+  const opps=new Set(), stgs=new Set();
+  for(let i=0;i<16;i++){
+    const cur=await info(); opps.add(cur.p2); stgs.add(cur.stage);
+    await winMatch();
+    await page.evaluate(()=>window.__harness.towerContinue()); await wf(2);
+  }
+  check("opponents are randomized (≥4 distinct across 16 floors)", opps.size>=4, `distinct opps=${opps.size} [${[...opps].join(",")}]`);
+  check("stages are randomized (≥3 distinct across 16 floors)", stgs.size>=3, `distinct stages=${stgs.size}`);
+
+  section("errors");
+  check("no uncaught JS exceptions", jsErrors.length===0, jsErrors.slice(0,4).join(" | "));
+}catch(e){console.error("ERR",e);FAIL++;try{await page.screenshot({path:path.join(OUT,"TOWER_ERR.png")});}catch{}}
+finally{console.log(`\n════════\n  RESULT: ${PASS} passed, ${FAIL} failed\n════════`);await b.close();server.close();process.exit(FAIL===0?0:1);}

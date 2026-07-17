@@ -18,6 +18,7 @@
     "test:toji-gun": "node harness/toji_gun.test.mjs",
     "test:toji-oldart": "node harness/toji_oldart.test.mjs",
     "test:toji": "node harness/toji.test.mjs",
+    "test:toji-motion": "node harness/toji_motion.test.mjs",
     "test:input-wiring": "node harness/input_wiring.test.mjs"
   },
   "dependencies": {

@@ -606,6 +606,31 @@ export function drawRoundTimer(ctx, canvas, framesRemaining, maxFrames = 5400) {
   ctx.restore()
 }
 
+// Purple SUSANOO countdown — a SECOND clock shown just below the round timer while a
+// sustained Susanoo form is active. Purple (vs the round timer's white/red) so it reads
+// as a clearly different clock. Counts down the form's remaining duration in seconds.
+export function drawSusanooTimer(ctx, canvas, framesRemaining, maxFrames = 1200) {
+  if (framesRemaining <= 0) return
+  const cw      = canvas.width
+  const seconds = Math.ceil(framesRemaining / 60)
+
+  ctx.save()
+  ctx.textAlign    = "center"
+  ctx.textBaseline = "middle"
+  // Sits BELOW the round timer (y20) and the round-pip/"RD" row (y≈36) so nothing overlaps.
+  // small "SUSANOO" label above the number so the purple clock is self-explanatory
+  ctx.font      = "800 10px Arial"
+  ctx.fillStyle = "rgba(196,181,253,0.92)"
+  ctx.fillText("SUSANOO", cw / 2, 54)
+  ctx.font        = "900 22px Arial"
+  ctx.fillStyle   = "#a78bfa"
+  ctx.shadowBlur  = 10
+  ctx.shadowColor = "#7c3aed"
+  ctx.fillText(String(seconds), cw / 2, 74)
+  ctx.shadowBlur = 0
+  ctx.restore()
+}
+
 // ─────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────

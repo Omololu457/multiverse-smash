@@ -51,3 +51,20 @@ Exit code is non-zero if any assertion fails. Screenshots land in `harness/shots
   per-frame steps), the idle uses exactly the 2-pose calm window, and the cadence
   is slow (~40-frame holds, not the old speed-8 flail).
 - **TEST 3** — the half-arena movement lock still confines the giant.
+
+## What `susanoo_refinements.test.mjs` covers
+
+Run: `node harness/susanoo_refinements.test.mjs`.
+
+- **TEST 1** — the round timer PAUSES while Susanoo is active (`__harness.roundTimer()`
+  frozen) while the Susanoo DURATION timer (`p1().susanooTimer`) keeps counting down.
+- **TEST 3** — attack FX (grab / arrow / sword) spawn at the giant's ARM height:
+  compares each spawned projectile's `y` against the expected arm-fraction position
+  derived from the giant's rendered top (`lastDrawY`) and feet.
+
+## P1 control keys (from game.js `P1_CONTROLS`)
+
+`a/d` move, `w` jump, `s` down, `j` light, `k` heavy, `i` up-attack, **`l` special**,
+`u` ultimate, **`o` grab**, `p` charge. (Note: special is **`l`**, not `o`.) The input
+buffer is frame-polled, so hold each key ≥1 frame (`tapKey` / `tapUltimate`), and wait
+out `attackCooldown` between successive specials/ultimates.

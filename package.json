@@ -9,7 +9,8 @@
     "test:training": "node harness/training.test.mjs",
     "test:tower": "node harness/tower.test.mjs",
     "test:ffa": "node harness/ffa.test.mjs",
-    "test:team": "node harness/team.test.mjs"
+    "test:team": "node harness/team.test.mjs",
+    "test:susanoo-refinements": "node harness/susanoo_refinements.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

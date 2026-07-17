@@ -856,6 +856,7 @@ function getAbilityContext() {
     p1, p2, getOpponent, camera, activeDomains,
     worldWidth: getStageWorldWidth(),
     canvasHeight: canvas?.height,     // giant FX (Susanoo arm-height spawns) mirror sprite.js's canvas-relative sizing
+    groundY,                          // floor line — lightning strikes plant their column on it
     createFighter,
     deltaMs: 1000 / 60,
     triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }

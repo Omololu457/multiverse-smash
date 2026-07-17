@@ -472,6 +472,16 @@ const toji = {
     // NEW two-part intro — plays in fixed order (introSequence), NOT pooled/random.
     introWalkIn: { frames: 17, width: 30, sourceX: 3, height: 45, speed: 2, loop: false, lockLastFrame: true, anchorY: -7, sheet: "./toji_intro_first_part.png" },   // walk-in, pitch 30 + srcX 3
     introReady:  { frames: 15, width: 35, sourceX: 2, height: 47, speed: 3, loop: false, lockLastFrame: true, anchorY: 0,  sheet: "./toji_intro_second_part.png" },  // ready-up, pitch 35 + srcX 2
+    // BLADE-STANCE normals (Phase 2). action key == the move name so sprite.js resolves it
+    // directly. Sliced sourceX+true-pitch (alpha-gutter verified). Attack `speed` is auto-fit
+    // to the move's duration by sprite.updateFrames, so it just needs frames/width/sourceX.
+    quickDraw:    { frames: 5, width: 44, sourceX: 3, height: 60, speed: 3, anchorY: -12, sheet: "./toji_sword_attack_1.png" },       // 5A Quick Draw (230x60)
+    forwardSlash: { frames: 5, width: 54, sourceX: 9, height: 45, speed: 3, anchorY: -9,  sheet: "./toji_foward_slash_2.png" },       // 5B Forward Slash (286x45)
+    skywardCut:   { frames: 5, width: 45, sourceX: 0, height: 55, speed: 3, anchorY: -9,  sheet: "./toji_up_attack.png" },            // 2C Skyward Cut launcher (225x55)
+    // 5C Reaper's rekka — 3 segments sliced from the 11-frame toji_Foword_slash_attack (44px/frame).
+    reaper1:      { frames: 4, width: 44, sourceX: 0,   height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 0-3
+    reaper2:      { frames: 4, width: 44, sourceX: 176, height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 4-7
+    reaper3:      { frames: 3, width: 44, sourceX: 352, height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 8-10 (finisher)
     // run/jump/fall/grab aren't on the supplied table, but a MANIFESTED character
     // can't fall back to the procedural box per-action (unmapped → idle sheet at
     // 128px = garbage), so reuse the closest real strips:

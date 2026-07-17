@@ -1298,25 +1298,91 @@ function executeToji_Ultimate(fighter, context) {
 export const TOJI_STANCES = ["blade", "chain", "gun"]
 const STANCE_SWITCH_FRAMES = 4   // near-instant switch cost (also the post-cancel gap)
 
-// PLACEHOLDER light per stance — Phase-1 content only. Reuses basic-attack shapes with a
-// DISTINCT name + params per stance so the harness can prove the right one fires. NOT the
-// real design-doc moveset (Quick Draw / Inverted Spear / etc. come in Phase 2+).
+// CHAIN / GUN placeholder light — still Phase-1 content (those stances get their real
+// movesets in later passes). BLADE now has a real moveset (below), so it's dropped here.
 const TOJI_STANCE_LIGHT = {
-  blade: { name: "bladeLight", damage: 52, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 4, knockbackY: 0,  rangeX: 60,  rangeY: 40 },
   chain: { name: "chainLight", damage: 40, startup: 5, active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, rangeX: 110, rangeY: 40 },
   gun:   { name: "gunLight",   damage: 30, startup: 4, active: 2, recovery: 12, hitstun: 10, knockbackX: 3, knockbackY: 0,  rangeX: 90,  rangeY: 30 }
 }
 
+// ── BLADE STANCE — real normals (Phase 2). Sword-character numbers (cf. moveset.js goku /
+// Toji basic_attacks: light 52 · heavy 96). Toji is a fast no-meter glass cannon, so these
+// skew fast/low-commit. Sprites are in characters.js animationData keyed by these move names.
+//   5A quickDraw  — fast low-damage starter; OPENS the rekka.
+//   5B forwardSlash — mid-range poke (single hit).
+//   2C skywardCut — launcher (up-attack slot).
+//   5C Reaper's Combo — a 3-stage REKKA (reaper1→2→3) sliced from toji_Foword_slash_attack.
+//      Three cancel routes at each non-final stage's RECOVERY: press LIGHT → chain to next
+//      hit · press CHARGE → stance-cancel (Phase-1 mechanic) · do nothing → safe recovery.
+const TOJI_BLADE = {
+  quickDraw:    { damage: 44, startup: 5, active: 3, recovery: 9,  hitstun: 14, knockbackX: 4, knockbackY: 0,  rangeX: 62, rangeY: 44, rekkaNext: "reaper1" },
+  forwardSlash: { damage: 62, startup: 7, active: 4, recovery: 15, hitstun: 16, knockbackX: 6, knockbackY: 0,  rangeX: 95, rangeY: 44 },
+  skywardCut:   { damage: 55, startup: 7, active: 4, recovery: 18, hitstun: 22, knockbackX: 2, knockbackY: -9, rangeX: 70, rangeY: 80, launcher: true },
+  reaper1:      { damage: 30, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 80, rangeY: 40, rekkaNext: "reaper2" },
+  reaper2:      { damage: 34, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 4, knockbackY: 0,  rangeX: 85, rangeY: 40, rekkaNext: "reaper3" },
+  reaper3:      { damage: 50, startup: 6, active: 4, recovery: 18, hitstun: 20, knockbackX: 9, knockbackY: -3, rangeX: 95, rangeY: 44 }   // finisher — no rekkaNext
+}
+
 export function getTojiStance(fighter) { return (fighter && fighter.weaponStance) || "blade" }
 
-// Fire the CURRENT stance's placeholder light (gated by attackCooldown/attacking like any move).
+// Fire a specific BLADE move by key. Sets _rekkaNext for the rekka chain window.
+function fireTojiBladeMove(fighter, key, context) {
+  const md = TOJI_BLADE[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = md.rekkaNext || null
+  return true
+}
+
+// Fire the CURRENT stance's placeholder light (chain/gun only — blade routed above).
 export function fireTojiStanceLight(fighter, context) {
   if (!fighter) return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  const md = TOJI_STANCE_LIGHT[getTojiStance(fighter)] || TOJI_STANCE_LIGHT.blade
+  const md = TOJI_STANCE_LIGHT[getTojiStance(fighter)]
+  if (!md) return false
   const attack = createAttackFromMove(fighter, md.name, md)
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   return true
+}
+
+// Per-frame Toji stance-combat routing. Returns true if it consumed the input (caller
+// should skip the normal combat path). BLADE fires its real normals + drives the rekka;
+// CHAIN/GUN fire the Phase-1 placeholder light. Grounded normals only (aerials/grab stay
+// on the normal path). `getPhase` = combat.getAttackPhase; `context` = ability context.
+export function updateTojiStanceCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const stance   = getTojiStance(fighter)
+
+  // Light press-edge (raw of the buffered light) — a rekka chain needs a FRESH tap, not a held button.
+  const lightEdge = !!inputState.light && !fighter._rekkaPrevLight
+  fighter._rekkaPrevLight = !!inputState.light
+
+  // Rekka window closes when the attack fully ends (safe-stop / stance-cancel both land here).
+  if (!fighter.attacking) fighter._rekkaNext = null
+
+  if (stance === "blade") {
+    // ROUTE 1 — chain to next rekka hit: fresh LIGHT during the current hit's RECOVERY.
+    if (fighter.attacking && fighter._rekkaNext && lightEdge && getPhase?.(fighter) === "recovery") {
+      const next = fighter._rekkaNext
+      fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+      fighter.attackCooldown = 0                      // clear the just-set cooldown so the chain fires now
+      return fireTojiBladeMove(fighter, next, context)
+    }
+    const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+    if (!canStart || !grounded) return false
+    if (inputState.upAttack)                 return fireTojiBladeMove(fighter, "skywardCut",   context)
+    if (inputState.heavy && !inputState.down) return fireTojiBladeMove(fighter, "forwardSlash", context)
+    if (inputState.light && !inputState.down) return fireTojiBladeMove(fighter, "quickDraw",    context)
+    return false
+  }
+
+  // CHAIN / GUN — Phase-1 placeholder light.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && inputState.light && !inputState.down) return fireTojiStanceLight(fighter, context)
+  return false
 }
 
 // Stance-switch (CHARGE tap, edge-detected via `chargeHeld` + fighter._stancePrevCharge).

@@ -1298,7 +1298,32 @@ const TOJI_BLADE = {
   skywardCut:   { damage: 55, startup: 7, active: 4, recovery: 18, hitstun: 22, knockbackX: 2, knockbackY: -9, rangeX: 70, rangeY: 80, launcher: true },
   reaper1:      { damage: 30, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 80, rangeY: 40, rekkaNext: "reaper2" },
   reaper2:      { damage: 34, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 4, knockbackY: 0,  rangeX: 85, rangeY: 40, rekkaNext: "reaper3" },
-  reaper3:      { damage: 50, startup: 6, active: 4, recovery: 18, hitstun: 20, knockbackX: 9, knockbackY: -3, rangeX: 95, rangeY: 44 }   // finisher — no rekkaNext
+  reaper3:      { damage: 50, startup: 6, active: 4, recovery: 18, hitstun: 20, knockbackX: 9, knockbackY: -3, rangeX: 95, rangeY: 44 },  // finisher — no rekkaNext
+  // ── COMMAND MOVES (Phase 5) ──────────────────────────────────────────────────
+  // DASH STRIKE (design "6C") — a forward-committing dash-in stab. Data lives under
+  // dashStrike1 (its first sprite); updateTojiStanceCombat swaps the SPRITE 1→2 at the
+  // active boundary. Single hit level (the low→overhead property split needs the
+  // deferred hit-level block system). Damage 80 > forwardSlash 62 (committed) but a
+  // single hit < Reaper's full 30+34+50=114 string. Longer recovery = the dash-in risk.
+  dashStrike1:  { damage: 80, startup: 10, active: 4, recovery: 20, hitstun: 20, knockbackX: 9,  knockbackY: -2, rangeX: 110, rangeY: 46 },
+  // RISING SPIRAL (design "j.C") — AIR normal / juggle ender off Skyward Cut. Tall rangeY
+  // to catch a popped-up opponent. LONG recovery (26) so the full spin is genuinely
+  // punishable on block/whiff — the risk is mechanically real, not flavor.
+  risingSpiral: { damage: 72, startup: 7,  active: 5, recovery: 26, hitstun: 22, knockbackX: 10, knockbackY: -4, rangeX: 74, rangeY: 82 }
+}
+
+// Forward-sprint velocity sustained through Dash Strike's dash-in (startup+active window).
+// Physics friction (0.72) would decay a single impulse instantly; re-applying it each frame
+// gives a real committed sprint. Tuned so Toji closes ~1 body-width before the stab.
+const TOJI_DASH_LUNGE_SPEED = 9
+
+// Dash Strike fire: commits the move (data under dashStrike1) + arms the sustained lunge.
+function fireTojiDashStrike(fighter, context) {
+  if (!_fireTojiStanceMove(fighter, "dashStrike1", TOJI_BLADE.dashStrike1, context)) return false
+  const md = TOJI_BLADE.dashStrike1
+  fighter._dashLunge = md.startup + md.active     // sprint through wind-up + stab, plant on recovery
+  fighter.vx = fighter.facing * TOJI_DASH_LUNGE_SPEED
+  return true
 }
 
 // ── CHAIN STANCE — real normals (Phase 3). A mid-range zoning stance: longer reach, slower,
@@ -1381,11 +1406,29 @@ export function updateTojiStanceCombat(fighter, inputState, context, getPhase) {
       fighter.attackCooldown = 0                      // clear the just-set cooldown so the chain fires now
       return fireTojiBladeMove(fighter, next, context)
     }
+    // DASH STRIKE upkeep (runs while the move is live, before the canStart gate):
+    //  • SPRITE CHAIN: swap crouch(_1)→stab(_2) once past startup. sprite.js frame-resets
+    //    on the sheet change, so _2's full-extension stab plays as the hit lands.
+    //  • LUNGE: re-apply the forward sprint each frame of the dash-in window.
+    if (fighter.attacking && fighter.currentMove === "dashStrike1" && getPhase?.(fighter) !== "startup") {
+      fighter.currentMove = "dashStrike2"
+    }
+    if ((fighter._dashLunge || 0) > 0) { fighter.vx = fighter.facing * TOJI_DASH_LUNGE_SPEED; fighter._dashLunge-- }
+
     const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-    if (!canStart || !grounded) return false
-    if (inputState.upAttack)                 return fireTojiBladeMove(fighter, "skywardCut",   context)
-    if (inputState.heavy && !inputState.down) return fireTojiBladeMove(fighter, "forwardSlash", context)
-    if (inputState.light && !inputState.down) return fireTojiBladeMove(fighter, "quickDraw",    context)
+    if (!canStart) return false
+
+    // AIR — RISING SPIRAL (air normal / juggle ender). Buffered light (down+light stays the
+    // generic down-air spike). Consuming it here suppresses the generic `air` normal in blade.
+    if (!grounded) {
+      if (inputState.light && !inputState.down) return fireTojiBladeMove(fighter, "risingSpiral", context)
+      return false
+    }
+    // GROUND normals + command move.
+    if (inputState.upAttack)                  return fireTojiBladeMove(fighter, "skywardCut",   context)
+    if (inputState.heavy &&  inputState.down)  return fireTojiDashStrike(fighter, context)                  // 6C→S+K: Dash Strike
+    if (inputState.heavy && !inputState.down)  return fireTojiBladeMove(fighter, "forwardSlash", context)
+    if (inputState.light && !inputState.down)  return fireTojiBladeMove(fighter, "quickDraw",    context)
     return false
   }
 

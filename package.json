@@ -9,7 +9,8 @@
     "test:tower": "node harness/tower.test.mjs",
     "test:ffa": "node harness/ffa.test.mjs",
     "test:team": "node harness/team.test.mjs",
-    "test:toji-stance": "node harness/toji_stance.test.mjs"
+    "test:toji-stance": "node harness/toji_stance.test.mjs",
+    "test:toji-blade": "node harness/toji_blade.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

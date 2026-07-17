@@ -51,9 +51,9 @@ try{
   await tapCharge(); check("tap → wraps back to BLADE", (await ts()).stance==="blade", `stance=${(await ts()).stance}`);
   await page.screenshot({path:path.join(OUT,"TOJI_stance_indicator.png")});
 
-  section("(b) correct placeholder light fires PER stance");
+  section("(b) correct light fires PER stance (Blade=real quickDraw; Chain/Gun=placeholder)");
   await waitIdle(); await tapLight(); await wf(1);
-  check("BLADE stance fires bladeLight", (await ts()).move==="bladeLight", `move=${(await ts()).move}`);
+  check("BLADE stance fires quickDraw (Phase-2 real normal)", (await ts()).move==="quickDraw", `move=${(await ts()).move}`);
   await waitIdle(); await tapCharge(); // → chain
   await waitIdle(); await tapLight(); await wf(1);
   check("CHAIN stance fires chainLight", (await ts()).move==="chainLight", `move=${(await ts()).move}`);

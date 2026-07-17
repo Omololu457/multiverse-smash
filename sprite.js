@@ -339,8 +339,16 @@ export class SpriteHandler {
       scale = (ctx.canvas.height * fighter._canvasHeightFrac) / fighter._canvasHeightRefH;
     }
 
+    // Per-ACTION scale correction: an action may carry `actionScale` to render at a
+    // different proportion than the character's global spriteScale. Used for Toji's
+    // remaining OLD row-sheet actions (block/transform/grab/air/specials), whose art was
+    // never tuned for the 2.3 spriteScale of the new transparent-bg sheets — without this
+    // they render ~1.3x oversized. Guarded on the field + non-giant → zero effect elsewhere.
+    if (!fighter._canvasHeightFrac && this._actionDef?.actionScale) scale *= this._actionDef.actionScale;
+
     const dstW = drawWidth * scale;
     const dstH = drawHeight * scale;
+    fighter._lastDstH = dstH;   // rendered cell height (scale-correctness checks / harness)
 
     // Center horizontally over the hitbox (using SCALED width)
     const offsetX = (dstW - fighterW) / 2 + (frameData.anchorX || 0);

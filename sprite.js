@@ -358,10 +358,15 @@ export class SpriteHandler {
 
     // Record the giant's actual drawn Y + bob offset so an automated harness can
     // observe temporal smoothness (the sine bob can't be seen in a single frame).
+    // Also record the rendered box (top Y + scaled W/H) so combat.getHurtbox can size
+    // the giant's hurtbox to the VISIBLE body instead of the tiny physics box — these
+    // are the result of the canvas-relative sizing math (dstH/dstW = cell × scale).
     // Giant-only → no per-frame writes on normal fighters.
     if (fighter._canvasHeightFrac) {
       fighter._lastDrawY = drawY;
       fighter._lastBobUp = bobUp;
+      fighter._lastDrawH = dstH;
+      fighter._lastDrawW = dstW;
     }
 
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;

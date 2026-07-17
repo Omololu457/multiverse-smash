@@ -25,6 +25,33 @@ with a confirmed count, both are shown and flagged.
 
 ---
 
+## ✅ CORE PASS — WIRED (2026-07-17)
+
+A scoped **core-identity** pass wired the following from the NEW batch (attack tree still deferred).
+Verified live via `harness/toji.test.mjs` (31/31; regression intros/susanoo/basickit all green):
+
+- **Movement/state → NEW sheets:** `idle` (toji_stance_idle, **6f** — corrected from the stated 5 via
+  alpha-gutter+overlay), `walk`, `run`, `jump`/`fall`, `hurt` (toji_hit), and a NEW **`hurt_air`**
+  action (toji_air_hit, 6 verified-distinct frames) resolved by sprite.js when hit while airborne.
+- **Two-part intro:** `introWalkIn` → `introReady` play in **FIXED ORDER** via a new generic
+  `introSequence` mechanism (game.js) — NOT a random pool. spritesheets.js gate → toji_stance_idle.
+- **SIZE FIX:** root cause was NOT spriteScale in characters.js — Toji had **no `skins.js` entry**, so
+  `applySkin()` forced the `spriteScale:1` fallback (the documented Goku/Naruto gotcha), rendering him
+  at native ~54px. Fixed by (a) adding a Toji default-skin entry in skins.js sourcing his real scale,
+  and (b) raising that scale to **2.3** (54px cell → ~110px on-screen, roster-normal). Per-action
+  `anchorY = -(bottomGap×scale)` keeps feet planted across the inconsistent per-sheet bottom gaps.
+- **Curse-spirit projectile (FREE special):** **down,forward + special (qcf)** throws
+  `toji_curse_effect_2.png` (chosen over _3: clean 24px frames, bright "leading-eye" flying pose) as a
+  sprite projectile — damage 70 / hitstun 18 / speed 9. Costs **no energy** (fires at 0 energy; Toji's
+  maxEnergy 0 is engine-clamped to 1). Motion `["D","F"]` slots between the existing D,B chain and F,F
+  rapid without collision.
+
+**Still on OLD row sheets (deferred to the attack-tree pass):** light/heavy/up/air/dash/block/
+transform/special_1/special_2/chain_*/grab. These render oversized at scale 2.3 until re-sliced — a
+known transitional wart, not exercised by the core-pass test.
+
+---
+
 ## MOVEMENT / STATE (standard action keys every character uses)
 
 | File | Dims (WxH) | Frames | Cell W (W÷f) | Cell H | Move key | Confidence / notes |

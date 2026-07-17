@@ -76,7 +76,7 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./megumi_stance_sheet.png" }
   },
   toji: {
-    actions: { idle: "./toji_row03_sheet.png" }
+    actions: { idle: "./toji_stance_idle.png" }   // NEW transparent-bg idle (was old row03 strip)
   },
 
   // Base Goku (Dragon Ball). Sliced from goku_base_FULLSHEET_transparent.png.

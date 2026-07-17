@@ -431,15 +431,22 @@ const toji = {
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   hasSprites: true,
-  spriteScale: 1.7,   // source frames ~60–74px tall → ×1.7 ≈ hitbox height
+  // SIZE FIX: NEW transparent-bg core sheets are ~48px of content in a 54px cell, so the
+  // old 1.7 rendered him ~92px (undersized vs Sasuke ~105 / Sukuna ~118). ×2.3 ≈ 110px
+  // on-screen = roster-normal human scale. NOTE: the old row-sheet ATTACK actions (still
+  // wired below, deferred to the attack-tree pass) render oversized at 2.3 until re-sliced.
+  spriteScale: 2.3,
+  // Two-part intro (walk-in → ready-up) plays in FIXED ORDER as ONE intro — NOT a
+  // random-pick pool like Sasuke's introPool. game.js steps introSequence in order.
+  introSequence: ["introWalkIn", "introReady"],
   // ── TOJI SPRITES ── UNLABELED rows, mapping confirmed by viewing each strip.
   // Native cell = stripWidth/frames. NOTE (sheet gaps): no real walk or hurt
   // frames exist — walk reuses the stance, hurt reuses the guard pose (row10).
   // special_1/special_2 play via executeToji_Special's createAttackFromMove
   // (MOVE_TO_ACTION: inventorySmash→special_1, rapidStrike→special_2).
   animationData: {
-    idle:     { frames: 7,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },  // row03 fighting idle
-    walk:     { frames: 7,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },  // no walk row → reuse stance
+    idle:     { frames: 6,  width: 37, height: 54, speed: 8, loop: true, anchorY: -2,  sheet: "./toji_stance_idle.png" },  // NEW: verified 6f (not 5) via alpha-gutter+overlay
+    walk:     { frames: 6,  width: 40, height: 48, speed: 6, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // NEW dedicated walk (240/6=40 exact)
     light:    { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" },  // row02 punch combo
     heavy:    { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // row07 sword slash combo
     up:       { frames: 7,  width: 47, height: 74, speed: 5, sheet: "./toji_row04_sheet.png" },  // row04 kicks (launcher)
@@ -447,7 +454,8 @@ const toji = {
     down_air: { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // reuse slash combo
     dash:     { frames: 10, width: 90, height: 64, speed: 4, sheet: "./toji_row06_sheet.png" },  // row06 sword dash-lunge
     block:    { frames: 9,  width: 37, height: 70, speed: 6, sheet: "./toji_row10_sheet.png" },  // row10 guard
-    hurt:     { frames: 9,  width: 37, height: 70, speed: 6, sheet: "./toji_row10_sheet.png" },  // no hurt row → reuse guard
+    hurt:     { frames: 8,  width: 48, height: 54, speed: 5, anchorY: -7,  sheet: "./toji_hit.png" },  // NEW grounded hurt (385/8=48); was reused guard
+    hurt_air: { frames: 6,  width: 52, height: 49, speed: 5, anchorY: -2,  sheet: "./toji_air_hit.png" },  // NEW airborne hurt — 6 verified-distinct frames; sprite.js picks this when hitstun && airborne
     transform:{ frames: 7,  width: 76, height: 67, speed: 6, sheet: "./toji_row01_sheet.png" },  // row01 sword-draw flourish (intro)
     special_1:{ frames: 14, width: 52, height: 63, speed: 4, sheet: "./toji_row09_sheet.png" },  // Inventory Smash → big slash rekka
     special_2:{ frames: 8,  width: 57, height: 63, speed: 4, sheet: "./toji_row05_sheet.png" },  // Rapid Strike → thrust
@@ -457,6 +465,9 @@ const toji = {
     chain_extend:  { frames: 5, width: 108, height: 69, speed: 4, sheet: "./toji_row12_sheet.png" },  // 540x69
     chain_retract: { frames: 7, width: 121, height: 87, speed: 4, sheet: "./toji_row14_sheet.png" },  // 847x87
     chain_spin:    { frames: 5, width: 85,  height: 78, speed: 4, sheet: "./toji_row15_sheet.png" },  // 424x78
+    // NEW two-part intro — plays in fixed order (introSequence), NOT pooled/random.
+    introWalkIn: { frames: 17, width: 31, height: 45, speed: 2, loop: false, lockLastFrame: true, anchorY: -7, sheet: "./toji_intro_first_part.png" },   // walk-in (526/17≈31)
+    introReady:  { frames: 15, width: 35, height: 47, speed: 3, loop: false, lockLastFrame: true, anchorY: 0,  sheet: "./toji_intro_second_part.png" },  // weapon-draw / ready-up (531/15≈35)
     // run/jump/fall/grab aren't on the supplied table, but a MANIFESTED character
     // can't fall back to the procedural box per-action (unmapped → idle sheet at
     // 128px = garbage), so reuse the closest real strips:
@@ -470,9 +481,9 @@ const toji = {
     //    plain jump read as a sword pose. The real air attack (`air`) keeps row08's
     //    full 5-frame swing. FLAG: no true jump/fall art exists — a held stance is
     //    the least-wrong neutral option until a real jump strip is provided.
-    run:      { frames: 7,  width: 39, height: 64, speed: 5, sheet: "./toji_row03_sheet.png" },  // reuse stance (was sword-lunge)
-    jump:     { frames: 1,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },  // neutral stance held (was row08 air-attack)
-    fall:     { frames: 1,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },
+    run:      { frames: 6,  width: 40, height: 48, speed: 5, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // NEW: reuse walk sheet (keeps locomotion on new art; was old row03)
+    jump:     { frames: 7,  width: 37, height: 64, speed: 5, anchorY: -25, sheet: "./toji_jump.png" },  // NEW jump arc (262/7≈37)
+    fall:     { frames: 7,  width: 37, height: 64, speed: 5, anchorY: -25, sheet: "./toji_jump.png" },  // NEW: reuse jump-arc sheet
     grab:     { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" }   // reuse punch
     // UNMAPPED — chain / Inverted Spear of Heaven throw sequence (special not yet
     // wired). Register for future chain-special work; frame counts TBD (view to

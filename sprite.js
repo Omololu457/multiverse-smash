@@ -171,8 +171,14 @@ function _resolveAction(fighter, currentAction = "idle") {
   if ((fighter._comboFinisherReactTimer || 0) > 0 &&
       (fighter._skinAnim?.knockdown || fighter.animationData?.knockdown)) return "knockdown";
 
-  // Hurt state takes priority once hitstun begins
-  if ((fighter.hitstun || 0) > 0) return "hurt";
+  // Hurt state takes priority once hitstun begins. Airborne hurt uses a dedicated
+  // strip when the fighter defines one (Toji → hurt_air); otherwise the grounded
+  // "hurt" — a no-op for every character WITHOUT a hurt_air strip.
+  if ((fighter.hitstun || 0) > 0) {
+    const airborne = !(fighter.grounded ?? fighter.onGround ?? false);
+    if (airborne && (fighter._skinAnim?.hurt_air || fighter.animationData?.hurt_air)) return "hurt_air";
+    return "hurt";
+  }
   if ((fighter.stun || 0) > 0) return "hurt";
 
   // Blocking — show a dedicated guard pose when the fighter defines one (skin anim

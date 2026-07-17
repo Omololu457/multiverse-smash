@@ -1106,6 +1106,50 @@ function resetRound() {
   if (p1 && p2 && typeof camera.update === "function") camera.update(p1, p2, canvas)
 }
 
+// ── PRE-MATCH INTRO SELECTION ─────────────────────────────────────────────────
+// Generic "pick one of N intros at random" for the pre-round entrance. A character
+// can declare `introPool: ["actionA", "actionB", ...]` in characters.js (animationData
+// action names); this returns one at random each match so intros vary across rounds.
+// Not gated to any count — add a 4th pool entry and it joins the rotation automatically.
+// No pool → returns null, and sprite.js falls back to the shared "transform" intro slot,
+// so every existing character's behaviour is unchanged.
+function pickIntroVariant(fighter) {
+  const pool = fighter && fighter.introPool
+  if (!Array.isArray(pool) || pool.length === 0) return null
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+// FIXED-ORDER multi-part intro (e.g. Toji: walk-in → ready-up). A character declares
+// `introSequence: [actionA, actionB, ...]` whose steps play back-to-back IN ORDER —
+// distinct from introPool (random pick). Each step holds for its own play duration
+// (frames × speed), then advanceIntroSequence() flips to the next; the last step holds.
+function introStepFrames(fighter, action) {
+  const d = fighter && fighter.animationData && fighter.animationData[action]
+  if (!d) return 30
+  return Math.max(1, (d.frames || 1) * (d.speed || 5))
+}
+function initIntroVariant(fighter) {
+  if (!fighter) return
+  const seq = fighter.introSequence
+  if (Array.isArray(seq) && seq.length) {
+    fighter._introSeq      = seq
+    fighter._introSeqIdx   = 0
+    fighter._introVariant  = seq[0]
+    fighter._introSeqTimer = introStepFrames(fighter, seq[0])
+  } else {
+    fighter._introSeq     = null
+    fighter._introVariant = pickIntroVariant(fighter)
+  }
+}
+function advanceIntroSequence(fighter) {
+  if (!fighter || !fighter._introSeq) return
+  if (fighter._introSeqIdx >= fighter._introSeq.length - 1) return   // hold final step
+  if (--fighter._introSeqTimer > 0) return
+  fighter._introSeqIdx++
+  fighter._introVariant  = fighter._introSeq[fighter._introSeqIdx]
+  fighter._introSeqTimer = introStepFrames(fighter, fighter._introVariant)
+}
+
 // ── PRE-MATCH CHARACTER ANNOUNCEMENT ──────────────────────────────────────────
 // Runs inside the existing round-1 INTRO phase (so it's first-round-only, matching
 // the intro convention): zoom on P1 then P2, playing each side's name-call clip if
@@ -1186,8 +1230,11 @@ function startMatch() {
   gameState       = GAME_STATES.INTRO
   // BUG_9: play the intro/transform strip during the intro window (cleared when
   // BATTLE starts). Harmless for non-sprite fighters (they render procedurally).
-  if (p1) p1._introPlaying = true
-  if (p2) p2._introPlaying = true
+  // pickIntroVariant randomly selects one entry from the fighter's `introPool` (if any) so
+  // characters with multiple intros (e.g. Sasuke) get visual variety across matches; fighters
+  // with no pool get null → sprite.js falls back to the shared "transform" intro (unchanged).
+  if (p1) { p1._introPlaying = true; initIntroVariant(p1) }
+  if (p2) { p2._introPlaying = true; initIntroVariant(p2) }
 
   sound.stopMusic?.()
   sound.playStageTrack?.(matchConfig.selectedStage)
@@ -3346,6 +3393,10 @@ function updateCurrentState() {
 
   switch (gameState) {
     case GAME_STATES.INTRO:
+      // Step any fixed-order intro sequence (Toji walk-in → ready-up) every intro frame,
+      // during namecall AND the countdown window, so both parts play in order.
+      if (p1 && p1._introPlaying) advanceIntroSequence(p1)
+      if (p2 && p2._introPlaying) advanceIntroSequence(p2)
       if (namecallActive) {
         // Announcement phase: hold each side's zoom, then advance to the next mapped
         // side; when done, ease the camera back to normal framing. The VS-banner /

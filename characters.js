@@ -496,6 +496,11 @@ const toji = {
     wideArc:    { frames: 5, width: 66, sourceX: 2, height: 58, speed: 3, anchorY: -9, sheet: "./toji_chain_of_1000_miles_attack_1.png" },        // 5B (341x58, continuous arc → equal split)
     lowSweep:   { frames: 5, width: 81, sourceX: 8, height: 67, speed: 3, anchorY: -2, sheet: "./toji_chain_of_1000_miles_attack_3.png" },        // 6B (446x67)
     risingCoil: { frames: 4, width: 66, sourceX: 6, height: 61, speed: 3, anchorY: -5, sheet: "./toji_chain_of_1000_miles_upper_attack_1.png" },  // 2B anti-air (274x61)
+    // GUN-STANCE firing animations (Phase 4). Ranged — the projectile carries the damage;
+    // these are the fighter's shot/aim poses (played via the sprite-cast window). Sliced sourceX+pitch.
+    snapShot:   { frames: 6, width: 39, sourceX: 4, height: 58, speed: 3, anchorY: -18, sheet: "./toji_gun_attack.png" },            // 5A (242x58, muzzle-flash present)
+    aimedShot:  { frames: 7, width: 37, sourceX: 1, height: 52, speed: 3, anchorY: -7,  sheet: "./toji_idk.png" },                   // 5B feint (262x52, no muzzle flash)
+    tracerRound:{ frames: 5, width: 60, sourceX: 1, height: 56, speed: 4, anchorY: 0,   sheet: "./toji_sword_Dash_attack_3.png" },   // 5C tracer (300x56, reclassified gun shot)
     // run/jump/fall/grab aren't on the supplied table, but a MANIFESTED character
     // can't fall back to the procedural box per-action (unmapped → idle sheet at
     // 128px = garbage), so reuse the closest real strips:

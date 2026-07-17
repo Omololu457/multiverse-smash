@@ -1298,10 +1298,19 @@ function executeToji_Ultimate(fighter, context) {
 export const TOJI_STANCES = ["blade", "chain", "gun"]
 const STANCE_SWITCH_FRAMES = 4   // near-instant switch cost (also the post-cancel gap)
 
-// GUN placeholder light — still Phase-1 content (Gun stance gets its real moveset in a
-// later pass). BLADE (Phase 2) and CHAIN (Phase 3) now have real movesets below.
-const TOJI_STANCE_LIGHT = {
-  gun: { name: "gunLight", damage: 30, startup: 4, active: 2, recovery: 12, hitstun: 10, knockbackX: 3, knockbackY: 0, rangeX: 90, rangeY: 30 }
+// ── GUN STANCE — real normals (Phase 4). RANGED: shots spawn projectiles (projectiles.js
+// pattern), NOT melee hitboxes. Per-hit damage is LOWER than melee (chip/pressure framing).
+//   5A snapShot — fast low-damage chip/pressure shot (planted). Fires a bullet projectile.
+//   5B aimedShot — FEINT: plays the aim pose (idk sprite has NO muzzle flash → reads as a
+//      fake-out), fires NO projectile, and is cancelable into a stance-switch via the Phase-1
+//      recovery-cancel. A bait.
+//   5C tracerRound — bigger commitment/reward: a heavy tracer with a HARD KNOCKBACK on hit
+//      (approximates the design's "hard knockdown"; a true knockdown-STATE/get-up is deferred —
+//      nothing in the engine currently triggers knockdownState, so it stays a strong blowback).
+const TOJI_GUN = {
+  snapShot:   { cast: 18, proj: { damage: 20, speed: 17, lifetime: 55, hitstun: 9,  knockbackX: 4,  knockbackY: 0,  w: 14, h: 8,  color: "#ffe066" } },
+  aimedShot:  { feint: true, startup: 6, active: 3, recovery: 16 },
+  tracerRound:{ cast: 24, proj: { damage: 42, speed: 19, lifetime: 60, hitstun: 20, knockbackX: 13, knockbackY: -8, w: 34, h: 10, color: "#ff5a5a" } }
 }
 
 // ── BLADE STANCE — real normals (Phase 2). Sword-character numbers (cf. moveset.js goku /
@@ -1352,14 +1361,29 @@ function _fireTojiStanceMove(fighter, key, md, context) {
 const fireTojiBladeMove = (fighter, key, context) => _fireTojiStanceMove(fighter, key, TOJI_BLADE[key], context)
 const fireTojiChainMove = (fighter, key, context) => _fireTojiStanceMove(fighter, key, TOJI_CHAIN[key], context)
 
-// Fire the CURRENT stance's placeholder light (chain/gun only — blade routed above).
-export function fireTojiStanceLight(fighter, context) {
-  if (!fighter) return false
+// GUN ranged shot (5A/5C): play the firing animation via the sprite-cast window (no melee
+// attack state) and spawn the bullet projectile. attackCooldown commits for the cast length.
+function fireTojiGunShot(fighter, key, context) {
+  const md = TOJI_GUN[key]
+  if (!md || !md.proj || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  fighter._spriteCastMove  = key             // → animationData[key] firing sprite (snapShot/tracerRound)
+  fighter._spriteCastTimer = md.cast
+  fighter.attackCooldown   = getAttackDuration(md.cast, fighter)
+  spawnProjectile(fighter, key, md.proj, context)
+  return true
+}
+
+// GUN feint (5B aimedShot): a real (melee-less, 0-damage) attack so it has a RECOVERY phase and
+// is cancelable into a stance-switch (Phase-1 mechanic). No projectile — the "no muzzle flash"
+// aim reads as a fake-out. Plays the idk aim sprite.
+function fireTojiGunFeint(fighter, context) {
+  const md = TOJI_GUN.aimedShot
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  const md = TOJI_STANCE_LIGHT[getTojiStance(fighter)]
-  if (!md) return false
-  const attack = createAttackFromMove(fighter, md.name, md)
+  const attack = createAttackFromMove(fighter, "aimedShot",
+    { damage: 0, startup: md.startup, active: md.active, recovery: md.recovery, hitstun: 0, knockbackX: 0, knockbackY: 0, rangeX: 8, rangeY: 8 },
+    { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
   return true
 }
 
@@ -1406,9 +1430,12 @@ export function updateTojiStanceCombat(fighter, inputState, context, getPhase) {
     return false
   }
 
-  // GUN — Phase-1 placeholder light (real moveset later).
+  // GUN — real ranged normals (Phase 4). All spawn projectiles except the 5B feint.
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (canStart && grounded && inputState.light && !inputState.down) return fireTojiStanceLight(fighter, context)
+  if (!canStart || !grounded) return false
+  if (inputState.upAttack)                  return fireTojiGunShot(fighter, "tracerRound", context)  // 5C
+  if (inputState.heavy && !inputState.down)  return fireTojiGunFeint(fighter, context)                // 5B feint
+  if (inputState.light && !inputState.down)  return fireTojiGunShot(fighter, "snapShot",  context)    // 5A
   return false
 }
 

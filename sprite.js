@@ -349,6 +349,14 @@ export class SpriteHandler {
     }
     const drawY = fighter.y - offsetY - bobUp;
 
+    // Record the giant's actual drawn Y + bob offset so an automated harness can
+    // observe temporal smoothness (the sine bob can't be seen in a single frame).
+    // Giant-only → no per-frame writes on normal fighters.
+    if (fighter._canvasHeightFrac) {
+      fighter._lastDrawY = drawY;
+      fighter._lastBobUp = bobUp;
+    }
+
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);
 

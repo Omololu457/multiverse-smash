@@ -696,8 +696,12 @@ const sasuke = {
     // also thematically redundant with introCloakAlt. Re-enable only if the sheet is re-sliced to
     // separate the wire, freeing the settled stance.
     intro:         { frames: 6, width: 57, height: 63, speed: 6, anchorY: -15, loop: false, lockLastFrame: true, sheet: "./sasuke_intro.png"   },
-    introAkatsuki: { frames: 5, width: 45, height: 76, speed: 6, anchorY: -17, loop: false, lockLastFrame: true, sheet: "./sasuke_intro_2.png" }, // Akatsuki (red-cloud) cloak unfurl → holds clean settled stance
-    introCloakAlt: { frames: 6, width: 34, height: 70, speed: 6, anchorY: -29, loop: false, lockLastFrame: true, sheet: "./sasuke_intro_3.png" }  // black cloak unfurl → holds clean settled stance
+    // RE-SLICED 2026-07-17: the raw sheets are NON-UNIFORM (6 hand-drawn poses each with a WIDE
+    // cloak-throw pose that a uniform slice tore straight through — verified via boundary overlays).
+    // REPACKED into uniform 90px cells (each pose cropped + FEET-registered so the character stays
+    // planted while the cloak billows), mirroring the Susanoo _anim fix. sheets: sasuke_intro_{2,3}_anim.png.
+    introAkatsuki: { frames: 6, width: 90, height: 76, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_intro_2_anim.png" }, // Akatsuki (red-cloud) cloak unfurl → holds clean Taka stance
+    introCloakAlt: { frames: 6, width: 90, height: 70, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_intro_3_anim.png" }  // black cloak unfurl → holds clean Taka stance
   },
   // Generic pre-match intro pool — game.pickIntroVariant() picks one at random each match; add a
   // 4th entry here later and it drops into the rotation with no other wiring. (Any character can

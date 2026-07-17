@@ -1268,11 +1268,10 @@ function executeToji_Ultimate(fighter, context) {
 export const TOJI_STANCES = ["blade", "chain", "gun"]
 const STANCE_SWITCH_FRAMES = 4   // near-instant switch cost (also the post-cancel gap)
 
-// CHAIN / GUN placeholder light — still Phase-1 content (those stances get their real
-// movesets in later passes). BLADE now has a real moveset (below), so it's dropped here.
+// GUN placeholder light — still Phase-1 content (Gun stance gets its real moveset in a
+// later pass). BLADE (Phase 2) and CHAIN (Phase 3) now have real movesets below.
 const TOJI_STANCE_LIGHT = {
-  chain: { name: "chainLight", damage: 40, startup: 5, active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, rangeX: 110, rangeY: 40 },
-  gun:   { name: "gunLight",   damage: 30, startup: 4, active: 2, recovery: 12, hitstun: 10, knockbackX: 3, knockbackY: 0,  rangeX: 90,  rangeY: 30 }
+  gun: { name: "gunLight", damage: 30, startup: 4, active: 2, recovery: 12, hitstun: 10, knockbackX: 3, knockbackY: 0, rangeX: 90, rangeY: 30 }
 }
 
 // ── BLADE STANCE — real normals (Phase 2). Sword-character numbers (cf. moveset.js goku /
@@ -1293,11 +1292,26 @@ const TOJI_BLADE = {
   reaper3:      { damage: 50, startup: 6, active: 4, recovery: 18, hitstun: 20, knockbackX: 9, knockbackY: -3, rangeX: 95, rangeY: 44 }   // finisher — no rekkaNext
 }
 
+// ── CHAIN STANCE — real normals (Phase 3). A mid-range zoning stance: longer reach, slower,
+// higher pushback than Blade. Numbers per moveset.js conventions (cf. Blade quickDraw 44 /
+// forwardSlash 62). Sprites keyed by move name in characters.js animationData.
+//   5A shortLash — quick long-reach poke (trimmed chain whip).
+//   5B wideArc   — whiff-punish / wall-carry (big knockbackX), slow-startup high reward.
+//   6B lowSweep  — low sweep (down+heavy), a distinct poke intended as the LOW of a 5B/6B
+//      mixup. NOTE: the game has NO hit-level (low/overhead) block system yet, so it is NOT
+//      forced to be crouch-blocked — the true high/low mixup needs that system (deferred).
+//   2B risingCoil — anti-air launcher (up-attack slot).
+const TOJI_CHAIN = {
+  shortLash:  { damage: 38, startup: 6,  active: 3, recovery: 11, hitstun: 12, knockbackX: 5,  knockbackY: 0,   rangeX: 100, rangeY: 40 },
+  wideArc:    { damage: 66, startup: 10, active: 5, recovery: 20, hitstun: 18, knockbackX: 11, knockbackY: 0,   rangeX: 130, rangeY: 44 },
+  lowSweep:   { damage: 54, startup: 9,  active: 4, recovery: 18, hitstun: 16, knockbackX: 6,  knockbackY: 0,   rangeX: 120, rangeY: 30 },
+  risingCoil: { damage: 58, startup: 8,  active: 5, recovery: 20, hitstun: 20, knockbackX: 2,  knockbackY: -10, rangeX: 70,  rangeY: 85, launcher: true }
+}
+
 export function getTojiStance(fighter) { return (fighter && fighter.weaponStance) || "blade" }
 
-// Fire a specific BLADE move by key. Sets _rekkaNext for the rekka chain window.
-function fireTojiBladeMove(fighter, key, context) {
-  const md = TOJI_BLADE[key]
+// Fire a Toji stance move from move data (shared by Blade + Chain). Sets _rekkaNext (Blade rekka).
+function _fireTojiStanceMove(fighter, key, md, context) {
   if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.launcher = !!md.launcher
@@ -1305,6 +1319,8 @@ function fireTojiBladeMove(fighter, key, context) {
   fighter._rekkaNext = md.rekkaNext || null
   return true
 }
+const fireTojiBladeMove = (fighter, key, context) => _fireTojiStanceMove(fighter, key, TOJI_BLADE[key], context)
+const fireTojiChainMove = (fighter, key, context) => _fireTojiStanceMove(fighter, key, TOJI_CHAIN[key], context)
 
 // Fire the CURRENT stance's placeholder light (chain/gun only — blade routed above).
 export function fireTojiStanceLight(fighter, context) {
@@ -1349,7 +1365,18 @@ export function updateTojiStanceCombat(fighter, inputState, context, getPhase) {
     return false
   }
 
-  // CHAIN / GUN — Phase-1 placeholder light.
+  if (stance === "chain") {
+    // Real Chain normals. down+heavy = 6B lowSweep (checked before plain heavy = 5B wideArc).
+    const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+    if (!canStart || !grounded) return false
+    if (inputState.upAttack)                     return fireTojiChainMove(fighter, "risingCoil", context)  // 2B anti-air
+    if (inputState.heavy &&  inputState.down)     return fireTojiChainMove(fighter, "lowSweep",   context)  // 6B low
+    if (inputState.heavy && !inputState.down)     return fireTojiChainMove(fighter, "wideArc",    context)  // 5B
+    if (inputState.light && !inputState.down)     return fireTojiChainMove(fighter, "shortLash",  context)  // 5A
+    return false
+  }
+
+  // GUN — Phase-1 placeholder light (real moveset later).
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
   if (canStart && grounded && inputState.light && !inputState.down) return fireTojiStanceLight(fighter, context)
   return false

@@ -64,3 +64,36 @@ The `toji_fastRAF_*` set is the SAME flow with rAF sped to ~210fps to simulate a
 Key comparison: at t≈500ms the high-refresh run is already at round-start countdown **"2"**
 (`toji_fastRAF_intro_t500ms`) while the 60fps intro is still playing — the intro (and everything)
 runs several times too fast. At 60fps (`toji_real_*`) Toji renders correctly.
+
+---
+
+## FIX APPLIED — fixed-timestep 60Hz loop (game.js `gameLoop`)
+
+Root-cause fix for all four symptoms at once (they were one frame-rate artifact).
+
+**Why a frame LIMITER, not a decoupled accumulator:** sprite frame-advancement (`updateFrames`)
+lives inside `sprite.draw()` — the RENDER pass, not update. So the textbook "tick logic N times,
+render once per rAF" accumulator would leave animation still advancing once per rAF (= too fast). The
+correct fix for this architecture gates the ENTIRE update+render pass to 60Hz via a real-time
+accumulator, skipping rAF callbacks that arrive too soon. At most ONE pass per rAF → nothing that
+assumed one-frame-per-pass (hitstop/freeze/cinematic timelines, cooldowns, input) changes. A long
+stall is clamped to one frame (no fast-forward); a sub-60Hz display runs at its rate (no spiral).
+
+**Proof — game logic speed is now refresh-rate-independent** (measured via `?harness`, over wall-clock):
+
+| rAF rate | game LOGIC rate |
+|---|---|
+| 60/s (normal) | **60/s** |
+| 182/s (simulated high-refresh) | **60/s** |
+
+Before the fix, logic == rAF rate (60 vs 182). Now pinned to 60Hz either way.
+
+**Visual proof (real menu flow):** at t≈500ms after stage-confirm, `toji_postfix_real_intro_t500ms`
+and `toji_postfix_fastRAF_intro_t500ms` are on the SAME intro frame — whereas pre-fix
+`toji_fastRAF_intro_t500ms` was already at round-start countdown "2" (intro finished ~3x early). The
+intro now plays its intended real-time duration at any refresh rate.
+
+**Regression:** all 11 harness suites pass (209 assertions) — Susanoo cinematic / Kurama TBB / hitstop
+/ cooldown timelines unaffected (frame-count-based; globalFrameCount still advances at 60Hz).
+
+Compare in `harness/shots/`: `toji_fastRAF_*` (pre-fix) vs `toji_postfix_fastRAF_*` (post-fix).

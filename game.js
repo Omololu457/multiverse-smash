@@ -955,6 +955,11 @@ function startMatch() {
   matchStats   = createMatchStats()
   victoryState = createVictoryState()
   roundTimer   = ROUND_TIME
+  // Fresh match → default training toggles (a NEW session shouldn't inherit the last
+  // one's infinite/dummy state). Per-round resets (resetRound) deliberately DON'T touch
+  // these, so a toggle persists across rounds within the same session.
+  trainingState.infiniteResources = false
+  trainingState.dummyBehavior     = "stand"
 
   if (matchConfig.p1CharKey) { preloadCharacterSprites?.(matchConfig.p1CharKey); loadSpriteSheets(matchConfig.p1CharKey) }
   if (matchConfig.p2CharKey) { preloadCharacterSprites?.(matchConfig.p2CharKey); loadSpriteSheets(matchConfig.p2CharKey) }
@@ -1309,6 +1314,16 @@ function handlePauseInput(key) {
     const sel = PAUSE_MENU_ITEMS[pauseMenuIndex]
     if (sel === "resume")       gameState = stateBeforePause || GAME_STATES.BATTLE
     else if (sel === "restartRound") { gameState = stateBeforePause || GAME_STATES.BATTLE; resetRound() }
+    else if (sel === "trainingMode") {
+      // Jump into a training session from a live match: flip the match to training +
+      // force the dummy CPU, then reuse the SAME setup path the GAMEPLAY_SELECT flow
+      // uses (resetRound → ensureTrainingOpponent + setAIDifficulty "dummy" via the
+      // mode check at line ~839). No duplicated setup logic.
+      matchConfig.mode         = "training"
+      matchConfig.aiDifficulty = "dummy"
+      gameState = stateBeforePause || GAME_STATES.BATTLE
+      resetRound()
+    }
     else if (sel === "quitToMenu")   resetToStart()
   }
 }
@@ -3133,10 +3148,12 @@ gameLoop()
   const p1Key = validKey(params.get("p1"), "sasuke")
   const p2Key = validKey(params.get("p2"), p1Key)
 
-  function startHarnessMatch() {
+  function startHarnessMatch(opts = {}) {
     resetSelections()
-    matchConfig.mode          = "training"     // p2 → dummy AI (stands still), stage-select skipped
-    matchConfig.aiDifficulty  = "dummy"
+    // Default: training vs a dummy. Pass { mode:"vs", difficulty:"easy" } for a real
+    // CPU match (used to test the pause-menu → Training Mode transition).
+    matchConfig.mode          = opts.mode || "training"
+    matchConfig.aiDifficulty  = opts.difficulty || (matchConfig.mode === "training" ? "dummy" : "easy")
     matchConfig.selectedStage = stages[0]
     matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key]
     matchConfig.p2CharKey = p2Key; matchConfig.p2Char = characters[p2Key]
@@ -3189,6 +3206,10 @@ gameLoop()
     skipToBattle,
     // One-shot: into a live battle with P1 energy full (ultimate affordable).
     boot: () => { startHarnessMatch(); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
+    // Boot a NON-training vs-CPU match (real AI) — for the pause→Training transition test.
+    bootVs: () => { startHarnessMatch({ mode: "vs", difficulty: "easy" }); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
+    // Pause-menu introspection: current selection + item id (drive with real esc/↓/enter keys).
+    pauseSel: () => ({ gameState, index: pauseMenuIndex, item: PAUSE_MENU_ITEMS[pauseMenuIndex] }),
     state: () => ({ gameState, countdown, frame: globalFrameCount }),
     arena: () => ({ left: physics.stageLeft, width: physics.stageWidth,
                     mid: physics.stageLeft + (physics.stageWidth - physics.stageLeft) * 0.5 }),

@@ -1789,7 +1789,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   ctx.fillRect(0, 0, cw, ch)
 
   const panelW = 380
-  const panelH = 320
+  const panelH = 392   // fits 4 items (resume / restart / training / quit)
   const panelX = cw / 2 - panelW / 2
   const panelY = ch / 2 - panelH / 2
 
@@ -1819,6 +1819,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   const items = [
     { label: "Resume",        sub: "Continue the match" },
     { label: "Restart Round", sub: "Reset this round" },
+    { label: "Training Mode", sub: "Practice vs a frozen dummy" },
     { label: "Quit to Menu",  sub: "Return to the title screen" }
   ]
 
@@ -1883,7 +1884,7 @@ function _roundRectPath(ctx, x, y, w, h, r = 10) {
   ctx.closePath()
 }
 
-export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "quitToMenu"]
+export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "trainingMode", "quitToMenu"]
 
 // ═════════════════════════════════════════════════════════════════════════
 // TUTORIAL / HOW TO PLAY

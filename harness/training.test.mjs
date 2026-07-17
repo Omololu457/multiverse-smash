@@ -143,6 +143,43 @@ try {
   check("F4 cycles back to 'stand'", (await training()).dummyBehavior === "stand");
   await page.screenshot({ path: path.join(OUT, "TRAIN_overlay_final.png") });
 
+  // ═══ PAUSE-MENU → TRAINING transition (from a live NON-training match) ═══
+  section("PAUSE MENU — jump into Training from a live vs-CPU match");
+  await page.evaluate(() => window.__harness.bootVs());   // real vs-CPU match (mode="vs")
+  await waitFrames(5);
+  const vs = await training();
+  check("started a NON-training vs match", vs.enabled === false && vs.mode === "vs", `enabled=${vs.enabled} mode=${vs.mode}`);
+
+  // Open the pause menu with a real Escape keypress.
+  await page.keyboard.press("Escape"); await waitFrames(2);
+  check("Escape opens the pause menu", (await page.evaluate(() => window.__harness.state())).gameState === "paused");
+  check("pause menu starts on 'resume'", (await page.evaluate(() => window.__harness.pauseSel())).item === "resume");
+
+  // Navigate down to the new "trainingMode" entry (resume→restartRound→trainingMode).
+  await page.keyboard.press("ArrowDown"); await waitFrames(1);
+  await page.keyboard.press("ArrowDown"); await waitFrames(1);
+  const sel = await page.evaluate(() => window.__harness.pauseSel());
+  check("navigated to the new Training Mode entry", sel.item === "trainingMode", `index=${sel.index} item=${sel.item}`);
+
+  // Select it.
+  await page.keyboard.press("Enter"); await waitFrames(2);
+  const afterSel = await training();
+  const gs = (await page.evaluate(() => window.__harness.state())).gameState;
+  check("selecting Training Mode flips the match to training", afterSel.mode === "training" && afterSel.enabled === true, `mode=${afterSel.mode} enabled=${afterSel.enabled}`);
+  check("returned to the live battle (not stuck in the menu)", gs === "battle", `gameState=${gs}`);
+
+  // Confirm it's a REAL working training session, not just a relabel.
+  await page.evaluate(() => window.__harness.skipToBattle());   // clear the round-start countdown
+  await page.evaluate(() => window.__harness.setP2X(1700));
+  const px0 = (await p2()).x;
+  await tapFn("j"); await tapFn("k"); await waitFrames(25);
+  const pdummy = await p2();
+  check("transition gives a FROZEN dummy (doesn't self-move/attack)", Math.abs(pdummy.x - px0) < 2 && !pdummy.attacking, `x ${px0.toFixed(0)}→${pdummy.x.toFixed(0)} atk=${pdummy.attacking}`);
+  await page.evaluate(() => window.__harness.damageP2(99999));
+  await waitFrames(25);
+  check("transition session has NO KO/victory (stays in BATTLE at 0 HP)", (await page.evaluate(() => window.__harness.state())).gameState === "battle" && (await p2()).health <= 0, `hp=${(await p2()).health}`);
+  await page.screenshot({ path: path.join(OUT, "TRAIN_from_pause.png") });
+
   section("errors");
   check("no uncaught JS exceptions", jsErrors.length === 0, jsErrors.slice(0, 4).join(" | "));
 } catch (e) {

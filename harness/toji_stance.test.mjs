@@ -56,7 +56,7 @@ try{
   check("BLADE stance fires quickDraw (Phase-2 real normal)", (await ts()).move==="quickDraw", `move=${(await ts()).move}`);
   await waitIdle(); await tapCharge(); // → chain
   await waitIdle(); await tapLight(); await wf(1);
-  check("CHAIN stance fires chainLight", (await ts()).move==="chainLight", `move=${(await ts()).move}`);
+  check("CHAIN stance fires shortLash (Phase-3 real normal)", (await ts()).move==="shortLash", `move=${(await ts()).move}`);
   await waitIdle(); await tapCharge(); // → gun
   await waitIdle(); await tapLight(); await wf(1);
   check("GUN stance fires gunLight", (await ts()).move==="gunLight", `move=${(await ts()).move}`);
@@ -65,7 +65,7 @@ try{
   // put stance on chain (long recovery) for a clear window; measure same move both ways.
   await waitIdle(); let cur=(await ts()).stance;
   while(cur!=="chain"){ await tapCharge(); await waitIdle(); cur=(await ts()).stance; }
-  check("measuring on CHAIN stance (recovery 14)", cur==="chain");
+  check("measuring on CHAIN stance (shortLash, recovery 11)", cur==="chain");
   const noCancel = await measureRecovery(false);
   // re-align to chain (no cancel didn't switch), then cancel run
   await waitIdle(); cur=(await ts()).stance;

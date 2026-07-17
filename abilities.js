@@ -1585,35 +1585,25 @@ function executeSasukeDashStrike(fighter, target, context) {
   return true
 }
 
-// SHURIKEN POKE — a BASIC-kit aerial projectile toss on HEAVY-while-airborne (K in air). Free
-// (no energy — it's a basic), rate-limited by attackCooldown so it can't be spammed. Ground heavy
-// is untouched (buildNormalControlState.heavy is grounded-only, so air-heavy is otherwise unused).
-// Aims down-and-forward at the opponent from the air, so it doubles as an approach/poke tool.
+// SHURIKEN POKE — a simple ranged projectile poke on DOWN + special (S+L). Sits on the special
+// button as a distinct motion (Megumi-style), NOT colliding with neutral special = dash-strike or
+// qcf(D,F) = lightning: the dispatch checks D,F FIRST (lightning), then plain-D (shuriken), then
+// neutral (dash). Free (no energy — a basic ninja tool), rate-limited by attackCooldown. Throws
+// toward the opponent (auto-aimed), so it works as a spacing/zoning poke.
 function executeSasukeShuriken(fighter, target, context) {
   const aim = _oppCenter(target)
-  fighter._spriteCastMove  = "shurikenThrow"     // throw pose over the aerial body
+  fighter._spriteCastMove  = "shurikenThrow"     // throw pose (sasuke_throwing_shuriken)
   fighter._spriteCastTimer = 14
   spawnProjectile(fighter, "sasukeShuriken", {
-    damage: 34, speed: 14, lifetime: 60, hitstun: 14, knockbackX: 5, knockbackY: 0,
+    damage: 34, speed: 14, lifetime: 70, hitstun: 14, knockbackX: 5, knockbackY: 0,
     w: 26, h: 26, color: "#d7ecff",
-    spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.35,
+    spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.35,   // chest height
     aimAt: aim,
     sheet: "./sasuke_shuriken.png", spriteFrames: 3, spriteW: 52, spriteH: 54, spriteSpeed: 2, spriteScale: 0.85
   }, context)
   fighter.attackCooldown = getAttackDuration(16, fighter)   // brief recovery (rate limit); no energy cost
   shakeCamera(context, 2, 3)
   return true
-}
-
-// Gate + dispatch for the air-shuriken basic (called from game.js updatePlayerCombat). Sasuke-only,
-// airborne-only, and only when free to act — so it never disturbs any other fighter or the ground kit.
-export function maybeSasukeAirShuriken(fighter, inputState, context = {}) {
-  if (!fighter || (fighter.rosterKey || fighter.id) !== "sasuke") return false
-  if (fighter.onGround || fighter.attacking || (fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0) return false
-  if (!inputState?.heavy) return false
-  if ((fighter._susanooStage || 0) > 0) return false        // in Susanoo the kit is grab/arrow/sword
-  const target = getTargetResolver(context)(fighter)
-  return executeSasukeShuriken(fighter, target, context)
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1721,11 +1711,15 @@ function executeSasukeSpecial(fighter, context) {
   const stage = fighter._susanooStage || 0
   const getOpp = getTargetResolver(context)
   const target = getOpp(fighter)
-  // BASE KIT (no Susanoo): motion split on the SAME special button —
-  //   down,forward + special (qcf) → two-strike LIGHTNING;  plain special → dash-strike.
+  // BASE KIT (no Susanoo): motion split on the SAME special button (Megumi-style). Check the MOST
+  // specific motion first so subsets don't shadow it:
+  //   down,forward + special (qcf) → two-strike LIGHTNING
+  //   down + special              → SHURIKEN ranged poke   (checked after qcf: D,F also ends with D)
+  //   plain special               → dash-strike
   if (stage <= 0) {
     const dirs = getRelativeDirections(fighter)
     if (endsWithPattern(dirs, ["D", "F"])) return executeSasukeLightning(fighter, target, context)
+    if (endsWithPattern(dirs, ["D"]))      return executeSasukeShuriken(fighter, target, context)
     return executeSasukeDashStrike(fighter, target, context)
   }
   const b = SUSANOO_STAGE[stage]

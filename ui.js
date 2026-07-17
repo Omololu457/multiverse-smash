@@ -1792,6 +1792,32 @@ export function drawCountdown(ctx, canvas, countdown = 0) {
 // ─────────────────────────────────────────────
 // TRAINING OVERLAY (top-left, below health bar)
 // ─────────────────────────────────────────────
+// Toji 3-stance indicator — small text tag per Toji fighter so the current weapon stance
+// (Blade / Chain / Gun) is visually testable. `entries` = [{ label, stance }].
+export function drawStanceIndicator(ctx, canvas, entries = []) {
+  if (!Array.isArray(entries) || !entries.length) return
+  const cw = canvas?.width || window.innerWidth
+  const COLORS = { blade: "#7fd3ff", chain: "#facc15", gun: "#fb7185" }
+  ctx.save()
+  ctx.font = "700 16px Arial"
+  ctx.textAlign = "center"
+  ctx.textBaseline = "middle"
+  entries.forEach((e, i) => {
+    const y = 92 + i * 26
+    const txt = `${e.label}  STANCE: ${String(e.stance || "blade").toUpperCase()}`
+    const w = ctx.measureText(txt).width + 24
+    const x = cw / 2
+    ctx.fillStyle = "rgba(0,0,0,0.55)"
+    ctx.fillRect(x - w / 2, y - 12, w, 24)
+    ctx.strokeStyle = COLORS[e.stance] || "#fff"
+    ctx.lineWidth = 2
+    ctx.strokeRect(x - w / 2, y - 12, w, 24)
+    ctx.fillStyle = COLORS[e.stance] || "#fff"
+    ctx.fillText(txt, x, y + 1)
+  })
+  ctx.restore()
+}
+
 export function drawTrainingOverlay(ctx, canvas, info = {}) {
   const { width: w } = getCanvasSize(canvas)
 

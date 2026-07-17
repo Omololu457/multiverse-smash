@@ -496,6 +496,16 @@ const toji = {
     reaper1:      { frames: 4, width: 44, sourceX: 0,   height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 0-3
     reaper2:      { frames: 4, width: 44, sourceX: 176, height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 4-7
     reaper3:      { frames: 3, width: 44, sourceX: 352, height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 8-10 (finisher)
+    // BLADE-STANCE command moves (Phase 5). Dash Strike = a 2-sheet chain: _1's crouch
+    // wind-up (5 frames, left of the sheet) → _2's sprinting stab (6 frames). The move
+    // swaps currentMove "dashStrike1"→"dashStrike2" at the active→recovery boundary
+    // (abilities.js updateTojiStanceCombat), which sprite.js frame-resets on sheet change.
+    // Rising Spiral = the aerial spinning finisher (dash_attack_4, full 9-frame arc).
+    // Non-uniform _1 (narrow crouch + wide lunge) → slice ONLY the crouch here; the lunge
+    // frames live in _2. Alpha-gutter verified (SLICE_* overlays).
+    dashStrike1:  { frames: 5, width: 41, sourceX: 10, height: 61, speed: 3, anchorY: -6,  sheet: "./toji_sword_Dash_attack_1.png" },  // crouch wind-up (491x61, left 5f @41)
+    dashStrike2:  { frames: 6, width: 71, sourceX: 0,  height: 55, speed: 3, anchorY: -9,  sheet: "./toji_sword_Dash_attack_2.png" },  // sprinting stab (428x55, 6f @71)
+    risingSpiral: { frames: 9, width: 46, sourceX: 0,  height: 66, speed: 3, anchorY: -10, sheet: "./toji_sword_Dash_attack_4.png" },  // aerial spin ender (418x66, 9f @46)
     // CHAIN-STANCE normals (Phase 3). sourceX+true-pitch sliced (alpha-gutter verified).
     shortLash:  { frames: 3, width: 60, sourceX: 0, height: 62, speed: 3, anchorY: -7, sheet: "./toji_chain_of_1000_miles_attack_2.png" },        // 5A — TRIMMED to first 3 of 5 frames (the quick lash)
     wideArc:    { frames: 5, width: 66, sourceX: 2, height: 58, speed: 3, anchorY: -9, sheet: "./toji_chain_of_1000_miles_attack_1.png" },        // 5B (341x58, continuous arc → equal split)

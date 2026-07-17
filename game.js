@@ -73,6 +73,10 @@ import { activeEffects, addEffect, updateEffects, updateEnergyRegen, clearEffect
 import {
   updateKuramaUltimate, isKuramaCinematicActive, drawKuramaCinematic, clearKuramaUltimate
 } from "./kurama.js"
+import {
+  updateSasukeCinematic, isSasukeCinematicActive, drawSasukeCinematic, clearSasukeCinematic,
+  getSasukeCinematicStatus
+} from "./sasukeCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
@@ -808,6 +812,7 @@ function resetRound() {
   vowCue.timer = 0
   clearDomains()
   clearKuramaUltimate()
+  clearSasukeCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
 
@@ -1045,6 +1050,7 @@ function resetToStart() {
   roundTimer      = ROUND_TIME
   clearDomains()
   clearKuramaUltimate()
+  clearSasukeCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
@@ -1183,6 +1189,7 @@ function _doRematch() {
   for (const f of [p1, p2]) if (f) f._pendingSpawn = null   // reused objects → clear sprite deferred-spawn
   clearDomains()
   clearKuramaUltimate()
+  clearSasukeCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
   hitSparks.length = 0
@@ -1845,6 +1852,15 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // SASUKE SHARINGAN CINEMATIC (Susanoo Lv1→Lv2 escalation): SAME freeze contract —
+  // combat/physics are paused while the eye sequence plays; the Lv2 escalation is applied
+  // by the cinematic's onResolve at its RESOLVE beat, then combat resumes into Lv2.
+  if (isSasukeCinematicActive()) {
+    updateSasukeCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // BINDING VOWS: match each player's recent RAW directional sequence (own
   // character's vows only). AI fighters have no directionHistory → never match.
   if (vowCue.timer > 0) vowCue.timer--
@@ -2323,6 +2339,7 @@ function drawBattle() {
   _drawKOFlash()
   _drawVowCue()
   drawKuramaCinematic(ctx, canvas)   // fullscreen Tailed Beast Bomb overlay, on top of all
+  drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
 }
 
 // "BINDING VOW ACTIVATED" overlay — a brief white flash + chained vow name.
@@ -3050,6 +3067,7 @@ gameLoop()
     p1:    () => snap(p1),
     p2:    () => snap(p2),
     roundTimer: () => roundTimer,
+    sasukeCine: () => getSasukeCinematicStatus(),
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },

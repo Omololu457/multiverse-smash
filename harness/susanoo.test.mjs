@@ -139,11 +139,13 @@ try {
   // wait out the 15f Stage-1 recovery so triggerUltimate's atkCd gate won't swallow press #2
   await waitFrames(20);
 
-  // Press 2: escalate to Stage 2 (Susanoo Lv2) — requires release since Stage 1 (satisfied by tapUltimate's up)
+  // Press 2: escalate to Stage 2 (Susanoo Lv2) — requires release since Stage 1 (satisfied by tapUltimate's up).
+  // The escalation now plays a Sharingan cinematic first (~134f); Lv2 lands when it resolves.
   await tapUltimate();
+  await page.waitForFunction(() => !window.__harness.sasukeCine().active && window.__harness.p1().susanooStage === 2, null, { timeout: 9000, polling: 16 });
   await waitFrames(4);
   const s2 = await page.evaluate(() => window.__harness.p1());
-  check("press #2 → Susanoo Stage 2 (escalation)", s2.susanooStage === 2, `stage=${s2.susanooStage}`);
+  check("press #2 → Susanoo Stage 2 (escalation, after cinematic)", s2.susanooStage === 2, `stage=${s2.susanooStage}`);
   // energy is set to 0 on escalation; passive regen (~0.06/frame) ticks it up a hair before we read.
   check("Stage 2 drains energy to ~0 (drain-to-zero risk/reward)", s2.energy < 2, `energy=${s2.energy.toFixed(2)}`);
   check("Stage 2 is BIGGER than Stage 1 (frac 1.20 > 0.95)", s2.canvasHeightFrac === 1.20, `frac=${s2.canvasHeightFrac}`);

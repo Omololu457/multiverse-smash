@@ -1332,7 +1332,7 @@ function executeMahoragaUltimate(fighter, context) {
 // re-cast — the drain-to-0 + cooldown is the risk/reward). Mirrors the transformations.js form idea
 // (currentForm + stat multipliers) but self-managed so the timer isn't reset on escalation and the
 // _skinAnim body-swap can be attached. Attacks fire on the SPECIAL button (Sasuke has no other specials).
-const SUSANOO_DURATION_FRAMES = 1200   // ~20s @60fps — timed, then auto-reverts (user-chosen)
+export const SUSANOO_DURATION_FRAMES = 1200   // ~20s @60fps — timed, then auto-reverts (user-chosen)
 // GIANT canvas-relative sizing (item 2): display height as a FRACTION of canvas height,
 // mirroring kurama.js (fox bodyH = ch*0.74). Pushed MASSIVE — Lv1 ≈ full canvas height, Lv2
 // TALLER than the screen so it genuinely looms (feet planted; head runs off the top). Lv2 > Lv1.
@@ -1422,17 +1422,47 @@ export function updateSasukeSusanoo(fighter) {
   }
 }
 
+// Body-cell height (frameData.height in sprite.js) per Susanoo stage — must match
+// _susanooBody's height arg so we can reproduce sprite.js's on-screen giant height.
+const SUSANOO_CELL_H = { 1: 277, 2: 298 }
+// On-screen fraction (0 = top of the head … 1 = feet) where each stage's ATTACKING
+// arm/hand sits, measured from the anim sheets (sasuke_susanoo_lvl_*_ARMSCAN.png):
+// Lv1 mace/grab arm ≈0.45, Lv2 bow/sword arm ≈0.50. Attack FX spawn at this height so
+// they launch from the giant's hands — NOT the ground where Sasuke's small body used to be.
+const SUSANOO_ARM_FRAC = { 1: 0.45, 2: 0.50 }
+
+// yOff (relative to fighter.y) for a point `armFrac` down from the giant's rendered TOP,
+// derived from the SAME sizing math sprite.js applies (draw() ~line 327):
+//   scale  = canvasHeight * _canvasHeightFrac / _canvasHeightRefH
+//   giantH = bodyCellH * scale                          (== dstH on screen)
+//   the giant's rendered top sits at fighter.y - (giantH - fighterH)
+// so a point armFrac down from that top is at yOff = fighterH - giantH*(1 - armFrac).
+// Falls back to the old flat offset if the giant-sizing fields aren't set (defensive).
+function _susanooArmYOff(fighter, context, armFrac) {
+  const ch   = context?.canvasHeight
+  const frac = fighter._canvasHeightFrac
+  const refH = fighter._canvasHeightRefH
+  const stage = fighter._susanooStage || 1
+  if (!ch || !frac || !refH) return -170
+  const scale    = (ch * frac) / refH
+  const giantH   = (SUSANOO_CELL_H[stage] || 277) * scale
+  const fighterH = fighter.h ?? fighter.height ?? 110
+  return fighterH - giantH * (1 - armFrac)
+}
+
 // Spawn a Susanoo attack/activation FX as a visualOnly sprite in FRONT of the giant (the
-// body stays giant; the FX carries the attack art). Raised to the giant's upper body via
-// yOff. `drift` moves it forward a touch (0 = ~stationary; the speed:0.001 dodges
-// spawnProjectile's `speed || 11` default so a 0 doesn't snap to 11).
-function _spawnSusanooFx(fighter, sheet, { frames, w, h, scale, life, drift = 0, yOff = -170, color = "#c9b6ff" }, context) {
+// body stays giant; the FX carries the attack art). Positioned at the giant's arm/hand via
+// `armFrac` (preferred — scales with the giant) or a flat `yOff` fallback. `drift` moves it
+// forward a touch (0 = ~stationary; the speed:0.001 dodges spawnProjectile's `speed || 11`
+// default so a 0 doesn't snap to 11).
+function _spawnSusanooFx(fighter, sheet, { frames, w, h, scale, life, drift = 0, yOff = -170, armFrac = null, color = "#c9b6ff" }, context) {
+  const finalYOff = (armFrac != null) ? _susanooArmYOff(fighter, context, armFrac) : yOff
   const fx = spawnProjectile(fighter, "susanooFx", {
     damage: 0, visualOnly: true, speed: 0.001, lifetime: life,
     w: 24, h: 40, color,
     sheet, spriteFrames: frames, spriteW: w, spriteH: h, spriteSpeed: 4, spriteScale: scale
   }, context)
-  if (fx) { fx.y = (fighter.y || 0) + yOff; fx.vx = (fighter.facing || 1) * drift }
+  if (fx) { fx.y = (fighter.y || 0) + finalYOff; fx.vx = (fighter.facing || 1) * drift }
   return fx
 }
 
@@ -1451,9 +1481,10 @@ function executeSasukeUltimate(fighter, context) {
     // can't auto-escalate) AND require the ultimate button to be RELEASED before Stage 2 (so a
     // HELD button can't auto-escalate either). _ultReleasedSinceStage1 is flipped true on keyup.
     fighter._ultReleasedSinceStage1 = false
-    // Giant body appears instantly; the intro sheet plays as an activation FX burst over it.
+    // Giant body appears instantly; the intro sheet plays as an activation FX burst over its
+    // upper torso (armFrac 0.35 ≈ chest/shoulders of the giant, scales with the giant size).
     _spawnSusanooFx(fighter, "./sasuke_susanoo_intro.png",
-      { frames: 6, w: 113, h: 70, scale: 3.4, life: 40, drift: 0, yOff: -210, color: "#b39ddf" }, context)
+      { frames: 6, w: 113, h: 70, scale: 3.4, life: 40, drift: 0, armFrac: 0.35, color: "#b39ddf" }, context)
     fighter.attackCooldown   = getAttackDuration(15, fighter)
     focusCameraOnAction(context, fighter, null, 0.9, 20)
     shakeCamera(context, 8, 10)
@@ -1511,11 +1542,13 @@ function executeSasukeSpecial(fighter, context) {
 
   // Lv2 ranged option — the arrow (bow). A real damaging projectile; body stays giant.
   if (stage === 2 && distanceX > 170) {
-    spawnProjectile(fighter, "susanooArrow", {
+    const arrow = spawnProjectile(fighter, "susanooArrow", {
       damage: b.arrowDmg, speed: 15, lifetime: 70, hitstun: 30, knockbackX: 12, knockbackY: -3,
       color: "#a78bfa", w: 42, h: 20,
       sheet: "./sasuke_susanoo_arrow_attack.png", spriteFrames: 5, spriteW: 110, spriteH: 95, spriteScale: 1.1
     }, context)
+    // Fire from the giant's bow hand, not the ground (spawnProjectile's default y ≈ hitbox).
+    if (arrow) arrow.y = (fighter.y || 0) + _susanooArmYOff(fighter, context, SUSANOO_ARM_FRAC[2])
     fighter.attackCooldown = getAttackDuration(26, fighter)
     focusCameraOnAction(context, fighter, target, 0.98, 8)
     shakeCamera(context, 6, 6)
@@ -1535,7 +1568,7 @@ function executeSasukeSpecial(fighter, context) {
     // 5 uniform lightning-bolt frames (the sheet's 6th non-uniform 'diagonal' cell can't be
     // atlas-sliced by the uniform slicer) read as a lightning-blade flurry.
     _spawnSusanooFx(fighter, "./sasuke_susanoo_sword_attack.png",
-      { frames: 5, w: 112, h: 282, scale: 2.4, life: 26, drift: 5, yOff: -150, color: "#f5e35a" }, context)
+      { frames: 5, w: 112, h: 282, scale: 2.4, life: 26, drift: 5, armFrac: SUSANOO_ARM_FRAC[2], color: "#f5e35a" }, context)
     focusCameraOnAction(context, fighter, target, 0.96, 8)
     shakeCamera(context, 10, 10)
     return true
@@ -1551,7 +1584,7 @@ function executeSasukeSpecial(fighter, context) {
   // grab.png FX = the extending clawed arm. Its 2 "reach" frames (the big cells) slice cleanly
   // as 3 frames of 264px (flurry → reach → reach); the body stays giant behind it.
   _spawnSusanooFx(fighter, "./sasuke_susanoo_grab.png",
-    { frames: 3, w: 264, h: 80, scale: 2.6, life: 24, drift: 7, yOff: -140, color: "#9a86d8" }, context)
+    { frames: 3, w: 264, h: 80, scale: 2.6, life: 24, drift: 7, armFrac: SUSANOO_ARM_FRAC[stage] || SUSANOO_ARM_FRAC[1], color: "#9a86d8" }, context)
   focusCameraOnAction(context, fighter, target, 0.98, 8)
   shakeCamera(context, 7, 7)
   return true

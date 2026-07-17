@@ -2368,10 +2368,40 @@ function drawBattleScene() {
   ctx.restore()
 }
 
+// Running floor-count badge for Tower runs (all tiers). For Tier 5 (endless) it doubles
+// as the "how high can you climb" high-score readout — no total, just the running floor.
+function drawTowerHud(ctx, canvas) {
+  if (!towerState.active) return
+  const cw = canvas.width
+  const floorNum = towerState.floor + 1
+  const label = towerState.endless
+    ? `${towerState.tierLabel}  ·  FLOOR ${floorNum}`
+    : `${towerState.tierLabel}  ·  FLOOR ${floorNum} / ${towerState.floors}`
+  const diff = (matchConfig.aiDifficulty || "").toUpperCase()
+  const y = 92, h = 30, r = 8
+  ctx.save()
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  ctx.font = "800 20px Arial"
+  const w = ctx.measureText(label).width + 46
+  const x = cw / 2 - w / 2
+  ctx.beginPath()
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r)
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath()
+  ctx.fillStyle = "rgba(10,14,30,0.72)"; ctx.fill()
+  ctx.strokeStyle = towerState.endless ? "#c084fc" : "rgba(160,180,230,0.55)"; ctx.lineWidth = 1.5; ctx.stroke()
+  ctx.fillStyle = "#f1f5f9"; ctx.shadowBlur = 8; ctx.shadowColor = towerState.endless ? "#a855f7" : "rgba(120,170,255,0.5)"
+  ctx.fillText(label, cw / 2, y + h / 2 + 1)
+  ctx.shadowBlur = 0
+  ctx.font = "700 11px Arial"; ctx.fillStyle = "rgba(200,210,230,0.6)"
+  ctx.fillText(diff, cw / 2, y + h + 10)
+  ctx.restore()
+}
+
 function drawBattleHud() {
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
   drawControlsInfo(ctx, canvas)
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
+  drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)
   // Purple Susanoo duration clock, shown beside the round timer while either fighter is transformed.
   const susFighter = sasukeInSusanoo(p1) ? p1 : (sasukeInSusanoo(p2) ? p2 : null)
   if (susFighter) drawSusanooTimer?.(ctx, canvas, susFighter._susanooTimer || 0, SUSANOO_DURATION_FRAMES)

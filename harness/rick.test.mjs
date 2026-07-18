@@ -146,16 +146,16 @@ try {
     check("Meeseeks connects for damage on the opponent", hp1 < hp0, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
   }
 
-  // ── ROCKET — Up + Special (W then L): launch + path damage ───────────────
-  section("ROCKET — Up + Special (W then L): launches Rick AND damages the path");
-  // The rocket's "path" is VERTICAL (it rises with Rick). Put the dummy up IN that rising column,
-  // roughly at Rick's cast altitude, so the rocket sweeps through it. (A grounded dummy sits below
-  // the launch and is correctly missed — the rocket rises away from the floor.)
+  // ── ROCKET — Up + Special (W then L): launch + FORWARD path damage ───────
+  section("ROCKET — Up + Special (W then L): launches Rick AND a forward-traveling rocket");
+  // The rocket now travels FORWARD across the stage (range-extended). Put the dummy out in
+  // front, in the rocket's forward lane, so the long-traveling rocket sweeps into it.
   await setupAdjacent(8);
   await waitFrames(4);
   {
-    await page.evaluate(() => window.__harness.liftP2(175));   // raise the dummy into the rocket's rising column
-    const before = await p1();
+    const a0 = await p1();
+    await page.evaluate(x => window.__harness.setP2X(x), a0.x + 300);   // dummy downrange in the forward lane
+    await waitFrames(2);
     const hp0 = (await p2()).health;
     // W feeds "U" into directionHistory (up == jump key); L reads it → Rocket.
     await page.keyboard.down("w"); await page.keyboard.down("l");
@@ -167,15 +167,14 @@ try {
     const proj = await projectiles();
     check("Rocket spawns a path-damage projectile", proj.some(p => p.name === "rocket"), `projectiles=${JSON.stringify(proj.map(p => p.name))}`);
     const rk = proj.find(p => p.name === "rocket");
-    check("Rocket travels upward (vy<0)", !!rk && rk.vy < 0, rk ? `vy=${rk.vy.toFixed(1)}` : "");
+    check("Rocket travels FORWARD (fast horizontal vx)", !!rk && Math.abs(rk.vx) > 10, rk ? `vx=${rk.vx.toFixed(1)}` : "");
     await page.screenshot({ path: path.join(OUT, "RK_rocket.png") });
-    // Poll every frame — the rocket rises fast, so any contact is brief.
     let dmg = false;
-    for (let i = 0; i < 22 && !dmg; i++) {
+    for (let i = 0; i < 30 && !dmg; i++) {
       if ((await p2()).health < hp0) dmg = true;
       await waitFrames(1);
     }
-    check("Rocket damages an opponent caught in its (vertical) path", dmg, `hp0=${hp0} → ${(await p2()).health}`);
+    check("Rocket damages an opponent downrange in its forward path", dmg, `hp0=${hp0} → ${(await p2()).health}`);
   }
   await waitGrounded(); await waitFrames(10);
 

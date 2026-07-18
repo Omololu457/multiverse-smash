@@ -92,7 +92,8 @@ export const physics = {
       fighter.hitstun > 0 ||
       fighter.blockstun > 0 ||
       fighter.isGrabbed ||
-      fighter._rooted            // opt-in root (e.g. Sasuke's lightning handseals) — defaults falsy → no effect
+      fighter._rooted ||          // opt-in root (e.g. Sasuke's lightning handseals) — defaults falsy → no effect
+      fighter._tauntPlaying       // committed taunt = fully locked (Rick's channel-payoff)
     )
 
     const air = !fighter.onGround

@@ -129,6 +129,7 @@ const MOVE_TO_ACTION = {
   rocket: "rocket",
   portalTravel: "portalTravel",
   selfDestruct: "selfDestruct",
+  gunShot: "gunShot",
   nerveStrike: "special_1",
   manipulativeBlast: "special_1",
   primePortalBlast: "special_1",
@@ -154,6 +155,12 @@ function _resolveAction(fighter, currentAction = "idle") {
 
   // Freeze visible animation during hitstop
   if ((fighter.hitstop || 0) > 0) return currentAction || fighter._lastSpriteAction || "idle";
+
+  // TAUNT (committed phase): a fighter mid-taunt is fully locked and plays its taunt
+  // strip. The taunt state machine (game.js updateTauntState) clears _tauntPlaying the
+  // frame it's interrupted or completes, so by the time we resolve here it's only true
+  // during the genuine locked animation. No-op for anyone without the state.
+  if (fighter._tauntPlaying) return "taunt";
 
   // BUG_9: match-intro pose — play the intro strip while the intro flag is set. If the fighter
   // was assigned a specific intro variant this match (game.pickIntroVariant, e.g. Sasuke's random
@@ -219,6 +226,14 @@ function _resolveAction(fighter, currentAction = "idle") {
   const grounded = fighter.grounded ?? fighter.onGround ?? false;
   if (!grounded) {
     if (fighter.airDashing) return "dash";
+    // JUMP-COUNT-AWARE double-jump strip: on the 2nd (or later) jump, prefer a
+    // dedicated `doubleJump` action when the fighter defines one. jumpCount is
+    // maintained by physics.js (incremented per jump, reset on landing). Generic —
+    // any character that ships double-jump art gets it; only Rick currently does.
+    // Shown on the ASCENT (vy <= fall threshold); descent still uses "fall".
+    if ((fighter.jumpCount || 0) >= 2 &&
+        (fighter._skinAnim?.doubleJump || fighter.animationData?.doubleJump) &&
+        (fighter.vy || 0) <= 6) return "doubleJump";
     if ((fighter.vy || 0) > 6) return "fall";
     return "jump";
   }

@@ -2210,6 +2210,26 @@ function executeRickSpecial(fighter, context) {
     return true
   }
 
+  // DOWN + Special = PORTAL-GUN LASER. FREE (0 energy) fast ranged poke — a spacing tool
+  // that doesn't compete with the costed specials. Deliberately the weakest hit in the kit.
+  if (dirs.length > 0 && dirs[dirs.length - 1] === "D") {
+    // No energy cost. The 24f cooldown is the ONLY limiter (prevents laser-spam).
+    const face = fighter.facing || 1
+    spawnProjectile(fighter, "portalLaser", {
+      damage: 20,                    // ×GLOBAL_DAMAGE_SCALE 0.60 ≈ 12 effective — far below
+      speed: 16, lifetime: 60,       // Meeseeks 45 / Rocket 57 / Pull 42 / Push 65; fast + long range
+      vx: face * 16, vy: 0,
+      hitstun: 10, knockbackX: 4, knockbackY: 0,
+      w: 26, h: 8, color: "#4dd2ff", // simple bright-blue laser bolt (no sheet → colored shape)
+      spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 26,
+      spawnY: fighter.y + (fighter.h || 100) * 0.34
+    }, context)
+    fighter._spriteCastMove  = "gunShot"
+    fighter._spriteCastTimer = 14
+    fighter.attackCooldown   = getAttackDuration(24, fighter)
+    return true
+  }
+
   // UP + Special = ROCKET. Launches Rick upward AND damages anyone caught in the path.
   if (dirs.length > 0 && dirs[dirs.length - 1] === "U") {
     if (!spendEnergy(fighter, 40)) return false
@@ -2221,12 +2241,15 @@ function executeRickSpecial(fighter, context) {
     fighter._spriteCastMove  = "rocket"
     fighter._spriteCastTimer = 26
     fighter.attackCooldown   = getAttackDuration(20, fighter)
-    // Path damage: a rocket that rises with Rick and hits anyone above/beside the launch.
+    // RANGE EXTENDED: was a short vertical burst that left the top bound (y<-200) in ~39f.
+    // Now a genuine long-traveling rocket — fires FORWARD across the stage (vx 3→14) and LEVEL
+    // (vy -16→0, so it stays at launch height and reliably catches grounded foes downrange rather
+    // than climbing over them) with lifetime 34→90, ~1260px of reach. Damage/cost unchanged (95/40).
     spawnProjectile(fighter, "rocket", {
-      damage: 95, lifetime: 34,
-      vx: (fighter.facing || 1) * 3, vy: -16,
+      damage: 95, lifetime: 90,
+      vx: (fighter.facing || 1) * 14, vy: 0,
       hitstun: 22, knockbackX: 8, knockbackY: -10,
-      w: 64, h: 72, color: "#ff6b35",   // generous blast — the rocket should catch anyone in its rising column
+      w: 64, h: 72, color: "#ff6b35",   // generous blast — a wide rocket that catches anyone in its forward lane
       sheet: "./rick_rocket_specail.png", spriteFrames: 1, spriteScale: 1.5,
       spawnX: fighter.x + (fighter.w || 60) / 2 - 22,
       spawnY: fighter.y + (fighter.h || 100) * 0.3

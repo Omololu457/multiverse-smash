@@ -144,8 +144,12 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Freeze visible animation during hitstop
   if ((fighter.hitstop || 0) > 0) return currentAction || fighter._lastSpriteAction || "idle";
 
-  // BUG_9: match-intro pose — play the intro/transform strip while the intro flag is set.
-  if (fighter._introPlaying) return "transform";
+  // BUG_9: match-intro pose — play the intro strip while the intro flag is set. If a specific
+  // intro variant was assigned this match (Sasuke's random introPool via pickIntroVariant, or
+  // Toji's fixed introSequence via initIntroVariant/advanceIntroSequence), render THAT action;
+  // otherwise fall back to the shared "transform" intro slot. Character-agnostic generic infra:
+  // with no variant set (every base/shared fighter) this is identical to `return "transform"`.
+  if (fighter._introPlaying) return fighter._introVariant || "transform";
 
   // Knockdown handling
   if (fighter.knockdownState) {

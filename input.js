@@ -18,6 +18,11 @@ const BUFFER_WINDOW = 10 // frames
 
 const p1Buffer = { light: 0, heavy: 0, upAttack: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
 const p2Buffer = { light: 0, heavy: 0, upAttack: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
+// P3/P4 buffers exist ONLY for the 3-4p free-for-all POC (controller-only players).
+// Keyed by playerNumber so getFighterInput stays one code path for all slots.
+const p3Buffer = { light: 0, heavy: 0, upAttack: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
+const p4Buffer = { light: 0, heavy: 0, upAttack: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
+const PLAYER_BUFFERS = { 1: p1Buffer, 2: p2Buffer, 3: p3Buffer, 4: p4Buffer }
 
 function zeroBuffer(buf) {
   for (const k in buf) buf[k] = 0
@@ -25,8 +30,13 @@ function zeroBuffer(buf) {
 
 export const inputSettings = {
   p1Type: "keyboard",
-  p2Type: "keyboard"
+  p2Type: "keyboard",
+  // P3/P4 are CONTROLLER-ONLY (keyboard key-rollover can't support a 3rd/4th scheme).
+  // Only consulted by the free-for-all POC; 1v1 modes never read these.
+  p3Type: "controller",
+  p4Type: "controller"
 }
+const PLAYER_TYPES = { 1: "p1Type", 2: "p2Type", 3: "p3Type", 4: "p4Type" }
 
 // ─────────────────────────────────────────────────────────────────
 // GAMEPAD MAPPING
@@ -58,37 +68,14 @@ export const STICK_DEADZONE = 0.4
 // ─────────────────────────────────────────────────────────────────
 // DEFAULT CONTROL MAPS
 // ─────────────────────────────────────────────────────────────────
-export const defaultControls = {
-  left: "a",
-  right: "d",
-  jump: "w",
-  down: "s",
-  light: "j",
-  heavy: "k",
-  up: "i",
-  downAir: "l",
-  ultimate: "u",
-  special: "o",
-  dash: "shift",
-  charge: "c",
-  grab: "g"
-}
-
-export const defaultControlsP2 = {
-  left: "arrowleft",
-  right: "arrowright",
-  jump: "arrowup",
-  down: "arrowdown",
-  light: "1",
-  heavy: "2",
-  up: "3",
-  downAir: "4",
-  ultimate: "5",
-  special: "6",
-  dash: "0",
-  charge: "8",
-  grab: "9"
-}
+// KEYBOARD DEFAULTS: SINGLE SOURCE OF TRUTH lives in game.js (P1_CONTROLS /
+// P2_CONTROLS) — those are the real, rebindable, runtime binds passed to
+// createFighter and mutated by the rebind UI. This module deliberately keeps NO
+// second copy (the old one had drifted: special:"o" not "l", an `up`/`downAir`
+// schema that didn't even match getFighterInput's `upAttack`/`up`/`jump` reads).
+// getFighterInput() reads each fighter's OWN `fighter.controls`, and
+// clearInputBuffers() clears via the passed-in fighters' controls — neither needs
+// a module-level default here.
 
 // ─────────────────────────────────────────────────────────────────
 // KEYBOARD EVENTS
@@ -101,7 +88,7 @@ document.addEventListener("keydown", e => {
   const key = normalizeKey(e.key)
   keys[key] = true
 
-  if (["arrowup", "arrowdown", " ", "f1", "f2"].includes(key)) {
+  if (["arrowup", "arrowdown", " ", "f1", "f2", "f3", "f4"].includes(key)) {
     e.preventDefault()
   }
 })
@@ -231,20 +218,35 @@ function updateBuffer(buffer) {
 // P2. Assignment itself resolves at poll time and is DEVICE-AWARE (only players set to
 // "controller" ever claim a pad), so a keyboard-P1 / controller-P2 setup still hands
 // the single pad to P2. (Manual per-pad assignment = future follow-up.)
-const connectedPads  = []                     // pad.index values, in connection order (from the event)
-const padAssignments = { 1: null, 2: null }   // playerNum → bound gamepad.index (or null)
+const connectedPads  = []                             // pad.index values, in connection order (from the event)
+const padAssignments = { 1: null, 2: null, 3: null, 4: null }   // playerNum → bound gamepad.index (or null)
+
+// How many gamepads are currently connected — the FFA setup screen caps player count
+// to (2 keyboard + this many) so no uncontrollable fighter can spawn.
+export function getConnectedPadCount() {
+  if (connectedPads.length) return connectedPads.length
+  const gps = (typeof navigator !== "undefined" && navigator.getGamepads) ? navigator.getGamepads() : []
+  return Array.from(gps).filter(Boolean).length
+}
 
 if (typeof window !== "undefined" && window.addEventListener) {
   window.addEventListener("gamepadconnected", (e) => {
     const i = e.gamepad?.index
     if (i != null && !connectedPads.includes(i)) connectedPads.push(i)
+    // AUTO-ACTIVATE the controller device type. getFighterInput() only routes to
+    // pollGamepad() when a player's type is "controller"; nothing else flips it, so
+    // before this a freshly-plugged pad did NOTHING in play (the reported bug). Assign
+    // by connection order to the first player still on keyboard (P1 first, then P2), so
+    // "plug in a pad → it drives a fighter". A player can switch back on the SETTINGS
+    // screen. Keyboard-only users (no pad) never hit this, so keyboard play is untouched.
+    if (inputSettings.p1Type !== "controller") inputSettings.p1Type = "controller"
+    else if (inputSettings.p2Type !== "controller") inputSettings.p2Type = "controller"
   })
   window.addEventListener("gamepaddisconnected", (e) => {
     const i = e.gamepad?.index
     const at = connectedPads.indexOf(i)
     if (at !== -1) connectedPads.splice(at, 1)
-    if (padAssignments[1] === i) padAssignments[1] = null   // free the slot for a re-plug
-    if (padAssignments[2] === i) padAssignments[2] = null
+    for (const pn of [1, 2, 3, 4]) if (padAssignments[pn] === i) padAssignments[pn] = null   // free the slot for a re-plug
   })
 }
 
@@ -253,7 +255,10 @@ if (typeof window !== "undefined" && window.addEventListener) {
 // player (connection order from the event; falls back to live getGamepads() for pads
 // that existed before the listeners registered — gamepadconnected won't re-fire those).
 function resolvePadIndex(playerNum, gamepads) {
-  const other = padAssignments[playerNum === 1 ? 2 : 1]
+  // Exclude EVERY other player's bound pad (was just the single "other" player — that
+  // only worked for 2 players; the FFA POC needs up to 4 pads bound to distinct slots).
+  const taken = new Set()
+  for (const pn of [1, 2, 3, 4]) if (pn !== playerNum && padAssignments[pn] != null) taken.add(padAssignments[pn])
   if (padAssignments[playerNum] != null && connectedPads.includes(padAssignments[playerNum])) {
     return padAssignments[playerNum]
   }
@@ -261,32 +266,25 @@ function resolvePadIndex(playerNum, gamepads) {
     ? connectedPads
     : Array.from(gamepads).filter(Boolean).map(g => g.index)
   for (const idx of order) {
-    if (idx !== other) { padAssignments[playerNum] = idx; return idx }
+    if (!taken.has(idx)) { padAssignments[playerNum] = idx; return idx }
   }
   padAssignments[playerNum] = null
   return null
 }
 
-const _padDbgTick = { 1: 0, 2: 0 }
-function pollGamepad(playerNum, buffer) {
-  const gamepads = navigator.getGamepads ? navigator.getGamepads() : []
-  // Read THIS player's BOUND pad by gamepad.index (getGamepads() is indexed by .index),
-  // never by array position — that's what fixes the two-pad cross-talk.
+// Resolve the live Gamepad object bound to a player, by gamepad.index (never array slot) via
+// resolvePadIndex — the SINGLE source of pad↔player binding, collision-free for up to 4 pads.
+// Exported so game.js's edge detector (updateGamepadEdges) binds pads the SAME way pollGamepad
+// does, instead of the old gamepads[0]/[1] array-position guess that only ever worked for P1/P2.
+export function getPlayerGamepad(playerNum) {
+  const gamepads = (typeof navigator !== "undefined" && navigator.getGamepads) ? navigator.getGamepads() : []
   const assignedIdx = resolvePadIndex(playerNum, gamepads)
-  const gp = assignedIdx == null
-    ? null
-    : (gamepads[assignedIdx] || Array.from(gamepads).find(g => g && g.index === assignedIdx) || null)
-  // [DEBUG-PAD] per-player, throttled: the pad.index bound to this player, whether it's
-  // pressed, the live assignments map, and all connected pads — so binding is visible.
-  if ((++_padDbgTick[playerNum] % 30) === 0) {
-    const anyPressed = gp ? gp.buttons.some(b => b?.pressed) : false
-    const all = []
-    for (let k = 0; k < gamepads.length; k++) if (gamepads[k]) all.push(`slot${k}:index=${gamepads[k].index},id="${gamepads[k].id}"`)
-    console.log(`[DEBUG-PAD] pollGamepad P${playerNum} → bound index=${assignedIdx}:`,
-      gp ? `id="${gp.id}"` : "ABSENT",
-      "| pressed:", anyPressed, "| assignments:", JSON.stringify(padAssignments),
-      "| connected:", all.join("  ") || "none")
-  }
+  if (assignedIdx == null) return null
+  return gamepads[assignedIdx] || Array.from(gamepads).find(g => g && g.index === assignedIdx) || null
+}
+
+function pollGamepad(playerNum, buffer) {
+  const gp = getPlayerGamepad(playerNum)
   if (!gp) return null
 
   const btn  = (i) => !!gp.buttons[i]?.pressed
@@ -340,30 +338,30 @@ function pollGamepad(playerNum, buffer) {
 // getFighterInput
 // Returns a unified input object for combat/physics engines.
 // ─────────────────────────────────────────────────────────────────
-const _giDbgTick = { 1: 0, 2: 0 }
+// Per-player call tally — the single per-frame input entry point for EVERY fighter
+// (keyboard AND controller route through here). Exposed so a harness can PROVE the
+// wiring is connected (both counters advancing = getFighterInput ran for both).
+export const inputCallCount = { 1: 0, 2: 0 }
 export function getFighterInput(fighter) {
   if (!fighter) return null
 
-  const isP1 = fighter.playerNumber === 1
-  const buffer = isP1 ? p1Buffer : p2Buffer
-  const type = isP1 ? inputSettings.p1Type : inputSettings.p2Type
+  const pn = fighter.playerNumber || 1
+  const isP1 = pn === 1
+  // Players 1-4 (3/4 exist only in the FFA POC). Falls back to P2's slot for any
+  // unexpected number so 1v1 (pn 1/2) behaves EXACTLY as before.
+  const buffer = PLAYER_BUFFERS[pn] || p2Buffer
+  const type = inputSettings[PLAYER_TYPES[pn] || "p2Type"]
   const ctrl = fighter.controls
-
-  // [DEBUG-PAD 2] per-player, throttled: confirm each fighter's playerNumber, its live
-  // device type, and the playerNum it will hand to pollGamepad — so we can catch both
-  // fighters resolving to the same playerNum, or a wrong playerNumber on P1/P2.
-  const _pn = fighter.playerNumber
-  if ((_pn === 1 || _pn === 2) && (++_giDbgTick[_pn] % 30 === 0)) {
-    console.log(`[DEBUG-PAD] getFighterInput P${_pn} — playerNumber=${_pn}`,
-      "| type:", type, "| controller?", type === "controller",
-      "| will call pollGamepad(", isP1 ? 1 : 2, ")")
-  }
+  if (pn === 1 || pn === 2) inputCallCount[pn]++
 
   updateBuffer(buffer)
 
-  // 1. Controller
-  if (type === "controller") {
-    const gpInput = pollGamepad(isP1 ? 1 : 2, buffer)
+  // 1. Controller — SKIPPED for AI-driven fighters (FFA AI-fill): the CPU writes its intent
+  // into this fighter's synthetic keyboard binds via applyAIInputToKeys, so it must read the
+  // keyboard/buffer path below, never a physical pad that happens to be bound to this slot's
+  // player number. (1v1 P1/P2 never set _aiControlled → this branch is unchanged for them.)
+  if (type === "controller" && !fighter._aiControlled) {
+    const gpInput = pollGamepad(pn, buffer)
     if (gpInput) return gpInput
   }
 
@@ -399,15 +397,11 @@ export function getFighterInput(fighter) {
 export function clearInputBuffers(fighters = []) {
   zeroBuffer(p1Buffer)
   zeroBuffer(p2Buffer)
+  zeroBuffer(p3Buffer)
+  zeroBuffer(p4Buffer)
 
-  const allControls = [defaultControls, defaultControlsP2]
-
-  for (const ctrlSet of allControls) {
-    for (const key of Object.values(ctrlSet)) {
-      if (key) keys[key] = false
-    }
-  }
-
+  // Clear each live fighter's actual binds (its real controls object — the single
+  // source of truth from game.js), so held keys can't ghost into the next round.
   for (const fighter of fighters) {
     if (!fighter?.controls) continue
     for (const key of Object.values(fighter.controls)) {

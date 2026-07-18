@@ -1,0 +1,16 @@
+{
+  "name": "multiverse-smash-harness",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:input-wiring": "node harness/input_wiring.test.mjs",
+    "test:training": "node harness/training.test.mjs",
+    "test:tower": "node harness/tower.test.mjs",
+    "test:ffa": "node harness/ffa.test.mjs",
+    "test:team": "node harness/team.test.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}

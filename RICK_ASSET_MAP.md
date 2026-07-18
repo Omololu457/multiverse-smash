@@ -25,6 +25,21 @@ Intentional in-character humor, kept as-is (per spec).
 
 ---
 
+## Portrait + intro (fixes)
+
+- **Character-select / HUD portrait:** `characters.rick.portrait = "./rick_pfp.png"` — the standard
+  field every other character uses (`ui.js getPortraitImage` reads `characters[key].portrait`, else
+  falls back to the legacy `./<key>_portrait.png`). Rick had NO field → the fallback pointed at a
+  non-existent `rick_portrait.png` → blank mugshot. One line fixes it; the skins.js default entry
+  already sources `characters.rick?.portrait`, so it flows through unchanged. (rick_pfp.png = 985×1746,
+  cover-fit top-biased by the existing portrait draw.)
+- **Intro (floating + garbled frames) FIX:** Rick had no cataloged intro sprite, so the intro state
+  (`sprite.js` BUG_9: `_introVariant || "transform"`) fell to the shared `"transform"` slot — which
+  Rick lacks — and drew sprite.js's 128px NULL/fallback box (the float + garbage). Fix = `introPool:
+  ["idle"]` so `pickIntroVariant` returns `"idle"` and the intro simply plays his grounded,
+  correctly-scaled IDLE. Verified in-harness: intro renders `action=idle`, `grounded=true`, `vy=0`,
+  `sheet=rick_stand.png` (screenshot `harness/shots/RK_intro.png`).
+
 ## The 3-file sprite gate (every sprite character needs all three)
 
 1. **characters.js** — `hasSprites: true`, `spriteScale: 1.85`, full `animationData` (table below).

@@ -3998,7 +3998,7 @@ gameLoop()
     applyCode: (code) => ({ result: applyUnlockCode(code), beta: isBetaUnlocked(), dev: isDevUnlocked() }),
     // Ground-truth sprite roster (hasSprites-derived) + full non-hidden roster — so tests can
     // assert the beta filter equals the live sprite set without hardcoding names.
-    rosterSets: () => ({ sprite: spriteRosterKeys(), all: Object.keys(characters).filter(k => !characters[k]?.hidden) }),
+    rosterSets: () => ({ sprite: spriteRosterKeys(), all: Object.keys(characters).filter(k => !characters[k]?.hidden), spriteUniverses: [...spriteUniverseSet()] }),
     // Is a specific (level-gated) skin currently unlocked? Proves beta grants ALL skins.
     skinUnlocked: (rosterKey, skinId) => isSkinUnlocked(rosterKey, skinId),
     // What the character-select flow WOULD show right now: the visible universes, the

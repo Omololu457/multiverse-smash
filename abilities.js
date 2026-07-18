@@ -1707,6 +1707,53 @@ export function updateSasukeLightning(fighter, context) {
 // Public: is Sasuke mid lightning cast? (harness / future gating)
 export function sasukeCastingLightning(fighter) { return !!(fighter && fighter._lightningPhase) }
 
+// SASUKE SUBSTITUTION JUTSU (Kawarimi) — mirrors Naruto's Kawarimi Substitution EXACTLY (same
+// architecture, same Block+Special-during-an-incoming-attack input, same 25 meter cost, same real
+// startup + recovery tail so it's a committed defensive tool, NOT a free instant panic button):
+// the incoming swing is CONSUMED (whiffs, no damage) via the same `hasHit` pattern, Sasuke gets
+// brief i-frames + a smoke poof, and after the startup he re-appears with a second poof.
+// ONE difference from Naruto's version: instead of Naruto's far-side reposition, Sasuke reappears
+// using HIS OWN double-tap dash-behind-teleport positioning math (game.js `teleportBehindTarget`,
+// replicated verbatim below — abilities.js can't import game.js without a cycle). Visual =
+// sasuke_substitusion_justu.png (3 smoke-poof + wooden-log reveal) left at his origin, plus the
+// SAME procedural clone-puff smoke Kawarimi uses for the poof-out / poof-in.
+const SASUKE_SUBSTITUTION_STARTUP = 6
+function executeSasukeSubstitution(fighter, target, context) {
+  if (!spendEnergy(fighter, 25)) return false
+  const threat = target && target.currentAttack
+  if (threat) threat.hasHit = true                                   // the incoming swing whiffs, guaranteed
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 14)     // also covers stray projectiles
+  fighter.teleportFlash = 16
+
+  // poof OUT at the ORIGIN (capture it before the reposition) + leave the substitution log there.
+  const originX = fighter.x + (fighter.w || 60) / 2
+  const originY = fighter.y + (fighter.h || 100) / 2
+  spawnClonePuff(originX, originY)                                   // same procedural smoke Kawarimi uses
+  spawnProjectile(fighter, "substitutionLog", {                      // 3 smoke-poof + wooden-log reveal
+    visualOnly: true, damage: 0, lifetime: 26, vx: 0, vy: 0,
+    spawnX: originX - 40, spawnY: fighter.y,
+    w: 58, h: 71, color: "#a8743a",
+    sheet: "./sasuke_substitusion_justu.png", spriteFrames: 4, spriteW: 58, spriteH: 71, spriteSpeed: 6, spriteScale: 1.4
+  }, context)
+
+  // Real startup + recovery tail (same frame-shape all the specials use) → committed, not spammable.
+  fighter.attackCooldown = getAttackDuration(SASUKE_SUBSTITUTION_STARTUP + 20, fighter)
+  schedulePendingSpawn(SASUKE_SUBSTITUTION_STARTUP, () => {
+    if (target) {
+      const sw = context?.worldWidth || 3200
+      // ── teleportBehindTarget positioning math (game.js), replicated exactly ──
+      fighter.x = fighter.x < target.x ? target.x - fighter.w - 8 : target.x + target.w + 8
+      fighter.x = Math.max(0, Math.min(sw - fighter.w, fighter.x))
+      fighter.y = target.y
+      fighter.vx = 0; fighter.vy = 0
+      fighter.facing = (target.x >= fighter.x) ? 1 : -1
+    }
+    spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)   // poof IN
+  })
+  focusCameraOnAction(context, fighter, target, 1.0, 8)
+  return true
+}
+
 function executeSasukeSpecial(fighter, context) {
   const stage = fighter._susanooStage || 0
   const getOpp = getTargetResolver(context)
@@ -1717,6 +1764,17 @@ function executeSasukeSpecial(fighter, context) {
   //   down + special              → SHURIKEN ranged poke   (checked after qcf: D,F also ends with D)
   //   plain special               → dash-strike
   if (stage <= 0) {
+    // SUBSTITUTION JUTSU (Kawarimi) — Block+Special during an INCOMING attack. Checked FIRST so
+    // it takes priority over the down-motion specials while a swing is incoming; with NOTHING
+    // incoming it falls through to the normal specials (down = Shuriken, etc.). Same shape as
+    // Naruto's Kawarimi vs Dark Rasengan (both share the block/down input).
+    if (fighter.isBlocking) {
+      const threat   = target && target.currentAttack
+      const incoming = !!(threat && target.attacking && !threat.hasHit &&
+        ((threat.total || 0) - (threat.timer || 0)) <= (threat.activeEnd || 0))
+      if (incoming) return executeSasukeSubstitution(fighter, target, context)
+      // blocking with nothing incoming → not a valid Substitution; fall through to normals.
+    }
     const dirs = getRelativeDirections(fighter)
     if (endsWithPattern(dirs, ["D", "F"])) return executeSasukeLightning(fighter, target, context)
     if (endsWithPattern(dirs, ["D"]))      return executeSasukeShuriken(fighter, target, context)

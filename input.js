@@ -351,8 +351,11 @@ export function getFighterInput(fighter) {
 
   updateBuffer(buffer)
 
-  // 1. Controller
-  if (type === "controller") {
+  // 1. Controller — SKIPPED for AI-driven fighters (FFA AI-fill): the CPU writes its intent
+  // into this fighter's synthetic keyboard binds via applyAIInputToKeys, so it must read the
+  // keyboard/buffer path below, never a physical pad that happens to be bound to this slot's
+  // player number. (1v1 P1/P2 never set _aiControlled → this branch is unchanged for them.)
+  if (type === "controller" && !fighter._aiControlled) {
     const gpInput = pollGamepad(pn, buffer)
     if (gpInput) return gpInput
   }

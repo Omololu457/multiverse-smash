@@ -312,7 +312,17 @@ export function getGameplaySelectRects(canvas) {
     { id: "vs",       label: "VS MATCH",  subLabel: "1 player vs the CPU"         },
     { id: "pvp",      label: "2 PLAYER",  subLabel: "Local versus — P1 vs P2"     },
     { id: "tower",    label: "TOWER",     subLabel: "Climb a ladder of CPU fights" },
+    { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)" },
     { id: "back",     label: "BACK",      subLabel: "Return to title"             }
+  ])
+}
+
+// FREE-FOR-ALL setup — pick player count (3 or 4). Entries above the device cap are locked.
+export function getFFASetupRects(canvas, maxPlayers = 4) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "p3",   count: 3, label: "3 PLAYERS", subLabel: "Three-way free-for-all",  locked: maxPlayers < 3, lockNote: "Needs another controller" },
+    { id: "p4",   count: 4, label: "4 PLAYERS", subLabel: "Four-way free-for-all",   locked: maxPlayers < 4, lockNote: "Needs another controller" },
+    { id: "back", label: "BACK", subLabel: "Return to mode select" }
   ])
 }
 
@@ -825,6 +835,40 @@ export function drawGameplaySelectScreen(ctx, canvas, selectedIndex = 0) {
     drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
   })
   drawFooterHint(ctx, canvas, "Training = 1 player practice • VS Match = player vs CPU")
+}
+
+// ─────────────────────────────────────────────
+// FREE-FOR-ALL SETUP + CHARACTER SELECT
+// ─────────────────────────────────────────────
+export function drawFFASetupScreen(ctx, canvas, selectedIndex = 0, maxPlayers = 4, padCount = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#3a1030")
+  drawHeader(ctx, canvas, "FREE-FOR-ALL", "Last fighter standing — how many players?")
+  getFFASetupRects(canvas, maxPlayers).forEach((button, index) => {
+    drawButton(ctx, button, { label: button.label, subLabel: button.locked ? button.lockNote : button.subLabel, active: index === selectedIndex && !button.locked })
+  })
+  drawFooterHint(ctx, canvas, `Devices: keyboard P1 + keyboard P2 + ${padCount} controller(s) → up to ${maxPlayers} players. P3/P4 are controller-only.`)
+}
+
+export function drawFFACharSelectScreen(ctx, canvas, slot = 0, playerCount = 3, roster = [], selectedIndex = 0, picks = []) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  roster = normalizeToArray(roster)
+  ctx.clearRect(0, 0, w, h)
+  drawBackdrop(ctx, canvas, "#0b1021", "#171f37")
+  drawHeader(ctx, canvas, `PLAYER ${slot + 1} — CHOOSE FIGHTER`, `Free-for-all · ${playerCount} players`)
+  const rects = getCharacterCardRects(canvas, roster)
+  roster.forEach((c, i) => {
+    const r = rects[i]; if (!r) return
+    const sel = i === selectedIndex
+    drawPanel(ctx, r.x, r.y, r.w, r.h, {
+      fill:   sel ? "rgba(244,114,182,0.5)" : "rgba(255,255,255,0.08)",
+      stroke: sel ? "#fbcfe8" : "rgba(255,255,255,0.16)",
+      lineWidth: sel ? 3 : 2
+    })
+    drawCenteredText(ctx, c?.name || c?.rosterKey || `#${i}`, r.x + r.w / 2, r.y + r.h / 2, { font: "700 18px Arial", fill: "#ffffff" })
+  })
+  const done = picks.map((p, i) => `P${i + 1}:${p}`).join("  ")
+  drawFooterHint(ctx, canvas, done ? `Locked → ${done}` : "Click a fighter to lock this slot")
 }
 
 // ─────────────────────────────────────────────

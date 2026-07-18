@@ -100,6 +100,13 @@ const MOVE_TO_ACTION = {
   rasengan: "special_1",
   shadowCloneBlast: "special_2",
 
+  chidoriKoiten: "chidoriKoiten",
+
+  // Sasuke dash-strike (base special): the `dash` sprite plays via _spriteCastMove, but that timer
+  // expires a few frames BEFORE the attack's recovery ends — so map the raw move name here too, or
+  // the tail of the move resolves to the raw "dashStrike" (no animationData) → 128² fallback BOX flash.
+  dashStrike: "dash",
+
   cleave: "cleave",
   dismantle: "dismantle",
 
@@ -262,6 +269,19 @@ export class SpriteHandler {
     const profileAction = this._getActionDef(charKey, action, fighter._skinAnim);
     this._actionDef = profileAction;
 
+    // Reset frame state when the underlying SHEET changes even if the action NAME
+    // is unchanged. Needed for _skinAnim body-swaps that keep the same action key
+    // (e.g. Sasuke Susanoo Lvl1→Lvl2: both are "idle" but lvl_1.png has 5 frames /
+    // lvl_2.png has 4 — a stale frameIndex would slice out-of-bounds garbage and the
+    // handler could keep animating the old sheet's frame). Keying on the sheet path
+    // forces a clean restart on the swap.
+    if (this._lastSheetKey !== profileAction.sheet) {
+      this._lastSheetKey = profileAction.sheet;
+      this.frameIndex = 0;
+      this.frameTimer = 0;
+      this._spawnFired = false;
+    }
+
     // Support legacy passed-in spritesheets/actionData too
     const legacySheet =
       spritesheets?.[action] ||
@@ -305,7 +325,18 @@ export class SpriteHandler {
     // DESTINATION draw size up to roughly fill the hitbox. Source slicing stays
     // at native drawWidth/drawHeight (the SOURCE rect below); only the drawn size
     // scales. Defaults to 1 → identical to before for every other character.
-    const scale = fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1;
+    let scale = fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1;
+
+    // CANVAS-RELATIVE GIANT SIZING: a fighter can request a display height as a
+    // FRACTION of the live canvas height (mirrors kurama.js sizing its fox at
+    // bodyH = ch * 0.74) so giant forms read as massive on any resolution instead
+    // of a small fixed multiple of their sprite cells. `_canvasHeightRefH` is the
+    // REFERENCE native cell height (the body cell) so every action — body, grab,
+    // arrow — scales by the SAME factor and stays proportional to the body.
+    if (fighter._canvasHeightFrac && fighter._canvasHeightRefH && ctx.canvas?.height) {
+      scale = (ctx.canvas.height * fighter._canvasHeightFrac) / fighter._canvasHeightRefH;
+    }
+
     const dstW = drawWidth * scale;
     const dstH = drawHeight * scale;
 
@@ -314,6 +345,31 @@ export class SpriteHandler {
 
     // Anchor to the bottom of the hitbox (using SCALED height) so feet stay planted
     const offsetY = (dstH - fighterH) + (frameData.anchorY || 0);
+
+    // GIANT idle bob (Kurama-style continuous motion): giant forms (canvas-relative sizing) add a
+    // slow, continuous sine RISE so the towering body reads as smoothly alive between the slow
+    // pose-holds, instead of snapping frame-to-frame. Rectified sine (0..1) → the sprite only ever
+    // rises above its planted rest, never sinks below the floor, so feet stay planted. Guarded on
+    // _canvasHeightFrac → exactly zero effect on every normal-scale fighter.
+    let bobUp = 0;
+    if (fighter._canvasHeightFrac) {
+      this._giantBobClock = (this._giantBobClock || 0) + 1;
+      bobUp = (Math.sin(this._giantBobClock * 0.045) * 0.5 + 0.5) * dstH * 0.018;
+    }
+    const drawY = fighter.y - offsetY - bobUp;
+
+    // Record the giant's actual drawn Y + bob offset so an automated harness can
+    // observe temporal smoothness (the sine bob can't be seen in a single frame).
+    // Also record the rendered box (top Y + scaled W/H) so combat.getHurtbox can size
+    // the giant's hurtbox to the VISIBLE body instead of the tiny physics box — these
+    // are the result of the canvas-relative sizing math (dstH/dstW = cell × scale).
+    // Giant-only → no per-frame writes on normal fighters.
+    if (fighter._canvasHeightFrac) {
+      fighter._lastDrawY = drawY;
+      fighter._lastBobUp = bobUp;
+      fighter._lastDrawH = dstH;
+      fighter._lastDrawW = dstW;
+    }
 
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);
@@ -332,7 +388,7 @@ export class SpriteHandler {
           drawWidth,         // source rect = native frame size
           drawHeight,
           -fighter.x + offsetX - dstW,   // flip math uses SCALED width
-          fighter.y - offsetY,
+          drawY,
           dstW,              // destination size = scaled
           dstH
         );
@@ -344,7 +400,7 @@ export class SpriteHandler {
           drawWidth,         // source rect = native frame size
           drawHeight,
           fighter.x - offsetX,
-          fighter.y - offsetY,
+          drawY,
           dstW,              // destination size = scaled
           dstH
         );

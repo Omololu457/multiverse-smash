@@ -28,14 +28,18 @@ import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   updateProjectiles as updateCombatProjectiles,
   checkClash, checkParry, resolveGrab, updateGrab,
-  getAttackPhase, getAttackHitbox   // training overlay: live frame data + real attack hitbox
+  getAttackPhase, getAttackHitbox,   // training overlay: live frame data + real attack hitbox
+  getHurtbox,                         // harness: verify the Susanoo giant hurtbox
+  startMove                           // harness: drive a real p2 attack (Substitution incoming-window)
 } from "./combat.js"
 import {
   activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation,
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
-  applyCloneRendanStorm   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
+  applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
+  sasukeInSusanoo, SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout
+  spawnAbsoluteDefenseFx   // Sasuke Absolute Defense — repurposed Susanoo-intro sheet as the barrier FX
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -77,11 +81,15 @@ import { activeEffects, addEffect, updateEffects, updateEnergyRegen, clearEffect
 import {
   updateKuramaUltimate, isKuramaCinematicActive, drawKuramaCinematic, clearKuramaUltimate
 } from "./kurama.js"
+import {
+  updateSasukeCinematic, isSasukeCinematicActive, drawSasukeCinematic, clearSasukeCinematic,
+  getSasukeCinematicStatus
+} from "./sasukeCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
-  drawVictoryScreen, drawMatchIntro, drawLowHealthWarning, drawRoundTimer,
+  drawVictoryScreen, drawMatchIntro, drawLowHealthWarning, drawRoundTimer, drawSusanooTimer,
   updateVictoryState, handleVictoryClick, handleVictoryKey, resetFighterForRematch
 } from "./matchflow.js"
 
@@ -941,6 +949,8 @@ function getAbilityContext() {
   return {
     p1, p2, getOpponent, camera, activeDomains,
     worldWidth: getStageWorldWidth(),
+    canvasHeight: canvas?.height,     // giant FX (Susanoo arm-height spawns) mirror sprite.js's canvas-relative sizing
+    groundY,                          // floor line — lightning strikes plant their column on it
     createFighter,
     deltaMs: 1000 / 60,
     triggerSlowdown: (frames, target) => { slowdownTimer = frames || 50; slowdownTarget = target || null }
@@ -1087,6 +1097,7 @@ function createFighter(charKey, char, x, facing, controls, side) {
     parryFlash: 0, armorFlash: 0, clashFlash: 0,
     leftTapTime: 0, rightTapTime: 0,
     infinityActive: false,
+    absoluteDefenseActive: false,   // Sasuke — Absolute Defense charge-toggle (combat.shouldSasukeAbsoluteDefenseNegate)
     currentForm:     baseFormKey,
     currentFormData: baseForm,
     transformIndex:  0,
@@ -1172,6 +1183,7 @@ function resetRound() {
   vowCue.timer = 0
   clearDomains()
   clearKuramaUltimate()
+  clearSasukeCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
 
@@ -1191,6 +1203,19 @@ function resetRound() {
   if (typeof camera.reset  === "function") camera.reset()
   updateCameraBounds()
   if (p1 && p2 && typeof camera.update === "function") camera.update(p1, p2, canvas)
+}
+
+// ── PRE-MATCH INTRO SELECTION ─────────────────────────────────────────────────
+// Generic "pick one of N intros at random" for the pre-round entrance. A character
+// can declare `introPool: ["actionA", "actionB", ...]` in characters.js (animationData
+// action names); this returns one at random each match so intros vary across rounds.
+// Not gated to any count — add a 4th pool entry and it joins the rotation automatically.
+// No pool → returns null, and sprite.js falls back to the shared "transform" intro slot,
+// so every existing character's behaviour is unchanged.
+function pickIntroVariant(fighter) {
+  const pool = fighter && fighter.introPool
+  if (!Array.isArray(pool) || pool.length === 0) return null
+  return pool[Math.floor(Math.random() * pool.length)]
 }
 
 // ── PRE-MATCH CHARACTER ANNOUNCEMENT ──────────────────────────────────────────
@@ -1277,8 +1302,11 @@ function startMatch() {
   gameState       = GAME_STATES.INTRO
   // BUG_9: play the intro/transform strip during the intro window (cleared when
   // BATTLE starts). Harmless for non-sprite fighters (they render procedurally).
-  if (p1) p1._introPlaying = true
-  if (p2) p2._introPlaying = true
+  // pickIntroVariant randomly selects one entry from the fighter's `introPool` (if any) so
+  // characters with multiple intros (e.g. Sasuke) get visual variety across matches; fighters
+  // with no pool get null → sprite.js falls back to the shared "transform" intro (unchanged).
+  if (p1) { p1._introPlaying = true; p1._introVariant = pickIntroVariant(p1) }
+  if (p2) { p2._introPlaying = true; p2._introVariant = pickIntroVariant(p2) }
 
   sound.stopMusic?.()
   sound.playStageTrack?.(matchConfig.selectedStage)
@@ -1402,6 +1430,7 @@ function resetToStart() {
   roundTimer      = ROUND_TIME
   clearDomains()
   clearKuramaUltimate()
+  clearSasukeCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
@@ -1560,6 +1589,7 @@ function _doRematch() {
   for (const f of [p1, p2]) if (f) f._pendingSpawn = null   // reused objects → clear sprite deferred-spawn
   clearDomains()
   clearKuramaUltimate()
+  clearSasukeCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
   hitSparks.length = 0
@@ -1684,6 +1714,15 @@ function handleChargeRelease(fighter, key) {
       fighter.infinityActive = !fighter.infinityActive
       fighter.teleportFlash  = Math.max(fighter.teleportFlash || 0, 10)
     }
+  } else if (fighter.rosterKey === "sasuke") {
+    // Sasuke — ABSOLUTE DEFENSE toggle. Same charge-TAP pattern as Gojo's Infinity, but the negate
+    // is a full unconditional block priced per-hit (combat.shouldSasukeAbsoluteDefenseNegate).
+    // DEFERRED (out of scope, do not fix): holding charge while feeding a motion-gated special may
+    // conflict — noted, not handled this pass.
+    fighter.absoluteDefenseActive = !fighter.absoluteDefenseActive
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+    // Repurposed asset: the old Susanoo-intro sheet now manifests the Absolute Defense barrier.
+    if (fighter.absoluteDefenseActive) spawnAbsoluteDefenseFx(fighter, getAbilityContext())
   } else if (fighter.transformationOrder?.length) {
     triggerTransformation(fighter, getAbilityContext())
   }
@@ -1743,6 +1782,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
       teleportBehindTarget(fighter)                                   // blink BEHIND, facing the opponent
       if (fighter.rosterKey === "toji"   && typeof tojiTeleportStrike === "function")        tojiTeleportStrike(fighter)
       else if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
+      else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
       // Gojo: reposition only — "ready to attack".
       fighter.dashTeleportCooldown = 48
     } else {
@@ -2263,7 +2303,12 @@ function updateBattle() {
     }
   }
 
-  if (roundTimer > 0) roundTimer--
+  // Susanoo (either fighter) PAUSES the round clock — a 20s sustained giant form shouldn't
+  // eat into the round timer. The Susanoo DURATION timer (_susanooTimer) keeps ticking
+  // regardless (updateTransformationState → updateSasukeSusanoo); only the ROUND clock freezes.
+  // Uses the exported sasukeInSusanoo helper so this stays correct if the flag changes.
+  const sustainedFormActive = sasukeInSusanoo(p1) || sasukeInSusanoo(p2)
+  if (roundTimer > 0 && !sustainedFormActive) roundTimer--
 
   updateDebugInputToggles()
   updateTrainingMode()
@@ -2289,6 +2334,15 @@ function updateBattle() {
   // while combat/physics are paused, then combat resumes when it ends.
   if (isKuramaCinematicActive()) {
     updateKuramaUltimate({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
+  // SASUKE SHARINGAN CINEMATIC (Susanoo Lv1→Lv2 escalation): SAME freeze contract —
+  // combat/physics are paused while the eye sequence plays; the Lv2 escalation is applied
+  // by the cinematic's onResolve at its RESOLVE beat, then combat resumes into Lv2.
+  if (isSasukeCinematicActive()) {
+    updateSasukeCinematic({ camera, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return                                     // skip movement/combat/physics this frame
   }
@@ -2574,6 +2628,25 @@ function _drawInfinityAura(f) {
   ctx.restore()
 }
 
+// Persistent cue that Sasuke's ABSOLUTE DEFENSE toggle is up (works with his sprite): a pulsing
+// PURPLE ring — visually distinct from Gojo's cyan Infinity ring, echoing Susanoo's purple palette.
+// Per-block negates also pop his teleportFlash (combat.shouldSasukeAbsoluteDefenseNegate).
+function _drawAbsoluteDefenseAura(f) {
+  if (!f || !f.absoluteDefenseActive) return
+  const cx = f.x + f.w / 2, cy = f.y + f.h / 2
+  const r  = Math.max(f.w, f.h) * 0.72
+  const t  = globalFrameCount * 0.12
+  ctx.save()
+  ctx.strokeStyle = "#c4b5fd"
+  ctx.shadowBlur  = 16; ctx.shadowColor = "#8b5cf6"
+  ctx.lineWidth   = 3
+  ctx.globalAlpha = 0.30 + Math.sin(t) * 0.08
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke()
+  ctx.globalAlpha = 0.14
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.78, 0, Math.PI * 2); ctx.stroke()
+  ctx.restore()
+}
+
 // HOLD-TO-CHARGE aura (Task 2): a visible, rising energy effect while a meter
 // character holds P to build cursed energy. Universal (works for sprite AND
 // procedural fighters) — rising particles + a pulsing ground ring, tinted to the
@@ -2631,6 +2704,8 @@ function drawBattleScene() {
   drawActiveSummons(ctx)
   _drawInfinityAura(p1)
   _drawInfinityAura(p2)
+  _drawAbsoluteDefenseAura(p1)
+  _drawAbsoluteDefenseAura(p2)
   _drawChargeAura(p1)
   _drawChargeAura(p2)
   drawHitSparksEnhanced()
@@ -2676,6 +2751,9 @@ function drawBattleHud() {
   drawControlsInfo(ctx, canvas)
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
   drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)
+  // Purple Susanoo duration clock, shown beside the round timer while either fighter is transformed.
+  const susFighter = sasukeInSusanoo(p1) ? p1 : (sasukeInSusanoo(p2) ? p2 : null)
+  if (susFighter) drawSusanooTimer?.(ctx, canvas, susFighter._susanooTimer || 0, SUSANOO_DURATION_FRAMES)
   drawLowHealthWarning?.(ctx, canvas, p1, p2, globalFrameCount)
   if (!trainingState.enabled) return
   const lastDmg = damageNumbers.length ? (damageNumbers[damageNumbers.length - 1].value || 0) : 0
@@ -2817,6 +2895,7 @@ function drawBattle() {
   _drawKOFlash()
   _drawVowCue()
   drawKuramaCinematic(ctx, canvas)   // fullscreen Tailed Beast Bomb overlay, on top of all
+  drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
 }
 
 // ── FREE-FOR-ALL rendering (parallel to drawBattle; array-driven) ─────────────
@@ -3633,6 +3712,10 @@ window.addEventListener("keyup", e => {
   const key = String(e.key || "").toLowerCase()
   if (p1) handleChargeRelease(p1, key)
   if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleChargeRelease(p2, key)
+  // Sasuke Susanoo Stage-2 gate: mark the ultimate button as released so a genuine SECOND
+  // press (not a held one) is required to escalate Lv1→Lv2. See executeSasukeUltimate.
+  if (p1 && key === (p1.controls?.ultimate || "u")) p1._ultReleasedSinceStage1 = true
+  if (p2 && key === (p2.controls?.ultimate || "5")) p2._ultReleasedSinceStage1 = true
 })
 
 // ------------------------------------------------------------------
@@ -3742,6 +3825,12 @@ gameLoop()
     bootVs: () => { startHarnessMatch({ mode: "vs", difficulty: "easy" }); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
     // Pause-menu introspection: current selection + item id (drive with real esc/↓/enter keys).
     pauseSel: () => ({ gameState, index: pauseMenuIndex, item: PAUSE_MENU_ITEMS[pauseMenuIndex] }),
+    // Camera introspection (zoom regression diagnosis).
+    camera: () => ({ zoom: camera.zoom, targetZoom: camera.targetZoom, x: camera.x, y: camera.y }),
+    // Expire an active Susanoo so the normal update loop auto-reverts it (recovery timing).
+    expireSusanoo: () => { if (p1 && (p1._susanooStage || 0) > 0) p1._susanooTimer = 1 },
+    // Hurtbox introspection (Susanoo giant-hurtbox fix): the box combat uses for hits.
+    hurtbox: who => { const f = who === "p2" ? p2 : p1; const hb = getHurtbox(f); return f && hb ? { ...hb, fx: f.x, fy: f.y, fw: f.w, fh: f.h, drawTop: f._lastDrawY ?? null, drawH: f._lastDrawH ?? null } : null },
     state: () => ({ gameState, countdown, frame: globalFrameCount }),
     arena: () => ({ left: physics.stageLeft, width: physics.stageWidth,
                     mid: physics.stageLeft + (physics.stageWidth - physics.stageLeft) * 0.5 }),
@@ -3762,6 +3851,7 @@ gameLoop()
       combo: Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0)
     }),
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
+    sasukeCine: () => getSasukeCinematicStatus(),
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
@@ -3769,6 +3859,11 @@ gameLoop()
     healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false } },  // reset dummy between damage checks
     liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
     hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
+    // Drive a REAL p2 attack (generous startup so a defender can react) — used to open the
+    // Substitution incoming-attack window and to verify the swing actually whiffs on a substitute.
+    p2Attack:   () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "light", { startup: 10, active: 6, recovery: 16, damage: 60, rangeX: 120, rangeY: 90, hitstun: 18, knockbackX: 6 }) } },
+    p2State:    () => (p2 ? { attacking: !!p2.attacking, hasHit: !!(p2.currentAttack && p2.currentAttack.hasHit), x: p2.x, w: p2.w, health: p2.health } : null),
+    p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0 } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({
       active: towerState.active, floor: towerState.floor,

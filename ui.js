@@ -233,6 +233,7 @@ function getVerticalMenuLayout(canvas, labels = []) {
   const startY       = topMargin + Math.max(0, (avail - totalHeight) / 2)
 
   return labels.map((label, index) => ({
+    ...label,                            // pass through extra fields (e.g. slot, count)
     id:       label.id       || String(index),
     label:    label.label    || String(label),
     subLabel: label.subLabel || "",
@@ -312,7 +313,97 @@ export function getGameplaySelectRects(canvas) {
     { id: "vs",       label: "VS MATCH",  subLabel: "1 player vs the CPU"         },
     { id: "pvp",      label: "2 PLAYER",  subLabel: "Local versus — P1 vs P2"     },
     { id: "tower",    label: "TOWER",     subLabel: "Climb a ladder of CPU fights" },
+    { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)" },
     { id: "back",     label: "BACK",      subLabel: "Return to title"             }
+  ])
+}
+
+// FREE-FOR-ALL slot assignment — decide who drives each slot: a local human device or a CPU
+// (with a difficulty). One click-to-cycle row per slot + CONTINUE / BACK. Slot rows carry
+// `slot` (0-based); action buttons carry a string id. Mirrors the team-select layout.
+export function getFFASlotSelectRects(canvas, playerCount = 3) {
+  const items = []
+  for (let i = 0; i < playerCount; i++) items.push({ id: `slot${i}`, slot: i, label: `P${i + 1}`, subLabel: "" })
+  items.push({ id: "continue", label: "CONTINUE", subLabel: "On to team assignment" })
+  items.push({ id: "back",     label: "BACK",     subLabel: "Return to fighter select" })
+  return getVerticalMenuLayout(canvas, items)
+}
+
+// Friendly name for the human device that would drive a slot (keyboards first, then pads).
+function ffaSlotDeviceName(slot) {
+  return slot === 0 ? "P1 keyboard" : slot === 1 ? "P2 keyboard" : `P${slot + 1} controller`
+}
+
+export function drawFFASlotSelectScreen(ctx, canvas, playerCount = 3, aiSlots = [], charKeys = [], deviceCount = 2, selectedIndex = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#101f38")
+  drawHeader(ctx, canvas, "ASSIGN PLAYERS", "Click a slot to cycle Human ↔ CPU and pick a difficulty")
+  let aiCount = 0
+  getFFASlotSelectRects(canvas, playerCount).forEach((b, i) => {
+    if (b.slot != null) {
+      const diff    = aiSlots[b.slot] || null
+      const forced  = b.slot >= deviceCount                 // no device for this slot → must be CPU
+      const who     = diff ? `CPU (${diff.toUpperCase()})` : `HUMAN — ${ffaSlotDeviceName(b.slot)}`
+      if (diff) aiCount++
+      const sub     = forced ? "No device — click to change CPU difficulty"
+                             : "Click to cycle Human / CPU difficulties"
+      drawButton(ctx, b, { label: `P${b.slot + 1}  ${charKeys[b.slot] || "?"}  →  ${who}`, subLabel: sub, active: i === selectedIndex, accent: diff ? "#fbbf24" : "#8fb3ff" })
+    } else {
+      drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex })
+    }
+  })
+  drawFooterHint(ctx, canvas, `${aiCount} CPU · ${playerCount - aiCount} human  ·  slots without a device default to CPU`)
+}
+
+// FREE-FOR-ALL team assignment — one toggle row per slot + START / NO-TEAMS / BACK.
+// Slot rows carry `slot` (0-based); action buttons carry a string id.
+export function getFFATeamSelectRects(canvas, playerCount = 3) {
+  const items = []
+  for (let i = 0; i < playerCount; i++) items.push({ id: `slot${i}`, slot: i, label: `P${i + 1}`, subLabel: "" })
+  items.push({ id: "start",   label: "START MATCH", subLabel: "Begin the team battle" })
+  items.push({ id: "noteams", label: "NO TEAMS",    subLabel: "Play a pure free-for-all instead" })
+  items.push({ id: "back",    label: "BACK",        subLabel: "Return to fighter select" })
+  return getVerticalMenuLayout(canvas, items)
+}
+
+export function drawFFATeamSelectScreen(ctx, canvas, playerCount = 3, teams = [], charKeys = [], selectedIndex = 0, teamColors = {}) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#0f2740")
+  drawHeader(ctx, canvas, "ASSIGN TEAMS", "Click a player to switch their team (uneven splits are fine)")
+  getFFATeamSelectRects(canvas, playerCount).forEach((b, i) => {
+    if (b.slot != null) {
+      const team = teams[b.slot] || "A"
+      const col = teamColors[team] || "#94a3b8"
+      drawButton(ctx, b, { label: `P${b.slot + 1}  ${charKeys[b.slot] || "?"}  →  TEAM ${team}`, subLabel: "Click to toggle A / B", active: i === selectedIndex })
+      // team swatch on the right of the row
+      ctx.save(); ctx.fillStyle = col; ctx.fillRect(b.x + b.w - 34, b.y + b.h / 2 - 10, 20, 20)
+      ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.strokeRect(b.x + b.w - 34, b.y + b.h / 2 - 10, 20, 20); ctx.restore()
+    } else {
+      drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex })
+    }
+  })
+  const counts = ["A", "B"].map(t => `${t}: ${teams.slice(0, playerCount).filter(x => x === t).length}`).join("   ")
+  drawFooterHint(ctx, canvas, `${counts}  ·  friendly fire is OFF — teammates can't damage each other`)
+}
+
+// FREE-FOR-ALL setup — pick player count (3 or 4). Entries above the device cap are locked.
+export function getFFASetupRects(canvas, maxPlayers = 4) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "p3",   count: 3, label: "3 PLAYERS", subLabel: "Three-way free-for-all",  locked: maxPlayers < 3, lockNote: "Needs another controller" },
+    { id: "p4",   count: 4, label: "4 PLAYERS", subLabel: "Four-way free-for-all",   locked: maxPlayers < 4, lockNote: "Needs another controller" },
+    { id: "back", label: "BACK", subLabel: "Return to mode select" }
+  ])
+}
+
+// TOWER TIER SELECT — 5 tiers by floor count (labels mirror game.js TOWER_TIERS ids).
+export function getTowerSelectRects(canvas) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "tier1", label: "TIER 1", subLabel: "3 opponents"                       },
+    { id: "tier2", label: "TIER 2", subLabel: "10 opponents"                      },
+    { id: "tier3", label: "TIER 3", subLabel: "25 opponents"                      },
+    { id: "tier4", label: "TIER 4", subLabel: "40 opponents"                      },
+    { id: "tier5", label: "TIER 5", subLabel: "INFINITE — difficulty escalates"   },
+    { id: "back",  label: "BACK",   subLabel: "Return to mode select"             }
   ])
 }
 
@@ -813,6 +904,53 @@ export function drawGameplaySelectScreen(ctx, canvas, selectedIndex = 0) {
     drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
   })
   drawFooterHint(ctx, canvas, "Training = 1 player practice • VS Match = player vs CPU")
+}
+
+// ─────────────────────────────────────────────
+// FREE-FOR-ALL SETUP + CHARACTER SELECT
+// ─────────────────────────────────────────────
+export function drawFFASetupScreen(ctx, canvas, selectedIndex = 0, maxPlayers = 4, padCount = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#3a1030")
+  drawHeader(ctx, canvas, "FREE-FOR-ALL", "Last fighter standing — how many players?")
+  getFFASetupRects(canvas, maxPlayers).forEach((button, index) => {
+    drawButton(ctx, button, { label: button.label, subLabel: button.locked ? button.lockNote : button.subLabel, active: index === selectedIndex && !button.locked })
+  })
+  drawFooterHint(ctx, canvas, `Devices: keyboard P1 + keyboard P2 + ${padCount} controller(s) → up to ${maxPlayers} players. P3/P4 are controller-only.`)
+}
+
+export function drawFFACharSelectScreen(ctx, canvas, slot = 0, playerCount = 3, roster = [], selectedIndex = 0, picks = []) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  roster = normalizeToArray(roster)
+  ctx.clearRect(0, 0, w, h)
+  drawBackdrop(ctx, canvas, "#0b1021", "#171f37")
+  drawHeader(ctx, canvas, `PLAYER ${slot + 1} — CHOOSE FIGHTER`, `Free-for-all · ${playerCount} players`)
+  const rects = getCharacterCardRects(canvas, roster)
+  roster.forEach((c, i) => {
+    const r = rects[i]; if (!r) return
+    const sel = i === selectedIndex
+    drawPanel(ctx, r.x, r.y, r.w, r.h, {
+      fill:   sel ? "rgba(244,114,182,0.5)" : "rgba(255,255,255,0.08)",
+      stroke: sel ? "#fbcfe8" : "rgba(255,255,255,0.16)",
+      lineWidth: sel ? 3 : 2
+    })
+    drawCenteredText(ctx, c?.name || c?.rosterKey || `#${i}`, r.x + r.w / 2, r.y + r.h / 2, { font: "700 18px Arial", fill: "#ffffff" })
+  })
+  const done = picks.map((p, i) => `P${i + 1}:${p}`).join("  ")
+  drawFooterHint(ctx, canvas, done ? `Locked → ${done}` : "Click a fighter to lock this slot")
+}
+
+// ─────────────────────────────────────────────
+// TOWER TIER SELECT
+// ─────────────────────────────────────────────
+export function drawTowerSelectScreen(ctx, canvas, selectedIndex = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#2a1c3d")
+  drawHeader(ctx, canvas, "TOWER", "Pick a tier — beat every floor to clear it")
+  getTowerSelectRects(canvas).forEach((button, index) => {
+    drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
+  })
+  drawFooterHint(ctx, canvas, "Random opponent + stage each floor • Tier 5 never ends — how high can you climb?")
 }
 
 // ─────────────────────────────────────────────
@@ -1398,7 +1536,10 @@ export function drawHitSparks(ctx, hitSparks = [], camera = null) {
   }
 }
 
-export function drawTrainingCollisionBoxes(ctx, fighters = []) {
+// `getHitbox(fighter)` (optional) returns the LIVE attack hitbox {x,y,w,h} or null when
+// the fighter isn't attacking — so the red box tracks the real move (combat.getAttackHitbox)
+// instead of the stale static fighter.attackBox. Blue = body/hurtbox (always).
+export function drawTrainingCollisionBoxes(ctx, fighters = [], getHitbox = null) {
   if (!Array.isArray(fighters)) return
   fighters.forEach(fighter => {
     if (!fighter) return
@@ -1408,18 +1549,16 @@ export function drawTrainingCollisionBoxes(ctx, fighters = []) {
     const h = fighter.height ?? fighter.h ?? 120
 
     ctx.save()
-    ctx.strokeStyle = "rgba(90, 180, 255, 0.8)"
+    ctx.strokeStyle = "rgba(90, 180, 255, 0.8)"   // body / hurtbox
     ctx.lineWidth   = 2
     ctx.strokeRect(x, y, w, h)
 
-    if (fighter.attackHitbox) {
-      const hb = fighter.attackHitbox
+    // Live attack hitbox (only present mid-attack). Prefer the passed-in getter.
+    const hb = (typeof getHitbox === "function" ? getHitbox(fighter) : null)
+      || fighter.attackHitbox || null
+    if (hb) {
       ctx.strokeStyle = "rgba(255, 90, 90, 0.9)"
-      ctx.strokeRect(hb.x, hb.y, hb.width, hb.height)
-    } else if (fighter.attackBox) {
-      const hb = fighter.attackBox
-      ctx.strokeStyle = "rgba(255, 90, 90, 0.9)"
-      ctx.strokeRect(hb.x, hb.y, hb.w, hb.h)
+      ctx.strokeRect(hb.x, hb.y, hb.w ?? hb.width, hb.h ?? hb.height)
     }
     ctx.restore()
   })
@@ -1693,12 +1832,17 @@ export function drawCountdown(ctx, canvas, countdown = 0) {
 export function drawTrainingOverlay(ctx, canvas, info = {}) {
   const { width: w } = getCanvasSize(canvas)
 
+  const fd = info.frameData
+  const fdLine = fd
+    ? `${fd.who} ${fd.name}: ${fd.startup}/${fd.active}/${fd.recovery}  [${fd.phase} ${fd.elapsed}/${fd.total}]`
+    : "Move: —  (start/active/recovery)"
+
   const lines = [
     "Training Mode",
-    `Combo: ${info.combo ?? 0}`,
-    `Damage: ${info.damage ?? 0}`,
-    `State: ${info.state ?? "idle"}`,
-    `Meter Gain: ${info.meterGain ?? 0}`,
+    `Combo: ${info.combo ?? 0}    Last Dmg: ${info.damage ?? 0}`,
+    fdLine,
+    `Infinite HP/EN: ${info.infinite ? "ON" : "OFF"} [F3]`,
+    `Dummy: ${info.dummy ?? "stand"} [F4]    Reset [F2]`,
     `Frame: ${info.frame ?? 0}`
   ]
 
@@ -1706,32 +1850,36 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
   const p2Inputs = Array.isArray(info.p2Inputs) ? info.p2Inputs.join(" ") : ""
 
   const panelY = 70
+  const panelW = 320
 
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.5)"
-  ctx.fillRect(16, panelY, 270, 190)
+  ctx.fillRect(16, panelY, panelW, 196)
   ctx.strokeStyle = "rgba(255,255,255,0.16)"
-  ctx.strokeRect(16, panelY, 270, 190)
+  ctx.strokeRect(16, panelY, panelW, 196)
 
   ctx.fillStyle = "#fff"
-  ctx.font      = "14px Arial"
+  ctx.font      = "13px Arial"
   ctx.textAlign = "left"
 
   lines.forEach((line, i) => {
+    // Highlight the live frame-data line while a move is active.
+    if (i === 2) ctx.fillStyle = fd ? "#ffe08a" : "rgba(255,255,255,0.55)"
+    else ctx.fillStyle = "#fff"
     ctx.fillText(line, 28, panelY + 22 + i * 18)
   })
 
   if (p1Inputs) {
     ctx.fillStyle = "#7fd3ff"
-    ctx.fillText(`P1: ${p1Inputs}`, 28, panelY + 148)
+    ctx.fillText(`P1: ${p1Inputs}`, 28, panelY + 152)
   }
   if (p2Inputs) {
     ctx.fillStyle = "#ff9f9f"
-    ctx.fillText(`P2: ${p2Inputs}`, 28, panelY + 166)
+    ctx.fillText(`P2: ${p2Inputs}`, 28, panelY + 170)
   }
   if (Array.isArray(info.history) && info.history.length && w >= 980) {
     ctx.fillStyle = "rgba(255,255,255,0.75)"
-    ctx.fillText(`Last: ${info.history[0]?.display || "Neutral"}`, 28, panelY + 184)
+    ctx.fillText(`Last: ${info.history[0]?.display || "Neutral"}`, 28, panelY + 188)
   }
 
   ctx.restore()
@@ -1779,7 +1927,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   ctx.fillRect(0, 0, cw, ch)
 
   const panelW = 380
-  const panelH = 320
+  const panelH = 392   // fits 4 items (resume / restart / training / quit)
   const panelX = cw / 2 - panelW / 2
   const panelY = ch / 2 - panelH / 2
 
@@ -1809,6 +1957,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   const items = [
     { label: "Resume",        sub: "Continue the match" },
     { label: "Restart Round", sub: "Reset this round" },
+    { label: "Training Mode", sub: "Practice vs a frozen dummy" },
     { label: "Quit to Menu",  sub: "Return to the title screen" }
   ]
 
@@ -1873,7 +2022,7 @@ function _roundRectPath(ctx, x, y, w, h, r = 10) {
   ctx.closePath()
 }
 
-export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "quitToMenu"]
+export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "trainingMode", "quitToMenu"]
 
 // ═════════════════════════════════════════════════════════════════════════
 // TUTORIAL / HOW TO PLAY

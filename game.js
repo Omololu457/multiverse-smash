@@ -13,7 +13,7 @@ import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
-  defaultControls, defaultControlsP2, clearInputBuffers, PS5_MAP, STICK_DEADZONE
+  clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount, getPlayerGamepad
 } from "./input.js"
 import {
   activeSummons,
@@ -25,9 +25,10 @@ import {
 } from "./summons.js"
 import { physics } from "./physics.js"
 import {
-  updateCombat, resolveProjectileHits,
+  updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   updateProjectiles as updateCombatProjectiles,
-  checkClash, checkParry, resolveGrab, updateGrab
+  checkClash, checkParry, resolveGrab, updateGrab,
+  getAttackPhase, getAttackHitbox   // training overlay: live frame data + real attack hitbox
 } from "./combat.js"
 import {
   activeProjectiles, spawnProjectile,
@@ -43,6 +44,10 @@ import {
   drawProjectiles, drawRoundBreak, drawStartScreen, drawStageSelectScreen,
   drawTrainingCollisionBoxes, drawTrainingOverlay, drawUniverseSelectScreen,
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
+  drawTowerSelectScreen, getTowerSelectRects,
+  drawFFASetupScreen, getFFASetupRects, drawFFACharSelectScreen,
+  drawFFATeamSelectScreen, getFFATeamSelectRects,
+  drawFFASlotSelectScreen, getFFASlotSelectRects,
   PAUSE_MENU_ITEMS, getStartMenuRects, getGameplaySelectRects,
   getAIDifficultyRects, getUniverseCardRects, getCharacterCardRects,
   getStageCardRects, drawStartInfoPanel,
@@ -186,6 +191,12 @@ const GAME_STATES = {
   ACCOUNT:          "account",
   SETTINGS:         "settings",
   GAMEPLAY_SELECT:  "gameplaySelect",
+  TOWER_SELECT:     "towerSelect",     // pick a Tower tier (3/10/25/40/∞ floors)
+  FFA_SETUP:        "ffaSetup",        // free-for-all: choose player count (3/4)
+  FFA_CHARSELECT:   "ffaCharSelect",   // free-for-all: pick a fighter per slot
+  FFA_SLOTSELECT:   "ffaSlotSelect",   // free-for-all: assign each slot to a human device or AI (+ difficulty)
+  FFA_TEAMSELECT:   "ffaTeamSelect",   // free-for-all: assign each slot to Team A/B (or none)
+  FFA_BATTLE:       "ffaBattle",       // free-for-all: N-fighter last-standing / team match
   AI_DIFFICULTY:    "aiDifficulty",
   SELECT_UNIVERSE:  "selectUniverse",
   SELECT_CHARACTER: "selectCharacter",
@@ -221,6 +232,23 @@ const P2_CONTROLS = {
   left: "arrowleft", right: "arrowright", up: "arrowup", down: "arrowdown", jump: "arrowup",
   light: "1", heavy: "2", upAttack: "3", special: "4", ultimate: "5",
   grab: "6", charge: "7", toggle: "7", transform: "7", dash: ""
+}
+// P3/P4 (free-for-all POC ONLY) are CONTROLLER-ONLY — a keyboard can't do a 3rd/4th scheme
+// (key-rollover). A real pad drives them via pollGamepad. These maps carry DISTINCT virtual
+// key-names (NOT the old empty "" — those collapsed every action onto keys[""], so a real P3/P4
+// pad had left==light==grab and was unplayable). The names are synthetic labels only: they're
+// never physical keydowns, so getFighterInput's keyboard fallback stays inert without a pad, but
+// mapInputToVirtualKeys/moveFighter/buildNormalControlState can now tell the actions apart.
+// Shape mirrors P1 (jump shares up; charge/toggle/transform share one bind; dash = double-tap only).
+const P3_CONTROLS = {
+  left: "p3_left", right: "p3_right", up: "p3_up", down: "p3_down", jump: "p3_up",
+  light: "p3_light", heavy: "p3_heavy", upAttack: "p3_upAttack", special: "p3_special", ultimate: "p3_ultimate",
+  grab: "p3_grab", charge: "p3_charge", toggle: "p3_charge", transform: "p3_charge", dash: ""
+}
+const P4_CONTROLS = {
+  left: "p4_left", right: "p4_right", up: "p4_up", down: "p4_down", jump: "p4_up",
+  light: "p4_light", heavy: "p4_heavy", upAttack: "p4_upAttack", special: "p4_special", ultimate: "p4_ultimate",
+  grab: "p4_grab", charge: "p4_charge", toggle: "p4_charge", transform: "p4_charge", dash: ""
 }
 
 // ── KEYBIND UI (Task 2) — P1 keyboard rebinds, IN-MEMORY ONLY (sandbox blocks
@@ -330,7 +358,11 @@ const STAGE_DEFS = [
   { name: "Mugen Train",            series: "demonslayer", landmark: "mugen_train",  sky: "#0c1330", mid: "#241a3a", floor: "#1a1326", accent: "#f59e0b" },
   { name: "Citadel of Ricks",       series: "rickmorty",   landmark: "citadel",      sky: "#11182b", mid: "#1e293b", floor: "#0f172a", accent: "#39ff14" },
   { name: "Null Void",              series: "ben10",       landmark: "null_void",    sky: "#1a0b2e", mid: "#2e1065", floor: "#170a28", accent: "#22d3ee" },
-  { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" }
+  { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" },
+  // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame
+  // 3-4 spread-out combatants without zooming past readability. `worldWidth` overrides the
+  // STAGE_DEF default in the map() below. Used only by the FFA mode's stage selection.
+  { name: "Battle Royale Colosseum", series: "other",      landmark: "citadel",      sky: "#160b22", mid: "#3b1d55", floor: "#0e0716", accent: "#f472b6", worldWidth: 4800, ffa: true }
 ]
 
 // Finalize each stage: shared world/ground metrics + resolved music filename
@@ -400,6 +432,11 @@ const universeKeys     = Object.keys(universeMap)
 
 let hoverStartIndex      = 0
 let hoverGameplayIndex   = 0
+let hoverTowerIndex      = 0
+let hoverFFAIndex        = 0
+let hoverFFACharIndex    = 0
+let hoverFFASlotIndex    = 0
+let hoverFFATeamIndex    = 0
 let hoverDifficultyIndex = 0
 let hoverUniverseIndex   = 0
 let hoverCharacterIndex  = 0
@@ -446,63 +483,79 @@ function applySkin(fighter, skinId) {
   fighter.skinId = skinId
 }
 
-// ── TOWER MODE (Task 6) — MKX-style ladder of escalating CPU fights. ──────────
-// MODULAR: add floors, or define alternate TOWERS (themed variants) and pass the
-// id to startTower(). `healthCarry`: "full" | "partial" (default) | "none".
-// Difficulty per floor feeds ai.js via setAIDifficulty (easy → … → impossible).
-const TOWERS = {
-  jjkGauntlet: {
-    name: "Jujutsu Gauntlet",
-    healthCarry: "partial",
-    floors: [
-      { opponent: "megumi", difficulty: "easy"       },
-      { opponent: "toji",   difficulty: "normal"     },
-      { opponent: "sukuna", difficulty: "hard"       },
-      { opponent: "gojo",   difficulty: "adaptive"   },
-      { opponent: "gojo",   difficulty: "impossible" }   // boss floor
-    ]
-  }
+// ── TOWER MODE — tiered ladder of RANDOM CPU fights. ─────────────────────────
+// FIVE TIERS by floor count (Tier 5 = endless). Each floor is a RANDOMLY chosen
+// opponent on a RANDOMLY chosen stage. Difficulty escalates by FLOOR NUMBER using the
+// SAME schedule for every tier (so Tier 5 escalates naturally, and longer fixed tiers
+// get harder the deeper you go): floors 1-5 easy → 6-15 adaptive → 16+ impossible.
+// Reuses the existing plumbing: applyTowerFloor seam, updateTowerOutcome, continueTower,
+// health-carry (_applyCarry), and the victory→continue wiring.
+const TOWER_TIERS = [
+  { id: "tier1", tier: 1, label: "TIER 1", floors: 3,        endless: false, sub: "3 opponents"  },
+  { id: "tier2", tier: 2, label: "TIER 2", floors: 10,       endless: false, sub: "10 opponents" },
+  { id: "tier3", tier: 3, label: "TIER 3", floors: 25,       endless: false, sub: "25 opponents" },
+  { id: "tier4", tier: 4, label: "TIER 4", floors: 40,       endless: false, sub: "40 opponents" },
+  { id: "tier5", tier: 5, label: "TIER 5", floors: Infinity, endless: true,  sub: "INFINITE — endless escalation" }
+]
+// tier/floors/endless describe the CHOSEN tier; floor is the 0-indexed current floor.
+const towerState = {
+  active: false, tierId: null, tierLabel: "", tier: 0, floors: 0, endless: false,
+  floor: 0, carryPct: 1, cleared: false, _lastWon: false, _applyCarry: false
 }
-const towerState = { active: false, floor: 0, tower: null, carryPct: 1, _lastWon: false, _applyCarry: false }
 
 function isTower() { return matchConfig.mode === "tower" }
+function getTowerTier(id) { return TOWER_TIERS.find(t => t.id === id) }
 
-function startTower(towerId = "jjkGauntlet") {
-  const tower = TOWERS[towerId]
-  if (!tower) return
-  towerState.active = true; towerState.floor = 0; towerState.tower = tower
-  towerState.carryPct = 1; towerState._applyCarry = false
+// Difficulty by 1-indexed floor number — shared by ALL tiers. Only the valid ai.js keys
+// (easy/adaptive/impossible) are used, so nothing silently falls back to easy.
+function towerDifficultyForFloor(floorNum) {
+  if (floorNum <= 5)  return "easy"
+  if (floorNum <= 15) return "adaptive"
+  return "impossible"
+}
+
+function startTower(tierId = "tier1") {
+  const t = getTowerTier(tierId)
+  if (!t) return
+  towerState.active = true; towerState.tierId = t.id; towerState.tierLabel = t.label
+  towerState.tier = t.tier; towerState.floors = t.floors; towerState.endless = t.endless
+  towerState.floor = 0; towerState.carryPct = 1; towerState.cleared = false
+  towerState._lastWon = false; towerState._applyCarry = false
   matchConfig.mode = "tower"
   resetSelections()
-  beginUniverseSelect()   // player picks THEIR fighter; the opponent comes from the floor
+  beginUniverseSelect()   // player picks THEIR fighter; opponents are random per floor
 }
 
-// Force the current floor's opponent + difficulty onto matchConfig (P1 unchanged).
+// Random opponent (any non-hidden fighter) + random stage + escalating difficulty.
+function _towerPickOpponent() {
+  const pool = allCharacterKeys                                  // non-hidden roster
+  return pool[Math.floor(Math.random() * pool.length)] || "gojo"
+}
+function _towerPickStage() {
+  return stages[Math.floor(Math.random() * stages.length)] || stages[0]
+}
+// Force the current floor's RANDOM opponent + RANDOM stage + floor-scaled difficulty
+// onto matchConfig (P1 unchanged). No player stage-select screen while a tower is active.
 function applyTowerFloor() {
-  if (!towerState.active || !towerState.tower) return
-  const f = towerState.tower.floors[towerState.floor]
-  if (!f) return
-  matchConfig.p2CharKey   = f.opponent
-  matchConfig.p2Char      = characters[f.opponent]
-  matchConfig.aiDifficulty = f.difficulty
-  // Tower AUTO-ASSIGNS the stage per floor — no player stage-select screen. FIXED by
-  // floor index (deterministic, a distinct backdrop each floor); an optional floor.stage
-  // name overrides. Regular vs/local matches keep the manual SELECT_STAGE screen (this
-  // only runs while towerState.active).
-  matchConfig.selectedStage =
-    (f.stage && stages.find(s => s.name === f.stage)) ||
-    stages[towerState.floor % stages.length]
+  if (!towerState.active) return
+  const opp = _towerPickOpponent()
+  matchConfig.p2CharKey    = opp
+  matchConfig.p2Char       = characters[opp]
+  matchConfig.aiDifficulty = towerDifficultyForFloor(towerState.floor + 1)   // floor is 0-indexed
+  matchConfig.selectedStage = _towerPickStage()
 }
 
-// Called from _checkMatchOver. Win → XP + remember carry-over health; lose → end.
+// Called from _checkMatchOver. Win → XP + remember carry-over health (+ mark cleared on the
+// final floor of a FIXED tier); lose → end.
 function updateTowerOutcome(winner) {
   if (!towerState.active) return
   if (winner === "p1") {
     towerState._lastWon = true
     awardXp(60 + towerState.floor * 20)
-    const pct  = p1 ? Math.max(0, (p1.health || 0) / (p1.maxHealth || 1)) : 1
-    const mode = towerState.tower.healthCarry
-    towerState.carryPct = mode === "full" ? 1 : mode === "none" ? pct : Math.min(1, pct + 0.35) // partial: +35% heal
+    const pct = p1 ? Math.max(0, (p1.health || 0) / (p1.maxHealth || 1)) : 1
+    towerState.carryPct = Math.min(1, pct + 0.35)   // partial heal between floors
+    // Endless tier never "clears"; a fixed tier clears when its last floor is beaten.
+    if (!towerState.endless && (towerState.floor + 1) >= towerState.floors) towerState.cleared = true
   } else {
     towerState._lastWon = false
     awardXp(20)
@@ -515,7 +568,7 @@ function continueTower() {
   if (!towerState.active) { resetToStart(); return }
   if (!towerState._lastWon) { towerState.active = false; resetToStart(); return }   // lost → tower ends
   towerState.floor++
-  if (towerState.floor >= towerState.tower.floors.length) {
+  if (!towerState.endless && towerState.floor >= towerState.floors) {
     towerState.active = false
     awardXp(150)            // tower-complete bonus
     resetToStart()
@@ -527,7 +580,319 @@ function continueTower() {
   startMatch()
 }
 
-const trainingState    = { enabled: false }
+// ══════════════════════════════════════════════════════════════════════════════
+// FREE-FOR-ALL (Phase 1 POC) — 3-4 fighter last-standing.
+// ──────────────────────────────────────────────────────────────────────────────
+// A PARALLEL path: fighters live in an ARRAY (ffaState.fighters), NOT the p1/p2
+// globals, and run generalized camera/physics/combat. The 1v1 update/render loop is
+// completely untouched (this path only runs while gameState is FFA_*). Scope is
+// deliberately minimal: movement + normals + grab + projectiles + elimination/win.
+// Character SPECIALS/ULTIMATES are intentionally NOT wired here (many are pairwise/
+// cinematic — Gojo Infinity, domains, etc.) — that's a later phase, like team modes.
+const FFA_MAX_PLAYERS = 4
+// teamMode + teams[] (per-slot "A"/"B") extend the SAME ffaState; empty teams → pure FFA.
+// aiSlots[] (per-slot difficulty string, or null/undefined = human) fills any slot with a CPU —
+// so a session can run with fewer real humans than slots (1 human + 3 AI, an AI teammate, etc.).
+const ffaState = { active: false, playerCount: 3, charKeys: [], teams: [], teamMode: false, fighters: [], over: false, winner: null, winnerTeam: null, pickSlot: 0, aiSlots: [] }
+const FFA_CONTROLS = [P1_CONTROLS, P2_CONTROLS, P3_CONTROLS, P4_CONTROLS]
+const FFA_SIDES    = ["p1", "p2", "p3", "p4"]
+// Per-slot tint so 3-4 same-ish fighters read apart at a glance (rendered via tintColor).
+const FFA_SLOT_TINT = [null, "rgba(239,68,68,0.35)", "rgba(34,197,94,0.35)", "rgba(234,179,8,0.35)"]
+// TEAM MODE — 2 teams (A/B) support UNEVEN splits (1v2, 1v3, 2v2). Colours drive the HUD
+// bars, the fighter sprite wash (visual team indicator) and the winner banner.
+const FFA_TEAMS   = ["A", "B"]
+const TEAM_COLORS = { A: "#38bdf8", B: "#fb7185" }
+const TEAM_TINT   = { A: "rgba(56,189,248,0.40)", B: "rgba(251,113,133,0.44)" }
+// Same-team test — only bites in team mode (pure FFA has no team property → always false).
+function ffaSameTeam(a, b) { return !!(ffaState.teamMode && a && b && a.team && a.team === b.team) }
+
+// AI-fill difficulty cycle (reuses ai.js AI_DIFFICULTIES tiers). A device-capable slot cycles
+// HUMAN(null) → easy → adaptive → impossible → HUMAN; a slot with no device skips HUMAN.
+const FFA_AI_DIFFS = ["easy", "adaptive", "impossible"]
+function ffaCycleSlotAssignment(slot) {
+  const forced  = slot >= ffaDeviceCount()               // no device → CPU only
+  const current = ffaState.aiSlots[slot] || null
+  const idx     = FFA_AI_DIFFS.indexOf(current)          // -1 when currently HUMAN
+  if (idx < 0) { ffaState.aiSlots[slot] = FFA_AI_DIFFS[0]; return }        // HUMAN → first CPU tier
+  if (idx < FFA_AI_DIFFS.length - 1) { ffaState.aiSlots[slot] = FFA_AI_DIFFS[idx + 1]; return }  // next tier
+  ffaState.aiSlots[slot] = forced ? FFA_AI_DIFFS[0] : null                // wrap: forced→easy, else→HUMAN
+}
+
+// Default per-slot assignment when entering slot-select: any slot beyond the connected devices
+// defaults to CPU (easy); device-backed slots default to HUMAN. This is the "any slot not
+// claimed by a device defaults to AI" rule — applied at the UI layer, NOT in startFFAMatch
+// (so the harness/explicit callers keep full control and existing all-human tests are unaffected).
+function ffaDefaultAISlots(count) {
+  const dev = ffaDeviceCount()
+  return Array.from({ length: count }, (_, i) => (i < dev ? null : "easy"))
+}
+
+// Local input capacity: keyboard P1 + keyboard P2 + one controller per connected pad.
+// The setup screen caps player count to this so no uncontrollable fighter can spawn.
+function ffaMaxAvailablePlayers() {
+  return Math.min(FFA_MAX_PLAYERS, 2 + (getConnectedPadCount?.() || 0))
+}
+
+// Connected local input DEVICES: keyboard P1 + keyboard P2 + one per pad. Slots below this
+// index CAN be driven by a human; slots at/above it have no device and default to AI (a
+// player may also choose AI for a device-capable slot). With AI-fill, player COUNT is no
+// longer device-capped (AI fills the rest) — this only bounds how many slots can be human.
+function ffaDeviceCount() { return Math.min(FFA_MAX_PLAYERS, 2 + (getConnectedPadCount?.() || 0)) }
+
+// SYNTHETIC control map for an AI-driven FFA slot. AI fighters are driven exactly like the
+// 1v1 CPU — applyAIInputToKeys writes into the `keys` global and getFighterInput reads it back
+// (with buffering) — so they need REAL, unique key names. The human P3/P4 maps bind to empty
+// strings ("") which collapse every action onto keys[""]; these private names never collide
+// with human binds or each other. Mirrors P1's shape (jump shares up; charge/toggle/transform
+// share one key; dash is double-tap only → unbound).
+function makeAIControls(slot) {
+  const p = `_ai${slot}_`
+  return {
+    left: p + "L", right: p + "R", up: p + "U", down: p + "D", jump: p + "U",
+    light: p + "lt", heavy: p + "hv", upAttack: p + "ua", special: p + "sp", ultimate: p + "ult",
+    grab: p + "gr", charge: p + "ch", toggle: p + "ch", transform: p + "ch", dash: ""
+  }
+}
+
+function ffaAliveFighters() { return ffaState.fighters.filter(f => f && !f.eliminated) }
+
+// Nearest OTHER living ENEMY — the "primary" target for grab/facing/updateCombat. In team
+// mode teammates are skipped (friendly fire off); in pure FFA the skip is a no-op so any
+// other fighter qualifies. Multi-target resolution below also skips teammates.
+function ffaNearest(fighter, others) {
+  let best = null, bestD = Infinity
+  for (const o of others) {
+    if (!o || o === fighter || o.eliminated) continue
+    if (ffaSameTeam(fighter, o)) continue
+    const d = Math.abs((o.x || 0) - (fighter.x || 0))
+    if (d < bestD) { bestD = d; best = o }
+  }
+  return best
+}
+
+// Face each fighter toward its nearest living opponent (generalized updateFacing).
+function updateFFAFacing(live) {
+  for (const f of live) {
+    const n = ffaNearest(f, live)
+    if (n) f.facing = (n.x < f.x) ? -1 : 1
+  }
+}
+
+// ── AI-FILLED SLOTS ───────────────────────────────────────────────────────────
+// Drive every AI-assigned fighter for this frame. Each AI slot owns its OWN controller
+// instance (created in setupFFAFighters), so N CPUs run independently — the single 1v1
+// p2AI is NOT shared here. TARGET SELECTION runs FIRST and re-picks every frame: the
+// nearest living OPPONENT (ffaNearest already skips self, the eliminated, AND — in team
+// mode — teammates, so an AI never even attempts to attack an ally, and a KO'd target is
+// dropped on the very next frame with no stuck state). The chosen enemy is then handed to
+// the UNCHANGED per-target ai.js decision logic via getAIInput/applyAIInputToKeys — the
+// exact path the 1v1 CPU uses (writes fighter.controls keys → getFighterInput buffers them).
+// Choosing NEAREST (not lowest-health) keeps the AI's target aligned with the fighter it is
+// already facing and whose hurtbox its multi-target swing will actually reach.
+function updateFFAAIInputs(live) {
+  for (const f of live) {
+    if (!f?._aiControlled || !f._aiController) continue
+    const target = ffaNearest(f, live)
+    f._aiTargetSlot = target ? target.ffaSlot : null
+    if (!target) { clearAIControlKeys(f); continue }   // no valid opponent (shouldn't happen mid-match)
+    applyAIInputToKeys(f, getAIInput(f._aiController, f, target, { stage: getStageTheme(), roundNumber, mode: "ffa" }))
+  }
+}
+
+// One fighter's combat step: normals/grab/timers via updateCombat (vs the nearest), THEN
+// the active hitbox is tested against EVERY other fighter (not one fixed defender). hasHit
+// gates it to a single connect per swing (a punch hits whoever's in range first).
+function updateFFACombat(fighter, others, opts) {
+  const nearest = ffaNearest(fighter, others)
+  if (!nearest) return
+  if (fighter.hitstun > 0 || fighter.blockstun > 0) { updateCombat(fighter, nearest, {}, opts); return }
+
+  const inputState = getFighterInput(fighter)
+  const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
+  const ctrlState  = buildNormalControlState(fighter, vKeys)
+  // Harness/dev hook: force a normal this frame (controller players can't be driven from
+  // Playwright, so tests trigger P3/P4 attacks through this).
+  if (fighter._forceAttack) { ctrlState[fighter._forceAttack] = true; fighter._forceAttack = null }
+
+  updateCombat(fighter, nearest, ctrlState, opts)   // input→move, timers, recovery + hit vs nearest
+
+  // MULTI-TARGET: if the swing hasn't connected with the nearest, test it against the rest.
+  // FRIENDLY FIRE OFF: teammates are NOT valid targets (full no-sell — the swing passes
+  // through allies to reach an enemy behind them, rather than body-blocking a whiff).
+  if (fighter.attacking && fighter.currentAttack && !fighter.currentAttack.hasHit) {
+    for (const d of others) {
+      if (!d || d === nearest || d.eliminated || ffaSameTeam(fighter, d)) continue
+      resolveAttackHit(fighter, d, opts.hitEffects, { stageWidth: opts.stageWidth, damageNumbers: opts.damageNumbers })
+      if (fighter.currentAttack?.hasHit) break
+    }
+  }
+}
+
+// Lightweight effects tick for FFA (the 2p updateEffectsAndDomains is p1/p2-coupled).
+function updateFFAEffects(live) {
+  updateEffects()
+  updateEnergyRegen(live)
+  for (let i = hitSparks.length - 1; i >= 0; i--) {
+    const spark = hitSparks[i]
+    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); spark._fresh = false }
+    spark.timer--
+    if (spark.timer <= 0) hitSparks.splice(i, 1)
+  }
+  updateDamageNumbers()
+}
+
+// Spawn N fighters spread across the WIDE arena. In team mode fighters are ORDERED so
+// teammates spawn adjacent (all Team A on the left, Team B on the right) — reads clearly
+// and gives each team a side. tintColor washes the sprite by team (or by slot in pure FFA).
+function setupFFAFighters(count, charKeys, teams, aiSlots = []) {
+  const ww = getStageWorldWidth()
+  const order = Array.from({ length: count }, (_, i) => i)
+  if (ffaState.teamMode) order.sort((a, b) => (teams[a] || "").localeCompare(teams[b] || ""))
+  const fighters = []
+  order.forEach((slot, pos) => {
+    const key  = charKeys[slot] || "gojo"
+    const char = characters[key] || characters.gojo
+    const frac = count <= 1 ? 0.5 : 0.16 + 0.68 * (pos / (count - 1))
+    const x    = Math.round(ww * frac)
+    // AI slot → give it a private synthetic control map (so applyAIInputToKeys/getFighterInput
+    // round-trip) and its OWN controller. Human slot → its real device control map.
+    const aiDiff   = aiSlots[slot] || null
+    const controls = aiDiff ? makeAIControls(slot) : FFA_CONTROLS[slot]
+    const f = createFighter(key, char, x, x < ww / 2 ? 1 : -1, controls, FFA_SIDES[slot])
+    applySkin(f, "default")
+    f.ffaSlot = slot
+    f.eliminated = false
+    if (aiDiff) {
+      f._aiControlled = true
+      f.aiDifficulty  = aiDiff
+      f._aiController  = createAIController(aiDiff)
+      f._aiTargetSlot  = null
+    }
+    if (ffaState.teamMode) {
+      f.team = teams[slot] || "A"
+      f.tintColor = TEAM_TINT[f.team] || null   // sprite wash = team colour (visual indicator)
+    } else if (FFA_SLOT_TINT[slot]) {
+      f.tintColor = FFA_SLOT_TINT[slot]
+    }
+    fighters.push(f)
+  })
+  // Keep fighters indexed by SLOT so harness hooks / HUD address players consistently.
+  const bySlot = []
+  for (const f of fighters) bySlot[f.ffaSlot] = f
+  return bySlot
+}
+
+function startFFAMatch() {
+  matchConfig.mode = "ffa"
+  matchConfig.selectedStage = stages.find(s => s.ffa) || stages[0]
+  ffaState.active = true; ffaState.over = false; ffaState.winner = null; ffaState.winnerTeam = null
+  // Team mode is on when ≥2 distinct teams are assigned across the slots.
+  const distinctTeams = new Set((ffaState.teams || []).slice(0, ffaState.playerCount))
+  ffaState.teamMode = distinctTeams.size >= 2
+  syncPhysicsBounds()
+  ffaState.fighters = setupFFAFighters(ffaState.playerCount, ffaState.charKeys, ffaState.teams, ffaState.aiSlots)
+  clearAbilityState(); clearEffects(); clearDomains()
+  hitSparks.length = 0; damageNumbers.length = 0; activeDomains.length = 0
+  if (typeof clearInputBuffers === "function") clearInputBuffers(ffaState.fighters)
+  countdown = ROUND_START_COUNTDOWN
+  if (typeof camera.reset === "function") camera.reset()
+  updateCameraBounds()
+  camera.updateMulti(ffaState.fighters, canvas, true)   // SNAP to frame the full spread
+  sound.playStageTrack?.(matchConfig.selectedStage)
+  gameState = GAME_STATES.FFA_BATTLE
+}
+
+function updateFFABattle() {
+  const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() }
+  if (ffaState.over) return   // result overlay is showing; wait for a click (handleMenuClicks)
+
+  if (countdown > 0) {
+    if (countdown === 1) sound.play?.(SFX.UI_MATCH_START)
+    countdown = Math.max(0, countdown - 1)
+    camera.updateMulti(ffaAliveFighters(), canvas)
+    return
+  }
+
+  const live = ffaAliveFighters()
+  for (const f of live) updateGamepadEdges(f)         // controller motion/edges (P3/P4 pads)
+  updateFFAFacing(live)
+  updateFFAAIInputs(live)                             // AI-filled slots: pick target + write their keys BEFORE input is read
+  for (const f of live) updateMovementInput(f)
+  // Harness/dev movement injection (controller players can't be driven from Playwright).
+  for (const f of live) if (f._forceMove) f.vx = f._forceMove * (f.baseSpeed || f.speed || 7)
+  for (let i = 0; i < ffaState.fighters.length; i++) {
+    const f = ffaState.fighters[i]
+    if (f && !f.eliminated) ffaState.fighters[i] = updateFighterState(f)
+  }
+
+  const live2 = ffaAliveFighters()
+  // PHYSICS: pairwise body collision over EVERY pair (up to 6 at 4 players).
+  for (let i = 0; i < live2.length; i++)
+    for (let j = i + 1; j < live2.length; j++)
+      physics.resolvePlayerCollision(live2[i], live2[j])
+
+  updateFFAFacing(live2)
+  updateFFAEffects(live2)
+  // COMBAT: each fighter's hitbox vs every other's hurtbox.
+  for (const f of live2) if (live2.length > 1) updateFFACombat(f, live2.filter(o => o !== f), opts)
+
+  // PROJECTILES: hit any non-owner fighter.
+  updateCombatProjectiles(activeProjectiles, getStageWorldWidth(), live2)
+  resolveProjectileHitsMulti(activeProjectiles, live2, hitSparks, damageNumbers)
+
+  // CAMERA: frame ALL living fighters.
+  camera.updateMulti(ffaAliveFighters(), canvas)
+
+  checkFFAOutcome()
+}
+
+// Eliminate any fighter at 0 health. WIN: pure FFA = last individual standing; TEAM mode =
+// last team with a surviving member (a KO does NOT end the round while a teammate lives).
+function checkFFAOutcome() {
+  for (const f of ffaState.fighters) {
+    if (f && !f.eliminated && (f.health || 0) <= 0) {
+      f.eliminated = true
+      f.vx = 0; f.vy = 0
+      knockoutFlash = Math.max(knockoutFlash, 14)
+      camera.shake?.(10, 8)
+    }
+  }
+  if (ffaState.over) return
+  const alive = ffaAliveFighters()
+  if (ffaState.teamMode) {
+    const teamsLeft = [...new Set(alive.map(f => f.team))]
+    if (teamsLeft.length <= 1) {
+      ffaState.over = true
+      ffaState.winnerTeam = teamsLeft[0] || null
+      ffaState.winner = alive[0] || null
+      sound.play?.(SFX.KO); sound.stopMusic?.()
+    }
+  } else if (alive.length <= 1) {
+    ffaState.over = true
+    ffaState.winner = alive[0] || null
+    ffaState.winnerTeam = null
+    sound.play?.(SFX.KO); sound.stopMusic?.()
+  }
+}
+
+function endFFA() {
+  ffaState.active = false; ffaState.over = false; ffaState.winner = null; ffaState.winnerTeam = null
+  ffaState.teamMode = false; ffaState.teams = []; ffaState.fighters = []; ffaState.aiSlots = []
+  matchConfig.mode = "vs"
+  resetToStart()
+}
+
+// Training mode state. `enabled` is derived each frame (menu mode OR F1 debug). The
+// rest are training-only toggles driven by hotkeys (F2 reset / F3 infinite / F4 dummy):
+//   infiniteResources — pin BOTH fighters' health+energy to max each frame (toggle via
+//     F3; default OFF so damage/combo/meter read naturally and the dummy visibly takes
+//     hits — turn ON for long practice so nobody dies or runs out of meter). KO already
+//     can't end a training session (checkRoundEnd skips), so this is purely convenience.
+//   dummyBehavior     — "stand" | "block" | "jump": training-only override applied in
+//     updateCPUInput (does NOT touch ai.js's shared "dummy" zero-baseline profile).
+const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand" }
+const DUMMY_BEHAVIORS = ["stand", "block", "jump"]
+const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
 const p2AI             = createAIController("easy")
 const settingsButtonRect = { x: window.innerWidth - 220, y: 30, w: 180, h: 50 }
 
@@ -619,7 +984,8 @@ function syncPhysicsBounds() {
   physics.groundY = groundY
 }
 
-function getControlsForHistory(side) { return side === "p1" ? defaultControls : defaultControlsP2 }
+// Single source of truth: the live P1/P2 bind maps (rebindable at runtime).
+function getControlsForHistory(side) { return side === "p1" ? P1_CONTROLS : P2_CONTROLS }
 function getGroundedYForHeight(h)    { return groundY - toFiniteNumber(h, 100) }
 function getGroundedYForFighter(f)   { return getGroundedYForHeight(f?.h ?? f?.height) }
 
@@ -683,7 +1049,8 @@ function createFighter(charKey, char, x, facing, controls, side) {
   return {
     ...char,
     rosterKey: charKey,
-    playerNumber: side === "p1" ? 1 : 2,
+    // p1→1, p2→2, p3→3, p4→4 (p3/p4 only exist in the FFA POC). 1v1 is unchanged.
+    playerNumber: { p1: 1, p2: 2, p3: 3, p4: 4 }[side] || 2,
     // Ben 10's chosen 5-alien Omnitrix loadout (read by setupBen10 on frame 1).
     selectedAliens: (side === "p1" ? matchConfig.p1Aliens : matchConfig.p2Aliens) || null,
     side, controls, x,
@@ -885,12 +1252,21 @@ function drawNamecallBanner() {
 }
 
 function startMatch() {
+  // A standard 1v1/tower/training match never runs the FFA array path — make the flag honest
+  // in case an FFA session was left without the result-screen exit (dispatch keys off gameState,
+  // so this is bookkeeping hygiene, not a behavior gate).
+  ffaState.active = false
   roundNumber  = 1
   roundWins    = { p1: 0, p2: 0 }
   winnerText   = ""
   matchStats   = createMatchStats()
   victoryState = createVictoryState()
   roundTimer   = ROUND_TIME
+  // Fresh match → default training toggles (a NEW session shouldn't inherit the last
+  // one's infinite/dummy state). Per-round resets (resetRound) deliberately DON'T touch
+  // these, so a toggle persists across rounds within the same session.
+  trainingState.infiniteResources = false
+  trainingState.dummyBehavior     = "stand"
 
   if (matchConfig.p1CharKey) { preloadCharacterSprites?.(matchConfig.p1CharKey); loadSpriteSheets(matchConfig.p1CharKey) }
   if (matchConfig.p2CharKey) { preloadCharacterSprites?.(matchConfig.p2CharKey); loadSpriteSheets(matchConfig.p2CharKey) }
@@ -1106,14 +1482,34 @@ function _checkMatchOver() {
       : winner === "p2" ? (p2?.name || (isPvP() ? "Player 2" : "CPU"))
       : "Draw"
     victoryState.stats = matchStats
-    recordRoundEnd?.(matchStats, winner, p1?.health || 0, p2?.health || 0)
+    // recordRoundEnd is now called PER ROUND (checkRoundEnd) so perfectRounds reflects the
+    // whole match — NOT re-called here (that would double-count the final round).
+    // FLAWLESS VICTORY: the winner swept every round (opponent won none) with ZERO damage
+    // taken — i.e. all their won rounds are perfect. Reuses matchflow perfectRounds detection.
+    const loser = winner === "p1" ? "p2" : "p1"
+    const ws = matchStats?.[winner], ls = matchStats?.[loser]
+    victoryState.flawless = !!(winner !== "draw" && ws && ls &&
+      ls.roundsWon === 0 && ws.roundsWon > 0 && ws.perfectRounds === ws.roundsWon)
+    victoryState.subtitle = ""
+    victoryState.primaryLabel = "REMATCH"
     // PROGRESSION (Task 3): award XP from the local player's (P1) perspective.
     // Skip training. Tower mode handles its own flow (advance/end) in updateTowerOutcome.
     if (matchConfig.mode !== "training") {
       const p1Won  = winner === "p1"
       victoryState.xpResult = awardMatchXp({ won: p1Won, roundsWon: roundWins.p1, perfect: p1Won && roundWins.p2 === 0 })
     }
-    if (towerState.active) updateTowerOutcome(winner)
+    if (towerState.active) {
+      updateTowerOutcome(winner)
+      // Tower-aware result screen: floor context + a "NEXT FLOOR" / "TOWER CLEARED" prompt.
+      const floorNum = towerState.floor + 1
+      if (winner === "p1") {
+        if (towerState.cleared) { victoryState.subtitle = `${towerState.tierLabel} CLEARED — ${towerState.floors} FLOORS`; victoryState.primaryLabel = "CONTINUE" }
+        else                    { victoryState.subtitle = `${towerState.tierLabel} · FLOOR ${floorNum} CLEARED`;          victoryState.primaryLabel = "NEXT FLOOR" }
+      } else {
+        victoryState.subtitle = `${towerState.tierLabel} · FELL ON FLOOR ${floorNum}`
+        victoryState.primaryLabel = "MAIN MENU"
+      }
+    }
     sound.stopMusic?.()
     sound.play?.(SFX.KO)
     sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
@@ -1215,6 +1611,15 @@ function updateCPUInput() {
   // its first forced revert.
   if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
   applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode }))
+
+  // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied
+  // AFTER the AI keys are written, and ONLY in training — this is training-specific state,
+  // NOT a change to ai.js's shared zero-baseline "dummy" profile.
+  if (trainingState.enabled && trainingState.dummyBehavior !== "stand") {
+    const c = p2.controls
+    if (trainingState.dummyBehavior === "block") keys[c.down] = true           // hold guard
+    else if (trainingState.dummyBehavior === "jump" && p2.onGround) keys[c.up] = true  // hop when grounded
+  }
 }
 
 function handlePauseInput(key) {
@@ -1231,6 +1636,16 @@ function handlePauseInput(key) {
     const sel = PAUSE_MENU_ITEMS[pauseMenuIndex]
     if (sel === "resume")       gameState = stateBeforePause || GAME_STATES.BATTLE
     else if (sel === "restartRound") { gameState = stateBeforePause || GAME_STATES.BATTLE; resetRound() }
+    else if (sel === "trainingMode") {
+      // Jump into a training session from a live match: flip the match to training +
+      // force the dummy CPU, then reuse the SAME setup path the GAMEPLAY_SELECT flow
+      // uses (resetRound → ensureTrainingOpponent + setAIDifficulty "dummy" via the
+      // mode check at line ~839). No duplicated setup logic.
+      matchConfig.mode         = "training"
+      matchConfig.aiDifficulty = "dummy"
+      gameState = stateBeforePause || GAME_STATES.BATTLE
+      resetRound()
+    }
     else if (sel === "quitToMenu")   resetToStart()
   }
 }
@@ -1352,10 +1767,14 @@ function detectDoubleTapDashTeleport(fighter, key) {
 // battle frame for any controller player. No-op for keyboard players / no pad.
 function updateGamepadEdges(fighter) {
   if (!fighter) return
-  const isP1 = fighter.playerNumber === 1
-  const type = isP1 ? inputSettings.p1Type : inputSettings.p2Type
+  // Generalized to ALL slots (1-4). Was P1/P2-only: it read p1Type/p2Type and grabbed the pad by
+  // raw array position (gamepads[0]/[1]), so P3/P4 got the wrong pad (or P2's) and their d-pad
+  // motions/dash/L2-toggle never registered. Now it resolves the SAME index-bound pad pollGamepad
+  // uses (getPlayerGamepad), keeping the two paths consistent for any number of pads.
+  const pn   = fighter.playerNumber || 1
+  const type = inputSettings[{ 1: "p1Type", 2: "p2Type", 3: "p3Type", 4: "p4Type" }[pn] || "p2Type"]
   if (type !== "controller") return
-  const gp = (navigator.getGamepads?.() || [])[isP1 ? 0 : 1]
+  const gp = getPlayerGamepad(pn)
   if (!gp) return
   const c    = fighter.controls
   const prev = fighter._gpPrev || (fighter._gpPrev = {})
@@ -1690,10 +2109,57 @@ function updateEffectsAndDomains() {
   updateComboDisplay(p2, "p2")
 }
 
+// Edge-detect a raw key (true only on the frame it goes down). Used for the training
+// hotkeys so a held key fires once, not every frame.
+function _trainingKeyPressed(k) {
+  const down = !!keys[k]
+  const fired = down && !_trainingKeyPrev[k]
+  _trainingKeyPrev[k] = down
+  return fired
+}
+
+// Snap both fighters back to neutral: spawn positions/facing, full resources, and
+// clear all combat state (hitstun/knockdown/combo/attack) so a move can be re-tested
+// immediately without leaving the mode.
+function resetTraining() {
+  if (!p1 || !p2) return
+  const { p1X, p2X } = getSpawnPositions()
+  ;[[p1, p1X, 1], [p2, p2X, -1]].forEach(([f, x, facing]) => {
+    f.x = x; f.facing = facing
+    if (f.groundY != null) f.y = f.groundY - (f.h || 0)   // each fighter stores its own floor
+    f.vx = 0; f.vy = 0
+    f.onGround = true; f.grounded = true
+    f.health = f.maxHealth || f.health
+    f.energy = f.maxEnergy || 0
+    f.hitstun = 0; f.blockstun = 0; f.stun = 0; f.hitstop = 0
+    f.knockdownState = false; f.knockdownTimer = 0
+    f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
+    f.attacking = false; f.isBlocking = false; f.isLaunched = false
+  })
+}
+
 function updateTrainingMode() {
   const debug = getDebugInputState()
   trainingState.enabled = matchConfig.mode === "training" || !!debug.trainingMode
   if (!trainingState.enabled || !p1 || !p2) return
+
+  // Training hotkeys (edge-detected): F2 reset · F3 infinite health/energy · F4 dummy behavior.
+  if (_trainingKeyPressed("f2")) resetTraining()
+  if (_trainingKeyPressed("f3")) trainingState.infiniteResources = !trainingState.infiniteResources
+  if (_trainingKeyPressed("f4")) {
+    const i = DUMMY_BEHAVIORS.indexOf(trainingState.dummyBehavior)
+    trainingState.dummyBehavior = DUMMY_BEHAVIORS[(i + 1) % DUMMY_BEHAVIORS.length]
+  }
+
+  // Infinite health/energy: pin BOTH fighters to max each frame. Damage numbers still
+  // pop (so combo/damage readouts work) but neither fighter drains or dies.
+  if (trainingState.infiniteResources) {
+    for (const f of [p1, p2]) {
+      if (f.maxHealth) f.health = f.maxHealth
+      if (f.maxEnergy) f.energy = f.maxEnergy
+    }
+  }
+
   recordInputFrame("P1", getControlsForHistory("p1"), p1, globalFrameCount)
   recordInputFrame("P2", getControlsForHistory("p2"), p2, globalFrameCount)
   recordInputSequence(getControlsForHistory("p1"))
@@ -1704,19 +2170,26 @@ function updateTrainingMode() {
 // ROUND END
 // ------------------------------------------------------------------
 function checkRoundEnd() {
-  if (!p1 || !p2 || matchConfig.mode === "training") return
+  // Skip ALL round-end handling (timer/KO/victory) whenever training is active — via the
+  // menu (matchConfig.mode) OR the F1 debug toggle. Previously only the menu path skipped,
+  // so F1-training in a match could still trigger a KO/victory screen mid-session.
+  if (!p1 || !p2 || trainingState.enabled) return
   if (roundTimer <= 0) {
     const p1h = p1?.health || 0, p2h = p2?.health || 0
-    if      (p1h > p2h) { roundWins.p1++; winnerText = isPvP() ? "Time Over — Player 1 Wins" : "Time Over — Player 1 Wins" }
-    else if (p2h > p1h) { roundWins.p2++; winnerText = isPvP() ? "Time Over — Player 2 Wins" : "Time Over — CPU Wins" }
+    let rw = null
+    if      (p1h > p2h) { roundWins.p1++; rw = "p1"; winnerText = isPvP() ? "Time Over — Player 1 Wins" : "Time Over — Player 1 Wins" }
+    else if (p2h > p1h) { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Time Over — Player 2 Wins" : "Time Over — CPU Wins" }
     else                { winnerText = "Time Over — Draw" }
+    recordRoundEnd?.(matchStats, rw, p1h, p2h)   // per-round (drives perfectRounds → FLAWLESS)
     _checkMatchOver(); return
   }
   if (p1.health > 0 && p2.health > 0) return
   if ((p1.health <= 0 || p2.health <= 0) && knockoutFlash === 0) knockoutFlash = 18
+  let rw = null
   if      (p1.health <= 0 && p2.health <= 0) winnerText = "Double KO"
-  else if (p1.health > 0) { roundWins.p1++; winnerText = "Player 1 Wins Round" }
-  else                    { roundWins.p2++; winnerText = isPvP() ? "Player 2 Wins Round" : "CPU Wins Round" }
+  else if (p1.health > 0) { roundWins.p1++; rw = "p1"; winnerText = "Player 1 Wins Round" }
+  else                    { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Player 2 Wins Round" : "CPU Wins Round" }
+  recordRoundEnd?.(matchStats, rw, p1?.health || 0, p2?.health || 0)   // per-round (drives perfectRounds)
   _checkMatchOver()
 }
 
@@ -2161,7 +2634,7 @@ function drawBattleScene() {
   _drawChargeAura(p1)
   _drawChargeAura(p2)
   drawHitSparksEnhanced()
-  if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], camera)
+  if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
@@ -2169,21 +2642,70 @@ function drawBattleScene() {
   ctx.restore()
 }
 
+// Running floor-count badge for Tower runs (all tiers). For Tier 5 (endless) it doubles
+// as the "how high can you climb" high-score readout — no total, just the running floor.
+function drawTowerHud(ctx, canvas) {
+  if (!towerState.active) return
+  const cw = canvas.width
+  const floorNum = towerState.floor + 1
+  const label = towerState.endless
+    ? `${towerState.tierLabel}  ·  FLOOR ${floorNum}`
+    : `${towerState.tierLabel}  ·  FLOOR ${floorNum} / ${towerState.floors}`
+  const diff = (matchConfig.aiDifficulty || "").toUpperCase()
+  const y = 92, h = 30, r = 8
+  ctx.save()
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  ctx.font = "800 20px Arial"
+  const w = ctx.measureText(label).width + 46
+  const x = cw / 2 - w / 2
+  ctx.beginPath()
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r)
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath()
+  ctx.fillStyle = "rgba(10,14,30,0.72)"; ctx.fill()
+  ctx.strokeStyle = towerState.endless ? "#c084fc" : "rgba(160,180,230,0.55)"; ctx.lineWidth = 1.5; ctx.stroke()
+  ctx.fillStyle = "#f1f5f9"; ctx.shadowBlur = 8; ctx.shadowColor = towerState.endless ? "#a855f7" : "rgba(120,170,255,0.5)"
+  ctx.fillText(label, cw / 2, y + h / 2 + 1)
+  ctx.shadowBlur = 0
+  ctx.font = "700 11px Arial"; ctx.fillStyle = "rgba(200,210,230,0.6)"
+  ctx.fillText(diff, cw / 2, y + h + 10)
+  ctx.restore()
+}
+
 function drawBattleHud() {
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
   drawControlsInfo(ctx, canvas)
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
+  drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)
   drawLowHealthWarning?.(ctx, canvas, p1, p2, globalFrameCount)
   if (!trainingState.enabled) return
+  const lastDmg = damageNumbers.length ? (damageNumbers[damageNumbers.length - 1].value || 0) : 0
   drawTrainingOverlay(ctx, canvas, {
     combo:     Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0),
-    damage:    0,
+    damage:    lastDmg,
     state:     matchConfig.mode === "training" ? "training" : "debug",
     meterGain: 0, frame: globalFrameCount,
+    frameData: buildTrainingFrameData(),
+    infinite:  trainingState.infiniteResources,
+    dummy:     trainingState.dummyBehavior,
     p1Inputs:  getRelativeDirectionsFromHistory(p1),
     p2Inputs:  getRelativeDirectionsFromHistory(p2),
     history:   getInputHistory()
   })
+}
+
+// Live frame-data string for whichever fighter is mid-attack (P1 preferred). The
+// startup/active/recovery numbers already exist on the attack object; derive them from
+// activeStart/activeEnd/total and show the current phase + elapsed frame.
+function buildTrainingFrameData() {
+  const f = (p1?.currentAttack ? p1 : (p2?.currentAttack ? p2 : null))
+  if (!f) return null
+  const a = f.currentAttack
+  const startup  = a.activeStart
+  const active   = (a.activeEnd - a.activeStart) + 1
+  const recovery = a.total - a.activeEnd
+  const elapsed  = a.total - a.timer
+  const name = a.name || f.currentMove || "move"
+  return { who: f === p1 ? "P1" : "P2", name, startup, active, recovery, phase: getAttackPhase(f), elapsed, total: a.total }
 }
 
 function _worldToScreen(wx, wy) {
@@ -2296,6 +2818,98 @@ function drawBattle() {
   _drawVowCue()
   drawKuramaCinematic(ctx, canvas)   // fullscreen Tailed Beast Bomb overlay, on top of all
 }
+
+// ── FREE-FOR-ALL rendering (parallel to drawBattle; array-driven) ─────────────
+const FFA_BAR_COLORS = ["#38bdf8", "#f87171", "#4ade80", "#facc15"]   // per-slot bar colour
+function drawFFAScene() {
+  const stage = getStageTheme()
+  const hasTransform = typeof camera.applyTransform === "function"
+  ctx.save()
+  if (hasTransform) camera.applyTransform(ctx, canvas)
+  drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight())
+  if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+  if (hasTransform) camera.applyTransform(ctx, canvas)
+  drawProjectiles(ctx, activeProjectiles, camera)
+  for (const f of ffaState.fighters) if (f && !f.eliminated) renderHybridFighter(f)
+  drawHitSparksEnhanced()
+  if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+  ctx.restore()
+}
+
+function drawFFAHud() {
+  const cw = canvas.width
+  // Per-fighter health bars across the top, one column per slot.
+  const n = ffaState.fighters.length
+  const gap = 12, totalW = Math.min(cw - 80, n * 240), barW = (totalW - (n - 1) * gap) / n
+  const x0 = cw / 2 - totalW / 2, y = 20, h = 20
+  ffaState.fighters.forEach((f, i) => {
+    if (!f) return
+    const x = x0 + i * (barW + gap)
+    const frac = Math.max(0, (f.health || 0) / (f.maxHealth || 1))
+    // TEAM MODE: bar colour = team colour (visual team indicator); FFA: per-slot colour.
+    const col = ffaState.teamMode ? (TEAM_COLORS[f.team] || "#94a3b8") : FFA_BAR_COLORS[i]
+    ctx.save()
+    ctx.fillStyle = "rgba(8,12,26,0.85)"; ctx.fillRect(x - 2, y - 2, barW + 4, h + 4)
+    if (ffaState.teamMode) { ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.strokeRect(x - 2, y - 2, barW + 4, h + 4) }
+    ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(x, y, barW, h)
+    ctx.fillStyle = f.eliminated ? "#4b5563" : col
+    ctx.fillRect(x, y, barW * frac, h)
+    ctx.fillStyle = f.eliminated ? "#9ca3af" : "#f1f5f9"
+    ctx.font = "700 12px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle"
+    const tag = ffaState.teamMode ? `[${f.team}] ` : ""
+    ctx.fillText(`${tag}P${i + 1} ${f.name || f.rosterKey}${f.eliminated ? " ✖" : ""}`, x + 2, y + h + 10)
+    ctx.restore()
+  })
+  // Mode badge + living count (per-team survivor tally in team mode).
+  ctx.save()
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  ctx.font = "800 18px Arial"
+  if (ffaState.teamMode) {
+    const alive = ffaAliveFighters()
+    const counts = FFA_TEAMS.map(t => `${t}:${alive.filter(f => f.team === t).length}`).join("   ")
+    ctx.fillStyle = "#f472b6"
+    ctx.fillText(`TEAM BATTLE   ${counts}`, cw / 2, y + 58)
+  } else {
+    ctx.fillStyle = "#f472b6"
+    ctx.fillText(`FREE-FOR-ALL · ${ffaAliveFighters().length} LEFT`, cw / 2, y + 58)
+  }
+  ctx.restore()
+}
+
+function drawFFAResult() {
+  if (!ffaState.over) return
+  const cw = canvas.width, ch = canvas.height
+  ctx.save()
+  ctx.fillStyle = "rgba(6,8,20,0.82)"; ctx.fillRect(0, 0, cw, ch)
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  const w = ffaState.winner
+  const slot = w ? (w.ffaSlot ?? 0) + 1 : 0
+  const teamWin = ffaState.teamMode && ffaState.winnerTeam
+  ctx.font = "900 56px Arial"
+  ctx.shadowBlur = 28
+  ctx.shadowColor = teamWin ? (TEAM_COLORS[ffaState.winnerTeam] || "#888") : (w ? FFA_BAR_COLORS[slot - 1] : "#888")
+  ctx.fillStyle = "#fde047"
+  ctx.fillText(teamWin ? `TEAM ${ffaState.winnerTeam} WINS` : (w ? `PLAYER ${slot} WINS` : "DRAW"), cw / 2, ch * 0.34)
+  ctx.shadowBlur = 0
+  if (teamWin) {
+    const members = ffaState.fighters.filter(f => f && f.team === ffaState.winnerTeam).map(f => f.name || f.rosterKey).join(" + ")
+    ctx.font = "700 24px Arial"; ctx.fillStyle = "#e2e8f0"; ctx.fillText(members, cw / 2, ch * 0.34 + 52)
+  } else if (w) { ctx.font = "700 26px Arial"; ctx.fillStyle = "#e2e8f0"; ctx.fillText(w.name || w.rosterKey, cw / 2, ch * 0.34 + 52) }
+  ctx.font = "600 16px Arial"; ctx.fillStyle = "rgba(200,210,230,0.6)"
+  ctx.fillText("Click to return to the menu", cw / 2, ch * 0.6)
+  ctx.restore()
+}
+
+function drawFFABattle() {
+  drawFFAScene()
+  drawFFAHud()
+  if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, 1)
+  _drawDamageNumbers()
+  _drawKOFlash()
+  drawFFAResult()
+}
+
+function ffaSelectableRoster() { return characterList.filter(c => !c.hidden) }
 
 // "BINDING VOW ACTIVATED" overlay — a brief white flash + chained vow name.
 function _drawVowCue() {
@@ -2464,6 +3078,12 @@ function renderCurrentState() {
       break
     }
     case GAME_STATES.GAMEPLAY_SELECT: drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex); break
+    case GAME_STATES.TOWER_SELECT:    drawTowerSelectScreen(ctx, canvas, hoverTowerIndex); break
+    case GAME_STATES.FFA_SETUP:       drawFFASetupScreen(ctx, canvas, hoverFFAIndex, FFA_MAX_PLAYERS, getConnectedPadCount?.() || 0); break
+    case GAME_STATES.FFA_CHARSELECT:  drawFFACharSelectScreen(ctx, canvas, ffaState.pickSlot, ffaState.playerCount, ffaSelectableRoster(), hoverFFACharIndex, ffaState.charKeys); break
+    case GAME_STATES.FFA_SLOTSELECT:  drawFFASlotSelectScreen(ctx, canvas, ffaState.playerCount, ffaState.aiSlots, ffaState.charKeys, ffaDeviceCount(), hoverFFASlotIndex); break
+    case GAME_STATES.FFA_TEAMSELECT:  drawFFATeamSelectScreen(ctx, canvas, ffaState.playerCount, ffaState.teams, ffaState.charKeys, hoverFFATeamIndex, TEAM_COLORS); break
+    case GAME_STATES.FFA_BATTLE:      drawFFABattle(); break
     case GAME_STATES.AI_DIFFICULTY:   drawAIDifficultyScreen(ctx, canvas, hoverDifficultyIndex); break
     case GAME_STATES.SELECT_UNIVERSE:
       drawUniverseSelectScreen(ctx, canvas, getUniverseList(), hoverUniverseIndex); break
@@ -2583,6 +3203,11 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.START)            { const r = getStartMenuRects(canvas);                    const f = r.findIndex(x => pointInRect(mouse.x,mouse.y,x)); hoverStartIndex = Math.max(0,f); return }
   if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v); return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
+  if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
+  if (gameState === GAME_STATES.FFA_SETUP)        { tryHover(getFFASetupRects(canvas, FFA_MAX_PLAYERS), hoverFFAIndex, v => hoverFFAIndex = v); return }
+  if (gameState === GAME_STATES.FFA_CHARSELECT)   { tryHover(getCharacterCardRects(canvas, ffaSelectableRoster()), hoverFFACharIndex, v => hoverFFACharIndex = v); return }
+  if (gameState === GAME_STATES.FFA_SLOTSELECT)   { tryHover(getFFASlotSelectRects(canvas, ffaState.playerCount), hoverFFASlotIndex, v => hoverFFASlotIndex = v); return }
+  if (gameState === GAME_STATES.FFA_TEAMSELECT)   { tryHover(getFFATeamSelectRects(canvas, ffaState.playerCount), hoverFFATeamIndex, v => hoverFFATeamIndex = v); return }
   if (gameState === GAME_STATES.AI_DIFFICULTY)    { tryHover(getAIDifficultyRects(canvas),    hoverDifficultyIndex, v => hoverDifficultyIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
   if (gameState === GAME_STATES.SELECT_CHARACTER) { tryHover(getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse()), hoverCharacterIndex, v => hoverCharacterIndex = v); return }
@@ -2645,11 +3270,8 @@ function handleMenuClicks() {
       _layoutSettings()   // keep rects in sync with the render before hit-testing
       // Per-player device select (Task 4): cycle keyboard ↔ controller. "Two
       // Keyboards" is intentionally NOT reachable (disabled placeholder, Task 3).
-      if (pointInRect(mouse.x, mouse.y, p1SettingRect)) {
-        inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
-        console.log("[DEBUG-P1PAD] 1 TOGGLE clicked → inputSettings.p1Type =", inputSettings.p1Type)
-      }
-      if (pointInRect(mouse.x, mouse.y, p2SettingRect))    inputSettings.p2Type = inputSettings.p2Type === "keyboard" ? "controller" : "keyboard"
+      if (pointInRect(mouse.x, mouse.y, p1SettingRect)) inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
+      if (pointInRect(mouse.x, mouse.y, p2SettingRect)) inputSettings.p2Type = inputSettings.p2Type === "keyboard" ? "controller" : "keyboard"
       // Audio toggles — each independently mutes its own category (SFX / Music).
       if (pointInRect(mouse.x, mouse.y, sfxToggleRect)) {
         audioSettings.sfxMuted = !audioSettings.sfxMuted
@@ -2682,8 +3304,69 @@ function handleMenuClicks() {
       if (c.id === "training") chooseMode("training")
       else if (c.id === "vs")  chooseMode("vs")
       else if (c.id === "pvp") chooseMode("pvp")
-      else if (c.id === "tower") startTower()   // Task 6: begin the ladder
+      else if (c.id === "tower") gameState = GAME_STATES.TOWER_SELECT   // pick a tier first
+      else if (c.id === "ffa")  { hoverFFAIndex = 0; gameState = GAME_STATES.FFA_SETUP }   // free-for-all
       else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
+      break
+    }
+    case GAME_STATES.FFA_SETUP: {
+      // Player count is no longer device-capped — AI fills any slot without a human device.
+      const c = getFFASetupRects(canvas, FFA_MAX_PLAYERS).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c || c.locked) break
+      if (c.id === "back") { gameState = GAME_STATES.GAMEPLAY_SELECT; break }
+      ffaState.playerCount = c.count
+      ffaState.charKeys = []
+      ffaState.pickSlot = 0
+      hoverFFACharIndex = 0
+      gameState = GAME_STATES.FFA_CHARSELECT
+      break
+    }
+    case GAME_STATES.FFA_CHARSELECT: {
+      const roster = ffaSelectableRoster()
+      const idx = getCharacterCardRects(canvas, roster).findIndex(r => pointInRect(mouse.x, mouse.y, r))
+      if (idx < 0 || !roster[idx]) break
+      ffaState.charKeys[ffaState.pickSlot] = roster[idx].rosterKey || roster[idx].key
+      ffaState.pickSlot++
+      if (ffaState.pickSlot >= ffaState.playerCount) {
+        // Assign who drives each slot next: default humans to the device-backed slots and AI to
+        // the rest (fewer humans than slots is fine — CPUs fill in).
+        ffaState.aiSlots = ffaDefaultAISlots(ffaState.playerCount)
+        hoverFFASlotIndex = 0
+        gameState = GAME_STATES.FFA_SLOTSELECT
+      }
+      break
+    }
+    case GAME_STATES.FFA_SLOTSELECT: {
+      const c = getFFASlotSelectRects(canvas, ffaState.playerCount).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if (c.slot != null) { ffaCycleSlotAssignment(c.slot); break }   // cycle Human ↔ CPU tiers
+      if (c.id === "back") { ffaState.pickSlot = 0; ffaState.charKeys = []; gameState = GAME_STATES.FFA_CHARSELECT; break }
+      if (c.id === "continue") {
+        // Default team split: alternate A/B (e.g. 3p → A,B,A = 2v1). Player retunes it next.
+        ffaState.teams = Array.from({ length: ffaState.playerCount }, (_, i) => FFA_TEAMS[i % 2])
+        hoverFFATeamIndex = 0
+        gameState = GAME_STATES.FFA_TEAMSELECT
+      }
+      break
+    }
+    case GAME_STATES.FFA_TEAMSELECT: {
+      const c = getFFATeamSelectRects(canvas, ffaState.playerCount).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if (c.slot != null) { ffaState.teams[c.slot] = (ffaState.teams[c.slot] === "A") ? "B" : "A"; break }   // toggle
+      if (c.id === "start")   { startFFAMatch(); break }                           // team mode (if ≥2 teams)
+      if (c.id === "noteams") { ffaState.teams = []; startFFAMatch(); break }       // pure FFA
+      if (c.id === "back")    { hoverFFASlotIndex = 0; gameState = GAME_STATES.FFA_SLOTSELECT; break }
+      break
+    }
+    case GAME_STATES.FFA_BATTLE: {
+      if (ffaState.over) endFFA()   // click the result overlay → back to menu
+      break
+    }
+    case GAME_STATES.TOWER_SELECT: {
+      const c = getTowerSelectRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if (c.id === "back") gameState = GAME_STATES.GAMEPLAY_SELECT
+      else startTower(c.id)                       // c.id === "tier1".."tier5"
       break
     }
     case GAME_STATES.AI_DIFFICULTY: {
@@ -2815,6 +3498,9 @@ function updateCurrentState() {
     case GAME_STATES.VICTORY:
       updateVictoryState?.(victoryState, mouse, canvas)
       break
+    case GAME_STATES.FFA_BATTLE:
+      updateFFABattle()
+      break
     case GAME_STATES.PAUSED:
       break
   }
@@ -2825,13 +3511,44 @@ function triggerSlowdown(frames = 45, target = null) {
   slowdownTarget = target || null
 }
 
-function gameLoop() {
+// ── FIXED-TIMESTEP LOOP (60Hz) ────────────────────────────────────────────────
+// requestAnimationFrame fires at the DISPLAY refresh rate. This game is frame-COUNT
+// driven — physics, timers, cooldowns AND animation frame-advancement (which lives in
+// sprite.draw(), i.e. the render pass) all advance exactly once per loop pass. So running
+// the pass every rAF made the whole game run FASTER than 60fps on 120/144/165Hz displays
+// (the Toji jitter / apparent dual-render / jump-shrink / too-fast-intro regressions — all
+// one root cause). Fix: gate the ENTIRE update+render pass to a fixed 60Hz via a real-time
+// accumulator, skipping rAF callbacks that arrive too soon. Because sprite advancement is
+// coupled to render, gating the whole pass (not just logic) is what keeps ANIMATION speed
+// fixed too — and there is at most ONE pass per rAF, so nothing that assumed
+// one-frame-per-pass (hitstop/freeze/cinematic timelines, cooldowns, input) changes.
+const FIXED_DT = 1000 / 60      // ms per 60Hz logic frame
+let _loopAccum = 0
+let _loopLast  = null
+
+function gameLoop(now) {
+  requestAnimationFrame(gameLoop)
+  if (now == null) now = (typeof performance !== "undefined" ? performance.now() : Date.now())
+  if (_loopLast == null) _loopLast = now
+  let elapsed = now - _loopLast
+  _loopLast = now
+  if (elapsed < 0) elapsed = 0
+  // A long stall (backgrounded tab, breakpoint) must not burst-advance many frames — clamp
+  // to a single frame so the game resumes at real speed instead of fast-forwarding.
+  if (elapsed > 100) elapsed = FIXED_DT
+  _loopAccum += elapsed
+  if (_loopAccum < FIXED_DT) return   // too soon for the next 60Hz frame → skip (no update/render)
+  _loopAccum -= FIXED_DT
+  // Backlog cap: on a display SLOWER than 60Hz, run at the display rate rather than
+  // spiralling. No multi-tick catch-up on purpose — sprite advancement is in draw(), so one
+  // update+render pass per frame keeps logic and animation in lockstep.
+  if (_loopAccum > FIXED_DT) _loopAccum = FIXED_DT
+
   globalFrameCount++
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   updateCurrentState()
   renderCurrentState()
   endInputFrame()
-  requestAnimationFrame(gameLoop)
 }
 
 // ------------------------------------------------------------------
@@ -2943,3 +3660,200 @@ sound.playMenuMusic?.()   // boot/loading screen → Passion_fruitmp3.mp3 (queue
 syncPhysicsBounds()
 updateCameraBounds()
 gameLoop()
+
+// ------------------------------------------------------------------
+// TEST HARNESS  (INERT unless the URL contains ?harness=… )
+// ------------------------------------------------------------------
+// Lets Playwright / automated tests drive a REAL match without clicking through
+// the canvas-rendered menus. Everything is gated behind the `harness` query
+// param, so normal play is completely unaffected (the IIFE returns immediately).
+// Keyboard is still delivered the normal way (page.keyboard.* → document keydown
+// in input.js) — the harness never fakes input, it only skips menus and reads
+// state, so what it verifies is the same code path a real player exercises.
+;(function setupTestHarness() {
+  let params
+  try { params = new URLSearchParams(window.location.search) } catch { return }
+  if (!params.has("harness")) return
+
+  const validKey = (v, fallback) => (v && characters[v] ? v : fallback)
+  const p1Key = validKey(params.get("p1"), "sasuke")
+  const p2Key = validKey(params.get("p2"), p1Key)
+
+  function startHarnessMatch(opts = {}) {
+    resetSelections()
+    towerState.active = false   // a plain harness match is never a tower (clear any stale run)
+    // Default: training vs a dummy. Pass { mode:"vs", difficulty:"easy" } for a real
+    // CPU match (used to test the pause-menu → Training Mode transition).
+    matchConfig.mode          = opts.mode || "training"
+    matchConfig.aiDifficulty  = opts.difficulty || (matchConfig.mode === "training" ? "dummy" : "easy")
+    matchConfig.selectedStage = stages[0]
+    matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key]
+    matchConfig.p2CharKey = p2Key; matchConfig.p2Char = characters[p2Key]
+    matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+    startMatch()
+  }
+
+  // Collapse INTRO + namecall + countdown so the BATTLE update loop actually runs
+  // combat/animation. (updateBattle only ticks once countdown<=0 — see BATTLE case.)
+  function skipToBattle() {
+    matchIntroTimer = 0
+    if (p1) p1._introPlaying = false
+    if (p2) p2._introPlaying = false
+    gameState = GAME_STATES.BATTLE
+    countdown = 0
+  }
+
+  const snap = f => f && ({
+    key: f.rosterKey, x: f.x, y: f.y, w: f.w, h: f.h, facing: f.facing,
+    energy: f.energy, maxEnergy: f.maxEnergy, health: f.health, maxHealth: f.maxHealth,
+    vy: f.vy || 0, grounded: !!(f.onGround ?? f.grounded), canJump: f.canJump !== false,
+    susanooStage:     f._susanooStage || 0,
+    susanooTimer:     f._susanooTimer || 0,
+    lightningPhase:   f._lightningPhase || null,
+    rooted:           !!f._rooted,
+    attacking:        !!f.attacking,
+    blocking:         !!f.isBlocking,
+    hitstun:          f.hitstun || 0,
+    currentMove:      f.currentMove || null,
+    introVariant:     f._introVariant || null,
+    spriteSheet:      f.spriteHandler?._actionDef?.sheet ?? null,
+    spriteFrames:     f.spriteHandler?._actionDef?.frames ?? null,
+    spriteScale:      f.spriteScale ?? null,
+    spriteReady:      !!(f.spriteHandler?._actionDef?.sheet),
+    hasSkinAnim:      !!f._skinAnim,
+    canvasHeightFrac: f._canvasHeightFrac || null,
+    action:           f._lastSpriteAction || null,
+    frameIndex:       f.spriteHandler?.frameIndex ?? null,
+    bobClock:         f.spriteHandler?._giantBobClock ?? null,
+    lastDrawY:        f._lastDrawY ?? null,
+    lastBobUp:        f._lastBobUp ?? null,
+    ultCooldown:      f.ultimateCooldown || 0,
+    ultReleased:      !!f._ultReleasedSinceStage1,
+    arenaHalfLock:    f._arenaHalfLock || null
+  })
+
+  window.__harness = {
+    version: 1,
+    start:       startHarnessMatch,
+    skipToBattle,
+    // One-shot: into a live battle with P1 energy full (ultimate affordable).
+    boot: () => { startHarnessMatch(); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
+    // Boot a NON-training vs-CPU match (real AI) — for the pause→Training transition test.
+    bootVs: () => { startHarnessMatch({ mode: "vs", difficulty: "easy" }); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
+    // Pause-menu introspection: current selection + item id (drive with real esc/↓/enter keys).
+    pauseSel: () => ({ gameState, index: pauseMenuIndex, item: PAUSE_MENU_ITEMS[pauseMenuIndex] }),
+    state: () => ({ gameState, countdown, frame: globalFrameCount }),
+    arena: () => ({ left: physics.stageLeft, width: physics.stageWidth,
+                    mid: physics.stageLeft + (physics.stageWidth - physics.stageLeft) * 0.5 }),
+    keys:  () => ({ ...keys }),                      // proves key delivery to input.js
+    p1:    () => snap(p1),
+    p2:    () => snap(p2),
+    roundTimer: () => roundTimer,
+    // Wiring proof: getFighterInput() call tally per player. Both advancing every
+    // frame proves each fighter's input routes through input.js.getFighterInput.
+    inputWiring: () => ({ ...inputCallCount, p1Type: inputSettings.p1Type, p2Type: inputSettings.p2Type }),
+    // Training-mode introspection (audit + feature tests).
+    training: () => ({
+      enabled: trainingState.enabled,
+      infiniteResources: trainingState.infiniteResources,
+      dummyBehavior: trainingState.dummyBehavior,
+      mode: matchConfig.mode,
+      frameData: buildTrainingFrameData(),
+      combo: Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0)
+    }),
+    damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
+    projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
+    fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
+    setEnergy:  v => { if (p1) p1.energy = v },
+    setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
+    healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false } },  // reset dummy between damage checks
+    liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
+    hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
+    // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
+    towerInfo: () => ({
+      active: towerState.active, floor: towerState.floor,
+      tier: towerState.tier, tierLabel: towerState.tierLabel,
+      floors: towerState.endless ? "Infinity" : towerState.floors, endless: towerState.endless,
+      cleared: towerState.cleared, lastWon: towerState._lastWon, carryPct: towerState.carryPct,
+      mode: matchConfig.mode, gameState,
+      p2: matchConfig.p2CharKey, stage: matchConfig.selectedStage ? matchConfig.selectedStage.name : null,
+      difficulty: matchConfig.aiDifficulty
+    }),
+    // Drive the REAL tower state machine, bypassing only the manual P1 fighter-pick UI.
+    towerStart: (tierId = "tier1", p1Key = "gojo") => {
+      startTower(tierId)
+      matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key] || characters.gojo; matchConfig.p1Skin = "default"
+      applyTowerFloor(); startMatch()
+    },
+    towerContinue: () => continueTower(),
+    forceP1Win: () => { if (p2) p2.health = 0 },
+    forceP1Lose: () => { if (p1) p1.health = 0 },
+    damageP1: (v = 100) => { if (p1) p1.health = Math.max(1, (p1.health || 0) - v) },   // chip P1 so a round isn't perfect
+    victoryInfo: () => ({ flawless: !!victoryState.flawless, subtitle: victoryState.subtitle || "", primaryLabel: victoryState.primaryLabel || "", winner: victoryState.winnerSide, perfectP1: matchStats?.p1?.perfectRounds, roundsWonP1: matchStats?.p1?.roundsWon }),
+    // ── FREE-FOR-ALL diagnostics/drivers ──────────────────────────────────────
+    // teams: optional per-slot "A"/"B" array → team mode; omit/[] → pure FFA.
+    // aiSlots: optional per-slot difficulty ("easy"/"adaptive"/"impossible") or null=human →
+    // AI-fills those slots (default omitted → all human, so existing FFA/team tests are unaffected).
+    ffaStart: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"], teams = [], aiSlots = []) => {
+      ffaState.playerCount = Math.min(FFA_MAX_PLAYERS, Math.max(2, count))
+      ffaState.charKeys = charKeys.slice(0, ffaState.playerCount)
+      ffaState.teams = (teams || []).slice(0, ffaState.playerCount)
+      ffaState.aiSlots = (aiSlots || []).slice(0, ffaState.playerCount)
+      startFFAMatch()
+      countdown = 0   // skip the pre-fight countdown for tests
+    },
+    ffaInfo: () => ({
+      active: ffaState.active, over: ffaState.over, mode: matchConfig.mode, gameState,
+      stage: matchConfig.selectedStage?.name, stageWidth: getStageWorldWidth(),
+      teamMode: ffaState.teamMode, winnerTeam: ffaState.winnerTeam,
+      winnerSlot: ffaState.winner ? (ffaState.winner.ffaSlot ?? null) : null,
+      alive: ffaAliveFighters().length,
+      aliveTeams: [...new Set(ffaAliveFighters().map(f => f.team))].filter(Boolean),
+      camZoom: camera.zoom,
+      fighters: ffaState.fighters.map(f => f && ({
+        slot: f.ffaSlot, key: f.rosterKey, playerNumber: f.playerNumber, team: f.team || null,
+        x: Math.round(f.x), y: Math.round(f.y), health: Math.round(f.health), maxHealth: f.maxHealth,
+        eliminated: !!f.eliminated, facing: f.facing, attacking: !!f.attacking,
+        isAI: !!f._aiControlled, aiDifficulty: f.aiDifficulty || null, aiTarget: f._aiTargetSlot ?? null
+      }))
+    }),
+    // Jump straight to the team-assignment screen (device cap blocks the menu route without pads).
+    ffaTeamSelectPreview: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"]) => {
+      ffaState.playerCount = count; ffaState.charKeys = charKeys.slice(0, count)
+      ffaState.teams = Array.from({ length: count }, (_, i) => FFA_TEAMS[i % 2]); ffaState.pickSlot = count
+      hoverFFATeamIndex = 0; gameState = GAME_STATES.FFA_TEAMSELECT
+    },
+    // Jump to the slot-assignment (human/AI + difficulty) screen and read/drive it.
+    ffaSlotSelectPreview: (count = 4, charKeys = ["gojo", "sukuna", "megumi", "toji"]) => {
+      ffaState.playerCount = count; ffaState.charKeys = charKeys.slice(0, count)
+      ffaState.aiSlots = ffaDefaultAISlots(count); ffaState.pickSlot = count
+      hoverFFASlotIndex = 0; gameState = GAME_STATES.FFA_SLOTSELECT
+    },
+    ffaSlotInfo: () => ({ gameState, deviceCount: ffaDeviceCount(), aiSlots: ffaState.aiSlots.slice(0, ffaState.playerCount) }),
+    // Click a slot-select row by slot index (cycles Human ↔ CPU tiers) — exercises the real rect+handler.
+    ffaCycleSlot: (slot) => { ffaCycleSlotAssignment(slot) },
+    ffaAttack: (idx, move = "light") => { const f = ffaState.fighters[idx]; if (f && !f.eliminated) f._forceAttack = move },
+    ffaMove:   (idx, dir = 0) => { const f = ffaState.fighters[idx]; if (f) f._forceMove = dir },   // dir: -1 left / +1 right / 0 stop
+    ffaSetX:   (idx, x) => { const f = ffaState.fighters[idx]; if (f) f.x = x },
+    ffaDamage: (idx, v = 100) => { const f = ffaState.fighters[idx]; if (f) f.health = Math.max(0, Math.min(f.maxHealth || 1, (f.health || 0) - v)) },   // clamps to maxHealth (negative v = heal)
+    ffaMaxPlayers: () => ffaMaxAvailablePlayers(),
+    inputTypes: () => ({ p1: inputSettings.p1Type, p2: inputSettings.p2Type, p3: inputSettings.p3Type, p4: inputSettings.p4Type, pads: getConnectedPadCount?.() || 0 }),
+    // Force the pre-match INTRO with a specific variant, held open (no auto-advance / namecall)
+    // so intro-rotation coverage can render + step each pose. Resets P1's sprite so the intro
+    // action re-resolves cleanly.
+    forceIntro: variant => {
+      startHarnessMatch()
+      gameState = GAME_STATES.INTRO
+      namecallActive = false
+      matchIntroTimer = 9999
+      countdown = ROUND_START_COUNTDOWN
+      if (p1) {
+        p1._introPlaying = true
+        p1._introSeq     = null          // force a single held variant (bypass any introSequence stepper)
+        p1._introVariant = variant
+        if (p1.spriteHandler) { p1.spriteHandler.currentAction = null; p1.spriteHandler.frameIndex = 0; p1.spriteHandler.frameTimer = 0; p1.spriteHandler.locked = false }
+      }
+      if (p2) p2._introPlaying = false
+    }
+  }
+})()

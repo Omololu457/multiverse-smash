@@ -108,6 +108,54 @@ export const camera = {
     this.clampFightersToView(f1, f2, canvas)
   },
 
+  // FREE-FOR-ALL (3-4 fighters): frame a bounding box over EVERY active fighter and
+  // zoom out to fit them all. Parallel to update() — the 1v1 path is untouched. Zooms
+  // further out than the 2-fighter framing naturally (more spread → smaller cw/needW).
+  updateMulti(fighters, canvas, snap = false) {
+    const fs = (fighters || []).filter(Boolean)
+    if (fs.length === 0) return
+    if (fs.length === 1) { this.focusOnFighter(fs[0], Math.min(this.maxZoom, 1.0)); this.advance(canvas); return }
+    const { width: cw, height: ch } = getCanvasMetrics(canvas)
+
+    let bbL = Infinity, bbR = -Infinity, bbT = Infinity, bbB = -Infinity, sumVx = 0
+    for (const f of fs) {
+      const b = boxOf(f)
+      bbL = Math.min(bbL, b.l); bbR = Math.max(bbR, b.r)
+      bbT = Math.min(bbT, b.t); bbB = Math.max(bbB, b.b)
+      if (f._canvasHeightFrac) {   // giant sprites (Susanoo) — frame the real drawn top
+        const feetY = (f.y || 0) + (f.h || f.height || 110)
+        bbT = Math.min(bbT, feetY - ch * f._canvasHeightFrac)
+      }
+      sumVx += (f.vx || 0)
+    }
+    const avgVx = sumVx / fs.length
+
+    this.targetX = (bbL + bbR) / 2 + clamp(avgVx * this.leadStrength, -140, 140)
+    this.targetY = (bbT + bbB) / 2
+    const needW = (bbR - bbL) + this.horizontalPadding * 2
+    const needH = (bbB - bbT) + this.verticalPadding * 2
+    this.targetZoom = clamp(Math.min(cw / needW, ch / needH), this.minZoom, this.maxZoom)
+
+    // On a SNAP (e.g. match start) jump straight to the framing so the initial wide spread
+    // is visible immediately — and DON'T clamp fighters this frame (the pre-smooth narrow
+    // view would squish them together). Subsequent frames smooth + clamp normally.
+    if (snap) {
+      this.zoom = this.targetZoom; this.x = this.targetX; this.y = this.targetY
+      return
+    }
+
+    this.advance(canvas)
+    // Keep every fighter inside the view (generalized clampFightersToView).
+    const vL = this.x - (cw / this.zoom) / 2
+    const vR = this.x + (cw / this.zoom) / 2
+    const pad = 30
+    for (const f of fs) {
+      const fw = f.w || f.width || 60
+      if (f.x < vL + pad) { f.x = vL + pad; f.vx = Math.max(0, f.vx || 0) }
+      if (f.x + fw > vR - pad) { f.x = vR - pad - fw; f.vx = Math.min(0, f.vx || 0) }
+    }
+  },
+
   // Smooth + rate-limit the camera toward its CURRENT targets (targetX/Y/Zoom) and
   // tick shake — WITHOUT recomputing the two-fighter framing. update() calls this
   // after setting the framing targets; the domain cinematic calls it after

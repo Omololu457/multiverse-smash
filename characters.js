@@ -431,32 +431,91 @@ const toji = {
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   hasSprites: true,
-  spriteScale: 1.7,   // source frames ~60–74px tall → ×1.7 ≈ hitbox height
+  // SIZE FIX: NEW transparent-bg core sheets are ~48px of content in a 54px cell, so the
+  // old 1.7 rendered him ~92px (undersized vs Sasuke ~105 / Sukuna ~118). ×2.3 ≈ 110px
+  // on-screen = roster-normal human scale. NOTE: the old row-sheet ATTACK actions (still
+  // wired below, deferred to the attack-tree pass) render oversized at 2.3 until re-sliced.
+  spriteScale: 2.3,
+  // Two-part intro (walk-in → ready-up) plays in FIXED ORDER as ONE intro — NOT a
+  // random-pick pool like Sasuke's introPool. game.js steps introSequence in order.
+  introSequence: ["introWalkIn", "introReady"],
   // ── TOJI SPRITES ── UNLABELED rows, mapping confirmed by viewing each strip.
   // Native cell = stripWidth/frames. NOTE (sheet gaps): no real walk or hurt
   // frames exist — walk reuses the stance, hurt reuses the guard pose (row10).
   // special_1/special_2 play via executeToji_Special's createAttackFromMove
   // (MOVE_TO_ACTION: inventorySmash→special_1, rapidStrike→special_2).
   animationData: {
-    idle:     { frames: 7,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },  // row03 fighting idle
-    walk:     { frames: 7,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },  // no walk row → reuse stance
+    // JITTER FIX: sheets have leading+trailing transparent padding, so the true frame
+    // PITCH is smaller than sheetWidth/frames. Slice with sourceX (content-left) + width
+    // (true pitch) or the figure drifts within each cell → horizontal wobble. Verified
+    // via per-cell leg-COM (idle drift 14px→<3px after fix) + boundary overlays.
+    idle:     { frames: 6,  width: 34, sourceX: 9, height: 54, speed: 8, loop: true, anchorY: -2,  sheet: "./toji_stance_idle.png" },  // 6f, true pitch 34 (was 37 → wobble)
+    walk:     { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 6, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // 7f (re-verified, was mis-counted 6), pitch 34 (was 40)
     light:    { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" },  // row02 punch combo
     heavy:    { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // row07 sword slash combo
     up:       { frames: 7,  width: 47, height: 74, speed: 5, sheet: "./toji_row04_sheet.png" },  // row04 kicks (launcher)
-    air:      { frames: 5,  width: 65, height: 71, speed: 5, sheet: "./toji_row08_sheet.png" },  // row08 aerial sword
-    down_air: { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // reuse slash combo
-    dash:     { frames: 10, width: 90, height: 64, speed: 4, sheet: "./toji_row06_sheet.png" },  // row06 sword dash-lunge
-    block:    { frames: 9,  width: 37, height: 70, speed: 6, sheet: "./toji_row10_sheet.png" },  // row10 guard
-    hurt:     { frames: 9,  width: 37, height: 70, speed: 6, sheet: "./toji_row10_sheet.png" },  // no hurt row → reuse guard
-    transform:{ frames: 7,  width: 76, height: 67, speed: 6, sheet: "./toji_row01_sheet.png" },  // row01 sword-draw flourish (intro)
-    special_1:{ frames: 14, width: 52, height: 63, speed: 4, sheet: "./toji_row09_sheet.png" },  // Inventory Smash → big slash rekka
-    special_2:{ frames: 8,  width: 57, height: 63, speed: 4, sheet: "./toji_row05_sheet.png" },  // Rapid Strike → thrust
+    // light/heavy/up (below) are DEAD for grounded Toji — the stance system fires quickDraw/
+    // forwardSlash/skywardCut etc. and game.js suppresses the built-in light/heavy/up. Kept for
+    // reference only; they never render, so their old-sheet scale is moot.
+    air:      { frames: 5,  width: 65, height: 71, speed: 5, actionScale: 0.69, sheet: "./toji_row08_sheet.png" },  // row08 aerial sword — OLD art, scale-corrected
+    down_air: { frames: 6,  width: 73, height: 60, speed: 5, actionScale: 0.82, sheet: "./toji_row07_sheet.png" },  // OLD art, scale-corrected
+    // dash = the basic MOVEMENT dash (NOT the sword-dash special). Was row06 (a sword-lunge,
+    // wrong content + oversized at 2.3); reuse the NEW walk sheet like `run` → correct scale + content.
+    dash:     { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 4, loop: true, anchorY: -12, sheet: "./toji_walk.png" },
+    // KEY MUST BE `guard` (not `block`): sprite.js resolves blocking to animationData.guard —
+    // the old `block` key never rendered (Toji showed idle while blocking). Renamed + scale-corrected.
+    guard:    { frames: 9,  width: 37, height: 70, speed: 6, actionScale: 0.70, sheet: "./toji_row10_sheet.png" },  // OLD guard art (no new block sprite yet)
+    hurt:     { frames: 8,  width: 48, sourceX: 0, height: 54, speed: 5, anchorY: -7,  sheet: "./toji_hit.png" },  // 8f, content fills width (pitch 48 exact)
+    hurt_air: { frames: 6,  width: 51, sourceX: 1, height: 49, speed: 5, anchorY: -2,  sheet: "./toji_air_hit.png" },  // 6f, pitch 51 (was 52); sprite.js picks this when hitstun && airborne
+    // transform = the ULTIMATE-activation flash (sprite.js returns "transform" while teleportFlash>10;
+    // executeToji_Ultimate sets it) — REACHABLE, not dead. OLD sword-draw art, scale-corrected.
+    transform:{ frames: 7,  width: 76, height: 67, speed: 6, actionScale: 0.74, sheet: "./toji_row01_sheet.png" },
+    special_1:{ frames: 14, width: 52, height: 63, speed: 4, actionScale: 0.78, sheet: "./toji_row09_sheet.png" },  // Inventory Smash — OLD art, scale-corrected
+    special_2:{ frames: 8,  width: 57, height: 63, speed: 4, actionScale: 0.78, sheet: "./toji_row05_sheet.png" },  // Rapid Strike — OLD art, scale-corrected
     // Chain-Knife / Inverted Spear of Heaven (S,A+L) — confirmed rows: 11 windup,
     // 12 extension, 14 retract, 15 spin (folded into the same move). Dims measured.
-    chain_windup:  { frames: 5, width: 96,  height: 69, speed: 4, sheet: "./toji_row11_sheet.png" },  // 480x69
-    chain_extend:  { frames: 5, width: 108, height: 69, speed: 4, sheet: "./toji_row12_sheet.png" },  // 540x69
-    chain_retract: { frames: 7, width: 121, height: 87, speed: 4, sheet: "./toji_row14_sheet.png" },  // 847x87
-    chain_spin:    { frames: 5, width: 85,  height: 78, speed: 4, sheet: "./toji_row15_sheet.png" },  // 424x78
+    chain_windup:  { frames: 5, width: 96,  height: 69, speed: 4, actionScale: 0.71, sheet: "./toji_row11_sheet.png" },  // OLD art, scale-corrected
+    chain_extend:  { frames: 5, width: 108, height: 69, speed: 4, actionScale: 0.71, sheet: "./toji_row12_sheet.png" },
+    chain_retract: { frames: 7, width: 121, height: 87, speed: 4, actionScale: 0.56, sheet: "./toji_row14_sheet.png" },
+    chain_spin:    { frames: 5, width: 85,  height: 78, speed: 4, actionScale: 0.63, sheet: "./toji_row15_sheet.png" },
+    // NEW two-part intro — plays in fixed order (introSequence), NOT pooled/random.
+    // Intro PACING (deliberate, NOT a timing bug): at the correctly-locked 60Hz, each step's
+    // on-screen duration = frames×speed÷60. walk-in 17×5=85t=1.42s (deliberate ~12fps stride),
+    // ready-up 15×4=60t=1.00s (crisper settle) → ~2.42s total entrance. (Prev speed 2/3 = 1.32s
+    // total, tuned for frame-rate-independence verification, read as a blink once the loop was
+    // locked to 60Hz — this re-tunes purely for how the entrance FEELS.)
+    introWalkIn: { frames: 17, width: 30, sourceX: 3, height: 45, speed: 5, loop: false, lockLastFrame: true, anchorY: -7, sheet: "./toji_intro_first_part.png" },   // walk-in, pitch 30 + srcX 3
+    introReady:  { frames: 15, width: 35, sourceX: 2, height: 47, speed: 4, loop: false, lockLastFrame: true, anchorY: 0,  sheet: "./toji_intro_second_part.png" },  // ready-up, pitch 35 + srcX 2
+    // BLADE-STANCE normals (Phase 2). action key == the move name so sprite.js resolves it
+    // directly. Sliced sourceX+true-pitch (alpha-gutter verified). Attack `speed` is auto-fit
+    // to the move's duration by sprite.updateFrames, so it just needs frames/width/sourceX.
+    quickDraw:    { frames: 5, width: 44, sourceX: 3, height: 60, speed: 3, anchorY: -12, sheet: "./toji_sword_attack_1.png" },       // 5A Quick Draw (230x60)
+    forwardSlash: { frames: 5, width: 54, sourceX: 9, height: 45, speed: 3, anchorY: -9,  sheet: "./toji_foward_slash_2.png" },       // 5B Forward Slash (286x45)
+    skywardCut:   { frames: 5, width: 45, sourceX: 0, height: 55, speed: 3, anchorY: -9,  sheet: "./toji_up_attack.png" },            // 2C Skyward Cut launcher (225x55)
+    // 5C Reaper's rekka — 3 segments sliced from the 11-frame toji_Foword_slash_attack (44px/frame).
+    reaper1:      { frames: 4, width: 44, sourceX: 0,   height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 0-3
+    reaper2:      { frames: 4, width: 44, sourceX: 176, height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 4-7
+    reaper3:      { frames: 3, width: 44, sourceX: 352, height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 8-10 (finisher)
+    // BLADE-STANCE command moves (Phase 5). Dash Strike = a 2-sheet chain: _1's crouch
+    // wind-up (5 frames, left of the sheet) → _2's sprinting stab (6 frames). The move
+    // swaps currentMove "dashStrike1"→"dashStrike2" at the active→recovery boundary
+    // (abilities.js updateTojiStanceCombat), which sprite.js frame-resets on sheet change.
+    // Rising Spiral = the aerial spinning finisher (dash_attack_4, full 9-frame arc).
+    // Non-uniform _1 (narrow crouch + wide lunge) → slice ONLY the crouch here; the lunge
+    // frames live in _2. Alpha-gutter verified (SLICE_* overlays).
+    dashStrike1:  { frames: 5, width: 41, sourceX: 10, height: 61, speed: 3, anchorY: -6,  sheet: "./toji_sword_Dash_attack_1.png" },  // crouch wind-up (491x61, left 5f @41)
+    dashStrike2:  { frames: 6, width: 71, sourceX: 0,  height: 55, speed: 3, anchorY: -9,  sheet: "./toji_sword_Dash_attack_2.png" },  // sprinting stab (428x55, 6f @71)
+    risingSpiral: { frames: 9, width: 46, sourceX: 0,  height: 66, speed: 3, anchorY: -10, sheet: "./toji_sword_Dash_attack_4.png" },  // aerial spin ender (418x66, 9f @46)
+    // CHAIN-STANCE normals (Phase 3). sourceX+true-pitch sliced (alpha-gutter verified).
+    shortLash:  { frames: 3, width: 60, sourceX: 0, height: 62, speed: 3, anchorY: -7, sheet: "./toji_chain_of_1000_miles_attack_2.png" },        // 5A — TRIMMED to first 3 of 5 frames (the quick lash)
+    wideArc:    { frames: 5, width: 66, sourceX: 2, height: 58, speed: 3, anchorY: -9, sheet: "./toji_chain_of_1000_miles_attack_1.png" },        // 5B (341x58, continuous arc → equal split)
+    lowSweep:   { frames: 5, width: 81, sourceX: 8, height: 67, speed: 3, anchorY: -2, sheet: "./toji_chain_of_1000_miles_attack_3.png" },        // 6B (446x67)
+    risingCoil: { frames: 4, width: 66, sourceX: 6, height: 61, speed: 3, anchorY: -5, sheet: "./toji_chain_of_1000_miles_upper_attack_1.png" },  // 2B anti-air (274x61)
+    // GUN-STANCE firing animations (Phase 4). Ranged — the projectile carries the damage;
+    // these are the fighter's shot/aim poses (played via the sprite-cast window). Sliced sourceX+pitch.
+    snapShot:   { frames: 6, width: 39, sourceX: 4, height: 58, speed: 3, anchorY: -18, sheet: "./toji_gun_attack.png" },            // 5A (242x58, muzzle-flash present)
+    aimedShot:  { frames: 7, width: 37, sourceX: 1, height: 52, speed: 3, anchorY: -7,  sheet: "./toji_idk.png" },                   // 5B feint (262x52, no muzzle flash)
+    tracerRound:{ frames: 5, width: 60, sourceX: 1, height: 56, speed: 4, anchorY: 0,   sheet: "./toji_sword_Dash_attack_3.png" },   // 5C tracer (300x56, reclassified gun shot)
     // run/jump/fall/grab aren't on the supplied table, but a MANIFESTED character
     // can't fall back to the procedural box per-action (unmapped → idle sheet at
     // 128px = garbage), so reuse the closest real strips:
@@ -470,10 +529,14 @@ const toji = {
     //    plain jump read as a sword pose. The real air attack (`air`) keeps row08's
     //    full 5-frame swing. FLAG: no true jump/fall art exists — a held stance is
     //    the least-wrong neutral option until a real jump strip is provided.
-    run:      { frames: 7,  width: 39, height: 64, speed: 5, sheet: "./toji_row03_sheet.png" },  // reuse stance (was sword-lunge)
-    jump:     { frames: 1,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },  // neutral stance held (was row08 air-attack)
-    fall:     { frames: 1,  width: 39, height: 64, speed: 6, sheet: "./toji_row03_sheet.png" },
-    grab:     { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" }   // reuse punch
+    run:      { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 5, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // reuse walk sheet, 7f pitch 34
+    // JUMP SIZE FIX: the jump sheet's frame 0 (takeoff crouch) and frame 6 (land crouch)
+    // draw the figure ~35px tall vs ~48px airborne — switching to them read as "sprite
+    // gets smaller". Slice ONLY the airborne frames 1–5 (sourceX = 6 + 1×35 = 41), all
+    // ~full height, so jump/fall never flash a shrunken crouch. Pitch 35 (was 37 → wobble).
+    jump:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -32, sheet: "./toji_jump.png" },  // airborne arc only (no crouch)
+    fall:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -32, sheet: "./toji_jump.png" },  // same airborne frames
+    grab:     { frames: 6,  width: 47, height: 65, speed: 4, actionScale: 0.76, sheet: "./toji_row02_sheet.png" }   // throw anim — OLD punch art, scale-corrected (no new grab sprite yet)
     // UNMAPPED — chain / Inverted Spear of Heaven throw sequence (special not yet
     // wired). Register for future chain-special work; frame counts TBD (view to
     // slice): toji_row11_sheet.png 480×69, row12 540×69, row13 575×85,

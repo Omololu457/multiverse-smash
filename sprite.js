@@ -178,8 +178,14 @@ function _resolveAction(fighter, currentAction = "idle") {
   if ((fighter._comboFinisherReactTimer || 0) > 0 &&
       (fighter._skinAnim?.knockdown || fighter.animationData?.knockdown)) return "knockdown";
 
-  // Hurt state takes priority once hitstun begins
-  if ((fighter.hitstun || 0) > 0) return "hurt";
+  // Hurt state takes priority once hitstun begins. Airborne hurt uses a dedicated
+  // strip when the fighter defines one (Toji → hurt_air); otherwise the grounded
+  // "hurt" — a no-op for every character WITHOUT a hurt_air strip.
+  if ((fighter.hitstun || 0) > 0) {
+    const airborne = !(fighter.grounded ?? fighter.onGround ?? false);
+    if (airborne && (fighter._skinAnim?.hurt_air || fighter.animationData?.hurt_air)) return "hurt_air";
+    return "hurt";
+  }
   if ((fighter.stun || 0) > 0) return "hurt";
 
   // Blocking — show a dedicated guard pose when the fighter defines one (skin anim
@@ -337,8 +343,17 @@ export class SpriteHandler {
       scale = (ctx.canvas.height * fighter._canvasHeightFrac) / fighter._canvasHeightRefH;
     }
 
+    // Per-ACTION scale correction: an action may carry `actionScale` to render at a
+    // different proportion than the character's global spriteScale. Used for Toji's
+    // remaining OLD row-sheet actions (block/transform/grab/air/specials), whose art was
+    // never tuned for the 2.3 spriteScale of the new transparent-bg sheets — without this
+    // they render ~1.3x oversized. Guarded on the field → zero effect elsewhere.
+    // (Sasuke giant sizing above and Toji actionScale are mutually exclusive per-character.)
+    if (this._actionDef?.actionScale) scale *= this._actionDef.actionScale;
+
     const dstW = drawWidth * scale;
     const dstH = drawHeight * scale;
+    fighter._lastDstH = dstH;   // rendered cell height (scale-correctness checks / harness)
 
     // Center horizontally over the hitbox (using SCALED width)
     const offsetX = (dstW - fighterW) / 2 + (frameData.anchorX || 0);

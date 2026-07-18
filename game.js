@@ -47,6 +47,7 @@ import {
   drawTowerSelectScreen, getTowerSelectRects,
   drawFFASetupScreen, getFFASetupRects, drawFFACharSelectScreen,
   drawFFATeamSelectScreen, getFFATeamSelectRects,
+  drawFFASlotSelectScreen, getFFASlotSelectRects,
   PAUSE_MENU_ITEMS, getStartMenuRects, getGameplaySelectRects,
   getAIDifficultyRects, getUniverseCardRects, getCharacterCardRects,
   getStageCardRects, drawStartInfoPanel,
@@ -193,6 +194,7 @@ const GAME_STATES = {
   TOWER_SELECT:     "towerSelect",     // pick a Tower tier (3/10/25/40/∞ floors)
   FFA_SETUP:        "ffaSetup",        // free-for-all: choose player count (3/4)
   FFA_CHARSELECT:   "ffaCharSelect",   // free-for-all: pick a fighter per slot
+  FFA_SLOTSELECT:   "ffaSlotSelect",   // free-for-all: assign each slot to a human device or AI (+ difficulty)
   FFA_TEAMSELECT:   "ffaTeamSelect",   // free-for-all: assign each slot to Team A/B (or none)
   FFA_BATTLE:       "ffaBattle",       // free-for-all: N-fighter last-standing / team match
   AI_DIFFICULTY:    "aiDifficulty",
@@ -425,6 +427,7 @@ let hoverGameplayIndex   = 0
 let hoverTowerIndex      = 0
 let hoverFFAIndex        = 0
 let hoverFFACharIndex    = 0
+let hoverFFASlotIndex    = 0
 let hoverFFATeamIndex    = 0
 let hoverDifficultyIndex = 0
 let hoverUniverseIndex   = 0
@@ -580,7 +583,9 @@ function continueTower() {
 // cinematic — Gojo Infinity, domains, etc.) — that's a later phase, like team modes.
 const FFA_MAX_PLAYERS = 4
 // teamMode + teams[] (per-slot "A"/"B") extend the SAME ffaState; empty teams → pure FFA.
-const ffaState = { active: false, playerCount: 3, charKeys: [], teams: [], teamMode: false, fighters: [], over: false, winner: null, winnerTeam: null, pickSlot: 0 }
+// aiSlots[] (per-slot difficulty string, or null/undefined = human) fills any slot with a CPU —
+// so a session can run with fewer real humans than slots (1 human + 3 AI, an AI teammate, etc.).
+const ffaState = { active: false, playerCount: 3, charKeys: [], teams: [], teamMode: false, fighters: [], over: false, winner: null, winnerTeam: null, pickSlot: 0, aiSlots: [] }
 const FFA_CONTROLS = [P1_CONTROLS, P2_CONTROLS, P3_CONTROLS, P4_CONTROLS]
 const FFA_SIDES    = ["p1", "p2", "p3", "p4"]
 // Per-slot tint so 3-4 same-ish fighters read apart at a glance (rendered via tintColor).
@@ -593,10 +598,52 @@ const TEAM_TINT   = { A: "rgba(56,189,248,0.40)", B: "rgba(251,113,133,0.44)" }
 // Same-team test — only bites in team mode (pure FFA has no team property → always false).
 function ffaSameTeam(a, b) { return !!(ffaState.teamMode && a && b && a.team && a.team === b.team) }
 
+// AI-fill difficulty cycle (reuses ai.js AI_DIFFICULTIES tiers). A device-capable slot cycles
+// HUMAN(null) → easy → adaptive → impossible → HUMAN; a slot with no device skips HUMAN.
+const FFA_AI_DIFFS = ["easy", "adaptive", "impossible"]
+function ffaCycleSlotAssignment(slot) {
+  const forced  = slot >= ffaDeviceCount()               // no device → CPU only
+  const current = ffaState.aiSlots[slot] || null
+  const idx     = FFA_AI_DIFFS.indexOf(current)          // -1 when currently HUMAN
+  if (idx < 0) { ffaState.aiSlots[slot] = FFA_AI_DIFFS[0]; return }        // HUMAN → first CPU tier
+  if (idx < FFA_AI_DIFFS.length - 1) { ffaState.aiSlots[slot] = FFA_AI_DIFFS[idx + 1]; return }  // next tier
+  ffaState.aiSlots[slot] = forced ? FFA_AI_DIFFS[0] : null                // wrap: forced→easy, else→HUMAN
+}
+
+// Default per-slot assignment when entering slot-select: any slot beyond the connected devices
+// defaults to CPU (easy); device-backed slots default to HUMAN. This is the "any slot not
+// claimed by a device defaults to AI" rule — applied at the UI layer, NOT in startFFAMatch
+// (so the harness/explicit callers keep full control and existing all-human tests are unaffected).
+function ffaDefaultAISlots(count) {
+  const dev = ffaDeviceCount()
+  return Array.from({ length: count }, (_, i) => (i < dev ? null : "easy"))
+}
+
 // Local input capacity: keyboard P1 + keyboard P2 + one controller per connected pad.
 // The setup screen caps player count to this so no uncontrollable fighter can spawn.
 function ffaMaxAvailablePlayers() {
   return Math.min(FFA_MAX_PLAYERS, 2 + (getConnectedPadCount?.() || 0))
+}
+
+// Connected local input DEVICES: keyboard P1 + keyboard P2 + one per pad. Slots below this
+// index CAN be driven by a human; slots at/above it have no device and default to AI (a
+// player may also choose AI for a device-capable slot). With AI-fill, player COUNT is no
+// longer device-capped (AI fills the rest) — this only bounds how many slots can be human.
+function ffaDeviceCount() { return Math.min(FFA_MAX_PLAYERS, 2 + (getConnectedPadCount?.() || 0)) }
+
+// SYNTHETIC control map for an AI-driven FFA slot. AI fighters are driven exactly like the
+// 1v1 CPU — applyAIInputToKeys writes into the `keys` global and getFighterInput reads it back
+// (with buffering) — so they need REAL, unique key names. The human P3/P4 maps bind to empty
+// strings ("") which collapse every action onto keys[""]; these private names never collide
+// with human binds or each other. Mirrors P1's shape (jump shares up; charge/toggle/transform
+// share one key; dash is double-tap only → unbound).
+function makeAIControls(slot) {
+  const p = `_ai${slot}_`
+  return {
+    left: p + "L", right: p + "R", up: p + "U", down: p + "D", jump: p + "U",
+    light: p + "lt", heavy: p + "hv", upAttack: p + "ua", special: p + "sp", ultimate: p + "ult",
+    grab: p + "gr", charge: p + "ch", toggle: p + "ch", transform: p + "ch", dash: ""
+  }
 }
 
 function ffaAliveFighters() { return ffaState.fighters.filter(f => f && !f.eliminated) }
@@ -620,6 +667,27 @@ function updateFFAFacing(live) {
   for (const f of live) {
     const n = ffaNearest(f, live)
     if (n) f.facing = (n.x < f.x) ? -1 : 1
+  }
+}
+
+// ── AI-FILLED SLOTS ───────────────────────────────────────────────────────────
+// Drive every AI-assigned fighter for this frame. Each AI slot owns its OWN controller
+// instance (created in setupFFAFighters), so N CPUs run independently — the single 1v1
+// p2AI is NOT shared here. TARGET SELECTION runs FIRST and re-picks every frame: the
+// nearest living OPPONENT (ffaNearest already skips self, the eliminated, AND — in team
+// mode — teammates, so an AI never even attempts to attack an ally, and a KO'd target is
+// dropped on the very next frame with no stuck state). The chosen enemy is then handed to
+// the UNCHANGED per-target ai.js decision logic via getAIInput/applyAIInputToKeys — the
+// exact path the 1v1 CPU uses (writes fighter.controls keys → getFighterInput buffers them).
+// Choosing NEAREST (not lowest-health) keeps the AI's target aligned with the fighter it is
+// already facing and whose hurtbox its multi-target swing will actually reach.
+function updateFFAAIInputs(live) {
+  for (const f of live) {
+    if (!f?._aiControlled || !f._aiController) continue
+    const target = ffaNearest(f, live)
+    f._aiTargetSlot = target ? target.ffaSlot : null
+    if (!target) { clearAIControlKeys(f); continue }   // no valid opponent (shouldn't happen mid-match)
+    applyAIInputToKeys(f, getAIInput(f._aiController, f, target, { stage: getStageTheme(), roundNumber, mode: "ffa" }))
   }
 }
 
@@ -668,7 +736,7 @@ function updateFFAEffects(live) {
 // Spawn N fighters spread across the WIDE arena. In team mode fighters are ORDERED so
 // teammates spawn adjacent (all Team A on the left, Team B on the right) — reads clearly
 // and gives each team a side. tintColor washes the sprite by team (or by slot in pure FFA).
-function setupFFAFighters(count, charKeys, teams) {
+function setupFFAFighters(count, charKeys, teams, aiSlots = []) {
   const ww = getStageWorldWidth()
   const order = Array.from({ length: count }, (_, i) => i)
   if (ffaState.teamMode) order.sort((a, b) => (teams[a] || "").localeCompare(teams[b] || ""))
@@ -678,10 +746,20 @@ function setupFFAFighters(count, charKeys, teams) {
     const char = characters[key] || characters.gojo
     const frac = count <= 1 ? 0.5 : 0.16 + 0.68 * (pos / (count - 1))
     const x    = Math.round(ww * frac)
-    const f = createFighter(key, char, x, x < ww / 2 ? 1 : -1, FFA_CONTROLS[slot], FFA_SIDES[slot])
+    // AI slot → give it a private synthetic control map (so applyAIInputToKeys/getFighterInput
+    // round-trip) and its OWN controller. Human slot → its real device control map.
+    const aiDiff   = aiSlots[slot] || null
+    const controls = aiDiff ? makeAIControls(slot) : FFA_CONTROLS[slot]
+    const f = createFighter(key, char, x, x < ww / 2 ? 1 : -1, controls, FFA_SIDES[slot])
     applySkin(f, "default")
     f.ffaSlot = slot
     f.eliminated = false
+    if (aiDiff) {
+      f._aiControlled = true
+      f.aiDifficulty  = aiDiff
+      f._aiController  = createAIController(aiDiff)
+      f._aiTargetSlot  = null
+    }
     if (ffaState.teamMode) {
       f.team = teams[slot] || "A"
       f.tintColor = TEAM_TINT[f.team] || null   // sprite wash = team colour (visual indicator)
@@ -704,7 +782,7 @@ function startFFAMatch() {
   const distinctTeams = new Set((ffaState.teams || []).slice(0, ffaState.playerCount))
   ffaState.teamMode = distinctTeams.size >= 2
   syncPhysicsBounds()
-  ffaState.fighters = setupFFAFighters(ffaState.playerCount, ffaState.charKeys, ffaState.teams)
+  ffaState.fighters = setupFFAFighters(ffaState.playerCount, ffaState.charKeys, ffaState.teams, ffaState.aiSlots)
   clearAbilityState(); clearEffects(); clearDomains()
   hitSparks.length = 0; damageNumbers.length = 0; activeDomains.length = 0
   if (typeof clearInputBuffers === "function") clearInputBuffers(ffaState.fighters)
@@ -730,6 +808,7 @@ function updateFFABattle() {
   const live = ffaAliveFighters()
   for (const f of live) updateGamepadEdges(f)         // controller motion/edges (P3/P4 pads)
   updateFFAFacing(live)
+  updateFFAAIInputs(live)                             // AI-filled slots: pick target + write their keys BEFORE input is read
   for (const f of live) updateMovementInput(f)
   // Harness/dev movement injection (controller players can't be driven from Playwright).
   for (const f of live) if (f._forceMove) f.vx = f._forceMove * (f.baseSpeed || f.speed || 7)
@@ -790,7 +869,7 @@ function checkFFAOutcome() {
 
 function endFFA() {
   ffaState.active = false; ffaState.over = false; ffaState.winner = null; ffaState.winnerTeam = null
-  ffaState.teamMode = false; ffaState.teams = []; ffaState.fighters = []
+  ffaState.teamMode = false; ffaState.teams = []; ffaState.fighters = []; ffaState.aiSlots = []
   matchConfig.mode = "vs"
   resetToStart()
 }
@@ -1165,6 +1244,10 @@ function drawNamecallBanner() {
 }
 
 function startMatch() {
+  // A standard 1v1/tower/training match never runs the FFA array path — make the flag honest
+  // in case an FFA session was left without the result-screen exit (dispatch keys off gameState,
+  // so this is bookkeeping hygiene, not a behavior gate).
+  ffaState.active = false
   roundNumber  = 1
   roundWins    = { p1: 0, p2: 0 }
   winnerText   = ""
@@ -2984,8 +3067,9 @@ function renderCurrentState() {
     }
     case GAME_STATES.GAMEPLAY_SELECT: drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex); break
     case GAME_STATES.TOWER_SELECT:    drawTowerSelectScreen(ctx, canvas, hoverTowerIndex); break
-    case GAME_STATES.FFA_SETUP:       drawFFASetupScreen(ctx, canvas, hoverFFAIndex, ffaMaxAvailablePlayers(), getConnectedPadCount?.() || 0); break
+    case GAME_STATES.FFA_SETUP:       drawFFASetupScreen(ctx, canvas, hoverFFAIndex, FFA_MAX_PLAYERS, getConnectedPadCount?.() || 0); break
     case GAME_STATES.FFA_CHARSELECT:  drawFFACharSelectScreen(ctx, canvas, ffaState.pickSlot, ffaState.playerCount, ffaSelectableRoster(), hoverFFACharIndex, ffaState.charKeys); break
+    case GAME_STATES.FFA_SLOTSELECT:  drawFFASlotSelectScreen(ctx, canvas, ffaState.playerCount, ffaState.aiSlots, ffaState.charKeys, ffaDeviceCount(), hoverFFASlotIndex); break
     case GAME_STATES.FFA_TEAMSELECT:  drawFFATeamSelectScreen(ctx, canvas, ffaState.playerCount, ffaState.teams, ffaState.charKeys, hoverFFATeamIndex, TEAM_COLORS); break
     case GAME_STATES.FFA_BATTLE:      drawFFABattle(); break
     case GAME_STATES.AI_DIFFICULTY:   drawAIDifficultyScreen(ctx, canvas, hoverDifficultyIndex); break
@@ -3108,8 +3192,9 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v); return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
   if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
-  if (gameState === GAME_STATES.FFA_SETUP)        { tryHover(getFFASetupRects(canvas, ffaMaxAvailablePlayers()), hoverFFAIndex, v => hoverFFAIndex = v); return }
+  if (gameState === GAME_STATES.FFA_SETUP)        { tryHover(getFFASetupRects(canvas, FFA_MAX_PLAYERS), hoverFFAIndex, v => hoverFFAIndex = v); return }
   if (gameState === GAME_STATES.FFA_CHARSELECT)   { tryHover(getCharacterCardRects(canvas, ffaSelectableRoster()), hoverFFACharIndex, v => hoverFFACharIndex = v); return }
+  if (gameState === GAME_STATES.FFA_SLOTSELECT)   { tryHover(getFFASlotSelectRects(canvas, ffaState.playerCount), hoverFFASlotIndex, v => hoverFFASlotIndex = v); return }
   if (gameState === GAME_STATES.FFA_TEAMSELECT)   { tryHover(getFFATeamSelectRects(canvas, ffaState.playerCount), hoverFFATeamIndex, v => hoverFFATeamIndex = v); return }
   if (gameState === GAME_STATES.AI_DIFFICULTY)    { tryHover(getAIDifficultyRects(canvas),    hoverDifficultyIndex, v => hoverDifficultyIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
@@ -3213,7 +3298,8 @@ function handleMenuClicks() {
       break
     }
     case GAME_STATES.FFA_SETUP: {
-      const c = getFFASetupRects(canvas, ffaMaxAvailablePlayers()).find(r => pointInRect(mouse.x, mouse.y, r))
+      // Player count is no longer device-capped — AI fills any slot without a human device.
+      const c = getFFASetupRects(canvas, FFA_MAX_PLAYERS).find(r => pointInRect(mouse.x, mouse.y, r))
       if (!c || c.locked) break
       if (c.id === "back") { gameState = GAME_STATES.GAMEPLAY_SELECT; break }
       ffaState.playerCount = c.count
@@ -3230,6 +3316,20 @@ function handleMenuClicks() {
       ffaState.charKeys[ffaState.pickSlot] = roster[idx].rosterKey || roster[idx].key
       ffaState.pickSlot++
       if (ffaState.pickSlot >= ffaState.playerCount) {
+        // Assign who drives each slot next: default humans to the device-backed slots and AI to
+        // the rest (fewer humans than slots is fine — CPUs fill in).
+        ffaState.aiSlots = ffaDefaultAISlots(ffaState.playerCount)
+        hoverFFASlotIndex = 0
+        gameState = GAME_STATES.FFA_SLOTSELECT
+      }
+      break
+    }
+    case GAME_STATES.FFA_SLOTSELECT: {
+      const c = getFFASlotSelectRects(canvas, ffaState.playerCount).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if (c.slot != null) { ffaCycleSlotAssignment(c.slot); break }   // cycle Human ↔ CPU tiers
+      if (c.id === "back") { ffaState.pickSlot = 0; ffaState.charKeys = []; gameState = GAME_STATES.FFA_CHARSELECT; break }
+      if (c.id === "continue") {
         // Default team split: alternate A/B (e.g. 3p → A,B,A = 2v1). Player retunes it next.
         ffaState.teams = Array.from({ length: ffaState.playerCount }, (_, i) => FFA_TEAMS[i % 2])
         hoverFFATeamIndex = 0
@@ -3243,7 +3343,7 @@ function handleMenuClicks() {
       if (c.slot != null) { ffaState.teams[c.slot] = (ffaState.teams[c.slot] === "A") ? "B" : "A"; break }   // toggle
       if (c.id === "start")   { startFFAMatch(); break }                           // team mode (if ≥2 teams)
       if (c.id === "noteams") { ffaState.teams = []; startFFAMatch(); break }       // pure FFA
-      if (c.id === "back")    { ffaState.pickSlot = 0; ffaState.charKeys = []; gameState = GAME_STATES.FFA_CHARSELECT; break }
+      if (c.id === "back")    { hoverFFASlotIndex = 0; gameState = GAME_STATES.FFA_SLOTSELECT; break }
       break
     }
     case GAME_STATES.FFA_BATTLE: {
@@ -3680,10 +3780,13 @@ gameLoop()
     victoryInfo: () => ({ flawless: !!victoryState.flawless, subtitle: victoryState.subtitle || "", primaryLabel: victoryState.primaryLabel || "", winner: victoryState.winnerSide, perfectP1: matchStats?.p1?.perfectRounds, roundsWonP1: matchStats?.p1?.roundsWon }),
     // ── FREE-FOR-ALL diagnostics/drivers ──────────────────────────────────────
     // teams: optional per-slot "A"/"B" array → team mode; omit/[] → pure FFA.
-    ffaStart: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"], teams = []) => {
+    // aiSlots: optional per-slot difficulty ("easy"/"adaptive"/"impossible") or null=human →
+    // AI-fills those slots (default omitted → all human, so existing FFA/team tests are unaffected).
+    ffaStart: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"], teams = [], aiSlots = []) => {
       ffaState.playerCount = Math.min(FFA_MAX_PLAYERS, Math.max(2, count))
       ffaState.charKeys = charKeys.slice(0, ffaState.playerCount)
       ffaState.teams = (teams || []).slice(0, ffaState.playerCount)
+      ffaState.aiSlots = (aiSlots || []).slice(0, ffaState.playerCount)
       startFFAMatch()
       countdown = 0   // skip the pre-fight countdown for tests
     },
@@ -3698,7 +3801,8 @@ gameLoop()
       fighters: ffaState.fighters.map(f => f && ({
         slot: f.ffaSlot, key: f.rosterKey, playerNumber: f.playerNumber, team: f.team || null,
         x: Math.round(f.x), y: Math.round(f.y), health: Math.round(f.health), maxHealth: f.maxHealth,
-        eliminated: !!f.eliminated, facing: f.facing, attacking: !!f.attacking
+        eliminated: !!f.eliminated, facing: f.facing, attacking: !!f.attacking,
+        isAI: !!f._aiControlled, aiDifficulty: f.aiDifficulty || null, aiTarget: f._aiTargetSlot ?? null
       }))
     }),
     // Jump straight to the team-assignment screen (device cap blocks the menu route without pads).
@@ -3707,6 +3811,15 @@ gameLoop()
       ffaState.teams = Array.from({ length: count }, (_, i) => FFA_TEAMS[i % 2]); ffaState.pickSlot = count
       hoverFFATeamIndex = 0; gameState = GAME_STATES.FFA_TEAMSELECT
     },
+    // Jump to the slot-assignment (human/AI + difficulty) screen and read/drive it.
+    ffaSlotSelectPreview: (count = 4, charKeys = ["gojo", "sukuna", "megumi", "toji"]) => {
+      ffaState.playerCount = count; ffaState.charKeys = charKeys.slice(0, count)
+      ffaState.aiSlots = ffaDefaultAISlots(count); ffaState.pickSlot = count
+      hoverFFASlotIndex = 0; gameState = GAME_STATES.FFA_SLOTSELECT
+    },
+    ffaSlotInfo: () => ({ gameState, deviceCount: ffaDeviceCount(), aiSlots: ffaState.aiSlots.slice(0, ffaState.playerCount) }),
+    // Click a slot-select row by slot index (cycles Human ↔ CPU tiers) — exercises the real rect+handler.
+    ffaCycleSlot: (slot) => { ffaCycleSlotAssignment(slot) },
     ffaAttack: (idx, move = "light") => { const f = ffaState.fighters[idx]; if (f && !f.eliminated) f._forceAttack = move },
     ffaMove:   (idx, dir = 0) => { const f = ffaState.fighters[idx]; if (f) f._forceMove = dir },   // dir: -1 left / +1 right / 0 stop
     ffaSetX:   (idx, x) => { const f = ffaState.fighters[idx]; if (f) f.x = x },

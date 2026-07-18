@@ -318,6 +318,43 @@ export function getGameplaySelectRects(canvas) {
   ])
 }
 
+// FREE-FOR-ALL slot assignment — decide who drives each slot: a local human device or a CPU
+// (with a difficulty). One click-to-cycle row per slot + CONTINUE / BACK. Slot rows carry
+// `slot` (0-based); action buttons carry a string id. Mirrors the team-select layout.
+export function getFFASlotSelectRects(canvas, playerCount = 3) {
+  const items = []
+  for (let i = 0; i < playerCount; i++) items.push({ id: `slot${i}`, slot: i, label: `P${i + 1}`, subLabel: "" })
+  items.push({ id: "continue", label: "CONTINUE", subLabel: "On to team assignment" })
+  items.push({ id: "back",     label: "BACK",     subLabel: "Return to fighter select" })
+  return getVerticalMenuLayout(canvas, items)
+}
+
+// Friendly name for the human device that would drive a slot (keyboards first, then pads).
+function ffaSlotDeviceName(slot) {
+  return slot === 0 ? "P1 keyboard" : slot === 1 ? "P2 keyboard" : `P${slot + 1} controller`
+}
+
+export function drawFFASlotSelectScreen(ctx, canvas, playerCount = 3, aiSlots = [], charKeys = [], deviceCount = 2, selectedIndex = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#101f38")
+  drawHeader(ctx, canvas, "ASSIGN PLAYERS", "Click a slot to cycle Human ↔ CPU and pick a difficulty")
+  let aiCount = 0
+  getFFASlotSelectRects(canvas, playerCount).forEach((b, i) => {
+    if (b.slot != null) {
+      const diff    = aiSlots[b.slot] || null
+      const forced  = b.slot >= deviceCount                 // no device for this slot → must be CPU
+      const who     = diff ? `CPU (${diff.toUpperCase()})` : `HUMAN — ${ffaSlotDeviceName(b.slot)}`
+      if (diff) aiCount++
+      const sub     = forced ? "No device — click to change CPU difficulty"
+                             : "Click to cycle Human / CPU difficulties"
+      drawButton(ctx, b, { label: `P${b.slot + 1}  ${charKeys[b.slot] || "?"}  →  ${who}`, subLabel: sub, active: i === selectedIndex, accent: diff ? "#fbbf24" : "#8fb3ff" })
+    } else {
+      drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex })
+    }
+  })
+  drawFooterHint(ctx, canvas, `${aiCount} CPU · ${playerCount - aiCount} human  ·  slots without a device default to CPU`)
+}
+
 // FREE-FOR-ALL team assignment — one toggle row per slot + START / NO-TEAMS / BACK.
 // Slot rows carry `slot` (0-based); action buttons carry a string id.
 export function getFFATeamSelectRects(canvas, playerCount = 3) {

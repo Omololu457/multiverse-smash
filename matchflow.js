@@ -545,6 +545,7 @@ export function resetFighterForRematch(fighter) {
     speedMultiplier:   1,
     defenseMultiplier: 1,
     infinityActive:    false,
+    absoluteDefenseActive: false,   // Sasuke — Absolute Defense toggle resets each round (like Infinity)
     directionHistory:  [],
     adaptationLevels:  null
   }

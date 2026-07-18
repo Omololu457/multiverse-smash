@@ -298,6 +298,27 @@ export function shouldGojoAutoDodge(defender) {
   return true
 }
 
+// SASUKE — ABSOLUTE DEFENSE. Charge-button TOGGLE (see game.handleChargeRelease), mirrors the
+// shape of shouldGojoAutoDodge above but is STRONGER: while toggled on it is an UNCONDITIONAL
+// full negate — every incoming hit is nullified outright (no per-hit dodge-roll that can fail),
+// as long as the energy check passes. COST MODEL is per-block, NOT a continuous drain: energy is
+// deducted only on a hit it actually negates (same per-event shape as Gojo's autoDodgeKiCost).
+// Priced NOTICEABLY HIGHER than Gojo's per-dodge cost — Gojo's Infinity autoDodgeKiCost falls
+// back to 5 (combat.shouldGojoAutoDodge); Absolute Defense costs 12 per block.
+// ADDITIVE to Sasuke's normal Down/S block — both coexist (this is checked before the block/damage
+// path, so it negates whether or not he is also holding block; when it's off, normal block applies).
+// DEFERRED / OUT OF SCOPE (do NOT fix this pass): holding the charge button while also feeding a
+// motion-gated special can create input conflicts. Intentionally left unhandled — noted only.
+export const SASUKE_ABSOLUTE_DEFENSE_COST = 12   // per negated hit (Gojo's per-dodge autoDodgeKiCost = 5)
+export function shouldSasukeAbsoluteDefenseNegate(defender) {
+  if ((defender?.rosterKey || "").toLowerCase() !== "sasuke") return false
+  if (!defender?.absoluteDefenseActive) return false
+  if ((defender.energy || 0) < SASUKE_ABSOLUTE_DEFENSE_COST) return false
+  defender.energy -= SASUKE_ABSOLUTE_DEFENSE_COST   // per-block cost, deducted ONLY on an actual negate
+  defender.teleportFlash = Math.max(defender.teleportFlash || 0, 8)
+  return true
+}
+
 export function applyUltraEgoReaction(defender) {
   if (!defender?.currentFormData?.rageHealOnHit) return
   const c = defender.currentFormData.healCostPerHitKi || 4
@@ -576,7 +597,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   if (attacker.currentAttack?.superArmor) attacker.armorFlash = 8
 
-  if (shouldGojoAutoDodge(defender)) {
+  if (shouldGojoAutoDodge(defender) || shouldSasukeAbsoluteDefenseNegate(defender)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
     return
@@ -900,6 +921,15 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       const pb = { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
       if (!rectsOverlap(pb, hurtbox)) continue
+
+      // Sasuke's Absolute Defense negates projectiles too (full invuln, per-block energy cost) —
+      // the projectile is consumed and deals nothing. Checked BEFORE damage so it takes priority
+      // over normal block. No-op for everyone else / when the toggle is off / when energy is short.
+      if (shouldSasukeAbsoluteDefenseNegate(fighter)) {
+        try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+        projectiles.splice(i, 1)
+        break
+      }
 
       let dmg = (proj.damage || 30) * GLOBAL_DAMAGE_SCALE
 

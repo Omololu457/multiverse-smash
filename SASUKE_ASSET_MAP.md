@@ -123,7 +123,7 @@ base→sageMode→kcmMode→baryonMode) and the stage-gated-unlock precedent in 
 
 | File | Dims (WxH) | Frames | Cell W | Cell H | Key | Notes |
 |---|---|---|---|---|---|---|
-| `sasuke_susanoo_intro.png` | 679×70 | ⚠ (auto 15, unreliable) | — | 70 | `susanooIntro` | Activation/summon — character transitioning into a swirling purple aura/ribcage. Plays ONCE on form entry. Auto over-counts (character + wispy aura); frame count needs a visual pass. |
+| `sasuke_susanoo_intro.png` | 679×70 | 6 (wired) | 113 | 70 | `absoluteDefenseFx` ⚠ **REPURPOSED** | **WIRED 2026-07-18 → ABSOLUTE DEFENSE barrier FX** (no longer Susanoo's activation). Swirling purple aura/ribcage now manifests around Sasuke when he toggles **Absolute Defense** ON (charge-button toggle → `abilities.spawnAbsoluteDefenseFx`, scale 1.6 / yOff −60 to sit over his BASE body, not the giant). Reads as a protective shell — a better fit for a defensive toggle than for the summon. **Susanoo's activation no longer uses any intro sprite** — it now enters via a spriteless screen-flash (`teleportFlash`) + camera-punch (`shakeCamera 11,14`), option (b), matching lighter transforms. See the Absolute Defense section below. |
 | `sasuke_susanoo_lvl_1.png` | 975×277 | 5 | 195 | 277 | `susanooLvl1` | reliable (auto=5 ✓). **Stage 1** — purple skeletal/ribcage humanoid, horned skull, glowing eyes, wielding a **mace/flail** (spiked ball on a chain, extends in frames 3–4). Partial manifestation. |
 | `sasuke_susanoo_lvl_2.png` | 945×298 | 4 | 236.25 | 298 | `susanooLvl2` | **Stage 2 (upgrade — confirm, OPEN Q14).** auto=8 (pedestal flames + bow over-count); trust your 4. Visibly BIGGER/fuller/more-armored, **four horns**, wielding a **bow** on a fire/spike pedestal. Reads as the upgrade of lvl_1 — BUT the weapon also changes (flail→bow), so confirm it's a stage upgrade and not a same-stage alt-loadout. |
 | `sasuke_susanoo_grab_1.png` | 770×65 | ~11 | ~70 | 65 | `susanooGrab` (variant?) | Extending ribcage-arm grab — grows from a tiny fragment → medium-reach arm+fist. See OPEN Q15. |
@@ -131,6 +131,36 @@ base→sageMode→kcmMode→baryonMode) and the stage-gated-unlock precedent in 
 | `sasuke_susanoo_grab.png` | 794×80 | ~6 | ~132 | 80 | `susanooGrab` (variant?) | Arm forms (motion lines) → **longest fully-extended** reach arm+claw. See OPEN Q15. |
 | `sasuke_susanoo_arrow_attack.png` | 553×95 | 5 | 110.6 | 95 | `fxSusanooArrow` | reliable (auto=5 ✓). FX-only: small arrow + 4 growing purple spike-bursts. Charge/release FX for **lvl_2's bow**. |
 | `sasuke_susanoo_sword_attack.png` | 1072×282 | ⚠ (see note) | — | 282 | **UNASSIGNED** ⚠ | ⚠ **FX-ONLY confirmed** (color analysis: ~87% yellow/white, **0% purple body**). Yellow/white ethereal blade energy — vertical energy blades (frames 1–5) → a big diagonal **slash arc** (last frame). Meant to layer OVER a Susanoo body. **Pairing unclear:** neither lvl_1 (flail) nor lvl_2 (bow) shows a sword-swing pose, so the matching body frame isn't in those sheets — see OPEN Q16. |
+
+## ABSOLUTE DEFENSE — charge-button toggle (WIRED 2026-07-18)
+
+Sasuke's **Absolute Defense** mirrors Gojo's Infinity architecture (toggle-on-charge-button +
+`shouldGojoAutoDodge`-style hook in `combat.js`):
+
+- **Input:** charge-button **TAP** (`P`) toggles it ON/OFF — same tap-vs-hold slot Gojo's Infinity
+  uses (`game.handleChargeRelease`). Sasuke has no `transformationOrder`, so this slot was free.
+- **Effect:** while ON and energy covers the cost, **every incoming hit is fully negated** — melee
+  AND projectiles (`combat.shouldSasukeAbsoluteDefenseNegate`, called in both `resolveAttackHit`
+  and `resolveProjectileHitsMulti`). Unconditional negate — stronger than Infinity's per-dodge roll,
+  which can still fail.
+- **Cost model:** per-block, NOT a continuous drain — energy is deducted **only on a hit it actually
+  negates**. **Cost = 12 per block**, priced NOTICEABLY ABOVE Gojo's per-dodge `autoDodgeKiCost`
+  (which falls back to **5** for the Infinity toggle). Constant: `combat.SASUKE_ABSOLUTE_DEFENSE_COST`.
+- **Additive to normal block:** coexists with Sasuke's Down/S block — the negate is checked before
+  the block/damage path, so it works whether or not he's also blocking; when OFF, normal block applies.
+- **Visual:** repurposed `sasuke_susanoo_intro.png` barrier FX on toggle-ON + a persistent pulsing
+  **purple** ring while active (`game._drawAbsoluteDefenseAura`; distinct from Gojo's cyan ring).
+- **DEFERRED / OUT OF SCOPE:** holding the charge button while feeding a motion-gated special can
+  create input conflicts — intentionally left unhandled this pass (noted in code comments only).
+- **Test:** `harness/absolute_defense.test.mjs` (21/21).
+
+**Susanoo activation (new handling):** because the intro sheet moved to Absolute Defense, Susanoo's
+Stage-1 entry (`abilities.executeSasukeUltimate`) no longer plays a dedicated intro sprite — the Lv1
+giant appears instantly, punctuated by a **screen-flash** (`teleportFlash`) + a **stronger
+camera-punch** (`shakeCamera 11,14` + `focusCameraOnAction`). Chosen **option (b)** — simpler
+transition, no sprite-sheet frame-count guesswork, matching how other characters' lighter transforms
+enter — over option (a) (no already-loaded Sasuke asset reads as cleanly as a defensive barrier the
+way `susanoo_intro` does; a flash is lower-risk than re-purposing a Chidori-specific sheet).
 
 ## Taka strips — SEPARATE MOVE ASSETS on base art (NOT a skin)
 

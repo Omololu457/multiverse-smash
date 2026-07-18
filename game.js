@@ -39,6 +39,7 @@ import {
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
   sasukeInSusanoo, SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout
+  spawnAbsoluteDefenseFx,   // Sasuke Absolute Defense — repurposed Susanoo-intro sheet as the barrier FX
   updateTojiStanceSwitch, updateTojiStanceCombat, getTojiStance   // Toji 3-stance weapon system (+ Blade moveset)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -1012,6 +1013,7 @@ function createFighter(charKey, char, x, facing, controls, side) {
     parryFlash: 0, armorFlash: 0, clashFlash: 0,
     leftTapTime: 0, rightTapTime: 0,
     infinityActive: false,
+    absoluteDefenseActive: false,   // Sasuke — Absolute Defense charge-toggle (combat.shouldSasukeAbsoluteDefenseNegate)
     currentForm:     baseFormKey,
     currentFormData: baseForm,
     transformIndex:  0,
@@ -1655,6 +1657,15 @@ function handleChargeRelease(fighter, key) {
       fighter.infinityActive = !fighter.infinityActive
       fighter.teleportFlash  = Math.max(fighter.teleportFlash || 0, 10)
     }
+  } else if (fighter.rosterKey === "sasuke") {
+    // Sasuke — ABSOLUTE DEFENSE toggle. Same charge-TAP pattern as Gojo's Infinity, but the negate
+    // is a full unconditional block priced per-hit (combat.shouldSasukeAbsoluteDefenseNegate).
+    // DEFERRED (out of scope, do not fix): holding charge while feeding a motion-gated special may
+    // conflict — noted, not handled this pass.
+    fighter.absoluteDefenseActive = !fighter.absoluteDefenseActive
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+    // Repurposed asset: the old Susanoo-intro sheet now manifests the Absolute Defense barrier.
+    if (fighter.absoluteDefenseActive) spawnAbsoluteDefenseFx(fighter, getAbilityContext())
   } else if (fighter.transformationOrder?.length) {
     triggerTransformation(fighter, getAbilityContext())
   }
@@ -2574,6 +2585,25 @@ function _drawInfinityAura(f) {
   ctx.restore()
 }
 
+// Persistent cue that Sasuke's ABSOLUTE DEFENSE toggle is up (works with his sprite): a pulsing
+// PURPLE ring — visually distinct from Gojo's cyan Infinity ring, echoing Susanoo's purple palette.
+// Per-block negates also pop his teleportFlash (combat.shouldSasukeAbsoluteDefenseNegate).
+function _drawAbsoluteDefenseAura(f) {
+  if (!f || !f.absoluteDefenseActive) return
+  const cx = f.x + f.w / 2, cy = f.y + f.h / 2
+  const r  = Math.max(f.w, f.h) * 0.72
+  const t  = globalFrameCount * 0.12
+  ctx.save()
+  ctx.strokeStyle = "#c4b5fd"
+  ctx.shadowBlur  = 16; ctx.shadowColor = "#8b5cf6"
+  ctx.lineWidth   = 3
+  ctx.globalAlpha = 0.30 + Math.sin(t) * 0.08
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke()
+  ctx.globalAlpha = 0.14
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.78, 0, Math.PI * 2); ctx.stroke()
+  ctx.restore()
+}
+
 // HOLD-TO-CHARGE aura (Task 2): a visible, rising energy effect while a meter
 // character holds P to build cursed energy. Universal (works for sprite AND
 // procedural fighters) — rising particles + a pulsing ground ring, tinted to the
@@ -2631,6 +2661,8 @@ function drawBattleScene() {
   drawActiveSummons(ctx)
   _drawInfinityAura(p1)
   _drawInfinityAura(p2)
+  _drawAbsoluteDefenseAura(p1)
+  _drawAbsoluteDefenseAura(p2)
   _drawChargeAura(p1)
   _drawChargeAura(p2)
   drawHitSparksEnhanced()
@@ -3799,7 +3831,7 @@ gameLoop()
     // Substitution incoming-attack window and to verify the swing actually whiffs on a substitute.
     p2Attack:   () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "light", { startup: 10, active: 6, recovery: 16, damage: 60, rangeX: 120, rangeY: 90, hitstun: 18, knockbackX: 6 }) } },
     p2State:    () => (p2 ? { attacking: !!p2.attacking, hasHit: !!(p2.currentAttack && p2.currentAttack.hasHit), x: p2.x, w: p2.w, health: p2.health } : null),
-    p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null } : null),
+    p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0 } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({
       active: towerState.active, floor: towerState.floor,

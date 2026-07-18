@@ -272,14 +272,19 @@ function resolvePadIndex(playerNum, gamepads) {
   return null
 }
 
-function pollGamepad(playerNum, buffer) {
-  const gamepads = navigator.getGamepads ? navigator.getGamepads() : []
-  // Read THIS player's BOUND pad by gamepad.index (getGamepads() is indexed by .index),
-  // never by array position — that's what fixes the two-pad cross-talk.
+// Resolve the live Gamepad object bound to a player, by gamepad.index (never array slot) via
+// resolvePadIndex — the SINGLE source of pad↔player binding, collision-free for up to 4 pads.
+// Exported so game.js's edge detector (updateGamepadEdges) binds pads the SAME way pollGamepad
+// does, instead of the old gamepads[0]/[1] array-position guess that only ever worked for P1/P2.
+export function getPlayerGamepad(playerNum) {
+  const gamepads = (typeof navigator !== "undefined" && navigator.getGamepads) ? navigator.getGamepads() : []
   const assignedIdx = resolvePadIndex(playerNum, gamepads)
-  const gp = assignedIdx == null
-    ? null
-    : (gamepads[assignedIdx] || Array.from(gamepads).find(g => g && g.index === assignedIdx) || null)
+  if (assignedIdx == null) return null
+  return gamepads[assignedIdx] || Array.from(gamepads).find(g => g && g.index === assignedIdx) || null
+}
+
+function pollGamepad(playerNum, buffer) {
+  const gp = getPlayerGamepad(playerNum)
   if (!gp) return null
 
   const btn  = (i) => !!gp.buttons[i]?.pressed

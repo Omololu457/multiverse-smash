@@ -2943,3 +2943,75 @@ sound.playMenuMusic?.()   // boot/loading screen → Passion_fruitmp3.mp3 (queue
 syncPhysicsBounds()
 updateCameraBounds()
 gameLoop()
+
+// ------------------------------------------------------------------
+// TEST HARNESS  (INERT unless the URL contains ?harness=… )
+// ------------------------------------------------------------------
+// Lets Playwright / automated tests drive a REAL match without clicking through
+// the canvas-rendered menus. Everything is gated behind the `harness` query
+// param, so normal play is completely unaffected (the IIFE returns immediately).
+// Keyboard is still delivered the normal way (page.keyboard.* → document keydown
+// in input.js) — the harness never fakes input, it only skips menus and reads
+// state, so what it verifies is the same code path a real player exercises.
+;(function setupTestHarness() {
+  let params
+  try { params = new URLSearchParams(window.location.search) } catch { return }
+  if (!params.has("harness")) return
+
+  const validKey = (v, fallback) => (v && characters[v] ? v : fallback)
+  const p1Key = validKey(params.get("p1"), "sasuke")
+  const p2Key = validKey(params.get("p2"), p1Key)
+
+  function startHarnessMatch() {
+    resetSelections()
+    matchConfig.mode          = "training"     // p2 → dummy AI (stands still), stage-select skipped
+    matchConfig.aiDifficulty  = "dummy"
+    matchConfig.selectedStage = stages[0]
+    matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key]
+    matchConfig.p2CharKey = p2Key; matchConfig.p2Char = characters[p2Key]
+    matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+    startMatch()
+  }
+
+  // Collapse INTRO + namecall + countdown so the BATTLE update loop actually runs
+  // combat/animation. (updateBattle only ticks once countdown<=0 — see BATTLE case.)
+  function skipToBattle() {
+    matchIntroTimer = 0
+    if (p1) p1._introPlaying = false
+    if (p2) p2._introPlaying = false
+    gameState = GAME_STATES.BATTLE
+    countdown = 0
+  }
+
+  const snap = f => f && ({
+    key: f.rosterKey, x: f.x, y: f.y, w: f.w, h: f.h, facing: f.facing,
+    energy: f.energy, maxEnergy: f.maxEnergy,
+    susanooStage:     f._susanooStage || 0,
+    hasSkinAnim:      !!f._skinAnim,
+    canvasHeightFrac: f._canvasHeightFrac || null,
+    action:           f._lastSpriteAction || null,
+    frameIndex:       f.spriteHandler?.frameIndex ?? null,
+    bobClock:         f.spriteHandler?._giantBobClock ?? null,
+    lastDrawY:        f._lastDrawY ?? null,
+    lastBobUp:        f._lastBobUp ?? null,
+    ultCooldown:      f.ultimateCooldown || 0,
+    ultReleased:      !!f._ultReleasedSinceStage1,
+    arenaHalfLock:    f._arenaHalfLock || null
+  })
+
+  window.__harness = {
+    version: 1,
+    start:       startHarnessMatch,
+    skipToBattle,
+    // One-shot: into a live battle with P1 energy full (ultimate affordable).
+    boot: () => { startHarnessMatch(); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
+    state: () => ({ gameState, countdown, frame: globalFrameCount }),
+    arena: () => ({ left: physics.stageLeft, width: physics.stageWidth,
+                    mid: physics.stageLeft + (physics.stageWidth - physics.stageLeft) * 0.5 }),
+    keys:  () => ({ ...keys }),                      // proves key delivery to input.js
+    p1:    () => snap(p1),
+    p2:    () => snap(p2),
+    fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
+    setEnergy:  v => { if (p1) p1.energy = v }
+  }
+})()

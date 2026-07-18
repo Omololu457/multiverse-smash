@@ -138,3 +138,10 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Test harness artifacts (regenerable)
+harness/shots/
+# Throwaway sprite-boundary verification previews
+*_OVERLAY.png
+*_ONGRAY.png
+*_IDLEWINDOW.png

@@ -1,0 +1,12 @@
+{
+  "name": "multiverse-smash-harness",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:susanoo": "node harness/susanoo.test.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}

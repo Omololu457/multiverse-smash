@@ -347,7 +347,8 @@ const SERIES_MUSIC = {
 const NAMECALL_AUDIO = {
   naruto: "naruto_namecall.mp3",
   gojo:   "gojo_namecall.mp3",
-  sukuna: "sukuna_namecall.mp3"
+  sukuna: "sukuna_namecall.mp3",
+  rick:   "rick_intro.mp3"
 }
 
 // Data-driven stage table — add a stage here (palette + series + landmark id)
@@ -1833,6 +1834,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
       if (fighter.rosterKey === "toji"   && typeof tojiTeleportStrike === "function")        tojiTeleportStrike(fighter)
       else if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
       else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
+      else if (fighter.rosterKey === "rick")   { fighter._spriteCastMove = "portalTravel"; fighter._spriteCastTimer = 14 }  // Portal-Behind: reposition-only, rick_portal_attack_travel.png plays the blink
       // Gojo: reposition only — "ready to attack".
       fighter.dashTeleportCooldown = 48
     } else {
@@ -1923,9 +1925,62 @@ function updateMiscTimers(fighter) {
   }
 }
 
+// ── TAUNT — timed channel → payoff (Rick) ─────────────────────────────────────
+// A genuinely new mechanic: hold Down for TAUNT_CHARGE_FRAMES (10s) to COMMIT into a
+// fully-locked taunt animation; survive both phases un-hit to heal 50% of CURRENT hp.
+// Its own tracked state (idle → charging → committed), separate from block-hold — it
+// only READS the same Down input. Any character defining a `taunt` action gets it;
+// only Rick ships the art. States: _tauntCharge (frames held), _tauntPlaying (+ timer).
+const TAUNT_CHARGE_FRAMES = 600   // 10s @60Hz of uninterrupted Down-hold to trigger
+function tauntAnimFrames(fighter) {
+  const a = fighter.animationData?.taunt
+  return a ? (a.frames || 1) * (a.speed || 4) : 108
+}
+function updateTauntState(fighter, downHeld) {
+  if (!fighter || !fighter.animationData?.taunt) return
+  // "Took a hit" during EITHER phase = interrupt: hitstun OR any health drop since last frame.
+  const prevH   = fighter._tauntPrevHealth
+  fighter._tauntPrevHealth = fighter.health
+  const tookHit = (fighter.hitstun || 0) > 0 || (prevH != null && (fighter.health || 0) < prevH)
+
+  // COMMITTED animation phase — locked; resolve on finish or cancel on hit.
+  if (fighter._tauntPlaying) {
+    if (tookHit) { fighter._tauntPlaying = false; fighter._tauntCharge = 0; return }   // interrupted → no reward
+    if (--fighter._tauntTimer <= 0) {
+      const heal = Math.floor((fighter.health || 0) * 0.5)                              // 50% of CURRENT hp
+      fighter.health      = Math.min(fighter.maxHealth || fighter.health, (fighter.health || 0) + heal)
+      fighter._tauntPlaying = false
+      fighter._tauntHealFlash = 45                                                      // green heal cue
+    }
+    return
+  }
+
+  // CHARGING phase — only accrues on an uninterrupted, grounded, idle Down-hold. Any
+  // hit / block / attack / airborne breaks it (resets to 0), so a normal <10s block-hold
+  // is exactly as before and never "leaks" into a taunt.
+  const eligible = downHeld && !tookHit &&
+    (fighter.onGround ?? fighter.grounded) && !fighter.attacking &&
+    (fighter.hitstun || 0) <= 0 && (fighter.blockstun || 0) <= 0 &&
+    !fighter.isGrabbed && (fighter.stun || 0) <= 0
+  if (!eligible) { fighter._tauntCharge = 0; return }
+  fighter._tauntCharge = (fighter._tauntCharge || 0) + 1
+  if (fighter._tauntCharge >= TAUNT_CHARGE_FRAMES) {
+    fighter._tauntCharge  = 0
+    fighter._tauntPlaying = true
+    fighter._tauntTimer   = tauntAnimFrames(fighter)
+  }
+}
+
 function updateMovementInput(fighter) {
   if (!fighter) return
   const inputState = getFighterInput(fighter)
+
+  // Taunt state machine runs first. While the committed taunt plays, the fighter is
+  // FULLY LOCKED — no movement/block/action (combat actions are gated in
+  // updatePlayerCombat; physics.moveFighter also honours _tauntPlaying).
+  updateTauntState(fighter, !!inputState.down)
+  if (fighter._tauntPlaying) { fighter.isBlocking = false; fighter.isCharging = false; fighter.vx = 0; return }
+
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   fighter.isBlocking = false
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
@@ -2005,6 +2060,10 @@ function updatePlayerCombat(fighter) {
     updateCombat(fighter, getOpponent(fighter), {}, opts)
     return
   }
+
+  // TAUNT LOCK: mid-taunt the fighter starts nothing. Still tick combat timers with
+  // empty controls so any residual state resolves cleanly.
+  if (fighter._tauntPlaying) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
 
   const inputState = getFighterInput(fighter)
   const isToji     = (fighter.rosterKey || "").toLowerCase() === "toji"
@@ -2093,6 +2152,34 @@ function drawKuramaShroudAura(c, fighter) {
   c.restore()
 }
 
+// Rick's Portal-Pull / Portal-Push reappear the opponent above a destination and let
+// them fall (abilities.js rickPortalReposition). This applies the impact damage the
+// frame they reground — mirrors the _dot marker→resolver split (abilities stamps the
+// marker, the game loop resolves it). The ttl guards against a lingering marker if the
+// target somehow never lands (e.g. caught by another launcher mid-fall).
+function resolvePortalDropLanding(f) {
+  const pd = f && f._portalDrop
+  if (!pd) return
+  if (pd.ttl != null && --pd.ttl <= 0) { f._portalDrop = null; return }
+  if (!(f.onGround || f.grounded)) return   // still falling — wait for the landing frame
+  let dmg = pd.dmg || 0
+  if (f.isBlocking) {
+    dmg = Math.floor(dmg * 0.25)
+    f.blockstun = Math.max(f.blockstun || 0, 16)
+  } else {
+    f.hitstun    = Math.max(f.hitstun || 0, pd.hitstun || 24)
+    f.vy         = -6            // small impact pop so the landing reads (and Pull can juggle)
+    f.onGround   = false
+    f.grounded   = false
+    f.isLaunched = true
+    f.colorFlash = Math.max(f.colorFlash || 0, 8)
+  }
+  f.health = Math.max(0, (f.health || 0) - dmg)
+  spawnDamageNumber({ x: f.x + (f.w || 60) / 2, y: f.y, damage: dmg, category: pd.category || "special" })
+  camera.shake?.(10, 8)
+  f._portalDrop = null
+}
+
 function updateFighterState(fighter) {
   if (!fighter) return fighter
   const updated = updateTransformationState(fighter, getAbilityContext()) || fighter
@@ -2100,6 +2187,7 @@ function updateFighterState(fighter) {
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
+  resolvePortalDropLanding(updated)   // Rick Portal-Pull/Push: impact damage the frame they reground
   physics.updateAttackBox(updated)
   // Ben/Albedo run the transform-device drain/charge/revert system instead of
   // the generic passive regen (which would fight the drain). Driven by real
@@ -3891,7 +3979,14 @@ gameLoop()
     lastBobUp:        f._lastBobUp ?? null,
     ultCooldown:      f.ultimateCooldown || 0,
     ultReleased:      !!f._ultReleasedSinceStage1,
-    arenaHalfLock:    f._arenaHalfLock || null
+    arenaHalfLock:    f._arenaHalfLock || null,
+    portalDrop:       !!f._portalDrop,
+    jumpCount:        f.jumpCount || 0,
+    attackCooldown:   f.attackCooldown || 0,
+    tauntCharge:      f._tauntCharge || 0,
+    tauntPlaying:     !!f._tauntPlaying,
+    tauntTimer:       f._tauntTimer || 0,
+    tauntHealFlash:   f._tauntHealFlash || 0
   })
 
   window.__harness = {
@@ -3976,6 +4071,19 @@ gameLoop()
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     sasukeCine: () => getSasukeCinematicStatus(),
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
+    // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
+    // Pre-match name-call introspection: built beats, active flag, current announcing beat.
+    namecall: () => ({
+      active: namecallActive, index: namecallIndex, timer: namecallTimer,
+      beats: namecallBeats.map(b => ({ side: b.side, roster: b.fighter?.rosterKey ?? null, clip: b.clip }))
+    }),
+    // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
+    summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime })),
+    resetUlt:   () => { if (p1) { p1.ultimateCooldown = 0; p1.energy = p1.maxEnergy; p1.attackCooldown = 0 } },   // clear ult lockout for back-to-back ultimate tests
+    liftP2:     (dy = 40) => { if (p2) { p2.onGround = false; p2.grounded = false; p2.y -= dy; p2.vy = 0; p2.isLaunched = true } },  // raise the dummy into an aerial path (e.g. Rick's rising rocket)
+    setTauntCharge: v => { if (p1) p1._tauntCharge = v },   // fast-forward the 10s taunt charge for tests
+    healP1:     () => { if (p1) { p1.health = p1.maxHealth || 1050; p1.hitstun = 0; p1.knockdownState = false } },
+    setP2Invuln: (v = 600) => { if (p2) p2.invulnTimer = v },   // let a projectile pass through the dummy (free-flight range measurement)
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
     setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)

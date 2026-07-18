@@ -23,7 +23,8 @@
     "test:toji-oldart": "node harness/toji_oldart.test.mjs",
     "test:toji": "node harness/toji.test.mjs",
     "test:toji-motion": "node harness/toji_motion.test.mjs",
-    "test:toji-command": "node harness/toji_command.test.mjs"
+    "test:toji-command": "node harness/toji_command.test.mjs",
+    "test:rick": "node harness/rick.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

@@ -689,6 +689,10 @@ const sasuke = {
     air:      { frames: 6, width: 68, height: 83, speed: 3, anchorY: -12, sheet: "./sasuke_jump_attack.png" },     // 409×83 → 6×(68×83) aerial spin-slash (neutral J in air)
     // Shuriken THROW pose — plays via _spriteCastMove while the shuriken projectile flies (air+heavy poke).
     shurikenThrow: { frames: 2, width: 57, height: 56, speed: 4, anchorY: -8, loop: false, lockLastFrame: true, sheet: "./sasuke_throwing_shuriken.png" }, // 114×56 → 2×(57×56)
+    // Chidori Koiten windup→discharge pose (qcb+Special). REPACKED to uniform 54px cells (raw sheet
+    // was non-uniformly packed + a detached "CHIDORI KOITEN" label band). speed 4 → windup frames
+    // fill the 16f startup, discharge frames land on the active burst. anchorY -6 = -(3px botGap ×2.1).
+    chidoriKoiten: { frames: 7, width: 54, height: 73, speed: 4, anchorY: -6, loop: false, lockLastFrame: true, sheet: "./sasuke_CHIDORI_KOITEN_attack.png" },
     // ── PHASE 3a: pre-match INTRO POOL. game.js picks one of `introPool` at random each match
     // (see pickIntroVariant); sprite.js plays it while _introPlaying is set. loop:false +
     // lockLastFrame → each plays ONCE then holds its final pose, snapping cleanly to idle when

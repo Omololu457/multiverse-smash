@@ -121,17 +121,31 @@ try {
   await wf(20); await grounded();
 
   // ── 6) SUSANOO activation still looks intentional (asset repurpose handled) ──
+  // REAL screenshot evidence: capture the Lv1 giant at full render scale under the new spriteless
+  // entry (screen-flash + camera-punch, NO dedicated intro sprite) — same standard as the earlier
+  // Susanoo scale/hurtbox shots. Committed to harness/shots/ (see git add -f in the build).
   section("Susanoo activation still intentional WITHOUT the intro sprite (option b: camera-punch)");
   await page.evaluate(()=>{ window.__harness.fillEnergy(); window.__harness.healP2(); });
   await wf(2);
   {
+    const p1full=()=>page.evaluate(()=>window.__harness.p1());
+    const hb=()=>page.evaluate(()=>window.__harness.hurtbox("p1"));
     check("no Susanoo giant yet", (await p1s()).susanooStage === 0, `stage=${(await p1s()).susanooStage}`);
+    const baseH=(await hb()).drawH;
     await page.keyboard.down("u"); await wf(3); await page.keyboard.up("u"); await wf(3);
     const after=await p1s();
     check("ultimate enters Susanoo Stage 1 (giant appears instantly)", after.susanooStage === 1, `stage=${after.susanooStage}`);
     check("activation flashes (teleportFlash pop) so it never reads blank", after.teleportFlash > 0, `flash=${after.teleportFlash}`);
     check("activation does NOT spawn the (repurposed) susanoo_intro sheet anymore", !(await hasIntroSheet()), `proj=${JSON.stringify(await projs())}`);
-    await shot("AD_susanoo_activate.png");
+    const s1=await p1full();
+    check("Stage 1 attaches the giant _skinAnim body-swap", s1.hasSkinAnim === true, `hasSkinAnim=${s1.hasSkinAnim}`);
+    check("Stage 1 canvas-relative giant sizing = 0.95 (full giant scale)", s1.canvasHeightFrac === 0.95, `frac=${s1.canvasHeightFrac}`);
+    // let the giant fully materialize + the camera-punch settle before the evidence shot
+    await wf(24);
+    const drawH=(await hb()).drawH;
+    check("giant renders at FULL scale (drawH ≫ base Sasuke sprite height)", drawH > 300 && drawH > baseH * 3, `giant drawH=${drawH?.toFixed?.(0)} base=${baseH?.toFixed?.(0)}`);
+    await shot("SUSANOO_spriteless_activation.png");
+    console.log(`  → evidence screenshot: harness/shots/SUSANOO_spriteless_activation.png (giant drawH=${drawH?.toFixed?.(0)}px, frac=${s1.canvasHeightFrac}, teleportFlash=${after.teleportFlash}, intro-sprite=none)`);
   }
 
   // ── 7) Another character's charge-tap does NOT grant Absolute Defense ──

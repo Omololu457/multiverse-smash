@@ -105,6 +105,13 @@ export const SPRITE_MANIFEST = {
   // characters.js → sasuke.animationData. Note the existing filename typo "saske" — as-is.
   sasuke: {
     actions: { idle: "./saske_stance_2.png" }
+  },
+
+  // Rick Sanchez (universe: rick_and_morty). Gates spritesReady() by decoding the idle strip →
+  // flips Rick from procedural box to sprite. Per-action rendering reads characters.js →
+  // rick.animationData (each action carries its own .sheet).
+  rick: {
+    actions: { idle: "./rick_stand.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

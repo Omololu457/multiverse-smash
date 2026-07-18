@@ -61,6 +61,28 @@ const summonTemplates = {
     sheet: "./megumi2_divine_dogs_white_proj_sheet.png", spriteFrames: 5, spriteW: 42, spriteH: 47, spriteSpeed: 4, spriteScale: 1.3
   },
 
+  // Meeseeks (Rick) — same rushdown shape as Divine Dogs, but with NO simultaneous cap
+  // (maxSimultaneous 99): only Rick's energy cost per throw limits how many exist at once.
+  // Two-phase art: hold the idle "poof-in" pose for `spawnBeat` frames, then run the attack strip.
+  meeseeks: {
+    id:              "meeseeks",
+    duration:        130,   // ~2.2s: enough to cross most of the arena, then despawn on whiff
+    maxSimultaneous: 99,    // effectively uncapped — see spec (multiple Meeseeks allowed)
+    attackInterval:  10,
+    damage:          45,
+    w:               42,
+    h:               64,
+    speed:           8,     // straight-line rush toward the opponent
+    behavior:        "rush",
+    hitstun:         18,
+    knockbackX:      7,
+    knockbackY:      -1,
+    oneHit:          true,  // connects once, then despawns cleanly
+    color:           "#4ade80",
+    sheet:      "./meeseeks_run_attack.png", spriteFrames: 7, spriteW: 60, spriteH: 80, spriteSpeed: 4, spriteScale: 1.0,
+    spawnSheet: "./meeseeks_idle.png",       spawnFrames: 5, spawnW: 38, spawnH: 82, spawnBeat: 16
+  },
+
   nue: {
     id:              "nue",
     duration:        96,   // ~1.6s
@@ -325,6 +347,9 @@ export function updateSummons() {
 function updateSummonMovement(s) {
   if (!s || !s.target) return
 
+  // Spawn beat: the Meeseeks "poofs in" and holds its idle pose in place before rushing.
+  if (s.spawnBeat && (s.frame || 0) < s.spawnBeat) { s.vx = 0; return }
+
   const dx = s.target.x - s.x
   const direction = dx >= 0 ? 1 : -1
   s.facing = direction
@@ -504,11 +529,15 @@ export function drawSummons(ctx) {
     // animated shikigami art (frame strip of `spriteFrames` cells, flipped to face
     // its target), else fall through to the procedural box below. Single-image
     // region crops set spriteFrames:1 → the whole image draws.
-    const img = s.sheet ? _summonImg(s.sheet) : null
+    // Meeseeks-style spawn beat: draw the idle "poof-in" pose for the first `spawnBeat`
+    // frames, then the running-attack strip. Any summon without spawnSheet uses `sheet`.
+    const inBeat    = s.spawnSheet && (s.frame || 0) < (s.spawnBeat || 0)
+    const sheetPath = inBeat ? s.spawnSheet : s.sheet
+    const img = sheetPath ? _summonImg(sheetPath) : null
     if (img && img.complete && img.naturalWidth > 0) {
-      const frames = s.spriteFrames || 1
-      const fw = s.spriteW || (img.naturalWidth / frames)
-      const fh = s.spriteH || img.naturalHeight
+      const frames = (inBeat ? s.spawnFrames : s.spriteFrames) || 1
+      const fw = (inBeat ? s.spawnW : s.spriteW) || (img.naturalWidth / frames)
+      const fh = (inBeat ? s.spawnH : s.spriteH) || img.naturalHeight
       s._animT = (s._animT || 0) + 1
       const fi = Math.floor(s._animT / (s.spriteSpeed || 5)) % frames
       const sc = s.spriteScale || 1

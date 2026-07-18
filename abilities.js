@@ -2041,6 +2041,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "toji":    return executeToji_Special(fighter, context)
+    case "rick":    return executeRickSpecial(fighter, context)
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -2067,6 +2068,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "toji":    cast = executeToji_Ultimate(fighter, context);   break
+      case "rick":    cast = executeRickUltimate(fighter, context);    break
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }
@@ -2087,6 +2089,104 @@ export function triggerUltimate(fighter, context = {}) {
 // ─────────────────────────────────────────────────────────────────
 // FALLBACK (for any character not in the 7-character starter list)
 // ─────────────────────────────────────────────────────────────────
+// ── RICK SANCHEZ ──────────────────────────────────────────────────
+// ZONER. Keep opponents out with Meeseeks / Rocket / Self-Destruct; melee is backup.
+// Special button:  neutral = Meeseeks Box (summon)  |  Up + Special = Rocket (up-special).
+// Portal-Behind is NOT here — it's on the double-tap movement (game.js
+// detectDoubleTapDashTeleport), shared with Gojo/Sukuna/Toji/Sasuke.
+// Ultimate = Self-Destruct (instant proximity AOE, no self-damage). See RICK_ASSET_MAP.md.
+function executeRickSpecial(fighter, context) {
+  const dirs        = getRelativeDirections(fighter)
+  const getOpponent = getTargetResolver(context)
+  const target      = getOpponent(fighter)
+
+  // UP + Special = ROCKET. Launches Rick upward AND damages anyone caught in the path.
+  if (dirs.length > 0 && dirs[dirs.length - 1] === "U") {
+    if (!spendEnergy(fighter, 40)) return false
+    fighter.vy        = -22           // upward launch (recovery + mobility)
+    fighter.onGround  = false
+    fighter.grounded  = false
+    fighter.isLaunched = true
+    fighter.jumpCount = fighter.maxJumps || 2   // consume air jumps so a double-jump can't stack extra height
+    fighter._spriteCastMove  = "rocket"
+    fighter._spriteCastTimer = 26
+    fighter.attackCooldown   = getAttackDuration(20, fighter)
+    // Path damage: a rocket that rises with Rick and hits anyone above/beside the launch.
+    spawnProjectile(fighter, "rocket", {
+      damage: 95, lifetime: 34,
+      vx: (fighter.facing || 1) * 3, vy: -16,
+      hitstun: 22, knockbackX: 8, knockbackY: -10,
+      w: 64, h: 72, color: "#ff6b35",   // generous blast — the rocket should catch anyone in its rising column
+      sheet: "./rick_rocket_specail.png", spriteFrames: 1, spriteScale: 1.5,
+      spawnX: fighter.x + (fighter.w || 60) / 2 - 22,
+      spawnY: fighter.y + (fighter.h || 100) * 0.3
+    }, context)
+    focusCameraOnAction(context, fighter, target, 1.0, 8)
+    return true
+  }
+
+  // NEUTRAL Special = MEESEEKS BOX. Throws a Meeseeks that rushes the opponent. NO cap:
+  // only energy limits how many are active (meeseeks template maxSimultaneous 99, and we
+  // deliberately do NOT gate on summonCooldown), so multiple Meeseeks can be out at once.
+  if (!spendEnergy(fighter, 30)) return false
+  spawnAssistSummon(fighter, { summonId: "meeseeks", damage: 45 }, target)
+  fighter._spriteCastMove  = "meeseeksThrow"
+  fighter._spriteCastTimer = 20
+  fighter.attackCooldown   = getAttackDuration(22, fighter)
+  return true
+}
+
+function executeRickUltimate(fighter, context) {
+  // SELF-DESTRUCT: instant proximity AOE. Only connects if the opponent is inside the blast.
+  // Rick takes NO self-damage and is not knocked down — the near-max meter cost is the only
+  // balance lever (no startup / vulnerability window). Damage is applied directly (summon-style,
+  // bypassing GLOBAL_DAMAGE_SCALE) so 180 ≈ a genuine ultimate burst.
+  if (!spendEnergy(fighter, 140)) return false
+
+  const getOpponent = getTargetResolver(context)
+  const target      = getOpponent(fighter)
+
+  const RADIUS = 220        // px, center-to-center — "bigger than a normal special" catch zone
+  const DAMAGE = 180        // direct (no GLOBAL_DAMAGE_SCALE); ≈17% of a health bar
+
+  const rcx = fighter.x + (fighter.w || 60) / 2
+  const rcy = fighter.y + (fighter.h || 100) / 2
+
+  // Instant blast visual (pure FX, never collides — damage is applied manually below so we can
+  // proximity-gate it and guarantee zero self-damage).
+  spawnProjectile(fighter, "selfDestructBlast", {
+    visualOnly: true, damage: 0, lifetime: 22,
+    vx: 0, vy: 0, spawnX: rcx, spawnY: rcy,
+    w: RADIUS * 2, h: RADIUS * 2, radius: RADIUS, color: "#8be04e"
+  }, context)
+
+  // Rick's body plays the self-destruct pose; NO attacking/vulnerability state is set.
+  fighter._spriteCastMove  = "selfDestruct"
+  fighter._spriteCastTimer = 30
+  fighter.attackCooldown   = getAttackDuration(10, fighter)   // only prevents an accidental instant re-press
+  shakeCamera(context, 16, 18)
+  focusCameraOnAction(context, fighter, target, 0.95, 14)
+
+  // Proximity gate + damage. Only the opponent is touched → Rick takes no self-damage.
+  if (target && !target.eliminated && (target.invulnTimer || 0) <= 0) {
+    const tcx  = target.x + (target.w || 60) / 2
+    const tcy  = target.y + (target.h || 100) / 2
+    const dist = Math.hypot(tcx - rcx, tcy - rcy)
+    if (dist <= RADIUS) {
+      let dmg = DAMAGE
+      if (target.isBlocking) { dmg = Math.floor(dmg * 0.20); target.blockstun = 18 }
+      else {
+        target.hitstun    = 42
+        target.vx         = (tcx >= rcx ? 1 : -1) * 16
+        target.vy         = -9
+        target.colorFlash = 8
+      }
+      target.health = Math.max(0, (target.health || 0) - dmg)
+    }
+  }
+  return true
+}
+
 function executeFallbackSpecial(fighter, context) {
   const specials = Object.entries(fighter?.specials || {})
   if (!specials.length) return false

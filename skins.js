@@ -141,6 +141,13 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke?.portrait, spriteScale: characters.sasuke?.spriteScale, animationData: null }
   ],
 
+  // Rick Sanchez (Rick & Morty). Same gate as the sprite characters above: WITHOUT a default
+  // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native
+  // ~67px (half size). Sources his real spriteScale (1.7) from the character. No alt skins yet.
+  rick: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rick?.portrait, spriteScale: characters.rick?.spriteScale, animationData: null }
+  ],
+
   // Toji (JJK). Same reason as Naruto/Goku/Sasuke: WITHOUT a default skin, applySkin()
   // pulls the getSkins() spriteScale:1 fallback and he renders at native ~54px (half
   // size) — THIS is why he looked undersized. This entry sources his real spriteScale

@@ -1714,6 +1714,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
       if (fighter.rosterKey === "toji"   && typeof tojiTeleportStrike === "function")        tojiTeleportStrike(fighter)
       else if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
       else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
+      else if (fighter.rosterKey === "rick")   { fighter._spriteCastMove = "portalTravel"; fighter._spriteCastTimer = 14 }  // Portal-Behind: reposition-only, rick_portal_attack_travel.png plays the blink
       // Gojo: reposition only — "ready to attack".
       fighter.dashTeleportCooldown = 48
     } else {
@@ -3788,11 +3789,15 @@ gameLoop()
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     sasukeCine: () => getSasukeCinematicStatus(),
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
+    // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
+    summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime })),
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
+    resetUlt:   () => { if (p1) { p1.ultimateCooldown = 0; p1.energy = p1.maxEnergy; p1.attackCooldown = 0 } },   // clear ult lockout for back-to-back ultimate tests
     setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
     healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false } },  // reset dummy between damage checks
     liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
+    liftP2:     (dy = 40) => { if (p2) { p2.onGround = false; p2.grounded = false; p2.y -= dy; p2.vy = 0; p2.isLaunched = true } },  // raise the dummy into an aerial path (e.g. Rick's rising rocket)
     hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({

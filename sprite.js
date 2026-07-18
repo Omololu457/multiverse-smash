@@ -123,6 +123,12 @@ const MOVE_TO_ACTION = {
 
   portalBlast: "special_1",
   meeseeksSummon: "special_2",
+  // Rick (sprite build): cast-move names → their own animationData actions. Identity mapping
+  // so a _spriteCastMove (or currentMove) with these names never falls to the 128² box.
+  meeseeksThrow: "meeseeksThrow",
+  rocket: "rocket",
+  portalTravel: "portalTravel",
+  selfDestruct: "selfDestruct",
   nerveStrike: "special_1",
   manipulativeBlast: "special_1",
   primePortalBlast: "special_1",

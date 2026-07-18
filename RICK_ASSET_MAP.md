@@ -40,6 +40,11 @@ Intentional in-character humor, kept as-is (per spec).
   correctly-scaled IDLE. Verified in-harness: intro renders `action=idle`, `grounded=true`, `vy=0`,
   `sheet=rick_stand.png` (screenshot `harness/shots/RK_intro.png`).
 
+- **Pre-match name-call:** `NAMECALL_AUDIO.rick = "rick_intro.mp3"` (game.js, alongside naruto/
+  gojo/sukuna). Fully data-driven — one line adds Rick's camera-zoom + audio announcement beat on
+  whichever side he's on; everyone unmapped is still skipped cleanly. Harness `namecall.test.mjs`
+  (14/14) confirms P1/P2 firing, unmapped-skip, no effect on other characters, and P1→P2 order.
+
 ## The 3-file sprite gate (every sprite character needs all three)
 
 1. **characters.js** — `hasSprites: true`, `spriteScale: 1.85`, full `animationData` (table below).

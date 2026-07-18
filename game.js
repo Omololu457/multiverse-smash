@@ -335,7 +335,8 @@ const SERIES_MUSIC = {
 const NAMECALL_AUDIO = {
   naruto: "naruto_namecall.mp3",
   gojo:   "gojo_namecall.mp3",
-  sukuna: "sukuna_namecall.mp3"
+  sukuna: "sukuna_namecall.mp3",
+  rick:   "rick_intro.mp3"
 }
 
 // Data-driven stage table — add a stage here (palette + series + landmark id)
@@ -3818,6 +3819,16 @@ gameLoop()
     }),
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     sasukeCine: () => getSasukeCinematicStatus(),
+    // Pre-match name-call introspection: the built beats (only sides with a mapped
+    // NAMECALL_AUDIO clip), the active flag, and which beat is currently announcing.
+    namecall: () => ({
+      active: namecallActive,
+      index:  namecallIndex,
+      // timer > 0 proves startNamecallBeat ran (it sets NAMECALL_HOLD the same line it
+      // calls sound.playSfxFile) — i.e. the clip was actually requested for this beat.
+      timer:  namecallTimer,
+      beats:  namecallBeats.map(b => ({ side: b.side, roster: b.fighter?.rosterKey ?? null, clip: b.clip }))
+    }),
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
     // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime })),

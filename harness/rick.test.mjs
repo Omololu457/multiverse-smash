@@ -82,7 +82,7 @@ try {
     check("P1 is Rick", a.key === "rick", `key=${a.key}`);
     check("idle sprite is ready (spritesheets.js gate)", a.spriteReady, `sheet=${a.spriteSheet}`);
     check("idle sheet is rick_stand.png", (a.spriteSheet || "").includes("rick_stand"), `sheet=${a.spriteSheet}`);
-    check("spriteScale applied (skins.js gate) ≈ 1.7", Math.abs((a.spriteScale || 0) - 1.7) < 0.01, `spriteScale=${a.spriteScale}`);
+    check("spriteScale applied (skins.js gate) ≈ 1.85 (presence-corrected)", Math.abs((a.spriteScale || 0) - 1.85) < 0.01, `spriteScale=${a.spriteScale}`);
     check("Rick has the ZONER-tier energy pool (160)", a.maxEnergy === 160, `maxEnergy=${a.maxEnergy}`);
     await page.screenshot({ path: path.join(OUT, "RK_idle.png") });
   }

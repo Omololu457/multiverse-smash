@@ -49,6 +49,7 @@ import {
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
   drawTowerSelectScreen, getTowerSelectRects,
   drawFFASetupScreen, getFFASetupRects, drawFFACharSelectScreen,
+  drawFFATeamSelectScreen, getFFATeamSelectRects,
   PAUSE_MENU_ITEMS, getStartMenuRects, getGameplaySelectRects,
   getAIDifficultyRects, getUniverseCardRects, getCharacterCardRects,
   getStageCardRects, drawStartInfoPanel,
@@ -199,7 +200,8 @@ const GAME_STATES = {
   TOWER_SELECT:     "towerSelect",     // pick a Tower tier (3/10/25/40/∞ floors)
   FFA_SETUP:        "ffaSetup",        // free-for-all: choose player count (3/4)
   FFA_CHARSELECT:   "ffaCharSelect",   // free-for-all: pick a fighter per slot
-  FFA_BATTLE:       "ffaBattle",       // free-for-all: N-fighter last-standing match
+  FFA_TEAMSELECT:   "ffaTeamSelect",   // free-for-all: assign each slot to Team A/B (or none)
+  FFA_BATTLE:       "ffaBattle",       // free-for-all: N-fighter last-standing / team match
   AI_DIFFICULTY:    "aiDifficulty",
   SELECT_UNIVERSE:  "selectUniverse",
   SELECT_CHARACTER: "selectCharacter",
@@ -430,6 +432,7 @@ let hoverGameplayIndex   = 0
 let hoverTowerIndex      = 0
 let hoverFFAIndex        = 0
 let hoverFFACharIndex    = 0
+let hoverFFATeamIndex    = 0
 let hoverDifficultyIndex = 0
 let hoverUniverseIndex   = 0
 let hoverCharacterIndex  = 0
@@ -583,11 +586,19 @@ function continueTower() {
 // Character SPECIALS/ULTIMATES are intentionally NOT wired here (many are pairwise/
 // cinematic — Gojo Infinity, domains, etc.) — that's a later phase, like team modes.
 const FFA_MAX_PLAYERS = 4
-const ffaState = { active: false, playerCount: 3, charKeys: [], fighters: [], over: false, winner: null, pickSlot: 0 }
+// teamMode + teams[] (per-slot "A"/"B") extend the SAME ffaState; empty teams → pure FFA.
+const ffaState = { active: false, playerCount: 3, charKeys: [], teams: [], teamMode: false, fighters: [], over: false, winner: null, winnerTeam: null, pickSlot: 0 }
 const FFA_CONTROLS = [P1_CONTROLS, P2_CONTROLS, P3_CONTROLS, P4_CONTROLS]
 const FFA_SIDES    = ["p1", "p2", "p3", "p4"]
-// Per-slot tint so 3-4 same-ish fighters read apart at a glance (P1 blue-ish left as-is).
+// Per-slot tint so 3-4 same-ish fighters read apart at a glance (rendered via tintColor).
 const FFA_SLOT_TINT = [null, "rgba(239,68,68,0.35)", "rgba(34,197,94,0.35)", "rgba(234,179,8,0.35)"]
+// TEAM MODE — 2 teams (A/B) support UNEVEN splits (1v2, 1v3, 2v2). Colours drive the HUD
+// bars, the fighter sprite wash (visual team indicator) and the winner banner.
+const FFA_TEAMS   = ["A", "B"]
+const TEAM_COLORS = { A: "#38bdf8", B: "#fb7185" }
+const TEAM_TINT   = { A: "rgba(56,189,248,0.40)", B: "rgba(251,113,133,0.44)" }
+// Same-team test — only bites in team mode (pure FFA has no team property → always false).
+function ffaSameTeam(a, b) { return !!(ffaState.teamMode && a && b && a.team && a.team === b.team) }
 
 // Local input capacity: keyboard P1 + keyboard P2 + one controller per connected pad.
 // The setup screen caps player count to this so no uncontrollable fighter can spawn.
@@ -597,12 +608,14 @@ function ffaMaxAvailablePlayers() {
 
 function ffaAliveFighters() { return ffaState.fighters.filter(f => f && !f.eliminated) }
 
-// Nearest OTHER living fighter — the "primary" target for grab/updateCombat; multi-target
-// hit resolution below still tests the hitbox against every other fighter.
+// Nearest OTHER living ENEMY — the "primary" target for grab/facing/updateCombat. In team
+// mode teammates are skipped (friendly fire off); in pure FFA the skip is a no-op so any
+// other fighter qualifies. Multi-target resolution below also skips teammates.
 function ffaNearest(fighter, others) {
   let best = null, bestD = Infinity
   for (const o of others) {
     if (!o || o === fighter || o.eliminated) continue
+    if (ffaSameTeam(fighter, o)) continue
     const d = Math.abs((o.x || 0) - (fighter.x || 0))
     if (d < bestD) { bestD = d; best = o }
   }
@@ -635,9 +648,11 @@ function updateFFACombat(fighter, others, opts) {
   updateCombat(fighter, nearest, ctrlState, opts)   // input→move, timers, recovery + hit vs nearest
 
   // MULTI-TARGET: if the swing hasn't connected with the nearest, test it against the rest.
+  // FRIENDLY FIRE OFF: teammates are NOT valid targets (full no-sell — the swing passes
+  // through allies to reach an enemy behind them, rather than body-blocking a whiff).
   if (fighter.attacking && fighter.currentAttack && !fighter.currentAttack.hasHit) {
     for (const d of others) {
-      if (!d || d === nearest || d.eliminated) continue
+      if (!d || d === nearest || d.eliminated || ffaSameTeam(fighter, d)) continue
       resolveAttackHit(fighter, d, opts.hitEffects, { stageWidth: opts.stageWidth, damageNumbers: opts.damageNumbers })
       if (fighter.currentAttack?.hasHit) break
     }
@@ -657,31 +672,46 @@ function updateFFAEffects(live) {
   updateDamageNumbers()
 }
 
-// Spawn N fighters spread across the WIDE arena.
-function setupFFAFighters(count, charKeys) {
+// Spawn N fighters spread across the WIDE arena. In team mode fighters are ORDERED so
+// teammates spawn adjacent (all Team A on the left, Team B on the right) — reads clearly
+// and gives each team a side. tintColor washes the sprite by team (or by slot in pure FFA).
+function setupFFAFighters(count, charKeys, teams) {
   const ww = getStageWorldWidth()
+  const order = Array.from({ length: count }, (_, i) => i)
+  if (ffaState.teamMode) order.sort((a, b) => (teams[a] || "").localeCompare(teams[b] || ""))
   const fighters = []
-  for (let i = 0; i < count; i++) {
-    const key  = charKeys[i] || "gojo"
+  order.forEach((slot, pos) => {
+    const key  = charKeys[slot] || "gojo"
     const char = characters[key] || characters.gojo
-    const frac = count <= 1 ? 0.5 : 0.16 + 0.68 * (i / (count - 1))
+    const frac = count <= 1 ? 0.5 : 0.16 + 0.68 * (pos / (count - 1))
     const x    = Math.round(ww * frac)
-    const f = createFighter(key, char, x, x < ww / 2 ? 1 : -1, FFA_CONTROLS[i], FFA_SIDES[i])
+    const f = createFighter(key, char, x, x < ww / 2 ? 1 : -1, FFA_CONTROLS[slot], FFA_SIDES[slot])
     applySkin(f, "default")
-    if (FFA_SLOT_TINT[i]) f.mirrorTint = FFA_SLOT_TINT[i]   // reuse the mirror-tint render path
-    f.ffaSlot = i
+    f.ffaSlot = slot
     f.eliminated = false
+    if (ffaState.teamMode) {
+      f.team = teams[slot] || "A"
+      f.tintColor = TEAM_TINT[f.team] || null   // sprite wash = team colour (visual indicator)
+    } else if (FFA_SLOT_TINT[slot]) {
+      f.tintColor = FFA_SLOT_TINT[slot]
+    }
     fighters.push(f)
-  }
-  return fighters
+  })
+  // Keep fighters indexed by SLOT so harness hooks / HUD address players consistently.
+  const bySlot = []
+  for (const f of fighters) bySlot[f.ffaSlot] = f
+  return bySlot
 }
 
 function startFFAMatch() {
   matchConfig.mode = "ffa"
   matchConfig.selectedStage = stages.find(s => s.ffa) || stages[0]
-  ffaState.active = true; ffaState.over = false; ffaState.winner = null
+  ffaState.active = true; ffaState.over = false; ffaState.winner = null; ffaState.winnerTeam = null
+  // Team mode is on when ≥2 distinct teams are assigned across the slots.
+  const distinctTeams = new Set((ffaState.teams || []).slice(0, ffaState.playerCount))
+  ffaState.teamMode = distinctTeams.size >= 2
   syncPhysicsBounds()
-  ffaState.fighters = setupFFAFighters(ffaState.playerCount, ffaState.charKeys)
+  ffaState.fighters = setupFFAFighters(ffaState.playerCount, ffaState.charKeys, ffaState.teams)
   clearAbilityState(); clearEffects(); clearDomains()
   hitSparks.length = 0; damageNumbers.length = 0; activeDomains.length = 0
   if (typeof clearInputBuffers === "function") clearInputBuffers(ffaState.fighters)
@@ -736,7 +766,8 @@ function updateFFABattle() {
   checkFFAOutcome()
 }
 
-// Eliminate any fighter at 0 health; last one standing wins.
+// Eliminate any fighter at 0 health. WIN: pure FFA = last individual standing; TEAM mode =
+// last team with a surviving member (a KO does NOT end the round while a teammate lives).
 function checkFFAOutcome() {
   for (const f of ffaState.fighters) {
     if (f && !f.eliminated && (f.health || 0) <= 0) {
@@ -746,17 +777,27 @@ function checkFFAOutcome() {
       camera.shake?.(10, 8)
     }
   }
+  if (ffaState.over) return
   const alive = ffaAliveFighters()
-  if (!ffaState.over && alive.length <= 1) {
+  if (ffaState.teamMode) {
+    const teamsLeft = [...new Set(alive.map(f => f.team))]
+    if (teamsLeft.length <= 1) {
+      ffaState.over = true
+      ffaState.winnerTeam = teamsLeft[0] || null
+      ffaState.winner = alive[0] || null
+      sound.play?.(SFX.KO); sound.stopMusic?.()
+    }
+  } else if (alive.length <= 1) {
     ffaState.over = true
     ffaState.winner = alive[0] || null
-    sound.play?.(SFX.KO)
-    sound.stopMusic?.()
+    ffaState.winnerTeam = null
+    sound.play?.(SFX.KO); sound.stopMusic?.()
   }
 }
 
 function endFFA() {
-  ffaState.active = false; ffaState.over = false; ffaState.winner = null; ffaState.fighters = []
+  ffaState.active = false; ffaState.over = false; ffaState.winner = null; ffaState.winnerTeam = null
+  ffaState.teamMode = false; ffaState.teams = []; ffaState.fighters = []
   matchConfig.mode = "vs"
   resetToStart()
 }
@@ -2815,21 +2856,33 @@ function drawFFAHud() {
     if (!f) return
     const x = x0 + i * (barW + gap)
     const frac = Math.max(0, (f.health || 0) / (f.maxHealth || 1))
+    // TEAM MODE: bar colour = team colour (visual team indicator); FFA: per-slot colour.
+    const col = ffaState.teamMode ? (TEAM_COLORS[f.team] || "#94a3b8") : FFA_BAR_COLORS[i]
     ctx.save()
     ctx.fillStyle = "rgba(8,12,26,0.85)"; ctx.fillRect(x - 2, y - 2, barW + 4, h + 4)
+    if (ffaState.teamMode) { ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.strokeRect(x - 2, y - 2, barW + 4, h + 4) }
     ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(x, y, barW, h)
-    ctx.fillStyle = f.eliminated ? "#4b5563" : FFA_BAR_COLORS[i]
+    ctx.fillStyle = f.eliminated ? "#4b5563" : col
     ctx.fillRect(x, y, barW * frac, h)
     ctx.fillStyle = f.eliminated ? "#9ca3af" : "#f1f5f9"
     ctx.font = "700 12px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle"
-    ctx.fillText(`P${i + 1} ${f.name || f.rosterKey}${f.eliminated ? " ✖" : ""}`, x + 2, y + h + 10)
+    const tag = ffaState.teamMode ? `[${f.team}] ` : ""
+    ctx.fillText(`${tag}P${i + 1} ${f.name || f.rosterKey}${f.eliminated ? " ✖" : ""}`, x + 2, y + h + 10)
     ctx.restore()
   })
-  // Mode badge + living count.
+  // Mode badge + living count (per-team survivor tally in team mode).
   ctx.save()
   ctx.textAlign = "center"; ctx.textBaseline = "middle"
-  ctx.font = "800 18px Arial"; ctx.fillStyle = "#f472b6"
-  ctx.fillText(`FREE-FOR-ALL · ${ffaAliveFighters().length} LEFT`, cw / 2, y + 58)
+  ctx.font = "800 18px Arial"
+  if (ffaState.teamMode) {
+    const alive = ffaAliveFighters()
+    const counts = FFA_TEAMS.map(t => `${t}:${alive.filter(f => f.team === t).length}`).join("   ")
+    ctx.fillStyle = "#f472b6"
+    ctx.fillText(`TEAM BATTLE   ${counts}`, cw / 2, y + 58)
+  } else {
+    ctx.fillStyle = "#f472b6"
+    ctx.fillText(`FREE-FOR-ALL · ${ffaAliveFighters().length} LEFT`, cw / 2, y + 58)
+  }
   ctx.restore()
 }
 
@@ -2841,12 +2894,17 @@ function drawFFAResult() {
   ctx.textAlign = "center"; ctx.textBaseline = "middle"
   const w = ffaState.winner
   const slot = w ? (w.ffaSlot ?? 0) + 1 : 0
+  const teamWin = ffaState.teamMode && ffaState.winnerTeam
   ctx.font = "900 56px Arial"
-  ctx.shadowBlur = 28; ctx.shadowColor = w ? FFA_BAR_COLORS[slot - 1] : "#888"
+  ctx.shadowBlur = 28
+  ctx.shadowColor = teamWin ? (TEAM_COLORS[ffaState.winnerTeam] || "#888") : (w ? FFA_BAR_COLORS[slot - 1] : "#888")
   ctx.fillStyle = "#fde047"
-  ctx.fillText(w ? `PLAYER ${slot} WINS` : "DRAW", cw / 2, ch * 0.34)
+  ctx.fillText(teamWin ? `TEAM ${ffaState.winnerTeam} WINS` : (w ? `PLAYER ${slot} WINS` : "DRAW"), cw / 2, ch * 0.34)
   ctx.shadowBlur = 0
-  if (w) { ctx.font = "700 26px Arial"; ctx.fillStyle = "#e2e8f0"; ctx.fillText(w.name || w.rosterKey, cw / 2, ch * 0.34 + 52) }
+  if (teamWin) {
+    const members = ffaState.fighters.filter(f => f && f.team === ffaState.winnerTeam).map(f => f.name || f.rosterKey).join(" + ")
+    ctx.font = "700 24px Arial"; ctx.fillStyle = "#e2e8f0"; ctx.fillText(members, cw / 2, ch * 0.34 + 52)
+  } else if (w) { ctx.font = "700 26px Arial"; ctx.fillStyle = "#e2e8f0"; ctx.fillText(w.name || w.rosterKey, cw / 2, ch * 0.34 + 52) }
   ctx.font = "600 16px Arial"; ctx.fillStyle = "rgba(200,210,230,0.6)"
   ctx.fillText("Click to return to the menu", cw / 2, ch * 0.6)
   ctx.restore()
@@ -3033,6 +3091,7 @@ function renderCurrentState() {
     case GAME_STATES.TOWER_SELECT:    drawTowerSelectScreen(ctx, canvas, hoverTowerIndex); break
     case GAME_STATES.FFA_SETUP:       drawFFASetupScreen(ctx, canvas, hoverFFAIndex, ffaMaxAvailablePlayers(), getConnectedPadCount?.() || 0); break
     case GAME_STATES.FFA_CHARSELECT:  drawFFACharSelectScreen(ctx, canvas, ffaState.pickSlot, ffaState.playerCount, ffaSelectableRoster(), hoverFFACharIndex, ffaState.charKeys); break
+    case GAME_STATES.FFA_TEAMSELECT:  drawFFATeamSelectScreen(ctx, canvas, ffaState.playerCount, ffaState.teams, ffaState.charKeys, hoverFFATeamIndex, TEAM_COLORS); break
     case GAME_STATES.FFA_BATTLE:      drawFFABattle(); break
     case GAME_STATES.AI_DIFFICULTY:   drawAIDifficultyScreen(ctx, canvas, hoverDifficultyIndex); break
     case GAME_STATES.SELECT_UNIVERSE:
@@ -3156,6 +3215,7 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
   if (gameState === GAME_STATES.FFA_SETUP)        { tryHover(getFFASetupRects(canvas, ffaMaxAvailablePlayers()), hoverFFAIndex, v => hoverFFAIndex = v); return }
   if (gameState === GAME_STATES.FFA_CHARSELECT)   { tryHover(getCharacterCardRects(canvas, ffaSelectableRoster()), hoverFFACharIndex, v => hoverFFACharIndex = v); return }
+  if (gameState === GAME_STATES.FFA_TEAMSELECT)   { tryHover(getFFATeamSelectRects(canvas, ffaState.playerCount), hoverFFATeamIndex, v => hoverFFATeamIndex = v); return }
   if (gameState === GAME_STATES.AI_DIFFICULTY)    { tryHover(getAIDifficultyRects(canvas),    hoverDifficultyIndex, v => hoverDifficultyIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
   if (gameState === GAME_STATES.SELECT_CHARACTER) { tryHover(getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse()), hoverCharacterIndex, v => hoverCharacterIndex = v); return }
@@ -3274,7 +3334,21 @@ function handleMenuClicks() {
       if (idx < 0 || !roster[idx]) break
       ffaState.charKeys[ffaState.pickSlot] = roster[idx].rosterKey || roster[idx].key
       ffaState.pickSlot++
-      if (ffaState.pickSlot >= ffaState.playerCount) startFFAMatch()   // all slots picked → fight
+      if (ffaState.pickSlot >= ffaState.playerCount) {
+        // Default team split: alternate A/B (e.g. 3p → A,B,A = 2v1). Player retunes it next.
+        ffaState.teams = Array.from({ length: ffaState.playerCount }, (_, i) => FFA_TEAMS[i % 2])
+        hoverFFATeamIndex = 0
+        gameState = GAME_STATES.FFA_TEAMSELECT
+      }
+      break
+    }
+    case GAME_STATES.FFA_TEAMSELECT: {
+      const c = getFFATeamSelectRects(canvas, ffaState.playerCount).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if (c.slot != null) { ffaState.teams[c.slot] = (ffaState.teams[c.slot] === "A") ? "B" : "A"; break }   // toggle
+      if (c.id === "start")   { startFFAMatch(); break }                           // team mode (if ≥2 teams)
+      if (c.id === "noteams") { ffaState.teams = []; startFFAMatch(); break }       // pure FFA
+      if (c.id === "back")    { ffaState.pickSlot = 0; ffaState.charKeys = []; gameState = GAME_STATES.FFA_CHARSELECT; break }
       break
     }
     case GAME_STATES.FFA_BATTLE: {
@@ -3742,24 +3816,34 @@ gameLoop()
     damageP1: (v = 100) => { if (p1) p1.health = Math.max(1, (p1.health || 0) - v) },   // chip P1 so a round isn't perfect
     victoryInfo: () => ({ flawless: !!victoryState.flawless, subtitle: victoryState.subtitle || "", primaryLabel: victoryState.primaryLabel || "", winner: victoryState.winnerSide, perfectP1: matchStats?.p1?.perfectRounds, roundsWonP1: matchStats?.p1?.roundsWon }),
     // ── FREE-FOR-ALL diagnostics/drivers ──────────────────────────────────────
-    ffaStart: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"]) => {
+    // teams: optional per-slot "A"/"B" array → team mode; omit/[] → pure FFA.
+    ffaStart: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"], teams = []) => {
       ffaState.playerCount = Math.min(FFA_MAX_PLAYERS, Math.max(2, count))
       ffaState.charKeys = charKeys.slice(0, ffaState.playerCount)
+      ffaState.teams = (teams || []).slice(0, ffaState.playerCount)
       startFFAMatch()
       countdown = 0   // skip the pre-fight countdown for tests
     },
     ffaInfo: () => ({
       active: ffaState.active, over: ffaState.over, mode: matchConfig.mode, gameState,
       stage: matchConfig.selectedStage?.name, stageWidth: getStageWorldWidth(),
+      teamMode: ffaState.teamMode, winnerTeam: ffaState.winnerTeam,
       winnerSlot: ffaState.winner ? (ffaState.winner.ffaSlot ?? null) : null,
       alive: ffaAliveFighters().length,
+      aliveTeams: [...new Set(ffaAliveFighters().map(f => f.team))].filter(Boolean),
       camZoom: camera.zoom,
       fighters: ffaState.fighters.map(f => f && ({
-        slot: f.ffaSlot, key: f.rosterKey, playerNumber: f.playerNumber,
+        slot: f.ffaSlot, key: f.rosterKey, playerNumber: f.playerNumber, team: f.team || null,
         x: Math.round(f.x), y: Math.round(f.y), health: Math.round(f.health), maxHealth: f.maxHealth,
         eliminated: !!f.eliminated, facing: f.facing, attacking: !!f.attacking
       }))
     }),
+    // Jump straight to the team-assignment screen (device cap blocks the menu route without pads).
+    ffaTeamSelectPreview: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"]) => {
+      ffaState.playerCount = count; ffaState.charKeys = charKeys.slice(0, count)
+      ffaState.teams = Array.from({ length: count }, (_, i) => FFA_TEAMS[i % 2]); ffaState.pickSlot = count
+      hoverFFATeamIndex = 0; gameState = GAME_STATES.FFA_TEAMSELECT
+    },
     ffaAttack: (idx, move = "light") => { const f = ffaState.fighters[idx]; if (f && !f.eliminated) f._forceAttack = move },
     ffaMove:   (idx, dir = 0) => { const f = ffaState.fighters[idx]; if (f) f._forceMove = dir },   // dir: -1 left / +1 right / 0 stop
     ffaSetX:   (idx, x) => { const f = ffaState.fighters[idx]; if (f) f.x = x },

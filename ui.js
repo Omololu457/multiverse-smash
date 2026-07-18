@@ -233,6 +233,7 @@ function getVerticalMenuLayout(canvas, labels = []) {
   const startY       = topMargin + Math.max(0, (avail - totalHeight) / 2)
 
   return labels.map((label, index) => ({
+    ...label,                            // pass through extra fields (e.g. slot, count)
     id:       label.id       || String(index),
     label:    label.label    || String(label),
     subLabel: label.subLabel || "",
@@ -315,6 +316,37 @@ export function getGameplaySelectRects(canvas) {
     { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)" },
     { id: "back",     label: "BACK",      subLabel: "Return to title"             }
   ])
+}
+
+// FREE-FOR-ALL team assignment — one toggle row per slot + START / NO-TEAMS / BACK.
+// Slot rows carry `slot` (0-based); action buttons carry a string id.
+export function getFFATeamSelectRects(canvas, playerCount = 3) {
+  const items = []
+  for (let i = 0; i < playerCount; i++) items.push({ id: `slot${i}`, slot: i, label: `P${i + 1}`, subLabel: "" })
+  items.push({ id: "start",   label: "START MATCH", subLabel: "Begin the team battle" })
+  items.push({ id: "noteams", label: "NO TEAMS",    subLabel: "Play a pure free-for-all instead" })
+  items.push({ id: "back",    label: "BACK",        subLabel: "Return to fighter select" })
+  return getVerticalMenuLayout(canvas, items)
+}
+
+export function drawFFATeamSelectScreen(ctx, canvas, playerCount = 3, teams = [], charKeys = [], selectedIndex = 0, teamColors = {}) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#0f2740")
+  drawHeader(ctx, canvas, "ASSIGN TEAMS", "Click a player to switch their team (uneven splits are fine)")
+  getFFATeamSelectRects(canvas, playerCount).forEach((b, i) => {
+    if (b.slot != null) {
+      const team = teams[b.slot] || "A"
+      const col = teamColors[team] || "#94a3b8"
+      drawButton(ctx, b, { label: `P${b.slot + 1}  ${charKeys[b.slot] || "?"}  →  TEAM ${team}`, subLabel: "Click to toggle A / B", active: i === selectedIndex })
+      // team swatch on the right of the row
+      ctx.save(); ctx.fillStyle = col; ctx.fillRect(b.x + b.w - 34, b.y + b.h / 2 - 10, 20, 20)
+      ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.strokeRect(b.x + b.w - 34, b.y + b.h / 2 - 10, 20, 20); ctx.restore()
+    } else {
+      drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex })
+    }
+  })
+  const counts = ["A", "B"].map(t => `${t}: ${teams.slice(0, playerCount).filter(x => x === t).length}`).join("   ")
+  drawFooterHint(ctx, canvas, `${counts}  ·  friendly fire is OFF — teammates can't damage each other`)
 }
 
 // FREE-FOR-ALL setup — pick player count (3 or 4). Entries above the device cap are locked.

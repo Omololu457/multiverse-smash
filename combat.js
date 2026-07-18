@@ -875,6 +875,9 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
     for (const fighter of (fighters || []).filter(Boolean)) {
       if (fighter.eliminated) continue
       if (proj.owner === fighter || proj.ownerId === fighter.side) continue
+      // Friendly fire off (team mode): a projectile can't hit an owner's teammate. No-op
+      // in 1v1/FFA where fighters carry no `team` property.
+      if (proj.owner?.team && fighter.team && proj.owner.team === fighter.team) continue
       if ((fighter.invulnTimer || 0) > 0) continue
 
       const hurtbox = getHurtbox(fighter)

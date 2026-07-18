@@ -209,6 +209,18 @@ export function getAttackHitbox(fighter) {
   let x = fighter.facing === 1 ? fighter.x + fighter.w : fighter.x - w
   let y = fighter.y + 20
 
+  // AOE moves (e.g. Sasuke's Chidori Koiten lightning discharge): a STATIONARY box
+  // CENTERED on the caster instead of the normal in-front reach, so the burst catches
+  // anyone within range on either side during its active window. Generic — any attack
+  // that sets `aoe:true` uses it; every existing (non-aoe) move is unchanged.
+  if (a.aoe) {
+    return {
+      x: fighter.x + (fighter.w || 0) / 2 - w / 2,
+      y: fighter.y + (fighter.h || 100) / 2 - h / 2,
+      w, h
+    }
+  }
+
   if (a.name === "up") {
     y = fighter.y - 30
   } else if (a.name === "down_air") {

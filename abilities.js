@@ -1511,6 +1511,18 @@ function _spawnSusanooFx(fighter, sheet, { frames, w, h, scale, life, drift = 0,
   }
   return fx
 }
+// ABSOLUTE DEFENSE barrier FX — REPURPOSES sasuke_susanoo_intro.png (the swirling purple aura/
+// ribcage sheet that used to play on Susanoo's activation). Spawned once when Sasuke toggles
+// Absolute Defense ON (game.handleChargeRelease). The purple aura reads as a protective shell
+// manifesting around him — a better fit for a defensive toggle than for the Susanoo summon, which
+// now uses a spriteless camera-punch instead (see executeSasukeUltimate). Play speed/scale tuned
+// to sit over Sasuke's own body (not the giant), since Absolute Defense is a base-form ability.
+export function spawnAbsoluteDefenseFx(fighter, context) {
+  if (!fighter) return
+  _spawnSusanooFx(fighter, "./sasuke_susanoo_intro.png",
+    { frames: 6, w: 113, h: 70, scale: 1.6, life: 32, drift: 0, yOff: -60, color: "#b39ddf" }, context)
+}
+
 // Opponent hurtbox center — the aim point for auto-aimed Susanoo attacks.
 function _oppCenter(target) {
   if (!target) return null
@@ -1532,13 +1544,16 @@ function executeSasukeUltimate(fighter, context) {
     // can't auto-escalate) AND require the ultimate button to be RELEASED before Stage 2 (so a
     // HELD button can't auto-escalate either). _ultReleasedSinceStage1 is flipped true on keyup.
     fighter._ultReleasedSinceStage1 = false
-    // Giant body appears instantly; the intro sheet plays as an activation FX burst over its
-    // upper torso (armFrac 0.35 ≈ chest/shoulders of the giant, scales with the giant size).
-    _spawnSusanooFx(fighter, "./sasuke_susanoo_intro.png",
-      { frames: 6, w: 113, h: 70, scale: 3.4, life: 40, drift: 0, armFrac: 0.35, color: "#b39ddf" }, context)
+    // ASSET REPURPOSE (2026-07-18): sasuke_susanoo_intro.png moved to Absolute Defense
+    // (spawnAbsoluteDefenseFx). Susanoo now activates with NO dedicated intro sprite — the Lv1
+    // giant body simply appears, punctuated by a screen-flash + camera-punch (chosen option (b):
+    // simpler transition, matching how other characters' lighter transforms enter). teleportFlash
+    // gives the white activation pop so it never reads blank; the stronger camera shake sells the
+    // giant slamming in. See SASUKE_ASSET_MAP.md.
+    fighter.teleportFlash    = Math.max(fighter.teleportFlash || 0, 14)
     fighter.attackCooldown   = getAttackDuration(15, fighter)
     focusCameraOnAction(context, fighter, null, 0.9, 20)
-    shakeCamera(context, 8, 10)
+    shakeCamera(context, 11, 14)
     return true
   }
   if (stage === 1) {

@@ -79,8 +79,14 @@ const summonTemplates = {
     knockbackY:      -1,
     oneHit:          true,  // connects once, then despawns cleanly
     color:           "#4ade80",
-    sheet:      "./meeseeks_run_attack.png", spriteFrames: 7, spriteW: 60, spriteH: 80, spriteSpeed: 4, spriteScale: 1.0,
-    spawnSheet: "./meeseeks_idle.png",       spawnFrames: 5, spawnW: 38, spawnH: 82, spawnBeat: 16
+    // SIZE: matched to Rick's corrected scale. Run content ≈58px → ×1.85 ≈ 107px on-screen
+    // (~85% of Rick's ~126px — a lanky companion a head shorter, not randomly mismatched).
+    // spawnScale 1.67 renders the taller idle/poof cell (64px) at the SAME ~107px so the
+    // pose-swap doesn't pop. offsetY 18 drops the centred-draw box so the Meeseeks' feet plant
+    // at Rick's floor instead of floating at torso height (it was drawn centred on owner.y).
+    sheet:      "./meeseeks_run_attack.png", spriteFrames: 7, spriteW: 60, spriteH: 80, spriteSpeed: 4, spriteScale: 1.85,
+    spawnSheet: "./meeseeks_idle.png",       spawnFrames: 5, spawnW: 38, spawnH: 82, spawnBeat: 16, spawnScale: 1.67,
+    offsetY:    18
   },
 
   nue: {
@@ -540,7 +546,10 @@ export function drawSummons(ctx) {
       const fh = (inBeat ? s.spawnH : s.spriteH) || img.naturalHeight
       s._animT = (s._animT || 0) + 1
       const fi = Math.floor(s._animT / (s.spriteSpeed || 5)) % frames
-      const sc = s.spriteScale || 1
+      // The spawn/poof pose may carry its OWN scale (spawnScale) so a taller idle cell
+      // renders at the same on-screen size as the run pose (no pop). Falls back to
+      // spriteScale → every summon without spawnScale is unchanged.
+      const sc = (inBeat && s.spawnScale) ? s.spawnScale : (s.spriteScale || 1)
       const dw = fw * sc, dh = fh * sc
       const cx = s.x + (s.w || 0) / 2, cy = s.y + (s.h || 0) / 2
       const dir = (s.facing || 1) < 0 ? -1 : 1

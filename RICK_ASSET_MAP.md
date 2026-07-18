@@ -27,14 +27,30 @@ Intentional in-character humor, kept as-is (per spec).
 
 ## The 3-file sprite gate (every sprite character needs all three)
 
-1. **characters.js** — `hasSprites: true`, `spriteScale: 1.7`, full `animationData` (table below).
+1. **characters.js** — `hasSprites: true`, `spriteScale: 1.85`, full `animationData` (table below).
 2. **skins.js** — `rick: [{ id:"default", spriteScale: characters.rick?.spriteScale, … }]`
    (without it, applySkin() falls to spriteScale 1 → Rick renders at half size).
 3. **spritesheets.js** — `rick: { actions: { idle: "./rick_stand.png" } }` (gates `spritesReady()`
    → flips Rick from a procedural box to sprites).
 
-`spriteScale 1.7`: idle content ≈ 67px × 1.7 ≈ 114px on-screen (roster-standard height).
-Per-action `anchorY = -round(bottomTransparentGap × 1.7)` to plant the feet.
+`spriteScale 1.85`: idle content ≈ 68px × 1.85 ≈ 126px on-screen. Per-action
+`anchorY = -round(bottomTransparentGap × 1.85)` to plant the feet.
+
+**Sizing note (presence pass).** The first build shipped `spriteScale 1.7` (≈116px), which a
+side-by-side measurement confirmed was *already* roster-standard — top of the range, Sasuke ≈116,
+Gojo/Sukuna ≈112, Toji ≈101, Naruto ≈118 — with a standard 60×100 hitbox (NO scale override,
+canvas-flag, or hitbox mismatch). Rick still read "small" because his silhouette is THIN (low
+visual mass), not because he was short. Bumped to **1.85** (+8.8%) as a deliberate *presence*
+increase: height 116→126 and — the part that actually closes the perceived gap — content width
+51→57px (≈ Sasuke's 59). Every `anchorY` was re-scaled ×(1.85/1.7) so feet stay planted; verified
+against Sasuke + Toji with fresh screenshots (Rick now reads a touch taller than both, feet planted).
+
+**Meeseeks scale (matches Rick).** The `meeseeks` summon template (summons.js) is sized to Rick:
+run content 58px × `spriteScale 1.85` ≈ 107px ≈ **85% of Rick** (a lanky companion a head shorter,
+not randomly mismatched). New `spawnScale 1.67` renders the taller idle/poof cell (64px) at the same
+~107px so the poof→run pose-swap doesn't visibly pop (drawSummons uses `spawnScale` during the beat,
+falling back to `spriteScale` → every other summon unchanged). `offsetY 18` drops the centre-drawn
+box so the Meeseeks plants its feet at Rick's floor instead of floating at torso height.
 
 ---
 

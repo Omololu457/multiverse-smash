@@ -973,22 +973,29 @@ const rick = {
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   hasSprites: true,
-  spriteScale: 1.7,   // idle content ~67px × 1.7 ≈ 114px on-screen (roster-standard height)
+  // 1.85: idle content 68px × 1.85 ≈ 126px on-screen. DIAGNOSED (not a blind bump):
+  // at the old 1.7 Rick already rendered ~116px = TOP of the roster range (Sasuke 116,
+  // Gojo/Sukuna 112, Toji 101, Naruto 118) with a standard 60×100 hitbox — no scale
+  // override/canvas-flag/hitbox mismatch. He read "small" from his THIN silhouette
+  // (low visual mass), not height. This is a deliberate +8.8% PRESENCE bump: it also
+  // lifts his content width 51→57px (≈ Sasuke's 59) which closes the real mass gap.
+  // Every anchorY below is re-scaled ×(1.85/1.7) so feet stay planted at the new size.
+  spriteScale: 1.85,
   animationData: {
-    idle:          { frames: 17, width: 30, height: 78,  speed: 6, anchorY: -14, sheet: "./rick_stand.png" },
-    walk:          { frames: 9,  width: 32, height: 81,  speed: 5, anchorY: -14, sheet: "./rick_walk.png" },
-    run:           { frames: 9,  width: 49, height: 79,  speed: 4, anchorY: -12, sheet: "./Rick_run.png" },
-    jump:          { frames: 5,  width: 43, height: 78,  speed: 6, anchorY: -7,  sheet: "./rick_jump.png" },
-    fall:          { frames: 5,  width: 43, height: 78,  speed: 6, anchorY: -7,  sheet: "./rick_jump.png" },   // reuse single-jump art for both jumps (rick_double_jump.png left unwired)
-    dash:          { frames: 6,  width: 90, height: 78,  speed: 4, anchorY: -15, sheet: "./rick_air_dodge.png" },   // air-dash VISUAL only (air-dodge art); no i-frame/mechanic change
-    hurt:          { frames: 6,  width: 70, height: 88,  speed: 6, anchorY: -19, sheet: "./rick_land_dodge.png" },  // TEMP hurt stand-in — reads as an upright dodge w/ afterimages, NOT a true hurt. Pending real art.
-    light:         { frames: 10, width: 63, height: 90,  speed: 2, anchorY: -12, sheet: "./rick_jab_foward_attack_clean.png" },
-    heavy:         { frames: 5,  width: 61, height: 89,  speed: 3, anchorY: -31, sheet: "./rick_kick.png" },
+    idle:          { frames: 17, width: 30, height: 78,  speed: 6, anchorY: -15, sheet: "./rick_stand.png" },
+    walk:          { frames: 9,  width: 32, height: 81,  speed: 5, anchorY: -15, sheet: "./rick_walk.png" },
+    run:           { frames: 9,  width: 49, height: 79,  speed: 4, anchorY: -13, sheet: "./Rick_run.png" },
+    jump:          { frames: 5,  width: 43, height: 78,  speed: 6, anchorY: -8,  sheet: "./rick_jump.png" },
+    fall:          { frames: 5,  width: 43, height: 78,  speed: 6, anchorY: -8,  sheet: "./rick_jump.png" },   // reuse single-jump art for both jumps (rick_double_jump.png left unwired)
+    dash:          { frames: 6,  width: 90, height: 78,  speed: 4, anchorY: -16, sheet: "./rick_air_dodge.png" },   // air-dash VISUAL only (air-dodge art); no i-frame/mechanic change
+    hurt:          { frames: 6,  width: 70, height: 88,  speed: 6, anchorY: -21, sheet: "./rick_land_dodge.png" },  // TEMP hurt stand-in — reads as an upright dodge w/ afterimages, NOT a true hurt. Pending real art.
+    light:         { frames: 10, width: 63, height: 90,  speed: 2, anchorY: -13, sheet: "./rick_jab_foward_attack_clean.png" },
+    heavy:         { frames: 5,  width: 61, height: 89,  speed: 3, anchorY: -34, sheet: "./rick_kick.png" },
     up:            { frames: 12, width: 70, height: 106, speed: 3, anchorY: 0,   sheet: "./rick_up_attack_clean.png" },   // launcher; label/thumbnail/clipped-frame stripped → clean 12f
-    air:           { frames: 9,  width: 44, height: 86,  speed: 3, anchorY: -26, sheet: "./rick_up_attack_2_com.png" },
+    air:           { frames: 9,  width: 44, height: 86,  speed: 3, anchorY: -28, sheet: "./rick_up_attack_2_com.png" },
     meeseeksThrow: { frames: 1,  width: 72, height: 68,  speed: 4, anchorY: -5,  loop: false, lockLastFrame: true, sheet: "./rick_meeseeks_throw.png" },
     rocket:        { frames: 4,  width: 51, height: 82,  speed: 3, anchorY: -2,  loop: false, lockLastFrame: true, sheet: "./rick_rocket_air_rocket_attack.png" },
-    portalTravel:  { frames: 13, width: 66, height: 80,  speed: 2, anchorY: -15, loop: false, lockLastFrame: true, sheet: "./rick_portal_attack_travel.png" },
+    portalTravel:  { frames: 13, width: 66, height: 80,  speed: 2, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./rick_portal_attack_travel.png" },
     selfDestruct:  { frames: 6,  width: 92, height: 92,  speed: 4, anchorY: 0,   loop: false, lockLastFrame: true, sheet: "./rick_speacial.png" }
   }
 }

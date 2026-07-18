@@ -1802,9 +1802,62 @@ function updateMiscTimers(fighter) {
   }
 }
 
+// ── TAUNT — timed channel → payoff (Rick) ─────────────────────────────────────
+// A genuinely new mechanic: hold Down for TAUNT_CHARGE_FRAMES (10s) to COMMIT into a
+// fully-locked taunt animation; survive both phases un-hit to heal 50% of CURRENT hp.
+// Its own tracked state (idle → charging → committed), separate from block-hold — it
+// only READS the same Down input. Any character defining a `taunt` action gets it;
+// only Rick ships the art. States: _tauntCharge (frames held), _tauntPlaying (+ timer).
+const TAUNT_CHARGE_FRAMES = 600   // 10s @60Hz of uninterrupted Down-hold to trigger
+function tauntAnimFrames(fighter) {
+  const a = fighter.animationData?.taunt
+  return a ? (a.frames || 1) * (a.speed || 4) : 108
+}
+function updateTauntState(fighter, downHeld) {
+  if (!fighter || !fighter.animationData?.taunt) return
+  // "Took a hit" during EITHER phase = interrupt: hitstun OR any health drop since last frame.
+  const prevH   = fighter._tauntPrevHealth
+  fighter._tauntPrevHealth = fighter.health
+  const tookHit = (fighter.hitstun || 0) > 0 || (prevH != null && (fighter.health || 0) < prevH)
+
+  // COMMITTED animation phase — locked; resolve on finish or cancel on hit.
+  if (fighter._tauntPlaying) {
+    if (tookHit) { fighter._tauntPlaying = false; fighter._tauntCharge = 0; return }   // interrupted → no reward
+    if (--fighter._tauntTimer <= 0) {
+      const heal = Math.floor((fighter.health || 0) * 0.5)                              // 50% of CURRENT hp
+      fighter.health      = Math.min(fighter.maxHealth || fighter.health, (fighter.health || 0) + heal)
+      fighter._tauntPlaying = false
+      fighter._tauntHealFlash = 45                                                      // green heal cue
+    }
+    return
+  }
+
+  // CHARGING phase — only accrues on an uninterrupted, grounded, idle Down-hold. Any
+  // hit / block / attack / airborne breaks it (resets to 0), so a normal <10s block-hold
+  // is exactly as before and never "leaks" into a taunt.
+  const eligible = downHeld && !tookHit &&
+    (fighter.onGround ?? fighter.grounded) && !fighter.attacking &&
+    (fighter.hitstun || 0) <= 0 && (fighter.blockstun || 0) <= 0 &&
+    !fighter.isGrabbed && (fighter.stun || 0) <= 0
+  if (!eligible) { fighter._tauntCharge = 0; return }
+  fighter._tauntCharge = (fighter._tauntCharge || 0) + 1
+  if (fighter._tauntCharge >= TAUNT_CHARGE_FRAMES) {
+    fighter._tauntCharge  = 0
+    fighter._tauntPlaying = true
+    fighter._tauntTimer   = tauntAnimFrames(fighter)
+  }
+}
+
 function updateMovementInput(fighter) {
   if (!fighter) return
   const inputState = getFighterInput(fighter)
+
+  // Taunt state machine runs first. While the committed taunt plays, the fighter is
+  // FULLY LOCKED — no movement/block/action (combat actions are gated in
+  // updatePlayerCombat; physics.moveFighter also honours _tauntPlaying).
+  updateTauntState(fighter, !!inputState.down)
+  if (fighter._tauntPlaying) { fighter.isBlocking = false; fighter.isCharging = false; fighter.vx = 0; return }
+
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   fighter.isBlocking = false
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
@@ -1884,6 +1937,10 @@ function updatePlayerCombat(fighter) {
     updateCombat(fighter, getOpponent(fighter), {}, opts)
     return
   }
+
+  // TAUNT LOCK: mid-taunt the fighter starts nothing. Still tick combat timers with
+  // empty controls so any residual state resolves cleanly.
+  if (fighter._tauntPlaying) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
 
   const inputState = getFighterInput(fighter)
   const isToji     = (fighter.rosterKey || "").toLowerCase() === "toji"
@@ -3762,7 +3819,13 @@ gameLoop()
     ultCooldown:      f.ultimateCooldown || 0,
     ultReleased:      !!f._ultReleasedSinceStage1,
     arenaHalfLock:    f._arenaHalfLock || null,
-    portalDrop:       !!f._portalDrop
+    portalDrop:       !!f._portalDrop,
+    jumpCount:        f.jumpCount || 0,
+    attackCooldown:   f.attackCooldown || 0,
+    tauntCharge:      f._tauntCharge || 0,
+    tauntPlaying:     !!f._tauntPlaying,
+    tauntTimer:       f._tauntTimer || 0,
+    tauntHealFlash:   f._tauntHealFlash || 0
   })
 
   window.__harness = {
@@ -3840,6 +3903,10 @@ gameLoop()
     liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
     liftP2:     (dy = 40) => { if (p2) { p2.onGround = false; p2.grounded = false; p2.y -= dy; p2.vy = 0; p2.isLaunched = true } },  // raise the dummy into an aerial path (e.g. Rick's rising rocket)
     hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
+    setTauntCharge: v => { if (p1) p1._tauntCharge = v },   // fast-forward the 10s taunt charge for tests
+    healP1:     () => { if (p1) { p1.health = p1.maxHealth || 1050; p1.hitstun = 0; p1.knockdownState = false } },
+    damageP1:   (v = 30) => { if (p1) p1.health = Math.max(0, (p1.health || 0) - v) },   // deal chip to P1 (taunt-interrupt test)
+    setP2Invuln: (v = 600) => { if (p2) p2.invulnTimer = v },   // let a projectile pass through the dummy (free-flight range measurement)
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({
       active: towerState.active, floor: towerState.floor,

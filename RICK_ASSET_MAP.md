@@ -108,14 +108,46 @@ gutters). Files renamed for zip/Windows safety are noted.
   possible clipped frame" item.*
 - **`rick_jab_foward_attack_clean.png`** — cropped the top-left "JAB" text label (y0-9, above the body).
 
+### Feature pass (2026-07-18): jab fix + taunt / double-jump / gun / rocket
+
+- **JAB (light) repack — the "flashing wrong/extra frames" fix.** `rick_jab_foward_attack_clean.png`
+  was sliced as uniform 63px but the source was NON-uniformly packed (irregular 3–25px gutters,
+  frame widths 23–81px). A boundary-overlay preview confirmed the 63px cells cut THROUGH the bodies
+  (the big teal-swing frame straddled a cell edge → wrong pixels flashed) + a residual "JAB" text
+  blob in frame 0. Fixed by REPACKING to uniform **112px** cells (10f, leg-anchor-centred, feet
+  planted, text removed) → `animationData.light` width 63→112, anchorY −13→−6. Timing was already
+  synced (speed 2 × 10f = 20f = move's startup5+active3+recovery12), so this was purely a slice bug.
+- **DOUBLE JUMP (new generic capability).** `sprite.js _resolveAction` gained a jumpCount-aware air
+  branch: on the 2nd+ jump (`fighter.jumpCount>=2`, maintained by physics.js) it prefers a
+  `doubleJump` action if the fighter defines one — generic (any char with the art), only Rick ships
+  it. `animationData.doubleJump` = `rick_double_jump.png` REPACKED (3f, 50px). Shown on the ascent;
+  descent still uses `fall`.
+- **TAUNT (new timed channel→payoff mechanic).** Hold Down 600f (10s) → COMMIT into a fully-locked
+  taunt (`rick_taunt.png` REPACKED 27f, 56px; 27×speed4 = 108f lock). Own tracked state
+  (`game.js updateTauntState`: idle→charging→committed), separate from block-hold (only reads the
+  same Down input) so a normal <10s block is unchanged. Interrupt (hitstun OR any health drop) in
+  EITHER phase cancels with no reward; surviving both → heal **50% of CURRENT hp** (clamped to max).
+  Lock enforced in updateMovementInput (early return), updatePlayerCombat (no actions), physics
+  canMove (no movement).
+- **GUN — free ranged poke.** `Down+Special` = `portalLaser`: **0 energy**, damage **20 raw** (×0.60
+  ≈ 12 effective — far below Meeseeks 45 / Rocket 57 / Pull 42 / Push 65), speed 16, lifetime 60,
+  **24f cooldown is the only limiter**. A bright-blue laser bolt (`#4dd2ff`, no sheet). Plays a brief
+  `gunShot` cast pose = `rick_gun.png` REPACKED (4f, 68px, aim/fire). Reasoning: it's free and
+  spammable, so it must be the weakest hit in the kit — a pure spacing/poke tool, cooldown-gated.
+- **ROCKET range extension.** Was a fast VERTICAL burst that left the top bound (y<−200) in ~39f, so
+  lifetime alone couldn't extend it. Redesigned as a **forward-traveling** rocket: vx 3→14, vy −16→0
+  (level, so it reliably catches grounded foes downrange), lifetime 34→90 → **~1260px reach**
+  (harness-measured 1134px free-flight, vs the old ~510 cap). Damage/cost unchanged (95 / 40).
+
 ### `rick_land_dodge.png` hurt stand-in — INSPECTED, flagged
 Reads as an **upright Rick with cyan afterimage/phase trails** (a dodge/shimmer pose), *not* a
 crouch or landing pose (the spec's "crouchDown" assumption is slightly off). It is passable as a
 temporary hurt (upright, teal could read as hit-flash) but is **TEMPORARY pending real hurt art**.
 
-### Reference-only sheets (present, deliberately NOT wired this pass)
-- `rick_double_jump.png` — reuse single-jump anim for both jumps (per spec); kept for a future pass.
-- `rick_taunt.png` — purely cosmetic; no free key in P1's scheme; not bound (per spec).
+### Reference-only sheets
+- `rick_double_jump.png` — **NOW WIRED** (2026-07-18) as `doubleJump` (jumpCount-aware). REPACKED.
+- `rick_taunt.png` — **NOW WIRED** (2026-07-18) as the `taunt` reward-flourish. REPACKED.
+- `rick_gun.png` — **NOW WIRED** (2026-07-18) as the `gunShot` cast pose (free laser poke). REPACKED.
 - `rick_rocket_attack.png` — alternate side-tilt candidate; `rick_kick.png` chosen as the cleaner
   mid-weight heavy. Retained as a reserve.
 - `rick_poop_attack.png` / `rick_poop_attack_effect.png` — downTilt, **DEFERRED**.

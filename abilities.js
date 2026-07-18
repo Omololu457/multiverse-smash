@@ -1213,6 +1213,24 @@ function executeToji_Special(fighter, context) {
     return true
   }
 
+  // S,A+F (down→forward, qcf) = CURSE SPIRIT — a FREE thrown creature projectile.
+  // Toji has NO cursed energy, so unlike a normal ki special this costs nothing; it's
+  // his cheap ranged poke. Uses the projectile sprite pipeline (curse_effect_2 = the
+  // clean 3-frame flying creature). Checked after D,B (chain) so the motions stay distinct.
+  if (endsWithPattern(dirs, ["D", "F"])) {
+    if ((fighter.attackCooldown || 0) > 0) return false
+    fighter.attackCooldown = getAttackDuration(20, fighter)   // brief commit / recast gate — NO energy spent
+    spawnProjectile(fighter, "curseSpirit", {
+      damage: 70, speed: 9, lifetime: 100,
+      hitstun: 18, knockbackX: 6, knockbackY: -2,
+      w: 40, h: 30,
+      sheet: "./toji_curse_effect_2.png", spriteFrames: 3,
+      spriteW: 24, spriteH: 22, spriteSpeed: 5, spriteScale: 2.4
+    }, context)
+    focusCameraOnAction(context, fighter, target, 0.98, 6)
+    return true
+  }
+
   // F→F = Rapid dash strike — fast low damage
   if (endsWithPattern(dirs, ["F", "F"])) {
     const attack = createAttackFromMove(fighter, "rapidStrike", {
@@ -1266,6 +1284,228 @@ function executeToji_Ultimate(fighter, context) {
   shakeCamera(context, 14, 16)
   focusCameraOnAction(context, fighter, null, 0.94, 18)
   return true
+}
+
+// ─────────────────────────────────────────────────────────────────
+// TOJI — 3-STANCE WEAPON SYSTEM  (FOUNDATION / Phase 1 — placeholder content)
+// ─────────────────────────────────────────────────────────────────
+// Toji-ONLY for now (not a generic system). fighter.weaponStance ∈ blade|chain|gun.
+// INPUT: the CHARGE button (P) cycles the stance. Chosen because Toji's grab (throw),
+// special (chain/curse/rapid/inventory) and ultimate (Heavenly Restriction) slots are all
+// occupied, whereas charge is a genuine no-op for Toji (0 energy → no charge, base-only
+// transform → triggerTransformation returns false). CORE MECHANIC: a switch pressed during
+// an attack's RECOVERY phase CANCELS the recovery early (same state-clear as combat.js's
+// launcher-cancel) and swaps stance — so the player can act again after only
+// STANCE_SWITCH_FRAMES instead of sitting out the full recovery.
+export const TOJI_STANCES = ["blade", "chain", "gun"]
+const STANCE_SWITCH_FRAMES = 4   // near-instant switch cost (also the post-cancel gap)
+
+// ── GUN STANCE — real normals (Phase 4). RANGED: shots spawn projectiles (projectiles.js
+// pattern), NOT melee hitboxes. Per-hit damage is LOWER than melee (chip/pressure framing).
+//   5A snapShot — fast low-damage chip/pressure shot (planted). Fires a bullet projectile.
+//   5B aimedShot — FEINT: plays the aim pose (idk sprite has NO muzzle flash → reads as a
+//      fake-out), fires NO projectile, and is cancelable into a stance-switch via the Phase-1
+//      recovery-cancel. A bait.
+//   5C tracerRound — bigger commitment/reward: a heavy tracer with a HARD KNOCKBACK on hit
+//      (approximates the design's "hard knockdown"; a true knockdown-STATE/get-up is deferred —
+//      nothing in the engine currently triggers knockdownState, so it stays a strong blowback).
+const TOJI_GUN = {
+  snapShot:   { cast: 18, proj: { damage: 20, speed: 17, lifetime: 55, hitstun: 9,  knockbackX: 4,  knockbackY: 0,  w: 14, h: 8,  color: "#ffe066" } },
+  aimedShot:  { feint: true, startup: 6, active: 3, recovery: 16 },
+  tracerRound:{ cast: 24, proj: { damage: 42, speed: 19, lifetime: 60, hitstun: 20, knockbackX: 13, knockbackY: -8, w: 34, h: 10, color: "#ff5a5a" } }
+}
+
+// ── BLADE STANCE — real normals (Phase 2). Sword-character numbers (cf. moveset.js goku /
+// Toji basic_attacks: light 52 · heavy 96). Toji is a fast no-meter glass cannon, so these
+// skew fast/low-commit. Sprites are in characters.js animationData keyed by these move names.
+//   5A quickDraw  — fast low-damage starter; OPENS the rekka.
+//   5B forwardSlash — mid-range poke (single hit).
+//   2C skywardCut — launcher (up-attack slot).
+//   5C Reaper's Combo — a 3-stage REKKA (reaper1→2→3) sliced from toji_Foword_slash_attack.
+//      Three cancel routes at each non-final stage's RECOVERY: press LIGHT → chain to next
+//      hit · press CHARGE → stance-cancel (Phase-1 mechanic) · do nothing → safe recovery.
+const TOJI_BLADE = {
+  quickDraw:    { damage: 44, startup: 5, active: 3, recovery: 9,  hitstun: 14, knockbackX: 4, knockbackY: 0,  rangeX: 62, rangeY: 44, rekkaNext: "reaper1" },
+  forwardSlash: { damage: 62, startup: 7, active: 4, recovery: 15, hitstun: 16, knockbackX: 6, knockbackY: 0,  rangeX: 95, rangeY: 44 },
+  skywardCut:   { damage: 55, startup: 7, active: 4, recovery: 18, hitstun: 22, knockbackX: 2, knockbackY: -9, rangeX: 70, rangeY: 80, launcher: true },
+  reaper1:      { damage: 30, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 80, rangeY: 40, rekkaNext: "reaper2" },
+  reaper2:      { damage: 34, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 4, knockbackY: 0,  rangeX: 85, rangeY: 40, rekkaNext: "reaper3" },
+  reaper3:      { damage: 50, startup: 6, active: 4, recovery: 18, hitstun: 20, knockbackX: 9, knockbackY: -3, rangeX: 95, rangeY: 44 },  // finisher — no rekkaNext
+  // ── COMMAND MOVES (Phase 5) ──────────────────────────────────────────────────
+  // DASH STRIKE (design "6C") — a forward-committing dash-in stab. Data lives under
+  // dashStrike1 (its first sprite); updateTojiStanceCombat swaps the SPRITE 1→2 at the
+  // active boundary. Single hit level (the low→overhead property split needs the
+  // deferred hit-level block system). Damage 80 > forwardSlash 62 (committed) but a
+  // single hit < Reaper's full 30+34+50=114 string. Longer recovery = the dash-in risk.
+  dashStrike1:  { damage: 80, startup: 10, active: 4, recovery: 20, hitstun: 20, knockbackX: 9,  knockbackY: -2, rangeX: 110, rangeY: 46 },
+  // RISING SPIRAL (design "j.C") — AIR normal / juggle ender off Skyward Cut. Tall rangeY
+  // to catch a popped-up opponent. LONG recovery (26) so the full spin is genuinely
+  // punishable on block/whiff — the risk is mechanically real, not flavor.
+  risingSpiral: { damage: 72, startup: 7,  active: 5, recovery: 26, hitstun: 22, knockbackX: 10, knockbackY: -4, rangeX: 74, rangeY: 82 }
+}
+
+// Forward-sprint velocity sustained through Dash Strike's dash-in (startup+active window).
+// Physics friction (0.72) would decay a single impulse instantly; re-applying it each frame
+// gives a real committed sprint. Tuned so Toji closes ~1 body-width before the stab.
+const TOJI_DASH_LUNGE_SPEED = 9
+
+// Dash Strike fire: commits the move (data under dashStrike1) + arms the sustained lunge.
+function fireTojiDashStrike(fighter, context) {
+  if (!_fireTojiStanceMove(fighter, "dashStrike1", TOJI_BLADE.dashStrike1, context)) return false
+  const md = TOJI_BLADE.dashStrike1
+  fighter._dashLunge = md.startup + md.active     // sprint through wind-up + stab, plant on recovery
+  fighter.vx = fighter.facing * TOJI_DASH_LUNGE_SPEED
+  return true
+}
+
+// ── CHAIN STANCE — real normals (Phase 3). A mid-range zoning stance: longer reach, slower,
+// higher pushback than Blade. Numbers per moveset.js conventions (cf. Blade quickDraw 44 /
+// forwardSlash 62). Sprites keyed by move name in characters.js animationData.
+//   5A shortLash — quick long-reach poke (trimmed chain whip).
+//   5B wideArc   — whiff-punish / wall-carry (big knockbackX), slow-startup high reward.
+//   6B lowSweep  — low sweep (down+heavy), a distinct poke intended as the LOW of a 5B/6B
+//      mixup. NOTE: the game has NO hit-level (low/overhead) block system yet, so it is NOT
+//      forced to be crouch-blocked — the true high/low mixup needs that system (deferred).
+//   2B risingCoil — anti-air launcher (up-attack slot).
+const TOJI_CHAIN = {
+  shortLash:  { damage: 38, startup: 6,  active: 3, recovery: 11, hitstun: 12, knockbackX: 5,  knockbackY: 0,   rangeX: 100, rangeY: 40 },
+  wideArc:    { damage: 66, startup: 10, active: 5, recovery: 20, hitstun: 18, knockbackX: 11, knockbackY: 0,   rangeX: 130, rangeY: 44 },
+  lowSweep:   { damage: 54, startup: 9,  active: 4, recovery: 18, hitstun: 16, knockbackX: 6,  knockbackY: 0,   rangeX: 120, rangeY: 30 },
+  risingCoil: { damage: 58, startup: 8,  active: 5, recovery: 20, hitstun: 20, knockbackX: 2,  knockbackY: -10, rangeX: 70,  rangeY: 85, launcher: true }
+}
+
+export function getTojiStance(fighter) { return (fighter && fighter.weaponStance) || "blade" }
+
+// Fire a Toji stance move from move data (shared by Blade + Chain). Sets _rekkaNext (Blade rekka).
+function _fireTojiStanceMove(fighter, key, md, context) {
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = md.rekkaNext || null
+  return true
+}
+const fireTojiBladeMove = (fighter, key, context) => _fireTojiStanceMove(fighter, key, TOJI_BLADE[key], context)
+const fireTojiChainMove = (fighter, key, context) => _fireTojiStanceMove(fighter, key, TOJI_CHAIN[key], context)
+
+// GUN ranged shot (5A/5C): play the firing animation via the sprite-cast window (no melee
+// attack state) and spawn the bullet projectile. attackCooldown commits for the cast length.
+function fireTojiGunShot(fighter, key, context) {
+  const md = TOJI_GUN[key]
+  if (!md || !md.proj || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  fighter._spriteCastMove  = key             // → animationData[key] firing sprite (snapShot/tracerRound)
+  fighter._spriteCastTimer = md.cast
+  fighter.attackCooldown   = getAttackDuration(md.cast, fighter)
+  spawnProjectile(fighter, key, md.proj, context)
+  return true
+}
+
+// GUN feint (5B aimedShot): a real (melee-less, 0-damage) attack so it has a RECOVERY phase and
+// is cancelable into a stance-switch (Phase-1 mechanic). No projectile — the "no muzzle flash"
+// aim reads as a fake-out. Plays the idk aim sprite.
+function fireTojiGunFeint(fighter, context) {
+  const md = TOJI_GUN.aimedShot
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, "aimedShot",
+    { damage: 0, startup: md.startup, active: md.active, recovery: md.recovery, hitstun: 0, knockbackX: 0, knockbackY: 0, rangeX: 8, rangeY: 8 },
+    { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  return true
+}
+
+// Per-frame Toji stance-combat routing. Returns true if it consumed the input (caller
+// should skip the normal combat path). BLADE fires its real normals + drives the rekka;
+// CHAIN/GUN fire the Phase-1 placeholder light. Grounded normals only (aerials/grab stay
+// on the normal path). `getPhase` = combat.getAttackPhase; `context` = ability context.
+export function updateTojiStanceCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const stance   = getTojiStance(fighter)
+
+  // Light press-edge (raw of the buffered light) — a rekka chain needs a FRESH tap, not a held button.
+  const lightEdge = !!inputState.light && !fighter._rekkaPrevLight
+  fighter._rekkaPrevLight = !!inputState.light
+
+  // Rekka window closes when the attack fully ends (safe-stop / stance-cancel both land here).
+  if (!fighter.attacking) fighter._rekkaNext = null
+
+  if (stance === "blade") {
+    // ROUTE 1 — chain to next rekka hit: fresh LIGHT during the current hit's RECOVERY.
+    if (fighter.attacking && fighter._rekkaNext && lightEdge && getPhase?.(fighter) === "recovery") {
+      const next = fighter._rekkaNext
+      fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+      fighter.attackCooldown = 0                      // clear the just-set cooldown so the chain fires now
+      return fireTojiBladeMove(fighter, next, context)
+    }
+    // DASH STRIKE upkeep (runs while the move is live, before the canStart gate):
+    //  • SPRITE CHAIN: swap crouch(_1)→stab(_2) once past startup. sprite.js frame-resets
+    //    on the sheet change, so _2's full-extension stab plays as the hit lands.
+    //  • LUNGE: re-apply the forward sprint each frame of the dash-in window.
+    if (fighter.attacking && fighter.currentMove === "dashStrike1" && getPhase?.(fighter) !== "startup") {
+      fighter.currentMove = "dashStrike2"
+    }
+    if ((fighter._dashLunge || 0) > 0) { fighter.vx = fighter.facing * TOJI_DASH_LUNGE_SPEED; fighter._dashLunge-- }
+
+    const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+    if (!canStart) return false
+
+    // AIR — RISING SPIRAL (air normal / juggle ender). Buffered light (down+light stays the
+    // generic down-air spike). Consuming it here suppresses the generic `air` normal in blade.
+    if (!grounded) {
+      if (inputState.light && !inputState.down) return fireTojiBladeMove(fighter, "risingSpiral", context)
+      return false
+    }
+    // GROUND normals + command move.
+    if (inputState.upAttack)                  return fireTojiBladeMove(fighter, "skywardCut",   context)
+    if (inputState.heavy &&  inputState.down)  return fireTojiDashStrike(fighter, context)                  // 6C→S+K: Dash Strike
+    if (inputState.heavy && !inputState.down)  return fireTojiBladeMove(fighter, "forwardSlash", context)
+    if (inputState.light && !inputState.down)  return fireTojiBladeMove(fighter, "quickDraw",    context)
+    return false
+  }
+
+  if (stance === "chain") {
+    // Real Chain normals. down+heavy = 6B lowSweep (checked before plain heavy = 5B wideArc).
+    const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+    if (!canStart || !grounded) return false
+    if (inputState.upAttack)                     return fireTojiChainMove(fighter, "risingCoil", context)  // 2B anti-air
+    if (inputState.heavy &&  inputState.down)     return fireTojiChainMove(fighter, "lowSweep",   context)  // 6B low
+    if (inputState.heavy && !inputState.down)     return fireTojiChainMove(fighter, "wideArc",    context)  // 5B
+    if (inputState.light && !inputState.down)     return fireTojiChainMove(fighter, "shortLash",  context)  // 5A
+    return false
+  }
+
+  // GUN — real ranged normals (Phase 4). All spawn projectiles except the 5B feint.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (inputState.upAttack)                  return fireTojiGunShot(fighter, "tracerRound", context)  // 5C
+  if (inputState.heavy && !inputState.down)  return fireTojiGunFeint(fighter, context)                // 5B feint
+  if (inputState.light && !inputState.down)  return fireTojiGunShot(fighter, "snapShot",  context)    // 5A
+  return false
+}
+
+// Stance-switch (CHARGE tap, edge-detected via `chargeHeld` + fighter._stancePrevCharge).
+// Returns "switch" | "cancel" | false. Interrupts only the RECOVERY phase (never startup/active).
+export function updateTojiStanceSwitch(fighter, chargeHeld, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji") return false
+  if (fighter.weaponStance == null) fighter.weaponStance = "blade"
+  const edge = !!chargeHeld && !fighter._stancePrevCharge
+  fighter._stancePrevCharge = !!chargeHeld
+  if (!edge) return false
+
+  let kind = "switch"
+  if (fighter.attacking && fighter.currentAttack) {
+    const phase = (typeof getPhase === "function") ? getPhase(fighter) : null
+    if (phase !== "recovery") return false            // can't cancel startup/active — only recovery
+    fighter.attacking     = false                     // RECOVERY CANCEL (mirror launcher-cancel clear)
+    fighter.currentAttack = null
+    fighter.currentMove   = null
+    kind = "cancel"
+  }
+  fighter.attackCooldown = STANCE_SWITCH_FRAMES        // near-instant switch cost / post-cancel gap
+  const i = TOJI_STANCES.indexOf(getTojiStance(fighter))
+  fighter.weaponStance = TOJI_STANCES[(i + 1) % TOJI_STANCES.length]
+  return kind
 }
 
 // ─────────────────────────────────────────────────────────────────

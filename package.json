@@ -20,6 +20,7 @@
     "test:toji": "node harness/toji.test.mjs",
     "test:toji-command": "node harness/toji_command.test.mjs",
     "test:tower": "node harness/tower.test.mjs",
+    "test:ffa": "node harness/ffa.test.mjs",
     "test:toji-motion": "node harness/toji_motion.test.mjs",
     "test:input-wiring": "node harness/input_wiring.test.mjs"
   },

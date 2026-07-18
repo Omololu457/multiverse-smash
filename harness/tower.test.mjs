@@ -29,7 +29,7 @@ try{
   await page.mouse.click(640,400); await page.waitForTimeout(80);   // START → play
   await page.mouse.click(640,173); await page.waitForTimeout(80);   // MAIN_MENU → play
   check("reached GAMEPLAY_SELECT", (await gs())==="gameplaySelect", `gs=${await gs()}`);
-  await page.mouse.click(640,503); await page.waitForTimeout(80);   // GAMEPLAY_SELECT → TOWER (index3)
+  await page.mouse.click(640,443); await page.waitForTimeout(80);   // GAMEPLAY_SELECT → TOWER (index3 of 6 items)
   check("TOWER opens the TIER SELECT screen (not straight into a fight)", (await gs())==="towerSelect", `gs=${await gs()}`);
   await page.screenshot({path:path.join(OUT,"TOWER_tier_select.png")});
   // TIER 1 is index 0 of the vertical menu (6 items): compute its center.

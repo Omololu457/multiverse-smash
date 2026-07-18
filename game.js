@@ -13,7 +13,7 @@ import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
-  clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount
+  clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount, getPlayerGamepad
 } from "./input.js"
 import {
   activeSummons,
@@ -233,15 +233,23 @@ const P2_CONTROLS = {
   light: "1", heavy: "2", upAttack: "3", special: "4", ultimate: "5",
   grab: "6", charge: "7", toggle: "7", transform: "7", dash: ""
 }
-// P3/P4 (free-for-all POC ONLY) are CONTROLLER-ONLY — a keyboard can't do a 3rd/4th
-// scheme (key-rollover). These control maps bind to NOTHING (empty keys) so the keyboard
-// fallback in getFighterInput yields no input; a real pad drives them via pollGamepad.
+// P3/P4 (free-for-all POC ONLY) are CONTROLLER-ONLY — a keyboard can't do a 3rd/4th scheme
+// (key-rollover). A real pad drives them via pollGamepad. These maps carry DISTINCT virtual
+// key-names (NOT the old empty "" — those collapsed every action onto keys[""], so a real P3/P4
+// pad had left==light==grab and was unplayable). The names are synthetic labels only: they're
+// never physical keydowns, so getFighterInput's keyboard fallback stays inert without a pad, but
+// mapInputToVirtualKeys/moveFighter/buildNormalControlState can now tell the actions apart.
+// Shape mirrors P1 (jump shares up; charge/toggle/transform share one bind; dash = double-tap only).
 const P3_CONTROLS = {
-  left: "", right: "", up: "", down: "", jump: "",
-  light: "", heavy: "", upAttack: "", special: "", ultimate: "",
-  grab: "", charge: "", toggle: "", transform: "", dash: ""
+  left: "p3_left", right: "p3_right", up: "p3_up", down: "p3_down", jump: "p3_up",
+  light: "p3_light", heavy: "p3_heavy", upAttack: "p3_upAttack", special: "p3_special", ultimate: "p3_ultimate",
+  grab: "p3_grab", charge: "p3_charge", toggle: "p3_charge", transform: "p3_charge", dash: ""
 }
-const P4_CONTROLS = { ...P3_CONTROLS }
+const P4_CONTROLS = {
+  left: "p4_left", right: "p4_right", up: "p4_up", down: "p4_down", jump: "p4_up",
+  light: "p4_light", heavy: "p4_heavy", upAttack: "p4_upAttack", special: "p4_special", ultimate: "p4_ultimate",
+  grab: "p4_grab", charge: "p4_charge", toggle: "p4_charge", transform: "p4_charge", dash: ""
+}
 
 // ── KEYBIND UI (Task 2) — P1 keyboard rebinds, IN-MEMORY ONLY (sandbox blocks
 // localStorage). Restricted to the 11 allowed keys. ────────────────────────────
@@ -1759,10 +1767,14 @@ function detectDoubleTapDashTeleport(fighter, key) {
 // battle frame for any controller player. No-op for keyboard players / no pad.
 function updateGamepadEdges(fighter) {
   if (!fighter) return
-  const isP1 = fighter.playerNumber === 1
-  const type = isP1 ? inputSettings.p1Type : inputSettings.p2Type
+  // Generalized to ALL slots (1-4). Was P1/P2-only: it read p1Type/p2Type and grabbed the pad by
+  // raw array position (gamepads[0]/[1]), so P3/P4 got the wrong pad (or P2's) and their d-pad
+  // motions/dash/L2-toggle never registered. Now it resolves the SAME index-bound pad pollGamepad
+  // uses (getPlayerGamepad), keeping the two paths consistent for any number of pads.
+  const pn   = fighter.playerNumber || 1
+  const type = inputSettings[{ 1: "p1Type", 2: "p2Type", 3: "p3Type", 4: "p4Type" }[pn] || "p2Type"]
   if (type !== "controller") return
-  const gp = (navigator.getGamepads?.() || [])[isP1 ? 0 : 1]
+  const gp = getPlayerGamepad(pn)
   if (!gp) return
   const c    = fighter.controls
   const prev = fighter._gpPrev || (fighter._gpPrev = {})

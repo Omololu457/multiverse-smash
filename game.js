@@ -13,7 +13,7 @@ import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
-  clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount
+  clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount
 } from "./input.js"
 import {
   activeSummons,
@@ -25,7 +25,7 @@ import {
 } from "./summons.js"
 import { physics } from "./physics.js"
 import {
-  updateCombat, resolveProjectileHits,
+  updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
   updateProjectiles as updateCombatProjectiles,
   checkClash, checkParry, resolveGrab, updateGrab,
   getAttackPhase, getAttackHitbox,   // training overlay: live frame data + real attack hitbox
@@ -48,6 +48,7 @@ import {
   drawTrainingCollisionBoxes, drawTrainingOverlay, drawStanceIndicator, drawUniverseSelectScreen,
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
   drawTowerSelectScreen, getTowerSelectRects,
+  drawFFASetupScreen, getFFASetupRects, drawFFACharSelectScreen,
   PAUSE_MENU_ITEMS, getStartMenuRects, getGameplaySelectRects,
   getAIDifficultyRects, getUniverseCardRects, getCharacterCardRects,
   getStageCardRects, drawStartInfoPanel,
@@ -196,6 +197,9 @@ const GAME_STATES = {
   SETTINGS:         "settings",
   GAMEPLAY_SELECT:  "gameplaySelect",
   TOWER_SELECT:     "towerSelect",     // pick a Tower tier (3/10/25/40/∞ floors)
+  FFA_SETUP:        "ffaSetup",        // free-for-all: choose player count (3/4)
+  FFA_CHARSELECT:   "ffaCharSelect",   // free-for-all: pick a fighter per slot
+  FFA_BATTLE:       "ffaBattle",       // free-for-all: N-fighter last-standing match
   AI_DIFFICULTY:    "aiDifficulty",
   SELECT_UNIVERSE:  "selectUniverse",
   SELECT_CHARACTER: "selectCharacter",
@@ -232,6 +236,15 @@ const P2_CONTROLS = {
   light: "1", heavy: "2", upAttack: "3", special: "4", ultimate: "5",
   grab: "6", charge: "7", toggle: "7", transform: "7", dash: ""
 }
+// P3/P4 (free-for-all POC ONLY) are CONTROLLER-ONLY — a keyboard can't do a 3rd/4th
+// scheme (key-rollover). These control maps bind to NOTHING (empty keys) so the keyboard
+// fallback in getFighterInput yields no input; a real pad drives them via pollGamepad.
+const P3_CONTROLS = {
+  left: "", right: "", up: "", down: "", jump: "",
+  light: "", heavy: "", upAttack: "", special: "", ultimate: "",
+  grab: "", charge: "", toggle: "", transform: "", dash: ""
+}
+const P4_CONTROLS = { ...P3_CONTROLS }
 
 // ── KEYBIND UI (Task 2) — P1 keyboard rebinds, IN-MEMORY ONLY (sandbox blocks
 // localStorage). Restricted to the 11 allowed keys. ────────────────────────────
@@ -340,7 +353,11 @@ const STAGE_DEFS = [
   { name: "Mugen Train",            series: "demonslayer", landmark: "mugen_train",  sky: "#0c1330", mid: "#241a3a", floor: "#1a1326", accent: "#f59e0b" },
   { name: "Citadel of Ricks",       series: "rickmorty",   landmark: "citadel",      sky: "#11182b", mid: "#1e293b", floor: "#0f172a", accent: "#39ff14" },
   { name: "Null Void",              series: "ben10",       landmark: "null_void",    sky: "#1a0b2e", mid: "#2e1065", floor: "#170a28", accent: "#22d3ee" },
-  { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" }
+  { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" },
+  // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame
+  // 3-4 spread-out combatants without zooming past readability. `worldWidth` overrides the
+  // STAGE_DEF default in the map() below. Used only by the FFA mode's stage selection.
+  { name: "Battle Royale Colosseum", series: "other",      landmark: "citadel",      sky: "#160b22", mid: "#3b1d55", floor: "#0e0716", accent: "#f472b6", worldWidth: 4800, ffa: true }
 ]
 
 // Finalize each stage: shared world/ground metrics + resolved music filename
@@ -411,6 +428,8 @@ const universeKeys     = Object.keys(universeMap)
 let hoverStartIndex      = 0
 let hoverGameplayIndex   = 0
 let hoverTowerIndex      = 0
+let hoverFFAIndex        = 0
+let hoverFFACharIndex    = 0
 let hoverDifficultyIndex = 0
 let hoverUniverseIndex   = 0
 let hoverCharacterIndex  = 0
@@ -552,6 +571,194 @@ function continueTower() {
   towerState._applyCarry = true   // resetRound applies the carry-over health to P1
   victoryState = createVictoryState()
   startMatch()
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FREE-FOR-ALL (Phase 1 POC) — 3-4 fighter last-standing.
+// ──────────────────────────────────────────────────────────────────────────────
+// A PARALLEL path: fighters live in an ARRAY (ffaState.fighters), NOT the p1/p2
+// globals, and run generalized camera/physics/combat. The 1v1 update/render loop is
+// completely untouched (this path only runs while gameState is FFA_*). Scope is
+// deliberately minimal: movement + normals + grab + projectiles + elimination/win.
+// Character SPECIALS/ULTIMATES are intentionally NOT wired here (many are pairwise/
+// cinematic — Gojo Infinity, domains, etc.) — that's a later phase, like team modes.
+const FFA_MAX_PLAYERS = 4
+const ffaState = { active: false, playerCount: 3, charKeys: [], fighters: [], over: false, winner: null, pickSlot: 0 }
+const FFA_CONTROLS = [P1_CONTROLS, P2_CONTROLS, P3_CONTROLS, P4_CONTROLS]
+const FFA_SIDES    = ["p1", "p2", "p3", "p4"]
+// Per-slot tint so 3-4 same-ish fighters read apart at a glance (P1 blue-ish left as-is).
+const FFA_SLOT_TINT = [null, "rgba(239,68,68,0.35)", "rgba(34,197,94,0.35)", "rgba(234,179,8,0.35)"]
+
+// Local input capacity: keyboard P1 + keyboard P2 + one controller per connected pad.
+// The setup screen caps player count to this so no uncontrollable fighter can spawn.
+function ffaMaxAvailablePlayers() {
+  return Math.min(FFA_MAX_PLAYERS, 2 + (getConnectedPadCount?.() || 0))
+}
+
+function ffaAliveFighters() { return ffaState.fighters.filter(f => f && !f.eliminated) }
+
+// Nearest OTHER living fighter — the "primary" target for grab/updateCombat; multi-target
+// hit resolution below still tests the hitbox against every other fighter.
+function ffaNearest(fighter, others) {
+  let best = null, bestD = Infinity
+  for (const o of others) {
+    if (!o || o === fighter || o.eliminated) continue
+    const d = Math.abs((o.x || 0) - (fighter.x || 0))
+    if (d < bestD) { bestD = d; best = o }
+  }
+  return best
+}
+
+// Face each fighter toward its nearest living opponent (generalized updateFacing).
+function updateFFAFacing(live) {
+  for (const f of live) {
+    const n = ffaNearest(f, live)
+    if (n) f.facing = (n.x < f.x) ? -1 : 1
+  }
+}
+
+// One fighter's combat step: normals/grab/timers via updateCombat (vs the nearest), THEN
+// the active hitbox is tested against EVERY other fighter (not one fixed defender). hasHit
+// gates it to a single connect per swing (a punch hits whoever's in range first).
+function updateFFACombat(fighter, others, opts) {
+  const nearest = ffaNearest(fighter, others)
+  if (!nearest) return
+  if (fighter.hitstun > 0 || fighter.blockstun > 0) { updateCombat(fighter, nearest, {}, opts); return }
+
+  const inputState = getFighterInput(fighter)
+  const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
+  const ctrlState  = buildNormalControlState(fighter, vKeys)
+  // Harness/dev hook: force a normal this frame (controller players can't be driven from
+  // Playwright, so tests trigger P3/P4 attacks through this).
+  if (fighter._forceAttack) { ctrlState[fighter._forceAttack] = true; fighter._forceAttack = null }
+
+  updateCombat(fighter, nearest, ctrlState, opts)   // input→move, timers, recovery + hit vs nearest
+
+  // MULTI-TARGET: if the swing hasn't connected with the nearest, test it against the rest.
+  if (fighter.attacking && fighter.currentAttack && !fighter.currentAttack.hasHit) {
+    for (const d of others) {
+      if (!d || d === nearest || d.eliminated) continue
+      resolveAttackHit(fighter, d, opts.hitEffects, { stageWidth: opts.stageWidth, damageNumbers: opts.damageNumbers })
+      if (fighter.currentAttack?.hasHit) break
+    }
+  }
+}
+
+// Lightweight effects tick for FFA (the 2p updateEffectsAndDomains is p1/p2-coupled).
+function updateFFAEffects(live) {
+  updateEffects()
+  updateEnergyRegen(live)
+  for (let i = hitSparks.length - 1; i >= 0; i--) {
+    const spark = hitSparks[i]
+    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); spark._fresh = false }
+    spark.timer--
+    if (spark.timer <= 0) hitSparks.splice(i, 1)
+  }
+  updateDamageNumbers()
+}
+
+// Spawn N fighters spread across the WIDE arena.
+function setupFFAFighters(count, charKeys) {
+  const ww = getStageWorldWidth()
+  const fighters = []
+  for (let i = 0; i < count; i++) {
+    const key  = charKeys[i] || "gojo"
+    const char = characters[key] || characters.gojo
+    const frac = count <= 1 ? 0.5 : 0.16 + 0.68 * (i / (count - 1))
+    const x    = Math.round(ww * frac)
+    const f = createFighter(key, char, x, x < ww / 2 ? 1 : -1, FFA_CONTROLS[i], FFA_SIDES[i])
+    applySkin(f, "default")
+    if (FFA_SLOT_TINT[i]) f.mirrorTint = FFA_SLOT_TINT[i]   // reuse the mirror-tint render path
+    f.ffaSlot = i
+    f.eliminated = false
+    fighters.push(f)
+  }
+  return fighters
+}
+
+function startFFAMatch() {
+  matchConfig.mode = "ffa"
+  matchConfig.selectedStage = stages.find(s => s.ffa) || stages[0]
+  ffaState.active = true; ffaState.over = false; ffaState.winner = null
+  syncPhysicsBounds()
+  ffaState.fighters = setupFFAFighters(ffaState.playerCount, ffaState.charKeys)
+  clearAbilityState(); clearEffects(); clearDomains()
+  hitSparks.length = 0; damageNumbers.length = 0; activeDomains.length = 0
+  if (typeof clearInputBuffers === "function") clearInputBuffers(ffaState.fighters)
+  countdown = ROUND_START_COUNTDOWN
+  if (typeof camera.reset === "function") camera.reset()
+  updateCameraBounds()
+  camera.updateMulti(ffaState.fighters, canvas, true)   // SNAP to frame the full spread
+  sound.playStageTrack?.(matchConfig.selectedStage)
+  gameState = GAME_STATES.FFA_BATTLE
+}
+
+function updateFFABattle() {
+  const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() }
+  if (ffaState.over) return   // result overlay is showing; wait for a click (handleMenuClicks)
+
+  if (countdown > 0) {
+    if (countdown === 1) sound.play?.(SFX.UI_MATCH_START)
+    countdown = Math.max(0, countdown - 1)
+    camera.updateMulti(ffaAliveFighters(), canvas)
+    return
+  }
+
+  const live = ffaAliveFighters()
+  for (const f of live) updateGamepadEdges(f)         // controller motion/edges (P3/P4 pads)
+  updateFFAFacing(live)
+  for (const f of live) updateMovementInput(f)
+  // Harness/dev movement injection (controller players can't be driven from Playwright).
+  for (const f of live) if (f._forceMove) f.vx = f._forceMove * (f.baseSpeed || f.speed || 7)
+  for (let i = 0; i < ffaState.fighters.length; i++) {
+    const f = ffaState.fighters[i]
+    if (f && !f.eliminated) ffaState.fighters[i] = updateFighterState(f)
+  }
+
+  const live2 = ffaAliveFighters()
+  // PHYSICS: pairwise body collision over EVERY pair (up to 6 at 4 players).
+  for (let i = 0; i < live2.length; i++)
+    for (let j = i + 1; j < live2.length; j++)
+      physics.resolvePlayerCollision(live2[i], live2[j])
+
+  updateFFAFacing(live2)
+  updateFFAEffects(live2)
+  // COMBAT: each fighter's hitbox vs every other's hurtbox.
+  for (const f of live2) if (live2.length > 1) updateFFACombat(f, live2.filter(o => o !== f), opts)
+
+  // PROJECTILES: hit any non-owner fighter.
+  updateCombatProjectiles(activeProjectiles, getStageWorldWidth(), live2)
+  resolveProjectileHitsMulti(activeProjectiles, live2, hitSparks, damageNumbers)
+
+  // CAMERA: frame ALL living fighters.
+  camera.updateMulti(ffaAliveFighters(), canvas)
+
+  checkFFAOutcome()
+}
+
+// Eliminate any fighter at 0 health; last one standing wins.
+function checkFFAOutcome() {
+  for (const f of ffaState.fighters) {
+    if (f && !f.eliminated && (f.health || 0) <= 0) {
+      f.eliminated = true
+      f.vx = 0; f.vy = 0
+      knockoutFlash = Math.max(knockoutFlash, 14)
+      camera.shake?.(10, 8)
+    }
+  }
+  const alive = ffaAliveFighters()
+  if (!ffaState.over && alive.length <= 1) {
+    ffaState.over = true
+    ffaState.winner = alive[0] || null
+    sound.play?.(SFX.KO)
+    sound.stopMusic?.()
+  }
+}
+
+function endFFA() {
+  ffaState.active = false; ffaState.over = false; ffaState.winner = null; ffaState.fighters = []
+  matchConfig.mode = "vs"
+  resetToStart()
 }
 
 // Training mode state. `enabled` is derived each frame (menu mode OR F1 debug). The
@@ -723,7 +930,8 @@ function createFighter(charKey, char, x, facing, controls, side) {
   return {
     ...char,
     rosterKey: charKey,
-    playerNumber: side === "p1" ? 1 : 2,
+    // p1→1, p2→2, p3→3, p4→4 (p3/p4 only exist in the FFA POC). 1v1 is unchanged.
+    playerNumber: { p1: 1, p2: 2, p3: 3, p4: 4 }[side] || 2,
     // Toji 3-stance weapon system (foundation): every Toji starts in Blade.
     weaponStance: charKey === "toji" ? "blade" : undefined,
     // Ben 10's chosen 5-alien Omnitrix loadout (read by setupBen10 on frame 1).
@@ -2580,6 +2788,81 @@ function drawBattle() {
   drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
 }
 
+// ── FREE-FOR-ALL rendering (parallel to drawBattle; array-driven) ─────────────
+const FFA_BAR_COLORS = ["#38bdf8", "#f87171", "#4ade80", "#facc15"]   // per-slot bar colour
+function drawFFAScene() {
+  const stage = getStageTheme()
+  const hasTransform = typeof camera.applyTransform === "function"
+  ctx.save()
+  if (hasTransform) camera.applyTransform(ctx, canvas)
+  drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight())
+  if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+  if (hasTransform) camera.applyTransform(ctx, canvas)
+  drawProjectiles(ctx, activeProjectiles, camera)
+  for (const f of ffaState.fighters) if (f && !f.eliminated) renderHybridFighter(f)
+  drawHitSparksEnhanced()
+  if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+  ctx.restore()
+}
+
+function drawFFAHud() {
+  const cw = canvas.width
+  // Per-fighter health bars across the top, one column per slot.
+  const n = ffaState.fighters.length
+  const gap = 12, totalW = Math.min(cw - 80, n * 240), barW = (totalW - (n - 1) * gap) / n
+  const x0 = cw / 2 - totalW / 2, y = 20, h = 20
+  ffaState.fighters.forEach((f, i) => {
+    if (!f) return
+    const x = x0 + i * (barW + gap)
+    const frac = Math.max(0, (f.health || 0) / (f.maxHealth || 1))
+    ctx.save()
+    ctx.fillStyle = "rgba(8,12,26,0.85)"; ctx.fillRect(x - 2, y - 2, barW + 4, h + 4)
+    ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(x, y, barW, h)
+    ctx.fillStyle = f.eliminated ? "#4b5563" : FFA_BAR_COLORS[i]
+    ctx.fillRect(x, y, barW * frac, h)
+    ctx.fillStyle = f.eliminated ? "#9ca3af" : "#f1f5f9"
+    ctx.font = "700 12px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle"
+    ctx.fillText(`P${i + 1} ${f.name || f.rosterKey}${f.eliminated ? " ✖" : ""}`, x + 2, y + h + 10)
+    ctx.restore()
+  })
+  // Mode badge + living count.
+  ctx.save()
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  ctx.font = "800 18px Arial"; ctx.fillStyle = "#f472b6"
+  ctx.fillText(`FREE-FOR-ALL · ${ffaAliveFighters().length} LEFT`, cw / 2, y + 58)
+  ctx.restore()
+}
+
+function drawFFAResult() {
+  if (!ffaState.over) return
+  const cw = canvas.width, ch = canvas.height
+  ctx.save()
+  ctx.fillStyle = "rgba(6,8,20,0.82)"; ctx.fillRect(0, 0, cw, ch)
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  const w = ffaState.winner
+  const slot = w ? (w.ffaSlot ?? 0) + 1 : 0
+  ctx.font = "900 56px Arial"
+  ctx.shadowBlur = 28; ctx.shadowColor = w ? FFA_BAR_COLORS[slot - 1] : "#888"
+  ctx.fillStyle = "#fde047"
+  ctx.fillText(w ? `PLAYER ${slot} WINS` : "DRAW", cw / 2, ch * 0.34)
+  ctx.shadowBlur = 0
+  if (w) { ctx.font = "700 26px Arial"; ctx.fillStyle = "#e2e8f0"; ctx.fillText(w.name || w.rosterKey, cw / 2, ch * 0.34 + 52) }
+  ctx.font = "600 16px Arial"; ctx.fillStyle = "rgba(200,210,230,0.6)"
+  ctx.fillText("Click to return to the menu", cw / 2, ch * 0.6)
+  ctx.restore()
+}
+
+function drawFFABattle() {
+  drawFFAScene()
+  drawFFAHud()
+  if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, 1)
+  _drawDamageNumbers()
+  _drawKOFlash()
+  drawFFAResult()
+}
+
+function ffaSelectableRoster() { return characterList.filter(c => !c.hidden) }
+
 // "BINDING VOW ACTIVATED" overlay — a brief white flash + chained vow name.
 function _drawVowCue() {
   if (vowCue.timer <= 0) return
@@ -2748,6 +3031,9 @@ function renderCurrentState() {
     }
     case GAME_STATES.GAMEPLAY_SELECT: drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex); break
     case GAME_STATES.TOWER_SELECT:    drawTowerSelectScreen(ctx, canvas, hoverTowerIndex); break
+    case GAME_STATES.FFA_SETUP:       drawFFASetupScreen(ctx, canvas, hoverFFAIndex, ffaMaxAvailablePlayers(), getConnectedPadCount?.() || 0); break
+    case GAME_STATES.FFA_CHARSELECT:  drawFFACharSelectScreen(ctx, canvas, ffaState.pickSlot, ffaState.playerCount, ffaSelectableRoster(), hoverFFACharIndex, ffaState.charKeys); break
+    case GAME_STATES.FFA_BATTLE:      drawFFABattle(); break
     case GAME_STATES.AI_DIFFICULTY:   drawAIDifficultyScreen(ctx, canvas, hoverDifficultyIndex); break
     case GAME_STATES.SELECT_UNIVERSE:
       drawUniverseSelectScreen(ctx, canvas, getUniverseList(), hoverUniverseIndex); break
@@ -2868,6 +3154,8 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v); return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
   if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
+  if (gameState === GAME_STATES.FFA_SETUP)        { tryHover(getFFASetupRects(canvas, ffaMaxAvailablePlayers()), hoverFFAIndex, v => hoverFFAIndex = v); return }
+  if (gameState === GAME_STATES.FFA_CHARSELECT)   { tryHover(getCharacterCardRects(canvas, ffaSelectableRoster()), hoverFFACharIndex, v => hoverFFACharIndex = v); return }
   if (gameState === GAME_STATES.AI_DIFFICULTY)    { tryHover(getAIDifficultyRects(canvas),    hoverDifficultyIndex, v => hoverDifficultyIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
   if (gameState === GAME_STATES.SELECT_CHARACTER) { tryHover(getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse()), hoverCharacterIndex, v => hoverCharacterIndex = v); return }
@@ -2965,7 +3253,32 @@ function handleMenuClicks() {
       else if (c.id === "vs")  chooseMode("vs")
       else if (c.id === "pvp") chooseMode("pvp")
       else if (c.id === "tower") gameState = GAME_STATES.TOWER_SELECT   // pick a tier first
+      else if (c.id === "ffa")  { hoverFFAIndex = 0; gameState = GAME_STATES.FFA_SETUP }   // free-for-all
       else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
+      break
+    }
+    case GAME_STATES.FFA_SETUP: {
+      const c = getFFASetupRects(canvas, ffaMaxAvailablePlayers()).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c || c.locked) break
+      if (c.id === "back") { gameState = GAME_STATES.GAMEPLAY_SELECT; break }
+      ffaState.playerCount = c.count
+      ffaState.charKeys = []
+      ffaState.pickSlot = 0
+      hoverFFACharIndex = 0
+      gameState = GAME_STATES.FFA_CHARSELECT
+      break
+    }
+    case GAME_STATES.FFA_CHARSELECT: {
+      const roster = ffaSelectableRoster()
+      const idx = getCharacterCardRects(canvas, roster).findIndex(r => pointInRect(mouse.x, mouse.y, r))
+      if (idx < 0 || !roster[idx]) break
+      ffaState.charKeys[ffaState.pickSlot] = roster[idx].rosterKey || roster[idx].key
+      ffaState.pickSlot++
+      if (ffaState.pickSlot >= ffaState.playerCount) startFFAMatch()   // all slots picked → fight
+      break
+    }
+    case GAME_STATES.FFA_BATTLE: {
+      if (ffaState.over) endFFA()   // click the result overlay → back to menu
       break
     }
     case GAME_STATES.TOWER_SELECT: {
@@ -3107,6 +3420,9 @@ function updateCurrentState() {
       break
     case GAME_STATES.VICTORY:
       updateVictoryState?.(victoryState, mouse, canvas)
+      break
+    case GAME_STATES.FFA_BATTLE:
+      updateFFABattle()
       break
     case GAME_STATES.PAUSED:
       break
@@ -3425,6 +3741,31 @@ gameLoop()
     forceP1Lose: () => { if (p1) p1.health = 0 },
     damageP1: (v = 100) => { if (p1) p1.health = Math.max(1, (p1.health || 0) - v) },   // chip P1 so a round isn't perfect
     victoryInfo: () => ({ flawless: !!victoryState.flawless, subtitle: victoryState.subtitle || "", primaryLabel: victoryState.primaryLabel || "", winner: victoryState.winnerSide, perfectP1: matchStats?.p1?.perfectRounds, roundsWonP1: matchStats?.p1?.roundsWon }),
+    // ── FREE-FOR-ALL diagnostics/drivers ──────────────────────────────────────
+    ffaStart: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"]) => {
+      ffaState.playerCount = Math.min(FFA_MAX_PLAYERS, Math.max(2, count))
+      ffaState.charKeys = charKeys.slice(0, ffaState.playerCount)
+      startFFAMatch()
+      countdown = 0   // skip the pre-fight countdown for tests
+    },
+    ffaInfo: () => ({
+      active: ffaState.active, over: ffaState.over, mode: matchConfig.mode, gameState,
+      stage: matchConfig.selectedStage?.name, stageWidth: getStageWorldWidth(),
+      winnerSlot: ffaState.winner ? (ffaState.winner.ffaSlot ?? null) : null,
+      alive: ffaAliveFighters().length,
+      camZoom: camera.zoom,
+      fighters: ffaState.fighters.map(f => f && ({
+        slot: f.ffaSlot, key: f.rosterKey, playerNumber: f.playerNumber,
+        x: Math.round(f.x), y: Math.round(f.y), health: Math.round(f.health), maxHealth: f.maxHealth,
+        eliminated: !!f.eliminated, facing: f.facing, attacking: !!f.attacking
+      }))
+    }),
+    ffaAttack: (idx, move = "light") => { const f = ffaState.fighters[idx]; if (f && !f.eliminated) f._forceAttack = move },
+    ffaMove:   (idx, dir = 0) => { const f = ffaState.fighters[idx]; if (f) f._forceMove = dir },   // dir: -1 left / +1 right / 0 stop
+    ffaSetX:   (idx, x) => { const f = ffaState.fighters[idx]; if (f) f.x = x },
+    ffaDamage: (idx, v = 100) => { const f = ffaState.fighters[idx]; if (f) f.health = Math.max(0, Math.min(f.maxHealth || 1, (f.health || 0) - v)) },   // clamps to maxHealth (negative v = heal)
+    ffaMaxPlayers: () => ffaMaxAvailablePlayers(),
+    inputTypes: () => ({ p1: inputSettings.p1Type, p2: inputSettings.p2Type, p3: inputSettings.p3Type, p4: inputSettings.p4Type, pads: getConnectedPadCount?.() || 0 }),
     // Force the pre-match INTRO with a specific variant, held open (no auto-advance / namecall)
     // so intro-rotation coverage can render + step each pose. Resets P1's sprite so the intro
     // action re-resolves cleanly.

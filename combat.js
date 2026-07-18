@@ -857,7 +857,14 @@ export function updateProjectiles(projectiles = [], stageWidth = 3200) {
   }
 }
 
+// 1v1: unchanged signature/behavior — delegates to the array impl with the two fighters.
 export function resolveProjectileHits(projectiles = [], p1, p2, hitEffects = [], damageNumbers = []) {
+  resolveProjectileHitsMulti(projectiles, [p1, p2], hitEffects, damageNumbers)
+}
+
+// FREE-FOR-ALL: a projectile can hit ANY fighter except its owner (the 1v1 path above is
+// just this with two fighters). Same collision/damage/block/DOT logic, generalized target set.
+export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitEffects = [], damageNumbers = []) {
   if (!Array.isArray(projectiles)) return
 
   for (let i = projectiles.length - 1; i >= 0; i--) {
@@ -865,7 +872,8 @@ export function resolveProjectileHits(projectiles = [], p1, p2, hitEffects = [],
     if (!proj) continue
     if (proj.visualOnly) continue   // pure FX (e.g. AOE ring bloom) — never collides
 
-    for (const fighter of [p1, p2].filter(Boolean)) {
+    for (const fighter of (fighters || []).filter(Boolean)) {
+      if (fighter.eliminated) continue
       if (proj.owner === fighter || proj.ownerId === fighter.side) continue
       if ((fighter.invulnTimer || 0) > 0) continue
 

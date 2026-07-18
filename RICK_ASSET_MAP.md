@@ -122,6 +122,12 @@ temporary hurt (upright, teal could read as hit-flash) but is **TEMPORARY pendin
   Launches Rick upward (`vy = -22`, consumes air jumps) AND spawns a rocket projectile that rises
   with him (`vy -16`, 64×72 blast) — damages anyone caught in the vertical path. Cost **40**.
   Both a recovery/mobility tool AND an attack.
+- **PORTAL-PULL — QCF + Special (Down→Forward, then L).** Teleports the OPPONENT to a spot
+  right next to Rick (combo-starter positioning) — reappearing ABOVE it in midair, then FALLING.
+  Cost **35**, fall-impact **60**. See "Portal-Pull / Portal-Push" below.
+- **PORTAL-PUSH — QCB + Special (Down→Back, then L).** Teleports the OPPONENT to maximum distance
+  (the farther stage edge, clamped to the visible frame by the always-on camera bound), reappearing
+  ABOVE it and FALLING. Cost **45**, fall-impact **90**. See below.
 - **PORTAL-BEHIND — double-tap toward opponent (movement, NOT the special button).** Reuses the
   EXISTING shared teleport (`game.js detectDoubleTapDashTeleport` → `teleportBehindTarget`) — the
   same system Gojo/Sukuna/Toji/Sasuke use. Rick's branch is reposition-only + plays
@@ -164,12 +170,48 @@ reads as an ultimate-tier "get away from me" nuke while still demanding mid-clos
 
 ---
 
+## Portal-Pull / Portal-Push — ONE mechanic, two destinations (built 2026-07-17)
+
+Two SEPARATE specials sharing one helper (`abilities.js rickPortalReposition`). Both reappear the
+opponent ABOVE a destination x and let them FALL, taking impact damage on landing.
+
+- **Inputs (motion-gated, both on the Special button L):** Portal-Pull = **QCF + Special** (D→F);
+  Portal-Push = **QCB + Special** (D→B). Chosen because Rick's Special button already carries
+  neutral Meeseeks + Up-Special Rocket, and the double-tap-movement system is claimed by
+  Portal-Behind — so QCF/QCB are the only clean, unclaimed inputs. Mnemonic: forward "draws them
+  in", back "shoves them away". Neither ends in "U", so no clash with Rocket; both require a real
+  Down-first motion, so plain walking never false-fires and neutral Meeseeks (the fallthrough) is
+  untouched.
+- **Destination logic (the only difference between the two):**
+  - *Pull* → adjacent to Rick on the side he faces (`rick.x ± rick.w + 26`).
+  - *Push* → the farther of the two stage edges from Rick (`0` vs `worldWidth − w`), so it's the
+    MAX distance while respecting stage bounds. The always-on `physics.clampToCamera` then keeps
+    the opponent inside the visible frame (they can never be shoved off-screen / off the playable
+    stage) — so the realised distance is camera-limited, which is the intended safe behaviour.
+- **Teleport-then-fall (reuses launcher physics, NOT a new fall-damage system):** the helper sets
+  the opponent's `x`, lifts them to `floor − h − 220`, and sets `vy=0 / onGround=false /
+  isLaunched=true / jumpCount=0` — the exact target-pop fields `physics.launcherAttack` uses. Gravity
+  (unchanged) drops them. `hitstun=20` keeps them helpless through the drop.
+- **Landing impact (marker→resolver, mirrors the `_dot` split):** the helper stamps
+  `target._portalDrop = {dmg, hitstun, ttl}`; `game.js resolvePortalDropLanding` (called after
+  `applyGravity` in `updateFighterState`, so it sees the regrounding frame) applies the damage +
+  a small impact pop the frame they land, then clears the marker. A 240-frame ttl guards against a
+  lingering marker if they never land (e.g. re-launched mid-fall). Works for p1/p2 AND ffa fighters
+  (all route through `updateFighterState`).
+- **Damage/cost reasoning:** Pull **60 dmg / 35 cost**, Push **90 dmg / 45 cost** (applied DIRECTLY,
+  bypassing `GLOBAL_DAMAGE_SCALE 0.60`, like the ult/DOT). Pull is cheaper and hits softer because
+  most of its value is the free positional/combo advantage of yanking the opponent into melee range
+  — the hit is secondary. Push costs more and hits harder because the damage IS the reward: unlike
+  Pull it grants no follow-up, just a full-screen spacing reset (the zoner's dream), so it must pay
+  for itself. Invulnerable/eliminated opponents make it whiff (energy still spent, like a grab whiff).
+- **FX:** both play `portalTravel` (`rick_portal_attack_travel.png`) on Rick + spawn a `visualOnly`
+  green portal ring (`portalWarp`) where the opponent reappears; camera focus + landing shake.
+- **Tested:** `harness/rick.test.mjs` now 35/35 (Pull adjacency + fall damage; Push max-distance
+  direction + in-bounds + fall damage). Full regression clean (basickit/round4/susanoo/tower/
+  training/ffa/team + the rest).
+
 ## DEFERRED (spec only — NOT built this pass)
 
-- **PORTAL-PULL and PORTAL-PUSH** (two SEPARATE specials): teleport the opponent to a destination
-  (Pull = next to Rick, Push = max distance), positioned ABOVE it so they fall and take impact
-  damage on landing via the EXISTING gravity/physics (reuse a launcher's pop-up physics — do NOT
-  build a new "fall damage" system). Damage YES on both.
 - **downTilt** (`rick_poop_attack.png`) and **downAir** (no file) — no slots assigned.
 - **Meeseeks polish:** current summon is functional but simple; a later pass can visually
   distinguish multiple simultaneous Meeseeks, tune cooldowns, etc.

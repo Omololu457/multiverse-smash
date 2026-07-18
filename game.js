@@ -67,7 +67,7 @@ import {
   awardMatchXp, awardXp, getLevel, xpProgress, isUnlocked, requiredLevel,
   loadProgressionFromAccount, PROGRESS_DOES_NOT_PERSIST,
   setDevUnlock, isDevUnlocked, DEV_CODE,
-  applyUnlockCode, isBetaUnlocked, isJJKKey,
+  applyUnlockCode, isBetaUnlocked,
   FEATURES, levelFromXp
 } from "./progression.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
@@ -140,9 +140,9 @@ setSnapshotDecorator(acct => {
   if (!acct.unlocks || typeof acct.unlocks !== "object") acct.unlocks = { devUnlock: false, betaUnlock: false, featuresUnlocked: [] }
   const dev  = !!acct.unlocks.devUnlock
   const beta = !!acct.unlocks.betaUnlock
-  // featuresUnlocked: FEATURES ids reachable at this level (dev unlocks all). DERIVED.
+  // featuresUnlocked: FEATURES ids reachable at this level (dev OR beta unlocks all). DERIVED.
   acct.unlocks.featuresUnlocked = Object.entries(FEATURES)
-    .filter(([, f]) => dev || level >= (f.unlocksAtLevel || 1))
+    .filter(([, f]) => dev || beta || level >= (f.unlocksAtLevel || 1))
     .map(([id]) => id)
   // skins: read-only per-character unlocked-id snapshot (skins.js persists no state). DERIVED.
   acct.skins = buildUnlockedSkinsSnapshot(level, dev, beta)
@@ -928,13 +928,26 @@ function formatUniverseName(u) {
   return String(u).split("_").map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" ")
 }
 
+// Beta roster: every character that actually has sprite art, derived LIVE from
+// characters.js `hasSprites` so it self-updates as more characters get sprites (no
+// hardcoded list). hasSpritesKey is the per-key predicate the beta filters use.
+function spriteRosterKeys() { return Object.keys(characters).filter(k => characters[k]?.hasSprites) }
+function hasSpritesKey(key) { return !!characters[key]?.hasSprites }
+// Universes that contain at least one sprite-having character — the only universes the
+// beta code exposes on the universe-select screen.
+function spriteUniverseSet() {
+  const set = new Set()
+  for (const k of spriteRosterKeys()) { const u = characters[k]?.universe; if (u) set.add(u) }
+  return set
+}
+
 function getUniverseCharacters() {
   if (!matchConfig.selectedUniverse || !universeMap[matchConfig.selectedUniverse]) return []
   const keys = universeMap[matchConfig.selectedUniverse]
-  // Beta code (GojoV1): hard-restrict selectable fighters to the JJK four, even if
-  // a non-JJK universe somehow got selected (defense-in-depth alongside the
-  // universe-list filter). Dev/full-unlock is unaffected.
-  if (isBetaUnlocked() && !isDevUnlocked()) return keys.filter(isJJKKey)
+  // Beta code (GojoV1): restrict selectable fighters to those WITH sprite art, even if a
+  // spriteless-universe somehow got selected (defense-in-depth alongside the universe-list
+  // filter). Dev/full-unlock sees the whole roster (the !isDevUnlocked guard).
+  if (isBetaUnlocked() && !isDevUnlocked()) return keys.filter(hasSpritesKey)
   return keys
 }
 
@@ -3285,9 +3298,9 @@ function renderCurrentState() {
 // ------------------------------------------------------------------
 function getUniverseList() {
   let keys = universeKeys
-  // Beta code (GojoV1): only the Jujutsu Kaisen universe is selectable. Dev code
-  // (full unlock) is unaffected and still sees every universe.
-  if (isBetaUnlocked() && !isDevUnlocked()) keys = keys.filter(k => k === "jujutsu_kaisen")
+  // Beta code (GojoV1): only universes that contain a sprite-having character are
+  // selectable (derived live from hasSprites). Dev code (full unlock) sees every universe.
+  if (isBetaUnlocked() && !isDevUnlocked()) { const su = spriteUniverseSet(); keys = keys.filter(k => su.has(k)) }
   return keys.map(k => ({ name: formatUniverseName(k), id: k }))
 }
 
@@ -3885,6 +3898,33 @@ gameLoop()
     version: 1,
     start:       startHarnessMatch,
     skipToBattle,
+    // ── UNLOCK CODES + menu visibility (beta-redefinition test) ──────────────────
+    // Apply a dev/beta code and read back the resulting unlock flags.
+    applyCode: (code) => ({ result: applyUnlockCode(code), beta: isBetaUnlocked(), dev: isDevUnlocked() }),
+    // Ground-truth sprite roster (hasSprites-derived) + full non-hidden roster — so tests can
+    // assert the beta filter equals the live sprite set without hardcoding names.
+    rosterSets: () => ({ sprite: spriteRosterKeys(), all: Object.keys(characters).filter(k => !characters[k]?.hidden) }),
+    // Is a specific (level-gated) skin currently unlocked? Proves beta grants ALL skins.
+    skinUnlocked: (rosterKey, skinId) => isSkinUnlocked(rosterKey, skinId),
+    // What the character-select flow WOULD show right now: the visible universes, the
+    // selectable character keys per universe (post-filter), the flat selectable set, the
+    // unlock flags, and whether ONLINE is locked in the main menu. Non-mutating (restores
+    // the previously selected universe). Drives the beta sprite-filter assertions.
+    menuRoster: () => {
+      const universes = getUniverseList().map(u => u.id)
+      const chars = {}
+      const prev = matchConfig.selectedUniverse
+      for (const u of universes) { matchConfig.selectedUniverse = u; chars[u] = getUniverseCharacters() }
+      matchConfig.selectedUniverse = prev
+      const online = getMainMenuRects(canvas).find(r => r.id === "online")
+      return {
+        universes, chars,
+        selectable: [].concat(...Object.values(chars)),
+        beta: isBetaUnlocked(), dev: isDevUnlocked(),
+        onlineLocked: !!online?.locked,
+        towerUnlocked: isUnlocked("towerMode"), extraSkinsUnlocked: isUnlocked("extraSkins")
+      }
+    },
     // One-shot: into a live battle with P1 energy full (ultimate affordable).
     boot: () => { startHarnessMatch(); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
     // Boot a NON-training vs-CPU match (real AI) — for the pause→Training transition test.

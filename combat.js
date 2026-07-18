@@ -209,6 +209,18 @@ export function getAttackHitbox(fighter) {
   let x = fighter.facing === 1 ? fighter.x + fighter.w : fighter.x - w
   let y = fighter.y + 20
 
+  // AOE moves (e.g. Sasuke's Chidori Koiten lightning discharge): a STATIONARY box
+  // CENTERED on the caster instead of the normal in-front reach, so the burst catches
+  // anyone within range on either side during its active window. Generic — any attack
+  // that sets `aoe:true` uses it; every existing (non-aoe) move is unchanged.
+  if (a.aoe) {
+    return {
+      x: fighter.x + (fighter.w || 0) / 2 - w / 2,
+      y: fighter.y + (fighter.h || 100) / 2 - h / 2,
+      w, h
+    }
+  }
+
   if (a.name === "up") {
     y = fighter.y - 30
   } else if (a.name === "down_air") {
@@ -228,8 +240,30 @@ export function getAttackHitbox(fighter) {
   return { x, y, w, h }
 }
 
+// GIANT hurtbox (Susanoo): the physics box (fighter.x/y/w/h) stays small & ground-anchored
+// for correct movement/collision, so a hurtbox built from it would sit at the giant's FEET —
+// hits on the towering upper body wouldn't register. When _canvasHeightFrac is set, sprite.js
+// has recorded the giant's RENDERED box (_lastDrawY top + _lastDrawW/_lastDrawH from the same
+// canvasHeight×frac/refH sizing math). Build a hurtbox spanning the visible body, VERTICALLY
+// CENTERED on the giant (not the feet), and roughly torso-wide (trims the wide cell + arm reach).
+const GIANT_BODY_W_FRAC = 0.5    // hittable core width as a fraction of the rendered cell width
+const GIANT_BODY_H_FRAC = 0.92   // trims the small top/bottom transparent cell padding
+function _giantHurtbox(fighter) {
+  const top = fighter._lastDrawY, gh = fighter._lastDrawH, gw = fighter._lastDrawW
+  if (top == null || !gh || !gw) return null   // not rendered yet (e.g. activation frame) → caller falls back
+  const centerX = fighter.x + (fighter.w || 0) / 2   // giant is drawn centered over the physics box
+  const centerY = top + gh / 2                        // vertical center of the visible giant
+  const w = gw * GIANT_BODY_W_FRAC
+  const h = gh * GIANT_BODY_H_FRAC
+  return { x: centerX - w / 2, y: centerY - h / 2, w: Math.max(1, w), h: Math.max(1, h) }
+}
+
 export function getHurtbox(fighter) {
   if (!fighter) return null
+  if (fighter._canvasHeightFrac) {
+    const giant = _giantHurtbox(fighter)
+    if (giant) return giant   // else fall through to the normal box for the pre-first-draw frame
+  }
   return {
     x: fighter.x + 6,
     y: fighter.y + 6,
@@ -261,6 +295,27 @@ export function shouldGojoAutoDodge(defender) {
   if ((defender.energy || 0) < c) return false
   defender.energy -= c
   defender.teleportFlash = 8
+  return true
+}
+
+// SASUKE — ABSOLUTE DEFENSE. Charge-button TOGGLE (see game.handleChargeRelease), mirrors the
+// shape of shouldGojoAutoDodge above but is STRONGER: while toggled on it is an UNCONDITIONAL
+// full negate — every incoming hit is nullified outright (no per-hit dodge-roll that can fail),
+// as long as the energy check passes. COST MODEL is per-block, NOT a continuous drain: energy is
+// deducted only on a hit it actually negates (same per-event shape as Gojo's autoDodgeKiCost).
+// Priced NOTICEABLY HIGHER than Gojo's per-dodge cost — Gojo's Infinity autoDodgeKiCost falls
+// back to 5 (combat.shouldGojoAutoDodge); Absolute Defense costs 12 per block.
+// ADDITIVE to Sasuke's normal Down/S block — both coexist (this is checked before the block/damage
+// path, so it negates whether or not he is also holding block; when it's off, normal block applies).
+// DEFERRED / OUT OF SCOPE (do NOT fix this pass): holding the charge button while also feeding a
+// motion-gated special can create input conflicts. Intentionally left unhandled — noted only.
+export const SASUKE_ABSOLUTE_DEFENSE_COST = 12   // per negated hit (Gojo's per-dodge autoDodgeKiCost = 5)
+export function shouldSasukeAbsoluteDefenseNegate(defender) {
+  if ((defender?.rosterKey || "").toLowerCase() !== "sasuke") return false
+  if (!defender?.absoluteDefenseActive) return false
+  if ((defender.energy || 0) < SASUKE_ABSOLUTE_DEFENSE_COST) return false
+  defender.energy -= SASUKE_ABSOLUTE_DEFENSE_COST   // per-block cost, deducted ONLY on an actual negate
+  defender.teleportFlash = Math.max(defender.teleportFlash || 0, 8)
   return true
 }
 
@@ -542,7 +597,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   if (attacker.currentAttack?.superArmor) attacker.armorFlash = 8
 
-  if (shouldGojoAutoDodge(defender)) {
+  if (shouldGojoAutoDodge(defender) || shouldSasukeAbsoluteDefenseNegate(defender)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
     return
@@ -866,6 +921,15 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       const pb = { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
       if (!rectsOverlap(pb, hurtbox)) continue
+
+      // Sasuke's Absolute Defense negates projectiles too (full invuln, per-block energy cost) —
+      // the projectile is consumed and deals nothing. Checked BEFORE damage so it takes priority
+      // over normal block. No-op for everyone else / when the toggle is off / when energy is short.
+      if (shouldSasukeAbsoluteDefenseNegate(fighter)) {
+        try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+        projectiles.splice(i, 1)
+        break
+      }
 
       let dmg = (proj.damage || 30) * GLOBAL_DAMAGE_SCALE
 

@@ -51,3 +51,49 @@ Exit code is non-zero if any assertion fails. Screenshots land in `harness/shots
   per-frame steps), the idle uses exactly the 2-pose calm window, and the cadence
   is slow (~40-frame holds, not the old speed-8 flail).
 - **TEST 3** — the half-arena movement lock still confines the giant.
+
+## What `susanoo_refinements.test.mjs` covers
+
+Run: `node harness/susanoo_refinements.test.mjs`.
+
+- **TEST 1** — the round timer PAUSES while Susanoo is active (`__harness.roundTimer()`
+  frozen) while the Susanoo DURATION timer (`p1().susanooTimer`) keeps counting down.
+- **TEST 3** — attack FX (grab / arrow / sword) spawn at the giant's ARM height:
+  compares each spawned projectile's `y` against the expected arm-fraction position
+  derived from the giant's rendered top (`lastDrawY`) and feet.
+
+## What `round4.test.mjs` covers
+
+Run: `node harness/round4.test.mjs`.
+
+- **ITEM 1** — Susanoo can't jump (`canJump=false`; jump input leaves the giant grounded).
+- **ITEM 2** — Susanoo attacks auto-aim DOWN at the opponent (grab FX / arrow velocity has vy>0
+  and vx toward the opponent; arrow |v| preserved at 15).
+- **ITEM 3** — the two-strike lightning special: **down,forward + special (qcf+`l`)** triggers it,
+  plain `l` still does the dash-strike; handseal → strike1 (pillar) → strike2 (ground burst), two
+  separate blockable hits, and a hit during handseals cancels the cast.
+- **ITEM 4** — Naruto's Tailed Beast Bomb arms a 4800f/80s recast cooldown (4× the universal 1200).
+
+## What `sharingan.test.mjs` covers
+
+Run: `node harness/sharingan.test.mjs`.
+
+The Sharingan-awakening cinematic on Susanoo Lv1→Lv2 (the 2nd ultimate press): (a) combat
+FREEZES while it plays (holding right doesn't move Sasuke — same freeze contract as Kurama),
+(b) the eye rows step 0→1→2→3 top-to-bottom, (c) the Lv2 escalation lands only when the
+cinematic resolves, then combat resumes. Note: because the escalation now plays a ~134-frame
+cinematic (combat frozen throughout, incl. the RESOLVE tail), tests that escalate to Lv2 must
+wait for `!sasukeCine().active && p1().susanooStage === 2` before pressing further inputs, not
+just `susanooStage === 2` (which flips at the resolve beat while combat is still frozen).
+
+## P1 control keys (from game.js `P1_CONTROLS`)
+
+`a/d` move, `w` jump, `s` down, `j` light, `k` heavy, `i` up-attack, **`l` special**,
+`u` ultimate, **`o` grab**, `p` charge. (Note: special is **`l`**, not `o`.) The input
+buffer is frame-polled, so hold each key ≥1 frame (`tapKey` / `tapUltimate`), and wait
+out `attackCooldown` between successive specials/ultimates.
+
+**Sasuke's two specials share the `l` button via a motion split:** plain `l` → dash-strike
+(gap-closer); **down, forward, then `l`** (quarter-circle-forward) → two-strike lightning. Feed
+the motion by pressing the movement keys (`s` then `d`) before `l` so `recordDirectionInput`
+logs the D,F sequence.

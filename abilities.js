@@ -7,6 +7,7 @@ import { moveset }    from "./moveset.js"
 import { sound }      from "./sound.js"
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
+import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
 import { resolveGrab } from "./combat.js"   // shared grab pipeline (combat.js doesn't import abilities.js → no cycle)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
@@ -48,7 +49,8 @@ const COMMAND_INPUT_MAX_AGE = 700
 // Universal ultimate cooldown (frames @60fps): after ANY character's ultimate fires,
 // the ultimate input is dead until this drains, so a refilled meter can't instantly
 // recast. Set in triggerUltimate, ticked down in game.updateMiscTimers. Retune here.
-const ULTIMATE_COOLDOWN_FRAMES = 1200   // 20s @ 60fps
+const ULTIMATE_COOLDOWN_FRAMES = 1200   // 20s @ 60fps (universal)
+const NARUTO_KURAMA_RECAST_FRAMES = 4800   // 80s — Naruto-only long lockout after the Tailed Beast Bomb
 // Brief CHARGE windup (frames) before a charge→release special fires. The charge
 // sprite strip plays during this window, then the projectile/attack spawns and the
 // cast/fire strip plays. Ticked by the pending-spawn list (updatePendingSpawns).
@@ -151,6 +153,8 @@ function createAttackFromMove(fighter, moveName, moveData = {}, fallback = {}) {
     launchY:    moveData.knockbackY ?? fallback.launchY  ?? -8,
     launcher:   !!moveData.launcher,
     spike:      !!moveData.spike,
+    aoe:        !!moveData.aoe,          // stationary caster-centred hitbox (getAttackHitbox)
+    isSpecial:  !!moveData.isSpecial,    // → special chip% / hitstop / damage-number category
     hasHit:     false
   }
 }
@@ -205,14 +209,33 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
   const height = moveData.h || moveData.height || width
   const speed  = moveData.speed || (lower.includes("purple") ? 14 : 11)
 
+  // Spawn point: overridable via spawnX/spawnY (e.g. a giant's arm height, or a
+  // fixed lightning-strike column), else the default in-front-of-fighter origin.
+  const spawnX = (moveData.spawnX != null) ? moveData.spawnX
+                 : (attacker.facing === 1 ? attacker.x + attacker.w + 4 : attacker.x - width - 4)
+  const spawnY = (moveData.spawnY != null) ? moveData.spawnY
+                 : attacker.y + (attacker.h || 100) * 0.4
+  // Velocity: `aimAt` {x,y} auto-aims the projectile from its spawn point toward that
+  // point at the move's `speed` (diagonal down-and-forward for a high Susanoo arm →
+  // grounded opponent). Else an explicit `vx` override, else the flat forward shot.
+  let velX = (moveData.vx != null) ? moveData.vx : attacker.facing * speed
+  let velY = moveData.vy || 0
+  if (moveData.aimAt) {
+    const dx = moveData.aimAt.x - spawnX
+    const dy = moveData.aimAt.y - spawnY
+    const mag = Math.hypot(dx, dy) || 1
+    velX = (dx / mag) * speed
+    velY = (dy / mag) * speed
+  }
+
   const proj = {
     owner:      attacker,
     ownerId:    attacker.side,
     name:       type,
-    x:          attacker.facing === 1 ? attacker.x + attacker.w + 4 : attacker.x - width - 4,
-    y:          attacker.y + (attacker.h || 100) * 0.4,
-    vx:         attacker.facing * speed,
-    vy:         moveData.vy || 0,
+    x:          spawnX,
+    y:          spawnY,
+    vx:         velX,
+    vy:         velY,
     w:          width,
     h:          height,
     width,
@@ -816,6 +839,15 @@ function executeNarutoUltimate(fighter, context) {
   activateKuramaUltimate(fighter, opponent)   // game.js freezes combat + drives the beats
   fighter.attackCooldown = 22
   shakeCamera(context, 12, 14)
+  // NARUTO-ONLY long recast lockout. The Tailed Beast Bomb dispatches through triggerUltimate
+  // like everyone else and WOULD get the universal 1200f/20s cooldown — but a screen-clearing
+  // cinematic nuke shouldn't be reusable every 20s. Suppress the universal cooldown and arm a
+  // much longer one (4× = 4800f/80s). Rationale: a round is 5400f/90s and ultimateCooldown does
+  // NOT persist across rounds (resetRound rebuilds fighters), so this makes a SECOND cast within
+  // one round require casting in the first ~10s and surviving ~80s (rare, real setup) WITHOUT a
+  // hard one-per-match cap — a best-of-3 still allows roughly one per round. Only Naruto is touched.
+  fighter.ultimateCooldown     = NARUTO_KURAMA_RECAST_FRAMES
+  fighter._suppressUltCooldown = true   // stop triggerUltimate from overwriting with the 1200 default
   return true
 }
 
@@ -1322,6 +1354,550 @@ function executeMahoragaUltimate(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SASUKE — SUSANOO (two-stage sustained ultimate)
+// ─────────────────────────────────────────────────────────────────
+// Stage 1 (ultimate press, costs 50% max energy like the roster convention): enter a SUSTAINED
+// "Susanoo Lv1" — buffed atk/def, gains the ribcage-arm grab, sprite swaps to the lvl_1 body. No
+// ongoing drain. Stage 2 (press ultimate AGAIN while in Lv1): DRAIN ALL remaining energy to 0,
+// swap to the lvl_2 body, bigger buff, unlock the ranged arrow + a heavier grab. Susanoo is TIMED
+// (~20s) then auto-reverts; on revert a 20s ultimate cooldown starts (so you can't immediately
+// re-cast — the drain-to-0 + cooldown is the risk/reward). Mirrors the transformations.js form idea
+// (currentForm + stat multipliers) but self-managed so the timer isn't reset on escalation and the
+// _skinAnim body-swap can be attached. Attacks fire on the SPECIAL button (Sasuke has no other specials).
+export const SUSANOO_DURATION_FRAMES = 1200   // ~20s @60fps — timed, then auto-reverts (user-chosen)
+// GIANT canvas-relative sizing (item 2): display height as a FRACTION of canvas height,
+// mirroring kurama.js (fox bodyH = ch*0.74). Pushed MASSIVE — Lv1 ≈ full canvas height, Lv2
+// TALLER than the screen so it genuinely looms (feet planted; head runs off the top). Lv2 > Lv1.
+// SUSANOO_REF_H = the body-frame content height per stage → sprite.js scales EVERY action by
+// ch*frac/refH. (Tune these two frac numbers to dial size; err big per the brief.)
+const SUSANOO_CANVAS_FRAC = { 1: 0.95, 2: 1.20 }
+const SUSANOO_REF_H       = { 1: 265,  2: 275  }   // measured content height (lvl_1 rows 7–271, lvl_2 body ~6–280)
+// stage buffs (applied to fighter.damageMultiplier/defenseMultiplier; combat uses max(dmgMult,atkMult))
+const SUSANOO_STAGE = {
+  1: { dmg: 1.4, def: 1.3, grabDmg: 120 },
+  2: { dmg: 1.9, def: 1.5, grabDmg: 210, arrowDmg: 230, swordDmg: 265 }   // Lv2 hits HARDER + unlocks arrow & sword
+}
+// Sprite body-swap animationData (attached to fighter._skinAnim while in Susanoo).
+// THREE deliberate choices here:
+//   (1) The uniform-cell anim sheets (sasuke_susanoo_lvl_*_anim.png — lvl1 5×231, lvl2 4×247)
+//       slice CLEANLY: boundary-overlay verification (2026-07-17, sasuke_susanoo_lvl_*_OVERLAY.png)
+//       confirmed every pose sits fully inside its uniform cell with the divider lines landing in
+//       genuine empty gaps (mid-x jitter 0px, no edge-touching). So the reported "bleeding" is NOT
+//       a runtime slice tear — the slicer math (sx = frameIndex*width) is exact.
+//   (2) The real cause of the choppy/"bleeding" look was ANIMATION DESIGN: the body used to loop
+//       ALL 5/4 poses — including the dramatic weapon-brandish poses (lvl1's mace swing f2/f3,
+//       lvl2's bow draw) — as a permanent idle at speed 8. The arm snapped between wildly different
+//       positions ~2×/sec, reading as a glitchy flail. FIX: idle only on the CALMEST ADJACENT pair
+//       (measured by min inter-frame delta) at a slow, majestic cadence, mirroring kurama.js holding
+//       each phase — plus a continuous sine bob added in sprite.js. `idleStart`/`idleFrames` select
+//       a contiguous window; sourceX = idleStart*width offsets the slice into it.
+//         lvl1 → poses 0–1 (both standing, hand on the planted mace; Δ≈30, the calmest standing pair).
+//         lvl2 → poses 2–3 (arm-across hold; Δ≈9, nearly seamless — by far the smoothest transition).
+//   (3) EVERY action key maps to that same calm idle cell — including hurt/light/heavy/up/air/grab
+//       and the susanoo* attacks. A key the giant's action machine picks but we DIDN'T define would
+//       fall back to a 128² box (a real glitch source when the giant got hit or threw a normal).
+//       Attacks' actual art is a SEPARATE spawned FX (this engine has no per-fighter attack-FX slot,
+//       see characters.js:600), so the body never needs its dramatic poses.
+function _susanooBody(sheet, width, height, idleStart, idleFrames, speed = 40) {
+  const cell = { frames: idleFrames, width, height, speed, loop: true, anchorY: 0, sourceX: idleStart * width, sheet }
+  return {
+    idle: cell, walk: cell, run: cell, jump: cell, fall: cell,
+    hurt: cell, light: cell, heavy: cell, up: cell, air: cell, down_air: cell,
+    grab: cell, dash: cell,
+    susanooGrab: cell, susanooSword: cell, susanooArrow: cell, susanooIntro: cell
+  }
+}
+// Uniform repacked sheets (lvl1 5×231, lvl2 4×247). Idle windows chosen by inter-frame delta scan.
+const SUSANOO_LVL1_ANIM = _susanooBody("./sasuke_susanoo_lvl_1_anim.png", 231, 277, 0, 2)   // calm poses 0–1
+const SUSANOO_LVL2_ANIM = _susanooBody("./sasuke_susanoo_lvl_2_anim.png", 247, 298, 2, 2)   // calm poses 2–3
+
+export function sasukeInSusanoo(fighter) { return (fighter && (fighter._susanooStage || 0) > 0) }
+
+function _enterSusanooStage(fighter, stage) {
+  fighter._susanooStage = stage
+  const b = SUSANOO_STAGE[stage]
+  fighter.damageMultiplier  = b.dmg
+  fighter.attackMultiplier  = b.dmg
+  fighter.defenseMultiplier = b.def
+  // GIANT sizing (item 2): drive display height off the canvas, not fighter.spriteScale.
+  fighter._canvasHeightFrac = SUSANOO_CANVAS_FRAC[stage]
+  fighter._canvasHeightRefH = SUSANOO_REF_H[stage]
+  fighter._skinAnim   = (stage === 2) ? SUSANOO_LVL2_ANIM : SUSANOO_LVL1_ANIM
+  // Half-arena lock (item 3): physics.moveFighter confines this fighter to the half it
+  // activated in. Set the flag on stage 1; do NOT reset _arenaHalfLock on escalation so
+  // Lv2 stays in the SAME half Lv1 latched.
+  fighter._susanooActive = true
+  // A planted giant doesn't hop: physics.moveFighter honors canJump !== false.
+  fighter.canJump = false
+}
+
+// Drop back to normal form + start the 20s recast lockout.
+export function revertSasukeSusanoo(fighter) {
+  if (!fighter) return
+  fighter._susanooStage = 0
+  fighter._susanooTimer = 0
+  fighter.damageMultiplier  = 1
+  fighter.attackMultiplier  = 1
+  fighter.defenseMultiplier = 1
+  fighter._skinAnim = null
+  fighter._canvasHeightFrac = null           // release giant sizing → back to normal sprite scale
+  fighter._canvasHeightRefH = null
+  fighter._susanooActive = false             // release half-arena lock → full-stage movement
+  fighter._arenaHalfLock = null
+  fighter.canJump = true                     // restore jumping now the giant is gone
+  fighter.ultimateCooldown = ULTIMATE_COOLDOWN_FRAMES   // 20s before another ultimate
+}
+
+// Per-frame: tick the Susanoo duration, auto-revert at 0. Called from updateTransformationState.
+export function updateSasukeSusanoo(fighter) {
+  if (!fighter || (fighter._susanooStage || 0) <= 0) return
+  if ((fighter._susanooTimer || 0) > 0) {
+    fighter._susanooTimer--
+    if (fighter._susanooTimer <= 0) revertSasukeSusanoo(fighter)
+  }
+}
+
+// Body-cell height (frameData.height in sprite.js) per Susanoo stage — must match
+// _susanooBody's height arg so we can reproduce sprite.js's on-screen giant height.
+const SUSANOO_CELL_H = { 1: 277, 2: 298 }
+// On-screen fraction (0 = top of the head … 1 = feet) where each stage's ATTACKING
+// arm/hand sits, measured from the anim sheets (sasuke_susanoo_lvl_*_ARMSCAN.png):
+// Lv1 mace/grab arm ≈0.45, Lv2 bow/sword arm ≈0.50. Attack FX spawn at this height so
+// they launch from the giant's hands — NOT the ground where Sasuke's small body used to be.
+const SUSANOO_ARM_FRAC = { 1: 0.45, 2: 0.50 }
+
+// yOff (relative to fighter.y) for a point `armFrac` down from the giant's rendered TOP,
+// derived from the SAME sizing math sprite.js applies (draw() ~line 327):
+//   scale  = canvasHeight * _canvasHeightFrac / _canvasHeightRefH
+//   giantH = bodyCellH * scale                          (== dstH on screen)
+//   the giant's rendered top sits at fighter.y - (giantH - fighterH)
+// so a point armFrac down from that top is at yOff = fighterH - giantH*(1 - armFrac).
+// Falls back to the old flat offset if the giant-sizing fields aren't set (defensive).
+function _susanooArmYOff(fighter, context, armFrac) {
+  const ch   = context?.canvasHeight
+  const frac = fighter._canvasHeightFrac
+  const refH = fighter._canvasHeightRefH
+  const stage = fighter._susanooStage || 1
+  if (!ch || !frac || !refH) return -170
+  const scale    = (ch * frac) / refH
+  const giantH   = (SUSANOO_CELL_H[stage] || 277) * scale
+  const fighterH = fighter.h ?? fighter.height ?? 110
+  return fighterH - giantH * (1 - armFrac)
+}
+
+// Spawn a Susanoo attack/activation FX as a visualOnly sprite in FRONT of the giant (the
+// body stays giant; the FX carries the attack art). Positioned at the giant's arm/hand via
+// `armFrac` (preferred — scales with the giant) or a flat `yOff` fallback. When `aimAt` {x,y}
+// is given the FX drifts DOWN-and-forward toward that point (the opponent) at `drift` speed —
+// so the strike visibly angles down from the high arm instead of sliding flat; else it drifts
+// straight forward at `drift`. speed:0.001 dodges spawnProjectile's `speed || 11` default.
+function _spawnSusanooFx(fighter, sheet, { frames, w, h, scale, life, drift = 0, yOff = -170, armFrac = null, aimAt = null, color = "#c9b6ff" }, context) {
+  const finalYOff = (armFrac != null) ? _susanooArmYOff(fighter, context, armFrac) : yOff
+  const spawnY = (fighter.y || 0) + finalYOff
+  const fx = spawnProjectile(fighter, "susanooFx", {
+    damage: 0, visualOnly: true, speed: 0.001, lifetime: life, spawnY,
+    w: 24, h: 40, color,
+    sheet, spriteFrames: frames, spriteW: w, spriteH: h, spriteSpeed: 4, spriteScale: scale
+  }, context)
+  if (fx) {
+    if (aimAt) {
+      const dx = aimAt.x - fx.x, dy = aimAt.y - spawnY
+      const mag = Math.hypot(dx, dy) || 1
+      fx.vx = (dx / mag) * drift
+      fx.vy = (dy / mag) * drift
+    } else {
+      fx.vx = (fighter.facing || 1) * drift
+    }
+  }
+  return fx
+}
+// ABSOLUTE DEFENSE barrier FX — REPURPOSES sasuke_susanoo_intro.png (the swirling purple aura/
+// ribcage sheet that used to play on Susanoo's activation). Spawned once when Sasuke toggles
+// Absolute Defense ON (game.handleChargeRelease). The purple aura reads as a protective shell
+// manifesting around him — a better fit for a defensive toggle than for the Susanoo summon, which
+// now uses a spriteless camera-punch instead (see executeSasukeUltimate). Play speed/scale tuned
+// to sit over Sasuke's own body (not the giant), since Absolute Defense is a base-form ability.
+export function spawnAbsoluteDefenseFx(fighter, context) {
+  if (!fighter) return
+  _spawnSusanooFx(fighter, "./sasuke_susanoo_intro.png",
+    { frames: 6, w: 113, h: 70, scale: 1.6, life: 32, drift: 0, yOff: -60, color: "#b39ddf" }, context)
+}
+
+// Opponent hurtbox center — the aim point for auto-aimed Susanoo attacks.
+function _oppCenter(target) {
+  if (!target) return null
+  return { x: (target.x || 0) + (target.w || 0) / 2, y: (target.y || 0) + (target.h || 0) / 2 }
+}
+
+function executeSasukeUltimate(fighter, context) {
+  const stage = fighter._susanooStage || 0
+  if (stage === 0) {
+    // STAGE 1 — pay 50% of max energy once (roster ultimate convention), enter sustained Lv1.
+    const cost = Math.ceil((fighter.maxEnergy || 100) * 0.5)
+    if (!spendEnergy(fighter, cost)) return false
+    _enterSusanooStage(fighter, 1)
+    fighter._susanooTimer = SUSANOO_DURATION_FRAMES
+    fighter._suppressUltCooldown = true          // no cooldown yet — allow Stage-2 escalation
+    // ESCALATION GATE (diagnosed 2026-07-16 via live logging): the OLD 30-frame attackCooldown
+    // silently swallowed the Stage-2 re-press for ~0.5s, so escalation "never" fired. Now use a
+    // SHORT recovery (15f, still > the 10f input BUFFER_WINDOW so a single tap's lingering buffer
+    // can't auto-escalate) AND require the ultimate button to be RELEASED before Stage 2 (so a
+    // HELD button can't auto-escalate either). _ultReleasedSinceStage1 is flipped true on keyup.
+    fighter._ultReleasedSinceStage1 = false
+    // ASSET REPURPOSE (2026-07-18): sasuke_susanoo_intro.png moved to Absolute Defense
+    // (spawnAbsoluteDefenseFx). Susanoo now activates with NO dedicated intro sprite — the Lv1
+    // giant body simply appears, punctuated by a screen-flash + camera-punch (chosen option (b):
+    // simpler transition, matching how other characters' lighter transforms enter). teleportFlash
+    // gives the white activation pop so it never reads blank; the stronger camera shake sells the
+    // giant slamming in. See SASUKE_ASSET_MAP.md.
+    fighter.teleportFlash    = Math.max(fighter.teleportFlash || 0, 14)
+    fighter.attackCooldown   = getAttackDuration(15, fighter)
+    focusCameraOnAction(context, fighter, null, 0.9, 20)
+    shakeCamera(context, 11, 14)
+    return true
+  }
+  if (stage === 1) {
+    // Require a genuine SECOND press: the ultimate must have been released since Stage 1 (blocks
+    // a held button from escalating on its own). The short atkCd above blocks a single tap's buffer.
+    if (!fighter._ultReleasedSinceStage1) return false
+    // STAGE 2 is now gated behind a short SHARINGAN-AWAKENING cinematic (sasukeCinematic.js —
+    // mirrors kurama.js: combat freezes while it plays). The actual escalation — drain ALL
+    // remaining energy to 0 + swap stats/sprite to Lv2 — is applied by onResolve() at the
+    // cinematic's RESOLVE beat, so it lands as the cinematic ends, not before it starts.
+    fighter._suppressUltCooldown = true   // still mid-Susanoo → suppress the universal ult lockout NOW
+    activateSasukeEyesCinematic(fighter, () => {
+      fighter.energy = 0
+      _enterSusanooStage(fighter, 2)
+      fighter._suppressUltCooldown = true
+      fighter.attackCooldown = getAttackDuration(24, fighter)
+    })
+    return true
+  }
+  return false   // already Lv2 — no-op; the timer (or revert) ends it
+}
+
+// Susanoo attacks — SPECIAL button while in Susanoo.
+//   Lv1              → grab.
+//   Lv2, spaced out  → arrow (ranged bow).
+//   Lv2, up close    → SWORD slash (heaviest); hold DOWN for the grab instead.
+// grab.png is the canonical grab for BOTH levels (see SASUKE_ASSET_MAP OQ15); grab_1/_2
+// are alternate standalone variants, intentionally unused. Sword uses the FX-only
+// sword_attack.png as a spawned overlay (this engine has no per-fighter attack-FX slot).
+// BASE-KIT special (OUTSIDE Susanoo) — a fast forward dash-strike (Sharingan blitz) using
+// sasuke_dash.png. This is Sasuke's ONLY non-Susanoo special: a cheap gap-closer / poke that
+// CHIDORI KOITEN — qcb (Down,Back) + Special. Sasuke raises his hands (real windup) and releases
+// a STATIONARY lightning discharge AROUND himself (not a traveling projectile). Same structural
+// shape as Rick's Self-Destruct — damage resolves at ONE marked point (the active window), not
+// continuously — but built through combat's normal startup/active/recovery pipeline: the "burst"
+// IS the move's active window, and the caster-centred AOE hitbox (aoe:true → getAttackHitbox) only
+// connects if the opponent is in range when active frames land. Sasuke takes no self-damage.
+// MID-TIER SPECIAL pricing (see below). Body pose = sasuke_CHIDORI_KOITEN_attack.png (windup→
+// discharge, 7f); lightning visual = sasuke_CHIDORI_KOITEN_effects.png spawned at the burst.
+//   damage 95 (raw; ×GLOBAL_DAMAGE_SCALE 0.60 ≈ 57 effective) — above the basic Chidori dash-strike
+//     (55 raw ≈ 33 eff) and the qcf lightning per-hit, well below Susanoo/ult-tier (Amaterasu/Kirin).
+//   AOE 240×140 centred on Sasuke — a "get off me" burst; the proximity requirement is counterplay.
+//   startup 16 / active 6 / recovery 20 — REAL windup (not instant/spammable), committal recovery.
+//   cost 35 — above dash-strike (18) and lightning (24), below ultimate-tier. Mid-tier.
+function executeSasukeChidoriKoiten(fighter, target, context) {
+  if (!spendEnergy(fighter, 35)) return false
+  const KOITEN_STARTUP = 16, KOITEN_ACTIVE = 6, KOITEN_RECOVERY = 20
+  const attack = createAttackFromMove(fighter, "chidoriKoiten", {
+    damage: 95, startup: KOITEN_STARTUP, active: KOITEN_ACTIVE, recovery: KOITEN_RECOVERY,
+    hitstun: 30, knockbackX: 10, knockbackY: -4,
+    rangeX: 240, rangeY: 140,          // stationary AOE around the caster
+    aoe: true, isSpecial: true
+  })
+  setAttackState(fighter, attack, KOITEN_STARTUP + KOITEN_ACTIVE + KOITEN_RECOVERY)
+  fighter._spriteCastMove  = "chidoriKoiten"   // windup→discharge body pose
+  fighter._spriteCastTimer = KOITEN_STARTUP + KOITEN_ACTIVE + KOITEN_RECOVERY
+
+  // Lightning discharge FX (visualOnly — never collides; the AOE hitbox above deals the damage),
+  // spawned CENTRED on Sasuke a couple frames before the active window so it reads as the burst.
+  const SCALE = 1.2, FW = 360, FH = 118
+  schedulePendingSpawn(Math.max(1, KOITEN_STARTUP - 2), () => {
+    spawnProjectile(fighter, "chidoriKoitenFx", {
+      visualOnly: true, damage: 0, lifetime: 20, vx: 0, vy: 0,
+      w: FW * SCALE, h: FH * SCALE, color: "#8fe6ff",
+      spawnX: fighter.x + (fighter.w || 60) / 2 - (FW * SCALE) / 2,
+      spawnY: fighter.y + (fighter.h || 100) / 2 - (FH * SCALE) / 2,
+      sheet: "./sasuke_CHIDORI_KOITEN_effects.png", spriteFrames: 3, spriteW: FW, spriteH: FH, spriteSpeed: 4, spriteScale: SCALE
+    }, context)
+  })
+  focusCameraOnAction(context, fighter, target, 0.97, 10)
+  shakeCamera(context, 8, 10)
+  return true
+}
+
+// bursts him forward and strikes. The dash sheet plays via _spriteCastMove (takes precedence
+// over the attack's currentMove in sprite.js _resolveAction). Whiffs cleanly if <18 energy.
+function executeSasukeDashStrike(fighter, target, context) {
+  if (!spendEnergy(fighter, 18)) return false
+  const attack = createAttackFromMove(fighter, "dashStrike", {
+    damage: 55, startup: 4, active: 4, recovery: 12,
+    hitstun: 18, knockbackX: 8, knockbackY: -2, rangeX: 100, rangeY: 55
+  })
+  setAttackState(fighter, attack, 22)
+  fighter.vx = (fighter.facing || 1) * 14        // fast forward burst — closes the gap
+  fighter._spriteCastMove  = "dash"              // render sasuke_dash.png through the strike
+  fighter._spriteCastTimer = 18
+  focusCameraOnAction(context, fighter, target, 0.98, 6)
+  shakeCamera(context, 5, 5)
+  return true
+}
+
+// SHURIKEN POKE — a simple ranged projectile poke on DOWN + special (S+L). Sits on the special
+// button as a distinct motion (Megumi-style), NOT colliding with neutral special = dash-strike or
+// qcf(D,F) = lightning: the dispatch checks D,F FIRST (lightning), then plain-D (shuriken), then
+// neutral (dash). Free (no energy — a basic ninja tool), rate-limited by attackCooldown. Throws
+// toward the opponent (auto-aimed), so it works as a spacing/zoning poke.
+function executeSasukeShuriken(fighter, target, context) {
+  const aim = _oppCenter(target)
+  fighter._spriteCastMove  = "shurikenThrow"     // throw pose (sasuke_throwing_shuriken)
+  fighter._spriteCastTimer = 14
+  spawnProjectile(fighter, "sasukeShuriken", {
+    damage: 34, speed: 14, lifetime: 70, hitstun: 14, knockbackX: 5, knockbackY: 0,
+    w: 26, h: 26, color: "#d7ecff",
+    spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.35,   // chest height
+    aimAt: aim,
+    sheet: "./sasuke_shuriken.png", spriteFrames: 3, spriteW: 52, spriteH: 54, spriteSpeed: 2, spriteScale: 0.85
+  }, context)
+  fighter.attackCooldown = getAttackDuration(16, fighter)   // brief recovery (rate limit); no energy cost
+  shakeCamera(context, 2, 3)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SASUKE — TWO-STRIKE LIGHTNING (base-kit special, DOWN,FORWARD + special / "qcf")
+// ─────────────────────────────────────────────────────────────────
+// Sasuke's SECOND non-Susanoo special, sharing the special button with the dash-strike via a
+// motion split (plain special = dash-strike; qcf+special = this). A scripted, TELEGRAPHED
+// two-hit lightning combo: HANDSEALS (rooted, fully vulnerable — a hit during this window
+// CANCELS everything and eats the energy, mirroring startup-phase interruption) → STRIKE_1
+// (pillar down from above) → gap → STRIKE_2 (ground burst) → resolve. Two SEPARATE blockable
+// hits (chip on block), meaningfully less total damage than the Susanoo ultimate, cost in line
+// with the specials. Target column is LOCKED at cast start so the handseal is a real dodge window.
+const LIGHTNING = {
+  cost: 24,
+  handseal: 30,   // vulnerability / telegraph window (frames)
+  strike1:  14,   // strike-1 hold
+  gap:       6,   // between strikes
+  strike2:  16,   // strike-2 hold
+  dmg1:     42,
+  dmg2:     46    // total 88 raw < any Susanoo attack; both blockable (chip)
+}
+
+function executeSasukeLightning(fighter, target, context) {
+  if (fighter._lightningPhase) return false                 // already casting
+  if (!spendEnergy(fighter, LIGHTNING.cost)) return false
+  fighter._lightningPhase   = "handseal"
+  fighter._lightningTimer   = LIGHTNING.handseal
+  fighter._rooted           = true                          // planted during the seals (physics canMove)
+  // Lock the strike location NOW so the ~0.5s handseal is a genuine dodge window: the opponent
+  // can walk out of the targeted column before the bolts land.
+  fighter._lightningTargetX = target
+    ? (target.x || 0) + (target.w || 0) / 2
+    : (fighter.x || 0) + (fighter.facing || 1) * 160
+  // Block other actions for the whole sequence; a hit still cancels via updateSasukeLightning.
+  fighter.attackCooldown = getAttackDuration(LIGHTNING.handseal + LIGHTNING.strike1 + LIGHTNING.gap + LIGHTNING.strike2 + 8, fighter)
+  fighter.vx = 0
+  shakeCamera(context, 3, LIGHTNING.handseal)               // subtle wind-up rumble = the telegraph
+  return true
+}
+
+// Spawn ONE strike at the locked target x. Two projectiles: a PERSISTENT visualOnly bolt (so
+// the strike is actually SEEN — a colliding projectile despawns on contact, flashing for a
+// single frame) + a compact real hit projectile at the opponent's body. Collision is a circle
+// of radius max(w,h)/2 centered on (x,y) (combat.resolveProjectileHits), so the hit projectile
+// is kept small/square and placed on the body; the tall sprite is carried by the visual only.
+function _spawnLightningStrike(fighter, context, which) {
+  const gy = context?.groundY ?? ((fighter.y || 0) + (fighter.h || 110))
+  const tx = fighter._lightningTargetX ?? (fighter.x || 0)
+  const cfg = which === 1
+    ? { name: "sasukeLightning1", dmg: LIGHTNING.dmg1, life: LIGHTNING.strike1, hitstun: 22, kbx: 4, kby: -8,
+        sheet: "./sasuke_lighting_attack_1_ repeatable.png", frames: 4, sw: 65, sh: 137, sscale: 1.7,
+        visY: gy - 120, hitY: gy - 55, off: 0, color: "#7fdfff" }              // STRIKE 1 — pillar from above
+    : { name: "sasukeLightning2", dmg: LIGHTNING.dmg2, life: LIGHTNING.strike2, hitstun: 26, kbx: 8, kby: -4,
+        sheet: "./sasuke_lighting_attack_repeatable.png", frames: 4, sw: 139, sh: 64, sscale: 1.3,
+        visY: gy - 34, hitY: gy - 30, off: (fighter.facing || 1) * 10, color: "#aef0ff" }  // STRIKE 2 — ground burst
+  // Persistent VISUAL bolt (never collides → shows its full animation).
+  spawnProjectile(fighter, cfg.name + "Fx", {
+    visualOnly: true, damage: 0, w: 30, h: 40, color: cfg.color,
+    spawnX: tx + cfg.off, spawnY: cfg.visY, vx: 0, vy: 0, lifetime: cfg.life,
+    sheet: cfg.sheet, spriteFrames: cfg.frames, spriteW: cfg.sw, spriteH: cfg.sh, spriteSpeed: 3, spriteScale: cfg.sscale
+  }, context)
+  // Compact real HIT at the opponent's body — blockable (chip) via resolveProjectileHits.
+  spawnProjectile(fighter, cfg.name, {
+    damage: cfg.dmg, hitstun: cfg.hitstun, knockbackX: cfg.kbx, knockbackY: cfg.kby,
+    w: 56, h: 56, spawnX: tx + cfg.off, spawnY: cfg.hitY, vx: 0, vy: 0, lifetime: cfg.life, color: cfg.color
+  }, context)
+  shakeCamera(context, 6, 7)
+}
+
+// Per-frame lightning driver (called from updateTransformationState). Cancel-on-hit applies only
+// during the handseal window; once the bolts start the cast is committed.
+export function updateSasukeLightning(fighter, context) {
+  if (!fighter || !fighter._lightningPhase) return
+  if (fighter._lightningPhase === "handseal" &&
+      ((fighter.hitstun || 0) > 0 || (fighter.stun || 0) > 0 || fighter.knockdownState)) {
+    fighter._lightningPhase = null
+    fighter._rooted = false
+    return
+  }
+  if (fighter._rooted) fighter.vx = 0
+  if ((fighter._lightningTimer || 0) > 0) { fighter._lightningTimer--; if (fighter._lightningTimer > 0) return }
+  switch (fighter._lightningPhase) {
+    case "handseal":
+      fighter._lightningPhase = "strike1"; fighter._lightningTimer = LIGHTNING.strike1
+      _spawnLightningStrike(fighter, context, 1)
+      break
+    case "strike1":
+      fighter._lightningPhase = "gap"; fighter._lightningTimer = LIGHTNING.gap
+      break
+    case "gap":
+      fighter._lightningPhase = "strike2"; fighter._lightningTimer = LIGHTNING.strike2
+      _spawnLightningStrike(fighter, context, 2)
+      break
+    default:   // strike2 finished
+      fighter._lightningPhase = null
+      fighter._rooted = false
+      break
+  }
+}
+
+// Public: is Sasuke mid lightning cast? (harness / future gating)
+export function sasukeCastingLightning(fighter) { return !!(fighter && fighter._lightningPhase) }
+
+// SASUKE SUBSTITUTION JUTSU (Kawarimi) — mirrors Naruto's Kawarimi Substitution EXACTLY (same
+// architecture, same Block+Special-during-an-incoming-attack input, same 25 meter cost, same real
+// startup + recovery tail so it's a committed defensive tool, NOT a free instant panic button):
+// the incoming swing is CONSUMED (whiffs, no damage) via the same `hasHit` pattern, Sasuke gets
+// brief i-frames + a smoke poof, and after the startup he re-appears with a second poof.
+// ONE difference from Naruto's version: instead of Naruto's far-side reposition, Sasuke reappears
+// using HIS OWN double-tap dash-behind-teleport positioning math (game.js `teleportBehindTarget`,
+// replicated verbatim below — abilities.js can't import game.js without a cycle). Visual =
+// sasuke_substitusion_justu.png (3 smoke-poof + wooden-log reveal) left at his origin, plus the
+// SAME procedural clone-puff smoke Kawarimi uses for the poof-out / poof-in.
+const SASUKE_SUBSTITUTION_STARTUP = 6
+function executeSasukeSubstitution(fighter, target, context) {
+  if (!spendEnergy(fighter, 25)) return false
+  const threat = target && target.currentAttack
+  if (threat) threat.hasHit = true                                   // the incoming swing whiffs, guaranteed
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 14)     // also covers stray projectiles
+  fighter.teleportFlash = 16
+
+  // poof OUT at the ORIGIN (capture it before the reposition) + leave the substitution log there.
+  const originX = fighter.x + (fighter.w || 60) / 2
+  const originY = fighter.y + (fighter.h || 100) / 2
+  spawnClonePuff(originX, originY)                                   // same procedural smoke Kawarimi uses
+  spawnProjectile(fighter, "substitutionLog", {                      // 3 smoke-poof + wooden-log reveal
+    visualOnly: true, damage: 0, lifetime: 26, vx: 0, vy: 0,
+    spawnX: originX - 40, spawnY: fighter.y,
+    w: 58, h: 71, color: "#a8743a",
+    sheet: "./sasuke_substitusion_justu.png", spriteFrames: 4, spriteW: 58, spriteH: 71, spriteSpeed: 6, spriteScale: 1.4
+  }, context)
+
+  // Real startup + recovery tail (same frame-shape all the specials use) → committed, not spammable.
+  fighter.attackCooldown = getAttackDuration(SASUKE_SUBSTITUTION_STARTUP + 20, fighter)
+  schedulePendingSpawn(SASUKE_SUBSTITUTION_STARTUP, () => {
+    if (target) {
+      const sw = context?.worldWidth || 3200
+      // ── teleportBehindTarget positioning math (game.js), replicated exactly ──
+      fighter.x = fighter.x < target.x ? target.x - fighter.w - 8 : target.x + target.w + 8
+      fighter.x = Math.max(0, Math.min(sw - fighter.w, fighter.x))
+      fighter.y = target.y
+      fighter.vx = 0; fighter.vy = 0
+      fighter.facing = (target.x >= fighter.x) ? 1 : -1
+    }
+    spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)   // poof IN
+  })
+  focusCameraOnAction(context, fighter, target, 1.0, 8)
+  return true
+}
+
+function executeSasukeSpecial(fighter, context) {
+  const stage = fighter._susanooStage || 0
+  const getOpp = getTargetResolver(context)
+  const target = getOpp(fighter)
+  // BASE KIT (no Susanoo): motion split on the SAME special button (Megumi-style). Check the MOST
+  // specific motion first so subsets don't shadow it:
+  //   down,forward + special (qcf) → two-strike LIGHTNING
+  //   down + special              → SHURIKEN ranged poke   (checked after qcf: D,F also ends with D)
+  //   plain special               → dash-strike
+  if (stage <= 0) {
+    // SUBSTITUTION JUTSU (Kawarimi) — Block+Special during an INCOMING attack. Checked FIRST so
+    // it takes priority over the down-motion specials while a swing is incoming; with NOTHING
+    // incoming it falls through to the normal specials (down = Shuriken, etc.). Same shape as
+    // Naruto's Kawarimi vs Dark Rasengan (both share the block/down input).
+    if (fighter.isBlocking) {
+      const threat   = target && target.currentAttack
+      const incoming = !!(threat && target.attacking && !threat.hasHit &&
+        ((threat.total || 0) - (threat.timer || 0)) <= (threat.activeEnd || 0))
+      if (incoming) return executeSasukeSubstitution(fighter, target, context)
+      // blocking with nothing incoming → not a valid Substitution; fall through to normals.
+    }
+    const dirs = getRelativeDirections(fighter)
+    if (endsWithPattern(dirs, ["D", "F"])) return executeSasukeLightning(fighter, target, context)
+    if (endsWithPattern(dirs, ["D", "B"])) return executeSasukeChidoriKoiten(fighter, target, context)   // qcb: AOE lightning discharge
+    if (endsWithPattern(dirs, ["D"]))      return executeSasukeShuriken(fighter, target, context)
+    return executeSasukeDashStrike(fighter, target, context)
+  }
+  const b = SUSANOO_STAGE[stage]
+  const distanceX = target ? Math.abs((fighter.x || 0) - (target.x || 0)) : 0
+  const aim = _oppCenter(target)   // auto-aim point (opponent hurtbox center)
+
+  // Lv2 ranged option — the arrow (bow). A real damaging projectile; body stays giant.
+  if (stage === 2 && distanceX > 170) {
+    // Fire from the giant's bow hand (spawnY = arm height) and AUTO-AIM down at the opponent
+    // so the arrow arcs diagonally down-and-forward from up high, not flat across.
+    spawnProjectile(fighter, "susanooArrow", {
+      damage: b.arrowDmg, speed: 15, lifetime: 70, hitstun: 30, knockbackX: 12, knockbackY: -3,
+      color: "#a78bfa", w: 42, h: 20,
+      spawnY: (fighter.y || 0) + _susanooArmYOff(fighter, context, SUSANOO_ARM_FRAC[2]),
+      aimAt: aim,
+      sheet: "./sasuke_susanoo_arrow_attack.png", spriteFrames: 5, spriteW: 110, spriteH: 95, spriteScale: 1.1
+    }, context)
+    fighter.attackCooldown = getAttackDuration(26, fighter)
+    focusCameraOnAction(context, fighter, target, 0.98, 8)
+    shakeCamera(context, 6, 6)
+    return true
+  }
+
+  // Lv2 close-range default — SWORD slash (heaviest melee). Hold DOWN to grab instead.
+  const holdingDown = getRelativeDirections(fighter).includes("D")
+  if (stage === 2 && !holdingDown) {
+    const swordAtk = createAttackFromMove(fighter, "susanooSword", {
+      damage: b.swordDmg, startup: 14, active: 10, recovery: 24,
+      hitstun: 34, knockbackX: 15, knockbackY: -6,
+      rangeX: 260, rangeY: 160                     // giant blade sweep — long + tall reach
+    })
+    setAttackState(fighter, swordAtk, 34)
+    // FX-only sheet → spawned as a visualOnly slash in front of the giant (body stays giant).
+    // 5 uniform lightning-bolt frames (the sheet's 6th non-uniform 'diagonal' cell can't be
+    // atlas-sliced by the uniform slicer) read as a lightning-blade flurry.
+    _spawnSusanooFx(fighter, "./sasuke_susanoo_sword_attack.png",
+      { frames: 5, w: 112, h: 282, scale: 2.4, life: 26, drift: 5, armFrac: SUSANOO_ARM_FRAC[2], aimAt: aim, color: "#f5e35a" }, context)
+    focusCameraOnAction(context, fighter, target, 0.96, 8)
+    shakeCamera(context, 10, 10)
+    return true
+  }
+
+  // Grab (melee, extending ribcage arm — long reach). Lv2 grab (DOWN-held) hits harder than Lv1.
+  const attack = createAttackFromMove(fighter, "susanooGrab", {
+    damage: b.grabDmg, startup: 12, active: 8, recovery: 22,
+    hitstun: 30, knockbackX: 10, knockbackY: -4,
+    rangeX: 210, rangeY: 95                        // long reach = the extending arm
+  })
+  setAttackState(fighter, attack, 30)
+  // grab.png FX = the extending clawed arm. Its 2 "reach" frames (the big cells) slice cleanly
+  // as 3 frames of 264px (flurry → reach → reach); the body stays giant behind it.
+  _spawnSusanooFx(fighter, "./sasuke_susanoo_grab.png",
+    { frames: 3, w: 264, h: 80, scale: 2.6, life: 24, drift: 7, armFrac: SUSANOO_ARM_FRAC[stage] || SUSANOO_ARM_FRAC[1], aimAt: aim, color: "#9a86d8" }, context)
+  focusCameraOnAction(context, fighter, target, 0.98, 8)
+  shakeCamera(context, 7, 7)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────
 // MAIN DISPATCH — triggerSpecial & triggerUltimate
 // ─────────────────────────────────────────────────────────────────
 
@@ -1341,6 +1917,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "gojo":    return executeGojoSpecial(fighter, context)
     case "megumi":  return executeMegumiSpecial(fighter, context)
     case "sukuna":  return executeSukunaSpecial(fighter, context)
+    case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "toji":    return executeToji_Special(fighter, context)
     default:        return executeFallbackSpecial(fighter, context)
@@ -1366,6 +1943,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "gojo":    cast = executeGojoUltimate(fighter, context);    break
       case "megumi":  cast = executeMegumiUltimate(fighter, context);  break
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break
+      case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "toji":    cast = executeToji_Ultimate(fighter, context);   break
       default:        cast = executeFallbackUltimate(fighter, context); break
@@ -1375,7 +1953,13 @@ export function triggerUltimate(fighter, context = {}) {
   // UNIVERSAL COOLDOWN: only start it when the ultimate ACTUALLY fired — executeX
   // returns false if it bailed (e.g. not enough meter), so a failed attempt never
   // locks the ultimate out. Applies to every character through this one dispatch.
-  if (cast) fighter.ultimateCooldown = ULTIMATE_COOLDOWN_FRAMES
+  // EXCEPTION: a cast can set fighter._suppressUltCooldown to defer the lockout (Sasuke's
+  // Susanoo — no cooldown while active so Stage 2 stays pressable; the 20s lockout is armed
+  // in revertSasukeSusanoo instead). One-shot: consumed here so it never sticks.
+  if (cast) {
+    if (fighter._suppressUltCooldown) fighter._suppressUltCooldown = false
+    else fighter.ultimateCooldown = ULTIMATE_COOLDOWN_FRAMES
+  }
   return cast
 }
 
@@ -1486,6 +2070,14 @@ export function updateTransformationState(fighter, context = {}) {
   if (!fighter) return fighter
 
   updateTransformations(fighter, context.deltaMs || 1000 / 60)
+
+  // Sasuke Susanoo: tick the sustained-form timer (frame-based, no per-frame energy drain);
+  // auto-reverts at 0 and arms the 20s ultimate cooldown. No-op when not in Susanoo.
+  updateSasukeSusanoo(fighter)
+
+  // Sasuke two-strike lightning: drive the handseal → strike1 → strike2 state machine.
+  // No-op unless a cast is in progress.
+  updateSasukeLightning(fighter, context)
 
   // Apply form stat multipliers
   if (fighter.currentFormData) {

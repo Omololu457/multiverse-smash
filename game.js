@@ -29,7 +29,8 @@ import {
   updateProjectiles as updateCombatProjectiles,
   checkClash, checkParry, resolveGrab, updateGrab,
   getAttackPhase, getAttackHitbox,   // training overlay: live frame data + real attack hitbox
-  getHurtbox                          // harness: verify the Susanoo giant hurtbox
+  getHurtbox,                         // harness: verify the Susanoo giant hurtbox
+  startMove                           // harness: drive a real p2 attack (Substitution incoming-window)
 } from "./combat.js"
 import {
   activeProjectiles, spawnProjectile,
@@ -3794,6 +3795,11 @@ gameLoop()
     healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false } },  // reset dummy between damage checks
     liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
     hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
+    // Drive a REAL p2 attack (generous startup so a defender can react) — used to open the
+    // Substitution incoming-attack window and to verify the swing actually whiffs on a substitute.
+    p2Attack:   () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "light", { startup: 10, active: 6, recovery: 16, damage: 60, rangeX: 120, rangeY: 90, hitstun: 18, knockbackX: 6 }) } },
+    p2State:    () => (p2 ? { attacking: !!p2.attacking, hasHit: !!(p2.currentAttack && p2.currentAttack.hasHit), x: p2.x, w: p2.w, health: p2.health } : null),
+    p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────
     towerInfo: () => ({
       active: towerState.active, floor: towerState.floor,

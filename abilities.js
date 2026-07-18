@@ -2160,6 +2160,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "toji":    return executeToji_Special(fighter, context)
+    case "rick":    return executeRickSpecial(fighter, context)
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -2186,6 +2187,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "toji":    cast = executeToji_Ultimate(fighter, context);   break
+      case "rick":    cast = executeRickUltimate(fighter, context);    break
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }
@@ -2206,6 +2208,237 @@ export function triggerUltimate(fighter, context = {}) {
 // ─────────────────────────────────────────────────────────────────
 // FALLBACK (for any character not in the 7-character starter list)
 // ─────────────────────────────────────────────────────────────────
+// ── RICK SANCHEZ ──────────────────────────────────────────────────
+// ZONER. Keep opponents out with Meeseeks / Rocket / Self-Destruct; melee is backup.
+// Special button:  neutral = Meeseeks Box (summon)  |  Up + Special = Rocket (up-special)
+//   |  QCF + Special = Portal-Pull  |  QCB + Special = Portal-Push.
+// Portal-Behind is NOT here — it's on the double-tap movement (game.js
+// detectDoubleTapDashTeleport), shared with Gojo/Sukuna/Toji/Sasuke.
+// Ultimate = Self-Destruct (instant proximity AOE, no self-damage). See RICK_ASSET_MAP.md.
+
+// PORTAL-PULL / PORTAL-PUSH — ONE mechanic, two destinations. Pull yanks the
+// opponent adjacent to Rick (combo starter); Push banishes them to the far stage
+// edge (spacing/punish). BOTH reappear the opponent ABOVE the destination and let
+// them FALL — reusing the launcher's target pop-up fields (vy/onGround/isLaunched)
+// rather than a bespoke fall-damage system. The landing impact is resolved in
+// game.js (resolvePortalDropLanding) the frame the target regrounds, mirroring the
+// _dot marker→resolver split. Returns false (a whiff) if the opponent is gone or
+// invulnerable; the caller still spends meter + plays the cast, like a whiffed grab.
+const RICK_PORTAL_DROP_HEIGHT = 220   // px the opponent reappears ABOVE the destination floor
+function rickPortalReposition(fighter, target, context, mode, dmg, hitstun) {
+  if (!target || target.eliminated) return false
+  if ((target.invulnTimer || 0) > 0) return false      // i-frames can't be portalled → whiff
+
+  const worldW = getWorldWidth(context)
+  const stageL = 0
+  const stageR = worldW
+  const tw     = target.w || 60
+  const rickCx = fighter.x + (fighter.w || 60) / 2
+
+  // Destination X (the target's left edge), clamped inside the playable stage.
+  let destX
+  if (mode === "pull") {
+    // Adjacent to Rick, on the side he faces — drag them into melee range.
+    const gap = 26
+    destX = (fighter.facing || 1) === 1
+      ? fighter.x + (fighter.w || 60) + gap
+      : fighter.x - tw - gap
+  } else {
+    // PUSH: the farther valid edge → maximum distance while staying in-bounds, so
+    // the opponent can never be thrown off the playable stage.
+    const leftDest  = stageL
+    const rightDest = stageR - tw
+    destX = Math.abs(leftDest - rickCx) >= Math.abs(rightDest - rickCx) ? leftDest : rightDest
+  }
+  destX = Math.max(stageL, Math.min(stageR - tw, destX))
+
+  // Reappear ABOVE the destination floor and fall — reuse the launcher's target
+  // pop-up fields. isLaunched keeps applyGravity from snapping them to the floor.
+  const floor = target.groundY != null ? target.groundY
+              : (context?.groundY ?? (target.y + (target.h || 100)))
+  target.x          = destX
+  target.y          = floor - (target.h || 100) - RICK_PORTAL_DROP_HEIGHT
+  target.vx         = 0
+  target.vy         = 0
+  target.onGround   = false
+  target.grounded   = false
+  target.isLaunched = true
+  target.jumpCount  = 0
+  target.isGrabbed  = false
+  target.hitstun    = Math.max(target.hitstun || 0, 20)   // helpless through the drop
+  target.teleportFlash = 14
+
+  // Pending landing impact — resolved by game.js the frame they reground.
+  target._portalDrop = { dmg, hitstun, ttl: 240, category: "special", src: fighter.side }
+
+  fighter.facing = (target.x >= fighter.x) ? 1 : -1
+  return true
+}
+
+// A pure-visual portal-green ring where the opponent reappears (readability). Never
+// collides — the impact damage is applied on landing, so this must not double-hit.
+function spawnRickPortalFx(fighter, target, context) {
+  const cx = (target ? target.x + (target.w || 60) / 2 : fighter.x)
+  const cy = (target ? target.y + (target.h || 100) / 2 : fighter.y)
+  spawnProjectile(fighter, "portalWarp", {
+    visualOnly: true, damage: 0, lifetime: 20,
+    vx: 0, vy: 0, w: 130, h: 130, radius: 65, color: "#8be04e",
+    spawnX: cx, spawnY: cy
+  }, context)
+}
+
+function executeRickSpecial(fighter, context) {
+  const dirs        = getRelativeDirections(fighter)
+  const getOpponent = getTargetResolver(context)
+  const target      = getOpponent(fighter)
+
+  // QCF (D→F) + Special = PORTAL-PULL. Yank the opponent next to Rick (combo
+  // starter). Cheaper than Push because most of its value is the free position
+  // + combo it grants, not the hit itself.
+  if (endsWithPattern(dirs, ["D", "F"])) {
+    if (!spendEnergy(fighter, 35)) return false
+    // 42 EFFECTIVE (direct/unscaled — the manual-damage convention shared by the ult
+    // AND summons; NOT the projectile ×0.60 path). Deliberately the softest special
+    // (below Rocket's 57 and Meeseeks' 45): the payoff is the free melee position +
+    // combo, so the hit itself is secondary. See RICK_ASSET_MAP.md numbers section.
+    rickPortalReposition(fighter, target, context, "pull", 42, 30)
+    fighter._spriteCastMove  = "portalTravel"
+    fighter._spriteCastTimer = 22
+    fighter.attackCooldown   = getAttackDuration(20, fighter)
+    spawnRickPortalFx(fighter, target, context)
+    focusCameraOnAction(context, fighter, target, 1.0, 10)
+    return true
+  }
+
+  // QCB (D→B) + Special = PORTAL-PUSH. Banish the opponent to the far edge
+  // (spacing / punish). Costs more and hits harder — the damage IS the reward,
+  // since (unlike Pull) it grants no follow-up, just a full-screen reset.
+  if (endsWithPattern(dirs, ["D", "B"])) {
+    if (!spendEnergy(fighter, 45)) return false
+    // 65 EFFECTIVE (direct/unscaled, same convention). Deliberately the hardest-hitting
+    // special, but only a modest committal premium over Rocket's 57 — NOT the old
+    // accidental 90. Justified: Push is the most committal/situational special (QCB
+    // motion, needs a live target, WHIFFS on i-frames while still spending 45 meter,
+    // and grants NO follow-up — just a full-screen reset). See RICK_ASSET_MAP.md.
+    rickPortalReposition(fighter, target, context, "push", 65, 34)
+    fighter._spriteCastMove  = "portalTravel"
+    fighter._spriteCastTimer = 22
+    fighter.attackCooldown   = getAttackDuration(22, fighter)
+    spawnRickPortalFx(fighter, target, context)
+    focusCameraOnAction(context, fighter, target, 0.95, 12)
+    return true
+  }
+
+  // DOWN + Special = PORTAL-GUN LASER. FREE (0 energy) fast ranged poke — a spacing tool
+  // that doesn't compete with the costed specials. Deliberately the weakest hit in the kit.
+  if (dirs.length > 0 && dirs[dirs.length - 1] === "D") {
+    // No energy cost. The 24f cooldown is the ONLY limiter (prevents laser-spam).
+    const face = fighter.facing || 1
+    spawnProjectile(fighter, "portalLaser", {
+      damage: 20,                    // ×GLOBAL_DAMAGE_SCALE 0.60 ≈ 12 effective — far below
+      speed: 16, lifetime: 60,       // Meeseeks 45 / Rocket 57 / Pull 42 / Push 65; fast + long range
+      vx: face * 16, vy: 0,
+      hitstun: 10, knockbackX: 4, knockbackY: 0,
+      w: 26, h: 8, color: "#4dd2ff", // simple bright-blue laser bolt (no sheet → colored shape)
+      spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 26,
+      spawnY: fighter.y + (fighter.h || 100) * 0.34
+    }, context)
+    fighter._spriteCastMove  = "gunShot"
+    fighter._spriteCastTimer = 14
+    fighter.attackCooldown   = getAttackDuration(24, fighter)
+    return true
+  }
+
+  // UP + Special = ROCKET. Launches Rick upward AND damages anyone caught in the path.
+  if (dirs.length > 0 && dirs[dirs.length - 1] === "U") {
+    if (!spendEnergy(fighter, 40)) return false
+    fighter.vy        = -22           // upward launch (recovery + mobility)
+    fighter.onGround  = false
+    fighter.grounded  = false
+    fighter.isLaunched = true
+    fighter.jumpCount = fighter.maxJumps || 2   // consume air jumps so a double-jump can't stack extra height
+    fighter._spriteCastMove  = "rocket"
+    fighter._spriteCastTimer = 26
+    fighter.attackCooldown   = getAttackDuration(20, fighter)
+    // RANGE EXTENDED: was a short vertical burst that left the top bound (y<-200) in ~39f.
+    // Now a genuine long-traveling rocket — fires FORWARD across the stage (vx 3→14) and LEVEL
+    // (vy -16→0, so it stays at launch height and reliably catches grounded foes downrange rather
+    // than climbing over them) with lifetime 34→90, ~1260px of reach. Damage/cost unchanged (95/40).
+    spawnProjectile(fighter, "rocket", {
+      damage: 95, lifetime: 90,
+      vx: (fighter.facing || 1) * 14, vy: 0,
+      hitstun: 22, knockbackX: 8, knockbackY: -10,
+      w: 64, h: 72, color: "#ff6b35",   // generous blast — a wide rocket that catches anyone in its forward lane
+      sheet: "./rick_rocket_specail.png", spriteFrames: 1, spriteScale: 1.5,
+      spawnX: fighter.x + (fighter.w || 60) / 2 - 22,
+      spawnY: fighter.y + (fighter.h || 100) * 0.3
+    }, context)
+    focusCameraOnAction(context, fighter, target, 1.0, 8)
+    return true
+  }
+
+  // NEUTRAL Special = MEESEEKS BOX. Throws a Meeseeks that rushes the opponent. NO cap:
+  // only energy limits how many are active (meeseeks template maxSimultaneous 99, and we
+  // deliberately do NOT gate on summonCooldown), so multiple Meeseeks can be out at once.
+  if (!spendEnergy(fighter, 30)) return false
+  spawnAssistSummon(fighter, { summonId: "meeseeks", damage: 45 }, target)
+  fighter._spriteCastMove  = "meeseeksThrow"
+  fighter._spriteCastTimer = 20
+  fighter.attackCooldown   = getAttackDuration(22, fighter)
+  return true
+}
+
+function executeRickUltimate(fighter, context) {
+  // SELF-DESTRUCT: instant proximity AOE. Only connects if the opponent is inside the blast.
+  // Rick takes NO self-damage and is not knocked down — the near-max meter cost is the only
+  // balance lever (no startup / vulnerability window). Damage is applied directly (summon-style,
+  // bypassing GLOBAL_DAMAGE_SCALE) so 180 ≈ a genuine ultimate burst.
+  if (!spendEnergy(fighter, 140)) return false
+
+  const getOpponent = getTargetResolver(context)
+  const target      = getOpponent(fighter)
+
+  const RADIUS = 220        // px, center-to-center — "bigger than a normal special" catch zone
+  const DAMAGE = 180        // direct (no GLOBAL_DAMAGE_SCALE); ≈17% of a health bar
+
+  const rcx = fighter.x + (fighter.w || 60) / 2
+  const rcy = fighter.y + (fighter.h || 100) / 2
+
+  // Instant blast visual (pure FX, never collides — damage is applied manually below so we can
+  // proximity-gate it and guarantee zero self-damage).
+  spawnProjectile(fighter, "selfDestructBlast", {
+    visualOnly: true, damage: 0, lifetime: 22,
+    vx: 0, vy: 0, spawnX: rcx, spawnY: rcy,
+    w: RADIUS * 2, h: RADIUS * 2, radius: RADIUS, color: "#8be04e"
+  }, context)
+
+  // Rick's body plays the self-destruct pose; NO attacking/vulnerability state is set.
+  fighter._spriteCastMove  = "selfDestruct"
+  fighter._spriteCastTimer = 30
+  fighter.attackCooldown   = getAttackDuration(10, fighter)   // only prevents an accidental instant re-press
+  shakeCamera(context, 16, 18)
+  focusCameraOnAction(context, fighter, target, 0.95, 14)
+
+  // Proximity gate + damage. Only the opponent is touched → Rick takes no self-damage.
+  if (target && !target.eliminated && (target.invulnTimer || 0) <= 0) {
+    const tcx  = target.x + (target.w || 60) / 2
+    const tcy  = target.y + (target.h || 100) / 2
+    const dist = Math.hypot(tcx - rcx, tcy - rcy)
+    if (dist <= RADIUS) {
+      let dmg = DAMAGE
+      if (target.isBlocking) { dmg = Math.floor(dmg * 0.20); target.blockstun = 18 }
+      else {
+        target.hitstun    = 42
+        target.vx         = (tcx >= rcx ? 1 : -1) * 16
+        target.vy         = -9
+        target.colorFlash = 8
+      }
+      target.health = Math.max(0, (target.health || 0) - dmg)
+    }
+  }
+  return true
+}
+
 function executeFallbackSpecial(fighter, context) {
   const specials = Object.entries(fighter?.specials || {})
   if (!specials.length) return false

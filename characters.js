@@ -947,26 +947,73 @@ const akaza = {
 // ─────────────────────────────────────────────────────────────────
 const rick = {
   rosterKey: "rick", name: "Rick Sanchez", universe: "rick_and_morty",
-  archetypes: ["ranged", "gadgets"],
-  primary: "ranged", secondary: ["gadgets"],
-  traits: { hasEnergy: true, energyType: "portal_tech", mobility: "medium", scaling: "versatile", animeMovement: false },
-  stats: { maxHealth: 1050, maxEnergy: 160, attack: 86, defense: 78, speed: 78, maxJumps: 2, jumpPower: 28, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 45 },
+  portrait: "./rick_pfp.png",   // EXACT on-disk filename (case + extension)
+  archetypes: ["ranged", "zoner", "gadgets"],
+  primary: "ranged", secondary: ["zoner", "gadgets"],
+  traits: { hasEnergy: true, energyType: "bullshit_science", mobility: "medium", scaling: "versatile", animeMovement: false },
+  // Player-facing meter label — intentional in-character humor, KEEP AS-IS. Surfaces on
+  // the in-match HUD via energyConfig; the character-select kit panel derives its own from
+  // energyType above ("bullshit science").
+  energyConfig: { label: "Bullshit Science Energy", color: "#8be04e", glowColor: "#c6ff6e", emptyColor: "rgba(255,255,255,0.08)" },
+  stats: { maxHealth: 1050, maxEnergy: 160, attack: 82, defense: 78, speed: 80, maxJumps: 2, jumpPower: 28, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 45 },
+  movement: { dashTeleport: true },   // Portal-Behind: double-tap toward opponent (shared teleport system, like Gojo/Sasuke)
+  // ZONER identity: keep opponents out with Meeseeks / Rocket / Self-Destruct. Melee (light/heavy)
+  // is deliberately BACKUP — lower damage and range than a brawler.
   basic_attacks: {
-    light:     { damage: 50, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 90, startup: 9, active: 4, recovery: 19, hitstun: 19, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { damage: 70, startup: 8, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 60, startup: 6, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
+    light:     { damage: 34, startup: 5, active: 3, recovery: 12, hitstun: 12, knockbackX: 3, knockbackY: 0, rangeX: 62, rangeY: 46 },   // jab
+    heavy:     { damage: 60, startup: 9, active: 4, recovery: 20, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 74, rangeY: 50 },   // side kick (mid-weight)
+    upAttack:  { type: "launcher", damage: 56, startup: 8, active: 4, recovery: 17, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10 },
+    airAttack: { damage: 44, startup: 6, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    // downAir: intentionally ABSENT — no art exists (genuinely missing, not substituted). downTilt (poop) DEFERRED. See RICK_ASSET_MAP.md.
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -3 }
   },
+  // Actual behaviour lives in executeRickSpecial / executeRickUltimate (abilities.js).
+  // This data block is for the kit/HUD panels. Special button: neutral = Meeseeks Box,
+  // Up + Special = Rocket. Portal-Behind is on the double-tap movement, not this button.
   specials: {
-    portalBlast:    { cost: 30, damage: 140, startup: 11, active: 5, recovery: 21, hitstun: 22, knockbackX: 8, knockbackY: -2, effect: "portal-based energy projectile" },
-    meeseeksSummon: { cost: 40, damage: 120, startup: 14, active: 6, recovery: 24, hitstun: 20, knockbackX: 7, knockbackY: -1, subtype: "summon", effect: "summons a Meeseeks to assist" }
+    meeseeksBox: { cost: 30, subtype: "summon", summonId: "meeseeks", effect: "throws a Meeseeks that rushes the opponent (no cap — multiple can be active at once)" },
+    rocket:      { cost: 40, effect: "Up + Special: rockets Rick upward AND damages anyone caught in the launch path" }
   },
-  ultimate: { name: "Ultimate Gadgetry", cost: 100, duration: 8, effect: "All attacks gain massive damage and range" },
+  ultimate: { name: "Self-Destruct", cost: 140, description: "Instant proximity AOE blast — only connects if the opponent is close enough. Rick takes NO self-damage. Near-max meter cost." },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  // Rick has NO dedicated intro sprite (never cataloged). Without this, the intro state
+  // falls back to the shared "transform" slot — which Rick lacks — and sprite.js draws its
+  // 128px NULL/fallback box (the "floating + garbled frames" intro bug). introPool:["idle"]
+  // makes his intro simply play the grounded, correctly-scaled IDLE animation instead.
+  introPool: ["idle"],
+  hasSprites: true,
+  // 1.85: idle content 68px × 1.85 ≈ 126px on-screen. DIAGNOSED (not a blind bump):
+  // at the old 1.7 Rick already rendered ~116px = TOP of the roster range (Sasuke 116,
+  // Gojo/Sukuna 112, Toji 101, Naruto 118) with a standard 60×100 hitbox — no scale
+  // override/canvas-flag/hitbox mismatch. He read "small" from his THIN silhouette
+  // (low visual mass), not height. This is a deliberate +8.8% PRESENCE bump: it also
+  // lifts his content width 51→57px (≈ Sasuke's 59) which closes the real mass gap.
+  // Every anchorY below is re-scaled ×(1.85/1.7) so feet stay planted at the new size.
+  spriteScale: 1.85,
+  animationData: {
+    idle:          { frames: 17, width: 30, height: 78,  speed: 6, anchorY: -15, sheet: "./rick_stand.png" },
+    walk:          { frames: 9,  width: 32, height: 81,  speed: 5, anchorY: -15, sheet: "./rick_walk.png" },
+    run:           { frames: 9,  width: 49, height: 79,  speed: 4, anchorY: -13, sheet: "./Rick_run.png" },
+    jump:          { frames: 5,  width: 43, height: 78,  speed: 6, anchorY: -8,  sheet: "./rick_jump.png" },
+    fall:          { frames: 5,  width: 43, height: 78,  speed: 6, anchorY: -8,  sheet: "./rick_jump.png" },   // reuse single-jump art for both jumps (rick_double_jump.png left unwired)
+    dash:          { frames: 6,  width: 90, height: 78,  speed: 4, anchorY: -16, sheet: "./rick_air_dodge.png" },   // air-dash VISUAL only (air-dodge art); no i-frame/mechanic change
+    hurt:          { frames: 6,  width: 70, height: 88,  speed: 6, anchorY: -21, sheet: "./rick_land_dodge.png" },  // TEMP hurt stand-in — reads as an upright dodge w/ afterimages, NOT a true hurt. Pending real art.
+    light:         { frames: 10, width: 112, height: 90,  speed: 2, anchorY: -6, sheet: "./rick_jab_foward_attack_clean.png" },   // REPACKED to uniform 112px cells (was non-uniform 63px → split/garbage frames + residual JAB text); body leg-aligned to cell centre, feet planted. speed 2×10f = 20f = move's startup5+active3+recovery12.
+    heavy:         { frames: 5,  width: 61, height: 89,  speed: 3, anchorY: -34, sheet: "./rick_kick.png" },
+    up:            { frames: 12, width: 70, height: 106, speed: 3, anchorY: 0,   sheet: "./rick_up_attack_clean.png" },   // launcher; label/thumbnail/clipped-frame stripped → clean 12f
+    air:           { frames: 9,  width: 44, height: 86,  speed: 3, anchorY: -28, sheet: "./rick_up_attack_2_com.png" },
+    meeseeksThrow: { frames: 1,  width: 72, height: 68,  speed: 4, anchorY: -5,  loop: false, lockLastFrame: true, sheet: "./rick_meeseeks_throw.png" },
+    rocket:        { frames: 4,  width: 51, height: 82,  speed: 3, anchorY: -2,  loop: false, lockLastFrame: true, sheet: "./rick_rocket_air_rocket_attack.png" },
+    portalTravel:  { frames: 13, width: 66, height: 80,  speed: 2, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./rick_portal_attack_travel.png" },
+    selfDestruct:  { frames: 6,  width: 92, height: 92,  speed: 4, anchorY: 0,   loop: false, lockLastFrame: true, sheet: "./rick_speacial.png" },
+    // doubleJump: jumpCount-aware air pose (sprite.js plays it on the 2nd jump). REPACKED uniform.
+    doubleJump:    { frames: 3,  width: 50, height: 84,  speed: 4, anchorY: -6,  sheet: "./rick_double_jump.png" },
+    // gunShot: brief cast pose for the free portal-gun laser poke. REPACKED uniform (4f aim/fire).
+    gunShot:       { frames: 4,  width: 68, height: 90,  speed: 3, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./rick_gun.png" },
+    // taunt: 10s-charge reward flourish (27f dance). REPACKED uniform 56px; 27×speed4 = 108f lock.
+    taunt:         { frames: 27, width: 56, height: 80,  speed: 4, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./rick_taunt.png" }
+  }
 }
 
 const morty = {

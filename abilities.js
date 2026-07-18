@@ -153,6 +153,8 @@ function createAttackFromMove(fighter, moveName, moveData = {}, fallback = {}) {
     launchY:    moveData.knockbackY ?? fallback.launchY  ?? -8,
     launcher:   !!moveData.launcher,
     spike:      !!moveData.spike,
+    aoe:        !!moveData.aoe,          // stationary caster-centred hitbox (getAttackHitbox)
+    isSpecial:  !!moveData.isSpecial,    // → special chip% / hitstop / damage-number category
     hasHit:     false
   }
 }
@@ -1808,6 +1810,49 @@ function executeSasukeUltimate(fighter, context) {
 // sword_attack.png as a spawned overlay (this engine has no per-fighter attack-FX slot).
 // BASE-KIT special (OUTSIDE Susanoo) — a fast forward dash-strike (Sharingan blitz) using
 // sasuke_dash.png. This is Sasuke's ONLY non-Susanoo special: a cheap gap-closer / poke that
+// CHIDORI KOITEN — qcb (Down,Back) + Special. Sasuke raises his hands (real windup) and releases
+// a STATIONARY lightning discharge AROUND himself (not a traveling projectile). Same structural
+// shape as Rick's Self-Destruct — damage resolves at ONE marked point (the active window), not
+// continuously — but built through combat's normal startup/active/recovery pipeline: the "burst"
+// IS the move's active window, and the caster-centred AOE hitbox (aoe:true → getAttackHitbox) only
+// connects if the opponent is in range when active frames land. Sasuke takes no self-damage.
+// MID-TIER SPECIAL pricing (see below). Body pose = sasuke_CHIDORI_KOITEN_attack.png (windup→
+// discharge, 7f); lightning visual = sasuke_CHIDORI_KOITEN_effects.png spawned at the burst.
+//   damage 95 (raw; ×GLOBAL_DAMAGE_SCALE 0.60 ≈ 57 effective) — above the basic Chidori dash-strike
+//     (55 raw ≈ 33 eff) and the qcf lightning per-hit, well below Susanoo/ult-tier (Amaterasu/Kirin).
+//   AOE 240×140 centred on Sasuke — a "get off me" burst; the proximity requirement is counterplay.
+//   startup 16 / active 6 / recovery 20 — REAL windup (not instant/spammable), committal recovery.
+//   cost 35 — above dash-strike (18) and lightning (24), below ultimate-tier. Mid-tier.
+function executeSasukeChidoriKoiten(fighter, target, context) {
+  if (!spendEnergy(fighter, 35)) return false
+  const KOITEN_STARTUP = 16, KOITEN_ACTIVE = 6, KOITEN_RECOVERY = 20
+  const attack = createAttackFromMove(fighter, "chidoriKoiten", {
+    damage: 95, startup: KOITEN_STARTUP, active: KOITEN_ACTIVE, recovery: KOITEN_RECOVERY,
+    hitstun: 30, knockbackX: 10, knockbackY: -4,
+    rangeX: 240, rangeY: 140,          // stationary AOE around the caster
+    aoe: true, isSpecial: true
+  })
+  setAttackState(fighter, attack, KOITEN_STARTUP + KOITEN_ACTIVE + KOITEN_RECOVERY)
+  fighter._spriteCastMove  = "chidoriKoiten"   // windup→discharge body pose
+  fighter._spriteCastTimer = KOITEN_STARTUP + KOITEN_ACTIVE + KOITEN_RECOVERY
+
+  // Lightning discharge FX (visualOnly — never collides; the AOE hitbox above deals the damage),
+  // spawned CENTRED on Sasuke a couple frames before the active window so it reads as the burst.
+  const SCALE = 1.2, FW = 360, FH = 118
+  schedulePendingSpawn(Math.max(1, KOITEN_STARTUP - 2), () => {
+    spawnProjectile(fighter, "chidoriKoitenFx", {
+      visualOnly: true, damage: 0, lifetime: 20, vx: 0, vy: 0,
+      w: FW * SCALE, h: FH * SCALE, color: "#8fe6ff",
+      spawnX: fighter.x + (fighter.w || 60) / 2 - (FW * SCALE) / 2,
+      spawnY: fighter.y + (fighter.h || 100) / 2 - (FH * SCALE) / 2,
+      sheet: "./sasuke_CHIDORI_KOITEN_effects.png", spriteFrames: 3, spriteW: FW, spriteH: FH, spriteSpeed: 4, spriteScale: SCALE
+    }, context)
+  })
+  focusCameraOnAction(context, fighter, target, 0.97, 10)
+  shakeCamera(context, 8, 10)
+  return true
+}
+
 // bursts him forward and strikes. The dash sheet plays via _spriteCastMove (takes precedence
 // over the attack's currentMove in sprite.js _resolveAction). Whiffs cleanly if <18 energy.
 function executeSasukeDashStrike(fighter, target, context) {
@@ -2017,6 +2062,7 @@ function executeSasukeSpecial(fighter, context) {
     }
     const dirs = getRelativeDirections(fighter)
     if (endsWithPattern(dirs, ["D", "F"])) return executeSasukeLightning(fighter, target, context)
+    if (endsWithPattern(dirs, ["D", "B"])) return executeSasukeChidoriKoiten(fighter, target, context)   // qcb: AOE lightning discharge
     if (endsWithPattern(dirs, ["D"]))      return executeSasukeShuriken(fighter, target, context)
     return executeSasukeDashStrike(fighter, target, context)
   }

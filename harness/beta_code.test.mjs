@@ -27,7 +27,11 @@ try{
   // ── Ground truth: the live hasSprites set ──────────────────────────────────
   section("Ground truth — hasSprites roster derived live from characters.js");
   const gt=await sets();
-  check("there are 7 sprite-having characters", gt.sprite.length===7, `sprite=${sortJoin(gt.sprite)}`);
+  // Sprite roster is derived live from hasSprites, so its size grows as characters gain sprites.
+  // Assert the known sprite-complete characters are ALL present (Rick joined via the merge → 8).
+  const KNOWN_SPRITE=["goku","gojo","megumi","sukuna","toji","naruto","sasuke","rick"];
+  check(`sprite roster contains all known sprite chars (now ${gt.sprite.length})`,
+        KNOWN_SPRITE.every(k=>gt.sprite.includes(k)), `sprite=${sortJoin(gt.sprite)}`);
   check("full non-hidden roster is much larger (filter is meaningful)", gt.all.length>gt.sprite.length+10, `all=${gt.all.length}`);
   const spriteSet=gt.sprite;
 
@@ -46,14 +50,14 @@ try{
   check('applyCode("GojoV1") → "beta"', ba.result==="beta" && ba.beta===true && ba.dev===false, `res=${ba.result} beta=${ba.beta} dev=${ba.dev}`);
   m=await menu();
   check("selectable roster EQUALS the live hasSprites set", sortJoin(m.selectable)===sortJoin(spriteSet), `got=${sortJoin(m.selectable)}`);
-  check("exactly 7 characters selectable", m.selectable.length===7, `n=${m.selectable.length}`);
+  check("selectable count == sprite-roster size (dynamic)", m.selectable.length===spriteSet.length, `n=${m.selectable.length}`);
   // Explicit exclusions — the procedural-box characters the task named must be gone.
   for(const gone of ["vegeta","tanjiro","rickPrime","piccolo","killua"])
     check(`'${gone}' (no sprites) is NOT selectable`, !m.selectable.includes(gone));
   // Explicit inclusions — the sprite characters must all be present.
-  for(const has of ["gojo","sukuna","megumi","toji","naruto","sasuke","goku"])
+  for(const has of ["gojo","sukuna","megumi","toji","naruto","sasuke","goku","rick"])
     check(`'${has}' (has sprites) IS selectable`, m.selectable.includes(has));
-  check("only sprite-having universes shown", sortJoin(m.universes)===sortJoin([...new Set(spriteSet.map(k=>({gojo:"jujutsu_kaisen",megumi:"jujutsu_kaisen",sukuna:"jujutsu_kaisen",toji:"jujutsu_kaisen",naruto:"naruto",sasuke:"naruto",goku:"dragon_ball"}[k])))]), `universes=${sortJoin(m.universes)}`);
+  check("only sprite-having universes shown (dynamic)", sortJoin(m.universes)===sortJoin(gt.spriteUniverses), `universes=${sortJoin(m.universes)}`);
   section("BETA — full unlock scope (same as dev): Online + level-gated features + skins");
   check("ONLINE unlocked under beta", m.onlineLocked===false);
   check("Tower feature unlocked under beta", m.towerUnlocked===true);
@@ -80,7 +84,7 @@ try{
   await load();
   await applyCode("GojoV1");
   const betaOnly=await menu();
-  check("beta-only: filtered to 7", betaOnly.selectable.length===7 && betaOnly.dev===false);
+  check("beta-only: filtered to the sprite roster", betaOnly.selectable.length===spriteSet.length && betaOnly.dev===false);
   await load();
   await applyCode("Omololu");
   const devOnly=await menu();

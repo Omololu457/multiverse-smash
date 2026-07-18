@@ -68,7 +68,7 @@ export const FEATURES = {
   towerMode:  { label: "Tower Mode",         unlocksAtLevel: 1 },   // raise to gate Tower behind a level
 }
 export function isUnlocked(featureId, id) {
-  if (_devUnlock) return true                 // dev code unlocks EVERYTHING (Task 6)
+  if (_devUnlock || _betaUnlock) return true  // dev OR beta code unlocks EVERYTHING (beta ALSO sprite-filters the roster)
   const f = FEATURES[featureId]
   if (!f) return true
   return getLevel(id) >= (f.unlocksAtLevel || 1)
@@ -100,18 +100,28 @@ function _ensureUnlocks(acct) {
   return acct.unlocks
 }
 
-// ── BETA-ACCESS CODE "GojoV1" (Task 1) ───────────────────────────────────────
-// A SECOND, narrower code for beta testers. It unlocks the Jujutsu Kaisen roster
-// + JJK skins ONLY, and locks every non-JJK character out of selection. It grants
-// NOTHING related to non-JJK characters/features (that stays the DEV_CODE's job).
-// Matching is case-insensitive (so testers can't fat-finger the casing); the
-// canonical string to hand out is exactly "GojoV1". Both flags are independent —
-// entering one never affects the other, so the full-unlock code stays intact.
+// ── BETA-ACCESS CODE "GojoV1" (Task 1, REDEFINED) ────────────────────────────
+// A SECOND code for beta testers. It now grants the SAME full unlock as DEV_CODE
+// (all skins, level-gated features, Online, every mode) AND, on top of that, filters
+// the selectable roster to ONLY characters that actually have sprite art. That
+// sprite filter is derived LIVE from characters.js `hasSprites` (see game.js
+// spriteRosterKeys/hasSpritesKey) so it self-updates as more characters get sprites —
+// nothing here hardcodes a roster. DEV_CODE is unchanged (everything unlocked, NO
+// character filter). Matching is case-insensitive; the canonical string is "GojoV1".
+// The two flags are independent — entering one never affects the other.
 export const BETA_CODE = "GojoV1"
 let _betaUnlock = false
 export function isBetaUnlocked() { return _betaUnlock }
 
-// The ONLY characters selectable under the beta code (also the skin allow-list).
+// The "unlock everything" predicate shared by dev AND beta. Use this for skin/feature/
+// Online/mode gates (the scope both codes grant). Character-select filtering is the ONLY
+// thing beta does that dev doesn't, and it keys off isBetaUnlocked()/!isDevUnlocked()
+// directly at the filter sites (game.js). Returns true whenever dev is on, so DEV_CODE's
+// behavior is byte-for-byte unchanged — this only widens the unlock set to include beta.
+export function isFullyUnlocked() { return _devUnlock || _betaUnlock }
+
+// Legacy JJK helpers — retained for save-file back-compat; no longer gate selection or
+// skins (beta's roster filter is now sprite-derived in game.js, not JJK-specific).
 export const JJK_ROSTER = ["gojo", "sukuna", "megumi", "toji"]
 export function isJJKKey(key) { return JJK_ROSTER.includes(String(key || "").toLowerCase()) }
 

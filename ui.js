@@ -4,7 +4,7 @@
 
 import { drawCharacter } from "./fighters.js"
 import { characters } from "./characters.js"
-import { isDevUnlocked } from "./progression.js"
+import { isFullyUnlocked } from "./progression.js"
 import { isFileApiSupported, saveFileStatus } from "./account.js"
 import { countShadowClones } from "./summons.js"
 
@@ -667,10 +667,10 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
 export function getMainMenuRects(canvas) {
   return getVerticalMenuLayout(canvas, [
     { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player • Tower" },
-    // ONLINE is locked until the dev code is entered (Task 5/6). isDevUnlocked()
-    // flips it selectable (leads to a placeholder screen — no netcode yet).
-    { id: "online",   label: "ONLINE",    subLabel: isDevUnlocked() ? "Dev-unlocked (placeholder)" : "Coming soon — online play", locked: !isDevUnlocked(), lockNote: "Online play is coming soon" },
-    { id: "devcode",  label: "DEV CODE",  subLabel: isDevUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
+    // ONLINE is locked until a full-unlock code (dev OR beta) is entered (Task 5/6).
+    // isFullyUnlocked() flips it selectable (leads to a placeholder screen — no netcode yet).
+    { id: "online",   label: "ONLINE",    subLabel: isFullyUnlocked() ? "Unlocked (placeholder)" : "Coming soon — online play", locked: !isFullyUnlocked(), lockNote: "Online play is coming soon" },
+    { id: "devcode",  label: "DEV CODE",  subLabel: isFullyUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
     { id: "tutorial", label: "HOW TO PLAY", subLabel: "Controls & mechanics walkthrough"  },
     { id: "account",  label: "ACCOUNT",   subLabel: "Create / switch local profile"       },

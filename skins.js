@@ -14,7 +14,7 @@
 // with different skins work). Default skin returns null = use existing art.
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
-import { getLevel, isDevUnlocked, isBetaUnlocked, isJJKKey } from "./progression.js"
+import { getLevel, isFullyUnlocked } from "./progression.js"
 
 // ── OWN art per non-default skin (overrides; everything else is borrowed) ──────
 // Dimensions MEASURED from the PNGs (frames × cell W×H). "[guess]" rows are noted
@@ -163,9 +163,9 @@ export function getSkinAnimationData(rosterKey, skinId) {
 export function isSkinUnlocked(rosterKey, skinId) {
   const skin = getSkin(rosterKey, skinId)
   if (!skin || skin.unlockLevel <= 0) return true
-  if (isDevUnlocked()) return true
-  // Beta code (GojoV1) unlocks ALL skins for the JJK roster only (Task 1/4).
-  if (isBetaUnlocked() && isJJKKey(rosterKey)) return true
+  // Dev OR beta code unlocks ALL skins (beta now grants the same full unlock as dev,
+  // and separately sprite-filters the selectable roster — see game.js).
+  if (isFullyUnlocked()) return true
   return getLevel() >= skin.unlockLevel
 }
 
@@ -178,7 +178,7 @@ export function buildUnlockedSkinsSnapshot(level = 1, dev = false, beta = false)
   const out = {}
   for (const [rosterKey, list] of Object.entries(SKINS)) {
     out[rosterKey] = list
-      .filter(s => s.unlockLevel <= 0 || dev || (beta && isJJKKey(rosterKey)) || level >= s.unlockLevel)
+      .filter(s => s.unlockLevel <= 0 || dev || beta || level >= s.unlockLevel)
       .map(s => s.id)
   }
   return out

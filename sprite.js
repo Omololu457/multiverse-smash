@@ -100,6 +100,8 @@ const MOVE_TO_ACTION = {
   rasengan: "special_1",
   shadowCloneBlast: "special_2",
 
+  chidoriKoiten: "chidoriKoiten",
+
   // Sasuke dash-strike (base special): the `dash` sprite plays via _spriteCastMove, but that timer
   // expires a few frames BEFORE the attack's recovery ends — so map the raw move name here too, or
   // the tail of the move resolves to the raw "dashStrike" (no animationData) → 128² fallback BOX flash.

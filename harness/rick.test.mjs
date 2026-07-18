@@ -240,6 +240,79 @@ try {
     check("far opponent takes NO damage (proximity-gated)", hp1 === hp0, `hp ${hp0} → ${hp1}`);
   }
 
+  // ── PORTAL-PULL — QCF (D→F) + Special: yank opponent adjacent + fall-impact ──
+  section("PORTAL-PULL — QCF+Special yanks the opponent next to Rick + fall-impact damage");
+  {
+    await waitGrounded();
+    await page.evaluate(() => { window.__harness.fillEnergy(); window.__harness.healP2?.(); window.__harness.resetUlt?.(); });
+    await waitFrames(6);
+    const a0 = await p1();
+    // Opponent FAR to Rick's RIGHT (so d=Forward, a=Back) — a real long-range yank.
+    await page.evaluate(x => window.__harness.setP2X(x), a0.x + 600);
+    await waitFrames(6);
+    const hp0 = (await p2()).health;
+    // QCF motion: down (s) → forward (d) → special (l).
+    await page.keyboard.down("s"); await waitFrames(2); await page.keyboard.up("s");
+    await page.keyboard.down("d"); await waitFrames(2); await page.keyboard.up("d");
+    await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l");
+    await waitFrames(2);
+    const rick = await p1();
+    const opp  = await p2();
+    // Reposition adjacent to Rick — impossible from 600px away by any normal move.
+    check("Portal-Pull yanks the opponent next to Rick",
+      opp.x > rick.x - 40 && opp.x < rick.x + rick.w + 140,
+      `rickx=${rick.x.toFixed(0)} oppx=${opp.x.toFixed(0)} Δ=${(opp.x - rick.x).toFixed(0)}`);
+    check("opponent reappears ABOVE the spot (airborne, pending drop)", !opp.grounded && opp.portalDrop,
+      `grounded=${opp.grounded} portalDrop=${opp.portalDrop}`);
+    await page.screenshot({ path: path.join(OUT, "RK_portal_pull.png") });
+    // Fall + land → impact damage.
+    await page.waitForFunction(h => { const q = window.__harness.p2(); return q.grounded && !q.portalDrop && q.health < h; }, hp0, { timeout: 5000, polling: 16 }).catch(() => {});
+    const hp1 = (await p2()).health;
+    check("Portal-Pull deals fall-impact damage on landing", hp1 < hp0, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
+  }
+
+  // ── PORTAL-PUSH — QCB (D→B) + Special: banish to far edge + fall-impact, in-bounds ──
+  section("PORTAL-PUSH — QCB+Special banishes the opponent to the far edge (in-bounds) + fall-impact");
+  {
+    await waitGrounded(); await waitFrames(20);   // let Pull's target fully settle
+    await page.evaluate(() => { window.__harness.fillEnergy(); window.__harness.healP2?.(); });
+    const a0 = await p1();
+    // Dummy CLOSE to Rick's right, so a push is a real long-distance banish.
+    await page.evaluate(x => window.__harness.setP2X(x), a0.x + 120);
+    await waitFrames(6);
+    const arena = await page.evaluate(() => window.__harness.arena());
+    const hp0   = (await p2()).health;
+    // QCB motion: down (s) → back (a) → special (l).
+    await page.keyboard.down("s"); await waitFrames(2); await page.keyboard.up("s");
+    await page.keyboard.down("a"); await waitFrames(2); await page.keyboard.up("a");
+    await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l");
+    await waitFrames(2);
+    const rick = await p1();
+    const opp  = await p2();
+    const rightEdge = arena.left + arena.width;
+    // The push TARGETS the FARTHER stage edge (max distance respecting bounds), then
+    // the always-on clampToCamera keeps the opponent inside the visible frame — so the
+    // realised distance is camera-limited (correct/safe: Push never shoves someone
+    // off-screen). Assert the max-distance DIRECTION: they're driven toward whichever
+    // stage edge is farther from Rick, by a displacement far beyond any knockback.
+    const stageMid = arena.left + arena.width / 2;
+    const rickCx   = rick.x + rick.w / 2;
+    const pushedTowardRight = rickCx < stageMid;   // the farther edge is the right one
+    check("Portal-Push drives the opponent toward the farther stage edge (max-distance direction)",
+      pushedTowardRight ? opp.x > rick.x + 200 : opp.x < rick.x - 200,
+      `oppx=${opp.x.toFixed(0)} rickx=${rick.x.toFixed(0)} farEdge=${pushedTowardRight ? "right" : "left"}`);
+    // ...and STILL fully on the playable stage (Push can't throw them off-stage).
+    check("Portal-Push respects stage bounds (opponent stays on-stage)",
+      opp.x >= arena.left - 1 && (opp.x + opp.w) <= rightEdge + 1,
+      `oppx=${opp.x.toFixed(0)} w=${opp.w} bounds=[${arena.left},${rightEdge.toFixed(0)}]`);
+    check("Portal-Push actually banished them far from Rick",
+      Math.abs(opp.x - rick.x) > 400, `dist=${Math.abs(opp.x - rick.x).toFixed(0)}`);
+    await page.screenshot({ path: path.join(OUT, "RK_portal_push.png") });
+    await page.waitForFunction(h => { const q = window.__harness.p2(); return q.grounded && !q.portalDrop && q.health < h; }, hp0, { timeout: 5000, polling: 16 }).catch(() => {});
+    const hp1 = (await p2()).health;
+    check("Portal-Push deals fall-impact damage on landing", hp1 < hp0, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
+  }
+
   section("errors");
   check("no uncaught JS exceptions", jsErrors.length === 0, jsErrors.slice(0, 4).join(" | "));
 

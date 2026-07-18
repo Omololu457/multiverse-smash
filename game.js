@@ -1971,6 +1971,34 @@ function drawKuramaShroudAura(c, fighter) {
   c.restore()
 }
 
+// Rick's Portal-Pull / Portal-Push reappear the opponent above a destination and let
+// them fall (abilities.js rickPortalReposition). This applies the impact damage the
+// frame they reground — mirrors the _dot marker→resolver split (abilities stamps the
+// marker, the game loop resolves it). The ttl guards against a lingering marker if the
+// target somehow never lands (e.g. caught by another launcher mid-fall).
+function resolvePortalDropLanding(f) {
+  const pd = f && f._portalDrop
+  if (!pd) return
+  if (pd.ttl != null && --pd.ttl <= 0) { f._portalDrop = null; return }
+  if (!(f.onGround || f.grounded)) return   // still falling — wait for the landing frame
+  let dmg = pd.dmg || 0
+  if (f.isBlocking) {
+    dmg = Math.floor(dmg * 0.25)
+    f.blockstun = Math.max(f.blockstun || 0, 16)
+  } else {
+    f.hitstun    = Math.max(f.hitstun || 0, pd.hitstun || 24)
+    f.vy         = -6            // small impact pop so the landing reads (and Pull can juggle)
+    f.onGround   = false
+    f.grounded   = false
+    f.isLaunched = true
+    f.colorFlash = Math.max(f.colorFlash || 0, 8)
+  }
+  f.health = Math.max(0, (f.health || 0) - dmg)
+  spawnDamageNumber({ x: f.x + (f.w || 60) / 2, y: f.y, damage: dmg, category: pd.category || "special" })
+  camera.shake?.(10, 8)
+  f._portalDrop = null
+}
+
 function updateFighterState(fighter) {
   if (!fighter) return fighter
   const updated = updateTransformationState(fighter, getAbilityContext()) || fighter
@@ -1978,6 +2006,7 @@ function updateFighterState(fighter) {
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
+  resolvePortalDropLanding(updated)   // Rick Portal-Pull/Push: impact damage the frame they reground
   physics.updateAttackBox(updated)
   // Ben/Albedo run the transform-device drain/charge/revert system instead of
   // the generic passive regen (which would fight the drain). Driven by real
@@ -3731,7 +3760,8 @@ gameLoop()
     lastBobUp:        f._lastBobUp ?? null,
     ultCooldown:      f.ultimateCooldown || 0,
     ultReleased:      !!f._ultReleasedSinceStage1,
-    arenaHalfLock:    f._arenaHalfLock || null
+    arenaHalfLock:    f._arenaHalfLock || null,
+    portalDrop:       !!f._portalDrop
   })
 
   window.__harness = {

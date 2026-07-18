@@ -2178,7 +2178,11 @@ function executeRickSpecial(fighter, context) {
   // + combo it grants, not the hit itself.
   if (endsWithPattern(dirs, ["D", "F"])) {
     if (!spendEnergy(fighter, 35)) return false
-    rickPortalReposition(fighter, target, context, "pull", 60, 30)
+    // 42 EFFECTIVE (direct/unscaled — the manual-damage convention shared by the ult
+    // AND summons; NOT the projectile ×0.60 path). Deliberately the softest special
+    // (below Rocket's 57 and Meeseeks' 45): the payoff is the free melee position +
+    // combo, so the hit itself is secondary. See RICK_ASSET_MAP.md numbers section.
+    rickPortalReposition(fighter, target, context, "pull", 42, 30)
     fighter._spriteCastMove  = "portalTravel"
     fighter._spriteCastTimer = 22
     fighter.attackCooldown   = getAttackDuration(20, fighter)
@@ -2192,7 +2196,12 @@ function executeRickSpecial(fighter, context) {
   // since (unlike Pull) it grants no follow-up, just a full-screen reset.
   if (endsWithPattern(dirs, ["D", "B"])) {
     if (!spendEnergy(fighter, 45)) return false
-    rickPortalReposition(fighter, target, context, "push", 90, 34)
+    // 65 EFFECTIVE (direct/unscaled, same convention). Deliberately the hardest-hitting
+    // special, but only a modest committal premium over Rocket's 57 — NOT the old
+    // accidental 90. Justified: Push is the most committal/situational special (QCB
+    // motion, needs a live target, WHIFFS on i-frames while still spending 45 meter,
+    // and grants NO follow-up — just a full-screen reset). See RICK_ASSET_MAP.md.
+    rickPortalReposition(fighter, target, context, "push", 65, 34)
     fighter._spriteCastMove  = "portalTravel"
     fighter._spriteCastTimer = 22
     fighter.attackCooldown   = getAttackDuration(22, fighter)

@@ -124,10 +124,10 @@ temporary hurt (upright, teal could read as hit-flash) but is **TEMPORARY pendin
   Both a recovery/mobility tool AND an attack.
 - **PORTAL-PULL — QCF + Special (Down→Forward, then L).** Teleports the OPPONENT to a spot
   right next to Rick (combo-starter positioning) — reappearing ABOVE it in midair, then FALLING.
-  Cost **35**, fall-impact **60**. See "Portal-Pull / Portal-Push" below.
+  Cost **35**, fall-impact **42** (unscaled/effective). See "Portal-Pull / Portal-Push" below.
 - **PORTAL-PUSH — QCB + Special (Down→Back, then L).** Teleports the OPPONENT to maximum distance
   (the farther stage edge, clamped to the visible frame by the always-on camera bound), reappearing
-  ABOVE it and FALLING. Cost **45**, fall-impact **90**. See below.
+  ABOVE it and FALLING. Cost **45**, fall-impact **65** (unscaled/effective). See below.
 - **PORTAL-BEHIND — double-tap toward opponent (movement, NOT the special button).** Reuses the
   EXISTING shared teleport (`game.js detectDoubleTapDashTeleport` → `teleportBehindTarget`) — the
   same system Gojo/Sukuna/Toji/Sasuke use. Rick's branch is reposition-only + plays
@@ -198,12 +198,27 @@ opponent ABOVE a destination x and let them FALL, taking impact damage on landin
   a small impact pop the frame they land, then clears the marker. A 240-frame ttl guards against a
   lingering marker if they never land (e.g. re-launched mid-fall). Works for p1/p2 AND ffa fighters
   (all route through `updateFighterState`).
-- **Damage/cost reasoning:** Pull **60 dmg / 35 cost**, Push **90 dmg / 45 cost** (applied DIRECTLY,
-  bypassing `GLOBAL_DAMAGE_SCALE 0.60`, like the ult/DOT). Pull is cheaper and hits softer because
-  most of its value is the free positional/combo advantage of yanking the opponent into melee range
-  — the hit is secondary. Push costs more and hits harder because the damage IS the reward: unlike
-  Pull it grants no follow-up, just a full-screen spacing reset (the zoner's dream), so it must pay
-  for itself. Invulnerable/eliminated opponents make it whiff (energy still spent, like a grab whiff).
+- **Damage/cost reasoning:** Pull **42 dmg / 35 cost**, Push **65 dmg / 45 cost**. Landing impact is
+  applied DIRECTLY (`f.health -= dmg` in the resolver), so it is UNSCALED — it does NOT pass through
+  the projectile pipeline's `GLOBAL_DAMAGE_SCALE 0.60`. That is deliberate and convention-consistent:
+  in this codebase *manually-applied ability damage is direct* — the Self-Destruct ult applies its
+  180 directly, AND summons apply their damage directly too (`summons.js` `summon.target.health -=
+  summon.damage`), so **Meeseeks' 45 is already unscaled**. Only the *projectile* path
+  (`combat.js resolveProjectileHits`, e.g. Rocket) and the *melee/grab* path apply ×0.60. Routing the
+  game.js landing resolver through the scale would mean leaking combat.js's private
+  `GLOBAL_DAMAGE_SCALE` const across a module boundary — worse than matching the ult/summon
+  direct-damage convention. So the raw numbers ARE the effective numbers, tuned against the other
+  same-tier specials' EFFECTIVE damage: **Meeseeks 45 (cost 30), Rocket 57 (=95×0.60, cost 40)**.
+    - **Pull = 42:** deliberately the *softest* special (below both Rocket 57 and Meeseeks 45). Its
+      payoff is the free melee position + guaranteed combo start from yanking the opponent in — the
+      hit is secondary, so it under-pays in raw damage on purpose.
+    - **Push = 65:** deliberately the *hardest-hitting* special, but only a **modest committal premium
+      over Rocket** (65 vs 57, ~+14%) — NOT the old accidental 90 (which was ~+58%, an unexamined
+      side effect of being unscaled, not a design choice). The premium is earned: Push is the most
+      committal/situational move in the kit — it needs a QCB motion, requires a live target, **whiffs
+      entirely on i-frames while still spending its 45 meter**, and grants NO follow-up (just a
+      full-screen reset). Highest cost → highest special damage is intentional and proportional here.
+  Invulnerable/eliminated opponents make either move whiff (energy still spent, like a grab whiff).
 - **FX:** both play `portalTravel` (`rick_portal_attack_travel.png`) on Rick + spawn a `visualOnly`
   green portal ring (`portalWarp`) where the opponent reappears; camera focus + landing shake.
 - **Tested:** `harness/rick.test.mjs` now 35/35 (Pull adjacency + fall damage; Push max-distance

@@ -943,6 +943,7 @@ const akaza = {
 // ─────────────────────────────────────────────────────────────────
 const rick = {
   rosterKey: "rick", name: "Rick Sanchez", universe: "rick_and_morty",
+  portrait: "./rick_pfp.png",   // EXACT on-disk filename (case + extension)
   archetypes: ["ranged", "zoner", "gadgets"],
   primary: "ranged", secondary: ["zoner", "gadgets"],
   traits: { hasEnergy: true, energyType: "bullshit_science", mobility: "medium", scaling: "versatile", animeMovement: false },
@@ -972,6 +973,11 @@ const rick = {
   ultimate: { name: "Self-Destruct", cost: 140, description: "Instant proximity AOE blast — only connects if the opponent is close enough. Rick takes NO self-damage. Near-max meter cost." },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  // Rick has NO dedicated intro sprite (never cataloged). Without this, the intro state
+  // falls back to the shared "transform" slot — which Rick lacks — and sprite.js draws its
+  // 128px NULL/fallback box (the "floating + garbled frames" intro bug). introPool:["idle"]
+  // makes his intro simply play the grounded, correctly-scaled IDLE animation instead.
+  introPool: ["idle"],
   hasSprites: true,
   // 1.85: idle content 68px × 1.85 ≈ 126px on-screen. DIAGNOSED (not a blind bump):
   // at the old 1.7 Rick already rendered ~116px = TOP of the roster range (Sasuke 116,

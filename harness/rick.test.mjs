@@ -268,7 +268,9 @@ try {
     // Fall + land → impact damage.
     await page.waitForFunction(h => { const q = window.__harness.p2(); return q.grounded && !q.portalDrop && q.health < h; }, hp0, { timeout: 5000, polling: 16 }).catch(() => {});
     const hp1 = (await p2()).health;
-    check("Portal-Pull deals fall-impact damage on landing", hp1 < hp0, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
+    // Damage is applied DIRECTLY (unscaled — the ult/summon convention), and the dummy
+    // isn't blocking, so the delta must equal the exact raw value: 42 effective.
+    check("Portal-Pull deals its exact effective fall-impact damage (42)", Math.round(hp0 - hp1) === 42, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
   }
 
   // ── PORTAL-PUSH — QCB (D→B) + Special: banish to far edge + fall-impact, in-bounds ──
@@ -310,7 +312,9 @@ try {
     await page.screenshot({ path: path.join(OUT, "RK_portal_push.png") });
     await page.waitForFunction(h => { const q = window.__harness.p2(); return q.grounded && !q.portalDrop && q.health < h; }, hp0, { timeout: 5000, polling: 16 }).catch(() => {});
     const hp1 = (await p2()).health;
-    check("Portal-Push deals fall-impact damage on landing", hp1 < hp0, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
+    // Unscaled direct damage, dummy not blocking → exact raw: 65 effective (a modest
+    // committal premium over Rocket's 57, deliberately the hardest special).
+    check("Portal-Push deals its exact effective fall-impact damage (65)", Math.round(hp0 - hp1) === 65, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
   }
 
   section("errors");

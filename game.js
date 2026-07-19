@@ -1792,6 +1792,22 @@ function recordDirectionInput(fighter, key) {
   if (fighter.directionHistory.length > 16) fighter.directionHistory.shift()
 }
 
+// BETA input simplification: the single relative direction currently HELD when Special is
+// pressed. Priority U > F > B > D (so a still-held qcf-style down+forward reads as Forward,
+// matching the qcf reduction). Returns null for neutral. Consumed ONLY by the beta branch of
+// abilities.getRelativeDirections — normal play never calls this, so the motion system below
+// (getRelativeDirectionsFromHistory / recordDirectionInput) is completely unaffected.
+function betaHeldDirFromInput(inputState, facing) {
+  if (!inputState) return null
+  if (inputState.up) return "U"
+  const fwdHeld  = (facing >= 0) ? inputState.right : inputState.left
+  const backHeld = (facing >= 0) ? inputState.left  : inputState.right
+  if (fwdHeld)  return "F"
+  if (backHeld) return "B"
+  if (inputState.down) return "D"
+  return null
+}
+
 function getRelativeDirectionsFromHistory(fighter, maxAge = COMMAND_INPUT_MAX_AGE) {
   if (!fighter) return []
   const now    = performance.now()
@@ -2079,7 +2095,13 @@ function updatePlayerCombat(fighter) {
   // Specials are L (direction-modified inside executeXSpecial). Gojo's Infinity
   // toggle moved to P-TAP (handleChargeRelease), so Down+Special is free for the
   // S+L motion specials (e.g. Hollow Purple = S,A+L).
-  if (canStart && inputState.special)  { triggerSpecial(fighter,  getAbilityContext()); return }
+  if (canStart && inputState.special)  {
+    // BETA input simplification: stamp the single relative direction currently HELD so
+    // abilities.getRelativeDirections' beta branch can pick the special the equivalent
+    // motion roll would have produced. Beta-gated → normal play never sets/reads this.
+    if (isBetaUnlocked()) fighter._betaHeldDir = betaHeldDirFromInput(inputState, fighter.facing)
+    triggerSpecial(fighter,  getAbilityContext()); return
+  }
   if (canStart && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
 
   // TOJI stance combat: Blade stance fires its real normals + drives the rekka; Chain/Gun
@@ -4087,6 +4109,11 @@ gameLoop()
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
     setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
+    // ── deterministic reset for the beta-input test (clears the motion buffer + cooldowns so
+    //    successive command-special casts don't contaminate each other via stale directionHistory
+    //    or a lingering summon/chain recast lock). Test-only, like the rest of __harness.
+    resetFighterInput: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return; f.directionHistory = []; f.attackCooldown = 0; f.summonCooldown = 0; f.chainCooldown = 0; f.teleportCooldown = 0 },
+    clearProjectiles:  () => { activeProjectiles.length = 0 },
     healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false } },  // reset dummy between damage checks
     liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
     hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)

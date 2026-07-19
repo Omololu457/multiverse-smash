@@ -9,6 +9,7 @@ import { activateDomain } from "./domains.js"   // domains.js doesn't import abi
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
 import { resolveGrab } from "./combat.js"   // shared grab pipeline (combat.js doesn't import abilities.js → no cycle)
+import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
@@ -172,6 +173,16 @@ function normalizeMotionToken(token) {
 }
 
 function endsWithPattern(list, pattern) {
+  // BETA INPUT SIMPLIFICATION (beta code only): in beta, `list` is the EXACT canonical
+  // motion synthesized from the single held direction (see getRelativeDirections beta
+  // branch), so match by exact equality. This prevents a reduced single-direction input
+  // from false-triggering a longer motion via the forgiving subsequence match below.
+  // Normal (non-beta) play never enters this branch — the logic below is untouched.
+  if (isBetaUnlocked()) {
+    return Array.isArray(list) && Array.isArray(pattern) &&
+           list.length === pattern.length &&
+           list.every((tok, i) => tok === pattern[i])
+  }
   if (!Array.isArray(list) || list.length < pattern.length) return false
   // FORGIVING match (not pixel-frame-perfect): the pattern must appear IN ORDER
   // within the last (pattern.length + 1) recent inputs — tolerating ONE stray or
@@ -186,8 +197,56 @@ function endsWithPattern(list, pattern) {
   return pi === pattern.length
 }
 
+// ─────────────────────────────────────────────────────────────────
+// BETA-ONLY INPUT SIMPLIFICATION — single held direction → special
+// ─────────────────────────────────────────────────────────────────
+// When the beta code (GojoV1 / isBetaUnlocked) is active, the motion-roll requirement
+// for command specials is replaced by "hold ONE direction, then tap Special". Each entry
+// maps a held RELATIVE direction (F/B/U/D, or N = neutral/none) to the EXACT motion array
+// the (unchanged) per-character dispatch already expects, so the dispatch fires the SAME
+// special the full motion would have produced. Directions NOT listed fall back to the
+// character's neutral/default special ([]). Reductions were chosen collision-free; the
+// non-clean substitutes (Naruto Pincer, Megumi Nue/Toad, Toji Rapid Strike) are marked
+// (sub) and documented in BETA_INPUT_MAP.md. The main (non-beta) motion system is untouched.
+const BETA_SPECIAL_MOTIONS = {
+  goku:   { F: ["D", "F"] },                                                                    // F=Kamehameha · neutral=Dragon Fist
+  gojo:   { F: ["F"],      B: ["D", "B"], U: ["U"] },                                            // F=Red · B=Hollow Purple · U=Teleport · neutral=Blue
+  sukuna: { F: ["F"],      B: ["D", "B"] },                                                      // F=Flame Arrow · B=Dismantle · neutral=Cleave
+  naruto: { F: ["D", "F"], B: ["D", "B"], U: ["B", "U"], D: ["D"] },                             // F=Clone Spawn · B=Clone Dispel · U=Pincer Rendan(sub) · D=Dark Rasengan · neutral=Rasengan
+  megumi: { F: ["D", "F"], B: ["D", "B"], U: ["D", "U"], D: ["F", "D", "F"], N: ["B", "F"] },    // F=Divine Dogs · B=Max Elephant · U=Rabbit · D=Nue(sub) · neutral=Toad(sub)
+  toji:   { F: ["D", "F"], B: ["D", "B"], D: ["F", "F"] },                                       // F=Curse Spirit · B=Chain-Knife · D=Rapid Strike(sub) · neutral=Inventory Smash
+  sasuke: { F: ["D", "F"], B: ["D", "B"], D: ["D"] },                                            // F=Lightning · B=Chidori Koiten · D=Shuriken · neutral=Dash Strike
+  rick:   { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] }                                   // F=Portal-Pull · B=Portal-Push · U=Rocket · D=Laser · neutral=Meeseeks
+}
+
+// Resolve the exact canonical motion for the fighter's currently-held direction (stamped
+// by game.js as fighter._betaHeldDir the frame Special is pressed). ALWAYS returns an array
+// (never falls back to motion history) so, in beta, only the held direction matters.
+function betaMotionForHeldDir(fighter) {
+  const held = fighter._betaHeldDir || null   // "F" | "B" | "U" | "D" | null (neutral)
+  const key  = (fighter.rosterKey || fighter.id || "").toLowerCase()
+
+  // Sasuke's Susanoo dispatch (executeSasukeSpecial, stage>0) reads the RAW held direction
+  // (includes "D" → grab, else sword/arrow) rather than a motion. Keep the synthetic minimal
+  // there so a held Forward can't inject a "D" and wrongly force the grab.
+  if (key === "sasuke" && (fighter._susanooStage || 0) > 0) return held === "D" ? ["D"] : []
+
+  // Mahoraga (transformed Megumi) fires Wheel Rotation unconditionally (its dispatch ignores
+  // directions), so a single token is safe and avoids applying Megumi's summon map.
+  if (fighter.isMahoraga) return held ? [held] : []
+
+  const map = BETA_SPECIAL_MOTIONS[key]
+  if (!map)  return held ? [held] : []   // generic fallback dispatch: single token ([B]/[F]/[D])
+  if (!held) return map.N || []          // neutral (some chars remap neutral — e.g. Megumi → Toad)
+  return map[held] || []                 // unmapped held dir → neutral/default special
+}
+
 function getRelativeDirections(fighter, maxAge = COMMAND_INPUT_MAX_AGE) {
   if (!fighter) return []
+  // BETA: collapse motion rolls to the single held direction (see BETA_SPECIAL_MOTIONS).
+  // game.js stamps fighter._betaHeldDir from the live input the frame Special is pressed.
+  // Non-beta play skips this entirely — the motion-history logic below is byte-for-byte intact.
+  if (isBetaUnlocked()) return betaMotionForHeldDir(fighter)
   const now    = performance.now()
   const recent = (fighter.directionHistory || []).filter(d => now - d.time <= maxAge)
   return recent.map(d => {

@@ -35,14 +35,15 @@ import {
   triggerSpecial, triggerUltimate, triggerTransformation,
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
-  applyCloneRendanStorm   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
+  applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
+  updateTojiStanceSwitch, updateTojiStanceCombat, getTojiStance   // Toji 3-stance weapon system (+ Blade moveset)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
   drawBattleBackground, drawCharacterSelectScreen, drawControlsInfo,
   drawCountdown, drawFighter, drawHealthAndEnergyBars, drawMatchEnd,
   drawProjectiles, drawRoundBreak, drawStartScreen, drawStageSelectScreen,
-  drawTrainingCollisionBoxes, drawTrainingOverlay, drawUniverseSelectScreen,
+  drawTrainingCollisionBoxes, drawTrainingOverlay, drawStanceIndicator, drawUniverseSelectScreen,
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
   drawTowerSelectScreen, getTowerSelectRects,
   drawFFASetupScreen, getFFASetupRects, drawFFACharSelectScreen,
@@ -1051,6 +1052,8 @@ function createFighter(charKey, char, x, facing, controls, side) {
     rosterKey: charKey,
     // p1→1, p2→2, p3→3, p4→4 (p3/p4 only exist in the FFA POC). 1v1 is unchanged.
     playerNumber: { p1: 1, p2: 2, p3: 3, p4: 4 }[side] || 2,
+    // Toji 3-stance weapon system (foundation): every Toji starts in Blade.
+    weaponStance: charKey === "toji" ? "blade" : undefined,
     // Ben 10's chosen 5-alien Omnitrix loadout (read by setupBen10 on frame 1).
     selectedAliens: (side === "p1" ? matchConfig.p1Aliens : matchConfig.p2Aliens) || null,
     side, controls, x,
@@ -1193,6 +1196,50 @@ function resetRound() {
   if (p1 && p2 && typeof camera.update === "function") camera.update(p1, p2, canvas)
 }
 
+// ── PRE-MATCH INTRO SELECTION ─────────────────────────────────────────────────
+// Generic "pick one of N intros at random" for the pre-round entrance. A character
+// can declare `introPool: ["actionA", "actionB", ...]` in characters.js (animationData
+// action names); this returns one at random each match so intros vary across rounds.
+// Not gated to any count — add a 4th pool entry and it joins the rotation automatically.
+// No pool → returns null, and sprite.js falls back to the shared "transform" intro slot,
+// so every existing character's behaviour is unchanged.
+function pickIntroVariant(fighter) {
+  const pool = fighter && fighter.introPool
+  if (!Array.isArray(pool) || pool.length === 0) return null
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+// FIXED-ORDER multi-part intro (e.g. Toji: walk-in → ready-up). A character declares
+// `introSequence: [actionA, actionB, ...]` whose steps play back-to-back IN ORDER —
+// distinct from introPool (random pick). Each step holds for its own play duration
+// (frames × speed), then advanceIntroSequence() flips to the next; the last step holds.
+function introStepFrames(fighter, action) {
+  const d = fighter && fighter.animationData && fighter.animationData[action]
+  if (!d) return 30
+  return Math.max(1, (d.frames || 1) * (d.speed || 5))
+}
+function initIntroVariant(fighter) {
+  if (!fighter) return
+  const seq = fighter.introSequence
+  if (Array.isArray(seq) && seq.length) {
+    fighter._introSeq      = seq
+    fighter._introSeqIdx   = 0
+    fighter._introVariant  = seq[0]
+    fighter._introSeqTimer = introStepFrames(fighter, seq[0])
+  } else {
+    fighter._introSeq     = null
+    fighter._introVariant = pickIntroVariant(fighter)
+  }
+}
+function advanceIntroSequence(fighter) {
+  if (!fighter || !fighter._introSeq) return
+  if (fighter._introSeqIdx >= fighter._introSeq.length - 1) return   // hold final step
+  if (--fighter._introSeqTimer > 0) return
+  fighter._introSeqIdx++
+  fighter._introVariant  = fighter._introSeq[fighter._introSeqIdx]
+  fighter._introSeqTimer = introStepFrames(fighter, fighter._introVariant)
+}
+
 // ── PRE-MATCH CHARACTER ANNOUNCEMENT ──────────────────────────────────────────
 // Runs inside the existing round-1 INTRO phase (so it's first-round-only, matching
 // the intro convention): zoom on P1 then P2, playing each side's name-call clip if
@@ -1277,8 +1324,11 @@ function startMatch() {
   gameState       = GAME_STATES.INTRO
   // BUG_9: play the intro/transform strip during the intro window (cleared when
   // BATTLE starts). Harmless for non-sprite fighters (they render procedurally).
-  if (p1) p1._introPlaying = true
-  if (p2) p2._introPlaying = true
+  // pickIntroVariant randomly selects one entry from the fighter's `introPool` (if any) so
+  // characters with multiple intros (e.g. Sasuke) get visual variety across matches; fighters
+  // with no pool get null → sprite.js falls back to the shared "transform" intro (unchanged).
+  if (p1) { p1._introPlaying = true; initIntroVariant(p1) }
+  if (p2) { p2._introPlaying = true; initIntroVariant(p2) }
 
   sound.stopMusic?.()
   sound.playStageTrack?.(matchConfig.selectedStage)
@@ -1917,6 +1967,13 @@ function updatePlayerCombat(fighter) {
   }
 
   const inputState = getFighterInput(fighter)
+  const isToji     = (fighter.rosterKey || "").toLowerCase() === "toji"
+
+  // TOJI STANCE SWITCH (charge tap). Runs BEFORE canStart so a switch pressed during an
+  // attack's RECOVERY phase cancels it (attacking→false), freeing the fighter to act again
+  // this frame (gated by the STANCE_SWITCH_FRAMES cooldown the switch sets).
+  if (isToji) updateTojiStanceSwitch(fighter, inputState.charge, getAttackPhase)
+
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   const canStart   = !fighter.attacking && !fighter.currentMove
 
@@ -1925,7 +1982,18 @@ function updatePlayerCombat(fighter) {
   // S+L motion specials (e.g. Hollow Purple = S,A+L).
   if (canStart && inputState.special)  { triggerSpecial(fighter,  getAbilityContext()); return }
   if (canStart && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
-  updateCombat(fighter, getOpponent(fighter), buildNormalControlState(fighter, vKeys), opts)
+
+  // TOJI stance combat: Blade stance fires its real normals + drives the rekka; Chain/Gun
+  // fire the Phase-1 placeholder light. Consumes the grounded light/heavy/up press when it
+  // acts (returns true → skip the normal path).
+  if (isToji && updateTojiStanceCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // Toji's grounded normals are stance-driven, so SUPPRESS the built-in light/heavy/up here
+  // (else updateCombat would also start the old row-sheet normals / double-fire). Aerials
+  // (air/downAir) and grab stay on the normal path. Other characters are unaffected.
+  let ctrlState = buildNormalControlState(fighter, vKeys)
+  if (isToji) ctrlState = { ...ctrlState, light: false, heavy: false, upAttack: false }
+  updateCombat(fighter, getOpponent(fighter), ctrlState, opts)
 }
 
 // ------------------------------------------------------------------
@@ -2677,6 +2745,13 @@ function drawBattleHud() {
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
   drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)
   drawLowHealthWarning?.(ctx, canvas, p1, p2, globalFrameCount)
+
+  // Toji 3-stance indicator (foundation) — visible for any Toji fighter in the match.
+  const stanceEntries = []
+  if ((p1?.rosterKey || "").toLowerCase() === "toji") stanceEntries.push({ label: "P1", stance: getTojiStance(p1) })
+  if ((p2?.rosterKey || "").toLowerCase() === "toji") stanceEntries.push({ label: "P2", stance: getTojiStance(p2) })
+  if (stanceEntries.length) drawStanceIndicator(ctx, canvas, stanceEntries)
+
   if (!trainingState.enabled) return
   const lastDmg = damageNumbers.length ? (damageNumbers[damageNumbers.length - 1].value || 0) : 0
   drawTrainingOverlay(ctx, canvas, {
@@ -3458,6 +3533,10 @@ function updateCurrentState() {
 
   switch (gameState) {
     case GAME_STATES.INTRO:
+      // Step any fixed-order intro sequence (Toji walk-in → ready-up) every intro frame,
+      // during namecall AND the countdown window, so both parts play in order.
+      if (p1 && p1._introPlaying) advanceIntroSequence(p1)
+      if (p2 && p2._introPlaying) advanceIntroSequence(p2)
       if (namecallActive) {
         // Announcement phase: hold each side's zoom, then advance to the next mapped
         // side; when done, ease the camera back to normal framing. The VS-banner /
@@ -3742,6 +3821,29 @@ gameLoop()
     bootVs: () => { startHarnessMatch({ mode: "vs", difficulty: "easy" }); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
     // Pause-menu introspection: current selection + item id (drive with real esc/↓/enter keys).
     pauseSel: () => ({ gameState, index: pauseMenuIndex, item: PAUSE_MENU_ITEMS[pauseMenuIndex] }),
+    // Camera introspection (zoom regression diagnosis).
+    camera: () => ({ zoom: camera.zoom, targetZoom: camera.targetZoom, x: camera.x, y: camera.y }),
+    // Expire an active Susanoo so the normal update loop auto-reverts it (recovery timing).
+    expireSusanoo: () => { if (p1 && (p1._susanooStage || 0) > 0) p1._susanooTimer = 1 },
+    // Toji stance system introspection (foundation): stance + live attack phase/move.
+    tojiState: who => {
+      const f = who === "p2" ? p2 : p1
+      if (!f) return null
+      return {
+        stance: getTojiStance(f),
+        attacking: !!f.attacking,
+        phase: getAttackPhase(f),
+        move: f.currentMove || (f.currentAttack && f.currentAttack.name) || null,
+        attackCooldown: f.attackCooldown || 0,
+        rekkaNext: f._rekkaNext || null,   // Blade rekka: the next hit a fresh light would chain to
+        canAct: !f.attacking && (f.attackCooldown || 0) <= 0 && (f.hitstun || 0) <= 0
+      }
+    },
+    // Render-scale introspection: the resolved action + its rendered cell height (dstH).
+    // Used to confirm old-row-sheet actions (guard/grab/…) render at correct proportion.
+    renderInfo: who => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, dstH: f._lastDstH ?? null } : null },
+    // Hurtbox introspection (Susanoo giant-hurtbox fix): the box combat uses for hits.
+    hurtbox: who => { const f = who === "p2" ? p2 : p1; const hb = getHurtbox(f); return f && hb ? { ...hb, fx: f.x, fy: f.y, fw: f.w, fh: f.h, drawTop: f._lastDrawY ?? null, drawH: f._lastDrawH ?? null } : null },
     state: () => ({ gameState, countdown, frame: globalFrameCount }),
     arena: () => ({ left: physics.stageLeft, width: physics.stageWidth,
                     mid: physics.stageLeft + (physics.stageWidth - physics.stageLeft) * 0.5 }),

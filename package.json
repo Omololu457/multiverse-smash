@@ -8,7 +8,15 @@
     "test:training": "node harness/training.test.mjs",
     "test:tower": "node harness/tower.test.mjs",
     "test:ffa": "node harness/ffa.test.mjs",
-    "test:team": "node harness/team.test.mjs"
+    "test:team": "node harness/team.test.mjs",
+    "test:toji-stance": "node harness/toji_stance.test.mjs",
+    "test:toji-blade": "node harness/toji_blade.test.mjs",
+    "test:toji-chain": "node harness/toji_chain.test.mjs",
+    "test:toji-gun": "node harness/toji_gun.test.mjs",
+    "test:toji-oldart": "node harness/toji_oldart.test.mjs",
+    "test:toji": "node harness/toji.test.mjs",
+    "test:toji-motion": "node harness/toji_motion.test.mjs",
+    "test:toji-command": "node harness/toji_command.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

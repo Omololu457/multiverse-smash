@@ -54,5 +54,8 @@ export function getAction(charKey, actionKey, skinAnim = null) {
     sourceX: a.sourceX || 0,
     sourceY: a.sourceY || 0,
     spriteScale: c.spriteScale,   // also surfaced via fighter.spriteScale in draw()
+    // Per-action scale correction (Toji old-row-sheet actions) — draw() multiplies it into
+    // the display scale so art not tuned for the character's global spriteScale renders right.
+    actionScale: a.actionScale,
   };
 }

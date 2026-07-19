@@ -171,8 +171,14 @@ function _resolveAction(fighter, currentAction = "idle") {
   if ((fighter._comboFinisherReactTimer || 0) > 0 &&
       (fighter._skinAnim?.knockdown || fighter.animationData?.knockdown)) return "knockdown";
 
-  // Hurt state takes priority once hitstun begins
-  if ((fighter.hitstun || 0) > 0) return "hurt";
+  // Hurt state takes priority once hitstun begins. Airborne hurt uses a dedicated
+  // strip when the fighter defines one (Toji → hurt_air); otherwise the grounded
+  // "hurt" — a no-op for every character WITHOUT a hurt_air strip.
+  if ((fighter.hitstun || 0) > 0) {
+    const airborne = !(fighter.grounded ?? fighter.onGround ?? false);
+    if (airborne && (fighter._skinAnim?.hurt_air || fighter.animationData?.hurt_air)) return "hurt_air";
+    return "hurt";
+  }
   if ((fighter.stun || 0) > 0) return "hurt";
 
   // Blocking — show a dedicated guard pose when the fighter defines one (skin anim
@@ -305,9 +311,17 @@ export class SpriteHandler {
     // DESTINATION draw size up to roughly fill the hitbox. Source slicing stays
     // at native drawWidth/drawHeight (the SOURCE rect below); only the drawn size
     // scales. Defaults to 1 → identical to before for every other character.
-    const scale = fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1;
+    let scale = fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1;
+
+    // Per-ACTION scale correction: an action may carry `actionScale` to render at a
+    // different proportion than the character's global spriteScale. Used for Toji's
+    // remaining OLD row-sheet actions (block/transform/grab/air/specials), whose art was
+    // never tuned for the 2.3 spriteScale of the new transparent-bg sheets — without this
+    // they render ~1.3x oversized. Guarded on the field → zero effect elsewhere.
+    if (this._actionDef?.actionScale) scale *= this._actionDef.actionScale;
     const dstW = drawWidth * scale;
     const dstH = drawHeight * scale;
+    fighter._lastDstH = dstH;   // rendered cell height (scale-correctness checks / harness)
 
     // Center horizontally over the hitbox (using SCALED width)
     const offsetX = (dstW - fighterW) / 2 + (frameData.anchorX || 0);

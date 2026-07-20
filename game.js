@@ -342,10 +342,11 @@ const SERIES_MUSIC = {
 // character NOT listed here simply gets NO announcement beat — the pre-countdown
 // sequence skips that fighter cleanly (see beginNamecallSequence). Case-sensitive.
 const NAMECALL_AUDIO = {
-  naruto: "naruto_namecall.mp3",
-  gojo:   "gojo_namecall.mp3",
-  sukuna: "sukuna_namecall.mp3",
-  rick:   "rick_intro.mp3"
+  naruto:     "naruto_namecall.mp3",
+  gojo:       "gojo_namecall.mp3",
+  sukuna:     "sukuna_namecall.mp3",
+  rick:       "rick_intro.mp3",
+  goku_black: "goku_black_intro.mp3"
 }
 
 // Data-driven stage table — add a stage here (palette + series + landmark id)

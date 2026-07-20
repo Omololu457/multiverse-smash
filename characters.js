@@ -45,15 +45,23 @@ const goku = {
     ssblue:        { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.2, kiDrainPerSecond: 8, isSpecial: true, duration: 720 },
     ultraInstinct: { damageMultiplier: 2.5, speedMultiplier: 2, defenseMultiplier: 1.5, autoDodge: true, autoDodgeKiCost: 10, kiDrainPerSecond: 12, isSpecial: true, duration: 480 }
   },
-  // ── SPRITE TEARDOWN 2026-07-20 (full art redo pending) ──────────────────────────────
-  // All goku_* sheets were git-rm'd (base + ssj_god sets) and the SPRITE_MANIFEST `goku`
-  // entry removed, so `hasSprites` (now absent → falsy) + spritesReady() fall back to the
-  // procedural box renderer — exactly like the other Dragon Ball characters (vegeta/
-  // piccolo/frieza/cell). Gameplay is UNTOUCHED: stats, Kamehameha/Dragon Fist specials,
-  // and the Super Saiyan Blue ultimate/transform logic all work as before, just drawn as a
-  // box until new art is wired. TO RESTORE: re-add `hasSprites: true`, `spriteScale`, an
-  // `animationData` idle atlas, and the spritesheets.js manifest entry (see git history).
-  animationData: { ...DEFAULT_ANIM }
+  hasSprites: true,
+  // Base (black-hair) Goku sprites sliced from goku_base_FULLSHEET_transparent.png.
+  // Idle source cell 34×37 → ×3.2 ≈ Sukuna/Gojo on-screen height (their 64px cells
+  // ×1.8 ≈ 115px; 37×3.2 ≈ 118). His idle is a WIDE stance, so at equal height he
+  // reads wider/stockier than the lean JJK sprites — expected, not a bug.
+  // ⚠ Goku MUST keep his skins.js SKINS entry: applySkin() pulls spriteScale from the
+  // default skin; without it getSkins() forces spriteScale:1 and he shrinks to 37px.
+  // BASE only (NOT goku_ssj_god_*); universe "dragon_ball" keeps him out of GojoV1 beta.
+  spriteScale: 3.2,
+  animationData: {
+    ...DEFAULT_ANIM,   // unmapped actions (walk/attacks/…) fall back to the box until their rows are sliced+wired
+    // ── ATLAS coords into goku_base_FULLSHEET_transparent.png: sourceX/sourceY = row's
+    // top-left; `width` = frame pitch (frames step right by it); `height` = cell height.
+    // idle: 6 touching frames, uniform 34px pitch (confirmed even-split). anchorY plants
+    // feet on the floor (screen px, scale-independent; more negative = lower).
+    idle: { frames: 6, width: 34, height: 37, speed: 6, anchorY: -3, sourceX: 0, sourceY: 10, sheet: "./goku_base_FULLSHEET_transparent.png" }
+  }
 }
 
 const vegeta = {

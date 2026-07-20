@@ -27,10 +27,9 @@ try{
   // ── Ground truth: the live hasSprites set ──────────────────────────────────
   section("Ground truth — hasSprites roster derived live from characters.js");
   const gt=await sets();
-  // Sprite roster is derived live from hasSprites, so its size grows/shrinks as characters gain or
-  // lose sprites. Goku was torn down to a procedural box on 2026-07-20 for a full art redo, so he
-  // dropped OUT of the sprite roster (7 now: no goku).
-  const KNOWN_SPRITE=["gojo","megumi","sukuna","toji","naruto","sasuke","rick"];
+  // Sprite roster is derived live from hasSprites, so its size grows as characters gain sprites.
+  // Assert the known sprite-complete characters are ALL present (Rick joined via the merge → 8).
+  const KNOWN_SPRITE=["goku","gojo","megumi","sukuna","toji","naruto","sasuke","rick"];
   check(`sprite roster contains all known sprite chars (now ${gt.sprite.length})`,
         KNOWN_SPRITE.every(k=>gt.sprite.includes(k)), `sprite=${sortJoin(gt.sprite)}`);
   check("full non-hidden roster is much larger (filter is meaningful)", gt.all.length>gt.sprite.length+10, `all=${gt.all.length}`);
@@ -52,13 +51,11 @@ try{
   m=await menu();
   check("selectable roster EQUALS the live hasSprites set", sortJoin(m.selectable)===sortJoin(spriteSet), `got=${sortJoin(m.selectable)}`);
   check("selectable count == sprite-roster size (dynamic)", m.selectable.length===spriteSet.length, `n=${m.selectable.length}`);
-  // Explicit exclusions — the procedural-box characters the task named must be gone. 'goku' joins
-  // this list post-teardown (2026-07-20): now sprite-less, so he's filtered out of the beta roster
-  // (and his dragon_ball universe drops entirely, being his only sprite char).
-  for(const gone of ["goku","vegeta","tanjiro","rickPrime","piccolo","killua"])
+  // Explicit exclusions — the procedural-box characters the task named must be gone.
+  for(const gone of ["vegeta","tanjiro","rickPrime","piccolo","killua"])
     check(`'${gone}' (no sprites) is NOT selectable`, !m.selectable.includes(gone));
   // Explicit inclusions — the sprite characters must all be present.
-  for(const has of ["gojo","sukuna","megumi","toji","naruto","sasuke","rick"])
+  for(const has of ["gojo","sukuna","megumi","toji","naruto","sasuke","goku","rick"])
     check(`'${has}' (has sprites) IS selectable`, m.selectable.includes(has));
   check("only sprite-having universes shown (dynamic)", sortJoin(m.universes)===sortJoin(gt.spriteUniverses), `universes=${sortJoin(m.universes)}`);
   section("BETA — full unlock scope (same as dev): Online + level-gated features + skins");

@@ -230,6 +230,21 @@ try {
     check("K deals no damage", hp1 === hp0, `hp ${hp0} → ${hp1}`);
   }
 
+  // ── SPECIAL (L) + ULTIMATE (U) are inert this stage (no glitch, no energy spend) ──
+  // Regression: the abilities.js fallback used to fire his DISPLAY-ONLY `specials`/`ultimate`
+  // kit-metadata stub as a bogus "kamehameha", setting action "special_2" (no sheet) → the idle
+  // sheet rendered unsliced as "4 copies". triggerSpecial/triggerUltimate now no-op goku_black.
+  section("special (L) + ultimate (U) — inert, no sprite glitch, no energy spent");
+  for (const [name, key] of [["special (L)", "l"], ["ultimate (U)", "u"]]) {
+    await setupAdjacent(50);
+    const e0 = (await p1()).energy;
+    await page.keyboard.down(key); await waitFrames(4); await page.keyboard.up(key); await waitFrames(6);
+    const s = await p1();
+    check(`${name} starts no attack`, s.attacking === false, `attacking=${s.attacking} action=${s.action}`);
+    check(`${name} does NOT glitch to special_2`, s.action !== "special_2" && (s.spriteSheet || "").includes("black_goku"), `action=${s.action} sheet=${s.spriteSheet}`);
+    check(`${name} spends no energy`, Math.abs((s.energy || 0) - e0) < 0.5, `energy ${e0.toFixed(0)} → ${(s.energy || 0).toFixed(0)}`);
+  }
+
   // ── NO JS ERRORS ────────────────────────────────────────────────────────────
   section("stability — no uncaught page errors");
   check("no JS errors during the run", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));

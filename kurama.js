@@ -229,15 +229,9 @@ function applyKuramaDamage(ctx, snd) {
   // ═══════════════════════════════════════════════════════════════════════════
   if (dodged) return
 
-  // [DEBUG-TBB] block state at the EXACT impact frame. NOTE (see diagnosis): during
-  // the cinematic, updateBattle early-returns before updateMovementInput runs, so
-  // opp.isBlocking is FROZEN at its last pre-cinematic value — a block held only
-  // during the TBB never registers here.
-  console.log("[DEBUG-TBB] impact — opp.isBlocking =", opp.isBlocking,
-    "| kuramaCine.frame =", kuramaCine.frame, "T_IMPACT =", T_IMPACT,
-    "| KURAMA_DAMAGE =", KURAMA_DAMAGE, "BLOCKED_RATIO =", KURAMA_BLOCKED_DAMAGE_RATIO,
-    "→ damage would be", opp.isBlocking ? Math.round(KURAMA_DAMAGE * KURAMA_BLOCKED_DAMAGE_RATIO) : KURAMA_DAMAGE)
-
+  // NOTE (block state at impact): during the cinematic, updateBattle early-returns before
+  // updateMovementInput runs, so opp.isBlocking is FROZEN at its last pre-cinematic value —
+  // a block held only during the TBB never registers here.
   // BLOCK CHECK — the bomb always connects (no dodging the cinematic), but if the
   // opponent was already holding block the instant it lands, it's CHIPPED, not clean.
   const blocked = !!opp.isBlocking

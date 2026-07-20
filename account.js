@@ -49,7 +49,6 @@ export const persistence = {
   // SYNCHRONOUS: update the in-memory store immediately (unchanged contract), then
   // mirror to the granted file asynchronously (no await → callers stay sync).
   save(account) {
-    console.log("[DIAG persistence.save] invoked | accountId:", account?.accountId, "| _fileHandle set?:", !!_fileHandle)   // [DIAG] remove after test
     if (account?.accountId) _store.set(account.accountId, account)
     if (_fileHandle) _writeSnapshot()          // fire-and-forget; coalesced against in-flight writes
     return account
@@ -111,10 +110,8 @@ async function _writeSnapshot() {
   try {
     const writable = await _fileHandle.createWritable()
     const payload = JSON.stringify(_buildSnapshot(), null, 2)
-    console.log("[DIAG _writeSnapshot] WRITING", payload.length, "bytes to picked file")   // [DIAG] remove after test
     await writable.write(payload)
     await writable.close()
-    console.log("[DIAG _writeSnapshot] write+close OK")   // [DIAG] remove after test
     _statusText = `Auto-saving to ${SAVE_FILE_NAME}`
   } catch (err) {
     _fileHandle = null

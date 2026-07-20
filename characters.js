@@ -1622,7 +1622,7 @@ const gokuBlack = {
   // (Sasuke 116 / Naruto 118 / Gojo 112). anchorY values start at 0 and are screenshot-tuned.
   spriteScale: 1.7,
   animationData: {
-    idle:      { frames: 4, width: 57, height: 69, speed: 6, anchorY: 0, sheet: "./black_goku_idle.png" },        // 8-frame sheet = two idle variants; wire the first 4 (asset map §3.1)
+    idle:      { frames: 4, width: 31, height: 68, speed: 6, anchorY: 0, sheet: "./black_goku_idle.png" },        // RE-SLICED: variant A (arms-down sway), content-centered + feet-aligned (was a drifting/jittery uniform slice of the 2-variant sheet; variant B fists-up frames dropped)
     walk:      { frames: 4, width: 66, height: 55, speed: 5, anchorY: 0, sheet: "./black_goku_run.png" },
     run:       { frames: 4, width: 66, height: 55, speed: 4, anchorY: 0, sheet: "./black_goku_run.png" },
     dash:      { frames: 2, width: 88, height: 47, speed: 5, anchorY: 0, sheet: "./black_goku_dash.png" },
@@ -1631,10 +1631,10 @@ const gokuBlack = {
     hurt:      { frames: 7, width: 70, height: 78, speed: 6, anchorY: 0, sheet: "./black_goku_hit.png" },
     knockdown: { frames: 6, width: 76, height: 71, speed: 6, anchorY: 0, sheet: "./black_goku_get_up.png" },       // get-up sheet → knockdown slot
     guard:     { frames: 3, width: 52, height: 61, speed: 6, anchorY: 0, sheet: "./black_goku_block.png" },
-    light:     { frames: 6, width: 66, height: 57, speed: 3, anchorY: 0, sheet: "./black_goku_front_attack.png" },
-    up:        { frames: 9, width: 77, height: 64, speed: 3, anchorY: 0, sheet: "./black_goku_kick_attack.png" },
-    air:       { frames: 5, width: 58, height: 70, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" },
-    down_air:  { frames: 5, width: 58, height: 70, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" }    // reuses air_attack (base down-air GAP)
+    light:     { frames: 6, width: 65, height: 54, speed: 3, anchorY: 0, sheet: "./black_goku_front_attack.png" },  // RE-SLICED uniform (wide punch frames no longer left-clipped)
+    up:        { frames: 9, width: 65, height: 56, speed: 3, anchorY: 0, sheet: "./black_goku_kick_attack.png" },   // RE-SLICED uniform (spin-kick arc frames no longer clipped)
+    air:       { frames: 5, width: 56, height: 66, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" },    // RE-SLICED uniform (slash-arc frames no longer clipped)
+    down_air:  { frames: 5, width: 56, height: 66, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" }     // reuses air_attack (base down-air GAP)
   }
 }
 

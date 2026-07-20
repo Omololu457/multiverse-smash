@@ -2806,14 +2806,27 @@ function _drawInfinityAura(f) {
   ctx.restore()
 }
 
-// Persistent cue that Sasuke's ABSOLUTE DEFENSE toggle is up (works with his sprite): a pulsing
-// PURPLE ring — visually distinct from Gojo's cyan Infinity ring, echoing Susanoo's purple palette.
+// Persistent cue that Sasuke's ABSOLUTE DEFENSE toggle is up (works with his sprite).
+// The intended barrier imagery is the repurposed sasuke_susanoo_intro.png ribcage/aura sheet.
+// BUGFIX (playtester report 2026-07-20): that sheet used to be spawned ONLY as a one-shot 32-frame
+// FX on toggle-on (spawnAbsoluteDefenseFx) — it flashed for ~0.5s then decayed, leaving nothing but
+// the plain purple ring below for the ENTIRE remaining duration the toggle was up. So players saw
+// "a plain purple circle instead of the ribcage/aura imagery." Fix: draw the ribcage/aura sheet
+// PERSISTENTLY here (per-frame, tracking the fighter) for as long as the toggle is active — same
+// sheet-aura pattern Gojo's Infinity already uses (_drawInfinityAura). The ring stays as a subtle
+// underlay (and as the fallback while the sheet image is still loading).
 // Per-block negates also pop his teleportFlash (combat.shouldSasukeAbsoluteDefenseNegate).
+const ABSOLUTE_DEFENSE_SHEET = { src: "./sasuke_susanoo_intro.png", frames: 6, w: 113, h: 70, speed: 6, scale: 1.6 }
+let _absDefImg = null
+let _absDefAuraSheetFrame = 0   // last globalFrameCount the persistent ribcage/aura sheet actually drew (harness observable)
 function _drawAbsoluteDefenseAura(f) {
   if (!f || !f.absoluteDefenseActive) return
   const cx = f.x + f.w / 2, cy = f.y + f.h / 2
   const r  = Math.max(f.w, f.h) * 0.72
   const t  = globalFrameCount * 0.12
+
+  // Subtle ring underlay — keeps a clear "barrier is up" read and doubles as the
+  // fallback while the ribcage/aura sheet is still loading (first-ever activation).
   ctx.save()
   ctx.strokeStyle = "#c4b5fd"
   ctx.shadowBlur  = 16; ctx.shadowColor = "#8b5cf6"
@@ -2823,6 +2836,26 @@ function _drawAbsoluteDefenseAura(f) {
   ctx.globalAlpha = 0.14
   ctx.beginPath(); ctx.arc(cx, cy, r * 0.78, 0, Math.PI * 2); ctx.stroke()
   ctx.restore()
+
+  // Persistent ribcage/aura sheet — the actual Absolute Defense imagery, drawn every
+  // frame so it tracks Sasuke and never decays while the toggle is on.
+  if (!_absDefImg) { _absDefImg = new Image(); _absDefImg.src = ABSOLUTE_DEFENSE_SHEET.src }
+  if (_absDefImg.complete && _absDefImg.naturalWidth > 0) {
+    const frames = ABSOLUTE_DEFENSE_SHEET.frames || 1
+    const fw = ABSOLUTE_DEFENSE_SHEET.w || (_absDefImg.naturalWidth / frames)
+    const fh = ABSOLUTE_DEFENSE_SHEET.h || _absDefImg.naturalHeight
+    const fi = Math.floor(globalFrameCount / (ABSOLUTE_DEFENSE_SHEET.speed || 4)) % frames
+    const s  = ABSOLUTE_DEFENSE_SHEET.scale || 1
+    const dw = fw * s, dh = fh * s
+    _absDefAuraSheetFrame = globalFrameCount
+    ctx.save()
+    ctx.globalAlpha = 0.62 + Math.sin(t) * 0.10   // gentle pulse so it reads as an active aura
+    // Face the sheet toward Sasuke's facing so the aura sits over him consistently.
+    ctx.translate(cx, cy)
+    ctx.scale(f.facing || 1, 1)
+    ctx.drawImage(_absDefImg, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+    ctx.restore()
+  }
 }
 
 // HOLD-TO-CHARGE aura (Task 2): a visible, rising energy effect while a meter
@@ -4015,6 +4048,9 @@ gameLoop()
     version: 1,
     start:       startHarnessMatch,
     skipToBattle,
+    // Last frame the persistent Absolute Defense ribcage/aura SHEET actually rendered — lets a
+    // test prove the imagery persists past the one-shot toggle FX (playtester visual-bug fix).
+    absDefAuraSheetFrame: () => _absDefAuraSheetFrame,
     // ── UNLOCK CODES + menu visibility (beta-redefinition test) ──────────────────
     // Apply a dev/beta code and read back the resulting unlock flags.
     applyCode: (code) => ({ result: applyUnlockCode(code), beta: isBetaUnlocked(), dev: isDevUnlocked() }),

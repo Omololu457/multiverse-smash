@@ -53,6 +53,32 @@ try {
     check("tap P again → toggles OFF", (await p1s()).absoluteDefense === false);
   }
 
+  // ── 1b) VISUAL REGRESSION (playtester report 2026-07-20): the ribcage/aura imagery must PERSIST
+  //     while the toggle is up — NOT decay after the one-shot 32-frame FX and leave only a plain ring.
+  //     The one-shot FX projectile (life 32) is long gone by 60f; the persistent sheet-aura draw
+  //     (_drawAbsoluteDefenseAura) must still be rendering the susanoo_intro sheet every frame.
+  const auraSheetFrame = () => page.evaluate(() => window.__harness.absDefAuraSheetFrame());
+  section("Ribcage/aura imagery PERSISTS while active (not a fleeting flash → plain circle)");
+  {
+    // warm the sheet image cache first (first-ever activation loads it async), then a clean toggle.
+    await chargeTap(); await wf(40); await chargeTap(); await wf(6);
+    await chargeTap();                                  // real toggle ON
+    await wf(60);                                       // WELL past the 32-frame one-shot FX life
+    check("one-shot toggle FX has decayed by 60f (life 32)", !(await hasIntroSheet()), `proj=${JSON.stringify(await projs())}`);
+    check("Absolute Defense still ON at 60f", (await p1s()).absoluteDefense === true);
+    const f0 = await auraSheetFrame();
+    await wf(4);
+    const f1 = await auraSheetFrame();
+    check("ribcage/aura SHEET is still rendering every frame at 60f+ (persists, not a flash)", f1 > f0 && f1 > 0, `sheetFrame ${f0}→${f1}`);
+    await shot("AD_persistent_ribcage.png");
+    await chargeTap();                                  // toggle OFF for cleanup
+    check("toggled OFF for cleanup", (await p1s()).absoluteDefense === false);
+    await wf(4);
+    const fOff = await auraSheetFrame();
+    await wf(6);
+    check("sheet aura STOPS rendering once toggled OFF", (await auraSheetFrame()) === fOff, `frozen at ${fOff}`);
+  }
+
   // ── 2) FULL negate + PER-BLOCK cost (NOT while blocking) ──
   section("While ON, an incoming hit is fully negated for a per-block energy cost (12)");
   await page.evaluate(()=>{ const a=window.__harness.p1Snap(); window.__harness.setP2X(a.x+64); window.__harness.healP2(); });

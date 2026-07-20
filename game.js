@@ -62,7 +62,7 @@ import {
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
   drawAccountScreen, getAccountButtons
 } from "./ui.js"
-import { createAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, persistence, setSnapshotDecorator } from "./account.js"
+import { createAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, isFileApiSupported, hasPersistedData, persistence, setSnapshotDecorator } from "./account.js"
 import {
   awardMatchXp, awardXp, getLevel, xpProgress, isUnlocked, requiredLevel,
   loadProgressionFromAccount, PROGRESS_DOES_NOT_PERSIST,
@@ -3961,6 +3961,12 @@ sound.init?.()
 sound.playMenuMusic?.()   // boot/loading screen → Passion_fruitmp3.mp3 (queued until first gesture)
 syncPhysicsBounds()
 updateCameraBounds()
+// BOOT AUTO-LOAD (universal persistence): account.js hydrates its store from localStorage at
+// import time, so progress restores on EVERY launch with no player action — no File System
+// Access gesture needed (Safari/Firefox lack the API; the file handle doesn't survive reload
+// anyway). If a current account was restored, push its progression/unlocks/settings into the
+// live modules now, before the first frame. A later SAVE FILE connect still overrides this.
+if (getCurrentAccount()) hydrateFromLoadedSave()
 gameLoop()
 
 // ------------------------------------------------------------------
@@ -4063,6 +4069,8 @@ gameLoop()
       // Mirrors the real main-menu "SAVE FILE" mouseup handler: open/create + hydrate.
       connect: async () => { const r = await connectSaveFile(); if (r?.ok) hydrateFromLoadedSave(); return r },
       connected: () => isFileConnected(),
+      apiSupported: () => isFileApiSupported(),        // false when the File System Access API is absent (Safari/Firefox sim)
+      hasPersisted: () => hasPersistedData(),          // did a durable layer restore any account at boot?
       awardXp: (n) => { awardXp(n); const a = getCurrentAccount(); return a?.progression?.xp ?? null },
       applyCode: (code) => ({ result: applyUnlockCode(code), beta: isBetaUnlocked(), dev: isDevUnlocked() }),
       setSetting: (k, v) => { const s = sound.getSettings?.() || {}; s[k] = v; sound.applySettings?.(s); persistCurrentSettings(); return sound.getSettings?.() ?? null },

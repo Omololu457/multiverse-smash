@@ -2220,6 +2220,12 @@ export function triggerSpecial(fighter, context = {}) {
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "toji":    return executeToji_Special(fighter, context)
     case "rick":    return executeRickSpecial(fighter, context)
+    // Goku Black: NO special wired yet (Kamehameha/Spirit Bomb/Explosion/Sword Slash are Stage 2/3,
+    // executeGokuBlackSpecial not built). Explicit no-op so it does NOT fall through to
+    // executeFallbackSpecial — that path would read his DISPLAY-ONLY `specials` kit-metadata stub,
+    // fire a bogus "kamehameha" (spends 30 energy) and set action "special_2" (no sheet) → the
+    // idle sheet renders unsliced = "4 copies" glitch. Swap to executeGokuBlackSpecial in Stage 3.
+    case "goku_black": return false
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -2247,6 +2253,9 @@ export function triggerUltimate(fighter, context = {}) {
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "toji":    cast = executeToji_Ultimate(fighter, context);   break
       case "rick":    cast = executeRickUltimate(fighter, context);    break
+      // Goku Black: Sword Slash ultimate is Stage 2/3, not built. Explicit no-op so it doesn't fall
+      // through to executeFallbackUltimate and fire the display-only `ultimate` kit-metadata stub.
+      case "goku_black": cast = false; break
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }

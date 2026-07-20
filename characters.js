@@ -1587,7 +1587,7 @@ const biscuit = {
 // ─────────────────────────────────────────────────────────────────
 const gokuBlack = {
   rosterKey: "goku_black", name: "Goku Black", universe: "dragon_ball",
-  portrait: "./black_goku_transparent.png",
+  portrait: "./goku_black_mug_shot.png",   // EXACT on-disk filename (SSJ Rose character-select mugshot)
   archetypes: ["melee", "transformations"],
   primary: "melee", secondary: ["transformations"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },

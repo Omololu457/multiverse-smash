@@ -26,7 +26,8 @@
     "test:toji-command": "node harness/toji_command.test.mjs",
     "test:rick": "node harness/rick.test.mjs",
     "test:goku-black": "node harness/goku_black.test.mjs",
-    "test:goku-restore": "node harness/goku_restore.test.mjs"
+    "test:goku-restore": "node harness/goku_restore.test.mjs",
+    "test:goku-black-audit": "node harness/goku_black_audit.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

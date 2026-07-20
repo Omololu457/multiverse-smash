@@ -112,6 +112,13 @@ export const SPRITE_MANIFEST = {
   // rick.animationData (each action carries its own .sheet).
   rick: {
     actions: { idle: "./rick_stand.png" }
+  },
+
+  // Goku Black (universe: dragon_ball) — SEPARATE character from `goku`. Gates spritesReady() by
+  // decoding the idle strip → flips Goku Black from procedural box to sprite. Per-action rendering
+  // reads characters.js → gokuBlack.animationData (each action carries its own .sheet).
+  goku_black: {
+    actions: { idle: "./black_goku_idle.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

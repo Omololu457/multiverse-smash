@@ -4028,6 +4028,9 @@ gameLoop()
     spriteFrames:     f.spriteHandler?._actionDef?.frames ?? null,
     spriteScale:      f.spriteScale ?? null,
     spriteReady:      !!(f.spriteHandler?._actionDef?.sheet),
+    hasSpriteHandler: !!f.spriteHandler,        // false → procedural box renderer (no hasSprites)
+    currentForm:      f.currentForm || null,     // transformation state (Goku SSB etc.)
+    transformIndex:   f.transformIndex ?? null,
     hasSkinAnim:      !!f._skinAnim,
     canvasHeightFrac: f._canvasHeightFrac || null,
     action:           f._lastSpriteAction || null,

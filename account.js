@@ -8,8 +8,10 @@
 //   • accountId is generated client-side (random) — a server will mint real ids.
 //   • There is NO auth, NO password handling, NO validation beyond trivial UI
 //     sanity — those are the future backend's job.
-//   • Persistence is an in-memory store (NOT localStorage/sessionStorage) so the
-//     game runs inside a sandboxed artifact; swap the `persistence` object for a
+//   • Persistence is layered (see below): an in-memory store (always the source of
+//     truth), auto-mirrored to localStorage for UNIVERSAL cross-reload persistence,
+//     and — when the player connects one on a supporting browser — a File System
+//     Access API save file as the primary export. Swap the `persistence` object for a
 //     network/storage layer later — see the TODO hooks below.
 //
 // Public interface (keep stable):
@@ -22,12 +24,18 @@
 // ──────────────────────────────────────────────────────────────────────────
 
 // ── PERSISTENCE ────────────────────────────────────────────────────────────
-// In-memory store is the SOURCE OF TRUTH and the always-available FALLBACK. When
-// the player grants a local save file via the File System Access API (see
-// connectSaveFile / createSaveFile below), the same in-memory writes are ALSO
-// mirrored to that file as JSON — so the public save()/load()/remove() interface
-// stays 100% SYNCHRONOUS (callers like progression._save don't change) while gaining
-// real persistence. The async file write is fire-and-forget + coalesced.
+// In-memory store is the SOURCE OF TRUTH and the always-available FALLBACK. Every
+// save is ALSO mirrored to two durable layers so progress survives reload/close for
+// EVERYONE, not just Chrome/Edge users who've picked a file:
+//   • localStorage — UNIVERSAL, automatic, synchronous. Works on Safari/Firefox and
+//     before any file is connected; also survives reload even for file users (the
+//     File System Access handle is in-memory and does NOT persist across reload). It
+//     is the auto-load-on-boot source. (Chosen over IndexedDB: the payload is tiny —
+//     ~1.4KB/account measured — so localStorage's ~5MB limit is never a concern, and
+//     its sync API keeps save()/load()/remove() synchronous — callers don't change.)
+//   • File System Access API save file — PRIMARY export when the player connects one
+//     (see connectSaveFile / createSaveFile). Async, fire-and-forget + coalesced.
+// The public save()/load()/remove() interface stays 100% SYNCHRONOUS.
 const _store = new Map()   // accountId -> account
 let _currentId = null
 
@@ -47,14 +55,17 @@ export const persistence = {
     return Array.from(_store.values())
   },
   // SYNCHRONOUS: update the in-memory store immediately (unchanged contract), then
-  // mirror to the granted file asynchronously (no await → callers stay sync).
+  // mirror to BOTH durable layers — localStorage always (universal fallback), and the
+  // granted file when connected (primary export). Both are non-throwing; callers stay sync.
   save(account) {
     if (account?.accountId) _store.set(account.accountId, account)
-    if (_fileHandle) _writeSnapshot()          // fire-and-forget; coalesced against in-flight writes
+    _writeLocalStorage()                       // universal, synchronous, always-on fallback
+    if (_fileHandle) _writeSnapshot()          // primary export when connected; fire-and-forget + coalesced
     return account
   },
   remove(accountId) {
     const ok = _store.delete(accountId)
+    _writeLocalStorage()
     if (_fileHandle) _writeSnapshot()
     return ok
   }
@@ -101,6 +112,47 @@ function _buildSnapshot() {
   }
 }
 
+// ── localStorage FALLBACK LAYER (universal auto-persistence) ─────────────────
+// Mirrors the SAME snapshot the file path writes. Everything here is defensive: any
+// access to localStorage can THROW (private mode, disabled storage, sandboxed iframe),
+// so every call is wrapped and degrades silently to the pure in-memory behaviour.
+const LS_KEY = "multiverse-smash-save"
+function _lsAvailable() {
+  try { return typeof localStorage !== "undefined" && localStorage !== null }
+  catch (_) { return false }
+}
+function _writeLocalStorage() {
+  if (!_lsAvailable()) return
+  try { localStorage.setItem(LS_KEY, JSON.stringify(_buildSnapshot())) }
+  catch (err) { if (typeof console !== "undefined") console.warn("[persistence] localStorage write failed:", err) }
+}
+// Hydrate _store / _currentId from localStorage. Tolerant of missing/empty/corrupt data
+// (same contract as _hydrateFromHandle): returns the number of accounts loaded, 0 on any
+// problem, NEVER throws. Called once at module init for auto-load-on-boot.
+function _loadFromLocalStorage() {
+  if (!_lsAvailable()) return 0
+  let text = null
+  try { text = localStorage.getItem(LS_KEY) } catch (_) { return 0 }
+  if (!text) return 0
+  let data = null
+  try { data = JSON.parse(text) } catch (_) { return 0 }   // corrupt → ignore, fresh start
+  const accounts = Array.isArray(data) ? data
+    : (data && Array.isArray(data.accounts) ? data.accounts : [])
+  if (!accounts.length) return 0
+  _store.clear()
+  for (const a of accounts) { if (a && a.accountId) _store.set(a.accountId, a) }
+  const cid = data && data.currentId
+  if (cid && _store.has(cid)) _currentId = cid
+  else if (accounts[0] && accounts[0].accountId) _currentId = accounts[0].accountId
+  return accounts.length
+}
+// Was a current account restored from a durable layer at boot? game.js uses this to know
+// whether to hydrate the live modules (progression/settings) on startup.
+export function hasPersistedData() { return _store.size > 0 }
+// AUTO-LOAD-ON-BOOT: pull any saved profiles from localStorage into the store the moment
+// this module is imported, so progress is present before game.js runs its boot hydrate.
+_loadFromLocalStorage()
+
 // Async, coalesced writer. Never throws to callers; on failure it drops the handle
 // and reverts to in-memory so the game keeps running.
 async function _writeSnapshot() {
@@ -123,11 +175,16 @@ async function _writeSnapshot() {
   }
 }
 
-// Read the granted file into the store. An empty/new file is seeded with current data.
+// Read the granted file into the store. An empty/new file is seeded with current data —
+// which is the ONE-TIME MIGRATION path: whatever the player accumulated in the localStorage
+// fallback (already loaded into _store at boot) is written into the freshly-connected file,
+// so their existing progress carries over into the file rather than starting a new slot.
+// Connecting a file that ALREADY has data instead loads THAT save (it becomes the active
+// profile everywhere, and the localStorage mirror is refreshed to match).
 async function _hydrateFromHandle() {
   const file = await _fileHandle.getFile()
   const text = (await file.text()).trim()
-  if (!text) { await _writeSnapshot(); return 0 }     // brand-new empty file → write defaults
+  if (!text) { await _writeSnapshot(); _writeLocalStorage(); return 0 }   // empty file → migrate current data in
   let data = null
   try { data = JSON.parse(text) } catch (_) { data = null }
   const accounts = Array.isArray(data) ? data
@@ -138,6 +195,7 @@ async function _hydrateFromHandle() {
     const cid = data && data.currentId
     if (cid && _store.has(cid)) _currentId = cid
     else if (accounts[0] && accounts[0].accountId) _currentId = accounts[0].accountId
+    _writeLocalStorage()   // keep the universal fallback in sync with the loaded file
   }
   return accounts.length
 }

@@ -109,16 +109,13 @@ setupMouseInput(canvas)
 // invoke the picker synchronously here. mouse.x/mouse.y are the same canvas-space coords
 // handleMenuClicks uses (kept current by setupMouseInput's mousemove handler).
 canvas.addEventListener("mouseup", () => {
-  console.log("[DIAG savefile] mouseup fired | gameState:", gameState)   // [DIAG] remove after test
   if (gameState !== GAME_STATES.MAIN_MENU) return
   const hit = getMainMenuRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
-  console.log("[DIAG savefile] hit rect id:", hit?.id, "| fileConnected:", isFileConnected())   // [DIAG] remove after test
   if (hit?.id !== "savefile") return
   if (isFileConnected()) return   // already granted this session → auto-saving; don't re-prompt
-  console.log("[DIAG savefile] → calling connectSaveFile() (picker should open now)")   // [DIAG] remove after test
   // Not awaited: runs synchronously up to the picker's await, preserving the gesture.
   // On a successful load, hydrate ALL systems from the save BEFORE anything else runs.
-  connectSaveFile().then(res => { console.log("[DIAG savefile] connectSaveFile result:", res); if (res?.ok) hydrateFromLoadedSave() })
+  connectSaveFile().then(res => { if (res?.ok) hydrateFromLoadedSave() })
 })
 
 // ──────────────────────────────────────────────────────────────────
@@ -4051,6 +4048,35 @@ gameLoop()
     // Last frame the persistent Absolute Defense ribcage/aura SHEET actually rendered — lets a
     // test prove the imagery persists past the one-shot toggle FX (playtester visual-bug fix).
     absDefAuraSheetFrame: () => _absDefAuraSheetFrame,
+    // ── SAVE/LOAD PERSISTENCE (save_load.test.mjs) ───────────────────────────────
+    // Every hook below calls the REAL production functions — the test mocks ONLY the
+    // native OS file picker (window.showOpen/SaveFilePicker) to hand back an OPFS-backed
+    // FileSystemFileHandle, so the entire account.js pipeline (connectSaveFile →
+    // _hydrateFromHandle → persistence.save → _writeSnapshot → graceful corrupt-file
+    // fallback) runs unmodified. GUEST progress does NOT persist (no account), so a real
+    // account must exist first — ensureAccount creates one.
+    saveLoad: {
+      ensureAccount: (name = "Tester") => {
+        const a = getCurrentAccount() || createAccount(name)
+        return a ? { accountId: a.accountId, username: a.username } : null
+      },
+      // Mirrors the real main-menu "SAVE FILE" mouseup handler: open/create + hydrate.
+      connect: async () => { const r = await connectSaveFile(); if (r?.ok) hydrateFromLoadedSave(); return r },
+      connected: () => isFileConnected(),
+      awardXp: (n) => { awardXp(n); const a = getCurrentAccount(); return a?.progression?.xp ?? null },
+      applyCode: (code) => ({ result: applyUnlockCode(code), beta: isBetaUnlocked(), dev: isDevUnlocked() }),
+      setSetting: (k, v) => { const s = sound.getSettings?.() || {}; s[k] = v; sound.applySettings?.(s); persistCurrentSettings(); return sound.getSettings?.() ?? null },
+      // Live post-hydrate view of everything that should have persisted.
+      read: () => {
+        const a = getCurrentAccount()
+        return {
+          accountId: a?.accountId ?? null, username: a?.username ?? null,
+          xp: a?.progression?.xp ?? null, level: a?.progression?.level ?? null,
+          beta: isBetaUnlocked(), dev: isDevUnlocked(),
+          settings: sound.getSettings?.() ?? null
+        }
+      }
+    },
     // ── UNLOCK CODES + menu visibility (beta-redefinition test) ──────────────────
     // Apply a dev/beta code and read back the resulting unlock flags.
     applyCode: (code) => ({ result: applyUnlockCode(code), beta: isBetaUnlocked(), dev: isDevUnlocked() }),

@@ -1578,10 +1578,71 @@ const biscuit = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// DRAGON BALL — GOKU BLACK / SSJ ROSE  (SEPARATE roster character, own kit)
+// STAGE 1 build: core identity (idle/walk/run/dash/jump/fall/hurt/get-up/block)
+// + 4 basic normals (light/up/air/down_air). Verified via harness/goku_black.test.mjs.
+// DEFERRED to later stages (see GOKU_BLACK_ASSET_MAP.md): Ki Slash (the energy-costing
+// HEAVY), the SSJ Rose continuous-drain transformation, and all 4 specials
+// (Kamehameha / Spirit Bomb / Explosion / Sword Slash).
+// ─────────────────────────────────────────────────────────────────
+const gokuBlack = {
+  rosterKey: "goku_black", name: "Goku Black", universe: "dragon_ball",
+  portrait: "./black_goku_transparent.png",
+  archetypes: ["melee", "transformations"],
+  primary: "melee", secondary: ["transformations"],
+  traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
+  // Balanced all-rounder (mirrors Goku's clean, no-gimmick profile) — but his OWN separate kit.
+  stats: { maxHealth: 1200, maxEnergy: 200, attack: 90, defense: 86, speed: 90, maxJumps: 2, jumpPower: 30, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 42 },
+  // STAGE 1 normals. HEAVY is intentionally ABSENT — that slot becomes "Ki Slash" (the
+  // energy-costing normal) in Stage 2; startMove() no-ops on the missing move, so K is inert now.
+  basic_attacks: {
+    light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 66, rangeY: 50 },        // front_attack straight
+    upAttack:  { type: "launcher", damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10 },   // kick_attack rising spin
+    airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },                                 // air_attack downward slash
+    downAir:   { type: "spike", damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },                  // air_attack reused (base down-air GAP, asset map §3.5)
+    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
+  },
+  // KIT/HUD METADATA ONLY — behaviour is wired in later stages (see GOKU_BLACK_ASSET_MAP.md).
+  // No executeGokuBlackSpecial/Ultimate handler exists yet, so triggerSpecial/triggerUltimate
+  // no-op for this character (abilities.js switch has no "goku_black" case). Declared so the
+  // character-select kit panel has data and nothing assumes `.specials` is undefined.
+  specials: {
+    kamehameha: { cost: 30,  effect: "STAGE 3+: charge/release beam (own move). Not wired yet." },
+    spiritBomb: { cost: 40,  effect: "STAGE 3+: charge/release lob (own move). Not wired yet." },
+    explosion:  { cost: 120, effect: "STAGE 3+: proximity AOE (Rick mirror), art pending. Not wired yet." }
+  },
+  ultimate: { name: "Sword Slash", cost: 40, effect: "STAGE 3+: sure-hit with real windup risk. Not wired yet." },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  // No dedicated intro/transform sprite wired yet → intro plays the grounded IDLE (Rick precedent),
+  // avoiding the 128² NULL-box intro fallback. SSJ Rose transform + intro come in a later stage.
+  introPool: ["idle"],
+  hasSprites: true,
+  // 1.7: idle content ~69px cell × 1.7 ≈ 117px on-screen — squarely in roster range
+  // (Sasuke 116 / Naruto 118 / Gojo 112). anchorY values start at 0 and are screenshot-tuned.
+  spriteScale: 1.7,
+  animationData: {
+    idle:      { frames: 4, width: 57, height: 69, speed: 6, anchorY: 0, sheet: "./black_goku_idle.png" },        // 8-frame sheet = two idle variants; wire the first 4 (asset map §3.1)
+    walk:      { frames: 4, width: 66, height: 55, speed: 5, anchorY: 0, sheet: "./black_goku_run.png" },
+    run:       { frames: 4, width: 66, height: 55, speed: 4, anchorY: 0, sheet: "./black_goku_run.png" },
+    dash:      { frames: 2, width: 88, height: 47, speed: 5, anchorY: 0, sheet: "./black_goku_dash.png" },
+    jump:      { frames: 6, width: 69, height: 73, speed: 6, anchorY: 0, sheet: "./black_goku_jump.png" },
+    fall:      { frames: 5, width: 50, height: 71, speed: 6, anchorY: 0, sheet: "./black_goku_jump_2.png" },       // descent-only poses (asset map §3.2)
+    hurt:      { frames: 7, width: 70, height: 78, speed: 6, anchorY: 0, sheet: "./black_goku_hit.png" },
+    knockdown: { frames: 6, width: 76, height: 71, speed: 6, anchorY: 0, sheet: "./black_goku_get_up.png" },       // get-up sheet → knockdown slot
+    guard:     { frames: 3, width: 52, height: 61, speed: 6, anchorY: 0, sheet: "./black_goku_block.png" },
+    light:     { frames: 6, width: 66, height: 57, speed: 3, anchorY: 0, sheet: "./black_goku_front_attack.png" },
+    up:        { frames: 9, width: 77, height: 64, speed: 3, anchorY: 0, sheet: "./black_goku_kick_attack.png" },
+    air:       { frames: 5, width: 58, height: 70, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" },
+    down_air:  { frames: 5, width: 58, height: 70, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" }    // reuses air_attack (base down-air GAP)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
-  goku, vegeta, piccolo, frieza, cell,
+  goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
   gojo, megumi, sukuna, omololu, toji, mahoraga,
   naruto, sasuke,
   tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,

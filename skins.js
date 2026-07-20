@@ -148,6 +148,14 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rick?.portrait, spriteScale: characters.rick?.spriteScale, animationData: null }
   ],
 
+  // Goku Black (Dragon Ball) — SEPARATE character from `goku`. Same gate: WITHOUT a default skin,
+  // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~69px (half
+  // size). This entry sources his real spriteScale (1.7) from the character. No alt skins yet
+  // (the SSJ Rose body-swap is a transformation, not a skin — comes in a later stage).
+  goku_black: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_black?.portrait, spriteScale: characters.goku_black?.spriteScale, animationData: null }
+  ],
+
   // Toji (JJK). Same reason as Naruto/Goku/Sasuke: WITHOUT a default skin, applySkin()
   // pulls the getSkins() spriteScale:1 fallback and he renders at native ~54px (half
   // size) — THIS is why he looked undersized. This entry sources his real spriteScale

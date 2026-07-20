@@ -79,17 +79,10 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./toji_stance_idle.png" }   // NEW transparent-bg idle (was old row03 strip)
   },
 
-  // Base Goku (Dragon Ball). Sliced from goku_base_FULLSHEET_transparent.png.
-  // This entry only GATES spritesReady() (decodes idle → flips Goku from box to
-  // sprite); per-action rendering reads the `sheet` paths from characters.js →
-  // goku.animationData. Files follow the ./goku_<action>_sheet.png convention.
-  // BASE only — kept separate from the goku_ssj_god_* set.
-  goku: {
-    // ATLAS: one shared sheet; per-action source rects (sourceX/sourceY/width/height)
-    // live in characters.js → goku.animationData. This entry only gates spritesReady()
-    // by decoding the shared sheet once.
-    actions: { idle: "./goku_base_FULLSHEET_transparent.png" }
-  },
+  // Goku (Dragon Ball) — SPRITE MANIFEST REMOVED 2026-07-20 for a full art redo. His goku_*
+  // sheets were git-rm'd; with no entry here, spritesReady("goku") is false and he renders as
+  // a procedural box (like the other DBZ chars). Re-add an entry when new art is wired. Gameplay
+  // (characters.js → goku stats/specials/ultimate) is unchanged; only the sprite art was torn down.
 
   // KCM Naruto (universe: naruto — his own universe, NOT the GojoV1 JJK beta).
   // Sliced JUS strips, one PNG per action; per-action rendering reads the `sheet`

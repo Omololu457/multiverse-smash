@@ -48,6 +48,10 @@ export function getAction(charKey, actionKey, skinAnim = null) {
     // keeps defaulting both from fighter.attacking (unchanged for everyone else).
     loop:         a.loop,
     lockLastFrame:a.lockLastFrame,
+    // Two-part loop boundary (buildup plays once, tail loops from here). Forwarded so a
+    // form-aware skin def (Goku Black Rose charge, loopStart 3) isn't shadowed by the base
+    // def's value. Omitted entries stay undefined → sprite.js defaults to 0 (whole-strip loop).
+    loopStart:    a.loopStart,
     anchorX: a.anchorX || 0,
     anchorY: a.anchorY || 0,
     // Atlas source origin into a shared sheet (default 0/0 = legacy top-left).

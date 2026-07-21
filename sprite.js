@@ -236,6 +236,12 @@ function _resolveAction(fighter, currentAction = "idle") {
     if (move) return MOVE_TO_ACTION[move] || move;
   }
 
+  // HOLD-TO-CHARGE pose — a fighter holding the charge button (isCharging) plays its dedicated
+  // charge strip when it defines one (Goku Black's power-up aura, form-aware via _skinAnim). Gated
+  // on the strip existing, so it's a no-op for every character WITHOUT one (they keep the procedural
+  // aura + idle). Below hurt/block/cast/attack so getting hit still interrupts the pose.
+  if (fighter.isCharging && (fighter._skinAnim?.charge || fighter.animationData?.charge)) return "charge";
+
   // Ultimate / transform states
   if (fighter.isUltimateActive) return "idle";
   if ((fighter.teleportFlash || 0) > 10) return "transform";
@@ -343,6 +349,10 @@ export class SpriteHandler {
       speed: profileAction.speed ?? legacyFrameData?.speed ?? 5,
       loop: profileAction.loop ?? (!fighter.attacking),
       lockLastFrame: profileAction.lockLastFrame ?? !!fighter.attacking,
+      // TWO-PART loop support: frames [0, loopStart) are a one-shot BUILDUP; on reaching the end a
+      // looping strip resets to `loopStart` (not 0), so only the tail [loopStart, frames) repeats.
+      // Default 0 → identical whole-strip loop as before (every existing action unchanged).
+      loopStart: profileAction.loopStart ?? legacyFrameData?.loopStart ?? 0,
       anchorX: profileAction.anchorX ?? 0,
       anchorY: profileAction.anchorY ?? 0,
       // Atlas support: top-left source origin of this action's frames inside the
@@ -499,8 +509,9 @@ export class SpriteHandler {
 
       if (this.frameIndex >= total) {
         if (frameData.loop) {
-          // Loop movement and idle animations
-          this.frameIndex = 0;
+          // Loop movement and idle animations. `loopStart` (default 0) restarts the loop past a
+          // one-shot buildup section so only the tail repeats (e.g. Goku Black's charge aura).
+          this.frameIndex = Math.min(frameData.loopStart || 0, total - 1);
         } else if (frameData.lockLastFrame || fighter.attacking) {
           // Lock onto the final recovery frame until the combat phase ends
           this.frameIndex = total - 1;

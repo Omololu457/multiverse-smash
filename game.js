@@ -2894,6 +2894,9 @@ function _drawAbsoluteDefenseAura(f) {
 // character's energy colour. Brighter as the meter fills.
 function _drawChargeAura(f) {
   if (!f || !f.isCharging) return
+  // Fighters with their own charge-aura SPRITE (Goku Black's power-up/Rose strips) render that
+  // instead — skip the procedural particle aura so the two don't stack. No-op for everyone else.
+  if (f._skinAnim?.charge || f.animationData?.charge) return
   const cx = f.x + f.w / 2, baseY = f.y + f.h
   const pct = Math.max(0, Math.min(1, (f.energy || 0) / (f.maxEnergy || 1)))
   const col = f.energyColor || "#fcd34d"

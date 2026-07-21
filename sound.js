@@ -51,6 +51,11 @@ export const AUDIO_BASE = "./"
 // NOTE: exact on-disk filename — the file is literally "Passion_fruitmp3.mp3".
 export const MENU_MUSIC_FILE = "Passion_fruitmp3.mp3"
 
+// Generic/SHARED transformation cue for ANY Dragon Ball character's transformation
+// (Goku Black → SSJ Rose, Goku → SSJ Blue, …). Single source of truth for the filename —
+// callers use SoundManager.playDragonBallTransformSfx() rather than hardcoding this inline.
+export const DRAGON_BALL_TRANSFORM_SFX = "dragon_ball_transformation.mp3"
+
 // ── MENU BACKGROUND PLAYLIST ──────────────────────────────────────
 // Ordered list of tracks the game plays (in order, looping back to the top)
 // while the player is on ANY menu/settings/select screen — NEVER during a
@@ -741,6 +746,15 @@ class SoundManager {
       if (p && p.catch) p.catch(() => release())   // playback rejected → un-duck immediately
       return true
     } catch (_) { if (fallbackId) this.play(fallbackId); return false }
+  }
+
+  // SHARED Dragon Ball transformation cue. Any DB character's transformation code calls this
+  // instead of hardcoding the filename inline — Goku Black's SSJ Rose cinematic and Goku's SSJ Blue
+  // ultimate both route through here, so the sound is defined in exactly one place and reused.
+  // No fallback id (faithful to the extracted inline call): callers that also want the procedural
+  // power-up boom layer it separately (as the Rose cinematic does).
+  playDragonBallTransformSfx() {
+    return this.playSfxFile(DRAGON_BALL_TRANSFORM_SFX, null)
   }
 
   // Domain-expansion audio: a one-shot voice line + a looping domain theme,

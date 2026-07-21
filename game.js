@@ -4086,6 +4086,7 @@ gameLoop()
 
   window.__harness = {
     version: 1,
+    __sound:     sound,     // the live SoundManager singleton — lets a test spy on SFX file calls
     start:       startHarnessMatch,
     skipToBattle,
     // Last frame the persistent Absolute Defense ribcage/aura SHEET actually rendered — lets a

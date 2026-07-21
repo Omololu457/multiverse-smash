@@ -4,9 +4,9 @@
 // Real in-game verification with screenshots:
 //  EXPLOSION (L, no motion, both forms): proximity-gated AOE, costs 120, NO self-harm,
 //    whiffs when the opponent is out of range (Rick Self-Destruct mirror). Procedural blast.
-//  SWORD SLASH (U, ROSE-only): energy-gated sure-hit — vulnerable interruptible windup, an
-//    opponent reaction window (dodge whiffs it), then a GUARANTEED range-independent hit +
-//    paralysis. Disabled in base form. Voice cue goku-black-taste-my-blade.mp3.
+//  SWORD SLASH (U, ROSE-only): a full FREEZE CINEMATIC (gokuBlackSwordCinematic.js) — energy-gated,
+//    GUARANTEED range-independent hit + 30f paralysis at the STRIKE connect beat. Disabled in base
+//    form. Voice cue goku-black-taste-my-blade.mp3. (Freeze/framing/audio depth → sword_cinematic test.)
 // Shots → harness/shots/GB3B_*.png
 // ---------------------------------------------------------------------------
 import { chromium } from "playwright";
@@ -106,8 +106,10 @@ try {
     await actionable();
   }
 
-  // ── SWORD SLASH (Rose) — sure-hit + paralysis + cast pose ────────────────────
-  section("SWORD SLASH (Rose) — vulnerable windup → sure-hit + paralysis");
+  // ── SWORD SLASH (Rose) — full freeze CINEMATIC → guaranteed hit + paralysis ──
+  // (Deep cinematic behaviour — freeze both fighters, both-in-frame, audio beat, phase timing —
+  //  is verified in goku_black_sword_cinematic.test.mjs. Here: it triggers + lands its payoff.)
+  section("SWORD SLASH (Rose) — freeze cinematic → guaranteed range-independent hit + paralysis");
   {
     await place(200); await toRose();          // FAR opponent → proves the hit is range-independent (sure-hit)
     await page.evaluate(() => { window.__harness.resetUlt?.(); });   // clear ult cd; refills energy
@@ -116,40 +118,16 @@ try {
     const eCast = (await p1()).energy;
     check("Sword Slash costs ~40 energy (at cast)", Math.abs((e0 - eCast) - 40) < 4, `energy ${e0.toFixed(0)} → ${eCast.toFixed(1)}`);
     await wf(3);
+    const cine = await page.evaluate(() => window.__harness.swordCine());
+    check("Sword Slash triggers the freeze cinematic", cine.active === true, `active=${cine.active} phase=${cine.phase} total=${cine.total}`);
     const wind = await p1();
-    check("windup plays the Rose sword-slash pose", (wind.spriteSheet || "").includes("goku_black_ssj_rose_sword_slahs"), `action=${wind.action} sheet=${wind.spriteSheet}`);
+    check("caster plays the Rose sword-slash pose", (wind.spriteSheet || "").includes("goku_black_ssj_rose_sword_slahs"), `sheet=${wind.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "GB3B_swordslash.png"), clip: CLIP });
-    // wait out windup(24) + react(18) + slash
-    await wf(50);
+    // let the whole cinematic resolve
+    await page.waitForFunction(() => { const c = window.__harness.swordCine(); return c && !c.active; }, null, { timeout: 9000, polling: 16 });
     const d2 = await p2();
     check("GUARANTEED hit lands on the FAR opponent (sure-hit, range-independent)", d2.health < hp0, `p2 hp ${hp0} → ${d2.health} (−${(hp0 - d2.health).toFixed(0)})`);
-    check("brief paralysis applied (hitstun on opponent)", (d2.hitstun || 0) > 0, `hitstun=${d2.hitstun}`);
-    await actionable();
-  }
-
-  // ── SWORD SLASH — interruptible vulnerable windup ───────────────────────────
-  section("SWORD SLASH — a hit during the windup CANCELS it (real vulnerability)");
-  {
-    await place(200); await toRose();
-    await page.evaluate(() => { window.__harness.resetUlt?.(); });
-    const hp0 = (await p2()).health;
-    await pressU(); await wf(3);            // now mid-windup
-    await page.evaluate(() => window.__harness.hurtP1(20));   // get hit during the windup
-    await wf(60);
-    check("interrupted windup → Sword Slash CANCELLED (opponent takes no damage)", (await p2()).health === hp0, `p2 hp ${hp0} → ${(await p2()).health}`);
-    await actionable();
-  }
-
-  // ── SWORD SLASH — opponent reaction window (dodge/i-frames whiffs it) ────────
-  section("SWORD SLASH — opponent reaction: i-frames (dodge) whiffs the sure-hit");
-  {
-    await place(200); await toRose();
-    await page.evaluate(() => { window.__harness.resetUlt?.(); });
-    const hp0 = (await p2()).health;
-    await pressU(); await wf(3);
-    await page.evaluate(() => window.__harness.setP2Invuln?.(600));   // dodge = i-frames during the reaction window
-    await wf(55);
-    check("dodging opponent (i-frames) takes NO damage", (await p2()).health === hp0, `p2 hp ${hp0} → ${(await p2()).health}`);
+    check("paralysis applied (stun/hitstun on opponent once combat resumes)", (d2.hitstun || 0) > 0 || (d2.stun || 0) > 0, `hitstun=${d2.hitstun} stun=${d2.stun}`);
     await actionable();
   }
 

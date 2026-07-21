@@ -33,7 +33,8 @@
     "test:goku-black-specials": "node harness/goku_black_specials.test.mjs",
     "test:goku-black-bugfix": "node harness/goku_black_bugfix.test.mjs",
     "test:goku-black-cinematic": "node harness/goku_black_cinematic.test.mjs",
-    "test:goku-black-stage3b": "node harness/goku_black_stage3b.test.mjs"
+    "test:goku-black-stage3b": "node harness/goku_black_stage3b.test.mjs",
+    "test:goku-black-rose-specials": "node harness/goku_black_rose_specials.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

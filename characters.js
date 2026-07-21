@@ -1646,7 +1646,7 @@ const gokuBlack = {
     // CHARGE (hold P) — BASE aura. Two-part: buildup frames 0-1 (bracing, no aura) play ONCE, then
     // frames 2-5 (spiky aura pulsing) LOOP while P is held (loopStart=2). Rose variant lives in
     // SSJ_ROSE_ANIM (form-aware via _skinAnim). RE-SLICED uniform from black_goku_power_up.png (6 frames).
-    charge:    { frames: 6, width: 112, height: 104, speed: 5, anchorY: 0, loop: true, loopStart: 2, sheet: "./black_goku_power_up_uniform.png" },
+    charge:    { frames: 6, width: 112, height: 104, speed: 8, anchorY: 0, loop: true, loopStart: 2, sheet: "./black_goku_power_up_uniform.png" },
     // Special CHARGE→RELEASE cast poses (Stage 3a) — BASE variants (Rose variants live in abilities.js
     // SSJ_ROSE_ANIM; _skinAnim makes the pose form-aware automatically). RE-SLICED uniform.
     gbKamehameha: { frames: 10, width: 95, height: 53, speed: 4, anchorY: 0, sheet: "./black_goku_kamehameha.png" },

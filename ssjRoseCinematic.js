@@ -63,6 +63,10 @@ export function activateSSJRoseCinematic(caster, opponent, onResolve) {
   caster._spriteCastMove  = "transform"
   caster._spriteCastTimer = T_TOTAL + 8
   caster.attacking = false
+  // Combat is frozen for the whole beat, so per-frame state resets (updateFighterState) don't run —
+  // clear isCharging now so a charge pose held into the transform doesn't get stuck as the resolve-phase
+  // pose after the morph cast is dropped at form-swap. (Post-cinematic the normal reset resumes.)
+  caster.isCharging = false
   return true
 }
 
@@ -125,6 +129,11 @@ export function updateSSJRoseCinematic(ctx = {}) {
   if (f >= T_MORPH_END && !cine.resolved) {
     cine.resolved = true
     try { cine.onResolve?.() } catch (_) {}
+    // The base→Rose MORPH ("transform") pose is finished and onResolve just swapped _skinAnim to the
+    // Rose set — which has NO "transform" strip. Holding the cast pose any longer would resolve to a
+    // missing action → the fallback draws the idle sheet UNSLICED (the "4 copies" glitch) through the
+    // fading RESOLVE overlay. Drop it now so the resolve phase shows the clean Rose idle.
+    if (cine.caster) { cine.caster._spriteCastMove = null; cine.caster._spriteCastTimer = 0 }
     try { snd?.play?.(SFX.HIT_HEAVY) } catch (_) {}
   }
 

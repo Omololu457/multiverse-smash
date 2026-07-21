@@ -2,7 +2,7 @@
 // Goku Black CHARGE-UP animation (hold P). Replaces the procedural particle aura
 // with the real mapped sprites, form-aware:
 //   BASE → black_goku_power_up_uniform.png      (6f; buildup 0-1 once → loop 2-5)
-//   ROSE → goku_black_ssj_rose_charge_uniform.png (8f; buildup 0-2 once → loop 3-7)
+//   ROSE → goku_black_ssj_rose_charge_uniform.png (9f; buildup 0-3 once → loop 4-8)
 // Verifies: the charge strip plays while P is held; the BUILDUP plays ONCE (never
 // loops back to frames 0..loopStart-1); the tail LOOPS (wraps to loopStart, not 0);
 // and the correct form-specific sheet is used. Real in-game screenshots.
@@ -99,8 +99,8 @@ try {
   await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
   check("transformed into SSJ Rose", (await p1()).currentForm === "ssjRose", `form=${(await p1()).currentForm}`);
   await page.evaluate(() => window.__harness.setEnergy(200));   // keep the meter up so it stays in Rose while charging
-  const roseSamples = await holdChargeAndSample(95, 10, 70, "GBCHG_rose.png");
-  analyzeCharge("rose", roseSamples, "goku_black_ssj_rose_charge_uniform", 8, 3);
+  const roseSamples = await holdChargeAndSample(120, 12, 90, "GBCHG_rose.png");
+  analyzeCharge("rose", roseSamples, "goku_black_ssj_rose_charge_uniform", 9, 4);
   check("rose: still SSJ Rose after the charge hold", (await p1()).currentForm === "ssjRose", `form=${(await p1()).currentForm}`);
 
   section("stability");

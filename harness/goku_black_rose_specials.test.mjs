@@ -83,24 +83,30 @@ async function fireRose({ label, motion, castAction, castSheetFrag, projName, pr
   await place(gap); await topup();
   const e0 = (await p1()).energy;
   const before = await p2();
+  // In-page rAF watcher: record {name, sheet} the instant this projectile appears, synced to the game
+  // loop. Robust vs an external poll — Electric Ki Push spawns close and HITS/despawns within a few
+  // frames (well before its lifetime), a window a screenshot-delayed poll can miss under full-suite load.
+  await page.evaluate(pn => {
+    window.__projSeen = null;
+    const watch = () => {
+      const q = (window.__harness.projectiles() || []).find(p => p.name === pn);
+      if (q && !window.__projSeen) window.__projSeen = { name: q.name, sheet: q.sheet };
+      window.__projWatch = requestAnimationFrame(watch);
+    };
+    window.__projWatch = requestAnimationFrame(watch);
+  }, projName);
   await castMotion(motion);
-  // Caster CHARGE pose + energy — read IMMEDIATELY (pose is up on the Special press; the projectile
-  // hasn't spawned yet — it's scheduled a few frames out). Capturing energy here keeps Rose per-frame
-  // drain out of the cost measurement.
+  // Caster CHARGE pose + energy — read IMMEDIATELY (pose is up on the Special press). Keeps Rose
+  // per-frame drain out of the cost measurement.
   const cast = await p1();
   await page.screenshot({ path: path.join(OUT, shot), clip: CLIP });
   check(`${label}: caster pose = ${castAction} (Rose sheet ${castSheetFrag})`, cast.action === castAction && sheet(cast).includes(castSheetFrag), `action=${cast.action} sheet=${cast.spriteSheet}`);
   check(`${label}: spends ~${cost} energy`, Math.abs((e0 - cast.energy) - cost) < 5, `energy ${e0.toFixed(0)} → ${cast.energy.toFixed(1)} (−${(e0 - cast.energy).toFixed(1)})`);
-  // Projectile release — grab {name, sheet} the instant it appears (the push FX is short-lived, so
-  // read it as it spawns rather than after the pose checks).
-  const proj = await page.waitForFunction(pn => {
-    const q = window.__harness.projectiles().find(p => p.name === pn);
-    return q ? { name: q.name, sheet: q.sheet } : false;
-  }, projName, { timeout: 2500, polling: 8 }).then(h => h.jsonValue()).catch(() => null);
+  // let it travel + connect (the watcher keeps recording across these frames)
+  await wf(34);
+  const proj = await page.evaluate(() => { if (window.__projWatch) cancelAnimationFrame(window.__projWatch); return window.__projSeen; });
   check(`${label}: releases the ${projName} projectile`, !!proj, proj ? `sheet=${proj.sheet || "(procedural)"}` : "not found");
   if (projSheetFrag) check(`${label}: projectile uses the ${projSheetFrag} FX sheet`, !!proj && (proj.sheet || "").includes(projSheetFrag), proj ? `sheet=${proj.sheet}` : "");
-  // let it travel + connect
-  await wf(34);
   const after = await p2();
   const dmg = before.health - after.health;
   const push = after.x - before.x;

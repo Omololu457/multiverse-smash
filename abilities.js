@@ -216,7 +216,8 @@ const BETA_SPECIAL_MOTIONS = {
   megumi: { F: ["D", "F"], B: ["D", "B"], U: ["D", "U"], D: ["F", "D", "F"], N: ["B", "F"] },    // F=Divine Dogs · B=Max Elephant · U=Rabbit · D=Nue(sub) · neutral=Toad(sub)
   toji:   { F: ["D", "F"], B: ["D", "B"], D: ["F", "F"] },                                       // F=Curse Spirit · B=Chain-Knife · D=Rapid Strike(sub) · neutral=Inventory Smash
   sasuke: { F: ["D", "F"], B: ["D", "B"], D: ["D"] },                                            // F=Lightning · B=Chidori Koiten · D=Shuriken · neutral=Dash Strike
-  rick:   { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] }                                   // F=Portal-Pull · B=Portal-Push · U=Rocket · D=Laser · neutral=Meeseeks
+  rick:   { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] },                                  // F=Portal-Pull · B=Portal-Push · U=Rocket · D=Laser · neutral=Meeseeks
+  goku_black: { F: ["D", "F"], B: ["D", "B"] }                                                   // F=Kamehameha (QCF) · B=Spirit Bomb (QCB) · neutral=Explosion (Stage 3b)
 }
 
 // Resolve the exact canonical motion for the fighter's currently-held direction (stamped
@@ -2220,12 +2221,10 @@ export function triggerSpecial(fighter, context = {}) {
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "toji":    return executeToji_Special(fighter, context)
     case "rick":    return executeRickSpecial(fighter, context)
-    // Goku Black: NO special wired yet (Kamehameha/Spirit Bomb/Explosion/Sword Slash are Stage 2/3,
-    // executeGokuBlackSpecial not built). Explicit no-op so it does NOT fall through to
-    // executeFallbackSpecial — that path would read his DISPLAY-ONLY `specials` kit-metadata stub,
-    // fire a bogus "kamehameha" (spends 30 energy) and set action "special_2" (no sheet) → the
-    // idle sheet renders unsliced = "4 copies" glitch. Swap to executeGokuBlackSpecial in Stage 3.
-    case "goku_black": return false
+    // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
+    // false (no-op, no glitch) until Explosion (neutral) lands in Stage 3b. NOTE: the ULTIMATE
+    // dispatch still no-ops goku_black (Sword Slash = Stage 3b) — do not remove that one yet.
+    case "goku_black": return executeGokuBlackSpecial(fighter, context)
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -2736,7 +2735,11 @@ const SSJ_ROSE_ANIM = {
   heavy:     { frames: 8, width: 108, height: 68, speed: 2, anchorY: 0, sheet: "./goku_black_ssj_rose_ki_slash.png" },   // Ki Slash (Rose)
   up:        { frames: 4, width: 43,  height: 62, speed: 3, anchorY: 0, sheet: "./goku_black_ssj_rose_up_attack.png" },
   air:       { frames: 5, width: 63,  height: 70, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_down_attack.png" },
-  down_air:  { frames: 5, width: 63,  height: 70, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_down_attack.png" }
+  down_air:  { frames: 5, width: 63,  height: 70, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_down_attack.png" },
+  // Special CHARGE→RELEASE cast poses (Stage 3a) — Rose variants; base variants live in characters.js.
+  // The _skinAnim swap makes the caster pose form-aware automatically (same action key, Rose sheet).
+  gbKamehameha: { frames: 10, width: 95, height: 58, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_kamehameha.png" },
+  gbSpiritBomb: { frames: 6,  width: 53, height: 65, speed: 5, anchorY: 0, sheet: "./goku_black_ssj_rose_spirit_bomb.png" }
 }
 
 export function isGokuBlack(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "goku_black" }
@@ -2791,6 +2794,60 @@ export function applyGokuBlackFormSystem(fighter) {
     drainPerFrame: SSJ_ROSE_DRAIN,
     revert: revertSSJRose
   })
+}
+
+// ── GOKU BLACK — SPECIALS (Stage 3a: Kamehameha + Spirit Bomb) ──────────────
+// Charge-then-release projectile specials on the SPECIAL button, motion-gated.
+// FORM-AWARE: the caster CHARGE→RELEASE pose auto-swaps to the Rose sheet via _skinAnim
+// (gbKamehameha/gbSpiritBomb exist in BOTH base animationData and SSJ_ROSE_ANIM), the beam is
+// form-colored, and Rose applies its +25% damage buff to the beam (projectile damage is NOT
+// auto-scaled by damageMultiplier — combat.js:945 — so we bake it in here).
+// Explosion (neutral) + Sword Slash (ultimate) = Stage 3b.
+const GB_KAME_CAST = 40, GB_KAME_FIRE = 24   // full cast-pose play length / frame the beam releases
+const GB_BOMB_CAST = 30, GB_BOMB_FIRE = 20
+function executeGokuBlackSpecial(fighter, context) {
+  const dirs = getRelativeDirections(fighter)
+  const target = getTargetResolver(context)(fighter)
+  const rose = !!fighter._ssjRoseActive
+
+  // QCF (D→F) = KAMEHAMEHA — fast charge→release beam
+  if (endsWithPattern(dirs, ["D", "F"])) {
+    if (!spendEnergy(fighter, 30)) return false
+    fighter._spriteCastMove  = "gbKamehameha"
+    fighter._spriteCastTimer = GB_KAME_CAST
+    fighter.attackCooldown   = getAttackDuration(GB_KAME_CAST + 4, fighter)
+    schedulePendingSpawn(GB_KAME_FIRE, () => {
+      spawnProjectile(fighter, "gbKamehameha", {
+        damage: rose ? Math.round(120 * SSJ_ROSE_MULT.dmg) : 120, speed: 14, lifetime: 130,
+        hitstun: 22, knockbackX: 9, knockbackY: -2,
+        color: rose ? "#ff5db1" : "#b06bff", w: 26, h: 22
+      }, context)
+      shakeCamera(context, 9, 8)
+    })
+    focusCameraOnAction(context, fighter, target, 0.97, 12)
+    return true
+  }
+
+  // QCB (D→B) = SPIRIT BOMB — slower, bigger charge→release orb
+  if (endsWithPattern(dirs, ["D", "B"])) {
+    if (!spendEnergy(fighter, 40)) return false
+    fighter._spriteCastMove  = "gbSpiritBomb"
+    fighter._spriteCastTimer = GB_BOMB_CAST
+    fighter.attackCooldown   = getAttackDuration(GB_BOMB_CAST + 4, fighter)
+    schedulePendingSpawn(GB_BOMB_FIRE, () => {
+      spawnProjectile(fighter, "gbSpiritBomb", {
+        damage: rose ? Math.round(150 * SSJ_ROSE_MULT.dmg) : 150, speed: 9, lifetime: 150,
+        hitstun: 28, knockbackX: 7, knockbackY: -6,
+        color: rose ? "#ff9ed6" : "#9d7bff", w: 42, h: 42
+      }, context)
+      shakeCamera(context, 12, 10)
+    })
+    focusCameraOnAction(context, fighter, target, 0.95, 14)
+    return true
+  }
+
+  // neutral / other motion → nothing yet (Explosion is Stage 3b). No energy spent, no glitch.
+  return false
 }
 
 export function applyOmoluPassiveSystems(fighter) {

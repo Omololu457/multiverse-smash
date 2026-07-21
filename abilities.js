@@ -9,6 +9,7 @@ import { activateDomain } from "./domains.js"   // domains.js doesn't import abi
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
 import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCinematic.js"   // Goku Black SSJ Rose transform cinematic (no cycle)
+import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from "./gokuBlackSwordCinematic.js"   // Goku Black Sword Slash freeze cinematic (no cycle)
 import { resolveGrab } from "./combat.js"   // shared grab pipeline (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import {
@@ -2620,9 +2621,8 @@ export function updateTransformationState(fighter, context = {}) {
   // No-op unless a cast is in progress.
   updateSasukeLightning(fighter, context)
 
-  // Goku Black Sword Slash: drive the vulnerable windup → reaction-window → sure-hit state
-  // machine (mirrors Sasuke lightning). No-op unless a cast is in progress.
-  updateGokuBlackSwordSlash(fighter, context)
+  // (Goku Black Sword Slash is now a frozen CINEMATIC — gokuBlackSwordCinematic.js, driven by
+  //  updateBattle's freeze block — so there is no per-frame windup state machine to tick here.)
 
   // Apply form stat multipliers
   if (fighter.currentFormData) {
@@ -2996,62 +2996,60 @@ function executeGokuBlackSpecial(fighter, context) {
   }
 }
 
-// ── GOKU BLACK — SWORD SLASH (Stage 3b: Rose-only ULTIMATE) ─────────────────
-// Kurama-style SURE-HIT (damage lands regardless of range) with an opponent REACTION WINDOW
-// (block/dodge to mitigate), BUT — unlike Kurama's frozen invulnerable cinematic — Goku Black has a
-// REAL vulnerable windup: the caster is rooted and can be HIT to interrupt/cancel it (Sasuke-lightning
-// pattern). Rose-form ONLY (the art exists only for the transformed state). Energy-gated on the ult button.
-const SWORD = { cost: 40, windup: 24, react: 18, dmg: 110, blockRatio: 0.20, paralysis: 30 }
+// ── GOKU BLACK — SWORD SLASH (Rose-only ULTIMATE, full freeze CINEMATIC) ─────────────────
+// A frozen combat cinematic reusing the SAME architecture as Kurama's Tailed Beast Bomb and Goku
+// Black's own SSJ Rose transform (see gokuBlackSwordCinematic.js — activate/isActive/update/draw/
+// clear, updateBattle freezes around it). BOTH fighters stay framed (camera.focusBetween, the Kurama
+// TBB framing) since the slash lands ON the opponent. Rose-form ONLY (the art exists only transformed).
+//
+// DESIGN CHANGE (intentional, accepted): a full freeze means the opponent CANNOT act, so the old
+// "vulnerable windup, opponent can interrupt him" + reaction-window logic is GONE. The PAYOFF is
+// unchanged — the same SWORD constants (110 dmg / 20% block ratio / 30f paralysis), applied at the
+// STRIKE connect beat via the cinematic's onImpact callback.
+const SWORD = { cost: 40, dmg: 110, blockRatio: 0.20, paralysis: 30 }
 
 function executeGokuBlackUltimate(fighter, context) {
   if (!isGokuBlack(fighter)) return false
-  if (!fighter._ssjRoseActive) return false        // ROSE-ONLY — disabled in base form
-  if (fighter._swordPhase) return false            // already casting
+  if (!fighter._ssjRoseActive) return false                 // ROSE-ONLY — disabled in base form
+  if (isGokuBlackSwordCinematicActive()) return false       // already mid-cinematic
   if (!spendEnergy(fighter, SWORD.cost)) return false
-  fighter._swordPhase      = "windup"
-  fighter._swordTimer      = SWORD.windup
-  fighter._rooted          = true                  // vulnerable + planted through the windup
-  fighter._spriteCastMove  = "gbSwordSlash"        // Rose sword-slash pose (windup→slash)
-  fighter._spriteCastTimer = SWORD.windup + SWORD.react + 16
-  fighter.attackCooldown   = getAttackDuration(SWORD.windup + SWORD.react + 18, fighter)
+  const opp = getTargetResolver(context)(fighter)
   fighter.vx = 0
-  sound.playSfxFile("goku-black-taste-my-blade.mp3", null)   // voice line on cast (filename kept as-is)
-  focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.98, SWORD.windup)
+  // The cinematic sets the caster's sword pose, drives the camera (both fighters framed), fires the
+  // voice line at the connect, and calls onImpact to apply the guaranteed damage/paralysis.
+  activateGokuBlackSwordCinematic(fighter, opp, (cineCtx) => applySwordSlashDamage(fighter, opp, cineCtx))
   return true
 }
 
-// Per-frame state machine (called from updateTransformationState). Mirrors updateSasukeLightning.
-export function updateGokuBlackSwordSlash(fighter, context = {}) {
-  if (!fighter || !fighter._swordPhase) return
-  // VULNERABLE WINDUP: a hit during the windup CANCELS the whole move (real interrupt risk).
-  if (fighter._swordPhase === "windup" &&
-      ((fighter.hitstun || 0) > 0 || (fighter.stun || 0) > 0 || fighter.knockdownState)) {
-    fighter._swordPhase = null; fighter._rooted = false
-    fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
-    return
+// PAYOFF (unchanged SWORD constants): a GUARANTEED, range-independent slash. A held block (frozen at
+// its pre-cinematic value, like Kurama's TBB) CHIPS it to 20%; a clean hit paralyses for 30f. Applied
+// once at the STRIKE connect beat by the cinematic.
+function applySwordSlashDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = SWORD.dmg
+  if (blocked) {
+    dmg = Math.round(dmg * SWORD.blockRatio)
+    opp.blockstun = Math.max(opp.blockstun || 0, 16)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, SWORD.paralysis)   // PARALYSIS beat (ticks down after the freeze)
+    opp.stun    = Math.max(opp.stun || 0, SWORD.paralysis)
+    opp.vx = 0; opp.colorFlash = 10; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
   }
-  if (fighter._rooted) fighter.vx = 0
-  if ((fighter._swordTimer || 0) > 0) { fighter._swordTimer--; if (fighter._swordTimer > 0) return }
-  if (fighter._swordPhase === "windup") {
-    // windup done → OPPONENT REACTION WINDOW (they can block or dodge now)
-    fighter._swordPhase = "react"; fighter._swordTimer = SWORD.react
-    return
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  // Push ONE hit spark carrying the damage — the shared hitSparks processor spawns the floating damage
+  // number + records the hit from it (same path Kurama uses), so we never hand-roll or double-count it.
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 18, maxTimer: 18,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#ff5db1",
+      damage: dmg, lines: blocked ? 6 : 12, radius: blocked ? 14 : 36,
+      ...(blocked ? { isBlocking: true } : {})
+    })
   }
-  // react window ended → the GUARANTEED slash lands (sure-hit), unless the opponent blocked/dodged.
-  const opp = getTargetResolver(context)(fighter)
-  if (opp && !opp.eliminated && (opp.invulnTimer || 0) <= 0) {   // dodged (i-frames) → whiffs
-    const blocked = !!opp.isBlocking
-    let dmg = SWORD.dmg
-    if (blocked) { dmg = Math.round(dmg * SWORD.blockRatio); opp.blockstun = Math.max(opp.blockstun || 0, 16) }
-    else {
-      opp.hitstun = Math.max(opp.hitstun || 0, SWORD.paralysis)   // brief PARALYSIS beat
-      opp.stun    = Math.max(opp.stun || 0, SWORD.paralysis)
-      opp.vx = 0; opp.colorFlash = 10; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
-    }
-    opp.health = Math.max(0, (opp.health || 0) - dmg)   // GUARANTEED, range-independent (Kurama sure-hit)
-    shakeCamera(context, 12, 14)
-  }
-  fighter._swordPhase = null; fighter._rooted = false
 }
 
 export function applyOmoluPassiveSystems(fighter) {

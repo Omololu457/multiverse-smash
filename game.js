@@ -91,6 +91,10 @@ import {
   updateSSJRoseCinematic, isSSJRoseCinematicActive, drawSSJRoseCinematic, clearSSJRoseCinematic,
   getSSJRoseCinematicStatus
 } from "./ssjRoseCinematic.js"
+import {
+  updateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive, drawGokuBlackSwordCinematic,
+  clearGokuBlackSwordCinematic, getGokuBlackSwordCinematicStatus
+} from "./gokuBlackSwordCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
@@ -1205,6 +1209,7 @@ function resetRound() {
   clearKuramaUltimate()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
+  clearGokuBlackSwordCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
 
@@ -1508,6 +1513,7 @@ function resetToStart() {
   clearKuramaUltimate()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
+  clearGokuBlackSwordCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
@@ -1668,6 +1674,7 @@ function _doRematch() {
   clearKuramaUltimate()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
+  clearGokuBlackSwordCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
   hitSparks.length = 0
@@ -2590,6 +2597,16 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // GOKU BLACK SWORD SLASH CINEMATIC: SAME freeze contract — combat/physics/input are paused for the
+  // whole sequence (so NEITHER fighter can act — the old vulnerable/interruptible windup is gone). The
+  // camera frames BOTH fighters (Kurama TBB framing); the guaranteed damage/paralysis lands at the
+  // STRIKE connect beat via the cinematic's onImpact, then combat resumes.
+  if (isGokuBlackSwordCinematicActive()) {
+    updateGokuBlackSwordCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // BINDING VOWS: match each player's recent RAW directional sequence (own
   // character's vows only). AI fighters have no directionHistory → never match.
   if (vowCue.timer > 0) vowCue.timer--
@@ -3233,6 +3250,7 @@ function drawBattle() {
   drawKuramaCinematic(ctx, canvas)   // fullscreen Tailed Beast Bomb overlay, on top of all
   drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
+  drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
 }
 
 // ── FREE-FOR-ALL rendering (parallel to drawBattle; array-driven) ─────────────
@@ -4156,6 +4174,8 @@ gameLoop()
     attacking:        !!f.attacking,
     blocking:         !!f.isBlocking,
     hitstun:          f.hitstun || 0,
+    stun:             f.stun || 0,
+    blockstun:        f.blockstun || 0,
     currentMove:      f.currentMove || null,
     introVariant:     f._introVariant || null,
     spriteSheet:      f.spriteHandler?._actionDef?.sheet ?? null,
@@ -4305,6 +4325,13 @@ gameLoop()
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     sasukeCine: () => getSasukeCinematicStatus(),
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
+    swordCine: () => getGokuBlackSwordCinematicStatus(),
+    // BOTH fighters' on-screen horizontal extent given the live camera — used to confirm the Sword
+    // Slash cinematic keeps BOTH in frame (unlike SSJ Rose which isolates one). onFrame = any part visible.
+    bothScreenX: () => {
+      const box = f => { if (!f) return null; const cw = canvas.width; const l = (f.x - camera.x) * camera.zoom + cw / 2; const r = (f.x + (f.w || 60) - camera.x) * camera.zoom + cw / 2; return { left: l, right: r, cw, onFrame: r > 0 && l < cw } }
+      return { p1: box(p1), p2: box(p2) }
+    },
     // Opponent (p2) on-screen horizontal extent given the live camera — used to confirm the SSJ Rose
     // cinematic frames Goku Black ONLY (p2 fully off-frame). screenX = (worldX - cam.x)*zoom + cw/2.
     p2ScreenX: () => { if (!p2) return null; const cw = canvas.width; const cx = p2.x + (p2.w || 60) / 2; const left = (p2.x - camera.x) * camera.zoom + cw / 2; const right = (p2.x + (p2.w || 60) - camera.x) * camera.zoom + cw / 2; return { left, right, cw, offFrame: right < 0 || left > cw, center: (cx - camera.x) * camera.zoom + cw / 2 } },
@@ -4348,6 +4375,7 @@ gameLoop()
     gbHitState: () => (p1 ? { knockdownState: !!p1.knockdownState, knockdownTimer: p1.knockdownTimer || 0, hitstun: p1.hitstun || 0, hitstop: p1.hitstop || 0, invulnTimer: p1.invulnTimer || 0, action: p1._lastSpriteAction || null, attacking: !!p1.attacking, health: p1.health } : null),
     topUpP1Health: () => { if (p1) p1.health = p1.maxHealth || 1200 },   // health ONLY — does NOT touch knockdown/hitstun (unlike healP1), so a barrage repro can keep GB alive without erasing the state under test
     setP1Pos: (x, y) => { if (p1) { if (x != null) p1.x = x; if (y != null) p1.y = y } },
+    setVx: (who, v) => { const f = who === "p2" ? p2 : p1; if (f) f.vx = v },   // inject velocity → a running physics step would move them; a FROZEN one won't (cinematic-freeze proof)
     p2State:    () => (p2 ? { attacking: !!p2.attacking, hasHit: !!(p2.currentAttack && p2.currentAttack.hasHit), x: p2.x, w: p2.w, health: p2.health } : null),
     p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0 } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────

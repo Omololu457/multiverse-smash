@@ -2042,15 +2042,18 @@ function updateMovementInput(fighter) {
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
   else fighter.isCharging = false   // reset each frame for normal characters (devices set their own)
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
-  // Can't block while charging the transform device (deliberate vulnerability).
-  if (inputState.down && !fighter.isCharging) fighter.isBlocking = true
   // HOLD-TO-CHARGE (Task 2): a meter character holding P (charge), not attacking,
   // builds cursed energy AND enters the charging state (drives the charge aura +
   // sprite). For Ben/Albedo the charge button is the device dial (handled above).
+  // Resolved BEFORE the block gate so the universal "charging = fully vulnerable"
+  // lockout (no block below, no movement in physics.moveFighter) holds on the SAME
+  // frame the charge begins — for NORMAL chars too, not just the transform device.
   if (inputState.charge && !isTransformDevice(fighter) && !fighter.attacking && (fighter.maxEnergy || 0) > 0) {
     doEnergyCharge(fighter)
     fighter.isCharging = true
   }
+  // UNIVERSAL CHARGE LOCKOUT — can't block while charging (deliberate vulnerability, all chars).
+  if (inputState.down && !fighter.isCharging) fighter.isBlocking = true
   physics.moveFighter(fighter, vKeys, fighter.controls)
 }
 
@@ -2132,6 +2135,14 @@ function updatePlayerCombat(fighter) {
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   const canStart   = !fighter.attacking && !fighter.currentMove
 
+  // UNIVERSAL CHARGE LOCKOUT: while holding a charge (isCharging), the fighter is fully
+  // committed and vulnerable — physics.moveFighter blocks movement/jump/dash and
+  // updateMovementInput blocks guarding. Here we also lock out every NORMAL attack and the
+  // ULTIMATE. The SPECIAL button is the sole exception: it is the charge's own release/fire
+  // trigger (e.g. Naruto's Big Ball Rasengan / Rasenshuriken read isCharging to pick the
+  // charged variant). Releasing P clears isCharging next frame → instant, lag-free exit.
+  const charging = !!fighter.isCharging
+
   // Specials are L (direction-modified inside executeXSpecial). Gojo's Infinity
   // toggle moved to P-TAP (handleChargeRelease), so Down+Special is free for the
   // S+L motion specials (e.g. Hollow Purple = S,A+L).
@@ -2142,18 +2153,21 @@ function updatePlayerCombat(fighter) {
     if (isBetaUnlocked()) fighter._betaHeldDir = betaHeldDirFromInput(inputState, fighter.facing)
     triggerSpecial(fighter,  getAbilityContext()); return
   }
-  if (canStart && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
+  if (canStart && !charging && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
 
   // TOJI stance combat: Blade stance fires its real normals + drives the rekka; Chain/Gun
   // fire the Phase-1 placeholder light. Consumes the grounded light/heavy/up press when it
-  // acts (returns true → skip the normal path).
-  if (isToji && updateTojiStanceCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+  // acts (returns true → skip the normal path). Suppressed while charging (lockout).
+  if (isToji && !charging && updateTojiStanceCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // Toji's grounded normals are stance-driven, so SUPPRESS the built-in light/heavy/up here
   // (else updateCombat would also start the old row-sheet normals / double-fire). Aerials
   // (air/downAir) and grab stay on the normal path. Other characters are unaffected.
   let ctrlState = buildNormalControlState(fighter, vKeys)
   if (isToji) ctrlState = { ...ctrlState, light: false, heavy: false, upAttack: false }
+  // Charge lockout: suppress EVERY normal (grounded + aerial + grab) while charging. The
+  // special (release/fire) already ran above; nothing else may start until P is released.
+  if (charging) ctrlState = { light: false, heavy: false, upAttack: false, air: false, downAir: false, grab: false }
   updateCombat(fighter, getOpponent(fighter), ctrlState, opts)
 }
 
@@ -4083,7 +4097,8 @@ gameLoop()
   const snap = f => f && ({
     key: f.rosterKey, x: f.x, y: f.y, w: f.w, h: f.h, facing: f.facing,
     energy: f.energy, maxEnergy: f.maxEnergy, health: f.health, maxHealth: f.maxHealth,
-    vy: f.vy || 0, grounded: !!(f.onGround ?? f.grounded), canJump: f.canJump !== false,
+    vy: f.vy || 0, vx: f.vx || 0, grounded: !!(f.onGround ?? f.grounded), canJump: f.canJump !== false,
+    charging:         !!f.isCharging,   // universal charge-lockout state (charging = fully vulnerable)
     susanooStage:     f._susanooStage || 0,
     susanooTimer:     f._susanooTimer || 0,
     lightningPhase:   f._lightningPhase || null,

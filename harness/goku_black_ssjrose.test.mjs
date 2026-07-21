@@ -78,10 +78,11 @@ try {
     check("P-tap at energy 100 does NOT transform", low.currentForm !== "ssjRose" && !low.hasSkinAnim, `form=${low.currentForm} skinAnim=${low.hasSkinAnim}`);
     await page.evaluate(() => window.__harness.setEnergy(200));
     await ptap();
-    const hi = await p1();
-    check("P-tap at energy 200 TRANSFORMS to SSJ Rose", hi.currentForm === "ssjRose" && hi.hasSkinAnim === true, `form=${hi.currentForm} skinAnim=${hi.hasSkinAnim}`);
-    await wf(26);   // let the transform-morph cast pose finish → Rose idle
+    // SSJ Rose is now a frozen CINEMATIC — the form-swap lands at its RESOLVE beat, not instantly.
+    await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+    await wf(4);
     const rose = await p1();
+    check("P-tap at energy 200 TRANSFORMS to SSJ Rose (after the transform cinematic)", rose.currentForm === "ssjRose" && rose.hasSkinAnim === true, `form=${rose.currentForm} skinAnim=${rose.hasSkinAnim}`);
     check("SSJ Rose ART swaps in (idle sheet = goku_black_ssj_rose)", sheet(rose).includes("goku_black_ssj_rose"), `action=${rose.action} sheet=${rose.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "GBROSE_transformed.png") });
   }
@@ -112,8 +113,12 @@ try {
   section("SSJ ROSE — normals use Rose art variants");
   {
     await setup(50); await page.evaluate(() => window.__harness.setEnergy(200));
-    await ptap(); await wf(26);
+    await ptap();
+    await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+    await wf(4);
     check("transformed again", (await p1()).currentForm === "ssjRose");
+    // wait out the brief post-cinematic settle cooldown before attacking
+    await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
     await page.keyboard.down("j"); await wf(4);
     const lp = await p1();
     check("Rose LIGHT uses goku_black_ssj_rose_foward_attack", sheet(lp).includes("goku_black_ssj_rose_foward_attack"), `sheet=${lp.spriteSheet}`);

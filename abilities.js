@@ -8,6 +8,7 @@ import { sound }      from "./sound.js"
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
+import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCinematic.js"   // Goku Black SSJ Rose transform cinematic (no cycle)
 import { resolveGrab } from "./combat.js"   // shared grab pipeline (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import {
@@ -2744,24 +2745,28 @@ const SSJ_ROSE_ANIM = {
 
 export function isGokuBlack(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "goku_black" }
 
-// Enter SSJ Rose. Gated: goku_black, not already transformed, actionable, energy ≥ threshold.
+// Enter SSJ Rose. Gated: goku_black, not already transformed/transforming, actionable, energy ≥ thresh.
+// Runs as a FROZEN CINEMATIC (ssjRoseCinematic.js, mirrors Kurama/Sasuke): combat freezes, the camera
+// isolates Goku Black (opponent out of frame), the morph sheet plays, and the actual form-swap (art +
+// stats) lands at the RESOLVE beat via the onResolve callback — NOT immediately.
 export function enterSSJRose(fighter, context = {}) {
   if (!isGokuBlack(fighter) || fighter._ssjRoseActive) return false
+  if (isSSJRoseCinematicActive()) return false   // already mid-transform
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
   if ((fighter.energy || 0) < SSJ_ROSE_THRESHOLD) return false   // ONLY at/near max — no up-front spend
-  fighter._ssjRoseActive    = true
-  fighter._skinAnim         = SSJ_ROSE_ANIM       // FULL art form-swap (Rose sheets)
-  fighter.currentForm       = "ssjRose"           // HUD/state (base → ssjRose)
-  fighter.damageMultiplier  = SSJ_ROSE_MULT.dmg
-  fighter.attackMultiplier  = SSJ_ROSE_MULT.dmg
-  fighter.speedMultiplier   = SSJ_ROSE_MULT.spd
-  fighter.defenseMultiplier = SSJ_ROSE_MULT.def
-  fighter._spriteCastMove   = "transform"         // brief morph-sequence pose
-  fighter._spriteCastTimer  = 24
-  fighter.teleportFlash     = 12
-  fighter.attackCooldown    = 18
-  sound.playSfxFile("dragon_ball_transformation.mp3", null)   // graceful no-op if the file isn't present yet
-  focusCameraOnAction(context, fighter, null, 1.03, 12)
+  const opp = getTargetResolver(context)(fighter)
+  activateSSJRoseCinematic(fighter, opp, () => {
+    // FORM-SWAP — applied at the cinematic's RESOLVE beat (Sasuke Lv2 pattern).
+    fighter._ssjRoseActive    = true
+    fighter._skinAnim         = SSJ_ROSE_ANIM       // FULL art form-swap (Rose sheets)
+    fighter.currentForm       = "ssjRose"           // HUD/state (base → ssjRose)
+    fighter.damageMultiplier  = SSJ_ROSE_MULT.dmg
+    fighter.attackMultiplier  = SSJ_ROSE_MULT.dmg
+    fighter.speedMultiplier   = SSJ_ROSE_MULT.spd
+    fighter.defenseMultiplier = SSJ_ROSE_MULT.def
+    fighter.teleportFlash     = 14
+    fighter.attackCooldown    = 12                  // brief settle as gameplay resumes
+  })
   return true
 }
 

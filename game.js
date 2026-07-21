@@ -2884,6 +2884,11 @@ function _drawInfinityAura(f) {
 const ABSOLUTE_DEFENSE_SHEET = { src: "./sasuke_susanoo_intro.png", frames: 6, w: 113, h: 70, speed: 6, scale: 1.6 }
 let _absDefImg = null
 let _absDefAuraSheetFrame = 0   // last globalFrameCount the persistent ribcage/aura sheet actually drew (harness observable)
+// Charge-vortex instrumentation (harness observable): a counter bumped only when the PROCEDURAL
+// spiral actually renders (i.e. the skip-logic let it through) so a test can prove it draws for a
+// normal fighter and is skipped for Goku Black; plus a real sampled ribbon x so a test can prove the
+// spiral genuinely rotates frame-to-frame (not a static shot).
+let _chargeAuraRenderCount = 0
 function _drawAbsoluteDefenseAura(f) {
   if (!f || !f.absoluteDefenseActive) return
   const cx = f.x + f.w / 2, cy = f.y + f.h / 2
@@ -2923,35 +2928,80 @@ function _drawAbsoluteDefenseAura(f) {
   }
 }
 
-// HOLD-TO-CHARGE aura (Task 2): a visible, rising energy effect while a meter
-// character holds P to build cursed energy. Universal (works for sprite AND
-// procedural fighters) — rising particles + a pulsing ground ring, tinted to the
-// character's energy colour. Brighter as the meter fills.
+// HOLD-TO-CHARGE aura (Task 2): a visible energy effect while a meter character holds P to build
+// energy. Universal (works for sprite AND procedural fighters). Now a swirling, coiling RIBBON of
+// energy that spirals AROUND the body — ascending and rotating, vortex-like — instead of a flat
+// ground ring + rising dots. Depth (front/back of the coil) is faked in 2D: a segment on the near
+// half of its rotation is drawn brighter/thicker with more glow; the far half is dimmer/thinner, so
+// it reads as wrapping in front of AND behind the character. The whole coil rotates every frame off
+// globalFrameCount (deterministic — no Math.random in the loop). Tinted to f.energyColor and
+// brighter as the meter fills (pct), same as before.
 function _drawChargeAura(f) {
   if (!f || !f.isCharging) return
   // Fighters with their own charge-aura SPRITE (Goku Black's power-up/Rose strips) render that
-  // instead — skip the procedural particle aura so the two don't stack. No-op for everyone else.
+  // instead — skip the procedural aura so the two don't stack. No-op for everyone else.
   if (f._skinAnim?.charge || f.animationData?.charge) return
-  const cx = f.x + f.w / 2, baseY = f.y + f.h
-  const pct = Math.max(0, Math.min(1, (f.energy || 0) / (f.maxEnergy || 1)))
-  const col = f.energyColor || "#fcd34d"
-  const t = globalFrameCount * 0.25
+  _chargeAuraRenderCount++
+
+  const cx    = f.x + f.w / 2, baseY = f.y + f.h
+  const pct   = Math.max(0, Math.min(1, (f.energy || 0) / (f.maxEnergy || 1)))
+  const col   = f.energyColor || "#fcd34d"
+  const bright = 0.55 + pct * 0.45                 // meter-fill brightness (unchanged behaviour)
+
+  const H     = f.h * (1.06 + pct * 0.30)          // coil rises up the body, a touch past the head
+  const Rbase = Math.max(f.w * 0.92, 46)           // horizontal reach so the coil wraps AROUND the silhouette
+  const spin  = globalFrameCount * 0.13            // continuous rotation phase (vortex spins each frame)
+  const TURNS = 2.7                                // number of coils from feet to crown
+  const STRANDS = 2                                // twin intertwined ribbons for a fuller vortex
+  const SEG   = 48                                 // samples per ribbon (drawn as depth-shaded segments)
+
   ctx.save()
-  ctx.shadowBlur = 14; ctx.shadowColor = col; ctx.strokeStyle = col; ctx.fillStyle = col
-  // pulsing ground ring
-  ctx.globalAlpha = 0.35 + Math.sin(t) * 0.12
-  ctx.lineWidth = 3
-  ctx.beginPath(); ctx.ellipse(cx, baseY - 2, f.w * 0.62, f.h * 0.10, 0, 0, Math.PI * 2); ctx.stroke()
-  // rising energy motes (deterministic from frame count — no Math.random in the loop)
-  const n = 6
-  for (let i = 0; i < n; i++) {
-    const ph = (globalFrameCount * 0.06 + i / n) % 1
-    const px = cx + Math.sin((i * 1.7) + t) * f.w * 0.4
-    const py = baseY - ph * f.h * (0.9 + pct * 0.4)
-    ctx.globalAlpha = (1 - ph) * 0.8
-    ctx.beginPath(); ctx.arc(px, py, 2.5 + (1 - ph) * 2, 0, Math.PI * 2); ctx.fill()
+  ctx.lineCap = "round"; ctx.lineJoin = "round"
+  ctx.shadowColor = col; ctx.strokeStyle = col; ctx.fillStyle = col
+
+  // faint base flare so the vortex is anchored at the feet (not a hard cut-off)
+  ctx.globalAlpha = 0.18 * bright
+  ctx.shadowBlur = 16
+  ctx.beginPath(); ctx.ellipse(cx, baseY - 3, Rbase * 0.7, f.h * 0.07, 0, 0, Math.PI * 2); ctx.fill()
+
+  let sampleX = cx
+  for (let s = 0; s < STRANDS; s++) {
+    const strandPhase = spin + s * Math.PI          // the two ribbons sit on opposite sides
+    let prev = null
+    for (let i = 0; i <= SEG; i++) {
+      const u     = i / SEG                          // 0 = feet → 1 = crown
+      const theta = u * TURNS * Math.PI * 2 + strandPhase
+      // radius: fuller through the mid-body, funnelling in slightly toward the top (vortex taper)
+      const rx    = Rbase * (0.80 + 0.34 * Math.sin(Math.PI * u)) * (1 - u * 0.22)
+      const x     = cx + Math.cos(theta) * rx
+      const y     = baseY - u * H
+      const front = (Math.sin(theta) + 1) * 0.5      // 1 = near (front of body), 0 = far (behind)
+      const fade  = 0.45 + 0.55 * Math.sin(Math.PI * u)  // soften the feet/crown ends
+      if (prev) {
+        // depth-shaded ribbon segment: near half brighter/thicker/more glow → reads as "in front"
+        ctx.globalAlpha = Math.max(0, Math.min(1, (0.14 + front * 0.78) * bright * fade))
+        ctx.lineWidth   = (1.3 + front * 3.4) * (0.7 + pct * 0.5)
+        ctx.shadowBlur  = 5 + front * 13
+        ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(x, y); ctx.stroke()
+      }
+      if (s === 0 && i === Math.round(SEG * 0.5)) sampleX = x   // real drawn mid-coil x (harness rotation probe)
+      prev = { x, y }
+    }
   }
+
+  // bright energy "head" cresting at the top of the vortex + a couple of sparks riding the coil
+  const headTheta = TURNS * Math.PI * 2 + spin
+  const headX = cx + Math.cos(headTheta) * Rbase * 0.5
+  ctx.globalAlpha = 0.85 * bright
+  ctx.shadowBlur = 18
+  ctx.beginPath(); ctx.arc(headX, baseY - H, 2.5 + pct * 2.2, 0, Math.PI * 2); ctx.fill()
+
   ctx.restore()
+
+  // Harness probes (real drawn values): the sampled mid-coil x rotates frame-to-frame, and the frame
+  // it last drew — lets a test prove the spiral genuinely animates rather than sitting static.
+  f._chargeAuraSampleX = sampleX
+  f._chargeAuraFrame   = globalFrameCount
 }
 
 function drawBattleScene() {
@@ -4142,6 +4192,10 @@ gameLoop()
     // Last frame the persistent Absolute Defense ribcage/aura SHEET actually rendered — lets a
     // test prove the imagery persists past the one-shot toggle FX (playtester visual-bug fix).
     absDefAuraSheetFrame: () => _absDefAuraSheetFrame,
+    // Charge-vortex introspection (charge_aura.test.mjs): total procedural-spiral renders (bumped only
+    // when the skip-logic lets it through → 0 for Goku Black even while he charges his own sprite), and
+    // a fighter's real drawn mid-coil x + the frame it last drew (proves the spiral actually rotates).
+    chargeAura: (who = "p1") => { const f = who === "p2" ? p2 : p1; return { renders: _chargeAuraRenderCount, sampleX: f?._chargeAuraSampleX ?? null, frame: f?._chargeAuraFrame ?? null, charging: !!f?.isCharging, action: f?._lastSpriteAction || null, spriteSheet: f?.spriteHandler?._actionDef?.sheet ?? null } },
     // ── SAVE/LOAD PERSISTENCE (save_load.test.mjs) ───────────────────────────────
     // Every hook below calls the REAL production functions — the test mocks ONLY the
     // native OS file picker (window.showOpen/SaveFilePicker) to hand back an OPFS-backed

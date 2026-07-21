@@ -388,8 +388,10 @@ Motion strings follow the existing `BETA_SPECIAL_MOTIONS` map + `endsWithPattern
    **neutral Special** (NOT the ultimate button); Spirit Bomb = **QCB `["D","B"]`**; Sword Slash =
    **ULTIMATE button** (as originally proposed). See §6 input-map table.
 
-5. **Base-form up/down normal gap (§3.5):** confirm the improvise-from-`kick_attack`/`air_attack`
-   plan vs leaving those slots incomplete until dedicated base art exists.
+5. ~~**Base-form up/down normal gap (§3.5).**~~ **✅ RESOLVED (2026-07-21, §10.3):** confirmed the
+   improvise plan is the live state and correct — base `up` ← native `kick_attack`, base `down_air`
+   reuses `air_attack` (same reuse pattern Rose uses for its own down_air). Do NOT cross-wire the Rose
+   up/down sheets into base (palette mismatch + no cross-form fallback). Nothing broken; no change.
 
 6. **Ki Slash on empty meter:** does a broke Ki Slash still animate (whiff) or is the input
    swallowed? (Affects feel; needs a call at wire time.)
@@ -438,4 +440,83 @@ Motion strings follow the existing `BETA_SPECIAL_MOTIONS` map + `endsWithPattern
 | Fixed-timer form contrast | Susanoo | `abilities.js:1666` |
 
 ---
-*End of doc — mapping & design only. No gameplay code was modified this pass.*
+
+## 10. AMBIGUITY RESOLUTION PASS (2026-07-21) — CONFIRMED WIRED STATE
+
+The five early "open asset ambiguities" are now reconfirmed against the **live wired code**
+(not the design-doc proposals above). Each entry: **current actual state → resolution**. This
+section is the single source of truth; where it disagrees with §3/§4/§7, this section wins.
+
+**Slicing method used:** alpha-gutter column scan (per-column max-alpha → transparent separator
+columns) + visual boundary overlay, run in-browser (`chromium` canvas `getImageData`). All sheets
+below slice cleanly on a uniform grid (interior transparent gutters land within a couple px of the
+uniform boundaries — content wobble, not misalignment).
+
+### 10.1 `base_attack` vs `front_attack` vs `bumb_attack` (the light/heavy competitors)
+- **CURRENT:** `light` ← **`black_goku_front_attack.png`** (6×65, straight punch) in base;
+  `foward_attack` in Rose. `heavy` ← `ki_slash` (Ki Slash). `up` ← `kick_attack`. So **front_attack
+  won the light slot.** `base_attack` and `bumb_attack` were **unreferenced anywhere** (js/json/html).
+- **Slicing:** front_attack 390=6×65 (gutters ✓); base_attack 214≈4×53 (3 interior gutters ✓);
+  bumb_attack 322≈5×64 (4 interior gutters ✓) — all cleanly sliceable.
+- **RESOLUTION:**
+  - `black_goku_base_attack.png` (4-frame confident battle stance) → **REPURPOSED as the TAUNT**
+    (base form). It enables the previously-dormant universal 10s-Down-hold taunt-heal
+    (`game.js updateTauntState`) for Goku Black — he shipped no `taunt` action, so the mechanic was
+    inert for him. Wired in `characters.js` animationData: `4×53, speed 27 → 108-frame committed
+    window` (matches Rick's risk/reward). Rose form gets its OWN taunt (§10.4) so the mechanic is
+    form-consistent and never hits the FALLBACK box.
+  - `black_goku_bumb_attack.png` (5-frame lunging body-check/ram) → **stays UNUSED.** No free/suitable
+    slot: every base normal is assigned, and a horizontal lunge fits neither the `up` launcher nor a
+    downward `down_air` spike. Documented as a **future dash-attack candidate** if that move is ever added.
+
+### 10.2 `jump.png` vs `jump_2.png`
+- **CURRENT & CONFIRMED CORRECT:** `jump` ← `black_goku_jump.png` (6f: crouch→launch→rising tuck =
+  the **ascent/takeoff arc**); `fall` ← `black_goku_jump_2.png` (5f: consistent **descent/falling**
+  poses). The original guess ("one full arc + one mid-air hold") was close but imprecise — actual
+  split is **ascent-arc vs descent-poses**, and both are wired to the right states. No change.
+
+### 10.3 Base-form up-attack / down-attack "missing art"
+- **CURRENT:** the premise ("only SSJ Rose has up/down art") is **partly inaccurate.** Base form does
+  **not** cross-wire the Rose sheets and is **not broken**:
+  - base `up` ← **`black_goku_kick_attack.png`** (9f rising spin-kick — a real, dedicated base sheet).
+  - base `air` ← `black_goku_air_attack.png`; base `down_air` ← **`air_attack` reused** (documented gap).
+  - For comparison, Rose ALSO reuses its air sheet for down_air (`ssj_rose_down_attack` drives both
+    `air` and `down_air`) — so the "reuse air for down-air" pattern is identical in both forms.
+- **RESOLUTION:** **No fix, and specifically do NOT** substitute the pink-haired Rose up/down sheets
+  into base form (palette mismatch, and `getAction(skinAnim)` has no cross-form fallback). Base up is
+  native; base down_air intentionally reuses `air_attack`. §7 Q5 → **RESOLVED (keep the reuse)**.
+
+### 10.4 `goku_black_ssj_rose_ki_effects.png`
+- **CURRENT & CONFIRMED:** **completely UNUSED** (no reference in any file). It is a **non-uniform FX
+  atlas** (934×107) of heterogeneous magenta pieces — ki-blast cones, beam bursts, impact puffs,
+  energy orbs, ring shockwaves — **not a character animation strip**, so it cannot be slotted as an
+  action. The live specials use their own dedicated `*_effect.png` sheets
+  (`kamehameha_effect` / `spirit_bomb_effect` / `electric_ki_push_effect`).
+- **RESOLUTION:** leave unused; retained as a **spare FX palette** for future effects. Not wired.
+
+### 10.5 SSJ Rose `kamehameha.png` vs `kamehameha_2.png`
+- **CURRENT & CONFIRMED:** the live Rose Kamehameha caster pose uses
+  **`goku_black_ssj_rose_kamehameha.png`** (950=10×95, the **complete** charge→pull→thrust→fire
+  sequence) — see `SSJ_ROSE_ANIM.gbKamehameha` in `abilities.js`. `goku_black_ssj_rose_kamehameha_2.png`
+  (356≈6f, a **shorter charge-only subset**, no firing thrust) is **unreferenced.**
+- **RESOLUTION:** `kamehameha.png` is canonical (more complete); `_kamehameha_2.png` **stays UNUSED**
+  as a redundant shorter variant.
+
+### 10.6 New this pass — the TAUNT (both forms), tested
+- base `taunt` ← `black_goku_base_attack.png` (4×53); Rose `taunt` ← **`goku_black_ssj_rose_idle_2.png`**
+  (4×52, previously-unused second Rose idle). Both `speed 27` (108-frame window). Adding it to
+  **both** base `animationData` and `SSJ_ROSE_ANIM` is mandatory: `getAction(skinAnim)` looks only in
+  the active set with no base fallback, so a Rose-form taunt without a Rose entry would draw the 128²
+  FALLBACK box (the four-copies glitch class).
+- **Verified:** `harness/goku_black_taunt.test.mjs` (14/14) — triggers in both forms, renders the
+  correct form-specific sheet (never the fallback box), pays the 50% heal, stays in-form. Real
+  screenshots `harness/shots/GBTAUNT_base.png` / `GBTAUNT_rose.png`.
+
+### 10.7 Still genuinely unused after this pass (documented, intentional)
+`black_goku_bumb_attack.png` (no slot), `goku_black_ssj_rose_ki_effects.png` (FX atlas, not an action),
+`goku_black_ssj_rose_kamehameha_2.png` (redundant short variant). Plus the previously-flagged
+`bomb_special` / `foward_special_ki_slash` / `foward_special_kick` (§7 Q2/Q3, unchanged this pass) and
+the byte-dup `..._transparent_hq copy 31.png` (§8, delete at cleanup).
+
+---
+*End of doc — §10 (2026-07-21) reflects live wired state + the taunt repurpose. Earlier sections are the original design pass.*

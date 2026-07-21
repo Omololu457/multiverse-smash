@@ -88,12 +88,12 @@ try {
   }
   await page.keyboard.up("s"); await page.keyboard.up("j"); await grounded();
 
-  console.log("\n── HEAVY (K) → NOT wired (deferred Ki Slash); K must be inert ──");
+  console.log("\n── HEAVY (K) → Ki Slash (Stage 2, now WIRED) — fires the ki_slash sheet ──");
   await whiffSetup(); await grounded(); await wf(4);
-  const before = await p1();
-  await page.keyboard.down("k"); await wf(6); await page.keyboard.up("k"); await wf(8);
-  const after = await p1();
-  check("K starts no attack (heavy = Stage-2 Ki Slash, unwired)", after.attacking === false && after.action !== "heavy" && before.action === "idle", `before=${before.action} after=${after.action} attacking=${after.attacking}`);
+  await page.keyboard.down("k"); await wf(4);
+  const kslash = await p1();
+  check("K fires Ki Slash (black_goku_ki_slash sheet)", kslash.attacking === true && (kslash.spriteSheet || "").includes("ki_slash"), `attacking=${kslash.attacking} action=${kslash.action} sheet=${kslash.spriteSheet}`);
+  await page.keyboard.up("k"); await grounded();
 
 } catch (e) { console.error("threw:", e); FAIL++; }
 finally {

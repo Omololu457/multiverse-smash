@@ -28,7 +28,8 @@
     "test:goku-black": "node harness/goku_black.test.mjs",
     "test:goku-restore": "node harness/goku_restore.test.mjs",
     "test:goku-black-audit": "node harness/goku_black_audit.test.mjs",
-    "test:goku-black-attacks": "node harness/goku_black_attacks.test.mjs"
+    "test:goku-black-attacks": "node harness/goku_black_attacks.test.mjs",
+    "test:goku-black-ssjrose": "node harness/goku_black_ssjrose.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

@@ -1593,10 +1593,11 @@ const gokuBlack = {
   traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
   // Balanced all-rounder (mirrors Goku's clean, no-gimmick profile) — but his OWN separate kit.
   stats: { maxHealth: 1200, maxEnergy: 200, attack: 90, defense: 86, speed: 90, maxJumps: 2, jumpPower: 30, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 42 },
-  // STAGE 1 normals. HEAVY is intentionally ABSENT — that slot becomes "Ki Slash" (the
-  // energy-costing normal) in Stage 2; startMove() no-ops on the missing move, so K is inert now.
+  // STAGE 2 normals. HEAVY = "Ki Slash" — his ONE energy-costing normal (10 EN, deducted in
+  // combat.js updatePlayerCombat for goku_black only; if broke, K whiffs). Uses the ki_slash sheet.
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 66, rangeY: 50 },        // front_attack straight
+    heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1,  rangeX: 78, rangeY: 52 },        // KI SLASH (ki_slash sheet) — costs 10 EN
     upAttack:  { type: "launcher", damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10 },   // kick_attack rising spin
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },                                 // air_attack downward slash
     downAir:   { type: "spike", damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },                  // air_attack reused (base down-air GAP, asset map §3.5)
@@ -1612,10 +1613,13 @@ const gokuBlack = {
     explosion:  { cost: 120, effect: "STAGE 3+: proximity AOE (Rick mirror), art pending. Not wired yet." }
   },
   ultimate: { name: "Sword Slash", cost: 40, effect: "STAGE 3+: sure-hit with real windup risk. Not wired yet." },
+  // SSJ ROSE is a SELF-CONTAINED sustained transform managed in abilities.js (enterSSJRose /
+  // revertSSJRose / applyGokuBlackFormSystem) — NOT the generic transformations.js flow — because
+  // it's threshold-gated (no entry cost) with a continuous per-frame drain + instant auto-revert.
+  // So transformationOrder stays ["base"]; currentForm is set to "ssjRose" by enterSSJRose for HUD.
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  // No dedicated intro/transform sprite wired yet → intro plays the grounded IDLE (Rick precedent),
-  // avoiding the 128² NULL-box intro fallback. SSJ Rose transform + intro come in a later stage.
+  // Intro plays the grounded IDLE (Rick precedent), avoiding the 128² NULL-box intro fallback.
   introPool: ["idle"],
   hasSprites: true,
   // 1.7: idle content ~69px cell × 1.7 ≈ 117px on-screen — squarely in roster range
@@ -1632,9 +1636,12 @@ const gokuBlack = {
     knockdown: { frames: 6, width: 76, height: 71, speed: 6, anchorY: 0, sheet: "./black_goku_get_up.png" },       // get-up sheet → knockdown slot
     guard:     { frames: 3, width: 52, height: 61, speed: 6, anchorY: 0, sheet: "./black_goku_block.png" },
     light:     { frames: 6, width: 65, height: 54, speed: 3, anchorY: 0, sheet: "./black_goku_front_attack.png" },  // RE-SLICED uniform (wide punch frames no longer left-clipped)
+    heavy:     { frames: 8, width: 112, height: 69, speed: 2, anchorY: 0, sheet: "./black_goku_ki_slash.png" },     // KI SLASH (energy-costing heavy), RE-SLICED uniform
     up:        { frames: 9, width: 65, height: 56, speed: 3, anchorY: 0, sheet: "./black_goku_kick_attack.png" },   // RE-SLICED uniform (spin-kick arc frames no longer clipped)
     air:       { frames: 5, width: 56, height: 66, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" },    // RE-SLICED uniform (slash-arc frames no longer clipped)
-    down_air:  { frames: 5, width: 56, height: 66, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" }     // reuses air_attack (base down-air GAP)
+    down_air:  { frames: 5, width: 56, height: 66, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" },    // reuses air_attack (base down-air GAP)
+    // SSJ ROSE transform-morph sequence (played as a brief cast pose via _spriteCastMove="transform").
+    transform: { frames: 8, width: 36, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./black_goku_transformation_to_ssj_rose.png" }
   }
 }
 

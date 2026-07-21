@@ -2736,6 +2736,10 @@ const SSJ_ROSE_ANIM = {
   hurt:      { frames: 7, width: 71,  height: 69, speed: 6, anchorY: 0, sheet: "./goku_black_ssj_rose_hit.png" },
   knockdown: { frames: 6, width: 71,  height: 60, speed: 6, anchorY: 0, sheet: "./goku_black_ssj_rose_get_up.png" },
   guard:     { frames: 3, width: 46,  height: 54, speed: 6, anchorY: 0, sheet: "./goku_black_ssj_rose_gaurd.png" },
+  // CHARGE (hold P) — ROSE aura (form-aware: replaces the base black_goku_power_up aura). Two-part:
+  // buildup frames 0-2 (brace + magenta ignition) play ONCE, then frames 3-7 (sustained pink oval
+  // pulsing) LOOP while P is held (loopStart=3). RE-SLICED uniform from goku_black_ssj_rose_charge.png (8 frames).
+  charge:    { frames: 8, width: 129, height: 97, speed: 5, anchorY: 0, loop: true, loopStart: 3, sheet: "./goku_black_ssj_rose_charge_uniform.png" },
   light:     { frames: 6, width: 65,  height: 56, speed: 3, anchorY: 0, sheet: "./goku_black_ssj_rose_foward_attack.png" },
   heavy:     { frames: 8, width: 108, height: 68, speed: 2, anchorY: 0, sheet: "./goku_black_ssj_rose_ki_slash.png" },   // Ki Slash (Rose)
   up:        { frames: 4, width: 43,  height: 62, speed: 3, anchorY: 0, sheet: "./goku_black_ssj_rose_up_attack.png" },

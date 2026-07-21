@@ -143,9 +143,15 @@ try {
     await page.evaluate(() => window.__harness.knockdownP1(90));
     await waitFrames(3);
     const k = await p1();
-    check("knockdownState → knockdown action", k.action === "knockdown", `action=${k.action}`);
-    check("knockdown sheet is black_goku_get_up.png", sheetOf(k).includes("black_goku_get_up"), `sheet=${k.spriteSheet}`);
+    // NEW (bugfix): knockdown = the FALL (black_goku_hit sheet); it chains into the RISE
+    // (black_goku_get_up = "getup") as the timer decrements. (Was previously miswired: knockdown→get_up.)
+    check("knockdownState → knockdown (FALL) action", k.action === "knockdown", `action=${k.action}`);
+    check("fall pose uses black_goku_hit.png", sheetOf(k).includes("black_goku_hit"), `sheet=${k.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "GB_knockdown.png") });
+    // let the timer fall into the get-up window → RISE pose (black_goku_get_up)
+    await page.waitForFunction(() => window.__harness.p1().action === "getup", null, { timeout: 4000, polling: 16 }).catch(() => {});
+    const g = await p1();
+    check("chains into getup (RISE) action → black_goku_get_up.png", g.action === "getup" && sheetOf(g).includes("black_goku_get_up"), `action=${g.action} sheet=${g.spriteSheet}`);
     await page.evaluate(() => window.__harness.healP1());
     await waitFrames(2);
   }

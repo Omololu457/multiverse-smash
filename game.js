@@ -35,7 +35,7 @@ import {
 import {
   activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation,
-  toggleSSJRose, revertSSJRose, applyGokuBlackFormSystem,   // Goku Black SSJ Rose (Stage 2)
+  enterSSJRose, revertSSJRose, applyGokuBlackFormSystem,   // Goku Black SSJ Rose (Stage 2)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
@@ -1758,6 +1758,19 @@ function handleChargeRelease(fighter, key) {
   if (!fighter || key !== fighter.controls.charge) return
   const wasTap = fighter._chargeHeld && (performance.now() - (fighter._chargeDownTime || 0)) < 200
   fighter._chargeHeld = false
+
+  // GOKU BLACK — SSJ ROSE: "charge up and RELEASE to transform" (handled BEFORE the tap-only gate).
+  // Real matches start at 50% energy (createFighter startingEnergy = maxEnergy*0.5), below the 90%
+  // threshold, so a bare tap did nothing AND the charge-hold-then-separate-tap was non-obvious →
+  // "didn't trigger". Now: hold P to build energy (doEnergyCharge), and ANY release at/near max
+  // (enterSSJRose gates on energy) enters Rose. While transformed a quick TAP reverts early; a
+  // HOLD-release just tops up energy and stays in form (so you can sustain it).
+  if (fighter.rosterKey === "goku_black") {
+    if (fighter._ssjRoseActive) { if (wasTap) revertSSJRose(fighter) }
+    else enterSSJRose(fighter, getAbilityContext())
+    return
+  }
+
   if (!wasTap) return
   if (fighter.rosterKey === "gojo") {
     if (!fighter.disabledSpecials?.includes("infinity")) {   // Limitless Sacrifice vow disables Infinity
@@ -1773,10 +1786,6 @@ function handleChargeRelease(fighter, key) {
     fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
     // Repurposed asset: the old Susanoo-intro sheet now manifests the Absolute Defense barrier.
     if (fighter.absoluteDefenseActive) spawnAbsoluteDefenseFx(fighter, getAbilityContext())
-  } else if (fighter.rosterKey === "goku_black") {
-    // SSJ ROSE toggle: enter only at/near max energy; manual re-tap reverts early. The continuous
-    // per-frame drain + instant auto-revert-at-zero are handled in applyGokuBlackFormSystem.
-    toggleSSJRose(fighter, getAbilityContext())
   } else if (fighter.transformationOrder?.length) {
     triggerTransformation(fighter, getAbilityContext())
   }

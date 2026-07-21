@@ -2748,7 +2748,13 @@ const SSJ_ROSE_ANIM = {
   // aura burst → committed slash arcs. RE-SLICED (wide cells hold the extending blade arc; the
   // bottom-aligned character stays centered on the fighter, the arc extends past him). Plays across
   // the vulnerable windup + reaction window + slash.
-  gbSwordSlash: { frames: 17, width: 397, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_black_ssj_rose_sword_slahs_Special.png" }
+  gbSwordSlash: { frames: 17, width: 397, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_black_ssj_rose_sword_slahs_Special.png" },
+  // SSJ-ROSE-EXCLUSIVE SLASH SPECIALS (Stage 3c) — caster poses only exist for the transformed
+  // state (no base-form art), so these live ONLY here in SSJ_ROSE_ANIM (mirrors gbSwordSlash).
+  // The dispatch gates them on _ssjRoseActive so the keys are never referenced in base form.
+  gbElectricKiPush: { frames: 4, width: 64, height: 59, speed: 3, anchorY: 0, sheet: "./goku_black_ssj_rose_electric_ki_push.png" }, // 4-pose palm-shove
+  gbElectricSlash:  { frames: 6, width: 65, height: 82, speed: 2, anchorY: 0, sheet: "./goku_black_ssj_rose_electric_slash.png" },   // charge → yellow crescent → recover
+  gbSuperKiSlash:   { frames: 9, width: 80, height: 67, speed: 2, anchorY: 0, sheet: "./goku_black_ssj_rose_super_ki_slash.png" }    // 9-frame purple X-swings
 }
 
 export function isGokuBlack(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "goku_black" }
@@ -2816,11 +2822,27 @@ export function applyGokuBlackFormSystem(fighter) {
 // form-colored, and Rose applies its +25% damage buff to the beam (projectile damage is NOT
 // auto-scaled by damageMultiplier — combat.js:945 — so we bake it in here).
 // Explosion (neutral) + Sword Slash (ultimate) = Stage 3b.
+// Stage 3c adds three SSJ-ROSE-EXCLUSIVE slash specials on their own motions (B→F Electric Ki Push,
+// F→D Electric Slash, B→D Super Ki Slash) — gated on _ssjRoseActive; see GB_ELEC_* constants below.
 const GB_KAME_CAST = 40, GB_KAME_FIRE = 24   // full cast-pose play length / frame the beam releases
 const GB_BOMB_CAST = 30, GB_BOMB_FIRE = 20
 // EXPLOSION (neutral special, both forms) — Rick Self-Destruct mirror. cost 120 = 60% of his 200 pool
 // (his most expensive move; the ONLY balance lever for an instant no-startup proximity nuke).
 const GB_EXPLOSION = { cost: 120, radius: 200, dmg: 150 }
+// SSJ-ROSE-EXCLUSIVE SLASH SPECIALS (Stage 3c). Three NEW moves on the SPECIAL button, each on its
+// own motion, ALL gated on _ssjRoseActive (the art only exists transformed). Motion choice rules:
+//   • avoid the D→F / D→B subsequences already claimed by Kamehameha/Spirit Bomb (endsWithPattern is
+//     forgiving, so a claimed pattern buried in a longer motion would shadow it);
+//   • avoid UP — up is the jump key, so any motion with U launches the caster and the grounded slash
+//     whiffs over the opponent (these are grounded specials);
+//   • mutually distinct. Down (crouch) is safe. Damage is the final Rose value (these never fire in
+//     base, so — unlike Kamehameha/Spirit Bomb — there's no base variant to branch on).
+//   B→F  ELECTRIC KI PUSH  — spacing/repel: lowest damage in the kit, HIGHEST knockback, cheap.
+//   F→D  ELECTRIC SLASH    — mid-tier: fast startup, cheap, a single ranged crescent (the poke).
+//   B→D  SUPER KI SLASH    — strongest slash: big X hitbox, slow startup, costed the highest.
+const GB_ELEC_PUSH  = { cost: 15, cast: 18, fire: 8,  dmg: 35,  knockbackX: 26, knockbackY: -3, hitstun: 16 }
+const GB_ELEC_SLASH = { cost: 20, cast: 22, fire: 10, dmg: 80,  knockbackX: 8,  knockbackY: -3, hitstun: 20 }
+const GB_SUPER_SLASH= { cost: 48, cast: 30, fire: 18, dmg: 135, knockbackX: 12, knockbackY: -5, hitstun: 26 }
 function executeGokuBlackSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
   const target = getTargetResolver(context)(fighter)
@@ -2861,6 +2883,75 @@ function executeGokuBlackSpecial(fighter, context) {
     focusCameraOnAction(context, fighter, target, 0.95, 14)
     return true
   }
+
+  // ── SSJ-ROSE-EXCLUSIVE SLASH SPECIALS (Stage 3c) ──────────────────────────
+  // Only resolve while transformed. In BASE form this block is skipped entirely, so these motions
+  // fall through to the neutral gate below and — because they carry a directional motion — produce
+  // NOTHING (no base-form art, no accidental Explosion).
+  if (rose) {
+    // B→F = ELECTRIC KI PUSH — low-damage, high-knockback repel (spacing utility)
+    if (endsWithPattern(dirs, ["B", "F"])) {
+      if (!spendEnergy(fighter, GB_ELEC_PUSH.cost)) return false
+      fighter._spriteCastMove  = "gbElectricKiPush"
+      fighter._spriteCastTimer = GB_ELEC_PUSH.cast
+      fighter.attackCooldown   = getAttackDuration(GB_ELEC_PUSH.cast + 4, fighter)
+      schedulePendingSpawn(GB_ELEC_PUSH.fire, () => {
+        spawnProjectile(fighter, "gbElectricPush", {
+          damage: GB_ELEC_PUSH.dmg, speed: 12, lifetime: 20,
+          hitstun: GB_ELEC_PUSH.hitstun, knockbackX: GB_ELEC_PUSH.knockbackX, knockbackY: GB_ELEC_PUSH.knockbackY,
+          color: "#ffe14d", w: 44, h: 40,
+          // crackling energy-wave FX plays across the short-range shove
+          sheet: "./goku_black_ssj_rose_electric_ki_push_effect.png",
+          spriteFrames: 6, spriteW: 98, spriteH: 45, spriteSpeed: 3, spriteScale: 1.15
+        }, context)
+        shakeCamera(context, 6, 6)
+      })
+      focusCameraOnAction(context, fighter, target, 0.98, 10)
+      return true
+    }
+
+    // F→D = ELECTRIC SLASH — fast, cheap, mid-tier ranged crescent (the poke)
+    if (endsWithPattern(dirs, ["F", "D"])) {
+      if (!spendEnergy(fighter, GB_ELEC_SLASH.cost)) return false
+      fighter._spriteCastMove  = "gbElectricSlash"
+      fighter._spriteCastTimer = GB_ELEC_SLASH.cast
+      fighter.attackCooldown   = getAttackDuration(GB_ELEC_SLASH.cast + 4, fighter)
+      schedulePendingSpawn(GB_ELEC_SLASH.fire, () => {
+        spawnProjectile(fighter, "gbElectricSlash", {
+          damage: GB_ELEC_SLASH.dmg, speed: 16, lifetime: 48,
+          hitstun: GB_ELEC_SLASH.hitstun, knockbackX: GB_ELEC_SLASH.knockbackX, knockbackY: GB_ELEC_SLASH.knockbackY,
+          color: "#ffe14d", w: 30, h: 46
+        }, context)
+        shakeCamera(context, 7, 7)
+      })
+      focusCameraOnAction(context, fighter, target, 0.97, 10)
+      return true
+    }
+
+    // B→D = SUPER KI SLASH — strongest slash: big X hitbox, slow startup, high cost
+    if (endsWithPattern(dirs, ["B", "D"])) {
+      if (!spendEnergy(fighter, GB_SUPER_SLASH.cost)) return false
+      fighter._spriteCastMove  = "gbSuperKiSlash"
+      fighter._spriteCastTimer = GB_SUPER_SLASH.cast
+      fighter.attackCooldown   = getAttackDuration(GB_SUPER_SLASH.cast + 4, fighter)
+      schedulePendingSpawn(GB_SUPER_SLASH.fire, () => {
+        spawnProjectile(fighter, "gbSuperKiSlash", {
+          damage: GB_SUPER_SLASH.dmg, speed: 13, lifetime: 70,
+          hitstun: GB_SUPER_SLASH.hitstun, knockbackX: GB_SUPER_SLASH.knockbackX, knockbackY: GB_SUPER_SLASH.knockbackY,
+          color: "#c77dff", w: 64, h: 58
+        }, context)
+        shakeCamera(context, 13, 11)
+      })
+      focusCameraOnAction(context, fighter, target, 0.95, 14)
+      return true
+    }
+  }
+
+  // A motioned SPECIAL press that matched nothing above WHIFFS (no move, no energy spent). This keeps
+  // Explosion a true NEUTRAL special and means a base-form player performing the Rose slash motions
+  // gets nothing (rather than an accidental 120-EN Explosion). Beta returns [] for goku_black's
+  // unmapped held dirs, so beta's neutral Explosion is unaffected.
+  if (dirs.length > 0) return false
 
   // NEUTRAL SPECIAL = EXPLOSION (both forms). Mirrors Rick's Self-Destruct EXACTLY: manual press,
   // proximity-gated AOE via Math.hypot, damage to the TARGET only (no self-harm), energy cost as the

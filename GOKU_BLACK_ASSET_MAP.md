@@ -1,6 +1,9 @@
 # Goku Black / SSJ Rose — Asset Map & Design Doc
 
-**Status:** DOCUMENTATION ONLY — no gameplay code wired this pass.
+**Status:** DOCUMENTATION ONLY — no gameplay code wired *this pass* (original 2026-07-20 design pass).
+**Update (2026-07-21):** the kit is now WIRED — Stages 1–3b (base kit, SSJ Rose transform, Kamehameha,
+Spirit Bomb, Explosion, Sword Slash) and **Stage 3c** (the three Rose-exclusive slash specials, §7 Q1).
+Remaining gaps are asset-blocked only: Explosion FX art, SSJ Rose audio. See §2.2 / §6 / §7 for details.
 **Date:** 2026-07-20
 **Scope:** Asset→role mapping, ambiguity resolution, and a locked-down design for a
 **separate roster character** (own `rosterKey`, own full kit). Numbers marked **PROPOSED**
@@ -128,9 +131,9 @@ Per-action oversize art is corrected with an `actionScale` field on that action'
 | `goku_black_ssj_rose_foward_special_ki_slash.png` | 6f: dash-in + big purple ki-blade sweep | Sword Slash (Rose alt) OR Ki-Slash special variant — **see Open Questions** | med |
 | `goku_black_ssj_rose_foward_special_kick.png` | forward "special" kick | special kick variant — unassigned | LOW |
 | `goku_black_ssj_rose_bomb_special.png` | **has "Unused!" baked into the art**: Rose charge → growing pink sphere → projectile | Spirit Bomb (Rose) candidate — **flagged unused, see Open Questions** | LOW |
-| `goku_black_ssj_rose_electric_ki_push.png` / `_electric_ki_push_effect.png` | 4f ki-push/shove w/ electric aura + FX | **UNASSIGNED** (see §7) | — |
-| `goku_black_ssj_rose_electric_slash.png` | 6f electric-aura charge → yellow crescent slash | **UNASSIGNED** (see §7) | — |
-| `goku_black_ssj_rose_super_ki_slash.png` | 9f amped multi-crescent purple ki slashes | **UNASSIGNED** (see §7) | — |
+| `goku_black_ssj_rose_electric_ki_push.png` / `_electric_ki_push_effect.png` | 4f ki-push/shove w/ electric aura + FX | ✅ **Electric Ki Push** (Rose special, B→F) — caster pose + FX projectile sheet (Stage 3c) | high |
+| `goku_black_ssj_rose_electric_slash.png` | 6f electric-aura charge → yellow crescent slash | ✅ **Electric Slash** (Rose special, F→D) — caster pose (Stage 3c) | high |
+| `goku_black_ssj_rose_super_ki_slash.png` | 9f amped multi-crescent purple ki slashes | ✅ **Super Ki Slash** (Rose special, B→D) — caster pose (Stage 3c) | high |
 | `goku_black_ssj_rose_transparent_hq.png` (+ ` copy 31`) | large ref art (duplicate pair) | portrait / reference | n/a |
 
 ---
@@ -352,16 +355,22 @@ Motion strings follow the existing `BETA_SPECIAL_MOTIONS` map + `endsWithPattern
 
 ## 7. OPEN QUESTIONS (decisions still needed — NOT dropped, NOT wired)
 
-1. **Unassigned Rose-exclusive art (explicitly flagged in brief).** Real, mapped, but **NOT** part
-   of the confirmed 4-special list. Awaiting a decision: 5th+ special? future addition? or cut?
-   - `goku_black_ssj_rose_electric_ki_push.png` (+ `_electric_ki_push_effect.png`) — 4f electric ki
-     shove/push. Natural fit as a *zoning pushback special* if a 5th slot ever opens.
-   - `goku_black_ssj_rose_electric_slash.png` — 6f electric-aura crescent slash.
-   - `goku_black_ssj_rose_super_ki_slash.png` — 9f amped multi-crescent ki slash (a "super" Ki Slash;
-     could be the Rose-form upgrade of the Ki Slash heavy, OR a distinct special).
-   → **Recommendation:** hold all three as **UNASSIGNED**. Most likely future use: `super_ki_slash`
-     as a Rose-form Ki-Slash upgrade, and the two electric moves as a candidate 5th special. **No
-     wiring until confirmed.**
+1. ~~**Unassigned Rose-exclusive art (explicitly flagged in brief).**~~ **✅ RESOLVED & WIRED
+   (2026-07-21, Stage 3c):** all three became **SSJ-Rose-EXCLUSIVE specials** on the SPECIAL button
+   (NEW moves, not upgrades replacing existing ones), gated on `_ssjRoseActive` so they do nothing in
+   base form. See `executeGokuBlackSpecial` (`GB_ELEC_*` constants) + `SSJ_ROSE_ANIM` caster poses.
+   - `goku_black_ssj_rose_electric_ki_push.png` (+ `_electric_ki_push_effect.png`) → **Electric Ki
+     Push**, motion **B→F**. Spacing/repel: lowest damage in the kit (35), highest knockback (26),
+     cheap (15 EN). The `_effect` sheet renders as the projectile's crackling FX.
+   - `goku_black_ssj_rose_electric_slash.png` → **Electric Slash**, motion **F→D**. Fast, cheap
+     (80 dmg / 20 EN) single ranged crescent — the poke.
+   - `goku_black_ssj_rose_super_ki_slash.png` → **Super Ki Slash**, motion **B→D**. His strongest
+     slash: big X hitbox, slow startup, costed highest (135 dmg / 48 EN).
+   → Verified by `harness/goku_black_rose_specials.test.mjs` (35/35) with real in-game screenshots
+     (`harness/shots/GBROSE3C_*.png`). Motions deliberately avoid the D→F/D→B subsequences (would be
+     shadowed by Kamehameha/Spirit Bomb under the forgiving matcher) and UP (the jump key). Explosion
+     was made **neutral-gated** so a base-form Rose motion whiffs instead of firing an accidental
+     Explosion.
 
 2. **`goku_black_ssj_rose_bomb_special.png` is labeled "Unused!" in the art itself.** Content is a
    Rose charge → growing pink sphere → projectile. Is it (a) the intended Rose **Spirit Bomb**

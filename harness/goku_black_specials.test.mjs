@@ -38,7 +38,13 @@ async function roll(dirKey) {
   await page.keyboard.down(dirKey); await wf(2); await page.keyboard.up(dirKey);
   await page.keyboard.down("l"); await wf(2); await page.keyboard.up("l");
 }
-async function toRose() { await page.evaluate(() => window.__harness.setEnergy(200)); await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p"); await wf(28); }
+async function toRose() {
+  await page.evaluate(() => window.__harness.setEnergy(200));
+  await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p");
+  // SSJ Rose is a frozen CINEMATIC now — wait for it to resolve + the post-cinematic settle cooldown.
+  await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
+}
 
 async function verifyCast({ label, dirKey, castSheet, projName, cost, fireAt, shot }) {
   await setup(210);

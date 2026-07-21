@@ -51,12 +51,14 @@ try {
     await page.keyboard.down("p");
     const reached = await page.waitForFunction(() => window.__harness.p1().energy >= 180, null, { timeout: 6000, polling: 16 }).then(() => true).catch(() => false);
     const eAtRelease = (await p1()).energy;
-    await page.keyboard.up("p"); await wf(3);
-    const after = await p1();
+    await page.keyboard.up("p");
     check("charging reaches threshold (>=180) via P-hold", reached, `energy@release=${eAtRelease.toFixed(0)}`);
-    check("RELEASE at/near max ENTERS SSJ Rose", after.currentForm === "ssjRose" && after.hasSkinAnim, `form=${after.currentForm} skinAnim=${after.hasSkinAnim}`);
-    await wf(26);
-    check("SSJ Rose art swapped in (Rose idle sheet)", sheet(await p1()).includes("goku_black_ssj_rose"), `sheet=${(await p1()).spriteSheet}`);
+    // the transform is a frozen CINEMATIC now — wait for it to resolve, then the form-swap has landed
+    await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+    await wf(4);
+    const after = await p1();
+    check("RELEASE at/near max ENTERS SSJ Rose (after the transform cinematic)", after.currentForm === "ssjRose" && after.hasSkinAnim, `form=${after.currentForm} skinAnim=${after.hasSkinAnim}`);
+    check("SSJ Rose art swapped in (Rose idle sheet)", sheet(after).includes("goku_black_ssj_rose"), `sheet=${after.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "GBFIX_ssjrose_realplay.png") });
     // quick tap reverts
     await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p"); await wf(3);

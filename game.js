@@ -87,6 +87,10 @@ import {
   updateSasukeCinematic, isSasukeCinematicActive, drawSasukeCinematic, clearSasukeCinematic,
   getSasukeCinematicStatus
 } from "./sasukeCinematic.js"
+import {
+  updateSSJRoseCinematic, isSSJRoseCinematicActive, drawSSJRoseCinematic, clearSSJRoseCinematic,
+  getSSJRoseCinematicStatus
+} from "./ssjRoseCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
@@ -1200,6 +1204,7 @@ function resetRound() {
   clearDomains()
   clearKuramaUltimate()
   clearSasukeCinematic()
+  clearSSJRoseCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
 
@@ -1481,6 +1486,7 @@ function resetToStart() {
   clearDomains()
   clearKuramaUltimate()
   clearSasukeCinematic()
+  clearSSJRoseCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
@@ -1640,6 +1646,7 @@ function _doRematch() {
   clearDomains()
   clearKuramaUltimate()
   clearSasukeCinematic()
+  clearSSJRoseCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
   hitSparks.length = 0
@@ -2539,6 +2546,15 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // GOKU BLACK SSJ ROSE TRANSFORM CINEMATIC: SAME freeze contract — combat/physics/input are
+  // paused while the morph plays (camera isolates Goku Black, opponent out of frame); the form-swap
+  // (art + stats) is applied by the cinematic's onResolve at its RESOLVE beat, then combat resumes.
+  if (isSSJRoseCinematicActive()) {
+    updateSSJRoseCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // BINDING VOWS: match each player's recent RAW directional sequence (own
   // character's vows only). AI fighters have no directionHistory → never match.
   if (vowCue.timer > 0) vowCue.timer--
@@ -3128,6 +3144,7 @@ function drawBattle() {
   _drawVowCue()
   drawKuramaCinematic(ctx, canvas)   // fullscreen Tailed Beast Bomb overlay, on top of all
   drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
+  drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
 }
 
 // ── FREE-FOR-ALL rendering (parallel to drawBattle; array-driven) ─────────────
@@ -4182,6 +4199,10 @@ gameLoop()
     }),
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     sasukeCine: () => getSasukeCinematicStatus(),
+    ssjRoseCine: () => getSSJRoseCinematicStatus(),
+    // Opponent (p2) on-screen horizontal extent given the live camera — used to confirm the SSJ Rose
+    // cinematic frames Goku Black ONLY (p2 fully off-frame). screenX = (worldX - cam.x)*zoom + cw/2.
+    p2ScreenX: () => { if (!p2) return null; const cw = canvas.width; const cx = p2.x + (p2.w || 60) / 2; const left = (p2.x - camera.x) * camera.zoom + cw / 2; const right = (p2.x + (p2.w || 60) - camera.x) * camera.zoom + cw / 2; return { left, right, cw, offFrame: right < 0 || left > cw, center: (cx - camera.x) * camera.zoom + cw / 2 } },
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.

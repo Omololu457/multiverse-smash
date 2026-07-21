@@ -89,7 +89,11 @@ try {
   await page.keyboard.up("s"); await page.keyboard.up("j"); await grounded();
 
   console.log("\n── HEAVY (K) → Ki Slash (Stage 2, now WIRED) — fires the ki_slash sheet ──");
-  await whiffSetup(); await grounded(); await wf(4);
+  await page.keyboard.up("s"); await page.keyboard.up("j"); await page.keyboard.up("i"); await page.keyboard.up("d");
+  await whiffSetup(); await grounded();
+  // guard against any leftover attack (down_air landing) leaking into this section
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && (p.attackCooldown || 0) <= 0 && p.action !== "down_air"; }, null, { timeout: 8000, polling: 16 }).catch(() => {});
+  await wf(4);
   await page.keyboard.down("k"); await wf(4);
   const kslash = await p1();
   check("K fires Ki Slash (black_goku_ki_slash sheet)", kslash.attacking === true && (kslash.spriteSheet || "").includes("ki_slash"), `attacking=${kslash.attacking} action=${kslash.action} sheet=${kslash.spriteSheet}`);

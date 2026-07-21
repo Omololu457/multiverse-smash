@@ -93,6 +93,7 @@ export const physics = {
       fighter.blockstun > 0 ||
       fighter.isGrabbed ||
       fighter._rooted ||          // opt-in root (e.g. Sasuke's lightning handseals) — defaults falsy → no effect
+      fighter.isCharging ||       // UNIVERSAL: holding a charge = fully committed → no walk/jump/dash (every char)
       fighter._tauntPlaying       // committed taunt = fully locked (Rick's channel-payoff)
     )
 

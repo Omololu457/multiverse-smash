@@ -2746,6 +2746,12 @@ const SSJ_ROSE_ANIM = {
   up:        { frames: 4, width: 43,  height: 62, speed: 3, anchorY: 0, sheet: "./goku_black_ssj_rose_up_attack.png" },
   air:       { frames: 5, width: 63,  height: 70, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_down_attack.png" },
   down_air:  { frames: 5, width: 63,  height: 70, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_down_attack.png" },
+  // TAUNT (Rose-form flourish) — the base-form taunt lives in characters.js animationData; this MUST
+  // exist so a taunt WHILE transformed shows the Rose (pink-haired) sprite, not the base one, and never
+  // hits the 128² FALLBACK box (getAction(skinAnim) has no base fallback). Repurposes the unused
+  // goku_black_ssj_rose_idle_2 sheet (confident standing pose). 4×52 uniform (alpha-gutter-verified);
+  // speed 27 → 108-frame window, matching the base taunt / Rick.
+  taunt:     { frames: 4, width: 52,  height: 75, speed: 27, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_black_ssj_rose_idle_2.png" },
   // Special CHARGE→RELEASE cast poses (Stage 3a) — Rose variants; base variants live in characters.js.
   // The _skinAnim swap makes the caster pose form-aware automatically (same action key, Rose sheet).
   gbKamehameha: { frames: 10, width: 95, height: 58, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_kamehameha.png" },

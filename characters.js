@@ -1641,6 +1641,12 @@ const gokuBlack = {
     up:        { frames: 9, width: 65, height: 56, speed: 3, anchorY: 0, sheet: "./black_goku_kick_attack.png" },   // RE-SLICED uniform (spin-kick arc frames no longer clipped)
     air:       { frames: 5, width: 56, height: 66, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" },    // RE-SLICED uniform (slash-arc frames no longer clipped)
     down_air:  { frames: 5, width: 56, height: 66, speed: 4, anchorY: 0, sheet: "./black_goku_air_attack.png" },    // reuses air_attack (base down-air GAP)
+    // TAUNT (10s Down-hold reward flourish, universal mechanic — game.js updateTauntState). Repurposes
+    // the otherwise-unused black_goku_base_attack sheet (a confident battle-ready stance) so Goku Black
+    // gets the taunt-heal like Rick. 4×53 uniform (alpha-gutter-verified). speed 27 → 4×27 = 108-frame
+    // committed window, matching Rick's risk/reward. Rose form has its OWN taunt in SSJ_ROSE_ANIM (must
+    // exist there too — getAction(skinAnim) has no base fallback → a missing key = 128² FALLBACK box).
+    taunt:     { frames: 4, width: 53, height: 65, speed: 27, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./black_goku_base_attack.png" },
     // SSJ ROSE transform-morph sequence (played as a brief cast pose via _spriteCastMove="transform").
     transform: { frames: 8, width: 36, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./black_goku_transformation_to_ssj_rose.png" },
     // CHARGE (hold P) — BASE aura. Two-part: buildup frames 0-1 (bracing, no aura) play ONCE, then

@@ -141,6 +141,10 @@ const MOVE_TO_ACTION = {
   domain: "domain"
 };
 
+// Last-N frames of a knockdown during which a fighter WITH a `getup` strip plays its RISE
+// pose (get_up.png = 6f × speed 4 ≈ 24). Only affects fighters that define `getup` (Goku Black).
+const GETUP_WINDOW = 24;
+
 // ─────────────────────────────────────────────────────────────────
 // ACTION RESOLVER
 // Combines your simple priority flow with extra states from the
@@ -177,6 +181,16 @@ function _resolveAction(fighter, currentAction = "idle") {
     // base animationData); otherwise keep the existing hurt fallback — unchanged
     // for every character WITHOUT a `knockdown` strip (Gojo/Sukuna/…).
     const kd = (fighter._skinAnim?.knockdown || fighter.animationData?.knockdown) ? "knockdown" : "hurt";
+    // GET-UP CHAIN: a fighter that ALSO defines a `getup` strip (Goku Black) plays the knockdown
+    // FALL pose for the down portion, then the getup RISE pose as it recovers, then idle. Fighters
+    // WITHOUT a `getup` (Naruto/…) keep the legacy 12-frame knockdown→idle behaviour, unchanged.
+    const hasGetup = !!(fighter._skinAnim?.getup || fighter.animationData?.getup);
+    if (hasGetup) {
+      if ((fighter._techDash || 0) > 0) return "dash";
+      if ((fighter.knockdownTimer || 0) > GETUP_WINDOW) return kd;   // still down → FALL/sprawled pose
+      if ((fighter.knockdownTimer || 0) > 0) return "getup";         // recovering → RISE pose
+      return "idle";
+    }
     if ((fighter.knockdownTimer || 0) > 12) return kd;
     if ((fighter._techDash || 0) > 0) return "dash";
     return "idle";

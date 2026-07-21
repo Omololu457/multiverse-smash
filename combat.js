@@ -313,6 +313,9 @@ export const SASUKE_ABSOLUTE_DEFENSE_COST = 12   // per negated hit (Gojo's per-
 // GOKU BLACK — "Ki Slash" heavy: the one normal that costs energy. 10 = 5% of his 200 pool → still
 // spammable as a poke, but well under his cheapest special (Kamehameha 30) so it stays a normal.
 export const KI_SLASH_COST = 10
+// GOKU BLACK — knockdown reaction length on a strong grounded hit: ~28f FALL (black_goku_hit) then
+// ~24f RISE (black_goku_get_up) = 52. Kept in sync with sprite.js GETUP_WINDOW (24).
+export const GOKU_BLACK_KNOCKDOWN = 52
 export function shouldSasukeAbsoluteDefenseNegate(defender) {
   if ((defender?.rosterKey || "").toLowerCase() !== "sasuke") return false
   if (!defender?.absoluteDefenseActive) return false
@@ -685,6 +688,18 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       if (proj <= 0 || proj >= stageWidth - (defender.w || 60)) {
         defender.wallBounce = true
       }
+    }
+
+    // GOKU BLACK — dramatic KNOCKDOWN on a strong GROUNDED hit (heavy/special/ultimate; NOT
+    // launcher/spike, which already send him airborne). His black_goku_hit sheet is a full
+    // flinch→fall→sprawled sequence: the resolver plays it through, then chains into black_goku_get_up
+    // (RISE). Light jabs stay a brief flinch (hurt). Self-contained — knockdownState is otherwise never
+    // triggered in normal play; gated to goku_black. invulnTimer prevents ground-lock combos.
+    if ((defender.rosterKey || "").toLowerCase() === "goku_black" && !atk.launcher && !atk.spike &&
+        (cat === "heavy" || cat === "special" || cat === "ultimate")) {
+      defender.knockdownState = true
+      defender.knockdownTimer = GOKU_BLACK_KNOCKDOWN
+      defender.invulnTimer    = Math.max(defender.invulnTimer || 0, GOKU_BLACK_KNOCKDOWN)
     }
 
     if (!isCounter) {

@@ -1632,8 +1632,9 @@ const gokuBlack = {
     dash:      { frames: 2, width: 88, height: 47, speed: 5, anchorY: 0, sheet: "./black_goku_dash.png" },
     jump:      { frames: 6, width: 69, height: 73, speed: 6, anchorY: 0, sheet: "./black_goku_jump.png" },
     fall:      { frames: 5, width: 50, height: 71, speed: 6, anchorY: 0, sheet: "./black_goku_jump_2.png" },       // descent-only poses (asset map §3.2)
-    hurt:      { frames: 7, width: 70, height: 78, speed: 6, anchorY: 0, sheet: "./black_goku_hit.png" },
-    knockdown: { frames: 6, width: 76, height: 71, speed: 6, anchorY: 0, sheet: "./black_goku_get_up.png" },       // get-up sheet → knockdown slot
+    hurt:      { frames: 7, width: 69, height: 71, speed: 6, anchorY: 0, sheet: "./black_goku_hit.png" },        // flinch on hitstun (RE-SLICED uniform)
+    knockdown: { frames: 7, width: 69, height: 71, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./black_goku_hit.png" },     // FALL→sprawled on a strong-hit knockdown (same sheet, plays through)
+    getup:     { frames: 6, width: 69, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./black_goku_get_up.png" },  // RISE — chains after the knockdown fall (RE-SLICED)
     guard:     { frames: 3, width: 52, height: 61, speed: 6, anchorY: 0, sheet: "./black_goku_block.png" },
     light:     { frames: 6, width: 65, height: 54, speed: 3, anchorY: 0, sheet: "./black_goku_front_attack.png" },  // RE-SLICED uniform (wide punch frames no longer left-clipped)
     heavy:     { frames: 8, width: 112, height: 69, speed: 2, anchorY: 0, sheet: "./black_goku_ki_slash.png" },     // KI SLASH (energy-costing heavy), RE-SLICED uniform

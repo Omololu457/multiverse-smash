@@ -316,6 +316,9 @@ export const KI_SLASH_COST = 10
 // GOKU BLACK — knockdown reaction length on a strong grounded hit: ~28f FALL (black_goku_hit) then
 // ~24f RISE (black_goku_get_up) = 52. Kept in sync with sprite.js GETUP_WINDOW (24).
 export const GOKU_BLACK_KNOCKDOWN = 52
+// Neutral wake-up i-frames (no tech input) — guarantees an escape window off a hard knockdown so a
+// mashed meaty can't loop the fighter back down. A touch shorter than the 18f tech-roll reward.
+export const WAKEUP_INVULN = 14
 export function shouldSasukeAbsoluteDefenseNegate(defender) {
   if ((defender?.rosterKey || "").toLowerCase() !== "sasuke") return false
   if (!defender?.absoluteDefenseActive) return false
@@ -594,6 +597,22 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   const hurtbox = getHurtbox(defender)
   if (!rectsOverlap(hitbox, hurtbox)) return
 
+  // I-FRAMES / KNOCKDOWN apply to MELEE too, not just projectiles (resolveProjectileHits already
+  // skips on invulnTimer). A defender who is invulnerable (tech-roll, dash i-frames, post-parry) OR
+  // still knocked DOWN is untouchable; the swing passes through. Consume it (hasHit) so it whiffs
+  // cleanly instead of re-testing every active frame.
+  //   WHY BOTH conditions: without the invuln check, a hit during Goku Black's post-knockdown i-frames
+  //   re-armed knockdownTimer to 52. The invuln check alone is NOT enough — invulnTimer decrements
+  //   during hitstop (above) but knockdownTimer does not (it lives in the post-hitstop knockdown
+  //   block), so invuln drains ~hitstop frames FASTER than the knockdown, leaving a brief
+  //   still-down-but-no-longer-invulnerable window each cycle where a rapid heavy/special barrage
+  //   re-armed the knockdown and pinned him in the down/hit reaction forever (soft-lock; opponent's
+  //   hits just kept whiff-looping). Treating a knocked-DOWN fighter as untouchable (standard
+  //   anti-ground-lock rule; knockdownState is goku_black-only) closes that window robustly. The
+  //   knockdown-INDUCING hit still lands (knockdownState is set AFTER damage, below). Verified by
+  //   harness/goku_black_softlock.test.mjs (EVIDENCE 1/2 + regression).
+  if ((defender.invulnTimer || 0) > 0 || defender.knockdownState) { attacker.currentAttack.hasHit = true; return }
+
   // Task 4: inside Sukuna's Malevolent Shrine the trapped enemy is UNTOUCHABLE by
   // the player's manual attacks — only the domain's auto-slashes (domains.js) deal
   // damage. The swing whiffs cleanly (consume it so it doesn't re-test every frame).
@@ -819,6 +838,13 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
         fighter.invulnTimer = 18
         fighter.colorFlash = 18
         fighter.techRoll = null
+      } else {
+        // NEUTRAL WAKE-UP INVULN: a fighter standing up from a knockdown gets a brief actionable
+        // i-frame window so they always have a guaranteed escape and can't be meaty-looped straight
+        // back into knockdown on their wakeup frame (anti-vortex; mirrors the tech-roll's 18f). invuln
+        // doesn't stop the fighter acting — only being hit — so the opponent can still act, their meaty
+        // just whiffs. knockdownState is goku_black-only, so this affects only him.
+        fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, WAKEUP_INVULN)
       }
     }
     return

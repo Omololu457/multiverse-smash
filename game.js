@@ -4286,6 +4286,14 @@ gameLoop()
     // Drive a REAL p2 attack (generous startup so a defender can react) — used to open the
     // Substitution incoming-attack window and to verify the swing actually whiffs on a substitute.
     p2Attack:   () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "light", { startup: 10, active: 6, recovery: 16, damage: 60, rangeX: 120, rangeY: 90, hitstun: 18, knockbackX: 6 }) } },
+    // Drive a REAL p2 attack of a chosen CATEGORY (heavy/special/ultimate) — used to reproduce the
+    // Goku Black knockdown re-trigger soft-lock (rapid successive knockdown-class hits). Short startup
+    // so it connects quickly; the category drives resolveAttackHit's knockdown gate.
+    p2AttackCat: (cat = "heavy") => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; p2.hitstop = 0; startMove(p2, cat, { startup: 3, active: 6, recovery: 8, damage: 40, rangeX: 140, rangeY: 110, hitstun: 16, knockbackX: 3, category: cat }) } },
+    p2Actable:  () => (p2 ? { attacking: !!p2.attacking, hitstop: p2.hitstop || 0, hitstun: p2.hitstun || 0, attackCooldown: p2.attackCooldown || 0, canAct: !p2.attacking && (p2.hitstop || 0) <= 0 && (p2.hitstun || 0) <= 0 && (p2.attackCooldown || 0) <= 0 } : null),
+    gbHitState: () => (p1 ? { knockdownState: !!p1.knockdownState, knockdownTimer: p1.knockdownTimer || 0, hitstun: p1.hitstun || 0, hitstop: p1.hitstop || 0, invulnTimer: p1.invulnTimer || 0, action: p1._lastSpriteAction || null, attacking: !!p1.attacking, health: p1.health } : null),
+    topUpP1Health: () => { if (p1) p1.health = p1.maxHealth || 1200 },   // health ONLY — does NOT touch knockdown/hitstun (unlike healP1), so a barrage repro can keep GB alive without erasing the state under test
+    setP1Pos: (x, y) => { if (p1) { if (x != null) p1.x = x; if (y != null) p1.y = y } },
     p2State:    () => (p2 ? { attacking: !!p2.attacking, hasHit: !!(p2.currentAttack && p2.currentAttack.hasHit), x: p2.x, w: p2.w, health: p2.health } : null),
     p1Snap:     () => (p1 ? { x: p1.x, y: p1.y, w: p1.w, facing: p1.facing, energy: p1.energy, health: p1.health, invulnTimer: p1.invulnTimer || 0, attackCooldown: p1.attackCooldown || 0, teleportFlash: p1.teleportFlash || 0, blocking: !!p1.isBlocking, hitstun: p1.hitstun || 0, action: p1._lastSpriteAction || null, absoluteDefense: !!p1.absoluteDefenseActive, susanooStage: p1._susanooStage || 0 } : null),
     // ── TOWER diagnostics (STEP 0 + build verification) ──────────────────────

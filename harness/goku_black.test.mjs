@@ -239,22 +239,30 @@ try {
     await waitGrounded(); await waitFrames(30);   // fully finish Ki Slash before the next section
   }
 
-  // ── SPECIAL (L) + ULTIMATE (U) are inert (no glitch, no energy spend) ────────
-  // Regression: the abilities.js fallback used to fire his DISPLAY-ONLY `specials`/`ultimate`
-  // kit-metadata stub as a bogus "kamehameha", setting action "special_2" (no sheet) → the idle
-  // sheet rendered unsliced as "4 copies". triggerSpecial/triggerUltimate no-op goku_black (Ki Slash
-  // is a HEAVY normal, K — NOT a special; real specials come in Stage 3).
-  section("special (L) + ultimate (U) — inert, no sprite glitch, no energy spent");
-  for (const [name, key] of [["special (L)", "l"], ["ultimate (U)", "u"]]) {
+  // ── SPECIAL (L neutral) = EXPLOSION now; ULTIMATE (U) in BASE = disabled (Rose-only Sword Slash) ──
+  // The old "4 copies" glitch guard is superseded: L (neutral) now fires the real Explosion special
+  // (Stage 3b) and U's Sword Slash is Rose-only, so it no-ops in base form. Either way, NEVER the
+  // "special_2" 4-copies glitch. (Explosion/Sword Slash are fully covered by goku_black_stage3b.)
+  section("special (L neutral) = Explosion · ultimate (U base) = disabled · no special_2 glitch");
+  {
     await setupAdjacent(50);
-    await page.evaluate(() => window.__harness.setEnergy(200));   // max (capped) → regen can't skew the no-spend check
+    await page.evaluate(() => { window.__harness.setEnergy(160); window.__harness.resetFighterInput?.("p1"); });
     await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
     const e0 = (await p1()).energy;
-    await page.keyboard.down(key); await waitFrames(4); await page.keyboard.up(key); await waitFrames(6);
+    await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(4);
     const s = await p1();
-    check(`${name} starts no attack`, s.attacking === false, `attacking=${s.attacking} action=${s.action}`);
-    check(`${name} does NOT glitch to special_2`, s.action !== "special_2" && (s.spriteSheet || "").includes("black_goku"), `action=${s.action} sheet=${s.spriteSheet}`);
-    check(`${name} spends no energy`, Math.abs((s.energy || 0) - e0) < 0.6, `energy ${e0.toFixed(0)} → ${(s.energy || 0).toFixed(0)}`);
+    check("neutral L fires EXPLOSION (spends ~120 energy)", Math.abs((e0 - s.energy) - 120) < 3, `energy ${e0.toFixed(0)} → ${s.energy.toFixed(0)}`);
+    check("no special_2 4-copies glitch (still a black_goku sheet)", s.action !== "special_2" && (s.spriteSheet || "").includes("black_goku"), `action=${s.action} sheet=${s.spriteSheet}`);
+    await waitGrounded(); await waitFrames(6);
+  }
+  {
+    await setupAdjacent(50);
+    await page.evaluate(() => { window.__harness.setEnergy(200); window.__harness.resetUlt?.(); });
+    await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
+    const hp0 = (await p2()).health;
+    await page.keyboard.down("u"); await waitFrames(4); await page.keyboard.up("u"); await waitFrames(50);
+    const s = await p1();
+    check("base-form U (Sword Slash is Rose-only) does nothing", (s.spriteSheet || "").indexOf("sword_slahs") < 0 && (await p2()).health === hp0, `sheet=${s.spriteSheet} p2 unharmed=${(await p2()).health === hp0}`);
   }
 
   // ── NO JS ERRORS ────────────────────────────────────────────────────────────

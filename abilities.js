@@ -2253,9 +2253,8 @@ export function triggerUltimate(fighter, context = {}) {
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "toji":    cast = executeToji_Ultimate(fighter, context);   break
       case "rick":    cast = executeRickUltimate(fighter, context);    break
-      // Goku Black: Sword Slash ultimate is Stage 2/3, not built. Explicit no-op so it doesn't fall
-      // through to executeFallbackUltimate and fire the display-only `ultimate` kit-metadata stub.
-      case "goku_black": cast = false; break
+      // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
+      case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }
@@ -2620,6 +2619,10 @@ export function updateTransformationState(fighter, context = {}) {
   // No-op unless a cast is in progress.
   updateSasukeLightning(fighter, context)
 
+  // Goku Black Sword Slash: drive the vulnerable windup → reaction-window → sure-hit state
+  // machine (mirrors Sasuke lightning). No-op unless a cast is in progress.
+  updateGokuBlackSwordSlash(fighter, context)
+
   // Apply form stat multipliers
   if (fighter.currentFormData) {
     const form = fighter.currentFormData
@@ -2740,7 +2743,12 @@ const SSJ_ROSE_ANIM = {
   // Special CHARGE→RELEASE cast poses (Stage 3a) — Rose variants; base variants live in characters.js.
   // The _skinAnim swap makes the caster pose form-aware automatically (same action key, Rose sheet).
   gbKamehameha: { frames: 10, width: 95, height: 58, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_kamehameha.png" },
-  gbSpiritBomb: { frames: 6,  width: 53, height: 65, speed: 5, anchorY: 0, sheet: "./goku_black_ssj_rose_spirit_bomb.png" }
+  gbSpiritBomb: { frames: 6,  width: 53, height: 65, speed: 5, anchorY: 0, sheet: "./goku_black_ssj_rose_spirit_bomb.png" },
+  // SWORD SLASH cast pose (Rose-only ultimate) — 17-frame combined character+effect: windup → pink
+  // aura burst → committed slash arcs. RE-SLICED (wide cells hold the extending blade arc; the
+  // bottom-aligned character stays centered on the fighter, the arc extends past him). Plays across
+  // the vulnerable windup + reaction window + slash.
+  gbSwordSlash: { frames: 17, width: 397, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_black_ssj_rose_sword_slahs_Special.png" }
 }
 
 export function isGokuBlack(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "goku_black" }
@@ -2810,6 +2818,9 @@ export function applyGokuBlackFormSystem(fighter) {
 // Explosion (neutral) + Sword Slash (ultimate) = Stage 3b.
 const GB_KAME_CAST = 40, GB_KAME_FIRE = 24   // full cast-pose play length / frame the beam releases
 const GB_BOMB_CAST = 30, GB_BOMB_FIRE = 20
+// EXPLOSION (neutral special, both forms) — Rick Self-Destruct mirror. cost 120 = 60% of his 200 pool
+// (his most expensive move; the ONLY balance lever for an instant no-startup proximity nuke).
+const GB_EXPLOSION = { cost: 120, radius: 200, dmg: 150 }
 function executeGokuBlackSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
   const target = getTargetResolver(context)(fighter)
@@ -2851,8 +2862,93 @@ function executeGokuBlackSpecial(fighter, context) {
     return true
   }
 
-  // neutral / other motion → nothing yet (Explosion is Stage 3b). No energy spent, no glitch.
-  return false
+  // NEUTRAL SPECIAL = EXPLOSION (both forms). Mirrors Rick's Self-Destruct EXACTLY: manual press,
+  // proximity-gated AOE via Math.hypot, damage to the TARGET only (no self-harm), energy cost as the
+  // only balance lever, NO startup-vulnerability window (instant). ART PENDING → procedural pink blast
+  // ring (visualOnly projectile), NOT a substituted sprite.
+  if (!spendEnergy(fighter, GB_EXPLOSION.cost)) return false
+  {
+    const R = GB_EXPLOSION.radius
+    const rcx = fighter.x + (fighter.w || 60) / 2
+    const rcy = fighter.y + (fighter.h || 100) / 2
+    spawnProjectile(fighter, "gbExplosion", {
+      visualOnly: true, damage: 0, lifetime: 22, vx: 0, vy: 0,
+      spawnX: rcx, spawnY: rcy, w: R * 2, h: R * 2, radius: R,
+      color: rose ? "#ff5db1" : "#b06bff"
+    }, context)
+    fighter.colorFlash = 10
+    fighter.attackCooldown = getAttackDuration(12, fighter)   // brief lockout, NOT a vulnerability window
+    if (target && !target.eliminated && (target.invulnTimer || 0) <= 0) {
+      const tcx = target.x + (target.w || 60) / 2
+      const tcy = target.y + (target.h || 100) / 2
+      if (Math.hypot(tcx - rcx, tcy - rcy) <= R) {          // proximity gate — whiffs if too far
+        let dmg = rose ? Math.round(GB_EXPLOSION.dmg * SSJ_ROSE_MULT.dmg) : GB_EXPLOSION.dmg
+        if (target.isBlocking) { dmg = Math.floor(dmg * 0.20); target.blockstun = 18 }
+        else { target.hitstun = 42; target.vx = (tcx >= rcx ? 1 : -1) * 16; target.vy = -9; target.colorFlash = 8 }
+        target.health = Math.max(0, (target.health || 0) - dmg)   // TARGET only — no self-harm
+      }
+    }
+    shakeCamera(context, 15, 14)
+    return true
+  }
+}
+
+// ── GOKU BLACK — SWORD SLASH (Stage 3b: Rose-only ULTIMATE) ─────────────────
+// Kurama-style SURE-HIT (damage lands regardless of range) with an opponent REACTION WINDOW
+// (block/dodge to mitigate), BUT — unlike Kurama's frozen invulnerable cinematic — Goku Black has a
+// REAL vulnerable windup: the caster is rooted and can be HIT to interrupt/cancel it (Sasuke-lightning
+// pattern). Rose-form ONLY (the art exists only for the transformed state). Energy-gated on the ult button.
+const SWORD = { cost: 40, windup: 24, react: 18, dmg: 110, blockRatio: 0.20, paralysis: 30 }
+
+function executeGokuBlackUltimate(fighter, context) {
+  if (!isGokuBlack(fighter)) return false
+  if (!fighter._ssjRoseActive) return false        // ROSE-ONLY — disabled in base form
+  if (fighter._swordPhase) return false            // already casting
+  if (!spendEnergy(fighter, SWORD.cost)) return false
+  fighter._swordPhase      = "windup"
+  fighter._swordTimer      = SWORD.windup
+  fighter._rooted          = true                  // vulnerable + planted through the windup
+  fighter._spriteCastMove  = "gbSwordSlash"        // Rose sword-slash pose (windup→slash)
+  fighter._spriteCastTimer = SWORD.windup + SWORD.react + 16
+  fighter.attackCooldown   = getAttackDuration(SWORD.windup + SWORD.react + 18, fighter)
+  fighter.vx = 0
+  sound.playSfxFile("goku-black-taste-my-blade.mp3", null)   // voice line on cast (filename kept as-is)
+  focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.98, SWORD.windup)
+  return true
+}
+
+// Per-frame state machine (called from updateTransformationState). Mirrors updateSasukeLightning.
+export function updateGokuBlackSwordSlash(fighter, context = {}) {
+  if (!fighter || !fighter._swordPhase) return
+  // VULNERABLE WINDUP: a hit during the windup CANCELS the whole move (real interrupt risk).
+  if (fighter._swordPhase === "windup" &&
+      ((fighter.hitstun || 0) > 0 || (fighter.stun || 0) > 0 || fighter.knockdownState)) {
+    fighter._swordPhase = null; fighter._rooted = false
+    fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+    return
+  }
+  if (fighter._rooted) fighter.vx = 0
+  if ((fighter._swordTimer || 0) > 0) { fighter._swordTimer--; if (fighter._swordTimer > 0) return }
+  if (fighter._swordPhase === "windup") {
+    // windup done → OPPONENT REACTION WINDOW (they can block or dodge now)
+    fighter._swordPhase = "react"; fighter._swordTimer = SWORD.react
+    return
+  }
+  // react window ended → the GUARANTEED slash lands (sure-hit), unless the opponent blocked/dodged.
+  const opp = getTargetResolver(context)(fighter)
+  if (opp && !opp.eliminated && (opp.invulnTimer || 0) <= 0) {   // dodged (i-frames) → whiffs
+    const blocked = !!opp.isBlocking
+    let dmg = SWORD.dmg
+    if (blocked) { dmg = Math.round(dmg * SWORD.blockRatio); opp.blockstun = Math.max(opp.blockstun || 0, 16) }
+    else {
+      opp.hitstun = Math.max(opp.hitstun || 0, SWORD.paralysis)   // brief PARALYSIS beat
+      opp.stun    = Math.max(opp.stun || 0, SWORD.paralysis)
+      opp.vx = 0; opp.colorFlash = 10; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    }
+    opp.health = Math.max(0, (opp.health || 0) - dmg)   // GUARANTEED, range-independent (Kurama sure-hit)
+    shakeCamera(context, 12, 14)
+  }
+  fighter._swordPhase = null; fighter._rooted = false
 }
 
 export function applyOmoluPassiveSystems(fighter) {

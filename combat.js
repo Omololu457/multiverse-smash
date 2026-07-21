@@ -310,6 +310,9 @@ export function shouldGojoAutoDodge(defender) {
 // DEFERRED / OUT OF SCOPE (do NOT fix this pass): holding the charge button while also feeding a
 // motion-gated special can create input conflicts. Intentionally left unhandled — noted only.
 export const SASUKE_ABSOLUTE_DEFENSE_COST = 12   // per negated hit (Gojo's per-dodge autoDodgeKiCost = 5)
+// GOKU BLACK — "Ki Slash" heavy: the one normal that costs energy. 10 = 5% of his 200 pool → still
+// spammable as a poke, but well under his cheapest special (Kamehameha 30) so it stays a normal.
+export const KI_SLASH_COST = 10
 export function shouldSasukeAbsoluteDefenseNegate(defender) {
   if ((defender?.rosterKey || "").toLowerCase() !== "sasuke") return false
   if (!defender?.absoluteDefenseActive) return false
@@ -826,7 +829,15 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       startMove(fighter, "light", _getMD(fighter, "light"))
     } else if (controls.heavy) {
       fighter._parryInputBuffer = 5
-      startMove(fighter, "heavy", _getMD(fighter, "heavy"))
+      // GOKU BLACK — "Ki Slash": the ONE normal that costs energy (KI_SLASH_COST). If broke, the
+      // heavy simply doesn't come out (input consumed, no whiff-attack). Deduct ONLY when it starts.
+      const hmd = _getMD(fighter, "heavy")
+      const isGB = (fighter.rosterKey || "").toLowerCase() === "goku_black"
+      if (isGB && hmd && (fighter.energy || 0) < KI_SLASH_COST) {
+        /* not enough energy for Ki Slash → no heavy this press */
+      } else if (startMove(fighter, "heavy", hmd) && isGB) {
+        fighter.energy = Math.max(0, (fighter.energy || 0) - KI_SLASH_COST)
+      }
     }
   }
 

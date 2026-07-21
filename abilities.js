@@ -2692,6 +2692,107 @@ export function applyGojoPassiveSystems(fighter) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// REUSABLE: SUSTAINED-FORM PER-FRAME ENERGY DRAIN + AUTO-REVERT
+// Generalizes Gojo Infinity's per-frame drain into ONE primitive any future
+// "sustained form" can reuse: deduct `drainPerFrame` from energy every frame the
+// form is active, and the INSTANT the meter can't cover the tick, snap the form
+// off via `revert`. Called BEFORE regenEnergy each frame (updateFighterState), so
+// passive regen can EXTEND the form but never perpetuate it — matching the design's
+// "actively top up energy to stay transformed longer". Not character-specific.
+// ─────────────────────────────────────────────────────────────────────────
+export function tickSustainedFormDrain(fighter, { active, drainPerFrame, revert }) {
+  if (!fighter || !active(fighter)) return
+  if ((fighter.energy || 0) >= drainPerFrame) {
+    fighter.energy = Math.max(0, fighter.energy - drainPerFrame)
+  } else {
+    fighter.energy = 0
+    revert(fighter)   // auto-revert the exact frame the meter runs dry
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// GOKU BLACK — SSJ ROSE  (continuous-drain sustained transform)
+// Threshold-gated activation (no entry cost), continuous per-frame drain, instant
+// auto-revert at 0, and a FULL art form-swap (Rose sheets via _skinAnim, Susanoo
+// precedent). Distinct from Susanoo (fixed timer), Gojo Infinity (per-frame drain
+// but no form-swap), and Absolute Defense (per-block cost).
+// ─────────────────────────────────────────────────────────────────────────
+const SSJ_ROSE_THRESHOLD = 180              // energy ≥ 180 (90% of maxEnergy 200) — "at or near max"
+const SSJ_ROSE_DRAIN     = 0.30             // energy/frame while transformed (~18/s @60fps; net −0.24 vs 0.06 regen → ~12.5s from 180)
+const SSJ_ROSE_MULT      = { dmg: 1.25, spd: 1.15, def: 1.10 }
+// Rose art set (RE-SLICED uniform, feet-aligned). Replaces the base black_goku_* set while transformed.
+const SSJ_ROSE_ANIM = {
+  idle:      { frames: 4, width: 29,  height: 70, speed: 6, anchorY: 0, sheet: "./goku_black_ssj_rose_idle.png" },
+  walk:      { frames: 4, width: 58,  height: 46, speed: 5, anchorY: 0, sheet: "./goku_black_ssj_rose_run.png" },
+  run:       { frames: 4, width: 58,  height: 46, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_run.png" },
+  dash:      { frames: 2, width: 65,  height: 42, speed: 5, anchorY: 0, sheet: "./goku_black_ssj_rose_dash.png" },
+  jump:      { frames: 6, width: 49,  height: 74, speed: 6, anchorY: 0, sheet: "./goku_black_ssj_rose_jump.pmg.png" },
+  fall:      { frames: 6, width: 49,  height: 74, speed: 6, anchorY: 0, sheet: "./goku_black_ssj_rose_jump.pmg.png" },
+  hurt:      { frames: 7, width: 71,  height: 69, speed: 6, anchorY: 0, sheet: "./goku_black_ssj_rose_hit.png" },
+  knockdown: { frames: 6, width: 71,  height: 60, speed: 6, anchorY: 0, sheet: "./goku_black_ssj_rose_get_up.png" },
+  guard:     { frames: 3, width: 46,  height: 54, speed: 6, anchorY: 0, sheet: "./goku_black_ssj_rose_gaurd.png" },
+  light:     { frames: 6, width: 65,  height: 56, speed: 3, anchorY: 0, sheet: "./goku_black_ssj_rose_foward_attack.png" },
+  heavy:     { frames: 8, width: 108, height: 68, speed: 2, anchorY: 0, sheet: "./goku_black_ssj_rose_ki_slash.png" },   // Ki Slash (Rose)
+  up:        { frames: 4, width: 43,  height: 62, speed: 3, anchorY: 0, sheet: "./goku_black_ssj_rose_up_attack.png" },
+  air:       { frames: 5, width: 63,  height: 70, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_down_attack.png" },
+  down_air:  { frames: 5, width: 63,  height: 70, speed: 4, anchorY: 0, sheet: "./goku_black_ssj_rose_down_attack.png" }
+}
+
+export function isGokuBlack(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "goku_black" }
+
+// Enter SSJ Rose. Gated: goku_black, not already transformed, actionable, energy ≥ threshold.
+export function enterSSJRose(fighter, context = {}) {
+  if (!isGokuBlack(fighter) || fighter._ssjRoseActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < SSJ_ROSE_THRESHOLD) return false   // ONLY at/near max — no up-front spend
+  fighter._ssjRoseActive    = true
+  fighter._skinAnim         = SSJ_ROSE_ANIM       // FULL art form-swap (Rose sheets)
+  fighter.currentForm       = "ssjRose"           // HUD/state (base → ssjRose)
+  fighter.damageMultiplier  = SSJ_ROSE_MULT.dmg
+  fighter.attackMultiplier  = SSJ_ROSE_MULT.dmg
+  fighter.speedMultiplier   = SSJ_ROSE_MULT.spd
+  fighter.defenseMultiplier = SSJ_ROSE_MULT.def
+  fighter._spriteCastMove   = "transform"         // brief morph-sequence pose
+  fighter._spriteCastTimer  = 24
+  fighter.teleportFlash     = 12
+  fighter.attackCooldown    = 18
+  sound.playSfxFile("dragon_ball_transformation.mp3", null)   // graceful no-op if the file isn't present yet
+  focusCameraOnAction(context, fighter, null, 1.03, 12)
+  return true
+}
+
+// Revert to base form: clear the flag + art swap + stat multipliers. Called by the drain
+// auto-revert, a manual re-tap, and round/KO resets.
+export function revertSSJRose(fighter) {
+  if (!fighter || !fighter._ssjRoseActive) return
+  fighter._ssjRoseActive    = false
+  fighter._skinAnim         = null
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = 1
+  fighter.attackMultiplier  = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+
+// P-tap toggle: enter if base + at threshold; manual revert if already transformed.
+export function toggleSSJRose(fighter, context = {}) {
+  if (!isGokuBlack(fighter)) return false
+  if (fighter._ssjRoseActive) { revertSSJRose(fighter); return true }
+  return enterSSJRose(fighter, context)
+}
+
+// Per-frame hook (updateFighterState): continuous drain + instant auto-revert at 0.
+export function applyGokuBlackFormSystem(fighter) {
+  if (!isGokuBlack(fighter)) return
+  tickSustainedFormDrain(fighter, {
+    active: f => !!f._ssjRoseActive,
+    drainPerFrame: SSJ_ROSE_DRAIN,
+    revert: revertSSJRose
+  })
+}
+
 export function applyOmoluPassiveSystems(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omololu") return
 

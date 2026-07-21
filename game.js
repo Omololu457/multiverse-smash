@@ -35,6 +35,7 @@ import {
 import {
   activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation,
+  toggleSSJRose, revertSSJRose, applyGokuBlackFormSystem,   // Goku Black SSJ Rose (Stage 2)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
@@ -1772,6 +1773,10 @@ function handleChargeRelease(fighter, key) {
     fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
     // Repurposed asset: the old Susanoo-intro sheet now manifests the Absolute Defense barrier.
     if (fighter.absoluteDefenseActive) spawnAbsoluteDefenseFx(fighter, getAbilityContext())
+  } else if (fighter.rosterKey === "goku_black") {
+    // SSJ ROSE toggle: enter only at/near max energy; manual re-tap reverts early. The continuous
+    // per-frame drain + instant auto-revert-at-zero are handled in applyGokuBlackFormSystem.
+    toggleSSJRose(fighter, getAbilityContext())
   } else if (fighter.transformationOrder?.length) {
     triggerTransformation(fighter, getAbilityContext())
   }
@@ -2204,6 +2209,7 @@ function updateFighterState(fighter) {
   if (!fighter) return fighter
   const updated = updateTransformationState(fighter, getAbilityContext()) || fighter
   applyGojoPassiveSystems(updated)
+  applyGokuBlackFormSystem(updated)  // SSJ Rose: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
@@ -2351,6 +2357,7 @@ function resetTraining() {
     f.knockdownState = false; f.knockdownTimer = 0
     f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
     f.attacking = false; f.isBlocking = false; f.isLaunched = false
+    revertSSJRose(f)   // Goku Black: never start a round still in SSJ Rose (clears flag + art swap + stat mults)
   })
 }
 

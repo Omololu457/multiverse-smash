@@ -414,6 +414,7 @@ function executeGokuUltimate(fighter, context) {
       fighter.currentFormData = formData
       fighter.teleportFlash   = 20
       fighter.attackCooldown  = 24
+      sound.playDragonBallTransformSfx()   // SHARED Dragon Ball transform cue (previously had NO audio)
       shakeCamera(context, 12, 14)
       focusCameraOnAction(context, fighter, null, 0.96, 16)
     }

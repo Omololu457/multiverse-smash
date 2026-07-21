@@ -98,7 +98,7 @@ export function updateSSJRoseCinematic(ctx = {}) {
       cam.maxZoomStep = 0.24          // fast snap-in so the isolate settles within the FLASH+early MORPH
       cam.maxZoom = ISO_ZOOM          // raise the cap so we can isolate past the normal 1.15
     }
-    try { snd?.playSfxFile?.("dragon_ball_transformation.mp3", null) } catch (_) {}
+    try { snd?.playDragonBallTransformSfx?.() } catch (_) {}   // SHARED Dragon Ball transform cue (sound.js)
     try { snd?.play?.(SFX.DOMAIN_ACTIVATE) } catch (_) {}   // shared power-up boom
   }
 

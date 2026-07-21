@@ -141,9 +141,13 @@ try {
     const ts = frames.filter(pred).map(f => f.t);
     return ts.length ? (ts[ts.length - 1] - ts[0]) : 0;
   };
-  const walkSpan  = span(f => f.variant === "introWalkIn");
-  const readySpan = span(f => f.variant === "introReady");
-  const introSpan = span(f => f.variant === "introWalkIn" || f.variant === "introReady");
+  // Measure by the RENDERED action, not the persistent _introVariant: intros now play SEQUENTIALLY
+  // (P1 fully, then P2), so after Toji (P1) finishes he stands idle during P2's phase while his
+  // _introVariant still reads "introReady". f.action correctly reads "idle" then, so the intro spans
+  // reflect only what's actually on screen.
+  const walkSpan  = span(f => f.action === "introWalkIn");
+  const readySpan = span(f => f.action === "introReady");
+  const introSpan = span(f => f.action === "introWalkIn" || f.action === "introReady");
   console.log(`  intro real-time: walkIn=${(walkSpan / 1000).toFixed(2)}s  ready=${(readySpan / 1000).toFixed(2)}s  total=${(introSpan / 1000).toFixed(2)}s`);
   // Post STEP-2 target ~2.4s (was ~1.3s). Allow slack for rAF sampling + namecall overlap.
   check("intro reads as a deliberate 2-3s entrance (not a ~1.3s blink)", introSpan >= 1800, `total=${(introSpan / 1000).toFixed(2)}s`);

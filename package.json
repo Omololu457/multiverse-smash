@@ -36,7 +36,9 @@
     "test:goku-black-stage3b": "node harness/goku_black_stage3b.test.mjs",
     "test:goku-black-rose-specials": "node harness/goku_black_rose_specials.test.mjs",
     "test:db-transform-sfx": "node harness/dragon_ball_transform_sfx.test.mjs",
-    "test:goku-black-charge": "node harness/goku_black_charge.test.mjs"
+    "test:goku-black-charge": "node harness/goku_black_charge.test.mjs",
+    "test:goku-black-handoff": "node harness/goku_black_handoff.test.mjs",
+    "test:intro-sequence": "node harness/intro_sequence.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

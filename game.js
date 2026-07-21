@@ -1270,6 +1270,22 @@ function advanceIntroSequence(fighter) {
   fighter._introSeqTimer = introStepFrames(fighter, fighter._introVariant)
 }
 
+// SEQUENTIAL pre-match intros (P1 fully, THEN P2). `introStage` walks "p1" → "p2" → "done"; only the
+// active side's _introPlaying is on, so the two intros never overlap. Total play time per side =
+// its intro length (a fixed-order introSequence sums its steps; a single-variant intro is one action),
+// floored so a very short intro isn't a blink. initIntroVariant must have run first (sets _introSeq/_introVariant).
+const INTRO_MIN_FRAMES = 54   // ~0.9s minimum per side so even a 1-frame intro reads
+let introStage = "done"
+let introStageTimer = 0
+function introTotalFrames(fighter) {
+  if (!fighter) return 0
+  const seq = fighter._introSeq
+  const total = (Array.isArray(seq) && seq.length)
+    ? seq.reduce((s, a) => s + introStepFrames(fighter, a), 0)   // fixed-order sequence: sum all steps
+    : introStepFrames(fighter, fighter._introVariant || "transform")
+  return Math.max(total, INTRO_MIN_FRAMES)
+}
+
 // ── PRE-MATCH CHARACTER ANNOUNCEMENT ──────────────────────────────────────────
 // Runs inside the existing round-1 INTRO phase (so it's first-round-only, matching
 // the intro convention): zoom on P1 then P2, playing each side's name-call clip if
@@ -1360,8 +1376,13 @@ function startMatch() {
   // initIntroVariant handles Toji's fixed-order introSequence AND falls back to
   // pickIntroVariant (random from introPool) for everyone else — so Sasuke's 3-intro
   // random cycle is preserved unchanged while Toji's two-part sequence is set up.
+  // SEQUENTIAL: start ONLY P1's intro now; P2's begins after P1's completes (see the INTRO
+  // stage machine in updateCurrentState). P2 stands idle until its turn.
   if (p1) { p1._introPlaying = true; initIntroVariant(p1) }
-  if (p2) { p2._introPlaying = true; initIntroVariant(p2) }
+  if (p2) { p2._introPlaying = false }
+  introStage      = p1 ? "p1" : (p2 ? "p2" : "done")
+  introStageTimer = p1 ? introTotalFrames(p1) : (p2 ? introTotalFrames(p2) : 0)
+  if (!p1 && p2) { p2._introPlaying = true; initIntroVariant(p2) }
 
   sound.stopMusic?.()
   sound.playStageTrack?.(matchConfig.selectedStage)
@@ -3789,10 +3810,19 @@ function updateCurrentState() {
 
   switch (gameState) {
     case GAME_STATES.INTRO:
-      // Step any fixed-order intro sequence (Toji walk-in → ready-up) every intro frame,
-      // during namecall AND the countdown window, so both parts play in order.
-      if (p1 && p1._introPlaying) advanceIntroSequence(p1)
-      if (p2 && p2._introPlaying) advanceIntroSequence(p2)
+      // SEQUENTIAL intro stage machine: P1 plays its full intro, THEN P2's begins. Only the active
+      // side advances; the other holds idle. Runs every intro frame (during namecall AND after).
+      if (introStage === "p1") {
+        if (p1 && p1._introPlaying) advanceIntroSequence(p1)
+        if (--introStageTimer <= 0) {
+          if (p1) p1._introPlaying = false
+          if (p2) { p2._introPlaying = true; initIntroVariant(p2); introStage = "p2"; introStageTimer = introTotalFrames(p2) }
+          else introStage = "done"
+        }
+      } else if (introStage === "p2") {
+        if (p2 && p2._introPlaying) advanceIntroSequence(p2)
+        if (--introStageTimer <= 0) { if (p2) p2._introPlaying = false; introStage = "done" }
+      }
       if (namecallActive) {
         // Announcement phase: hold each side's zoom, then advance to the next mapped
         // side; when done, ease the camera back to normal framing. The VS-banner /
@@ -3802,7 +3832,9 @@ function updateCurrentState() {
           if (namecallIndex < namecallBeats.length) startNamecallBeat(namecallIndex)
           else { namecallActive = false; if (camera.focusBetween && p1 && p2) camera.focusBetween(p1, p2, 0.85) }
         }
-      } else {
+      } else if (introStage === "done") {
+        // Both intros have played out sequentially (and namecall, if any, finished) — run the small
+        // settle buffer, then start the fight.
         matchIntroTimer--
         if (matchIntroTimer <= 0) {
           gameState = GAME_STATES.BATTLE; countdown = ROUND_START_COUNTDOWN
@@ -4214,6 +4246,9 @@ gameLoop()
       active: namecallActive, index: namecallIndex, timer: namecallTimer,
       beats: namecallBeats.map(b => ({ side: b.side, roster: b.fighter?.rosterKey ?? null, clip: b.clip }))
     }),
+    // Sequential pre-match intro introspection: which side is currently playing its intro (only one at
+    // a time), the stage machine state, and each side's chosen variant. Used by the intro-sequencing test.
+    introState: () => ({ stage: introStage, gameState, p1Playing: !!p1?._introPlaying, p2Playing: !!p2?._introPlaying, p1Variant: p1?._introVariant ?? null, p2Variant: p2?._introVariant ?? null }),
     // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime })),
     resetUlt:   () => { if (p1) { p1.ultimateCooldown = 0; p1.energy = p1.maxEnergy; p1.attackCooldown = 0 } },   // clear ult lockout for back-to-back ultimate tests
@@ -4323,6 +4358,9 @@ gameLoop()
         if (p1.spriteHandler) { p1.spriteHandler.currentAction = null; p1.spriteHandler.frameIndex = 0; p1.spriteHandler.frameTimer = 0; p1.spriteHandler.locked = false }
       }
       if (p2) p2._introPlaying = false
+      // Hold this single forced intro open: mark the sequential stage machine "done" so it neither
+      // auto-advances P1 off nor starts P2 (this hook drives one side's intro-rotation coverage).
+      introStage = "done"
     }
   }
 })()

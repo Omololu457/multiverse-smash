@@ -244,7 +244,14 @@ function _resolveAction(fighter, currentAction = "idle") {
 
   // Ultimate / transform states
   if (fighter.isUltimateActive) return "idle";
-  if ((fighter.teleportFlash || 0) > 10) return "transform";
+  // teleportFlash requests the "transform" morph strip — but ONLY if the fighter's ACTIVE anim set
+  // (skin if one is applied, else base) actually HAS a transform strip. Otherwise it resolves to a
+  // missing action → the fallback draws the idle sheet UNSLICED as one oversized cell (the "4 copies"
+  // glitch). This bites right at the SSJ Rose cinematic→gameplay handoff: onResolve swaps _skinAnim to
+  // SSJ_ROSE_ANIM (which has no transform) but leaves teleportFlash>10, so control returns on a bogus
+  // "transform". Gating here mirrors every other branch (guard/knockdown/hurt_air) that checks the strip exists.
+  const activeAnim = fighter._skinAnim || fighter.animationData;
+  if ((fighter.teleportFlash || 0) > 10 && activeAnim?.transform) return "transform";
 
   // Air state
   const grounded = fighter.grounded ?? fighter.onGround ?? false;

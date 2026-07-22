@@ -5,6 +5,7 @@
 import { characters } from "./characters.js"
 import { moveset }    from "./moveset.js"
 import { sound }      from "./sound.js"
+import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
@@ -3091,6 +3092,7 @@ function executeItachiSusanooSword(fighter, context) {
   // differs from Sasuke's SUSANOO_CELL_H table that _susanooArmYOff assumes).
   _spawnSusanooFx(fighter, "./itachi_susano_creature_sword_effect.png",
     { frames: 4, w: 96, h: 190, scale: 2.6, life: 22, drift: 6, yOff: -260, color: "#5ad0ff" }, context)
+  sound.playSfxFile?.(pickItachiVoice("susanooSword"), null)   // "Totsuka no Tsurugi"
   shakeCamera(context, 9, 12)
   return true
 }
@@ -3103,6 +3105,7 @@ function executeItachiUltimate(fighter, context) {
   const cost = Math.ceil((fighter.maxEnergy || 100) * 0.5)
   if (!spendEnergy(fighter, cost)) return false
   enterItachiSusanoo(fighter)
+  sound.playSfxFile?.(pickItachiVoice("susanoo"), null)     // "Susanoo!" / "Yasakani no Magatama"
   fighter._suppressUltCooldown = true                       // lockout armed in revertItachiSusanoo instead
   fighter.teleportFlash  = Math.max(fighter.teleportFlash || 0, 16)
   fighter.attackCooldown = getAttackDuration(20, fighter)
@@ -3379,6 +3382,7 @@ function executeItachiSpecial(fighter, context) {
     // QCF (D→F) — AMATERASU: inextinguishable black flame. Modest direct hit, strong lingering DOT.
     if (endsWithPattern(dirs, ["D", "F"])) {
       if (!spendEnergy(fighter, 40)) return false
+      sound.playSfxFile?.(pickItachiVoice("amaterasu"), null)   // "Amaterasu!"
       const face = fighter.facing || 1
       fighter._spriteCastMove  = "amaterasuCast"
       fighter._spriteCastTimer = 26
@@ -3401,6 +3405,7 @@ function executeItachiSpecial(fighter, context) {
     if (endsWithPattern(dirs, ["D", "B"])) {
       if ((fighter.comboCounter || 0) < GENJUTSU_MIN_COMBO) return false   // no hit-confirm → no output
       if (!spendEnergy(fighter, 45)) return false
+      sound.playSfxFile?.(pickItachiVoice("genjutsu"), null)   // "Tsukuyomi" / "The finishing touch"
       // hitstun 95 × HITSTUN_SCALE(1.15) ≈ 109f (~1.8s) — the illusion FREEZES the target for a
       // guaranteed follow-up (combat.js applies atk.hitstun; there is no separate paralysis field).
       const md = { damage: 150, startup: 6, active: 6, recovery: 26, hitstun: 95, blockstun: 20, knockbackX: 3, knockbackY: 0, rangeX: 120, rangeY: 96 }
@@ -3415,6 +3420,7 @@ function executeItachiSpecial(fighter, context) {
   // NEUTRAL — Fire Style: Great Fireball Jutsu. Hand-seal cast pose + a wide travelling
   // wall of flame (mirrors the omGun cast-pose + projectile pattern). Available in BOTH forms.
   if (!spendEnergy(fighter, 25)) return false
+  sound.playSfxFile?.(pickItachiVoice("fireball"), null)   // "Katon!" cast bark
   const face = fighter.facing || 1
   fighter._spriteCastMove  = "fireballCast"
   fighter._spriteCastTimer = 22
@@ -4191,6 +4197,7 @@ export function enterMangekyou(fighter) {
   fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 12)
   fighter._mangekyouFlash   = 40              // activation-flash overlay timer (frames)
   fighter.attackCooldown    = 10              // brief settle as the eyes ignite
+  sound.playSfxFile?.(pickItachiVoice("mangekyou"), null)   // "Your eyes see nothing" — Sharingan ignites
   return true
 }
 

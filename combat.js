@@ -15,6 +15,7 @@
 import { physics } from "./physics.js"
 import { sound, SFX } from "./sound.js"
 import { pickRickVoice } from "./rickVoice.js"
+import { pickItachiVoice } from "./itachiVoice.js"
 
 // ========================
 // HITSTOP TABLES
@@ -475,6 +476,40 @@ function applySasukeOffenseVoice(attacker, cat, unblocked) {
   }
 }
 
+// ── ITACHI VOICE LINES (audio-only; mirrors the Naruto/Sasuke pattern) ──────────
+// Hit-taken: a calm-observation reaction pool ("Naruhodo… I see" / "Quick, aren't you"),
+// one line per _hitVoiceCd window. Only on an unblocked hit (called from resolveAttackHit).
+function applyItachiHitVoice(defender) {
+  if (!defender || defender.rosterKey !== "itachi" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  const clip = pickItachiVoice("reaction")
+  if (clip) { try { sound?.playSfxFile?.(clip, null) } catch (_) {} }
+}
+
+// Offense: a taunting connect pool ("You are weak" / "Foolish one" / "There's no escape"),
+// one line per _atkVoiceCd window. STRONG connect (heavy/special/ultimate) OR a long basic string
+// — a light-poke spam is left silent (mirrors Sasuke's strong/longString gate).
+function applyItachiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || attacker.rosterKey !== "itachi" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  const clip = pickItachiVoice("offense")
+  if (clip) { attacker._atkVoiceCd = 150; try { sound?.playSfxFile?.(clip, null) } catch (_) {} }
+}
+
+// Low-HP: "I haven't fallen yet" — once per round on crossing the low-HP line (defender path).
+const ITACHI_LOW_HEALTH_RATIO = 0.25
+function applyItachiLowHealthVoice(defender) {
+  if (!defender || defender.rosterKey !== "itachi" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * ITACHI_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    const clip = pickItachiVoice("lowHp")
+    if (clip) { try { sound?.playSfxFile?.(clip, null) } catch (_) {} }
+  }
+}
+
 // ── RICK VOICE LINES (audio-only; same pattern as Naruto/Sasuke above) ───────────
 // DEFENDER reaction pool — LIGHT flinch vs HEAVY/knockdown-tier, tier read straight off
 // `cat`/`dmg` (same heavy test Naruto/Sasuke/Beerus use; no knockdownState). Random pick
@@ -926,6 +961,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyRickHitVoice(defender, cat, dmg)
     // OMEGA RANGER hit-reaction voice — light stagger only ("No!"); heavy tier stays silent (no clip).
     applyOmegaRangerHitVoice(defender, cat, dmg)
+    // ITACHI hit-reaction voice — calm observation pool ("I see…" / "Quick, aren't you").
+    applyItachiHitVoice(defender)
 
     if (!isCounter) {
       try { sound?.play?.(_hitSound(atk, false)) } catch (_) {}
@@ -934,6 +971,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     defender.health = Math.max(0, (defender.health || 0) - dmg)
     applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
+    applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
     defender.colorFlash = cat === "ultimate" ? 12 : cat === "special" ? 9 : 6
 
     const persist =
@@ -995,6 +1033,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyNarutoComboFinisherReaction(defender, attacker)   // Naruto-only escalated combo-ender recoil pose
   applyNarutoOffenseVoice(attacker, cat, !defender.isBlocking)   // Naruto Hokage / combo-burst pride line on connect
   applySasukeOffenseVoice(attacker, cat, !defender.isBlocking)   // Sasuke Susanoo-confirm / combo-finisher / attack-lands line
+  applyItachiOffenseVoice(attacker, cat, !defender.isBlocking)   // Itachi taunting connect pool (strong/long-string gated)
   applyRickOffenseVoice(attacker, cat, !defender.isBlocking)     // Rick generic taunt/flavor bark on a strong/long-string connect
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher
 }

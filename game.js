@@ -112,6 +112,7 @@ import {
 } from "./beerusKiBallCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
+import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -1312,6 +1313,9 @@ const INTRO_VOICE = {
   // "intro2" (same delayed-cinematic-reveal idea as Beerus's fade gate, keyed to the sequence step
   // instead of an introReveal fade). "Force, from the future! S.P.D. Omega!"
   omega_ranger: { clip: "omega_intro.mp3", gateSeqStep: "intro2" },
+  // Itachi picks ONE of three calm opening lines at random per match ("Stay calm" / "Fighting is
+  // pointless" / "I can take down any enemy"). Fires at his first intro-play frame (no reveal gate).
+  itachi: { pool: ITACHI_VOICE.intro, gateReveal: false },
 }
 function maybeFireIntroVoice(fighter) {
   const cfg = fighter && INTRO_VOICE[fighter.rosterKey]
@@ -1708,6 +1712,11 @@ function _checkMatchOver() {
       // "It's over. It's over." and "Right now, I am the strongest in this world."
       if (winFighter?.rosterKey === "sasuke") {
         sound.playSfxFile?.(Math.random() < 0.5 ? "sasuke_win_line.mp3" : "sasuke_win_alt.mp3", null)
+      }
+      // ITACHI win voice — random pick from his win pool ("Winning is easy" / "It's already over" /
+      // "You lose"). Fires only when the WINNER is Itachi.
+      if (winFighter?.rosterKey === "itachi") {
+        sound.playSfxFile?.(pickItachiVoice("win"), null)
       }
       // RICK win voice — same alternation family; random pick between "Time to get schwifty" and
       // his "Rick dance" win bark. Fires only when the WINNER is Rick.

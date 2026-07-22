@@ -50,6 +50,13 @@ const cine = {
   onImpact: null, struck: false, _cam: null, savedMaxStep: null
 }
 
+// STRIKE-beat voice line ALTERNATION: the connect fires one of two lines, strictly toggling each cast
+// so a repeated ultimate never plays the same line twice in a row (and never double-fires on one beat —
+// only one line plays per impact). "Taste my blade!" and "Taste divine fury!" are consecutive in the
+// source material, so alternating them reads as one continuous delivery across casts. Persists across
+// cinematics (module scope) on purpose — the whole point is turn-taking between separate ultimates.
+let _bladeLineToggle = false
+
 // ─────────────────────────────────────────────────────────────────
 // ACTIVATION (called from abilities.executeGokuBlackUltimate). onImpact(ctx): applies the
 // real damage/paralysis — invoked ONCE at the STRIKE connect beat.
@@ -104,6 +111,10 @@ export function updateGokuBlackSwordCinematic(ctx = {}) {
       cam.maxZoomStep = 0.08            // let the framing settle within the WINDUP beat (never snaps)
     }
     try { snd?.play?.(SFX.DOMAIN_ACTIVATE) } catch (_) {}   // shared activation boom (same as Kurama / SSJ Rose)
+    // ULTIMATE windup line — "You shall now feel the full brunt of a god's anger." Fires at CAST start
+    // (windup), deliberately EARLIER than the taste-my-blade/divine-fury line at the IMPACT beat below,
+    // so the two never overlap or compete: this one lands as the blade is raised, that one as it connects.
+    try { snd?.playSfxFile?.("goku_black_ultimate_line.mp3", null) } catch (_) {}
   }
 
   // Camera: frame BOTH fighters (focusBetween — Kurama TBB framing), easing to a normal framing on
@@ -135,7 +146,11 @@ export function updateGokuBlackSwordCinematic(ctx = {}) {
   // Kurama fires its impact SFX on the bomb-lands beat.
   if (f === T_IMPACT && !cine.struck) {
     cine.struck = true
-    try { snd?.playSfxFile?.("goku-black-taste-my-blade.mp3", null) } catch (_) {}
+    // Alternate the connect line each cast (toggle) so it never repeats back-to-back. Only ONE line
+    // plays at this beat — never both — so it can't stack with the windup line (which already fired).
+    const impactLine = _bladeLineToggle ? "goku_black_taste_divine_fury.mp3" : "goku-black-taste-my-blade.mp3"
+    _bladeLineToggle = !_bladeLineToggle
+    try { snd?.playSfxFile?.(impactLine, null) } catch (_) {}
     try { cine.onImpact?.(ctx) } catch (_) {}
   }
 

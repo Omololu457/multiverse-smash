@@ -1659,6 +1659,11 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "beerus") {
         sound.playSfxFile?.(Math.random() < 0.5 ? "beerus_win.mp3" : "beerus_win_alt.mp3", null)
       }
+      // GOKU BLACK win voice — identical 50/50 coin-flip pattern to Beerus's, fires only when the WINNER
+      // is Goku Black. His batch shipped no dedicated win-pose sprite → shared win state, audio wired anyway.
+      if (winFighter?.rosterKey === "goku_black") {
+        sound.playSfxFile?.(Math.random() < 0.5 ? "goku_black_win.mp3" : "goku_black_win_alt.mp3", null)
+      }
     }
     sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
     gameState = GAME_STATES.VICTORY
@@ -2089,6 +2094,12 @@ function updateTauntState(fighter, downHeld) {
     fighter._tauntCharge  = 0
     fighter._tauntPlaying = true
     fighter._tauntTimer   = tauntAnimFrames(fighter)
+    // GOKU BLACK taunt voice — "Pathetic. That won't work on me." Hooked on the transition INTO the
+    // committed taunt (fires once as the flourish begins), reusing the existing universal taunt mechanic;
+    // no new taunt system built. Gated to goku_black so other taunting chars (Rick) stay silent here.
+    if ((fighter.rosterKey || "").toLowerCase() === "goku_black") {
+      sound.playSfxFile?.("goku_black_taunt.mp3", null)
+    }
   }
 }
 

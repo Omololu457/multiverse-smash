@@ -4004,6 +4004,71 @@ export function applyGokuBlackFormSystem(fighter) {
   })
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// ITACHI — MANGEKYOU SHARINGAN  (continuous-drain BUFF mode)
+// Same drain SHAPE as SSJ Rose (threshold-gated activation, per-frame drain via
+// tickSustainedFormDrain, instant auto-revert at 0) — but a BUFF, NOT a sprite-swap:
+// it does NOT set _skinAnim. The same character model renders throughout; the eyes
+// are an OVERLAY (game.js drawMangekyouAura, drawn on top of the base sprite while
+// active). Mangekyou is the hard gate that unlocks Amaterasu + Genjutsu (Stage 4).
+// ─────────────────────────────────────────────────────────────────────────
+const MANGEKYOU_THRESHOLD = 150             // energy ≥ 150 (75% of maxEnergy 200) — charge up to flip it on
+const MANGEKYOU_DRAIN     = 0.28            // energy/frame while active (~16.8/s @60fps → ~9s from full, net vs regen)
+const MANGEKYOU_MULT      = { dmg: 1.20, spd: 1.12, def: 1.06 }
+
+export function isItachi(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "itachi" }
+export function isMangekyouActive(fighter) { return !!(fighter && fighter._mangekyouActive) }
+
+// Enter Mangekyou. Gated: itachi, not already active, actionable, energy ≥ threshold. NO up-front
+// spend (drain handles the cost). Sets the PUBLIC _mangekyouActive flag other systems read
+// (Stage-4 Amaterasu/Genjutsu gate on it) + buff multipliers. Deliberately does NOT set _skinAnim
+// (buff, not form-swap). teleportFlash gives the activation blink; _mangekyouFlash arms the eye overlay.
+export function enterMangekyou(fighter) {
+  if (!isItachi(fighter) || fighter._mangekyouActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < MANGEKYOU_THRESHOLD) return false
+  fighter._mangekyouActive  = true
+  fighter.currentForm       = "mangekyou"     // HUD/state (base → mangekyou)
+  fighter.damageMultiplier  = MANGEKYOU_MULT.dmg
+  fighter.attackMultiplier  = MANGEKYOU_MULT.dmg
+  fighter.speedMultiplier   = MANGEKYOU_MULT.spd
+  fighter.defenseMultiplier = MANGEKYOU_MULT.def
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 12)
+  fighter._mangekyouFlash   = 40              // activation-flash overlay timer (frames)
+  fighter.attackCooldown    = 10              // brief settle as the eyes ignite
+  return true
+}
+
+// Revert to base: clear the flag + buff multipliers. Called by the drain auto-revert (energy 0),
+// a manual re-tap, and round/KO resets. Mangekyou-gated specials stop firing the instant this runs.
+export function revertMangekyou(fighter) {
+  if (!fighter || !fighter._mangekyouActive) return
+  fighter._mangekyouActive  = false
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = 1
+  fighter.attackMultiplier  = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+}
+
+// P-tap toggle: enter if base + at threshold; manual revert if already active (mirrors toggleSSJRose).
+export function toggleMangekyou(fighter) {
+  if (!isItachi(fighter)) return false
+  if (fighter._mangekyouActive) { revertMangekyou(fighter); return true }
+  return enterMangekyou(fighter)
+}
+
+// Per-frame hook (updateFighterState): continuous drain + instant auto-revert at 0.
+export function applyMangekyouSystem(fighter) {
+  if (!isItachi(fighter)) return
+  if (fighter._mangekyouFlash > 0) fighter._mangekyouFlash--
+  tickSustainedFormDrain(fighter, {
+    active: f => !!f._mangekyouActive,
+    drainPerFrame: MANGEKYOU_DRAIN,
+    revert: revertMangekyou
+  })
+}
+
 // ── GOKU BLACK — SPECIALS (Stage 3a: Kamehameha + Spirit Bomb) ──────────────
 // Charge-then-release projectile specials on the SPECIAL button, motion-gated.
 // FORM-AWARE: the caster CHARGE→RELEASE pose auto-swaps to the Rose sheet via _skinAnim

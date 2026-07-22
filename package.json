@@ -55,7 +55,8 @@
     "test:intro-sequence": "node harness/intro_sequence.test.mjs",
     "test:omega-ranger": "node harness/omega_ranger.test.mjs",
     "test:itachi-stage1": "node harness/itachi_stage1.mjs",
-    "test:itachi-stage2": "node harness/itachi_stage2.mjs"
+    "test:itachi-stage2": "node harness/itachi_stage2.mjs",
+    "test:itachi-mangekyou": "node harness/itachi_mangekyou.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

@@ -36,6 +36,7 @@ import {
   activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation,
   enterSSJRose, revertSSJRose, applyGokuBlackFormSystem,   // Goku Black SSJ Rose (Stage 2)
+  enterMangekyou, revertMangekyou, applyMangekyouSystem, isMangekyouActive,   // Itachi Mangekyou Sharingan (buff mode)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
@@ -1919,6 +1920,16 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
+  // ITACHI — MANGEKYOU SHARINGAN: same "charge up and RELEASE at threshold" shape as SSJ Rose.
+  // Hold P to build chakra (doEnergyCharge); ANY release at/above the threshold (enterMangekyou
+  // gates on energy ≥ 150) ignites the Mangekyou (a BUFF, not a sprite-swap). While active a quick
+  // TAP reverts early; a HOLD-release just tops up chakra and stays in the mode (sustain it).
+  if (fighter.rosterKey === "itachi") {
+    if (fighter._mangekyouActive) { if (wasTap) revertMangekyou(fighter) }
+    else enterMangekyou(fighter)
+    return
+  }
+
   // VEGETA — SUPER SAIYAN: same "charge up and RELEASE to transform" pattern as Goku Black's Rose.
   // Hold P to build energy (doEnergyCharge); ANY release at/above threshold (enterVegetaSSJ gates on
   // energy) morphs into SSJ. While transformed a quick TAP reverts early; a HOLD-release just tops up
@@ -2406,6 +2417,51 @@ function drawKuramaShroudAura(c, fighter) {
   c.restore()
 }
 
+// ITACHI — MANGEKYOU SHARINGAN overlay. A pulsing crimson glow drawn AROUND the base sprite
+// while _mangekyouActive (the eyes are "an OVERLAY on top of the normal sprite", not a body-swap).
+// Drawn BEFORE the sprite (behind the body), mirroring drawKuramaShroudAura. No-op for anyone else.
+function drawMangekyouAura(c, fighter) {
+  if (!c || !fighter?._mangekyouActive) return
+  const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  const pulse  = 0.5 + 0.5 * Math.sin(fighter._mangekyouPulse = (fighter._mangekyouPulse || 0) + 0.18)
+  const spread = 10 + pulse * 4
+  c.save()
+  c.globalAlpha = 0.16 + pulse * 0.10
+  c.shadowBlur  = spread * 2.2
+  c.shadowColor = "#dc2626"
+  c.strokeStyle = "#ef4444"
+  c.lineWidth   = spread
+  const rx = x - spread / 2, ry = y - spread / 2, rw = w + spread, rh = h + spread, r = 16
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r)
+  c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r)
+  c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath()
+  c.stroke()
+  c.restore()
+}
+
+// Mangekyou ACTIVATION flash — a bright crimson bloom over Itachi's head that fades over
+// _mangekyouFlash frames (armed by enterMangekyou). Drawn ON TOP of the sprite. The "eyes ignite" beat.
+function drawMangekyouActivationFlash(c, fighter) {
+  const t = fighter?._mangekyouFlash || 0
+  if (!c || t <= 0) return
+  const cx = (fighter.x ?? 0) + (fighter.w ?? 60) / 2
+  const cy = (fighter.y ?? 0) + (fighter.h ?? 110) * 0.30   // head/eye height
+  const a  = Math.min(1, t / 40)            // fade out as the timer decays
+  const rad = (60 - a * 30)                 // bloom shrinks inward as it settles
+  c.save()
+  const g = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+  g.addColorStop(0,   `rgba(255,90,90,${0.75 * a})`)
+  g.addColorStop(0.5, `rgba(220,30,30,${0.40 * a})`)
+  g.addColorStop(1,   "rgba(220,30,30,0)")
+  c.fillStyle = g
+  c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
 // Rick's Portal-Pull / Portal-Push reappear the opponent above a destination and let
 // them fall (abilities.js rickPortalReposition). This applies the impact damage the
 // frame they reground — mirrors the _dot marker→resolver split (abilities stamps the
@@ -2439,6 +2495,7 @@ function updateFighterState(fighter) {
   const updated = updateTransformationState(fighter, getAbilityContext()) || fighter
   applyGojoPassiveSystems(updated)
   applyGokuBlackFormSystem(updated)  // SSJ Rose: continuous per-frame energy drain + instant auto-revert at 0
+  applyMangekyouSystem(updated)      // Itachi Mangekyou: continuous chakra drain + instant auto-revert at 0
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   updateMiscTimers(updated)
@@ -2914,11 +2971,13 @@ function renderHybridFighter(fighter) {
   const key = fighter.rosterKey
   const drawTo = (c) => {
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
+    drawMangekyouAura(c, fighter)      // Itachi Mangekyou crimson glow, behind the body (Itachi only)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
     } else {
       drawFighter(c, fighter, camera)
     }
+    drawMangekyouActivationFlash(c, fighter)   // Itachi eye-ignite flash, on top of the sprite (fades)
   }
 
   // CINEMATIC INTRO REVEAL (opt-in via characters.js `introReveal`): while this fighter is playing its
@@ -4469,6 +4528,9 @@ gameLoop()
     spriteReady:      !!(f.spriteHandler?._actionDef?.sheet),
     hasSpriteHandler: !!f.spriteHandler,        // false → procedural box renderer (no hasSprites)
     currentForm:      f.currentForm || null,     // transformation state (Goku SSB etc.)
+    mangekyouActive:  !!f._mangekyouActive,       // Itachi Mangekyou Sharingan buff-mode
+    mangekyouFlash:   f._mangekyouFlash || 0,     // activation eye-flash overlay timer
+    damageMultiplier: f.damageMultiplier ?? 1,    // buff-mode damage scale (Mangekyou/SSJ etc.)
     transformIndex:   f.transformIndex ?? null,
     hasSkinAnim:      !!f._skinAnim,
     canvasHeightFrac: f._canvasHeightFrac || null,

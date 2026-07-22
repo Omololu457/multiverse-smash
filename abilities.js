@@ -3250,6 +3250,32 @@ function executeSasukeSubstitution(fighter, target, context) {
   return true
 }
 
+// ── ITACHI SPECIAL dispatch ──────────────────────────────────────────────
+// STAGE 2: NEUTRAL Special → Fire Style: Great Fireball Jutsu (cast pose + a big
+// rolling flame projectile). Motioned specials (Amaterasu QCF / Genjutsu QCB) are
+// added in Stage 4 and HARD-gated behind Mangekyou (_mangekyouActive) — until then
+// a motioned press that matches nothing falls through to the neutral fireball.
+function executeItachiSpecial(fighter, context) {
+  // STAGE 4 will branch here on getRelativeDirections(fighter) for the Mangekyou-gated
+  // Amaterasu (D→F) / Genjutsu (D→B) specials before the neutral fireball.
+
+  // NEUTRAL — Fire Style: Great Fireball Jutsu. Hand-seal cast pose + a wide travelling
+  // wall of flame (mirrors the omGun cast-pose + projectile pattern).
+  if (!spendEnergy(fighter, 25)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove  = "fireballCast"
+  fighter._spriteCastTimer = 22
+  fighter.attackCooldown   = getAttackDuration(22, fighter)
+  spawnProjectile(fighter, "itachiFireball", {
+    damage: 120, speed: 11, lifetime: 88, vx: face * 11, vy: 0,
+    hitstun: 22, knockbackX: 8, knockbackY: -2, w: 74, h: 60, color: "#ff7a1c",
+    sheet: "./itachi_fireball_proj_uniform.png", spriteFrames: 4, spriteW: 228, spriteH: 127, spriteSpeed: 4, spriteScale: 0.6,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 90,
+    spawnY: fighter.y + (fighter.h || 100) * 0.34
+  }, context)
+  return true
+}
+
 function executeSasukeSpecial(fighter, context) {
   const stage = fighter._susanooStage || 0
   const getOpp = getTargetResolver(context)
@@ -3355,6 +3381,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "megumi":  return executeMegumiSpecial(fighter, context)
     case "sukuna":  return executeSukunaSpecial(fighter, context)
     case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
+    case "itachi":  return executeItachiSpecial(fighter, context)   // Fireball (neutral); Amaterasu/Genjutsu gated on Mangekyou (Stage 4)
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "toji":    return executeToji_Special(fighter, context)
     case "rick":    return executeRickSpecial(fighter, context)

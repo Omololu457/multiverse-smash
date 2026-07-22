@@ -215,6 +215,30 @@ export const KITS = {
     ]
   },
 
+  itachi: {
+    type: "Genjutsu Tactician / Sharingan", energy: "Chakra", difficulty: "Hard",
+    summary: "A calculated Uchiha who zones with the Great Fireball, then flips on the Mangekyou Sharingan to unlock Amaterasu's black flame and a hit-confirm Genjutsu finisher — culminating in the Susanoo avatar.",
+    passive: { name: "Sharingan", effect: "Double-tap toward the opponent to blink (teleport dash) past their guard." },
+    basics: [
+      { name: "Low Sweep",   input: "Light",                   desc: "fast low poke, low knockback" },
+      { name: "Blade Swing",  input: "Heavy",                   desc: "committed wide slash with knockback" },
+      { name: "Rising Slash", input: "Up-Attack",               desc: "launcher — starts air combos" },
+      { name: "Air Knife",    input: "Air (jump + Light)",      desc: "aerial stab" },
+      { name: "Dive Kick",    input: "Down-Air (jump + Heavy)", desc: "downward spike" },
+      { name: "Grab",         input: "Grab",                    desc: "grab and throw" }
+    ],
+    specials: [
+      { name: "Great Fireball Jutsu", input: "Special", cost: 25, desc: "hand-seal cast → a wide rolling wall of flame (ranged zoning)" }
+      // Mangekyou-gated Amaterasu / Genjutsu are added in Stage 4; Mangekyou mode in Stage 3.
+    ],
+    mobility: { name: "Shunshin Blink", input: "Double-tap toward opponent", cost: 0, desc: "Sharingan teleport dash past the enemy" },
+    ultimate: { name: "Susanoo", input: "Ultimate (full meter)", cost: 100, desc: "summon the Susanoo avatar — a sustained giant form (sword / guard on Special)" },
+    combos: [
+      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special", desc: "core string into the Fireball" },
+      { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air",         desc: "launch into aerial pressure" }
+    ]
+  },
+
   // ── JUJUTSU KAISEN ───────────────────────────────────────────
   gojo: {
     type: "Ranged Controller / Zoner", energy: "Cursed Energy", difficulty: "Hard",

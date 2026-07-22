@@ -887,7 +887,7 @@ const sasuke = {
 // ─────────────────────────────────────────────────────────────────
 const itachi = {
   rosterKey: "itachi", name: "Itachi Uchiha", universe: "naruto",
-  portrait: "./itachi_pfp.png",   // EXACT on-disk filename (character-select mugshot / HUD nameplate); skins.js + ui.js read characters.itachi.portrait
+  portrait: "./Itatchi_mugshot.png",   // EXACT on-disk filename — typo "Itatchi" is intentional (as uploaded, do NOT rename); character-select mugshot / HUD nameplate; skins.js + ui.js read characters.itachi.portrait
   archetypes: ["melee", "tactics"],
   primary: "melee", secondary: ["tactics"],
   // Sharingan blink — double-tap TOWARD the opponent = teleport dash (same detectDoubleTapDashTeleport
@@ -919,8 +919,27 @@ const itachi = {
     dash: { frames: 6, width: 62, height: 54, speed: 3, anchorY: 0,  sheet: "./itachi_melle_run_uniform.png" },    // reuse run strip a touch faster
     // jump.png arc = crouch→crouch→rise→apex; play once + hold. fall = the apex/descent pose (last cell).
     jump: { frames: 4, width: 62, height: 65, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_jump_uniform.png" },
-    fall: { frames: 1, width: 62, height: 65, speed: 6, anchorY: 0, sourceX: 186, loop: false, lockLastFrame: true, sheet: "./itachi_melle_jump_uniform.png" }
-  }
+    fall: { frames: 1, width: 62, height: 65, speed: 6, anchorY: 0, sourceX: 186, loop: false, lockLastFrame: true, sheet: "./itachi_melle_jump_uniform.png" },
+    // ── STAGE 2 NORMALS. All re-sliced to uniform cells (reslice.mjs); frame counts visually
+    // confirmed. speed ≈ move duration / frames so the swing reads across the active window.
+    // anchorY = -(bottom transparent gap × 1.55) plants feet (crouch poses have a large gap).
+    light:    { frames: 5, width: 54, height: 81, speed: 3, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./itachi_melle_low_attack_uniform.png" },        // quick low sweep/poke
+    heavy:    { frames: 4, width: 85, height: 65, speed: 7, anchorY: -8,  loop: false, lockLastFrame: true, sheet: "./itachi_melle_foward_attack_uniform.png" },      // committed wide blade swing
+    up:       { frames: 4, width: 63, height: 72, speed: 6, anchorY: -3,  loop: false, lockLastFrame: true, sheet: "./itachi_melle_up_attack_uniform.png" },           // launcher: rising slash
+    air:      { frames: 4, width: 58, height: 78, speed: 4, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./itachi_melle_foward_knife_attack_uniform.png" }, // neutral aerial knife stab
+    down_air: { frames: 5, width: 62, height: 70, speed: 5, anchorY: 0,   loop: false, lockLastFrame: true, sheet: "./itachi_melle_down_air_attack_uniform.png" },     // downward dive kick
+    grab:     { frames: 5, width: 54, height: 81, speed: 4, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./itachi_melle_low_attack_uniform.png" },
+    // Pre-match INTRO — the settled Akatsuki-cloak ready stance (first 4 cells of the crow
+    // sheet; the crow-DISPERSAL frames are trimmed — dispersal reads as an exit, not an
+    // arrival, mirroring Sasuke's intro-trim). Held on the final stance when the fight starts.
+    intro:    { frames: 4, width: 77, height: 83, speed: 8, anchorY: -14, loop: false, lockLastFrame: true, sheet: "./itachi_intro_stance_uniform.png" },
+    // Fire Style: Great Fireball Jutsu CAST pose (hand-seals → blow). Played via _spriteCastMove
+    // (identity sprite-resolve) while the flame projectile flies; the fireball itself is a separate
+    // projectile sheet (itachi_fireball_proj_uniform.png). See abilities.js executeItachiSpecial.
+    fireballCast: { frames: 7, width: 56, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_fireball_cast_uniform.png" }
+  },
+  // Single-entry pre-match intro pool (game.pickIntroVariant picks from here; one entry = always plays).
+  introPool: ["intro"]
 }
 
 // ─────────────────────────────────────────────────────────────────

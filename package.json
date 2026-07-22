@@ -58,7 +58,8 @@
     "test:itachi-stage2": "node harness/itachi_stage2.mjs",
     "test:itachi-mangekyou": "node harness/itachi_mangekyou.mjs",
     "test:itachi-specials": "node harness/itachi_specials.mjs",
-    "test:itachi-susanoo": "node harness/itachi_susanoo.mjs"
+    "test:itachi-susanoo": "node harness/itachi_susanoo.mjs",
+    "test:itachi-voice": "node harness/itachi_voice.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

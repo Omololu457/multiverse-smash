@@ -350,34 +350,43 @@ export class SpriteHandler {
       fighter.animationData?.idle ||
       null;
 
-    let sheet = profileAction.sheet ? _loadSheet(profileAction.sheet) : legacySheet;
+    // MISSING-ACTION SAFE FALLBACK (fixes the "four sprites" / unsliced-atlas glitch class). When an
+    // action isn't in this fighter's anim set, _getActionDef returns the bare 128²×4 _FALLBACK
+    // (sheet:null). The ONLY safe things to draw then are (i) the fighter's OWN idle sheet AT IDLE'S
+    // dims — one clean idle pose — or (ii) the procedural box. The old code drew the legacy idle sheet
+    // but sliced it at the fallback's 128×128×4 pitch, which grids a small idle strip (e.g. Itachi's
+    // 168px idle) into several mini-copies that then ride the hit's upward knockback → "four sprites
+    // going up". `fellBack` detects the bare fallback; `dim` then sources the SLICING dims from the
+    // idle def (legacyFrameData) so the sheet slices cleanly, and we load idle's own sheet to match.
+    const fellBack = !profileAction.sheet;
+    const dim = (fellBack && legacyFrameData?.sheet) ? legacyFrameData : profileAction;
 
-    // UNWIRED-PLACEHOLDER GUARD (the "4 copies" / unsliced-atlas glitch). An action that resolves to
-    // the generic 128² DEFAULT_ANIM placeholder — no dedicated sheet in the animationProfile def AND
-    // none in the character's own animationData entry — is meant to "fall back to the box" until its
-    // row is sliced+wired. Drawing the legacy idle/atlas sheet at the 128 placeholder pitch instead
-    // slices a multi-frame atlas into a GRID of mini-frames (e.g. a partially-wired opponent like base
-    // Goku's un-sliced `walk`, made glaringly visible when a zoomed cinematic freeze frames them). Force
-    // the procedural box in that case — matching the documented intent — instead of a mangled sheet.
+    let sheet = profileAction.sheet ? _loadSheet(profileAction.sheet)
+              : (fellBack && legacyFrameData?.sheet ? _loadSheet(legacyFrameData.sheet) : legacySheet);
+
+    // UNWIRED-PLACEHOLDER GUARD: a truly unwired action (no profile sheet AND no idle fallback sheet —
+    // a procedural fighter with no animationData) still falls back to the box, matching the old intent.
     if (!profileAction.sheet && !legacyFrameData?.sheet) sheet = null;
 
     const frameData = {
-      frames: profileAction.frames ?? legacyFrameData?.frames ?? 1,
-      width: profileAction.width ?? legacyFrameData?.width ?? 128,
-      height: profileAction.height ?? legacyFrameData?.height ?? 128,
-      speed: profileAction.speed ?? legacyFrameData?.speed ?? 5,
+      // SLICING dims come from `dim` — the fighter's idle def when we fell back (so a small idle strip
+      // slices into ONE clean pose, not a 128-pitch grid), else the action's own profile def (unchanged).
+      frames: dim.frames ?? legacyFrameData?.frames ?? 1,
+      width: dim.width ?? legacyFrameData?.width ?? 128,
+      height: dim.height ?? legacyFrameData?.height ?? 128,
+      speed: dim.speed ?? legacyFrameData?.speed ?? 5,
       loop: profileAction.loop ?? (!fighter.attacking),
       lockLastFrame: profileAction.lockLastFrame ?? !!fighter.attacking,
       // TWO-PART loop support: frames [0, loopStart) are a one-shot BUILDUP; on reaching the end a
       // looping strip resets to `loopStart` (not 0), so only the tail [loopStart, frames) repeats.
       // Default 0 → identical whole-strip loop as before (every existing action unchanged).
-      loopStart: profileAction.loopStart ?? legacyFrameData?.loopStart ?? 0,
+      loopStart: dim.loopStart ?? legacyFrameData?.loopStart ?? 0,
       anchorX: profileAction.anchorX ?? 0,
-      anchorY: profileAction.anchorY ?? 0,
+      anchorY: dim.anchorY ?? profileAction.anchorY ?? 0,
       // Atlas support: top-left source origin of this action's frames inside the
       // sheet. Default 0/0 → frames start at (0,0) = every existing strip is unchanged.
-      sourceX: profileAction.sourceX ?? legacyFrameData?.sourceX ?? 0,
-      sourceY: profileAction.sourceY ?? legacyFrameData?.sourceY ?? 0,
+      sourceX: dim.sourceX ?? legacyFrameData?.sourceX ?? 0,
+      sourceY: dim.sourceY ?? legacyFrameData?.sourceY ?? 0,
       spawn: profileAction.spawn,
       behavior: profileAction.behavior
     };

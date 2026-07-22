@@ -228,8 +228,10 @@ export const KITS = {
       { name: "Grab",         input: "Grab",                    desc: "grab and throw" }
     ],
     specials: [
-      { name: "Great Fireball Jutsu", input: "Special", cost: 25, desc: "hand-seal cast → a wide rolling wall of flame (ranged zoning)" }
-      // Mangekyou-gated Amaterasu / Genjutsu are added in Stage 4; Mangekyou mode in Stage 3.
+      { name: "Great Fireball Jutsu", input: "Special",                     cost: 25, desc: "hand-seal cast → a wide rolling wall of flame (ranged zoning)" },
+      { name: "Mangekyou Sharingan",  input: "Hold Charge → release (≥75% chakra)", cost: 0, desc: "BUFF MODE: ignites +20% dmg / +12% spd / +6% def, drains chakra until empty; unlocks Amaterasu + Genjutsu. Tap Charge to drop it." },
+      { name: "Amaterasu",            input: "QCF + Special (Mangekyou only)", cost: 40, desc: "inextinguishable black flame — modest hit, heavy lingering burn. Cannot be cast without Mangekyou." },
+      { name: "Genjutsu",             input: "QCB + Special (Mangekyou only, mid-combo)", cost: 45, desc: "HIT-CONFIRM finisher — only fires during a live combo; freezes the target in an illusion for a guaranteed follow-up." }
     ],
     mobility: { name: "Shunshin Blink", input: "Double-tap toward opponent", cost: 0, desc: "Sharingan teleport dash past the enemy" },
     ultimate: { name: "Susanoo", input: "Ultimate (full meter)", cost: 100, desc: "summon the Susanoo avatar — a sustained giant form (sword / guard on Special)" },

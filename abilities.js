@@ -231,6 +231,7 @@ const BETA_SPECIAL_MOTIONS = {
   megumi: { F: ["D", "F"], B: ["D", "B"], U: ["D", "U"], D: ["F", "D", "F"], N: ["B", "F"] },    // F=Divine Dogs · B=Max Elephant · U=Rabbit · D=Nue(sub) · neutral=Toad(sub)
   toji:   { F: ["D", "F"], B: ["D", "B"], D: ["F", "F"] },                                       // F=Curse Spirit · B=Chain-Knife · D=Rapid Strike(sub) · neutral=Inventory Smash
   sasuke: { F: ["D", "F"], B: ["D", "B"], D: ["D"] },                                            // F=Lightning · B=Chidori Koiten · D=Shuriken · neutral=Dash Strike
+  itachi: { F: ["D", "F"], B: ["D", "B"] },                                                       // (Mangekyou only) F=Amaterasu (QCF) · B=Genjutsu (QCB, hit-confirm) · neutral=Great Fireball
   rick:   { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] },                                  // F=Portal-Pull · B=Portal-Push · U=Rocket · D=Laser · neutral=Meeseeks
   goku_black: { F: ["D", "F"], B: ["D", "B"] },                                                  // F=Kamehameha (QCF) · B=Spirit Bomb (QCB) · neutral=Explosion (Stage 3b)
   vegeta: { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] },                                  // F=Galick Gun · B=Final Flash · neutral=Big Bang · U=Launch Ki Blast (free) · D=Ki Blast (free)
@@ -3255,12 +3256,56 @@ function executeSasukeSubstitution(fighter, target, context) {
 // rolling flame projectile). Motioned specials (Amaterasu QCF / Genjutsu QCB) are
 // added in Stage 4 and HARD-gated behind Mangekyou (_mangekyouActive) — until then
 // a motioned press that matches nothing falls through to the neutral fireball.
+// Genjutsu hit-confirm gate: at least this many combo hits must be currently connecting
+// (combat.js increments comboCounter on unblocked hits, expiring ~90f after the last one).
+const GENJUTSU_MIN_COMBO = 2
+
 function executeItachiSpecial(fighter, context) {
-  // STAGE 4 will branch here on getRelativeDirections(fighter) for the Mangekyou-gated
-  // Amaterasu (D→F) / Genjutsu (D→B) specials before the neutral fireball.
+  const dirs = getRelativeDirections(fighter)
+
+  // ── MANGEKYOU-GATED SPECIALS ────────────────────────────────────────────
+  // HARD gate: only resolve while _mangekyouActive. In base form this whole block is skipped,
+  // so a QCF/QCB motion simply falls through to the neutral Great Fireball (Itachi's always-on
+  // special). Mirrors Goku Black's Rose-exclusive gate — the flame/illusion art only exists in-mode.
+  if (fighter._mangekyouActive) {
+    // QCF (D→F) — AMATERASU: inextinguishable black flame. Modest direct hit, strong lingering DOT.
+    if (endsWithPattern(dirs, ["D", "F"])) {
+      if (!spendEnergy(fighter, 40)) return false
+      const face = fighter.facing || 1
+      fighter._spriteCastMove  = "amaterasuCast"
+      fighter._spriteCastTimer = 26
+      fighter.attackCooldown   = getAttackDuration(26, fighter)
+      spawnProjectile(fighter, "amaterasu", {
+        damage: 90, speed: 9, lifetime: 104, vx: face * 9, vy: 0,
+        hitstun: 20, knockbackX: 4, knockbackY: -1, w: 60, h: 84, color: "#20204a",
+        sheet: "./itachi_amaterasu_flame_uniform.png", spriteFrames: 6, spriteW: 167, spriteH: 143, spriteSpeed: 3, spriteScale: 0.7,
+        dot: { ticks: 6, interval: 14, dmg: 10 },   // black flames keep burning after the hit
+        spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 70,
+        spawnY: fighter.y + (fighter.h || 100) * 0.34
+      }, context)
+      focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.95, 10)
+      return true
+    }
+
+    // QCB (D→B) — GENJUTSU: a hit-confirm FINISHER. Only fires mid-combo (comboCounter ≥ MIN);
+    // a raw press with no live combo whiffs (returns false — no fireball fallback), so it stays a
+    // true combo-ender. On success it lands a big-hitstun illusion (the target is frozen/paralysed).
+    if (endsWithPattern(dirs, ["D", "B"])) {
+      if ((fighter.comboCounter || 0) < GENJUTSU_MIN_COMBO) return false   // no hit-confirm → no output
+      if (!spendEnergy(fighter, 45)) return false
+      // hitstun 95 × HITSTUN_SCALE(1.15) ≈ 109f (~1.8s) — the illusion FREEZES the target for a
+      // guaranteed follow-up (combat.js applies atk.hitstun; there is no separate paralysis field).
+      const md = { damage: 150, startup: 6, active: 6, recovery: 26, hitstun: 95, blockstun: 20, knockbackX: 3, knockbackY: 0, rangeX: 120, rangeY: 96 }
+      const attack = createAttackFromMove(fighter, "genjutsuCast", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+      setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+      focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 1.0, 14)
+      shakeCamera(context, 7, 10)
+      return true
+    }
+  }
 
   // NEUTRAL — Fire Style: Great Fireball Jutsu. Hand-seal cast pose + a wide travelling
-  // wall of flame (mirrors the omGun cast-pose + projectile pattern).
+  // wall of flame (mirrors the omGun cast-pose + projectile pattern). Available in BOTH forms.
   if (!spendEnergy(fighter, 25)) return false
   const face = fighter.facing || 1
   fighter._spriteCastMove  = "fireballCast"

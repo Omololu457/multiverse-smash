@@ -36,6 +36,7 @@
     "test:goku-black-voice": "node harness/goku_black_voice.test.mjs",
     "test:naruto-voice": "node harness/naruto_voice.test.mjs",
     "test:sasuke-voice": "node harness/sasuke_voice.test.mjs",
+    "test:omega-voice": "node harness/omega_voice.test.mjs",
     "test:hud-energy-label": "node harness/hud_energy_label.mjs",
     "test:goku-black": "node harness/goku_black.test.mjs",
     "test:goku-restore": "node harness/goku_restore.test.mjs",
@@ -51,7 +52,8 @@
     "test:db-transform-sfx": "node harness/dragon_ball_transform_sfx.test.mjs",
     "test:goku-black-charge": "node harness/goku_black_charge.test.mjs",
     "test:goku-black-handoff": "node harness/goku_black_handoff.test.mjs",
-    "test:intro-sequence": "node harness/intro_sequence.test.mjs"
+    "test:intro-sequence": "node harness/intro_sequence.test.mjs",
+    "test:omega-ranger": "node harness/omega_ranger.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

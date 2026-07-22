@@ -133,6 +133,13 @@ export const SPRITE_MANIFEST = {
   // because the real files are ./vegeta_base_<action>.png, NOT the _sheet convention.
   vegeta: {
     actions: { idle: "./vegeta_base_idle.png" }
+  },
+
+  // Omega Ranger (universe: power_rangers) — the one real sprited ranger. Gates spritesReady()
+  // by decoding the idle strip → flips it from procedural box to sprite. Per-action rendering
+  // reads characters.js → omega_ranger.animationData (each action carries its own .sheet).
+  omega_ranger: {
+    actions: { idle: "./omega_ranger_idle.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

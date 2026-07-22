@@ -1208,12 +1208,12 @@ const ben10 = {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// POWER RANGERS SPD
+// POWER RANGERS
 // Space Patrol Delta. Resource = SPD Energy (Morpher). All rangers keep the
 // standard rules: no-cost basic melee + SPD Energy specials (incl. a mobility
 // move) + a "Judgment / Battlizer" ultimate.
 // ─────────────────────────────────────────────────────────────────
-const SPD_BASICS = {
+const RANGER_BASICS = {
   light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
   heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
   upAttack:  { damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
@@ -1222,106 +1222,103 @@ const SPD_BASICS = {
   grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
 }
 
-const jackRed = {
-  rosterKey: "jackRed", name: "Jack Landors (SPD Red)", universe: "power_rangers_spd",
-  archetypes: ["melee", "rushdown"], primary: "melee", secondary: ["rushdown"],
-  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "high", scaling: "burst", animeMovement: false },
-  passive: { name: "Probability Field", effect: "Former thief's instincts — slightly faster Dash recovery and SPD Energy regen" },
-  stats: { maxHealth: 1150, maxEnergy: 170, attack: 90, defense: 84, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 36 },
-  basic_attacks: { ...SPD_BASICS, light: { damage: 48, startup: 4, active: 3, recovery: 9, hitstun: 12, knockbackX: 3, knockbackY: 0 } },
-  specials: {
-    deltaBlasters:  { cost: 25, damage: 110, startup: 9,  active: 5, recovery: 18, hitstun: 20, knockbackX: 8, knockbackY: -2, effect: "twin SPD blaster shots" },
-    battleSlash:    { cost: 35, damage: 150, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -3, effect: "Delta Saber heavy slash" },
-    deltaRush:      { cost: 15, damage: 80,  startup: 6,  active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 24, effect: "blitz dash strike" }
-  },
-  ultimate: { name: "S.W.A.T. Battlizer", cost: 100, duration: 8, effect: "Cannon mode: massive attack + speed surge" },
-  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
-}
-
-const skyBlue = {
-  rosterKey: "skyBlue", name: "Sky Tate (SPD Blue)", universe: "power_rangers_spd",
-  archetypes: ["melee", "defense"], primary: "melee", secondary: ["defense"],
-  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "medium", scaling: "control", animeMovement: false },
-  passive: { name: "Force Field", effect: "Holding block briefly projects a shield that negates chip damage" },
-  stats: { maxHealth: 1220, maxEnergy: 160, attack: 86, defense: 94, speed: 82, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 42 },
-  basic_attacks: { ...SPD_BASICS, heavy: { damage: 92, startup: 9, active: 4, recovery: 19, hitstun: 19, knockbackX: 7, knockbackY: 1, superArmor: true } },
-  specials: {
-    forceBlast:     { cost: 25, damage: 105, startup: 10, active: 5, recovery: 18, hitstun: 20, knockbackX: 8, knockbackY: -2, effect: "kinetic force projectile" },
-    barrierSlam:    { cost: 35, damage: 145, startup: 13, active: 5, recovery: 22, hitstun: 24, knockbackX: 10, knockbackY: -2, superArmor: true, effect: "shield-charge with armor" },
-    guardStep:      { cost: 15, damage: 70,  startup: 7,  active: 4, recovery: 14, hitstun: 14, knockbackX: 5, knockbackY: -1, subtype: "mobility", dashSpeed: 20, effect: "shielded advance" }
-  },
-  ultimate: { name: "Delta Squad Megazord", cost: 100, duration: 8, effect: "Fortress mode: heavy armor + power" },
-  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
-}
-
-const bridgeGreen = {
-  rosterKey: "bridgeGreen", name: "Bridge Carson (SPD Green)", universe: "power_rangers_spd",
-  archetypes: ["ranged", "psychic"], primary: "ranged", secondary: ["psychic"],
-  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "medium", scaling: "control", animeMovement: false },
-  passive: { name: "Aura Sight", effect: "Reads aura — first hit of each combo on a blocking foe deals bonus chip" },
-  stats: { maxHealth: 1080, maxEnergy: 190, attack: 85, defense: 82, speed: 84, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 44 },
-  basic_attacks: { ...SPD_BASICS },
-  specials: {
-    psychicBolt:    { cost: 22, damage: 100, startup: 9,  active: 5, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: -2, effect: "telekinetic energy bolt" },
-    energyField:    { cost: 35, damage: 135, startup: 14, active: 6, recovery: 22, hitstun: 22, knockbackX: 6, knockbackY: -1, effect: "expanding psychic field" },
-    phaseStep:      { cost: 15, damage: 60,  startup: 6,  active: 3, recovery: 13, hitstun: 12, knockbackX: 4, knockbackY: -1, subtype: "mobility", dashSpeed: 22, effect: "telekinetic blink-dash" }
-  },
-  ultimate: { name: "Delta Command Crawler", cost: 100, duration: 8, effect: "Psychic overdrive: range + control" },
-  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
-}
-
-const zYellow = {
-  rosterKey: "zYellow", name: "Z Delgado (SPD Yellow)", universe: "power_rangers_spd",
-  archetypes: ["melee", "speed"], primary: "melee", secondary: ["speed"],
-  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "very_high", scaling: "constant_pressure", animeMovement: false },
-  passive: { name: "Duplication", effect: "Specials occasionally spawn a fleeting copy that adds an extra hit" },
-  stats: { maxHealth: 1050, maxEnergy: 170, attack: 86, defense: 80, speed: 95, maxJumps: 3, jumpPower: 32, dashSpeed: 22, dashDuration: 10, dashCooldownMax: 32 },
-  basic_attacks: { ...SPD_BASICS, light: { damage: 44, startup: 3, active: 2, recovery: 8, hitstun: 12, knockbackX: 3, knockbackY: 0 } },
-  specials: {
-    cloneStrike:    { cost: 25, damage: 105, startup: 8,  active: 6, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: -1, effect: "duplicate rush attack" },
-    deltaSpin:      { cost: 30, damage: 130, startup: 10, active: 6, recovery: 20, hitstun: 22, knockbackX: 9, knockbackY: -2, effect: "spinning multi-clone slash" },
-    afterimageDash: { cost: 12, damage: 70,  startup: 5,  active: 4, recovery: 12, hitstun: 14, knockbackX: 5, knockbackY: -1, subtype: "mobility", dashSpeed: 26, effect: "afterimage blitz" }
-  },
-  ultimate: { name: "Omega Morph", cost: 100, duration: 7, effect: "Extreme speed; copies overwhelm" },
-  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
-}
-
-const sydPink = {
-  rosterKey: "sydPink", name: "Syd Drew (SPD Pink)", universe: "power_rangers_spd",
-  archetypes: ["melee", "power"], primary: "melee", secondary: ["power"],
-  traits: { hasEnergy: true, energyType: "spd_energy", mobility: "medium", scaling: "burst", animeMovement: false },
-  passive: { name: "Crystal Fists", effect: "Heavy attacks harden to crystal — extra knockback and armor on startup" },
-  stats: { maxHealth: 1160, maxEnergy: 160, attack: 91, defense: 86, speed: 83, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 40 },
-  basic_attacks: { ...SPD_BASICS, heavy: { damage: 95, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 8, knockbackY: 1 } },
-  specials: {
-    crystalSmash:   { cost: 25, damage: 115, startup: 10, active: 5, recovery: 19, hitstun: 21, knockbackX: 9, knockbackY: -2, effect: "crystallized super-strength blow" },
-    deltaMaxStrike: { cost: 35, damage: 150, startup: 13, active: 5, recovery: 23, hitstun: 26, knockbackX: 11, knockbackY: -3, effect: "Delta Max blaster smash" },
-    powerLunge:     { cost: 15, damage: 78,  startup: 7,  active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 21, effect: "charging shoulder lunge" }
-  },
-  ultimate: { name: "Delta Runner Charge", cost: 100, duration: 8, effect: "Super-strength surge: crushing power" },
-  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
-}
-
-const doggieShadow = {
-  rosterKey: "doggieShadow", name: "Doggie Cruger (Shadow Ranger)", universe: "power_rangers_spd",
-  archetypes: ["melee", "sword"], primary: "melee", secondary: ["sword"],
+// The Omega Ranger (White Ranger, S.P.D.) — the ONE Power Rangers character with real
+// sprite art on disk (omega_ranger_*.png). Single-form blade/blaster striker. The five
+// core S.P.D. rangers + Shadow Ranger that used to sit here were unbuilt data stubs
+// (procedural-box DEFAULT_ANIM, no hasSprites) and were pruned; this is the real one.
+// PHASE 1: idle + core movement/normals sliced from the on-disk sheets (frame counts via
+// alpha-gutter detection). Specials/ultimate are HUD/kit data for now — the sword-slash /
+// gun / ultimate-barrage art (omega_ranger_sword_slash_*, _gun, _sword_shash_ultimate*)
+// gets wired in a later behaviour pass (Beerus precedent: specials:{} + kit stands valid).
+const omegaRanger = {
+  rosterKey: "omega_ranger", name: "Omega Ranger (White Ranger, S.P.D.)", universe: "power_rangers",
+  portrait: "./SPD_Omega_Ranger_mugshot.png",   // EXACT on-disk filename (character-select mugshot / HUD nameplate) — same role as vegeta_mugshot.png / beerus_mugshot.png; skins.js + ui.js both read characters.omega_ranger.portrait
+  archetypes: ["melee", "sword", "ranged"], primary: "melee", secondary: ["sword", "ranged"],
   traits: { hasEnergy: true, energyType: "spd_energy", mobility: "high", scaling: "damage", animeMovement: false },
-  passive: { name: "Sirian Blade Master", effect: "Shadow Saber gives all attacks extended reach; specials cost slightly less" },
-  stats: { maxHealth: 1280, maxEnergy: 180, attack: 97, defense: 90, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 36 },
-  basic_attacks: { ...SPD_BASICS, light: { damage: 52, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: 0 }, heavy: { damage: 100, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 7, knockbackY: 1 } },
-  specials: {
-    shadowSlash:    { cost: 25, damage: 130, startup: 9,  active: 5, recovery: 18, hitstun: 24, knockbackX: 9, knockbackY: -2, effect: "long-reach saber slash" },
-    vortexBlade:    { cost: 40, damage: 170, startup: 14, active: 6, recovery: 24, hitstun: 28, knockbackX: 12, knockbackY: -3, effect: "spinning blade vortex" },
-    shadowStep:     { cost: 15, damage: 85,  startup: 6,  active: 4, recovery: 13, hitstun: 18, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 24, effect: "Sirian flash-step cut" }
+  passive: { name: "Omega Morpher", effect: "S.P.D.'s fastest ranger — quicker Dash recovery and steady SPD Energy regen" },
+  stats: { maxHealth: 1180, maxEnergy: 175, attack: 93, defense: 86, speed: 92, maxJumps: 2, jumpPower: 32, dashSpeed: 19, dashDuration: 10, dashCooldownMax: 34 },
+  basic_attacks: {
+    ...RANGER_BASICS,
+    light: { damage: 48, startup: 4, active: 3, recovery: 9, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy: { damage: 92, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 7, knockbackY: 1 }
   },
-  ultimate: { name: "Shadow Saber: Judgment", cost: 100, duration: 9, effect: "Master swordsman surge: max damage + reach" },
+  // Specials/ultimate are HUD + kit data (mirrors Beerus's staged approach); the real
+  // behaviour + sword/gun/ultimate sprite wiring lands in a later pass.
+  specials: {
+    gun:          { cost: 30, damage: 120, startup: 6,  active: 5, recovery: 12, hitstun: 18, knockbackX: 7,  knockbackY: -2, effect: "Delta Enforcer energy bolt (ranged)" },
+    superUpper:   { cost: 45, damage: 150, startup: 8,  active: 5, recovery: 20, hitstun: 24, knockbackX: 6,  knockbackY: -14, effect: "energized rising uppercut — launcher (Fwd+Special)" },
+    downSpecial:  { cost: 40, damage: 165, startup: 10, active: 6, recovery: 24, hitstun: 26, knockbackX: 9,  knockbackY: -4, effect: "spinning-blade ground-spray slam (Down+Special)" }
+  },
+  ultimate: { name: "Omega Saber: Final Strike", cost: 100, duration: 9, effect: "Multi-hit saber barrage" },
   transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  // TWO-PART INTRO (smoke-cloud summon): intro (cloud erupts/engulfs) → intro2 (cloud
+  // disperses, ranger revealed in ready stance) play back-to-back via the fixed-order
+  // introSequence stepper (Vegeta/Toji precedent), NOT introPool (random pick).
+  introSequence: ["intro", "intro2"],
+  hasSprites: true,
+  // idle content ~52px × 2.0 ≈ 104px on-screen — mid roster range (Toji 101, Gojo 112).
+  spriteScale: 2.0,
+  // STAGE-1 sprites (movement/state/intro). Fragmented source sheets were RE-SLICED into
+  // clean uniform strips (harness/reslice.mjs / crop_uniform.mjs) — the *_uniform.png files;
+  // frame counts VISUALLY confirmed. width = uniform cell pitch, height = full cell height.
+  // Missing actions (kick/sword/gun/etc.) come in later stages; they fall back to idle safely.
+  animationData: {
+    idle:      { frames: 4,  width: 47,  height: 52,  speed: 6, anchorY: 0, sheet: "./omega_ranger_idle.png" },          // 4 clean frames, even pitch 47
+    // run.png reslice → 8 uniform poses. walk = same strip, slower cadence. dash FX sheet
+    // (omega_ranger_dash.png) is bodyless motion-blur → reuse the run pose during dash for now
+    // (a blur-overlay pass can layer the FX sheet later).
+    walk:      { frames: 8,  width: 54,  height: 54,  speed: 8, anchorY: 0, sheet: "./omega_ranger_run_uniform.png" },
+    run:       { frames: 8,  width: 54,  height: 54,  speed: 4, anchorY: 0, sheet: "./omega_ranger_run_uniform.png" },
+    dash:      { frames: 8,  width: 54,  height: 54,  speed: 3, anchorY: 0, sheet: "./omega_ranger_run_uniform.png" },
+    jump:      { frames: 9,  width: 46,  height: 54,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_double_jump_uniform.png" },
+    fall:      { frames: 9,  width: 46,  height: 54,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_double_jump_uniform.png" },
+    // hit_1 = the hit reaction (standing recoil → tumble → prone). Serves both the in-combat
+    // flinch (hurt: short hitstun only shows the opening recoil frames) AND the sprawled
+    // knockdown pose. hit_2 = the get-up (prone → rise → ready), driving the engine's
+    // knockdown→getup chain (sprite.js: needs BOTH knockdown & getup strips).
+    hurt:      { frames: 11, width: 79,  height: 66,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_hit_1_uniform.png" },
+    knockdown: { frames: 11, width: 79,  height: 66,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_hit_1_uniform.png" },
+    getup:     { frames: 9,  width: 68,  height: 55,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_hit_2_uniform.png" },
+    // Two-part summon intro (re-sliced; debris puffs kept inside their owning frame cells).
+    intro:     { frames: 7,  width: 137, height: 116, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_intro_2_part_1_uniform.png" },
+    intro2:    { frames: 5,  width: 122, height: 132, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_intro_2_part_2_uniform.png" },
+    // STAGE-2 NORMALS (all re-sliced to uniform strips; counts visually confirmed).
+    light:    { frames: 4,  width: 58, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_foward_punch_uniform.png" },      // quick gun-point jab
+    // heavy: downward_smash.png is a 20-frame run-up→overhead-smash→dust-recovery arc (dust
+    // debris fragmented the raw sheet — hand-cropped via crop_uniform.mjs). A heavy NORMAL's
+    // ~32-frame window can't show all 20, and the run-up/recovery tail aren't the payoff — so we
+    // start at the windup (sourceX = frame 5 × 89) and play 10 frames = leap→overhead smash→
+    // dust impact. lockLastFrame holds the impact during recovery.
+    heavy:    { frames: 10, width: 89, height: 75, speed: 3, sourceX: 445, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_downward_smash_uniform.png" },
+    up:       { frames: 8,  width: 60, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_upper_attack_uniform.png" },        // launcher: rising sword uppercut
+    air:      { frames: 6,  width: 61, height: 61, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_air_punch_uniform.png" },
+    down_air: { frames: 4,  width: 74, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_air_down_attack_uniform.png" },      // dive spike
+    grab:     { frames: 4,  width: 58, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_foward_punch_uniform.png" },
+    // STAGE-3 command-normal cancel chain (Fwd+Heavy → re-tap Heavy) + free pokes. Move keys
+    // match the abilities.js OMEGA_RANGER_CMD/POKE tables so sprite.js resolves each via identity.
+    omKick:        { frames: 6,  width: 65, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_kick_uniform.png" },
+    omSpinKick:    { frames: 12, width: 50, height: 70, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_spin_kick_uniform.png" },
+    omLowAttack:   { frames: 7,  width: 54, height: 37, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_low_attack_uniform.png" },
+    omForwardPush: { frames: 5,  width: 60, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_foward_push_uniform.png" },
+    omDownAir2:    { frames: 10, width: 53, height: 57, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_downward_air_attack_2_uniform.png" },
+    // STAGE-4 sword slash string (Back+Light → re-tap Light). 7 distinct slashes; keys match the
+    // abilities.js OMEGA_RANGER_SWORD table (identity sprite-resolve).
+    omSword1: { frames: 7, width: 69, height: 80, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_slash_1_uniform.png" },
+    omSword2: { frames: 5, width: 72, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_slash_2_uniform.png" },
+    omSword3: { frames: 5, width: 73, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_slash_3_uniform.png" },
+    omSword4: { frames: 5, width: 51, height: 92, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_slash_4_uniform.png" },
+    omSword5: { frames: 6, width: 56, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_slash_5_uniform.png" },
+    omSword6: { frames: 5, width: 65, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_slash_6_uniform.png" },
+    omSword7: { frames: 6, width: 56, height: 77, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_slash_7_uniform.png" },
+    // STAGE-5 specials. omGun = the blaster CAST pose (played via _spriteCastMove; the bolt is a
+    // separate projectile sheet). omSuperUpper / omDownSpecial = melee-special currentMove sprites.
+    omGun:         { frames: 6,  width: 59, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_gun_uniform.png" },
+    omSuperUpper:  { frames: 10, width: 54, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_super_upper_attack_uniform.png" },
+    omDownSpecial: { frames: 14, width: 87, height: 73, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_specail_downward_attack_uniform.png" },
+    // STAGE-6 Ultimate ("ultimate" action key, driven by currentMove) + Battlizer bonus ring special.
+    ultimate:      { frames: 10, width: 78,  height: 66,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_shash_ultimate_uniform.png" },
+    omSwordRing:   { frames: 9,  width: 124, height: 109, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_shash_ultimate_2_uniform.png" }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1849,7 +1846,7 @@ export const characters = {
   beerus,
   ben10, albedo,
   omniMan, thragg,
-  jackRed, skyBlue, bridgeGreen, zYellow, sydPink, doggieShadow,
+  omega_ranger: omegaRanger,
   gon, killua, kurapika, leorio, hisoka, chrollo, netero,
   ging, meruem, kite, feitan, illumi, biscuit
 }

@@ -113,6 +113,7 @@ import {
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
+import { pickSukunaVoice } from "./sukunaVoice.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -4814,6 +4815,12 @@ gameLoop()
     // Sample the Rick voice-pool randomizer N times (the SAME pickRickVoice used by every wired
     // Rick trigger) → lets a test prove genuine random selection / pair-alternation deterministically.
     rickVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickRickVoice(pool)),
+    // Same idea for Sukuna's 4 pools (taunt/hitConnect/finisher/misc) — proves genuine
+    // random selection across the largest generic-bark pool wired (21-entry taunt).
+    sukunaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSukunaVoice(pool)),
+    // Zero the LIVE fighter's offense-voice state (cooldown + combo) so a test can force a
+    // CLEAN single-hit connect — p1()/p2() return snapshots, so mutating those can't reset it.
+    resetOffenseVoice: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f._atkVoiceCd = 0; f.comboCounter = 0; f.comboTimer = 0; } },
     damageP1: (v = 100) => { if (p1) p1.health = Math.max(1, (p1.health || 0) - v) },   // chip P1 so a round isn't perfect
     victoryInfo: () => ({ flawless: !!victoryState.flawless, subtitle: victoryState.subtitle || "", primaryLabel: victoryState.primaryLabel || "", winner: victoryState.winnerSide, perfectP1: matchStats?.p1?.perfectRounds, roundsWonP1: matchStats?.p1?.roundsWon }),
     // ── FREE-FOR-ALL diagnostics/drivers ──────────────────────────────────────

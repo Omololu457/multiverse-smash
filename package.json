@@ -60,7 +60,8 @@
     "test:itachi-specials": "node harness/itachi_specials.mjs",
     "test:itachi-susanoo": "node harness/itachi_susanoo.mjs",
     "test:itachi-voice": "node harness/itachi_voice.test.mjs",
-    "test:itachi-portrait": "node harness/itachi_portrait.test.mjs"
+    "test:itachi-portrait": "node harness/itachi_portrait.test.mjs",
+    "test:sukuna-voice": "node harness/sukuna_voice.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

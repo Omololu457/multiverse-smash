@@ -28,8 +28,9 @@ try{
   section("Ground truth — hasSprites roster derived live from characters.js");
   const gt=await sets();
   // Sprite roster is derived live from hasSprites, so its size grows as characters gain sprites.
-  // Assert the known sprite-complete characters are ALL present (Rick joined via the merge → 8).
-  const KNOWN_SPRITE=["goku","gojo","megumi","sukuna","toji","naruto","sasuke","rick"];
+  // Assert the known sprite-complete characters are ALL present (grows as chars gain sprites:
+  // + Rick via the merge, then Beerus/Goku Black/Vegeta → 11).
+  const KNOWN_SPRITE=["goku","gojo","megumi","sukuna","toji","naruto","sasuke","rick","beerus","goku_black","vegeta"];
   check(`sprite roster contains all known sprite chars (now ${gt.sprite.length})`,
         KNOWN_SPRITE.every(k=>gt.sprite.includes(k)), `sprite=${sortJoin(gt.sprite)}`);
   check("full non-hidden roster is much larger (filter is meaningful)", gt.all.length>gt.sprite.length+10, `all=${gt.all.length}`);
@@ -51,11 +52,11 @@ try{
   m=await menu();
   check("selectable roster EQUALS the live hasSprites set", sortJoin(m.selectable)===sortJoin(spriteSet), `got=${sortJoin(m.selectable)}`);
   check("selectable count == sprite-roster size (dynamic)", m.selectable.length===spriteSet.length, `n=${m.selectable.length}`);
-  // Explicit exclusions — the procedural-box characters the task named must be gone.
-  for(const gone of ["vegeta","tanjiro","rickPrime","piccolo","killua"])
+  // Explicit exclusions — procedural-box characters (still no sprites) must be gone.
+  for(const gone of ["tanjiro","rickPrime","piccolo","killua"])
     check(`'${gone}' (no sprites) is NOT selectable`, !m.selectable.includes(gone));
   // Explicit inclusions — the sprite characters must all be present.
-  for(const has of ["gojo","sukuna","megumi","toji","naruto","sasuke","goku","rick"])
+  for(const has of ["gojo","sukuna","megumi","toji","naruto","sasuke","goku","rick","beerus","goku_black","vegeta"])
     check(`'${has}' (has sprites) IS selectable`, m.selectable.includes(has));
   check("only sprite-having universes shown (dynamic)", sortJoin(m.universes)===sortJoin(gt.spriteUniverses), `universes=${sortJoin(m.universes)}`);
   section("BETA — full unlock scope (same as dev): Online + level-gated features + skins");
@@ -75,7 +76,7 @@ try{
   check('applyCode("Omololu") → "dev"', da.result==="dev" && da.dev===true && da.beta===false, `res=${da.result} dev=${da.dev} beta=${da.beta}`);
   m=await menu();
   check("DEV shows the FULL roster (NOT sprite-filtered)", sortJoin(m.selectable)===sortJoin(gt.all), `n=${m.selectable.length}`);
-  check("DEV roster INCLUDES non-sprite characters (e.g. vegeta, tanjiro)", m.selectable.includes("vegeta") && m.selectable.includes("tanjiro"));
+  check("DEV roster INCLUDES non-sprite characters (e.g. piccolo, tanjiro)", m.selectable.includes("piccolo") && m.selectable.includes("tanjiro"));
   check("DEV roster is strictly larger than the beta sprite set", m.selectable.length>7, `n=${m.selectable.length}`);
   check("DEV also unlocks ONLINE", m.onlineLocked===false);
 

@@ -107,6 +107,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./saske_stance_2.png" }
   },
 
+  // Itachi (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
+  // Itachi from box to sprite. Per-action rendering reads characters.js → itachi.animationData
+  // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
+  itachi: {
+    actions: { idle: "./itachi_melle_idle_uniform.png" }
+  },
+
   // Rick Sanchez (universe: rick_and_morty). Gates spritesReady() by decoding the idle strip →
   // flips Rick from procedural box to sprite. Per-action rendering reads characters.js →
   // rick.animationData (each action carries its own .sheet).

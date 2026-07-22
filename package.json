@@ -53,7 +53,8 @@
     "test:goku-black-charge": "node harness/goku_black_charge.test.mjs",
     "test:goku-black-handoff": "node harness/goku_black_handoff.test.mjs",
     "test:intro-sequence": "node harness/intro_sequence.test.mjs",
-    "test:omega-ranger": "node harness/omega_ranger.test.mjs"
+    "test:omega-ranger": "node harness/omega_ranger.test.mjs",
+    "test:itachi-stage1": "node harness/itachi_stage1.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

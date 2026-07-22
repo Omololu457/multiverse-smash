@@ -141,6 +141,13 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke?.portrait, spriteScale: characters.sasuke?.spriteScale, animationData: null }
   ],
 
+  // Itachi (Naruto universe). Same gate as Naruto/Sasuke: WITHOUT a default skin, applySkin()
+  // pulls the getSkins() spriteScale:1 fallback and he renders at native ~72px (half size). This
+  // entry sources his real spriteScale (1.55) from the character. No alt skins yet.
+  itachi: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.itachi?.portrait, spriteScale: characters.itachi?.spriteScale, animationData: null }
+  ],
+
   // Rick Sanchez (Rick & Morty). Same gate as the sprite characters above: WITHOUT a default
   // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native
   // ~67px (half size). Sources his real spriteScale (1.7) from the character. No alt skins yet.

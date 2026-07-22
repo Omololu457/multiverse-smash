@@ -1080,6 +1080,13 @@ const VEGETA_BLUE_ANIM = {
   run:       { frames: 4,  width: 58,  height: 48, speed: 4, anchorY: 0, sheet: "./vegeta_ssj_blue_run_uniform.png" },
   // Transform morph (SSJ gold → Blue). Plays ONCE on entering (VEGETA_BLUE_MORPH lockout) + doubles as the Blue intro.
   transform: { frames: 25, width: 109, height: 97, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_blue_transformation_uniform.png" },
+  // CHARGE — DEDICATED cyan Blue aura. Closes the SAME class as SSJ's Bug 1: vegeta_blue_charge_up.png (real
+  // Blue art, 12 islands) existed on disk but VEGETA_BLUE_ANIM never overlaid the `charge` key, so the merged
+  // _skinAnim fell through to VEGETA_SSJ_ANIM.charge (gold) — proven via skinAnimDump. RE-SLICED frames 1-9
+  // (brace → aura ignite → full cyan aura; dropped 10-12 dissipate so a HELD charge loops clean) into a
+  // uniform strip; two-part loop (buildup 0-3 plays once, tail 4-8 loops). Because Final Flash's cast reuses
+  // `charge`, this ALSO turns Blue's Final Flash cast cyan (previously the flagged SSJ-gold blip).
+  charge:    { frames: 9, width: 107, height: 117, speed: 6, anchorY: 0, loop: true, loopStart: 4, sheet: "./vegeta_blue_charge_up_uniform.png" },
   // STAGE 2 — Blue (cyan) NORMALS. Overlay on top of SSJ's gold so attacks read as Blue Vegeta.
   light:    { frames: 6,  width: 72, height: 62, speed: 3, anchorY: 0, sheet: "./vegeta_blue_light_uniform.png" },   // foward_kick (leading 4px debris discarded → 6 real frames)
   heavy:    { frames: 22, width: 65, height: 65, speed: 2, anchorY: 0, sheet: "./vegeta_blue_heavy_uniform.png" },   // 6_combo_attack
@@ -1101,7 +1108,7 @@ const VEGETA_BLUE_ANIM = {
   vgBlueKoma3: { frames: 7,  width: 51, height: 69, speed: 3, anchorY: 0, sheet: "./vegeta_blue_koma3_uniform.png" },  // up_attack (pop) — NB: NOT up_attack_2
   vgBlueKoma4: { frames: 8,  width: 44, height: 67, speed: 3, anchorY: 0, sheet: "./vegeta_blue_koma4_uniform.png" },  // ki_bomb_throw (finisher + FX)
   // STAGE 4 — Galick Gun cast pose (charge+release "character halves" merged → 14f). Final Flash reuses
-  // `charge` (SSJ gold, inherited — FLAGGED gap), Big Bang reuses `bigBangCast` (base — FLAGGED gap).
+  // `charge` → now the DEDICATED cyan Blue charge above (gap CLOSED). Big Bang reuses `bigBangCast` (base — FLAGGED gap).
   galickCast: { frames: 14, width: 74, height: 76, speed: 2, anchorY: 0, sheet: "./vegeta_blue_galick_cast_uniform.png" },
   // STAGE 5 Blue-exclusive: Super Galick Gun cast pose (22f, 6px mid-run debris left in — negligible blip)
   // + Teleport (2 poses + streak-blur; play-once).

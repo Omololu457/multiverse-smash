@@ -1291,13 +1291,17 @@ function initIntroVariant(fighter) {
 const INTRO_VOICE = {
   beerus: { clip: "beerus_intro.mp3", gateReveal: true },   // "…I guess I'll destroy you now"
   naruto: { clip: "naruto_intro.mp3", gateReveal: false },  // 3 opening battle-cry lines back-to-back
+  // Sasuke picks ONE of two multi-line intro bursts at random per match (same alternation family
+  // as Naruto's win pool). Either clip is a packed cluster fired as a single beat.
+  sasuke: { pool: ["sasuke_intro_cluster.mp3", "sasuke_intro_alt2.mp3"], gateReveal: false },
 }
 function maybeFireIntroVoice(fighter) {
   const cfg = fighter && INTRO_VOICE[fighter.rosterKey]
   if (!cfg || fighter._introVoiceDone) return
   if (cfg.gateReveal && (fighter._introRevealFrame || 0) < (fighter.introReveal?.hide || 0)) return
   fighter._introVoiceDone = true
-  sound.playSfxFile?.(cfg.clip, null)
+  const clip = cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip
+  sound.playSfxFile?.(clip, null)
 }
 
 function advanceIntroSequence(fighter) {
@@ -1681,6 +1685,11 @@ function _checkMatchOver() {
         const narutoWins = ["naruto_win.mp3", "naruto_win_alt.mp3", "naruto_ninja_way.mp3"]
         sound.playSfxFile?.(narutoWins[Math.floor(Math.random() * narutoWins.length)], null)
       }
+      // SASUKE win voice — same 50/50 coin-flip pattern as Beerus/Goku Black; alternates between
+      // "It's over. It's over." and "Right now, I am the strongest in this world."
+      if (winFighter?.rosterKey === "sasuke") {
+        sound.playSfxFile?.(Math.random() < 0.5 ? "sasuke_win_line.mp3" : "sasuke_win_alt.mp3", null)
+      }
     }
     sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
     gameState = GAME_STATES.VICTORY
@@ -1899,7 +1908,12 @@ function handleChargeRelease(fighter, key) {
     fighter.absoluteDefenseActive = !fighter.absoluteDefenseActive
     fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
     // Repurposed asset: the old Susanoo-intro sheet now manifests the Absolute Defense barrier.
-    if (fighter.absoluteDefenseActive) spawnAbsoluteDefenseFx(fighter, getAbilityContext())
+    if (fighter.absoluteDefenseActive) {
+      spawnAbsoluteDefenseFx(fighter, getAbilityContext())
+      // VOICE: "I won't be holding back… I won't miss even the slightest opening" — fires once as
+      // the barrier is toggled ON (not on each per-block negate).
+      sound.playSfxFile?.("sasuke_special_warning_cluster.mp3", null)
+    }
   } else if (fighter.transformationOrder?.length) {
     triggerTransformation(fighter, getAbilityContext())
   }
@@ -2042,6 +2056,15 @@ function updateMiscTimers(fighter) {
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
   if (fighter._hitVoiceCd     > 0) fighter._hitVoiceCd--                  // Beerus/Goku Black/Naruto hit-reaction voice cooldown (combat.js)
   if (fighter._atkVoiceCd     > 0) fighter._atkVoiceCd--                  // Naruto offense (Hokage/combo-burst) voice cooldown (combat.js)
+  // SASUKE "getting serious" voice — SEPARATE pool from the (deferred) manual taunt: fires ONCE per
+  // round the first time his energy builds past 80% ("high-energy state" per spec). Rounds start at
+  // 50% energy (createFighter startingEnergy) so this is a genuine upward crossing, never a match-start
+  // false-fire; _seriousVoiceDone resets naturally when resetRound rebuilds fighters. Alternates the two takes.
+  if (fighter.rosterKey === "sasuke" && !fighter._seriousVoiceDone &&
+      (fighter.energy || 0) >= (fighter.maxEnergy || 100) * 0.80) {
+    fighter._seriousVoiceDone = true
+    sound.playSfxFile?.(Math.random() < 0.5 ? "sasuke_serious_taunt.mp3" : "sasuke_serious_taunt_alt.mp3", null)
+  }
   if (fighter.ultimateCooldown > 0) fighter.ultimateCooldown--            // universal ultimate recast lockout
   if (fighter.summonCooldown  > 0) fighter.summonCooldown--
   if (fighter._cloneSummonWindow > 0) fighter._cloneSummonWindow--        // clone-summon audio window (summons.js)
@@ -4084,7 +4107,19 @@ function updateCurrentState() {
     case GAME_STATES.BATTLE:
       if (countdown > 0) {
         updateDebugInputToggles(); updateTrainingMode(); updateCPUInput()
-        if (countdown === 1) sound.play?.(SFX.UI_MATCH_START)
+        if (countdown === 1) {
+          sound.play?.(SFX.UI_MATCH_START)
+          // SASUKE battle-start voice — "Let's go." Fires at the GO frame of ROUND 1 only (post-intro,
+          // first actionable beat = "start of the match"), once, for whichever side is Sasuke.
+          if (roundNumber === 1) {
+            for (const f of [p1, p2]) {
+              if (f?.rosterKey === "sasuke" && !f._battleStartVoiceDone) {
+                f._battleStartVoiceDone = true
+                sound.playSfxFile?.("sasuke_battle_start.mp3", null)
+              }
+            }
+          }
+        }
         countdown = Math.max(0, countdown - 1)
         if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       } else {

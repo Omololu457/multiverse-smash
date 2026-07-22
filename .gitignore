@@ -149,3 +149,8 @@ harness/shots/
 *_ROWS.png
 *_NAIVE.png
 *_POSES.png
+# Throwaway sprite-slice preview scratch
+goku_slices/_preview/
+
+# macOS junk
+.DS_Store

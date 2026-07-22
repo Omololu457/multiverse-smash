@@ -109,6 +109,7 @@ import {
   clearBeerusKiBallCinematic, getBeerusKiBallCinematicStatus
 } from "./beerusKiBallCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
+import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -896,6 +897,12 @@ function checkFFAOutcome() {
       ffaState.winnerTeam = teamsLeft[0] || null
       ffaState.winner = alive[0] || null
       sound.play?.(SFX.KO); sound.stopMusic?.()
+      // RICK team-win callout — "blue team gets that one" (Team A = #38bdf8) / "the red guys got
+      // that point" (Team B = #fb7185). Fires only when Rick is a participant in the team match.
+      if (ffaState.fighters.some(f => f?.rosterKey === "rick")) {
+        if      (ffaState.winnerTeam === "A") sound.playSfxFile?.(pickRickVoice("teamBlue"), null)
+        else if (ffaState.winnerTeam === "B") sound.playSfxFile?.(pickRickVoice("teamRed"), null)
+      }
     }
   } else if (alive.length <= 1) {
     ffaState.over = true
@@ -1294,6 +1301,10 @@ const INTRO_VOICE = {
   // Sasuke picks ONE of two multi-line intro bursts at random per match (same alternation family
   // as Naruto's win pool). Either clip is a packed cluster fired as a single beat.
   sasuke: { pool: ["sasuke_intro_cluster.mp3", "sasuke_intro_alt2.mp3"], gateReveal: false },
+  // Rick picks ONE of six intro/catchphrase barks at random per match ("buckle up", "I'm Rick
+  // Sanchez baby", …). Fires at his first intro-play frame (no reveal gate). Distinct from his
+  // pre-match NAMECALL clip (rick_intro.mp3) — a character can carry both, like Naruto.
+  rick:   { pool: RICK_VOICE.intro, gateReveal: false },
 }
 function maybeFireIntroVoice(fighter) {
   const cfg = fighter && INTRO_VOICE[fighter.rosterKey]
@@ -1689,6 +1700,17 @@ function _checkMatchOver() {
       // "It's over. It's over." and "Right now, I am the strongest in this world."
       if (winFighter?.rosterKey === "sasuke") {
         sound.playSfxFile?.(Math.random() < 0.5 ? "sasuke_win_line.mp3" : "sasuke_win_alt.mp3", null)
+      }
+      // RICK win voice — same alternation family; random pick between "Time to get schwifty" and
+      // his "Rick dance" win bark. Fires only when the WINNER is Rick.
+      if (winFighter?.rosterKey === "rick") {
+        sound.playSfxFile?.(pickRickVoice("win"), null)
+      }
+      // RICK match-loss consolation — the local player (Rick) lost the whole match. Fires the
+      // loss pool ("the other guys won that one" / "not you" / "sorry"). Match-flow bark → gated
+      // to the LOCAL PLAYER (p1) being Rick, mirroring the round-end HUD barks.
+      if (winner === "p2" && p1?.rosterKey === "rick") {
+        sound.playSfxFile?.(pickRickVoice("roundLoss"), null)
       }
     }
     sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
@@ -2141,6 +2163,12 @@ function updateTauntState(fighter, downHeld) {
     if ((fighter.rosterKey || "").toLowerCase() === "goku_black") {
       sound.playSfxFile?.("goku_black_taunt.mp3", null)
     }
+    // RICK heal-taunt callout — "Do it for grandpa Morty" / "Don't worry Morty" / "Grandpa's sorry
+    // Morty" (random pool). Hooked on the same commit transition, gated to Rick (whose taunt IS the
+    // heal mechanic first built for him). Fires once as the flourish begins.
+    if (fighter.rosterKey === "rick") {
+      sound.playSfxFile?.(pickRickVoice("tauntHeal"), null)
+    }
   }
 }
 
@@ -2567,6 +2595,24 @@ function updateTrainingMode() {
 // ------------------------------------------------------------------
 // ROUND END
 // ------------------------------------------------------------------
+// RICK round-end HUD bark (audio-only). Gated to the LOCAL PLAYER being Rick — his voice as your
+// hype-man/announcer (see rickVoice.js match-flow note). ONE clip per round-end, never stacked:
+//   • time-over  → the time-up bell ("ding ding, jerks" / "fight's over")
+//   • KO, Rick won  → "hey you won"
+//   • KO, Rick lost → the knockout pool ("oh shit you're down" / "that's a knockout" / "k.o.")
+// SUPPRESSED on the match-deciding round: the match-level win/loss bark (_checkMatchOver) owns that
+// beat instead, so the two never fire together. Match-over test mirrors _checkMatchOver exactly.
+function maybeRickRoundVoice(rw, byTimeout) {
+  if (p1?.rosterKey !== "rick") return
+  const matchWillEnd = roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS
+  if (matchWillEnd) return
+  let pool = null
+  if (byTimeout)          pool = "matchEnd"
+  else if (rw === "p1")   pool = "roundWin"
+  else if (rw === "p2")   pool = "ko"
+  if (pool) sound.playSfxFile?.(pickRickVoice(pool), null)
+}
+
 function checkRoundEnd() {
   // Skip ALL round-end handling (timer/KO/victory) whenever training is active — via the
   // menu (matchConfig.mode) OR the F1 debug toggle. Previously only the menu path skipped,
@@ -2579,6 +2625,7 @@ function checkRoundEnd() {
     else if (p2h > p1h) { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Time Over — Player 2 Wins" : "Time Over — CPU Wins" }
     else                { winnerText = "Time Over — Draw" }
     recordRoundEnd?.(matchStats, rw, p1h, p2h)   // per-round (drives perfectRounds → FLAWLESS)
+    maybeRickRoundVoice(rw, true)   // time-over bell (suppressed if this ends the match)
     _checkMatchOver(); return
   }
   if (p1.health > 0 && p2.health > 0) return
@@ -2588,6 +2635,7 @@ function checkRoundEnd() {
   else if (p1.health > 0) { roundWins.p1++; rw = "p1"; winnerText = "Player 1 Wins Round" }
   else                    { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Player 2 Wins Round" : "CPU Wins Round" }
   recordRoundEnd?.(matchStats, rw, p1?.health || 0, p2?.health || 0)   // per-round (drives perfectRounds)
+  maybeRickRoundVoice(rw, false)   // KO round: "hey you won" (Rick won) / knockout pool (Rick down)
   _checkMatchOver()
 }
 
@@ -2666,7 +2714,16 @@ function updateBattle() {
   // regardless (updateTransformationState → updateSasukeSusanoo); only the ROUND clock freezes.
   // Uses the exported sasukeInSusanoo helper so this stays correct if the flag changes.
   const sustainedFormActive = sasukeInSusanoo(p1) || sasukeInSusanoo(p2)
+  const prevRoundTimer = roundTimer
   if (roundTimer > 0 && !sustainedFormActive) roundTimer--
+  // RICK timer-warning barks — fire ONCE at each crossing (prev>X && now<=X so a Susanoo stall
+  // that parks the clock on the threshold can't re-fire it). Gated to the LOCAL PLAYER being Rick.
+  // ROUND_TIME is 90s: 60s left = 3600f, 30s = 1800f, 10s = 600f.
+  if (p1?.rosterKey === "rick") {
+    if      (prevRoundTimer > 3600 && roundTimer <= 3600) sound.playSfxFile?.(pickRickVoice("timerMinute"), null)
+    else if (prevRoundTimer > 1800 && roundTimer <= 1800) sound.playSfxFile?.(pickRickVoice("timer30"), null)
+    else if (prevRoundTimer > 600  && roundTimer <= 600)  sound.playSfxFile?.(pickRickVoice("timer10"), null)
+  }
 
   updateDebugInputToggles()
   updateTrainingMode()
@@ -4118,6 +4175,12 @@ function updateCurrentState() {
                 sound.playSfxFile?.("sasuke_battle_start.mp3", null)
               }
             }
+            // RICK match-start bark — "Yeah." (HUD/announcer line). Gated to the LOCAL PLAYER being
+            // Rick (his voice as your hype-man; see rickVoice.js match-flow note), once at ROUND-1 GO.
+            if (p1?.rosterKey === "rick" && !p1._matchStartVoiceDone) {
+              p1._matchStartVoiceDone = true
+              sound.playSfxFile?.(pickRickVoice("matchStart"), null)
+            }
           }
         }
         countdown = Math.max(0, countdown - 1)
@@ -4638,6 +4701,9 @@ gameLoop()
     towerContinue: () => continueTower(),
     forceP1Win: () => { if (p2) p2.health = 0 },
     forceP1Lose: () => { if (p1) p1.health = 0 },
+    // Sample the Rick voice-pool randomizer N times (the SAME pickRickVoice used by every wired
+    // Rick trigger) → lets a test prove genuine random selection / pair-alternation deterministically.
+    rickVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickRickVoice(pool)),
     damageP1: (v = 100) => { if (p1) p1.health = Math.max(1, (p1.health || 0) - v) },   // chip P1 so a round isn't perfect
     victoryInfo: () => ({ flawless: !!victoryState.flawless, subtitle: victoryState.subtitle || "", primaryLabel: victoryState.primaryLabel || "", winner: victoryState.winnerSide, perfectP1: matchStats?.p1?.perfectRounds, roundsWonP1: matchStats?.p1?.roundsWon }),
     // ── FREE-FOR-ALL diagnostics/drivers ──────────────────────────────────────

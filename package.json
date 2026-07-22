@@ -25,6 +25,7 @@
     "test:toji-motion": "node harness/toji_motion.test.mjs",
     "test:toji-command": "node harness/toji_command.test.mjs",
     "test:rick": "node harness/rick.test.mjs",
+    "test:rick-voice": "node harness/rick_voice.test.mjs",
     "test:vegeta": "node harness/vegeta.test.mjs",
     "test:vegeta-ssj": "node harness/vegeta_ssj.test.mjs",
     "test:vegeta-ssj-blue": "node harness/vegeta_ssj_blue.test.mjs",

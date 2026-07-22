@@ -14,6 +14,7 @@ import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } 
 import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./beerusKiBallCinematic.js"   // Beerus Ki Ball ultimate cinematic (no cycle)
 import { resolveGrab, GLOBAL_DAMAGE_SCALE } from "./combat.js"   // shared grab pipeline + the one damage-scale lever (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
+import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
@@ -3361,6 +3362,8 @@ function executeRickSpecial(fighter, context) {
     fighter._spriteCastMove  = "rocket"
     fighter._spriteCastTimer = 26
     fighter.attackCooldown   = getAttackDuration(20, fighter)
+    try { sound.playSfxFile?.(pickRickVoice("rocket"), null) } catch (_) {}   // VOICE: random Rocket cast bark
+
     // RANGE EXTENDED: was a short vertical burst that left the top bound (y<-200) in ~39f.
     // Now a genuine long-traveling rocket — fires FORWARD across the stage (vx 3→14) and LEVEL
     // (vy -16→0, so it stays at launch height and reliably catches grounded foes downrange rather
@@ -3386,6 +3389,7 @@ function executeRickSpecial(fighter, context) {
   fighter._spriteCastMove  = "meeseeksThrow"
   fighter._spriteCastTimer = 20
   fighter.attackCooldown   = getAttackDuration(22, fighter)
+  try { sound.playSfxFile?.(pickRickVoice("meeseeks"), null) } catch (_) {}   // VOICE: random Meeseeks summon-cast bark (14-entry pool)
   return true
 }
 
@@ -3395,6 +3399,10 @@ function executeRickUltimate(fighter, context) {
   // balance lever (no startup / vulnerability window). Damage is applied directly (summon-style,
   // bypassing GLOBAL_DAMAGE_SCALE) so 180 ≈ a genuine ultimate burst.
   if (!spendEnergy(fighter, 140)) return false
+
+  // VOICE: Self-Destruct ACTIVATION — his signature catchphrase / "it's called a deterrent" (random pool).
+  // Fired on the cast itself; the PAYOFF bark below is a separate beat, gated on the AOE actually connecting.
+  try { sound.playSfxFile?.(pickRickVoice("ultActivate"), null) } catch (_) {}
 
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
@@ -3435,6 +3443,9 @@ function executeRickUltimate(fighter, context) {
         target.colorFlash = 8
       }
       target.health = Math.max(0, (target.health || 0) - dmg)
+      // VOICE: Self-Destruct PAYOFF — fires ONLY when the blast actually connects (a beat after
+      // activation): "oh shit, well that's cool" / "boom" (random pool). Distinct from the cast bark.
+      try { sound.playSfxFile?.(pickRickVoice("ultPayoff"), null) } catch (_) {}
     }
   }
   return true

@@ -14,6 +14,7 @@
 
 import { physics } from "./physics.js"
 import { sound, SFX } from "./sound.js"
+import { pickRickVoice } from "./rickVoice.js"
 
 // ========================
 // HITSTOP TABLES
@@ -474,6 +475,34 @@ function applySasukeOffenseVoice(attacker, cat, unblocked) {
   }
 }
 
+// ── RICK VOICE LINES (audio-only; same pattern as Naruto/Sasuke above) ───────────
+// DEFENDER reaction pool — LIGHT flinch vs HEAVY/knockdown-tier, tier read straight off
+// `cat`/`dmg` (same heavy test Naruto/Sasuke/Beerus use; no knockdownState). Random pick
+// within the chosen pool via pickRickVoice. One line per _hitVoiceCd window (ticked in
+// game.js); only on an UNBLOCKED hit (see resolveAttackHit).
+function applyRickHitVoice(defender, cat, dmg) {
+  if (defender.rosterKey !== "rick" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  const heavy = cat === "heavy" || cat === "launcher" || cat === "spike" ||
+    cat === "special" || cat === "ultimate" || dmg >= 55
+  const clip = pickRickVoice(heavy ? "hitHeavy" : "hitLight")
+  try { sound?.playSfxFile?.(clip, null) } catch (_) {}
+}
+
+// ATTACKER offense pool — Rick's generic taunt/combat-flavor barks ("Suck it", "Eat it",
+// "Oldest Rick trick in the book", …) on a STRONG connect (heavy/special/ultimate) OR a long
+// BASIC light string (5th+ link) landing. Shared _atkVoiceCd (one line per window). blocked
+// suppresses it. Same scope note as Naruto/Sasuke: projectile-only specials resolve in
+// resolveProjectileHits, not here — Rick's specials carry their own cast barks instead.
+function applyRickOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || attacker.rosterKey !== "rick" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickRickVoice("taunt"), null) } catch (_) {}
+}
+
 // ========================
 // PARRY / CLASH / GRAB
 // ========================
@@ -846,6 +875,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyNarutoHitVoice(defender, cat, dmg)
     // SASUKE hit-reaction voice — light flinch cluster vs heavy reaction, same tier split.
     applySasukeHitVoice(defender, cat, dmg)
+    // RICK hit-reaction voice — light flinch pool vs heavy pool, same tier split.
+    applyRickHitVoice(defender, cat, dmg)
 
     if (!isCounter) {
       try { sound?.play?.(_hitSound(atk, false)) } catch (_) {}
@@ -914,6 +945,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyNarutoComboFinisherReaction(defender, attacker)   // Naruto-only escalated combo-ender recoil pose
   applyNarutoOffenseVoice(attacker, cat, !defender.isBlocking)   // Naruto Hokage / combo-burst pride line on connect
   applySasukeOffenseVoice(attacker, cat, !defender.isBlocking)   // Sasuke Susanoo-confirm / combo-finisher / attack-lands line
+  applyRickOffenseVoice(attacker, cat, !defender.isBlocking)     // Rick generic taunt/flavor bark on a strong/long-string connect
 }
 
 // ========================

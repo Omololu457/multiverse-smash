@@ -936,7 +936,12 @@ const itachi = {
     // Fire Style: Great Fireball Jutsu CAST pose (hand-seals → blow). Played via _spriteCastMove
     // (identity sprite-resolve) while the flame projectile flies; the fireball itself is a separate
     // projectile sheet (itachi_fireball_proj_uniform.png). See abilities.js executeItachiSpecial.
-    fireballCast: { frames: 7, width: 56, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_fireball_cast_uniform.png" }
+    fireballCast: { frames: 7, width: 56, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_fireball_cast_uniform.png" },
+    // ── STAGE 4: Mangekyou-gated special CAST poses (only reachable while _mangekyouActive).
+    // Amaterasu — channel pose (played via _spriteCastMove while the black-flame projectile flies).
+    amaterasuCast: { frames: 12, width: 34, height: 78, speed: 2, anchorY: -3, loop: false, lockLastFrame: true, sheet: "./itachi_amaterasu_cast_uniform.png" },
+    // Genjutsu — the hit-confirm illusion-weave (rendered via currentMove; carries the finisher hitbox).
+    genjutsuCast:  { frames: 13, width: 87, height: 90, speed: 3, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./itachi_genjutsu_cast_uniform.png" }
   },
   // Single-entry pre-match intro pool (game.pickIntroVariant picks from here; one entry = always plays).
   introPool: ["intro"]

@@ -85,7 +85,8 @@ import {
 } from "./domains.js"
 import { activeEffects, addEffect, updateEffects, updateEnergyRegen, clearEffects } from "./effects.js"
 import {
-  updateKuramaUltimate, isKuramaCinematicActive, drawKuramaCinematic, clearKuramaUltimate
+  updateKuramaUltimate, isKuramaCinematicActive, drawKuramaCinematic, clearKuramaUltimate,
+  getKuramaCinematicStatus
 } from "./kurama.js"
 import {
   updateSasukeCinematic, isSasukeCinematicActive, drawSasukeCinematic, clearSasukeCinematic,
@@ -1284,11 +1285,19 @@ function initIntroVariant(fighter) {
 }
 // BEERUS intro voice — fires ONCE per intro at his REVEAL beat (when the delayed-reveal fade begins,
 // i.e. the frame he actually becomes visible), not at frame 0. No-op for every other character.
-function maybeFireBeerusIntroVoice(fighter) {
-  if (fighter?.rosterKey !== "beerus" || fighter._introVoiceDone) return
-  if ((fighter._introRevealFrame || 0) < (fighter.introReveal?.hide || 0)) return
+// Per-character intro battle-cry voice, fired once during that fighter's own intro play.
+// gateReveal chars (Beerus) hold the line until their delayed-reveal fade begins (introReveal.hide);
+// other chars (Naruto) fire on the first intro-play frame. Same beat pattern for all.
+const INTRO_VOICE = {
+  beerus: { clip: "beerus_intro.mp3", gateReveal: true },   // "…I guess I'll destroy you now"
+  naruto: { clip: "naruto_intro.mp3", gateReveal: false },  // 3 opening battle-cry lines back-to-back
+}
+function maybeFireIntroVoice(fighter) {
+  const cfg = fighter && INTRO_VOICE[fighter.rosterKey]
+  if (!cfg || fighter._introVoiceDone) return
+  if (cfg.gateReveal && (fighter._introRevealFrame || 0) < (fighter.introReveal?.hide || 0)) return
   fighter._introVoiceDone = true
-  sound.playSfxFile?.("beerus_intro.mp3", null)   // "Well then, whenever you're ready — I guess I'll destroy you now"
+  sound.playSfxFile?.(cfg.clip, null)
 }
 
 function advanceIntroSequence(fighter) {
@@ -1664,6 +1673,14 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "goku_black") {
         sound.playSfxFile?.(Math.random() < 0.5 ? "goku_black_win.mp3" : "goku_black_win_alt.mp3", null)
       }
+      // NARUTO win voice — random pick, same coin-flip family as Beerus/Goku Black but a 3-way pool:
+      // "This is my win!" / "I'm the strongest!" plus his "that's my ninja way" catchphrase. ninja_way
+      // is folded in HERE (not as a taunt) because Naruto has NO taunt action — updateTauntState is
+      // gated on animationData.taunt, which only Rick/Goku Black define. See report: taunt line deferred.
+      if (winFighter?.rosterKey === "naruto") {
+        const narutoWins = ["naruto_win.mp3", "naruto_win_alt.mp3", "naruto_ninja_way.mp3"]
+        sound.playSfxFile?.(narutoWins[Math.floor(Math.random() * narutoWins.length)], null)
+      }
     }
     sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
     gameState = GAME_STATES.VICTORY
@@ -2023,7 +2040,8 @@ function updateGamepadEdges(fighter) {
 function updateMiscTimers(fighter) {
   if (!fighter) return
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
-  if (fighter._hitVoiceCd     > 0) fighter._hitVoiceCd--                  // Beerus hit-reaction voice cooldown (combat.js)
+  if (fighter._hitVoiceCd     > 0) fighter._hitVoiceCd--                  // Beerus/Goku Black/Naruto hit-reaction voice cooldown (combat.js)
+  if (fighter._atkVoiceCd     > 0) fighter._atkVoiceCd--                  // Naruto offense (Hokage/combo-burst) voice cooldown (combat.js)
   if (fighter.ultimateCooldown > 0) fighter.ultimateCooldown--            // universal ultimate recast lockout
   if (fighter.summonCooldown  > 0) fighter.summonCooldown--
   if (fighter._cloneSummonWindow > 0) fighter._cloneSummonWindow--        // clone-summon audio window (summons.js)
@@ -4030,14 +4048,14 @@ function updateCurrentState() {
       // SEQUENTIAL intro stage machine: P1 plays its full intro, THEN P2's begins. Only the active
       // side advances; the other holds idle. Runs every intro frame (during namecall AND after).
       if (introStage === "p1") {
-        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireBeerusIntroVoice(p1); advanceIntroSequence(p1) }
+        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1) }
         if (--introStageTimer <= 0) {
           if (p1) p1._introPlaying = false
           if (p2) { p2._introPlaying = true; initIntroVariant(p2); introStage = "p2"; introStageTimer = introTotalFrames(p2) }
           else introStage = "done"
         }
       } else if (introStage === "p2") {
-        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireBeerusIntroVoice(p2); advanceIntroSequence(p2) }
+        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2) }
         if (--introStageTimer <= 0) { if (p2) p2._introPlaying = false; introStage = "done" }
       }
       if (namecallActive) {
@@ -4482,6 +4500,8 @@ gameLoop()
     swordCine: () => getGokuBlackSwordCinematicStatus(),
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
     beerusUltCine: () => getBeerusKiBallCinematicStatus(),
+    kuramaUltCine: () => getKuramaCinematicStatus(),
+    p1CloneCount: () => (p1 ? countShadowClones(p1) : 0),   // test hook: live shadow-clone count (barrage gate)
     // Vegeta Super Saiyan form control + introspection (vegeta_ssj.test.mjs). op:
     //   "enter"    → player-facing transform (morph + gates),
     //   "revert"   → drop back to base,

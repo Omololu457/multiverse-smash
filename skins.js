@@ -176,6 +176,14 @@ export const SKINS = {
   // (SSJ transformations are a later stage, not skins).
   vegeta: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.vegeta?.portrait, spriteScale: characters.vegeta?.spriteScale, animationData: null }
+  ],
+
+  // Omega Ranger (Power Rangers) — new single-form sprite char. Same gate: WITHOUT a default
+  // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native
+  // ~52px (half size). This entry sources his real spriteScale (2.0) from the character. No
+  // alt skins yet. (The 5 core S.P.D. rangers + Shadow Ranger stubs never had skins/sprites.)
+  omega_ranger: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omega_ranger?.portrait, spriteScale: characters.omega_ranger?.spriteScale, animationData: null }
   ]
 }
 

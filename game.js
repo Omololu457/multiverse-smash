@@ -44,7 +44,8 @@ import {
   sasukeInSusanoo, SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout
   spawnAbsoluteDefenseFx,   // Sasuke Absolute Defense — repurposed Susanoo-intro sheet as the barrier FX
   updateTojiStanceSwitch, updateTojiStanceCombat, getTojiStance,   // Toji 3-stance weapon system (+ Blade moveset)
-  updateVegetaCommandCombat   // Vegeta command-normal cancel chain (Y-track kick target combo)
+  updateVegetaCommandCombat,   // Vegeta command-normal cancel chain (Y-track kick target combo)
+  updateOmegaRangerCommandCombat   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -1305,11 +1306,17 @@ const INTRO_VOICE = {
   // Sanchez baby", …). Fires at his first intro-play frame (no reveal gate). Distinct from his
   // pre-match NAMECALL clip (rick_intro.mp3) — a character can carry both, like Naruto.
   rick:   { pool: RICK_VOICE.intro, gateReveal: false },
+  // Omega Ranger holds his line until the summon smoke DISPERSES and he becomes visible — the
+  // part_1→part_2 beat of his two-part introSequence. gateSeqStep waits for _introVariant to reach
+  // "intro2" (same delayed-cinematic-reveal idea as Beerus's fade gate, keyed to the sequence step
+  // instead of an introReveal fade). "Force, from the future! S.P.D. Omega!"
+  omega_ranger: { clip: "omega_intro.mp3", gateSeqStep: "intro2" },
 }
 function maybeFireIntroVoice(fighter) {
   const cfg = fighter && INTRO_VOICE[fighter.rosterKey]
   if (!cfg || fighter._introVoiceDone) return
   if (cfg.gateReveal && (fighter._introRevealFrame || 0) < (fighter.introReveal?.hide || 0)) return
+  if (cfg.gateSeqStep && fighter._introVariant !== cfg.gateSeqStep) return   // hold until the reveal step of a two-part intro
   fighter._introVoiceDone = true
   const clip = cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip
   sound.playSfxFile?.(clip, null)
@@ -1705,6 +1712,20 @@ function _checkMatchOver() {
       // his "Rick dance" win bark. Fires only when the WINNER is Rick.
       if (winFighter?.rosterKey === "rick") {
         sound.playSfxFile?.(pickRickVoice("win"), null)
+      }
+      // OMEGA RANGER win voice — normally a 50/50 alternation of his two victory lines (same coin-flip
+      // family as Beerus/Sasuke). BUT a come-from-behind win (Omega closed out a 3-round decider after
+      // the opponent had taken a round, roundWins 2-1) instead plays his rare team-rally clip ("You can
+      // do it, Rangers! I believe in you!") as a clutch/comeback bark — the one sensible, low-frequency
+      // home for that ~8s team-encouragement line (Omega has no assist/combo-breaker hook to hang it on).
+      // Mutually exclusive with the win pair, so no double-fire. Fires only when the WINNER is Omega.
+      if (winFighter?.rosterKey === "omega_ranger") {
+        const loserWins = winner === "p1" ? roundWins.p2 : roundWins.p1
+        if (loserWins >= 1) {
+          sound.playSfxFile?.("omega_team_support.mp3", null)   // clutch come-from-behind rally
+        } else {
+          sound.playSfxFile?.(Math.random() < 0.5 ? "omega_win_line.mp3" : "omega_win_alt.mp3", null)
+        }
       }
       // RICK match-loss consolation — the local player (Rick) lost the whole match. Fires the
       // loss pool ("the other guys won that one" / "not you" / "sorry"). Match-flow bark → gated
@@ -2310,6 +2331,12 @@ function updatePlayerCombat(fighter) {
   // (returns true → skip normal path); neutral light/heavy stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "vegeta" && !charging &&
       updateVegetaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // OMEGA RANGER command chain (Fwd+Heavy kick → re-tap Heavy on hit → spin_kick → low_attack)
+  // + free pokes (Fwd+Light Forward Push, airborne Heavy Downward Air Attack 2). Consumes the
+  // input only when it fires; neutral light/heavy/up stay on the normal path below.
+  if ((fighter.rosterKey || "").toLowerCase() === "omega_ranger" && !charging &&
+      updateOmegaRangerCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // Toji's grounded normals are stance-driven, so SUPPRESS the built-in light/heavy/up here
   // (else updateCombat would also start the old row-sheet normals / double-fire). Aerials
@@ -4174,6 +4201,13 @@ function updateCurrentState() {
                 f._battleStartVoiceDone = true
                 sound.playSfxFile?.("sasuke_battle_start.mp3", null)
               }
+              // OMEGA RANGER battle-start voice — "Let's make this quick and easy." Fires at the ROUND-1
+              // GO frame (post-intro, first actionable beat), once, for whichever side is Omega — a
+              // SEPARATE beat from his intro-reveal line (which fires during the intro sequence, earlier).
+              if (f?.rosterKey === "omega_ranger" && !f._battleStartVoiceDone) {
+                f._battleStartVoiceDone = true
+                sound.playSfxFile?.("omega_battle_start.mp3", null)
+              }
             }
             // RICK match-start bark — "Yeah." (HUD/announcer line). Gated to the LOCAL PLAYER being
             // Rick (his voice as your hype-man; see rickVoice.js match-flow note), once at ROUND-1 GO.
@@ -4469,6 +4503,8 @@ gameLoop()
     // Vegeta command-normal chain probe (drive the rekka precisely from a test): current move +
     // attack phase + pending next stage + whether the current hit connected + the heavy-edge latch.
     vegCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, prevHeavy: !!p1._cmdPrevHeavy, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
+    // Omega Ranger command-chain probe (mirrors vegCmd) — drive the kick-chain rekka precisely.
+    orCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
     // Charge-vortex introspection (charge_aura.test.mjs): total procedural-spiral renders (bumped only
     // when the skip-logic lets it through → 0 for Goku Black even while he charges his own sprite), and
     // a fighter's real drawn mid-coil x + the frame it last drew (proves the spiral actually rotates).

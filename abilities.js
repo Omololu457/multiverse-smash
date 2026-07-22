@@ -2466,6 +2466,211 @@ export function updateVegetaCommandCombat(fighter, inputState, context, getPhase
   return false
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// OMEGA RANGER — command-normal cancel chain + two free pokes (Stage 3).
+// KICK CHAIN (Fwd+Heavy → re-tap Heavy): omKick → omSpinKick → omLowAttack finisher.
+// Cancel-on-HIT (Vegeta command pattern): a stage only advances if the prior hit
+// CONNECTED — a block or whiff (no _cmdHitLanded) ends the string there. Each stage is
+// a real, individually-landable attack. FREE POKES: Forward Push (Fwd+Light) spacing
+// shove; Downward Air Attack 2 (airborne Heavy) aerial smash. All FREE (no energy):
+// the chain commits via recovery, the pokes are cooldown-gated.
+// ─────────────────────────────────────────────────────────────────────────────
+const OMEGA_RANGER_CMD = {
+  omKick:      { damage: 55, startup: 5, active: 3, recovery: 10, hitstun: 14, knockbackX: 4,  knockbackY: 0,  rangeX: 80, rangeY: 52, rekkaNext: "omSpinKick" },
+  omSpinKick:  { damage: 48, startup: 6, active: 4, recovery: 12, hitstun: 15, knockbackX: 4,  knockbackY: -1, rangeX: 86, rangeY: 54, rekkaNext: "omLowAttack" },
+  omLowAttack: { damage: 82, startup: 6, active: 4, recovery: 20, hitstun: 24, knockbackX: 10, knockbackY: -3, rangeX: 90, rangeY: 46 },   // low sweep finisher (string ends here)
+}
+const OMEGA_RANGER_POKE = {
+  omForwardPush: { damage: 44, startup: 5, active: 3, recovery: 12, hitstun: 16, knockbackX: 12, knockbackY: -1, rangeX: 84, rangeY: 52, cd: 26 },  // spacing shove — big pushback
+  omDownAir2:    { damage: 60, startup: 6, active: 4, recovery: 12, hitstun: 18, knockbackX: 3,  knockbackY: 9,  rangeX: 74, rangeY: 60, cd: 24 },  // aerial smash poke — spikes down
+}
+// SWORD SLASH STRING (Stage 4) — a SECOND independent rekka string (Back+Light opener, re-tap
+// LIGHT to continue), same cancel-on-HIT architecture as the kick chain but 7 steps and driven by
+// the LIGHT button (via:"light") so it never collides with the Heavy kick chain. Steps 1-6 keep the
+// opponent GROUNDED (knockbackY 0) so the ground string stays landable; only the finisher launches.
+const OMEGA_RANGER_SWORD = {
+  omSword1: { damage: 38, startup: 5, active: 3, recovery: 10, hitstun: 14, knockbackX: 3,  knockbackY: 0,  rangeX: 88, rangeY: 54, rekkaNext: "omSword2", via: "light" },
+  omSword2: { damage: 34, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3,  knockbackY: 0,  rangeX: 86, rangeY: 52, rekkaNext: "omSword3", via: "light" },
+  omSword3: { damage: 36, startup: 5, active: 3, recovery: 10, hitstun: 14, knockbackX: 3,  knockbackY: 0,  rangeX: 90, rangeY: 54, rekkaNext: "omSword4", via: "light" },
+  omSword4: { damage: 40, startup: 5, active: 3, recovery: 11, hitstun: 15, knockbackX: 3,  knockbackY: 0,  rangeX: 88, rangeY: 60, rekkaNext: "omSword5", via: "light" },
+  omSword5: { damage: 38, startup: 4, active: 3, recovery: 10, hitstun: 14, knockbackX: 3,  knockbackY: 0,  rangeX: 90, rangeY: 54, rekkaNext: "omSword6", via: "light" },
+  omSword6: { damage: 44, startup: 5, active: 3, recovery: 11, hitstun: 16, knockbackX: 4,  knockbackY: 0,  rangeX: 94, rangeY: 54, rekkaNext: "omSword7", via: "light" },
+  omSword7: { damage: 74, startup: 6, active: 4, recovery: 22, hitstun: 24, knockbackX: 12, knockbackY: -6, rangeX: 96, rangeY: 56, launcher: true, via: "light" },   // overhead finisher — LAUNCHES (string ends)
+}
+
+function fireOmegaRangerCmd(fighter, key) {
+  const md = OMEGA_RANGER_CMD[key] || OMEGA_RANGER_SWORD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = md.via || "heavy"   // which button advances THIS string (kick=heavy, sword=light)
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+function fireOmegaRangerPoke(fighter, key) {
+  const md = OMEGA_RANGER_POKE[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only, no spendEnergy
+  fighter._rekkaNext    = null             // pokes are not part of the kick chain
+  fighter._cmdHitLanded = false
+  return true
+}
+
+// Per-frame Omega Ranger command/poke driver (mirrors updateVegetaCommandCombat). Returns
+// true (→ caller skips the normal path this frame) only when it actually fires a move.
+export function updateOmegaRangerCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omega_ranger" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase = getPhase?.(fighter)
+
+  // Press-EDGES (fresh tap, not a held/buffered button) — a rekka needs a clean re-tap.
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  const lightEdge = !!inputState.light && !fighter._cmdPrevLight
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  fighter._cmdPrevLight = !!inputState.light
+
+  // Latch a REAL connect for the current stage: hasHit AND the opponent took HITSTUN (a hit),
+  // NOT blockstun. resolveAttackHit runs in updateCombat AFTER this handler, so the flag is
+  // observed the following frame while hitstun (14-24f) is still counting down.
+  const opp = context?.getOpponent?.(fighter)
+  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
+
+  // The chain window closes when the attack fully ends.
+  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
+
+  // REKKA CONTINUE — fresh press of the ACTIVE string's button during the current hit's RECOVERY,
+  // only if it CONNECTED. _rekkaBtn routes: kick chain advances on Heavy, sword string on Light.
+  if (fighter.attacking && fighter._rekkaNext && phase === "recovery" && fighter._cmdHitLanded) {
+    const edge = fighter._rekkaBtn === "light" ? lightEdge : heavyEdge
+    if (edge) {
+      const next = fighter._rekkaNext
+      fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+      fighter.attackCooldown = 0                        // clear the just-set cooldown so the chain fires now
+      return fireOmegaRangerCmd(fighter, next)
+    }
+  }
+
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const back     = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart) return false
+
+  // AIR — Downward Air Attack 2 (aerial free poke): airborne Heavy. (The generic down-air spike
+  // is airborne Down+Light, so there's no conflict.)
+  if (!grounded) {
+    if (heavyEdge) return fireOmegaRangerPoke(fighter, "omDownAir2")
+    return false
+  }
+
+  // GROUND OPENERS (only `down` blocks in this engine, so `back` is free for a command). Fwd+Heavy =
+  // kick chain; Back+Light = sword slash string; Fwd+Light = Forward Push. Neutral light/heavy stay
+  // the normal jab/smash on the normal path.
+  if (forward && heavyEdge) return fireOmegaRangerCmd(fighter, "omKick")
+  if (back    && lightEdge) return fireOmegaRangerCmd(fighter, "omSword1")
+  if (forward && lightEdge) return fireOmegaRangerPoke(fighter, "omForwardPush")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OMEGA RANGER SPECIALS (Stage 5) — routed off the Special button by held direction:
+//   neutral      = Delta Enforcer GUN (ranged energy bolt + cast pose)
+//   Forward+Spec = SUPER UPPER ATTACK (energized rising uppercut — its OWN move, NOT a
+//                  tier of the up-normal; melee launcher)
+//   Down+Spec    = SPECIAL DOWNWARD ATTACK (spinning-blade windup → ground-spray slam)
+// All costed off the SPD-Energy bar. Melee specials use the createAttackFromMove path
+// (currentMove drives the sprite); the gun is a sprite-cast + projectile (Rick precedent).
+// ─────────────────────────────────────────────────────────────────────────────
+const OMEGA_SUPER_UPPER  = { damage: 150, startup: 8,  active: 5, recovery: 20, hitstun: 24, knockbackX: 6, knockbackY: -14, rangeX: 78, rangeY: 92, launcher: true }
+const OMEGA_DOWN_SPECIAL = { damage: 165, startup: 10, active: 6, recovery: 24, hitstun: 26, knockbackX: 9, knockbackY: -4,  rangeX: 92, rangeY: 60 }
+
+function executeOmegaRangerSpecial(fighter, context) {
+  const dirs = getRelativeDirections(fighter)
+  const last = dirs.length ? dirs[dirs.length - 1] : null
+
+  // DOWN + Special → Special Downward Attack (melee slam; spinning-blade windup art).
+  if (last === "D") {
+    if (!spendEnergy(fighter, 40)) return false
+    const md = OMEGA_DOWN_SPECIAL
+    const attack = createAttackFromMove(fighter, "omDownSpecial", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+    setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+    fighter._rekkaNext = null
+    return true
+  }
+
+  // FORWARD + Special → Super Upper Attack (melee launcher — separate move from the up-normal).
+  if (last === "F") {
+    if (!spendEnergy(fighter, 45)) return false
+    // "But you can't beat this guy!" — CHOSE the Super Upper (Fwd+Special) as the home for this
+    // generic cast bark; the Special Downward (Down+Special) is deliberately left WITHOUT a dedicated
+    // line (neither had one; task said pick either). Fires at cast windup, before the launch connects.
+    sound.playSfxFile?.("omega_special_cast.mp3", null)
+    const md = OMEGA_SUPER_UPPER
+    const attack = createAttackFromMove(fighter, "omSuperUpper", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+    attack.launcher = true
+    setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+    fighter._rekkaNext = null
+    return true
+  }
+
+  // BACK + Special → SWORD ULTIMATE (RING) — the Battlizer-style bonus super (its OWN input,
+  // separate from the Ultimate button). A big energy-ring saber burst; costliest special, launches.
+  if (last === "B") {
+    if (!spendEnergy(fighter, 60)) return false
+    // "Blast Mode! Power up!" — the bonus Battlizer-style Ring super. Its OWN activation beat, distinct
+    // from the Ultimate button's "Hyper Mode!" line (different input, different code path — no collision).
+    sound.playSfxFile?.("omega_blast_mode_alt.mp3", null)
+    const md = { damage: 200, startup: 10, active: 8, recovery: 26, hitstun: 30, knockbackX: 12, knockbackY: -6, rangeX: 110, rangeY: 90 }
+    const attack = createAttackFromMove(fighter, "omSwordRing", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+    attack.launcher = true
+    setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+    fighter._rekkaNext = null
+    shakeCamera(context, 9, 10)
+    return true
+  }
+
+  // NEUTRAL (or Up) Special → Delta Enforcer GUN: cast pose + forward energy bolt projectile.
+  if (!spendEnergy(fighter, 30)) return false
+  // "Buster Mode! Go!" — Gun-special cast bark. KEPT the existing display name "Delta Enforcer Gun"
+  // (the lore-accurate SPD blaster name, more specific than "Buster Mode") — the spoken callout is
+  // flavor VO and doesn't need to be the move's HUD name. Fires at the cast, alongside the bolt spawn.
+  sound.playSfxFile?.("omega_buster_mode_cast.mp3", null)
+  const face = fighter.facing || 1
+  fighter._spriteCastMove  = "omGun"
+  fighter._spriteCastTimer = 18
+  fighter.attackCooldown   = getAttackDuration(18, fighter)
+  spawnProjectile(fighter, "omGunBolt", {
+    damage: 120, speed: 15, lifetime: 72, vx: face * 15, vy: 0,
+    hitstun: 18, knockbackX: 7, knockbackY: -2, w: 42, h: 18, color: "#ff5a3c",
+    sheet: "./omega_ranger_gun_bolt_uniform.png", spriteFrames: 3, spriteW: 51, spriteH: 53, spriteSpeed: 3, spriteScale: 1.0,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 42,
+    spawnY: fighter.y + (fighter.h || 100) * 0.34
+  }, context)
+  return true
+}
+
+// OMEGA RANGER ULTIMATE — Omega Saber: Final Strike. A committed full sword-draw arc, the biggest
+// single hit in the kit. currentMove "ultimate" → the sword_shash_ultimate sprite (MOVE_TO_ACTION
+// maps "ultimate"→"ultimate"). Spends the meter (100), launches, camera shake + focus. (Cooldown is
+// armed by the universal triggerUltimate wrapper.)
+function executeOmegaRangerUltimate(fighter, context) {
+  if (!spendEnergy(fighter, 100)) return false
+  // "Omega Ranger, Hyper Mode! Engage!" — at the ULTIMATE activation windup, before the slash lands
+  // (same cast-start beat every other char's ultimate line uses). Its own input/path vs the Ring's
+  // "Blast Mode!" — the two supers never double-fire.
+  sound.playSfxFile?.("omega_hyper_mode_ultimate.mp3", null)
+  const md = { damage: 240, startup: 14, active: 8, recovery: 30, hitstun: 40, knockbackX: 14, knockbackY: -8, rangeX: 120, rangeY: 72 }
+  const attack = createAttackFromMove(fighter, "ultimate", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  shakeCamera(context, 14, 14)
+  focusCameraOnAction(context, fighter, null, 0.92, 16)
+  return true
+}
+
 // Stance-switch (CHARGE tap, edge-detected via `chargeHeld` + fighter._stancePrevCharge).
 // Returns "switch" | "cancel" | false. Interrupts only the RECOVERY phase (never startup/active).
 export function updateTojiStanceSwitch(fighter, chargeHeld, getPhase) {
@@ -3159,6 +3364,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "goku_black": return executeGokuBlackSpecial(fighter, context)
     case "vegeta":  return executeVegetaSpecial(fighter, context)
     case "beerus":  return executeBeerusSpecial(fighter, context)
+    case "omega_ranger": return executeOmegaRangerSpecial(fighter, context)   // Gun / Super Upper / Special Downward
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -3190,6 +3396,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
       case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
+      case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }

@@ -503,6 +503,53 @@ function applyRickOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickRickVoice("taunt"), null) } catch (_) {}
 }
 
+// ── OMEGA RANGER VOICE LINES (audio-only; same pattern as Naruto/Sasuke/Rick above) ──
+// DEFENDER reaction — LIGHT tier ONLY ("No!"). Omega ships a single light-stagger reaction clip
+// (the hit_1 flinch); a heavy/knockdown-tier hit has no VO here, so it stays silent by design (not
+// a mis-tier). One line per _hitVoiceCd window (ticked in game.js); only on an UNBLOCKED hit.
+function applyOmegaRangerHitVoice(defender, cat, dmg) {
+  if ((defender.rosterKey || "").toLowerCase() !== "omega_ranger" || (defender._hitVoiceCd > 0)) return
+  const heavy = cat === "heavy" || cat === "launcher" || cat === "spike" ||
+    cat === "special" || cat === "ultimate" || dmg >= 55
+  if (heavy) return                                            // light stagger (hit_1) only
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.("omega_hit_reaction_light.mp3", null) } catch (_) {}
+}
+
+// ATTACKER offense — priority-ordered, shared _atkVoiceCd (one line per window):
+//   (1) a full multi-hit SWORD-SLASH chain (4+ links AND currentMove is an omSword* step) → the
+//       combo-finisher "Take it from here?". Fires ONCE at the 4th slash (later slashes fall inside
+//       the 150f cooldown), so it never barks on a single slash. Naruto's combo-burst precedent,
+//       but scoped to the sword string so a random 4-hit mix doesn't trigger the sword finisher.
+//   (2) a STRONG single HEAVY-normal connect (not a light poke) → "Had enough?". Specials/Ultimate
+//       are EXCLUDED here (they resolve to cat "light" and, more importantly, each carries its own
+//       dedicated cast bark — Buster/Blast/Hyper Mode — at activation, so re-barking on their connect
+//       would double up). blocked=false suppresses on guard.
+const OMEGA_SWORD_FINISHER_MIN = 4
+function applyOmegaRangerOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || (attacker.rosterKey || "").toLowerCase() !== "omega_ranger" || (attacker._atkVoiceCd > 0)) return
+  const swordChain = (attacker.comboCounter || 0) >= OMEGA_SWORD_FINISHER_MIN &&
+    /^omsword/.test((attacker.currentMove || "").toLowerCase())
+  const strong = cat === "heavy"
+  if (!swordChain && !strong) return
+  attacker._atkVoiceCd = 150
+  if (swordChain) sound?.playSfxFile?.("omega_combo_finisher.mp3", null)   // full multi-hit sword string
+  else            sound?.playSfxFile?.("omega_hit_connect.mp3", null)      // "Had enough?" — strong single
+}
+
+// LOW-HEALTH bark — "This wasn't supposed to happen... it's me he's after." Fires ONCE the first
+// time Omega drops to/below the threshold (same gate + ratio family as Naruto's low-health line).
+const OMEGA_LOW_HEALTH_RATIO = 0.25
+function applyOmegaRangerLowHealthVoice(defender) {
+  if ((defender.rosterKey || "").toLowerCase() !== "omega_ranger" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * OMEGA_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.("omega_low_health.mp3", null) } catch (_) {}
+  }
+}
+
 // ========================
 // PARRY / CLASH / GRAB
 // ========================
@@ -877,6 +924,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applySasukeHitVoice(defender, cat, dmg)
     // RICK hit-reaction voice — light flinch pool vs heavy pool, same tier split.
     applyRickHitVoice(defender, cat, dmg)
+    // OMEGA RANGER hit-reaction voice — light stagger only ("No!"); heavy tier stays silent (no clip).
+    applyOmegaRangerHitVoice(defender, cat, dmg)
 
     if (!isCounter) {
       try { sound?.play?.(_hitSound(atk, false)) } catch (_) {}
@@ -884,6 +933,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
     defender.health = Math.max(0, (defender.health || 0) - dmg)
     applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
+    applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     defender.colorFlash = cat === "ultimate" ? 12 : cat === "special" ? 9 : 6
 
     const persist =
@@ -946,6 +996,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyNarutoOffenseVoice(attacker, cat, !defender.isBlocking)   // Naruto Hokage / combo-burst pride line on connect
   applySasukeOffenseVoice(attacker, cat, !defender.isBlocking)   // Sasuke Susanoo-confirm / combo-finisher / attack-lands line
   applyRickOffenseVoice(attacker, cat, !defender.isBlocking)     // Rick generic taunt/flavor bark on a strong/long-string connect
+  applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher
 }
 
 // ========================

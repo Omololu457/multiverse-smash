@@ -633,143 +633,35 @@ export const KITS = {
     ]
   },
 
-  // ── POWER RANGERS SPD ────────────────────────────────────────
-  jackRed: {
-    type: "Rushdown Leader", energy: "SPD Energy", difficulty: "Medium",
-    summary: "The reformed-thief Red Ranger — a fast, aggressive front-liner who mixes blaster shots with a heavy Delta Saber and a blitzing rush.",
-    passive: { name: "Probability Field", effect: "A former thief's instincts grant slightly faster Dash recovery and SPD Energy regen." },
+  // ── POWER RANGERS ────────────────────────────────────────────
+  omega_ranger: {
+    type: "Blade / Blaster Striker", energy: "SPD Energy", difficulty: "Medium",
+    summary: "The Omega Ranger (White Ranger, S.P.D.) — S.P.D.'s fastest ranger, a hybrid striker who mixes a long-reach Omega Saber with Delta Enforcer blaster fire and a flash-step blitz.",
+    passive: { name: "Omega Morpher", effect: "The fastest ranger — quicker Dash recovery and steady SPD Energy regen." },
     basics: [
-      { name: "Blade Jab",   input: "Light",                   desc: "fast saber poke" },
-      { name: "Heavy Slash", input: "Heavy",                   desc: "Delta Saber knockback cut" },
+      { name: "Saber Jab",   input: "Light",                   desc: "fast saber poke" },
+      { name: "Heavy Smash", input: "Heavy",                   desc: "overhead Delta smash with knockback" },
       { name: "Rising Cut",  input: "Up-Attack",               desc: "launcher — starts air combos" },
       { name: "Air Strike",  input: "Air (jump + Light)",      desc: "aerial attack" },
-      { name: "Dive Kick",   input: "Down-Air (jump + Heavy)", desc: "downward spike" },
-      { name: "Grab",        input: "Grab",                    desc: "throw" }
-    ],
-    specials: [
-      { name: "Delta Blasters", input: "Special",        cost: 25, desc: "twin SPD blaster shots for ranged pressure" },
-      { name: "Battle Slash",   input: "Down + Special",  cost: 35, desc: "committed Delta Saber heavy slash" }
-    ],
-    mobility: { name: "Delta Rush", input: "Forward + Special", cost: 15, desc: "blitzing dash strike that closes distance fast" },
-    ultimate: { name: "S.W.A.T. Battlizer", input: "Ultimate (full meter)", cost: 100, desc: "cannon mode: a massive attack and speed surge" },
-    combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special",          desc: "saber string into Delta Blasters" },
-      { name: "Rush Punish",    sequence: "Forward + Special, Heavy, Down + Special", desc: "blitz in, heavy, then Battle Slash" }
-    ]
-  },
-  skyBlue: {
-    type: "Defensive Bruiser", energy: "SPD Energy", difficulty: "Medium",
-    summary: "The disciplined Blue Ranger — a sturdy wall who projects force fields, armors through hits, and punishes from behind a shield.",
-    passive: { name: "Force Field", effect: "Holding block briefly projects a shield that negates chip damage." },
-    basics: [
-      { name: "Jab",          input: "Light",                   desc: "controlled poke" },
-      { name: "Shield Bash",  input: "Heavy",                   desc: "armored knockback strike (super-armor on startup)" },
-      { name: "Rising Strike",input: "Up-Attack",               desc: "launcher — starts air combos" },
-      { name: "Air Strike",   input: "Air (jump + Light)",      desc: "aerial attack" },
-      { name: "Dive",         input: "Down-Air (jump + Heavy)", desc: "downward spike" },
-      { name: "Grab",         input: "Grab",                    desc: "throw" }
-    ],
-    specials: [
-      { name: "Force Blast",  input: "Special",        cost: 25, desc: "kinetic force projectile" },
-      { name: "Barrier Slam", input: "Down + Special", cost: 35, desc: "shield-charge that armors through attacks" }
-    ],
-    mobility: { name: "Guard Step", input: "Forward + Special", cost: 15, desc: "shielded advance that absorbs a hit while closing in" },
-    ultimate: { name: "Delta Squad Megazord", input: "Ultimate (full meter)", cost: 100, desc: "fortress mode: heavy armor and raw power" },
-    combos: [
-      { name: "Wall & Punish", sequence: "Barrier Slam, Light, Light, Heavy", desc: "armor in, then convert" },
-      { name: "Zone Out",      sequence: "Force Blast, Heavy",                desc: "blast to control space, heavy to finish" }
-    ]
-  },
-  bridgeGreen: {
-    type: "Psychic Zoner", energy: "SPD Energy", difficulty: "Medium",
-    summary: "The quirky Green Ranger — a telekinetic controller who reads auras and pokes from range with psychic energy.",
-    passive: { name: "Aura Sight", effect: "Reads aura — the first hit of each combo on a blocking foe deals bonus chip." },
-    basics: [
-      { name: "Jab",        input: "Light",                    desc: "quick poke" },
-      { name: "Heavy Hit",  input: "Heavy",                    desc: "knockback strike" },
-      { name: "Launcher",   input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Strike", input: "Air (jump + Light)",       desc: "aerial poke" },
-      { name: "Dive",       input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",       input: "Grab",                     desc: "throw" }
-    ],
-    specials: [
-      { name: "Psychic Bolt", input: "Special",        cost: 22, desc: "telekinetic energy bolt for ranged control" },
-      { name: "Energy Field", input: "Down + Special", cost: 35, desc: "expanding psychic field that pressures space" }
-    ],
-    mobility: { name: "Phase Step", input: "Forward + Special", cost: 15, desc: "telekinetic blink-dash to keep spacing" },
-    ultimate: { name: "Delta Command Crawler", input: "Ultimate (full meter)", cost: 100, desc: "psychic overdrive: extended range and control" },
-    combos: [
-      { name: "Zone Trap",   sequence: "Psychic Bolt, Energy Field",     desc: "bolt then trap the space" },
-      { name: "Read & Hit",  sequence: "Phase Step, Heavy, Psychic Bolt", desc: "reposition and convert" }
-    ]
-  },
-  zYellow: {
-    type: "Speed Duplicator", energy: "SPD Energy", difficulty: "Hard",
-    summary: "The street-smart Yellow Ranger — a hyper-fast pressure fighter whose duplicates pile on extra hits and overwhelm.",
-    passive: { name: "Duplication", effect: "Specials occasionally spawn a fleeting copy that adds an extra hit." },
-    basics: [
-      { name: "Quick Jab",  input: "Light",                    desc: "very fast poke" },
-      { name: "Heavy Kick", input: "Heavy",                    desc: "knockback strike" },
-      { name: "Rising Kick",input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Strike", input: "Air (jump + Light)",       desc: "aerial attack" },
-      { name: "Dive",       input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",       input: "Grab",                     desc: "throw" }
-    ],
-    specials: [
-      { name: "Clone Strike", input: "Special",        cost: 25, desc: "duplicate rush attack" },
-      { name: "Delta Spin",   input: "Down + Special", cost: 30, desc: "spinning multi-clone slash" }
-    ],
-    mobility: { name: "Afterimage Dash", input: "Forward + Special", cost: 12, desc: "afterimage blitz that crosses space" },
-    ultimate: { name: "Omega Morph", input: "Ultimate (full meter)", cost: 100, desc: "extreme speed; copies overwhelm the opponent" },
-    combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special", desc: "fast string into Clone Strike" },
-      { name: "Spin Pressure",  sequence: "Afterimage Dash, Down + Special", desc: "blitz in, then Delta Spin" }
-    ]
-  },
-  sydPink: {
-    type: "Power Striker", energy: "SPD Energy", difficulty: "Easy",
-    summary: "The glamorous Pink Ranger — a super-strength bruiser who crystallizes her fists for armored, crushing blows.",
-    passive: { name: "Crystal Fists", effect: "Heavy attacks harden to crystal — extra knockback and brief armor on startup." },
-    basics: [
-      { name: "Jab",         input: "Light",                    desc: "quick poke" },
-      { name: "Crystal Hook",input: "Heavy",                    desc: "crushing knockback blow" },
-      { name: "Rising Fist", input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Strike",  input: "Air (jump + Light)",       desc: "aerial attack" },
-      { name: "Dive",        input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",        input: "Grab",                     desc: "throw" }
-    ],
-    specials: [
-      { name: "Crystal Smash",   input: "Special",        cost: 25, desc: "crystallized super-strength blow" },
-      { name: "Delta Max Strike",input: "Down + Special", cost: 35, desc: "Delta Max blaster smash" }
-    ],
-    mobility: { name: "Power Lunge", input: "Forward + Special", cost: 15, desc: "charging shoulder lunge that closes distance" },
-    ultimate: { name: "Delta Runner Charge", input: "Ultimate (full meter)", cost: 100, desc: "super-strength surge: crushing power" },
-    combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special",     desc: "string into Crystal Smash" },
-      { name: "Power Punish",   sequence: "Power Lunge, Heavy, Down + Special", desc: "lunge in, heavy, Delta Max Strike" }
-    ]
-  },
-  doggieShadow: {
-    type: "Sword Master / Boss", energy: "SPD Energy", difficulty: "Medium",
-    summary: "Commander Cruger, the Shadow Ranger — a Sirian sword master with long reach, brutal damage, and a deadly blade vortex.",
-    passive: { name: "Sirian Blade Master", effect: "The Shadow Saber gives all attacks extended reach, and his specials cost slightly less." },
-    basics: [
-      { name: "Saber Jab",   input: "Light",                   desc: "long-reach poke" },
-      { name: "Heavy Slash", input: "Heavy",                   desc: "powerful knockback cut" },
-      { name: "Rising Cut",  input: "Up-Attack",               desc: "launcher — starts air combos" },
-      { name: "Air Slash",   input: "Air (jump + Light)",      desc: "aerial cut" },
       { name: "Dive Cut",    input: "Down-Air (jump + Heavy)", desc: "downward spike" },
       { name: "Grab",        input: "Grab",                    desc: "throw" }
     ],
-    specials: [
-      { name: "Shadow Slash", input: "Special",        cost: 25, desc: "long-reach saber slash" },
-      { name: "Vortex Blade",  input: "Down + Special", cost: 40, desc: "spinning blade vortex with huge damage" }
+    strings: [
+      { name: "Kick Chain",    input: "Fwd+Heavy → re-tap Heavy (on hit)",  desc: "kick → spin kick → low sweep; each stage cancels into the next ONLY on a connect" },
+      { name: "Sword Slash String", input: "Back+Light → re-tap Light (on hit)", desc: "7-hit Omega Saber string; individually landable, chains forward on hit" },
+      { name: "Forward Push",  input: "Fwd+Light",   desc: "free spacing shove — big pushback" },
+      { name: "Down-Air Smash", input: "Air + Heavy", desc: "free aerial smash poke (spikes down)" }
     ],
-    mobility: { name: "Shadow Step", input: "Forward + Special", cost: 15, desc: "Sirian flash-step cut that crosses space" },
-    ultimate: { name: "Shadow Saber: Judgment", input: "Ultimate (full meter)", cost: 100, desc: "master swordsman surge: max damage and reach" },
+    specials: [
+      { name: "Delta Enforcer Gun", input: "Special",         cost: 30, desc: "ranged energy-bolt projectile" },
+      { name: "Super Upper Attack", input: "Forward + Special", cost: 45, desc: "energized rising uppercut — launcher (its own move, not the Up-normal)" },
+      { name: "Special Downward Attack", input: "Down + Special", cost: 40, desc: "spinning-blade windup into a ground-spray slam" }
+    ],
+    mobility: { name: "Omega Flash-Step", input: "double-tap toward foe", cost: 0, desc: "S.P.D.'s fastest ranger — quick dash with fast recovery (passive)" },
+    ultimate: { name: "Omega Saber: Final Strike", input: "Ultimate (full meter)", cost: 100, desc: "multi-hit saber barrage" },
     combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special",       desc: "saber string into Shadow Slash" },
-      { name: "Vortex Punish",  sequence: "Shadow Step, Heavy, Down + Special",  desc: "flash in, heavy, then Vortex Blade" }
+      { name: "Saber String → Launch", sequence: "Back+Light ×7 → Fwd+Special", desc: "full sword string into Super Upper juggle" },
+      { name: "Gun Zone",       sequence: "Special (Gun), Special (Gun), Fwd+Heavy string", desc: "poke with bolts, then punish the approach with the kick chain" }
     ]
   }
 }

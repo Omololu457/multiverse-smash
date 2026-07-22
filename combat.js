@@ -723,11 +723,22 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     // flinch→fall→sprawled sequence: the resolver plays it through, then chains into black_goku_get_up
     // (RISE). Light jabs stay a brief flinch (hurt). Self-contained — knockdownState is otherwise never
     // triggered in normal play; gated to goku_black. invulnTimer prevents ground-lock combos.
-    if ((defender.rosterKey || "").toLowerCase() === "goku_black" && !atk.launcher && !atk.spike &&
+    const isGokuBlackDefender = (defender.rosterKey || "").toLowerCase() === "goku_black"
+    if (isGokuBlackDefender && !atk.launcher && !atk.spike &&
         (cat === "heavy" || cat === "special" || cat === "ultimate")) {
       defender.knockdownState = true
       defender.knockdownTimer = GOKU_BLACK_KNOCKDOWN
       defender.invulnTimer    = Math.max(defender.invulnTimer || 0, GOKU_BLACK_KNOCKDOWN)
+    }
+
+    // GOKU BLACK hit-reaction voice — mirrors Beerus's cooldown-gated reaction, but SPLIT by tier:
+    // the knockdown sequence just set above gets the ESCALATED "Unthinkable! It can't be!" line;
+    // any lighter flinch gets "Foolish. The insolence." Shares _hitVoiceCd (ticked in game.js) so a
+    // rapid string never spams it, and the shared cooldown means one hit fires ONE of the two, never both.
+    if (isGokuBlackDefender && !(defender._hitVoiceCd > 0)) {
+      defender._hitVoiceCd = 150
+      const voiceLine = defender.knockdownState ? "goku_black_hit_heavy.mp3" : "goku_black_hit_light.mp3"
+      try { sound?.playSfxFile?.(voiceLine, null) } catch (_) {}
     }
 
     if (!isCounter) {

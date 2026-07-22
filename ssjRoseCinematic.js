@@ -104,6 +104,10 @@ export function updateSSJRoseCinematic(ctx = {}) {
     }
     try { snd?.playDragonBallTransformSfx?.() } catch (_) {}   // SHARED Dragon Ball transform cue (sound.js)
     try { snd?.play?.(SFX.DOMAIN_ACTIVATE) } catch (_) {}   // shared power-up boom
+    // SSJ ROSE naming monologue — "...it would be Rosé... Super Saiyan Rosé." Fires at transform start.
+    // NOTE: this is a ~10s line and the cinematic itself is only 72f (~1.2s), so the voice INTENTIONALLY
+    // outlasts the visual and plays out over the post-transform idle (fresh Audio element, not cut off).
+    try { snd?.playSfxFile?.("goku_black_transform_rose.mp3", null) } catch (_) {}
   }
 
   // Camera: ISOLATE Goku Black — zoom in hard + pan away from the opponent so he leaves frame.

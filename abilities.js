@@ -3006,6 +3006,111 @@ function executeSasukeUltimate(fighter, context) {
   return false   // already Lv2 — no-op; the timer (or revert) ends it
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// ITACHI — SUSANOO ULTIMATE  (single-tier, creature-only)
+// Mirrors Sasuke's self-managed giant Susanoo, COLLAPSED to one tier (no Lv2
+// escalation, no re-press). Reuses the GENERIC engine support: _susanooActive
+// (physics half-arena lock), _canvasHeightFrac/_canvasHeightRefH (sprite.js giant
+// scale + combat.js giant hurtbox), _skinAnim (giant body). Deliberately does NOT
+// set Sasuke's _susanooStage (whose update/voice/motion code is stage-keyed) — Itachi
+// tracks its own _itachiSusanoo flag + _itachiSusanooTimer so the two never collide.
+// Unlike Sasuke (one pose-atlas + FX attacks), Itachi has full-body creature sheets
+// per state, so the body BODY-SWAPS between them (sprite.js resets frameIndex on sheet
+// change — the "sheet-swap frame-reset" line). The SPECIAL button swings the giant sword.
+// ─────────────────────────────────────────────────────────────────────────
+const ITACHI_SUSANOO_CANVAS_FRAC = 0.72   // idle giant ≈ 72% of canvas height (looms; feet planted)
+const ITACHI_SUSANOO_REF_H       = 216    // idle body-cell height → sprite.js scale = ch*frac/refH
+const _itachiSusCell = (sheet, frames, width, height, speed) => ({ frames, width, height, speed, loop: true, anchorY: 0, sheet })
+const ITACHI_SUS_IDLE   = _itachiSusCell("./itachi_susano_creature_idle.png",                  1, 383, 216, 40)
+const ITACHI_SUS_BLOCK  = _itachiSusCell("./itachi_susano_creature_block_uniform.png",         2, 360, 228, 30)
+const ITACHI_SUS_HURT   = _itachiSusCell("./itachi_susano_creature_took_damage_uniform.png",   2, 362, 234, 8)
+const ITACHI_SUS_ATTACK = _itachiSusCell("./itachi_susano_creature_attack_uniform.png",        2, 493, 249, 6)
+const ITACHI_SUS_SWORD  = _itachiSusCell("./itachi_susano_creature_sword_uniform.png",         3, 363, 255, 5)
+// Every action maps to a full-body creature pose. Normals hold the idle (like Sasuke) — the giant's
+// real offense is the SPECIAL sword; hurt/guard swap to their creature states; susanooSword is the swing.
+const ITACHI_SUSANOO_ANIM = {
+  idle: ITACHI_SUS_IDLE, walk: ITACHI_SUS_IDLE, run: ITACHI_SUS_IDLE, jump: ITACHI_SUS_IDLE,
+  fall: ITACHI_SUS_IDLE, dash: ITACHI_SUS_IDLE,
+  light: ITACHI_SUS_IDLE, heavy: ITACHI_SUS_IDLE, up: ITACHI_SUS_IDLE, air: ITACHI_SUS_IDLE,
+  down_air: ITACHI_SUS_IDLE, grab: ITACHI_SUS_ATTACK,
+  hurt: ITACHI_SUS_HURT, guard: ITACHI_SUS_BLOCK,
+  susanooSword: ITACHI_SUS_SWORD
+}
+
+export function itachiInSusanoo(fighter) { return !!(fighter && fighter._itachiSusanoo) }
+
+export function enterItachiSusanoo(fighter) {
+  if (!fighter) return
+  if (fighter._mangekyouActive) revertMangekyou(fighter)   // the giant supersedes the buff mode
+  fighter._itachiSusanoo      = true
+  fighter._itachiSusanooTimer = SUSANOO_DURATION_FRAMES
+  fighter.damageMultiplier    = 1.6
+  fighter.attackMultiplier    = 1.6
+  fighter.defenseMultiplier   = 1.4
+  fighter._canvasHeightFrac   = ITACHI_SUSANOO_CANVAS_FRAC   // GENERIC giant scale (sprite.js) + hurtbox (combat.js)
+  fighter._canvasHeightRefH   = ITACHI_SUSANOO_REF_H
+  fighter._skinAnim           = ITACHI_SUSANOO_ANIM
+  fighter._susanooActive      = true                        // GENERIC physics half-arena lock
+  fighter.canJump             = false                       // a planted giant doesn't hop
+}
+
+// Drop the giant + arm the 20s ultimate recast lockout (the cooldown was suppressed on activation).
+export function revertItachiSusanoo(fighter) {
+  if (!fighter || !fighter._itachiSusanoo) return
+  fighter._itachiSusanoo      = false
+  fighter._itachiSusanooTimer = 0
+  fighter.damageMultiplier    = 1
+  fighter.attackMultiplier    = 1
+  fighter.defenseMultiplier   = 1
+  fighter._skinAnim           = null
+  fighter._canvasHeightFrac   = null
+  fighter._canvasHeightRefH   = null
+  fighter._susanooActive      = false
+  fighter._arenaHalfLock      = null
+  fighter.canJump             = true
+  fighter.ultimateCooldown    = ULTIMATE_COOLDOWN_FRAMES
+}
+
+// Per-frame: tick the sustained-form timer, auto-revert at 0. Hooked in updateTransformationState.
+export function updateItachiSusanoo(fighter) {
+  if (!fighter || !fighter._itachiSusanoo) return
+  if ((fighter._itachiSusanooTimer || 0) > 0) {
+    fighter._itachiSusanooTimer--
+    if (fighter._itachiSusanooTimer <= 0) revertItachiSusanoo(fighter)
+  }
+}
+
+// SUSANOO SWORD SLASH — the SPECIAL button while the giant is active. Body swaps to the
+// creature_sword swing (full-body pose) with a long reach; a slash-effect FX flashes over the blade.
+function executeItachiSusanooSword(fighter, context) {
+  const md = { damage: 240, startup: 12, active: 8, recovery: 26, hitstun: 34, knockbackX: 14, knockbackY: -6, rangeX: 300, rangeY: 200 }
+  const attack = createAttackFromMove(fighter, "susanooSword", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  // Slash-effect flash over the blade (visualOnly FX; flat yOff since Itachi's giant cell-height
+  // differs from Sasuke's SUSANOO_CELL_H table that _susanooArmYOff assumes).
+  _spawnSusanooFx(fighter, "./itachi_susano_creature_sword_effect.png",
+    { frames: 4, w: 96, h: 190, scale: 2.6, life: 22, drift: 6, yOff: -260, color: "#5ad0ff" }, context)
+  shakeCamera(context, 9, 12)
+  return true
+}
+
+// ITACHI ULTIMATE — summon the single-tier Susanoo. Pays 50% max energy, enters the sustained
+// giant for SUSANOO_DURATION_FRAMES. Cooldown is suppressed on activation and armed in revert
+// (so the 20s recast lockout starts AFTER the form ends — Sasuke pattern).
+function executeItachiUltimate(fighter, context) {
+  if (fighter._itachiSusanoo) return false                  // already active (single-tier — no re-press)
+  const cost = Math.ceil((fighter.maxEnergy || 100) * 0.5)
+  if (!spendEnergy(fighter, cost)) return false
+  enterItachiSusanoo(fighter)
+  fighter._suppressUltCooldown = true                       // lockout armed in revertItachiSusanoo instead
+  fighter.teleportFlash  = Math.max(fighter.teleportFlash || 0, 16)
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+  focusCameraOnAction(context, fighter, null, 0.9, 20)
+  shakeCamera(context, 12, 16)
+  return true
+}
+
 // Susanoo attacks — SPECIAL button while in Susanoo.
 //   Lv1              → grab.
 //   Lv2, spaced out  → arrow (ranged bow).
@@ -3261,6 +3366,9 @@ function executeSasukeSubstitution(fighter, target, context) {
 const GENJUTSU_MIN_COMBO = 2
 
 function executeItachiSpecial(fighter, context) {
+  // SUSANOO active → the SPECIAL button swings the giant sword (base kit is suppressed while giant).
+  if (fighter._itachiSusanoo) return executeItachiSusanooSword(fighter, context)
+
   const dirs = getRelativeDirections(fighter)
 
   // ── MANGEKYOU-GATED SPECIALS ────────────────────────────────────────────
@@ -3461,6 +3569,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "megumi":  cast = executeMegumiUltimate(fighter, context);  break
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break
       case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
+      case "itachi":  cast = executeItachiUltimate(fighter, context);  break   // single-tier creature Susanoo
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "toji":    cast = executeToji_Ultimate(fighter, context);   break
       case "rick":    cast = executeRickUltimate(fighter, context);    break
@@ -3838,6 +3947,7 @@ export function updateTransformationState(fighter, context = {}) {
   // Sasuke Susanoo: tick the sustained-form timer (frame-based, no per-frame energy drain);
   // auto-reverts at 0 and arms the 20s ultimate cooldown. No-op when not in Susanoo.
   updateSasukeSusanoo(fighter)
+  updateItachiSusanoo(fighter)   // Itachi single-tier Susanoo: tick its own timer + auto-revert
 
   // Sasuke two-strike lightning: drive the handseal → strike1 → strike2 state machine.
   // No-op unless a cast is in progress.

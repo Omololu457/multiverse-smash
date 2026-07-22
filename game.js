@@ -4513,6 +4513,8 @@ gameLoop()
     charging:         !!f.isCharging,   // universal charge-lockout state (charging = fully vulnerable)
     susanooStage:     f._susanooStage || 0,
     susanooTimer:     f._susanooTimer || 0,
+    itachiSusanoo:    !!f._itachiSusanoo,          // Itachi single-tier Susanoo giant active
+    itachiSusanooTimer: f._itachiSusanooTimer || 0,
     lightningPhase:   f._lightningPhase || null,
     rooted:           !!f._rooted,
     attacking:        !!f.attacking,
@@ -4757,6 +4759,7 @@ gameLoop()
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
     setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
+    expireItachiSusanoo: () => { if (p1 && p1._itachiSusanoo) p1._itachiSusanooTimer = 1 },   // force the auto-revert next tick (skip the ~20s wait)
     // ── deterministic reset for the beta-input test (clears the motion buffer + cooldowns so
     //    successive command-special casts don't contaminate each other via stale directionHistory
     //    or a lingering summon/chain recast lock). Test-only, like the rest of __harness.

@@ -148,6 +148,12 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rick?.portrait, spriteScale: characters.rick?.spriteScale, animationData: null }
   ],
 
+  // Beerus (Dragon Ball) — new single-form sprite char. Same gate: WITHOUT a default skin,
+  // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~62px.
+  beerus: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.beerus?.portrait, spriteScale: characters.beerus?.spriteScale, animationData: null }
+  ],
+
   // Goku Black (Dragon Ball) — SEPARATE character from `goku`. Same gate: WITHOUT a default skin,
   // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~69px (half
   // size). This entry sources his real spriteScale (1.7) from the character. No alt skins yet
@@ -162,6 +168,14 @@ export const SKINS = {
   // (2.3) from the character. No alt skins yet.
   toji: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.toji?.portrait, spriteScale: characters.toji?.spriteScale, animationData: null }
+  ],
+
+  // Vegeta (Dragon Ball). Same reason as the other sprite chars: WITHOUT a default skin,
+  // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at ~half size.
+  // This entry sources his real spriteScale (2.1) from the character. No alt skins yet
+  // (SSJ transformations are a later stage, not skins).
+  vegeta: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.vegeta?.portrait, spriteScale: characters.vegeta?.spriteScale, animationData: null }
   ]
 }
 

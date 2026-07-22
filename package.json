@@ -29,6 +29,8 @@
     "test:vegeta-ssj": "node harness/vegeta_ssj.test.mjs",
     "test:vegeta-ssj-blue": "node harness/vegeta_ssj_blue.test.mjs",
     "test:vegeta-portrait": "node harness/vegeta_portrait.test.mjs",
+    "test:beerus": "node harness/beerus.test.mjs",
+    "test:beerus-voice": "node harness/beerus_voice.test.mjs",
     "test:hud-energy-label": "node harness/hud_energy_label.mjs",
     "test:goku-black": "node harness/goku_black.test.mjs",
     "test:goku-restore": "node harness/goku_restore.test.mjs",

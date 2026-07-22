@@ -216,13 +216,12 @@ try {
   await page.evaluate(() => { window.__harness.healP2(); window.__harness.resetFighterInput("p1"); });
   va = await p1(); await page.evaluate(x => window.__harness.setP2X(x), va.x + 48); await waitFrames(2);
   await clearSfx();
-  await page.keyboard.down("k"); await waitFrames(6); await page.keyboard.up("k");
-  // knockdown resolves after ~28f — capture it at its peak (the hit_heavy line is gated on it being set)
-  const knocked = await page.waitForFunction(() => window.__harness.p2().knockdownState === true, null, { timeout: 2000, polling: 16 }).then(() => true).catch(() => false);
-  await waitFrames(20);
-  check("HEAVY hit knocked Goku Black down", knocked, `knockdown captured=${knocked}`);
-  check("HEAVY/knockdown hit fires goku_black_hit_heavy.mp3", await logHas("goku_black_hit_heavy.mp3"), `log=${JSON.stringify(await sfxLog())}`);
-  check("HEAVY hit did NOT fire the light line", !(await logHas("goku_black_hit_light.mp3")), "");
+  await page.keyboard.down("k"); await waitFrames(6); await page.keyboard.up("k"); await waitFrames(22);
+  // The hit_heavy line is GATED in combat.js on defender.knockdownState being set by this same heavy hit,
+  // so hit_heavy firing (and hit_light NOT) is itself the proof the escalated knockdown tier was reached.
+  // (knockdownState isn't in the __harness snapshot, so we assert via the tier-split audio, not the flag.)
+  check("HEAVY/knockdown hit fires goku_black_hit_heavy.mp3 (escalated tier)", await logHas("goku_black_hit_heavy.mp3"), `log=${JSON.stringify(await sfxLog())}`);
+  check("HEAVY hit did NOT fire the light line (correct tier split)", !(await logHas("goku_black_hit_light.mp3")), "");
 
 } catch (e) {
   console.error("FATAL", e);

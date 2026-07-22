@@ -375,6 +375,63 @@ export function applyNarutoComboFinisherReaction(defender, attacker) {
   defender._comboFinisherReactTimer = NARUTO_COMBO_FINISHER_FRAMES
 }
 
+// ── NARUTO VOICE LINES (audio-only; no gameplay effect) ─────────────────────────
+// All fire via sound.playSfxFile(<file>, null) — a fresh Audio per call so a voice line
+// overlaps cleanly with the technique SFX and never cuts another off (mirrors Beerus /
+// Goku Black). Cooldowns (_hitVoiceCd for reactions, _atkVoiceCd for offense) are ticked
+// in game.js updateMiscTimers so a rapid string fires ONE line per window, not a spam.
+
+// DEFENDER reaction pool — LIGHT flinch vs HEAVY/knockdown-tier, split like Goku Black's
+// but WITHOUT knockdownState (that flag is goku_black-only), so the tier is read straight
+// off the hit `cat`/`dmg` — same heavy test Beerus uses. Heavy picks a genuine random take
+// of the two "Why?!" recordings; a light poke gets the single short flinch. One line per
+// _hitVoiceCd window. Called only on an UNBLOCKED hit (see resolveAttackHit).
+function applyNarutoHitVoice(defender, cat, dmg) {
+  if (defender.rosterKey !== "naruto" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  const heavy = cat === "heavy" || cat === "launcher" || cat === "spike" ||
+    cat === "special" || cat === "ultimate" || dmg >= 55
+  const clip = heavy
+    ? (Math.random() < 0.5 ? "naruto_hit_heavy_1.mp3" : "naruto_hit_heavy_2.mp3")   // "Why?!" — two takes
+    : "naruto_hit_light.mp3"                                                        // short frustrated flinch
+  try { sound?.playSfxFile?.(clip, null) } catch (_) {}
+}
+
+// ATTACKER offense pool — pride / signature lines when NARUTO connects. A STRONG connect
+// (heavy / special / ultimate melee hit) fires the Hokage line (two takes, random); a long
+// BASIC light string (5th+ link) fires the packed combo-burst hype. Shared _atkVoiceCd so
+// only ONE offense line plays per window and the two never stack; STRONG takes priority.
+// blocked=false suppresses it on a guarded hit. NOTE (flagged): projectile-only specials
+// (Rasenshuriken, clone barrages) resolve in resolveProjectileHits, not here, so they don't
+// trigger the Hokage line — they carry their own dedicated barks instead.
+const NARUTO_COMBO_BURST_MIN = 5   // this hit is the 5th+ link → "a long combo string landing"
+function applyNarutoOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || attacker.rosterKey !== "naruto" || (attacker._atkVoiceCd > 0)) return
+  const strong    = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  if (strong) {
+    sound?.playSfxFile?.(Math.random() < 0.5 ? "naruto_hokage_line_1.mp3" : "naruto_hokage_line_2.mp3", null)
+  } else {
+    sound?.playSfxFile?.("naruto_combo_burst.mp3", null)   // 6 packed hype lines → one combo-finisher cluster
+  }
+}
+
+// LOW-HEALTH bark — "Not yet — I can still fight" — fires ONCE the first time Naruto drops
+// to/below the threshold. _lowHealthVoiceDone resets naturally each round (resetRound rebuilds
+// fighters). Driven from the damage path (defender == naruto), gated to a real, non-fatal drop.
+const NARUTO_LOW_HEALTH_RATIO = 0.25
+function applyNarutoLowHealthVoice(defender) {
+  if (defender.rosterKey !== "naruto" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * NARUTO_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.("naruto_low_health.mp3", null) } catch (_) {}
+  }
+}
+
 // ========================
 // PARRY / CLASH / GRAB
 // ========================
@@ -741,11 +798,15 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       try { sound?.playSfxFile?.(voiceLine, null) } catch (_) {}
     }
 
+    // NARUTO hit-reaction voice — light vs heavy pool, split off the hit tier (no knockdownState).
+    applyNarutoHitVoice(defender, cat, dmg)
+
     if (!isCounter) {
       try { sound?.play?.(_hitSound(atk, false)) } catch (_) {}
     }
 
     defender.health = Math.max(0, (defender.health || 0) - dmg)
+    applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
     defender.colorFlash = cat === "ultimate" ? 12 : cat === "special" ? 9 : 6
 
     const persist =
@@ -805,6 +866,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyUltraEgoReaction(defender)
   applyKuramaShroudReaction(defender)   // Kurama Shroud comeback heal-on-hit (stage 3+)
   applyNarutoComboFinisherReaction(defender, attacker)   // Naruto-only escalated combo-ender recoil pose
+  applyNarutoOffenseVoice(attacker, cat, !defender.isBlocking)   // Naruto Hokage / combo-burst pride line on connect
 }
 
 // ========================

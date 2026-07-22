@@ -131,6 +131,20 @@ export function activateKuramaUltimate(caster, opponent) {
 
 export function isKuramaCinematicActive() { return kuramaCine.active }
 
+// Test/harness status snapshot (mirrors beerusUltCine): frame + phase + whether the
+// guaranteed TBB damage has landed yet, so a voice-timing test can prove the ultimate
+// bark fires during CHARGE (before impact). chargeStart is the frame CHARGE begins.
+export function getKuramaCinematicStatus() {
+  return {
+    active: kuramaCine.active,
+    frame: kuramaCine.frame,
+    phase: getKuramaPhase(),
+    struck: !!kuramaCine.damageDealt,
+    chargeStart: T_FULL_END,
+    impactFrame: T_IMPACT,
+  }
+}
+
 export function getKuramaPhase() {
   if (!kuramaCine.active) return null
   const f = kuramaCine.frame
@@ -169,6 +183,14 @@ export function updateKuramaUltimate(ctx = {}) {
   if (f === 0) {
     snd?.playSfxFile?.("naruto_ten_tails_bomb.mp3", null)
     snd?.playSfxFile?.("kurama_laugh.mp3", null)
+  }
+
+  // NARUTO ultimate VOICE — "Kurama! Haa! Tailed Beast Bomb!" — fires at the CHARGE beat
+  // START (T_FULL_END, the frame the fox begins forming the bomb at its mouth), BEFORE the
+  // bomb travels/lands (FIRE @150 / impact @164). Mirrors goku-black-taste-my-blade firing at
+  // a specific cinematic offset. Fresh Audio per call so it overlaps the ongoing blast SFX.
+  if (f === T_FULL_END) {
+    snd?.playSfxFile?.("naruto_kurama_ultimate.mp3", null)
   }
 
   // Camera takeover: WIDEN the arena (framing BOTH fighters, zoomed out) and hold

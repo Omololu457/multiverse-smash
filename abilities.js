@@ -1387,6 +1387,7 @@ function executeNarutoSpecial(fighter, context) {
     // BIG BALL RASENGAN — released before full charge. Steps through the sphere-growth
     // strip during the windup; size + damage scale with how long P was held, capped.
     if (!spendEnergy(fighter, 55)) return false
+    sound.playSfxFile("naruto_big_ball_rasengan.mp3", null)   // VOICE: "Super Big Ball Rasengan Barrage!" — charge-scaling variant only (NOT plain Rasengan)
     const chargeT = Math.min(heldMs / NARUTO_FULL_CHARGE_MS, 1)   // 0..1 partial charge
     const dmg  = Math.round(150 + 60 * chargeT)   // 150 → 210 damage
     const size = Math.round(34 + 26 * chargeT)    // 34 → 60 px sphere (visual)
@@ -1537,6 +1538,7 @@ function executeNarutoSpecial(fighter, context) {
   // Naruto (wide rangeX/rangeY), plus a damage-less ring-bloom visual centred on him.
   if (dirs.length > 0 && dirs[dirs.length - 1] === "D") {
     if (!spendEnergy(fighter, 45)) return false
+    sound.playSfxFile("naruto_special_burst.mp3", null)   // VOICE: "I'll blow it away with my jutsu" — Dark Rasengan (the voiceless special; Rasenshuriken already carries its wind SFX)
     fighter._spriteCastMove  = "rasengan_cast"
     fighter._spriteCastTimer = 20
     const attack = createAttackFromMove(fighter, "darkRasengan", {
@@ -1576,6 +1578,7 @@ function executeNarutoSpecial(fighter, context) {
   if (countShadowClones(fighter) >= 3) {
     if (!spendCloneComboChakra(fighter, 30)) return false
     consumeShadowClones(fighter, 3)   // pop all three clones
+    sound.playSfxFile("naruto_shadow_clone_special.mp3", null)   // VOICE: "Naruto 2000-Hit Combo!" — Shadow Clone Blast (clone Rasengan barrage)
     fighter.vx = fighter.facing * 5   // Naruto's own orb — the combo anchor (normal traveling shot)
     spawnProjectile(fighter, "rasengan", {
       damage: 90, speed: 10, lifetime: 55, hitstun: 20, knockbackX: 7, knockbackY: -2,
@@ -1602,6 +1605,7 @@ function executeNarutoSpecial(fighter, context) {
   if (countShadowClones(fighter) >= 2) {
     if (!spendCloneComboChakra(fighter, 30)) return false
     consumeShadowClones(fighter, 2)   // pop both clones
+    sound.playSfxFile("naruto_shadow_clone_special.mp3", null)   // VOICE: "Naruto 2000-Hit Combo!" — Shadow Clone Blast (clone Rasengan barrage)
     fighter.vx = fighter.facing * 5   // Naruto's own orb — his combo anchor (normal traveling shot)
     spawnProjectile(fighter, "rasengan", {
       damage: 90, speed: 10, lifetime: 55, hitstun: 20, knockbackX: 7, knockbackY: -2,
@@ -1650,6 +1654,7 @@ function executeNarutoSpecial(fighter, context) {
     orb.vx = fighter.facing * 8   // rides the lunge, then fades
   }
   sound.playSfxFile("naruto_rasengan.mp3", null)   // ram cue (shared with Big Ball — same technique)
+  sound.playSfxFile("naruto_rasengan_cast.mp3", null)   // VOICE: "It's Rasengan!" — plain (neutral) Rasengan only
   fighter._spriteCastMove  = "rasengan_cast"   // 4-koma body plays on the caster (the ram)
   fighter._spriteCastTimer = 20
   focusCameraOnAction(context, fighter, target, 0.99, 8)

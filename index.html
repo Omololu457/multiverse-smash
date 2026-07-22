@@ -1,32 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Multiverse Smash Ultimate</title>
+    <meta charset="UTF-8">
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #061225;
-    }
+    <!-- Mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
+    <!-- Theme -->
+    <meta name="theme-color" content="#061225">
 
-    canvas {
-      display: block;
-      width: 100vw;
-      height: 100vh;
-    }
-  </style>
+    <!-- SEO -->
+    <meta name="description" content="Multiverse Smash Ultimate - A fast-paced browser fighting game.">
+    <meta name="keywords" content="game,fighting,multiverse,smash,browser,html5">
+
+    <title>Multiverse Smash Ultimate</title>
+
+    <style>
+        :root {
+            --bg: #061225;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+            font-family: Arial, Helvetica, sans-serif;
+            touch-action: none;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #102c58 0%, #061225 100%);
+            image-rendering: optimizeSpeed;
+            image-rendering: pixelated;
+        }
+
+        /* Loading Screen */
+        #loading {
+            position: fixed;
+            inset: 0;
+            background: #061225;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            z-index: 9999;
+            transition: opacity .5s ease;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        noscript {
+            color: white;
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            font-size: 1.2rem;
+            background: #061225;
+        }
+    </style>
 </head>
 
 <body>
-  <canvas id="gameCanvas"></canvas>
 
+    <div id="loading">Loading Multiverse Smash Ultimate...</div>
 
-  <!-- MAIN GAME FILE -->
-  <script type="module" src="./game.js"></script>
+    <canvas
+        id="gameCanvas"
+        aria-label="Multiverse Smash Ultimate Game"
+        role="img">
+    </canvas>
+
+    <noscript>
+        JavaScript is required to play this game.
+    </noscript>
+
+    <script type="module">
+        window.addEventListener("load", () => {
+            document.getElementById("loading").classList.add("hidden");
+        });
+    </script>
+
+    <!-- Main Game -->
+    <script type="module" src="./game.js"></script>
+
 </body>
 </html>

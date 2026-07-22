@@ -103,6 +103,10 @@ import {
   updateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive, drawVegetaFinalFlashCinematic,
   clearVegetaFinalFlashCinematic, getVegetaFinalFlashCinematicStatus
 } from "./vegetaFinalFlashCinematic.js"
+import {
+  updateBeerusKiBallCinematic, isBeerusKiBallCinematicActive, drawBeerusKiBallCinematic,
+  clearBeerusKiBallCinematic, getBeerusKiBallCinematicStatus
+} from "./beerusKiBallCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
@@ -1219,6 +1223,7 @@ function resetRound() {
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
   clearVegetaFinalFlashCinematic()
+  clearBeerusKiBallCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
 
@@ -1264,6 +1269,8 @@ function introStepFrames(fighter, action) {
 }
 function initIntroVariant(fighter) {
   if (!fighter) return
+  fighter._introRevealFrame = 0   // reset the delayed-reveal fade counter (introReveal); see renderHybridFighter
+  fighter._introVoiceDone   = false   // reset the once-per-intro voice-line guard (fires at the reveal beat)
   const seq = fighter.introSequence
   if (Array.isArray(seq) && seq.length) {
     fighter._introSeq      = seq
@@ -1275,6 +1282,15 @@ function initIntroVariant(fighter) {
     fighter._introVariant = pickIntroVariant(fighter)
   }
 }
+// BEERUS intro voice — fires ONCE per intro at his REVEAL beat (when the delayed-reveal fade begins,
+// i.e. the frame he actually becomes visible), not at frame 0. No-op for every other character.
+function maybeFireBeerusIntroVoice(fighter) {
+  if (fighter?.rosterKey !== "beerus" || fighter._introVoiceDone) return
+  if ((fighter._introRevealFrame || 0) < (fighter.introReveal?.hide || 0)) return
+  fighter._introVoiceDone = true
+  sound.playSfxFile?.("beerus_intro.mp3", null)   // "Well then, whenever you're ready — I guess I'll destroy you now"
+}
+
 function advanceIntroSequence(fighter) {
   if (!fighter || !fighter._introSeq) return
   if (fighter._introSeqIdx >= fighter._introSeq.length - 1) return   // hold final step
@@ -1524,6 +1540,7 @@ function resetToStart() {
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
   clearVegetaFinalFlashCinematic()
+  clearBeerusKiBallCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
@@ -1634,6 +1651,15 @@ function _checkMatchOver() {
     }
     sound.stopMusic?.()
     sound.play?.(SFX.KO)
+    // BEERUS win voice — random 50/50 between his two victory lines (coin flip, like pickIntroVariant's
+    // Math.random). Fires only when the WINNER is Beerus; independent of whether the win-pose art is
+    // dedicated or shared (his batch shipped no win/lose sprite → shared win state, audio wired anyway).
+    {
+      const winFighter = winner === "p1" ? p1 : winner === "p2" ? p2 : null
+      if (winFighter?.rosterKey === "beerus") {
+        sound.playSfxFile?.(Math.random() < 0.5 ? "beerus_win.mp3" : "beerus_win_alt.mp3", null)
+      }
+    }
     sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
     gameState = GAME_STATES.VICTORY
   } else {
@@ -1686,6 +1712,7 @@ function _doRematch() {
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
   clearVegetaFinalFlashCinematic()
+  clearBeerusKiBallCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
   hitSparks.length = 0
@@ -1991,6 +2018,7 @@ function updateGamepadEdges(fighter) {
 function updateMiscTimers(fighter) {
   if (!fighter) return
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
+  if (fighter._hitVoiceCd     > 0) fighter._hitVoiceCd--                  // Beerus hit-reaction voice cooldown (combat.js)
   if (fighter.ultimateCooldown > 0) fighter.ultimateCooldown--            // universal ultimate recast lockout
   if (fighter.summonCooldown  > 0) fighter.summonCooldown--
   if (fighter._cloneSummonWindow > 0) fighter._cloneSummonWindow--        // clone-summon audio window (summons.js)
@@ -2651,6 +2679,11 @@ function updateBattle() {
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
+  if (isBeerusKiBallCinematicActive()) {
+    updateBeerusKiBallCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
 
   // BINDING VOWS: match each player's recent RAW directional sequence (own
   // character's vows only). AI fighters have no directionHistory → never match.
@@ -2752,7 +2785,22 @@ function renderHybridFighter(fighter) {
     }
   }
 
-  if (!fighter.tintColor) { drawTo(ctx); return }
+  // CINEMATIC INTRO REVEAL (opt-in via characters.js `introReveal`): while this fighter is playing its
+  // intro, hold it INVISIBLE for `hide` frames (empty stage) then fade in over `fade` frames, so it
+  // materialises out of the intro effects. revealAlpha<=0 → draw NOTHING (also kills the 1-frame
+  // pre-sprite placeholder box). No-op for any fighter without the field / not mid-intro.
+  let revealAlpha = 1
+  if (fighter._introPlaying && fighter.introReveal) {
+    const rf = fighter._introRevealFrame || 0
+    const hide = fighter.introReveal.hide || 0, fade = Math.max(1, fighter.introReveal.fade || 1)
+    revealAlpha = Math.max(0, Math.min(1, (rf - hide) / fade))
+  }
+  if (revealAlpha <= 0) return   // empty stage — draw nothing this frame
+
+  if (!fighter.tintColor) {
+    if (revealAlpha >= 1) { drawTo(ctx); return }
+    ctx.save(); ctx.globalAlpha *= revealAlpha; drawTo(ctx); ctx.restore(); return
+  }
 
   // Tinted: render the fighter to an offscreen layer that mirrors the live camera
   // transform, wash ONLY its pixels with tintColor (source-atop), then composite
@@ -2776,6 +2824,7 @@ function renderHybridFighter(fighter) {
 
   ctx.save()
   ctx.setTransform(1, 0, 0, 1, 0, 0)
+  if (revealAlpha < 1) ctx.globalAlpha *= revealAlpha   // intro delayed-reveal fade (tinted mirror path)
   ctx.drawImage(_tintCanvas, 0, 0)
   ctx.restore()
 }
@@ -3325,6 +3374,7 @@ function drawBattle() {
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
   drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
   drawVegetaFinalFlashCinematic(ctx, canvas)  // fullscreen Overcharged Final Flash overlay (gold beam + impact explosion)
+  drawBeerusKiBallCinematic(ctx, canvas)      // fullscreen Ki Ball overlay (charging orb → impact explosion)
 }
 
 // ── FREE-FOR-ALL rendering (parallel to drawBattle; array-driven) ─────────────
@@ -3969,14 +4019,14 @@ function updateCurrentState() {
       // SEQUENTIAL intro stage machine: P1 plays its full intro, THEN P2's begins. Only the active
       // side advances; the other holds idle. Runs every intro frame (during namecall AND after).
       if (introStage === "p1") {
-        if (p1 && p1._introPlaying) advanceIntroSequence(p1)
+        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireBeerusIntroVoice(p1); advanceIntroSequence(p1) }
         if (--introStageTimer <= 0) {
           if (p1) p1._introPlaying = false
           if (p2) { p2._introPlaying = true; initIntroVariant(p2); introStage = "p2"; introStageTimer = introTotalFrames(p2) }
           else introStage = "done"
         }
       } else if (introStage === "p2") {
-        if (p2 && p2._introPlaying) advanceIntroSequence(p2)
+        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireBeerusIntroVoice(p2); advanceIntroSequence(p2) }
         if (--introStageTimer <= 0) { if (p2) p2._introPlaying = false; introStage = "done" }
       }
       if (namecallActive) {
@@ -4420,6 +4470,7 @@ gameLoop()
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
     swordCine: () => getGokuBlackSwordCinematicStatus(),
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
+    beerusUltCine: () => getBeerusKiBallCinematicStatus(),
     // Vegeta Super Saiyan form control + introspection (vegeta_ssj.test.mjs). op:
     //   "enter"    → player-facing transform (morph + gates),
     //   "revert"   → drop back to base,

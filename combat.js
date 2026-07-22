@@ -50,7 +50,7 @@ const HITSTUN_SCALE = 1.15   // MK12-style flow: links connect without frame-per
 // by this one constant so RELATIVE balance between characters is untouched —
 // it's mathematically identical to raising everyone's health by 1/scale, but in
 // one place instead of 45 maxHealth edits. 0.60 ≈ +66% time-to-kill. Tune here.
-const GLOBAL_DAMAGE_SCALE = 0.60
+export const GLOBAL_DAMAGE_SCALE = 0.60
 
 // ========================
 // HELPERS
@@ -694,6 +694,15 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     defender.isCharging   = false
     defender.vx = (attacker.facing || 1) * (atk.pushX || 4)
 
+    // BEERUS hit-reaction voice ("...impressive") — only on a SIGNIFICANT hit (heavy-tier category or
+    // real damage), NOT every light poke. Cooldown-gated (_hitVoiceCd ticked in game.js) so a rapid
+    // heavy string doesn't spam it. No-op for every other character.
+    if (defender.rosterKey === "beerus" && !(defender._hitVoiceCd > 0) &&
+        (cat === "heavy" || cat === "launcher" || cat === "spike" || cat === "special" || cat === "ultimate" || dmg >= 55)) {
+      defender._hitVoiceCd = 150
+      try { sound?.playSfxFile?.("beerus_hit_reaction.mp3", null) } catch (_) {}
+    }
+
     if (atk.launcher) {
       physics.launcherAttack(attacker, defender, atk.launchY ?? -12, -22)
     } else if (atk.spike) {
@@ -1038,6 +1047,20 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
           category: "special",
           color: "#f97316",
           fontSize: Math.min(38, 22 + Math.floor(dmg / 20))
+        })
+      }
+
+      // IMPACT-ON-CONNECT FX (e.g. Vegeta SSJ Final Flash's explosion sheet): a projectile carrying
+      // an `impact` spawns a pure-visual sprite at the hit point ONLY when it actually connects (not
+      // at cast, not on a block-negate). Pushed as a visualOnly projectile so it decays via lifetime
+      // and never re-collides. Appended past the current index → not revisited by this backward loop.
+      if (proj.impact && !fighter.isBlocking) {
+        projectiles.push({
+          x: proj.x, y: proj.y, vx: 0, vy: 0, visualOnly: true,
+          lifetime: proj.impact.lifetime || 40, name: (proj.name || "proj") + "_impact",
+          sheet: proj.impact.sheet, spriteFrames: proj.impact.frames,
+          spriteW: proj.impact.w, spriteH: proj.impact.h,
+          spriteSpeed: proj.impact.speed || 2, spriteScale: proj.impact.scale || 1
         })
       }
 

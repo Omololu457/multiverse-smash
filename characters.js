@@ -1762,7 +1762,7 @@ const beerus = {
   archetypes: ["rushdown", "striker", "zoner"],
   primary: "rushdown", secondary: ["striker", "zoner"],
   traits: { hasEnergy: true, energyType: "god_ki", mobility: "high", scaling: "glass_cannon", animeMovement: true },
-  energyConfig: { label: "Destruction Energy", color: "#b24cf0", glowColor: "#e0a0ff", emptyColor: "rgba(255,255,255,0.08)" },
+  energyConfig: { label: "God Ki", color: "#b24cf0", glowColor: "#e0a0ff", emptyColor: "rgba(255,255,255,0.08)" },
   // GLASS CANNON: highest-tier attack (97, ties top strikers) + speed (95, near top),
   // bottom-tier HP (1000, ties Evil Morty floor) + defense (78). A precise, fast striker
   // that hits hard but folds under pressure — the God of Destruction archetype.
@@ -1785,6 +1785,12 @@ const beerus = {
   // FIXED-ORDER 5-part intro (plays in file order, then holds → idle). Each key below
   // is a real animationData action; game.js initIntroVariant/advanceIntroSequence walk them.
   introSequence: ["intro1", "intro2", "intro3", "intro4", "intro5"],
+  // CINEMATIC DELAYED REVEAL: hold the fighter draw INVISIBLE for `hide` frames (empty stage — also
+  // suppresses the 1-frame pre-sprite placeholder box), then fade it in over `fade` frames, so Beerus
+  // MATERIALISES out of the intro star/pillar effects instead of already standing there. Generic +
+  // opt-in (renderHybridFighter reads this field) → zero effect on any character without it. ~0.17s
+  // empty beat + ~0.2s fade adds no real match-start delay.
+  introReveal: { hide: 10, fade: 12 },
   hasSprites: true,
   // idle content 62px × 1.7 ≈ 105px on-screen — mid roster range (Sasuke 116, Gojo 112,
   // Toji 101). Matches Sasuke's "source ~55-61px → ×1.7 ≈ hitbox height" reasoning.
@@ -1816,7 +1822,18 @@ const beerus = {
     heavy:    { frames: 5, width: 55,  height: 56, speed: 6, anchorY: 0, sheet: "./beerus_foward_attack_2_u.png" },   // pink aura ribbon baked in
     up:       { frames: 5, width: 72,  height: 62, speed: 5, anchorY: 0, sheet: "./beerus_up_attack_u.png" },         // yellow crescent launcher
     air:      { frames: 5, width: 45,  height: 59, speed: 4, anchorY: 0, sheet: "./beerus_kick_u.png" },
-    down_air: { frames: 5, width: 131, height: 53, speed: 5, anchorY: 0, sheet: "./beerus_side_kick_u.png" }          // purple energy-slash spike
+    down_air: { frames: 5, width: 131, height: 53, speed: 5, anchorY: 0, sheet: "./beerus_side_kick_u.png" },         // purple energy-slash spike
+    // ── special CAST poses (Stage 3) — resolved via _spriteCastMove (raw key === action key).
+    //    Projectile/effect art (rings, geysers, orbs, hakai field) lives in abilities.js spawnProjectile,
+    //    NOT here — the two mixed sheets were sliced into SEPARATE char-cast vs projectile assets.
+    kiBlastCast: { frames: 7, width: 71,  height: 63,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_ki_blast_u.png" },          // Ki Blast wind-up + throw
+    downKiBlast: { frames: 8, width: 123, height: 120, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_downward_ki_blast_u.png" },  // Downward Ki Blast dive
+    outward:     { frames: 5, width: 254, height: 142, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_outward_u.png" },            // Outward Ki Blast self-nova (body+rays)
+    pushCast:    { frames: 2, width: 47,  height: 58,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_push_cast_u.png" },          // Forward Push shove pose
+    hakai:       { frames: 1, width: 47,  height: 62,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_hakai_u.png" },              // Hakai held static point pose
+    // Ki Ball ULTIMATE cast pose (Stage 4) — held through the freeze cinematic; the orb itself is
+    // drawn by beerusKiBallCinematic.js, not in this sheet. speed 7 → 11f spans the ~84f CHARGE phase.
+    kiBall:      { frames: 11, width: 85, height: 61,  speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_ki_ball_u.png" }
   }
 }
 

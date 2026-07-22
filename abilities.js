@@ -11,7 +11,8 @@ import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke S
 import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCinematic.js"   // Goku Black SSJ Rose transform cinematic (no cycle)
 import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from "./gokuBlackSwordCinematic.js"   // Goku Black Sword Slash freeze cinematic (no cycle)
 import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } from "./vegetaFinalFlashCinematic.js"   // Vegeta Overcharged Final Flash ultimate cinematic (no cycle)
-import { resolveGrab } from "./combat.js"   // shared grab pipeline (combat.js doesn't import abilities.js → no cycle)
+import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./beerusKiBallCinematic.js"   // Beerus Ki Ball ultimate cinematic (no cycle)
+import { resolveGrab, GLOBAL_DAMAGE_SCALE } from "./combat.js"   // shared grab pipeline + the one damage-scale lever (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
@@ -231,7 +232,8 @@ const BETA_SPECIAL_MOTIONS = {
   sasuke: { F: ["D", "F"], B: ["D", "B"], D: ["D"] },                                            // F=Lightning · B=Chidori Koiten · D=Shuriken · neutral=Dash Strike
   rick:   { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] },                                  // F=Portal-Pull · B=Portal-Push · U=Rocket · D=Laser · neutral=Meeseeks
   goku_black: { F: ["D", "F"], B: ["D", "B"] },                                                  // F=Kamehameha (QCF) · B=Spirit Bomb (QCB) · neutral=Explosion (Stage 3b)
-  vegeta: { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] }                                   // F=Galick Gun · B=Final Flash · neutral=Big Bang · U=Launch Ki Blast (free) · D=Ki Blast (free)
+  vegeta: { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] },                                  // F=Galick Gun · B=Final Flash · neutral=Big Bang · U=Launch Ki Blast (free) · D=Ki Blast (free)
+  beerus: { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] }                                   // F=Forward Push · B=Outward Ki Blast · U=Hakai · D=Downward Ki Blast · neutral=Ki Blast
 }
 
 // Resolve the exact canonical motion for the fighter's currently-held direction (stamped
@@ -676,6 +678,130 @@ function executeVegetaSpecial(fighter, context) {
   return true
 }
 
+// ─────────────────────────────────────────────────────────────────
+// BEERUS — God of Destruction specials (Stage 3). Motions mirror Vegeta's DB layout:
+//   neutral = Ki Blast · D = Downward Ki Blast · D→F = Forward Push · D→B = Outward Ki Blast · U = Hakai
+// (beta single-hold map: F/B/U/D above). Two mixed source sheets were sliced into SEPARATE
+// char-cast vs projectile assets, so the traveling rings / self-nova never warp the body.
+export function isBeerus(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "beerus" }
+const BEERUS_KIBLAST = { cost: 30, dmg: 120 }
+const BEERUS_DOWNKI  = { cost: 35, dmg: 140 }
+const BEERUS_OUTWARD = { cost: 50, dmg: 130, radius: 165 }   // proximity AOE; dmg RUNS THROUGH GLOBAL_DAMAGE_SCALE (→ ~78 eff) so it matches the scaled-special tier (Ki Blast/Downward), not the bypass tier
+const BEERUS_PUSH    = { cost: 45, ring: 95 }
+const BEERUS_HAKAI   = { cost: 70, dmg: 190, range: 245, startup: 40 }   // most committed: long telegraph, big direct payoff
+
+// Direct (unscaled) proximity/point damage — mirrors fireVegetaSelfDestruct's application rules
+// (invuln skip, block chip, hitstun + knockback on a clean hit). Returns whether it connected.
+function beerusApplyDirect(target, cx, cy, dmg, range, kbx = 10) {
+  if (!target || target.eliminated || (target.invulnTimer || 0) > 0) return false
+  const tcx = target.x + (target.w || 60) / 2, tcy = target.y + (target.h || 100) / 2
+  if (Math.hypot(tcx - cx, tcy - cy) > range) return false
+  let d = dmg
+  if (target.isBlocking) { d = Math.floor(d * 0.20); target.blockstun = 20 }
+  else { target.hitstun = 34; target.vx = (tcx >= cx ? 1 : -1) * kbx; target.vy = -8; target.colorFlash = 10 }
+  target.health = Math.max(0, (target.health || 0) - d)
+  return true
+}
+
+function executeBeerusSpecial(fighter, context) {
+  const dirs   = getRelativeDirections(fighter)
+  const getOpp = getTargetResolver(context)
+  const target = getOpp(fighter)
+
+  // U — HAKAI: the most committed special. Held static point pose + long startup (real vulnerability
+  // window), then a big DIRECT payoff and the erase-field effect spawned AT THE TARGET (not on Beerus).
+  if (endsWithPattern(dirs, ["U"])) {
+    if (!spendEnergy(fighter, BEERUS_HAKAI.cost)) return false
+    fighter._spriteCastMove  = "hakai"
+    sound.playSfxFile?.("beerus_hakai_activate.mp3", null)   // "You won't underestimate a god of destruction now" — on Hakai cast begin
+    fighter._spriteCastTimer  = BEERUS_HAKAI.startup + 16
+    fighter.attackCooldown    = getAttackDuration(BEERUS_HAKAI.startup + 20, fighter)
+    fighter.vx = 0
+    focusCameraOnAction(context, fighter, target, 0.95, BEERUS_HAKAI.startup)
+    schedulePendingSpawn(BEERUS_HAKAI.startup, () => {
+      const t  = getOpp(fighter)
+      const ex = t ? t.x + (t.w || 60) / 2 : fighter.x + fighter.facing * 170
+      const ey = t ? t.y + (t.h || 100) / 2 : fighter.y + (fighter.h || 100) / 2
+      // effect at the TARGET (visualOnly → never stuns/despawns; fades via lifetime)
+      spawnProjectile(fighter, "hakaiField", {
+        visualOnly: true, damage: 0, lifetime: 34,
+        spawnX: ex - 84, spawnY: ey - 70, vx: 0, vy: 0, w: 4, h: 4,
+        sheet: "./beerus_hakai_fx_u.png", spriteFrames: 4, spriteW: 168, spriteH: 140, spriteSpeed: 8, spriteScale: 1.05
+      }, context)
+      shakeCamera(context, 10, 12)
+      beerusApplyDirect(t, ex, ey, BEERUS_HAKAI.dmg, BEERUS_HAKAI.range, 8)
+    })
+    return true
+  }
+
+  // D→F (QCF) — FORWARD PUSH: two consecutive shockwave rings spawned in front, traveling outward.
+  if (endsWithPattern(dirs, ["D", "F"])) {
+    if (!spendEnergy(fighter, BEERUS_PUSH.cost)) return false
+    fighter._spriteCastMove  = "pushCast"
+    sound.playSfxFile?.("beerus_special_cast_2.mp3", null)   // "How about this" — on Forward Push cast (distinct from Ki Blast's cast_1)
+    fighter._spriteCastTimer  = 18
+    fighter.attackCooldown    = getAttackDuration(24, fighter)
+    const ring = (sheet, frames, sw, sh, extra = {}) => ({
+      damage: BEERUS_PUSH.ring, speed: 12, lifetime: 72, hitstun: 20, knockbackX: 12, knockbackY: -2,
+      color: "#e0a0ff", w: 46, h: 60, sheet, spriteFrames: frames, spriteW: sw, spriteH: sh, spriteSpeed: 4, spriteScale: 1.4, ...extra
+    })
+    schedulePendingSpawn(10, () => { spawnProjectile(fighter, "pushRing1", ring("./beerus_push_ring1_u.png", 4, 47, 86), context); shakeCamera(context, 8, 8) })
+    schedulePendingSpawn(20, () => { spawnProjectile(fighter, "pushRing2", ring("./beerus_push_ring2_u.png", 6, 40, 102, { speed: 14, spriteScale: 1.6 }), context) })
+    focusCameraOnAction(context, fighter, target, 0.99, 10)
+    return true
+  }
+
+  // D→B (QCB) — OUTWARD KI BLAST: self-centered expanding nova (proximity AOE from a fixed point on Beerus).
+  if (endsWithPattern(dirs, ["D", "B"])) {
+    if (!spendEnergy(fighter, BEERUS_OUTWARD.cost)) return false
+    fighter._spriteCastMove  = "outward"
+    fighter._spriteCastTimer  = 30
+    fighter.attackCooldown    = getAttackDuration(30, fighter)
+    fighter.vx = 0
+    shakeCamera(context, 12, 14)
+    focusCameraOnAction(context, fighter, target, 0.97, 14)
+    const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
+    const outwardDmg = Math.round(BEERUS_OUTWARD.dmg * GLOBAL_DAMAGE_SCALE)   // scaled to the projectile-special tier
+    schedulePendingSpawn(12, () => beerusApplyDirect(getOpp(fighter), cx, cy, outwardDmg, BEERUS_OUTWARD.radius, 14))
+    return true
+  }
+
+  // D — DOWNWARD KI BLAST: a diving down-forward blast; the ground-impact burst plays on connect.
+  if (endsWithPattern(dirs, ["D"])) {
+    if (!spendEnergy(fighter, BEERUS_DOWNKI.cost)) return false
+    fighter._spriteCastMove  = "downKiBlast"
+    fighter._spriteCastTimer  = 26
+    fighter.attackCooldown    = getAttackDuration(28, fighter)
+    schedulePendingSpawn(12, () => {
+      spawnProjectile(fighter, "downwardKi", {
+        damage: BEERUS_DOWNKI.dmg, speed: 15, lifetime: 62, hitstun: 22, knockbackX: 8, knockbackY: 6,
+        vx: fighter.facing * 12, vy: 7,                       // down-forward dive
+        color: "#c060ff", w: 34, h: 34,
+        spawnY: fighter.y + (fighter.h || 100) * 0.15,
+        sheet: "./beerus_ki_blast_fx_u.png", spriteFrames: 2, spriteW: 47, spriteH: 87, spriteSpeed: 3, spriteScale: 0.7,
+        impact: { sheet: "./beerus_downward_fx_u.png", frames: 4, w: 325, h: 221, speed: 4, scale: 0.7, lifetime: 34 }
+      }, context)
+      shakeCamera(context, 8, 8)
+    })
+    return true
+  }
+
+  // NEUTRAL — KI BLAST: quick forward energy shot (basic poke of the kit).
+  if (!spendEnergy(fighter, BEERUS_KIBLAST.cost)) return false
+  fighter._spriteCastMove  = "kiBlastCast"
+  sound.playSfxFile?.("beerus_special_cast_1.mp3", null)   // "Give me your best shot" — on Ki Blast cast (his most-thrown special)
+  fighter._spriteCastTimer  = 20
+  fighter.attackCooldown    = getAttackDuration(22, fighter)
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "kiBlast", {
+      damage: BEERUS_KIBLAST.dmg, speed: 15, lifetime: 120, hitstun: 16, knockbackX: 7, knockbackY: -1,
+      color: "#ffaa33", w: 30, h: 30,
+      sheet: "./beerus_ki_blast_fx_u.png", spriteFrames: 2, spriteW: 47, spriteH: 87, spriteSpeed: 4, spriteScale: 0.55
+    }, context)
+  })
+  return true
+}
+
 // VEGETA ULTIMATE — "Overcharged Final Flash": the Stage-4 Final Flash special escalated into a
 // near-max-meter FROZEN CINEMATIC (biggest hit in his kit). Reuses the shared freeze architecture
 // (vegetaFinalFlashCinematic.js, mirroring gokuBlackSwordCinematic). The guaranteed, range-independent
@@ -715,6 +841,50 @@ function applyVegetaFinalFlashDamage(fighter, opp, cineCtx = {}) {
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#ffe066",
       damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 42,
+      ...(blocked ? { isBlocking: true } : {})
+    })
+  }
+}
+
+// BEERUS ULTIMATE — "Ki Ball": near-max-meter FROZEN CINEMATIC (biggest hit in his kit). Reuses the
+// shared freeze architecture (beerusKiBallCinematic.js, mirroring vegetaFinalFlashCinematic). The
+// guaranteed, range-independent damage lands at the IMPACT connect beat via onImpact — a held block
+// chips it, a clean hit is huge (cinematic-tier, like Kurama's TBB rather than a punishable special).
+const BEERUS_ULT = { cost: 150, dmg: 380, blockRatio: 0.22 }   // near-max meter (maxEnergy 170)
+function executeBeerusUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "beerus") return false
+  if (isBeerusKiBallCinematicActive()) return false            // already mid-cinematic
+  if (!spendEnergy(fighter, BEERUS_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  fighter.vx = 0
+  activateBeerusKiBallCinematic(fighter, opp, (cineCtx) => applyBeerusKiBallDamage(fighter, opp, cineCtx))
+  return true
+}
+
+// PAYOFF: a GUARANTEED, range-independent Ki Ball. A held block (frozen at its pre-cinematic value,
+// like Kurama's TBB) CHIPS it to 22%; a clean hit deals the full ~380 + a big stagger. Applied once
+// at the IMPACT connect beat by the cinematic.
+function applyBeerusKiBallDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = BEERUS_ULT.dmg
+  if (blocked) {
+    dmg = Math.round(dmg * BEERUS_ULT.blockRatio)
+    opp.blockstun = Math.max(opp.blockstun || 0, 18)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 30)
+    opp.vx = fighter.facing * 17; opp.vy = -7
+    opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 20, maxTimer: 20,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#e0a0ff",
+      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 44,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -2965,6 +3135,7 @@ export function triggerSpecial(fighter, context = {}) {
     // dispatch still no-ops goku_black (Sword Slash = Stage 3b) — do not remove that one yet.
     case "goku_black": return executeGokuBlackSpecial(fighter, context)
     case "vegeta":  return executeVegetaSpecial(fighter, context)
+    case "beerus":  return executeBeerusSpecial(fighter, context)
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -2995,6 +3166,7 @@ export function triggerUltimate(fighter, context = {}) {
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
       case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic
+      case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }

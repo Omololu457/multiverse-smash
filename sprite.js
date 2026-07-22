@@ -218,7 +218,10 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Blocking — show a dedicated guard pose when the fighter defines one (skin anim
   // or base animationData); otherwise hold idle. Unchanged for every character
   // WITHOUT a `guard` strip (Gojo/Sukuna/… still show idle while blocking).
-  if (fighter.isBlocking) {
+  // Gated on !attacking: a down-air (S+J in the air) holds Down, which sets isBlocking,
+  // so without this the dive normal would render the guard pose instead of the attack.
+  // An actively-attacking fighter always shows the attack over a simultaneous block-hold.
+  if (fighter.isBlocking && !fighter.attacking) {
     return (fighter._skinAnim?.guard || fighter.animationData?.guard) ? "guard" : "idle";
   }
 
@@ -347,7 +350,16 @@ export class SpriteHandler {
       fighter.animationData?.idle ||
       null;
 
-    const sheet = profileAction.sheet ? _loadSheet(profileAction.sheet) : legacySheet;
+    let sheet = profileAction.sheet ? _loadSheet(profileAction.sheet) : legacySheet;
+
+    // UNWIRED-PLACEHOLDER GUARD (the "4 copies" / unsliced-atlas glitch). An action that resolves to
+    // the generic 128² DEFAULT_ANIM placeholder — no dedicated sheet in the animationProfile def AND
+    // none in the character's own animationData entry — is meant to "fall back to the box" until its
+    // row is sliced+wired. Drawing the legacy idle/atlas sheet at the 128 placeholder pitch instead
+    // slices a multi-frame atlas into a GRID of mini-frames (e.g. a partially-wired opponent like base
+    // Goku's un-sliced `walk`, made glaringly visible when a zoomed cinematic freeze frames them). Force
+    // the procedural box in that case — matching the documented intent — instead of a mangled sheet.
+    if (!profileAction.sheet && !legacyFrameData?.sheet) sheet = null;
 
     const frameData = {
       frames: profileAction.frames ?? legacyFrameData?.frames ?? 1,

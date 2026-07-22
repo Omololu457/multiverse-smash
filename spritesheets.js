@@ -114,11 +114,25 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./rick_stand.png" }
   },
 
+  // Beerus (dragon_ball) — gates spritesReady() by decoding the idle strip. Per-action
+  // rendering reads each sheet path from characters.js animationData.
+  beerus: {
+    actions: { idle: "./beerus_idle_u.png" }
+  },
+
   // Goku Black (universe: dragon_ball) — SEPARATE character from `goku`. Gates spritesReady() by
   // decoding the idle strip → flips Goku Black from procedural box to sprite. Per-action rendering
   // reads characters.js → gokuBlack.animationData (each action carries its own .sheet).
   goku_black: {
     actions: { idle: "./black_goku_idle.png" }
+  },
+
+  // Vegeta (universe: dragon_ball) — STAGE 1. Gates spritesReady() by decoding the idle
+  // strip → flips Vegeta from procedural box to sprite. Per-action rendering reads
+  // characters.js → vegeta.animationData (each action carries its own .sheet). Object form
+  // because the real files are ./vegeta_base_<action>.png, NOT the _sheet convention.
+  vegeta: {
+    actions: { idle: "./vegeta_base_idle.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

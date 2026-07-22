@@ -929,10 +929,11 @@ const itachi = {
     air:      { frames: 4, width: 58, height: 78, speed: 4, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./itachi_melle_foward_knife_attack_uniform.png" }, // neutral aerial knife stab
     down_air: { frames: 5, width: 62, height: 70, speed: 5, anchorY: 0,   loop: false, lockLastFrame: true, sheet: "./itachi_melle_down_air_attack_uniform.png" },     // downward dive kick
     grab:     { frames: 5, width: 54, height: 81, speed: 4, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./itachi_melle_low_attack_uniform.png" },
-    // Pre-match INTRO — the settled Akatsuki-cloak ready stance (first 4 cells of the crow
-    // sheet; the crow-DISPERSAL frames are trimmed — dispersal reads as an exit, not an
-    // arrival, mirroring Sasuke's intro-trim). Held on the final stance when the fight starts.
-    intro:    { frames: 4, width: 77, height: 83, speed: 8, anchorY: -14, loop: false, lockLastFrame: true, sheet: "./itachi_intro_stance_uniform.png" },
+    // Pre-match INTRO — the crow-swarm ARRIVAL. The source sheet stores Itachi→crows left-to-right;
+    // itachi_intro_uniform.png is that sheet re-sliced (12 natural-island frames) and REVERSED in
+    // frame order, so it now plays crows-FIRST → Itachi resolving OUT of the swarm, holding the
+    // settled cloak stance when the fight starts (the iconic crow-dispersal read backwards = an entrance).
+    intro:    { frames: 12, width: 85, height: 83, speed: 5, anchorY: -14, loop: false, lockLastFrame: true, sheet: "./itachi_intro_uniform.png" },
     // Fire Style: Great Fireball Jutsu CAST pose (hand-seals → blow). Played via _spriteCastMove
     // (identity sprite-resolve) while the flame projectile flies; the fireball itself is a separate
     // projectile sheet (itachi_fireball_proj_uniform.png). See abilities.js executeItachiSpecial.

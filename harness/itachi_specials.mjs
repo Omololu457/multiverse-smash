@@ -70,6 +70,8 @@ async function activateMangekyou() {
   await page.evaluate(() => window.__harness.fillEnergy());
   if ((await p1()).mangekyouActive) return;   // idempotent — already on (a 4f tap would REVERT it)
   await page.keyboard.down("p"); await waitFrames(4); await page.keyboard.up("p"); await waitFrames(3);
+  // Activation now plays a frozen eye-transformation cinematic (combat/input paused) — wait it out.
+  await page.waitForFunction(() => !window.__harness.mangekyouCine().active, null, { timeout: 8000, polling: 16 }).catch(() => {});
 }
 
 try {

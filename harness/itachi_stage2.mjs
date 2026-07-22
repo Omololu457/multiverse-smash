@@ -62,15 +62,15 @@ try {
   await page.mouse.click(640, 360);
 
   // ── INTRO ────────────────────────────────────────────────────────────
-  section("intro — Akatsuki stance");
+  section("intro — crow-swarm arrival (crows → Itachi resolving)");
   await page.evaluate(() => window.__harness.start());
   await page.waitForFunction(() => window.__harness.introState().p1Playing, null, { timeout: 15000, polling: 16 }).catch(() => {});
   const gotIntro = await page.waitForFunction(() => window.__harness.introState().p1Variant === "intro", null, { timeout: 6000, polling: 16 }).then(() => true).catch(() => false);
   // Sample the sheet across a few frames — the intro strip populates a beat after the variant registers.
   let introSheet = "";
-  for (let i = 0; i < 8 && !introSheet.includes("itachi_intro_stance"); i++) { introSheet = (await p1()).spriteSheet || ""; await waitFrames(2); }
+  for (let i = 0; i < 8 && !introSheet.includes("itachi_intro_uniform"); i++) { introSheet = (await p1()).spriteSheet || ""; await waitFrames(2); }
   check("intro variant plays", gotIntro, `variant=${(await page.evaluate(() => window.__harness.introState().p1Variant))}`);
-  check("intro uses itachi_intro_stance sheet", introSheet.includes("itachi_intro_stance"), `sheet=${introSheet}`);
+  check("intro uses itachi_intro_uniform (reversed crow strip)", introSheet.includes("itachi_intro_uniform"), `sheet=${introSheet}`);
   await shot("intro");
   await page.evaluate(() => window.__harness.skipToBattle());
   await waitFrames(6);

@@ -103,6 +103,10 @@ import {
   clearGokuBlackSwordCinematic, getGokuBlackSwordCinematicStatus
 } from "./gokuBlackSwordCinematic.js"
 import {
+  activateMangekyouCinematic, updateMangekyouCinematic, isMangekyouCinematicActive,
+  drawMangekyouCinematic, clearMangekyouCinematic, getMangekyouCinematicStatus
+} from "./mangekyouCinematic.js"
+import {
   updateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive, drawVegetaFinalFlashCinematic,
   clearVegetaFinalFlashCinematic, getVegetaFinalFlashCinematicStatus
 } from "./vegetaFinalFlashCinematic.js"
@@ -1234,6 +1238,7 @@ function resetRound() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
 
@@ -1576,6 +1581,7 @@ function resetToStart() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
   sound.stopMusic?.()
@@ -1796,6 +1802,7 @@ function _doRematch() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
   damageNumbers.length = 0
@@ -1936,7 +1943,7 @@ function handleChargeRelease(fighter, key) {
   // TAP reverts early; a HOLD-release just tops up chakra and stays in the mode (sustain it).
   if (fighter.rosterKey === "itachi") {
     if (fighter._mangekyouActive) { if (wasTap) revertMangekyou(fighter) }
-    else enterMangekyou(fighter)
+    else if (enterMangekyou(fighter)) activateMangekyouCinematic(fighter)   // eye-transformation reveal on ignite
     return
   }
 
@@ -2453,25 +2460,6 @@ function drawMangekyouAura(c, fighter) {
   c.restore()
 }
 
-// Mangekyou ACTIVATION flash — a bright crimson bloom over Itachi's head that fades over
-// _mangekyouFlash frames (armed by enterMangekyou). Drawn ON TOP of the sprite. The "eyes ignite" beat.
-function drawMangekyouActivationFlash(c, fighter) {
-  const t = fighter?._mangekyouFlash || 0
-  if (!c || t <= 0) return
-  const cx = (fighter.x ?? 0) + (fighter.w ?? 60) / 2
-  const cy = (fighter.y ?? 0) + (fighter.h ?? 110) * 0.30   // head/eye height
-  const a  = Math.min(1, t / 40)            // fade out as the timer decays
-  const rad = (60 - a * 30)                 // bloom shrinks inward as it settles
-  c.save()
-  const g = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
-  g.addColorStop(0,   `rgba(255,90,90,${0.75 * a})`)
-  g.addColorStop(0.5, `rgba(220,30,30,${0.40 * a})`)
-  g.addColorStop(1,   "rgba(220,30,30,0)")
-  c.fillStyle = g
-  c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
-  c.restore()
-}
-
 // Rick's Portal-Pull / Portal-Push reappear the opponent above a destination and let
 // them fall (abilities.js rickPortalReposition). This applies the impact damage the
 // frame they reground — mirrors the _dot marker→resolver split (abilities stamps the
@@ -2875,6 +2863,15 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // ITACHI MANGEKYOU ACTIVATION CINEMATIC: SAME freeze contract — combat/physics/input paused while
+  // the eye-transformation reveal plays (camera isolates Itachi). The BUFF was already applied by
+  // enterMangekyou; this is the reveal, then combat resumes.
+  if (isMangekyouCinematicActive()) {
+    updateMangekyouCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // VEGETA OVERCHARGED FINAL FLASH CINEMATIC: SAME freeze contract — combat/physics/input paused for
   // the whole sequence; the guaranteed damage lands at the FIRE connect beat via onImpact, then resume.
   if (isVegetaFinalFlashCinematicActive()) {
@@ -2987,7 +2984,6 @@ function renderHybridFighter(fighter) {
     } else {
       drawFighter(c, fighter, camera)
     }
-    drawMangekyouActivationFlash(c, fighter)   // Itachi eye-ignite flash, on top of the sprite (fades)
   }
 
   // CINEMATIC INTRO REVEAL (opt-in via characters.js `introReveal`): while this fighter is playing its
@@ -3578,6 +3574,7 @@ function drawBattle() {
   drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
   drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
+  drawMangekyouCinematic(ctx, canvas)       // fullscreen Mangekyou activation overlay (centered eye transformation)
   drawVegetaFinalFlashCinematic(ctx, canvas)  // fullscreen Overcharged Final Flash overlay (gold beam + impact explosion)
   drawBeerusKiBallCinematic(ctx, canvas)      // fullscreen Ki Ball overlay (charging orb → impact explosion)
 }
@@ -4541,7 +4538,6 @@ gameLoop()
     hasSpriteHandler: !!f.spriteHandler,        // false → procedural box renderer (no hasSprites)
     currentForm:      f.currentForm || null,     // transformation state (Goku SSB etc.)
     mangekyouActive:  !!f._mangekyouActive,       // Itachi Mangekyou Sharingan buff-mode
-    mangekyouFlash:   f._mangekyouFlash || 0,     // activation eye-flash overlay timer
     damageMultiplier: f.damageMultiplier ?? 1,    // buff-mode damage scale (Mangekyou/SSJ etc.)
     transformIndex:   f.transformIndex ?? null,
     hasSkinAnim:      !!f._skinAnim,
@@ -4706,6 +4702,7 @@ gameLoop()
     sasukeCine: () => getSasukeCinematicStatus(),
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
     swordCine: () => getGokuBlackSwordCinematicStatus(),
+    mangekyouCine: () => getMangekyouCinematicStatus(),
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
     beerusUltCine: () => getBeerusKiBallCinematicStatus(),
     kuramaUltCine: () => getKuramaCinematicStatus(),

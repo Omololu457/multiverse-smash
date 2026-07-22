@@ -44,6 +44,8 @@ const p1 = () => page.evaluate(() => window.__harness.p1());
 async function waitFrames(n) { const s = (await state()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }); }
 async function shot(tag) { await page.screenshot({ path: path.join(OUT, `itachi_mangekyou_${tag}.png`) }); }
 async function tapCharge(holdFrames) { await page.keyboard.down("p"); await waitFrames(holdFrames); await page.keyboard.up("p"); await waitFrames(2); }
+const cineActive = () => page.evaluate(() => window.__harness.mangekyouCine().active);
+async function waitCine() { await page.waitForFunction(() => !window.__harness.mangekyouCine().active, null, { timeout: 8000, polling: 16 }).catch(() => {}); }
 async function settle() {
   await page.evaluate(() => { window.__harness.healP1(); window.__harness.resetFighterInput("p1"); });
   await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && (p.attackCooldown || 0) <= 0 && !p.charging; }, null, { timeout: 8000, polling: 16 }).catch(() => {});
@@ -70,21 +72,21 @@ try {
   await settle();
   await page.evaluate(() => window.__harness.fillEnergy());     // 200 ≥ 150
   await tapCharge(4);
-  const on = await p1();
+  const on = await p1();   // mangekyouActive + buffs are applied synchronously (before/under the freeze)
   check("Mangekyou active", on.mangekyouActive === true, `active=${on.mangekyouActive}`);
   check("currentForm = mangekyou", on.currentForm === "mangekyou", `form=${on.currentForm}`);
   check("buff damage multiplier ~1.20", Math.abs(on.damageMultiplier - 1.20) < 0.001, `mult=${on.damageMultiplier}`);
-  check("activation eye-flash armed", on.mangekyouFlash > 0, `flash=${on.mangekyouFlash}`);
-  await shot("active");
+  check("activation eye-transformation cinematic plays", (await cineActive()) === true, "");
+  await shot("active");    // capture the centered eye cinematic mid-play
+  await waitCine();        // wait out the freeze before drain/other checks (combat is paused during it)
 
   // ── CONTINUOUS DRAIN ─────────────────────────────────────────────────
-  section("continuous chakra drain while active");
+  section("continuous chakra drain while active (after the cinematic)");
   const e0 = (await p1()).energy;
   await waitFrames(40);
   const e1 = await p1();
   check("energy drains over time", e1.energy < e0, `${e0.toFixed(1)} → ${e1.energy.toFixed(1)}`);
   check("still active mid-drain", e1.mangekyouActive === true, `active=${e1.mangekyouActive}`);
-  check("flash decays toward 0", e1.mangekyouFlash < on.mangekyouFlash, `flash ${on.mangekyouFlash} → ${e1.mangekyouFlash}`);
 
   // ── AUTO-REVERT AT ZERO ──────────────────────────────────────────────
   section("instant auto-revert when chakra runs dry");
@@ -100,6 +102,7 @@ try {
   await page.evaluate(() => window.__harness.fillEnergy());
   await tapCharge(4);
   check("re-activated", (await p1()).mangekyouActive === true, "");
+  await waitCine();     // input is frozen during the cinematic — wait it out before the revert tap
   await tapCharge(1);   // quick tap
   check("tap while active reverts", (await p1()).mangekyouActive === false, `active=${(await p1()).mangekyouActive}`);
 

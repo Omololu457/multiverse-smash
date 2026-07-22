@@ -4183,7 +4183,8 @@ export function isMangekyouActive(fighter) { return !!(fighter && fighter._mange
 // Enter Mangekyou. Gated: itachi, not already active, actionable, energy ≥ threshold. NO up-front
 // spend (drain handles the cost). Sets the PUBLIC _mangekyouActive flag other systems read
 // (Stage-4 Amaterasu/Genjutsu gate on it) + buff multipliers. Deliberately does NOT set _skinAnim
-// (buff, not form-swap). teleportFlash gives the activation blink; _mangekyouFlash arms the eye overlay.
+// (buff, not form-swap). The activation REVEAL is the frozen eye-transformation cinematic
+// (mangekyouCinematic.js), triggered from game.handleChargeRelease right after this returns true.
 export function enterMangekyou(fighter) {
   if (!isItachi(fighter) || fighter._mangekyouActive) return false
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
@@ -4195,7 +4196,6 @@ export function enterMangekyou(fighter) {
   fighter.speedMultiplier   = MANGEKYOU_MULT.spd
   fighter.defenseMultiplier = MANGEKYOU_MULT.def
   fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 12)
-  fighter._mangekyouFlash   = 40              // activation-flash overlay timer (frames)
   fighter.attackCooldown    = 10              // brief settle as the eyes ignite
   sound.playSfxFile?.(pickItachiVoice("mangekyou"), null)   // "Your eyes see nothing" — Sharingan ignites
   return true
@@ -4223,7 +4223,6 @@ export function toggleMangekyou(fighter) {
 // Per-frame hook (updateFighterState): continuous drain + instant auto-revert at 0.
 export function applyMangekyouSystem(fighter) {
   if (!isItachi(fighter)) return
-  if (fighter._mangekyouFlash > 0) fighter._mangekyouFlash--
   tickSustainedFormDrain(fighter, {
     active: f => !!f._mangekyouActive,
     drainPerFrame: MANGEKYOU_DRAIN,

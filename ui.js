@@ -8,6 +8,35 @@ import { isFullyUnlocked } from "./progression.js"
 import { isFileApiSupported, saveFileStatus } from "./account.js"
 import { countShadowClones } from "./summons.js"
 
+// Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
+// Display-only (HUD energy-bar label) — no mechanics/costs read from this. Rick keeps his explicit
+// energyConfig.label; Ben/Albedo are relabeled OMNITRIX/ULTIMATRIX by the transform-device HUD block.
+const ENERGY_TYPE_LABELS = {
+  ki:               "Ki",                       // Dragon Ball (Goku, Vegeta, Goku Black, Piccolo, Frieza, Cell)
+  chakra:           "Chakra",                   // Naruto (Naruto, Sasuke)
+  cursed_energy:    "Cursed Energy",            // Jujutsu Kaisen (Gojo, Sukuna, Megumi)
+  nen:              "Nen",                       // Hunter x Hunter (Gon, Killua, …) — "Nen" over "Aura": matches the energyType field + is the series' proper term
+  bullshit_science: "Bullshit Science Energy",  // Rick & Morty (Rick) — mirrors his energyConfig.label; kept here as a fallback
+  portal_tech:      "Portal Tech",              // Rick & Morty (Morty, Evil Morty, Rick Prime)
+  spd_energy:       "SPD Energy",               // Power Rangers SPD
+  stamina:          "Stamina",                  // original roster (Omololu)
+  omnitrix:         "Omnitrix",                 // Ben 10 (fallback; device HUD block overrides live)
+  ultimatrix:       "Ultimatrix",               // Albedo (fallback; device HUD block overrides live)
+}
+
+// Single source of truth for the energy-bar resource name. Explicit energyConfig.label wins (Rick);
+// else the per-universe name derived from traits.energyType; else generic "ENERGY". Display-only.
+export function resolveEnergyLabel(fighter) {
+  return fighter?.energyConfig?.label || ENERGY_TYPE_LABELS[fighter?.traits?.energyType] || "ENERGY"
+}
+
+// HEAVENLY RESTRICTION HUD state: a Jujutsu Kaisen fighter with energyType "none" (canonically no
+// cursed energy in a cursed-energy universe — Toji). energyType-keyed + JJK-scoped so no-energy
+// fighters from energy-less universes (Demon Slayer, Invincible) are NOT mislabelled. Display-only.
+export function isHeavenlyRestriction(fighter) {
+  return fighter?.traits?.energyType === "none" && fighter?.universe === "jujutsu_kaisen"
+}
+
 const startScreenImage = new Image()
 startScreenImage.src = "./start-screen.png"
 
@@ -1646,12 +1675,16 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
   function drawEnergyPanel(x, flip, fighter) {
     if (!fighter) return
     const ec      = fighter.energyConfig || {}
-    let   label   = ec.label   || "ENERGY"
+    // Universe-specific energy resource name. Precedence: an explicit energyConfig.label (Rick's
+    // "Bullshit Science Energy") wins; otherwise derive the flavor name from the character's
+    // traits.energyType (the existing per-character field) via ENERGY_TYPE_LABELS; else generic.
+    // Ben/Albedo are relabeled to OMNITRIX/ULTIMATRIX by the transform-device block below.
+    let   label   = resolveEnergyLabel(fighter)
     let   mainCol = ec.color   || "#38bdf8"
     const emptyC  = ec.emptyColor || "rgba(255,255,255,0.08)"
     let   glowC   = ec.glowColor  || mainCol
     const hasEnergy = (fighter.maxEnergy || 0) > 0 && ec.regenRate !== "none"
-    const isHeavRes = label === "——"
+    const isHeavRes = isHeavenlyRestriction(fighter)
 
     // Transform device (Ben/Albedo): this meter IS the drain gauge. Relabel and
     // recolor it to read as the Omnitrix/Ultimatrix, and reflect its 3 live

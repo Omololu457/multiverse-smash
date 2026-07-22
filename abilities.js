@@ -10,6 +10,7 @@ import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
 import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCinematic.js"   // Goku Black SSJ Rose transform cinematic (no cycle)
 import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from "./gokuBlackSwordCinematic.js"   // Goku Black Sword Slash freeze cinematic (no cycle)
+import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } from "./vegetaFinalFlashCinematic.js"   // Vegeta Overcharged Final Flash ultimate cinematic (no cycle)
 import { resolveGrab } from "./combat.js"   // shared grab pipeline (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import {
@@ -199,6 +200,16 @@ function endsWithPattern(list, pattern) {
   return pi === pattern.length
 }
 
+// STRICT motion match: the last N recent inputs must EXACTLY equal `pattern`. Unlike the forgiving
+// endsWithPattern (which tolerates one stray → a suffix like B→F would shadow D→F/D→B when a stray
+// direction precedes), this never collides with the base D→F/D→B specials, so it's used for the SSJ
+// bonus specials whose relative endings (F/B) would otherwise overlap them.
+function endsWithExact(list, pattern) {
+  if (!Array.isArray(list) || !Array.isArray(pattern) || list.length < pattern.length) return false
+  const tail = list.slice(-pattern.length)
+  return tail.every((t, i) => t === pattern[i])
+}
+
 // ─────────────────────────────────────────────────────────────────
 // BETA-ONLY INPUT SIMPLIFICATION — single held direction → special
 // ─────────────────────────────────────────────────────────────────
@@ -219,7 +230,8 @@ const BETA_SPECIAL_MOTIONS = {
   toji:   { F: ["D", "F"], B: ["D", "B"], D: ["F", "F"] },                                       // F=Curse Spirit · B=Chain-Knife · D=Rapid Strike(sub) · neutral=Inventory Smash
   sasuke: { F: ["D", "F"], B: ["D", "B"], D: ["D"] },                                            // F=Lightning · B=Chidori Koiten · D=Shuriken · neutral=Dash Strike
   rick:   { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] },                                  // F=Portal-Pull · B=Portal-Push · U=Rocket · D=Laser · neutral=Meeseeks
-  goku_black: { F: ["D", "F"], B: ["D", "B"] }                                                   // F=Kamehameha (QCF) · B=Spirit Bomb (QCB) · neutral=Explosion (Stage 3b)
+  goku_black: { F: ["D", "F"], B: ["D", "B"] },                                                  // F=Kamehameha (QCF) · B=Spirit Bomb (QCB) · neutral=Explosion (Stage 3b)
+  vegeta: { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] }                                   // F=Galick Gun · B=Final Flash · neutral=Big Bang · U=Launch Ki Blast (free) · D=Ki Blast (free)
 }
 
 // Resolve the exact canonical motion for the fighter's currently-held direction (stamped
@@ -321,6 +333,9 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     // OPTIONAL lingering damage-over-time stamped on the target when this projectile
     // connects (resolveProjectileHits) — e.g. Naruto Rasenshuriken's wind-chip.
     dot:        moveData.dot        || null,
+    // OPTIONAL impact-on-connect FX: a sprite {sheet,frames,w,h,speed,scale,lifetime} spawned as a
+    // visualOnly projectile at the hit point ONLY when this projectile connects (resolveProjectileHitsMulti).
+    impact:     moveData.impact     || null,
     // Pure-visual projectiles (e.g. an in-place AOE ring bloom): skipped by hit
     // resolution so they never stun/despawn on contact — they fade out via lifetime.
     visualOnly: moveData.visualOnly || false
@@ -398,6 +413,584 @@ function executeGokuSpecial(fighter, context) {
   focusCameraOnAction(context, fighter, target, 0.98, 10)
   shakeCamera(context, 8, 8)
   return true
+}
+
+// ─────────────────────────────────────────────────────────────────
+// VEGETA — 3 charge/release energy specials (his OWN kit, NOT shared with Goku):
+//   QCF (D→F)  = GALICK GUN   — fast, cheapest; quick purple beam
+//   QCB (D→B)  = FINAL FLASH  — most committed/heaviest; long windup + big recovery
+//   neutral    = BIG BANG     — mid-cost spherical ki blast that stretches into a beam
+// Each: spendEnergy → charge cast pose (_spriteCastMove) → schedulePendingSpawn fires the
+// projectile mid-cast (mirrors Goku Black's Kamehameha/Spirit Bomb). Projectiles render the
+// re-sliced FX strips (drawProjectiles sprite hook, flipped to travel direction).
+const VG_GALICK_CAST = 14, VG_GALICK_FIRE = 9
+const VG_BIGBANG_CAST = 18, VG_BIGBANG_FIRE = 13
+const VG_FINALFLASH_CAST = 30, VG_FINALFLASH_FIRE = 24
+// STAGE 6 free-poke timing (all no-energy, cooldown-gated).
+const VG_KIBLAST_CAST = 10, VG_KIBLAST_FIRE = 6, VG_KIBLAST_CD = 22, VG_KIBLAST_HOLD_MS = 300
+const VG_LAUNCH_CAST = 16, VG_LAUNCH_FIRE = 8, VG_LAUNCH_CD = 40
+// FREE melee pokes (EX cancel + the two Koma strings). komaRush1 auto-chains into komaFinish on a
+// CLEAN hit; komaFinish LAUNCHES (combo ends → the launch-cancel is fine, like vgUpFinish).
+const VEGETA_FREE_MELEE = {
+  exKi:       { damage: 35, startup: 4, active: 3, recovery: 12, hitstun: 16, knockbackX: 6, knockbackY: -2, rangeX: 74, rangeY: 52, cd: 20 },
+  komaRush1:  { damage: 30, startup: 5, active: 4, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: 0,  rangeX: 78, rangeY: 52, cd: 30, komaNext: "komaFinish" },
+  komaFinish: { damage: 70, startup: 6, active: 6, recovery: 22, hitstun: 24, knockbackX: 11, knockbackY: -5, rangeX: 94, rangeY: 56, cd: 30, launcher: true },
+  komaRep:    { damage: 38, startup: 5, active: 3, recovery: 14, hitstun: 14, knockbackX: 5, knockbackY: 0,  rangeX: 80, rangeY: 52, cd: 22 },
+  // BLUE-ONLY 4-STAGE Koma Rush (front_attack → front_kick → up_attack → ki_bomb_throw). Same auto-chain-
+  // on-clean-hit + interrupt-on-whiff/block as the 2-stage version — just more links. koma3 POPS (not a true
+  // launcher, so the chain survives to koma4); koma4 is the launcher finisher and spawns the ki-bomb detonation.
+  vgBlueKoma1: { damage: 30, startup: 5, active: 4, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: 0,  rangeX: 76, rangeY: 52, cd: 30, komaNext: "vgBlueKoma2" },
+  vgBlueKoma2: { damage: 36, startup: 5, active: 4, recovery: 11, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 80, rangeY: 52, cd: 30, komaNext: "vgBlueKoma3" },
+  vgBlueKoma3: { damage: 44, startup: 6, active: 4, recovery: 12, hitstun: 18, knockbackX: 2, knockbackY: -9, rangeX: 82, rangeY: 56, cd: 30, komaNext: "vgBlueKoma4" },
+  vgBlueKoma4: { damage: 90, startup: 6, active: 5, recovery: 22, hitstun: 26, knockbackX: 13, knockbackY: -6, rangeX: 98, rangeY: 60, cd: 30, launcher: true,
+                 komaFx: { sheet: "./vegeta_blue_kibomb_fx_uniform.png", frames: 19, w: 112, h: 87, speed: 2, scale: 1.0 } },
+}
+function fireVegetaMelee(fighter, key) {
+  const md = VEGETA_FREE_MELEE[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only, no spendEnergy
+  fighter._komaNext     = md.komaNext || null
+  fighter._rekkaNext    = null             // free pokes are not part of the Fwd+Heavy target combo
+  fighter._cmdHitLanded = false
+  // Blue Koma finisher: throw the ki bomb — an orange detonation FX in front of Vegeta (visualOnly, decays).
+  if (md.komaFx) {
+    spawnProjectile(fighter, "vgKiBombFx", {
+      visualOnly: true, damage: 0, lifetime: md.komaFx.lifetime || 28, vx: 0, vy: 0,
+      spawnX: fighter.x + (fighter.w || 60) / 2 + fighter.facing * ((fighter.w || 60) * 0.7 + 24),
+      spawnY: fighter.y + (fighter.h || 100) * 0.4,
+      sheet: md.komaFx.sheet, spriteFrames: md.komaFx.frames, spriteW: md.komaFx.w, spriteH: md.komaFx.h,
+      spriteSpeed: md.komaFx.speed || 2, spriteScale: md.komaFx.scale || 1
+    })
+  }
+  return true
+}
+// SSJ SELF-DESTRUCT (Stage 5) — mirrors Rick's Self-Destruct: the caster "pose" IS the detonation
+// (self_explosion via _spriteCastMove), damage is a manual proximity gate (no self-harm, no projectile
+// collision needed). SSJ-only signature; separate from the Overcharged Final Flash ultimate.
+// Self-Destruct is manual-subtract (bypasses GLOBAL_DAMAGE_SCALE), like Rick's Self-Destruct / GB Explosion —
+// the established convention for instant proximity-AOE nukes. Kept a FLAT value across SSJ + Blue (it is NOT
+// multiplied by the form buff), so it does NOT compound across forms; matched to Rick's 180 so it isn't a
+// new worst-case in that already-flagged class.
+const VG_SELFDESTRUCT = { radius: 210, dmg: 180 }
+function fireVegetaSelfDestruct(fighter, context) {
+  const target = getTargetResolver(context)(fighter)
+  const rcx = fighter.x + (fighter.w || 60) / 2
+  const rcy = fighter.y + (fighter.h || 100) / 2
+  fighter._spriteCastMove  = "selfDestruct"   // self_explosion engulfs Vegeta (VEGETA_SSJ_ANIM.selfDestruct)
+  fighter._spriteCastTimer = 34
+  fighter.attackCooldown   = getAttackDuration(12, fighter)   // just blocks an accidental instant re-press
+  fighter.vx = 0
+  shakeCamera(context, 18, 20)
+  focusCameraOnAction(context, fighter, target, 0.93, 16)
+  if (target && !target.eliminated && (target.invulnTimer || 0) <= 0) {
+    const tcx = target.x + (target.w || 60) / 2
+    const tcy = target.y + (target.h || 100) / 2
+    if (Math.hypot(tcx - rcx, tcy - rcy) <= VG_SELFDESTRUCT.radius) {   // proximity gate — whiffs if far
+      let dmg = VG_SELFDESTRUCT.dmg
+      if (target.isBlocking) { dmg = Math.floor(dmg * 0.20); target.blockstun = 20 }
+      else { target.hitstun = 44; target.vx = (tcx >= rcx ? 1 : -1) * 18; target.vy = -10; target.colorFlash = 10 }
+      target.health = Math.max(0, (target.health || 0) - dmg)   // direct (no GLOBAL_DAMAGE_SCALE), like Rick/GB Explosion
+    }
+  }
+  return true
+}
+
+function executeVegetaSpecial(fighter, context) {
+  const dirs = getRelativeDirections(fighter)
+  const getOpponent = getTargetResolver(context)
+  const target      = getOpponent(fighter)
+  const ssj         = vegetaIsSuper(fighter)   // SSJ OR Blue → super-tier specials (base = purple)
+  const blue        = !!fighter._ssjBlueActive
+  // 3-tier picker: Blue art/values → SSJ → base. Blue sits above SSJ (top of the ladder).
+  const pick = (b, s, ba) => (blue ? b : ssj ? s : ba)
+
+  // ── SSJ-EXCLUSIVE bonus specials (Stage 5) — no base-form equivalent, so gated on `ssj`. Own
+  // motions chosen to avoid every base motion: NOT D→F/D→B (Galick/Final Flash), NOT ending in U/D
+  // (those match the free Launch-Ki/Ki-Blast pokes). B→F and F→B are clean and mutually distinct.
+  if (ssj) {
+    // BLUE-EXCLUSIVE (top-tier) specials — the other two exact 2-motions (F→F, B→B). All 4 of {F,B}²
+    // are now claimed by exact motions (FF super-galick, BB teleport, BF self-destruct, FB diag-galick),
+    // none colliding with the base forgiving D→F / D→B.
+    if (blue) {
+      // F→F — SUPER GALICK GUN: a bigger, costlier Galick (own input, distinct from the D→F Galick).
+      if (endsWithExact(dirs, ["F", "F"])) {
+        if (!spendEnergy(fighter, 50)) return false
+        fighter._spriteCastMove  = "vgSuperGalickCast"
+        fighter._spriteCastTimer = 22
+        fighter.attackCooldown   = getAttackDuration(26, fighter)
+        schedulePendingSpawn(14, () => {
+          spawnProjectile(fighter, "superGalick", {
+            damage: 260, speed: 16, lifetime: 130, hitstun: 28, knockbackX: 15, knockbackY: -3,
+            color: "#22d3ee", w: 62, h: 56,
+            sheet: "./vegeta_blue_galick_fx_uniform.png", spriteFrames: 10, spriteW: 195, spriteH: 95, spriteSpeed: 3, spriteScale: 1.25   // bigger than the regular beam
+          }, context)
+          shakeCamera(context, 12, 12)
+        })
+        focusCameraOnAction(context, fighter, target, 0.96, 12)
+        return true
+      }
+      // B→B — TELEPORT: blink BEHIND the opponent. NB: the shared game.js teleportBehindTarget actually
+      // repositions SAME-side-adjacent ("ready to attack"); for a true behind-blink we cross to the FAR side.
+      if (endsWithExact(dirs, ["B", "B"])) {
+        if (!spendEnergy(fighter, 20)) return false
+        if (target) {
+          fighter.x = fighter.x < target.x ? target.x + (target.w || 60) + 8 : target.x - (fighter.w || 60) - 8   // FAR side = behind
+          fighter.y = target.y
+          fighter.vx = 0; fighter.vy = 0
+          fighter.facing = (target.x >= fighter.x) ? 1 : -1    // turn to face the opponent after re-appearing
+        }
+        fighter._spriteCastMove  = "vgTeleport"
+        fighter._spriteCastTimer = 16
+        fighter.attackCooldown   = getAttackDuration(14, fighter)
+        fighter.teleportFlash    = 14
+        focusCameraOnAction(context, fighter, target, 1.0, 8)
+        return true
+      }
+    }
+    // EXACT-match (not forgiving) so these never shadow / aren't shadowed by the base D→F / D→B specials.
+    // B→F — SELF-DESTRUCT: a standalone signature nuke (NOT the ultimate). Huge cost, big proximity AOE.
+    if (endsWithExact(dirs, ["B", "F"])) {
+      if (!spendEnergy(fighter, 90)) return false
+      return fireVegetaSelfDestruct(fighter, context)
+    }
+    // F→B — DIAGONAL GALICK GUN: a downward-angled beam variant, its OWN input (distinct from D→F Galick).
+    if (endsWithExact(dirs, ["F", "B"])) {
+      if (!spendEnergy(fighter, 32)) return false
+      fighter._spriteCastMove  = "diagGalickCast"
+      fighter._spriteCastTimer = VG_GALICK_CAST
+      fighter.attackCooldown   = getAttackDuration(VG_GALICK_CAST + 6, fighter)
+      schedulePendingSpawn(VG_GALICK_FIRE, () => {
+        spawnProjectile(fighter, "diagGalick", {
+          damage: 130, speed: 15, lifetime: 100, hitstun: 22, knockbackX: 9, knockbackY: 4,
+          vy: 4,   // ANGLED DOWN — the diagonal beam
+          color: "#ffe066", w: 44, h: 40,
+          spawnY: fighter.y + (fighter.h || 100) * 0.2,   // from higher up so the down-angle sweeps into a grounded foe
+          sheet: "./vegeta_ssj_diag_galick_fx_uniform.png", spriteFrames: 7, spriteW: 144, spriteH: 256, spriteSpeed: 3, spriteScale: 0.5
+        }, context)
+        shakeCamera(context, 8, 8)
+      })
+      focusCameraOnAction(context, fighter, target, 0.98, 10)
+      return true
+    }
+  }
+
+  // QCF (D→F) — GALICK GUN: fast + cheapest. SSJ = own gold FX sheet, higher cost/damage.
+  if (endsWithPattern(dirs, ["D", "F"])) {
+    if (!spendEnergy(fighter, pick(34, 30, 25))) return false
+    fighter._spriteCastMove  = "galickCast"
+    fighter._spriteCastTimer = VG_GALICK_CAST
+    fighter.attackCooldown   = getAttackDuration(VG_GALICK_CAST + 6, fighter)
+    schedulePendingSpawn(VG_GALICK_FIRE, () => {
+      spawnProjectile(fighter, "galickGun", {
+        damage: pick(180, 150, 120), speed: 15, lifetime: 130, hitstun: 24, knockbackX: 10, knockbackY: -2,
+        color: pick("#22d3ee", "#ffe066", "#b06bff"), w: 46, h: 42,
+        sheet: pick("./vegeta_blue_galick_fx_uniform.png", "./vegeta_ssj_galick_fx_uniform.png", "./vegeta_base_galick_fx_uniform.png"),
+        spriteFrames: pick(10, 10, 7), spriteW: pick(195, 195, 144), spriteH: pick(95, 84, 262), spriteSpeed: 3, spriteScale: ssj ? 0.85 : 0.6
+      }, context)
+      shakeCamera(context, 8, 8)
+    })
+    focusCameraOnAction(context, fighter, target, 0.98, 10)
+    return true
+  }
+
+  // QCB (D→B) — FINAL FLASH: his hardest-hitting, most committed beam. SSJ = animated gold beam sheet
+  // + a dedicated explosion sheet that fires ONLY on connect (proj.impact → resolveProjectileHitsMulti).
+  if (endsWithPattern(dirs, ["D", "B"])) {
+    if (!spendEnergy(fighter, pick(64, 58, 50))) return false
+    fighter._spriteCastMove  = "charge"          // reuse the power-up pose (SSJ gold / Blue = gold fallback → FLAGGED gap)
+    fighter._spriteCastTimer = VG_FINALFLASH_CAST
+    fighter.attackCooldown   = getAttackDuration(VG_FINALFLASH_CAST + 12, fighter)
+    schedulePendingSpawn(VG_FINALFLASH_FIRE, () => {
+      spawnProjectile(fighter, "finalFlash", {
+        damage: pick(300, 250, 200), speed: 11, lifetime: 150, hitstun: 30, knockbackX: 14, knockbackY: -3,
+        color: pick("#7fd4ff", "#ffe066", "#ffe066"), w: 74, h: 46,
+        sheet: pick("./vegeta_blue_finalflash_beam_uniform.png", "./vegeta_ssj_finalflash_beam_uniform.png", "./vegeta_base_finalflash_beam1_uniform.png"),
+        spriteFrames: pick(12, 17, 1), spriteW: pick(258, 258, 193), spriteH: pick(156, 144, 130), spriteSpeed: ssj ? 2 : 4, spriteScale: 0.85,
+        // Explosion sheet plays at the point of contact ONLY (never at cast). Blue reuses SSJ's impact sheet.
+        ...(ssj ? { impact: { sheet: "./vegeta_ssj_finalflash_impact_uniform.png", frames: 17, w: 71, h: 83, speed: 2, scale: 2.2, lifetime: 40 } } : {})
+      }, context)
+      shakeCamera(context, 12, 12)
+    })
+    focusCameraOnAction(context, fighter, target, 0.95, 14)
+    return true
+  }
+
+  // ── FREE (no-energy) SPECIAL-button pokes (Stage 6). Gated ONLY by attackCooldown. Placed
+  // after the QCF/QCB energy specials so those keep priority; before the neutral Big Bang.
+  // U+Special — LAUNCH KI BLAST: an anti-air cyan barrage (3 staggered rising orbs).
+  if (endsWithPattern(dirs, ["U"])) {
+    if ((fighter.attackCooldown || 0) > 0) return false
+    fighter._spriteCastMove  = "launchKi"
+    fighter._spriteCastTimer = VG_LAUNCH_CAST
+    fighter.attackCooldown   = getAttackDuration(VG_LAUNCH_CD, fighter)
+    for (let i = 0; i < 3; i++) {
+      schedulePendingSpawn(VG_LAUNCH_FIRE + i * 6, () => {
+        spawnProjectile(fighter, "launchKi", {
+          damage: 30, speed: 13, lifetime: 90, hitstun: 16, knockbackX: 4, knockbackY: -9, vy: -3.5 + i * 1.5,
+          color: "#22d3ee", w: 26, h: 26,
+          sheet: "./vegeta_base_kiblast_orb_uniform.png", spriteFrames: 5, spriteW: 118, spriteH: 141, spriteSpeed: 3, spriteScale: 0.34
+        }, context)
+      })
+    }
+    focusCameraOnAction(context, fighter, target, 1.0, 8)
+    return true
+  }
+
+  // D+Special — KI BLAST: quick cyan shot. TAP vs HOLD = how long Down was held (charge-down-then-fire).
+  if (endsWithPattern(dirs, ["D"])) {
+    if ((fighter.attackCooldown || 0) > 0) return false
+    const held = performance.now() - (fighter._vgDownSince || performance.now())
+    const charged = held >= VG_KIBLAST_HOLD_MS
+    fighter._spriteCastMove  = "kiBlast"
+    fighter._spriteCastTimer = VG_KIBLAST_CAST
+    fighter.attackCooldown   = getAttackDuration(charged ? VG_KIBLAST_CD + 6 : VG_KIBLAST_CD, fighter)
+    schedulePendingSpawn(VG_KIBLAST_FIRE, () => {
+      spawnProjectile(fighter, "kiBlast", {
+        damage: charged ? 55 : 30, speed: charged ? 12 : 15, lifetime: 120,
+        hitstun: charged ? 18 : 12, knockbackX: charged ? 8 : 4, knockbackY: -1,
+        color: "#22d3ee", w: charged ? 42 : 26, h: charged ? 42 : 26,
+        sheet: "./vegeta_base_kiblast_orb_uniform.png", spriteFrames: 5, spriteW: 118, spriteH: 141, spriteSpeed: 3, spriteScale: charged ? 0.5 : 0.32
+      }, context)
+    })
+    return true
+  }
+
+  // NEUTRAL — BIG BANG ATTACK: mid-cost spherical ki blast. SSJ = the base blast RECOLORED GOLD
+  // (vegeta_ssj_bigbang_fx, baked hue-shift of the purple base FX), higher cost/damage.
+  if (!spendEnergy(fighter, pick(46, 42, 35))) return false
+  fighter._spriteCastMove  = "bigBangCast"     // base cast pose in ALL forms (no SSJ/Blue cast crop → FLAGGED gap)
+  fighter._spriteCastTimer = VG_BIGBANG_CAST
+  fighter.attackCooldown   = getAttackDuration(VG_BIGBANG_CAST + 8, fighter)
+  schedulePendingSpawn(VG_BIGBANG_FIRE, () => {
+    spawnProjectile(fighter, "bigBang", {
+      damage: pick(210, 175, 140), speed: 12, lifetime: 140, hitstun: 26, knockbackX: 11, knockbackY: -1,
+      color: pick("#22d3ee", "#ffe066", "#b06bff"), w: 50, h: 44,
+      sheet: pick("./vegeta_blue_bigbang_fx_uniform.png", "./vegeta_ssj_bigbang_fx_uniform.png", "./vegeta_base_bigbang_fx_uniform.png"),
+      spriteFrames: 10, spriteW: 195, spriteH: 82, spriteSpeed: 3, spriteScale: 0.7
+    }, context)
+    shakeCamera(context, 9, 9)
+  })
+  focusCameraOnAction(context, fighter, target, 0.97, 12)
+  return true
+}
+
+// VEGETA ULTIMATE — "Overcharged Final Flash": the Stage-4 Final Flash special escalated into a
+// near-max-meter FROZEN CINEMATIC (biggest hit in his kit). Reuses the shared freeze architecture
+// (vegetaFinalFlashCinematic.js, mirroring gokuBlackSwordCinematic). The guaranteed, range-independent
+// damage lands at the FIRE connect beat via onImpact — a held block chips it, a clean hit is huge.
+const VG_ULT = { cost: 100, dmg: 340, ssjDmg: 420, blueDmg: 480, blockRatio: 0.22 }   // base < SSJ < Blue overcharge
+function executeVegetaUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "vegeta") return false
+  if (isVegetaFinalFlashCinematicActive()) return false        // already mid-cinematic
+  if (!spendEnergy(fighter, VG_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  fighter.vx = 0
+  activateVegetaFinalFlashCinematic(fighter, opp, (cineCtx) => applyVegetaFinalFlashDamage(fighter, opp, cineCtx))
+  return true
+}
+
+// PAYOFF: a GUARANTEED, range-independent overcharged beam. A held block (frozen at its pre-cinematic
+// value, like Kurama's TBB) CHIPS it to 22%; a clean hit deals the full ~340 + a big stagger. Applied
+// once at the FIRE connect beat by the cinematic.
+function applyVegetaFinalFlashDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = fighter._ssjBlueActive ? VG_ULT.blueDmg : fighter._ssjActive ? VG_ULT.ssjDmg : VG_ULT.dmg   // base 340 < SSJ 420 < Blue 480
+  if (blocked) {
+    dmg = Math.round(dmg * VG_ULT.blockRatio)
+    opp.blockstun = Math.max(opp.blockstun || 0, 18)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 28)
+    opp.vx = fighter.facing * 16; opp.vy = -6
+    opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 20, maxTimer: 20,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#ffe066",
+      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 42,
+      ...(blocked ? { isBlocking: true } : {})
+    })
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// VEGETA — SUPER SAIYAN (regular)  (continuous-drain sustained transform)
+// Vegeta's SECOND form on the SAME rosterKey ("vegeta") — a _skinAnim art swap, NOT a
+// separate roster entry. Built on the exact SSJ-Rose architecture: threshold-gated
+// charge-RELEASE entry (no up-front spend), continuous per-frame drain, instant
+// auto-revert at 0, and a FULL art form-swap (gold sheets via _skinAnim). Declarative
+// twin lives in characters.vegeta.transformations.ssj (energyDrainPerFrame/revertOnEmpty).
+//
+// MANDATORY WAYPOINT: SSJ is the first rung of Vegeta's transform ladder and the REQUIRED
+// intermediate for the future SSJ Blue. enterVegetaSSJ is callable BOTH as the player-facing
+// transform AND — via ensureVegetaSSJWaypoint / opts.fast — as a silent pass-through the Blue
+// build calls FIRST, so the SSJ state actually fires before Blue stacks on top (never skipped).
+// ─────────────────────────────────────────────────────────────────────────
+export function isVegeta(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "vegeta" }
+
+const VEGETA_SSJ_THRESHOLD = 120     // energy ≥ 120 (60% of maxEnergy 200) to enter — hold P to build past it
+const VEGETA_SSJ_DRAIN     = 0.18    // energy/frame while transformed (~11/s @60fps) — gentler than Rose's 0.30
+const VEGETA_SSJ_MULT      = { dmg: 1.20, spd: 1.12, def: 1.05 }   // below the Rose ceiling (+25/+15/+5) → headroom for Blue
+const VEGETA_SSJ_MORPH     = 58      // transform.png play length (27f × speed 2) — full lockout while morphing
+
+// FULL merged art set: base Vegeta's COMPLETE animationData (so EVERY un-overridden action still
+// renders real art, never the 128² fallback box — animationProfile resolves skinAnim at the object
+// level, not per-key) with the SSJ (gold) sheets overlaid on top. Un-overridden actions (normals,
+// specials, casts) still show base-form art until later stages replace them — intentional, not a box.
+const VEGETA_SSJ_ANIM = {
+  ...characters.vegeta.animationData,
+  idle:      { frames: 4, width: 34, height: 77, speed: 6, anchorY: 0, sheet: "./vegeta_ssj_idle_uniform.png" },
+  walk:      { frames: 4, width: 58, height: 48, speed: 6, anchorY: 0, sheet: "./vegeta_ssj_run_uniform.png" },   // reuse run, slower
+  run:       { frames: 4, width: 58, height: 48, speed: 4, anchorY: 0, sheet: "./vegeta_ssj_run_uniform.png" },
+  dash:      { frames: 2, width: 69, height: 44, speed: 5, anchorY: 0, sheet: "./vegeta_ssj_dash_uniform.png" },
+  back_dash: { frames: 1, width: 42, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_ssj_back_dash_uniform.png" },
+  jump:      { frames: 5, width: 42, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_ssj_jump_uniform.png" },                    // RISE poses (uniform frames 0-4)
+  fall:      { frames: 4, width: 42, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sourceX: 210, sheet: "./vegeta_ssj_jump_uniform.png" },       // DESCENT poses (frames 5-8, sourceX 5×42)
+  guard:     { frames: 3, width: 44, height: 62, speed: 6, anchorY: 0, sheet: "./vegeta_ssj_gaurd_uniform.png" },
+  hurt:      { frames: 5, width: 45, height: 66, speed: 6, anchorY: 0, sheet: "./vegeta_ssj_hit_uniform.png" },
+  knockdown: { frames: 7, width: 71, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_ssj_knock_down_uniform.png" }, // sprawl→rise
+  getup:     { frames: 7, width: 71, height: 58, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_ssj_knock_down_uniform.png" }, // reuse knockdown; sprite.js splits via knockdownTimer/GETUP_WINDOW
+  // Transform morph (base→gold). Plays ONCE on entering the form (VEGETA_SSJ_MORPH lockout) and doubles as the SSJ intro.
+  transform: { frames: 27, width: 126, height: 93, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_ssj_transformation_uniform.png" },
+  // NORMALS (gold). Overlay the SSJ sheets so attacks render the gold body, not the inherited base art
+  // (BUG 1: un-overridden keys silently rendered base Vegeta). Frame counts alpha-gutter-verified.
+  light:    { frames: 9,  width: 68, height: 61, speed: 3, anchorY: 0, sheet: "./vegeta_ssj_light_uniform.png" },      // foward_attack_2
+  heavy:    { frames: 12, width: 56, height: 65, speed: 3, anchorY: 0, sheet: "./vegeta_ssj_heavy_uniform.png" },      // foward_attack
+  up:       { frames: 7,  width: 47, height: 61, speed: 3, anchorY: 0, sheet: "./vegeta_ssj_up_uniform.png" },         // up_attack (tiered mechanic = Stage 2 proper; art wired now)
+  air:      { frames: 6,  width: 51, height: 70, speed: 4, anchorY: 0, sheet: "./vegeta_ssj_air_uniform.png" },        // air_to_down_attack
+  down_air: { frames: 8,  width: 53, height: 71, speed: 4, anchorY: 0, sheet: "./vegeta_ssj_down_air_uniform.png" },   // diagonal_side_down_attack
+  // SPECIAL CAST poses (gold). galickCast → SSJ; Final Flash reuses `charge` (below) → both now render the
+  // SSJ body while the beam travels as a SEPARATE projectile layer (BUG 2: character stayed visible, just base-art).
+  galickCast: { frames: 13, width: 65, height: 68, speed: 2, anchorY: 0, sheet: "./vegeta_ssj_galick_cast_uniform.png" },
+  // CHARGE (hold P) — gold aura, two-part (buildup 0-3 once → tail 4-9 loops). Also the Final Flash cast pose
+  // AND the Overcharged Final Flash ULTIMATE hold pose (BUG 3: the live caster now reads as gold SSJ, single instance).
+  charge:   { frames: 10, width: 110, height: 91, speed: 6, anchorY: 0, loop: true, loopStart: 4, sheet: "./vegeta_ssj_charge_uniform.png" },
+  // COMMAND-NORMAL CHAIN (Stage 3) — the base 4-stage Fwd+Heavy rekka (vgFkick1→vgSidekick→vgUpInto→
+  // vgUpFinish) is unchanged mechanically; in SSJ each stage renders a consecutive SEGMENT of ONE
+  // continuous 30-frame combo sheet (sourceX offsets), so re-tapping plays combo_attack start→finish as
+  // a single flowing gold string. Attacking auto-spreads each segment's frames across its move duration.
+  vgFkick1:   { frames: 8, width: 64, height: 82, speed: 3, anchorY: 0, sourceX: 0,    sheet: "./vegeta_ssj_combo_attack_uniform.png" },  // frames 0-7
+  vgSidekick: { frames: 7, width: 64, height: 82, speed: 3, anchorY: 0, sourceX: 512,  sheet: "./vegeta_ssj_combo_attack_uniform.png" },  // frames 8-14 (8×64)
+  vgUpInto:   { frames: 8, width: 64, height: 82, speed: 3, anchorY: 0, sourceX: 960,  sheet: "./vegeta_ssj_combo_attack_uniform.png" },  // frames 15-22 (15×64)
+  vgUpFinish: { frames: 7, width: 64, height: 82, speed: 3, anchorY: 0, sourceX: 1472, sheet: "./vegeta_ssj_combo_attack_uniform.png" },  // frames 23-29 (23×64)
+  // KOMA RUSH (Stage 3) — the base 2-stage Down+Heavy auto-chain (komaRush1→komaFinish, interrupt on
+  // whiff/block) unchanged; in SSJ both stages are consecutive halves of ONE super_kick_special sheet.
+  komaRush1:  { frames: 9, width: 115, height: 78, speed: 3, anchorY: 0, sourceX: 0,    sheet: "./vegeta_ssj_super_kick_uniform.png" },  // frames 0-8
+  komaFinish: { frames: 9, width: 115, height: 78, speed: 3, anchorY: 0, sourceX: 1035, sheet: "./vegeta_ssj_super_kick_uniform.png" },  // frames 9-17 (9×115)
+  // STAGE 5 SSJ-EXCLUSIVE signature moves (no base-form equivalent).
+  // SELF-DESTRUCT — the caster "pose" IS the detonation (self_explosion engulfs Vegeta). actionScale
+  // tames the tall 159px cell so the blast reads big but not screen-eating.
+  selfDestruct:   { frames: 28, width: 166, height: 159, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, actionScale: 0.8, sheet: "./vegeta_ssj_self_explosion_uniform.png" },
+  // DIAGONAL GALICK GUN caster pose (its own input, distinct from the Stage-4 Galick).
+  diagGalickCast: { frames: 13, width: 74, height: 76, speed: 2, anchorY: 0, sheet: "./vegeta_ssj_diag_galick_cast_uniform.png" },
+  // 3-TIER UP-ATTACK (Stage 6) — re-press UP-attack in recovery to escalate. T1 reuses the `up` sheet;
+  // T2 = up_attack_special; T3 = super_up_attack (launcher) + a spawned ki-burst FX.
+  vgUpT1: { frames: 7,  width: 47, height: 61, speed: 3, anchorY: 0, sheet: "./vegeta_ssj_up_uniform.png" },
+  vgUpT2: { frames: 7,  width: 46, height: 77, speed: 3, anchorY: 0, sheet: "./vegeta_ssj_up_special_uniform.png" },
+  vgUpT3: { frames: 11, width: 49, height: 65, speed: 3, anchorY: 0, sheet: "./vegeta_ssj_super_up_uniform.png" }
+  // NOTE: bigBangCast intentionally left inherited (base) — Big Bang's gold recolor is Stage 4.
+  // NOTE: komaRep (Koma Repeatable, Down+Light) intentionally reuses base koma_attack_repeatabl via the merge (no SSJ art on disk).
+}
+
+// Enter SSJ. Player path: gated on vegeta + not already SSJ + actionable + energy ≥ threshold, and
+// plays the 27-frame morph in-place (locked for its duration). opts.fast = the silent Blue-chain
+// pass-through (skips gates + morph, snaps state instantly so Blue can escalate the same frame).
+export function enterVegetaSSJ(fighter, context = {}, opts = {}) {
+  if (!isVegeta(fighter) || fighter._ssjActive) return false
+  const fast = !!opts.fast
+  if (!fast) {
+    if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+    if ((fighter.energy || 0) < VEGETA_SSJ_THRESHOLD) return false   // ONLY at/above threshold — no up-front spend
+  }
+  fighter._ssjActive        = true
+  fighter._skinAnim         = VEGETA_SSJ_ANIM       // FULL art form-swap (gold sheets)
+  fighter.currentForm       = "vegetaSSJ"           // HUD/state (base → vegetaSSJ)
+  fighter.damageMultiplier  = VEGETA_SSJ_MULT.dmg
+  fighter.attackMultiplier  = VEGETA_SSJ_MULT.dmg
+  fighter.speedMultiplier   = VEGETA_SSJ_MULT.spd
+  fighter.defenseMultiplier = VEGETA_SSJ_MULT.def
+  // updateTransformationState re-applies multipliers from currentFormData EVERY frame — point it at
+  // the SSJ entry (matching VEGETA_SSJ_MULT) or the base form data would stomp the buffs a frame later.
+  fighter.currentFormData   = fighter.transformations?.ssj || fighter.currentFormData
+  fighter._ssjWaypointReached = true                // PUBLIC: SSJ waypoint passed (SSJ Blue prerequisite)
+  if (fast) {
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+  } else {
+    fighter._spriteCastMove  = "transform"          // play the base→gold morph on the fighter
+    fighter._spriteCastTimer = VEGETA_SSJ_MORPH
+    fighter.attackCooldown   = VEGETA_SSJ_MORPH      // fully locked while morphing
+    fighter.teleportFlash    = 14
+    fighter.vx = 0
+    sound.playDragonBallTransformSfx()               // SHARED Dragon Ball transform cue
+  }
+  return true
+}
+
+// Revert to base: clear the flag + art swap + stat multipliers. Called by the drain auto-revert,
+// a manual re-tap, and round/KO resets. (Mirrors revertSSJRose.)
+export function revertVegetaSSJ(fighter) {
+  if (!fighter || !fighter._ssjActive) return
+  fighter._ssjActive        = false
+  fighter._skinAnim         = null
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = 1
+  fighter.attackMultiplier  = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  // Point currentFormData back at the base form so updateTransformationState re-applies 1.0 each
+  // frame (mirror; otherwise it would keep re-applying the SSJ buffs after revert).
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+
+// P-tap toggle: enter if base + at threshold; manual revert if already transformed.
+export function toggleVegetaSSJ(fighter, context = {}) {
+  if (!isVegeta(fighter)) return false
+  if (fighter._ssjActive) { revertVegetaSSJ(fighter); return true }
+  return enterVegetaSSJ(fighter, context)
+}
+
+// Per-frame hook (updateFighterState): continuous drain + instant auto-revert at 0. Handles BOTH
+// forms — only one is ever active (Blue clears _ssjActive), so only its drain runs.
+export function applyVegetaFormSystem(fighter) {
+  if (!isVegeta(fighter)) return
+  tickSustainedFormDrain(fighter, { active: f => !!f._ssjBlueActive, drainPerFrame: VEGETA_BLUE_DRAIN, revert: revertVegetaBlue })
+  tickSustainedFormDrain(fighter, { active: f => !!f._ssjActive,     drainPerFrame: VEGETA_SSJ_DRAIN,  revert: revertVegetaSSJ })
+}
+
+// MANDATORY-WAYPOINT SEAM for the future SSJ Blue build. Blue's activation MUST call this FIRST:
+// if Vegeta isn't already at SSJ (or above), it fires the REAL SSJ transform as a fast, silent
+// intermediate step so the SSJ state genuinely exists before Blue stacks on top. Returns true once
+// SSJ (or higher) is active. Blue therefore cannot gate purely on base-form energy — routing through
+// here guarantees the waypoint is never skipped. _ssjWaypointForced records that this path fired it.
+export function ensureVegetaSSJWaypoint(fighter, context = {}) {
+  if (!isVegeta(fighter)) return false
+  if (fighter._ssjActive || fighter._ssjBlueActive) return true   // already at/above the waypoint
+  const ok = enterVegetaSSJ(fighter, context, { fast: true })
+  fighter._ssjWaypointForced = ok
+  return ok
+}
+
+// TRUE while Vegeta is in ANY super form (SSJ or Blue). Gates every "SSJ-or-above" behavior — the
+// gold specials, the SSJ-exclusive moves, the up-attack tiers — so they stay available in Blue too.
+export function vegetaIsSuper(fighter) { return !!(fighter?._ssjActive || fighter?._ssjBlueActive) }
+
+// ─────────────────────────────────────────────────────────────────────────
+// VEGETA — SUPER SAIYAN BLUE  (THIRD form; the top of Vegeta's power tier)
+// Chains OFF the SSJ waypoint: enterVegetaBlue REQUIRES the SSJ state (rejects a direct base→Blue),
+// mirroring SSJ Rose/SSJ shape (threshold-gated, continuous drain, auto-revert). Blue SUPERSEDES SSJ
+// (clears _ssjActive, sets _ssjBlueActive) so only Blue's drain runs. Buffs sit clearly above SSJ's
+// finalized 1.20/1.12/1.05 — roughly doubling the base→SSJ boost. _skinAnim is a FULL COPY of SSJ's
+// already-merged anim + Blue overlays → 3-tier fallback: Blue art → SSJ gold → base.
+// ─────────────────────────────────────────────────────────────────────────
+const VEGETA_BLUE_THRESHOLD = 160    // energy ≥ 160 (80% of 200) — HIGHER than SSJ's 120 (top-tier gate)
+const VEGETA_BLUE_DRAIN     = 0.28   // energy/frame (~17/s) — faster than SSJ's 0.18 (costlier to sustain)
+const VEGETA_BLUE_MULT      = { dmg: 1.45, spd: 1.25, def: 1.12 }   // clearly above SSJ (1.20/1.12/1.05)
+const VEGETA_BLUE_MORPH     = 50     // vegeta_blue_transformation.png (25f × speed 2) full lockout
+
+// FULL copy of SSJ's finalized (already-merged base+SSJ) anim, with Blue overlays. Any action WITHOUT
+// Blue art falls back to SSJ's (gold), which itself falls back to base's — the 3-tier chain.
+const VEGETA_BLUE_ANIM = {
+  ...VEGETA_SSJ_ANIM,
+  idle:      { frames: 4,  width: 48,  height: 62, speed: 6, anchorY: 0, sheet: "./vegeta_blue_idle_uniform.png" },
+  // Blue LOCOMOTION (dedicated cyan art — closes the gap where `run`/`walk` silently fell through to SSJ
+  // gold, the source of the choppiness during movement). slice_scan vegeta_ssj_blue_run.png → 248×48, 4
+  // content islands [2-52][64-113][127-177][195-246]; RE-SLICED to a uniform strip via harness/reslice.mjs →
+  // vegeta_ssj_blue_run_uniform.png {frames:4, width:58, height:48} (matches SSJ run's 58 pitch). NOTE: normal
+  // forward movement resolves to `walk` (the `run` action needs |vx|>10, unreached by ground speed), so `walk`
+  // MUST point at the Blue sheet too or gold shows during movement — mirrors SSJ/base where walk reuses run.
+  walk:      { frames: 4,  width: 58,  height: 48, speed: 6, anchorY: 0, sheet: "./vegeta_ssj_blue_run_uniform.png" },   // reuse run, slower
+  run:       { frames: 4,  width: 58,  height: 48, speed: 4, anchorY: 0, sheet: "./vegeta_ssj_blue_run_uniform.png" },
+  // Transform morph (SSJ gold → Blue). Plays ONCE on entering (VEGETA_BLUE_MORPH lockout) + doubles as the Blue intro.
+  transform: { frames: 25, width: 109, height: 97, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_blue_transformation_uniform.png" },
+  // STAGE 2 — Blue (cyan) NORMALS. Overlay on top of SSJ's gold so attacks read as Blue Vegeta.
+  light:    { frames: 6,  width: 72, height: 62, speed: 3, anchorY: 0, sheet: "./vegeta_blue_light_uniform.png" },   // foward_kick (leading 4px debris discarded → 6 real frames)
+  heavy:    { frames: 22, width: 65, height: 65, speed: 2, anchorY: 0, sheet: "./vegeta_blue_heavy_uniform.png" },   // 6_combo_attack
+  up:       { frames: 9,  width: 57, height: 72, speed: 3, anchorY: 0, sheet: "./vegeta_blue_up_uniform.png" },      // up_attack_2 (launcher)
+  air:      { frames: 14, width: 46, height: 66, speed: 3, anchorY: 0, sheet: "./vegeta_blue_air_uniform.png" },     // air_attack
+  down_air: { frames: 14, width: 46, height: 66, speed: 3, anchorY: 0, sheet: "./vegeta_blue_air_uniform.png" },     // REUSE air_attack (no dedicated down_air, same precedent as every form)
+  // The up-attack in a super form fires the TIER rekka (vgUpT1), so point tier-1 at the Blue launcher too.
+  // Tiers 2/3 (vgUpT2/vgUpT3) have no Blue art → fall through to SSJ gold (documented Blue-art gap).
+  vgUpT1:   { frames: 9,  width: 57, height: 72, speed: 3, anchorY: 0, sheet: "./vegeta_blue_up_uniform.png" },
+  // STAGE 3 — COMMAND-NORMAL CHAIN. Segment the single 14-frame attack_sequance (re-cropped: #0-13 clean;
+  // #14-17 = the flagged 5/1/18/3px debris; #18-20 trailing flourish dropped) across the 4 rekka stages.
+  vgFkick1:   { frames: 4, width: 91, height: 72, speed: 3, anchorY: 0, sourceX: 0,    sheet: "./vegeta_blue_cmd_uniform.png" },  // frames 0-3
+  vgSidekick: { frames: 3, width: 91, height: 72, speed: 3, anchorY: 0, sourceX: 364,  sheet: "./vegeta_blue_cmd_uniform.png" },  // frames 4-6 (4×91)
+  vgUpInto:   { frames: 4, width: 91, height: 72, speed: 3, anchorY: 0, sourceX: 637,  sheet: "./vegeta_blue_cmd_uniform.png" },  // frames 7-10 (7×91)
+  vgUpFinish: { frames: 3, width: 91, height: 72, speed: 3, anchorY: 0, sourceX: 1001, sheet: "./vegeta_blue_cmd_uniform.png" },  // frames 11-13 (11×91)
+  // STAGE 3 — KOMA RUSH (Blue's is a 4-STAGE chain, unlike SSJ's 2-stage). Distinct sheets per stage.
+  vgBlueKoma1: { frames: 10, width: 68, height: 80, speed: 3, anchorY: 0, sheet: "./vegeta_blue_koma1_uniform.png" },  // front_attack (opener)
+  vgBlueKoma2: { frames: 10, width: 68, height: 70, speed: 3, anchorY: 0, sheet: "./vegeta_blue_koma2_uniform.png" },  // front_kick
+  vgBlueKoma3: { frames: 7,  width: 51, height: 69, speed: 3, anchorY: 0, sheet: "./vegeta_blue_koma3_uniform.png" },  // up_attack (pop) — NB: NOT up_attack_2
+  vgBlueKoma4: { frames: 8,  width: 44, height: 67, speed: 3, anchorY: 0, sheet: "./vegeta_blue_koma4_uniform.png" },  // ki_bomb_throw (finisher + FX)
+  // STAGE 4 — Galick Gun cast pose (charge+release "character halves" merged → 14f). Final Flash reuses
+  // `charge` (SSJ gold, inherited — FLAGGED gap), Big Bang reuses `bigBangCast` (base — FLAGGED gap).
+  galickCast: { frames: 14, width: 74, height: 76, speed: 2, anchorY: 0, sheet: "./vegeta_blue_galick_cast_uniform.png" },
+  // STAGE 5 Blue-exclusive: Super Galick Gun cast pose (22f, 6px mid-run debris left in — negligible blip)
+  // + Teleport (2 poses + streak-blur; play-once).
+  vgSuperGalickCast: { frames: 22, width: 105, height: 93, speed: 2, anchorY: 0, sheet: "./vegeta_blue_super_galick_uniform.png" },
+  vgTeleport:        { frames: 4,  width: 33,  height: 87, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_blue_teleport_uniform.png" }
+  // guard/jump/hurt/etc. intentionally NOT overridden → fall through to SSJ's gold sheets (verified in-test).
+  // (walk/run ARE now overridden above → Blue locomotion uses its own cyan art, no longer SSJ gold.)
+}
+
+// Enter Blue. GATE: must already be in SSJ (the waypoint). Player path rejects a direct base→Blue;
+// opts.chain lets a programmatic caller force the SSJ waypoint first via ensureVegetaSSJWaypoint.
+export function enterVegetaBlue(fighter, context = {}, opts = {}) {
+  if (!isVegeta(fighter) || fighter._ssjBlueActive) return false
+  const fast = !!opts.fast
+  // MANDATORY WAYPOINT — Blue only from the SSJ state.
+  if (!fighter._ssjActive) {
+    if (!opts.chain) return false                                    // reject/no-op a direct base→Blue attempt
+    if (!ensureVegetaSSJWaypoint(fighter, context)) return false     // full-chain caller: fire SSJ first
+  }
+  if (!fast) {
+    if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+    if ((fighter.energy || 0) < VEGETA_BLUE_THRESHOLD) return false  // higher gate than SSJ
+  }
+  fighter._ssjActive        = false                 // Blue SUPERSEDES SSJ (only Blue drain runs)
+  fighter._ssjBlueActive    = true
+  fighter._skinAnim         = VEGETA_BLUE_ANIM
+  fighter.currentForm       = "vegetaBlue"
+  fighter.damageMultiplier  = VEGETA_BLUE_MULT.dmg
+  fighter.attackMultiplier  = VEGETA_BLUE_MULT.dmg
+  fighter.speedMultiplier   = VEGETA_BLUE_MULT.spd
+  fighter.defenseMultiplier = VEGETA_BLUE_MULT.def
+  fighter.currentFormData   = fighter.transformations?.ssjBlue || fighter.currentFormData   // re-applied each frame
+  fighter._ssjWaypointReached = true
+  if (fast) {
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+  } else {
+    fighter._spriteCastMove  = "transform"
+    fighter._spriteCastTimer = VEGETA_BLUE_MORPH
+    fighter.attackCooldown   = VEGETA_BLUE_MORPH
+    fighter.teleportFlash    = 14
+    fighter.vx = 0
+    sound.playDragonBallTransformSfx()
+  }
+  return true
+}
+
+// Revert Blue → base (drops the whole ladder, like SSJ's revert).
+export function revertVegetaBlue(fighter) {
+  if (!fighter || !fighter._ssjBlueActive) return
+  fighter._ssjBlueActive    = false
+  fighter._ssjActive        = false
+  fighter._skinAnim         = null
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = 1
+  fighter.attackMultiplier  = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
 }
 
 function executeGokuUltimate(fighter, context) {
@@ -1547,6 +2140,149 @@ export function updateTojiStanceCombat(fighter, inputState, context, getPhase) {
   return false
 }
 
+// ─────────────────────────────────────────────────────────────────
+// VEGETA — command-normal cancel chain ("Y-track" kick target combo). Toji-Rekka
+// mechanics (fireTojiBladeMove/_rekkaNext): a Forward+Heavy OPENER, then re-tapping
+// Heavy during the current hit's RECOVERY cancels into the next stage — but ONLY if the
+// prior hit actually CONNECTED (cancel-on-HIT; a blocked or whiffed hit ends the string,
+// matching the base spec's interrupt-on-whiff/block rule). This is its OWN input path,
+// distinct from the neutral light (punch) / neutral heavy (crouch strike) normals, which
+// stay on the normal combat path untouched.
+//   vgFkick1 (opener) → vgSidekick → vgUpInto (LAUNCHER) → vgUpFinish (finisher).
+const VEGETA_COMMAND = {
+  vgFkick1:   { damage: 40, startup: 5, active: 3, recovery: 10, hitstun: 14, knockbackX: 3, knockbackY: 0,  rangeX: 72, rangeY: 50, rekkaNext: "vgSidekick" },
+  vgSidekick: { damage: 34, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: 0,  rangeX: 80, rangeY: 50, rekkaNext: "vgUpInto" },
+  // vgUpInto POPS the opponent up via knockback (NOT launcher:true — a true launcher's
+  // physics.launcherAttack lifts the ATTACKER too and auto-cancels his move for a juggle,
+  // which would break the grounded rekka before the finisher). Vegeta stays grounded → the
+  // string continues; the real juggle-launch lives on the finisher below.
+  vgUpInto:   { damage: 42, startup: 6, active: 4, recovery: 12, hitstun: 18, knockbackX: 2, knockbackY: -10, rangeX: 84, rangeY: 54, rekkaNext: "vgUpFinish" },
+  vgUpFinish: { damage: 60, startup: 6, active: 4, recovery: 20, hitstun: 22, knockbackX: 9, knockbackY: -4, rangeX: 92, rangeY: 52, launcher: true },   // finisher — LAUNCHES for a juggle (combo ends here, so the launch-cancel is fine)
+}
+
+function fireVegetaCommand(fighter, key, context) {
+  const md = VEGETA_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._komaNext     = null    // command chain and Koma Rush are separate strings
+  fighter._upTierNext   = null
+  fighter._cmdHitLanded = false   // reset per stage; latched true only on a real (non-blocked) hit
+  return true
+}
+
+// SSJ-ONLY 3-TIER UP-ATTACK (Stage 6). Re-pressing UP-attack during the current tier's RECOVERY
+// escalates T1 → T2 → T3 (super, a launcher that spawns a ki-burst FX). Reuses the SAME rekka
+// primitive as the command chain (setAttackState + a `_next` field advanced on a fresh press).
+const VEGETA_SSJ_UP = {
+  vgUpT1: { damage: 45, startup: 6, active: 4, recovery: 12, hitstun: 16, knockbackX: 2, knockbackY: -6,  rangeX: 62, rangeY: 74, upNext: "vgUpT2" },   // tap
+  vgUpT2: { damage: 58, startup: 5, active: 4, recovery: 14, hitstun: 18, knockbackX: 2, knockbackY: -9,  rangeX: 66, rangeY: 82, upNext: "vgUpT3" },   // 2nd press
+  vgUpT3: { damage: 85, startup: 7, active: 5, recovery: 22, hitstun: 24, knockbackX: 3, knockbackY: -14, rangeX: 72, rangeY: 92, launcher: true },     // super (launcher)
+}
+function fireVegetaUpTier(fighter, key, context) {
+  const md = VEGETA_SSJ_UP[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._upTierNext   = md.upNext || null
+  fighter._rekkaNext    = null
+  fighter._komaNext     = null
+  fighter._cmdHitLanded = false
+  if (key === "vgUpT3") {   // super finisher — burst FX above Vegeta (visualOnly, decays via lifetime)
+    spawnProjectile(fighter, "vgUpFinishFx", {
+      visualOnly: true, damage: 0, lifetime: 18, vx: 0, vy: 0,
+      spawnX: fighter.x + (fighter.w || 60) / 2, spawnY: fighter.y - 24,
+      sheet: "./vegeta_ssj_super_up_fx_uniform.png", spriteFrames: 3, spriteW: 96, spriteH: 96, spriteSpeed: 4, spriteScale: 1.4
+    }, context)
+  }
+  return true
+}
+
+// Grounded command-normal driver (mirrors updateTojiStanceCombat's rekka path). Returns
+// true (→ skip the normal path this frame) only when it actually fires a stage.
+export function updateVegetaCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vegeta" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase = getPhase?.(fighter)
+
+  // Press-EDGES (fresh tap, not a held/buffered button).
+  const heavyEdge   = !!inputState.heavy    && !fighter._cmdPrevHeavy
+  const lightEdge   = !!inputState.light    && !fighter._cmdPrevLight
+  const specialEdge = !!inputState.special  && !fighter._cmdPrevSpecial
+  const upEdge      = !!inputState.upAttack && !fighter._cmdPrevUp   // SSJ 3-tier up-attack re-press
+  fighter._cmdPrevHeavy   = !!inputState.heavy
+  fighter._cmdPrevLight   = !!inputState.light
+  fighter._cmdPrevSpecial = !!inputState.special
+  fighter._cmdPrevUp      = !!inputState.upAttack
+  // Down HOLD timer — feeds Ki Blast's tap-vs-hold (D+Special) decision in executeVegetaSpecial.
+  if (inputState.down && !fighter._vgDownPrev) fighter._vgDownSince = performance.now()
+  fighter._vgDownPrev = !!inputState.down
+
+  // Latch a REAL connect for the current stage: hasHit AND the opponent took hitstun (a hit),
+  // NOT blockstun (a block). resolveAttackHit runs in updateCombat AFTER this handler, so the
+  // flag is observed the following frame while hitstun (12-22f) is still counting down.
+  const opp = context?.getOpponent?.(fighter)
+  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
+
+  // Every string's window closes when the attack fully ends.
+  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._komaNext = null; fighter._upTierNext = null; fighter._cmdHitLanded = false }
+
+  // SSJ UP-ATTACK TIER ADVANCE — a fresh UP-attack during the current tier's RECOVERY escalates
+  // T1→T2→T3 (no connect required — a committed launcher combo you charge into; each tier is more
+  // punishable via longer recovery). SSJ-only (base up-attack stays a single normal).
+  if (vegetaIsSuper(fighter) && fighter.attacking && fighter._upTierNext && upEdge && phase === "recovery") {
+    const next = fighter._upTierNext
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+    fighter.attackCooldown = 0
+    return fireVegetaUpTier(fighter, next, context)
+  }
+
+  // KOMA RUSH AUTO-ADVANCE — a Koma stage auto-continues into the next on a CLEAN hit (no input),
+  // during recovery. A whiff or block (no _cmdHitLanded) ends the rush there (interrupt rule).
+  if (fighter.attacking && fighter._komaNext && phase === "recovery" && fighter._cmdHitLanded) {
+    const next = fighter._komaNext
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+    fighter.attackCooldown = 0
+    return fireVegetaMelee(fighter, next)
+  }
+
+  // COMMAND-CHAIN CONTINUE — fresh Heavy during the current hit's RECOVERY, only if it CONNECTED.
+  if (fighter.attacking && fighter._rekkaNext && heavyEdge && phase === "recovery" && fighter._cmdHitLanded) {
+    const next = fighter._rekkaNext
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+    fighter.attackCooldown = 0                       // clear the just-set cooldown so the chain fires now
+    return fireVegetaCommand(fighter, next, context)
+  }
+
+  // EX KI PUNCH — combo-cancel ONLY: fresh Special during a light/heavy NORMAL's recovery cancels
+  // into it (the Special button is otherwise blocked mid-attack by the canStart gate in game.js, so
+  // this is its only route — never throwable from neutral). Free, cooldown-gated. NOTE: normals set
+  // currentAttack.name (not currentMove — startMove leaves currentMove null), so read that.
+  const curName = fighter.currentMove || fighter.currentAttack?.name
+  if (fighter.attacking && (curName === "light" || curName === "heavy") &&
+      phase === "recovery" && specialEdge) {
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+    fighter.attackCooldown = 0
+    return fireVegetaMelee(fighter, "exKi")
+  }
+
+  // OPENERS (grounded, from neutral). Heavy is context-split: Forward=command chain, Down=Koma Rush,
+  // neutral=crouch strike (normal path). Down+Light=Koma Repeatable. Down = holding-down (also blocks).
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded) {
+    if (inputState.down && heavyEdge) return fireVegetaMelee(fighter, fighter._ssjBlueActive ? "vgBlueKoma1" : "komaRush1")   // Down+Heavy → Koma Rush (Blue = 4-stage)
+    if (inputState.down && lightEdge) return fireVegetaMelee(fighter, "komaRep")      // Down+Light → Koma Repeatable
+    if (forward && heavyEdge)         return fireVegetaCommand(fighter, "vgFkick1", context)  // Fwd+Heavy → command chain
+    if (vegetaIsSuper(fighter) && upEdge && !inputState.down) return fireVegetaUpTier(fighter, "vgUpT1", context)  // SSJ/Blue: UP-attack → tiered launcher (T1)
+  }
+
+  return false
+}
+
 // Stance-switch (CHARGE tap, edge-detected via `chargeHeld` + fighter._stancePrevCharge).
 // Returns "switch" | "cancel" | false. Interrupts only the RECOVERY phase (never startup/active).
 export function updateTojiStanceSwitch(fighter, chargeHeld, getPhase) {
@@ -2228,6 +2964,7 @@ export function triggerSpecial(fighter, context = {}) {
     // false (no-op, no glitch) until Explosion (neutral) lands in Stage 3b. NOTE: the ULTIMATE
     // dispatch still no-ops goku_black (Sword Slash = Stage 3b) — do not remove that one yet.
     case "goku_black": return executeGokuBlackSpecial(fighter, context)
+    case "vegeta":  return executeVegetaSpecial(fighter, context)
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -2257,6 +2994,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
+      case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }

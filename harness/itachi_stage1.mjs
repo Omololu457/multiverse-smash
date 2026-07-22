@@ -77,6 +77,14 @@ try {
   check("jump uses itachi_melle_jump_uniform (or fall)", /itachi_melle_jump_uniform/.test(jp.spriteSheet || ""), `action=${jp.action} sheet=${jp.spriteSheet}`);
   await waitGrounded();
 
+  // HURT — the hit-reaction state must resolve to the dedicated brace pose (single clean sprite),
+  // NOT the bare 128²×4 fallback that sliced the idle strip into the "four sprites going up" glitch.
+  await page.evaluate(() => { window.__harness.liftP1?.(40); window.__harness.hurtP1?.(50); }); await waitFrames(4);
+  const h = await record(); await shot("hurt");
+  check("hurt resolves to the brace pose (block_uniform)", h.action === "hurt" && /itachi_melle_block_uniform/.test(h.spriteSheet || ""), `action=${h.action} sheet=${h.spriteSheet}`);
+  check("hurt renders ONE frame (no 4-frame fallback grid)", h.spriteFrames === 1, `frames=${h.spriteFrames}`);
+  await waitGrounded();
+
   // ── FALLBACK-BOX SWEEP (Stage-1 actions only) ────────────────────────
   console.log("\n── no 128² fallback box on any Stage-1 action ──");
   let boxes = 0;

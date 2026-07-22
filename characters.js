@@ -929,6 +929,13 @@ const itachi = {
     air:      { frames: 4, width: 58, height: 78, speed: 4, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./itachi_melle_foward_knife_attack_uniform.png" }, // neutral aerial knife stab
     down_air: { frames: 5, width: 62, height: 70, speed: 5, anchorY: 0,   loop: false, lockLastFrame: true, sheet: "./itachi_melle_down_air_attack_uniform.png" },     // downward dive kick
     grab:     { frames: 5, width: 54, height: 81, speed: 4, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./itachi_melle_low_attack_uniform.png" },
+    // HURT / hit-reaction — no dedicated hit-reaction sprite was ever exported for Itachi (the asset
+    // map's "DAMAGE" row stayed on the unexported master sheet). Rather than let the missing action
+    // resolve to the bare 128²×4 fallback (the "four sprites going up" glitch — now ALSO guarded in
+    // sprite.js), wire a clean single-frame BRACE pose (cropped from itachi_melle_block.png) as the
+    // flinch — a defensible stand-in until real hit art is sourced (the combat.js colorFlash tints the
+    // hit on top). Every hitstun/stun/knockdown state routes here (no knockdown/getup/hurt_air strips).
+    hurt:     { frames: 1, width: 38, height: 72, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_block_uniform.png" },
     // Pre-match INTRO — the crow-swarm ARRIVAL. The source sheet stores Itachi→crows left-to-right;
     // itachi_intro_uniform.png is that sheet re-sliced (12 natural-island frames) and REVERSED in
     // frame order, so it now plays crows-FIRST → Itachi resolving OUT of the swarm, holding the

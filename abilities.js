@@ -2757,6 +2757,7 @@ function executeSasukeUltimate(fighter, context) {
     const cost = Math.ceil((fighter.maxEnergy || 100) * 0.5)
     if (!spendEnergy(fighter, cost)) return false
     _enterSusanooStage(fighter, 1)
+    sound.playSfxFile?.("sasuke_susanoo_activate.mp3", null)   // VOICE: "Susanoo!" — Stage 1 giant-form activation
     fighter._susanooTimer = SUSANOO_DURATION_FRAMES
     fighter._suppressUltCooldown = true          // no cooldown yet — allow Stage-2 escalation
     // ESCALATION GATE (diagnosed 2026-07-16 via live logging): the OLD 30-frame attackCooldown
@@ -2781,6 +2782,7 @@ function executeSasukeUltimate(fighter, context) {
     // Require a genuine SECOND press: the ultimate must have been released since Stage 1 (blocks
     // a held button from escalating on its own). The short atkCd above blocks a single tap's buffer.
     if (!fighter._ultReleasedSinceStage1) return false
+    sound.playSfxFile?.("sasuke_ultimate_cast.mp3", null)   // VOICE: "I'll erase you, right here" — Stage 2 (Sharingan-awakening) escalation
     // STAGE 2 is now gated behind a short SHARINGAN-AWAKENING cinematic (sasukeCinematic.js —
     // mirrors kurama.js: combat freezes while it plays). The actual escalation — drain ALL
     // remaining energy to 0 + swap stats/sprite to Lv2 — is applied by onResolve() at the
@@ -2821,6 +2823,7 @@ function executeSasukeUltimate(fighter, context) {
 //   cost 35 — above dash-strike (18) and lightning (24), below ultimate-tier. Mid-tier.
 function executeSasukeChidoriKoiten(fighter, target, context) {
   if (!spendEnergy(fighter, 35)) return false
+  sound.playSfxFile?.("sasuke_chidori_cast.mp3", null)   // VOICE: "No one can resist my lightning" — Chidori Koiten cast
   const KOITEN_STARTUP = 16, KOITEN_ACTIVE = 6, KOITEN_RECOVERY = 20
   const attack = createAttackFromMove(fighter, "chidoriKoiten", {
     damage: 95, startup: KOITEN_STARTUP, active: KOITEN_ACTIVE, recovery: KOITEN_RECOVERY,
@@ -2910,6 +2913,11 @@ const LIGHTNING = {
 function executeSasukeLightning(fighter, target, context) {
   if (fighter._lightningPhase) return false                 // already casting
   if (!spendEnergy(fighter, LIGHTNING.cost)) return false
+  // VOICE: "Fire Release: Great Fireball Jutsu!" — Sasuke has NO literal fireball move, so this
+  // named-jutsu callout is mapped onto the Two-Strike Lightning (qcf+Special): the biggest
+  // telegraphed handseal→named-jutsu base-kit cast, best cadence match, and the only base special
+  // with no other voice line (Chidori/dash/shuriken/substitution are taken). FLAGGED substitution.
+  sound.playSfxFile?.("sasuke_great_fireball.mp3", null)
   fighter._lightningPhase   = "handseal"
   fighter._lightningTimer   = LIGHTNING.handseal
   fighter._rooted           = true                          // planted during the seals (physics canMove)
@@ -3001,6 +3009,7 @@ export function sasukeCastingLightning(fighter) { return !!(fighter && fighter._
 const SASUKE_SUBSTITUTION_STARTUP = 6
 function executeSasukeSubstitution(fighter, target, context) {
   if (!spendEnergy(fighter, 25)) return false
+  sound.playSfxFile?.("sasuke_smoke_and_kagutsuchi.mp3", null)   // VOICE: "Smoke Release!" + "Susanoo Kagutsuchi!" — Substitution Jutsu cast
   const threat = target && target.currentAttack
   if (threat) threat.hasHit = true                                   // the incoming swing whiffs, guaranteed
   fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 14)     // also covers stray projectiles
@@ -3092,6 +3101,7 @@ function executeSasukeSpecial(fighter, context) {
       rangeX: 260, rangeY: 160                     // giant blade sweep — long + tall reach
     })
     setAttackState(fighter, swordAtk, 34)
+    sound.playSfxFile?.("sasuke_kagutsuchi_blade.mp3", null)   // VOICE: "Kagutsuchi's Blade!" — Susanoo sword special
     // FX-only sheet → spawned as a visualOnly slash in front of the giant (body stays giant).
     // 5 uniform lightning-bolt frames (the sheet's 6th non-uniform 'diagonal' cell can't be
     // atlas-sliced by the uniform slicer) read as a lightning-blade flurry.

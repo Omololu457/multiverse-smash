@@ -432,6 +432,48 @@ function applyNarutoLowHealthVoice(defender) {
   }
 }
 
+// ── SASUKE VOICE LINES (audio-only; mirrors the Naruto pattern above) ────────────
+// DEFENDER reaction pool — split by hit tier off `cat`/`dmg` (no knockdownState, same test
+// Naruto/Beerus use). A light flinch gets the short reaction-bark cluster ("Sakura! Get out of
+// the way! Hmph!" — the incidental Sakura callout is baked flavor, not a mechanic); a heavy/
+// knockdown-tier hit gets the separate heavy reaction. One line per _hitVoiceCd window; only on
+// an UNBLOCKED hit (see resolveAttackHit). Japanese VO kept intentionally.
+function applySasukeHitVoice(defender, cat, dmg) {
+  if (defender.rosterKey !== "sasuke" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  const heavy = cat === "heavy" || cat === "launcher" || cat === "spike" ||
+    cat === "special" || cat === "ultimate" || dmg >= 55
+  const clip = heavy ? "sasuke_hit_reaction2.mp3"          // heavy/knockdown-tier reaction
+    : "sasuke_hit_bark_cluster.mp3"                        // light flinch cluster
+  try { sound?.playSfxFile?.(clip, null) } catch (_) {}
+}
+
+// ATTACKER offense pool — three-way, priority-ordered, shared _atkVoiceCd (one line per window):
+//   (1) IN SUSANOO → "Burn to ashes!" hit-confirm on any Susanoo MELEE (sword/grab) landing. The
+//       Susanoo arrow is a projectile (resolveProjectileHits) so it isn't covered here — same
+//       projectile-excluded scope the Naruto offense pool notes above.
+//   (2) LONG BASIC STRING (5th+ link) → combo-finisher pool, random of the two combo barks
+//       ("Pathetic. But this is reality." / "That's why you end up taking a decisive hit").
+//   (3) STRONG single connect (heavy/special/ultimate, not a light poke) → "…this is reality"
+//       general attack-lands bark (sasuke_attack_connect). blocked=false suppresses on guard.
+function applySasukeOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || attacker.rosterKey !== "sasuke" || (attacker._atkVoiceCd > 0)) return
+  if ((attacker._susanooStage || 0) > 0) {
+    attacker._atkVoiceCd = 150
+    sound?.playSfxFile?.("sasuke_burn_to_ashes.mp3", null)   // Susanoo hit-confirm bark
+    return
+  }
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  if (longString) {
+    sound?.playSfxFile?.(Math.random() < 0.5 ? "sasuke_hit_connect_taunt.mp3" : "sasuke_combo_finisher.mp3", null)
+  } else {
+    sound?.playSfxFile?.("sasuke_attack_connect.mp3", null)   // strong single connect
+  }
+}
+
 // ========================
 // PARRY / CLASH / GRAB
 // ========================
@@ -468,6 +510,8 @@ export function checkParry(defender, attacker, hitSparks) {
   }
 
   try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
+  // SASUKE parry voice — "Not an attack I can't see through" on a successful parry read.
+  if (defender.rosterKey === "sasuke") { try { sound?.playSfxFile?.("sasuke_counter_reaction.mp3", null) } catch (_) {} }
   return true
 }
 
@@ -800,6 +844,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
     // NARUTO hit-reaction voice — light vs heavy pool, split off the hit tier (no knockdownState).
     applyNarutoHitVoice(defender, cat, dmg)
+    // SASUKE hit-reaction voice — light flinch cluster vs heavy reaction, same tier split.
+    applySasukeHitVoice(defender, cat, dmg)
 
     if (!isCounter) {
       try { sound?.play?.(_hitSound(atk, false)) } catch (_) {}
@@ -867,6 +913,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyKuramaShroudReaction(defender)   // Kurama Shroud comeback heal-on-hit (stage 3+)
   applyNarutoComboFinisherReaction(defender, attacker)   // Naruto-only escalated combo-ender recoil pose
   applyNarutoOffenseVoice(attacker, cat, !defender.isBlocking)   // Naruto Hokage / combo-burst pride line on connect
+  applySasukeOffenseVoice(attacker, cat, !defender.isBlocking)   // Sasuke Susanoo-confirm / combo-finisher / attack-lands line
 }
 
 // ========================

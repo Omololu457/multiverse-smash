@@ -875,6 +875,55 @@ const sasuke = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// ITACHI UCHIHA  (Naruto universe) — 10th sprite character.
+// STAGE 1: idle + core movement + selectability. Sprites sliced from the
+// itachi_melle_*.png strips; the non-uniform source frames were RE-SLICED into
+// clean uniform cells (harness/reslice.mjs → *_uniform.png) so the engine can
+// slice by a single pitch without horizontal jitter (omega_ranger precedent).
+// Portrait cropped from the labeled "mugshot:" panel inside itachi_melle_transparent.png.
+// Templated off fellow-Uchiha Sasuke (chakra, dashTeleport, staged build). Normals
+// (Stage 2), Mangekyou mode (Stage 3), Amaterasu/Genjutsu (Stage 4) and the Susanoo
+// ultimate (Stage 5) land in later passes; missing actions fall back to idle safely.
+// ─────────────────────────────────────────────────────────────────
+const itachi = {
+  rosterKey: "itachi", name: "Itachi Uchiha", universe: "naruto",
+  portrait: "./itachi_pfp.png",   // EXACT on-disk filename (character-select mugshot / HUD nameplate); skins.js + ui.js read characters.itachi.portrait
+  archetypes: ["melee", "tactics"],
+  primary: "melee", secondary: ["tactics"],
+  // Sharingan blink — double-tap TOWARD the opponent = teleport dash (same detectDoubleTapDashTeleport
+  // mechanic + timing as Sasuke/Gojo/Toji/Sukuna).
+  movement: { dashTeleport: true },
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // maxEnergy 200 leaves headroom for Mangekyou's charge threshold (Stage 3) + Susanoo's 50% cost (Stage 5).
+  stats: { maxHealth: 1170, maxEnergy: 200, attack: 90, defense: 85, speed: 91, maxJumps: 2, jumpPower: 32, dashSpeed: 15, dashDuration: 12, dashCooldownMax: 45 },
+  // Placeholder taijutsu values templated off Sasuke (fellow chakra/blade Uchiha); real move
+  // wiring + flavor normals land in Stage 2. combat.js _getMD reads THIS basic_attacks.
+  basic_attacks: {
+    light:    { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 90, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 80, rangeY: 46 },
+    upAttack: { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    downAir:  { damage: 76, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
+    airAttack:{ damage: 54, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 }
+  },
+  // HUD-only until Stage 5 (real logic + cost live in abilities.js executeItachiUltimate).
+  ultimate: { name: "Susanoo", cost: 100, description: "Summon the Susanoo avatar — a sustained giant form. Sword slash / guard on the SPECIAL button while active." },
+  hasSprites: true,
+  // idle content 72px × 1.55 ≈ 112px on-screen ≈ roster height (Naruto/Sasuke ~115). REQUIRES the
+  // skins.js `itachi` entry (else applySkin() pulls the spriteScale:1 fallback → native size) + the
+  // spritesheets.js SPRITE_MANIFEST idle gate. anchorY = -(bottom transparent gap × 1.55) plants feet.
+  spriteScale: 1.55,
+  animationData: {
+    idle: { frames: 4, width: 42, height: 73, speed: 6, anchorY: -2, sheet: "./itachi_melle_idle_uniform.png" },   // content 72, botGap 1
+    walk: { frames: 6, width: 41, height: 78, speed: 6, anchorY: -9, sheet: "./itachi_melle_walk_uniform.png" },   // content 67, botGap 6
+    run:  { frames: 6, width: 62, height: 54, speed: 4, anchorY: 0,  sheet: "./itachi_melle_run_uniform.png" },    // content 49 (forward lean)
+    dash: { frames: 6, width: 62, height: 54, speed: 3, anchorY: 0,  sheet: "./itachi_melle_run_uniform.png" },    // reuse run strip a touch faster
+    // jump.png arc = crouch→crouch→rise→apex; play once + hold. fall = the apex/descent pose (last cell).
+    jump: { frames: 4, width: 62, height: 65, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_jump_uniform.png" },
+    fall: { frames: 1, width: 62, height: 65, speed: 6, anchorY: 0, sourceX: 186, loop: false, lockLastFrame: true, sheet: "./itachi_melle_jump_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // DEMON SLAYER
 // ─────────────────────────────────────────────────────────────────
 const tanjiro = {
@@ -1840,7 +1889,7 @@ const beerus = {
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
   gojo, megumi, sukuna, omololu, toji, mahoraga,
-  naruto, sasuke,
+  naruto, sasuke, itachi,
   tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,
   rick, morty, evilMorty, rickPrime,
   beerus,

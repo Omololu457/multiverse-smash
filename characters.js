@@ -64,36 +64,124 @@ const goku = {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────
+// VEGETA (Base Form) — DRAGON BALL. STAGE 1 build: box → sprite. Core identity
+// (idle/movement/states/intro/base-charge) + the 5 basic normals, all sliced from
+// the ./vegeta_base_<action>.png crops. Mirrors the Goku Black sprite pattern.
+// DEFERRED (see plan): Toji-Rekka command chain (foward_kick→side_kick→up_into→
+// up_attack_2), the 3 energy specials + Overcharged Final Flash ultimate, and the
+// 5 free/cooldown pokes (Ki Blast tap/hold, EX Ki Punch, Koma Rush, Koma Repeatable,
+// Launch Ki Blast). Those sheets exist on disk but are not wired this pass.
+// ─────────────────────────────────────────────────────────────────
 const vegeta = {
   rosterKey: "vegeta", name: "Vegeta", universe: "dragon_ball",
+  portrait: "./vegeta_mugshot.png",   // EXACT on-disk filename (character-select mugshot / HUD nameplate) — same role as goku_black's portrait; skins.js + ui.js both read characters.vegeta.portrait
   archetypes: ["melee", "transformations"],
   primary: "melee", secondary: ["transformations"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
   stats: { maxHealth: 1150, maxEnergy: 200, attack: 91, defense: 85, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 40 },
   basic_attacks: {
-    light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
+    light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },                                  // foward_attack punch combo
+    heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },                                  // foward_crouch_atttack low strike
+    upAttack:  { type: "launcher", damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 12 },   // up_attack uppercut launcher
+    airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },                                 // air_attack aerial combo
+    downAir:   { type: "spike", damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },                  // down_air_attack diving spike
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
   },
+  // KIT/HUD METADATA ONLY at Stage 1 — no executeVegetaSpecial handler exists yet,
+  // so triggerSpecial/triggerUltimate no-op for vegeta (abilities.js has no case).
+  // Declared so the character-select kit panel has data. Wired in Stage 3.
+  // STAGE 4 wired in abilities.js executeVegetaSpecial. QCF=Galick Gun (cheapest/fastest),
+  // QCB=Final Flash (most committed, hardest-hitting), neutral=Big Bang Attack (mid).
   specials: {
-    galickGun:     { cost: 30, damage: 120, startup: 12, active: 5, recovery: 22, hitstun: 22, knockbackX: 8, knockbackY: -2, effect: "powerful ki beam" },
-    finalFlash:    { cost: 40, damage: 160, startup: 18, active: 6, recovery: 28, hitstun: 28, knockbackX: 12, knockbackY: -3, effect: "concentrated energy blast" },
-    bigBangAttack: { cost: 25, damage: 130, startup: 10, active: 5, recovery: 20, hitstun: 20, knockbackX: 9, knockbackY: -1, effect: "explosive ki attack" }
+    galickGun:     { cost: 25, damage: 120, startup: 9,  active: 5, recovery: 14, hitstun: 24, knockbackX: 10, knockbackY: -2, motion: "QCF",     effect: "fast purple ki beam" },
+    bigBangAttack: { cost: 35, damage: 140, startup: 13, active: 5, recovery: 20, hitstun: 26, knockbackX: 11, knockbackY: -1, motion: "neutral", effect: "spherical ki blast → beam" },
+    finalFlash:    { cost: 50, damage: 200, startup: 24, active: 6, recovery: 30, hitstun: 30, knockbackX: 14, knockbackY: -3, motion: "QCB",     effect: "concentrated two-handed beam (his heaviest special)" }
   },
   ultimate: { name: "Super Saiyan Blue Evolution", cost: 100, duration: 8, effect: "Triggers next transformation" },
   transformationOrder: ["base","ssj1","ssj2","ssblue","ssbEvolution","ultraEgo"],
   transformations: {
     base:         { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
+    // SUPER SAIYAN (regular) — declarative twin of the imperative form system in abilities.js
+    // (enterVegetaSSJ / VEGETA_SSJ_* / applyVegetaFormSystem via tickSustainedFormDrain). Continuous
+    // energy-drain sustained form: threshold-gated charge-RELEASE entry, per-frame drain, auto-revert
+    // at 0 (revertOnEmpty). Buffs sit below the SSJ Rose ceiling (+25/+15/+5) → headroom for SSJ Blue.
+    // The mandatory-waypoint chain (Blue must pass through SSJ) lives in ensureVegetaSSJWaypoint.
+    ssj:          { damageMultiplier: 1.20, speedMultiplier: 1.12, defenseMultiplier: 1.05, energyThreshold: 120, energyDrainPerFrame: 0.18, kiDrainPerSecond: 11, revertOnEmpty: true, isSpecial: true, skinAnim: "vegetaSSJ" },
+    // SUPER SAIYAN BLUE — Vegeta's THIRD form (top tier). Declarative twin of the imperative Blue system
+    // (enterVegetaBlue / VEGETA_BLUE_*). Chains OFF the SSJ state (requiresForm: ssj) — NOT reachable from
+    // base directly. Buffs clearly above SSJ; higher threshold + drain. Full 3-tier fallback skin.
+    ssjBlue:      { damageMultiplier: 1.45, speedMultiplier: 1.25, defenseMultiplier: 1.12, energyThreshold: 160, energyDrainPerFrame: 0.28, kiDrainPerSecond: 17, revertOnEmpty: true, isSpecial: true, requiresForm: "ssj", skinAnim: "vegetaBlue" },
     ssj1:         { damageMultiplier: 1.2, speedMultiplier: 1.1, defenseMultiplier: 1.05, duration: 1800 },
     ssj2:         { damageMultiplier: 1.3, speedMultiplier: 1.15, defenseMultiplier: 1.1, duration: 1500 },
     ssblue:       { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.2, kiDrainPerSecond: 8, isSpecial: true, duration: 720 },
     ssbEvolution: { damageMultiplier: 2.3, speedMultiplier: 1.5, defenseMultiplier: 1.25, kiDrainPerSecond: 10, isSpecial: true, duration: 600 },
     ultraEgo:     { damageMultiplier: 2.5, speedMultiplier: 1.8, defenseMultiplier: 0.9, rageHealOnHit: 15, healCostPerHitKi: 6, kiDrainPerSecond: 12, isSpecial: true, duration: 480 }
   },
-  animationData: { ...DEFAULT_ANIM }
+  // Two-part intro: intro.png (arms-crossed) → intro_2.png (power-up flare). Sequential
+  // P1-then-P2 machine (game.js initIntroVariant/advanceIntroSequence → _introVariant).
+  // The intro_2_effects.png aura overlay is a separate composited FX layer — DEFERRED.
+  introSequence: ["intro", "intro2"],
+  hasSprites: true,
+  // idle content ≈55px cell × 2.1 ≈ 116px on-screen — squarely in roster range
+  // (Sasuke 116 / Naruto 118 / Goku Black 116). anchorY starts at 0, screenshot-tuned.
+  spriteScale: 2.1,
+  // FRAME DATA sliced with harness/slice_scan.mjs (alpha-gutter column scan — NOT even
+  // sheet-width/count division). Non-uniform strips (jump 9f varying pitch, hit_animation's
+  // two wildly-different flinch/knockdown groups, intro pair, charge) were repacked into
+  // uniform-cell strips via harness/reslice.mjs → the ./vegeta_base_*_uniform.png files
+  // (same "RE-SLICED uniform" tool the Goku Black sheets used).
+  animationData: {
+    idle:      { frames: 4, width: 51, height: 55, speed: 6, anchorY: 0, sheet: "./vegeta_base_idle.png" },       // scan: 4 islands, pitch ~51
+    walk:      { frames: 4, width: 63, height: 50, speed: 6, anchorY: 0, sheet: "./vegeta_base_run.png" },        // reuse run, slower (scan pitch ~63)
+    run:       { frames: 4, width: 63, height: 50, speed: 4, anchorY: 0, sheet: "./vegeta_base_run.png" },
+    dash:      { frames: 2, width: 70, height: 53, speed: 5, anchorY: 0, sheet: "./vegeta_base_dash.png" },       // scan: 2 islands, pitch 71
+    back_dash: { frames: 1, width: 72, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_base_back_dash.png" }, // SINGLE static held pose (scan: 1 island)
+    jump:      { frames: 5, width: 41, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_base_jump_uniform.png" }, // RISE poses (uniform frames 0-4)
+    fall:      { frames: 4, width: 41, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sourceX: 205, sheet: "./vegeta_base_jump_uniform.png" }, // DESCENT poses (uniform frames 5-8, sourceX 5×41)
+    hurt:      { frames: 5, width: 45, height: 64, speed: 6, anchorY: 0, sheet: "./vegeta_base_hurt_uniform.png" },       // standing flinch (hit_animation islands 0-4, repacked)
+    knockdown: { frames: 7, width: 71, height: 64, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_base_knockdown_uniform.png" }, // sprawl→rise (hit_animation islands 5-11, repacked)
+    getup:     { frames: 7, width: 71, height: 64, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_base_knockdown_uniform.png" }, // reuse knockdown; sprite.js splits via knockdownTimer/GETUP_WINDOW
+    guard:     { frames: 3, width: 50, height: 69, speed: 6, anchorY: 0, sheet: "./vegeta_base_gaurd.png" },      // scan: 3 islands, pitch ~50
+    // STAGE 2 NORMALS — alpha-gutter sliced (slice_scan) then repacked uniform (reslice) from the
+    // typo'd source crops. Frame counts confirmed vs design: light 9 / heavy 7 / up 7 / air 6 / down_air 7.
+    light:     { frames: 9, width: 68, height: 61, speed: 3, anchorY: 0, sheet: "./vegeta_base_light_uniform.png" },          // foward_attack punch combo (9 islands)
+    heavy:     { frames: 7, width: 67, height: 57, speed: 3, anchorY: 0, sheet: "./vegeta_base_heavy_uniform.png" },          // foward_crouch_atttack low strike (7 islands)
+    up:        { frames: 7, width: 47, height: 63, speed: 3, anchorY: 0, sheet: "./vegeta_base_up_uniform.png" },             // up_attack uppercut LAUNCHER (7 islands)
+    air:       { frames: 6, width: 51, height: 71, speed: 4, anchorY: 0, sheet: "./vegeta_base_air_uniform.png" },            // air_attack aerial combo (6 islands)
+    down_air:  { frames: 7, width: 45, height: 66, speed: 4, anchorY: 0, sheet: "./vegeta_base_down_air_uniform.png" },       // down_air_attack.pn diving SPIKE (7 islands)
+    // STAGE 3 — command-normal cancel chain ("Y-track"). Fwd+Heavy opener → re-tap Heavy to
+    // continue (abilities.js VEGETA_COMMAND / updateVegetaCommandCombat). Keys match the move
+    // names so sprite.js renders them directly. Alpha-gutter sliced → uniform.
+    vgFkick1:   { frames: 8,  width: 58, height: 68, speed: 2, anchorY: 0, sheet: "./vegeta_base_cmd_fkick_uniform.png" },     // foward_kick opener (8 islands)
+    vgSidekick: { frames: 8,  width: 69, height: 73, speed: 2, anchorY: 0, sheet: "./vegeta_base_cmd_sidekick_uniform.png" }, // side_kick (8 islands)
+    vgUpInto:   { frames: 14, width: 64, height: 76, speed: 2, anchorY: 0, sheet: "./vegeta_base_cmd_upinto_uniform.png" },   // up_into_foward_attack LAUNCHER (14 islands)
+    vgUpFinish: { frames: 8,  width: 60, height: 59, speed: 3, anchorY: 0, sheet: "./vegeta_base_cmd_upfinish_uniform.png" }, // up_attack_2 finisher (8 islands)
+    // STAGE 4 — energy-special CHARGE/RELEASE caster poses (abilities.js executeVegetaSpecial sets
+    // _spriteCastMove to these). Keys match the cast-move names → sprite.js renders them directly.
+    // Final Flash has no dedicated caster crop → it reuses the `charge` power-up pose above.
+    galickCast:  { frames: 14, width: 74, height: 84, speed: 2, anchorY: 0, sheet: "./vegeta_base_galick_cast_uniform.png" },  // galick_gun charge→fire (14 islands)
+    bigBangCast: { frames: 13, width: 65, height: 72, speed: 2, anchorY: 0, sheet: "./vegeta_base_bigbang_cast_uniform.png" }, // ki_blast_ultimate charge→fire (13 islands)
+    // STAGE 6 — FREE (no-energy) cooldown pokes. kiBlast/launchKi are caster poses (_spriteCastMove →
+    // projectile via schedulePendingSpawn); exKi/komaRush1/komaFinish/komaRep are melee attack poses
+    // (currentMove renders them directly). Alpha-gutter sliced → uniform. NOTE: koma_attack.png (the
+    // designed Koma-Rush opener) alpha-slices to blended cyan-spark FX, not clean body poses ("re-crop
+    // by hand" per the asset brief) → Koma Rush uses koma_attack_2 (opener) → large_combo (finisher).
+    kiBlast:    { frames: 10, width: 51, height: 86, speed: 2, anchorY: 0, sheet: "./vegeta_base_kiblast_tap_uniform.png" }, // ki_blast_basic throw pose (10 islands)
+    launchKi:   { frames: 20, width: 51, height: 76, speed: 2, anchorY: 0, sheet: "./vegeta_base_launchki_uniform.png" },   // launch_ki_blast anti-air barrage (20 islands)
+    exKi:       { frames: 5,  width: 76, height: 92, speed: 3, anchorY: 0, sheet: "./vegeta_base_exki_uniform.png" },        // basic_ki_attack_2 EX energy punch (5 islands)
+    komaRush1:  { frames: 17, width: 57, height: 74, speed: 2, anchorY: 0, sheet: "./vegeta_base_koma2_uniform.png" },       // koma_attack_2 rush opener (17 islands)
+    komaFinish: { frames: 42, width: 60, height: 83, speed: 2, anchorY: 0, sheet: "./vegeta_base_komafinish_uniform.png" },  // large_combo_attack finisher (42 islands)
+    komaRep:    { frames: 13, width: 58, height: 72, speed: 2, anchorY: 0, sheet: "./vegeta_base_komarep_uniform.png" },     // koma_attack_repeatabl pressure string (13 islands)
+    // CHARGE (hold P) — generic power-up aura feeding the Stage-3 energy specials. Wired now
+    // so the universal isCharging lockout has art. Two-part: bracing frames 0-3 play ONCE,
+    // aura-flare tail frames 4-9 LOOP while held (loopStart=4). Repacked uniform (10 islands).
+    charge:    { frames: 10, width: 110, height: 97, speed: 6, anchorY: 0, loop: true, loopStart: 4, sheet: "./vegeta_base_charge_uniform.png" },
+    // Two-part intro poses (see introSequence). Play once, hold last frame. intro2 gets the
+    // vegeta_base_intro_2_effects aura composited on top via _drawIntroAura (game.js).
+    intro:     { frames: 5,  width: 46, height: 73, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_base_intro_uniform.png" },
+    intro2:    { frames: 10, width: 51, height: 75, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_base_intro_2_uniform.png" }
+  }
 }
 
 const piccolo = {
@@ -1661,6 +1749,78 @@ const gokuBlack = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// BEERUS — God of Destruction (Dragon Ball). Brand-new single-form sprite
+// character (no transformations). Glass-cannon striker: top-tier attack/speed,
+// bottom-tier HP/defense. All sheets RE-SLICED to uniform content-cropped cells
+// (feet bottom-aligned) via tools; raw rips were non-uniform (see beerus_*_u.png).
+// 5-part fixed-order intro (star flash → energy pillar → mane-whip settle →
+// robed turn → walk-in) via introSequence, handing off to idle.
+// ─────────────────────────────────────────────────────────────────
+const beerus = {
+  rosterKey: "beerus", name: "Beerus", universe: "dragon_ball",
+  portrait: "./beerus_mugshot.png",   // EXACT on-disk filename (character-select mugshot / HUD nameplate) — same role as vegeta_mugshot.png; skins.js + ui.js both read characters.beerus.portrait
+  archetypes: ["rushdown", "striker", "zoner"],
+  primary: "rushdown", secondary: ["striker", "zoner"],
+  traits: { hasEnergy: true, energyType: "god_ki", mobility: "high", scaling: "glass_cannon", animeMovement: true },
+  energyConfig: { label: "Destruction Energy", color: "#b24cf0", glowColor: "#e0a0ff", emptyColor: "rgba(255,255,255,0.08)" },
+  // GLASS CANNON: highest-tier attack (97, ties top strikers) + speed (95, near top),
+  // bottom-tier HP (1000, ties Evil Morty floor) + defense (78). A precise, fast striker
+  // that hits hard but folds under pressure — the God of Destruction archetype.
+  stats: { maxHealth: 1000, maxEnergy: 170, attack: 97, defense: 78, speed: 95, maxJumps: 2, jumpPower: 32, dashSpeed: 19, dashDuration: 9, dashCooldownMax: 34 },
+  // Glass-cannon normals: lean to the faster/lighter end of the roster spread, high damage.
+  basic_attacks: {
+    light:     { damage: 46, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 60, rangeY: 46 },   // foward_attack jab
+    heavy:     { damage: 88, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1,  rangeX: 72, rangeY: 50 },   // foward_attack_2, pink aura ribbon
+    upAttack:  { type: "launcher", damage: 68, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10 }, // up_attack, yellow crescent
+    airAttack: { damage: 58, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },   // kick
+    downAir:   { damage: 78, startup: 8, active: 4, recovery: 14, hitstun: 16, knockbackX: 1, knockbackY: 9 },    // side_kick spike, purple energy slash
+    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+  },
+  // Specials/ultimate data + behaviour wired in Stages 3-4 (abilities.js). Placeholder
+  // meter tier here keeps the kit/HUD panel valid; real numbers land with the moves.
+  specials: {},
+  ultimate: { name: "Ki Ball", cost: 150, description: "3-stage charge/release/impact cinematic — the largest move in the kit (Stage 4)." },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  // FIXED-ORDER 5-part intro (plays in file order, then holds → idle). Each key below
+  // is a real animationData action; game.js initIntroVariant/advanceIntroSequence walk them.
+  introSequence: ["intro1", "intro2", "intro3", "intro4", "intro5"],
+  hasSprites: true,
+  // idle content 62px × 1.7 ≈ 105px on-screen — mid roster range (Sasuke 116, Gojo 112,
+  // Toji 101). Matches Sasuke's "source ~55-61px → ×1.7 ≈ hitbox height" reasoning.
+  spriteScale: 1.7,
+  animationData: {
+    // ── movement / state ──────────────────────────────────────────────
+    idle:   { frames: 4,  width: 31,  height: 62,  speed: 7, anchorY: 0, sheet: "./beerus_idle_u.png" },
+    // run is a horizontal FLYING dash (frames 1-5 of raw sheet); frames 6-7 (big purple
+    // energy-wing burst) split off into `dash`. walk reuses the run cycle, slower.
+    walk:   { frames: 5,  width: 73,  height: 64,  speed: 8, anchorY: 0, sheet: "./beerus_run_u.png" },
+    run:    { frames: 5,  width: 73,  height: 64,  speed: 5, anchorY: 0, sheet: "./beerus_run_u.png" },
+    dash:   { frames: 2,  width: 95,  height: 86,  speed: 5, anchorY: 0, sheet: "./beerus_dash_u.png" },
+    jump:   { frames: 6,  width: 50,  height: 64,  speed: 6, anchorY: 0, sheet: "./beerus_jump_u.png" },
+    fall:   { frames: 6,  width: 50,  height: 64,  speed: 6, anchorY: 0, sheet: "./beerus_jump_u.png" },   // reuse jump arc
+    // guard builds a purple spiral ring (frames 3-6) that closes into a full ring by frame 6;
+    // play once and HOLD frame 6 while blocking — the closed ring is the guard effect.
+    guard:  { frames: 6,  width: 72,  height: 62,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_block_u.png" },
+    hurt:   { frames: 12, width: 65,  height: 57,  speed: 5, anchorY: 0, sheet: "./beerus_hit_u.png" },
+    // generic hold-to-charge power-up: buildup once (0-3) then flicker/loop the aura tail (4-7).
+    charge: { frames: 8,  width: 79,  height: 76,  speed: 6, anchorY: 0, loop: true, loopStart: 4, sheet: "./beerus_charge_u.png" },
+    // ── 5-part intro (fixed order) ────────────────────────────────────
+    intro1: { frames: 5,  width: 119, height: 101, speed: 4,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_intro_1_u.png" },  // star-sparkle flash
+    intro2: { frames: 7,  width: 143, height: 313, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_intro_2_u.png" },  // energy pillar erupting up
+    intro3: { frames: 2,  width: 213, height: 308, speed: 11, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_intro_3_u.png" },  // mane-whip + settle (centerpiece)
+    intro4: { frames: 9,  width: 59,  height: 72,  speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_intro_4_u.png" },  // robed turn/shine
+    intro5: { frames: 4,  width: 31,  height: 62,  speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./beerus_intro_5_u.png" },  // walk-in → idle handoff
+    // ── normals (art ready; damage/frames wired via basic_attacks) ────
+    light:    { frames: 4, width: 61,  height: 62, speed: 4, anchorY: 0, sheet: "./beerus_foward_attack_u.png" },
+    heavy:    { frames: 5, width: 55,  height: 56, speed: 6, anchorY: 0, sheet: "./beerus_foward_attack_2_u.png" },   // pink aura ribbon baked in
+    up:       { frames: 5, width: 72,  height: 62, speed: 5, anchorY: 0, sheet: "./beerus_up_attack_u.png" },         // yellow crescent launcher
+    air:      { frames: 5, width: 45,  height: 59, speed: 4, anchorY: 0, sheet: "./beerus_kick_u.png" },
+    down_air: { frames: 5, width: 131, height: 53, speed: 5, anchorY: 0, sheet: "./beerus_side_kick_u.png" }          // purple energy-slash spike
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
@@ -1669,6 +1829,7 @@ export const characters = {
   naruto, sasuke,
   tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,
   rick, morty, evilMorty, rickPrime,
+  beerus,
   ben10, albedo,
   omniMan, thragg,
   jackRed, skyBlue, bridgeGreen, zYellow, sydPink, doggieShadow,

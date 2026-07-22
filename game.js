@@ -36,12 +36,15 @@ import {
   activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation,
   enterSSJRose, revertSSJRose, applyGokuBlackFormSystem,   // Goku Black SSJ Rose (Stage 2)
+  enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
+  enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
   sasukeInSusanoo, SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout
   spawnAbsoluteDefenseFx,   // Sasuke Absolute Defense — repurposed Susanoo-intro sheet as the barrier FX
-  updateTojiStanceSwitch, updateTojiStanceCombat, getTojiStance   // Toji 3-stance weapon system (+ Blade moveset)
+  updateTojiStanceSwitch, updateTojiStanceCombat, getTojiStance,   // Toji 3-stance weapon system (+ Blade moveset)
+  updateVegetaCommandCombat   // Vegeta command-normal cancel chain (Y-track kick target combo)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -61,7 +64,8 @@ import {
   getMainMenuRects, drawMainMenuScreen,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
-  drawAccountScreen, getAccountButtons
+  drawAccountScreen, getAccountButtons,
+  resolveEnergyLabel, isHeavenlyRestriction   // HUD energy-bar resource name + Heavenly Restriction state (display-only) — exposed for the harness
 } from "./ui.js"
 import { createAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, isFileApiSupported, hasPersistedData, persistence, setSnapshotDecorator } from "./account.js"
 import {
@@ -95,6 +99,10 @@ import {
   updateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive, drawGokuBlackSwordCinematic,
   clearGokuBlackSwordCinematic, getGokuBlackSwordCinematicStatus
 } from "./gokuBlackSwordCinematic.js"
+import {
+  updateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive, drawVegetaFinalFlashCinematic,
+  clearVegetaFinalFlashCinematic, getVegetaFinalFlashCinematicStatus
+} from "./vegetaFinalFlashCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
@@ -1210,6 +1218,7 @@ function resetRound() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearVegetaFinalFlashCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
 
@@ -1514,6 +1523,7 @@ function resetToStart() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearVegetaFinalFlashCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
@@ -1675,6 +1685,7 @@ function _doRematch() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearVegetaFinalFlashCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
   hitSparks.length = 0
@@ -1791,6 +1802,7 @@ function handleToggleInputs(fighter, key) {
 // (handled by inputState.charge → doEnergyCharge) and does NOT toggle.
 function handleChargeRelease(fighter, key) {
   if (!fighter || key !== fighter.controls.charge) return
+  const wasHeld = !!fighter._chargeHeld   // was the charge key actually pressed (ignore spurious bare key-ups)
   const wasTap = fighter._chargeHeld && (performance.now() - (fighter._chargeDownTime || 0)) < 200
   fighter._chargeHeld = false
 
@@ -1803,6 +1815,24 @@ function handleChargeRelease(fighter, key) {
   if (fighter.rosterKey === "goku_black") {
     if (fighter._ssjRoseActive) { if (wasTap) revertSSJRose(fighter) }
     else enterSSJRose(fighter, getAbilityContext())
+    return
+  }
+
+  // VEGETA — SUPER SAIYAN: same "charge up and RELEASE to transform" pattern as Goku Black's Rose.
+  // Hold P to build energy (doEnergyCharge); ANY release at/above threshold (enterVegetaSSJ gates on
+  // energy) morphs into SSJ. While transformed a quick TAP reverts early; a HOLD-release just tops up
+  // energy and stays in form. Intercepts BEFORE the generic transformationOrder path below (which had
+  // no art) so the real _skinAnim form-swap runs instead.
+  // VEGETA ladder: base → SSJ → Blue via charge-RELEASE. A quick TAP steps DOWN (Blue→base, SSJ→base).
+  //   base + hold-release (energy≥120) → SSJ
+  //   SSJ  + hold-release (energy≥160) → Blue  (chained off the SSJ waypoint; base→Blue is impossible here)
+  if (fighter.rosterKey === "vegeta") {
+    if (fighter._ssjBlueActive) { if (wasTap) revertVegetaBlue(fighter) }
+    else if (fighter._ssjActive) {
+      if (wasTap) revertVegetaSSJ(fighter)
+      else if (wasHeld) enterVegetaBlue(fighter, getAbilityContext())   // SSJ → Blue (gated on energy≥160)
+    }
+    else if (wasHeld) enterVegetaSSJ(fighter, getAbilityContext())      // base → SSJ (real press-release only)
     return
   }
 
@@ -2167,6 +2197,12 @@ function updatePlayerCombat(fighter) {
   // acts (returns true → skip the normal path). Suppressed while charging (lockout).
   if (isToji && !charging && updateTojiStanceCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // VEGETA command-normal chain: Forward+Heavy opens the "Y-track" kick target combo, re-tap
+  // Heavy during recovery to continue (cancel-on-hit). Consumes the input only when it fires
+  // (returns true → skip normal path); neutral light/heavy stay on the normal path below.
+  if ((fighter.rosterKey || "").toLowerCase() === "vegeta" && !charging &&
+      updateVegetaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
   // Toji's grounded normals are stance-driven, so SUPPRESS the built-in light/heavy/up here
   // (else updateCombat would also start the old row-sheet normals / double-fire). Aerials
   // (air/downAir) and grab stay on the normal path. Other characters are unaffected.
@@ -2268,6 +2304,7 @@ function updateFighterState(fighter) {
   const updated = updateTransformationState(fighter, getAbilityContext()) || fighter
   applyGojoPassiveSystems(updated)
   applyGokuBlackFormSystem(updated)  // SSJ Rose: continuous per-frame energy drain + instant auto-revert at 0
+  applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
@@ -2605,6 +2642,14 @@ function updateBattle() {
     updateGokuBlackSwordCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return                                     // skip movement/combat/physics this frame
+  }
+
+  // VEGETA OVERCHARGED FINAL FLASH CINEMATIC: SAME freeze contract — combat/physics/input paused for
+  // the whole sequence; the guaranteed damage lands at the FIRE connect beat via onImpact, then resume.
+  if (isVegetaFinalFlashCinematicActive()) {
+    updateVegetaFinalFlashCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
   }
 
   // BINDING VOWS: match each player's recent RAW directional sequence (own
@@ -3021,6 +3066,32 @@ function _drawChargeAura(f) {
   f._chargeAuraFrame   = globalFrameCount
 }
 
+// VEGETA two-part intro aura: the vegeta_base_intro_2_effects burst composited OVER Vegeta
+// while his 2nd intro pose (power-up flare) plays. Mirrors the _drawAbsoluteDefenseAura sheet
+// overlay. Additive blend so the cyan energy glows; one-shot expand that holds on the last frame
+// (synced to the intro2 pose, not looped). Only Vegeta has this sheet → no-op for everyone else.
+const VEGETA_INTRO_AURA = { src: "./vegeta_base_intro_2_effects_uniform.png", frames: 5, w: 149, h: 121 }
+let _vegetaIntroAuraImg = null
+let _vegetaIntroAuraFrame = 0            // last globalFrameCount the aura actually drew (harness observable)
+let _vegetaIntroAuraRenderCount = 0
+function _drawIntroAura(f) {
+  if (!f || f.rosterKey !== "vegeta" || !f._introPlaying || f._introVariant !== "intro2") return
+  if (!_vegetaIntroAuraImg) { _vegetaIntroAuraImg = new Image(); _vegetaIntroAuraImg.src = VEGETA_INTRO_AURA.src }
+  if (!(_vegetaIntroAuraImg.complete && _vegetaIntroAuraImg.naturalWidth > 0)) return
+  const frames = VEGETA_INTRO_AURA.frames, fw = VEGETA_INTRO_AURA.w, fh = VEGETA_INTRO_AURA.h
+  // Cycle the 5 burst frames off the global clock so the aura visibly pulses/expands.
+  const fi = Math.min(frames - 1, Math.floor((globalFrameCount % (frames * 6)) / 6))
+  const cx = f.x + f.w / 2, cy = f.y + f.h * 0.48
+  const dh = f.h * 1.85, dw = dh * (fw / fh)   // aura envelops the body
+  _vegetaIntroAuraFrame = globalFrameCount
+  _vegetaIntroAuraRenderCount++
+  ctx.save()
+  ctx.globalCompositeOperation = "lighter"
+  ctx.globalAlpha = 0.9
+  ctx.drawImage(_vegetaIntroAuraImg, fi * fw, 0, fw, fh, cx - dw / 2, cy - dh / 2, dw, dh)
+  ctx.restore()
+}
+
 function drawBattleScene() {
   const stage = getStageTheme()
   const hasTransform = typeof camera.applyTransform === "function"
@@ -3054,6 +3125,8 @@ function drawBattleScene() {
   _drawAbsoluteDefenseAura(p2)
   _drawChargeAura(p1)
   _drawChargeAura(p2)
+  _drawIntroAura(p1)
+  _drawIntroAura(p2)
   drawHitSparksEnhanced()
   if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
@@ -3251,6 +3324,7 @@ function drawBattle() {
   drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
   drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
+  drawVegetaFinalFlashCinematic(ctx, canvas)  // fullscreen Overcharged Final Flash overlay (gold beam + impact explosion)
 }
 
 // ── FREE-FOR-ALL rendering (parallel to drawBattle; array-driven) ─────────────
@@ -4212,6 +4286,12 @@ gameLoop()
     // Last frame the persistent Absolute Defense ribcage/aura SHEET actually rendered — lets a
     // test prove the imagery persists past the one-shot toggle FX (playtester visual-bug fix).
     absDefAuraSheetFrame: () => _absDefAuraSheetFrame,
+    // Vegeta intro-aura overlay probe: total renders + last frame drawn (proves the
+    // intro_2_effects layer actually composites over the intro2 pose).
+    introAura: () => ({ renders: _vegetaIntroAuraRenderCount, frame: _vegetaIntroAuraFrame }),
+    // Vegeta command-normal chain probe (drive the rekka precisely from a test): current move +
+    // attack phase + pending next stage + whether the current hit connected + the heavy-edge latch.
+    vegCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, prevHeavy: !!p1._cmdPrevHeavy, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
     // Charge-vortex introspection (charge_aura.test.mjs): total procedural-spiral renders (bumped only
     // when the skip-logic lets it through → 0 for Goku Black even while he charges his own sprite), and
     // a fighter's real drawn mid-coil x + the frame it last drew (proves the spiral actually rotates).
@@ -4278,6 +4358,14 @@ gameLoop()
     boot: () => { startHarnessMatch(); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
     // Boot a NON-training vs-CPU match (real AI) — for the pause→Training transition test.
     bootVs: () => { startHarnessMatch({ mode: "vs", difficulty: "easy" }); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
+    // Jump straight to the REAL character-select screen for a universe (drawCharacterSelectScreen
+    // renders the actual roster with each character's real `portrait`). Mirrors the live universe→
+    // character transition at game.js:3844. Test-only — proves portrait art shows, not a box.
+    showCharSelect: (universe = "dragon_ball", mode = "training") => { matchConfig.mode = mode; resetSelections(); matchConfig.selectedUniverse = universe; hoverCharacterIndex = 0; gameState = GAME_STATES.SELECT_CHARACTER; return { gameState, universe: matchConfig.selectedUniverse, roster: getCharacterRosterForSelectedUniverse().map(c => c.id) } },
+    // A character's configured `portrait` field (exact on-disk filename) — proves mugshot wiring.
+    charPortrait: key => characters[key]?.portrait || null,
+    // Card rects for the CURRENT select-universe roster (same order as showCharSelect().roster) → crop a card.
+    charCardRects: () => getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse()),
     // Pause-menu introspection: current selection + item id (drive with real esc/↓/enter keys).
     pauseSel: () => ({ gameState, index: pauseMenuIndex, item: PAUSE_MENU_ITEMS[pauseMenuIndex] }),
     // Camera introspection (zoom regression diagnosis).
@@ -4309,6 +4397,11 @@ gameLoop()
     keys:  () => ({ ...keys }),                      // proves key delivery to input.js
     p1:    () => snap(p1),
     p2:    () => snap(p2),
+    // Resolved HUD energy-bar label (universe-specific resource name) for each fighter — the SAME
+    // resolveEnergyLabel() ui.js draws, read off the REAL fighter (snap omits traits/energyConfig).
+    energyLabel: who => resolveEnergyLabel(who === "p2" ? p2 : p1),
+    // TRUE when the HUD draws "HEAVENLY RESTRICTION" instead of an energy bar (JJK energyType "none").
+    heavenlyRestriction: who => isHeavenlyRestriction(who === "p2" ? p2 : p1),
     roundTimer: () => roundTimer,
     // Wiring proof: getFighterInput() call tally per player. Both advancing every
     // frame proves each fighter's input routes through input.js.getFighterInput.
@@ -4326,6 +4419,37 @@ gameLoop()
     sasukeCine: () => getSasukeCinematicStatus(),
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
     swordCine: () => getGokuBlackSwordCinematicStatus(),
+    vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
+    // Vegeta Super Saiyan form control + introspection (vegeta_ssj.test.mjs). op:
+    //   "enter"    → player-facing transform (morph + gates),
+    //   "revert"   → drop back to base,
+    //   "waypoint" → the SSJ Blue prerequisite seam (fires SSJ as a fast intermediate if not already there).
+    // Returns the live form state so a test can assert the swap + the mandatory-waypoint chain.
+    vegetaForm: (op) => {
+      if (!p1) return null
+      const ctx = getAbilityContext()
+      if (op === "enter") enterVegetaSSJ(p1, ctx)
+      else if (op === "revert") revertVegetaSSJ(p1)
+      else if (op === "waypoint") ensureVegetaSSJWaypoint(p1, ctx)
+      else if (op === "enterBlue") enterVegetaBlue(p1, ctx)                 // player path: requires SSJ first (rejects base)
+      else if (op === "enterBlueFromBase") enterVegetaBlue(p1, ctx, { chain: false })   // explicit base→Blue attempt (must no-op)
+      else if (op === "enterBlueChain") enterVegetaBlue(p1, ctx, { chain: true })        // programmatic full-chain (forces SSJ waypoint)
+      else if (op === "revertBlue") revertVegetaBlue(p1)
+      return {
+        ssjActive: !!p1._ssjActive, blueActive: !!p1._ssjBlueActive, isSuper: vegetaIsSuper(p1),
+        form: p1.currentForm || null, hasSkinAnim: !!p1._skinAnim,
+        energy: p1.energy, dmgMult: p1.damageMultiplier, spdMult: p1.speedMultiplier, defMult: p1.defenseMultiplier,
+        waypointReached: !!p1._ssjWaypointReached, waypointForced: !!p1._ssjWaypointForced,
+        action: p1._lastSpriteAction || null, castMove: p1._spriteCastMove || null, castTimer: p1._spriteCastTimer || 0
+      }
+    },
+    // Force P1 into a knockdown for RENDER verification. Vegeta's knockdown/getup art exists but
+    // combat only SETS knockdownState for goku_black (combat.js:717), so this is the only way to
+    // exercise the knockdown pose — it proves the SSJ knockdown sheet resolves (not the 128² box).
+    p1Knockdown: () => { if (p1) { p1.knockdownState = true; p1.knockdownTimer = 40; p1.hitstun = 0; p1.attacking = false; p1.grounded = true } },
+    setP1Energy: (v = 0) => { if (p1) p1.energy = v },   // exercise the SSJ drain auto-revert without waiting ~18s
+    // LIVE dump of the merged _skinAnim entries actually on the fighter (BUG-hunt: which object/sheet is live).
+    skinAnimDump: (keys = []) => { const s = p1?._skinAnim; return { has: !!s, entries: keys.map(k => ({ k, sheet: s?.[k]?.sheet ?? null, frames: s?.[k]?.frames ?? null, w: s?.[k]?.width ?? null })) } },
     // BOTH fighters' on-screen horizontal extent given the live camera — used to confirm the Sword
     // Slash cinematic keeps BOTH in frame (unlike SSJ Rose which isolates one). onFrame = any part visible.
     bothScreenX: () => {

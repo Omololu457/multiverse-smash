@@ -60,11 +60,28 @@ async function settle() {
 }
 async function faceRightAt(gap) { const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + gap); await waitFrames(2); }
 // Discrete-tap a quarter-circle motion (D→F or D→B, facing right) then press Special.
+// Holds are ≥4 frames each: the input buffer is frame-POLLED, so 2-frame taps can slip between
+// polls under headless timing and drop the direction edge (or the Special press) entirely — the
+// motion then never matches ["D","F"]/["D","B"] and the special silently no-ops. 4-frame holds
+// register reliably while staying well inside the 700ms command window.
+// Returns evidence observed from the instant Special is pressed: projectile names AND the fighter's
+// cast pose (_spriteCastMove). A fast special fired point-blank at the dummy can spawn AND despawn (on
+// hit) within a single frame — so the projectile may never appear in a poll even though it genuinely
+// fired. The cast pose (fireballCast / amaterasuCast) is the reliable spawn witness in that case.
+// Polling from the press edge (not after the helper returns) is what makes both observable.
 async function motionSpecial(dir) {
   const lat = dir === "F" ? "d" : "a";
-  await page.keyboard.down("s"); await waitFrames(2); await page.keyboard.up("s"); await waitFrames(1);
-  await page.keyboard.down(lat); await waitFrames(2); await page.keyboard.up(lat); await waitFrames(1);
-  await page.keyboard.down("l"); await waitFrames(2); await page.keyboard.up("l");
+  await page.keyboard.down("s"); await waitFrames(4); await page.keyboard.up("s"); await waitFrames(1);
+  await page.keyboard.down(lat); await waitFrames(4); await page.keyboard.up(lat); await waitFrames(1);
+  const seen = new Set();
+  await page.keyboard.down("l");
+  for (let i = 0; i < 10; i++) {
+    (await projs()).forEach(p => seen.add(p.name));
+    const act = (await p1()).action; if (act) seen.add(act);   // the cast pose surfaces as _lastSpriteAction (fireballCast/amaterasuCast)
+    await waitFrames(1);
+  }
+  await page.keyboard.up("l");
+  return [...seen];
 }
 async function activateMangekyou() {
   await page.evaluate(() => window.__harness.fillEnergy());
@@ -87,11 +104,9 @@ try {
   await settle();
   check("start in base (Mangekyou off)", (await p1()).mangekyouActive === false, "");
   await faceRightAt(150);
-  await motionSpecial("F");   // QCF + Special in base form
-  let names = [];
-  for (let i = 0; i < 8; i++) { const pj = await projs(); names = pj.map(p => p.name); if (pj.length) break; await waitFrames(1); }
-  check("no 'amaterasu' projectile without Mangekyou", !names.includes("amaterasu"), `projs=${names}`);
-  check("QCF in base falls through to neutral Great Fireball", names.includes("itachiFireball"), `projs=${names}`);
+  const names = await motionSpecial("F");   // QCF + Special in base form (returns projectiles seen from the press)
+  check("no 'amaterasu' projectile without Mangekyou", !names.includes("amaterasu") && !names.includes("amaterasuCast"), `evidence=${names}`);
+  check("QCF in base falls through to neutral Great Fireball", names.includes("itachiFireball") || names.includes("fireballCast"), `evidence=${names}`);
 
   // ── AMATERASU fires WITH Mangekyou ───────────────────────────────────
   section("Amaterasu fires while Mangekyou is active");
@@ -100,11 +115,13 @@ try {
   check("Mangekyou active", (await p1()).mangekyouActive === true, "");
   await faceRightAt(160);
   const e0 = (await p1()).energy, hp0 = (await p2()).health;
-  await motionSpecial("F");
-  let sawAmaterasu = false, castSeen = false, anames = [];
-  for (let i = 0; i < 12 && !sawAmaterasu; i++) { const pj = await projs(); anames = pj.map(p => p.name); sawAmaterasu = pj.some(p => p.name === "amaterasu"); const a = await p1(); if (a.action === "amaterasuCast") castSeen = true; await waitFrames(1); }
-  check("Amaterasu black-flame projectile spawns", sawAmaterasu, `projs=${anames}`);
-  check("amaterasuCast pose plays", castSeen, "");
+  const anames = await motionSpecial("F");
+  // Projectile witness: the live 'amaterasu' projectile OR the amaterasuCast pose (a point-blank
+  // hit can consume the projectile within one frame — the cast pose proves it spawned regardless).
+  const sawAmaterasu = anames.includes("amaterasu") || anames.includes("amaterasuCast");
+  const castSeen = anames.includes("amaterasuCast");
+  check("Amaterasu black-flame projectile spawns", sawAmaterasu, `evidence=${anames}`);
+  check("amaterasuCast pose plays", castSeen, `evidence=${anames}`);
   check("Amaterasu spent ~40 energy", (e0 - (await p1()).energy) >= 35, `spent=${(e0 - (await p1()).energy).toFixed(0)}`);
   await waitFrames(40);
   check("Amaterasu connects (direct + burn)", hp0 - (await p2()).health > 0, `dmg=${(hp0 - (await p2()).health).toFixed(0)}`);

@@ -4733,7 +4733,9 @@ gameLoop()
     // Force P1 into a knockdown for RENDER verification. Vegeta's knockdown/getup art exists but
     // combat only SETS knockdownState for goku_black (combat.js:717), so this is the only way to
     // exercise the knockdown pose — it proves the SSJ knockdown sheet resolves (not the 128² box).
-    p1Knockdown: () => { if (p1) { p1.knockdownState = true; p1.knockdownTimer = 40; p1.hitstun = 0; p1.attacking = false; p1.grounded = true } },
+    // hitstop is cleared too: a lingering hitstop from a just-connected hit freezes the sprite on the
+    // previous action (sprite.js) and would non-deterministically mask the forced knockdown pose.
+    p1Knockdown: () => { if (p1) { p1.knockdownState = true; p1.knockdownTimer = 40; p1.hitstun = 0; p1.hitstop = 0; p1.attacking = false; p1.grounded = true } },
     setP1Energy: (v = 0) => { if (p1) p1.energy = v },   // exercise the SSJ drain auto-revert without waiting ~18s
     // LIVE dump of the merged _skinAnim entries actually on the fighter (BUG-hunt: which object/sheet is live).
     skinAnimDump: (keys = []) => { const s = p1?._skinAnim; return { has: !!s, entries: keys.map(k => ({ k, sheet: s?.[k]?.sheet ?? null, frames: s?.[k]?.frames ?? null, w: s?.[k]?.width ?? null })) } },

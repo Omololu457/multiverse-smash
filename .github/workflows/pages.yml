@@ -28,6 +28,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          # Self-enable Pages with the "GitHub Actions" build type if it isn't already,
+          # so the deploy doesn't require flipping Settings → Pages by hand.
+          enablement: true
       - name: Upload entire repo root as the site artifact
         uses: actions/upload-pages-artifact@v3
         with:

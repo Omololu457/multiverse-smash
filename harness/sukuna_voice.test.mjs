@@ -131,10 +131,10 @@ try {
   check("KO connect → finisher pool bark", finFired, `log=${JSON.stringify(await sfxLog())}`);
 
   // ══ REPORT: on-disk presence (does NOT affect wiring pass/fail) ════════════
-  section("on-disk presence (reporting only — 37 clips are named-but-pending)");
+  section("on-disk presence (reporting only — all 55 clips now uploaded)");
   const total = 55, present = onDisk.size;
   info(`${present}/${total} mp3s present on disk; ${total - present} named in pools but not yet uploaded (will 404 harmlessly until added)`);
-  check("at least the shipped clips are present & wired", present >= 18, `present=${present}`);
+  check("all 55 pooled clips are present & wired", present >= 55, `present=${present}`);
 
   section("summary");
   check("no JS page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));

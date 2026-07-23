@@ -1296,6 +1296,12 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         fighter._dot = { ticks: proj.dot.ticks | 0, interval: iv, dmg: proj.dot.dmg | 0, delay: iv }
       }
 
+      // GENERIC PROJECTILE-CONNECT FLAG (Saiki's projectile rekka): a projectile carrying a `hitFlag`
+      // string sets that named flag TRUE on its owner when it lands a CLEAN hit (not a block). This lets
+      // a projectile-based cancel-chain gate its continue on the bolt actually connecting — the same
+      // "cancel-on-hit, block/whiff ends the string" rule the melee rekkas use via _cmdHitLanded.
+      if (!fighter.isBlocking && proj.hitFlag && proj.owner) proj.owner[proj.hitFlag] = true
+
       if (fighter.health <= 0) {
         try { sound?.play?.(SFX?.KO) } catch (_) {}
       }

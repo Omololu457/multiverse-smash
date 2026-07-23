@@ -19,6 +19,7 @@ const ENERGY_TYPE_LABELS = {
   bullshit_science: "Bullshit Science Energy",  // Rick & Morty (Rick) — mirrors his energyConfig.label; kept here as a fallback
   portal_tech:      "Portal Tech",              // Rick & Morty (Morty, Evil Morty, Rick Prime)
   spd_energy:       "SPD Energy",               // Power Rangers SPD
+  psi:              "Psi",                       // The Disastrous Life of Saiki K. (Saiki) — psychic power
   stamina:          "Stamina",                  // original roster (Omololu)
   omnitrix:         "Omnitrix",                 // Ben 10 (fallback; device HUD block overrides live)
   ultimatrix:       "Ultimatrix",               // Albedo (fallback; device HUD block overrides live)

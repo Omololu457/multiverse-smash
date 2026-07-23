@@ -156,6 +156,13 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.netero?.portrait, spriteScale: characters.netero?.spriteScale, animationData: null }
   ],
 
+  // Saiki Kusuo (The Disastrous Life of Saiki K.). Same gate: WITHOUT a default skin, applySkin()
+  // pulls the getSkins() spriteScale:1 fallback and he renders at native ~52px (half size). Sources
+  // his real spriteScale (2.2) from the character. No portrait yet (procedural-box fallback on select).
+  saiki: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.saiki?.portrait, spriteScale: characters.saiki?.spriteScale, animationData: null }
+  ],
+
   // Rick Sanchez (Rick & Morty). Same gate as the sprite characters above: WITHOUT a default
   // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native
   // ~67px (half size). Sources his real spriteScale (1.7) from the character. No alt skins yet.

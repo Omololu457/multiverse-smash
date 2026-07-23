@@ -336,6 +336,14 @@ const gojo = {
     grab:     { frames: 6, width: 49, height: 63, speed: 5, sheet: "./gojo_ajab_sheet.png"  },  // reuse jab
     // cinematic / specials
     transform:          { frames: 5, width: 42, height: 64, speed: 6, sheet: "./gojo_intro_sheet.png", loop: false, lockLastFrame: true },  // intro: play once, hold (FIX_3)
+    // TAUNT: enrolls Gojo in the EXISTING universal taunt system (game.js updateTauntState) — the
+    // SAME hold-Down-10s → heal-50%-current-HP-if-untouched reward Rick/Goku Black use. Defining this
+    // action is the entire gate (updateTauntState is a no-op without animationData.taunt). Placeholder
+    // pose reuses the intro coat-throw flex (no dedicated taunt sheet yet); 5×22 ≈ 110-frame committed
+    // window matches Rick's 27×4 / Goku Black's 4×27. Under the "Limitless" skin the commit also fires
+    // the 59-line young-Gojo taunt voice pool (skin-gated via gojoVoice.js pickSkinVoice); base skin
+    // taunts silently but still heals. Flows to the gojo2 skin automatically (skins.js buildComplete).
+    taunt:              { frames: 5, width: 42, height: 64, speed: 22, sheet: "./gojo_intro_sheet.png", loop: false, lockLastFrame: true },
     ultimate:           { frames: 3, width: 39, height: 64, speed: 6, sheet: "./gojo_ultimate_sheet.png" },
     domain:             { frames: 4, width: 37, height: 64, speed: 6, sheet: "./gojo_domain_sheet.png" },  // Unlimited Void HAND-SIGN (NOT the gojo_intro coat-throw)
     blue_cast:          { frames: 5, width: 50, height: 64, speed: 5, sheet: "./gojo_max_output_blue_sheet.png" },

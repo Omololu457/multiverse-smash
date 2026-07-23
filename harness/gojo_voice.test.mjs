@@ -24,6 +24,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { GOJOYOUNG_VOICE } from "../gojoVoice.js";
+import { characters } from "../characters.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg", ".css": "text/css", ".json": "application/json", ".mp4": "video/mp4" };
@@ -231,26 +232,42 @@ try {
   check("gojo2 → a young WIN clip fires at victory", await winFired("gojo2"));
   check("default → NO young win clip (base Gojo unchanged)", !(await winFired("default")));
 
-  // ══ PART 5: STAGED TAUNT (dormant → lights up when a taunt action exists, still skin-gated) ══
-  section("TAUNT staged — no taunt action; hook fires only when one is injected AND gojo2 is on");
-  async function tauntFired(skin) {
+  // ══ PART 5: LIVE TAUNT — Gojo now ships a taunt action, enrolling him in the universal system ══
+  // (hold-Down-10s → heal 50% of current HP if untouched). No injection: the real committed taunt
+  // fires the 59-line young pool under gojo2, and heals under BOTH skins (mechanic universal, voice
+  // skin-gated). This is the same system Rick/Goku Black use.
+  section("TAUNT live — real committed taunt fires the 59 young lines + heals 50% (Rick/GB system)");
+  async function commitTaunt(skin) {
     await goto("p1=gojo");
     await page.evaluate(() => window.__harness.boot());
     await page.evaluate(s => window.__harness.setSkin("p1", s), skin);
     await installSpy();
     await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
-    await page.evaluate(() => { window.__harness.healP1(); window.__harness.giveP1TestTaunt(4); });
+    // Chip HP so the 50%-of-current heal is measurable; park P2 far + invuln so nothing interrupts.
+    await page.evaluate(() => { window.__harness.healP1(); window.__harness.damageP1(600); const a = window.__harness.p1(); window.__harness.setP2X(a.x + 700); window.__harness.setP2Invuln?.(600); });
+    const before = (await p1()).health;
     await clearSfx();
     await page.keyboard.down("s"); await waitFrames(2);
-    await page.evaluate(() => window.__harness.setTauntCharge(599));
-    await waitFrames(6);
+    await page.evaluate(() => window.__harness.setTauntCharge(599));   // fast-forward the 10s charge
+    await waitFrames(3);
+    const committed = (await p1()).tauntPlaying;
+    // ride out the committed window so the heal resolves
+    await page.waitForFunction(() => !window.__harness.p1().tauntPlaying, null, { timeout: 5000, polling: 16 }).catch(() => {});
     await page.keyboard.up("s");
-    return (await youngIn("taunt")).length > 0;
+    const after = (await p1()).health;
+    return { young: (await youngIn("taunt")).length > 0, committed, before, after };
   }
-  const shipsTaunt = await page.evaluate(() => !!window.__harness.p1().animationData?.taunt);
-  check("Gojo ships NO taunt animationData (staged, not a built mechanic)", !shipsTaunt, `animationData.taunt=${shipsTaunt}`);
-  check("injected taunt commit + gojo2 → a young taunt clip fires (hook genuinely wired)", await tauntFired("gojo2"));
-  check("injected taunt commit + default → NO young taunt clip (still skin-gated)", !(await tauntFired("default")));
+  // Source-of-truth: base Gojo's animationData now defines `taunt` (the snapshot doesn't surface
+  // animationData, but the module is the ground truth — and the live commit below confirms it works).
+  const shipsTaunt = !!characters.gojo?.animationData?.taunt;
+  check("Gojo NOW ships a taunt animationData (enrolled in the universal system)", shipsTaunt, `taunt sheet=${characters.gojo?.animationData?.taunt?.sheet}`);
+  const tG = await commitTaunt("gojo2");
+  check("gojo2 → the REAL taunt commits (no injection needed)", tG.committed, `before=${tG.before} after=${tG.after}`);
+  check("gojo2 → a young taunt clip fires on the commit (the 59 lines now play)", tG.young);
+  check("taunt heals ~50% of current HP (same reward as Rick/GB)", tG.after > tG.before && (tG.after - tG.before) >= Math.floor(tG.before * 0.4), `before=${tG.before} after=${tG.after}`);
+  const tD = await commitTaunt("default");
+  check("default → taunt still commits AND heals (mechanic is universal, not skin-gated)", tD.committed && tD.after > tD.before, `before=${tD.before} after=${tD.after}`);
+  check("default → NO young taunt clip (voice stays skin-gated to Limitless)", tD.young === false);
 
   section("summary");
   check("no JS page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));

@@ -60,7 +60,14 @@ const goku = {
     // top-left; `width` = frame pitch (frames step right by it); `height` = cell height.
     // idle: 6 touching frames, uniform 34px pitch (confirmed even-split). anchorY plants
     // feet on the floor (screen px, scale-independent; more negative = lower).
-    idle: { frames: 6, width: 34, height: 37, speed: 6, anchorY: -3, sourceX: 0, sourceY: 10, sheet: "./goku_base_FULLSHEET_transparent.png" }
+    idle: { frames: 6, width: 34, height: 37, speed: 6, anchorY: -3, sourceX: 0, sourceY: 10, sheet: "./goku_base_FULLSHEET_transparent.png" },
+    // walk/run: 10-frame stride row (full-sheet band y229-272) RE-SLICED to a clean
+    // uniform strip via harness (touching frames → explicit valley cut-points, each
+    // frame centered). Closes the "walk = placeholder box" cosmetic gap. run reuses
+    // the same strip at a faster cadence (Naruto/Sasuke pattern); only shows on dash
+    // momentum since ground-hold resolves to `walk` (|vx|>10 gate).
+    walk: { frames: 10, width: 32, height: 44, speed: 5, anchorY: -3, sheet: "./goku_base_walk_uniform.png" },
+    run:  { frames: 10, width: 32, height: 44, speed: 4, anchorY: -3, sheet: "./goku_base_walk_uniform.png" }
   }
 }
 

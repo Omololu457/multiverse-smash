@@ -17,7 +17,6 @@ import { sound, SFX } from "./sound.js"
 import { pickRickVoice } from "./rickVoice.js"
 import { pickItachiVoice } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
-import { pickNeteroVoice } from "./neteroVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
 import { pickSkinVoice } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
 
@@ -542,42 +541,17 @@ function applyRickOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickRickVoice("taunt"), null) } catch (_) {}
 }
 
-// ── ISAAC NETERO VOICE LINES (audio-only; Japanese "Nen Impact" VO, kept intentionally) ──
-// HIT-CONNECT bark — fires when an UNBLOCKED attack CONNECTS (any tier: normal / special /
-// avatar). This is the "attack landed" pool ("too soft" / "underestimating" / "impudent"…),
-// distinct from the STARTUP grunt below. Shared _atkVoiceCd → one line per window (never spams).
-function applyNeteroOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "netero" || (attacker._atkVoiceCd > 0)) return
-  attacker._atkVoiceCd = 150
-  try { sound?.playSfxFile?.(pickNeteroVoice("hit"), null) } catch (_) {}
-}
-
-// COMBAT GRUNT bark — fires on the STARTUP of ANY attack (the rising edge of fighter.attacking:
-// base normals via startMove, command rekkas / Barrage / avatar attacks via setAttackState). A
-// generic combat-EFFORT exclamation — a DIFFERENT trigger from the hit-connect pool above (this
-// fires on the swing whether or not it lands; that one only on contact). Uses its OWN _gruntVoiceCd
-// (NOT the offense _atkVoiceCd) so the two pools are never aliased to the same event/cooldown.
-// Called every frame from updateCombat; _prevAttacking tracks the edge.
-const NETERO_GRUNT_CD = 22   // ~0.37s floor between grunts so a fast chain doesn't machine-gun them
-function applyNeteroGruntVoice(fighter) {
-  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "netero") return
-  if ((fighter._gruntVoiceCd || 0) > 0) fighter._gruntVoiceCd--
-  const attackingNow = !!fighter.attacking
-  const rising = attackingNow && !fighter._prevAttacking
-  fighter._prevAttacking = attackingNow
-  if (!rising || (fighter._gruntVoiceCd || 0) > 0) return
-  if (fighter.currentAttack?.name === "guanyinZero") return   // the 100-Type Zero finisher has its OWN monologue/payoff — no generic startup grunt over it
-  fighter._gruntVoiceCd = NETERO_GRUNT_CD
-  try { sound?.playSfxFile?.(pickNeteroVoice("grunt"), null) } catch (_) {}
-}
+// ── ISAAC NETERO VOICE LINES ── (removed — audio files deleted; awaiting fresh audio.
+// The hit-connect and startup-grunt trigger POINTS remain in resolveAttackHit / updateCombat
+// below; re-wire a neteroVoice module + the applyNetero*Voice helpers here to re-enable.)
 
 // ── SAIKI KUSUO VOICE LINES (audio-only; English-dub deadpan dismissals) ──
 // HIT-CONNECT bark — fires when an UNBLOCKED attack CONNECTS (any tier). Saiki's 12 clips are the
 // deadpan dismissal pool ("Who cares", "I'll pass", "Not listening"…), which read as an unimpressed
 // "landed a hit" line. They were originally wired READY-AND-WAITING onto the universal taunt commit
 // (game.js), but Saiki has no `taunt` action so that hook is dormant — this LIVE hit-connect trigger
-// is what actually makes them audible in-game. Mirrors applyNeteroOffenseVoice: shared _atkVoiceCd
-// (ticked generically in game.js) → one line per window, never spams, suppressed when blocked.
+// is what actually makes them audible in-game. Uses the shared _atkVoiceCd (ticked generically in
+// game.js) → one line per window, never spams, suppressed when blocked.
 function applySaikiOffenseVoice(attacker, cat, unblocked) {
   if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "saiki" || (attacker._atkVoiceCd > 0)) return
   attacker._atkVoiceCd = 150
@@ -1142,7 +1116,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyRickOffenseVoice(attacker, cat, !defender.isBlocking)     // Rick generic taunt/flavor bark on a strong/long-string connect
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher
   applySukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Sukuna finisher(KO/low-HP) / hit-connect(strong+long) / taunt+misc(light) barks
-  applyNeteroOffenseVoice(attacker, cat, !defender.isBlocking)   // Netero hit-connect bark (any tier lands; distinct from the startup grunt)
+  // Netero hit-connect voice removed (audio files deleted); re-add applyNeteroOffenseVoice here to re-enable.
   applySaikiOffenseVoice(attacker, cat, !defender.isBlocking)    // Saiki deadpan dismissal on connect (was dormant on the no-op taunt hook; this makes it LIVE)
   applyGojoLimitlessOffenseVoice(attacker, cat, !defender.isBlocking)   // Gojo "Limitless" skin hit-connect bark (young pack; no-op on default skin)
 }
@@ -1156,7 +1130,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
 
   ensureCombatState(fighter)
 
-  applyNeteroGruntVoice(fighter)   // Netero: startup-effort grunt on any attack's rising edge (runs every frame, edge-gated)
+  // Netero startup-grunt voice removed (audio files deleted); re-add applyNeteroGruntVoice here to re-enable.
 
   if ((fighter.grabInputBuffer || 0) > 0) fighter.grabInputBuffer--
   if ((fighter._parryInputBuffer || 0) > 0) fighter._parryInputBuffer--

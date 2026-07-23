@@ -122,6 +122,7 @@ import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
+import { pickNeteroVoice, NETERO_VOICE } from "./neteroVoice.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -1326,6 +1327,9 @@ const INTRO_VOICE = {
   // Itachi picks ONE of three calm opening lines at random per match ("Stay calm" / "Fighting is
   // pointless" / "I can take down any enemy"). Fires at his first intro-play frame (no reveal gate).
   itachi: { pool: ITACHI_VOICE.intro, gateReveal: false },
+  // Netero picks ONE of two opening lines at random per match ("a fine challenger" / "let's be
+  // playmates"). Fires at his first intro-play frame (no reveal gate), same family as Sasuke/Itachi.
+  netero: { pool: NETERO_VOICE.intro, gateReveal: false },
 }
 function maybeFireIntroVoice(fighter) {
   const cfg = fighter && INTRO_VOICE[fighter.rosterKey]
@@ -1733,6 +1737,11 @@ function _checkMatchOver() {
       // his "Rick dance" win bark. Fires only when the WINNER is Rick.
       if (winFighter?.rosterKey === "rick") {
         sound.playSfxFile?.(pickRickVoice("win"), null)
+      }
+      // NETERO win voice — random pick from his 11-entry victory pool (short / "feed me" / "hundred
+      // years" / laugh / "getting old" / grateful×2 / close×4). Fires only when the WINNER is Netero.
+      if (winFighter?.rosterKey === "netero") {
+        sound.playSfxFile?.(pickNeteroVoice("win"), null)
       }
       // OMEGA RANGER win voice — normally a 50/50 alternation of his two victory lines (same coin-flip
       // family as Beerus/Sasuke). BUT a come-from-behind win (Omega closed out a 3-round decider after
@@ -2229,6 +2238,12 @@ function updateTauntState(fighter, downHeld) {
     // up automatically the moment a taunt animation is added — no new mechanic built here.
     if ((fighter.rosterKey || "").toLowerCase() === "saiki") {
       sound.playSfxFile?.(pickSaikiVoice("taunt"), null)
+    }
+    // NETERO taunt voice — 8-entry Japanese pool ("come at me" / "go easier" / "spacing out"…).
+    // Same READY-AND-WAITING wiring as Saiki: Netero has NO `taunt` action, so this is dormant
+    // (the block never runs for him) and lights up the moment a taunt animation is added.
+    if ((fighter.rosterKey || "").toLowerCase() === "netero") {
+      sound.playSfxFile?.(pickNeteroVoice("taunt"), null)
     }
   }
 }
@@ -4850,6 +4865,10 @@ gameLoop()
     // random, non-repeating selection deterministically (uses the SAME pickSaikiVoice
     // the live taunt-commit hook calls).
     saikiVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSaikiVoice(pool)),
+    // Netero's 7 pools (intro/taunt/win/guanyinCast/hit/grunt/zero) — proves genuine random
+    // selection, especially the large 20-entry grunt + 11-entry win pools (uses the SAME
+    // pickNeteroVoice the live hooks call).
+    neteroVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickNeteroVoice(pool)),
     // TEST-ONLY: inject a minimal `taunt` animationData onto the LIVE p1 fighter so a
     // test can drive the real taunt commit-transition and prove the (dormant) Saiki voice
     // hook fires the moment a taunt action exists. Does NOT ship a taunt to Saiki — the
@@ -4857,7 +4876,7 @@ gameLoop()
     giveP1TestTaunt: (frames = 4) => { if (p1) { p1.animationData = p1.animationData || {}; p1.animationData.taunt = { frames, width: 32, height: 48, speed: 4, loop: false, lockLastFrame: true, sheet: "./saiki_idle_u.png" } } },
     // Zero the LIVE fighter's offense-voice state (cooldown + combo) so a test can force a
     // CLEAN single-hit connect — p1()/p2() return snapshots, so mutating those can't reset it.
-    resetOffenseVoice: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f._atkVoiceCd = 0; f.comboCounter = 0; f.comboTimer = 0; } },
+    resetOffenseVoice: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f._atkVoiceCd = 0; f.comboCounter = 0; f.comboTimer = 0; f._gruntVoiceCd = 0; f._prevAttacking = false; } },
     damageP1: (v = 100) => { if (p1) p1.health = Math.max(1, (p1.health || 0) - v) },   // chip P1 so a round isn't perfect
     victoryInfo: () => ({ flawless: !!victoryState.flawless, subtitle: victoryState.subtitle || "", primaryLabel: victoryState.primaryLabel || "", winner: victoryState.winnerSide, perfectP1: matchStats?.p1?.perfectRounds, roundsWonP1: matchStats?.p1?.roundsWon }),
     // ── FREE-FOR-ALL diagnostics/drivers ──────────────────────────────────────

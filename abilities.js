@@ -16,7 +16,6 @@ import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./
 import { resolveGrab, GLOBAL_DAMAGE_SCALE } from "./combat.js"   // shared grab pipeline + the one damage-scale lever (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
-import { pickNeteroVoice, NETERO_ZERO } from "./neteroVoice.js"   // Netero Guanyin-cast pool + 100-Type Zero finisher lines (audio-only)
 import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin voice override (Gojo "Limitless" young pack)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
@@ -3709,13 +3708,12 @@ function executeNeteroZero(fighter, context) {
   attack.isUltimate = true                                   // ultimate-tier hit categorisation (KO/knockdown class)
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
   fighter._suppressUltCooldown = true                        // don't arm the ult cooldown for this in-form press (revert owns the 20s lockout)
-  sound.playSfxFile?.(NETERO_ZERO.cast, null)                // "…I'll show you the 100-Type Zero" — dramatic windup line
+  // 100-Type Zero cast/strike voice removed (audio files deleted); re-add sound.playSfxFile here to re-enable.
   focusCameraOnAction(context, fighter, null, 1.0, 22)
   shakeCamera(context, 12, 16)
-  // Strike battle-cry ("zero payoff") synced to the active frames (after the committed windup).
+  // Strike beat: camera shake synced to the active frames (after the committed windup).
   schedulePendingSpawn(md.startup, () => {
     if (fighter.currentAttack && fighter.currentAttack.name === "guanyinZero") {
-      sound.playSfxFile?.(NETERO_ZERO.strike, null)
       shakeCamera(context, 18, 22)
     }
   })
@@ -3801,11 +3799,8 @@ function executeNeteroUltimate(fighter, context) {
   fighter._spriteCastTimer = GUANYIN_CAST_FRAMES
   fighter.attackCooldown   = getAttackDuration(GUANYIN_CAST_FRAMES, fighter)
   fighter._suppressUltCooldown = true                       // 20s recast lockout armed in revertNeteroGuanyin instead
-  // GUANYIN CAST voice — random pick between cast_1 / cast_alt, fired at the transformation/summon
-  // BEAT (charge begins → giant materialises after GUANYIN_CAST_FRAMES). This is the ONLY auto-fired
-  // Guanyin line; the ~19s "100-Type Zero" monologue + payoff are STAGED separately (see neteroVoice.js)
-  // and never fire here, so the cast bark never overlaps them.
-  sound.playSfxFile?.(pickNeteroVoice("guanyinCast"), null)
+  // Guanyin-cast voice removed (audio files deleted); the transformation/summon beat still fires
+  // here — re-add sound.playSfxFile?.(pickNeteroVoice("guanyinCast"), null) to re-enable.
   focusCameraOnAction(context, fighter, null, 0.9, 18)
   shakeCamera(context, 10, 14)
   schedulePendingSpawn(GUANYIN_CAST_FRAMES, () => {

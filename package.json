@@ -73,7 +73,6 @@
     "test:saiki": "node harness/saiki.test.mjs",
     "test:saiki-portrait": "node harness/saiki_portrait.test.mjs",
     "test:saiki-voice": "node harness/saiki_voice.test.mjs",
-    "test:netero-voice": "node harness/netero_voice.test.mjs",
     "test:gojo-voice": "node harness/gojo_voice.test.mjs"
   },
   "dependencies": {

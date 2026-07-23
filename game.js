@@ -122,7 +122,6 @@ import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
-import { pickNeteroVoice, NETERO_VOICE } from "./neteroVoice.js"
 import { pickSkinVoice, GOJOYOUNG_VOICE } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
@@ -1328,9 +1327,8 @@ const INTRO_VOICE = {
   // Itachi picks ONE of three calm opening lines at random per match ("Stay calm" / "Fighting is
   // pointless" / "I can take down any enemy"). Fires at his first intro-play frame (no reveal gate).
   itachi: { pool: ITACHI_VOICE.intro, gateReveal: false },
-  // Netero picks ONE of two opening lines at random per match ("a fine challenger" / "let's be
-  // playmates"). Fires at his first intro-play frame (no reveal gate), same family as Sasuke/Itachi.
-  netero: { pool: NETERO_VOICE.intro, gateReveal: false },
+  // Netero intro voice removed (audio files deleted); with no entry here he skips the intro-voice
+  // beat cleanly (maybeFireIntroVoice no-ops for unmapped fighters). Re-add an entry to re-enable.
 }
 function maybeFireIntroVoice(fighter) {
   if (!fighter || fighter._introVoiceDone) return
@@ -1746,11 +1744,8 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "rick") {
         sound.playSfxFile?.(pickRickVoice("win"), null)
       }
-      // NETERO win voice — random pick from his 11-entry victory pool (short / "feed me" / "hundred
-      // years" / laugh / "getting old" / grateful×2 / close×4). Fires only when the WINNER is Netero.
-      if (winFighter?.rosterKey === "netero") {
-        sound.playSfxFile?.(pickNeteroVoice("win"), null)
-      }
+      // Netero win voice removed (audio files deleted); re-add a `winFighter?.rosterKey === "netero"`
+      // block here (mirroring the Rick one above) to re-enable.
       // GOJO "Limitless" skin win voice — young-Gojo victory pack, random pick. Gated to the
       // gojo2 skin via pickSkinVoice (returns null on the default skin), so base Gojo's win beat
       // is unchanged. Fires only when the WINNER is a Limitless-skin Gojo.
@@ -2254,12 +2249,8 @@ function updateTauntState(fighter, downHeld) {
     if ((fighter.rosterKey || "").toLowerCase() === "saiki") {
       sound.playSfxFile?.(pickSaikiVoice("taunt"), null)
     }
-    // NETERO taunt voice — 8-entry Japanese pool ("come at me" / "go easier" / "spacing out"…).
-    // Same READY-AND-WAITING wiring as Saiki: Netero has NO `taunt` action, so this is dormant
-    // (the block never runs for him) and lights up the moment a taunt animation is added.
-    if ((fighter.rosterKey || "").toLowerCase() === "netero") {
-      sound.playSfxFile?.(pickNeteroVoice("taunt"), null)
-    }
+    // Netero taunt voice removed (audio files deleted). The universal taunt-commit trigger POINT
+    // remains here; re-add a `rosterKey === "netero"` block (mirroring Saiki above) to re-enable.
     // GOJO "Limitless" skin taunt voice — the largest young-Gojo pool (59). STAGED like
     // Saiki/Netero: Gojo has NO `taunt` action, so this commit block never runs for him today
     // (the pool is dormant). Gated to the gojo2 skin via pickSkinVoice — under the default skin
@@ -4892,10 +4883,7 @@ gameLoop()
     // random, non-repeating selection deterministically (uses the SAME pickSaikiVoice
     // the live taunt-commit hook calls).
     saikiVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSaikiVoice(pool)),
-    // Netero's 7 pools (intro/taunt/win/guanyinCast/hit/grunt/zero) — proves genuine random
-    // selection, especially the large 20-entry grunt + 11-entry win pools (uses the SAME
-    // pickNeteroVoice the live hooks call).
-    neteroVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickNeteroVoice(pool)),
+    // Netero voice harness hook removed (audio files + neteroVoice.js deleted).
     // Gojo "Limitless" (gojo2) skin voice pack — sample the SAME pickSkinVoice("gojo","gojo2",pool)
     // every wired Limitless trigger uses. Proves genuine random selection within each of the 6 pools.
     // Passing a null/other skinId returns nulls (proves the override is skin-gated, not global).

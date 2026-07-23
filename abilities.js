@@ -1348,6 +1348,34 @@ function executeNarutoSpecial(fighter, context) {
     return true
   }
 
+  // CLONE RUSH / KAGE ASSAULT (SETPLAY) — F→F (double-tap toward the opponent) + Special with
+  // at least one clone placed, BELOW shroud stage 3 (at stage 3+ the F→F slot is the chakra-arm
+  // grab above, which is checked first). Every live clone is launched on ONE AUTONOMOUS rush-
+  // strike then despawns — staggered a beat apart so Naruto stays free (short recovery) to play
+  // neutral / cover his approach while the clones close in. UNLIKE the instant Rasengan Barrage
+  // (#16/#19, guaranteed same-frame orbs), each rusher physically travels and is reactable /
+  // blockable — this is the okizeme/setplay tool, not a combo confirm. Cost = the popped clone
+  // shares (consumeShadowClones is lossy, like a clone destroyed in combat); no meter on top.
+  // Reuses the shikigami rush→one-hit→despawn summon (narutoCloneRush template).
+  if (endsWithPattern(dirs, ["F", "F"]) && countShadowClones(fighter) >= 1) {
+    const spots = consumeShadowClones(fighter, 3)   // all live clones (up to 3) become rushers
+    spots.forEach((spot, i) => {
+      const rusher = spawnAssistSummon(fighter, "narutoCloneRush", target)
+      if (rusher) {
+        rusher.x = spot.x; rusher.y = spot.y        // launch from where the clone was standing
+        rusher.spawnBeat   = i * 12                  // staggered launch — each rushes a beat later
+        rusher.attackTimer = -i * 12                 // stagger their first strike window to match
+      }
+    })
+    sound.playSfxFile?.("naruto_shadow_clone_special.mp3", null)   // "Naruto 2000-Hit Combo!"
+    fighter._spriteCastMove  = "rasengan_cast"       // brief command-gesture pose
+    fighter._spriteCastTimer = 16
+    fighter.attackCooldown   = getAttackDuration(14, fighter)   // SHORT — free to move as they rush
+    focusCameraOnAction(context, fighter, target, 0.99, 8)
+    shakeCamera(context, 4, 4)
+    return true
+  }
+
   // ── RASENGAN FAMILY — solo specials, meter-cost only, ZERO clone involvement ──
 
   // HOLD-CHARGE branch: player is holding P (charge) as they press Special. The held
@@ -1560,6 +1588,37 @@ function executeNarutoSpecial(fighter, context) {
   // IN PLACE (does not travel). A stationary createAttackFromMove hitbox bubbles around
   // Naruto (wide rangeX/rangeY), plus a damage-less ring-bloom visual centred on him.
   if (dirs.length > 0 && dirs[dirs.length - 1] === "D") {
+
+    // CLONE UZUMAKI BARRAGE — hard-knockdown FINISHER (contextual). ONLY when the opponent is
+    // ALREADY in hitstun (mid-combo) AND ≥2 clones are in reserve does Down+Special become the
+    // clone-slam ender; otherwise it stays the normal Dark Rasengan below (zero change to that
+    // move's neutral use). Pops the clones for a rapid guaranteed flurry that CAPS with a
+    // downward slam (positive knockbackY floors them), a dedicated combo ender matching the
+    // "2000-Hit Combo" flavor. DELIBERATELY does NOT touch knockdownState (goku_black-only,
+    // softlock-guarded in combat.js) — the knockdown is expressed via strong down+away knockback
+    // and long hitstun, the same way every other non-goku_black hard hit reads as a floor.
+    // Damage kept below Full Rasengan Barrage #19 (this is a decayed combo tail): 2 clones =
+    // 45+90 = 135 RAW, 3 clones = 45+45+90 = 180 RAW (×0.60 global → ~81 / 108 EFF).
+    if ((target?.hitstun || 0) > 0 && countShadowClones(fighter) >= 2) {
+      const n = consumeShadowClones(fighter, 3).length   // pop all live clones (2 or 3)
+      sound.playSfxFile("naruto_shadow_clone_special.mp3", null)   // VOICE: "Naruto 2000-Hit Combo!"
+      for (let i = 0; i < n; i++) {
+        const last = (i === n - 1)   // the final clone lands the slam
+        schedulePendingSpawn(3 + i * 6, () => {
+          spawnGuaranteedCloneHit(fighter, target, "rasengan", last
+            ? { damage: 90, hitstun: 30, knockbackX: 8, knockbackY: 7,  dirSign: fighter.facing, w: 34, h: 34, spriteScale: 0.6 }   // SLAM down+away = knockdown cap
+            : { damage: 45, hitstun: 20, knockbackX: 3, knockbackY: -3, dirSign: fighter.facing, spriteScale: 0.45 },              // brief link hits
+            context)
+          shakeCamera(context, last ? 9 : 4, last ? 8 : 4)
+        })
+      }
+      fighter._spriteCastMove  = "rasengan_cast"
+      fighter._spriteCastTimer = 24
+      fighter.attackCooldown   = getAttackDuration(28, fighter)
+      focusCameraOnAction(context, fighter, target, 0.97, 12)
+      return true
+    }
+
     if (!spendEnergy(fighter, 45)) return false
     sound.playSfxFile("naruto_special_burst.mp3", null)   // VOICE: "I'll blow it away with my jutsu" — Dark Rasengan (the voiceless special; Rasenshuriken already carries its wind SFX)
     fighter._spriteCastMove  = "rasengan_cast"

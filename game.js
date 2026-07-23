@@ -123,6 +123,7 @@ import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
 import { pickNeteroVoice, NETERO_VOICE } from "./neteroVoice.js"
+import { pickSkinVoice, GOJOYOUNG_VOICE } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -1332,12 +1333,19 @@ const INTRO_VOICE = {
   netero: { pool: NETERO_VOICE.intro, gateReveal: false },
 }
 function maybeFireIntroVoice(fighter) {
-  const cfg = fighter && INTRO_VOICE[fighter.rosterKey]
-  if (!cfg || fighter._introVoiceDone) return
-  if (cfg.gateReveal && (fighter._introRevealFrame || 0) < (fighter.introReveal?.hide || 0)) return
-  if (cfg.gateSeqStep && fighter._introVariant !== cfg.gateSeqStep) return   // hold until the reveal step of a two-part intro
+  if (!fighter || fighter._introVoiceDone) return
+  // Per-skin OVERRIDE takes priority (Gojo "Limitless" young pack); null under any other
+  // skin → fall through to the base INTRO_VOICE entry (base Gojo has none → nothing plays).
+  const skinClip = pickSkinVoice(fighter.rosterKey, fighter.skinId, "intro")
+  const cfg = INTRO_VOICE[fighter.rosterKey]
+  if (!skinClip && !cfg) return
+  // Reveal / sequence-step gates come from the base cfg (if any) and apply to the skin
+  // override too, so a gated char keeps its timing. Gojo has no cfg → fires on the first
+  // intro-play frame (same beat as Naruto/Itachi/Netero).
+  if (cfg?.gateReveal && (fighter._introRevealFrame || 0) < (fighter.introReveal?.hide || 0)) return
+  if (cfg?.gateSeqStep && fighter._introVariant !== cfg.gateSeqStep) return   // hold until the reveal step of a two-part intro
   fighter._introVoiceDone = true
-  const clip = cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip
+  const clip = skinClip || (cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip)
   sound.playSfxFile?.(clip, null)
 }
 
@@ -1742,6 +1750,13 @@ function _checkMatchOver() {
       // years" / laugh / "getting old" / grateful×2 / close×4). Fires only when the WINNER is Netero.
       if (winFighter?.rosterKey === "netero") {
         sound.playSfxFile?.(pickNeteroVoice("win"), null)
+      }
+      // GOJO "Limitless" skin win voice — young-Gojo victory pack, random pick. Gated to the
+      // gojo2 skin via pickSkinVoice (returns null on the default skin), so base Gojo's win beat
+      // is unchanged. Fires only when the WINNER is a Limitless-skin Gojo.
+      if (winFighter?.rosterKey === "gojo") {
+        const clip = pickSkinVoice("gojo", winFighter.skinId, "win")
+        if (clip) sound.playSfxFile?.(clip, null)
       }
       // OMEGA RANGER win voice — normally a 50/50 alternation of his two victory lines (same coin-flip
       // family as Beerus/Sasuke). BUT a come-from-behind win (Omega closed out a 3-round decider after
@@ -2244,6 +2259,15 @@ function updateTauntState(fighter, downHeld) {
     // (the block never runs for him) and lights up the moment a taunt animation is added.
     if ((fighter.rosterKey || "").toLowerCase() === "netero") {
       sound.playSfxFile?.(pickNeteroVoice("taunt"), null)
+    }
+    // GOJO "Limitless" skin taunt voice — the largest young-Gojo pool (59). STAGED like
+    // Saiki/Netero: Gojo has NO `taunt` action, so this commit block never runs for him today
+    // (the pool is dormant). Gated to the gojo2 skin via pickSkinVoice — under the default skin
+    // (or when a taunt action is later added while wearing another skin) it stays silent. It
+    // lights up automatically the instant a `taunt` animation is added AND Limitless is equipped.
+    if ((fighter.rosterKey || "").toLowerCase() === "gojo") {
+      const clip = pickSkinVoice("gojo", fighter.skinId, "taunt")
+      if (clip) sound.playSfxFile?.(clip, null)
     }
   }
 }
@@ -4543,7 +4567,9 @@ gameLoop()
     matchConfig.selectedStage = stages[0]
     matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key]
     matchConfig.p2CharKey = p2Key; matchConfig.p2Char = characters[p2Key]
-    matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+    // Skins default to "default"; a test may pass opts.p1Skin/p2Skin (e.g. "gojo2") so the skin
+    // is applied inside startMatch BEFORE the intro plays — needed to prove the per-skin intro voice.
+    matchConfig.p1Skin = opts.p1Skin || "default"; matchConfig.p2Skin = opts.p2Skin || "default"
     startMatch()
   }
 
@@ -4585,6 +4611,7 @@ gameLoop()
     damageMultiplier: f.damageMultiplier ?? 1,    // buff-mode damage scale (Mangekyou/SSJ etc.)
     transformIndex:   f.transformIndex ?? null,
     hasSkinAnim:      !!f._skinAnim,
+    skinId:           f.skinId || null,          // equipped skin (per-skin voice-override gate)
     canvasHeightFrac: f._canvasHeightFrac || null,
     action:           f._lastSpriteAction || null,
     frameIndex:       f.spriteHandler?.frameIndex ?? null,
@@ -4869,6 +4896,13 @@ gameLoop()
     // selection, especially the large 20-entry grunt + 11-entry win pools (uses the SAME
     // pickNeteroVoice the live hooks call).
     neteroVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickNeteroVoice(pool)),
+    // Gojo "Limitless" (gojo2) skin voice pack — sample the SAME pickSkinVoice("gojo","gojo2",pool)
+    // every wired Limitless trigger uses. Proves genuine random selection within each of the 6 pools.
+    // Passing a null/other skinId returns nulls (proves the override is skin-gated, not global).
+    gojoVoicePick: (skinId, pool, n = 1) => Array.from({ length: n }, () => pickSkinVoice("gojo", skinId, pool)),
+    // TEST-ONLY: live-apply a skin to a fighter (calls the real applySkin) so a test can toggle
+    // the Limitless skin ON/OFF mid-session and prove the voice override activates/reverts.
+    setSkin: (side = "p1", skinId = "default") => { const f = side === "p2" ? p2 : p1; if (f) { applySkin(f, skinId); return f.skinId } return null },
     // TEST-ONLY: inject a minimal `taunt` animationData onto the LIVE p1 fighter so a
     // test can drive the real taunt commit-transition and prove the (dormant) Saiki voice
     // hook fires the moment a taunt action exists. Does NOT ship a taunt to Saiki — the

@@ -17,6 +17,7 @@ import { resolveGrab, GLOBAL_DAMAGE_SCALE } from "./combat.js"   // shared grab 
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickNeteroVoice, NETERO_ZERO } from "./neteroVoice.js"   // Netero Guanyin-cast pool + 100-Type Zero finisher lines (audio-only)
+import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin voice override (Gojo "Limitless" young pack)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
@@ -1698,6 +1699,18 @@ function executeNarutoUltimate(fighter, context) {
 }
 
 // ── GOJO SATORU ───────────────────────────────────────────────────
+// "Limitless" (gojo2) SKIN cast-flavor voice — fires on ANY successfully-cast Gojo
+// special or ultimate (audio-only). The young-Gojo pack has NO named-technique lines
+// (Blue/Red/Purple/Domain deliberately excluded), so this plays a GENERIC flourish
+// OVER the existing per-technique SFX — named casts never go silent under Limitless,
+// they just also get a young-Gojo bark. Returns null (→ no-op) on the default skin, so
+// base Gojo's casts are completely unchanged. Called only after a cast returns true.
+function maybeFireGojoCastVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gojo") return
+  const clip = pickSkinVoice("gojo", fighter.skinId, "cast")
+  if (clip) { try { sound.playSfxFile?.(clip, null) } catch (_) {} }
+}
+
 // Specials: Blue (attract), Red (repel), Hollow Purple (convergence beam)
 // Ultimate: Unlimited Void domain expansion
 function executeGojoSpecial(fighter, context) {
@@ -3980,7 +3993,7 @@ export function triggerSpecial(fighter, context = {}) {
   switch (key) {
     case "goku":    return executeGokuSpecial(fighter, context)
     case "naruto":  return executeNarutoSpecial(fighter, context)
-    case "gojo":    return executeGojoSpecial(fighter, context)
+    case "gojo":    { const ok = executeGojoSpecial(fighter, context); if (ok) maybeFireGojoCastVoice(fighter); return ok }
     case "megumi":  return executeMegumiSpecial(fighter, context)
     case "sukuna":  return executeSukunaSpecial(fighter, context)
     case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
@@ -4017,7 +4030,7 @@ export function triggerUltimate(fighter, context = {}) {
     switch (key) {
       case "goku":    cast = executeGokuUltimate(fighter, context);    break
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
-      case "gojo":    cast = executeGojoUltimate(fighter, context);    break
+      case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break
       case "megumi":  cast = executeMegumiUltimate(fighter, context);  break
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break
       case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo

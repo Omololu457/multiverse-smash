@@ -362,7 +362,7 @@ const SERIES_MUSIC = {
   // case-sensitive). The Naruto file is spelled "sprit" (not "spirit").
   jjk:         "JJK-Delirious.mp3",
   naruto:      "Naruto_fighting_sprit.mp3",
-  dragonball:  null,   // TODO: e.g. "dragonball_battle.mp3"
+  dragonball:  "DB_3.mp3",   // only real DB track on disk; both DB stages share it (DB_1/DB_2 never existed)
   demonslayer: null,   // TODO: e.g. "demonslayer_theme.mp3"
   rickmorty:   null,   // TODO: e.g. "rickmorty_theme.mp3"
   ben10:       null,   // TODO: e.g. "ben10_theme.mp3"
@@ -388,12 +388,12 @@ const NAMECALL_AUDIO = {
 // are case-sensitive and must match the files on disk exactly; a missing file
 // falls back gracefully to the procedural theme (sound.playMusicFile onerror).
 const STAGE_DEFS = [
-  { name: "Jujutsu High Courtyard", series: "jjk",         music: "JJK_1.mp3", landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png" },
+  { name: "Jujutsu High Courtyard", series: "jjk",         music: "JJk_3.mp3", landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png" },
   { name: "Shibuya Incident",       series: "jjk",         music: "JJK_2.mp3", landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444", backgroundImage: "shibuya_incident_bg.png" },
   { name: "Hidden Leaf Village",    series: "naruto",      landmark: "hidden_leaf",  sky: "#bfdbfe", mid: "#86efac", floor: "#a16207", accent: "#22c55e" },
   { name: "Valley of the End",      series: "naruto",      music: "valley_of_the_end_theme.mp3", landmark: "valley_of_end",sky: "#9fb6c9", mid: "#5b7184", floor: "#2f3b46", accent: "#e2e8f0", backgroundImage: "valley_of_the_end_bg.png" },
-  { name: "Planet Namek",           series: "dragonball",  music: "DB_1.mp3",  landmark: "namek",        sky: "#5eead4", mid: "#34d399", floor: "#15803d", accent: "#fef08a" },
-  { name: "World Tournament Arena", series: "dragonball",  music: "DB_2.mp3",  landmark: "tournament",   sky: "#93c5fd", mid: "#fde68a", floor: "#b45309", accent: "#ffffff" },
+  { name: "Planet Namek",           series: "dragonball",  landmark: "namek",        sky: "#5eead4", mid: "#34d399", floor: "#15803d", accent: "#fef08a" },
+  { name: "World Tournament Arena", series: "dragonball",  landmark: "tournament",   sky: "#93c5fd", mid: "#fde68a", floor: "#b45309", accent: "#ffffff" },
   { name: "Mugen Train",            series: "demonslayer", landmark: "mugen_train",  sky: "#0c1330", mid: "#241a3a", floor: "#1a1326", accent: "#f59e0b" },
   { name: "Citadel of Ricks",       series: "rickmorty",   landmark: "citadel",      sky: "#11182b", mid: "#1e293b", floor: "#0f172a", accent: "#39ff14" },
   { name: "Null Void",              series: "ben10",       landmark: "null_void",    sky: "#1a0b2e", mid: "#2e1065", floor: "#170a28", accent: "#22d3ee" },

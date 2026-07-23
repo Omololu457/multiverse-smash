@@ -244,7 +244,9 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Gated on !attacking: a down-air (S+J in the air) holds Down, which sets isBlocking,
   // so without this the dive normal would render the guard pose instead of the attack.
   // An actively-attacking fighter always shows the attack over a simultaneous block-hold.
-  if (fighter.isBlocking && !fighter.attacking) {
+  // ALSO gated on no active sprite-cast: a Down+Special cast pose (Killua's Electric Ball) holds
+  // Down → isBlocking, so without this the cast strip would be shadowed by the guard pose.
+  if (fighter.isBlocking && !fighter.attacking && !((fighter._spriteCastTimer || 0) > 0 && fighter._spriteCastMove)) {
     return (fighter._skinAnim?.guard || fighter.animationData?.guard) ? "guard" : "idle";
   }
 

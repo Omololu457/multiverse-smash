@@ -1900,6 +1900,112 @@ const saiki = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// HUNTER x HUNTER — Killua Zoldyck (13th sprite char, 2nd HxH after Netero)
+// STAGE 1: registration + movement/state only. Fast technical-assassin archetype:
+// top-tier speed, moderate-low raw damage, built for combo pressure (Stage 2 chain).
+// Source art = ~40 separate per-action JUS PNGs (killua_*.png), NOT one atlas sheet —
+// same per-action `.sheet` pattern as Itachi/Netero/Saiki. The non-uniform source
+// strips were RE-SLICED into clean uniform cells (harness/reslice.mjs → *_uniform.png)
+// so the engine slices by a single pitch without horizontal jitter.
+// GODSPEED (ultimate) = OVERLAY path, decided in Stage 1 (see KILLUA_ASSET_MAP.md):
+// NO dedicated Godspeed alternate-form move-set exists in the batch — only base poses
+// plus electric-aura FX frames (killua_charge_animation_*, killua_teleport_attack_*).
+// So Godspeed (Stage 5) = global speed/damage buff + afterimage/electric overlay on
+// base animations (Itachi-Mangekyou tier), NOT a Netero/Susanoo alternate-form swap.
+// Yo-yo throw/retract special (Stage 3) + electric specials (Stage 4) land later.
+// Missing actions (walk/dash reuse existing strips) fall back to idle safely.
+// ─────────────────────────────────────────────────────────────────
+const killua = {
+  rosterKey: "killua", name: "Killua Zoldyck", universe: "hunter_x_hunter", color: "#7dd3fc",
+  portrait: "./killua_portrait.png",   // no dedicated mugshot in the batch → a single clean idle pose CROPPED from killua_intro.png (island #0) into a proper portrait (harness/cropone one-off). Flagged as a stand-in until real mugshot art is sourced.
+  archetypes: ["speed", "assassin"],
+  primary: "speed", secondary: ["assassin"],
+  // Base Killua uses a normal dash. The blink/teleport identity is reserved for the
+  // Godspeed ultimate (Stage 5) so the form actually changes how he moves.
+  traits: { hasEnergy: true, energyType: "nen", mobility: "very_high", scaling: "burst", animeMovement: true },
+  // Fast technical assassin: speed 95 (top of roster, tied w/ Beerus-tier), attack 84 and
+  // defense 78 sit BELOW the melee bruisers (Itachi 90/85, Beerus 97/78) — low per-hit,
+  // high combo count. maxHealth 1030 slightly under the 1050 fragile-rushdown band.
+  // maxEnergy 180 = Nen pool (shared "Nen" HUD label with Netero; no new label needed).
+  stats: { maxHealth: 1030, maxEnergy: 180, attack: 84, defense: 78, speed: 95, maxJumps: 2, jumpPower: 33, dashSpeed: 19, dashDuration: 10, dashCooldownMax: 34 },
+  // Placeholder assassin taijutsu — fast, low-damage, low-knockback (combo-friendly). Real
+  // normals + the command-normal chain land in Stage 2. combat.js _getMD reads THIS.
+  basic_attacks: {
+    light:    { damage: 38, startup: 3, active: 3, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 78, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 60, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack:{ damage: 50, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 70, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+  },
+  // HUD-only until Stage 5 (real logic + cost live in abilities.js). Overlay-tier ultimate.
+  ultimate: { name: "Godspeed", cost: 100, description: "Kanmuru — Godspeed. Nen-lightning reflex mode: massive speed + damage boost with an electric afterimage overlay while active." },
+  hasSprites: true,
+  // idle content 48px × 2.1 ≈ 101px on-screen (lean teen, a touch under the ~112 adults).
+  // REQUIRES the skins.js `killua` entry (else applySkin() pulls the spriteScale:1 fallback
+  // → native ~half size) + the spritesheets.js SPRITE_MANIFEST idle gate.
+  // anchorY = -(bottom transparent gap × 2.1) plants feet (measured per resliced strip).
+  spriteScale: 2.1,
+  animationData: {
+    // ── MOVEMENT / STATE (Stage 1). All re-sliced to uniform cells (reslice.mjs). ──
+    idle:  { frames: 2, width: 27, height: 53, speed: 8, anchorY: -6,  sheet: "./killua_idle_uniform.png" },   // content 48, botGap 3
+    // No dedicated walk strip — reuse the run strip a touch slower (dash reuses it faster).
+    walk:  { frames: 8, width: 52, height: 48, speed: 6, anchorY: -2,  sheet: "./killua_run_uniform.png" },
+    run:   { frames: 8, width: 52, height: 48, speed: 4, anchorY: -2,  sheet: "./killua_run_uniform.png" },    // content 44 (forward lean)
+    dash:  { frames: 8, width: 52, height: 48, speed: 3, anchorY: -2,  sheet: "./killua_run_uniform.png" },
+    // No dedicated jump art in the batch → the 3-pose dodge strip (crouch→extend→recover)
+    // reads as a leap arc: play once, hold the last frame. fall = that last cell.
+    jump:  { frames: 3, width: 41, height: 63, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
+    fall:  { frames: 1, width: 41, height: 63, speed: 6, anchorY: -10, sourceX: 82, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
+    // GUARD — dedicated 2-frame block pose (killua_block.png). Resolved by sprite.js when
+    // isBlocking && !attacking (else idle). Plays once, holds.
+    guard: { frames: 2, width: 37, height: 58, speed: 8, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_block_uniform.png" },
+    // HURT — Killua HAS a real 4-frame hit-reaction strip (electric knockback tumble),
+    // unlike Itachi (who borrowed a brace pose). Every hitstun/stun state routes here.
+    hurt:  { frames: 4, width: 58, height: 44, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_hit_uniform.png" },
+    // ── STAGE 2 NORMALS (5 slots). All re-sliced to uniform cells (reslice.mjs); frame counts
+    // measured. speed ≈ move-duration / frames so the swing reads across the active window.
+    // anchorY = -(bottom transparent gap × 2.1) plants feet. Assassin pacing: fast, low commit.
+    light:    { frames: 9, width: 43, height: 51, speed: 2, anchorY: -4,  loop: false, lockLastFrame: true, sheet: "./killua_light_uniform.png" },     // rapid punch flurry (foward_punch)
+    heavy:    { frames: 7, width: 57, height: 48, speed: 3, anchorY: -2,  loop: false, lockLastFrame: true, sheet: "./killua_heavy_uniform.png" },     // committed roundhouse (foward_kick)
+    up:       { frames: 5, width: 47, height: 60, speed: 3, anchorY: -15, loop: false, lockLastFrame: true, sheet: "./killua_up_uniform.png" },        // launcher: rising kick (up_kick)
+    air:      { frames: 5, width: 47, height: 52, speed: 3, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_air_uniform.png" },        // neutral aerial side kick (side_kick)
+    down_air: { frames: 5, width: 49, height: 66, speed: 3, anchorY: -21, loop: false, lockLastFrame: true, sheet: "./killua_downair_uniform.png" },    // downward dive (down_air_attack)
+    // ── STAGE 2 COMMAND-NORMAL CHAIN — the Barrage (Down+Heavy rekka, cancel-on-hit). Killua's
+    // signature rapid-punch flurry: 4 sequential parts → 4-hit cancelable string (Netero rekka
+    // architecture). Fired from abilities.js updateKilluaCommandCombat; currentMove = barrageN
+    // resolves the sheet via sprite.js identity fallback. Each part plays fast (speed 2).
+    barrage1: { frames: 4, width: 79, height: 57, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_barrage1_uniform.png" },
+    barrage2: { frames: 4, width: 75, height: 69, speed: 2, anchorY: -13, loop: false, lockLastFrame: true, sheet: "./killua_barrage2_uniform.png" },
+    barrage3: { frames: 4, width: 79, height: 55, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_barrage3_uniform.png" },
+    barrage4: { frames: 4, width: 75, height: 58, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_barrage4_uniform.png" },   // finisher (launches)
+    // ── STAGE 3: Yo-Yo throw CAST pose (electric_yoyo_trow_part_1 resliced). Played via
+    // _spriteCastMove (identity sprite-resolve) while the yo-yo boomerang projectile flies;
+    // the yo-yo itself is a separate spinning projectile sheet (killua_yoyo_fx.png). See
+    // abilities.js executeKilluaSpecial. botGap 0 → anchorY 0.
+    yoyoThrow: { frames: 4, width: 54, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./killua_yoyo_throw_uniform.png" },
+    // ── STAGE 4: electric special CAST poses (played via _spriteCastMove). ──
+    // Lightning Palm (Fwd+Special) — point-blank electric burst (electric_push). The hitbox is a
+    // melee-range createAttackFromMove; the pose sells the palm-thrust + electric arc.
+    lightningPalm: { frames: 11, width: 55, height: 62, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_lightning_palm_uniform.png" },
+    // Electric Ball (Down+Special) — charge → form → hurl a traveling electric orb (electric_ball).
+    // The orb itself is a procedural glowing projectile (no dedicated clean orb frame); this is the cast.
+    electricBall:  { frames: 11, width: 82, height: 75, speed: 2, anchorY: -21, loop: false, lockLastFrame: true, sheet: "./killua_electric_ball_uniform.png" },
+    // ── STAGE 5: Godspeed ULTIMATE activation pose — the Nen-electric charge-aura buildup
+    // (killua_charge_animation_part_1). Played via _spriteCastMove for the brief activation flash
+    // before the sustained buff+overlay takes over. Aura extends up (tall cell); body stays normal.
+    godspeedActivate: { frames: 12, width: 117, height: 91, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./killua_godspeed_activate_uniform.png" },
+    // Pre-match INTRO — Killua's iconic skateboard entrance (killua_intro_2.png resliced): rolls in on
+    // the board → hops off as it flips away → lands in his stance. Plays once and HOLDS the settled
+    // standing pose (frame 9) until the fight starts. botGap 4 → anchorY -8.
+    intro: { frames: 10, width: 35, height: 60, speed: 4, anchorY: -8, loop: false, lockLastFrame: true, sheet: "./killua_intro_uniform.png" }
+  },
+  // Real intro art IS present (the skateboard-entrance strip), so point the intro pool at it instead
+  // of the idle-hold stopgap. game.pickIntroVariant sets _introVariant="intro" → sprite.js renders it.
+  introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
@@ -1913,7 +2019,8 @@ export const characters = {
   omniMan, thragg,
   omega_ranger: omegaRanger,
   netero,
-  saiki
+  saiki,
+  killua
 }
 
 // The 7 characters shown in the starter roster select screen

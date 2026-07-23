@@ -1264,9 +1264,27 @@ export function updateProjectiles(projectiles = [], stageWidth = 3200) {
       continue
     }
 
+    // BOOMERANG (Killua's yo-yo): fly OUT until maxRange from the owner, then RETRACT — home back to
+    // the owner's live position and despawn on pickup. `returning` is also set on contact (resolve-
+    // ProjectileHitsMulti) so a hit/block bounces it back. Generic: no-op for any projectile without
+    // `boomerang`. Computed BEFORE the position step so this frame already moves along the new heading.
+    if (p.boomerang && p.owner) {
+      const ox = p.owner.x + (p.owner.w || 0) / 2
+      const oy = p.owner.y + (p.owner.h || 100) * 0.4
+      if (!p.returning && Math.hypot(p.x - ox, p.y - oy) >= (p.maxRange || 360)) p.returning = true
+      if (p.returning) {
+        const dx = ox - p.x, dy = oy - p.y
+        const d = Math.hypot(dx, dy) || 1
+        if (d < 34) { projectiles.splice(i, 1); continue }   // caught → despawn
+        const rs = p.retractSpeed || 15
+        p.vx = (dx / d) * rs; p.vy = (dy / d) * rs
+      }
+    }
+
     p.x += p.vx || 0
     p.y += p.vy || 0
-    if (p.lifetime != null) p.lifetime--
+    // A returning boomerang despawns on pickup, not on a lifetime timeout, so it always makes it home.
+    if (p.lifetime != null && !(p.boomerang && p.returning)) p.lifetime--
 
     if (
       p.x < -200 || p.x > stageWidth + 200 ||
@@ -1292,6 +1310,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
     const proj = projectiles[i]
     if (!proj) continue
     if (proj.visualOnly) continue   // pure FX (e.g. AOE ring bloom) — never collides
+    if (proj.returning) continue    // a retracting boomerang (Killua yo-yo) already hit — return trip is visual-only
 
     for (const fighter of (fighters || []).filter(Boolean)) {
       if (fighter.eliminated) continue
@@ -1397,6 +1416,10 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         })
       }
 
+      // A boomerang (Killua yo-yo) RETRACTS on contact instead of despawning: mark it returning
+      // (updateProjectiles homes it back to the owner) and stop it colliding. Ordinary projectiles
+      // are consumed on hit as before.
+      if (proj.boomerang) { proj.returning = true; break }
       projectiles.splice(i, 1)
       break
     }

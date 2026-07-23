@@ -37,6 +37,7 @@ import {
   triggerSpecial, triggerUltimate, triggerTransformation,
   enterSSJRose, revertSSJRose, applyGokuBlackFormSystem,   // Goku Black SSJ Rose (Stage 2)
   enterMangekyou, revertMangekyou, applyMangekyouSystem, isMangekyouActive,   // Itachi Mangekyou Sharingan (buff mode)
+  applyGodspeedSystem,   // Killua Godspeed: sustained buff-mode ultimate (drain tick + afterimage trail)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
@@ -49,7 +50,8 @@ import {
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
   updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
   updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
-  updateSaikiCommandCombat   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
+  updateSaikiCommandCombat,   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
+  updateKilluaCommandCombat   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -2387,6 +2389,10 @@ function updatePlayerCombat(fighter) {
     // abilities.getRelativeDirections' beta branch can pick the special the equivalent
     // motion roll would have produced. Beta-gated → normal play never sets/reads this.
     if (isBetaUnlocked()) fighter._betaHeldDir = betaHeldDirFromInput(inputState, fighter.facing)
+    // LIVE held direction the frame Special is pressed ("F"|"B"|"U"|"D"|null) — a robust, non-time-
+    // windowed source for direction-branched specials (Killua: Fwd=Lightning Palm, Down=Electric Ball,
+    // neutral=Yo-Yo). Only read by chars that opt in; unused by everyone else.
+    fighter._specialHeldDir = betaHeldDirFromInput(inputState, fighter.facing)
     triggerSpecial(fighter,  getAbilityContext()); return
   }
   if (canStart && !charging && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
@@ -2419,6 +2425,12 @@ function updatePlayerCombat(fighter) {
   // point-blank poke. Consumes the input only when it fires; neutral light/heavy stay on the normal path.
   if ((fighter.rosterKey || "").toLowerCase() === "saiki" && !charging &&
       updateSaikiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // KILLUA Barrage command chain: Down+Heavy opens barrage1, re-tap Heavy during recovery to cancel into
+  // barrage2→barrage3→barrage4 (cancel-on-hit; a whiff/block ends the string). Consumes the input only
+  // when it fires (returns true → skip normal path); neutral light/heavy stay on the normal path below.
+  if ((fighter.rosterKey || "").toLowerCase() === "killua" && !charging &&
+      updateKilluaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // NETERO Guanyin giant: the base attack buttons fire the 4 avatar attacks (light=leg, heavy=arm-sweep,
   // up=punch-burst; combo-slash is on SPECIAL). Consumes the press only when it fires.
@@ -2519,6 +2531,48 @@ function drawMangekyouAura(c, fighter) {
   c.restore()
 }
 
+// KILLUA GODSPEED overlay (Stage 5) — the electric-afterimage effect layered on the normal sprite
+// while _godspeedActive (the OVERLAY path, not a body-swap). Draws faded electric-cyan SILHOUETTE
+// ghosts at Killua's recent positions (a speed-blur trail; abilities.applyGodspeedSystem records
+// them) plus a pulsing electric outline on the body. Drawn BEFORE the sprite (behind), mirroring the
+// other auras. No-op for anyone else / when inactive.
+function drawGodspeedAura(c, fighter) {
+  if (!c || !fighter?._godspeedActive) return
+  const w = fighter.w ?? 60, h = fighter.h ?? 110
+  const trail = fighter._godspeedTrail || []
+  // Afterimage ghosts — older = fainter, drawn oldest-first so the newest sits closest to the body.
+  c.save()
+  for (let i = trail.length - 1; i >= 0; i--) {
+    const g = trail[i]
+    c.globalAlpha = 0.06 + 0.05 * (trail.length - i)   // 0.06 (oldest) → brighter (newest)
+    c.fillStyle   = "#38bdf8"
+    c.shadowBlur  = 14
+    c.shadowColor = "#7dd3fc"
+    c.fillRect(g.x, g.y, w, h)
+  }
+  c.restore()
+  // Pulsing electric outline on the current body.
+  const x = fighter.x ?? 0, y = fighter.y ?? 0
+  const pulse  = 0.5 + 0.5 * Math.sin(fighter._godspeedPulse = (fighter._godspeedPulse || 0) + 0.35)
+  const spread = 8 + pulse * 5
+  c.save()
+  c.globalAlpha = 0.20 + pulse * 0.14
+  c.shadowBlur  = spread * 2.4
+  c.shadowColor = "#7dd3fc"
+  c.strokeStyle = "#e0f2fe"
+  c.lineWidth   = 3 + pulse * 2
+  const rx = x - spread / 2, ry = y - spread / 2, rw = w + spread, rh = h + spread, r = 14
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r)
+  c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r)
+  c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath()
+  c.stroke()
+  c.restore()
+}
+
 // Rick's Portal-Pull / Portal-Push reappear the opponent above a destination and let
 // them fall (abilities.js rickPortalReposition). This applies the impact damage the
 // frame they reground — mirrors the _dot marker→resolver split (abilities stamps the
@@ -2553,6 +2607,7 @@ function updateFighterState(fighter) {
   applyGojoPassiveSystems(updated)
   applyGokuBlackFormSystem(updated)  // SSJ Rose: continuous per-frame energy drain + instant auto-revert at 0
   applyMangekyouSystem(updated)      // Itachi Mangekyou: continuous chakra drain + instant auto-revert at 0
+  applyGodspeedSystem(updated)       // Killua Godspeed: continuous Nen drain + auto-revert at 0 + afterimage-trail recording
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   updateMiscTimers(updated)
@@ -3038,6 +3093,7 @@ function renderHybridFighter(fighter) {
   const drawTo = (c) => {
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
     drawMangekyouAura(c, fighter)      // Itachi Mangekyou crimson glow, behind the body (Itachi only)
+    drawGodspeedAura(c, fighter)       // Killua Godspeed electric-afterimage trail, behind the body (Killua only)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
     } else {
@@ -4591,6 +4647,9 @@ gameLoop()
     stun:             f.stun || 0,
     blockstun:        f.blockstun || 0,
     currentMove:      f.currentMove || null,
+    rekkaNext:        f._rekkaNext || null,          // command-normal chain: next queued stage
+    cmdHitLanded:     !!f._cmdHitLanded,             // command-normal chain: cancel-on-hit latch
+    attackPhase:      f.currentAttack ? getAttackPhase(f) : "idle",
     introVariant:     f._introVariant || null,
     spriteSheet:      f.spriteHandler?._actionDef?.sheet ?? null,
     spriteFrames:     f.spriteHandler?._actionDef?.frames ?? null,
@@ -4599,6 +4658,8 @@ gameLoop()
     hasSpriteHandler: !!f.spriteHandler,        // false → procedural box renderer (no hasSprites)
     currentForm:      f.currentForm || null,     // transformation state (Goku SSB etc.)
     mangekyouActive:  !!f._mangekyouActive,       // Itachi Mangekyou Sharingan buff-mode
+    godspeedActive:   !!f._godspeedActive,        // Killua Godspeed buff-mode ultimate
+    attackSpeedMultiplier: f.attackSpeedMultiplier ?? 1,   // buff-mode attack-speed scale (Godspeed)
     damageMultiplier: f.damageMultiplier ?? 1,    // buff-mode damage scale (Mangekyou/SSJ etc.)
     transformIndex:   f.transformIndex ?? null,
     hasSkinAnim:      !!f._skinAnim,
@@ -4810,7 +4871,7 @@ gameLoop()
     // Opponent (p2) on-screen horizontal extent given the live camera — used to confirm the SSJ Rose
     // cinematic frames Goku Black ONLY (p2 fully off-frame). screenX = (worldX - cam.x)*zoom + cw/2.
     p2ScreenX: () => { if (!p2) return null; const cw = canvas.width; const cx = p2.x + (p2.w || 60) / 2; const left = (p2.x - camera.x) * camera.zoom + cw / 2; const right = (p2.x + (p2.w || 60) - camera.x) * camera.zoom + cw / 2; return { left, right, cw, offFrame: right < 0 || left > cw, center: (cx - camera.x) * camera.zoom + cw / 2 } },
-    projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, sheet: p.sheet })),
+    projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, visualOnly: !!p.visualOnly, returning: !!p.returning, boomerang: !!p.boomerang, sheet: p.sheet })),
     // ── RICK diagnostics (grafted on merge; damageP1 already exists in the tower section) ──
     // Pre-match name-call introspection: built beats, active flag, current announcing beat.
     namecall: () => ({

@@ -346,9 +346,24 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     // field to set TRUE on this projectile's owner when it lands a hit. Powers Saiki's projectile
     // rekka cancel-on-hit gate (hitFlag: "_cmdHitLanded"). Null for ordinary projectiles.
     hitFlag:    moveData.hitFlag    || null,
+    // OPTIONAL hit-stop control (combat.getProjectileHitstopFrames): `hitstop` is a
+    // numeric per-projectile freeze override; `noHitstop:true` opts a rapid multi-hit /
+    // DOT projectile out of the shared projectile freeze so it doesn't stutter. Absent →
+    // the tier default (HITSTOP.projectile, or .special/.ultimate via isSpecial/isUltimate).
+    hitstop:    (typeof moveData.hitstop === "number") ? moveData.hitstop : undefined,
+    noHitstop:  moveData.noHitstop  || false,
+    isSpecial:  moveData.isSpecial  || false,
+    isUltimate: moveData.isUltimate || false,
     // Pure-visual projectiles (e.g. an in-place AOE ring bloom): skipped by hit
     // resolution so they never stun/despawn on contact — they fade out via lifetime.
-    visualOnly: moveData.visualOnly || false
+    visualOnly: moveData.visualOnly || false,
+    // BOOMERANG (Killua's yo-yo): fly OUT to `maxRange` from the owner then RETRACT — homing back
+    // to the owner at `retractSpeed`, despawning on pickup (combat.updateProjectiles). On contact it
+    // flips to `returning` instead of despawning (resolveProjectileHitsMulti). No-op unless set.
+    boomerang:    moveData.boomerang    || false,
+    maxRange:     moveData.maxRange     || null,
+    retractSpeed: moveData.retractSpeed || null,
+    returning:    false
   }
 
   activeProjectiles.push(proj)
@@ -3432,6 +3447,212 @@ export function updateNeteroCommandCombat(fighter, inputState, context, getPhase
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// KILLUA ZOLDYCK — the Barrage: a 4-hit cancel-on-hit command-normal chain (Down+Heavy)
+// (Stage 2). Killua's signature rapid-punch flurry. Mirrors updateNeteroCommandCombat exactly
+// (Down+Heavy opener → re-tap Heavy during recovery to cancel into the next part, gated on a
+// clean connect so a whiff/block ENDS the string = the mid-chain interrupt). Assassin pacing:
+// low damage per hit, 4 fast hits, barrage4 launches. Each stage's sprite is barrageN (resolved
+// via sprite.js currentMove identity → characters.js killua.animationData.barrageN). Neutral
+// light/heavy/up/air/down_air stay on the standard normal path (Down is what routes into the chain).
+// ─────────────────────────────────────────────────────────────────────────────
+// recovery 14 on the non-finisher parts widens the cancel window comfortably past the 10-frame
+// input BUFFER_WINDOW (so a clean re-tap always lands a fresh edge during recovery); cancel-on-hit
+// cuts the recovery short anyway, so it only matters on a whiff/block (fair — a strong rushdown string).
+const KILLUA_COMMAND = {
+  // knockbackX 1 on the non-finisher parts keeps the target PINNED (a barrage shouldn't shove them
+  // out of its own string); the finisher then reaches with rangeX 110 + delivers the launch knockback.
+  barrage1: { damage: 26, startup: 5, active: 3, recovery: 14, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 78, rangeY: 48, rekkaNext: "barrage2" },
+  barrage2: { damage: 28, startup: 4, active: 3, recovery: 14, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 80, rangeY: 48, rekkaNext: "barrage3" },
+  barrage3: { damage: 30, startup: 4, active: 3, recovery: 14, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 82, rangeY: 48, rekkaNext: "barrage4" },
+  barrage4: { damage: 55, startup: 5, active: 4, recovery: 18, hitstun: 20, knockbackX: 8, knockbackY: -3, rangeX: 110, rangeY: 52 },   // launcher finisher (extended reach)
+}
+function fireKilluaCommand(fighter, key, context) {
+  const md = KILLUA_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = key === "barrage4"
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the barrageN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+// Grounded command-normal driver (mirrors updateNeteroCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateKilluaCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "killua" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+
+  // Latch a REAL connect (hit, NOT block) for the current stage. resolveAttackHit runs in updateCombat
+  // AFTER this handler, so the flag is observed next frame while the opponent's hitstun still counts down.
+  const opp = context?.getOpponent?.(fighter)
+  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
+
+  // The string's window closes when the attack fully ends.
+  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
+
+  // CONTINUE — fresh Heavy during the current part's RECOVERY, only if it CONNECTED (cancel-on-hit;
+  // a whiff/block leaves _cmdHitLanded false → the chain stops here = mid-chain interrupt).
+  if (fighter.attacking && fighter._rekkaNext && heavyEdge && phase === "recovery" && fighter._cmdHitLanded) {
+    const next = fighter._rekkaNext
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+    fighter.attackCooldown = 0                       // clear the just-set cooldown so the chain fires now
+    return fireKilluaCommand(fighter, next, context)
+  }
+
+  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && inputState.down && heavyEdge) return fireKilluaCommand(fighter, "barrage1", context)
+
+  return false
+}
+
+// ── KILLUA SPECIAL — direction-branched menu (SPECIAL button) ────────────────────────────────
+// Reads the LIVE held direction stamped by game.js (fighter._specialHeldDir) the frame Special is
+// pressed — robust vs the time-windowed motion history. Neutral = Yo-Yo (Stage 3), Forward =
+// Lightning Palm, Down = Electric Ball (Stage 4). Back/Up fall through to the neutral yo-yo.
+function executeKilluaSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireKilluaLightningPalm(fighter, context)
+  if (dir === "D") return fireKilluaElectricBall(fighter, context)
+  return fireKilluaYoyo(fighter, context)
+}
+
+// NEUTRAL — the Yo-Yo (throw → travel → retract boomerang) — Stage 3.
+// The assassin's mid-range disruption tool. A throw CAST pose plays while an independently-
+// traveling electric yo-yo (killua_yoyo_fx.png spin cycle) flies OUT with its own collision;
+// on contact OR at max range it RETRACTS — homing back to Killua's live position — and despawns
+// on pickup (generic `boomerang` projectile behaviour added in combat.js). RETRACT TRIGGER =
+// max-range OR on-hit (both), NOT a second button press: the projectile art is a symmetric spin
+// cycle with no distinct "recall" frames, so a boomerang read is what the frames support. The
+// return trip is VISUAL only (collision is skipped while `returning`) — a clean single-hit throw,
+// no double-dip. Costs 30 Nen.
+function fireKilluaYoyo(fighter, context) {
+  if (!spendEnergy(fighter, 30)) return false
+  fighter._spriteCastMove  = "yoyoThrow"     // 4f throw pose (killua_yoyo_throw_uniform)
+  fighter._spriteCastTimer = 20
+  fighter.attackCooldown   = getAttackDuration(24, fighter)
+  // Release the yo-yo a few frames in, on the throw motion's release beat (part_1's hand-open).
+  schedulePendingSpawn(6, () => {
+    spawnProjectile(fighter, "killua_yoyo", {
+      sheet: "./killua_yoyo_fx.png", spriteFrames: 5, spriteW: 41, spriteH: 47, spriteSpeed: 2, spriteScale: 1.1,
+      damage: 70, speed: 15, hitstun: 16, knockbackX: 6, knockbackY: -2,
+      w: 30, h: 30, color: "#38bdf8", lifetime: 220,
+      boomerang: true, maxRange: 360, retractSpeed: 17,   // travels out ≤360px, then homes back to owner
+      spawnY: fighter.y + (fighter.h || 100) * 0.4
+    }, context)
+  })
+  return true
+}
+
+// FORWARD — Lightning Palm (Kannon): a point-blank electric burst — Stage 4.
+// A committed melee-range createAttackFromMove (like Netero's Barrage special), high hitstun / low
+// knockback so it's a combo starter, not a launcher. The electric_push cast pose sells the palm arc.
+// Steps Killua slightly forward into the thrust. Costs 25 Nen.
+function fireKilluaLightningPalm(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 25)) return false
+  const md = { damage: 62, startup: 6, active: 5, recovery: 14, hitstun: 26, blockstun: 12, knockbackX: 3, knockbackY: 0, rangeX: 74, rangeY: 60, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "lightningPalm", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "lightningPalm" → the cast pose
+  fighter.vx = (fighter.facing || 1) * 4
+  shakeCamera(context, 4, 7)
+  return true
+}
+
+// DOWN — Electric Ball: a traveling electric orb projectile — Stage 4.
+// A ranged poke (no retract, unlike the yo-yo). The electric_ball cast pose charges → forms → hurls;
+// the orb releases partway through the animation and flies straight as a procedural glowing sphere
+// (no dedicated clean orb frame in the batch). Costs 30 Nen.
+function fireKilluaElectricBall(fighter, context) {
+  if (!spendEnergy(fighter, 30)) return false
+  fighter._spriteCastMove  = "electricBall"   // 11f charge→form→hurl pose (killua_electric_ball_uniform)
+  fighter._spriteCastTimer = 24
+  fighter.attackCooldown   = getAttackDuration(28, fighter)
+  const face = fighter.facing || 1
+  // Hurl on the release beat (~frame 12 of the charge), after the ball visually forms.
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "killua_electricBall", {
+      damage: 60, speed: 13, lifetime: 90, hitstun: 18, knockbackX: 6, knockbackY: -2,
+      w: 34, h: 34, radius: 18, color: "#7dd3fc", spriteScale: 1.4,   // procedural glowing electric orb
+      vx: face * 13, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+    shakeCamera(context, 4, 6)
+  })
+  return true
+}
+
+// ── KILLUA ULTIMATE — GODSPEED (Kanmuru) — Stage 5 ──────────────────────────────────────────
+// The OVERLAY path (decided Stage 1, KILLUA_ASSET_MAP.md): NOT an alternate-form sprite swap
+// (Netero/Susanoo) but a sustained SELF-BUFF + electric-afterimage overlay on Killua's normal
+// animations — the Itachi-Mangekyou tier. Entering Godspeed IS the ultimate (no separate move on
+// top). Meter-gated (near-max), then a per-frame Nen drain sustains it → auto-reverts when the meter
+// runs dry (tickSustainedFormDrain, shared with Mangekyou/SSJ). Buffs: attackSpeedMultiplier (the
+// signature — every attack's startup/active/recovery divides by it via getAttackDuration/_dur), plus
+// damage and a dash/movement bump. GOTCHA (Netero memo): never touch currentFormData — this is a buff,
+// not a form; and set damageMultiplier == attackMultiplier (combat takes the MAX to avoid double-count).
+const GODSPEED_THRESHOLD = 150            // energy ≥ 150 (near-max of 180) to activate
+const GODSPEED_DRAIN     = 0.30           // energy/frame while active (~18/s → ~10s from full)
+const GODSPEED_MULT      = { dmg: 1.25, atkSpeed: 1.4, spd: 1.3, dash: 28, speed: 120 }
+
+function isGodspeedActive(f) { return !!f?._godspeedActive }
+
+function enterGodspeed(fighter, context) {
+  if (fighter._godspeedActive) return false
+  if ((fighter.energy || 0) < GODSPEED_THRESHOLD) return false
+  fighter._godspeedActive     = true
+  fighter.currentForm         = "godspeed"                 // HUD state (NOT a form-data swap)
+  fighter._godspeedBaseDash   = fighter.dashSpeed          // stash originals for a clean revert
+  fighter._godspeedBaseSpeed  = fighter.speed
+  fighter.damageMultiplier    = GODSPEED_MULT.dmg
+  fighter.attackMultiplier    = GODSPEED_MULT.dmg          // == damageMultiplier (combat takes the max)
+  fighter.attackSpeedMultiplier = GODSPEED_MULT.atkSpeed   // faster startup/recovery = the "speed" feel
+  fighter.speedMultiplier     = GODSPEED_MULT.spd          // cosmetic/HUD (movement is clamped; dash carries it)
+  fighter.dashSpeed           = GODSPEED_MULT.dash
+  fighter.speed               = GODSPEED_MULT.speed
+  fighter._godspeedTrail      = []
+  // Brief activation flash: the electric charge-aura pose + a white teleport flash + camera punch.
+  fighter._spriteCastMove  = "godspeedActivate"
+  fighter._spriteCastTimer = 22
+  fighter.teleportFlash    = Math.max(fighter.teleportFlash || 0, 14)
+  fighter.attackCooldown   = getAttackDuration(14, fighter)
+  shakeCamera(context, 8, 12)
+  return true
+}
+
+function revertGodspeed(fighter) {
+  if (!fighter || !fighter._godspeedActive) return
+  fighter._godspeedActive     = false
+  fighter.currentForm         = "base"
+  fighter.damageMultiplier    = 1
+  fighter.attackMultiplier    = 1
+  fighter.attackSpeedMultiplier = 1
+  fighter.speedMultiplier     = 1
+  if (fighter._godspeedBaseDash  != null) { fighter.dashSpeed = fighter._godspeedBaseDash;  fighter._godspeedBaseDash  = null }
+  if (fighter._godspeedBaseSpeed != null) { fighter.speed     = fighter._godspeedBaseSpeed; fighter._godspeedBaseSpeed = null }
+  fighter._godspeedTrail = []
+}
+
+// Per-frame (game.updateFighterState): drain the meter → auto-revert at 0, and record the position
+// trail the electric-afterimage overlay draws (game.drawGodspeedAura).
+export function applyGodspeedSystem(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "killua") return
+  if (!fighter._godspeedActive) return
+  tickSustainedFormDrain(fighter, { active: isGodspeedActive, drainPerFrame: GODSPEED_DRAIN, revert: revertGodspeed })
+  if (!fighter._godspeedActive) return   // reverted this frame
+  const trail = fighter._godspeedTrail || (fighter._godspeedTrail = [])
+  trail.unshift({ x: fighter.x, y: fighter.y })
+  if (trail.length > 5) trail.pop()
+}
+
+function executeKilluaUltimate(fighter, context) {
+  return enterGodspeed(fighter, context)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SAIKI KUSUO — 4-hit projectile REKKA (Fwd+Heavy) + Basic Burst free poke (Fwd+Light) — Stage 3.
 // The zoner's mid-range pressure tool. Unlike the melee rekkas (Toji/Vegeta/Netero) each stage fires
 // an INDEPENDENTLY-TRAVELING magenta bolt (its own paired FX + collision) rather than a melee hitbox —
@@ -4005,6 +4226,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "beerus":  return executeBeerusSpecial(fighter, context)
     case "omega_ranger": return executeOmegaRangerSpecial(fighter, context)   // Gun / Super Upper / Special Downward
     case "saiki":   return executeSaikiSpecial(fighter, context)   // Lightning — two layered bolts fired as one thick beam
+    case "killua":  return executeKilluaSpecial(fighter, context)   // Yo-Yo throw→travel→retract boomerang
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -4040,6 +4262,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
       case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
       case "saiki":   cast = executeSaikiUltimate(fighter, context);   break   // Giant Bomb Throw: delayed screen-filling explosion
+      case "killua":  cast = executeKilluaUltimate(fighter, context);  break   // Godspeed: sustained speed/damage buff + electric afterimage overlay (buff-mode, not a form swap)
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }

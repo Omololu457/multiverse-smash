@@ -104,6 +104,40 @@ try {
   check("taunt commit → a saiki_en_* clip fires (hook genuinely wired)", !!firedClip, firedClip ? `fired: ${firedClip}` : `log=${JSON.stringify(log)}`);
   check("the fired clip is a member of the 12-entry pool", firedClip ? POOL.includes(firedClip) : false, firedClip || "");
 
+  // ══ PART 4: LIVE HIT-CONNECT (the trigger that ACTUALLY makes Saiki audible in-game) ═══
+  // Saiki ships no `taunt` action, so the Part-3 taunt hook is dormant in real play. The LIVE
+  // path is combat.js applySaikiOffenseVoice: an UNBLOCKED normal that CONNECTS fires a taunt-pool
+  // clip (shared _atkVoiceCd throttle, suppressed when blocked). Prove connect-gating: a WHIFF stays
+  // SILENT (swing alone doesn't bark), a clean point-blank CONNECT fires one of the 12 clips.
+  await page.evaluate(() => window.__harness.boot());
+  await installSpy();
+  const logHas = async (re) => (await sfxLog()).some(f => re.test(f));
+  async function prep(gap) {
+    await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
+    await page.evaluate(() => { window.__harness.resetFighterInput("p1"); window.__harness.clearProjectiles(); window.__harness.healP2(); window.__harness.fillEnergy(); window.__harness.setP2Invuln?.(0); window.__harness.resetOffenseVoice("p1"); });
+    const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + gap); await waitFrames(2); await clearSfx();
+  }
+
+  section("live hit-connect — the trigger that makes Saiki audible in real matches");
+  // WHIFF: p2 way out of range → the light swing connects with nothing → NO bark (proves connect-gating).
+  let silentOnWhiff = true;
+  for (let i = 0; i < 3 && silentOnWhiff; i++) {
+    await prep(600);
+    await page.keyboard.down("j"); await waitFrames(5); await page.keyboard.up("j"); await waitFrames(14);
+    if (await logHas(RE)) silentOnWhiff = false;
+  }
+  check("whiffed attack → NO saiki_en_* clip (hit-connect gated, not swing-gated)", silentOnWhiff, silentOnWhiff ? "" : "leaked on a whiff");
+
+  // CONNECT: p2 point-blank → the light lands unblocked → a pool clip fires (the real in-game path).
+  let firedOnConnect = null;
+  for (let i = 0; i < 6 && !firedOnConnect; i++) {
+    await prep(40);
+    await page.keyboard.down("j"); await waitFrames(5); await page.keyboard.up("j"); await waitFrames(14);
+    firedOnConnect = (await sfxLog()).find(f => RE.test(f)) || null;
+  }
+  check("connected attack → a saiki_en_* clip fires (LIVE in-game path)", !!firedOnConnect, firedOnConnect ? `fired: ${firedOnConnect}` : `log=${JSON.stringify(await sfxLog())}`);
+  check("the fired clip is a member of the 12-entry pool", firedOnConnect ? POOL.includes(firedOnConnect) : false, firedOnConnect || "");
+
   section("summary");
   check("no JS page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));
   console.log(`\n${fail === 0 ? "✅" : "❌"} Saiki voice: ${pass} passed, ${fail} failed`);

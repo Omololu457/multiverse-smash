@@ -18,6 +18,7 @@ import { pickRickVoice } from "./rickVoice.js"
 import { pickItachiVoice } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickNeteroVoice } from "./neteroVoice.js"
+import { pickSaikiVoice } from "./saikiVoice.js"
 
 // ========================
 // HITSTOP TABLES
@@ -569,6 +570,19 @@ function applyNeteroGruntVoice(fighter) {
   try { sound?.playSfxFile?.(pickNeteroVoice("grunt"), null) } catch (_) {}
 }
 
+// ── SAIKI KUSUO VOICE LINES (audio-only; English-dub deadpan dismissals) ──
+// HIT-CONNECT bark — fires when an UNBLOCKED attack CONNECTS (any tier). Saiki's 12 clips are the
+// deadpan dismissal pool ("Who cares", "I'll pass", "Not listening"…), which read as an unimpressed
+// "landed a hit" line. They were originally wired READY-AND-WAITING onto the universal taunt commit
+// (game.js), but Saiki has no `taunt` action so that hook is dormant — this LIVE hit-connect trigger
+// is what actually makes them audible in-game. Mirrors applyNeteroOffenseVoice: shared _atkVoiceCd
+// (ticked generically in game.js) → one line per window, never spams, suppressed when blocked.
+function applySaikiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "saiki" || (attacker._atkVoiceCd > 0)) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickSaikiVoice("taunt"), null) } catch (_) {}
+}
+
 // ── OMEGA RANGER VOICE LINES (audio-only; same pattern as Naruto/Sasuke/Rick above) ──
 // DEFENDER reaction — LIGHT tier ONLY ("No!"). Omega ships a single light-stagger reaction clip
 // (the hit_1 flinch); a heavy/knockdown-tier hit has no VO here, so it stays silent by design (not
@@ -1104,6 +1118,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher
   applySukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Sukuna finisher(KO/low-HP) / hit-connect(strong+long) / taunt+misc(light) barks
   applyNeteroOffenseVoice(attacker, cat, !defender.isBlocking)   // Netero hit-connect bark (any tier lands; distinct from the startup grunt)
+  applySaikiOffenseVoice(attacker, cat, !defender.isBlocking)    // Saiki deadpan dismissal on connect (was dormant on the no-op taunt hook; this makes it LIVE)
 }
 
 // ========================

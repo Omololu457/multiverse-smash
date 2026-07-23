@@ -24,17 +24,16 @@
 //                   for him — same status as Saiki/Naruto/Sasuke. Wired ready-and-
 //                   waiting onto the real taunt commit-transition in game.js (gated
 //                   rosterKey "netero"); dormant until a taunt animation is added.
-//   • zero        → STAGED (no live trigger). The ~19s "100-Type Zero" monologue +
-//                   its battle-cry payoff are a SEPARATE, more elaborate finishing
-//                   technique than the general Guanyin avatar summon/attacks that
-//                   are built today. The current avatar kit has NO dedicated single
-//                   "Zero" finisher move-slot to hang a 19s monologue on (the
-//                   hardest-hitting existing attack, guanyinBurst @92dmg, is a fast
-//                   REPEATABLE button-press — attaching a 19s speech to it would
-//                   retrigger/overlap constantly). Per the audio-task scope we do
-//                   NOT invent a finisher move here. Both clips are staged; wiring
-//                   them live needs a new finisher move-slot or a design call on
-//                   which existing avatar attack "becomes" the Zero technique.
+//   • zero        → LIVE on a DEDICATED finisher move-slot: "100-Type Zero" is
+//                   Netero's single strongest strike WITHIN the Guanyin form. It fires
+//                   on the Ultimate button pressed AGAIN while giant (that input used
+//                   to no-op), gated once-per-activation. NETERO_ZERO.cast (the ~19s
+//                   monologue) plays as the dramatic windup line; NETERO_ZERO.strike
+//                   (the payoff battle-cry) is synced to the strike's active frames.
+//                   See abilities.js executeNeteroZero / GUANYIN_ATTACKS.guanyinZero.
+//                   (The `zero` pool below stays a 2-array so the randomizer test still
+//                   covers it; the finisher plays the two by their semantic role, NOT
+//                   at random — a cast line and a strike cry are distinct beats.)
 //
 // ── NOTE (commit reality, flagged in the report) ───────────────────────────
 // At wiring time only 16 of the 51 named mp3s are present on disk; the other 35 are
@@ -112,11 +111,19 @@ export const NETERO_VOICE = {
     "netero_nenimpact_grunt_b9.mp3", "netero_nenimpact_grunt_b10.mp3",
   ],
 
-  // ── 100-TYPE ZERO (2) — STAGED, no live trigger (see header; needs a finisher slot) ──
+  // ── 100-TYPE ZERO (2) — LIVE on the guanyinZero finisher slot (semantic roles below) ──
   zero: [
-    "netero_nenimpact_ultimate_monologue.mp3",   // ~19s spoken prayer/monologue
-    "netero_nenimpact_zero_payoff.mp3",           // short battle-cry immediately after
+    "netero_nenimpact_ultimate_monologue.mp3",   // = NETERO_ZERO.cast (dramatic windup line)
+    "netero_nenimpact_zero_payoff.mp3",           // = NETERO_ZERO.strike (battle-cry on impact)
   ],
+}
+
+// Semantic roles for the 100-Type Zero finisher (single source of truth; the `zero` pool
+// above references the SAME two files for the randomizer test). The finisher plays these by
+// role — a cast line then a strike cry — NOT at random.
+export const NETERO_ZERO = {
+  cast:   "netero_nenimpact_ultimate_monologue.mp3",   // ~19s spoken prayer — plays on the windup
+  strike: "netero_nenimpact_zero_payoff.mp3",           // short battle-cry — synced to the strike
 }
 
 export function pickNeteroVoice(pool) {

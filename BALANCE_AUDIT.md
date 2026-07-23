@@ -42,8 +42,16 @@ The in-code comment claims it scales *"every point of dealt damage (melee, proje
 | Megumi | 1120 | **210** | cursed energy | 84 | 82 | 83 | medium | melee / summons |
 | Gojo | 1160 | **220** | cursed energy | 91 | 88 | 87 | high | ranged / melee |
 | Rick | **1050** | 160 | bullshit science | **82** | **78** | **80** | medium | ranged / zoner |
+| Netero | **980** | 150 | nen | **98** | 82 | 94 | high | melee / speed |
 
-HP spread = **210 (1050 → 1260)**. Rick is the floor on HP **and** on attack, defense, and speed simultaneously (see §7).
+HP spread = **210 (1050 → 1260)** for the original 8; Netero (added 2026-07-22) drops the floor to **980** → spread **280**.
+
+> **Netero (Hunter x Hunter) — added 2026-07-22.** Deliberate glass-cannon speedster. Two intended outliers, internally consistent (extreme risk/reward, no defensive tools):
+> - **Atk 98 = new roster ceiling** (above Toji 96, Sukuna 95) — highest attack on the roster.
+> - **HP 980 = new roster floor** (below Rick 1050) — frailest fighter.
+> - Spd 94 = 2nd-fastest (Toji 98 tops); Def 82 mid-low. His base normals/specials run through the standard scaled pipeline (EFF ≈ RAW × 0.60), so the high Atk stat does **not** bypass GLOBAL_DAMAGE_SCALE.
+> - **Ultimate = 100-Type Guanyin Bodhisattva**, a sustained giant form (SUSANOO_DURATION_FRAMES ≈ 20s, full-meter cost), same class as Sasuke/Itachi Susanoo. Design choice: a *fast multi-hit* giant (avatar hits ~59–77 EFF each, 1.6× form buff already applied) rather than Sasuke's single ~302 EFF sword — high DPS over the window, not per-hit burst.
+> - NOTE: this §1 table predates Vegeta / Beerus / Itachi / Omega Ranger; treat it as a *relative* reference, not a current census.
 
 ---
 

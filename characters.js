@@ -1631,20 +1631,110 @@ const chrollo = {
   spriteSheets: hxhSheets("chrollo"), animationData: { ...DEFAULT_ANIM }
 }
 
+// ─────────────────────────────────────────────────────────────────
+// ISAAC NETERO  (Hunter x Hunter universe) — first HxH sprite character.
+// STAGE 1: idle + core movement/state + selectability. Base strips
+// (netero_*.png) RE-SLICED into clean uniform, feet-aligned cells
+// (tools/reslice_strip.mjs → *_uniform.png) so the engine slices by a
+// single pitch without horizontal jitter (Itachi/omega precedent). Frame
+// counts confirmed by the reslicer's alpha-gutter detection (idle 4, run 8,
+// jump 6, block 4, hit 7 — all match the asset map).
+// Structurally closest to Itachi: a base taijutsu kit + a giant full-
+// alternate-form Ultimate (100-Type Guanyin Bodhisattva, Stage 4) reusing
+// the SAME _canvasHeightFrac giant-sprite system as Itachi's/Sasuke's
+// Susanoo. Normals (Stage 2), down_attck command chain + Barrage Punches
+// (Stage 3), and the Guanyin form (Stages 4-5) land in later passes.
+// NO intro/win/lose/getup art was shipped (confirmed absent) — those states
+// fall back cleanly to idle (the missing-action → idle-sheet guard in
+// sprite.js prevents the "four sprites" box glitch). Portrait wired:
+// issac_netero_mugshot.png (479² JPEG-in-.png; "issac" typo as uploaded).
+// ─────────────────────────────────────────────────────────────────
 const netero = {
   rosterKey: "netero", name: "Isaac Netero", universe: "hunter_x_hunter", color: "#f59e0b",
+  portrait: "./issac_netero_mugshot.png",   // EXACT on-disk filename — typo "issac" is intentional (as uploaded, do NOT rename); JPEG-in-.png (browser decodes by content); skins.js + ui.js read characters.netero.portrait
   archetypes: ["melee", "speed"], primary: "melee", secondary: ["speed"],
   traits: { hasEnergy: true, energyType: "nen", mobility: "high", scaling: "burst", animeMovement: true },
   passive: { name: "Hundred-Type Guanyin", effect: "Veteran speed and power — overwhelming offense balanced by frailty" },
+  // Extreme-speed elderly martial-artist archetype: highest attack + high speed on the roster,
+  // paid for with the frailest HP among the melee bruisers (glass-cannon; see Beerus 1000).
   stats: { maxHealth: 980, maxEnergy: 150, attack: 98, defense: 82, speed: 94, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 34 },
-  basic_attacks: { ...HXH_BASICS, light: { damage: 46, startup: 3, active: 3, recovery: 9, hitstun: 12, knockbackX: 3, knockbackY: 0 } },
-  specials: {
-    prayerFlurry: { cost: 25, damage: 18, startup: 5, active: 14, recovery: 18, hitstun: 8, knockbackX: 3, knockbackY: 0, effect: "blistering multi-hit palm flurry" },
-    zeroHand:     { cost: 45, damage: 175, startup: 18, active: 6, recovery: 28, hitstun: 30, knockbackX: 12, knockbackY: -3, effect: "enormous committed strike" }
+  // STAGE 2 normals — Netero's frantic taijutsu. Highest-attack roster values but the frailest
+  // bruiser HP (glass cannon). light = a lightning jab; heavy = the committed "super forward punch";
+  // up = rising uppercut launcher (feeds the juggle system); air = neutral aerial; down_air = the same
+  // aerial sheet reused as a diving spike (no dedicated 2nd air file). combat.js _getMD reads THIS block.
+  basic_attacks: {
+    light:     { damage: 48, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 95, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 80, rangeY: 46 },
+    upAttack:  { type: "launcher", damage: 72, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack: { damage: 62, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 84, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
+    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
   },
-  ultimate: { name: "First Hand of Guanyin", cost: 100, duration: 7, effect: "Relentless flurry: speed and hit-count surge" },
-  transformationOrder: ["base"], transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  spriteSheets: hxhSheets("netero"), animationData: { ...DEFAULT_ANIM }
+  // SPECIAL (Stage 3) — Barrage Punches: one committed melee flurry (Netero's only special; the real
+  // logic + hitbox live in abilities.js executeNeteroSpecial). The concatenated 8-frame sprite (3 punch
+  // frames → 5 fist-blur frames) plays as ONE continuous sequence via currentMove. There is ALSO a
+  // Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2) driven by
+  // abilities.js updateNeteroCommandCombat — a command normal, not listed here (not a metered special).
+  specials: {
+    barragePunches: { cost: 30, damage: 110, startup: 6, active: 14, recovery: 12, hitstun: 22, knockbackX: 8, knockbackY: -2, effect: "committed melee fist barrage — one continuous 8-frame flurry" }
+  },
+  ultimate: { name: "100-Type Guanyin Bodhisattva", cost: 100, duration: 7, effect: "Summon the Guanyin avatar — a sustained giant alternate form (Stage 4)." },
+  // NO transformations block (Itachi parity): the ONLY form is the Guanyin ULTIMATE, handled directly in
+  // abilities.js (enter/revert/updateNeteroGuanyin). A vestigial base-form transform here would make
+  // updateTransformations() re-apply a 1.0 multiplier every frame and stomp the giant's 1.6× buff.
+  hasSprites: true,
+  // idle content ~60px × 1.85 ≈ 111px on-screen ≈ roster height (Itachi 112, Beerus ~105).
+  // REQUIRES the skins.js `netero` entry (else applySkin() pulls the spriteScale:1 fallback →
+  // native ~60px, half size) + the spritesheets.js SPRITE_MANIFEST idle gate. anchorY plants feet;
+  // the reslicer bottom-aligns every frame so feet stay consistent across sheets (anchorY ≈ 0).
+  spriteScale: 1.85,
+  animationData: {
+    idle: { frames: 4, width: 38, height: 62, speed: 6, anchorY: 0, sheet: "./netero_idle_uniform.png" },
+    // No dedicated walk art — reuse the run strip a touch slower (Beerus precedent: walk & run share one sheet).
+    walk: { frames: 8, width: 50, height: 59, speed: 6, anchorY: 0, sheet: "./netero_run_uniform.png" },
+    run:  { frames: 8, width: 50, height: 59, speed: 4, anchorY: 0, sheet: "./netero_run_uniform.png" },
+    dash: { frames: 8, width: 50, height: 59, speed: 3, anchorY: 0, sheet: "./netero_run_uniform.png" },
+    // jump.png = crouch→rise→apex arc; play once + hold. fall = the apex/descent pose (last cell, sourceX = 5×38).
+    jump: { frames: 6, width: 38, height: 63, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_jump_uniform.png" },
+    fall: { frames: 1, width: 38, height: 63, speed: 6, anchorY: 0, sourceX: 190, loop: false, lockLastFrame: true, sheet: "./netero_jump_uniform.png" },
+    // Block → the `guard` action key (sprite.js resolves isBlocking → "guard" only if the strip exists). Hold final frame.
+    guard: { frames: 4, width: 40, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_block_uniform.png" },
+    // HURT — the 7-frame hit strip covers stagger-INTO-knockdown as one sequence (per asset map). Every
+    // hitstun/stun/knockdown state routes here (no dedicated knockdown/getup/hurt_air strips). Hold last frame.
+    hurt: { frames: 7, width: 70, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_hit_uniform.png" },
+    // ── STAGE 2 NORMALS — re-sliced to uniform cells (reslice_strip.mjs); frame counts confirmed
+    // by alpha-gutter detection. speed ≈ move duration / frames so the swing reads across the active
+    // window. All identity-mapped in sprite.js MOVE_TO_ACTION; combat starts them via the action key.
+    light:    { frames: 4, width: 54, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_foward_punch_uniform.png" },        // quick forward jab
+    heavy:    { frames: 7, width: 43, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_super_foward_punch_uniform.png" },   // committed super punch
+    up:       { frames: 7, width: 65, height: 65, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_upper_attack_uniform.png" },         // launcher: rising uppercut
+    // Aerial sheet is taller (diving pose w/ extended legs). Reused for BOTH air (neutral aerial) and
+    // down_air (dive spike) — no dedicated 2nd air file (project reuse precedent).
+    air:      { frames: 7, width: 48, height: 94, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_air_down_attack_uniform.png" },
+    down_air: { frames: 7, width: 48, height: 94, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_air_down_attack_uniform.png" },
+    // ── STAGE 3: command-normal cancel chain (Down+Heavy → cancel-on-hit → re-tap Heavy). Both sheets
+    // RE-SLICED with the debris filter (--minw=10) so the stray mid-strip / trailing specks the asset
+    // map warned about are dropped → clean 9 / 7 frame counts (not the raw 10 / 8). currentMove drives
+    // the sheet; the swap from _1 → _2 resets the frame counter (sprite.js sheet-change guard).
+    down_attck_1: { frames: 9, width: 47, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_down_attck_1_uniform.png" },   // crouch lunge opener
+    down_attck_2: { frames: 7, width: 50, height: 92, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_down_attck_2_uniform.png" },   // rising follow-up
+    // ── STAGE 3: Barrage Punches SPECIAL — the two source files (3 punch frames + 5 fist-blur frames)
+    // CONCATENATED into ONE uniform 8-frame strip (harness/concat_uniform.mjs) so it plays as a single
+    // continuous sequence, per the asset map's "contiguous, zero gutter" finding. Not two synced layers.
+    barragePunches: { frames: 8, width: 98, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_barrage_full_uniform.png" },
+    // ── STAGE 4: 100-Type Guanyin Bodhisattva ULTIMATE transformation CHARGE cast (base form). Plays via
+    // _spriteCastMove while abilities.js executeNeteroUltimate charges, then the GIANT avatar materialises
+    // (the giant body lives on fighter._skinAnim = GUANYIN_ANIM in abilities.js, NOT here). 13f × speed 2 =
+    // 26 ticks = GUANYIN_CAST_FRAMES (the delayed-enter window).
+    guanyinCast: { frames: 13, width: 51, height: 65, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_charge_guanyin_uniform.png" }
+  },
+  // No dedicated intro art shipped (confirmed absent). Point the intro pool at `idle` so the pre-match
+  // beat holds a clean idle pose — deterministic and box-free — instead of falling through to the generic
+  // "transform" variant (which has no strip and would only render idle via sprite.js's fallback guard
+  // anyway, but with a null _actionDef.sheet). A real entrance is deferred pending art. Win/lose reuse
+  // the engine's shared end-match screens (no per-character art). Getup: no strip → knockdown routes to
+  // `hurt` via the legacy 12-frame path (sprite.js), no getup chain.
+  introPool: ["idle"]
 }
 
 const ging = {

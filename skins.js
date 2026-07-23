@@ -148,6 +148,14 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.itachi?.portrait, spriteScale: characters.itachi?.spriteScale, animationData: null }
   ],
 
+  // Netero (Hunter x Hunter). Same gate as the sprite characters above: WITHOUT a default skin,
+  // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~60px (half
+  // size). Sources his real spriteScale (1.85) from the character. No portrait yet (procedural-box
+  // fallback on select). No alt skins yet.
+  netero: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.netero?.portrait, spriteScale: characters.netero?.spriteScale, animationData: null }
+  ],
+
   // Rick Sanchez (Rick & Morty). Same gate as the sprite characters above: WITHOUT a default
   // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native
   // ~67px (half size). Sources his real spriteScale (1.7) from the character. No alt skins yet.

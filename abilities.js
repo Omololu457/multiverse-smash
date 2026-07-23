@@ -16,6 +16,7 @@ import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./
 import { resolveGrab, GLOBAL_DAMAGE_SCALE } from "./combat.js"   // shared grab pipeline + the one damage-scale lever (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
+import { pickNeteroVoice } from "./neteroVoice.js"   // Netero Guanyin-cast voice pool (audio-only)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
@@ -3749,6 +3750,11 @@ function executeNeteroUltimate(fighter, context) {
   fighter._spriteCastTimer = GUANYIN_CAST_FRAMES
   fighter.attackCooldown   = getAttackDuration(GUANYIN_CAST_FRAMES, fighter)
   fighter._suppressUltCooldown = true                       // 20s recast lockout armed in revertNeteroGuanyin instead
+  // GUANYIN CAST voice — random pick between cast_1 / cast_alt, fired at the transformation/summon
+  // BEAT (charge begins → giant materialises after GUANYIN_CAST_FRAMES). This is the ONLY auto-fired
+  // Guanyin line; the ~19s "100-Type Zero" monologue + payoff are STAGED separately (see neteroVoice.js)
+  // and never fire here, so the cast bark never overlaps them.
+  sound.playSfxFile?.(pickNeteroVoice("guanyinCast"), null)
   focusCameraOnAction(context, fighter, null, 0.9, 18)
   shakeCamera(context, 10, 14)
   schedulePendingSpawn(GUANYIN_CAST_FRAMES, () => {

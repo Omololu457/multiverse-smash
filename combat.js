@@ -564,6 +564,7 @@ function applyNeteroGruntVoice(fighter) {
   const rising = attackingNow && !fighter._prevAttacking
   fighter._prevAttacking = attackingNow
   if (!rising || (fighter._gruntVoiceCd || 0) > 0) return
+  if (fighter.currentAttack?.name === "guanyinZero") return   // the 100-Type Zero finisher has its OWN monologue/payoff — no generic startup grunt over it
   fighter._gruntVoiceCd = NETERO_GRUNT_CD
   try { sound?.playSfxFile?.(pickNeteroVoice("grunt"), null) } catch (_) {}
 }

@@ -172,6 +172,39 @@ try {
   }
   check("win → one of the win pool", winFired, `log=${JSON.stringify(await sfxLog())}`);
 
+  // ══ 100-TYPE ZERO FINISHER — ult button while giant → guanyinZero + monologue/payoff ══
+  section("100-TYPE ZERO — dedicated finisher slot (ult-in-form; monologue cast → payoff strike)");
+  await goto("p1=netero");
+  await page.evaluate(() => window.__harness.boot());
+  await installSpy();
+  // Enter Guanyin, and park the dummy far away so the long committed finisher can't be interrupted.
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
+  await page.evaluate(() => { const a = window.__harness.p1(); window.__harness.setP2X(a.x + 700); window.__harness.setP2Invuln?.(600); window.__harness.fillEnergy(); window.__harness.resetUlt(); });
+  await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
+  await page.waitForFunction(() => !!window.__harness.p1().canvasHeightFrac, null, { timeout: 5000, polling: 16 });
+  await waitFrames(6);
+  const inForm = await p1();
+  check("Guanyin form active before the finisher", !!inForm.canvasHeightFrac, `frac=${inForm.canvasHeightFrac}`);
+  // Wait until the entry-cast cooldown has fully drained (form settled + actionable) so the finisher
+  // press isn't eaten by the residual charge-cast cooldown.
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p.canvasHeightFrac && !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  // Press Ultimate AGAIN while giant → 100-Type Zero finisher.
+  await clearSfx();
+  await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u"); await waitFrames(4);
+  const zAct = await p1();
+  check("ult-in-form → the guanyinZero finisher move fires", zAct.action === "guanyinZero", `action=${zAct.action}`);
+  check("finisher plays the ~19s monologue as its cast line", await logHas(/netero_nenimpact_ultimate_monologue\.mp3/), `log=${JSON.stringify((await sfxLog()).filter(f => /netero/.test(f)))}`);
+  check("no generic startup GRUNT over the finisher cast", !(await logHas(RE.grunt)), (await sfxLog()).filter(f => RE.grunt.test(f)).join(",") || "");
+  // The payoff battle-cry is scheduled to the strike frames (after the ~24f committed windup).
+  await waitFrames(34);
+  check("payoff battle-cry fires synced to the strike", await logHas(/netero_nenimpact_zero_payoff\.mp3/), `log=${JSON.stringify((await sfxLog()).filter(f => /netero/.test(f)))}`);
+  // ONCE-PER-ACTIVATION: after the move resolves, a 2nd ult press in the SAME form does nothing.
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p.canvasHeightFrac && !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  await clearSfx();
+  await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u"); await waitFrames(6);
+  const zAct2 = await p1();
+  check("2nd ult press in the same form → NO second Zero (once-per-activation)", !(await logHas(/ultimate_monologue|zero_payoff/)) && zAct2.action !== "guanyinZero", `action=${zAct2.action} log=${JSON.stringify((await sfxLog()).filter(f => /netero/.test(f)))}`);
+
   // ══ PART 4: STAGED TAUNT (dormant → lights up when a taunt action exists) ═══
   section("TAUNT staged — no taunt action; hook fires the moment one is injected");
   await goto("p1=netero");

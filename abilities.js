@@ -16,7 +16,7 @@ import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./
 import { resolveGrab, GLOBAL_DAMAGE_SCALE } from "./combat.js"   // shared grab pipeline + the one damage-scale lever (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
-import { pickNeteroVoice } from "./neteroVoice.js"   // Netero Guanyin-cast voice pool (audio-only)
+import { pickNeteroVoice, NETERO_ZERO } from "./neteroVoice.js"   // Netero Guanyin-cast pool + 100-Type Zero finisher lines (audio-only)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
@@ -3645,7 +3645,10 @@ const GUANYIN_ANIM = {
   light: GUANYIN_IDLE, heavy: GUANYIN_IDLE, up: GUANYIN_IDLE, air: GUANYIN_IDLE, down_air: GUANYIN_IDLE, grab: GUANYIN_IDLE,
   hurt: GUANYIN_HURT, guard: GUANYIN_GUARD,
   // Avatar attack poses (driven by currentMove; see fireGuanyinAttack).
-  guanyinLeg: GUANYIN_LEG, guanyinArm: GUANYIN_ARM, guanyinCombo: GUANYIN_COMBO, guanyinBurst: GUANYIN_BURST
+  guanyinLeg: GUANYIN_LEG, guanyinArm: GUANYIN_ARM, guanyinCombo: GUANYIN_COMBO, guanyinBurst: GUANYIN_BURST,
+  // 100-Type Zero finisher — STAGED ART: reuses the punch_burst pose (the Zero is canonically a single
+  // all-out punch) so the slot is fully playable now; a dedicated Zero sheet is a future art pass.
+  guanyinZero: GUANYIN_BURST
 }
 
 // Avatar-attack move data — ultimate-tier (each out-hits Netero's base kit; the giant's 1.6× attack
@@ -3655,7 +3658,11 @@ const GUANYIN_ATTACKS = {
   guanyinLeg:   { damage: 62, startup: 6, active: 8,  recovery: 16, hitstun: 24, knockbackX: 10, knockbackY: -2, rangeX: 220, rangeY: 210 },              // quick low sweep
   guanyinArm:   { damage: 78, startup: 8, active: 10, recovery: 18, hitstun: 26, knockbackX: 14, knockbackY: -3, rangeX: 300, rangeY: 200 },              // wide horizontal arc
   guanyinCombo: { damage: 46, startup: 4, active: 16, recovery: 12, hitstun: 18, knockbackX: 6,  knockbackY: -2, rangeX: 250, rangeY: 210, twoHit: true },// 2-hit (re-arms mid-active)
-  guanyinBurst: { damage: 92, startup: 9, active: 13, recovery: 8,  hitstun: 30, knockbackX: 16, knockbackY: -8, rangeX: 240, rangeY: 210 } // windup(1-2) → burst(3-6); NOT a launcher (a launcher self-lifts the planted giant)
+  guanyinBurst: { damage: 92, startup: 9, active: 13, recovery: 8,  hitstun: 30, knockbackX: 16, knockbackY: -8, rangeX: 240, rangeY: 210 }, // windup(1-2) → burst(3-6); NOT a launcher (a launcher self-lifts the planted giant)
+  // 100-TYPE ZERO — the single strongest strike in the kit (once-per-activation finisher; see
+  // executeNeteroZero). Long committed windup (24f startup) covers the dramatic cast; huge damage +
+  // knockback. 1.6× avatar attackMultiplier stacks on top (≈288 eff) → a true KO-tier finisher.
+  guanyinZero:  { damage: 180, startup: 24, active: 12, recovery: 24, hitstun: 44, knockbackX: 24, knockbackY: -12, rangeX: 380, rangeY: 280 }
 }
 // Fire one Guanyin avatar attack (currentMove drives the giant body-swap to the attack pose).
 function fireGuanyinAttack(fighter, key, context) {
@@ -3672,6 +3679,36 @@ function fireGuanyinAttack(fighter, key, context) {
   if (md.twoHit) schedulePendingSpawn(10, () => { if (fighter.currentAttack && fighter.currentAttack.name === key) fighter.currentAttack.hasHit = false })
   return true
 }
+// ── 100-TYPE ZERO — dedicated finisher move-slot within the Guanyin form ──────
+// Netero's single strongest, most dramatic strike. Fires on the ULTIMATE button pressed AGAIN
+// while already giant (that input previously no-opped — see executeNeteroUltimate). Gated
+// ONCE PER activation via _zeroUsed (reset in enterNeteroGuanyin), so it reads as a climactic
+// finisher, not a spammable normal. Free (no meter) — you already paid full meter to enter the
+// form. Committed cinematic: the ~19s monologue plays on the windup (fire-and-forget, overlaps
+// as dramatic VO — flagged as tunable), the payoff battle-cry is synced to the strike frames.
+function executeNeteroZero(fighter, context) {
+  if (!fighter._guanyinActive || fighter._zeroUsed) return false
+  if (fighter.attacking || (fighter.attackCooldown || 0) > 0) return false
+  fighter._zeroUsed = true
+  const md = GUANYIN_ATTACKS.guanyinZero
+  const attack = createAttackFromMove(fighter, "guanyinZero", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial  = true
+  attack.isUltimate = true                                   // ultimate-tier hit categorisation (KO/knockdown class)
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._suppressUltCooldown = true                        // don't arm the ult cooldown for this in-form press (revert owns the 20s lockout)
+  sound.playSfxFile?.(NETERO_ZERO.cast, null)                // "…I'll show you the 100-Type Zero" — dramatic windup line
+  focusCameraOnAction(context, fighter, null, 1.0, 22)
+  shakeCamera(context, 12, 16)
+  // Strike battle-cry ("zero payoff") synced to the active frames (after the committed windup).
+  schedulePendingSpawn(md.startup, () => {
+    if (fighter.currentAttack && fighter.currentAttack.name === "guanyinZero") {
+      sound.playSfxFile?.(NETERO_ZERO.strike, null)
+      shakeCamera(context, 18, 22)
+    }
+  })
+  return true
+}
+
 // While giant: intercept the base-kit attack buttons and re-route to the avatar attacks. light=leg,
 // heavy=arm-sweep, up=punch-burst; combo-slash is on SPECIAL (executeNeteroSpecial giant branch).
 // Returns true (→ skip the normal path) only when it fires.
@@ -3696,6 +3733,7 @@ export function enterNeteroGuanyin(fighter) {
   if (!fighter) return
   fighter._guanyinActive    = true
   fighter._guanyinTimer     = SUSANOO_DURATION_FRAMES       // ~20s, then auto-reverts
+  fighter._zeroUsed         = false                         // 100-Type Zero is once-per-activation → re-arm it each time the form is entered
   fighter.damageMultiplier   = 1.6
   fighter.attackMultiplier   = 1.6
   fighter.defenseMultiplier  = 1.4
@@ -3743,7 +3781,7 @@ export function updateNeteroGuanyin(fighter) {
 // ULTIMATE — pays FULL meter (a true ultimate). Plays the base-form charge cast, THEN materialises
 // the giant after GUANYIN_CAST_FRAMES (delayed enter). Cooldown suppressed on activation, armed in revert.
 function executeNeteroUltimate(fighter, context) {
-  if (fighter._guanyinActive) return false                  // already active (single form — no re-press)
+  if (fighter._guanyinActive) return executeNeteroZero(fighter, context)   // ult button WHILE giant = 100-Type Zero finisher (once per activation)
   const cost = fighter.maxEnergy || 100
   if (!spendEnergy(fighter, cost)) return false
   fighter._spriteCastMove  = "guanyinCast"                  // base-form charge pose (13f) plays first

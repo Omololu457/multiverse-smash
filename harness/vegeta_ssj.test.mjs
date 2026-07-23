@@ -165,7 +165,9 @@ try {
   {
     await topUp();
     await page.evaluate(() => window.__harness.p1Knockdown());
-    await waitFrames(3);
+    // Wait for the forced knockdown to resolve on-screen rather than a fixed frame count: a lingering
+    // hitstop from the preceding HURT section could otherwise freeze the sprite on "hurt" at read time.
+    await page.waitForFunction(() => window.__harness.p1().action === "knockdown", null, { timeout: 4000, polling: 16 }).catch(() => {});
     const kd = await p1();
     check("SSJ knockdown renders vegeta_ssj_knock_down sheet", (kd.spriteSheet || "").includes("vegeta_ssj_knock_down") && kd.action === "knockdown", `action=${kd.action} sheet=${kd.spriteSheet}`);
     check("SSJ knockdown NOT the fallback box", !isFallback(kd), `sheet=${kd.spriteSheet}`);

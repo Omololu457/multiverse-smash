@@ -121,6 +121,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./netero_idle_uniform.png" }
   },
 
+  // Saiki Kusuo (universe: saiki_k) — gates spritesReady() by decoding the idle strip → flips Saiki
+  // from procedural box to sprite. Per-action rendering reads characters.js → saiki.animationData
+  // (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
+  saiki: {
+    actions: { idle: "./saiki_idle_u.png" }
+  },
+
   // Rick Sanchez (universe: rick_and_morty). Gates spritesReady() by decoding the idle strip →
   // flips Rick from procedural box to sprite. Per-action rendering reads characters.js →
   // rick.animationData (each action carries its own .sheet).

@@ -341,6 +341,10 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     // OPTIONAL impact-on-connect FX: a sprite {sheet,frames,w,h,speed,scale,lifetime} spawned as a
     // visualOnly projectile at the hit point ONLY when this projectile connects (resolveProjectileHitsMulti).
     impact:     moveData.impact     || null,
+    // OPTIONAL owner-flag set on a clean connect (resolveProjectileHitsMulti): the name of a boolean
+    // field to set TRUE on this projectile's owner when it lands a hit. Powers Saiki's projectile
+    // rekka cancel-on-hit gate (hitFlag: "_cmdHitLanded"). Null for ordinary projectiles.
+    hitFlag:    moveData.hitFlag    || null,
     // Pure-visual projectiles (e.g. an in-place AOE ring bloom): skipped by hit
     // resolution so they never stun/despawn on contact — they fade out via lifetime.
     visualOnly: moveData.visualOnly || false
@@ -3414,6 +3418,181 @@ export function updateNeteroCommandCombat(fighter, inputState, context, getPhase
   return false
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SAIKI KUSUO — 4-hit projectile REKKA (Fwd+Heavy) + Basic Burst free poke (Fwd+Light) — Stage 3.
+// The zoner's mid-range pressure tool. Unlike the melee rekkas (Toji/Vegeta/Netero) each stage fires
+// an INDEPENDENTLY-TRAVELING magenta bolt (its own paired FX + collision) rather than a melee hitbox —
+// so the cancel-on-hit gate reads the BOLT connecting, not a melee hasHit. The cast pose (createAttack /
+// setAttackState → currentMove) is a HARMLESS timing shell (rangeX 4 / damage 0): it exists only to
+// (a) drive the chainN sprite and (b) give getAttackPhase a real "recovery" window to re-tap into. The
+// bolt carries hitFlag:"_cmdHitLanded" so a CLEAN connect latches the same flag the melee rekkas gate on
+// (a block or whiff never sets it → the string ends there, matching the interrupt rule).
+// ─────────────────────────────────────────────────────────────────────────────
+const SAIKI_MAGENTA = "#d4308f"
+const SAIKI_CHAIN = {
+  //                pose            timing (harmless shell)      → traveling bolt (its own FX + collision)
+  saikiChain1:   { startup: 5, active: 3, recovery: 22, rekkaNext: "saikiChain2",
+                   bolt: { sheet: "./saiki_chain1_fx_u.png", spriteFrames: 3, spriteW: 15, spriteH: 30, spriteSpeed: 3, spriteScale: 1.7,
+                           damage: 42, speed: 15, lifetime: 42, hitstun: 14, knockbackX: 4, knockbackY: 0, w: 28, h: 34 } },
+  saikiChain2:   { startup: 5, active: 3, recovery: 22, rekkaNext: "saikiChain3",
+                   bolt: { sheet: "./saiki_chain2_fx_u.png", spriteFrames: 3, spriteW: 37, spriteH: 7, spriteSpeed: 2, spriteScale: 1.5,
+                           damage: 36, speed: 17, lifetime: 42, hitstun: 12, knockbackX: 4, knockbackY: 0, w: 44, h: 16 } },
+  saikiChain3:   { startup: 5, active: 3, recovery: 22, rekkaNext: "saikiChainFin",
+                   bolt: { sheet: "./saiki_chain3_fx_u.png", spriteFrames: 3, spriteW: 37, spriteH: 7, spriteSpeed: 2, spriteScale: 1.5,
+                           damage: 40, speed: 17, lifetime: 44, hitstun: 13, knockbackX: 5, knockbackY: 0, w: 44, h: 16 } },
+  saikiChainFin: { startup: 6, active: 3, recovery: 26, rekkaNext: null,
+                   bolt: { sheet: "./saiki_chainfin_fx_u.png", spriteFrames: 6, spriteW: 54, spriteH: 51, spriteSpeed: 3, spriteScale: 1.35,
+                           damage: 72, speed: 13, lifetime: 52, hitstun: 26, knockbackX: 11, knockbackY: -4, w: 56, h: 52 } }
+}
+
+function fireSaikiChain(fighter, key, context) {
+  const md = SAIKI_CHAIN[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  // Harmless timing/pose shell — rangeX 4 / damage 0 so the CAST never melee-hits; the bolt does the work.
+  const shell = { damage: 0, startup: md.startup, active: md.active, recovery: md.recovery, hitstun: 1, rangeX: 4, rangeY: 30 }
+  const attack = createAttackFromMove(fighter, key, shell, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the chainN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only by THIS step's bolt landing a clean hit (hitFlag)
+  // Traveling bolt: independent projectile, own FX + collision, carries the rekka gate flag.
+  spawnProjectile(fighter, key + "_bolt", {
+    ...md.bolt, color: SAIKI_MAGENTA, hitFlag: "_cmdHitLanded",
+    spawnY: fighter.y + (fighter.h || 100) * 0.42
+  }, context)
+  return true
+}
+
+// FREE POKE — Basic Burst (Fwd+Light): a short-range, NON-TRAVELING point-blank cyan burst that grows
+// in place (vx/vy 0, brief lifetime) — mechanically distinct from the chain's traveling bolts. Free,
+// cooldown-gated. Cast pose via _spriteCastMove (quick, no attacking lock — the burst does the work).
+function fireSaikiBurst(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  fighter._spriteCastMove  = "saikiBurst"
+  fighter._spriteCastTimer = 16
+  fighter.attackCooldown   = getAttackDuration(20, fighter)
+  const face = fighter.facing || 1
+  spawnProjectile(fighter, "saikiBurst_fx", {
+    sheet: "./saiki_burst_fx_u.png", spriteFrames: 7, spriteW: 36, spriteH: 21, spriteSpeed: 2, spriteScale: 1.8,
+    damage: 48, hitstun: 16, knockbackX: 5, knockbackY: -1, lifetime: 16, w: 50, h: 44, color: "#49e0e0",
+    vx: 0, vy: 0,
+    spawnX: fighter.x + (face === 1 ? (fighter.w || 60) + 6 : -50 - 6),
+    spawnY: fighter.y + (fighter.h || 100) * 0.40
+  }, context)
+  return true
+}
+
+// Grounded command driver (mirrors updateNeteroCommandCombat). Returns true (→ skip the normal path)
+// only when it actually fires a stage/poke. Fwd+Heavy opens the bolt rekka; Fwd+Light is Basic Burst.
+export function updateSaikiCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "saiki" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  const lightEdge = !!inputState.light && !fighter._cmdPrevLight
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  fighter._cmdPrevLight = !!inputState.light
+
+  // The chain window closes when the cast fully ends (bolt already independent in flight).
+  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
+
+  // CONTINUE — fresh Heavy during the current step's RECOVERY, only if this step's bolt CONNECTED.
+  if (fighter.attacking && fighter._rekkaNext && heavyEdge && phase === "recovery" && fighter._cmdHitLanded) {
+    const next = fighter._rekkaNext
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+    fighter.attackCooldown = 0                       // clear the just-set cooldown so the next step fires now
+    return fireSaikiChain(fighter, next, context)
+  }
+
+  // OPENERS from neutral (grounded, forward held toward the opponent). Neutral light/heavy stay on the
+  // normal path (front_attack / blade-swipe); only Forward+button routes here.
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && forward && !inputState.down) {
+    if (heavyEdge) return fireSaikiChain(fighter, "saikiChain1", context)   // Fwd+Heavy → 4-hit bolt rekka
+    if (lightEdge) return fireSaikiBurst(fighter, context)                  // Fwd+Light → Basic Burst poke
+  }
+
+  return false
+}
+
+// ── SAIKI SPECIAL — Lightning (Stage 4) ─────────────────────────────────────
+// A single long-range lightning BEAM rendered as TWO SIMULTANEOUS layered halves: bolt_top + bolt_bot
+// (same width, offset heights per the source art) spawn together, travel identically, and overlap into
+// one thicker combined bolt. Only the BOTTOM half carries collision/damage; the top half is visualOnly
+// (a pure overlay) so the pair reads as one visual but lands one hit. 3f channeling cast pose first.
+function executeSaikiSpecial(fighter, context) {
+  if (!spendEnergy(fighter, 30)) return false
+  fighter._spriteCastMove  = "saikiLightning"    // 3f channeling pose (saiki_lightning_cast_u)
+  fighter._spriteCastTimer = 22
+  fighter.attackCooldown   = getAttackDuration(30, fighter)
+  const face   = fighter.facing || 1
+  const originY = fighter.y + (fighter.h || 100) * 0.42
+  const boltCommon = { spriteFrames: 3, spriteW: 210, spriteScale: 0.9, spriteSpeed: 2, speed: 18, lifetime: 44, color: "#c76bff", vx: face * 18 }
+  // Fire both halves after a short channel so they leave on the beam's release beat (same frame → layered).
+  schedulePendingSpawn(10, () => {
+    // BOTTOM half — the damaging beam (its collision box covers the full combined thickness).
+    spawnProjectile(fighter, "saikiLightning_bot", {
+      ...boltCommon, sheet: "./saiki_bolt_bot_u.png", spriteH: 35,
+      damage: 130, hitstun: 28, knockbackX: 12, knockbackY: -3, w: 120, h: 48,   // EFF ≈78 @ cost30 — kamehameha/Gojo-red tier (was 160→EFF96, a cost-30 outlier)
+      spawnY: originY + 12
+    }, context)
+    // TOP half — pure visual overlay stacked just above, forming one thicker bolt (never collides).
+    spawnProjectile(fighter, "saikiLightning_top", {
+      ...boltCommon, sheet: "./saiki_bolt_top_u.png", spriteH: 36,
+      visualOnly: true, damage: 0, lifetime: 44,
+      spawnY: originY - 12
+    }, context)
+    shakeCamera(context, 6, 8)
+  })
+  return true
+}
+
+// ── SAIKI ULTIMATE — Giant Bomb Throw (Stage 5) ─────────────────────────────
+// Saiki hurls a psychic bomb: an 8-frame throw pose plays FIRST, and only AFTER the throw motion
+// visually completes does the payoff detonate — a screen-filling 10-frame shockwave (the largest FX in
+// the kit) with its own huge blast volume. The explosion is a visualOnly sprite (so it plays through its
+// whole animation instead of despawning on first contact) paired with a direct AOE damage sweep (Beerus
+// Hakai / Rick Self-Destruct pattern — bypasses the per-hit despawn and GLOBAL_DAMAGE_SCALE) for the
+// biggest single hit in the kit. Near-max meter cost.
+const SAIKI_BOMB = { cost: 150, throwFrames: 26, dmg: 300, radius: 300, hitstun: 46 }
+function executeSaikiUltimate(fighter, context) {
+  if (!spendEnergy(fighter, SAIKI_BOMB.cost)) return false
+  fighter._spriteCastMove  = "saikiBomb"     // 8f windup → throw → recovery pose (saiki_bomb_cast_u)
+  fighter._spriteCastTimer = SAIKI_BOMB.throwFrames
+  fighter.attackCooldown   = getAttackDuration(SAIKI_BOMB.throwFrames + 10, fighter)
+  const getOpp = getTargetResolver(context)
+  const target = getOpp(fighter)
+  focusCameraOnAction(context, fighter, target, 0.95, 14)
+
+  // DELAYED payoff: fire the explosion only once the throw animation has visually completed.
+  schedulePendingSpawn(SAIKI_BOMB.throwFrames + 2, () => {
+    const t  = getOpp(fighter)
+    // Detonate on the opponent (a thrown bomb landing on them); the screen-filling FX + big radius
+    // read as an arena-wide blast even so.
+    const ex = t ? t.x + (t.w || 60) / 2 : fighter.x + fighter.facing * 260
+    const ey = t ? t.y + (t.h || 100) * 0.5 : fighter.y + (fighter.h || 100) * 0.5
+    // Screen-filling explosion — pure visual (never collides/despawns; plays its full 10 frames then fades).
+    spawnProjectile(fighter, "saikiBombBlast", {
+      visualOnly: true, damage: 0, lifetime: 40, vx: 0, vy: 0,
+      sheet: "./saiki_bomb_fx_u.png", spriteFrames: 10, spriteW: 126, spriteH: 125, spriteSpeed: 3, spriteScale: 3.6,
+      spawnX: ex, spawnY: ey, color: "#ff6ba3"
+    }, context)
+    shakeCamera(context, 22, 26)
+    // Direct AOE hit — biggest single hit in the kit (bypasses per-hit despawn + GLOBAL_DAMAGE_SCALE).
+    if (t && !t.eliminated && (t.invulnTimer || 0) <= 0) {
+      const tcx = t.x + (t.w || 60) / 2, tcy = t.y + (t.h || 100) / 2
+      if (Math.hypot(tcx - ex, tcy - ey) <= SAIKI_BOMB.radius) {
+        let dmg = SAIKI_BOMB.dmg
+        if (t.isBlocking) { dmg = Math.floor(dmg * 0.2); t.blockstun = 24 }
+        else { t.hitstun = SAIKI_BOMB.hitstun; t.vx = (tcx >= ex ? 1 : -1) * 16; t.vy = -10; t.colorFlash = 8 }
+        t.health = Math.max(0, (t.health || 0) - dmg)
+      }
+    }
+  })
+  return true
+}
+
 // ── NETERO SPECIAL — Barrage Punches ─────────────────────────────────────────
 // One committed melee flurry (Netero's only special; direction-agnostic). currentMove drives the
 // concatenated 8-frame sprite (3 punch frames → 5 fist-blur frames) as one continuous sequence while
@@ -3773,6 +3952,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "vegeta":  return executeVegetaSpecial(fighter, context)
     case "beerus":  return executeBeerusSpecial(fighter, context)
     case "omega_ranger": return executeOmegaRangerSpecial(fighter, context)   // Gun / Super Upper / Special Downward
+    case "saiki":   return executeSaikiSpecial(fighter, context)   // Lightning — two layered bolts fired as one thick beam
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -3807,6 +3987,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
       case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
+      case "saiki":   cast = executeSaikiUltimate(fighter, context);   break   // Giant Bomb Throw: delayed screen-filling explosion
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }

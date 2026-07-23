@@ -1798,6 +1798,100 @@ const beerus = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SAIKI KUSUO  (The Disastrous Life of Saiki K.) — psychic ZONER.
+// New universe "saiki_k", rosterKey `saiki` (lowercase — getAction() lowercases
+// the key; a camelCase key silently renders the 128² box). All sheets RE-SLICED
+// to clean uniform, feet-aligned cells (tools/reslice_strip.mjs) — the raw rips
+// were non-uniform with dithered "dissolve" debris (the intro/teleport pixel
+// transition), which the reslicer's alpha-gutter framing + --minw debris filter
+// cleaned. No transformations block (Itachi/Netero parity — a vestigial base-form
+// transform would let updateTransformations() stomp any future form multiplier).
+// Kit is projectile-heavy: 5 normals, a 4-hit rekka projectile string (Fwd+Heavy),
+// a free Basic Burst poke (Fwd+Light), the Lightning special, and the Giant Bomb
+// ultimate — behaviour wired in abilities.js across later stages; the cast-pose
+// animationData for those lives here so currentMove/_spriteCastMove never falls to
+// the box. Portrait wired: saiki_k_mug_shot.png (character-select mugshot / HUD
+// nameplate; skins.js + ui.js read characters.saiki.portrait).
+// ─────────────────────────────────────────────────────────────────
+const saiki = {
+  rosterKey: "saiki", name: "Saiki Kusuo", universe: "saiki_k", color: "#ff6ba3",
+  portrait: "./saiki_k_mug_shot.png",   // EXACT on-disk filename — character-select mugshot / HUD nameplate; same role as vegeta_mugshot.png / issac_netero_mugshot.png; skins.js + ui.js both read characters.saiki.portrait
+  archetypes: ["zoner", "speed"], primary: "zoner", secondary: ["speed"],
+  traits: { hasEnergy: true, energyType: "psi", mobility: "high", scaling: "burst", animeMovement: true },
+  passive: { name: "Psychokinesis", effect: "Overwhelming psychic zoning — controls space with layered projectiles" },
+  // Zoner profile (Rick-adjacent): healthy meter for a projectile-spam kit, moderate
+  // attack/defence, high speed. Not a glass cannon — his damage lives on the projectiles.
+  stats: { maxHealth: 1050, maxEnergy: 180, attack: 84, defense: 84, speed: 90, maxJumps: 2, jumpPower: 30, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 40 },
+  // STAGE 1 normals. light = front_attack rush + palm strike; heavy = the diagonal upward
+  // blade-swipe (frames 3-4 of the down_air/up two-move sheet, re-sliced standalone); up =
+  // rising charged-fist launcher (feeds the juggle system); air = front_attack reused (no
+  // dedicated air file — project reuse precedent); down_air = the ~360° spinning kick (frames
+  // 1-2 of the same split sheet). combat.js _getMD reads THIS block.
+  basic_attacks: {
+    light:     { damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 64, rangeY: 50 },
+    heavy:     { damage: 82, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1,  rangeX: 76, rangeY: 52 },
+    upAttack:  { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack: { damage: 58, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { type: "spike", damage: 76, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
+    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
+  },
+  // SPECIALS/ULTIMATE — HUD/kit metadata. Behaviour is wired in abilities.js:
+  //   Lightning  → executeSaikiSpecial (Special button; layered top/bottom bolt projectile)
+  //   Giant Bomb → executeSaikiUltimate (Ultimate button; delayed screen-filling explosion)
+  // The 4-hit rekka projectile string (Fwd+Heavy) + Basic Burst poke (Fwd+Light) are command
+  // normals driven by updateSaikiCommandCombat — not metered specials, so not listed here.
+  specials: {
+    lightning: { cost: 30, effect: "Lightning — two layered bolts (top/bottom for thickness) fired as one projectile." }
+  },
+  ultimate: { name: "Giant Bomb Throw", cost: 150, effect: "Hurl a psychic bomb — a delayed, screen-filling shockwave explosion." },
+  hasSprites: true,
+  // idle content 52px × 2.2 ≈ 114px on-screen ≈ roster height (Sasuke 116 / Gojo 112). REQUIRES the
+  // skins.js `saiki` default skin (else applySkin() pulls spriteScale:1 → half size) + the
+  // spritesheets.js SPRITE_MANIFEST idle gate. The reslicer bottom-aligns every frame so feet line up
+  // across sheets → anchorY ≈ 0 everywhere.
+  spriteScale: 2.2,
+  animationData: {
+    idle: { frames: 4, width: 25, height: 52, speed: 6, anchorY: 0, sheet: "./saiki_idle_u.png" },
+    // No dedicated walk art — reuse the run strip (Beerus/Netero precedent: walk & run share one sheet).
+    walk: { frames: 6, width: 44, height: 51, speed: 5, anchorY: 0, sheet: "./saiki_run_u.png" },
+    run:  { frames: 6, width: 44, height: 51, speed: 4, anchorY: 0, sheet: "./saiki_run_u.png" },
+    dash: { frames: 6, width: 44, height: 51, speed: 3, anchorY: 0, sheet: "./saiki_run_u.png" },
+    // jump.png = crouch→rise→apex→descend→land arc. Split Naruto/Sasuke-style: jump = rise (cells 0-3,
+    // sourceX 0), fall = descent (cells 4-7, sourceX 4×37=148). Play once + hold last frame.
+    jump: { frames: 4, width: 37, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_jump_u.png" },
+    fall: { frames: 4, width: 37, height: 57, speed: 6, anchorY: 0, sourceX: 148, loop: false, lockLastFrame: true, sheet: "./saiki_jump_u.png" },
+    // HURT — the 7-frame hit strip covers stagger-INTO-knockdown as one sequence (per the design). Every
+    // hitstun/stun/knockdown state routes here (no dedicated knockdown/getup strips) → legacy path. Hold last.
+    hurt: { frames: 7, width: 52, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_hit_u.png" },
+    // ── STAGE 1 NORMALS (speed ≈ move duration / frames so the swing reads across the active window).
+    light:    { frames: 5, width: 53, height: 52, speed: 4,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_light_u.png" },   // front_attack rush + palm
+    heavy:    { frames: 2, width: 46, height: 49, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_heavy_u.png" },   // diagonal blade-swipe (split half)
+    up:       { frames: 7, width: 45, height: 56, speed: 4,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_up_u.png" },      // launcher: rising charged fist
+    air:      { frames: 5, width: 53, height: 52, speed: 4,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_light_u.png" },   // reuses front_attack (no air file)
+    down_air: { frames: 2, width: 29, height: 51, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_downair_u.png" }, // ~360° spinning kick (split half)
+    // ── ENTRANCE (introSequence ["teleport","intro"]): teleport dissolve-in → walk-in, one continuous
+    // sequence per the confirmed teleport→intro adjacency. Debris-filtered to clean frames (--minw=5;
+    // the raw 1px dithered columns were the pixel-dissolve, kept baked in the teleport frames themselves).
+    teleport: { frames: 4, width: 21, height: 52, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_teleport_u.png" },
+    intro:    { frames: 7, width: 26, height: 49, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_intro_u.png" },
+    // ── STAGE 2 rekka cast poses (projectile_attack_1/2/3 → special_projetile finisher). Each drives its
+    // step's sprite via currentMove; the traveling bolt is a separate projectile (abilities.js).
+    saikiChain1:   { frames: 4, width: 26, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_chain1_u.png" },
+    saikiChain2:   { frames: 4, width: 30, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_chain2_u.png" },
+    saikiChain3:   { frames: 4, width: 30, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_chain3_u.png" },
+    saikiChainFin: { frames: 6, width: 44, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_chainfin_u.png" },
+    // ── STAGE 3 Basic Burst cast (1f) + STAGE 4 Lightning channel (3f) + STAGE 5 Giant Bomb throw (8f).
+    saikiBurst:     { frames: 1, width: 32, height: 53, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_burst_cast_u.png" },
+    saikiLightning: { frames: 3, width: 42, height: 50, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_lightning_cast_u.png" },
+    saikiBomb:      { frames: 8, width: 41, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saiki_bomb_cast_u.png" }
+  },
+  // Two-part fixed-order entrance (teleport dissolve → walk-in), played back-to-back by game.js
+  // initIntroVariant/advanceIntroSequence, then holds the walk-in's last frame → idle. Win/lose reuse
+  // the shared end-match screens; no getup strip → knockdown routes to `hurt` (legacy path).
+  introSequence: ["teleport", "intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
@@ -1810,7 +1904,8 @@ export const characters = {
   ben10, albedo,
   omniMan, thragg,
   omega_ranger: omegaRanger,
-  netero
+  netero,
+  saiki
 }
 
 // The 7 characters shown in the starter roster select screen

@@ -48,7 +48,8 @@ import {
   updateVegetaCommandCombat,   // Vegeta command-normal cancel chain (Y-track kick target combo)
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
   updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
-  updateNeteroGuanyinCombat   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
+  updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
+  updateSaikiCommandCombat   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -2373,6 +2374,12 @@ function updatePlayerCombat(fighter) {
   // (returns true → skip normal path); neutral light/heavy stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "netero" && !charging &&
       updateNeteroCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SAIKI command combat: Forward+Heavy opens the 4-hit projectile rekka (chain1→2→3→finisher, each a
+  // traveling magenta bolt; cancel-on-hit re-tap Heavy during recovery). Forward+Light = Basic Burst
+  // point-blank poke. Consumes the input only when it fires; neutral light/heavy stay on the normal path.
+  if ((fighter.rosterKey || "").toLowerCase() === "saiki" && !charging &&
+      updateSaikiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // NETERO Guanyin giant: the base attack buttons fire the 4 avatar attacks (light=leg, heavy=arm-sweep,
   // up=punch-burst; combo-slash is on SPECIAL). Consumes the press only when it fires.

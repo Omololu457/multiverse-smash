@@ -96,6 +96,16 @@ const MOVE_TO_ACTION = {
   guanyinCombo: "guanyinCombo",
   guanyinBurst: "guanyinBurst",
 
+  // Saiki Kusuo: rekka cast poses + burst/lightning/bomb cast poses. Identity maps (currentMove /
+  // _spriteCastMove === action key) — explicit so a recovery/cast tail can never resolve to the 128² box.
+  saikiChain1: "saikiChain1",
+  saikiChain2: "saikiChain2",
+  saikiChain3: "saikiChain3",
+  saikiChainFin: "saikiChainFin",
+  saikiBurst: "saikiBurst",
+  saikiLightning: "saikiLightning",
+  saikiBomb: "saikiBomb",
+
   blue: "blue_cast",
   red: "red_cast",
   hollowPurple: "hollow_purple_cast",

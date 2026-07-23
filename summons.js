@@ -198,6 +198,32 @@ const summonTemplates = {
     oneHit:          true,
     color:           "#b45309",   // toad-brown fallback box if the sheet hasn't decoded
     sheet: "./fx_2_koma_special_frog_a.png", spriteFrames: 1, spriteW: 120, spriteH: 135, spriteSpeed: 6, spriteScale: 0.8
+  },
+
+  // NARUTO CLONE RUSH (setplay) — a PLACED shadow clone, on command, is sent on ONE
+  // autonomous rush-strike at the opponent, then despawns. Distinct from the instant
+  // Rasengan Barrage (#16/#19, guaranteed same-frame orbs): this one physically travels
+  // (reactable/blockable) so Naruto can stagger several and play neutral around the threat
+  // = okizeme/setplay. Reuses the generic shikigami rush→one-hit→despawn path verbatim.
+  // Body reuses Naruto's own idle strip (naruto_kcm_stance.png) — no new art. Damage is
+  // applied RAW by performSummonAttack (bypasses GLOBAL_DAMAGE_SCALE like all summons), so
+  // it's kept LOW: 40 each, and it costs the clone's whole chakra share to launch.
+  narutoCloneRush: {
+    id:              "narutoCloneRush",
+    duration:        70,    // rush window; oneHit clamps it lower once it connects
+    maxSimultaneous: 3,     // up to the 3-clone cap can be rushing at once
+    attackInterval:  10,    // re-checks proximity each interval; only lands when close (performSummonAttack range-gates)
+    damage:          40,
+    w:               70,
+    h:               120,
+    speed:           8,     // hops toward the target a touch faster than it stands
+    behavior:        "rush",
+    hitstun:         18,
+    knockbackX:      6,
+    knockbackY:      -2,
+    oneHit:          true,
+    color:           "#ffb400",   // clone-orange fallback box
+    sheet: "./naruto_kcm_stance.png", spriteFrames: 4, spriteW: 36, spriteH: 63, spriteSpeed: 6, spriteScale: 2.0
   }
 }
 
@@ -681,11 +707,8 @@ export function summonShadowClone(owner, target, opts = {}) {
 // SPAWN — cap-limited (over cap → no-op, returns null). No upfront chakra cost:
 // the "cost" is the split (each new body lowers everyone's share). Puffs on spawn.
 export function spawnShadowClone(owner, target) {
-  // [DEBUG-CLONE 1a] entry — did we even get here, and where is the caster?
-  console.log("[DEBUG-CLONE] 1a ENTRY — owner?", !!owner, "x:", owner?.x, "y:", owner?.y,
-    "facing:", owner?.facing, "existing clones:", owner ? countShadowClones(owner) : "n/a", "cap:", CLONE_CAP)
-  if (!owner) { console.log("[DEBUG-CLONE] BAILED — no owner"); return null }
-  if (countShadowClones(owner) >= CLONE_CAP) { console.log("[DEBUG-CLONE] BAILED — at cap"); return null }   // CAP behavior: do nothing
+  if (!owner) return null
+  if (countShadowClones(owner) >= CLONE_CAP) return null   // CAP behavior: do nothing
   const facing = owner.facing || 1
   const s = {
     id: "shadowClone", owner, target,
@@ -701,13 +724,7 @@ export function spawnShadowClone(owner, target) {
     _state: "spawn", _stateT: 0, _hidden: true, color: "#ffb400"
   }
   setCloneSheet(s, "idle")
-  // [DEBUG-CLONE 1b] entity created — position, size, and which sprite sheet is attached.
-  console.log("[DEBUG-CLONE] 1b ENTITY —", { id: s.id, x: s.x, y: s.y, w: s.w, h: s.h,
-    sheet: s.sheet, spriteFrames: s.spriteFrames, spriteW: s.spriteW, spriteH: s.spriteH,
-    scale: s.spriteScale, _hidden: s._hidden, _state: s._state })
   activeSummons.push(s)
-  // [DEBUG-CLONE 1c] confirm the push actually landed in the array.
-  console.log("[DEBUG-CLONE] 1c PUSHED — activeSummons.length =", activeSummons.length)
   spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)   // spawn-in smoke; body reveals once it clears
   // NOTE: the summon SFX is NOT played here anymore — it's played ONCE per audio window in
   // summonShadowClone (so rapid presses / delayed spawns never restack the clip). This

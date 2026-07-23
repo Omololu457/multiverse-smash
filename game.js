@@ -21,6 +21,7 @@ import {
   drawSummons as drawActiveSummons,
   spawnSummon as spawnAssistSummon,  // ← fixed: alias included
   summonShadowClone, dispelShadowClones,   // debug hotkeys (",", ".") wire straight to these
+  spawnShadowClone,                        // immediate clone spawn (harness clone-combo staging — no audio-window delay)
   countShadowClones                        // #21 Clone Rendan Storm gate (Naruto light-string extension)
 } from "./summons.js"
 import { physics } from "./physics.js"
@@ -4900,6 +4901,11 @@ gameLoop()
     healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false } },  // reset dummy between damage checks
     liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
     hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
+    hurtP2:     (v = 20) => { if (p2) { p2.hitstun = v; p2.attacking = false } },  // put the dummy in hitstun (Naruto clone-finisher contextual gate)
+    // Stage EXACTLY n shadow clones on P1 immediately (bypasses the ~2.5s audio-window delay of the
+    // "," hotkey, which leaves a lingering delayed spawn that races the clone-count gates). Naruto-only.
+    spawnP1Clones:  (n = 2) => { if (!p1 || (p1.rosterKey || "").toLowerCase() !== "naruto") return 0; dispelShadowClones(p1); for (let i = 0; i < n; i++) spawnShadowClone(p1, getOpponent(p1)); return countShadowClones(p1) },
+    dispelP1Clones: () => (p1 ? dispelShadowClones(p1) : 0),
     knockdownP1: (t = 60) => { if (p1) { p1.knockdownState = true; p1.knockdownTimer = t; p1.attacking = false } },  // drive the downed/get-up (knockdown) pose for sprite verification
     // Drive a REAL p2 attack (generous startup so a defender can react) — used to open the
     // Substitution incoming-attack window and to verify the swing actually whiffs on a substitute.

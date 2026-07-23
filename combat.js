@@ -19,6 +19,7 @@ import { pickItachiVoice } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickNeteroVoice } from "./neteroVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
+import { pickSkinVoice } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
 
 // ========================
 // HITSTOP TABLES
@@ -583,6 +584,28 @@ function applySaikiOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickSaikiVoice("taunt"), null) } catch (_) {}
 }
 
+// ── GOJO "LIMITLESS" SKIN VOICE (audio-only; young-Gojo Japanese pack, skin-gated) ──
+// These two fire ONLY when a Gojo is wearing the "gojo2" (Limitless) skin — pickSkinVoice
+// returns null for the default skin (or any other char), so base Gojo is completely unaffected.
+// HIT-CONNECT: an UNBLOCKED Gojo attack lands ("good hit" / "take this" / "you're wide open"…).
+// Shared _atkVoiceCd (ticked in game.js) → one line per window, suppressed when blocked.
+function applyGojoLimitlessOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "gojo" || (attacker._atkVoiceCd > 0)) return
+  const clip = pickSkinVoice("gojo", attacker.skinId, "hitConnect")
+  if (!clip) return                                  // default skin → base Gojo (no young pool)
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(clip, null) } catch (_) {}
+}
+// HIT-REACTION: Gojo TAKES an unblocked hit ("that hurts" / "oops" / "damn it"…). Own _hitVoiceCd
+// window (ticked in game.js). No tier split — the young pack's reaction lines are tier-agnostic.
+function applyGojoLimitlessHitVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "gojo" || (defender._hitVoiceCd > 0)) return
+  const clip = pickSkinVoice("gojo", defender.skinId, "hitReact")
+  if (!clip) return                                  // default skin → base Gojo (no young pool)
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(clip, null) } catch (_) {}
+}
+
 // ── OMEGA RANGER VOICE LINES (audio-only; same pattern as Naruto/Sasuke/Rick above) ──
 // DEFENDER reaction — LIGHT tier ONLY ("No!"). Omega ships a single light-stagger reaction clip
 // (the hit_1 flinch); a heavy/knockdown-tier hit has no VO here, so it stays silent by design (not
@@ -1043,6 +1066,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyOmegaRangerHitVoice(defender, cat, dmg)
     // ITACHI hit-reaction voice — calm observation pool ("I see…" / "Quick, aren't you").
     applyItachiHitVoice(defender)
+    // GOJO "Limitless" skin hit-reaction — young-Gojo pack; no-op on the default skin.
+    applyGojoLimitlessHitVoice(defender)
 
     if (!isCounter) {
       try { sound?.play?.(_hitSound(atk, false)) } catch (_) {}
@@ -1119,6 +1144,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applySukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Sukuna finisher(KO/low-HP) / hit-connect(strong+long) / taunt+misc(light) barks
   applyNeteroOffenseVoice(attacker, cat, !defender.isBlocking)   // Netero hit-connect bark (any tier lands; distinct from the startup grunt)
   applySaikiOffenseVoice(attacker, cat, !defender.isBlocking)    // Saiki deadpan dismissal on connect (was dormant on the no-op taunt hook; this makes it LIVE)
+  applyGojoLimitlessOffenseVoice(attacker, cat, !defender.isBlocking)   // Gojo "Limitless" skin hit-connect bark (young pack; no-op on default skin)
 }
 
 // ========================

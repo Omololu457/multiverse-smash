@@ -71,7 +71,8 @@
     "test:netero-stage5": "node harness/netero_stage5.mjs",
     "test:netero-portrait": "node harness/netero_portrait.test.mjs",
     "test:saiki": "node harness/saiki.test.mjs",
-    "test:saiki-portrait": "node harness/saiki_portrait.test.mjs"
+    "test:saiki-portrait": "node harness/saiki_portrait.test.mjs",
+    "test:saiki-voice": "node harness/saiki_voice.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

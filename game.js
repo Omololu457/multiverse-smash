@@ -121,6 +121,7 @@ import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
+import { pickSaikiVoice } from "./saikiVoice.js"
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -2220,6 +2221,14 @@ function updateTauntState(fighter, downHeld) {
     // heal mechanic first built for him). Fires once as the flourish begins.
     if (fighter.rosterKey === "rick") {
       sound.playSfxFile?.(pickRickVoice("tauntHeal"), null)
+    }
+    // SAIKI KUSUO taunt voice — deadpan English-dub dismissals ("Not listening", "Who
+    // cares", "I'll pass"…). Random pick per commit from the 12-entry pool (saikiVoice.js).
+    // Wired READY-AND-WAITING onto the same universal commit transition: Saiki has NO
+    // `taunt` action yet, so this is dormant (the block above never runs for him) and lights
+    // up automatically the moment a taunt animation is added — no new mechanic built here.
+    if ((fighter.rosterKey || "").toLowerCase() === "saiki") {
+      sound.playSfxFile?.(pickSaikiVoice("taunt"), null)
     }
   }
 }
@@ -4837,6 +4846,15 @@ gameLoop()
     // Same idea for Sukuna's 4 pools (taunt/hitConnect/finisher/misc) — proves genuine
     // random selection across the largest generic-bark pool wired (21-entry taunt).
     sukunaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSukunaVoice(pool)),
+    // Same idea for Saiki's single 12-entry English-dub taunt pool — proves genuine
+    // random, non-repeating selection deterministically (uses the SAME pickSaikiVoice
+    // the live taunt-commit hook calls).
+    saikiVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSaikiVoice(pool)),
+    // TEST-ONLY: inject a minimal `taunt` animationData onto the LIVE p1 fighter so a
+    // test can drive the real taunt commit-transition and prove the (dormant) Saiki voice
+    // hook fires the moment a taunt action exists. Does NOT ship a taunt to Saiki — the
+    // real build defines none; this only mutates the in-page fighter instance for the proof.
+    giveP1TestTaunt: (frames = 4) => { if (p1) { p1.animationData = p1.animationData || {}; p1.animationData.taunt = { frames, width: 32, height: 48, speed: 4, loop: false, lockLastFrame: true, sheet: "./saiki_idle_u.png" } } },
     // Zero the LIVE fighter's offense-voice state (cooldown + combo) so a test can force a
     // CLEAN single-hit connect — p1()/p2() return snapshots, so mutating those can't reset it.
     resetOffenseVoice: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f._atkVoiceCd = 0; f.comboCounter = 0; f.comboTimer = 0; } },

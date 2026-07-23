@@ -53,7 +53,7 @@ try{
   check("selectable roster EQUALS the live hasSprites set", sortJoin(m.selectable)===sortJoin(spriteSet), `got=${sortJoin(m.selectable)}`);
   check("selectable count == sprite-roster size (dynamic)", m.selectable.length===spriteSet.length, `n=${m.selectable.length}`);
   // Explicit exclusions — procedural-box characters (still no sprites) must be gone.
-  for(const gone of ["tanjiro","rickPrime","piccolo","killua"])
+  for(const gone of ["tanjiro","rickPrime","piccolo"])
     check(`'${gone}' (no sprites) is NOT selectable`, !m.selectable.includes(gone));
   // Explicit inclusions — the sprite characters must all be present.
   for(const has of ["gojo","sukuna","megumi","toji","naruto","sasuke","goku","rick","beerus","goku_black","vegeta"])

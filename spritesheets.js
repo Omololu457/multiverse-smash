@@ -114,6 +114,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./itachi_melle_idle_uniform.png" }
   },
 
+  // Netero (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle strip →
+  // flips Netero from box to sprite. Per-action rendering reads characters.js → netero.animationData
+  // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
+  netero: {
+    actions: { idle: "./netero_idle_uniform.png" }
+  },
+
   // Rick Sanchez (universe: rick_and_morty). Gates spritesReady() by decoding the idle strip →
   // flips Rick from procedural box to sprite. Per-action rendering reads characters.js →
   // rick.animationData (each action carries its own .sheet).

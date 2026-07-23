@@ -62,7 +62,14 @@
     "test:itachi-susanoo": "node harness/itachi_susanoo.mjs",
     "test:itachi-voice": "node harness/itachi_voice.test.mjs",
     "test:itachi-portrait": "node harness/itachi_portrait.test.mjs",
-    "test:sukuna-voice": "node harness/sukuna_voice.test.mjs"
+    "test:sukuna-voice": "node harness/sukuna_voice.test.mjs",
+    "test:netero": "node harness/netero.test.mjs",
+    "test:netero-stage1": "node harness/netero_stage1.mjs",
+    "test:netero-stage2": "node harness/netero_stage2.mjs",
+    "test:netero-stage3": "node harness/netero_stage3.mjs",
+    "test:netero-stage4": "node harness/netero_stage4.mjs",
+    "test:netero-stage5": "node harness/netero_stage5.mjs",
+    "test:netero-portrait": "node harness/netero_portrait.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

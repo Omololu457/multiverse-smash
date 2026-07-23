@@ -83,6 +83,19 @@ const MOVE_TO_ACTION = {
   down_air: "down_air",
   grab: "grab",
 
+  // Netero (Stage 3): command-chain stages + Barrage special. Identity maps (currentMove === action
+  // key) — explicit here so a recovery/cast tail can never resolve to the 128² box (Sasuke dashStrike
+  // gotcha noted below).
+  down_attck_1: "down_attck_1",
+  down_attck_2: "down_attck_2",
+  barragePunches: "barragePunches",
+  guanyinCast: "guanyinCast",   // Stage 4: base-form Guanyin transformation charge pose
+  // Stage 5: giant avatar attack poses (resolved against fighter._skinAnim = GUANYIN_ANIM).
+  guanyinLeg: "guanyinLeg",
+  guanyinArm: "guanyinArm",
+  guanyinCombo: "guanyinCombo",
+  guanyinBurst: "guanyinBurst",
+
   blue: "blue_cast",
   red: "red_cast",
   hollowPurple: "hollow_purple_cast",

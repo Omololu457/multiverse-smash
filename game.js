@@ -46,7 +46,9 @@ import {
   spawnAbsoluteDefenseFx,   // Sasuke Absolute Defense — repurposed Susanoo-intro sheet as the barrier FX
   updateTojiStanceSwitch, updateTojiStanceCombat, getTojiStance,   // Toji 3-stance weapon system (+ Blade moveset)
   updateVegetaCommandCombat,   // Vegeta command-normal cancel chain (Y-track kick target combo)
-  updateOmegaRangerCommandCombat   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
+  updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
+  updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
+  updateNeteroGuanyinCombat   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -2365,6 +2367,17 @@ function updatePlayerCombat(fighter) {
   // input only when it fires; neutral light/heavy/up stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "omega_ranger" && !charging &&
       updateOmegaRangerCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // NETERO command chain: Down+Heavy opens down_attck_1, re-tap Heavy during recovery to cancel into
+  // down_attck_2 (cancel-on-hit; a whiff/block ends the string). Consumes the input only when it fires
+  // (returns true → skip normal path); neutral light/heavy stay on the normal path below.
+  if ((fighter.rosterKey || "").toLowerCase() === "netero" && !charging &&
+      updateNeteroCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // NETERO Guanyin giant: the base attack buttons fire the 4 avatar attacks (light=leg, heavy=arm-sweep,
+  // up=punch-burst; combo-slash is on SPECIAL). Consumes the press only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "netero" && fighter._guanyinActive && !charging &&
+      updateNeteroGuanyinCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // Toji's grounded normals are stance-driven, so SUPPRESS the built-in light/heavy/up here
   // (else updateCombat would also start the old row-sheet normals / double-fire). Aerials

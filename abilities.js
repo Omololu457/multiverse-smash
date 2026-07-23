@@ -3359,6 +3359,227 @@ function executeSasukeSubstitution(fighter, target, context) {
   return true
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ISAAC NETERO — command-normal cancel chain + Barrage Punches special (Stage 3).
+// COMMAND CHAIN (Down+Heavy opener → re-tap Heavy during recovery on HIT): down_attck_1 →
+// down_attck_2. Same rekka primitive as Vegeta/Toji: setAttackState + _rekkaNext advanced on a
+// fresh Heavy during recovery, GATED on _cmdHitLanded so a blocked/whiffed opener ends the string
+// (cancel-on-HIT / interrupt-on-whiff). Its own input path — the neutral light/heavy normals are
+// untouched (Down modifier is what routes Heavy into the chain).
+// ─────────────────────────────────────────────────────────────────────────────
+const NETERO_COMMAND = {
+  down_attck_1: { damage: 46, startup: 6, active: 4, recovery: 14, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 78, rangeY: 60, rekkaNext: "down_attck_2" },   // crouch lunge opener
+  down_attck_2: { damage: 72, startup: 5, active: 4, recovery: 18, hitstun: 20, knockbackX: 7, knockbackY: -6, rangeX: 84, rangeY: 64 },                              // rising follow-up (mild pop)
+}
+function fireNeteroCommand(fighter, key, context) {
+  const md = NETERO_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+// Grounded command-normal driver (mirrors updateVegetaCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateNeteroCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "netero" || !inputState) return false
+  if (fighter._guanyinActive) return false   // giant form has its own attack set (updateNeteroGuanyinCombat)
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+
+  // Latch a REAL connect (hit, NOT block) for the current stage. resolveAttackHit runs in updateCombat
+  // AFTER this handler, so the flag is observed next frame while the opponent's hitstun still counts down.
+  const opp = context?.getOpponent?.(fighter)
+  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
+
+  // The string's window closes when the attack fully ends.
+  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
+
+  // CONTINUE — fresh Heavy during the opener's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  if (fighter.attacking && fighter._rekkaNext && heavyEdge && phase === "recovery" && fighter._cmdHitLanded) {
+    const next = fighter._rekkaNext
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+    fighter.attackCooldown = 0                       // clear the just-set cooldown so the chain fires now
+    return fireNeteroCommand(fighter, next, context)
+  }
+
+  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && inputState.down && heavyEdge) return fireNeteroCommand(fighter, "down_attck_1", context)
+
+  return false
+}
+
+// ── NETERO SPECIAL — Barrage Punches ─────────────────────────────────────────
+// One committed melee flurry (Netero's only special; direction-agnostic). currentMove drives the
+// concatenated 8-frame sprite (3 punch frames → 5 fist-blur frames) as one continuous sequence while
+// a strong isSpecial hitbox lands. A slight forward drive carries him into the barrage.
+function executeNeteroSpecial(fighter, context) {
+  if (fighter._guanyinActive) return fireGuanyinAttack(fighter, "guanyinCombo", context)   // giant: SPECIAL = 2-hit combo slash
+  if (!spendEnergy(fighter, 30)) return false
+  const md = { damage: 110, startup: 6, active: 14, recovery: 12, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -2, rangeX: 98, rangeY: 62, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "barragePunches", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "barragePunches" → 8-frame sprite
+  fighter.vx = (fighter.facing || 1) * 5
+  shakeCamera(context, 4, 8)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ISAAC NETERO ULTIMATE — 100-Type Guanyin Bodhisattva (Stage 4).
+// A full sustained GIANT alternate form — same architecture as Itachi's Susanoo. Reuses the GENERIC
+// engine support: _canvasHeightFrac/_canvasHeightRefH (sprite.js giant scale + combat.js giant
+// hurtbox), _skinAnim (giant body body-swap), _susanooActive (physics half-arena lock). Tracks its
+// OWN _guanyinActive flag + _guanyinTimer so it never collides with Sasuke/Itachi's giant state.
+// Two-beat entry: a base-form CHARGE cast pose (13f) plays, THEN the giant materialises (delayed
+// enter), covered by a teleport flash. Avatar attacks (SPECIAL button) land in Stage 5. Guard/hit
+// reuse Netero's OWN base block/hit art UPSCALED to giant height (borrowed stopgap — flagged).
+// ─────────────────────────────────────────────────────────────────────────────
+const NETERO_GUANYIN_CANVAS_FRAC = 0.76   // idle giant ≈ 76% of canvas height (looming statue; feet planted)
+const NETERO_GUANYIN_REF_H       = 344    // idle giant body-cell height → sprite.js scale = ch*frac/refH
+const GUANYIN_CAST_FRAMES        = 26     // base-form charge pose duration before the giant appears (13f × speed 2)
+const _guanyinCell = (sheet, frames, width, height, speed) => ({ frames, width, height, speed, loop: true, anchorY: 0, sheet })
+const GUANYIN_IDLE  = _guanyinCell("./guanyin_idle_uniform.png",      7, 238, 344, 10)   // hands-in-prayer idle
+const GUANYIN_LUNGE = _guanyinCell("./guanyin_run_lunge_uniform.png", 7, 312, 344, 5)    // forward-traveling lunge (movement)
+// BORROWED stopgap: Netero's own base block/hit, upscaled to giant height so the SAME giant system
+// renders them at scale. No dedicated Guanyin guard/hit art exists (flagged for a future art pass).
+const GUANYIN_GUARD = _guanyinCell("./netero_guanyin_guard_big.png",  4, 222, 344, 8)
+const GUANYIN_HURT  = _guanyinCell("./netero_guanyin_hurt_big.png",   7, 394, 344, 6)
+// STAGE 5 avatar ATTACK poses — one-shot (hold last frame), not looped. Frame counts confirmed by reslice.
+const _guanyinAtk = (sheet, frames, width, height, speed) => ({ frames, width, height, speed, loop: false, lockLastFrame: true, anchorY: 0, sheet })
+const GUANYIN_LEG   = _guanyinAtk("./guanyin_leg_strike_uniform.png",  4, 304, 344, 4)
+const GUANYIN_ARM   = _guanyinAtk("./guanyin_arm_sweep_uniform.png",   5, 342, 344, 4)   // wide horizontal arc
+const GUANYIN_COMBO = _guanyinAtk("./guanyin_combo_slash_uniform.png", 7, 300, 344, 4)   // 2-hit
+const GUANYIN_BURST = _guanyinAtk("./guanyin_punch_burst_uniform.png", 6, 297, 344, 4)   // frames 1-2 windup, 3-6 damage
+const GUANYIN_ANIM = {
+  idle: GUANYIN_IDLE, jump: GUANYIN_IDLE, fall: GUANYIN_IDLE,
+  // The lunge TRAVELS (design: the whole base moves) — walk/run/dash play it; the generic giant
+  // hurtbox (combat.js _giantHurtbox) reads the DRAWN giant, so the hurtbox follows the lunge.
+  walk: GUANYIN_LUNGE, run: GUANYIN_LUNGE, dash: GUANYIN_LUNGE,
+  // Base-kit normal buttons are intercepted while giant (updateNeteroGuanyinCombat) and re-routed to the
+  // avatar attacks below; the raw normal actions still hold the idle if ever reached.
+  light: GUANYIN_IDLE, heavy: GUANYIN_IDLE, up: GUANYIN_IDLE, air: GUANYIN_IDLE, down_air: GUANYIN_IDLE, grab: GUANYIN_IDLE,
+  hurt: GUANYIN_HURT, guard: GUANYIN_GUARD,
+  // Avatar attack poses (driven by currentMove; see fireGuanyinAttack).
+  guanyinLeg: GUANYIN_LEG, guanyinArm: GUANYIN_ARM, guanyinCombo: GUANYIN_COMBO, guanyinBurst: GUANYIN_BURST
+}
+
+// Avatar-attack move data — ultimate-tier (each out-hits Netero's base kit; the giant's 1.6× attack
+// multiplier stacks on top). Reach is giant-sized. punch_burst's startup (9) intentionally covers the
+// 2 non-damaging windup frames so the hitbox only exists frames 3-6 (activeStart..activeEnd gate).
+const GUANYIN_ATTACKS = {
+  guanyinLeg:   { damage: 62, startup: 6, active: 8,  recovery: 16, hitstun: 24, knockbackX: 10, knockbackY: -2, rangeX: 220, rangeY: 210 },              // quick low sweep
+  guanyinArm:   { damage: 78, startup: 8, active: 10, recovery: 18, hitstun: 26, knockbackX: 14, knockbackY: -3, rangeX: 300, rangeY: 200 },              // wide horizontal arc
+  guanyinCombo: { damage: 46, startup: 4, active: 16, recovery: 12, hitstun: 18, knockbackX: 6,  knockbackY: -2, rangeX: 250, rangeY: 210, twoHit: true },// 2-hit (re-arms mid-active)
+  guanyinBurst: { damage: 92, startup: 9, active: 13, recovery: 8,  hitstun: 30, knockbackX: 16, knockbackY: -8, rangeX: 240, rangeY: 210 } // windup(1-2) → burst(3-6); NOT a launcher (a launcher self-lifts the planted giant)
+}
+// Fire one Guanyin avatar attack (currentMove drives the giant body-swap to the attack pose).
+function fireGuanyinAttack(fighter, key, context) {
+  const md = GUANYIN_ATTACKS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  attack.launcher  = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  shakeCamera(context, 6, 8)
+  // 2-HIT (combo_slash): re-arm the hitbox mid-active so it connects a SECOND time (the two trail
+  // moments ~frames 2 and 4). resolveAttackHit gates on currentAttack.hasHit; clearing it re-opens the
+  // window for one more connect while active frames are still live. Guarded so a later move isn't touched.
+  if (md.twoHit) schedulePendingSpawn(10, () => { if (fighter.currentAttack && fighter.currentAttack.name === key) fighter.currentAttack.hasHit = false })
+  return true
+}
+// While giant: intercept the base-kit attack buttons and re-route to the avatar attacks. light=leg,
+// heavy=arm-sweep, up=punch-burst; combo-slash is on SPECIAL (executeNeteroSpecial giant branch).
+// Returns true (→ skip the normal path) only when it fires.
+export function updateNeteroGuanyinCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || !fighter._guanyinActive || !inputState) return false
+  const lightEdge = !!inputState.light    && !fighter._gLightPrev
+  const heavyEdge = !!inputState.heavy    && !fighter._gHeavyPrev
+  const upEdge    = !!inputState.upAttack  && !fighter._gUpPrev
+  fighter._gLightPrev = !!inputState.light
+  fighter._gHeavyPrev = !!inputState.heavy
+  fighter._gUpPrev    = !!inputState.upAttack
+  if (fighter.attacking || (fighter.attackCooldown || 0) > 0) return false
+  if (lightEdge) return fireGuanyinAttack(fighter, "guanyinLeg",   context)
+  if (heavyEdge) return fireGuanyinAttack(fighter, "guanyinArm",   context)
+  if (upEdge)    return fireGuanyinAttack(fighter, "guanyinBurst", context)
+  return false
+}
+
+export function neteroInGuanyin(fighter) { return !!(fighter && fighter._guanyinActive) }
+
+export function enterNeteroGuanyin(fighter) {
+  if (!fighter) return
+  fighter._guanyinActive    = true
+  fighter._guanyinTimer     = SUSANOO_DURATION_FRAMES       // ~20s, then auto-reverts
+  fighter.damageMultiplier   = 1.6
+  fighter.attackMultiplier   = 1.6
+  fighter.defenseMultiplier  = 1.4
+  fighter._canvasHeightFrac  = NETERO_GUANYIN_CANVAS_FRAC    // GENERIC giant scale (sprite.js) + hurtbox (combat.js)
+  fighter._canvasHeightRefH  = NETERO_GUANYIN_REF_H
+  fighter._skinAnim          = GUANYIN_ANIM
+  fighter._susanooActive     = true                          // GENERIC physics half-arena lock
+  fighter.canJump            = false                         // a planted giant doesn't hop
+  // Clear the base-form charge pose so it can't shadow the giant on the handoff (four-copies guard).
+  fighter._spriteCastMove    = null
+  fighter._spriteCastTimer   = 0
+  fighter.attacking          = false
+  fighter.currentMove        = null
+  fighter.currentAttack      = null
+}
+
+// Drop the giant + arm the 20s ultimate recast lockout (suppressed on activation).
+export function revertNeteroGuanyin(fighter) {
+  if (!fighter || !fighter._guanyinActive) return
+  fighter._guanyinActive    = false
+  fighter._guanyinTimer     = 0
+  fighter.damageMultiplier   = 1
+  fighter.attackMultiplier   = 1
+  fighter.defenseMultiplier  = 1
+  fighter._skinAnim          = null
+  fighter._canvasHeightFrac  = null
+  fighter._canvasHeightRefH  = null
+  fighter._susanooActive     = false
+  fighter._arenaHalfLock     = null
+  fighter.canJump            = true
+  fighter.ultimateCooldown   = ULTIMATE_COOLDOWN_FRAMES
+}
+
+// Per-frame: tick the sustained-form timer, auto-revert at 0. Hooked in updateTransformationState.
+// The 1.6× buff set in enterNeteroGuanyin persists because Netero has NO transformations block (Itachi
+// parity) — updateTransformations() no-ops, so it never re-applies a base-form multiplier and stomps it.
+export function updateNeteroGuanyin(fighter) {
+  if (!fighter || !fighter._guanyinActive) return
+  if ((fighter._guanyinTimer || 0) > 0) {
+    fighter._guanyinTimer--
+    if (fighter._guanyinTimer <= 0) revertNeteroGuanyin(fighter)
+  }
+}
+
+// ULTIMATE — pays FULL meter (a true ultimate). Plays the base-form charge cast, THEN materialises
+// the giant after GUANYIN_CAST_FRAMES (delayed enter). Cooldown suppressed on activation, armed in revert.
+function executeNeteroUltimate(fighter, context) {
+  if (fighter._guanyinActive) return false                  // already active (single form — no re-press)
+  const cost = fighter.maxEnergy || 100
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._spriteCastMove  = "guanyinCast"                  // base-form charge pose (13f) plays first
+  fighter._spriteCastTimer = GUANYIN_CAST_FRAMES
+  fighter.attackCooldown   = getAttackDuration(GUANYIN_CAST_FRAMES, fighter)
+  fighter._suppressUltCooldown = true                       // 20s recast lockout armed in revertNeteroGuanyin instead
+  focusCameraOnAction(context, fighter, null, 0.9, 18)
+  shakeCamera(context, 10, 14)
+  schedulePendingSpawn(GUANYIN_CAST_FRAMES, () => {
+    enterNeteroGuanyin(fighter)
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
+    shakeCamera(context, 14, 16)
+  })
+  return true
+}
+
 // ── ITACHI SPECIAL dispatch ──────────────────────────────────────────────
 // STAGE 2: NEUTRAL Special → Fire Style: Great Fireball Jutsu (cast pose + a big
 // rolling flame projectile). Motioned specials (Amaterasu QCF / Genjutsu QCB) are
@@ -3541,6 +3762,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "sukuna":  return executeSukunaSpecial(fighter, context)
     case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
     case "itachi":  return executeItachiSpecial(fighter, context)   // Fireball (neutral); Amaterasu/Genjutsu gated on Mangekyou (Stage 4)
+    case "netero":  return executeNeteroSpecial(fighter, context)   // Barrage Punches (melee flurry; command chain is Down+Heavy, separate)
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "toji":    return executeToji_Special(fighter, context)
     case "rick":    return executeRickSpecial(fighter, context)
@@ -3576,6 +3798,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break
       case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
       case "itachi":  cast = executeItachiUltimate(fighter, context);  break   // single-tier creature Susanoo
+      case "netero":  cast = executeNeteroUltimate(fighter, context);  break   // 100-Type Guanyin Bodhisattva giant form
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "toji":    cast = executeToji_Ultimate(fighter, context);   break
       case "rick":    cast = executeRickUltimate(fighter, context);    break
@@ -3954,6 +4177,7 @@ export function updateTransformationState(fighter, context = {}) {
   // auto-reverts at 0 and arms the 20s ultimate cooldown. No-op when not in Susanoo.
   updateSasukeSusanoo(fighter)
   updateItachiSusanoo(fighter)   // Itachi single-tier Susanoo: tick its own timer + auto-revert
+  updateNeteroGuanyin(fighter)   // Netero Guanyin Bodhisattva giant: tick its own timer + auto-revert
 
   // Sasuke two-strike lightning: drive the handseal → strike1 → strike2 state machine.
   // No-op unless a cast is in progress.

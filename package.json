@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:hitstop": "node harness/hitstop.test.mjs",
+    "test:cancel-window": "node harness/cancel_window.test.mjs",
+    "test:combo-decay": "node harness/combo_decay.test.mjs",
+    "test:momentum": "node harness/momentum.test.mjs",
+    "test:combo-flow-roster": "node harness/combo_flow_roster.mjs",
     "test:susanoo": "node harness/susanoo.test.mjs",
     "test:input-wiring": "node harness/input_wiring.test.mjs",
     "test:training": "node harness/training.test.mjs",

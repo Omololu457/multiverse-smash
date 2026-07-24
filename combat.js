@@ -21,10 +21,17 @@ import { pickSaikiVoice } from "./saikiVoice.js"
 import { pickSkinVoice } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
 
 // ========================
-// HITSTOP TABLES
+// HITSTOP TABLE — SINGLE SHARED TUNABLE SOURCE
 // ========================
-
-const HITSTOP = {
+// Hit-stop (a.k.a. hit-pause / freeze) is the brief impact-freeze applied to BOTH
+// fighters the instant a hit connects, before hitstun/knockback resolve — it's what
+// gives a blow its "weight". This table is the ONE place hit-stop is tuned for the
+// whole roster: every attack (melee AND projectile) routes its freeze through
+// getHitstopFrames()/getProjectileHitstopFrames() → applyHitstop() below, so there is
+// no per-character hit-stop code anywhere. Values scale with hit weight (light < heavy
+// < special < ultimate). Exported so tools/tests can read the canonical numbers.
+// TUNE HERE — changing a number here changes that tier's feel game-wide.
+export const HITSTOP = {
   light: 4,
   air: 4,
   grab: 6,
@@ -33,9 +40,32 @@ const HITSTOP = {
   spike: 8,
   special: 12,
   ultimate: 20,
+  projectile: 8,   // default freeze for a projectile connect (zoner-friendly: lighter than melee `special`)
   parry: 14,
   clash: 14,
   default: 4
+}
+
+// Single shared entry point for applying hit-stop. BOTH the melee path
+// (resolveAttackHit) and the projectile path (resolveProjectileHitsMulti) call this,
+// so freezing is one system, not two divergent copies. Uses max() so a heavier
+// overlapping freeze is never shortened by a lighter one landing the same frame.
+export function applyHitstop(attacker, defender, frames) {
+  const f = frames | 0
+  if (f <= 0) return
+  if (attacker) attacker.hitstop = Math.max(attacker.hitstop || 0, f)
+  if (defender) defender.hitstop = Math.max(defender.hitstop || 0, f)
+}
+
+// Projectile hit-stop frames. Weight-scaled like melee, with two escape hatches so
+// rapid multi-hit / DOT projectiles don't stutter-freeze: a per-projectile numeric
+// `hitstop` override, and a `noHitstop` opt-out. visualOnly projectiles never freeze.
+export function getProjectileHitstopFrames(proj) {
+  if (!proj || proj.visualOnly || proj.noHitstop) return 0
+  if (typeof proj.hitstop === "number") return proj.hitstop
+  if (proj.isUltimate) return HITSTOP.ultimate
+  if (proj.isSpecial)  return HITSTOP.special
+  return HITSTOP.projectile
 }
 
 // ========================
@@ -157,11 +187,22 @@ export function ensureCombatState(fighter) {
 // COMBO SCALE
 // ========================
 
-export function getComboScale(fighter) {
-  if (!fighter || fighter.comboCounter <= 1) return 1
-  const s = [1, 0.92, 0.84, 0.76, 0.70, 0.65]
-  return s[Math.min(fighter.comboCounter - 1, s.length - 1)]
+// COMBO DECAY (combo-flow Stage 3) — successive hits in one uninterrupted combo do progressively less
+// DAMAGE and slightly less HITSTUN, so long strings feel earned (neither infinite nor weak). Applied ON
+// TOP OF GLOBAL_DAMAGE_SCALE, for melee AND projectiles alike. Per-combo-STRING: the scale resets the
+// moment the combo drops — the opponent blocks or escapes (comboCounter → 0 in resolveAttackHit /
+// resolveProjectileHitsMulti) or enough time passes (comboTimer → 0 in updateCombat). Both curves index
+// by (comboCounter-1) and FLOOR at their last entry so late hits never round to near-zero. TUNE HERE —
+// one place, whole roster. The damage curve is the long-standing tuned set (unchanged); the hitstun curve
+// is deliberately gentle and stays well above 0 so cancel-on-hit rekkas and juggles still link.
+export const COMBO_DAMAGE_CURVE  = [1, 0.92, 0.84, 0.76, 0.70, 0.65]
+export const COMBO_HITSTUN_CURVE = [1, 1, 0.95, 0.90, 0.87, 0.85]
+function _comboScale(fighter, curve) {
+  if (!fighter || (fighter.comboCounter || 0) <= 1) return 1
+  return curve[Math.min(fighter.comboCounter - 1, curve.length - 1)]
 }
+export function getComboScale(fighter)        { return _comboScale(fighter, COMBO_DAMAGE_CURVE) }
+export function getComboHitstunScale(fighter) { return _comboScale(fighter, COMBO_HITSTUN_CURVE) }
 
 // ========================
 // ATTACK PHASE
@@ -199,6 +240,59 @@ export function getAttackPhase(fighter) {
   if (e < a.activeStart) return "startup"
   if (e <= a.activeEnd) return "active"
   return "recovery"
+}
+
+// ========================
+// CANCEL WINDOWS (combo-flow Stage 2)
+// ========================
+// The roster's command-normal (rekka) chains all share ONE cancel rule — a fresh chain-button tap
+// during the current move's RECOVERY phase, gated on a clean connect — but each move's exact frame
+// ranges live on its currentAttack (startup/active/recovery, set at move start). getCancelWindow is
+// the single READ-ONLY, inspectable view of that timing: every character's cancel window reads through
+// this one API in the same {startup, active, recovery, phase, open} shape, so windows are precisely
+// frame-defined and can be tuned/inspected consistently. Purely derived — it changes no behavior.
+export function getCancelWindow(fighter) {
+  const a = fighter?.currentAttack
+  if (!a) {
+    return { move: fighter?.currentMove || null, phase: "idle", startup: 0, active: 0, recovery: 0,
+             elapsed: 0, open: false, cancelInto: fighter?._rekkaNext || null, connected: !!fighter?._cmdHitLanded }
+  }
+  const phase = getAttackPhase(fighter)
+  return {
+    move:      fighter.currentMove || a.name || null,
+    phase,
+    startup:   a.activeStart,                 // frames 0..startup      → startup
+    active:    a.activeEnd - a.activeStart,   // frames startup..active → active (hittable)
+    recovery:  a.total - a.activeEnd,         // frames active..end     → recovery (the CANCEL window)
+    elapsed:   a.total - a.timer,             // frames into the move so far
+    open:      phase === "recovery",          // the universal rekka cancel window is the recovery phase
+    cancelInto: fighter._rekkaNext || null,   // the queued next chain step, if any
+    connected: !!fighter._cmdHitLanded         // did the current stage land a clean hit (gates the cancel)
+  }
+}
+
+// Shared command-normal CONTINUE gate. Historically each rekka character (Killua/Netero/Vegeta/Omega/
+// Saiki/Toji) inlined this identical logic; routing them all through this ONE function is what makes the
+// cancel timing a genuinely shared system rather than six ad-hoc copies. The caller passes the fresh
+// chain-button edge it already computes (edge) + the current phase; this owns the three shared rules:
+//   1. LATCH a clean connect — a hit (opponent in hitstun), NOT a block — onto _cmdHitLanded. (Runs
+//      before resolveAttackHit in updateCombat, so hasHit/hitstun reflect the previous frame's hit.)
+//   2. CLOSE the window when the move fully ends (clears _rekkaNext + _cmdHitLanded).
+//   3. CANCEL: on a fresh edge during recovery (and, unless requireHit=false, only if it connected),
+//      tear down the current attack and RETURN the next stage key for the caller to fire. Else null.
+// requireHit defaults true (whiff/block ends the string = the mid-chain interrupt); Toji's stance
+// chain passes false (its blade rekka links on timing alone, unchanged from before).
+export function rekkaContinue(fighter, { edge, phase, opponent, requireHit = true } = {}) {
+  if (!fighter) return null
+  if (fighter.attacking && fighter.currentAttack?.hasHit && (opponent?.hitstun || 0) > 0) fighter._cmdHitLanded = true
+  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
+  if (fighter.attacking && fighter._rekkaNext && edge && phase === "recovery" && (!requireHit || fighter._cmdHitLanded)) {
+    const next = fighter._rekkaNext
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+    fighter.attackCooldown = 0   // clear the just-set cooldown so the chain fires now
+    return next
+  }
+  return null
 }
 
 // ========================
@@ -969,11 +1063,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       })
     }
   } else {
-    const hs = getHitstopFrames(atk)
-    attacker.hitstop = hs
-    defender.hitstop = hs
+    applyHitstop(attacker, defender, getHitstopFrames(atk))
 
-    defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE))
+    defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE * getComboHitstunScale(attacker)))
     // Getting hit interrupts the defender's own swing so they don't keep
     // attacking (or sit on a never-cleared currentAttack) during hitstun.
     defender.attacking    = false
@@ -1101,8 +1193,15 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   }
 
   attacker.currentAttack.hasHit = true
-  attacker.comboCounter++
-  attacker.comboTimer = 90
+  // Combo bookkeeping: a CLEAN hit extends the string (counter++ + refresh the 90f drop timer); a BLOCK
+  // BREAKS it (counter → 0) so the decay resets and the attacker's next clean hit starts fresh at full
+  // scale. (Previously the counter incremented even on block, so a blocked poke silently taxed the combo.)
+  if (defender.isBlocking) {
+    attacker.comboCounter = 0
+  } else {
+    attacker.comboCounter++
+    attacker.comboTimer = 90
+  }
   attacker.wasInStartup = false
 
   try { sound?.playCombo?.(attacker.comboCounter) } catch (_) {}
@@ -1338,18 +1437,39 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         break
       }
 
-      let dmg = (proj.damage || 30) * GLOBAL_DAMAGE_SCALE
+      // Combo damage decay applies to projectiles too (combo-flow Stage 3): a projectile landing mid-
+      // combo is scaled by the owner's current combo count, exactly like a melee hit. A standalone
+      // projectile (counter 0/1) scales by 1 → unchanged. Uses the PRE-increment counter; the owner's
+      // combo bookkeeping (extend on clean hit / reset on block) is done just below, after damage.
+      let dmg = (proj.damage || 30) * getComboScale(proj.owner) * GLOBAL_DAMAGE_SCALE
 
       if (fighter.isBlocking) {
         dmg *= 0.15
         fighter.blockstun = 12
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
       } else {
-        fighter.hitstun = proj.hitstun || 18
+        fighter.hitstun = Math.round((proj.hitstun || 18) * getComboHitstunScale(proj.owner))
         fighter.vx = (proj.vx > 0 ? 1 : -1) * (proj.knockbackX || 5)
         fighter.vy = proj.knockbackY || -3
         fighter.colorFlash = 6
+        // Projectile hit-stop — gives a connecting bolt/fireball impact weight (previously
+        // projectiles applied none). Freezes the TARGET ONLY — NOT the owner: unlike a melee
+        // swing (whose freeze is part of the attacker's own adjacent animation), a projectile
+        // is decoupled from its thrower, who has already recovered and may be mid-other-action
+        // or across the stage — freezing them stalls their cast animation and looks wrong
+        // (regressed Beerus's nova pose + Naruto's cast/voice timing). Opt out per-projectile
+        // via noHitstop (rapid barrages / DOT); tune magnitude via HITSTOP.projectile. Clean-hit only.
+        applyHitstop(fighter, null, getProjectileHitstopFrames(proj))
         try { sound?.play?.(SFX?.HIT_PROJECTILE) } catch (_) {}
+      }
+
+      // Combo bookkeeping — a projectile participates in the owner's combo string just like a melee hit
+      // (combo-flow Stage 3): a CLEAN hit extends it (counter++ + refresh the 90f drop timer) so the next
+      // hit decays; a BLOCK breaks it (counter → 0). Mirrors resolveAttackHit. DOT ticks resolve elsewhere
+      // (game.js) so they don't double-count here. No-op for an owner-less projectile.
+      if (proj.owner) {
+        if (fighter.isBlocking) proj.owner.comboCounter = 0
+        else { proj.owner.comboCounter = (proj.owner.comboCounter || 0) + 1; proj.owner.comboTimer = 90 }
       }
 
       fighter.health = Math.max(0, (fighter.health || 0) - Math.floor(dmg))

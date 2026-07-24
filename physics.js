@@ -21,6 +21,10 @@ export const physics = {
   groundY: 520,
   friction: 0.72,
   airFriction: 0.88,
+  // Combo momentum preservation (combo-flow Stage 4): the gentler ground friction used while a fighter
+  // is mid-combo-string attacking, so inbound velocity CARRIES through the swing instead of braking to a
+  // stop — combos read as one continuous forward motion. Closer to 1 = more glide. TUNE HERE.
+  attackMomentumFriction: 0.90,
   maxFallSpeed: 22,
   stageWidth: 3200,
   stageLeft: 0,
@@ -131,7 +135,17 @@ export const physics = {
           fighter.vx = speed
           fighter.facing = 1
         } else {
-          fighter.vx *= fighter.onGround ? this.friction : this.airFriction
+          // Combo momentum preservation (combo-flow Stage 4): while ATTACKING AND MOVING FORWARD (velocity
+          // in the facing direction — "stepping into" the attack), use a GENTLER ground friction so the
+          // inbound velocity carries through the swing — a forward combo reads as one continuous motion
+          // instead of braking to a dead stop. Only FORWARD momentum is preserved: a retreating / back-input
+          // attack (e.g. a Back+Light rekka opener) brakes normally, so it can't drift the attacker out of
+          // its own range. A STANDING attack has vx≈0 → unchanged. Idle (not attacking) keeps the 0.72 brake.
+          const steppingIn = fighter.attacking && (fighter.vx * (fighter.facing || 1)) > 0
+          const fric = fighter.onGround
+            ? (steppingIn ? this.attackMomentumFriction : this.friction)
+            : this.airFriction
+          fighter.vx *= fric
           if (Math.abs(fighter.vx) < 0.08) fighter.vx = 0
         }
       }

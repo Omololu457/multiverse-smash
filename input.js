@@ -14,7 +14,13 @@ export const keys = {}
 // ─────────────────────────────────────────────────────────────────
 // INPUT BUFFERS
 // ─────────────────────────────────────────────────────────────────
-const BUFFER_WINDOW = 10 // frames
+// INPUT_BUFFER_FRAMES — the SINGLE shared input-buffer window for the whole roster (combo-flow
+// Stage 2). Every buffered action button (light/heavy/upAttack/special/ultimate/jump/dash) is held
+// for exactly this many frames after a press, for every player and every character — there is no
+// per-character buffering. Tune combo-input leniency game-wide by changing this one number.
+// 7 frames ≈ 117ms @ 60fps (the target "~120ms" standard). Exported so tests/tools read the canon.
+export const INPUT_BUFFER_FRAMES = 7
+const BUFFER_WINDOW = INPUT_BUFFER_FRAMES // alias kept for the existing call sites below
 
 const p1Buffer = { light: 0, heavy: 0, upAttack: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
 const p2Buffer = { light: 0, heavy: 0, upAttack: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }
@@ -84,18 +90,22 @@ function normalizeKey(key) {
   return String(key || "").toLowerCase()
 }
 
-document.addEventListener("keydown", e => {
-  const key = normalizeKey(e.key)
-  keys[key] = true
+// Guard the DOM attach so this module is importable in a pure-Node context (unit tests that read the
+// shared INPUT_BUFFER_FRAMES / buffer helpers). In the browser `document` exists and behaviour is unchanged.
+if (typeof document !== "undefined") {
+  document.addEventListener("keydown", e => {
+    const key = normalizeKey(e.key)
+    keys[key] = true
 
-  if (["arrowup", "arrowdown", " ", "f1", "f2", "f3", "f4"].includes(key)) {
-    e.preventDefault()
-  }
-})
+    if (["arrowup", "arrowdown", " ", "f1", "f2", "f3", "f4"].includes(key)) {
+      e.preventDefault()
+    }
+  })
 
-document.addEventListener("keyup", e => {
-  keys[normalizeKey(e.key)] = false
-})
+  document.addEventListener("keyup", e => {
+    keys[normalizeKey(e.key)] = false
+  })
+}
 
 // ─────────────────────────────────────────────────────────────────
 // MOUSE INPUT

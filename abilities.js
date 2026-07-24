@@ -13,7 +13,7 @@ import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCin
 import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from "./gokuBlackSwordCinematic.js"   // Goku Black Sword Slash freeze cinematic (no cycle)
 import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } from "./vegetaFinalFlashCinematic.js"   // Vegeta Overcharged Final Flash ultimate cinematic (no cycle)
 import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./beerusKiBallCinematic.js"   // Beerus Ki Ball ultimate cinematic (no cycle)
-import { resolveGrab, GLOBAL_DAMAGE_SCALE } from "./combat.js"   // shared grab pipeline + the one damage-scale lever (combat.js doesn't import abilities.js → no cycle)
+import { resolveGrab, GLOBAL_DAMAGE_SCALE, rekkaContinue } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the shared command-normal cancel gate (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin voice override (Gojo "Limitless" young pack)
@@ -346,6 +346,14 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     // field to set TRUE on this projectile's owner when it lands a hit. Powers Saiki's projectile
     // rekka cancel-on-hit gate (hitFlag: "_cmdHitLanded"). Null for ordinary projectiles.
     hitFlag:    moveData.hitFlag    || null,
+    // OPTIONAL hit-stop control (combat.getProjectileHitstopFrames): `hitstop` is a
+    // numeric per-projectile freeze override; `noHitstop:true` opts a rapid multi-hit /
+    // DOT projectile out of the shared projectile freeze so it doesn't stutter. Absent →
+    // the tier default (HITSTOP.projectile, or .special/.ultimate via isSpecial/isUltimate).
+    hitstop:    (typeof moveData.hitstop === "number") ? moveData.hitstop : undefined,
+    noHitstop:  moveData.noHitstop  || false,
+    isSpecial:  moveData.isSpecial  || false,
+    isUltimate: moveData.isUltimate || false,
     // OPTIONAL hit-stop control (combat.getProjectileHitstopFrames): `hitstop` is a
     // numeric per-projectile freeze override; `noHitstop:true` opts a rapid multi-hit /
     // DOT projectile out of the shared projectile freeze so it doesn't stutter. Absent →
@@ -2363,13 +2371,11 @@ export function updateTojiStanceCombat(fighter, inputState, context, getPhase) {
   if (!fighter.attacking) fighter._rekkaNext = null
 
   if (stance === "blade") {
-    // ROUTE 1 — chain to next rekka hit: fresh LIGHT during the current hit's RECOVERY.
-    if (fighter.attacking && fighter._rekkaNext && lightEdge && getPhase?.(fighter) === "recovery") {
-      const next = fighter._rekkaNext
-      fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
-      fighter.attackCooldown = 0                      // clear the just-set cooldown so the chain fires now
-      return fireTojiBladeMove(fighter, next, context)
-    }
+    // ROUTE 1 — chain to next rekka hit: fresh LIGHT during the current hit's RECOVERY. Routed through
+    // the shared rekkaContinue with requireHit:false — the blade rekka links on TIMING alone (no clean-
+    // connect gate), exactly as before; the shared helper just centralizes the window-close + cancel rule.
+    const bladeNext = rekkaContinue(fighter, { edge: lightEdge, phase: getPhase?.(fighter), opponent: context?.getOpponent?.(fighter), requireHit: false })
+    if (bladeNext) return fireTojiBladeMove(fighter, bladeNext, context)
     // DASH STRIKE upkeep (runs while the move is live, before the canStart gate):
     //  • SPRITE CHAIN: swap crouch(_1)→stab(_2) once past startup. sprite.js frame-resets
     //    on the sheet change, so _2's full-extension stab plays as the hit lands.
@@ -2526,12 +2532,10 @@ export function updateVegetaCommandCombat(fighter, inputState, context, getPhase
   }
 
   // COMMAND-CHAIN CONTINUE — fresh Heavy during the current hit's RECOVERY, only if it CONNECTED.
-  if (fighter.attacking && fighter._rekkaNext && heavyEdge && phase === "recovery" && fighter._cmdHitLanded) {
-    const next = fighter._rekkaNext
-    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
-    fighter.attackCooldown = 0                       // clear the just-set cooldown so the chain fires now
-    return fireVegetaCommand(fighter, next, context)
-  }
+  // Routed through the shared rekkaContinue (its own connect-latch / window-close are idempotent with
+  // the multi-string latch+clear above, which must stay for the Koma / up-tier strings that share them).
+  const cmdNext = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (cmdNext) return fireVegetaCommand(fighter, cmdNext, context)
 
   // EX KI PUNCH — combo-cancel ONLY: fresh Special during a light/heavy NORMAL's recovery cancels
   // into it (the Special button is otherwise blocked mid-attack by the canStart gate in game.js, so
@@ -2625,26 +2629,13 @@ export function updateOmegaRangerCommandCombat(fighter, inputState, context, get
   fighter._cmdPrevHeavy = !!inputState.heavy
   fighter._cmdPrevLight = !!inputState.light
 
-  // Latch a REAL connect for the current stage: hasHit AND the opponent took HITSTUN (a hit),
-  // NOT blockstun. resolveAttackHit runs in updateCombat AFTER this handler, so the flag is
-  // observed the following frame while hitstun (14-24f) is still counting down.
-  const opp = context?.getOpponent?.(fighter)
-  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
-
-  // The chain window closes when the attack fully ends.
-  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
-
   // REKKA CONTINUE — fresh press of the ACTIVE string's button during the current hit's RECOVERY,
   // only if it CONNECTED. _rekkaBtn routes: kick chain advances on Heavy, sword string on Light.
-  if (fighter.attacking && fighter._rekkaNext && phase === "recovery" && fighter._cmdHitLanded) {
-    const edge = fighter._rekkaBtn === "light" ? lightEdge : heavyEdge
-    if (edge) {
-      const next = fighter._rekkaNext
-      fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
-      fighter.attackCooldown = 0                        // clear the just-set cooldown so the chain fires now
-      return fireOmegaRangerCmd(fighter, next)
-    }
-  }
+  // Shared rekkaContinue owns the connect-latch, window-close and cancel rule (see combat.js).
+  const opp  = context?.getOpponent?.(fighter)
+  const edge = fighter._rekkaBtn === "light" ? lightEdge : heavyEdge
+  const next = rekkaContinue(fighter, { edge, phase, opponent: opp, requireHit: true })
+  if (next) return fireOmegaRangerCmd(fighter, next)
 
   const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
   const back     = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
@@ -3061,7 +3052,7 @@ function executeSasukeUltimate(fighter, context) {
     fighter._suppressUltCooldown = true          // no cooldown yet — allow Stage-2 escalation
     // ESCALATION GATE (diagnosed 2026-07-16 via live logging): the OLD 30-frame attackCooldown
     // silently swallowed the Stage-2 re-press for ~0.5s, so escalation "never" fired. Now use a
-    // SHORT recovery (15f, still > the 10f input BUFFER_WINDOW so a single tap's lingering buffer
+    // SHORT recovery (15f, still > the input buffer window (INPUT_BUFFER_FRAMES) so a single tap's lingering buffer
     // can't auto-escalate) AND require the ultimate button to be RELEASED before Stage 2 (so a
     // HELD button can't auto-escalate either). _ultReleasedSinceStage1 is flipped true on keyup.
     fighter._ultReleasedSinceStage1 = false
@@ -3482,21 +3473,11 @@ export function updateNeteroCommandCombat(fighter, inputState, context, getPhase
   const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
   fighter._cmdPrevHeavy = !!inputState.heavy
 
-  // Latch a REAL connect (hit, NOT block) for the current stage. resolveAttackHit runs in updateCombat
-  // AFTER this handler, so the flag is observed next frame while the opponent's hitstun still counts down.
-  const opp = context?.getOpponent?.(fighter)
-  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
-
-  // The string's window closes when the attack fully ends.
-  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
-
   // CONTINUE — fresh Heavy during the opener's RECOVERY, only if it CONNECTED (cancel-on-hit).
-  if (fighter.attacking && fighter._rekkaNext && heavyEdge && phase === "recovery" && fighter._cmdHitLanded) {
-    const next = fighter._rekkaNext
-    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
-    fighter.attackCooldown = 0                       // clear the just-set cooldown so the chain fires now
-    return fireNeteroCommand(fighter, next, context)
-  }
+  // Shared rekkaContinue owns the connect-latch, window-close and cancel rule (see combat.js).
+  const opp = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireNeteroCommand(fighter, next, context)
 
   // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
@@ -3514,8 +3495,9 @@ export function updateNeteroCommandCombat(fighter, inputState, context, getPhase
 // via sprite.js currentMove identity → characters.js killua.animationData.barrageN). Neutral
 // light/heavy/up/air/down_air stay on the standard normal path (Down is what routes into the chain).
 // ─────────────────────────────────────────────────────────────────────────────
-// recovery 14 on the non-finisher parts widens the cancel window comfortably past the 10-frame
-// input BUFFER_WINDOW (so a clean re-tap always lands a fresh edge during recovery); cancel-on-hit
+// recovery 14 on the non-finisher parts widens the cancel window comfortably past the shared
+// input buffer window (INPUT_BUFFER_FRAMES, ~7f) so a clean re-tap always lands a fresh edge during
+// recovery; cancel-on-hit
 // cuts the recovery short anyway, so it only matters on a whiff/block (fair — a strong rushdown string).
 const KILLUA_COMMAND = {
   // knockbackX 1 on the non-finisher parts keeps the target PINNED (a barrage shouldn't shove them
@@ -3545,22 +3527,12 @@ export function updateKilluaCommandCombat(fighter, inputState, context, getPhase
   const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
   fighter._cmdPrevHeavy = !!inputState.heavy
 
-  // Latch a REAL connect (hit, NOT block) for the current stage. resolveAttackHit runs in updateCombat
-  // AFTER this handler, so the flag is observed next frame while the opponent's hitstun still counts down.
-  const opp = context?.getOpponent?.(fighter)
-  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
-
-  // The string's window closes when the attack fully ends.
-  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
-
   // CONTINUE — fresh Heavy during the current part's RECOVERY, only if it CONNECTED (cancel-on-hit;
-  // a whiff/block leaves _cmdHitLanded false → the chain stops here = mid-chain interrupt).
-  if (fighter.attacking && fighter._rekkaNext && heavyEdge && phase === "recovery" && fighter._cmdHitLanded) {
-    const next = fighter._rekkaNext
-    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
-    fighter.attackCooldown = 0                       // clear the just-set cooldown so the chain fires now
-    return fireKilluaCommand(fighter, next, context)
-  }
+  // a whiff/block leaves _cmdHitLanded false → the chain stops here = mid-chain interrupt). The shared
+  // rekkaContinue owns the connect-latch, window-close and cancel rule (see combat.js).
+  const opp = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireKilluaCommand(fighter, next, context)
 
   // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
@@ -3786,16 +3758,13 @@ export function updateSaikiCommandCombat(fighter, inputState, context, getPhase)
   fighter._cmdPrevHeavy = !!inputState.heavy
   fighter._cmdPrevLight = !!inputState.light
 
-  // The chain window closes when the cast fully ends (bolt already independent in flight).
-  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
-
   // CONTINUE — fresh Heavy during the current step's RECOVERY, only if this step's bolt CONNECTED.
-  if (fighter.attacking && fighter._rekkaNext && heavyEdge && phase === "recovery" && fighter._cmdHitLanded) {
-    const next = fighter._rekkaNext
-    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
-    fighter.attackCooldown = 0                       // clear the just-set cooldown so the next step fires now
-    return fireSaikiChain(fighter, next, context)
-  }
+  // Shared rekkaContinue owns the window-close + cancel rule. Saiki's _cmdHitLanded is latched by the
+  // BOLT's hitFlag (resolveProjectileHitsMulti), not by the cast shell — rekkaContinue's own melee-latch
+  // never fires here (the 0-damage cast never connects), so the projectile-driven connect still gates it.
+  const opp = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireSaikiChain(fighter, next, context)
 
   // OPENERS from neutral (grounded, forward held toward the opponent). Neutral light/heavy stay on the
   // normal path (front_attack / blade-swipe); only Forward+button routes here.

@@ -31,7 +31,8 @@ import {
   checkClash, checkParry, resolveGrab, updateGrab,
   getAttackPhase, getAttackHitbox,   // training overlay: live frame data + real attack hitbox
   getHurtbox,                         // harness: verify the Susanoo giant hurtbox
-  startMove                           // harness: drive a real p2 attack (Substitution incoming-window)
+  startMove,                          // harness: drive a real p2 attack (Substitution incoming-window)
+  getCancelWindow                     // harness/combo-flow: inspect a fighter's shared cancel window
 } from "./combat.js"
 import {
   activeProjectiles, spawnProjectile,
@@ -4645,6 +4646,7 @@ gameLoop()
     attacking:        !!f.attacking,
     blocking:         !!f.isBlocking,
     hitstun:          f.hitstun || 0,
+    hitstop:          f.hitstop || 0,          // impact-freeze frames remaining (combo-flow layer telemetry)
     stun:             f.stun || 0,
     blockstun:        f.blockstun || 0,
     currentMove:      f.currentMove || null,
@@ -4699,6 +4701,9 @@ gameLoop()
     vegCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, prevHeavy: !!p1._cmdPrevHeavy, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
     // Omega Ranger command-chain probe (mirrors vegCmd) — drive the kick-chain rekka precisely.
     orCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
+    // Combo-flow Stage 2: the SHARED cancel-window view for either fighter — proves every character's
+    // cancel timing reads through the one getCancelWindow() API in the same frame-defined shape.
+    cancelWindow: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? getCancelWindow(f) : null },
     // Charge-vortex introspection (charge_aura.test.mjs): total procedural-spiral renders (bumped only
     // when the skip-logic lets it through → 0 for Goku Black even while he charges his own sprite), and
     // a fighter's real drawn mid-coil x + the frame it last drew (proves the spiral actually rotates).
@@ -4896,9 +4901,12 @@ gameLoop()
     // ── deterministic reset for the beta-input test (clears the motion buffer + cooldowns so
     //    successive command-special casts don't contaminate each other via stale directionHistory
     //    or a lingering summon/chain recast lock). Test-only, like the rest of __harness.
-    resetFighterInput: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return; f.directionHistory = []; f.attackCooldown = 0; f.summonCooldown = 0; f.chainCooldown = 0; f.teleportCooldown = 0 },
+    resetFighterInput: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return; f.directionHistory = []; f.attackCooldown = 0; f.summonCooldown = 0; f.chainCooldown = 0; f.teleportCooldown = 0; f.comboCounter = 0; f.comboTimer = 0 },   // also clear combo state so an isolated single-hit damage measurement isn't decayed by a leftover combo (projectiles now build combo count too — combo-flow Stage 3)
     clearProjectiles:  () => { activeProjectiles.length = 0 },
-    healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false } },  // reset dummy between damage checks
+    healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false }   // reset dummy between damage checks
+      // Also clear BOTH fighters' combo state: a fresh single-hit damage measurement must not be decayed by
+      // a combo lingering from the previous check (projectiles now build combo count too — combo-flow Stage 3).
+      for (const f of [p1, p2]) if (f) { f.comboCounter = 0; f.comboTimer = 0 } },
     liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
     hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
     hurtP2:     (v = 20) => { if (p2) { p2.hitstun = v; p2.attacking = false } },  // put the dummy in hitstun (Naruto clone-finisher contextual gate)

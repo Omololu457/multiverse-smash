@@ -60,6 +60,8 @@ import {
   updateVegetaCommandCombat,   // Vegeta command-normal cancel chain (Y-track kick target combo)
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
   updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
+  updateOmniManCommandCombat,   // Omni-Man "Viltrumite Beatdown" Fwd+Heavy rekka + Fwd+Light push poke
+  applyOmniManFlightSystem, toggleOmniManFlight, isOmniManFlying, isOmniManForcedDescent, executeOmniManSpecial, forceRevertOmniManFlight,   // Omni-Man Flight: toggle movement mode + shared-pool drain + forced-descent state machine + Stage-3 special + round-reset cleanup
   updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
   updateSaikiCommandCombat,   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
   updateKilluaCommandCombat,   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
@@ -157,6 +159,10 @@ import {
   updateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive, drawBatmanDarkKnightCinematic,
   clearBatmanDarkKnightCinematic, getBatmanDarkKnightCinematicStatus
 } from "./batmanDarkKnightCinematic.js"
+import {
+  updateOmniManBodySlamCinematic, isOmniManBodySlamCinematicActive, drawOmniManBodySlamCinematic,
+  clearOmniManBodySlamCinematic, getOmniManBodySlamCinematicStatus
+} from "./omnimanBodySlamCinematic.js"
 import {
   updateEdoTenseiCinematic, isEdoTenseiCinematicActive, drawEdoTenseiCinematic,
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
@@ -1470,12 +1476,13 @@ function resetRound() {
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
   clearBatmanDarkKnightCinematic()
+  clearOmniManBodySlamCinematic()
   clearEdoTenseiCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
@@ -1949,12 +1956,13 @@ function resetToStart() {
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
   clearBatmanDarkKnightCinematic()
+  clearOmniManBodySlamCinematic()
   clearEdoTenseiCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
@@ -2433,12 +2441,13 @@ function _doRematch() {
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
   clearBatmanDarkKnightCinematic()
+  clearOmniManBodySlamCinematic()
   clearEdoTenseiCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
@@ -2902,20 +2911,31 @@ function updateMovementInput(fighter) {
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
   else fighter.isCharging = false   // reset each frame for normal characters (devices set their own)
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
+  // OMNI-MAN FLIGHT TOGGLE: the P (charge) button EDGE toggles Flight mode on/off instead of hold-to-
+  // charge. He never hold-charges — Smart Atoms is spent on flight+specials and only regens on the
+  // ground — so we intercept here and SKIP the charge gate below (Toji-stance-on-P precedent).
+  const isOmniMan = (fighter.rosterKey || "").toLowerCase() === "omniman"
+  if (isOmniMan) {
+    const chargeEdge = !!inputState.charge && !fighter._flightTogglePrev
+    fighter._flightTogglePrev = !!inputState.charge
+    if (chargeEdge) toggleOmniManFlight(fighter)
+  }
   // HOLD-TO-CHARGE (Task 2): a meter character holding P (charge), not attacking,
   // builds cursed energy AND enters the charging state (drives the charge aura +
   // sprite). For Ben/Albedo the charge button is the device dial (handled above).
   // Resolved BEFORE the block gate so the universal "charging = fully vulnerable"
   // lockout (no block below, no movement in physics.moveFighter) holds on the SAME
   // frame the charge begins — for NORMAL chars too, not just the transform device.
-  if (inputState.charge && !isTransformDevice(fighter) && !fighter.attacking && (fighter.maxEnergy || 0) > 0) {
+  else if (inputState.charge && !isTransformDevice(fighter) && !fighter.attacking && (fighter.maxEnergy || 0) > 0) {
     doEnergyCharge(fighter)
     fighter.isCharging = true
   }
   // UNIVERSAL CHARGE LOCKOUT — can't block while charging (deliberate vulnerability, all chars).
   // FLASH TIME LOCKOUT — Flash cannot block/defend at all while Flash Time is active (its whole
   // premise: he's moving too fast to hold a guard). The block input is simply ignored for him.
-  if (inputState.down && !fighter.isCharging && !fighter._flashTimeActive) fighter.isBlocking = true
+  // (Omni-Man: while flying, Down = DESCEND — not block; and he can't block mid-crash/recovery.)
+  if (inputState.down && !fighter.isCharging && !fighter._flashTimeActive &&
+      !fighter._flightActive && !isOmniManForcedDescent(fighter)) fighter.isBlocking = true
   physics.moveFighter(fighter, vKeys, fighter.controls)
 }
 
@@ -3028,6 +3048,11 @@ function _updatePlayerCombatBody(fighter) {
   // empty controls so any residual state resolves cleanly.
   if (fighter._tauntPlaying) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
 
+  // OMNI-MAN FORCED-DESCENT LOCK: while crashing out of the sky (Smart Atoms depleted mid-air) AND
+  // during the crash-landing recovery window, he starts nothing and is fully vulnerable. Tick combat
+  // timers with empty controls so the recovery resolves cleanly (mirrors the taunt lock).
+  if (isOmniManForcedDescent(fighter)) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
+
   const inputState = getFighterInput(fighter)
   const isToji     = (fighter.rosterKey || "").toLowerCase() === "toji"
 
@@ -3085,6 +3110,12 @@ function _updatePlayerCombatBody(fighter) {
   // (returns true → skip normal path); neutral light/heavy stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "netero" && !charging &&
       updateNeteroCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // OMNI-MAN "Viltrumite Beatdown" chain: Fwd+Heavy opens omCombo1, re-tap Heavy during recovery to
+  // cancel into omCombo2 → omComboFin launcher (cancel-on-hit; a whiff/block ends the string). Fwd+Light
+  // = Forward Push poke. Consumes the input only when it fires; neutral light/heavy/up stay normal.
+  if ((fighter.rosterKey || "").toLowerCase() === "omniman" && !charging &&
+      updateOmniManCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // SAIKI command combat: Forward+Heavy opens the 4-hit projectile rekka (chain1→2→3→finisher, each a
   // traveling magenta bolt; cancel-on-hit re-tap Heavy during recovery). Forward+Light = Basic Burst
@@ -3377,6 +3408,7 @@ function updateFighterState(fighter) {
   applyGonAdultFormSystem(updated)   // Gon Adult Form: continuous Nen drain + auto-revert at 0 + green-aura-trail recording (movement-lockout is set at enter)
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
+  applyOmniManFlightSystem(updated)  // Omni-Man Flight: shared-pool Smart Atoms drain while flying → forced descent at 0 → landing-recovery window (BEFORE applyGravity, which then hovers/falls him)
   updateMiscTimers(updated)
   physics.applyGravity(updated)
   resolvePortalDropLanding(updated)   // Rick Portal-Pull/Push: impact damage the frame they reground
@@ -3385,7 +3417,7 @@ function updateFighterState(fighter) {
   // the generic passive regen (which would fight the drain). Driven by real
   // per-frame delta ms.
   if (isTransformDevice(updated)) updateTransformDevice(updated, getAbilityContext().deltaMs)
-  else regenEnergy(updated)
+  else if (!isOmniManFlying(updated)) regenEnergy(updated)   // Omni-Man: no passive regen WHILE flying, or the flight drain would never deplete the shared pool (he regens normally on the ground)
   maybeKilluaChargeCompleteVoice(updated)   // Killua "charge complete!" bark — precise charge-animation-finished event
   return updated
 }
@@ -3873,6 +3905,13 @@ function updateBattle() {
   // whole batarang barrage; the guaranteed damage lands at the connect beat via onImpact, then resume.
   if (isBatmanDarkKnightCinematicActive()) {
     updateBatmanDarkKnightCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // OMNI-MAN "VILTRUMITE ONSLAUGHT" CINEMATIC: SAME freeze contract — combat/physics/input paused for
+  // the whole body-slam; the guaranteed damage lands at the SLAM connect beat via onImpact, then resume.
+  if (isOmniManBodySlamCinematicActive()) {
+    updateOmniManBodySlamCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
@@ -4716,6 +4755,7 @@ function drawBattle() {
   drawVegetaFinalFlashCinematic(ctx, canvas)  // fullscreen Overcharged Final Flash overlay (gold beam + impact explosion)
   drawBeerusKiBallCinematic(ctx, canvas)      // fullscreen Ki Ball overlay (charging orb → impact explosion)
   drawBatmanDarkKnightCinematic(ctx, canvas)  // fullscreen batarang-barrage overlay (windup glow → rain → impact flash)
+  drawOmniManBodySlamCinematic(ctx, canvas)   // fullscreen body-slam overlay (crimson vignette → impact flash → ground shockwave)
   drawEdoTenseiCinematic(ctx, canvas)         // Edo Tensei summon/un-summon overlay (giant coffin + vessel reveal)
   if (aiVsAiState.active) _drawAiVsAiHud()
 }
@@ -5789,6 +5829,9 @@ gameLoop()
     mangekyouActive:  !!f._mangekyouActive,       // Itachi Mangekyou Sharingan buff-mode
     godspeedActive:   !!f._godspeedActive,        // Killua Godspeed buff-mode ultimate
     flashTimeActive:  !!f._flashTimeActive,        // Flash — Flash Time buff-mode ultimate
+    flightActive:     !!f._flightActive,          // Omni-Man: Flight movement mode engaged
+    forcedDescent:    !!f._forcedDescent,         // Omni-Man: crashing out of the sky (Smart Atoms depleted mid-air)
+    descentLandTimer: f._descentLandTimer || 0,   // Omni-Man: crash-landing recovery frames remaining
     isBlocking:       !!f.isBlocking,              // live guard state (Flash Time block-lockout test)
     cmdHitLanded:     !!f._cmdHitLanded,           // rekka cancel-on-hit gate: true only after a clean connect (interrupt test)
     timeSlowFrozen:   !!f._timeSlowFlag,           // this fighter is being time-slow-skipped this frame (Godspeed / Flash Time)
@@ -5944,7 +5987,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBatmanDarkKnightCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -6119,6 +6162,7 @@ gameLoop()
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
     beerusUltCine: () => getBeerusKiBallCinematicStatus(),
     batmanUltCine: () => getBatmanDarkKnightCinematicStatus(),
+    omnimanUltCine: () => getOmniManBodySlamCinematicStatus(),
     kuramaUltCine: () => getKuramaCinematicStatus(),
     p1CloneCount: () => (p1 ? countShadowClones(p1) : 0),   // test hook: live shadow-clone count (barrage gate)
     // Vegeta Super Saiyan form control + introspection (vegeta_ssj.test.mjs). op:
@@ -6207,6 +6251,7 @@ gameLoop()
       for (const f of [p1, p2]) if (f) { f.comboCounter = 0; f.comboTimer = 0 } },
     liftP1:     (dy = 40) => { if (p1) { p1.onGround = false; p1.grounded = false; p1.y -= dy; p1.vy = 0; p1.isLaunched = true } },  // put P1 at a low airborne altitude (test air normals on the descent)
     hurtP1:     (v = 20) => { if (p1) { p1.hitstun = v; p1.attacking = false } },  // simulate getting hit (cancel tests)
+    setP1Energy: (v = 0) => { if (p1) { p1.energy = Math.max(0, Math.min(p1.maxEnergy || 0, v)); return p1.energy } return null },  // set Smart Atoms / any energy pool (flight-drain / forced-descent tests)
     hurtP2:     (v = 20) => { if (p2) { p2.hitstun = v; p2.attacking = false } },  // put the dummy in hitstun (Naruto clone-finisher contextual gate)
     // Stage EXACTLY n shadow clones on P1 immediately (bypasses the ~2.5s audio-window delay of the
     // "," hotkey, which leaves a lingering delayed spawn that races the clone-count gates). Naruto-only.

@@ -1552,60 +1552,125 @@ const albedo = {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// INVINCIBLE — Viltrumites
-// Always base form (NO energy/transform system). Pure stats: overwhelming power
-// tied to slow startup + punishable recovery + high knockback so they're strong
-// but beatable. maxEnergy 0 → all specials cost 0 (raw power, like Toji).
+// INVINCIBLE — Viltrumites. This universe was previously two procedural-box DATA STUBS
+// (omniMan + thragg, ...DEFAULT_ANIM, no hasSprites → filtered out of the select grid).
+// OMNI-MAN is now the real, fully-sprited character (omni_man_*.png — see OMNI_MAN_ASSET_MAP.md),
+// built in stages (Killua/Gon/Tobirama rigor). thragg was PRUNED (see the note below where his
+// entry used to be) — Omni-Man is the sole Invincible character.
+//
+// STAGE 0: universe grouping (auto via `universe: "invincible"`) + the "Smart Atoms" energy label
+// + real idle sprite so he appears on the select screen. The old stub was energyless raw-power;
+// the real design gives him a SHARED "Smart Atoms" pool (energyType smart_atoms → ui.js label)
+// that fuels BOTH the toggleable Flight movement mode AND his specials from one meter.
+// Full movement/normals/flight/specials/ultimate land in Stages 1-5; stats are refined in Stage 1.
 // ─────────────────────────────────────────────────────────────────
 const omniMan = {
   rosterKey: "omniman", name: "Omni-Man", universe: "invincible",
+  portrait: "./omniman_portrait.png",   // character-select mugshot — cropped head+torso from the idle (no dedicated mugshot in the batch, Killua precedent); skins.js + ui.js read characters.omniman.portrait
   archetypes: ["melee", "flight"],
   primary: "melee", secondary: ["flight"],
-  traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "damage", animeMovement: false },
-  passive: { name: "Viltrumite Physiology", effect: "Superhuman strength and flight — high air mobility and knockback" },
-  stats: { maxHealth: 1400, maxEnergy: 0, attack: 98, defense: 88, speed: 90, maxJumps: 3, jumpPower: 36, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 36 },
+  traits: { hasEnergy: true, energyType: "smart_atoms", mobility: "high", scaling: "damage", animeMovement: false },
+  passive: { name: "Viltrumite Physiology", effect: "Superhuman strength — overwhelming power on the ground, unmatched mobility once airborne on Smart Atoms" },
+  // Overwhelming-raw-power bruiser: top-tier HP + attack, below-average GROUND speed (real mobility
+  // comes from Flight, Stage 3). maxEnergy is the shared Smart Atoms pool (flight drain + special cost).
+  stats: { maxHealth: 1400, maxEnergy: 200, attack: 98, defense: 88, speed: 84, maxJumps: 2, jumpPower: 34, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 38 },
   basic_attacks: {
-    light:     { damage: 50, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 4, knockbackY: 0 },
-    heavy:     { damage: 120, startup: 13, active: 5, recovery: 26, hitstun: 22, knockbackX: 11, knockbackY: 2, superArmor: true },
-    upAttack:  { damage: 92, startup: 10, active: 4, recovery: 20, hitstun: 22, knockbackX: 3, knockbackY: -11 },
+    // Damage reads heavier than the roster average by design (raw-power archetype — see Stage-2 report).
+    light:     { damage: 50, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 4, knockbackY: 0, rangeX: 76 },
+    heavy:     { damage: 120, startup: 13, active: 5, recovery: 26, hitstun: 22, knockbackX: 11, knockbackY: 2, superArmor: true, rangeX: 92, rangeY: 48 },   // committed super-armored haymaker (top-of-roster damage — FLAGGED, intentional)
+    upAttack:  { type: "launcher", damage: 92, startup: 10, active: 4, recovery: 20, hitstun: 22, blockstun: 10, knockbackX: 3, knockbackY: -12, launch: 12, airOK: false },   // rising overhead launcher → juggle
     airAttack: { damage: 78, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: -2 },
     downAir:   { damage: 105, startup: 11, active: 4, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: 13 },
     grab:      { damage: 36, startup: 6, active: 3, recovery: 15, hitstun: 22, throwForceX: 7, throwForceY: -5 }
   },
+  // SPECIALS (Stage 4) — direction-branched off the Special button (via _specialHeldDir), all drawing
+  // from the SHARED Smart Atoms pool (casting competes with flight time). Real behaviour lives in
+  // abilities.js executeOmniManSpecial. Neutral = Viltrumite Smash; Forward = Skewering Rush (flying
+  // tackle, ground or air); Down = Meteor Drop (diving slam). NOTE: the asset batch has NO thrown-
+  // object / eye-beam (Heat Vision) art, so a ranged special is intentionally omitted (flagged).
   specials: {
-    flightSlam:    { cost: 0, damage: 150, startup: 14, active: 5, recovery: 28, hitstun: 28, knockbackX: 13, knockbackY: -4, effect: "soaring slam — huge knockback, very punishable on whiff" },
-    skeweringRush: { cost: 0, damage: 130, startup: 11, active: 5, recovery: 24, hitstun: 24, knockbackX: 12, knockbackY: -2, subtype: "mobility", dashSpeed: 22, effect: "flying tackle across the screen" }
+    viltrumiteSmash: { cost: 35, damage: 130, startup: 8, active: 5, recovery: 22, hitstun: 26, knockbackX: 12, knockbackY: -3, superArmor: true, effect: "committed super-armored power punch (neutral)" },
+    skeweringRush:   { cost: 30, damage: 120, startup: 7, active: 6, recovery: 20, hitstun: 24, knockbackX: 14, knockbackY: -4, subtype: "mobility", effect: "flying tackle that carries him across the screen (Fwd) — usable on the ground or mid-flight" },
+    meteorDrop:      { cost: 40, damage: 140, startup: 9, active: 5, recovery: 24, hitstun: 26, knockbackX: 8, knockbackY: 12, effect: "diving meteor slam (Down) — spikes the opponent down" }
   },
-  ultimate: { name: "Viltrumite Onslaught", cost: 0, duration: 8, effect: "Relentless flying assault: heavy damage and knockback surge" },
+  ultimate: { name: "Viltrumite Onslaught", cost: 100, duration: 8, effect: "Relentless flying assault: heavy damage and knockback surge" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  hasSprites: true,
+  // idle content 127px × 0.95 ≈ 121px on-screen — a touch above the roster median (~111), fitting a
+  // physically imposing powerhouse. REQUIRES the skins.js `omniman` entry (spriteScale gate) + the
+  // spritesheets.js SPRITE_MANIFEST idle gate. anchorY:0 plants feet at cell bottom.
+  spriteScale: 0.95,
+  // STAGE 1: movement + state. Multi-frame strips RE-SLICED to clean uniform cells (harness/reslice.mjs,
+  // alpha-gutter frame detection) — the *_uniform.png files. Ground walk/run and guard have NO standalone
+  // source strip, so run is sliced from the master sheet's only ground-locomotion row (a forward-charging
+  // lunge); guard falls back to idle (flagged, Flash precedent). knockdown routes to hurt automatically.
+  introPool: ["intro"],
+  animationData: {
+    idle: { frames: 3, width: 88,  height: 139, speed: 7, anchorY: 0, sheet: "./omni_man_idle.png" },
+    // No traditional walk cycle exists in the source art — the master sheet's ONLY ground-locomotion
+    // row is a forward-charging lunge (band 3), resliced → omni_man_run_uniform.png. walk & run share it
+    // (netero/beerus precedent); Omni-Man barrels forward rather than strolls. Crouched pose reads shorter
+    // than the standing idle by design (feet stay planted via anchorY:0).
+    walk: { frames: 6, width: 129, height: 110, speed: 8, anchorY: 0, sheet: "./omni_man_run_uniform.png" },
+    run:  { frames: 6, width: 129, height: 110, speed: 4, anchorY: 0, sheet: "./omni_man_run_uniform.png" },
+    dash: { frames: 6, width: 129, height: 110, speed: 3, anchorY: 0, sheet: "./omni_man_run_uniform.png" },
+    // non_flying_jump (flight OFF): crouch → leap → airborne rise. Play once, hold apex. fall = last
+    // airborne frame (sourceX = 5 × 131). The STANDARD-jump art; Flight (Stage 3) REPLACES this state.
+    jump: { frames: 6, width: 131, height: 143, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_jump_uniform.png" },
+    fall: { frames: 1, width: 131, height: 143, speed: 5, sourceX: 655, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_jump_uniform.png" },
+    // hurt = the ground/air hit reaction (ground:air_hit resliced). knockdown auto-routes here (no
+    // dedicated knockdown/getup strip); guard → idle (no guard strip). Both flagged for a later art pass.
+    hurt: { frames: 3, width: 126, height: 127, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_hit_uniform.png" },
+    // intro = the standing hero flex (intro_version_3 resliced). introPool picks it each match. The
+    // cinematic crash-from-sky sequence (intro_part_1_falling → intro_part_2:revese) is DEFERRED — it
+    // pairs naturally with the Stage-3 forced-descent art as a later polish pass.
+    intro: { frames: 6, width: 146, height: 161, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_intro_uniform.png" },
+    // ── STAGE 2 NORMALS — re-sliced to uniform cells (harness/reslice.mjs, frame counts confirmed).
+    // combat.js reads DAMAGE/frames from basic_attacks; these are the SPRITES (identity MOVE_TO_ACTION).
+    // Numbers read heavier than the roster average by design (raw-power archetype — flagged in the
+    // Stage-2 report). The `air` slot uses the STANDARD upright aerial punch (per the Stage-1 air-file
+    // finding), NOT flight content.
+    light:    { frames: 5,  width: 160, height: 130, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_ground_punch_uniform.png" },       // jab → straight cross
+    heavy:    { frames: 4,  width: 165, height: 128, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_ground_punch_1_uniform.png" },     // committed haymaker straight (super-armored)
+    up:       { frames: 4,  width: 134, height: 166, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_ground_up_attack_uniform.png" },    // rising overhead — launcher
+    air:      { frames: 3,  width: 156, height: 144, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_air_forward_punch_uniform.png" },   // STANDARD aerial forward punch (upright)
+    down_air: { frames: 3,  width: 115, height: 138, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_air_down_attack_2_uniform.png" },   // diving spike
+    grab:     { frames: 4,  width: 107, height: 126, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_grab_uniform.png" },
+    // ── STAGE 2 COMMAND CHAIN — "Viltrumite Beatdown" Toji-Rekka string (Fwd+Heavy opener → re-tap
+    // Heavy during recovery, cancel-on-HIT) + a free Fwd+Light shove poke. Identity-mapped in sprite.js;
+    // the real damage/chain logic lives in abilities.js OMNIMAN_CMD/POKE + updateOmniManCommandCombat.
+    omCombo1:   { frames: 4,  width: 150, height: 154, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_ground_air_kick_uniform.png" },     // flying-knee opener
+    omCombo2:   { frames: 6,  width: 134, height: 133, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_ground_down_attack_uniform.png" },   // downward hook
+    omComboFin: { frames: 11, width: 134, height: 173, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_combo_launch_uniform.png" },        // multi-hit launcher finisher
+    omPush:     { frames: 4,  width: 136, height: 153, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_push_uniform.png" },                 // Fwd+Light spacing shove
+    // ── STAGE 3 FLIGHT (the core new system). fly = horizontal hover (loops); flyMove = streaking
+    // directional flight; forcedDescent = the "ran out of Smart Atoms" tumble from the sky (concat of
+    // falls_from_flying part_1+2, plays once + holds head-down); descentLand = the crash-landing
+    // recovery (vulnerability window). These are FLIGHT-specific sprites (NOT the standard `air` slot —
+    // see the Stage-1 air-file finding). Resolved in sprite.js by _flightActive / _forcedDescent state.
+    fly:           { frames: 4, width: 124, height: 148, speed: 8, anchorY: 0, sheet: "./omni_man_fly_uniform.png" },
+    flyMove:       { frames: 2, width: 162, height: 124, speed: 6, anchorY: 0, sheet: "./omni_man_fly_move_uniform.png" },
+    forcedDescent: { frames: 7, width: 165, height: 144, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_descent_uniform.png" },
+    descentLand:   { frames: 7, width: 164, height: 158, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_land_uniform.png" },
+    // ── STAGE 4 SPECIALS (direction-branched). omSkewer = the flying-tackle dive (air_to_ground combo,
+    // upright→horizontal streak); omMeteor = the diving meteor slam. Neutral "Viltrumite Smash" reuses
+    // the heavy haymaker pose (no new art). Identity-mapped in sprite.js; behaviour in abilities.js.
+    omSkewer: { frames: 12, width: 180, height: 127, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_skewer_uniform.png" },
+    omMeteor: { frames: 5,  width: 144, height: 154, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_meteor_uniform.png" },
+    // ── STAGE 5 ULTIMATE — "Viltrumite Onslaught": the flying body-slam (combo_where_he_lands_on_his_
+    // oppenets, the LARGEST sheet in the batch). Plays via _spriteCastMove:"ultimate" through the freeze
+    // cinematic (omnimanBodySlamCinematic.js). 15f × speed 6 ≈ 90 ticks spans the leap→slam.
+    ultimate: { frames: 15, width: 171, height: 191, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_ultimate_uniform.png" }
+  }
 }
 
-const thragg = {
-  rosterKey: "thragg", name: "Thragg", universe: "invincible",
-  archetypes: ["melee", "grappler"],
-  primary: "melee", secondary: ["grappler"],
-  traits: { hasEnergy: false, energyType: "none", mobility: "low", scaling: "damage", animeMovement: false },
-  passive: { name: "Warlord's Might", effect: "Strongest and toughest Viltrumite — top-tier power but the slowest mover" },
-  stats: { maxHealth: 1600, maxEnergy: 0, attack: 106, defense: 95, speed: 76, maxJumps: 1, jumpPower: 26, dashSpeed: 12, dashDuration: 8, dashCooldownMax: 54 },
-  basic_attacks: {
-    light:     { damage: 55, startup: 6, active: 3, recovery: 13, hitstun: 14, knockbackX: 4, knockbackY: 0 },
-    heavy:     { damage: 132, startup: 15, active: 5, recovery: 30, hitstun: 24, knockbackX: 12, knockbackY: 2, superArmor: true },
-    upAttack:  { damage: 100, startup: 12, active: 5, recovery: 22, hitstun: 24, knockbackX: 3, knockbackY: -11 },
-    airAttack: { damage: 86, startup: 7, active: 4, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: -2 },
-    downAir:   { damage: 116, startup: 12, active: 5, recovery: 20, hitstun: 22, knockbackX: 2, knockbackY: 14 },
-    grab:      { damage: 44, startup: 6, active: 3, recovery: 16, hitstun: 24, throwForceX: 8, throwForceY: -5 }
-  },
-  specials: {
-    crushingGrip: { cost: 0, damage: 175, startup: 12, active: 4, recovery: 30, hitstun: 30, knockbackX: 6, knockbackY: -4, subtype: "command_grab", rangeX: 70, superArmor: true, effect: "armored command grab — massive close-range damage, slow recovery" },
-    warHammerBlow:{ cost: 0, damage: 150, startup: 14, active: 5, recovery: 28, hitstun: 28, knockbackX: 12, knockbackY: -3, effect: "two-fisted overhead smash" }
-  },
-  ultimate: { name: "Conqueror's Verdict", cost: 0, duration: 8, effect: "Unstoppable assault: max damage and armor, devastating throws" },
-  transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
-}
+// Thragg (Invincible) was PRUNED (2026-07-27) — he was a data-only procedural-box stub
+// (no hasSprites, animationData: {...DEFAULT_ANIM}) with no art on disk, same as the unbuilt
+// Power Rangers / early HxH stubs that were removed. Deleting the entry drops him from every
+// roster-iterating system (buildUniverseMap select grid, AI-fill pools, characterList) so he no
+// longer shows as a selectable box. His procedural drawThragg() was removed from fighters.js too.
+// Omni-Man is unaffected. Re-add a full entry here (+ hasSprites + the 3-file gate) if he's built.
 
 // ─────────────────────────────────────────────────────────────────
 // HUNTER × HUNTER
@@ -2391,7 +2456,7 @@ export const characters = {
   rick, morty, evilMorty, rickPrime,
   beerus,
   ben10, albedo,
-  omniMan, thragg,
+  omniman: omniMan,
   omega_ranger: omegaRanger,
   netero,
   saiki,

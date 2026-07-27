@@ -22,6 +22,7 @@ const ENERGY_TYPE_LABELS = {
   psi:              "Psi",                       // The Disastrous Life of Saiki K. (Saiki) — psychic power
   speed_force:      "Speed Force",               // DC (The Flash) — the Flash Time meter
   gadget:           "Gadgets",                    // DC (Batman) — utility-belt gadget meter (specials + Ultimate)
+  smart_atoms:      "Smart Atoms",              // Invincible (Omni-Man) — Viltrumite power reserve; ONE shared pool fuels flight AND specials
   stamina:          "Stamina",                  // original roster (Omololu)
   omnitrix:         "Omnitrix",                 // Ben 10 (fallback; device HUD block overrides live)
   ultimatrix:       "Ultimatrix",               // Albedo (fallback; device HUD block overrides live)
@@ -35,7 +36,8 @@ export function resolveEnergyLabel(fighter) {
 
 // HEAVENLY RESTRICTION HUD state: a Jujutsu Kaisen fighter with energyType "none" (canonically no
 // cursed energy in a cursed-energy universe — Toji). energyType-keyed + JJK-scoped so no-energy
-// fighters from energy-less universes (Demon Slayer, Invincible) are NOT mislabelled. Display-only.
+// fighters from energy-less universes (e.g. Demon Slayer) are NOT mislabelled. (Invincible/Omni-Man
+// DOES have energy — "Smart Atoms" — so it is intentionally NOT in that energy-less set.) Display-only.
 export function isHeavenlyRestriction(fighter) {
   return fighter?.traits?.energyType === "none" && fighter?.universe === "jujutsu_kaisen"
 }

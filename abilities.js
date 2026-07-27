@@ -15,6 +15,7 @@ import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCin
 import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from "./gokuBlackSwordCinematic.js"   // Goku Black Sword Slash freeze cinematic (no cycle)
 import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } from "./vegetaFinalFlashCinematic.js"   // Vegeta Overcharged Final Flash ultimate cinematic (no cycle)
 import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./beerusKiBallCinematic.js"   // Beerus Ki Ball ultimate cinematic (no cycle)
+import { activateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive } from "./batmanDarkKnightCinematic.js"   // Batman "The Dark Knight" batarang-barrage ultimate cinematic (no cycle)
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
 import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./gonAdultFormCinematic.js"   // Gon Adult Form activation cinematic (no cycle; mirrors Godspeed)
@@ -919,6 +920,52 @@ function applyBeerusKiBallDamage(fighter, opp, cineCtx = {}) {
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#e0a0ff",
       damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 44,
+      ...(blocked ? { isBlocking: true } : {})
+    })
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// BATMAN — "The Dark Knight" ULTIMATE (Stage 4). A frozen cinematic BATARANG BARRAGE built on the
+// SAME shared freeze architecture as Beerus (batmanDarkKnightCinematic.js). Chosen as the LARGEST /
+// most elaborate sequence in the batch (batman_baterang_combo_throws, 14f) per the asset-map flag —
+// which coincides with the design brief's barrage FALLBACK. Full Gadget meter; the guaranteed damage
+// lands at the barrage-connect beat via onImpact. A held block chips it (Beerus/Kurama sure-hit shape).
+// ─────────────────────────────────────────────────────────────────────────
+const BATMAN_ULT = { cost: 100, dmg: 300, blockRatio: 0.25 }   // full Gadget meter (maxEnergy 100)
+function executeBatmanUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "batman") return false
+  if (isBatmanDarkKnightCinematicActive()) return false            // already mid-cinematic
+  if (!spendEnergy(fighter, BATMAN_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  fighter.vx = 0
+  activateBatmanDarkKnightCinematic(fighter, opp, (cineCtx) => applyBatmanDarkKnightDamage(fighter, opp, cineCtx))
+  return true
+}
+
+// PAYOFF: a GUARANTEED, range-independent batarang barrage. A held block (frozen at its pre-cinematic
+// value) chips it to 25%; a clean hit deals the full ~300 + a big stagger. Applied once at the connect beat.
+function applyBatmanDarkKnightDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = BATMAN_ULT.dmg
+  if (blocked) {
+    dmg = Math.round(dmg * BATMAN_ULT.blockRatio)
+    opp.blockstun = Math.max(opp.blockstun || 0, 18)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 28)
+    opp.vx = fighter.facing * 14; opp.vy = -6
+    opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 20, maxTimer: 20,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#9fb6ff",
+      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 40,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -3705,6 +3752,51 @@ export function updateGonCommandCombat(fighter, inputState, context, getPhase) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BATMAN — "Combo": a 3-hit cancel-on-hit command-normal chain (Down+Heavy) (Stage 2).
+// Mirrors updateFlashCommandCombat/updateGonCommandCombat EXACTLY (Down+Heavy opener → re-tap
+// Heavy during recovery to cancel into the next stage, gated on a clean connect so a whiff/block
+// ENDS the string = mid-chain interrupt). Sourced from the 12-frame standing hand-to-hand string
+// (batman_melle_combo_1): batCombo1 (jab opener) → batCombo2 (weave→uppercut) → batCombo3 (extended
+// straight finisher, launches). Technical-brawler pacing (moderate per-hit, not spiky/rushdown).
+// Neutral light/heavy/up/air/down_air stay on the standard normal path (Down is what routes into the
+// chain). Each stage's sprite is batComboN (sprite.js currentMove identity → characters.js animationData).
+// ─────────────────────────────────────────────────────────────────────────────
+const BATMAN_COMMAND = {
+  // knockbackX 1 on the openers keeps the target PINNED inside the string; the finisher reaches with
+  // rangeX 96 + delivers the launch knockback.
+  batCombo1: { damage: 30, startup: 4, active: 3, recovery: 12, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 82, rangeY: 54, rekkaNext: "batCombo2" },
+  batCombo2: { damage: 36, startup: 4, active: 3, recovery: 12, hitstun: 14, knockbackX: 2, knockbackY: 0,  rangeX: 88, rangeY: 56, rekkaNext: "batCombo3" },
+  batCombo3: { damage: 66, startup: 6, active: 4, recovery: 20, hitstun: 22, knockbackX: 9, knockbackY: -4, rangeX: 96, rangeY: 60 },   // extended-straight launcher finisher (string ends here)
+}
+function fireBatmanCommand(fighter, key, context) {
+  const md = BATMAN_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = key === "batCombo3"
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the batComboN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+// Grounded command-normal driver (mirrors updateFlashCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateBatmanCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "batman" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during the current part's recovery, only if it CONNECTED (cancel-on-hit).
+  const opp = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireBatmanCommand(fighter, next, context)
+  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && inputState.down && heavyEdge) return fireBatmanCommand(fighter, "batCombo1", context)
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TOBIRAMA — taijutsu command chain + 2 free pokes (Stage 3). Mirrors the Omega
 // Ranger architecture (chain + pokes), cancel-on-HIT (Vegeta/Killua pattern).
 // CHAIN (Fwd+Heavy → re-tap Heavy): tobiCombo1 → tobiCombo2 (water-infused strike) →
@@ -5081,6 +5173,94 @@ export function updateEdoTensei(fighter, worldWidth) {
   })
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BATMAN — SPECIAL menu (SPECIAL button, direction-branched via _specialHeldDir) — Stage 3.
+// Gadget-tech kit. Three tools, per the design calls (each pinned to the ACTUAL batch art):
+//   • Neutral = BATARANG — a thrown projectile (baterang_throw cast → batman_baterang_proj.png
+//     5-frame spinning batarang). Fastest/cheapest tool: a quick ranged poke. 15 Gadgets.
+//   • Forward = CAPE DASH — the "Grapple Hook" slot, resolved as a MOBILITY LUNGE (not a grab-pull):
+//     NO hook-and-pull art exists in the batch OR atlas, so per the brief the side_kick_combos
+//     leaping cape-swoop drives a committed forward dash-strike. 25 Gadgets.
+//   • Down    = SMOKE PELLET — evasion/mix-up: a vanish-and-reappear-BEHIND teleport reusing the
+//     shared teleport-behind math (Sasuke-Substitution pattern) + procedural smoke poof + i-frames.
+//     No dedicated smoke art → the poof is spawnClonePuff (art-independent, proven). 20 Gadgets.
+// ─────────────────────────────────────────────────────────────────────────────
+function executeBatmanSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireBatmanCapeDash(fighter, context)
+  if (dir === "D") return fireBatmanSmokePellet(fighter, context)
+  return fireBatmanBatarang(fighter, context)
+}
+
+// NEUTRAL — Batarang: a thrown spinning projectile. The throw CAST pose plays while a small batarang
+// (5-frame spin filmstrip) releases mid-motion and flies straight with its own collision. Cheap + fast
+// = the poke that opens neutral. 15 Gadgets.
+function fireBatmanBatarang(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 15)) return false
+  fighter._spriteCastMove  = "batarangThrow"   // 6f wind-up→release (batman_batarang_throw_uniform)
+  fighter._spriteCastTimer = 22
+  fighter.attackCooldown   = getAttackDuration(24, fighter)
+  const face = fighter.facing || 1
+  // Release on the throw's release beat (~frame 5 of the 6f cast).
+  schedulePendingSpawn(6, () => {
+    spawnProjectile(fighter, "batman_batarang", {
+      sheet: "./batman_baterang_proj.png", spriteFrames: 5, spriteW: 41, spriteH: 22, spriteSpeed: 2, spriteScale: 1.3,
+      damage: 34, speed: 17, hitstun: 15, knockbackX: 5, knockbackY: -1,
+      w: 34, h: 20, color: "#2b2f3a", lifetime: 150,
+      vx: face * 17, spawnY: fighter.y + (fighter.h || 100) * 0.4
+    }, context)
+  })
+  return true
+}
+
+// FORWARD — Cape Dash ("Grapple Hook" slot as a MOBILITY lunge). A committed leaping cape-swoop that
+// carries Batman forward into a single strike (approach/gap-close tool). createAttackFromMove melee +
+// a forward velocity burst; mild launch so it can start a juggle. 25 Gadgets.
+function fireBatmanCapeDash(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 25)) return false
+  const md = { damage: 50, startup: 6, active: 5, recovery: 16, hitstun: 20, blockstun: 12, knockbackX: 7, knockbackY: -5, rangeX: 96, rangeY: 64, isSpecial: true, launcher: true }
+  const attack = createAttackFromMove(fighter, "capeDash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "capeDash" → the leaping-swoop pose
+  fighter.vx = (fighter.facing || 1) * 14   // lunge forward through the swoop
+  shakeCamera(context, 4, 7)
+  return true
+}
+
+// DOWN — Smoke Pellet: drop a smoke pellet and vanish, reappearing BEHIND the opponent. Reuses the
+// shared teleport-behind positioning math (replicated from game.js teleportBehindTarget, exactly as
+// Sasuke's Substitution does — abilities.js can't import game.js) + the procedural smoke poof
+// (spawnClonePuff) at both origin and destination + brief i-frames on the blink. 20 Gadgets.
+function fireBatmanSmokePellet(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 20)) return false
+  const target = context?.getOpponent?.(fighter)
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 14)   // covers the blink (dodges melee + stray projectiles)
+  fighter.teleportFlash = 16
+  // Poof OUT at the origin (capture before the reposition).
+  spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)
+  const STARTUP = 6
+  fighter.attackCooldown = getAttackDuration(STARTUP + 18, fighter)   // committed, not spammable
+  schedulePendingSpawn(STARTUP, () => {
+    if (target) {
+      const sw = context?.worldWidth || 3200
+      // TRUE teleport-BEHIND: CROSS to the FAR side of the opponent (the shared game.js
+      // teleportBehindTarget actually blinks to the near/same side = point-blank; for the Smoke
+      // Pellet mix-up we want to genuinely reappear behind). Flip the ternary vs that helper.
+      fighter.x = fighter.x < target.x ? target.x + target.w + 8 : target.x - fighter.w - 8
+      fighter.x = Math.max(0, Math.min(sw - fighter.w, fighter.x))
+      fighter.y = target.y
+      fighter.vx = 0; fighter.vy = 0
+      fighter.facing = (target.x >= fighter.x) ? 1 : -1
+    }
+    spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)   // poof IN
+  })
+  focusCameraOnAction(context, fighter, target, 1.0, 8)
+  return true
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -5113,6 +5293,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "saiki":   return executeSaikiSpecial(fighter, context)   // Lightning — two layered bolts fired as one thick beam
     case "killua":  return executeKilluaSpecial(fighter, context)   // Yo-Yo throw→travel→retract boomerang
     case "flash":   { const ok = executeFlashSpecial(fighter, context); if (ok) maybeFireFlashSkinCastVoice(fighter); return ok }   // Spin Attack (neutral) / Tornado (forward); + Reverse-skin cast bark
+    case "batman":  return executeBatmanSpecial(fighter, context)   // Batarang (neutral projectile) / Cape Dash (fwd mobility lunge) / Smoke Pellet (down teleport-behind)
     case "gon":     return executeGonSpecial(fighter, context)   // Jajanken: Rock (neutral, charged) / Scissors (fwd, multi-hit) / Paper (down, push)
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     default:        return executeFallbackSpecial(fighter, context)
@@ -5150,6 +5331,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
       case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
+      case "batman":  cast = executeBatmanUltimate(fighter, context);  break   // The Dark Knight: batarang-barrage freeze cinematic
       case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
       case "saiki":   cast = executeSaikiUltimate(fighter, context);   break   // Giant Bomb Throw: delayed screen-filling explosion
       case "killua":  cast = executeKilluaUltimate(fighter, context);  break   // Godspeed: sustained speed/damage buff + electric afterimage overlay (buff-mode, not a form swap)

@@ -21,6 +21,7 @@ const ENERGY_TYPE_LABELS = {
   spd_energy:       "SPD Energy",               // Power Rangers SPD
   psi:              "Psi",                       // The Disastrous Life of Saiki K. (Saiki) — psychic power
   speed_force:      "Speed Force",               // DC (The Flash) — the Flash Time meter
+  gadget:           "Gadgets",                    // DC (Batman) — utility-belt gadget meter (specials + Ultimate)
   stamina:          "Stamina",                  // original roster (Omololu)
   omnitrix:         "Omnitrix",                 // Ben 10 (fallback; device HUD block overrides live)
   ultimatrix:       "Ultimatrix",               // Albedo (fallback; device HUD block overrides live)

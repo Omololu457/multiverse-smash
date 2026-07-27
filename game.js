@@ -65,6 +65,7 @@ import {
   updateKilluaCommandCombat,   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
   updateFlashCommandCombat,   // Flash Down+Heavy 2-hit "Speed Rush" command-normal cancel chain (rush1→rush2, cancel-on-hit)
   updateGonCommandCombat,     // Gon Down+Heavy 2-hit "Rush" command-normal cancel chain (rush1 flurry→rush2 launcher, cancel-on-hit)
+  updateBatmanCommandCombat,  // Batman Down+Heavy 3-hit "Combo" command-normal cancel chain (batCombo1→2→3 launcher, cancel-on-hit)
   updateTobiramaCommandCombat   // Tobirama Fwd+Heavy 3-hit taijutsu chain (combo1→combo2→comboFin) + Fwd+Light/Back+Heavy pokes
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -152,6 +153,10 @@ import {
   updateBeerusKiBallCinematic, isBeerusKiBallCinematicActive, drawBeerusKiBallCinematic,
   clearBeerusKiBallCinematic, getBeerusKiBallCinematicStatus
 } from "./beerusKiBallCinematic.js"
+import {
+  updateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive, drawBatmanDarkKnightCinematic,
+  clearBatmanDarkKnightCinematic, getBatmanDarkKnightCinematicStatus
+} from "./batmanDarkKnightCinematic.js"
 import {
   updateEdoTenseiCinematic, isEdoTenseiCinematicActive, drawEdoTenseiCinematic,
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
@@ -1470,6 +1475,7 @@ function resetRound() {
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
+  clearBatmanDarkKnightCinematic()
   clearEdoTenseiCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
@@ -1948,6 +1954,7 @@ function resetToStart() {
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
+  clearBatmanDarkKnightCinematic()
   clearEdoTenseiCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
@@ -2431,6 +2438,7 @@ function _doRematch() {
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
+  clearBatmanDarkKnightCinematic()
   clearEdoTenseiCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
@@ -3100,6 +3108,12 @@ function _updatePlayerCombatBody(fighter) {
   // a whiff/block ends the string. Consumes the input only when it fires; neutral normals stay below.
   if ((fighter.rosterKey || "").toLowerCase() === "gon" && !charging &&
       updateGonCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // BATMAN "Combo": Down+Heavy opens batCombo1 (jab), re-tap Heavy on hit → batCombo2 (uppercut) →
+  // batCombo3 (launcher). Cancel-on-hit; a whiff/block ends the string. Consumes the input only when
+  // it fires (returns true → skip normal path); neutral light/heavy stay on the normal path below.
+  if ((fighter.rosterKey || "").toLowerCase() === "batman" && !charging &&
+      updateBatmanCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // TOBIRAMA taijutsu chain: Fwd+Heavy opens tobiCombo1, re-tap Heavy on hit → tobiCombo2 → tobiComboFin
   // (cancel-on-hit; a whiff/block ends the string). Free pokes: Fwd+Light = Strong Forward, Back+Heavy =
@@ -3852,6 +3866,13 @@ function updateBattle() {
   }
   if (isBeerusKiBallCinematicActive()) {
     updateBeerusKiBallCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // BATMAN "THE DARK KNIGHT" CINEMATIC: SAME freeze contract — combat/physics/input paused for the
+  // whole batarang barrage; the guaranteed damage lands at the connect beat via onImpact, then resume.
+  if (isBatmanDarkKnightCinematicActive()) {
+    updateBatmanDarkKnightCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
@@ -4694,6 +4715,7 @@ function drawBattle() {
   drawMangekyouCinematic(ctx, canvas)       // fullscreen Mangekyou activation overlay (centered eye transformation)
   drawVegetaFinalFlashCinematic(ctx, canvas)  // fullscreen Overcharged Final Flash overlay (gold beam + impact explosion)
   drawBeerusKiBallCinematic(ctx, canvas)      // fullscreen Ki Ball overlay (charging orb → impact explosion)
+  drawBatmanDarkKnightCinematic(ctx, canvas)  // fullscreen batarang-barrage overlay (windup glow → rain → impact flash)
   drawEdoTenseiCinematic(ctx, canvas)         // Edo Tensei summon/un-summon overlay (giant coffin + vessel reveal)
   if (aiVsAiState.active) _drawAiVsAiHud()
 }
@@ -5922,7 +5944,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBatmanDarkKnightCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -6096,6 +6118,7 @@ gameLoop()
     mangekyouCine: () => getMangekyouCinematicStatus(),
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
     beerusUltCine: () => getBeerusKiBallCinematicStatus(),
+    batmanUltCine: () => getBatmanDarkKnightCinematicStatus(),
     kuramaUltCine: () => getKuramaCinematicStatus(),
     p1CloneCount: () => (p1 ? countShadowClones(p1) : 0),   // test hook: live shadow-clone count (barrage gate)
     // Vegeta Super Saiyan form control + introspection (vegeta_ssj.test.mjs). op:

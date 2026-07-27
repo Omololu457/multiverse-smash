@@ -231,6 +231,14 @@ export const SKINS = {
     { id: "flashBlue", name: "Blue Streak (Alt)", unlockLevel: 0, portrait: "./flash_portrait__blue.png", spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "blue") }
   ],
 
+  // Batman (DC). Same gate: WITHOUT a default skin, applySkin() pulls the getSkins()
+  // spriteScale:1 fallback and he renders at native ~half size (his art is large so the
+  // fallback would OVER-size then his own <1 scale wouldn't apply). Sources his real
+  // spriteScale (0.92) + portrait from the character. No alt skins yet.
+  batman: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.batman?.portrait, spriteScale: characters.batman?.spriteScale, animationData: null }
+  ],
+
   // Rick Sanchez (Rick & Morty). Same gate as the sprite characters above: WITHOUT a default
   // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native
   // ~67px (half size). Sources his real spriteScale (1.7) from the character. No alt skins yet.

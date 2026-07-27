@@ -717,7 +717,10 @@ function applyTobiramaOffenseVoice(attacker, cat, unblocked) {
 function applyFlashHitVoice(defender, cat, dmg) {
   if (!defender || (defender.rosterKey || "").toLowerCase() !== "flash" || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
-  try { sound?.playSfxFile?.(pickFlashVoice("hitReact"), null) } catch (_) {}
+  // SKIN OVERRIDE: the Reverse Flash skin REPLACES base Flash's reaction line (skinClip || base), same
+  // priority the intro site uses. Under any other skin pickSkinVoice returns null → base Flash unchanged.
+  const skinClip = pickSkinVoice("flash", defender.skinId, "hitReact")
+  try { sound?.playSfxFile?.(skinClip || pickFlashVoice("hitReact"), null) } catch (_) {}
 }
 
 // ATTACKER connect — Flash's quippy speed trash-talk on a STRONG connect (heavy/special/ultimate) OR a
@@ -729,7 +732,10 @@ function applyFlashOffenseVoice(attacker, cat, unblocked) {
   const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
   if (!strong && !longString) return
   attacker._atkVoiceCd = 150
-  try { sound?.playSfxFile?.(pickFlashVoice("taunt"), null) } catch (_) {}
+  // SKIN OVERRIDE: the Reverse Flash skin REPLACES base Flash's connect line — ~30% taunt / 70% hit-connect
+  // (Killua precedent). Under any other skin pickSkinVoice returns null → base Flash taunt pool, unchanged.
+  const skinClip = pickSkinVoice("flash", attacker.skinId, Math.random() < 0.30 ? "taunt" : "hitConnect")
+  try { sound?.playSfxFile?.(skinClip || pickFlashVoice("taunt"), null) } catch (_) {}
 }
 
 // ── ISAAC NETERO VOICE LINES ── (removed — audio files deleted; awaiting fresh audio.

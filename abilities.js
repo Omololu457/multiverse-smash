@@ -1817,6 +1817,13 @@ function maybeFireGojoCastVoice(fighter) {
   const clip = pickSkinVoice("gojo", fighter.skinId, "cast")
   if (clip) { try { sound.playSfxFile?.(clip, null) } catch (_) {} }
 }
+// FLASH "Reverse Flash" skin special-cast flavor (same mechanism as Gojo). Base Flash has no cast voice,
+// so pickSkinVoice returns null on every other skin → base Flash's casts are completely unchanged.
+function maybeFireFlashSkinCastVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "flash") return
+  const clip = pickSkinVoice("flash", fighter.skinId, "cast")
+  if (clip) { try { sound.playSfxFile?.(clip, null) } catch (_) {} }
+}
 
 // Specials: Blue (attract), Red (repel), Hollow Purple (convergence beam)
 // Ultimate: Unlimited Void domain expansion
@@ -5105,7 +5112,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "omega_ranger": return executeOmegaRangerSpecial(fighter, context)   // Gun / Super Upper / Special Downward
     case "saiki":   return executeSaikiSpecial(fighter, context)   // Lightning — two layered bolts fired as one thick beam
     case "killua":  return executeKilluaSpecial(fighter, context)   // Yo-Yo throw→travel→retract boomerang
-    case "flash":   return executeFlashSpecial(fighter, context)   // Spin Attack (neutral) / Tornado (forward) — melee multi-hit whirls
+    case "flash":   { const ok = executeFlashSpecial(fighter, context); if (ok) maybeFireFlashSkinCastVoice(fighter); return ok }   // Spin Attack (neutral) / Tornado (forward); + Reverse-skin cast bark
     case "gon":     return executeGonSpecial(fighter, context)   // Jajanken: Rock (neutral, charged) / Scissors (fwd, multi-hit) / Paper (down, push)
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     default:        return executeFallbackSpecial(fighter, context)
@@ -5147,7 +5154,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "saiki":   cast = executeSaikiUltimate(fighter, context);   break   // Giant Bomb Throw: delayed screen-filling explosion
       case "killua":  cast = executeKilluaUltimate(fighter, context);  break   // Godspeed: sustained speed/damage buff + electric afterimage overlay (buff-mode, not a form swap)
       case "gon":     cast = executeGonUltimate(fighter, context);     break   // Adult Form: buff + movement-lockout + close-range SUDDEN-DEATH (hit=instant win / miss=instant loss)
-      case "flash":   cast = executeFlashUltimate(fighter, context);   break   // Flash Time: opponent time-slow (⅓×) + self speed buff + block-lockout + overshoot movement (buff-mode)
+      case "flash":   cast = executeFlashUltimate(fighter, context);   if (cast) maybeFireFlashSkinCastVoice(fighter);   break   // Flash Time (buff-mode) + Reverse-skin cast bark
       case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window
       default:        cast = executeFallbackUltimate(fighter, context); break
     }

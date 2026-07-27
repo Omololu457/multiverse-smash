@@ -113,7 +113,8 @@
     "test:beta-input": "node harness/beta_input.test.mjs",
     "test:beta-toggle": "node harness/beta_toggle.test.mjs",
     "test:session-persist": "node harness/session_persist.test.mjs",
-    "test:beta-mode-rosters": "node harness/beta_mode_rosters.test.mjs"
+    "test:beta-mode-rosters": "node harness/beta_mode_rosters.test.mjs",
+    "test:flash-reverse-voice": "node harness/flash_reverse_voice.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

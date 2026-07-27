@@ -2294,6 +2294,12 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "gon") {
         sound.playSfxFile?.(pickGonVoice("win"), null)
       }
+      // FLASH "Reverse Flash" SKIN win voice — skin-gated (pickSkinVoice returns null on every other
+      // Flash skin, and base Flash has no win pool → base Flash's win beat is silent, unchanged).
+      if (winFighter?.rosterKey === "flash") {
+        const clip = pickSkinVoice("flash", winFighter.skinId, "win")
+        if (clip) sound.playSfxFile?.(clip, null)
+      }
       // TOBIRAMA win voice — random pick from his finisher/victory declarations ("For the future, forward"
       // / "No longer needed" / "Stay asleep"). Fires only when the WINNER is Tobirama.
       if (winFighter?.rosterKey === "tobirama") {
@@ -6246,6 +6252,8 @@ gameLoop()
     // every wired Limitless trigger uses. Proves genuine random selection within each of the 6 pools.
     // Passing a null/other skinId returns nulls (proves the override is skin-gated, not global).
     gojoVoicePick: (skinId, pool, n = 1) => Array.from({ length: n }, () => pickSkinVoice("gojo", skinId, pool)),
+    // Generic per-skin voice sampler (any rosterKey/skinId) — used by the Reverse Flash skin-gating test.
+    skinVoicePick: (rosterKey, skinId, pool, n = 1) => Array.from({ length: n }, () => pickSkinVoice(rosterKey, skinId, pool)),
     // TEST-ONLY: live-apply a skin to a fighter (calls the real applySkin) so a test can toggle
     // the Limitless skin ON/OFF mid-session and prove the voice override activates/reverts.
     setSkin: (side = "p1", skinId = "default") => { const f = side === "p2" ? p2 : p1; if (f) { applySkin(f, skinId); return f.skinId } return null },

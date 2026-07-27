@@ -44,6 +44,8 @@
 // so a voice line overlaps the technique SFX and never cuts another off (project convention).
 // ---------------------------------------------------------------------------
 
+import { REVFLASH_VOICE } from "./flashReverseVoice.js"   // Flash "Reverse Flash" skin pack — registered in SKIN_VOICE below (same mechanism)
+
 export const GOJOYOUNG_VOICE = {
   // ── INTRO / CHARACTER-SELECT (10) ──
   intro: [
@@ -197,7 +199,8 @@ export const GOJOYOUNG_VOICE = {
 // trigger site falls back to the character's BASE voice (or silence if none). Add a
 // future per-skin voice pack by registering it here — trigger sites need no change.
 const SKIN_VOICE = {
-  "gojo:gojo2": GOJOYOUNG_VOICE,   // "Limitless (Alt)" skin → the young-Gojo Japanese pack
+  "gojo:gojo2": GOJOYOUNG_VOICE,          // "Limitless (Alt)" skin → the young-Gojo Japanese pack
+  "flash:flash_reverse": REVFLASH_VOICE,  // "Reverse Flash (Alt)" skin → the Eobard Thawne (Injustice 2) pack
 }
 
 // Resolve the override POOL for a given fighter skin (null when no override applies).

@@ -2287,6 +2287,100 @@ const gon = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// BATMAN  (rosterKey "batman", universe "dc" — 2nd DC char after The Flash,
+// 17th sprite char overall). Source art = ~27 per-action PNGs (batman_*.png)
+// + a master reference atlas (batman_transparent.png, 3861×2171 = full row-sheet;
+// the per-action files are the extracted rows). Filenames preserved EXACTLY as
+// uploaded (note typos: batman_baterang_*, batman_melle_combo_1, batman_foward_*,
+// batman_down_air_specail). Frame counts MEASURED via slice_scan.mjs (alpha-gutter);
+// non-uniform strips RE-SLICED (reslice.mjs → *_uniform.png). See BATMAN_ASSET_MAP.md.
+// Archetype: TECHNICAL martial-arts brawler with a gadget special kit (Killua/Netero
+// tier, precision over brute force) — balanced-to-slightly-fast, moderate per-hit,
+// DISCIPLINED (high defense). Gadget meter (energyType "gadget"). Batarang projectile,
+// Cape Dash (grapple-as-mobility — no hook-pull art), Smoke Pellet teleport-behind;
+// Ultimate = Batarang-barrage cinematic (largest sequence = batman_baterang_combo_throws).
+// ─────────────────────────────────────────────────────────────────
+const batman = {
+  rosterKey: "batman", name: "Batman", universe: "dc", color: "#3a3f4b",
+  portrait: "./batman_portrait.png",   // cowl head CROPPED from idle frame 0 (Stage 5; falls back cleanly if absent pre-crop).
+  archetypes: ["technical", "rushdown"],
+  primary: "technical", secondary: ["rushdown"],
+  traits: { hasEnergy: true, energyType: "gadget", mobility: "high", scaling: "combo", animeMovement: false },
+  // TECHNICAL PRECISION BRAWLER — Killua/Netero tier (fast, tool-assisted, efficient), NOT a
+  // heavy power-brawler. vs roster: Killua HP1030/atk84/def78/spd95 (glass assassin),
+  // Netero HP980/atk98/def82/spd94 (glass burst), Gon HP1150/atk89/def86/spd86 (durable
+  // all-rounder), Flash HP1020/atk80/def74/spd99 (glass speedster). Batman sits as a
+  // DISCIPLINED mid: HP1080 (mid), atk86 (moderate), def88 (2nd-highest — disciplined guard),
+  // spd92 (balanced-to-slightly-fast, below Toji98/Flash99/Killua95, above Gon86). No stat is
+  // an outlier; def88 is the only slightly-high value and is intentional (Batman's identity is
+  // defense + counters, not damage). maxEnergy 100 = Gadget meter (specials + Ultimate).
+  stats: { maxHealth: 1080, maxEnergy: 100, attack: 86, defense: 88, speed: 92, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 11, dashCooldownMax: 30 },
+  // Placeholder normals (moderate, combo-friendly) — real normals + command chain land in Stage 2.
+  // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air. combat.js _getMD reads THIS.
+  basic_attacks: {
+    light:    { damage: 32, startup: 3, active: 3, recovery: 8,  hitstun: 13, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 64, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 52, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, airOK: false },
+    airAttack:{ damage: 45, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 58, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+  },
+  // HUD-only until Stage 4 (real logic + cost live in abilities.js). Cinematic Batarang barrage.
+  ultimate: { name: "The Dark Knight", cost: 100, description: "The Dark Knight — a cinematic barrage of batarangs raining down on a staggered foe (freeze-focus finisher)." },
+  hasSprites: true,
+  // spriteScale 0.92 → idle content 128px × 0.92 ≈ 118px on-screen (roster band ~110–120). Batman's
+  // source art is LARGE (unlike Gon/Killua's tiny cells) so scale is <1. REQUIRES the skins.js `batman`
+  // default skin (else applySkin() pulls the spriteScale:1 fallback) + the spritesheets.js idle gate.
+  spriteScale: 0.92,
+  // anchorY = -(bottom transparent gap × 0.92) plants feet (botGap measured per resliced sheet).
+  animationData: {
+    // ── MOVEMENT / STATE (Stage 1). Re-sliced to uniform feet-preserving cells (reslice.mjs). ──
+    idle:  { frames: 6,  width: 125, height: 132, speed: 8, anchorY: -2, sheet: "./batman_idle_uniform.png" },   // botGap 2 — cape-settle idle
+    walk:  { frames: 12, width: 160, height: 150, speed: 5, anchorY: -3, sheet: "./batman_walk_uniform.png" },   // full 12f walk cycle (distinct from run)
+    run:   { frames: 8,  width: 191, height: 120, speed: 4, anchorY: -2, sheet: "./batman_run_uniform.png" },    // 8f cape-sweep sprint
+    dash:  { frames: 8,  width: 191, height: 120, speed: 3, anchorY: -2, sheet: "./batman_run_uniform.png" },    // reuse run faster
+    // Jump: 4-pose crouch→spring→apex→float from the side-leap strip; hold last cell for fall.
+    jump:  { frames: 4,  width: 176, height: 145, speed: 6, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./batman_jump_uniform.png" },   // botGap 12
+    fall:  { frames: 1,  width: 176, height: 145, speed: 6, anchorY: -11, sourceX: 528, loop: false, lockLastFrame: true, sheet: "./batman_jump_uniform.png" },   // frame 3 (float/descend)
+    // GUARD — REAL 6-frame block strip (cape-wrap brace). Unlike Flash/Killua (idle fallback) Batman
+    // has dedicated block art. Play once, hold the settled cape-wrap (last frame). sprite.js guard branch.
+    guard: { frames: 6,  width: 121, height: 146, speed: 8, anchorY: -6, loop: false, lockLastFrame: true, sheet: "./batman_guard_uniform.png" },   // botGap 7
+    // HURT — real 4-frame recoil strip (batman_hit). All hitstun routes here.
+    hurt:  { frames: 4,  width: 130, height: 161, speed: 6, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_hit_uniform.png" },   // botGap 0
+    // Pre-match INTRO — the LANDING strip (batman_land): glide-descend (cape spread) → touchdown →
+    // cape settles into stance. Dramatic Batman entrance. Plays once, holds the settled last frame.
+    intro: { frames: 7,  width: 337, height: 219, speed: 5, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_intro_uniform.png" },   // botGap 0
+    // HOLD-TO-CHARGE — gadget-charge flex pose (batman_charge). Rendered by sprite.js when isCharging
+    // (universal hold-P for any maxEnergy>0 char). loop while held. botGap 4 → anchorY -(4×0.92)≈-4.
+    charge: { frames: 3,  width: 140, height: 162, speed: 6, anchorY: -4, loop: true, sheet: "./batman_charge_uniform.png" },
+    // ── STAGE 2 NORMALS (5 slots). Resliced uniform cells; play once, hold last frame. anchorY =
+    // -(botGap × 0.92) plants feet (measured per strip). Moderate technical-brawler pacing. ──
+    light:    { frames: 3, width: 165, height: 144, speed: 3, anchorY: -7, loop: false, lockLastFrame: true, sheet: "./batman_light_uniform.png" },     // quick jab→cross (foward_punch)
+    heavy:    { frames: 6, width: 178, height: 129, speed: 4, anchorY: -3, loop: false, lockLastFrame: true, sheet: "./batman_heavy_uniform.png" },      // committed wind-up kick (foward_kick)
+    up:       { frames: 3, width: 146, height: 140, speed: 4, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_up_uniform.png" },         // launcher: overhead uppercut (down_combo_2 frames 0-2)
+    air:      { frames: 6, width: 89,  height: 150, speed: 4, anchorY: -4, loop: false, lockLastFrame: true, sheet: "./batman_air_uniform.png" },        // neutral aerial cape-swirl (super_air)
+    down_air: { frames: 6, width: 186, height: 116, speed: 4, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_downair_uniform.png" },    // aerial dive-punch (down_air_2)
+    // ── STAGE 2 COMMAND-NORMAL CHAIN — "Combo" (Down+Heavy rekka, cancel-on-hit; Flash/Gon/Tobirama
+    // architecture). The 12-frame standing hand-to-hand string (batman_melle_combo_1) split into 3
+    // cancelable stages: batCombo1 (jab opener) → batCombo2 (weave→uppercut) → batCombo3 (extended
+    // straight finisher, launches). currentMove = batComboN resolves the sheet via sprite.js identity. ──
+    batCombo1: { frames: 4, width: 127, height: 163, speed: 3, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_combo1_uniform.png" },
+    batCombo2: { frames: 4, width: 148, height: 163, speed: 3, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_combo2_uniform.png" },
+    batCombo3: { frames: 4, width: 189, height: 163, speed: 3, anchorY: -5, loop: false, lockLastFrame: true, sheet: "./batman_combo3_uniform.png" },
+    // ── STAGE 3 SPECIAL cast poses (SPECIAL button, direction-branched via _specialHeldDir).
+    // currentMove/_spriteCastMove drives these via sprite.js identity → the sheet. ──
+    batarangThrow: { frames: 6, width: 184, height: 157, speed: 3, anchorY: -6, loop: false, lockLastFrame: true, sheet: "./batman_batarang_throw_uniform.png" },   // neutral Special: wind-up → release (baterang_throw)
+    capeDash:      { frames: 8, width: 235, height: 130, speed: 3, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_capedash_uniform.png" },           // forward Special: leaping cape-swoop lunge (side_kick_combos). Smoke Pellet (down) is FX-only (poof+flash, no cast sheet).
+    // ── STAGE 4 ULTIMATE cast pose — "The Dark Knight" batarang barrage. Batman holds this 14-frame
+    // rapid multi-throw (batman_baterang_combo_throws = the LARGEST sequence in the batch) through the
+    // frozen cinematic while a rain of batarangs streaks down onto the staggered foe. _spriteCastMove. ──
+    darkKnight:    { frames: 14, width: 212, height: 141, speed: 3, anchorY: -5, loop: false, lockLastFrame: true, sheet: "./batman_ult_uniform.png" }
+  },
+  // Dedicated dramatic landing intro IS present → point the intro pool at it.
+  introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
@@ -2303,7 +2397,8 @@ export const characters = {
   saiki,
   killua,
   flash,
-  gon
+  gon,
+  batman
 }
 
 // The 7 characters shown in the starter roster select screen

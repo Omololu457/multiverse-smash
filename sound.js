@@ -496,6 +496,18 @@ class SoundManager {
     this._duckCount      = 0
     this._musicDuckScale = 1
     this._musicFileFade  = null
+    // ── ACTIVE FILE-SFX REGISTRY (voice lines + move-tied one-shots) ──────────────
+    // Every playSfxFile() Audio is tracked here so it can be STOPPED when its source
+    // animation ends (stopOwnedSfx) or the match ends (stopAllSfx) — fixing audio that
+    // used to play to completion decoupled from game state. Entries: {audio, owner, persistent}.
+    this._activeSfx      = new Set()
+    // Ambient OWNER for the current cue: game.js stamps the acting fighter around a fighter's
+    // combat/ability update so its voice auto-tags without touching every call site. null = untagged
+    // (intro / win / menu cues) → never cut by the per-animation stop.
+    this._voiceOwner     = null
+    // When true, cues started right now are PERSISTENT (survive stopAllSfx unless includePersistent) —
+    // used to preserve win-lines that intentionally play into the victory screen.
+    this._forcePersistent = false
   }
 
   // ── INIT ──────────────────────────────────────────────────────
@@ -725,7 +737,9 @@ class SoundManager {
   // One-shot file SFX, played on SFX volume. Optional `fallbackId` is a
   // procedural SOUNDS id triggered if the file can't be requested OR 404s
   // (via the element's onerror) — so the cue is never fully silent.
-  playSfxFile(filename, fallbackId = null) {
+  // opts.owner: the fighter this cue belongs to (auto-filled from this._voiceOwner if omitted) so it can
+  // be cut when that fighter's source animation ends. opts.persistent: survive stopAllSfx (win-lines).
+  playSfxFile(filename, fallbackId = null, opts = {}) {
     if (this._sfxMuted || !this._gestured) return false   // SFX mute: skip BEFORE ducking → a muted cue never ducks music
     const src = this._resolveSrc(filename)
     if (!src) { if (fallbackId) this.play(fallbackId); return false }
@@ -733,19 +747,48 @@ class SoundManager {
       const a = new Audio(src)        // fresh element: fire-and-forget one-shot
       a.volume = this._sfxVol
       if (fallbackId) a.onerror = () => this.play(fallbackId)   // 404 → procedural cue
-      // DUCK: this is a file-based voice/significant cue → drop music while it plays and
-      // restore when it ENDS (real duration, not a guessed timeout). Ref-counted, so
-      // overlapping cues keep music ducked until the last finishes. Guarded release fires
-      // on ended / error / play-rejection so the duck can never get stuck.
+      // Track it so a state transition (source animation ends / match ends) can STOP it.
+      const owner = opts.owner !== undefined ? opts.owner : this._voiceOwner
+      const entry = { audio: a, owner: owner || null, persistent: !!(opts.persistent || this._forcePersistent) }
+      this._activeSfx.add(entry)
+      // DUCK: this is a file-based voice/significant cue → drop music while it plays and restore when it
+      // ENDS. Ref-counted. The release ALSO deregisters the entry, and fires on ended / error /
+      // play-rejection / a manual stop (stopAllSfx/stopOwnedSfx call it) so the duck can never get stuck.
       this._duckBegin()
       let released = false
-      const release = () => { if (!released) { released = true; this._duckEnd() } }
+      const release = () => { if (!released) { released = true; this._activeSfx.delete(entry); this._duckEnd() } }
+      entry.release = release
       a.addEventListener("ended", release, { once: true })
       a.addEventListener("error", release, { once: true })
       const p = a.play()
       if (p && p.catch) p.catch(() => release())   // playback rejected → un-duck immediately
-      return true
+      return a
     } catch (_) { if (fallbackId) this.play(fallbackId); return false }
+  }
+
+  // Immediately stop + deregister one tracked cue (pause, rewind, release its music-duck).
+  _killSfxEntry(entry) {
+    try { entry.audio.pause(); entry.audio.currentTime = 0 } catch (_) {}
+    if (entry.release) entry.release(); else this._activeSfx.delete(entry)
+  }
+
+  // Stop EVERY in-flight voice/SFX cue — the match-end / menu-return hammer. Preserves `persistent`
+  // cues (win-lines that intentionally play into the victory screen) unless includePersistent is set.
+  stopAllSfx({ includePersistent = false } = {}) {
+    for (const entry of [...this._activeSfx]) {
+      if (entry.persistent && !includePersistent) continue
+      this._killSfxEntry(entry)
+    }
+  }
+
+  // Stop the cues belonging to ONE fighter — called when that fighter's source animation/action ends
+  // (transitions to idle / a new action), so a long voice line can't outlast its short animation.
+  // Persistent cues (none are owner-tagged today, but be safe) are left alone.
+  stopOwnedSfx(owner) {
+    if (!owner) return
+    for (const entry of [...this._activeSfx]) {
+      if (entry.owner === owner && !entry.persistent) this._killSfxEntry(entry)
+    }
   }
 
   // SHARED Dragon Ball transformation cue. Any DB character's transformation code calls this

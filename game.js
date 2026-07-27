@@ -30,16 +30,25 @@ import {
   updateProjectiles as updateCombatProjectiles,
   checkClash, checkParry, resolveGrab, updateGrab,
   getAttackPhase, getAttackHitbox,   // training overlay: live frame data + real attack hitbox
-  getHurtbox,                         // harness: verify the Susanoo giant hurtbox
+  getHurtbox,                         // harness: verify the Susanoo giant hurtbox + Edo dummy body-overlap
+  attackIsActive,                     // Edo Tensei: only an ACTIVE swing can cancel via the standing dummy
+  rectsOverlap,                       // Edo Tensei: opponent-attack vs standing-Tobirama dummy overlap
+  GLOBAL_DAMAGE_SCALE,                // Edo Tensei: scale a dummy-cancel hit to the same net damage a normal hit deals
   startMove,                          // harness: drive a real p2 attack (Substitution incoming-window)
   getCancelWindow                     // harness/combo-flow: inspect a fighter's shared cancel window
 } from "./combat.js"
 import {
   activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation,
+  executeTobiramaWaterFlicker,   // Tobirama Water Body-Flicker escape (hitstun/knockdown reversal)
+  revertEdoTensei,   // Tobirama Edo Tensei: auto-revert from the vessel back to Tobirama at window's end
+  updateEdoTensei,   // Tobirama Edo Tensei: per-frame windup→swap + active-window fuel-drain driver
+  endEdoTenseiWindow,   // Tobirama Edo Tensei: launch the un-summon (fuel-empty OR opponent hit the standing Tobirama)
   enterSSJRose, revertSSJRose, applyGokuBlackFormSystem,   // Goku Black SSJ Rose (Stage 2)
   enterMangekyou, revertMangekyou, applyMangekyouSystem, isMangekyouActive,   // Itachi Mangekyou Sharingan (buff mode)
   applyGodspeedSystem,   // Killua Godspeed: sustained buff-mode ultimate (drain tick + afterimage trail)
+  applyFlashTimeSystem, forceRevertFlashTime,   // Flash — Flash Time: sustained buff-mode ultimate (drain tick + block-lockout + afterimage trail)
+  applyGonAdultFormSystem, forceRevertGonAdultForm,   // Gon Adult Form: sustained buff-mode ultimate (drain tick + movement-lockout + green aura trail)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
@@ -53,7 +62,10 @@ import {
   updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
   updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
   updateSaikiCommandCombat,   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
-  updateKilluaCommandCombat   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
+  updateKilluaCommandCombat,   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
+  updateFlashCommandCombat,   // Flash Down+Heavy 2-hit "Speed Rush" command-normal cancel chain (rush1→rush2, cancel-on-hit)
+  updateGonCommandCombat,     // Gon Down+Heavy 2-hit "Rush" command-normal cancel chain (rush1 flurry→rush2 launcher, cancel-on-hit)
+  updateTobiramaCommandCombat   // Tobirama Fwd+Heavy 3-hit taijutsu chain (combo1→combo2→comboFin) + Fwd+Light/Back+Heavy pokes
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -62,6 +74,7 @@ import {
   drawProjectiles, drawRoundBreak, drawStartScreen, drawStageSelectScreen,
   drawTrainingCollisionBoxes, drawTrainingOverlay, drawStanceIndicator, drawUniverseSelectScreen,
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
+  drawAiVsAiSetupScreen, getAiVsAiSetupRects, drawAiVsAiSummaryScreen, getAiVsAiSummaryRects,
   drawTowerSelectScreen, getTowerSelectRects,
   drawFFASetupScreen, getFFASetupRects, drawFFACharSelectScreen,
   drawFFATeamSelectScreen, getFFATeamSelectRects,
@@ -81,12 +94,18 @@ import {
   awardMatchXp, awardXp, getLevel, xpProgress, isUnlocked, requiredLevel,
   loadProgressionFromAccount, PROGRESS_DOES_NOT_PERSIST,
   setDevUnlock, isDevUnlocked, DEV_CODE,
-  applyUnlockCode, isBetaUnlocked,
+  applyUnlockCode, isBetaUnlocked, clearBetaUnlock, restoreUnlockFlags,
   FEATURES, levelFromXp
 } from "./progression.js"
+import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
+import {
+  createSpectatorSession, startMatchLog, logMoveUsed, logHit, logRoundEnd, finalizeMatchLog,
+  sessionToJSON, sessionToCSV, summarizeSession, downloadText,
+  SPECTATOR_DIFFICULTIES, SPECTATOR_SPEEDS
+} from "./spectator.js"
 import {
   activeDomains,
   activateDomain, updateDomains, drawDomains, clearDomains,
@@ -106,6 +125,18 @@ import {
   getSSJRoseCinematicStatus
 } from "./ssjRoseCinematic.js"
 import {
+  updateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive, drawKilluaGodspeedCinematic,
+  clearKilluaGodspeedCinematic, getKilluaGodspeedCinematicStatus
+} from "./killuaGodspeedCinematic.js"
+import {
+  updateFlashTimeCinematic, isFlashTimeCinematicActive, drawFlashTimeCinematic,
+  clearFlashTimeCinematic, getFlashTimeCinematicStatus
+} from "./flashTimeCinematic.js"
+import {
+  updateGonAdultFormCinematic, isGonAdultFormCinematicActive, drawGonAdultFormCinematic,
+  clearGonAdultFormCinematic, getGonAdultFormCinematicStatus
+} from "./gonAdultFormCinematic.js"
+import {
   updateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive, drawGokuBlackSwordCinematic,
   clearGokuBlackSwordCinematic, getGokuBlackSwordCinematicStatus
 } from "./gokuBlackSwordCinematic.js"
@@ -121,8 +152,15 @@ import {
   updateBeerusKiBallCinematic, isBeerusKiBallCinematicActive, drawBeerusKiBallCinematic,
   clearBeerusKiBallCinematic, getBeerusKiBallCinematicStatus
 } from "./beerusKiBallCinematic.js"
+import {
+  updateEdoTenseiCinematic, isEdoTenseiCinematicActive, drawEdoTenseiCinematic,
+  clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
+} from "./tobiramaEdoTenseiCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
+import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
+import { pickTobiramaVoice, TOBIRAMA_VOICE } from "./tobiramaVoice.js"
+import { pickFlashVoice, FLASH_VOICE } from "./flashVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
@@ -244,10 +282,13 @@ const GAME_STATES = {
   FFA_TEAMSELECT:   "ffaTeamSelect",   // free-for-all: assign each slot to Team A/B (or none)
   FFA_BATTLE:       "ffaBattle",       // free-for-all: N-fighter last-standing / team match
   AI_DIFFICULTY:    "aiDifficulty",
+  AI_VS_AI_SETUP:   "aiVsAiSetup",     // spectator/testing: pick 2 chars + 2 difficulties + match count + speed
+  AI_VS_AI_SUMMARY: "aiVsAiSummary",   // spectator/testing: run-complete summary + log export
   SELECT_UNIVERSE:  "selectUniverse",
   SELECT_CHARACTER: "selectCharacter",
   SELECT_SKIN:      "selectSkin",
   SELECT_ALIENS:    "selectAliens",
+  SELECT_EDO_BACKUP: "selectEdoBackup",   // Tobirama-only detour: pick the Edo Tensei summon (any built roster char)
   SELECT_STAGE:     "selectStage",
   BATTLE:           "battle",
   ROUND_BREAK:      "roundBreak",
@@ -429,6 +470,10 @@ let globalFrameCount = 0
 let gameState        = GAME_STATES.START
 let roundNumber      = 1
 let roundWins        = { p1: 0, p2: 0 }
+// INSTANT MATCH-END OVERRIDE — set by a sudden-death mechanic (Gon Adult Form "Final Blow") to force an
+// immediate match winner, INDEPENDENTLY of the normal roundWins>=2 / MAX_ROUNDS logic. `{ winnerSide }`
+// or null. Consumed (one-shot) inside _checkMatchOver(). See forceMatchEnd() / _updateGonSuddenDeath().
+let _matchOverride   = null
 let countdown        = ROUND_START_COUNTDOWN
 let winnerText       = ""
 let roundBreakTimer  = 0
@@ -465,6 +510,7 @@ const hitSparks    = []
 const damageNumbers= []
 
 let knockoutFlash  = 0
+let _roundEndAudioStopped = false   // latch so the round-end voice/SFX stop fires ONCE per round
 let slowdownTimer  = 0
 let slowdownTarget = null
 let hoverThrottle  = 0
@@ -486,8 +532,11 @@ let hoverFFACharIndex    = 0
 let hoverFFASlotIndex    = 0
 let hoverFFATeamIndex    = 0
 let hoverDifficultyIndex = 0
+let hoverAiVsAiIndex     = 0     // AI-vs-AI setup screen row
+let hoverAiVsAiSummaryIndex = 0  // AI-vs-AI run-complete summary row
 let hoverUniverseIndex   = 0
 let hoverCharacterIndex  = 0
+let hoverEdoBackupIndex  = 0   // Edo Tensei vessel-select grid hover
 let hoverStageIndex      = 0
 let hoverMainMenuIndex   = 0
 let moveListIndex        = 0
@@ -523,6 +572,11 @@ function applySkin(fighter, skinId) {
   if (!fighter) return
   fighter._skinAnim = getSkinAnimationData(fighter.rosterKey, skinId)
   const skin = getSkin(fighter.rosterKey, skinId)
+  // Alt-color recolor skins carry a `recolorTag`. Stash it + the recoloured BASE anim so a
+  // transform (Vegeta SSJ/Blue, Goku Black Rose) can retag its form art and a revert can restore
+  // the recoloured base (see abilities.js retagFormAnim). Non-recolor skins clear both.
+  fighter._recolorTag  = skin?.recolorTag || null
+  fighter._baseSkinAnim = fighter._skinAnim
   if (skin?.spriteScale) fighter.spriteScale = skin.spriteScale
   // A skin may carry a colour wash (Task 4 "Pink Fit" = default art + pink tint,
   // since no bespoke pink sheets exist). applyMirrorTint() reads skinTint and sets
@@ -574,10 +628,13 @@ function startTower(tierId = "tier1") {
   beginUniverseSelect()   // player picks THEIR fighter; opponents are random per floor
 }
 
-// Random opponent (any non-hidden fighter) + random stage + escalating difficulty.
+// Random opponent + random stage + escalating difficulty. Routed through the central BETA gate so a
+// BETA session never spawns a spriteless (procedural-box) Tower opponent; falls back to the full roster
+// only if the filter somehow empties (never, given the sprite roster is non-empty).
 function _towerPickOpponent() {
-  const pool = allCharacterKeys                                  // non-hidden roster
-  return pool[Math.floor(Math.random() * pool.length)] || "gojo"
+  const pool = filterAllowedRosterKeys(allCharacterKeys)         // non-hidden roster, BETA-filtered
+  const src = pool.length ? pool : allCharacterKeys
+  return src[Math.floor(Math.random() * src.length)] || "gojo"
 }
 function _towerPickStage() {
   return stages[Math.floor(Math.random() * stages.length)] || stages[0]
@@ -947,7 +1004,118 @@ function endFFA() {
 const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand" }
 const DUMMY_BEHAVIORS = ["stand", "block", "jump"]
 const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
+
+// ── SESSION PERSISTENCE (cross-reload restore of "what the player was doing") ─────────────────
+// Snapshots menu selections + training toggles + unlock flags to localStorage (session.js) on any
+// change, and restores them on page load. NEVER stores mid-match combat state: the persisted SCREEN
+// is only ever a safe non-match menu/select state (anything else is stored as MAIN_MENU), so a reload
+// during a fight lands on a clean menu — it does not resume the round. Selections are stored as stable
+// KEYS/NAMES (not the live objects) and re-derived on restore.
+// Screens safe to re-enter on reload (depend only on matchConfig, no multi-step draft/setup state).
+const SESSION_RESTORABLE_SCREENS = new Set([
+  GAME_STATES.MAIN_MENU, GAME_STATES.GAMEPLAY_SELECT, GAME_STATES.AI_DIFFICULTY,
+  GAME_STATES.TOWER_SELECT, GAME_STATES.SETTINGS, GAME_STATES.MOVE_LIST,
+  GAME_STATES.SELECT_UNIVERSE, GAME_STATES.SELECT_CHARACTER, GAME_STATES.SELECT_SKIN,
+  GAME_STATES.SELECT_STAGE
+])
+function _sessionSafeScreen() {
+  // Non-restorable (a match / transient / multi-step-draft screen) collapses to the clean main menu.
+  return SESSION_RESTORABLE_SCREENS.has(gameState) ? gameState : GAME_STATES.MAIN_MENU
+}
+function snapshotSession() {
+  return {
+    v: 1,
+    screen: _sessionSafeScreen(),
+    match: {
+      mode:             matchConfig.mode,
+      aiDifficulty:     matchConfig.aiDifficulty,
+      selectedUniverse: matchConfig.selectedUniverse,
+      selectedStage:    matchConfig.selectedStage?.name || null,   // stages have no id → key by unique name
+      p1CharKey:        matchConfig.p1CharKey,
+      p2CharKey:        matchConfig.p2CharKey,
+      p1Skin:           matchConfig.p1Skin,
+      p2Skin:           matchConfig.p2Skin,
+      selectingSide:    matchConfig.selectingSide
+    },
+    training: {
+      infiniteResources: trainingState.infiniteResources,
+      dummyBehavior:     trainingState.dummyBehavior
+    },
+    unlocks: { dev: isDevUnlocked(), beta: isBetaUnlocked() }   // guests keep unlocks across reload too
+  }
+}
+// Session persistence is ALWAYS on in real play. Under the test harness it is OFF by default (so the
+// 40+ existing harness tests — which assume a reload resets in-memory flags — are untouched and never
+// see cross-reload contamination); a test opts INTO the real behavior with `?harness=1&session=1`.
+let _sessionEnabledCached = null
+function _sessionEnabled() {
+  if (_sessionEnabledCached === null) {
+    try { const p = new URLSearchParams(window.location.search); _sessionEnabledCached = !(p.has("harness") && !p.has("session")) }
+    catch (_) { _sessionEnabledCached = true }
+  }
+  return _sessionEnabledCached
+}
+let _lastSessionJson = null
+// Called once per frame: writes only when the snapshot actually changed (cheap JSON diff), so a
+// meaningful change (selection / toggle / unlock) persists within a frame without spamming storage.
+function persistSessionIfChanged() {
+  if (!_sessionEnabled()) return
+  const json = JSON.stringify(snapshotSession())
+  if (json === _lastSessionJson) return
+  _lastSessionJson = json
+  writeSession(JSON.parse(json))
+}
+// Restore on boot. Applies unlock flags + selections + training toggles, then lands on the persisted
+// (always-safe) screen. Selections re-derive from stored keys; anything stale/removed is skipped.
+function restoreSession() {
+  if (!_sessionEnabled()) return
+  const s = readSession()
+  if (!s || typeof s !== "object") return
+  if (s.unlocks) restoreUnlockFlags({ dev: !!s.unlocks.dev, beta: !!s.unlocks.beta })
+  const m = s.match || {}
+  if (m.mode) matchConfig.mode = m.mode
+  if (m.aiDifficulty) matchConfig.aiDifficulty = m.aiDifficulty
+  if (m.selectedUniverse && universeMap[m.selectedUniverse]) matchConfig.selectedUniverse = m.selectedUniverse
+  if (m.selectedStage) { const st = stages.find(x => x.name === m.selectedStage); if (st) matchConfig.selectedStage = st }
+  if (m.p1CharKey && characters[m.p1CharKey]) { matchConfig.p1CharKey = m.p1CharKey; matchConfig.p1Char = characters[m.p1CharKey] }
+  if (m.p2CharKey && characters[m.p2CharKey]) { matchConfig.p2CharKey = m.p2CharKey; matchConfig.p2Char = characters[m.p2CharKey] }
+  if (typeof m.p1Skin === "string") matchConfig.p1Skin = m.p1Skin
+  if (typeof m.p2Skin === "string") matchConfig.p2Skin = m.p2Skin
+  if (m.selectingSide) matchConfig.selectingSide = m.selectingSide
+  const t = s.training || {}
+  if (typeof t.infiniteResources === "boolean") trainingState.infiniteResources = t.infiniteResources
+  if (typeof t.dummyBehavior === "string" && DUMMY_BEHAVIORS.includes(t.dummyBehavior)) trainingState.dummyBehavior = t.dummyBehavior
+  if (s.screen && SESSION_RESTORABLE_SCREENS.has(s.screen)) gameState = s.screen
+}
 const p2AI             = createAIController("easy")
+// AI-vs-AI SPECTATOR MODE: a SECOND controller drives P1 (mode "aivsai" only). Independent
+// instance = its own difficulty/memory, so a hard-AI P1 can face an easy-AI P2 (ai.js keeps
+// all state on the controller, so two run side-by-side with no shared-state issues).
+const p1AI             = createAIController("easy")
+
+// Live controller for the AI-vs-AI mode. `active` gates the fast-forward + auto-advance paths
+// (all inert outside the mode). `session` is the spectator.js telemetry log.
+const aiVsAiState = {
+  active:        false,
+  speed:         1,          // logic ticks per rendered frame (fast-forward)
+  matchesTotal:  1,
+  matchesDone:   0,
+  autoAdvance:   0,          // countdown frames on the VICTORY screen before the next match
+  session:       null,       // spectator.js session (accumulated log)
+  lastRoundFrame:0,
+  finished:      false,      // whole run complete → summary screen
+  lastExport:    null        // { json, csv, filename } of the finished run (for the summary/harness)
+}
+// SETUP-screen selections (pre-match). Cursor keys/mouse mutate these; START commits them.
+const aiVsAiConfig = {
+  p1Key:  "netero",
+  p2Key:  "beerus",
+  p1Diff: "impossible",
+  p2Diff: "easy",
+  matches: 3,
+  speedIndex: 2,             // index into SPECTATOR_SPEEDS ([1,2,4,8]) → 4x default
+  sel: 0                     // keyboard cursor row on the setup screen
+}
 const settingsButtonRect = { x: window.innerWidth - 220, y: 30, w: 180, h: 50 }
 
 // ------------------------------------------------------------------
@@ -978,22 +1146,56 @@ function formatUniverseName(u) {
 // hardcoded list). hasSpritesKey is the per-key predicate the beta filters use.
 function spriteRosterKeys() { return Object.keys(characters).filter(k => characters[k]?.hasSprites) }
 function hasSpritesKey(key) { return !!characters[key]?.hasSprites }
-// Universes that contain at least one sprite-having character — the only universes the
+// A character is BETA-SELECTABLE only if it has real sprite art (hasSprites) AND real, non-empty
+// animationData. The animationData clause is a safety net (per the beta spec: lock anyone whose
+// hasSprites is false OR who has no real animationData) — today every hasSprites:true char also has
+// real animationData, so this reduces to hasSprites, but it future-proofs against a half-wired char.
+function hasRealAnimData(c) { return !!c?.animationData && typeof c.animationData === "object" && Object.keys(c.animationData).length > 0 }
+function betaSelectableKey(key) { const c = characters[key]; return !!c?.hasSprites && hasRealAnimData(c) }
+function betaRosterKeys() { return Object.keys(characters).filter(betaSelectableKey) }
+// ── THE ONE CENTRAL BETA ROSTER GATE ─────────────────────────────────────────
+// EVERY place that offers/picks a fighter — the main character-select AND every mode-specific pool
+// (Tower opponents, FFA roster, AI-vs-AI roster, safety fallbacks) — must route its candidate keys
+// through this single predicate so BETA filters UNIFORMLY. While a BETA (non-dev) session is active a
+// character is offerable only if it's beta-selectable (real sprites + animationData); a dev or no-code
+// session offers the whole roster. Do NOT re-implement this test per mode — call rosterKeyAllowed /
+// filterAllowedRosterKeys everywhere instead.
+function rosterKeyAllowed(key) { return !(isBetaUnlocked() && !isDevUnlocked()) || betaSelectableKey(key) }
+function filterAllowedRosterKeys(keys) { return keys.filter(rosterKeyAllowed) }
+// Universes that contain at least one beta-selectable character — the only universes the
 // beta code exposes on the universe-select screen.
 function spriteUniverseSet() {
   const set = new Set()
-  for (const k of spriteRosterKeys()) { const u = characters[k]?.universe; if (u) set.add(u) }
+  for (const k of betaRosterKeys()) { const u = characters[k]?.universe; if (u) set.add(u) }
   return set
+}
+
+// EDO TENSEI backup pool: every fully-built (sprite) roster character EXCEPT Tobirama himself —
+// the "any already-built roster character" the player reanimates. Returns char objects (with .id)
+// so it drops straight into drawCharacterSelectScreen / getCharacterCardRects like a normal roster.
+function getEdoBackupRoster() {
+  return spriteRosterKeys().filter(k => k !== "tobirama").map(k => {
+    const c = characters[k]
+    return { id: k, name: c?.name || k, universe: c?.universe ? formatUniverseName(c.universe) : "" }
+  })
+}
+
+// Stamp a Tobirama fighter's Edo Tensei vessel (its ultimate reanimates this char). No-op for
+// non-Tobirama. Falls back to the first available built char so the ultimate never lacks a body.
+function assignEdoBackup(fighter, chosen) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "tobirama") return
+  const pool = getEdoBackupRoster()
+  const valid = chosen && characters[chosen] && chosen !== "tobirama"
+  fighter._edoBackup = valid ? chosen : (pool[0]?.id || "naruto")
 }
 
 function getUniverseCharacters() {
   if (!matchConfig.selectedUniverse || !universeMap[matchConfig.selectedUniverse]) return []
   const keys = universeMap[matchConfig.selectedUniverse]
-  // Beta code (GojoV1): restrict selectable fighters to those WITH sprite art, even if a
-  // spriteless-universe somehow got selected (defense-in-depth alongside the universe-list
-  // filter). Dev/full-unlock sees the whole roster (the !isDevUnlocked guard).
-  if (isBetaUnlocked() && !isDevUnlocked()) return keys.filter(hasSpritesKey)
-  return keys
+  // Beta code (BETA/GojoV1): restrict selectable fighters to those WITH real sprite art + animationData,
+  // even if a spriteless-universe somehow got selected (defense-in-depth alongside the universe-list
+  // filter). Routed through the SAME central gate every other mode uses (rosterKeyAllowed).
+  return filterAllowedRosterKeys(keys)
 }
 
 function getStageTheme()        { return matchConfig.selectedStage || stages[0] }
@@ -1146,6 +1348,10 @@ function createFighter(charKey, char, x, facing, controls, side) {
     attackSpeedMultiplier: movement.attackSpeedMultiplier || 1,
     wallJump:    !!movement.wallJump,
     dashTeleport: !!movement.dashTeleport,
+    // Opt-in: forward ground movement resolves to the RUN sprite (this game's speed
+    // scale never reaches the >10 vx run threshold, so advancing normally shows WALK).
+    // Retreat/backpedal still reads as a walk. Used by run-cycle characters (Tobirama).
+    runWhenAdvancing: !!movement.runWhenAdvancing,
     hitstun: 0, blockstun: 0, hitstop: 0, attackCooldown: 0,
     currentAttack: null, attacking: false, currentMove: null,
     currentMoveData: null, moveTimer: 0, movePhase: "idle",
@@ -1186,7 +1392,9 @@ function createFighter(charKey, char, x, facing, controls, side) {
 // ------------------------------------------------------------------
 // MATCH / ROUND MANAGEMENT
 // ------------------------------------------------------------------
-function getFallbackCharacterKey() { return allCharacterKeys[0] || null }
+// Safety default when no character was chosen — prefer a BETA-allowed fighter so a BETA session never
+// falls back onto a spriteless character; degrade to the full roster only if the filter empties.
+function getFallbackCharacterKey() { return filterAllowedRosterKeys(allCharacterKeys)[0] || allCharacterKeys[0] || null }
 
 function ensureTrainingOpponent() {
   if (matchConfig.mode !== "training") return
@@ -1199,6 +1407,8 @@ function ensureTrainingOpponent() {
 
 function resetRound() {
   damageNumbers.length = 0
+  sound.stopAllSfx?.({ includePersistent: true })   // clear any lingering cue as a fresh round begins
+  _roundEndAudioStopped = false                      // re-arm the round-end stop for the new round
   knockoutFlash  = 0
   slowdownTimer  = 0
   slowdownTarget = null
@@ -1223,6 +1433,10 @@ function resetRound() {
   p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, P2_CONTROLS, "p2")
   applySkin(p1, matchConfig.p1Skin)   // Task 4: load the selected skin's art
   applySkin(p2, matchConfig.p2Skin)
+  // Edo Tensei vessel: stamp each Tobirama's chosen backup (falling back to a default so the
+  // ultimate always has a body — e.g. an AI Tobirama, or a harness quick-start that skipped the UI).
+  assignEdoBackup(p1, matchConfig.p1EdoBackup)
+  assignEdoBackup(p2, matchConfig.p2EdoBackup)
   applyMirrorTint(p1, p2)   // same-character mirror → red wash on P2 (Task 1)
   // Tower health carry-over: at the START of a new floor (not between rounds),
   // set P1's health to the carried %. _applyCarry is one-shot (set in continueTower).
@@ -1247,9 +1461,15 @@ function resetRound() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearKilluaGodspeedCinematic()
+  clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
+  clearGonAdultFormCinematic()
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
+  clearEdoTenseiCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
 
@@ -1258,7 +1478,13 @@ function resetRound() {
   roundBreakTimer      = 0
 
   resetAIController(p2AI)
-  if (isPvP()) {
+  if (matchConfig.mode === "aivsai") {
+    // Spectator mode: BOTH slots are CPU, each with its OWN difficulty.
+    resetAIController(p1AI)
+    setAIDifficulty(p1AI, aiVsAiConfig.p1Diff)
+    setAIDifficulty(p2AI, aiVsAiConfig.p2Diff)
+    clearAIControlKeys(p1)
+  } else if (isPvP()) {
     setAIDifficulty(p2AI, "dummy")
   } else {
     setAIDifficulty(p2AI, matchConfig.mode === "training" ? "dummy" : matchConfig.aiDifficulty)
@@ -1307,6 +1533,14 @@ function initIntroVariant(fighter) {
     fighter._introSeq     = null
     fighter._introVariant = pickIntroVariant(fighter)
   }
+  // KILLUA skateboard roll-in: stash the battle position, then start off-screen BEHIND him so he rides
+  // in on the board (updateKilluaIntroRollIn eases him home). facing is already set (fighters face off).
+  if ((fighter.rosterKey || "").toLowerCase() === "killua" && fighter._introVariant === "intro") {
+    fighter._introHomeX = fighter.x
+    fighter.x = fighter.x - (fighter.facing || 1) * KILLUA_ROLLIN_DIST
+  } else {
+    fighter._introHomeX = null
+  }
 }
 // BEERUS intro voice — fires ONCE per intro at his REVEAL beat (when the delayed-reveal fade begins,
 // i.e. the frame he actually becomes visible), not at frame 0. No-op for every other character.
@@ -1331,6 +1565,13 @@ const INTRO_VOICE = {
   // Itachi picks ONE of three calm opening lines at random per match ("Stay calm" / "Fighting is
   // pointless" / "I can take down any enemy"). Fires at his first intro-play frame (no reveal gate).
   itachi: { pool: ITACHI_VOICE.intro, gateReveal: false },
+  // Killua's single intro cry ("Let's begin!"). Fires at his first intro-play frame (no reveal gate).
+  killua: { pool: KILLUA_VOICE.intro, gateReveal: false },
+  // Tobirama picks ONE of his will-of-fire / hokage power-declarations at random per match. Fires at
+  // his first intro-play frame (no reveal gate).
+  tobirama: { pool: TOBIRAMA_VOICE.intro, gateReveal: false },
+  // Flash picks ONE of his intro boasts ("only one fastest man alive" / "only seems fair to warn you").
+  flash: { pool: FLASH_VOICE.intro, gateReveal: false },
   // Netero intro voice removed (audio files deleted); with no entry here he skips the intro-voice
   // beat cleanly (maybeFireIntroVoice no-ops for unmapped fighters). Re-add an entry to re-enable.
 }
@@ -1358,6 +1599,77 @@ function advanceIntroSequence(fighter) {
   fighter._introSeqIdx++
   fighter._introVariant  = fighter._introSeq[fighter._introSeqIdx]
   fighter._introSeqTimer = introStepFrames(fighter, fighter._introVariant)
+}
+
+// KILLUA skateboard roll-in — during his intro he ENTERS from off-screen (behind him) riding the board
+// and rolls to his battle position. initIntroVariant stashes the home x + offsets him off-screen behind
+// him; this eases him back to home over the ROLLING frames, then holds at home (the hop-off/land frames
+// play in place). Combat/physics are frozen during INTRO, so setting x directly is safe. No-op for anyone
+// else / any other intro variant.
+// Skateboard art = 10 frames: [0..5] rolling, [6..8] hop off the board, [9] landed stance. So he should
+// ARRIVE at his battle position by frame 6 (as he hops off); the hop-off/land then play in place.
+const KILLUA_ROLLIN_ARRIVE_FRAME = 6
+const KILLUA_ROLLIN_DIST         = 300   // px behind his battle position to start (off-screen)
+function updateKilluaIntroRollIn(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "killua") return
+  if (!fighter._introPlaying || fighter._introVariant !== "intro" || fighter._introHomeX == null) return
+  // Drive the roll off the ACTUAL animation playback (frameIndex + sub-frame frameTimer) rather than a
+  // wall-clock counter, so the ride stays synced to the rolling frames and smooth regardless of loop speed.
+  const sh = fighter.spriteHandler
+  const speed = sh?._actionDef?.speed || 4
+  const animFrame = (sh?.frameIndex || 0) + Math.min(1, (sh?.frameTimer || 0) / speed)   // continuous 0..9
+  const t = Math.min(1, animFrame / KILLUA_ROLLIN_ARRIVE_FRAME)
+  const eased = 1 - (1 - t) * (1 - t)   // easeOutQuad — rides in, decelerates to a stop at home
+  const from = fighter._introHomeX - (fighter.facing || 1) * KILLUA_ROLLIN_DIST
+  fighter.x = from + (fighter._introHomeX - from) * eased
+}
+// Snap Killua back to his battle position when the intro ENDS or is SKIPPED (skipToBattle) — the roll-in
+// offsets his x, so without this a skip-to-battle (harness boot, or a player skipping the intro) would
+// leave him displaced off-screen. No-op once cleared / for anyone else.
+function finalizeKilluaIntroPos(fighter) {
+  if (fighter && (fighter.rosterKey || "").toLowerCase() === "killua" && fighter._introHomeX != null) {
+    fighter.x = fighter._introHomeX
+    fighter._introHomeX = null
+  }
+}
+
+// ── EDO TENSEI — summoned-vessel intro beat ───────────────────────────────────
+// When the Edo Tensei tomb finishes opening and the vessel takes the field, the vessel plays ITS OWN
+// intro (the same pose + intro voice line a match-start intro fires) as a brief FROZEN reveal beat —
+// AFTER the coffin cinematic fully ends, so it never overlaps the tomb's rise/reveal. Reuses the real
+// intro system: `_introPlaying` drives sprite.js to render `_introVariant`, and maybeFireIntroVoice
+// fires the same INTRO_VOICE clip (keyed by rosterKey, which is swapped to the vessel during the window).
+// We play the intro POSE IN PLACE — no entrance locomotion (Killua's roll-in / Toji's walk-in) — since the
+// vessel already emerged from the tomb mid-arena; an entrance walk would look wrong here.
+const EDO_INTRO_MIN_FRAMES = 66   // ~1.1s so the reveal pose + voice read before control hands over
+let _edoCineMode = null           // last Edo cinematic mode seen active ("in"/"out") — detects an "in" summon ending
+function startEdoVesselIntro(fighter) {
+  if (!fighter) return
+  fighter._introPlaying     = true
+  fighter._introRevealFrame = 0
+  fighter._introVoiceDone   = false
+  // Pick the pose exactly as a match-start intro would (fixed-order sequence's final "ready" step, else a
+  // random introPool variant — both swapped/derived from the vessel), but as a SINGLE held pose: clear
+  // _introSeq so no multi-step walk-in runs, and null _introHomeX so the Killua roll-in offset never fires.
+  const seq = fighter.introSequence
+  fighter._introSeq     = null
+  fighter._introVariant = (Array.isArray(seq) && seq.length) ? seq[seq.length - 1] : pickIntroVariant(fighter)
+  fighter._introHomeX   = null
+  fighter._edoIntroTimer = Math.max(EDO_INTRO_MIN_FRAMES, introStepFrames(fighter, fighter._introVariant || "transform"))
+  fighter._edoIntroPlaying = true
+}
+// Per-frame driver for the frozen vessel-intro beat. Returns true while a beat is in flight (updateBattle
+// early-returns on it, freezing combat/input the same way the coffin cinematic did — the render path still
+// advances the intro sprite frames, so the pose animates). Fires the intro voice once, then hands control
+// to the vessel when the timer runs out.
+function updateEdoVesselIntro() {
+  const f = (p1 && p1._edoIntroPlaying) ? p1 : (p2 && p2._edoIntroPlaying) ? p2 : null
+  if (!f) return false
+  f._introRevealFrame = (f._introRevealFrame || 0) + 1
+  maybeFireIntroVoice(f)
+  if (camera && typeof camera.focusOnFighter === "function") camera.focusOnFighter(f, 1.12)   // frame the reveal
+  if (--f._edoIntroTimer <= 0) { f._introPlaying = false; f._edoIntroPlaying = false }
+  return true
 }
 
 // SEQUENTIAL pre-match intros (P1 fully, THEN P2). `introStage` walks "p1" → "p2" → "done"; only the
@@ -1435,6 +1747,8 @@ function drawNamecallBanner() {
 }
 
 function startMatch() {
+  sound.stopAllSfx?.({ includePersistent: true })   // new match → no cue from a prior match/menu bleeds in
+  _roundEndAudioStopped = false
   // A standard 1v1/tower/training match never runs the FFA array path — make the flag honest
   // in case an FFA session was left without the result-screen exit (dispatch keys off gameState,
   // so this is bookkeeping hygiene, not a behavior gate).
@@ -1488,8 +1802,10 @@ function resetSelections() {
   matchConfig.p1Aliens = null; matchConfig.p2Aliens = null
   matchConfig.alienDraft = []
   matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+  matchConfig.p1EdoBackup = null; matchConfig.p2EdoBackup = null   // Edo Tensei vessel (Tobirama ultimate)
   hoverUniverseIndex  = 0
   hoverCharacterIndex = 0
+  hoverEdoBackupIndex = 0
   hoverStageIndex     = 0
 }
 
@@ -1528,13 +1844,32 @@ function _proceedAfterSkin(side) {
   }
 }
 
-// Layout for the skin cards on the SELECT_SKIN screen.
+// Layout for the skin cards on the SELECT_SKIN screen. Wraps into a centered GRID when the cards
+// don't fit one row (chars can now have many recolor skins — e.g. Gojo's 9), and shrinks the cards
+// as a fallback so even a large set stays fully on-screen and clickable.
 function getSkinSelectRects(canvas, count) {
+  const gap = 24, topPad = 150, botPad = 40, sidePad = 40
+  let cardW = 180, cardH = 230
+  const availW = canvas.width - sidePad * 2
+  const availH = canvas.height - topPad - botPad
+  // columns that fit at full size; then compute rows and shrink to fit vertically if needed.
+  let cols = Math.max(1, Math.min(count, Math.floor((availW + gap) / (cardW + gap))))
+  let rows = Math.ceil(count / cols)
+  const maxH = (availH - (rows - 1) * gap) / rows
+  if (cardH > maxH) { const s = maxH / cardH; cardH = maxH; cardW = Math.round(cardW * s) }
+  // re-fit columns to the (possibly shrunk) width so a wide-but-short set doesn't overflow.
+  cols = Math.max(1, Math.min(count, Math.floor((availW + gap) / (cardW + gap))))
+  rows = Math.ceil(count / cols)
+  const blockH = rows * cardH + (rows - 1) * gap
+  const y0 = topPad + Math.max(0, (availH - blockH) / 2)
   const rects = []
-  const cardW = 180, cardH = 230, gap = 28
-  const total = count * cardW + (count - 1) * gap
-  const x0 = canvas.width / 2 - total / 2, y = canvas.height / 2 - cardH / 2
-  for (let i = 0; i < count; i++) rects.push({ x: x0 + i * (cardW + gap), y, w: cardW, h: cardH, index: i })
+  for (let i = 0; i < count; i++) {
+    const row = Math.floor(i / cols), col = i % cols
+    const inRow = Math.min(cols, count - row * cols)
+    const rowW = inRow * cardW + (inRow - 1) * gap
+    const x0 = canvas.width / 2 - rowW / 2
+    rects.push({ x: x0 + col * (cardW + gap), y: y0 + row * (cardH + gap), w: cardW, h: cardH, index: i })
+  }
   return rects
 }
 
@@ -1580,7 +1915,9 @@ function _skinPortrait(src) {
 }
 
 function resetToStart() {
+  sound.stopAllSfx?.({ includePersistent: true })   // leaving the match/victory → stop ALL cues incl. win-lines
   gameState        = GAME_STATES.START
+  aiVsAiState.active = false   // leaving a match kills any in-progress AI-vs-AI run (stops fast-forward/auto-advance)
   matchConfig.mode = null
   matchConfig.aiDifficulty = "easy"
   resetSelections()
@@ -1599,9 +1936,15 @@ function resetToStart() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearKilluaGodspeedCinematic()
+  clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
+  clearGonAdultFormCinematic()
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
+  clearEdoTenseiCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
@@ -1637,6 +1980,11 @@ function chooseMode(mode) {
     // screen (P1 Device / P2 Device), enabling any combination: kb/kb, kb/pad,
     // pad/kb, pad/pad.
     inputSettings.p2Type = "controller"
+    // Single-pad convention is keyboard(P1) + pad(P2). If a pad was plugged in BEFORE PvP was
+    // chosen, the gamepadconnected auto-activate may have flipped P1 → controller from the cold
+    // keyboard/keyboard menu — which would strand the keyboard player. Restore P1 = keyboard
+    // unless there are 2+ pads (genuine pad/pad play, which still wants P1 on a controller).
+    if (getConnectedPadCount() < 2) inputSettings.p1Type = "keyboard"
     beginUniverseSelect()
     return
   }
@@ -1646,6 +1994,181 @@ function chooseMode(mode) {
 function chooseDifficulty(difficulty) {
   matchConfig.aiDifficulty = difficulty
   beginUniverseSelect()
+}
+
+// ── AI vs AI — SPECTATOR / TESTING MODE ──────────────────────────────────────
+// Two CPU fighters battle with no human input. Reuses the SAME per-fighter AI path
+// as the 1v1 CPU (getAIInput → applyAIInputToKeys), just wired to BOTH slots with
+// independent difficulties. Fast-forward + auto-repeat + a move-by-move telemetry
+// log (spectator.js) sit on top; none of it changes any character's balance data.
+function _nowMs() { return (typeof performance !== "undefined" ? performance.now() : Date.now()) }
+
+// Selectable roster for the AI-vs-AI picker. Sprite-having fighters first (best spectacle) but every
+// non-hidden character is pickable — the mode works for procedural-box fighters too.
+let _aiVsAiRosterCache = null
+function aiVsAiRoster() {
+  if (!_aiVsAiRosterCache) {
+    const list = characterList.filter(c => !c.hidden)
+    list.sort((a, b) => (b.hasSprites ? 1 : 0) - (a.hasSprites ? 1 : 0))
+    _aiVsAiRosterCache = list.map(c => ({ key: c.rosterKey, name: c.name }))
+  }
+  // BETA gate applied on RETURN (not baked into the cache) so it tracks BETA toggling live: while BETA
+  // is active the spectator picker offers only sprite-having fighters (a no-op passthrough otherwise),
+  // same central check as everywhere.
+  return _aiVsAiRosterCache.filter(c => rosterKeyAllowed(c.key))
+}
+
+function _cycleAiVsAiChar(which, dir) {
+  const r = aiVsAiRoster()
+  const keyField = which === "p1" ? "p1Key" : "p2Key"
+  let i = r.findIndex(c => c.key === aiVsAiConfig[keyField])
+  if (i < 0) i = 0
+  i = (i + dir + r.length) % r.length
+  aiVsAiConfig[keyField] = r[i].key
+}
+
+// Change a setup-screen row's value by dir (-1/+1). Rows without a value (start/back) are no-ops.
+function _cycleAiVsAiRow(id, dir) {
+  const diffs = SPECTATOR_DIFFICULTIES
+  const counts = [1, 3, 5, 10, 25]
+  switch (id) {
+    case "p1char": _cycleAiVsAiChar("p1", dir); break
+    case "p2char": _cycleAiVsAiChar("p2", dir); break
+    case "p1diff": { let i = diffs.indexOf(aiVsAiConfig.p1Diff); i = (i + dir + diffs.length) % diffs.length; aiVsAiConfig.p1Diff = diffs[i]; break }
+    case "p2diff": { let i = diffs.indexOf(aiVsAiConfig.p2Diff); i = (i + dir + diffs.length) % diffs.length; aiVsAiConfig.p2Diff = diffs[i]; break }
+    case "matches": { let i = counts.indexOf(aiVsAiConfig.matches); if (i < 0) i = 1; i = (i + dir + counts.length) % counts.length; aiVsAiConfig.matches = counts[i]; break }
+    case "speed": { const n = SPECTATOR_SPEEDS.length; aiVsAiConfig.speedIndex = (aiVsAiConfig.speedIndex + dir + n) % n; break }
+  }
+}
+
+// Act on a setup row (Enter / click): value rows cycle forward; start/back navigate.
+function _activateAiVsAiRow(id) {
+  if (id === "start")     { startAiVsAiSession(); return }
+  if (id === "back")      { gameState = GAME_STATES.GAMEPLAY_SELECT; return }
+  _cycleAiVsAiRow(id, +1)
+}
+
+// Filename-safe timestamp; performance.now() isn't wall-clock so fall back to Date for the label.
+function _fileStamp() {
+  try { return new Date().toISOString().replace(/[:.]/g, "-").replace("T", "_").slice(0, 19) }
+  catch (_) { return "run" }
+}
+
+// Deterministic stage rotation across the run so a repeated matchup gets varied stages.
+function _aiVsAiStageFor(matchIndex) {
+  if (!Array.isArray(stages) || !stages.length) return null
+  return stages[matchIndex % stages.length]
+}
+
+// Begin the current match's telemetry log and reset the per-fighter move-usage latches.
+function _beginAiVsAiMatchLog() {
+  startMatchLog(aiVsAiState.session, {
+    index:         aiVsAiState.matchesDone + 1,
+    p1Char:        matchConfig.p1CharKey, p1Difficulty: aiVsAiConfig.p1Diff,
+    p2Char:        matchConfig.p2CharKey, p2Difficulty: aiVsAiConfig.p2Diff,
+    frame:         globalFrameCount
+  })
+  if (p1) p1._specLastAtk = null
+  if (p2) p2._specLastAtk = null
+}
+
+// Kick off a fresh N-match spectator run from the setup-screen selections.
+function startAiVsAiSession() {
+  const p1Key = aiVsAiConfig.p1Key, p2Key = aiVsAiConfig.p2Key
+  if (!characters[p1Key] || !characters[p2Key]) return
+  resetSelections()
+  towerState.active = false
+  ffaState.active   = false
+  matchConfig.mode          = "aivsai"
+  matchConfig.aiDifficulty  = aiVsAiConfig.p2Diff        // legacy single-field; per-slot diffs used in resetRound
+  matchConfig.selectedStage = _aiVsAiStageFor(0) || (Array.isArray(stages) ? stages[0] : null)
+  matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key]
+  matchConfig.p2CharKey = p2Key; matchConfig.p2Char = characters[p2Key]
+  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+
+  aiVsAiState.active       = true
+  aiVsAiState.finished     = false
+  aiVsAiState.speed        = SPECTATOR_SPEEDS[aiVsAiConfig.speedIndex] || 1
+  aiVsAiState.matchesTotal = Math.max(1, aiVsAiConfig.matches | 0)
+  aiVsAiState.matchesDone  = 0
+  aiVsAiState.autoAdvance  = 0
+  aiVsAiState.lastExport   = null
+  aiVsAiState.session = createSpectatorSession({
+    p1Char: p1Key, p1Difficulty: aiVsAiConfig.p1Diff,
+    p2Char: p2Key, p2Difficulty: aiVsAiConfig.p2Diff,
+    matches: aiVsAiState.matchesTotal, speed: aiVsAiState.speed,
+    stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null
+  }, _nowMs())
+
+  _beginAiVsAiMatchLog()
+  startMatch()
+}
+
+// Per-frame telemetry: detect a NEW attack instance on each fighter (covers whiffs) and log it as
+// a "move used". Object-identity on currentAttack means one log per move start, not per active frame.
+function _aiVsAiWatchMoves() {
+  for (const [side, f] of [["p1", p1], ["p2", p2]]) {
+    if (!f) continue
+    const atk = f.currentAttack || null
+    if (atk && atk !== f._specLastAtk) {
+      const name = atk.name || f.currentMove || "attack"
+      const cat  = atk.isUltimate ? "ultimate" : atk.isSpecial ? "special" : (atk.category || null)
+      logMoveUsed(aiVsAiState.session, side, name, { frame: globalFrameCount, category: cat })
+    }
+    f._specLastAtk = atk
+  }
+}
+
+// Finalise the just-ended match into the session log (called once when VICTORY is reached).
+function _finalizeAiVsAiMatch() {
+  aiVsAiState.matchesDone++
+  finalizeMatchLog(aiVsAiState.session, {
+    winner:     victoryState.winnerSide,
+    winnerName: victoryState.winnerName,
+    roundsWon:  { p1: roundWins.p1, p2: roundWins.p2 },
+    frame:      globalFrameCount
+    // method omitted → spectator.js defaults it to the last logged round's method (ko/timeout/double_ko)
+  })
+  aiVsAiState.autoAdvance = 45   // brief result dwell (itself fast-forwarded) before the next match
+}
+
+// Whole run complete: serialise the session to JSON + CSV and land on the summary screen.
+function _finishAiVsAiRun() {
+  const session = aiVsAiState.session
+  const stamp = _fileStamp()
+  aiVsAiState.lastExport = {
+    json:     sessionToJSON(session),
+    csv:      sessionToCSV(session),
+    summary:  summarizeSession(session),
+    jsonName: `aivsai-log-${stamp}.json`,
+    csvName:  `aivsai-log-${stamp}.csv`
+  }
+  aiVsAiState.finished = true
+  aiVsAiState.active   = false   // stop fast-forward + auto-advance
+  // Auto-export both formats to the browser's downloads (no-op in a headless/no-DOM harness — the
+  // harness reads aiVsAiState.lastExport directly). The summary screen can re-download on demand.
+  const exp = aiVsAiState.lastExport
+  downloadText(exp.jsonName, exp.json, "application/json")
+  downloadText(exp.csvName,  exp.csv,  "text/csv")
+  gameState = GAME_STATES.AI_VS_AI_SUMMARY
+}
+
+// Driven every frame from updateCurrentState. Handles move telemetry during the fight and the
+// auto-advance / repeat-N / finish flow on the VICTORY screen. Inert outside the mode.
+function updateAiVsAiController() {
+  if (!aiVsAiState.active) return
+  if (gameState === GAME_STATES.BATTLE) _aiVsAiWatchMoves()
+
+  if (gameState === GAME_STATES.VICTORY) {
+    if (aiVsAiState.session?._current) _finalizeAiVsAiMatch()   // finalise once
+    if (aiVsAiState.autoAdvance > 0) { aiVsAiState.autoAdvance--; return }
+    if (aiVsAiState.matchesDone < aiVsAiState.matchesTotal) {
+      _beginAiVsAiMatchLog()
+      startMatch()                                              // next match (fresh best-of-3)
+    } else {
+      _finishAiVsAiRun()
+    }
+  }
 }
 
 // ── ACCOUNT (front-end stub, see account.js) ───────────────────────────────
@@ -1672,8 +2195,14 @@ function handleAccountTyping(e) {
 }
 
 function _checkMatchOver() {
-  if (roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS) {
-    const winner = roundWins.p1 > roundWins.p2 ? "p1" : roundWins.p2 > roundWins.p1 ? "p2" : "draw"
+  // INSTANT MATCH-END OVERRIDE (Gon Adult Form sudden-death) is checked INDEPENDENTLY of — not as an
+  // addition alongside — the normal roundWins/MAX_ROUNDS gate: when `_matchOverride` is set the match
+  // ends NOW with the forced winner, even if NEITHER player has reached 2 round wins (e.g. Gon at 0-0).
+  const forced = _matchOverride
+  if (forced || roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS) {
+    _matchOverride = null   // one-shot: consume so it can't re-fire
+    const winner = forced ? forced.winnerSide
+      : roundWins.p1 > roundWins.p2 ? "p1" : roundWins.p2 > roundWins.p1 ? "p2" : "draw"
     victoryState.active     = true
     victoryState.fadeAlpha  = 0
     victoryState.winnerSide = winner
@@ -1694,7 +2223,7 @@ function _checkMatchOver() {
     victoryState.primaryLabel = "REMATCH"
     // PROGRESSION (Task 3): award XP from the local player's (P1) perspective.
     // Skip training. Tower mode handles its own flow (advance/end) in updateTowerOutcome.
-    if (matchConfig.mode !== "training") {
+    if (matchConfig.mode !== "training" && matchConfig.mode !== "aivsai") {
       const p1Won  = winner === "p1"
       victoryState.xpResult = awardMatchXp({ won: p1Won, roundsWon: roundWins.p1, perfect: p1Won && roundWins.p2 === 0 })
     }
@@ -1712,6 +2241,9 @@ function _checkMatchOver() {
     }
     sound.stopMusic?.()
     sound.play?.(SFX.KO)
+    // WIN/LOSS lines are INTENTIONAL post-match audio → mark them persistent so the round-end/menu
+    // stopAllSfx (which already cut the combat audio above) can't silence them on the victory screen.
+    sound._forcePersistent = true
     // BEERUS win voice — random 50/50 between his two victory lines (coin flip, like pickIntroVariant's
     // Math.random). Fires only when the WINNER is Beerus; independent of whether the win-pose art is
     // dedicated or shared (his batch shipped no win/lose sprite → shared win state, audio wired anyway).
@@ -1748,6 +2280,16 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "rick") {
         sound.playSfxFile?.(pickRickVoice("win"), null)
       }
+      // KILLUA win voice — random pick from his victory pool (laugh / "Alright, win" / "Let's test it out").
+      // Fires only when the WINNER is Killua.
+      if (winFighter?.rosterKey === "killua") {
+        sound.playSfxFile?.(pickKilluaVoice("win"), null)
+      }
+      // TOBIRAMA win voice — random pick from his finisher/victory declarations ("For the future, forward"
+      // / "No longer needed" / "Stay asleep"). Fires only when the WINNER is Tobirama.
+      if (winFighter?.rosterKey === "tobirama") {
+        sound.playSfxFile?.(pickTobiramaVoice("finisher"), null)
+      }
       // Netero win voice removed (audio files deleted); re-add a `winFighter?.rosterKey === "netero"`
       // block here (mirroring the Rick one above) to re-enable.
       // GOJO "Limitless" skin win voice — young-Gojo victory pack, random pick. Gated to the
@@ -1778,12 +2320,48 @@ function _checkMatchOver() {
         sound.playSfxFile?.(pickRickVoice("roundLoss"), null)
       }
     }
+    sound._forcePersistent = false   // end of the intentional post-match audio window
     sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
     gameState = GAME_STATES.VICTORY
   } else {
     roundNumber++
     roundBreakTimer = ROUND_BREAK_DURATION
     gameState = GAME_STATES.ROUND_BREAK
+  }
+}
+
+// INSTANT MATCH END — force the match to resolve NOW with `winnerSide` ("p1"/"p2"), bypassing the normal
+// roundWins>=2 condition entirely (Gon Adult Form sudden-death). Arms the one-shot override then routes
+// through the SAME _checkMatchOver() path (victory screen / XP / tower / win-voice all reuse). No-op if
+// the match is already resolved.
+function forceMatchEnd(winnerSide) {
+  if (victoryState.active) return
+  if (winnerSide !== "p1" && winnerSide !== "p2") return
+  _matchOverride = { winnerSide }
+  _checkMatchOver()
+}
+
+// GON SUDDEN-DEATH ("Final Blow") watcher — per frame, resolve an armed Adult Form finisher:
+//   • a CLEAN unblocked connect (combat marks _sdConnect="clean")           → INSTANT WIN for Gon
+//   • the swing fully resolves without a clean connect (whiff OR block)     → INSTANT LOSS for Gon
+// Either outcome overrides the round score (forceMatchEnd → _checkMatchOver override). One throw per form.
+function _updateGonSuddenDeath() {
+  for (const f of [p1, p2]) {
+    if (!f || !f._suddenDeathWatch) continue
+    const gonSide = (f === p1) ? "p1" : "p2"
+    const oppSide = (gonSide === "p1") ? "p2" : "p1"
+    const atk = f._suddenDeathAtk
+    if (atk && atk._sdConnect === "clean") {                 // landed clean → Gon WINS the match outright
+      f._suddenDeathWatch = false; f._suddenDeathAtk = null
+      forceMatchEnd(gonSide)
+      return
+    }
+    // Swing over (attack ended / replaced) with no clean connect → Gon LOSES the match outright.
+    if (!f.attacking || f.currentAttack !== atk) {
+      f._suddenDeathWatch = false; f._suddenDeathAtk = null
+      forceMatchEnd(oppSide)
+      return
+    }
   }
 }
 
@@ -1800,6 +2378,7 @@ function reinitTransformDevice(f) {
 }
 
 function _doRematch() {
+  sound.stopAllSfx?.({ includePersistent: true })   // rematch → clear the victory-screen win-line + any leftover cue
   victoryState = createVictoryState()
   matchStats   = createMatchStats()
   roundNumber  = 1
@@ -1829,9 +2408,15 @@ function _doRematch() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearKilluaGodspeedCinematic()
+  clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
+  clearGonAdultFormCinematic()
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
+  clearEdoTenseiCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
   hitSparks.length = 0
@@ -1875,6 +2460,17 @@ function applyAIInputToKeys(fighter, aiInput) {
 
 function updateCPUInput() {
   if (!p2 || gameState !== GAME_STATES.BATTLE) { clearAIControlKeys(p2); return }
+  // AI vs AI: BOTH fighters are CPU-driven. Reuses the exact same per-fighter AI path as the
+  // 1v1 CPU below — just runs it a second time for P1 with its own controller (p1AI).
+  if (matchConfig.mode === "aivsai") {
+    if (p1) {
+      if (isTransformDevice(p1) && !p1.transformed) tryTransform(p1)
+      applyAIInputToKeys(p1, getAIInput(p1AI, p1, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" }))
+    }
+    if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
+    applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" }))
+    return
+  }
   if (isPvP()) { clearAIControlKeys(p2); return }
   const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training" || matchConfig.mode === "tower"
   if (!cpu)  { clearAIControlKeys(p2); return }
@@ -2088,6 +2684,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
       if (fighter.rosterKey === "toji"   && typeof tojiTeleportStrike === "function")        tojiTeleportStrike(fighter)
       else if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
       else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
+      else if (fighter.rosterKey === "tobirama") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // water body-flicker: tobirama_dash_uniform.png plays the blink (reposition-only)
       else if (fighter.rosterKey === "rick")   { fighter._spriteCastMove = "portalTravel"; fighter._spriteCastTimer = 14 }  // Portal-Behind: reposition-only, rick_portal_attack_travel.png plays the blink
       // Gojo: reposition only — "ready to attack".
       fighter.dashTeleportCooldown = 48
@@ -2293,7 +2890,9 @@ function updateMovementInput(fighter) {
     fighter.isCharging = true
   }
   // UNIVERSAL CHARGE LOCKOUT — can't block while charging (deliberate vulnerability, all chars).
-  if (inputState.down && !fighter.isCharging) fighter.isBlocking = true
+  // FLASH TIME LOCKOUT — Flash cannot block/defend at all while Flash Time is active (its whole
+  // premise: he's moving too fast to hold a guard). The block input is simply ignored for him.
+  if (inputState.down && !fighter.isCharging && !fighter._flashTimeActive) fighter.isBlocking = true
   physics.moveFighter(fighter, vKeys, fighter.controls)
 }
 
@@ -2346,9 +2945,51 @@ function buildNormalControlState(fighter, vKeys) {
   }
 }
 
+// A fighter is "acting" while any source animation is playing (attack / command move / special-or-
+// ultimate cast pose / hurt / knockdown / charge / Edo windup). When it drops to false the character has
+// returned to idle → its owned audio is cut. Kept broad so a bark is only cut once the whole action ends.
+function _fighterIsActing(f) {
+  return !!(f && (f.attacking || f.currentMove || f._spriteCastMove ||
+    (f.hitstun || 0) > 0 || f.knockdownState || f.isCharging || (f._edoWindup || 0) > 0))
+}
+function _updateVoiceCutoff(f) {
+  if (!f) return
+  const acting = _fighterIsActing(f)
+  if (f._wasActingForVoice && !acting) sound.stopOwnedSfx?.(f)   // source animation just ended → cut its cue
+  f._wasActingForVoice = acting
+}
+
 function updatePlayerCombat(fighter) {
   if (!fighter) return
+  // Stamp the acting fighter as the AMBIENT voice owner for the duration of its combat/ability update, so
+  // every cue it fires (attack barks, special/ultimate casts) auto-tags without touching each call site —
+  // and can be cut when its animation ends (defender hit-reactions override this to `defender` in combat.js).
+  const _prevVoiceOwner = sound._voiceOwner
+  sound._voiceOwner = fighter
+  try { _updatePlayerCombatBody(fighter) } finally { sound._voiceOwner = _prevVoiceOwner }
+}
+function _updatePlayerCombatBody(fighter) {
+  if (!fighter) return
   const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() }
+
+  if (fighter._waterFlickerCd > 0) fighter._waterFlickerCd--   // Tobirama escape cooldown ticks every frame
+
+  // EDO TENSEI: tick the ritual windup→swap and the active window→auto-revert EVERY frame (even during
+  // hitstun/mid-animation) so the handoff fires regardless of match state. During the summon ritual the
+  // fighter is a COMMITTED cast — vulnerable, takes no input (timers still tick so it can't soft-lock).
+  updateEdoTensei(fighter, getStageWorldWidth())
+  if (fighter._edoWindup > 0) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
+
+  // TOBIRAMA — Water Body-Flicker reversal (reactive escape): Special pressed while in hitstun or
+  // knockdown dissolves him into water and reforms retreating with i-frames. Read here, AHEAD of the
+  // stun early-return below (which normally ignores input), so it works as a true reversal. Costs
+  // 35 Chakra + a 90f cooldown (executeTobiramaWaterFlicker) → committed, not a free get-out.
+  if ((fighter.rosterKey || "").toLowerCase() === "tobirama" &&
+      ((fighter.hitstun || 0) > 0 || fighter.knockdownState) &&
+      getFighterInput(fighter).special &&
+      executeTobiramaWaterFlicker(fighter, getAbilityContext())) {
+    updateCombat(fighter, getOpponent(fighter), {}, opts); return
+  }
 
   // CRITICAL: updateCombat() is the ONLY place hitstun/hitstop/blockstun and the
   // attack-recovery timers decrement. It must run EVERY frame or a hit fighter
@@ -2433,6 +3074,23 @@ function updatePlayerCombat(fighter) {
   // when it fires (returns true → skip normal path); neutral light/heavy stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "killua" && !charging &&
       updateKilluaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // FLASH "Speed Rush" command chain: Down+Heavy opens rush1, re-tap Heavy during recovery to cancel into
+  // rush2 (cancel-on-hit; a whiff/block ends the string). Consumes the input only when it fires (returns
+  // true → skip normal path); neutral light/heavy stay on the normal path below.
+  if ((fighter.rosterKey || "").toLowerCase() === "flash" && !charging &&
+      updateFlashCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // GON "Rush": Down+Heavy opens rush1 (flurry), re-tap Heavy on hit → rush2 (launcher). Cancel-on-hit;
+  // a whiff/block ends the string. Consumes the input only when it fires; neutral normals stay below.
+  if ((fighter.rosterKey || "").toLowerCase() === "gon" && !charging &&
+      updateGonCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // TOBIRAMA taijutsu chain: Fwd+Heavy opens tobiCombo1, re-tap Heavy on hit → tobiCombo2 → tobiComboFin
+  // (cancel-on-hit; a whiff/block ends the string). Free pokes: Fwd+Light = Strong Forward, Back+Heavy =
+  // Rising Knee. Consumes the input only when it fires; neutral light/heavy/up stay on the normal path.
+  if ((fighter.rosterKey || "").toLowerCase() === "tobirama" && !charging &&
+      updateTobiramaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // NETERO Guanyin giant: the base attack buttons fire the 4 avatar attacks (light=leg, heavy=arm-sweep,
   // up=punch-burst; combo-slash is on SPECIAL). Consumes the press only when it fires.
@@ -2575,6 +3233,82 @@ function drawGodspeedAura(c, fighter) {
   c.restore()
 }
 
+// Flash — FLASH TIME afterimage overlay (mirrors drawGodspeedAura, red/gold speed-force colours).
+// Draws faded red SILHOUETTE ghosts at Flash's recent positions (a speed-blur trail;
+// abilities.applyFlashTimeSystem records _ftTrail) + a pulsing gold outline on the live body.
+function drawFlashAura(c, fighter) {
+  if (!c || !fighter?._flashTimeActive) return
+  const w = fighter.w ?? 60, h = fighter.h ?? 110
+  const trail = fighter._ftTrail || []
+  c.save()
+  for (let i = trail.length - 1; i >= 0; i--) {
+    const g = trail[i]
+    c.globalAlpha = 0.05 + 0.05 * (trail.length - i)   // oldest faintest → newest brightest
+    c.fillStyle   = "#e8352a"                            // Flash red
+    c.shadowBlur  = 14
+    c.shadowColor = "#fde047"                            // gold lightning glow
+    c.fillRect(g.x, g.y, w, h)
+  }
+  c.restore()
+  const x = fighter.x ?? 0, y = fighter.y ?? 0
+  const pulse  = 0.5 + 0.5 * Math.sin(fighter._ftPulse = (fighter._ftPulse || 0) + 0.4)
+  const spread = 8 + pulse * 5
+  c.save()
+  c.globalAlpha = 0.20 + pulse * 0.14
+  c.shadowBlur  = spread * 2.4
+  c.shadowColor = "#fde047"
+  c.strokeStyle = "#fff7c2"
+  c.lineWidth   = 3 + pulse * 2
+  const rx = x - spread / 2, ry = y - spread / 2, rw = w + spread, rh = h + spread, r = 14
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r)
+  c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r)
+  c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath()
+  c.stroke()
+  c.restore()
+}
+
+// GON — ADULT FORM aura overlay (mirrors drawFlashAura, green Nen colours). Signals the buff-mode
+// transformation on the (unswapped) child body: faded green silhouette ghosts at recent positions
+// (abilities.applyGonAdultFormSystem records _adultTrail) + a pulsing bright-green outline on the body.
+function drawGonAdultAura(c, fighter) {
+  if (!c || !fighter?._adultFormActive) return
+  const w = fighter.w ?? 60, h = fighter.h ?? 110
+  const trail = fighter._adultTrail || []
+  c.save()
+  for (let i = trail.length - 1; i >= 0; i--) {
+    const g = trail[i]
+    c.globalAlpha = 0.04 + 0.045 * (trail.length - i)
+    c.fillStyle   = "#22c55e"                            // Nen green
+    c.shadowBlur  = 14
+    c.shadowColor = "#86efac"
+    c.fillRect(g.x, g.y, w, h)
+  }
+  c.restore()
+  const x = fighter.x ?? 0, y = fighter.y ?? 0
+  const pulse  = 0.5 + 0.5 * Math.sin(fighter._adultPulse = (fighter._adultPulse || 0) + 0.35)
+  const spread = 8 + pulse * 6
+  c.save()
+  c.globalAlpha = 0.22 + pulse * 0.16
+  c.shadowBlur  = spread * 2.4
+  c.shadowColor = "#86efac"
+  c.strokeStyle = "#dcfce7"
+  c.lineWidth   = 3 + pulse * 2
+  const rx = x - spread / 2, ry = y - spread / 2, rw = w + spread, rh = h + spread, r = 14
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r)
+  c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r)
+  c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath()
+  c.stroke()
+  c.restore()
+}
+
 // Rick's Portal-Pull / Portal-Push reappear the opponent above a destination and let
 // them fall (abilities.js rickPortalReposition). This applies the impact damage the
 // frame they reground — mirrors the _dot marker→resolver split (abilities stamps the
@@ -2610,6 +3344,8 @@ function updateFighterState(fighter) {
   applyGokuBlackFormSystem(updated)  // SSJ Rose: continuous per-frame energy drain + instant auto-revert at 0
   applyMangekyouSystem(updated)      // Itachi Mangekyou: continuous chakra drain + instant auto-revert at 0
   applyGodspeedSystem(updated)       // Killua Godspeed: continuous Nen drain + auto-revert at 0 + afterimage-trail recording
+  applyFlashTimeSystem(updated)      // Flash — Flash Time: continuous Speed Force drain + auto-revert + block-lockout + afterimage-trail recording
+  applyGonAdultFormSystem(updated)   // Gon Adult Form: continuous Nen drain + auto-revert at 0 + green-aura-trail recording (movement-lockout is set at enter)
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   updateMiscTimers(updated)
@@ -2621,7 +3357,26 @@ function updateFighterState(fighter) {
   // per-frame delta ms.
   if (isTransformDevice(updated)) updateTransformDevice(updated, getAbilityContext().deltaMs)
   else regenEnergy(updated)
+  maybeKilluaChargeCompleteVoice(updated)   // Killua "charge complete!" bark — precise charge-animation-finished event
   return updated
+}
+
+// KILLUA "charge complete" voice (killuanen_082) — a DIRECT content match, wired precisely to the
+// charge-animation completing (NOT a generic pool). Killua's charge sheet is the concat
+// killua_charge_animation_part_1 → part_2 (18f, tail-loops from loopStart 14). "Finishes playing" =
+// the buildup+form sequence has played through once → frameIndex first reaches the last frame. Fires
+// ONCE per charge session (flag), reset the instant the player releases the charge. Audio-only.
+function maybeKilluaChargeCompleteVoice(f) {
+  if (!f || (f.rosterKey || "").toLowerCase() !== "killua") return
+  if (!f.isCharging) { f._killuaChargeVoiceDone = false; return }   // charge released → re-arm for next time
+  if (f._killuaChargeVoiceDone) return
+  const chargeDef = f.animationData?.charge || f._skinAnim?.charge
+  const lastFrame = (chargeDef?.frames || 18) - 1
+  const sh = f.spriteHandler
+  if (f._lastSpriteAction === "charge" && sh && (sh.frameIndex || 0) >= lastFrame) {
+    f._killuaChargeVoiceDone = true
+    sound.playSfxFile?.(KILLUA_CHARGE_COMPLETE_SFX, null)
+  }
 }
 
 // ------------------------------------------------------------------
@@ -2722,6 +3477,21 @@ function updateEffectsAndDomains() {
         Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0),
         spark.category === "special" || spark.category === "ultimate",
         spark.category === "ultimate")
+      // AI-vs-AI telemetry: log the CONNECTED hit (damage per move / combo strings). The spark now
+      // carries the true attacker + move name (combat.js tags), so this is exact — not the heuristic
+      // attSide above (kept as a fallback for the pre-existing on-screen stats panel).
+      if (aiVsAiState.active && aiVsAiState.session) {
+        const side = spark.attackerSide || attSide
+        const attacker = side === "p1" ? p1 : p2
+        logHit(aiVsAiState.session, side, {
+          frame:    globalFrameCount,
+          move:     spark.moveName || "attack",
+          category: spark.category || "light",
+          damage:   spark.damage || 0,
+          blocked:  !!spark.blocked,
+          combo:    attacker?.comboCounter || 0
+        })
+      }
       spark._fresh = false
     }
     spark.timer--
@@ -2816,6 +3586,12 @@ function checkRoundEnd() {
   // menu (matchConfig.mode) OR the F1 debug toggle. Previously only the menu path skipped,
   // so F1-training in a match could still trigger a KO/victory screen mid-session.
   if (!p1 || !p2 || trainingState.enabled) return
+  if (victoryState.active) return   // match already resolved (e.g. a Gon sudden-death force-ended it this frame) — don't re-process round/KO
+  // ROUND/MATCH END — stop every in-flight voice/SFX cue ONCE the round ends (KO or time-over) so
+  // combat audio can't bleed past the fight. Fires BEFORE the round-end / win barks below (which start
+  // AFTER this), and win-lines are marked persistent, so intentional post-match audio is preserved.
+  const _roundOver = roundTimer <= 0 || p1.health <= 0 || p2.health <= 0
+  if (_roundOver && !_roundEndAudioStopped) { sound.stopAllSfx?.(); _roundEndAudioStopped = true }
   if (roundTimer <= 0) {
     const p1h = p1?.health || 0, p2h = p2?.health || 0
     let rw = null
@@ -2823,6 +3599,7 @@ function checkRoundEnd() {
     else if (p2h > p1h) { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Time Over — Player 2 Wins" : "Time Over — CPU Wins" }
     else                { winnerText = "Time Over — Draw" }
     recordRoundEnd?.(matchStats, rw, p1h, p2h)   // per-round (drives perfectRounds → FLAWLESS)
+    if (aiVsAiState.active) logRoundEnd(aiVsAiState.session, { round: roundNumber, winner: rw || "draw", method: "timeout", p1Health: p1h, p2Health: p2h, frame: globalFrameCount })
     maybeRickRoundVoice(rw, true)   // time-over bell (suppressed if this ends the match)
     _checkMatchOver(); return
   }
@@ -2833,6 +3610,10 @@ function checkRoundEnd() {
   else if (p1.health > 0) { roundWins.p1++; rw = "p1"; winnerText = "Player 1 Wins Round" }
   else                    { roundWins.p2++; rw = "p2"; winnerText = isPvP() ? "Player 2 Wins Round" : "CPU Wins Round" }
   recordRoundEnd?.(matchStats, rw, p1?.health || 0, p2?.health || 0)   // per-round (drives perfectRounds)
+  if (aiVsAiState.active) {
+    const method = (p1.health <= 0 && p2.health <= 0) ? "double_ko" : "ko"
+    logRoundEnd(aiVsAiState.session, { round: roundNumber, winner: rw || "draw", method, p1Health: p1?.health || 0, p2Health: p2?.health || 0, frame: globalFrameCount })
+  }
   maybeRickRoundVoice(rw, false)   // KO round: "hey you won" (Rick won) / knockout pool (Rick down)
   _checkMatchOver()
 }
@@ -2893,6 +3674,38 @@ function endDomainCinematic() {
 }
 
 function isDomainZoomBeat() { return domainCine.timer > 0 }
+
+// ── KILLUA GODSPEED — per-opponent TIME-SLOW ──────────────────────────────────────────────────
+// While Killua's Godspeed is active, his OPPONENT runs at a reduced frame-rate: an accumulator lets the
+// opponent's per-frame update through only a fraction of frames (the rest are skipped = frozen), so its
+// movement, combat AND animation advance slowly — while Killua is never skipped and keeps full speed.
+// This is the engine's existing frame-skip slow-mo idiom (cf. the global `slowdownTimer % 3`) but scoped
+// to ONE fighter instead of the whole game. GODSPEED_OPP_TIMESCALE = fraction of normal speed for the foe.
+const GODSPEED_OPP_TIMESCALE = 0.4
+// GENERALIZED to any per-opponent time-slow user (Killua Godspeed @0.4, Flash — Flash Time @_ftOppTimeScale
+// ~0.34). Returns the fraction-of-normal-speed the given fighter imposes on its foe while its speed
+// ultimate is live, or 0 if it isn't imposing one. Both ults share this ONE frame-skip idiom.
+function _oppTimeScaleOf(user) {
+  if (!user) return 0
+  if (user._godspeedActive) return GODSPEED_OPP_TIMESCALE
+  if (user._flashTimeActive) return user._ftOppTimeScale || 0.34
+  return 0
+}
+function _updateGodspeedTimeSlow() {
+  for (const [user, foe] of [[p1, p2], [p2, p1]]) {
+    const ts = _oppTimeScaleOf(user)
+    if (ts > 0 && foe && !foe.eliminated) {
+      foe._timeSlowAcc = (foe._timeSlowAcc || 0) + ts
+      if (foe._timeSlowAcc >= 1) { foe._timeSlowAcc -= 1; foe._timeSlowFlag = false }   // this frame runs
+      else foe._timeSlowFlag = true                                                     // this frame is skipped (slowed)
+    } else if (foe && (foe._timeSlowFlag || foe._timeSlowAcc)) {
+      foe._timeSlowFlag = false; foe._timeSlowAcc = 0   // not slowed → clear
+    }
+  }
+}
+// True on the frames the fighter is being time-slow-skipped (Godspeed opponent). Also read by sprite.js
+// to freeze that fighter's animation advance on the same frames (via fighter._timeSlowFlag).
+function _timeSlowFrozen(f) { return !!(f && f._timeSlowFlag) }
 
 function updateBattle() {
   if (slowdownTimer > 0) {
@@ -2979,6 +3792,33 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // KILLUA GODSPEED ACTIVATION CINEMATIC: SAME freeze contract — combat/physics/input paused while the
+  // camera pushes in on Killua and his charge-up plays, then pulls back. The buff was already applied at
+  // the trigger (executeKilluaUltimate); this is the visual activation.
+  if (isKilluaGodspeedCinematicActive()) {
+    updateKilluaGodspeedCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
+  // FLASH TIME ACTIVATION CINEMATIC: SAME freeze contract as Godspeed — combat/physics/input paused
+  // while the camera pushes in on Flash and his spin-up plays, then pulls back. The buff (opponent
+  // time-slow + self speed + block-lockout) was already applied at the trigger (executeFlashUltimate).
+  if (isFlashTimeCinematicActive()) {
+    updateFlashTimeCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
+  // GON ADULT FORM ACTIVATION CINEMATIC: SAME freeze contract as Godspeed/Flash Time — combat/physics/
+  // input paused while the camera pushes in on Gon and his child→adult growth plays, then pulls back.
+  // The buff + movement-lockout were already applied at the trigger (executeGonUltimate).
+  if (isGonAdultFormCinematicActive()) {
+    updateGonAdultFormCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // ITACHI MANGEKYOU ACTIVATION CINEMATIC: SAME freeze contract — combat/physics/input paused while
   // the eye-transformation reveal plays (camera isolates Itachi). The BUFF was already applied by
   // enterMangekyou; this is the reveal, then combat resumes.
@@ -3001,6 +3841,29 @@ function updateBattle() {
     return
   }
 
+  // TOBIRAMA EDO TENSEI CINEMATIC (summon + un-summon): SAME freeze contract — combat/physics/input are
+  // paused while the coffin ritual plays; the body-swap (in) / revert (out) fires at the cinematic's
+  // resolve beat. This freeze is ALSO the timer-pause: while any inner-ultimate cinematic runs, this
+  // early-return keeps updatePlayerCombat (which ticks the Edo window timer) from running.
+  if (isEdoTenseiCinematicActive()) {
+    _edoCineMode = getEdoTenseiCinematicStatus().mode   // remember mode so we can detect an "in" summon ENDING
+    updateEdoTenseiCinematic({ camera, sound, worldWidth: getStageWorldWidth() })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // The coffin cinematic just ended. If it was an "in" summon, the vessel now holds the field — play ITS
+  // OWN intro (pose + voice) as the next frozen beat, AFTER the tomb fully closed (no overlap with the
+  // reveal). _edoIntroPlayed guards it to once per summon (reset each summon in applyEdoTensei).
+  if (_edoCineMode === "in") {
+    _edoCineMode = null
+    const summoned = [p1, p2].find(f => f && f._edoActive && !f._edoEnding && !f._edoIntroPlayed)
+    if (summoned) { summoned._edoIntroPlayed = true; startEdoVesselIntro(summoned) }
+  } else if (_edoCineMode) {
+    _edoCineMode = null   // an "out" un-summon ended — no intro beat
+  }
+  // Vessel-intro reveal beat — a brief FROZEN intro pose + voice for the just-summoned vessel.
+  if (updateEdoVesselIntro()) { if (typeof camera.advance === "function") camera.advance(canvas); return }
+
   // BINDING VOWS: match each player's recent RAW directional sequence (own
   // character's vows only). AI fighters have no directionHistory → never match.
   if (vowCue.timer > 0) vowCue.timer--
@@ -3012,16 +3875,21 @@ function updateBattle() {
 
   _runClashCheck()
 
-  updateMovementInput(p1)
-  updateMovementInput(p2)
+  // KILLUA GODSPEED TIME-SLOW: stamp _timeSlowFrozen on the Godspeed user's opponent for the frames it
+  // should be skipped (runs at a reduced frame-rate → visibly slowed movement + animation). Killua himself
+  // is never stamped, so he keeps acting at full speed. NOT a global game-speed change (unlike slowdownTimer).
+  _updateGodspeedTimeSlow()
+
+  if (!_timeSlowFrozen(p1)) updateMovementInput(p1)
+  if (!_timeSlowFrozen(p2)) updateMovementInput(p2)
 
   applyGojoInfinityField(p1, p2)
   applyGojoInfinityField(p2, p1)
   applyGojoInfinityToProjectiles(p1)   // TASK 4: slow/shrink/despawn enemy projectiles in the zone
   applyGojoInfinityToProjectiles(p2)
 
-  p1 = updateFighterState(p1)
-  p2 = updateFighterState(p2)
+  if (!_timeSlowFrozen(p1)) p1 = updateFighterState(p1)
+  if (!_timeSlowFrozen(p2)) p2 = updateFighterState(p2)
 
   applyGojoInfinityBarrier(p1, p2)
   applyGojoInfinityBarrier(p2, p1)
@@ -3034,8 +3902,14 @@ function updateBattle() {
 
   updateFacing()
   updateEffectsAndDomains()
-  updatePlayerCombat(p1)
-  updatePlayerCombat(p2)
+  if (!_timeSlowFrozen(p1)) updatePlayerCombat(p1)
+  if (!_timeSlowFrozen(p2)) updatePlayerCombat(p2)
+
+  // ANIMATION-END AUDIO CUTOFF: the moment a fighter's source action ends (returns to idle from an
+  // attack / cast / hurt / charge), stop the voice/SFX cues it owns so a long clip can't outlast its
+  // short animation. Owner-tagged cues only (intro/win are untagged/persistent → unaffected).
+  _updateVoiceCutoff(p1)
+  _updateVoiceCutoff(p2)
 
   // #21 CLONE RENDAN STORM — when Naruto's BASIC light-string hit connects with clones alive,
   // each live clone chains a flurry follow-up onto the string. Detected here (not in shared
@@ -3050,6 +3924,12 @@ function updateBattle() {
   updateCombatProjectiles(activeProjectiles, getStageWorldWidth(), [p1, p2])
   updatePendingSpawns()   // frame-counted deferred spawns (e.g. Naruto 2nd clone)
   resolveProjectileHits(activeProjectiles, p1, p2, hitSparks)
+
+  // EDO TENSEI counter-play: the opponent can hit the STANDING Tobirama (fighter._edoDummy) to cancel the
+  // jutsu on the spot. Checked after combat + projectile resolution so the opponent's swing/shot already
+  // whiffed on the far-away vessel; the same hit here damages the shared HP and launches the un-summon.
+  checkEdoDummyHit(p1)
+  checkEdoDummyHit(p2)
 
   updateActiveSummons()
 
@@ -3075,6 +3955,7 @@ function updateBattle() {
   }
 
   if (typeof camera.update === "function") camera.update(p1, p2, canvas)
+  _updateGonSuddenDeath()   // Gon Adult Form "Final Blow": resolve an armed sudden-death BEFORE round-end (its clean hit also KOs, which we don't want double-counted)
   checkRoundEnd()
 }
 
@@ -3096,6 +3977,8 @@ function renderHybridFighter(fighter) {
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
     drawMangekyouAura(c, fighter)      // Itachi Mangekyou crimson glow, behind the body (Itachi only)
     drawGodspeedAura(c, fighter)       // Killua Godspeed electric-afterimage trail, behind the body (Killua only)
+    drawFlashAura(c, fighter)          // Flash — Flash Time red/gold afterimage trail, behind the body (Flash only)
+    drawGonAdultAura(c, fighter)       // Gon — Adult Form green Nen aura/afterimage, behind the body (Gon only)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
     } else {
@@ -3357,73 +4240,110 @@ function _drawAbsoluteDefenseAura(f) {
   }
 }
 
-// HOLD-TO-CHARGE aura (Task 2): a visible energy effect while a meter character holds P to build
-// energy. Universal (works for sprite AND procedural fighters). Now a swirling, coiling RIBBON of
-// energy that spirals AROUND the body — ascending and rotating, vortex-like — instead of a flat
-// ground ring + rising dots. Depth (front/back of the coil) is faked in 2D: a segment on the near
-// half of its rotation is drawn brighter/thicker with more glow; the far half is dimmer/thinner, so
-// it reads as wrapping in front of AND behind the character. The whole coil rotates every frame off
-// globalFrameCount (deterministic — no Math.random in the loop). Tinted to f.energyColor and
-// brighter as the meter fills (pct), same as before.
+// HOLD-TO-CHARGE aura: the generic "gathering energy" charge-up effect for any meter fighter holding P
+// that DOESN'T ship its own dedicated charge sprite. Original procedural design (no art, no trace):
+// a TIGHT, upward-coiling blue/cyan spiral that funnels INWARD as it rises (converging = gathering) and
+// caps in a bright convergence point above the head, with cyan energy MOTES streaming up the coil. Twin
+// depth-shaded ribbons fake front/behind wrap in 2D. Fixed cyan/blue palette (deliberately not tinted to
+// f.energyColor — a consistent, better-reading "charge-up" look than the old yellow vortex). Brighter as
+// the meter fills. Everything is driven off globalFrameCount (deterministic — no Math.random in the loop).
+const CHARGE_CORE = "#eaf7ff"   // near-white hot core / motes
+const CHARGE_NEAR = "#38bdf8"   // cyan — the near (front) half of the coil
+const CHARGE_FAR  = "#1d4ed8"   // deep blue — the far (behind) half
 function _drawChargeAura(f) {
   if (!f || !f.isCharging) return
-  // Fighters with their own charge-aura SPRITE (Goku Black's power-up/Rose strips) render that
-  // instead — skip the procedural aura so the two don't stack. No-op for everyone else.
-  if (f._skinAnim?.charge || f.animationData?.charge) return
+  // Fighters with their own charge-aura SPRITE (Goku Black's power-up/Rose strips, Killua/Netero's charge
+  // strips) normally render that INSTEAD — skip the procedural aura so the two don't stack.
+  if (f._skinAnim?.charge || f.animationData?.charge) {
+    // EXCEPTION — Netero: once his Guanyin charge animation has played through to its HELD last frame, layer
+    // the generic cyan energy vortex AROUND the settled pose (his charge is loop:false + lockLastFrame, so it
+    // parks on the final frame). During the buildup (still animating toward the last frame) → don't layer yet.
+    if ((f.rosterKey || "").toLowerCase() !== "netero") return
+    const sh = f.spriteHandler, def = sh?._actionDef
+    const heldOnLastChargeFrame = def && f._lastSpriteAction === "charge" && (sh.frameIndex >= (def.frames || 1) - 1)
+    if (!heldOnLastChargeFrame) return
+  }
   _chargeAuraRenderCount++
 
   const cx    = f.x + f.w / 2, baseY = f.y + f.h
   const pct   = Math.max(0, Math.min(1, (f.energy || 0) / (f.maxEnergy || 1)))
-  const col   = f.energyColor || "#fcd34d"
-  const bright = 0.55 + pct * 0.45                 // meter-fill brightness (unchanged behaviour)
+  const bright = 0.55 + pct * 0.45                 // meter-fill brightness
 
-  const H     = f.h * (1.06 + pct * 0.30)          // coil rises up the body, a touch past the head
-  const Rbase = Math.max(f.w * 0.92, 46)           // horizontal reach so the coil wraps AROUND the silhouette
-  const spin  = globalFrameCount * 0.13            // continuous rotation phase (vortex spins each frame)
-  const TURNS = 2.7                                // number of coils from feet to crown
-  const STRANDS = 2                                // twin intertwined ribbons for a fuller vortex
-  const SEG   = 48                                 // samples per ribbon (drawn as depth-shaded segments)
+  const H     = f.h * (1.02 + pct * 0.26)          // coil height — rises past the head as the meter fills
+  const Rbase = Math.max(f.w * 0.44, 24)           // TIGHT, compact swirl that hugs the body (chakra-mold look)
+  const spin  = globalFrameCount * 0.34            // FAST rotation — a whipping chakra vortex, not a gentle glow
+  const TURNS = 5.0                                // more coils packed over the height = a dense tight spiral
+  const STRANDS = 2                                // twin intertwined ribbons
+  const SEG   = 40                                 // fewer, longer segments read sharper/more angular
+  // radius funnels inward toward the crown (convergence): feet ≈ Rbase → crown ≈ 0.24·Rbase
+  const radAt = u => Rbase * (1 - u * 0.76) * (0.9 + 0.18 * Math.sin(Math.PI * u))
+  // CRACKLE: deterministic per-segment jaggedness (two out-of-phase high-freq sines → chaotic, not a clean
+  // wave) that also SHIVERS each frame. Perturbs the radius (kinks in/out) and the angle (whips sideways) so
+  // the coil reads as a crackling chakra vortex rather than a smooth curve. Grows a touch as the meter fills.
+  const jagAmp = 0.5 + pct * 0.2
+  const jag = (i, s) => Math.sin(i * 2.7 + globalFrameCount * 0.9 + s * 2.1) * Math.sin(i * 1.13 + globalFrameCount * 0.5)
 
   ctx.save()
-  ctx.lineCap = "round"; ctx.lineJoin = "round"
-  ctx.shadowColor = col; ctx.strokeStyle = col; ctx.fillStyle = col
+  ctx.lineCap = "butt"; ctx.lineJoin = "miter"; ctx.miterLimit = 2   // hard corners → jagged, electric
 
-  // faint base flare so the vortex is anchored at the feet (not a hard cut-off)
-  ctx.globalAlpha = 0.18 * bright
-  ctx.shadowBlur = 16
-  ctx.beginPath(); ctx.ellipse(cx, baseY - 3, Rbase * 0.7, f.h * 0.07, 0, 0, Math.PI * 2); ctx.fill()
+  // faint gathering pool at the feet (energy pooling before it rises)
+  ctx.globalAlpha = 0.15 * bright
+  ctx.shadowColor = CHARGE_NEAR; ctx.shadowBlur = 12; ctx.fillStyle = CHARGE_NEAR
+  ctx.beginPath(); ctx.ellipse(cx, baseY - 2, Rbase * 0.7, f.h * 0.05, 0, 0, Math.PI * 2); ctx.fill()
 
   let sampleX = cx
   for (let s = 0; s < STRANDS; s++) {
-    const strandPhase = spin + s * Math.PI          // the two ribbons sit on opposite sides
+    const strandPhase = spin + s * Math.PI          // the two ribbons sit on opposite sides of the coil
     let prev = null
     for (let i = 0; i <= SEG; i++) {
       const u     = i / SEG                          // 0 = feet → 1 = crown
-      const theta = u * TURNS * Math.PI * 2 + strandPhase
-      // radius: fuller through the mid-body, funnelling in slightly toward the top (vortex taper)
-      const rx    = Rbase * (0.80 + 0.34 * Math.sin(Math.PI * u)) * (1 - u * 0.22)
+      const j     = jag(i, s)
+      const theta = u * TURNS * Math.PI * 2 + strandPhase + j * 0.22   // angular whip (jagged sideways kicks)
+      const rx    = radAt(u) * (1 + jagAmp * j)                        // radial crackle (kinks in/out)
       const x     = cx + Math.cos(theta) * rx
-      const y     = baseY - u * H
+      const y     = baseY - u * H - j * 2.2                            // small vertical jitter → sharper zigzag
       const front = (Math.sin(theta) + 1) * 0.5      // 1 = near (front of body), 0 = far (behind)
-      const fade  = 0.45 + 0.55 * Math.sin(Math.PI * u)  // soften the feet/crown ends
+      const fade  = 0.4 + 0.6 * Math.sin(Math.PI * u)   // soften the feet/crown ends
       if (prev) {
-        // depth-shaded ribbon segment: near half brighter/thicker/more glow → reads as "in front"
-        ctx.globalAlpha = Math.max(0, Math.min(1, (0.14 + front * 0.78) * bright * fade))
-        ctx.lineWidth   = (1.3 + front * 3.4) * (0.7 + pct * 0.5)
-        ctx.shadowBlur  = 5 + front * 13
+        // depth-shaded segment: near half = bright cyan/thick/glowing (in front), far half = deep blue/thin
+        ctx.strokeStyle = front > 0.5 ? CHARGE_NEAR : CHARGE_FAR
+        ctx.shadowColor = front > 0.5 ? "#7dd3fc" : CHARGE_FAR
+        ctx.globalAlpha = Math.max(0, Math.min(1, (0.20 + front * 0.80) * bright * fade))
+        ctx.lineWidth   = (0.8 + front * 2.4) * (0.7 + pct * 0.5)
+        ctx.shadowBlur  = 2 + front * 6      // less glow → the hard jagged kinks stay crisp (crackle, not haze)
         ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(x, y); ctx.stroke()
+        // crackle spark: a tiny bright node at a sharp kink (|jag| peak) → sells the electric snap
+        if (front > 0.6 && Math.abs(j) > 0.82) {
+          ctx.save(); ctx.globalAlpha = 0.9 * bright * fade; ctx.fillStyle = CHARGE_CORE
+          ctx.shadowColor = CHARGE_NEAR; ctx.shadowBlur = 6
+          ctx.beginPath(); ctx.arc(x, y, 1.1 + pct * 0.9, 0, Math.PI * 2); ctx.fill(); ctx.restore()
+        }
       }
       if (s === 0 && i === Math.round(SEG * 0.5)) sampleX = x   // real drawn mid-coil x (harness rotation probe)
       prev = { x, y }
     }
   }
 
-  // bright energy "head" cresting at the top of the vortex + a couple of sparks riding the coil
+  // Rising MOTES — the "gathering energy" tell: cyan-white sparks that spawn low, climb the coil while
+  // funnelling inward, and fade out as they converge at the crown. Wrap continuously (a steady updraft).
+  const MOTES = 5
+  ctx.fillStyle = CHARGE_CORE; ctx.shadowColor = CHARGE_NEAR
+  for (let m = 0; m < MOTES; m++) {
+    const mu    = ((globalFrameCount * 0.019) + m / MOTES) % 1     // height fraction, rising over time
+    const theta = mu * TURNS * Math.PI * 2 + spin + m * 1.7
+    const mx    = cx + Math.cos(theta) * radAt(mu) * 0.92
+    const my    = baseY - mu * H
+    ctx.globalAlpha = 0.9 * bright * Math.sin(Math.PI * mu)        // fade in low, out high
+    ctx.shadowBlur  = 9
+    ctx.beginPath(); ctx.arc(mx, my, 1.4 + pct * 1.7, 0, Math.PI * 2); ctx.fill()
+  }
+
+  // bright convergence "head" where the spiral funnels to a point above the fighter
   const headTheta = TURNS * Math.PI * 2 + spin
-  const headX = cx + Math.cos(headTheta) * Rbase * 0.5
-  ctx.globalAlpha = 0.85 * bright
-  ctx.shadowBlur = 18
-  ctx.beginPath(); ctx.arc(headX, baseY - H, 2.5 + pct * 2.2, 0, Math.PI * 2); ctx.fill()
+  const headX = cx + Math.cos(headTheta) * radAt(1) * 0.6
+  ctx.globalAlpha = 0.9 * bright
+  ctx.fillStyle = CHARGE_CORE; ctx.shadowColor = CHARGE_NEAR; ctx.shadowBlur = 15 + pct * 10
+  ctx.beginPath(); ctx.arc(headX, baseY - H, 2.4 + pct * 2.6, 0, Math.PI * 2); ctx.fill()
 
   ctx.restore()
 
@@ -3459,6 +4379,66 @@ function _drawIntroAura(f) {
   ctx.restore()
 }
 
+// ── EDO TENSEI — standing Tobirama dummy (world space) ───────────────────────
+// During the window the controlled fighter IS the vessel; Tobirama's own body stays on screen as a
+// non-controllable, HITTABLE dummy next to the tomb (snapshotted in applyEdoTensei → fighter._edoDummy).
+// Drawn directly in world coords (the camera transform is already applied by drawBattleScene). A hittable
+// hurtbox and the hit→cancel are handled in checkEdoDummyHit (combat side).
+const _edoDummyImgs = new Map()
+function _edoDummyImg(src) { if (!_edoDummyImgs.has(src)) { const i = new Image(); i.src = src; _edoDummyImgs.set(src, i) } return _edoDummyImgs.get(src) }
+function drawEdoDummy(fighter) {
+  const d = fighter && fighter._edoActive && fighter._edoDummy
+  if (!d || !d.sheet) return
+  const img = _edoDummyImg(d.sheet)
+  if (!img.complete || img.naturalWidth === 0) return
+  const scale = (d.spriteScale || 1)
+  const dw = d.sw * scale, dh = d.sh * scale
+  const fi = Math.floor((d._f = (d._f || 0) + 1) / 10) % Math.max(1, d.frames)   // slow idle cycle
+  const cx = d.x + d.w / 2, footY = d.y + d.h    // anchor at the feet so it stands on the ground like a fighter
+  ctx.save()
+  ctx.translate(cx, footY - dh)
+  if (d.facing < 0) { ctx.translate(dw, 0); ctx.scale(-1, 1) }
+  ctx.drawImage(img, fi * d.sw, 0, d.sw, d.sh, 0, 0, dw, dh)
+  ctx.restore()
+}
+
+// A hurtbox for the standing dummy (mirrors combat.getHurtbox's inset so reach feels consistent).
+function _edoDummyRect(d) { return { x: d.x + 6, y: d.y + 6, w: Math.max(1, d.w - 12), h: Math.max(1, d.h - 6) } }
+// The counter-play resolver. If the opponent's active swing OR one of their projectiles overlaps the
+// standing Tobirama, deal that hit's (scaled) damage to the SHARED health bar and de-summon immediately.
+// Floors the shared HP at 1 so the interrupt itself can't be the KO (a normal follow-up still finishes).
+function checkEdoDummyHit(fighter) {
+  if (!fighter || !fighter._edoActive || !fighter._edoDummy || fighter._edoEnding) return
+  const opp = getOpponent(fighter)
+  if (!opp) return
+  const rect = _edoDummyRect(fighter._edoDummy)
+  let raw = 0
+  const a = opp.currentAttack
+  // Melee: the opponent auto-FACES the (far-away) vessel, so a strict directional hitbox rarely reaches
+  // Tobirama standing at the edge. Count a hit when the active swing's hitbox OR the attacker's own body
+  // overlaps the dummy — i.e. the opponent has walked over to Tobirama and is swinging on him. Gated on
+  // ACTIVE frames + not-yet-consumed so it reads like a real connect (and one swing = one target).
+  if (a && !a.hasHit && attackIsActive(a)) {
+    const hb = getAttackHitbox(opp)
+    if ((hb && rectsOverlap(hb, rect)) || rectsOverlap(getHurtbox(opp), rect)) { a.hasHit = true; raw = a.damage || 30 }
+  }
+  if (!raw) {
+    for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+      const p = activeProjectiles[i]
+      if (!p || p.owner !== opp) continue
+      const r = p.radius || p.size || (p.w && p.h ? Math.max(p.w, p.h) / 2 : 10)
+      if (rectsOverlap({ x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 }, rect)) { activeProjectiles.splice(i, 1); raw = p.damage || 30; break }
+    }
+  }
+  if (!raw) return
+  const dmg = Math.max(1, Math.floor(raw * GLOBAL_DAMAGE_SCALE))
+  const d = fighter._edoDummy
+  fighter.health = Math.max(1, (fighter.health || 0) - dmg)
+  spawnDamageNumber({ x: d.x + d.w / 2, y: d.y, damage: dmg, category: "special" })
+  camera.shake?.(10, 8)
+  endEdoTenseiWindow(fighter, getStageWorldWidth())
+}
+
 function drawBattleScene() {
   const stage = getStageTheme()
   const hasTransform = typeof camera.applyTransform === "function"
@@ -3482,6 +4462,8 @@ function drawBattleScene() {
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
+  drawEdoDummy(p1)   // Tobirama Edo Tensei: the standing, hittable Tobirama body next to the tomb (world space)
+  drawEdoDummy(p2)
   // Shikigami/summons drawn AFTER the fighters (world space) so Megumi's Divine
   // Dog / Nue / Toad etc. are never hidden behind a fighter sprite — they were
   // previously drawn underneath and could be occluded near the action.
@@ -3691,9 +4673,30 @@ function drawBattle() {
   drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
   drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
+  drawKilluaGodspeedCinematic(ctx, canvas)  // fullscreen Godspeed activation overlay (cyan burst flash)
+  drawFlashTimeCinematic(ctx, canvas)       // fullscreen Flash Time activation overlay (red/gold burst flash)
+  drawGonAdultFormCinematic(ctx, canvas)    // fullscreen Adult Form activation overlay (green burst flash)
   drawMangekyouCinematic(ctx, canvas)       // fullscreen Mangekyou activation overlay (centered eye transformation)
   drawVegetaFinalFlashCinematic(ctx, canvas)  // fullscreen Overcharged Final Flash overlay (gold beam + impact explosion)
   drawBeerusKiBallCinematic(ctx, canvas)      // fullscreen Ki Ball overlay (charging orb → impact explosion)
+  drawEdoTenseiCinematic(ctx, canvas)         // Edo Tensei summon/un-summon overlay (giant coffin + vessel reveal)
+  if (aiVsAiState.active) _drawAiVsAiHud()
+}
+
+// Spectator overlay: shows this is an AI-vs-AI run — match progress, speed, and each side's AI tier.
+function _drawAiVsAiHud() {
+  ctx.save()
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  const cx = canvas.width / 2
+  ctx.fillStyle = "rgba(8,12,28,0.72)"
+  const bw = 360, bh = 40, bx = cx - bw / 2, by = canvas.height - 58
+  ctx.fillRect(bx, by, bw, bh)
+  ctx.strokeStyle = "rgba(124,252,152,0.5)"; ctx.lineWidth = 1; ctx.strokeRect(bx, by, bw, bh)
+  ctx.font = "800 15px Arial"; ctx.fillStyle = "#7CFC98"
+  ctx.fillText(`AI vs AI  ·  MATCH ${Math.min(aiVsAiState.matchesDone + 1, aiVsAiState.matchesTotal)}/${aiVsAiState.matchesTotal}  ·  ${aiVsAiState.speed}× SPEED`, cx, by + 13)
+  ctx.font = "12px Arial"; ctx.fillStyle = "rgba(220,230,255,0.85)"
+  ctx.fillText(`${(p1?.name || "P1")} [${aiVsAiConfig.p1Diff}]   vs   ${(p2?.name || "P2")} [${aiVsAiConfig.p2Diff}]`, cx, by + 29)
+  ctx.restore()
 }
 
 // ── FREE-FOR-ALL rendering (parallel to drawBattle; array-driven) ─────────────
@@ -3786,7 +4789,9 @@ function drawFFABattle() {
   drawFFAResult()
 }
 
-function ffaSelectableRoster() { return characterList.filter(c => !c.hidden) }
+// FFA character-select roster — non-hidden, routed through the central BETA gate (spriteless fighters
+// vanish from the FFA grid while BETA is active, same as the main select screen).
+function ffaSelectableRoster() { return characterList.filter(c => !c.hidden && rosterKeyAllowed(c.rosterKey)) }
 
 // "BINDING VOW ACTIVATED" overlay — a brief white flash + chained vow name.
 function _drawVowCue() {
@@ -3962,6 +4967,8 @@ function renderCurrentState() {
     case GAME_STATES.FFA_TEAMSELECT:  drawFFATeamSelectScreen(ctx, canvas, ffaState.playerCount, ffaState.teams, ffaState.charKeys, hoverFFATeamIndex, TEAM_COLORS); break
     case GAME_STATES.FFA_BATTLE:      drawFFABattle(); break
     case GAME_STATES.AI_DIFFICULTY:   drawAIDifficultyScreen(ctx, canvas, hoverDifficultyIndex); break
+    case GAME_STATES.AI_VS_AI_SETUP:  drawAiVsAiSetupScreen(ctx, canvas, aiVsAiConfig, aiVsAiRoster(), hoverAiVsAiIndex); break
+    case GAME_STATES.AI_VS_AI_SUMMARY: drawAiVsAiSummaryScreen(ctx, canvas, aiVsAiState.lastExport || {}, hoverAiVsAiSummaryIndex); break
     case GAME_STATES.SELECT_UNIVERSE:
       drawUniverseSelectScreen(ctx, canvas, getUniverseList(), hoverUniverseIndex); break
     case GAME_STATES.SELECT_CHARACTER:
@@ -3982,6 +4989,13 @@ function renderCurrentState() {
         aliens: getAlienPoolList(),
         draft:  matchConfig.alienDraft,
         player: matchConfig.alienSelectSide === "p1" ? 1 : 2
+      }); break
+    case GAME_STATES.SELECT_EDO_BACKUP:
+      drawCharacterSelectScreen(ctx, canvas, {
+        roster:        getEdoBackupRoster(),
+        selectedIndex: hoverEdoBackupIndex,
+        currentPlayer: matchConfig.edoSelectSide === "p1" ? 1 : 2,
+        title: "EDO TENSEI — CHOOSE YOUR REANIMATED VESSEL"
       }); break
     case GAME_STATES.SELECT_SKIN: drawSkinSelectScreen(); break
     case GAME_STATES.SELECT_STAGE: drawStageSelectScreen(ctx, canvas, stages, hoverStageIndex); break
@@ -4021,8 +5035,8 @@ function renderCurrentState() {
 // ------------------------------------------------------------------
 function getUniverseList() {
   let keys = universeKeys
-  // Beta code (GojoV1): only universes that contain a sprite-having character are
-  // selectable (derived live from hasSprites). Dev code (full unlock) sees every universe.
+  // Beta code (BETA/GojoV1): only universes that contain a beta-selectable character are
+  // selectable (derived live from hasSprites+animationData). Dev (full unlock) sees every universe.
   if (isBetaUnlocked() && !isDevUnlocked()) { const su = spriteUniverseSet(); keys = keys.filter(k => su.has(k)) }
   return keys.map(k => ({ name: formatUniverseName(k), id: k }))
 }
@@ -4086,8 +5100,11 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.FFA_SLOTSELECT)   { tryHover(getFFASlotSelectRects(canvas, ffaState.playerCount), hoverFFASlotIndex, v => hoverFFASlotIndex = v); return }
   if (gameState === GAME_STATES.FFA_TEAMSELECT)   { tryHover(getFFATeamSelectRects(canvas, ffaState.playerCount), hoverFFATeamIndex, v => hoverFFATeamIndex = v); return }
   if (gameState === GAME_STATES.AI_DIFFICULTY)    { tryHover(getAIDifficultyRects(canvas),    hoverDifficultyIndex, v => hoverDifficultyIndex = v); return }
+  if (gameState === GAME_STATES.AI_VS_AI_SETUP)   { tryHover(getAiVsAiSetupRects(canvas),     hoverAiVsAiIndex,     v => { hoverAiVsAiIndex = v; aiVsAiConfig.sel = v }); return }
+  if (gameState === GAME_STATES.AI_VS_AI_SUMMARY) { tryHover(getAiVsAiSummaryRects(canvas),   hoverAiVsAiSummaryIndex, v => hoverAiVsAiSummaryIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
   if (gameState === GAME_STATES.SELECT_CHARACTER) { tryHover(getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse()), hoverCharacterIndex, v => hoverCharacterIndex = v); return }
+  if (gameState === GAME_STATES.SELECT_EDO_BACKUP) { tryHover(getCharacterCardRects(canvas, getEdoBackupRoster()), hoverEdoBackupIndex, v => hoverEdoBackupIndex = v); return }
   if (gameState === GAME_STATES.SELECT_STAGE)     { tryHover(getStageCardRects(canvas, stages), hoverStageIndex, v => hoverStageIndex = v) }
 }
 
@@ -4183,7 +5200,24 @@ function handleMenuClicks() {
       else if (c.id === "pvp") chooseMode("pvp")
       else if (c.id === "tower") gameState = GAME_STATES.TOWER_SELECT   // pick a tier first
       else if (c.id === "ffa")  { hoverFFAIndex = 0; gameState = GAME_STATES.FFA_SETUP }   // free-for-all
+      else if (c.id === "aivsai") { hoverAiVsAiIndex = 0; aiVsAiConfig.sel = 0; gameState = GAME_STATES.AI_VS_AI_SETUP }
       else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
+      break
+    }
+    case GAME_STATES.AI_VS_AI_SETUP: {
+      const c = getAiVsAiSetupRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      _activateAiVsAiRow(c.id)
+      break
+    }
+    case GAME_STATES.AI_VS_AI_SUMMARY: {
+      const c = getAiVsAiSummaryRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      const exp = aiVsAiState.lastExport
+      if      (c.id === "json" && exp) downloadText(exp.jsonName, exp.json, "application/json")
+      else if (c.id === "csv"  && exp) downloadText(exp.csvName,  exp.csv,  "text/csv")
+      else if (c.id === "again")       { hoverAiVsAiIndex = 0; aiVsAiConfig.sel = 0; gameState = GAME_STATES.AI_VS_AI_SETUP }
+      else if (c.id === "menu")        { aiVsAiState.finished = false; resetToStart() }
       break
     }
     case GAME_STATES.FFA_SETUP: {
@@ -4272,9 +5306,23 @@ function handleMenuClicks() {
         matchConfig.alienSelectSide = side
         matchConfig.alienDraft = (matchConfig[side + "Aliens"] || []).slice()
         gameState = GAME_STATES.SELECT_ALIENS
+      } else if (key === "tobirama") {
+        // Tobirama → detour to pick the Edo Tensei vessel (any built roster char) before moving on.
+        matchConfig.edoSelectSide = side
+        hoverEdoBackupIndex = 0
+        gameState = GAME_STATES.SELECT_EDO_BACKUP
       } else {
         proceedAfterCharacter(side)
       }
+      break
+    }
+    case GAME_STATES.SELECT_EDO_BACKUP: {
+      const side   = matchConfig.edoSelectSide
+      const roster = getEdoBackupRoster()
+      const idx    = getCharacterCardRects(canvas, roster).findIndex(r => pointInRect(mouse.x, mouse.y, r))
+      if (idx < 0 || !roster[idx]) break
+      matchConfig[side + "EdoBackup"] = roster[idx].id   // read at activation (executeTobiramaUltimate)
+      proceedAfterCharacter(side)
       break
     }
     case GAME_STATES.SELECT_ALIENS: {
@@ -4338,15 +5386,15 @@ function updateCurrentState() {
       // SEQUENTIAL intro stage machine: P1 plays its full intro, THEN P2's begins. Only the active
       // side advances; the other holds idle. Runs every intro frame (during namecall AND after).
       if (introStage === "p1") {
-        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1) }
+        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1); updateKilluaIntroRollIn(p1) }
         if (--introStageTimer <= 0) {
-          if (p1) p1._introPlaying = false
+          if (p1) { p1._introPlaying = false; finalizeKilluaIntroPos(p1) }
           if (p2) { p2._introPlaying = true; initIntroVariant(p2); introStage = "p2"; introStageTimer = introTotalFrames(p2) }
           else introStage = "done"
         }
       } else if (introStage === "p2") {
-        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2) }
-        if (--introStageTimer <= 0) { if (p2) p2._introPlaying = false; introStage = "done" }
+        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2); updateKilluaIntroRollIn(p2) }
+        if (--introStageTimer <= 0) { if (p2) { p2._introPlaying = false; finalizeKilluaIntroPos(p2) } introStage = "done" }
       }
       if (namecallActive) {
         // Announcement phase: hold each side's zoom, then advance to the next mapped
@@ -4421,6 +5469,9 @@ function updateCurrentState() {
     case GAME_STATES.PAUSED:
       break
   }
+
+  // AI-vs-AI spectator controller: move telemetry + auto-advance/repeat-N/finish. Inert otherwise.
+  updateAiVsAiController()
 }
 
 function triggerSlowdown(frames = 45, target = null) {
@@ -4464,8 +5515,22 @@ function gameLoop(now) {
   globalFrameCount++
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   updateCurrentState()
+  persistSessionIfChanged()   // cross-reload session save (selections / training toggles / unlocks) — writes only on change
+  // FAST-FORWARD (AI-vs-AI spectator mode only): run extra LOGIC ticks per rendered frame so a
+  // test match resolves in a fraction of the wall-clock time. Only the update runs again — render
+  // happens once — so the sim advances Nx while we still draw at the display rate. Gated to the
+  // in-match states; menus/setup always run at 1x. Inert in every other mode (active=false).
+  if (aiVsAiState.active && aiVsAiState.speed > 1 && _aiVsAiFastForwardState()) {
+    for (let i = 1; i < aiVsAiState.speed; i++) { globalFrameCount++; updateCurrentState() }
+  }
   renderCurrentState()
   endInputFrame()
+}
+
+// The gameStates during which fast-forward may add extra sim ticks (fight + post-match dwell).
+function _aiVsAiFastForwardState() {
+  return gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.INTRO ||
+         gameState === GAME_STATES.ROUND_BREAK || gameState === GAME_STATES.VICTORY
 }
 
 // ------------------------------------------------------------------
@@ -4481,7 +5546,7 @@ window.addEventListener("keydown", e => {
     else if (key === "enter") {
       const mode = applyUnlockCode(devCodeBuffer)
       if (mode === "dev")       { devCodeMessage = "✓ ALL UNLOCKED (session only)"; devCodeEntry = false }
-      else if (mode === "beta") { devCodeMessage = "✓ JJK BETA: Jujutsu Kaisen roster + skins only"; devCodeEntry = false }
+      else if (mode === "beta") { devCodeMessage = isBetaUnlocked() ? "✓ BETA ON: sprite roster only + all skins unlocked" : "BETA OFF: full roster restored"; devCodeEntry = false }
       else { devCodeMessage = "Invalid code"; devCodeBuffer = "" }
     }
     else if (key === "backspace") devCodeBuffer = devCodeBuffer.slice(0, -1)
@@ -4506,6 +5571,25 @@ window.addEventListener("keydown", e => {
     if (key === "arrowright" || key === "d") tutorialPage = Math.min(getTutorialPageCount(P1_CONTROLS) - 1, tutorialPage + 1)
     else if (key === "arrowleft" || key === "a") tutorialPage = Math.max(0, tutorialPage - 1)
     else if (key === "escape") gameState = GAME_STATES.MAIN_MENU
+    return
+  }
+
+  // AI-vs-AI SETUP: ↑↓ pick a row, ◀▶ change its value, Enter start, Esc back.
+  if (gameState === GAME_STATES.AI_VS_AI_SETUP) {
+    const rows = getAiVsAiSetupRects(canvas)
+    const n = rows.length
+    if (key === "arrowup" || key === "w")        aiVsAiConfig.sel = (aiVsAiConfig.sel - 1 + n) % n
+    else if (key === "arrowdown" || key === "s") aiVsAiConfig.sel = (aiVsAiConfig.sel + 1) % n
+    else if (key === "arrowleft" || key === "a") _cycleAiVsAiRow(rows[aiVsAiConfig.sel]?.id, -1)
+    else if (key === "arrowright"|| key === "d") _cycleAiVsAiRow(rows[aiVsAiConfig.sel]?.id, +1)
+    else if (key === "enter" || key === "j")     _activateAiVsAiRow(rows[aiVsAiConfig.sel]?.id)
+    else if (key === "escape")                   gameState = GAME_STATES.GAMEPLAY_SELECT
+    hoverAiVsAiIndex = aiVsAiConfig.sel
+    return
+  }
+  if (gameState === GAME_STATES.AI_VS_AI_SUMMARY) {
+    if (key === "escape" || key === "m") { aiVsAiState.finished = false; resetToStart() }
+    else if (key === "enter") { hoverAiVsAiIndex = 0; aiVsAiConfig.sel = 0; gameState = GAME_STATES.AI_VS_AI_SETUP }
     return
   }
 
@@ -4586,6 +5670,10 @@ updateCameraBounds()
 // anyway). If a current account was restored, push its progression/unlocks/settings into the
 // live modules now, before the first frame. A later SAVE FILE connect still overrides this.
 if (getCurrentAccount()) hydrateFromLoadedSave()
+// SESSION RESTORE (universal, guests included): re-apply the last selections / training toggles /
+// unlock flags and land on the screen the player was on (never a match — mid-fight collapses to the
+// main menu). Runs AFTER account hydrate so account unlocks compose (OR-in) with session unlocks.
+restoreSession()
 gameLoop()
 
 // ------------------------------------------------------------------
@@ -4628,6 +5716,7 @@ gameLoop()
     matchIntroTimer = 0
     if (p1) p1._introPlaying = false
     if (p2) p2._introPlaying = false
+    finalizeKilluaIntroPos(p1); finalizeKilluaIntroPos(p2)   // undo the roll-in offset if we skip mid-roll
     gameState = GAME_STATES.BATTLE
     countdown = 0
   }
@@ -4662,6 +5751,10 @@ gameLoop()
     currentForm:      f.currentForm || null,     // transformation state (Goku SSB etc.)
     mangekyouActive:  !!f._mangekyouActive,       // Itachi Mangekyou Sharingan buff-mode
     godspeedActive:   !!f._godspeedActive,        // Killua Godspeed buff-mode ultimate
+    flashTimeActive:  !!f._flashTimeActive,        // Flash — Flash Time buff-mode ultimate
+    isBlocking:       !!f.isBlocking,              // live guard state (Flash Time block-lockout test)
+    cmdHitLanded:     !!f._cmdHitLanded,           // rekka cancel-on-hit gate: true only after a clean connect (interrupt test)
+    timeSlowFrozen:   !!f._timeSlowFlag,           // this fighter is being time-slow-skipped this frame (Godspeed / Flash Time)
     attackSpeedMultiplier: f.attackSpeedMultiplier ?? 1,   // buff-mode attack-speed scale (Godspeed)
     damageMultiplier: f.damageMultiplier ?? 1,    // buff-mode damage scale (Mangekyou/SSJ etc.)
     transformIndex:   f.transformIndex ?? null,
@@ -4682,14 +5775,71 @@ gameLoop()
     tauntCharge:      f._tauntCharge || 0,
     tauntPlaying:     !!f._tauntPlaying,
     tauntTimer:       f._tauntTimer || 0,
-    tauntHealFlash:   f._tauntHealFlash || 0
+    tauntHealFlash:   f._tauntHealFlash || 0,
+    edoActive:        !!f._edoActive,           // Edo Tensei window active (Tobirama body-swapped into the vessel)
+    edoEnding:        !!f._edoEnding,           // un-summon cinematic in flight (either end condition)
+    edoWindup:        f._edoWindup || 0,        // summoning-ritual windup frames remaining (pre-swap)
+    edoFuel:          f._edoActive ? (f.energy || 0) : 0,   // window fuel = the vessel's ENERGY bar (drains → 0 ends the jutsu; extendable by building energy)
+    edoVessel:        f._edoVessel || null,     // which char the vessel currently is
+    edoBackup:        f._edoBackup || null,     // pre-chosen vessel
+    edoDummy:         f._edoDummy ? { x: f._edoDummy.x, y: f._edoDummy.y, w: f._edoDummy.w, h: f._edoDummy.h } : null,  // standing Tobirama body
+    invulnTimer:      f.invulnTimer || 0
   })
 
   window.__harness = {
     version: 1,
     __sound:     sound,     // the live SoundManager singleton — lets a test spy on SFX file calls
+    // ── AUDIO-CUTOFF harness (voice/SFX stop-on-animation-end + stop-on-match-end) ──
+    sfxActive: () => (sound._activeSfx ? [...sound._activeSfx].map(e => ({ file: (e.audio?.src || "").split("/").pop(), paused: !!e.audio?.paused, owned: !!e.owner, persistent: !!e.persistent })) : []),
+    playSfxOwned: (file, who = "p1", persistent = false) => { const f = who === "p2" ? p2 : p1; return !!sound.playSfxFile(file, null, { owner: f, persistent }) },
+    sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
     start:       startHarnessMatch,
     skipToBattle,
+    // Center point of a GAMEPLAY_SELECT button by id — so menu-click tests stay correct when the
+    // menu gains/loses rows (the vertical layout re-centers all rows on any count change).
+    gameplayRect: (id) => { const r = getGameplaySelectRects(canvas).find(x => x.id === id); return r ? { x: Math.round(r.x + r.w / 2), y: Math.round(r.y + r.h / 2) } : null },
+    // ── AI vs AI SPECTATOR MODE (aivsai.test.mjs) ────────────────────────────────
+    // Drives the REAL mode: configures the setup, starts the run, and ticks the actual
+    // updateCurrentState() logic synchronously (no rAF wait) so N matches resolve in ms.
+    // Returns the SAME exported log a player would download from the summary screen.
+    aiVsAi: {
+      // Configure + start an N-match run. opts: { p1, p2, p1Diff, p2Diff, matches, speed }
+      start: (opts = {}) => {
+        if (opts.p1 && characters[opts.p1]) aiVsAiConfig.p1Key = opts.p1
+        if (opts.p2 && characters[opts.p2]) aiVsAiConfig.p2Key = opts.p2
+        if (opts.p1Diff) aiVsAiConfig.p1Diff = opts.p1Diff
+        if (opts.p2Diff) aiVsAiConfig.p2Diff = opts.p2Diff
+        if (opts.matches) aiVsAiConfig.matches = opts.matches | 0
+        if (opts.speed != null) { const i = SPECTATOR_SPEEDS.indexOf(opts.speed); if (i >= 0) aiVsAiConfig.speedIndex = i }
+        startAiVsAiSession()
+        return { mode: matchConfig.mode, matchesTotal: aiVsAiState.matchesTotal, speed: aiVsAiState.speed }
+      },
+      // Advance the real game logic by n frames (synchronous; bypasses the rAF clock).
+      step: (n = 1) => { for (let i = 0; i < n; i++) { globalFrameCount++; updateCurrentState() } },
+      // Start a run and tick until it finishes (or a frame cap). Returns the exported log.
+      runToCompletion: (opts = {}, frameCap = 400000) => {
+        window.__harness.aiVsAi.start(opts)
+        let frames = 0
+        while (!aiVsAiState.finished && frames < frameCap) { globalFrameCount++; updateCurrentState(); frames++ }
+        return { frames, finished: aiVsAiState.finished, ...window.__harness.aiVsAi.getExport() }
+      },
+      state: () => ({
+        active: aiVsAiState.active, finished: aiVsAiState.finished,
+        matchesDone: aiVsAiState.matchesDone, matchesTotal: aiVsAiState.matchesTotal,
+        speed: aiVsAiState.speed, gameState
+      }),
+      // How many LOGIC ticks gameLoop runs per rendered frame right now — mirrors the exact
+      // fast-forward guard in gameLoop, so a test can prove the speed control is engaged.
+      ticksPerFrame: () => (aiVsAiState.active && aiVsAiState.speed > 1 && _aiVsAiFastForwardState()) ? aiVsAiState.speed : 1,
+      // The finished run's exported log (null until the run completes).
+      getExport: () => aiVsAiState.lastExport
+        ? { json: aiVsAiState.lastExport.json, csv: aiVsAiState.lastExport.csv,
+            summary: aiVsAiState.lastExport.summary,
+            jsonName: aiVsAiState.lastExport.jsonName, csvName: aiVsAiState.lastExport.csvName }
+        : null,
+      // Live snapshot of the in-progress session log (before completion) — for mid-run assertions.
+      liveSession: () => aiVsAiState.session ? sessionToJSON(aiVsAiState.session) : null
+    },
     // Last frame the persistent Absolute Defense ribcage/aura SHEET actually rendered — lets a
     // test prove the imagery persists past the one-shot toggle FX (playtester visual-bug fix).
     absDefAuraSheetFrame: () => _absDefAuraSheetFrame,
@@ -4739,14 +5889,92 @@ gameLoop()
         }
       }
     },
+    // ── EDO TENSEI vessel-select (Stage 6 Step B) ────────────────────────────────
+    // Live view of the Tobirama backup-select flow + the click rects for its grid + the stamped
+    // per-fighter vessel. Lets a test click through the real SELECT_EDO_BACKUP screen.
+    edoBackup: {
+      state: () => ({ gameState, selectState: GAME_STATES.SELECT_EDO_BACKUP, side: matchConfig.edoSelectSide || null, roster: getEdoBackupRoster().map(c => c.id), p1Backup: matchConfig.p1EdoBackup || null, p2Backup: matchConfig.p2EdoBackup || null }),
+      cardRects: () => getCharacterCardRects(canvas, getEdoBackupRoster()),
+      fighterBackup: (who = "p1") => (who === "p2" ? p2 : p1)?._edoBackup || null,
+      setBackup: (key, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._edoBackup = key; return f?._edoBackup || null },   // test-only: pick the vessel post-boot
+      revert: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? revertEdoTensei(f) : false },   // force the auto-revert (Step D timing test)
+      setFuel: (n, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f && f._edoActive) f.energy = n; return f?.energy ?? null },   // fast-forward the window: the fuel IS the vessel's energy bar — set near 0 → next drain tick de-summons
+      dummyRect: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f?._edoDummy ? { x: f._edoDummy.x, y: f._edoDummy.y, w: f._edoDummy.w, h: f._edoDummy.h } : null },   // the standing Tobirama's hit-box for the counter-play test
+      cine: () => getEdoTenseiCinematicStatus(),   // summon/un-summon cinematic status (active/mode/frame/resolved)
+      // Vessel-intro reveal beat (plays the summoned char's OWN intro pose+voice after the coffin closes).
+      introBeat: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { playing: !!f._edoIntroPlaying, variant: f._introVariant || null, revealFrame: f._introRevealFrame || 0, introPlaying: !!f._introPlaying } : null },
+      // Fast-forward a timer-based nested form (Susanoo) to its expiry so the drain-pause test can observe
+      // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
+      expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
+      // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive(),
+      skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
+      // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
+      // can prove the vessel picked through the real screens survives into the live fighter.
+      startPreserving: () => { matchConfig.selectedStage = matchConfig.selectedStage || stages[0]; if (matchConfig.mode === "training") { matchConfig.p2Char = matchConfig.p1Char; matchConfig.p2CharKey = matchConfig.p1CharKey } startMatch(); skipToBattle(); return { p1: p1?.rosterKey, edo: p1?._edoBackup } }
+    },
     // ── UNLOCK CODES + menu visibility (beta-redefinition test) ──────────────────
-    // Apply a dev/beta code and read back the resulting unlock flags.
+    // Apply a dev/beta code and read back the resulting unlock flags. Beta codes TOGGLE
+    // (entering one again turns beta back off).
     applyCode: (code) => ({ result: applyUnlockCode(code), beta: isBetaUnlocked(), dev: isDevUnlocked() }),
-    // Ground-truth sprite roster (hasSprites-derived) + full non-hidden roster — so tests can
-    // assert the beta filter equals the live sprite set without hardcoding names.
-    rosterSets: () => ({ sprite: spriteRosterKeys(), all: Object.keys(characters).filter(k => !characters[k]?.hidden), spriteUniverses: [...spriteUniverseSet()] }),
+    // Explicit "clear action" for beta — turns it off regardless of current state (separate from re-entry).
+    clearBeta: () => ({ beta: (clearBetaUnlock(), isBetaUnlocked()), dev: isDevUnlocked() }),
+    // Ground-truth sprite roster (hasSprites+animData-derived) + full non-hidden roster — so tests can
+    // assert the beta filter equals the live selectable set without hardcoding names.
+    rosterSets: () => ({ sprite: betaRosterKeys(), all: Object.keys(characters).filter(k => !characters[k]?.hidden), spriteUniverses: [...spriteUniverseSet()] }),
+    // Character POOLS for every mode OUTSIDE the main select screen — so a test can assert the BETA gate
+    // covers them all, not just the main select. Keys only. mainSelect is the flat main-select set.
+    modeRosters: () => {
+      const prev = matchConfig.selectedUniverse
+      const mainSelect = []
+      for (const u of Object.keys(universeMap)) { matchConfig.selectedUniverse = u; mainSelect.push(...getUniverseCharacters()) }
+      matchConfig.selectedUniverse = prev
+      return {
+        mainSelect,
+        tower:    filterAllowedRosterKeys(allCharacterKeys),        // Tower-Mode opponent draw pool
+        ffa:      ffaSelectableRoster().map(c => c.rosterKey),      // FFA character-select grid
+        aiVsAi:   aiVsAiRoster().map(c => c.key),                   // AI-vs-AI spectator picker
+        fallback: getFallbackCharacterKey()                        // safety default
+      }
+    },
+    // Draw the ACTUAL Tower random-opponent picker N times → the DISTINCT set of keys it can yield.
+    // Proves the live randomness (not just the pool) never surfaces a spriteless fighter under BETA.
+    towerSample: (n = 300) => { const s = new Set(); for (let i = 0; i < n; i++) s.add(_towerPickOpponent()); return [...s] },
+    // Jump to the REAL FFA character-select grid so a screenshot shows the mode's roster surface honoring
+    // the BETA filter (renders ffaSelectableRoster(), which is now BETA-gated).
+    showFfaCharSelect: (count = 4) => { resetSelections(); matchConfig.mode = "ffa"; ffaState.playerCount = count; ffaState.charKeys = []; ffaState.pickSlot = 0; hoverFFACharIndex = 0; gameState = GAME_STATES.FFA_CHARSELECT; return { gameState, roster: ffaSelectableRoster().map(c => c.rosterKey) } },
     // Is a specific (level-gated) skin currently unlocked? Proves beta grants ALL skins.
     skinUnlocked: (rosterKey, skinId) => isSkinUnlocked(rosterKey, skinId),
+    // ── SESSION PERSISTENCE (cross-reload restore test) ──────────────────────────
+    // Live view of the persisted session (what will be restored on reload) + the current gameState +
+    // key selection/training fields. `raw` is the exact localStorage blob (null if nothing persisted).
+    session: () => ({
+      raw: readSession(),
+      gameState,
+      mode: matchConfig.mode, aiDifficulty: matchConfig.aiDifficulty,
+      selectedUniverse: matchConfig.selectedUniverse, selectedStage: matchConfig.selectedStage?.name || null,
+      p1CharKey: matchConfig.p1CharKey, p2CharKey: matchConfig.p2CharKey,
+      p1Skin: matchConfig.p1Skin, p2Skin: matchConfig.p2Skin,
+      infiniteResources: trainingState.infiniteResources, dummyBehavior: trainingState.dummyBehavior,
+      beta: isBetaUnlocked(), dev: isDevUnlocked()
+    }),
+    clearSession: () => { clearSession(); _lastSessionJson = null; return true },   // simulate a truly-fresh player (also test-isolation between reloads)
+    // Directly set selections/training toggles (drives the persistence save without clicking menus),
+    // then force a snapshot so the change is on disk immediately (no need to wait a frame).
+    setSession: (patch = {}) => {
+      if (patch.mode !== undefined) matchConfig.mode = patch.mode
+      if (patch.selectedUniverse !== undefined) matchConfig.selectedUniverse = patch.selectedUniverse
+      if (patch.selectedStage !== undefined) { const st = stages.find(x => x.name === patch.selectedStage); matchConfig.selectedStage = st || matchConfig.selectedStage }
+      if (patch.p1CharKey !== undefined && characters[patch.p1CharKey]) { matchConfig.p1CharKey = patch.p1CharKey; matchConfig.p1Char = characters[patch.p1CharKey] }
+      if (patch.p2CharKey !== undefined && characters[patch.p2CharKey]) { matchConfig.p2CharKey = patch.p2CharKey; matchConfig.p2Char = characters[patch.p2CharKey] }
+      if (patch.p1Skin !== undefined) matchConfig.p1Skin = patch.p1Skin
+      if (patch.p2Skin !== undefined) matchConfig.p2Skin = patch.p2Skin
+      if (patch.infiniteResources !== undefined) trainingState.infiniteResources = !!patch.infiniteResources
+      if (patch.dummyBehavior !== undefined && DUMMY_BEHAVIORS.includes(patch.dummyBehavior)) trainingState.dummyBehavior = patch.dummyBehavior
+      if (patch.screen !== undefined) gameState = patch.screen
+      persistSessionIfChanged()
+      return window.__harness.session()
+    },
     // What the character-select flow WOULD show right now: the visible universes, the
     // selectable character keys per universe (post-filter), the flat selectable set, the
     // unlock flags, and whether ONLINE is locked in the main menu. Non-mutating (restores
@@ -4774,6 +6002,8 @@ gameLoop()
     // renders the actual roster with each character's real `portrait`). Mirrors the live universe→
     // character transition at game.js:3844. Test-only — proves portrait art shows, not a box.
     showCharSelect: (universe = "dragon_ball", mode = "training") => { matchConfig.mode = mode; resetSelections(); matchConfig.selectedUniverse = universe; hoverCharacterIndex = 0; gameState = GAME_STATES.SELECT_CHARACTER; return { gameState, universe: matchConfig.selectedUniverse, roster: getCharacterRosterForSelectedUniverse().map(c => c.id) } },
+    // Jump to the REAL skin-select screen for a character (renders each skin's portrait) — for alt-skin previews.
+    showSkinSelect: (char = "beerus", side = "p1", hover = 1) => { resetSelections(); matchConfig.mode = "training"; matchConfig[side + "CharKey"] = char; matchConfig[side + "Char"] = characters[char]; skinSelectSide = side; hoverSkinIndex = hover; gameState = GAME_STATES.SELECT_SKIN; return { gameState, char, skins: getSkins(char).map(s => ({ id: s.id, name: s.name, portrait: s.portrait })) } },
     // A character's configured `portrait` field (exact on-disk filename) — proves mugshot wiring.
     charPortrait: key => characters[key]?.portrait || null,
     // Card rects for the CURRENT select-universe roster (same order as showCharSelect().roster) → crop a card.
@@ -4815,6 +6045,21 @@ gameLoop()
     // TRUE when the HUD draws "HEAVENLY RESTRICTION" instead of an energy bar (JJK energyType "none").
     heavenlyRestriction: who => isHeavenlyRestriction(who === "p2" ? p2 : p1),
     roundTimer: () => roundTimer,
+    // ── MATCH-FLOW introspection + control (Gon Adult Form sudden-death override, gon.test.mjs) ──
+    // Read the live match-winner state + set the round score so a test can prove the sudden-death
+    // override fires INDEPENDENTLY of roundWins (e.g. instant win at 0-0, instant loss while ahead).
+    matchFlow: () => ({ roundWins: { p1: roundWins.p1, p2: roundWins.p2 }, roundNumber, gameState,
+                        victoryActive: !!victoryState.active, winnerSide: victoryState.winnerSide || null,
+                        winnerName: victoryState.winnerName || null, override: _matchOverride ? { ..._matchOverride } : null }),
+    setRoundWins: (p1w = 0, p2w = 0) => { roundWins.p1 = p1w | 0; roundWins.p2 = p2w | 0; return { p1: roundWins.p1, p2: roundWins.p2 } },
+    // Gon Adult Form state (buff/lockout/drain + armed sudden-death) for either fighter.
+    gonAdultForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? {
+      active: !!f._adultFormActive, currentForm: f.currentForm || null,
+      canJump: f.canJump !== false, noDash: !!f.noDash, speed: f.speed, energy: f.energy,
+      suddenDeathWatch: !!f._suddenDeathWatch, sdConnect: f._suddenDeathAtk?._sdConnect || null,
+      action: f._lastSpriteAction || null, onGround: !!(f.onGround || f.grounded), vy: f.vy } : null },
+    adultFormCine: () => getGonAdultFormCinematicStatus(),
+    setP1X: x => { if (p1) p1.x = x },
     // Wiring proof: getFighterInput() call tally per player. Both advancing every
     // frame proves each fighter's input routes through input.js.getFighterInput.
     inputWiring: () => ({ ...inputCallCount, p1Type: inputSettings.p1Type, p2Type: inputSettings.p2Type }),
@@ -4831,6 +6076,8 @@ gameLoop()
     sasukeCine: () => getSasukeCinematicStatus(),
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
     swordCine: () => getGokuBlackSwordCinematicStatus(),
+    godspeedCine: () => getKilluaGodspeedCinematicStatus(),
+    flashTimeCine: () => getFlashTimeCinematicStatus(),
     mangekyouCine: () => getMangekyouCinematicStatus(),
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
     beerusUltCine: () => getBeerusKiBallCinematicStatus(),
@@ -4874,6 +6121,18 @@ gameLoop()
       const box = f => { if (!f) return null; const cw = canvas.width; const l = (f.x - camera.x) * camera.zoom + cw / 2; const r = (f.x + (f.w || 60) - camera.x) * camera.zoom + cw / 2; return { left: l, right: r, cw, onFrame: r > 0 && l < cw } }
       return { p1: box(p1), p2: box(p2) }
     },
+    // Full on-screen rect (x,y,w,h in canvas pixels) of either fighter given the live camera —
+    // lets a screenshot test crop tightly to the fighter regardless of camera pan/zoom.
+    // screen = worldXY*zoom + canvas/2 - camera*zoom (mirrors camera.applyTransform).
+    screenRect: (who = "p1") => {
+      const f = who === "p2" ? p2 : p1; if (!f) return null
+      const cw = canvas.width, ch = canvas.height, z = camera.zoom
+      return {
+        x: (f.x - camera.x) * z + cw / 2,
+        y: (f.y - camera.y) * z + ch / 2,
+        w: (f.w || 60) * z, h: (f.h || 100) * z, zoom: z
+      }
+    },
     // Opponent (p2) on-screen horizontal extent given the live camera — used to confirm the SSJ Rose
     // cinematic frames Goku Black ONLY (p2 fully off-frame). screenX = (worldX - cam.x)*zoom + cw/2.
     p2ScreenX: () => { if (!p2) return null; const cw = canvas.width; const cx = p2.x + (p2.w || 60) / 2; const left = (p2.x - camera.x) * camera.zoom + cw / 2; const right = (p2.x + (p2.w || 60) - camera.x) * camera.zoom + cw / 2; return { left, right, cw, offFrame: right < 0 || left > cw, center: (cx - camera.x) * camera.zoom + cw / 2 } },
@@ -4894,6 +6153,7 @@ gameLoop()
     setTauntCharge: v => { if (p1) p1._tauntCharge = v },   // fast-forward the 10s taunt charge for tests
     healP1:     () => { if (p1) { p1.health = p1.maxHealth || 1050; p1.hitstun = 0; p1.knockdownState = false } },
     setP2Invuln: (v = 600) => { if (p2) p2.invulnTimer = v },   // let a projectile pass through the dummy (free-flight range measurement)
+    setP2Blocking: (on = true) => { if (p2) p2.isBlocking = !!on },   // force the dummy to hold guard (block-during-time-slow test)
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
     setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
@@ -4951,6 +6211,18 @@ gameLoop()
     // Sample the Rick voice-pool randomizer N times (the SAME pickRickVoice used by every wired
     // Rick trigger) → lets a test prove genuine random selection / pair-alternation deterministically.
     rickVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickRickVoice(pool)),
+    // Same idea for Killua's 8 pools (intro/taunt/specialPalm/specialGodspeed/specialCast/combatBark/
+    // hitReact/win) — proves genuine random selection within each, using the SAME pickKilluaVoice the
+    // live triggers call. `killuaVoicePool` exposes the raw pool so a test can verify full coverage.
+    killuaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickKilluaVoice(pool)),
+    killuaVoicePool: pool => KILLUA_VOICE[pool] || null,
+    // Same for Tobirama's 5 pools (intro/cast/ultimateCast/taunt/finisher) — proves genuine random
+    // selection within each, using the SAME pickTobiramaVoice the live triggers call.
+    tobiramaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickTobiramaVoice(pool)),
+    tobiramaVoicePool: pool => TOBIRAMA_VOICE[pool] || null,
+    // Flash's 3 wired pools (intro/taunt/hitReact) — proves random selection within each.
+    flashVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickFlashVoice(pool)),
+    flashVoicePool: pool => FLASH_VOICE[pool] || null,
     // Same idea for Sukuna's 4 pools (taunt/hitConnect/finisher/misc) — proves genuine
     // random selection across the largest generic-bark pool wired (21-entry taunt).
     sukunaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSukunaVoice(pool)),
@@ -5024,6 +6296,9 @@ gameLoop()
     ffaDamage: (idx, v = 100) => { const f = ffaState.fighters[idx]; if (f) f.health = Math.max(0, Math.min(f.maxHealth || 1, (f.health || 0) - v)) },   // clamps to maxHealth (negative v = heal)
     ffaMaxPlayers: () => ffaMaxAvailablePlayers(),
     inputTypes: () => ({ p1: inputSettings.p1Type, p2: inputSettings.p2Type, p3: inputSettings.p3Type, p4: inputSettings.p4Type, pads: getConnectedPadCount?.() || 0 }),
+    setInputType: (pn, t) => { const k = { 1: "p1Type", 2: "p2Type", 3: "p3Type", 4: "p4Type" }[pn]; if (k) inputSettings[k] = t; return { [k]: inputSettings[k] } },   // test-only: mirror the Settings device toggle
+    chooseModePvp: () => { chooseMode("pvp"); return { p1: inputSettings.p1Type, p2: inputSettings.p2Type } },   // test-only: exercise the real PvP device-assignment path
+    padBinding: pn => (getPlayerGamepad(pn) ? getPlayerGamepad(pn).index : null),   // which pad.index a player is actually bound to (null = none)
     // Force the pre-match INTRO with a specific variant, held open (no auto-advance / namecall)
     // so intro-rotation coverage can render + step each pose. Resets P1's sprite so the intro
     // action re-resolves cleanly.

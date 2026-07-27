@@ -8,14 +8,21 @@ import { sound }      from "./sound.js"
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
+import { activateEdoTenseiCinematic, isEdoTenseiCinematicActive } from "./tobiramaEdoTenseiCinematic.js"   // Tobirama Edo Tensei summon/un-summon cinematic (no cycle: it imports only characters/sound)
+import { clearInputBuffer } from "./input.js"   // clear buffered presses when Edo Tensei swaps bodies (input.js imports nothing → no cycle)
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
 import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCinematic.js"   // Goku Black SSJ Rose transform cinematic (no cycle)
 import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from "./gokuBlackSwordCinematic.js"   // Goku Black Sword Slash freeze cinematic (no cycle)
 import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } from "./vegetaFinalFlashCinematic.js"   // Vegeta Overcharged Final Flash ultimate cinematic (no cycle)
 import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./beerusKiBallCinematic.js"   // Beerus Ki Ball ultimate cinematic (no cycle)
+import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
+import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
+import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./gonAdultFormCinematic.js"   // Gon Adult Form activation cinematic (no cycle; mirrors Godspeed)
 import { resolveGrab, GLOBAL_DAMAGE_SCALE, rekkaContinue } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the shared command-normal cancel gate (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
+import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
+import { pickTobiramaVoice } from "./tobiramaVoice.js"   // Tobirama cast/ultimate voice pools (audio-only; no cycle)
 import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin voice override (Gojo "Limitless" young pack)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
@@ -58,7 +65,7 @@ const COMMAND_INPUT_MAX_AGE = 700
 // the ultimate input is dead until this drains, so a refilled meter can't instantly
 // recast. Set in triggerUltimate, ticked down in game.updateMiscTimers. Retune here.
 const ULTIMATE_COOLDOWN_FRAMES = 1200   // 20s @ 60fps (universal)
-const NARUTO_KURAMA_RECAST_FRAMES = 4800   // 80s — Naruto-only long lockout after the Tailed Beast Bomb
+const NARUTO_KURAMA_RECAST_FRAMES = 2400   // 40s — Naruto-only premium lockout after the Tailed Beast Bomb (2× the universal 20s). Retuned from 80s: at 80s the TBB's damage-per-cooldown (7.5 raw/s) sat BELOW Rick/Sasuke ults despite being the roster's hardest single hit — "feels nerfed". 40s puts it at 15 raw/s ≈ Sasuke Susanoo's 15.1 (dead in line with the pack's premium ult, not an outlier either way). Damage kept at 600 (already highest per-cast). See BALANCE_AUDIT.md §Naruto-ult-retune.
 // Brief CHARGE windup (frames) before a charge→release special fires. The charge
 // sprite strip plays during this window, then the projectile/attack spawns and the
 // cast/fire strip plays. Ticked by the pending-spawn list (updatePendingSpawns).
@@ -320,7 +327,10 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     h:          height,
     width,
     height,
-    radius:     width / 2,
+    radius:     (moveData.radius != null) ? moveData.radius : width / 2,
+    // OPTIONAL procedural placeholder-FX selector (Tobirama Stage 4): "water" | "dark" | "waterwall".
+    // ui.drawProjectiles renders a code-drawn effect for it; a real `sheet` later takes precedence.
+    drawKind:   moveData.drawKind   || null,
     damage:     moveData.damage || 90,
     hitstun:    moveData.hitstun || 18,
     knockbackX: moveData.knockbackX || 5,
@@ -346,14 +356,6 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     // field to set TRUE on this projectile's owner when it lands a hit. Powers Saiki's projectile
     // rekka cancel-on-hit gate (hitFlag: "_cmdHitLanded"). Null for ordinary projectiles.
     hitFlag:    moveData.hitFlag    || null,
-    // OPTIONAL hit-stop control (combat.getProjectileHitstopFrames): `hitstop` is a
-    // numeric per-projectile freeze override; `noHitstop:true` opts a rapid multi-hit /
-    // DOT projectile out of the shared projectile freeze so it doesn't stutter. Absent →
-    // the tier default (HITSTOP.projectile, or .special/.ultimate via isSpecial/isUltimate).
-    hitstop:    (typeof moveData.hitstop === "number") ? moveData.hitstop : undefined,
-    noHitstop:  moveData.noHitstop  || false,
-    isSpecial:  moveData.isSpecial  || false,
-    isUltimate: moveData.isUltimate || false,
     // OPTIONAL hit-stop control (combat.getProjectileHitstopFrames): `hitstop` is a
     // numeric per-projectile freeze override; `noHitstop:true` opts a rapid multi-hit /
     // DOT projectile out of the shared projectile freeze so it doesn't stutter. Absent →
@@ -1000,6 +1002,23 @@ const VEGETA_SSJ_ANIM = {
   // NOTE: komaRep (Koma Repeatable, Down+Light) intentionally reuses base koma_attack_repeatabl via the merge (no SSJ art on disk).
 }
 
+// ── FORM-AWARE RECOLOR (alt-color skins, "all forms" option) ──────────────────────────────────
+// When a fighter wearing a recolor skin transforms, its form art (Vegeta SSJ/Blue, Goku Black Rose)
+// must ALSO carry the alt colour. applySkin() stamps fighter._recolorTag (the skin's tag) + stashes
+// the recoloured BASE anim on fighter._baseSkinAnim. On transform we retag the form const to
+// __<tag>.png sheets (which gen_alt_skins.mjs produced for the form sheets); on revert we restore
+// the recoloured base (not null) so the alt colour persists. No tag → canonical art, unchanged.
+// Purely cosmetic — sheet paths only. Memoised per (anim, tag).
+const _formTagCache = new WeakMap()
+function retagFormAnim(anim, tag) {
+  if (!tag || !anim) return anim
+  let byTag = _formTagCache.get(anim); if (!byTag) { byTag = new Map(); _formTagCache.set(anim, byTag) }
+  if (byTag.has(tag)) return byTag.get(tag)
+  const out = {}
+  for (const [k, d] of Object.entries(anim)) out[k] = d?.sheet ? { ...d, sheet: d.sheet.replace(/\.(png|jpe?g)$/i, `__${tag}.png`) } : d
+  byTag.set(tag, out); return out
+}
+
 // Enter SSJ. Player path: gated on vegeta + not already SSJ + actionable + energy ≥ threshold, and
 // plays the 27-frame morph in-place (locked for its duration). opts.fast = the silent Blue-chain
 // pass-through (skips gates + morph, snaps state instantly so Blue can escalate the same frame).
@@ -1011,7 +1030,7 @@ export function enterVegetaSSJ(fighter, context = {}, opts = {}) {
     if ((fighter.energy || 0) < VEGETA_SSJ_THRESHOLD) return false   // ONLY at/above threshold — no up-front spend
   }
   fighter._ssjActive        = true
-  fighter._skinAnim         = VEGETA_SSJ_ANIM       // FULL art form-swap (gold sheets)
+  fighter._skinAnim         = retagFormAnim(VEGETA_SSJ_ANIM, fighter._recolorTag)   // form-swap (+alt recolor if any)
   fighter.currentForm       = "vegetaSSJ"           // HUD/state (base → vegetaSSJ)
   fighter.damageMultiplier  = VEGETA_SSJ_MULT.dmg
   fighter.attackMultiplier  = VEGETA_SSJ_MULT.dmg
@@ -1039,7 +1058,7 @@ export function enterVegetaSSJ(fighter, context = {}, opts = {}) {
 export function revertVegetaSSJ(fighter) {
   if (!fighter || !fighter._ssjActive) return
   fighter._ssjActive        = false
-  fighter._skinAnim         = null
+  fighter._skinAnim         = fighter._baseSkinAnim || null   // restore recoloured base (not canonical) if alt-skinned
   fighter.currentForm       = "base"
   fighter.damageMultiplier  = 1
   fighter.attackMultiplier  = 1
@@ -1125,8 +1144,13 @@ const VEGETA_BLUE_ANIM = {
   air:      { frames: 14, width: 46, height: 66, speed: 3, anchorY: 0, sheet: "./vegeta_blue_air_uniform.png" },     // air_attack
   down_air: { frames: 14, width: 46, height: 66, speed: 3, anchorY: 0, sheet: "./vegeta_blue_air_uniform.png" },     // REUSE air_attack (no dedicated down_air, same precedent as every form)
   // The up-attack in a super form fires the TIER rekka (vgUpT1), so point tier-1 at the Blue launcher too.
-  // Tiers 2/3 (vgUpT2/vgUpT3) have no Blue art → fall through to SSJ gold (documented Blue-art gap).
+  // GAP CLOSED (QOL cosmetic pass): tiers 2/3 previously fell through to SSJ GOLD in Blue. The unwired
+  // cyan sheet `vegeta_blue_up_attack.png` (up_attack, distinct from up_attack_2) was on disk — RE-SLICED
+  // to `vegeta_blue_up_attack_uniform.png` {7,51,69} and wired to vgUpT2. vgUpT3 (super_up launcher finisher)
+  // reuses the Blue launcher pose `up_uniform` (both are launchers) — all three tiers now render cyan, no gold.
   vgUpT1:   { frames: 9,  width: 57, height: 72, speed: 3, anchorY: 0, sheet: "./vegeta_blue_up_uniform.png" },
+  vgUpT2:   { frames: 7,  width: 51, height: 69, speed: 3, anchorY: 0, sheet: "./vegeta_blue_up_attack_uniform.png" },
+  vgUpT3:   { frames: 9,  width: 57, height: 72, speed: 3, anchorY: 0, sheet: "./vegeta_blue_up_uniform.png" },
   // STAGE 3 — COMMAND-NORMAL CHAIN. Segment the single 14-frame attack_sequance (re-cropped: #0-13 clean;
   // #14-17 = the flagged 5/1/18/3px debris; #18-20 trailing flourish dropped) across the 4 rekka stages.
   vgFkick1:   { frames: 4, width: 91, height: 72, speed: 3, anchorY: 0, sourceX: 0,    sheet: "./vegeta_blue_cmd_uniform.png" },  // frames 0-3
@@ -1165,7 +1189,7 @@ export function enterVegetaBlue(fighter, context = {}, opts = {}) {
   }
   fighter._ssjActive        = false                 // Blue SUPERSEDES SSJ (only Blue drain runs)
   fighter._ssjBlueActive    = true
-  fighter._skinAnim         = VEGETA_BLUE_ANIM
+  fighter._skinAnim         = retagFormAnim(VEGETA_BLUE_ANIM, fighter._recolorTag)
   fighter.currentForm       = "vegetaBlue"
   fighter.damageMultiplier  = VEGETA_BLUE_MULT.dmg
   fighter.attackMultiplier  = VEGETA_BLUE_MULT.dmg
@@ -1191,7 +1215,7 @@ export function revertVegetaBlue(fighter) {
   if (!fighter || !fighter._ssjBlueActive) return
   fighter._ssjBlueActive    = false
   fighter._ssjActive        = false
-  fighter._skinAnim         = null
+  fighter._skinAnim         = fighter._baseSkinAnim || null
   fighter.currentForm       = "base"
   fighter.damageMultiplier  = 1
   fighter.attackMultiplier  = 1
@@ -1767,13 +1791,14 @@ function executeNarutoUltimate(fighter, context) {
   activateKuramaUltimate(fighter, opponent)   // game.js freezes combat + drives the beats
   fighter.attackCooldown = 22
   shakeCamera(context, 12, 14)
-  // NARUTO-ONLY long recast lockout. The Tailed Beast Bomb dispatches through triggerUltimate
-  // like everyone else and WOULD get the universal 1200f/20s cooldown — but a screen-clearing
-  // cinematic nuke shouldn't be reusable every 20s. Suppress the universal cooldown and arm a
-  // much longer one (4× = 4800f/80s). Rationale: a round is 5400f/90s and ultimateCooldown does
-  // NOT persist across rounds (resetRound rebuilds fighters), so this makes a SECOND cast within
-  // one round require casting in the first ~10s and surviving ~80s (rare, real setup) WITHOUT a
-  // hard one-per-match cap — a best-of-3 still allows roughly one per round. Only Naruto is touched.
+  // NARUTO-ONLY premium recast lockout. The Tailed Beast Bomb dispatches through triggerUltimate
+  // like everyone else and WOULD get the universal 1200f/20s cooldown — a screen-clearing guaranteed
+  // nuke warrants a premium above baseline, but the old 4× (4800f/80s) overcorrected: on a
+  // damage-per-cooldown basis the TBB actually sat BELOW Rick/Sasuke ultimates at 80s despite being
+  // the roster's hardest single hit, which read as "nerfed". Retuned to 2× baseline (2400f/40s):
+  // 600 raw / 40s = 15 raw/s ≈ Sasuke Susanoo's 15.1 — in line with the pack's premium ult. The 50%
+  // meter cost already gates recast (~20-27s of regen), so 40s is the effective cadence: reliably
+  // once per 90s round, occasionally twice with real meter setup. Only Naruto is touched.
   fighter.ultimateCooldown     = NARUTO_KURAMA_RECAST_FRAMES
   fighter._suppressUltCooldown = true   // stop triggerUltimate from overwriting with the 1200 default
   return true
@@ -3288,6 +3313,45 @@ function executeSasukeShuriken(fighter, target, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SASUKE — HAWK SUMMON (base-kit special, BACK,FORWARD + special)
+// ─────────────────────────────────────────────────────────────────
+// Sasuke summons his hawk (the Garuda/hawk contract), which SWOOPS across the screen as an
+// independent traveling projectile — same architecture as Sasuke's own shuriken poke or Vegeta's
+// Galick Gun (spawnProjectile → travels → hits on contact, carries its own hitbox separate from
+// Sasuke's hurtbox). On a clean connect it is a LAUNCHER, not a knockdown ender: knockbackY is a
+// big NEGATIVE pop that sends the opponent well above a normal up-normal launcher (which clamps to
+// vy -17 in physics.launcherAttack) and even above a full jump (-22), so it reads as "an upper, but
+// much higher" and opens an air-juggle route. B,F is an OPEN Sasuke motion (D,F=lightning /
+// D,B=chidori / D=shuriken / neutral=dash are all taken) so it never collides with the existing
+// kit. Cost 30 sits a touch above the 24 lightning and below the 35 chidori, pricing in the
+// guaranteed-launch → juggle value. Uses the real sasuke_summon.png art (3 frames: wings-spread →
+// folded → folded = a flapping dive); the sheet faces right and drawProjectiles auto-flips it to
+// its travel direction, so it always faces the way it flies. ADDITION only — no existing move,
+// damage, or slot is touched.
+const HAWK = { cost: 30, dmg: 72, launchY: -26 }
+
+function executeSasukeHawkSummon(fighter, target, context) {
+  if (!spendEnergy(fighter, HAWK.cost)) return false
+  fighter._spriteCastMove  = "shurikenThrow"    // brief summon-gesture pose (no dedicated summon strip)
+  fighter._spriteCastTimer = 16
+  // The hawk flies FLAT across the screen at chest height (a horizontal glide — the wings-spread
+  // art reads as a bird in level flight, and a flat path reliably crosses at the opponent's body
+  // height for a clean connect). Forward shot (vx = facing*speed); non-homing, like Galick Gun.
+  spawnProjectile(fighter, "sasukeHawk", {
+    damage: HAWK.dmg, speed: 13, lifetime: 100,
+    hitstun: 34, knockbackX: 4, knockbackY: HAWK.launchY,   // small X, BIG upward pop = launcher
+    w: 90, h: 90, color: "#8a5a2b",
+    isSpecial: true,
+    spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.30,   // chest height → crosses at body level
+    sheet: "./sasuke_summon.png", spriteFrames: 3, spriteW: 135, spriteH: 145, spriteSpeed: 5, spriteScale: 0.8
+  }, context)
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  focusCameraOnAction(context, fighter, target, 0.98, 8)
+  shakeCamera(context, 5, 6)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────
 // SASUKE — TWO-STRIKE LIGHTNING (base-kit special, DOWN,FORWARD + special / "qcf")
 // ─────────────────────────────────────────────────────────────────
 // Sasuke's SECOND non-Susanoo special, sharing the special button with the dash-strike via a
@@ -3541,6 +3605,162 @@ export function updateKilluaCommandCombat(fighter, inputState, context, getPhase
   return false
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// THE FLASH — "Speed Rush": a 2-hit cancel-on-hit command-normal chain (Down+Heavy)
+// (Stage 2). Mirrors updateKilluaCommandCombat EXACTLY (Down+Heavy opener → re-tap Heavy during
+// recovery to cancel into the finisher, gated on a clean connect so a whiff/block ENDS the string =
+// the mid-chain interrupt). Rushdown pacing: low damage per hit, fast, rush2 launches. Each stage's
+// sprite is rushN (resolved via sprite.js currentMove identity → characters.js flash.animationData.rushN).
+// Neutral light/heavy/up/air/down_air stay on the standard normal path (Down is what routes into the chain).
+// recovery 13 on the opener widens the cancel window past the shared input buffer (~7f); cancel-on-hit
+// cuts recovery short anyway, so the window only matters on a whiff/block (fair).
+// ─────────────────────────────────────────────────────────────────────────────
+const FLASH_COMMAND = {
+  // knockbackX 1 on the opener keeps the target PINNED inside the string; the finisher reaches with
+  // rangeX 100 + delivers the launch knockback.
+  rush1: { damage: 26, startup: 4, active: 3, recovery: 13, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 82,  rangeY: 50, rekkaNext: "rush2" },
+  rush2: { damage: 48, startup: 4, active: 4, recovery: 16, hitstun: 18, knockbackX: 8, knockbackY: -3, rangeX: 100, rangeY: 52 },   // launcher finisher (extended reach)
+}
+function fireFlashCommand(fighter, key, context) {
+  const md = FLASH_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = key === "rush2"
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the rushN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+// Grounded command-normal driver (mirrors updateKilluaCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateFlashCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "flash" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+
+  // CONTINUE — fresh Heavy during the current part's RECOVERY, only if it CONNECTED (cancel-on-hit;
+  // a whiff/block leaves _cmdHitLanded false → the chain stops here = mid-chain interrupt).
+  const opp = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireFlashCommand(fighter, next, context)
+
+  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && inputState.down && heavyEdge) return fireFlashCommand(fighter, "rush1", context)
+
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GON FREECSS — "Rush": a 2-hit cancel-on-hit command-normal chain (Down+Heavy) (Stage 2).
+// Mirrors updateFlashCommandCombat EXACTLY: Down+Heavy opener → re-tap Heavy during recovery to
+// cancel into the finisher, gated on a clean connect so a whiff/block ENDS the string = the
+// mid-chain interrupt. rush1 = rapid second-hit flurry → rush2 = big launching finisher. Neutral
+// light/heavy/up/air/down_air stay on the standard normal path (Down is what routes into the chain).
+// ─────────────────────────────────────────────────────────────────────────────
+const GON_COMMAND = {
+  rush1: { damage: 28, startup: 4, active: 3, recovery: 13, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 84,  rangeY: 52, rekkaNext: "rush2" },
+  rush2: { damage: 60, startup: 5, active: 4, recovery: 18, hitstun: 20, knockbackX: 9, knockbackY: -4, rangeX: 104, rangeY: 62 },   // launcher finisher (extended reach)
+}
+function fireGonCommand(fighter, key, context) {
+  const md = GON_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = key === "rush2"
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the rushN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+// Grounded command-normal driver (mirrors updateFlashCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateGonCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gon" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during the current part's recovery, only if it CONNECTED (cancel-on-hit).
+  const opp = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireGonCommand(fighter, next, context)
+  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && inputState.down && heavyEdge) return fireGonCommand(fighter, "rush1", context)
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOBIRAMA — taijutsu command chain + 2 free pokes (Stage 3). Mirrors the Omega
+// Ranger architecture (chain + pokes), cancel-on-HIT (Vegeta/Killua pattern).
+// CHAIN (Fwd+Heavy → re-tap Heavy): tobiCombo1 → tobiCombo2 (water-infused strike) →
+//   tobiComboFin (super downward slam finisher). A stage only advances if the prior
+//   hit CONNECTED — a block/whiff (no _cmdHitLanded) ends the string = mid-chain interrupt.
+// FREE POKES (cooldown-gated, no energy): Fwd+Light = Strong Forward (tumbling launcher);
+//   Back+Heavy = Rising Knee (anti-air launcher). Neutral light/heavy/up/air/down_air stay
+//   on the normal path. Each stage's sprite is its currentMove key (sprite.js identity map).
+// ─────────────────────────────────────────────────────────────────────────────
+const TOBIRAMA_CMD = {
+  tobiCombo1:   { damage: 42, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3,  knockbackY: 0,  rangeX: 80, rangeY: 54, rekkaNext: "tobiCombo2" },
+  tobiCombo2:   { damage: 46, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 3,  knockbackY: -1, rangeX: 88, rangeY: 56, rekkaNext: "tobiComboFin" },   // water-infused strike (built-in blue burst art)
+  tobiComboFin: { damage: 84, startup: 8, active: 4, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: 4,  rangeX: 92, rangeY: 58 },   // downward slam finisher (string ends here)
+}
+const TOBIRAMA_POKE = {
+  tobiStrongFwd:  { damage: 66, startup: 6, active: 4, recovery: 16, hitstun: 22, knockbackX: 8, knockbackY: -11, rangeX: 90, rangeY: 96, launcher: true, cd: 32 },  // committed forward tumbling launcher
+  tobiRisingKnee: { damage: 56, startup: 6, active: 4, recovery: 14, hitstun: 18, knockbackX: 3, knockbackY: -13, rangeX: 74, rangeY: 92, launcher: true, cd: 28 },  // rising-knee anti-air
+}
+function fireTobiramaCmd(fighter, key) {
+  const md = TOBIRAMA_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the tobiComboN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+function fireTobiramaPoke(fighter, key) {
+  const md = TOBIRAMA_POKE[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only, no spendEnergy
+  fighter._rekkaNext    = null             // pokes are not part of the chain
+  fighter._cmdHitLanded = false
+  return true
+}
+// Grounded command-normal driver (mirrors updateOmegaRangerCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateTobiramaCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "tobirama" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  const lightEdge = !!inputState.light && !fighter._cmdPrevLight
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  fighter._cmdPrevLight = !!inputState.light
+
+  // CONTINUE — fresh Heavy during the current part's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireTobiramaCmd(fighter, next)
+
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const back    = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+
+  // OPENERS (down blocks in this engine, so back is free for a command).
+  if (forward && heavyEdge) return fireTobiramaCmd(fighter, "tobiCombo1")     // Fwd+Heavy → chain opener
+  if (forward && lightEdge) return fireTobiramaPoke(fighter, "tobiStrongFwd")  // Fwd+Light → Strong Forward poke
+  if (back    && heavyEdge) return fireTobiramaPoke(fighter, "tobiRisingKnee") // Back+Heavy → Rising Knee poke
+  return false
+}
+
 // ── KILLUA SPECIAL — direction-branched menu (SPECIAL button) ────────────────────────────────
 // Reads the LIVE held direction stamped by game.js (fighter._specialHeldDir) the frame Special is
 // pressed — robust vs the time-windowed motion history. Neutral = Yo-Yo (Stage 3), Forward =
@@ -3563,6 +3783,7 @@ function executeKilluaSpecial(fighter, context) {
 // no double-dip. Costs 30 Nen.
 function fireKilluaYoyo(fighter, context) {
   if (!spendEnergy(fighter, 30)) return false
+  try { sound.playSfxFile?.(pickKilluaVoice("specialCast"), null) } catch (_) {}   // VOICE: generic special-cast bark (un-named technique)
   fighter._spriteCastMove  = "yoyoThrow"     // 4f throw pose (killua_yoyo_throw_uniform)
   fighter._spriteCastTimer = 20
   fighter.attackCooldown   = getAttackDuration(24, fighter)
@@ -3586,6 +3807,7 @@ function fireKilluaYoyo(fighter, context) {
 function fireKilluaLightningPalm(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, 25)) return false
+  try { sound.playSfxFile?.(pickKilluaVoice("specialPalm"), null) } catch (_) {}   // VOICE: strike-technique callout (PROVISIONAL: gale/jinnai → Lightning Palm)
   const md = { damage: 62, startup: 6, active: 5, recovery: 14, hitstun: 26, blockstun: 12, knockbackX: 3, knockbackY: 0, rangeX: 74, rangeY: 60, isSpecial: true }
   const attack = createAttackFromMove(fighter, "lightningPalm", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "lightningPalm" → the cast pose
@@ -3600,6 +3822,7 @@ function fireKilluaLightningPalm(fighter, context) {
 // (no dedicated clean orb frame in the batch). Costs 30 Nen.
 function fireKilluaElectricBall(fighter, context) {
   if (!spendEnergy(fighter, 30)) return false
+  try { sound.playSfxFile?.(pickKilluaVoice("specialCast"), null) } catch (_) {}   // VOICE: generic special-cast bark (un-named technique)
   fighter._spriteCastMove  = "electricBall"   // 11f charge→form→hurl pose (killua_electric_ball_uniform)
   fighter._spriteCastTimer = 24
   fighter.attackCooldown   = getAttackDuration(28, fighter)
@@ -3613,6 +3836,219 @@ function fireKilluaElectricBall(fighter, context) {
     }, context)
     shakeCamera(context, 4, 6)
   })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// THE FLASH — SPECIAL menu (SPECIAL button, direction-branched via _specialHeldDir) — Stage 3.
+// Both are MELEE-RANGE MULTI-HIT WHIRLS (the only special art in the batch; NO projectile content).
+//   • Neutral = Spin Attack — fast 3-hit spinning whirl, pins (combo/pressure tool). 20 Speed Force.
+//   • Forward = Tornado — advancing 4-hit electric vortex; the final hit LAUNCHES. 35 Speed Force.
+// Multi-hit uses the shared re-arm pattern (schedule currentAttack.hasHit=false mid-active to re-open
+// the hitbox — same mechanism as Netero's guanyinCombo twoHit). currentMove drives the whirl sprite
+// (flash.animationData.spinAttack / .tornado, both loop). Back/Up/Down fall through to Spin Attack.
+// ─────────────────────────────────────────────────────────────────────────────
+function executeFlashSpecial(fighter, context) {
+  return (fighter._specialHeldDir === "F")
+    ? fireFlashTornado(fighter, context)
+    : fireFlashSpinAttack(fighter, context)
+}
+
+// NEUTRAL — Spin Attack: an in-place 3-hit spinning whirl. Low per-hit, low knockback (PINS the
+// target inside the whirl so all 3 connect), high hitstun → a rushdown combo starter. 20 Speed Force.
+function fireFlashSpinAttack(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 20)) return false
+  const md = { damage: 22, startup: 5, active: 18, recovery: 14, hitstun: 14, blockstun: 10, knockbackX: 1, knockbackY: 0, rangeX: 84, rangeY: 64, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "spinAttack", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "spinAttack" → looping whirl pose
+  // 3 HITS: initial connect + two re-arms across the active window (frames 5..23). Guarded so a later move isn't touched.
+  schedulePendingSpawn(10, () => { if (fighter.currentAttack && fighter.currentAttack.name === "spinAttack") fighter.currentAttack.hasHit = false })
+  schedulePendingSpawn(16, () => { if (fighter.currentAttack && fighter.currentAttack.name === "spinAttack") fighter.currentAttack.hasHit = false })
+  shakeCamera(context, 3, 6)
+  return true
+}
+
+// FORWARD — Tornado: an advancing 4-hit electric vortex. Drifts Flash forward through the whirl;
+// the first 3 hits pin (low knockback), the FINAL re-arm bumps launchY + launcher so the last hit
+// EJECTS/launches the target (combo → air route). Costs 35 Speed Force. Melee range.
+function fireFlashTornado(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 35)) return false
+  const md = { damage: 28, startup: 6, active: 22, recovery: 18, hitstun: 14, blockstun: 12, knockbackX: 1, knockbackY: 0, rangeX: 92, rangeY: 68, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "tornado", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "tornado" → looping vortex pose
+  const face = fighter.facing || 1
+  fighter.vx = face * 3.5                                                  // advancing drift
+  // 4 HITS: initial + 3 re-arms (frames 6..28). The LAST re-arm turns the final connect into a launcher.
+  schedulePendingSpawn(11, () => { if (fighter.currentAttack && fighter.currentAttack.name === "tornado") { fighter.vx = (fighter.facing || 1) * 3; fighter.currentAttack.hasHit = false } })
+  schedulePendingSpawn(18, () => { if (fighter.currentAttack && fighter.currentAttack.name === "tornado") fighter.currentAttack.hasHit = false })
+  schedulePendingSpawn(25, () => { if (fighter.currentAttack && fighter.currentAttack.name === "tornado") { fighter.currentAttack.launcher = true; fighter.currentAttack.launchY = -12; fighter.currentAttack.pushX = 7; fighter.currentAttack.hasHit = false } })
+  shakeCamera(context, 5, 8)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GON FREECSS — JAJANKEN (Stage 3): three fully independent specials on the SPECIAL button,
+// direction-branched via _specialHeldDir (Killua/Flash architecture), NO gating between them.
+//   Neutral  = ROCK     — telegraphed charge → single devastating punch (highest dmg + commitment).
+//   Forward  = SCISSORS — rapid multi-hit jab string (lowest per-hit, highest hit-count; combo tool).
+//   Down     = PAPER    — open-palm push (low dmg, strong knockback; a spacing/defensive tool).
+// Damage/cost modeled off the BALANCE_AUDIT special tier; Rock sits noticeably above Paper/Scissors.
+// ─────────────────────────────────────────────────────────────────────────────
+function executeGonSpecial(fighter, context) {
+  // ADULT FORM overrides the SPECIAL button entirely: Jajanken is gone — the only move is the
+  // all-or-nothing SUDDEN-DEATH strike (win-on-hit / lose-on-miss). You are committed to the finisher.
+  if (fighter._adultFormActive) return fireGonSuddenDeath(fighter, context)
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireGonScissors(fighter, context)
+  if (dir === "D") return fireGonPaper(fighter, context)
+  return fireGonRock(fighter, context)   // neutral (and Back/Up) = Rock, the signature
+}
+
+// NEUTRAL — ROCK. A REAL telegraphed charge: 18f startup shows the charge-windup frames (the opponent
+// can see it coming and block), then ONE devastating punch. Highest damage + commitment in the base
+// kit. Big knockback + slight launch. 45 Nen.
+function fireGonRock(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 45)) return false
+  const md = { damage: 150, startup: 18, active: 5, recovery: 18, hitstun: 30, blockstun: 16, knockbackX: 14, knockbackY: -6, rangeX: 112, rangeY: 66, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "rock", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "rock" → charge-windup→punch sprite (the telegraph)
+  fighter.vx = (fighter.facing || 1) * 3            // small step into the punch on release
+  shakeCamera(context, 6, 10)
+  return true
+}
+
+// FORWARD — SCISSORS. Rapid multi-hit jab string (Flash spin-whirl pattern): 5 low-per-hit connects
+// across a long active window; low knockback PINS the target so all hits land → combo starter/extender.
+// 30 Nen.
+function fireGonScissors(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 30)) return false
+  const md = { damage: 20, startup: 6, active: 22, recovery: 14, hitstun: 12, blockstun: 8, knockbackX: 1, knockbackY: 0, rangeX: 84, rangeY: 58, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "scissors", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "scissors" → multi-hit jab sprite
+  // 5 HITS: initial connect + 4 re-arms across the active window. Guarded so a later move isn't touched.
+  for (const t of [11, 15, 19, 23]) schedulePendingSpawn(t, () => { if (fighter.currentAttack && fighter.currentAttack.name === "scissors") fighter.currentAttack.hasHit = false })
+  return true
+}
+
+// DOWN — PAPER. Open-palm push: low damage, HUGE knockback = a spacing/defensive reset tool (NOT a
+// combo piece). Fast, short. 24 Nen.
+function fireGonPaper(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 24)) return false
+  const md = { damage: 46, startup: 8, active: 4, recovery: 16, hitstun: 14, blockstun: 10, knockbackX: 18, knockbackY: -2, rangeX: 92, rangeY: 62, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "paper", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "paper" → palm-push sprite
+  shakeCamera(context, 3, 6)
+  return true
+}
+
+// ── GON ULTIMATE — ADULT FORM + SUDDEN-DEATH ("Final Blow") — Stage 4 ───────────────────────
+// A sustained SELF-TRANSFORMATION (buff-mode, like Godspeed/Flash Time — no adult body-swap art in the
+// batch, so it's an overlay on the child body + a green Nen aura) with a HARD TRADE-OFF and a NOVEL
+// match-ending payoff:
+//   • ACTIVATE (ultimate, near-max Nen): a frozen growth cinematic (gonAdultFormCinematic.js), then the
+//     form is live. While active Gon is STRONGER (damage bump) but MOVEMENT-LOCKED — he CANNOT jump or
+//     dash and can only slowly LUMBER forward (physics reads canJump=false / noDash / reduced speed).
+//     That lockout IS the counterplay window: the opponent sees the giant closing in and can run/space.
+//   • DRAIN: per-frame Nen drain → auto-revert when the meter runs dry (shared tickSustainedFormDrain).
+//     Reverting on empty is NOT a loss — it just ends the form. The only way to WIN with it is to land…
+//   • SUDDEN-DEATH ("Final Blow"): while Adult Form is active the SPECIAL button fires ONE all-or-nothing
+//     close-range strike (fireGonSuddenDeath). Short range → Gon MUST close the distance first (the whole
+//     point of the lockout). game._updateGonSuddenDeath() watches the swing:
+//         CLEAN unblocked connect  → INSTANT MATCH WIN for Gon  (bypasses roundWins entirely)
+//         whiff OR blocked         → INSTANT MATCH LOSS for Gon (bypasses roundWins entirely)
+//     The win/miss detection + the _checkMatchOver() override live in game.js (it owns match-flow);
+//     abilities.js only flags the attack (_gonSuddenDeath) and arms the watch (_suddenDeathWatch/_Atk).
+const GON_ADULT_THRESHOLD = 140            // Nen ≥ 140 (near-max of 160) to activate — a committed cost
+const GON_ADULT_DRAIN     = 0.30           // Nen/frame while active (~9s from full) → auto-revert on empty
+const GON_ADULT_MULT      = { dmg: 1.3 }   // adult-form power bump (normals/rekka hit harder)
+const GON_ADULT_SPEED     = 40             // lumber walk (physics clamps rawSpeed*0.09 → the 4px/f floor)
+
+export function isGonAdultFormActive(f) { return !!f?._adultFormActive }
+
+function enterGonAdultForm(fighter, context) {
+  if (fighter._adultFormActive) return false
+  if ((fighter.energy || 0) < GON_ADULT_THRESHOLD) return false
+  fighter._adultFormActive    = true
+  fighter.currentForm         = "adult"                     // HUD state (NOT a form-data swap)
+  fighter.damageMultiplier    = GON_ADULT_MULT.dmg
+  fighter.attackMultiplier    = GON_ADULT_MULT.dmg          // == damageMultiplier (combat takes the max)
+  // MOVEMENT LOCKOUT — the counterplay window. Stash originals for a clean revert.
+  fighter._adultBaseSpeed     = fighter.speed
+  fighter._adultBaseCanJump   = fighter.canJump
+  fighter._adultBaseNoDash    = fighter.noDash
+  fighter.speed               = GON_ADULT_SPEED             // slow lumber (can still close distance)
+  fighter.canJump             = false                       // no jump
+  fighter.noDash              = true                        // no dash
+  fighter._adultTrail         = []
+  // Hold the child→adult growth pose through the activation cinematic (combat frozen; the cinematic
+  // clears it on end → normal buff-mode animations + the green aura overlay take over).
+  fighter._spriteCastMove  = "transform"
+  fighter._spriteCastTimer = 170
+  return true
+}
+
+function revertGonAdultForm(fighter) {
+  if (!fighter || !fighter._adultFormActive) return
+  fighter._adultFormActive    = false
+  fighter.currentForm         = "base"
+  fighter.damageMultiplier    = 1
+  fighter.attackMultiplier    = 1
+  if (fighter._adultBaseSpeed   != null) { fighter.speed   = fighter._adultBaseSpeed;   fighter._adultBaseSpeed   = null }
+  fighter.canJump = (fighter._adultBaseCanJump === false) ? false : true;  fighter._adultBaseCanJump = null
+  fighter.noDash  = !!fighter._adultBaseNoDash;                            fighter._adultBaseNoDash  = null
+  fighter._adultTrail = []
+}
+// Public revert for reset paths (round/KO/menu) — mirrors forceRevertFlashTime's role.
+export function forceRevertGonAdultForm(fighter) { revertGonAdultForm(fighter) }
+
+// Per-frame (game.updateFighterState): drain the meter → auto-revert at 0, and record the position
+// trail the green Nen aura overlay draws (game.drawGonAdultAura).
+export function applyGonAdultFormSystem(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gon") return
+  if (!fighter._adultFormActive) return
+  tickSustainedFormDrain(fighter, { active: isGonAdultFormActive, drainPerFrame: GON_ADULT_DRAIN, revert: revertGonAdultForm })
+  if (!fighter._adultFormActive) return   // reverted this frame
+  const trail = fighter._adultTrail || (fighter._adultTrail = [])
+  trail.unshift({ x: fighter.x, y: fighter.y })
+  if (trail.length > 5) trail.pop()
+}
+
+// ADULT FORM = the buff/lockout (applied at trigger) + a frozen ACTIVATION CINEMATIC
+// (gonAdultFormCinematic.js — camera pushes in on Gon, the growth plays, the camera pulls back).
+function executeGonUltimate(fighter, context) {
+  if (isGonAdultFormCinematicActive()) return false        // already mid-activation
+  if (fighter._adultFormActive) return false               // already transformed
+  if (!enterGonAdultForm(fighter, context)) return false    // apply the buff/lockout (gated on near-max Nen)
+  const opp = context?.getOpponent?.(fighter) || context?.p2 || null
+  activateGonAdultFormCinematic(fighter, opp)
+  return true
+}
+
+// SUDDEN-DEATH ("Final Blow") — fired by the SPECIAL button ONLY while Adult Form is active. A short-
+// range, fast, all-or-nothing strike. game._updateGonSuddenDeath() reads _gonSuddenDeath + the armed
+// watch and forces an INSTANT match win (clean hit) or loss (whiff/block), bypassing round-count.
+function fireGonSuddenDeath(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (fighter._suddenDeathWatch) return false              // one throw per form — already committed
+  const md = { damage: 400, startup: 6, active: 12, recovery: 22, hitstun: 40, blockstun: 18, knockbackX: 22, knockbackY: -12, rangeX: 82, rangeY: 84, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "finalblow", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  attack._gonSuddenDeath = true                            // combat.js marks _sdConnect ("clean"/"blocked") on contact
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "finalblow" → decisive-strike sprite
+  fighter._suddenDeathWatch = true                         // arm the game.js watcher (win-on-hit / lose-on-miss)
+  fighter._suddenDeathAtk   = attack
+  fighter.vx = (fighter.facing || 1) * 4                   // small commit step into the strike
+  shakeCamera(context, 8, 12)
   return true
 }
 
@@ -3645,12 +4081,13 @@ function enterGodspeed(fighter, context) {
   fighter.dashSpeed           = GODSPEED_MULT.dash
   fighter.speed               = GODSPEED_MULT.speed
   fighter._godspeedTrail      = []
-  // Brief activation flash: the electric charge-aura pose + a white teleport flash + camera punch.
-  fighter._spriteCastMove  = "godspeedActivate"
-  fighter._spriteCastTimer = 22
-  fighter.teleportFlash    = Math.max(fighter.teleportFlash || 0, 14)
-  fighter.attackCooldown   = getAttackDuration(14, fighter)
-  shakeCamera(context, 8, 12)
+  // Hold his CHARGE-UP pose (the SAME blue electric charge aura from his charge animation — carried
+  // through, no new colour) for the whole activation cinematic. The cinematic owns the camera push-in /
+  // flash / shake, so no teleportFlash or shakeCamera here; it clears this pose when it ends → normal
+  // gameplay + the Godspeed afterimage overlay take over. Timer covers the ~150f cinematic (combat is
+  // frozen during it, so the timer isn't ticked down until control resumes).
+  fighter._spriteCastMove  = "charge"
+  fighter._spriteCastTimer = 170
   return true
 }
 
@@ -3679,8 +4116,84 @@ export function applyGodspeedSystem(fighter) {
   if (trail.length > 5) trail.pop()
 }
 
+// GODSPEED = the buff (applied at trigger, Itachi-Mangekyou style) + a frozen ACTIVATION CINEMATIC
+// (killuaGodspeedCinematic.js — camera pushes in on Killua, the charge-up plays, the camera pulls back).
 function executeKilluaUltimate(fighter, context) {
-  return enterGodspeed(fighter, context)
+  if (isKilluaGodspeedCinematicActive()) return false      // already mid-activation
+  if (!enterGodspeed(fighter, context)) return false       // apply the buff (gated on near-max Nen)
+  try { sound.playSfxFile?.(pickKilluaVoice("specialGodspeed"), null) } catch (_) {}   // VOICE: ultimate callout (PROVISIONAL: lightning_speed/thunder_god → Godspeed)
+  const opp = context?.getOpponent?.(fighter) || context?.p2 || null
+  activateKilluaGodspeedCinematic(fighter, opp)
+  return true
+}
+
+// ── THE FLASH — FLASH TIME (Ultimate) — Stage 4 ────────────────────────────────────────────────
+// REUSES Killua's Godspeed architecture: a sustained SELF-BUFF (Itachi-Mangekyou tier — no form-data
+// swap) + a frozen ACTIVATION CINEMATIC (flashTimeCinematic.js, mirrors killuaGodspeedCinematic.js) +
+// the SAME per-opponent frame-skip TIME-SLOW already built for Godspeed (game._updateGodspeedTimeSlow,
+// generalized to read fighter._ftOppTimeScale). The differential: the opponent runs at ~1/3 speed
+// (FT_OPP_TIMESCALE) while Flash keeps full speed = the "Flash 3× / opponent ⅓×" read. Distinct from
+// Godspeed:  ① opponent slowed harder (0.34 vs 0.4),  ② Flash CANNOT block while active (enforced every
+// frame),  ③ Flash's ground movement gets OVERSHOOT/SKID (momentum imprecision on stop — physics.js,
+// gated on _flashTimeActive). Near-max meter gate + per-frame drain → auto-revert (shared tick).
+const FLASH_TIME_THRESHOLD   = 90     // Speed Force ≥ 90 (near-max of 100) to activate — a near-max cost
+const FLASH_TIME_DRAIN       = 0.22   // energy/frame while active (~7.5s from full 100)
+const FLASH_TIME_OPP_SLOW    = 0.34   // opponent runs at ~1/3 speed (the ⅓× side of the 3× differential)
+const FLASH_TIME_MULT        = { atkSpeed: 1.25, dash: 30 }   // Flash's own snappiness + a big dash bump
+
+export function isFlashTimeActive(f) { return !!f?._flashTimeActive }
+
+function enterFlashTime(fighter) {
+  if (fighter._flashTimeActive) return false
+  if ((fighter.energy || 0) < FLASH_TIME_THRESHOLD) return false
+  fighter._flashTimeActive       = true
+  fighter.currentForm            = "flashTime"                 // HUD state (NOT a form-data swap)
+  fighter._ftBaseDash            = fighter.dashSpeed           // stash for a clean revert
+  fighter.attackSpeedMultiplier  = FLASH_TIME_MULT.atkSpeed    // faster startup/recovery (getAttackDuration divides)
+  fighter.dashSpeed              = FLASH_TIME_MULT.dash
+  fighter._ftOppTimeScale        = FLASH_TIME_OPP_SLOW         // read by game._updateGodspeedTimeSlow (generalized)
+  fighter._ftTrail               = []
+  fighter.isBlocking             = false                       // (5) can't block while active — from the first frame
+  // Hold the spinning-whirl pose (Flash vibrating up to speed) through the activation cinematic (combat is
+  // frozen during it, so the timer isn't ticked down until control resumes; the cinematic clears it on end).
+  fighter._spriteCastMove  = "spinAttack"
+  fighter._spriteCastTimer = 170
+  return true
+}
+
+function revertFlashTime(fighter) {
+  if (!fighter || !fighter._flashTimeActive) return
+  fighter._flashTimeActive      = false
+  fighter.currentForm           = "base"
+  fighter.attackSpeedMultiplier = 1
+  if (fighter._ftBaseDash != null) { fighter.dashSpeed = fighter._ftBaseDash; fighter._ftBaseDash = null }
+  fighter._ftOppTimeScale = 0
+  fighter._ftTrail = []
+}
+// Public revert for reset paths (round/KO/menu) — mirrors revertGodspeed's role.
+export function forceRevertFlashTime(fighter) { revertFlashTime(fighter) }
+
+// Per-frame (game.updateFighterState): drain the meter → auto-revert at 0, ENFORCE the block-lockout,
+// and record the position trail the red/gold afterimage overlay draws (game.drawFlashAura).
+export function applyFlashTimeSystem(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "flash") return
+  if (!fighter._flashTimeActive) return
+  tickSustainedFormDrain(fighter, { active: isFlashTimeActive, drainPerFrame: FLASH_TIME_DRAIN, revert: revertFlashTime })
+  if (!fighter._flashTimeActive) return   // reverted this frame
+  fighter.isBlocking = false              // (5) enforce block-lockout continuously (belt-and-braces vs the input gate)
+  const trail = fighter._ftTrail || (fighter._ftTrail = [])
+  trail.unshift({ x: fighter.x, y: fighter.y })
+  if (trail.length > 6) trail.pop()
+}
+
+// FLASH TIME = the buff (applied at trigger) + a frozen ACTIVATION CINEMATIC (camera pushes in on
+// Flash, the spin-up plays, the camera pulls back). Mirrors executeKilluaUltimate exactly.
+function executeFlashUltimate(fighter, context) {
+  if (isFlashTimeCinematicActive()) return false            // already mid-activation
+  if (!enterFlashTime(fighter)) return false                // apply the buff (gated on near-max Speed Force)
+  const opp = context?.getOpponent?.(fighter) || context?.p2 || null
+  activateFlashTimeCinematic(fighter, opp)
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -4160,6 +4673,7 @@ function executeSasukeSpecial(fighter, context) {
     const dirs = getRelativeDirections(fighter)
     if (endsWithPattern(dirs, ["D", "F"])) return executeSasukeLightning(fighter, target, context)
     if (endsWithPattern(dirs, ["D", "B"])) return executeSasukeChidoriKoiten(fighter, target, context)   // qcb: AOE lightning discharge
+    if (endsWithPattern(dirs, ["B", "F"])) return executeSasukeHawkSummon(fighter, target, context)      // hawk swoop = combo-starting launcher
     if (endsWithPattern(dirs, ["D"]))      return executeSasukeShuriken(fighter, target, context)
     return executeSasukeDashStrike(fighter, target, context)
   }
@@ -4224,6 +4738,332 @@ function executeSasukeSpecial(fighter, context) {
 // MAIN DISPATCH — triggerSpecial & triggerUltimate
 // ─────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TOBIRAMA — SPECIAL menu (SPECIAL button, direction-branched via _specialHeldDir) — Stage 4.
+// Water-release ninjutsu + a dark-element orb. The space-time Water Body-Flicker escape is a
+// REVERSAL (Special pressed while in hitstun/knockdown — executeTobiramaWaterFlicker, driven from game.js).
+//   Neutral = Water Dragon Jutsu (proc water projectile; cast = seal→thrust)
+//   Forward = Forward Water Slash (advancing melee; water-arc FX built into the sprite)
+//   Up      = Rising Water        (anti-air launcher; geyser FX built into the sprite)
+//   Down    = Water Wall          (proc water-barrier — brief stationary damaging column)
+//   Back    = Darkness Jutsu      (proc dark-orb projectile; cast pose)
+// Costs Chakra. Melee casts use createAttackFromMove (currentMove drives the pose); projectile/
+// barrier casts use _spriteCastMove + schedulePendingSpawn → spawnProjectile with a drawKind
+// PLACEHOLDER FX (ui.drawProjectiles) — a real `sheet` later takes precedence (drop-in swap).
+// ─────────────────────────────────────────────────────────────────────────────
+const TOBI_WATER_SLASH  = { damage: 72, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 7, knockbackY: -2,  rangeX: 96, rangeY: 58,  isSpecial: true }
+const TOBI_RISING_WATER = { damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 22, knockbackX: 2, knockbackY: -15, rangeX: 72, rangeY: 100, isSpecial: true, launcher: true }
+
+function fireTobiramaWaterSlash(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 25)) return false
+  const md = TOBI_WATER_SLASH
+  const attack = createAttackFromMove(fighter, "tobiWaterSlash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "tobiWaterSlash"
+  fighter.vx = (fighter.facing || 1) * 5        // advance into the slash
+  shakeCamera(context, 4, 6)
+  return true
+}
+function fireTobiramaRisingWater(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 30)) return false
+  const md = TOBI_RISING_WATER
+  const attack = createAttackFromMove(fighter, "tobiRisingWater", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  shakeCamera(context, 4, 6)
+  return true
+}
+function fireTobiramaWaterDragon(fighter, context) {
+  if (!spendEnergy(fighter, 40)) return false
+  try { sound.playSfxFile?.(pickTobiramaVoice("cast"), null) } catch (_) {}   // VOICE: water-jutsu callout (PROVISIONAL: seiton → Water Dragon)
+  fighter._spriteCastMove  = "tobiWaterDragon"     // 10f seal→thrust cast pose
+  fighter._spriteCastTimer = 30
+  fighter.attackCooldown   = getAttackDuration(34, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(16, () => {                 // release on the forward-thrust beat
+    spawnProjectile(fighter, "tobiWaterDragon", {
+      drawKind: "water", damage: 78, speed: 12, lifetime: 130, hitstun: 20, knockbackX: 8, knockbackY: -3,
+      w: 56, h: 44, radius: 26, color: "#38bdf8", isSpecial: true,
+      vx: face * 12, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+    shakeCamera(context, 5, 7)
+  })
+  return true
+}
+function fireTobiramaDarkness(fighter, context) {
+  if (!spendEnergy(fighter, 30)) return false
+  fighter._spriteCastMove  = "tobiDarkness"        // 6f seal→cup cast pose
+  fighter._spriteCastTimer = 24
+  fighter.attackCooldown   = getAttackDuration(28, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "tobiDarkness", {
+      drawKind: "dark", damage: 60, speed: 11, lifetime: 110, hitstun: 18, knockbackX: 6, knockbackY: -2,
+      w: 44, h: 44, radius: 22, color: "#7c3aed", isSpecial: true,
+      vx: face * 11, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  return true
+}
+function fireTobiramaWaterWall(fighter, context) {
+  if (!spendEnergy(fighter, 30)) return false
+  fighter._spriteCastMove  = "tobiWaterWall"       // 5f seal→brace cast pose
+  fighter._spriteCastTimer = 22
+  fighter.attackCooldown   = getAttackDuration(26, fighter)
+  schedulePendingSpawn(8, () => {                  // raise the wall just in front
+    spawnProjectile(fighter, "tobiWaterWall", {
+      drawKind: "waterwall", damage: 44, speed: 0, vx: 0, lifetime: 42, hitstun: 16, knockbackX: 9, knockbackY: -2,
+      w: 34, h: 112, radius: 46, color: "#38bdf8", isSpecial: true,
+      spawnX: fighter.facing === 1 ? fighter.x + (fighter.w || 60) + 8 : fighter.x - 34 - 8,
+      spawnY: fighter.y + (fighter.h || 100) * 0.5
+    }, context)
+    shakeCamera(context, 3, 5)
+  })
+  return true
+}
+// SPACE-TIME escape — Water Body-Flicker. A reversal: dissolve into water and reform a short
+// distance BACK with brief i-frames. Driven from game.js when Special is pressed during
+// hitstun/knockdown (bypassing the normal special gate). NOT free — costs 35 Chakra + a 90f
+// cooldown, so it's a committed defensive resource, not an infinite get-out. True if it fired.
+export function executeTobiramaWaterFlicker(fighter, context) {
+  if (!fighter || (fighter._waterFlickerCd || 0) > 0) return false
+  if (!spendEnergy(fighter, 35)) return false
+  fighter.hitstun = 0; fighter.stun = 0; fighter.blockstun = 0
+  fighter.knockdownState = false; fighter.knockdownTimer = 0
+  fighter.attacking = false; fighter.isLaunched = false
+  fighter.vx = 0; fighter.vy = 0
+  const face = fighter.facing || 1
+  fighter.x -= face * 130                            // reform retreating (away from the opponent)
+  fighter.invulnTimer      = Math.max(fighter.invulnTimer || 0, 26)
+  fighter._waterFlickerCd  = 90
+  fighter._spriteCastMove  = "tobiWaterFlicker"      // puddle→column→reform pose
+  fighter._spriteCastTimer = 26
+  fighter.attackCooldown   = getAttackDuration(22, fighter)   // reform recovery — also stops a still-held Special from re-firing a neutral cast this frame
+  fighter.teleportFlash    = 8
+  shakeCamera(context, 4, 6)
+  return true
+}
+export function executeTobiramaSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  const airborne = !(fighter.onGround ?? fighter.grounded ?? true)
+  // Rising Water (anti-air geyser launcher) = Special while AIRBORNE, or Up+Special. Airborne is the
+  // robust path: in this engine `up` also fires the jump, so holding Up+Special leaves the ground the
+  // same frame — reading "airborne" covers both the jump-cancel and a deliberate Up+Special.
+  if (airborne || dir === "U") return fireTobiramaRisingWater(fighter, context)
+  if (dir === "F") return fireTobiramaWaterSlash(fighter, context)
+  if (dir === "D") return fireTobiramaWaterWall(fighter, context)
+  if (dir === "B") return fireTobiramaDarkness(fighter, context)
+  return fireTobiramaWaterDragon(fighter, context)   // neutral ground (and any unmapped dir)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOBIRAMA — EDO TENSEI ultimate (Stage 6). An in-place CHARACTER-SWAP: spend ALL chakra + a
+// portion of CURRENT hp to REANIMATE the pre-chosen vessel (fighter._edoBackup) — control passes
+// to that character's FULL kit for a DRAINING window, then auto-reverts to Tobirama. Reuses the
+// transform-style stash→overwrite→restore body-swap (Step A) — no new multi-fighter systems.
+// POOL DECISION (Step A): SHARED hp (the vessel fights on Tobirama's remaining life → no free
+// healthbar reset), FRESH full energy bar that IS the window fuel — it drains per frame AND funds the
+// borrowed kit, so managing energy manages the summon's length. All moveset/render routing reads the
+// fighter object, so swapping rosterKey + the fields below re-routes the entire borrowed kit automatically.
+// REVISED DESIGN: Tobirama does NOT vanish — his body stays on screen as a standing, hittable
+// _edoDummy next to the tomb. Two end conditions: (a) the vessel's ENERGY bar drains to 0, or
+// (b) the OPPONENT lands a hit directly on the dummy (game.js), which also damages the shared HP.
+// ─────────────────────────────────────────────────────────────────────────────
+// WINDOW = a continuous DRAIN on the vessel's OWN ENERGY bar (the Vegeta-SSJ / tickSustainedFormDrain
+// pattern, on `energy`). The vessel EMERGES with a full bar; it drains per frame and the jutsu ends when
+// it hits 0. CRUCIAL (fixes "feels like a fixed timer"): because the window fuel IS the energy bar, the
+// player can EXTEND the summon by building energy (charge move / passive regen / any energy gain) and
+// SHORTENS it by spending on the vessel's kit — a genuinely managed drain, not a decoupled countdown.
+// A prior build drained a SEPARATE `_edoFuel` meter at a constant rate → that is mathematically a timer
+// (energy management had zero effect on it), which is exactly the reported symptom.
+const EDO_ENERGY_DRAIN           = 0.26  // energy/frame while active. Net of passive regen (~0.06) → ~0.20/frame:
+                                         // a full ~190-200 bar lasts ~16s UNMANAGED (a comfortably usable window,
+                                         // not razor-thin); a charge move (+0.5/frame) net-GAINS energy, extending
+                                         // it (charging locks you = a real tradeoff). Tuned DOWN from 0.35 (~11s)
+                                         // so the window feels usable even for a vessel WITHOUT a nested ultimate;
+                                         // see edoVesselInNestedUltimate for the pause that protects self-draining
+                                         // transformation ultimates from being double-drained.
+const EDO_TENSEI_HP_COST_FRAC    = 0.25  // portion of CURRENT hp spent to reanimate (non-trivial)
+const EDO_TENSEI_MIN_ENERGY      = 60    // minimum chakra pool required to activate at all
+const EDO_DUMMY_OFFSET           = 100   // vessel emerges this far TOWARD the opponent so it doesn't overlap the standing Tobirama
+// Everything the moveset/render pipeline reads off the fighter object (Step A investigation).
+const EDO_SWAP_FIELDS = ["rosterKey", "name", "color", "basic_attacks", "animationData", "spriteScale", "traits", "ultimate", "dashTeleport", "runWhenAdvancing", "introPool", "maxEnergy", "energyType"]
+
+function applyEdoTensei(fighter, vesselKey, worldWidth) {
+  const vessel = characters[vesselKey]
+  if (!vessel) return false
+  // 1) stash Tobirama's originals (+ _skinAnim) for the revert
+  const stash = {}
+  for (const k of EDO_SWAP_FIELDS) stash[k] = fighter[k]
+  stash._skinAnim = fighter._skinAnim
+  stash._recolorTag = fighter._recolorTag        // Part 2: restore Tobirama's own recolor state on revert
+  stash._baseSkinAnim = fighter._baseSkinAnim
+  fighter._edoStash = stash
+  // 1b) snapshot Tobirama's own body as a standing, hittable "dummy" (rendered next to the tomb for the
+  //     whole window). Captured NOW, while the fighter still holds Tobirama's idle sheet + position (the
+  //     cinematic has parked him at the arena edge). The opponent can hit this to cancel the jutsu early.
+  const idle = fighter.animationData?.idle || {}
+  fighter._edoDummy = {
+    x: fighter.x, y: fighter.y, w: fighter.w || 60, h: fighter.h || 100, facing: fighter.facing || 1,
+    sheet: idle.sheet || null, sw: idle.width || 48, sh: idle.height || 90, frames: idle.frames || 1,
+    spriteScale: fighter.spriteScale, _f: 0
+  }
+  // 2) overwrite with the vessel's data — the kit routes off rosterKey + these fighter fields
+  fighter.rosterKey        = vesselKey
+  fighter.name             = vessel.name || vesselKey
+  fighter.color            = vessel.color || fighter.color
+  fighter.basic_attacks    = vessel.basic_attacks || fighter.basic_attacks
+  fighter.animationData    = vessel.animationData || fighter.animationData
+  fighter.spriteScale      = vessel.spriteScale ?? fighter.spriteScale
+  fighter.traits           = vessel.traits || fighter.traits
+  fighter.ultimate         = vessel.ultimate || fighter.ultimate
+  fighter.dashTeleport     = !!vessel.movement?.dashTeleport
+  fighter.runWhenAdvancing = !!vessel.movement?.runWhenAdvancing
+  fighter.introPool        = vessel.introPool || null
+  // Part 2 — REANIMATION palette: any Edo Tensei vessel renders in the near-black desaturated "reanimated
+  // corpse" wash for the whole summon window, REGARDLESS of the vessel's own skin. Reuses the recolor
+  // skin-swap mechanism: _skinAnim = vessel anim retagged to __reanim sheets (generated per char). Stamping
+  // _recolorTag/_baseSkinAnim = "reanim" makes even a NESTED vessel transform (SSJ/Rose/etc) stay dark.
+  const reanimAnim         = retagFormAnim(vessel.animationData, "reanim")
+  fighter._skinAnim        = reanimAnim
+  fighter._baseSkinAnim    = reanimAnim
+  fighter._recolorTag      = "reanim"
+  fighter.maxEnergy        = vessel.stats?.maxEnergy || fighter.maxEnergy || 200
+  fighter.energyType       = vessel.traits?.energyType || fighter.energyType
+  fighter.energy           = fighter.maxEnergy           // FRESH FULL bar = the window fuel; it drains over the summon and funds the borrowed kit
+  // 3) clean transient state + reset the sprite handler so it re-resolves against the vessel's anim
+  _edoClearTransient(fighter)
+  fighter._edoActive = true                  // window ends when the ENERGY bar (drained per frame) hits 0 — extendable by building energy
+  fighter._edoVessel = vesselKey
+  fighter._edoIntroPlayed = false            // game.js plays the vessel's OWN intro (pose + voice) once the summon cinematic ends
+  fighter.ultimateCooldown = 0   // the vessel starts with its OWN ultimate ready (nested ultimate is the point)
+  clearInputBuffer(fighter)      // drop the activation ult-press (frozen in the buffer during the summon) so the vessel doesn't inherit it
+  // The vessel EMERGES a short step toward the opponent so the player-controlled body doesn't overlap the
+  // standing Tobirama dummy left at the arena edge (clamped to the stage).
+  const worldW = worldWidth || 1280
+  fighter.x = Math.max(24, Math.min(worldW - (fighter.w || 60) - 24, fighter.x + (fighter._edoDummy.facing) * EDO_DUMMY_OFFSET))
+  fighter.teleportFlash = 12
+  return true
+}
+
+function _edoClearTransient(fighter) {
+  fighter.attacking = false; fighter.currentMove = null; fighter.currentAttack = null
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0; fighter.isCharging = false
+  fighter._rekkaNext = null; fighter._cmdHitLanded = false; fighter._cmdPrevHeavy = false; fighter._cmdPrevLight = false
+  if (fighter.spriteHandler) { fighter.spriteHandler.currentAction = null; fighter.spriteHandler.frameIndex = 0; fighter.spriteHandler.frameTimer = 0; fighter.spriteHandler.locked = false }
+}
+
+// On revert, wipe any FORM / BUFF state the vessel's own ultimate may have left active (Susanoo,
+// Godspeed, Flash Time, SSJ forms, Mangekyou, …) so it can never LEAK onto the reverted Tobirama.
+// Covers the common sprite-roster ult states; each defaults falsy/1 = "off/normal".
+function _edoCleanseVesselState(fighter) {
+  fighter._susanooStage = 0; fighter._susanooTimer = 0; fighter._susanooActive = false; fighter._suppressUltCooldown = false
+  fighter._itachiSusanoo = false; fighter._itachiSusanooTimer = 0; fighter._mangekyouActive = false
+  fighter._godspeedActive = false; fighter._godspeedTrail = null
+  fighter._flashTimeActive = false; fighter._ftTrail = null; fighter._oppTimeScale = null
+  fighter.currentForm = null; fighter.transformIndex = null
+  fighter.damageMultiplier = 1; fighter.attackSpeedMultiplier = 1
+  fighter._canvasHeightFrac = null; fighter._rooted = false; fighter.isLaunched = false
+}
+
+// Revert to Tobirama at window expiry (Step D — the handoff). Restores identity + kit and plays a
+// graceful water-reform transition. NON-EXPLOITABLE: this does NOT grant i-frames and does NOT touch
+// hitstun / blockstun / stun / knockdownState / vx / vy — so if the window lapses mid-combo, Tobirama
+// INHERITS the bad position (the swap can never cancel a punish into a free escape). Activation is
+// likewise gated out during hitstun (triggerUltimate), so neither end of the swap is an escape.
+export function revertEdoTensei(fighter) {
+  if (!fighter?._edoActive || !fighter._edoStash) return false
+  const s = fighter._edoStash
+  _edoCleanseVesselState(fighter)                        // wipe any vessel form/buff BEFORE restoring Tobirama's fields
+  for (const k of EDO_SWAP_FIELDS) fighter[k] = s[k]
+  fighter._skinAnim = s._skinAnim || null
+  fighter._recolorTag = s._recolorTag || null            // Part 2: drop the reanim override on revert
+  fighter._baseSkinAnim = s._baseSkinAnim || null
+  fighter.energy = 0                                     // Tobirama spent all chakra to reanimate
+  _edoClearTransient(fighter)                            // clears own attack/cast state (NOT hitstun/knockback)
+  // Tobirama re-inhabits at the vessel's FINAL position (no reposition → the revert can't teleport out of a
+  // punish). The standing dummy simply vanishes as the seal completes.
+  fighter._edoActive = false; fighter._edoDummy = null; fighter._edoStash = null; fighter._edoVessel = null
+  clearInputBuffer(fighter)      // symmetric: Tobirama doesn't inherit the vessel's buffered presses
+  fighter.teleportFlash = 14                             // reanimation dissolves back — a visible flash (never a hard snap)
+  // Graceful reform pose (the water body-flicker dissolve→reform). Purely cosmetic — grants no invuln
+  // and yields to hitstun (a mid-combo revert correctly shows the hurt pose, not a safe reform).
+  if (!(fighter.hitstun > 0) && !fighter.knockdownState) { fighter._spriteCastMove = "tobiWaterFlicker"; fighter._spriteCastTimer = 20 }
+  return true
+}
+
+export function executeTobiramaUltimate(fighter, context) {
+  if (fighter._edoActive || isEdoTenseiCinematicActive()) return false   // already reanimating / mid-summon
+  const vesselKey = fighter._edoBackup
+  if (!vesselKey || !characters[vesselKey]) return false              // no vessel (assignEdoBackup defaults, so rare)
+  if ((fighter.energy || 0) < EDO_TENSEI_MIN_ENERGY) return false     // needs a real chakra pool
+  // COST paid UP-FRONT: ALL current chakra + a portion of CURRENT hp (shared pool — never self-KO).
+  fighter.energy = 0
+  fighter.health = Math.max(1, (fighter.health || 0) - Math.floor((fighter.health || 0) * EDO_TENSEI_HP_COST_FRAC))
+  fighter.attacking = false; fighter.currentMove = null; fighter.currentAttack = null; fighter.isCharging = false
+  try { sound.playSfxFile?.(pickTobiramaVoice("ultimateCast"), null) } catch (_) {}   // VOICE: Edo Tensei "no kindness, full might" ultimate-activation callout
+  // Launch the summoning CINEMATIC (freeze + jump-to-edge + hand-seals + rising coffin + reveal). The
+  // body-swap (applyEdoTensei) fires at the cinematic's reveal beat via onResolve; control hands to the
+  // vessel when the cinematic ends. Combat is frozen throughout (game.updateBattle freeze-gate).
+  const worldWidth = context?.worldWidth
+  activateEdoTenseiCinematic(fighter, context?.getOpponent?.(fighter), "in", vesselKey,
+    () => applyEdoTensei(fighter, vesselKey, worldWidth), worldWidth)
+  return true
+}
+
+// De-summon (launch the reverse "out" cinematic → revert to Tobirama). Called from BOTH end conditions:
+// the window fuel running dry (updateEdoTensei) and the opponent landing a hit on the standing Tobirama
+// dummy (game.js checkEdoDummyHit). Idempotent while a de-summon is already in flight.
+export function endEdoTenseiWindow(fighter, worldWidth) {
+  if (!fighter?._edoActive || fighter._edoEnding) return false
+  fighter._edoEnding = true
+  activateEdoTenseiCinematic(fighter, null, "out", fighter._edoVessel,
+    () => { revertEdoTensei(fighter); fighter._edoEnding = false }, worldWidth)
+  return true
+}
+
+// True while the summoned vessel is inside its OWN ultimate / transformation state (a nested ultimate).
+// The Edo Tensei outer drain PAUSES for this WHOLE duration (see updateEdoTensei) so a self-draining
+// transformation ultimate isn't double-drained. Covered generically by `currentForm` (Vegeta SSJ/Blue,
+// Killua Godspeed, Flash Time, Goku Black SSJ Rose, Mahoraga all set it to a non-base value) plus the
+// explicit flags for the giant/buff forms that DON'T set currentForm (Sasuke/Itachi Susanoo, Mangekyou).
+// applyEdoTensei swaps in the vessel but never sets currentForm, so a non-base currentForm reliably means
+// "the vessel entered its own transformation" — Tobirama himself has no form.
+export function edoVesselInNestedUltimate(fighter) {
+  if (!fighter) return false
+  const form = fighter.currentForm
+  if (form && form !== "base") return true
+  return !!(fighter._ssjActive || fighter._ssjBlueActive || fighter._ssjRoseActive ||
+            fighter._godspeedActive || fighter._flashTimeActive || fighter._mangekyouActive ||
+            fighter._susanooActive || fighter._itachiSusanoo || fighter._susanooStage ||
+            fighter.isMahoraga)
+}
+
+// Per-frame Edo Tensei driver (called every frame from game.js updatePlayerCombat). Drains the window
+// fuel; when it hits 0 it launches the END cinematic (un-summon), which reverts to Tobirama at its own
+// beat. NOTE: the fuel drain PAUSES automatically during any inner-ultimate ACTIVATION cinematic — while
+// any cinematic runs, updateBattle returns early before updatePlayerCombat, so this never drains then.
+export function updateEdoTensei(fighter, worldWidth) {
+  if (!fighter || !fighter._edoActive || fighter._edoEnding) return
+  // PAUSE the outer Edo drain for the ENTIRE duration of a nested transformation-style ultimate — not just
+  // its activation cinematic. Godspeed / Vegeta SSJ-Blue / SSJ Rose / Flash Time / Mangekyou are GAMEPLAY
+  // buff-modes that drain the SAME energy bar continuously (there is no single "cinematic moment" to pause
+  // around); stacking Edo's 0.26/frame on top burned the shared bar so fast the nested ultimate was
+  // pointless. While the vessel is transformed only the vessel's OWN drain ticks; the Edo window resumes on
+  // revert, on whatever energy is left. (Activation cinematics were already covered by the outer freeze.)
+  if (edoVesselInNestedUltimate(fighter)) return
+  // Reuse the shared sustained-form drain (same helper as Vegeta SSJ/Blue, Goku Black SSJ Rose, Godspeed,
+  // Flash Time) on the vessel's ENERGY bar. When energy can't cover the tick, `revert` fires the un-summon
+  // (energy-exhaustion end condition). Because this drains the SAME bar the player builds/spends, the
+  // summon is genuinely extendable (charge/regen) and shortenable (spend on the kit) — not a fixed timer.
+  tickSustainedFormDrain(fighter, {
+    active: f => !!f._edoActive && !f._edoEnding,
+    drainPerFrame: EDO_ENERGY_DRAIN,
+    revert: f => endEdoTenseiWindow(f, worldWidth)
+  })
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -4255,12 +5095,17 @@ export function triggerSpecial(fighter, context = {}) {
     case "omega_ranger": return executeOmegaRangerSpecial(fighter, context)   // Gun / Super Upper / Special Downward
     case "saiki":   return executeSaikiSpecial(fighter, context)   // Lightning — two layered bolts fired as one thick beam
     case "killua":  return executeKilluaSpecial(fighter, context)   // Yo-Yo throw→travel→retract boomerang
+    case "flash":   return executeFlashSpecial(fighter, context)   // Spin Attack (neutral) / Tornado (forward) — melee multi-hit whirls
+    case "gon":     return executeGonSpecial(fighter, context)   // Jajanken: Rock (neutral, charged) / Scissors (fwd, multi-hit) / Paper (down, push)
+    case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
 
 export function triggerUltimate(fighter, context = {}) {
   if (!fighter) return false
+  // NOTE: during an Edo Tensei window the fighter IS the vessel (rosterKey swapped) → this dispatches to
+  // the VESSEL's own ultimate (the nested ultimate-within-an-ultimate). We intentionally do NOT block it.
   if ((fighter.ultimateCooldown || 0) > 0) return false      // on cooldown → do nothing (same as too little meter)
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
   if (fighter.attacking) return false
@@ -4291,6 +5136,9 @@ export function triggerUltimate(fighter, context = {}) {
       case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
       case "saiki":   cast = executeSaikiUltimate(fighter, context);   break   // Giant Bomb Throw: delayed screen-filling explosion
       case "killua":  cast = executeKilluaUltimate(fighter, context);  break   // Godspeed: sustained speed/damage buff + electric afterimage overlay (buff-mode, not a form swap)
+      case "gon":     cast = executeGonUltimate(fighter, context);     break   // Adult Form: buff + movement-lockout + close-range SUDDEN-DEATH (hit=instant win / miss=instant loss)
+      case "flash":   cast = executeFlashUltimate(fighter, context);   break   // Flash Time: opponent time-slow (⅓×) + self speed buff + block-lockout + overshoot movement (buff-mode)
+      case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }
@@ -4751,12 +5599,15 @@ export function applyGojoPassiveSystems(fighter) {
 // passive regen can EXTEND the form but never perpetuate it — matching the design's
 // "actively top up energy to stay transformed longer". Not character-specific.
 // ─────────────────────────────────────────────────────────────────────────
-export function tickSustainedFormDrain(fighter, { active, drainPerFrame, revert }) {
+// `field` (default "energy") lets a sustained state drain a DEDICATED resource instead of the energy bar,
+// should one ever be needed; every current caller (SSJ/Blue, Rose, Godspeed, Flash Time, Edo Tensei)
+// drains "energy" so managing that bar manages the state's duration.
+export function tickSustainedFormDrain(fighter, { active, drainPerFrame, revert, field = "energy" }) {
   if (!fighter || !active(fighter)) return
-  if ((fighter.energy || 0) >= drainPerFrame) {
-    fighter.energy = Math.max(0, fighter.energy - drainPerFrame)
+  if ((fighter[field] || 0) >= drainPerFrame) {
+    fighter[field] = Math.max(0, fighter[field] - drainPerFrame)
   } else {
-    fighter.energy = 0
+    fighter[field] = 0
     revert(fighter)   // auto-revert the exact frame the meter runs dry
   }
 }
@@ -4830,7 +5681,7 @@ export function enterSSJRose(fighter, context = {}) {
   activateSSJRoseCinematic(fighter, opp, () => {
     // FORM-SWAP — applied at the cinematic's RESOLVE beat (Sasuke Lv2 pattern).
     fighter._ssjRoseActive    = true
-    fighter._skinAnim         = SSJ_ROSE_ANIM       // FULL art form-swap (Rose sheets)
+    fighter._skinAnim         = retagFormAnim(SSJ_ROSE_ANIM, fighter._recolorTag)   // form-swap (+alt recolor if any)
     fighter.currentForm       = "ssjRose"           // HUD/state (base → ssjRose)
     fighter.damageMultiplier  = SSJ_ROSE_MULT.dmg
     fighter.attackMultiplier  = SSJ_ROSE_MULT.dmg
@@ -4847,7 +5698,7 @@ export function enterSSJRose(fighter, context = {}) {
 export function revertSSJRose(fighter) {
   if (!fighter || !fighter._ssjRoseActive) return
   fighter._ssjRoseActive    = false
-  fighter._skinAnim         = null
+  fighter._skinAnim         = fighter._baseSkinAnim || null
   fighter.currentForm       = "base"
   fighter.damageMultiplier  = 1
   fighter.attackMultiplier  = 1

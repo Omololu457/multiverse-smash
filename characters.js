@@ -388,7 +388,10 @@ const megumi = {
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   hasSprites: true,
-  spriteScale: 1.7,   // source frames ~55–61px tall → ×1.7 ≈ hitbox height
+  // SIZE-NORMALIZED (2026-07-24): was 1.7 (idle content ~59px × 1.7 ≈ 100px — bottom of the
+  // roster, −9% vs median ≈111). Bumped to 1.85 → ~59px × 1.85 ≈ 109px, into the main band.
+  // No anchorY offsets on any action → feet stay planted (plant is cell-bottom→hitbox-bottom).
+  spriteScale: 1.85,   // source frames ~55–61px tall → ×1.85 ≈ hitbox height
   // ── MEGUMI SPRITES ── engine action keys → strip; native cell = stripWidth/frames.
   // Summon casts use the MOVE_TO_ACTION names (divine_dogs/nue/toad/rabbit_escape/
   // max_elephant); executeMegumiSpecial sets _spriteCastMove so they play.
@@ -971,6 +974,101 @@ const itachi = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// TOBIRAMA SENJU  (Naruto universe) — 15th sprite character.
+// STAGE 1: idle + core movement + selectability. Sprites sliced from the
+// tobirama_*.png strips; the non-uniform source frames were RE-SLICED into
+// clean uniform, feet-aligned cells (tools/reslice_strip.mjs → *_uniform.png)
+// so the engine slices by a single pitch without horizontal jitter (Itachi
+// precedent). Templated off fellow-Naruto shinobi Itachi/Sasuke (chakra,
+// dashTeleport = his water body-flicker, staged build). Normals (Stage 2),
+// water jutsu (Stage 3), Darkness Jutsu (Stage 4) and the Edo Tensei summon
+// ultimate (Stage 5) land in later passes; missing actions fall back to idle.
+// The signature Edo Tensei ultimate lets the player pre-pick a SECOND roster
+// character and take direct control of its full kit for a fixed window while
+// Tobirama is sidelined — see abilities.js executeTobiramaUltimate (Stage 5).
+// ─────────────────────────────────────────────────────────────────
+const tobirama = {
+  rosterKey: "tobirama", name: "Tobirama Senju", universe: "naruto",
+  portrait: "./tobirama_portrait.png",   // cropped from the intro sheet in Stage 6; falls back gracefully until then
+  archetypes: ["melee", "tactics"],
+  primary: "melee", secondary: ["tactics", "zoner"],
+  // Water body-flicker — double-tap TOWARD the opponent = teleport dash (same
+  // detectDoubleTapDashTeleport mechanic + timing as Sasuke/Itachi/Gojo/Toji).
+  movement: { dashTeleport: true, runWhenAdvancing: true },   // advancing toward the foe plays the run cycle (walk sheet still used for retreat)
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // maxEnergy 200: the Edo Tensei ultimate spends ALL current chakra on cast (Stage 5),
+  // and the water specials (Stage 3) want a full bar to work from.
+  stats: { maxHealth: 1120, maxEnergy: 200, attack: 90, defense: 82, speed: 96, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  // Placeholder taijutsu values templated off Itachi (fellow chakra shinobi); real move
+  // wiring + flavor normals land in Stage 2. combat.js _getMD reads THIS basic_attacks.
+  basic_attacks: {
+    light:    { damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 88, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 80, rangeY: 46 },
+    upAttack: { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    downAir:  { damage: 74, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
+    airAttack:{ damage: 54, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 }
+  },
+  // HUD-only until Stage 5 (real logic + cost live in abilities.js executeTobiramaUltimate).
+  // Edo Tensei: reanimate a pre-chosen ally — take full control of their kit for a fixed window.
+  ultimate: { name: "Edo Tensei", cost: 100, description: "Reanimation Jutsu — sacrifice all chakra and a portion of health to summon your pre-chosen ally, then command their full moveset for a short window before control reverts to Tobirama." },
+  hasSprites: true,
+  // idle content ~88px × 1.3 ≈ 114px on-screen ≈ roster height (Naruto/Sasuke/Itachi ~112-115).
+  // REQUIRES the skins.js `tobirama` entry (else applySkin() pulls the spriteScale:1 fallback →
+  // native size) + the spritesheets.js SPRITE_MANIFEST idle gate. Resliced cells are bottom-aligned
+  // (feet at cell bottom, 1px pad) so a single anchorY:0 plants feet across every standing action —
+  // sprite.js: drawn-bottom = fighter.y + fighterH - anchorY, independent of per-action cell height.
+  spriteScale: 1.3,
+  animationData: {
+    idle: { frames: 4, width: 39, height: 90, speed: 6, anchorY: 0, sheet: "./tobirama_idle_uniform.png" },
+    walk: { frames: 6, width: 47, height: 91, speed: 6, anchorY: 0, sheet: "./tobirama_walk_uniform.png" },
+    run:  { frames: 6, width: 68, height: 70, speed: 4, anchorY: 0, sheet: "./tobirama_run_uniform.png" },
+    dash: { frames: 3, width: 74, height: 89, speed: 3, anchorY: 0, sheet: "./tobirama_dash_uniform.png" },
+    // jump.png = crouch→rise→apex arc; play once + hold. fall = the apex/descent pose (last cell, sourceX 6×57).
+    jump: { frames: 7, width: 57, height: 90, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_jump_uniform.png" },
+    fall: { frames: 1, width: 57, height: 90, speed: 6, anchorY: 0, sourceX: 342, loop: false, lockLastFrame: true, sheet: "./tobirama_jump_uniform.png" },
+    // Guard — 2-frame settle into a braced cross-arm block; hold the last frame while blocking.
+    guard: { frames: 2, width: 41, height: 90, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_block_uniform.png" },
+    // HURT — frame 0 of the knockdown strip (the initial backward recoil) as a single-frame flinch;
+    // combat.js colorFlash tints the hit on top. Every plain hitstun/stun routes here.
+    hurt: { frames: 1, width: 84, height: 84, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_hit_uniform.png" },
+    // KNOCKDOWN — the full 5-frame fall→tumble→sprawl→rise sequence (the hit sheet is literally a
+    // knockdown). Played during knockdownState; lockLastFrame holds the standing recovery pose.
+    knockdown: { frames: 5, width: 84, height: 84, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_hit_uniform.png" },
+    // Pre-match INTRO — 4-frame entrance settling into stance.
+    intro: { frames: 4, width: 70, height: 88, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_intro_uniform.png" },
+    // ── STAGE 2 NORMALS ── each resliced feet-aligned (tools/reslice_strip.mjs → *_uniform.png);
+    // anchorY:0 plants feet (bottom-aligned cells). loop:false + lockLastFrame holds the strike
+    // pose through recovery. basic_attacks above carries the hit/frame data these render over.
+    light:    { frames: 6, width: 72,  height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_low_kick_uniform.png" },              // quick low sweeping kick
+    heavy:    { frames: 2, width: 145, height: 79, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_strongz_foward_attack_uniform.png" },   // committed forward lunge-straight (long reach)
+    up:       { frames: 6, width: 69,  height: 83, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_up_kick_uniform.png" },                 // launcher: rising kick
+    air:      { frames: 3, width: 60,  height: 87, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_super_up_kick_uniform.png" },           // neutral aerial somersault kick
+    down_air: { frames: 4, width: 67,  height: 87, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_down_air_kick_uniform.png" },             // descending diagonal kick
+    // ── STAGE 3 COMMAND CHAIN + POKES ── currentMove-keyed poses (sprite.js identity map). Chain =
+    // Fwd+Heavy tobiCombo1→2→Fin (cancel-on-hit); pokes = Fwd+Light Strong Forward / Back+Heavy Rising Knee.
+    tobiCombo1:     { frames: 7, width: 65, height: 90,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_attack_combo_1_uniform.png" },        // chain opener — punch string
+    tobiCombo2:     { frames: 8, width: 88, height: 89,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_attack_combo_2_uniform.png" },        // chain 2 — water-infused strike (built-in blue burst)
+    tobiComboFin:   { frames: 7, width: 71, height: 90,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_super_down_attack_uniform.png" },     // finisher — downward slam
+    tobiStrongFwd:  { frames: 6, width: 60, height: 102, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_strong_upper_attack_kick_uniform.png" }, // Fwd+Light poke — tumbling forward launcher
+    tobiRisingKnee: { frames: 6, width: 57, height: 89,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_upper_knee_attack_uniform.png" },        // Back+Heavy poke — rising-knee anti-air
+    // ── STAGE 4 SPECIALS ── direction-branched off the Special button (currentMove/_spriteCastMove
+    // identity poses). 3 have built-in water FX in the art (slash/rising/flicker); 3 are cast-only
+    // and pair with a procedural drawKind projectile FX (dragon/wall/darkness).
+    tobiWaterDragon:  { frames: 10, width: 55, height: 90,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_water_dragon_justu_uniform.png" },                  // N — seal→thrust cast
+    tobiWaterSlash:   { frames: 6,  width: 82, height: 85,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_foward_water_slash_uniform.png" },                  // F — advancing water blade (built-in FX)
+    tobiRisingWater:  { frames: 7,  width: 65, height: 104, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_water_up_attack_uniform.png" },                     // U — geyser launcher (built-in FX)
+    tobiWaterWall:    { frames: 5,  width: 47, height: 90,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_water_wall_justu_uniform.png" },                    // D — seal→brace cast
+    tobiDarkness:     { frames: 6,  width: 47, height: 90,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_darkness_justu_uniform.png" },                      // B — seal→cup cast
+    tobiWaterFlicker: { frames: 6,  width: 92, height: 67,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_water_teleport_after_hit_to_get_away_uniform.png" }, // escape — puddle→reform (built-in FX)
+    // Edo Tensei ultimate — the summoning ritual pose (hand-seals → summon slam) played during the
+    // activation windup, before control swaps to the reanimated vessel (Stage 6).
+    tobiEdoCast:      { frames: 11, width: 52, height: 90,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./tobirama_performing_edo_tense_uniform.png" }
+  },
+  // Single-entry pre-match intro pool (game.pickIntroVariant picks from here; one entry = always plays).
+  introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // DEMON SLAYER
 // ─────────────────────────────────────────────────────────────────
 const tanjiro = {
@@ -1352,8 +1450,12 @@ const omegaRanger = {
   // introSequence stepper (Vegeta/Toji precedent), NOT introPool (random pick).
   introSequence: ["intro", "intro2"],
   hasSprites: true,
-  // idle content ~52px × 2.0 ≈ 104px on-screen — mid roster range (Toji 101, Gojo 112).
-  spriteScale: 2.0,
+  // SIZE-NORMALIZED (2026-07-24): was 2.0. By CONTENT height (not cell height) his idle measured
+  // 48px × 2.0 ≈ 96px on-screen — the roster's SMALLEST (median ≈ 111). The old comment cited the
+  // 52px CELL × 2.0 ≈ 104 "mid range", but the cell carries headroom the content doesn't → he read
+  // undersized. Bumped to 2.35 → 48px × 2.35 ≈ 113px, squarely mid-band. anchorY=0 everywhere so
+  // feet stay planted (the plant is cell-bottom→hitbox-bottom; content botGap ≈2px is scale-invariant).
+  spriteScale: 2.35,
   // STAGE-1 sprites (movement/state/intro). Fragmented source sheets were RE-SLICED into
   // clean uniform strips (harness/reslice.mjs / crop_uniform.mjs) — the *_uniform.png files;
   // frame counts VISUALLY confirmed. width = uniform cell pitch, height = full cell height.
@@ -1622,7 +1724,15 @@ const netero = {
     // _spriteCastMove while abilities.js executeNeteroUltimate charges, then the GIANT avatar materialises
     // (the giant body lives on fighter._skinAnim = GUANYIN_ANIM in abilities.js, NOT here). 13f × speed 2 =
     // 26 ticks = GUANYIN_CAST_FRAMES (the delayed-enter window).
-    guanyinCast: { frames: 13, width: 51, height: 65, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_charge_guanyin_uniform.png" }
+    guanyinCast: { frames: 13, width: 51, height: 65, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_charge_guanyin_uniform.png" },
+    // HOLD-TO-CHARGE — Nen/energy-charging state (hold P). Uses the Guanyin Bodhisattva charge sheet
+    // (netero_charrge:Guanyin_Bodhisattva.png, resliced → netero_charge_guanyin_uniform.png — the SAME
+    // source art as guanyinCast, per the original build) instead of the generic procedural aura. Plays
+    // the full buildup 0→12 ONCE then HOLDS the final gathered Bodhisattva pose (lockLastFrame, no loop);
+    // once it's holding that last frame, game.js _drawChargeAura layers the generic cyan energy vortex
+    // AROUND him on top (Netero-only exception to the "dedicated charge strip skips the generic FX" gate).
+    // Rendered by sprite.js when isCharging (the universal hold-to-charge sets it for any maxEnergy>0 char).
+    charge: { frames: 13, width: 51, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./netero_charge_guanyin_uniform.png" }
   },
   // No dedicated intro art shipped (confirmed absent). Point the intro pool at `idle` so the pre-match
   // beat holds a clean idle pose — deterministic and box-free — instead of falling through to the generic
@@ -1760,9 +1870,10 @@ const beerus = {
   // empty beat + ~0.2s fade adds no real match-start delay.
   introReveal: { hide: 10, fade: 12 },
   hasSprites: true,
-  // idle content 62px × 1.7 ≈ 105px on-screen — mid roster range (Sasuke 116, Gojo 112,
-  // Toji 101). Matches Sasuke's "source ~55-61px → ×1.7 ≈ hitbox height" reasoning.
-  spriteScale: 1.7,
+  // SIZE-NORMALIZED (2026-07-24): was 1.7 (idle content ~59px × 1.7 ≈ 100px — bottom of the
+  // roster, −9% vs median ≈111). Bumped to 1.85 → ≈109px, into the main band. anchorY is 0 on
+  // every action → feet stay planted (plant is cell-bottom→hitbox-bottom, scale-invariant).
+  spriteScale: 1.85,
   animationData: {
     // ── movement / state ──────────────────────────────────────────────
     idle:   { frames: 4,  width: 31,  height: 62,  speed: 7, anchorY: 0, sheet: "./beerus_idle_u.png" },
@@ -1944,41 +2055,43 @@ const killua = {
   // idle content 48px × 2.1 ≈ 101px on-screen (lean teen, a touch under the ~112 adults).
   // REQUIRES the skins.js `killua` entry (else applySkin() pulls the spriteScale:1 fallback
   // → native ~half size) + the spritesheets.js SPRITE_MANIFEST idle gate.
-  // anchorY = -(bottom transparent gap × 2.1) plants feet (measured per resliced strip).
-  spriteScale: 2.1,
+  // SIZE-NORMALIZED (2026-07-24): was 2.1 (idle content ~48px × 2.1 ≈ 101px — bottom of the roster,
+  // −9% vs median ≈111). Bumped to 2.3 → 48px × 2.3 ≈ 110px, into the main band. anchorY =
+  // -(bottom transparent gap × 2.3) plants feet — every anchorY below re-scaled ×(2.3/2.1); 15 shifted.
+  spriteScale: 2.3,
   animationData: {
     // ── MOVEMENT / STATE (Stage 1). All re-sliced to uniform cells (reslice.mjs). ──
-    idle:  { frames: 2, width: 27, height: 53, speed: 8, anchorY: -6,  sheet: "./killua_idle_uniform.png" },   // content 48, botGap 3
+    idle:  { frames: 2, width: 27, height: 53, speed: 8, anchorY: -7,  sheet: "./killua_idle_uniform.png" },   // content 48, botGap 3
     // No dedicated walk strip — reuse the run strip a touch slower (dash reuses it faster).
     walk:  { frames: 8, width: 52, height: 48, speed: 6, anchorY: -2,  sheet: "./killua_run_uniform.png" },
     run:   { frames: 8, width: 52, height: 48, speed: 4, anchorY: -2,  sheet: "./killua_run_uniform.png" },    // content 44 (forward lean)
     dash:  { frames: 8, width: 52, height: 48, speed: 3, anchorY: -2,  sheet: "./killua_run_uniform.png" },
     // No dedicated jump art in the batch → the 3-pose dodge strip (crouch→extend→recover)
     // reads as a leap arc: play once, hold the last frame. fall = that last cell.
-    jump:  { frames: 3, width: 41, height: 63, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
-    fall:  { frames: 1, width: 41, height: 63, speed: 6, anchorY: -10, sourceX: 82, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
+    jump:  { frames: 3, width: 41, height: 63, speed: 6, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
+    fall:  { frames: 1, width: 41, height: 63, speed: 6, anchorY: -11, sourceX: 82, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
     // GUARD — dedicated 2-frame block pose (killua_block.png). Resolved by sprite.js when
     // isBlocking && !attacking (else idle). Plays once, holds.
-    guard: { frames: 2, width: 37, height: 58, speed: 8, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_block_uniform.png" },
+    guard: { frames: 2, width: 37, height: 58, speed: 8, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_block_uniform.png" },
     // HURT — Killua HAS a real 4-frame hit-reaction strip (electric knockback tumble),
     // unlike Itachi (who borrowed a brace pose). Every hitstun/stun state routes here.
-    hurt:  { frames: 4, width: 58, height: 44, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_hit_uniform.png" },
+    hurt:  { frames: 4, width: 58, height: 44, speed: 6, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_hit_uniform.png" },
     // ── STAGE 2 NORMALS (5 slots). All re-sliced to uniform cells (reslice.mjs); frame counts
     // measured. speed ≈ move-duration / frames so the swing reads across the active window.
     // anchorY = -(bottom transparent gap × 2.1) plants feet. Assassin pacing: fast, low commit.
     light:    { frames: 9, width: 43, height: 51, speed: 2, anchorY: -4,  loop: false, lockLastFrame: true, sheet: "./killua_light_uniform.png" },     // rapid punch flurry (foward_punch)
     heavy:    { frames: 7, width: 57, height: 48, speed: 3, anchorY: -2,  loop: false, lockLastFrame: true, sheet: "./killua_heavy_uniform.png" },     // committed roundhouse (foward_kick)
-    up:       { frames: 5, width: 47, height: 60, speed: 3, anchorY: -15, loop: false, lockLastFrame: true, sheet: "./killua_up_uniform.png" },        // launcher: rising kick (up_kick)
-    air:      { frames: 5, width: 47, height: 52, speed: 3, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_air_uniform.png" },        // neutral aerial side kick (side_kick)
-    down_air: { frames: 5, width: 49, height: 66, speed: 3, anchorY: -21, loop: false, lockLastFrame: true, sheet: "./killua_downair_uniform.png" },    // downward dive (down_air_attack)
+    up:       { frames: 5, width: 47, height: 60, speed: 3, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./killua_up_uniform.png" },        // launcher: rising kick (up_kick)
+    air:      { frames: 5, width: 47, height: 52, speed: 3, anchorY: -7,  loop: false, lockLastFrame: true, sheet: "./killua_air_uniform.png" },        // neutral aerial side kick (side_kick)
+    down_air: { frames: 5, width: 49, height: 66, speed: 3, anchorY: -23, loop: false, lockLastFrame: true, sheet: "./killua_downair_uniform.png" },    // downward dive (down_air_attack)
     // ── STAGE 2 COMMAND-NORMAL CHAIN — the Barrage (Down+Heavy rekka, cancel-on-hit). Killua's
     // signature rapid-punch flurry: 4 sequential parts → 4-hit cancelable string (Netero rekka
     // architecture). Fired from abilities.js updateKilluaCommandCombat; currentMove = barrageN
     // resolves the sheet via sprite.js identity fallback. Each part plays fast (speed 2).
-    barrage1: { frames: 4, width: 79, height: 57, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_barrage1_uniform.png" },
-    barrage2: { frames: 4, width: 75, height: 69, speed: 2, anchorY: -13, loop: false, lockLastFrame: true, sheet: "./killua_barrage2_uniform.png" },
-    barrage3: { frames: 4, width: 79, height: 55, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_barrage3_uniform.png" },
-    barrage4: { frames: 4, width: 75, height: 58, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_barrage4_uniform.png" },   // finisher (launches)
+    barrage1: { frames: 4, width: 79, height: 57, speed: 2, anchorY: -12, loop: false, lockLastFrame: true, sheet: "./killua_barrage1_uniform.png" },
+    barrage2: { frames: 4, width: 75, height: 69, speed: 2, anchorY: -14, loop: false, lockLastFrame: true, sheet: "./killua_barrage2_uniform.png" },
+    barrage3: { frames: 4, width: 79, height: 55, speed: 2, anchorY: -12, loop: false, lockLastFrame: true, sheet: "./killua_barrage3_uniform.png" },
+    barrage4: { frames: 4, width: 75, height: 58, speed: 2, anchorY: -7,  loop: false, lockLastFrame: true, sheet: "./killua_barrage4_uniform.png" },   // finisher (launches)
     // ── STAGE 3: Yo-Yo throw CAST pose (electric_yoyo_trow_part_1 resliced). Played via
     // _spriteCastMove (identity sprite-resolve) while the yo-yo boomerang projectile flies;
     // the yo-yo itself is a separate spinning projectile sheet (killua_yoyo_fx.png). See
@@ -1987,22 +2100,190 @@ const killua = {
     // ── STAGE 4: electric special CAST poses (played via _spriteCastMove). ──
     // Lightning Palm (Fwd+Special) — point-blank electric burst (electric_push). The hitbox is a
     // melee-range createAttackFromMove; the pose sells the palm-thrust + electric arc.
-    lightningPalm: { frames: 11, width: 55, height: 62, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_lightning_palm_uniform.png" },
+    lightningPalm: { frames: 11, width: 55, height: 62, speed: 2, anchorY: -7,  loop: false, lockLastFrame: true, sheet: "./killua_lightning_palm_uniform.png" },
     // Electric Ball (Down+Special) — charge → form → hurl a traveling electric orb (electric_ball).
     // The orb itself is a procedural glowing projectile (no dedicated clean orb frame); this is the cast.
-    electricBall:  { frames: 11, width: 82, height: 75, speed: 2, anchorY: -21, loop: false, lockLastFrame: true, sheet: "./killua_electric_ball_uniform.png" },
+    electricBall:  { frames: 11, width: 82, height: 75, speed: 2, anchorY: -23, loop: false, lockLastFrame: true, sheet: "./killua_electric_ball_uniform.png" },
     // ── STAGE 5: Godspeed ULTIMATE activation pose — the Nen-electric charge-aura buildup
     // (killua_charge_animation_part_1). Played via _spriteCastMove for the brief activation flash
     // before the sustained buff+overlay takes over. Aura extends up (tall cell); body stays normal.
     godspeedActivate: { frames: 12, width: 117, height: 91, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./killua_godspeed_activate_uniform.png" },
+    // HOLD-TO-CHARGE — Nen/energy-charging state (hold P). ONE continuous sequence = the two source
+    // sheets concatenated in order (killua_charge_animation_part_1 → part_2, via concat_uniform.mjs;
+    // alpha-gutter island detection, NOT even division): 12 buildup frames + 6 peak/crackle frames = 18.
+    // buildup+burst (0-13) plays ONCE, then the sustained-crackle tail (14-17) loops while held
+    // (loopStart, the Goku-Black two-part-charge pattern). Rendered by sprite.js when isCharging (the
+    // universal hold-to-charge sets it for any maxEnergy>0 char). botGap 0 → anchorY 0.
+    charge: { frames: 18, width: 149, height: 102, speed: 3, anchorY: 0, loop: true, loopStart: 14, sheet: "./killua_charge_uniform.png" },
     // Pre-match INTRO — Killua's iconic skateboard entrance (killua_intro_2.png resliced): rolls in on
     // the board → hops off as it flips away → lands in his stance. Plays once and HOLDS the settled
     // standing pose (frame 9) until the fight starts. botGap 4 → anchorY -8.
-    intro: { frames: 10, width: 35, height: 60, speed: 4, anchorY: -8, loop: false, lockLastFrame: true, sheet: "./killua_intro_uniform.png" }
+    intro: { frames: 10, width: 35, height: 60, speed: 4, anchorY: -9, loop: false, lockLastFrame: true, sheet: "./killua_intro_uniform.png" }
   },
   // Real intro art IS present (the skateboard-entrance strip), so point the intro pool at it instead
   // of the idle-hold stopgap. game.pickIntroVariant sets _introVariant="intro" → sprite.js renders it.
   introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
+// THE FLASH  (rosterKey "flash", universe "dc" — 14th sprite char, 1st DC)
+// Source art = ~23 separate per-action PNGs (flash_*.png) + a master reference
+// atlas (flash_transparent.png). Frame counts MEASURED via slice_scan.mjs;
+// non-uniform strips RE-SLICED (reslice.mjs → *_uniform.png); the two single-pose
+// run sheets COMPOSITED body-centered into flash_run_uniform.png. See FLASH_ASSET_MAP.md.
+// Archetype: EXTREME-SPEED pure-melee rushdown glass-cannon — top mobility (dash),
+// low per-hit / low defense, wins on combo pressure. Flash Time ultimate (Stage 4)
+// reuses Killua's Godspeed cinematic + opponent-time-slow directly.
+// ─────────────────────────────────────────────────────────────────
+const flash = {
+  rosterKey: "flash", name: "The Flash", universe: "dc", color: "#e8352a",
+  portrait: "./flash_portrait.png",   // dedicated head-profile CROPPED from the atlas bottom-left (real art).
+  archetypes: ["speed", "rushdown"],
+  primary: "speed", secondary: ["rushdown"],
+  traits: { hasEnergy: true, energyType: "speed_force", mobility: "very_high", scaling: "combo", animeMovement: true },
+  // GLASS-CANNON SPEEDSTER. speed 99 = TOP of roster (above Toji 98) — but note ground
+  // velocity is clamped at 9 in physics (speed≥100 saturates), so the speed identity is
+  // carried by the highest dashSpeed in the game (26) + frequent dashes + Flash Time (Stage 4).
+  // attack 80 / defense 74 are the LOWEST on the roster (deliberate: low per-hit, fragile),
+  // maxHealth 1020 near the fragile-rushdown floor. maxEnergy 100 = Speed Force meter (Flash Time).
+  // ALL flagged as intentional archetype outliers in the Stage-1 balance note.
+  stats: { maxHealth: 1020, maxEnergy: 100, attack: 80, defense: 74, speed: 99, maxJumps: 2, jumpPower: 34, dashSpeed: 26, dashDuration: 12, dashCooldownMax: 24 },
+  // Placeholder rushdown normals — very fast, low-damage, low-knockback (combo-friendly).
+  // Real normals + the command-normal chain land in Stage 2. combat.js _getMD reads THIS.
+  basic_attacks: {
+    light:    { damage: 30, startup: 2, active: 3, recovery: 7,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 62, startup: 6, active: 4, recovery: 15, hitstun: 17, knockbackX: 6, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 50, startup: 5, active: 4, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack:{ damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 60, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 24, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+  },
+  // HUD-only until Stage 4 (real logic + cost live in abilities.js). Reuses Killua's overlay-tier
+  // Godspeed treatment: cinematic activation + opponent time-slow.
+  ultimate: { name: "Flash Time", cost: 100, description: "Flash Time — accelerate beyond perception: Flash moves at 3× while the opponent crawls at ⅓×. He cannot block while active; his own momentum overshoots on stops." },
+  hasSprites: true,
+  // SIZE-NORMALIZED (2026-07-24): was 1.25 (idle content 89px × 1.25 ≈ 111px = roster median). By
+  // pixel-height Flash was already average, but his idle is a forward HUNCHED running-crouch while the
+  // rest of the roster stands UPRIGHT — so feet-aligned his silhouette reads noticeably SHORTER than
+  // an upright fighter of equal bbox height (confirmed in-game vs Naruto). Bumped 1.25→1.35 so the
+  // crouched stance reads at the upright cluster's mass: 89px × 1.35 ≈ 120px. spriteScale is purely
+  // cosmetic (hurtboxes read fixed f.w/f.h, not scale) so this can't affect balance. NOTE: the clean
+  // fix would be an upright idle re-pose (art work, deferred) — this scale bump is the low-risk stand-in.
+  // REQUIRES the skins.js `flash` default skin (else applySkin() pulls the spriteScale:1 fallback →
+  // native ~half size) + the spritesheets.js manifest idle gate. anchorY = -(botGap × 1.35) plants
+  // feet — every anchorY below re-scaled ×(1.35/1.25); only 3 shift by 1px after integer rounding.
+  spriteScale: 1.35,
+  animationData: {
+    // ── MOVEMENT / STATE (Stage 1). Re-sliced to uniform cells (reslice.mjs); run composited. ──
+    idle:  { frames: 7, width: 80,  height: 93,  speed: 8, anchorY: -1, sheet: "./flash_idle_uniform.png" },   // botGap 1
+    // No dedicated walk strip — reuse the 2-pose run cycle a touch slower (dash reuses it faster).
+    walk:  { frames: 2, width: 194, height: 99, speed: 8, anchorY: -5, sheet: "./flash_run_uniform.png" },      // botGap 4
+    run:   { frames: 2, width: 194, height: 99, speed: 5, anchorY: -5, sheet: "./flash_run_uniform.png" },      // sprint poses + speed-line tails (body-centered)
+    dash:  { frames: 2, width: 194, height: 99, speed: 3, anchorY: -5, sheet: "./flash_run_uniform.png" },
+    // Jump: 3-pose crouch→extend→apex. Play once, hold last frame; fall = that last cell.
+    jump:  { frames: 3, width: 66, height: 104, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./flash_jump_uniform.png" },   // botGap 0
+    fall:  { frames: 1, width: 66, height: 104, speed: 6, anchorY: 0, sourceX: 132, loop: false, lockLastFrame: true, sheet: "./flash_jump_uniform.png" },
+    // GUARD — NO dedicated block art in the batch/atlas → FALLBACK to idle frame 0 held (single
+    // clean standing brace). Resolved by sprite.js when isBlocking && !attacking. FLAGGED stand-in.
+    guard: { frames: 1, width: 80, height: 93, speed: 8, anchorY: -1, loop: false, lockLastFrame: true, sheet: "./flash_idle_uniform.png" },
+    // HURT — real 5-frame recoil→knockdown strip (unlike Itachi's borrowed brace). All hitstun routes here.
+    hurt:  { frames: 5, width: 115, height: 104, speed: 6, anchorY: -5, loop: false, lockLastFrame: true, sheet: "./flash_hit_uniform.png" },   // botGap 4
+    // Pre-match INTRO — dedicated 8-frame entrance strip. Plays once, holds the settled stance.
+    intro: { frames: 8, width: 80, height: 104, speed: 6, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./flash_intro_uniform.png" },   // botGap 2
+    // ── STAGE 2 NORMALS (5 slots). Re-sliced to uniform cells; frame counts measured. Rushdown
+    // pacing: fast, low commit. anchorY = -(botGap × 1.25) plants feet (measured per strip). ──
+    light:    { frames: 4, width: 114, height: 95,  speed: 3, anchorY: -4,  loop: false, lockLastFrame: true, sheet: "./flash_light_uniform.png" },   // fast straight-punch string (foward_punch)
+    heavy:    { frames: 3, width: 116, height: 117, speed: 6, anchorY: -2,  loop: false, lockLastFrame: true, sheet: "./flash_heavy_uniform.png" },   // committed roundhouse (foward_kick_2)
+    up:       { frames: 3, width: 103, height: 121, speed: 6, anchorY: -1,  loop: false, lockLastFrame: true, sheet: "./flash_up_uniform.png" },      // launcher: rising uppercut (upper_attack)
+    air:      { frames: 4, width: 115, height: 94,  speed: 4, anchorY: -1,  loop: false, lockLastFrame: true, sheet: "./flash_air_uniform.png" },     // neutral aerial kick (air_kick)
+    down_air: { frames: 3, width: 92,  height: 105, speed: 5, anchorY: -15, loop: false, lockLastFrame: true, sheet: "./flash_downair_uniform.png" }, // downward dive kick (down_air_attack) — anchorY -(11.2 botGap × 1.35)
+    // ── STAGE 2 COMMAND-NORMAL CHAIN — "Speed Rush" (Down+Heavy rekka, cancel-on-hit). The 2 overflow
+    // melee sheets (foward_punch_2 → fowars_kick) form a 2-hit rushdown string (Toji/Killua rekka
+    // architecture). Fired from abilities.js updateFlashCommandCombat; currentMove = rushN resolves the
+    // sheet via sprite.js identity fallback. 2 stages = the honest count of overflow art (extend if more arrives).
+    rush1: { frames: 3, width: 130, height: 105, speed: 3, anchorY: -5, loop: false, lockLastFrame: true, sheet: "./flash_rush1_uniform.png" },   // opener (pinning straight)
+    rush2: { frames: 2, width: 113, height: 107, speed: 3, anchorY: -9, loop: false, lockLastFrame: true, sheet: "./flash_rush2_uniform.png" },   // finisher (side kick, launches) — anchorY ×(1.35/1.25)
+    // ── STAGE 3 SPECIALS (melee-range multi-hit whirls; both loop while active). currentMove drives
+    // these via sprite.js identity fallback. NO ranged content in the batch → both are pure melee. ──
+    spinAttack: { frames: 3, width: 120, height: 119, speed: 3, anchorY: -12, loop: true, sheet: "./flash_spin_uniform.png" },     // neutral Special: rapid spinning whirl (spin_attack) — anchorY ×(1.35/1.25)
+    tornado:    { frames: 4, width: 113, height: 112, speed: 3, anchorY: -2,  loop: true, sheet: "./flash_tornado_uniform.png" }    // forward Special: advancing electric vortex (towrnado_attack)
+    // ── Stage 4 (Flash Time cast poses) added later. ──
+  },
+  // Dedicated intro art IS present → point the intro pool at it (game.pickIntroVariant → _introVariant).
+  introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GON FREECSS  (rosterKey "gon", universe "hunter_x_hunter" — 3rd HxH char after
+// Netero & Killua). Source art = ~33 per-action PNGs (gon_*.png) + two master
+// reference sheets (gon_freecss_transparent.png = FX, gon_freecss_transparent_2.png =
+// LABELED body-pose rows). No standalone idle → the STANCE row was extracted from the
+// master sheet (gon_idle.png) and, with every movement strip, RE-SLICED to uniform
+// feet-aligned cells (tools/reslice_strip.mjs → *_uniform.png). See GON_ASSET_MAP.md.
+// Archetype: BALANCED ALL-ROUNDER (Netero-shape but less spiky — solid HP/def, mid
+// speed; identity = Jajanken + the Adult-Form ultimate, not a movement gimmick).
+// Stage 1 = registration + movement/state only; normals/Jajanken/Adult-Form land later.
+// ─────────────────────────────────────────────────────────────────
+const gon = {
+  rosterKey: "gon", name: "Gon Freecss", universe: "hunter_x_hunter", color: "#4caf50",
+  portrait: "./gon_portrait.png",   // celebrate/arm-raised pose CROPPED from the master sheet (gon_freecss_transparent_2.png top-left).
+  archetypes: ["balanced"],
+  primary: "balanced", secondary: [],
+  // BALANCED ALL-ROUNDER. vs Netero (HP980/atk98/def82/spd94 = glass-cannon burst): Gon is
+  // deliberately more DURABLE and less spiky — higher HP/def, lower attack/speed — so he reads
+  // as an even brawler, not a min-maxed spike. Sits mid-roster (roster HP ~1030–1300).
+  traits: { hasEnergy: true, energyType: "nen", mobility: "medium", scaling: "balanced", animeMovement: true },
+  stats: { maxHealth: 1150, maxEnergy: 160, attack: 89, defense: 86, speed: 86, maxJumps: 2, jumpPower: 32, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 40 },
+  // STAGE 2 normals — balanced all-rounder (solid per-hit, not spiky like Flash's rushdown, not
+  // heavy-committed like a grappler). data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air.
+  basic_attacks: {
+    light:    { damage: 34, startup: 3, active: 3, recovery: 8,  hitstun: 13, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1 },   // dash-headbutt lunge
+    upAttack: { type: "launcher", damage: 54, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, airOK: false },
+    airAttack:{ damage: 46, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 58, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+  },
+  hasSprites: true,
+  // spriteScale 2.5 → idle content 45px × 2.5 ≈ 112px on-screen (roster band ~110–116; see
+  // [[sprite-size-normalization]]). REQUIRES the skins.js `gon` default skin (else applySkin()
+  // pulls the getSkins() spriteScale:1 fallback → native ~half size) + the spritesheets.js gate.
+  spriteScale: 2.5,
+  // anchorY = -(bottom transparent gap × 2.5); every resliced cell has botGap 1 → -2, feet planted.
+  animationData: {
+    idle:  { frames: 4, width: 36, height: 47, speed: 8, anchorY: -2, sheet: "./gon_idle_uniform.png" },
+    walk:  { frames: 8, width: 49, height: 46, speed: 6, anchorY: -2, sheet: "./gon_walk_uniform.png" },   // MOVE row (run cycle), played slower for walk
+    run:   { frames: 8, width: 49, height: 46, speed: 4, anchorY: -2, sheet: "./gon_walk_uniform.png" },
+    dash:  { frames: 2, width: 43, height: 43, speed: 3, anchorY: -2, sheet: "./gon_dash_uniform.png" },
+    jump:  { frames: 7, width: 40, height: 47, speed: 5, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_jump_uniform.png" },
+    fall:  { frames: 1, width: 40, height: 47, speed: 5, anchorY: -2, sourceX: 240, loop: false, lockLastFrame: true, sheet: "./gon_jump_uniform.png" },   // hold jump's last (apex/descend) cell
+    guard: { frames: 3, width: 37, height: 45, speed: 8, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_guard_uniform.png" },
+    hurt:  { frames: 4, width: 42, height: 45, speed: 6, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_hit_uniform.png" },
+    // ── STAGE 2 NORMALS (5 slots). Resliced uniform cells; play once, hold last frame. ──
+    light:    { frames: 3,  width: 50, height: 47, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_foward_punch_uniform.png" },   // quick forward punch
+    heavy:    { frames: 7,  width: 50, height: 42, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_dash_headbutt_uniform.png" },  // committed forward lunge/tackle
+    up:       { frames: 7,  width: 58, height: 58, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_super_up_kick_uniform.png" },   // rising kick launcher
+    air:      { frames: 8,  width: 35, height: 51, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_air_attack_uniform.png" },      // neutral aerial punch
+    down_air: { frames: 3,  width: 36, height: 46, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_down_air_uniform.png" },        // downward dive
+    // ── STAGE 2 COMMAND-NORMAL CHAIN — "Rush" (Down+Heavy rekka, cancel-on-hit; Flash architecture).
+    // rush1 = rapid second-hit flurry → rush2 = big launching finisher. currentMove drives the sprite.
+    rush1: { frames: 4,  width: 55, height: 24, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_second_hit_uniform.png" },
+    rush2: { frames: 10, width: 82, height: 82, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_super_up_attack_uniform.png" },
+    // ── STAGE 3 JAJANKEN (3 separate specials on separate inputs). currentMove drives the sprite. ──
+    rock:     { frames: 10, width: 63, height: 47, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_rock_uniform.png" },      // charge-windup → devastating punch (built-in telegraph frames)
+    paper:    { frames: 5,  width: 43, height: 50, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_paper_uniform.png" },     // open-palm push
+    scissors: { frames: 12, width: 59, height: 48, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_scissors_uniform.png" },  // rapid multi-hit jab string
+    // ── STAGE 4 — ADULT FORM (Ultimate). The adult body is much larger → actionScale shrinks the tall
+    // cells (220px) back toward a ~1.6× on-screen read vs child Gon (an intimidating grown silhouette).
+    // `transform` holds through the activation cinematic; `finalblow` is the all-or-nothing sudden-death.
+    transform: { frames: 14, width: 80,  height: 220, speed: 4, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sheet: "./gon_transform_uniform.png" },   // child→adult growth (cinematic pose)
+    finalblow: { frames: 16, width: 105, height: 219, speed: 3, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sheet: "./gon_finalblow_uniform.png" }     // the sudden-death decisive strike
+    // (no adult idle/walk/attack art in the batch → Adult Form is a BUFF-MODE overlay on the child body,
+    //  like Godspeed/Flash Time; a full adult body-swap is a deferred visual-polish item.)
+  },
+  // No dedicated intro strip in the batch → idle-hold intro (the fighter settles in his STANCE
+  // during the intro phase). Flagged in GON_ASSET_MAP.md; a bespoke intro can be added later.
+  introPool: ["idle"]
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -2011,7 +2292,7 @@ const killua = {
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
   gojo, megumi, sukuna, omololu, toji, mahoraga,
-  naruto, sasuke, itachi,
+  naruto, sasuke, itachi, tobirama,
   tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,
   rick, morty, evilMorty, rickPrime,
   beerus,
@@ -2020,7 +2301,9 @@ export const characters = {
   omega_ranger: omegaRanger,
   netero,
   saiki,
-  killua
+  killua,
+  flash,
+  gon
 }
 
 // The 7 characters shown in the starter roster select screen

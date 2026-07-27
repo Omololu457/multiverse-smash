@@ -88,7 +88,7 @@ try {
   check("P1 is omega_ranger", g.key === "omega_ranger", `key=${g.key}`);
   check("renders as sprites", g.hasSpriteHandler, "");
   check("idle sheet resolves", (g.spriteSheet || "").includes("omega_ranger_idle"), `sheet=${g.spriteSheet}`);
-  check("spriteScale = 2.0", Math.abs((g.spriteScale || 0) - 2.0) < 0.01, `scale=${g.spriteScale}`);
+  check("spriteScale = 2.35", Math.abs((g.spriteScale || 0) - 2.35) < 0.01, `scale=${g.spriteScale}`);
   check("HP 1180 / EN 175", g.maxHealth === 1180 && g.maxEnergy === 175, `HP=${g.maxHealth} EN=${g.maxEnergy}`);
   const portrait = await page.evaluate(() => window.__harness.charPortrait("omega_ranger"));
   check("portrait wired to real mugshot", (portrait || "").includes("SPD_Omega_Ranger_mugshot"), `portrait=${portrait}`);

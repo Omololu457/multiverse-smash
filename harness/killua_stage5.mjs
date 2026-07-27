@@ -75,13 +75,19 @@ try {
   check("Godspeed is active", on.godspeedActive === true, `godspeedActive=${on.godspeedActive}`);
   check("damage buff applied (×1.25)", Math.abs((on.damageMultiplier || 1) - 1.25) < 0.001, `dmgMult=${on.damageMultiplier}`);
   check("attack-speed buff applied (×1.4)", Math.abs((on.attackSpeedMultiplier || 1) - 1.4) < 0.001, `atkSpdMult=${on.attackSpeedMultiplier}`);
+  // ── activation CINEMATIC (freeze + camera push-in on Killua, charge-up aura, pull back) ──
+  const cine = await page.evaluate(() => window.__harness.godspeedCine());
+  check("activation cinematic is playing (camera push-in)", cine.active === true, `cine=${JSON.stringify(cine)}`);
   await waitFrames(2);
-  check("plays the godspeedActivate electric cast pose", (await p1()).action === "godspeedActivate", `action=${(await p1()).action}`);
+  check("holds the blue charge-up aura during the cinematic", (await p1()).action === "charge", `action=${(await p1()).action}`);
   await shot("activate");
+  // wait for the cinematic to finish (camera pulls back, combat resumes)
+  await page.waitForFunction(() => !window.__harness.godspeedCine().active, null, { timeout: 8000, polling: 16 }).catch(() => {});
+  check("cinematic ends → combat resumes", (await page.evaluate(() => window.__harness.godspeedCine().active)) === false, "");
 
   // ── fight in Godspeed: buffed damage ──
   section("fighting in Godspeed — buffed damage + electric overlay");
-  await waitFrames(20);   // let the activation pose finish
+  await waitFrames(4);
   const buffLight = await lightDamage(50);
   await shot("fighting");
   check("still in Godspeed while fighting", (await p1()).godspeedActive === true, `godspeedActive=${(await p1()).godspeedActive}`);

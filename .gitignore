@@ -154,3 +154,8 @@ goku_slices/_preview/
 
 # macOS junk
 .DS_Store
+
+# Python bytecode cache (recolor/reslice tooling)
+tools/__pycache__/
+__pycache__/
+*.pyc

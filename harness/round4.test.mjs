@@ -4,7 +4,7 @@
 //   1) Susanoo can't jump (canJump=false)
 //   2) Susanoo attacks auto-aim DOWN at the opponent (arrow/grab velocity vector)
 //   3) two-strike lightning special via qcf (down,forward)+special; dash-strike unchanged
-//   4) Naruto/Kurama ultimate has a lengthened (4800f/80s) recast cooldown
+//   4) Naruto/Kurama ultimate has a premium (2400f/40s = 2× universal) recast cooldown
 // ---------------------------------------------------------------------------
 import { chromium } from "playwright";
 import http from "node:http";
@@ -177,8 +177,8 @@ try {
   await tapKey("u");
   await waitFrames(6);
   const n1 = await page.evaluate(() => window.__harness.p1());
-  check("after Tailed Beast Bomb, cooldown ≈ 4800f (80s), NOT 1200", n1.ultCooldown >= 4700 && n1.ultCooldown <= 4800, `cd=${n1.ultCooldown} (universal is 1200)`);
-  check("cooldown is a large multiple of the 1200 universal", n1.ultCooldown / 1200 >= 3.5, `${(n1.ultCooldown / 1200).toFixed(1)}× universal`);
+  check("after Tailed Beast Bomb, cooldown ≈ 2400f (40s), NOT 1200", n1.ultCooldown >= 2300 && n1.ultCooldown <= 2400, `cd=${n1.ultCooldown} (universal is 1200)`);
+  check("cooldown is a premium 2× the 1200 universal (retuned from 4× — see BALANCE_AUDIT §Naruto-ult-retune)", n1.ultCooldown / 1200 >= 1.8 && n1.ultCooldown / 1200 <= 2.2, `${(n1.ultCooldown / 1200).toFixed(1)}× universal`);
 
   section("page errors");
   check("no uncaught JS exceptions", jsErrors.length === 0, jsErrors.slice(0, 4).join(" | "));

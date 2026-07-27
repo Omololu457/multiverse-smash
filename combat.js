@@ -15,6 +15,9 @@
 import { physics } from "./physics.js"
 import { sound, SFX } from "./sound.js"
 import { pickRickVoice } from "./rickVoice.js"
+import { pickKilluaVoice } from "./killuaVoice.js"
+import { pickTobiramaVoice } from "./tobiramaVoice.js"
+import { pickFlashVoice } from "./flashVoice.js"
 import { pickItachiVoice } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
@@ -635,6 +638,64 @@ function applyRickOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickRickVoice("taunt"), null) } catch (_) {}
 }
 
+// ── KILLUA ZOLDYCK VOICE LINES (audio-only; Japanese "Nen Impact" pack) ──
+// DEFENDER reaction — dismissive pool ("Too soft", "Annoying", "Damn it"…), single pool (no tier
+// split; the pool is uniformly dismissive). One line per _hitVoiceCd window; unblocked hits only.
+function applyKilluaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "killua" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickKilluaVoice("hitReact"), null) } catch (_) {}
+}
+
+// ATTACKER connect — combat barks ("Bark now!", "Got it", "Blow you away"…) on a STRONG connect
+// (heavy/special/ultimate) OR a long BASIC light string. Killua has NO taunt action (enrolling him in
+// the universal heal-taunt would change gameplay — excluded here), so his confident TAUNT one-liners
+// ride this same connect trigger at ~30% (Rick/Sukuna precedent: a connect can pull from a taunt pool).
+// Shared _atkVoiceCd → one line per window; blocked suppresses it.
+function applyKilluaOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "killua" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickKilluaVoice(Math.random() < 0.30 ? "taunt" : "combatBark"), null) } catch (_) {}
+}
+
+// ── TOBIRAMA SENJU VOICE LINES (audio-only; Japanese pack) ──
+// ATTACKER connect — his overconfident taunt one-liners ("No resistance", "A shinobi of your caliber
+// has fallen"…) on a STRONG connect (heavy/special/ultimate) OR a long BASIC light string. Tobirama has
+// NO taunt action (enrolling him in the heal-taunt would change gameplay — excluded), so the taunt pool
+// rides this connect trigger (Rick precedent). Shared _atkVoiceCd → one line per window; blocked suppresses.
+function applyTobiramaOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "tobirama" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickTobiramaVoice("taunt"), null) } catch (_) {}
+}
+
+// ── THE FLASH VOICE LINES (audio-only; Injustice 2 pack, transcribed → FLASH_VOICE_LOG.md) ──
+// DEFENDER reaction — one spoken line ("Not again.") + the verified effort-grunt set. One line per
+// _hitVoiceCd window; unblocked hits only.
+function applyFlashHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "flash" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickFlashVoice("hitReact"), null) } catch (_) {}
+}
+
+// ATTACKER connect — Flash's quippy speed trash-talk on a STRONG connect (heavy/special/ultimate) OR a
+// long BASIC light string. No taunt action (heal-taunt would change gameplay — excluded), so the taunt
+// pool rides this connect trigger (Rick precedent). Shared _atkVoiceCd → one line per window; blocked suppresses.
+function applyFlashOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "flash" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickFlashVoice("taunt"), null) } catch (_) {}
+}
+
 // ── ISAAC NETERO VOICE LINES ── (removed — audio files deleted; awaiting fresh audio.
 // The hit-connect and startup-grunt trigger POINTS remain in resolveAttackHit / updateCombat
 // below; re-wire a neteroVoice module + the applyNetero*Voice helpers here to re-enable.)
@@ -1058,6 +1119,10 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
         color: null,
         damage: chipDmg,
         isBlocking: true,
+        // Telemetry tags (additive — read by the AI-vs-AI spectator log; no balance impact).
+        moveName: atk.name || null,
+        attackerSide: attacker.side || null,
+        blocked: true,
         lines: 6,
         radius: 14
       })
@@ -1116,6 +1181,10 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     // the knockdown sequence just set above gets the ESCALATED "Unthinkable! It can't be!" line;
     // any lighter flinch gets "Foolish. The insolence." Shares _hitVoiceCd (ticked in game.js) so a
     // rapid string never spams it, and the shared cooldown means one hit fires ONE of the two, never both.
+    // These are the DEFENDER's reactions → own them by the defender (game.js's ambient owner here is the
+    // ATTACKER), so a hit-reaction bark is cut when the DEFENDER's hurt animation ends, not the attacker's.
+    const _prevVoiceOwner = sound?._voiceOwner
+    if (sound) sound._voiceOwner = defender
     if (isGokuBlackDefender && !(defender._hitVoiceCd > 0)) {
       defender._hitVoiceCd = 150
       const voiceLine = defender.knockdownState ? "goku_black_hit_heavy.mp3" : "goku_black_hit_light.mp3"
@@ -1128,12 +1197,17 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applySasukeHitVoice(defender, cat, dmg)
     // RICK hit-reaction voice — light flinch pool vs heavy pool, same tier split.
     applyRickHitVoice(defender, cat, dmg)
+    // KILLUA hit-reaction voice — single dismissive pool ("Too soft" / "Annoying" / "Damn it").
+    applyKilluaHitVoice(defender, cat, dmg)
+    // FLASH hit-reaction voice — "Not again." + effort-grunt set.
+    applyFlashHitVoice(defender, cat, dmg)
     // OMEGA RANGER hit-reaction voice — light stagger only ("No!"); heavy tier stays silent (no clip).
     applyOmegaRangerHitVoice(defender, cat, dmg)
     // ITACHI hit-reaction voice — calm observation pool ("I see…" / "Quick, aren't you").
     applyItachiHitVoice(defender)
     // GOJO "Limitless" skin hit-reaction — young-Gojo pack; no-op on the default skin.
     applyGojoLimitlessHitVoice(defender)
+    if (sound) sound._voiceOwner = _prevVoiceOwner   // restore the ambient (attacker) owner
 
     if (!isCounter) {
       try { sound?.play?.(_hitSound(atk, false)) } catch (_) {}
@@ -1161,7 +1235,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
         lines: cat === "ultimate" ? 16 : cat === "special" ? 10 : cat === "heavy" ? 8 : 6,
         radius: cat === "ultimate" ? 40 : cat === "special" ? 28 : cat === "heavy" ? 22 : 14,
         damage: dmg,
-        isCounterHit: isCounter
+        isCounterHit: isCounter,
+        // Telemetry tags (additive — read by the AI-vs-AI spectator log; no balance impact).
+        moveName: atk.name || null,
+        attackerSide: attacker.side || null,
+        blocked: false
       })
     }
 
@@ -1193,6 +1271,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   }
 
   attacker.currentAttack.hasHit = true
+  // GON SUDDEN-DEATH ("Final Blow"): latch the outcome on the attack so game._updateGonSuddenDeath() can
+  // force the instant match end. A CLEAN unblocked connect → "clean" (instant WIN); a guarded hit →
+  // "blocked" (counts as a MISS → instant LOSS). (The invuln/knockdown/domain early-returns above set
+  // hasHit but never reach here, so an immune opponent correctly reads as a miss/loss.)
+  if (attacker.currentAttack._gonSuddenDeath) attacker.currentAttack._sdConnect = defender.isBlocking ? "blocked" : "clean"
   // Combo bookkeeping: a CLEAN hit extends the string (counter++ + refresh the 90f drop timer); a BLOCK
   // BREAKS it (counter → 0) so the decay resets and the attacker's next clean hit starts fresh at full
   // scale. (Previously the counter incremented even on block, so a blocked poke silently taxed the combo.)
@@ -1213,6 +1296,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applySasukeOffenseVoice(attacker, cat, !defender.isBlocking)   // Sasuke Susanoo-confirm / combo-finisher / attack-lands line
   applyItachiOffenseVoice(attacker, cat, !defender.isBlocking)   // Itachi taunting connect pool (strong/long-string gated)
   applyRickOffenseVoice(attacker, cat, !defender.isBlocking)     // Rick generic taunt/flavor bark on a strong/long-string connect
+  applyKilluaOffenseVoice(attacker, cat, !defender.isBlocking)   // Killua combat bark (+ ~30% taunt one-liner) on a strong/long-string connect
+  applyTobiramaOffenseVoice(attacker, cat, !defender.isBlocking) // Tobirama overconfident taunt one-liner on a strong/long-string connect
+  applyFlashOffenseVoice(attacker, cat, !defender.isBlocking)    // Flash quippy speed trash-talk on a strong/long-string connect
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher
   applySukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Sukuna finisher(KO/low-HP) / hit-connect(strong+long) / taunt+misc(light) barks
   // Netero hit-connect voice removed (audio files deleted); re-add applyNeteroOffenseVoice here to re-enable.
@@ -1503,7 +1589,11 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
           color: proj.color || "#ffd166",
           lines: 10,
           radius: 24,
-          damage: Math.floor(dmg)
+          damage: Math.floor(dmg),
+          // Telemetry tags (additive — read by the AI-vs-AI spectator log; no balance impact).
+          moveName: proj.name || "projectile",
+          attackerSide: proj.ownerId || proj.owner?.side || null,
+          blocked: !!fighter.isBlocking
         })
       }
 

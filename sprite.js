@@ -96,6 +96,22 @@ const MOVE_TO_ACTION = {
   guanyinCombo: "guanyinCombo",
   guanyinBurst: "guanyinBurst",
 
+  // Tobirama (Stage 3): taijutsu command chain + 2 free pokes. Identity maps (currentMove === action
+  // key) — explicit so a recovery/cast tail can never resolve to the 128² box.
+  tobiCombo1: "tobiCombo1",
+  tobiCombo2: "tobiCombo2",
+  tobiComboFin: "tobiComboFin",
+  tobiStrongFwd: "tobiStrongFwd",
+  tobiRisingKnee: "tobiRisingKnee",
+  // Tobirama (Stage 4): water/space-time special cast + melee poses.
+  tobiWaterDragon: "tobiWaterDragon",
+  tobiWaterSlash: "tobiWaterSlash",
+  tobiRisingWater: "tobiRisingWater",
+  tobiWaterWall: "tobiWaterWall",
+  tobiDarkness: "tobiDarkness",
+  tobiWaterFlicker: "tobiWaterFlicker",
+  tobiEdoCast: "tobiEdoCast",   // Edo Tensei summoning-ritual pose (activation windup)
+
   // Saiki Kusuo: rekka cast poses + burst/lightning/bomb cast poses. Identity maps (currentMove /
   // _spriteCastMove === action key) — explicit so a recovery/cast tail can never resolve to the 128² box.
   saikiChain1: "saikiChain1",
@@ -305,6 +321,9 @@ function _resolveAction(fighter, currentAction = "idle") {
   const gvx = fighter.vx || 0;
   const movingForward = Math.sign(gvx) === (fighter.facing ?? 1);
   if (Math.abs(gvx) > 10 && movingForward) return "run";
+  // Opt-in run-cycle chars (Tobirama): forward movement plays RUN at any speed, since
+  // normal walking never crosses the >10 threshold above. Backpedal still falls to walk.
+  if (fighter.runWhenAdvancing && movingForward && Math.abs(gvx) > 0.1) return "run";
   if (Math.abs(gvx) > 0.1) return "walk";
 
   // Default fallback
@@ -530,7 +549,9 @@ export class SpriteHandler {
     // frames; game.js sets fighter._animFrozen while in the PAUSED state.
     // domainFrozen (Task 3) holds the current frame as well as the action, so the
     // enemy is locked on a single still pose for the whole of Gojo's domain.
-    if ((fighter.hitstop || 0) <= 0 && !fighter._animFrozen && !fighter.domainFrozen) {
+    // _timeSlowFlag: Killua's Godspeed time-slow skips the opponent's update on a fraction of frames;
+    // holding its animation on those same frames makes the slowed frame-rate read on the sprite too.
+    if ((fighter.hitstop || 0) <= 0 && !fighter._animFrozen && !fighter.domainFrozen && !fighter._timeSlowFlag) {
       this.updateFrames(frameData, fighter);
     }
 

@@ -20,6 +20,7 @@ const ENERGY_TYPE_LABELS = {
   portal_tech:      "Portal Tech",              // Rick & Morty (Morty, Evil Morty, Rick Prime)
   spd_energy:       "SPD Energy",               // Power Rangers SPD
   psi:              "Psi",                       // The Disastrous Life of Saiki K. (Saiki) — psychic power
+  speed_force:      "Speed Force",               // DC (The Flash) — the Flash Time meter
   stamina:          "Stamina",                  // original roster (Omololu)
   omnitrix:         "Omnitrix",                 // Ben 10 (fallback; device HUD block overrides live)
   ultimatrix:       "Ultimatrix",               // Albedo (fallback; device HUD block overrides live)
@@ -344,8 +345,92 @@ export function getGameplaySelectRects(canvas) {
     { id: "pvp",      label: "2 PLAYER",  subLabel: "Local versus — P1 vs P2"     },
     { id: "tower",    label: "TOWER",     subLabel: "Climb a ladder of CPU fights" },
     { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)" },
+    { id: "aivsai",   label: "AI vs AI",  subLabel: "Watch/test two CPUs — logged, fast-forwardable" },
     { id: "back",     label: "BACK",      subLabel: "Return to title"             }
   ])
+}
+
+// ── AI vs AI SETUP SCREEN ────────────────────────────────────────────────────
+// Eight rows: P1 fighter/difficulty, P2 fighter/difficulty, match count, speed, START, BACK.
+// Each value row is click-to-cycle (and ◀/▶ on the keyboard); START commits the run.
+export function getAiVsAiSetupRects(canvas) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "p1char", label: "P1 FIGHTER" },
+    { id: "p1diff", label: "P1 AI" },
+    { id: "p2char", label: "P2 FIGHTER" },
+    { id: "p2diff", label: "P2 AI" },
+    { id: "matches", label: "MATCHES" },
+    { id: "speed",  label: "SPEED" },
+    { id: "start",  label: "START",  subLabel: "Begin the AI-vs-AI run" },
+    { id: "back",   label: "BACK",   subLabel: "Return to mode select" }
+  ])
+}
+
+function _nameForKey(roster, key) {
+  const r = (roster || []).find(c => (c.key || c.rosterKey) === key)
+  return r ? (r.name || key) : (key || "?")
+}
+
+export function drawAiVsAiSetupScreen(ctx, canvas, cfg = {}, roster = [], selectedIndex = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#101f38")
+  drawHeader(ctx, canvas, "AI vs AI", "Two CPUs fight automatically — every move is logged")
+
+  const speeds = [1, 2, 4, 8]
+  const valueFor = (id) => {
+    switch (id) {
+      case "p1char": return _nameForKey(roster, cfg.p1Key)
+      case "p1diff": return (cfg.p1Diff || "").toUpperCase()
+      case "p2char": return _nameForKey(roster, cfg.p2Key)
+      case "p2diff": return (cfg.p2Diff || "").toUpperCase()
+      case "matches": return String(cfg.matches)
+      case "speed":  return `${speeds[cfg.speedIndex] || 1}×`
+      default: return null
+    }
+  }
+  const accentFor = (id) =>
+    id === "start" ? "#7CFC98" :
+    (id === "p1char" || id === "p1diff") ? "#7dd3fc" :
+    (id === "p2char" || id === "p2diff") ? "#fca5a5" : "#8fb3ff"
+
+  getAiVsAiSetupRects(canvas).forEach((b, i) => {
+    const val = valueFor(b.id)
+    const label = val != null ? `${b.label}:  ${val}` : b.label
+    const sub = val != null ? "◀ ▶ or click to change" : b.subLabel
+    drawButton(ctx, b, { label, subLabel: sub, active: i === selectedIndex, accent: accentFor(b.id) })
+  })
+  drawFooterHint(ctx, canvas, "↑↓ select · ◀▶ change · Enter start · click a row to cycle · Esc back")
+}
+
+// ── AI vs AI RUN-COMPLETE SUMMARY ────────────────────────────────────────────
+export function getAiVsAiSummaryRects(canvas) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "json",  label: "DOWNLOAD JSON", subLabel: "Full move-by-move log" },
+    { id: "csv",   label: "DOWNLOAD CSV",  subLabel: "Flat event table (training-ready)" },
+    { id: "again", label: "RUN AGAIN",     subLabel: "Back to AI-vs-AI setup" },
+    { id: "menu",  label: "MAIN MENU",     subLabel: "Leave spectator mode" }
+  ])
+}
+
+export function drawAiVsAiSummaryScreen(ctx, canvas, exp = {}, selectedIndex = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#101f38")
+  const s = exp.summary || { totalMatches: 0, wins: {}, byMethod: {} }
+  drawHeader(ctx, canvas, "RUN COMPLETE", `${s.totalMatches} matches simulated`)
+
+  const { width: w } = getCanvasSize(canvas)
+  const wins = s.wins || {}
+  const meth = s.byMethod || {}
+  const line = `P1 wins: ${wins.p1 || 0}   ·   P2 wins: ${wins.p2 || 0}   ·   Draws: ${wins.draw || 0}`
+  const line2 = Object.entries(meth).map(([k, v]) => `${k}: ${v}`).join("   ·   ") || "—"
+  drawCenteredText(ctx, line, w / 2, 150, { font: "700 20px Arial", fill: "#e2e8f0" })
+  drawSubText(ctx, `Endings — ${line2}`, w / 2, 178, { font: "15px Arial", fill: "rgba(220,230,255,0.72)" })
+
+  getAiVsAiSummaryRects(canvas).forEach((b, i) => {
+    drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex,
+      accent: b.id === "json" || b.id === "csv" ? "#7CFC98" : "#8fb3ff" })
+  })
+  drawFooterHint(ctx, canvas, "Logs also auto-downloaded when the run finished · click to re-download")
 }
 
 // FREE-FOR-ALL slot assignment — decide who drives each slot: a local human device or a CPU
@@ -1491,6 +1576,51 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
       ctx.translate(x, y)
       ctx.scale(dir, 1)
       ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      ctx.restore()
+      return
+    }
+
+    // ── TEMPORARY PLACEHOLDER FX (Tobirama Stage 4) — pending real effect/projectile art. ──
+    // Gated on p.drawKind so it has ZERO effect on any other projectile. A real sprite dropped
+    // into p.sheet later takes precedence (the sprite hook above) → clean drop-in swap, no rewrite.
+    // water = translucent cyan roiling blobs + trailing droplets; dark = indigo swirl; waterwall =
+    // a wobbling vertical water column/barrier.
+    if (p.drawKind) {
+      const t = (p._fxT = (p._fxT || 0) + 1)
+      ctx.save()
+      if (p.drawKind === "water" || p.drawKind === "dark") {
+        const water = p.drawKind === "water"
+        const rgb = water ? "56,189,248" : "124,58,237"
+        const R = Math.max(16, p.radius || 20)
+        ctx.shadowBlur = 18; ctx.shadowColor = `rgba(${rgb},0.9)`
+        for (let k = 0; k < 3; k++) {              // 3 overlapping wobbling blobs → a liquid read
+          const ph = t * 0.25 + k * 2.1
+          const ox = Math.cos(ph) * R * 0.28, oy = Math.sin(ph * 1.3) * R * 0.22
+          const rr = R * (0.72 + 0.16 * Math.sin(ph + k))
+          ctx.globalAlpha = water ? 0.45 : 0.5
+          ctx.fillStyle = `rgba(${rgb},1)`
+          ctx.beginPath(); ctx.arc(x + ox, y + oy, rr, 0, Math.PI * 2); ctx.fill()
+        }
+        ctx.globalAlpha = 0.9; ctx.shadowBlur = 0
+        ctx.fillStyle = water ? "#e0f2fe" : "#ede9fe"          // bright core
+        ctx.beginPath(); ctx.arc(x, y, R * 0.38, 0, Math.PI * 2); ctx.fill()
+        ctx.globalAlpha = 0.7; ctx.fillStyle = `rgba(${rgb},1)`
+        const dir = (p.vx || 0) < 0 ? 1 : -1                    // trailing droplets behind travel dir
+        for (let k = 0; k < 4; k++) {
+          const dx = dir * (R * 0.9 + k * 6), dy = Math.sin(t * 0.4 + k * 1.7) * R * 0.5
+          ctx.beginPath(); ctx.arc(x + dx, y + dy, Math.max(2, R * 0.16 - k), 0, Math.PI * 2); ctx.fill()
+        }
+      } else if (p.drawKind === "waterwall") {
+        const w = p.w || 34, h = p.h || 120
+        ctx.shadowBlur = 16; ctx.shadowColor = "rgba(56,189,248,0.8)"
+        ctx.globalAlpha = 0.42; ctx.fillStyle = "#38bdf8"
+        ctx.beginPath(); ctx.moveTo(x - w / 2, y - h / 2)      // wobbling column edges
+        for (let yy = -h / 2; yy <= h / 2; yy += 8) ctx.lineTo(x - w / 2 + Math.sin(t * 0.3 + yy * 0.08) * 4, y + yy)
+        for (let yy = h / 2; yy >= -h / 2; yy -= 8) ctx.lineTo(x + w / 2 + Math.sin(t * 0.3 + yy * 0.08 + 1) * 4, y + yy)
+        ctx.closePath(); ctx.fill()
+        ctx.globalAlpha = 0.75; ctx.fillStyle = "#e0f2fe"
+        ctx.fillRect(x - 2, y - h / 2, 4, h)                    // bright center seam
+      }
       ctx.restore()
       return
     }

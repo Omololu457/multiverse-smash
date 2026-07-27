@@ -15,6 +15,7 @@
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
 import { getLevel, isFullyUnlocked } from "./progression.js"
+import { ALT_SKINS } from "./harness/alt_skin_manifest.mjs"
 
 // ── OWN art per non-default skin (overrides; everything else is borrowed) ──────
 // Dimensions MEASURED from the PNGs (frames × cell W×H). "[guess]" rows are noted
@@ -99,6 +100,43 @@ function buildComplete(rosterKey, ownKey) {
   return { ...base, ...(OWN[ownKey] || {}) }   // OWN overrides borrowed defaults
 }
 
+// Alt-COLOR (recolor_hue) skin: a global hue-rotated repaint of the base sheets, produced by
+// harness/gen_alt_skins.mjs. The recolor preserves layout/dimensions EXACTLY, so the skin's
+// animationData is just the base with every sheet path retagged `<name>__<tag>.png` — no per-action
+// frame data to maintain, no gameplay change (cosmetic only). Sheets without a `sheet` field pass through.
+function recolorSkinAnim(rosterKey, tag) {
+  const base = characters[rosterKey]?.animationData || {}
+  const out = {}
+  for (const [action, def] of Object.entries(base)) {
+    out[action] = def?.sheet ? { ...def, sheet: def.sheet.replace(/\.png$/i, `__${tag}.png`) } : def
+  }
+  return out
+}
+
+// Recolored portrait path for a skin's select-screen thumbnail: the char's portrait retagged
+// (recolor output is always PNG), or the recolored idle sheet when the char has no portrait.
+function recolorPortrait(rosterKey, tag) {
+  const p = characters[rosterKey]?.portrait
+  if (p) return p.replace(/\.(png|jpe?g)$/i, `__${tag}.png`)
+  const idle = characters[rosterKey]?.animationData?.idle?.sheet
+  return idle ? idle.replace(/\.png$/i, `__${tag}.png`) : null
+}
+
+// Build the recolor-skin entries for a character straight from the generation manifest (single
+// source of truth). All free (unlockLevel 0), cosmetic-only. `recolorTag` drives form-aware recolor
+// (Vegeta SSJ/Blue, Goku Black Rose) — see abilities.js retagFormAnim / game.js applySkin.
+function recolorSkins(rosterKey) {
+  return (ALT_SKINS[rosterKey] || []).map(s => ({
+    id: `${rosterKey}_${s.tag}`,
+    name: `${s.name} (Alt)`,
+    unlockLevel: 0,
+    portrait: recolorPortrait(rosterKey, s.tag),
+    spriteScale: characters[rosterKey]?.spriteScale,
+    animationData: recolorSkinAnim(rosterKey, s.tag),
+    recolorTag: s.tag,
+  }))
+}
+
 export const SKINS = {
   gojo: [
     { id: "default", name: "Default",         unlockLevel: 0, portrait: characters.gojo?.portrait,   spriteScale: characters.gojo?.spriteScale,   animationData: null },
@@ -148,6 +186,13 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.itachi?.portrait, spriteScale: characters.itachi?.spriteScale, animationData: null }
   ],
 
+  // Tobirama (universe: naruto) — STAGE 1. WITHOUT a default skin, applySkin() pulls the getSkins()
+  // spriteScale:1 fallback and he renders at native size. This entry sources his real spriteScale
+  // (1.3) from the character. No alt skins yet.
+  tobirama: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.tobirama?.portrait, spriteScale: characters.tobirama?.spriteScale, animationData: null }
+  ],
+
   // Netero (Hunter x Hunter). Same gate as the sprite characters above: WITHOUT a default skin,
   // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~60px (half
   // size). Sources his real spriteScale (1.85) from the character. No portrait yet (procedural-box
@@ -161,6 +206,7 @@ export const SKINS = {
   // his real spriteScale (2.2) from the character. No portrait yet (procedural-box fallback on select).
   saiki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.saiki?.portrait, spriteScale: characters.saiki?.spriteScale, animationData: null }
+    // saikiAzure removed in the Part 0 reset (2026-07-24) — a Saiki recolor will be regenerated in Part 2.
   ],
 
   // Killua Zoldyck (Hunter x Hunter). Same gate: WITHOUT a default skin, applySkin() pulls the
@@ -168,6 +214,21 @@ export const SKINS = {
   // spriteScale (2.1) from the character. Portrait crops the intro pose (no dedicated mugshot yet).
   killua: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.killua?.portrait, spriteScale: characters.killua?.spriteScale, animationData: null }
+  ],
+
+  // Gon Freecss (Hunter x Hunter) — STAGE 1. Same gate: WITHOUT a default skin, applySkin() pulls the
+  // getSkins() spriteScale:1 fallback and he renders at native ~half size. Sources his real
+  // spriteScale (2.5) + portrait from the character.
+  gon: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null }
+  ],
+
+  // The Flash (DC). Same gate: WITHOUT a default skin, applySkin() pulls the getSkins()
+  // spriteScale:1 fallback and he renders at native ~half size. Sources his real spriteScale
+  // (1.25) + portrait from the character.
+  flash: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.flash?.portrait, spriteScale: characters.flash?.spriteScale, animationData: null },
+    { id: "flashBlue", name: "Blue Streak (Alt)", unlockLevel: 0, portrait: "./flash_portrait__blue.png", spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "blue") }
   ],
 
   // Rick Sanchez (Rick & Morty). Same gate as the sprite characters above: WITHOUT a default
@@ -181,6 +242,7 @@ export const SKINS = {
   // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~62px.
   beerus: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.beerus?.portrait, spriteScale: characters.beerus?.spriteScale, animationData: null }
+    // beerusEmerald removed in the Part 0 reset (2026-07-24) — a Beerus recolor will be regenerated in Part 2.
   ],
 
   // Goku Black (Dragon Ball) — SEPARATE character from `goku`. Same gate: WITHOUT a default skin,
@@ -214,6 +276,14 @@ export const SKINS = {
   omega_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omega_ranger?.portrait, spriteScale: characters.omega_ranger?.spriteScale, animationData: null }
   ]
+}
+
+// Append manifest-driven recolor skins (5+ per char) to every character's list, idempotently —
+// ids already present (bespoke skins gojo2/sukuna3/megumi2 + the original beerusEmerald/saikiAzure/
+// flashBlue) stay authoritative and are never duplicated. Empty manifest entries add nothing.
+for (const key of Object.keys(SKINS)) {
+  const have = new Set(SKINS[key].map(s => s.id))
+  for (const rs of recolorSkins(key)) if (!have.has(rs.id)) SKINS[key].push(rs)
 }
 
 export function getSkins(rosterKey) {

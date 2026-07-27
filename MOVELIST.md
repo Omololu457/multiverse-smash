@@ -412,6 +412,7 @@ prefer to keep them grounded.
 | **Shuriken** | ↓ + Special | free | 34 | A ranged auto-aimed throw (chest height). Free poke. |
 | **Two-Strike Lightning** | ↓F + Special | 24 | 42 + 46 (88) | A telegraphed 2-hit lightning combo. Has a real wind-up — commit to it. |
 | **Chidori Koiten** | ↓B + Special | 35 | 95 | A stationary lightning **AOE discharge** around Sasuke (not a projectile) — hits everything close. |
+| **Hawk Summon** | B→F + Special | 30 | 72 | A summoned hawk swoops across the screen (own traveling hitbox) and **launches** the opponent very high — a combo-starter into an air-juggle, not a knockdown. |
 | **Substitution (Kawarimi)** | Block + Special *during an incoming hit* | 25 | — | Smoke-poof teleport behind the opponent so their swing whiffs. |
 
 > Sasuke also **double-taps toward** the opponent to blink behind them (Sharingan speed),

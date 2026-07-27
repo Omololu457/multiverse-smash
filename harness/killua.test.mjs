@@ -131,7 +131,10 @@ try {
   const on = await record();
   check("Godspeed activates", on.godspeedActive === true, `active=${on.godspeedActive}`);
   check("buffs applied (dmg×1.25, atkSpeed×1.4)", Math.abs((on.damageMultiplier || 1) - 1.25) < 0.001 && Math.abs((on.attackSpeedMultiplier || 1) - 1.4) < 0.001, `dmg=${on.damageMultiplier} atkSpd=${on.attackSpeedMultiplier}`);
-  await waitFrames(3); await record();
+  check("activation cinematic plays", (await page.evaluate(() => window.__harness.godspeedCine().active)) === true, "");
+  await record();
+  // wait for the freeze cinematic to end (drain/revert only runs once combat resumes)
+  await page.waitForFunction(() => !window.__harness.godspeedCine().active, null, { timeout: 8000, polling: 16 }).catch(() => {});
   await page.evaluate(() => window.__harness.setP1Energy(0.05)); await waitFrames(3);
   const off = await p1();
   check("Godspeed auto-reverts when the meter empties", off.godspeedActive === false && Math.abs((off.damageMultiplier || 1) - 1) < 0.001, `active=${off.godspeedActive} dmg=${off.damageMultiplier}`);

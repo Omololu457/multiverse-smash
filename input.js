@@ -34,6 +34,14 @@ function zeroBuffer(buf) {
   for (const k in buf) buf[k] = 0
 }
 
+// Clear a fighter's pressed-input buffer. Needed when control SWAPS bodies mid-freeze (Tobirama's Edo
+// Tensei): the buffer isn't decremented while a cinematic freezes the loop, so a held/buffered press
+// from before the freeze would otherwise fire on the new body the instant control resumes.
+export function clearInputBuffer(fighter) {
+  const b = PLAYER_BUFFERS[fighter?.playerNumber || 1]
+  if (b) zeroBuffer(b)
+}
+
 export const inputSettings = {
   p1Type: "keyboard",
   p2Type: "keyboard",
@@ -245,12 +253,21 @@ if (typeof window !== "undefined" && window.addEventListener) {
     if (i != null && !connectedPads.includes(i)) connectedPads.push(i)
     // AUTO-ACTIVATE the controller device type. getFighterInput() only routes to
     // pollGamepad() when a player's type is "controller"; nothing else flips it, so
-    // before this a freshly-plugged pad did NOTHING in play (the reported bug). Assign
-    // by connection order to the first player still on keyboard (P1 first, then P2), so
-    // "plug in a pad → it drives a fighter". A player can switch back on the SETTINGS
-    // screen. Keyboard-only users (no pad) never hit this, so keyboard play is untouched.
-    if (inputSettings.p1Type !== "controller") inputSettings.p1Type = "controller"
-    else if (inputSettings.p2Type !== "controller") inputSettings.p2Type = "controller"
+    // before this a freshly-plugged pad did NOTHING in play. BUT only do this when NO
+    // player is a controller yet: if a slot is ALREADY controller (e.g. PvP defaults P2
+    // to controller, or the Settings screen), that slot claims this pad via resolvePadIndex
+    // — force-flipping P1 here would STEAL the keyboard player's slot and bind the pad to
+    // the wrong fighter (the reported bug). From a cold keyboard/keyboard setup it still
+    // flips the first keyboard slot → controller (single-player: the human is P1), so
+    // "plug in a pad → it drives a fighter" is preserved. Keyboard-only users never hit this.
+    // Scope the guard to P1/P2 only — this auto-activate manages just those two slots, and
+    // P3/P4 default to "controller" (FFA controller-only slots), so including them would always
+    // short-circuit and the cold keyboard/keyboard → P1 activation would never fire.
+    const p1p2Controller = inputSettings.p1Type === "controller" || inputSettings.p2Type === "controller"
+    if (!p1p2Controller) {
+      if (inputSettings.p1Type !== "controller") inputSettings.p1Type = "controller"
+      else if (inputSettings.p2Type !== "controller") inputSettings.p2Type = "controller"
+    }
   })
   window.addEventListener("gamepaddisconnected", (e) => {
     const i = e.gamepad?.index
@@ -268,7 +285,10 @@ function resolvePadIndex(playerNum, gamepads) {
   // Exclude EVERY other player's bound pad (was just the single "other" player — that
   // only worked for 2 players; the FFA POC needs up to 4 pads bound to distinct slots).
   const taken = new Set()
-  for (const pn of [1, 2, 3, 4]) if (pn !== playerNum && padAssignments[pn] != null) taken.add(padAssignments[pn])
+  // Only a slot that is CURRENTLY a controller reserves its pad. If a slot reverts to keyboard
+  // (e.g. PvP restores P1=keyboard after a boot-time auto-activate), its stale binding must NOT
+  // keep blocking the real controller player from claiming that pad.
+  for (const pn of [1, 2, 3, 4]) if (pn !== playerNum && padAssignments[pn] != null && inputSettings[PLAYER_TYPES[pn]] === "controller") taken.add(padAssignments[pn])
   if (padAssignments[playerNum] != null && connectedPads.includes(padAssignments[playerNum])) {
     return padAssignments[playerNum]
   }
@@ -287,6 +307,9 @@ function resolvePadIndex(playerNum, gamepads) {
 // Exported so game.js's edge detector (updateGamepadEdges) binds pads the SAME way pollGamepad
 // does, instead of the old gamepads[0]/[1] array-position guess that only ever worked for P1/P2.
 export function getPlayerGamepad(playerNum) {
+  // A player reads a pad ONLY while its device type is "controller" — a keyboard slot must never
+  // claim or hold a pad (so pad↔player binding stays confined to the actual controller slots).
+  if (inputSettings[PLAYER_TYPES[playerNum]] !== "controller") return null
   const gamepads = (typeof navigator !== "undefined" && navigator.getGamepads) ? navigator.getGamepads() : []
   const assignedIdx = resolvePadIndex(playerNum, gamepads)
   if (assignedIdx == null) return null

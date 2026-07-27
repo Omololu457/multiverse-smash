@@ -128,11 +128,17 @@ export const physics = {
         fighter.vx = (fighter.facing || 1) * dashSpeed
         fighter.vy = 0
       } else if (!fighter.airDashing) {
+        // FLASH TIME (Flash's ultimate): he moves too fast to stop on a dime. While active he ZIPS at a
+        // raised top speed (past the normal clamp) and, on release, KEEPS his momentum and skids to a stop
+        // over many frames (a much gentler ground friction) — the "overshoot / momentum imprecision on stop"
+        // the design calls for. Gated on _flashTimeActive → zero effect on every other fighter / normal play.
+        const flashTime = !!fighter._flashTimeActive
+        const FT_ZIP = 14, FT_SKID_FRIC = 0.90
         if (L && !R) {
-          fighter.vx = -speed
+          fighter.vx = flashTime ? -FT_ZIP : -speed
           fighter.facing = -1
         } else if (R && !L) {
-          fighter.vx = speed
+          fighter.vx = flashTime ? FT_ZIP : speed
           fighter.facing = 1
         } else {
           // Combo momentum preservation (combo-flow Stage 4): while ATTACKING AND MOVING FORWARD (velocity
@@ -143,10 +149,10 @@ export const physics = {
           // its own range. A STANDING attack has vx≈0 → unchanged. Idle (not attacking) keeps the 0.72 brake.
           const steppingIn = fighter.attacking && (fighter.vx * (fighter.facing || 1)) > 0
           const fric = fighter.onGround
-            ? (steppingIn ? this.attackMomentumFriction : this.friction)
+            ? (flashTime ? FT_SKID_FRIC : (steppingIn ? this.attackMomentumFriction : this.friction))
             : this.airFriction
           fighter.vx *= fric
-          if (Math.abs(fighter.vx) < 0.08) fighter.vx = 0
+          if (Math.abs(fighter.vx) < (flashTime ? 0.25 : 0.08)) fighter.vx = 0
         }
       }
 

@@ -100,18 +100,41 @@ function _ensureUnlocks(acct) {
   return acct.unlocks
 }
 
-// ── BETA-ACCESS CODE "GojoV1" (Task 1, REDEFINED) ────────────────────────────
-// A SECOND code for beta testers. It now grants the SAME full unlock as DEV_CODE
+// ── BETA-ACCESS CODE "BETA" / "GojoV1" (Task 1, REDEFINED) ───────────────────
+// A SECOND code for beta testers. It grants the SAME full unlock as DEV_CODE
 // (all skins, level-gated features, Online, every mode) AND, on top of that, filters
 // the selectable roster to ONLY characters that actually have sprite art. That
 // sprite filter is derived LIVE from characters.js `hasSprites` (see game.js
-// spriteRosterKeys/hasSpritesKey) so it self-updates as more characters get sprites —
-// nothing here hardcodes a roster. DEV_CODE is unchanged (everything unlocked, NO
-// character filter). Matching is case-insensitive; the canonical string is "GojoV1".
-// The two flags are independent — entering one never affects the other.
-export const BETA_CODE = "GojoV1"
+// betaSelectableKey) so it self-updates as more characters get sprites — nothing here
+// hardcodes a roster. DEV_CODE is unchanged (everything unlocked, NO character filter).
+// Matching is case-insensitive; the canonical string is "BETA" ("GojoV1" is kept as a
+// legacy alias so older docs/muscle-memory still work). The two flags are independent —
+// entering one never affects the other.
+//
+// TOGGLE: entering a beta code again turns beta back OFF (easily reversible); clearBetaUnlock()
+// is the explicit "clear action" for the same effect. Nothing here mutates sprite/skin/stat DATA —
+// beta is purely a display/selection filter (roster filter) + an unlock predicate (skins/features).
+export const BETA_CODE = "BETA"
+export const BETA_CODES = ["BETA", "GojoV1"]   // all accepted beta trigger strings (case-insensitive)
+function _isBetaCode(c) { return BETA_CODES.some(bc => c === bc.toLowerCase()) }
 let _betaUnlock = false
 export function isBetaUnlocked() { return _betaUnlock }
+// Restore the in-memory unlock flags from a persisted snapshot (session.js guest persistence, or
+// any non-account source). OR-in semantics: only turns flags ON — never forces a flag OFF, so it
+// composes safely with account-hydration (which may already have enabled one). Does NOT re-persist
+// (the caller's snapshot is already the source of truth). No-op for absent/false values.
+export function restoreUnlockFlags({ dev, beta } = {}) {
+  if (dev)  _devUnlock  = true
+  if (beta) _betaUnlock = true
+}
+
+// Explicit clear action (separate from re-entering the code). Turns beta OFF + persists.
+export function clearBetaUnlock() {
+  _betaUnlock = false
+  const acct = getCurrentAccount()
+  if (acct) { _ensureUnlocks(acct).betaUnlock = false; persistence.save(acct) }
+  return _betaUnlock
+}
 
 // The "unlock everything" predicate shared by dev AND beta. Use this for skin/feature/
 // Online/mode gates (the scope both codes grant). Character-select filtering is the ONLY
@@ -135,11 +158,11 @@ export function applyUnlockCode(code) {
     if (acct) { _ensureUnlocks(acct).devUnlock = true; persistence.save(acct) }
     return "dev"
   }
-  if (c === BETA_CODE.toLowerCase()) {
-    _betaUnlock = true
+  if (_isBetaCode(c)) {
+    _betaUnlock = !_betaUnlock   // TOGGLE — re-entering a beta code turns it back off (reversible)
     const acct = getCurrentAccount()
-    if (acct) { _ensureUnlocks(acct).betaUnlock = true; persistence.save(acct) }   // TODO(backend)
-    return "beta"
+    if (acct) { _ensureUnlocks(acct).betaUnlock = _betaUnlock; persistence.save(acct) }   // TODO(backend)
+    return "beta"   // caller reads isBetaUnlocked() for the resulting on/off state
   }
   return null
 }

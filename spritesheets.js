@@ -114,6 +114,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./itachi_melle_idle_uniform.png" }
   },
 
+  // Tobirama (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
+  // Tobirama from box to sprite. Per-action rendering reads characters.js → tobirama.animationData
+  // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
+  tobirama: {
+    actions: { idle: "./tobirama_idle_uniform.png" }
+  },
+
   // Netero (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle strip →
   // flips Netero from box to sprite. Per-action rendering reads characters.js → netero.animationData
   // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
@@ -133,6 +140,20 @@ export const SPRITE_MANIFEST = {
   // killua.animationData (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
   killua: {
     actions: { idle: "./killua_idle_uniform.png" }
+  },
+
+  // Gon Freecss (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle strip →
+  // flips Gon from procedural box to sprite. Per-action rendering reads characters.js → gon.animationData
+  // (each action carries its own .sheet). idle = the STANCE row extracted from the master sheet + resliced.
+  gon: {
+    actions: { idle: "./gon_idle_uniform.png" }
+  },
+
+  // The Flash (universe: dc) — STAGE 1. Gates spritesReady() by decoding the idle strip →
+  // flips Flash from procedural box to sprite. Per-action rendering reads characters.js →
+  // flash.animationData (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
+  flash: {
+    actions: { idle: "./flash_idle_uniform.png" }
   },
 
   // Rick Sanchez (universe: rick_and_morty). Gates spritesReady() by decoding the idle strip →

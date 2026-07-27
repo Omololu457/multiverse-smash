@@ -134,9 +134,10 @@ Mahoraga also raises maxHealth → **1600** and applies 1.5× dmg / 1.35× def (
 | darkRasengan (AOE) | 180 | 108 | 45 | 23.7% | 12/8/22 |
 | kawarimi (defensive) | 0 | 0 | 25 | 13.2% | 6/0/20 |
 | shadowCloneBlast | 80 | 48 | 25 | 13.2% | 8/6/16 |
-| **Kurama Avatar ult** (TBB, 🔓 raw, guaranteed) | **600** | **600** 🔓 | 95* | 50% | cinematic |
+| **Kurama Avatar ult** (TBB, 🔓 raw, guaranteed) | **600** | **600** 🔓 | 95* | 50% | cinematic + **2400f/40s recast** (was 4800f/80s) |
 
 \* `characters.js` declares `cost:100`, but `abilities.js:833` spends `ceil(maxEnergy×0.5) = 95`. **Discrepancy — flag.** Blocked TBB still deals `600×0.20 = 120` (`kurama.js:75`).
+\*\* **Recast retune (2026-07-24):** Naruto's ult uses a bespoke `NARUTO_KURAMA_RECAST_FRAMES` instead of the universal 1200f/20s. Cut **4800f/80s → 2400f/40s** — see §Naruto-ult-retune below.
 
 ### Sasuke (maxEnergy 190). Susanoo attacks fire on the SPECIAL button while in-form.
 | Move | RAW | EFF | Cost | Cost% | s/a/r | src |
@@ -277,7 +278,7 @@ Against the field Rick is the **simultaneous floor** on HP (1050), attack (82), 
 
 4. 🚩 **Toji pays nothing, ever.** `maxEnergy: 0` → inventorySmash (93 eff), a 158-raw rekka string, and a 1.6×/1.8× ultimate all cost **0 energy**. Every other character rations a meter; Toji's only currency is frame commitment. His DPE is literally infinite and he *also* has the best normals and top HP/speed. No resource downside anywhere in his kit.
 
-5. 🚩 **Naruto Kurama ult = 600 RAW, guaranteed, bypass-scale.** ~3× the effective damage of the next-biggest scaled hit (Sasuke's ~302 sword), unavoidable (block only chips to 120), for 95 energy (DPE 6.32, highest in roster). The single most valuable button in the game.
+5. 🚩 **Naruto Kurama ult = 600 RAW, guaranteed, bypass-scale.** ~3× the effective damage of the next-biggest scaled hit (Sasuke's ~302 sword), unavoidable (block only chips to 120), for 95 energy (DPE 6.32, highest in roster). The single most valuable button in the game — *per cast*. Its old **80s recast** (4× the universal 20s) was the counterweight, but it over-corrected: on a damage-per-cooldown basis the TBB sat BELOW Rick/Sasuke ults at 80s, so it *felt* nerfed despite the huge payload. **Retuned to 40s** (§Naruto-ult-retune) — the per-cast value stays flagged-high, but the availability is now in line with the pack.
 
 6. **Sasuke Susanoo economics.** One up-front cost buys ~20s of free giant attacks topping ~302 eff/sword — a sustained-form value structure that doesn't compare cleanly to the per-cast meter economy every other character uses.
 
@@ -290,4 +291,22 @@ Against the field Rick is the **simultaneous floor** on HP (1050), attack (82), 
 
 ---
 
-*End of diagnosis. No values changed. Awaiting go-ahead before any rebalancing.*
+## §Naruto-ult-retune — Kurama TBB recast cooldown 80s → 40s (2026-07-24, applied)
+
+**Reported problem:** ~80s of ultimate lockout for ~half a health bar reads as clearly overtuned vs the rest of the roster; Naruto feels "nerfed" because of this specifically.
+
+**Investigation (numbers pulled, not guessed):**
+- Naruto ult: **600 raw** (guaranteed sure-hit; block → 120), cost **95** (50% meter), recast **4800f = 80s** (`NARUTO_KURAMA_RECAST_FRAMES`, Naruto-only).
+- Every other character: universal **1200f = 20s** (`ULTIMATE_COOLDOWN_FRAMES`). Naruto was the sole outlier at **4×** the pack.
+- Damage-per-cooldown (raw/s): Naruto @80s = **7.5**, which is *below* Rick self-destruct (180/20 = 9.0) and Sasuke Susanoo (~302/20 = 15.1) — i.e. despite owning the highest *per-cast* payload in the game, its *availability-adjusted* value sat at the bottom of the ultimate pack. That is exactly the "feels nerfed" report.
+
+**Decision — cooldown REDUCTION, not damage increase.** The per-cast damage (600 raw) is already flagged as the roster's highest (§8 item 5); raising it would deepen an existing outlier. The problem is availability, so cut the cooldown. Chosen value **2400f = 40s (2× the universal 20s baseline)**:
+- 600 / 40s = **15.0 raw/s ≈ Sasuke Susanoo's 15.1** — dead in line with the pack's premium ultimate, not an outlier either direction. (30s → 20 raw/s would overshoot to the roster's highest; 20s → equal-cooldown *and* highest-damage = clear outlier.)
+- A **2× premium over baseline** is justified by it being the single hardest, unavoidable hit; but it's no longer the near-once-per-match famine 80s produced.
+- The **50% meter cost already gates recast** (~20–27s to regen 95 energy), so 40s is the effective cadence: reliably once per 90s round, occasionally twice with real meter setup.
+
+**Cross-check (no reverse outlier):** at 40s Naruto's ult-DPM and damage-per-cooldown match Sasuke's Susanoo and sit above Rick's — premium but not dominant. Damage/cost unchanged, so §5 DPE (6.32) and the §8-item-5 per-cast flag still stand; only availability moved. **Verified in-engine:** TBB connects for 600 (1180→580) and `ultimateCooldown` is set to 2400f/40s on cast (`harness` screenshot `naruto_ult_impact.png`).
+
+---
+
+*End of diagnosis. Naruto Kurama recast retuned 80s→40s (§Naruto-ult-retune); all other values unchanged.*

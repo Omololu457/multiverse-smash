@@ -96,6 +96,18 @@ const MOVE_TO_ACTION = {
   guanyinCombo: "guanyinCombo",
   guanyinBurst: "guanyinBurst",
 
+  // Omni-Man (Stage 2): "Viltrumite Beatdown" command chain + Fwd+Light push poke. Identity maps
+  // (currentMove === action key) — explicit so a recovery/cast tail can never resolve to the 128² box.
+  omCombo1: "omCombo1",
+  omCombo2: "omCombo2",
+  omComboFin: "omComboFin",
+  omPush: "omPush",
+  // Omni-Man (Stage 4) specials: Skewering Rush (flying tackle) + Meteor Drop (diving slam). Neutral
+  // "Viltrumite Smash" (omSmash) reuses the heavy haymaker pose. Identity maps → no 128² box on the tail.
+  omSkewer: "omSkewer",
+  omMeteor: "omMeteor",
+  omSmash: "heavy",
+
   // Tobirama (Stage 3): taijutsu command chain + 2 free pokes. Identity maps (currentMove === action
   // key) — explicit so a recovery/cast tail can never resolve to the 128² box.
   tobiCombo1: "tobiCombo1",
@@ -214,6 +226,12 @@ function _resolveAction(fighter, currentAction = "idle") {
   // with no variant set (every base/shared fighter) this is identical to `return "transform"`.
   if (fighter._introPlaying) return fighter._introVariant || "transform";
 
+  // OMNI-MAN FORCED DESCENT (Smart Atoms depleted mid-flight): a locked, full-body "crashed out of
+  // power" state — the tumble from the sky, then the crash-landing recovery pose. High priority (a
+  // committed, uninterruptible sequence). No-op for anyone without the flags.
+  if (fighter._forcedDescent) return "forcedDescent";
+  if ((fighter._descentLandTimer || 0) > 0) return "descentLand";
+
   // Knockdown handling
   if (fighter.knockdownState) {
     // Prefer a dedicated knockdown pose when the fighter defines one (skin anim or
@@ -296,6 +314,13 @@ function _resolveAction(fighter, currentAction = "idle") {
   // "transform". Gating here mirrors every other branch (guard/knockdown/hurt_air) that checks the strip exists.
   const activeAnim = fighter._skinAnim || fighter.animationData;
   if ((fighter.teleportFlash || 0) > 10 && activeAnim?.transform) return "transform";
+
+  // OMNI-MAN FLIGHT (Stage 3): the toggleable hover MODE — a movement state (below attack/cast/hurt so
+  // a mid-flight punch or hit still shows the right pose). flyMove = streaking with horizontal speed;
+  // fly = neutral hover. Resolved before the generic air state (he's airborne while flying).
+  if (fighter._flightActive) {
+    return (Math.abs(fighter.vx || 0) > 1 && (fighter._skinAnim?.flyMove || fighter.animationData?.flyMove)) ? "flyMove" : "fly";
+  }
 
   // Air state
   const grounded = fighter.grounded ?? fighter.onGround ?? false;

@@ -196,6 +196,15 @@ export const SPRITE_MANIFEST = {
   // reads characters.js → omega_ranger.animationData (each action carries its own .sheet).
   omega_ranger: {
     actions: { idle: "./omega_ranger_idle.png" }
+  },
+
+  // Omni-Man (universe: invincible) — STAGE 0. Gates spritesReady() by decoding the idle strip →
+  // flips Omni-Man from procedural box to sprite. Per-action rendering reads characters.js →
+  // omniMan.animationData (each action carries its own .sheet). idle = omni_man_idle.png (3 clean
+  // frames, no reslice needed). NOTE: several source sheets have colons in their filenames — keep the
+  // "./" prefix on those paths (see OMNI_MAN_ASSET_MAP.md).
+  omniman: {
+    actions: { idle: "./omni_man_idle.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

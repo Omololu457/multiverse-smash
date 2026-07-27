@@ -283,6 +283,15 @@ export const SKINS = {
   // alt skins yet. (The 5 core S.P.D. rangers + Shadow Ranger stubs never had skins/sprites.)
   omega_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omega_ranger?.portrait, spriteScale: characters.omega_ranger?.spriteScale, animationData: null }
+  ],
+
+  // Omni-Man (Invincible) — new single-form sprite char (was a procedural-box stub). Same gate:
+  // WITHOUT a default skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at
+  // native ~127px (his idle content is already large, so the fallback would OVER-size then his own
+  // <1 scale wouldn't apply). Sources his real spriteScale (0.95) from the character. No portrait yet
+  // (procedural name/universe panel on select until Stage 6). No alt skins yet.
+  omniman: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null }
   ]
 }
 

@@ -28,6 +28,9 @@ export const physics = {
   maxFallSpeed: 22,
   stageWidth: 3200,
   stageLeft: 0,
+  // Omni-Man FLIGHT (Stage 3): free 8-directional hover speed while _flightActive. A touch faster than
+  // his slow ground walk — flight is his mobility advantage (he's a below-average GROUND mover).
+  flightSpeed: 8,
 
   moveFighter(fighter, keys = {}, controls = {}, camera = null) {
     if (!fighter || fighter.hitstop > 0) return
@@ -79,6 +82,7 @@ export const physics = {
 
     const L = !!keys[controls.left]
     const R = !!keys[controls.right]
+    const D = !!keys[controls.down]   // Omni-Man flight: down = descend
     // Jump reads the dedicated jump binding first, falling back to `up` for
     // maps that share one key (the live P1/P2 maps set up===jump). This keeps
     // jumping correct even if a future config splits the two bindings.
@@ -98,13 +102,28 @@ export const physics = {
       fighter.isGrabbed ||
       fighter._rooted ||          // opt-in root (e.g. Sasuke's lightning handseals) — defaults falsy → no effect
       fighter.isCharging ||       // UNIVERSAL: holding a charge = fully committed → no walk/jump/dash (every char)
+      fighter._forcedDescent ||   // Omni-Man crashing out of the sky (Smart Atoms depleted) — no control
+      (fighter._descentLandTimer > 0) ||   // …and the crash-landing recovery window — fully vulnerable
       fighter._tauntPlaying       // committed taunt = fully locked (Rick's channel-payoff)
     )
 
     const air = !fighter.onGround
 
+    // ── OMNI-MAN FLIGHT ──────────────────────────────
+    // Toggleable movement MODE that REPLACES the jump: free 8-directional hover instead of a jump arc.
+    // Sets velocities directly (gravity is skipped for him in applyGravity); x/y integrate below/there.
+    if (fighter._flightActive && canMove) {
+      const fs = this.flightSpeed
+      if (L && !R)      { fighter.vx = -fs; fighter.facing = -1 }
+      else if (R && !L) { fighter.vx =  fs; fighter.facing =  1 }
+      else              { fighter.vx *= 0.65; if (Math.abs(fighter.vx) < 0.15) fighter.vx = 0 }   // hover-glide to a stop
+      if (U && !D)      fighter.vy = -fs
+      else if (D && !U) fighter.vy =  fs
+      else            { fighter.vy *= 0.65; if (Math.abs(fighter.vy) < 0.15) fighter.vy = 0 }
+      fighter.jumpHeld = !!U   // consume the jump key so disengaging doesn't insta-jump
+    }
     // ── MOVEMENT ─────────────────────────────────────
-    if (canMove) {
+    else if (canMove) {
       const maxAirDash = (fighter.stats?.mobility === "very_high") ? 2 : 1
 
       if (air && dash && fighter.airDashCount < maxAirDash && fighter.dashCooldown <= 0) {
@@ -241,6 +260,17 @@ export const physics = {
     if (!fighter || fighter.hitstop > 0 || fighter.dashTimer > 0) return
 
     const floor = fighter.groundY != null ? fighter.groundY : this.groundY
+
+    // OMNI-MAN FLIGHT (Stage 3): while flying, NO gravity — integrate the flight-controlled vy directly
+    // and clamp to the arena's vertical bounds (can't hover through the floor or past the ceiling). He
+    // stays airborne (onGround false) even at floor level, so toggling off drops him cleanly.
+    if (fighter._flightActive) {
+      fighter.y += fighter.vy || 0
+      if (fighter.y + fighter.h > floor) { fighter.y = floor - fighter.h; if (fighter.vy > 0) fighter.vy = 0 }
+      if (fighter.y < -360)              { fighter.y = -360;              if (fighter.vy < 0) fighter.vy = 0 }
+      fighter.onGround = false; fighter.grounded = false; fighter.isLaunched = false
+      return
+    }
 
     // Ceiling cap — raised so triple jumps + air combos have headroom.
     if (fighter.y < -360) {

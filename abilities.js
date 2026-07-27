@@ -16,6 +16,7 @@ import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from
 import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } from "./vegetaFinalFlashCinematic.js"   // Vegeta Overcharged Final Flash ultimate cinematic (no cycle)
 import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./beerusKiBallCinematic.js"   // Beerus Ki Ball ultimate cinematic (no cycle)
 import { activateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive } from "./batmanDarkKnightCinematic.js"   // Batman "The Dark Knight" batarang-barrage ultimate cinematic (no cycle)
+import { activateOmniManBodySlamCinematic, isOmniManBodySlamCinematicActive } from "./omnimanBodySlamCinematic.js"   // Omni-Man "Viltrumite Onslaught" body-slam ultimate cinematic (no cycle)
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
 import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./gonAdultFormCinematic.js"   // Gon Adult Form activation cinematic (no cycle; mirrors Godspeed)
@@ -2739,6 +2740,274 @@ export function updateOmegaRangerCommandCombat(fighter, inputState, context, get
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// OMNI-MAN — "Viltrumite Beatdown" command-normal cancel chain + a free push poke (Stage 2).
+// BEATDOWN (Fwd+Heavy → re-tap Heavy): omCombo1 (flying knee) → omCombo2 (downward hook) →
+// omComboFin (multi-hit LAUNCHER, string ends). Cancel-on-HIT (Vegeta/Omega pattern): a stage only
+// advances if the prior hit CONNECTED — a block or whiff (no _cmdHitLanded) ends the string there.
+// Each stage is a real, individually-landable attack; damage reads heavier than the roster average
+// (raw-power archetype). FREE POKE: Forward Push (Fwd+Light) — big-pushback spacing shove. Both FREE
+// (no Smart Atoms cost): the chain commits via recovery, the poke is cooldown-gated. Neutral
+// light/heavy/up/air stay on the normal path (the 5 Stage-2 normals).
+// ─────────────────────────────────────────────────────────────────────────────
+const OMNIMAN_CMD = {
+  omCombo1:   { damage: 58, startup: 6, active: 3, recovery: 11, hitstun: 15, knockbackX: 4, knockbackY: 0,   rangeX: 86, rangeY: 54, rekkaNext: "omCombo2" },
+  omCombo2:   { damage: 54, startup: 6, active: 4, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: -1,  rangeX: 88, rangeY: 52, rekkaNext: "omComboFin" },
+  omComboFin: { damage: 95, startup: 7, active: 5, recovery: 22, hitstun: 24, knockbackX: 8, knockbackY: -12, rangeX: 94, rangeY: 58, launcher: true },   // multi-hit launcher — string ends here
+}
+const OMNIMAN_POKE = {
+  omPush: { damage: 46, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 14, knockbackY: 0, rangeX: 92, rangeY: 52, cd: 26 },   // spacing shove — huge pushback
+}
+
+function fireOmniManCmd(fighter, key) {
+  const md = OMNIMAN_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"   // the beatdown advances on Heavy
+  fighter._cmdHitLanded = false     // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+function fireOmniManPoke(fighter, key) {
+  const md = OMNIMAN_POKE[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only, no spendEnergy
+  fighter._rekkaNext    = null             // the poke is not part of the beatdown chain
+  fighter._cmdHitLanded = false
+  return true
+}
+
+// Grounded command-normal driver (mirrors updateOmegaRangerCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateOmniManCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omniman" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase = getPhase?.(fighter)
+
+  // Press-EDGES (fresh tap, not a held/buffered button) — a rekka needs a clean re-tap.
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  const lightEdge = !!inputState.light && !fighter._cmdPrevLight
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  fighter._cmdPrevLight = !!inputState.light
+
+  // BEATDOWN CONTINUE — fresh Heavy during the current hit's RECOVERY, only if it CONNECTED. Shared
+  // rekkaContinue owns the connect-latch, window-close and cancel-on-whiff/block rule (see combat.js).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireOmniManCmd(fighter, next)
+
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+
+  // OPENERS from neutral (grounded). Fwd+Heavy = Beatdown; Fwd+Light = Forward Push. Neutral
+  // light/heavy/up/air stay the normal jab/haymaker/launcher/aerial on the normal path.
+  if (forward && heavyEdge) return fireOmniManCmd(fighter, "omCombo1")
+  if (forward && lightEdge) return fireOmniManPoke(fighter, "omPush")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OMNI-MAN — FLIGHT (Stage 3): a TOGGLEABLE movement MODE that REPLACES the jump. While active,
+// Smart Atoms (the shared energy pool) drains SLOWLY per-frame; specials draw from the SAME pool, so
+// casting mid-flight shortens flight time. If Smart Atoms hits 0 while airborne, a DEDICATED forced-
+// descent sequence fires: he crashes from the sky (forcedDescent sprite) and eats a landing-recovery
+// vulnerability window on impact.
+//
+// ADAPTATION NOTE (asked for in the brief): the per-frame drain PRIMITIVE — the shared
+// tickSustainedFormDrain helper — extends CLEANLY to a movement mode: it's generic over an `active`
+// predicate + a `revert` callback, decoupled from the transformation framework. Here `active` =
+// `_flightActive` and `revert` = triggerOmniManForcedDescent (NOT a form-swap). The transformation
+// FRAMEWORK itself (characters.js transformations / updateTransformations / form multipliers / body-
+// swap) does NOT fit and is deliberately bypassed — flight is a movement toggle, not a character form.
+// The movement itself lives in physics.moveFighter (a flight branch) + physics.applyGravity (hover =
+// no gravity); this file owns the drain, the toggle, and the forced-descent state machine.
+// ─────────────────────────────────────────────────────────────────────────────
+const OMNIMAN_FLIGHT_DRAIN      = 0.08   // Smart Atoms/frame while flying (~4.8/s → ~42s from a full 200). MUCH gentler than any ultimate-tier drain (Godspeed/Rose 0.30, SSJ Blue 0.28, SSJ 0.18): sustained everyday movement, not a ticking clock.
+const OMNIMAN_DESCENT_RECOVERY  = 42     // landing-recovery vulnerability frames after a forced crash-down — long/dramatic: fully committed, cannot act or block.
+const OMNIMAN_FLIGHT_LIFTOFF    = -6     // upward nudge when flight engages from the ground (lifts him off into the hover).
+
+export function isOmniManFlying(fighter) { return !!fighter?._flightActive }
+// TRUE during the crash tumble AND the landing-recovery window — the fully-locked "ran out of power" state.
+export function isOmniManForcedDescent(fighter) { return !!(fighter?._forcedDescent) || (fighter?._descentLandTimer || 0) > 0 }
+
+// TOGGLE (bound to the P / charge-button EDGE in game.js — Omni-Man never hold-charges). No-op while
+// crashing/recovering, in hitstun/blockstun/knockdown, or with no juice to take off.
+export function toggleOmniManFlight(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omniman") return false
+  if (isOmniManForcedDescent(fighter)) return false
+  if ((fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0 || fighter.knockdownState) return false
+  if (!fighter._flightActive && (fighter.energy || 0) <= OMNIMAN_FLIGHT_DRAIN) return false   // no Smart Atoms to lift off
+  fighter._flightActive = !fighter._flightActive
+  if (fighter._flightActive) {
+    // ENGAGE: lift off into the hover (free aerial movement REPLACES the jump arc from here).
+    fighter.onGround = false; fighter.grounded = false
+    fighter.isLaunched = false; fighter.jumpCount = 0
+    if ((fighter.vy || 0) >= 0) fighter.vy = OMNIMAN_FLIGHT_LIFTOFF
+  }
+  // DISENGAGE: nothing punitive — gravity resumes next frame and he falls/lands normally (no penalty).
+  return true
+}
+
+// Hard reset of ALL flight state (round start / match reset / cleanup) — clears the hover, the crash,
+// and the landing-recovery timer so nothing leaks across rounds.
+export function forceRevertOmniManFlight(fighter) {
+  if (!fighter) return
+  fighter._flightActive = false
+  fighter._forcedDescent = false
+  fighter._descentLandTimer = 0
+  fighter._flightTogglePrev = false
+}
+
+// Forced descent — the "ran out of Smart Atoms" crash. Used as the drain `revert` at 0 energy.
+export function triggerOmniManForcedDescent(fighter) {
+  if (!fighter) return
+  fighter._flightActive = false
+  // Only a real crash if genuinely airborne; at ground level just drop the flight flag cleanly.
+  if (fighter.onGround || fighter.grounded) { fighter._forcedDescent = false; return }
+  fighter._forcedDescent = true
+  fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  fighter.vy = Math.max(fighter.vy || 0, 2)   // begin the tumble downward
+}
+
+// Per-frame flight system (called from updateFighterState BEFORE applyGravity). Drain → forced
+// descent → landing recovery. Regen is suppressed while flying (game.js) so the pool truly depletes.
+export function applyOmniManFlightSystem(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omniman") return
+  // KNOCKED OUT OF THE SKY: a hard knockdown ends flight cleanly (he drops and falls normally). A plain
+  // hit does NOT (he's a durable powerhouse) — only a true knockdown breaks the hover.
+  if (fighter._flightActive && fighter.knockdownState) fighter._flightActive = false
+  // DRAIN while flying (shared pool). Auto-fires the forced descent the frame Smart Atoms runs dry.
+  tickSustainedFormDrain(fighter, { active: isOmniManFlying, drainPerFrame: OMNIMAN_FLIGHT_DRAIN, revert: triggerOmniManForcedDescent })
+  // CRASH → LANDING: once the tumble reaches the floor, open the landing-recovery vulnerability window.
+  if (fighter._forcedDescent && (fighter.onGround || fighter.grounded)) {
+    fighter._forcedDescent = false
+    fighter._descentLandTimer = OMNIMAN_DESCENT_RECOVERY
+    fighter.vx = 0
+  }
+  // LANDING RECOVERY — fully committed/vulnerable; tick down, then release control.
+  if ((fighter._descentLandTimer || 0) > 0) fighter._descentLandTimer--
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OMNI-MAN SPECIALS (Stage 4) — SPECIAL button, direction-branched via _specialHeldDir (Killua/Batman
+// architecture). ALL spend from the SHARED Smart Atoms pool (so casting competes with flight time —
+// heavy special usage shortens how long he can stay airborne):
+//   Neutral = VILTRUMITE SMASH — a committed super-armored power punch (reuses the heavy pose). 35.
+//   Forward = SKEWERING RUSH  — a flying tackle that carries him across the screen (mobility lunge,
+//             Batman cape-dash pattern). Usable on the GROUND or mid-FLIGHT. 30.
+//   Down    = METEOR DROP     — a diving meteor slam that SPIKES the opponent down; airborne/flying it
+//             adds a hard downward dive. 40.
+// NOTE: the asset batch has no thrown-object / Heat-Vision art → no ranged special (flagged in the map).
+// ─────────────────────────────────────────────────────────────────────────────
+const OMNIMAN_SMASH_MD  = { damage: 130, startup: 8, active: 5, recovery: 22, hitstun: 26, knockbackX: 12, knockbackY: -3, rangeX: 96,  rangeY: 58, superArmor: true, isSpecial: true }
+const OMNIMAN_SKEWER_MD = { damage: 120, startup: 7, active: 6, recovery: 20, hitstun: 24, knockbackX: 14, knockbackY: -4, rangeX: 104, rangeY: 62, isSpecial: true }
+const OMNIMAN_METEOR_MD = { damage: 140, startup: 9, active: 5, recovery: 24, hitstun: 26, knockbackX: 8,  knockbackY: 12, rangeX: 92,  rangeY: 66, isSpecial: true, spike: true }
+
+export function executeOmniManSpecial(fighter, context) {
+  if (!fighter || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireOmniManSkewer(fighter, context)
+  if (dir === "D") return fireOmniManMeteor(fighter, context)
+  return fireOmniManSmash(fighter, context)
+}
+
+// NEUTRAL — Viltrumite Smash: a committed super-armored power punch (reuses the heavy haymaker pose via
+// the omSmash→heavy map). Highest single-blow damage; slow + very punishable on whiff (long recovery).
+function fireOmniManSmash(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.viltrumiteSmash?.cost ?? 35)) return false
+  const md = OMNIMAN_SMASH_MD
+  const attack = createAttackFromMove(fighter, "omSmash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove "omSmash" → heavy pose
+  shakeCamera(context, 4, 6)
+  return true
+}
+
+// FORWARD — Skewering Rush: a flying tackle. A committed forward LUNGE (Batman cape-dash pattern) that
+// carries him across the screen into a dive-punch. Works on the ground (launches into the tackle) or
+// mid-flight. The horizontal velocity burst is what makes it a gap-closer / flight-charge.
+function fireOmniManSkewer(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.skeweringRush?.cost ?? 30)) return false
+  const md = OMNIMAN_SKEWER_MD
+  const attack = createAttackFromMove(fighter, "omSkewer", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove "omSkewer" → the flying-tackle streak pose
+  fighter.vx = (fighter.facing || 1) * 20   // launch forward across the screen
+  if (fighter._flightActive) fighter.vy = 0   // mid-flight: level out into a horizontal skewer
+  shakeCamera(context, 4, 7)
+  return true
+}
+
+// DOWN — Meteor Drop: a diving meteor slam that SPIKES the opponent down (knockbackY +). Airborne or
+// flying, it adds a hard downward dive so it crashes down onto grounded foes.
+function fireOmniManMeteor(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.meteorDrop?.cost ?? 40)) return false
+  const md = OMNIMAN_METEOR_MD
+  const attack = createAttackFromMove(fighter, "omMeteor", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  attack.spike = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove "omMeteor" → the diving-slam pose
+  const airborne = !(fighter.onGround ?? fighter.grounded ?? false)
+  if (airborne || fighter._flightActive) { fighter.vy = 10; fighter.vx = (fighter.facing || 1) * 4 }   // dive down-forward
+  shakeCamera(context, 5, 8)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// OMNI-MAN — "Viltrumite Onslaught" ULTIMATE (Stage 5). A frozen cinematic BODY-SLAM built on the SAME
+// shared freeze architecture as Beerus/Batman (omnimanBodySlamCinematic.js). Chosen as the LARGEST /
+// most elaborate sequence in the batch (combo_where_he_lands_on_his_oppenets, 15f — the widest sheet)
+// per the asset-map Step-3 finding: he rockets up and crashes DOWN onto the opponent. Costs half the
+// Smart Atoms bar; the guaranteed damage lands at the SLAM connect beat via onImpact. A held block
+// chips it (Beerus/Kurama sure-hit shape). Shared pool: the 100 cost competes with flight + specials.
+// ─────────────────────────────────────────────────────────────────────────
+const OMNIMAN_ULT = { cost: 100, dmg: 340, blockRatio: 0.25 }
+function executeOmniManUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "omniman") return false
+  if (isOmniManBodySlamCinematicActive()) return false            // already mid-cinematic
+  if (!spendEnergy(fighter, OMNIMAN_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  fighter.vx = 0
+  fighter._flightActive = false; fighter._forcedDescent = false; fighter._descentLandTimer = 0   // ult overrides any flight state
+  activateOmniManBodySlamCinematic(fighter, opp, (cineCtx) => applyOmniManSlamDamage(fighter, opp, cineCtx))
+  return true
+}
+
+// PAYOFF: a GUARANTEED, range-independent body slam. A held block (frozen at its pre-cinematic value)
+// CHIPS it to 25%; a clean hit deals the full ~340 and SLAMS the opponent to the ground (knockdown).
+// Applied once at the SLAM connect beat by the cinematic.
+function applyOmniManSlamDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = OMNIMAN_ULT.dmg
+  if (blocked) {
+    dmg = Math.round(dmg * OMNIMAN_ULT.blockRatio)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 34)
+    opp.vx = (fighter.facing || 1) * 9; opp.vy = 8            // driven down & away by the slam
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 42)   // slammed to the ground
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 20, maxTimer: 20,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#ff6a4a",
+      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
+      ...(blocked ? { isBlocking: true } : {})
+    })
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // OMEGA RANGER SPECIALS (Stage 5) — routed off the Special button by held direction:
 //   neutral      = Delta Enforcer GUN (ranged energy bolt + cast pose)
 //   Forward+Spec = SUPER UPPER ATTACK (energized rising uppercut — its OWN move, NOT a
@@ -5296,6 +5565,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "batman":  return executeBatmanSpecial(fighter, context)   // Batarang (neutral projectile) / Cape Dash (fwd mobility lunge) / Smoke Pellet (down teleport-behind)
     case "gon":     return executeGonSpecial(fighter, context)   // Jajanken: Rock (neutral, charged) / Scissors (fwd, multi-hit) / Paper (down, push)
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
+    case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -5338,6 +5608,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "gon":     cast = executeGonUltimate(fighter, context);     break   // Adult Form: buff + movement-lockout + close-range SUDDEN-DEATH (hit=instant win / miss=instant loss)
       case "flash":   cast = executeFlashUltimate(fighter, context);   if (cast) maybeFireFlashSkinCastVoice(fighter);   break   // Flash Time (buff-mode) + Reverse-skin cast bark
       case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window
+      case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }

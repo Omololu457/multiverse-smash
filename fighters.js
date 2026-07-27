@@ -836,49 +836,7 @@ function drawOmniMan(ctx, x, y, w, h, fighter) {
   drawShadow(ctx, x, y, w, h)
 }
 
-// ─────────────────────────────────────────────────────────────────
-// ── THRAGG (Viltrumite warlord) ───────────────────────────────────
-// Hulking dark-red armor, horned helm, glowing eyes — bigger silhouette.
-// ─────────────────────────────────────────────────────────────────
-function drawThragg(ctx, x, y, w, h, fighter) {
-  const facing = fighter.facing ?? 1
-  const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
-  bodyGrad.addColorStop(0, "#7f1d1d"); bodyGrad.addColorStop(1, "#3b0a0a")
-  ctx.fillStyle = bodyGrad
-  roundRect(ctx, x - 4, y + h * 0.16, w + 8, h * 0.84, 12); ctx.fill()
-
-  // Armor plates
-  ctx.fillStyle = "#facc15"
-  ctx.fillRect(x + 2, y + h * 0.46, w - 4, h * 0.06)
-  ctx.fillStyle = "#1c1917"
-  ctx.fillRect(x + w * 0.5 - 4, y + h * 0.2, 8, h * 0.6)   // central armor ridge
-
-  // Shoulder spikes
-  ctx.fillStyle = "#a16207"
-  ctx.beginPath(); ctx.moveTo(x - 4, y + h * 0.22); ctx.lineTo(x - 16, y + h * 0.05); ctx.lineTo(x + w * 0.12, y + h * 0.24); ctx.closePath(); ctx.fill()
-  ctx.beginPath(); ctx.moveTo(x + w + 4, y + h * 0.22); ctx.lineTo(x + w + 16, y + h * 0.05); ctx.lineTo(x + w * 0.88, y + h * 0.24); ctx.closePath(); ctx.fill()
-
-  // Boots
-  ctx.fillStyle = "#1c1917"
-  ctx.fillRect(x, y + h * 0.86, w * 0.4, h * 0.14)
-  ctx.fillRect(x + w - w * 0.4, y + h * 0.86, w * 0.4, h * 0.14)
-
-  // Horned helm + glowing eyes
-  const hx = x + w / 2, hy = y + h * 0.11
-  ctx.fillStyle = "#450a0a"; ctx.beginPath(); ctx.arc(hx, hy, h * 0.12, 0, Math.PI * 2); ctx.fill()
-  ctx.fillStyle = "#a16207"
-  ctx.beginPath(); ctx.moveTo(hx - h * 0.1, hy - h * 0.02); ctx.lineTo(hx - h * 0.18, hy - h * 0.16); ctx.lineTo(hx - h * 0.05, hy - h * 0.06); ctx.closePath(); ctx.fill()
-  ctx.beginPath(); ctx.moveTo(hx + h * 0.1, hy - h * 0.02); ctx.lineTo(hx + h * 0.18, hy - h * 0.16); ctx.lineTo(hx + h * 0.05, hy - h * 0.06); ctx.closePath(); ctx.fill()
-  ctx.fillStyle = "#fde047"; ctx.shadowBlur = 8; ctx.shadowColor = "#fde047"
-  const eo = facing >= 0 ? 4 : -4
-  ctx.beginPath(); ctx.arc(hx + eo - 3, hy, 2.4, 0, Math.PI * 2); ctx.arc(hx + eo + 3, hy, 2.4, 0, Math.PI * 2); ctx.fill()
-  ctx.shadowBlur = 0
-
-  drawHitFlash(ctx, x, y, w, h, fighter.colorFlash)
-  drawNameTag(ctx, "Thragg", hx, y, "#facc15")
-  drawFacingDot(ctx, x, y, w, facing, "#fde047")
-  drawShadow(ctx, x, y, w, h)
-}
+// (drawThragg removed 2026-07-27 — Thragg was pruned as a data-only stub; see characters.js.)
 
 export function drawCharacter(ctx, fighter) {
   if (!fighter || !ctx) return
@@ -903,8 +861,7 @@ export function drawCharacter(ctx, fighter) {
     case "toji":    drawToji(ctx, x, y, w, h, fighter);    break
     case "ben10":   drawBen10(ctx, fighter);               break   // ★ Ben 10
     case "albedo":  drawBen10(ctx, fighter);               break   // ★ Albedo (Ben's clone, red tint)
-    case "omniman": drawOmniMan(ctx, x, y, w, h, fighter); break   // ★ Invincible
-    case "thragg":  drawThragg(ctx, x, y, w, h, fighter);  break   // ★ Invincible
+    case "omniman": drawOmniMan(ctx, x, y, w, h, fighter); break   // ★ Invincible (procedural fallback; real render is sprite-based)
     default:        drawFallback(ctx, x, y, w, h, fighter); break
   }
 

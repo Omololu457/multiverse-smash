@@ -159,6 +159,7 @@ import {
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
+import { pickGonVoice, GON_VOICE } from "./gonVoice.js"
 import { pickTobiramaVoice, TOBIRAMA_VOICE } from "./tobiramaVoice.js"
 import { pickFlashVoice, FLASH_VOICE } from "./flashVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
@@ -1572,6 +1573,9 @@ const INTRO_VOICE = {
   tobirama: { pool: TOBIRAMA_VOICE.intro, gateReveal: false },
   // Flash picks ONE of his intro boasts ("only one fastest man alive" / "only seems fair to warn you").
   flash: { pool: FLASH_VOICE.intro, gateReveal: false },
+  // Gon picks ONE of his eager pre-fight lines ("Alright, come on!" / "Anytime is fine" / "Let's hurry").
+  // No taunt action exists for Gon → the intro/taunt pool fires on the intro beat only (see gonVoice.js NOTE).
+  gon: { pool: GON_VOICE.intro, gateReveal: false },
   // Netero intro voice removed (audio files deleted); with no entry here he skips the intro-voice
   // beat cleanly (maybeFireIntroVoice no-ops for unmapped fighters). Re-add an entry to re-enable.
 }
@@ -2284,6 +2288,11 @@ function _checkMatchOver() {
       // Fires only when the WINNER is Killua.
       if (winFighter?.rosterKey === "killua") {
         sound.playSfxFile?.(pickKilluaVoice("win"), null)
+      }
+      // GON win voice — random pick from his victory pool ("Big victory!" / "Let's do it again" /
+      // "Managed to win" / "That was tough, you got stronger"). Fires only when the WINNER is Gon.
+      if (winFighter?.rosterKey === "gon") {
+        sound.playSfxFile?.(pickGonVoice("win"), null)
       }
       // TOBIRAMA win voice — random pick from his finisher/victory declarations ("For the future, forward"
       // / "No longer needed" / "Stay asleep"). Fires only when the WINNER is Tobirama.
@@ -6223,6 +6232,8 @@ gameLoop()
     // Flash's 3 wired pools (intro/taunt/hitReact) — proves random selection within each.
     flashVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickFlashVoice(pool)),
     flashVoicePool: pool => FLASH_VOICE[pool] || null,
+    gonVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickGonVoice(pool)),
+    gonVoicePool: pool => GON_VOICE[pool] || null,
     // Same idea for Sukuna's 4 pools (taunt/hitConnect/finisher/misc) — proves genuine
     // random selection across the largest generic-bark pool wired (21-entry taunt).
     sukunaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSukunaVoice(pool)),
@@ -6245,7 +6256,7 @@ gameLoop()
     giveP1TestTaunt: (frames = 4) => { if (p1) { p1.animationData = p1.animationData || {}; p1.animationData.taunt = { frames, width: 32, height: 48, speed: 4, loop: false, lockLastFrame: true, sheet: "./saiki_idle_u.png" } } },
     // Zero the LIVE fighter's offense-voice state (cooldown + combo) so a test can force a
     // CLEAN single-hit connect — p1()/p2() return snapshots, so mutating those can't reset it.
-    resetOffenseVoice: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f._atkVoiceCd = 0; f.comboCounter = 0; f.comboTimer = 0; f._gruntVoiceCd = 0; f._prevAttacking = false; } },
+    resetOffenseVoice: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f._atkVoiceCd = 0; f._hitVoiceCd = 0; f.comboCounter = 0; f.comboTimer = 0; f._gruntVoiceCd = 0; f._prevAttacking = false; } },
     damageP1: (v = 100) => { if (p1) p1.health = Math.max(1, (p1.health || 0) - v) },   // chip P1 so a round isn't perfect
     victoryInfo: () => ({ flawless: !!victoryState.flawless, subtitle: victoryState.subtitle || "", primaryLabel: victoryState.primaryLabel || "", winner: victoryState.winnerSide, perfectP1: matchStats?.p1?.perfectRounds, roundsWonP1: matchStats?.p1?.roundsWon }),
     // ── FREE-FOR-ALL diagnostics/drivers ──────────────────────────────────────

@@ -141,7 +141,7 @@ named variants — confirmed reads correctly (screenshots). Collision audit: no 
 (old, muscular) and Killua (kid) are unmistakable; a brown/black-haired Killua keeps his distinct
 shirt/shorts/shoes so he doesn't read as any other roster character.
 
-### Batch 5 · POWER RANGERS / RICK & MORTY / SAIKI K / DC ✅  (18 variants incl. named Reverse Flash)
+### Batch 5 · POWER RANGERS / RICK & MORTY / SAIKI K / DC ✅  (19 variants incl. named Reverse Flash + Godspeed)
 Each char is the sole member of its universe → no same-universe collisions possible.
 | Character | Variant | source → target | mode | origin |
 |---|---|---|---|---|
@@ -151,6 +151,7 @@ Each char is the sole member of its universe → no same-universe collisions pos
 | | ~~Pink~~ | SKIPPED — Saiki's hair/limiters ARE pink | — | standard |
 | **flash** | Black/Pink/Gold | red suit (hue 345-15) → color; yellow boots kept | region | standard |
 | | **Reverse Flash** | **NAMED**: red↔yellow swap (3-pass via temp hue) → yellow suit + red boots/bolt | region | **NAMED** |
+| | **Godspeed** | **NAMED** (added 2026-07-27): 2-pass whiteout — red suit(345-15,sat.42)→to-hue205 sat.16 vg1.35 vl.05 (near-white pale blue) + yellow(40-66,sat.42)→to-hue200 sat.48 vg1.12 (electric-blue bolts/boots). "God Speed Force" aesthetic; distinct from base(red), flashBlue(sat. blue), reverse(yellow) | region | **NAMED** |
 | | ~~Red~~ | SKIPPED — Flash IS red | — | standard |
 | | ~~Blue~~ | SKIPPED — bespoke `flashBlue` already covers blue (kept) | — | standard |
 
@@ -166,8 +167,8 @@ his iconic blue hair, so PANTS is the only robust (pose-independent) target. Fla
 | 2 | Naruto | 16 |
 | 3 | Jujutsu Kaisen | 19 (incl. 3 named Gojo) |
 | 4 | Hunter x Hunter | 12 (incl. 3 named Killua hair) |
-| 5 | PR / R&M / Saiki / DC | 18 (incl. named Reverse Flash) |
-| **Total** | **18 characters** | **81 selectable recolor variants** |
+| 5 | PR / R&M / Saiki / DC | 19 (incl. named Reverse Flash + Godspeed) |
+| **Total** | **18 characters** | **82 selectable recolor variants** |
 
 Plus kept: Flash `flashBlue`; bespoke costumes gojo2/sukuna3/pinkFit/megumi2; Edo-Tensei `reanim`.
 All targeted (tools/recolor_palette.py) — costume-only, skin/hair/outlines/identity-colors preserved.

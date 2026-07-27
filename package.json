@@ -87,6 +87,8 @@
     "test:killua": "node harness/killua.test.mjs",
     "test:flash": "node harness/flash.test.mjs",
     "test:gon": "node harness/gon.test.mjs",
+    "test:gon-voice": "node harness/gon_voice.test.mjs",
+    "test:flash-godspeed": "node harness/flash_godspeed_shot.mjs",
     "test:gon-stage4": "node harness/gon_stage4.test.mjs",
     "test:tobirama": "node harness/tobirama.test.mjs",
     "test:tobirama-s1": "node harness/tobirama_stage1_shots.mjs",

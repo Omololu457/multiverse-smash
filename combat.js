@@ -16,6 +16,7 @@ import { physics } from "./physics.js"
 import { sound, SFX } from "./sound.js"
 import { pickRickVoice } from "./rickVoice.js"
 import { pickKilluaVoice } from "./killuaVoice.js"
+import { pickGonVoice } from "./gonVoice.js"
 import { pickTobiramaVoice } from "./tobiramaVoice.js"
 import { pickFlashVoice } from "./flashVoice.js"
 import { pickItachiVoice } from "./itachiVoice.js"
@@ -661,6 +662,41 @@ function applyKilluaOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickKilluaVoice(Math.random() < 0.30 ? "taunt" : "combatBark"), null) } catch (_) {}
 }
 
+// ── GON FREECSS VOICE LINES (audio-only; Japanese "Nen Impact" pack) ──
+// DEFENDER reaction — dismissive/pained pool ("No way", "This is bad", "Damn it"…). One line per
+// _hitVoiceCd window; unblocked hits only. Gon has a SEPARATE low-health pool (below).
+function applyGonHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "gon" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickGonVoice("hitReact"), null) } catch (_) {}
+}
+
+// ATTACKER connect — combat barks ("Got you!", "My turn", "More!"…) on a HEAVY connect OR a long BASIC
+// light string. Gon's SPECIALS (Jajanken Rock/Scissors/Paper, Rush rekka, Final Blow) fire their OWN
+// dedicated cast lines and set _atkVoiceCd on cast, so they're excluded here (no cast+connect double).
+// Shared _atkVoiceCd → one line per window; blocked suppresses it.
+function applyGonOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "gon" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickGonVoice("combatBark"), null) } catch (_) {}
+}
+
+// LOW-HEALTH bark — "Not yet, I can still fight" / "I'm going to die" — fires ONCE the first time Gon
+// drops to/below the threshold (same pattern as Naruto/Itachi/Omega). Random pick from the comeback pool.
+const GON_LOW_HEALTH_RATIO = 0.25
+function applyGonLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "gon" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * GON_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickGonVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
 // ── TOBIRAMA SENJU VOICE LINES (audio-only; Japanese pack) ──
 // ATTACKER connect — his overconfident taunt one-liners ("No resistance", "A shinobi of your caliber
 // has fallen"…) on a STRONG connect (heavy/special/ultimate) OR a long BASIC light string. Tobirama has
@@ -855,6 +891,8 @@ export function checkParry(defender, attacker, hitSparks) {
   try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
   // SASUKE parry voice — "Not an attack I can't see through" on a successful parry read.
   if (defender.rosterKey === "sasuke") { try { sound?.playSfxFile?.("sasuke_counter_reaction.mp3", null) } catch (_) {} }
+  // GON parry voice — "I'll return it!" on a successful parry read.
+  if ((defender.rosterKey || "").toLowerCase() === "gon") { try { sound?.playSfxFile?.(pickGonVoice("parry"), null) } catch (_) {} }
   return true
 }
 
@@ -1199,6 +1237,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyRickHitVoice(defender, cat, dmg)
     // KILLUA hit-reaction voice — single dismissive pool ("Too soft" / "Annoying" / "Damn it").
     applyKilluaHitVoice(defender, cat, dmg)
+    // GON hit-reaction voice — dismissive/pained pool ("No way" / "This is bad" / "Damn it").
+    applyGonHitVoice(defender, cat, dmg)
     // FLASH hit-reaction voice — "Not again." + effort-grunt set.
     applyFlashHitVoice(defender, cat, dmg)
     // OMEGA RANGER hit-reaction voice — light stagger only ("No!"); heavy tier stays silent (no clip).
@@ -1217,6 +1257,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
+    applyGonLowHealthVoice(defender)   // "Not yet" / "I can still fight" / "I'm going to die" (once, on crossing the low-HP line)
     defender.colorFlash = cat === "ultimate" ? 12 : cat === "special" ? 9 : 6
 
     const persist =
@@ -1297,6 +1338,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyItachiOffenseVoice(attacker, cat, !defender.isBlocking)   // Itachi taunting connect pool (strong/long-string gated)
   applyRickOffenseVoice(attacker, cat, !defender.isBlocking)     // Rick generic taunt/flavor bark on a strong/long-string connect
   applyKilluaOffenseVoice(attacker, cat, !defender.isBlocking)   // Killua combat bark (+ ~30% taunt one-liner) on a strong/long-string connect
+  applyGonOffenseVoice(attacker, cat, !defender.isBlocking)      // Gon combat bark on a heavy/long-string connect (specials use their own cast lines)
   applyTobiramaOffenseVoice(attacker, cat, !defender.isBlocking) // Tobirama overconfident taunt one-liner on a strong/long-string connect
   applyFlashOffenseVoice(attacker, cat, !defender.isBlocking)    // Flash quippy speed trash-talk on a strong/long-string connect
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher

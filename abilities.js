@@ -22,6 +22,7 @@ import { resolveGrab, GLOBAL_DAMAGE_SCALE, rekkaContinue } from "./combat.js"   
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
+import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajanken/rekka/Final-Blow cast voice pools (audio-only; no cycle)
 import { pickTobiramaVoice } from "./tobiramaVoice.js"   // Tobirama cast/ultimate voice pools (audio-only; no cycle)
 import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin voice override (Gojo "Limitless" young pack)
 import {
@@ -3673,6 +3674,9 @@ function fireGonCommand(fighter, key, context) {
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the rushN sprite
   fighter._rekkaNext    = md.rekkaNext || null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  // VOICE: Rush technique callout on the OPENER only (rush1) — audio-only; _atkVoiceCd suppresses the
+  // combat-bark double-up on this chain's connects.
+  if (key === "rush1") { try { sound.playSfxFile?.(pickGonVoice("rekka"), null); fighter._atkVoiceCd = 150 } catch (_) {} }
   return true
 }
 // Grounded command-normal driver (mirrors updateFlashCommandCombat). Returns true (→ skip the
@@ -3920,6 +3924,7 @@ function fireGonRock(fighter, context) {
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "rock" → charge-windup→punch sprite (the telegraph)
   fighter.vx = (fighter.facing || 1) * 3            // small step into the punch on release
   shakeCamera(context, 6, 10)
+  try { sound.playSfxFile?.(pickGonVoice("rock"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Jajanken ROCK cast (audio-only)
   return true
 }
 
@@ -3935,6 +3940,7 @@ function fireGonScissors(fighter, context) {
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "scissors" → multi-hit jab sprite
   // 5 HITS: initial connect + 4 re-arms across the active window. Guarded so a later move isn't touched.
   for (const t of [11, 15, 19, 23]) schedulePendingSpawn(t, () => { if (fighter.currentAttack && fighter.currentAttack.name === "scissors") fighter.currentAttack.hasHit = false })
+  try { sound.playSfxFile?.(pickGonVoice("scissors"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Jajanken SCISSORS cast (audio-only)
   return true
 }
 
@@ -3948,6 +3954,7 @@ function fireGonPaper(fighter, context) {
   attack.isSpecial = true
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "paper" → palm-push sprite
   shakeCamera(context, 3, 6)
+  try { sound.playSfxFile?.(pickGonVoice("paper"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Jajanken PAPER cast (audio-only)
   return true
 }
 
@@ -4049,6 +4056,9 @@ function fireGonSuddenDeath(fighter, context) {
   fighter._suddenDeathAtk   = attack
   fighter.vx = (fighter.facing || 1) * 4                   // small commit step into the strike
   shakeCamera(context, 8, 12)
+  // VOICE: the EXCLUSIVE Final Blow line ("it's fine if this ends" / sudden-death janken). Wired here
+  // ONLY — not in any pool — so it can never leak to another Jajanken variant or the Adult Form transform.
+  try { sound.playSfxFile?.(GON_FINAL_BLOW_SFX, null); fighter._atkVoiceCd = 150 } catch (_) {}
   return true
 }
 

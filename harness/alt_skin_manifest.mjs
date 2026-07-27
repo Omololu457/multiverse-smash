@@ -196,11 +196,14 @@ export const ALT_SKINS = {
   ],
   // FLASH — red suit (hue 345-15, sat≥.50). IS red → skip RED; has bespoke flashBlue → skip BLUE.
   // Yellow boots/lightning kept for standard. NAMED "Reverse Flash" = red<->yellow swap (3-pass via a
-  // temp hue so the two swap simultaneously): suit→yellow, boots+chest-bolt→red.
+  // temp hue so the two swap simultaneously): suit→yellow, boots+chest-bolt→red. NAMED "Godspeed" =
+  // white/pale-electric-blue "God Speed Force" whiteout (2-pass): red suit→near-white pale blue, yellow
+  // bolts/boots→electric blue — distinct from base(red/yellow), flashBlue(saturated blue), reverse(yellow).
   flash: [
-    { tag: "black",   name: "Black", mode: "region", note: "red suit -> desat vg.6 (yellow boots kept)" },
-    { tag: "pink",    name: "Pink",  mode: "region", note: "-> pink h330 sat .75" },
-    { tag: "gold",    name: "Gold",  mode: "region", note: "-> gold h48 sat .92" },
-    { tag: "reverse", name: "Reverse Flash", mode: "region", note: "NAMED: red<->yellow swap (r->temp h120, yellow->red, temp->yellow); preserves sat/val" },
+    { tag: "black",    name: "Black", mode: "region", note: "red suit -> desat vg.6 (yellow boots kept)" },
+    { tag: "pink",     name: "Pink",  mode: "region", note: "-> pink h330 sat .75" },
+    { tag: "gold",     name: "Gold",  mode: "region", note: "-> gold h48 sat .92" },
+    { tag: "reverse",  name: "Reverse Flash", mode: "region", note: "NAMED: red<->yellow swap (r->temp h120, yellow->red, temp->yellow); preserves sat/val" },
+    { tag: "godspeed", name: "Godspeed", mode: "region", note: "NAMED: 2-pass whiteout — red suit(345-15,sat.42)->to-hue205 sat.16 vg1.35 vl.05 (near-white pale blue); yellow(40-66,sat.42)->to-hue200 sat.48 vg1.12 (electric-blue bolts/boots)" },
   ],
 };

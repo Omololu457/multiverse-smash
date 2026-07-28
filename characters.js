@@ -541,7 +541,7 @@ const toji = {
   // old 1.7 rendered him ~92px (undersized vs Sasuke ~105 / Sukuna ~118). ×2.3 ≈ 110px
   // on-screen = roster-normal human scale. NOTE: the old row-sheet ATTACK actions (still
   // wired below, deferred to the attack-tree pass) render oversized at 2.3 until re-sliced.
-  spriteScale: 2.3,
+  spriteScale: 2.59,   // HEIGHT-REF: canon 188cm → target ~117px (was 2.3). See HEIGHT_REFERENCE.md; anchorY below rescaled ×(2.59/2.3).
   // Two-part intro (walk-in → ready-up) plays in FIXED ORDER as ONE intro — NOT a
   // random-pick pool like Sasuke's introPool. game.js steps introSequence in order.
   introSequence: ["introWalkIn", "introReady"],
@@ -556,7 +556,7 @@ const toji = {
     // (true pitch) or the figure drifts within each cell → horizontal wobble. Verified
     // via per-cell leg-COM (idle drift 14px→<3px after fix) + boundary overlays.
     idle:     { frames: 6,  width: 34, sourceX: 9, height: 54, speed: 8, loop: true, anchorY: -2,  sheet: "./toji_stance_idle.png" },  // 6f, true pitch 34 (was 37 → wobble)
-    walk:     { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 6, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // 7f (re-verified, was mis-counted 6), pitch 34 (was 40)
+    walk:     { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 6, loop: true, anchorY: -14, sheet: "./toji_walk.png" },  // 7f (re-verified, was mis-counted 6), pitch 34 (was 40)
     light:    { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" },  // row02 punch combo
     heavy:    { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // row07 sword slash combo
     up:       { frames: 7,  width: 47, height: 74, speed: 5, sheet: "./toji_row04_sheet.png" },  // row04 kicks (launcher)
@@ -567,11 +567,11 @@ const toji = {
     down_air: { frames: 6,  width: 73, height: 60, speed: 5, actionScale: 0.82, sheet: "./toji_row07_sheet.png" },  // OLD art, scale-corrected
     // dash = the basic MOVEMENT dash (NOT the sword-dash special). Was row06 (a sword-lunge,
     // wrong content + oversized at 2.3); reuse the NEW walk sheet like `run` → correct scale + content.
-    dash:     { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 4, loop: true, anchorY: -12, sheet: "./toji_walk.png" },
+    dash:     { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 4, loop: true, anchorY: -14, sheet: "./toji_walk.png" },
     // KEY MUST BE `guard` (not `block`): sprite.js resolves blocking to animationData.guard —
     // the old `block` key never rendered (Toji showed idle while blocking). Renamed + scale-corrected.
     guard:    { frames: 9,  width: 37, height: 70, speed: 6, actionScale: 0.70, sheet: "./toji_row10_sheet.png" },  // OLD guard art (no new block sprite yet)
-    hurt:     { frames: 8,  width: 48, sourceX: 0, height: 54, speed: 5, anchorY: -7,  sheet: "./toji_hit.png" },  // 8f, content fills width (pitch 48 exact)
+    hurt:     { frames: 8,  width: 48, sourceX: 0, height: 54, speed: 5, anchorY: -8,  sheet: "./toji_hit.png" },  // 8f, content fills width (pitch 48 exact)
     hurt_air: { frames: 6,  width: 51, sourceX: 1, height: 49, speed: 5, anchorY: -2,  sheet: "./toji_air_hit.png" },  // 6f, pitch 51 (was 52); sprite.js picks this when hitstun && airborne
     // transform = the ULTIMATE-activation flash (sprite.js returns "transform" while teleportFlash>10;
     // executeToji_Ultimate sets it) — REACHABLE, not dead. OLD sword-draw art, scale-corrected.
@@ -590,14 +590,14 @@ const toji = {
     // ready-up 15×4=60t=1.00s (crisper settle) → ~2.42s total entrance. (Prev speed 2/3 = 1.32s
     // total, tuned for frame-rate-independence verification, read as a blink once the loop was
     // locked to 60Hz — this re-tunes purely for how the entrance FEELS.)
-    introWalkIn: { frames: 17, width: 30, sourceX: 3, height: 45, speed: 5, loop: false, lockLastFrame: true, anchorY: -7, sheet: "./toji_intro_first_part.png" },   // walk-in, pitch 30 + srcX 3
+    introWalkIn: { frames: 17, width: 30, sourceX: 3, height: 45, speed: 5, loop: false, lockLastFrame: true, anchorY: -8, sheet: "./toji_intro_first_part.png" },   // walk-in, pitch 30 + srcX 3
     introReady:  { frames: 15, width: 35, sourceX: 2, height: 47, speed: 4, loop: false, lockLastFrame: true, anchorY: 0,  sheet: "./toji_intro_second_part.png" },  // ready-up, pitch 35 + srcX 2
     // BLADE-STANCE normals (Phase 2). action key == the move name so sprite.js resolves it
     // directly. Sliced sourceX+true-pitch (alpha-gutter verified). Attack `speed` is auto-fit
     // to the move's duration by sprite.updateFrames, so it just needs frames/width/sourceX.
-    quickDraw:    { frames: 5, width: 44, sourceX: 3, height: 60, speed: 3, anchorY: -12, sheet: "./toji_sword_attack_1.png" },       // 5A Quick Draw (230x60)
-    forwardSlash: { frames: 5, width: 54, sourceX: 9, height: 45, speed: 3, anchorY: -9,  sheet: "./toji_foward_slash_2.png" },       // 5B Forward Slash (286x45)
-    skywardCut:   { frames: 5, width: 45, sourceX: 0, height: 55, speed: 3, anchorY: -9,  sheet: "./toji_up_attack.png" },            // 2C Skyward Cut launcher (225x55)
+    quickDraw:    { frames: 5, width: 44, sourceX: 3, height: 60, speed: 3, anchorY: -14, sheet: "./toji_sword_attack_1.png" },       // 5A Quick Draw (230x60)
+    forwardSlash: { frames: 5, width: 54, sourceX: 9, height: 45, speed: 3, anchorY: -10,  sheet: "./toji_foward_slash_2.png" },       // 5B Forward Slash (286x45)
+    skywardCut:   { frames: 5, width: 45, sourceX: 0, height: 55, speed: 3, anchorY: -10,  sheet: "./toji_up_attack.png" },            // 2C Skyward Cut launcher (225x55)
     // 5C Reaper's rekka — 3 segments sliced from the 11-frame toji_Foword_slash_attack (44px/frame).
     reaper1:      { frames: 4, width: 44, sourceX: 0,   height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 0-3
     reaper2:      { frames: 4, width: 44, sourceX: 176, height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 4-7
@@ -609,18 +609,18 @@ const toji = {
     // Rising Spiral = the aerial spinning finisher (dash_attack_4, full 9-frame arc).
     // Non-uniform _1 (narrow crouch + wide lunge) → slice ONLY the crouch here; the lunge
     // frames live in _2. Alpha-gutter verified (SLICE_* overlays).
-    dashStrike1:  { frames: 5, width: 41, sourceX: 10, height: 61, speed: 3, anchorY: -6,  sheet: "./toji_sword_Dash_attack_1.png" },  // crouch wind-up (491x61, left 5f @41)
-    dashStrike2:  { frames: 6, width: 71, sourceX: 0,  height: 55, speed: 3, anchorY: -9,  sheet: "./toji_sword_Dash_attack_2.png" },  // sprinting stab (428x55, 6f @71)
-    risingSpiral: { frames: 9, width: 46, sourceX: 0,  height: 66, speed: 3, anchorY: -10, sheet: "./toji_sword_Dash_attack_4.png" },  // aerial spin ender (418x66, 9f @46)
+    dashStrike1:  { frames: 5, width: 41, sourceX: 10, height: 61, speed: 3, anchorY: -7,  sheet: "./toji_sword_Dash_attack_1.png" },  // crouch wind-up (491x61, left 5f @41)
+    dashStrike2:  { frames: 6, width: 71, sourceX: 0,  height: 55, speed: 3, anchorY: -10,  sheet: "./toji_sword_Dash_attack_2.png" },  // sprinting stab (428x55, 6f @71)
+    risingSpiral: { frames: 9, width: 46, sourceX: 0,  height: 66, speed: 3, anchorY: -11, sheet: "./toji_sword_Dash_attack_4.png" },  // aerial spin ender (418x66, 9f @46)
     // CHAIN-STANCE normals (Phase 3). sourceX+true-pitch sliced (alpha-gutter verified).
-    shortLash:  { frames: 3, width: 60, sourceX: 0, height: 62, speed: 3, anchorY: -7, sheet: "./toji_chain_of_1000_miles_attack_2.png" },        // 5A — TRIMMED to first 3 of 5 frames (the quick lash)
-    wideArc:    { frames: 5, width: 66, sourceX: 2, height: 58, speed: 3, anchorY: -9, sheet: "./toji_chain_of_1000_miles_attack_1.png" },        // 5B (341x58, continuous arc → equal split)
+    shortLash:  { frames: 3, width: 60, sourceX: 0, height: 62, speed: 3, anchorY: -8, sheet: "./toji_chain_of_1000_miles_attack_2.png" },        // 5A — TRIMMED to first 3 of 5 frames (the quick lash)
+    wideArc:    { frames: 5, width: 66, sourceX: 2, height: 58, speed: 3, anchorY: -10, sheet: "./toji_chain_of_1000_miles_attack_1.png" },        // 5B (341x58, continuous arc → equal split)
     lowSweep:   { frames: 5, width: 81, sourceX: 8, height: 67, speed: 3, anchorY: -2, sheet: "./toji_chain_of_1000_miles_attack_3.png" },        // 6B (446x67)
-    risingCoil: { frames: 4, width: 66, sourceX: 6, height: 61, speed: 3, anchorY: -5, sheet: "./toji_chain_of_1000_miles_upper_attack_1.png" },  // 2B anti-air (274x61)
+    risingCoil: { frames: 4, width: 66, sourceX: 6, height: 61, speed: 3, anchorY: -6, sheet: "./toji_chain_of_1000_miles_upper_attack_1.png" },  // 2B anti-air (274x61)
     // GUN-STANCE firing animations (Phase 4). Ranged — the projectile carries the damage;
     // these are the fighter's shot/aim poses (played via the sprite-cast window). Sliced sourceX+pitch.
-    snapShot:   { frames: 6, width: 39, sourceX: 4, height: 58, speed: 3, anchorY: -18, sheet: "./toji_gun_attack.png" },            // 5A (242x58, muzzle-flash present)
-    aimedShot:  { frames: 7, width: 37, sourceX: 1, height: 52, speed: 3, anchorY: -7,  sheet: "./toji_idk.png" },                   // 5B feint (262x52, no muzzle flash)
+    snapShot:   { frames: 6, width: 39, sourceX: 4, height: 58, speed: 3, anchorY: -20, sheet: "./toji_gun_attack.png" },            // 5A (242x58, muzzle-flash present)
+    aimedShot:  { frames: 7, width: 37, sourceX: 1, height: 52, speed: 3, anchorY: -8,  sheet: "./toji_idk.png" },                   // 5B feint (262x52, no muzzle flash)
     tracerRound:{ frames: 5, width: 60, sourceX: 1, height: 56, speed: 4, anchorY: 0,   sheet: "./toji_sword_Dash_attack_3.png" },   // 5C tracer (300x56, reclassified gun shot)
     // run/jump/fall/grab aren't on the supplied table, but a MANIFESTED character
     // can't fall back to the procedural box per-action (unmapped → idle sheet at
@@ -635,13 +635,13 @@ const toji = {
     //    plain jump read as a sword pose. The real air attack (`air`) keeps row08's
     //    full 5-frame swing. FLAG: no true jump/fall art exists — a held stance is
     //    the least-wrong neutral option until a real jump strip is provided.
-    run:      { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 5, loop: true, anchorY: -12, sheet: "./toji_walk.png" },  // reuse walk sheet, 7f pitch 34
+    run:      { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 5, loop: true, anchorY: -14, sheet: "./toji_walk.png" },  // reuse walk sheet, 7f pitch 34
     // JUMP SIZE FIX: the jump sheet's frame 0 (takeoff crouch) and frame 6 (land crouch)
     // draw the figure ~35px tall vs ~48px airborne — switching to them read as "sprite
     // gets smaller". Slice ONLY the airborne frames 1–5 (sourceX = 6 + 1×35 = 41), all
     // ~full height, so jump/fall never flash a shrunken crouch. Pitch 35 (was 37 → wobble).
-    jump:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -32, sheet: "./toji_jump.png" },  // airborne arc only (no crouch)
-    fall:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -32, sheet: "./toji_jump.png" },  // same airborne frames
+    jump:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -36, sheet: "./toji_jump.png" },  // airborne arc only (no crouch)
+    fall:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -36, sheet: "./toji_jump.png" },  // same airborne frames
     grab:     { frames: 6,  width: 47, height: 65, speed: 4, actionScale: 0.76, sheet: "./toji_row02_sheet.png" }   // throw anim — OLD punch art, scale-corrected (no new grab sprite yet)
     // UNMAPPED — chain / Inverted Spear of Heaven throw sequence (special not yet
     // wired). Register for future chain-special work; frame counts TBD (view to
@@ -826,7 +826,7 @@ const sasuke = {
   // 2.1 lands the ~55px content at ~115px on-screen ≈ Naruto/Sukuna height. anchorY -4 = -(2px gap
   // ×~2.1) plants the feet on the floor. REQUIRES the skins.js `sasuke` entry (else applySkin()
   // pulls the spriteScale:1 fallback → native size) + the spritesheets.js SPRITE_MANIFEST idle gate.
-  spriteScale: 2.1,
+  spriteScale: 1.9,   // HEIGHT-REF: canon 168cm (teen) → target ~105px (was 2.1). See HEIGHT_REFERENCE.md; anchorY below rescaled ×(1.9/2.1).
   // ── PHASE 2 sprites. Frame counts + cell widths MEASURED via alpha-gutter detection
   // (stripWidth / frames = pitch); height = full sheet height (frames slice horizontally
   // only). anchorY = -(bottom transparent gap × spriteScale 2.1), plants feet on the floor
@@ -840,28 +840,28 @@ const sasuke = {
     // these keys sprite.js used the 128×128 _FALLBACK and sliced garbage from the idle sheet
     // ("random sprite"). speed 5 = roster walk baseline (Naruto/Gojo/Sukuna); run reuses the same
     // strip a touch faster (Naruto's move.png pattern). anchorY -10 = -(5px bottom gap × 2.1).
-    walk:     { frames: 8, width: 56, height: 53, speed: 5, anchorY: -10, sheet: "./sasuke_running.png" },
-    run:      { frames: 8, width: 56, height: 53, speed: 4, anchorY: -10, sheet: "./sasuke_running.png" },
+    walk:     { frames: 8, width: 56, height: 53, speed: 5, anchorY: -9, sheet: "./sasuke_running.png" },
+    run:      { frames: 8, width: 56, height: 53, speed: 4, anchorY: -9, sheet: "./sasuke_running.png" },
     // jump/fall — sasuke_jump.png. MEASURED 406×78 → 8 frames (transparent-gutter verified) @ 51px
     // pitch (406/8=50.8). The arc is crouch→rise→peak→descend→land, so split like Naruto's jump:
     // jump = rise half (cells 0–3, sourceX 0), fall = descend half (cells 4–7, sourceX 4×51=204).
     // Without these keys sprite.js used the 128×128 _FALLBACK and sliced garbage. speed 6 = roster
     // jump baseline (Gojo/Sukuna/Naruto). anchorY -15 = -(7px bottom gap × 2.1).
-    jump:     { frames: 4, width: 51, height: 78, speed: 6, anchorY: -15, sourceX: 0,   sheet: "./sasuke_jump.png" },
-    fall:     { frames: 4, width: 51, height: 78, speed: 6, anchorY: -15, sourceX: 204, sheet: "./sasuke_jump.png" },
-    dash:     { frames: 2, width: 66, height: 49, speed: 5, anchorY: -13, sheet: "./sasuke_dash.png" },            // 131×49 → 2×(66×49), 6px bottom gap
-    hurt:     { frames: 4, width: 53, height: 57, speed: 6, anchorY: -6,  sheet: "./sasuke_damage.png" },          // 211×57 → 4×(53×57), 3px bottom gap
-    light:    { frames: 9, width: 68, height: 71, speed: 2, anchorY: -36, sheet: "./sasuke_foward_attack.png" },   // 611×71 → 9×(68×71), 17px bottom gap (feet high in cell)
-    heavy:    { frames: 8, width: 61, height: 63, speed: 4, anchorY: -21, sheet: "./sasuke_foword_sword_attack_2.png" }, // 490×63 → 8×(61×63) clean sword-thrust combo (re-slice verified; replaced dash_attack whose thrust blade tore across cells)
-    up:       { frames: 9, width: 58, height: 60, speed: 3, anchorY: -10, sheet: "./sasuke_up_attack.png" },       // 527×60 → 9×(58×60) gap-scanned; launcher swing. anchorY -10 = -(5px botGap ×2.1)
-    down_air: { frames: 6, width: 50, height: 62, speed: 4, anchorY: -6,  sheet: "./sasuke_down_attack.png" },     // 298×62 → 6×(50×62)
-    air:      { frames: 6, width: 68, height: 83, speed: 3, anchorY: -12, sheet: "./sasuke_jump_attack.png" },     // 409×83 → 6×(68×83) aerial spin-slash (neutral J in air)
+    jump:     { frames: 4, width: 51, height: 78, speed: 6, anchorY: -14, sourceX: 0,   sheet: "./sasuke_jump.png" },
+    fall:     { frames: 4, width: 51, height: 78, speed: 6, anchorY: -14, sourceX: 204, sheet: "./sasuke_jump.png" },
+    dash:     { frames: 2, width: 66, height: 49, speed: 5, anchorY: -12, sheet: "./sasuke_dash.png" },            // 131×49 → 2×(66×49), 6px bottom gap
+    hurt:     { frames: 4, width: 53, height: 57, speed: 6, anchorY: -5,  sheet: "./sasuke_damage.png" },          // 211×57 → 4×(53×57), 3px bottom gap
+    light:    { frames: 9, width: 68, height: 71, speed: 2, anchorY: -33, sheet: "./sasuke_foward_attack.png" },   // 611×71 → 9×(68×71), 17px bottom gap (feet high in cell)
+    heavy:    { frames: 8, width: 61, height: 63, speed: 4, anchorY: -19, sheet: "./sasuke_foword_sword_attack_2.png" }, // 490×63 → 8×(61×63) clean sword-thrust combo (re-slice verified; replaced dash_attack whose thrust blade tore across cells)
+    up:       { frames: 9, width: 58, height: 60, speed: 3, anchorY: -9, sheet: "./sasuke_up_attack.png" },       // 527×60 → 9×(58×60) gap-scanned; launcher swing. anchorY -10 = -(5px botGap ×2.1)
+    down_air: { frames: 6, width: 50, height: 62, speed: 4, anchorY: -5,  sheet: "./sasuke_down_attack.png" },     // 298×62 → 6×(50×62)
+    air:      { frames: 6, width: 68, height: 83, speed: 3, anchorY: -11, sheet: "./sasuke_jump_attack.png" },     // 409×83 → 6×(68×83) aerial spin-slash (neutral J in air)
     // Shuriken THROW pose — plays via _spriteCastMove while the shuriken projectile flies (air+heavy poke).
-    shurikenThrow: { frames: 2, width: 57, height: 56, speed: 4, anchorY: -8, loop: false, lockLastFrame: true, sheet: "./sasuke_throwing_shuriken.png" }, // 114×56 → 2×(57×56)
+    shurikenThrow: { frames: 2, width: 57, height: 56, speed: 4, anchorY: -7, loop: false, lockLastFrame: true, sheet: "./sasuke_throwing_shuriken.png" }, // 114×56 → 2×(57×56)
     // Chidori Koiten windup→discharge pose (qcb+Special). REPACKED to uniform 54px cells (raw sheet
     // was non-uniformly packed + a detached "CHIDORI KOITEN" label band). speed 4 → windup frames
     // fill the 16f startup, discharge frames land on the active burst. anchorY -6 = -(3px botGap ×2.1).
-    chidoriKoiten: { frames: 7, width: 54, height: 73, speed: 4, anchorY: -6, loop: false, lockLastFrame: true, sheet: "./sasuke_CHIDORI_KOITEN_attack.png" },
+    chidoriKoiten: { frames: 7, width: 54, height: 73, speed: 4, anchorY: -5, loop: false, lockLastFrame: true, sheet: "./sasuke_CHIDORI_KOITEN_attack.png" },
     // ── PHASE 3a: pre-match INTRO POOL. game.js picks one of `introPool` at random each match
     // (see pickIntroVariant); sprite.js plays it while _introPlaying is set. loop:false +
     // lockLastFrame → each plays ONCE then holds its final pose, snapping cleanly to idle when
@@ -876,7 +876,7 @@ const sasuke = {
     // hold onto a mid-motion arm-point pose (cell 5) that doesn't read as an arrival stance. It's
     // also thematically redundant with introCloakAlt. Re-enable only if the sheet is re-sliced to
     // separate the wire, freeing the settled stance.
-    intro:         { frames: 6, width: 57, height: 63, speed: 6, anchorY: -15, loop: false, lockLastFrame: true, sheet: "./sasuke_intro.png"   },
+    intro:         { frames: 6, width: 57, height: 63, speed: 6, anchorY: -14, loop: false, lockLastFrame: true, sheet: "./sasuke_intro.png"   },
     // RE-SLICED 2026-07-17: the raw sheets are NON-UNIFORM (6 hand-drawn poses each with a WIDE
     // cloak-throw pose that a uniform slice tore straight through — verified via boundary overlays).
     // REPACKED into uniform 90px cells (each pose cropped + FEET-registered so the character stays
@@ -1111,8 +1111,8 @@ const minato = {
   // idle content ~64px × 1.7 ≈ 109px on-screen ≈ roster height (Naruto/Sasuke/Itachi ~112-115).
   // REQUIRES the skins.js `minato` entry (else applySkin() pulls the spriteScale:1 fallback →
   // native size) + the spritesheets.js SPRITE_MANIFEST idle gate. Resliced cells are bottom-aligned
-  // (feet at cell bottom, 1px pad) so a single anchorY:0 plants feet across every standing action.
-  spriteScale: 1.7,
+  // (feet at cell bottom, 1px pad) so a single anchorY: 0 plants feet across every standing action.
+  spriteScale: 1.9,   // HEIGHT-REF: canon 179cm → target ~112px (was 1.7). See HEIGHT_REFERENCE.md; all anchorY are 0 (cell-bottom feet) so unchanged.
   animationData: {
     idle: { frames: 4, width: 37, height: 64, speed: 6, anchorY: 0, sheet: "./minato_idle_uniform.png" },
     // Only one locomotion strip was uploaded (a run cycle) — both walk and run read it (he's the fast ninja).
@@ -1134,7 +1134,7 @@ const minato = {
     // intro (documented in MINATO_ASSET_MAP.md). Can be upgraded to a Flying-Raijin flash-in later.
     intro: { frames: 4, width: 37, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_idle_uniform.png" },
     // ── STAGE 2 NORMALS ── each resliced feet-aligned (tools/reslice_strip.mjs → *_uniform.png);
-    // anchorY:0 plants feet (bottom-aligned cells). loop:false + lockLastFrame holds the strike pose
+    // anchorY: 0 plants feet (bottom-aligned cells). loop:false + lockLastFrame holds the strike pose
     // through recovery. basic_attacks above carries the hit/frame data these render over. Keys are
     // light/heavy/up/air/down_air (the SPRITE keys — basic_attacks uses upAttack/downAir/airAttack for DATA).
     light:    { frames: 4,  width: 59, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_foward_kick_uniform.png" },        // quick forward kick
@@ -2050,7 +2050,7 @@ const beerus = {
   // SIZE-NORMALIZED (2026-07-24): was 1.7 (idle content ~59px × 1.7 ≈ 100px — bottom of the
   // roster, −9% vs median ≈111). Bumped to 1.85 → ≈109px, into the main band. anchorY is 0 on
   // every action → feet stay planted (plant is cell-bottom→hitbox-bottom, scale-invariant).
-  spriteScale: 1.85,
+  spriteScale: 2.12,   // HEIGHT-REF: canon ~200cm (estimate, slender) → target ~125px (was 1.85). See HEIGHT_REFERENCE.md; all anchorY are 0 so unchanged.
   animationData: {
     // ── movement / state ──────────────────────────────────────────────
     idle:   { frames: 4,  width: 31,  height: 62,  speed: 7, anchorY: 0, sheet: "./beerus_idle_u.png" },
@@ -2235,40 +2235,40 @@ const killua = {
   // SIZE-NORMALIZED (2026-07-24): was 2.1 (idle content ~48px × 2.1 ≈ 101px — bottom of the roster,
   // −9% vs median ≈111). Bumped to 2.3 → 48px × 2.3 ≈ 110px, into the main band. anchorY =
   // -(bottom transparent gap × 2.3) plants feet — every anchorY below re-scaled ×(2.3/2.1); 15 shifted.
-  spriteScale: 2.3,
+  spriteScale: 2.06,   // HEIGHT-REF: canon 158cm (age-12 kid) → target ~98px (was 2.3). See HEIGHT_REFERENCE.md; anchorY below rescaled ×(2.06/2.3).
   animationData: {
     // ── MOVEMENT / STATE (Stage 1). All re-sliced to uniform cells (reslice.mjs). ──
-    idle:  { frames: 2, width: 27, height: 53, speed: 8, anchorY: -7,  sheet: "./killua_idle_uniform.png" },   // content 48, botGap 3
+    idle:  { frames: 2, width: 27, height: 53, speed: 8, anchorY: -6,  sheet: "./killua_idle_uniform.png" },   // content 48, botGap 3
     // No dedicated walk strip — reuse the run strip a touch slower (dash reuses it faster).
     walk:  { frames: 8, width: 52, height: 48, speed: 6, anchorY: -2,  sheet: "./killua_run_uniform.png" },
     run:   { frames: 8, width: 52, height: 48, speed: 4, anchorY: -2,  sheet: "./killua_run_uniform.png" },    // content 44 (forward lean)
     dash:  { frames: 8, width: 52, height: 48, speed: 3, anchorY: -2,  sheet: "./killua_run_uniform.png" },
     // No dedicated jump art in the batch → the 3-pose dodge strip (crouch→extend→recover)
     // reads as a leap arc: play once, hold the last frame. fall = that last cell.
-    jump:  { frames: 3, width: 41, height: 63, speed: 6, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
-    fall:  { frames: 1, width: 41, height: 63, speed: 6, anchorY: -11, sourceX: 82, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
+    jump:  { frames: 3, width: 41, height: 63, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
+    fall:  { frames: 1, width: 41, height: 63, speed: 6, anchorY: -10, sourceX: 82, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
     // GUARD — dedicated 2-frame block pose (killua_block.png). Resolved by sprite.js when
     // isBlocking && !attacking (else idle). Plays once, holds.
-    guard: { frames: 2, width: 37, height: 58, speed: 8, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_block_uniform.png" },
+    guard: { frames: 2, width: 37, height: 58, speed: 8, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_block_uniform.png" },
     // HURT — Killua HAS a real 4-frame hit-reaction strip (electric knockback tumble),
     // unlike Itachi (who borrowed a brace pose). Every hitstun/stun state routes here.
-    hurt:  { frames: 4, width: 58, height: 44, speed: 6, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_hit_uniform.png" },
+    hurt:  { frames: 4, width: 58, height: 44, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_hit_uniform.png" },
     // ── STAGE 2 NORMALS (5 slots). All re-sliced to uniform cells (reslice.mjs); frame counts
     // measured. speed ≈ move-duration / frames so the swing reads across the active window.
     // anchorY = -(bottom transparent gap × 2.1) plants feet. Assassin pacing: fast, low commit.
     light:    { frames: 9, width: 43, height: 51, speed: 2, anchorY: -4,  loop: false, lockLastFrame: true, sheet: "./killua_light_uniform.png" },     // rapid punch flurry (foward_punch)
     heavy:    { frames: 7, width: 57, height: 48, speed: 3, anchorY: -2,  loop: false, lockLastFrame: true, sheet: "./killua_heavy_uniform.png" },     // committed roundhouse (foward_kick)
-    up:       { frames: 5, width: 47, height: 60, speed: 3, anchorY: -16, loop: false, lockLastFrame: true, sheet: "./killua_up_uniform.png" },        // launcher: rising kick (up_kick)
-    air:      { frames: 5, width: 47, height: 52, speed: 3, anchorY: -7,  loop: false, lockLastFrame: true, sheet: "./killua_air_uniform.png" },        // neutral aerial side kick (side_kick)
-    down_air: { frames: 5, width: 49, height: 66, speed: 3, anchorY: -23, loop: false, lockLastFrame: true, sheet: "./killua_downair_uniform.png" },    // downward dive (down_air_attack)
+    up:       { frames: 5, width: 47, height: 60, speed: 3, anchorY: -14, loop: false, lockLastFrame: true, sheet: "./killua_up_uniform.png" },        // launcher: rising kick (up_kick)
+    air:      { frames: 5, width: 47, height: 52, speed: 3, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_air_uniform.png" },        // neutral aerial side kick (side_kick)
+    down_air: { frames: 5, width: 49, height: 66, speed: 3, anchorY: -21, loop: false, lockLastFrame: true, sheet: "./killua_downair_uniform.png" },    // downward dive (down_air_attack)
     // ── STAGE 2 COMMAND-NORMAL CHAIN — the Barrage (Down+Heavy rekka, cancel-on-hit). Killua's
     // signature rapid-punch flurry: 4 sequential parts → 4-hit cancelable string (Netero rekka
     // architecture). Fired from abilities.js updateKilluaCommandCombat; currentMove = barrageN
     // resolves the sheet via sprite.js identity fallback. Each part plays fast (speed 2).
-    barrage1: { frames: 4, width: 79, height: 57, speed: 2, anchorY: -12, loop: false, lockLastFrame: true, sheet: "./killua_barrage1_uniform.png" },
-    barrage2: { frames: 4, width: 75, height: 69, speed: 2, anchorY: -14, loop: false, lockLastFrame: true, sheet: "./killua_barrage2_uniform.png" },
-    barrage3: { frames: 4, width: 79, height: 55, speed: 2, anchorY: -12, loop: false, lockLastFrame: true, sheet: "./killua_barrage3_uniform.png" },
-    barrage4: { frames: 4, width: 75, height: 58, speed: 2, anchorY: -7,  loop: false, lockLastFrame: true, sheet: "./killua_barrage4_uniform.png" },   // finisher (launches)
+    barrage1: { frames: 4, width: 79, height: 57, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_barrage1_uniform.png" },
+    barrage2: { frames: 4, width: 75, height: 69, speed: 2, anchorY: -13, loop: false, lockLastFrame: true, sheet: "./killua_barrage2_uniform.png" },
+    barrage3: { frames: 4, width: 79, height: 55, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_barrage3_uniform.png" },
+    barrage4: { frames: 4, width: 75, height: 58, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_barrage4_uniform.png" },   // finisher (launches)
     // ── STAGE 3: Yo-Yo throw CAST pose (electric_yoyo_trow_part_1 resliced). Played via
     // _spriteCastMove (identity sprite-resolve) while the yo-yo boomerang projectile flies;
     // the yo-yo itself is a separate spinning projectile sheet (killua_yoyo_fx.png). See
@@ -2277,10 +2277,10 @@ const killua = {
     // ── STAGE 4: electric special CAST poses (played via _spriteCastMove). ──
     // Lightning Palm (Fwd+Special) — point-blank electric burst (electric_push). The hitbox is a
     // melee-range createAttackFromMove; the pose sells the palm-thrust + electric arc.
-    lightningPalm: { frames: 11, width: 55, height: 62, speed: 2, anchorY: -7,  loop: false, lockLastFrame: true, sheet: "./killua_lightning_palm_uniform.png" },
+    lightningPalm: { frames: 11, width: 55, height: 62, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_lightning_palm_uniform.png" },
     // Electric Ball (Down+Special) — charge → form → hurl a traveling electric orb (electric_ball).
     // The orb itself is a procedural glowing projectile (no dedicated clean orb frame); this is the cast.
-    electricBall:  { frames: 11, width: 82, height: 75, speed: 2, anchorY: -23, loop: false, lockLastFrame: true, sheet: "./killua_electric_ball_uniform.png" },
+    electricBall:  { frames: 11, width: 82, height: 75, speed: 2, anchorY: -21, loop: false, lockLastFrame: true, sheet: "./killua_electric_ball_uniform.png" },
     // ── STAGE 5: Godspeed ULTIMATE activation pose — the Nen-electric charge-aura buildup
     // (killua_charge_animation_part_1). Played via _spriteCastMove for the brief activation flash
     // before the sustained buff+overlay takes over. Aura extends up (tall cell); body stays normal.
@@ -2295,7 +2295,7 @@ const killua = {
     // Pre-match INTRO — Killua's iconic skateboard entrance (killua_intro_2.png resliced): rolls in on
     // the board → hops off as it flips away → lands in his stance. Plays once and HOLDS the settled
     // standing pose (frame 9) until the fight starts. botGap 4 → anchorY -8.
-    intro: { frames: 10, width: 35, height: 60, speed: 4, anchorY: -9, loop: false, lockLastFrame: true, sheet: "./killua_intro_uniform.png" }
+    intro: { frames: 10, width: 35, height: 60, speed: 4, anchorY: -8, loop: false, lockLastFrame: true, sheet: "./killua_intro_uniform.png" }
   },
   // Real intro art IS present (the skateboard-entrance strip), so point the intro pool at it instead
   // of the idle-hold stopgap. game.pickIntroVariant sets _introVariant="intro" → sprite.js renders it.
@@ -2425,7 +2425,7 @@ const gon = {
   // spriteScale 2.5 → idle content 45px × 2.5 ≈ 112px on-screen (roster band ~110–116; see
   // [[sprite-size-normalization]]). REQUIRES the skins.js `gon` default skin (else applySkin()
   // pulls the getSkins() spriteScale:1 fallback → native ~half size) + the spritesheets.js gate.
-  spriteScale: 2.5,
+  spriteScale: 2.12,   // HEIGHT-REF: canon 154cm (age-12 base form) → target ~96px (was 2.5). See HEIGHT_REFERENCE.md; anchorY below rescaled ×(2.12/2.5).
   // anchorY = -(bottom transparent gap × 2.5); every resliced cell has botGap 1 → -2, feet planted.
   animationData: {
     idle:  { frames: 4, width: 36, height: 47, speed: 8, anchorY: -2, sheet: "./gon_idle_uniform.png" },
@@ -2455,7 +2455,7 @@ const gon = {
     // while held). Rendered by sprite.js when isCharging (the universal hold-to-charge sets it for
     // any maxEnergy>0 char). Without this key the charge state fell through to the idle pose — the
     // art existed on disk but was never wired into animationData. botGap 3 → anchorY -(3×2.5)≈-7.
-    charge: { frames: 2, width: 63, height: 78, speed: 6, anchorY: -7, loop: true, sheet: "./gon_charge_default_charge_animation.png" },
+    charge: { frames: 2, width: 63, height: 78, speed: 6, anchorY: -6, loop: true, sheet: "./gon_charge_default_charge_animation.png" },
     // ── STAGE 4 — ADULT FORM (Ultimate). The adult body is much larger → actionScale shrinks the tall
     // cells (220px) back toward a ~1.6× on-screen read vs child Gon (an intimidating grown silhouette).
     // `transform` holds through the activation cinematic; `finalblow` is the all-or-nothing sudden-death.

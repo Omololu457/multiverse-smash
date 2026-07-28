@@ -6248,6 +6248,62 @@ gameLoop()
     // Render-scale introspection: the resolved action + its rendered cell height (dstH).
     // Used to confirm old-row-sheet actions (guard/grab/…) render at correct proportion.
     renderInfo: who => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, dstH: f._lastDstH ?? null } : null },
+    // ── CHARACTER-HEIGHT REFERENCE measurement (height-reference audit) ───────────
+    // Renders the fighter's CURRENT sprite through the REAL SpriteHandler.draw() path onto a clean
+    // offscreen canvas, then scans the alpha channel for the non-transparent bounding box. Returns the
+    // VISIBLE BODY pixel height (contentH — what the eye reads as the character's height), distinct
+    // from _lastDstH (the full cell × scale, which includes the sheet's transparent margins). This is
+    // the constant-conditions measurement Step 1 of the reference-block methodology needs: every
+    // character measured through one identical pipeline. Inert without ?harness.
+    measureSprite: (who = "p1") => {
+      const f = who === "p2" ? p2 : p1;
+      if (!f || !f.spriteHandler) return null;
+      const W = 900, H = 1800;
+      const oc = document.createElement("canvas"); oc.width = W; oc.height = H;
+      const octx = oc.getContext("2d", { willReadFrequently: true });
+      const sx = f.x, sy = f.y, sf = f.facing, sbob = f.spriteHandler._giantBobClock;
+      f.x = W / 2; f.y = H - 260; f.facing = 1;   // feet high enough that even 3.2×-scale bodies fit
+      octx.clearRect(0, 0, W, H);
+      f.spriteHandler.draw(octx, f);
+      f.x = sx; f.y = sy; f.facing = sf; f.spriteHandler._giantBobClock = sbob;
+      const data = octx.getImageData(0, 0, W, H).data;
+      let minY = H, maxY = -1, minX = W, maxX = -1;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        if (data[(y * W + x) * 4 + 3] > 16) { if (y < minY) minY = y; if (y > maxY) maxY = y; if (x < minX) minX = x; if (x > maxX) maxX = x; }
+      }
+      return {
+        contentH: maxY >= 0 ? maxY - minY + 1 : 0,
+        contentW: maxX >= 0 ? maxX - minX + 1 : 0,
+        cellDstH: f._lastDstH ?? null,
+        scale: f.spriteScale ?? 1,
+        action: f._lastSpriteAction || null,
+        clipped: (maxY >= H - 1 || minY <= 0 || maxX >= W - 1 || minX <= 0)
+      };
+    },
+    // Companion to measureSprite: returns the TRIMMED idle sprite as a PNG data-URL plus its content
+    // dims, so a harness can composite a feet-aligned full-roster montage at true relative scale.
+    spriteCrop: (who = "p1") => {
+      const f = who === "p2" ? p2 : p1;
+      if (!f || !f.spriteHandler) return null;
+      const W = 900, H = 1800;
+      const oc = document.createElement("canvas"); oc.width = W; oc.height = H;
+      const octx = oc.getContext("2d", { willReadFrequently: true });
+      const sx = f.x, sy = f.y, sf = f.facing, sbob = f.spriteHandler._giantBobClock;
+      f.x = W / 2; f.y = H - 260; f.facing = 1;
+      octx.clearRect(0, 0, W, H);
+      f.spriteHandler.draw(octx, f);
+      f.x = sx; f.y = sy; f.facing = sf; f.spriteHandler._giantBobClock = sbob;
+      const data = octx.getImageData(0, 0, W, H).data;
+      let minY = H, maxY = -1, minX = W, maxX = -1;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        if (data[(y * W + x) * 4 + 3] > 16) { if (y < minY) minY = y; if (y > maxY) maxY = y; if (x < minX) minX = x; if (x > maxX) maxX = x; }
+      }
+      if (maxY < 0) return null;
+      const cw = maxX - minX + 1, ch = maxY - minY + 1;
+      const cc = document.createElement("canvas"); cc.width = cw; cc.height = ch;
+      cc.getContext("2d").drawImage(oc, minX, minY, cw, ch, 0, 0, cw, ch);
+      return { dataURL: cc.toDataURL("image/png"), contentH: ch, contentW: cw };
+    },
     // Hurtbox introspection (Susanoo giant-hurtbox fix): the box combat uses for hits.
     hurtbox: who => { const f = who === "p2" ? p2 : p1; const hb = getHurtbox(f); return f && hb ? { ...hb, fx: f.x, fy: f.y, fw: f.w, fh: f.h, drawTop: f._lastDrawY ?? null, drawH: f._lastDrawH ?? null } : null },
     state: () => ({ gameState, countdown, frame: globalFrameCount }),

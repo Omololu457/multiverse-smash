@@ -106,17 +106,22 @@ export const ALT_SKINS = {
   // GOJO — black shirt + white pants (colorize, yband .24-1 keeps WHITE HAIR; blue eyes kept). IS
   // black (shirt) → skip standard BLACK. Plus 3 NAMED requests. Ben10/Albedo use VALUE to split
   // shirt(dark)/pants(light) so they're pose-independent across all his sheets.
+  // REDONE 2026-07-28 (reference-sampled MULTI-TONE hair variants via recolor_palette.py --to-tone).
+  // The prior abstract-hue hair set (pink/gold/blue/red outfit + old pinkhair) was flagged as looking
+  // wrong (patchy/flat on Gojo's multi-tonal white hair) and DELETED. Kept the two already-approved
+  // bespoke-palette variants (Ben 10, Albedo). New hair-only variants use explicit SAMPLED target hexes,
+  // re-centering the hair's mid tone on the target while preserving its highlight/shadow spread.
+  // Hair selection: yband 0-.28, near-gray (max-sat .22), min-val .30 (keeps black outline + black shirt).
   gojo: [
-    { tag: "pink", name: "Pink", mode: "region", note: "outfit colorize min-sat 0 max-sat .16 yband .24-1 -> to-hue 330 sat .80 vg1.35" },
-    { tag: "gold", name: "Gold", mode: "region", note: "-> to-hue 47 sat .90 vg1.40" },
-    { tag: "blue", name: "Blue", mode: "region", note: "-> to-hue 214 sat .85 vg1.30" },
-    { tag: "red",  name: "Red",  mode: "region", note: "-> to-hue 5 sat .90 vg1.30" },
-    // NAMED: pink HAIR + pink EYES (clothing untouched) — per-region, 2-pass.
-    { tag: "pinkhair", name: "Pink Hair", mode: "region", note: "hair(yband 0-.27 light) -> pink + eyes(hue 170-210) -> pink" },
-    // NAMED: Ben 10 palette (green pants + black shirt kept) — value min-val .5 selects pants only.
+    // KEPT (already approved, not flagged) — bespoke palettes, not hair recolors.
     { tag: "ben10", name: "Ben 10", mode: "region", note: "pants(yband .24-1 min-val .5) -> green h130 sat .75" },
-    // NAMED: Albedo palette (white pants+hair / red shirt / gold eyes) — value max-val .45 = shirt only, 2-pass.
     { tag: "albedo", name: "Albedo", mode: "region", note: "shirt(max-val .45) -> red vg2.6 + eyes -> gold h47" },
+    // NEW hair-only (reference-sampled targets, multi-tone tone-remap).
+    { tag: "cyanhair",   name: "Cyan Hair",   mode: "region", note: "hair -> to-tone #8ED8F0 spread 1.0" },
+    { tag: "purplehair", name: "Purple Hair", mode: "region", note: "hair -> to-tone #C9A0DC spread 1.0" },
+    { tag: "orangehair", name: "Orange Hair", mode: "region", note: "hair -> to-tone #E8823C spread 1.0" },
+    // Pink = hair + EYES retargeted (2-pass): eyes = blue hue 160-215 min-sat .35 in head band.
+    { tag: "pinkhair",   name: "Pink Hair",   mode: "region", note: "hair+eyes -> to-tone #F2A8C4 spread 1.0 (2-pass, eyes hue 160-215)" },
   ],
   // SUKUNA — dark navy uniform (hue 230-262, sat≥.30, dark → val-gain). IS pink (hair) → skip PINK.
   // Pink hair + crimson scarf/shoes (hue ~350) preserved.
@@ -155,15 +160,15 @@ export const ALT_SKINS = {
   // KILLUA — standard set recolors the OUTFIT (white shirt + purple shorts, 2-pass; silver hair
   // protected via yband .40-1, skin/pink-shoes kept). Not natively any of the 5 → all 5. PLUS the 3
   // NAMED hair-only variants (silver hair → brown/black/pink, EVERYTHING else kept default).
+  // REDONE 2026-07-28 — hair-only variants only (the outfit black/pink/gold/blue/red set was NOT
+  // requested for Killua and was DELETED; the prior hair set was flagged as wrong/patchy and rebuilt).
+  // Reference-sampled MULTI-TONE tone-remap: silver hair's mid tone re-centered on the target while its
+  // highlight/shadow spread is preserved. Selection: yband 0-.36, near-gray (max-sat .22), min-val .16
+  // (keeps the black outline black), which isolates the top-of-head hair from the white turtleneck/shirt.
   killua: [
-    { tag: "black", name: "Black", mode: "region", note: "outfit 2-pass: shirt(yband .40-1 colorize)+shorts(hue 245-278) -> desat" },
-    { tag: "pink",  name: "Pink",  mode: "region", note: "-> pink h330" },
-    { tag: "gold",  name: "Gold",  mode: "region", note: "-> gold h47" },
-    { tag: "blue",  name: "Blue",  mode: "region", note: "-> blue h214" },
-    { tag: "red",   name: "Red",   mode: "region", note: "-> red h5" },
-    { tag: "brownhair", name: "Brown Hair", mode: "region", note: "NAMED hair-only: silver(yband 0-.40) -> brown h25 sat .55 vg.60" },
-    { tag: "blackhair", name: "Black Hair", mode: "region", note: "NAMED hair-only: -> black desat vg.28" },
-    { tag: "pinkhair",  name: "Pink Hair",  mode: "region", note: "NAMED hair-only: -> pink h330 sat .55" },
+    { tag: "blackhair", name: "Black Hair", mode: "region", note: "hair -> to-tone #1A1A22 spread .85 (reference target)" },
+    { tag: "brownhair", name: "Brown Hair", mode: "region", note: "hair -> to-tone #6E4A2C spread .90" },
+    { tag: "pinkhair",  name: "Pink Hair",  mode: "region", note: "hair -> to-tone #E86AA6 spread .90" },
   ],
 
   // ══ BATCH 5 · POWER RANGERS / RICK & MORTY / SAIKI K / DC ════════════════════

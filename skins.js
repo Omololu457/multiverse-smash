@@ -246,6 +246,12 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.batman?.portrait, spriteScale: characters.batman?.spriteScale, animationData: null }
   ],
 
+  // Hisoka Morrow (Hunter x Hunter). Same gate: WITHOUT a default skin, applySkin() pulls the
+  // getSkins() spriteScale:1 fallback → native ~half size. Sources spriteScale (2.0) from char.
+  hisoka: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.hisoka?.portrait, spriteScale: characters.hisoka?.spriteScale, animationData: null }
+  ],
+
   // Rick Sanchez (Rick & Morty). Same gate as the sprite characters above: WITHOUT a default
   // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native
   // ~67px (half size). Sources his real spriteScale (1.7) from the character. No alt skins yet.

@@ -2487,6 +2487,90 @@ const batman = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// HISOKA MORROW  (rosterKey "hisoka", universe "hunter_x_hunter" — 4th HxH
+// char after Netero/Killua/Gon, 21st sprite char). Source art = 28 per-action
+// PNGs (hisoka_*.png) + two 2344² master atlases (hisoka_jus / hisoka_transparent).
+// Frame counts MEASURED via tools/slice_probe.mjs, non-uniform strips RE-SLICED
+// (tools/reslice_strip.mjs → *_uniform.png, feet-aligned). Intro = the signature
+// pink-heart "bloodlust bloom" CROPPED out of hisoka_intro.png (WIN/LOSE label
+// column excluded). Jump = hisoka_jump_part_1 + _part_2 STITCHED. See HISOKA_ASSET_MAP.md.
+// Archetype: unpredictable FLEXIBLE TECHNICIAN — extended-reach Bungee Gum whip
+// (melee) + Texture Surprise cards (ranged) + a Bungee-Gum/card-mastery transform
+// ultimate (giant-form architecture, Stage 5). Balanced-to-fast, moderate damage.
+// ─────────────────────────────────────────────────────────────────
+const hisoka = {
+  rosterKey: "hisoka", name: "Hisoka Morrow", universe: "hunter_x_hunter", color: "#e94b9c",
+  portrait: "./hisoka_portrait.png",   // dedicated mugshot CROPPED from the master atlas in Stage 6.
+  archetypes: ["technical", "trickster"],
+  primary: "technical", secondary: ["ranged"],
+  // Nen pool (shared "Nen" HUD label with Killua/Netero — no new label needed).
+  traits: { hasEnergy: true, energyType: "nen", mobility: "high", scaling: "burst", animeMovement: true },
+  // FLEXIBLE TECHNICIAN, mid-fast: speed 91 sits below the top speedsters (Killua 95,
+  // Netero 94, Minato 90≈) but above Gon 86 — fast, not fastest. attack 88 and defense 82
+  // are moderate (below Gon 89/86 durability, above Killua 84/78 fragility). maxHealth 1080
+  // is between Killua 1030 (fragile) and Gon 1150 (durable): a survivable trickster, no
+  // outliers vs the roster bands. maxEnergy 170 = Nen pool, between Netero 150 and Killua 180.
+  stats: { maxHealth: 1080, maxEnergy: 170, attack: 88, defense: 82, speed: 91, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 10, dashCooldownMax: 36 },
+  // Placeholder technician normals — moderate damage, combo-friendly. Real normals + the
+  // command-normal chain land in Stage 2. combat.js _getMD reads THIS.
+  basic_attacks: {
+    light:    { damage: 40, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 80, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 62, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack:{ damage: 52, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 68, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+  },
+  // HUD-only until Stage 5 (real logic + cost live in abilities.js). Giant/alt-form ultimate.
+  ultimate: { name: "Bloodlust Overdrive", cost: 100, description: "Bungee Gum & card mastery unleashed — an escalated Nen aura form with dramatically extended whip reach and empowered attacks." },
+  hasSprites: true,
+  // idle content ~58px × 2.0 ≈ 116px on-screen (top of the adult roster band ~110–116;
+  // Hisoka is canonically tall). REQUIRES the skins.js `hisoka` entry (else applySkin()
+  // pulls the spriteScale:1 fallback → native ~half size) + the spritesheets.js gate.
+  spriteScale: 2.0,
+  animationData: {
+    idle:  { frames: 4, width: 29, height: 60, speed: 8, anchorY: -2, sheet: "./hisoka_idle_uniform.png" },
+    walk:  { frames: 6, width: 31, height: 60, speed: 6, anchorY: -2, sheet: "./hisoka_run_uniform.png" },   // MOVE row played slower for walk
+    run:   { frames: 6, width: 31, height: 60, speed: 4, anchorY: -2, sheet: "./hisoka_run_uniform.png" },
+    dash:  { frames: 3, width: 22, height: 63, speed: 3, anchorY: -2, sheet: "./hisoka_dash_uniform.png" },
+    jump:  { frames: 9, width: 36, height: 63, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_jump_uniform.png" },   // launch→apex (cells 0..8 of the 12-cell stitch)
+    fall:  { frames: 1, width: 36, height: 63, speed: 4, anchorY: -2, sourceX: 360, loop: false, lockLastFrame: true, sheet: "./hisoka_jump_uniform.png" },   // hold a descending cell (index 10)
+    guard: { frames: 2, width: 32, height: 60, speed: 8, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_guard_uniform.png" },
+    hurt:  { frames: 4, width: 34, height: 54, speed: 6, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_hit_uniform.png" },
+    // STAGE 2 — 5 normals (combat.js sets currentMove light/heavy/up/air/down_air → sprite.js
+    // MOVE_TO_ACTION identity-maps them to these keys). light=forward punch, heavy=kick,
+    // up=launcher, air=aerial slash, down_air=dive smash (ground burst).
+    light:    { frames: 4, width: 62, height: 60, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_light_uniform.png" },
+    heavy:    { frames: 4, width: 56, height: 60, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_heavy_uniform.png" },
+    up:       { frames: 5, width: 36, height: 57, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_up_uniform.png" },
+    air:      { frames: 5, width: 36, height: 66, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_air_uniform.png" },
+    down_air: { frames: 4, width: 90, height: 61, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_downair_uniform.png" },
+    // STAGE 2 — Toji-Rekka command-normal chain (Down+Heavy). rekka1 = crouch strike opener,
+    // rekka2 = extended-reach card-slash launcher finisher. Cancel-on-hit (abilities.js updateHisokaCommandCombat).
+    hisokaRekka1: { frames: 5, width: 46,  height: 63, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_rekka1_uniform.png" },
+    hisokaRekka2: { frames: 4, width: 106, height: 57, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_rekka2_uniform.png" },
+    // STAGE 3 — Bungee Gum: extended-reach elastic-whip special (NEUTRAL Special). The pink whip
+    // lashes far forward (~206px on-screen at scale 2.0) — a much longer hitbox than any normal.
+    bungeeGum: { frames: 4, width: 103, height: 72, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_bungee_uniform.png" },
+    // STAGE 4 — Texture Surprise (cards). Cast poses; the cards fly as independent `hisoka_card`
+    // projectiles. Down+Special = single precise throw; Forward+Special = rapid multi-card spread.
+    cardThrowSingle: { frames: 4, width: 56, height: 60, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_card_single_uniform.png" },
+    cardThrowRapid:  { frames: 6, width: 59, height: 60, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_card_rapid_uniform.png" },
+    // STAGE 5 — Bloodlust Overdrive transformation sequence (card-cape aura swirl → golden power-up).
+    // Held as the cast pose through the freeze-cinematic (abilities.enterHisokaOverdrive), then combat
+    // resumes with the _skinAnim body-swap to the golden-aura power-up form.
+    transform: { frames: 11, width: 58, height: 68, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_transform_uniform.png" },
+    // DEDICATED hold-to-charge aura (universal P-hold energy charge; sprite.js returns "charge" only when
+    // this key EXISTS — without it the generic procedural aura draws over idle). Buildup plays once
+    // (frames 0-1) then loops the full yellow-aura tail (loopStart 2) while held.
+    charge: { frames: 6, width: 75, height: 84, speed: 4, anchorY: -2, loop: true, loopStart: 2, sheet: "./hisoka_charge_uniform.png" },
+    // Signature pink-heart "bloodlust bloom" intro (hearts swell around him → fade → he stands revealed).
+    intro: { frames: 8, width: 128, height: 114, speed: 5, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_intro_uniform.png" }
+  },
+  introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
@@ -2504,7 +2588,8 @@ export const characters = {
   killua,
   flash,
   gon,
-  batman
+  batman,
+  hisoka
 }
 
 // The 7 characters shown in the starter roster select screen

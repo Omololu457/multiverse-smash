@@ -108,6 +108,14 @@ const MOVE_TO_ACTION = {
   omMeteor: "omMeteor",
   omSmash: "heavy",
 
+  // Hisoka (Stage 2): Down+Heavy command-normal chain stages. Identity maps (currentMove === action
+  // key) — explicit so a recovery/cast tail can never resolve to the 128² box.
+  hisokaRekka1: "hisokaRekka1",
+  hisokaRekka2: "hisokaRekka2",
+  bungeeGum: "bungeeGum",   // Stage 3: extended-reach Bungee Gum whip special
+  cardThrowSingle: "cardThrowSingle",   // Stage 4: Texture Surprise — single precise throw
+  cardThrowRapid: "cardThrowRapid",     // Stage 4: Texture Surprise — rapid multi-card spread
+
   // Tobirama (Stage 3): taijutsu command chain + 2 free pokes. Identity maps (currentMove === action
   // key) — explicit so a recovery/cast tail can never resolve to the 128² box.
   tobiCombo1: "tobiCombo1",

@@ -1914,6 +1914,30 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       ctx.lineWidth = 1.5
       ctx.beginPath(); ctx.moveTo(nx, enY - 1); ctx.lineTo(nx, enY + enH + 1); ctx.stroke()
     }
+
+    // MINATO — Flying Raijin teleport-mark indicator: 3 pips on the chakra-bar label line, anchored
+    // to the side OPPOSITE the resource label (which sits on the flip side). Filled yellow = a placed
+    // mark; hollow = empty slot; the SELECTED mark's pip gets a white ring (cycled by a Charge-tap).
+    // Always shown for Minato so the mechanic is discoverable even with 0 marks.
+    if ((fighter.rosterKey || "").toLowerCase() === "minato") {
+      const marks = fighter._frMarks || []
+      const selm  = Math.min(Math.max(fighter._frSel || 0, 0), 2)
+      const pipR = 3.5, gap = 12, py = enY - 5
+      // p1 (label left) → pips near the RIGHT of the bar; p2 (label right) → pips near the LEFT.
+      const startX = flip ? x + 14 : x + 8 + barW - 2 * gap
+      ctx.save(); ctx.textBaseline = "middle"; ctx.textAlign = "left"
+      ctx.font = "bold 8px Arial"; ctx.fillStyle = "#fde047"
+      ctx.fillText("⚡", startX - 12, py)
+      for (let i = 0; i < 3; i++) {
+        const cx = startX + i * gap
+        const placed = i < marks.length
+        ctx.beginPath(); ctx.arc(cx, py, pipR, 0, Math.PI * 2)
+        if (placed) { ctx.fillStyle = "#fde047"; ctx.fill() }
+        else { ctx.strokeStyle = "rgba(253,224,71,0.45)"; ctx.lineWidth = 1.5; ctx.stroke() }
+        if (placed && i === selm) { ctx.beginPath(); ctx.arc(cx, py, pipR + 2.5, 0, Math.PI * 2); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.stroke() }
+      }
+      ctx.restore()
+    }
   }
 
   drawEnergyPanel(pad, false, p1)

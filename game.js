@@ -68,7 +68,8 @@ import {
   updateFlashCommandCombat,   // Flash Down+Heavy 2-hit "Speed Rush" command-normal cancel chain (rush1→rush2, cancel-on-hit)
   updateGonCommandCombat,     // Gon Down+Heavy 2-hit "Rush" command-normal cancel chain (rush1 flurry→rush2 launcher, cancel-on-hit)
   updateBatmanCommandCombat,  // Batman Down+Heavy 3-hit "Combo" command-normal cancel chain (batCombo1→2→3 launcher, cancel-on-hit)
-  updateTobiramaCommandCombat   // Tobirama Fwd+Heavy 3-hit taijutsu chain (combo1→combo2→comboFin) + Fwd+Light/Back+Heavy pokes
+  updateTobiramaCommandCombat,   // Tobirama Fwd+Heavy 3-hit taijutsu chain (combo1→combo2→comboFin) + Fwd+Light/Back+Heavy pokes
+  updateMinatoCommandCombat   // Minato Fwd+Heavy 3-hit "Yellow Flash Rush" chain (rush1→rush2→rushFin) + Fwd+Light/Back+Heavy pokes
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -119,6 +120,9 @@ import {
   updateKuramaUltimate, isKuramaCinematicActive, drawKuramaCinematic, clearKuramaUltimate,
   getKuramaCinematicStatus
 } from "./kurama.js"
+import {
+  updateMinatoKurama, isMinatoKuramaActive, drawMinatoKurama, clearMinatoKurama, getMinatoKuramaStatus
+} from "./minatoKurama.js"
 import {
   updateSasukeCinematic, isSasukeCinematicActive, drawSasukeCinematic, clearSasukeCinematic,
   getSasukeCinematicStatus
@@ -171,6 +175,8 @@ import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
 import { pickGonVoice, GON_VOICE } from "./gonVoice.js"
+import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
+import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
 import { pickTobiramaVoice, TOBIRAMA_VOICE } from "./tobiramaVoice.js"
 import { pickFlashVoice, FLASH_VOICE } from "./flashVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
@@ -1235,11 +1241,14 @@ function getAbilityContext() {
 // and `hasHit` latches true on contact, so the `_cloneRendanDone` marker guarantees exactly
 // one flurry per swing. No-op for non-Naruto, non-light, or no-clone cases.
 function maybeCloneRendanStorm(fighter) {
-  if (!fighter || fighter.rosterKey !== "naruto") return
+  // Shadow-clone users only (Naruto + Minato ported it) — the light-string extension keys off
+  // live clones, so any non-clone character is a no-op regardless.
+  if (!fighter || (fighter.rosterKey !== "naruto" && fighter.rosterKey !== "minato")) return
   const ca = fighter.currentAttack
   if (!ca || ca.name !== "light" || !ca.hasHit || ca._cloneRendanDone) return
   if (countShadowClones(fighter) <= 0) return
   ca._cloneRendanDone = true
+  fighter._rendanFired = (fighter._rendanFired || 0) + 1   // test hook: deterministic flurry-fire count
   applyCloneRendanStorm(fighter, getOpponent(fighter), getAbilityContext())
 }
 
@@ -1469,7 +1478,7 @@ function resetRound() {
   clearAllBindingVows()    // activeVows — drop stale fighter refs (fighters are recreated below)
   vowCue.timer = 0
   clearDomains()
-  clearKuramaUltimate()
+  clearKuramaUltimate(); clearMinatoKurama()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
@@ -1589,6 +1598,14 @@ const INTRO_VOICE = {
   // Gon picks ONE of his eager pre-fight lines ("Alright, come on!" / "Anytime is fine" / "Let's hurry").
   // No taunt action exists for Gon → the intro/taunt pool fires on the intro beat only (see gonVoice.js NOTE).
   gon: { pool: GON_VOICE.intro, gateReveal: false },
+  // Batman picks ONE of his grim pre-fight lines ("we both have a job to do" / "The Justice League is a
+  // calling" / "It's your chance to prove yourself" / "I conquered fear long ago"). No taunt action → the
+  // taunt pool rides the offense-connect trigger instead (see batmanVoice.js NOTE); intro fires here.
+  batman: { pool: BATMAN_VOICE.intro, gateReveal: false },
+  // Omni-Man picks ONE pre-fight declaration ("I'm here to save you all from yourselves" / "I claim this
+  // timeline for the Viltrum Empire" / …). No taunt action → the taunt pool rides the offense-connect
+  // trigger instead (see omnimanVoice.js NOTE); intro fires here.
+  omniman: { pool: OMNIMAN_VOICE.intro, gateReveal: false },
   // Netero intro voice removed (audio files deleted); with no entry here he skips the intro-voice
   // beat cleanly (maybeFireIntroVoice no-ops for unmapped fighters). Re-add an entry to re-enable.
 }
@@ -1949,7 +1966,7 @@ function resetToStart() {
   matchIntroTimer = 0
   roundTimer      = ROUND_TIME
   clearDomains()
-  clearKuramaUltimate()
+  clearKuramaUltimate(); clearMinatoKurama()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
@@ -2309,6 +2326,16 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "gon") {
         sound.playSfxFile?.(pickGonVoice("win"), null)
       }
+      // BATMAN win voice — random pick from his victory pool ("You'll find plenty back in Arkham" /
+      // "Gotham will rise again"). Fires only when the WINNER is Batman.
+      if (winFighter?.rosterKey === "batman") {
+        sound.playSfxFile?.(pickBatmanVoice("win"), null)
+      }
+      // OMNI-MAN win voice — random pick from his victory pool ("Recognize your superior" / "What a
+      // disgrace to your species"). Fires only when the WINNER is Omni-Man.
+      if (winFighter?.rosterKey === "omniman") {
+        sound.playSfxFile?.(pickOmniManVoice("win"), null)
+      }
       // FLASH "Reverse Flash" SKIN win voice — skin-gated (pickSkinVoice returns null on every other
       // Flash skin, and base Flash has no win pool → base Flash's win beat is silent, unchanged).
       if (winFighter?.rosterKey === "flash") {
@@ -2434,7 +2461,7 @@ function _doRematch() {
   clearAllBindingVows()
   for (const f of [p1, p2]) if (f) f._pendingSpawn = null   // reused objects → clear sprite deferred-spawn
   clearDomains()
-  clearKuramaUltimate()
+  clearKuramaUltimate(); clearMinatoKurama()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
@@ -2602,6 +2629,16 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
+  // MINATO — quick Charge-TAP cycles the SELECTED Flying Raijin mark (only when ≥2 marks are
+  // placed; the HUD 1/2/3 indicator moves). A charge HOLD still builds chakra normally via
+  // doEnergyCharge during the hold; only the tap is repurposed. No marks → the tap is a no-op.
+  if (fighter.rosterKey === "minato") {
+    if (wasHeld && wasTap && (fighter._frMarks?.length || 0) > 1) {
+      fighter._frSel = ((fighter._frSel || 0) + 1) % fighter._frMarks.length
+    }
+    return
+  }
+
   // VEGETA — SUPER SAIYAN: same "charge up and RELEASE to transform" pattern as Goku Black's Rose.
   // Hold P to build energy (doEnergyCharge); ANY release at/above threshold (enterVegetaSSJ gates on
   // energy) morphs into SSJ. While transformed a quick TAP reverts early; a HOLD-release just tops up
@@ -2702,6 +2739,30 @@ function teleportBehindTarget(fighter) {
   if (typeof camera.focusBetween === "function") camera.focusBetween(fighter, target, 1.0, 10)
 }
 
+// MINATO FLYING RAIJIN — blink to the SELECTED teleport mark (free execution). Reuses the
+// teleportBehindTarget pattern (set x/y + teleportFlash + camera) but lands on the mark's stored
+// ground position instead of beside the opponent. Faces the opponent on arrival. Returns true if a
+// mark was consumed. Marks are placed by a missed Flying Raijin kunai (abilities.placeFlyingRaijinMark).
+function teleportToFlyingRaijinMark(fighter) {
+  const marks = fighter?._frMarks
+  if (!marks || !marks.length) return false
+  const sel  = Math.min(Math.max(fighter._frSel || 0, 0), marks.length - 1)
+  const mark = marks[sel]
+  const sw   = getStageWorldWidth()
+  fighter.x  = Math.max(0, Math.min(sw - fighter.w, mark.x - fighter.w / 2))
+  fighter.y  = mark.y
+  fighter.vx = 0; fighter.vy = 0
+  const target = getOpponent(fighter)
+  if (target) fighter.facing = target.x >= fighter.x ? 1 : -1   // face the opponent on arrival
+  fighter.teleportFlash = 12
+  fighter._frTeleportFxAt = { x: mark.x, y: mark.y }             // ui.js draws the yellow-flash ring here
+  fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 10)
+  // Marks PERSIST across teleports (recall repeatedly) — they only drop via the rolling 3-cap when a
+  // 4th kunai is thrown. The 48-frame dashTeleportCooldown already rate-limits recall, so it isn't free spam.
+  if (typeof camera.focusOnFighter === "function") camera.focusOnFighter(fighter, 1.0, 10)
+  return true
+}
+
 // Double-tap A/D = DASH (HOLD never dashes — see the e.repeat guard in keydown).
 // For the FAST characters (dashTeleport: Toji, Gojo, Sukuna) a double-tap TOWARD
 // the enemy is a TELEPORT-DASH: blink BEHIND the opponent, facing them, ready to
@@ -2716,11 +2777,20 @@ function detectDoubleTapDashTeleport(fighter, key) {
 
   const onDoubleTap = (isToward) => {
     if (fighter.dashTeleport && isToward && (fighter.dashTeleportCooldown || 0) <= 0) {
+      // MINATO FLYING RAIJIN: with ≥1 teleport mark placed, the F→F blink RECALLS to the selected
+      // mark (his signature) instead of blinking behind the opponent. With no marks it falls through
+      // to the normal blink-behind (Stage 1 behavior preserved).
+      if (fighter.rosterKey === "minato" && teleportToFlyingRaijinMark(fighter)) {
+        fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14   // Flying-Raijin flash-ring blink
+        fighter.dashTeleportCooldown = 48
+        return
+      }
       teleportBehindTarget(fighter)                                   // blink BEHIND, facing the opponent
       if (fighter.rosterKey === "toji"   && typeof tojiTeleportStrike === "function")        tojiTeleportStrike(fighter)
       else if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
       else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
       else if (fighter.rosterKey === "tobirama") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // water body-flicker: tobirama_dash_uniform.png plays the blink (reposition-only)
+      else if (fighter.rosterKey === "minato")   { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // Yellow-Flash body-flicker: minato_dash_uniform.png flash-ring plays the blink (reposition-only)
       else if (fighter.rosterKey === "rick")   { fighter._spriteCastMove = "portalTravel"; fighter._spriteCastTimer = 14 }  // Portal-Behind: reposition-only, rick_portal_attack_travel.png plays the blink
       else if (fighter.rosterKey === "omniman") { fighter._spriteCastMove = "flyMove"; fighter._spriteCastTimer = 14 }  // Viltrumite speed-blitz: reposition-only, the streaking flyMove pose sells the blink
       // Gojo: reposition only — "ready to attack".
@@ -3154,6 +3224,12 @@ function _updatePlayerCombatBody(fighter) {
   // Rising Knee. Consumes the input only when it fires; neutral light/heavy/up stay on the normal path.
   if ((fighter.rosterKey || "").toLowerCase() === "tobirama" && !charging &&
       updateTobiramaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // MINATO "Yellow Flash Rush": Fwd+Heavy opens minatoRush1, re-tap Heavy on hit → minatoRush2 →
+  // minatoRushFin (cancel-on-hit; a whiff/block ends the string). Free pokes: Fwd+Light = Floor Combo,
+  // Back+Heavy = Melee Rush. Consumes the input only when it fires; neutral normals stay on the normal path.
+  if ((fighter.rosterKey || "").toLowerCase() === "minato" && !charging &&
+      updateMinatoCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // NETERO Guanyin giant: the base attack buttons fire the 4 avatar attacks (light=leg, heavy=arm-sweep,
   // up=punch-burst; combo-slash is on SPECIAL). Consumes the press only when it fires.
@@ -3828,6 +3904,13 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // MINATO KURAMA ULTIMATE CINEMATIC — same freeze contract (its own module, Minato's own art).
+  if (isMinatoKuramaActive()) {
+    updateMinatoKurama({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // SASUKE SHARINGAN CINEMATIC (Susanoo Lv1→Lv2 escalation): SAME freeze contract —
   // combat/physics are paused while the eye sequence plays; the Lv2 escalation is applied
   // by the cinematic's onResolve at its RESOLVE beat, then combat resumes into Lv2.
@@ -4047,6 +4130,10 @@ function updateBattle() {
 let _tintCanvas = null, _tintCtx = null
 function renderHybridFighter(fighter) {
   if (!fighter) return
+  // Cinematic hide: the Minato Kurama ultimate hides the REAL caster and draws its own transforming
+  // Minato + fox overlay, so the real frozen body doesn't double-render next to the overlay (the
+  // "second Minato" bug). minatoKurama sets/clears this flag.
+  if (fighter._kuramaHide) return
   // Freeze sprite frame-advance while paused (the pause state still renders this
   // frame, so draw() must not keep ticking animations). sprite.js reads this flag.
   fighter._animFrozen = (gameState === GAME_STATES.PAUSED)
@@ -4464,6 +4551,49 @@ function _drawIntroAura(f) {
 // hurtbox and the hit→cancel are handled in checkEdoDummyHit (combat side).
 const _edoDummyImgs = new Map()
 function _edoDummyImg(src) { if (!_edoDummyImgs.has(src)) { const i = new Image(); i.src = src; _edoDummyImgs.set(src, i) } return _edoDummyImgs.get(src) }
+
+// MINATO FLYING RAIJIN — world-space teleport marks. A yellow kunai-seal glyph at each placed mark
+// (minato_kuni_knife_baragge.png = the 8-kunai spread), the SELECTED one brighter + larger with a
+// pulsing ring, plus a one-shot flash ellipse at the arrival point on a recall. Drawn AFTER summons.
+let _frMarkImg = null, _frPortalImg = null
+function drawFlyingRaijinMarks(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "minato") return
+  const marks = fighter._frMarks || []
+  if (!_frMarkImg) { _frMarkImg = new Image(); _frMarkImg.src = "./minato_kuni_knife_baragge.png" }
+  const sel   = Math.min(Math.max(fighter._frSel || 0, 0), Math.max(0, marks.length - 1))
+  const footH = fighter.h || 100
+  for (let i = 0; i < marks.length; i++) {
+    const m = marks[i]
+    const footY = m.y + footH
+    const selected = i === sel
+    ctx.save()
+    ctx.globalAlpha = selected ? 0.95 : 0.55
+    ctx.strokeStyle = selected ? "#fde047" : "#f59e0b"
+    ctx.lineWidth = selected ? 3 : 2
+    ctx.beginPath(); ctx.ellipse(m.x, footY - 6, selected ? 24 : 16, selected ? 9 : 6, 0, 0, Math.PI * 2); ctx.stroke()
+    if (_frMarkImg.complete && _frMarkImg.naturalWidth) {
+      const s = selected ? 0.55 : 0.42
+      const w = _frMarkImg.naturalWidth * s, h = _frMarkImg.naturalHeight * s
+      ctx.drawImage(_frMarkImg, m.x - w / 2, footY - h - 4, w, h)
+    }
+    ctx.restore()
+  }
+  const fx = fighter._frTeleportFxAt
+  if (fx && (fighter.teleportFlash || 0) > 0) {
+    if (!_frPortalImg) { _frPortalImg = new Image(); _frPortalImg.src = "./minato_yellow_flash_teleport.png" }
+    ctx.save()
+    ctx.globalAlpha = (fighter.teleportFlash / 12) * 0.95
+    if (_frPortalImg.complete && _frPortalImg.naturalWidth) {
+      const s = 1.15, w = _frPortalImg.naturalWidth * s, h = _frPortalImg.naturalHeight * s
+      ctx.drawImage(_frPortalImg, fx.x - w / 2, fx.y + footH * 0.5 - h / 2, w, h)   // Flying-Raijin flash portal
+    } else {
+      ctx.strokeStyle = "#fde047"; ctx.lineWidth = 4
+      const r = (12 - fighter.teleportFlash) * 7 + 12
+      ctx.beginPath(); ctx.ellipse(fx.x, fx.y + footH * 0.5, r * 0.55, r, 0, 0, Math.PI * 2); ctx.stroke()
+    }
+    ctx.restore()
+  }
+}
 function drawEdoDummy(fighter) {
   const d = fighter && fighter._edoActive && fighter._edoDummy
   if (!d || !d.sheet) return
@@ -4546,6 +4676,8 @@ function drawBattleScene() {
   // Dog / Nue / Toad etc. are never hidden behind a fighter sprite — they were
   // previously drawn underneath and could be occluded near the action.
   drawActiveSummons(ctx)
+  drawFlyingRaijinMarks(p1)
+  drawFlyingRaijinMarks(p2)
   _drawInfinityAura(p1)
   _drawInfinityAura(p2)
   _drawAbsoluteDefenseAura(p1)
@@ -4748,6 +4880,7 @@ function drawBattle() {
   _drawKOFlash()
   _drawVowCue()
   drawKuramaCinematic(ctx, canvas)   // fullscreen Tailed Beast Bomb overlay, on top of all
+  drawMinatoKurama(ctx, canvas)      // Minato's own Kurama TBB overlay (same layer)
   drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
   drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
@@ -5819,6 +5952,7 @@ gameLoop()
     stun:             f.stun || 0,
     blockstun:        f.blockstun || 0,
     currentMove:      f.currentMove || null,
+    isCharging:       !!f.isCharging,                // hold-charge lockout (Minato Big Ball / Reaper gate)
     rekkaNext:        f._rekkaNext || null,          // command-normal chain: next queued stage
     cmdHitLanded:     !!f._cmdHitLanded,             // command-normal chain: cancel-on-hit latch
     attackPhase:      f.currentAttack ? getAttackPhase(f) : "idle",
@@ -5990,7 +6124,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -6167,7 +6301,12 @@ gameLoop()
     batmanUltCine: () => getBatmanDarkKnightCinematicStatus(),
     omnimanUltCine: () => getOmniManBodySlamCinematicStatus(),
     kuramaUltCine: () => getKuramaCinematicStatus(),
+    minatoKuramaUltCine: () => getMinatoKuramaStatus(),
     p1CloneCount: () => (p1 ? countShadowClones(p1) : 0),   // test hook: live shadow-clone count (barrage gate)
+    p1RendanFired: () => (p1 ? (p1._rendanFired || 0) : 0), // test hook: Clone Rendan Storm flurry-fire count (deterministic)
+    p1FrMarks: () => (p1 ? (p1._frMarks || []).map(m => ({ x: m.x, y: m.y })) : []),   // Flying Raijin marks
+    p1FrSel:   () => (p1 ? (p1._frSel || 0) : 0),                                       // selected mark index
+    clearP1FrMarks: () => { if (p1) { p1._frMarks = []; p1._frSel = 0 } },              // reset marks between test cases
     // Vegeta Super Saiyan form control + introspection (vegeta_ssj.test.mjs). op:
     //   "enter"    → player-facing transform (morph + gates),
     //   "revert"   → drop back to base,
@@ -6232,11 +6371,12 @@ gameLoop()
     // a time), the stage machine state, and each side's chosen variant. Used by the intro-sequencing test.
     introState: () => ({ stage: introStage, gameState, p1Playing: !!p1?._introPlaying, p2Playing: !!p2?._introPlaying, p1Variant: p1?._introVariant ?? null, p2Variant: p2?._introVariant ?? null }),
     // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
-    summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime })),
+    summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime, sheet: s.sheet ?? null })),
     resetUlt:   () => { if (p1) { p1.ultimateCooldown = 0; p1.energy = p1.maxEnergy; p1.attackCooldown = 0 } },   // clear ult lockout for back-to-back ultimate tests
     liftP2:     (dy = 40) => { if (p2) { p2.onGround = false; p2.grounded = false; p2.y -= dy; p2.vy = 0; p2.isLaunched = true } },  // raise the dummy into an aerial path (e.g. Rick's rising rocket)
     setTauntCharge: v => { if (p1) p1._tauntCharge = v },   // fast-forward the 10s taunt charge for tests
     healP1:     () => { if (p1) { p1.health = p1.maxHealth || 1050; p1.hitstun = 0; p1.knockdownState = false } },
+    setP1Health: (v) => { if (p1) p1.health = Math.max(1, v) },   // force P1 HP (Reaper self-cost gate test)
     setP2Invuln: (v = 600) => { if (p2) p2.invulnTimer = v },   // let a projectile pass through the dummy (free-flight range measurement)
     setP2Blocking: (on = true) => { if (p2) p2.isBlocking = !!on },   // force the dummy to hold guard (block-during-time-slow test)
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
@@ -6257,13 +6397,14 @@ gameLoop()
     setP1Energy: (v = 0) => { if (p1) { p1.energy = Math.max(0, Math.min(p1.maxEnergy || 0, v)); return p1.energy } return null },  // set Smart Atoms / any energy pool (flight-drain / forced-descent tests)
     hurtP2:     (v = 20) => { if (p2) { p2.hitstun = v; p2.attacking = false } },  // put the dummy in hitstun (Naruto clone-finisher contextual gate)
     // Stage EXACTLY n shadow clones on P1 immediately (bypasses the ~2.5s audio-window delay of the
-    // "," hotkey, which leaves a lingering delayed spawn that races the clone-count gates). Naruto-only.
-    spawnP1Clones:  (n = 2) => { if (!p1 || (p1.rosterKey || "").toLowerCase() !== "naruto") return 0; dispelShadowClones(p1); for (let i = 0; i < n; i++) spawnShadowClone(p1, getOpponent(p1)); return countShadowClones(p1) },
+    // "," hotkey, which leaves a lingering delayed spawn that races the clone-count gates). Clone users only.
+    spawnP1Clones:  (n = 2) => { const k = (p1?.rosterKey || "").toLowerCase(); if (!p1 || (k !== "naruto" && k !== "minato")) return 0; dispelShadowClones(p1); for (let i = 0; i < n; i++) spawnShadowClone(p1, getOpponent(p1)); return countShadowClones(p1) },
     dispelP1Clones: () => (p1 ? dispelShadowClones(p1) : 0),
     knockdownP1: (t = 60) => { if (p1) { p1.knockdownState = true; p1.knockdownTimer = t; p1.attacking = false } },  // drive the downed/get-up (knockdown) pose for sprite verification
     // Drive a REAL p2 attack (generous startup so a defender can react) — used to open the
     // Substitution incoming-attack window and to verify the swing actually whiffs on a substitute.
     p2Attack:   () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "light", { startup: 10, active: 6, recovery: 16, damage: 60, rangeX: 120, rangeY: 90, hitstun: 18, knockbackX: 6 }) } },
+    p1ForceLight: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; startMove(p1, "light", { startup: 4, active: 6, recovery: 12, damage: 45, rangeX: 150, rangeY: 100, hitstun: 12, knockbackX: 3 }) } },   // deterministic light swing (Rendan-fire test, no keyboard flake)
     // Drive a REAL p2 attack of a chosen CATEGORY (heavy/special/ultimate) — used to reproduce the
     // Goku Black knockdown re-trigger soft-lock (rapid successive knockdown-class hits). Short startup
     // so it connects quickly; the category drives resolveAttackHit's knockdown gate.
@@ -6311,6 +6452,11 @@ gameLoop()
     flashVoicePool: pool => FLASH_VOICE[pool] || null,
     gonVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickGonVoice(pool)),
     gonVoicePool: pool => GON_VOICE[pool] || null,
+    // Batman's 4 wired pools (intro/taunt/hitReact/win) — proves random selection within each.
+    batmanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickBatmanVoice(pool)),
+    batmanVoicePool: pool => BATMAN_VOICE[pool] || null,
+    omnimanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickOmniManVoice(pool)),
+    omnimanVoicePool: pool => OMNIMAN_VOICE[pool] || null,
     // Same idea for Sukuna's 4 pools (taunt/hitConnect/finisher/misc) — proves genuine
     // random selection across the largest generic-bark pool wired (21-entry taunt).
     sukunaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSukunaVoice(pool)),

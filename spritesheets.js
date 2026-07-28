@@ -121,6 +121,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./tobirama_idle_uniform.png" }
   },
 
+  // Minato (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
+  // Minato from box to sprite. Per-action rendering reads characters.js → minato.animationData
+  // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
+  minato: {
+    actions: { idle: "./minato_idle_uniform.png" }
+  },
+
   // Netero (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle strip →
   // flips Netero from box to sprite. Per-action rendering reads characters.js → netero.animationData
   // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.

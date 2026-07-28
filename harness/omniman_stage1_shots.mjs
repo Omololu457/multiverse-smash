@@ -36,9 +36,10 @@ check("renders as sprites (not box)", a.hasSpriteHandler === true, "");
 check("idle → omni_man_idle", (a.spriteSheet || "").includes("omni_man_idle"), `sheet=${a.spriteSheet}`);
 await shot("idle");
 
-// ── RUN (hold toward opponent) ──
+// ── GROUND MOVE (hold toward opponent) — Omni-Man has NO walk cycle; he glides in his idle-FLOAT
+//    pose (Fix #3, replaced the old run_uniform lunge). walk/run/dash all resolve to the idle sheet. ──
 await page.keyboard.down("d"); await waitFrames(16); a = await p1();
-check("run → omni_man_run_uniform", (a.spriteSheet || "").includes("omni_man_run_uniform"), `action=${a.action} sheet=${a.spriteSheet}`);
+check("ground-move → idle-float (no walk cycle)", (a.spriteSheet || "").includes("omni_man_idle") && (a.action === "walk" || a.action === "run"), `action=${a.action} sheet=${a.spriteSheet}`);
 await shot("run"); await page.keyboard.up("d"); await waitFrames(4);
 
 // ── JUMP ──

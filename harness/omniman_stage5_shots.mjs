@@ -31,6 +31,7 @@ await waitFrames(4); await waitGrounded();
 
 // full meter + close to the dummy
 await page.evaluate(() => { window.__harness.setP1Energy(200); window.__harness.topUpP1Health?.(); });
+await waitFrames(20);   // stale window: keep the walk-in off the boot-proximity double-tap window (dashTeleport, Fix #4)
 await page.keyboard.down("d");
 await page.waitForFunction(() => { const a = window.__harness.p1(), b = window.__harness.p2(); return a && b && Math.abs(a.x - b.x) < 120; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
 await page.keyboard.up("d"); await waitFrames(2);

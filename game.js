@@ -2621,6 +2621,10 @@ function handleChargeRelease(fighter, key) {
   }
 
   if (!wasTap) return
+  // OMNI-MAN — FLIGHT toggle: a quick P-TAP engages/disengages Flight (a HOLD charges Smart Atoms
+  // instead, see updateMovementInput). Same charge-TAP shape as Gojo's Infinity. toggleOmniManFlight
+  // no-ops if crashing / in hitstun / out of Smart Atoms.
+  if (fighter.rosterKey === "omniman") { toggleOmniManFlight(fighter); return }
   if (fighter.rosterKey === "gojo") {
     if (!fighter.disabledSpecials?.includes("infinity")) {   // Limitless Sacrifice vow disables Infinity
       fighter.infinityActive = !fighter.infinityActive
@@ -2718,6 +2722,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
       else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
       else if (fighter.rosterKey === "tobirama") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // water body-flicker: tobirama_dash_uniform.png plays the blink (reposition-only)
       else if (fighter.rosterKey === "rick")   { fighter._spriteCastMove = "portalTravel"; fighter._spriteCastTimer = 14 }  // Portal-Behind: reposition-only, rick_portal_attack_travel.png plays the blink
+      else if (fighter.rosterKey === "omniman") { fighter._spriteCastMove = "flyMove"; fighter._spriteCastTimer = 14 }  // Viltrumite speed-blitz: reposition-only, the streaking flyMove pose sells the blink
       // Gojo: reposition only — "ready to attack".
       fighter.dashTeleportCooldown = 48
     } else {
@@ -2911,22 +2916,20 @@ function updateMovementInput(fighter) {
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
   else fighter.isCharging = false   // reset each frame for normal characters (devices set their own)
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
-  // OMNI-MAN FLIGHT TOGGLE: the P (charge) button EDGE toggles Flight mode on/off instead of hold-to-
-  // charge. He never hold-charges — Smart Atoms is spent on flight+specials and only regens on the
-  // ground — so we intercept here and SKIP the charge gate below (Toji-stance-on-P precedent).
+  // OMNI-MAN FLIGHT: the P (charge) button is TAP-to-toggle-Flight / HOLD-to-charge (Gojo-Infinity
+  // pattern). The TAP toggle fires on keyUP in handleChargeRelease; a HOLD falls through to the
+  // universal hold-to-charge path below — so Smart Atoms IS chargeable (Fix #1). We only gate that
+  // charge so it can't refill mid-flight or during a forced-descent crash (shared-pool tension: no
+  // free refills in the air) — grounded/normal-air charging is unrestricted.
   const isOmniMan = (fighter.rosterKey || "").toLowerCase() === "omniman"
-  if (isOmniMan) {
-    const chargeEdge = !!inputState.charge && !fighter._flightTogglePrev
-    fighter._flightTogglePrev = !!inputState.charge
-    if (chargeEdge) toggleOmniManFlight(fighter)
-  }
+  const omniCantCharge = isOmniMan && (fighter._flightActive || isOmniManForcedDescent(fighter))
   // HOLD-TO-CHARGE (Task 2): a meter character holding P (charge), not attacking,
   // builds cursed energy AND enters the charging state (drives the charge aura +
   // sprite). For Ben/Albedo the charge button is the device dial (handled above).
   // Resolved BEFORE the block gate so the universal "charging = fully vulnerable"
   // lockout (no block below, no movement in physics.moveFighter) holds on the SAME
   // frame the charge begins — for NORMAL chars too, not just the transform device.
-  else if (inputState.charge && !isTransformDevice(fighter) && !fighter.attacking && (fighter.maxEnergy || 0) > 0) {
+  if (inputState.charge && !isTransformDevice(fighter) && !fighter.attacking && (fighter.maxEnergy || 0) > 0 && !omniCantCharge) {
     doEnergyCharge(fighter)
     fighter.isCharging = true
   }

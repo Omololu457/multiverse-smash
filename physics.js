@@ -28,9 +28,11 @@ export const physics = {
   maxFallSpeed: 22,
   stageWidth: 3200,
   stageLeft: 0,
-  // Omni-Man FLIGHT (Stage 3): free 8-directional hover speed while _flightActive. A touch faster than
-  // his slow ground walk — flight is his mobility advantage (he's a below-average GROUND mover).
-  flightSpeed: 8,
+  // Omni-Man FLIGHT (Stage 3): free 8-directional hover speed while _flightActive. Set NOTICEABLY
+  // above his ground movement (walk clamps ≤9, dash ≈10) so Flight reads as genuinely quick — a
+  // dash-tier airborne mover (Fix #5). This is a real movement VELOCITY (sets vx/vy directly), not an
+  // animation-speed change. Gated on _flightActive → zero effect on any other fighter.
+  flightSpeed: 13,
 
   moveFighter(fighter, keys = {}, controls = {}, camera = null) {
     if (!fighter || fighter.hitstop > 0) return

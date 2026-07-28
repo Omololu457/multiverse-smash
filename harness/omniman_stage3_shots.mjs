@@ -46,7 +46,9 @@ check("holding Up ASCENDS (free vertical, no jump arc)", yUp < yStart - 20, `y $
 // release: hovers (does NOT fall) — prove gravity is off
 await waitFrames(18);
 const yHover = (await p1()).y;
-check("releases into a HOVER (gravity off — holds altitude)", Math.abs(yHover - yUp) < 40 && !(await p1()).grounded, `y ${yUp|0}→${yHover|0}`);
+// Gravity-off HOVER: on release he must NOT fall (y must not increase); he may coast slightly UP as the
+// hover-glide damps the residual ascent velocity (faster now at flightSpeed 13, Fix #5). Key point: no drop.
+check("releases into a HOVER (gravity off — does not fall)", yHover <= yUp + 8 && !(await p1()).grounded, `y ${yUp|0}→${yHover|0}`);
 // strafe (hold right) — flyMove pose + x moves
 await page.keyboard.down("d"); await waitFrames(12); a = await p1();
 check("holding Side → flyMove streak", has(a, "omni_man_fly_move_uniform"), `sheet=${a.spriteSheet}`);

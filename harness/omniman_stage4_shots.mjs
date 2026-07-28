@@ -51,6 +51,7 @@ await waitIdle();
 
 // ── FORWARD — Skewering Rush (hold toward opponent + Special) ──
 await closeIn(140);
+await waitFrames(18);   // let the walk-in forward tap go stale so re-pressing forward is a HOLD, not a double-tap → teleport (dashTeleport, Fix #4)
 e0 = (await p1()).energy;
 await page.keyboard.down("d"); await waitFrames(3);   // hold forward FIRST so _specialHeldDir reads "F" on the special frame
 const x0 = (await p1()).x;                            // record AFTER the pre-walk so the check isolates the lunge burst

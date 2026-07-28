@@ -85,6 +85,10 @@ await page.keyboard.up("d"); await waitIdle();
 sect("Specials");
 async function special(name, dirKey, move, sheet, cost) {
   await closeIn(dirKey === "d" ? 130 : 74);
+  // Let the walk-in forward tap go STALE (>240ms) so re-pressing forward for the special reads as a
+  // fresh HOLD, not a double-tap toward → teleport-dash (the intended dashTeleport mechanic, Fix #4).
+  // A real player holds forward continuously into the special; this mirrors that timing.
+  if (dirKey === "d") await waitFrames(18);
   const e0 = (await p1()).energy;
   if (dirKey) { await page.keyboard.down(dirKey); await waitFrames(3); }
   await page.keyboard.down("l"); await waitFrames(2); await page.keyboard.up("l"); await waitFrames(4);

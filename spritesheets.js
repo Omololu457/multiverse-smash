@@ -170,6 +170,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./batman_idle_uniform.png" }
   },
 
+  // Hisoka Morrow (universe: hunter_x_hunter). Gates spritesReady() by decoding the idle strip
+  // → flips Hisoka from procedural box to sprite. Per-action rendering reads characters.js →
+  // hisoka.animationData (each action carries its own .sheet).
+  hisoka: {
+    actions: { idle: "./hisoka_idle_uniform.png" }
+  },
+
   // Rick Sanchez (universe: rick_and_morty). Gates spritesReady() by decoding the idle strip →
   // flips Rick from procedural box to sprite. Per-action rendering reads characters.js →
   // rick.animationData (each action carries its own .sheet).

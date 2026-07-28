@@ -52,7 +52,14 @@ Direction-branched SPECIAL button (`_specialHeldDir`, Killua/Flash architecture)
 
 Rock's 18-frame startup shows the charge-windup frames = a real, blockable telegraph (highest dmg/commitment).
 Scissors uses the Flash spin-whirl multi-hit re-arm pattern. Paper is a spacing tool (low dmg, big push).
-UNUSED so far: `gon_charge_1/2.png` (aura FX overlays), `gon__specail_1.png`, `gon_special_2/3/4/5.png`,
+
+## HOLD-TO-CHARGE  ✅ WIRED (bugfix 2026-07-27)
+`gon_charge_default_charge_animation.png` (126×78 → 2 · 63×78) wired as the `charge` animationData key
+(loop, speed 6). Rendered by sprite.js when `isCharging` (universal hold-P charge for any maxEnergy>0
+char). BUG was: the art shipped on disk but no `charge` key existed → the charge state fell through to
+the idle pose. FX-overlay aura strips `gon_charge_1/2.png` remain unused (the default strip is self-contained).
+
+UNUSED so far: `gon__specail_1.png`, `gon_special_2/3/4/5.png`,
 `gon_dasheffect_1.png`, `gon_freecss_push_effect.png`. Projectiles reserved (no fishing-rod content):
 `gon_projectilethrow_1.png`, `gon_specialprojectile_5.png`.
 
@@ -64,6 +71,7 @@ trade-off and a NOVEL match-ending payoff. `executeGonUltimate` / `enterGonAdult
 | Piece | Detail |
 |---|---|
 | Activation | ultimate button; near-max Nen (≥140/160); frozen growth cinematic (`transform` pose) |
+| TALLER SILHOUETTE | `_canvasHeightFrac` 0.28 + `_canvasHeightRefH` 47 (the SAME giant-form sizing as Netero's Guanyin / Itachi's Susanoo, but human-scaled — ~2× the roster, not a statue). Scales the buff-mode child sprites UP + the combat.js hurtbox to match (verified 94px→185px). `transform`/`finalblow` cells carry their own `actionScale` and are EXEMPT (sprite.js skips the giant path when an action has `actionScale`, so no double-scale). Bugfix 2026-07-27: previously the form set no scaling → Adult Gon snapped back to child/roster height after the cinematic. |
 | Movement LOCKOUT | `canJump=false` + `noDash=true` + `speed=40` (walk clamps to the 4px/f floor) = slow lumber only |
 | Drain | 0.30 Nen/frame → auto-revert on empty (shared `tickSustainedFormDrain`). Reverting is NOT a loss. |
 | Buff | damageMultiplier/attackMultiplier ×1.3 while active |

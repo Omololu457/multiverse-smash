@@ -489,7 +489,11 @@ export class SpriteHandler {
     // of a small fixed multiple of their sprite cells. `_canvasHeightRefH` is the
     // REFERENCE native cell height (the body cell) so every action — body, grab,
     // arrow — scales by the SAME factor and stays proportional to the body.
-    if (fighter._canvasHeightFrac && fighter._canvasHeightRefH && ctx.canvas?.height) {
+    // An action carrying its own `actionScale` (e.g. Gon's Adult-Form transform/finalblow cells,
+    // already sized for the adult body) is EXEMPT — it uses its actionScale path below instead, so
+    // a giant-frac character's actionScale cells don't get double-scaled. Every existing giant
+    // (Susanoo/Guanyin) has no actionScale action, so this guard is a no-op for them.
+    if (fighter._canvasHeightFrac && fighter._canvasHeightRefH && ctx.canvas?.height && !this._actionDef?.actionScale) {
       scale = (ctx.canvas.height * fighter._canvasHeightFrac) / fighter._canvasHeightRefH;
     }
 

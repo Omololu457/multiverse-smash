@@ -17,6 +17,8 @@ import { sound, SFX } from "./sound.js"
 import { pickRickVoice } from "./rickVoice.js"
 import { pickKilluaVoice } from "./killuaVoice.js"
 import { pickGonVoice } from "./gonVoice.js"
+import { pickHisokaVoice } from "./hisokaVoice.js"
+import { pickMinatoVoice } from "./minatoVoice.js"
 import { pickTobiramaVoice } from "./tobiramaVoice.js"
 import { pickFlashVoice } from "./flashVoice.js"
 import { pickBatmanVoice } from "./batmanVoice.js"
@@ -699,6 +701,76 @@ function applyGonLowHealthVoice(defender) {
   }
 }
 
+// ── HISOKA MORROW VOICE LINES (audio-only; Japanese "Nen Impact" pack) ──
+// DEFENDER reaction — delighted/dismissive pool ("No no~", "Impressive~", "Irresistible~"). One line
+// per _hitVoiceCd window; unblocked hits only. Hisoka has a SEPARATE low-health pool (below).
+function applyHisokaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "hisoka" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickHisokaVoice("hitReact"), null) } catch (_) {}
+}
+
+// ATTACKER connect — combat barks ("You won't get away", "You're in the way~") on a HEAVY connect OR a
+// long BASIC light string, with a ~30% chance to pull a flirty taunt one-liner instead (Hisoka has no
+// `taunt` action → the taunt pool rides this trigger; Killua/Rick precedent). His SPECIALS (Bungee Gum,
+// Texture Surprise, Overdrive, Card Flourish rekka) fire their OWN cast lines and set _atkVoiceCd on
+// cast, so they're excluded here (no cast+connect double). Shared _atkVoiceCd → one line per window.
+function applyHisokaOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "hisoka" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickHisokaVoice(Math.random() < 0.30 ? "taunt" : "combatBark"), null) } catch (_) {}
+}
+
+// LOW-HEALTH bark — Hisoka is THRILLED by danger: "I can't stand it — irresistible~" / "How tantalizing~".
+// Fires ONCE the first time he drops to/below the threshold (same pattern as Gon/Naruto/Itachi).
+const HISOKA_LOW_HEALTH_RATIO = 0.25
+function applyHisokaLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "hisoka" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * HISOKA_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickHisokaVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
+// ── MINATO NAMIKAZE VOICE LINES (audio-only; Japanese Storm-Connections pack) ──
+// DEFENDER reaction — "oh nice / I won't lose / I'm serious now" on an unblocked hit. One line per
+// _hitVoiceCd window. Minato has a SEPARATE low-health pool (below).
+function applyMinatoHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "minato" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickMinatoVoice("hitReact"), null) } catch (_) {}
+}
+
+// ATTACKER connect — offense barks on a HEAVY connect OR a long BASIC light string. Since Minato has
+// no taunt ACTION, the taunt pool rides this too (30% taunt / 70% hitConnect — Killua precedent). His
+// SPECIALS fire their own cast lines and set _atkVoiceCd on cast, so they're excluded here.
+function applyMinatoOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "minato" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickMinatoVoice(Math.random() < 0.30 ? "taunt" : "hitConnect"), null) } catch (_) {}
+}
+
+// LOW-HEALTH bark — "I'll fight to the end" / "no matter what happens to this body" — fires ONCE the
+// first time Minato drops to/below the threshold (same pattern as Naruto/Gon/Itachi).
+const MINATO_LOW_HEALTH_RATIO = 0.25
+function applyMinatoLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "minato" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * MINATO_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickMinatoVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
 // ── TOBIRAMA SENJU VOICE LINES (audio-only; Japanese pack) ──
 // ATTACKER connect — his overconfident taunt one-liners ("No resistance", "A shinobi of your caliber
 // has fallen"…) on a STRONG connect (heavy/special/ultimate) OR a long BASIC light string. Tobirama has
@@ -1294,6 +1366,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyKilluaHitVoice(defender, cat, dmg)
     // GON hit-reaction voice — dismissive/pained pool ("No way" / "This is bad" / "Damn it").
     applyGonHitVoice(defender, cat, dmg)
+    // HISOKA hit-reaction voice — delighted/dismissive pool ("No no~" / "Impressive~" / "Irresistible~").
+    applyHisokaHitVoice(defender, cat, dmg)
+    applyMinatoHitVoice(defender, cat, dmg)
     // FLASH hit-reaction voice — "Not again." + effort-grunt set.
     applyFlashHitVoice(defender, cat, dmg)
     // BATMAN hit-reaction voice — effort-grunt set (clips 60-66).
@@ -1317,6 +1392,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
     applyGonLowHealthVoice(defender)   // "Not yet" / "I can still fight" / "I'm going to die" (once, on crossing the low-HP line)
+    applyHisokaLowHealthVoice(defender)   // Hisoka THRILLED by danger: "Irresistible~" / "How tantalizing~" (once, on crossing the low-HP line)
+    applyMinatoLowHealthVoice(defender)   // Minato "I'll fight to the end" (once, on crossing the low-HP line)
     applyOmniManLowHealthVoice(defender)   // "It's all under control" / "none of you can stop me" (once, on crossing the low-HP line)
     defender.colorFlash = cat === "ultimate" ? 12 : cat === "special" ? 9 : 6
 
@@ -1399,6 +1476,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyRickOffenseVoice(attacker, cat, !defender.isBlocking)     // Rick generic taunt/flavor bark on a strong/long-string connect
   applyKilluaOffenseVoice(attacker, cat, !defender.isBlocking)   // Killua combat bark (+ ~30% taunt one-liner) on a strong/long-string connect
   applyGonOffenseVoice(attacker, cat, !defender.isBlocking)      // Gon combat bark on a heavy/long-string connect (specials use their own cast lines)
+  applyHisokaOffenseVoice(attacker, cat, !defender.isBlocking)   // Hisoka combat bark (+ ~30% flirty taunt) on a heavy/long-string connect (specials use their own cast lines)
+  applyMinatoOffenseVoice(attacker, cat, !defender.isBlocking)   // Minato offense bark / taunt on a heavy/long-string connect
   applyTobiramaOffenseVoice(attacker, cat, !defender.isBlocking) // Tobirama overconfident taunt one-liner on a strong/long-string connect
   applyFlashOffenseVoice(attacker, cat, !defender.isBlocking)    // Flash quippy speed trash-talk on a strong/long-string connect
   applyBatmanOffenseVoice(attacker, cat, !defender.isBlocking)   // Batman cold trash-talk (taunt pool) on a strong/long-string connect

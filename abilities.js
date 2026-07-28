@@ -21,11 +21,14 @@ import { activateOmniManBodySlamCinematic, isOmniManBodySlamCinematicActive } fr
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
 import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./gonAdultFormCinematic.js"   // Gon Adult Form activation cinematic (no cycle; mirrors Godspeed)
+import { activateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive } from "./hisokaOverdriveCinematic.js"   // Hisoka Bloodlust Overdrive activation cinematic (no cycle; mirrors Godspeed)
 import { resolveGrab, GLOBAL_DAMAGE_SCALE, rekkaContinue } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the shared command-normal cancel gate (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
 import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajanken/rekka/Final-Blow cast voice pools (audio-only; no cycle)
+import { pickHisokaVoice } from "./hisokaVoice.js"   // Hisoka Bungee-Gum/Texture-Surprise/Overdrive/rekka cast voice pools (audio-only; no cycle)
+import { pickMinatoVoice } from "./minatoVoice.js"   // Minato cast voice pools (Rasengan/Flying-Raijin/Reaper/Kurama; audio-only, no cycle)
 import { pickOmniManVoice } from "./omnimanVoice.js"   // Omni-Man special/flight/ultimate cast voice pool (audio-only; no cycle)
 import { pickTobiramaVoice } from "./tobiramaVoice.js"   // Tobirama cast/ultimate voice pools (audio-only; no cycle)
 import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin voice override (Gojo "Limitless" young pack)
@@ -1873,6 +1876,7 @@ function fireFlyingRaijinKunai(fighter, context) {
   if (!spendEnergy(fighter, MINATO_RAIJIN_COST)) return false
   const face = fighter.facing || 1
   fighter._spriteCastMove  = "minatoRush2"   // Yellow-Flash kunai-throw pose
+  try { sound.playSfxFile?.(pickMinatoVoice("flyingRaijin"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Flying Raijin cast
   fighter._spriteCastTimer = 16
   fighter.attackCooldown   = getAttackDuration(18, fighter)
   fighter.vx = face * 2
@@ -1892,6 +1896,7 @@ function fireMinatoRasengan(fighter, context) {
   if (!spendEnergy(fighter, 30)) return false
   const face = fighter.facing || 1
   fighter._spriteCastMove = "minatoRasengan"; fighter._spriteCastTimer = 20
+  try { sound.playSfxFile?.(pickMinatoVoice("rasengan"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Rasengan cast
   const attack = createAttackFromMove(fighter, "minatoRasengan", {
     damage: 120, startup: 8, active: 5, recovery: 16, hitstun: 22, knockbackX: 9, knockbackY: -3, rangeX: 74, rangeY: 56, isSpecial: true
   })
@@ -1918,6 +1923,7 @@ function fireMinatoBigBall(fighter, context) {
   if (!spendEnergy(fighter, 45)) return false
   const face = fighter.facing || 1
   fighter._spriteCastMove = "minatoRasengan"; fighter._spriteCastTimer = 26
+  try { sound.playSfxFile?.(pickMinatoVoice("rasengan"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Big Ball Rasengan cast
   const attack = createAttackFromMove(fighter, "minatoBigBall", {
     damage: 175, startup: 12, active: 6, recovery: 22, hitstun: 26, knockbackX: 12, knockbackY: -5, rangeX: 96, rangeY: 82, isSpecial: true
   })
@@ -1990,7 +1996,7 @@ function fireReaperDeathSeal(fighter, context) {
     target.health = Math.max(0, (target.health || 0) - MINATO_REAPER_RIP)  // soul-rip; updateGrab adds the throw on top
     target.colorFlash = 10
     fighter.attackCooldown = getAttackDuration(30, fighter)
-    try { sound.playSfxFile?.("minato_reaper.mp3", null) } catch (_) {}    // (no audio asset yet — silent)
+    try { sound.playSfxFile?.(pickMinatoVoice("reaper"), null); fighter._atkVoiceCd = 150 } catch (_) {}    // VOICE: Reaper Death Seal — "I'll risk my life" (the HP-sacrifice)
   } else {
     // whiff: committed recovery, chakra already spent, but NO health sacrifice.
     fighter._spriteCastMove = "minatoReaperCast"; fighter._spriteCastTimer = 30
@@ -2165,6 +2171,7 @@ function executeMinatoUltimate(fighter, context) {
   const getOpponent = getTargetResolver(context)
   const opponent    = getOpponent(fighter)
   activateMinatoKurama(fighter, opponent)   // game.js freezes combat + drives the beats
+  try { sound.playSfxFile?.(pickMinatoVoice("ult"), null) } catch (_) {}   // VOICE: Kurama ultimate — "the Fourth Hokage's power!"
   fighter.attackCooldown = 22
   shakeCamera(context, 12, 14)
   fighter.ultimateCooldown     = NARUTO_KURAMA_RECAST_FRAMES
@@ -4259,6 +4266,56 @@ export function updateKilluaCommandCombat(fighter, inputState, context, getPhase
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// HISOKA — "Card Flourish": a 2-hit cancel-on-hit command-normal chain (Down+Heavy)
+// (Stage 2). Mirrors updateKilluaCommandCombat/updateFlashCommandCombat EXACTLY: Down+Heavy opens
+// rekka1 (crouch strike), re-tap Heavy during recovery to cancel into rekka2 (extended-reach card-slash
+// launcher) — gated on a clean connect, so a whiff/block ENDS the string = the mid-chain interrupt.
+// Each stage's sprite is hisokaRekkaN (sprite.js currentMove identity → characters.js animationData).
+// Neutral light/heavy/up/air/down_air stay on the standard normal path (Down is what routes into the chain).
+// ─────────────────────────────────────────────────────────────────────────────
+const HISOKA_COMMAND = {
+  // knockbackX 1 on the opener keeps the target PINNED inside the string; the finisher reaches with
+  // rangeX 108 (the long card-slash arc) + delivers the launch knockback.
+  hisokaRekka1: { damage: 28, startup: 5, active: 3, recovery: 14, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 80,  rangeY: 50, rekkaNext: "hisokaRekka2" },
+  hisokaRekka2: { damage: 52, startup: 5, active: 4, recovery: 17, hitstun: 18, knockbackX: 8, knockbackY: -3, rangeX: 108, rangeY: 52 },   // launcher finisher (extended card-slash reach)
+}
+function fireHisokaCommand(fighter, key, context) {
+  const md = HISOKA_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = key === "hisokaRekka2"
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the hisokaRekkaN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  // VOICE: Card Flourish rekka OPENER only (not the follow-up) — aggressive turn-taking callout (audio-only)
+  if (key === "hisokaRekka1") { try { sound.playSfxFile?.(pickHisokaVoice("rekka"), null); fighter._atkVoiceCd = 150 } catch (_) {} }
+  return true
+}
+// Grounded command-normal driver (mirrors updateKilluaCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateHisokaCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "hisoka" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+
+  // CONTINUE — fresh Heavy during the current part's RECOVERY, only if it CONNECTED (cancel-on-hit;
+  // a whiff/block leaves _cmdHitLanded false → the chain stops here = mid-chain interrupt). The shared
+  // rekkaContinue owns the connect-latch, window-close and cancel rule (see combat.js).
+  const opp = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireHisokaCommand(fighter, next, context)
+
+  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && inputState.down && heavyEdge) return fireHisokaCommand(fighter, "hisokaRekka1", context)
+
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // THE FLASH — "Speed Rush": a 2-hit cancel-on-hit command-normal chain (Down+Heavy)
 // (Stage 2). Mirrors updateKilluaCommandCombat EXACTLY (Down+Heavy opener → re-tap Heavy during
 // recovery to cancel into the finisher, gated on a clean connect so a whiff/block ENDS the string =
@@ -4391,6 +4448,51 @@ export function updateBatmanCommandCombat(fighter, inputState, context, getPhase
   // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
   if (canStart && grounded && inputState.down && heavyEdge) return fireBatmanCommand(fighter, "batCombo1", context)
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ZENITSU — "Thunderclap Flurry": a 3-hit cancel-on-hit command-normal chain (Down+Heavy) (Stage 2).
+// Mirrors updateBatmanCommandCombat/updateGonCommandCombat EXACTLY (Down+Heavy opener → re-tap Heavy
+// during recovery to cancel into the next stage, gated on a clean connect so a whiff/block ENDS the
+// string = mid-chain interrupt). Sourced from the overflow melee strips: zenCombo1 (low sweep) →
+// zenCombo2 (dashing lunge) → zenCombo3 (rising super vertical slash, launches). Fast burst-striker
+// pacing (spiky, low commitment on the openers). Neutral light/heavy/up/air/down_air stay on the
+// standard normal path (Down is what routes into the chain). Each stage's sprite is zenComboN
+// (sprite.js currentMove identity → characters.js animationData).
+// ─────────────────────────────────────────────────────────────────────────────
+const ZENITSU_COMMAND = {
+  // knockbackX 1 on the openers keeps the target PINNED inside the string; the finisher reaches with
+  // rangeX 98 + delivers the launch knockback.
+  zenCombo1: { damage: 32, startup: 3, active: 3, recovery: 11, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 84, rangeY: 56, rekkaNext: "zenCombo2" },
+  zenCombo2: { damage: 38, startup: 4, active: 3, recovery: 12, hitstun: 14, knockbackX: 2, knockbackY: 0,  rangeX: 92, rangeY: 56, rekkaNext: "zenCombo3" },
+  zenCombo3: { damage: 62, startup: 5, active: 4, recovery: 19, hitstun: 22, knockbackX: 9, knockbackY: -5, rangeX: 98, rangeY: 64 },   // rising super-slash launcher finisher (string ends here)
+}
+function fireZenitsuCommand(fighter, key, context) {
+  const md = ZENITSU_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = key === "zenCombo3"
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the zenComboN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+// Grounded command-normal driver (mirrors updateBatmanCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateZenitsuCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "zenitsu" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during the current part's recovery, only if it CONNECTED (cancel-on-hit).
+  const opp = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireZenitsuCommand(fighter, next, context)
+  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && inputState.down && heavyEdge) return fireZenitsuCommand(fighter, "zenCombo1", context)
   return false
 }
 
@@ -4606,6 +4708,166 @@ function fireKilluaElectricBall(fighter, context) {
     }, context)
     shakeCamera(context, 4, 6)
   })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HISOKA — SPECIAL menu (SPECIAL button, direction-branched via _specialHeldDir).
+//   • Neutral = Bungee Gum (Stage 3) — extended-reach elastic-whip MELEE lash (NOT a grab).
+//   • Forward / Down = Texture Surprise cards (Stage 4 — rapid spread / single precise throw).
+// Reads the LIVE held direction game.js stamps (fighter._specialHeldDir) the frame Special is pressed.
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUT SPLIT (Stage 4): the two Texture Surprise variants are TWO SEPARATE DIRECTIONAL inputs, NOT
+// tap/hold. Rationale — the codebase already stamps a robust _specialHeldDir and the sister HxH chars
+// (Killua neutral/F/D, Gon Jajanken neutral/F/D) branch specials this way, so each of Hisoka's two
+// DISTINCT card animations (single vs. spread) gets its own unambiguous actuation with no charge-timing
+// read. Forward = rapid spread (aggressive approach), Down = single precise (deliberate). Neutral = whip.
+function executeHisokaSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireHisokaCardRapid(fighter, context)
+  if (dir === "D") return fireHisokaCardSingle(fighter, context)
+  return fireHisokaBungeeGum(fighter, context)
+}
+
+// Shared card-projectile factory. Each card is an INDEPENDENT projectile drawing its own collision
+// from Hisoka's hurtbox origin (spawnProjectile default spawnX/Y). The projectile art is the 2-frame
+// spinning card (hisoka_card_projectile_uniform), scaled up from its tiny 11×8 native cell.
+function spawnHisokaCard(fighter, context, { damage, speed, vy = 0, hitstun, knockbackX, knockbackY, lifetime, noHitstop = false }) {
+  spawnProjectile(fighter, "hisoka_card", {
+    sheet: "./hisoka_card_projectile_uniform.png", spriteFrames: 2, spriteW: 11, spriteH: 8, spriteSpeed: 3, spriteScale: 2.6,
+    damage, speed, vy, hitstun, knockbackX, knockbackY, lifetime,
+    w: 20, h: 14, color: "#4aa3ff", isSpecial: true, noHitstop,
+    spawnY: fighter.y + (fighter.h || 100) * 0.42
+  }, context)
+}
+
+// DOWN — Texture Surprise (single): one precise, hard-hitting card thrown flat and fast. Higher
+// per-hit damage than the spread; a committed ranged poke. Costs 18 Nen.
+function fireHisokaCardSingle(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 18)) return false
+  try { sound.playSfxFile?.(pickHisokaVoice("texture"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Texture Surprise cast (audio-only)
+  fighter._spriteCastMove  = "cardThrowSingle"   // 4f throw pose
+  fighter._spriteCastTimer = 18
+  fighter.attackCooldown   = getAttackDuration(22, fighter)
+  schedulePendingSpawn(8, () => {   // release on the throw beat (hand-forward)
+    spawnHisokaCard(fighter, context, { damage: 48, speed: 16, hitstun: 18, knockbackX: 6, knockbackY: -2, lifetime: 95 })
+  })
+  return true
+}
+
+// FORWARD — Texture Surprise (rapid): a fast fan of cards thrown in quick succession, each angled so
+// they cover a wide vertical spread. Low per-card damage, wide coverage — a zoning/space-control tool.
+// Each card is its own projectile (independent collision). noHitstop so the burst doesn't stutter.
+// Costs 30 Nen.
+function fireHisokaCardRapid(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 30)) return false
+  try { sound.playSfxFile?.(pickHisokaVoice("texture"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Texture Surprise cast (audio-only)
+  fighter._spriteCastMove  = "cardThrowRapid"   // 6f spinning-fan pose
+  fighter._spriteCastTimer = 22
+  fighter.attackCooldown   = getAttackDuration(28, fighter)
+  // 5 cards in quick succession (staggered 2f apart), fanned vy -6..+6 for wide coverage.
+  const fan = [-6, -3, 0, 3, 6]
+  fan.forEach((vy, i) => {
+    schedulePendingSpawn(6 + i * 2, () => {
+      spawnHisokaCard(fighter, context, { damage: 16, speed: 14, vy, hitstun: 10, knockbackX: 3, knockbackY: -1, lifetime: 85, noHitstop: true })
+    })
+  })
+  return true
+}
+
+// NEUTRAL — Bungee Gum: the elastic Nen whip lashes far forward — a committed melee special with a
+// MUCH longer hitbox than any normal (rangeX 172 vs the normals' default 85 → ~2× reach, matching the
+// pink whip that extends to fill the sprite cell). High hitstun / knockback: a hard-hitting poke and
+// combo-ender that punishes from a range his buttons can't touch. NOT a grab (it's a strike hitbox).
+// Steps him slightly into the lash. Costs 30 Nen.
+function fireHisokaBungeeGum(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 30)) return false
+  try { sound.playSfxFile?.(pickHisokaVoice("bungee"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: "Bungee Gum!" cast (audio-only)
+  // In Bloodlust Overdrive the whip lashes DRAMATICALLY farther (rangeX 172 → 230) + hits harder — the
+  // "escalated Bungee Gum mastery" of the form (on top of the flat 1.3 damageMultiplier the form applies).
+  const od = !!fighter._overdriveActive
+  const md = { damage: od ? 92 : 72, startup: 8, active: 6, recovery: 18, hitstun: 22, blockstun: 12, knockbackX: od ? 10 : 8, knockbackY: -3, rangeX: od ? 230 : 172, rangeY: 48, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "bungeeGum", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "bungeeGum" → the whip pose
+  fighter.vx = (fighter.facing || 1) * 3   // small step into the lash
+  shakeCamera(context, od ? 7 : 5, 8)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HISOKA — BLOODLUST OVERDRIVE (Ultimate) — Stage 5.
+// A full ALTERNATE-FORM transformation, reusing the giant-cinematic architecture directly (mirrors
+// Killua Godspeed + Gon Adult Form): a sustained buff-mode form with (a) a _skinAnim BODY-SWAP to the
+// golden-aura power-up sprites (Sasuke-Susanoo / Vegeta-SSJ mechanism — Hisoka HAS dedicated power-up art,
+// so unlike Godspeed this actually swaps the body), (b) a frozen ACTIVATION CINEMATIC playing the
+// card-cape→golden-aura transform sequence (hisokaOverdriveCinematic.js), and (c) near-max Nen gate +
+// per-frame drain → auto-revert. While active: +30% damage, +25% attack speed, and Bungee Gum gains
+// dramatically extended reach (see fireHisokaBungeeGum). Visual identity per the real art: a golden Nen
+// power-up aura form (NOT a giant — same size) with an empowered whip; the transform sheet shows the
+// signature card-cape aura swirl resolving into the shirtless golden-aura power-up.
+const HISOKA_OVERDRIVE_THRESHOLD = 140          // Nen ≥ 140 (near-max of 170) to activate — a committed cost
+const HISOKA_OVERDRIVE_DRAIN     = 0.30         // Nen/frame while active (~8s from full) → auto-revert on empty
+const HISOKA_OVERDRIVE_MULT      = { dmg: 1.3, atkSpeed: 1.25 }
+
+// COMPLETE _skinAnim set: spread the base anim (so EVERY un-overridden action still resolves — an
+// incomplete _skinAnim would hit the fallback-box glitch, getAction treats it as the whole set), then
+// override the actions that have dedicated golden-aura power-up art (idle + up-attack). The empowered
+// Bungee Gum keeps the base whip sheet (its escalation is the reach/damage bump, not new art).
+const HISOKA_OVERDRIVE_ANIM = {
+  ...characters.hisoka.animationData,
+  idle: { frames: 4, width: 51, height: 65, speed: 8, anchorY: -2, sheet: "./hisoka_powerup_idle_uniform.png" },
+  up:   { frames: 3, width: 95, height: 66, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./hisoka_powerup_up_uniform.png" },
+}
+
+export function isHisokaOverdriveActive(f) { return !!f?._overdriveActive }
+
+function enterHisokaOverdrive(fighter, context) {
+  if (fighter._overdriveActive) return false
+  if ((fighter.energy || 0) < HISOKA_OVERDRIVE_THRESHOLD) return false
+  fighter._overdriveActive      = true
+  fighter.currentForm           = "overdrive"                  // HUD state (NOT a form-data swap)
+  fighter.damageMultiplier      = HISOKA_OVERDRIVE_MULT.dmg
+  fighter.attackMultiplier      = HISOKA_OVERDRIVE_MULT.dmg     // == damageMultiplier (combat takes the max)
+  fighter.attackSpeedMultiplier = HISOKA_OVERDRIVE_MULT.atkSpeed
+  fighter._skinAnim             = HISOKA_OVERDRIVE_ANIM         // BODY-SWAP to the golden-aura power-up form
+  // Hold the transform pose (card-cape aura swirl → golden power-up) through the activation cinematic
+  // (combat frozen; the cinematic clears it on end → power-up-form gameplay animations take over).
+  fighter._spriteCastMove  = "transform"
+  fighter._spriteCastTimer = 190
+  return true
+}
+
+function revertHisokaOverdrive(fighter) {
+  if (!fighter || !fighter._overdriveActive) return
+  fighter._overdriveActive      = false
+  fighter.currentForm           = "base"
+  fighter.damageMultiplier      = 1
+  fighter.attackMultiplier      = 1
+  fighter.attackSpeedMultiplier = 1
+  fighter._skinAnim             = fighter._baseSkinAnim || null   // restore base (Hisoka has no alt skins → null)
+}
+// Public revert for reset paths (round/KO/menu) — mirrors forceRevertGonAdultForm's role.
+export function forceRevertHisokaOverdrive(fighter) { revertHisokaOverdrive(fighter) }
+
+// Per-frame (game.updateFighterState): drain the meter → auto-revert at 0.
+export function applyHisokaOverdriveSystem(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "hisoka") return
+  if (!fighter._overdriveActive) return
+  tickSustainedFormDrain(fighter, { active: isHisokaOverdriveActive, drainPerFrame: HISOKA_OVERDRIVE_DRAIN, revert: revertHisokaOverdrive })
+}
+
+// OVERDRIVE = the buff + _skinAnim body-swap (applied at trigger) + a frozen ACTIVATION CINEMATIC
+// (hisokaOverdriveCinematic.js — camera pushes in on Hisoka, the transform plays, the camera pulls back).
+function executeHisokaUltimate(fighter, context) {
+  if (isHisokaOverdriveCinematicActive()) return false      // already mid-activation
+  if (fighter._overdriveActive) return false                // already transformed
+  if (!enterHisokaOverdrive(fighter, context)) return false // apply the buff/body-swap (gated on near-max Nen)
+  try { sound.playSfxFile?.(pickHisokaVoice("overdrive"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Bloodlust Overdrive cast (audio-only)
+  const opp = context?.getOpponent?.(fighter) || context?.p2 || null
+  activateHisokaOverdriveCinematic(fighter, opp)
   return true
 }
 
@@ -5980,6 +6242,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "flash":   { const ok = executeFlashSpecial(fighter, context); if (ok) maybeFireFlashSkinCastVoice(fighter); return ok }   // Spin Attack (neutral) / Tornado (forward); + Reverse-skin cast bark
     case "batman":  return executeBatmanSpecial(fighter, context)   // Batarang (neutral projectile) / Cape Dash (fwd mobility lunge) / Smoke Pellet (down teleport-behind)
     case "gon":     return executeGonSpecial(fighter, context)   // Jajanken: Rock (neutral, charged) / Scissors (fwd, multi-hit) / Paper (down, push)
+    case "hisoka":  return executeHisokaSpecial(fighter, context)   // Bungee Gum (neutral, extended-reach whip); Texture Surprise cards land in Stage 4
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
     default:        return executeFallbackSpecial(fighter, context)
@@ -6023,6 +6286,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "saiki":   cast = executeSaikiUltimate(fighter, context);   break   // Giant Bomb Throw: delayed screen-filling explosion
       case "killua":  cast = executeKilluaUltimate(fighter, context);  break   // Godspeed: sustained speed/damage buff + electric afterimage overlay (buff-mode, not a form swap)
       case "gon":     cast = executeGonUltimate(fighter, context);     break   // Adult Form: buff + movement-lockout + close-range SUDDEN-DEATH (hit=instant win / miss=instant loss)
+      case "hisoka":  cast = executeHisokaUltimate(fighter, context);  break   // Bloodlust Overdrive: buff + _skinAnim golden power-up body-swap + freeze cinematic (form-swap, extended whip)
       case "flash":   cast = executeFlashUltimate(fighter, context);   if (cast) maybeFireFlashSkinCastVoice(fighter);   break   // Flash Time (buff-mode) + Reverse-skin cast bark
       case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window
       case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)

@@ -91,8 +91,15 @@
     "test:flash": "node harness/flash.test.mjs",
     "test:gon": "node harness/gon.test.mjs",
     "test:gon-voice": "node harness/gon_voice.test.mjs",
+    "test:hisoka-voice": "node harness/hisoka_voice.test.mjs",
     "test:flash-godspeed": "node harness/flash_godspeed_shot.mjs",
     "test:gon-stage4": "node harness/gon_stage4.test.mjs",
+    "test:hisoka-stage1": "node harness/hisoka_stage1.mjs",
+    "test:hisoka-stage2": "node harness/hisoka_stage2.mjs",
+    "test:hisoka-stage3": "node harness/hisoka_stage3.mjs",
+    "test:hisoka-stage4": "node harness/hisoka_stage4.mjs",
+    "test:hisoka-stage5": "node harness/hisoka_stage5.mjs",
+    "test:hisoka": "node harness/hisoka.test.mjs",
     "test:batman-stage1": "node harness/batman_stage1_shots.mjs",
     "test:batman-stage2": "node harness/batman_stage2_shots.mjs",
     "test:batman-stage3": "node harness/batman_stage3_shots.mjs",
@@ -135,7 +142,8 @@
     "test:minato-s4": "node harness/minato_stage4.mjs",
     "test:minato-s5": "node harness/minato_stage5.mjs",
     "test:minato-s6": "node harness/minato_stage6.mjs",
-    "test:minato": "node harness/minato.test.mjs"
+    "test:minato": "node harness/minato.test.mjs",
+    "test:minato-voice": "node harness/minato_voice.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

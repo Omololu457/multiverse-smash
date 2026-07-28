@@ -32,6 +32,7 @@ import { pickMinatoVoice } from "./minatoVoice.js"   // Minato cast voice pools 
 import { pickOmniManVoice } from "./omnimanVoice.js"   // Omni-Man special/flight/ultimate cast voice pool (audio-only; no cycle)
 import { pickTobiramaVoice } from "./tobiramaVoice.js"   // Tobirama cast/ultimate voice pools (audio-only; no cycle)
 import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin voice override (Gojo "Limitless" young pack)
+import { pickZenitsuVoice } from "./zenitsuVoice.js"             // Zenitsu Thunder-Breathing / Double-Attack / ultimate cast voice pools (audio-only)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
@@ -4497,6 +4498,142 @@ export function updateZenitsuCommandCombat(fighter, inputState, context, getPhas
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ZENITSU SPECIAL — SPECIAL button, direction-branched via _specialHeldDir (Killua/Gon architecture).
+//   Neutral (+Back/Up) = THUNDER BREATHING FIRST FORM: Thunderclap and Flash — a fast, single-
+//     decisive-hit DASH-STRIKE (he lunges forward on the strike). Blockable. COOLDOWN-gated
+//     (thunderCd), NOT energy-gated — Zenitsu has maxEnergy 0, so the no-energy roster gates its
+//     specials on a dedicated cooldown timer (mirrors Toji's chainCooldown), ticked in
+//     game.updateMiscTimers. This is the SAME cooldown mechanism the Stage-5 Ultimate reuses.
+//   Forward / Down = DOUBLE ATTACK (Tanjiro / Inosuke) — wired in Stage 4 (both currently fall through
+//     to the Thunderclap so the button is never dead).
+// ─────────────────────────────────────────────────────────────────────────────
+const ZENITSU_THUNDER_CD = 90   // ~1.5s at 60fps — anti-spam gate for the free (no-energy) dash-strike
+const ZENITSU_DOUBLE_CD  = 150  // ~2.5s — shared cooldown for BOTH Double Attack variants (Tanjiro/Inosuke)
+function executeZenitsuSpecial(fighter, context) {
+  // Direction-branched (Killua/Gon architecture) via _specialHeldDir:
+  //   Forward = DOUBLE ATTACK: Tanjiro   ·   Down = DOUBLE ATTACK: Inosuke   ·   Neutral = Thunderclap.
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireZenitsuDoubleAttack(fighter, context, "tanjiro")
+  if (dir === "D") return fireZenitsuDoubleAttack(fighter, context, "inosuke")
+  return fireZenitsuThunderclap(fighter, context)
+}
+
+// ── DOUBLE ATTACK (Stage 4) — two hardcoded partner variants, ONE special, shared cooldown ─────────
+// A scripted PINCER combo (NOT two independently-controlled fighters): Zenitsu flash-dashes in from his
+// side (his zenThunderclap pose + forward lunge) while the chosen partner (Tanjiro water-slash / Inosuke
+// dual-blade) is spawned on the OPPONENT'S FAR side and rushes INWARD — the opponent is caught between
+// both. The partner is a sprite-backed summon (rush → one-hit → poof via spawnClonePuff). Cooldown-gated
+// (doubleAtkCd), NOT energy-gated (Zenitsu has maxEnergy 0). Both variants share ZENITSU_DOUBLE_CD.
+function fireZenitsuDoubleAttack(fighter, context, partner) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.doubleAtkCd || 0) > 0) return false   // COOLDOWN gate (shared by both variants)
+  const opp = context?.getOpponent?.(fighter)
+  const dir = fighter.facing || 1
+  // ZENITSU'S half — a lunging flash-strike from his side (reuses the lightning dash-in pose).
+  const md = { damage: 70, startup: 6, active: 5, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -2, rangeX: 104, rangeY: 62, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "zenThunderclap", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = dir * 12
+  for (const t of [2, 4, 6, 8]) schedulePendingSpawn(t, () => { if (fighter.currentAttack && fighter.currentAttack.name === "zenThunderclap") fighter.vx = dir * 12 })
+  // PARTNER'S half — spawn the scripted partner on the opponent's FAR side; it rushes back inward.
+  if (opp) {
+    const summonId = partner === "tanjiro" ? "zenitsuTanjiro" : "zenitsuInosuke"
+    const p = spawnAssistSummon(fighter, summonId, opp)
+    if (p) {
+      p.x = opp.x + dir * 90            // land BEYOND the opponent (far side) → rush behavior carries it inward
+      p.y = opp.y + (p.offsetY || 0)
+      p.facing = -dir                   // face back toward the opponent (movement re-derives this each frame)
+    }
+  }
+  fighter.doubleAtkCd = ZENITSU_DOUBLE_CD
+  // VOICE: Double Attack "full commitment" finisher line — fires on BOTH variants (audio-only). Set
+  // _atkVoiceCd so the offense-connect bark can't stack on the cast line.
+  try { sound.playSfxFile?.(pickZenitsuVoice("doubleAttack"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  fighter._doubleAtkVariant = partner   // telemetry/harness
+  shakeCamera(context, 7, 12)
+  return true
+}
+
+// ── ZENITSU ULTIMATE (Stage 5) — Thunderclap & Flash: Godspeed (dash-through slice) ────────────────
+// DELIBERATELY unlike every other roster ultimate. Key properties:
+//   • DASH-THROUGH: crouch-charge → flash-blink PAST the opponent to the far side (not a stationary hit).
+//   • SAME-LEVEL: only connects if both fighters are at matching level (both grounded, or both airborne
+//     at matching height). On a mismatch it WHIFFS — the dash still fires + the cooldown is still spent
+//     (chosen over refund/block: simpler, and less exploitable — mistiming costs you the window, and a
+//     free refund would let you mash it safely until the levels line up).
+//   • UNBLOCKABLE: attack.unblockable bypasses combat.resolveAttackHit's guard branch (a real exception).
+//   • HIGH DAMAGE: 300 raw → 180 EFF (scaled pipeline, honest side of the audit) — Rick-ult tier.
+//   • COOLDOWN-GATED, NOT ENERGY: reuses the EXISTING universal `ultimateCooldown` gate (triggerUltimate
+//     already blocks on it), but stamped SHORT (8s) via `_suppressUltCooldown` instead of the 20s default.
+//     No energy is spent (Zenitsu has maxEnergy 0). See ZENITSU_ASSET_MAP.md / BALANCE_AUDIT flag.
+const ZENITSU_ULT_CD = 480   // 8s @ 60fps — short real-time recast (design band 5-10s)
+function zenitsuSameLevel(a, b) {
+  const aG = a.onGround ?? a.grounded ?? true
+  const bG = b.onGround ?? b.grounded ?? true
+  if (aG && bG) return true                       // both grounded = same level
+  if (aG !== bG) return false                     // one grounded, one airborne = mismatch
+  return Math.abs((a.y || 0) - (b.y || 0)) <= 46  // both airborne → matching height
+}
+function executeZenitsuUltimate(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const target = context?.getOpponent?.(fighter)
+  const dir = fighter.facing || 1
+  // VOICE: ultimate ACTIVATION cry ("Godspeed!" / "Thunder Breathing: Total Concentration!") — fires
+  // HERE, on activation, BEFORE the dash blink is scheduled (NOT on connect). Random of the two.
+  try { sound.playSfxFile?.(pickZenitsuVoice("ultimate"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  const sameLevel = !!target && zenitsuSameLevel(fighter, target)
+  const STARTUP = 10
+  const md = { damage: 300, startup: STARTUP, active: 6, recovery: 22, hitstun: 34, blockstun: 0, knockbackX: 15, knockbackY: -5, rangeX: 150, rangeY: 72, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "zenUltimate", md, { minActiveStart: STARTUP, minActiveEnd: STARTUP + md.active })
+  attack.isSpecial = true
+  attack.isUltimate = true
+  attack.unblockable = true               // bypass the guard check (deliberate)
+  if (!sameLevel) attack.hasHit = true    // LEVEL MISMATCH → inert hitbox = clean whiff (cooldown still spent)
+  setAttackState(fighter, attack, STARTUP + md.active + md.recovery)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, STARTUP + 10)   // i-frames covering the blink
+  fighter._zenUltWhiff = !sameLevel       // telemetry/harness
+  // DASH-THROUGH: after the crouch-charge startup, blink PAST the opponent to the far side.
+  schedulePendingSpawn(STARTUP, () => {
+    if (target) {
+      const sw = context?.worldWidth || 3200
+      const gap = (target.w || 60) + 30
+      fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), target.x + dir * gap))   // ends on the far side (passed through)
+      fighter.vx = dir * 6
+      fighter.facing = (target.x >= fighter.x) ? 1 : -1
+    }
+  })
+  // SHORT cooldown (NOT energy) — reuse the universal ultimateCooldown gate, stamped 8s not 20s.
+  fighter._suppressUltCooldown = true
+  fighter.ultimateCooldown = ZENITSU_ULT_CD
+  shakeCamera(context, 9, 16)
+  focusCameraOnAction(context, fighter, target, 1.0, 10)
+  return true
+}
+// FIRST FORM: THUNDERCLAP AND FLASH — near-instant lunging strike. Fast startup, one heavy hit, he
+// travels forward INTO the opponent (the canon dash-through feel, kept blockable/normal here; the
+// UNBLOCKABLE dash-THROUGH is the Stage-5 Ultimate). currentMove = "zenThunderclap" → the lightning-
+// trail dash sprite.
+function fireZenitsuThunderclap(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.thunderCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
+  const md = { damage: 130, startup: 6, active: 4, recovery: 17, hitstun: 26, blockstun: 14, knockbackX: 12, knockbackY: -3, rangeX: 104, rangeY: 60, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "zenThunderclap", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "zenThunderclap" → dash-strike sprite
+  // DASH-IN lunge: reassert forward velocity across startup→active so he closes the gap on the strike.
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 13
+  for (const t of [2, 4, 6, 8]) schedulePendingSpawn(t, () => { if (fighter.currentAttack && fighter.currentAttack.name === "zenThunderclap") fighter.vx = dir * 13 })
+  fighter.thunderCd = ZENITSU_THUNDER_CD
+  // VOICE: First Form callout ("Thunder Breathing, First Form!") — random of the two (audio-only). Set
+  // _atkVoiceCd so the offense-connect bark can't double up on top of this cast line (Gon precedent).
+  try { sound.playSfxFile?.(pickZenitsuVoice("thunderclap"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  shakeCamera(context, 5, 8)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TOBIRAMA — taijutsu command chain + 2 free pokes (Stage 3). Mirrors the Omega
 // Ranger architecture (chain + pokes), cancel-on-HIT (Vegeta/Killua pattern).
 // CHAIN (Fwd+Heavy → re-tap Heavy): tobiCombo1 → tobiCombo2 (water-infused strike) →
@@ -6242,6 +6379,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "flash":   { const ok = executeFlashSpecial(fighter, context); if (ok) maybeFireFlashSkinCastVoice(fighter); return ok }   // Spin Attack (neutral) / Tornado (forward); + Reverse-skin cast bark
     case "batman":  return executeBatmanSpecial(fighter, context)   // Batarang (neutral projectile) / Cape Dash (fwd mobility lunge) / Smoke Pellet (down teleport-behind)
     case "gon":     return executeGonSpecial(fighter, context)   // Jajanken: Rock (neutral, charged) / Scissors (fwd, multi-hit) / Paper (down, push)
+    case "zenitsu": return executeZenitsuSpecial(fighter, context)   // Thunder Breathing 1st Form dash-strike (neutral); Double Attack (Fwd/Down) = Stage 4
     case "hisoka":  return executeHisokaSpecial(fighter, context)   // Bungee Gum (neutral, extended-reach whip); Texture Surprise cards land in Stage 4
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
@@ -6286,6 +6424,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "saiki":   cast = executeSaikiUltimate(fighter, context);   break   // Giant Bomb Throw: delayed screen-filling explosion
       case "killua":  cast = executeKilluaUltimate(fighter, context);  break   // Godspeed: sustained speed/damage buff + electric afterimage overlay (buff-mode, not a form swap)
       case "gon":     cast = executeGonUltimate(fighter, context);     break   // Adult Form: buff + movement-lockout + close-range SUDDEN-DEATH (hit=instant win / miss=instant loss)
+      case "zenitsu": cast = executeZenitsuUltimate(fighter, context); break   // Godspeed: dash-THROUGH slice — same-level, UNBLOCKABLE, 8s COOLDOWN (not energy)
       case "hisoka":  cast = executeHisokaUltimate(fighter, context);  break   // Bloodlust Overdrive: buff + _skinAnim golden power-up body-swap + freeze cinematic (form-swap, extended whip)
       case "flash":   cast = executeFlashUltimate(fighter, context);   if (cast) maybeFireFlashSkinCastVoice(fighter);   break   // Flash Time (buff-mode) + Reverse-skin cast bark
       case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window

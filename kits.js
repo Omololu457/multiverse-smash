@@ -389,56 +389,6 @@ export const KITS = {
   },
 
   // ── DEMON SLAYER ─────────────────────────────────────────────
-  tanjiro: {
-    type: "Water/Flame Breathing Rushdown", energy: "None (pure physical)", difficulty: "Medium",
-    summary: "A versatile breathing-style duelist who blends flowing Water forms with explosive Flame bursts to control range and tempo.",
-    passive: { name: "Sun Breathing Echo", effect: "Landing three consecutive hits briefly speeds up his next slash, rewarding clean combo strings." },
-    basics: [
-      { name: "Blade Combo", input: "Light",                    desc: "fast multi-slash poke" },
-      { name: "Heavy Slash", input: "Heavy",                    desc: "strong knockback cut" },
-      { name: "Rising Cut",  input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Slash",   input: "Air (jump + Light)",       desc: "quick aerial slash" },
-      { name: "Dive Cut",    input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",        input: "Grab",                     desc: "throw" }
-    ],
-    specials: [
-      { name: "Water Surface Slasher",  input: "Special",           cost: 0, desc: "sweeping horizontal water blade with long reach" },
-      { name: "Dance of the Fireflies", input: "Down + Special",    cost: 0, desc: "rapid multi-slash flurry that shreds guard" },
-      { name: "Whirlpool Form",         input: "Forward + Special", cost: 0, desc: "spinning Water Breathing arc that draws and slashes a closing foe" }
-    ],
-    mobility: { name: "Constant Flux", input: "Forward + Special", cost: 0, desc: "flowing breathing-form dash that glides past attacks into range" },
-    ultimate: { name: "Hinokami Kagura", input: "Ultimate (full meter)", cost: 0, desc: "ignites Sun Breathing for 1.6x damage and 1.3x speed at the cost of slightly lowered defense" },
-    combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special",         desc: "core ground string ending in Water Surface Slasher" },
-      { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air, Air",            desc: "launch into a two-hit aerial" },
-      { name: "Flame Finisher", sequence: "Heavy, Down + Special, Ultimate",      desc: "stagger into flurry, then ignite Hinokami Kagura" }
-    ]
-  },
-  nezuko: {
-    type: "Demon Blood Brawler", energy: "None (pure physical)", difficulty: "Medium",
-    summary: "A blisteringly fast demon who ramps up through aggression, weaving kicks and explosive blood-art bursts that scale as the fight drags on.",
-    passive: { name: "Regenerative Blood", effect: "Slowly recovers a trickle of health while not taking damage, rewarding hit-and-run pressure." },
-    basics: [
-      { name: "Claw Combo",  input: "Light",                    desc: "fast slashing kicks" },
-      { name: "Heavy Kick",  input: "Heavy",                    desc: "powerful knockback strike" },
-      { name: "Rising Kick", input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Claw",    input: "Air (jump + Light)",       desc: "quick aerial swipe" },
-      { name: "Dive Stomp",  input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",        input: "Grab",                     desc: "throw" }
-    ],
-    specials: [
-      { name: "Blood Demon Art", input: "Special",           cost: 0, desc: "explosive burst of demonic blood-fire that erupts on contact" },
-      { name: "Exploding Blood", input: "Down + Special",    cost: 0, desc: "ignites pooled blood at her feet for a close-range detonation" },
-      { name: "Demon Lunge",     input: "Forward + Special",  cost: 0, desc: "pouncing forward claw rush that closes distance and slashes" }
-    ],
-    mobility: { name: "Demon Step", input: "Forward + Special", cost: 0, desc: "explosive low-stance dash powered by demonic speed" },
-    ultimate: { name: "Full Demon Transformation", input: "Ultimate (full meter)", cost: 0, desc: "unleashes her demon form for 1.7x damage, 1.4x speed, and active regeneration" },
-    combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special", desc: "kick string into Blood Demon Art burst" },
-      { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air, Air",     desc: "rising kick into aerial swipes" },
-      { name: "Demon Rush",     sequence: "Forward + Special, Light, Down + Special", desc: "lunge in, poke, then detonate exploding blood" }
-    ]
-  },
   zenitsu: {
     type: "Thunder Breathing Burst Assassin", energy: "None (pure physical)", difficulty: "Hard",
     summary: "A one-note prodigy built around a single devastating Thunderclap — frail but the fastest blade on the roster, lethal in a single committed flash.",
@@ -462,81 +412,6 @@ export const KITS = {
       { name: "Bread & Butter", sequence: "Light, Heavy, Special",         desc: "poke into a Thunderclap finisher" },
       { name: "Flash Punish",   sequence: "Forward + Special, Special",    desc: "rice-spirit approach into the Thunderclap kill" },
       { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air, Air",     desc: "rising bolt into aerial slashes" }
-    ]
-  },
-  inosuke: {
-    type: "Beast Breathing Berserker", energy: "None (pure physical)", difficulty: "Medium",
-    summary: "A relentless dual-blade brawler who buries opponents under wild, unpredictable spinning slashes and never lets pressure drop.",
-    passive: { name: "Spatial Awareness", effect: "Senses incoming attacks, granting a brief edge to his dash recovery so he can re-engage faster than most." },
-    basics: [
-      { name: "Twin Slash", input: "Light",                    desc: "fast serrated dual cuts" },
-      { name: "Heavy Chop", input: "Heavy",                    desc: "wild knockback swing" },
-      { name: "Rising Gut", input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Slash",  input: "Air (jump + Light)",       desc: "strong aerial swipe" },
-      { name: "Dive Chop",  input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",       input: "Grab",                     desc: "throw" }
-    ],
-    specials: [
-      { name: "Dual Sword Frenzy", input: "Special",           cost: 0, desc: "spinning multi-slash whirlwind that mauls anything in front" },
-      { name: "Piercing Fang",     input: "Down + Special",    cost: 0, desc: "low erratic stab that ducks under high attacks and gores the legs" },
-      { name: "Beast Pounce",      input: "Forward + Special", cost: 0, desc: "feral leaping double-slash that crashes onto a retreating foe" }
-    ],
-    mobility: { name: "Beast Rush", input: "Forward + Special", cost: 0, desc: "low animalistic charging dash that barrels through space" },
-    ultimate: { name: "Beast Breathing Dragon Head", input: "Ultimate (full meter)", cost: 0, desc: "explodes into a frenzied speed-and-attack surge with wild, unpredictable combo strings" },
-    combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special",        desc: "twin slashes into the Frenzy whirlwind" },
-      { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air, Air",           desc: "gut launch into aerial swipes" },
-      { name: "Beast Mixup",    sequence: "Forward + Special, Down + Special",   desc: "pounce in, then low fang to catch blockers" }
-    ]
-  },
-  rengoku: {
-    type: "Flame Breathing Pressure Pillar", energy: "None (pure physical)", difficulty: "Easy",
-    summary: "A blazing front-line Hashira who applies constant fiery pressure with hard-hitting single slashes and overwhelming forward momentum.",
-    passive: { name: "Burning Resolve", effect: "His flame-wreathed blade adds a small lingering burn to special hits, chipping foes who linger in range." },
-    basics: [
-      { name: "Flame Combo",  input: "Light",                    desc: "swift burning slashes" },
-      { name: "Heavy Cut",    input: "Heavy",                    desc: "heavy fiery knockback cut" },
-      { name: "Rising Flame", input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Slash",    input: "Air (jump + Light)",       desc: "blazing aerial cut" },
-      { name: "Dive Cut",     input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",         input: "Grab",                     desc: "throw" }
-    ],
-    specials: [
-      { name: "Flame Breathing First Form", input: "Special",           cost: 0, desc: "Unknowing Fire — a single committed fiery slash with huge reach" },
-      { name: "Rising Scorching Sun",       input: "Down + Special",    cost: 0, desc: "upward flame arc that torches and pops up close opponents" },
-      { name: "Flame Tiger",                input: "Forward + Special", cost: 0, desc: "ninth form — a roaring beast of flame surges forward as a charging slash" }
-    ],
-    mobility: { name: "Rengoku Dash", input: "Forward + Special", cost: 0, desc: "flame-trailing advancing step that closes ground into a slash" },
-    ultimate: { name: "Flame Pillar's Might", input: "Ultimate (full meter)", cost: 0, desc: "enhances attack and speed and adds fiery AoE strikes that scorch on impact" },
-    combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special",         desc: "slashes into Unknowing Fire" },
-      { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air, Air",            desc: "rising flame into aerial cuts" },
-      { name: "Tiger Charge",   sequence: "Forward + Special, Heavy, Ultimate",   desc: "Flame Tiger in, heavy confirm, ignite Pillar's Might" }
-    ]
-  },
-  akaza: {
-    type: "Destructive Death Demon", energy: "None (pure physical)", difficulty: "Hard",
-    summary: "An Upper Moon martial-artist demon who ramps into terrifying speed and power, reading openings to land brutal compass-needle strikes.",
-    passive: { name: "Combat Reader", effect: "Each landed special slightly sharpens his next strike's startup, scaling his offense the longer he stays aggressive." },
-    basics: [
-      { name: "Fist Combo",  input: "Light",                    desc: "fast martial strikes" },
-      { name: "Heavy Blow",  input: "Heavy",                    desc: "devastating knockback strike" },
-      { name: "Rising Palm", input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Strike",  input: "Air (jump + Light)",       desc: "swift aerial blow" },
-      { name: "Dive Smash",  input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",        input: "Grab",                     desc: "throw" }
-    ],
-    specials: [
-      { name: "Destructive Strike", input: "Special",           cost: 0, desc: "Destructive Death technique — a concussive shockwave punch" },
-      { name: "Annihilation Type",  input: "Down + Special",    cost: 0, desc: "ground-pounding burst that erupts compass-needle shockwaves at his feet" },
-      { name: "Disorder",           input: "Forward + Special", cost: 0, desc: "rushing flurry of accelerating blows that walks the foe into the corner" }
-    ],
-    mobility: { name: "Destructive Step", input: "Forward + Special", cost: 0, desc: "explosive martial-arts dash that erases distance to set up a strike" },
-    ultimate: { name: "Upper Moon Three Form", input: "Ultimate (full meter)", cost: 0, desc: "fully unleashes his Upper Moon power for surging damage, speed, and regeneration" },
-    combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special",         desc: "strikes into the Destructive shockwave" },
-      { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air, Air",            desc: "palm launch into aerial blows" },
-      { name: "Pressure Loop",  sequence: "Forward + Special, Disorder, Down + Special", desc: "step in, flurry, then erupt Annihilation Type" }
     ]
   },
 

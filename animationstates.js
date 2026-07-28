@@ -186,29 +186,8 @@ const UNIVERSE_MOVE_MAP = {
     ultimate:       "ultimate_start",
   },
   // Demon Slayer
-  tanjiro: {
-    waterSurfaceSlasher:  "sword_combo_chain",
-    danceOfTheFireflies:  "ability_2_active",
-    ultimate:             "ultimate_start",
-  },
-  nezuko: {
-    bloodDemonArt: "ability_1_active",
-    ultimate:      "ultimate_start",
-  },
   zenitsu: {
     thunderClapStrike: "zenitsu_thunder_dash",
-    ultimate:          "ultimate_start",
-  },
-  inosuke: {
-    dualSwordFrenzy: "inosuke_beast_stance",
-    ultimate:        "ultimate_start",
-  },
-  rengoku: {
-    flameBreathingFirstForm: "rengoku_flame_charge",
-    ultimate:                "ultimate_start",
-  },
-  akaza: {
-    destructiveStrike: "akaza_compass_activation",
     ultimate:          "ultimate_start",
   },
   // Rick & Morty

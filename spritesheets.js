@@ -212,6 +212,14 @@ export const SPRITE_MANIFEST = {
   // "./" prefix on those paths (see OMNI_MAN_ASSET_MAP.md).
   omniman: {
     actions: { idle: "./omni_man_idle.png" }
+  },
+
+  // Zenitsu Agatsuma (universe: demon_slayer) — FIRST Demon Slayer sprite char. Gates
+  // spritesReady() by decoding the idle strip → flips Zenitsu from procedural box to sprite.
+  // Per-action rendering reads characters.js → zenitsu.animationData (each action carries its
+  // own .sheet). idle = the RE-SLICED uniform strip (tools/reslice_strip.mjs). See ZENITSU_ASSET_MAP.md.
+  zenitsu: {
+    actions: { idle: "./zenitsu_idle_uniform.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

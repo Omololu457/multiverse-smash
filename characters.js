@@ -1162,70 +1162,17 @@ const minato = {
 // ─────────────────────────────────────────────────────────────────
 // DEMON SLAYER
 // ─────────────────────────────────────────────────────────────────
-const tanjiro = {
-  rosterKey: "tanjiro", name: "Tanjiro Kamado", universe: "demon_slayer",
-  archetypes: ["melee", "breathing"],
-  primary: "melee", secondary: ["breathing"],
-  traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "versatile", animeMovement: true },
-  stats: { maxHealth: 1100, maxEnergy: 0, attack: 86, defense: 82, speed: 88, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 42 },
-  basic_attacks: {
-    light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 75, startup: 8, active: 4, recovery: 14, hitstun: 17, knockbackX: 1, knockbackY: 9 },
-    grab:      { damage: 28, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 4, throwForceY: -3 }
-  },
-  specials: {
-    waterSurfaceSlasher: { cost: 0, damage: 120, startup: 11, active: 4, recovery: 20, hitstun: 21, knockbackX: 8, knockbackY: -1, effect: "sweeping water blade" },
-    danceOfTheFireflies: { cost: 0, damage: 100, startup: 9, active: 6, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: -1, effect: "rapid multi-slash attack" }
-  },
-  ultimate: { name: "Hinokami Kagura", cost: 0, duration: 8, effect: "Flame transformation" },
-  transformationOrder: ["base","hinokamiKagura"],
-  transformations: {
-    base:           { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    hinokamiKagura: { damageMultiplier: 1.6, speedMultiplier: 1.3, defenseMultiplier: 0.9, duration: 900 }
-  },
-  animationData: { ...DEFAULT_ANIM }
-}
-
-const nezuko = {
-  rosterKey: "nezuko", name: "Nezuko Kamado", universe: "demon_slayer",
-  archetypes: ["melee", "demon"],
-  primary: "melee", secondary: ["demon"],
-  traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "ramp", animeMovement: true },
-  stats: { maxHealth: 1050, maxEnergy: 0, attack: 82, defense: 78, speed: 92, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 10, dashCooldownMax: 38 },
-  basic_attacks: {
-    light:     { damage: 40, startup: 4, active: 3, recovery: 9, hitstun: 11, knockbackX: 2, knockbackY: 0 },
-    heavy:     { damage: 80, startup: 7, active: 4, recovery: 16, hitstun: 17, knockbackX: 5, knockbackY: 1 },
-    upAttack:  { damage: 65, startup: 6, active: 4, recovery: 15, hitstun: 19, knockbackX: 2, knockbackY: -7 },
-    airAttack: { damage: 55, startup: 4, active: 3, recovery: 9, hitstun: 12, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 70, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 }
-  },
-  specials: {
-    bloodDemonArt:  { cost: 0, damage: 140, startup: 12, active: 5, recovery: 21, hitstun: 24, knockbackX: 9, knockbackY: -2, effect: "explosive demonic attack" },
-    explodingBlood: { cost: 0, damage: 95,  startup: 9,  active: 5, recovery: 17, hitstun: 18, knockbackX: 6, knockbackY: -1, effect: "close-range blood detonation" },
-    demonLunge:     { cost: 0, damage: 80,  startup: 7,  active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 22, effect: "pouncing claw rush" }
-  },
-  ultimate: { name: "Full Demon Transformation", cost: 0, duration: 8, effect: "Increased speed, damage, and regeneration" },
-  transformationOrder: ["base","fullDemon"],
-  transformations: {
-    base:      { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    fullDemon: { damageMultiplier: 1.7, speedMultiplier: 1.4, defenseMultiplier: 0.85, duration: 14 }
-  },
-  animationData: { ...DEFAULT_ANIM }
-}
-
 const zenitsu = {
   rosterKey: "zenitsu", name: "Zenitsu Agatsuma", universe: "demon_slayer",
+  portrait: "./zenitsu_portrait.png",   // bust cropped from idle frame 0 (no dedicated mugshot in the batch)
   archetypes: ["melee", "speed"],
   primary: "melee", secondary: ["speed"],
   traits: { hasEnergy: false, energyType: "none", mobility: "very_high", scaling: "burst", animeMovement: true },
   stats: { maxHealth: 1000, maxEnergy: 0, attack: 88, defense: 74, speed: 96, maxJumps: 2, jumpPower: 30, dashSpeed: 20, dashDuration: 8, dashCooldownMax: 35 },
   basic_attacks: {
     light:     { damage: 50, startup: 3, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 90, startup: 7, active: 3, recovery: 16, hitstun: 19, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { damage: 70, startup: 6, active: 3, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -8 },
+    heavy:     { damage: 90, startup: 7, active: 3, recovery: 16, hitstun: 19, knockbackX: 6, knockbackY: 1, rangeX: 78, rangeY: 50 },
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 3, recovery: 14, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
     airAttack: { damage: 60, startup: 4, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 80, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
@@ -1234,85 +1181,61 @@ const zenitsu = {
     sixfold:           { cost: 0, damage: 95,  startup: 6, active: 6, recovery: 16, hitstun: 16, knockbackX: 5,  knockbackY: -1, effect: "stationary multi-strike thunderclap volley" },
     godspeed:          { cost: 0, damage: 80,  startup: 5, active: 4, recovery: 12, hitstun: 14, knockbackX: 5,  knockbackY: -1, subtype: "mobility", dashSpeed: 26, effect: "flash-step that crosses the screen" }
   },
-  ultimate: { name: "Thunder Breathing Mastery", cost: 0, duration: 6, effect: "Extreme speed, multi-strike combos, high crit chance" },
-  transformationOrder: ["base","sleepingThunder"],
-  transformations: {
-    base:            { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    sleepingThunder: { damageMultiplier: 1.8, speedMultiplier: 1.6, defenseMultiplier: 0.8, duration: 10 }
+  // Ultimate = Thunderclap dash-through slice (Stage 5). COOLDOWN-gated, NOT energy-gated
+  // (Zenitsu has maxEnergy 0). HUD-only placeholder until the Stage 5 wiring lands in abilities.js.
+  ultimate: { name: "Thunder Breathing: Godspeed", cost: 0, description: "Unblockable flash-step dash that passes through the opponent when both are at the same level. Cooldown-gated." },
+  hasSprites: true,
+  // FIRST Demon Slayer sprite character. Canon height ~164.5cm → target ~102px (0.623×164.5).
+  // idle content 45px at scale 1.0 → spriteScale 2.25 → ~101px on-screen (roster band). See
+  // HEIGHT_REFERENCE.md. Resliced cells are bottom-aligned (feet at cell bottom, 1px pad) so a
+  // single anchorY: 0 plants feet across every standing action. REQUIRES the skins.js `zenitsu`
+  // default skin + the spritesheets.js SPRITE_MANIFEST idle gate.
+  spriteScale: 2.25,
+  animationData: {
+    // idle strip = 7 cells; cells 5-6 are a sword-raise flourish that would pop in a loop, so the
+    // breathing idle loops just the first 5 (the entrance sword-draw lives in the intro strip).
+    idle: { frames: 5, width: 38, height: 60, speed: 7, anchorY: 0, sheet: "./zenitsu_idle_uniform.png" },
+    // Only one locomotion strip was uploaded (a 4-frame run cycle) — walk plays it slower.
+    walk: { frames: 4, width: 47, height: 51, speed: 6, anchorY: 0, sheet: "./zenitsu_run_uniform.png" },
+    run:  { frames: 4, width: 47, height: 51, speed: 4, anchorY: 0, sheet: "./zenitsu_run_uniform.png" },
+    dash: { frames: 3, width: 51, height: 48, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_dash_uniform.png" },   // ground dash blur (speed lines)
+    // jump.png = crouch→rise→apex arc; play once + hold. fall = the apex/descent pose (last cell).
+    jump: { frames: 6, width: 39, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_jump_uniform.png" },
+    fall: { frames: 1, width: 39, height: 58, speed: 6, anchorY: 0, sourceX: 195, loop: false, lockLastFrame: true, sheet: "./zenitsu_jump_uniform.png" },
+    // Guard — no dedicated block art; the charge/braced low stance (unused: maxEnergy 0) doubles as
+    // the block pose. Single braced frame, held while blocking.
+    guard: { frames: 1, width: 41, height: 47, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_guard_uniform.png" },
+    // HURT — frame 0 of the 8-cell hit strip (the backward recoil) as a single-frame flinch;
+    // combat.js colorFlash tints on top. Every plain hitstun/stun routes here.
+    hurt: { frames: 1, width: 57, height: 52, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_hit_uniform.png" },
+    // KNOCKDOWN — the full recoil→sprawl→lie sequence (cells 0-7). lockLastFrame holds the downed pose.
+    knockdown: { frames: 8, width: 57, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_hit_uniform.png" },
+    // Pre-match INTRO — DEDICATED entrance strip (12 cells: sword-draw → ready stance). Unlike
+    // Gon/Minato (idle-hold stopgaps), Zenitsu shipped a real intro animation.
+    intro: { frames: 12, width: 44, height: 61, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_intro_uniform.png" },
+    // ── STAGE 2 NORMALS ── resliced feet-aligned (*_uniform.png); anchorY 0 plants feet.
+    // loop:false + lockLastFrame holds the strike pose through recovery. basic_attacks above carries
+    // the hit/frame DATA these render over. Keys are light/heavy/up/air/down_air (SPRITE keys).
+    light:    { frames: 3, width: 56, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_foward_slash_uniform.png" },   // quick forward katana slash
+    heavy:    { frames: 3, width: 71, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_foward_hit_uniform.png" },      // committed forward two-slash
+    up:       { frames: 3, width: 61, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_up_attack_uniform.png" },        // rising upward slash (launcher)
+    air:      { frames: 2, width: 67, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_down_air_2_uniform.png" },       // neutral aerial horizontal thrust
+    down_air: { frames: 5, width: 56, height: 58, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_down_air_1_uniform.png" },       // descending diagonal slash
+    // ── STAGE 2 COMMAND CHAIN ── Down+Heavy → zenCombo1→2→3 (cancel-on-hit; whiff/block ends it).
+    // currentMove-keyed poses (sprite.js identity map). Overflow melee: low sweep → dash lunge →
+    // rising super-slash launcher finisher. (super_up_attack = the S2 launcher, NOT a S3 special.)
+    zenCombo1: { frames: 4, width: 71, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_down_attack_uniform.png" },     // opener — low sweeping slash
+    zenCombo2: { frames: 5, width: 53, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_dash_attack_uniform.png" },      // mid — dashing lunge
+    zenCombo3: { frames: 6, width: 42, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_super_up_uniform.png" },         // finisher — rising super vertical slash (launches)
+    // ── STAGE 3 SPECIAL ── Thunder Breathing First Form: Thunderclap and Flash (dash-strike).
+    // currentMove identity pose (charge stance → lightning-trail dash → strike). Cooldown-gated.
+    zenThunderclap: { frames: 8, width: 56, height: 48, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_thunderclap_uniform.png" },
+    // ── STAGE 5 ULTIMATE ── Thunderclap & Flash: Godspeed — the dash-through slice (crouch-charge →
+    // flash-dash across → recover). currentMove identity pose. Unblockable, same-level, cooldown-gated.
+    zenUltimate: { frames: 6, width: 51, height: 48, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zenitsu_ultimate_uniform.png" }
   },
-  animationData: { ...DEFAULT_ANIM }
-}
-
-const inosuke = {
-  rosterKey: "inosuke", name: "Inosuke Hashibira", universe: "demon_slayer",
-  archetypes: ["melee", "berserk"],
-  primary: "melee", secondary: ["berserk"],
-  traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "constant_pressure", animeMovement: true },
-  stats: { maxHealth: 1080, maxEnergy: 0, attack: 87, defense: 80, speed: 88, maxJumps: 2, jumpPower: 30, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 40 },
-  basic_attacks: {
-    light:     { damage: 45, startup: 4, active: 3, recovery: 9, hitstun: 12, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 85, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { damage: 70, startup: 7, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 65, startup: 5, active: 3, recovery: 9, hitstun: 14, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 75, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 }
-  },
-  specials: {
-    dualSwordFrenzy: { cost: 0, damage: 140, startup: 10, active: 6, recovery: 20, hitstun: 23, knockbackX: 8, knockbackY: -1, effect: "spinning multi-slash attack" },
-    piercingFang:    { cost: 0, damage: 90,  startup: 8,  active: 4, recovery: 16, hitstun: 16, knockbackX: 5, knockbackY: 0,  effect: "low erratic stab under highs" },
-    beastPounce:     { cost: 0, damage: 85,  startup: 7,  active: 4, recovery: 14, hitstun: 16, knockbackX: 6, knockbackY: -1, subtype: "mobility", dashSpeed: 22, effect: "feral leaping double-slash" }
-  },
-  ultimate: { name: "Beast Breathing Dragon Head", cost: 0, duration: 8, effect: "Massive speed and attack boost, unpredictable combo patterns" },
-  transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
-}
-
-const rengoku = {
-  rosterKey: "rengoku", name: "Kyojuro Rengoku", universe: "demon_slayer",
-  archetypes: ["melee", "flame"],
-  primary: "melee", secondary: ["flame"],
-  traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "constant_pressure", animeMovement: true },
-  stats: { maxHealth: 1150, maxEnergy: 0, attack: 92, defense: 84, speed: 88, maxJumps: 2, jumpPower: 30, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 40 },
-  basic_attacks: {
-    light:     { damage: 50, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 90, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 80, startup: 8, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 }
-  },
-  specials: {
-    flameBreathingFirstForm: { cost: 0, damage: 150, startup: 11, active: 5, recovery: 21, hitstun: 24, knockbackX: 10, knockbackY: -2, effect: "fiery single slash" },
-    risingScorchingSun:      { cost: 0, damage: 95,  startup: 9,  active: 4, recovery: 17, hitstun: 20, knockbackX: 3,  knockbackY: -8, effect: "upward flame arc that pops up" },
-    flameTiger:              { cost: 0, damage: 110, startup: 10, active: 5, recovery: 18, hitstun: 20, knockbackX: 8,  knockbackY: -1, subtype: "mobility", dashSpeed: 22, effect: "charging beast of flame" }
-  },
-  ultimate: { name: "Flame Pillar's Might", cost: 0, duration: 8, effect: "Enhanced attack, speed, and fiery AoE strikes" },
-  transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
-}
-
-const akaza = {
-  rosterKey: "akaza", name: "Akaza", universe: "demon_slayer",
-  archetypes: ["melee", "demon"],
-  primary: "melee", secondary: ["demon"],
-  traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "ramp", animeMovement: true },
-  stats: { maxHealth: 1250, maxEnergy: 0, attack: 96, defense: 88, speed: 90, maxJumps: 2, jumpPower: 30, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 36 },
-  basic_attacks: {
-    light:     { damage: 50, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 100, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 7, knockbackY: 1 },
-    upAttack:  { damage: 75, startup: 8, active: 4, recovery: 17, hitstun: 21, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 70, startup: 5, active: 3, recovery: 10, hitstun: 14, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 90, startup: 9, active: 4, recovery: 15, hitstun: 19, knockbackX: 1, knockbackY: 10 }
-  },
-  specials: {
-    destructiveStrike: { cost: 0, damage: 160, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -2, effect: "powerful destructive attack" },
-    annihilationType:  { cost: 0, damage: 105, startup: 11, active: 6, recovery: 20, hitstun: 20, knockbackX: 7,  knockbackY: -2, effect: "compass-needle ground shockwaves" },
-    disorder:          { cost: 0, damage: 90,  startup: 8,  active: 5, recovery: 16, hitstun: 16, knockbackX: 6,  knockbackY: -1, subtype: "mobility", dashSpeed: 24, effect: "rushing accelerating flurry" }
-  },
-  ultimate: { name: "Upper Moon Three Form", cost: 0, duration: 8, effect: "Increased damage, speed, and regeneration" },
-  transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  // Single-entry pre-match intro pool (game.pickIntroVariant picks from here; one entry = always plays).
+  introPool: ["intro"]
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -2570,7 +2493,7 @@ export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
   gojo, megumi, sukuna, omololu, toji, mahoraga,
   naruto, sasuke, itachi, tobirama, minato,
-  tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,
+  zenitsu,
   rick, morty, evilMorty, rickPrime,
   beerus,
   ben10, albedo,

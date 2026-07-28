@@ -42,6 +42,28 @@ const summonDefaults = {
 }
 
 const summonTemplates = {
+  // ── ZENITSU DOUBLE ATTACK partners (Stage 4) ──────────────────────────────
+  // Hardcoded scripted-combo partners for Zenitsu's "Double Attack" special. Each spawns on the
+  // FAR side of the opponent (abilities.js repositions after spawn), rushes INWARD (rush behavior →
+  // toward target), lands ONE hit, then poofs (puffOnDespawn → spawnClonePuff). NOT an
+  // independently-controlled fighter — a pre-animated pincer partner. Sheets are the resliced
+  // dedicated partner strips.
+  // spawnBeat holds the partner on the FAR side for a few frames (updateSummonMovement zeroes vx
+  // while frame<spawnBeat) so the "appears opposite → dashes inward" pincer reads clearly. No
+  // spawnSheet → the beat draws frame 0 of the same sheet (the ready stance). duration covers beat+rush.
+  zenitsuTanjiro: {
+    id: "zenitsuTanjiro", duration: 54, maxSimultaneous: 1, attackInterval: 6, damage: 60,
+    w: 52, h: 92, speed: 12, behavior: "rush", spawnBeat: 8, hitstun: 22, knockbackX: 7, knockbackY: -2,
+    oneHit: true, puffOnDespawn: true, color: "#4ea1d3", offsetY: 4,
+    sheet: "./zenitsu_tanjiro_partner_uniform.png", spriteFrames: 4, spriteW: 93, spriteH: 46, spriteSpeed: 5, spriteScale: 2.2
+  },
+  zenitsuInosuke: {
+    id: "zenitsuInosuke", duration: 54, maxSimultaneous: 1, attackInterval: 6, damage: 60,
+    w: 52, h: 100, speed: 12, behavior: "rush", spawnBeat: 8, hitstun: 22, knockbackX: 7, knockbackY: -2,
+    oneHit: true, puffOnDespawn: true, color: "#9c8f7a", offsetY: 0,
+    sheet: "./zenitsu_inosuke_partner_uniform.png", spriteFrames: 3, spriteW: 67, spriteH: 68, spriteSpeed: 5, spriteScale: 1.55
+  },
+
   divineDogs: {
     id:              "divineDogs",
     duration:        84,   // ~1.4s
@@ -376,6 +398,7 @@ export function updateSummons() {
 
     if (s.lifetime <= 0) {
       cleanupSummonEffects(s)
+      if (s.puffOnDespawn) spawnClonePuff(s.x + (s.w || 0) / 2, s.y + (s.h || 0) / 2)   // vanish smoke (Zenitsu Double Attack partner poofs out)
       activeSummons.splice(i, 1)
     }
   }
@@ -849,6 +872,7 @@ const clonePuffs = []
 // Exported so non-clone techniques can reuse the EXACT same smoke poof (e.g. Naruto's
 // Kawarimi substitution teleport). Purely cosmetic — no clone lifecycle / chakra-split.
 export function spawnClonePuff(x, y) { clonePuffs.push({ x, y, t: 0, max: 16 }) }
+export function getClonePuffCount() { return clonePuffs.length }   // harness: prove the Double Attack partner poof fired
 function tickClonePuffs() {
   for (let i = clonePuffs.length - 1; i >= 0; i--) {
     if (++clonePuffs[i].t >= clonePuffs[i].max) clonePuffs.splice(i, 1)

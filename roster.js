@@ -151,54 +151,6 @@ export const roster = {
   },
 
   // ======================
-  // DEMON SLAYER
-  // ======================
-  tanjiro: {
-    name: "Tanjiro Kamado",
-    health: 1100,
-    speed: 8,
-    jump: 7,
-    weight: "medium",
-    maxEnergy: 0,
-    energyType: "none",
-    passive: { name: "Water Breathing Mastery", effect: "Slightly increases attack speed after consecutive hits" },
-    basic_attacks: {
-      light_attack: { damage: 45 },
-      heavy_attack: { damage: 85 },
-      up_attack: { damage: 70, launch_force: 12 },
-      air_attack: { damage: 60 },
-      down_air: { damage: 75, spike_force: 12 }
-    },
-    specials: {
-      water_surface_slasher: { cost: 25, damage: 120, effect: "Sweeping water blade" },
-      dance_of_the_fireflies: { cost: 30, damage: 100, effect: "Rapid multi-slash attack" }
-    },
-    ultimate: { name: "Hinokami Kagura", cost: 100, duration: 8, effect: "Massive attack speed and damage boost; special visual flame effects" }
-  },
-
-  nezuko: {
-    name: "Nezuko Kamado",
-    health: 1050,
-    speed: 9,
-    jump: 8,
-    weight: "light",
-    maxEnergy: 0,
-    energyType: "none",
-    passive: { name: "Demon Regeneration", effect: "Gradual health recovery over time" },
-    basic_attacks: {
-      light_attack: { damage: 40 },
-      heavy_attack: { damage: 80 },
-      up_attack: { damage: 65, launch_force: 11 },
-      air_attack: { damage: 55 },
-      down_air: { damage: 70, spike_force: 11 }
-    },
-    specials: {
-      blood_demon_art: { cost: 35, damage: 140, effect: "Explosive demonic attack" }
-    },
-    ultimate: { name: "Full Demon Transformation", cost: 100, duration: 8, effect: "Increased speed, damage, and regeneration" }
-  },
-
-  // ======================
   // BEN 10 (single selectable fighter — transforms between 5 aliens in-match)
   // ======================
   ben10: {

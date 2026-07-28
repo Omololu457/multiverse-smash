@@ -38,6 +38,7 @@
     "test:vegeta-ssj-blue": "node harness/vegeta_ssj_blue.test.mjs",
     "test:vegeta-portrait": "node harness/vegeta_portrait.test.mjs",
     "test:omega-ranger-portrait": "node harness/omega_ranger_portrait.test.mjs",
+    "test:zenitsu": "node harness/zenitsu.test.mjs",
     "test:beerus": "node harness/beerus.test.mjs",
     "test:beerus-voice": "node harness/beerus_voice.test.mjs",
     "test:goku-black-voice": "node harness/goku_black_voice.test.mjs",
@@ -91,6 +92,7 @@
     "test:flash": "node harness/flash.test.mjs",
     "test:gon": "node harness/gon.test.mjs",
     "test:gon-voice": "node harness/gon_voice.test.mjs",
+    "test:zenitsu-voice": "node harness/zenitsu_voice.test.mjs",
     "test:hisoka-voice": "node harness/hisoka_voice.test.mjs",
     "test:flash-godspeed": "node harness/flash_godspeed_shot.mjs",
     "test:gon-stage4": "node harness/gon_stage4.test.mjs",
@@ -143,7 +145,8 @@
     "test:minato-s5": "node harness/minato_stage5.mjs",
     "test:minato-s6": "node harness/minato_stage6.mjs",
     "test:minato": "node harness/minato.test.mjs",
-    "test:minato-voice": "node harness/minato_voice.test.mjs"
+    "test:minato-voice": "node harness/minato_voice.test.mjs",
+    "test:reanim": "node harness/reanim_shots.mjs && node harness/reanim_shots_new.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

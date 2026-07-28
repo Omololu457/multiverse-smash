@@ -209,6 +209,42 @@ all wired. Fallback (upgraded hardest special) NOT needed — the body-slam is a
   guard pose; true ground walk cycle; crash-from-sky intro sequence; ranged/Heat-Vision + thrown-object
   specials (no art in batch); alt skins; win/lose poses.
 
+## Post-build fixes (2026-07-27, branch combo-flow-layer)
+
+Six fixes after Stage 6, all verified (canonical `omniman.test.mjs` 36/36 + stages 0–5 all green + `omniman_fixes_shots.mjs` evidence):
+
+1. **Smart Atoms chargeable** — the P button was 100% consumed by the flight toggle, so there was NO way to build the shared pool (only slow passive ground regen 0.06/f). Reworked to the universal TAP-vs-HOLD charge split: a quick **P-TAP toggles Flight** (moved to `handleChargeRelease`, Gojo-Infinity pattern), a **P-HOLD charges Smart Atoms** (+0.5/f via the normal `doEnergyCharge` path, gated off while flying / forced-descent). Evidence: hold-P 40f = +22 energy (was −3).
+2. **Clean floating** — the janky ground crouch-lunge (`run_uniform`) pose-popped when starting/stopping. Fixed by #3.
+3. **No walk cycle** — `walk`/`run`/`dash` all re-pointed to the **idle-float sheet** (`omni_man_idle.png`); he glides in his hover pose, never plants his feet. Movement speed is stat-driven in physics (not anim-timed) so this doesn't slow him.
+4. **Teleport-dash** — `movement: { dashTeleport: true }` + an `omniman` branch in `detectDoubleTapDashTeleport` (reposition-only blink, streaking `flyMove` pose). Double-tap TOWARD → shared `teleportBehindTarget` gap-close; free, like Gojo/Sasuke/Rick. Lone-tap safe (no teleport).
+5. **Speed** — ground `speed` 84→**90** (roster median, tied Naruto/Sasuke), `dashSpeed` 16→**18**; `physics.flightSpeed` 8→**13** (a real movement velocity, not anim speed). Measured: walk 8.1 px/f, **flight 13 px/f = 1.6× faster** (dash-tier airborne).
+6. **Multiple intros** — 3-entry random `introPool: ["intro","intro2","introCrash"]`. Resliced `intro:version_2` → `omni_man_intro2_uniform.png` (8f 115×133); concatenated `intro_part_1_falling` + `intro_part_2:revese` → `omni_man_intro_crash_uniform.png` (4f 112×156, the deferred crash-from-sky, now live). Verified cycling ~evenly over 16 boots.
+
+**Committed:** `fca0e76` on `combo-flow-layer` (hunk-filtered clean, isolated from the pre-existing Batman/Omni-Man voice + Gon adult-form WIP). NOTE: the previous session built + verified these fixes but never committed them (HEAD stayed at the Stage-6 build `051ca8f`), and neither the fixes NOR the base build are pushed (origin/combo-flow-layer=`86baa9b` Batman; GitHub Pages currently 404s) — so any deployed/cached build tested WITHOUT these fixes. That was the "nothing changed" cause, not a per-fix failure.
+
+## Animation-utilization audit (2026-07-27)
+
+Every source `omni_man_*.png` is wired to a distinct action — the "only 2-3 used" report was a stale-build perception, NOT reality. Montage `harness/omniman_anim_montage.mjs` renders **14 distinct sheets** in one pass (20+ counting the chain/grab/jump/descent states):
+
+| Source file | Action slot | Wired? |
+|---|---|---|
+| idle | idle + walk/run/dash (idle-float) | ✅ |
+| ground_punch / ground_punch_1 / ground_up_attack | light / heavy / up | ✅ |
+| air_foward_punch / air_down_attack_2 | air / down_air | ✅ |
+| ground:air_kick / ground_down_attack / combo_to_launch / push | omCombo1 / omCombo2 / omComboFin / omPush | ✅ |
+| grab_attack | grab | ✅ |
+| ground:air_hit | hurt | ✅ |
+| **air_hit** | **hurt_air (NEW — the one real gap, now wired, Toji precedent)** | ✅ |
+| non_flying_jump / non_flying_landing | jump+fall / descentLand | ✅ |
+| jump:flying_idle / flying_run:dash | fly / flyMove | ✅ |
+| for_when_he_falls_from_flying part1+2 | forcedDescent | ✅ |
+| air_to_ground_combo_punch / air_down_attack | omSkewer / omMeteor | ✅ |
+| combo_where_he_lands | ultimate | ✅ |
+| intro_version_3 / intro:version_2 / intro_part_1+2 | intro / intro2 / introCrash | ✅ |
+| ~~run_uniform~~ | (retired by Fix #3 — idle-float replaces the ground lunge) | intentionally unused |
+
+**Regression:** zero real regressions. Shared teleport chars (toji/toji-motion/tobirama/rick/sharingan), charge-release chars (gojo/vegeta-ssj/goku-black-charge/itachi-mangekyou), movement (killua/flash/vegeta/vegeta-ssj-blue), input (ffa/controller-assign/input-wiring), intros (intros/intro-sequence) all green. (Only red = a PRE-EXISTING flaky voice-taunt randomization-coverage sample, unrelated.)
+
 ## Notes / risks
 - Colon filenames: reference as `./omni_man_...:....png`. Confirmed safe (underscore prefix ⇒ not a URL scheme) but keep the `./`.
 - No standalone ground **walk/run** or **guard/block** strip → re-slice from `omni_man_transparent.png` (Stage 1).

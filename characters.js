@@ -1571,9 +1571,15 @@ const omniMan = {
   primary: "melee", secondary: ["flight"],
   traits: { hasEnergy: true, energyType: "smart_atoms", mobility: "high", scaling: "damage", animeMovement: false },
   passive: { name: "Viltrumite Physiology", effect: "Superhuman strength — overwhelming power on the ground, unmatched mobility once airborne on Smart Atoms" },
-  // Overwhelming-raw-power bruiser: top-tier HP + attack, below-average GROUND speed (real mobility
-  // comes from Flight, Stage 3). maxEnergy is the shared Smart Atoms pool (flight drain + special cost).
-  stats: { maxHealth: 1400, maxEnergy: 200, attack: 98, defense: 88, speed: 84, maxJumps: 2, jumpPower: 34, dashSpeed: 16, dashDuration: 10, dashCooldownMax: 38 },
+  // Overwhelming-raw-power bruiser: top-tier HP + attack. Ground speed bumped to the roster median
+  // (Fix #5 — was 84, a slow-end outlier; now 90, tied Naruto/Sasuke) so he's no longer a clear
+  // laggard, while real burst mobility still comes from Flight (much faster, Stage 3 / Fix #5) and the
+  // teleport-dash below. maxEnergy is the shared Smart Atoms pool (flight drain + special cost).
+  stats: { maxHealth: 1400, maxEnergy: 200, attack: 98, defense: 88, speed: 90, maxJumps: 2, jumpPower: 34, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 38 },
+  // Double-tap TOWARD the opponent → teleport-dash (blink to the far side, facing them), reusing the
+  // shared dashTeleport system (game.js detectDoubleTapDashTeleport → teleportBehindTarget). Reposition-
+  // only like Gojo/Sasuke/Rick — no Smart Atoms cost — Fix #4. (Viltrumite speed-blitz.)
+  movement: { dashTeleport: true },
   basic_attacks: {
     // Damage reads heavier than the roster average by design (raw-power archetype — see Stage-2 report).
     light:     { damage: 50, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 4, knockbackY: 0, rangeX: 76 },
@@ -1605,16 +1611,23 @@ const omniMan = {
   // alpha-gutter frame detection) — the *_uniform.png files. Ground walk/run and guard have NO standalone
   // source strip, so run is sliced from the master sheet's only ground-locomotion row (a forward-charging
   // lunge); guard falls back to idle (flagged, Flash precedent). knockdown routes to hurt automatically.
-  introPool: ["intro"],
+  // Three intro sequences, one picked at random each match (Fix #6 — Sasuke multi-intro precedent):
+  //   intro      = standing hero flex (intro_version_3)
+  //   intro2     = alternate hero pose (intro:version_2, resliced)
+  //   introCrash = the signature "descends from the sky and 3-point lands" crash (intro_part_1_falling
+  //                → intro_part_2:revese, concatenated) — the deferred Stage-1 crash-from-sky, now live.
+  introPool: ["intro", "intro2", "introCrash"],
   animationData: {
     idle: { frames: 3, width: 88,  height: 139, speed: 7, anchorY: 0, sheet: "./omni_man_idle.png" },
-    // No traditional walk cycle exists in the source art — the master sheet's ONLY ground-locomotion
-    // row is a forward-charging lunge (band 3), resliced → omni_man_run_uniform.png. walk & run share it
-    // (netero/beerus precedent); Omni-Man barrels forward rather than strolls. Crouched pose reads shorter
-    // than the standing idle by design (feet stay planted via anchorY:0).
-    walk: { frames: 6, width: 129, height: 110, speed: 8, anchorY: 0, sheet: "./omni_man_run_uniform.png" },
-    run:  { frames: 6, width: 129, height: 110, speed: 4, anchorY: 0, sheet: "./omni_man_run_uniform.png" },
-    dash: { frames: 6, width: 129, height: 110, speed: 3, anchorY: 0, sheet: "./omni_man_run_uniform.png" },
+    // NO ground-walk animation (Fix #3): Omni-Man is perpetually hovering — he never plants his feet to
+    // stroll. walk/run/dash all REUSE the idle-float sheet so he glides across the ground in his hover
+    // pose (the old forward-charging lunge, omni_man_run_uniform.png, is retired — it read as a janky
+    // pose-pop when starting/stopping, Fix #2). Movement speed is stat-driven in physics.moveFighter
+    // (rawSpeed/dashSpeed), NOT tied to this animation's frame timing, so gliding at the idle cadence
+    // does not slow him — the run/dash STATES still apply their faster velocities.
+    walk: { frames: 3, width: 88, height: 139, speed: 7, anchorY: 0, sheet: "./omni_man_idle.png" },
+    run:  { frames: 3, width: 88, height: 139, speed: 7, anchorY: 0, sheet: "./omni_man_idle.png" },
+    dash: { frames: 3, width: 88, height: 139, speed: 7, anchorY: 0, sheet: "./omni_man_idle.png" },
     // non_flying_jump (flight OFF): crouch → leap → airborne rise. Play once, hold apex. fall = last
     // airborne frame (sourceX = 5 × 131). The STANDARD-jump art; Flight (Stage 3) REPLACES this state.
     jump: { frames: 6, width: 131, height: 143, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_jump_uniform.png" },
@@ -1622,10 +1635,18 @@ const omniMan = {
     // hurt = the ground/air hit reaction (ground:air_hit resliced). knockdown auto-routes here (no
     // dedicated knockdown/getup strip); guard → idle (no guard strip). Both flagged for a later art pass.
     hurt: { frames: 3, width: 126, height: 127, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_hit_uniform.png" },
+    // hurt_air = dedicated AIRBORNE tumble/recoil (air_hit resliced) — sprite.js plays this when he's hit
+    // while airborne (Toji hurt_air precedent), instead of the grounded flinch. Wired in the anim audit
+    // (was resliced during the build but never hooked up).
+    hurt_air: { frames: 2, width: 140, height: 171, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_air_hit_uniform.png" },
     // intro = the standing hero flex (intro_version_3 resliced). introPool picks it each match. The
     // cinematic crash-from-sky sequence (intro_part_1_falling → intro_part_2:revese) is DEFERRED — it
     // pairs naturally with the Stage-3 forced-descent art as a later polish pass.
     intro: { frames: 6, width: 146, height: 161, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_intro_uniform.png" },
+    // Fix #6 — two more intros for the random introPool. intro2 = alt hero pose (intro:version_2);
+    // introCrash = descends-from-sky 3-point-landing (intro_part_1_falling + intro_part_2:revese concat).
+    intro2:     { frames: 8, width: 115, height: 133, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_intro2_uniform.png" },
+    introCrash: { frames: 4, width: 112, height: 156, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_intro_crash_uniform.png" },
     // ── STAGE 2 NORMALS — re-sliced to uniform cells (harness/reslice.mjs, frame counts confirmed).
     // combat.js reads DAMAGE/frames from basic_attacks; these are the SPRITES (identity MOVE_TO_ACTION).
     // Numbers read heavier than the roster average by design (raw-power archetype — flagged in the

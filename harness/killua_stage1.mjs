@@ -63,7 +63,7 @@ try {
   check("P1 is Killua", g.key === "killua", `key=${g.key}`);
   check("renders as sprites (hasSpriteHandler)", g.hasSpriteHandler, "");
   check("idle sheet = killua_idle_uniform", (g.spriteSheet || "").includes("killua_idle_uniform"), `sheet=${g.spriteSheet}`);
-  check("spriteScale = 2.3", Math.abs((g.spriteScale || 0) - 2.3) < 0.001, `spriteScale=${g.spriteScale}`);   // size-normalized 2026-07-24 (was 2.1)
+  check("spriteScale = 2.06", Math.abs((g.spriteScale || 0) - 2.06) < 0.001, `spriteScale=${g.spriteScale}`);   // canon-height 158cm (2026-07-28; was 2.3 → 2.1)
   check("fragile-rushdown HP 1030", g.maxHealth === 1030, `HP=${g.maxHealth}`);
   check("nen pool 180", g.maxEnergy === 180, `EN=${g.maxEnergy}`);
   await waitFrames(8); await record(); await shot("idle");

@@ -72,7 +72,7 @@ try {
   check("Toji renders from a sprite sheet (not the box fallback)", !!s.spriteSheet, `sheet=${base_(s.spriteSheet)}`);
   check("idle uses the NEW transparent-bg sheet", base_(s.spriteSheet) === "toji_stance_idle.png", `sheet=${base_(s.spriteSheet)}`);
   check("idle frame count re-verified = 6 (not the stated 5)", s.spriteFrames === 6, `frames=${s.spriteFrames}`);
-  check("spriteScale corrected to roster-normal 2.3 (was 1.7)", s.spriteScale === 2.3, `spriteScale=${s.spriteScale}`);
+  check("spriteScale set to canon-height 2.59 (188cm; was roster-normal 2.3)", s.spriteScale === 2.59, `spriteScale=${s.spriteScale}`);
   check("action resolves to idle", s.action === "idle", `action=${s.action}`);
   await page.screenshot({ path: path.join(OUT, "TOJI_idle_scale.png") });
 

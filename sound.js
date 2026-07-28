@@ -497,9 +497,10 @@ class SoundManager {
     this._musicDuckScale = 1
     this._musicFileFade  = null
     // ── ACTIVE FILE-SFX REGISTRY (voice lines + move-tied one-shots) ──────────────
-    // Every playSfxFile() Audio is tracked here so it can be STOPPED when its source
-    // animation ends (stopOwnedSfx) or the match ends (stopAllSfx) — fixing audio that
-    // used to play to completion decoupled from game state. Entries: {audio, owner, persistent}.
+    // Every playSfxFile() Audio is tracked here so it can be STOPPED (a) when a NEWER cue for the same
+    // owner starts — the single-voice-channel rule, so one character never overlaps itself — or (b) when
+    // the match ends (stopAllSfx). A cue is NOT cut merely because its source animation ended: voice lines
+    // play to natural completion. Entries: {audio, owner, persistent}.
     this._activeSfx      = new Set()
     // Ambient OWNER for the current cue: game.js stamps the acting fighter around a fighter's
     // combat/ability update so its voice auto-tags without touching every call site. null = untagged
@@ -737,18 +738,26 @@ class SoundManager {
   // One-shot file SFX, played on SFX volume. Optional `fallbackId` is a
   // procedural SOUNDS id triggered if the file can't be requested OR 404s
   // (via the element's onerror) — so the cue is never fully silent.
-  // opts.owner: the fighter this cue belongs to (auto-filled from this._voiceOwner if omitted) so it can
-  // be cut when that fighter's source animation ends. opts.persistent: survive stopAllSfx (win-lines).
+  // opts.owner: the fighter this cue belongs to (auto-filled from this._voiceOwner if omitted). It is the
+  // SINGLE-VOICE-CHANNEL key: starting a new owned cue stops that owner's current cue first (no self-
+  // overlap). It does NOT get cut when the source animation ends — clips finish naturally. opts.persistent:
+  // survive stopAllSfx (win-lines).
   playSfxFile(filename, fallbackId = null, opts = {}) {
     if (this._sfxMuted || !this._gestured) return false   // SFX mute: skip BEFORE ducking → a muted cue never ducks music
     const src = this._resolveSrc(filename)
     if (!src) { if (fallbackId) this.play(fallbackId); return false }
     try {
+      const owner = opts.owner !== undefined ? opts.owner : this._voiceOwner
+      // SINGLE VOICE CHANNEL per character: a new OWNED cue first stops whatever cue that same owner is
+      // already playing, so one character never overlaps / talks over itself. Untagged cues (owner=null:
+      // intro / win / menu) are exempt — stopOwnedSfx no-ops on null — so cross-CHARACTER overlap (owner A
+      // vs owner B) is left completely untouched, which is the desired behaviour.
+      if (owner) this.stopOwnedSfx(owner)
       const a = new Audio(src)        // fresh element: fire-and-forget one-shot
       a.volume = this._sfxVol
       if (fallbackId) a.onerror = () => this.play(fallbackId)   // 404 → procedural cue
-      // Track it so a state transition (source animation ends / match ends) can STOP it.
-      const owner = opts.owner !== undefined ? opts.owner : this._voiceOwner
+      // Track it so a match-end stop (stopAllSfx) or a newer same-owner cue (above) can STOP it. A cue
+      // is NOT cut when its source animation ends — voice lines play to natural completion by default.
       const entry = { audio: a, owner: owner || null, persistent: !!(opts.persistent || this._forcePersistent) }
       this._activeSfx.add(entry)
       // DUCK: this is a file-based voice/significant cue → drop music while it plays and restore when it
@@ -781,8 +790,9 @@ class SoundManager {
     }
   }
 
-  // Stop the cues belonging to ONE fighter — called when that fighter's source animation/action ends
-  // (transitions to idle / a new action), so a long voice line can't outlast its short animation.
+  // Stop the cues belonging to ONE fighter — the single-voice-channel enforcer: playSfxFile calls this
+  // for the incoming owner right before starting a new owned cue, so that character's previous line is
+  // cut and the two never overlap. (No longer called on animation-end — clips finish naturally.)
   // Persistent cues (none are owner-tagged today, but be safe) are left alone.
   stopOwnedSfx(owner) {
     if (!owner) return

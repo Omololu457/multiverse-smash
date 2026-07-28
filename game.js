@@ -3095,25 +3095,13 @@ function buildNormalControlState(fighter, vKeys) {
   }
 }
 
-// A fighter is "acting" while any source animation is playing (attack / command move / special-or-
-// ultimate cast pose / hurt / knockdown / charge / Edo windup). When it drops to false the character has
-// returned to idle → its owned audio is cut. Kept broad so a bark is only cut once the whole action ends.
-function _fighterIsActing(f) {
-  return !!(f && (f.attacking || f.currentMove || f._spriteCastMove ||
-    (f.hitstun || 0) > 0 || f.knockdownState || f.isCharging || (f._edoWindup || 0) > 0))
-}
-function _updateVoiceCutoff(f) {
-  if (!f) return
-  const acting = _fighterIsActing(f)
-  if (f._wasActingForVoice && !acting) sound.stopOwnedSfx?.(f)   // source animation just ended → cut its cue
-  f._wasActingForVoice = acting
-}
-
 function updatePlayerCombat(fighter) {
   if (!fighter) return
   // Stamp the acting fighter as the AMBIENT voice owner for the duration of its combat/ability update, so
-  // every cue it fires (attack barks, special/ultimate casts) auto-tags without touching each call site —
-  // and can be cut when its animation ends (defender hit-reactions override this to `defender` in combat.js).
+  // every cue it fires (attack barks, special/ultimate casts) auto-tags without touching each call site.
+  // The owner is the single-voice-channel key: a newer line from this fighter stops its previous line
+  // (sound.playSfxFile). Defender hit-reactions override this to `defender` in combat.js so they land on
+  // the DEFENDER's channel, not the attacker's.
   const _prevVoiceOwner = sound._voiceOwner
   sound._voiceOwner = fighter
   try { _updatePlayerCombatBody(fighter) } finally { sound._voiceOwner = _prevVoiceOwner }
@@ -4122,11 +4110,10 @@ function updateBattle() {
   if (!_timeSlowFrozen(p1)) updatePlayerCombat(p1)
   if (!_timeSlowFrozen(p2)) updatePlayerCombat(p2)
 
-  // ANIMATION-END AUDIO CUTOFF: the moment a fighter's source action ends (returns to idle from an
-  // attack / cast / hurt / charge), stop the voice/SFX cues it owns so a long clip can't outlast its
-  // short animation. Owner-tagged cues only (intro/win are untagged/persistent → unaffected).
-  _updateVoiceCutoff(p1)
-  _updateVoiceCutoff(p2)
+  // NOTE: voice/SFX cues are intentionally NOT cut when a fighter's source animation ends — a line plays
+  // to natural completion. The only thing that interrupts a character's line is a NEWER line from the SAME
+  // character (the single-voice-channel rule, enforced in sound.playSfxFile). Match-end still stops audio
+  // (stopAllSfx at checkRoundEnd / menu / rematch). See the revised audio-cutoff design.
 
   // #21 CLONE RENDAN STORM — when Naruto's BASIC light-string hit connects with clones alive,
   // each live clone chains a flurry follow-up onto the string. Detected here (not in shared
@@ -6070,7 +6057,7 @@ gameLoop()
     __sound:     sound,     // the live SoundManager singleton — lets a test spy on SFX file calls
     // ── AUDIO-CUTOFF harness (voice/SFX stop-on-animation-end + stop-on-match-end) ──
     sfxActive: () => (sound._activeSfx ? [...sound._activeSfx].map(e => ({ file: (e.audio?.src || "").split("/").pop(), paused: !!e.audio?.paused, owned: !!e.owner, persistent: !!e.persistent })) : []),
-    playSfxOwned: (file, who = "p1", persistent = false) => { const f = who === "p2" ? p2 : p1; return !!sound.playSfxFile(file, null, { owner: f, persistent }) },
+    playSfxOwned: (file, who = "p1", persistent = false) => { const f = who === "p2" ? p2 : who === "none" ? null : p1; return !!sound.playSfxFile(file, null, { owner: f, persistent }) },   // who="none" → UNOWNED cue (models real intro/win-lines, exempt from the single-voice-channel stop)
     sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
     start:       startHarnessMatch,
     skipToBattle,

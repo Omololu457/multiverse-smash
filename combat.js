@@ -19,6 +19,8 @@ import { pickKilluaVoice } from "./killuaVoice.js"
 import { pickGonVoice } from "./gonVoice.js"
 import { pickTobiramaVoice } from "./tobiramaVoice.js"
 import { pickFlashVoice } from "./flashVoice.js"
+import { pickBatmanVoice } from "./batmanVoice.js"
+import { pickOmniManVoice } from "./omnimanVoice.js"
 import { pickItachiVoice } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
@@ -738,6 +740,53 @@ function applyFlashOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(skinClip || pickFlashVoice("taunt"), null) } catch (_) {}
 }
 
+// ── BATMAN VOICE LINES (audio-only; Injustice 2 pack, transcribed → BATMAN_VOICE_LOG.md) ──
+// DEFENDER reaction — the verified effort-grunt set (clips 60-66). One line per _hitVoiceCd window;
+// unblocked hits only.
+function applyBatmanHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "batman" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickBatmanVoice("hitReact"), null) } catch (_) {}
+}
+
+// ATTACKER connect — Batman's cold trash-talk on a STRONG connect (heavy/special/ultimate) OR a long
+// BASIC light string. No taunt action (heal-taunt would change gameplay — excluded), so the taunt pool
+// rides this connect trigger (Flash/Gon precedent). Shared _atkVoiceCd → one line per window; blocked suppresses.
+function applyBatmanOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "batman" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickBatmanVoice("taunt"), null) } catch (_) {}
+}
+
+// ── OMNI-MAN VOICE LINES ── (MK1 pack; audio-only, no gameplay effect). Same three combat hooks as
+// Gon/Batman: DEFENDER hit-reaction, ATTACKER cold trash-talk on a strong/long connect (the taunt pool
+// rides the connect trigger — Omni-Man has no taunt action), and a once-only low-HP line. See omnimanVoice.js.
+function applyOmniManHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "omniman" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickOmniManVoice("hitReact"), null) } catch (_) {}
+}
+function applyOmniManOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "omniman" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickOmniManVoice("taunt"), null) } catch (_) {}
+}
+function applyOmniManLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "omniman" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickOmniManVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
 // ── ISAAC NETERO VOICE LINES ── (removed — audio files deleted; awaiting fresh audio.
 // The hit-connect and startup-grunt trigger POINTS remain in resolveAttackHit / updateCombat
 // below; re-wire a neteroVoice module + the applyNetero*Voice helpers here to re-enable.)
@@ -1247,6 +1296,10 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyGonHitVoice(defender, cat, dmg)
     // FLASH hit-reaction voice — "Not again." + effort-grunt set.
     applyFlashHitVoice(defender, cat, dmg)
+    // BATMAN hit-reaction voice — effort-grunt set (clips 60-66).
+    applyBatmanHitVoice(defender, cat, dmg)
+    // OMNI-MAN hit-reaction voice — shrug-it-off defiance ("That tickles" / "Easy, kid").
+    applyOmniManHitVoice(defender, cat, dmg)
     // OMEGA RANGER hit-reaction voice — light stagger only ("No!"); heavy tier stays silent (no clip).
     applyOmegaRangerHitVoice(defender, cat, dmg)
     // ITACHI hit-reaction voice — calm observation pool ("I see…" / "Quick, aren't you").
@@ -1264,6 +1317,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
     applyGonLowHealthVoice(defender)   // "Not yet" / "I can still fight" / "I'm going to die" (once, on crossing the low-HP line)
+    applyOmniManLowHealthVoice(defender)   // "It's all under control" / "none of you can stop me" (once, on crossing the low-HP line)
     defender.colorFlash = cat === "ultimate" ? 12 : cat === "special" ? 9 : 6
 
     const persist =
@@ -1347,6 +1401,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyGonOffenseVoice(attacker, cat, !defender.isBlocking)      // Gon combat bark on a heavy/long-string connect (specials use their own cast lines)
   applyTobiramaOffenseVoice(attacker, cat, !defender.isBlocking) // Tobirama overconfident taunt one-liner on a strong/long-string connect
   applyFlashOffenseVoice(attacker, cat, !defender.isBlocking)    // Flash quippy speed trash-talk on a strong/long-string connect
+  applyBatmanOffenseVoice(attacker, cat, !defender.isBlocking)   // Batman cold trash-talk (taunt pool) on a strong/long-string connect
+  applyOmniManOffenseVoice(attacker, cat, !defender.isBlocking)  // Omni-Man cold Viltrumite trash-talk (taunt pool) on a strong/long-string connect
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher
   applySukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Sukuna finisher(KO/low-HP) / hit-connect(strong+long) / taunt+misc(light) barks
   // Netero hit-connect voice removed (audio files deleted); re-add applyNeteroOffenseVoice here to re-enable.
@@ -1524,6 +1580,10 @@ export function updateProjectiles(projectiles = [], stageWidth = 3200) {
       p.y < -400 || p.y > 2000 ||
       (p.lifetime != null && p.lifetime <= 0)
     ) {
+      // onExpire: fired ONLY on this timeout/out-of-bounds path — i.e. the projectile MISSED (a
+      // projectile that connects is removed by resolveProjectileHits, which never runs this). Minato's
+      // Flying Raijin kunai uses it to convert a whiff into a teleport mark. Generic: no-op otherwise.
+      if (typeof p.onExpire === "function") { try { p.onExpire(p) } catch (_) {} }
       projectiles.splice(i, 1)
     }
   }

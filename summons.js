@@ -224,6 +224,16 @@ const summonTemplates = {
     oneHit:          true,
     color:           "#ffb400",   // clone-orange fallback box
     sheet: "./naruto_kcm_stance.png", spriteFrames: 4, spriteW: 36, spriteH: 63, spriteSpeed: 6, spriteScale: 2.0
+  },
+  // Minato's Clone Rush rushers — identical rush→one-hit→despawn template, Minato's own clone
+  // body (3 identical standing clones). Same low RAW damage (summon damage bypasses global scale).
+  minatoCloneRush: {
+    id:              "minatoCloneRush",
+    duration:        70, maxSimultaneous: 3, attackInterval: 10,
+    damage:          40, w: 70, h: 120, speed: 8, behavior: "rush",
+    hitstun:         18, knockbackX: 6, knockbackY: -2, oneHit: true,
+    color:           "#facc15",   // Minato flash-yellow fallback box
+    sheet: "./minato_shadow_clone_justu_uniform.png", spriteFrames: 3, spriteW: 37, spriteH: 59, spriteSpeed: 8, spriteScale: 1.85
   }
 }
 
@@ -651,15 +661,24 @@ const CLONE_W = 70, CLONE_H = 120            // clone hurtbox = the destruction 
 const CLONE_POOF_FRAMES = 16                 // spawn/despawn smoke duration (matches clonePuff lifetime)
 const CLONE_HURT_FRAMES = 24                 // frames the hit-recoil pose plays before the clone poofs out
 
-// Clone body sprites — REUSE Naruto's own animationData strips (characters.js):
-//   idle = naruto_kcm_stance.png (4f 36x63), hurt = naruto_kcm_taking_damage.png (4f 46x55).
-// scale 2.0 ≈ his on-screen size. No new art, no separate animationData entry.
-const CLONE_SPRITES = {
-  idle: { sheet: "./naruto_kcm_stance.png",        frames: 4, w: 36, h: 63, speed: 6, scale: 2.0 },
-  hurt: { sheet: "./naruto_kcm_taking_damage.png", frames: 4, w: 46, h: 55, speed: 6, scale: 2.0 }
+// Clone body sprites — PER OWNER, so the shadow-clone system (shared) renders each
+// summoner's own clone art rather than a hardcoded Naruto body. Each owner REUSES its
+// own strips (no new art). Falls back to Naruto's set for any owner without an entry.
+//   naruto: idle = naruto_kcm_stance.png,          hurt = naruto_kcm_taking_damage.png
+//   minato: idle = minato_shadow_clone_justu (3 identical standing clones), hurt = minato_hit
+const CLONE_BODY_SETS = {
+  naruto: {
+    idle: { sheet: "./naruto_kcm_stance.png",        frames: 4, w: 36, h: 63, speed: 6, scale: 2.0 },
+    hurt: { sheet: "./naruto_kcm_taking_damage.png", frames: 4, w: 46, h: 55, speed: 6, scale: 2.0 }
+  },
+  minato: {
+    idle: { sheet: "./minato_shadow_clone_justu_uniform.png", frames: 3, w: 37, h: 59, speed: 8, scale: 1.85 },
+    hurt: { sheet: "./minato_hit_uniform.png",               frames: 3, w: 63, h: 42, speed: 6, scale: 1.85 }
+  }
 }
 function setCloneSheet(s, mode) {
-  const c = CLONE_SPRITES[mode] || CLONE_SPRITES.idle
+  const set = CLONE_BODY_SETS[(s.owner?.rosterKey || "").toLowerCase()] || CLONE_BODY_SETS.naruto
+  const c = set[mode] || set.idle
   s.sheet = c.sheet; s.spriteFrames = c.frames; s.spriteW = c.w; s.spriteH = c.h
   s.spriteSpeed = c.speed; s.spriteScale = c.scale; s._animT = 0
 }
@@ -695,12 +714,20 @@ export function summonShadowClone(owner, target, opts = {}) {
   if ((owner._cloneSummonWindow || 0) > 0) return !!spawnShadowClone(owner, target)
   // FIRST press: already at cap → nothing at all (preserves existing behavior; no audio/window).
   if (countShadowClones(owner) >= CLONE_CAP) return false
-  // Open the window, play the clip ONCE, run the caller's short camera beat, and delay the
-  // actual entity + puff to the poof frame so the visual lands with the sound.
+  // Open the window and run the caller's short camera beat.
   owner._cloneSummonWindow = CLONE_SUMMON_WINDOW_FRAMES
-  if (owner.rosterKey === "naruto") sound.playSfxFile?.("naruto_clone_summon.mp3", null)
+  const hasSummonAudio = owner.rosterKey === "naruto"
+  if (hasSummonAudio) sound.playSfxFile?.("naruto_clone_summon.mp3", null)
   if (typeof opts.onFocus === "function") { try { opts.onFocus() } catch (_) {} }
-  pendingCloneSpawns.push({ owner, target, framesLeft: CLONE_SUMMON_POOF_FRAMES })
+  if (hasSummonAudio) {
+    // Naruto ONLY: delay the visual entity + puff to the audio poof frame (~2.45s) so the smoke/body
+    // land with the hand-sign clip.
+    pendingCloneSpawns.push({ owner, target, framesLeft: CLONE_SUMMON_POOF_FRAMES })
+  } else {
+    // No clone-summon audio (e.g. Minato) → spawn NOW. There is no clip to sync to, and a 2.45s
+    // SILENT delay with nothing on screen reads as "the button does nothing" (the reported Minato bug).
+    spawnShadowClone(owner, target)
+  }
   return true
 }
 

@@ -1069,6 +1069,97 @@ const tobirama = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// MINATO NAMIKAZE — the Fourth Hokage, "Konoha's Yellow Flash" (4th
+// Naruto-universe char, after Naruto/Sasuke/Itachi/Tobirama). Staged
+// build (see MINATO_ASSET_MAP.md). Source strips were RE-SLICED into
+// clean uniform, feet-aligned cells (tools/reslice_strip.mjs → the
+// *_uniform.png copies; the exact-as-uploaded originals are kept
+// untouched per the build mandate). Templated off fellow shinobi
+// Tobirama/Itachi. Stage 1 = registration + movement/state only;
+// normals (S2), Naruto-ported shadow clones (S3), Flying Raijin mark/
+// teleport (S4), Reaper Death Seal + Rasengan (S5) and the Kurama
+// half-form ultimate (S6) land in later passes. Missing actions fall
+// back to idle until then.
+// ─────────────────────────────────────────────────────────────────
+const minato = {
+  rosterKey: "minato", name: "Minato Namikaze", universe: "naruto",
+  portrait: "./minato_portrait.png",   // cropped from the master sheet in Stage 7; HUD falls back gracefully until then
+  archetypes: ["melee", "tactics"],
+  primary: "melee", secondary: ["tactics", "zoner"],
+  // Yellow-Flash body-flicker — double-tap TOWARD the opponent = teleport dash
+  // (same detectDoubleTapDashTeleport mechanic as Sasuke/Itachi/Tobirama/Toji).
+  // The dash sheet is literally a Flying-Raijin flash-ring blink, so dashTeleport fits the art.
+  movement: { dashTeleport: true },
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // maxEnergy 200: the Kurama ultimate (S6) spends the bar, Flying Raijin (S4) and
+  // Reaper Death Seal (S5) both want a healthy chakra pool to work from.
+  // FASTEST shinobi on the roster (speed 98 > Tobirama 96) — the "Yellow Flash" identity —
+  // but kept off the glass-cannon extreme (HP 1150, near Naruto/Sasuke's 1180 tier).
+  stats: { maxHealth: 1150, maxEnergy: 200, attack: 92, defense: 82, speed: 98, maxJumps: 2, jumpPower: 33, dashSpeed: 17, dashDuration: 12, dashCooldownMax: 40 },
+  // Placeholder taijutsu values templated off Itachi/Tobirama (fellow chakra shinobi);
+  // real move wiring + flavor normals land in Stage 2. combat.js _getMD reads THIS basic_attacks.
+  basic_attacks: {
+    light:    { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 88, startup: 8, active: 4, recovery: 17, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 80, rangeY: 46 },
+    upAttack: { type: "launcher", damage: 68, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    downAir:  { damage: 74, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
+    airAttack:{ damage: 56, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 }
+  },
+  // HUD-only until Stage 6 (real logic + cost live in abilities.js in the Kurama pass).
+  ultimate: { name: "Nine-Tails Chakra Mode", cost: 100, description: "Cloak in Kurama's chakra and manifest the half-tailed-fox avatar, then fire a Tailed Beast Bomb." },
+  hasSprites: true,
+  // idle content ~64px × 1.7 ≈ 109px on-screen ≈ roster height (Naruto/Sasuke/Itachi ~112-115).
+  // REQUIRES the skins.js `minato` entry (else applySkin() pulls the spriteScale:1 fallback →
+  // native size) + the spritesheets.js SPRITE_MANIFEST idle gate. Resliced cells are bottom-aligned
+  // (feet at cell bottom, 1px pad) so a single anchorY:0 plants feet across every standing action.
+  spriteScale: 1.7,
+  animationData: {
+    idle: { frames: 4, width: 37, height: 64, speed: 6, anchorY: 0, sheet: "./minato_idle_uniform.png" },
+    // Only one locomotion strip was uploaded (a run cycle) — both walk and run read it (he's the fast ninja).
+    walk: { frames: 6, width: 59, height: 45, speed: 5, anchorY: 0, sheet: "./minato_run_uniform.png" },
+    run:  { frames: 6, width: 59, height: 45, speed: 4, anchorY: 0, sheet: "./minato_run_uniform.png" },
+    // Flying-Raijin flash-ring blink — plays during the double-tap teleport dash.
+    dash: { frames: 3, width: 83, height: 87, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_dash_uniform.png" },
+    // jump.png = crouch→rise→apex arc; play once + hold. fall = the apex/descent pose (last cell).
+    jump: { frames: 4, width: 48, height: 67, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_jump_uniform.png" },
+    fall: { frames: 1, width: 48, height: 67, speed: 6, anchorY: 0, sourceX: 144, loop: false, lockLastFrame: true, sheet: "./minato_jump_uniform.png" },
+    // Guard — single braced block pose; hold while blocking.
+    guard: { frames: 1, width: 31, height: 59, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_block_uniform.png" },
+    // HURT — frame 0 of the hit strip (the backward recoil) as a single-frame flinch; combat.js
+    // colorFlash tints on top. Every plain hitstun/stun routes here.
+    hurt: { frames: 1, width: 63, height: 42, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./minato_hit_uniform.png" },
+    // KNOCKDOWN — the full 3-frame recoil→sprawl sequence. lockLastFrame holds the recovery pose.
+    knockdown: { frames: 3, width: 63, height: 42, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_hit_uniform.png" },
+    // Pre-match INTRO — no dedicated entrance strip was uploaded, so the idle stance doubles as the
+    // intro (documented in MINATO_ASSET_MAP.md). Can be upgraded to a Flying-Raijin flash-in later.
+    intro: { frames: 4, width: 37, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_idle_uniform.png" },
+    // ── STAGE 2 NORMALS ── each resliced feet-aligned (tools/reslice_strip.mjs → *_uniform.png);
+    // anchorY:0 plants feet (bottom-aligned cells). loop:false + lockLastFrame holds the strike pose
+    // through recovery. basic_attacks above carries the hit/frame data these render over. Keys are
+    // light/heavy/up/air/down_air (the SPRITE keys — basic_attacks uses upAttack/downAir/airAttack for DATA).
+    light:    { frames: 4,  width: 59, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_foward_kick_uniform.png" },        // quick forward kick
+    heavy:    { frames: 8,  width: 69, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_twornado_kick_uniform.png" },       // committed spinning tornado kick
+    up:       { frames: 6,  width: 59, height: 68, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_up_attack_uniform.png" },           // launcher: rising kunai slash
+    air:      { frames: 6,  width: 50, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_super_up_attack_1_uniform.png" },   // neutral aerial rising strike
+    down_air: { frames: 4,  width: 59, height: 69, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_down_air_attack_uniform.png" },     // descending diagonal kick
+    // ── STAGE 2 COMMAND CHAIN + POKES ── currentMove-keyed poses (sprite.js identity map). Chain =
+    // Fwd+Heavy minatoRush1→Rush2→RushFin (cancel-on-hit). Pokes = Fwd+Light Floor Combo / Back+Heavy Melee Rush.
+    minatoRush1:     { frames: 10, width: 59, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_melee_combo_1_uniform.png" },          // chain opener — taijutsu string
+    minatoRush2:     { frames: 12, width: 64, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_yellow_falsh_combo_2_uniform.png" },   // chain 2 — Yellow-Flash flurry (kunai)
+    minatoRushFin:   { frames: 10, width: 57, height: 68, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_super_down_attack_uniform.png" },      // finisher — flipping downward slam (launches)
+    minatoFloorCombo:{ frames: 22, width: 73, height: 79, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_yellow_fash_floor_combo_uniform.png" },// Fwd+Light poke — advancing floor combo
+    minatoMeleeRush: { frames: 20, width: 69, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_melee_combo_2_uniform.png" },          // Back+Heavy poke — dashing kunai rush (stitched combo)
+    // ── STAGE 5 SPECIAL CAST POSES ── currentMove/_spriteCastMove identity poses. The Rasengan
+    // orb / Big Ball sphere / Shinigami / reaching-arm all spawn as separate FX projectiles (abilities.js).
+    minatoRasengan:  { frames: 11, width: 65, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_basic_rasengan_version_1_uniform.png" },  // Down+Special — dash-in Rasengan ram
+    minatoBigBall:   { frames: 11, width: 65, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_basic_rasengan_version_1_uniform.png" },  // charge+Down+Special — Big Ball (reuses the ram body pose; the big sphere is a separate FX)
+    minatoReaperCast:{ frames: 13, width: 44, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_reaper_death_seal_uniform.png" }           // charge+Special — Reaper Death Seal ritual (hand-seals)
+  },
+  // Single-entry pre-match intro pool (game.pickIntroVariant picks from here; one entry = always plays).
+  introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // DEMON SLAYER
 // ─────────────────────────────────────────────────────────────────
 const tanjiro = {
@@ -2359,6 +2450,12 @@ const gon = {
     rock:     { frames: 10, width: 63, height: 47, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_rock_uniform.png" },      // charge-windup → devastating punch (built-in telegraph frames)
     paper:    { frames: 5,  width: 43, height: 50, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_paper_uniform.png" },     // open-palm push
     scissors: { frames: 12, width: 59, height: 48, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_scissors_uniform.png" },  // rapid multi-hit jab string
+    // ── HOLD-TO-CHARGE — Nen-charging pose (hold P). Dedicated 2-frame Nen-aura buildup strip
+    // (gon_charge_default_charge_animation.png, 126×78 → 2 · 63×78; the two aura poses alternate
+    // while held). Rendered by sprite.js when isCharging (the universal hold-to-charge sets it for
+    // any maxEnergy>0 char). Without this key the charge state fell through to the idle pose — the
+    // art existed on disk but was never wired into animationData. botGap 3 → anchorY -(3×2.5)≈-7.
+    charge: { frames: 2, width: 63, height: 78, speed: 6, anchorY: -7, loop: true, sheet: "./gon_charge_default_charge_animation.png" },
     // ── STAGE 4 — ADULT FORM (Ultimate). The adult body is much larger → actionScale shrinks the tall
     // cells (220px) back toward a ~1.6× on-screen read vs child Gon (an intimidating grown silhouette).
     // `transform` holds through the activation cinematic; `finalblow` is the all-or-nothing sudden-death.
@@ -2472,7 +2569,7 @@ const batman = {
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
   gojo, megumi, sukuna, omololu, toji, mahoraga,
-  naruto, sasuke, itachi, tobirama,
+  naruto, sasuke, itachi, tobirama, minato,
   tanjiro, nezuko, zenitsu, inosuke, rengoku, akaza,
   rick, morty, evilMorty, rickPrime,
   beerus,

@@ -8,6 +8,7 @@ import { sound }      from "./sound.js"
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
+import { activateMinatoKurama } from "./minatoKurama.js"   // Minato ult cinematic (self-contained, no cycle)
 import { activateEdoTenseiCinematic, isEdoTenseiCinematicActive } from "./tobiramaEdoTenseiCinematic.js"   // Tobirama Edo Tensei summon/un-summon cinematic (no cycle: it imports only characters/sound)
 import { clearInputBuffer } from "./input.js"   // clear buffered presses when Edo Tensei swaps bodies (input.js imports nothing → no cycle)
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
@@ -25,6 +26,7 @@ import { isBetaUnlocked } from "./progression.js"   // beta-only single-directio
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
 import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajanken/rekka/Final-Blow cast voice pools (audio-only; no cycle)
+import { pickOmniManVoice } from "./omnimanVoice.js"   // Omni-Man special/flight/ultimate cast voice pool (audio-only; no cycle)
 import { pickTobiramaVoice } from "./tobiramaVoice.js"   // Tobirama cast/ultimate voice pools (audio-only; no cycle)
 import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin voice override (Gojo "Limitless" young pack)
 import {
@@ -240,6 +242,7 @@ const BETA_SPECIAL_MOTIONS = {
   gojo:   { F: ["F"],      B: ["D", "B"], U: ["U"] },                                            // F=Red · B=Hollow Purple · U=Teleport · neutral=Blue
   sukuna: { F: ["F"],      B: ["D", "B"] },                                                      // F=Flame Arrow · B=Dismantle · neutral=Cleave
   naruto: { F: ["D", "F"], B: ["D", "B"], U: ["B", "U"], D: ["D"] },                             // F=Clone Spawn · B=Clone Dispel · U=Pincer Rendan(sub) · D=Dark Rasengan · neutral=Rasengan
+  minato: { F: ["D", "F"], B: ["D", "B"], U: ["B", "U"], N: ["B", "F"], D: ["D"] },               // F=Clone Spawn · B=Clone Dispel · U=Pincer Rendan(sub) · N=Clone Rush(sub, B→F avoids the dashTeleport F→F) · D=(S5) · neutral=Clone Barrage / (S4 Flying Raijin)
   megumi: { F: ["D", "F"], B: ["D", "B"], U: ["D", "U"], D: ["F", "D", "F"], N: ["B", "F"] },    // F=Divine Dogs · B=Max Elephant · U=Rabbit · D=Nue(sub) · neutral=Toad(sub)
   toji:   { F: ["D", "F"], B: ["D", "B"], D: ["F", "F"] },                                       // F=Curse Spirit · B=Chain-Knife · D=Rapid Strike(sub) · neutral=Inventory Smash
   sasuke: { F: ["D", "F"], B: ["D", "B"], D: ["D"] },                                            // F=Lightning · B=Chidori Koiten · D=Shuriken · neutral=Dash Strike
@@ -1333,8 +1336,11 @@ function spawnGuaranteedCloneHit(fighter, target, type, opts = {}, context = {})
     damage: opts.damage || 60, hitstun: opts.hitstun || 18,
     knockbackX: opts.knockbackX || 6, knockbackY: opts.knockbackY ?? -3,
     color: opts.color || "#38bdf8", w: opts.w || 28, h: opts.h || 28,
-    sheet: "./naruto_kcm_fx_rasengan_sphere.png",
-    spriteFrames: 4, spriteW: 64, spriteH: 85, spriteSpeed: 4, spriteScale: opts.spriteScale || 0.55
+    // FX sheet is overridable so each summoner's clones render their own hit (default = Naruto's
+    // Rasengan sphere; Minato passes his kunai). Frame dims default to the Rasengan strip's 4×64×85.
+    sheet: opts.sheet || "./naruto_kcm_fx_rasengan_sphere.png",
+    spriteFrames: opts.spriteFrames || 4, spriteW: opts.spriteW || 64, spriteH: opts.spriteH || 85,
+    spriteSpeed: opts.spriteSpeed || 4, spriteScale: opts.spriteScale || 0.55
   }, context)
   if (proj) {
     proj.x  = target.x + (target.w || 0) / 2 + (opts.offsetX || 0)   // overlap the target
@@ -1825,6 +1831,301 @@ function executeNarutoSpecial(fighter, context) {
   return true
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MINATO SPECIAL — SHADOW CLONE SYSTEM (Stage 3), PORTED from Naruto's own routes.
+// Same system, same rules (motions + clone-count gating), calling the SHARED summons.js
+// primitives (summon/dispel/count/consume) and the SHARED combo helpers (spendCloneCombo-
+// Chakra, spawnGuaranteedCloneHit, spawnAssistSummon, applyCloneRendanStorm). The ONLY
+// Minato-specific bits: clone BODY art (per-owner in summons.js) and the guaranteed-hit FX
+// = Minato's KUNAI (MINATO_CLONE_FX) instead of Naruto's Rasengan sphere. The 5 routes:
+//   D→F  Clone Spawn      · D→B  Clone Dispel
+//   F→F (≥1 clone) Clone Rush setplay (autonomous rushers)
+//   B→U (≥2 clones) Pincer Rendan (front+back guaranteed juggle)
+//   Down+Special (in hitstun, ≥2 clones) contextual Kunai-Barrage FINISHER (slam ender)
+//   Neutral (≥2/≥3 clones) Kunai Barrage (2 or full 3-clone)
+//   + Clone Rendan Storm (passive light-string extension — generalized in game.js).
+// Slots NOT matched here (neutral with no clones, plain Down+Special) fall through to
+// false, reserved for Flying Raijin (Stage 4) and Rasengan/Reaper (Stage 5).
+// ═══════════════════════════════════════════════════════════════════════════════
+const MINATO_CLONE_FX = { sheet: "./minato_kunai_projectile.png", spriteFrames: 1, spriteW: 30, spriteH: 15, spriteSpeed: 6, spriteScale: 1.6 }
+
+// ── FLYING RAIJIN (Stage 4) — kunai throw → mark → teleport. The genuinely novel mechanic. ──
+const MINATO_RAIJIN_COST     = 15
+const MINATO_RAIJIN_MARK_CAP = 3
+
+// Convert a MISSED Flying Raijin kunai into a tracked teleport MARK (rolling 3-cap: throwing a 4th
+// drops the oldest). Called via the kunai projectile's onExpire (combat.updateProjectiles) — it
+// fires ONLY on a whiff, because a kunai that CONNECTS is removed by the hit resolver (which never
+// runs onExpire). So: hit = damage + vanish; miss = a mark. Auto-selects the freshly placed mark.
+function placeFlyingRaijinMark(fighter, x) {
+  if (!fighter) return
+  fighter._frMarks = fighter._frMarks || []
+  fighter._frMarks.push({ x, y: fighter.groundY ?? fighter.y })
+  while (fighter._frMarks.length > MINATO_RAIJIN_MARK_CAP) fighter._frMarks.shift()   // rolling cap — oldest drops
+  fighter._frSel = fighter._frMarks.length - 1                                        // newest becomes selected
+}
+
+// The kunai throw itself (neutral Special, outside any clone-barrage context). Small chakra cost.
+// The mark/teleport/cycle wiring lives in game.js (teleportToFlyingRaijinMark on the F→F dash blink;
+// Charge-tap cycles the selected mark) + ui.js (HUD 1/2/3 + world-space mark glyphs).
+function fireFlyingRaijinKunai(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, MINATO_RAIJIN_COST)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove  = "minatoRush2"   // Yellow-Flash kunai-throw pose
+  fighter._spriteCastTimer = 16
+  fighter.attackCooldown   = getAttackDuration(18, fighter)
+  fighter.vx = face * 2
+  const kunai = spawnProjectile(fighter, "minatoRaijinKunai", {
+    ...MINATO_CLONE_FX, damage: 72, speed: 17, lifetime: 46, hitstun: 16, knockbackX: 6, knockbackY: -2,
+    color: "#facc15", w: 30, h: 15, vx: face * 17, spawnY: fighter.y + (fighter.h || 100) * 0.42
+  }, context)
+  if (kunai) kunai.onExpire = (p) => placeFlyingRaijinMark(fighter, p.x)   // whiff → drops a teleport mark
+  shakeCamera(context, 3, 3)
+  return true
+}
+
+// ── RASENGAN (Stage 5) — Down+Special. Close-range dash-in RAM (never thrown), same shape as
+// Naruto's neutral Rasengan: a short-reach melee hitbox + a spiral-orb FX riding the lunge. ──
+function fireMinatoRasengan(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 30)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove = "minatoRasengan"; fighter._spriteCastTimer = 20
+  const attack = createAttackFromMove(fighter, "minatoRasengan", {
+    damage: 120, startup: 8, active: 5, recovery: 16, hitstun: 22, knockbackX: 9, knockbackY: -3, rangeX: 74, rangeY: 56, isSpecial: true
+  })
+  setAttackState(fighter, attack, 22)
+  fighter.vx = face * 8   // dash in to close the gap (Dragon-Fist ram pattern)
+  // ORB FX — the FULL Rasengan sphere sheet (minato_rasengan_orb = combo_effect_part_3: 4 solid
+  // spheres + 4 spiral swirls). The old basic_rasengan_effect sheet was mostly tiny forming-dots so
+  // the orb rendered as an invisible speck. Scale 0.42 on the 122px cell ≈ 51px on-screen = Naruto's
+  // own Rasengan orb size (naruto_kcm_fx_rasengan_sphere 85px × 0.6 ≈ 51px).
+  const orb = spawnProjectile(fighter, "minatoRasenganOrb", {
+    damage: 0, speed: 0, lifetime: 22, w: 40, h: 40, visualOnly: true, color: "#38bdf8",
+    sheet: "./minato_rasengan_orb_uniform.png", spriteFrames: 8, spriteW: 122, spriteH: 120, spriteSpeed: 3, spriteScale: 0.42
+  }, context)
+  if (orb) { orb.x = fighter.x + (face >= 0 ? fighter.w : 0); orb.y = fighter.y + (fighter.h || 100) * 0.4; orb.vx = face * 8 }
+  focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.99, 8)
+  shakeCamera(context, 6, 6)
+  return true
+}
+
+// ── BIG BALL RASENGAN (Stage 5) — charge held + Down+Special. The escalation: a larger, harder
+// ram with the big-sphere FX (wider/taller hitbox, more damage/knockback). Same ram shape, bigger. ──
+function fireMinatoBigBall(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 45)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove = "minatoRasengan"; fighter._spriteCastTimer = 26
+  const attack = createAttackFromMove(fighter, "minatoBigBall", {
+    damage: 175, startup: 12, active: 6, recovery: 22, hitstun: 26, knockbackX: 12, knockbackY: -5, rangeX: 96, rangeY: 82, isSpecial: true
+  })
+  setAttackState(fighter, attack, 30)
+  fighter.vx = face * 6
+  const orb = spawnProjectile(fighter, "minatoBigBall", {
+    damage: 0, speed: 0, lifetime: 28, w: 60, h: 60, visualOnly: true, color: "#38bdf8",
+    sheet: "./minato_big_ball_uniform.png", spriteFrames: 3, spriteW: 334, spriteH: 129, spriteSpeed: 6, spriteScale: 0.42
+  }, context)
+  if (orb) { orb.x = fighter.x + (face >= 0 ? fighter.w : 0) + face * 24; orb.y = fighter.y + (fighter.h || 100) * 0.5; orb.vx = face * 6 }
+  focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.97, 10)
+  shakeCamera(context, 10, 9)
+  return true
+}
+
+// ── REAPER DEATH SEAL (Stage 5) — the SACRIFICE. Charge held + neutral Special. Costs HIGH chakra
+// AND a REAL chunk of Minato's OWN HP, for a single devastating soul-rip hit. DELIBERATELY NOT
+// match-ending (that instant-win lane belongs to Gon's Adult-Form Final Blow): it's a big — but
+// blockable, range-gated — melee hit that a full-HP opponent survives, and it can NEVER self-KO
+// (unavailable if the HP cost would drop Minato too low). raw 500 × 0.60 ≈ 300 EFF on a fresh hit —
+// devastating (~26% of a 1150 bar) yet survivable. The Shinigami manifests behind Minato and its
+// clawed arm rips forward (both visualOnly FX; the melee hitbox is the reach). Flagged in balance.
+const MINATO_REAPER_CHAKRA  = 60
+const MINATO_REAPER_HP_COST = 170
+const MINATO_REAPER_REACH   = 250   // the GIANT Shinigami's arm reaches far across the arena
+const MINATO_REAPER_RIP     = 250   // soul-rip damage applied on the grab (+ updateGrab's throw on top ≈ 300 total)
+function fireReaperDeathSeal(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  // GATE: enough chakra AND enough HP that the self-cost can't kill him (never self-KO / match-ending).
+  if ((fighter.energy || 0) < MINATO_REAPER_CHAKRA) return false
+  if ((fighter.health || 0) <= MINATO_REAPER_HP_COST + 60) return false
+  spendEnergy(fighter, MINATO_REAPER_CHAKRA)   // chakra spent on cast (whiff or not)
+  const getOpponent = getTargetResolver(context)
+  const target = getOpponent(fighter)
+  const face = fighter.facing || 1
+  fighter._spriteCastMove = "minatoReaperCast"; fighter._spriteCastTimer = 40
+
+  // ── The GIANT Shinigami manifests CENTER-ARENA (between the fighters), towering over the field. ──
+  const fCX = fighter.x + fighter.w / 2
+  const tCX = target ? target.x + (target.w || 0) / 2 : fCX + face * 120
+  const midX = (fCX + tCX) / 2
+  const gy = fighter.y - (fighter.h || 100) * 0.85   // head high above the fighters
+  const reaper = spawnProjectile(fighter, "minatoShinigami", {
+    damage: 0, speed: 0, lifetime: 52, w: 200, h: 300, visualOnly: true, color: "#1f2937",
+    sheet: "./minato_reaper_death_seal_summoning_uniform.png", spriteFrames: 2, spriteW: 251, spriteH: 328, spriteSpeed: 26, spriteScale: 1.5   // GIANT (≈490px tall)
+  }, context)
+  if (reaper) { reaper.x = midX; reaper.y = gy; reaper.vx = face * 0.01 }   // vx sign → draw faces the opponent (drawProjectiles flips on vx<0)
+  // The clawed arm rips OUT toward the opponent (giant reach).
+  const arm = spawnProjectile(fighter, "minatoReaperArm", {
+    damage: 0, speed: 0, lifetime: 40, w: 160, h: 90, visualOnly: true, color: "#374151",
+    sheet: "./minato_reaper_death_seal_summoning_arm_uniform.png", spriteFrames: 1, spriteW: 395, spriteH: 232, spriteSpeed: 6, spriteScale: 0.7
+  }, context)
+  if (arm) { arm.x = (midX + tCX) / 2; arm.y = fighter.y + (fighter.h || 100) * 0.1; arm.vx = face * 0.01 }
+  // Ambient soul-flame FX on the target side.
+  const flame = spawnProjectile(fighter, "minatoReaperFlame", {
+    damage: 0, speed: 0, lifetime: 40, w: 30, h: 40, visualOnly: true, color: "#60a5fa",
+    sheet: "./minato_reaper_death_seal_fire_uniform.png", spriteFrames: 3, spriteW: 18, spriteH: 33, spriteSpeed: 3, spriteScale: 2.0
+  }, context)
+  if (flame && target) { flame.x = tCX; flame.y = target.y + (target.h || 100) * 0.2 }
+
+  focusCameraOnAction(context, fighter, target, 0.9, 22)
+  shakeCamera(context, 16, 14)
+
+  // ── The GRAB/THROW — the Shinigami seizes the opponent's soul. Long reach (250px). On a CLEAN grab
+  // it applies the devastating soul-rip AND pays the real HP sacrifice; the shared updateGrab() then
+  // does the pop-up-and-throw. A WHIFF (out of reach) costs only chakra + recovery — no HP sacrifice. ──
+  const grabbed = resolveGrab(fighter, target, context, MINATO_REAPER_REACH)
+  if (grabbed && target) {
+    fighter.health = Math.max(1, fighter.health - MINATO_REAPER_HP_COST)   // REAL HP sacrifice, ONLY on connect (clamped — never lethal)
+    target.health = Math.max(0, (target.health || 0) - MINATO_REAPER_RIP)  // soul-rip; updateGrab adds the throw on top
+    target.colorFlash = 10
+    fighter.attackCooldown = getAttackDuration(30, fighter)
+    try { sound.playSfxFile?.("minato_reaper.mp3", null) } catch (_) {}    // (no audio asset yet — silent)
+  } else {
+    // whiff: committed recovery, chakra already spent, but NO health sacrifice.
+    fighter._spriteCastMove = "minatoReaperCast"; fighter._spriteCastTimer = 30
+    fighter.attackCooldown = getAttackDuration(34, fighter)
+  }
+  return true
+}
+
+function executeMinatoSpecial(fighter, context) {
+  const dirs        = getRelativeDirections(fighter)
+  const getOpponent = getTargetResolver(context)
+  const target      = getOpponent(fighter)
+
+  // D→F = SHADOW CLONE spawn (cap 3; over cap → no-op). No upfront chakra — cost is the pool split.
+  if (endsWithPattern(dirs, ["D", "F"])) {
+    if (!summonShadowClone(fighter, target, { onFocus: () => focusCameraOnAction(context, fighter, null, 1.02, 12) })) return false
+    fighter.attackCooldown = getAttackDuration(16, fighter)
+    shakeCamera(context, 5, 5)
+    return true
+  }
+
+  // D→B = DISPEL all clones (safe recall — shares fold back, non-lossy).
+  if (endsWithPattern(dirs, ["D", "B"])) {
+    if (!dispelShadowClones(fighter)) return false
+    fighter.attackCooldown = getAttackDuration(10, fighter)
+    return true
+  }
+
+  // B→F (≥1 clone) = CLONE RUSH / setplay. Every live clone becomes ONE autonomous rush-strike
+  // then despawns, staggered a beat apart so Minato stays free. Reactable/blockable (not a confirm).
+  // NOTE: uses B→F (step-back→forward), NOT Naruto's F→F — Minato's F→F double-tap is his
+  // Flying-Raijin dashTeleport blink (Stage 1), which would eat the input and flip facing.
+  if (endsWithPattern(dirs, ["B", "F"]) && countShadowClones(fighter) >= 1) {
+    const spots = consumeShadowClones(fighter, 3)
+    spots.forEach((spot, i) => {
+      const rusher = spawnAssistSummon(fighter, "minatoCloneRush", target)
+      if (rusher) { rusher.x = spot.x; rusher.y = spot.y; rusher.spawnBeat = i * 12; rusher.attackTimer = -i * 12 }
+    })
+    fighter._spriteCastMove  = "minatoMeleeRush"   // brief dashing command gesture
+    fighter._spriteCastTimer = 16
+    fighter.attackCooldown   = getAttackDuration(14, fighter)
+    focusCameraOnAction(context, fighter, target, 0.99, 8)
+    shakeCamera(context, 4, 4)
+    return true
+  }
+
+  // B→U (≥2 clones) = PINCER RENDAN — one clone strikes from the FRONT, one from BEHIND: two
+  // guaranteed juggle hits (opposite offsets) that pop the opponent up. Consumes both clones.
+  if (endsWithPattern(dirs, ["B", "U"]) && countShadowClones(fighter) >= 2) {
+    if (!spendCloneComboChakra(fighter, 35)) return false
+    consumeShadowClones(fighter, 2)
+    const halfW = (target?.w || 40) * 0.4
+    schedulePendingSpawn(2, () => {   // FRONT clone
+      spawnGuaranteedCloneHit(fighter, target, "minatoKunai", { ...MINATO_CLONE_FX, damage: 60, hitstun: 24, knockbackX: 3, knockbackY: -11, dirSign: fighter.facing, offsetX: halfW }, context)
+      shakeCamera(context, 5, 6)
+    })
+    schedulePendingSpawn(8, () => {   // BACK clone (opposite side)
+      spawnGuaranteedCloneHit(fighter, target, "minatoKunai", { ...MINATO_CLONE_FX, damage: 60, hitstun: 24, knockbackX: 3, knockbackY: -10, dirSign: -fighter.facing, offsetX: -halfW }, context)
+      shakeCamera(context, 5, 6)
+    })
+    fighter._spriteCastMove = "minatoRush2"; fighter._spriteCastTimer = 24
+    fighter.attackCooldown = getAttackDuration(26, fighter)
+    focusCameraOnAction(context, fighter, target, 0.96, 12)
+    return true
+  }
+
+  // Down + Special — the contextual clone FINISHER (Kunai Uzumaki Barrage). ONLY when the
+  // opponent is ALREADY in hitstun (mid-combo) AND ≥2 clones are held: pop them for a rapid
+  // guaranteed flurry that CAPS with a downward slam (positive knockbackY floors them). Otherwise
+  // this Down+Special slot is reserved for Stage 5 (Rasengan) → falls through to false.
+  if (dirs.length > 0 && dirs[dirs.length - 1] === "D") {
+    if ((target?.hitstun || 0) > 0 && countShadowClones(fighter) >= 2) {
+      const n = consumeShadowClones(fighter, 3).length
+      for (let i = 0; i < n; i++) {
+        const last = (i === n - 1)   // final clone lands the slam
+        schedulePendingSpawn(3 + i * 6, () => {
+          spawnGuaranteedCloneHit(fighter, target, "minatoKunai", last
+            ? { ...MINATO_CLONE_FX, damage: 90, hitstun: 30, knockbackX: 8, knockbackY: 7,  dirSign: fighter.facing }   // SLAM cap = knockdown read
+            : { ...MINATO_CLONE_FX, damage: 45, hitstun: 20, knockbackX: 3, knockbackY: -3, dirSign: fighter.facing },  // link hits
+            context)
+          shakeCamera(context, last ? 9 : 4, last ? 8 : 4)
+        })
+      }
+      fighter._spriteCastMove  = "minatoRush2"
+      fighter._spriteCastTimer = 24
+      fighter.attackCooldown   = getAttackDuration(28, fighter)
+      focusCameraOnAction(context, fighter, target, 0.97, 12)
+      return true
+    }
+    // Plain Down+Special (Stage 5): charge held → Big Ball Rasengan; otherwise the basic Rasengan ram.
+    if (fighter.isCharging) return fireMinatoBigBall(fighter, context)
+    return fireMinatoRasengan(fighter, context)
+  }
+
+  // CHARGED neutral Special → REAPER DEATH SEAL (Stage 5 sacrifice). Checked before the clone
+  // barrages so a committed charge always casts the Reaper regardless of clones out; unavailable
+  // (falls through) if the chakra/HP gate fails.
+  if (fighter.isCharging && fireReaperDeathSeal(fighter, context)) return true
+
+  // Neutral (≥3 clones) = FULL KUNAI BARRAGE — Minato's own kunai + 3 guaranteed clone kunai.
+  // Checked BEFORE the 2-clone case so a full team fires the bigger barrage. Consumes all 3.
+  if (countShadowClones(fighter) >= 3) {
+    if (!spendCloneComboChakra(fighter, 30)) return false
+    consumeShadowClones(fighter, 3)
+    fighter.vx = fighter.facing * 5
+    spawnProjectile(fighter, "minatoKunai", { damage: 80, speed: 12, lifetime: 55, hitstun: 20, knockbackX: 7, knockbackY: -2, color: "#facc15", w: 26, h: 16, ...MINATO_CLONE_FX }, context)
+    ;[4, 11, 18].forEach((delay) => schedulePendingSpawn(delay, () => {
+      spawnGuaranteedCloneHit(fighter, target, "minatoKunai", { ...MINATO_CLONE_FX, damage: 66, hitstun: 18, knockbackX: 6, knockbackY: -2, dirSign: fighter.facing }, context)
+      shakeCamera(context, 4, 4)
+    }))
+    fighter._spriteCastMove = "minatoRush2"; fighter._spriteCastTimer = 24
+    fighter.attackCooldown = getAttackDuration(26, fighter)
+    focusCameraOnAction(context, fighter, target, 0.98, 8)
+    return true
+  }
+
+  // Neutral (≥2 clones) = KUNAI BARRAGE (small) — Minato's kunai + 2 guaranteed clone kunai.
+  if (countShadowClones(fighter) >= 2) {
+    if (!spendCloneComboChakra(fighter, 30)) return false
+    consumeShadowClones(fighter, 2)
+    fighter.vx = fighter.facing * 5
+    spawnProjectile(fighter, "minatoKunai", { damage: 80, speed: 12, lifetime: 55, hitstun: 20, knockbackX: 7, knockbackY: -2, color: "#facc15", w: 26, h: 16, ...MINATO_CLONE_FX }, context)
+    schedulePendingSpawn(4,  () => { spawnGuaranteedCloneHit(fighter, target, "minatoKunai", { ...MINATO_CLONE_FX, damage: 66, hitstun: 18, knockbackX: 6, knockbackY: -2, dirSign: fighter.facing }, context); shakeCamera(context, 4, 4) })
+    schedulePendingSpawn(12, () => { spawnGuaranteedCloneHit(fighter, target, "minatoKunai", { ...MINATO_CLONE_FX, damage: 66, hitstun: 18, knockbackX: 6, knockbackY: -2, dirSign: fighter.facing }, context); shakeCamera(context, 4, 4) })
+    fighter._spriteCastMove = "minatoRush2"; fighter._spriteCastTimer = 22
+    fighter.attackCooldown = getAttackDuration(24, fighter)
+    focusCameraOnAction(context, fighter, target, 0.98, 8)
+    return true
+  }
+
+  // Neutral Special (no clone-barrage context) = FLYING RAIJIN kunai throw (Stage 4). The plain
+  // Down+Special slot returned false above (reserved for Stage 5 Rasengan / Reaper Death Seal).
+  return fireFlyingRaijinKunai(fighter, context)
+}
+
 function executeNarutoUltimate(fighter, context) {
   // Kurama Avatar / Tailed Beast Bomb — CINEMATIC ultimate (kurama.js), built on
   // the Gojo/Sukuna domain-cinematic pattern. NOT a transformation/playable form.
@@ -1850,6 +2151,24 @@ function executeNarutoUltimate(fighter, context) {
   // once per 90s round, occasionally twice with real meter setup. Only Naruto is touched.
   fighter.ultimateCooldown     = NARUTO_KURAMA_RECAST_FRAMES
   fighter._suppressUltCooldown = true   // stop triggerUltimate from overwriting with the 1200 default
+  return true
+}
+
+// MINATO ULTIMATE — Nine-Tails Chakra Mode → Tailed Beast Bomb. CINEMATIC ultimate
+// (minatoKurama.js), reusing the kurama.js freeze-cinematic / giant-avatar architecture with
+// MINATO's OWN dedicated art throughout (chakra-mode intro + his half-Kurama fox). Costs 50% of
+// the max meter (like Naruto's), and shares the same premium 2×-baseline recast lockout — an
+// equivalent screen-clearing guaranteed nuke (600 dmg, survivable from full).
+function executeMinatoUltimate(fighter, context) {
+  const cost = Math.ceil((fighter.maxEnergy || 100) * 0.5)
+  if (!spendEnergy(fighter, cost)) return false
+  const getOpponent = getTargetResolver(context)
+  const opponent    = getOpponent(fighter)
+  activateMinatoKurama(fighter, opponent)   // game.js freezes combat + drives the beats
+  fighter.attackCooldown = 22
+  shakeCamera(context, 12, 14)
+  fighter.ultimateCooldown     = NARUTO_KURAMA_RECAST_FRAMES
+  fighter._suppressUltCooldown = true
   return true
 }
 
@@ -2846,6 +3165,13 @@ export function toggleOmniManFlight(fighter) {
     fighter.onGround = false; fighter.grounded = false
     fighter.isLaunched = false; fighter.jumpCount = 0
     if ((fighter.vy || 0) >= 0) fighter.vy = OMNIMAN_FLIGHT_LIFTOFF
+    // Flight-flavored cast bark on ACTIVATION ("I go where I please" / "not even in deep space"),
+    // cooldown-gated so rapid re-toggling can't spam it (audio-only; no gameplay effect).
+    const _now = (typeof performance !== "undefined" ? performance.now() : 0)
+    if (!fighter._flightVoiceAt || _now - fighter._flightVoiceAt > 5000) {
+      fighter._flightVoiceAt = _now
+      try { sound?.playSfxFile?.(pickOmniManVoice("cast"), null) } catch (_) {}
+    }
   }
   // DISENGAGE: nothing punitive — gravity resumes next frame and he falls/lands normally (no penalty).
   return true
@@ -2910,9 +3236,11 @@ const OMNIMAN_METEOR_MD = { damage: 140, startup: 9, active: 5, recovery: 24, hi
 export function executeOmniManSpecial(fighter, context) {
   if (!fighter || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
-  if (dir === "F") return fireOmniManSkewer(fighter, context)
-  if (dir === "D") return fireOmniManMeteor(fighter, context)
-  return fireOmniManSmash(fighter, context)
+  const ok = dir === "F" ? fireOmniManSkewer(fighter, context)
+           : dir === "D" ? fireOmniManMeteor(fighter, context)
+           :               fireOmniManSmash(fighter, context)
+  if (ok) { try { sound?.playSfxFile?.(pickOmniManVoice("cast"), null) } catch (_) {} }   // Viltrumite cast bark (audio-only)
+  return ok
 }
 
 // NEUTRAL — Viltrumite Smash: a committed super-armored power punch (reuses the heavy haymaker pose via
@@ -2973,6 +3301,7 @@ function executeOmniManUltimate(fighter, context) {
   const opp = getTargetResolver(context)(fighter)
   fighter.vx = 0
   fighter._flightActive = false; fighter._forcedDescent = false; fighter._descentLandTimer = 0   // ult overrides any flight state
+  try { sound?.playSfxFile?.(pickOmniManVoice("cast"), null) } catch (_) {}   // Viltrumite ultimate cast bark (audio-only)
   activateOmniManBodySlamCinematic(fighter, opp, (cineCtx) => applyOmniManSlamDamage(fighter, opp, cineCtx))
   return true
 }
@@ -4133,6 +4462,75 @@ export function updateTobiramaCommandCombat(fighter, inputState, context, getPha
   return false
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MINATO — "Yellow Flash Rush" taijutsu command chain + 2 free pokes (Stage 2).
+// Mirrors updateTobiramaCommandCombat EXACTLY (chain + pokes, cancel-on-HIT).
+// CHAIN (Fwd+Heavy → re-tap Heavy): minatoRush1 (taijutsu string) → minatoRush2
+//   (Yellow-Flash kunai flurry) → minatoRushFin (flipping downward slam, launches).
+//   A stage only advances if the prior hit CONNECTED — a block/whiff ends the string
+//   (mid-chain interrupt). FREE POKES (cooldown-gated, no energy): Fwd+Light = Floor
+//   Combo (advancing string launcher); Back+Heavy = Melee Rush (dashing kunai rush).
+//   Neutral light/heavy/up/air/down_air stay on the normal path. Each stage's sprite
+//   is its currentMove key (sprite.js identity map → minato.animationData).
+// ─────────────────────────────────────────────────────────────────────────────
+const MINATO_CMD = {
+  minatoRush1:   { damage: 42, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3,  knockbackY: 0,  rangeX: 80, rangeY: 54, rekkaNext: "minatoRush2" },
+  minatoRush2:   { damage: 48, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 3,  knockbackY: -1, rangeX: 90, rangeY: 58, rekkaNext: "minatoRushFin" },   // Yellow-Flash kunai flurry
+  minatoRushFin: { damage: 86, startup: 8, active: 4, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -6, rangeX: 92, rangeY: 60, launcher: true },   // flip-slam launcher finisher (string ends here)
+}
+const MINATO_POKE = {
+  minatoFloorCombo: { damage: 70, startup: 6, active: 5, recovery: 18, hitstun: 22, knockbackX: 9, knockbackY: -12, rangeX: 96, rangeY: 74, launcher: true, cd: 34 },  // advancing floor-combo launcher
+  minatoMeleeRush:  { damage: 62, startup: 5, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: -2,  rangeX: 92, rangeY: 60, cd: 30 },                  // dashing kunai rush
+}
+function fireMinatoCmd(fighter, key) {
+  const md = MINATO_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the minatoRushN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+function fireMinatoPoke(fighter, key) {
+  const md = MINATO_POKE[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only, no spendEnergy
+  fighter._rekkaNext    = null             // pokes are not part of the chain
+  fighter._cmdHitLanded = false
+  return true
+}
+// Grounded command-normal driver (mirrors updateTobiramaCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateMinatoCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "minato" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  const lightEdge = !!inputState.light && !fighter._cmdPrevLight
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  fighter._cmdPrevLight = !!inputState.light
+
+  // CONTINUE — fresh Heavy during the current part's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireMinatoCmd(fighter, next)
+
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const back    = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+
+  // OPENERS (down blocks in this engine, so back is free for a command).
+  if (forward && heavyEdge) return fireMinatoCmd(fighter, "minatoRush1")       // Fwd+Heavy → chain opener
+  if (forward && lightEdge) return fireMinatoPoke(fighter, "minatoFloorCombo") // Fwd+Light → Floor Combo poke
+  if (back    && heavyEdge) return fireMinatoPoke(fighter, "minatoMeleeRush")  // Back+Heavy → Melee Rush poke
+  return false
+}
+
 // ── KILLUA SPECIAL — direction-branched menu (SPECIAL button) ────────────────────────────────
 // Reads the LIVE held direction stamped by game.js (fighter._specialHeldDir) the frame Special is
 // pressed — robust vs the time-windowed motion history. Neutral = Yo-Yo (Stage 3), Forward =
@@ -4347,6 +4745,16 @@ const GON_ADULT_THRESHOLD = 140            // Nen ≥ 140 (near-max of 160) to a
 const GON_ADULT_DRAIN     = 0.30           // Nen/frame while active (~9s from full) → auto-revert on empty
 const GON_ADULT_MULT      = { dmg: 1.3 }   // adult-form power bump (normals/rekka hit harder)
 const GON_ADULT_SPEED     = 40             // lumber walk (physics clamps rawSpeed*0.09 → the 4px/f floor)
+// GIANT-FORM SIZING (the SAME canvas-relative system as Netero's Guanyin / Itachi's Susanoo —
+// sprite.js scales the drawn cell + combat.js scales the hurtbox to match). Adult Gon is
+// canonically much taller than base Gon and most of the roster, so the sustained buff-mode body
+// (which reuses the CHILD sprites — no dedicated adult idle/walk art exists) is scaled UP here.
+// A "tall grown man", NOT a Guanyin-scale statue: 0.28 vs Guanyin 0.76 / Susanoo 0.72. refH = the
+// CHILD idle body-cell height (47) so every buff-mode action scales by the SAME factor and stays
+// proportional. The transform/finalblow cells carry their own actionScale and are EXEMPT from this
+// frac (sprite.js skips the giant path when an action defines actionScale) so they don't double-scale.
+const GON_ADULT_CANVAS_FRAC = 0.28
+const GON_ADULT_REF_H       = 47
 
 export function isGonAdultFormActive(f) { return !!f?._adultFormActive }
 
@@ -4364,6 +4772,11 @@ function enterGonAdultForm(fighter, context) {
   fighter.speed               = GON_ADULT_SPEED             // slow lumber (can still close distance)
   fighter.canJump             = false                       // no jump
   fighter.noDash              = true                        // no dash
+  // GIANT SILHOUETTE — grow the drawn body + the hurtbox (canvas-relative giant sizing; sprite.js
+  // + combat.js read these). Makes Adult Gon read as genuinely taller than the roster instead of
+  // snapping back to child height once the growth cinematic ends. Cleared on revert.
+  fighter._canvasHeightFrac   = GON_ADULT_CANVAS_FRAC
+  fighter._canvasHeightRefH   = GON_ADULT_REF_H
   fighter._adultTrail         = []
   // Hold the child→adult growth pose through the activation cinematic (combat frozen; the cinematic
   // clears it on end → normal buff-mode animations + the green aura overlay take over).
@@ -4381,6 +4794,8 @@ function revertGonAdultForm(fighter) {
   if (fighter._adultBaseSpeed   != null) { fighter.speed   = fighter._adultBaseSpeed;   fighter._adultBaseSpeed   = null }
   fighter.canJump = (fighter._adultBaseCanJump === false) ? false : true;  fighter._adultBaseCanJump = null
   fighter.noDash  = !!fighter._adultBaseNoDash;                            fighter._adultBaseNoDash  = null
+  fighter._canvasHeightFrac   = null    // release giant sizing → back to normal child-body scale + hurtbox
+  fighter._canvasHeightRefH   = null
   fighter._adultTrail = []
 }
 // Public revert for reset paths (round/KO/menu) — mirrors forceRevertFlashTime's role.
@@ -5543,6 +5958,7 @@ export function triggerSpecial(fighter, context = {}) {
   switch (key) {
     case "goku":    return executeGokuSpecial(fighter, context)
     case "naruto":  return executeNarutoSpecial(fighter, context)
+    case "minato":  return executeMinatoSpecial(fighter, context)   // Stage 3: shadow-clone routes (Flying Raijin / Rasengan / Reaper land in S4-5)
     case "gojo":    { const ok = executeGojoSpecial(fighter, context); if (ok) maybeFireGojoCastVoice(fighter); return ok }
     case "megumi":  return executeMegumiSpecial(fighter, context)
     case "sukuna":  return executeSukunaSpecial(fighter, context)
@@ -5588,6 +6004,7 @@ export function triggerUltimate(fighter, context = {}) {
     switch (key) {
       case "goku":    cast = executeGokuUltimate(fighter, context);    break
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
+      case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break
       case "megumi":  cast = executeMegumiUltimate(fighter, context);  break
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break

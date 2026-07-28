@@ -64,6 +64,9 @@
     "test:goku-black-handoff": "node harness/goku_black_handoff.test.mjs",
     "test:intro-sequence": "node harness/intro_sequence.test.mjs",
     "test:omega-ranger": "node harness/omega_ranger.test.mjs",
+    "test:omniman-stage0": "node harness/omniman_stage0_shots.mjs",
+    "test:omniman-stage1": "node harness/omniman_stage1_shots.mjs",
+    "test:omniman-stage2": "node harness/omniman_stage2_shots.mjs",
     "test:itachi-stage1": "node harness/itachi_stage1.mjs",
     "test:itachi-stage2": "node harness/itachi_stage2.mjs",
     "test:itachi-mangekyou": "node harness/itachi_mangekyou.mjs",
@@ -95,6 +98,9 @@
     "test:batman-stage3": "node harness/batman_stage3_shots.mjs",
     "test:batman-stage4": "node harness/batman_stage4_shots.mjs",
     "test:batman": "node harness/batman.test.mjs",
+    "test:minato-s1": "node harness/minato_stage1_shots.mjs",
+    "test:minato-s2": "node harness/minato_stage2.test.mjs",
+    "test:minato-s3": "node harness/minato_stage3.mjs",
     "test:tobirama": "node harness/tobirama.test.mjs",
     "test:tobirama-s1": "node harness/tobirama_stage1_shots.mjs",
     "test:tobirama-s2": "node harness/tobirama_stage2.test.mjs",
@@ -119,7 +125,17 @@
     "test:beta-toggle": "node harness/beta_toggle.test.mjs",
     "test:session-persist": "node harness/session_persist.test.mjs",
     "test:beta-mode-rosters": "node harness/beta_mode_rosters.test.mjs",
-    "test:flash-reverse-voice": "node harness/flash_reverse_voice.test.mjs"
+    "test:flash-reverse-voice": "node harness/flash_reverse_voice.test.mjs",
+    "test:batman-voice": "node harness/batman_voice.test.mjs",
+    "test:omniman": "node harness/omniman.test.mjs",
+    "test:omniman-voice": "node harness/omniman_voice.test.mjs",
+    "test:omniman-stage3": "node harness/omniman_stage3_shots.mjs",
+    "test:omniman-stage4": "node harness/omniman_stage4_shots.mjs",
+    "test:omniman-stage5": "node harness/omniman_stage5_shots.mjs",
+    "test:minato-s4": "node harness/minato_stage4.mjs",
+    "test:minato-s5": "node harness/minato_stage5.mjs",
+    "test:minato-s6": "node harness/minato_stage6.mjs",
+    "test:minato": "node harness/minato.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

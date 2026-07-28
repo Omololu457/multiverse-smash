@@ -299,6 +299,13 @@ export const SKINS = {
   // (procedural name/universe panel on select until Stage 6). No alt skins yet.
   omniman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null }
+  ],
+
+  // Zenitsu Agatsuma (Demon Slayer) — FIRST Demon Slayer sprite char. Same gate: WITHOUT a default
+  // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~half size.
+  // Sources his real spriteScale (2.25) + portrait from the character. No alt skins yet.
+  zenitsu: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zenitsu?.portrait, spriteScale: characters.zenitsu?.spriteScale, animationData: null }
   ]
 }
 

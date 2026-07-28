@@ -27,6 +27,7 @@ import { pickItachiVoice } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
 import { pickSkinVoice } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
+import { pickZenitsuVoice } from "./zenitsuVoice.js"   // Zenitsu hit-react / offense-bark / low-health voice pools (audio-only)
 
 // ========================
 // HITSTOP TABLE — SINGLE SHARED TUNABLE SOURCE
@@ -701,6 +702,43 @@ function applyGonLowHealthVoice(defender) {
   }
 }
 
+// ── ZENITSU AGATSUMA VOICE LINES (audio-only; Japanese Demon Slayer pack) ──
+// DEFENDER reaction — panicked pool ("No way!", "Damn it!", "I got hit!"). One line per _hitVoiceCd
+// window; unblocked hits only. Zenitsu has a SEPARATE low-health pool (below).
+function applyZenitsuHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "zenitsu" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickZenitsuVoice("hitReact"), null) } catch (_) {}
+}
+
+// ATTACKER connect — combat/determination barks ("This is it, here I go!", "Counterattack!", "I won't
+// give up!") on a HEAVY connect OR a long BASIC light string. Zenitsu has NO taunt action (enrolling him
+// in the universal heal-taunt would change gameplay — excluded here), so his DETERMINATION one-liners
+// fold into this same offense-connect pool (Gon/Killua precedent). His SPECIALS (Thunderclap, Double
+// Attack, Godspeed ult) fire their OWN cast lines and set _atkVoiceCd on cast, so they're excluded here
+// (no cast+connect double). Shared _atkVoiceCd → one line per window; blocked suppresses it.
+function applyZenitsuOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "zenitsu" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickZenitsuVoice("combatBark"), null) } catch (_) {}
+}
+
+// LOW-HEALTH bark — "This can't be done yet!" — fires ONCE the first time Zenitsu drops to/below the
+// threshold (same pattern as Gon/Naruto/Itachi). Random pick (single-entry pool).
+const ZENITSU_LOW_HEALTH_RATIO = 0.25
+function applyZenitsuLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "zenitsu" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * ZENITSU_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickZenitsuVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
 // ── HISOKA MORROW VOICE LINES (audio-only; Japanese "Nen Impact" pack) ──
 // DEFENDER reaction — delighted/dismissive pool ("No no~", "Impressive~", "Irresistible~"). One line
 // per _hitVoiceCd window; unblocked hits only. Hisoka has a SEPARATE low-health pool (below).
@@ -1265,7 +1303,10 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
   }
 
-  if (defender.isBlocking) {
+  // UNBLOCKABLE (atk.unblockable) — a DELIBERATE, per-move exception to the guard system: the block
+  // branch is skipped entirely so the hit lands FULL even against a held guard (Zenitsu's dash-through
+  // Ultimate). Not "high damage that punishes through block" — the block-check itself is bypassed.
+  if (defender.isBlocking && !atk.unblockable) {
     const chip = cat === "special" || cat === "ultimate"
     const chipDmg = Math.floor(dmg * (chip ? 0.12 : 0.20))
 
@@ -1368,6 +1409,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyGonHitVoice(defender, cat, dmg)
     // HISOKA hit-reaction voice — delighted/dismissive pool ("No no~" / "Impressive~" / "Irresistible~").
     applyHisokaHitVoice(defender, cat, dmg)
+    // ZENITSU hit-reaction voice — panicked pool ("No way!" / "Damn it!" / "I got hit!").
+    applyZenitsuHitVoice(defender, cat, dmg)
     applyMinatoHitVoice(defender, cat, dmg)
     // FLASH hit-reaction voice — "Not again." + effort-grunt set.
     applyFlashHitVoice(defender, cat, dmg)
@@ -1392,6 +1435,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
     applyGonLowHealthVoice(defender)   // "Not yet" / "I can still fight" / "I'm going to die" (once, on crossing the low-HP line)
+    applyZenitsuLowHealthVoice(defender)   // Zenitsu "This can't be done yet!" (once, on crossing the low-HP line)
     applyHisokaLowHealthVoice(defender)   // Hisoka THRILLED by danger: "Irresistible~" / "How tantalizing~" (once, on crossing the low-HP line)
     applyMinatoLowHealthVoice(defender)   // Minato "I'll fight to the end" (once, on crossing the low-HP line)
     applyOmniManLowHealthVoice(defender)   // "It's all under control" / "none of you can stop me" (once, on crossing the low-HP line)
@@ -1476,6 +1520,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyRickOffenseVoice(attacker, cat, !defender.isBlocking)     // Rick generic taunt/flavor bark on a strong/long-string connect
   applyKilluaOffenseVoice(attacker, cat, !defender.isBlocking)   // Killua combat bark (+ ~30% taunt one-liner) on a strong/long-string connect
   applyGonOffenseVoice(attacker, cat, !defender.isBlocking)      // Gon combat bark on a heavy/long-string connect (specials use their own cast lines)
+  applyZenitsuOffenseVoice(attacker, cat, !defender.isBlocking)  // Zenitsu determination/combat bark on a heavy/long-string connect (specials use their own cast lines)
   applyHisokaOffenseVoice(attacker, cat, !defender.isBlocking)   // Hisoka combat bark (+ ~30% flirty taunt) on a heavy/long-string connect (specials use their own cast lines)
   applyMinatoOffenseVoice(attacker, cat, !defender.isBlocking)   // Minato offense bark / taunt on a heavy/long-string connect
   applyTobiramaOffenseVoice(attacker, cat, !defender.isBlocking) // Tobirama overconfident taunt one-liner on a strong/long-string connect

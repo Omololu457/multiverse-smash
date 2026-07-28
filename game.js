@@ -22,7 +22,8 @@ import {
   spawnSummon as spawnAssistSummon,  // ← fixed: alias included
   summonShadowClone, dispelShadowClones,   // debug hotkeys (",", ".") wire straight to these
   spawnShadowClone,                        // immediate clone spawn (harness clone-combo staging — no audio-window delay)
-  countShadowClones                        // #21 Clone Rendan Storm gate (Naruto light-string extension)
+  countShadowClones,                       // #21 Clone Rendan Storm gate (Naruto light-string extension)
+  getClonePuffCount                        // harness: Zenitsu Double Attack partner poof count
 } from "./summons.js"
 import { physics } from "./physics.js"
 import {
@@ -192,6 +193,7 @@ import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
 import { pickSkinVoice, GOJOYOUNG_VOICE } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
+import { pickZenitsuVoice, ZENITSU_VOICE } from "./zenitsuVoice.js"   // Zenitsu intro voice pool + harness hooks (audio-only)
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -1613,6 +1615,10 @@ const INTRO_VOICE = {
   // "I'm so looking forward to this~"). No taunt action → the flirty taunt pool rides the offense-connect
   // trigger instead (see hisokaVoice.js NOTE); intro fires here.
   hisoka: { pool: HISOKA_VOICE.intro, gateReveal: false },
+  // Zenitsu picks ONE of his eager pre-fight lines at random per match ("How about that?" / "Come on, I'll
+  // saw through!"). No taunt action → the determination pool folds into the offense-connect bark (see
+  // zenitsuVoice.js NOTES); intro fires here at his first intro-play frame (no reveal gate).
+  zenitsu: { pool: ZENITSU_VOICE.intro, gateReveal: false },
   // Batman picks ONE of his grim pre-fight lines ("we both have a job to do" / "The Justice League is a
   // calling" / "It's your chance to prove yourself" / "I conquered fear long ago"). No taunt action → the
   // taunt pool rides the offense-connect trigger instead (see batmanVoice.js NOTE); intro fires here.
@@ -2900,6 +2906,8 @@ function updateMiscTimers(fighter) {
   if (fighter.dashTeleportCooldown  > 0) fighter.dashTeleportCooldown--   // Toji teleport-dash
   if (fighter.malevolentDashCooldown > 0) fighter.malevolentDashCooldown-- // Sukuna Malevolent Dash
   if (fighter.chainCooldown > 0) fighter.chainCooldown--                   // Toji Chain-Knife
+  if (fighter.thunderCd > 0) fighter.thunderCd--                           // Zenitsu Thunder Breathing 1st Form dash-strike
+  if (fighter.doubleAtkCd > 0) fighter.doubleAtkCd--                       // Zenitsu Double Attack (Tanjiro/Inosuke), shared cooldown
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--
@@ -3033,7 +3041,7 @@ function updateMovementInput(fighter) {
   // FLASH TIME LOCKOUT — Flash cannot block/defend at all while Flash Time is active (its whole
   // premise: he's moving too fast to hold a guard). The block input is simply ignored for him.
   // (Omni-Man: while flying, Down = DESCEND — not block; and he can't block mid-crash/recovery.)
-  if (inputState.down && !fighter.isCharging && !fighter._flashTimeActive &&
+  if ((inputState.down || fighter._forceGuard) && !fighter.isCharging && !fighter._flashTimeActive &&
       !fighter._flightActive && !isOmniManForcedDescent(fighter)) fighter.isBlocking = true
   physics.moveFighter(fighter, vKeys, fighter.controls)
 }
@@ -6039,6 +6047,10 @@ gameLoop()
     portalDrop:       !!f._portalDrop,
     jumpCount:        f.jumpCount || 0,
     attackCooldown:   f.attackCooldown || 0,
+    thunderCd:        f.thunderCd || 0,         // Zenitsu Thunder Breathing dash-strike cooldown
+    doubleAtkCd:      f.doubleAtkCd || 0,       // Zenitsu Double Attack shared cooldown
+    doubleAtkVariant: f._doubleAtkVariant || null,   // last Double Attack partner fired
+    zenUltWhiff:      !!f._zenUltWhiff,          // Zenitsu Ultimate fired on a level mismatch (whiffed)
     tauntCharge:      f._tauntCharge || 0,
     tauntPlaying:     !!f._tauntPlaying,
     tauntTimer:       f._tauntTimer || 0,
@@ -6479,6 +6491,7 @@ gameLoop()
     introState: () => ({ stage: introStage, gameState, p1Playing: !!p1?._introPlaying, p2Playing: !!p2?._introPlaying, p1Variant: p1?._introVariant ?? null, p2Variant: p2?._introVariant ?? null }),
     // Active summons (Meeseeks no-cap test): id/owner-side/pos/frame + whether it's past its spawn beat.
     summons: () => activeSummons.map(s => ({ id: s.id, ownerSide: s.owner?.side ?? null, x: s.x, y: s.y, vx: s.vx, frame: s.frame, hasHit: !!s.hasHit, lifetime: s.lifetime, sheet: s.sheet ?? null })),
+    clonePuffCount: () => getClonePuffCount(),
     resetUlt:   () => { if (p1) { p1.ultimateCooldown = 0; p1.energy = p1.maxEnergy; p1.attackCooldown = 0 } },   // clear ult lockout for back-to-back ultimate tests
     liftP2:     (dy = 40) => { if (p2) { p2.onGround = false; p2.grounded = false; p2.y -= dy; p2.vy = 0; p2.isLaunched = true } },  // raise the dummy into an aerial path (e.g. Rick's rising rocket)
     setTauntCharge: v => { if (p1) p1._tauntCharge = v },   // fast-forward the 10s taunt charge for tests
@@ -6486,6 +6499,7 @@ gameLoop()
     setP1Health: (v) => { if (p1) p1.health = Math.max(1, v) },   // force P1 HP (Reaper self-cost gate test)
     setP2Invuln: (v = 600) => { if (p2) p2.invulnTimer = v },   // let a projectile pass through the dummy (free-flight range measurement)
     setP2Blocking: (on = true) => { if (p2) p2.isBlocking = !!on },   // force the dummy to hold guard (block-during-time-slow test)
+    setP2ForceBlock: (on = true) => { if (p2) p2._forceGuard = !!on },   // PERSISTENT dummy guard — updatePlayer honors _forceGuard so isBlocking survives the per-frame clear (blockable/unblockable tests)
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
     setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
@@ -6495,6 +6509,7 @@ gameLoop()
     //    or a lingering summon/chain recast lock). Test-only, like the rest of __harness.
     resetFighterInput: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return; f.directionHistory = []; f.attackCooldown = 0; f.summonCooldown = 0; f.chainCooldown = 0; f.teleportCooldown = 0; f.comboCounter = 0; f.comboTimer = 0 },   // also clear combo state so an isolated single-hit damage measurement isn't decayed by a leftover combo (projectiles now build combo count too — combo-flow Stage 3)
     clearProjectiles:  () => { activeProjectiles.length = 0 },
+    clearSummons:      () => { activeSummons.length = 0 },
     healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false }   // reset dummy between damage checks
       // Also clear BOTH fighters' combo state: a fresh single-hit damage measurement must not be decayed by
       // a combo lingering from the previous check (projectiles now build combo count too — combo-flow Stage 3).
@@ -6559,6 +6574,10 @@ gameLoop()
     flashVoicePool: pool => FLASH_VOICE[pool] || null,
     gonVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickGonVoice(pool)),
     gonVoicePool: pool => GON_VOICE[pool] || null,
+    // Zenitsu's 7 wired pools (intro/thunderclap/ultimate/combatBark/hitReact/lowHealth/doubleAttack) —
+    // proves genuine random selection within each, using the SAME pickZenitsuVoice the live triggers call.
+    zenitsuVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickZenitsuVoice(pool)),
+    zenitsuVoicePool: pool => ZENITSU_VOICE[pool] || null,
     // Hisoka's 10 pools (intro/taunt/bungee/texture/overdrive/rekka/combatBark/hitReact/lowHealth/win)
     // — proves genuine random selection within each, using the SAME pickHisokaVoice the live triggers call.
     hisokaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickHisokaVoice(pool)),

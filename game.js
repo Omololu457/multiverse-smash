@@ -49,6 +49,7 @@ import {
   applyGodspeedSystem,   // Killua Godspeed: sustained buff-mode ultimate (drain tick + afterimage trail)
   applyFlashTimeSystem, forceRevertFlashTime,   // Flash — Flash Time: sustained buff-mode ultimate (drain tick + block-lockout + afterimage trail)
   applyGonAdultFormSystem, forceRevertGonAdultForm,   // Gon Adult Form: sustained buff-mode ultimate (drain tick + movement-lockout + green aura trail)
+  applyHisokaOverdriveSystem, forceRevertHisokaOverdrive,   // Hisoka Bloodlust Overdrive: sustained buff-mode ultimate (drain tick + _skinAnim golden power-up body-swap)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
@@ -69,7 +70,9 @@ import {
   updateGonCommandCombat,     // Gon Down+Heavy 2-hit "Rush" command-normal cancel chain (rush1 flurry→rush2 launcher, cancel-on-hit)
   updateBatmanCommandCombat,  // Batman Down+Heavy 3-hit "Combo" command-normal cancel chain (batCombo1→2→3 launcher, cancel-on-hit)
   updateTobiramaCommandCombat,   // Tobirama Fwd+Heavy 3-hit taijutsu chain (combo1→combo2→comboFin) + Fwd+Light/Back+Heavy pokes
-  updateMinatoCommandCombat   // Minato Fwd+Heavy 3-hit "Yellow Flash Rush" chain (rush1→rush2→rushFin) + Fwd+Light/Back+Heavy pokes
+  updateMinatoCommandCombat,   // Minato Fwd+Heavy 3-hit "Yellow Flash Rush" chain (rush1→rush2→rushFin) + Fwd+Light/Back+Heavy pokes
+  updateHisokaCommandCombat,   // Hisoka Down+Heavy 2-hit "Card Flourish" command-normal cancel chain (rekka1 strike→rekka2 card-slash launcher, cancel-on-hit)
+  updateZenitsuCommandCombat   // Zenitsu Down+Heavy 3-hit "Thunderclap Flurry" chain (zenCombo1→2→3 launcher, cancel-on-hit)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -144,6 +147,10 @@ import {
   clearGonAdultFormCinematic, getGonAdultFormCinematicStatus
 } from "./gonAdultFormCinematic.js"
 import {
+  updateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive, drawHisokaOverdriveCinematic,
+  clearHisokaOverdriveCinematic, getHisokaOverdriveCinematicStatus
+} from "./hisokaOverdriveCinematic.js"
+import {
   updateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive, drawGokuBlackSwordCinematic,
   clearGokuBlackSwordCinematic, getGokuBlackSwordCinematicStatus
 } from "./gokuBlackSwordCinematic.js"
@@ -175,6 +182,8 @@ import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
 import { pickGonVoice, GON_VOICE } from "./gonVoice.js"
+import { pickHisokaVoice, HISOKA_VOICE } from "./hisokaVoice.js"
+import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
 import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
 import { pickTobiramaVoice, TOBIRAMA_VOICE } from "./tobiramaVoice.js"
@@ -1485,7 +1494,8 @@ function resetRound() {
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  clearHisokaOverdriveCinematic()
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -1573,6 +1583,7 @@ function initIntroVariant(fighter) {
 const INTRO_VOICE = {
   beerus: { clip: "beerus_intro.mp3", gateReveal: true },   // "…I guess I'll destroy you now"
   naruto: { clip: "naruto_intro.mp3", gateReveal: false },  // 3 opening battle-cry lines back-to-back
+  minato: { pool: MINATO_VOICE.intro, gateReveal: false },  // picks ONE intro line at random per match (Japanese Storm-Connections pack)
   // Sasuke picks ONE of two multi-line intro bursts at random per match (same alternation family
   // as Naruto's win pool). Either clip is a packed cluster fired as a single beat.
   sasuke: { pool: ["sasuke_intro_cluster.mp3", "sasuke_intro_alt2.mp3"], gateReveal: false },
@@ -1598,6 +1609,10 @@ const INTRO_VOICE = {
   // Gon picks ONE of his eager pre-fight lines ("Alright, come on!" / "Anytime is fine" / "Let's hurry").
   // No taunt action exists for Gon → the intro/taunt pool fires on the intro beat only (see gonVoice.js NOTE).
   gon: { pool: GON_VOICE.intro, gateReveal: false },
+  // Hisoka picks ONE of his eager/appraising pre-fight lines ("The stronger the prey, the better" /
+  // "I'm so looking forward to this~"). No taunt action → the flirty taunt pool rides the offense-connect
+  // trigger instead (see hisokaVoice.js NOTE); intro fires here.
+  hisoka: { pool: HISOKA_VOICE.intro, gateReveal: false },
   // Batman picks ONE of his grim pre-fight lines ("we both have a job to do" / "The Justice League is a
   // calling" / "It's your chance to prove yourself" / "I conquered fear long ago"). No taunt action → the
   // taunt pool rides the offense-connect trigger instead (see batmanVoice.js NOTE); intro fires here.
@@ -1973,7 +1988,8 @@ function resetToStart() {
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  clearHisokaOverdriveCinematic()
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -2301,6 +2317,10 @@ function _checkMatchOver() {
         const narutoWins = ["naruto_win.mp3", "naruto_win_alt.mp3", "naruto_ninja_way.mp3"]
         sound.playSfxFile?.(narutoWins[Math.floor(Math.random() * narutoWins.length)], null)
       }
+      // MINATO win voice — one of three victory lines at random ("I win", "this is my victory", "…connects to the future").
+      if (winFighter?.rosterKey === "minato") {
+        sound.playSfxFile?.(pickMinatoVoice("win"), null)
+      }
       // SASUKE win voice — same 50/50 coin-flip pattern as Beerus/Goku Black; alternates between
       // "It's over. It's over." and "Right now, I am the strongest in this world."
       if (winFighter?.rosterKey === "sasuke") {
@@ -2325,6 +2345,11 @@ function _checkMatchOver() {
       // "Managed to win" / "That was tough, you got stronger"). Fires only when the WINNER is Gon.
       if (winFighter?.rosterKey === "gon") {
         sound.playSfxFile?.(pickGonVoice("win"), null)
+      }
+      // HISOKA win voice — random pick from his victory pool ("You pass~" / "How about dinner after
+      // this~?" / "I toyed with you a bit too much~"). Fires only when the WINNER is Hisoka.
+      if (winFighter?.rosterKey === "hisoka") {
+        sound.playSfxFile?.(pickHisokaVoice("win"), null)
       }
       // BATMAN win voice — random pick from his victory pool ("You'll find plenty back in Arkham" /
       // "Gotham will rise again"). Fires only when the WINNER is Batman.
@@ -2468,7 +2493,8 @@ function _doRematch() {
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  clearHisokaOverdriveCinematic()
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -3213,6 +3239,12 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "gon" && !charging &&
       updateGonCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // HISOKA "Card Flourish": Down+Heavy opens rekka1 (crouch strike), re-tap Heavy on hit → rekka2
+  // (extended-reach card-slash launcher). Cancel-on-hit; a whiff/block ends the string. Consumes the
+  // input only when it fires (returns true → skip normal path); neutral light/heavy stay on the path below.
+  if ((fighter.rosterKey || "").toLowerCase() === "hisoka" && !charging &&
+      updateHisokaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
   // BATMAN "Combo": Down+Heavy opens batCombo1 (jab), re-tap Heavy on hit → batCombo2 (uppercut) →
   // batCombo3 (launcher). Cancel-on-hit; a whiff/block ends the string. Consumes the input only when
   // it fires (returns true → skip normal path); neutral light/heavy stay on the normal path below.
@@ -3230,6 +3262,12 @@ function _updatePlayerCombatBody(fighter) {
   // Back+Heavy = Melee Rush. Consumes the input only when it fires; neutral normals stay on the normal path.
   if ((fighter.rosterKey || "").toLowerCase() === "minato" && !charging &&
       updateMinatoCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // ZENITSU "Thunderclap Flurry": Down+Heavy opens zenCombo1, re-tap Heavy on hit → zenCombo2 →
+  // zenCombo3 (cancel-on-hit; a whiff/block ends the string). Consumes the input only when it fires;
+  // neutral light/heavy/up/air/down_air stay on the normal path.
+  if ((fighter.rosterKey || "").toLowerCase() === "zenitsu" && !charging &&
+      updateZenitsuCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // NETERO Guanyin giant: the base attack buttons fire the 4 avatar attacks (light=leg, heavy=arm-sweep,
   // up=punch-burst; combo-slash is on SPECIAL). Consumes the press only when it fires.
@@ -3485,6 +3523,7 @@ function updateFighterState(fighter) {
   applyGodspeedSystem(updated)       // Killua Godspeed: continuous Nen drain + auto-revert at 0 + afterimage-trail recording
   applyFlashTimeSystem(updated)      // Flash — Flash Time: continuous Speed Force drain + auto-revert + block-lockout + afterimage-trail recording
   applyGonAdultFormSystem(updated)   // Gon Adult Form: continuous Nen drain + auto-revert at 0 + green-aura-trail recording (movement-lockout is set at enter)
+  applyHisokaOverdriveSystem(updated)   // Hisoka Bloodlust Overdrive: continuous Nen drain + auto-revert at 0 (buff + _skinAnim body-swap set at enter)
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   applyOmniManFlightSystem(updated)  // Omni-Man Flight: shared-pool Smart Atoms drain while flying → forced descent at 0 → landing-recovery window (BEFORE applyGravity, which then hovers/falls him)
@@ -3962,6 +4001,15 @@ function updateBattle() {
   // The buff + movement-lockout were already applied at the trigger (executeGonUltimate).
   if (isGonAdultFormCinematicActive()) {
     updateGonAdultFormCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
+  // HISOKA BLOODLUST OVERDRIVE ACTIVATION CINEMATIC: SAME freeze contract — combat/physics/input paused
+  // while the camera pushes in on Hisoka and his card-cape→golden-aura transform plays, then pulls back.
+  // The buff + _skinAnim body-swap were already applied at the trigger (executeHisokaUltimate).
+  if (isHisokaOverdriveCinematicActive()) {
+    updateHisokaOverdriveCinematic({ camera, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return                                     // skip movement/combat/physics this frame
   }
@@ -4887,6 +4935,7 @@ function drawBattle() {
   drawKilluaGodspeedCinematic(ctx, canvas)  // fullscreen Godspeed activation overlay (cyan burst flash)
   drawFlashTimeCinematic(ctx, canvas)       // fullscreen Flash Time activation overlay (red/gold burst flash)
   drawGonAdultFormCinematic(ctx, canvas)    // fullscreen Adult Form activation overlay (green burst flash)
+  drawHisokaOverdriveCinematic(ctx, canvas) // fullscreen Bloodlust Overdrive activation overlay (gold/magenta burst flash)
   drawMangekyouCinematic(ctx, canvas)       // fullscreen Mangekyou activation overlay (centered eye transformation)
   drawVegetaFinalFlashCinematic(ctx, canvas)  // fullscreen Overcharged Final Flash overlay (gold beam + impact explosion)
   drawBeerusKiBallCinematic(ctx, canvas)      // fullscreen Ki Ball overlay (charging orb → impact explosion)
@@ -5965,6 +6014,7 @@ gameLoop()
     currentForm:      f.currentForm || null,     // transformation state (Goku SSB etc.)
     mangekyouActive:  !!f._mangekyouActive,       // Itachi Mangekyou Sharingan buff-mode
     godspeedActive:   !!f._godspeedActive,        // Killua Godspeed buff-mode ultimate
+    overdriveActive:  !!f._overdriveActive,       // Hisoka Bloodlust Overdrive buff-mode form
     flashTimeActive:  !!f._flashTimeActive,        // Flash — Flash Time buff-mode ultimate
     flightActive:     !!f._flightActive,          // Omni-Man: Flight movement mode engaged
     forcedDescent:    !!f._forcedDescent,         // Omni-Man: crashing out of the sky (Smart Atoms depleted mid-air)
@@ -6124,7 +6174,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -6350,6 +6400,7 @@ gameLoop()
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
     swordCine: () => getGokuBlackSwordCinematicStatus(),
     godspeedCine: () => getKilluaGodspeedCinematicStatus(),
+    overdriveCine: () => getHisokaOverdriveCinematicStatus(),
     flashTimeCine: () => getFlashTimeCinematicStatus(),
     mangekyouCine: () => getMangekyouCinematicStatus(),
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
@@ -6508,6 +6559,12 @@ gameLoop()
     flashVoicePool: pool => FLASH_VOICE[pool] || null,
     gonVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickGonVoice(pool)),
     gonVoicePool: pool => GON_VOICE[pool] || null,
+    // Hisoka's 10 pools (intro/taunt/bungee/texture/overdrive/rekka/combatBark/hitReact/lowHealth/win)
+    // — proves genuine random selection within each, using the SAME pickHisokaVoice the live triggers call.
+    hisokaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickHisokaVoice(pool)),
+    hisokaVoicePool: pool => HISOKA_VOICE[pool] || null,
+    minatoVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickMinatoVoice(pool)),
+    minatoVoicePool: pool => MINATO_VOICE[pool] || null,
     // Batman's 4 wired pools (intro/taunt/hitReact/win) — proves random selection within each.
     batmanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickBatmanVoice(pool)),
     batmanVoicePool: pool => BATMAN_VOICE[pool] || null,

@@ -35,7 +35,7 @@ function startServer() {
 // Sprite characters (hasSprites:true), in roster order.
 const CHARS = [
   "goku", "vegeta", "gojo", "megumi", "sukuna", "toji", "naruto", "sasuke", "itachi",
-  "tobirama", "minato", "rick", "omega_ranger", "omniman", "netero", "goku_black",
+  "tobirama", "minato", "zenitsu", "rick", "omega_ranger", "omniman", "netero", "goku_black",
   "beerus", "saiki", "killua", "flash", "gon", "batman", "hisoka",
 ];
 

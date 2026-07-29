@@ -108,6 +108,18 @@ const MOVE_TO_ACTION = {
   omMeteor: "omMeteor",
   omSmash: "heavy",
 
+  // Ben 10 (Stage 2): per-form Fwd+Heavy command-normal chain stages (Ben jab / XLR8 combo / Diamondhead
+  // crystal swing). Identity maps (currentMove === action key) — explicit so a recovery/cast tail can
+  // never resolve to the 128² box. Resolved against the active form set (base or _skinAnim).
+  benJab1: "benJab1", benJab2: "benJab2",
+  xlCombo1: "xlCombo1", xlCombo2: "xlCombo2", xlCombo3: "xlCombo3",
+  dhSwing1: "dhSwing1", dhSwing2: "dhSwing2",
+  // Stage 3 specials (per-form): Ben Hoverboard, XLR8 Dash Strike / Sonic Rush, Diamondhead
+  // Shard Barrage cast / Rising Diamonds cast. Identity maps (currentMove / _spriteCastMove === key).
+  benHover: "benHover", xlDash: "xlDash", xlRush: "xlRush", dhShoot: "dhShoot", dhRising: "dhRising",
+  // Stage 4 ultimates: Ben Omnitrix-transform cast pose, XLR8 Sonic Blitz, Diamondhead Crystal Storm.
+  transform: "transform", xlUlt: "xlUlt", dhUlt: "dhUlt",
+
   // Hisoka (Stage 2): Down+Heavy command-normal chain stages. Identity maps (currentMove === action
   // key) — explicit so a recovery/cast tail can never resolve to the 128² box.
   hisokaRekka1: "hisokaRekka1",
@@ -211,6 +223,11 @@ const GETUP_WINDOW = 24;
 // ─────────────────────────────────────────────────────────────────
 function _resolveAction(fighter, currentAction = "idle") {
   if (!fighter) return "idle";
+
+  // HARNESS-ONLY pose override: set exclusively by __harness.benPose (and only under
+  // ?harness) so a screenshot tool can render a SPECIFIC action deterministically without
+  // driving physics. Inert in normal play (the field is never set). Highest priority.
+  if (fighter._forceAction) return fighter._forceAction;
 
   // Task 3: Gojo's Unlimited Void FREEZES the trapped enemy on the exact frame
   // they were in. Hold whatever action was last resolved (mid-jump → "jump",

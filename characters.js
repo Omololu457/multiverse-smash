@@ -1153,7 +1153,12 @@ const minato = {
     // orb / Big Ball sphere / Shinigami / reaching-arm all spawn as separate FX projectiles (abilities.js).
     minatoRasengan:  { frames: 11, width: 65, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_basic_rasengan_version_1_uniform.png" },  // Down+Special — dash-in Rasengan ram
     minatoBigBall:   { frames: 11, width: 65, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_basic_rasengan_version_1_uniform.png" },  // charge+Down+Special — Big Ball (reuses the ram body pose; the big sphere is a separate FX)
-    minatoReaperCast:{ frames: 13, width: 44, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_reaper_death_seal_uniform.png" }           // charge+Special — Reaper Death Seal ritual (hand-seals)
+    minatoReaperCast:{ frames: 13, width: 44, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_reaper_death_seal_uniform.png" },          // charge+Special — Reaper Death Seal ritual (hand-seals)
+    // Shadow-Clone SUMMON hand-sign — the CASTER's gesture, played on Minato (via _spriteCastMove) at
+    // D→F spawn. This IS the shadow_clone_justu art (Minato forming the seal); the spawned clones now
+    // stand in their OWN idle body (summons.js CLONE_BODY_SETS.minato → minato_idle) instead of wrongly
+    // performing this gesture themselves. Mirrors how Naruto's clones use a standing stance, not a cast.
+    minatoCloneCast: { frames: 3, width: 37, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_shadow_clone_justu_uniform.png" }
   },
   // Single-entry pre-match intro pool (game.pickIntroVariant picks from here; one entry = always plays).
   introPool: ["intro"]
@@ -1395,6 +1400,8 @@ const rickPrime = {
 // ─────────────────────────────────────────────────────────────────
 const ben10 = {
   rosterKey: "ben10", name: "Ben 10", universe: "ben_10",
+  portrait: "./ben10_portrait.png",   // Ben Tennyson headshot (cropped from the idle strip) — one select-screen mugshot for the single "Ben 10" fighter; skins.js + ui.js read characters.ben10.portrait
+
   archetypes: ["transformations", "melee"],
   primary: "transformations", secondary: ["melee"],
   traits: { hasEnergy: true, energyType: "omnitrix", mobility: "high", scaling: "burst" },
@@ -1412,7 +1419,43 @@ const ben10 = {
   ultimate: { name: "Omnitrix Overload", cost: 100, duration: 8, effect: "Active alien's ultimate" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  hasSprites: true,
+  // STAGE-1 sizing: 2.0 gives Ben-human (52px idle) ≈104px on-screen (roster median ≈111).
+  // XLR8 (43px→86) reads short and Diamondhead (72px→144) reads tall under this single
+  // per-character scale — per-form normalization is a Stage-5 height-pass concern (flagged).
+  spriteScale: 2.0,
+  // BEN-HUMAN (untransformed) sprite set — renders whenever fighter.transformed===false
+  // (match start pre-transform, or forced revert at 0 energy). Alien forms swap the whole
+  // set via fighter._skinAnim (see fighters.js BEN10_FORM_ANIM). Uniform strips re-sliced
+  // from the raw on-disk sheets (harness alpha-gutter repack → *_uniform.png). guard omitted
+  // → falls to idle; hurt/intro reuse idle (no dedicated hit/entrance art yet — flagged).
+  animationData: {
+    idle:  { frames: 8, width: 36, height: 52, speed: 6, anchorY: 0, sheet: "./ben10_idle_uniform.png" },
+    walk:  { frames: 6, width: 45, height: 51, speed: 7, anchorY: 0, sheet: "./ben10_run_uniform.png" },
+    run:   { frames: 6, width: 45, height: 51, speed: 4, anchorY: 0, sheet: "./ben10_run_uniform.png" },
+    dash:  { frames: 6, width: 45, height: 51, speed: 3, anchorY: 0, sheet: "./ben10_run_uniform.png" },
+    jump:  { frames: 1, width: 46, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jump_uniform.png" },
+    fall:  { frames: 1, width: 46, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jump_uniform.png" },
+    hurt:  { frames: 1, width: 36, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_idle_uniform.png" },   // STOPGAP: no hit art
+    intro: { frames: 8, width: 36, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_idle_uniform.png" },   // STOPGAP: no intro art
+    // STAGE-2 NORMALS (Ben-human). light/air/grab share the jab strip; heavy reuses it slower (no
+    // dedicated heavy art — flagged). up = up_attack strip, down_air = the dive-kick strip.
+    light:    { frames: 3, width: 44, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },
+    heavy:    { frames: 3, width: 44, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },       // STOPGAP: reuse jab
+    up:       { frames: 3, width: 47, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_up_uniform.png" },
+    air:      { frames: 3, width: 44, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },       // STOPGAP: reuse jab
+    down_air: { frames: 3, width: 46, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_down_air_uniform.png" },
+    grab:     { frames: 3, width: 44, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },
+    // STAGE-2 command chain (Fwd+Heavy → re-tap Heavy): 2-hit jab string sliced from the jab strip.
+    benJab1:  { frames: 2, width: 44, height: 53, speed: 3, sourceX: 0,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },
+    benJab2:  { frames: 2, width: 44, height: 53, speed: 3, sourceX: 44, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_jab_uniform.png" },
+    // STAGE-3 special: Hoverboard Dash (neutral mobility+strike) / Hoverboard Bash (Down launcher) — both
+    // ride the hoverboard strip (the only mobility art Ben-human has; the two specials share the pose).
+    benHover: { frames: 4, width: 57, height: 71, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_hoverboard_uniform.png" },
+    // STAGE-4 ultimate: Omnitrix Transformation cast pose (Ben raises the dial → green flash → alien
+    // silhouette). Played on Ben's body during the freeze cinematic (ben10OmnitrixCinematic.js).
+    transform: { frames: 16, width: 63, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_transform_uniform.png" }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────

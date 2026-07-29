@@ -16,6 +16,7 @@ import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCin
 import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from "./gokuBlackSwordCinematic.js"   // Goku Black Sword Slash freeze cinematic (no cycle)
 import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } from "./vegetaFinalFlashCinematic.js"   // Vegeta Overcharged Final Flash ultimate cinematic (no cycle)
 import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./beerusKiBallCinematic.js"   // Beerus Ki Ball ultimate cinematic (no cycle)
+import { activateBen10OmnitrixCinematic, isBen10OmnitrixCinematicActive } from "./ben10OmnitrixCinematic.js"   // Ben 10 Omnitrix-transform ultimate cinematic (no cycle)
 import { activateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive } from "./batmanDarkKnightCinematic.js"   // Batman "The Dark Knight" batarang-barrage ultimate cinematic (no cycle)
 import { activateOmniManBodySlamCinematic, isOmniManBodySlamCinematicActive } from "./omnimanBodySlamCinematic.js"   // Omni-Man "Viltrumite Onslaught" body-slam ultimate cinematic (no cycle)
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
@@ -2014,6 +2015,11 @@ function executeMinatoSpecial(fighter, context) {
   // D→F = SHADOW CLONE spawn (cap 3; over cap → no-op). No upfront chakra — cost is the pool split.
   if (endsWithPattern(dirs, ["D", "F"])) {
     if (!summonShadowClone(fighter, target, { onFocus: () => focusCameraOnAction(context, fighter, null, 1.02, 12) })) return false
+    // CASTER performs the summon hand-sign (minatoCloneCast = the shadow_clone_justu gesture). Previously
+    // this gesture art was (wrongly) the clone BODY, so the clones performed it and Minato did nothing;
+    // now the gesture plays on Minato and the clones stand in their own idle (summons.js CLONE_BODY_SETS).
+    fighter._spriteCastMove  = "minatoCloneCast"
+    fighter._spriteCastTimer = 16
     fighter.attackCooldown = getAttackDuration(16, fighter)
     shakeCamera(context, 5, 5)
     return true
@@ -2966,6 +2972,79 @@ export function updateVegetaCommandCombat(fighter, inputState, context, getPhase
     if (inputState.down && lightEdge) return fireVegetaMelee(fighter, "komaRep")      // Down+Light → Koma Repeatable
     if (forward && heavyEdge)         return fireVegetaCommand(fighter, "vgFkick1", context)  // Fwd+Heavy → command chain
     if (vegetaIsSuper(fighter) && upEdge && !inputState.down) return fireVegetaUpTier(fighter, "vgUpT1", context)  // SSJ/Blue: UP-attack → tiered launcher (T1)
+  }
+
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────
+// BEN 10 — per-FORM command-normal cancel chain (Fwd+Heavy opener → re-tap Heavy on
+// CONNECT to continue). Same Toji-Rekka mechanics as Vegeta (fireVegetaCommand +
+// shared rekkaContinue, requireHit:true → a whiff/block ends the string). Ben 10 is one
+// fighter whose active alien decides which chain opens: Ben-human = 2-hit jab, XLR8 =
+// 3-hit speed combo (the combo sheet), Diamondhead = 2-hit crystal swing (launcher end).
+// Art-less aliens have no chain (opener=null) → they keep neutral normals only.
+// ─────────────────────────────────────────────────────────────────
+const BEN10_COMMAND = {
+  // Ben-human — quick 2-hit jab string.
+  benJab1: { damage: 30, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 64, rangeY: 46, rekkaNext: "benJab2" },
+  benJab2: { damage: 48, startup: 6, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: -2, rangeX: 70, rangeY: 46 },   // finisher — no rekkaNext
+  // XLR8 — 3-hit speed combo, low per-hit but fast; ends in a launcher.
+  xlCombo1: { damage: 22, startup: 3, active: 2, recovery: 11, hitstun: 12, knockbackX: 2, knockbackY: 0,  rangeX: 72, rangeY: 44, rekkaNext: "xlCombo2" },
+  xlCombo2: { damage: 24, startup: 3, active: 2, recovery: 11, hitstun: 12, knockbackX: 2, knockbackY: 0,  rangeX: 76, rangeY: 44, rekkaNext: "xlCombo3" },
+  xlCombo3: { damage: 42, startup: 4, active: 3, recovery: 16, hitstun: 20, knockbackX: 8, knockbackY: -3, rangeX: 82, rangeY: 44, launcher: true },   // launcher finisher
+  // Diamondhead — heavy 2-hit crystal swing; ends in a launcher.
+  dhSwing1: { damage: 42, startup: 6, active: 4, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: 0,  rangeX: 82, rangeY: 54, rekkaNext: "dhSwing2" },
+  dhSwing2: { damage: 66, startup: 8, active: 4, recovery: 20, hitstun: 22, knockbackX: 9, knockbackY: -3, rangeX: 94, rangeY: 54, launcher: true },   // launcher finisher
+}
+
+// Which chain OPENS for the fighter's current form (null = no command chain this form).
+function ben10OpenerKey(fighter) {
+  if (fighter.transformed === false) return "benJab1"   // reverted human
+  const a = (fighter.activeAlien || "").toLowerCase()
+  if (a === "xlr8") return "xlCombo1"
+  if (a === "diamondhead") return "dhSwing1"
+  return null   // art-less aliens: neutral normals only (until their own art lands)
+}
+
+function fireBen10Command(fighter, key, context) {
+  const md = BEN10_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // reset per stage; latched true only on a real (non-blocked) hit
+  return true
+}
+
+// Grounded command-normal driver (mirrors updateVegetaCommandCombat's rekka path). Returns
+// true (→ skip the normal path this frame) only when it actually fires a stage.
+export function updateBen10CommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || !inputState) return false
+  const key = (fighter.rosterKey || "").toLowerCase()
+  if (key !== "ben10" && key !== "albedo") return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase = getPhase?.(fighter)
+
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+
+  // Latch a REAL connect for the current stage (hit, not block) — see updateVegetaCommandCombat.
+  const opp = context?.getOpponent?.(fighter)
+  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
+  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
+
+  // CONTINUE — fresh Heavy during the current hit's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const cmdNext = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (cmdNext) return fireBen10Command(fighter, cmdNext, context)
+
+  // OPENER — Forward+Heavy from neutral, grounded. Form decides which chain.
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && forward && heavyEdge) {
+    const opener = ben10OpenerKey(fighter)
+    if (opener) return fireBen10Command(fighter, opener, context)
   }
 
   return false
@@ -6344,6 +6423,215 @@ function fireBatmanSmokePellet(fighter, context) {
   return true
 }
 
+// ─────────────────────────────────────────────────────────────────
+// BEN 10 SPECIALS (Stage 3) — SPECIAL button, FORM-branched then direction-branched via
+// _specialHeldDir (Killua/Batman/Gon architecture). Ben 10 is one fighter; the active alien
+// decides the special set. Art-less aliens fall through to the generic fallback special.
+//   Ben-human:   neutral = Hoverboard Dash (mobility+strike, i-frames) · Down = Hoverboard Bash (launcher)
+//   XLR8:        neutral = Dash Strike (quick lunge)               · Fwd  = Sonic Rush (launcher — combo extender)
+//   Diamondhead: neutral = Shard Barrage (crystal projectile)      · Down = Rising Diamonds (ground eruption, launcher)
+// ─────────────────────────────────────────────────────────────────
+
+// XLR8 — neutral quick dash-strike (Zenitsu Thunderclap pattern: forward vx burst + melee hitbox).
+function fireXlr8DashStrike(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 15)) return false
+  const md = { damage: 80, startup: 4, active: 4, recovery: 14, hitstun: 20, blockstun: 10, knockbackX: 9, knockbackY: -2, rangeX: 96, rangeY: 48, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "xlDash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 16
+  for (const t of [2, 4, 6]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "xlDash") fighter.vx = dir * 16 })
+  shakeCamera(context, 3, 5)
+  return true
+}
+
+// XLR8 — forward Sonic Rush: longer, faster dash that LAUNCHES (combo extender off a rekka launcher).
+function fireXlr8SonicRush(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 25)) return false
+  const md = { damage: 62, startup: 5, active: 5, recovery: 18, hitstun: 24, blockstun: 12, knockbackX: 6, knockbackY: -12, rangeX: 112, rangeY: 52, isSpecial: true, launcher: true }
+  const attack = createAttackFromMove(fighter, "xlRush", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 20
+  for (const t of [2, 4, 6, 8]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "xlRush") fighter.vx = dir * 20 })
+  shakeCamera(context, 4, 6)
+  return true
+}
+
+// Diamondhead — neutral Shard Barrage: crystal-cannon cast pose → a traveling crystal projectile.
+function fireDhShardBarrage(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 20)) return false
+  fighter._spriteCastMove = "dhShoot"; fighter._spriteCastTimer = 20
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(7, () => {
+    // Procedural crystal shard (no dedicated projectile sprite yet — flagged in the asset map).
+    spawnProjectile(fighter, "ben10_diamond_shard", {
+      damage: 40, speed: 15, hitstun: 15, knockbackX: 6, knockbackY: -1,
+      w: 22, h: 14, radius: 12, color: "#5eead4", lifetime: 130, isSpecial: true,
+      vx: face * 15, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  return true
+}
+
+// Diamondhead — Down Rising Diamonds: hand-slam cast → a stationary ground-eruption hitbox that LAUNCHES.
+function fireDhRisingDiamonds(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 28)) return false
+  fighter._spriteCastMove = "dhRising"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(10, () => {
+    // Stationary ground hitbox in front (procedural crystal spikes — flagged); launches on hit.
+    spawnProjectile(fighter, "ben10_diamond_eruption", {
+      damage: 55, speed: 0, vx: 0, lifetime: 26, hitstun: 22, knockbackX: 3, knockbackY: -14,
+      w: 52, h: 84, radius: 30, color: "#5eead4", isSpecial: true, launcher: true,
+      spawnX: face === 1 ? fighter.x + (fighter.w || 60) + 10 : fighter.x - 52 - 10,
+      spawnY: fighter.y + (fighter.h || 100) * 0.15
+    }, context)
+    shakeCamera(context, 4, 6)
+  })
+  return true
+}
+
+// Ben-human — neutral Hoverboard Dash: a mobility lunge with brief startup i-frames + a strike.
+function fireBenHoverboard(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 15)) return false
+  const md = { damage: 45, startup: 6, active: 5, recovery: 16, hitstun: 18, blockstun: 10, knockbackX: 7, knockbackY: -4, rangeX: 92, rangeY: 56, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "benHover", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 14
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 8)
+  for (const t of [2, 4, 6, 8]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "benHover") fighter.vx = dir * 14 })
+  shakeCamera(context, 3, 5)
+  return true
+}
+
+// Ben-human — Down Hoverboard Bash: a committed downward board strike that LAUNCHES (shares the pose).
+function fireBenHoverBash(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 22)) return false
+  const md = { damage: 60, startup: 8, active: 5, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 6, knockbackY: -12, rangeX: 84, rangeY: 60, isSpecial: true, launcher: true }
+  const attack = createAttackFromMove(fighter, "benHover", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 10
+  shakeCamera(context, 4, 6)
+  return true
+}
+
+function executeBen10Special(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  if (fighter.transformed === false) {   // Ben-human
+    if (dir === "D") return fireBenHoverBash(fighter, context)
+    return fireBenHoverboard(fighter, context)
+  }
+  const a = (fighter.activeAlien || "").toLowerCase()
+  if (a === "diamondhead") {
+    if (dir === "D") return fireDhRisingDiamonds(fighter, context)
+    return fireDhShardBarrage(fighter, context)
+  }
+  if (a === "xlr8") {
+    if (dir === "F") return fireXlr8SonicRush(fighter, context)
+    return fireXlr8DashStrike(fighter, context)
+  }
+  return executeFallbackSpecial(fighter, context)   // art-less aliens keep the generic special
+}
+
+// ─────────────────────────────────────────────────────────────────
+// BEN 10 ULTIMATES (Stage 4) — form-branched. Ben-human = Omnitrix Transformation FREEZE CINEMATIC
+// (the showpiece, biggest hit); XLR8 = Sonic Blitz (committed high-damage blitz dash); Diamondhead =
+// Crystal Storm (a walking field of ground eruptions). Art-less aliens → generic fallback ultimate.
+// ben10 maxEnergy is 100, so costs sit well under full.
+// ─────────────────────────────────────────────────────────────────
+const BEN10_OMNITRIX_ULT = { cost: 90, dmg: 320, blockRatio: 0.20 }
+
+// Guaranteed Omnitrix-burst shockwave (applied by the cinematic onImpact beat).
+function applyBen10OmnitrixDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = BEN10_OMNITRIX_ULT.dmg
+  if (blocked) {
+    dmg = Math.round(dmg * BEN10_OMNITRIX_ULT.blockRatio)
+    opp.blockstun = Math.max(opp.blockstun || 0, 18)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 30)
+    opp.vx = (fighter.facing || 1) * 16; opp.vy = -7
+    opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)   // GUARANTEED, range-independent
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({ x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) + (opp.h || 100) / 2,
+      timer: 20, maxTimer: 20, category: blocked ? "light" : "ultimate", color: blocked ? null : "#4ade80",
+      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 44, ...(blocked ? { isBlocking: true } : {}) })
+  }
+}
+
+// XLR8 — SONIC BLITZ: a committed, high-damage blitz dash (launcher). Reuses the combo pose.
+function fireXlr8SonicBlitz(fighter, context) {
+  if (!spendEnergy(fighter, 60)) return false
+  // Raw 280 → ~168 effective through the global melee-damage scale (~0.60), so it reads as a real
+  // ultimate rather than a scaled-down normal (Sonic Blitz goes through the combat pipeline, unlike
+  // Ben's direct-damage cinematic burst).
+  const md = { damage: 280, startup: 6, active: 8, recovery: 22, hitstun: 28, blockstun: 16, knockbackX: 10, knockbackY: -14, rangeX: 150, rangeY: 60, isSpecial: true, isUltimate: true, launcher: true }
+  const attack = createAttackFromMove(fighter, "xlUlt", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isUltimate = true; attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 26
+  for (const t of [2, 4, 6, 8, 10, 12]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "xlUlt") fighter.vx = dir * 26 })
+  shakeCamera(context, 10, 12)
+  focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.95, 12)
+  return true
+}
+
+// Diamondhead — CRYSTAL STORM: a walking field of ground-eruption hitboxes marching forward.
+function fireDhCrystalStorm(fighter, context) {
+  if (!spendEnergy(fighter, 70)) return false
+  fighter._spriteCastMove = "dhUlt"; fighter._spriteCastTimer = 46
+  fighter.attackCooldown = getAttackDuration(50, fighter)
+  const face = fighter.facing || 1
+  const baseX = fighter.x + (fighter.w || 60) / 2
+  // 4 eruptions marching outward from Ben, staggered — a crystal field (escalated Rising Diamonds).
+  for (let i = 0; i < 4; i++) {
+    schedulePendingSpawn(8 + i * 7, () => {
+      spawnProjectile(fighter, "ben10_diamond_eruption", {
+        damage: 60, speed: 0, vx: 0, lifetime: 24, hitstun: 22, knockbackX: 4, knockbackY: -13,
+        w: 54, h: 88, radius: 30, color: "#5eead4", isSpecial: true, isUltimate: true, launcher: true,
+        spawnX: baseX + face * (40 + i * 62) - 27,
+        spawnY: fighter.y + (fighter.h || 100) * 0.12
+      }, context)
+      if (i === 0) shakeCamera(context, 6, 8)
+    })
+  }
+  return true
+}
+
+function executeBen10Ultimate(fighter, context) {
+  if (fighter.transformed === false) {   // Ben-human → Omnitrix transformation freeze cinematic
+    if (isBen10OmnitrixCinematicActive()) return false
+    if (!spendEnergy(fighter, BEN10_OMNITRIX_ULT.cost)) return false
+    const opp = getTargetResolver(context)(fighter)
+    fighter.vx = 0
+    activateBen10OmnitrixCinematic(fighter, opp, (cineCtx) => applyBen10OmnitrixDamage(fighter, opp, cineCtx))
+    return true
+  }
+  const a = (fighter.activeAlien || "").toLowerCase()
+  if (a === "xlr8") return fireXlr8SonicBlitz(fighter, context)
+  if (a === "diamondhead") return fireDhCrystalStorm(fighter, context)
+  return executeFallbackUltimate(fighter, context)   // art-less aliens keep the generic ultimate
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -6383,6 +6671,8 @@ export function triggerSpecial(fighter, context = {}) {
     case "hisoka":  return executeHisokaSpecial(fighter, context)   // Bungee Gum (neutral, extended-reach whip); Texture Surprise cards land in Stage 4
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
+    case "ben10":   return executeBen10Special(fighter, context)   // form-branched: XLR8 Dash/Sonic Rush · Diamondhead Shard/Rising Diamonds · Ben Hoverboard; art-less aliens → fallback
+    case "albedo":  return executeBen10Special(fighter, context)   // Albedo shares Ben's alien specials
     default:        return executeFallbackSpecial(fighter, context)
   }
 }
@@ -6429,6 +6719,8 @@ export function triggerUltimate(fighter, context = {}) {
       case "flash":   cast = executeFlashUltimate(fighter, context);   if (cast) maybeFireFlashSkinCastVoice(fighter);   break   // Flash Time (buff-mode) + Reverse-skin cast bark
       case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window
       case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)
+      case "ben10":   cast = executeBen10Ultimate(fighter, context);   break   // form-branched: Ben Omnitrix-transform cinematic · XLR8 Sonic Blitz · Diamondhead Crystal Storm
+      case "albedo":  cast = executeBen10Ultimate(fighter, context);   break   // Albedo shares the alien ultimates (Ultimatrix)
       default:        cast = executeFallbackUltimate(fighter, context); break
     }
   }

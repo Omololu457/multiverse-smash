@@ -249,7 +249,12 @@ export const SKINS = {
   // Hisoka Morrow (Hunter x Hunter). Same gate: WITHOUT a default skin, applySkin() pulls the
   // getSkins() spriteScale:1 fallback → native ~half size. Sources spriteScale (2.0) from char.
   hisoka: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.hisoka?.portrait, spriteScale: characters.hisoka?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.hisoka?.portrait, spriteScale: characters.hisoka?.spriteScale, animationData: null },
+    // "Greed Island Outfit" — reference-sampled recolor + per-frame edits (tools/gen_hisoka_greedisland.py):
+    // orange hair→red, teal jumpsuit(torso+legs)→pale lavender-white, pink sash→dusty rose, gray shoes→rose
+    // pink; the base chest heart+diamond emblem is ERASED (diffusion-filled) and a stopgap pink undershirt
+    // collar is synthesised at the neckline. Cosmetic only.
+    { id: "hisokaGreedIsland", name: "Greed Island Outfit", unlockLevel: 0, portrait: "./hisoka_portrait__greedisland.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "greedisland") }
   ],
 
   // Rick Sanchez (Rick & Morty). Same gate as the sprite characters above: WITHOUT a default

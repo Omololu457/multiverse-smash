@@ -1184,10 +1184,16 @@ export const BEN10_ALIEN_POOL = {
 }
 
 // The 5 aliens loaded into the Omnitrix. Edit this to change Ben's default loadout.
-// Lead with the two art-backed forms (XLR8, Diamondhead) so a fresh transform
-// shows real sprites; the art-less fillers keep createOmnitrixState's 5-slot fill
-// working until the loadout picker is trimmed to art-backed aliens (Step 5).
-export const DEFAULT_OMNITRIX = ["xlr8", "diamondhead", "heatblast", "fourarms", "cannonbolt"]
+// ART-BACKED ALIENS — the ONLY aliens offered in the Omnitrix loadout picker and allowed into
+// an active loadout. Every other entry in BEN10_ALIEN_POOL stays as valid (procedurally-drawn)
+// data so nothing breaks — it's simply HIDDEN from selection until real sprite art is sourced.
+// This is the loadout "prune" gate (no pool data deleted); add keys here as art arrives.
+export const BEN10_ART_ALIENS = ["xlr8", "diamondhead"]
+const _artAlienSet = new Set(BEN10_ART_ALIENS)
+export function isArtBackedAlien(key) { return _artAlienSet.has(key) }
+
+// Default loadout = the art-backed aliens (a fresh transform always shows real sprites).
+export const DEFAULT_OMNITRIX = [...BEN10_ART_ALIENS]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)
 
@@ -1273,13 +1279,13 @@ export function ben10Characters(prefix = "ben_") {
 }
 
 export function createOmnitrixState(selected = DEFAULT_OMNITRIX) {
-  const aliens = selected.filter(k => BEN10_ALIEN_POOL[k]).slice(0, 5)
-  let fill = 0
-  while (aliens.length < 5) {
-    const candidate = DEFAULT_OMNITRIX[fill++ % DEFAULT_OMNITRIX.length]
-    if (!aliens.includes(candidate)) aliens.push(candidate)
-    if (fill > 20) break
-  }
+  // Only art-backed aliens are allowed into a live loadout (the rest are hidden from the picker);
+  // a stale saved loadout that names hidden aliens is filtered down, then defaulted if nothing's left.
+  // De-duped so cycling never lands on the same form twice. No art-less fill (the loadout is just the
+  // art-backed aliens the player picked — grows to 5 as more aliens get art).
+  let aliens = (selected || []).filter(k => _artAlienSet.has(k) && BEN10_ALIEN_POOL[k])
+  aliens = [...new Set(aliens)].slice(0, 5)
+  if (aliens.length === 0) aliens = [...DEFAULT_OMNITRIX]
   return { aliens, index: 0, switchCooldown: 0 }
 }
 

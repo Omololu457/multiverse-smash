@@ -11,6 +11,7 @@
     "test:momentum": "node harness/momentum.test.mjs",
     "test:combo-flow-roster": "node harness/combo_flow_roster.mjs",
     "test:ben10": "node harness/ben10.test.mjs",
+    "test:ben10-loadout": "node harness/ben10_loadout.test.mjs",
     "test:ben10-stage2": "node harness/ben10_stage2.test.mjs",
     "test:ben10-stage3": "node harness/ben10_stage3.test.mjs",
     "test:ben10-stage4": "node harness/ben10_stage4.test.mjs",

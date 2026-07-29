@@ -739,9 +739,13 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
   const draft  = normalizeToArray(options.draft)
   const player = options.player || 1
 
+  // Max loadout size = however many aliens are art-backed (offered here), capped at 5 — NOT a
+  // hardcoded 5. Grows automatically as more aliens gain sprite art.
+  const maxPick = Math.min(5, Math.max(1, aliens.length))
+
   ctx.clearRect(0, 0, w, h)
   drawBackdrop(ctx, canvas, "#0a1810", "#16241a")
-  drawHeader(ctx, canvas, `PLAYER ${player} — OMNITRIX LOADOUT`, `Pick 5 aliens for Ben 10  (${draft.length}/5)`)
+  drawHeader(ctx, canvas, `PLAYER ${player} — OMNITRIX LOADOUT`, `Pick your aliens for Ben 10  (${draft.length}/${maxPick})`)
 
   const rects = getAlienSelectCardRects(canvas, aliens)
   aliens.forEach((a, i) => {
@@ -769,7 +773,7 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
   // buttons
   const buttons = getAlienSelectButtons(canvas)
   for (const b of buttons) {
-    const enabled = b.id !== "confirm" || draft.length === 5
+    const enabled = b.id !== "confirm" || draft.length >= 1
     drawButton(ctx, b, { label: b.label, active: enabled, accent: enabled ? "#86efac" : "#555" })
     if (!enabled) {
       ctx.save(); ctx.globalAlpha = 0.45; ctx.fillStyle = "#000"
@@ -2314,7 +2318,7 @@ function buildTutorialPages(c = {}) {
       rows: [
         ["Combo scaling", "—", "Each hit in a combo does a little less — open with your heavy hitters."],
         ["Gojo: Infinity", prettyKey(c.toggle), "Toggle a field that slows anything approaching you."],
-        ["Ben 10: Omnitrix", `${prettyKey(c.charge)} + ${prettyKey(c.left)}/${prettyKey(c.right)}`, "Cycle your 5 aliens mid-fight (tap Charge for next)."],
+        ["Ben 10: Omnitrix", `${prettyKey(c.charge)} + ${prettyKey(c.left)}/${prettyKey(c.right)}`, "Cycle your Omnitrix aliens mid-fight (tap Charge for next)."],
         ["Domain Expansion", "—", "Some fighters can activate a damage-boosting domain — watch the meter bar."]
       ]
     }

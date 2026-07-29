@@ -3,7 +3,7 @@
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
 import { characters, characterList } from "./characters.js"
 import {
-  switchAlien, applyAlien, BEN10_ALIEN_POOL, setupBen10,
+  switchAlien, applyAlien, BEN10_ALIEN_POOL, BEN10_ART_ALIENS, isArtBackedAlien, DEFAULT_OMNITRIX, setupBen10,
   isTransformDevice, updateTransformDevice, tryTransform, revertToHuman
 } from "./fighters.js"
 import { camera } from "./camera.js"
@@ -5322,9 +5322,11 @@ function getUniverseList() {
 let _alienPoolListCache = null
 function getAlienPoolList() {
   if (!_alienPoolListCache) {
-    _alienPoolListCache = Object.entries(BEN10_ALIEN_POOL).map(([key, a]) => ({
-      key, name: a.name, color: a.color
-    }))
+    // Only ART-BACKED aliens are offered in the loadout picker (art-less entries stay in the
+    // pool as fallback data but are hidden until real sprite art is sourced — see BEN10_ART_ALIENS).
+    _alienPoolListCache = Object.entries(BEN10_ALIEN_POOL)
+      .filter(([key]) => isArtBackedAlien(key))
+      .map(([key, a]) => ({ key, name: a.name, color: a.color }))
   }
   return _alienPoolListCache
 }
@@ -5581,7 +5583,10 @@ function handleMenuClicks() {
       if (key === "ben10") {
         // Ben 10 → detour to the Omnitrix loadout screen before moving on.
         matchConfig.alienSelectSide = side
-        matchConfig.alienDraft = (matchConfig[side + "Aliens"] || []).slice()
+        // Start from the saved loadout (or the art-backed default), filtered to art-backed aliens so a
+        // stale pick of a now-hidden alien can't linger. Non-empty default → the player can confirm at once.
+        matchConfig.alienDraft = ((matchConfig[side + "Aliens"]?.length ? matchConfig[side + "Aliens"] : DEFAULT_OMNITRIX)
+          .filter(isArtBackedAlien)).slice()
         gameState = GAME_STATES.SELECT_ALIENS
       } else if (key === "tobirama") {
         // Tobirama → detour to pick the Edo Tensei vessel (any built roster char) before moving on.
@@ -5617,7 +5622,9 @@ function handleMenuClicks() {
       }
       const btn = getAlienSelectButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
       if (btn?.id === "back") { gameState = GAME_STATES.SELECT_CHARACTER }
-      else if (btn?.id === "confirm" && draft.length === 5) {
+      // Confirm needs at least one alien (the cap is however many are art-backed — currently 2 —
+      // not a hardcoded 5). Grows automatically as BEN10_ART_ALIENS gains entries.
+      else if (btn?.id === "confirm" && draft.length >= 1) {
         matchConfig[side + "Aliens"] = draft.slice()
         proceedAfterCharacter(side)
       }
@@ -6330,6 +6337,9 @@ gameLoop()
     // Force a specific sprite action on the LIVE fighter (deterministic pose for screenshots).
     // Pass null to release. Mutates the real p1/p2 (not the snap()), so spriteCrop renders it.
     benPose: (action = null, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (action) f._forceAction = action; else delete f._forceAction; return f._forceAction || null },
+    // Ben 10 loadout/prune probe: the art-backed picker list + the live Omnitrix loadout. Pass a
+    // selection to REBUILD the loadout (tests the art-backed filter — e.g. a stale save of hidden aliens).
+    benLoadout: (rebuildSel) => { if (rebuildSel && p1) setupBen10(p1, rebuildSel); return { picker: getAlienPoolList().map(a => a.key), aliens: p1?.omnitrix?.aliens || null, index: p1?.omnitrix?.index ?? null, artBacked: [...BEN10_ART_ALIENS] } },
     // Ben 10 command-chain probe (mirrors orCmd/vegCmd) — drive the Fwd+Heavy rekka precisely from a test.
     benCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { form: f.transformed === false ? "human" : (f.activeAlien || null), move: f.currentMove || f.currentAttack?.name || null, action: f._lastSpriteAction || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     // ── CHARACTER-HEIGHT REFERENCE measurement (height-reference audit) ───────────

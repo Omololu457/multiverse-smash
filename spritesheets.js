@@ -227,6 +227,15 @@ export const SPRITE_MANIFEST = {
   // own .sheet). idle = the RE-SLICED uniform strip (tools/reslice_strip.mjs). See ZENITSU_ASSET_MAP.md.
   zenitsu: {
     actions: { idle: "./zenitsu_idle_uniform.png" }
+  },
+
+  // Ben 10 (universe: ben_10) — STAGE 1. Gates spritesReady() by decoding the Ben-human
+  // idle strip → flips Ben 10 from procedural drawBen10 box to the sprite path. Once ready,
+  // per-action rendering reads characters.ben10.animationData (Ben-human) OR fighter._skinAnim
+  // (XLR8/Diamondhead form sets in fighters.js). idle = the RE-SLICED uniform strip
+  // (harness alpha-gutter repack). See BEN10_ASSET_MAP.md.
+  ben10: {
+    actions: { idle: "./ben10_idle_uniform.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

@@ -312,6 +312,14 @@ export const SKINS = {
   // Sources his real spriteScale (2.25) + portrait from the character. No alt skins yet.
   zenitsu: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zenitsu?.portrait, spriteScale: characters.zenitsu?.spriteScale, animationData: null }
+  ],
+
+  // Ben 10 — ONE fighter that transforms between aliens (Omnitrix). The base skin
+  // sources the Ben-human spriteScale (alien forms swap the whole set via _skinAnim
+  // in fighters.js, NOT via alt skins). WITHOUT this default entry, applySkin() pulls
+  // the spriteScale:1 fallback and Ben renders at ~half size. No alt skins yet.
+  ben10: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null }
   ]
 }
 

@@ -3,7 +3,7 @@
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
 import { characters, characterList } from "./characters.js"
 import {
-  switchAlien, BEN10_ALIEN_POOL, setupBen10,
+  switchAlien, applyAlien, BEN10_ALIEN_POOL, setupBen10,
   isTransformDevice, updateTransformDevice, tryTransform, revertToHuman
 } from "./fighters.js"
 import { camera } from "./camera.js"
@@ -60,6 +60,7 @@ import {
   spawnAbsoluteDefenseFx,   // Sasuke Absolute Defense — repurposed Susanoo-intro sheet as the barrier FX
   updateTojiStanceSwitch, updateTojiStanceCombat, getTojiStance,   // Toji 3-stance weapon system (+ Blade moveset)
   updateVegetaCommandCombat,   // Vegeta command-normal cancel chain (Y-track kick target combo)
+  updateBen10CommandCombat,   // Ben 10 per-form Fwd+Heavy command chain (Ben jab / XLR8 combo / Diamondhead crystal swing)
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
   updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
   updateOmniManCommandCombat,   // Omni-Man "Viltrumite Beatdown" Fwd+Heavy rekka + Fwd+Light push poke
@@ -167,6 +168,10 @@ import {
   updateBeerusKiBallCinematic, isBeerusKiBallCinematicActive, drawBeerusKiBallCinematic,
   clearBeerusKiBallCinematic, getBeerusKiBallCinematicStatus
 } from "./beerusKiBallCinematic.js"
+import {
+  updateBen10OmnitrixCinematic, isBen10OmnitrixCinematicActive, drawBen10OmnitrixCinematic,
+  clearBen10OmnitrixCinematic, getBen10OmnitrixCinematicStatus
+} from "./ben10OmnitrixCinematic.js"
 import {
   updateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive, drawBatmanDarkKnightCinematic,
   clearBatmanDarkKnightCinematic, getBatmanDarkKnightCinematicStatus
@@ -1502,6 +1507,7 @@ function resetRound() {
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
+  clearBen10OmnitrixCinematic()
   clearBatmanDarkKnightCinematic()
   clearOmniManBodySlamCinematic()
   clearEdoTenseiCinematic()
@@ -2000,6 +2006,7 @@ function resetToStart() {
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
+  clearBen10OmnitrixCinematic()
   clearBatmanDarkKnightCinematic()
   clearOmniManBodySlamCinematic()
   clearEdoTenseiCinematic()
@@ -2505,6 +2512,7 @@ function _doRematch() {
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
   clearBeerusKiBallCinematic()
+  clearBen10OmnitrixCinematic()
   clearBatmanDarkKnightCinematic()
   clearOmniManBodySlamCinematic()
   clearEdoTenseiCinematic()
@@ -3193,6 +3201,12 @@ function _updatePlayerCombatBody(fighter) {
   // (returns true → skip normal path); neutral light/heavy stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "vegeta" && !charging &&
       updateVegetaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // BEN 10 command chain: Forward+Heavy opens the active form's rekka (Ben-human jab / XLR8 3-hit combo /
+  // Diamondhead crystal swing), re-tap Heavy during recovery to continue (cancel-on-hit). Form-aware via
+  // the active alien. Consumes the input only when it fires; neutral light/heavy stay on the normal path.
+  if (isTransformDevice(fighter) && !charging &&
+      updateBen10CommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // OMEGA RANGER command chain (Fwd+Heavy kick → re-tap Heavy on hit → spin_kick → low_attack)
   // + free pokes (Fwd+Light Forward Push, airborne Heavy Downward Air Attack 2). Consumes the
@@ -4028,6 +4042,11 @@ function updateBattle() {
   }
   if (isBeerusKiBallCinematicActive()) {
     updateBeerusKiBallCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  if (isBen10OmnitrixCinematicActive()) {
+    updateBen10OmnitrixCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
@@ -4934,6 +4953,7 @@ function drawBattle() {
   drawMangekyouCinematic(ctx, canvas)       // fullscreen Mangekyou activation overlay (centered eye transformation)
   drawVegetaFinalFlashCinematic(ctx, canvas)  // fullscreen Overcharged Final Flash overlay (gold beam + impact explosion)
   drawBeerusKiBallCinematic(ctx, canvas)      // fullscreen Ki Ball overlay (charging orb → impact explosion)
+  drawBen10OmnitrixCinematic(ctx, canvas)     // fullscreen Omnitrix transformation overlay (green glow → burst shockwave)
   drawBatmanDarkKnightCinematic(ctx, canvas)  // fullscreen batarang-barrage overlay (windup glow → rain → impact flash)
   drawOmniManBodySlamCinematic(ctx, canvas)   // fullscreen body-slam overlay (crimson vignette → impact flash → ground shockwave)
   drawEdoTenseiCinematic(ctx, canvas)         // Edo Tensei summon/un-summon overlay (giant coffin + vessel reveal)
@@ -6173,7 +6193,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -6297,6 +6317,21 @@ gameLoop()
     // Render-scale introspection: the resolved action + its rendered cell height (dstH).
     // Used to confirm old-row-sheet actions (guard/grab/…) render at correct proportion.
     renderInfo: who => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, dstH: f._lastDstH ?? null } : null },
+    // ── BEN 10 (build Stage 1) — transform a live fighter to a named alien form (or "human")
+    // so a screenshot harness can capture each form's sprite set. Drives the REAL applyAlien /
+    // revertToHuman path (so _skinAnim swaps exactly as in-match). Inert without ?harness.
+    benForm: (key = "xlr8", who = "p1") => {
+      const f = who === "p2" ? p2 : p1
+      if (!f) return null
+      if (key === "human") revertToHuman(f)
+      else { f.transformed = true; applyAlien(f, key) }
+      return { activeAlien: f.activeAlien || "human", name: f.activeAlienName, transformed: f.transformed, hasSkinAnim: !!f._skinAnim, action: f._lastSpriteAction || null }
+    },
+    // Force a specific sprite action on the LIVE fighter (deterministic pose for screenshots).
+    // Pass null to release. Mutates the real p1/p2 (not the snap()), so spriteCrop renders it.
+    benPose: (action = null, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (action) f._forceAction = action; else delete f._forceAction; return f._forceAction || null },
+    // Ben 10 command-chain probe (mirrors orCmd/vegCmd) — drive the Fwd+Heavy rekka precisely from a test.
+    benCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { form: f.transformed === false ? "human" : (f.activeAlien || null), move: f.currentMove || f.currentAttack?.name || null, action: f._lastSpriteAction || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     // ── CHARACTER-HEIGHT REFERENCE measurement (height-reference audit) ───────────
     // Renders the fighter's CURRENT sprite through the REAL SpriteHandler.draw() path onto a clean
     // offscreen canvas, then scans the alpha channel for the non-transparent bounding box. Returns the
@@ -6404,6 +6439,7 @@ gameLoop()
     mangekyouCine: () => getMangekyouCinematicStatus(),
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
     beerusUltCine: () => getBeerusKiBallCinematicStatus(),
+    ben10UltCine: () => getBen10OmnitrixCinematicStatus(),
     batmanUltCine: () => getBatmanDarkKnightCinematicStatus(),
     omnimanUltCine: () => getOmniManBodySlamCinematicStatus(),
     kuramaUltCine: () => getKuramaCinematicStatus(),

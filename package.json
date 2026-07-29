@@ -10,6 +10,10 @@
     "test:combo-decay": "node harness/combo_decay.test.mjs",
     "test:momentum": "node harness/momentum.test.mjs",
     "test:combo-flow-roster": "node harness/combo_flow_roster.mjs",
+    "test:ben10": "node harness/ben10.test.mjs",
+    "test:ben10-stage2": "node harness/ben10_stage2.test.mjs",
+    "test:ben10-stage3": "node harness/ben10_stage3.test.mjs",
+    "test:ben10-stage4": "node harness/ben10_stage4.test.mjs",
     "test:susanoo": "node harness/susanoo.test.mjs",
     "test:input-wiring": "node harness/input_wiring.test.mjs",
     "test:controller-assign": "node harness/controller_player_assign.test.mjs",
@@ -146,6 +150,9 @@
     "test:minato-s6": "node harness/minato_stage6.mjs",
     "test:minato": "node harness/minato.test.mjs",
     "test:minato-voice": "node harness/minato_voice.test.mjs",
+    "test:minato-clone-collision": "node harness/minato_clone_collision.mjs",
+    "test:minato-clone-anim": "node harness/minato_clone_anim.test.mjs",
+    "test:minato-kurama-shared-voice": "node harness/minato_kurama_shared_voice.test.mjs",
     "test:reanim": "node harness/reanim_shots.mjs && node harness/reanim_shots_new.mjs"
   },
   "dependencies": {

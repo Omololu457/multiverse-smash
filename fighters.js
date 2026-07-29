@@ -1184,9 +1184,86 @@ export const BEN10_ALIEN_POOL = {
 }
 
 // The 5 aliens loaded into the Omnitrix. Edit this to change Ben's default loadout.
-export const DEFAULT_OMNITRIX = ["fourarms", "xlr8", "heatblast", "diamondhead", "cannonbolt"]
+// Lead with the two art-backed forms (XLR8, Diamondhead) so a fresh transform
+// shows real sprites; the art-less fillers keep createOmnitrixState's 5-slot fill
+// working until the loadout picker is trimmed to art-backed aliens (Step 5).
+export const DEFAULT_OMNITRIX = ["xlr8", "diamondhead", "heatblast", "fourarms", "cannonbolt"]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)
+
+// ─────────────────────────────────────────────────────────────────
+// PER-FORM SPRITE SETS (Stage 1 — movement/state). Ben 10 is ONE fighter whose
+// look changes with the active alien, so transforming swaps the WHOLE animationData
+// set via fighter._skinAnim (the Vegeta-SSJ / Goku-Black-Rose precedent). _skinAnim
+// is EXCLUSIVE (no merge with base), so each set must define every reachable action
+// or a missing key renders the 128² fallback box → every set below is movement-complete.
+// The untransformed HUMAN look is the base characters.ben10.animationData (set null).
+// Art-less aliens set _skinAnim = null → fall back to the Ben-human base until their
+// own art is sourced (they're hidden from the loadout in Step 5 so this isn't reachable).
+// STAGE-1 STOPGAPS (flagged for later): guard is omitted (sprite.js falls to idle);
+// hurt + intro reuse the idle strip (no dedicated hit/entrance art on disk yet).
+// ─────────────────────────────────────────────────────────────────
+const BEN10_FORM_ANIM = {
+  xlr8: {
+    idle:  { frames: 5, width: 60, height: 43, speed: 7, anchorY: 0, sheet: "./ben10_xlr8_idle_uniform.png" },
+    walk:  { frames: 4, width: 75, height: 43, speed: 6, anchorY: 0, sheet: "./ben10_xlr8_run_uniform.png" },
+    run:   { frames: 4, width: 75, height: 43, speed: 3, anchorY: 0, sheet: "./ben10_xlr8_run_uniform.png" },
+    dash:  { frames: 4, width: 75, height: 43, speed: 2, anchorY: 0, sheet: "./ben10_xlr8_run_uniform.png" },
+    jump:  { frames: 3, width: 91, height: 55, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_jump_uniform.png" },
+    fall:  { frames: 3, width: 91, height: 55, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_jump_uniform.png" },
+    hurt:  { frames: 1, width: 60, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_idle_uniform.png" },   // STOPGAP: no hit art
+    intro: { frames: 5, width: 60, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_idle_uniform.png" },   // STOPGAP: no intro art
+    // STAGE-2 NORMALS (XLR8). light = quick 3-frame claw; heavy = full 5-frame slash. up = rising slash
+    // strip. air/down_air/grab reuse the front-slash (no dedicated air/dive art — flagged).
+    light:    { frames: 3, width: 60, height: 39, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
+    heavy:    { frames: 5, width: 60, height: 39, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
+    up:       { frames: 6, width: 57, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_up_uniform.png" },
+    air:      { frames: 3, width: 60, height: 39, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },   // STOPGAP: reuse front
+    down_air: { frames: 3, width: 60, height: 39, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },   // STOPGAP: reuse front
+    grab:     { frames: 3, width: 60, height: 39, speed: 3, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
+    // STAGE-2 command chain (Fwd+Heavy → re-tap Heavy ×2): 3-stage speed combo sliced from the 11-frame
+    // combo strip (cell 60 → stage boundaries at frames 0-3 / 4-7 / 8-10 via sourceX).
+    xlCombo1: { frames: 4, width: 60, height: 48, speed: 2, sourceX: 0,   anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    xlCombo2: { frames: 4, width: 60, height: 48, speed: 2, sourceX: 240, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    xlCombo3: { frames: 3, width: 60, height: 48, speed: 3, sourceX: 480, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    // STAGE-3 specials: Dash Strike (neutral quick lunge, front-slash pose) / Sonic Rush (Fwd launcher
+    // dash — combo extender, the 6-frame front of the combo strip).
+    xlDash: { frames: 5, width: 60, height: 39, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
+    xlRush: { frames: 6, width: 60, height: 48, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    // STAGE-4 ultimate: Sonic Blitz — the full 11-frame combo flurry as a blitz dash.
+    xlUlt:  { frames: 11, width: 60, height: 48, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" }
+  },
+  diamondhead: {
+    idle:  { frames: 4, width: 49, height: 72, speed: 6, anchorY: 0, sheet: "./ben10_diamond_head_idle_uniform.png" },
+    walk:  { frames: 5, width: 63, height: 73, speed: 7, anchorY: 0, sheet: "./ben10_diamond_head_run_uniform.png" },
+    run:   { frames: 5, width: 63, height: 73, speed: 4, anchorY: 0, sheet: "./ben10_diamond_head_run_uniform.png" },
+    dash:  { frames: 5, width: 63, height: 73, speed: 3, anchorY: 0, sheet: "./ben10_diamond_head_run_uniform.png" },
+    jump:  { frames: 4, width: 66, height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_jump_uniform.png" },
+    fall:  { frames: 4, width: 66, height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_jump_uniform.png" },
+    hurt:  { frames: 1, width: 49, height: 72, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_idle_uniform.png" },  // STOPGAP: no hit art
+    intro: { frames: 4, width: 49, height: 72, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_idle_uniform.png" },  // STOPGAP: no intro art
+    // STAGE-2 NORMALS (Diamondhead). light = quick 3-frame crystal jab; heavy = full 5-frame blade thrust.
+    // up/air/down_air/grab reuse the forward crystal swing (only one melee strip on disk — flagged).
+    light:    { frames: 3, width: 76, height: 77, speed: 3, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_forward_uniform.png" },
+    heavy:    { frames: 5, width: 76, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_forward_uniform.png" },
+    up:       { frames: 3, width: 76, height: 77, speed: 3, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_forward_uniform.png" },   // STOPGAP: reuse swing
+    air:      { frames: 3, width: 76, height: 77, speed: 3, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_forward_uniform.png" },   // STOPGAP: reuse swing
+    down_air: { frames: 3, width: 76, height: 77, speed: 3, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_forward_uniform.png" },   // STOPGAP: reuse swing
+    grab:     { frames: 3, width: 76, height: 77, speed: 3, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_forward_uniform.png" },
+    // STAGE-2 command chain (Fwd+Heavy → re-tap Heavy): 2-stage crystal swing sliced from the 5-frame
+    // forward strip (cell 76 → dhSwing1 = frames 0-2, dhSwing2 = frames 2-4 via sourceX).
+    dhSwing1: { frames: 3, width: 76, height: 77, speed: 3, sourceX: 0,   anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_forward_uniform.png" },
+    dhSwing2: { frames: 3, width: 76, height: 77, speed: 3, sourceX: 152, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_forward_uniform.png" },
+    // STAGE-3 special CAST poses: Shard Barrage (neutral, crystal-cannon fire → projectile) / Rising
+    // Diamonds (Down, hand-slam → ground-eruption hitbox). The projectile/eruption hitboxes are spawned
+    // separately (procedural crystal-cyan for now — flagged); these are just the shooter poses.
+    dhShoot:  { frames: 3, width: 74, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_shooting_uniform.png" },
+    dhRising: { frames: 3, width: 55, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_rising_uniform.png" },
+    // STAGE-4 ultimate: Crystal Storm — the hand-slam cast (reuses the rising strip) while a field of
+    // eruptions marches forward (spawned separately in fireDhCrystalStorm).
+    dhUlt:    { frames: 3, width: 55, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_rising_uniform.png" }
+  }
+}
 
 // Every alien as a character object (handy if a roster builds from this).
 export function ben10Characters(prefix = "ben_") {
@@ -1236,6 +1313,10 @@ export function applyAlien(fighter, alienKey) {
   fighter.w = sw; fighter.width = sw
   fighter.y = (fighter.y ?? 0) + (oldH - sh)
   fighter.h = sh; fighter.height = sh
+
+  // Form sprite-swap: art-backed aliens carry their own animationData set; others
+  // fall back to the Ben-human base (_skinAnim = null). See BEN10_FORM_ANIM.
+  fighter._skinAnim = BEN10_FORM_ANIM[alienKey] || null
 
   fighter.colorFlash = 6
   return true
@@ -1332,6 +1413,7 @@ export function revertToHuman(fighter, { forced = false } = {}) {
   fighter.attacking = false
   fighter.currentAttack = null
   fighter.currentMove = null
+  fighter._skinAnim = null   // human form uses the base Ben-human sprite set
   if (forced) {
     fighter.deviceRecharge = TRANSFORM_ENERGY.RECHARGE_FRAMES
     fighter.colorFlash = 12

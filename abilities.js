@@ -19,6 +19,9 @@ import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./
 import { activateBen10OmnitrixCinematic, isBen10OmnitrixCinematicActive } from "./ben10OmnitrixCinematic.js"   // Ben 10 Omnitrix-transform ultimate cinematic (no cycle)
 import { activateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive } from "./batmanDarkKnightCinematic.js"   // Batman "The Dark Knight" batarang-barrage ultimate cinematic (no cycle)
 import { activateOmniManBodySlamCinematic, isOmniManBodySlamCinematicActive } from "./omnimanBodySlamCinematic.js"   // Omni-Man "Viltrumite Onslaught" body-slam ultimate cinematic (no cycle)
+import { activateSupermanUltimateCinematic, isSupermanUltimateCinematicActive } from "./supermanUltimateCinematic.js"   // Superman "Solar Overload" ultimate cinematic (no cycle)
+import { activateRengokuFlameExplosionCinematic, isRengokuFlameExplosionCinematicActive } from "./rengokuFlameExplosionCinematic.js"   // Rengoku "Flame Explosion" ultimate cinematic (no cycle)
+import { activateShinobuButterflyCinematic, isShinobuButterflyCinematicActive } from "./shinobuButterflyCinematic.js"   // Shinobu "Butterfly Dance" ultimate cinematic (no cycle)
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
 import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./gonAdultFormCinematic.js"   // Gon Adult Form activation cinematic (no cycle; mirrors Godspeed)
@@ -31,9 +34,12 @@ import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajank
 import { pickHisokaVoice } from "./hisokaVoice.js"   // Hisoka Bungee-Gum/Texture-Surprise/Overdrive/rekka cast voice pools (audio-only; no cycle)
 import { pickMinatoVoice } from "./minatoVoice.js"   // Minato cast voice pools (Rasengan/Flying-Raijin/Reaper/Kurama; audio-only, no cycle)
 import { pickOmniManVoice } from "./omnimanVoice.js"   // Omni-Man special/flight/ultimate cast voice pool (audio-only; no cycle)
+import { pickSupermanVoice } from "./supermanVoice.js"   // Superman special/flight/mode/ultimate cast voice pool (audio-only; no cycle)
 import { pickTobiramaVoice } from "./tobiramaVoice.js"   // Tobirama cast/ultimate voice pools (audio-only; no cycle)
 import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin voice override (Gojo "Limitless" young pack)
 import { pickZenitsuVoice } from "./zenitsuVoice.js"             // Zenitsu Thunder-Breathing / Double-Attack / ultimate cast voice pools (audio-only)
+import { pickRengokuVoice } from "./rengokuVoice.js"            // Rengoku form-callout / concentration / ultimate cast voice pools (audio-only)
+import { pickShinobuVoice } from "./shinobuVoice.js"            // Shinobu poison/dance-cast + ultimate-windup cast voice pools (audio-only)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
@@ -3024,6 +3030,18 @@ export function updateBen10CommandCombat(fighter, inputState, context, getPhase)
   if (!fighter || !inputState) return false
   const key = (fighter.rosterKey || "").toLowerCase()
   if (key !== "ben10" && key !== "albedo") return false
+
+  // FEEDBACK — Energy Absorption counter bookkeeping (runs before the command chain).
+  // (1) A pending redirect stamped by combat.shouldFeedbackAbsorb → fire the amplified discharge NOW.
+  // (2) Otherwise tick the open counter window down (expires harmlessly on a whiff).
+  if (fighter._fbAbsorbPending) {
+    const pending = fighter._fbAbsorbPending
+    fighter._fbAbsorbPending = null
+    fighter._fbAbsorbWindow = 0
+    return fireFbDischargeCounter(fighter, pending, context)
+  }
+  if ((fighter._fbAbsorbWindow || 0) > 0) fighter._fbAbsorbWindow--
+
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const phase = getPhase?.(fighter)
 
@@ -3235,6 +3253,11 @@ const OMNIMAN_FLIGHT_DRAIN      = 0.08   // Smart Atoms/frame while flying (~4.8
 const OMNIMAN_DESCENT_RECOVERY  = 42     // landing-recovery vulnerability frames after a forced crash-down — long/dramatic: fully committed, cannot act or block.
 const OMNIMAN_FLIGHT_LIFTOFF    = -6     // upward nudge when flight engages from the ground (lifts him off into the hover).
 
+// Flight is no longer Omni-Man-exclusive: any character whose def carries traits.canFly reuses this
+// exact system (Omni-Man + Superman). Gate on the trait, not the rosterKey, so adding a flyer is a
+// one-field change. Character-SPECIFIC flavor (e.g. Omni-Man's cast bark) still branches on rosterKey.
+function canUseFlightSystem(fighter) { return !!(fighter && fighter.traits?.canFly) }
+
 export function isOmniManFlying(fighter) { return !!fighter?._flightActive }
 // TRUE during the crash tumble AND the landing-recovery window — the fully-locked "ran out of power" state.
 export function isOmniManForcedDescent(fighter) { return !!(fighter?._forcedDescent) || (fighter?._descentLandTimer || 0) > 0 }
@@ -3242,7 +3265,7 @@ export function isOmniManForcedDescent(fighter) { return !!(fighter?._forcedDesc
 // TOGGLE (bound to the P / charge-button EDGE in game.js — Omni-Man never hold-charges). No-op while
 // crashing/recovering, in hitstun/blockstun/knockdown, or with no juice to take off.
 export function toggleOmniManFlight(fighter) {
-  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omniman") return false
+  if (!canUseFlightSystem(fighter)) return false
   if (isOmniManForcedDescent(fighter)) return false
   if ((fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0 || fighter.knockdownState) return false
   if (!fighter._flightActive && (fighter.energy || 0) <= OMNIMAN_FLIGHT_DRAIN) return false   // no Smart Atoms to lift off
@@ -3252,12 +3275,17 @@ export function toggleOmniManFlight(fighter) {
     fighter.onGround = false; fighter.grounded = false
     fighter.isLaunched = false; fighter.jumpCount = 0
     if ((fighter.vy || 0) >= 0) fighter.vy = OMNIMAN_FLIGHT_LIFTOFF
-    // Flight-flavored cast bark on ACTIVATION ("I go where I please" / "not even in deep space"),
-    // cooldown-gated so rapid re-toggling can't spam it (audio-only; no gameplay effect).
-    const _now = (typeof performance !== "undefined" ? performance.now() : 0)
-    if (!fighter._flightVoiceAt || _now - fighter._flightVoiceAt > 5000) {
-      fighter._flightVoiceAt = _now
-      try { sound?.playSfxFile?.(pickOmniManVoice("cast"), null) } catch (_) {}
+    // Flight-flavored cast bark on ACTIVATION, cooldown-gated (5s) so rapid re-toggling can't spam it
+    // (audio-only; no gameplay effect). Omni-Man ("I go where I please") and Superman (shared cast pool)
+    // both draw from their respective cast pools.
+    const _rk = (fighter.rosterKey || "").toLowerCase()
+    if (_rk === "omniman" || _rk === "superman") {
+      const _now = (typeof performance !== "undefined" ? performance.now() : 0)
+      if (!fighter._flightVoiceAt || _now - fighter._flightVoiceAt > 5000) {
+        fighter._flightVoiceAt = _now
+        const _clip = _rk === "superman" ? pickSupermanVoice("cast") : pickOmniManVoice("cast")
+        try { sound?.playSfxFile?.(_clip, null) } catch (_) {}
+      }
     }
   }
   // DISENGAGE: nothing punitive — gravity resumes next frame and he falls/lands normally (no penalty).
@@ -3289,7 +3317,7 @@ export function triggerOmniManForcedDescent(fighter) {
 // Per-frame flight system (called from updateFighterState BEFORE applyGravity). Drain → forced
 // descent → landing recovery. Regen is suppressed while flying (game.js) so the pool truly depletes.
 export function applyOmniManFlightSystem(fighter) {
-  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "omniman") return
+  if (!canUseFlightSystem(fighter)) return
   // KNOCKED OUT OF THE SKY: a hard knockdown ends flight cleanly (he drops and falls normally). A plain
   // hit does NOT (he's a durable powerhouse) — only a true knockdown breaks the hover.
   if (fighter._flightActive && fighter.knockdownState) fighter._flightActive = false
@@ -3418,6 +3446,56 @@ function applyOmniManSlamDamage(fighter, opp, cineCtx = {}) {
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#ff6a4a",
       damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
+      ...(blocked ? { isBlocking: true } : {})
+    })
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN ULTIMATE (Stage 5) — "Solar Overload": a frozen cinematic (supermanUltimateCinematic.js) where
+// Superman channels green solar energy → dissolves into particles → DETONATES. Costs 100 Solar Energy (the
+// full bar); the guaranteed damage lands at the DETONATION beat via onImpact. A held block chips it to 25%
+// (Omni-Man/Kurama sure-hit shape). Shared pool: the 100 cost competes with flight + specials + modes.
+// ─────────────────────────────────────────────────────────────────────────
+const SUPERMAN_ULT = { cost: 100, dmg: 380, blockRatio: 0.25 }
+function executeSupermanUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "superman") return false
+  if (isSupermanUltimateCinematicActive()) return false            // already mid-cinematic
+  if (!spendEnergy(fighter, SUPERMAN_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  fighter.vx = 0
+  fighter._flightActive = false                                    // ult overrides any flight/mode state
+  forceRevertSupermanModes(fighter)
+  activateSupermanUltimateCinematic(fighter, opp, (cineCtx) => applySupermanUltimateDamage(fighter, opp, cineCtx))
+  supermanCastBark(fighter)   // Kryptonian ultimate cast bark (audio-only)
+  return true
+}
+
+// PAYOFF: a GUARANTEED, range-independent solar detonation. A held block (frozen at its pre-cinematic
+// value) CHIPS it to 25%; a clean hit deals the full ~380 and blasts the opponent away (knockdown).
+// Applied once at the DETONATION beat by the cinematic.
+function applySupermanUltimateDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = SUPERMAN_ULT.dmg
+  if (blocked) {
+    dmg = Math.round(dmg * SUPERMAN_ULT.blockRatio)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 36)
+    opp.vx = (fighter.facing || 1) * 12; opp.vy = -6           // blasted away by the detonation
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 20, maxTimer: 20,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#39ff88",
+      damage: dmg, lines: blocked ? 6 : 18, radius: blocked ? 14 : 50,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -4532,6 +4610,196 @@ export function updateBatmanCommandCombat(fighter, inputState, context, getPhase
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN — "Kryptonian Rush": a 3-hit cancel-on-hit command-normal chain (Fwd+Heavy) (Stage 2).
+// Mirrors updateBatmanCommandCombat, but the opener is FORWARD+Heavy (a forward-committing flying punch
+// flurry, Omni-Man pattern): supRush1 (fast flying cross) → re-tap Heavy on hit → supRush2 (flying
+// charged jab) → supRushFin (a big charged haymaker that LAUNCHES; string ends here). Cancel-on-hit —
+// a whiff/block ENDS the string (mid-chain interrupt). Low knockback on the openers pins the target
+// inside the string; the finisher delivers the launch. Free (no Solar Energy cost).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_COMMAND = {
+  supRush1:   { damage: 28, startup: 5, active: 3, recovery: 13, hitstun: 14, knockbackX: 2,  knockbackY: 0,  rangeX: 94,  rangeY: 52, rekkaNext: "supRush2" },
+  supRush2:   { damage: 34, startup: 5, active: 3, recovery: 13, hitstun: 15, knockbackX: 2,  knockbackY: 0,  rangeX: 98,  rangeY: 52, rekkaNext: "supRushFin" },
+  supRushFin: { damage: 74, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 13, knockbackY: -6, rangeX: 106, rangeY: 60 },   // charged-haymaker launcher (string ends here)
+}
+function fireSupermanCommand(fighter, key, context) {
+  const md = SUPERMAN_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = key === "supRushFin"
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the supRushN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateSupermanCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during the current part's recovery, only if it CONNECTED (cancel-on-hit).
+  const opp = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireSupermanCommand(fighter, next, context)
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && forward && heavyEdge) return fireSupermanCommand(fighter, "supRush1", context)
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN SPECIALS (Stage 3) — SPECIAL button, direction-branched via _specialHeldDir (Killua/Batman
+// pattern). Both spend from the SHARED Solar Energy pool (fighter.energy), same as flight:
+//   Forward = SUPER FLYING PUNCH — a committed charged dash-strike that carries him across the screen
+//             (Omni-Man Skewer pattern; usable on the ground or mid-flight). Launcher. 30.
+//   Neutral/Down = HEAT VISION — twin eye-beam PROJECTILE fired from eye height with INDEPENDENT
+//             collision (procedural drawKind "heatvision"; no dedicated sprite → braced cast pose). 22.
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_HEATVISION_COST = 22
+const SUPERMAN_FLYINGPUNCH_COST = 30
+// Power-flavored cast bark for any Superman special / mode-activation / flight-toggle / ultimate.
+// Cooldown-gated (700ms) so rapid re-presses can't spam it. Audio-only; no gameplay effect.
+function supermanCastBark(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
+  const now = (typeof performance !== "undefined" ? performance.now() : 0)
+  if (fighter._castVoiceAt && now - fighter._castVoiceAt <= 700) return
+  fighter._castVoiceAt = now
+  try { sound?.playSfxFile?.(pickSupermanVoice("cast"), null) } catch (_) {}
+}
+function fireSupermanHeatVision(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SUPERMAN_HEATVISION_COST)) return false
+  // Braced firing pose (reuse the charge stance — no dedicated eye-beam art); the beam sells it.
+  fighter._spriteCastMove  = "charge"
+  fighter._spriteCastTimer = 20
+  fighter.attackCooldown   = getAttackDuration(26, fighter)
+  fighter.vx = 0
+  // SOLAR FLARE mode ENHANCES it into a wide gold "Solar Flare Beam" (bigger + higher damage).
+  const flare = !!fighter._solarFlareActive
+  schedulePendingSpawn(5, () => {
+    spawnProjectile(fighter, flare ? "superman_solarbeam" : "superman_heatvision", {
+      drawKind: "heatvision", color: flare ? "#ffcc2e" : "#ff3a1a",
+      damage: flare ? 84 : 52, speed: 15, hitstun: flare ? 20 : 16, knockbackX: flare ? 12 : 8, knockbackY: -2,
+      w: flare ? 74 : 46, h: flare ? 22 : 14, radius: flare ? 22 : 16, lifetime: 80, isSpecial: true,
+      spawnY: fighter.y + (fighter.h || 100) * 0.18   // eye height
+    }, context)
+  })
+  supermanCastBark(fighter)   // Kryptonian cast bark (audio-only)
+  return true
+}
+function fireSupermanFlyingPunch(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SUPERMAN_FLYINGPUNCH_COST)) return false
+  // KRYPTONIAN OVERLOAD mode ENHANCES it into a faster, harder "Overload Rush" (more dmg + reach + lunge).
+  const over = !!fighter._overloadActive
+  const md = over
+    ? { damage: 150, startup: 6, active: 6, recovery: 16, hitstun: 26, blockstun: 14, knockbackX: 16, knockbackY: -8, rangeX: 120, rangeY: 66, isSpecial: true, launcher: true }
+    : { damage: 108, startup: 8, active: 6, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 13, knockbackY: -6, rangeX: 110, rangeY: 62, isSpecial: true, launcher: true }
+  const attack = createAttackFromMove(fighter, "superPunch", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "superPunch" → drives the charged-punch pose
+  fighter.vx = (fighter.facing || 1) * (over ? 24 : 19)   // committed forward lunge across the screen
+  if (fighter._flightActive) fighter.vy = 0 // mid-flight: level out into the charge
+  shakeCamera(context, 4, 7)
+  supermanCastBark(fighter)   // Kryptonian cast bark (audio-only)
+  return true
+}
+export function executeSupermanSpecial(fighter, context) {
+  // Deterministic held-direction routing (_specialHeldDir — robust, non-time-windowed; Killua pattern):
+  //   Down = Solar Flare toggle · Back = Kryptonian Overload toggle · Forward = Super Flying Punch ·
+  //   Neutral/Up = Heat Vision. Re-pressing a mode's direction while it's active toggles it OFF.
+  const dir = fighter._specialHeldDir || null
+  // Mode toggles self-gate on attackCooldown so ONE press = ONE toggle (the Special dispatch re-fires
+  // every frame the button is held; enter() sets a cooldown, and revert() must set one too, else a held
+  // press would flip the mode on→off→on across successive frames).
+  if (dir === "D") {
+    if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+    if (fighter._solarFlareActive) { revertSupermanSolarFlare(fighter); fighter.attackCooldown = getAttackDuration(12, fighter); return true }
+    if (enterSupermanSolarFlare(fighter, context)) return true
+    return fireSupermanHeatVision(fighter, context)   // not enough Solar Energy → fall back to the beam
+  }
+  if (dir === "B") {
+    if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+    if (fighter._overloadActive) { revertSupermanOverload(fighter); fighter.attackCooldown = getAttackDuration(12, fighter); return true }
+    if (enterSupermanOverload(fighter, context)) return true
+    return fireSupermanHeatVision(fighter, context)
+  }
+  if (dir === "F") return fireSupermanFlyingPunch(fighter, context)   // FORWARD = charged dash-strike (Overload-enhanced)
+  return fireSupermanHeatVision(fighter, context)                     // NEUTRAL/UP = eye-beam (Solar-Flare-enhanced)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN MODE-TOGGLES (Stage 4) — two Mangekyou-style sustained buff modes, mutually exclusive, each
+// DRAINING the shared Solar Energy pool while active and AUTO-REVERTING when it runs dry (Itachi/Godspeed
+// pattern). Distinct dedicated entry art + distinct aura (game.js) + a distinct enhanced move:
+//   SOLAR FLARE (gold, Down+Special)     — offense: +25% damage; Heat Vision → wide gold Solar Flare Beam.
+//   KRYPTONIAN OVERLOAD (blue, Back+Sp)  — pressure: +30% attack speed +15% move speed; Flying Punch → Overload Rush.
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_MODE_THRESHOLD = 80    // Solar Energy needed to ignite either mode
+const SUPERMAN_MODE_DRAIN      = 0.25 // Solar Energy/frame while a mode is active (~15/s → ~13s from a full 200)
+export function isSupermanSolarFlare(f) { return !!f?._solarFlareActive }
+export function isSupermanOverload(f)   { return !!f?._overloadActive }
+function revertSupermanSolarFlare(fighter) {
+  if (!fighter || !fighter._solarFlareActive) return
+  fighter._solarFlareActive = false
+  if (fighter.currentForm === "solarFlare") fighter.currentForm = "base"
+  fighter.damageMultiplier = 1; fighter.attackMultiplier = 1
+  // clear the entry-cast pose if it's still holding (e.g. auto-revert mid-cast) so it doesn't bleed into later sprites
+  if (fighter._spriteCastMove === "solarFlareCast") { fighter._spriteCastMove = null; fighter._spriteCastTimer = 0 }
+}
+function revertSupermanOverload(fighter) {
+  if (!fighter || !fighter._overloadActive) return
+  fighter._overloadActive = false
+  if (fighter.currentForm === "overload") fighter.currentForm = "base"
+  fighter.attackSpeedMultiplier = 1; fighter.speedMultiplier = 1
+  if (fighter._spriteCastMove === "overloadCast") { fighter._spriteCastMove = null; fighter._spriteCastTimer = 0 }
+}
+function enterSupermanSolarFlare(fighter, context) {
+  if (fighter._solarFlareActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < SUPERMAN_MODE_THRESHOLD) return false
+  if (fighter._overloadActive) revertSupermanOverload(fighter)   // modes are mutually exclusive
+  fighter._solarFlareActive = true
+  fighter.currentForm       = "solarFlare"
+  fighter.damageMultiplier  = 1.25
+  fighter.attackMultiplier  = 1.25
+  fighter._spriteCastMove   = "solarFlareCast"   // gold radiant-burst entry (dedicated art)
+  fighter._spriteCastTimer  = 30
+  fighter.attackCooldown    = 10
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 12)
+  fighter.vx = 0
+  supermanCastBark(fighter)   // Kryptonian mode-activation bark (audio-only)
+  return true
+}
+function enterSupermanOverload(fighter, context) {
+  if (fighter._overloadActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < SUPERMAN_MODE_THRESHOLD) return false
+  if (fighter._solarFlareActive) revertSupermanSolarFlare(fighter)   // modes are mutually exclusive
+  fighter._overloadActive       = true
+  fighter.currentForm           = "overload"
+  fighter.attackSpeedMultiplier = 1.3
+  fighter.speedMultiplier       = 1.15
+  fighter._spriteCastMove       = "overloadCast"   // blue electric-crackle entry (dedicated art)
+  fighter._spriteCastTimer      = 40
+  fighter.attackCooldown        = 10
+  fighter.teleportFlash         = Math.max(fighter.teleportFlash || 0, 12)
+  fighter.vx = 0
+  supermanCastBark(fighter)   // Kryptonian mode-activation bark (audio-only)
+  return true
+}
+// Round/menu-reset reverts (mirror forceRevertHisokaOverdrive's role).
+export function forceRevertSupermanModes(fighter) { revertSupermanSolarFlare(fighter); revertSupermanOverload(fighter) }
+// Per-frame drain + auto-revert for BOTH modes (called from updateFighterState).
+export function applySupermanModeSystem(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
+  tickSustainedFormDrain(fighter, { active: isSupermanSolarFlare, drainPerFrame: SUPERMAN_MODE_DRAIN, revert: revertSupermanSolarFlare })
+  tickSustainedFormDrain(fighter, { active: isSupermanOverload,   drainPerFrame: SUPERMAN_MODE_DRAIN, revert: revertSupermanOverload })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ZENITSU — "Thunderclap Flurry": a 3-hit cancel-on-hit command-normal chain (Down+Heavy) (Stage 2).
 // Mirrors updateBatmanCommandCombat/updateGonCommandCombat EXACTLY (Down+Heavy opener → re-tap Heavy
 // during recovery to cancel into the next stage, gated on a clean connect so a whiff/block ENDS the
@@ -4574,6 +4842,346 @@ export function updateZenitsuCommandCombat(fighter, inputState, context, getPhas
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
   if (canStart && grounded && inputState.down && heavyEdge) return fireZenitsuCommand(fighter, "zenCombo1", context)
   return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RENGOKU — "Flame Breathing" combo chains (Stage 3): a BRANCHING, cancel-on-hit command-normal
+// system with BOTH a ground chain and an air chain, each ending in an OPTIONAL escalated "super"
+// finisher. Opener = Forward+Heavy (grounded → ground chain, airborne → air chain). On a CLEAN hit:
+// re-tap Heavy during recovery to continue the normal-tier chain, OR press SPECIAL during recovery to
+// branch EARLY into the heavier super finisher (ends the string). A whiff/block ENDS the chain
+// (mid-chain interrupt) — same cancel-on-hit gate as every rekka (rekkaContinue) + a twin Special gate.
+// Sourced from the JUS combo strips: GROUND combo_1 → combo_2 → combo_3 (+ super_foward/super_down
+// finishers); AIR combo_air_1-remainder → combo_into_air bridge → combo_air_2 (+ super_down_air finisher).
+// Each stage's sprite is the currentMove identity key (sprite.js → characters.js animationData).
+// ─────────────────────────────────────────────────────────────────────────────
+const RENGOKU_GROUND = {
+  // Low knockback on the openers pins the target inside the string; the finishers deliver the payoff.
+  rengokuG1:        { damage: 30, startup: 4, active: 3, recovery: 12, hitstun: 13, knockbackX: 1,  knockbackY: 0,  rangeX: 90,  rangeY: 58, rekkaNext: "rengokuG2" },
+  rengokuG2:        { damage: 36, startup: 4, active: 3, recovery: 13, hitstun: 14, knockbackX: 1,  knockbackY: 0,  rangeX: 96,  rangeY: 58, rekkaNext: "rengokuG3", superNext: "rengokuSuperFwd" },
+  rengokuG3:        { damage: 46, startup: 5, active: 3, recovery: 14, hitstun: 16, knockbackX: 3,  knockbackY: -2, rangeX: 94,  rangeY: 60, superNext: "rengokuSuperDown" },   // last normal — Special-only branch
+  rengokuSuperFwd:  { damage: 74, startup: 7, active: 4, recovery: 20, hitstun: 24, knockbackX: 13, knockbackY: -4, rangeX: 110, rangeY: 60 },   // forward flame-lunge finisher (off G2)
+  rengokuSuperDown: { damage: 82, startup: 8, active: 4, recovery: 22, hitstun: 26, knockbackX: 10, knockbackY: -6, rangeX: 100, rangeY: 64 },   // downward flame-wave slam finisher (off G3, launches)
+}
+const RENGOKU_AIR = {
+  rengokuA1:       { damage: 30, startup: 4, active: 3, recovery: 12, hitstun: 13, knockbackX: 2, knockbackY: -1, rangeX: 92, rangeY: 58, rekkaNext: "rengokuABridge" },
+  rengokuABridge:  { damage: 34, startup: 4, active: 3, recovery: 14, hitstun: 14, knockbackX: 2, knockbackY: -2, rangeX: 88, rangeY: 62, rekkaNext: "rengokuA2" },
+  rengokuA2:       { damage: 44, startup: 4, active: 3, recovery: 13, hitstun: 16, knockbackX: 3, knockbackY: -2, rangeX: 96, rangeY: 62, superNext: "rengokuSuperAir" },
+  rengokuSuperAir: { damage: 78, startup: 6, active: 4, recovery: 16, hitstun: 24, knockbackX: 6, knockbackY: 12, rangeX: 92, rangeY: 70 },   // downward flame-spike finisher (off A2, spikes)
+}
+const RENGOKU_CHAIN = { ...RENGOKU_GROUND, ...RENGOKU_AIR }
+
+function fireRengokuCommand(fighter, key, context) {
+  const md = RENGOKU_CHAIN[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = key === "rengokuSuperDown"
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the stage sprite
+  // Air stages: cancel downward momentum + a slight rise so the chain juggles instead of falling out mid-string.
+  if (RENGOKU_AIR[key] && !(fighter.onGround ?? fighter.grounded)) fighter.vy = -3
+  fighter._rekkaNext    = md.rekkaNext  || null
+  fighter._rekkaSuper   = md.superNext  || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates BOTH cancels
+  // FLAME-BREATHING FORM callout on the SUPER-FINISHER branches only (not the basic G1-3/A1-2 links —
+  // those ride combat.js's offense combatBark). Set _atkVoiceCd so the finisher's own connect doesn't
+  // ALSO fire a combatBark (cast+connect double), same guard zenitsu's specials use.
+  if (key === "rengokuSuperFwd" || key === "rengokuSuperDown" || key === "rengokuSuperAir") {
+    try { sound.playSfxFile?.(pickRengokuVoice("formCallout"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  }
+  return true
+}
+// Command-normal driver (mirrors updateSupermanCommandCombat + adds the Special super-branch). Returns
+// true (→ skip the normal path this frame) only when it actually fires a stage.
+export function updateRengokuCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "rengoku" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge   = !!inputState.heavy   && !fighter._cmdPrevHeavy     // fresh tap, not held
+  const specialEdge = !!inputState.special && !fighter._cmdPrevSpecial
+  fighter._cmdPrevHeavy   = !!inputState.heavy
+  fighter._cmdPrevSpecial = !!inputState.special
+  if (!fighter.attacking) fighter._rekkaSuper = null   // string ended → drop the dangling super branch (rekkaContinue clears _rekkaNext)
+  const opp = context?.getOpponent?.(fighter)
+
+  // Latch the clean-connect gate the same way rekkaContinue does, so a Special branch on the exact hit
+  // frame still sees it (rekkaContinue below also sets this, but it runs AFTER this check).
+  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
+  // SUPER BRANCH — fresh Special during the current stage's recovery, ONLY on a clean connect. Ends the string.
+  if (fighter.attacking && fighter._rekkaSuper && specialEdge && phase === "recovery" && fighter._cmdHitLanded) {
+    const sup = fighter._rekkaSuper
+    // Cancel the current attack's recovery (mirrors rekkaContinue) so fireRengokuCommand passes its
+    // `!fighter.attacking` guard and the finisher fires THIS frame.
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null; fighter.attackCooldown = 0
+    fighter._rekkaSuper = null; fighter._rekkaNext = null; fighter._cmdHitLanded = false
+    return fireRengokuCommand(fighter, sup, context)
+  }
+  // CONTINUE (normal tier) — fresh Heavy during recovery on a clean hit → rekkaNext.
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireRengokuCommand(fighter, next, context)
+
+  // OPENER — Forward+Heavy from neutral. Grounded → ground chain; airborne → air chain. Consumes the
+  // press so the normal heavy doesn't also fire (Fwd is what routes into the chain; neutral heavy stays normal).
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && forward && heavyEdge) return fireRengokuCommand(fighter, grounded ? "rengokuG1" : "rengokuA1", context)
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RENGOKU SPECIALS (Stage 4) — COOLDOWN-gated (maxEnergy 0), like every Demon Slayer char.
+//   CHARGED FLAME STRIKE (CHARGE button, hold→release, TWO power tiers): hold P → the "charge" windup
+//     plays (game.js lets a no-energy charger enter isCharging); RELEASE fires the strike — a quick TAP
+//     (<200ms) = weak tier (rengokuCharge1), a longer HOLD = strong tier (rengokuCharge2, wide flame arc).
+//     A forward lunge closes the gap; the puches dash-recovery pose (rengokuFlameTail) plays over recovery.
+//   COUNTER (SPECIAL button, neutral): a reactive parry stance — sets the universal _parryInputBuffer for a
+//     window (checkParry stuns an incoming startup attack) + a flaming riposte via the combat.checkParry hook.
+// Both gate on dedicated cooldowns (flameCd / counterCd), ticked in game.updateMiscTimers (thunderCd twin).
+// ─────────────────────────────────────────────────────────────────────────────
+const RENGOKU_FLAME_CD   = 75   // ~1.25s anti-spam gate for the free (no-energy) charged strike
+const RENGOKU_COUNTER_CD = 96   // ~1.6s gate for the reactive counter stance
+const RENGOKU_COUNTER_WINDOW = 22   // parry-active frames the counter stance holds open
+// Fired from game.handleChargeRelease on a CHARGE-key release. `strong` = the hold tier (longer press).
+export function fireRengokuFlameStrike(fighter, strong, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "rengoku") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.flameCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
+  const md = strong
+    ? { damage: 150, startup: 8, active: 4, recovery: 20, hitstun: 28, blockstun: 14, knockbackX: 13, knockbackY: -3, rangeX: 122, rangeY: 64, isSpecial: true }
+    : { damage: 90,  startup: 6, active: 3, recovery: 14, hitstun: 22, blockstun: 10, knockbackX: 9,  knockbackY: -2, rangeX: 100, rangeY: 58, isSpecial: true }
+  const moveKey = strong ? "rengokuCharge2" : "rengokuCharge1"
+  const attack = createAttackFromMove(fighter, moveKey, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = moveKey → release sprite
+  fighter.isCharging = false
+  const dir = fighter.facing || 1
+  fighter.vx = dir * (strong ? 11 : 9)   // forward lunge to close the gap
+  // puches dash-recovery TAIL: swap the sprite to rengokuFlameTail for the recovery phase (+ a short beat
+  // after). _spriteCastMove overrides currentMove in sprite.js while _spriteCastTimer > 0.
+  schedulePendingSpawn(md.startup + md.active + 1, () => {
+    if (fighter.currentAttack && fighter.currentAttack.name === moveKey) { fighter._spriteCastMove = "rengokuFlameTail"; fighter._spriteCastTimer = md.recovery + 6 }
+  })
+  fighter.flameCd = RENGOKU_FLAME_CD
+  // FLAME-BREATHING FORM callout on the Charged Flame Strike (shares the finisher pool). _atkVoiceCd
+  // guards against a cast+connect combatBark double (same as the super-finisher branches).
+  try { sound.playSfxFile?.(pickRengokuVoice("formCallout"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  try { shakeCamera(context, strong ? 6 : 4, strong ? 9 : 7) } catch (_) {}
+  return true
+}
+// COUNTER — neutral SPECIAL. Opens a reactive parry/riposte WINDOW (combat.shouldRengokuCounter negates
+// an incoming melee hit + ripostes), mirroring the Feedback Energy-Absorption counter architecture.
+function executeRengokuSpecial(fighter, context) {
+  if (!fighter || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.counterCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
+  fighter._rengokuCountering = RENGOKU_COUNTER_WINDOW   // counter-window countdown → combat.shouldRengokuCounter (ticked down in game.updateMiscTimers)
+  fighter._spriteCastMove    = "rengokuCounter"          // the counter stance pose
+  fighter._spriteCastTimer   = RENGOKU_COUNTER_WINDOW
+  fighter.counterCd = RENGOKU_COUNTER_CD
+  // TOTAL CONCENTRATION callout as he braces into the counter stance (the one neutral non-charge special).
+  try { sound.playSfxFile?.(pickRengokuVoice("concentration"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  return true
+}
+
+// RENGOKU ULTIMATE — "Flame Explosion" (Stage 5). A freeze-cinematic AOE detonation
+// (rengokuFlameExplosionCinematic.js: camera push-in → blade-raise/eruption sequence → pull-back). The
+// guaranteed, range-independent flame damage lands at the DETONATION beat via onImpact. COOLDOWN-gated
+// (no energy; maxEnergy 0) — reuses the universal ultimateCooldown gate, stamped 8s (Zenitsu precedent).
+const RENGOKU_ULT_CD  = 480   // 8s @ 60fps — short real-time recast (design band 5-10s)
+const RENGOKU_ULT_DMG = 340   // guaranteed AOE flame detonation (a held block chips it to 25%)
+function executeRengokuUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "rengoku") return false
+  if (isRengokuFlameExplosionCinematicActive()) return false   // already mid-cinematic
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const opp = context?.getOpponent?.(fighter) || null
+  fighter.vx = 0
+  // "Ultimate Technique" (奥義) callout at ACTIVATION / windup — fires HERE, before the cinematic's
+  // detonation beat (the guaranteed damage lands later via applyRengokuUltimateDamage / onImpact, which
+  // stays voiceless). Same timing convention as every other ultimate-activation line.
+  try { sound.playSfxFile?.(pickRengokuVoice("ultimate"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  activateRengokuFlameExplosionCinematic(fighter, opp, (cineCtx) => applyRengokuUltimateDamage(fighter, opp, cineCtx))
+  fighter._suppressUltCooldown = true
+  fighter.ultimateCooldown = RENGOKU_ULT_CD
+  return true
+}
+// PAYOFF — GUARANTEED, range-independent flame detonation applied ONCE at the DETONATION beat by the
+// cinematic. A held block (frozen at its pre-cinematic value) chips it to 25%; a clean hit deals full + blasts away.
+function applyRengokuUltimateDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = RENGOKU_ULT_DMG
+  if (blocked) {
+    dmg = Math.round(dmg * 0.25)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 36)
+    opp.vx = (fighter.facing || 1) * 12; opp.vy = -6           // blasted away by the eruption
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 20, maxTimer: 20,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#ff6a1a",
+      damage: dmg, lines: blocked ? 6 : 18, radius: blocked ? 14 : 50,
+      ...(blocked ? { isBlocking: true } : {})
+    })
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SHINOBU KOCHO (Stage 3) — "Insect Breathing" thrust chain + POISON specials. COOLDOWN-gated (maxEnergy 0).
+//   COMMAND CHAIN (Fwd+Heavy opener → re-tap Heavy on a clean hit): shinobuG1 (horizontal slash) →
+//     shinobuG2 (overhead cut) → shinobuG3 (lunging body-check finisher). Cancel-on-hit; a whiff/block
+//     ENDS the string (shared rekkaContinue, requireHit:true — the mid-chain interrupt). Toji-Rekka pattern.
+//   SPECIALS (SPECIAL button, direction-branched via _specialHeldDir):
+//     Neutral/Forward = POISON THRUST — a committed lunging stinger (down_attack art). Low direct dmg +
+//       a WISTERIA POISON DoT stamped on the opponent on a CLEAN hit (the existing game.js `_dot`
+//       subsystem — her low-burst / high-attrition identity). Gated on poisonCd.
+//     Back = BUTTERFLY FLIT — an acrobatic backflip evade (back_flips art): brief i-frames + a backward
+//       hop, a spacing/reposition tool. No damage. Gated on flitCd.
+//   Cooldowns (poisonCd / flitCd) tick in game.updateMiscTimers (Rengoku flameCd/counterCd twins).
+// ─────────────────────────────────────────────────────────────────────────────
+const SHINOBU_GROUND = {
+  // Low knockback on the openers pins the target inside the string; the finisher delivers the knockback.
+  shinobuG1: { damage: 24, startup: 4, active: 3, recovery: 11, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 92, rangeY: 52, rekkaNext: "shinobuG2" },
+  shinobuG2: { damage: 30, startup: 4, active: 3, recovery: 12, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 88, rangeY: 58, rekkaNext: "shinobuG3" },
+  shinobuG3: { damage: 40, startup: 5, active: 3, recovery: 15, hitstun: 16, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 56 },   // finisher (ends the string)
+}
+function fireShinobuCommand(fighter, key, context) {
+  const md = SHINOBU_GROUND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the stage sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
+  return true
+}
+// WISTERIA POISON DoT — stamped on a clean Poison Thrust hit (attrition offsets her low burst).
+const SHINOBU_POISON = { ticks: 7, interval: 20, dmg: 7 }   // 49 over ~2.3s
+export function updateShinobuCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "shinobu" || !inputState) return false
+  const opp = context?.getOpponent?.(fighter)
+  // POISON-ON-HIT watcher: when the armed Poison Thrust lands a CLEAN (non-blocked) hit, stamp the DoT
+  // ONCE onto the opponent (localized — no shared resolveAttackHit edit). Armed by fireShinobuPoisonThrust.
+  if (fighter._shinobuPoisonPending && fighter.attacking && fighter.currentAttack?.name === "shinobuPoison"
+      && fighter.currentAttack.hasHit && opp && !opp.isBlocking && (opp.hitstun || 0) > 0) {
+    opp._dot = { ticks: SHINOBU_POISON.ticks, interval: SHINOBU_POISON.interval, dmg: SHINOBU_POISON.dmg, delay: SHINOBU_POISON.interval }
+    fighter._shinobuPoisonPending = false
+  }
+  if (!fighter.attacking) fighter._shinobuPoisonPending = false   // thrust ended (whiff/block) → drop the pending stamp
+
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during recovery on a clean hit → rekkaNext (shared rekkaContinue owns the gate).
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireShinobuCommand(fighter, next, context)
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the neutral heavy stays normal.
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && forward && heavyEdge) return fireShinobuCommand(fighter, "shinobuG1", context)
+  return false
+}
+
+// ── SHINOBU SPECIALS — SPECIAL button, direction-branched via _specialHeldDir. COOLDOWN-gated (maxEnergy 0). ──
+const SHINOBU_POISON_CD = 78   // ~1.3s gate for the Poison Thrust
+const SHINOBU_FLIT_CD   = 66   // ~1.1s gate for the Butterfly Flit evade
+function fireShinobuPoisonThrust(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.poisonCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
+  const md = { damage: 40, startup: 6, active: 3, recovery: 16, hitstun: 16, blockstun: 10, knockbackX: 4, knockbackY: -1, rangeX: 104, rangeY: 54, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "shinobuPoison", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = shinobuPoison → stinger pose
+  fighter.vx = (fighter.facing || 1) * 9    // forward lunge — the stinger dives in
+  fighter._shinobuPoisonPending = true      // arm the poison-on-hit watcher (updateShinobuCommandCombat)
+  fighter.poisonCd = SHINOBU_POISON_CD
+  // POISON cast callout ("How about this poison?" / "Change the blend"). _atkVoiceCd guards a cast+connect
+  // double with the offense combatBark (same as Rengoku/Zenitsu specials).
+  try { sound.playSfxFile?.(pickShinobuVoice("poisonCast"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+function fireShinobuFlit(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.flitCd || 0) > 0) return false   // COOLDOWN gate
+  // Acrobatic backward evade: brief i-frames + a backward hop (spacing/reposition, no damage).
+  fighter.vx = -(fighter.facing || 1) * 13
+  fighter.vy = -6
+  fighter.onGround = false; fighter.grounded = false
+  fighter.invulnTimer      = Math.max(fighter.invulnTimer || 0, 20)   // i-frames through the flip
+  fighter._spriteCastMove  = "shinobuFlit"                            // backflip pose (overrides state sprite)
+  fighter._spriteCastTimer = 28
+  fighter.flitCd = SHINOBU_FLIT_CD
+  // Insect Breathing "dance" technique callout (Butterfly/Spirit/Void Dance — random). _atkVoiceCd guard.
+  try { sound.playSfxFile?.(pickShinobuVoice("specialCast"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  return true
+}
+function executeShinobuSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "shinobu") return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "B") return fireShinobuFlit(fighter, context)
+  return fireShinobuPoisonThrust(fighter, context)   // Neutral / Forward = Poison Thrust
+}
+
+// SHINOBU ULTIMATE — "Insect Breathing: Butterfly Dance" (Stage 4). A freeze-cinematic spinning-DASH
+// finisher (shinobuButterflyCinematic.js: camera push-in → dash-in thrust → spinning slash → pull-back).
+// The guaranteed damage + a lethal wisteria POISON finisher land at the STRIKE beat via onImpact. COOLDOWN-
+// gated (no energy; maxEnergy 0) — reuses the universal ultimateCooldown gate, stamped 8s (Zenitsu/Rengoku
+// precedent). On-theme low-burst: her DIRECT hit is the lowest of the cinematic-ult band; the poison
+// finisher makes up the rest (attrition, her signature) so the total sits mid-band.
+const SHINOBU_ULT_CD          = 480   // 8s @ 60fps — short real-time recast (design band 5-10s)
+const SHINOBU_ULT_DMG         = 300   // guaranteed direct (a held block chips it to 25%); lowest cinematic direct
+const SHINOBU_ULT_POISON      = { ticks: 6, interval: 18, dmg: 11 }   // lethal finisher DoT on a CLEAN hit (66 over ~1.8s)
+function executeShinobuUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "shinobu") return false
+  if (isShinobuButterflyCinematicActive()) return false   // already mid-cinematic
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const opp = context?.getOpponent?.(fighter) || null
+  fighter.vx = 0
+  // ULTIMATE windup callout — fires HERE at ACTIVATION (before the cinematic's STRIKE payoff, same timing
+  // convention as every other ult). 009/014 "getting serious" + folded-in concentration declarations. The
+  // guaranteed damage lands later via applyShinobuUltimateDamage/onImpact, which stays voiceless.
+  try { sound.playSfxFile?.(pickShinobuVoice("ultimate"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  activateShinobuButterflyCinematic(fighter, opp, (cineCtx) => applyShinobuUltimateDamage(fighter, opp, cineCtx))
+  fighter._suppressUltCooldown = true
+  fighter.ultimateCooldown = SHINOBU_ULT_CD
+  return true
+}
+// PAYOFF — GUARANTEED, range-independent applied ONCE at the STRIKE beat by the cinematic. A held block
+// (frozen at its pre-cinematic value) chips the direct hit to 25% and NO poison; a clean hit deals full +
+// blasts away + stamps the lethal wisteria poison finisher (the existing game.js _dot subsystem).
+function applyShinobuUltimateDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = SHINOBU_ULT_DMG
+  if (blocked) {
+    dmg = Math.round(dmg * 0.25)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 34)
+    opp.vx = (fighter.facing || 1) * 11; opp.vy = -5           // blasted away by the spinning strike
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 42)
+    // WISTERIA POISON FINISHER — the signature lethal DoT, on a CLEAN hit only.
+    opp._dot = { ticks: SHINOBU_ULT_POISON.ticks, interval: SHINOBU_ULT_POISON.interval, dmg: SHINOBU_ULT_POISON.dmg, delay: SHINOBU_ULT_POISON.interval }
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 20, maxTimer: 20,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#8a4dff",
+      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
+      ...(blocked ? { isBlocking: true } : {})
+    })
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -6530,6 +7138,61 @@ function fireBenHoverBash(fighter, context) {
   return true
 }
 
+// Feedback — ENERGY ABSORPTION (neutral Special, the HEADLINE reactive counter). Opens a timed counter
+// window (the absorb stance): if an incoming hit lands during it, combat.shouldFeedbackAbsorb negates it
+// and stamps a redirect that updateBen10CommandCombat fires back amplified. Whiff = normal recovery.
+const FB_ABSORB = { cost: 12, startup: 4, window: 22, recovery: 12 }
+function fireFbEnergyAbsorb(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, FB_ABSORB.cost)) return false
+  fighter._spriteCastMove  = "fbCharge"
+  fighter._spriteCastTimer = FB_ABSORB.startup + FB_ABSORB.window + FB_ABSORB.recovery
+  fighter._fbAbsorbWindow  = FB_ABSORB.startup + FB_ABSORB.window   // counter-active frames (ticked in update)
+  fighter._fbAbsorbPending = null
+  fighter.attackCooldown   = getAttackDuration(FB_ABSORB.startup + FB_ABSORB.window + FB_ABSORB.recovery, fighter)
+  fighter.vx = 0
+  shakeCamera(context, 2, 4)
+  return true
+}
+
+// Feedback — the amplified REDIRECT fired the frame after a successful absorb (from updateBen10CommandCombat).
+// Discharge damage scales with the absorbed blow: bigger the hit you eat, bigger the counter (capped).
+function fireFbDischargeCounter(fighter, pending, context) {
+  fighter._spriteCastMove  = "fbShot"; fighter._spriteCastTimer = 18
+  fighter.attackCooldown   = getAttackDuration(20, fighter)
+  fighter.vx = 0
+  const face = fighter.facing || 1
+  const amp  = Math.min(180, 80 + Math.round((pending?.dmg || 40) * 1.4))   // redirect scales w/ absorbed dmg
+  schedulePendingSpawn(5, () => {
+    spawnProjectile(fighter, "feedback_discharge", {
+      damage: amp, speed: 17, vx: face * 17, hitstun: 24, knockbackX: 10, knockbackY: -3,
+      w: 32, h: 20, radius: 17, color: "#22d3ee", lifetime: 120, isSpecial: true,
+      spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  shakeCamera(context, 5, 7)
+  return true
+}
+
+// Feedback — ENERGY DISCHARGE (Down Special, proactive zoner cast → traveling electric orb). The
+// straightforward ranged option alongside the reactive counter (equal-treatment: ≥2 specials).
+function fireFbEnergyDischarge(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 22)) return false
+  fighter._spriteCastMove = "fbShot"; fighter._spriteCastTimer = 20
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(7, () => {
+    // Procedural electric orb (raw projectile strip split on its spark lines — reserved; flagged in map).
+    spawnProjectile(fighter, "feedback_discharge", {
+      damage: 90, speed: 15, vx: face * 15, hitstun: 18, knockbackX: 7, knockbackY: -1,
+      w: 28, h: 18, radius: 14, color: "#22d3ee", lifetime: 130, isSpecial: true,
+      spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  return true
+}
+
 function executeBen10Special(fighter, context) {
   const dir = fighter._specialHeldDir || null
   if (fighter.transformed === false) {   // Ben-human
@@ -6544,6 +7207,10 @@ function executeBen10Special(fighter, context) {
   if (a === "xlr8") {
     if (dir === "F") return fireXlr8SonicRush(fighter, context)
     return fireXlr8DashStrike(fighter, context)
+  }
+  if (a === "feedback") {
+    if (dir === "D") return fireFbEnergyDischarge(fighter, context)   // proactive electric orb
+    return fireFbEnergyAbsorb(fighter, context)                       // reactive absorb/redirect counter
   }
   return executeFallbackSpecial(fighter, context)   // art-less aliens keep the generic special
 }
@@ -6617,6 +7284,32 @@ function fireDhCrystalStorm(fighter, context) {
   return true
 }
 
+// Feedback — OVERLOAD: the ultimate. Overloading with stored/absorbed energy, Feedback unleashes a
+// STREAM of three large electric orbs (the fbUlt 5-frame beam cast) marching forward. Per-form pipeline
+// ultimate consistent with its sibling forms (XLR8 Sonic Blitz / Diamondhead Crystal Storm) — NOT the
+// freeze-cinematic (that's Ben-human's transform showpiece). Also the "amplified discharge" reading of
+// the absorb/redirect special (Batman ultimate-fallback precedent), here backed by distinct 5-frame art.
+function fireFbOverload(fighter, context) {
+  if (!spendEnergy(fighter, 70)) return false
+  fighter._spriteCastMove = "fbUlt"; fighter._spriteCastTimer = 40
+  fighter.attackCooldown = getAttackDuration(44, fighter)
+  fighter.vx = 0
+  const face = fighter.facing || 1
+  // Three staggered overload orbs (raw 110 → ~66 effective each through the global melee scale). Not all
+  // are guaranteed at every spacing → totals sit in ultimate range without a single point-blank one-shot.
+  for (let i = 0; i < 3; i++) {
+    schedulePendingSpawn(6 + i * 6, () => {
+      spawnProjectile(fighter, "feedback_overload", {
+        damage: 110, speed: 18, vx: face * 18, hitstun: 26, knockbackX: 11, knockbackY: -4,
+        w: 40, h: 30, radius: 22, color: "#22d3ee", lifetime: 130, isSpecial: true, isUltimate: true,
+        spawnY: fighter.y + (fighter.h || 100) * 0.42
+      }, context)
+      if (i === 0) { shakeCamera(context, 8, 10); focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.95, 12) }
+    })
+  }
+  return true
+}
+
 function executeBen10Ultimate(fighter, context) {
   if (fighter.transformed === false) {   // Ben-human → Omnitrix transformation freeze cinematic
     if (isBen10OmnitrixCinematicActive()) return false
@@ -6629,6 +7322,7 @@ function executeBen10Ultimate(fighter, context) {
   const a = (fighter.activeAlien || "").toLowerCase()
   if (a === "xlr8") return fireXlr8SonicBlitz(fighter, context)
   if (a === "diamondhead") return fireDhCrystalStorm(fighter, context)
+  if (a === "feedback") return fireFbOverload(fighter, context)
   return executeFallbackUltimate(fighter, context)   // art-less aliens keep the generic ultimate
 }
 
@@ -6666,8 +7360,11 @@ export function triggerSpecial(fighter, context = {}) {
     case "killua":  return executeKilluaSpecial(fighter, context)   // Yo-Yo throw→travel→retract boomerang
     case "flash":   { const ok = executeFlashSpecial(fighter, context); if (ok) maybeFireFlashSkinCastVoice(fighter); return ok }   // Spin Attack (neutral) / Tornado (forward); + Reverse-skin cast bark
     case "batman":  return executeBatmanSpecial(fighter, context)   // Batarang (neutral projectile) / Cape Dash (fwd mobility lunge) / Smoke Pellet (down teleport-behind)
+    case "superman": return executeSupermanSpecial(fighter, context)   // Heat Vision (neutral/down eye-beam projectile) / Super Flying Punch (fwd charged dash-strike)
     case "gon":     return executeGonSpecial(fighter, context)   // Jajanken: Rock (neutral, charged) / Scissors (fwd, multi-hit) / Paper (down, push)
     case "zenitsu": return executeZenitsuSpecial(fighter, context)   // Thunder Breathing 1st Form dash-strike (neutral); Double Attack (Fwd/Down) = Stage 4
+    case "rengoku": return executeRengokuSpecial(fighter, context)   // COUNTER — reactive parry stance (Charged Flame Strike is on the CHARGE button, not here)
+    case "shinobu": return executeShinobuSpecial(fighter, context)   // Poison Thrust (neutral/Fwd) / Butterfly Flit backflip evade (Back)
     case "hisoka":  return executeHisokaSpecial(fighter, context)   // Bungee Gum (neutral, extended-reach whip); Texture Surprise cards land in Stage 4
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
@@ -6715,10 +7412,13 @@ export function triggerUltimate(fighter, context = {}) {
       case "killua":  cast = executeKilluaUltimate(fighter, context);  break   // Godspeed: sustained speed/damage buff + electric afterimage overlay (buff-mode, not a form swap)
       case "gon":     cast = executeGonUltimate(fighter, context);     break   // Adult Form: buff + movement-lockout + close-range SUDDEN-DEATH (hit=instant win / miss=instant loss)
       case "zenitsu": cast = executeZenitsuUltimate(fighter, context); break   // Godspeed: dash-THROUGH slice — same-level, UNBLOCKABLE, 8s COOLDOWN (not energy)
+      case "rengoku": cast = executeRengokuUltimate(fighter, context); break   // Flame Explosion: freeze-cinematic AOE detonation — 8s COOLDOWN (not energy)
+      case "shinobu": cast = executeShinobuUltimate(fighter, context); break   // Butterfly Dance: freeze-cinematic spinning-dash finisher + poison — 8s COOLDOWN (not energy)
       case "hisoka":  cast = executeHisokaUltimate(fighter, context);  break   // Bloodlust Overdrive: buff + _skinAnim golden power-up body-swap + freeze cinematic (form-swap, extended whip)
       case "flash":   cast = executeFlashUltimate(fighter, context);   if (cast) maybeFireFlashSkinCastVoice(fighter);   break   // Flash Time (buff-mode) + Reverse-skin cast bark
       case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window
       case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)
+      case "superman": cast = executeSupermanUltimate(fighter, context); break   // Solar Overload: green energy-surge → particle-dissolve detonation freeze cinematic
       case "ben10":   cast = executeBen10Ultimate(fighter, context);   break   // form-branched: Ben Omnitrix-transform cinematic · XLR8 Sonic Blitz · Diamondhead Crystal Storm
       case "albedo":  cast = executeBen10Ultimate(fighter, context);   break   // Albedo shares the alien ultimates (Ultimatrix)
       default:        cast = executeFallbackUltimate(fighter, context); break

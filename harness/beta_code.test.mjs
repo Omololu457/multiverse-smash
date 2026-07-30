@@ -33,7 +33,7 @@ try{
   const KNOWN_SPRITE=["goku","gojo","megumi","sukuna","toji","naruto","sasuke","rick","beerus","goku_black","vegeta"];
   check(`sprite roster contains all known sprite chars (now ${gt.sprite.length})`,
         KNOWN_SPRITE.every(k=>gt.sprite.includes(k)), `sprite=${sortJoin(gt.sprite)}`);
-  check("full non-hidden roster is much larger (filter is meaningful)", gt.all.length>gt.sprite.length+10, `all=${gt.all.length}`);
+  check("full non-hidden roster is larger than sprite roster (filter is meaningful)", gt.all.length>gt.sprite.length, `all=${gt.all.length} sprite=${gt.sprite.length}`);
   const spriteSet=gt.sprite;
 
   // ── Baseline: NO code entered ──────────────────────────────────────────────
@@ -53,7 +53,7 @@ try{
   check("selectable roster EQUALS the live hasSprites set", sortJoin(m.selectable)===sortJoin(spriteSet), `got=${sortJoin(m.selectable)}`);
   check("selectable count == sprite-roster size (dynamic)", m.selectable.length===spriteSet.length, `n=${m.selectable.length}`);
   // Explicit exclusions — procedural-box characters (still no sprites) must be gone.
-  for(const gone of ["tanjiro","rickPrime","piccolo"])
+  for(const gone of ["frieza","rickPrime","piccolo"])
     check(`'${gone}' (no sprites) is NOT selectable`, !m.selectable.includes(gone));
   // Explicit inclusions — the sprite characters must all be present.
   for(const has of ["gojo","sukuna","megumi","toji","naruto","sasuke","goku","rick","beerus","goku_black","vegeta"])
@@ -76,7 +76,7 @@ try{
   check('applyCode("Omololu") → "dev"', da.result==="dev" && da.dev===true && da.beta===false, `res=${da.result} dev=${da.dev} beta=${da.beta}`);
   m=await menu();
   check("DEV shows the FULL roster (NOT sprite-filtered)", sortJoin(m.selectable)===sortJoin(gt.all), `n=${m.selectable.length}`);
-  check("DEV roster INCLUDES non-sprite characters (e.g. piccolo, tanjiro)", m.selectable.includes("piccolo") && m.selectable.includes("tanjiro"));
+  check("DEV roster INCLUDES non-sprite characters (e.g. piccolo, frieza)", m.selectable.includes("piccolo") && m.selectable.includes("frieza"));
   check("DEV roster is strictly larger than the beta sprite set", m.selectable.length>7, `n=${m.selectable.length}`);
   check("DEV also unlocks ONLINE", m.onlineLocked===false);
 

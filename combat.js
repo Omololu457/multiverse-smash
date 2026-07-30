@@ -23,11 +23,14 @@ import { pickTobiramaVoice } from "./tobiramaVoice.js"
 import { pickFlashVoice } from "./flashVoice.js"
 import { pickBatmanVoice } from "./batmanVoice.js"
 import { pickOmniManVoice } from "./omnimanVoice.js"
+import { pickSupermanVoice } from "./supermanVoice.js"
 import { pickItachiVoice } from "./itachiVoice.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
 import { pickSkinVoice } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
 import { pickZenitsuVoice } from "./zenitsuVoice.js"   // Zenitsu hit-react / offense-bark / low-health voice pools (audio-only)
+import { pickRengokuVoice } from "./rengokuVoice.js"   // Rengoku hit-react / offense-bark / low-health voice pools (audio-only)
+import { pickShinobuVoice } from "./shinobuVoice.js"   // Shinobu hit-react / offense-bark / low-health voice pools (audio-only)
 
 // ========================
 // HITSTOP TABLE — SINGLE SHARED TUNABLE SOURCE
@@ -436,6 +439,48 @@ export function shouldSasukeAbsoluteDefenseNegate(defender) {
   return true
 }
 
+// FEEDBACK (Ben 10 Conductoid) — ENERGY ABSORPTION reactive counter. Unlike Sasuke's toggle, this is a
+// TIMED counter WINDOW opened by the neutral Special (abilities.fireFbEnergyAbsorb sets _fbAbsorbWindow).
+// If an incoming hit (melee OR projectile) lands DURING the window, it is ABSORBED — full negate, no
+// damage — and Feedback gains energy from the absorbed blow, then a discharge is STAMPED (_fbAbsorbPending)
+// for the ability layer to fire back amplified next frame (updateBen10CommandCombat). Whiff (no hit in the
+// window) = nothing absorbed, normal recovery. The window is ticked/expired in updateBen10CommandCombat.
+// Guarded to the feedback form so a stale flag on another alien can't absorb. incomingDmg scales the redirect.
+export const FB_ABSORB_REFUND = 20   // energy gained from absorbing a hit (the "absorption" payoff)
+export function shouldFeedbackAbsorb(defender, incomingDmg = 40) {
+  if (!defender || (defender._fbAbsorbWindow || 0) <= 0) return false
+  if ((defender.activeAlien || "").toLowerCase() !== "feedback") return false
+  defender._fbAbsorbWindow = 0                       // one absorb per window — consume it
+  defender._fbAbsorbPending = { dmg: Math.max(20, incomingDmg | 0) }   // ability layer fires the redirect
+  defender.energy = Math.min(defender.maxEnergy || 100, (defender.energy || 0) + FB_ABSORB_REFUND)
+  defender.teleportFlash = Math.max(defender.teleportFlash || 0, 10)
+  defender.colorFlash = Math.max(defender.colorFlash || 0, 10)
+  return true
+}
+
+// RENGOKU — COUNTER reactive parry/riposte. A TIMED window opened by the neutral Special
+// (abilities.executeRengokuSpecial sets _rengokuCountering, ticked down in game.updateMiscTimers).
+// If an incoming MELEE hit lands DURING the window it is NEGATED (no damage) and Rengoku RIPOSTES: the
+// attacker is stunned + shoved + its swing cancelled + takes flat flame damage, while Rengoku gets brief
+// i-frames + a parry flash + his flame-release pose. Mirrors shouldFeedbackAbsorb (same negate-in-
+// resolveAttackHit shape) + checkParry's attacker-stun. One riposte per window (flag consumed). Guarded
+// to rengoku so a stale flag on anyone else can't counter.
+export const RENGOKU_RIPOSTE_DMG = 70
+export function shouldRengokuCounter(defender, attacker) {
+  if (!defender || !attacker || (defender._rengokuCountering || 0) <= 0) return false
+  if ((defender.rosterKey || "").toLowerCase() !== "rengoku") return false
+  defender._rengokuCountering = 0                                  // one riposte per window — consume it
+  attacker.hitstun = Math.max(attacker.hitstun || 0, 30)           // stun + shove the attacker, cancel its swing
+  attacker.vx = -(attacker.facing || 1) * 7
+  attacker.attacking = false; attacker.currentAttack = null
+  attacker.health = Math.max(0, (attacker.health || 0) - RENGOKU_RIPOSTE_DMG)   // flat flaming riposte
+  defender.invulnTimer = Math.max(defender.invulnTimer || 0, 10)   // Rengoku: brief i-frames + flash + flame pose
+  defender.parryFlash  = Math.max(defender.parryFlash || 0, 12)
+  defender.attackCooldown = 0
+  defender._spriteCastMove = "rengokuCharge1"; defender._spriteCastTimer = 16
+  return true
+}
+
 export function applyUltraEgoReaction(defender) {
   if (!defender?.currentFormData?.rageHealOnHit) return
   const c = defender.currentFormData.healCostPerHitKi || 4
@@ -739,6 +784,80 @@ function applyZenitsuLowHealthVoice(defender) {
   }
 }
 
+// ── KYOJURO RENGOKU VOICE LINES (audio-only; Japanese Demon Slayer pack) ──
+// DEFENDER reaction — effort-grunt cluster (grunt_1 … grunt_15). One line per _hitVoiceCd window;
+// unblocked hits only. Rengoku has a SEPARATE low-health pool (below).
+function applyRengokuHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "rengoku" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickRengokuVoice("hitReact"), null) } catch (_) {}
+}
+
+// ATTACKER connect — flame/determination barks ("Burn it all away!", "Perish!", "Take the fall properly!",
+// + the taunt-less char's TAUNT-COMBAT lines "Come at me" / "Feel free to strike") on a HEAVY connect OR a
+// long BASIC light string. Rengoku has NO taunt action (enrolling him in the universal heal-taunt would
+// change gameplay — excluded here), so the taunt-combat one-liners fold into this offense pool (Zenitsu/
+// Gon precedent). His FLAME specials (super-finishers, Charged Flame Strike, Counter, Ultimate) fire their
+// OWN cast lines and set _atkVoiceCd on cast, so they're excluded here (no cast+connect double). Shared
+// _atkVoiceCd → one line per window; blocked suppresses it.
+function applyRengokuOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "rengoku" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickRengokuVoice("combatBark"), null) } catch (_) {}
+}
+
+// LOW-HEALTH bark — "I'm feeling energized!" / "Unbelievable!" / "That's enough!" — fires ONCE the first
+// time Rengoku drops to/below the threshold (same pattern as Gon/Zenitsu/Naruto). Random pick.
+const RENGOKU_LOW_HEALTH_RATIO = 0.25
+function applyRengokuLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "rengoku" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * RENGOKU_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickRengokuVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
+// ── SHINOBU KOCHO VOICE LINES (audio-only; Japanese Demon Slayer pack) ──
+// DEFENDER reaction — split by hit strength: STRONG hits (heavy/special/ultimate/launcher/spike) draw the
+// reaction pool ("Dangerous!" / "Why would you?"); LIGHT hits draw the exertion grunt cluster. One line
+// per _hitVoiceCd window; unblocked hits only. Low-health has a SEPARATE pool (below).
+function applyShinobuHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "shinobu" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickShinobuVoice(strong ? "hitReact" : "hitGrunt"), null) } catch (_) {}
+}
+
+// ATTACKER connect — general combat bark ("Here I go!") on a HEAVY connect OR a long BASIC light string.
+// Her poison/dance specials + ultimate fire their OWN cast lines and set _atkVoiceCd on cast, so they're
+// excluded here (no cast+connect double). Shared _atkVoiceCd → one line per window; blocked suppresses it.
+function applyShinobuOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "shinobu" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickShinobuVoice("combatBark"), null) } catch (_) {}
+}
+
+// LOW-HEALTH bark — "This is... oh no." — fires ONCE the first time Shinobu drops to/below the threshold
+// (same pattern as Rengoku/Gon/Zenitsu). Random pick (single clip here).
+const SHINOBU_LOW_HEALTH_RATIO = 0.25
+function applyShinobuLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "shinobu" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 960
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * SHINOBU_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickShinobuVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
 // ── HISOKA MORROW VOICE LINES (audio-only; Japanese "Nen Impact" pack) ──
 // DEFENDER reaction — delighted/dismissive pool ("No no~", "Impressive~", "Irresistible~"). One line
 // per _hitVoiceCd window; unblocked hits only. Hisoka has a SEPARATE low-health pool (below).
@@ -894,6 +1013,33 @@ function applyOmniManLowHealthVoice(defender) {
   if (hp > 0 && hp <= max * 0.30) {
     defender._lowHealthVoiceDone = true
     try { sound?.playSfxFile?.(pickOmniManVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
+// ── SUPERMAN VOICE LINES ── (Injustice 2 pack; audio-only, no gameplay effect). Same three combat hooks
+// as Omni-Man/Batman: DEFENDER hit-reaction (effort-grunt set), ATTACKER confident trash-talk on a
+// strong/long connect (the taunt pool rides the connect trigger), and a once-only low-HP defiance line.
+// See supermanVoice.js.
+function applySupermanHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "superman" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickSupermanVoice("hitReact"), null) } catch (_) {}
+}
+function applySupermanOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "superman" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickSupermanVoice("taunt"), null) } catch (_) {}
+}
+function applySupermanLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "superman" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickSupermanVoice("lowHealth"), null) } catch (_) {}
   }
 }
 
@@ -1275,6 +1421,21 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     return
   }
 
+  // FEEDBACK — Energy Absorption counter: absorb the melee blow (no damage), refund energy, stamp the
+  // amplified redirect. Scales the discharge by the raw incoming attack damage. Consumes the swing.
+  if (shouldFeedbackAbsorb(defender, attacker.currentAttack?.damage || 40)) {
+    attacker.currentAttack.hasHit = true
+    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    return
+  }
+
+  // RENGOKU — Counter reactive parry/riposte: negate the blow + stun/damage the attacker (cancels its
+  // swing internally, so nothing else resolves this hit). See shouldRengokuCounter.
+  if (shouldRengokuCounter(defender, attacker)) {
+    try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
+    return
+  }
+
   const atk = attacker.currentAttack
   const cat = atk.isUltimate ? "ultimate"
     : atk.isSpecial ? "special"
@@ -1411,6 +1572,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyHisokaHitVoice(defender, cat, dmg)
     // ZENITSU hit-reaction voice — panicked pool ("No way!" / "Damn it!" / "I got hit!").
     applyZenitsuHitVoice(defender, cat, dmg)
+    applyRengokuHitVoice(defender, cat, dmg)
+    // SHINOBU hit-reaction voice — strong-hit reaction pool / light-hit exertion grunt (split by cat).
+    applyShinobuHitVoice(defender, cat, dmg)
     applyMinatoHitVoice(defender, cat, dmg)
     // FLASH hit-reaction voice — "Not again." + effort-grunt set.
     applyFlashHitVoice(defender, cat, dmg)
@@ -1418,6 +1582,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyBatmanHitVoice(defender, cat, dmg)
     // OMNI-MAN hit-reaction voice — shrug-it-off defiance ("That tickles" / "Easy, kid").
     applyOmniManHitVoice(defender, cat, dmg)
+    // SUPERMAN hit-reaction voice — effort-grunt set (clips 96-112).
+    applySupermanHitVoice(defender, cat, dmg)
     // OMEGA RANGER hit-reaction voice — light stagger only ("No!"); heavy tier stays silent (no clip).
     applyOmegaRangerHitVoice(defender, cat, dmg)
     // ITACHI hit-reaction voice — calm observation pool ("I see…" / "Quick, aren't you").
@@ -1436,9 +1602,12 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
     applyGonLowHealthVoice(defender)   // "Not yet" / "I can still fight" / "I'm going to die" (once, on crossing the low-HP line)
     applyZenitsuLowHealthVoice(defender)   // Zenitsu "This can't be done yet!" (once, on crossing the low-HP line)
+    applyRengokuLowHealthVoice(defender)   // Rengoku "I'm feeling energized!" / "Unbelievable!" (once, on crossing the low-HP line)
+    applyShinobuLowHealthVoice(defender)   // Shinobu "This is... oh no." (once, on crossing the low-HP line)
     applyHisokaLowHealthVoice(defender)   // Hisoka THRILLED by danger: "Irresistible~" / "How tantalizing~" (once, on crossing the low-HP line)
     applyMinatoLowHealthVoice(defender)   // Minato "I'll fight to the end" (once, on crossing the low-HP line)
     applyOmniManLowHealthVoice(defender)   // "It's all under control" / "none of you can stop me" (once, on crossing the low-HP line)
+    applySupermanLowHealthVoice(defender)   // "What you have can't be cured. I'll never stop fighting." (once, on crossing the low-HP line)
     defender.colorFlash = cat === "ultimate" ? 12 : cat === "special" ? 9 : 6
 
     const persist =
@@ -1521,12 +1690,15 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyKilluaOffenseVoice(attacker, cat, !defender.isBlocking)   // Killua combat bark (+ ~30% taunt one-liner) on a strong/long-string connect
   applyGonOffenseVoice(attacker, cat, !defender.isBlocking)      // Gon combat bark on a heavy/long-string connect (specials use their own cast lines)
   applyZenitsuOffenseVoice(attacker, cat, !defender.isBlocking)  // Zenitsu determination/combat bark on a heavy/long-string connect (specials use their own cast lines)
+  applyRengokuOffenseVoice(attacker, cat, !defender.isBlocking)  // Rengoku flame/taunt-combat bark on a heavy/long-string connect (flame specials use their own cast lines)
+  applyShinobuOffenseVoice(attacker, cat, !defender.isBlocking)  // Shinobu "Here I go!" bark on a heavy/long-string connect (poison/dance specials use their own cast lines)
   applyHisokaOffenseVoice(attacker, cat, !defender.isBlocking)   // Hisoka combat bark (+ ~30% flirty taunt) on a heavy/long-string connect (specials use their own cast lines)
   applyMinatoOffenseVoice(attacker, cat, !defender.isBlocking)   // Minato offense bark / taunt on a heavy/long-string connect
   applyTobiramaOffenseVoice(attacker, cat, !defender.isBlocking) // Tobirama overconfident taunt one-liner on a strong/long-string connect
   applyFlashOffenseVoice(attacker, cat, !defender.isBlocking)    // Flash quippy speed trash-talk on a strong/long-string connect
   applyBatmanOffenseVoice(attacker, cat, !defender.isBlocking)   // Batman cold trash-talk (taunt pool) on a strong/long-string connect
   applyOmniManOffenseVoice(attacker, cat, !defender.isBlocking)  // Omni-Man cold Viltrumite trash-talk (taunt pool) on a strong/long-string connect
+  applySupermanOffenseVoice(attacker, cat, !defender.isBlocking)  // Superman confident trash-talk (taunt pool) on a strong/long-string connect
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher
   applySukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Sukuna finisher(KO/low-HP) / hit-connect(strong+long) / taunt+misc(light) barks
   // Netero hit-connect voice removed (audio files deleted); re-add applyNeteroOffenseVoice here to re-enable.
@@ -1750,6 +1922,14 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // the projectile is consumed and deals nothing. Checked BEFORE damage so it takes priority
       // over normal block. No-op for everyone else / when the toggle is off / when energy is short.
       if (shouldSasukeAbsoluteDefenseNegate(fighter)) {
+        try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+        projectiles.splice(i, 1)
+        break
+      }
+
+      // FEEDBACK — Energy Absorption also eats projectiles (canonically its specialty): absorb the
+      // incoming energy, consume the projectile, and stamp the amplified redirect scaled by proj damage.
+      if (shouldFeedbackAbsorb(fighter, proj.damage || 40)) {
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
         projectiles.splice(i, 1)
         break

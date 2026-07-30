@@ -243,7 +243,28 @@ export const SKINS = {
   // fallback would OVER-size then his own <1 scale wouldn't apply). Sources his real
   // spriteScale (0.92) + portrait from the character. No alt skins yet.
   batman: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.batman?.portrait, spriteScale: characters.batman?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.batman?.portrait, spriteScale: characters.batman?.spriteScale, animationData: null },
+    // "Nightwatch" — dark tactical recolor (tools/gen_batman_nightwatch.py): the (already near-black)
+    // suit gets a faint cool-charcoal tint (#0D0E10–#1A1B1F) and the yellow belt + bat-emblem + cowl
+    // eye-slit recolor to cyan glow #3DDBEE. Cosmetic only; all three regions were colour-separable.
+    { id: "batmanNightwatch", name: "Nightwatch", unlockLevel: 0, portrait: "./batman_portrait__nightwatch.png", spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "nightwatch") },
+    // 10 alt-color recolors (tools/gen_batman_skins.py). Batman's sprite is monochrome-dark: the suit,
+    // cape, cowl & boots are ONE non-separable near-black material, so each skin = a MAIN zone (all lit
+    // charcoal surfaces) + a CAPE/SHADOW zone (pure-black → a darker family tone; the cape reads darker
+    // because it's mostly shadow) + the gold emblem/belt ACCENT → gold|silver|black. Skin & eye-slit are
+    // excluded from every pass. A cape colored *contrastingly* from the suit is not achievable on this art.
+    // -- Part 1: alternate-suit themes --
+    { id: "batmanSteelBlue",    name: "Steel Blue",    unlockLevel: 0, portrait: "./batman_portrait__steelblue.png",    spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "steelblue") },
+    { id: "batmanCrimsonWatch", name: "Crimson Watch", unlockLevel: 0, portrait: "./batman_portrait__crimsonwatch.png", spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "crimsonwatch") },
+    { id: "batmanSilverAge",    name: "Silver Age",    unlockLevel: 0, portrait: "./batman_portrait__silverage.png",    spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "silverage") },
+    { id: "batmanStealthWhite", name: "Stealth White", unlockLevel: 0, portrait: "./batman_portrait__stealthwhite.png", spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "stealthwhite") },
+    { id: "batmanGoldenKnight", name: "Golden Knight", unlockLevel: 0, portrait: "./batman_portrait__goldenknight.png", spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "goldenknight") },
+    // -- Part 2: vivid color families --
+    { id: "batmanLavender",     name: "Lavender",      unlockLevel: 0, portrait: "./batman_portrait__lavender.png",     spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "lavender") },
+    { id: "batmanRose",         name: "Rose",          unlockLevel: 0, portrait: "./batman_portrait__rose.png",         spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "rose") },
+    { id: "batmanAmethyst",     name: "Amethyst",      unlockLevel: 0, portrait: "./batman_portrait__amethyst.png",     spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "amethyst") },
+    { id: "batmanCobalt",       name: "Cobalt",        unlockLevel: 0, portrait: "./batman_portrait__cobalt.png",       spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "cobalt") },
+    { id: "batmanEmerald",      name: "Emerald",       unlockLevel: 0, portrait: "./batman_portrait__emerald.png",      spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "emerald") }
   ],
 
   // Hisoka Morrow (Hunter x Hunter). Same gate: WITHOUT a default skin, applySkin() pulls the
@@ -254,14 +275,88 @@ export const SKINS = {
     // orange hair→red, teal jumpsuit(torso+legs)→pale lavender-white, pink sash→dusty rose, gray shoes→rose
     // pink; the base chest heart+diamond emblem is ERASED (diffusion-filled) and a stopgap pink undershirt
     // collar is synthesised at the neckline. Cosmetic only.
-    { id: "hisokaGreedIsland", name: "Greed Island Outfit", unlockLevel: 0, portrait: "./hisoka_portrait__greedisland.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "greedisland") }
+    { id: "hisokaGreedIsland", name: "Greed Island Outfit", unlockLevel: 0, portrait: "./hisoka_portrait__greedisland.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "greedisland") },
+    // Four outfit-inspired recolors (tools/gen_hisoka_outfits.py) — targeted per-region, multi-tone
+    // shading preserved, face/skin excluded, orange hair KEPT. Cosmetic only. Emblem recoloured
+    // (not erased); neck-scarf/collar/striped-socks flagged as absent from the base art (not faked).
+    { id: "hisokaAzure", name: "Azure", unlockLevel: 0, portrait: "./hisoka_portrait__azure.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "azure") },
+    { id: "hisokaIvory", name: "Ivory", unlockLevel: 0, portrait: "./hisoka_portrait__ivory.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "ivory") },
+    { id: "hisokaSeafoam", name: "Seafoam", unlockLevel: 0, portrait: "./hisoka_portrait__seafoam.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "seafoam") },
+    { id: "hisokaMidnight", name: "Midnight", unlockLevel: 0, portrait: "./hisoka_portrait__midnight.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "midnight") },
+    // Five creative colour-only themes (same driver). Vest/pants split where they differ; shoes track
+    // the trim/accent colour. Sash captured post-emblem/pre-jumpsuit, applied last (handles red/magenta
+    // jumpsuit targets without grabbing garment). Cosmetic only.
+    { id: "hisokaBloodhound", name: "Bloodhound", unlockLevel: 0, portrait: "./hisoka_portrait__bloodhound.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "bloodhound") },
+    { id: "hisokaVenom", name: "Venom", unlockLevel: 0, portrait: "./hisoka_portrait__venom.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "venom") },
+    { id: "hisokaGilded", name: "Gilded", unlockLevel: 0, portrait: "./hisoka_portrait__gilded.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "gilded") },
+    { id: "hisokaJoker", name: "Joker's Deck", unlockLevel: 0, portrait: "./hisoka_portrait__joker.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "joker") },
+    { id: "hisokaJester", name: "Jester", unlockLevel: 0, portrait: "./hisoka_portrait__jester.png", spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "jester") }
+  ],
+
+  // Superman (DC). Same gate: WITHOUT a default skin, applySkin() pulls the getSkins() spriteScale:1
+  // fallback and he renders at native ~half size. Sources his real spriteScale (1.6) + portrait from
+  // the character. No alt skins yet.
+  superman: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman?.portrait, spriteScale: characters.superman?.spriteScale, animationData: null },
+    // "Violet" — single-colour swap (tools/gen_superman_violet.py): all red (cape + boots + chest-emblem
+    // accent lines, one shared hue-0 palette) → deep violet #6B3FA0 with shading preserved. Blue bodysuit
+    // and gold "S"/belt untouched. Cosmetic only.
+    { id: "supermanViolet", name: "Violet", unlockLevel: 0, portrait: "./superman_portrait__violet.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "violet") },
+    // "Blue Trunks" — per-region cosmetic (tools/gen_superman_bluetrunks.py). The trunks share ONE red
+    // palette with the cape+boots, so a plain color-select can't isolate them; this uses a SPATIAL,
+    // belt-anchored per-frame mask: red within the belt's x-span & just below it → navy #2A4D8F (kept
+    // darker than the royal suit-blue so the briefs stay distinct, not a seamless blend), while the wider
+    // cape wings + boots stay red. Belt band → flat yellow #E8C93B (chest "S"-shield left untouched).
+    { id: "supermanBlueTrunks", name: "Blue Trunks", unlockLevel: 0, portrait: "./superman_portrait__bluetrunks.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "bluetrunks") },
+    // "Eclipse" — full near-black recolor (tools/gen_superman_eclipse.py). Bodysuit + cape + trunks + belt
+    // all UNIFIED to charcoal #1C1C22; the chest "S"-shield kept as a muted dark-red accent #5A2A2A so the
+    // emblem still reads. Multi-tone (to-tone) remap + value-clamp preserves highlight/shadow form so it's
+    // not a flat silhouette. Distinct from Batman "Nightwatch" (neutral+cyan) & Edo reanim (grayscale):
+    // Eclipse is a cool blue-charcoal with a red emblem. FX-cast frames: green/cyan effects survive; the
+    // suprush2 yellow charge-burst mutes (color-recolor can't tell it from costume yellow). Cosmetic only.
+    { id: "supermanEclipse", name: "Eclipse", unlockLevel: 0, portrait: "./superman_portrait__eclipse.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "eclipse") },
+    // Six creative per-region recolors (tools/gen_superman_creative.py). Each targets suit / cape+boots /
+    // emblem / belt as distinct zones; TRUNKS follow the suit (belt-anchored mask), the "S"-shield + its S
+    // are the emblem (adjacency mask, no cape over-grab). Multi-tone remap preserves shading. Cosmetic only.
+    { id: "supermanRoseSteel",   name: "Rose Steel",   unlockLevel: 0, portrait: "./superman_portrait__rosesteel.png",   spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "rosesteel") },
+    { id: "supermanDeepCurrent", name: "Deep Current", unlockLevel: 0, portrait: "./superman_portrait__deepcurrent.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "deepcurrent") },
+    { id: "supermanSolarFlare",  name: "Solar Flare",  unlockLevel: 0, portrait: "./superman_portrait__solarflare.png",  spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "solarflare") },
+    { id: "supermanVerdant",     name: "Verdant",      unlockLevel: 0, portrait: "./superman_portrait__verdant.png",     spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "verdant") },
+    { id: "supermanGoldenAge",   name: "Golden Age",   unlockLevel: 0, portrait: "./superman_portrait__goldenage.png",   spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "goldenage") },
+    { id: "supermanPrism",       name: "Prism",        unlockLevel: 0, portrait: "./superman_portrait__prism.png",       spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "prism") },
+    // "Phantom Zone" — canon void concept. Part 1: whole-form (suit/cape/emblem/belt/face) flattened to a
+    // deep cool-charcoal #0F1014 (gen_superman_creative.py phantomzone). Part 2: a PROCEDURAL spectral
+    // green-white energy overlay (game.js drawPhantomZoneOverlay, gated to this skin id) drawn on top at
+    // match time — wispy drifting tendrils + soft glow mist; seeded once, tracks the sprite. Cosmetic only.
+    { id: "supermanPhantomZone", name: "Phantom Zone", unlockLevel: 0, portrait: "./superman_portrait__phantomzone.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "phantomzone") }
   ],
 
   // Rick Sanchez (Rick & Morty). Same gate as the sprite characters above: WITHOUT a default
   // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native
   // ~67px (half size). Sources his real spriteScale (1.7) from the character. No alt skins yet.
   rick: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rick?.portrait, spriteScale: characters.rick?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rick?.portrait, spriteScale: characters.rick?.spriteScale, animationData: null },
+    // 8 creative colour skins (tools/gen_rick_creative.py) — per-region recolor: hair(blue hue)/coat
+    // (neutral+torso band)/shirt(teal hue)/pants(brown hue); face/skin excluded, multi-tone shading kept.
+    // Portrait = cropped recoloured stand frame (the pfp headshot's light bg is inseparable from the
+    // white coat). Cosmetic only.
+    { id: "rickMortyNightmare", name: "Morty's Nightmare", unlockLevel: 0, portrait: "./rick_portrait__mortynightmare.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "mortynightmare") },
+    { id: "rickPortalFluid", name: "Portal Fluid", unlockLevel: 0, portrait: "./rick_portrait__portalfluid.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "portalfluid") },
+    { id: "rickRedAlert", name: "Dimension C-137 Red Alert", unlockLevel: 0, portrait: "./rick_portrait__redalert.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "redalert") },
+    { id: "rickCosmicBlue", name: "Cosmic Blue", unlockLevel: 0, portrait: "./rick_portrait__cosmicblue.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "cosmicblue") },
+    { id: "rickLavenderMatter", name: "Lavender Matter", unlockLevel: 0, portrait: "./rick_portrait__lavendermatter.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "lavendermatter") },
+    { id: "rickGoldenRick", name: "Golden Rick", unlockLevel: 0, portrait: "./rick_portrait__goldenrick.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "goldenrick") },
+    { id: "rickVoidWalker", name: "Void Walker", unlockLevel: 0, portrait: "./rick_portrait__voidwalker.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "voidwalker") },
+    { id: "rickPinkMatter", name: "Pink Matter Rick", unlockLevel: 0, portrait: "./rick_portrait__pinkmatter.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "pinkmatter") },
+    // VOID FORM — solid near-black base (whole body incl. face, tools/gen_rick_creative.py voidform) +
+    // a PROCEDURAL cosmic starfield overlay drawn on top at match time (game.js drawVoidStarfield, gated
+    // to this skin id). The overlay is generated once per skin-load and tracks the sprite. Cosmetic only.
+    { id: "rickVoidForm", name: "Void Form", unlockLevel: 0, portrait: "./rick_portrait__voidform.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "voidform") },
+    // PORTAL VOID — same full-form near-black base (voidform's sibling, tools/gen_rick_creative.py
+    // portalvoid #0F0F12) + a DIFFERENT procedural overlay: vivid portal-green curling SWIRL wisps drawn
+    // on top at match time (game.js drawPortalVoidOverlay, gated to this skin id). Seeded once/skin-load,
+    // tracks the sprite across all poses (incl. Portal-Behind teleport). Cosmetic only.
+    { id: "rickPortalVoid", name: "Portal Void", unlockLevel: 0, portrait: "./rick_portrait__portalvoid.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "portalvoid") }
   ],
 
   // Beerus (Dragon Ball) — new single-form sprite char. Same gate: WITHOUT a default skin,
@@ -316,7 +411,46 @@ export const SKINS = {
   // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~half size.
   // Sources his real spriteScale (2.25) + portrait from the character. No alt skins yet.
   zenitsu: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zenitsu?.portrait, spriteScale: characters.zenitsu?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zenitsu?.portrait, spriteScale: characters.zenitsu?.spriteScale, animationData: null },
+    // "Lavender" — orange/yellow → lavender-pink recolor (tools/gen_zenitsu_lavender.py): the fiery
+    // hair + haori gradient (incl. its deep-red scale-tips + thunder VFX) remaps to #C9A0D4 with the
+    // light/dark shading preserved. Skin, black kimono base + brown hakama are untouched. Cosmetic only.
+    { id: "zenitsuLavender", name: "Lavender", unlockLevel: 0, portrait: "./zenitsu_portrait__lavender.png", spriteScale: characters.zenitsu?.spriteScale, animationData: recolorSkinAnim("zenitsu", "lavender") },
+    // 5-colour batch (tools/gen_zenitsu_recolor.py) — same fiery-region remap as Lavender, each to a
+    // different target, with the base↔highlight two-tone depth preserved (incl. the white gradient tips
+    // remapped, not left white). Skin/black-kimono/brown-hakama untouched. Cosmetic only.
+    { id: "zenitsuBlack", name: "Black", unlockLevel: 0, portrait: "./zenitsu_portrait__black.png", spriteScale: characters.zenitsu?.spriteScale, animationData: recolorSkinAnim("zenitsu", "black") },
+    { id: "zenitsuPink",  name: "Vibrant Pink", unlockLevel: 0, portrait: "./zenitsu_portrait__pink.png", spriteScale: characters.zenitsu?.spriteScale, animationData: recolorSkinAnim("zenitsu", "pink") },
+    { id: "zenitsuRed",   name: "Red", unlockLevel: 0, portrait: "./zenitsu_portrait__red.png", spriteScale: characters.zenitsu?.spriteScale, animationData: recolorSkinAnim("zenitsu", "red") },
+    { id: "zenitsuWhite", name: "White", unlockLevel: 0, portrait: "./zenitsu_portrait__white.png", spriteScale: characters.zenitsu?.spriteScale, animationData: recolorSkinAnim("zenitsu", "white") },
+    { id: "zenitsuBlue",  name: "Blue", unlockLevel: 0, portrait: "./zenitsu_portrait__blue.png", spriteScale: characters.zenitsu?.spriteScale, animationData: recolorSkinAnim("zenitsu", "blue") }
+  ],
+
+  // Kyojuro Rengoku (Demon Slayer) — SECOND Demon Slayer sprite char. Same gate: WITHOUT a default
+  // skin, applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~half size.
+  // Sources his real spriteScale (2.25) + portrait from the character. No alt skins yet.
+  rengoku: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rengoku?.portrait, spriteScale: characters.rengoku?.spriteScale, animationData: null },
+    // 8 creative recolors (tools/gen_rengoku_creative.py). Per-region: hair / haori EXTERIOR (neutral) /
+    // haori INNER LINING = the red flame-hem / pants, with the orange flame-TIPS folded into (or kept
+    // distinct from) the lining per skin. Multi-tone preserved via to-tone; face/skin excluded (except
+    // Void Ember). Void Ember = full-form near-black + a procedural rising-ember overlay (game.js
+    // drawEmberOverlay, gated on this skinId — sibling of Rick Void Form / Superman Phantom Zone).
+    { id: "rengokuOmnitrix",     name: "Omnitrix Green",       unlockLevel: 0, portrait: "./rengoku_portrait__omnitrix.png",     spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "omnitrix") },
+    { id: "rengokuAlbedo",       name: "Albedo Protocol",      unlockLevel: 0, portrait: "./rengoku_portrait__albedo.png",       spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "albedo") },
+    { id: "rengokuSunBreathing", name: "Sun Breathing Homage", unlockLevel: 0, portrait: "./rengoku_portrait__sunbreathing.png", spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "sunbreathing") },
+    { id: "rengokuWaterSealed",  name: "Water-Sealed",         unlockLevel: 0, portrait: "./rengoku_portrait__watersealed.png",  spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "watersealed") },
+    { id: "rengokuAshen",        name: "Ashen",                unlockLevel: 0, portrait: "./rengoku_portrait__ashen.png",        spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "ashen") },
+    { id: "rengokuImperial",     name: "Imperial",             unlockLevel: 0, portrait: "./rengoku_portrait__imperial.png",     spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "imperial") },
+    { id: "rengokuVerdant",      name: "Verdant Flame",        unlockLevel: 0, portrait: "./rengoku_portrait__verdant.png",      spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "verdant") },
+    { id: "rengokuVoidEmber",    name: "Void Ember",           unlockLevel: 0, portrait: "./rengoku_portrait__voidember.png",    spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "voidember") }
+  ],
+
+  // Shinobu Kocho (Demon Slayer) — THIRD Demon Slayer sprite char. Same gate: WITHOUT a default skin,
+  // applySkin() pulls the spriteScale:1 fallback and she renders at native ~half size. Sources her real
+  // spriteScale (2.25) + portrait from the character. No alt skins yet.
+  shinobu: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shinobu?.portrait, spriteScale: characters.shinobu?.spriteScale, animationData: null }
   ],
 
   // Ben 10 — ONE fighter that transforms between aliens (Omnitrix). The base skin

@@ -101,6 +101,13 @@ function _updateIn(f, c, cam, snd) {
   }
   if (f === IN.SEALS) { try { snd?.play?.(SFX.HIT_PROJECTILE) } catch (_) {} }
   if (f === IN.SWAP) _resolveOnce()   // body-swap at the reveal peak; the coffin then closes over the transition
+  // TWO-VESSEL FIX: the body-swap at SWAP turns the REAL (world-rendered) caster INTO the vessel, but the
+  // cinematic's own vessel OVERLAY (_drawVesselIdle at coffinX, offset from the caster) keeps drawing until
+  // CLOSE — so [SWAP, CLOSE) would show TWO copies of the vessel. Hide the real body for exactly that window
+  // (renderHybridFighter honours _kuramaHide) so the coffin overlay is the ONLY vessel; at CLOSE the overlay
+  // stops and the real vessel takes over at the caster's spot. Before SWAP the real body is still Tobirama
+  // (a DIFFERENT character from the emerging vessel) and must stay visible — hence the SWAP lower bound.
+  if (c) c._kuramaHide = (f >= IN.SWAP && f < IN.CLOSE)
 }
 
 function _updateOut(f, c, cam, snd) {
@@ -120,7 +127,7 @@ function endEdoTenseiCinematic() {
   if (cam && cine.savedMaxStep != null) cam.maxZoomStep = cine.savedMaxStep
   if (cam && cine.savedMaxZoom != null) cam.maxZoom = cine.savedMaxZoom
   _resolveOnce()   // safety: guarantee the swap/revert even if the timeline was cut short
-  if (cine.caster) { cine.caster._spriteCastMove = null; cine.caster._spriteCastTimer = 0 }
+  if (cine.caster) { cine.caster._spriteCastMove = null; cine.caster._spriteCastTimer = 0; cine.caster._kuramaHide = false }   // clear the two-vessel hide (safety: never leave the body invisible if the cinematic is cut short)
   cine.active = false; cine.frame = 0; cine.caster = null; cine.opponent = null; cine.vesselKey = null
   cine.onResolve = null; cine.resolved = false; cine._cam = null; cine.savedMaxStep = null; cine.savedMaxZoom = null
 }

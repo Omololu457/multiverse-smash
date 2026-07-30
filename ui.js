@@ -23,6 +23,7 @@ const ENERGY_TYPE_LABELS = {
   speed_force:      "Speed Force",               // DC (The Flash) — the Flash Time meter
   gadget:           "Gadgets",                    // DC (Batman) — utility-belt gadget meter (specials + Ultimate)
   smart_atoms:      "Smart Atoms",              // Invincible (Omni-Man) — Viltrumite power reserve; ONE shared pool fuels flight AND specials
+  solar_energy:     "Solar Energy",             // DC (Superman) — yellow-sun charge; ONE shared pool fuels flight + specials + modes + ultimate
   stamina:          "Stamina",                  // original roster (Omololu)
   omnitrix:         "Omnitrix",                 // Ben 10 (fallback; device HUD block overrides live)
   ultimatrix:       "Ultimatrix",               // Albedo (fallback; device HUD block overrides live)
@@ -34,10 +35,19 @@ export function resolveEnergyLabel(fighter) {
   return fighter?.energyConfig?.label || ENERGY_TYPE_LABELS[fighter?.traits?.energyType] || "ENERGY"
 }
 
-// HEAVENLY RESTRICTION HUD state: a Jujutsu Kaisen fighter with energyType "none" (canonically no
-// cursed energy in a cursed-energy universe — Toji). energyType-keyed + JJK-scoped so no-energy
-// fighters from energy-less universes (e.g. Demon Slayer) are NOT mislabelled. (Invincible/Omni-Man
-// DOES have energy — "Smart Atoms" — so it is intentionally NOT in that energy-less set.) Display-only.
+// NO-METER FLAVOR LABEL: a fighter with energyType "none" has no energy pool, so instead of an empty
+// generic "ENERGY" panel we show a lore-appropriate resource name keyed by universe. Toji/Mahoraga (JJK)
+// canonically have no cursed energy → "HEAVENLY RESTRICTION"; Rengoku/Zenitsu (Demon Slayer) fight on
+// breathing, not an energy meter → "TOTAL CONCENTRATION". A universe absent here (or a fighter that DOES
+// have energy — Omni-Man's "Smart Atoms" etc.) returns null and keeps the normal meter. Display-only.
+const NO_METER_FLAVOR = {
+  jujutsu_kaisen: "HEAVENLY RESTRICTION",
+  demon_slayer:   "TOTAL CONCENTRATION",
+}
+export function noMeterFlavor(fighter) {
+  return fighter?.traits?.energyType === "none" ? (NO_METER_FLAVOR[fighter?.universe] || null) : null
+}
+// Kept for the existing harness hook (game.js __harness.heavenlyRestriction) — the JJK-specific query.
 export function isHeavenlyRestriction(fighter) {
   return fighter?.traits?.energyType === "none" && fighter?.universe === "jujutsu_kaisen"
 }
@@ -96,15 +106,25 @@ function _imageReady(img) {
   return !!(img && img.complete && img.naturalWidth > 0)
 }
 
-// cover-fit a square-ish portrait into a rect: scale to fill, center-crop,
-// biased slightly toward the TOP so the face (upper-center of a headshot) stays
-// in frame rather than being cropped at the chin.
-function _coverDrawImage(ctx, img, x, y, w, h, topBias = 0.30) {
+// Fit an image into a FIXED rect [x,y,w,h] while PRESERVING its own aspect ratio
+// (never stretches/squashes — the container is fixed, the image scales to fit it).
+//   fit "cover"   → scale to FILL the rect, center-crop the overflow (biased toward
+//                   the TOP so a headshot's face stays in frame). Good for decorative
+//                   background fills where slight cropping is fine.
+//   fit "contain" → scale so the WHOLE image is visible inside the rect, letterboxing
+//                   any leftover space (centered). Good for previews where nothing
+//                   should be cropped (e.g. full-body skin sprites of varied aspect).
+export function drawImageFit(ctx, img, x, y, w, h, { fit = "cover", topBias = 0.30 } = {}) {
   const iw = img.naturalWidth, ih = img.naturalHeight
   if (!iw || !ih) return
-  const scale = Math.max(w / iw, h / ih)
+  const scale = fit === "contain" ? Math.min(w / iw, h / ih) : Math.max(w / iw, h / ih)
   const dw = iw * scale, dh = ih * scale
-  ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) * topBias, dw, dh)
+  const oy = fit === "contain" ? (h - dh) / 2 : (h - dh) * topBias   // contain: center; cover: top-biased
+  ctx.drawImage(img, x + (w - dw) / 2, y + oy, dw, dh)
+}
+// Back-compat alias — character-select's cover-fit background fill.
+function _coverDrawImage(ctx, img, x, y, w, h, topBias = 0.30) {
+  drawImageFit(ctx, img, x, y, w, h, { fit: "cover", topBias })
 }
 
 // ─────────────────────────────────────────────
@@ -738,14 +758,23 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
   const aliens = normalizeToArray(options.aliens)
   const draft  = normalizeToArray(options.draft)
   const player = options.player || 1
+  // Per-slot transform combos (labels), passed in from game.js (single source of truth). slotCap =
+  // how many slots the input system supports. Both data-driven — NOTHING hardcoded to 5.
+  const slotCombos = normalizeToArray(options.slotCombos)
+  const slotCap    = options.slotCap || slotCombos.length || 5
 
-  // Max loadout size = however many aliens are art-backed (offered here), capped at 5 — NOT a
-  // hardcoded 5. Grows automatically as more aliens gain sprite art.
-  const maxPick = Math.min(5, Math.max(1, aliens.length))
+  // Max loadout = min(slots the system supports, forms that actually have art). Grows automatically.
+  const maxPick = Math.min(slotCap, Math.max(1, aliens.length))
+  // When there aren't more forms than slots, there's no real sub-choice to make — every available form
+  // just gets a slot. Present it honestly as an auto-assigned slot list, not a "pick fewer" puzzle.
+  const autoFill = aliens.length <= maxPick
 
   ctx.clearRect(0, 0, w, h)
   drawBackdrop(ctx, canvas, "#0a1810", "#16241a")
-  drawHeader(ctx, canvas, `PLAYER ${player} — OMNITRIX LOADOUT`, `Pick your aliens for Ben 10  (${draft.length}/${maxPick})`)
+  const sub = autoFill
+    ? `${aliens.length} form${aliens.length === 1 ? "" : "s"} available — auto-assigned to slots (click to reorder). Slot order = transform combo.`
+    : `Pick up to ${maxPick} aliens  (${draft.length}/${maxPick}) — pick order = slot = transform combo`
+  drawHeader(ctx, canvas, `PLAYER ${player} — OMNITRIX SLOTS`, sub)
 
   const rects = getAlienSelectCardRects(canvas, aliens)
   aliens.forEach((a, i) => {
@@ -761,10 +790,16 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
     // colour swatch
     ctx.fillStyle = a.color || "#888"
     fillRoundRect(ctx, r.x + 8, r.y + r.h / 2 - 9, 18, 18, 5)
-    drawCenteredText(ctx, a.name, r.x + 34, r.y + r.h / 2, {
+    drawCenteredText(ctx, a.name, r.x + 34, r.y + r.h / 2 - 6, {
       font: "700 13px Arial", fill: "#fff", align: "left", baseline: "middle"
     })
     if (picked) {
+      // the fixed transform combo for THIS slot (e.g. "Charge + ↓") — the deliberate per-slot input.
+      const combo = slotCombos[slot]
+      if (combo) drawCenteredText(ctx, `Charge + ${combo}`, r.x + 34, r.y + r.h / 2 + 11, {
+        font: "600 10px Arial", fill: "#86efac", align: "left", baseline: "middle"
+      })
+      // slot number badge
       ctx.fillStyle = "#052e16"; ctx.beginPath(); ctx.arc(r.x + r.w - 16, r.y + 16, 11, 0, Math.PI * 2); ctx.fill()
       drawCenteredText(ctx, String(slot + 1), r.x + r.w - 16, r.y + 16, { font: "800 13px Arial", fill: "#bbf7d0" })
     }
@@ -780,7 +815,7 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
       fillRoundRect(ctx, b.x, b.y, b.w, b.h, 22); ctx.restore()
     }
   }
-  drawFooterHint(ctx, canvas, "Click aliens to add/remove • each alien has its own moveset • switch in-fight with Charge + ← / →")
+  drawFooterHint(ctx, canvas, "Click to add / remove / reorder slots • each alien has its own moveset • transform in-fight: hold Charge + the slot's direction")
 }
 
 // ─────────────────────────────────────────────
@@ -1617,6 +1652,19 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
           const dx = dir * (R * 0.9 + k * 6), dy = Math.sin(t * 0.4 + k * 1.7) * R * 0.5
           ctx.beginPath(); ctx.arc(x + dx, y + dy, Math.max(2, R * 0.16 - k), 0, Math.PI * 2); ctx.fill()
         }
+      } else if (p.drawKind === "heatvision") {
+        // Superman HEAT VISION — twin horizontal eye-beams (upper + lower) with a hot core + red-orange
+        // glow, flickering as they streak. Beam extends along travel (horizontal); collision uses w/h.
+        const w = p.w || 46, h = p.h || 14
+        const beamCol = p.color || "#ff3a1a"   // red heat vision, or gold when Solar-Flare-enhanced
+        const flick = 0.82 + 0.18 * Math.sin(t * 0.9)
+        ctx.shadowBlur = 14; ctx.shadowColor = beamCol
+        ctx.globalAlpha = flick
+        for (const off of [-h * 0.22, h * 0.22]) {
+          ctx.fillStyle = beamCol;   ctx.fillRect(x - w / 2, y + off - 2, w, 4)   // beam body
+          ctx.fillStyle = "#ffe4b0"; ctx.fillRect(x - w / 2, y + off - 1, w, 2)   // hot white-orange core
+        }
+        ctx.shadowBlur = 0
       } else if (p.drawKind === "waterwall") {
         const w = p.w || 34, h = p.h || 120
         ctx.shadowBlur = 16; ctx.shadowColor = "rgba(56,189,248,0.8)"
@@ -1822,7 +1870,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const emptyC  = ec.emptyColor || "rgba(255,255,255,0.08)"
     let   glowC   = ec.glowColor  || mainCol
     const hasEnergy = (fighter.maxEnergy || 0) > 0 && ec.regenRate !== "none"
-    const isHeavRes = isHeavenlyRestriction(fighter)
+    const flavor    = noMeterFlavor(fighter)   // "HEAVENLY RESTRICTION" (JJK) / "TOTAL CONCENTRATION" (Demon Slayer) / null
 
     // Transform device (Ben/Albedo): this meter IS the drain gauge. Relabel and
     // recolor it to read as the Omnitrix/Ultimatrix, and reflect its 3 live
@@ -1850,9 +1898,9 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const labelAlign = flip ? "right" : "left"
     ctx.font = "bold 9px Arial"; ctx.textAlign = labelAlign; ctx.textBaseline = "alphabetic"
 
-    if (isHeavRes) {
+    if (flavor) {
       ctx.fillStyle = "rgba(107,114,128,0.6)"
-      ctx.fillText("HEAVENLY RESTRICTION", labelX, enY - 2)
+      ctx.fillText(flavor, labelX, enY - 2)
       ctx.fillStyle = "#111827"
       rrect(ctx, x + 8, enY, barW, enH, 4); ctx.fill()
       return
@@ -2318,7 +2366,7 @@ function buildTutorialPages(c = {}) {
       rows: [
         ["Combo scaling", "—", "Each hit in a combo does a little less — open with your heavy hitters."],
         ["Gojo: Infinity", prettyKey(c.toggle), "Toggle a field that slows anything approaching you."],
-        ["Ben 10: Omnitrix", `${prettyKey(c.charge)} + ${prettyKey(c.left)}/${prettyKey(c.right)}`, "Cycle your Omnitrix aliens mid-fight (tap Charge for next)."],
+        ["Ben 10: Omnitrix", `${prettyKey(c.charge)} + ${prettyKey(c.down)}/${prettyKey(c.left)}/${prettyKey(c.right)}`, "Transform straight to a loadout slot's alien (Charge + that slot's direction) — deliberate, no cycling."],
         ["Domain Expansion", "—", "Some fighters can activate a damage-boosting domain — watch the meter bar."]
       ]
     }

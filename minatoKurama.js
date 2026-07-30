@@ -109,6 +109,17 @@ export function updateMinatoKurama(ctx = {}) {
   // Fox roar leads the rise→charge buildup.
   if (f === T_WIDEN_END) snd?.play?.(SFX.DOMAIN_ACTIVATE)
 
+  // SHARED KURAMA ULT VOICE — "Kurama! Haa! Tailed Beast Bomb!" (naruto_kurama_ultimate.mp3).
+  // Minato sealed HALF of Kurama; Naruto holds the other half, so the SAME entity/line fits both
+  // ultimates. This is a direct cross-character REUSE of Naruto's existing asset (no re-cut) — it
+  // fires here at the bomb-forming CHARGE beat (f === T_RISE_END), the exact analog of Naruto's
+  // kurama.js f === T_FULL_END trigger. It plays ALONGSIDE Minato's own dedicated cast line (that
+  // one fires ~1.7s earlier at activation in abilities.executeMinatoUltimate), never replacing it:
+  // the cast line is owner-tagged (Minato) and long finished by now, while this cinematic-update cue
+  // is owner-null (single-voice-channel exempt), so the two never cut each other. Fresh Audio per
+  // call → independent of Naruto's own playback (only one ult cinematic runs at a time anyway).
+  if (f === T_RISE_END) snd?.playSfxFile?.("naruto_kurama_ultimate.mp3", null)
+
   // Camera: hold on the caster during ACTIVATE (framing his transform), then WIDEN to frame both
   // through the fox rise/charge/blast, easing back on SETTLE.
   if (cam && cine.caster) {

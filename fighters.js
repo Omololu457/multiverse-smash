@@ -1188,7 +1188,7 @@ export const BEN10_ALIEN_POOL = {
 // an active loadout. Every other entry in BEN10_ALIEN_POOL stays as valid (procedurally-drawn)
 // data so nothing breaks — it's simply HIDDEN from selection until real sprite art is sourced.
 // This is the loadout "prune" gate (no pool data deleted); add keys here as art arrives.
-export const BEN10_ART_ALIENS = ["xlr8", "diamondhead"]
+export const BEN10_ART_ALIENS = ["xlr8", "diamondhead", "feedback"]
 const _artAlienSet = new Set(BEN10_ART_ALIENS)
 export function isArtBackedAlien(key) { return _artAlienSet.has(key) }
 
@@ -1237,7 +1237,8 @@ const BEN10_FORM_ANIM = {
     xlDash: { frames: 5, width: 60, height: 39, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
     xlRush: { frames: 6, width: 60, height: 48, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
     // STAGE-4 ultimate: Sonic Blitz — the full 11-frame combo flurry as a blitz dash.
-    xlUlt:  { frames: 11, width: 60, height: 48, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" }
+    xlUlt:  { frames: 11, width: 60, height: 48, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    taunt:  { frames: 5, width: 60, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_idle_uniform.png" }   // in-form taunt-heal pose (no dedicated art → idle)
   },
   diamondhead: {
     idle:  { frames: 4, width: 49, height: 72, speed: 6, anchorY: 0, sheet: "./ben10_diamond_head_idle_uniform.png" },
@@ -1267,7 +1268,46 @@ const BEN10_FORM_ANIM = {
     dhRising: { frames: 3, width: 55, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_rising_uniform.png" },
     // STAGE-4 ultimate: Crystal Storm — the hand-slam cast (reuses the rising strip) while a field of
     // eruptions marches forward (spawned separately in fireDhCrystalStorm).
-    dhUlt:    { frames: 3, width: 55, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_rising_uniform.png" }
+    dhUlt:    { frames: 3, width: 55, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_rising_uniform.png" },
+    taunt:    { frames: 4, width: 49, height: 72, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_diamond_head_idle_uniform.png" }   // in-form taunt-heal pose (no dedicated art → idle)
+  },
+  // ── FEEDBACK (Conductoid — energy-absorption specialist) ──────────────────
+  // Small art batch: idle/run/jump movement + a charge (absorb) stance, an
+  // electric-shot discharge pose, and a 5-frame ultimate beam cast. No dedicated
+  // melee/guard/hurt art → normals REUSE the electric-shot discharge pose with
+  // per-move hitbox tuning (flagged in Stage 2); guard omitted (→idle); hurt/intro
+  // reuse idle (STOPGAP). dash reuses the run strip (the raw dash sheet's wide
+  // motion-blur cell isn't a clean loop — reserved). Projectiles are procedural
+  // electric-cyan (the raw projectile strips split on their spark lines — reserved).
+  feedback: {
+    idle:  { frames: 4, width: 44, height: 51, speed: 7, anchorY: 0, sheet: "./feedback_idle_uniform.png" },
+    walk:  { frames: 4, width: 57, height: 49, speed: 6, anchorY: 0, sheet: "./feedback_run_uniform.png" },
+    run:   { frames: 4, width: 57, height: 49, speed: 4, anchorY: 0, sheet: "./feedback_run_uniform.png" },
+    dash:  { frames: 4, width: 57, height: 49, speed: 3, anchorY: 0, sheet: "./feedback_run_uniform.png" },
+    jump:  { frames: 3, width: 37, height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_jump_uniform.png" },
+    fall:  { frames: 3, width: 37, height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_jump_uniform.png" },
+    guard: { frames: 1, width: 44, height: 51, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_idle_uniform.png" },   // STOPGAP: no block art (idle pose keeps blocking IN-FORM, not human-Ben)
+    hurt:  { frames: 1, width: 44, height: 51, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_idle_uniform.png" },   // STOPGAP: no hit art
+    intro: { frames: 4, width: 44, height: 51, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_idle_uniform.png" },   // STOPGAP: no intro art
+    // STAGE-2 NORMALS (Feedback). NO dedicated melee art in the batch → all normals REUSE the 2-frame
+    // electric-shot discharge pose (feedback_electric_shot_uniform.png) with per-move HITBOX/DAMAGE/TIMING
+    // tuning from BEN10_ALIEN_POOL.feedback.basic_attacks. Reads as short-range electric jabs (thematically
+    // clean for a Conductoid). FLAGGED: shared underlying frames, distinct move data. No genuine animation
+    // overflow exists → no command chain (skipped honestly).
+    light:    { frames: 2, width: 60, height: 52, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_electric_shot_uniform.png" },
+    heavy:    { frames: 2, width: 60, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_electric_shot_uniform.png" },
+    up:       { frames: 2, width: 60, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_electric_shot_uniform.png" },
+    air:      { frames: 2, width: 60, height: 52, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_electric_shot_uniform.png" },
+    down_air: { frames: 2, width: 60, height: 52, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_electric_shot_uniform.png" },
+    grab:     { frames: 2, width: 60, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_electric_shot_uniform.png" },
+    // STAGE-3 special poses. fbCharge = the ABSORB STANCE (blue energy gathering) — the reactive-counter
+    // windup, looped so it pulses through the counter window. fbShot = the electric-discharge cast (the
+    // amplified redirect + the proactive Down discharge). Projectile is procedural electric-cyan.
+    fbCharge: { frames: 2, width: 52, height: 90, speed: 6, anchorY: 0, loop: true, sheet: "./feedback_charge_animation_uniform.png" },
+    fbShot:   { frames: 2, width: 60, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_electric_shot_uniform.png" },
+    // STAGE-4 ultimate cast: OVERLOAD — the 5-frame two-hand energy beam (amplified discharge).
+    fbUlt:    { frames: 5, width: 61, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_ultimate_uniform.png" },
+    taunt:    { frames: 4, width: 44, height: 51, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_idle_uniform.png" }   // in-form taunt-heal pose (no dedicated art → idle)
   }
 }
 
@@ -1338,11 +1378,25 @@ export function switchAlien(fighter, dir = 1) {
   return true
 }
 
+// DELIBERATE slot transform — the Omnitrix "dial to a specific alien" primitive (replaces cycling).
+// Works from ANY state: from human it re-engages the device (transformed=true, gated on energy/recharge
+// exactly like tryTransform); from another alien it switches directly (gated on switchCooldown). Returns
+// false (a no-op) when the slot is out of range, already active, or a gate blocks it — so a slot-combo
+// can't misfire into the wrong alien. Slot count is whatever omx.aliens holds (data-driven; NOT fixed 5).
 export function selectAlienSlot(fighter, slot) {
   const omx = fighter?.omnitrix
-  if (!omx || slot < 0 || slot >= omx.aliens.length || omx.switchCooldown > 0) return false
+  if (!omx || slot < 0 || slot >= omx.aliens.length) return false
+  if (fighter.transformed) {
+    if (omx.switchCooldown > 0) return false           // mid-recharge between switches
+    if (omx.index === slot) return false               // already this alien — nothing to do
+  } else {
+    // Re-engaging from human: same gate as tryTransform (recharge lockout + min energy).
+    if ((fighter.deviceRecharge || 0) > 0) return false
+    if ((fighter.energy || 0) < TRANSFORM_ENERGY.MIN_TRANSFORM_ENERGY) return false
+  }
   omx.index = slot
   applyAlien(fighter, omx.aliens[slot])
+  fighter.transformed = true                            // ensure a human→slot morph actually engages
   omx.switchCooldown = SWITCH_COOLDOWN
   fighter.teleportFlash = 10
   return true
@@ -1374,14 +1428,21 @@ export const TRANSFORM_ENERGY = {
 }
 
 // Weak un-transformed baseline so a reverted fighter is functional, never stuck.
+// HUMAN_FORM — the LIVE Ben-human kit (revertToHuman applies this). SINGLE SOURCE OF TRUTH for the
+// human form's numbers; characters.ben10.basic_attacks mirrors these for the select-screen display.
+// Rebalanced (2026-07-28 re-audit): the old values (light 28 / heavy 52) sat BELOW the documented
+// roster floor (Rick light 34 / heavy 60) with no zoner tools to justify it — a confirmed too-weak
+// outlier. Bumped to the roster's low-but-honest band (near Hisoka/Rangers) so the no-powers baseline
+// is viable, not strictly worse than everything. heavy regains superArmor (the char entry's intent) —
+// Ben's one committal poke. All ×0.60-scaled like every normal.
 const HUMAN_FORM = {
   basic_attacks: {
-    light:    { damage: 28, startup: 5, active: 3, recovery: 11, hitstun: 10, knockbackX: 2, knockbackY: 0 },
-    heavy:    { damage: 52, startup: 9, active: 4, recovery: 19, hitstun: 15, knockbackX: 4, knockbackY: 1 },
-    up:       { damage: 44, startup: 8, active: 4, recovery: 17, hitstun: 17, knockbackX: 2, knockbackY: -7 },
-    air:      { damage: 38, startup: 6, active: 3, recovery: 11, hitstun: 11, knockbackX: 2, knockbackY: -2 },
-    down_air: { damage: 50, startup: 9, active: 4, recovery: 15, hitstun: 15, knockbackX: 1, knockbackY: 9 },
-    grab:     { damage: 24, startup: 6, active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
+    light:    { damage: 42, startup: 5, active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 80, startup: 9, active: 4, recovery: 19, hitstun: 16, knockbackX: 5, knockbackY: 1, superArmor: true },
+    up:       { damage: 62, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 2, knockbackY: -8 },
+    air:      { damage: 50, startup: 6, active: 3, recovery: 11, hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    down_air: { damage: 66, startup: 9, active: 4, recovery: 15, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 26, startup: 6, active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
   },
   stats: { maxJumps: 2, jumpPower: 20, speed: 7 },
   baseW: 56, baseH: 108

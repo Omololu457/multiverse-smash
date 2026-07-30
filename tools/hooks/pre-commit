@@ -1,0 +1,6 @@
+#!/bin/sh
+# Auto cache-bust: stamp index.html with a fresh module content-hash version, then
+# re-stage it, so every commit (and every GitHub Pages deploy) ships fresh module URLs.
+# Impossible to forget — it runs on every commit. Installed via: npm run hooks:install
+node tools/stamp_version.mjs || exit 1
+git add index.html

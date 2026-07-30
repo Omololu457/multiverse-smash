@@ -177,6 +177,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./hisoka_idle_uniform.png" }
   },
 
+  // Superman (universe: dc) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips Superman
+  // from procedural box to sprite. Per-action rendering reads characters.js → superman.animationData
+  // (each action carries its own .sheet). idle is the RE-SLICED floating-hover strip.
+  superman: {
+    actions: { idle: "./superman_idle_uniform.png" }
+  },
+
   // Rick Sanchez (universe: rick_and_morty). Gates spritesReady() by decoding the idle strip →
   // flips Rick from procedural box to sprite. Per-action rendering reads characters.js →
   // rick.animationData (each action carries its own .sheet).
@@ -227,6 +234,20 @@ export const SPRITE_MANIFEST = {
   // own .sheet). idle = the RE-SLICED uniform strip (tools/reslice_strip.mjs). See ZENITSU_ASSET_MAP.md.
   zenitsu: {
     actions: { idle: "./zenitsu_idle_uniform.png" }
+  },
+
+  // Kyojuro Rengoku (universe: demon_slayer) — SECOND Demon Slayer sprite char. Same idle-strip
+  // gate: decoding it flips Rengoku from procedural box to the sprite path. Per-action rendering
+  // reads characters.js → rengoku.animationData (each action carries its own .sheet). See RENGOKU_ASSET_MAP.md.
+  rengoku: {
+    actions: { idle: "./rengoku_idle_uniform.png" }
+  },
+
+  // Shinobu Kocho (universe: demon_slayer) — THIRD Demon Slayer sprite char. Same idle-strip gate:
+  // decoding it flips Shinobu from procedural box to the sprite path. Per-action rendering reads
+  // characters.js → shinobu.animationData (each action carries its own .sheet). See SHINOBU_ASSET_MAP.md.
+  shinobu: {
+    actions: { idle: "./shinobu_idle_uniform.png" }
   },
 
   // Ben 10 (universe: ben_10) — STAGE 1. Gates spritesReady() by decoding the Ben-human

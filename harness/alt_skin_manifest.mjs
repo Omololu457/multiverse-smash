@@ -181,16 +181,9 @@ export const ALT_SKINS = {
     { tag: "blue",  name: "Blue",  mode: "region", note: "-> blue h214 sat .80" },
     { tag: "red",   name: "Red",   mode: "region", note: "-> red h5 sat .85" },
   ],
-  // RICK — recolors the brown PANTS (hue 32-52, sat≥.45; sat-separated from skin, pose-independent).
-  // His white coat = same near-neutral color profile as his pale skin (inseparable), and his teal
-  // shirt shares hue with his iconic blue hair — so pants is the only clean/robust target.
-  rick: [
-    { tag: "black", name: "Black", mode: "region", note: "pants hue 32-52 min-sat .45 -> desat vg.7" },
-    { tag: "pink",  name: "Pink",  mode: "region", note: "-> pink h330 sat .62 vg1.5" },
-    { tag: "gold",  name: "Gold",  mode: "region", note: "-> gold h47 sat .88 vg1.6" },
-    { tag: "blue",  name: "Blue",  mode: "region", note: "-> blue h214 sat .85 vg1.6" },
-    { tag: "red",   name: "Red",   mode: "region", note: "-> red h5 sat .88 vg1.5" },
-  ],
+  // RICK — the 5 old pants-only recolors (black/pink/gold/blue/red) were REMOVED (2026-07-29) ahead of
+  // a fresh 8-skin creative set built via tools/gen_rick_creative.py (per-region: hair/coat/shirt/pants).
+  rick: [],
   // SAIKI — green suit (hue 125-165, sat≥.40). IS pink (hair/limiters) → skip PINK. Pink hair, green
   // eyes, skin, blue shoes preserved. (Note: the Part-0-removed saikiAzure is superseded by these.)
   saiki: [

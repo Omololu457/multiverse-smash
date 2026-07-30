@@ -242,7 +242,13 @@ function _resolveAction(fighter, currentAction = "idle") {
   // strip. The taunt state machine (game.js updateTauntState) clears _tauntPlaying the
   // frame it's interrupted or completes, so by the time we resolve here it's only true
   // during the genuine locked animation. No-op for anyone without the state (Rick's channel).
-  if (fighter._tauntPlaying) return "taunt";
+  if (fighter._tauntPlaying) {
+    // Airborne-taunt variant when the char defines one (Superman → taunt_air), mirroring the hurt/hurt_air
+    // idiom; otherwise the grounded "taunt". No-op for every char WITHOUT a taunt_air strip.
+    const airborneT = !(fighter.onGround ?? fighter.grounded);
+    if (airborneT && (fighter._skinAnim?.taunt_air || fighter.animationData?.taunt_air)) return "taunt_air";
+    return "taunt";
+  }
 
   // BUG_9: match-intro pose — play the intro strip while the intro flag is set. If a specific
   // intro variant was assigned this match (Sasuke's random introPool via pickIntroVariant, or
@@ -556,6 +562,16 @@ export class SpriteHandler {
       fighter._lastDrawH = dstH;
       fighter._lastDrawW = dstW;
     }
+
+    // Record the WORLD-space drawn rect for EVERY fighter (cheap) so on-top overlays — e.g. Rick's
+    // Void Form cosmic starfield — can track the sprite's exact drawn position/scale across all poses.
+    // World left edge is fighter.x - offsetX for both facings (the flip mirrors content in place).
+    // combat.getHurtbox only consumes _lastDraw* under the _canvasHeightFrac (giant) guard, so normal
+    // fighters are unaffected there.
+    fighter._lastDrawX = fighter.x - offsetX;
+    fighter._lastDrawY = drawY;
+    fighter._lastDrawW = dstW;
+    fighter._lastDrawH = dstH;
 
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);

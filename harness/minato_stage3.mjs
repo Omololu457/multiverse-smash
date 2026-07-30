@@ -69,7 +69,9 @@ await prep();
   await page.waitForFunction(() => window.__harness.p1CloneCount() >= 1, null, { timeout: 5000, polling: 32 }).catch(() => {});
   check("D→F+Special summoned a clone", (await cloneCount()) >= 1, `count=${await cloneCount()}`);
   const clones = await summonsOf("shadowClone");
-  check("clone body = Minato's art (not Naruto)", (clones[0]?.sheet || "").includes("minato_shadow_clone_justu"), `sheet=${clones[0]?.sheet}`);
+  // Clone body = Minato's own IDLE (standing) — NOT Naruto's art, and NOT the shadow_clone_justu
+  // summon-GESTURE sheet (that hand-sign now plays on the CASTER, Minato — see minatoCloneCast).
+  check("clone body = Minato idle art (standing, not the summon gesture)", (clones[0]?.sheet || "").includes("minato_idle") && !(clones[0]?.sheet || "").includes("naruto"), `sheet=${clones[0]?.sheet}`);
   await crop("cloneSpawn");
 }
 
@@ -144,7 +146,7 @@ await prep();
   await waitFrames(4);
   const rushers = await summonsOf("minatoCloneRush");
   check("Clone Rush spawned autonomous rusher summons", rushers.length >= 1, `rushers=${rushers.length}`);
-  check("Clone Rush rushers use Minato's clone art", (rushers[0]?.sheet || "").includes("minato_shadow_clone_justu"), `sheet=${rushers[0]?.sheet}`);
+  check("Clone Rush rushers use Minato's standing body art (not the summon gesture)", (rushers[0]?.sheet || "").includes("minato_idle") && !(rushers[0]?.sheet || "").includes("naruto"), `sheet=${rushers[0]?.sheet}`);
   check("Clone Rush consumed the placed clones", (await cloneCount()) === 0, `count=${await cloneCount()}`);
   await crop("cloneRush");
 }

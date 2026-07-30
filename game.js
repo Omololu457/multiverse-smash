@@ -4,7 +4,7 @@ import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBin
 import { characters, characterList } from "./characters.js"
 import {
   switchAlien, applyAlien, BEN10_ALIEN_POOL, BEN10_ART_ALIENS, isArtBackedAlien, DEFAULT_OMNITRIX, setupBen10,
-  isTransformDevice, updateTransformDevice, tryTransform, revertToHuman
+  isTransformDevice, updateTransformDevice, tryTransform, revertToHuman, selectAlienSlot
 } from "./fighters.js"
 import { camera } from "./camera.js"
 import { SpriteHandler, processPendingSpawns, preloadCharacterSprites } from "./sprite.js"
@@ -51,6 +51,7 @@ import {
   applyFlashTimeSystem, forceRevertFlashTime,   // Flash — Flash Time: sustained buff-mode ultimate (drain tick + block-lockout + afterimage trail)
   applyGonAdultFormSystem, forceRevertGonAdultForm,   // Gon Adult Form: sustained buff-mode ultimate (drain tick + movement-lockout + green aura trail)
   applyHisokaOverdriveSystem, forceRevertHisokaOverdrive,   // Hisoka Bloodlust Overdrive: sustained buff-mode ultimate (drain tick + _skinAnim golden power-up body-swap)
+  applySupermanModeSystem, forceRevertSupermanModes,   // Superman Stage 4: Solar Flare (gold) + Kryptonian Overload (blue) sustained mode-toggles (drain tick + auto-revert)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
@@ -71,10 +72,14 @@ import {
   updateFlashCommandCombat,   // Flash Down+Heavy 2-hit "Speed Rush" command-normal cancel chain (rush1→rush2, cancel-on-hit)
   updateGonCommandCombat,     // Gon Down+Heavy 2-hit "Rush" command-normal cancel chain (rush1 flurry→rush2 launcher, cancel-on-hit)
   updateBatmanCommandCombat,  // Batman Down+Heavy 3-hit "Combo" command-normal cancel chain (batCombo1→2→3 launcher, cancel-on-hit)
+  updateSupermanCommandCombat,  // Superman Fwd+Heavy 3-hit "Kryptonian Rush" flying-punch chain (supRush1→2→Fin launcher, cancel-on-hit)
   updateTobiramaCommandCombat,   // Tobirama Fwd+Heavy 3-hit taijutsu chain (combo1→combo2→comboFin) + Fwd+Light/Back+Heavy pokes
   updateMinatoCommandCombat,   // Minato Fwd+Heavy 3-hit "Yellow Flash Rush" chain (rush1→rush2→rushFin) + Fwd+Light/Back+Heavy pokes
   updateHisokaCommandCombat,   // Hisoka Down+Heavy 2-hit "Card Flourish" command-normal cancel chain (rekka1 strike→rekka2 card-slash launcher, cancel-on-hit)
-  updateZenitsuCommandCombat   // Zenitsu Down+Heavy 3-hit "Thunderclap Flurry" chain (zenCombo1→2→3 launcher, cancel-on-hit)
+  updateZenitsuCommandCombat,  // Zenitsu Down+Heavy 3-hit "Thunderclap Flurry" chain (zenCombo1→2→3 launcher, cancel-on-hit)
+  updateRengokuCommandCombat,  // Rengoku Fwd+Heavy branching "Flame Breathing" ground+air chains (Heavy=continue / Special=super finisher)
+  updateShinobuCommandCombat,  // Shinobu Fwd+Heavy "Insect Breathing" thrust chain + Poison-on-hit watcher
+  fireRengokuFlameStrike       // Rengoku Charged Flame Strike — fired from handleChargeRelease (CHARGE hold→release, tap/hold power tiers)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import {
@@ -96,7 +101,8 @@ import {
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
   drawAccountScreen, getAccountButtons,
-  resolveEnergyLabel, isHeavenlyRestriction   // HUD energy-bar resource name + Heavenly Restriction state (display-only) — exposed for the harness
+  resolveEnergyLabel, isHeavenlyRestriction, noMeterFlavor,   // HUD energy-bar resource name + no-meter flavor (Heavenly Restriction / Total Concentration) — display-only, exposed for the harness
+  drawImageFit   // shared aspect-ratio-preserving image fitter (portraits never stretch/squash)
 } from "./ui.js"
 import { createAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, isFileApiSupported, hasPersistedData, persistence, setSnapshotDecorator } from "./account.js"
 import {
@@ -181,6 +187,18 @@ import {
   clearOmniManBodySlamCinematic, getOmniManBodySlamCinematicStatus
 } from "./omnimanBodySlamCinematic.js"
 import {
+  updateSupermanUltimateCinematic, isSupermanUltimateCinematicActive, drawSupermanUltimateCinematic,
+  clearSupermanUltimateCinematic, getSupermanUltimateCinematicStatus
+} from "./supermanUltimateCinematic.js"
+import {
+  updateRengokuFlameExplosionCinematic, isRengokuFlameExplosionCinematicActive, drawRengokuFlameExplosionCinematic,
+  clearRengokuFlameExplosionCinematic, getRengokuFlameExplosionCinematicStatus
+} from "./rengokuFlameExplosionCinematic.js"
+import {
+  updateShinobuButterflyCinematic, isShinobuButterflyCinematicActive, drawShinobuButterflyCinematic,
+  clearShinobuButterflyCinematic, getShinobuButterflyCinematicStatus
+} from "./shinobuButterflyCinematic.js"
+import {
   updateEdoTenseiCinematic, isEdoTenseiCinematicActive, drawEdoTenseiCinematic,
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
 } from "./tobiramaEdoTenseiCinematic.js"
@@ -192,6 +210,7 @@ import { pickHisokaVoice, HISOKA_VOICE } from "./hisokaVoice.js"
 import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
 import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
+import { pickSupermanVoice, SUPERMAN_VOICE } from "./supermanVoice.js"
 import { pickTobiramaVoice, TOBIRAMA_VOICE } from "./tobiramaVoice.js"
 import { pickFlashVoice, FLASH_VOICE } from "./flashVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
@@ -199,6 +218,8 @@ import { pickSukunaVoice } from "./sukunaVoice.js"
 import { pickSaikiVoice } from "./saikiVoice.js"
 import { pickSkinVoice, GOJOYOUNG_VOICE } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
 import { pickZenitsuVoice, ZENITSU_VOICE } from "./zenitsuVoice.js"   // Zenitsu intro voice pool + harness hooks (audio-only)
+import { pickRengokuVoice, RENGOKU_VOICE } from "./rengokuVoice.js"   // Rengoku intro/win voice pools + harness hooks (audio-only)
+import { pickShinobuVoice, SHINOBU_VOICE } from "./shinobuVoice.js"   // Shinobu intro voice pool + harness hooks (audio-only)
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -617,6 +638,10 @@ function applySkin(fighter, skinId) {
   // tintColor; null clears it so non-tinted skins render natively.
   fighter.skinTint = skin?.skinTint || null
   fighter.skinId = skinId
+  fighter._voidFX = null   // drop any prior Void Form starfield; it regenerates on next draw if re-applied
+  fighter._pzFX = null     // drop any prior Phantom Zone spectral overlay likewise
+  fighter._emberFX = null  // drop any prior Void Ember overlay likewise (Rengoku)
+  fighter._portalFX = null // drop any prior Portal Void swirl overlay likewise (Rick)
 }
 
 // ── TOWER MODE — tiered ladder of RANDOM CPU fights. ─────────────────────────
@@ -1502,7 +1527,7 @@ function resetRound() {
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
   clearHisokaOverdriveCinematic()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -1510,6 +1535,9 @@ function resetRound() {
   clearBen10OmnitrixCinematic()
   clearBatmanDarkKnightCinematic()
   clearOmniManBodySlamCinematic()
+  clearSupermanUltimateCinematic()
+  clearRengokuFlameExplosionCinematic()
+  clearShinobuButterflyCinematic()
   clearEdoTenseiCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
@@ -1579,6 +1607,17 @@ function initIntroVariant(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "killua" && fighter._introVariant === "intro") {
     fighter._introHomeX = fighter.x
     fighter.x = fighter.x - (fighter.facing || 1) * KILLUA_ROLLIN_DIST
+  } else if ((fighter.rosterKey || "").toLowerCase() === "superman") {
+    // SUPERMAN entrance: stash the battle position, then start OFF-SCREEN at the arena edge behind him.
+    // updateSupermanIntro eases him home across the Clark run-in + liftoff while the CAMERA tracks him.
+    fighter._introHomeX = fighter.x
+    fighter.x = fighter.x - (fighter.facing || 1) * SUPERMAN_RUNIN_DIST
+  } else if ((fighter.rosterKey || "").toLowerCase() === "shinobu") {
+    // SHINOBU entrance: stash the battle position, then start OFF-SCREEN at the arena edge behind her.
+    // updateShinobuIntro glides her home (haori spread as wings) while the CAMERA tracks the travel.
+    // DELIBERATE tracked-movement entrance (per design) — distinct from Rengoku's stationary intro.
+    fighter._introHomeX = fighter.x
+    fighter.x = fighter.x - (fighter.facing || 1) * SHINOBU_GLIDEIN_DIST
   } else {
     fighter._introHomeX = null
   }
@@ -1625,6 +1664,14 @@ const INTRO_VOICE = {
   // saw through!"). No taunt action → the determination pool folds into the offense-connect bark (see
   // zenitsuVoice.js NOTES); intro fires here at his first intro-play frame (no reveal gate).
   zenitsu: { pool: ZENITSU_VOICE.intro, gateReveal: false },
+  // Rengoku picks ONE of his composed pre-fight lines at random per match ("Hmm, alright" / "Great skill" /
+  // "What's wrong?" / "Is that all?"). No taunt action → the taunt-combat pool rides the offense-connect
+  // trigger instead (see rengokuVoice.js NOTES); intro fires here at his first intro-play frame (no reveal gate).
+  rengoku: { pool: RENGOKU_VOICE.intro, gateReveal: false },
+  // Shinobu picks ONE of her composed pre-fight lines at random per match ("Being forceful isn't good" /
+  // "Go ahead, slowly" / "Can you keep up?"). No taunt action → the intro/taunt pool fires on intro only
+  // (see shinobuVoice.js NOTES); fires at her first intro-play frame (no reveal gate).
+  shinobu: { pool: SHINOBU_VOICE.intro, gateReveal: false },
   // Batman picks ONE of his grim pre-fight lines ("we both have a job to do" / "The Justice League is a
   // calling" / "It's your chance to prove yourself" / "I conquered fear long ago"). No taunt action → the
   // taunt pool rides the offense-connect trigger instead (see batmanVoice.js NOTE); intro fires here.
@@ -1633,6 +1680,10 @@ const INTRO_VOICE = {
   // timeline for the Viltrum Empire" / …). No taunt action → the taunt pool rides the offense-connect
   // trigger instead (see omnimanVoice.js NOTE); intro fires here.
   omniman: { pool: OMNIMAN_VOICE.intro, gateReveal: false },
+  // Superman picks ONE pre-fight declaration ("There won't be any ties today" / "I'm the hero Earth needs" /
+  // Regime "Traitors, all of you"). His `taunt` action drives the universal heal, so the trash-talk pool
+  // rides the offense-connect trigger instead (see supermanVoice.js NOTE); intro fires here.
+  superman: { pool: SUPERMAN_VOICE.intro, gateReveal: false },
   // Netero intro voice removed (audio files deleted); with no entry here he skips the intro-voice
   // beat cleanly (maybeFireIntroVoice no-ops for unmapped fighters). Re-add an entry to re-enable.
 }
@@ -1693,6 +1744,79 @@ function finalizeKilluaIntroPos(fighter) {
     fighter._introHomeX = null
   }
 }
+
+// ── SUPERMAN — camera-tracked run-in entrance ─────────────────────────────────
+// He starts OFF-SCREEN at the arena edge (initIntroVariant offsets him). Across the Clark-Kent run-in
+// (introRunIn) and into the shirt-rip/liftoff step (introLiftoff), he eases to his battle position
+// while the CAMERA pans to follow him — so the background scrolls past a framed, running Superman
+// (a tracking shot, not a static camera he runs into). Arrival lands just as the liftoff frames hit,
+// then introHover holds him at home. Combat is frozen during INTRO, so setting x directly is safe.
+const SUPERMAN_RUNIN_DIST = 460   // px behind his battle position to start (off-screen at the edge)
+function updateSupermanIntro(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman") return
+  if (!fighter._introPlaying || fighter._introHomeX == null) return
+  const v = fighter._introVariant
+  // Travel budget: all of introRunIn (21 frames) + the first ~10 frames of introLiftoff (the run/rip
+  // before he leaves the ground). Cumulative frame index across those two steps drives the ease.
+  const sh = fighter.spriteHandler
+  const speed = sh?._actionDef?.speed || 4
+  const animFrame = (sh?.frameIndex || 0) + Math.min(1, (sh?.frameTimer || 0) / speed)
+  let cumulative
+  if (v === "introRunIn")        cumulative = animFrame                 // 0 .. 21
+  else if (v === "introLiftoff") cumulative = 21 + animFrame            // 21 .. 38
+  else                           cumulative = 999                        // introHover / anything later = home
+  const ARRIVE = 31   // land home as the liftoff frames begin (21 + first 10 of introLiftoff)
+  const t = Math.min(1, cumulative / ARRIVE)
+  const eased = 1 - (1 - t) * (1 - t)   // easeOutQuad — decelerate into the battle spot
+  const from = fighter._introHomeX - (fighter.facing || 1) * SUPERMAN_RUNIN_DIST
+  fighter.x = from + (fighter._introHomeX - from) * eased
+  // CAMERA follows him in (background scrolls). Track his center; camera.advance() smooths the pan.
+  const cx = (typeof fighter.centerX === "number") ? fighter.centerX : (fighter.x + (fighter.w || 60) / 2)
+  camera.targetX = cx
+}
+// Snap Superman home when the intro ENDS / is SKIPPED, and hand the camera back to normal 2-fighter
+// framing so the fight opens correctly. No-op once cleared / for anyone else.
+function finalizeSupermanIntroPos(fighter) {
+  if (fighter && (fighter.rosterKey || "").toLowerCase() === "superman" && fighter._introHomeX != null) {
+    fighter.x = fighter._introHomeX
+    fighter._introHomeX = null
+    if (camera.focusBetween && p1 && p2) camera.focusBetween(p1, p2, 0.85)
+  }
+}
+
+// ── SHINOBU — camera-tracked glide-in entrance ────────────────────────────────
+// She starts OFF-SCREEN at the arena edge (initIntroVariant offsets her). While the introGlide art
+// plays (haori spread as butterfly wings), she eases inward to her battle position and the CAMERA pans
+// to follow her — a tracking shot, same architecture as Superman's run-in. Driven by the monotonic
+// intro-frame counter (introGlide loops, so animation frameIndex isn't monotonic). Combat is frozen
+// during INTRO, so setting x directly is safe. DELIBERATE per-character tracked intro (NOT Rengoku's
+// stationary path). No-op for anyone else.
+const SHINOBU_GLIDEIN_DIST   = 440   // px behind her battle position to start (off-screen at the edge)
+const SHINOBU_GLIDEIN_ARRIVE = 34    // intro frames to reach home (< INTRO_MIN_FRAMES 54 → holds home after)
+function updateShinobuIntro(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "shinobu") return
+  if (!fighter._introPlaying || fighter._introHomeX == null) return
+  const t = Math.min(1, (fighter._introRevealFrame || 0) / SHINOBU_GLIDEIN_ARRIVE)
+  const eased = 1 - (1 - t) * (1 - t)   // easeOutQuad — glide in, decelerate into the spot
+  const from = fighter._introHomeX - (fighter.facing || 1) * SHINOBU_GLIDEIN_DIST
+  fighter.x = from + (fighter._introHomeX - from) * eased
+  // CAMERA follows her in (background scrolls). Track her center; camera.advance() smooths the pan.
+  const cx = (typeof fighter.centerX === "number") ? fighter.centerX : (fighter.x + (fighter.w || 60) / 2)
+  camera.targetX = cx
+}
+// Snap Shinobu home when the intro ENDS / is SKIPPED, and hand the camera back to 2-fighter framing.
+function finalizeShinobuIntroPos(fighter) {
+  if (fighter && (fighter.rosterKey || "").toLowerCase() === "shinobu" && fighter._introHomeX != null) {
+    fighter.x = fighter._introHomeX
+    fighter._introHomeX = null
+    if (camera.focusBetween && p1 && p2) camera.focusBetween(p1, p2, 0.85)
+  }
+}
+
+// ── RENGOKU intro ─────────────────────────────────────────────────────────────
+// Rengoku's two intros (introRunIn / intro2, random-cycled via introPool) both play STATIONARY at his
+// normal starting position — no camera tracking, no positional movement. So there is NO Rengoku-specific
+// intro updater/finalizer (the earlier tracked dash-in was removed): the standard intro path handles him.
 
 // ── EDO TENSEI — summoned-vessel intro beat ───────────────────────────────────
 // When the Edo Tensei tomb finishes opening and the vessel takes the field, the vessel plays ITS OWN
@@ -1951,9 +2075,12 @@ function drawSkinSelectScreen() {
     ctx.strokeRect(r.x, r.y, r.w, r.h)
     const img = _skinPortrait(skin.portrait)
     if (img && img.complete && img.naturalWidth > 0) {
+      // FIXED-SIZE frame; the skin sprite is scaled to fit while preserving its own aspect
+      // ratio (contain = whole sprite visible, letterboxed — never stretched/squashed). The
+      // clip keeps any rounding-driven overflow inside the frame.
       ctx.save(); ctx.beginPath(); ctx.rect(r.x + 10, r.y + 10, r.w - 20, r.h - 70); ctx.clip()
-      ctx.imageSmoothingEnabled = false
-      ctx.drawImage(img, r.x + 10, r.y + 10, r.w - 20, r.h - 70); ctx.restore()
+      drawImageFit(ctx, img, r.x + 10, r.y + 10, r.w - 20, r.h - 70, { fit: "contain" })
+      ctx.restore()
     }
     ctx.fillStyle = "#e2e8f0"; ctx.font = "700 16px Arial"
     ctx.fillText(skin.name, r.x + r.w / 2, r.y + r.h - 40)
@@ -2001,7 +2128,7 @@ function resetToStart() {
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
   clearHisokaOverdriveCinematic()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -2009,6 +2136,9 @@ function resetToStart() {
   clearBen10OmnitrixCinematic()
   clearBatmanDarkKnightCinematic()
   clearOmniManBodySlamCinematic()
+  clearSupermanUltimateCinematic()
+  clearRengokuFlameExplosionCinematic()
+  clearShinobuButterflyCinematic()
   clearEdoTenseiCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
@@ -2374,6 +2504,16 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "omniman") {
         sound.playSfxFile?.(pickOmniManVoice("win"), null)
       }
+      // SUPERMAN win voice — random pick from his victory pool ("Crime doesn't pay" / "Please don't get
+      // up"). Fires only when the WINNER is Superman.
+      if (winFighter?.rosterKey === "superman") {
+        sound.playSfxFile?.(pickSupermanVoice("win"), null)
+      }
+      // RENGOKU win voice — random pick from his determination/resolve pool ("Set your heart ablaze" /
+      // "I'll fulfill my duty" / "I'll defeat you here"). Fires only when the WINNER is Rengoku.
+      if (winFighter?.rosterKey === "rengoku") {
+        sound.playSfxFile?.(pickRengokuVoice("win"), null)
+      }
       // FLASH "Reverse Flash" SKIN win voice — skin-gated (pickSkinVoice returns null on every other
       // Flash skin, and base Flash has no win pool → base Flash's win beat is silent, unchanged).
       if (winFighter?.rosterKey === "flash") {
@@ -2507,7 +2647,7 @@ function _doRematch() {
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
   clearHisokaOverdriveCinematic()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -2515,6 +2655,9 @@ function _doRematch() {
   clearBen10OmnitrixCinematic()
   clearBatmanDarkKnightCinematic()
   clearOmniManBodySlamCinematic()
+  clearSupermanUltimateCinematic()
+  clearRengokuFlameExplosionCinematic()
+  clearShinobuButterflyCinematic()
   clearEdoTenseiCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
@@ -2679,6 +2822,14 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
+  // RENGOKU — CHARGED FLAME STRIKE: hold P to wind up (isCharging plays the "charge" pose), RELEASE to
+  // strike. A quick TAP (<200ms) fires the weak tier; a longer HOLD fires the strong tier (wide flame arc).
+  // Cooldown-gated (fireRengokuFlameStrike checks flameCd). No energy (maxEnergy 0) → the hold just poses.
+  if ((fighter.rosterKey || "").toLowerCase() === "rengoku") {
+    if (wasHeld) fireRengokuFlameStrike(fighter, !wasTap, getAbilityContext())
+    return
+  }
+
   // VEGETA — SUPER SAIYAN: same "charge up and RELEASE to transform" pattern as Goku Black's Rose.
   // Hold P to build energy (doEnergyCharge); ANY release at/above threshold (enterVegetaSSJ gates on
   // energy) morphs into SSJ. While transformed a quick TAP reverts early; a HOLD-release just tops up
@@ -2698,10 +2849,10 @@ function handleChargeRelease(fighter, key) {
   }
 
   if (!wasTap) return
-  // OMNI-MAN — FLIGHT toggle: a quick P-TAP engages/disengages Flight (a HOLD charges Smart Atoms
-  // instead, see updateMovementInput). Same charge-TAP shape as Gojo's Infinity. toggleOmniManFlight
-  // no-ops if crashing / in hitstun / out of Smart Atoms.
-  if (fighter.rosterKey === "omniman") { toggleOmniManFlight(fighter); return }
+  // FLIGHT toggle (Omni-Man + Superman, any traits.canFly char): a quick P-TAP engages/disengages
+  // Flight (a HOLD charges the shared pool instead, see updateMovementInput). Same charge-TAP shape as
+  // Gojo's Infinity. toggleOmniManFlight no-ops if crashing / in hitstun / out of energy.
+  if (fighter.traits?.canFly) { toggleOmniManFlight(fighter); return }
   if (fighter.rosterKey === "gojo") {
     if (!fighter.disabledSpecials?.includes("infinity")) {   // Limitless Sacrifice vow disables Infinity
       fighter.infinityActive = !fighter.infinityActive
@@ -2823,6 +2974,12 @@ function detectDoubleTapDashTeleport(fighter, key) {
       if (fighter.rosterKey === "minato" && teleportToFlyingRaijinMark(fighter)) {
         fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14   // Flying-Raijin flash-ring blink
         fighter.dashTeleportCooldown = 48
+        // Flying Raijin is INSTANTANEOUS mobility (reposition-only) — it must NOT impose an
+        // attack-recovery lockout, or the shared teleport attackCooldown (10f) swallows a
+        // follow-up Special pressed right after the blink (the "Shadow Clone does nothing after
+        // a blink" bug; Naruto never hits this — he has no dashTeleport). Spam is already gated
+        // by the 48f dashTeleportCooldown above.
+        fighter.attackCooldown = 0
         return
       }
       teleportBehindTarget(fighter)                                   // blink BEHIND, facing the opponent
@@ -2830,9 +2987,9 @@ function detectDoubleTapDashTeleport(fighter, key) {
       else if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
       else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
       else if (fighter.rosterKey === "tobirama") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // water body-flicker: tobirama_dash_uniform.png plays the blink (reposition-only)
-      else if (fighter.rosterKey === "minato")   { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // Yellow-Flash body-flicker: minato_dash_uniform.png flash-ring plays the blink (reposition-only)
+      else if (fighter.rosterKey === "minato")   { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14; fighter.attackCooldown = 0 }  // Yellow-Flash body-flicker: reposition-only, INSTANTANEOUS — clear the shared 10f teleport attackCooldown so a follow-up Special (Shadow Clone) isn't swallowed right after the blink
       else if (fighter.rosterKey === "rick")   { fighter._spriteCastMove = "portalTravel"; fighter._spriteCastTimer = 14 }  // Portal-Behind: reposition-only, rick_portal_attack_travel.png plays the blink
-      else if (fighter.rosterKey === "omniman") { fighter._spriteCastMove = "flyMove"; fighter._spriteCastTimer = 14 }  // Viltrumite speed-blitz: reposition-only, the streaking flyMove pose sells the blink
+      else if (fighter.rosterKey === "omniman" || fighter.rosterKey === "superman") { fighter._spriteCastMove = "flyMove"; fighter._spriteCastTimer = 14 }  // Viltrumite/Kryptonian speed-blitz: reposition-only, the streaking flyMove pose sells the blink
       // Gojo: reposition only — "ready to attack".
       fighter.dashTeleportCooldown = 48
     } else {
@@ -2916,6 +3073,11 @@ function updateMiscTimers(fighter) {
   if (fighter.chainCooldown > 0) fighter.chainCooldown--                   // Toji Chain-Knife
   if (fighter.thunderCd > 0) fighter.thunderCd--                           // Zenitsu Thunder Breathing 1st Form dash-strike
   if (fighter.doubleAtkCd > 0) fighter.doubleAtkCd--                       // Zenitsu Double Attack (Tanjiro/Inosuke), shared cooldown
+  if (fighter.flameCd > 0) fighter.flameCd--                               // Rengoku Charged Flame Strike cooldown
+  if (fighter.counterCd > 0) fighter.counterCd--                           // Rengoku Counter cooldown
+  if (fighter.poisonCd > 0) fighter.poisonCd--                             // Shinobu Poison Thrust cooldown
+  if (fighter.flitCd > 0) fighter.flitCd--                                 // Shinobu Butterfly Flit cooldown
+  if (fighter._rengokuCountering > 0) fighter._rengokuCountering--          // Rengoku Counter riposte-window countdown (checkParry hook)
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
   if (fighter.parryFlash      > 0) fighter.parryFlash--
@@ -3033,16 +3195,19 @@ function updateMovementInput(fighter) {
   // universal hold-to-charge path below — so Smart Atoms IS chargeable (Fix #1). We only gate that
   // charge so it can't refill mid-flight or during a forced-descent crash (shared-pool tension: no
   // free refills in the air) — grounded/normal-air charging is unrestricted.
-  const isOmniMan = (fighter.rosterKey || "").toLowerCase() === "omniman"
-  const omniCantCharge = isOmniMan && (fighter._flightActive || isOmniManForcedDescent(fighter))
+  const isFlyer = !!fighter.traits?.canFly   // Omni-Man / Superman: shared-pool flyers
+  const omniCantCharge = isFlyer && (fighter._flightActive || isOmniManForcedDescent(fighter))
   // HOLD-TO-CHARGE (Task 2): a meter character holding P (charge), not attacking,
   // builds cursed energy AND enters the charging state (drives the charge aura +
   // sprite). For Ben/Albedo the charge button is the device dial (handled above).
   // Resolved BEFORE the block gate so the universal "charging = fully vulnerable"
   // lockout (no block below, no movement in physics.moveFighter) holds on the SAME
   // frame the charge begins — for NORMAL chars too, not just the transform device.
-  if (inputState.charge && !isTransformDevice(fighter) && !fighter.attacking && (fighter.maxEnergy || 0) > 0 && !omniCantCharge) {
-    doEnergyCharge(fighter)
+  // RENGOKU is a NO-ENERGY charger (maxEnergy 0): holding P must still enter isCharging (drives the
+  // "charge" windup pose) so the Charged Flame Strike can release on keyup — but there's no meter to build.
+  const noEnergyCharger = (fighter.rosterKey || "").toLowerCase() === "rengoku"
+  if (inputState.charge && !isTransformDevice(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
+    if ((fighter.maxEnergy || 0) > 0) doEnergyCharge(fighter)
     fighter.isCharging = true
   }
   // UNIVERSAL CHARGE LOCKOUT — can't block while charging (deliberate vulnerability, all chars).
@@ -3051,55 +3216,90 @@ function updateMovementInput(fighter) {
   // (Omni-Man: while flying, Down = DESCEND — not block; and he can't block mid-crash/recovery.)
   if ((inputState.down || fighter._forceGuard) && !fighter.isCharging && !fighter._flashTimeActive &&
       !fighter._flightActive && !isOmniManForcedDescent(fighter)) fighter.isBlocking = true
+  // Omnitrix "up" slot combo (CHARGE+↑ for a deep loadout) consumes the jump so it morphs instead of
+  // hopping. No-op for the current cardinal loadout (jump combo = slot 4, unfilled) — future-proof.
+  if (fighter._omxConsume?.jump) vKeys[fighter.controls.jump] = false
   physics.moveFighter(fighter, vKeys, fighter.controls)
 }
 
 // ── OMNITRIX / ULTIMATRIX — in-fight transform device (Ben & Albedo) ───────
-// Same input scheme for both, now gated by the energy/uptime rules (Task 2):
-//   • CHARGE + tap RIGHT/LEFT → cycle to next/prev alien (only while transformed).
-//   • CHARGE alone, while HUMAN (and recharged) → transform into the current alien.
-//   • CHARGE alone, while TRANSFORMED → CHARGE the meter (fast refill, but you
-//     can't block and a hit interrupts it — see updateMovementInput / combat.js).
-// switchAlien() still enforces the per-switch recharge cooldown.
+// DELIBERATE SLOT TRANSFORM (rebuilt 2026-07-28 — replaces the old cycle scheme). Each loadout slot
+// has its OWN fixed CHARGE+input combo, so you morph into the EXACT alien you want in one press — from
+// human OR from any other alien — instead of tapping through a cycle. Data-driven: the Nth slot uses
+// BEN10_SLOT_COMBOS[N], and only as many combos as the loadout actually holds are live (scales cleanly
+// as more art-backed aliens are added — nothing is hardcoded to 5).
+//   • CHARGE + <slot combo> (edge) → transform DIRECTLY into that slot's alien.
+//   • CHARGE alone, while HUMAN (and recharged) → re-engage the last-used alien (convenience).
+//   • CHARGE alone, while TRANSFORMED → CHARGE the meter (fast refill; can't block, a hit interrupts).
+// selectAlienSlot() enforces the per-switch recharge + from-human energy gate and no-ops a bad slot.
+//
+// Combo table — cardinal directions first (no attack-button conflict), then attack buttons for a
+// loadout deeper than 4. Slot i is reached by CHARGE + this input. Extend the array to add more slots.
+const BEN10_SLOT_COMBOS = [
+  { field: "down",     label: "↓" },   // slot 1
+  { field: "left",     label: "←" },   // slot 2
+  { field: "right",    label: "→" },   // slot 3
+  { field: "jump",     label: "↑" },   // slot 4  (up; consumed so it won't also jump)
+  { field: "light",    label: "+ Light" },   // slot 5  (consumed so it won't also attack)
+  { field: "heavy",    label: "+ Heavy" },   // slot 6
+]
+// Public so the pre-match slot-select UI can label each slot with its real combo (single source of truth).
+export function ben10SlotCombo(i) { return BEN10_SLOT_COMBOS[i] || null }
+
 function handleOmnitrixSwitch(fighter, inputState) {
   if (!fighter?.omnitrix) return
   const held = (fighter._omx = fighter._omx || {})
-
-  const charge = !!inputState.charge
-  const left   = !!inputState.left
-  const right  = !!inputState.right
+  const charge   = !!inputState.charge
+  const nSlots   = Math.min(fighter.omnitrix.aliens?.length || 0, BEN10_SLOT_COMBOS.length)
 
   fighter.isCharging = false   // re-evaluated each frame below
+  fighter._omxConsume = null   // reset each frame; set only on the frame a slot-combo actually fires
+  let comboFired = false
 
   if (charge) {
-    if (right && !held.right) {
-      if (fighter.transformed) switchAlien(fighter,  1)
-    } else if (left && !held.left) {
-      if (fighter.transformed) switchAlien(fighter, -1)
-    } else if (!left && !right) {
-      if (!fighter.transformed) {
-        if (!held.charge) tryTransform(fighter)   // tap to re-engage once recharged
-      } else {
-        fighter.isCharging = true                 // hold to refill the drain meter
+    // Deliberate slot transform: first slot-combo whose input just went down (edge) wins.
+    for (let i = 0; i < nSlots; i++) {
+      const f = BEN10_SLOT_COMBOS[i].field
+      const down = !!inputState[f]
+      if (down && !held[f]) {
+        if (selectAlienSlot(fighter, i)) {
+          comboFired = true
+          fighter.vx = 0                                   // plant + morph (don't slide on the combo)
+          fighter._omxConsume = { light: f === "light", heavy: f === "heavy", jump: f === "jump" }
+        }
+        break
       }
+    }
+    // CHARGE alone (no slot combo held this frame):
+    //   • TRANSFORMED → charge the drain meter (hold P).
+    //   • HUMAN → intentionally NOTHING. Transforming from human is DELIBERATE and slot-only (P+combo);
+    //     a bare-P auto-re-engage used to fire on the P-hold frame BEFORE the direction was added,
+    //     flickering into the wrong (last-used) alien and making P+slot unreliable. Removed.
+    const anyComboHeld = BEN10_SLOT_COMBOS.slice(0, nSlots).some(c => !!inputState[c.field])
+    if (!comboFired && !anyComboHeld && fighter.transformed) {
+      fighter.isCharging = true
     }
   }
 
   held.charge = charge
-  held.left   = left
-  held.right  = right
+  for (const c of BEN10_SLOT_COMBOS) held[c.field] = !!inputState[c.field]
 }
 
 function buildNormalControlState(fighter, vKeys) {
   const c = fighter.controls
   const g = !!fighter.onGround
+  // Omnitrix slot combos that use an ATTACK button (CHARGE+Light / CHARGE+Heavy for a deep loadout)
+  // consume that press so it morphs INSTEAD of also swinging. No-op for the current cardinal-only
+  // loadout (down/left/right never set these) — future-proofs slots 5-6 without a rebuild.
+  const consume = fighter._omxConsume
+  const cl = consume?.light, ch = consume?.heavy
   return {
     upAttack: g  && vKeys[c.upAttack],                 // dedicated I = up-attack/launcher
     grab:     g  && vKeys[c.grab],                      // dedicated O = grab
-    air:      !g && vKeys[c.light] && !vKeys[c.down],   // airborne J = air attack
-    downAir:  !g && vKeys[c.light] &&  vKeys[c.down],   // airborne S+J = down-air spike
-    light:    g  && vKeys[c.light],                     // J
-    heavy:    g  && vKeys[c.heavy]                      // K
+    air:      !g && vKeys[c.light] && !vKeys[c.down] && !cl,   // airborne J = air attack
+    downAir:  !g && vKeys[c.light] &&  vKeys[c.down] && !cl,   // airborne S+J = down-air spike
+    light:    g  && vKeys[c.light] && !cl,             // J
+    heavy:    g  && vKeys[c.heavy] && !ch               // K
   }
 }
 
@@ -3261,6 +3461,12 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "batman" && !charging &&
       updateBatmanCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // SUPERMAN "Kryptonian Rush": Fwd+Heavy opens supRush1 (flying cross), re-tap Heavy on hit → supRush2
+  // → supRushFin (charged-haymaker launcher). Cancel-on-hit; a whiff/block ends the string. Consumes the
+  // input only when it fires (returns true → skip normal path); neutral light/heavy stay on the normal path.
+  if ((fighter.rosterKey || "").toLowerCase() === "superman" && !charging &&
+      updateSupermanCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
   // TOBIRAMA taijutsu chain: Fwd+Heavy opens tobiCombo1, re-tap Heavy on hit → tobiCombo2 → tobiComboFin
   // (cancel-on-hit; a whiff/block ends the string). Free pokes: Fwd+Light = Strong Forward, Back+Heavy =
   // Rising Knee. Consumes the input only when it fires; neutral light/heavy/up stay on the normal path.
@@ -3278,6 +3484,19 @@ function _updatePlayerCombatBody(fighter) {
   // neutral light/heavy/up/air/down_air stay on the normal path.
   if ((fighter.rosterKey || "").toLowerCase() === "zenitsu" && !charging &&
       updateZenitsuCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // RENGOKU "Flame Breathing" chains: Fwd+Heavy opens the chain (grounded → ground / airborne → air);
+  // re-tap Heavy on a clean hit to continue the normal chain, or press Special on a clean hit to branch
+  // into the escalated super finisher. Cancel-on-hit; a whiff/block ends the string. Consumes the input
+  // only when it fires (returns true → skip normal path); neutral light/heavy/up/air/down_air stay normal.
+  if ((fighter.rosterKey || "").toLowerCase() === "rengoku" && !charging &&
+      updateRengokuCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SHINOBU "Insect Breathing" thrust chain: Fwd+Heavy opens shinobuG1, re-tap Heavy on a clean hit →
+  // shinobuG2 → shinobuG3 (cancel-on-hit; a whiff/block ends the string). Also drives the POISON-on-hit
+  // watcher for her Poison Thrust special. Consumes the input only when it fires; neutral normals stay normal.
+  if ((fighter.rosterKey || "").toLowerCase() === "shinobu" && !charging &&
+      updateShinobuCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // NETERO Guanyin giant: the base attack buttons fire the 4 avatar attacks (light=leg, heavy=arm-sweep,
   // up=punch-burst; combo-slash is on SPECIAL). Consumes the press only when it fires.
@@ -3375,6 +3594,309 @@ function drawMangekyouAura(c, fighter) {
   c.arcTo(rx, ry, rx + rw, ry, r)
   c.closePath()
   c.stroke()
+  c.restore()
+}
+
+// SUPERMAN SOLAR FLARE (Stage 4) — gold radiant glow while _solarFlareActive (OVERLAY, no body-swap).
+// A warm pulsing gold halo + soft rays. Drawn BEHIND the body, mirroring the other auras. No-op otherwise.
+function drawSupermanSolarFlareAura(c, fighter) {
+  if (!c || !fighter?._solarFlareActive) return
+  const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  const pulse  = 0.5 + 0.5 * Math.sin(fighter._solarFlarePulse = (fighter._solarFlarePulse || 0) + 0.16)
+  const cx = x + w / 2, cy = y + h / 2
+  c.save()
+  // radiant gold halo
+  c.globalAlpha = 0.22 + pulse * 0.14
+  c.shadowBlur  = 26 + pulse * 12
+  c.shadowColor = "#ffcc2e"
+  c.strokeStyle = "#ffe27a"
+  c.lineWidth   = 10 + pulse * 5
+  const spread = 12 + pulse * 5, rx = x - spread / 2, ry = y - spread / 2, rw = w + spread, rh = h + spread, r = 16
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r); c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r);          c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath(); c.stroke()
+  // solar rays radiating out
+  c.globalAlpha = 0.18 + pulse * 0.10; c.strokeStyle = "#fff2b0"; c.lineWidth = 2
+  const R0 = Math.max(w, h) * 0.5, R1 = R0 + 14 + pulse * 8
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2 + fighter._solarFlarePulse * 0.05
+    c.beginPath(); c.moveTo(cx + Math.cos(a) * R0, cy + Math.sin(a) * R0); c.lineTo(cx + Math.cos(a) * R1, cy + Math.sin(a) * R1); c.stroke()
+  }
+  c.restore()
+}
+
+// SUPERMAN KRYPTONIAN OVERLOAD (Stage 4) — blue electric crackle while _overloadActive (OVERLAY). A blue
+// pulsing outline + jagged lightning arcs around the body. Drawn BEHIND the body. No-op otherwise.
+function drawSupermanOverloadAura(c, fighter) {
+  if (!c || !fighter?._overloadActive) return
+  const x = fighter.x ?? 0, y = fighter.y ?? 0, w = fighter.w ?? 60, h = fighter.h ?? 110
+  const t = (fighter._overloadPulse = (fighter._overloadPulse || 0) + 0.4)
+  const pulse = 0.5 + 0.5 * Math.sin(t)
+  c.save()
+  // blue electric outline
+  c.globalAlpha = 0.22 + pulse * 0.16
+  c.shadowBlur  = 16 + pulse * 8
+  c.shadowColor = "#38bdf8"
+  c.strokeStyle = "#bae6fd"
+  c.lineWidth   = 3 + pulse * 2
+  const spread = 8 + pulse * 5, rx = x - spread / 2, ry = y - spread / 2, rw = w + spread, rh = h + spread, r = 14
+  c.beginPath()
+  c.moveTo(rx + r, ry)
+  c.arcTo(rx + rw, ry, rx + rw, ry + rh, r); c.arcTo(rx + rw, ry + rh, rx, ry + rh, r)
+  c.arcTo(rx, ry + rh, rx, ry, r);          c.arcTo(rx, ry, rx + rw, ry, r)
+  c.closePath(); c.stroke()
+  // jagged lightning arcs down each side (deterministic zig from the pulse clock — no Math.random)
+  c.globalAlpha = 0.5 + pulse * 0.3; c.strokeStyle = "#e0f2fe"; c.lineWidth = 2; c.shadowBlur = 8
+  for (const side of [-1, 1]) {
+    const bx = x + (side < 0 ? 0 : w)
+    c.beginPath(); c.moveTo(bx, y)
+    for (let s = 1; s <= 5; s++) { const yy = y + (h * s) / 5; const jag = side * ((s % 2 ? 6 : -3) + Math.sin(t * 2 + s) * 3); c.lineTo(bx + jag, yy) }
+    c.stroke()
+  }
+  c.restore()
+}
+
+// RICK VOID FORM — procedural COSMIC STARFIELD overlay (cosmetic). Drawn ON TOP of the black void
+// sprite. The pattern is generated ONCE per skin-load (seeded → deterministic, never re-randomized per
+// frame, so it never flickers) and stored in NORMALIZED sprite-bbox coords, so it tracks the sprite's
+// exact drawn position/scale (sprite.js records _lastDraw*) across every pose. Reuses the same on-canvas
+// procedural-FX pattern as the other auras (no baked pixels). No-op unless the Void Form skin is active.
+function _mulberry32(a) {
+  return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 }
+}
+function _rgbaHex(hex, a) {
+  const h = hex.replace("#", ""); const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${a})`
+}
+function seedVoidStarfield(fighter) {
+  const rnd = _mulberry32(0x51DEC0DE)          // fixed seed → identical pattern every load (stable)
+  // Scatter within a HUMANOID profile of the bbox (narrow head, wide torso, narrow legs) so stars land
+  // on Rick's silhouette rather than floating in the empty bbox corners — no per-frame image sampling.
+  const halfWidth = ny => ny < 0.28 ? 0.17 : (ny < 0.64 ? 0.27 : 0.13)   // head / torso+coat / legs
+  const stars = []
+  for (let i = 0; i < 22; i++) {               // low density — subtle scattered stars, not a haze
+    const ny = 0.08 + rnd() * 0.87
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    stars.push({ nx, ny, r: rnd() < 0.72 ? 1 : 2, a: 0.55 + rnd() * 0.45 })
+  }
+  const palette = ["#9B6FD4", "#5FC7C7", "#E288B4"]   // muted purple / teal / pink nebulae
+  const nebulae = []
+  for (let i = 0; i < 3; i++) {                 // 2-3 sparse, diffuse "distant galaxy" blobs, centred on the torso
+    nebulae.push({ nx: 0.34 + rnd() * 0.32, ny: 0.22 + rnd() * 0.42, r: 0.15 + rnd() * 0.1, color: palette[i % 3], a: 0.16 + rnd() * 0.08 })
+  }
+  fighter._voidFX = { stars, nebulae }
+}
+function drawVoidStarfield(c, fighter) {
+  if (!c || fighter?.skinId !== "rickVoidForm") return
+  if (!fighter._voidFX) seedVoidStarfield(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._voidFX
+  c.save()
+  // nebulae behind the stars — soft radial blobs
+  for (const n of fx.nebulae) {
+    const cx = x + n.nx * w, cy = y + n.ny * h, rad = n.r * Math.max(w, h)
+    const g = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    g.addColorStop(0, _rgbaHex(n.color, n.a)); g.addColorStop(1, _rgbaHex(n.color, 0))
+    c.fillStyle = g; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  // stars — fixed-position pale dots with a soft glow (fixed brightness, no per-frame flicker)
+  c.shadowColor = "#CFE0FF"; c.shadowBlur = 2; c.fillStyle = "#F5F5FF"
+  for (const s of fx.stars) {
+    c.globalAlpha = s.a
+    c.fillRect(x + s.nx * w - s.r / 2, y + s.ny * h - s.r / 2, s.r, s.r)
+  }
+  c.restore()
+}
+
+// SUPERMAN PHANTOM ZONE — procedural SPECTRAL-ENERGY overlay (cosmetic), on top of the void-black
+// sprite. Same architecture as Rick's Void Form starfield, different visual: wispy pale green-white
+// (Kryptonian/Phantom-Zone) energy TENDRILS drifting loosely along the silhouette edges + a few soft
+// diffuse glow points ("spectral mist"). Pattern SEEDED ONCE per skin-load (deterministic paths — no
+// per-frame re-randomization) with only a SMOOTH continuous drift animating the sway (not flicker).
+// Normalized to the sprite bbox → tracks the drawn position/scale across all poses incl. flight.
+function seedPhantomZone(fighter) {
+  const rnd = _mulberry32(0x9A2057ED)
+  const bases = [0.16, 0.84, 0.30, 0.70, 0.50]   // near the silhouette edges + a couple interior
+  const tendrils = []
+  for (let i = 0; i < 5; i++) {
+    tendrils.push({
+      bx: bases[i] + (rnd() * 2 - 1) * 0.04,
+      ny0: 0.04 + rnd() * 0.14, ny1: 0.70 + rnd() * 0.26,
+      amp: 0.045 + rnd() * 0.055, freq: 2 + rnd() * 2.4, phase: rnd() * Math.PI * 2,
+      drift: (0.010 + rnd() * 0.010) * (rnd() < 0.5 ? -1 : 1),   // slow smooth sway drift
+      a: 0.16 + rnd() * 0.14,
+    })
+  }
+  const glows = []
+  for (let i = 0; i < 4; i++) {
+    glows.push({ nx: 0.3 + rnd() * 0.4, ny: 0.18 + rnd() * 0.52, r: 0.14 + rnd() * 0.1, a: 0.09 + rnd() * 0.07 })
+  }
+  fighter._pzFX = { tendrils, glows }
+}
+function drawPhantomZoneOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "supermanPhantomZone") return
+  if (!fighter._pzFX) seedPhantomZone(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._pzFX
+  const t = (fighter._pzClock = (fighter._pzClock || 0) + 1)
+  const GREEN = "#B8E0C4"
+  c.save()
+  // soft spectral glow mist first (diffuse, behind the tendrils)
+  for (const g of fx.glows) {
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(GREEN, g.a)); grad.addColorStop(1, _rgbaHex(GREEN, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  // wispy drifting energy tendrils — thin translucent lines that sway along the silhouette edges
+  c.strokeStyle = GREEN; c.lineWidth = Math.max(1, w * 0.012); c.lineCap = "round"
+  c.shadowColor = GREEN; c.shadowBlur = 4
+  for (const td of fx.tendrils) {
+    c.globalAlpha = td.a
+    c.beginPath()
+    const steps = 18
+    for (let s = 0; s <= steps; s++) {
+      const f2 = s / steps
+      const ny = td.ny0 + (td.ny1 - td.ny0) * f2
+      const nx = td.bx + td.amp * Math.sin(f2 * td.freq * Math.PI * 2 + td.phase + t * td.drift)
+      const px = x + nx * w, py = y + ny * h
+      s === 0 ? c.moveTo(px, py) : c.lineTo(px, py)
+    }
+    c.stroke()
+  }
+  c.restore()
+}
+
+// RENGOKU VOID EMBER — procedural rising-EMBER overlay (cosmetic), on top of the void-black sprite.
+// Same architecture as Rick's Void Form starfield / Superman's Phantom Zone: pattern SEEDED ONCE per
+// skin-load (deterministic), normalized to the sprite bbox (_lastDraw*) so it tracks the drawn position
+// & scale across every pose incl. the combo chain and Ultimate. Unlike the static starfield, each ember
+// SLOWLY RISES (ny decreases each frame, wrapping bottom→top) with a gentle horizontal sway + alpha
+// flicker — warm orange-red glowing dots evoking a dying campfire. No baked pixels; no-op for anyone else.
+function seedEmberOverlay(fighter) {
+  const rnd = _mulberry32(0xE7B0A5E2)
+  const halfWidth = ny => ny < 0.30 ? 0.16 : (ny < 0.66 ? 0.30 : 0.20)   // head / torso+haori / legs+hem
+  const embers = []
+  for (let i = 0; i < 16; i++) {               // sparse — scattered embers, not a haze
+    const ny = 0.06 + rnd() * 0.9
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    embers.push({
+      nx, ny, r: rnd() < 0.7 ? 1 : 2,
+      rise: 0.0016 + rnd() * 0.0026,           // slow upward drift (fraction of bbox per frame)
+      swayAmp: 0.010 + rnd() * 0.022, swayFreq: 0.6 + rnd() * 1.1, phase: rnd() * Math.PI * 2,
+      a: 0.5 + rnd() * 0.4, flick: 0.4 + rnd() * 1.1,
+    })
+  }
+  const glows = []
+  for (let i = 0; i < 3; i++) {                 // a couple soft ember-glow pools low on the body (embers' source)
+    glows.push({ nx: 0.32 + rnd() * 0.36, ny: 0.6 + rnd() * 0.34, r: 0.12 + rnd() * 0.1, a: 0.10 + rnd() * 0.07 })
+  }
+  fighter._emberFX = { embers, glows }
+}
+function drawEmberOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "rengokuVoidEmber") return
+  if (!fighter._emberFX) seedEmberOverlay(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._emberFX
+  const t = (fighter._emberClock = (fighter._emberClock || 0) + 1)
+  const EMBER = "#E8703B"
+  c.save()
+  // soft ember-glow pools first (diffuse warmth low on the silhouette)
+  for (const g of fx.glows) {
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(EMBER, g.a)); grad.addColorStop(1, _rgbaHex(EMBER, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  // rising embers — warm glowing dots that drift upward and wrap; each with a soft glow + gentle flicker
+  c.shadowColor = "#FFB073"; c.shadowBlur = 3; c.fillStyle = "#FFC98A"
+  for (const e of fx.embers) {
+    let ny = e.ny - t * e.rise
+    ny = ny - Math.floor(ny)                    // wrap into [0,1): ember rises off the top, reappears low
+    const nx = e.nx + e.swayAmp * Math.sin(t * 0.04 * e.swayFreq + e.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.08 * e.flick + e.phase)   // subtle flicker
+    const fade = ny < 0.12 ? ny / 0.12 : 1      // fade out as it nears the top (dying out)
+    c.globalAlpha = Math.max(0, Math.min(1, e.a * glow * fade))
+    c.fillRect(x + nx * w - e.r / 2, y + ny * h - e.r / 2, e.r, e.r)
+  }
+  c.restore()
+}
+
+// RICK PORTAL VOID — procedural SWIRL overlay (cosmetic), on top of the void-black sprite. Same
+// architecture as the other overlay skins (Rick Void Form starfield / Superman Phantom Zone tendrils /
+// Rengoku Void Ember): pattern SEEDED ONCE per skin-load (deterministic), normalized to the sprite bbox
+// (_lastDraw*) so it tracks the drawn position & scale across every pose. Visual: vivid portal-green
+// curling SPIRAL wisps tracing loosely around the silhouette — a few larger diffuse swirl clusters at
+// asymmetric anchors (shoulder / hand / feet) + finer thin trailing wisps. Only a SMOOTH continuous
+// rotation drift animates (no per-frame re-randomization → no flicker). No baked pixels; no-op otherwise.
+function seedPortalVoid(fighter) {
+  const rnd = _mulberry32(0x9017A1ED)
+  const halfWidth = ny => ny < 0.28 ? 0.18 : (ny < 0.66 ? 0.30 : 0.16)   // head / torso+coat / legs
+  // 3 larger, diffuse swirl clusters at ASYMMETRIC anchors (shoulder, one hand, near the feet)
+  const clusters = [
+    { nx: 0.68, ny: 0.24, r: 0.17 + rnd() * 0.05, turns: 2.1 + rnd() * 0.5, phase: rnd() * Math.PI * 2, drift: 0.014 + rnd() * 0.008, a: 0.20 + rnd() * 0.08, lw: 0.022, glow: 0.12 },
+    { nx: 0.15, ny: 0.52, r: 0.15 + rnd() * 0.05, turns: 1.9 + rnd() * 0.5, phase: rnd() * Math.PI * 2, drift: -(0.012 + rnd() * 0.008), a: 0.18 + rnd() * 0.08, lw: 0.020, glow: 0.11 },
+    { nx: 0.52, ny: 0.90, r: 0.16 + rnd() * 0.05, turns: 2.3 + rnd() * 0.5, phase: rnd() * Math.PI * 2, drift: 0.011 + rnd() * 0.008, a: 0.17 + rnd() * 0.07, lw: 0.021, glow: 0.10 },
+  ]
+  // finer thin trailing wisps scattered near the silhouette edges
+  const wisps = []
+  for (let i = 0; i < 7; i++) {
+    const ny = 0.10 + rnd() * 0.80
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    wisps.push({
+      nx, ny, r: 0.06 + rnd() * 0.06, turns: 1.2 + rnd() * 0.7, phase: rnd() * Math.PI * 2,
+      drift: (0.016 + rnd() * 0.014) * (rnd() < 0.5 ? -1 : 1), a: 0.30 + rnd() * 0.14, lw: 0.012,
+    })
+  }
+  fighter._portalFX = { clusters, wisps }
+}
+function _strokeSwirl(c, cx, cy, radPx, s, t) {
+  // an outward-growing spiral arc (portal-edge curl), stroked over N steps
+  const steps = 26
+  c.globalAlpha = s.a
+  c.lineWidth = Math.max(1, radPx * s.lw * 6)
+  c.beginPath()
+  for (let k = 0; k <= steps; k++) {
+    const f = k / steps
+    const ang = s.phase + f * s.turns * Math.PI * 2 + t * s.drift
+    const rr = radPx * (0.15 + 0.85 * f)
+    const px = cx + Math.cos(ang) * rr, py = cy + Math.sin(ang) * rr
+    k === 0 ? c.moveTo(px, py) : c.lineTo(px, py)
+  }
+  c.stroke()
+}
+function drawPortalVoidOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "rickPortalVoid") return
+  if (!fighter._portalFX) seedPortalVoid(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._portalFX
+  const t = (fighter._portalClock = (fighter._portalClock || 0) + 1)
+  const GREEN = "#3FE855"
+  const M = Math.max(w, h)
+  c.save()
+  c.lineCap = "round"; c.lineJoin = "round"; c.strokeStyle = GREEN
+  c.shadowColor = "#8FF5A0"
+  // larger diffuse clusters first (behind) — a soft radial glow pool + a wider, softer swirl
+  for (const s of fx.clusters) {
+    const cx = x + s.nx * w, cy = y + s.ny * h, radPx = s.r * M
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, radPx)
+    grad.addColorStop(0, _rgbaHex(GREEN, s.glow)); grad.addColorStop(1, _rgbaHex(GREEN, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, radPx, 0, Math.PI * 2); c.fill()
+    c.shadowBlur = 6
+    _strokeSwirl(c, cx, cy, radPx, s, t)
+  }
+  // finer trailing wisps on top
+  c.shadowBlur = 4
+  for (const s of fx.wisps) {
+    const cx = x + s.nx * w, cy = y + s.ny * h
+    _strokeSwirl(c, cx, cy, s.r * M, s, t)
+  }
   c.restore()
 }
 
@@ -3534,6 +4056,7 @@ function updateFighterState(fighter) {
   applyFlashTimeSystem(updated)      // Flash — Flash Time: continuous Speed Force drain + auto-revert + block-lockout + afterimage-trail recording
   applyGonAdultFormSystem(updated)   // Gon Adult Form: continuous Nen drain + auto-revert at 0 + green-aura-trail recording (movement-lockout is set at enter)
   applyHisokaOverdriveSystem(updated)   // Hisoka Bloodlust Overdrive: continuous Nen drain + auto-revert at 0 (buff + _skinAnim body-swap set at enter)
+  applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   applyOmniManFlightSystem(updated)  // Omni-Man Flight: shared-pool Smart Atoms drain while flying → forced descent at 0 → landing-recovery window (BEFORE applyGravity, which then hovers/falls him)
@@ -4065,6 +4588,30 @@ function updateBattle() {
     return
   }
 
+  // SUPERMAN "SOLAR OVERLOAD" CINEMATIC: SAME freeze contract — combat/physics/input paused for the whole
+  // green energy-surge → dissolve → detonation; the guaranteed damage lands at the DETONATION beat, then resume.
+  if (isSupermanUltimateCinematicActive()) {
+    updateSupermanUltimateCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+
+  // RENGOKU "FLAME EXPLOSION" CINEMATIC: SAME freeze contract — combat/physics/input paused for the whole
+  // blade-raise → flame eruption → detonation; the guaranteed AOE damage lands at the DETONATION beat, then resume.
+  if (isRengokuFlameExplosionCinematicActive()) {
+    updateRengokuFlameExplosionCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+
+  // SHINOBU "BUTTERFLY DANCE" CINEMATIC: SAME freeze contract — combat/physics/input paused for the whole
+  // dash-in → spinning slash; the guaranteed damage + poison finisher land at the STRIKE beat, then resume.
+  if (isShinobuButterflyCinematicActive()) {
+    updateShinobuButterflyCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+
   // TOBIRAMA EDO TENSEI CINEMATIC (summon + un-summon): SAME freeze contract — combat/physics/input are
   // paused while the coffin ritual plays; the body-swap (in) / revert (out) fires at the cinematic's
   // resolve beat. This freeze is ALSO the timer-pause: while any inner-ultimate cinematic runs, this
@@ -4203,6 +4750,8 @@ function renderHybridFighter(fighter) {
   const drawTo = (c) => {
     drawKuramaShroudAura(c, fighter)   // Kurama shroud glow, behind the body/sprite (Naruto only)
     drawMangekyouAura(c, fighter)      // Itachi Mangekyou crimson glow, behind the body (Itachi only)
+    drawSupermanSolarFlareAura(c, fighter)   // Superman Solar Flare gold radiant halo, behind the body (Superman only)
+    drawSupermanOverloadAura(c, fighter)     // Superman Kryptonian Overload blue electric crackle, behind the body (Superman only)
     drawGodspeedAura(c, fighter)       // Killua Godspeed electric-afterimage trail, behind the body (Killua only)
     drawFlashAura(c, fighter)          // Flash — Flash Time red/gold afterimage trail, behind the body (Flash only)
     drawGonAdultAura(c, fighter)       // Gon — Adult Form green Nen aura/afterimage, behind the body (Gon only)
@@ -4211,6 +4760,10 @@ function renderHybridFighter(fighter) {
     } else {
       drawFighter(c, fighter, camera)
     }
+    drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
+    drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
+    drawEmberOverlay(c, fighter)        // Rengoku Void Ember — drifting rising embers, ON TOP of the void sprite
+    drawPortalVoidOverlay(c, fighter)   // Rick Portal Void — curling green portal swirls, ON TOP of the void sprite
   }
 
   // CINEMATIC INTRO REVEAL (opt-in via characters.js `introReveal`): while this fighter is playing its
@@ -4956,6 +5509,9 @@ function drawBattle() {
   drawBen10OmnitrixCinematic(ctx, canvas)     // fullscreen Omnitrix transformation overlay (green glow → burst shockwave)
   drawBatmanDarkKnightCinematic(ctx, canvas)  // fullscreen batarang-barrage overlay (windup glow → rain → impact flash)
   drawOmniManBodySlamCinematic(ctx, canvas)   // fullscreen body-slam overlay (crimson vignette → impact flash → ground shockwave)
+  drawSupermanUltimateCinematic(ctx, canvas)  // fullscreen Solar Overload overlay (green vignette → detonation flash → shockwave rings)
+  drawRengokuFlameExplosionCinematic(ctx, canvas)  // fullscreen Flame Explosion overlay (ember vignette → detonation flash → flame rings)
+  drawShinobuButterflyCinematic(ctx, canvas)  // fullscreen Butterfly Dance overlay (violet vignette → strike flash → spiral slash rings)
   drawEdoTenseiCinematic(ctx, canvas)         // Edo Tensei summon/un-summon overlay (giant coffin + vessel reveal)
   if (aiVsAiState.active) _drawAiVsAiHud()
 }
@@ -5265,7 +5821,9 @@ function renderCurrentState() {
       drawAlienSelectScreen(ctx, canvas, {
         aliens: getAlienPoolList(),
         draft:  matchConfig.alienDraft,
-        player: matchConfig.alienSelectSide === "p1" ? 1 : 2
+        player: matchConfig.alienSelectSide === "p1" ? 1 : 2,
+        slotCap: BEN10_SLOT_COMBOS.length,                      // data-driven slot count (not hardcoded 5)
+        slotCombos: BEN10_SLOT_COMBOS.map(c => c.label)         // per-slot transform combo labels
       }); break
     case GAME_STATES.SELECT_EDO_BACKUP:
       drawCharacterSelectScreen(ctx, canvas, {
@@ -5617,7 +6175,7 @@ function handleMenuClicks() {
         const aKey = getAlienPoolList()[cardIdx].key
         const at   = draft.indexOf(aKey)
         if (at >= 0)            draft.splice(at, 1)
-        else if (draft.length < 5) draft.push(aKey)
+        else if (draft.length < BEN10_SLOT_COMBOS.length) draft.push(aKey)   // cap = # of slot combos (data-driven)
         break
       }
       const btn = getAlienSelectButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
@@ -5670,15 +6228,15 @@ function updateCurrentState() {
       // SEQUENTIAL intro stage machine: P1 plays its full intro, THEN P2's begins. Only the active
       // side advances; the other holds idle. Runs every intro frame (during namecall AND after).
       if (introStage === "p1") {
-        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1); updateKilluaIntroRollIn(p1) }
+        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1); updateKilluaIntroRollIn(p1); updateSupermanIntro(p1); updateShinobuIntro(p1) }
         if (--introStageTimer <= 0) {
-          if (p1) { p1._introPlaying = false; finalizeKilluaIntroPos(p1) }
+          if (p1) { p1._introPlaying = false; finalizeKilluaIntroPos(p1); finalizeSupermanIntroPos(p1); finalizeShinobuIntroPos(p1) }
           if (p2) { p2._introPlaying = true; initIntroVariant(p2); introStage = "p2"; introStageTimer = introTotalFrames(p2) }
           else introStage = "done"
         }
       } else if (introStage === "p2") {
-        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2); updateKilluaIntroRollIn(p2) }
-        if (--introStageTimer <= 0) { if (p2) { p2._introPlaying = false; finalizeKilluaIntroPos(p2) } introStage = "done" }
+        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2); updateKilluaIntroRollIn(p2); updateSupermanIntro(p2); updateShinobuIntro(p2) }
+        if (--introStageTimer <= 0) { if (p2) { p2._introPlaying = false; finalizeKilluaIntroPos(p2); finalizeSupermanIntroPos(p2); finalizeShinobuIntroPos(p2) } introStage = "done" }
       }
       if (namecallActive) {
         // Announcement phase: hold each side's zoom, then advance to the next mapped
@@ -6001,6 +6559,8 @@ gameLoop()
     if (p1) p1._introPlaying = false
     if (p2) p2._introPlaying = false
     finalizeKilluaIntroPos(p1); finalizeKilluaIntroPos(p2)   // undo the roll-in offset if we skip mid-roll
+    finalizeSupermanIntroPos(p1); finalizeSupermanIntroPos(p2)   // undo Superman's off-screen offset if skipped mid-run
+    finalizeShinobuIntroPos(p1); finalizeShinobuIntroPos(p2)   // undo Shinobu's glide-in offset if skipped mid-glide
     gameState = GAME_STATES.BATTLE
     countdown = 0
   }
@@ -6038,6 +6598,12 @@ gameLoop()
     godspeedActive:   !!f._godspeedActive,        // Killua Godspeed buff-mode ultimate
     overdriveActive:  !!f._overdriveActive,       // Hisoka Bloodlust Overdrive buff-mode form
     flashTimeActive:  !!f._flashTimeActive,        // Flash — Flash Time buff-mode ultimate
+    currentForm:      f.currentForm || null,       // active transform/mode ("solarFlare"|"overload"|"base"|…)
+    solarFlare:       !!f._solarFlareActive,        // Superman Stage 4: gold Solar Flare mode
+    overload:         !!f._overloadActive,          // Superman Stage 4: blue Kryptonian Overload mode
+    damageMult:       f.damageMultiplier || 1,
+    atkSpeedMult:     f.attackSpeedMultiplier || 1,
+    speedMult:        f.speedMultiplier || 1,
     flightActive:     !!f._flightActive,          // Omni-Man: Flight movement mode engaged
     forcedDescent:    !!f._forcedDescent,         // Omni-Man: crashing out of the sky (Smart Atoms depleted mid-air)
     descentLandTimer: f._descentLandTimer || 0,   // Omni-Man: crash-landing recovery frames remaining
@@ -6063,6 +6629,9 @@ gameLoop()
     attackCooldown:   f.attackCooldown || 0,
     thunderCd:        f.thunderCd || 0,         // Zenitsu Thunder Breathing dash-strike cooldown
     doubleAtkCd:      f.doubleAtkCd || 0,       // Zenitsu Double Attack shared cooldown
+    flameCd:          f.flameCd || 0,           // Rengoku Charged Flame Strike cooldown
+    counterCd:        f.counterCd || 0,         // Rengoku Counter cooldown
+    rengokuCountering: f._rengokuCountering || 0, // Rengoku Counter reactive-window countdown
     doubleAtkVariant: f._doubleAtkVariant || null,   // last Double Attack partner fired
     zenUltWhiff:      !!f._zenUltWhiff,          // Zenitsu Ultimate fired on a level mismatch (whiffed)
     tauntCharge:      f._tauntCharge || 0,
@@ -6076,6 +6645,7 @@ gameLoop()
     edoVessel:        f._edoVessel || null,     // which char the vessel currently is
     edoBackup:        f._edoBackup || null,     // pre-chosen vessel
     edoDummy:         f._edoDummy ? { x: f._edoDummy.x, y: f._edoDummy.y, w: f._edoDummy.w, h: f._edoDummy.h } : null,  // standing Tobirama body
+    kuramaHide:       !!f._kuramaHide,          // real body suppressed from renderHybridFighter (Minato Kurama + Edo Tensei two-vessel fix)
     invulnTimer:      f.invulnTimer || 0
   })
 
@@ -6200,7 +6770,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isShinobuButterflyCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -6411,6 +6981,9 @@ gameLoop()
     energyLabel: who => resolveEnergyLabel(who === "p2" ? p2 : p1),
     // TRUE when the HUD draws "HEAVENLY RESTRICTION" instead of an energy bar (JJK energyType "none").
     heavenlyRestriction: who => isHeavenlyRestriction(who === "p2" ? p2 : p1),
+    // The no-meter FLAVOR label actually drawn for an energyType-"none" fighter, or null if they have a
+    // normal meter ("HEAVENLY RESTRICTION" JJK / "TOTAL CONCENTRATION" Demon Slayer). Mirrors ui.js drawEnergyPanel.
+    noMeterFlavor: who => noMeterFlavor(who === "p2" ? p2 : p1),
     roundTimer: () => roundTimer,
     // ── MATCH-FLOW introspection + control (Gon Adult Form sudden-death override, gon.test.mjs) ──
     // Read the live match-winner state + set the round score so a test can prove the sudden-death
@@ -6452,6 +7025,9 @@ gameLoop()
     ben10UltCine: () => getBen10OmnitrixCinematicStatus(),
     batmanUltCine: () => getBatmanDarkKnightCinematicStatus(),
     omnimanUltCine: () => getOmniManBodySlamCinematicStatus(),
+    supermanUltCine: () => getSupermanUltimateCinematicStatus(),
+    rengokuUltCine: () => getRengokuFlameExplosionCinematicStatus(),
+    shinobuUltCine: () => getShinobuButterflyCinematicStatus(),
     kuramaUltCine: () => getKuramaCinematicStatus(),
     minatoKuramaUltCine: () => getMinatoKuramaStatus(),
     p1CloneCount: () => (p1 ? countShadowClones(p1) : 0),   // test hook: live shadow-clone count (barrage gate)
@@ -6611,6 +7187,12 @@ gameLoop()
     // proves genuine random selection within each, using the SAME pickZenitsuVoice the live triggers call.
     zenitsuVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickZenitsuVoice(pool)),
     zenitsuVoicePool: pool => ZENITSU_VOICE[pool] || null,
+    // Rengoku's 8 wired pools (intro/formCallout/concentration/ultimate/combatBark/hitReact/lowHealth/win) —
+    // proves genuine random selection within each, using the SAME pickRengokuVoice the live triggers call.
+    rengokuVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickRengokuVoice(pool)),
+    rengokuVoicePool: pool => RENGOKU_VOICE[pool] || null,
+    shinobuVoicePool: pool => SHINOBU_VOICE[pool] || null,
+    shinobuVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickShinobuVoice(pool)),
     // Hisoka's 10 pools (intro/taunt/bungee/texture/overdrive/rekka/combatBark/hitReact/lowHealth/win)
     // — proves genuine random selection within each, using the SAME pickHisokaVoice the live triggers call.
     hisokaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickHisokaVoice(pool)),
@@ -6622,6 +7204,8 @@ gameLoop()
     batmanVoicePool: pool => BATMAN_VOICE[pool] || null,
     omnimanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickOmniManVoice(pool)),
     omnimanVoicePool: pool => OMNIMAN_VOICE[pool] || null,
+    supermanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSupermanVoice(pool)),
+    supermanVoicePool: pool => SUPERMAN_VOICE[pool] || null,
     // Same idea for Sukuna's 4 pools (taunt/hitConnect/finisher/misc) — proves genuine
     // random selection across the largest generic-bark pool wired (21-entry taunt).
     sukunaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSukunaVoice(pool)),

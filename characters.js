@@ -865,18 +865,19 @@ const sasuke = {
     // ── PHASE 3a: pre-match INTRO POOL. game.js picks one of `introPool` at random each match
     // (see pickIntroVariant); sprite.js plays it while _introPlaying is set. loop:false +
     // lockLastFrame → each plays ONCE then holds its final pose, snapping cleanly to idle when
-    // the fight starts. Cell width = sheetW / real-frame-count (keeps the true pitch); anchorY =
-    // -(bottom gap × 2.1). NOTE: `intro` plays only the first 6 of sasuke_intro.png's 9 cells —
-    // this deliberately EXCLUDES the wire/kunai-throw action (cells ~6–8), which is a combat move,
-    // not an idle intro. Those frames stay in the file for a possible future "wire kunai" move.
-    // `intro` (sasuke_intro.png) is EXCLUDED from introPool below — kept for reference only.
-    // Its only clean "settled fighting stance" frame is the LAST cell (8), which sits AFTER the
-    // kunai-wire combat action (cells 6–7). The engine plays cells sequentially and can't skip the
-    // wire, so trimming the wire (required — a combat action shouldn't play in an intro) forces the
-    // hold onto a mid-motion arm-point pose (cell 5) that doesn't read as an arrival stance. It's
-    // also thematically redundant with introCloakAlt. Re-enable only if the sheet is re-sliced to
-    // separate the wire, freeing the settled stance.
-    intro:         { frames: 6, width: 57, height: 63, speed: 6, anchorY: -14, loop: false, lockLastFrame: true, sheet: "./sasuke_intro.png"   },
+    // the fight starts.
+    // RE-SLICED 2026-07-29: sasuke_intro.png was a NON-UNIFORM 511×63 strip (poses at a ~30px
+    // pitch, plus a WIDE ~57px cloak-swirl) wired as a uniform 6×57 slice that TORE/drifted
+    // through the poses (audit coverage was 67%). Repacked via tools/reslice_strip.mjs into 12
+    // clean uniform 59×57 feet-registered cells: 0-2 cloaked · 3 cloak-flare · 4 cloak-swirl ·
+    // 5 reveal · 6-8 standing arrival · 9 point · 10 sword+wire (COMBAT) · 11 settled rest.
+    // `intro` plays cells 0-8 (frames:9) — the cloak-reveal ending on a clean standing arrival
+    // pose, deliberately stopping BEFORE the sword+wire combat action (cell 10), which is a move,
+    // not an intro. Cells 10-11 stay in the file for a future "wire kunai" move. anchorY 0 because
+    // the reslice bottom-aligns feet (matches the sibling re-sliced intros below). Still EXCLUDED
+    // from introPool (thematically redundant with introCloakAlt's black-cloak unfurl) but now
+    // renders cleanly if ever re-pooled.
+    intro:         { frames: 9, width: 59, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sasuke_intro.png"   },
     // RE-SLICED 2026-07-17: the raw sheets are NON-UNIFORM (6 hand-drawn poses each with a WIDE
     // cloak-throw pose that a uniform slice tore straight through — verified via boundary overlays).
     // REPACKED into uniform 90px cells (each pose cropped + FEET-registered so the character stays
@@ -1244,6 +1245,176 @@ const zenitsu = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// DEMON SLAYER — Kyojuro Rengoku (SECOND Demon Slayer sprite char, after Zenitsu).
+// Flame Hashira: a powerful, aggressive fire-swordsman rushdown. Same universe pattern as
+// Zenitsu — COOLDOWN-gated (Demon Slayer has no chakra/ki meter → maxEnergy 0). Where Zenitsu
+// is a fragile speed-burst assassin (def 74), Rengoku is the durable Hashira bruiser: harder
+// hits + more HP/defense, slightly less top speed. Staged build; see RENGOKU_ASSET_MAP.md.
+// REQUIRES the skins.js `rengoku` default skin + the spritesheets.js SPRITE_MANIFEST idle gate.
+// ─────────────────────────────────────────────────────────────────
+const rengoku = {
+  rosterKey: "rengoku", name: "Kyojuro Rengoku", universe: "demon_slayer",
+  portrait: "./rengoku_portrait.png",   // Stage 6 — cropped from an intro/idle frame (no dedicated mugshot in the batch)
+  archetypes: ["melee", "power"],
+  primary: "melee", secondary: ["power"],
+  traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "burst", animeMovement: true },
+  // Tier: aggressive fire Hashira. HP 1140 (durable — well above Zenitsu 1000, near Tobirama 1120);
+  // attack 92 ties the roster top (Minato) by design ("powerful"); def 80 solid; speed 92 aggressive
+  // but below the fastest (Zenitsu 96 / Minato 98). Cooldown-gated like every Demon Slayer char.
+  stats: { maxHealth: 1140, maxEnergy: 0, attack: 92, defense: 80, speed: 92, maxJumps: 2, jumpPower: 31, dashSpeed: 19, dashDuration: 9, dashCooldownMax: 36 },
+  basic_attacks: {
+    // Stage 2 wires the sprites over this data. Rengoku hits harder than Zenitsu across the board.
+    light:     { damage: 52, startup: 3, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 95, startup: 8, active: 3, recovery: 17, hitstun: 20, knockbackX: 6, knockbackY: 1, rangeX: 80, rangeY: 52 },
+    upAttack:  { type: "launcher", damage: 74, startup: 6, active: 3, recovery: 14, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 12, airOK: false },
+    airAttack: { damage: 62, startup: 4, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 84, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+  },
+  specials: {
+    // HUD-reference placeholders; behaviour lands in abilities.js at Stages 4-5. Cooldown-gated (cost 0).
+    chargedFlameStrike: { cost: 0, damage: 120, startup: 8, active: 4, recovery: 18, hitstun: 22, knockbackX: 8, knockbackY: -2, effect: "chargeable flame lunge (tap/hold power tiers)" },
+    flameCounter:       { cost: 0, damage: 130, startup: 2, active: 10, recovery: 20, hitstun: 26, knockbackX: 9, knockbackY: -3, effect: "reactive parry → flaming riposte" }
+  },
+  ultimate: { name: "Flame Breathing: Rengoku (Flame Explosion)", cost: 0, description: "Freeze-cinematic flame eruption. Cooldown-gated." },
+  hasSprites: true,
+  // Canon height ~177cm → target ~110px. idle content ~48px at scale 1.0 → spriteScale 2.25 → ~108px
+  // on-screen (roster band, matches Zenitsu's sizing). Resliced cells are bottom-aligned (feet at cell
+  // bottom, 1px pad) so a single anchorY: 0 plants feet across every standing action.
+  spriteScale: 2.25,
+  animationData: {
+    // ── STAGE 1 MOVEMENT/STATE ── resliced feet-aligned (*_uniform.png); anchorY 0 plants feet.
+    idle: { frames: 4, width: 69, height: 59, speed: 7, anchorY: 0, sheet: "./rengoku_idle_uniform.png" },   // 4-frame breathing loop
+    // Only one locomotion strip uploaded (8-frame run) — walk plays it slower.
+    walk: { frames: 8, width: 55, height: 52, speed: 6, anchorY: 0, sheet: "./rengoku_run_uniform.png" },
+    run:  { frames: 8, width: 55, height: 52, speed: 4, anchorY: 0, sheet: "./rengoku_run_uniform.png" },
+    dash: { frames: 2, width: 49, height: 38, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_dash_uniform.png" },
+    // jump.png = crouch→rise→apex arc; play once + hold. fall = the apex/descent pose (last cell, index 5 → sourceX 240).
+    jump: { frames: 6, width: 48, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_jump_uniform.png" },
+    fall: { frames: 1, width: 48, height: 62, speed: 6, anchorY: 0, sourceX: 240, loop: false, lockLastFrame: true, sheet: "./rengoku_jump_uniform.png" },
+    // GUARD — block.png cell 0 (the clean braced guard stance); later cells are a spin flourish that
+    // would pop in a hold, so guard holds just the first braced frame.
+    guard: { frames: 1, width: 59, height: 61, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_block_uniform.png" },
+    // HURT — cell 0 of the RE-SPLIT 4-cell hit strip (the upright stagger) as a single-frame flinch;
+    // combat.js colorFlash tints on top. Every plain hitstun/stun routes here. (The strip's source art
+    // baked TWO figures into the original first island — a stagger + a knockback bridged by the blade —
+    // which the alpha-gutter reslice merged into ONE cell, so `hurt` rendered BOTH figures at once. Fixed
+    // by re-cropping the two figures into separate cells: cell 0 = single clean stagger.)
+    hurt: { frames: 1, width: 55, height: 56, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_hit_uniform.png" },
+    // KNOCKDOWN — the 4 re-split cells (stagger→knockback→fall→grounded); lockLastFrame holds the downed
+    // pose. KNOWN GAP: the master sheet's full get-hit run has more frames + a dust-FX frame that were
+    // never individually cropped — this degrades to the last-frame grounded hold, not invented art.
+    knockdown: { frames: 4, width: 55, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_hit_uniform.png" },
+    // ── STAGE 1 INTRO ── TWO independent STATIONARY intros, random-cycled per match (introPool). He does
+    // NOT travel across the arena (redesign: the earlier tracked dash-in was removed). intro2 = sword-draw
+    // flourish (primary). introRunIn = the run-cycle art played IN PLACE as a psyched-up ready flourish
+    // (art normalized to face-right so the engine's facing-flip renders it correctly for P1/P2).
+    introRunIn: { frames: 5, width: 46, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_intro_run_in_reverse_right_to_left_uniform.png" },
+    intro2:     { frames: 4, width: 65, height: 66, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_intro_2_uniform.png" },
+    // ── STAGE 2 NORMALS ── resliced feet-aligned (*_uniform.png); anchorY 0 plants feet.
+    // loop:false + lockLastFrame holds the strike pose through recovery. basic_attacks (above) carries
+    // the hit/frame DATA these render over. Keys are light/heavy/up/air/down_air (sprite.js identity map).
+    light:    { frames: 2, width: 82, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_foward_slash_uniform.png" },      // quick forward katana slash
+    // HEAVY = down_attack.png (a real, coherent downward flame-chop). BEST-JUDGMENT content: unlike
+    // light/up/air/down_air this file is NOT cleanly matched to the master sheet, but it is genuine
+    // character art and the best real content for the heavy slot. Flagged, not invented. See RENGOKU_ASSET_MAP.md.
+    heavy:    { frames: 4, width: 82, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_down_attack_uniform.png" },
+    up:       { frames: 6, width: 50, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_up_attack_uniform.png" },           // rising upward slash (launcher)
+    // AIR = the OPENING segment (Air hit 1, cells 0-2) of the 13-cell combo_air_1 strip, used standalone.
+    // The remainder (cells 3+) feeds the Stage 3 air combo chain. sourceX 0 + frames 3 → cells 0-2.
+    air:      { frames: 3, width: 101, height: 56, speed: 4, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_combo_air_1_uniform.png" },
+    down_air: { frames: 7, width: 73, height: 85, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_down_air_attack_uniform.png" },       // descending flame spike
+    // ── STAGE 3 COMMAND CHAIN ── Fwd+Heavy opens the chain; re-tap Heavy on a clean hit to continue,
+    // or press Special on a clean hit to branch into the escalated super finisher. currentMove-keyed
+    // poses (sprite.js identity map). "base hit" segments carved from the JUS combo strips via
+    // sourceX (= cellWidth × startCell) + frames; sprite.js sx = sourceX + frameIndex×width.
+    // GROUND chain: combo_1 → combo_2 → combo_3, with super_foward / super_down as finisher branches.
+    rengokuG1:        { frames: 5, width: 82, height: 64, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./rengoku_combo_1_uniform.png" },        // Hit1 opener (cells 0-4)
+    rengokuG2:        { frames: 5, width: 97, height: 61, speed: 3, anchorY: 0, sourceX: 97,  loop: false, lockLastFrame: true, sheet: "./rengoku_combo_2_uniform.png" },        // Hit4 base — wide flame arc (cells 1-5)
+    rengokuG3:        { frames: 5, width: 85, height: 60, speed: 3, anchorY: 0, sourceX: 170, loop: false, lockLastFrame: true, sheet: "./rengoku_combo_3_uniform.png" },        // Hit5 base (cells 2-6)
+    rengokuSuperFwd:  { frames: 6, width: 86, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_super_foward_attack_uniform.png" },          // Hit6 — forward flame-lunge finisher (off G2)
+    rengokuSuperDown: { frames: 6, width: 85, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_super_down_attack_uniform.png" },            // Hit7 — downward flame-wave slam finisher (off G3, launches)
+    // AIR chain: combo_air_1 remainder → combo_into_air bridge → combo_air_2, with super_down_air finisher.
+    rengokuA1:        { frames: 6, width: 101, height: 56, speed: 3, anchorY: 0, sourceX: 303, loop: false, lockLastFrame: true, sheet: "./rengoku_combo_air_1_uniform.png" },     // Air hit2 — remainder of the air-normal strip (cells 3-8)
+    rengokuABridge:   { frames: 8, width: 56,  height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_combo_into_air_uniform.png" },               // ground→air launcher bridge
+    rengokuA2:        { frames: 6, width: 83,  height: 66, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./rengoku_combo_air_2_uniform.png" },     // Air hit3 base (cells 0-5)
+    rengokuSuperAir:  { frames: 4, width: 83,  height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_super_down_air_attack_uniform.png" },        // Air hit4 — downward flame-spike finisher (off A2, spikes)
+    // ── STAGE 4 SPECIALS ── currentMove / _spriteCastMove identity keys (sprite.js fallback).
+    // CHARGED FLAME STRIKE: hold P → charge windup (sprite.js isCharging → "charge") → release: tap tier
+    // = rengokuCharge1 (charge_hit_1), hold tier = rengokuCharge2 (charge_hit_2, wide flame arc) →
+    // rengokuFlameTail (puches dash-recovery) plays over the recovery via _spriteCastMove.
+    charge:           { frames: 4, width: 49,  height: 54, speed: 6, anchorY: 0, loop: true,  sheet: "./rengoku_charge_uniform.png" },                        // hold-to-charge windup (no hitbox)
+    rengokuCharge1:   { frames: 7, width: 66,  height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_charge_hit_1_uniform.png" },   // TAP tier — forward flame slash
+    rengokuCharge2:   { frames: 6, width: 117, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_charge_hit_2_uniform.png" },   // HOLD tier — wide flame-trail release
+    rengokuFlameTail: { frames: 2, width: 58,  height: 49, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_puches_uniform.png" },         // dash-recovery tail
+    // COUNTER: a reactive parry stance (foward_attack_charge pose). Sets _parryInputBuffer → checkParry
+    // stuns an incoming startup attack; a rengoku riposte adds flaming damage (combat.checkParry hook).
+    rengokuCounter:   { frames: 4, width: 65,  height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_foward_attack_charge_uniform.png" },
+    // ── STAGE 5 ULTIMATE ── Flame Explosion. Plays through the freeze cinematic via _spriteCastMove:"ultimate"
+    // (rengokuFlameExplosionCinematic.js): blade-raise (cells 0-4) → flame eruption engulfs him (cells 5-7).
+    ultimate: { frames: 8, width: 55, height: 67, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./rengoku_ultimate_explosion_uniform.png" }
+  },
+  // Random-cycle intro pool: each match start picks ONE at random (game.pickIntroVariant). Both play
+  // STATIONARY at his normal starting position — no camera tracking, no positional movement.
+  introPool: ["introRunIn", "intro2"]
+}
+
+// Shinobu Kocho (universe: demon_slayer) — THIRD Demon Slayer sprite char (after Zenitsu, Rengoku).
+// The Insect Hashira: fast, precise, LOW raw power (canonically the physically weakest Hashira), offset
+// by speed + wisteria POISON (Stage 3, via the generic `dot` subsystem). Thin thrust/piercing blade —
+// every melee is a narrow-reach thrust/lunge, NOT a broad slash. Zero-energy, COOLDOWN-gated like
+// Zenitsu/Rengoku → HUD flavor "TOTAL CONCENTRATION" (Insect Breathing is a Total-Concentration style).
+// Intro = camera-tracked GLIDE-IN from off-screen (updateShinobuIntro, Superman-path). See SHINOBU_ASSET_MAP.md.
+const shinobu = {
+  rosterKey: "shinobu", name: "Shinobu Kocho", universe: "demon_slayer",
+  portrait: "./shinobu_portrait.png",
+  archetypes: ["melee", "speed"],
+  primary: "melee", secondary: ["speed"],
+  traits: { hasEnergy: false, energyType: "none", mobility: "very_high", scaling: "technical", animeMovement: true },
+  stats: { maxHealth: 960, maxEnergy: 0, attack: 82, defense: 76, speed: 97, maxJumps: 2, jumpPower: 31, dashSpeed: 21, dashDuration: 8, dashCooldownMax: 34 },
+  basic_attacks: {
+    light:     { damage: 44, startup: 3, active: 2, recovery: 7,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:     { damage: 78, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 86, rangeY: 44 },
+    upAttack:  { type: "launcher", damage: 62, startup: 6, active: 3, recovery: 14, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack: { damage: 52, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 70, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 }
+  },
+  specials: {
+    poisonThrust:  { cost: 0, damage: 40, startup: 6, active: 3, recovery: 16, hitstun: 16, knockbackX: 4, knockbackY: -1, effect: "Insect Breathing lunging stinger — low direct dmg + wisteria POISON DoT (49 over ~2.3s)" },
+    butterflyFlit: { cost: 0, damage: 0,  startup: 2, active: 0, recovery: 20, effect: "acrobatic backflip evade (brief i-frames + backward reposition)" }
+  },
+  ultimate: { name: "Insect Breathing: Butterfly Dance", cost: 0, description: "Freeze-cinematic spinning-dash finisher — dashes in, thrust-lunge → spinning slash. Guaranteed direct hit + a lethal wisteria POISON finisher on clean connect. Cooldown-gated (no energy)." },
+  hasSprites: true,
+  spriteScale: 2.25,
+  animationData: {
+    idle: { frames: 4, width: 38, height: 57, speed: 7, anchorY: 0, sheet: "./shinobu_idle_uniform.png" },
+    walk: { frames: 6, width: 45, height: 53, speed: 6, anchorY: 0, sheet: "./shinobu_walk_uniform.png" },
+    run:  { frames: 6, width: 45, height: 53, speed: 4, anchorY: 0, sheet: "./shinobu_walk_uniform.png" },
+    dash: { frames: 2, width: 48, height: 38, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_dash_uniform.png" },
+    jump: { frames: 5, width: 48, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_jump_uniform.png" },
+    fall: { frames: 1, width: 48, height: 58, speed: 6, anchorY: 0, sourceX: 192, loop: false, lockLastFrame: true, sheet: "./shinobu_jump_uniform.png" },
+    guard: { frames: 1, width: 54, height: 61, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_guard_uniform.png" },
+    hurt: { frames: 1, width: 46, height: 57, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_hit_uniform.png" },
+    knockdown: { frames: 3, width: 46, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_hit_uniform.png" },
+    introGlide: { frames: 4, width: 67, height: 54, speed: 6, anchorY: 0, loop: true, sheet: "./shinobu_intro_glide_uniform.png" },
+    // ── STAGE 2 normals (thrust/piercing — fast narrow-reach strikes, NOT broad slashes) ──
+    light:    { frames: 5, width: 80, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_light_uniform.png" },     // quick low forward thrust/lunge
+    heavy:    { frames: 5, width: 87, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_heavy_uniform.png" },     // deep committed lunging thrust (signature pierce)
+    up:       { frames: 5, width: 55, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_up_uniform.png" },        // crouch → rising spin launcher
+    air:      { frames: 3, width: 45, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_air_uniform.png" },        // aerial blade thrust
+    down_air: { frames: 5, width: 63, height: 63, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_down_air_uniform.png" },   // spinning descending dive-spike
+    // ── STAGE 3: "Insect Breathing" command chain (Fwd+Heavy → re-tap Heavy) + specials ──
+    shinobuG1:    { frames: 4, width: 59, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_g1_uniform.png" },      // horizontal slash opener
+    shinobuG2:    { frames: 4, width: 80, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_g2_uniform.png" },      // overhead cut mid
+    shinobuG3:    { frames: 4, width: 57, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_g3_uniform.png" },      // lunging body-check finisher
+    shinobuPoison:{ frames: 5, width: 75, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_poison_uniform.png" },  // Poison Thrust — stinger dive
+    shinobuFlit:  { frames: 8, width: 53, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_flit_uniform.png" },    // Butterfly Flit — backflip evade
+    // ── STAGE 4: Ultimate — "Butterfly Dance" spinning-dash finisher (thrust-lunge → spinning slash) ──
+    shinobuUltimate: { frames: 9, width: 87, height: 59, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_ultimate_uniform.png" }
+  },
+  introPool: ["introGlide"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // RICK & MORTY
 // ─────────────────────────────────────────────────────────────────
 const rick = {
@@ -1407,13 +1578,17 @@ const ben10 = {
   traits: { hasEnergy: true, energyType: "omnitrix", mobility: "high", scaling: "burst" },
   passive: { name: "Omnitrix", effect: "Press the transform/charge button to cycle through 5 aliens, each with its own moveset" },
   stats: { maxHealth: 1250, maxEnergy: 100, attack: 90, defense: 85, speed: 5, maxJumps: 1, jumpPower: 19, dashSpeed: 15, dashDuration: 8, dashCooldownMax: 30 },
+  // NOTE: these MIRROR fighters.js HUMAN_FORM.basic_attacks (the LIVE values revertToHuman applies) so
+  // the select screen advertises what's actually delivered. The old entry (light 53 / heavy 106) was
+  // never used in play — revertToHuman overwrites basic_attacks with HUMAN_FORM — so it was misleading
+  // dead data. Keep the two in sync; HUMAN_FORM is the source of truth.
   basic_attacks: {
-    light:     { damage: 53, startup: 6, active: 3, recovery: 12, hitstun: 12, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 106, startup: 11, active: 5, recovery: 20, hitstun: 18, knockbackX: 6, knockbackY: 1, superArmor: true },
-    upAttack:  { damage: 85, startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 70, startup: 6, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 98, startup: 10, active: 4, recovery: 16, hitstun: 18, knockbackX: 1, knockbackY: 11 },
-    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
+    light:     { damage: 42, startup: 5, active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 80, startup: 9, active: 4, recovery: 19, hitstun: 16, knockbackX: 5, knockbackY: 1, superArmor: true },
+    upAttack:  { damage: 62, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 2, knockbackY: -8 },
+    airAttack: { damage: 50, startup: 6, active: 3, recovery: 11, hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 66, startup: 9, active: 4, recovery: 15, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:      { damage: 26, startup: 6, active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
   },
   specials: {},
   ultimate: { name: "Omnitrix Overload", cost: 100, duration: 8, effect: "Active alien's ultimate" },
@@ -1454,7 +1629,13 @@ const ben10 = {
     benHover: { frames: 4, width: 57, height: 71, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_hoverboard_uniform.png" },
     // STAGE-4 ultimate: Omnitrix Transformation cast pose (Ben raises the dial → green flash → alien
     // silhouette). Played on Ben's body during the freeze cinematic (ben10OmnitrixCinematic.js).
-    transform: { frames: 16, width: 63, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_transform_uniform.png" }
+    transform: { frames: 16, width: 63, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_transform_uniform.png" },
+    // TAUNT (re-audit 2026-07-28): enrolls Ben in the EXISTING universal taunt-heal (game.js
+    // updateTauntState — hold Down 10s un-hit → heal 50%). Uses the previously-UNUSED ben10_taunt.png
+    // (frames 0-1, the clean single poses re-sliced to _uniform; frames 2-4 were an unusable
+    // alien-select cluster). speed 26 → 2×26 = 52-frame flourish. Thematic for the weak human "catch
+    // your breath while energy regens" window. Alien forms taunt in-form via their _skinAnim.taunt→idle.
+    taunt: { frames: 2, width: 28, height: 58, speed: 26, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_taunt_uniform.png" }
   }
 }
 
@@ -1593,13 +1774,17 @@ const albedo = {
   traits: { hasEnergy: true, energyType: "ultimatrix", mobility: "high", scaling: "burst" },
   passive: { name: "Ultimatrix", effect: "Same as the Omnitrix — cycle aliens; the form drains energy and force-reverts to human at zero" },
   stats: { maxHealth: 1250, maxEnergy: 100, attack: 90, defense: 85, speed: 5, maxJumps: 1, jumpPower: 19, dashSpeed: 15, dashDuration: 8, dashCooldownMax: 30 },
+  // NOTE: these MIRROR fighters.js HUMAN_FORM.basic_attacks (the LIVE values revertToHuman applies) so
+  // the select screen advertises what's actually delivered. The old entry (light 53 / heavy 106) was
+  // never used in play — revertToHuman overwrites basic_attacks with HUMAN_FORM — so it was misleading
+  // dead data. Keep the two in sync; HUMAN_FORM is the source of truth.
   basic_attacks: {
-    light:     { damage: 53, startup: 6, active: 3, recovery: 12, hitstun: 12, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 106, startup: 11, active: 5, recovery: 20, hitstun: 18, knockbackX: 6, knockbackY: 1, superArmor: true },
-    upAttack:  { damage: 85, startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 70, startup: 6, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 98, startup: 10, active: 4, recovery: 16, hitstun: 18, knockbackX: 1, knockbackY: 11 },
-    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
+    light:     { damage: 42, startup: 5, active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 80, startup: 9, active: 4, recovery: 19, hitstun: 16, knockbackX: 5, knockbackY: 1, superArmor: true },
+    upAttack:  { damage: 62, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 2, knockbackY: -8 },
+    airAttack: { damage: 50, startup: 6, active: 3, recovery: 11, hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 66, startup: 9, active: 4, recovery: 15, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    grab:      { damage: 26, startup: 6, active: 3, recovery: 14, hitstun: 16, throwForceX: 4, throwForceY: -3 }
   },
   specials: {},
   ultimate: { name: "Ultimatrix Overload", cost: 100, duration: 8, effect: "Active alien's ultimate" },
@@ -1626,7 +1811,7 @@ const omniMan = {
   portrait: "./omniman_portrait.png",   // character-select mugshot — cropped head+torso from the idle (no dedicated mugshot in the batch, Killua precedent); skins.js + ui.js read characters.omniman.portrait
   archetypes: ["melee", "flight"],
   primary: "melee", secondary: ["flight"],
-  traits: { hasEnergy: true, energyType: "smart_atoms", mobility: "high", scaling: "damage", animeMovement: false },
+  traits: { hasEnergy: true, energyType: "smart_atoms", mobility: "high", scaling: "damage", animeMovement: false, canFly: true },
   passive: { name: "Viltrumite Physiology", effect: "Superhuman strength — overwhelming power on the ground, unmatched mobility once airborne on Smart Atoms" },
   // Overwhelming-raw-power bruiser: top-tier HP + attack. Ground speed bumped to the roster median
   // (Fix #5 — was 84, a slow-end outlier; now 90, tied Naruto/Sasuke) so he's no longer a clear
@@ -2614,13 +2799,95 @@ const hisoka = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SUPERMAN  (rosterKey "superman", universe "dc" — 3rd DC char after The Flash
+// + Batman, 20th sprite char overall). Source art = 25 curated superman_*.png
+// crops (see SUPERMAN_ASSET_MAP.md). Archetype: super-strength/flight powerhouse.
+// Energy = "Solar Energy" (traits.energyType "solar_energy" → ui.js label). FLIGHT
+// reuses Omni-Man's toggleable flight system verbatim (traits.canFly gate) — shared
+// Solar Energy pool for flight + specials + modes + ultimate. Idle is the FLOATING
+// hover (not grounded). Intro = off-screen Clark-Kent run-in → shirt-rip reveal →
+// liftoff → floating idle, camera-tracked (updateSupermanIntro in game.js).
+// ─────────────────────────────────────────────────────────────────
+const superman = {
+  rosterKey: "superman", name: "Superman", universe: "dc", color: "#1c4fd8",
+  portrait: "./superman_portrait.png",
+  archetypes: ["melee", "flight"],
+  primary: "melee", secondary: ["flight"],
+  traits: { hasEnergy: true, energyType: "solar_energy", mobility: "high", scaling: "damage", animeMovement: false, canFly: true },
+  passive: { name: "Kryptonian Physiology", effect: "Yellow-sun-charged strength and durability — the roster's toughest bruiser, with free flight on Solar Energy" },
+  // POWERHOUSE stats — the durability/strength apex (edges Omni-Man 1400/98 by design; flagged for Stage 6 balance).
+  stats: { maxHealth: 1450, maxEnergy: 200, attack: 100, defense: 92, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 10, dashCooldownMax: 36 },
+  movement: { dashTeleport: true },
+  // STAGE 2 normals — heavy-hitting super-strength blows with large knockback (attack stat 100).
+  basic_attacks: {
+    light:    { damage: 36, startup: 4, active: 3, recovery: 9,  hitstun: 14, knockbackX: 5,  knockbackY: 0 },
+    heavy:    { damage: 72, startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 12, knockbackY: 2 },
+    upAttack: { type: "launcher", damage: 56, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -11, launch: 14, airOK: false },
+    airAttack:{ damage: 48, startup: 4, active: 3, recovery: 11, hitstun: 14, knockbackX: 5,  knockbackY: -2 },
+    downAir:  { damage: 62, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 2,  knockbackY: 11 },
+    grab:     { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 8, throwForceY: -3 }
+  },
+  ultimate: { name: "Solar Overload", cost: 100, description: "Superman channels every ounce of stored yellow-sun energy — surging green, dissolving to pure particles — then DETONATES it in a screen-clearing blast (freeze-cinematic, guaranteed ~380, chipped by block)." },
+  hasSprites: true,
+  spriteScale: 1.6,
+  // Off-screen Clark run-in → liftoff → floating hover. Steps play in FIXED ORDER.
+  introSequence: ["introRunIn", "introLiftoff", "introHover"],
+  animationData: {
+    // ── MOVEMENT / STATE
+    idle:  { frames: 6, width: 56, height: 85, speed: 8, anchorY: 0, sheet: "./superman_idle_uniform.png" },
+    walk:  { frames: 6, width: 62, height: 82, speed: 6, anchorY: 0, sheet: "./superman_walk_uniform.png" },
+    run:   { frames: 6, width: 62, height: 82, speed: 4, anchorY: 0, sheet: "./superman_walk_uniform.png" },
+    dash:  { frames: 6, width: 62, height: 82, speed: 4, anchorY: 0, sheet: "./superman_walk_uniform.png" },
+    // He floats — jump/fall reuse the hover idle (rises as a hover, no crouch-spring art needed).
+    jump:  { frames: 6, width: 56, height: 85, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_idle_uniform.png" },
+    fall:  { frames: 6, width: 56, height: 85, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_idle_uniform.png" },
+    hurt:  { frames: 1, width: 55, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_hit_uniform.png" },
+    charge:{ frames: 1, width: 50, height: 82, speed: 6, anchorY: 0, loop: true, sheet: "./superman_charge_uniform.png" },
+    // ── STAGE 2 NORMALS (5 slots) — heavy-hitting super-strength blows.
+    light:    { frames: 5, width: 88,  height: 80, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_light_uniform.png" },
+    heavy:    { frames: 5, width: 88,  height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_heavy_uniform.png" },
+    up:       { frames: 4, width: 65,  height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_up_uniform.png" },
+    air:      { frames: 7, width: 104, height: 41, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_air_uniform.png" },
+    down_air: { frames: 5, width: 88,  height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_downair_uniform.png" },
+    // ── STAGE 2 REKKA "Kryptonian Rush" — Fwd+Heavy flying punch flurry, cancel-on-hit (Toji-Rekka).
+    // Keys = chain order; sheets = fast flying cross → flying charged jab → big charged haymaker launcher.
+    supRush1:   { frames: 9,  width: 104, height: 41, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_suprush1_uniform.png" },
+    supRush2:   { frames: 8,  width: 93,  height: 55, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_suprush2_uniform.png" },
+    supRushFin: { frames: 16, width: 88,  height: 82, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_suprushfin_uniform.png" },
+    // ── STAGE 3 SPECIAL cast pose — Super Flying Punch (charge glow → forward lunge). Heat Vision reuses charge.
+    superPunch: { frames: 16, width: 88, height: 85, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_superpunch_uniform.png" },
+    // ── STAGE 4 MODE entry-cast poses (dedicated transform art). Solar Flare = gold radiant burst;
+    // Kryptonian Overload = blue electric crackle. Play once on activation, then aura overlay carries the mode.
+    solarFlareCast: { frames: 6,  width: 60, height: 85, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_solarflare_uniform.png" },
+    overloadCast:   { frames: 15, width: 55, height: 85, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_overload_uniform.png" },
+    // ── STAGE 5 ULTIMATE "Solar Overload" cinematic pose (green energy surge → particle dissolve).
+    ultimate: { frames: 13, width: 55, height: 81, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_ultimate_uniform.png" },
+    // ── STAGE 6 TAUNT — enrolls Superman in the universal hold-Down-10s → heal-50% system (game.js
+    // updateTauntState; the `taunt` action IS the entire gate). Grounded confident flourish. The airborne
+    // taunt variant (taunt_air) is drawn when a taunt somehow resolves while airborne (rare — the trigger
+    // is grounded-only by design), reusing the hurt/hurt_air variant-resolution idiom.
+    taunt:     { frames: 4, width: 81, height: 82, speed: 14, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_taunt_uniform.png" },
+    taunt_air: { frames: 4, width: 81, height: 85, speed: 14, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_airtaunt_uniform.png" },
+    // ── FLIGHT (Omni-Man system): fly = neutral hover streak, flyMove = directional streak (same sheet).
+    fly:           { frames: 6, width: 93, height: 43, speed: 6, anchorY: 0, sheet: "./superman_fly_uniform.png" },
+    flyMove:       { frames: 6, width: 93, height: 43, speed: 5, anchorY: 0, sheet: "./superman_fly_uniform.png" },
+    forcedDescent: { frames: 6, width: 93, height: 43, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_fly_uniform.png" },
+    descentLand:   { frames: 8, width: 81, height: 81, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_descentland_uniform.png" },
+    // ── INTRO (off-screen run-in → liftoff → hover). introHover == idle art.
+    introRunIn:   { frames: 21, width: 60,  height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_intro1_uniform.png" },
+    introLiftoff: { frames: 17, width: 198, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./superman_intro2_uniform.png" },
+    introHover:   { frames: 6,  width: 56,  height: 85, speed: 8, anchorY: 0, loop: true, sheet: "./superman_intro3_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
   gojo, megumi, sukuna, omololu, toji, mahoraga,
   naruto, sasuke, itachi, tobirama, minato,
-  zenitsu,
+  zenitsu, rengoku, shinobu,
   rick, morty, evilMorty, rickPrime,
   beerus,
   ben10, albedo,
@@ -2632,7 +2899,8 @@ export const characters = {
   flash,
   gon,
   batman,
-  hisoka
+  hisoka,
+  superman
 }
 
 // The 7 characters shown in the starter roster select screen

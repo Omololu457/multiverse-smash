@@ -53,7 +53,8 @@ a healthy chakra pool).
 ### Stage 3 — Shadow Clone system (ported from Naruto)
 | file | planned destination |
 |---|---|
-| `minato_shadow_clone_justu.png` | clone sprite content for the ported clone-combo routes |
+| `minato_shadow_clone_justu.png` | the CASTER's summon HAND-SIGN gesture — plays on Minato at D→F spawn via `minatoCloneCast` (characters.js animationData). NOT the clone body: it depicts Minato forming the seal, so the spawned clones use `minato_idle_uniform` (standing) instead — mirrors Naruto (kcm_stance body + no caster gesture). Corrected 2026-07-28 (was wrongly wired as the clone body → clones performed the gesture, caster did nothing). |
+| `minato_idle_uniform.png` (reuse) | clone BODY (idle standing) for `CLONE_BODY_SETS.minato` + `minatoCloneRush` rushers — the clones are copies of Minato standing, not performing his cast. |
 
 ### Stage 4 — Flying Raijin
 | file | planned destination |

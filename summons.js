@@ -255,7 +255,9 @@ const summonTemplates = {
     damage:          40, w: 70, h: 120, speed: 8, behavior: "rush",
     hitstun:         18, knockbackX: 6, knockbackY: -2, oneHit: true,
     color:           "#facc15",   // Minato flash-yellow fallback box
-    sheet: "./minato_shadow_clone_justu_uniform.png", spriteFrames: 3, spriteW: 37, spriteH: 59, spriteSpeed: 8, spriteScale: 1.85
+    // Rushers use Minato's standing IDLE body (like Naruto's kcm_stance rushers), NOT the caster's
+    // summon-gesture sheet — the hand-sign belongs on Minato, not on the rushing clones.
+    sheet: "./minato_idle_uniform.png", spriteFrames: 4, spriteW: 37, spriteH: 64, spriteSpeed: 6, spriteScale: 1.85
   }
 }
 
@@ -695,8 +697,11 @@ const CLONE_BODY_SETS = {
     hurt: { sheet: "./naruto_kcm_taking_damage.png", frames: 4, w: 46, h: 55, speed: 6, scale: 2.0 }
   },
   minato: {
-    idle: { sheet: "./minato_shadow_clone_justu_uniform.png", frames: 3, w: 37, h: 59, speed: 8, scale: 1.85 },
-    hurt: { sheet: "./minato_hit_uniform.png",               frames: 3, w: 63, h: 42, speed: 6, scale: 1.85 }
+    // Clone BODY = Minato's own standing IDLE (mirrors Naruto's kcm_stance clone body). NOT the
+    // shadow_clone_justu sheet — that art is the CASTER's summon hand-sign and now plays on Minato
+    // himself (characters.js minatoCloneCast). Fixes "clones perform the summon gesture" bug.
+    idle: { sheet: "./minato_idle_uniform.png", frames: 4, w: 37, h: 64, speed: 6, scale: 1.7 },
+    hurt: { sheet: "./minato_hit_uniform.png",  frames: 3, w: 63, h: 42, speed: 6, scale: 1.7 }
   }
 }
 function setCloneSheet(s, mode) {

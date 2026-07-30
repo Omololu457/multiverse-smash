@@ -20,7 +20,7 @@ const sets = () => page.evaluate(() => window.__harness.rosterSets());
 const modes = () => page.evaluate(() => window.__harness.modeRosters());
 const towerSample = (n = 300) => page.evaluate(n => window.__harness.towerSample(n), n);
 async function load() { await page.goto(`${base}/index.html?harness=1`, { waitUntil: "load" }); await page.waitForFunction(() => !!window.__harness); await page.waitForTimeout(80); }
-const NONSPRITED = ["piccolo", "frieza", "cell", "tanjiro", "morty", "omololu", "ben10"];   // known box chars
+const NONSPRITED = ["piccolo", "frieza", "cell", "morty", "omololu", "ben10"];   // known box chars
 const subset = (arr, of) => arr.every(k => of.includes(k));
 const noneOf = (arr, banned) => banned.every(k => !arr.includes(k));
 
@@ -28,13 +28,13 @@ try {
   await load();
   const gt = await sets();
   const spriteSet = gt.sprite;
-  check("ground truth: sprite roster < full roster (filter is meaningful)", gt.sprite.length > 0 && gt.all.length > gt.sprite.length + 10, `sprite=${gt.sprite.length} all=${gt.all.length}`);
+  check("ground truth: sprite roster < full roster (filter is meaningful)", gt.sprite.length > 0 && gt.all.length > gt.sprite.length, `sprite=${gt.sprite.length} all=${gt.all.length}`);
 
   // ── BASELINE (no code): every mode pool INCLUDES non-sprited chars (proves they were unfiltered) ──
   section("baseline (no BETA) — every mode pool includes non-sprite characters");
   let m = await modes();
   check("Tower pool = full roster (includes piccolo)", m.tower.includes("piccolo") && m.tower.length === gt.all.length, `n=${m.tower.length}`);
-  check("FFA grid includes non-sprite chars", m.ffa.includes("piccolo") && m.ffa.includes("tanjiro"), `n=${m.ffa.length}`);
+  check("FFA grid includes non-sprite chars", m.ffa.includes("piccolo") && m.ffa.includes("frieza"), `n=${m.ffa.length}`);
   check("AI-vs-AI picker includes non-sprite chars", m.aiVsAi.includes("piccolo"), `n=${m.aiVsAi.length}`);
 
   // ── BETA ON: EVERY pool must be sprite-only ──

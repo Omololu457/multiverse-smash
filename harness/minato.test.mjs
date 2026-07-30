@@ -98,7 +98,7 @@ try {
   await adjacent(); await page.evaluate(() => window.__harness.spawnP1Clones(2));
   const cc = await page.evaluate(() => window.__harness.p1CloneCount());
   check("clones staged (Minato art)", cc === 2, `count=${cc}`);
-  { const clones = await page.evaluate(() => window.__harness.summons().filter(s => s.id === "shadowClone")); check("clone body = minato art", (clones[0]?.sheet || "").includes("minato_shadow_clone_justu"), `sheet=${clones[0]?.sheet}`); }
+  { const clones = await page.evaluate(() => window.__harness.summons().filter(s => s.id === "shadowClone")); check("clone body = minato idle art (standing, not summon gesture)", (clones[0]?.sheet || "").includes("minato_idle") && !(clones[0]?.sheet || "").includes("naruto"), `sheet=${clones[0]?.sheet}`); }
   // Pincer (B→U, 2 clones) — launcher
   await adjacent(); await page.evaluate(() => window.__harness.spawnP1Clones(2));
   { const before = await p2(); await tap("a", 1); await tap("w", 1); await tap("l"); const launched = await page.waitForFunction(() => (window.__harness.p2().vy || 0) < -3, null, { timeout: 3000, polling: 16 }).then(() => true).catch(() => false); await waitFrames(12); check("Pincer launches + consumes 2 clones", launched && (await page.evaluate(() => window.__harness.p1CloneCount())) === 0, ""); void before; }

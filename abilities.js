@@ -1513,11 +1513,9 @@ function executeNarutoSpecial(fighter, context) {
     if (executeNarutoUzumakiBarrage(fighter, context, target)) { clearMotionHistory(fighter); return true }
   }
 
-  // TRANSFORMATION JUTSU — Tier 1 DISGUISE (half-circle-back →↓←). Visual-only henge into the
-  // opponent's appearance; no stat/move change. Motion-input, additive; falls through on a failed gate.
-  if (detectMotion(fighter, "hcb")) {
-    if (fireTransformJutsu(fighter, context, 1)) { clearMotionHistory(fighter); return true }
-  }
+  // TRANSFORMATION JUTSU — Tier 1 Disguise (→↓←) / Tier 2 Full Copy (→↓→). Motion-input, additive;
+  // shared dispatcher (same call is added to the other 4 chars in Stage 4). Falls through on a failed gate.
+  if (tryTransformJutsu(fighter, context)) return true
 
   // D→F = SHADOW CLONE spawn (Down-Forward + Special). Cap 3; over cap → no-op.
   // No upfront chakra cost — the cost is the pool split (summons.js). Puff on spawn.
@@ -2176,6 +2174,9 @@ function executeMinatoSpecial(fighter, context) {
   const dirs        = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
+
+  // TRANSFORMATION JUTSU — Tier 1 Disguise (→↓←) / Tier 2 Full Copy (←↓← for Minato, teleport-safe).
+  if (tryTransformJutsu(fighter, context)) return true
 
   // ELEVATED motion-input route — SHURIKEN-HIDDEN CLONE (double-QCB ↓←↓←). Checked before the
   // single-QCB (D→B) clone-dispel below; a double needs 4 tokens so a single ↓← still dispels.
@@ -4172,7 +4173,7 @@ export function chrolloDistinctMovesLanded(fighter) { return fighter && fighter.
 //   Tier 1 (Disguise): swaps ONLY the visual fields → rosterKey/basic_attacks/specials/ultimate/traits/
 //     stats are UNTOUCHED, so move dispatch + damage stay the caster's own (provably no stat/move change).
 //   Tier 2 (Full Copy, Stage 3): full SKILL_HUNTER_FIELDS swap.
-const TJ_DISGUISE_FIELDS = ["name", "color", "animationData", "spriteScale"]
+const TJ_DISGUISE_FIELDS = ["name", "color", "spriteScale"]
 const TJ_TIER1_COST = 25
 const TJ_TIER2_COST = 100
 const TJ_DURATION   = 20 * 60   // 20s window, auto-revert
@@ -4195,12 +4196,15 @@ export function applyTransformDisguise(fighter, targetKey) {
   stash._skinAnim = fighter._skinAnim; stash._recolorTag = fighter._recolorTag; stash._baseSkinAnim = fighter._baseSkinAnim
   fighter._tjStash = stash
   // VISUAL ONLY. rosterKey / basic_attacks / specials / ultimate / traits / stats deliberately UNTOUCHED.
-  fighter.name          = target.name || targetKey
-  fighter.color         = target.color || fighter.color
-  fighter.animationData = target.animationData || fighter.animationData
-  fighter.spriteScale   = target.spriteScale ?? fighter.spriteScale
-  fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null   // render the target's art (not the caster's skin)
-  _tjResetSpriteHandler(fighter)   // force the handler to re-resolve _actionDef against the swapped animationData
+  // Appearance is driven through the _skinAnim body-swap channel (the render resolves via
+  // _getAction(rosterKey, action, _skinAnim) — NOT fighter.animationData), the same lever Hisoka
+  // Overdrive / Susanoo levels use. rosterKey stays the caster's, so move dispatch is unchanged.
+  fighter.name         = target.name || targetKey
+  fighter.color        = target.color || fighter.color
+  fighter.spriteScale  = target.spriteScale ?? fighter.spriteScale
+  fighter._skinAnim     = target.animationData || fighter._skinAnim   // ← the disguise
+  fighter._baseSkinAnim = fighter._skinAnim; fighter._recolorTag = null
+  _tjResetSpriteHandler(fighter)   // force the handler to re-resolve _actionDef against the new _skinAnim
   fighter._tjActive = true; fighter._tjTier = 1; fighter._tjTarget = targetKey; fighter._tjTimer = TJ_DURATION
   fighter.teleportFlash = 10
   return true
@@ -4237,18 +4241,92 @@ export function updateTransformJutsu(fighter) {
 export function isTransformJutsuActive(fighter) { return !!fighter?._tjActive }
 export function transformJutsuTier(fighter) { return fighter?._tjActive ? (fighter._tjTier || 0) : 0 }
 
-// Motion-input entry point. tier 1 = Disguise (cheap, visual-only). tier 2 = Full Copy (Stage 3).
+// Tier 2 — FULL COPY: swap the entire kit (same fields as Skill Hunter) so the caster gains the
+// copied character's real moves/forms/stats. PARALLEL to applySkillHunter but with _tj* state (its
+// OWN stash/flag/timer) — no shared mutable state, so it never conflicts with Chrollo's mechanic.
+export function applyTransformFullCopy(fighter, targetKey) {
+  const target = characters[targetKey]
+  if (!target) return false
+  const stash = {}
+  for (const k of SKILL_HUNTER_FIELDS) stash[k] = fighter[k]
+  stash._skinAnim = fighter._skinAnim; stash._recolorTag = fighter._recolorTag; stash._baseSkinAnim = fighter._baseSkinAnim
+  fighter._tjStash = stash
+  // Full kit — everything the moveset/render pipeline reads off the fighter (mirrors applySkillHunter).
+  fighter.rosterKey        = targetKey
+  fighter.name             = target.name || targetKey
+  fighter.color            = target.color || fighter.color
+  fighter.basic_attacks    = target.basic_attacks || fighter.basic_attacks
+  fighter.animationData    = target.animationData || fighter.animationData
+  fighter.spriteScale      = target.spriteScale ?? fighter.spriteScale
+  fighter.traits           = target.traits || fighter.traits
+  fighter.ultimate         = target.ultimate || fighter.ultimate
+  fighter.specials         = target.specials || fighter.specials
+  fighter.passive          = target.passive || fighter.passive
+  fighter.archetypes       = target.archetypes || fighter.archetypes
+  fighter.primary          = target.primary || fighter.primary
+  fighter.secondary        = target.secondary || fighter.secondary
+  fighter.dashTeleport     = !!target.movement?.dashTeleport
+  fighter.runWhenAdvancing = !!target.movement?.runWhenAdvancing
+  fighter.introPool        = target.introPool || null
+  fighter.hasSprites       = target.hasSprites !== false
+  fighter.transformations     = target.transformations || null
+  fighter.transformationOrder = target.transformationOrder || null
+  fighter.currentForm         = (target.transformationOrder && target.transformationOrder[0]) || null
+  fighter.transformIndex      = target.transformationOrder ? 0 : null
+  fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null   // normal-coloured copy (drop caster's skin)
+  fighter.maxEnergy  = target.stats?.maxEnergy || fighter.maxEnergy || 130
+  fighter.energyType = target.traits?.energyType || fighter.energyType
+  // BALANCE: do NOT refill to full on copy. The caster's remaining pool (already reduced by the 100
+  // activation cost) CARRIES OVER, clamped to the copied max — so activating at low energy leaves you
+  // low, and a copied ULTIMATE can't be fired instantly off a free full bar. (Unlike Chrollo's Skill
+  // Hunter, which grants a fresh bar; that mechanic is untouched.)
+  fighter.energy     = Math.min(fighter.energy || 0, fighter.maxEnergy)
+  _edoClearTransient(fighter)
+  _tjResetSpriteHandler(fighter)
+  fighter._tjActive = true; fighter._tjTier = 2; fighter._tjTarget = targetKey; fighter._tjTimer = TJ_DURATION
+  fighter.ultimateCooldown = 0
+  clearInputBuffer(fighter)
+  fighter.teleportFlash = 14
+  return true
+}
+
+// Motion-input entry point. tier 1 = Disguise (cheap, visual-only). tier 2 = Full Copy (expensive).
 function fireTransformJutsu(fighter, context, tier) {
+  try { console.log(`[DIAG] fireTransformJutsu tier=${tier} caster=${fighter?.rosterKey} tjActive=${fighter?._tjActive}`) } catch (_) {}
   if (fighter._tjActive) return false                       // already transformed
   const targetKey = transformJutsuTarget(fighter, context)
+  try { console.log(`[DIAG] fireTransformJutsu target=${targetKey}`) } catch (_) {}
   if (!targetKey) return false                              // no valid opponent (mirror / transient)
   const cost = tier === 2 ? TJ_TIER2_COST : TJ_TIER1_COST
   if (!spendEnergy(fighter, cost)) return false
   spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)   // henge transform smoke (shared poof)
   fighter.teleportFlash = 12
-  fighter.attackCooldown = getAttackDuration(14, fighter)
-  // Stage 2 ships Tier 1; Tier 2 (applyTransformFullCopy) is added in Stage 3.
-  return applyTransformDisguise(fighter, targetKey)
+  fighter.attackCooldown = getAttackDuration(tier === 2 ? 20 : 14, fighter)
+  return tier === 2 ? applyTransformFullCopy(fighter, targetKey) : applyTransformDisguise(fighter, targetKey)
+}
+
+// Per-character motion bindings (like BETA_SPECIAL_MOTIONS). tier2 checked before tier1. Motions are
+// chosen collision-free per char (avoiding double-FORWARD for Minato, whose F→F is his teleport blink).
+const TRANSFORM_JUTSU_MOTIONS = {
+  // Both motions use THREE DISTINCT directions so neither repeats a direction — a repeated direction is a
+  // double-tap, which triggers a dash (or Minato's F→F teleport) and corrupts the input. Tier 1 = HCB
+  // (→↓←), Tier 2 = DBF (↓←→). Both have a single forward tap (Minato-safe) and are collision-free per char.
+  naruto:   { tier1: "hcb", tier2: "dbf" },
+  sasuke:   { tier1: "hcb", tier2: "dbf" },
+  itachi:   { tier1: "hcb", tier2: "dbf" },
+  tobirama: { tier1: "hcb", tier2: "dbf" },
+  minato:   { tier1: "hcb", tier2: "dbf" }
+}
+// Shared dispatcher — call at the TOP of each Naruto-universe executeXSpecial. Additive: on a failed
+// gate it returns false and the normal special routing continues.
+function tryTransformJutsu(fighter, context) {
+  const key = (fighter.rosterKey || "").toLowerCase()
+  const m = TRANSFORM_JUTSU_MOTIONS[key]
+  if (!m || fighter._tjActive) return false                 // no binding, or already transformed
+  try { console.log(`[DIAG] tryTransformJutsu key=${key} tier2motion(${m.tier2})=${detectMotion(fighter, m.tier2)} tier1motion(${m.tier1})=${detectMotion(fighter, m.tier1)}`) } catch (_) {}
+  if (m.tier2 && detectMotion(fighter, m.tier2) && fireTransformJutsu(fighter, context, 2)) { clearMotionHistory(fighter); return true }
+  if (m.tier1 && detectMotion(fighter, m.tier1) && fireTransformJutsu(fighter, context, 1)) { clearMotionHistory(fighter); return true }
+  return false
 }
 
 export function executeChrolloUltimate(fighter, context) {
@@ -6452,6 +6530,131 @@ function applyGhostfaceFinalActDamage(fighter, opp, cineCtx = {}) {
   }
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// GHOSTFACE — COMPANION SWAP ("Kameo") : the signature identity power (Stage 3 pilot).
+// A killer wears a borrowed face — press the swap combo and Ghostface becomes ONE of the 4 companions
+// matched to the equipped killer-identity skin (getGhostfaceCallInPool), playing that character's FULL
+// real kit with UNLIMITED resource, for a fixed window, then auto-reverting to Ghostface.
+//
+// ENGINE REUSE (NOT Chrollo's trigger): this forks the Skill Hunter field-swap ENGINE — the same
+// SKILL_HUNTER_FIELDS constant + the field writes proven by applySkillHunter — into its OWN _gfSwap*
+// state namespace, exactly the way Transformation Jutsu (_tj*) forks it. applySkillHunter itself is left
+// 100% untouched, so Chrollo's Skill Hunter cannot be affected. Differences from Skill Hunter, per spec:
+//   (a) TRIGGER  = a button combo (game.js handleGhostfaceSwap), NOT the 3-distinct-move unlock.
+//   (b) TIMER    = fixed window, auto-revert; no manual early-end.
+//   (c) RESOURCE = UNLIMITED during the window via the existing fighter.infiniteEnergy flag
+//                  (spendEnergy/canSpendEnergy short-circuit on it) — prior value stashed + restored.
+//   (d) TARGET   = a COMPANION from the equipped skin's pool, NOT the opponent.
+const GF_SWAP_DURATION = 12 * 60   // 12s window (spec: 10-15s), fixed → auto-revert
+const GF_SWAP_COST     = 35        // modest Dread cost per activation (freely repeatable, energy-gated only)
+
+// Slot table — CHARGE + this cardinal picks companion pool[i] of the equipped identity. Physical keys
+// (not facing-relative) so the SAME combo always maps to the SAME slot → deterministic selection.
+export const GHOSTFACE_SWAP_SLOTS = [
+  { field: "down",  label: "↓" },   // slot 0
+  { field: "left",  label: "←" },   // slot 1
+  { field: "right", label: "→" },   // slot 2
+  { field: "jump",  label: "↑" },   // slot 3 (up-key folds into `jump`; consumed so it won't also hop)
+]
+export function ghostfaceSwapSlotCombo(i) { return GHOSTFACE_SWAP_SLOTS[i] || null }
+
+// Overwrite the live fighter with the companion's FULL kit. Mirrors applySkillHunter's field writes
+// (kept in sync via the shared SKILL_HUNTER_FIELDS stash loop) + adds the infiniteEnergy grant.
+export function applyGhostfaceSwap(fighter, targetKey) {
+  const target = characters[targetKey]
+  try { console.log(`[DIAG] applyGhostfaceSwap ENTER target=${targetKey} hasTarget=${!!target} fighterWas=${fighter?.rosterKey}`) } catch (_) {}
+  if (!target) return false
+  // 1) stash Ghostface's originals (+ skin state + prior infiniteEnergy) for the revert
+  const stash = {}
+  for (const k of SKILL_HUNTER_FIELDS) stash[k] = fighter[k]
+  stash._skinAnim = fighter._skinAnim; stash._recolorTag = fighter._recolorTag; stash._baseSkinAnim = fighter._baseSkinAnim
+  stash.infiniteEnergy = fighter.infiniteEnergy
+  // Stash Ghostface's OWN Dread (already debited the activation cost in triggerGhostfaceSwap) so the revert
+  // restores it rather than refilling to full. Otherwise the window's infiniteEnergy would leave the meter
+  // pinned high and the revert-clamp would hand back a FULL bar — making every swap after the first free and
+  // the mechanic effectively permanent. Restoring the post-cost value keeps it "limited by Dread regen".
+  stash.energy = fighter.energy
+  fighter._gfSwapStash = stash
+  // 2) overwrite with the companion's FULL kit (same field writes as applySkillHunter)
+  fighter.rosterKey        = targetKey
+  fighter.name             = target.name || targetKey
+  fighter.color            = target.color || fighter.color
+  fighter.basic_attacks    = target.basic_attacks || fighter.basic_attacks
+  fighter.animationData    = target.animationData || fighter.animationData
+  fighter.spriteScale      = target.spriteScale ?? fighter.spriteScale
+  fighter.traits           = target.traits || fighter.traits
+  fighter.ultimate         = target.ultimate || fighter.ultimate
+  fighter.specials         = target.specials || fighter.specials
+  fighter.passive          = target.passive || fighter.passive
+  fighter.archetypes       = target.archetypes || fighter.archetypes
+  fighter.primary          = target.primary || fighter.primary
+  fighter.secondary        = target.secondary || fighter.secondary
+  fighter.dashTeleport     = !!target.movement?.dashTeleport
+  fighter.runWhenAdvancing = !!target.movement?.runWhenAdvancing
+  fighter.introPool        = target.introPool || null
+  fighter.hasSprites       = target.hasSprites !== false
+  fighter.transformations     = target.transformations || null
+  fighter.transformationOrder = target.transformationOrder || null
+  fighter.currentForm         = (target.transformationOrder && target.transformationOrder[0]) || null
+  fighter.transformIndex      = target.transformationOrder ? 0 : null
+  fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null   // borrow the companion's NORMAL art
+  fighter.maxEnergy  = target.stats?.maxEnergy || fighter.maxEnergy || 100
+  fighter.energyType = target.traits?.energyType || fighter.energyType
+  // 3) UNLIMITED resource for the window + full bar (so the borrowed kit is instantly, endlessly usable)
+  fighter.infiniteEnergy = true
+  fighter.energy         = fighter.maxEnergy
+  // 4) clean transient state (also re-resolves the sprite handler against the new anim) + arm the window
+  _edoClearTransient(fighter)
+  fighter._gfSwapActive = true
+  fighter._gfSwapTimer  = GF_SWAP_DURATION
+  fighter._gfSwapTarget = targetKey
+  fighter.ultimateCooldown = 0
+  clearInputBuffer(fighter)
+  fighter.teleportFlash = 12
+  return true
+}
+
+export function revertGhostfaceSwap(fighter) {
+  if (!fighter?._gfSwapActive || !fighter._gfSwapStash) return false
+  const s = fighter._gfSwapStash
+  _edoCleanseVesselState(fighter)                        // wipe any borrowed form/buff BEFORE restoring Ghostface
+  for (const k of SKILL_HUNTER_FIELDS) fighter[k] = s[k]
+  fighter._skinAnim = s._skinAnim || null; fighter._recolorTag = s._recolorTag || null; fighter._baseSkinAnim = s._baseSkinAnim || null
+  fighter.infiniteEnergy = s.infiniteEnergy || false     // restore EXACT prior value (don't clobber a training toggle)
+  _edoClearTransient(fighter)                            // clears own attack/cast (NOT hitstun/knockback → non-exploitable)
+  fighter._gfSwapActive = false; fighter._gfSwapStash = null; fighter._gfSwapTarget = null; fighter._gfSwapTimer = 0
+  fighter.energy = Math.min(s.energy || 0, fighter.maxEnergy || 0)   // restore the POST-COST Dread (no free refill → cost is real, gated by regen)
+  clearInputBuffer(fighter)
+  fighter.teleportFlash = 14
+  return true
+}
+
+// Fixed-timer driver — counts the window down + auto-reverts (called every frame from game.js).
+export function updateGhostfaceSwap(fighter) {
+  if (!fighter || !fighter._gfSwapActive) return
+  if (fighter._gfSwapTimer > 0) fighter._gfSwapTimer--
+  if (fighter._gfSwapTimer <= 0) revertGhostfaceSwap(fighter)
+}
+export function isGhostfaceSwapActive(fighter) { return !!fighter?._gfSwapActive }
+export function ghostfaceSwapTimer(fighter)   { return fighter?._gfSwapActive ? (fighter._gfSwapTimer || 0) : 0 }
+export function ghostfaceSwapTarget(fighter)  { return fighter?._gfSwapActive ? (fighter._gfSwapTarget || null) : null }
+
+// TRIGGER — swap into pool[slot] of the equipped identity. Deterministic: slot indexes straight into the
+// (already pool-gated) companion list, so a given combo ALWAYS lands the same companion. Energy-gated only.
+export function triggerGhostfaceSwap(fighter, slot, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return false   // only real Ghostface (not mid-swap)
+  if (fighter._gfSwapActive) return false
+  if (fighter.attacking || fighter.currentMove) return false                              // don't cancel a committed move
+  const pool = getGhostfaceCallInPool(fighter)
+  const targetKey = pool[slot]
+  if (!targetKey || !characters[targetKey]) return false
+  if (!spendEnergy(fighter, GF_SWAP_COST)) return false
+  if (!applyGhostfaceSwap(fighter, targetKey)) return false
+  fighter.vx = 0
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  return true
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MAKI ZENIN (Stage 2) — naginata normals + "Cursed Tool Flurry" command chain.
 //   The 5 basic normals (light/heavy/up/air/down_air) use the generic attack system
@@ -7947,6 +8150,9 @@ function executeItachiSpecial(fighter, context) {
   // SUSANOO active → the SPECIAL button swings the giant sword (base kit is suppressed while giant).
   if (fighter._itachiSusanoo) return executeItachiSusanooSword(fighter, context)
 
+  // TRANSFORMATION JUTSU — Tier 1 Disguise (→↓←) / Tier 2 Full Copy (→↓→). Additive; falls through on gate-fail.
+  if (tryTransformJutsu(fighter, context)) return true
+
   const dirs = getRelativeDirections(fighter)
 
   // ── MANGEKYOU-GATED SPECIALS ────────────────────────────────────────────
@@ -8014,6 +8220,9 @@ function executeSasukeSpecial(fighter, context) {
   const stage = fighter._susanooStage || 0
   const getOpp = getTargetResolver(context)
   const target = getOpp(fighter)
+
+  // TRANSFORMATION JUTSU — Tier 1 Disguise (→↓←) / Tier 2 Full Copy (→↓→). Additive; falls through on gate-fail.
+  if (tryTransformJutsu(fighter, context)) return true
   // BASE KIT (no Susanoo): motion split on the SAME special button (Megumi-style). Check the MOST
   // specific motion first so subsets don't shadow it:
   //   down,forward + special (qcf) → two-strike LIGHTNING
@@ -8206,6 +8415,9 @@ export function executeTobiramaWaterFlicker(fighter, context) {
   return true
 }
 export function executeTobiramaSpecial(fighter, context) {
+  // TRANSFORMATION JUTSU — Tier 1 Disguise (→↓←) / Tier 2 Full Copy (→↓→). Additive; falls through on gate-fail.
+  if (tryTransformJutsu(fighter, context)) return true
+
   const dir = fighter._specialHeldDir || null
   const airborne = !(fighter.onGround ?? fighter.grounded ?? true)
   // Rising Water (anti-air geyser launcher) = Special while AIRBORNE, or Up+Special. Airborne is the

@@ -82,6 +82,7 @@
     "test:motion-s3-shots": "node harness/motion_stage3_shots.mjs",
     "test:motion-s4-shots": "node harness/motion_stage4_shots.mjs",
     "test:decoy": "node harness/decoy_system.test.mjs",
+    "test:transform-s2-shots": "node harness/transform_stage2_shots.mjs",
     "test:decoy-s2-shots": "node harness/decoy_stage2_shots.mjs",
     "test:decoy-s3-shots": "node harness/decoy_stage3_shots.mjs",
     "test:decoy-s4-shots": "node harness/decoy_stage4_shots.mjs",
@@ -174,6 +175,7 @@
     "test:ghostface-s2": "node harness/ghostface_stage2_shots.mjs",
     "test:ghostface-s4": "node harness/ghostface_stage4_modifiers.mjs",
     "test:ghostface-s5": "node harness/ghostface_stage5_callin.mjs",
+    "test:ghostface-swap": "node harness/ghostface_swap_stage3.mjs",
     "test:minato-s1": "node harness/minato_stage1_shots.mjs",
     "test:minato-s2": "node harness/minato_stage2.test.mjs",
     "test:minato-s3": "node harness/minato_stage3.mjs",
@@ -228,7 +230,13 @@
     "test:minato-kurama-shared-voice": "node harness/minato_kurama_shared_voice.test.mjs",
     "test:edo-scroll": "node harness/edo_scroll.mjs",
     "test:scroll-audit": "node harness/selection_scroll_audit.mjs",
-    "test:reanim": "node harness/reanim_shots.mjs && node harness/reanim_shots_new.mjs && node harness/reanim_shots_newly.mjs"
+    "test:reanim": "node harness/reanim_shots.mjs && node harness/reanim_shots_new.mjs && node harness/reanim_shots_newly.mjs",
+    "test:transform-s3-shots": "node harness/transform_stage3_shots.mjs",
+    "test:transform-s4-shots": "node harness/transform_stage4_shots.mjs",
+    "test:transform": "node harness/transform_jutsu.test.mjs",
+    "test:ghostface-swap4": "node harness/ghostface_swap_stage4.mjs",
+    "test:transform-energy-shots": "node harness/transform_energy_shots.mjs",
+    "test:ghostface-swap-canon": "node harness/ghostface_swap.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

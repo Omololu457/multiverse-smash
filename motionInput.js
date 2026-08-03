@@ -42,6 +42,8 @@ const MOTIONS = {
   dp:        { seq: ["F", "D", "F"],      window: 700,  strays: 1 },   // →↓↘   dragon punch
   hcf:       { seq: ["B", "D", "F"],      window: 800,  strays: 1 },   // ←↓→   half-circle forward
   hcb:       { seq: ["F", "D", "B"],      window: 800,  strays: 1 },   // →↓←   half-circle back
+  dpb:       { seq: ["B", "D", "B"],      window: 800,  strays: 1 },   // ←↓←   all-back
+  dbf:       { seq: ["D", "B", "F"],      window: 800,  strays: 1 },   // ↓←→   down-back-forward: THREE DISTINCT dirs (no double-tap → no dash), one forward (Minato-safe)
   doubleQcf: { seq: ["D", "F", "D", "F"], window: 1000, strays: 1 },   // ↓↘→↓↘→  double QCF (Uzumaki Barrage)
   doubleQcb: { seq: ["D", "B", "D", "B"], window: 1000, strays: 1 }    // ↓↙←↓↙←  double QCB
 }

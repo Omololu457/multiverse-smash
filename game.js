@@ -84,8 +84,13 @@ import {
   updateRengokuCommandCombat,  // Rengoku Fwd+Heavy branching "Flame Breathing" ground+air chains (Heavy=continue / Special=super finisher)
   updateShinobuCommandCombat,  // Shinobu Fwd+Heavy "Insect Breathing" thrust chain + Poison-on-hit watcher
   updateGhostfaceCommandCombat,  // Ghostface Down+Heavy "Slasher Frenzy" low-knife chain + Bleed/Knockdown-on-hit watchers
+  updateMiwaCommandCombat,  // Miwa Fwd+Heavy "Battojutsu Rush" 3-hit katana chain (miwaG1 lunge→miwaG2 thrust→miwaG3 launcher, cancel-on-hit)
+  updateMakiCommandCombat,  // Maki Fwd+Heavy "Cursed Tool Flurry" 3-hit kick chain (makiG1→makiG2→makiG3, cancel-on-hit) — Heavenly-Vow TIGHT link window
+  fireMakiPowerCharge, revertMakiPowerCharge, makiShibuyaActive,  // Maki Power Charge self-buff (charge-release) + Shibuya-form probe
+
   getGhostfaceCallInPool,        // Ghostface Call-In: the active identity's 4-character companion pool
-  triggerGhostfaceSwap, updateGhostfaceSwap, isGhostfaceSwapActive, ghostfaceSwapTimer, ghostfaceSwapTarget, GHOSTFACE_SWAP_SLOTS,  // Ghostface Companion Swap ("Kameo"): MOTION+Special → full-kit swap into a pool companion, fixed window, auto-revert (trigger lives in abilities.js executeGhostfaceSpecial)
+  triggerGhostfaceSwap, updateGhostfaceSwap, isGhostfaceSwapActive, ghostfaceSwapTimer, ghostfaceSwapTarget, GHOSTFACE_SWAP_SLOTS,  // Ghostface Companion Swap ("Kameo"): full-kit swap into a pool companion, fixed window, auto-revert (now a branch of the Backstage Pass)
+  updateGhostfaceBackstagePass, isGhostfaceBackstagePassActive, ghostfaceBackstagePassBranch,   // Ghostface Backstage Pass (Special, spec §4.2): dash-off + phantom hit + branch (switch/getaway/fakeout/swap)
   applySkillHunter, revertSkillHunter,   // Chrollo Skill Hunter engine — imported ONLY for a test-hook "unaffected" proof (drives the real shared field-swap)
   fireRengokuFlameStrike       // Rengoku Charged Flame Strike — fired from handleChargeRelease (CHARGE hold→release, tap/hold power tiers)
 } from "./abilities.js"
@@ -208,9 +213,17 @@ import {
   clearShinobuButterflyCinematic, getShinobuButterflyCinematicStatus
 } from "./shinobuButterflyCinematic.js"
 import {
+  updateMakiShibuyaCinematic, isMakiShibuyaCinematicActive, drawMakiShibuyaCinematic,
+  clearMakiShibuyaCinematic, getMakiShibuyaCinematicStatus
+} from "./makiShibuyaCinematic.js"
+import {
   updateGhostfaceFinalActCinematic, isGhostfaceFinalActCinematicActive, drawGhostfaceFinalActCinematic,
   clearGhostfaceFinalActCinematic, getGhostfaceFinalActCinematicStatus
 } from "./ghostfaceFinalActCinematic.js"
+import {
+  updateMiwaUltimateCinematic, isMiwaUltimateCinematicActive, drawMiwaUltimateCinematic,
+  clearMiwaUltimateCinematic, getMiwaUltimateCinematicStatus
+} from "./miwaUltimateCinematic.js"
 import {
   updateEdoTenseiCinematic, isEdoTenseiCinematicActive, drawEdoTenseiCinematic,
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
@@ -220,6 +233,7 @@ import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
 import { pickGonVoice, GON_VOICE } from "./gonVoice.js"
 import { pickHisokaVoice, HISOKA_VOICE } from "./hisokaVoice.js"
+import { pickGhostfaceVoice, GHOSTFACE_VOICE } from "./ghostfaceVoice.js"   // Ghostface intro + win voice pools (audio-only)
 import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
 import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
@@ -1585,6 +1599,8 @@ function resetRound() {
   clearRengokuFlameExplosionCinematic()
   clearShinobuButterflyCinematic()
   clearGhostfaceFinalActCinematic()
+  clearMiwaUltimateCinematic()
+  clearMakiShibuyaCinematic()
   clearEdoTenseiCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
@@ -1731,6 +1747,7 @@ const INTRO_VOICE = {
   // Regime "Traitors, all of you"). His `taunt` action drives the universal heal, so the trash-talk pool
   // rides the offense-connect trigger instead (see supermanVoice.js NOTE); intro fires here.
   superman: { pool: SUPERMAN_VOICE.intro, gateReveal: false },
+  ghostface: { pool: GHOSTFACE_VOICE.intro, gateReveal: false },   // one of his openers at random ("What's your favorite scary movie?" …)
   // Netero intro voice removed (audio files deleted); with no entry here he skips the intro-voice
   // beat cleanly (maybeFireIntroVoice no-ops for unmapped fighters). Re-add an entry to re-enable.
 }
@@ -2189,6 +2206,8 @@ function resetToStart() {
   clearRengokuFlameExplosionCinematic()
   clearShinobuButterflyCinematic()
   clearGhostfaceFinalActCinematic()
+  clearMiwaUltimateCinematic()
+  clearMakiShibuyaCinematic()
   clearEdoTenseiCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
@@ -2544,6 +2563,11 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "hisoka") {
         sound.playSfxFile?.(pickHisokaVoice("win"), null)
       }
+      // GHOSTFACE win voice — random pick from his victory pool ("Now you lose" / "You won't get a
+      // sequel!" / "See you soon!"). Fires only when the WINNER is Ghostface.
+      if (winFighter?.rosterKey === "ghostface") {
+        sound.playSfxFile?.(pickGhostfaceVoice("win"), null)
+      }
       // BATMAN win voice — random pick from his victory pool ("You'll find plenty back in Arkham" /
       // "Gotham will rise again"). Fires only when the WINNER is Batman.
       if (winFighter?.rosterKey === "batman") {
@@ -2709,6 +2733,8 @@ function _doRematch() {
   clearRengokuFlameExplosionCinematic()
   clearShinobuButterflyCinematic()
   clearGhostfaceFinalActCinematic()
+  clearMiwaUltimateCinematic()
+  clearMakiShibuyaCinematic()
   clearEdoTenseiCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
@@ -2883,6 +2909,14 @@ function handleChargeRelease(fighter, key) {
   // Cooldown-gated (fireRengokuFlameStrike checks flameCd). No energy (maxEnergy 0) → the hold just poses.
   if ((fighter.rosterKey || "").toLowerCase() === "rengoku") {
     if (wasHeld) fireRengokuFlameStrike(fighter, !wasTap, getAbilityContext())
+    return
+  }
+
+  // MAKI — POWER CHARGE: hold P then RELEASE to fire the self-buff (1.3× damage, ~5s, cooldown-gated, no
+  // energy). Same no-energy charge-release shape as Rengoku's Flame Strike; the buff timer + recast tick in
+  // updateMiscTimers (auto-revert). A pure self-buff, so any real press-release fires it (tap or hold).
+  if ((fighter.rosterKey || "").toLowerCase() === "maki") {
+    if (wasHeld) fireMakiPowerCharge(fighter, getAbilityContext())
     return
   }
 
@@ -3107,6 +3141,16 @@ function updateGamepadEdges(fighter) {
   prev.l2 = l2
 }
 
+// MAKI — "Cursed Tool Awakening" HP-threshold unlock. Her Shibuya-Arc Ultimate has NO meter; the transform
+// OPTION unlocks only once HP drops to ≤25%, and PERSISTS the rest of the match even if she heals back above
+// 25% (a genuine risk/reward comeback, not a re-lockable gate). executeMakiShibuyaUltimate reads _shibuyaUnlocked.
+function trackMakiShibuyaUnlock(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "maki") return
+  if (fighter._shibuyaUnlocked) return                                     // one-way: once true, stays true
+  const pct = (fighter.health || 0) / (fighter.maxHealth || 1) * 100
+  if (pct <= 25) fighter._shibuyaUnlocked = true
+}
+
 function updateMiscTimers(fighter) {
   if (!fighter) return
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
@@ -3135,6 +3179,11 @@ function updateMiscTimers(fighter) {
   if (fighter.poisonCd > 0) fighter.poisonCd--                             // Shinobu Poison Thrust cooldown
   if (fighter.flitCd > 0) fighter.flitCd--                                 // Shinobu Butterfly Flit cooldown
   if (fighter.callInCd > 0) fighter.callInCd--                             // Ghostface Call-In companion special cooldown (Roman: halved)
+  if (fighter.kunaiCd > 0) fighter.kunaiCd--                               // Maki Kunai Throw cooldown (no-energy special)
+  if (fighter.nunchakuCd > 0) fighter.nunchakuCd--                         // Maki Nunchaku Flurry cooldown (no-energy special)
+  if (fighter._makiPowerCd > 0) fighter._makiPowerCd--                     // Maki Power Charge recast lockout
+  if (fighter._makiPowerTimer > 0 && --fighter._makiPowerTimer <= 0) revertMakiPowerCharge(fighter)   // Power Charge buff window expiry → auto-revert
+  trackMakiShibuyaUnlock(fighter)                                          // Maki HP-threshold (≤25%) ultimate unlock (persists once crossed)
   if (fighter._rengokuCountering > 0) fighter._rengokuCountering--          // Rengoku Counter riposte-window countdown (checkParry hook)
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
@@ -3242,6 +3291,9 @@ function updateMovementInput(fighter) {
   // updatePlayerCombat; physics.moveFighter also honours _tauntPlaying).
   updateTauntState(fighter, !!inputState.down)
   if (fighter._tauntPlaying) { fighter.isBlocking = false; fighter.isCharging = false; fighter.vx = 0; return }
+  // BACKSTAGE PASS: committed dash — no movement control (the BP driver owns vx + the emerge). Don't zero
+  // vx here (that's the dash) — just deny input so the teleport can't be steered/cancelled.
+  if (fighter._bpActive) { fighter.isBlocking = false; fighter.isCharging = false; return }
 
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   fighter.isBlocking = false
@@ -3395,6 +3447,11 @@ function _updatePlayerCombatBody(fighter) {
   updateEdoTensei(fighter, getStageWorldWidth())
   if (fighter._edoWindup > 0) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
 
+  // BACKSTAGE PASS: committed teleport-reposition/swap — takes no input during the dash (the BP driver, run
+  // in the per-fighter update, owns movement + the emerge). updateCombat still runs so hitstun/knockback
+  // resolve (the swap branch has no i-frames → a clean hit cancels it). Mirrors the Edo committed-cast gate.
+  if (fighter._bpActive) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
+
   // TOBIRAMA — Water Body-Flicker reversal (reactive escape): Special pressed while in hitstun or
   // knockdown dissolves him into water and reforms retreating with i-frames. Read here, AHEAD of the
   // stun early-return below (which normally ignores input), so it works as a true reversal. Costs
@@ -3456,6 +3513,9 @@ function _updatePlayerCombatBody(fighter) {
     // windowed source for direction-branched specials (Killua: Fwd=Lightning Palm, Down=Electric Ball,
     // neutral=Yo-Yo). Only read by chars that opt in; unused by everyone else.
     fighter._specialHeldDir = betaHeldDirFromInput(inputState, fighter.facing)
+    // Modifiers held the SAME frame Special is buffered — read by Ghostface's Backstage Pass to pick its
+    // branch (Grab/Charge = swap, attack btn = fakeout). Only Ghostface reads it; harmless for everyone else.
+    fighter._specialHeldMods = { grab: !!inputState.grab, charge: !!inputState.charge, attack: !!(inputState.light || inputState.heavy || inputState.upAttack) }
     triggerSpecial(fighter,  getAbilityContext()); return
   }
   if (canStart && !charging && inputState.ultimate) { triggerUltimate(fighter, getAbilityContext()); return }
@@ -3572,6 +3632,18 @@ function _updatePlayerCombatBody(fighter) {
   // KNOCKDOWN-on-hit watchers for his Gutting Lunge / Low Gut specials. Consumes the input only when it fires.
   if ((fighter.rosterKey || "").toLowerCase() === "ghostface" && !charging &&
       updateGhostfaceCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // MIWA "Battojutsu Rush" katana chain: Fwd+Heavy opens miwaG1, re-tap Heavy on a clean hit → miwaG2 →
+  // miwaG3 launcher (cancel-on-hit; a whiff/block ends the string). Consumes the input only when it fires;
+  // neutral heavy stays a normal. Mirrors updateMakiCommandCombat/updateShinobuCommandCombat.
+  if ((fighter.rosterKey || "").toLowerCase() === "miwa" && !charging &&
+      updateMiwaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // MAKI "Cursed Tool Flurry" kick chain: Fwd+Heavy opens makiG1, re-tap Heavy on a clean hit → makiG2 →
+  // makiG3 finisher (cancel-on-hit; a whiff/block ends the string). Same shared rekka gate as Miwa/Shinobu,
+  // but with the Heavenly-Vow per-character TIGHT cancel window (fireMakiCommand stamps _cancelWindowFrames).
+  if ((fighter.rosterKey || "").toLowerCase() === "maki" && !charging &&
+      updateMakiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // NETERO Guanyin giant: the base attack buttons fire the 4 avatar attacks (light=leg, heavy=arm-sweep,
   // up=punch-burst; combo-slash is on SPECIAL). Consumes the press only when it fires.
@@ -3782,6 +3854,59 @@ function drawVoidStarfield(c, fighter) {
   for (const s of fx.stars) {
     c.globalAlpha = s.a
     c.fillRect(x + s.nx * w - s.r / 2, y + s.ny * h - s.r / 2, s.r, s.r)
+  }
+  c.restore()
+}
+
+// MAKI "VOID HUNTER" — procedural VOID-COSMOS overlay (cosmetic), on top of the near-black full-form sprite.
+// Same architecture as Rick's Void Form starfield (SEEDED ONCE per skin-load, normalized to the sprite bbox
+// via _lastDraw* so it tracks every pose) — but living: the pale stars slowly DRIFT and the red/violet
+// nebulae gently SWIRL around their seed centres (advanced by _voidHunterClock). BASE-FORM ONLY — self-skips
+// while _shibuyaActive (the black Shibuya costume has its own look). No baked pixels; no-op for anyone else.
+function seedVoidHunterField(fighter) {
+  const rnd = _mulberry32(0x1DEA5EED)
+  const halfWidth = ny => ny < 0.28 ? 0.17 : (ny < 0.64 ? 0.27 : 0.14)   // head / torso / legs
+  const stars = []
+  for (let i = 0; i < 22; i++) {                // low density — subtle scattered void-lights
+    const ny = 0.08 + rnd() * 0.87
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    stars.push({ nx, ny, r: rnd() < 0.72 ? 1 : 2, a: 0.5 + rnd() * 0.45,
+      driftAmp: 0.006 + rnd() * 0.014, driftFreq: 0.5 + rnd() * 1.0, phase: rnd() * Math.PI * 2 })
+  }
+  const palette = ["#B02A3A", "#7E2E8F", "#A83373"]   // red / violet / magenta void nebulae (distinct signature)
+  const nebulae = []
+  for (let i = 0; i < 3; i++) {                 // 3 sparse, diffuse nebula blobs centred on the torso
+    nebulae.push({ nx: 0.33 + rnd() * 0.34, ny: 0.24 + rnd() * 0.40, r: 0.16 + rnd() * 0.1,
+      color: palette[i % 3], a: 0.16 + rnd() * 0.08,
+      swirlR: 0.02 + rnd() * 0.03, swirlFreq: 0.4 + rnd() * 0.6, phase: rnd() * Math.PI * 2 })
+  }
+  fighter._voidHunterFX = { stars, nebulae }
+}
+function drawVoidHunterOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "makiVoidHunter") return
+  if (fighter._shibuyaActive) return                    // base-form only (the Shibuya costume has its own look)
+  if (!fighter._voidHunterFX) seedVoidHunterField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._voidHunterFX
+  const t = (fighter._voidHunterClock = (fighter._voidHunterClock || 0) + 1)
+  c.save()
+  // nebulae behind the stars — soft radial blobs that gently SWIRL around their seed centre
+  for (const n of fx.nebulae) {
+    const cx = x + (n.nx + n.swirlR * Math.cos(t * 0.02 * n.swirlFreq + n.phase)) * w
+    const cy = y + (n.ny + n.swirlR * Math.sin(t * 0.02 * n.swirlFreq + n.phase)) * h
+    const rad = n.r * Math.max(w, h)
+    const g = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    g.addColorStop(0, _rgbaHex(n.color, n.a)); g.addColorStop(1, _rgbaHex(n.color, 0))
+    c.fillStyle = g; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  // stars — pale void-lights that slowly DRIFT (fixed brightness glow, gentle sway, no strobe flicker)
+  c.shadowColor = "#D8C4FF"; c.shadowBlur = 2; c.fillStyle = "#F3EEFF"
+  for (const s of fx.stars) {
+    const nx = s.nx + s.driftAmp * Math.sin(t * 0.03 * s.driftFreq + s.phase)
+    const ny = s.ny + s.driftAmp * 0.6 * Math.cos(t * 0.03 * s.driftFreq + s.phase)
+    c.globalAlpha = s.a
+    c.fillRect(x + nx * w - s.r / 2, y + ny * h - s.r / 2, s.r, s.r)
   }
   c.restore()
 }
@@ -4093,6 +4218,30 @@ function drawGonAdultAura(c, fighter) {
   c.restore()
 }
 
+// MIWA — Rapid Slash Vortex FX (§10): a SEPARATE overlay layer (NOT part of the character animation
+// sub-clip) played on the air-special hit. Sprite = kasumi_vortex_fx.png (4 spinning-vortex frames,
+// character frames 0-1 stay in the airVortex sub-clip). Armed by abilities.fireMiwaAirSlash (_miwaVortex
+// {t,max}); ticked in the per-fighter update; drawn IN FRONT of the body at the strike point.
+let _miwaVortexImg = null
+function drawMiwaVortex(c, fighter) {
+  const v = fighter?._miwaVortex
+  if (!c || !v) return
+  if (!_miwaVortexImg) { _miwaVortexImg = new Image(); _miwaVortexImg.src = "./kasumi_vortex_fx.png" }
+  if (!_miwaVortexImg.complete || !_miwaVortexImg.naturalWidth) return
+  const FR = 4, FW = 51, FH = 51
+  const frame = Math.min(FR - 1, Math.floor((v.t / v.max) * FR))
+  const w = fighter.w ?? 60, h = fighter.h ?? 110
+  const cx = (fighter.x ?? 0) + w / 2 + (fighter.facing || 1) * w * 0.55   // in front of the sword
+  const cy = (fighter.y ?? 0) + h * 0.42
+  const scale = (fighter.spriteScale || 1.7) * 1.5
+  const dw = FW * scale, dh = FH * scale
+  const fade = 1 - Math.max(0, v.t - v.max * 0.65) / (v.max * 0.35)         // fade out over the last third
+  c.save()
+  c.globalAlpha = 0.9 * Math.max(0, Math.min(1, fade))
+  c.drawImage(_miwaVortexImg, frame * FW, 0, FW, FH, cx - dw / 2, cy - dh / 2, dw, dh)
+  c.restore()
+}
+
 // Rick's Portal-Pull / Portal-Push reappear the opponent above a destination and let
 // them fall (abilities.js rickPortalReposition). This applies the impact damage the
 // frame they reground — mirrors the _dot marker→resolver split (abilities stamps the
@@ -4133,6 +4282,8 @@ function updateFighterState(fighter) {
   applyHisokaOverdriveSystem(updated)   // Hisoka Bloodlust Overdrive: continuous Nen drain + auto-revert at 0 (buff + _skinAnim body-swap set at enter)
   updateTransformJutsu(updated)         // Transformation Jutsu (Naruto-universe): counts the disguise/full-copy window down + auto-reverts
   updateGhostfaceSwap(updated)          // Ghostface Companion Swap: counts the borrowed-kit window down + auto-reverts to Ghostface
+  updateGhostfaceBackstagePass(updated, getAbilityContext())   // Ghostface Backstage Pass: ticks the dash + phantom hit, then emerges (reposition/swap)
+  if (updated._miwaVortex && ++updated._miwaVortex.t >= updated._miwaVortex.max) updated._miwaVortex = null   // Miwa Rapid Slash Vortex FX lifetime
   applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
@@ -4700,6 +4851,23 @@ function updateBattle() {
     return
   }
 
+  // MIWA "BLADE OF THE NEOPHYTE" CINEMATIC: SAME freeze contract — combat/physics/input paused for the whole
+  // battojutsu windup → draw-slash; the single guaranteed slash lands at the CONNECT beat, then resume.
+  if (isMiwaUltimateCinematicActive()) {
+    updateMiwaUltimateCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+
+  // MAKI "CURSED TOOL AWAKENING" CINEMATIC: SAME freeze contract — combat/physics/input paused through the
+  // Shibuya-Arc reveal (the form/buff/scale are already applied at activation; this is the presentational
+  // push-in + flash). Flash-only, single body → duplicate-render-immune. Resumes into the awakened moveset.
+  if (isMakiShibuyaCinematicActive()) {
+    updateMakiShibuyaCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+
   // TOBIRAMA EDO TENSEI CINEMATIC (summon + un-summon): SAME freeze contract — combat/physics/input are
   // paused while the coffin ritual plays; the body-swap (in) / revert (out) fires at the cinematic's
   // resolve beat. This freeze is ALSO the timer-pause: while any inner-ultimate cinematic runs, this
@@ -4844,6 +5012,7 @@ function renderHybridFighter(fighter) {
     drawGodspeedAura(c, fighter)       // Killua Godspeed electric-afterimage trail, behind the body (Killua only)
     drawFlashAura(c, fighter)          // Flash — Flash Time red/gold afterimage trail, behind the body (Flash only)
     drawGonAdultAura(c, fighter)       // Gon — Adult Form green Nen aura/afterimage, behind the body (Gon only)
+    drawMiwaVortex(c, fighter)         // Miwa — Rapid Slash Vortex FX, a separate overlay layer in front of the body (Miwa only)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
     } else {
@@ -4853,6 +5022,7 @@ function renderHybridFighter(fighter) {
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
     drawEmberOverlay(c, fighter)        // Rengoku Void Ember — drifting rising embers, ON TOP of the void sprite
     drawPortalVoidOverlay(c, fighter)   // Rick Portal Void — curling green portal swirls, ON TOP of the void sprite
+    drawVoidHunterOverlay(c, fighter)   // Maki Void Hunter — drifting stars + swirling red/violet nebulae, ON TOP of the void sprite
   }
 
   // CINEMATIC INTRO REVEAL (opt-in via characters.js `introReveal`): while this fighter is playing its
@@ -5601,7 +5771,9 @@ function drawBattle() {
   drawSupermanUltimateCinematic(ctx, canvas)  // fullscreen Solar Overload overlay (green vignette → detonation flash → shockwave rings)
   drawRengokuFlameExplosionCinematic(ctx, canvas)  // fullscreen Flame Explosion overlay (ember vignette → detonation flash → flame rings)
   drawShinobuButterflyCinematic(ctx, canvas)  // fullscreen Butterfly Dance overlay (violet vignette → strike flash → spiral slash rings)
+  drawMakiShibuyaCinematic(ctx, canvas)       // fullscreen Cursed Tool Awakening overlay (isolate + push-in + reveal flash)
   drawGhostfaceFinalActCinematic(ctx, canvas) // fullscreen The Final Act overlay (blood vignette → stab-flurry slashes → red impact flash)
+  drawMiwaUltimateCinematic(ctx, canvas)   // fullscreen Blade of the Neophyte overlay (cursed-energy vignette → connect flash → slash arc)
   drawEdoTenseiCinematic(ctx, canvas)         // Edo Tensei summon/un-summon overlay (giant coffin + vessel reveal)
   if (aiVsAiState.active) _drawAiVsAiHud()
 }
@@ -6810,6 +6982,21 @@ gameLoop()
     // Vegeta command-normal chain probe (drive the rekka precisely from a test): current move +
     // attack phase + pending next stage + whether the current hit connected + the heavy-edge latch.
     vegCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, prevHeavy: !!p1._cmdPrevHeavy, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
+    miwaCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
+    miwaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { vortex: !!f._miwaVortex, vortexT: f._miwaVortex?.t ?? null, energy: f.energy, charging: !!f.isCharging, action: f._lastSpriteAction || null, move: f.currentMove || null } : null },
+    // Maki command-normal chain probe (mirrors miwaCmd) — drive the "Cursed Tool Flurry" rekka precisely.
+    // Adds `window` = the EFFECTIVE cancel window (getCancelWindow: recovery span, narrowed windowFrames,
+    // and whether the tightened link is currently open) so a test can prove the Heavenly-Vow tight timing.
+    makiCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0, window: getCancelWindow(p1) } : null),
+    // Is a fighter's resource meter fully suppressed? Mirrors the exact ui.js drawEnergyPanel gate
+    // (traits.hideResourceMeter) — Maki is HP-only, no meter at all.
+    resourceMeterHidden: (who = "p1") => { const f = who === "p2" ? p2 : p1; return !!(f?.traits?.hideResourceMeter) },
+    // Maki "Cursed Tool Awakening" Stage-4 probe: HP-threshold unlock state + live Shibuya-form view.
+    makiShibuya: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { unlocked: !!f._shibuyaUnlocked, hpPct: (f.health || 0) / (f.maxHealth || 1) * 100, active: makiShibuyaActive(f), form: f.currentForm || "base", dmgMult: f.damageMultiplier || 1, spriteScale: f.spriteScale || 0 } },
+    makiShibuyaCine: () => ({ active: isMakiShibuyaCinematicActive(), ...(getMakiShibuyaCinematicStatus?.() || {}) }),
+    // Maki "Void Hunter" skin overlay probe: seeded-once starfield/nebula counts + animation clock + the
+    // tracked sprite bbox the overlay follows (drawVoidHunterOverlay, gated on skinId makiVoidHunter).
+    voidHunterFX: (who = "p1") => { const f = who === "p2" ? p2 : p1; const fx = f?._voidHunterFX; return { seeded: !!fx, stars: fx?.stars?.length || 0, nebulae: fx?.nebulae?.length || 0, clock: f?._voidHunterClock || 0, rect: { x: f?._lastDrawX ?? null, y: f?._lastDrawY ?? null, w: f?._lastDrawW ?? null, h: f?._lastDrawH ?? null } } },
     // Omega Ranger command-chain probe (mirrors vegCmd) — drive the kick-chain rekka precisely.
     orCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
     // Combo-flow Stage 2: the SHARED cancel-window view for either fighter — proves every character's
@@ -6868,7 +7055,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isShinobuButterflyCinematicActive() || isGhostfaceFinalActCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -7125,6 +7312,7 @@ gameLoop()
     omnimanUltCine: () => getOmniManBodySlamCinematicStatus(),
     supermanUltCine: () => getSupermanUltimateCinematicStatus(),
     rengokuUltCine: () => getRengokuFlameExplosionCinematicStatus(),
+    miwaUltCine: () => getMiwaUltimateCinematicStatus(),
     shinobuUltCine: () => getShinobuButterflyCinematicStatus(),
     ghostfaceUltCine: () => getGhostfaceFinalActCinematicStatus(),
     kuramaUltCine: () => getKuramaCinematicStatus(),
@@ -7306,6 +7494,8 @@ gameLoop()
     // Hisoka's 10 pools (intro/taunt/bungee/texture/overdrive/rekka/combatBark/hitReact/lowHealth/win)
     // — proves genuine random selection within each, using the SAME pickHisokaVoice the live triggers call.
     hisokaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickHisokaVoice(pool)),
+    ghostfaceVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickGhostfaceVoice(pool)),   // proves genuine random selection within a Ghostface pool
+    ghostfaceVoicePool: (pool) => (GHOSTFACE_VOICE[pool] || []).slice(),   // the pool's clip array (coverage assertions)
     hisokaVoicePool: pool => HISOKA_VOICE[pool] || null,
     minatoVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickMinatoVoice(pool)),
     minatoVoicePool: pool => MINATO_VOICE[pool] || null,
@@ -7350,8 +7540,18 @@ gameLoop()
         active: isGhostfaceSwapActive(f), target: ghostfaceSwapTarget(f), timer: ghostfaceSwapTimer(f),
         rosterKey: f.rosterKey, name: f.name, energy: f.energy, maxEnergy: f.maxEnergy, infiniteEnergy: !!f.infiniteEnergy,
         skinId: f.skinId || null, pool,
+        recolorTag: f._recolorTag || null,           // during a swap this is the companion's "crew" affiliation skin (spec §3)
+        hasSkinAnim: !!f._skinAnim,                   // the borrowed art is the recoloured _crew sheet set, not the companion default
         slots: GHOSTFACE_SWAP_SLOTS.map((s, i) => ({ combo: s.label, companion: pool[i] || null }))
       }
+    },
+    // Ghostface Backstage Pass (spec §4.2) live state — branch, dash timer, whether the phantom hit landed.
+    bp: (side = "p1") => {
+      const f = side === "p2" ? p2 : p1
+      if (!f) return null
+      return { active: isGhostfaceBackstagePassActive(f), branch: ghostfaceBackstagePassBranch(f), timer: f._bpTimer || 0,
+               hitLanded: !!f._bpHitLanded, gfSwapActive: !!f._gfSwapActive, rosterKey: f.rosterKey,
+               x: f.x, facing: f.facing, invulnTimer: f.invulnTimer || 0 }
     },
     // Force-expire the swap window so the update loop auto-reverts THIS frame (revert-timing test without a 12s wait).
     expireGfSwap: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f && f._gfSwapActive) f._gfSwapTimer = 1; return true },

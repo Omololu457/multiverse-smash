@@ -110,7 +110,7 @@ try {
     check("makiG1 sheet", (seen.get("makiG1") || "").includes("maki_g1_uniform"), `sheet=${seen.get("makiG1")}`);
     check("makiG2 sheet", (seen.get("makiG2") || "").includes("maki_g2_uniform"), `sheet=${seen.get("makiG2")}`);
     check("makiG3 sheet", (seen.get("makiG3") || "").includes("maki_g3_uniform"), `sheet=${seen.get("makiG3")}`);
-    // Total is combo-decay-scaled (raw 28+34+46=108 → ~61); assert it clearly out-damages the biggest single normal (Heavy=50) → multiple stages connected.
+    // Total is combo-decay-scaled (Heavenly Vow raw 34+40+56=130 → ~72); assert it clearly out-damages the biggest single normal (Heavy ~59 EFF) → multiple stages connected.
     check("full chain dealt multi-stage damage (> single normal)", dmg > 50, `dmg=${dmg} (combo-scaled)`);
   }
 

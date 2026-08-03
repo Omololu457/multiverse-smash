@@ -58,6 +58,7 @@
     "test:zenitsu": "node harness/zenitsu.test.mjs",
     "test:rengoku": "node harness/rengoku.test.mjs",
     "test:maki": "node harness/maki.test.mjs",
+    "test:maki-cancel-window": "node harness/maki_cancel_window.test.mjs",
     "test:maki-intros": "node harness/maki_intros.mjs",
     "test:maki-voidhunter": "node harness/maki_voidhunter.test.mjs",
     "test:maki-voice": "node harness/maki_voice.test.mjs",
@@ -235,13 +236,22 @@
     "test:ghostface-swap4": "node harness/ghostface_swap_stage4.mjs",
     "test:transform-energy-shots": "node harness/transform_energy_shots.mjs",
     "test:ghostface-swap-canon": "node harness/ghostface_swap.test.mjs",
-    "test:ghostface-swap-motion": "node harness/ghostface_swap_motion.mjs",
+    "test:miwa": "node harness/miwa.test.mjs",
+    "test:miwa-s1": "node harness/miwa_stage1_shots.mjs",
+    "test:miwa-s2": "node harness/miwa_stage2_shots.mjs",
+    "test:miwa-s3": "node harness/miwa_stage3_shots.mjs",
+    "test:miwa-s4": "node harness/miwa_stage4_shots.mjs",
+    "test:ghostface-swap-crewskin": "node harness/ghostface_swap_crewskin.mjs",
+    "test:ghostface-swap-morph": "node harness/ghostface_swap_morph.mjs",
+    "test:ghostface-backstage-pass": "node harness/ghostface_backstage_pass.mjs",
     "test:ghostface-identity": "node harness/ghostface_identity_mandatory.mjs",
     "test:crew-group1": "node harness/companion_crew_group1.mjs",
     "test:crew-group2": "node harness/companion_crew_group2.mjs",
     "test:crew-group3": "node harness/companion_crew_group3.mjs",
     "test:crew-group4": "node harness/companion_crew_group4.mjs",
-    "test:crew-group5": "node harness/companion_crew_group5.mjs"
+    "test:crew-group5": "node harness/companion_crew_group5.mjs",
+    "test:ghostface-voice": "node harness/ghostface_voice.test.mjs",
+    "test:maki-heavenly-vow": "node harness/maki_heavenly_vow.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

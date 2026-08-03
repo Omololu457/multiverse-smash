@@ -41,8 +41,9 @@ try {
   const before = await charSelect("dragon_ball");
   await page.waitForTimeout(300); await page.screenshot({ path: path.join(OUT, "beta_charselect_BEFORE.png") });
   check("dragon_ball shows the FULL mix (sprited + non-sprited)", ["goku", "goku_black", "vegeta", "beerus", "piccolo", "frieza", "cell"].every(k => before.roster.includes(k)), `roster=${before.roster.join(",")}`);
-  const gojo2Before = await skin("gojo", "gojo2");
-  check("level-5 skin gojo2 LOCKED before BETA (makes the unlock check meaningful)", gojo2Before === false);
+  // Level-gated fixture repointed gojo2 → sukuna3 (lvl8) after all Gojo alt skins were deleted 2026-07-30.
+  const gatedBefore = await skin("sukuna", "sukuna3");
+  check("level-gated skin sukuna3 LOCKED before BETA (makes the unlock check meaningful)", gatedBefore === false);
 
   // ── ENTER "BETA" → ON ──
   section('ENTER "BETA" → sprited-only roster + all skins unlocked');
@@ -52,7 +53,7 @@ try {
   check("(1) selectable roster == live sprite set (non-sprited LOCKED OUT)", sortJoin(m.selectable) === sortJoin(gt.sprite), `n=${m.selectable.length}`);
   for (const gone of ["piccolo", "frieza", "cell", "tanjiro", "morty"]) check(`   '${gone}' (no sprites) NOT selectable`, !m.selectable.includes(gone));
   for (const has of ["goku", "goku_black", "vegeta", "beerus", "gojo", "naruto"]) check(`   '${has}' (has sprites) IS selectable`, m.selectable.includes(has));
-  check("(2) all skins unlocked under BETA (gojo2 now OPEN)", (await skin("gojo", "gojo2")) === true);
+  check("(2) all skins unlocked under BETA (sukuna3 now OPEN)", (await skin("sukuna", "sukuna3")) === true);
   const after = await charSelect("dragon_ball");
   await page.waitForTimeout(300); await page.screenshot({ path: path.join(OUT, "beta_charselect_AFTER.png") });
   check("dragon_ball now shows ONLY sprited chars", sortJoin(after.roster) === sortJoin(["goku", "goku_black", "vegeta", "beerus"]), `roster=${after.roster.join(",")}`);
@@ -63,7 +64,7 @@ try {
   check('re-entering "BETA" turns beta OFF', off.result === "beta" && off.beta === false, `beta=${off.beta}`);
   m = await menu();
   check("(3a) full roster restored after toggle-off", sortJoin(m.selectable) === sortJoin(gt.all), `n=${m.selectable.length}`);
-  check("(3a) skins re-locked after toggle-off (gojo2 LOCKED again)", (await skin("gojo", "gojo2")) === false);
+  check("(3a) skins re-locked after toggle-off (sukuna3 LOCKED again)", (await skin("sukuna", "sukuna3")) === false);
 
   // ── separate CLEAR action ──
   section("separate clearBeta() action also turns it off");

@@ -19,6 +19,7 @@ const ENERGY_TYPE_LABELS = {
   bullshit_science: "Bullshit Science Energy",  // Rick & Morty (Rick) — mirrors his energyConfig.label; kept here as a fallback
   portal_tech:      "Portal Tech",              // Rick & Morty (Morty, Evil Morty, Rick Prime)
   spd_energy:       "SPD Energy",               // Power Rangers SPD
+  symbol_power:     "Symbol Power",             // Power Rangers Samurai (Red Ranger) — Mojikara/kanji power; fuels Mega Mode + specials
   psi:              "Psi",                       // The Disastrous Life of Saiki K. (Saiki) — psychic power
   speed_force:      "Speed Force",               // DC (The Flash) — the Flash Time meter
   gadget:           "Gadgets",                    // DC (Batman) — utility-belt gadget meter (specials + Ultimate)
@@ -27,6 +28,7 @@ const ENERGY_TYPE_LABELS = {
   stamina:          "Stamina",                  // original roster (Omololu)
   omnitrix:         "Omnitrix",                 // Ben 10 (fallback; device HUD block overrides live)
   ultimatrix:       "Ultimatrix",               // Albedo (fallback; device HUD block overrides live)
+  dread:            "Dread",                    // Horror (Ghostface) — the stalker's meter; fuels specials + Ultimate
 }
 
 // Single source of truth for the energy-bar resource name. Explicit energyConfig.label wins (Rick);
@@ -245,6 +247,82 @@ function drawBackdrop(ctx, canvas, top = "#070d1b", bottom = "#17243f") {
   ctx.restore()
 }
 
+// ── SCROLLABLE CARD GRIDS ───────────────────────────────────────────────────
+// Card grids (character / FFA / Edo-Tensei-vessel select) can hold more rows than fit on screen.
+// We keep a per-grid vertical scroll offset (keyed, so different screens don't share a position) and
+// subtract it from every card's y in getGridLayout — so the SAME rects feed BOTH drawing and hit-testing
+// and can never drift out of sync. The offset is always clamped to the REAL content height (derived from
+// the roster count — no hardcoded visible-row count), so it self-corrects as the roster grows/shrinks.
+// Canonical layout opts for the shared character-card grid (char select, Edo vessel pick, FFA pick).
+export const CHAR_GRID_OPTS = { cols: 4, cardW: 220, cardH: 110, gap: 18, startY: 148, bottomMargin: 88, scrollKey: "chars" }
+
+const _gridScroll = new Map()   // scrollKey -> offset px (>= 0; scrolls content UP)
+
+// Geometry of a grid: how tall the content is, the visible band, and the max scrollable offset.
+function _gridMetrics(count, canvas, opts = {}) {
+  const { height: h } = getCanvasSize(canvas)
+  const cols   = opts.cols   || 3
+  const cardH  = opts.cardH  || 120
+  const gap    = opts.gap    || 24
+  const startY = opts.startY || 150
+  const rows     = Math.ceil(Math.max(0, count) / cols)
+  const contentH = rows > 0 ? rows * cardH + (rows - 1) * gap : 0
+  const viewTop    = startY
+  const viewBottom = h - (opts.bottomMargin ?? 84)     // keep clear of the footer hint
+  const viewH      = Math.max(0, viewBottom - viewTop)
+  const maxOffset  = Math.max(0, contentH - viewH)
+  return { rows, cols, cardH, gap, startY, contentH, viewTop, viewBottom, viewH, maxOffset }
+}
+
+// Current CLAMPED offset for a grid; also writes the clamped value back so stale offsets self-correct
+// (e.g. after the roster shrank or the window was resized).
+function _gridOffset(key, count, canvas, opts) {
+  if (!key) return 0
+  const { maxOffset } = _gridMetrics(count, canvas, opts)
+  const o = clamp(_gridScroll.get(key) || 0, 0, maxOffset)
+  _gridScroll.set(key, o)
+  return o
+}
+
+// Scroll a grid by a delta (wheel/trackpad/drag). Returns the clamped offset.
+export function scrollGridBy(key, delta, count, canvas, opts) {
+  _gridScroll.set(key, (_gridScroll.get(key) || 0) + delta)
+  return _gridOffset(key, count, canvas, opts)
+}
+// Reset a grid to the top (call on screen entry so you always start at the first row).
+export function resetGridScroll(key) { if (key) _gridScroll.set(key, 0) }
+
+// The visible band [top, bottom] a grid's cards are clipped/hit-tested against.
+export function getGridViewport(canvas, opts = {}) {
+  const m = _gridMetrics(0, canvas, opts)
+  return { top: m.viewTop, bottom: m.viewBottom }
+}
+
+// Scrollbar geometry (track + thumb rects) for drawing AND drag hit-testing. null when nothing to scroll.
+export function getGridScrollbar(count, canvas, opts = {}) {
+  const m = _gridMetrics(count, canvas, opts)
+  if (m.maxOffset <= 0 || m.contentH <= 0) return null
+  const { width: w } = getCanvasSize(canvas)
+  const offset = _gridOffset(opts.scrollKey, count, canvas, opts)
+  const barW = 8, pad = 8
+  const trackX = w - barW - pad
+  const track = { x: trackX, y: m.viewTop, w: barW, h: m.viewH }
+  const thumbH = Math.max(40, m.viewH * (m.viewH / m.contentH))
+  const thumbY = m.viewTop + (offset / m.maxOffset) * (m.viewH - thumbH)
+  const thumb = { x: trackX, y: thumbY, w: barW, h: thumbH }
+  return { track, thumb, offset, maxOffset: m.maxOffset }
+}
+
+// Hit-test a point against a grid's cards, but ONLY cards whose visible portion is inside the viewport
+// band — so a card scrolled ABOVE the fold can't be clicked through the header. Returns index or -1.
+export function pickGridCard(canvas, roster, mx, my, opts = CHAR_GRID_OPTS) {
+  roster = normalizeToArray(roster)
+  const { top, bottom } = getGridViewport(canvas, opts)
+  if (my < top || my > bottom) return -1
+  const rects = getGridLayout(roster.length, canvas, opts)
+  return rects.findIndex(r => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h)
+}
+
 function getGridLayout(count, canvas, options = {}) {
   const { width: w } = getCanvasSize(canvas)
   const cols   = options.cols  || 3
@@ -252,6 +330,7 @@ function getGridLayout(count, canvas, options = {}) {
   const cardH  = options.cardH || 120
   const gap    = options.gap   || 24
   const startY = options.startY || 150
+  const offset = _gridOffset(options.scrollKey, count, canvas, options)   // 0 unless this grid scrolls
 
   const totalW = cols * cardW + (cols - 1) * gap
   const startX = (w - totalW) / 2
@@ -262,7 +341,7 @@ function getGridLayout(count, canvas, options = {}) {
     const row = Math.floor(i / cols)
     rects.push({
       x: startX + col * (cardW + gap),
-      y: startY + row * (cardH + gap),
+      y: startY + row * (cardH + gap) - offset,
       w: cardW,
       h: cardH
     })
@@ -561,7 +640,7 @@ export function getUniverseCardRects(canvas, universes = []) {
 
 export function getCharacterCardRects(canvas, roster = []) {
   roster = normalizeToArray(roster)
-  return getGridLayout(roster.length, canvas, { cols: 4, cardW: 220, cardH: 110, gap: 18, startY: 148 })
+  return getGridLayout(roster.length, canvas, CHAR_GRID_OPTS)   // scroll-aware (scrollKey "chars")
 }
 
 export function getStageCardRects(canvas, stages = []) {
@@ -1083,6 +1162,9 @@ export function drawFFACharSelectScreen(ctx, canvas, slot = 0, playerCount = 3, 
   drawBackdrop(ctx, canvas, "#0b1021", "#171f37")
   drawHeader(ctx, canvas, `PLAYER ${slot + 1} — CHOOSE FIGHTER`, `Free-for-all · ${playerCount} players`)
   const rects = getCharacterCardRects(canvas, roster)
+  const vp = getGridViewport(canvas, CHAR_GRID_OPTS)
+  ctx.save()
+  ctx.beginPath(); ctx.rect(0, vp.top - 2, w, (vp.bottom - vp.top) + 4); ctx.clip()
   roster.forEach((c, i) => {
     const r = rects[i]; if (!r) return
     const sel = i === selectedIndex
@@ -1093,6 +1175,8 @@ export function drawFFACharSelectScreen(ctx, canvas, slot = 0, playerCount = 3, 
     })
     drawCenteredText(ctx, c?.name || c?.rosterKey || `#${i}`, r.x + r.w / 2, r.y + r.h / 2, { font: "700 18px Arial", fill: "#ffffff" })
   })
+  ctx.restore()
+  drawGridScrollbar(ctx, getGridScrollbar(roster.length, canvas, CHAR_GRID_OPTS))
   const done = picks.map((p, i) => `P${i + 1}:${p}`).join("  ")
   drawFooterHint(ctx, canvas, done ? `Locked → ${done}` : "Click a fighter to lock this slot")
 }
@@ -1157,6 +1241,15 @@ export function drawUniverseSelectScreen(ctx, canvas, universes = [], selectedIn
 // ─────────────────────────────────────────────
 // CHARACTER SELECT
 // ─────────────────────────────────────────────
+// Draw a grid's scrollbar (track + thumb) on the right edge. No-op when the grid fits (bar === null).
+function drawGridScrollbar(ctx, bar) {
+  if (!bar) return
+  roundRect(ctx, bar.track.x, bar.track.y, bar.track.w, bar.track.h, bar.track.w / 2)
+  ctx.fillStyle = "rgba(255,255,255,0.10)"; ctx.fill()
+  roundRect(ctx, bar.thumb.x, bar.thumb.y, bar.thumb.w, bar.thumb.h, bar.thumb.w / 2)
+  ctx.fillStyle = "rgba(219,231,255,0.60)"; ctx.fill()
+}
+
 export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   const { width: w, height: h } = getCanvasSize(canvas)
   const roster        = normalizeToArray(options.roster)
@@ -1176,6 +1269,10 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   }
 
   const rects = getCharacterCardRects(canvas, roster)
+  // Clip the cards to the scrollable viewport band so scrolled rows never overdraw the header/footer.
+  const vp = getGridViewport(canvas, CHAR_GRID_OPTS)
+  ctx.save()
+  ctx.beginPath(); ctx.rect(0, vp.top - 2, w, (vp.bottom - vp.top) + 4); ctx.clip()
   roster.forEach((fighter, i) => {
     const rect      = rects[i]
     const isCursor  = i === selectedIndex
@@ -1232,8 +1329,11 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
     if (isP1) drawCenteredText(ctx, "P1", rect.x + 18,          rect.y + 16, { font: "700 12px Arial", fill: "#7fd3ff", align: "left",  baseline: "alphabetic" })
     if (isP2) drawCenteredText(ctx, "P2", rect.x + rect.w - 18, rect.y + 16, { font: "700 12px Arial", fill: "#ff9f9f", align: "right", baseline: "alphabetic" })
   })
+  ctx.restore()
 
-  drawFooterHint(ctx, canvas, "Click a fighter card to lock in")
+  const bar = getGridScrollbar(roster.length, canvas, CHAR_GRID_OPTS)
+  drawGridScrollbar(ctx, bar)
+  drawFooterHint(ctx, canvas, bar ? "Click a fighter card to lock in  ·  scroll for more" : "Click a fighter card to lock in")
 }
 
 // ─────────────────────────────────────────────
@@ -1860,6 +1960,10 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
 
   function drawEnergyPanel(x, flip, fighter) {
     if (!fighter) return
+    // Maki Zenin: the ONLY roster character with no resource meter at all — not
+    // even a "no-meter flavor" label (Toji/Shinobu draw an empty flavored bar).
+    // Skip the entire panel → she renders HP-only, distinct from every other UI.
+    if (fighter.traits?.hideResourceMeter) return
     const ec      = fighter.energyConfig || {}
     // Universe-specific energy resource name. Precedence: an explicit energyConfig.label (Rick's
     // "Bullshit Science Energy") wins; otherwise derive the flavor name from the character's
@@ -2112,6 +2216,7 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
     fdLine,
     `Infinite HP/EN: ${info.infinite ? "ON" : "OFF"} [F3]`,
     `Dummy: ${info.dummy ?? "stand"} [F4]    Reset [F2]`,
+    ...(info.callInMult != null ? [`Call-In Mult: ${info.callInMult.toFixed(2)}   [ lower / ] raise`] : []),
     `Frame: ${info.frame ?? 0}`
   ]
 

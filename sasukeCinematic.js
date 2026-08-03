@@ -152,6 +152,10 @@ export function updateSasukeCinematic(ctx = {}) {
 function endSasukeCinematic() {
   const cam = cine._cam
   if (cam && cine.savedMaxStep != null) cam.maxZoomStep = cine.savedMaxStep
+  // The close-up left the camera zoomed TIGHT on Sasuke's face; Lv2 is now a (taller) giant. Clear
+  // the giant-framed latch so the next camera.update() SNAPS straight to the full Lv2 framing
+  // instead of slowly zooming back out (during which the towering head would be clipped).
+  if (cam) cam._giantFramed = false
   // Safety: if we somehow ended before RESOLVE applied the escalation, apply it now
   // so a Lv1 re-press can never get "eaten" by an interrupted cinematic.
   if (!cine.resolved) { try { cine.onResolve?.() } catch (_) {} }

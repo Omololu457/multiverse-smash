@@ -148,7 +148,10 @@ try {
   check("press #2 → Susanoo Stage 2 (escalation, after cinematic)", s2.susanooStage === 2, `stage=${s2.susanooStage}`);
   // energy is set to 0 on escalation; passive regen (~0.06/frame) ticks it up a hair before we read.
   check("Stage 2 drains energy to ~0 (drain-to-zero risk/reward)", s2.energy < 2, `energy=${s2.energy.toFixed(2)}`);
-  check("Stage 2 is BIGGER than Stage 1 (frac 1.20 > 0.95)", s2.canvasHeightFrac === 1.20, `frac=${s2.canvasHeightFrac}`);
+  // Lv2 must loom LARGER than Lv1, but both stay fully framed on-screen (the camera's giant
+  // zoom-to-fit + snap frame the whole figure — see camera.js). Lowered from 1.20 (which ran the
+  // head off the top of the screen) to 1.08-ish; assert the ordering, not a magic number.
+  check("Stage 2 is BIGGER than Stage 1 (frac > 0.95)", s2.canvasHeightFrac > s1.canvasHeightFrac, `frac=${s2.canvasHeightFrac} vs ${s1.canvasHeightFrac}`);
   check("Stage 2 keeps the SAME half-arena lock", s2.arenaHalfLock === s1.arenaHalfLock, `${s2.arenaHalfLock} vs ${s1.arenaHalfLock}`);
   await page.screenshot({ path: path.join(OUT, "02_susanoo_lv2.png") });
 

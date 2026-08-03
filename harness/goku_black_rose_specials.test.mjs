@@ -57,8 +57,9 @@ const topup = () => page.evaluate(() => window.__harness.setEnergy(200));
 // Idempotent SSJ Rose transform (frozen cinematic → wait for resolve + post-cinematic settle).
 async function toRose() {
   if ((await p1()).currentForm === "ssjRose") return;
+  // base → Rose: charge + HOLD-release at/near max energy → the frozen cinematic.
   await topup();
-  await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p");
+  await page.keyboard.down("p"); await wf(20); await page.keyboard.up("p");                // hold-release → Rose
   await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
   await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
 }

@@ -79,6 +79,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./toji_stance_idle.png" }   // NEW transparent-bg idle (was old row03 strip)
   },
 
+  // Maki Zenin (JJK). Only gates spritesReady() by decoding idle; per-action
+  // rendering reads the `sheet` paths from characters.js → maki.animationData
+  // (reslice_strip'd _uniform copies). See MAKI_ASSET_MAP.md.
+  maki: {
+    actions: { idle: "./maki_new_idle_uniform.png" }   // NEW clean 4-frame idle (old maki_idle.png had a 96px double-frame glitch)
+  },
+
   // Base Goku (Dragon Ball). Sliced from goku_base_FULLSHEET_transparent.png.
   // This entry only GATES spritesReady() (decodes idle → flips Goku from box to
   // sprite); per-action rendering reads the `sheet` paths from characters.js →
@@ -133,6 +140,13 @@ export const SPRITE_MANIFEST = {
   // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
   netero: {
     actions: { idle: "./netero_idle_uniform.png" }
+  },
+
+  // Chrollo Lucilfer (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle
+  // strip → flips Chrollo from procedural box to sprite. Per-action rendering reads characters.js →
+  // chrollo.animationData (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
+  chrollo: {
+    actions: { idle: "./chrollo_idle_uniform.png" }
   },
 
   // Saiki Kusuo (universe: saiki_k) — gates spritesReady() by decoding the idle strip → flips Saiki
@@ -219,6 +233,20 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./omega_ranger_idle.png" }
   },
 
+  // Samurai Red Ranger (universe: power_rangers) — SECOND sprited ranger. Same idle-strip gate:
+  // decoding it flips the ranger from procedural box to the sprite path. Per-action rendering reads
+  // characters.js → samuraiRedRanger.animationData (each action carries its own .sheet). idle =
+  // the RE-SLICED uniform strip (tools/reslice_strip.mjs). See SAMURAI_RED_RANGER_ASSET_MAP.md.
+  samurai_red_ranger: {
+    actions: { idle: "./samurai_ranger_idle_uniform.png" }
+  },
+  gold_samurai_ranger: {
+    actions: { idle: "./samurai_ranger_gold_idle_uniform.png" }
+  },
+  green_samurai_ranger: {
+    actions: { idle: "./samurai_ranger_forest_idle_uniform.png" }
+  },
+
   // Omni-Man (universe: invincible) — STAGE 0. Gates spritesReady() by decoding the idle strip →
   // flips Omni-Man from procedural box to sprite. Per-action rendering reads characters.js →
   // omniMan.animationData (each action carries its own .sheet). idle = omni_man_idle.png (3 clean
@@ -257,6 +285,14 @@ export const SPRITE_MANIFEST = {
   // (harness alpha-gutter repack). See BEN10_ASSET_MAP.md.
   ben10: {
     actions: { idle: "./ben10_idle_uniform.png" }
+  },
+
+  // Ghostface (universe: horror) — FIRST horror-universe sprite char. Same idle-strip gate:
+  // decoding it flips Ghostface from procedural box to the sprite path. Per-action rendering
+  // reads characters.js → ghostface.animationData (each action carries its own .sheet).
+  // See GHOSTFACE_ASSET_MAP.md.
+  ghostface: {
+    actions: { idle: "./ghostface_idle_uniform.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

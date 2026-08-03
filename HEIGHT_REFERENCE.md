@@ -75,6 +75,14 @@ Estimates are applied more conservatively and flagged in the character's `sprite
 | Gojo Satoru | 190 cm | H | JJK official |
 | Omni-Man (Nolan) | 193 cm | E | est. ~6'4" Viltrumite (unstated) |
 | Beerus | 200 cm | E | est. ~2m, slender (unstated) |
+| Shinobu Kocho | 151 cm | H | Demon Slayer databook (shortest Hashira) |
+| Chrollo Lucilfer | 177 cm | H | HxH databook |
+| Kyojuro Rengoku | 177 cm | H | Demon Slayer databook |
+| Samurai Red Ranger (Jayden) | 178 cm | E | est. adult human ranger (unstated) |
+| Gold Samurai Ranger (Antonio) | 178 cm | E | est. adult human ranger (unstated) |
+| Superman | 191 cm | H | DC official (6'3") |
+| Ben Tennyson (human) | 168 cm | E | est. teen (age/series-dependent, unstated) |
+| Ben 10 aliens (XLR8/Diamondhead/Feedback) | ~178–190 cm | E | very soft est.; share `ben10.spriteScale`, art-relative to human |
 
 ---
 
@@ -112,3 +120,43 @@ target, no clipping, all affected test suites green.
 
 **Preserved (not overridden):** Rick 1.85 (deliberate presence bump). **Skipped:** Naruto (aura-inflated
 measurement). See `harness/shots/height_roster_before.png` vs `height_roster_after.png`.
+
+---
+
+## 5. Extended audit — characters built since the last pass (2026-08-01)
+
+Re-ran the audit (same `k=0.623`, same `measureSprite` pipeline) across every char built since section 3:
+Rengoku, Shinobu, Samurai Red Ranger, Gold Samurai Ranger, Chrollo, Superman, Batman, Omni-Man, and the
+Ben 10 forms (human/XLR8/Diamondhead/Feedback). `ratio = measured_px ÷ target_px` (target = 0.623×canon).
+Giant-form Ultimates excluded per the standing rule (measured the idle rest pose only).
+
+| Character | canon | cf | scale | measured px | target px | ratio | verdict |
+|---|---|---|---|---|---|---|---|
+| **Rengoku** | 177 | H | 2.25 → **1.94** | 128 → **111** | 110 | 1.16 → 1.01 | **OUTLIER +16% → FIXED** |
+| **Shinobu** | 151 | H | 2.25 → **1.73** | 122 → **93** | 94 | 1.30 → 0.99 | **OUTLIER +30% → FIXED** |
+| Samurai Red Ranger | 178 | E | 1.85 | 111 | 111 | 1.00 | clean |
+| Gold Samurai Ranger | 178 | E | 2.0 | 112 | 111 | 1.01 | clean |
+| Chrollo | 177 | H | 1.9 | 106 | 110 | 0.96 | clean |
+| Batman | 188 | H | 0.92 | 118 | 117 | 1.01 | clean |
+| Omni-Man | 193 | E | 0.95 | 120 | 120 | 1.00 | clean |
+| Superman | 191 | H | 1.6 | 132* | 119 | 1.11* | **CONFOUNDED — not fixed** |
+| Ben (human) | 168 | E | 2.0 | 96 | 105 | 0.91 | within tol (−9%) |
+| Ben · XLR8 | ~185 | E | (2.0 shared) | 82* | 115 | 0.71* | confounded + shared scale |
+| Ben · Diamondhead | ~190 | E | (2.0 shared) | 128 | 118 | 1.08 | within tol |
+| Ben · Feedback | ~178 | E | (2.0 shared) | 98 | 111 | 0.88 | within tol (−12%, est.) |
+
+**Root cause of the two outliers:** both Demon Slayer chars blindly inherited Zenitsu's `2.25`, which is
+correctly calibrated for *Zenitsu* (164.5cm → measures 99px, on target) but not for their own art+canon.
+Rengoku's build note even mis-stated his idle content as ~48px (it's ~57px), so 2.25 rendered 128 not the
+intended ~108. All anchorY are 0 (feet at cell bottom) on both → no anchor rescale needed. Re-measured
+post-fix: Rengoku 111px, Shinobu 93px (both ≈ target). Suites green (rengoku 41/41, shinobu 35/35).
+
+**Not corrected (flagged):**
+- **Superman** — `*` the bbox 132 is inflated by the **cape trailing below the feet** in his flying-lean
+  idle (row-density profile: dense body ends ~y64, then ~19 sparse cape rows). His true *body* is ~101px,
+  which is actually *short* for 191cm — so correcting on the cape-inflated 132 would over-shrink the body.
+  Same class as the Naruto-aura caveat (§3): measurement-confounded, left as-is.
+- **Ben 10 forms** — all four share one `ben10.spriteScale` (2.0); the aliens have no per-form scale, so
+  none can be tuned independently without new machinery (out of "spriteScale-only" scope). Human is within
+  tolerance (−9%); alien canon heights are very soft estimates and XLR8's `*` low speedster stance confounds
+  its height. No confirmed, independently-actionable outlier → left as-is.

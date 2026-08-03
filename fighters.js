@@ -1209,6 +1209,21 @@ const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)
 // STAGE-1 STOPGAPS (flagged for later): guard is omitted (sprite.js falls to idle);
 // hurt + intro reuse the idle strip (no dedicated hit/entrance art on disk yet).
 // ─────────────────────────────────────────────────────────────────
+// Retag an alien form's sheets to a recolor/reanim variant (X.png → X__<tag>.png), matching
+// abilities.js retagFormAnim. Used so a Ben-10 vessel REANIMATED by Edo Tensei (fighter._recolorTag
+// === "reanim") keeps the near-black wash even after it transforms into an alien — otherwise applyAlien
+// would clobber the reanim _skinAnim with the alien's raw sheets. Cosmetic-only (no move/stat change);
+// falls straight through (returns the anim unchanged) whenever no tag is active. Cached per (anim,tag).
+const _alienTagCache = new WeakMap()
+function _retagAlienAnim(anim, tag) {
+  if (!tag || !anim) return anim
+  let byTag = _alienTagCache.get(anim); if (!byTag) { byTag = new Map(); _alienTagCache.set(anim, byTag) }
+  if (byTag.has(tag)) return byTag.get(tag)
+  const out = {}
+  for (const [k, d] of Object.entries(anim)) out[k] = d?.sheet ? { ...d, sheet: d.sheet.replace(/\.(png|jpe?g)$/i, `__${tag}.png`) } : d
+  byTag.set(tag, out); return out
+}
+
 const BEN10_FORM_ANIM = {
   xlr8: {
     idle:  { frames: 5, width: 60, height: 43, speed: 7, anchorY: 0, sheet: "./ben10_xlr8_idle_uniform.png" },
@@ -1362,7 +1377,8 @@ export function applyAlien(fighter, alienKey) {
 
   // Form sprite-swap: art-backed aliens carry their own animationData set; others
   // fall back to the Ben-human base (_skinAnim = null). See BEN10_FORM_ANIM.
-  fighter._skinAnim = BEN10_FORM_ANIM[alienKey] || null
+  // Retag to the active recolor/reanim variant so an Edo-Tensei-reanimated Ben keeps the wash in-alien.
+  fighter._skinAnim = _retagAlienAnim(BEN10_FORM_ANIM[alienKey] || null, fighter._recolorTag)
 
   fighter.colorFlash = 6
   return true

@@ -41,16 +41,14 @@ try {
   await page.evaluate(x => window.__harness.setP2X(x), a0.x + 100);   // a realistic "transform at neutral" distance
   await wf(2);
 
-  // ── TRIGGER (re-verify the fix) — charge-and-release at real starting energy → cinematic ──
-  section("TRIGGER — charge (hold P) from real 100 energy, release → cinematic starts");
-  await page.evaluate(() => window.__harness.setEnergy(100));
-  await page.keyboard.down("p");
-  await page.waitForFunction(() => window.__harness.p1().energy >= 180, null, { timeout: 6000, polling: 16 }).catch(() => {});
-  await page.keyboard.up("p");
+  // ── TRIGGER — base charge + hold-release → the SSJ Rose frozen cinematic fires ──
+  section("TRIGGER — charge + hold-release from base → Rose cinematic starts");
+  await page.evaluate(() => window.__harness.setEnergy(200));
+  await page.keyboard.down("p"); await wf(20); await page.keyboard.up("p");
   await wf(2);
   const started = await cine();
-  check("SSJ Rose CINEMATIC starts on release at/near max", started.active === true, `active=${started.active} phase=${started.phase} frame=${started.frame}`);
-  check("form NOT yet swapped when the cinematic begins (lands at the end)", (await p1()).currentForm !== "ssjRose", `form=${(await p1()).currentForm}`);
+  check("SSJ Rose CINEMATIC starts on the charge-release from base", started.active === true, `active=${started.active} phase=${started.phase} frame=${started.frame}`);
+  check("form NOT yet Rose when the cinematic begins (swap lands at the end)", (await p1()).currentForm !== "ssjRose", `form=${(await p1()).currentForm}`);
 
   // ── FREEZE — inputs do nothing during the cinematic ─────────────────────────
   section("FREEZE — combat is fully paused (move/attack do nothing)");

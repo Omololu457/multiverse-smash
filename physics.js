@@ -155,11 +155,14 @@ export const physics = {
         // the design calls for. Gated on _flashTimeActive → zero effect on every other fighter / normal play.
         const flashTime = !!fighter._flashTimeActive
         const FT_ZIP = 14, FT_SKID_FRIC = 0.90
+        // AMBER identity: slightly higher ground movement speed (skin modifier; see GHOSTFACE_SKIN_MODS).
+        // (This engine ties facing to the walk direction, so the bonus applies to ground walk speed.)
+        const walkSpeed = fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed
         if (L && !R) {
-          fighter.vx = flashTime ? -FT_ZIP : -speed
+          fighter.vx = flashTime ? -FT_ZIP : -walkSpeed
           fighter.facing = -1
         } else if (R && !L) {
-          fighter.vx = flashTime ? FT_ZIP : speed
+          fighter.vx = flashTime ? FT_ZIP : walkSpeed
           fighter.facing = 1
         } else {
           // Combo momentum preservation (combo-flow Stage 4): while ATTACKING AND MOVING FORWARD (velocity

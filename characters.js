@@ -348,7 +348,7 @@ const gojo = {
     domain:             { frames: 4, width: 37, height: 64, speed: 6, sheet: "./gojo_domain_sheet.png" },  // Unlimited Void HAND-SIGN (NOT the gojo_intro coat-throw)
     blue_cast:          { frames: 5, width: 50, height: 64, speed: 5, sheet: "./gojo_max_output_blue_sheet.png" },
     red_cast:           { frames: 5, width: 56, height: 62, speed: 5, sheet: "./gojo_ctr_attack_sheet.png" },
-    hollow_purple_cast: { frames: 4, width: 43, height: 63, speed: 5, sheet: "./gojo_hollowpurple_release_sheet.png" },
+    hollow_purple_cast: { frames: 1, width: 37, height: 99, speed: 5, sheet: "./gojo_hollowpurple_cast_sheet.png" },  // repointed 2026-07-30: the old _release_ sheet did NOT exist on disk (rendered a fallback box); this on-disk cast pose (single 37x99 frame, transparency-repaired) is the real art
     // CHARGE strips (Task 1b) — played briefly before the cast strip. Dims MEASURED
     // from the PNGs (frames via alpha-gutter detection, cell = stripWidth/frames).
     blue_charge:          { frames: 4, width: 45, height: 64, speed: 4, sheet: "./gojo_lapse_blue_sheet.png" },          // 180x64
@@ -1277,10 +1277,11 @@ const rengoku = {
   },
   ultimate: { name: "Flame Breathing: Rengoku (Flame Explosion)", cost: 0, description: "Freeze-cinematic flame eruption. Cooldown-gated." },
   hasSprites: true,
-  // Canon height ~177cm → target ~110px. idle content ~48px at scale 1.0 → spriteScale 2.25 → ~108px
-  // on-screen (roster band, matches Zenitsu's sizing). Resliced cells are bottom-aligned (feet at cell
-  // bottom, 1px pad) so a single anchorY: 0 plants feet across every standing action.
-  spriteScale: 2.25,
+  // Canon height 177cm → target 110px (0.623×177, HEIGHT_REFERENCE.md). 2026-08-01 height re-audit:
+  // 2.25 was inherited from Zenitsu but rendered 128px (idle content is ~57px, not the ~48px the original
+  // note assumed) = +16% too tall for canon → corrected to 1.94 (128 × 110/128). Resliced cells are
+  // bottom-aligned (feet at cell bottom, 1px pad) so a single anchorY: 0 plants feet across every action.
+  spriteScale: 1.94,
   animationData: {
     // ── STAGE 1 MOVEMENT/STATE ── resliced feet-aligned (*_uniform.png); anchorY 0 plants feet.
     idle: { frames: 4, width: 69, height: 59, speed: 7, anchorY: 0, sheet: "./rengoku_idle_uniform.png" },   // 4-frame breathing loop
@@ -1384,7 +1385,10 @@ const shinobu = {
   },
   ultimate: { name: "Insect Breathing: Butterfly Dance", cost: 0, description: "Freeze-cinematic spinning-dash finisher — dashes in, thrust-lunge → spinning slash. Guaranteed direct hit + a lethal wisteria POISON finisher on clean connect. Cooldown-gated (no energy)." },
   hasSprites: true,
-  spriteScale: 2.25,
+  // Canon height 151cm (Shinobu is the shortest Hashira) → target 94px (0.623×151, HEIGHT_REFERENCE.md).
+  // 2026-08-01 height re-audit: 2.25 was inherited from Zenitsu but rendered 122px = +30% too tall for her
+  // petite canon → corrected to 1.73 (122 × 94/122). All anchorY: 0 (feet at cell bottom) → no anchor rescale.
+  spriteScale: 1.73,
   animationData: {
     idle: { frames: 4, width: 38, height: 57, speed: 7, anchorY: 0, sheet: "./shinobu_idle_uniform.png" },
     walk: { frames: 6, width: 45, height: 53, speed: 6, anchorY: 0, sheet: "./shinobu_walk_uniform.png" },
@@ -1758,6 +1762,293 @@ const omegaRanger = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SAMURAI RED RANGER (Fire) — the SECOND Power Rangers sprite character (after Omega
+// Ranger). Fire-samurai swordsman built in STAGES with real screenshot evidence at each
+// step (Killua/Gon/Tobirama/Rengoku rigor). The headline mechanic (Stage 3) is MEGA MODE:
+// a full VEGETA-STYLE TIER-SWAP — every base move has a higher-damage Mega Mode counterpart
+// that swaps in for the transformation's duration (NOT an overlay). Stages 4-5 add the
+// Mega-Mode-EXCLUSIVE Flame Slash and the tier-scaling Ultimate.
+//
+// STAGE 1 (this pass): 3-file sprite gate + base-tier movement/state (idle/walk/jump/hurt/
+// guard). Raw source sheets were RE-SLICED into clean uniform strips (tools/reslice_strip.mjs)
+// on COPIES — the *_uniform.png files — because the originals are untracked/unrecoverable.
+// Frame counts measured via alpha-gutter scan (see SAMURAI_RED_RANGER_ASSET_MAP.md). Specials/
+// ultimate/Mega-Mode are HUD+kit data for now (Omega/Beerus staged precedent); they fall back
+// to idle safely until wired in Stages 3-5. The base-tier WALK is samurai_run.png (a DISTINCT
+// asset supplied separately — NOT the Mega walk samurai_ranger_mega_fit_walk.png).
+// ─────────────────────────────────────────────────────────────────
+const samuraiRedRanger = {
+  rosterKey: "samurai_red_ranger", name: "Samurai Red Ranger (Fire)", universe: "power_rangers",
+  // No dedicated mugshot in the batch → portrait cropped (head+torso) from the idle + upscaled 5×
+  // (Killua/Omni-Man precedent). tools: crop in Stage 6; file samurai_ranger_portrait.png.
+  portrait: "./samurai_ranger_portrait.png",
+  archetypes: ["melee", "sword"], primary: "sword", secondary: ["melee"],
+  traits: { hasEnergy: true, energyType: "symbol_power", mobility: "medium", scaling: "damage", animeMovement: false },
+  passive: { name: "Mojikara", effect: "Symbol Power fuels the Fire Smasher — steady meter feeds the Mega Mode transformation and its flame specials" },
+  // Sword-based striker, comparable tier to Omega Ranger (HP 1180 / EN 175 / atk 93 / def 86 /
+  // spd 92). Samurai reads as a HEAVIER, sturdier swordsman: a touch more HP + defense, a touch
+  // slower ground speed, smaller base meter (Mega Mode is the payoff you build toward). All values
+  // sit inside the roster band — no outliers (see Stage-1 balance note in the harness).
+  stats: { maxHealth: 1220, maxEnergy: 160, attack: 95, defense: 88, speed: 88, maxJumps: 2, jumpPower: 31, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 34 },
+  basic_attacks: {
+    ...RANGER_BASICS,
+    heavy: { damage: 90, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 7, knockbackY: 1 }
+  },
+  // HUD/kit data only for now — real behaviour + Mega-Mode gating land in Stages 3-5. Flame Slash
+  // is flagged Mega-Mode-EXCLUSIVE (no base-tier art exists for it).
+  specials: {
+    flameSlash: { cost: 35, damage: 150, startup: 8, active: 5, recovery: 20, hitstun: 22, knockbackX: 8, knockbackY: -2, megaOnly: true, effect: "rising flame slash into a double-burst (MEGA MODE ONLY)" }
+  },
+  ultimate: { name: "Fire Smasher: Blazing Strike", cost: 100, duration: 9, effect: "Multi-hit flaming saber barrage (damage scales with Mega Mode)" },
+  // MEGA MODE — a full Vegeta-style TIER-SWAP (Stage 3). transformationOrder stays ["base"] because
+  // Mega is driven by the DEDICATED enter/revert path (abilities.js enterSamuraiMega), NOT the generic
+  // transformationOrder stepper. The `megaMode` entry exists so updateTransformationState re-applies
+  // the tier's multipliers each frame from currentFormData (the Vegeta gotcha) — NO `duration` here, so
+  // updateTransformations never auto-reverts it; applySamuraiFormSystem owns the sustained drain+revert.
+  transformationOrder: ["base"],
+  transformations: {
+    base:     { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
+    megaMode: { damageMultiplier: 1.35, speedMultiplier: 1.05, defenseMultiplier: 1.08 }
+  },
+  // No dedicated intro art in the batch (the transformation_part_* sheets belong to Mega Mode, not
+  // a summon intro) — use the idle as the intro pose (Killua introPool-idle precedent).
+  introPool: ["idle"],
+  hasSprites: true,
+  // SIZE-NORMALIZED: idle content measured 60px tall → 60 × 1.85 ≈ 111px on-screen, the roster
+  // median. anchorY=0 everywhere so feet stay planted on the cell bottom.
+  spriteScale: 1.85,
+  // STAGE-1 base-tier sprites. All RE-SLICED to clean uniform strips (tools/reslice_strip.mjs) from
+  // COPIES of the untracked originals. width = uniform cell pitch, height = full cell height. Mega
+  // Mode / normals / specials / ultimate come in later stages; missing actions fall back to idle.
+  animationData: {
+    idle:  { frames: 4, width: 27, height: 62, speed: 6, anchorY: 0, sheet: "./samurai_ranger_idle_uniform.png" },
+    walk:  { frames: 8, width: 46, height: 61, speed: 6, anchorY: 0, sheet: "./samurai_run_uniform.png" },
+    run:   { frames: 8, width: 46, height: 61, speed: 4, anchorY: 0, sheet: "./samurai_run_uniform.png" },
+    dash:  { frames: 8, width: 46, height: 61, speed: 3, anchorY: 0, sheet: "./samurai_run_uniform.png" },
+    jump:  { frames: 6, width: 35, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_jump_uniform.png" },
+    fall:  { frames: 6, width: 35, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_jump_uniform.png" },
+    hurt:  { frames: 2, width: 39, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_hit_uniform.png" },
+    guard: { frames: 3, width: 30, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_guard_uniform.png" },
+    // STAGE-2 base-tier NORMALS (all RE-SLICED to uniform strips from COPIES). light/heavy are SHORT
+    // windows of the combo strings (quick opening slash vs. the heavier crouch-crescent); the FULL
+    // strings drive the command chain below. air = spinning aerial slash; down_air = the CLEAN 6-frame
+    // overhead dive (downattack) — chosen over the 17-frame flame string (downattack_2), which anchors
+    // the chain finisher instead.
+    light:    { frames: 4,  width: 77,  height: 69,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_combo_uniform.png" },      // quick opening slash (combo, first 4)
+    heavy:    { frames: 6,  width: 70,  height: 80,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_combo_2_uniform.png" },    // heavier crouch-crescent (combo_2, first 6)
+    up:       { frames: 8,  width: 69,  height: 118, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_upattack_1_uniform.png" }, // fallback (grounded up is suppressed → merged tap/hold below)
+    air:      { frames: 9,  width: 109, height: 56,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_air_uniform.png" },
+    down_air: { frames: 6,  width: 63,  height: 71,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_downattack_uniform.png" },
+    grab:     { frames: 4,  width: 77,  height: 69,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_combo_uniform.png" },      // reuse the opening-slash pose (Omega precedent)
+    // MERGED UP-ATTACK (one input, two power tiers): tap I → samUpTap (quick rising launcher,
+    // upattack_1); hold I past the threshold → samUpHold (stronger, upattack_2). Driven by
+    // updateSamuraiRangerCommandCombat (the built-in grounded up-attack is suppressed for samurai).
+    samUpTap:  { frames: 8,  width: 69, height: 118, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_upattack_1_uniform.png" },
+    samUpHold: { frames: 14, width: 93, height: 84,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_upattack_2_uniform.png" },
+    // TOJI-REKKA COMMAND CHAIN (Fwd+Heavy opener → re-tap Heavy on hit → cancel into the next stage).
+    // Stage keys match the abilities.js SAMURAI_RANGER_CMD table (identity sprite-resolve). Sourced
+    // from the FULL combo/combo_2 strings + the unused downattack_2 flame string as the launcher
+    // finisher. cancel-on-HIT (a block/whiff ends the string).
+    samRekka1:   { frames: 13, width: 77, height: 69, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_combo_uniform.png" },
+    samRekka2:   { frames: 15, width: 70, height: 80, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_combo_2_uniform.png" },
+    samRekkaFin: { frames: 17, width: 82, height: 77, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_downattack_2_uniform.png" },
+    // STAGE-5 ULTIMATE (base tier) — "Fire Smasher: Blazing Strike". The 6 specialattack parts stitched
+    // into one strip (raise blade → flaming saber barrage → flame explosion). Played through the freeze
+    // cinematic via _spriteCastMove="ultimate". The MEGA tier overrides this key (SAMURAI_MEGA_ANIM) so
+    // a transformed cast renders the higher-power Mega ultimate art instead.
+    ultimate: { frames: 54, width: 164, height: 100, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_ultimate_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GOLD SAMURAI RANGER (Light) — THIRD Power Rangers sprite char (after Omega, Red).
+// Mirrors Samurai Red Ranger's CONFIRMED structure (base/Mega-Mode tier-swap, a Transformation
+// special, a tier-scaling Ultimate) but with Gold's OWN art: a LIGHT-symbol (光) Symbol Power
+// transformation (NOT fire), and a katana swordsman (Barracuda Blade). NO bow/arrow content exists
+// on disk — the alpha-gutter scan found only sword melee + energy slash-arc FX (see
+// GOLD_SAMURAI_RANGER_ASSET_MAP.md), so the brief's "bow/arrow" identity is not present; Stage 4
+// uses the strongest real candidate (a light energy slash-wave projectile) instead.
+// ─────────────────────────────────────────────────────────────────
+const goldSamuraiRanger = {
+  rosterKey: "gold_samurai_ranger", name: "Gold Samurai Ranger (Light)", universe: "power_rangers",
+  // Portrait cropped from idle in Stage 6 (no dedicated mugshot in the batch).
+  portrait: "./samurai_ranger_gold_portrait.png",
+  archetypes: ["melee", "sword"], primary: "sword", secondary: ["melee"],
+  traits: { hasEnergy: true, energyType: "symbol_power", mobility: "high", scaling: "damage", animeMovement: false },
+  passive: { name: "Mojikara (Light)", effect: "Light Symbol Power fuels the Barracuda Blade — steady meter feeds the Mega Mode transformation and its light specials" },
+  // Nimble sword striker — reads FASTER/LIGHTER than Red (Jayden): a touch less HP + defense, a touch
+  // more ground speed + agility (Gold/Antonio is the mobile duelist). All values sit inside the roster
+  // band, no outliers (see Stage-1 balance note in the harness). Same Mega-Mode-is-the-payoff meter shape.
+  stats: { maxHealth: 1160, maxEnergy: 165, attack: 92, defense: 84, speed: 94, maxJumps: 2, jumpPower: 32, dashSpeed: 19, dashDuration: 10, dashCooldownMax: 32 },
+  basic_attacks: {
+    ...RANGER_BASICS,
+    heavy: { damage: 86, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1 }
+  },
+  // HUD/kit data only for now — real behaviour lands in later stages. lightSlash is the Stage-4 special
+  // candidate (no bow/arrow art → a light energy slash-wave projectile from the blue slash-arc FX).
+  specials: {
+    lightSlash: { cost: 35, damage: 140, startup: 8, active: 5, recovery: 20, hitstun: 20, knockbackX: 7, knockbackY: -1, megaOnly: false, effect: "light energy slash-wave projectile (Barracuda Blade)" }
+  },
+  ultimate: { name: "Barracuda Blade: Light Finale", cost: 100, duration: 9, effect: "Multi-hit light-saber barrage (damage scales with Mega Mode)" },
+  // MEGA MODE — same Vegeta-style TIER-SWAP as Red (Stage 3), driven by the DEDICATED enter/revert path
+  // (reused samurai form system), NOT the generic transformationOrder stepper. megaMode multipliers are
+  // re-applied each frame from currentFormData; no `duration` so it never auto-reverts (the sustained
+  // drain owns revert). Values mirror Red's tier so the tier-swap payoff reads consistently.
+  transformationOrder: ["base"],
+  transformations: {
+    base:     { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
+    megaMode: { damageMultiplier: 1.35, speedMultiplier: 1.05, defenseMultiplier: 1.08 }
+  },
+  // INTRO (Stage-6 wiring, resliced from samurai_ranger_gold_intro.png — the ONLY genuine intro-quality
+  // sequence): Antonio's pre-morph "Samuraizer" flourish (27f, 3 source rows → one uniform strip). SINGLE
+  // fixed intro, not a random pool — the sheet's only other candidate (intro_2.png) is a 超 "Super" kanji
+  // CALLIGRAPHY FX, not a character pose, so there is exactly one real intro animation. The armored-ranger
+  // idle takes over when the round starts (a morph-reveal read). Plays stationary (game.js intro phase).
+  introPool: ["intro"],
+  hasSprites: true,
+  // SIZE-NORMALIZED: idle content ~53px tall → 53 × 2.0 ≈ 106px on-screen (roster median). anchorY=0
+  // everywhere so feet stay planted on the cell bottom.
+  spriteScale: 2.0,
+  // STAGE-1 base-tier movement/state sprites. RE-SLICED to clean uniform strips (tools/reslice_strip.mjs)
+  // from COPIES of the untracked originals. Normals / Mega Mode / specials / ultimate come in later
+  // stages; any missing action falls back to idle.
+  animationData: {
+    idle:  { frames: 4, width: 32, height: 58, speed: 6, anchorY: 0, sheet: "./samurai_ranger_gold_idle_uniform.png" },
+    // INTRO — Antonio's pre-morph Samuraizer flourish (27f). Resliced from the 3-row samurai_ranger_gold_intro.png
+    // into one uniform strip (tools/build_gold_intro_strip.py: per-frame tight-x, bottom-aligned, 44×69 cells).
+    // loop:false + lockLastFrame so it settles on the final pose during the pre-match hold. Cosmetic; intro-only.
+    intro: { frames: 27, width: 44, height: 69, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_intro_uniform.png" },
+    walk:  { frames: 8, width: 45, height: 54, speed: 6, anchorY: 0, sheet: "./samurai_ranger_gold_run_uniform.png" },
+    run:   { frames: 8, width: 45, height: 54, speed: 4, anchorY: 0, sheet: "./samurai_ranger_gold_run_uniform.png" },
+    dash:  { frames: 8, width: 45, height: 54, speed: 3, anchorY: 0, sheet: "./samurai_ranger_gold_run_uniform.png" },
+    jump:  { frames: 6, width: 29, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_jump_uniform.png" },
+    fall:  { frames: 6, width: 29, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_jump_uniform.png" },
+    hurt:  { frames: 3, width: 54, height: 69, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_hurt_uniform.png" },   // first 3 stagger frames of the hurt→knockdown→getup strip
+    guard: { frames: 3, width: 37, height: 53, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_guard_uniform.png" },
+    // STAGE-2 base-tier NORMALS — all KATANA melee sliced per-row from the attacks master (COPIES).
+    // light/heavy are SHORT windows of the slash/lunge rows; the FULL rows drive the command chain below.
+    // Gold does a SINGLE grounded up-attack (the rising launcher, row2) — NOT Red's merged tap/hold: Gold's
+    // art gives one clean rising sheet + one flashy launcher, and the launcher reads best as the rekka
+    // FINISHER (below), so a single up + a 3-stage chain showcases the command mechanic better than 2 up tiers.
+    light:    { frames: 4,  width: 94, height: 60,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_slash_uniform.png" },     // quick opening slash (row0, first 4)
+    heavy:    { frames: 6,  width: 98, height: 60,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_lunge_uniform.png" },     // committed forward lunge-crescent (row1, first 6)
+    up:       { frames: 8,  width: 81, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_rising_uniform.png" },    // spinning rising launcher (row2)
+    air:      { frames: 7,  width: 78, height: 77,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_aerial_uniform.png" },    // forward aerial slash (row4, first 7)
+    down_air: { frames: 5,  width: 78, height: 77,  speed: 4, anchorY: 0, sourceX: 312, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_aerial_uniform.png" }, // downward dive slash (row4, frames 4-8)
+    grab:     { frames: 4,  width: 94, height: 60,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_slash_uniform.png" },     // reuse the opening slash (Omega/Red precedent)
+    // TOJI-REKKA COMMAND CHAIN (Fwd+Heavy opener → re-tap Heavy on HIT → cancel into the next stage).
+    // Stage keys match the SHARED abilities.js SAMURAI_RANGER_CMD table (Gold reuses Red's proven rekka
+    // logic; sprites resolve against THESE Gold keys). Sourced from the FULL slash/lunge rows + the big
+    // V-arc launcher row as the flashy finisher. cancel-on-HIT (a block/whiff ends the string).
+    samRekka1:   { frames: 11, width: 94, height: 60, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_slash_uniform.png" },
+    samRekka2:   { frames: 12, width: 98, height: 60, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_lunge_uniform.png" },
+    samRekkaFin: { frames: 12, width: 99, height: 79, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_launcher_uniform.png" },
+    // STAGE-4 SPECIAL cast pose — the forward launcher slash that HURLS the light slash-wave (a katana
+    // sword-beam; NO bow/arrow art exists, so this is the strongest real projectile candidate). Usable in
+    // BOTH tiers; the Mega form overrides this key (GOLD_MEGA_ANIM) with the gold-armored slash art.
+    lightSlash: { frames: 8, width: 99, height: 79, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_launcher_uniform.png" },
+    // STAGE-5 ULTIMATE (base tier) — "Barracuda Blade: Light Finale". No dedicated ult sheet in the batch →
+    // reuses the big V-arc launcher slash as a light-saber barrage, played through the freeze cinematic via
+    // _spriteCastMove="ultimate". The MEGA tier overrides this key (GOLD_MEGA_ANIM) → higher-power Mega art.
+    ultimate: { frames: 12, width: 99, height: 79, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_launcher_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GREEN SAMURAI RANGER (Forest) — "MIKE" — FOURTH Power Rangers sprite char
+// (after Omega, Red, Gold). Mirrors Red/Gold's CONFIRMED structure (base/Mega-Mode
+// tier-swap, a Transformation special, a tier-scaling Ultimate) but with Green's OWN art.
+// KEY DIFFERENTIATOR confirmed by the alpha-gutter scan (GREEN_SAMURAI_RANGER_ASSET_MAP.md):
+// Green wields a SPEAR / naginata (Forest Spear) with green leaf-swirl FX — a genuine
+// EXTENDED-REACH weapon neither Red nor Gold has (both katana). Transformation = FOREST
+// Symbol Power (森, green leaf/wind morph — random.png), distinct from Red's fire and Gold's
+// light. Stage 1 = registration + base-tier movement/state ONLY; normals/Mega/spear-special/
+// ultimate land in later stages, missing actions fall back to idle.
+// ─────────────────────────────────────────────────────────────────
+const greenSamuraiRanger = {
+  rosterKey: "green_samurai_ranger", name: "Green Samurai Ranger (Forest)", universe: "power_rangers",
+  // REAL mugshot cropped from the master-sheet header (helmeted bust, gutter-split from the
+  // "Green Ranger" logo text) — not a placeholder idle-crop (Red/Gold Stage-6 fix applied up front).
+  portrait: "./samurai_ranger_forest_portrait.png",
+  archetypes: ["melee", "spear"], primary: "spear", secondary: ["melee"],
+  traits: { hasEnergy: true, energyType: "symbol_power", mobility: "medium", scaling: "damage", animeMovement: false },
+  passive: { name: "Mojikara (Forest)", effect: "Forest Symbol Power fuels the Forest Spear — steady meter feeds the Mega Mode transformation and its long-reach leaf specials" },
+  // REACH archetype (the spear identity). Sits BETWEEN Red (heavy/slow HP1220 spd88) and Gold
+  // (nimble HP1160 spd94): sturdy mid HP, mid meter, ground speed a touch under Gold because the
+  // spear's reach — not footspeed — is the win condition. All values inside the roster band, no
+  // outliers (see Stage-1 balance note in the harness).
+  stats: { maxHealth: 1190, maxEnergy: 165, attack: 91, defense: 85, speed: 91, maxJumps: 2, jumpPower: 31, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 33 },
+  basic_attacks: {
+    ...RANGER_BASICS,
+    heavy: { damage: 88, startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 7, knockbackY: 1 }
+  },
+  // HUD/kit data only for now — real behaviour + Mega gating land in Stages 3-5. forestSpear is the
+  // Stage-4 EXTENDED-REACH special (the real spear-blast art: samurai_ranger_forest_specail_projectile.png).
+  specials: {
+    forestSpear: { cost: 35, damage: 145, startup: 9, active: 5, recovery: 20, hitstun: 20, knockbackX: 8, knockbackY: -1, megaOnly: false, effect: "long-reach Forest Spear thrust into a leaf-energy blast wave" }
+  },
+  ultimate: { name: "Forest Spear: Verdant Storm", cost: 100, duration: 9, effect: "Multi-hit leaf-storm spear barrage (damage scales with Mega Mode)" },
+  // MEGA MODE — same Vegeta-style TIER-SWAP as Red/Gold (Stage 3), driven by the DEDICATED
+  // enter/revert path (reused samurai form system), NOT the generic transformationOrder stepper.
+  // megaMode multipliers re-applied each frame from currentFormData; no `duration` (sustained drain
+  // owns revert). Values mirror Red/Gold's tier so the tier-swap payoff reads consistently.
+  transformationOrder: ["base"],
+  transformations: {
+    base:     { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
+    megaMode: { damageMultiplier: 1.35, speedMultiplier: 1.05, defenseMultiplier: 1.08 }
+  },
+  // No dedicated base-tier summon intro (the mega_mode_intro sheet belongs to Mega Mode, Stage 3) —
+  // use the idle as the intro pose (Red/Killua introPool-idle precedent).
+  introPool: ["idle"],
+  hasSprites: true,
+  // SIZE-NORMALIZED: idle content measured 61px tall → 61 × 1.85 ≈ 113px on-screen (roster median).
+  // anchorY=0 everywhere so feet stay planted on the cell bottom.
+  spriteScale: 1.85,
+  // STAGE-1 base-tier movement/state sprites. RE-SLICED to clean uniform strips (tools/reslice_strip.mjs)
+  // from COPIES of the untracked originals (forest = green). Normals / Mega Mode / spear-special /
+  // ultimate come in later stages; any missing action falls back to idle.
+  animationData: {
+    idle:  { frames: 4, width: 30, height: 61, speed: 6, anchorY: 0, sheet: "./samurai_ranger_forest_idle_uniform.png" },
+    walk:  { frames: 8, width: 58, height: 52, speed: 6, anchorY: 0, sheet: "./samurai_ranger_forest_run_uniform.png" },
+    run:   { frames: 8, width: 58, height: 52, speed: 4, anchorY: 0, sheet: "./samurai_ranger_forest_run_uniform.png" },
+    dash:  { frames: 8, width: 58, height: 52, speed: 3, anchorY: 0, sheet: "./samurai_ranger_forest_run_uniform.png" },
+    jump:  { frames: 6, width: 35, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_jump_uniform.png" },
+    fall:  { frames: 6, width: 35, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_jump_uniform.png" },
+    // hurt = the master-sheet "Stun" reel (stagger-with-stars); first 3 frames = the stagger window.
+    hurt:  { frames: 3, width: 43, height: 71, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_hurt_uniform.png" },
+    // guard = the CLEAN crouch stance (frames 5-8 of the block sheet; frames 1-4 are the cyan shield
+    // FX build). sourceX skips past the shield frames to the settled defensive pose.
+    guard: { frames: 4, width: 41, height: 85, speed: 6, anchorY: 0, sourceX: 164, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_guard_uniform.png" },
+    // ── STAGE-2 base-tier NORMALS (all SPIN-SWORD melee, resliced from COPIES) ──
+    // The alpha-gutter scan confirmed EVERY base normal (attacks/up/air/down) uses the Spin Sword with
+    // GREEN leaf/energy slash FX — the SPEAR appears ONLY on the _specail* sheets, so it is reserved for
+    // the Stage-4 extended-reach special, NOT a normal slot. Green does a SINGLE grounded up-attack (like
+    // Gold, not Red's merged tap/hold). light/heavy are SHORT windows of the attacks-master rows; the
+    // FULL rows drive the command chain below.
+    light:    { frames: 4,  width: 68,  height: 73,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_slash_uniform.png" },   // quick opening slash (attacks row0, first 4)
+    heavy:    { frames: 6,  width: 77,  height: 69,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_lunge_uniform.png" },   // heavier crescent (attacks row1, first 6)
+    up:       { frames: 8,  width: 69,  height: 118, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_rising_uniform.png" },  // rising green slash-wave launcher (up_attack)
+    air:      { frames: 6,  width: 109, height: 56,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_aerial_uniform.png" },  // spinning aerial slash (air_attack, first 6)
+    down_air: { frames: 4,  width: 109, height: 56,  speed: 4, anchorY: 0, sourceX: 545, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_aerial_uniform.png" }, // downward-angled dive slash (aerial, frames 6-9)
+    grab:     { frames: 4,  width: 68,  height: 73,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_slash_uniform.png" },   // reuse the opening slash (Red/Gold/Omega precedent)
+    // TOJI-REKKA COMMAND CHAIN (Fwd+Heavy opener → re-tap Heavy on HIT → cancel into the next stage).
+    // Stage keys match the SHARED abilities.js SAMURAI_RANGER_CMD table (Green reuses Red/Gold's proven
+    // rekka logic; sprites resolve against THESE Green keys). Sourced from the FULL attacks rows + the
+    // green leaf-spike down-string as the flashy launcher FINISHER. cancel-on-HIT (block/whiff ends it).
+    samRekka1:   { frames: 12, width: 68, height: 73, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_slash_uniform.png" },
+    samRekka2:   { frames: 13, width: 77, height: 69, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_lunge_uniform.png" },
+    samRekkaFin: { frames: 15, width: 81, height: 77, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_launcher_uniform.png" },
+    // STAGE-4 SPECIAL cast pose — the FOREST SPEAR thrust (the real naginata art) that hurls the leaf-blast
+    // wave. Usable in BOTH tiers; the Mega form overrides this key (GREEN_MEGA_ANIM) with the mega spear art.
+    forestSpear: { frames: 13, width: 83, height: 68, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_spear_cast_uniform.png" },
+    // STAGE-5 ULTIMATE (base tier) — "Forest Spear: Verdant Storm". No dedicated ult sheet in the batch →
+    // reuses the leaf-spike launcher string as a Verdant-Storm barrage, played through the freeze cinematic
+    // via _spriteCastMove="ultimate". The MEGA tier overrides this key (GREEN_MEGA_ANIM) → higher-power art.
+    ultimate: { frames: 15, width: 81, height: 77, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_launcher_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // ALBEDO  (Ben's clone — Ultimatrix)
 // Mechanically identical to Ben 10: same alien roster + same energy/transform
 // system (see fighters.js setupBen10 / updateTransformDevice). This entry just
@@ -2072,6 +2363,112 @@ const netero = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// CHROLLO LUCILFER (Hunter x Hunter — 5th HxH char). rosterKey "chrollo".
+// See CHROLLO_ASSET_MAP.md. Deliberately PLAIN technical-melee base kit (the
+// person's own description) — his entire identity lives in the SKILL HUNTER
+// ultimate (Stage 5): a LIVE dynamic transformation into the current opponent's
+// full character (moveset + specials + their own ultimate), unlocked by the
+// opponent landing 3 DISTINCT moves on him. That is architecturally novel and
+// is investigated in Stage 4 before any ultimate code is written.
+//
+// STAGE 1 scope = registration + movement/state + a random-cycle intro pool of
+// ALL FOUR intro candidates. Normals (Stage 2), the book special (Stage 3), and
+// Skill Hunter (Stages 4-5) land later. basic_attacks / specials / ultimate are
+// declared as METADATA now (gokuBlack precedent) so the character-select kit
+// panel has data and nothing assumes `.specials`/`.ultimate` is undefined; the
+// attack SPRITES are wired into animationData in Stage 2 (until then attacks fall
+// back cleanly to idle via sprite.js's missing-action guard — no fallback box).
+// All movement/state/intro strips were COPIED to *_uniform.png and the COPY
+// resliced (untracked originals preserved).
+// ─────────────────────────────────────────────────────────────────
+const chrollo = {
+  rosterKey: "chrollo", name: "Chrollo Lucilfer", universe: "hunter_x_hunter", color: "#7c3aed",
+  portrait: "./chrollo_portrait.png",   // cropped 4× from intro2 frame 0 (refine in Stage 6)
+  archetypes: ["melee", "technical"], primary: "melee", secondary: ["technical"],
+  traits: { hasEnergy: true, energyType: "nen", mobility: "medium", scaling: "adaptive", animeMovement: true },
+  passive: { name: "Skill Hunter", effect: "Bandit's Secret — after the opponent lands 3 distinct moves, Chrollo can steal their entire fighting style (Ultimate)." },
+  // Deliberately plain, mid-of-the-roster technical melee (per the person's own description —
+  // his power lives entirely in the Skill Hunter ultimate). Nothing spikes: balanced HP, modest
+  // energy (enough to bank the ultimate), average attack/defense/speed. No 0.60-bypass frailty.
+  stats: { maxHealth: 1080, maxEnergy: 130, attack: 84, defense: 84, speed: 88, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 40 },
+  // STAGE 2 normals — deliberately plain knife/melee kit, mid-of-roster numbers (nothing spikes).
+  // light = straight jab; heavy = committed side kick (longer reach); up = rising knife-slash launcher
+  // (feeds the juggle system); air = crescent aerial slash; down_air = the same aerial sheet reused as
+  // a diving spike. combat.js _getMD reads THIS block; the SPRITES live in animationData.
+  basic_attacks: {
+    light:     { damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 80, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 80, rangeY: 50 },
+    upAttack:  { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 10, airOK: false },
+    airAttack: { damage: 58, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { type: "spike", damage: 76, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
+    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
+  },
+  // SPECIALS (Stage 3) — SPECIAL button, direction-branched (executeChrolloSpecial). Both use REAL
+  // unextracted master-sheet art surfaced in the Stage-3 close pass (the neck-stab manipulation move
+  // does NOT exist in the art — confirmed absent, not fabricated). Base kit is otherwise plain.
+  specials: {
+    nenBolt:    { cost: 25, damage: 60, effect: "Neutral/Fwd — a blue nen construct thrown as a traveling projectile." },
+    bladeLunge: { cost: 25, damage: 78, effect: "Down — a committed forward knife-thrust lunge." }
+  },
+  ultimate: { name: "Skill Hunter", cost: 100, duration: 30, effect: "Once the opponent lands 3 DISTINCT moves on Chrollo, steal their ENTIRE fighting style (moveset + specials + their own ultimate + transformations) for 30s. Re-press Ultimate to end early. Unlock is consumed per use (must re-earn 3 distinct moves)." },
+  hasSprites: true,
+  // idle content ~58px × 1.9 ≈ 110px on-screen — squarely in roster range (Netero 111 / Gojo 112).
+  // REQUIRES the skins.js `chrollo` default entry (else applySkin() pulls the spriteScale:1 fallback
+  // → native ~58px, half size) + the spritesheets.js SPRITE_MANIFEST idle gate.
+  spriteScale: 1.9,
+  animationData: {
+    idle:  { frames: 4, width: 28, height: 58, speed: 6, anchorY: 0, sheet: "./chrollo_idle_uniform.png" },
+    // No dedicated walk/dash art — reuse the run strip (Netero precedent). walk slower than run.
+    walk:  { frames: 6, width: 49, height: 50, speed: 6, anchorY: 0, sheet: "./chrollo_run_uniform.png" },
+    run:   { frames: 6, width: 49, height: 50, speed: 4, anchorY: 0, sheet: "./chrollo_run_uniform.png" },
+    dash:  { frames: 6, width: 49, height: 50, speed: 3, anchorY: 0, sheet: "./chrollo_run_uniform.png" },
+    // jump = run-jump → tucked cape apex → fists-up airborne. Play once + hold. fall = the tucked
+    // apex cell (frame 4, sourceX = 4×44 = 176) held during descent.
+    jump:  { frames: 8, width: 44, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_jump_uniform.png" },
+    fall:  { frames: 1, width: 44, height: 61, speed: 6, anchorY: 0, sourceX: 176, loop: false, lockLastFrame: true, sheet: "./chrollo_jump_uniform.png" },
+    // Block → the `guard` action key (sprite.js resolves isBlocking → "guard" only if the strip exists). Hold final frame.
+    guard: { frames: 2, width: 36, height: 55, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_block_uniform.png" },
+    // HURT — the 4-frame strip covers stagger-INTO-knockdown as one sequence. Every hitstun/stun/
+    // knockdown state routes here (no dedicated knockdown/getup strips). Hold last frame.
+    hurt:  { frames: 4, width: 56, height: 32, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_hit_uniform.png" },
+    // ── STAGE 1 INTRO POOL — all FOUR intro candidates, random-cycled per match (pickIntroVariant).
+    intro:  { frames: 7,  width: 44, height: 58, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_intro_uniform.png" },   // arms-spread summon flare
+    intro2: { frames: 4,  width: 49, height: 59, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_intro2_uniform.png" },  // confident front stance
+    intro3: { frames: 12, width: 38, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_intro3_uniform.png" },  // reading the Skill Hunter book (grid flattened row-major)
+    intro4: { frames: 9,  width: 33, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_intro4_uniform.png" },  // walks in holding the book
+    // ── STAGE 2 NORMALS — resliced uniform (reslice_strip.mjs, alpha-gutter frame counts). Deliberately
+    // plain knife/melee kit. combat.js reads DAMAGE/frames from basic_attacks; these are the SPRITES
+    // (standard MOVE_TO_ACTION light/heavy/up/air/down_air). All play once + hold last frame.
+    light:    { frames: 3, width: 57, height: 50, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_punch_uniform.png" },       // straight jab
+    heavy:    { frames: 5, width: 59, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_kick_uniform.png" },        // committed side kick
+    up:       { frames: 4, width: 43, height: 61, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_upattack_uniform.png" },    // launcher: rising knife slash
+    // Aerial slash sheet (crescent-arc FX). Reused for BOTH air (neutral aerial) and down_air (dive
+    // spike) — no dedicated 2nd air file (Netero/Goku-Black reuse precedent).
+    air:      { frames: 7, width: 62, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_downattack_uniform.png" },
+    down_air: { frames: 7, width: 62, height: 74, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_downattack_uniform.png" },
+    // ── STAGE 2 COMMAND CHAIN — Toji-Rekka "Blade Rush": Fwd+Heavy opens chCombo1 (rushing punch
+    // string) → re-tap Heavy during recovery, cancel-on-HIT → chComboFin (extended side-kick launcher,
+    // string ends). Real chain logic lives in abilities.js CHROLLO_CMD + updateChrolloCommandCombat.
+    // Identity-mapped in sprite.js. The two overflow combo sheets (punch_combo / sidekick_combo).
+    chCombo1:   { frames: 9, width: 58, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_punchcombo_uniform.png" },     // rushing punch string opener
+    chComboFin: { frames: 9, width: 78, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_sidekickcombo_uniform.png" },  // extended side-kick launcher finisher
+    // ── STAGE 3 SPECIALS (real UNEXTRACTED master-sheet art surfaced in the Stage-3 close pass). Cast
+    // poses/attack sprites; the logic lives in abilities.js executeChrolloSpecial. Identity-mapped.
+    // NEN BOLT cast = the forward blue-orb thrust (specialmove_part2 resliced). The traveling projectile
+    // FX is the blue nen construct (chrollo_nenbeast_uniform.png) rendered by ui.drawProjectiles, NOT here.
+    chNenCast:   { frames: 4, width: 50, height: 57, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_nencast_uniform.png" },
+    // BLADE LUNGE = the forward knife-thrust lunge (5f, band-3 master-sheet art). A committed stab.
+    chBladeLunge: { frames: 5, width: 70, height: 88, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_knifethrust_uniform.png" },
+    // ── STAGE 5 SKILL HUNTER transformation CAST (freeze-cinematic pose). Concatenation of ultimate_1
+    // (book windup) → ultimate_2 (purple robe rises/wraps) → ultimate_3 (robe envelops → emerge) = the
+    // "robe thing". Held via _spriteCastMove while chrolloSkillHunterCinematic plays; at the swap beat
+    // applySkillHunter turns Chrollo into a full copy of the opponent (rosterKey/animationData/etc swap).
+    chSkillHunterCast: { frames: 17, width: 84, height: 58, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./chrollo_skillhunter_cast_uniform.png" }
+  },
+  introPool: ["intro", "intro2", "intro3", "intro4"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // DRAGON BALL — GOKU BLACK / SSJ ROSE  (SEPARATE roster character, own kit)
 // STAGE 1 build: core identity (idle/walk/run/dash/jump/fall/hurt/get-up/block)
 // + 4 basic normals (light/up/air/down_air). Verified via harness/goku_black.test.mjs.
@@ -2107,10 +2504,12 @@ const gokuBlack = {
     explosion:  { cost: 120, effect: "STAGE 3+: proximity AOE (Rick mirror), art pending. Not wired yet." }
   },
   ultimate: { name: "Sword Slash", cost: 40, effect: "STAGE 3+: sure-hit with real windup risk. Not wired yet." },
-  // SSJ ROSE is a SELF-CONTAINED sustained transform managed in abilities.js (enterSSJRose /
-  // revertSSJRose / applyGokuBlackFormSystem) — NOT the generic transformations.js flow — because
-  // it's threshold-gated (no entry cost) with a continuous per-frame drain + instant auto-revert.
-  // So transformationOrder stays ["base"]; currentForm is set to "ssjRose" by enterSSJRose for HUD.
+  // TRANSFORMATION — base → Super Saiyan Rose. A SELF-CONTAINED sustained transform managed in
+  // abilities.js (enterSSJRose / revertSSJRose / applyGokuBlackFormSystem) — NOT the generic
+  // transformations.js flow — because it is threshold-gated (no entry cost) with a continuous per-frame
+  // drain + instant auto-revert, and enters via a grand frozen cinematic (ssjRoseCinematic). So
+  // transformationOrder stays ["base"]; currentForm is set to "ssjRose" for the HUD. (The base→SSG→
+  // Rose→Blue recolor pilot was removed 2026-08-01 — shelved.)
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   // Intro plays the grounded IDLE (Rick precedent), avoiding the 128² NULL-box intro fallback.
@@ -2881,11 +3280,181 @@ const superman = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// JUJUTSU KAISEN — MAKI ZENIN
+// Pure-physical naginata bruiser. UNIQUE in the roster: NO resource
+// meter of any kind (traits.hideResourceMeter suppresses the whole
+// energy panel — she is not even a "no-meter flavor" character; she
+// shows HP only). Her Ultimate is HP-THRESHOLD gated (unlocks at ≤25%
+// HP → player-triggered Shibuya-Arc transformation), NOT meter gated.
+// Stage 1 = registration + base-form movement/state only. Attacks
+// (Stage 2), specials (Stage 3) and the transformation ult (Stage 4)
+// land in later stages. Sprites are reslice_strip'd _uniform copies
+// (originals untracked) → anchorY:0 (feet at cell bottom).
+// spriteScale 1.63: idle body content 65px × 1.63 ≈ 106px ≈ 0.623×170cm
+// (canon 170cm, JJK official) per HEIGHT_REFERENCE.md.
+// ─────────────────────────────────────────────────────────────────
+const maki = {
+  rosterKey: "maki", name: "Maki Zenin", universe: "jujutsu_kaisen",
+  portrait: "./maki_portrait.png",   // real bust crop from the master-sheet header (green hair/glasses/naginata), Power-Rangers pattern
+  archetypes: ["melee", "speed"],
+  primary: "melee", secondary: ["speed"],
+  // energyType:"none" keeps her out of all energy logic; hideResourceMeter
+  // additionally suppresses the HUD energy panel entirely (no bar, no
+  // flavor label) → truly HP-only, distinct from every other character.
+  traits: { hasEnergy: false, energyType: "none", hideResourceMeter: true, mobility: "very_high", scaling: "physical_comeback", animeMovement: true },
+  stats: { maxHealth: 1180, maxEnergy: 0, attack: 90, defense: 84, speed: 94, maxJumps: 2, jumpPower: 32, dashSpeed: 20, dashDuration: 10, dashCooldownMax: 26 },
+  basic_attacks: {
+    // Frame data present so the character object is complete/valid; the
+    // attack ANIMATIONS are wired in Stage 2.
+    light:     { damage: 46, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 84, startup: 7, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 46 },
+    upAttack:  { type: "launcher", damage: 66, startup: 6, active: 4, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },
+    airAttack: { damage: 56, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 74, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+  },
+  specials: {
+    // SPECIAL button, direction-branched via _specialHeldDir. All COOLDOWN-gated (cost 0 — no energy).
+    kunaiThrow:     { cost: 0, effect: "Neutral/Fwd: throws a kunai — an independent-collision projectile (weapon-flavor)" },
+    nunchakuFlurry: { cost: 0, effect: "Down: pulls nunchaku for a spinning overhead multi-hit flurry (weapon-flavor melee)" },
+    // CHARGE button. Self-buff, not a strike.
+    powerCharge:    { cost: 0, effect: "CHARGE: 'Power Charge' — a brief physical power-up (1.3× damage ~5s). No energy; cooldown-gated." }
+  },
+  ultimate: { name: "Cursed Tool Awakening (Shibuya Arc)", cost: 0, description: "HP-THRESHOLD ultimate — becomes available only when Maki's HP drops to ≤25%. Player-triggered black-costume transformation (freeze-cinematic) → full Shibuya-Arc moveset for the rest of the match. No energy cost (she has none). Wired in Stage 4." },
+  // base = Jujutsu-High uniform (start). shibuya = the ≤25%-HP awakened black-costume form (Stage 4);
+  // the transform is player-triggered (HP-threshold unlock, NOT meter) and one-way for the round.
+  transformationOrder: ["base"],
+  transformations: {
+    base:    { damageMultiplier: 1,    speedMultiplier: 1,   defenseMultiplier: 1 },
+    shibuya: { damageMultiplier: 1.25, speedMultiplier: 1.1, defenseMultiplier: 1.05, isSpecial: true }
+  },
+  hasSprites: true,
+  spriteScale: 1.63,
+  // Random-cycle intro pool (pickIntroVariant picks one per match start). The 3 intros are each a
+  // COMPLETE, SELF-CONTAINED sequence — NOT chained parts (the master-sheet label order doesn't confirm
+  // 1→2→3), so this is introPool (random pick), not introSequence (fixed-order chain). Each plays through
+  // once then holds its final ready-pose (lockLastFrame). intro1=salute/ready-up · intro2=naginata
+  // point-forward · intro3=twirl → cursed-energy burst → planted stance.
+  introPool: ["intro1", "intro2", "intro3"],
+  animationData: {
+    idle:  { frames: 4, width: 50, height: 71, speed: 8, anchorY: 0, loop: true, sheet: "./maki_new_idle_uniform.png" },   // NEW clean 4-frame idle — replaces the old maki_idle.png whose frame 3 was a 96px double-frame (two touching, no alpha gap → "two of her" glitch)
+    walk:  { frames: 8, width: 71, height: 60, speed: 6, anchorY: 0, loop: true, sheet: "./maki_run_uniform.png" },
+    run:   { frames: 8, width: 71, height: 60, speed: 4, anchorY: 0, loop: true, sheet: "./maki_run_uniform.png" },
+    dash:  { frames: 1, width: 65, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_dash_uniform.png" },
+    jump:  { frames: 5, width: 81, height: 73, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_jump_uniform.png" },
+    fall:  { frames: 1, width: 81, height: 73, speed: 6, anchorY: 0, sourceX: 324, loop: false, lockLastFrame: true, sheet: "./maki_jump_uniform.png" },
+    guard: { frames: 4, width: 53, height: 89, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_block_uniform.png" },
+    hurt:  { frames: 1, width: 83, height: 56, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./maki_hit_uniform.png" },
+    knockdown: { frames: 2, width: 83, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_hit_uniform.png" },
+    // ── Random-cycle intros (self-contained; introPool picks one per match start) ──
+    intro1: { frames: 5, width: 48, height: 70, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_intro1_uniform.png" },   // salute / ready-up
+    intro2: { frames: 5, width: 86, height: 67, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_intro2_uniform.png" },   // naginata point-forward
+    intro3: { frames: 6, width: 74, height: 92, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_intro3_uniform.png" },   // twirl → cursed-energy burst → planted stance
+    // ── STAGE 2: naginata normals (broad slashes / thrusts) ──
+    light:    { frames: 4, width: 76, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_light_uniform.png" },     // quick horizontal naginata slash
+    heavy:    { frames: 5, width: 76, height: 65, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_heavy_uniform.png" },     // committed power swing (red trail)
+    up:       { frames: 5, width: 77, height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_up_uniform.png" },        // crouch → rising overhead launcher
+    air:      { frames: 4, width: 76, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_air_uniform.png" },        // aerial horizontal slash
+    down_air: { frames: 5, width: 87, height: 124, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_downair_uniform.png" },   // descending crescent dive-spike
+    // ── STAGE 2: "Cursed Tool Flurry" command chain (Fwd+Heavy → re-tap Heavy on clean hit) — brutal kick rekka ──
+    makiG1:   { frames: 4, width: 91, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_g1_uniform.png" },         // low running sweep-kick opener
+    makiG2:   { frames: 4, width: 62, height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_g2_uniform.png" },         // high roundhouse kick mid
+    makiG3:   { frames: 4, width: 58, height: 101, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_g3_uniform.png" },         // spinning axe-kick finisher
+    // ── STAGE 3: specials ──
+    makiKunai:   { frames: 6, width: 86, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_kunai_uniform.png" },      // Kunai Throw — windup → release
+    makiNunchaku:{ frames: 10, width: 57, height: 96, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_nunchaku_uniform.png" },   // Nunchaku Flurry — spinning overhead combo (weapon-flavor)
+    makiCharge:  { frames: 2, width: 65, height: 83, speed: 6, anchorY: 0, loop: true, sheet: "./maki_charge_uniform.png" }                             // Power Charge — weapon-raised power-up stance
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GHOSTFACE  (rosterKey "ghostface", universe "horror" — first horror-universe
+// sprite char). Source art = 16 CVS-style `cvs_ghost_face_*.png` strips (idle,
+// sneak/walk, jump, blocks, hit, foward_attack, up_attack, charge_attack,
+// down_air, crouch_stance_attack, taunt, crouch) + a 636×1057 master sheet.
+// Non-uniform strips RE-SLICED to feet-aligned `ghostface_*_uniform.png` cells
+// (tools/reslice_strip.mjs); three touching-figure attack sheets (slash, lowslash,
+// downair) were density-split by a bespoke repacker. See GHOSTFACE_ASSET_MAP.md.
+// Archetype: knife STALKER — fast, fragile-ish rushdown with a low-slash command
+// chain, a gap-closing gutting lunge that leaves a BLEED DoT, and a freeze-cinematic
+// stab-flurry Ultimate. The signature Call-In companion special (skin-gated pools)
+// lands in a later stage; the Stage-1 build is the standard normals/chain/specials/Ultimate.
+// ─────────────────────────────────────────────────────────────────
+const ghostface = {
+  rosterKey: "ghostface", name: "Ghostface", universe: "horror", color: "#1c2030",
+  portrait: "./ghostface_portrait.png",   // cropped from idle frame 0 (Stage 1; falls back cleanly if absent pre-crop).
+  archetypes: ["rushdown", "technical"],
+  primary: "rushdown", secondary: ["technical"],
+  traits: { hasEnergy: true, energyType: "dread", mobility: "high", scaling: "combo", animeMovement: false },
+  // STALKER SLASHER — fast, mixup-heavy knife rushdown; human-fragile but mobile, with bleed
+  // attrition rather than raw burst. vs roster: Killua HP1030/atk84/def78/spd95 (glass assassin),
+  // Batman HP1080/atk86/def88/spd92 (disciplined mid), Flash HP1020/spd99 (glass speedster).
+  // Ghostface sits fragile-fast: HP1040 (low, above Killua/Flash), atk85 (moderate), def80
+  // (low-mid — a masked human, not armored), spd95 (fast, ties Killua; below Toji98/Flash99).
+  // No stat is an outlier. maxEnergy 100 = Dread meter (specials + Ultimate).
+  stats: { maxHealth: 1040, maxEnergy: 100, attack: 85, defense: 80, speed: 95, maxJumps: 2, jumpPower: 32, dashSpeed: 20, dashDuration: 9, dashCooldownMax: 30 },
+  // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air. combat.js _getMD reads THIS.
+  basic_attacks: {
+    light:    { damage: 34, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 66, startup: 7, active: 3, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 104, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 54, startup: 6, active: 3, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, airOK: false },
+    airAttack:{ damage: 46, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 58, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }
+  },
+  // HUD-only until wired in abilities.js (real logic + cost there). Direction-branched Special.
+  specials: {
+    guttingLunge: { cost: 25, damage: 50, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 6, knockbackY: -4, effect: "dashing knife lunge (gap-closer) — leaves a BLEED DoT on a clean hit" },
+    lowGut:       { cost: 20, damage: 42, startup: 6, active: 3, recovery: 18, hitstun: 22, knockbackX: 4, knockbackY: -1, effect: "low sweeping gut-slash — trips (knockdown) on hit" },
+    stalkVanish:  { cost: 15, damage: 0,  startup: 2, active: 0, recovery: 18, effect: "backstep with brief i-frames — stalk/reposition, no damage" }
+  },
+  ultimate: { name: "The Final Act", cost: 100, description: "Freeze-cinematic — Ghostface stalks in and unleashes a guaranteed flurry of stabs (range-independent; blocked → 25%)." },
+  hasSprites: true,
+  // idle content ~116px tall × 1.15 ≈ 133px on-screen (upper roster band — an imposing stalker).
+  // REQUIRES the skins.js `ghostface` default skin (else applySkin() pulls the spriteScale:1 fallback)
+  // + the spritesheets.js idle gate.
+  spriteScale: 1.15,
+  animationData: {
+    // ── MOVEMENT / STATE. Re-sliced to uniform feet-aligned cells (reslice_strip.mjs). ──
+    idle:  { frames: 3, width: 75,  height: 116, speed: 8, anchorY: 0, sheet: "./ghostface_idle_uniform.png" },   // hunched breathing loop
+    walk:  { frames: 4, width: 80,  height: 115, speed: 6, anchorY: 0, sheet: "./ghostface_walk_uniform.png" },   // stalking creep (from sneak)
+    run:   { frames: 4, width: 80,  height: 115, speed: 4, anchorY: 0, sheet: "./ghostface_walk_uniform.png" },   // same sheet, faster
+    dash:  { frames: 4, width: 80,  height: 115, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_walk_uniform.png" },
+    jump:  { frames: 2, width: 105, height: 118, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_jump_uniform.png" },
+    fall:  { frames: 1, width: 105, height: 118, speed: 6, anchorY: 0, sourceX: 105, loop: false, lockLastFrame: true, sheet: "./ghostface_jump_uniform.png" },   // apex/descent = jump frame 1
+    guard: { frames: 1, width: 82,  height: 108, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_guard_uniform.png" },   // cloak-brace block
+    hurt:  { frames: 1, width: 122, height: 114, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./ghostface_hit_uniform.png" },   // recoil flinch = hit frame 0
+    knockdown: { frames: 3, width: 122, height: 114, speed: 6, anchorY: 0, sourceX: 122, loop: false, lockLastFrame: true, sheet: "./ghostface_hit_uniform.png" },   // crumple→prone→getup = hit frames 1-3
+    crouch: { frames: 2, width: 79, height: 102, speed: 8, anchorY: 0, loop: true, sheet: "./ghostface_crouch_uniform.png" },
+    charge: { frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: true, sheet: "./ghostface_taunt_uniform.png" },   // hold-to-charge = menacing knife beckon (reuses taunt)
+    taunt:  { frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_taunt_uniform.png" },
+    // ── NORMALS (5 slots). Play once, hold last frame. ──
+    light:    { frames: 3, width: 103, height: 110, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_slash_uniform.png" },    // quick standing knife swipes
+    heavy:    { frames: 1, width: 125, height: 115, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_charge_uniform.png" },   // committed lunging power-stab (long reach)
+    up:       { frames: 1, width: 97,  height: 124, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_up_uniform.png" },       // overhead knife launcher
+    air:      { frames: 1, width: 97,  height: 124, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_up_uniform.png" },       // aerial overhead slash (reuse up)
+    down_air: { frames: 3, width: 107, height: 128, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_downair_uniform.png" },  // aerial dive-stab
+    // ── COMMAND-NORMAL CHAIN — "Slasher Frenzy" (Down+Heavy rekka, cancel-on-hit; Batman architecture).
+    // The 3-frame low-slash sheet split into 3 cancelable stages. currentMove = ghostfaceComboN → sheet. ──
+    ghostfaceCombo1: { frames: 1, width: 97, height: 88, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },
+    ghostfaceCombo2: { frames: 1, width: 97, height: 88, speed: 3, anchorY: 0, sourceX: 97,  loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },
+    ghostfaceCombo3: { frames: 1, width: 97, height: 88, speed: 3, anchorY: 0, sourceX: 194, loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },
+    // ── SPECIAL cast poses (SPECIAL button, direction-branched via _specialHeldDir). ──
+    gfLunge:  { frames: 1, width: 125, height: 115, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_charge_uniform.png" },   // Gutting Lunge (neutral/F): dashing stab
+    gfLowCut: { frames: 3, width: 97,  height: 88,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform.png" },  // Low Gut (D): sweeping low slash
+    // Stalk Vanish (B) is FX-only (poof + i-frames), no cast pose.
+    // Call-In (Neutral Special) beckon pose — the "come here" knife gesture (reuses taunt sheet).
+    gfCallIn: { frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_taunt_uniform.png" },
+    // ── ULTIMATE cast pose — "The Final Act" stab-flurry, held through the frozen cinematic. ──
+    gfUlt:    { frames: 3, width: 103, height: 110, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_slash_uniform.png" }
+  },
+  introPool: ["idle"]   // no dedicated intro art in the batch → stand in idle
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
-  gojo, megumi, sukuna, omololu, toji, mahoraga,
+  gojo, megumi, sukuna, omololu, toji, mahoraga, maki,
   naruto, sasuke, itachi, tobirama, minato,
   zenitsu, rengoku, shinobu,
   rick, morty, evilMorty, rickPrime,
@@ -2893,6 +3462,9 @@ export const characters = {
   ben10, albedo,
   omniman: omniMan,
   omega_ranger: omegaRanger,
+  samurai_red_ranger: samuraiRedRanger,
+  gold_samurai_ranger: goldSamuraiRanger,
+  green_samurai_ranger: greenSamuraiRanger,
   netero,
   saiki,
   killua,
@@ -2900,7 +3472,9 @@ export const characters = {
   gon,
   batman,
   hisoka,
-  superman
+  superman,
+  chrollo,
+  ghostface
 }
 
 // The 7 characters shown in the starter roster select screen

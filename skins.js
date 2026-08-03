@@ -35,27 +35,6 @@ const OWN = {
     domain:             { frames: 14, width: 29, height: 70, speed: 5, sheet: "./gojo2_domain_sheet.png" }
   },
 
-  // ---- SUKUNA3 (attack rows GUESSED) ----
-  sukuna3: {
-    idle:             { frames: 6,  width: 28, height: 64, speed: 6, sheet: "./sukuna3_idle_sheet.png" },
-    walk:             { frames: 9,  width: 47, height: 63, speed: 5, sheet: "./sukuna3_walk_sheet.png" },
-    run:              { frames: 6,  width: 51, height: 58, speed: 4, sheet: "./sukuna3_run_sheet.png" },
-    jump:             { frames: 4,  width: 34, height: 66, speed: 6, sheet: "./sukuna3_jump_sheet.png" },
-    fall:             { frames: 4,  width: 34, height: 66, speed: 6, sheet: "./sukuna3_jump_sheet.png" },
-    hurt:             { frames: 5,  width: 64, height: 55, speed: 6, sheet: "./sukuna3_knockdown_sheet.png" },
-    transform:        { frames: 10, width: 42, height: 63, speed: 6, sheet: "./sukuna3_intro_sheet.png", loop: false, lockLastFrame: true },
-    light:            { frames: 5,  width: 48, height: 61, speed: 4, sheet: "./sukuna3_punch_sheet.png" },          // [guess]
-    heavy:            { frames: 6,  width: 43, height: 63, speed: 5, sheet: "./sukuna3_attack_a_sheet.png" },        // [guess]
-    up:               { frames: 5,  width: 49, height: 63, speed: 5, sheet: "./sukuna3_kick_sheet.png" },            // [guess]
-    air:              { frames: 5,  width: 39, height: 62, speed: 4, sheet: "./sukuna3_attack_b_sheet.png" },        // [guess]
-    down_air:         { frames: 5,  width: 35, height: 63, speed: 4, sheet: "./sukuna3_attack_c_sheet.png" },        // [guess]
-    grab:             { frames: 4,  width: 35, height: 64, speed: 5, sheet: "./sukuna3_attack_d_sheet.png" },        // [guess]
-    cleave:           { frames: 8,  width: 57, height: 62, speed: 4, sheet: "./sukuna3_slash_sheet.png" },           // [guess]
-    dismantle:        { frames: 4,  width: 44, height: 62, speed: 4, sheet: "./sukuna3_slash_special_sheet.png" },   // [guess]
-    flame_arrow_fire: { frames: 10, width: 41, height: 63, speed: 5, sheet: "./sukuna3_fire_special_sheet.png" }     // [guess, high conf]
-    // UNUSED for now: sukuna3_combo (12f), sukuna3_attack_e (6f)
-  },
-
   // ---- MEGUMI2 (combat_a–h / move_c–e GUESSED) ----
   megumi2: {
     idle:         { frames: 4,  width: 23, height: 37,  speed: 6, sheet: "./megumi2_idle_sheet.png" },
@@ -78,12 +57,6 @@ const OWN = {
 
 // The exact GUESSED rows (ambiguous strips → slot), for the report / your edits.
 export const SKIN_GUESSES = {
-  sukuna3: {
-    "light": "punch", "heavy": "attack_a", "up": "kick", "air": "attack_b",
-    "down_air": "attack_c", "grab": "attack_d", "cleave": "slash",
-    "dismantle": "slash_special", "flame_arrow_fire": "fire_special",
-    "_unused": ["combo", "attack_e"]
-  },
   megumi2: {
     "ultimate": "combat_a", "light": "combat_b", "heavy": "combat_c", "up": "combat_d",
     "air": "combat_e", "down_air": "combat_f", "grab": "combat_g",
@@ -93,7 +66,7 @@ export const SKIN_GUESSES = {
 }
 
 // Display scale per skin (source cell heights differ from default).
-const SKIN_SCALE = { gojo2: 1.8, sukuna3: 1.8, megumi2: 2.2 /* cells vary 33–120px → compromise (flagged) */ }
+const SKIN_SCALE = { gojo2: 1.8, megumi2: 2.2 /* cells vary 33–120px → compromise (flagged) */ }
 
 function buildComplete(rosterKey, ownKey) {
   const base = characters[rosterKey]?.animationData || {}
@@ -138,20 +111,23 @@ function recolorSkins(rosterKey) {
 }
 
 export const SKINS = {
+  // Gojo — base sprite transparency-repaired (2026-07-30), then rebuilt with 4 coordinated head-to-toe
+  // colour skins (HAIR + main clothing/top + EYES all in one hue family; face/skin + white pants kept
+  // natural) via tools/gen_gojo_creative.py, registered DIRECTLY here (like the Rengoku/Shinobu/Sukuna
+  // creative batches), NOT through the abstract-hue ALT_SKINS manifest. Cosmetic only; zero gameplay.
   gojo: [
-    { id: "default", name: "Default",         unlockLevel: 0, portrait: characters.gojo?.portrait,   spriteScale: characters.gojo?.spriteScale,   animationData: null },
-    { id: "gojo2",   name: "Limitless (Alt)", unlockLevel: 5, portrait: "./gojo2_idle_sheet.png",    spriteScale: SKIN_SCALE.gojo2,   animationData: buildComplete("gojo", "gojo2") }
+    { id: "default",       name: "Default",  unlockLevel: 0, portrait: characters.gojo?.portrait,      spriteScale: characters.gojo?.spriteScale, animationData: null },
+    { id: "gojoCerulean",  name: "Cerulean", unlockLevel: 0, portrait: "./gojo_portrait__cerulean.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "cerulean") },
+    { id: "gojoAmethyst",  name: "Amethyst", unlockLevel: 0, portrait: "./gojo_portrait__amethyst.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "amethyst") },
+    { id: "gojoSolar",     name: "Solar",    unlockLevel: 0, portrait: "./gojo_portrait__solar.png",    spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "solar") },
+    { id: "gojoRose",      name: "Rose",     unlockLevel: 0, portrait: "./gojo_portrait__rose.png",     spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "rose") }
   ],
-  // THREE Sukuna skins (Task 4). Only two have bespoke art on disk:
-  //   • "regular"  = the iconic pink-haired Sukuna  → default sukuna_* sheets.
-  //   • "megaFit"  = the Heian full-body Sukuna     → sukuna3_* sheets (real art).
-  //   • "pinkFit"  = NO bespoke sheets exist. Synthesised as the DEFAULT art with a
-  //     pink colour wash (skinTint) so it's a distinct, selectable skin now; swap
-  //     in real pink sheets later by giving it its own OWN[...] block + sheets.
+  // SUKUNA — ALL prior alt-skins DELETED 2026-07-30 (Mega Fit sukuna3 / Pink Fit / the black·gold·blue·red
+  // recolors / Reanimated), keeping ONLY the true Default, then rebuilt with 4 coordinated head-to-toe
+  // colour skins (hair + outfit + eyes same hue family) via tools/gen_sukuna_creative.py — see the
+  // recolor-skin append below. "Regular" = the iconic pink-haired Sukuna (default sukuna_* sheets).
   sukuna: [
-    { id: "default", name: "Regular",  unlockLevel: 0, portrait: characters.sukuna?.portrait,  spriteScale: characters.sukuna?.spriteScale, animationData: null },
-    { id: "sukuna3", name: "Mega Fit", unlockLevel: 8, portrait: "./sukuna3_idle_sheet.png",    spriteScale: SKIN_SCALE.sukuna3, animationData: buildComplete("sukuna", "sukuna3") },
-    { id: "pinkFit", name: "Pink Fit", unlockLevel: 5, portrait: characters.sukuna?.portrait,   spriteScale: characters.sukuna?.spriteScale, animationData: null, skinTint: "#f472b6", placeholderArt: true }
+    { id: "default", name: "Regular", unlockLevel: 0, portrait: characters.sukuna?.portrait, spriteScale: characters.sukuna?.spriteScale, animationData: null }
   ],
   megumi: [
     { id: "default", name: "Default",          unlockLevel: 0, portrait: characters.megumi?.portrait, spriteScale: characters.megumi?.spriteScale, animationData: null },
@@ -228,6 +204,28 @@ export const SKINS = {
   // spriteScale (2.5) + portrait from the character.
   gon: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null }
+  ],
+
+  // Chrollo Lucilfer (Hunter x Hunter) — STAGE 1. Same gate: WITHOUT a default skin, applySkin()
+  // pulls the getSkins() spriteScale:1 fallback and he renders at native ~58px (half size). Sources
+  // his real spriteScale (1.9) + portrait from the character. No alt skins yet.
+  chrollo: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.chrollo?.portrait, spriteScale: characters.chrollo?.spriteScale, animationData: null },
+    // "Phantom Troupe" — canonical reference palette (tools/gen_chrollo_reference.py). Per-region,
+    // tone-preserving: coat navy->deep-purple #4A2E5C (yband<0.62), trousers->charcoal #1A1A1E
+    // (yband>=0.62), collar/cuff/leg-wrap fur->silver #E8E4DC, coat-front buttons->gold #D4A537;
+    // skin untouched. (maroon lining + a distinct leg-wrap gray are sub-pixel at ~28px, not separated.)
+    { id: "chrolloTroupe", name: "Phantom Troupe", unlockLevel: 0, portrait: "./chrollo_portrait__troupe.png", spriteScale: characters.chrollo?.spriteScale, animationData: recolorSkinAnim("chrollo", "troupe") },
+    // 12 creative recolors (tools/gen_chrollo_creative.py). Per-region on his NORMAL (untransformed) body:
+    // COAT (top yband) / LINING (= darkest coat sub-band, the only way to express the sub-pixel inner
+    // lining at ~28px) / TROUSERS (bottom yband, kept charcoal) / FUR trim (collar+cuffs, = leg-wraps too,
+    // not separable) / gold buttons kept. Face/hands (skin) excluded. Orthogonal to the Skill Hunter
+    // runtime tint (sprite.js SKILL_HUNTER_TINT), which washes the COPIED body, not these sheets.
+    // ── Checkpoint group 1 ──
+    { id: "chrolloCerulean", name: "Cerulean Collector", unlockLevel: 0, portrait: "./chrollo_portrait__cerulean.png", spriteScale: characters.chrollo?.spriteScale, animationData: recolorSkinAnim("chrollo", "cerulean") },
+    { id: "chrolloVerdant",  name: "Verdant Spider",     unlockLevel: 0, portrait: "./chrollo_portrait__verdant.png",  spriteScale: characters.chrollo?.spriteScale, animationData: recolorSkinAnim("chrollo", "verdant") },
+    { id: "chrolloCrimson",  name: "Crimson Troupe",     unlockLevel: 0, portrait: "./chrollo_portrait__crimson.png",  spriteScale: characters.chrollo?.spriteScale, animationData: recolorSkinAnim("chrollo", "crimson") },
+    { id: "chrolloGolden",   name: "Golden Pages",       unlockLevel: 0, portrait: "./chrollo_portrait__golden.png",   spriteScale: characters.chrollo?.spriteScale, animationData: recolorSkinAnim("chrollo", "golden") }
   ],
 
   // The Flash (DC). Same gate: WITHOUT a default skin, applySkin() pulls the getSkins()
@@ -371,7 +369,27 @@ export const SKINS = {
   // size). This entry sources his real spriteScale (1.7) from the character. No alt skins yet
   // (the SSJ Rose body-swap is a transformation, not a skin — comes in a later stage).
   goku_black: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_black?.portrait, spriteScale: characters.goku_black?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_black?.portrait, spriteScale: characters.goku_black?.spriteScale, animationData: null },
+    // 12 creative recolors (tools/gen_goku_black_creative.py). Per-region GI (near-black outfit, below the
+    // per-frame chin) + TRIM (white boots/gloves) + optional HAIR + AURA (FX energy); the warm-tan face/neck
+    // SKIN is EXCLUDED from every pass (the deleted SSG pilot's exact failure mode). recolorTag is REQUIRED:
+    // it makes applySkin stamp fighter._recolorTag so abilities.js retags the SSJ-Rose tier art too (the skin
+    // stays consistent through the transform). Recolors BOTH tiers (base black-hair + Rose pink-hair sheets).
+    // ── Checkpoint group 1 ──
+    { id: "gokuBlackVoidSovereign", name: "Void Sovereign",   unlockLevel: 0, portrait: "./goku_black_mug_shot__voidsovereign.png", spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "voidsovereign"), recolorTag: "voidsovereign" },   // near-black + game.js drawVoidSovereignOverlay (drifting red embers)
+    { id: "gokuBlackAzureTyrant",   name: "Azure Tyrant",     unlockLevel: 0, portrait: "./goku_black_mug_shot__azuretyrant.png",   spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "azuretyrant"),   recolorTag: "azuretyrant" },
+    { id: "gokuBlackEmeraldRift",   name: "Emerald Rift",     unlockLevel: 0, portrait: "./goku_black_mug_shot__emeraldrift.png",   spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "emeraldrift"),   recolorTag: "emeraldrift" },
+    { id: "gokuBlackObsidian",      name: "Obsidian Godhood", unlockLevel: 0, portrait: "./goku_black_mug_shot__obsidian.png",      spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "obsidian"),      recolorTag: "obsidian" },
+    // ── Checkpoint group 2 ──
+    { id: "gokuBlackCrimson",  name: "Crimson Judgment", unlockLevel: 0, portrait: "./goku_black_mug_shot__crimson.png",  spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "crimson"),  recolorTag: "crimson" },
+    { id: "gokuBlackIvory",    name: "Ivory Decree",     unlockLevel: 0, portrait: "./goku_black_mug_shot__ivory.png",    spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "ivory"),    recolorTag: "ivory" },
+    { id: "gokuBlackAmethyst", name: "Amethyst Void",    unlockLevel: 0, portrait: "./goku_black_mug_shot__amethyst.png", spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "amethyst"), recolorTag: "amethyst" },
+    { id: "gokuBlackSunfire",  name: "Sunfire Emperor",  unlockLevel: 0, portrait: "./goku_black_mug_shot__sunfire.png",  spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "sunfire"),  recolorTag: "sunfire" },
+    // ── Checkpoint group 3 ──
+    { id: "gokuBlackTeal",     name: "Teal Eclipse",   unlockLevel: 0, portrait: "./goku_black_mug_shot__teal.png",         spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "teal"),         recolorTag: "teal" },
+    { id: "gokuBlackAshen",    name: "Ashen King",     unlockLevel: 0, portrait: "./goku_black_mug_shot__ashen.png",        spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "ashen"),        recolorTag: "ashen" },
+    { id: "gokuBlackRoseShadow", name: "Rose Shadow",  unlockLevel: 0, portrait: "./goku_black_mug_shot__roseshadow.png",   spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "roseshadow"),   recolorTag: "roseshadow" },
+    { id: "gokuBlackGoldenTyrant", name: "Golden Tyrant", unlockLevel: 0, portrait: "./goku_black_mug_shot__goldentyrant.png", spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "goldentyrant"), recolorTag: "goldentyrant" }
   ],
 
   // Toji (JJK). Same reason as Naruto/Goku/Sasuke: WITHOUT a default skin, applySkin()
@@ -380,6 +398,40 @@ export const SKINS = {
   // (2.3) from the character. No alt skins yet.
   toji: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.toji?.portrait, spriteScale: characters.toji?.spriteScale, animationData: null }
+  ],
+
+  // Maki Zenin — Default only (creative skins land in a later stage). MUST exist: without a
+  // SKINS entry, getSkins() falls back to a synthesized default carrying spriteScale:1, which
+  // applySkin would stamp onto the fighter and override maki.spriteScale (1.63) → 1.
+  // Maki — ONLY Default + Void Hunter (the 12 flat-recolor batch and the "Ultimate: Covered" variant were
+  // removed by request). The Shibuya (Ultimate) form is now GORE-FREE for EVERY skin by default (the
+  // covered-arms art is the base Shibuya art itself — see abilities.MAKI_SHIBUYA_ANIM — not an opt-in skin).
+  maki: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.maki?.portrait, spriteScale: characters.maki?.spriteScale, animationData: null },
+    // VOID HUNTER — Alien-X-style FULL-FORM near-black (#0F0F12: uniform/hair/skin/face all void-flattened,
+    // tools/gen_maki_creative.py voidhunter) + a procedural game.js drawVoidHunterOverlay gated on this
+    // skinId (drifting pale star dots + 2-3 red/violet nebula swirl clusters). NO recolorTag → the ≤25%-HP
+    // Shibuya Ultimate form stays canonical (and the overlay self-skips while _shibuyaActive). Same shared
+    // Void-family technique as Rick/Superman/Rengoku/Gold/Goku-Black.
+    { id: "makiVoidHunter", name: "Void Hunter", unlockLevel: 0, portrait: "./maki_portrait__voidhunter.png", spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "voidhunter") },
+    // 12 GENUINELY creative recolors (tools/gen_maki_creative2.py) — HAIR + UNIFORM + ACCENT all vary as one
+    // coordinated palette identity (green hair is a targeted region now, not protected). NO recolorTag → the
+    // ≤25%-HP Shibuya Ultimate form stays canonical (and is gore-free by default for every skin — Part 2).
+    // ── Group 1 ──
+    { id: "makiIronWolf",  name: "Iron Wolf",            unlockLevel: 0, portrait: "./maki_portrait__ironwolf.png",   spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "ironwolf") },
+    { id: "makiBloodMoon", name: "Blood Moon",           unlockLevel: 0, portrait: "./maki_portrait__bloodmoon.png",  spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "bloodmoon") },
+    { id: "makiJade",      name: "Jade Huntress",        unlockLevel: 0, portrait: "./maki_portrait__jade.png",       spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "jade") },
+    { id: "makiPorcelain", name: "Porcelain Doll",       unlockLevel: 0, portrait: "./maki_portrait__porcelain.png",  spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "porcelain") },
+    // ── Group 2 ──
+    { id: "makiViper",     name: "Viper's Kiss",         unlockLevel: 0, portrait: "./maki_portrait__viper.png",      spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "viper") },
+    { id: "makiSunblade",  name: "Sunblade",             unlockLevel: 0, portrait: "./maki_portrait__sunblade.png",   spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "sunblade") },
+    { id: "makiFrostbite", name: "Frostbite",            unlockLevel: 0, portrait: "./maki_portrait__frostbite.png",  spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "frostbite") },
+    { id: "makiRoseThorn", name: "Rose Thorn Revisited", unlockLevel: 0, portrait: "./maki_portrait__rosethorn2.png", spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "rosethorn2") },
+    // ── Group 3 ──
+    { id: "makiObsidian",  name: "Obsidian Reaper",      unlockLevel: 0, portrait: "./maki_portrait__obsidian.png",  spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "obsidian") },
+    { id: "makiEmpress",   name: "Golden Empress",       unlockLevel: 0, portrait: "./maki_portrait__empress.png",   spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "empress") },
+    { id: "makiAshen",     name: "Ashen Nomad",          unlockLevel: 0, portrait: "./maki_portrait__ashen.png",     spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "ashen") },
+    { id: "makiStormcaller",name: "Stormcaller",         unlockLevel: 0, portrait: "./maki_portrait__stormcaller.png",spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "stormcaller") }
   ],
 
   // Vegeta (Dragon Ball). Same reason as the other sprite chars: WITHOUT a default skin,
@@ -395,7 +447,72 @@ export const SKINS = {
   // ~52px (half size). This entry sources his real spriteScale (2.0) from the character. No
   // alt skins yet. (The 5 core S.P.D. rangers + Shadow Ranger stubs never had skins/sprites.)
   omega_ranger: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omega_ranger?.portrait, spriteScale: characters.omega_ranger?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omega_ranger?.portrait, spriteScale: characters.omega_ranger?.spriteScale, animationData: null },
+    // 12 creative recolors (tools/gen_omega_creative.py). Per-region, capture-masks-from-original
+    // (contamination-proof even when armor+visor share a hue family): ARMOR = white/gray plates
+    // (boots share the plating, not separable → follow armor) / VISOR = blue helmet lens / EMBLEM =
+    // gold crest+trim. Fully helmeted → no skin-bleed risk. Multi-tone preserved via tone-remap.
+    // ── Checkpoint group 1 ──
+    { id: "omegaCrimson",  name: "Crimson Guard",   unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__crimson.png",  spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "crimson") },
+    { id: "omegaCobalt",   name: "Cobalt Strike",   unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__cobalt.png",   spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "cobalt") },
+    { id: "omegaVerdant",  name: "Verdant Shield",  unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__verdant.png",  spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "verdant") },
+    { id: "omegaVanguard", name: "Golden Vanguard", unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__vanguard.png", spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "vanguard") },
+    // ── Checkpoint group 2 ──
+    { id: "omegaAmethyst", name: "Amethyst Protocol", unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__amethyst.png", spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "amethyst") },
+    { id: "omegaRose",     name: "Rose Steel",        unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__rose.png",     spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "rose") },
+    { id: "omegaSlate",    name: "Slate Operative",   unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__slate.png",    spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "slate") },
+    { id: "omegaSunburst", name: "Sunburst",          unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__sunburst.png", spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "sunburst") },
+    // ── Checkpoint group 3 ── (Obsidian = near-black armor+visor + a single vivid-red emblem accent)
+    { id: "omegaObsidian", name: "Obsidian",       unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__obsidian.png", spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "obsidian") },
+    { id: "omegaIvory",    name: "Ivory Command",  unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__ivory.png",    spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "ivory") },
+    { id: "omegaTeal",     name: "Teal Force",     unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__teal.png",     spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "teal") },
+    { id: "omegaSolar",    name: "Solar Flare",    unlockLevel: 0, portrait: "./SPD_Omega_Ranger_mugshot__solar.png",    spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "solar") }
+  ],
+
+  // Samurai Red Ranger (Power Rangers) — SECOND sprited ranger. Default-only skin so applySkin()
+  // sources his real spriteScale (1.85) from the character instead of the getSkins() fallback of 1
+  // (which would render him half-size). Alt skins come later.
+  samurai_red_ranger: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.samurai_red_ranger?.portrait, spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: null },
+    // 12 creative recolors (tools/gen_samurai_creative.py). Per-region SUIT (red top/helmet/boots — helmet
+    // not separable, recolors with the suit) + TRIM (gold belt-sash + sword hilt); dark hakama pants +
+    // white sleeves + black visor left untouched (face/visor excluded). recolorTag is REQUIRED here: it
+    // makes applySkin stamp fighter._recolorTag so abilities.js retags the Mega-tier art too (base blue →
+    // Mega blue, not → Mega red). Flame FX on the ultimate/flameslash sheets stay orange (fire-guard).
+    // ── Checkpoint group 1 ──
+    { id: "samAzure",   name: "Azure Blade",    unlockLevel: 0, portrait: "./samurai_ranger_portrait__azure.png",      spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "azure"),      recolorTag: "azure" },
+    { id: "samEmerald", name: "Emerald Katana", unlockLevel: 0, portrait: "./samurai_ranger_portrait__emerald.png",    spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "emerald"),    recolorTag: "emerald" },
+    { id: "samViolet",  name: "Violet Strike",  unlockLevel: 0, portrait: "./samurai_ranger_portrait__violet.png",     spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "violet"),     recolorTag: "violet" },
+    { id: "samSilver",  name: "Silver Edge",    unlockLevel: 0, portrait: "./samurai_ranger_portrait__silveredge.png", spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "silveredge"), recolorTag: "silveredge" }
+  ],
+  green_samurai_ranger: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null }
+  ],
+  gold_samurai_ranger: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gold_samurai_ranger?.portrait, spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: null },
+    // 12 THEMED recolors (tools/gen_gold_creative.py). Per-region PLATE (gold armor + helmet — the
+    // iconic "armor", dominant in Mega tier so it carries the primary identity colour) + SUIT (the deep
+    // blue bodysuit — base tier only; the Mega bodysuit is near-black and stays black, documented). The
+    // white belt/gloves + Gold's signature blue-white light-wave FX are left UNTOUCHED (the SUIT gate's
+    // val ceiling + never touching neutral protect the FX — no separate flame-guard needed). recolorTag
+    // is REQUIRED: it makes applySkin stamp fighter._recolorTag so abilities.js applySamuraiMegaStats
+    // retags the Mega-tier art too (base green → Mega green, not base green → Mega gold). skin 8
+    // (Voidwalker) also drives a procedural gold-spark overlay in game.js, gated on skinId.
+    // ── Checkpoint group 1 ──
+    { id: "goldStormbringer", name: "Stormbringer",     unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__stormbringer.png", spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "stormbringer"), recolorTag: "stormbringer" },
+    { id: "goldOmnitrix",     name: "Omnitrix Protocol", unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__omnitrix.png",     spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "omnitrix"),     recolorTag: "omnitrix" },
+    { id: "goldAlbedo",       name: "Albedo Protocol",   unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__albedo.png",       spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "albedo"),       recolorTag: "albedo" },
+    { id: "goldSolar",        name: "Solar Emperor",     unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__solar.png",        spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "solar"),        recolorTag: "solar" },
+    // ── Checkpoint group 2 ── (goldVoidwalker also drives game.js drawVoidSparkOverlay — gold-spark FX)
+    { id: "goldDeepCurrent",  name: "Deep Current",      unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__deepcurrent.png",  spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "deepcurrent"),  recolorTag: "deepcurrent" },
+    { id: "goldAshenVow",     name: "Ashen Vow",         unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__ashenvow.png",     spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "ashenvow"),     recolorTag: "ashenvow" },
+    { id: "goldBlossom",      name: "Blossom Strike",    unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__blossom.png",      spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "blossom"),      recolorTag: "blossom" },
+    { id: "goldVoidwalker",   name: "Voidwalker",        unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__voidwalker.png",   spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "voidwalker"),   recolorTag: "voidwalker" },
+    // ── Checkpoint group 3 ──
+    { id: "goldCrimson",      name: "Crimson Vanguard",  unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__crimson.png",      spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "crimson"),      recolorTag: "crimson" },
+    { id: "goldIvory",        name: "Ivory Sentinel",    unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__ivory.png",        spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "ivory"),        recolorTag: "ivory" },
+    { id: "goldObsidian",     name: "Obsidian Edge",     unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__obsidian.png",     spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "obsidian"),     recolorTag: "obsidian" },
+    { id: "goldTwilight",     name: "Twilight Samurai",  unlockLevel: 0, portrait: "./samurai_ranger_gold_portrait__twilight.png",     spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "twilight"),     recolorTag: "twilight" }
   ],
 
   // Omni-Man (Invincible) — new single-form sprite char (was a procedural-box stub). Same gate:
@@ -450,7 +567,19 @@ export const SKINS = {
   // applySkin() pulls the spriteScale:1 fallback and she renders at native ~half size. Sources her real
   // spriteScale (2.25) + portrait from the character. No alt skins yet.
   shinobu: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shinobu?.portrait, spriteScale: characters.shinobu?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shinobu?.portrait, spriteScale: characters.shinobu?.spriteScale, animationData: null },
+    // 8 creative recolors (tools/gen_shinobu_creative.py). Per-region: hair / haori EXTERIOR (white) /
+    // butterfly-WING hem pattern (saturated cool→magenta gradient, its own region) / KIMONO inner layer.
+    // Obi sash is NOT separable at sprite resolution → folded (flagged). Night Moth = full-form void +
+    // procedural drifting moth-fleck overlay (game.js drawMothOverlay). Cosmetic only; zero gameplay.
+    { id: "shinobuAlbedo",    name: "Albedo Protocol", unlockLevel: 0, portrait: "./shinobu_portrait__albedo.png",    spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "albedo") },
+    { id: "shinobuWisteria",  name: "Wisteria",        unlockLevel: 0, portrait: "./shinobu_portrait__wisteria.png",  spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "wisteria") },
+    { id: "shinobuEmeraldWing", name: "Emerald Wing",  unlockLevel: 0, portrait: "./shinobu_portrait__emeraldwing.png", spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "emeraldwing") },
+    { id: "shinobuCrimsonMoth", name: "Crimson Moth",  unlockLevel: 0, portrait: "./shinobu_portrait__crimsonmoth.png", spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "crimsonmoth") },
+    { id: "shinobuCobalt",      name: "Cobalt",        unlockLevel: 0, portrait: "./shinobu_portrait__cobalt.png",      spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "cobalt") },
+    { id: "shinobuRoseQuartz",  name: "Rose Quartz",   unlockLevel: 0, portrait: "./shinobu_portrait__rosequartz.png",  spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "rosequartz") },
+    { id: "shinobuAmberGlow",   name: "Amber Glow",    unlockLevel: 0, portrait: "./shinobu_portrait__amberglow.png",   spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "amberglow") },
+    { id: "shinobuNightMoth",   name: "Night Moth",    unlockLevel: 0, portrait: "./shinobu_portrait__nightmoth.png",   spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "nightmoth") }
   ],
 
   // Ben 10 — ONE fighter that transforms between aliens (Omnitrix). The base skin
@@ -459,6 +588,20 @@ export const SKINS = {
   // the spriteScale:1 fallback and Ben renders at ~half size. No alt skins yet.
   ben10: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null }
+  ],
+
+  // Ghostface — Default + the 5 KILLER-IDENTITY skins (Stage 2). Each is a robe-recolor
+  // (tools/gen_ghostface_creative.py): the cool-saturated cloak → a distinct themed dark tone, the white
+  // mask + steel knife + black linework preserved (sat/val gates). WITHOUT the default entry, applySkin()
+  // pulls the spriteScale:1 fallback. NOTE: unlike every other char these skins ALSO carry gameplay
+  // property modifiers (Stages 3-4) — a deliberate, confirmed project-first exception (NOT cosmetic-only).
+  ghostface: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ghostface?.portrait, spriteScale: characters.ghostface?.spriteScale, animationData: null },
+    { id: "ghostfaceBilly",  name: "Billy",  unlockLevel: 0, portrait: "./ghostface_portrait__billy.png",  spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "billy"),  recolorTag: "billy" },
+    { id: "ghostfaceDebbie", name: "Debbie", unlockLevel: 0, portrait: "./ghostface_portrait__debbie.png", spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "debbie"), recolorTag: "debbie" },
+    { id: "ghostfaceRoman",  name: "Roman",  unlockLevel: 0, portrait: "./ghostface_portrait__roman.png",  spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "roman"),  recolorTag: "roman" },
+    { id: "ghostfaceJill",   name: "Jill",   unlockLevel: 0, portrait: "./ghostface_portrait__jill.png",   spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "jill"),   recolorTag: "jill" },
+    { id: "ghostfaceAmber",  name: "Amber",  unlockLevel: 0, portrait: "./ghostface_portrait__amber.png",  spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "amber"),  recolorTag: "amber" }
   ]
 }
 

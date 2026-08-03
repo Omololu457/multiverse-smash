@@ -23,6 +23,7 @@ import { activateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive } 
 import { activateOmniManBodySlamCinematic, isOmniManBodySlamCinematicActive } from "./omnimanBodySlamCinematic.js"   // Omni-Man "Viltrumite Onslaught" body-slam ultimate cinematic (no cycle)
 import { activateSupermanUltimateCinematic, isSupermanUltimateCinematicActive } from "./supermanUltimateCinematic.js"   // Superman "Solar Overload" ultimate cinematic (no cycle)
 import { activateRengokuFlameExplosionCinematic, isRengokuFlameExplosionCinematicActive } from "./rengokuFlameExplosionCinematic.js"   // Rengoku "Flame Explosion" ultimate cinematic (no cycle)
+import { activateMiwaUltimateCinematic, isMiwaUltimateCinematicActive } from "./miwaUltimateCinematic.js"   // Miwa "Blade of the Neophyte" battojutsu-slash ultimate cinematic (no cycle)
 import { activateSamuraiFlameSmasherCinematic, isSamuraiFlameSmasherCinematicActive } from "./samuraiFlameSmasherCinematic.js"   // Samurai Red Ranger "Fire Smasher: Blazing Strike" tier-scaling ultimate cinematic (no cycle)
 import { activateShinobuButterflyCinematic, isShinobuButterflyCinematicActive } from "./shinobuButterflyCinematic.js"   // Shinobu "Butterfly Dance" ultimate cinematic (no cycle)
 import { activateGhostfaceFinalActCinematic, isGhostfaceFinalActCinematicActive } from "./ghostfaceFinalActCinematic.js"   // Ghostface "The Final Act" stab-flurry ultimate cinematic (no cycle)
@@ -32,6 +33,7 @@ import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./
 import { activateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive } from "./hisokaOverdriveCinematic.js"   // Hisoka Bloodlust Overdrive activation cinematic (no cycle; mirrors Godspeed)
 import { resolveGrab, GLOBAL_DAMAGE_SCALE, rekkaContinue } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the shared command-normal cancel gate (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
+import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
@@ -50,6 +52,7 @@ import { pickGoldSamuraiVoice } from "./goldSamuraiRangerVoice.js"   // Gold Sam
 import { pickVegetaVoice } from "./vegetaVoice.js"              // Vegeta Galick/BigBang/FinalFlash/ultimate cast voice pools (audio-only; shared across base/SSJ/Blue)
 import { pickMakiVoice } from "./makiVoice.js"                 // Maki kunai/nunchaku/powerCharge/shibuya-activation cast voice pools (audio-only, JP dub)
 import { pickChrolloVoice } from "./chrolloVoice.js"            // Chrollo Skill Hunter ULTIMATE-activation cast voice pool (audio-only; fires once at transform beat)
+import { pickGhostfaceVoice } from "./ghostfaceVoice.js"        // Ghostface knife-special + ultimate cast voice pool (audio-only)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
@@ -6159,6 +6162,48 @@ function applyRengokuUltimateDamage(fighter, opp, cineCtx = {}) {
   }
 }
 
+// ── MIWA ULTIMATE (Stage 4) — "Blade of the Neophyte" battojutsu quick-draw freeze-cinematic. Costs 100
+// cursed energy; a single GUARANTEED slash lands at the connect beat (via onImpact). Mirrors Rengoku. ──
+const MIWA_ULT = { cost: 100, dmg: 280 }
+function executeMiwaUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "miwa") return false
+  if (isMiwaUltimateCinematicActive()) return false            // already mid-cinematic
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, MIWA_ULT.cost)) return false
+  const opp = context?.getOpponent?.(fighter) || null
+  fighter.vx = 0
+  activateMiwaUltimateCinematic(fighter, opp, (cineCtx) => applyMiwaUltimateDamage(fighter, opp, cineCtx))
+  return true
+}
+// PAYOFF — GUARANTEED, range-independent battojutsu slash, applied ONCE at the connect beat. A held block
+// (frozen at its pre-cinematic value) chips it to 25%; a clean hit deals full + blasts the opponent away.
+function applyMiwaUltimateDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = MIWA_ULT.dmg
+  if (blocked) {
+    dmg = Math.round(dmg * 0.25)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 34)
+    opp.vx = (fighter.facing || 1) * 12; opp.vy = -5           // sent flying by the draw-slash
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 42)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 20, maxTimer: 20,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#38bdf8",
+      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
+      ...(blocked ? { isBlocking: true } : {})
+    })
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SHINOBU KOCHO (Stage 3) — "Insect Breathing" thrust chain + POISON specials. COOLDOWN-gated (maxEnergy 0).
 //   COMMAND CHAIN (Fwd+Heavy opener → re-tap Heavy on a clean hit): shinobuG1 (horizontal slash) →
@@ -6404,17 +6449,7 @@ function fireGhostfaceLowGut(fighter, context) {
   try { shakeCamera(context, 3, 6) } catch (_) {}
   return true
 }
-function fireGhostfaceStalkVanish(fighter, context) {
-  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if (!spendEnergy(fighter, 15)) return false
-  // Backstep with brief i-frames (spacing/reposition, no damage) — the stalker slips away.
-  fighter.vx = -(fighter.facing || 1) * 13
-  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 18)   // i-frames through the slip
-  fighter.teleportFlash = 14
-  fighter.attackCooldown = getAttackDuration(20, fighter)          // committed, not spammable
-  try { spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2) } catch (_) {}
-  return true
-}
+// (Stalk Vanish retired — its evasive backstep + i-frames now live in the Backstage Pass GETAWAY branch.)
 // ── GHOSTFACE COMPANION POOLS — the 4-character swap pool for each killer identity. There is NO "default"
 // pool: Ghostface always has one of the 5 identities (enforced at applySkin), so the equipped skin ALWAYS
 // resolves to a real 4-character pool. (Kept the CALLIN_POOLS name — the swap reuses this exact data.) ──
@@ -6436,32 +6471,44 @@ export function getGhostfaceCallInPool(fighter) {
 // held-direction knife specials. Uses endsWithExact (STRICT tail match, no stray tolerance) so the motions
 // never collide with each other or with the single-direction Gutting Lunge (F) / Low Gut (D) / Stalk
 // Vanish (B). Longest motions are checked first so a QCF/QCB buried inside a DBF/DFB can't shadow it.
-function tryGhostfaceSwapMotion(fighter, context) {
-  if (fighter._gfSwapActive) return false
-  const dirs = getRelativeDirections(fighter)
-  // slot indices ordered longest-motion-first (3-token DBF/DFB before 2-token QCF/QCB)
+// The swap-motion pool slot (0-3) buffered right now, or null. Longest-motion-first so a QCF/QCB buried
+// inside a DBF/DFB can't shadow it; STRICT tail match (endsWithExact). Read by the Backstage Pass SWAP
+// branch to pick WHICH of the equipped identity's 4 companions the swap-in lands on (spec §4.2 — the
+// motion is the companion pre-pick; holding Grab/Charge is only the "make this a swap" flag).
+function ghostfaceSwapSlotFromMotion(fighter) {
+  const dirs  = getRelativeDirections(fighter)
   const order = GHOSTFACE_SWAP_SLOTS.map((_, i) => i).sort((a, b) => GHOSTFACE_SWAP_SLOTS[b].motion.length - GHOSTFACE_SWAP_SLOTS[a].motion.length)
-  for (const slot of order) {
-    if (endsWithExact(dirs, GHOSTFACE_SWAP_SLOTS[slot].motion) && triggerGhostfaceSwap(fighter, slot, context)) {
-      if (fighter.directionHistory) fighter.directionHistory.length = 0   // consume so a lingering token run can't re-fire
-      return true
-    }
-  }
-  return false
+  for (const slot of order) if (endsWithExact(dirs, GHOSTFACE_SWAP_SLOTS[slot].motion)) return slot
+  return null
 }
+// A knife special leaves its held direction in the history; clear it so a FOLLOWING input can't chain
+// into a 2-token swap motion (e.g. Low Gut ↓ then a ← = ↓← = an accidental QCB). Fresh, deliberate rolls only.
+function finishGfKnife(fighter, fired) {
+  if (fired && fighter.directionHistory) fighter.directionHistory.length = 0
+  return fired
+}
+// SPECIAL button = BACKSTAGE PASS (spec §4.2). Branch by the modifiers held the frame Special is buffered
+// (stamped onto the fighter in game.js beside _specialHeldDir). Priority: SWAP (Grab/Charge) > FAKEOUT
+// (attack btn) > the Fwd/Down KNIFE specials > GETAWAY (Back) > neutral SIDE-SWITCH. The knife specials
+// (Gutting Lunge on Fwd, Low Gut on Down) survive; the old standalone motion+Special swap folds into the
+// SWAP branch and Stalk Vanish folds into the evasive GETAWAY branch.
 function executeGhostfaceSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return false
-  if (tryGhostfaceSwapMotion(fighter, context)) return true              // MOTION + Special → Companion Swap (checked first)
-  const dir = fighter._specialHeldDir || null
-  let fired = false
-  if (dir === "B") fired = fireGhostfaceStalkVanish(fighter, context)    // Back  = Stalk Vanish (i-frame backstep)
-  else if (dir === "D") fired = fireGhostfaceLowGut(fighter, context)    // Down  = Low Gut (knockdown)
-  else if (dir === "F") fired = fireGhostfaceGuttingLunge(fighter, context)   // Fwd = Gutting Lunge (bleed)
-  // A single-direction knife special leaves its direction in the history; clear it so a FOLLOWING knife
-  // special can't chain into a 2-token swap motion (e.g. Low Gut ↓ then Stalk Vanish ← = ↓← = an accidental
-  // QCB swap). Each swap motion must be performed as a fresh, deliberate roll.
-  if (fired && fighter.directionHistory) fighter.directionHistory.length = 0
-  return fired                                                           // neutral Special = nothing (Call-In retired → swap is motion-based)
+  if (fighter._gfSwapActive || fighter._bpActive) return false          // already a companion / mid-Backstage-Pass
+  const mods = fighter._specialHeldMods || {}
+  const dir  = fighter._specialHeldDir  || null
+  if (mods.grab || mods.charge) return triggerGhostfaceBackstagePass(fighter, "swap", ghostfaceSwapSlotFromMotion(fighter) ?? 0, context)
+  if (mods.attack)              return triggerGhostfaceBackstagePass(fighter, "fakeout", 0, context)
+  // VOICE: knife-special cast bark ("STAB!" / "I'll gut you!" …) on the Gutting Lunge / Low Gut. Gated
+  // by the shared _atkVoiceCd so it never stacks with the offense-connect bark. Swap/getaway/switch
+  // (Backstage Pass) are voiced by the companion swap system, not here.
+  if ((dir === "F" || dir === "D") && (fighter._atkVoiceCd || 0) <= 0) {
+    try { sound?.playSfxFile?.(pickGhostfaceVoice("specialCast"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  }
+  if (dir === "F")              return finishGfKnife(fighter, fireGhostfaceGuttingLunge(fighter, context))   // Fwd  = Gutting Lunge (bleed)
+  if (dir === "D")              return finishGfKnife(fighter, fireGhostfaceLowGut(fighter, context))         // Down = Low Gut (knockdown)
+  if (dir === "B")              return triggerGhostfaceBackstagePass(fighter, "getaway", 0, context)         // Back = Getaway (evasive; folds in Stalk Vanish)
+  return triggerGhostfaceBackstagePass(fighter, "switch", 0, context)                                       // neutral = cross-up Side Switch
 }
 
 // GHOSTFACE ULTIMATE — "The Final Act" (freeze-cinematic stab flurry; ghostfaceFinalActCinematic.js).
@@ -6475,6 +6522,7 @@ function executeGhostfaceUltimate(fighter, context) {
   if (!spendEnergy(fighter, GHOSTFACE_ULT.cost)) return false
   const opp = getTargetResolver(context)(fighter)
   fighter.vx = 0
+  try { sound?.playSfxFile?.(pickGhostfaceVoice("specialCast"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: "The Final Act" cast bark
   activateGhostfaceFinalActCinematic(fighter, opp, (cineCtx) => applyGhostfaceFinalActDamage(fighter, opp, cineCtx))
   return true
 }
@@ -6578,7 +6626,21 @@ export function applyGhostfaceSwap(fighter, targetKey) {
   fighter.transformationOrder = target.transformationOrder || null
   fighter.currentForm         = (target.transformationOrder && target.transformationOrder[0]) || null
   fighter.transformIndex      = target.transformationOrder ? 0 : null
-  fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null   // borrow the companion's NORMAL art
+  // AFFILIATION SKIN (spec §3): the companion wears its "joined the killer" _crew skin for the whole swap —
+  // ONE accent recoloured to the summoning killer's tint. Each companion is in exactly ONE identity's pool,
+  // so `<companion>_crew` is unambiguous (no per-killer variant needed). _recolorTag="crew" ALSO makes
+  // retagFormAnim swap to the __crew FORM sheets if the companion transforms mid-swap (Vegeta SSJ/Blue,
+  // Goku Black SSJ Rose — those crew form sheets exist). Falls back to the companion's normal art if — for
+  // any reason — a crew skin isn't present (getSkin returns slot 0 on a miss, so match the id explicitly).
+  const crewId   = `${targetKey}_crew`
+  const crewSkin = getSkin(targetKey, crewId)
+  if (crewSkin && crewSkin.id === crewId && crewSkin.animationData) {
+    fighter._skinAnim = crewSkin.animationData
+    fighter._baseSkinAnim = crewSkin.animationData
+    fighter._recolorTag = crewSkin.recolorTag || "crew"
+  } else {
+    fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null   // fallback: companion's NORMAL art
+  }
   fighter.maxEnergy  = target.stats?.maxEnergy || fighter.maxEnergy || 100
   fighter.energyType = target.traits?.energyType || fighter.energyType
   // 3) UNLIMITED resource for the window + full bar (so the borrowed kit is instantly, endlessly usable)
@@ -6591,7 +6653,14 @@ export function applyGhostfaceSwap(fighter, targetKey) {
   fighter._gfSwapTarget = targetKey
   fighter.ultimateCooldown = 0
   clearInputBuffer(fighter)
-  fighter.teleportFlash = 12
+  // TRANSFORM-IN animation (spec §3 — "Ghostface visibly becomes the companion, not an instant pop"): a
+  // smoke poof engulfs the fighter and the companion (in its crew skin) fades in through it via the teleport
+  // flash. Reuses the clone-spawn / Kawarimi-substitution poof + the existing teleport fade, so it stays
+  // purely COSMETIC and the swap keeps every balance property (NO i-frames, still eats hitstun, freely
+  // repeatable). The literal "runs fully off-screen and returns" presentation belongs to the Backstage Pass
+  // (§4.2), where the dash + trailing phantom hitbox justify and cover the vacated-position window.
+  spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)
+  fighter.teleportFlash = 16
   return true
 }
 
@@ -6606,7 +6675,8 @@ export function revertGhostfaceSwap(fighter) {
   fighter._gfSwapActive = false; fighter._gfSwapStash = null; fighter._gfSwapTarget = null; fighter._gfSwapTimer = 0
   fighter.energy = Math.min(s.energy || 0, fighter.maxEnergy || 0)   // restore the POST-COST Dread (no free refill → cost is real, gated by regen)
   clearInputBuffer(fighter)
-  fighter.teleportFlash = 14
+  spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)   // TRANSFORM-OUT: Ghostface reappears through the same smoke poof (symmetric with swap-in)
+  fighter.teleportFlash = 16
   return true
 }
 
@@ -6641,6 +6711,138 @@ export function triggerGhostfaceSwap(fighter, slot, context) {
   return true
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// GHOSTFACE — BACKSTAGE PASS (spec §4.2): the Special button. Ghostface dashes "off-screen"; a trailing
+// PHANTOM hitbox — a visual-effect strike tied to the LIVE caster (NOT a second fighter instance) — lands
+// at his vacated spot on a short delay ("hit you on the way out"); then he, or a swap companion, pops out.
+// Four branches, decided by the modifiers held the frame Special is buffered (executeGhostfaceSpecial):
+//   • switch  (neutral)          → cross-up teleport to the opponent's FAR side (phantom hit ON)
+//   • getaway (hold Back)        → same-side reappear (evasive; inherits Stalk Vanish's i-frames; hit ON)
+//   • fakeout (hold an attack)   → cancels the phantom hit, keeps the reposition (a mind-game whiff)
+//   • swap    (hold Grab/Charge) → runs the existing Companion Swap into pool[slot] (motion picks slot)
+// Cosmetic/mobility branches get evasive i-frames; the SWAP branch gets NONE (preserves the swap's
+// deliberate no-free-entry balance — a clean hit during the dash CANCELS the swap-in).
+const BP_COST          = 20             // Dread for a reposition Backstage Pass (the swap branch pays the SWAP cost at emerge, not this)
+const BP_DASH_FRAMES   = 16             // "off-screen" travel before emerging
+const BP_IFRAMES       = 18             // evasive i-frames on the reposition branches (Getaway == old Stalk Vanish); swap branch = 0
+const BP_PHANTOM_DELAY = 8              // frames after cast the trailing hitbox connects
+const BP_PHANTOM = { dmg: 40, hitstun: 20, knockbackX: 7, knockbackY: -4, rangeX: 150, rangeY: 130 }
+
+// Arm a Backstage Pass. `branch` ∈ {switch, getaway, fakeout, swap}; `slot` is the companion index for swap.
+export function triggerGhostfaceBackstagePass(fighter, branch, slot = 0, context = null) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return false
+  if (fighter._bpActive || fighter._gfSwapActive) return false
+  if (fighter.attacking || fighter.currentMove) return false                       // don't cancel a committed move
+  if ((fighter.attackCooldown || 0) > 0) return false
+  const isSwap = branch === "swap"
+  if (isSwap) {
+    // Pre-check the SWAP is affordable (Roman-scaled) so we never dash then fizzle; the actual spend happens
+    // at emerge via triggerGhostfaceSwap. A non-Ghostface / empty-pool slot also fails here.
+    const pool = getGhostfaceCallInPool(fighter)
+    if (!pool[slot] || !characters[pool[slot]]) return false
+    const swapCost = Math.round(GF_SWAP_COST * (fighter._gfSkinMod?.swapCostScale ?? 1))
+    if (!canSpendEnergy(fighter, swapCost)) return false
+  } else if (!spendEnergy(fighter, BP_COST)) {
+    return false
+  }
+  const cx = (fighter.x || 0) + (fighter.w || 60) / 2
+  const cy = (fighter.y || 0) + (fighter.h || 100) / 2
+  fighter._bpActive   = true
+  fighter._bpBranch   = branch
+  fighter._bpSlot     = slot
+  fighter._bpTimer    = BP_DASH_FRAMES
+  fighter._bpEmerged  = false
+  fighter._bpHitLanded = false
+  // Fakeout is the ONLY branch that cancels the phantom hit; switch/getaway/swap all "hit on the way out".
+  fighter._bpPhantom  = (branch === "fakeout") ? null : { x: cx, y: cy, delay: BP_PHANTOM_DELAY, done: false, ...BP_PHANTOM }
+  // Evasive i-frames on the reposition branches; the swap branch stays hittable (balance). Getaway == Stalk Vanish.
+  if (!isSwap) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, BP_IFRAMES)
+  // Dash "off-screen": switch/fakeout/swap surge toward the opponent (emerge behind), getaway slips away.
+  fighter.vx = (branch === "getaway" ? -1 : 1) * (fighter.facing || 1) * (branch === "getaway" ? 15 : 17)
+  fighter.vy = 0
+  fighter.teleportFlash = 16
+  try { spawnClonePuff(cx, cy) } catch (_) {}
+  // If Grab/Charge is held (swap trigger), swallow the charge release so the swapped-in companion doesn't
+  // inherit it (Itachi Mangekyou etc.) — same guard the direct swap uses. Harmless on the other branches.
+  fighter._suppressChargeUntilRelease = true
+  if (fighter.directionHistory) fighter.directionHistory.length = 0                // consume the buffered motion
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+
+// The trailing phantom hitbox connects ONCE at the vacated position, on a delay, against the caster's foe.
+function bpResolvePhantom(fighter, context) {
+  const ph = fighter._bpPhantom
+  if (!ph || ph.done) return
+  if (ph.delay > 0) { ph.delay--; return }
+  ph.done = true
+  const opp = context?.getOpponent?.(fighter)
+  if (!opp || opp.eliminated) return
+  const oppCx = (opp.x || 0) + (opp.w || 60) / 2
+  const oppCy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Math.abs(oppCx - ph.x) > ph.rangeX / 2 || Math.abs(oppCy - ph.y) > ph.rangeY / 2) return   // whiffed
+  const blocked = !!opp.isBlocking
+  const dmg = blocked ? Math.round(ph.dmg * 0.25) : ph.dmg
+  opp.health = Math.max(0, (opp.health || 0) - dmg)
+  if (blocked) { opp.blockstun = Math.max(opp.blockstun || 0, 12) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, ph.hitstun)
+    const away = oppCx >= ph.x ? 1 : -1                      // knocked AWAY from the vacated spot
+    opp.vx = away * ph.knockbackX; opp.vy = ph.knockbackY
+    opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 8)
+  }
+  fighter._bpHitLanded = !blocked                            // test hook
+  try { spawnClonePuff(ph.x, ph.y) } catch (_) {}
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+}
+
+// Emerge: reposition (or trigger the swap) once the dash completes.
+function bpEmerge(fighter, context) {
+  const opp = context?.getOpponent?.(fighter)
+  const sw  = context?.worldWidth || 0
+  const branch = fighter._bpBranch
+  if (branch === "swap") {
+    // Hand off to the existing Companion Swap (spends the swap cost, applies the crew skin + its own poof).
+    triggerGhostfaceSwap(fighter, fighter._bpSlot || 0, context)
+    bpClear(fighter)
+    return
+  }
+  fighter.vx = 0; fighter.vy = 0
+  if ((branch === "switch" || branch === "fakeout") && opp) {
+    // Cross-up: emerge on the opponent's FAR side from where Ghostface started.
+    const startedLeft = ((fighter._bpPhantom?.x) ?? ((fighter.x || 0) + (fighter.w || 60) / 2)) < ((opp.x || 0) + (opp.w || 60) / 2)
+    fighter.x = startedLeft ? (opp.x || 0) + (opp.w || 60) + 8 : (opp.x || 0) - (fighter.w || 60) - 8
+    fighter.y = opp.y ?? fighter.y
+  } else if (opp) {
+    // Getaway: stay on the same side, settle a step further back (retreat is already carried by the dash vx).
+    fighter.x = (opp.x || 0) < (fighter.x || 0) ? (fighter.x || 0) + 10 : (fighter.x || 0) - 10
+  }
+  if (sw > 0) fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), fighter.x))
+  if (opp) fighter.facing = ((opp.x || 0) >= (fighter.x || 0)) ? 1 : -1              // face the opponent on arrival
+  fighter.teleportFlash = 16
+  try { spawnClonePuff((fighter.x || 0) + (fighter.w || 60) / 2, (fighter.y || 0) + (fighter.h || 100) / 2) } catch (_) {}
+  if (typeof context?.camera?.focusBetween === "function" && opp) context.camera.focusBetween(fighter, opp, 1.0, 10)
+  fighter.attackCooldown = getAttackDuration(10, fighter)                           // brief recovery, not spammable
+  bpClear(fighter)
+}
+
+function bpClear(fighter) {
+  fighter._bpActive = false; fighter._bpBranch = null; fighter._bpPhantom = null
+  fighter._bpTimer = 0; fighter._bpEmerged = false; fighter._bpSlot = 0
+}
+
+// Per-frame driver (called from game.js beside updateGhostfaceSwap, WITH the ability context for the foe).
+export function updateGhostfaceBackstagePass(fighter, context) {
+  if (!fighter || !fighter._bpActive) return
+  // Interrupted mid-dash (only possible on the no-i-frame SWAP branch): a clean hit CANCELS the pass.
+  if ((fighter.hitstun || 0) > 0 || fighter.knockdownState) { bpClear(fighter); return }
+  bpResolvePhantom(fighter, context)
+  if (fighter._bpTimer > 0) fighter._bpTimer--
+  if (fighter._bpTimer <= 0 && !fighter._bpEmerged) { fighter._bpEmerged = true; bpEmerge(fighter, context) }
+}
+export function isGhostfaceBackstagePassActive(fighter) { return !!fighter?._bpActive }
+export function ghostfaceBackstagePassBranch(fighter)   { return fighter?._bpActive ? (fighter._bpBranch || null) : null }
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MAKI ZENIN (Stage 2) — naginata normals + "Cursed Tool Flurry" command chain.
 //   The 5 basic normals (light/heavy/up/air/down_air) use the generic attack system
@@ -6652,20 +6854,29 @@ export function triggerGhostfaceSwap(fighter, slot, context) {
 //     (maxEnergy 0) — a pure normal-move chain, gated only by frame recovery. Specials
 //     (Stage 3) and the HP-threshold transformation ultimate (Stage 4) land later.
 // ─────────────────────────────────────────────────────────────────────────────
+// HEAVENLY VOW rebalance: the cancel-on-hit link out of each opener is DELIBERATELY tightened to the first
+// MAKI_CANCEL_FRAMES of recovery (a per-character override on the shared combo-flow cancel window — see
+// combat.cancelWindowOpen). The move recovery/punishability is UNCHANGED (still 11/12/16f); only the input
+// window in which the next Heavy links is narrowed, from the full recovery phase to ~5f (~83ms) — tighter
+// than the roster-default full-recovery window. High-risk/high-reward: her damage is top-of-band, but the
+// string only connects on precise timing. Scoped to Maki only; no other character sets _cancelWindowFrames.
+const MAKI_CANCEL_FRAMES = 5
 const MAKI_GROUND = {
   // Low knockback on the openers pins the target inside the string; the finisher delivers the knockback.
-  // Slightly higher damage than Shinobu's thrust chain — Maki is a heavier physical hitter (ATK 90 vs 82).
-  makiG1: { damage: 28, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 98,  rangeY: 54, rekkaNext: "makiG2" },
-  makiG2: { damage: 34, startup: 4, active: 3, recovery: 12, hitstun: 14, knockbackX: 1, knockbackY: 0,  rangeX: 96,  rangeY: 60, rekkaNext: "makiG3" },
-  makiG3: { damage: 46, startup: 5, active: 3, recovery: 16, hitstun: 17, knockbackX: 9, knockbackY: -3, rangeX: 100, rangeY: 62 },   // finisher (ends the string)
+  // Damage raised ~+20% (Heavenly Vow) — Maki is now a top-of-band physical hitter (ATK 96), the counterweight
+  // being the tightened link window above. Full string 34+40+56 = 130 RAW (~78 EFF).
+  makiG1: { damage: 34, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 98,  rangeY: 54, rekkaNext: "makiG2" },
+  makiG2: { damage: 40, startup: 4, active: 3, recovery: 12, hitstun: 14, knockbackX: 1, knockbackY: 0,  rangeX: 96,  rangeY: 60, rekkaNext: "makiG3" },
+  makiG3: { damage: 56, startup: 5, active: 3, recovery: 16, hitstun: 17, knockbackX: 9, knockbackY: -3, rangeX: 100, rangeY: 62 },   // finisher (ends the string)
 }
 function fireMakiCommand(fighter, key, context) {
   const md = MAKI_GROUND[key]
   if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the stage sprite
-  fighter._rekkaNext    = md.rekkaNext || null
-  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
+  fighter._rekkaNext         = md.rekkaNext || null
+  fighter._cmdHitLanded      = false   // latched true only on a real (non-blocked) hit → gates the continue
+  fighter._cancelWindowFrames = MAKI_CANCEL_FRAMES   // per-character TIGHT link window (Heavenly Vow tradeoff)
   return true
 }
 export function updateMakiCommandCombat(fighter, inputState, context, getPhase) {
@@ -6685,6 +6896,80 @@ export function updateMakiCommandCombat(fighter, inputState, context, getPhase) 
   return false
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// KASUMI MIWA (Stage 2) — "Battojutsu Rush" katana command chain. Fwd+Heavy opener → re-tap Heavy on a
+// CLEAN hit: miwaG1 (low lunge) → miwaG2 (dash-thrust) → miwaG3 (rising slash launcher finisher).
+// Cancel-on-hit; a whiff/block ENDS the string (shared rekkaContinue, requireHit:true). Toji-Rekka twin of
+// updateMakiCommandCombat/updateShinobuCommandCombat. The 5 base normals (light/heavy/up/air/down_air) use
+// the generic attack system (basic_attacks + animationData) — no code here.
+// ─────────────────────────────────────────────────────────────────────────────
+const MIWA_GROUND = {
+  // Low knockback on the openers pins the target inside the string; the launcher finisher delivers it.
+  // Damage sits just under Maki's kick chain (Miwa ATK 86 vs 90) — a fast, technical sword string.
+  miwaG1: { damage: 28, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 98,  rangeY: 52, rekkaNext: "miwaG2" },   // low lunge opener
+  miwaG2: { damage: 34, startup: 5, active: 3, recovery: 12, hitstun: 14, knockbackX: 2, knockbackY: 0,  rangeX: 108, rangeY: 54, rekkaNext: "miwaG3" },   // dash-thrust (extra reach)
+  miwaG3: { damage: 48, startup: 6, active: 4, recovery: 17, hitstun: 20, knockbackX: 5, knockbackY: -9, launch: 10, rangeX: 100, rangeY: 66 },             // rising slash launcher finisher
+}
+function fireMiwaCommand(fighter, key, context) {
+  const md = MIWA_GROUND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the stage sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
+  return true
+}
+export function updateMiwaCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "miwa" || !inputState) return false
+  const opp       = context?.getOpponent?.(fighter)
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during recovery on a clean hit → rekkaNext (shared rekkaContinue owns the gate).
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireMiwaCommand(fighter, next, context)
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the neutral heavy stays normal.
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && forward && heavyEdge) return fireMiwaCommand(fighter, "miwaG1", context)
+  return false
+}
+
+// ── MIWA SPECIALS (Stage 3) — cursed-energy cost (spendEnergy). Grounded Special = Iai Dash (gap-closer
+// battojutsu); airborne Special = Rapid Slash Vortex (aerial slash + a SEPARATE vortex FX overlay layer,
+// §10). The CHARGE button (hold P) is the cursed-energy charge stance — handled by the engine's charge
+// system via animationData.charge (kasumi_charg), no code here. ──
+function fireMiwaIaiDash(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 28)) return false
+  const md = { damage: 66, startup: 5, active: 4, recovery: 18, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -3, rangeX: 122, rangeY: 50, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "iaiDash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = iaiDash → dash-slash pose
+  fighter.vx = (fighter.facing || 1) * 16   // fast iaijutsu dash-through
+  try { shakeCamera(context, 4, 7) } catch (_) {}
+  return true
+}
+function fireMiwaAirSlash(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 30)) return false
+  const md = { damage: 58, startup: 4, active: 5, recovery: 14, hitstun: 18, blockstun: 10, knockbackX: 5, knockbackY: 4, rangeX: 98, rangeY: 84, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "airVortex", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = airVortex → CHARACTER slash frames
+  // Spawn the VORTEX FX as a SEPARATE overlay layer (§10) — drawn on top of the body by game.drawMiwaVortex,
+  // NOT part of the character sub-clip. Position is resolved at draw time from the fighter.
+  fighter._miwaVortex = { t: 0, max: 24 }
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+function executeMiwaSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "miwa") return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  return grounded ? fireMiwaIaiDash(fighter, context) : fireMiwaAirSlash(fighter, context)
+}
+
 // ── MAKI SPECIALS (Stage 3) — SPECIAL button, direction-branched via _specialHeldDir (Killua/Chrollo
 // architecture). All COOLDOWN-gated (maxEnergy 0 → no spendEnergy; the no-energy roster gates specials
 // on dedicated timers ticked in game.updateMiscTimers, like Shinobu's poisonCd/flitCd). Weapon variety is
@@ -6696,7 +6981,7 @@ export function updateMakiCommandCombat(fighter, inputState, context, getPhase) 
 // The CHARGE button hosts POWER CHARGE (fireMakiPowerCharge, below) — a self-buff, wired via handleChargeRelease.
 const MAKI_KUNAI_CD    = 66    // ~1.1s gate for the kunai throw
 const MAKI_NUNCHAKU_CD = 96    // ~1.6s gate for the committed nunchaku flurry
-const MAKI_NUNCHAKU_MD = { damage: 78, startup: 6, active: 6, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 72, isSpecial: true }
+const MAKI_NUNCHAKU_MD = { damage: 92, startup: 6, active: 6, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 72, isSpecial: true }   // Heavenly Vow: 78→92
 function fireMakiKunai(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if ((fighter.kunaiCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
@@ -6710,7 +6995,7 @@ function fireMakiKunai(fighter, context) {
   schedulePendingSpawn(8, () => {
     spawnProjectile(fighter, "maki_kunai", {
       sheet: "./maki_kunai_proj.png", spriteFrames: 1, spriteW: 24, spriteH: 10, spriteScale: 2.0,
-      damage: 52, speed: 14, hitstun: 16, knockbackX: 6, knockbackY: -1,
+      damage: 60, speed: 14, hitstun: 16, knockbackX: 6, knockbackY: -1,   // Heavenly Vow: 52→60
       w: 34, h: 16, color: "#c9ccd1", lifetime: 100, isSpecial: true,
       vx: face * 14, spawnY: fighter.y + (fighter.h || 100) * 0.42
     }, context)
@@ -9049,11 +9334,12 @@ export function triggerSpecial(fighter, context = {}) {
     case "rengoku": return executeRengokuSpecial(fighter, context)   // COUNTER — reactive parry stance (Charged Flame Strike is on the CHARGE button, not here)
     case "shinobu": return executeShinobuSpecial(fighter, context)   // Poison Thrust (neutral/Fwd) / Butterfly Flit backflip evade (Back)
     case "maki":    return executeMakiSpecial(fighter, context)   // Kunai Throw (neutral/Fwd projectile) / Nunchaku Flurry (Down); Power Charge is on CHARGE
+    case "miwa":    return executeMiwaSpecial(fighter, context)   // grounded → Iai Dash (gap-closer); airborne → Rapid Slash Vortex (+ FX overlay); CHARGE (hold P) = cursed-energy charge stance
     case "hisoka":  return executeHisokaSpecial(fighter, context)   // Bungee Gum (neutral, extended-reach whip); Texture Surprise cards land in Stage 4
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
     case "chrollo": return executeChrolloSpecial(fighter, context)   // Nen Bolt (neutral/fwd projectile) / Blade Lunge (down knife-thrust)
-    case "ghostface": return executeGhostfaceSpecial(fighter, context)   // Gutting Lunge (neutral/Fwd, bleed) / Low Gut (Down, knockdown) / Stalk Vanish (Back, i-frame backstep)
+    case "ghostface": return executeGhostfaceSpecial(fighter, context)   // Backstage Pass (spec §4.2): swap(Grab/Charge) / fakeout(attack) / getaway(Back) / side-switch(neutral) + knife specials Gutting Lunge(Fwd)/Low Gut(Down)
     case "ben10":   return executeBen10Special(fighter, context)   // form-branched: XLR8 Dash/Sonic Rush · Diamondhead Shard/Rising Diamonds · Ben Hoverboard; art-less aliens → fallback
     case "albedo":  return executeBen10Special(fighter, context)   // Albedo shares Ben's alien specials
     default:        return executeFallbackSpecial(fighter, context)
@@ -9109,6 +9395,7 @@ export function triggerUltimate(fighter, context = {}) {
       case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window
       case "chrollo": cast = executeChrolloUltimate(fighter, context); break   // Skill Hunter: live transform into a full copy of the OPPONENT for 30s (gated on 3 distinct moves landed)
       case "ghostface": cast = executeGhostfaceUltimate(fighter, context); break   // The Final Act: freeze-cinematic stab flurry — guaranteed damage + lethal bleed finisher
+      case "miwa": cast = executeMiwaUltimate(fighter, context); break   // Blade of the Neophyte: battojutsu quick-draw freeze-cinematic — single guaranteed slash
 
       case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)
       case "superman": cast = executeSupermanUltimate(fighter, context); break   // Solar Overload: green energy-surge → particle-dissolve detonation freeze cinematic

@@ -2600,7 +2600,7 @@ const beerus = {
   // SIZE-NORMALIZED (2026-07-24): was 1.7 (idle content ~59px × 1.7 ≈ 100px — bottom of the
   // roster, −9% vs median ≈111). Bumped to 1.85 → ≈109px, into the main band. anchorY is 0 on
   // every action → feet stay planted (plant is cell-bottom→hitbox-bottom, scale-invariant).
-  spriteScale: 2.12,   // HEIGHT-REF: canon ~200cm (estimate, slender) → target ~125px (was 1.85). See HEIGHT_REFERENCE.md; all anchorY are 0 so unchanged.
+  spriteScale: 2.12,   // HEIGHT-REF: canon ~200cm (God of Destruction — reads as NOTABLY larger-than-human, not average height; the brief 175cm figure was corrected back up 2026-08-03) → target ~125px (0.623×200). Reverts the earlier 1.849@175cm change. See HEIGHT_REFERENCE.md §6; all anchorY are 0 so unchanged.
   animationData: {
     // ── movement / state ──────────────────────────────────────────────
     idle:   { frames: 4,  width: 31,  height: 62,  speed: 7, anchorY: 0, sheet: "./beerus_idle_u.png" },
@@ -3302,15 +3302,20 @@ const maki = {
   // additionally suppresses the HUD energy panel entirely (no bar, no
   // flavor label) → truly HP-only, distinct from every other character.
   traits: { hasEnergy: false, energyType: "none", hideResourceMeter: true, mobility: "very_high", scaling: "physical_comeback", animeMovement: true },
-  stats: { maxHealth: 1180, maxEnergy: 0, attack: 90, defense: 84, speed: 94, maxJumps: 2, jumpPower: 32, dashSpeed: 20, dashDuration: 10, dashCooldownMax: 26 },
+  // "HEAVENLY VOW" REBALANCE — a physically superhuman fighter: faster + harder-hitting than the roster
+  // average (a body built entirely around physical output, no cursed energy), DELIBERATELY traded against a
+  // tightened combo-execution window (see MAKI_CANCEL_FRAMES in abilities.js). speed 98 ties the roster top
+  // (Toji/Minato); dashSpeed 22 is a superhuman burst; attack 96 ties Toji (top-of-band, below Sukuna 100).
+  stats: { maxHealth: 1180, maxEnergy: 0, attack: 96, defense: 84, speed: 98, maxJumps: 2, jumpPower: 32, dashSpeed: 22, dashDuration: 10, dashCooldownMax: 26 },
   basic_attacks: {
     // Frame data present so the character object is complete/valid; the
-    // attack ANIMATIONS are wired in Stage 2.
-    light:     { damage: 46, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 84, startup: 7, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 46 },
-    upAttack:  { type: "launcher", damage: 66, startup: 6, active: 4, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },
-    airAttack: { damage: 56, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 74, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+    // attack ANIMATIONS are wired in Stage 2. Damage raised ~+17-19% over the original values
+    // (Heavenly Vow rebalance) → top-of-band normals, offsetting the tighter cancel window.
+    light:     { damage: 54, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 98, startup: 7, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 46 },
+    upAttack:  { type: "launcher", damage: 78, startup: 6, active: 4, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },
+    airAttack: { damage: 66, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 88, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
     // SPECIAL button, direction-branched via _specialHeldDir. All COOLDOWN-gated (cost 0 — no energy).
@@ -3367,6 +3372,80 @@ const maki = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// KASUMI MIWA  (rosterKey "miwa", universe "jujutsu_kaisen"). Source art = the
+// `kasumi_*` upload set (filenames preserved verbatim, incl. the "charg" truncation)
+// + a labelled master sheet (kasumi_transparent.png) whose Air/Stand-Guard and
+// Drinking sections have no individual export → cropped straight from the master
+// (real alpha, so no background-distance keying needed). Non-uniform strips are
+// RE-SLICED to feet-aligned `kasumi_*_uniform.png` cells (tools/reslice_strip.mjs);
+// originals kept untouched. See MIWA_ASSET_MAP.md. Archetype: KATANA battojutsu
+// swordfighter — a grounded, technical sword user (mid-tier JJK; below the big-three
+// damage). Stage 1 = registration + movement/state; normals/chain (S2), specials (S3),
+// Ultimate (S4) land in later stages.
+// ─────────────────────────────────────────────────────────────────
+const miwa = {
+  rosterKey: "miwa", name: "Kasumi Miwa", universe: "jujutsu_kaisen", color: "#3aa0d8",
+  portrait: "./kasumi_portrait.png",
+  archetypes: ["melee", "speed"],
+  primary: "melee", secondary: ["speed"],
+  // Cursed-energy sorcerer, but a modest one — a smaller pool than the big-three JJK casters
+  // (Gojo/Sukuna 210-220, Megumi 210); her power is skill/battojutsu, not raw cursed output.
+  traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "high", scaling: "technical", animeMovement: true },
+  stats: { maxHealth: 1150, maxEnergy: 160, attack: 86, defense: 84, speed: 93, maxJumps: 2, jumpPower: 32, dashSpeed: 19, dashDuration: 10, dashCooldownMax: 28 },
+  // Base normals (sword slashes) — gameplay numbers now; the dedicated attack sprites + the
+  // command-normal chain are wired in Stage 2. Sword tuning: fast light, committal heavy.
+  basic_attacks: {
+    light:     { damage: 44, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 78, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 96, rangeY: 46 },
+    upAttack:  { type: "launcher", damage: 62, startup: 6, active: 4, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },
+    airAttack: { damage: 54, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 70, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+  },
+  ultimate: { name: "Blade of the Neophyte", cost: 100, description: "Battojutsu quick-draw freeze-cinematic — a single guaranteed cursed-energy slash (windup → explosive draw). Costs 100 cursed energy." },
+  hasSprites: true,
+  spriteScale: 2.144,   // HEIGHT-REF: canon ~178cm (est — not well-documented) → target ~111px (was 1.7, measured only 88px = −21% too short). See HEIGHT_REFERENCE.md §6; all anchorY are 0 so unchanged.
+  introPool: ["intro1", "intro2", "intro3", "intro4"],   // random-cycle pool (§8)
+  animationData: {
+    // ── LOCOMOTION ──
+    idle:  { frames: 4, width: 54, height: 55, speed: 8, anchorY: 0, loop: true, sheet: "./kasumi_idle_uniform.png" },
+    walk:  { frames: 8, width: 48, height: 54, speed: 6, anchorY: 0, loop: true, sheet: "./kasumi_run_uniform.png" },
+    run:   { frames: 8, width: 48, height: 54, speed: 4, anchorY: 0, loop: true, sheet: "./kasumi_run_uniform.png" },
+    dash:  { frames: 2, width: 55, height: 57, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_dash_uniform.png" },
+    jump:  { frames: 6, width: 48, height: 69, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_jump_uniform.png" },
+    fall:  { frames: 1, width: 48, height: 69, speed: 6, anchorY: 0, sourceX: 192, loop: false, lockLastFrame: true, sheet: "./kasumi_jump_uniform.png" },  // jump frame 4 (descending)
+    // ── STATE ── (engine maps DOWN→block→guard; there is no separate crouch state, but the crouch
+    //   pose is extracted + kept as `crouch` for completeness/future use.)
+    guard: { frames: 1, width: 31, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_guard_uniform.png" },
+    crouch:{ frames: 2, width: 50, height: 49, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_crouch_uniform.png" },
+    hurt:  { frames: 3, width: 59, height: 53, speed: 5, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./kasumi_hit_uniform.png" },   // frames 0-2 (stagger)
+    knockdown: { frames: 3, width: 59, height: 53, speed: 6, anchorY: 0, sourceX: 236, loop: false, lockLastFrame: true, sheet: "./kasumi_hit_uniform.png" }, // frames 4-6 (down → getup)
+    // ── RANDOM-CYCLE INTRO POOL (§8) — one picked per match start ──
+    intro1: { frames: 9, width: 50, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_intro_1_uniform.png" },
+    intro2: { frames: 6, width: 41, height: 63, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_intro_2_uniform.png" },
+    intro3: { frames: 7, width: 41, height: 63, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_intro_3_uniform.png" },
+    intro4: { frames: 7, width: 41, height: 63, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_intro_4_uniform.png" },
+    // ── STAGE 2: base normals (katana slashes) — 5 cleanest slots ──
+    light:    { frames: 5, width: 105, height: 73, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_attack_2_uniform.png" },        // fast horizontal slash
+    heavy:    { frames: 6, width: 83,  height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_attack_1_uniform.png" },        // committal overhead vertical slash
+    up:       { frames: 7, width: 79,  height: 94, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_up_attack_uniform.png" },       // rising launcher (5 swing + 2 sheathe/recovery, §7)
+    air:      { frames: 4, width: 67,  height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_air_attack_1_uniform.png" },    // aerial slash (FX debris dropped via --minw)
+    down_air: { frames: 4, width: 78,  height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_down_air_attack_uniform.png" }, // downward aerial slash
+    // ── STAGE 2: "Battojutsu Rush" command chain (Fwd+Heavy opener → re-tap Heavy on a clean hit) ──
+    //   The remaining ground attack strips (attack_3 low lunge → attack_4 dash-thrust → up_air rising slash).
+    miwaG1:   { frames: 5, width: 68,  height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_attack_3_uniform.png" },        // low lunge opener
+    miwaG2:   { frames: 5, width: 103, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_attack_4_uniform.png" },        // dash-thrust mid
+    miwaG3:   { frames: 4, width: 105, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_up_air_attack_uniform.png" },   // rising slash finisher
+    // ── STAGE 3: specials ──
+    charge:   { frames: 5, width: 57, height: 72, speed: 6, anchorY: 0, loop: true, sheet: "./kasumi_charg_uniform.png" },                                  // cursed-energy charge stance (raised glowing sword — battojutsu ready)
+    iaiDash:  { frames: 3, width: 55, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_ultimate_dash_attack_uniform.png" }, // Iai Dash gap-closer (first 3 frames only, §6)
+    airVortex:{ frames: 2, width: 66, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_super_rapid_air_attack_uniform.png" }, // Rapid Slash Vortex — CHARACTER slash frames (the vortex FX is a SEPARATE overlay layer, §10)
+    // ── STAGE 4: Ultimate — "Blade of the Neophyte" battojutsu quick-draw. ONE continuous clip (§5):
+    //   part_1 (windup, sword drawn back) → part_2 (explosive forward slash) stitched into 8 frames.
+    ultimate: { frames: 8, width: 69, height: 48, speed: 10, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kasumi_super_ultimate_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // GHOSTFACE  (rosterKey "ghostface", universe "horror" — first horror-universe
 // sprite char). Source art = 16 CVS-style `cvs_ghost_face_*.png` strips (idle,
 // sneak/walk, jump, blocks, hit, foward_attack, up_attack, charge_attack,
@@ -3412,7 +3491,7 @@ const ghostface = {
   // Ghostface has NO default skin — each of the 5 killer-identity skins sets spriteScale explicitly, and
   // applySkin resolves any non-identity id to one of them (getSkin's list[0] fallback is a killer, not a
   // spriteScale:1 default). Plus the spritesheets.js idle gate.
-  spriteScale: 1.15,
+  spriteScale: 0.982,   // HEIGHT-REF: canon ~178cm (EST — no single canon height; the mask is worn by different actors across the films, so an average adult male default) → target ~111px (was 1.15, measured 130px = +17% too tall — rendered TALLER than Sasuke/Naruto; now correctly only mildly taller). See HEIGHT_REFERENCE.md §6; all anchorY are 0.
   animationData: {
     // ── MOVEMENT / STATE. Re-sliced to uniform feet-aligned cells (reslice_strip.mjs). ──
     idle:  { frames: 3, width: 75,  height: 116, speed: 8, anchorY: 0, sheet: "./ghostface_idle_uniform.png" },   // hunched breathing loop
@@ -3475,7 +3554,8 @@ export const characters = {
   hisoka,
   superman,
   chrollo,
-  ghostface
+  ghostface,
+  miwa
 }
 
 // The 7 characters shown in the starter roster select screen

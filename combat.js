@@ -36,6 +36,7 @@ import { pickGoldSamuraiVoice } from "./goldSamuraiRangerVoice.js"   // Gold Sam
 import { pickVegetaVoice } from "./vegetaVoice.js"   // Vegeta hit-react / offense-bark / low-health voice pools (audio-only; shared across base/SSJ/Blue)
 import { pickMakiVoice } from "./makiVoice.js"   // Maki hit-react / offense-bark / low-health voice pools (audio-only, JP dub)
 import { pickChrolloVoice } from "./chrolloVoice.js"   // Chrollo hit-react / grunt / offense-bark / taunt / low-health voice pools (audio-only)
+import { pickGhostfaceVoice } from "./ghostfaceVoice.js"   // Ghostface hit-react / offense-bark / taunt / low-health voice pools (audio-only)
 
 // ========================
 // HITSTOP TABLE — SINGLE SHARED TUNABLE SOURCE
@@ -268,21 +269,40 @@ export function getAttackPhase(fighter) {
 // the single READ-ONLY, inspectable view of that timing: every character's cancel window reads through
 // this one API in the same {startup, active, recovery, phase, open} shape, so windows are precisely
 // frame-defined and can be tuned/inspected consistently. Purely derived — it changes no behavior.
+// PER-CHARACTER CANCEL-WINDOW WIDTH OVERRIDE (combo-flow). By DEFAULT the rekka cancel is open for
+// the ENTIRE recovery phase — that shared rule is unchanged for the whole roster. A fighter may set
+// `_cancelWindowFrames = W` to NARROW its own acceptance to only the FIRST W frames of recovery: a
+// tighter link demanding more precise timing. This is a genuine per-character exception, NOT a change
+// to the default — unset (the roster norm) → the full-recovery window exactly as before. It does not
+// touch move recovery/punishability; only WHEN inside recovery a cancel is accepted. (Maki uses it:
+// her superhuman speed/power is traded against a demanding combo-execution window.)
+export function cancelWindowOpen(fighter) {
+  if (getAttackPhase(fighter) !== "recovery") return false     // only ever open in recovery
+  const W = fighter?._cancelWindowFrames
+  if (!(W > 0)) return true                                    // default (unset): the whole recovery phase
+  const a = fighter.currentAttack
+  const intoRecovery = (a.total - a.timer) - a.activeEnd       // frame # within recovery (1-based: recovery's first frame is 1)
+  return intoRecovery <= W                                      // tightened: only the first W frames of recovery link
+}
+
 export function getCancelWindow(fighter) {
   const a = fighter?.currentAttack
   if (!a) {
     return { move: fighter?.currentMove || null, phase: "idle", startup: 0, active: 0, recovery: 0,
-             elapsed: 0, open: false, cancelInto: fighter?._rekkaNext || null, connected: !!fighter?._cmdHitLanded }
+             elapsed: 0, open: false, windowFrames: 0, cancelInto: fighter?._rekkaNext || null, connected: !!fighter?._cmdHitLanded }
   }
   const phase = getAttackPhase(fighter)
+  const recovery = a.total - a.activeEnd
+  const W = fighter._cancelWindowFrames
   return {
     move:      fighter.currentMove || a.name || null,
     phase,
     startup:   a.activeStart,                 // frames 0..startup      → startup
     active:    a.activeEnd - a.activeStart,   // frames startup..active → active (hittable)
-    recovery:  a.total - a.activeEnd,         // frames active..end     → recovery (the CANCEL window)
+    recovery,                                 // frames active..end     → recovery (the full recovery span)
+    windowFrames: W > 0 ? Math.min(W, recovery) : recovery,  // EFFECTIVE cancel window (narrowed if overridden)
     elapsed:   a.total - a.timer,             // frames into the move so far
-    open:      phase === "recovery",          // the universal rekka cancel window is the recovery phase
+    open:      cancelWindowOpen(fighter),     // honours the per-character narrowed window
     cancelInto: fighter._rekkaNext || null,   // the queued next chain step, if any
     connected: !!fighter._cmdHitLanded         // did the current stage land a clean hit (gates the cancel)
   }
@@ -303,7 +323,7 @@ export function rekkaContinue(fighter, { edge, phase, opponent, requireHit = tru
   if (!fighter) return null
   if (fighter.attacking && fighter.currentAttack?.hasHit && (opponent?.hitstun || 0) > 0) fighter._cmdHitLanded = true
   if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
-  if (fighter.attacking && fighter._rekkaNext && edge && phase === "recovery" && (!requireHit || fighter._cmdHitLanded)) {
+  if (fighter.attacking && fighter._rekkaNext && edge && cancelWindowOpen(fighter) && (!requireHit || fighter._cmdHitLanded)) {
     const next = fighter._rekkaNext
     fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
     fighter.attackCooldown = 0   // clear the just-set cooldown so the chain fires now
@@ -815,6 +835,42 @@ function applyChrolloLowHealthVoice(defender) {
   if (hp > 0 && hp <= max * CHROLLO_LOW_HEALTH_RATIO) {
     defender._lowHealthVoiceDone = true
     try { sound?.playSfxFile?.(pickChrolloVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
+// ── GHOSTFACE VOICE LINES (audio-only; English MK1 pack) — mirrors the Chrollo shape ──
+// DEFENDER reaction: any unblocked hit → a "hitReact" one-liner ("Where'd you learn to punch like
+// that?" / "Now that's scary" / "Feeling woozy"). One line per _hitVoiceCd window. Ghostface's
+// discarded grunts stay SFX (not a pool), so there's no light/heavy split — a single hitReact pool.
+function applyGhostfaceHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "ghostface" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickGhostfaceVoice("hitReact"), null) } catch (_) {}
+}
+
+// ATTACKER connect — combat barks on a HEAVY connect OR a long BASIC light string, with ~30% chance
+// to swap in a taunt one-liner instead (Killua/Hisoka/Chrollo "taunt rides offense-connect" precedent).
+// Knife specials + the ultimate fire their OWN specialCast lines and set _atkVoiceCd → excluded here.
+function applyGhostfaceOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "ghostface" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  const pool = Math.random() < 0.3 ? "taunt" : "combatBark"
+  try { sound?.playSfxFile?.(pickGhostfaceVoice(pool), null) } catch (_) {}
+}
+
+// LOW-HEALTH bark — "I'll survive. I always do." / "We're only in the first reel." — fires ONCE the
+// first time Ghostface drops to/below the threshold (same pattern as Chrollo/Gon/Naruto).
+const GHOSTFACE_LOW_HEALTH_RATIO = 0.25
+function applyGhostfaceLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "ghostface" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * GHOSTFACE_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickGhostfaceVoice("lowHealth"), null) } catch (_) {}
   }
 }
 
@@ -1768,6 +1824,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyGonHitVoice(defender, cat, dmg)
     // CHROLLO hit-reaction voice — light-hit exertion grunt vs heavy-hit surprise/pain pool (split by cat).
     applyChrolloHitVoice(defender, cat, dmg)
+    // GHOSTFACE hit-reaction voice — single reaction pool ("Where'd you learn to punch like that?").
+    applyGhostfaceHitVoice(defender, cat, dmg)
     // HISOKA hit-reaction voice — delighted/dismissive pool ("No no~" / "Impressive~" / "Irresistible~").
     applyHisokaHitVoice(defender, cat, dmg)
     // ZENITSU hit-reaction voice — panicked pool ("No way!" / "Damn it!" / "I got hit!").
@@ -1808,6 +1866,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
     applyGonLowHealthVoice(defender)   // "Not yet" / "I can still fight" / "I'm going to die" (once, on crossing the low-HP line)
     applyChrolloLowHealthVoice(defender)   // Chrollo "The spider doesn't die" (once, on crossing the low-HP line)
+    applyGhostfaceLowHealthVoice(defender)   // Ghostface "I always do" / "first reel" (once, on crossing the low-HP line)
     applyZenitsuLowHealthVoice(defender)   // Zenitsu "This can't be done yet!" (once, on crossing the low-HP line)
     applyRengokuLowHealthVoice(defender)   // Rengoku "I'm feeling energized!" / "Unbelievable!" (once, on crossing the low-HP line)
     applyShinobuLowHealthVoice(defender)   // Shinobu "This is... oh no." (once, on crossing the low-HP line)
@@ -1912,6 +1971,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyKilluaOffenseVoice(attacker, cat, !defender.isBlocking)   // Killua combat bark (+ ~30% taunt one-liner) on a strong/long-string connect
   applyGonOffenseVoice(attacker, cat, !defender.isBlocking)      // Gon combat bark on a heavy/long-string connect (specials use their own cast lines)
   applyChrolloOffenseVoice(attacker, cat, !defender.isBlocking)  // Chrollo combat bark (+ ~30% taunt one-liner) on a heavy/long-string connect (specials/ult use their own cast lines)
+  applyGhostfaceOffenseVoice(attacker, cat, !defender.isBlocking)  // Ghostface combat bark (+ ~30% taunt one-liner) on a heavy/long-string connect (knife specials/ult use their own cast lines)
   applyZenitsuOffenseVoice(attacker, cat, !defender.isBlocking)  // Zenitsu determination/combat bark on a heavy/long-string connect (specials use their own cast lines)
   applyRengokuOffenseVoice(attacker, cat, !defender.isBlocking)  // Rengoku flame/taunt-combat bark on a heavy/long-string connect (flame specials use their own cast lines)
   applyShinobuOffenseVoice(attacker, cat, !defender.isBlocking)  // Shinobu "Here I go!" bark on a heavy/long-string connect (poison/dance specials use their own cast lines)

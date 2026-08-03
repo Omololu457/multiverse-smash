@@ -58,11 +58,14 @@ try {
   check("no resource: stats.maxEnergy data = 0", dataEnergy === 0, `data=${dataEnergy}`);
   check("energy panel SUPPRESSED (HP-only, hideResourceMeter)", (await page.evaluate(() => window.__harness.resourceMeterHidden("p1"))) === true);
 
-  // ── BALANCE: no stat outliers ──
-  section("balance — stats sit inside roster bands (no outliers)");
+  // ── BALANCE: "HEAVENLY VOW" — deliberately superhuman (top-of-band), traded vs a tight combo window ──
+  section("balance — Heavenly Vow: superhuman speed/power at the top of the roster band");
   const st = await page.evaluate(async () => (await import("./characters.js")).characters.maki.stats);
   check("HP 1180 (ties Naruto/Omega; below Toji 1260)", st.maxHealth === 1180, `hp=${st.maxHealth}`);
-  check("ATK 90 · DEF 84 · SPD 94 all in-band (no ceiling/floor)", st.attack === 90 && st.defense === 84 && st.speed === 94, `atk=${st.attack} def=${st.defense} spd=${st.speed}`);
+  // Heavenly Vow: ATK 96 ties Toji (below Sukuna's 100 ceiling), SPD 98 ties the roster top (Toji/Minato),
+  // DEF unchanged. Deliberately top-of-band (not floor/ceiling outliers) — the counterweight is her
+  // tightened cancel window (see maki_cancel_window.test.mjs), not a stat nerf.
+  check("ATK 96 (ties Toji, ≤ Sukuna 100) · DEF 84 · SPD 98 (roster top) — Heavenly Vow", st.attack === 96 && st.defense === 84 && st.speed === 98, `atk=${st.attack} def=${st.defense} spd=${st.speed}`);
 
   // ── BASE NORMALS (all 5) ──
   section("base normals — light / heavy / up / air / down_air");

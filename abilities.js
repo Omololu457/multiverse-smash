@@ -4292,10 +4292,8 @@ export function applyTransformFullCopy(fighter, targetKey) {
 
 // Motion-input entry point. tier 1 = Disguise (cheap, visual-only). tier 2 = Full Copy (expensive).
 function fireTransformJutsu(fighter, context, tier) {
-  try { console.log(`[DIAG] fireTransformJutsu tier=${tier} caster=${fighter?.rosterKey} tjActive=${fighter?._tjActive}`) } catch (_) {}
   if (fighter._tjActive) return false                       // already transformed
   const targetKey = transformJutsuTarget(fighter, context)
-  try { console.log(`[DIAG] fireTransformJutsu target=${targetKey}`) } catch (_) {}
   if (!targetKey) return false                              // no valid opponent (mirror / transient)
   const cost = tier === 2 ? TJ_TIER2_COST : TJ_TIER1_COST
   if (!spendEnergy(fighter, cost)) return false
@@ -4323,7 +4321,6 @@ function tryTransformJutsu(fighter, context) {
   const key = (fighter.rosterKey || "").toLowerCase()
   const m = TRANSFORM_JUTSU_MOTIONS[key]
   if (!m || fighter._tjActive) return false                 // no binding, or already transformed
-  try { console.log(`[DIAG] tryTransformJutsu key=${key} tier2motion(${m.tier2})=${detectMotion(fighter, m.tier2)} tier1motion(${m.tier1})=${detectMotion(fighter, m.tier1)}`) } catch (_) {}
   if (m.tier2 && detectMotion(fighter, m.tier2) && fireTransformJutsu(fighter, context, 2)) { clearMotionHistory(fighter); return true }
   if (m.tier1 && detectMotion(fighter, m.tier1) && fireTransformJutsu(fighter, context, 1)) { clearMotionHistory(fighter); return true }
   return false
@@ -6418,70 +6415,53 @@ function fireGhostfaceStalkVanish(fighter, context) {
   try { spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2) } catch (_) {}
   return true
 }
-// ── GHOSTFACE CALL-IN — the SIGNATURE companion special (Neutral+Special). A killer never works alone:
-// a companion is called in, rushes the opponent from their far side for a single strong strike, then
-// vanishes (spawnAssistSummon "rush" pattern — the Zenitsu Double Attack model). The companion is pulled
-// from the ACTIVE IDENTITY's 4-character pool (Part B). Roman's identity halves the cost + cooldown. ──
+// ── GHOSTFACE COMPANION POOLS — the 4-character swap pool for each killer identity. There is NO "default"
+// pool: Ghostface always has one of the 5 identities (enforced at applySkin), so the equipped skin ALWAYS
+// resolves to a real 4-character pool. (Kept the CALLIN_POOLS name — the swap reuses this exact data.) ──
 export const GHOSTFACE_CALLIN_POOLS = {
   ghostfaceBilly:  ["sasuke", "itachi", "chrollo", "killua"],
   ghostfaceDebbie: ["beerus", "netero", "maki", "omniman"],
   ghostfaceRoman:  ["rick", "tobirama", "gojo", "hisoka"],
   ghostfaceJill:   ["sukuna", "goku_black", "gold_samurai_ranger", "vegeta"],
   ghostfaceAmber:  ["shinobu", "gon", "naruto", "zenitsu"],
-  // Default (no killer identity) — a sampler pool so base Ghostface can still Call-In (one per identity).
-  default:         ["sasuke", "beerus", "rick", "sukuna"],
 }
-// The 4-character pool for a fighter's ACTIVE skin (empty for non-Ghostface).
+// The 4-character pool for a fighter's ACTIVE identity ([] for non-Ghostface, or the unreachable case of a
+// Ghostface with no valid identity — applySkin guarantees one, so this never falls back to a sampler).
 export function getGhostfaceCallInPool(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return []
-  return GHOSTFACE_CALLIN_POOLS[fighter.skinId] || GHOSTFACE_CALLIN_POOLS.default
+  return GHOSTFACE_CALLIN_POOLS[fighter.skinId] || []
 }
-// Build a one-shot rush-in summon that renders as the COMPANION (their own strike/idle sprite).
-function ghostfaceCallInSummonData(partnerKey) {
-  const c  = characters[partnerKey] || {}
-  const ad = c.animationData || {}
-  const pose = ad.heavy || ad.light || ad.idle || {}
-  return {
-    id: "ghostfaceCallIn", duration: 46, maxSimultaneous: 1, attackInterval: 6, damage: 120,
-    w: 54, h: 92, speed: 13, behavior: "rush", spawnBeat: 6, hitstun: 24, knockbackX: 8, knockbackY: -3,
-    oneHit: true, puffOnDespawn: true, color: c.color || "#c81e28", offsetY: 0,
-    sheet: pose.sheet, spriteFrames: pose.frames || 1, spriteW: pose.width || 60, spriteH: pose.height || 90,
-    spriteSpeed: 5, spriteScale: c.spriteScale || 1.6
+// COMPANION SWAP is triggered by a MOTION + Special (the Transformation-Jutsu control model), NOT the old
+// Call-In. Each motion selects a pool slot; checked at the TOP of the Special dispatch (below), BEFORE the
+// held-direction knife specials. Uses endsWithExact (STRICT tail match, no stray tolerance) so the motions
+// never collide with each other or with the single-direction Gutting Lunge (F) / Low Gut (D) / Stalk
+// Vanish (B). Longest motions are checked first so a QCF/QCB buried inside a DBF/DFB can't shadow it.
+function tryGhostfaceSwapMotion(fighter, context) {
+  if (fighter._gfSwapActive) return false
+  const dirs = getRelativeDirections(fighter)
+  // slot indices ordered longest-motion-first (3-token DBF/DFB before 2-token QCF/QCB)
+  const order = GHOSTFACE_SWAP_SLOTS.map((_, i) => i).sort((a, b) => GHOSTFACE_SWAP_SLOTS[b].motion.length - GHOSTFACE_SWAP_SLOTS[a].motion.length)
+  for (const slot of order) {
+    if (endsWithExact(dirs, GHOSTFACE_SWAP_SLOTS[slot].motion) && triggerGhostfaceSwap(fighter, slot, context)) {
+      if (fighter.directionHistory) fighter.directionHistory.length = 0   // consume so a lingering token run can't re-fire
+      return true
+    }
   }
-}
-const GHOSTFACE_CALLIN_COST = 40    // Dread — a strong assist; Roman halves it
-const GHOSTFACE_CALLIN_CD   = 220   // ~3.7s between calls; Roman halves it
-function fireGhostfaceCallIn(fighter, context) {
-  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  if ((fighter.callInCd || 0) > 0) return false   // COOLDOWN gate
-  const costScale = fighter._gfSkinMod?.callInCostScale ?? 1     // ROMAN: reduced cost
-  if (!spendEnergy(fighter, Math.round(GHOSTFACE_CALLIN_COST * costScale))) return false
-  const opp  = getTargetResolver(context)(fighter)
-  const pool = getGhostfaceCallInPool(fighter)
-  // Use the pre-selected partner, but STRICTLY from this identity's pool (invalid/other-pool → pool[0]).
-  let partner = fighter._callInPartner
-  if (!partner || !pool.includes(partner)) partner = pool[0]
-  fighter._callInPartner = partner
-  const dir = fighter.facing || 1
-  fighter._spriteCastMove = "gfCallIn"; fighter._spriteCastTimer = 26   // Ghostface beckons
-  fighter.vx = 0
-  if (opp) {
-    const p = spawnAssistSummon(fighter, ghostfaceCallInSummonData(partner), opp)
-    if (p) { p.x = opp.x + dir * 90; p.y = opp.y + (p.offsetY || 0); p.facing = -dir }   // far side → rushes inward
-  }
-  const cdScale = fighter._gfSkinMod?.callInCdScale ?? 1         // ROMAN: faster cooldown
-  fighter.callInCd = Math.round(GHOSTFACE_CALLIN_CD * cdScale)
-  fighter._lastCallInPartner = partner   // telemetry/harness
-  try { shakeCamera(context, 5, 10) } catch (_) {}
-  return true
+  return false
 }
 function executeGhostfaceSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return false
+  if (tryGhostfaceSwapMotion(fighter, context)) return true              // MOTION + Special → Companion Swap (checked first)
   const dir = fighter._specialHeldDir || null
-  if (dir === "B") return fireGhostfaceStalkVanish(fighter, context)
-  if (dir === "D") return fireGhostfaceLowGut(fighter, context)
-  if (dir === "F") return fireGhostfaceGuttingLunge(fighter, context)   // Forward = Gutting Lunge (Billy's approach)
-  return fireGhostfaceCallIn(fighter, context)                          // Neutral = signature Call-In
+  let fired = false
+  if (dir === "B") fired = fireGhostfaceStalkVanish(fighter, context)    // Back  = Stalk Vanish (i-frame backstep)
+  else if (dir === "D") fired = fireGhostfaceLowGut(fighter, context)    // Down  = Low Gut (knockdown)
+  else if (dir === "F") fired = fireGhostfaceGuttingLunge(fighter, context)   // Fwd = Gutting Lunge (bleed)
+  // A single-direction knife special leaves its direction in the history; clear it so a FOLLOWING knife
+  // special can't chain into a 2-token swap motion (e.g. Low Gut ↓ then Stalk Vanish ← = ↓← = an accidental
+  // QCB swap). Each swap motion must be performed as a fresh, deliberate roll.
+  if (fired && fighter.directionHistory) fighter.directionHistory.length = 0
+  return fired                                                           // neutral Special = nothing (Call-In retired → swap is motion-based)
 }
 
 // GHOSTFACE ULTIMATE — "The Final Act" (freeze-cinematic stab flurry; ghostfaceFinalActCinematic.js).
@@ -6540,7 +6520,8 @@ function applyGhostfaceFinalActDamage(fighter, opp, cineCtx = {}) {
 // SKILL_HUNTER_FIELDS constant + the field writes proven by applySkillHunter — into its OWN _gfSwap*
 // state namespace, exactly the way Transformation Jutsu (_tj*) forks it. applySkillHunter itself is left
 // 100% untouched, so Chrollo's Skill Hunter cannot be affected. Differences from Skill Hunter, per spec:
-//   (a) TRIGGER  = a button combo (game.js handleGhostfaceSwap), NOT the 3-distinct-move unlock.
+//   (a) TRIGGER  = a MOTION + Special (tryGhostfaceSwapMotion, Transformation-Jutsu control model), NOT
+//                  a charge combo and NOT the 3-distinct-move unlock. The motion picks the pool slot.
 //   (b) TIMER    = fixed window, auto-revert; no manual early-end.
 //   (c) RESOURCE = UNLIMITED during the window via the existing fighter.infiniteEnergy flag
 //                  (spendEnergy/canSpendEnergy short-circuit on it) — prior value stashed + restored.
@@ -6548,13 +6529,14 @@ function applyGhostfaceFinalActDamage(fighter, opp, cineCtx = {}) {
 const GF_SWAP_DURATION = 12 * 60   // 12s window (spec: 10-15s), fixed → auto-revert
 const GF_SWAP_COST     = 35        // modest Dread cost per activation (freely repeatable, energy-gated only)
 
-// Slot table — CHARGE + this cardinal picks companion pool[i] of the equipped identity. Physical keys
-// (not facing-relative) so the SAME combo always maps to the SAME slot → deterministic selection.
+// Slot table — a facing-relative MOTION + Special picks companion pool[i] of the equipped identity.
+// STRICT-matched (endsWithExact) + longest-first so the four motions never collide with each other or with
+// Ghostface's held-direction knife specials. QCF/QCB = the two simplest; DBF/DFB = the two half-circles.
 export const GHOSTFACE_SWAP_SLOTS = [
-  { field: "down",  label: "↓" },   // slot 0
-  { field: "left",  label: "←" },   // slot 1
-  { field: "right", label: "→" },   // slot 2
-  { field: "jump",  label: "↑" },   // slot 3 (up-key folds into `jump`; consumed so it won't also hop)
+  { motion: ["D", "F"],      label: "↓→ + Special" },    // slot 0 — QCF
+  { motion: ["D", "B"],      label: "↓← + Special" },    // slot 1 — QCB
+  { motion: ["D", "B", "F"], label: "↓←→ + Special" },   // slot 2 — DBF
+  { motion: ["D", "F", "B"], label: "↓→← + Special" },   // slot 3 — DFB
 ]
 export function ghostfaceSwapSlotCombo(i) { return GHOSTFACE_SWAP_SLOTS[i] || null }
 
@@ -6562,7 +6544,6 @@ export function ghostfaceSwapSlotCombo(i) { return GHOSTFACE_SWAP_SLOTS[i] || nu
 // (kept in sync via the shared SKILL_HUNTER_FIELDS stash loop) + adds the infiniteEnergy grant.
 export function applyGhostfaceSwap(fighter, targetKey) {
   const target = characters[targetKey]
-  try { console.log(`[DIAG] applyGhostfaceSwap ENTER target=${targetKey} hasTarget=${!!target} fighterWas=${fighter?.rosterKey}`) } catch (_) {}
   if (!target) return false
   // 1) stash Ghostface's originals (+ skin state + prior infiniteEnergy) for the revert
   const stash = {}
@@ -6648,9 +6629,14 @@ export function triggerGhostfaceSwap(fighter, slot, context) {
   const pool = getGhostfaceCallInPool(fighter)
   const targetKey = pool[slot]
   if (!targetKey || !characters[targetKey]) return false
-  if (!spendEnergy(fighter, GF_SWAP_COST)) return false
+  const cost = Math.round(GF_SWAP_COST * (fighter._gfSkinMod?.swapCostScale ?? 1))   // ROMAN identity: cheaper swap
+  if (!spendEnergy(fighter, cost)) return false
   if (!applyGhostfaceSwap(fighter, targetKey)) return false
   fighter.vx = 0
+  // If the player happens to be holding CHARGE when the swap fires, consume that hold so the swapped-in
+  // companion doesn't inherit it (a charge-RELEASE would otherwise fire the companion's charge action —
+  // e.g. Itachi Mangekyou's freeze cinematic). Cleared on release (game.js). See charge-input-bleed fix.
+  fighter._suppressChargeUntilRelease = true
   try { shakeCamera(context, 5, 10) } catch (_) {}
   return true
 }

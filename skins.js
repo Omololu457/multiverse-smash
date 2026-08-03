@@ -590,13 +590,15 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null }
   ],
 
-  // Ghostface — Default + the 5 KILLER-IDENTITY skins (Stage 2). Each is a robe-recolor
+  // Ghostface — the 5 KILLER-IDENTITY skins ONLY (NO "Default"). In the source material there is no
+  // independent "Ghostface" separate from whichever killer wears the mask, so there is deliberately no 6th
+  // fallback identity — picking one of the 5 is MANDATORY (enforced at applySkin: any non-identity skinId,
+  // incl. AI/random fighters handed "default", resolves to a killer identity). Each is a robe-recolor
   // (tools/gen_ghostface_creative.py): the cool-saturated cloak → a distinct themed dark tone, the white
-  // mask + steel knife + black linework preserved (sat/val gates). WITHOUT the default entry, applySkin()
-  // pulls the spriteScale:1 fallback. NOTE: unlike every other char these skins ALSO carry gameplay
-  // property modifiers (Stages 3-4) — a deliberate, confirmed project-first exception (NOT cosmetic-only).
+  // mask + steel knife + black linework preserved (sat/val gates). Each sets spriteScale explicitly (no
+  // reliance on a default entry). NOTE: unlike every other char these skins ALSO carry gameplay property
+  // modifiers (Stages 3-4) — a deliberate, confirmed project-first exception (NOT cosmetic-only).
   ghostface: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ghostface?.portrait, spriteScale: characters.ghostface?.spriteScale, animationData: null },
     { id: "ghostfaceBilly",  name: "Billy",  unlockLevel: 0, portrait: "./ghostface_portrait__billy.png",  spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "billy"),  recolorTag: "billy" },
     { id: "ghostfaceDebbie", name: "Debbie", unlockLevel: 0, portrait: "./ghostface_portrait__debbie.png", spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "debbie"), recolorTag: "debbie" },
     { id: "ghostfaceRoman",  name: "Roman",  unlockLevel: 0, portrait: "./ghostface_portrait__roman.png",  spriteScale: characters.ghostface?.spriteScale, animationData: recolorSkinAnim("ghostface", "roman"),  recolorTag: "roman" },

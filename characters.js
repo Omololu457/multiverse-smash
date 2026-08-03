@@ -3409,8 +3409,9 @@ const ghostface = {
   ultimate: { name: "The Final Act", cost: 100, description: "Freeze-cinematic — Ghostface stalks in and unleashes a guaranteed flurry of stabs (range-independent; blocked → 25%)." },
   hasSprites: true,
   // idle content ~116px tall × 1.15 ≈ 133px on-screen (upper roster band — an imposing stalker).
-  // REQUIRES the skins.js `ghostface` default skin (else applySkin() pulls the spriteScale:1 fallback)
-  // + the spritesheets.js idle gate.
+  // Ghostface has NO default skin — each of the 5 killer-identity skins sets spriteScale explicitly, and
+  // applySkin resolves any non-identity id to one of them (getSkin's list[0] fallback is a killer, not a
+  // spriteScale:1 default). Plus the spritesheets.js idle gate.
   spriteScale: 1.15,
   animationData: {
     // ── MOVEMENT / STATE. Re-sliced to uniform feet-aligned cells (reslice_strip.mjs). ──

@@ -28,19 +28,20 @@ const gfSwap = () => page.evaluate(() => window.__harness.gfSwap());
 async function waitFrames(n) { const s = (await state()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }); }
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
 
-// CHARGE+cardinal, edge-triggered → fire the swap. Keys: charge=p, down=s, left=a, right=d, up=w.
+// MOTION + Special → fire the swap. Keys: down=s, left=a, right=d, special=l. P1 faces RIGHT so →=Forward.
+// Slot keys map to the four swap motions: s=QCF(↓→) a=QCB(↓←) d=DBF(↓←→) w=DFB(↓→←).
+const MOTION = { s: ["s", "d"], a: ["s", "a"], d: ["s", "a", "d"], w: ["s", "d", "a"] };
 async function pressSwapCombo(dirKey) {
-  await page.keyboard.down("p"); await waitFrames(1);
-  await page.keyboard.down(dirKey); await waitFrames(4);
-  const s = await gfSwap();
-  await page.keyboard.up(dirKey); await page.keyboard.up("p");
-  return s;
+  for (const k of MOTION[dirKey]) { await page.keyboard.down(k); await waitFrames(1); await page.keyboard.up(k); await waitFrames(1); }
+  await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(4);
+  return await gfSwap();
 }
 async function resetToGhostface(skin) {
   await page.evaluate(() => window.__harness.expireGfSwap());
   await waitFrames(3);
-  await page.evaluate(s => { window.__harness.setSkin("p1", s); window.__harness.fillEnergy(); window.__harness.healP1?.(); }, skin);
-  await waitFrames(2);
+  await page.evaluate(s => { window.__harness.setSkin("p1", s); window.__harness.fillEnergy(); window.__harness.healP1?.(); window.__harness.resetFighterInput?.("p1"); }, skin);
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.key === "ghostface" && p.grounded && !p.attacking && !p.currentMove; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + 70); await waitFrames(2);
 }
 
 const IDENTITIES = [
@@ -50,8 +51,8 @@ const IDENTITIES = [
   ["ghostfaceJill",   ["sukuna", "goku_black", "gold_samurai_ranger", "vegeta"]],
   ["ghostfaceAmber",  ["shinobu", "gon", "naruto", "zenitsu"]],
 ];
-const SLOTKEYS = ["s", "a", "d", "w"];   // down / left / right / up → slot 0-3
-const ARROWS = ["↓", "←", "→", "↑"];
+const SLOTKEYS = ["s", "a", "d", "w"];   // → slot 0-3 (QCF / QCB / DBF / DFB motions)
+const ARROWS = ["↓→", "↓←", "↓←→", "↓→←"];
 
 await page.goto(`${base}/index.html?harness=1&p1=ghostface&p2=rengoku`, { waitUntil: "load" });
 await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
@@ -72,7 +73,7 @@ for (const [skin, pool] of IDENTITIES) {
     await resetToGhostface(skin);
     const s = await pressSwapCombo(SLOTKEYS[i]);
     const okSwap = s.active && s.target === want && s.rosterKey === want;
-    check(`CHARGE+${ARROWS[i]} → ${want} (real swap)`, okSwap, okSwap ? "" : `got active=${s.active} target=${s.target} roster=${s.rosterKey}`);
+    check(`${ARROWS[i]}+Special → ${want} (real swap)`, okSwap, okSwap ? "" : `got active=${s.active} target=${s.target} roster=${s.rosterKey}`);
     // becomes them visually (resolved sheet, not a procedural box) + unlimited resource
     const pv = await p1();
     check(`  ${want}: renders a real sprite + unlimited chakra`, pv.spriteReady && s.infiniteEnergy === true && s.energy === s.maxEnergy, `sheet=${pv.spriteSheet} inf=${s.infiniteEnergy} e=${s.energy}/${s.maxEnergy}`);

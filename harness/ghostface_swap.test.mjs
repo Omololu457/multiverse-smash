@@ -26,18 +26,22 @@ const gfSwap = () => page.evaluate(() => window.__harness.gfSwap());
 async function waitFrames(n) { const s = (await state()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }); }
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
 
+// MOTION + Special → swap. Slot keys map to the four motions: s=QCF(↓→) a=QCB(↓←) d=DBF(↓←→) w=DFB(↓→←).
+const MOTION = { s: ["s", "d"], a: ["s", "a"], d: ["s", "a", "d"], w: ["s", "d", "a"] };
 async function pressSwapCombo(dirKey) {
-  await page.keyboard.down("p"); await waitFrames(1);
-  await page.keyboard.down(dirKey); await waitFrames(4);
-  const s = await gfSwap();
-  await page.keyboard.up(dirKey); await page.keyboard.up("p");
-  return s;
+  // wait until Ghostface is actionable so the motion's Special actually starts (back-to-back swaps)
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p && !p.gfSwapActive && p.grounded && !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
+  await page.evaluate(() => { const f = window.__harness.p1(); if (f) window.__harness.resetFighterInput?.("p1"); });
+  for (const k of MOTION[dirKey]) { await page.keyboard.down(k); await waitFrames(1); await page.keyboard.up(k); await waitFrames(1); }
+  await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(4);
+  return await gfSwap();
 }
 async function resetToGhostface(skin = "ghostfaceBilly") {
   await page.evaluate(() => window.__harness.expireGfSwap());
   await waitFrames(3);
-  await page.evaluate(s => { window.__harness.setSkin("p1", s); window.__harness.fillEnergy(); window.__harness.healP1?.(); }, skin);
-  await waitFrames(2);
+  await page.evaluate(s => { window.__harness.setSkin("p1", s); window.__harness.fillEnergy(); window.__harness.healP1?.(); window.__harness.resetFighterInput?.("p1"); }, skin);
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.key === "ghostface" && p.grounded && !p.attacking && !p.currentMove; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + 70); await waitFrames(2);
 }
 
 async function bootBattle(p1key, p2key = "rengoku") {
@@ -49,13 +53,14 @@ async function bootBattle(p1key, p2key = "rengoku") {
 }
 
 await bootBattle("ghostface");
-await page.evaluate(() => { window.__harness.setSkin("p1", "ghostfaceBilly"); window.__harness.fillEnergy(); });
+await page.evaluate(() => { window.__harness.setSkin("p1", "ghostfaceBilly"); window.__harness.fillEnergy(); window.__harness.resetFighterInput?.("p1"); });
+{ const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + 70); }   // opp to the right → P1 faces right (→=Forward)
 await waitFrames(2);
 
-// ── 1. TRIGGER — combo swaps into the right companion; energy-gated ──
+// ── 1. TRIGGER — motion + Special swaps into the right companion; energy-gated ──
 console.log("\n── 1. Trigger + energy gate ──");
 let s = await pressSwapCombo("s");
-check("CHARGE+↓ swaps into Billy's slot-0 (sasuke)", s.active && s.target === "sasuke", `target=${s.target}`);
+check("QCF ↓→ + Special swaps into Billy's slot-0 (sasuke)", s.active && s.target === "sasuke", `target=${s.target}`);
 await resetToGhostface();
 await page.evaluate(() => window.__harness.setEnergy(10)); await waitFrames(2);   // below cost
 const blocked = await pressSwapCombo("s");

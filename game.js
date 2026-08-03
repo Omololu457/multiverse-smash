@@ -85,6 +85,8 @@ import {
   updateShinobuCommandCombat,  // Shinobu Fwd+Heavy "Insect Breathing" thrust chain + Poison-on-hit watcher
   updateGhostfaceCommandCombat,  // Ghostface Down+Heavy "Slasher Frenzy" low-knife chain + Bleed/Knockdown-on-hit watchers
   getGhostfaceCallInPool,        // Ghostface Call-In: the active identity's 4-character companion pool
+  triggerGhostfaceSwap, updateGhostfaceSwap, isGhostfaceSwapActive, ghostfaceSwapTimer, ghostfaceSwapTarget, GHOSTFACE_SWAP_SLOTS,  // Ghostface Companion Swap ("Kameo"): CHARGE+cardinal → full-kit swap into a pool companion, fixed window, auto-revert
+  applySkillHunter, revertSkillHunter,   // Chrollo Skill Hunter engine — imported ONLY for a test-hook "unaffected" proof (drives the real shared field-swap)
   fireRengokuFlameStrike       // Rengoku Charged Flame Strike — fired from handleChargeRelease (CHARGE hold→release, tap/hold power tiers)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -2825,6 +2827,11 @@ function handleToggleInputs(fighter, key) {
 // (handled by inputState.charge → doEnergyCharge) and does NOT toggle.
 function handleChargeRelease(fighter, key) {
   if (!fighter || key !== fighter.controls.charge) return
+  // GHOSTFACE SWAP consumed this charge press (it was the swap combo's CHARGE modifier). Swallow the
+  // RELEASE so it can't fire the swapped-in companion's charge-release action — e.g. Itachi's Mangekyou
+  // (a freeze cinematic that would strand the swap), Goku Black's SSJ Rose, or Gojo's Infinity toggle.
+  // The latch clears here; a fresh, deliberate charge+release afterward drives the companion normally.
+  if (fighter._suppressChargeUntilRelease) { fighter._suppressChargeUntilRelease = false; fighter._chargeHeld = false; return }
   const wasHeld = !!fighter._chargeHeld   // was the charge key actually pressed (ignore spurious bare key-ups)
   const wasTap = fighter._chargeHeld && (performance.now() - (fighter._chargeDownTime || 0)) < 200
   fighter._chargeHeld = false
@@ -3230,6 +3237,7 @@ function updateMovementInput(fighter) {
   fighter.isBlocking = false
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
   else fighter.isCharging = false   // reset each frame for normal characters (devices set their own)
+  handleGhostfaceSwap(fighter, inputState, vKeys)   // Ghostface Companion Swap combo (no-op for every other character)
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
   // OMNI-MAN FLIGHT: the P (charge) button is TAP-to-toggle-Flight / HOLD-to-charge (Gojo-Infinity
   // pattern). The TAP toggle fires on keyUP in handleChargeRelease; a HOLD falls through to the
@@ -3247,7 +3255,8 @@ function updateMovementInput(fighter) {
   // RENGOKU is a NO-ENERGY charger (maxEnergy 0): holding P must still enter isCharging (drives the
   // "charge" windup pose) so the Charged Flame Strike can release on keyup — but there's no meter to build.
   const noEnergyCharger = (fighter.rosterKey || "").toLowerCase() === "rengoku"
-  if (inputState.charge && !isTransformDevice(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
+  if (!inputState.charge) fighter._suppressChargeUntilRelease = false   // Ghostface-swap latch clears on release
+  if (inputState.charge && !fighter._suppressChargeUntilRelease && !isTransformDevice(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
     if ((fighter.maxEnergy || 0) > 0) doEnergyCharge(fighter)
     fighter.isCharging = true
   }
@@ -3324,6 +3333,42 @@ function handleOmnitrixSwitch(fighter, inputState) {
 
   held.charge = charge
   for (const c of BEN10_SLOT_COMBOS) held[c.field] = !!inputState[c.field]
+}
+
+// ── GHOSTFACE COMPANION SWAP combo ─────────────────────────────────────────
+// Built FRESH for Ghostface (deliberately does NOT reuse Ben10's slot-transform code, whose select-
+// the-wrong-slot behaviour was never confirmed fixed). CHARGE + a cardinal (on the frame the cardinal
+// goes DOWN — an edge) swaps Ghostface into that slot's pool companion via triggerGhostfaceSwap.
+// Deterministic by construction: physical-key slots index straight into the pool, and there is NO
+// bare-CHARGE swap (charge-alone only builds Dread), so nothing can fire "the last/random companion"
+// on the charge frame before the direction registers — the exact ambiguity behind that class of bug.
+function handleGhostfaceSwap(fighter, inputState, vKeys) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return
+  const held = (fighter._gfSwapHeld = fighter._gfSwapHeld || {})
+  const charge = !!inputState.charge
+  // Only real (un-swapped) Ghostface, standing + not committed/stunned, may initiate.
+  const canSwap = !fighter._gfSwapActive && !fighter.attacking && !fighter.currentMove &&
+                  !(fighter.hitstun > 0) && !(fighter.blockstun > 0)
+  if (charge && canSwap) {
+    for (let i = 0; i < GHOSTFACE_SWAP_SLOTS.length; i++) {
+      const f = GHOSTFACE_SWAP_SLOTS[i].field
+      if (!!inputState[f] && !held[f]) {                 // EDGE: this cardinal just went down this frame
+        try { console.log(`[DIAG] handleGhostfaceSwap EDGE field=${f} slot=${i} charge=${charge} roster=${fighter.rosterKey}`) } catch (_) {}
+        if (triggerGhostfaceSwap(fighter, i, getAbilityContext())) {
+          // CONSUME the triggering CHARGE hold: the combo is CHARGE+cardinal, so charge is still physically
+          // down after the swap. Without this the companion inherits a held charge and starts charging on
+          // frame 1 — which for a charge-THRESHOLD form (e.g. Itachi's Mangekyou) auto-activates it and can
+          // strand the swap. The latch clears the instant charge is released (a fresh, deliberate charge works).
+          fighter._suppressChargeUntilRelease = true
+          if (f === "jump" && vKeys) vKeys[fighter.controls.jump] = false   // the ↑ slot morphs — it must not also hop
+        }
+        break                                            // one slot per frame
+      }
+    }
+  }
+  // Track held-state EVERY frame so a held key can't machine-gun the swap (fire only on a fresh press).
+  held.charge = charge
+  for (const c of GHOSTFACE_SWAP_SLOTS) held[c.field] = !!inputState[c.field]
 }
 
 function buildNormalControlState(fighter, vKeys) {
@@ -4104,6 +4149,7 @@ function updateFighterState(fighter) {
   applyGonAdultFormSystem(updated)   // Gon Adult Form: continuous Nen drain + auto-revert at 0 + green-aura-trail recording (movement-lockout is set at enter)
   applyHisokaOverdriveSystem(updated)   // Hisoka Bloodlust Overdrive: continuous Nen drain + auto-revert at 0 (buff + _skinAnim body-swap set at enter)
   updateTransformJutsu(updated)         // Transformation Jutsu (Naruto-universe): counts the disguise/full-copy window down + auto-reverts
+  updateGhostfaceSwap(updated)          // Ghostface Companion Swap: counts the borrowed-kit window down + auto-reverts to Ghostface
   applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
@@ -6710,6 +6756,11 @@ gameLoop()
     edoBackup:        f._edoBackup || null,     // pre-chosen vessel
     edoDummy:         f._edoDummy ? { x: f._edoDummy.x, y: f._edoDummy.y, w: f._edoDummy.w, h: f._edoDummy.h } : null,  // standing Tobirama body
     kuramaHide:       !!f._kuramaHide,          // real body suppressed from renderHybridFighter (Minato Kurama + Edo Tensei two-vessel fix)
+    name:             f.name || null,           // display name (identity proof during Ghostface Companion Swap)
+    infiniteEnergy:   !!f.infiniteEnergy,        // Ghostface Swap grants this for the window (unlimited resource)
+    gfSwapActive:     !!f._gfSwapActive,         // Ghostface Companion Swap window active (playing a borrowed kit)
+    gfSwapTarget:     f._gfSwapTarget || null,   // which companion Ghostface swapped into
+    gfSwapTimer:      f._gfSwapTimer || 0,       // frames left in the swap window (auto-revert at 0)
     invulnTimer:      f.invulnTimer || 0
   })
 
@@ -7191,6 +7242,7 @@ gameLoop()
     p1CloneStates: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), state: s._state, hidden: !!s._hidden })),   // clone lifecycle inspection (hit-reveal tests)
     p2ProjectileAtClone: () => { if (!p2 || !p1) return -1; const c = activeSummons.find(s => s.id === "shadowClone" && s.owner === p1 && s._state === "idle" && !s._hidden); if (!c) return -1; spawnProjectile(p2, "testBolt", { damage: 30, speed: 0, lifetime: 30, w: 30, h: 30, spawnX: c.x + c.w / 2, spawnY: c.y + c.h / 2 }, {}); return countShadowClones(p1) },   // fire an ENEMY projectile overlapping a clone → hit-reveal poof (returns clone count before)
     p1TransformJutsu: () => (p1 ? { active: isTransformJutsuActive(p1), tier: transformJutsuTier(p1), target: p1._tjTarget || null, name: p1.name, rosterKey: p1.rosterKey, spriteSheet: p1.spriteHandler?._actionDef?.sheet ?? null, lightDmg: p1.basic_attacks?.light?.damage ?? null, specialsKeys: Object.keys(p1.specials || {}).sort() } : null),   // Transformation Jutsu state + proof that moves/stats are (Tier1) unchanged
+    p1SwapFlags: () => (p1 ? { tj: !!p1._tjActive, sh: !!p1._shActive, gfSwap: !!p1._gfSwapActive } : null),   // NON-CONFLICT proof: Transformation Jutsu (_tj*) is a separate namespace from Skill Hunter (_sh*) / Ghostface swap (_gfSwap*)
     forceRevertTransformJutsu: () => (p1 ? revertTransformJutsu(p1) : false),
     clearProjectiles:  () => { activeProjectiles.length = 0 },
     clearSummons:      () => { activeSummons.length = 0 },
@@ -7305,6 +7357,40 @@ gameLoop()
     lastCallInPartner: (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f._lastCallInPartner || null) : null }, // who was actually summoned by the last Call-In
     callInCd:          (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f.callInCd || 0) : 0 },
     resetCallIn:       (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f.callInCd = 0; f._lastCallInPartner = null } return true },   // clear the Call-In cooldown for back-to-back tests
+    // GHOSTFACE COMPANION SWAP introspection: live window state + which companion the CURRENT combo slots map to.
+    // gfSwap().slots = [{combo, companion}] for the equipped identity → proves each slot deterministically → its pool member.
+    gfSwap: (side = "p1") => {
+      const f = side === "p2" ? p2 : p1
+      if (!f) return null
+      const pool = getGhostfaceCallInPool(f)
+      return {
+        active: isGhostfaceSwapActive(f), target: ghostfaceSwapTarget(f), timer: ghostfaceSwapTimer(f),
+        rosterKey: f.rosterKey, name: f.name, energy: f.energy, maxEnergy: f.maxEnergy, infiniteEnergy: !!f.infiniteEnergy,
+        skinId: f.skinId || null, pool,
+        slots: GHOSTFACE_SWAP_SLOTS.map((s, i) => ({ combo: `CHARGE+${s.label}`, companion: pool[i] || null }))
+      }
+    },
+    // Force-expire the swap window so the update loop auto-reverts THIS frame (revert-timing test without a 12s wait).
+    expireGfSwap: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f && f._gfSwapActive) f._gfSwapTimer = 1; return true },
+    // Shorten the swap window to `n` frames so the NATURAL updateGhostfaceSwap countdown can be watched
+    // ticking to 0 and auto-reverting (not a forced revert) without waiting the full 12s.
+    setGfSwapTimer: (n = 30, side = "p1") => { const f = side === "p2" ? p2 : p1; if (f && f._gfSwapActive) f._gfSwapTimer = n; return f ? f._gfSwapTimer : null },
+    // TEST-ONLY: arm Chrollo's Skill Hunter unlock (normally earned by the opponent landing 3 distinct moves)
+    // so a test can drive his REAL ultimate and confirm Skill Hunter still swaps — proving the shared
+    // field-swap engine + charge path are unaffected by the Ghostface Companion Swap.
+    forceChrolloUnlock: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (!f || (f.rosterKey || "").toLowerCase() !== "chrollo") return false; f._shUnlocked = true; return true },
+    shState: (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? { active: !!f._shActive, target: f._shTarget || null, rosterKey: f.rosterKey, unlocked: !!f._shUnlocked } : null },
+    // TEST-ONLY: drive Chrollo's REAL Skill Hunter field-swap engine (applySkillHunter → revertSkillHunter)
+    // directly onto the live fighter, bypassing the (separately-wired) activation cinematic — proves the
+    // shared engine the Ghostface Companion Swap reuses is intact and Chrollo's swap+restore still works.
+    chrolloEngineCheck: (target = "rengoku", side = "p1") => {
+      const f = side === "p2" ? p2 : p1
+      if (!f || (f.rosterKey || "").toLowerCase() !== "chrollo") return null
+      const before = f.rosterKey
+      const okApply = applySkillHunter(f, target); const during = f.rosterKey
+      const okRevert = revertSkillHunter(f); const after = f.rosterKey
+      return { okApply, during, okRevert, after, before }
+    },
     // TEST-ONLY: inject a minimal `taunt` animationData onto the LIVE p1 fighter so a
     // test can drive the real taunt commit-transition and prove the (dormant) Saiki voice
     // hook fires the moment a taunt action exists. Does NOT ship a taunt to Saiki — the

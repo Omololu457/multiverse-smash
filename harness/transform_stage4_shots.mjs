@@ -1,7 +1,8 @@
-// harness/transform_stage2_shots.mjs — TRANSFORMATION JUTSU Stage 2 EVIDENCE (Tier 1 Disguise, Naruto).
-// Boots Naruto vs Sasuke so Naruto can disguise as a DIFFERENT character. Activates Tier 1 (→↓← + Special)
-// and proves: APPEARANCE becomes Sasuke's, but rosterKey / basic_attacks / specials / stats stay Naruto's
-// AND a cast move is still Naruto's own (Rasengan connects). Outputs harness/shots/transform_s2_*.png.
+// harness/transform_stage4_shots.mjs — TRANSFORMATION JUTSU Stage 4: rollout to Sasuke/Itachi/Tobirama/
+// Minato (both tiers), via the SHARED system (data + one dispatcher call each). Per character: Tier 1
+// Disguise (appearance-only, kit unchanged) and Tier 2 Full Copy (rosterKey→opponent, copied move connects).
+// Motions: Tier1 = →↓← (HCB) for all; Tier2 = →↓→ (DP) except Minato = ←↓← (DPB, teleport-safe).
+// Outputs harness/shots/transform_s4_<char>_tier{1,2}.png.
 import { chromium } from "playwright";
 import http from "node:http";
 import fs from "node:fs";
@@ -41,53 +42,64 @@ async function motion(seq) { const d = seq.slice(0, -1), l = seq[seq.length - 1]
 let fails = 0;
 const check = (label, ok, detail) => { console.log(`  ${ok ? "✅" : "❌"} ${label}${detail ? ` — ${detail}` : ""}`); if (!ok) fails++; };
 
-try {
-  await page.goto(`${base}/index.html?harness=1&p1=naruto&p2=sasuke`, { waitUntil: "load" });
+const T1 = ["d", "s", "a", "l"];                       // →↓← HCB
+const T2 = ["s", "a", "d", "l"];                    // ↓←→ DBF (distinct dirs, no dash)
+
+async function boot(p1k, p2k) {
+  await page.goto(`${base}/index.html?harness=1&p1=${p1k}&p2=${p2k}`, { waitUntil: "load" });
   await page.waitForFunction(() => window.__harness && window.__harness.state, null, { timeout: 15000, polling: 16 });
   await page.evaluate(() => { window.__harness.start?.(); window.__harness.skipToBattle?.(); });
   await waitFrames(30);
+}
+async function reset(gap = 70) {
   await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && !p.currentMove; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
-  await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); window.__harness.setP2Invuln?.(0); });
-  const me = await p1(); await page.evaluate(x => window.__harness.setP2X(x), me.x + 70); await waitFrames(2);
+  await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); window.__harness.setP2Invuln?.(0); window.__harness.forceRevertTransformJutsu?.(); });
+  const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + gap); await waitFrames(2);
+}
 
-  // ── Baseline (Naruto, undisguised) ──
-  const b = await tj(); const bHp = (await p1()).maxHealth;
-  console.log(`\n  BASELINE: name=${b.name} rosterKey=${b.rosterKey} sheet=${b.spriteSheet} lightDmg=${b.lightDmg} maxHP=${bHp}`);
-  await shot("transform_s2_before.png");
+async function suite(charKey, oppKey, t2seq) {
+  console.log(`\n══════ ${charKey.toUpperCase()} (copying ${oppKey}) ══════`);
+  await boot(charKey, oppKey);
 
-  // ── Activate Tier 1 Disguise: →↓← + Special ──
-  await motion(["d", "s", "a", "l"]);
-  await waitFrames(6);
-  const a = await tj(); const aHp = (await p1()).maxHealth;
-  await shot("transform_s2_disguise.png");
-  console.log(`  DISGUISED: name=${a.name} rosterKey=${a.rosterKey} sheet=${a.spriteSheet} lightDmg=${a.lightDmg} maxHP=${aHp} tjTier=${a.tier} target=${a.target}`);
+  // ── Tier 1 Disguise ──
+  await reset();
+  const b = await tj();
+  await motion(T1);
+  await waitFrames(8);
+  const a1 = await tj();
+  await shot(`transform_s4_${charKey}_tier1.png`);
+  check(`${charKey} T1: activated (disguise)`, a1.active && a1.tier === 1, `tier=${a1.tier}`);
+  check(`${charKey} T1: appearance changed, rosterKey UNCHANGED (${charKey}), dmg unchanged`,
+        a1.rosterKey === charKey && a1.spriteSheet !== b.spriteSheet && a1.lightDmg === b.lightDmg,
+        `roster=${a1.rosterKey} sheet=${a1.spriteSheet} dmg=${b.lightDmg}→${a1.lightDmg}`);
 
-  check("Tier 1 activated (disguise on)", a.active === true && a.tier === 1, `tier=${a.tier}`);
-  check("APPEARANCE changed → looks like the opponent (Sasuke)", a.name === "Sasuke" && a.spriteSheet !== b.spriteSheet && !/naruto/i.test(a.spriteSheet || ""), `name=${a.name} sheet=${a.spriteSheet}`);
-  check("rosterKey stayed NARUTO (move dispatch unchanged)", a.rosterKey === "naruto", `rosterKey=${a.rosterKey}`);
-  check("basic-attack damage UNCHANGED (Naruto's 44)", a.lightDmg === b.lightDmg, `${b.lightDmg}→${a.lightDmg}`);
-  check("specials list UNCHANGED (still Naruto's kit)", JSON.stringify(a.specialsKeys) === JSON.stringify(b.specialsKeys) && a.specialsKeys.includes("rasengan"), `${a.specialsKeys.join(",")}`);
-  check("max HP UNCHANGED (Naruto's stats intact)", aHp === bHp, `${bHp}→${aHp}`);
-
-  // ── Prove MOVES stayed his own: cast Naruto's Rasengan while disguised ──
+  // ── Tier 2 Full Copy ──
+  await reset();
+  const b2 = await tj();
+  await motion(t2seq);
+  await waitFrames(8);
+  const a2 = await tj();
+  await shot(`transform_s4_${charKey}_tier2.png`);
+  check(`${charKey} T2: activated (full copy) → rosterKey=${oppKey}`, a2.active && a2.tier === 2 && a2.rosterKey === oppKey, `tier=${a2.tier} roster=${a2.rosterKey}`);
+  check(`${charKey} T2: kit copied (basic-attacks changed)`, a2.lightDmg !== b2.lightDmg, `${b2.lightDmg}→${a2.lightDmg}`);
+  // copied move connects
   await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); });
   const hp0 = (await p2()).health;
-  await tap("l");                 // neutral Special = Naruto's Rasengan (his own move)
-  await waitFrames(6);
-  const sawRasengan = (await projNames()).includes("rasenganOrb");
-  await waitFrames(20);
+  await tap("l"); await waitFrames(6);
+  const cast = (await projNames()).length > 0;
+  await waitFrames(18);
   const dmg = hp0 - (await p2()).health;
-  check("cast his OWN move while disguised (Rasengan fired)", sawRasengan, `proj=[${(await projNames()).join(",")}]`);
-  check("his own move dealt his own damage", dmg > 0, `Δhp=${dmg.toFixed(0)}`);
+  check(`${charKey} T2: copied move connects (dmg or projectile)`, dmg > 0 || cast, `Δhp=${dmg.toFixed(0)} cast=${cast}`);
 
-  // ── Revert ──
   await page.evaluate(() => window.__harness.forceRevertTransformJutsu());
-  await waitFrames(14);   // let a draw re-resolve _actionDef against the restored art
-  const r = await tj();
-  await shot("transform_s2_reverted.png");
-  check("reverts cleanly (appearance back to Naruto)", r.active === false && r.name === "Naruto" && /naruto/i.test(r.spriteSheet || ""), `name=${r.name} sheet=${r.spriteSheet}`);
+}
 
-  console.log(`\n${fails === 0 ? "✅" : "❌"} Transformation Jutsu Tier 1 (Naruto): ${fails} failed check(s)`);
+try {
+  await suite("sasuke", "naruto", T2);
+  await suite("itachi", "naruto", T2);
+  await suite("tobirama", "sasuke", T2);   // copy Sasuke (light 46 ≠ Tobirama 44) so the "kit changed" check has a real discriminator
+  await suite("minato", "sasuke", T2);
+  console.log(`\n${fails === 0 ? "✅" : "❌"} Transformation Jutsu rollout (4 chars × 2 tiers): ${fails} failed check(s)`);
 } catch (e) {
   console.log("  ⚠️ error:", e.message); fails++;
 } finally {

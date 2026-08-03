@@ -32,10 +32,13 @@ try {
   await wf(6);
   await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 8000 }).catch(() => {});
 
-  // Trigger the SSJ Rose transform (tap P at full energy) and sample the caster every frame from the
-  // RESOLVE beat (cinematic frame ≥ T_MORPH_END, where the form-swap lands) through control-return.
+  // Trigger the SSJ Rose transform and sample the caster every frame from the RESOLVE beat (cinematic
+  // frame ≥ T_MORPH_END, where the form-swap lands) through control-return. Rose is now reached via the
+  // mandatory SSG waypoint: base → SSG (tap), then SSG → Rose (hold-release) fires the cinematic.
   await page.evaluate(() => window.__harness.setEnergy(200));
-  await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p");
+  await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p"); await wf(3);   // base → SSG
+  await page.evaluate(() => window.__harness.setEnergy(200));
+  await page.keyboard.down("p"); await wf(20); await page.keyboard.up("p");                // hold-release SSG → Rose
   await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && c.active; }, null, { timeout: 4000, polling: 8 }).catch(() => {});
 
   const trace = [];

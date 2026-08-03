@@ -42,8 +42,9 @@ try{
   check("no unlock flags set", m.beta===false && m.dev===false);
   check("full roster selectable (no filter)", sortJoin(m.selectable)===sortJoin(gt.all), `n=${m.selectable.length}`);
   check("ONLINE locked without a code", m.onlineLocked===true);
-  const baseGojo2=await page.evaluate(()=>window.__harness.skinUnlocked("gojo","gojo2"));
-  check("level-5 skin (gojo2) LOCKED at baseline (makes the beta skin check meaningful)", baseGojo2===false);
+  // Level-gated fixture repointed sukuna3 → megumi2 (lvl3) after all Sukuna alt skins were deleted 2026-07-30.
+  const baseGated=await page.evaluate(()=>window.__harness.skinUnlocked("megumi","megumi2"));
+  check("level-gated skin (megumi2) LOCKED at baseline (makes the beta skin check meaningful)", baseGated===false);
 
   // ── BETA code (GojoV1) ─────────────────────────────────────────────────────
   section("BETA code (GojoV1) — roster filtered to sprite-having ONLY + full unlock");
@@ -63,9 +64,9 @@ try{
   check("ONLINE unlocked under beta", m.onlineLocked===false);
   check("Tower feature unlocked under beta", m.towerUnlocked===true);
   check("level-gated extraSkins unlocked under beta", m.extraSkinsUnlocked===true);
-  // Direct skin unlock: gojo2 is unlockLevel 5 — locked at base level, must be OPEN under beta.
-  const betaGojo2=await page.evaluate(()=>window.__harness.skinUnlocked("gojo","gojo2"));
-  check("level-5 skin (gojo2) unlocked under beta", betaGojo2===true);
+  // Direct skin unlock: megumi2 is unlockLevel 3 — locked at base level, must be OPEN under beta.
+  const betaGated=await page.evaluate(()=>window.__harness.skinUnlocked("megumi","megumi2"));
+  check("level-gated skin (megumi2) unlocked under beta", betaGated===true);
 
   // ── DEV code (Omololu) — REGRESSION: everything unlocked, NO character filter ─
   section("DEV code (Omololu) REGRESSION — full unlock, NO character filtering");

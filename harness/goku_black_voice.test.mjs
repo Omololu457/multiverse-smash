@@ -60,10 +60,13 @@ const clearSfx = () => page.evaluate(() => { window.__harness.__sound._sfxSpy = 
 async function logHas(sub) { return (await sfxLog()).some(f => f.includes(sub)); }
 async function grounded() { await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && Math.abs(p.vy) < 0.5 && !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { polling: 16, timeout: 8000 }).catch(() => {}); }
 
-// Enter SSJ Rose (P tap at high energy), wait for the transform cinematic to finish.
+// Enter SSJ Rose via the mandatory SSG waypoint: base → SSG (tap) → Rose (hold-release), then wait
+// for the transform cinematic to finish.
 async function enterRose() {
   await page.evaluate(() => window.__harness.setEnergy(200));
-  await page.keyboard.down("p"); await waitFrames(1); await page.keyboard.up("p");
+  await page.keyboard.down("p"); await waitFrames(1); await page.keyboard.up("p"); await waitFrames(3);   // → SSG
+  await page.evaluate(() => window.__harness.setEnergy(200));
+  await page.keyboard.down("p"); await waitFrames(20); await page.keyboard.up("p");                       // hold-release → Rose
   await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
   await waitFrames(4);
 }

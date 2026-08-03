@@ -33,11 +33,13 @@ function startServer() {
 }
 
 // Sprite characters (hasSprites:true), in roster order.
-const CHARS = [
+const CHARS = (process.env.HR_CHARS ? process.env.HR_CHARS.split(",") : [
   "goku", "vegeta", "gojo", "megumi", "sukuna", "toji", "naruto", "sasuke", "itachi",
   "tobirama", "minato", "zenitsu", "rick", "omega_ranger", "omniman", "netero", "goku_black",
   "beerus", "saiki", "killua", "flash", "gon", "batman", "hisoka",
-];
+  // built since the last pass:
+  "rengoku", "shinobu", "samurai_red_ranger", "gold_samurai_ranger", "chrollo", "superman", "ben10",
+]);
 
 const server = await startServer();
 const base = `http://127.0.0.1:${server.address().port}`;

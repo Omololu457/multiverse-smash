@@ -10,6 +10,17 @@
 // Exports: SpriteHandler, preloadCharacterSprites, processPendingSpawns
 
 // ─────────────────────────────────────────────────────────────────
+// SKILL HUNTER (Chrollo) TRANSFORM TINT — a runtime canvas filter applied to the COPIED character's
+// sprite for the whole stolen-form window (fighter._shActive). ONE shared treatment for ANY copied
+// character (no per-opponent bespoke art — that scope grows with every future roster addition), and
+// DELIBERATELY DISTINCT from the Edo Tensei near-black reanimation wash: this is a LIGHTER, clearly
+// PURPLE "possession" tint keyed to Chrollo's own coat colour (#4A2E5C) so players never confuse
+// "Chrollo wearing a stolen power" with an actual reanimated Edo Tensei summon. Applied inside the
+// draw()'s ctx.save()/restore() pair, so it auto-clears the moment the window ends and the copied
+// character (if later fought for real) renders normally everywhere else.
+const SKILL_HUNTER_TINT = "grayscale(0.4) sepia(1) hue-rotate(235deg) saturate(1.7) brightness(0.85)";
+
+// ─────────────────────────────────────────────────────────────────
 // OPTIONAL DEPENDENCY — animationProfile.js
 // If missing, the module still works using fallback rendering.
 // ─────────────────────────────────────────────────────────────────
@@ -102,6 +113,16 @@ const MOVE_TO_ACTION = {
   omCombo2: "omCombo2",
   omComboFin: "omComboFin",
   omPush: "omPush",
+
+  // Chrollo (Stage 2): "Blade Rush" Toji-Rekka command chain. Identity maps (currentMove === action
+  // key) — explicit so a recovery/cast tail can never resolve to the 128² box.
+  chCombo1: "chCombo1",
+  chComboFin: "chComboFin",
+  // Chrollo (Stage 3) specials: Nen Bolt cast pose + Blade Lunge thrust. Identity maps.
+  chNenCast: "chNenCast",
+  chBladeLunge: "chBladeLunge",
+  // Chrollo (Stage 5) Skill Hunter transformation cast pose. Identity map.
+  chSkillHunterCast: "chSkillHunterCast",
   // Omni-Man (Stage 4) specials: Skewering Rush (flying tackle) + Meteor Drop (diving slam). Neutral
   // "Viltrumite Smash" (omSmash) reuses the heavy haymaker pose. Identity maps → no 128² box on the tail.
   omSkewer: "omSkewer",
@@ -127,6 +148,15 @@ const MOVE_TO_ACTION = {
   bungeeGum: "bungeeGum",   // Stage 3: extended-reach Bungee Gum whip special
   cardThrowSingle: "cardThrowSingle",   // Stage 4: Texture Surprise — single precise throw
   cardThrowRapid: "cardThrowRapid",     // Stage 4: Texture Surprise — rapid multi-card spread
+
+  // Samurai Red Ranger (Stage 2): merged tap/hold up-attack + Toji-Rekka command chain. Identity
+  // maps (currentMove === action key) — explicit so a recovery/cast tail can never resolve to the 128² box.
+  samUpTap: "samUpTap",
+  samUpHold: "samUpHold",
+  samRekka1: "samRekka1",
+  samRekka2: "samRekka2",
+  samRekkaFin: "samRekkaFin",
+  flameSlash: "flameSlash",   // Stage 4: Mega-only Flame Slash cast pose
 
   // Tobirama (Stage 3): taijutsu command chain + 2 free pokes. Identity maps (currentMove === action
   // key) — explicit so a recovery/cast tail can never resolve to the 128² box.
@@ -299,6 +329,13 @@ function _resolveAction(fighter, currentAction = "idle") {
   if ((fighter.hitstun || 0) > 0) {
     const airborne = !(fighter.grounded ?? fighter.onGround ?? false);
     if (airborne && (fighter._skinAnim?.hurt_air || fighter.animationData?.hurt_air)) return "hurt_air";
+    // DEBBIE deceptive react (visual only): the DISPLAYED pose is mismatched from the real hit — a small
+    // hit shows the big sprawl (knockdown pose), a big hit shows the tiny flinch. Gameplay is unchanged;
+    // this only swaps which pose renders. No-op for every other fighter (flag unset).
+    if (fighter._fakeReactVisual && !fighter.knockdownState) {
+      if (fighter._fakeReactVisual === "heavy" && (fighter._skinAnim?.knockdown || fighter.animationData?.knockdown)) return "knockdown";
+      return "hurt";
+    }
     return "hurt";
   }
   if ((fighter.stun || 0) > 0) return "hurt";
@@ -580,6 +617,8 @@ export class SpriteHandler {
     ctx.imageSmoothingEnabled = false;   // crisp upscaled pixel art
 
     if (_sheetReady(sheet)) {
+      // Skill Hunter: wash the copied body in Chrollo's purple possession tint (see SKILL_HUNTER_TINT).
+      if (fighter._shActive) ctx.filter = SKILL_HUNTER_TINT;
       if ((fighter.facing ?? 1) === -1) {
         ctx.scale(-1, 1);
 

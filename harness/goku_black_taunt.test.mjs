@@ -82,10 +82,12 @@ try {
   const baseAfter = await runTaunt("base", "black_goku_base_attack", "GBTAUNT_base.png");
   check("base: still base form after the taunt", baseAfter.currentForm !== "ssjRose", `form=${baseAfter.currentForm}`);
 
-  section("Transform → SSJ Rose");
+  section("Transform → SSJ Rose (via the mandatory SSG waypoint)");
   await page.evaluate(() => { window.__harness.healP1(); window.__harness.setEnergy(200); });
   await actionable();
-  await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p");
+  await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p"); await wf(3);   // base → SSG (snappy)
+  await page.evaluate(() => window.__harness.setEnergy(200));
+  await page.keyboard.down("p"); await wf(20); await page.keyboard.up("p");                // hold-release SSG → Rose
   await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
   await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
   check("transformed into SSJ Rose", (await P1()).currentForm === "ssjRose", `form=${(await P1()).currentForm}`);

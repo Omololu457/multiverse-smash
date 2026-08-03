@@ -32,6 +32,15 @@ const p2 = () => page.evaluate(() => window.__harness.p2());
 const grounded = async () => { await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && Math.abs(p.vy) < 0.5 && !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { polling: 16, timeout: 8000 }).catch(() => {}); };
 async function setup(gap = 50) { await page.keyboard.up("k"); await page.evaluate(() => { window.__harness.healP1(); }); await grounded(); const a = await p1(); await page.evaluate(x => { window.__harness.setP2X(x); window.__harness.healP2?.(); }, a.x + gap); await wf(2); }
 async function ptap() { await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p"); await wf(2); }
+// HOLD-release (>200ms) — charges energy then releases: at/near max, enters Rose (frozen cinematic).
+async function phold() { await page.keyboard.down("p"); await wf(20); await page.keyboard.up("p"); await wf(2); }
+// base → Rose (hold-release through the frozen cinematic).
+async function toRose() {
+  await page.evaluate(() => window.__harness.setEnergy(200));   // clear the Rose threshold
+  await phold();                                                // base → Rose (starts the cinematic)
+  await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  await wf(4);
+}
 const sheet = s => (s.spriteSheet || "");
 
 try {
@@ -69,20 +78,19 @@ try {
     await grounded();
   }
 
-  // ── SSJ ROSE — threshold-gated activation ───────────────────────────────────
-  section("SSJ ROSE — transforms ONLY at/near max energy (>=180)");
+  // ── base → SUPER SAIYAN ROSE (the single sustained transform tier) ───────────
+  section("SSJ ROSE — base transforms to Rose ONLY at/near max energy (>=180)");
   {
     await setup(); await page.evaluate(() => window.__harness.setEnergy(100));
-    await ptap();
+    await phold();
     const low = await p1();
-    check("P-tap at energy 100 does NOT transform", low.currentForm !== "ssjRose" && !low.hasSkinAnim, `form=${low.currentForm} skinAnim=${low.hasSkinAnim}`);
+    check("HOLD-release at energy 100 does NOT transform", low.currentForm === "base" && !low.hasSkinAnim, `form=${low.currentForm} skinAnim=${low.hasSkinAnim}`);
     await page.evaluate(() => window.__harness.setEnergy(200));
-    await ptap();
-    // SSJ Rose is now a frozen CINEMATIC — the form-swap lands at its RESOLVE beat, not instantly.
+    await phold();   // base → Rose via the frozen cinematic
     await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
     await wf(4);
     const rose = await p1();
-    check("P-tap at energy 200 TRANSFORMS to SSJ Rose (after the transform cinematic)", rose.currentForm === "ssjRose" && rose.hasSkinAnim === true, `form=${rose.currentForm} skinAnim=${rose.hasSkinAnim}`);
+    check("HOLD-release at energy 200 TRANSFORMS base → Rose (frozen cinematic)", rose.currentForm === "ssjRose" && rose.hasSkinAnim === true, `form=${rose.currentForm} skinAnim=${rose.hasSkinAnim}`);
     check("SSJ Rose ART swaps in (idle sheet = goku_black_ssj_rose)", sheet(rose).includes("goku_black_ssj_rose"), `action=${rose.action} sheet=${rose.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "GBROSE_transformed.png") });
   }
@@ -113,9 +121,7 @@ try {
   section("SSJ ROSE — normals use Rose art variants");
   {
     await setup(50); await page.evaluate(() => window.__harness.setEnergy(200));
-    await ptap();
-    await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
-    await wf(4);
+    await toRose();
     check("transformed again", (await p1()).currentForm === "ssjRose");
     // wait out the brief post-cinematic settle cooldown before attacking
     await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});

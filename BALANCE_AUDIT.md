@@ -351,9 +351,11 @@ Against the field Rick is the **simultaneous floor** on HP (1050), attack (82), 
 
 **Cross-check (no reverse outlier):** at 40s Naruto's ult-DPM and damage-per-cooldown match Sasuke's Susanoo and sit above Rick's — premium but not dominant. Damage/cost unchanged, so §5 DPE (6.32) and the §8-item-5 per-cast flag still stand; only availability moved. **Verified in-engine:** TBB connects for 600 (1180→580) and `ultimateCooldown` is set to 2400f/40s on cast (`harness` screenshot `naruto_ult_impact.png`).
 
+**Re-verification (2026-08-02, no change).** The ult was re-flagged as a suspected outlier ("~70s cooldown for ~half a health bar, never confirmed fixed"). Re-pulled the live values: cooldown **2400f/40s** (`abilities.js:92`, applied `abilities.js:2183`), damage **600 raw** (`kurama.js:70`), cost **95** (50% meter, `abilities.js:2166`). The re-flag's premise is **stale** — those are the post-retune numbers, not the pre-retune 80s/famine state. Against the current (grown) roster Naruto is the **highest raw per-cast ult** (next band Superman 380 / Rengoku·Omni-Man 340) held in check by the **longest cooldown** (pack baseline 20s; cooldown-gated chars 8s), landing at 15 raw/s ≈ Sasuke Susanoo — in line on damage-per-cooldown. The re-flag asked to *reduce* cooldown / *raise* damage; either would push the roster's most valuable button into a genuine outlier, opposite the stated "bring him in line" goal. **Decision: no change.** Flag closed. Re-verified in-engine (`naruto_ult_impact.png`).
+
 ---
 
-*End of diagnosis. Naruto Kurama recast retuned 80s→40s (§Naruto-ult-retune); all other values unchanged.*
+*End of diagnosis. Naruto Kurama recast retuned 80s→40s (§Naruto-ult-retune); re-verified 2026-08-02, no change. All other values unchanged.*
 
 ---
 

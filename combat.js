@@ -31,6 +31,11 @@ import { pickSkinVoice } from "./gojoVoice.js"   // per-skin voice override (Goj
 import { pickZenitsuVoice } from "./zenitsuVoice.js"   // Zenitsu hit-react / offense-bark / low-health voice pools (audio-only)
 import { pickRengokuVoice } from "./rengokuVoice.js"   // Rengoku hit-react / offense-bark / low-health voice pools (audio-only)
 import { pickShinobuVoice } from "./shinobuVoice.js"   // Shinobu hit-react / offense-bark / low-health voice pools (audio-only)
+import { pickSamuraiVoice } from "./samuraiRedVoice.js"   // Samurai Red Ranger hit-react / offense-bark / low-health voice pools (audio-only)
+import { pickGoldSamuraiVoice } from "./goldSamuraiRangerVoice.js"   // Gold Samurai Ranger hit-react / offense-bark voice pools (audio-only)
+import { pickVegetaVoice } from "./vegetaVoice.js"   // Vegeta hit-react / offense-bark / low-health voice pools (audio-only; shared across base/SSJ/Blue)
+import { pickMakiVoice } from "./makiVoice.js"   // Maki hit-react / offense-bark / low-health voice pools (audio-only, JP dub)
+import { pickChrolloVoice } from "./chrolloVoice.js"   // Chrollo hit-react / grunt / offense-bark / taunt / low-health voice pools (audio-only)
 
 // ========================
 // HITSTOP TABLE — SINGLE SHARED TUNABLE SOURCE
@@ -481,6 +486,33 @@ export function shouldRengokuCounter(defender, attacker) {
   return true
 }
 
+// GHOSTFACE — JILL identity bait-counter. Reliable reactive counter (fires when a hit LANDS, like
+// shouldRengokuCounter — NOT the unreachable checkParry path). While Jill stands in her neutral IDLE
+// stance (not attacking / blocking / hurt / airborne / already knocked down) an incoming melee attack is
+// negated and the attacker is stunned + shoved. Cooldown-gated (_jillCounterCd, ticked in updateCombat)
+// so it's a BAIT — she can be pressured after a counter, not a permanent auto-block. No-op for every
+// other fighter / identity (gated on the Jill skin modifier). Faster/more-forgiving than the other four
+// identities by construction (only Jill has it, and it needs no input).
+const JILL_COUNTER_CD = 72   // ~1.2s between free counters — the exploitable gap the opponent baits out
+function shouldGhostfaceJillCounter(defender, attacker, hitSparks) {
+  if (!defender || !attacker || !defender._gfSkinMod?.jillCounter) return false
+  if ((defender._jillCounterCd || 0) > 0) return false
+  // must be standing in her open "bait" stance (true neutral idle), grounded
+  if (defender.attacking || defender.isBlocking || (defender.hitstun || 0) > 0 ||
+      defender.knockdownState || !(defender.onGround ?? defender.grounded ?? true)) return false
+  defender._jillCounterCd = JILL_COUNTER_CD
+  attacker.hitstun = Math.max(attacker.hitstun || 0, 28)          // stun + shove the attacker, cancel its swing
+  attacker.vx = -(attacker.facing || 1) * 7
+  attacker.attacking = false; attacker.currentAttack = null
+  defender.invulnTimer = Math.max(defender.invulnTimer || 0, 10)  // brief i-frames + parry flash
+  defender.parryFlash  = Math.max(defender.parryFlash || 0, 12)
+  defender.attackCooldown = 0
+  const mx = ((attacker.x + attacker.w / 2) + (defender.x + defender.w / 2)) / 2
+  const my = ((attacker.y + attacker.h / 2) + (defender.y + defender.h / 2)) / 2
+  if (Array.isArray(hitSparks)) hitSparks.push({ x: mx, y: my, timer: 20, maxTimer: 20, category: "parry", color: "#e0457b", lines: 12, radius: 30 })
+  return true
+}
+
 export function applyUltraEgoReaction(defender) {
   if (!defender?.currentFormData?.rageHealOnHit) return
   const c = defender.currentFormData.healCostPerHitKi || 4
@@ -747,6 +779,45 @@ function applyGonLowHealthVoice(defender) {
   }
 }
 
+// ── CHROLLO LUCILFER VOICE LINES (audio-only; Japanese pack) ──
+// DEFENDER reaction, split by tier (Shinobu precedent): a LIGHT hit → exertion grunt; a HEAVY hit →
+// surprise/pain pool ("Misjudged" / "More than expected" / "Tough"). One line per _hitVoiceCd window;
+// unblocked hits only. Chrollo has a SEPARATE low-health pool (below).
+function applyChrolloHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "chrollo" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  const pool = cat === "light" ? "grunt" : "hitReact"
+  try { sound?.playSfxFile?.(pickChrolloVoice(pool), null) } catch (_) {}
+}
+
+// ATTACKER connect — combat barks ("Above" / "Can you dodge?" / "Curtain fall") on a HEAVY connect OR a
+// long BASIC light string, with a ~30% chance to swap in a dismissive TAUNT one-liner ("Too bad" /
+// "Useless" / "Is this all?") instead (Killua/Hisoka "taunt rides offense-connect" precedent). Chrollo's
+// specials/ultimate fire their OWN cast lines and set _atkVoiceCd, so they're excluded here. Shared
+// _atkVoiceCd → one line per window; blocked suppresses it.
+function applyChrolloOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "chrollo" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  const pool = Math.random() < 0.3 ? "tauntCombat" : "combatBark"
+  try { sound?.playSfxFile?.(pickChrolloVoice(pool), null) } catch (_) {}
+}
+
+// LOW-HEALTH bark — "The spider doesn't die" — fires ONCE the first time Chrollo drops to/below the
+// threshold (same pattern as Gon/Naruto/Itachi). A thematic comeback line.
+const CHROLLO_LOW_HEALTH_RATIO = 0.25
+function applyChrolloLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "chrollo" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * CHROLLO_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickChrolloVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
 // ── ZENITSU AGATSUMA VOICE LINES (audio-only; Japanese Demon Slayer pack) ──
 // DEFENDER reaction — panicked pool ("No way!", "Damn it!", "I got hit!"). One line per _hitVoiceCd
 // window; unblocked hits only. Zenitsu has a SEPARATE low-health pool (below).
@@ -822,6 +893,65 @@ function applyRengokuLowHealthVoice(defender) {
   }
 }
 
+// ── VEGETA VOICE LINES (audio-only; FighterZ pack, shared across base/SSJ/Blue) ──
+// DEFENDER reaction on an unblocked hit ("Damn you!" / "Ridiculous!"); one line per _hitVoiceCd window.
+// Form-agnostic — fires the same pool whatever tier Vegeta is in (see vegetaVoice.js).
+const VEGETA_LOW_HEALTH_RATIO = 0.25
+function applyVegetaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "vegeta" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickVegetaVoice("hitReact"), null) } catch (_) {}
+}
+// ATTACKER combat bark on a HEAVY / long-string connect (his taunt trash-talk is folded in here — no taunt action).
+function applyVegetaOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "vegeta" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickVegetaVoice("combatBark"), null) } catch (_) {}
+}
+// LOW-HEALTH once, on crossing the threshold ("Impossible!" / "Where does all that power come from?").
+function applyVegetaLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "vegeta" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * VEGETA_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickVegetaVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
+// ── MAKI ZENIN VOICE LINES (audio-only; Japanese JJK dub) ──
+// DEFENDER reaction on an unblocked hit; ATTACKER combat bark on a heavy/long-string connect (no taunt
+// action → taunt lines live in the intro pool, not here); LOW-HEALTH once on crossing the line. The
+// low-HP threshold is 0.30 (a touch ABOVE the ≤25% Shibuya-unlock gate) so the "still moving" bark lands
+// slightly BEFORE she's transform-eligible — the "turn it around" transform cue is a separate pool fired
+// at the Shibuya cast beat (abilities.executeMakiShibuyaUltimate), so the two never collide.
+const MAKI_LOW_HEALTH_RATIO = 0.30
+function applyMakiHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "maki" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickMakiVoice("hitReact"), null) } catch (_) {}
+}
+function applyMakiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "maki" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickMakiVoice("combatBark"), null) } catch (_) {}
+}
+function applyMakiLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "maki" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * MAKI_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickMakiVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
 // ── SHINOBU KOCHO VOICE LINES (audio-only; Japanese Demon Slayer pack) ──
 // DEFENDER reaction — split by hit strength: STRONG hits (heavy/special/ultimate/launcher/spike) draw the
 // reaction pool ("Dangerous!" / "Why would you?"); LIGHT hits draw the exertion grunt cluster. One line
@@ -855,6 +985,49 @@ function applyShinobuLowHealthVoice(defender) {
   if (hp > 0 && hp <= max * SHINOBU_LOW_HEALTH_RATIO) {
     defender._lowHealthVoiceDone = true
     try { sound?.playSfxFile?.(pickShinobuVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+
+// ── SAMURAI RED RANGER VOICE LINES (audio-only; English Power Rangers Samurai pack) ──
+// DEFENDER reaction — general hit-react line ("What in the world?!"). One line per _hitVoiceCd window;
+// unblocked hits only. Low-health has a SEPARATE pool (below).
+function applySamuraiHitVoice(defender, cat, dmg) {
+  if (!defender || (defender._hitVoiceCd > 0)) return
+  const rk = (defender.rosterKey || "").toLowerCase()
+  let clip = null
+  if (rk === "samurai_red_ranger") clip = pickSamuraiVoice("hitReact")
+  else if (rk === "gold_samurai_ranger") clip = pickGoldSamuraiVoice("hitReact")
+  else return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(clip, null) } catch (_) {}
+}
+
+// ATTACKER connect — combat bark ("I'll take that." / "Finish this!") on a HEAVY connect OR a long BASIC
+// light string. His Flame Slash special, Flame-Chain finisher, Mega activation + ultimate fire their OWN
+// cast lines and set _atkVoiceCd on cast, so they're excluded here (no cast+connect double). Shared
+// _atkVoiceCd → one line per window; blocked suppresses it.
+function applySamuraiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker._atkVoiceCd > 0)) return
+  const rk = (attacker.rosterKey || "").toLowerCase()
+  if (rk !== "samurai_red_ranger" && rk !== "gold_samurai_ranger") return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  const clip = rk === "gold_samurai_ranger" ? pickGoldSamuraiVoice("combatBark") : pickSamuraiVoice("combatBark")
+  try { sound?.playSfxFile?.(clip, null) } catch (_) {}
+}
+
+// LOW-HEALTH bark — "Better backpedal." — fires ONCE the first time the Samurai drops to/below the
+// threshold (same pattern as Rengoku/Shinobu/Gon). Random pick (single clip here).
+const SAMURAI_LOW_HEALTH_RATIO = 0.25
+function applySamuraiLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "samurai_red_ranger" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1090
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * SAMURAI_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickSamuraiVoice("lowHealth"), null) } catch (_) {}
   }
 }
 
@@ -1378,6 +1551,20 @@ export function startMove(fighter, moveKey, moveData) {
 // HIT RESOLUTION
 // ========================
 
+// SKILL HUNTER unlock tracking (Chrollo, Stage 5). When the OPPONENT lands a CLEAN (non-blocked) hit on
+// an untransformed Chrollo, record the connecting move's IDENTITY. Once 3 DISTINCT moves have landed,
+// set `_shUnlocked` (the gate to activate the Skill Hunter ultimate). A Set dedups, so the SAME move
+// repeated does NOT count — 3 DIFFERENT moves do. Only tracks while Chrollo is himself (rosterKey ===
+// "chrollo" and not mid-copy); the unlock is consumed + the Set cleared on activation (must re-earn).
+// Called from both the melee (resolveAttackHit) and projectile (resolveProjectileHitsMulti) clean-hit sites.
+export function trackSkillHunterUnlock(defender, attacker, moveName, blocked) {
+  if (blocked || !moveName || !defender || defender === attacker) return
+  if ((defender.rosterKey || "") !== "chrollo" || defender._shActive) return
+  const seen = (defender._shMovesSeen ||= new Set())
+  seen.add(moveName)
+  if (seen.size >= 3) defender._shUnlocked = true
+}
+
 export function resolveAttackHit(attacker, defender, hitEffects = null, options = {}) {
   const { stageWidth = 3200, damageNumbers = null } = options
 
@@ -1432,6 +1619,14 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // RENGOKU — Counter reactive parry/riposte: negate the blow + stun/damage the attacker (cancels its
   // swing internally, so nothing else resolves this hit). See shouldRengokuCounter.
   if (shouldRengokuCounter(defender, attacker)) {
+    try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
+    return
+  }
+
+  // GHOSTFACE — JILL identity bait-counter: her neutral stance reads as an opening; an attack INTO it
+  // (while she stands in idle) is reactively countered — negate the blow + stun/shove the attacker.
+  // Cooldown-gated so it's a bait, not a permanent auto-block. See shouldGhostfaceJillCounter.
+  if (shouldGhostfaceJillCounter(defender, attacker, hitEffects)) {
     try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
     return
   }
@@ -1505,7 +1700,10 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     defender.currentMove   = null
     // A hit also interrupts a transform-device charge (Ben/Albedo).
     defender.isCharging   = false
-    defender.vx = (attacker.facing || 1) * (atk.pushX || 4)
+    // AMBER identity — "sticky pressure": her hits shove the opponent LESS, so they can't drift to safety
+    // and juke/space away from her (the reliable realization of "reduced side-step-ability against her";
+    // the parry-window path proved non-functional). Skin modifier; 1.0 (no change) for everyone else.
+    defender.vx = (attacker.facing || 1) * (atk.pushX || 4) * (attacker._gfSkinMod?.stickPressure ?? 1)
 
     // BEERUS hit-reaction voice ("...impressive") — only on a SIGNIFICANT hit (heavy-tier category or
     // real damage), NOT every light poke. Cooldown-gated (_hitVoiceCd ticked in game.js) so a rapid
@@ -1568,6 +1766,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyKilluaHitVoice(defender, cat, dmg)
     // GON hit-reaction voice — dismissive/pained pool ("No way" / "This is bad" / "Damn it").
     applyGonHitVoice(defender, cat, dmg)
+    // CHROLLO hit-reaction voice — light-hit exertion grunt vs heavy-hit surprise/pain pool (split by cat).
+    applyChrolloHitVoice(defender, cat, dmg)
     // HISOKA hit-reaction voice — delighted/dismissive pool ("No no~" / "Impressive~" / "Irresistible~").
     applyHisokaHitVoice(defender, cat, dmg)
     // ZENITSU hit-reaction voice — panicked pool ("No way!" / "Damn it!" / "I got hit!").
@@ -1575,6 +1775,12 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyRengokuHitVoice(defender, cat, dmg)
     // SHINOBU hit-reaction voice — strong-hit reaction pool / light-hit exertion grunt (split by cat).
     applyShinobuHitVoice(defender, cat, dmg)
+    // SAMURAI RED RANGER hit-reaction voice — "What in the world?!" general reaction.
+    applySamuraiHitVoice(defender, cat, dmg)
+    // VEGETA hit-reaction voice — "Damn you!" / "Ridiculous!" (shared across base/SSJ/Blue).
+    applyVegetaHitVoice(defender, cat, dmg)
+    // MAKI hit-reaction voice — "That was close!" / "This guy hurts!" (JP dub).
+    applyMakiHitVoice(defender, cat, dmg)
     applyMinatoHitVoice(defender, cat, dmg)
     // FLASH hit-reaction voice — "Not again." + effort-grunt set.
     applyFlashHitVoice(defender, cat, dmg)
@@ -1601,14 +1807,29 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
     applyGonLowHealthVoice(defender)   // "Not yet" / "I can still fight" / "I'm going to die" (once, on crossing the low-HP line)
+    applyChrolloLowHealthVoice(defender)   // Chrollo "The spider doesn't die" (once, on crossing the low-HP line)
     applyZenitsuLowHealthVoice(defender)   // Zenitsu "This can't be done yet!" (once, on crossing the low-HP line)
     applyRengokuLowHealthVoice(defender)   // Rengoku "I'm feeling energized!" / "Unbelievable!" (once, on crossing the low-HP line)
     applyShinobuLowHealthVoice(defender)   // Shinobu "This is... oh no." (once, on crossing the low-HP line)
+    applySamuraiLowHealthVoice(defender)   // Samurai Red Ranger "Better backpedal." (once, on crossing the low-HP line)
+    applyVegetaLowHealthVoice(defender)   // Vegeta "Impossible!" / "Where does all that power come from?" (once, on crossing the low-HP line)
+    applyMakiLowHealthVoice(defender)   // Maki "My body is still moving!" / "I won't give up!" (once, crossing 30% — the Shibuya transform cue is a separate pool)
     applyHisokaLowHealthVoice(defender)   // Hisoka THRILLED by danger: "Irresistible~" / "How tantalizing~" (once, on crossing the low-HP line)
     applyMinatoLowHealthVoice(defender)   // Minato "I'll fight to the end" (once, on crossing the low-HP line)
     applyOmniManLowHealthVoice(defender)   // "It's all under control" / "none of you can stop me" (once, on crossing the low-HP line)
     applySupermanLowHealthVoice(defender)   // "What you have can't be cured. I'll never stop fighting." (once, on crossing the low-HP line)
     defender.colorFlash = cat === "ultimate" ? 12 : cat === "special" ? 9 : 6
+
+    // DEBBIE identity — DECEPTIVE hit-reaction: the DISPLAYED flinch is deliberately MISMATCHED from the
+    // real damage taken (misdirection). VISUAL ONLY — health / hitstun / knockback set above are UNTOUCHED.
+    // A big hit → she barely reacts (tiny flinch, dim flash); a small hit → she over-reacts (sprawl pose,
+    // bright flash). Read in sprite.js's hurt-pose selector via _fakeReactVisual. Skipped on real knockdown
+    // (don't fight the knockdown system). Cleared when hitstun ends (updateCombatTimers).
+    if (defender._gfSkinMod?.deceptiveHurt && !defender.knockdownState) {
+      const bigHit = (cat === "heavy" || cat === "special" || cat === "ultimate" || atk.launcher || atk.spike || dmg >= 45)
+      defender._fakeReactVisual = bigHit ? "light" : "heavy"   // MISMATCH: big→show light, small→show big
+      defender.colorFlash = bigHit ? 3 : 14                    // and a mismatched (visual-only) flash
+    }
 
     const persist =
       cat === "ultimate" ? 30 :
@@ -1676,6 +1897,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     attacker.comboCounter++
     attacker.comboTimer = 90
   }
+  trackSkillHunterUnlock(defender, attacker, attacker.currentAttack?.name || attacker.currentMove, defender.isBlocking)
   attacker.wasInStartup = false
 
   try { sound?.playCombo?.(attacker.comboCounter) } catch (_) {}
@@ -1689,9 +1911,13 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyRickOffenseVoice(attacker, cat, !defender.isBlocking)     // Rick generic taunt/flavor bark on a strong/long-string connect
   applyKilluaOffenseVoice(attacker, cat, !defender.isBlocking)   // Killua combat bark (+ ~30% taunt one-liner) on a strong/long-string connect
   applyGonOffenseVoice(attacker, cat, !defender.isBlocking)      // Gon combat bark on a heavy/long-string connect (specials use their own cast lines)
+  applyChrolloOffenseVoice(attacker, cat, !defender.isBlocking)  // Chrollo combat bark (+ ~30% taunt one-liner) on a heavy/long-string connect (specials/ult use their own cast lines)
   applyZenitsuOffenseVoice(attacker, cat, !defender.isBlocking)  // Zenitsu determination/combat bark on a heavy/long-string connect (specials use their own cast lines)
   applyRengokuOffenseVoice(attacker, cat, !defender.isBlocking)  // Rengoku flame/taunt-combat bark on a heavy/long-string connect (flame specials use their own cast lines)
   applyShinobuOffenseVoice(attacker, cat, !defender.isBlocking)  // Shinobu "Here I go!" bark on a heavy/long-string connect (poison/dance specials use their own cast lines)
+  applySamuraiOffenseVoice(attacker, cat, !defender.isBlocking)  // Samurai Red Ranger "I'll take that!"/"Finish this!" bark on a heavy/long-string connect (specials/finisher/ult use their own cast lines)
+  applyVegetaOffenseVoice(attacker, cat, !defender.isBlocking)   // Vegeta combat bark / folded taunt on a heavy/long-string connect (Galick/BigBang/FinalFlash/ult use their own cast lines)
+  applyMakiOffenseVoice(attacker, cat, !defender.isBlocking)     // Maki combat bark on a heavy/long-string connect (kunai/nunchaku/powerCharge use their own cast lines)
   applyHisokaOffenseVoice(attacker, cat, !defender.isBlocking)   // Hisoka combat bark (+ ~30% flirty taunt) on a heavy/long-string connect (specials use their own cast lines)
   applyMinatoOffenseVoice(attacker, cat, !defender.isBlocking)   // Minato offense bark / taunt on a heavy/long-string connect
   applyTobiramaOffenseVoice(attacker, cat, !defender.isBlocking) // Tobirama overconfident taunt one-liner on a strong/long-string connect
@@ -1730,6 +1956,8 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   }
 
   if (fighter.hitstun > 0) fighter.hitstun--
+  if (fighter.hitstun <= 0 && fighter._fakeReactVisual) fighter._fakeReactVisual = null   // Debbie deceptive-react flag: drop once the flinch ends
+  if ((fighter._jillCounterCd || 0) > 0) fighter._jillCounterCd--   // Jill bait-counter cooldown (the exploitable gap)
   if ((fighter._comboFinisherReactTimer || 0) > 0) fighter._comboFinisherReactTimer--   // Naruto combo-ender recoil pose window
   if (fighter.blockstun > 0) fighter.blockstun--
   if (fighter.comboTimer > 0) fighter.comboTimer--
@@ -1971,6 +2199,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       }
 
       fighter.health = Math.max(0, (fighter.health || 0) - Math.floor(dmg))
+      trackSkillHunterUnlock(fighter, proj.owner, proj.name, fighter.isBlocking)   // Skill Hunter: a distinct opponent PROJECTILE landing on Chrollo also counts
 
       // Lingering damage-over-time (e.g. Naruto Rasenshuriken wind-chip). Only on a
       // clean (non-blocked) connect, and only if the hit didn't already KO. Ticked in

@@ -615,6 +615,9 @@ export function drawSummons(ctx) {
       const cx = s.x + (s.w || 0) / 2, cy = s.y + (s.h || 0) / 2
       const dir = (s.facing || 1) < 0 ? -1 : 1
       ctx.translate(cx, cy); ctx.scale(dir, 1)
+      // DECOY VISUAL TELL: clones get the subtle chakra-construct wash (unless no-tell mode is on).
+      // Applies to the clone sprite draw only; ctx.restore() below clears the filter.
+      if (s.id === "shadowClone" && _cloneTellEnabled) ctx.filter = CLONE_TELL_FILTER
       ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
       ctx.restore()
       continue
@@ -685,12 +688,50 @@ const CLONE_CAP  = 3                          // max simultaneous clones (spawn 
 const CLONE_W = 70, CLONE_H = 120            // clone hurtbox = the destruction box
 const CLONE_POOF_FRAMES = 16                 // spawn/despawn smoke duration (matches clonePuff lifetime)
 const CLONE_HURT_FRAMES = 24                 // frames the hit-recoil pose plays before the clone poofs out
+// DECOY-SYSTEM movement (Stage 2): a spawned clone independently APPROACHES the opponent and HOLDS at
+// spacing, so it reads as a mobile threat rather than a static prop. No damage/collision — its threat
+// is the mind-game + the always-on hit-reveal rule. Shared by Naruto & Minato (one updateShadowClone).
+const CLONE_MOVE_SPEED = 3                   // px/frame walk speed (readable, below a fighter's dash)
+const CLONE_HOLD_DIST  = 96                  // stop this far (center-to-center) from the opponent
+// DECOY VISUAL TELL (Stage 3): clones render with a subtle, CONSISTENT chakra-construct wash
+// (desaturated + slightly brighter/cooler) so a practiced eye can pick them out from the real fighter
+// — who is drawn by the normal fighter renderer and never gets this filter. It is deliberately subtle
+// (learnable, not flashing). The no-tell escalation mode (Stage 4) flips _cloneTellEnabled to false.
+// The hit-reveal rule below is INDEPENDENT of this flag — a hit always poofs a clone in either mode.
+const CLONE_TELL_FILTER = "saturate(0.72) brightness(1.07) hue-rotate(12deg)"
+let _cloneTellEnabled = true
+export function setCloneTell(on) { _cloneTellEnabled = !!on }
+export function isCloneTell() { return _cloneTellEnabled }
+
+// HIT-REVEAL via PROJECTILES — mirrors the melee hit-reveal in updateShadowClone so that ANY hit
+// reveals a clone. Any projectile from the clone's ENEMY (not its owner) that overlaps the clone
+// poofs it and is consumed (spent on the fake). Called each frame from the battle loop AFTER the
+// real-fighter projectile resolution, so it never steals a hit meant for a real fighter.
+export function revealClonesHitByProjectiles(projectiles) {
+  if (!Array.isArray(projectiles) || !projectiles.length) return
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i]
+    if (!p || p.visualOnly || p.returning) continue
+    const r = p.radius || p.size || (p.w && p.h ? Math.max(p.w, p.h) / 2 : 10)
+    const pb = { x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 }
+    for (const s of activeSummons) {
+      if (s.id !== "shadowClone" || s._state !== "idle" || s._hidden) continue
+      if (p.owner === s.owner) continue            // an owner's own projectile never dispels their clone
+      if (rectsOverlap(pb, getHurtbox(s))) {
+        s._state = "hurt"; s._stateT = 0; setCloneSheet(s, "hurt")   // reveal → hurt→poof lifecycle
+        projectiles.splice(i, 1)                    // consume the projectile (it hit the fake)
+        break
+      }
+    }
+  }
+}
 
 // Clone body sprites — PER OWNER, so the shadow-clone system (shared) renders each
 // summoner's own clone art rather than a hardcoded Naruto body. Each owner REUSES its
 // own strips (no new art). Falls back to Naruto's set for any owner without an entry.
 //   naruto: idle = naruto_kcm_stance.png,          hurt = naruto_kcm_taking_damage.png
-//   minato: idle = minato_shadow_clone_justu (3 identical standing clones), hurt = minato_hit
+//   minato: idle = minato_idle_uniform (standing clone body), hurt = minato_hit
+//           (NOT shadow_clone_justu — that art is the CASTER's summon hand-sign; see below)
 const CLONE_BODY_SETS = {
   naruto: {
     idle: { sheet: "./naruto_kcm_stance.png",        frames: 4, w: 36, h: 63, speed: 6, scale: 2.0 },
@@ -761,16 +802,19 @@ export function summonShadowClone(owner, target, opts = {}) {
 
 // SPAWN — cap-limited (over cap → no-op, returns null). No upfront chakra cost:
 // the "cost" is the split (each new body lowers everyone's share). Puffs on spawn.
-export function spawnShadowClone(owner, target) {
+export function spawnShadowClone(owner, target, spawnAt = null) {
   if (!owner) return null
   if (countShadowClones(owner) >= CLONE_CAP) return null   // CAP behavior: do nothing
   const facing = owner.facing || 1
+  const slot = countShadowClones(owner)   // 0,1,2 as bodies are added → staggers spawn + hold so decoys don't stack
   const s = {
     id: "shadowClone", owner, target,
-    w: CLONE_W, h: CLONE_H,
-    // Static decoy: spawns beside the owner and STAYS put horizontally (no follow),
-    // but is subject to gravity so it FALLS to the floor and stands (see updateShadowClone).
-    x: owner.x - facing * 70, y: owner.y || 0,
+    w: CLONE_W, h: CLONE_H, vx: 0,
+    _slot: slot,
+    // Mobile decoy: spawns beside the owner (staggered per slot so multiple decoys are distinct), then
+    // independently approaches the opponent and holds at spacing (updateShadowClone). Subject to gravity.
+    // spawnAt overrides the position (Minato's Flying Raijin Clones materialize AT his kunai marks).
+    x: spawnAt ? spawnAt.x : owner.x - facing * (70 + slot * 60), y: spawnAt ? (spawnAt.y ?? owner.y ?? 0) : (owner.y || 0),
     // Gravity/ground-collision fields, same contract fighters use. groundY inherits the
     // owner's floor (== the stage groundY) so the clone rests exactly where Naruto would;
     // applyGravity falls back to physics.groundY if it's ever absent.
@@ -834,7 +878,7 @@ export function consumeShadowClones(owner, n = 1) {
 function updateShadowClone(s) {
   const owner = s.owner, enemy = s.target
   if (!owner) return "remove"
-  if (enemy) s.facing = (enemy.x >= s.x) ? 1 : -1   // faces the enemy; never moves toward it
+  if (enemy) s.facing = (enemy.x >= s.x) ? 1 : -1   // always faces the enemy
 
   // Gravity + ground collision — reuse the fighters' resolver verbatim so a standard-summon
   // clone falls to the stage floor and stands on it (instead of freezing at its spawn y).
@@ -856,8 +900,19 @@ function updateShadowClone(s) {
     return null
   }
 
-  // IDLE — just stand there. One touch of an active enemy melee hitbox starts the
-  // hurt→poof lifecycle. Hurtbox reuses combat.js getHurtbox, sized to the clone.
+  // IDLE — INDEPENDENT MOVEMENT: approach-and-hold. Walk toward the opponent, stop at CLONE_HOLD_DIST
+  // so the clone pressures/reads as a real mobile threat (reuses the assist-summon movement math).
+  // No damage or physical collision — the threat is the decoy mind-game + the hit-reveal rule below.
+  if (enemy) {
+    const dx = (enemy.x + (enemy.w || 0) / 2) - (s.x + s.w / 2)
+    const dir = dx >= 0 ? 1 : -1
+    s.facing = dir
+    const hold = CLONE_HOLD_DIST + (s._slot || 0) * 54   // per-slot stagger so multiple decoys spread out, not stack
+    if (Math.abs(dx) > hold) { s.vx = CLONE_MOVE_SPEED * dir; s.x += s.vx } else { s.vx = 0 }
+  }
+
+  // One touch of an active enemy melee hitbox starts the hurt→poof lifecycle (hit-reveal).
+  // Hurtbox reuses combat.js getHurtbox, sized to the clone.
   if (enemy && attackIsActive(enemy.currentAttack)) {
     const hb = getAttackHitbox(enemy)
     if (hb && rectsOverlap(hb, getHurtbox(s))) {

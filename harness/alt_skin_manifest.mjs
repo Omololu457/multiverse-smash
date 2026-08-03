@@ -17,6 +17,11 @@
 export const FORM_PREFIXES = {
   vegeta:     ["vegeta_ssj_", "vegeta_blue_", "vegeta_ssj_blue_"],
   goku_black: ["goku_black_ssj_rose_"],
+  // Ben 10's playable forms are Omnitrix ALIENS whose sheets live in fighters.js BEN10_FORM_ANIM
+  // (NOT characters.ben10.animationData), so the reanim pass must reach them by disk prefix — otherwise
+  // an Edo-Tensei-reanimated Ben renders his alien body in full colour. applyAlien retags _skinAnim by
+  // the active tag (fighters.js _retagAlienAnim), mirroring the transform-form path above.
+  ben10:      ["ben10_xlr8_", "ben10_diamond_head_", "feedback_"],
 };
 
 // Reanimation (Part 2): ONE near-black desaturated pass per char — NOT a selectable skin; applied
@@ -60,12 +65,9 @@ export const ALT_SKINS = {
   // GOKU BLACK — near-grayscale gi. IS black → skip BLACK. COLORIZE (min-sat 0, max-sat 0.18) scoped to
   // the body (yband 0.26-1.0) so the black HAIR stays black; red sash & skin (higher sat) preserved.
   // Recolored across the SSJ Rose form too. val-gain lifts the near-black gi so the color reads.
-  goku_black: [
-    { tag: "pink", name: "Pink", mode: "region", note: "colorize min-sat 0 max-sat .18 yband .26-1 -> to-hue 330 sat .60 val-gain 1.9 lift .10" },
-    { tag: "gold", name: "Gold", mode: "region", note: "-> to-hue 47 sat .85 val-gain 2.0 lift .10" },
-    { tag: "blue", name: "Blue", mode: "region", note: "-> to-hue 214 sat .80 val-gain 1.9 lift .10" },
-    { tag: "red",  name: "Red",  mode: "region", note: "-> to-hue 5 sat .85 val-gain 1.9 lift .10" },
-  ],
+  // Goku Black's 4 old abstract-hue recolors (pink/gold/blue/red) were REMOVED 2026-08-01, superseded by
+  // the 12 hand-tuned per-region creative skins hardcoded in skins.js (tools/gen_goku_black_creative.py).
+  goku_black: [],
 
   // ══ BATCH 2 · NARUTO ════════════════════════════════════════════════════════
   // NARUTO — KCM golden-orange chakra BODY (hue 5-66, sat≥.45; recolors the whole glow, black seals
@@ -112,25 +114,16 @@ export const ALT_SKINS = {
   // bespoke-palette variants (Ben 10, Albedo). New hair-only variants use explicit SAMPLED target hexes,
   // re-centering the hair's mid tone on the target while preserving its highlight/shadow spread.
   // Hair selection: yband 0-.28, near-gray (max-sat .22), min-val .30 (keeps black outline + black shirt).
-  gojo: [
-    // KEPT (already approved, not flagged) — bespoke palettes, not hair recolors.
-    { tag: "ben10", name: "Ben 10", mode: "region", note: "pants(yband .24-1 min-val .5) -> green h130 sat .75" },
-    { tag: "albedo", name: "Albedo", mode: "region", note: "shirt(max-val .45) -> red vg2.6 + eyes -> gold h47" },
-    // NEW hair-only (reference-sampled targets, multi-tone tone-remap).
-    { tag: "cyanhair",   name: "Cyan Hair",   mode: "region", note: "hair -> to-tone #8ED8F0 spread 1.0" },
-    { tag: "purplehair", name: "Purple Hair", mode: "region", note: "hair -> to-tone #C9A0DC spread 1.0" },
-    { tag: "orangehair", name: "Orange Hair", mode: "region", note: "hair -> to-tone #E8823C spread 1.0" },
-    // Pink = hair + EYES retargeted (2-pass): eyes = blue hue 160-215 min-sat .35 in head band.
-    { tag: "pinkhair",   name: "Pink Hair",   mode: "region", note: "hair+eyes -> to-tone #F2A8C4 spread 1.0 (2-pass, eyes hue 160-215)" },
-  ],
-  // SUKUNA — dark navy uniform (hue 230-262, sat≥.30, dark → val-gain). IS pink (hair) → skip PINK.
-  // Pink hair + crimson scarf/shoes (hue ~350) preserved.
-  sukuna: [
-    { tag: "black", name: "Black", mode: "region", note: "from-hue 230-262 min-sat .30 -> desat val-gain .7" },
-    { tag: "gold",  name: "Gold",  mode: "region", note: "-> to-hue 47 sat .88 vg2.3 lift .10" },
-    { tag: "blue",  name: "Blue",  mode: "region", note: "-> to-hue 210 sat .85 vg2.1 lift .10" },
-    { tag: "red",   name: "Red",   mode: "region", note: "-> to-hue 3 sat .90 vg2.1 lift .10" },
-  ],
+  // Gojo — ALL recolor skins removed (2026-07-29). Deferred until the base sprite's
+  // transparency/missing-pixel bug is repaired; recoloring broken base art propagates the bug.
+  // (Former tags: ben10, albedo, cyanhair, purplehair, orangehair, pinkhair.)
+  gojo: [],
+  // SUKUNA — ALL recolor skins removed 2026-07-30 (the black/gold/blue/red set only recoloured the navy
+  // uniform, leaving hair + eyes mismatched — the exact problem being fixed). Rebuilt as 4 coordinated
+  // head-to-toe colour skins (hair + outfit + eyes) via tools/gen_sukuna_creative.py, registered directly
+  // in skins.js (like the Rengoku/Shinobu creative batches), NOT through this abstract-hue manifest.
+  // (Former tags: black, gold, blue, red.)
+  sukuna: [],
   // MEGUMI — dark navy JJK uniform (hue 230-262, sat≥.30, dark → val-gain). IS dark → skip BLACK.
   // Black hair / skin / brown shoes preserved.
   megumi: [
@@ -172,15 +165,12 @@ export const ALT_SKINS = {
   ],
 
   // ══ BATCH 5 · POWER RANGERS / RICK & MORTY / SAIKI K / DC ════════════════════
-  // OMEGA RANGER — colorize the WHITE suit (min-sat 0, max-sat .15); navy chest / gold trim / red
-  // visor kept. Fully helmeted (no skin/hair) → robust, no yband. White isn't in the 5 → all 5.
-  omega_ranger: [
-    { tag: "black", name: "Black", mode: "region", note: "colorize white suit -> desat vg.5" },
-    { tag: "pink",  name: "Pink",  mode: "region", note: "-> pink h330 sat .60" },
-    { tag: "gold",  name: "Gold",  mode: "region", note: "-> gold h47 sat .85" },
-    { tag: "blue",  name: "Blue",  mode: "region", note: "-> blue h214 sat .80" },
-    { tag: "red",   name: "Red",   mode: "region", note: "-> red h5 sat .85" },
-  ],
+  // OMEGA RANGER — the 5 old crude whole-suit hue recolors (black/pink/gold/blue/red) were REMOVED
+  // (2026-07-31, user amendment "delete old skins first") ahead of the 12-skin per-region creative set
+  // built via tools/gen_omega_creative.py and registered DIRECTLY in skins.js (like Rick/Rengoku/Gojo).
+  // Empty entry adds nothing via recolorSkins; the legacy __{black,pink,gold,blue,red} sheets were
+  // deleted from disk (reanim kept). Same cleanup precedent as Rick below.
+  omega_ranger: [],
   // RICK — the 5 old pants-only recolors (black/pink/gold/blue/red) were REMOVED (2026-07-29) ahead of
   // a fresh 8-skin creative set built via tools/gen_rick_creative.py (per-region: hair/coat/shirt/pants).
   rick: [],

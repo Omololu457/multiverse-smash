@@ -39,6 +39,9 @@ export const camera = {
 
   // Max change per frame — prevents pops/jerks even on big position swings.
   maxZoomStep: 0.02,   // zoom units per frame
+  // Faster zoom step used ONLY while a giant form (Susanoo) is on screen, so the big zoom-out
+  // to frame the towering figure settles in ~0.4s instead of ~2s (no long head-clipped window).
+  giantZoomStep: 0.09,
   maxPanStep: 60,      // world px per frame
 
   // Generous padding so the smoothed camera keeps both fighters framed without snapping.
@@ -114,9 +117,29 @@ export const camera = {
     const needH = (bbB - bbT) + this.verticalPadding * 2
     this.targetZoom = clamp(Math.min(cw / needW, ch / needH), this.minZoom, this.maxZoom)
 
-    // Smooth toward those targets (shared with the cinematic path), then keep both
+    // GIANT zoom-out speed-up: a Susanoo-scale figure forces a big zoom-out, but the default
+    // 0.02/frame step takes ~2s to get there — so for the first couple of seconds after the
+    // transform the towering head is CLIPPED and the busy translucent body reads as a glitchy
+    // multi-copy blob (the reported "4 ghost copies"). While a giant is on screen, converge the
+    // zoom faster so the whole figure is framed almost immediately (reads as the camera pulling
+    // back to reveal the giant). Guarded by _canvasHeightFrac → zero effect on normal 1v1 play.
+    const giantOnScreen = (f1 && f1._canvasHeightFrac) || (f2 && f2._canvasHeightFrac)
+    // ONE-SHOT SNAP on the rising edge of a giant appearing (or re-appearing after the Susanoo
+    // Lv2 Sharingan close-up, which leaves the camera zoomed tight on the face — see
+    // sasukeCinematic.endSasukeCinematic clearing _giantFramed). Jump straight to the framing so
+    // the towering figure is fully on-screen INSTANTLY instead of over a ~2s zoom-out during which
+    // the head is clipped and the busy translucent body reads as a glitchy multi-copy blob (the
+    // reported "4 ghost copies"). The snap is masked by the transform's flash + camera shake.
+    if (giantOnScreen && !this._giantFramed) {
+      this._giantFramed = true
+      this.zoom = this.targetZoom; this.x = this.targetX; this.y = this.targetY
+    } else if (!giantOnScreen) {
+      this._giantFramed = false
+    }
+    // Smooth toward those targets (shared with the cinematic path) — a faster step while a giant is
+    // up so any subsequent reframing (Lv1→Lv2 growth, giant walking) stays snappy — then keep both
     // fighters framed.
-    this.advance(canvas)
+    this.advance(canvas, giantOnScreen ? this.giantZoomStep : this.maxZoomStep)
     this.clampFightersToView(f1, f2, canvas)
   },
 
@@ -173,12 +196,12 @@ export const camera = {
   // after setting the framing targets; the domain cinematic calls it after
   // focusOnFighter() so a tight caster focus uses the exact same smoothing and
   // never hard-snaps.
-  advance(canvas) {
+  advance(canvas, zoomStep = this.maxZoomStep) {
     const { width: cw, height: ch } = getCanvasMetrics(canvas)
 
     // ── SMOOTH + RATE-LIMIT (no snapping) ──
     let nextZoom = lerp(this.zoom, this.targetZoom, this.zoomSmooth)
-    nextZoom = this.zoom + clamp(nextZoom - this.zoom, -this.maxZoomStep, this.maxZoomStep)
+    nextZoom = this.zoom + clamp(nextZoom - this.zoom, -zoomStep, zoomStep)
     this.zoom = clamp(nextZoom, this.minZoom, this.maxZoom)
 
     let nx = lerp(this.x, this.targetX, this.moveSmooth)

@@ -10,6 +10,7 @@ import { activateDomain } from "./domains.js"   // domains.js doesn't import abi
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
 import { activateMinatoKurama } from "./minatoKurama.js"   // Minato ult cinematic (self-contained, no cycle)
 import { activateEdoTenseiCinematic, isEdoTenseiCinematicActive } from "./tobiramaEdoTenseiCinematic.js"   // Tobirama Edo Tensei summon/un-summon cinematic (no cycle: it imports only characters/sound)
+import { activateChrolloSkillHunterCinematic, isChrolloSkillHunterCinematicActive } from "./chrolloSkillHunterCinematic.js"   // Chrollo Skill Hunter transform cinematic (swap fires at reveal beat via onResolve)
 import { clearInputBuffer } from "./input.js"   // clear buffered presses when Edo Tensei swaps bodies (input.js imports nothing → no cycle)
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
 import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCinematic.js"   // Goku Black SSJ Rose transform cinematic (no cycle)
@@ -17,17 +18,21 @@ import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from
 import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } from "./vegetaFinalFlashCinematic.js"   // Vegeta Overcharged Final Flash ultimate cinematic (no cycle)
 import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./beerusKiBallCinematic.js"   // Beerus Ki Ball ultimate cinematic (no cycle)
 import { activateBen10OmnitrixCinematic, isBen10OmnitrixCinematicActive } from "./ben10OmnitrixCinematic.js"   // Ben 10 Omnitrix-transform ultimate cinematic (no cycle)
+import { activateMakiShibuyaCinematic, isMakiShibuyaCinematicActive } from "./makiShibuyaCinematic.js"   // Maki HP-threshold Shibuya-Arc transform cinematic (no cycle)
 import { activateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive } from "./batmanDarkKnightCinematic.js"   // Batman "The Dark Knight" batarang-barrage ultimate cinematic (no cycle)
 import { activateOmniManBodySlamCinematic, isOmniManBodySlamCinematicActive } from "./omnimanBodySlamCinematic.js"   // Omni-Man "Viltrumite Onslaught" body-slam ultimate cinematic (no cycle)
 import { activateSupermanUltimateCinematic, isSupermanUltimateCinematicActive } from "./supermanUltimateCinematic.js"   // Superman "Solar Overload" ultimate cinematic (no cycle)
 import { activateRengokuFlameExplosionCinematic, isRengokuFlameExplosionCinematicActive } from "./rengokuFlameExplosionCinematic.js"   // Rengoku "Flame Explosion" ultimate cinematic (no cycle)
+import { activateSamuraiFlameSmasherCinematic, isSamuraiFlameSmasherCinematicActive } from "./samuraiFlameSmasherCinematic.js"   // Samurai Red Ranger "Fire Smasher: Blazing Strike" tier-scaling ultimate cinematic (no cycle)
 import { activateShinobuButterflyCinematic, isShinobuButterflyCinematicActive } from "./shinobuButterflyCinematic.js"   // Shinobu "Butterfly Dance" ultimate cinematic (no cycle)
+import { activateGhostfaceFinalActCinematic, isGhostfaceFinalActCinematicActive } from "./ghostfaceFinalActCinematic.js"   // Ghostface "The Final Act" stab-flurry ultimate cinematic (no cycle)
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
 import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./gonAdultFormCinematic.js"   // Gon Adult Form activation cinematic (no cycle; mirrors Godspeed)
 import { activateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive } from "./hisokaOverdriveCinematic.js"   // Hisoka Bloodlust Overdrive activation cinematic (no cycle; mirrors Godspeed)
 import { resolveGrab, GLOBAL_DAMAGE_SCALE, rekkaContinue } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the shared command-normal cancel gate (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
+import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
 import { pickRickVoice } from "./rickVoice.js"   // Rick special-cast voice pools (audio-only; no cycle)
 import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate cast voice pools (audio-only; no cycle)
 import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajanken/rekka/Final-Blow cast voice pools (audio-only; no cycle)
@@ -40,9 +45,15 @@ import { pickSkinVoice } from "./gojoVoice.js"                    // per-skin vo
 import { pickZenitsuVoice } from "./zenitsuVoice.js"             // Zenitsu Thunder-Breathing / Double-Attack / ultimate cast voice pools (audio-only)
 import { pickRengokuVoice } from "./rengokuVoice.js"            // Rengoku form-callout / concentration / ultimate cast voice pools (audio-only)
 import { pickShinobuVoice } from "./shinobuVoice.js"            // Shinobu poison/dance-cast + ultimate-windup cast voice pools (audio-only)
+import { pickSamuraiVoice } from "./samuraiRedVoice.js"         // Samurai Red Ranger mega/special/finisher/ultimate cast voice pools (audio-only)
+import { pickGoldSamuraiVoice } from "./goldSamuraiRangerVoice.js"   // Gold Samurai Ranger transform/barracuda/fox-claw cast voice pools (audio-only)
+import { pickVegetaVoice } from "./vegetaVoice.js"              // Vegeta Galick/BigBang/FinalFlash/ultimate cast voice pools (audio-only; shared across base/SSJ/Blue)
+import { pickMakiVoice } from "./makiVoice.js"                 // Maki kunai/nunchaku/powerCharge/shibuya-activation cast voice pools (audio-only, JP dub)
+import { pickChrolloVoice } from "./chrolloVoice.js"            // Chrollo Skill Hunter ULTIMATE-activation cast voice pool (audio-only; fires once at transform beat)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
+  spawnShadowClone,      // direct clone spawn with optional position override (Minato Flying Raijin Clones spawn AT marks)
   spawnClonePuff,        // cosmetic smoke poof (reused by Kawarimi — no clone involvement)
   consumeShadowClones    // pop N clones for the multi-clone combo tier (lossy share)
 } from "./summons.js"
@@ -631,6 +642,7 @@ function executeVegetaSpecial(fighter, context) {
   // QCF (D→F) — GALICK GUN: fast + cheapest. SSJ = own gold FX sheet, higher cost/damage.
   if (endsWithPattern(dirs, ["D", "F"])) {
     if (!spendEnergy(fighter, pick(34, 30, 25))) return false
+    if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickVegetaVoice("galickGun"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Galick Gun cast line (audio-only)
     fighter._spriteCastMove  = "galickCast"
     fighter._spriteCastTimer = VG_GALICK_CAST
     fighter.attackCooldown   = getAttackDuration(VG_GALICK_CAST + 6, fighter)
@@ -651,6 +663,7 @@ function executeVegetaSpecial(fighter, context) {
   // + a dedicated explosion sheet that fires ONLY on connect (proj.impact → resolveProjectileHitsMulti).
   if (endsWithPattern(dirs, ["D", "B"])) {
     if (!spendEnergy(fighter, pick(64, 58, 50))) return false
+    if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickVegetaVoice("finalFlash"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Final Flash cast line (audio-only)
     fighter._spriteCastMove  = "charge"          // reuse the power-up pose (SSJ gold / Blue = gold fallback → FLAGGED gap)
     fighter._spriteCastTimer = VG_FINALFLASH_CAST
     fighter.attackCooldown   = getAttackDuration(VG_FINALFLASH_CAST + 12, fighter)
@@ -712,6 +725,7 @@ function executeVegetaSpecial(fighter, context) {
   // NEUTRAL — BIG BANG ATTACK: mid-cost spherical ki blast. SSJ = the base blast RECOLORED GOLD
   // (vegeta_ssj_bigbang_fx, baked hue-shift of the purple base FX), higher cost/damage.
   if (!spendEnergy(fighter, pick(46, 42, 35))) return false
+  if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickVegetaVoice("bigBang"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Big Bang Attack cast line (audio-only)
   fighter._spriteCastMove  = "bigBangCast"     // base cast pose in ALL forms (no SSJ/Blue cast crop → FLAGGED gap)
   fighter._spriteCastTimer = VG_BIGBANG_CAST
   fighter.attackCooldown   = getAttackDuration(VG_BIGBANG_CAST + 8, fighter)
@@ -861,6 +875,7 @@ function executeVegetaUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "vegeta") return false
   if (isVegetaFinalFlashCinematicActive()) return false        // already mid-cinematic
   if (!spendEnergy(fighter, VG_ULT.cost)) return false
+  try { sound.playSfxFile?.(pickVegetaVoice("ultimate"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // Overcharged Final Flash cast line (audio-only; _atkVoiceCd stops the connect-bark double)
   const opp = getTargetResolver(context)(fighter)
   fighter.vx = 0
   activateVegetaFinalFlashCinematic(fighter, opp, (cineCtx) => applyVegetaFinalFlashDamage(fighter, opp, cineCtx))
@@ -1392,10 +1407,117 @@ const NARUTO_FULL_CHARGE_MS  = 600   // hold P ≥ this while pressing Special �
 const NARUTO_BIGBALL_WINDUP  = 14    // scripted growth windup before Big Ball fires
 const NARUTO_SHURIKEN_WINDUP = 20    // longer spin-up windup before Rasenshuriken releases
 
+// ELEVATED (motion-input) — UZUMAKI BARRAGE. A double-quarter-circle-forward (↓→↓→) + Special
+// summons a momentary clone swarm that pummels the target with a guaranteed flurry capped by a
+// launcher. It is CLONE-INDEPENDENT by design (a pure execution reward for the hard input), which
+// is exactly what keeps it distinct from — and additive to — the three clone-COUNT Barrage routes
+// (#16 2-clone / #19 3-clone / contextual Down finisher). Chakra-gated (60); returns false if the
+// gate fails so the caller can fall through to the normal special routes. Reuses the shared
+// guaranteed-hit + delayed-spawn primitives (spawnGuaranteedCloneHit / schedulePendingSpawn), the
+// same building blocks the clone barrages use.
+const NARUTO_UZUMAKI_BARRAGE_COST = 60
+function executeNarutoUzumakiBarrage(fighter, context, target) {
+  if (!target) return false
+  if (!spendEnergy(fighter, NARUTO_UZUMAKI_BARRAGE_COST)) return false
+  sound.playSfxFile("naruto_shadow_clone_special.mp3", null)   // VOICE: "Naruto 2000-Hit Combo!" — reused for the clone-swarm flurry
+  // A short lunge into the target so the swarm reads as an on-point pummel (not a ranged throw).
+  fighter.vx = fighter.facing * 6
+  fighter._spriteCastMove = "rasengan_cast"; fighter._spriteCastTimer = 32
+  // FLURRY: five rapid guaranteed strikes (clone swarm), then a LAUNCHER finisher. Guaranteed hits
+  // overlap the target on spawn so the whole barrage connects on a successful read; combo decay keeps
+  // the effective total in a fair band despite the raw sum.
+  ;[2, 8, 14, 20, 26].forEach((delay) => schedulePendingSpawn(delay, () => {
+    spawnGuaranteedCloneHit(fighter, target, "rasengan",
+      { damage: 42, hitstun: 14, knockbackX: 3, knockbackY: -1, dirSign: fighter.facing, spriteScale: 0.42, lifetime: 10 }, context)
+    shakeCamera(context, 3, 3)
+  }))
+  schedulePendingSpawn(34, () => {   // LAUNCHER cap — pops the target up-and-away
+    spawnGuaranteedCloneHit(fighter, target, "rasengan",
+      { damage: 95, hitstun: 28, knockbackX: 9, knockbackY: -9, dirSign: fighter.facing, spriteScale: 0.6, lifetime: 14 }, context)
+    shakeCamera(context, 7, 7)
+  })
+  fighter.attackCooldown = getAttackDuration(30, fighter)
+  focusCameraOnAction(context, fighter, target, 0.97, 10)
+  return true
+}
+
+// ELEVATED (motion-input) — SHURIKEN-HIDDEN CLONE TECHNIQUE. A double-quarter-circle-back
+// (↓←↓←) + Special throws what reads as a single ordinary projectile (the decoy shuriken/kunai),
+// but a clone is HIDDEN with it: a beat later it poofs in and strikes — a delayed second threat.
+// SHARED by Naruto and Minato (per-owner projectile art below); the reveal reuses the established
+// "clone poofs in and hits" idiom (spawnClonePuff + spawnGuaranteedCloneHit) the clone barrages use.
+// The reveal is a deterministic timed spawn (fires whether the decoy HIT or MISSED), rather than the
+// miss-only projectile onExpire hook, so the hidden clone is a reliable follow-up. Chakra-gated;
+// returns false on a failed gate so the caller falls through.
+const SHURIKEN_CLONE_COST = 35
+// Per-owner decoy look. Naruto reuses the generic spinning-shuriken art (sasuke_shuriken.png — a
+// character-agnostic ninja tool; FLAGGED as shared cross-char art, no Naruto-native shuriken exists);
+// Minato throws his signature kunai (MINATO_CLONE_FX). The reveal STRIKE FX mirrors each owner's
+// clone-hit look (Naruto = default Rasengan sphere; Minato = kunai).
+function shurikenCloneConfig(key) {
+  if (key === "naruto") return {
+    cast: "rasengan_cast",
+    proj: { sheet: "./sasuke_shuriken.png", spriteFrames: 3, spriteW: 52, spriteH: 54, spriteSpeed: 2, spriteScale: 0.8, color: "#d7ecff", w: 26, h: 26 },
+    hit:  { spriteScale: 0.5 }
+  }
+  if (key === "minato") return {
+    cast: "minatoCloneCast",
+    proj: { ...MINATO_CLONE_FX, color: "#facc15", w: 26, h: 16 },
+    hit:  { ...MINATO_CLONE_FX }
+  }
+  return null
+}
+function fireShurikenHiddenClone(fighter, context, target) {
+  if (!target) return false
+  const key = (fighter.rosterKey || "").toLowerCase()
+  const cfg = shurikenCloneConfig(key)
+  if (!cfg) return false
+  if (!spendEnergy(fighter, SHURIKEN_CLONE_COST)) return false
+  const face = fighter.facing
+  fighter._spriteCastMove  = cfg.cast
+  fighter._spriteCastTimer = 16
+  // The VISIBLE single projectile — an ordinary-looking thrown weapon (the decoy).
+  spawnProjectile(fighter, key + "HiddenShuriken", {
+    damage: 40, speed: 15, lifetime: 60, hitstun: 14, knockbackX: 5, knockbackY: 0,
+    spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.4, aimAt: _oppCenter(target),
+    ...cfg.proj
+  }, context)
+  // HIDDEN CLONE reveal — a beat later (as the shuriken reaches the target) it poofs in and strikes.
+  schedulePendingSpawn(16, () => {
+    spawnClonePuff(target.x + (target.w || 0) / 2, target.y + (target.h || 100) * 0.4)
+    spawnGuaranteedCloneHit(fighter, target, key + "HiddenCloneHit",
+      { damage: 72, hitstun: 20, knockbackX: 8, knockbackY: -4, dirSign: face, ...cfg.hit }, context)
+    shakeCamera(context, 5, 5)
+  })
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+  focusCameraOnAction(context, fighter, target, 0.99, 8)
+  return true
+}
+
 function executeNarutoSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
+
+  // ELEVATED motion-input route — SHURIKEN-HIDDEN CLONE (double-QCB ↓←↓←). Checked before the
+  // single-QCB (D→B) clone-dispel below; a double needs 4 tokens so a single ↓← still dispels.
+  // Falls through on a failed gate (→ dispel), keeping the existing route intact.
+  if (detectMotion(fighter, "doubleQcb")) {
+    if (fireShurikenHiddenClone(fighter, context, target)) { clearMotionHistory(fighter); return true }
+  }
+
+  // ELEVATED motion-input route — checked FIRST so a double-QCF history [D,F,D,F] cannot fall
+  // through to the single-QCF (D→F) shadow-clone spawn below. Clone-independent; on a failed gate
+  // (e.g. not enough chakra) it falls through untouched, so every existing route is preserved.
+  if (detectMotion(fighter, "doubleQcf")) {
+    if (executeNarutoUzumakiBarrage(fighter, context, target)) { clearMotionHistory(fighter); return true }
+  }
+
+  // TRANSFORMATION JUTSU — Tier 1 DISGUISE (half-circle-back →↓←). Visual-only henge into the
+  // opponent's appearance; no stat/move change. Motion-input, additive; falls through on a failed gate.
+  if (detectMotion(fighter, "hcb")) {
+    if (fireTransformJutsu(fighter, context, 1)) { clearMotionHistory(fighter); return true }
+  }
 
   // D→F = SHADOW CLONE spawn (Down-Forward + Special). Cap 3; over cap → no-op.
   // No upfront chakra cost — the cost is the pool split (summons.js). Puff on spawn.
@@ -2013,10 +2135,61 @@ function fireReaperDeathSeal(fighter, context) {
   return true
 }
 
+// ELEVATED (motion-input) — FLYING RAIJIN CLONES (Minato). A HALF-CIRCLE-FORWARD (←↓→) + Special,
+// GATED on ≥1 placed Flying Raijin kunai mark: clones materialize AT the marks (via a yellow-flash
+// teleport) rather than beside Minato, each delivering an arrival strike — tying the shadow-clone
+// system directly into his signature mark mechanic. The marks are a spent resource (consumed on use).
+// Returns false when no marks exist, so the caller falls through — additive, never blocking a base
+// route. Reuses spawnShadowClone (positioned at the mark), the mark FX art, and the shared
+// guaranteed-hit + puff primitives.
+// MOTION CHOICE: HCF, NOT double-QCF. Minato's signature F→F double-tap TELEPORTS him to the selected
+// mark (teleportToFlyingRaijinMark) — and this move requires a mark to exist — so a double-QCF's "→→"
+// would blink him onto the mark mid-input and flip his facing. A half-circle has a single forward tap,
+// so it never triggers the blink. (Naruto keeps double-QCF for Uzumaki Barrage; he has no F→F blink.)
+const MINATO_RAIJIN_CLONES_COST = 40
+function fireFlyingRaijinClones(fighter, context, target) {
+  const marks = (fighter._frMarks || []).slice()
+  if (!marks.length) return false                     // gate → fall through to normal clone spawn
+  if (!spendEnergy(fighter, MINATO_RAIJIN_CLONES_COST)) return false
+  const face = fighter.facing
+  fighter._frMarks = []; fighter._frSel = 0           // consume the marks (spent resource)
+  fighter._spriteCastMove = "minatoCloneCast"; fighter._spriteCastTimer = 18
+  marks.forEach((mark, i) => schedulePendingSpawn(i * 5, () => {
+    const my = mark.y ?? fighter.groundY ?? fighter.y
+    spawnClonePuff(mark.x, my)                                                    // arrival poof AT the mark
+    spawnProjectile(fighter, "minatoRaijinFlash", {                              // yellow flash-ring at the mark
+      visualOnly: true, damage: 0, speed: 0, lifetime: 12, w: 40, h: 40, color: "#facc15",
+      sheet: "./minato_yellow_flash_teleport.png", spriteFrames: 1, spriteScale: 1.0,
+      spawnX: mark.x - 20, spawnY: my - 40
+    }, context)
+    spawnShadowClone(fighter, target, { x: mark.x - (fighter.w || 60) / 2, y: my })   // persistent clone body AT the mark (cap-limited)
+    if (target) spawnGuaranteedCloneHit(fighter, target, "minatoKunai",           // the clone's arrival strike
+      { ...MINATO_CLONE_FX, damage: 50, hitstun: 18, knockbackX: 6, knockbackY: -3, dirSign: face }, context)
+    shakeCamera(context, 4, 4)
+  }))
+  fighter.attackCooldown = getAttackDuration(24, fighter)
+  focusCameraOnAction(context, fighter, target, 0.98, 10)
+  return true
+}
+
 function executeMinatoSpecial(fighter, context) {
   const dirs        = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
+
+  // ELEVATED motion-input route — SHURIKEN-HIDDEN CLONE (double-QCB ↓←↓←). Checked before the
+  // single-QCB (D→B) clone-dispel below; a double needs 4 tokens so a single ↓← still dispels.
+  if (detectMotion(fighter, "doubleQcb")) {
+    if (fireShurikenHiddenClone(fighter, context, target)) { clearMotionHistory(fighter); return true }
+  }
+
+  // ELEVATED motion-input route — FLYING RAIJIN CLONES (half-circle-forward ←↓→), gated on ≥1 kunai
+  // mark. HCF (not double-QCF) so the input never contains a forward double-tap, which would otherwise
+  // trigger Minato's F→F teleport-to-mark blink mid-motion. With no marks it falls through so the base
+  // routes (B→F clone rush / D→F spawn) are untouched.
+  if (detectMotion(fighter, "hcf")) {
+    if (fireFlyingRaijinClones(fighter, context, target)) { clearMotionHistory(fighter); return true }
+  }
 
   // D→F = SHADOW CLONE spawn (cap 3; over cap → no-op). No upfront chakra — cost is the pool split.
   if (endsWithPattern(dirs, ["D", "F"])) {
@@ -2252,7 +2425,10 @@ function executeGojoSpecial(fighter, context) {
       spawnProjectile(fighter, "hollowPurple", {
         damage: 200, speed: 10, lifetime: 150,
         hitstun: 32, knockbackX: 14, knockbackY: -4,
-        color: "#c084fc", w: 32, h: 32
+        color: "#c084fc", w: 32, h: 32,
+        // Salvaged Shinjuku-batch orb FX (drawProjectiles sprite hook) — replaces the
+        // procedural purple circle. Uniform-resliced 7f×269×251 blue+red→purple morph.
+        sheet: "./gojo_hollow_purple_orb_fx.png", spriteFrames: 7, spriteW: 269, spriteH: 251, spriteScale: 0.30, spriteSpeed: 5
       }, context)
       fighter._spriteCastMove  = "hollowPurple"   // RELEASE → hollow_purple_cast strip
       fighter._spriteCastTimer = 36
@@ -2272,14 +2448,17 @@ function executeGojoSpecial(fighter, context) {
     fighter._spriteCastTimer = GOJO_CHARGE.red          // full windup play length
     fighter.attackCooldown   = getAttackDuration(GOJO_CHARGE.red + 2, fighter)
     schedulePendingSpawn(GOJO_CHARGE.red, () => {
-      const attack = createAttackFromMove(fighter, "red", {
-        damage: 130, startup: 12, active: 5, recovery: 22,
+      // Red = repulsion-singularity orb PROJECTILE (was a close-range melee burst). Positive
+      // knockbackX shoves the target away (repulsion). Sprite = the salvaged Shinjuku-batch
+      // red orb FX (uniform-resliced 3f×149×149). Release pose still plays the red_cast strip.
+      spawnProjectile(fighter, "red", {
+        damage: 130, speed: 13, lifetime: 120,
         hitstun: 26, knockbackX: 12, knockbackY: -3,
-        rangeX: 90, rangeY: 60
-      })
-      setAttackState(fighter, attack, 26)   // currentMove="red" → red_cast strip
-      fighter._spriteCastMove  = null        // hand off to currentMove
-      fighter._spriteCastTimer = 0
+        color: "#ef4444", w: 22, h: 22,
+        sheet: "./gojo_red_orb_fx.png", spriteFrames: 3, spriteW: 149, spriteH: 149, spriteScale: 0.34, spriteSpeed: 5
+      }, context)
+      fighter._spriteCastMove  = "red"   // RELEASE → red_cast strip (mirrors Blue/Hollow Purple)
+      fighter._spriteCastTimer = 26
       sound.playSfxFile("gojo_red.mp3", null)   // cast/release cue
     })
     focusCameraOnAction(context, fighter, target, 0.98, 10)
@@ -2296,7 +2475,10 @@ function executeGojoSpecial(fighter, context) {
     spawnProjectile(fighter, "blue", {
       damage: 110, speed: 12, lifetime: 110,
       hitstun: 20, knockbackX: -6, knockbackY: -1, // negative = pulls toward Gojo
-      color: "#60a5fa", w: 18, h: 18
+      color: "#60a5fa", w: 18, h: 18,
+      // Salvaged Shinjuku-batch orb FX (drawProjectiles sprite hook) — replaces the
+      // procedural blue circle. Uniform-resliced 3f×152×154 strip.
+      sheet: "./gojo_blue_orb_fx.png", spriteFrames: 3, spriteW: 152, spriteH: 154, spriteScale: 0.34, spriteSpeed: 5
     }, context)
     fighter._spriteCastMove  = "blue"   // RELEASE → blue_cast strip
     fighter._spriteCastTimer = 24
@@ -3164,6 +3346,533 @@ export function updateOmegaRangerCommandCombat(fighter, inputState, context, get
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SAMURAI RED RANGER — Stage 2 command layer: the MERGED tap/hold up-attack + a Toji-Rekka
+// command-normal cancel chain. Both run through updateSamuraiRangerCommandCombat (before the
+// normal path); the built-in grounded up-attack is suppressed for samurai so it never double-fires.
+//
+// MERGED UP-ATTACK (one input I, two power tiers): a quick TAP → samUpTap (fast rising launcher,
+// upattack_1). HOLDING I past SAM_UP_HOLD_FRAMES → samUpHold (a stronger, slower rising attack,
+// upattack_2) fires the instant the threshold is reached; releasing before then fires the tap.
+//
+// FLAME-SLASH CHAIN (Fwd+Heavy opener → re-tap Heavy during recovery, cancel-on-HIT): samRekka1
+// (opening slash) → samRekka2 (crouch-crescent) → samRekkaFin (flaming ground-slash LAUNCHER,
+// string ends). Cancel-on-HIT (Vegeta/Omega pattern): a stage only advances if the prior hit
+// CONNECTED — a block or whiff ends the string there. Each stage is a real, individually-landable
+// attack. FREE (no energy): the chain commits via recovery. Neutral heavy/light/air/down_air stay
+// on the normal path (the Stage-2 normals).
+// ─────────────────────────────────────────────────────────────────────────────
+const SAM_UP_HOLD_FRAMES = 9   // hold the up-attack this many frames → the strong (samUpHold) tier
+const SAMURAI_RANGER_UP = {
+  samUpTap:  { damage: 66,  startup: 6,  active: 4, recovery: 16, hitstun: 20, knockbackX: 3, knockbackY: -12, rangeX: 64, rangeY: 78, launcher: true },   // quick rising launcher
+  samUpHold: { damage: 112, startup: 10, active: 5, recovery: 24, hitstun: 24, knockbackX: 4, knockbackY: -15, rangeX: 72, rangeY: 82, launcher: true },   // charged strong tier
+}
+const SAMURAI_RANGER_CMD = {
+  samRekka1:   { damage: 40, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3,  knockbackY: 0,  rangeX: 82, rangeY: 54, rekkaNext: "samRekka2" },
+  samRekka2:   { damage: 42, startup: 5, active: 4, recovery: 12, hitstun: 15, knockbackX: 4,  knockbackY: 0,  rangeX: 86, rangeY: 56, rekkaNext: "samRekkaFin" },
+  samRekkaFin: { damage: 82, startup: 7, active: 4, recovery: 22, hitstun: 24, knockbackX: 10, knockbackY: -8, rangeX: 92, rangeY: 58, launcher: true },   // flaming launcher — string ends here
+}
+
+function fireSamuraiRangerMove(fighter, key) {
+  const md = SAMURAI_RANGER_CMD[key] || SAMURAI_RANGER_UP[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.currentMove   = key                 // drives sprite.js identity resolution
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"             // the flame chain advances on Heavy
+  fighter._cmdHitLanded = false               // latched true only on a real (non-blocked) hit → gates the cancel
+  // SPIN SWORD / base-weapon cast voice — only on the Flame-Chain FINISHER (the sword combo-ender). The
+  // opener stages stay silent. _atkVoiceCd so the finisher's connect doesn't ALSO fire the offense bark.
+  if (key === "samRekkaFin") {   // combo-ender voice, CHAR-AWARE: Red = fire spin-sword, Gold = "Fierce Fox Claw"
+    const rk = (fighter.rosterKey || "").toLowerCase()
+    if (rk === "samurai_red_ranger") { try { sound.playSfxFile?.(pickSamuraiVoice("spinSword"), null); fighter._atkVoiceCd = 150 } catch (_) {} }
+    else if (rk === "gold_samurai_ranger") { try { sound.playSfxFile?.(pickGoldSamuraiVoice("foxClaw"), null); fighter._atkVoiceCd = 150 } catch (_) {} }
+  }
+  return true
+}
+
+// Per-frame Samurai Red Ranger driver (merged up-attack + flame chain). Returns true (→ caller
+// skips the normal path this frame) only when it actually fires a move.
+// Both Samurai Rangers (Red + Gold) share this command-combat handler. Red also has a MERGED grounded
+// up-attack (tap/hold) → its built-in up is suppressed (game.js) and driven here; Gold uses a SINGLE
+// standard up-attack (its up is NOT suppressed), so the merged-up branch is gated to Red only. The
+// Fwd+Heavy rekka chain runs for BOTH (identical logic, each ranger's own sprites via animationData).
+const SAMURAI_RANGER_KEYS = new Set(["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"])
+export function updateSamuraiRangerCommandCombat(fighter, inputState, context, getPhase) {
+  const rk = (fighter?.rosterKey || "").toLowerCase()
+  if (!fighter || !SAMURAI_RANGER_KEYS.has(rk) || !inputState) return false
+  const mergedUp = rk === "samurai_red_ranger"   // Gold has no merged tap/hold up-attack
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase = getPhase?.(fighter)
+
+  // Press-EDGE of Heavy (fresh tap, not held/buffered) — a rekka needs a clean re-tap.
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+
+  // REKKA CONTINUE — fresh Heavy during the current hit's RECOVERY, only if it CONNECTED. Shared
+  // rekkaContinue owns the connect-latch, window-close and cancel rule (see combat.js).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireSamuraiRangerMove(fighter, next)
+
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart) { fighter._samUpPrev = !!inputState.upAttack; if (!inputState.upAttack) fighter._samUpHold = 0; return false }
+
+  // MERGED UP-ATTACK (grounded): count how long I is held. Reaching SAM_UP_HOLD_FRAMES fires the
+  // strong tier immediately; releasing before then fires the quick tap. (Airborne up-attack is left
+  // to the normal path — this merger is a grounded launcher.)
+  if (grounded && mergedUp) {
+    const upHeld = !!inputState.upAttack
+    const upPrev = !!fighter._samUpPrev
+    fighter._samUpPrev = upHeld
+    if (upHeld) {
+      fighter._samUpHold = (fighter._samUpHold || 0) + 1
+      if (fighter._samUpHold >= SAM_UP_HOLD_FRAMES) { fighter._samUpHold = 0; return fireSamuraiRangerMove(fighter, "samUpHold") }
+      return false   // still deciding tap-vs-hold — hold the input this frame
+    } else if (upPrev && (fighter._samUpHold || 0) > 0) {
+      fighter._samUpHold = 0
+      return fireSamuraiRangerMove(fighter, "samUpTap")   // released before threshold → quick tap
+    }
+    fighter._samUpHold = 0
+  }
+
+  // FLAME CHAIN opener: Fwd+Heavy. Neutral heavy stays the normal (heavy) on the normal path.
+  if (grounded && forward && heavyEdge) return fireSamuraiRangerMove(fighter, "samRekka1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SAMURAI RED RANGER — MEGA MODE (Stage 3): a full VEGETA-STYLE TIER-SWAP (NOT an overlay).
+// Activating it swaps fighter._skinAnim to SAMURAI_MEGA_ANIM (every move now renders its Mega sheet,
+// via sprite.js's `_skinAnim?.[action] || animationData?.[action]` fallback) AND applies a flat tier
+// damage/speed/defense multiplier — so EVERY move (idle/walk/jump/hit/guard/normals/command chain/
+// ultimate) is higher-damage Mega art for the form's duration. Same machinery as Vegeta's base→SSJ.
+//
+// INPUT: hold P to build Symbol Power; RELEASE at/above the threshold → Mega Mode (mirrors Vegeta's
+// charge-release). A quick TAP while transformed reverts early. Sustained per-frame drain → auto-revert
+// at empty (applySamuraiFormSystem). The transformation plays a locked in-place MORPH: the silhouette
+// darkens while the 火 calligraphy is brush-drawn ALONGSIDE him (game.js drawSamuraiMegaTransform), then
+// both RESOLVE into the Mega form on a flash. (The upload has NO 超 calligraphy in real frame content —
+// only 火 — so per project discipline we render only what exists.)
+//
+// Any action WITHOUT dedicated Mega art (e.g. `air` — no mega air sheet in the batch) falls through to
+// the base sheet automatically; that's the intended _skinAnim fallback, flagged not fabricated.
+// ─────────────────────────────────────────────────────────────────────────────
+const SAMURAI_MEGA_THRESHOLD = 90    // Symbol Power needed to transform (maxEnergy 160)
+const SAMURAI_MEGA_DRAIN     = 0.30  // per-frame sustained drain → ~8.9s from full
+const SAMURAI_MEGA_MORPH     = 42    // locked morph frames (~0.7s)
+const SAMURAI_MEGA_RESOLVE   = 16    // frames-remaining at which base→Mega art + stats resolve (the flash)
+const SAMURAI_MEGA_MULT      = { dmg: 1.35, spd: 1.05, def: 1.08 }
+// Both Samurai Rangers share the Mega-Mode tier-swap machinery (enter/revert/form-system/morph). The
+// per-char art is chosen inside applySamuraiMegaStats (mega anim) + drawSamuraiMegaTransform (symbol).
+// NOTE: the fire SPECIAL/ULTIMATE (executeSamuraiRanger*) also call this, but Gold is not dispatched to
+// them (game.js special/ultimate switch is per-rosterKey) until Gold gets its OWN Stage-4/5 wiring.
+const isSamuraiRanger = (f) => SAMURAI_RANGER_KEYS.has((f?.rosterKey || "").toLowerCase())
+export function samuraiIsMega(f) { return !!f?._megaActive && !!f?._megaArtApplied }   // TRUE once resolved (gates Mega-only Flame Slash in Stage 4)
+
+// FULL Mega-tier form anim (all RE-SLICED from copies). Keys mirror the base animationData; sprite.js
+// falls back to base for any key omitted here (air). light/heavy are windows of the single mega_combo
+// sheet (the batch has no mega combo_2); the command chain reuses mega_combo + the mega flame string.
+const SAMURAI_MEGA_ANIM = {
+  idle:  { frames: 4, width: 28, height: 62, speed: 6, anchorY: 0, sheet: "./samurai_ranger_mega_idle_uniform.png" },
+  walk:  { frames: 8, width: 46, height: 61, speed: 6, anchorY: 0, sheet: "./samurai_ranger_mega_walk_uniform.png" },
+  run:   { frames: 8, width: 46, height: 61, speed: 4, anchorY: 0, sheet: "./samurai_ranger_mega_walk_uniform.png" },
+  dash:  { frames: 8, width: 46, height: 61, speed: 3, anchorY: 0, sheet: "./samurai_ranger_mega_walk_uniform.png" },
+  jump:  { frames: 6, width: 36, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_jump_uniform.png" },
+  fall:  { frames: 6, width: 36, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_jump_uniform.png" },
+  hurt:  { frames: 2, width: 39, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_hit_uniform.png" },
+  guard: { frames: 3, width: 30, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_guard_uniform.png" },
+  light:    { frames: 4, width: 77, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_combo_uniform.png" },
+  heavy:    { frames: 6, width: 77, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_combo_uniform.png" },
+  grab:     { frames: 4, width: 77, height: 69, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_combo_uniform.png" },
+  down_air: { frames: 7, width: 63, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_downattack_uniform.png" },
+  samUpTap:  { frames: 8,  width: 69, height: 118, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_upattack_1_uniform.png" },
+  samUpHold: { frames: 14, width: 93, height: 91,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_upattack_2_uniform.png" },
+  samRekka1:   { frames: 13, width: 77, height: 69, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_combo_uniform.png" },
+  samRekka2:   { frames: 13, width: 77, height: 69, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_combo_uniform.png" },
+  samRekkaFin: { frames: 18, width: 77, height: 77, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_downattack_2_uniform.png" },
+  // MEGA-ONLY Flame Slash cast pose (Stage 4). Lives ONLY in the Mega form set — there is no base-tier
+  // art for it, matching the Mega-exclusive gate in executeSamuraiRangerSpecial.
+  flameSlash: { frames: 13, width: 91, height: 75, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_flameslash_uniform.png" },
+  // MEGA-TIER ULTIMATE art (Stage 5) — overrides the base `ultimate` key so a transformed cast renders
+  // the higher-power Mega barrage. Same move, tier-dependent presentation (+ higher damage, applied by
+  // applySamuraiUltimateDamage reading _megaActive). The 6 Mega specialattack parts stitched + resliced.
+  ultimate: { frames: 55, width: 164, height: 108, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_mega_ultimate_uniform.png" }
+}
+
+// GOLD Samurai Ranger's Mega-tier form anim (own art — the gold-armored Super Samurai). Same key shape
+// as Red's SAMURAI_MEGA_ANIM; sprite.js falls back to Gold's BASE anim for any omitted key. Sliced per-row
+// from samurai_ranger_gold_mega_mode_attacks.png (COPIES). No merged up-attack (Gold uses a single up).
+const GOLD_MEGA_ANIM = {
+  idle:  { frames: 4, width: 32, height: 58,  speed: 6, anchorY: 0, sheet: "./samurai_ranger_gold_mega_mode_idle_uniform.png" },
+  walk:  { frames: 8, width: 46, height: 54,  speed: 6, anchorY: 0, sheet: "./samurai_ranger_gold_mega_mode_run_uniform.png" },
+  run:   { frames: 8, width: 46, height: 54,  speed: 4, anchorY: 0, sheet: "./samurai_ranger_gold_mega_mode_run_uniform.png" },
+  dash:  { frames: 8, width: 46, height: 54,  speed: 3, anchorY: 0, sheet: "./samurai_ranger_gold_mega_mode_run_uniform.png" },
+  jump:  { frames: 6, width: 29, height: 60,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_mode_bjump_uniform.png" },
+  fall:  { frames: 6, width: 29, height: 60,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_mode_bjump_uniform.png" },
+  hurt:  { frames: 3, width: 54, height: 69,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_mode_hurt_uniform.png" },
+  guard: { frames: 3, width: 37, height: 57,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_guard_uniform.png" },
+  light:    { frames: 4,  width: 131, height: 74,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_slash_uniform.png" },
+  heavy:    { frames: 6,  width: 131, height: 74,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_slash_uniform.png" },
+  up:       { frames: 8,  width: 116, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_rising_uniform.png" },
+  air:      { frames: 7,  width: 53,  height: 58,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_aerial_uniform.png" },
+  down_air: { frames: 5,  width: 53,  height: 58,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_aerial_uniform.png" },
+  grab:     { frames: 4,  width: 131, height: 74,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_slash_uniform.png" },
+  samRekka1:   { frames: 9,  width: 131, height: 74,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_slash_uniform.png" },
+  samRekka2:   { frames: 9,  width: 116, height: 100, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_rising_uniform.png" },
+  samRekkaFin: { frames: 10, width: 110, height: 108, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_launcher_uniform.png" },
+  lightSlash:  { frames: 8,  width: 110, height: 108, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_launcher_uniform.png" },  // Mega-tier slash-wave cast pose
+  ultimate:    { frames: 10, width: 110, height: 108, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_gold_mega_launcher_uniform.png" }   // Mega-tier ULTIMATE barrage art (Stage 5)
+}
+// GREEN Samurai Ranger's Mega-tier form anim (own art — the DEEPER-GREEN "power/mega" Forest form).
+// RESOLVED the power_mode-vs-mega_mode question: a palette compare (base green R≈55-62 vs power_mode +
+// mega_mode R≈38-39) proved they are the SAME transformed tier, just split across differently-named
+// sheets — so the Mega tier draws idle/jump from `power_mode_*` and combat from `mega_mode_*`. Same key
+// shape as Red/Gold; sprite.js falls back to Green's BASE anim for any omitted key (air/hurt/down_air —
+// the batch has no dedicated Mega art for those, flagged not fabricated). Single up-attack (like Gold).
+const GREEN_MEGA_ANIM = {
+  idle:  { frames: 4, width: 30, height: 62, speed: 6, anchorY: 0, sheet: "./samurai_ranger_forest_mega_idle_uniform.png" },
+  walk:  { frames: 8, width: 58, height: 54, speed: 6, anchorY: 0, sheet: "./samurai_ranger_forest_mega_run_uniform.png" },
+  run:   { frames: 8, width: 58, height: 54, speed: 4, anchorY: 0, sheet: "./samurai_ranger_forest_mega_run_uniform.png" },
+  dash:  { frames: 8, width: 58, height: 54, speed: 3, anchorY: 0, sheet: "./samurai_ranger_forest_mega_run_uniform.png" },
+  jump:  { frames: 6, width: 36, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_jump_uniform.png" },
+  fall:  { frames: 6, width: 36, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_jump_uniform.png" },
+  guard: { frames: 4, width: 41, height: 70, speed: 6, anchorY: 0, sourceX: 164, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_guard_uniform.png" }, // clean crouch (skip shield-FX frames)
+  light:    { frames: 4,  width: 68, height: 73, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_slash_uniform.png" },
+  heavy:    { frames: 6,  width: 77, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_lunge_uniform.png" },
+  up:       { frames: 8,  width: 69, height: 117, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_rising_uniform.png" },
+  grab:     { frames: 4,  width: 68, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_slash_uniform.png" },
+  samRekka1:   { frames: 12, width: 68, height: 73, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_slash_uniform.png" },
+  samRekka2:   { frames: 13, width: 77, height: 69, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_lunge_uniform.png" },
+  samRekkaFin: { frames: 21, width: 93, height: 91, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_launcher_uniform.png" }, // pink-ring → green leaf-storm super
+  // MEGA-tier FOREST SPEAR cast pose (Stage 4) — overrides the base forestSpear key so a transformed cast
+  // renders the deeper-green mega spear-thrust art. The special itself is usable in both tiers (tier-scaling).
+  forestSpear: { frames: 13, width: 83, height: 70, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_spear_cast_uniform.png" },
+  // MEGA-tier ULTIMATE art (Stage 5) — overrides the base `ultimate` key so a transformed cast renders the
+  // higher-power Mega leaf-storm barrage (pink-ring → green leaf-storm super). Same move, tier presentation.
+  ultimate: { frames: 21, width: 93, height: 91, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_launcher_uniform.png" }
+}
+// Per-character Mega form anim: applySamuraiMegaStats swaps in the caster's OWN mega art.
+const SAMURAI_MEGA_ANIM_BY_KEY = { samurai_red_ranger: SAMURAI_MEGA_ANIM, gold_samurai_ranger: GOLD_MEGA_ANIM, green_samurai_ranger: GREEN_MEGA_ANIM }
+
+function applySamuraiMegaStats(fighter) {
+  const anim = SAMURAI_MEGA_ANIM_BY_KEY[(fighter.rosterKey || "").toLowerCase()] || SAMURAI_MEGA_ANIM
+  // Mega tier carries the ACTIVE SKIN: retag the Mega sheets to the fighter's recolor tag so an alt skin
+  // stays consistent THROUGH the transform (base blue → Mega blue, not base blue → Mega red). No tag
+  // (default) → retagFormAnim returns the canonical `anim` unchanged. The 12 Red creative skins
+  // (tools/gen_samurai_creative.py) ship recolored __<tag> Mega sheets + carry recolorTag in skins.js.
+  fighter._skinAnim         = retagFormAnim(anim, fighter._recolorTag)
+  fighter.damageMultiplier  = SAMURAI_MEGA_MULT.dmg
+  fighter.attackMultiplier  = SAMURAI_MEGA_MULT.dmg
+  fighter.speedMultiplier   = SAMURAI_MEGA_MULT.spd
+  fighter.defenseMultiplier = SAMURAI_MEGA_MULT.def
+  fighter.currentFormData   = fighter.transformations?.megaMode || fighter.currentFormData   // updateTransformationState re-applies this each frame (Vegeta gotcha)
+}
+
+// Enter Mega Mode: gated on samurai + not already Mega + actionable + Symbol Power ≥ threshold. Starts
+// the locked morph; art + stats resolve partway through (the flash), NOT at entry, so the silhouette
+// visibly darkens on the BASE body first and only THEN swaps to the Mega form.
+export function enterSamuraiMega(fighter, context = {}) {
+  if (!isSamuraiRanger(fighter) || fighter._megaActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < SAMURAI_MEGA_THRESHOLD) return false
+  fighter._megaActive     = true
+  fighter._megaArtApplied = false
+  fighter._megaMorphTimer = SAMURAI_MEGA_MORPH
+  fighter._megaMorphTotal = SAMURAI_MEGA_MORPH
+  fighter.currentForm     = "megaMode"          // HUD/state
+  fighter.attackCooldown  = SAMURAI_MEGA_MORPH   // fully locked while morphing
+  fighter.vx = 0
+  fighter.teleportFlash   = Math.max(fighter.teleportFlash || 0, 10)
+  // MEGA MODE activation voice — fires at the ACTIVATION beat (silhouette darken + calligraphy symbol),
+  // BEFORE the morph resolves the Mega art/stats (applySamuraiFormSystem's flash). CHAR-AWARE: Gold speaks
+  // his own "Samurai Morpher! Gold power!" (transformCast), Red his fire "Mega Mode Power!" — no cross-VA.
+  try {
+    const rk = (fighter.rosterKey || "").toLowerCase()
+    // CHAR-AWARE, no cross-VA leak: Gold speaks his own transformCast, Red his fire megaMode. Green has
+    // no voice pack yet → SILENT (do NOT fall through to Red's clip). Wire a green clip in a later voice stage.
+    const clip = rk === "gold_samurai_ranger" ? pickGoldSamuraiVoice("transformCast")
+               : rk === "samurai_red_ranger"  ? pickSamuraiVoice("megaMode")
+               : null
+    if (clip) { sound.playSfxFile?.(clip, null, { owner: fighter }); fighter._atkVoiceCd = 150 }   // owned → the transform-complete line (fired later, outside the owner window) can stop this if it's still tailing
+  } catch (_) {}
+  return true
+}
+
+// Revert to base: clear the flag + art swap + multipliers (mirrors revertVegetaSSJ).
+export function revertSamuraiMega(fighter) {
+  if (!fighter || !fighter._megaActive) return
+  fighter._megaActive       = false
+  fighter._megaArtApplied   = false
+  fighter._megaMorphTimer   = 0
+  fighter._skinAnim         = fighter._baseSkinAnim || null
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = 1
+  fighter.attackMultiplier  = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+
+// Per-frame hook (updateFighterState): drives the morph resolve, then continuous drain + auto-revert.
+export function applySamuraiFormSystem(fighter) {
+  if (!isSamuraiRanger(fighter) || !fighter._megaActive) return
+  if ((fighter._megaMorphTimer || 0) > 0) {
+    fighter._megaMorphTimer--
+    fighter.vx = 0                                // stay planted during the locked morph
+    if (!fighter._megaArtApplied && fighter._megaMorphTimer <= SAMURAI_MEGA_RESOLVE) {
+      fighter._megaArtApplied = true             // RESOLVE: base→Mega art + tier stats, on a flash
+      applySamuraiMegaStats(fighter)
+      fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
+    }
+    // TRANSFORM-COMPLETE voice (Gold only) — fires exactly once, the frame the locked morph fully ends
+    // (timer just hit 0), i.e. AFTER the reveal flash: "Gold is good to go!" confirms Mega Mode is active.
+    if (fighter._megaMorphTimer <= 0 && (fighter.rosterKey || "").toLowerCase() === "gold_samurai_ranger") {
+      // owner:fighter — this hook runs OUTSIDE the _voiceOwner window (updateFighterState, not
+      // _updatePlayerCombatBody), so pass the owner explicitly → this stops the activation line if it's
+      // still playing (single voice channel: 001 never stacks on 000).
+      try { sound.playSfxFile?.(pickGoldSamuraiVoice("transformDone"), null, { owner: fighter }) } catch (_) {}
+    }
+    return
+  }
+  // Sustained drain → instant auto-revert at empty.
+  fighter.energy = Math.max(0, (fighter.energy || 0) - SAMURAI_MEGA_DRAIN)
+  if ((fighter.energy || 0) <= 0) revertSamuraiMega(fighter)
+}
+
+// FLAME SLASH (Stage 4) — SPECIAL button, MEGA-MODE-EXCLUSIVE. A rising flame-sword slash (launcher)
+// into a DOUBLE-BURST: two forward flame crescents fired on the swing's release beats. GATED HARD on
+// samuraiIsMega — in base form there is NO art and the input is a no-op (returns false → the special
+// button does nothing), because the batch ships no base-tier Flame Slash art (flagged, not fabricated).
+// Costs 35 Symbol Power (on top of Mega Mode's own sustained drain).
+export function executeSamuraiRangerSpecial(fighter, context) {
+  if (!isSamuraiRanger(fighter)) return false
+  if (!samuraiIsMega(fighter)) return false                       // ← the Mega-only gate (base form: no-op)
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 35)) return false
+  const md = { damage: 120, startup: 7, active: 5, recovery: 20, hitstun: 24, blockstun: 14, knockbackX: 6, knockbackY: -13, rangeX: 86, rangeY: 76, launcher: true, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "flameSlash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "flameSlash" → the cast pose
+  fighter.vx = (fighter.facing || 1) * 3                          // small lunge into the rising slash
+  shakeCamera(context, 5, 8)
+  // FIRE SMASHER (Flame Slash) cast voice — random pick; _atkVoiceCd so the connect doesn't ALSO bark.
+  try { sound.playSfxFile?.(pickSamuraiVoice("fireSmasher"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  // DOUBLE-BURST — two forward flame crescents on the swing's release beats (own collision, isSpecial).
+  const spawnBurst = (dmg) => spawnProjectile(fighter, "samurai_flameburst", {
+    sheet: "./samurai_ranger_flameburst_uniform.png", spriteFrames: 12, spriteW: 57, spriteH: 75, spriteSpeed: 2, spriteScale: 1.3,
+    damage: dmg, speed: 12, lifetime: 70, hitstun: 16, knockbackX: 7, knockbackY: -3,
+    w: 40, h: 46, color: "#ff7a1a", isSpecial: true, spawnY: fighter.y + (fighter.h || 100) * 0.4
+  }, context)
+  schedulePendingSpawn(11, () => { spawnBurst(48); shakeCamera(context, 3, 5) })
+  schedulePendingSpawn(17, () => spawnBurst(42))
+  return true
+}
+
+// GOLD SAMURAI RANGER — LIGHT SLASH (Stage 4 special, SPECIAL button). A forward Barracuda-Blade swing
+// that HURLS a light energy slash-wave (a katana sword-beam) with its OWN independent projectile collision,
+// distinct from Gold's melee normals. NO bow/arrow art exists on disk (confirmed by the asset-map scan), so
+// this is the strongest real projectile candidate — built from Gold's actual blue slash-arc FX. Usable in
+// BOTH tiers (unlike Red's Mega-only Flame Slash): TIER-SCALING — Mega Mode throws a bigger, faster,
+// harder-hitting wave and renders the gold-armored cast art (via _skinAnim). Costs 35 Symbol Power.
+export function executeGoldSamuraiSpecial(fighter, context) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "gold_samurai_ranger") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 35)) return false
+  const mega = !!fighter._megaActive
+  const md = { damage: mega ? 120 : 90, startup: 8, active: 5, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 6, knockbackY: -3, rangeX: 40, rangeY: 40, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "lightSlash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "lightSlash" → the cast pose
+  fighter.vx = (fighter.facing || 1) * 3                                   // small lunge into the swing
+  shakeCamera(context, 4, 6)
+  // BARRACUDA BLADE cast voice — direct technique-name match. Random pick; _atkVoiceCd so the connect
+  // doesn't ALSO trigger the offense bark (no cast+connect double — the Red discipline).
+  try { sound.playSfxFile?.(pickGoldSamuraiVoice("barracuda"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  // The light slash-wave — Gold's OWN extracted slash-arc FX, its own collision (isSpecial). Fired on the
+  // swing's release beat. Mega tier: bigger box, faster, more damage + reach.
+  const waveDmg = mega ? 96 : 72
+  schedulePendingSpawn(md.startup + 2, () => {
+    spawnProjectile(fighter, "gold_light_slashwave", {
+      sheet: "./samurai_ranger_gold_slashwave_uniform.png", spriteFrames: 5, spriteW: 97, spriteH: 77, spriteSpeed: 2, spriteScale: mega ? 1.5 : 1.2,
+      damage: waveDmg, speed: mega ? 15 : 12, lifetime: mega ? 80 : 70, hitstun: 20, knockbackX: 8, knockbackY: -3,
+      w: mega ? 54 : 44, h: mega ? 54 : 46, color: "#5aa8ff", isSpecial: true, spawnY: fighter.y + (fighter.h || 100) * 0.4
+    }, context)
+    shakeCamera(context, 3, 5)
+  })
+  return true
+}
+
+// GREEN Samurai Ranger — FOREST SPEAR (Stage 4): the character's REAL extended-reach weapon (a naginata,
+// confirmed by the alpha-gutter scan — neither Red nor Gold has it). Modelled on Gold's projectile special
+// (both tiers, tier-scaling) but with the SPEAR IDENTITY baked in: a LONG-REACH melee thrust (rangeX 100
+// vs the melee normals' ~68-92) that ALSO hurls a travelling leaf-energy blast wave. Green has no voice
+// pack yet → SILENT (no cross-VA leak). Cast pose = the spear-thrust sheet (base) / mega spear (Mega).
+export function executeGreenSamuraiSpecial(fighter, context) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "green_samurai_ranger") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 35)) return false
+  const mega = !!fighter._megaActive
+  // EXTENDED-REACH melee thrust — rangeX 100 deliberately out-reaches every melee normal (the spear payoff).
+  const md = { damage: mega ? 120 : 90, startup: 9, active: 5, recovery: 22, hitstun: 22, blockstun: 12, knockbackX: 6, knockbackY: -2, rangeX: 100, rangeY: 46, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "forestSpear", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "forestSpear" → the spear-thrust cast pose
+  fighter.vx = (fighter.facing || 1) * 3                                   // small lunge into the thrust
+  shakeCamera(context, 4, 6)
+  // The leaf-energy blast wave — Green's OWN extracted projectile FX, its own collision (isSpecial). Fired
+  // on the thrust's release beat. Mega tier: bigger box, faster, more damage + reach.
+  const waveDmg = mega ? 96 : 72
+  schedulePendingSpawn(md.startup + 2, () => {
+    spawnProjectile(fighter, "forest_spear_wave", {
+      sheet: "./samurai_ranger_forest_spear_wave_uniform.png", spriteFrames: 12, spriteW: 57, spriteH: 75, spriteSpeed: 2, spriteScale: mega ? 1.5 : 1.2,
+      damage: waveDmg, speed: mega ? 15 : 12, lifetime: mega ? 80 : 70, hitstun: 20, knockbackX: 8, knockbackY: -3,
+      w: mega ? 54 : 46, h: mega ? 58 : 50, color: "#6bc34a", isSpecial: true, spawnY: fighter.y + (fighter.h || 100) * 0.4
+    }, context)
+    shakeCamera(context, 3, 5)
+  })
+  return true
+}
+
+// ULTIMATE (Stage 5) — "Fire Smasher: Blazing Strike", a freeze-cinematic flaming-saber barrage.
+// TIER-SCALING: the cinematic plays the caster's OWN `ultimate` sprite, which resolves to the BASE strip
+// untransformed and the MEGA strip in Mega Mode (via _skinAnim). The DAMAGE scales the same way here.
+const SAMURAI_ULT_BASE_DMG = 340
+const SAMURAI_ULT_MEGA_DMG = 460   // ≈ base × 1.35, matching the Mega tier relationship
+function applySamuraiUltimateDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const mega = !!fighter?._megaActive
+  let dmg = mega ? SAMURAI_ULT_MEGA_DMG : SAMURAI_ULT_BASE_DMG
+  dmg = Math.round(dmg * (fighter?._ultDamageMult ?? 1))   // Morpher Call-In assist scaling (1 = normal self-cast)
+  if (opp.isBlocking) {
+    dmg = Math.round(dmg * 0.25)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 40)
+    opp.vx = (fighter.facing || 1) * 13; opp.vy = -7            // blasted away by the flame barrage
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2, ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 22, maxTimer: 22,
+      category: opp.isBlocking ? "light" : "ultimate",
+      color: opp.isBlocking ? null : "#ff6a1a",
+      damage: dmg, lines: opp.isBlocking ? 6 : 20, radius: opp.isBlocking ? 14 : 56,
+      ...(opp.isBlocking ? { isBlocking: true } : {})
+    })
+  }
+}
+
+const SAMURAI_ULT_COST = 100
+export function executeSamuraiRangerUltimate(fighter, context) {
+  if (!isSamuraiRanger(fighter)) return false
+  if (isSamuraiFlameSmasherCinematicActive()) return false     // already mid-cinematic
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SAMURAI_ULT_COST)) return false
+  const opp = context?.getOpponent?.(fighter) || null
+  fighter.vx = 0
+  // ULTIMATE ("Fire Smasher: Blazing Strike") cast voice — fires at ACTIVATION/windup, BEFORE the
+  // freeze-cinematic's guaranteed-damage STRIKE beat. _atkVoiceCd so no connect double. Random pick.
+  try { sound.playSfxFile?.(pickSamuraiVoice("ultimate"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  activateSamuraiFlameSmasherCinematic(fighter, opp, (cineCtx) => applySamuraiUltimateDamage(fighter, opp, cineCtx))
+  return true
+}
+
+// GOLD SAMURAI RANGER — "Barracuda Blade: Light Finale" ULTIMATE (Stage 5). REUSES Red's proven
+// freeze-cinematic architecture (activateSamuraiFlameSmasherCinematic — same timeline / camera / STRIKE
+// beat / _skinAnim tier art) but with Gold's OWN light-saber barrage sprite + a LIGHT (gold) FX palette
+// (drawSamuraiFlameSmasherCinematic branches on rosterKey). TIER-SCALING, exactly like Red: the cinematic
+// plays the caster's `ultimate` sprite (BASE launcher art untransformed, MEGA launcher art in Mega Mode
+// via _skinAnim) and the DAMAGE scales the same way (base 340 / Mega 460) at the guaranteed STRIKE beat.
+const GOLD_ULT_BASE_DMG = 340
+const GOLD_ULT_MEGA_DMG = 460   // ≈ base × 1.35, matching the Mega tier relationship
+function applyGoldSamuraiUltimateDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const mega = !!fighter?._megaActive
+  let dmg = mega ? GOLD_ULT_MEGA_DMG : GOLD_ULT_BASE_DMG
+  dmg = Math.round(dmg * (fighter?._ultDamageMult ?? 1))   // Morpher Call-In assist scaling (1 = normal self-cast)
+  if (opp.isBlocking) {
+    dmg = Math.round(dmg * 0.25)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 40)
+    opp.vx = (fighter.facing || 1) * 13; opp.vy = -7
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)   // GUARANTEED sure-hit (range-independent)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2, ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 22, maxTimer: 22,
+      category: opp.isBlocking ? "light" : "ultimate",
+      color: opp.isBlocking ? null : "#ffe27a",       // LIGHT gold burst (not fire)
+      damage: dmg, lines: opp.isBlocking ? 6 : 20, radius: opp.isBlocking ? 14 : 56,
+      ...(opp.isBlocking ? { isBlocking: true } : {})
+    })
+  }
+}
+export function executeGoldSamuraiUltimate(fighter, context) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "gold_samurai_ranger") return false
+  if (isSamuraiFlameSmasherCinematicActive()) return false     // shares the freeze cinematic with Red
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SAMURAI_ULT_COST)) return false
+  const opp = context?.getOpponent?.(fighter) || null
+  fighter.vx = 0
+  activateSamuraiFlameSmasherCinematic(fighter, opp, (cineCtx) => applyGoldSamuraiUltimateDamage(fighter, opp, cineCtx))
+  return true
+}
+
+// GREEN SAMURAI RANGER — "Forest Spear: Verdant Storm" ULTIMATE (Stage 5). REUSES Red/Gold's proven
+// freeze-cinematic architecture (activateSamuraiFlameSmasherCinematic — same timeline/camera/STRIKE beat/
+// _skinAnim tier art) with Green's OWN leaf-storm barrage sprite + a FOREST (leaf-green) FX palette
+// (drawSamuraiFlameSmasherCinematic branches on rosterKey). TIER-SCALING exactly like Red/Gold: the
+// cinematic plays the caster's `ultimate` sprite (BASE launcher untransformed, MEGA launcher in Mega Mode
+// via _skinAnim) and the DAMAGE scales the same way (base 340 / Mega 460) at the guaranteed STRIKE beat.
+const GREEN_ULT_BASE_DMG = 340
+const GREEN_ULT_MEGA_DMG = 460   // ≈ base × 1.35, matching the Mega tier relationship
+function applyGreenSamuraiUltimateDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const mega = !!fighter?._megaActive
+  let dmg = mega ? GREEN_ULT_MEGA_DMG : GREEN_ULT_BASE_DMG
+  dmg = Math.round(dmg * (fighter?._ultDamageMult ?? 1))   // Morpher Call-In assist scaling (1 = normal self-cast)
+  if (opp.isBlocking) {
+    dmg = Math.round(dmg * 0.25)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 40)
+    opp.vx = (fighter.facing || 1) * 13; opp.vy = -7
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46)
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)   // GUARANTEED sure-hit (range-independent)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2, ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 22, maxTimer: 22,
+      category: opp.isBlocking ? "light" : "ultimate",
+      color: opp.isBlocking ? null : "#6bdd52",       // FOREST leaf-green burst (not fire/gold)
+      damage: dmg, lines: opp.isBlocking ? 6 : 20, radius: opp.isBlocking ? 14 : 56,
+      ...(opp.isBlocking ? { isBlocking: true } : {})
+    })
+  }
+}
+export function executeGreenSamuraiUltimate(fighter, context) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "green_samurai_ranger") return false
+  if (isSamuraiFlameSmasherCinematicActive()) return false     // shares the freeze cinematic with Red/Gold
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SAMURAI_ULT_COST)) return false
+  const opp = context?.getOpponent?.(fighter) || null
+  fighter.vx = 0
+  activateSamuraiFlameSmasherCinematic(fighter, opp, (cineCtx) => applyGreenSamuraiUltimateDamage(fighter, opp, cineCtx))
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // OMNI-MAN — "Viltrumite Beatdown" command-normal cancel chain + a free push poke (Stage 2).
 // BEATDOWN (Fwd+Heavy → re-tap Heavy): omCombo1 (flying knee) → omCombo2 (downward hook) →
 // omComboFin (multi-hit LAUNCHER, string ends). Cancel-on-HIT (Vegeta/Omega pattern): a stage only
@@ -3231,6 +3940,334 @@ export function updateOmniManCommandCombat(fighter, inputState, context, getPhas
   if (forward && heavyEdge) return fireOmniManCmd(fighter, "omCombo1")
   if (forward && lightEdge) return fireOmniManPoke(fighter, "omPush")
   return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHROLLO — "BLADE RUSH" command chain (Stage 2). Fwd+Heavy opens chCombo1 (a rushing
+// punch string) → re-tap Heavy during recovery, cancel-on-HIT → chComboFin (an extended
+// side-kick LAUNCHER, string ends). Cancel-on-hit (Omni-Man/Vegeta pattern): a stage only
+// advances if the prior hit CONNECTED — a block or whiff (no _cmdHitLanded) ends the string.
+// Deliberately SHORT (2 stages) and un-flashy — Chrollo's base kit is meant to be plain; his
+// identity is the Skill Hunter ultimate. FREE (no energy): the chain commits via recovery.
+// Neutral light/heavy/up/air stay on the normal path (the 5 Stage-2 normals).
+// ─────────────────────────────────────────────────────────────────────────────
+const CHROLLO_CMD = {
+  chCombo1:   { damage: 50, startup: 6, active: 4, recovery: 12, hitstun: 16, knockbackX: 4, knockbackY: 0,   rangeX: 82, rangeY: 52, rekkaNext: "chComboFin" },
+  chComboFin: { damage: 80, startup: 7, active: 5, recovery: 22, hitstun: 22, knockbackX: 7, knockbackY: -11, rangeX: 96, rangeY: 56, launcher: true },   // extended side-kick launcher — string ends here
+}
+
+function fireChrolloCmd(fighter, key) {
+  const md = CHROLLO_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"   // the Blade Rush advances on Heavy
+  fighter._cmdHitLanded = false     // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+
+// Grounded command-normal driver (mirrors updateOmniManCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateChrolloCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "chrollo" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase = getPhase?.(fighter)
+
+  // Press-EDGE (fresh tap, not a held/buffered button) — a rekka needs a clean re-tap.
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+
+  // BLADE RUSH CONTINUE — fresh Heavy during the current hit's RECOVERY, only if it CONNECTED. Shared
+  // rekkaContinue owns the connect-latch, window-close and cancel-on-whiff/block rule (see combat.js).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireChrolloCmd(fighter, next)
+
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+
+  // OPENER from neutral (grounded). Fwd+Heavy = Blade Rush. Neutral light/heavy/up/air stay normal.
+  if (forward && heavyEdge) return fireChrolloCmd(fighter, "chCombo1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHROLLO SPECIALS (Stage 3) — SPECIAL button, direction-branched via _specialHeldDir (Killua/Batman
+// architecture). Both use REAL unextracted master-sheet art surfaced in the Stage-3 close pass — the
+// base kit is otherwise deliberately plain, and the neck-stab "manipulation" move does NOT exist in the
+// art (confirmed absent, NOT fabricated):
+//   Neutral / Forward = NEN BOLT — the forward blue-orb thrust cast (chNenCast, specialmove_part2) plays
+//                       while a traveling blue nen CONSTRUCT projectile (16f) flies straight. 25.
+//   Down              = BLADE LUNGE — a committed forward knife-thrust lunge (chBladeLunge, 5f). 25.
+// ─────────────────────────────────────────────────────────────────────────────
+const CHROLLO_BLADE_MD = { damage: 78, startup: 6, active: 5, recovery: 18, hitstun: 20, blockstun: 11, knockbackX: 9, knockbackY: -3, rangeX: 104, rangeY: 56, isSpecial: true }
+
+export function executeChrolloSpecial(fighter, context) {
+  if (!fighter || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  return dir === "D" ? fireChrolloBladeLunge(fighter, context)
+                     : fireChrolloNenBolt(fighter, context)
+}
+
+// NEUTRAL/FWD — Nen Bolt: the forward blue-orb thrust CAST pose plays while a traveling blue nen
+// construct projectile releases mid-motion and flies straight. Chrollo's ranged poke.
+function fireChrolloNenBolt(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.nenBolt?.cost ?? 25)) return false
+  fighter._spriteCastMove  = "chNenCast"   // 4f forward orb-thrust (specialmove_part2)
+  fighter._spriteCastTimer = 20
+  fighter.attackCooldown   = getAttackDuration(26, fighter)
+  const face = fighter.facing || 1
+  // Release on the thrust's forward beat (~frame 3 of the 4f cast).
+  schedulePendingSpawn(6, () => {
+    spawnProjectile(fighter, "chrollo_nenbolt", {
+      sheet: "./chrollo_nenbeast_uniform.png", spriteFrames: 16, spriteW: 70, spriteH: 33, spriteSpeed: 2, spriteScale: 1.7,
+      damage: 60, speed: 12, hitstun: 18, knockbackX: 7, knockbackY: -2,
+      w: 60, h: 34, color: "#2ea9d6", lifetime: 130, isSpecial: true,
+      vx: face * 12, spawnY: fighter.y + (fighter.h || 100) * 0.4
+    }, context)
+  })
+  return true
+}
+
+// DOWN — Blade Lunge: a committed forward knife-thrust lunge (real 5f thrust art). A gap-closing stab.
+function fireChrolloBladeLunge(fighter, context) {
+  if (!spendEnergy(fighter, fighter.specials?.bladeLunge?.cost ?? 25)) return false
+  const md = CHROLLO_BLADE_MD
+  const attack = createAttackFromMove(fighter, "chBladeLunge", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove "chBladeLunge" → the thrust pose
+  fighter.vx = (fighter.facing || 1) * 15   // lunge forward through the thrust
+  shakeCamera(context, 3, 6)
+  return true
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// CHROLLO — "SKILL HUNTER" ULTIMATE (Stage 5). Chrollo's whole identity: a LIVE transform into a full
+// copy of the CURRENT OPPONENT — their normals, specials, their OWN ultimate, AND their transformations
+// all become his for 30 seconds. Built on the SAME proven live character-data swap machinery as
+// Tobirama's Edo Tensei (applyEdoTensei), but Chrollo-OWNED so Edo Tensei stays untouched, with 3 deltas:
+//   • VESSEL = the live opponent (context.getOpponent), NOT a pre-match pick → no vessel-select UI.
+//   • UNLOCK GATE = the opponent must land 3 DISTINCT moves on Chrollo first (combat.trackSkillHunterUnlock
+//     sets _shUnlocked). Activation ALSO costs 100 energy. The unlock is CONSUMED per use (re-earn 3).
+//   • NO reanim palette (Chrollo becomes a NORMAL-coloured copy); a FIXED 30s timer (not an energy drain);
+//     re-press Ultimate = manual early-end (handled in game.js before the ultimate dispatch).
+// Copies transformations + transformationOrder + specials/passive ON TOP of the Edo field list so the
+// stolen kit truly includes the opponent's FORMS (Chrollo-as-Goku can SSJ, Chrollo-as-Megumi can summon
+// Mahoraga, …). Reuses the generic _edoClearTransient / _edoCleanseVesselState helpers (despite the name,
+// they are character-agnostic). Post-swap the fighter's rosterKey IS the opponent's, so triggerSpecial/
+// triggerUltimate dispatch to the opponent's REAL handlers with zero per-move wiring (the whole point).
+// ═════════════════════════════════════════════════════════════════════════════
+// Explicit list (NOT a spread of EDO_SWAP_FIELDS — that const is defined later in the file, so spreading
+// it here would hit its temporal-dead-zone at module load). = EDO_SWAP_FIELDS + Chrollo's extras (the
+// form system + specials/passive/archetypes) so the stolen kit is truly complete.
+const SKILL_HUNTER_FIELDS   = ["rosterKey", "name", "color", "basic_attacks", "animationData", "spriteScale", "traits", "ultimate", "dashTeleport", "runWhenAdvancing", "introPool", "maxEnergy", "energyType", "transformations", "transformationOrder", "specials", "passive", "archetypes", "primary", "secondary", "hasSprites"]
+const SKILL_HUNTER_DURATION = 30 * 60   // 30s @60fps — FIXED timer (user-chosen)
+const SKILL_HUNTER_COST     = 100       // standard ultimate-tier energy cost, ON TOP of the 3-distinct-move unlock
+
+// Resolve a valid, STABLE copy target from the live opponent. Blocks mirror match + transient states.
+function chrolloSkillHunterTarget(fighter, context) {
+  const opp = context?.getOpponent?.(fighter)
+  if (!opp) return null
+  const key = (opp.rosterKey || "").toLowerCase()
+  if (!key || key === "chrollo") return null      // mirror match → no-op
+  if (!characters[key]) return null               // opponent in a transient non-character rosterKey → abort
+  if (opp._canvasHeightFrac) return null           // don't copy a giant-form transient scale state
+  return key
+}
+
+export function applySkillHunter(fighter, targetKey) {
+  const target = characters[targetKey]
+  if (!target) return false
+  // 1) stash Chrollo's originals (+ skin state) for the revert
+  const stash = {}
+  for (const k of SKILL_HUNTER_FIELDS) stash[k] = fighter[k]
+  stash._skinAnim = fighter._skinAnim; stash._recolorTag = fighter._recolorTag; stash._baseSkinAnim = fighter._baseSkinAnim
+  fighter._shStash = stash
+  // 2) overwrite with the target's FULL kit — everything the moveset/render pipeline reads off the fighter
+  fighter.rosterKey        = targetKey
+  fighter.name             = target.name || targetKey
+  fighter.color            = target.color || fighter.color
+  fighter.basic_attacks    = target.basic_attacks || fighter.basic_attacks
+  fighter.animationData    = target.animationData || fighter.animationData
+  fighter.spriteScale      = target.spriteScale ?? fighter.spriteScale
+  fighter.traits           = target.traits || fighter.traits
+  fighter.ultimate         = target.ultimate || fighter.ultimate
+  fighter.specials         = target.specials || fighter.specials
+  fighter.passive          = target.passive || fighter.passive
+  fighter.archetypes       = target.archetypes || fighter.archetypes
+  fighter.primary          = target.primary || fighter.primary
+  fighter.secondary        = target.secondary || fighter.secondary
+  fighter.dashTeleport     = !!target.movement?.dashTeleport
+  fighter.runWhenAdvancing = !!target.movement?.runWhenAdvancing
+  fighter.introPool        = target.introPool || null
+  fighter.hasSprites       = target.hasSprites !== false
+  // Copy the FORM system so the stolen kit includes transformations (SSJ / Susanoo / Mahoraga / Godspeed).
+  // Reset currentForm/transformIndex to the BASE form so escalation works from scratch.
+  fighter.transformations     = target.transformations || null
+  fighter.transformationOrder = target.transformationOrder || null
+  fighter.currentForm         = (target.transformationOrder && target.transformationOrder[0]) || null
+  fighter.transformIndex      = target.transformationOrder ? 0 : null
+  // NO reanim recolor — Chrollo becomes a NORMAL-coloured copy. Drop any inherited skin override.
+  fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null
+  fighter.maxEnergy  = target.stats?.maxEnergy || fighter.maxEnergy || 130
+  fighter.energyType = target.traits?.energyType || fighter.energyType
+  fighter.energy     = fighter.maxEnergy    // fresh bar so the stolen kit (specials/forms/ultimate) is usable
+  // 3) clean transient state + reset the sprite handler so it re-resolves against the copy's anim
+  _edoClearTransient(fighter)
+  fighter._shActive = true
+  fighter._shTimer  = SKILL_HUNTER_DURATION
+  fighter._shTarget = targetKey
+  fighter.ultimateCooldown = 0
+  clearInputBuffer(fighter)
+  fighter.teleportFlash = 12
+  return true
+}
+
+export function revertSkillHunter(fighter) {
+  if (!fighter?._shActive || !fighter._shStash) return false
+  const s = fighter._shStash
+  _edoCleanseVesselState(fighter)                        // wipe any stolen form/buff BEFORE restoring Chrollo's fields
+  for (const k of SKILL_HUNTER_FIELDS) fighter[k] = s[k]
+  fighter._skinAnim = s._skinAnim || null; fighter._recolorTag = s._recolorTag || null; fighter._baseSkinAnim = s._baseSkinAnim || null
+  _edoClearTransient(fighter)                            // clears own attack/cast state (NOT hitstun/knockback → non-exploitable)
+  fighter._shActive = false; fighter._shStash = null; fighter._shTarget = null; fighter._shTimer = 0
+  fighter.energy = 0                                     // spent the heist
+  // CONSUME the unlock — the opponent must land 3 NEW distinct moves to Skill Hunter again.
+  fighter._shUnlocked = false
+  if (fighter._shMovesSeen) fighter._shMovesSeen.clear()
+  clearInputBuffer(fighter)
+  fighter.teleportFlash = 14
+  return true
+}
+
+// Fixed-timer window driver (called every frame from game.js updatePlayerCombat). Counts the 30s window
+// down; on expiry → revert. (The drain PAUSES automatically during any nested cinematic because
+// updateBattle returns early before updatePlayerCombat while a cinematic runs.)
+export function updateSkillHunter(fighter) {
+  if (!fighter || !fighter._shActive) return
+  if (fighter._shTimer > 0) fighter._shTimer--
+  if (fighter._shTimer <= 0) revertSkillHunter(fighter)
+}
+
+// Manual early-end — re-press Ultimate during the copied form (game.js intercepts the ult press).
+export function endSkillHunterWindow(fighter) {
+  if (!fighter?._shActive) return false
+  return revertSkillHunter(fighter)
+}
+
+export function isChrolloSkillHunterActive(fighter) { return !!fighter?._shActive }
+// HUD/harness read: is the unlock earned (3 distinct opponent moves landed) but not yet spent?
+export function isChrolloSkillHunterReady(fighter) { return !!(fighter && fighter._shUnlocked && !fighter._shActive) }
+export function chrolloDistinctMovesLanded(fighter) { return fighter && fighter._shMovesSeen ? fighter._shMovesSeen.size : 0 }
+
+// ─────────────────────────────────────────────────────────────────
+// TRANSFORMATION JUTSU (Naruto universe) — Tier 1 Disguise / Tier 2 Full Copy
+// ─────────────────────────────────────────────────────────────────
+// Reuses the Skill Hunter field-swap ENGINE but with its OWN state (_tj*) so it NEVER inherits
+// Chrollo's purple SKILL_HUNTER_TINT or 3-move unlock — no shared-code conflict. Motion-input
+// activated (per-char TRANSFORM_JUTSU_MOTIONS); target = the opponent.
+//   Tier 1 (Disguise): swaps ONLY the visual fields → rosterKey/basic_attacks/specials/ultimate/traits/
+//     stats are UNTOUCHED, so move dispatch + damage stay the caster's own (provably no stat/move change).
+//   Tier 2 (Full Copy, Stage 3): full SKILL_HUNTER_FIELDS swap.
+const TJ_DISGUISE_FIELDS = ["name", "color", "animationData", "spriteScale"]
+const TJ_TIER1_COST = 25
+const TJ_TIER2_COST = 100
+const TJ_DURATION   = 20 * 60   // 20s window, auto-revert
+
+function transformJutsuTarget(fighter, context) {
+  const opp = context?.getOpponent?.(fighter)
+  if (!opp) return null
+  const key = (opp.rosterKey || "").toLowerCase()
+  if (!key || key === (fighter.rosterKey || "").toLowerCase()) return null   // mirror → no-op
+  if (!characters[key]) return null                                          // opponent in a transient rosterKey → abort
+  if (opp._canvasHeightFrac) return null                                     // don't copy a giant-form transient scale
+  return key
+}
+
+export function applyTransformDisguise(fighter, targetKey) {
+  const target = characters[targetKey]
+  if (!target) return false
+  const stash = {}
+  for (const k of TJ_DISGUISE_FIELDS) stash[k] = fighter[k]
+  stash._skinAnim = fighter._skinAnim; stash._recolorTag = fighter._recolorTag; stash._baseSkinAnim = fighter._baseSkinAnim
+  fighter._tjStash = stash
+  // VISUAL ONLY. rosterKey / basic_attacks / specials / ultimate / traits / stats deliberately UNTOUCHED.
+  fighter.name          = target.name || targetKey
+  fighter.color         = target.color || fighter.color
+  fighter.animationData = target.animationData || fighter.animationData
+  fighter.spriteScale   = target.spriteScale ?? fighter.spriteScale
+  fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null   // render the target's art (not the caster's skin)
+  _tjResetSpriteHandler(fighter)   // force the handler to re-resolve _actionDef against the swapped animationData
+  fighter._tjActive = true; fighter._tjTier = 1; fighter._tjTarget = targetKey; fighter._tjTimer = TJ_DURATION
+  fighter.teleportFlash = 10
+  return true
+}
+
+// Reset the sprite handler so it re-resolves its cached _actionDef against freshly-swapped animationData
+// (the handler only re-resolves when currentAction changes — sprite.js — so an idle→idle swap is stale
+// without this). Same trick _edoClearTransient uses.
+function _tjResetSpriteHandler(fighter) {
+  const h = fighter.spriteHandler
+  if (h) { h.currentAction = null; h.frameIndex = 0; h.frameTimer = 0; h.locked = false }
+}
+
+export function revertTransformJutsu(fighter) {
+  if (!fighter?._tjActive || !fighter._tjStash) return false
+  const fields = fighter._tjTier === 2 ? SKILL_HUNTER_FIELDS : TJ_DISGUISE_FIELDS
+  const s = fighter._tjStash
+  if (fighter._tjTier === 2) _edoCleanseVesselState(fighter)   // wipe any copied form/buff before restore (Tier 2 only)
+  for (const k of fields) fighter[k] = s[k]
+  fighter._skinAnim = s._skinAnim || null; fighter._recolorTag = s._recolorTag || null; fighter._baseSkinAnim = s._baseSkinAnim || null
+  if (fighter._tjTier === 2) _edoClearTransient(fighter)
+  _tjResetSpriteHandler(fighter)   // re-resolve back to the caster's own art
+  fighter._tjActive = false; fighter._tjTier = 0; fighter._tjTarget = null; fighter._tjTimer = 0; fighter._tjStash = null
+  fighter.teleportFlash = 12
+  return true
+}
+
+// Per-frame timer driver (called from game.js alongside the other buff-mode systems).
+export function updateTransformJutsu(fighter) {
+  if (!fighter || !fighter._tjActive) return
+  if (fighter._tjTimer > 0) fighter._tjTimer--
+  if (fighter._tjTimer <= 0) revertTransformJutsu(fighter)
+}
+export function isTransformJutsuActive(fighter) { return !!fighter?._tjActive }
+export function transformJutsuTier(fighter) { return fighter?._tjActive ? (fighter._tjTier || 0) : 0 }
+
+// Motion-input entry point. tier 1 = Disguise (cheap, visual-only). tier 2 = Full Copy (Stage 3).
+function fireTransformJutsu(fighter, context, tier) {
+  if (fighter._tjActive) return false                       // already transformed
+  const targetKey = transformJutsuTarget(fighter, context)
+  if (!targetKey) return false                              // no valid opponent (mirror / transient)
+  const cost = tier === 2 ? TJ_TIER2_COST : TJ_TIER1_COST
+  if (!spendEnergy(fighter, cost)) return false
+  spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)   // henge transform smoke (shared poof)
+  fighter.teleportFlash = 12
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+  // Stage 2 ships Tier 1; Tier 2 (applyTransformFullCopy) is added in Stage 3.
+  return applyTransformDisguise(fighter, targetKey)
+}
+
+export function executeChrolloUltimate(fighter, context) {
+  if (fighter._shActive || isChrolloSkillHunterCinematicActive()) return false   // already copying / mid-cinematic
+  if (!fighter._shUnlocked) return false                                          // GATE: opponent must land 3 distinct moves first
+  const targetKey = chrolloSkillHunterTarget(fighter, context)
+  if (!targetKey) return false                                                    // no valid opponent to copy (mirror / transient)
+  if (!spendEnergy(fighter, SKILL_HUNTER_COST)) return false                       // standard ultimate energy cost ON TOP of the unlock
+  fighter.attacking = false; fighter.currentMove = null; fighter.currentAttack = null; fighter.isCharging = false
+  // Hold the transformation pose (book windup → purple robe swirl) through the freeze cinematic; the
+  // body-swap (applySkillHunter) fires at the cinematic's SWAP beat via onResolve.
+  fighter._spriteCastMove = "chSkillHunterCast"; fighter._spriteCastTimer = 120
+  // VOICE: Skill Hunter / Switch — fires EXACTLY ONCE here at the activation beat, BEFORE the body-swap
+  // (applySkillHunter) runs at the cinematic's SWAP frame. The fighter is still Chrollo now, so this uses
+  // Chrollo's voice; after the swap any barks belong to the COPIED character, so the two never overlap.
+  try { sound?.playSfxFile?.(pickChrolloVoice("ultActivate"), null) } catch (_) {}
+  activateChrolloSkillHunterCinematic(fighter, context?.getOpponent?.(fighter),
+    () => applySkillHunter(fighter, targetKey))
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3720,11 +4757,16 @@ function executeMahoragaUltimate(fighter, context) {
 // _skinAnim body-swap can be attached. Attacks fire on the SPECIAL button (Sasuke has no other specials).
 export const SUSANOO_DURATION_FRAMES = 1200   // ~20s @60fps — timed, then auto-reverts (user-chosen)
 // GIANT canvas-relative sizing (item 2): display height as a FRACTION of canvas height,
-// mirroring kurama.js (fox bodyH = ch*0.74). Pushed MASSIVE — Lv1 ≈ full canvas height, Lv2
-// TALLER than the screen so it genuinely looms (feet planted; head runs off the top). Lv2 > Lv1.
+// mirroring kurama.js (fox bodyH = ch*0.74). Both stages loom over the opponent, but the WHOLE
+// figure — horned head through the energy base — stays framed on-screen (the camera's giant
+// zoom-to-fit, camera.js update(), pulls back to include it). Lv2 previously used 1.20 = TALLER
+// than the screen, which cut the head off; at giant scale the busy translucent lvl_2 line-art
+// then read as several overlapping ghost silhouettes ("4 copies in a purple circle"). 1.00 keeps
+// Lv2 looming larger than Lv1 while its horned head clears the HUD band (the giant camera-snap in
+// camera.js frames the whole figure instantly on transform).
 // SUSANOO_REF_H = the body-frame content height per stage → sprite.js scales EVERY action by
-// ch*frac/refH. (Tune these two frac numbers to dial size; err big per the brief.)
-const SUSANOO_CANVAS_FRAC = { 1: 0.95, 2: 1.20 }
+// ch*frac/refH. (Tune these two frac numbers to dial size.)
+const SUSANOO_CANVAS_FRAC = { 1: 0.95, 2: 1.00 }
 const SUSANOO_REF_H       = { 1: 265,  2: 275  }   // measured content height (lvl_1 rows 7–271, lvl_2 body ~6–280)
 // stage buffs (applied to fighter.damageMultiplier/defenseMultiplier; combat uses max(dmgMult,atkMult))
 const SUSANOO_STAGE = {
@@ -3752,18 +4794,29 @@ const SUSANOO_STAGE = {
 //       fall back to a 128² box (a real glitch source when the giant got hit or threw a normal).
 //       Attacks' actual art is a SEPARATE spawned FX (this engine has no per-fighter attack-FX slot,
 //       see characters.js:600), so the body never needs its dramatic poses.
-function _susanooBody(sheet, width, height, idleStart, idleFrames, speed = 40) {
+function _susanooBody(sheet, width, height, idleStart, idleFrames, speed = 40, guardFrame = null) {
   const cell = { frames: idleFrames, width, height, speed, loop: true, anchorY: 0, sourceX: idleStart * width, sheet }
-  return {
+  const body = {
     idle: cell, walk: cell, run: cell, jump: cell, fall: cell,
     hurt: cell, light: cell, heavy: cell, up: cell, air: cell, down_air: cell,
     grab: cell, dash: cell,
     susanooGrab: cell, susanooSword: cell, susanooArrow: cell, susanooIntro: cell
   }
+  // BLOCK/GUARD pose — a DISTINCT, STATIC single frame from this same sheet (a real existing pose, no
+  // new art). Without it, sprite.js _resolveAction had no `guard` on _skinAnim and fell through to the
+  // calm idle CELL, so holding block just kept the idle loop replaying regardless of input (the reported
+  // "looping background overlay" bug). loop:false → the frame HOLDS steady while block is held, and the
+  // resolver only picks it while isBlocking is true, so it correctly tracks real block input.
+  if (guardFrame != null) body.guard = { frames: 1, width, height, speed, loop: false, anchorY: 0, sourceX: guardFrame * width, sheet }
+  return body
 }
 // Uniform repacked sheets (lvl1 5×231, lvl2 4×247). Idle windows chosen by inter-frame delta scan.
-const SUSANOO_LVL1_ANIM = _susanooBody("./sasuke_susanoo_lvl_1_anim.png", 231, 277, 0, 2)   // calm poses 0–1
-const SUSANOO_LVL2_ANIM = _susanooBody("./sasuke_susanoo_lvl_2_anim.png", 247, 298, 2, 2)   // calm poses 2–3
+// guardFrame = a distinct braced pose in the SAME sheet (real content): lvl1 frame 4 = arms crossed over
+// the ribcage (a true guard stance); lvl2 has no dedicated block frame (all 4 are idle-calm 2–3 / bow-aim
+// 0–1), so it HOLDS its most drawn-in frame (3) steady during block — stops the distracting loop even
+// though the silhouette matches idle. A bespoke lvl2 block sheet (cf. Itachi's) is a deferred art item.
+const SUSANOO_LVL1_ANIM = _susanooBody("./sasuke_susanoo_lvl_1_anim.png", 231, 277, 0, 2, 40, 4)   // calm poses 0–1; guard = frame 4
+const SUSANOO_LVL2_ANIM = _susanooBody("./sasuke_susanoo_lvl_2_anim.png", 247, 298, 2, 2, 40, 3)   // calm poses 2–3; guard = frame 3 held
 
 export function sasukeInSusanoo(fighter) { return (fighter && (fighter._susanooStage || 0) > 0) }
 
@@ -5182,6 +6235,435 @@ function applyShinobuUltimateDamage(fighter, opp, cineCtx = {}) {
       ...(blocked ? { isBlocking: true } : {})
     })
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GHOSTFACE (Stage 1) — knife STALKER: normals + "Slasher Frenzy" command chain +
+//   direction-branched specials (DREAD-energy cost) + "The Final Act" freeze-cinematic ult.
+//   COMMAND CHAIN (Down+Heavy opener → re-tap Heavy on a CLEAN hit): ghostfaceCombo1→2→3
+//     (a low knife flurry). Cancel-on-hit; a whiff/block ENDS the string (shared rekkaContinue,
+//     requireHit:true). Batman/Shinobu Toji-Rekka pattern. Pure normal chain, no energy cost.
+//   SPECIALS (SPECIAL button, direction-branched via _specialHeldDir; energy-cost like Batman):
+//     Neutral/Forward = GUTTING LUNGE — a dashing knife stab (gap-closer). Leaves a BLEED DoT on a
+//       clean hit (the existing game.js `_dot` subsystem — his attrition identity). Cost 25.
+//     Down = LOW GUT — a low sweeping gut-slash that trips (knockdown) on a clean hit. Cost 20.
+//     Back = STALK VANISH — a backstep with brief i-frames (reposition, no damage). Cost 15.
+//   ULTIMATE = THE FINAL ACT (freeze-cinematic stab flurry; guaranteed damage + lethal bleed at connect).
+// ─────────────────────────────────────────────────────────────────────────────
+const GHOSTFACE_GROUND = {
+  // Low knockback on the openers pins the target inside the string; the finisher delivers the knockback.
+  ghostfaceCombo1: { damage: 22, startup: 4, active: 3, recovery: 11, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 90, rangeY: 50, rekkaNext: "ghostfaceCombo2" },
+  ghostfaceCombo2: { damage: 28, startup: 4, active: 3, recovery: 12, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 92, rangeY: 52, rekkaNext: "ghostfaceCombo3" },
+  ghostfaceCombo3: { damage: 42, startup: 5, active: 3, recovery: 16, hitstun: 17, knockbackX: 8, knockbackY: -3, rangeX: 98, rangeY: 54 },   // finisher (ends the string)
+}
+function fireGhostfaceCommand(fighter, key, context) {
+  const md = GHOSTFACE_GROUND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the stage sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
+  return true
+}
+// BLEED DoT — stamped on a clean Gutting Lunge hit (attrition offsets his human-fragile burst).
+const GHOSTFACE_BLEED = { ticks: 6, interval: 20, dmg: 6 }   // 36 over ~2s
+export function updateGhostfaceCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface" || !inputState) return false
+  const opp = context?.getOpponent?.(fighter)
+  // BLEED-ON-HIT watcher: when the armed Gutting Lunge lands a CLEAN (non-blocked) hit, stamp the DoT
+  // ONCE onto the opponent (localized — no shared resolveAttackHit edit). Armed by fireGhostfaceGuttingLunge.
+  if (fighter._gfBleedPending && fighter.attacking && fighter.currentMove === "gfLunge"
+      && fighter.currentAttack?.hasHit && opp && !opp.isBlocking && (opp.hitstun || 0) > 0) {
+    opp._dot = { ticks: GHOSTFACE_BLEED.ticks, interval: GHOSTFACE_BLEED.interval, dmg: GHOSTFACE_BLEED.dmg, delay: GHOSTFACE_BLEED.interval }
+    fighter._gfBleedPending = false
+  }
+  if (!fighter.attacking) fighter._gfBleedPending = false   // lunge ended (whiff/block) → drop the pending stamp
+  // LOW-GUT KNOCKDOWN watcher: a clean Low Gut hit trips the opponent (knockdown) ONCE.
+  if (fighter._gfLowGutPending && fighter.attacking && fighter.currentMove === "gfLowCut"
+      && fighter.currentAttack?.hasHit && opp && !opp.isBlocking && (opp.hitstun || 0) > 0) {
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 40)
+    fighter._gfLowGutPending = false
+  }
+  if (!fighter.attacking) fighter._gfLowGutPending = false
+
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during recovery on a clean hit → rekkaNext (shared rekkaContinue owns the gate).
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireGhostfaceCommand(fighter, next, context)
+  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the neutral heavy stays normal.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && inputState.down && heavyEdge) return fireGhostfaceCommand(fighter, "ghostfaceCombo1", context)
+  return false
+}
+
+// ── GHOSTFACE SPECIALS — SPECIAL button, direction-branched via _specialHeldDir. DREAD-energy cost (Batman pattern). ──
+function fireGhostfaceGuttingLunge(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 25)) return false
+  // BILLY identity: reduced telegraph on this dash/approach move specifically (skin modifier; see
+  // GHOSTFACE_SKIN_MODS). Every other identity uses the base 6f startup.
+  const startup = fighter._gfSkinMod?.lungeStartupScale
+    ? Math.max(2, Math.round(6 * fighter._gfSkinMod.lungeStartupScale))
+    : 6
+  const md = { damage: 50, startup, active: 4, recovery: 16, hitstun: 20, blockstun: 12, knockbackX: 6, knockbackY: -4, rangeX: 110, rangeY: 54, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "gfLunge", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = gfLunge → lunge stab pose
+  fighter.vx = (fighter.facing || 1) * 12    // dashing gap-closer lunge
+  fighter._gfBleedPending = true             // arm the bleed-on-hit watcher (updateGhostfaceCommandCombat)
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+function fireGhostfaceLowGut(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 20)) return false
+  const md = { damage: 42, startup: 6, active: 3, recovery: 18, hitstun: 22, blockstun: 10, knockbackX: 4, knockbackY: -1, rangeX: 96, rangeY: 44, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "gfLowCut", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = gfLowCut → low sweep pose
+  fighter.vx = (fighter.facing || 1) * 6
+  fighter._gfLowGutPending = true            // arm the knockdown-on-hit watcher
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+function fireGhostfaceStalkVanish(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 15)) return false
+  // Backstep with brief i-frames (spacing/reposition, no damage) — the stalker slips away.
+  fighter.vx = -(fighter.facing || 1) * 13
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 18)   // i-frames through the slip
+  fighter.teleportFlash = 14
+  fighter.attackCooldown = getAttackDuration(20, fighter)          // committed, not spammable
+  try { spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2) } catch (_) {}
+  return true
+}
+// ── GHOSTFACE CALL-IN — the SIGNATURE companion special (Neutral+Special). A killer never works alone:
+// a companion is called in, rushes the opponent from their far side for a single strong strike, then
+// vanishes (spawnAssistSummon "rush" pattern — the Zenitsu Double Attack model). The companion is pulled
+// from the ACTIVE IDENTITY's 4-character pool (Part B). Roman's identity halves the cost + cooldown. ──
+export const GHOSTFACE_CALLIN_POOLS = {
+  ghostfaceBilly:  ["sasuke", "itachi", "chrollo", "killua"],
+  ghostfaceDebbie: ["beerus", "netero", "maki", "omniman"],
+  ghostfaceRoman:  ["rick", "tobirama", "gojo", "hisoka"],
+  ghostfaceJill:   ["sukuna", "goku_black", "gold_samurai_ranger", "vegeta"],
+  ghostfaceAmber:  ["shinobu", "gon", "naruto", "zenitsu"],
+  // Default (no killer identity) — a sampler pool so base Ghostface can still Call-In (one per identity).
+  default:         ["sasuke", "beerus", "rick", "sukuna"],
+}
+// The 4-character pool for a fighter's ACTIVE skin (empty for non-Ghostface).
+export function getGhostfaceCallInPool(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return []
+  return GHOSTFACE_CALLIN_POOLS[fighter.skinId] || GHOSTFACE_CALLIN_POOLS.default
+}
+// Build a one-shot rush-in summon that renders as the COMPANION (their own strike/idle sprite).
+function ghostfaceCallInSummonData(partnerKey) {
+  const c  = characters[partnerKey] || {}
+  const ad = c.animationData || {}
+  const pose = ad.heavy || ad.light || ad.idle || {}
+  return {
+    id: "ghostfaceCallIn", duration: 46, maxSimultaneous: 1, attackInterval: 6, damage: 120,
+    w: 54, h: 92, speed: 13, behavior: "rush", spawnBeat: 6, hitstun: 24, knockbackX: 8, knockbackY: -3,
+    oneHit: true, puffOnDespawn: true, color: c.color || "#c81e28", offsetY: 0,
+    sheet: pose.sheet, spriteFrames: pose.frames || 1, spriteW: pose.width || 60, spriteH: pose.height || 90,
+    spriteSpeed: 5, spriteScale: c.spriteScale || 1.6
+  }
+}
+const GHOSTFACE_CALLIN_COST = 40    // Dread — a strong assist; Roman halves it
+const GHOSTFACE_CALLIN_CD   = 220   // ~3.7s between calls; Roman halves it
+function fireGhostfaceCallIn(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.callInCd || 0) > 0) return false   // COOLDOWN gate
+  const costScale = fighter._gfSkinMod?.callInCostScale ?? 1     // ROMAN: reduced cost
+  if (!spendEnergy(fighter, Math.round(GHOSTFACE_CALLIN_COST * costScale))) return false
+  const opp  = getTargetResolver(context)(fighter)
+  const pool = getGhostfaceCallInPool(fighter)
+  // Use the pre-selected partner, but STRICTLY from this identity's pool (invalid/other-pool → pool[0]).
+  let partner = fighter._callInPartner
+  if (!partner || !pool.includes(partner)) partner = pool[0]
+  fighter._callInPartner = partner
+  const dir = fighter.facing || 1
+  fighter._spriteCastMove = "gfCallIn"; fighter._spriteCastTimer = 26   // Ghostface beckons
+  fighter.vx = 0
+  if (opp) {
+    const p = spawnAssistSummon(fighter, ghostfaceCallInSummonData(partner), opp)
+    if (p) { p.x = opp.x + dir * 90; p.y = opp.y + (p.offsetY || 0); p.facing = -dir }   // far side → rushes inward
+  }
+  const cdScale = fighter._gfSkinMod?.callInCdScale ?? 1         // ROMAN: faster cooldown
+  fighter.callInCd = Math.round(GHOSTFACE_CALLIN_CD * cdScale)
+  fighter._lastCallInPartner = partner   // telemetry/harness
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  return true
+}
+function executeGhostfaceSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "B") return fireGhostfaceStalkVanish(fighter, context)
+  if (dir === "D") return fireGhostfaceLowGut(fighter, context)
+  if (dir === "F") return fireGhostfaceGuttingLunge(fighter, context)   // Forward = Gutting Lunge (Billy's approach)
+  return fireGhostfaceCallIn(fighter, context)                          // Neutral = signature Call-In
+}
+
+// GHOSTFACE ULTIMATE — "The Final Act" (freeze-cinematic stab flurry; ghostfaceFinalActCinematic.js).
+// Guaranteed range-independent damage + a lethal BLEED finisher land at the CONNECT beat via onImpact.
+// Full DREAD meter (maxEnergy 100), Batman precedent. Direct burst sits mid-band; the bleed makes up the rest.
+const GHOSTFACE_ULT       = { cost: 100, dmg: 300, blockRatio: 0.25 }
+const GHOSTFACE_ULT_BLEED = { ticks: 6, interval: 18, dmg: 10 }   // lethal finisher DoT on a CLEAN hit (60 over ~1.8s)
+function executeGhostfaceUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return false
+  if (isGhostfaceFinalActCinematicActive()) return false            // already mid-cinematic
+  if (!spendEnergy(fighter, GHOSTFACE_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  fighter.vx = 0
+  activateGhostfaceFinalActCinematic(fighter, opp, (cineCtx) => applyGhostfaceFinalActDamage(fighter, opp, cineCtx))
+  return true
+}
+// PAYOFF — GUARANTEED, range-independent, applied ONCE at the CONNECT beat by the cinematic. A held block
+// (frozen at its pre-cinematic value) chips the direct hit to 25% and NO bleed; a clean hit deals full +
+// blasts away + stamps the lethal bleed finisher (the existing game.js _dot subsystem).
+function applyGhostfaceFinalActDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = GHOSTFACE_ULT.dmg
+  if (blocked) {
+    dmg = Math.round(dmg * GHOSTFACE_ULT.blockRatio)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 34)
+    opp.vx = (fighter.facing || 1) * 11; opp.vy = -5           // blasted away by the flurry
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 42)
+    // BLEED FINISHER — the signature lethal DoT, on a CLEAN hit only.
+    opp._dot = { ticks: GHOSTFACE_ULT_BLEED.ticks, interval: GHOSTFACE_ULT_BLEED.interval, dmg: GHOSTFACE_ULT_BLEED.dmg, delay: GHOSTFACE_ULT_BLEED.interval }
+  }
+  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2
+  const ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({
+      x: ocx, y: ocy, timer: 20, maxTimer: 20,
+      category: blocked ? "light" : "ultimate",
+      color: blocked ? null : "#c81e28",
+      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 40,
+      ...(blocked ? { isBlocking: true } : {})
+    })
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAKI ZENIN (Stage 2) — naginata normals + "Cursed Tool Flurry" command chain.
+//   The 5 basic normals (light/heavy/up/air/down_air) use the generic attack system
+//   (characters.js basic_attacks + animationData) — no code here.
+//   COMMAND CHAIN (Fwd+Heavy opener → re-tap Heavy on a CLEAN hit): makiG1 (low sweep-
+//     kick) → makiG2 (roundhouse) → makiG3 (spinning axe-kick finisher). Cancel-on-hit;
+//     a whiff/block ENDS the string (shared rekkaContinue, requireHit:true — the mid-chain
+//     interrupt). Toji-Rekka pattern, twin of updateShinobuCommandCombat. No resource cost
+//     (maxEnergy 0) — a pure normal-move chain, gated only by frame recovery. Specials
+//     (Stage 3) and the HP-threshold transformation ultimate (Stage 4) land later.
+// ─────────────────────────────────────────────────────────────────────────────
+const MAKI_GROUND = {
+  // Low knockback on the openers pins the target inside the string; the finisher delivers the knockback.
+  // Slightly higher damage than Shinobu's thrust chain — Maki is a heavier physical hitter (ATK 90 vs 82).
+  makiG1: { damage: 28, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 98,  rangeY: 54, rekkaNext: "makiG2" },
+  makiG2: { damage: 34, startup: 4, active: 3, recovery: 12, hitstun: 14, knockbackX: 1, knockbackY: 0,  rangeX: 96,  rangeY: 60, rekkaNext: "makiG3" },
+  makiG3: { damage: 46, startup: 5, active: 3, recovery: 16, hitstun: 17, knockbackX: 9, knockbackY: -3, rangeX: 100, rangeY: 62 },   // finisher (ends the string)
+}
+function fireMakiCommand(fighter, key, context) {
+  const md = MAKI_GROUND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the stage sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
+  return true
+}
+export function updateMakiCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "maki" || !inputState) return false
+  const opp       = context?.getOpponent?.(fighter)
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during recovery on a clean hit → rekkaNext (shared rekkaContinue owns the gate).
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireMakiCommand(fighter, next, context)
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the neutral heavy stays normal.
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && forward && heavyEdge) return fireMakiCommand(fighter, "makiG1", context)
+  return false
+}
+
+// ── MAKI SPECIALS (Stage 3) — SPECIAL button, direction-branched via _specialHeldDir (Killua/Chrollo
+// architecture). All COOLDOWN-gated (maxEnergy 0 → no spendEnergy; the no-energy roster gates specials
+// on dedicated timers ticked in game.updateMiscTimers, like Shinobu's poisonCd/flitCd). Weapon variety is
+// FOLDED IN as flavor here (kunai / nunchaku), NOT a full switching system:
+//   Neutral / Forward = KUNAI THROW — a thrown kunai; an INDEPENDENT-COLLISION projectile (spawnProjectile,
+//     its own hitbox/lifetime, resolved by combat.updateProjectiles). Maki's ranged poke.
+//   Down              = NUNCHAKU FLURRY — pulls nunchaku for a committed spinning overhead melee combo
+//     (10f flurry pose). A high-commitment close-range burst.
+// The CHARGE button hosts POWER CHARGE (fireMakiPowerCharge, below) — a self-buff, wired via handleChargeRelease.
+const MAKI_KUNAI_CD    = 66    // ~1.1s gate for the kunai throw
+const MAKI_NUNCHAKU_CD = 96    // ~1.6s gate for the committed nunchaku flurry
+const MAKI_NUNCHAKU_MD = { damage: 78, startup: 6, active: 6, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 72, isSpecial: true }
+function fireMakiKunai(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.kunaiCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
+  if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickMakiVoice("kunai"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Kunai Throw cast line (audio-only)
+  fighter._spriteCastMove  = "makiKunai"          // 6f windup → release throw pose
+  fighter._spriteCastTimer = 22
+  fighter.attackCooldown   = getAttackDuration(24, fighter)
+  fighter.kunaiCd          = MAKI_KUNAI_CD
+  const face = fighter.facing || 1
+  // Release the kunai on the forward beat (~frame 4 of the 6f throw), as its own independent projectile.
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "maki_kunai", {
+      sheet: "./maki_kunai_proj.png", spriteFrames: 1, spriteW: 24, spriteH: 10, spriteScale: 2.0,
+      damage: 52, speed: 14, hitstun: 16, knockbackX: 6, knockbackY: -1,
+      w: 34, h: 16, color: "#c9ccd1", lifetime: 100, isSpecial: true,
+      vx: face * 14, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+function fireMakiNunchaku(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.nunchakuCd || 0) > 0) return false   // COOLDOWN gate
+  if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickMakiVoice("nunchaku"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Nunchaku Flurry cast line (audio-only)
+  const md = MAKI_NUNCHAKU_MD
+  const attack = createAttackFromMove(fighter, "makiNunchaku", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove "makiNunchaku" → the flurry pose
+  fighter.nunchakuCd = MAKI_NUNCHAKU_CD
+  fighter.vx = (fighter.facing || 1) * 6   // small step in as the flurry lands
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+export function executeMakiSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "maki") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "D") return fireMakiNunchaku(fighter, context)
+  return fireMakiKunai(fighter, context)   // Neutral / Forward / Up / Back = Kunai Throw
+}
+
+// ── MAKI — POWER CHARGE (Stage 3, CHARGE button). A self-buff physical power-up (NOT a strike): holds the
+// weapon-raised charge stance, then grants ~5s of boosted damage. Fired from game.handleChargeRelease on a
+// CHARGE release (no energy — the hold just poses). Cooldown-gated. Stash/restore of damage+attack multiplier
+// (combat takes the max) modeled on Killua's Godspeed buff; _makiPowerTimer ticks down in updateMiscTimers.
+const MAKI_POWER_DUR  = 300   // 5s @60fps
+const MAKI_POWER_CD   = 540   // 9s recast (5s buff + 4s downtime → not spammable)
+const MAKI_POWER_MULT = 1.3
+export function fireMakiPowerCharge(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "maki") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._makiPowerCd || 0) > 0 || fighter._makiPowerActive) return false   // cooldown / already buffed
+  fighter._makiPowerActive   = true
+  fighter._makiPowerTimer    = MAKI_POWER_DUR
+  if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickMakiVoice("powerCharge"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Power Charge cast line (audio-only)
+  // The per-frame form-sync (updateFighterAbilities) re-applies damage/attackMultiplier FROM
+  // currentFormData every frame, so a direct set would be wiped next frame (the currentFormData
+  // gotcha). Ride the buff on a CLONE of the current form (never mutate the shared base object)
+  // so the sync itself keeps applying 1.3×; the revert restores the previous form ref.
+  const bf = fighter.currentFormData || {}
+  fighter._makiPowerPrevForm = fighter.currentFormData      // may be null/undefined → restored as-is
+  fighter._makiPowerFormSwapped = true
+  fighter.currentFormData = { ...bf,
+    damageMultiplier: (bf.damageMultiplier || 1) * MAKI_POWER_MULT,
+    attackMultiplier: (bf.attackMultiplier || bf.damageMultiplier || 1) * MAKI_POWER_MULT }
+  fighter.damageMultiplier   = fighter.currentFormData.damageMultiplier   // immediate (also re-synced each frame)
+  fighter.attackMultiplier   = fighter.currentFormData.attackMultiplier
+  fighter._spriteCastMove    = "makiCharge"                     // weapon-raised power-up pose
+  fighter._spriteCastTimer   = 26
+  fighter._makiPowerCd       = MAKI_POWER_CD
+  fighter.colorFlash         = Math.max(fighter.colorFlash || 0, 12)
+  try { shakeCamera(context, 3, 7) } catch (_) {}
+  return true
+}
+export function revertMakiPowerCharge(fighter) {
+  if (!fighter || !fighter._makiPowerActive) return
+  fighter._makiPowerActive = false
+  fighter._makiPowerTimer  = 0
+  if (fighter._makiPowerFormSwapped) { fighter.currentFormData = fighter._makiPowerPrevForm; fighter._makiPowerPrevForm = null; fighter._makiPowerFormSwapped = false }
+  const bf = fighter.currentFormData || {}
+  fighter.damageMultiplier = bf.damageMultiplier || 1
+  fighter.attackMultiplier = bf.attackMultiplier || bf.damageMultiplier || 1
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// MAKI — "CURSED TOOL AWAKENING" (Stage 4). Her Shibuya-Arc black-costume form. The build's most novel
+// mechanic: an HP-THRESHOLD ULTIMATE, not a meter ult (she has no energy). The transform OPTION unlocks
+// only once her HP drops to ≤25% (game.trackMakiShibuyaUnlock sets _shibuyaUnlocked, which PERSISTS the
+// rest of the match even if she heals above 25% — a genuine risk/reward comeback). Player-triggered via the
+// Ultimate button; ONE-WAY for the round (no drain/revert — Maki has no meter; resetRound rebuilds a fresh
+// base-form fighter). Built on the Samurai Mega _skinAnim tier-swap: the whole moveset's LOOK swaps to the
+// maki_ultimate_* Shibuya sheets, buff via the `shibuya` currentFormData form, + a scale bump (the Shibuya
+// source art is drawn smaller). guard/hurt/dash/specials are intentionally ABSENT from the swap table → they
+// fall back to base-form art (sprite.js reads _skinAnim?.[a] || animationData?.[a]) — the Stage-0-approved
+// base-form fallback. The activation plays makiShibuyaCinematic (freeze-cinematic; flash-only, no second
+// body → duplicate-render-immune).
+// ═════════════════════════════════════════════════════════════════════════════
+const MAKI_SHIBUYA_SCALE = 1.86   // Shibuya idle body 57px × 1.86 ≈ 106px = base on-screen height (source art is smaller than base)
+// NOTE: the Shibuya (Ultimate) form is GORE-FREE by DEFAULT for every skin — the sheets below point at the
+// *_covered.png art (arm blood/gore masked over with a dark long-sleeve; tools/gen_maki_covered.py). This
+// is the BASE Shibuya art itself now, not an opt-in "Covered" skin. The original gore *_uniform.png sheets
+// are kept on disk (unreferenced) as a backup. See the removed makiCovered skin / MAKI_SHIBUYA_ANIM_COVERED.
+const MAKI_SHIBUYA_ANIM = {
+  // movement
+  idle: { frames: 3, width: 38, height: 57, speed: 7, anchorY: 0, loop: true,  sheet: "./maki_shibuya_idle_covered.png" },
+  walk: { frames: 6, width: 55, height: 50, speed: 6, anchorY: 0, loop: true,  sheet: "./maki_shibuya_run_covered.png" },
+  run:  { frames: 6, width: 55, height: 50, speed: 4, anchorY: 0, loop: true,  sheet: "./maki_shibuya_run_covered.png" },
+  jump: { frames: 4, width: 43, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_jump_covered.png" },
+  fall: { frames: 1, width: 43, height: 58, speed: 6, anchorY: 0, sourceX: 129, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_jump_covered.png" },
+  // transformation-reveal pose (held through the cinematic via _spriteCastMove = "shibuyaIntro")
+  shibuyaIntro: { frames: 4, width: 100, height: 58, speed: 8, anchorY: 0, loop: true, sheet: "./maki_shibuya_intro_covered.png" },
+  // 5 normals — the awakened sword moveset (same basic_attacks frame data, buffed by the shibuya form)
+  light:    { frames: 4, width: 73, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_light_covered.png" },      // slash (white arc)
+  heavy:    { frames: 7, width: 58, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_heavy_covered.png" },      // thrust combo
+  up:       { frames: 5, width: 69, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_up_covered.png" },         // rising launcher (purple arc)
+  air:      { frames: 2, width: 75, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_air_covered.png" },         // aerial thrust
+  down_air: { frames: 3, width: 62, height: 61, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_downair_covered.png" },     // descending strike
+  // command chain — restyled with the surplus Shibuya sheets so the kick rekka reads as sword strikes
+  makiG1:   { frames: 3, width: 73, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_g1_covered.png" },
+  makiG2:   { frames: 3, width: 59, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_g2_covered.png" },
+  makiG3:   { frames: 5, width: 62, height: 44, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_shibuya_g3_covered.png" }
+}
+function isMaki(f) { return (f?.rosterKey || "").toLowerCase() === "maki" }
+export function makiShibuyaActive(f) { return !!f?._shibuyaActive }
+// Apply the black-costume moveset swap + buff + scale. Called at activation (immediately, so the held
+// reveal pose resolves via _skinAnim); one-way for the round.
+function enterMakiShibuya(fighter) {
+  if (!fighter || fighter._shibuyaActive) return
+  if (fighter._makiPowerActive) revertMakiPowerCharge(fighter)   // clear the Power Charge form-swap first, else its later revert would clobber the shibuya currentFormData
+  fighter._shibuyaActive   = true
+  fighter.currentForm      = "shibuya"
+  // The Shibuya art is gore-free for EVERY skin (MAKI_SHIBUYA_ANIM already points at the covered sheets).
+  fighter._skinAnim        = retagFormAnim(MAKI_SHIBUYA_ANIM, fighter._recolorTag)   // tier-swap the sprite table (recolor-safe; tag is null today)
+  fighter.currentFormData  = fighter.transformations?.shibuya || fighter.currentFormData   // per-frame form-sync applies the 1.25×/1.1×/1.05× buff
+  fighter._shibuyaBaseScale = fighter.spriteScale
+  fighter.spriteScale      = MAKI_SHIBUYA_SCALE
+  fighter._spriteCastMove  = "shibuyaIntro"                        // hold the reveal pose through the cinematic
+  fighter._spriteCastTimer = 170
+  fighter.teleportFlash    = Math.max(fighter.teleportFlash || 0, 12)
+}
+function executeMakiShibuyaUltimate(fighter, context) {
+  if (!isMaki(fighter)) return false
+  if (fighter._shibuyaActive) return false        // already transformed (one-way)
+  if (!fighter._shibuyaUnlocked) return false      // HP-threshold not yet reached → the Ultimate button is a no-op
+  if (isMakiShibuyaCinematicActive()) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const opp = context?.getOpponent?.(fighter) || null
+  fighter.vx = 0
+  // Shibuya-activation voice fires HERE at the transform CAST beat — before activateMakiShibuyaCinematic
+  // plays the reveal — so the "getting serious / turn it around" line lands on the windup, not the reveal.
+  try { sound.playSfxFile?.(pickMakiVoice("shibuyaActivation"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  enterMakiShibuya(fighter)                        // swap NOW so the held reveal pose resolves via _skinAnim
+  activateMakiShibuyaCinematic(fighter, opp)
+  fighter._suppressUltCooldown = true              // one-way transform → no recast-lockout needed
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -7356,6 +8838,9 @@ export function triggerSpecial(fighter, context = {}) {
     case "vegeta":  return executeVegetaSpecial(fighter, context)
     case "beerus":  return executeBeerusSpecial(fighter, context)
     case "omega_ranger": return executeOmegaRangerSpecial(fighter, context)   // Gun / Super Upper / Special Downward
+    case "samurai_red_ranger": return executeSamuraiRangerSpecial(fighter, context)   // Flame Slash — MEGA-MODE-EXCLUSIVE (no-op in base form)
+    case "gold_samurai_ranger": return executeGoldSamuraiSpecial(fighter, context)    // Light Slash — light energy slash-wave projectile (both tiers, tier-scaling)
+    case "green_samurai_ranger": return executeGreenSamuraiSpecial(fighter, context)  // Forest Spear — long-reach thrust + leaf-blast wave projectile (both tiers, tier-scaling)
     case "saiki":   return executeSaikiSpecial(fighter, context)   // Lightning — two layered bolts fired as one thick beam
     case "killua":  return executeKilluaSpecial(fighter, context)   // Yo-Yo throw→travel→retract boomerang
     case "flash":   { const ok = executeFlashSpecial(fighter, context); if (ok) maybeFireFlashSkinCastVoice(fighter); return ok }   // Spin Attack (neutral) / Tornado (forward); + Reverse-skin cast bark
@@ -7365,9 +8850,12 @@ export function triggerSpecial(fighter, context = {}) {
     case "zenitsu": return executeZenitsuSpecial(fighter, context)   // Thunder Breathing 1st Form dash-strike (neutral); Double Attack (Fwd/Down) = Stage 4
     case "rengoku": return executeRengokuSpecial(fighter, context)   // COUNTER — reactive parry stance (Charged Flame Strike is on the CHARGE button, not here)
     case "shinobu": return executeShinobuSpecial(fighter, context)   // Poison Thrust (neutral/Fwd) / Butterfly Flit backflip evade (Back)
+    case "maki":    return executeMakiSpecial(fighter, context)   // Kunai Throw (neutral/Fwd projectile) / Nunchaku Flurry (Down); Power Charge is on CHARGE
     case "hisoka":  return executeHisokaSpecial(fighter, context)   // Bungee Gum (neutral, extended-reach whip); Texture Surprise cards land in Stage 4
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
+    case "chrollo": return executeChrolloSpecial(fighter, context)   // Nen Bolt (neutral/fwd projectile) / Blade Lunge (down knife-thrust)
+    case "ghostface": return executeGhostfaceSpecial(fighter, context)   // Gutting Lunge (neutral/Fwd, bleed) / Low Gut (Down, knockdown) / Stalk Vanish (Back, i-frame backstep)
     case "ben10":   return executeBen10Special(fighter, context)   // form-branched: XLR8 Dash/Sonic Rush · Diamondhead Shard/Rising Diamonds · Ben Hoverboard; art-less aliens → fallback
     case "albedo":  return executeBen10Special(fighter, context)   // Albedo shares Ben's alien specials
     default:        return executeFallbackSpecial(fighter, context)
@@ -7408,15 +8896,22 @@ export function triggerUltimate(fighter, context = {}) {
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
       case "batman":  cast = executeBatmanUltimate(fighter, context);  break   // The Dark Knight: batarang-barrage freeze cinematic
       case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
+      case "samurai_red_ranger": cast = executeSamuraiRangerUltimate(fighter, context); break   // Fire Smasher: Blazing Strike — TIER-SCALING freeze cinematic (base vs Mega art+damage)
+      case "gold_samurai_ranger": cast = executeGoldSamuraiUltimate(fighter, context); break     // Barracuda Blade: Light Finale — SAME freeze cinematic, light palette, tier-scaling (base 340 / Mega 460)
+      case "green_samurai_ranger": cast = executeGreenSamuraiUltimate(fighter, context); break    // Forest Spear: Verdant Storm — SAME freeze cinematic, leaf-green palette, tier-scaling (base 340 / Mega 460)
       case "saiki":   cast = executeSaikiUltimate(fighter, context);   break   // Giant Bomb Throw: delayed screen-filling explosion
       case "killua":  cast = executeKilluaUltimate(fighter, context);  break   // Godspeed: sustained speed/damage buff + electric afterimage overlay (buff-mode, not a form swap)
       case "gon":     cast = executeGonUltimate(fighter, context);     break   // Adult Form: buff + movement-lockout + close-range SUDDEN-DEATH (hit=instant win / miss=instant loss)
       case "zenitsu": cast = executeZenitsuUltimate(fighter, context); break   // Godspeed: dash-THROUGH slice — same-level, UNBLOCKABLE, 8s COOLDOWN (not energy)
       case "rengoku": cast = executeRengokuUltimate(fighter, context); break   // Flame Explosion: freeze-cinematic AOE detonation — 8s COOLDOWN (not energy)
       case "shinobu": cast = executeShinobuUltimate(fighter, context); break   // Butterfly Dance: freeze-cinematic spinning-dash finisher + poison — 8s COOLDOWN (not energy)
+      case "maki": cast = executeMakiShibuyaUltimate(fighter, context); break   // Cursed Tool Awakening: HP-threshold (≤25%) player-triggered Shibuya-Arc transform — freeze cinematic + moveset swap (no meter; one-way for the round)
       case "hisoka":  cast = executeHisokaUltimate(fighter, context);  break   // Bloodlust Overdrive: buff + _skinAnim golden power-up body-swap + freeze cinematic (form-swap, extended whip)
       case "flash":   cast = executeFlashUltimate(fighter, context);   if (cast) maybeFireFlashSkinCastVoice(fighter);   break   // Flash Time (buff-mode) + Reverse-skin cast bark
       case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window
+      case "chrollo": cast = executeChrolloUltimate(fighter, context); break   // Skill Hunter: live transform into a full copy of the OPPONENT for 30s (gated on 3 distinct moves landed)
+      case "ghostface": cast = executeGhostfaceUltimate(fighter, context); break   // The Final Act: freeze-cinematic stab flurry — guaranteed damage + lethal bleed finisher
+
       case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)
       case "superman": cast = executeSupermanUltimate(fighter, context); break   // Solar Overload: green energy-surge → particle-dissolve detonation freeze cinematic
       case "ben10":   cast = executeBen10Ultimate(fighter, context);   break   // form-branched: Ben Omnitrix-transform cinematic · XLR8 Sonic Blitz · Diamondhead Crystal Storm
@@ -7948,12 +9443,26 @@ const SSJ_ROSE_ANIM = {
   gbSuperKiSlash:   { frames: 9, width: 80, height: 67, speed: 2, anchorY: 0, sheet: "./goku_black_ssj_rose_super_ki_slash.png" }    // 9-frame purple X-swings
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// GOKU BLACK — transformation ladder: base → Rose (Rose is the single sustained transform tier).
+// (The base→SSG→Rose→Blue recolor pilot was removed 2026-08-01 — shelved, per the standing decision.)
 export function isGokuBlack(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "goku_black" }
 
-// Enter SSJ Rose. Gated: goku_black, not already transformed/transforming, actionable, energy ≥ thresh.
-// Runs as a FROZEN CINEMATIC (ssjRoseCinematic.js, mirrors Kurama/Sasuke): combat freezes, the camera
-// isolates Goku Black (opponent out of frame), the morph sheet plays, and the actual form-swap (art +
-// stats) lands at the RESOLVE beat via the onResolve callback — NOT immediately.
+// A `currentFormData` object for a Goku Black tier. updateTransformationState re-applies
+// currentFormData's multipliers to the fighter EVERY frame; Goku Black is created with the base form
+// (all-1 multipliers), so setting the raw fighter.*Multiplier fields alone is clobbered back to 1 on
+// the next frame. Pointing currentFormData at the tier's multipliers (the Vegeta pattern) makes the
+// buff persist. attackMultiplier == damageMultiplier so combat's MAX(dmg, atk) is unaffected.
+function gbFormData(mult) {
+  return { damageMultiplier: mult.dmg, attackMultiplier: mult.dmg, speedMultiplier: mult.spd, defenseMultiplier: mult.def }
+}
+// Restore the base form (all-1 multipliers) so the per-frame re-apply stops buffing after a revert.
+function gbBaseFormData(fighter) { return fighter.transformations?.base || { damageMultiplier: 1, attackMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } }
+
+// Enter SSJ Rose (base → Rose). Runs as a FROZEN CINEMATIC (ssjRoseCinematic.js, mirrors Kurama/Sasuke):
+// combat freezes, the camera isolates Goku Black, the base→Rose (red→pink) morph plays via _skinAnim's
+// `transform` (black_goku_transformation_to_ssj_rose, wired as the base `transform` action), and the
+// form-swap lands at the RESOLVE beat via onResolve — NOT immediately.
 export function enterSSJRose(fighter, context = {}) {
   if (!isGokuBlack(fighter) || fighter._ssjRoseActive) return false
   if (isSSJRoseCinematicActive()) return false   // already mid-transform
@@ -7969,13 +9478,14 @@ export function enterSSJRose(fighter, context = {}) {
     fighter.attackMultiplier  = SSJ_ROSE_MULT.dmg
     fighter.speedMultiplier   = SSJ_ROSE_MULT.spd
     fighter.defenseMultiplier = SSJ_ROSE_MULT.def
+    fighter.currentFormData   = gbFormData(SSJ_ROSE_MULT)   // persist the buff (Vegeta gotcha: currentFormData is re-applied every frame)
     fighter.teleportFlash     = 14
     fighter.attackCooldown    = 12                  // brief settle as gameplay resumes
   })
   return true
 }
 
-// Revert to base form: clear the flag + art swap + stat multipliers. Called by the drain
+// Revert to base form: clear the form flag + art swap + stat multipliers. Called by the drain
 // auto-revert, a manual re-tap, and round/KO resets.
 export function revertSSJRose(fighter) {
   if (!fighter || !fighter._ssjRoseActive) return
@@ -7986,17 +9496,19 @@ export function revertSSJRose(fighter) {
   fighter.attackMultiplier  = 1
   fighter.speedMultiplier   = 1
   fighter.defenseMultiplier = 1
+  fighter.currentFormData   = gbBaseFormData(fighter)   // stop the per-frame buff re-apply
   fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
 }
 
-// P-tap toggle: enter if base + at threshold; manual revert if already transformed.
+// P-tap toggle helper (kept for API parity; game.js drives the ladder directly). Enters Rose if base +
+// at threshold; drops to base if already Rose.
 export function toggleSSJRose(fighter, context = {}) {
   if (!isGokuBlack(fighter)) return false
   if (fighter._ssjRoseActive) { revertSSJRose(fighter); return true }
   return enterSSJRose(fighter, context)
 }
 
-// Per-frame hook (updateFighterState): continuous drain + instant auto-revert at 0.
+// Per-frame hook (updateFighterState): continuous drain + instant auto-revert at 0 while in Rose.
 export function applyGokuBlackFormSystem(fighter) {
   if (!isGokuBlack(fighter)) return
   tickSustainedFormDrain(fighter, {
@@ -8112,7 +9624,7 @@ function executeGokuBlackSpecial(fighter, context) {
     fighter.attackCooldown   = getAttackDuration(GB_KAME_CAST + 4, fighter)
     schedulePendingSpawn(GB_KAME_FIRE, () => {
       spawnProjectile(fighter, "gbKamehameha", {
-        damage: rose ? Math.round(120 * SSJ_ROSE_MULT.dmg) : 120, speed: 14, lifetime: 130,
+        damage: Math.round(120 * (fighter.damageMultiplier || 1)), speed: 14, lifetime: 130,   // scales across base/Rose
         hitstun: 22, knockbackX: 9, knockbackY: -2,
         color: rose ? "#ff5db1" : "#b06bff", w: 26, h: 22
       }, context)
@@ -8130,7 +9642,7 @@ function executeGokuBlackSpecial(fighter, context) {
     fighter.attackCooldown   = getAttackDuration(GB_BOMB_CAST + 4, fighter)
     schedulePendingSpawn(GB_BOMB_FIRE, () => {
       spawnProjectile(fighter, "gbSpiritBomb", {
-        damage: rose ? Math.round(150 * SSJ_ROSE_MULT.dmg) : 150, speed: 9, lifetime: 150,
+        damage: Math.round(150 * (fighter.damageMultiplier || 1)), speed: 9, lifetime: 150,   // scales across base/Rose
         hitstun: 28, knockbackX: 7, knockbackY: -6,
         color: rose ? "#ff9ed6" : "#9d7bff", w: 42, h: 42
       }, context)

@@ -94,7 +94,9 @@ try {
   // ── SSJ ROSE FORM ─────────────────────────────────────────────────────────
   section("SSJ ROSE form — magenta aura (buildup 0-2 once → loop 3-7)");
   await page.evaluate(() => window.__harness.setEnergy(200));
-  await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p");   // tap P → transform
+  await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p"); await wf(3);   // base → SSG (mandatory waypoint)
+  await page.evaluate(() => window.__harness.setEnergy(200));
+  await page.keyboard.down("p"); await wf(20); await page.keyboard.up("p");                // hold-release SSG → Rose
   await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
   await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
   check("transformed into SSJ Rose", (await p1()).currentForm === "ssjRose", `form=${(await p1()).currentForm}`);

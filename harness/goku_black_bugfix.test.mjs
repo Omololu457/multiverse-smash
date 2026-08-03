@@ -41,28 +41,27 @@ try {
   await wf(6); await actionable();
 
   // ── BUG 1 — SSJ Rose: charge-and-release at real (sub-threshold) starting energy ──
-  section("BUG 1 — SSJ Rose: hold P to charge, RELEASE at/near max → transform");
+  section("BUG 1 — LADDER: hold P to charge, RELEASE at/near max → base → Rose (frozen cinematic)");
   {
     await page.evaluate(() => window.__harness.setEnergy(100));   // real match starting energy (50%)
-    // (a) a bare quick TAP at 100 (below 180) must NOT transform
+    // (a) a bare quick TAP at 100 (below 180) must NOT transform at all
     await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p"); await wf(2);
-    check("quick tap at 100 energy (below threshold) does NOT transform", (await p1()).currentForm !== "ssjRose", `form=${(await p1()).currentForm} energy=${(await p1()).energy.toFixed(0)}`);
-    // (b) HOLD P to charge up past the threshold, then release → transforms
+    check("quick tap at 100 energy (below threshold) does NOT transform", (await p1()).currentForm === "base", `form=${(await p1()).currentForm} energy=${(await p1()).energy.toFixed(0)}`);
+    // (b) HOLD P to charge past the threshold, then release → enters Rose via the frozen cinematic
     await page.keyboard.down("p");
     const reached = await page.waitForFunction(() => window.__harness.p1().energy >= 180, null, { timeout: 6000, polling: 16 }).then(() => true).catch(() => false);
     const eAtRelease = (await p1()).energy;
     await page.keyboard.up("p");
-    check("charging reaches threshold (>=180) via P-hold", reached, `energy@release=${eAtRelease.toFixed(0)}`);
-    // the transform is a frozen CINEMATIC now — wait for it to resolve, then the form-swap has landed
     await page.waitForFunction(() => { const c = window.__harness.ssjRoseCine?.(); return c && !c.active; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
     await wf(4);
     const after = await p1();
-    check("RELEASE at/near max ENTERS SSJ Rose (after the transform cinematic)", after.currentForm === "ssjRose" && after.hasSkinAnim, `form=${after.currentForm} skinAnim=${after.hasSkinAnim}`);
+    check("charging reaches threshold (>=180) via P-hold", reached, `energy@release=${eAtRelease.toFixed(0)}`);
+    check("RELEASE at/near max ENTERS Rose (base → Super Saiyan Rose via cinematic)", after.currentForm === "ssjRose" && after.hasSkinAnim, `form=${after.currentForm} skinAnim=${after.hasSkinAnim}`);
     check("SSJ Rose art swapped in (Rose idle sheet)", sheet(after).includes("goku_black_ssj_rose"), `sheet=${after.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "GBFIX_ssjrose_realplay.png") });
-    // quick tap reverts
+    // quick tap reverts (Rose → base)
     await page.keyboard.down("p"); await wf(1); await page.keyboard.up("p"); await wf(3);
-    check("quick tap while transformed reverts", (await p1()).currentForm !== "ssjRose", `form=${(await p1()).currentForm}`);
+    check("quick tap while transformed reverts to base", (await p1()).currentForm === "base", `form=${(await p1()).currentForm}`);
     await page.evaluate(() => window.__harness.setEnergy(200));
   }
 

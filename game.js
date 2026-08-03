@@ -23,7 +23,9 @@ import {
   summonShadowClone, dispelShadowClones,   // debug hotkeys (",", ".") wire straight to these
   spawnShadowClone,                        // immediate clone spawn (harness clone-combo staging — no audio-window delay)
   countShadowClones,                       // #21 Clone Rendan Storm gate (Naruto light-string extension)
-  getClonePuffCount                        // harness: Zenitsu Double Attack partner poof count
+  getClonePuffCount,                       // harness: Zenitsu Double Attack partner poof count
+  revealClonesHitByProjectiles,            // decoy hit-reveal: a projectile poofs a clone (any-hit reveal)
+  setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
 import { physics } from "./physics.js"
 import {
@@ -51,6 +53,8 @@ import {
   applyFlashTimeSystem, forceRevertFlashTime,   // Flash — Flash Time: sustained buff-mode ultimate (drain tick + block-lockout + afterimage trail)
   applyGonAdultFormSystem, forceRevertGonAdultForm,   // Gon Adult Form: sustained buff-mode ultimate (drain tick + movement-lockout + green aura trail)
   applyHisokaOverdriveSystem, forceRevertHisokaOverdrive,   // Hisoka Bloodlust Overdrive: sustained buff-mode ultimate (drain tick + _skinAnim golden power-up body-swap)
+  updateTransformJutsu, isTransformJutsuActive, transformJutsuTier,   // Transformation Jutsu (Naruto-universe): per-frame window driver + state reads
+  revertTransformJutsu,   // harness/force-revert
   applySupermanModeSystem, forceRevertSupermanModes,   // Superman Stage 4: Solar Flare (gold) + Kryptonian Overload (blue) sustained mode-toggles (drain tick + auto-revert)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
@@ -79,6 +83,8 @@ import {
   updateZenitsuCommandCombat,  // Zenitsu Down+Heavy 3-hit "Thunderclap Flurry" chain (zenCombo1→2→3 launcher, cancel-on-hit)
   updateRengokuCommandCombat,  // Rengoku Fwd+Heavy branching "Flame Breathing" ground+air chains (Heavy=continue / Special=super finisher)
   updateShinobuCommandCombat,  // Shinobu Fwd+Heavy "Insect Breathing" thrust chain + Poison-on-hit watcher
+  updateGhostfaceCommandCombat,  // Ghostface Down+Heavy "Slasher Frenzy" low-knife chain + Bleed/Knockdown-on-hit watchers
+  getGhostfaceCallInPool,        // Ghostface Call-In: the active identity's 4-character companion pool
   fireRengokuFlameStrike       // Rengoku Charged Flame Strike — fired from handleChargeRelease (CHARGE hold→release, tap/hold power tiers)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
@@ -116,6 +122,7 @@ import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
+import { recordMotionInput, detectMotion, getRecentMotions } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
 import {
   createSpectatorSession, startMatchLog, logMoveUsed, logHit, logRoundEnd, finalizeMatchLog,
   sessionToJSON, sessionToCSV, summarizeSession, downloadText,
@@ -198,6 +205,10 @@ import {
   updateShinobuButterflyCinematic, isShinobuButterflyCinematicActive, drawShinobuButterflyCinematic,
   clearShinobuButterflyCinematic, getShinobuButterflyCinematicStatus
 } from "./shinobuButterflyCinematic.js"
+import {
+  updateGhostfaceFinalActCinematic, isGhostfaceFinalActCinematicActive, drawGhostfaceFinalActCinematic,
+  clearGhostfaceFinalActCinematic, getGhostfaceFinalActCinematicStatus
+} from "./ghostfaceFinalActCinematic.js"
 import {
   updateEdoTenseiCinematic, isEdoTenseiCinematicActive, drawEdoTenseiCinematic,
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
@@ -642,6 +653,27 @@ function applySkin(fighter, skinId) {
   fighter._pzFX = null     // drop any prior Phantom Zone spectral overlay likewise
   fighter._emberFX = null  // drop any prior Void Ember overlay likewise (Rengoku)
   fighter._portalFX = null // drop any prior Portal Void swirl overlay likewise (Rick)
+  // GHOSTFACE per-identity GAMEPLAY modifier (project-first exception: these skins are NOT cosmetic-only).
+  // Stamp the resolved mod object onto the fighter; combat.js / physics.js / abilities.js READ it off the
+  // fighter (no imports → no cycles). null for the default skin / every other character.
+  fighter._gfSkinMod = (fighter.rosterKey === "ghostface" && GHOSTFACE_SKIN_MODS[skinId]) || null
+  // GHOSTFACE Call-In: default the selected companion to the active identity's first pool member (so a
+  // skin switch always leaves a valid, in-pool partner). Players/harness can re-select within the pool.
+  if (fighter.rosterKey === "ghostface") {
+    const pool = getGhostfaceCallInPool(fighter)
+    if (!fighter._callInPartner || !pool.includes(fighter._callInPartner)) fighter._callInPartner = pool[0] || null
+  }
+}
+
+// GHOSTFACE KILLER-IDENTITY MODIFIERS — the ONLY project-wide skins that alter gameplay (deliberate,
+// confirmed design). Same shared moveset across all 5; each skin only nudges frame/cost/movement values
+// on SPECIFIC moves (not new content). Read via fighter._gfSkinMod at the relevant hooks.
+const GHOSTFACE_SKIN_MODS = {
+  ghostfaceBilly:  { lungeStartupScale: 0.5 },                    // Billy: faster Gutting Lunge (approach) startup
+  ghostfaceDebbie: { deceptiveHurt: true },                       // Debbie: hit-react pose mismatched from real dmg (VISUAL ONLY)
+  ghostfaceRoman:  { callInCostScale: 0.65, callInCdScale: 0.65 },  // Roman: cheaper + faster Call-In (0.65 = balance-tuned down from 0.5; the 2× uptime at 0.5 read overtuned)
+  ghostfaceJill:   { jillCounter: true },                         // Jill: reactive bait-counter while idle (negate + riposte)
+  ghostfaceAmber:  { fwdSpeedScale: 1.14, stickPressure: 0.45 },  // Amber: +move speed; hits push the foe LESS (harder to escape/juke her)
 }
 
 // ── TOWER MODE — tiered ladder of RANDOM CPU fights. ─────────────────────────
@@ -1003,6 +1035,7 @@ function updateFFABattle() {
   // PROJECTILES: hit any non-owner fighter.
   updateCombatProjectiles(activeProjectiles, getStageWorldWidth(), live2)
   resolveProjectileHitsMulti(activeProjectiles, live2, hitSparks, damageNumbers)
+  revealClonesHitByProjectiles(activeProjectiles)   // decoy: projectile→clone poof (multi/FFA path)
 
   // CAMERA: frame ALL living fighters.
   camera.updateMulti(ffaAliveFighters(), canvas)
@@ -1060,7 +1093,7 @@ function endFFA() {
 //     can't end a training session (checkRoundEnd skips), so this is purely convenience.
 //   dummyBehavior     — "stand" | "block" | "jump": training-only override applied in
 //     updateCPUInput (does NOT touch ai.js's shared "dummy" zero-baseline profile).
-const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand" }
+const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand", cloneNoTell: false }
 const DUMMY_BEHAVIORS = ["stand", "block", "jump"]
 const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
 
@@ -1422,6 +1455,7 @@ function createFighter(charKey, char, x, facing, controls, side) {
     airHits: 0, maxAirHits: 3,
     comboCounter: 0, comboTimer: 0,
     directionHistory: [],
+    motionHistory: [],   // dedicated classic motion-input buffer (Naruto-universe only; see motionInput.js)
     teleportFlash: 0, invulnTimer: 0, colorFlash: 0,
     parryFlash: 0, armorFlash: 0, clashFlash: 0,
     leftTapTime: 0, rightTapTime: 0,
@@ -1538,6 +1572,7 @@ function resetRound() {
   clearSupermanUltimateCinematic()
   clearRengokuFlameExplosionCinematic()
   clearShinobuButterflyCinematic()
+  clearGhostfaceFinalActCinematic()
   clearEdoTenseiCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
@@ -1949,6 +1984,8 @@ function startMatch() {
   // these, so a toggle persists across rounds within the same session.
   trainingState.infiniteResources = false
   trainingState.dummyBehavior     = "stand"
+  trainingState.cloneNoTell       = false   // fresh match → decoy visual tell ON (no-tell is an opt-in escalation)
+  setCloneTell(true)
 
   if (matchConfig.p1CharKey) { preloadCharacterSprites?.(matchConfig.p1CharKey); loadSpriteSheets(matchConfig.p1CharKey) }
   if (matchConfig.p2CharKey) { preloadCharacterSprites?.(matchConfig.p2CharKey); loadSpriteSheets(matchConfig.p2CharKey) }
@@ -2139,6 +2176,7 @@ function resetToStart() {
   clearSupermanUltimateCinematic()
   clearRengokuFlameExplosionCinematic()
   clearShinobuButterflyCinematic()
+  clearGhostfaceFinalActCinematic()
   clearEdoTenseiCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
@@ -2658,6 +2696,7 @@ function _doRematch() {
   clearSupermanUltimateCinematic()
   clearRengokuFlameExplosionCinematic()
   clearShinobuButterflyCinematic()
+  clearGhostfaceFinalActCinematic()
   clearEdoTenseiCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0
@@ -3038,6 +3077,7 @@ function updateGamepadEdges(fighter) {
   for (const [name, key, held] of dirs) {
     if (held && !prev[name]) {                  // PRESS edge
       recordDirectionInput(fighter, key)        // motion-special history (Hollow Purple etc.)
+      recordMotionInput(fighter, key)           // classic motion buffer (Naruto-universe only; pad parity)
       detectDoubleTapDashTeleport(fighter, key) // double-tap dash / teleport-strike
     }
     prev[name] = held
@@ -3077,6 +3117,7 @@ function updateMiscTimers(fighter) {
   if (fighter.counterCd > 0) fighter.counterCd--                           // Rengoku Counter cooldown
   if (fighter.poisonCd > 0) fighter.poisonCd--                             // Shinobu Poison Thrust cooldown
   if (fighter.flitCd > 0) fighter.flitCd--                                 // Shinobu Butterfly Flit cooldown
+  if (fighter.callInCd > 0) fighter.callInCd--                             // Ghostface Call-In companion special cooldown (Roman: halved)
   if (fighter._rengokuCountering > 0) fighter._rengokuCountering--          // Rengoku Counter riposte-window countdown (checkParry hook)
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
@@ -3497,6 +3538,12 @@ function _updatePlayerCombatBody(fighter) {
   // watcher for her Poison Thrust special. Consumes the input only when it fires; neutral normals stay normal.
   if ((fighter.rosterKey || "").toLowerCase() === "shinobu" && !charging &&
       updateShinobuCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // GHOSTFACE "Slasher Frenzy" low-knife chain: Down+Heavy opens ghostfaceCombo1, re-tap Heavy on a clean
+  // hit → Combo2 → Combo3 (cancel-on-hit; a whiff/block ends the string). Also drives the BLEED- and
+  // KNOCKDOWN-on-hit watchers for his Gutting Lunge / Low Gut specials. Consumes the input only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "ghostface" && !charging &&
+      updateGhostfaceCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // NETERO Guanyin giant: the base attack buttons fire the 4 avatar attacks (light=leg, heavy=arm-sweep,
   // up=punch-burst; combo-slash is on SPECIAL). Consumes the press only when it fires.
@@ -4056,6 +4103,7 @@ function updateFighterState(fighter) {
   applyFlashTimeSystem(updated)      // Flash — Flash Time: continuous Speed Force drain + auto-revert + block-lockout + afterimage-trail recording
   applyGonAdultFormSystem(updated)   // Gon Adult Form: continuous Nen drain + auto-revert at 0 + green-aura-trail recording (movement-lockout is set at enter)
   applyHisokaOverdriveSystem(updated)   // Hisoka Bloodlust Overdrive: continuous Nen drain + auto-revert at 0 (buff + _skinAnim body-swap set at enter)
+  updateTransformJutsu(updated)         // Transformation Jutsu (Naruto-universe): counts the disguise/full-copy window down + auto-reverts
   applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
@@ -4256,6 +4304,9 @@ function updateTrainingMode() {
     const i = DUMMY_BEHAVIORS.indexOf(trainingState.dummyBehavior)
     trainingState.dummyBehavior = DUMMY_BEHAVIORS[(i + 1) % DUMMY_BEHAVIORS.length]
   }
+  // F6 — CLONE NO-TELL escalation (default OFF): remove the decoy visual tell so clones are
+  // indistinguishable from the real fighter until hit. The hit-reveal rule still applies in both modes.
+  if (_trainingKeyPressed("f6")) { trainingState.cloneNoTell = !trainingState.cloneNoTell; setCloneTell(!trainingState.cloneNoTell) }
 
   // Infinite health/energy: pin BOTH fighters to max each frame. Damage numbers still
   // pop (so combo/damage readouts work) but neither fighter drains or dies.
@@ -4612,6 +4663,14 @@ function updateBattle() {
     return
   }
 
+  // GHOSTFACE "THE FINAL ACT" CINEMATIC: SAME freeze contract — combat/physics/input paused for the whole
+  // stalk → stab flurry; the guaranteed damage + bleed finisher land at the CONNECT beat, then resume.
+  if (isGhostfaceFinalActCinematicActive()) {
+    updateGhostfaceFinalActCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+
   // TOBIRAMA EDO TENSEI CINEMATIC (summon + un-summon): SAME freeze contract — combat/physics/input are
   // paused while the coffin ritual plays; the body-swap (in) / revert (out) fires at the cinematic's
   // resolve beat. This freeze is ALSO the timer-pause: while any inner-ultimate cinematic runs, this
@@ -4694,6 +4753,7 @@ function updateBattle() {
   updateCombatProjectiles(activeProjectiles, getStageWorldWidth(), [p1, p2])
   updatePendingSpawns()   // frame-counted deferred spawns (e.g. Naruto 2nd clone)
   resolveProjectileHits(activeProjectiles, p1, p2, hitSparks)
+  revealClonesHitByProjectiles(activeProjectiles)   // decoy: any projectile that hits a clone poofs it (after real-fighter hits resolve)
 
   // EDO TENSEI counter-play: the opponent can hit the STANDING Tobirama (fighter._edoDummy) to cancel the
   // jutsu on the spot. Checked after combat + projectile resolution so the opponent's swing/shot already
@@ -5512,6 +5572,7 @@ function drawBattle() {
   drawSupermanUltimateCinematic(ctx, canvas)  // fullscreen Solar Overload overlay (green vignette → detonation flash → shockwave rings)
   drawRengokuFlameExplosionCinematic(ctx, canvas)  // fullscreen Flame Explosion overlay (ember vignette → detonation flash → flame rings)
   drawShinobuButterflyCinematic(ctx, canvas)  // fullscreen Butterfly Dance overlay (violet vignette → strike flash → spiral slash rings)
+  drawGhostfaceFinalActCinematic(ctx, canvas) // fullscreen The Final Act overlay (blood vignette → stab-flurry slashes → red impact flash)
   drawEdoTenseiCinematic(ctx, canvas)         // Edo Tensei summon/un-summon overlay (giant coffin + vessel reveal)
   if (aiVsAiState.active) _drawAiVsAiHud()
 }
@@ -6462,9 +6523,10 @@ window.addEventListener("keydown", e => {
   // spuriously trigger a binding vow. Movement itself reads the held key state
   // elsewhere (keys[]/getFighterInput), so skipping repeats here costs nothing.
   if (!e.repeat) {
-    if (p1) { recordDirectionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key) }
+    if (p1) { recordDirectionInput(p1, key); recordMotionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key) }
     if (p2) {
       recordDirectionInput(p2, key)
+      recordMotionInput(p2, key)   // motion buffer is gated internally (Naruto-universe only), so this is safe unconditionally for a P2 Naruto/Minato/etc.
       if (isPvP() || matchConfig.mode !== "vs") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key) }
     }
   }
@@ -6578,6 +6640,8 @@ gameLoop()
     rooted:           !!f._rooted,
     attacking:        !!f.attacking,
     blocking:         !!f.isBlocking,
+    invulnTimer:      f.invulnTimer || 0,        // i-frames remaining (Stalk Vanish / dodge tests)
+    knockdownState:   !!f.knockdownState,        // grounded-knockdown state (trip/launcher tests)
     hitstun:          f.hitstun || 0,
     hitstop:          f.hitstop || 0,          // impact-freeze frames remaining (combo-flow layer telemetry)
     stun:             f.stun || 0,
@@ -6770,7 +6834,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isShinobuButterflyCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isShinobuButterflyCinematicActive() || isGhostfaceFinalActCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -7028,6 +7092,7 @@ gameLoop()
     supermanUltCine: () => getSupermanUltimateCinematicStatus(),
     rengokuUltCine: () => getRengokuFlameExplosionCinematicStatus(),
     shinobuUltCine: () => getShinobuButterflyCinematicStatus(),
+    ghostfaceUltCine: () => getGhostfaceFinalActCinematicStatus(),
     kuramaUltCine: () => getKuramaCinematicStatus(),
     minatoKuramaUltCine: () => getMinatoKuramaStatus(),
     p1CloneCount: () => (p1 ? countShadowClones(p1) : 0),   // test hook: live shadow-clone count (barrage gate)
@@ -7035,6 +7100,7 @@ gameLoop()
     p1FrMarks: () => (p1 ? (p1._frMarks || []).map(m => ({ x: m.x, y: m.y })) : []),   // Flying Raijin marks
     p1FrSel:   () => (p1 ? (p1._frSel || 0) : 0),                                       // selected mark index
     clearP1FrMarks: () => { if (p1) { p1._frMarks = []; p1._frSel = 0 } },              // reset marks between test cases
+    placeP1FrMark: (x) => { if (!p1) return 0; p1._frMarks = p1._frMarks || []; p1._frMarks.push({ x: x ?? p1.x, y: p1.groundY ?? p1.y }); p1._frSel = p1._frMarks.length - 1; return p1._frMarks.length },   // deterministically stage a Flying Raijin mark (Flying Raijin Clones test)
     // Vegeta Super Saiyan form control + introspection (vegeta_ssj.test.mjs). op:
     //   "enter"    → player-facing transform (morph + gates),
     //   "revert"   → drop back to base,
@@ -7116,7 +7182,16 @@ gameLoop()
     // ── deterministic reset for the beta-input test (clears the motion buffer + cooldowns so
     //    successive command-special casts don't contaminate each other via stale directionHistory
     //    or a lingering summon/chain recast lock). Test-only, like the rest of __harness.
-    resetFighterInput: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return; f.directionHistory = []; f.attackCooldown = 0; f.summonCooldown = 0; f.chainCooldown = 0; f.teleportCooldown = 0; f.comboCounter = 0; f.comboTimer = 0 },   // also clear combo state so an isolated single-hit damage measurement isn't decayed by a leftover combo (projectiles now build combo count too — combo-flow Stage 3)
+    resetFighterInput: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return; f.directionHistory = []; f.motionHistory = []; f.attackCooldown = 0; f.summonCooldown = 0; f.chainCooldown = 0; f.teleportCooldown = 0; f.comboCounter = 0; f.comboTimer = 0; if (typeof clearInputBuffers === "function") clearInputBuffers([f]) },   // also clear combo state + the buffered-press queue so a leftover Special from a prior cast can't fire when the fighter next becomes actionable (motion tests); motionHistory cleared so classic-motion casts don't contaminate each other
+    p1MotionHistory: () => ((p1?.motionHistory) || []).map(d => d.dir),   // classic motion buffer contents (test assertions: populated for Naruto-universe, empty otherwise)
+    p1DetectMotion: (name) => (p1 ? detectMotion(p1, name) : false),      // query the motion engine directly (Stage-1 engine proof)
+    p1RecentMotions: () => (p1 ? getRecentMotions(p1) : []),
+    setCloneTell: (on) => { setCloneTell(on); return isCloneTell() },     // decoy visual-tell toggle (Stage 4 no-tell mode)
+    cloneTell: () => isCloneTell(),
+    p1CloneStates: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), state: s._state, hidden: !!s._hidden })),   // clone lifecycle inspection (hit-reveal tests)
+    p2ProjectileAtClone: () => { if (!p2 || !p1) return -1; const c = activeSummons.find(s => s.id === "shadowClone" && s.owner === p1 && s._state === "idle" && !s._hidden); if (!c) return -1; spawnProjectile(p2, "testBolt", { damage: 30, speed: 0, lifetime: 30, w: 30, h: 30, spawnX: c.x + c.w / 2, spawnY: c.y + c.h / 2 }, {}); return countShadowClones(p1) },   // fire an ENEMY projectile overlapping a clone → hit-reveal poof (returns clone count before)
+    p1TransformJutsu: () => (p1 ? { active: isTransformJutsuActive(p1), tier: transformJutsuTier(p1), target: p1._tjTarget || null, name: p1.name, rosterKey: p1.rosterKey, spriteSheet: p1.spriteHandler?._actionDef?.sheet ?? null, lightDmg: p1.basic_attacks?.light?.damage ?? null, specialsKeys: Object.keys(p1.specials || {}).sort() } : null),   // Transformation Jutsu state + proof that moves/stats are (Tier1) unchanged
+    forceRevertTransformJutsu: () => (p1 ? revertTransformJutsu(p1) : false),
     clearProjectiles:  () => { activeProjectiles.length = 0 },
     clearSummons:      () => { activeSummons.length = 0 },
     healP2:     () => { if (p2) { p2.health = p2.maxHealth || 1000; p2.hitstun = 0; p2.knockdownState = false }   // reset dummy between damage checks
@@ -7223,6 +7298,13 @@ gameLoop()
     // TEST-ONLY: live-apply a skin to a fighter (calls the real applySkin) so a test can toggle
     // the Limitless skin ON/OFF mid-session and prove the voice override activates/reverts.
     setSkin: (side = "p1", skinId = "default") => { const f = side === "p2" ? p2 : p1; if (f) { applySkin(f, skinId); return f.skinId } return null },
+    // ── GHOSTFACE CALL-IN harness hooks ──
+    callInPool:        (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? getGhostfaceCallInPool(f) : [] },   // the active identity's 4-char pool
+    callInPartner:     (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f._callInPartner || null) : null }, // currently selected companion
+    setCallInPartner:  (key, side = "p1") => { const f = side === "p2" ? p2 : p1; if (!f) return null; const pool = getGhostfaceCallInPool(f); if (pool.includes(key)) f._callInPartner = key; return f._callInPartner || null },   // select — REJECTS anyone outside this identity's pool
+    lastCallInPartner: (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f._lastCallInPartner || null) : null }, // who was actually summoned by the last Call-In
+    callInCd:          (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f.callInCd || 0) : 0 },
+    resetCallIn:       (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f.callInCd = 0; f._lastCallInPartner = null } return true },   // clear the Call-In cooldown for back-to-back tests
     // TEST-ONLY: inject a minimal `taunt` animationData onto the LIVE p1 fighter so a
     // test can drive the real taunt commit-transition and prove the (dormant) Saiki voice
     // hook fires the moment a taunt action exists. Does NOT ship a taunt to Saiki — the

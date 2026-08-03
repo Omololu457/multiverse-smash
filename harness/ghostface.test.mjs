@@ -53,15 +53,17 @@ await grab("up", "i", 2);
 const allGhostface = Object.entries(seen).every(([, s]) => (s || "").includes("ghostface_"));
 check("all exercised actions use a ghostface_* sheet", allGhostface, Object.entries(seen).map(([k, v]) => `${k}=${(v || "").split("/").pop()}`).join(" "));
 
-section("6 skins — Default + 5 killer identities, each retags its idle");
-const skins = [["default", "ghostface_idle_uniform.png"], ["ghostfaceBilly", "__billy"], ["ghostfaceDebbie", "__debbie"], ["ghostfaceRoman", "__roman"], ["ghostfaceJill", "__jill"], ["ghostfaceAmber", "__amber"]];
+section("5 killer-identity skins ONLY (NO Default) — each retags its idle");
+const skins = [["ghostfaceBilly", "__billy"], ["ghostfaceDebbie", "__debbie"], ["ghostfaceRoman", "__roman"], ["ghostfaceJill", "__jill"], ["ghostfaceAmber", "__amber"]];
 await waitReady();   // ensure any prior attack pose has returned to idle before reading idle sheets
 for (const [id, frag] of skins) {
   await page.evaluate(x => window.__harness.setSkin("p1", x), id); await waitReady(); await wf(4);
   const s = (await p1()).spriteSheet || "";
-  const ok = id === "default" ? (s.includes("ghostface_idle_uniform.png") && !s.includes("__")) : s.includes(frag);
-  check(`${id} → idle sheet ${frag}`, ok, `sheet=${s.split("/").pop()}`);
+  check(`${id} → idle sheet ${frag}`, s.includes(frag), `sheet=${s.split("/").pop()}`);
 }
+// applying the removed 'default' must NOT stick — it resolves to a killer identity
+await page.evaluate(() => window.__harness.setSkin("p1", "default")); await wf(2);
+check("'default' resolves to a killer identity (Default removed)", /^ghostface(Billy|Debbie|Roman|Jill|Amber)$/.test((await p1()).skinId || ""), `skinId=${(await p1()).skinId}`);
 
 section("Call-In pools — each identity = exactly its 4 companions, mutually exclusive");
 const seenPool = [];

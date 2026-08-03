@@ -174,8 +174,6 @@
     "test:ghostface-s1-abilities": "node harness/ghostface_stage1_abilities.mjs",
     "test:ghostface-s2": "node harness/ghostface_stage2_shots.mjs",
     "test:ghostface-s4": "node harness/ghostface_stage4_modifiers.mjs",
-    "test:ghostface-s5": "node harness/ghostface_stage5_callin.mjs",
-    "test:ghostface-swap": "node harness/ghostface_swap_stage3.mjs",
     "test:minato-s1": "node harness/minato_stage1_shots.mjs",
     "test:minato-s2": "node harness/minato_stage2.test.mjs",
     "test:minato-s3": "node harness/minato_stage3.mjs",
@@ -236,7 +234,14 @@
     "test:transform": "node harness/transform_jutsu.test.mjs",
     "test:ghostface-swap4": "node harness/ghostface_swap_stage4.mjs",
     "test:transform-energy-shots": "node harness/transform_energy_shots.mjs",
-    "test:ghostface-swap-canon": "node harness/ghostface_swap.test.mjs"
+    "test:ghostface-swap-canon": "node harness/ghostface_swap.test.mjs",
+    "test:ghostface-swap-motion": "node harness/ghostface_swap_motion.mjs",
+    "test:ghostface-identity": "node harness/ghostface_identity_mandatory.mjs",
+    "test:crew-group1": "node harness/companion_crew_group1.mjs",
+    "test:crew-group2": "node harness/companion_crew_group2.mjs",
+    "test:crew-group3": "node harness/companion_crew_group3.mjs",
+    "test:crew-group4": "node harness/companion_crew_group4.mjs",
+    "test:crew-group5": "node harness/companion_crew_group5.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

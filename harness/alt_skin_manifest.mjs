@@ -53,6 +53,9 @@ export const ALT_SKINS = {
     { tag: "pink",  name: "Pink",  mode: "region", note: "-> to-hue 330 sat .55 val-gain 1.25" },
     { tag: "gold",  name: "Gold",  mode: "region", note: "-> to-hue 47 sat .90 val-gain 1.55" },
     { tag: "red",   name: "Red",   mode: "region", note: "-> to-hue 5 sat .90 val-gain 1.25" },
+    // "JOINED THE KILLER" — Jill's crew (magenta #701E50) on the GOLD Saiyan-armor trim (base form) → magenta.
+    // SSJ/Blue form sheets copied unchanged (gold hair+aura share the hue) → accent shows in base form only.
+    { tag: "crew", name: "Jill's Crew", mode: "region", note: "gen_companion_crew.py vegeta — hue 42-54 sat>=.6 yband .3-.88 -> to-tone #701E50 (armor trim; forms skipped)" },
   ],
   // BEERUS — blue outfit (hue 185-235, sat≥0.35). IS blue → skip BLUE. PURPLE SKIN (hue ~258-277) and
   // gold trim are outside the selection → fully preserved.
@@ -61,13 +64,18 @@ export const ALT_SKINS = {
     { tag: "pink",  name: "Pink",  mode: "region", note: "-> to-hue 330 sat .55 val-gain 1.0" },
     { tag: "gold",  name: "Gold",  mode: "region", note: "-> to-hue 47 sat .90 val-gain 1.15" },
     { tag: "red",   name: "Red",   mode: "region", note: "-> to-hue 5 sat .90 val-gain 1.05" },
+    // "JOINED THE KILLER" — Debbie's crew (indigo #3E2A66) on the gold Egyptian JEWELRY/collar only.
+    { tag: "crew", name: "Debbie's Crew", mode: "region", note: "gen_companion_crew.py beerus — hue 28-64 sat>=.65 -> to-tone #3E2A66 (gold jewelry; purple skin + blue robe untouched)" },
   ],
   // GOKU BLACK — near-grayscale gi. IS black → skip BLACK. COLORIZE (min-sat 0, max-sat 0.18) scoped to
   // the body (yband 0.26-1.0) so the black HAIR stays black; red sash & skin (higher sat) preserved.
   // Recolored across the SSJ Rose form too. val-gain lifts the near-black gi so the color reads.
   // Goku Black's 4 old abstract-hue recolors (pink/gold/blue/red) were REMOVED 2026-08-01, superseded by
   // the 12 hand-tuned per-region creative skins hardcoded in skins.js (tools/gen_goku_black_creative.py).
-  goku_black: [],
+  goku_black: [
+    // "JOINED THE KILLER" — Jill's crew (magenta #701E50) on the RED SASH/belt (his aura is FX, not static) → magenta.
+    { tag: "crew", name: "Jill's Crew", mode: "region", note: "gen_companion_crew.py goku_black — hue 352-12 sat>=.7 -> to-tone #701E50 (red sash; incl SSJ Rose form sheets)" },
+  ],
 
   // ══ BATCH 2 · NARUTO ════════════════════════════════════════════════════════
   // NARUTO — KCM golden-orange chakra BODY (hue 5-66, sat≥.45; recolors the whole glow, black seals
@@ -78,6 +86,22 @@ export const ALT_SKINS = {
     { tag: "pink",  name: "Pink",  mode: "region", note: "-> to-hue 330 sat .70 val-gain .95" },
     { tag: "blue",  name: "Blue",  mode: "region", note: "-> to-hue 214 sat .80 val-gain .90" },
     { tag: "red",   name: "Red",   mode: "region", note: "-> to-hue 2 sat .90 val-gain .95" },
+    // "JOINED THE KILLER" — Amber's crew (toxic-green #1C5A30). KCM (all-gold) hides the blue headband, so a
+    // thin forehead BAND of the gold → green so a green headband reads.
+    { tag: "crew", name: "Amber's Crew", mode: "region", note: "gen_companion_crew.py naruto — hue 8-60 sat>=.5 yband .12-.2 -> to-tone #1C5A30 (forehead headband band)" },
+  ],
+  // SHINOBU / GON / ZENITSU — explicit skins live in skins.js; these manifest entries add ONLY the marker.
+  shinobu: [
+    // Amber's crew (toxic-green #1C5A30) on her butterfly-haori WING pattern (purple → green); poison-FX sheets skipped.
+    { tag: "crew", name: "Amber's Crew", mode: "region", note: "gen_companion_crew.py shinobu — hue 245-285 sat>=.4 -> to-tone #1C5A30 (wing pattern; ultimate/flit FX skipped)" },
+  ],
+  gon: [
+    // Amber's crew (toxic-green #1C5A30) on his brown BOOTS (Gon is already green head-to-toe → only distinct accent; no wristband exists).
+    { tag: "crew", name: "Amber's Crew", mode: "region", note: "gen_companion_crew.py gon — hue 30-46 sat>=.7 val .15-.5 -> to-tone #1C5A30 (boots; low-contrast by nature)" },
+  ],
+  zenitsu: [
+    // Amber's crew (toxic-green #1C5A30) on the RED haori-LINING/inner garment (red → green); intro FX skipped.
+    { tag: "crew", name: "Amber's Crew", mode: "region", note: "gen_companion_crew.py zenitsu — hue 346-6 sat>=.5 -> to-tone #1C5A30 (haori lining; yellow haori untouched)" },
   ],
   // SASUKE — navy+purple clothing (hue 200-280, sat≥.18; dark → val-gain 2.0). IS dark → skip BLACK.
   // Grey top / skin / hair preserved (grey top is a neutral, like Vegeta's white armor).
@@ -86,6 +110,8 @@ export const ALT_SKINS = {
     { tag: "gold", name: "Gold", mode: "region", note: "-> to-hue 47 sat .85 val-gain 2.2 lift .10" },
     { tag: "blue", name: "Blue", mode: "region", note: "-> to-hue 210 sat .85 val-gain 2.0 lift .10" },
     { tag: "red",  name: "Red",  mode: "region", note: "-> to-hue 3 sat .90 val-gain 2.0 lift .10" },
+    // "JOINED THE KILLER" affiliation marker — Billy's crew (crimson #6E1520) on the SWORD ROPE-WRAP only.
+    { tag: "crew", name: "Billy's Crew", mode: "region", note: "gen_companion_crew.py sasuke — hue 248-292 sat>=.36 val .14-.78 -> to-tone #6E1520 (rope-wrap; blade/outfit/skin untouched)" },
   ],
   // ITACHI — black Akatsuki cloak (colorize, sat 0-.18, yband .20-1 keeps hair black; red clouds
   // sat>.18 stay red). IS black → skip BLACK. val-gain lifts the near-black cloak so color reads.
@@ -94,6 +120,8 @@ export const ALT_SKINS = {
     { tag: "gold", name: "Gold", mode: "region", note: "-> to-hue 47 sat .85 val-gain 2.1 lift .10" },
     { tag: "blue", name: "Blue", mode: "region", note: "-> to-hue 214 sat .80 val-gain 2.0 lift .10" },
     { tag: "red",  name: "Red",  mode: "region", note: "-> to-hue 5 sat .85 val-gain 2.0 lift .10" },
+    // "JOINED THE KILLER" affiliation marker — Billy's crew (crimson #6E1520) DEEPENING the Akatsuki red-cloud trim.
+    { tag: "crew", name: "Billy's Crew", mode: "region", note: "gen_companion_crew.py itachi — hue 335-358 sat>=.55 val .2-.85 -> to-tone #6E1520 (red clouds only)" },
   ],
   // TOBIRAMA — blue armor (hue 195-255, sat≥.13). IS blue → skip BLUE. Gold from the Part 1 test.
   tobirama: [
@@ -101,6 +129,8 @@ export const ALT_SKINS = {
     { tag: "pink",  name: "Pink",  mode: "region", note: "-> to-hue 330 sat .60 val-gain 1.5" },
     { tag: "gold",  name: "Gold",  mode: "region", note: "-> to-hue 47 to-sat .9 val-gain 1.7 (Part 1 test)" },
     { tag: "red",   name: "Red",   mode: "region", note: "-> to-hue 5 sat .90 val-gain 1.4" },
+    // "JOINED THE KILLER" — Roman's crew (bronze #5A4622) on the tan armor-STRAP/collar (neck yband) → bronze.
+    { tag: "crew", name: "Roman's Crew", mode: "region", note: "gen_companion_crew.py tobirama — hue 16-42 sat .2-.46 yband .2-.34 -> to-tone #5A4622 (strap shares skin hue → spatially isolated at the neck)" },
   ],
 
   // ══ BATCH 3 · JUJUTSU KAISEN ════════════════════════════════════════════════
@@ -117,13 +147,24 @@ export const ALT_SKINS = {
   // Gojo — ALL recolor skins removed (2026-07-29). Deferred until the base sprite's
   // transparency/missing-pixel bug is repaired; recoloring broken base art propagates the bug.
   // (Former tags: ben10, albedo, cyanhair, purplehair, orangehair, pinkhair.)
-  gojo: [],
+  gojo: [
+    // "JOINED THE KILLER" — Roman's crew (bronze #5A4622) on the BLINDFOLD band (eye-level yband) → bronze.
+    { tag: "crew", name: "Roman's Crew", mode: "region", note: "gen_companion_crew.py gojo — hue 224-256 sat .06-.22 val .32-.78 yband .12-.25 -> to-tone #5A4622 (blindfold; white hair/skin untouched)" },
+  ],
   // SUKUNA — ALL recolor skins removed 2026-07-30 (the black/gold/blue/red set only recoloured the navy
   // uniform, leaving hair + eyes mismatched — the exact problem being fixed). Rebuilt as 4 coordinated
   // head-to-toe colour skins (hair + outfit + eyes) via tools/gen_sukuna_creative.py, registered directly
   // in skins.js (like the Rengoku/Shinobu creative batches), NOT through this abstract-hue manifest.
   // (Former tags: black, gold, blue, red.)
-  sukuna: [],
+  sukuna: [
+    // "JOINED THE KILLER" — Jill's crew (magenta #701E50) on his red EYE/face MARKINGS → magenta.
+    { tag: "crew", name: "Jill's Crew", mode: "region", note: "gen_companion_crew.py sukuna — hue 340-358 sat>=.5 -> to-tone #701E50 (red markings; skin H12-20 excluded)" },
+  ],
+  // GOLD SAMURAI RANGER — explicit skins live in skins.js; this manifest entry adds ONLY the affiliation marker.
+  gold_samurai_ranger: [
+    // "JOINED THE KILLER" — Jill's crew (magenta #701E50) on the DARK armor-SEAM lines only (plates stay gold — he IS "Gold").
+    { tag: "crew", name: "Jill's Crew", mode: "region", note: "gen_companion_crew.py gold_samurai_ranger — hue 30-48 sat>=.65 val .3-.64 -> to-tone #701E50 (seam grooves; bright plates preserved)" },
+  ],
   // MEGUMI — dark navy JJK uniform (hue 230-262, sat≥.30, dark → val-gain). IS dark → skip BLACK.
   // Black hair / skin / brown shoes preserved.
   megumi: [
@@ -149,6 +190,19 @@ export const ALT_SKINS = {
     { tag: "pink",  name: "Pink",  mode: "region", note: "-> to-hue 330 sat .60 vg1.5" },
     { tag: "gold",  name: "Gold",  mode: "region", note: "-> to-hue 47 sat .88 vg1.7" },
     { tag: "red",   name: "Red",   mode: "region", note: "-> to-hue 5 sat .90 vg1.5" },
+    // "JOINED THE KILLER" — Debbie's crew (indigo #3E2A66) on the orange waist SASH only (waist y.37-.52).
+    { tag: "crew", name: "Debbie's Crew", mode: "region", note: "gen_companion_crew.py netero — hue 10-34 sat>=.7 -> to-tone #3E2A66 (waist sash; skin same hue but low-sat, excluded)" },
+  ],
+  // MAKI / OMNI-MAN — explicit skins live in skins.js; these manifest entries add ONLY the affiliation marker.
+  maki: [
+    // "JOINED THE KILLER" — Debbie's crew (indigo #3E2A66) on the flowing red weapon CLOTH-STREAMER.
+    { tag: "crew", name: "Debbie's Crew", mode: "region", note: "gen_companion_crew.py maki — hue 345-6 sat>=.7 -> to-tone #3E2A66 (red streamer; navy uniform untouched)" },
+  ],
+  omniman: [
+    // "JOINED THE KILLER" — Debbie's crew (indigo #3E2A66) on the CAPE: its dark-red body (val<.32) → indigo
+    // so the cape reads indigo while the bright red suit/torso (val>.32) stays red. Cape is the same red as
+    // the suit so a thin "lining" isn't separable — the whole cape is marked (boldest of the group).
+    { tag: "crew", name: "Debbie's Crew", mode: "region", note: "gen_companion_crew.py omniman — hue 345-18 sat>=.85 val .08-.32 -> to-tone #3E2A66 (cape; bright red suit preserved)" },
   ],
   // KILLUA — standard set recolors the OUTFIT (white shirt + purple shorts, 2-pass; silver hair
   // protected via yband .40-1, skin/pink-shoes kept). Not natively any of the 5 → all 5. PLUS the 3
@@ -162,6 +216,14 @@ export const ALT_SKINS = {
     { tag: "blackhair", name: "Black Hair", mode: "region", note: "hair -> to-tone #1A1A22 spread .85 (reference target)" },
     { tag: "brownhair", name: "Brown Hair", mode: "region", note: "hair -> to-tone #6E4A2C spread .90" },
     { tag: "pinkhair",  name: "Pink Hair",  mode: "region", note: "hair -> to-tone #E86AA6 spread .90" },
+    // "JOINED THE KILLER" affiliation marker — Billy's crew (crimson #6E1520) on the brightest HAIR HIGHLIGHTS
+    // only (val>=.88, top yband) so the bulk of the silver hair is untouched — distinct from the full-hair recolors above.
+    { tag: "crew", name: "Billy's Crew", mode: "region", note: "gen_companion_crew.py killua — max-sat .14 val>=.88 yband 0-.5 -> to-tone #6E1520 (brightest strands only)" },
+  ],
+  // CHROLLO — explicit skins live in skins.js; this manifest entry adds ONLY the affiliation marker.
+  chrollo: [
+    // "JOINED THE KILLER" affiliation marker — Billy's crew (crimson #6E1520) on the shearling COAT FUR-COLLAR.
+    { tag: "crew", name: "Billy's Crew", mode: "region", note: "gen_companion_crew.py chrollo — max-sat .2 val .55-.99 yband .08-.4 -> to-tone #6E1520 (fur collar; coat/skin untouched)" },
   ],
 
   // ══ BATCH 5 · POWER RANGERS / RICK & MORTY / SAIKI K / DC ════════════════════
@@ -173,7 +235,16 @@ export const ALT_SKINS = {
   omega_ranger: [],
   // RICK — the 5 old pants-only recolors (black/pink/gold/blue/red) were REMOVED (2026-07-29) ahead of
   // a fresh 8-skin creative set built via tools/gen_rick_creative.py (per-region: hair/coat/shirt/pants).
-  rick: [],
+  rick: [
+    // "JOINED THE KILLER" — Roman's crew (bronze #5A4622) on the teal shirt-COLLAR at the lab-coat's V → bronze.
+    // Portal/dash/taunt FX share the shirt's teal hue → those sheets are copied unchanged (accent skipped).
+    { tag: "crew", name: "Roman's Crew", mode: "region", note: "gen_companion_crew.py rick — hue 158-190 sat .28-.55 yband .26-.58 -> to-tone #5A4622 (collar; FX sheets skipped)" },
+  ],
+  // HISOKA — explicit skins live in skins.js; this manifest entry adds ONLY the affiliation marker.
+  hisoka: [
+    // "JOINED THE KILLER" — Roman's crew (bronze #5A4622) on the pink playing-card EMBLEM (chest) → bronze.
+    { tag: "crew", name: "Roman's Crew", mode: "region", note: "gen_companion_crew.py hisoka — hue 315-345 sat .4-.78 yband .26-.6 -> to-tone #5A4622 (card emblem; intro Nen-FX sheet skipped)" },
+  ],
   // SAIKI — green suit (hue 125-165, sat≥.40). IS pink (hair/limiters) → skip PINK. Pink hair, green
   // eyes, skin, blue shoes preserved. (Note: the Part-0-removed saikiAzure is superseded by these.)
   saiki: [

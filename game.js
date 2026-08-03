@@ -85,7 +85,7 @@ import {
   updateShinobuCommandCombat,  // Shinobu Fwd+Heavy "Insect Breathing" thrust chain + Poison-on-hit watcher
   updateGhostfaceCommandCombat,  // Ghostface Down+Heavy "Slasher Frenzy" low-knife chain + Bleed/Knockdown-on-hit watchers
   getGhostfaceCallInPool,        // Ghostface Call-In: the active identity's 4-character companion pool
-  triggerGhostfaceSwap, updateGhostfaceSwap, isGhostfaceSwapActive, ghostfaceSwapTimer, ghostfaceSwapTarget, GHOSTFACE_SWAP_SLOTS,  // Ghostface Companion Swap ("Kameo"): CHARGE+cardinal → full-kit swap into a pool companion, fixed window, auto-revert
+  triggerGhostfaceSwap, updateGhostfaceSwap, isGhostfaceSwapActive, ghostfaceSwapTimer, ghostfaceSwapTarget, GHOSTFACE_SWAP_SLOTS,  // Ghostface Companion Swap ("Kameo"): MOTION+Special → full-kit swap into a pool companion, fixed window, auto-revert (trigger lives in abilities.js executeGhostfaceSpecial)
   applySkillHunter, revertSkillHunter,   // Chrollo Skill Hunter engine — imported ONLY for a test-hook "unaffected" proof (drives the real shared field-swap)
   fireRengokuFlameStrike       // Rengoku Charged Flame Strike — fired from handleChargeRelease (CHARGE hold→release, tap/hold power tiers)
 } from "./abilities.js"
@@ -638,6 +638,16 @@ const matchConfig = {
 // mirror match can have two different skins.
 function applySkin(fighter, skinId) {
   if (!fighter) return
+  // GHOSTFACE has NO base identity — there is no plain "Ghostface", only one of the 5 killers wearing the
+  // mask. Enforce it at this ONE choke point (every fighter-creation path — 1v1, Tower, vs-AI, FFA/Team,
+  // harness — calls applySkin): any non-identity skinId (the removed "default", an invalid id, or an
+  // AI/random/Tower/FFA fighter that was handed "default") resolves to a killer identity. An explicit
+  // player pick (one of the 5) passes through unchanged; only the fallback/AI paths draw a RANDOM identity —
+  // so Ghostface can never exist without one.
+  if (fighter.rosterKey === "ghostface") {
+    const ids = Object.keys(GHOSTFACE_SKIN_MODS)   // the 5 killer identities (single source of truth)
+    if (!ids.includes(skinId)) skinId = ids[Math.floor(Math.random() * ids.length)]
+  }
   fighter._skinAnim = getSkinAnimationData(fighter.rosterKey, skinId)
   const skin = getSkin(fighter.rosterKey, skinId)
   // Alt-color recolor skins carry a `recolorTag`. Stash it + the recoloured BASE anim so a
@@ -673,7 +683,7 @@ function applySkin(fighter, skinId) {
 const GHOSTFACE_SKIN_MODS = {
   ghostfaceBilly:  { lungeStartupScale: 0.5 },                    // Billy: faster Gutting Lunge (approach) startup
   ghostfaceDebbie: { deceptiveHurt: true },                       // Debbie: hit-react pose mismatched from real dmg (VISUAL ONLY)
-  ghostfaceRoman:  { callInCostScale: 0.65, callInCdScale: 0.65 },  // Roman: cheaper + faster Call-In (0.65 = balance-tuned down from 0.5; the 2× uptime at 0.5 read overtuned)
+  ghostfaceRoman:  { swapCostScale: 0.65 },                       // Roman: Companion Swap costs 35% less Dread (23 vs 35) — his identity is enhanced companion access
   ghostfaceJill:   { jillCounter: true },                         // Jill: reactive bait-counter while idle (negate + riposte)
   ghostfaceAmber:  { fwdSpeedScale: 1.14, stickPressure: 0.45 },  // Amber: +move speed; hits push the foe LESS (harder to escape/juke her)
 }
@@ -3237,7 +3247,6 @@ function updateMovementInput(fighter) {
   fighter.isBlocking = false
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
   else fighter.isCharging = false   // reset each frame for normal characters (devices set their own)
-  handleGhostfaceSwap(fighter, inputState, vKeys)   // Ghostface Companion Swap combo (no-op for every other character)
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
   // OMNI-MAN FLIGHT: the P (charge) button is TAP-to-toggle-Flight / HOLD-to-charge (Gojo-Infinity
   // pattern). The TAP toggle fires on keyUP in handleChargeRelease; a HOLD falls through to the
@@ -3342,34 +3351,8 @@ function handleOmnitrixSwitch(fighter, inputState) {
 // Deterministic by construction: physical-key slots index straight into the pool, and there is NO
 // bare-CHARGE swap (charge-alone only builds Dread), so nothing can fire "the last/random companion"
 // on the charge frame before the direction registers — the exact ambiguity behind that class of bug.
-function handleGhostfaceSwap(fighter, inputState, vKeys) {
-  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return
-  const held = (fighter._gfSwapHeld = fighter._gfSwapHeld || {})
-  const charge = !!inputState.charge
-  // Only real (un-swapped) Ghostface, standing + not committed/stunned, may initiate.
-  const canSwap = !fighter._gfSwapActive && !fighter.attacking && !fighter.currentMove &&
-                  !(fighter.hitstun > 0) && !(fighter.blockstun > 0)
-  if (charge && canSwap) {
-    for (let i = 0; i < GHOSTFACE_SWAP_SLOTS.length; i++) {
-      const f = GHOSTFACE_SWAP_SLOTS[i].field
-      if (!!inputState[f] && !held[f]) {                 // EDGE: this cardinal just went down this frame
-        try { console.log(`[DIAG] handleGhostfaceSwap EDGE field=${f} slot=${i} charge=${charge} roster=${fighter.rosterKey}`) } catch (_) {}
-        if (triggerGhostfaceSwap(fighter, i, getAbilityContext())) {
-          // CONSUME the triggering CHARGE hold: the combo is CHARGE+cardinal, so charge is still physically
-          // down after the swap. Without this the companion inherits a held charge and starts charging on
-          // frame 1 — which for a charge-THRESHOLD form (e.g. Itachi's Mangekyou) auto-activates it and can
-          // strand the swap. The latch clears the instant charge is released (a fresh, deliberate charge works).
-          fighter._suppressChargeUntilRelease = true
-          if (f === "jump" && vKeys) vKeys[fighter.controls.jump] = false   // the ↑ slot morphs — it must not also hop
-        }
-        break                                            // one slot per frame
-      }
-    }
-  }
-  // Track held-state EVERY frame so a held key can't machine-gun the swap (fire only on a fresh press).
-  held.charge = charge
-  for (const c of GHOSTFACE_SWAP_SLOTS) held[c.field] = !!inputState[c.field]
-}
+// (Ghostface Companion Swap is triggered by a MOTION + Special inside executeGhostfaceSpecial — abilities.js
+// tryGhostfaceSwapMotion — NOT a charge combo, so there is no per-frame input handler here anymore.)
 
 function buildNormalControlState(fighter, vKeys) {
   const c = fighter.controls
@@ -7367,7 +7350,7 @@ gameLoop()
         active: isGhostfaceSwapActive(f), target: ghostfaceSwapTarget(f), timer: ghostfaceSwapTimer(f),
         rosterKey: f.rosterKey, name: f.name, energy: f.energy, maxEnergy: f.maxEnergy, infiniteEnergy: !!f.infiniteEnergy,
         skinId: f.skinId || null, pool,
-        slots: GHOSTFACE_SWAP_SLOTS.map((s, i) => ({ combo: `CHARGE+${s.label}`, companion: pool[i] || null }))
+        slots: GHOSTFACE_SWAP_SLOTS.map((s, i) => ({ combo: s.label, companion: pool[i] || null }))
       }
     },
     // Force-expire the swap window so the update loop auto-reverts THIS frame (revert-timing test without a 12s wait).
@@ -7422,7 +7405,7 @@ gameLoop()
       aliveTeams: [...new Set(ffaAliveFighters().map(f => f.team))].filter(Boolean),
       camZoom: camera.zoom,
       fighters: ffaState.fighters.map(f => f && ({
-        slot: f.ffaSlot, key: f.rosterKey, playerNumber: f.playerNumber, team: f.team || null,
+        slot: f.ffaSlot, key: f.rosterKey, skinId: f.skinId || null, playerNumber: f.playerNumber, team: f.team || null,
         x: Math.round(f.x), y: Math.round(f.y), health: Math.round(f.health), maxHealth: f.maxHealth,
         eliminated: !!f.eliminated, facing: f.facing, attacking: !!f.attacking,
         isAI: !!f._aiControlled, aiDifficulty: f.aiDifficulty || null, aiTarget: f._aiTargetSlot ?? null

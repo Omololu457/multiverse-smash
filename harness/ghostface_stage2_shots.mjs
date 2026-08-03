@@ -38,7 +38,7 @@ await page.mouse.click(640, 360);
 console.log("\n── 1. Skin-select screen ──");
 const sel = await page.evaluate(() => window.__harness.showSkinSelect("ghostface", "p1", 0));
 await waitFrames(2); await shot("select");
-check("skin-select lists Default + 5 identities", sel.skins.length === 6, `count=${sel.skins.length} [${sel.skins.map(s => s.name).join(", ")}]`);
+check("skin-select lists the 5 killer identities ONLY (no Default)", sel.skins.length === 5 && !sel.skins.some(s => s.id === "default"), `count=${sel.skins.length} [${sel.skins.map(s => s.name).join(", ")}]`);
 for (const [id, tag] of IDS) {
   const e = sel.skins.find(s => s.id === id);
   check(`select has ${id} → recolored portrait`, !!e && (e.portrait || "").includes(`__${tag}.png`), `portrait=${e?.portrait}`);
@@ -59,12 +59,12 @@ for (const [id, tag] of IDS) {
   await shot(tag);
 }
 
-// ── 3. Revert to default cleanly ──
-console.log("\n── 3. Revert to default ──");
+// ── 3. There is NO default identity — applying "default" resolves to a killer identity's tagged sheet ──
+console.log("\n── 3. No default identity (resolves to a killer) ──");
 const rev = await page.evaluate(() => window.__harness.setSkin("p1", "default"));
 await waitFrames(4);
 const a = await p1();
-check("default: idle → base (untagged) sheet", rev === "default" && (a.spriteSheet || "").includes("ghostface_idle_uniform.png") && !a.spriteSheet.includes("__"), `sheet=${a.spriteSheet}`);
+check("'default' resolves to a killer identity (tagged robe sheet, never untagged base)", /^ghostface(Billy|Debbie|Roman|Jill|Amber)$/.test(rev || "") && (a.spriteSheet || "").includes("__"), `skinId=${rev} sheet=${a.spriteSheet}`);
 
 check("no JS page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));
 

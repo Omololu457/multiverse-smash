@@ -49,16 +49,21 @@ await page.mouse.click(640, 360);
 await page.evaluate(() => { window.__harness.start(); window.__harness.skipToBattle(); });
 await wf(20);
 
+// Ghostface has NO neutral "default" identity anymore, so each modifier is measured against a BASELINE
+// identity that LACKS the specific property being tested. ATK_BASE (Debbie) has only a defender-visual
+// modifier → neutral for attacker/mover tests. DEF_BASE (Roman) has only swap-cost → neutral as a defender.
+const ATK_BASE = "ghostfaceDebbie", DEF_BASE = "ghostfaceRoman", DUMMY = "ghostfaceBilly";
+
 // ── BILLY: faster approach-move startup ──
 console.log("\n── Billy: Gutting Lunge startup (approach telegraph) ──");
-await reset("default", "default", 300); const defFrames = await lungeToActive();
-await reset("ghostfaceBilly", "default", 300); const billyFrames = await lungeToActive();
-check("Billy's Gutting Lunge reaches active FASTER than default", billyFrames != null && defFrames != null && billyFrames < defFrames, `default=${defFrames}f · billy=${billyFrames}f`);
+await reset(ATK_BASE, DUMMY, 300); const defFrames = await lungeToActive();
+await reset("ghostfaceBilly", DUMMY, 300); const billyFrames = await lungeToActive();
+check("Billy's Gutting Lunge reaches active FASTER than baseline", billyFrames != null && defFrames != null && billyFrames < defFrames, `baseline=${defFrames}f · billy=${billyFrames}f`);
 
 // ── DEBBIE: deceptive hit-react (visual only) ──
 console.log("\n── Debbie: deceptive hit-react (visual only) ──");
 async function lightHitReact(p2skin) {
-  await reset("default", p2skin, 46);
+  await reset(DUMMY, p2skin, 46);
   const h0 = (await p2()).health;
   // ONE clean light tap (holding the button auto-repeats → non-deterministic hit count)
   await page.keyboard.down("j"); await wf(2); await page.keyboard.up("j");
@@ -68,16 +73,16 @@ async function lightHitReact(p2skin) {
   const h1 = (await p2()).health;
   return { act, dmg: Math.round(h0 - h1), hs };
 }
-const defR = await lightHitReact("default");
+const defR = await lightHitReact(DEF_BASE);
 const debR = await lightHitReact("ghostfaceDebbie");
-check("Debbie's DISPLAYED hit-react pose differs from default", defR.act !== debR.act && !!debR.act, `default pose=${defR.act} · debbie pose=${debR.act}`);
-check("Debbie's REAL damage is unchanged (visual-only)", defR.dmg === debR.dmg && defR.dmg > 0, `default=${defR.dmg} · debbie=${debR.dmg}`);
-check("Debbie's REAL hitstun is unchanged (visual-only)", defR.hs === debR.hs && defR.hs > 0, `default=${defR.hs} · debbie=${debR.hs}`);
+check("Debbie's DISPLAYED hit-react pose differs from baseline", defR.act !== debR.act && !!debR.act, `baseline pose=${defR.act} · debbie pose=${debR.act}`);
+check("Debbie's REAL damage is unchanged (visual-only)", defR.dmg === debR.dmg && defR.dmg > 0, `baseline=${defR.dmg} · debbie=${debR.dmg}`);
+check("Debbie's REAL hitstun is unchanged (visual-only)", defR.hs === debR.hs && defR.hs > 0, `baseline=${defR.hs} · debbie=${debR.hs}`);
 
 // ── JILL: bait-counter from idle ──
 console.log("\n── Jill: bait-counter (attack into her idle) ──");
 async function attackIntoIdle(p2skin) {
-  await reset("default", p2skin, 46);
+  await reset(DUMMY, p2skin, 46);
   const h0 = (await p2()).health;
   await page.keyboard.down("j");
   let p1Stun = 0, flash = 0;
@@ -86,42 +91,57 @@ async function attackIntoIdle(p2skin) {
   const h1 = (await p2()).health;
   return { dmg: Math.round(h0 - h1), p1Stun, flash };
 }
-const defJ = await attackIntoIdle("default");
+const defJ = await attackIntoIdle(DEF_BASE);
 const jilJ = await attackIntoIdle("ghostfaceJill");
-check("default Ghostface does NOT counter (takes the hit)", defJ.dmg > 0 && defJ.p1Stun === 0, `dmg=${defJ.dmg} attackerStun=${defJ.p1Stun}`);
+check("baseline identity does NOT counter (takes the hit)", defJ.dmg > 0 && defJ.p1Stun === 0, `dmg=${defJ.dmg} attackerStun=${defJ.p1Stun}`);
 check("Jill COUNTERS the attack into her idle (attacker stunned, she's unhurt)", jilJ.dmg === 0 && jilJ.p1Stun > 0, `dmg=${jilJ.dmg} attackerStun=${jilJ.p1Stun} flash=${jilJ.flash}`);
 
 // ── AMBER: +move speed & sticky pressure ──
 console.log("\n── Amber: move speed + sticky pressure ──");
 async function walkDist(p1skin) {
-  await reset(p1skin, "default", 400);
+  await reset(p1skin, DUMMY, 400);
   const x0 = (await p1()).x;
   await page.keyboard.down("d"); await wf(20); await page.keyboard.up("d");
   const x1 = (await p1()).x; await wf(4);
   return Math.abs(x1 - x0);
 }
-const defW = await walkDist("default");
+const defW = await walkDist(ATK_BASE);
 const ambW = await walkDist("ghostfaceAmber");
-check("Amber walks FARTHER over 20f (higher move speed)", ambW > defW + 4, `default=${defW.toFixed(0)}px · amber=${ambW.toFixed(0)}px`);
+check("Amber walks FARTHER over 20f (higher move speed)", ambW > defW + 4, `baseline=${defW.toFixed(0)}px · amber=${ambW.toFixed(0)}px`);
 async function pushbackOnHit(p1skin) {
-  await reset(p1skin, "default", 46);
+  await reset(p1skin, DUMMY, 46);
   await page.keyboard.down("k");   // heavy = clear knockback
   let maxVx = 0;
   for (let i = 0; i < 16; i++) { const d = await p2(); if ((d.hitstun || 0) > 0) maxVx = Math.max(maxVx, Math.abs(d.vx || 0)); await wf(1); }
   await page.keyboard.up("k"); await wf(10);
   return maxVx;
 }
-const defP = await pushbackOnHit("default");
+const defP = await pushbackOnHit(ATK_BASE);
 const ambP = await pushbackOnHit("ghostfaceAmber");
-check("Amber's hit shoves the foe LESS (sticky pressure)", ambP < defP && defP > 0, `default push=${defP.toFixed(1)} · amber push=${ambP.toFixed(1)}`);
+check("Amber's hit shoves the foe LESS (sticky pressure)", ambP < defP && defP > 0, `baseline push=${defP.toFixed(1)} · amber push=${ambP.toFixed(1)}`);
 
-// ── ROMAN: value present (consumed in Stage 5) ──
-console.log("\n── Roman: Call-In modifier value (deferred to Stage 5) ──");
-await reset("ghostfaceRoman", "default", 200);
-const romanMod = await page.evaluate(() => { const p = window.__harness.p1(); return p ? p.gfSkinMod : null; });
-// expose via a tiny read (fall back to checking the skin applied)
-const romanSkin = await page.evaluate(() => window.__harness.p1().skinId);
-check("Roman skin applies (Call-In cost/cd mod defined; consumed in Stage 5)", romanSkin === "ghostfaceRoman", `skinId=${romanSkin}`);
+// ── ROMAN: Companion Swap costs LESS Dread (enhanced companion access) ──
+console.log("\n── Roman: cheaper Companion Swap ──");
+// Measure Dread actually spent on a swap: set 100, do QCF ↓→ + Special, force-revert, read the restored
+// (post-cost) Dread. spent = 100 - restored. Default = 35; Roman = 23 (0.65×).
+async function swapSpend(skin) {
+  await reset(skin, DUMMY, 60);
+  await page.evaluate(() => { window.__harness.setEnergy(100); window.__harness.resetFighterInput?.("p1"); });
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.key === "ghostface" && p.grounded && !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  await wf(2);
+  const fwd = (await p1()).facing === 1 ? "d" : "a";
+  await page.keyboard.down("s"); await wf(1); await page.keyboard.up("s"); await wf(1);
+  await page.keyboard.down(fwd); await wf(1); await page.keyboard.up(fwd); await wf(1);
+  await page.keyboard.down("l"); await wf(3); await page.keyboard.up("l"); await wf(4);
+  const g = await page.evaluate(() => window.__harness.gfSwap());
+  await page.evaluate(() => window.__harness.expireGfSwap()); await wf(3);
+  const e = await page.evaluate(() => window.__harness.gfSwap().energy);
+  return { swapped: g.active, spent: Math.round((100 - e) * 10) / 10 };
+}
+const defSpend = await swapSpend(ATK_BASE);
+const romanSpend = await swapSpend("ghostfaceRoman");
+check("both identities actually swapped", defSpend.swapped && romanSpend.swapped, `baseline=${defSpend.swapped} roman=${romanSpend.swapped}`);
+check("Roman's swap costs LESS Dread than baseline", romanSpend.spent < defSpend.spent, `baseline=${defSpend.spent} · roman=${romanSpend.spent}`);
 
 check("no JS page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));
 console.log(`\nRESULT ${PASS} pass / ${FAIL} fail`);

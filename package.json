@@ -120,7 +120,6 @@
     "test:itachi-susanoo": "node harness/itachi_susanoo.mjs",
     "test:itachi-voice": "node harness/itachi_voice.test.mjs",
     "test:itachi-portrait": "node harness/itachi_portrait.test.mjs",
-    "test:sukuna-voice": "node harness/sukuna_voice.test.mjs",
     "test:netero": "node harness/netero.test.mjs",
     "test:netero-stage1": "node harness/netero_stage1.mjs",
     "test:netero-stage2": "node harness/netero_stage2.mjs",

@@ -87,8 +87,9 @@ export function activateDomain(fighter, options = {}, context = {}) {
   // fired on the SAME frame the white-flash fade-in begins. Every other domain
   // keeps the generic activate SFX + procedural domain loop unchanged.
   if (domain.rosterKey === "sukuna") {
-    // EXACT on-disk filenames (case-sensitive): voice line is "Sukuna_saying_Domain.mp3".
-    sound?.playDomainAudio?.("Sukuna_saying_Domain.mp3", "Sukuna_Theme.mp3")
+    // Sukuna voice line ("Sukuna_saying_Domain.mp3") DELETED 2026-08-04 (voice removal) → pass null so the
+    // domain still plays its Malevolent Shrine THEME music (Sukuna_Theme.mp3), just no spoken incantation.
+    sound?.playDomainAudio?.(null, "Sukuna_Theme.mp3")
   } else if (domain.rosterKey === "gojo") {
     // Unlimited Void theme (looping), replacing the stage track. playDomainAudio
     // gesture-gates and falls back to the procedural DOMAIN_LOOP if the file 404s.

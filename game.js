@@ -241,7 +241,7 @@ import { pickSupermanVoice, SUPERMAN_VOICE } from "./supermanVoice.js"
 import { pickTobiramaVoice, TOBIRAMA_VOICE } from "./tobiramaVoice.js"
 import { pickFlashVoice, FLASH_VOICE } from "./flashVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
-import { pickSukunaVoice } from "./sukunaVoice.js"
+// Sukuna voice pack DELETED 2026-08-04 (audio-only removal) — sukunaVoice.js/pickSukunaVoice gone.
 import { pickSaikiVoice } from "./saikiVoice.js"
 import { pickSkinVoice, GOJOYOUNG_VOICE } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
 import { pickZenitsuVoice, ZENITSU_VOICE } from "./zenitsuVoice.js"   // Zenitsu intro voice pool + harness hooks (audio-only)
@@ -507,7 +507,7 @@ const SERIES_MUSIC = {
 const NAMECALL_AUDIO = {
   naruto:     "naruto_namecall.mp3",
   gojo:       "gojo_namecall.mp3",
-  sukuna:     "sukuna_namecall.mp3",
+  // sukuna namecall DELETED 2026-08-04 (voice removal) — no entry = pre-match sequence skips Sukuna cleanly.
   rick:       "rick_intro.mp3",
   goku_black: "goku_black_intro.mp3"
 }
@@ -7506,9 +7506,7 @@ gameLoop()
     omnimanVoicePool: pool => OMNIMAN_VOICE[pool] || null,
     supermanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSupermanVoice(pool)),
     supermanVoicePool: pool => SUPERMAN_VOICE[pool] || null,
-    // Same idea for Sukuna's 4 pools (taunt/hitConnect/finisher/misc) — proves genuine
-    // random selection across the largest generic-bark pool wired (21-entry taunt).
-    sukunaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSukunaVoice(pool)),
+    // Sukuna voice pack deleted 2026-08-04 — sukunaVoicePick harness hook removed with it.
     // Same idea for Saiki's single 12-entry English-dub taunt pool — proves genuine
     // random, non-repeating selection deterministically (uses the SAME pickSaikiVoice
     // the live taunt-commit hook calls).

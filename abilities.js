@@ -2618,7 +2618,8 @@ function executeSukunaSpecial(fighter, context) {
       }, context)
       fighter._spriteCastMove  = "flame_arrow_fire"   // FIRE strip (sukuna_firearrow_fire)
       fighter._spriteCastTimer = 24
-      sound.playSfxFile("sukuna_fuga.mp3", null)   // Fuga = Sukuna's flame-arrow technique — release cue
+      // "Fuga" flame-arrow voice shout (sukuna_fuga.mp3) DELETED 2026-08-04 (voice removal); Flame Arrow
+      // itself is unchanged — the cast just no longer vocalizes. Drop a new shout on this line to re-enable.
       shakeCamera(context, 8, 6)
     })
     return true

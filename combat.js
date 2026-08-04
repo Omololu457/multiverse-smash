@@ -25,7 +25,8 @@ import { pickBatmanVoice } from "./batmanVoice.js"
 import { pickOmniManVoice } from "./omnimanVoice.js"
 import { pickSupermanVoice } from "./supermanVoice.js"
 import { pickItachiVoice } from "./itachiVoice.js"
-import { pickSukunaVoice } from "./sukunaVoice.js"
+// Sukuna voice pack DELETED 2026-08-04 (audio-only removal) — sukunaVoice.js/pickSukunaVoice gone.
+// The offense-connect trigger point is kept as a silent no-op (applySukunaOffenseVoice below).
 import { pickSaikiVoice } from "./saikiVoice.js"
 import { pickSkinVoice } from "./gojoVoice.js"   // per-skin voice override (Gojo "Limitless" young pack)
 import { pickZenitsuVoice } from "./zenitsuVoice.js"   // Zenitsu hit-react / offense-bark / low-health voice pools (audio-only)
@@ -1358,39 +1359,15 @@ function applyOmegaRangerLowHealthVoice(defender) {
   }
 }
 
-// ── SUKUNA VOICE LINES (audio-only; largest generic-bark pool wired — 55 clips) ──
-// Sukuna is a pure AGGRESSOR: all 55 lines are attacker-side barks (no defender
-// "I got hit" line exists in the batch → no reaction hook), and Sukuna has NO taunt
-// action (the hold-Down taunt mechanic is gated on animationData.taunt, undefined
-// here — same as Naruto/Sasuke/Itachi) and no idle/ambient-bark hook. So all FOUR
-// pools (see sukunaVoice.js) fold onto the ONE natural Sukuna VO hook — an attack
-// CONNECTING — split by combat context, priority-ordered, sharing _atkVoiceCd (one
-// line per 150f window so nothing spams). Only on an UNBLOCKED connect. Random pick
-// WITHIN each pool via pickSukunaVoice (genuine Math.random, scales to the 21-entry
-// taunt pool). Same scope note as Rick/Naruto: projectile-only specials (Dismantle /
-// Flame Arrow) resolve in resolveProjectileHits, not here — they carry their own
-// move cues (sukuna_slash / sukuna_fuga); the melee Cleave DOES route through here.
-const SUKUNA_FINISHER_LOW_RATIO = 0.20   // "finishing blow" threshold for a strong low-HP connect
+// ── SUKUNA VOICE — pack DELETED 2026-08-04 (audio-only removal; the 55-clip generic-bark pool +
+// sukunaVoice.js are gone). This offense-connect hook is the preserved TRIGGER POINT: it still fires on
+// every unblocked Sukuna connect (dispatched from resolveAttackHit below) but is now a silent no-op, so a
+// new voice pack drops straight back in without rebuilding the wiring. To re-enable: add a voice module
+// exporting pickSukunaVoice(pool) and restore the context split that was here — finisher on a KO/low-HP
+// blow, hitConnect on a strong (heavy/special/ultimate) or long-combo connect, taunt+misc (~1-in-4) on an
+// ordinary light connect — throttled by _atkVoiceCd (one line / 150f window). Currently Sukuna is silent.
 function applySukunaOffenseVoice(attacker, defender, cat, unblocked) {
-  if (!unblocked || !attacker || attacker.rosterKey !== "sukuna" || (attacker._atkVoiceCd > 0)) return
-  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
-  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
-  const maxHp      = defender?.maxHealth || 1000
-  const koHit      = (defender?.health || 0) <= 0
-  const lowFinish  = strong && (defender?.health || 0) > 0 && (defender.health <= maxHp * SUKUNA_FINISHER_LOW_RATIO)
-
-  let clip
-  if (koHit || lowFinish) {
-    clip = pickSukunaVoice("finisher")                        // KO / finishing-blow on a near-dead foe
-  } else if (strong || longString) {
-    clip = pickSukunaVoice("hitConnect")                      // heavy/special/ultimate or long combo string
-  } else {
-    // ordinary LIGHT connect → Sukuna's constant aggressive chatter. No taunt mechanic
-    // exists, so the 21-entry TAUNT pool lives here; MISC (no ambient hook) folds in as
-    // a low-frequency (~1-in-4) alternate — exactly the substitution the brief permits.
-    clip = pickSukunaVoice(Math.random() < 0.25 ? "misc" : "taunt")
-  }
-  if (clip) { attacker._atkVoiceCd = 150; try { sound?.playSfxFile?.(clip, null) } catch (_) {} }
+  return   // no-op: Sukuna voice pack removed; trigger point kept for future audio
 }
 
 // ========================

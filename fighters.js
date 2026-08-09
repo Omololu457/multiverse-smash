@@ -324,16 +324,10 @@ function drawGojo(ctx, x, y, w, h, fighter) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// ── MEGUMI / MAHORAGA ─────────────────────────────────────────────
+// ── MEGUMI ────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────
 function drawMegumi(ctx, x, y, w, h, fighter) {
   const facing     = fighter.facing ?? 1
-  const isMahoraga = !!fighter.isMahoraga
-
-  if (isMahoraga) {
-    drawMahoraga(ctx, x, y, w, h, fighter)
-    return
-  }
 
   const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
   bodyGrad.addColorStop(0, "#1e293b")
@@ -392,71 +386,6 @@ function drawMegumi(ctx, x, y, w, h, fighter) {
   drawHitFlash(ctx, x, y, w, h, fighter.colorFlash)
   drawNameTag(ctx, "Megumi", hx, y, "#7c3aed")
   drawFacingDot(ctx, x, y, w, facing, "#7c3aed")
-  drawShadow(ctx, x, y, w, h)
-}
-
-function drawMahoraga(ctx, x, y, w, h, fighter) {
-  const facing = fighter.facing ?? 1
-  const cx     = x + w / 2
-  const cy     = y + h / 2
-
-  drawAura(ctx, x, y, w, h, "#6d28d9", 0.35, 22)
-
-  const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
-  bodyGrad.addColorStop(0, "#3b0764")
-  bodyGrad.addColorStop(0.5, "#581c87")
-  bodyGrad.addColorStop(1, "#1e1b4b")
-  ctx.fillStyle = bodyGrad
-  roundRect(ctx, x, y + h * 0.15, w, h * 0.85, 8)
-  ctx.fill()
-
-  ctx.save()
-  ctx.strokeStyle = "#a78bfa"
-  ctx.lineWidth   = 2
-  ctx.globalAlpha = 0.7
-  const wr = w * 0.28
-  const wx = cx
-  const wy = y + h * 0.38
-  ctx.beginPath()
-  ctx.arc(wx, wy, wr, 0, Math.PI * 2)
-  ctx.stroke()
-  for (let i = 0; i < 8; i++) {
-    const angle = (i / 8) * Math.PI * 2
-    ctx.beginPath()
-    ctx.moveTo(wx, wy)
-    ctx.lineTo(wx + Math.cos(angle) * wr, wy + Math.sin(angle) * wr)
-    ctx.stroke()
-  }
-  ctx.restore()
-
-  ctx.fillStyle = "#fde68a"
-  ctx.beginPath()
-  ctx.arc(cx, y + h * 0.11, h * 0.12, 0, Math.PI * 2)
-  ctx.fill()
-
-  ctx.fillStyle = "#2e1065"
-  ctx.beginPath()
-  ctx.arc(cx, y + h * 0.05, h * 0.11, Math.PI, 0)
-  ctx.fill()
-
-  ctx.fillStyle   = "#fbbf24"
-  ctx.shadowBlur  = 8
-  ctx.shadowColor = "#fbbf24"
-  const eyeOff    = facing >= 0 ? 5 : -5
-  ctx.beginPath()
-  ctx.arc(cx + eyeOff, y + h * 0.1, 3.5, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.shadowBlur = 0
-
-  const adaptTotal = Object.values(fighter.adaptationLevels || {}).reduce((a, b) => a + b, 0)
-  ctx.fillStyle = "#a78bfa"
-  for (let i = 0; i < Math.floor(adaptTotal); i++) {
-    ctx.fillRect(x + 6 + i * 5, y + h * 0.62, 3, 10)
-  }
-
-  drawHitFlash(ctx, x, y, w, h, fighter.colorFlash)
-  drawNameTag(ctx, "Mahoraga", cx, y, "#a78bfa")
-  drawFacingDot(ctx, x, y, w, facing, "#fbbf24")
   drawShadow(ctx, x, y, w, h)
 }
 

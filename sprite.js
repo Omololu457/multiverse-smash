@@ -92,6 +92,22 @@ const MOVE_TO_ACTION = {
   up: "up",
   air: "air",
   down_air: "down_air",
+  air_heavy: "air_heavy",   // Madara (Stage 2): AERIAL HARD Susanoo-hand grab (air+Heavy). Identity map.
+  madaraFireballCast: "madaraFireballCast",   // Madara (Stage 3): Katon Great Fireball cast pose. Identity map.
+  madaraGunbaiSummon: "madaraGunbaiSummon",   // Madara (Stage 3): Gunbai Summon reflect-stance pose. Identity map.
+  madaraGunbaiSwing:  "madaraGunbaiSwing",    // Madara (Stage 3): Gunbai Fan-Swing overhead melee pose. Identity map.
+  madaraWoodSpikeCast:"madaraWoodSpikeCast",  // Madara (Stage 3): Mokuton Wood Spike cast pose. Identity map.
+  madaraWoodDragonCast:"madaraWoodDragonCast",// Madara (Stage 3): Mokuton Wood Dragon cast pose. Identity map.
+  madaraTengaiCast:   "madaraTengaiCast",     // Madara (Stage 5): Perfect Susanoo / Tengai Shinsei cast pose. Identity map.
+  madaraSusanooPunch: "madaraSusanooPunch",   // Madara (Stage 3): Susanoo Base Punch (Fwd+Heavy command-normal). Identity map.
+  obitoRod1: "obitoRod1",   // Obito (Stage 2): "Kamui Rod Combo" Fwd+Heavy rekka stages. Identity maps
+  obitoRod2: "obitoRod2",   // (currentMove === action key) — explicit so a recovery/cast tail can never
+  obitoRod3: "obitoRod3",   // resolve to the 128² fallback box.
+  obitoShurCast: "obitoShurCast",       // Obito (Stage 3): ranged-special cast poses (_spriteCastMove).
+  obitoShurCastAir: "obitoShurCastAir", // Identity maps so the cast tail never resolves to the fallback box.
+  obitoRodCast: "obitoRodCast",
+  obitoTeleport: "obitoTeleport",       // Obito (Stage 5): Kamui blink pose (self-portal / teleport-grab).
+  obitoKamuiActivate: "obitoKamuiActivate",   // Obito: Kamui intangibility initiation pose (plays once at toggle-on).
   grab: "grab",
 
   // Netero (Stage 3): command-chain stages + Barrage special. Identity maps (currentMove === action
@@ -149,6 +165,52 @@ const MOVE_TO_ACTION = {
   cardThrowSingle: "cardThrowSingle",   // Stage 4: Texture Surprise — single precise throw
   cardThrowRapid: "cardThrowRapid",     // Stage 4: Texture Surprise — rapid multi-card spread
 
+  // Ichigo (Stage 2): "Zangetsu" command system — Fwd+Heavy 3-hit rekka + Down/Back+Heavy, Fwd+Light,
+  // Dash+Heavy command normals + the post-finisher return-to-stance settle. Identity maps (currentMove /
+  // _spriteCastMove === action key) — explicit so a recovery/cast tail can never resolve to the 128² box.
+  ichigoRekka1: "ichigoRekka1",
+  ichigoRekka2: "ichigoRekka2",
+  ichigoRekka3: "ichigoRekka3",
+  ichigoDownHeavy: "ichigoDownHeavy",
+  ichigoBackHeavy: "ichigoBackHeavy",
+  ichigoFwdLight: "ichigoFwdLight",
+  ichigoDashAtk: "ichigoDashAtk",
+  ichigoReturn: "ichigoReturn",
+  // Ichigo (Stage 3): specials — Getsuga cast pose + 4 melee-special poses (dark-form Hollow supers included).
+  ichigoGetsugaCast: "ichigoGetsugaCast",
+  ichigoChargedSlash: "ichigoChargedSlash",
+  ichigoAirGetsuga: "ichigoAirGetsuga",
+  ichigoHollowGetsuga: "ichigoHollowGetsuga",
+  ichigoHollowRising: "ichigoHollowRising",
+  // Ichigo (Stage 4): Getsuga Tenshō ultimate — dash-slash (part_1) → rising uppercut (part_2), played
+  // through the freeze-cinematic via _spriteCastMove (the cinematic switches ichigoUlt1 → ichigoUlt2).
+  ichigoUlt1: "ichigoUlt1",
+  ichigoUlt2: "ichigoUlt2",
+
+  // Zaraki Kenpachi (Stage 2): Fwd+Light/Fwd+Heavy command slashes, the Up+B aerial route (up-swing →
+  // repeat → down slam), and both base specials (Charged Dash strike + Hollow Mask Strike). Identity maps
+  // (currentMove === action key) — explicit so a recovery tail can never resolve to the 128² box.
+  zarakiFwdSlash1: "zarakiFwdSlash1",
+  zarakiFwdSlash2: "zarakiFwdSlash2",
+  zarakiAirUp: "zarakiAirUp",
+  zarakiAirDown: "zarakiAirDown",
+  zarakiChargedDash: "zarakiChargedDash",
+  zarakiHollowStrike: "zarakiHollowStrike",
+  // Zaraki (Stage 3): Shikai form — transform-in pose + 4-stage combo rekka + up/aerial/special.
+  // Resolved against fighter._skinAnim = ZARAKI_SHIKAI_ANIM while the timed mode is active.
+  shikaiRelease: "shikaiRelease",
+  zarakiShikaiC1: "zarakiShikaiC1",
+  zarakiShikaiC2: "zarakiShikaiC2",
+  zarakiShikaiC3: "zarakiShikaiC3",
+  zarakiShikaiC4: "zarakiShikaiC4",
+  zarakiShikaiUp: "zarakiShikaiUp",
+  zarakiShikaiDownAir: "zarakiShikaiDownAir",
+  zarakiShikaiSpecial: "zarakiShikaiSpecial",
+  // Zaraki (Stage 4): Bankai — single-use burst ultimate (renders in Base OR Shikai, same art).
+  zarakiBankai: "zarakiBankai",
+  // Zaraki (Stage 5): Yachiru Assist — Zaraki's throw pose (_spriteCastMove).
+  zarakiYachiruThrow: "zarakiYachiruThrow",
+
   // Samurai Red Ranger (Stage 2): merged tap/hold up-attack + Toji-Rekka command chain. Identity
   // maps (currentMove === action key) — explicit so a recovery/cast tail can never resolve to the 128² box.
   samUpTap: "samUpTap",
@@ -174,6 +236,18 @@ const MOVE_TO_ACTION = {
   tobiWaterFlicker: "tobiWaterFlicker",
   tobiEdoCast: "tobiEdoCast",   // Edo Tensei summoning-ritual pose (activation windup)
 
+  // Yuji Itadori (Stage 3): Cursed-Energy (Y) cast poses. Identity maps (_spriteCastMove / currentMove ===
+  // action key) — explicit so a projectile-cast tail or melee recovery can never resolve to the 128² box.
+  yujiBall: "yujiBall",
+  yujiBeam: "yujiBeam",
+  yujiPillar: "yujiPillar",
+  yujiCrescent: "yujiCrescent",
+  yujiAirCombo: "yujiAirCombo",
+  yujiKoma1: "yujiKoma1",   // Stage 4: Koma REPEAT flurry (looped)
+  yujiKoma2: "yujiKoma2",   // Stage 4: Koma finisher combo
+  ultimateAction: "ultimateAction",   // Stage 5: "Black Flash" ult Phase-1 buildup pose (plays through the freeze-cinematic)
+  yujiSukunaSign: "yujiSukunaSign",   // Stage 6: "Sukuna Slash" flavor — cursed hand-sign cast pose
+
   // Saiki Kusuo: rekka cast poses + burst/lightning/bomb cast poses. Identity maps (currentMove /
   // _spriteCastMove === action key) — explicit so a recovery/cast tail can never resolve to the 128² box.
   saikiChain1: "saikiChain1",
@@ -193,7 +267,6 @@ const MOVE_TO_ACTION = {
   toad: "toad",
   rabbitEscape: "rabbit_escape",
   maxElephant: "max_elephant",
-  mahoragaRitual: "ultimate",
 
   dragonFist: "special_1",
   kamehameha: "special_2",
@@ -277,6 +350,10 @@ function _resolveAction(fighter, currentAction = "idle") {
     // idiom; otherwise the grounded "taunt". No-op for every char WITHOUT a taunt_air strip.
     const airborneT = !(fighter.onGround ?? fighter.grounded);
     if (airborneT && (fighter._skinAnim?.taunt_air || fighter.animationData?.taunt_air)) return "taunt_air";
+    // ALT-TAUNT variant: a fighter shipping a `tauntAlt` strip may randomly play it instead of the
+    // primary `taunt` (Zaraki: two distinct provocations). game.js picks _tauntVariant at commit;
+    // no-op for every char without a tauntAlt strip (always resolves to "taunt").
+    if (fighter._tauntVariant === "tauntAlt" && (fighter._skinAnim?.tauntAlt || fighter.animationData?.tauntAlt)) return "tauntAlt";
     return "taunt";
   }
 
@@ -393,7 +470,12 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Air state
   const grounded = fighter.grounded ?? fighter.onGround ?? false;
   if (!grounded) {
-    if (fighter.airDashing) return "dash";
+    if (fighter.airDashing) {
+      // ICHIGO 8-way aerial dash: use the directional-dash strip when the fighter ships one and
+      // physics stamped a direction index. Everyone else (and Ichigo with no dashDir art) → plain dash.
+      if (fighter._dashDirIdx != null && (fighter._skinAnim?.dashDir || fighter.animationData?.dashDir)) return "dashDir";
+      return "dash";
+    }
     // JUMP-COUNT-AWARE double-jump strip: on the 2nd (or later) jump, prefer a
     // dedicated `doubleJump` action when the fighter defines one. jumpCount is
     // maintained by physics.js (incremented per jump, reset on landing). Generic —
@@ -418,6 +500,12 @@ function _resolveAction(fighter, currentAction = "idle") {
   // normal walking never crosses the >10 threshold above. Backpedal still falls to walk.
   if (fighter.runWhenAdvancing && movingForward && Math.abs(gvx) > 0.1) return "run";
   if (Math.abs(gvx) > 0.1) return "walk";
+
+  // LOW-HEALTH COSMETIC IDLE: a fighter flagged _lowHealthIdle that ships an `idleLow` strip shows a
+  // wounded idle at the neutral pose (Zaraki). game.js sets/clears the flag on a HP threshold; this is
+  // purely visual (no stat/hitbox change) and only swaps the standing idle — every other state (walk/
+  // hurt/guard/attack) is untouched. No-op for every char without both the flag and an idleLow strip.
+  if (fighter._lowHealthIdle && (fighter._skinAnim?.idleLow || fighter.animationData?.idleLow)) return "idleLow";
 
   // Default fallback
   return "idle";
@@ -610,6 +698,12 @@ export class SpriteHandler {
     fighter._lastDrawW = dstW;
     fighter._lastDrawH = dstH;
 
+    // ICHIGO directional air-dash: pin the displayed frame to the held dash direction (physics stamps
+    // _dashDirIdx). Fighter-gated → zero effect on anyone else. Clamp so a stale index never slices OOB.
+    if (fighter._dashDirIdx != null && this.currentAction === "dashDir") {
+      this.frameIndex = Math.min(fighter._dashDirIdx, (frameData.frames || 1) - 1);
+    }
+
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);
 
@@ -652,6 +746,27 @@ export class SpriteHandler {
     }
 
     ctx.restore();
+
+    // SPEED-TIER TELEPORT-BLUR — a rapid spin: whirling, fading ghost copies of the current frame,
+    // centered on the fighter, while `_speedBlur` ticks down (set in game.js on a Toji-speed-tier
+    // teleport-dash). Flip-independent (a spin is symmetric), so it sits cleanly on top of the normal
+    // sprite without touching the facing/flip math above.
+    if ((fighter._speedBlur || 0) > 0 && _sheetReady(sheet)) {
+      const cx = fighter.x - offsetX + dstW / 2;
+      const cy = drawY + dstH / 2;
+      const spin = fighter._speedBlur * 1.05;   // whirl angle (rad); advances each frame as it ticks down
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      for (let g = 0; g < 4; g++) {
+        ctx.save();
+        ctx.globalAlpha = 0.34 - g * 0.07;
+        ctx.translate(cx, cy);
+        ctx.rotate(spin + g * (Math.PI / 5));
+        ctx.drawImage(sheet, sx, sy, drawWidth, drawHeight, -dstW / 2, -dstH / 2, dstW, dstH);
+        ctx.restore();
+      }
+      ctx.restore();
+    }
 
     // Pause animation during hitstop OR while the game is paused. The pause
     // render path still calls draw(), which would otherwise keep advancing

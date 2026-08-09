@@ -404,13 +404,20 @@ export function getFighterInput(fighter) {
   if (keys[ctrl.upAttack]) buffer.upAttack = BUFFER_WINDOW    // dedicated I = up-attack/launcher
   if (keys[ctrl.special]) buffer.special = BUFFER_WINDOW
   if (keys[ctrl.ultimate]) buffer.ultimate = BUFFER_WINDOW
-  if (keys[ctrl.jump] || keys[ctrl.up]) buffer.jump = BUFFER_WINDOW
+  // Up + Special (simultaneous) = a GROUNDED up-special — the up does NOT jump. Mirrors the existing
+  // "up + attack = launcher (no jump)" rule so a direction-branched Up special (Yuji's Cursed-Energy
+  // Pillar) is reachable on keyboard, where `up` is otherwise bound to jump. Jump-then-air-special
+  // (non-simultaneous) is unaffected. Also exposes `up` (previously absent from the keyboard output)
+  // so betaHeldDirFromInput can resolve the "U" direction — parity with the gamepad path.
+  const doingUpSpecial = !!(keys[ctrl.up] && keys[ctrl.special])
+  if ((keys[ctrl.jump] || keys[ctrl.up]) && !doingUpSpecial) buffer.jump = BUFFER_WINDOW
 
   // 3. Unified output
   return {
     left: !!keys[ctrl.left],
     right: !!keys[ctrl.right],
     down: !!keys[ctrl.down],
+    up: !!keys[ctrl.up],
     jump: buffer.jump > 0,
     light: buffer.light > 0,
     heavy: buffer.heavy > 0,

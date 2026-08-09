@@ -163,6 +163,10 @@ try {
   // ── GUANYIN ULTIMATE — transform + giant ──
   section("100-Type Guanyin Bodhisattva — charge cast → giant → idle → lunge → hurtbox");
   await prep(300);
+  // Park P1 at a known spot with room to the right BEFORE transforming — the giant's arena-half-lock is
+  // computed at transform time, so the lunge-travel check needs P1 not pinned near the wall by whatever
+  // forward drift the earlier base-form chain sub-tests left behind (combo-flow step-in glide).
+  await page.evaluate(() => window.__harness.setP1X?.(700)); await waitFrames(2);
   const baseHb = await hbx("p1");
   await page.evaluate(() => { window.__harness.fillEnergy?.(); window.__harness.resetUlt?.(); });
   await tap("u", 2); await waitFrames(3);

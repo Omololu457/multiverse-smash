@@ -160,3 +160,93 @@ post-fix: Rengoku 111px, Shinobu 93px (both ≈ target). Suites green (rengoku 4
   none can be tuned independently without new machinery (out of "spriteScale-only" scope). Human is within
   tolerance (−9%); alien canon heights are very soft estimates and XLR8's `*` low speedster stance confounds
   its height. No confirmed, independently-actionable outlier → left as-is.
+
+---
+
+## 6. Full-roster re-scale — 2026-08-03 (new canon table, 35 sprite chars)
+
+Re-ran the audit across the **entire** current sprite roster (added since §5: **maki, green_samurai_ranger,
+ghostface, miwa**) against a **refreshed canon-height table** supplied 2026-08-03. Same `k=0.623`, same
+`measureSprite` pipeline, giant-form Ultimates excluded (idle rest pose only). `ratio = measured_px ÷ target`,
+`target = round(0.623 × canon_cm)`, outlier = `|ratio−1| ≥ 0.10`.
+
+**Canon-value revisions in the new table** (vs §2), applied as input: ~~Beerus 200→175 (M)~~ **[REVERTED to 200 — see correction below]**, Tobirama 182→**194**,
+Itachi 178→**175**, Sukuna 184→**173** (Yuji vessel), Toji 188→**182**, Megumi 175→**170**, Netero 180→**178**,
+Chrollo 177→**180**, Omni-Man 193→**188**, Saiki 168→**170**, Rick 178→**168**. New chars: Maki **167**,
+Miwa **178 (est — undocumented)**, Ghostface **178 (est — no single canon height; mask worn by different
+actors, so average-adult default)**, green ranger **178 (est)**. Most revised chars stayed inside ±8% (their
+measured px were already proportional), so only the genuine outliers below were touched.
+
+**Corrections applied (3):** every affected char has all-zero `anchorY` → no anchor rescale needed.
+
+| Character | canon | scale | measured → | target | ratio | verdict |
+|---|---|---|---|---|---|---|
+| **ghostface** | 178 E | 1.15 → **0.982** | 130 → **111** | 111 | 1.17 → 1.00 | **OUTLIER +17% → FIXED** |
+| ~~beerus~~ | ~~175~~ | ~~2.12 → 1.849~~ | — | — | — | **REVERTED — see correction below** |
+| **miwa** | 178 E | 1.7 → **2.144** | 88 → **112** | 111 | 0.79 → 1.01 | **OUTLIER −21% → FIXED** |
+
+**STEP 3 — Ghostface vs Sasuke/Naruto (explicitly checked):** CONFIRMED Ghostface was rendering **taller**
+than both (130px vs Sasuke 102 / Naruto 114) — the flagged bug. After the fix he is **111px**, i.e. only
+*mildly* taller than Sasuke (104) and Naruto's true body (~103, his 118 is KCM-aura-inflated), which matches
+canon (178 > 168 > 166). Relationship corrected.
+
+**Held — NOT auto-corrected (deliberate / measurement-confounded), flagged for review:**
+- **rick** (ratio 1.18) — documented deliberate **+8.8% presence bump** (thin silhouette / low visual mass).
+  NOTE the new table lists Rick **168cm** (down from the 178 est); if applied literally he'd shrink further,
+  but the presence bump is a standing exception — **preserved**.
+- **naruto** (1.11) — measured px inflated by the **KCM chakra aura**; true body ≈ target. Preserved (§3).
+- **superman** (1.11) — measured px inflated by the **cape trailing below the feet**; true body is short-for-
+  191cm. Preserved (§5).
+- **ben10** (ratio 0.74 on the human form) — the 4 forms (human/XLR8/Diamondhead/Feedback) **share one
+  `ben10.spriteScale`**; Diamondhead already measures ~128px, so bumping the shared scale to fit the 82px
+  human form would make the aliens far too tall. **Not independently actionable within spriteScale-only
+  scope** (needs per-form scale machinery) — held, same as §5.
+
+All 34 other chars sit within ±8% of the new targets (proportional — untouched). Re-measured post-fix:
+ghostface 111 / beerus 109 / miwa 112 (all ≈ target), no clipping. Suites green (miwa 25/0, ghostface 18/0,
+beerus 38/0 — the beerus test's spriteScale assertion updated 2.12→1.849). Montage:
+`height_roster_before.png` vs `height_roster_after.png`.
+
+**Estimate flags (no reliable canon figure — used ~178cm average-adult fallback):** ghostface, miwa,
+omega_ranger, samurai_red_ranger, gold_samurai_ranger, green_samurai_ranger, ben10 forms.
+
+### 6a. Beerus canon correction — 2026-08-03 (single-row)
+
+The 2026-08-03 table's Beerus figure (**175cm**) was **corrected back to ~200cm**: Beerus is the God of
+Destruction and reads as **notably larger-than-human**, not roughly average height — the 175cm value was
+too short for his on-screen presence and canon depiction (consistently taller than Goku's 175cm frame).
+
+Re-applied the formula at 200cm: `target = 0.623 × 200 ≈ 125px`. From the post-§6 state (scale **1.849**,
+measured **109px**): `1.849 × 125/109 ≈ 2.12`. So Beerus reverts to **spriteScale 2.12** (at which he
+measures **125px = on target for 200cm**) — i.e. exactly his value prior to the §6 pass. All `anchorY`
+are 0 → unchanged. **Single-character change: only Beerus was touched** (Miwa 2.144 / Ghostface 0.982 and
+the other 33 chars are unchanged). Beerus suite green (spriteScale assertion updated 1.849→2.12).
+
+---
+
+## §8 — 2026-08-04: extend the audit to Yuji & Madara (never in the list) + re-verify Maki
+
+**Trigger.** Maki, Miwa, Ghostface, Yuji, Madara were flagged as "built since the last pass." Direct
+check of `harness/height_reference.mjs`'s `CHARS` list: Maki/Ghostface/Miwa were added (§7, 2026-08-03)
+but **Yuji and Madara were NEVER in it** — they had never been measured by this methodology. Yuji's
+`spriteScale` was still a literal **trial (2.10)** with a "refine via harness measureSprite" TODO in its
+comment; Madara was an untuned **1.8**. Added both to `CHARS` (permanent).
+
+**Same methodology** (spriteScale only, `k = 0.623 px/cm`, `target = 0.623 × canon`, giant forms excluded
+because we measure the base idle — Madara's Complete-Susanoo and Maki's Shibuya both use runtime
+`_canvasHeightFrac`, untouched). All five have `anchorY: 0`, so no re-anchor is needed on a scale change.
+
+| Character | Canon | cf | Target px | scale before → after | idle px before → after | Verdict |
+|---|---|---|---|---|---|---|
+| **maki** | 167 cm | H | 104 | 1.63 → **1.51** | 112 (+8%) → **104** | outlier +8% → FIXED |
+| **madara** | 179 cm | H | 112 | 1.8 → **1.89** | 106 (−5%) → **111** | outlier −5% → FIXED |
+| **yuji** | 173 cm | H | 108 | 2.10 → **2.16** | 105 (−3%) → **108** | trial → FINALIZED on target |
+| miwa | 178 cm | E | 111 | 2.144 (unchanged) | 112 (+1%) | already on target (§7) |
+| ghostface | 178 cm | E | 111 | 0.982 (unchanged) | 111 (0%) | already on target (§7) |
+
+Canon: Madara 179cm and Yuji/Itadori 173cm are Naruto/JJK databook figures (H). **3 chars changed**
+(maki, madara, yuji); Miwa/Ghostface confirmed still on target and left alone; all other chars untouched.
+Test-suite spriteScale assertions updated (madara 1.8→1.89, yuji 2.10→2.16). Suites green: madara 44/0,
+maki 30/0, yuji 39/0 (giant forms unaffected). Evidence: `harness/shots/height_roster_before.png` /
+`height_roster_after.png` (full 36-char roster, feet-aligned) + `height_5char_zoom_before_after.png`
+(zoomed 5-char panel). No `clipped` on any of the five.

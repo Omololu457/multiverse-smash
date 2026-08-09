@@ -1,182 +1,210 @@
 # Multiverse Smash — Roster & Systems Reference
 
-**Status snapshot — 2026-08-01 (branch `combo-flow-layer`).** Full-current-roster regeneration of the
-earlier beta-roster doc. Everything below reflects the live code (`characters.js` / `abilities.js` /
-`fighters.js` / `skins.js`), not the older partial list.
+**Status snapshot — 2026-08-04 (branch `combo-flow-layer`).** Full regeneration from the live code
+(`characters.js` / `abilities.js` / `fighters.js` / `skins.js`), superseding the 2026-08-01 partial.
 
-**Scale of the project right now:** **31 sprite-art playable characters** across **11 universes**, plus
-**Albedo** (a spriteless Ben clone, procedural fallback art). 26 characters have alt-skin sets (some very
-large — Omega/Gold 13, Batman 12, Hisoka/Superman/Rick 11). ~192 harness test scripts.
+**Scale right now:** **45 playable characters** across **13 universes** — **37 sprite-art complete** +
+**8 non-sprite placeholders** (procedural-box fallback, minimal kits). **35** characters carry alt-skin
+sets totalling **~257** recolors (13 of them have 10+; largest: Maki 15, Goku Black / Yuji / Gold 14).
+**273** harness test scripts, **27** voice modules.
 
-Stat key: **HP · EN**(energy)· **A**tk **D**ef **S**pd. `EN 0` = a **cooldown-gated** kit (no meter — the
-Demon Slayer chars + Toji). `scale` = canon-height-tuned `spriteScale` (see §Height Reference).
+Stat key: **HP · EN**(energy) · **A**tk **D**ef **S**pd. `EN 0` = a **cooldown-gated** kit (no meter —
+the Demon Slayer trio + Toji + Maki). Non-sprite placeholders are marked *(box)*.
 
 ---
 
 ## 1. Roster by universe
 
-### Dragon Ball (4)
+### Dragon Ball (7)
 | Char | HP·EN·A/D/S | Signature kit | Ultimate |
 |---|---|---|---|
-| **Goku** | 1200·200·92/86/88 | ki blasts, Kamehameha, SSJ ladder | Super Saiyan Blue |
-| **Vegeta** | 1150·200·91/85/88 | Galick beams, Big Bang; **base→SSJ→SSJ Blue** tier-swap (`_skinAnim`) | SSJ Blue Evolution (Final Flash freeze-cinematic) |
-| **Goku Black** | 1200·200·90/86/90 | **base → SSJ God → SSJ Rose → SSJ Blue** 4-tier ladder (mandatory waypoints); Rose = grand cinematic, God/Blue = snappy flash. SSG/Blue are recolor-pilot tiers (base sprite → red/cyan hair) | Sword Slash (Rose-only sure-hit) |
-| **Beerus** | 1000·170·97/78/95 | Hakai, God-of-Destruction ki | Ki Ball (3-stage freeze-cinematic) |
+| **Goku** | 1200·200·92/86/88 | ki blasts, Kamehameha, SSJ ladder (`_skinAnim` tier-swap) | Super Saiyan Blue |
+| **Vegeta** | 1150·200·91/85/88 | Galick/Big Bang beams; **base→SSJ→SSJ Blue** tier-swap | SSJ Blue Evolution (Final Flash freeze-cinematic) |
+| **Goku Black** | 1200·200·90/86/90 | **base→SSG→SSJ Rose→SSJ Blue** 4-tier ladder (recolor-pilot tiers); Rose grand cinematic, God/Blue snappy flash | Sword Slash (Rose-only sure-hit) |
+| **Beerus** | 1000·170·97/78/95 | Hakai, God-of-Destruction ki | Ki Ball (3-stage charge/release/impact cinematic) |
+| Piccolo *(box)* | 1100·160·84/86/80 | placeholder kit | Fused with Kami |
+| Frieza *(box)* | 1200·170·90/84/88 | placeholder kit | Golden Frieza |
+| Cell *(box)* | 1300·170·94/90/82 | placeholder kit | Perfect Cell |
 
-### Jujutsu Kaisen (4)
+### Jujutsu Kaisen (7)
 | Char | HP·EN·A/D/S | Signature kit | Ultimate |
 |---|---|---|---|
 | **Gojo** | 1160·220·91/88/87 | Limitless (Blue/Red/Hollow Purple), **Infinity** field, teleport | Unlimited Void (domain) |
-| **Megumi** | 1120·210·84/82/83 | Ten Shadows shikigami summons (Divine Dog, Nue, Toad, Great Serpent) | Mahoraga Ritual (becomes Mahoraga) |
-| **Sukuna** | 1240·210·95/87/86 | Dismantle/Cleave, Flame Arrow, Malevolent Dash | Malevolent Shrine (domain) |
-| **Toji** | 1260·**0**·96/89/**98** | 3-stance weapon system (Blade/Chain/Gun), Toji-Rekka chain; zero-meter, no-cost kit | Heavenly Restriction |
+| **Megumi** | 1120·210·84/82/83 | Ten Shadows shikigami (Divine Dog, Nue, Toad, Serpent) | Chimera Shadow Garden (domain — restrains opponent) |
+| **Sukuna** | 1240·210·95/87/86 | Dismantle/Cleave, Flame Arrow, Cursed Slash, Malevolent Dash | Malevolent Shrine (domain) |
+| **Toji** | 1260·**0**·96/89/**98** | 3-stance weapon system (Blade/Chain/Gun), Toji-Rekka; zero-meter, no-cost kit | Heavenly Restriction |
+| **Maki** | 1180·**0**·96/84/**98** | Cursed Tool Flurry rekka, tight-window Heavenly-Vow cancels; no meter | **Cursed Tool Awakening** — HP-threshold (≤25%) black-costume transform (Shibuya, gore-free) |
+| **Yuji** | 1120·150·90/82/90 | Divergent Fist, cursed-energy strikes, command chains | Black Flash (freeze-cinematic cursed burst) |
+| **Miwa** | 1150·160·86/84/93 | New-Shadow-style katana, Battojutsu Rush chain | Blade of the Neophyte (quick-draw freeze-cinematic slash) |
 
-### Naruto (5)
+### Naruto (6)
 | Char | HP·EN·A/D/S | Signature kit | Ultimate |
 |---|---|---|---|
-| **Naruto** | 1180·190·89/84/90 | Rasengan family, **shadow-clone** combos, Kurama Shroud (health-gated comeback buff) | Kurama Avatar (fox, `_kuramaHide` hides real body) |
-| **Sasuke** | 1180·190·89/84/91 | Chidori, fireballs, teleport | Susanoo (2-stage giant) |
-| **Itachi** | 1170·200·90/85/91 | Amaterasu (black-flame DOT), Mangekyou genjutsu | Susanoo (single-tier creature) |
+| **Naruto** | 1180·190·89/84/90 | Rasengan family, **shadow-clone** combos, Kurama Shroud (HP-gated comeback) | Kurama Avatar (fox; `_kuramaHide` hides real body) |
+| **Sasuke** | 1180·190·89/84/90 | Chidori, fireballs, teleport, **standalone skeletal-Susanoo grab** | **Susanoo** (staged: Lv1 grab → Lv2 armor+arrow) — see §Susanoo |
+| **Itachi** | 1170·200·90/85/91 | Amaterasu (black-flame DOT), Mangekyou genjutsu | Susanoo (single-tier sustained creature) |
 | **Tobirama** | 1120·200·90/82/**96** | Water jutsu, Kawarimi, Flying-Raijin marks | **Edo Tensei** — see §Systems |
-| **Minato** | 1150·200·92/82/**98** | Flying Raijin teleport, Rasengan, Reaper Death Seal (HP-cost sacrifice) | Nine-Tails Chakra Mode (dedicated fox cinematic) |
+| **Minato** | 1150·200·92/82/**98** | Flying Raijin teleport + marks, Rasengan, Reaper Death Seal (HP-cost) | Nine-Tails Chakra Mode (half-fox avatar → Tailed Beast Bomb) |
+| **Madara** | 1180·220·94/86/92 | LARGEST kit — 7 specials (Katon, Gunbai reflect, Fan-Swing, Wood Spike/Dragon) + Susanoo grab + armored mode | **Tiered Susanoo** — TAP Tengai Shinsei meteor / HOLD Complete-Susanoo giant — see §Susanoo |
 
 ### Hunter × Hunter (5)
 | Char | HP·EN·A/D/S | Signature kit | Ultimate |
 |---|---|---|---|
 | **Netero** | 980·150·98/82/94 | Prayer barrage, Zero Hand | 100-Type Guanyin Bodhisattva (giant form) |
-| **Killua** | 1030·180·84/78/95 | Yo-Yos (boomerang), Lightning Palm / Electric Ball (dir-branched) | Godspeed (buff-mode + opponent time-slow) |
-| **Gon** | 1150·160·89/86/86 | Jajanken (Rock/Paper/Scissors), Rush rekka | **Adult Form** — buff + movement-lockout + **sudden-death** (clean hit = instant win / whiff = instant loss) |
-| **Hisoka** | 1080·170·88/82/91 | Bungee Gum (extended-reach whip), Texture Surprise cards | Bloodlust Overdrive (buff-mode form-swap) |
-| **Chrollo** | 1080·130·84/84/88 | Bandit's Secret / book specials | **Skill Hunter** — live-copy the opponent for 30s — see §Systems |
+| **Killua** | 1030·180·84/78/95 | Yo-Yos, Lightning Palm / Electric Ball (dir-branched) | Godspeed (buff-mode + opponent time-slow) |
+| **Gon** | 1150·160·89/86/86 | Jajanken (Rock/Paper/Scissors), Rush rekka | **Adult Form** — buff + movement-lockout + **sudden-death** (clean hit = win / whiff = loss) |
+| **Hisoka** | 1080·170·88/82/91 | Bungee Gum (extended-reach whip), Texture-Surprise cards | Bloodlust Overdrive (buff-mode form-swap, extended reach) |
+| **Chrollo** | 1080·130·84/84/88 | Bandit's Secret / book specials | **Skill Hunter** (live-copy) + **Bandit's Echo** (mark→copy one) — see §Systems |
+
+### Power Rangers (4)
+| Char | HP·EN·A/D/S | Signature kit | Ultimate |
+|---|---|---|---|
+| **Omega Ranger** (White/S.P.D.) | 1180·175·93/86/92 | Delta Enforcer gun, Super Upper, Bonus Ring; 4-way special | Omega Saber: Final Strike (live launcher) |
+| **Samurai Red** (Fire) | 1220·160·95/88/88 | katana Toji-Rekka chain, **Mega Mode** tier-swap, Mega-only Flame Slash | Fire Smasher: Blazing Strike (tier-scaling freeze-cinematic) |
+| **Gold Samurai** (Light) | 1160·165·92/84/94 | Barracuda katana chain, light slash-wave projectile, **Mega Mode** | Barracuda Blade: Light Finale (tier-scaling freeze-cinematic) |
+| **Green Samurai** (Forest) | 1190·165·91/85/91 | naginata/spear reach archetype, forest kit | Forest Spear: Verdant Storm |
 
 ### Demon Slayer (3) — all **cooldown-gated** (EN 0)
 | Char | HP·EN·A/D/S | Signature kit | Ultimate |
 |---|---|---|---|
-| **Zenitsu** | 1000·0·88/74/**96** | Thunder Breathing 1st Form; **Double Attack** (Tanjiro/Inosuke assist summons) | Godspeed (dash-through unblockable slice) |
-| **Rengoku** | 1140·0·92/80/92 | branching flame combo chains, charge-tier Flame Strike, reactive Counter | Flame Explosion (freeze-cinematic AOE) |
-| **Shinobu** | **960**·0·82/76/**97** | piercing thrusts, poison DOT, Butterfly Flit i-frame evade | Butterfly Dance (freeze-cinematic dash + poison) |
-
-### Power Rangers (3)
-| Char | HP·EN·A/D/S | Signature kit | Ultimate |
-|---|---|---|---|
-| **Omega Ranger** (White/S.P.D.) | 1180·175·93/86/92 | Delta Enforcer gun, Super Upper, Bonus Ring; 4-way special | Omega Saber: Final Strike (live launcher) |
-| **Samurai Red Ranger** (Fire) | 1220·160·95/88/88 | katana Toji-Rekka chain, **Mega Mode** tier-swap, Mega-only Flame Slash | Fire Smasher: Blazing Strike (tier-scaling freeze-cinematic) |
-| **Gold Samurai Ranger** (Light) | 1160·165·92/84/94 | Barracuda katana chain, light slash-wave projectile, **Mega Mode** tier-swap | Barracuda Blade: Light Finale (tier-scaling freeze-cinematic) |
-| *All three also share* | | **Morpher Call-In** team special — see §Systems | |
+| **Zenitsu** | 1000·0·88/74/**96** | Thunder Breathing 1st Form; **Double Attack** (Tanjiro/Inosuke assists) | Godspeed (dash-through unblockable slice) |
+| **Rengoku** | 1140·0·92/80/92 | branching flame combo chains, charge-tier Flame Strike, reactive Counter | Flame Breathing: Rengoku (freeze-cinematic AOE) |
+| **Shinobu** | **960**·0·82/76/**97** | piercing thrusts, poison DOT, Butterfly Flit i-frame evade | Butterfly Dance (freeze-cinematic dash + lethal wisteria poison) |
 
 ### DC (3)
 | Char | HP·EN·A/D/S | Signature kit | Ultimate |
 |---|---|---|---|
-| **Flash** | 1020·100·80/74/**99** | Speed Rush rekka, Spin/Tornado whirls; glass-cannon speedster | Flash Time (opponent time-slow buff) |
+| **Flash** | 1020·100·80/74/**99** | Speed Rush rekka, Spin/Tornado whirls; glass-cannon speedster (roster's fastest) | Flash Time (3× self / ⅓× opponent; can't block while active) |
 | **Batman** | 1080·100·86/88/92 | batarangs, gadgets, cape | The Dark Knight (batarang-barrage freeze-cinematic) |
-| **Superman** | **1450**·200·**100**/92/88 | Heat Vision, Flying Punch, Solar Flare / Kryptonian Overload mode-toggles, flight | Solar Overload (freeze-cinematic detonation) |
+| **Superman** | **1450**·200·**100**/92/88 | Heat Vision, Flying Punch, Solar-Flare / Kryptonian mode-toggles, flight | Solar Overload (screen-clearing freeze-cinematic detonation) |
 
-### Others
-| Char (universe) | HP·EN·A/D/S | Signature kit | Ultimate |
+### Rick and Morty (4)
+| Char | HP·EN·A/D/S | Signature kit | Ultimate |
 |---|---|---|---|
-| **Omni-Man** (Invincible) | 1400·200·98/88/90 | toggleable **Flight** replacing jump, Viltrumite Beatdown rekka | Viltrumite Onslaught (flying body-slam cinematic) |
-| **Rick** (Rick & Morty) | 1050·160·82/78/80 | portal-gun zoning/gadgets, portal-behind teleport | Self-Destruct |
-| **Saiki** (Saiki K) | 1050·180·84/84/90 | psychic projectile zoner, teleport | Giant Bomb Throw (delayed screen-filling explosion) |
-| **Ben 10** (Ben 10) | 1250·100·90/85/* | **Omnitrix transform device** — human + **XLR8 / Diamondhead / Feedback** art-backed forms (+ large procedural alien pool); deliberate per-slot transform. *Speed uses `mkAlien`'s own small scale (each form carries its own speed), not the 80–99 anime scale.* | Omnitrix Overload / per-form (XLR8 Sonic Blitz · Diamondhead Crystal Storm) |
-| **Albedo** (Ben 10) | *shares Ben's kit* | Ben's clone — same alien roster via **Ultimatrix**; spriteless (procedural "Negative" red identity) | shared alien ultimates |
+| **Rick** | 1050·160·82/78/80 | portal-gun zoning/gadgets, portal-behind teleport, Void Form skin | Self-Destruct (no self-damage proximity AOE) |
+| Morty *(box)* | 980·120·74/72/72 | placeholder kit (low-mobility "panic" archetype) | Morty's Courage |
+| Evil Morty *(box)* | 1100·150·86/82/82 | placeholder kit | Evil Morty's Takeover |
+| Rick Prime *(box)* | 1120·180·92/82/88 | placeholder kit | Rick Prime's Supremacy |
+
+### Ben 10 (2)
+| Char | HP·EN·A/D/S | Signature kit | Ultimate |
+|---|---|---|---|
+| **Ben 10** | 1250·100·90/85/* | **Omnitrix** transform device — human + **XLR8 / Diamondhead / Feedback** art forms (+ procedural alien pool); deliberate per-slot transform | Omnitrix Overload / per-form (XLR8 Sonic Blitz · Diamondhead Crystal Storm) |
+| Albedo *(box)* | 1250·100·90/85/* | Ben's clone via **Ultimatrix**, spriteless "Negative" identity — shares the alien roster | Ultimatrix Overload (shared alien ults) |
+
+*Ben/Albedo speed uses each alien form's own small `mkAlien` scale, not the 80–99 anime scale.*
+
+### Invincible (1)
+| Char | HP·EN·A/D/S | Signature kit | Ultimate |
+|---|---|---|---|
+| **Omni-Man** | 1400·200·98/88/90 | toggleable **Flight** replacing jump, Viltrumite Beatdown rekka | Viltrumite Onslaught (flying body-slam cinematic) |
+
+### Saiki K (1)
+| Char | HP·EN·A/D/S | Signature kit | Ultimate |
+|---|---|---|---|
+| **Saiki** | 1050·180·84/84/90 | psychic projectile zoner, teleport | Giant Bomb Throw (delayed screen-filling explosion) |
+
+### Horror (1)
+| Char | HP·EN·A/D/S | Signature kit | Ultimate |
+|---|---|---|---|
+| **Ghostface** | 1040·100·85/80/95 | knife stalker; **5 killer-identity skins carry REAL gameplay modifiers** (project-first); Companion Swap / Backstage Pass | The Final Act (guaranteed stab-flurry freeze-cinematic) — see §Systems |
+
+### Original (1)
+| Char | HP·EN·A/D/S | Signature kit | Ultimate |
+|---|---|---|---|
+| Omololu *(box)* | 1210·180·88/90/80 | self-insert placeholder | Full Analysis |
 
 ---
 
-## 2. Cross-cutting systems & mechanics
+## 2. Signature systems & mechanics
 
-### Transformation / tier systems
-- **Vegeta-style tier-swap** (`_skinAnim` swaps every move's sheet to the form tier, multipliers re-applied
-  per frame): Vegeta (base→SSJ→Blue), **Samurai Red & Gold Mega Mode**, Goku Black (base→SSG→Rose→Blue).
-- **Buff-mode forms** (overlay + stat multipliers + drain→auto-revert, no sheet swap): Killua Godspeed,
-  Hisoka Overdrive, Gon Adult Form, Flash Time, Superman Solar Flare / Overload.
-- **Giant/creature forms:** Sasuke & Itachi Susanoo, Netero Guanyin, Naruto Kurama Avatar, Minato Kurama.
-- **Ben 10 Omnitrix:** deliberate per-slot transform (Charge + direction → a specific alien), data-driven
-  `BEN10_SLOT_COMBOS`; art-backed forms are XLR8/Diamondhead/Feedback + Ben-human.
-- **Recolor-transformation pilot** (Goku Black SSG/Blue): a new tier built by *recoloring the base sprite's
-  hair* rather than sourcing new art — viable only when the tier shares the base silhouette. Neck/skin-bleed
-  was audited at the pixel level and closed (`NECK_MARGIN=0`).
+### Susanoo tier model (Uchiha — unified reference)
+One shared 3-tier model across every Uchiha (see `UCHIHA_SUSANOO_TIER_MODEL.md`):
+**T1 Skeletal** = a REAL command-grab (extended-reach `resolveGrab`, not a strike) · **T2 Full armor** =
+sustained buff-form · **T3 Perfect/Complete** = giant Ultimate. **Tier 1 is a standalone special** (its own
+input), fully independent of the Ultimate.
+- **Madara** — T1 Fwd+Heavy Susanoo grab · T2 Back+Heavy armored mode · T3 tap Tengai Shinsei meteor /
+  hold Complete-Susanoo four-armed giant.
+- **Sasuke** — T1 grab on the standard grab button (standalone) · staged Ultimate = Lv1 skeletal → Lv2
+  full armor (grab / sword / arrow) via a Sharingan freeze-cinematic. *(No T3 giant art yet — content gap.)*
+- **Itachi** — single-tier sustained Susanoo creature (own variant, pre-dates the model).
 
-### Freeze-cinematic ultimates
-A shared "freeze contract" (combat/physics/input paused, guaranteed sure-hit at the strike beat, held block
-chips to 25%). Members: Vegeta Final Flash, Beerus Ki Ball, Batman Dark Knight, Superman Solar Overload,
-Omni-Man Onslaught, Rengoku Flame Explosion, Shinobu Butterfly Dance, Samurai Red/Gold, Killua/Flash
-(time-slow), Goku Black Sword, plus the Susanoo/Guanyin/Kurama giants. **Effective-damage band ≈ 300–380**
-(Kurama TBB 600 is the ceiling). A `_kuramaHide` flag suppresses the real body when a cinematic draws its
-own, preventing the "two instances" glitch (swept game-wide — clean).
+### Chrollo — dual copy mechanics
+- **Skill Hunter** (Ultimate): momentarily swap into a live full copy of the opponent's kit (~30s), then revert.
+- **Bandit's Echo** (2nd ability, independent `_be*` namespace): mark an opponent's special/ult on **connect**,
+  then copy ONE with an HP + energy cost, single-use. Coexists with Skill Hunter.
+
+### Ghostface — swap/summon suite
+- **Killer-identity skins** = 5 identities, each a **real gameplay modifier** (the only non-cosmetic skins).
+- **Companion Swap** (Kameo-style): a button combo fully plays a pool companion for 10–15s (auto-revert),
+  reusing the Skill-Hunter field-swap engine (`_gfSwap*` namespace, unlimited resource).
+- **Backstage Pass** / **Call-In** companion mechanics per identity pool.
 
 ### Edo Tensei (Tobirama)
-Pre-match **vessel pick** (a `SELECT_EDO_BACKUP` detour lets you choose ANY built roster char). The ultimate
-plays a full frozen cinematic (seals → giant coffin rise → vessel reveal), then does an **in-place body-swap**
-into the vessel's complete kit for a timed window — including a **nested ultimate-within-the-ultimate** (the
-vessel can cast its own ult, its cinematic plays, the timer pauses). Reverts cleanly. The two-vessel
-double-render window was found and fixed (`_kuramaHide` during [SWAP, CLOSE)).
+Reanimation Jutsu — sacrifice all chakra + some HP to summon a **pre-chosen** vessel and command their FULL
+moveset for a window, then the coffin closes. Pre-match vessel pick (scrollable roster). `_kuramaHide`
+prevents a two-vessel render window during the swap.
 
-### Skill Hunter (Chrollo)
-Gated on landing 3 distinct opponent moves. The ultimate plays a swap cinematic (purple robe-swirl, a
-ctx-primitive FX — no second body) then makes Chrollo a **live full copy of the opponent** for 30s (their
-kit + a purple runtime tint), auto-reverting on a fixed timer.
+### Morpher Call-In (Power Rangers team-up) — STAGED
+Design: pre-pick another Ranger, who dashes in and performs THEIR OWN real Ultimate, then vanishes.
+**Not fully wired on the current `combo-flow-layer` working tree** — the partner-select screen
+(`SELECT_CALLIN_PARTNER`) and `fireCallIn` hook are absent here (S3/S4 outstanding). Included for status;
+the duplicate-render and scroll audits both guard against its absence.
 
-### Morpher Call-In (Power Rangers team special — NEW)
-A roster-wide team mechanic on every Ranger. **Pre-match** you pick a partner Ranger (a `SELECT_CALLIN_PARTNER`
-detour, dynamic exclude-self list — a future Ranger auto-joins). In-match, **Special + Ultimate** together
-deploys the partner: they dash in (Zenitsu-Double-Attack choreography), perform **their own real Ultimate**
-against the opponent (Red/Gold play their freeze-cinematic; Omega its live-hitbox strike — via the existing
-`triggerUltimate` dispatch, so it scales to any Ranger), then vanish. **Balance:** deploying ultimate-tier
-damage through a special-tier cost is intentionally throttled by `CALLIN_DAMAGE_MULT` (default **0.55**,
-live-tunable in Training Mode via `[` / `]`) + a 10s cooldown + base-tier-only partners.
+### Up Attack launcher system (roster-wide)
+Shared launcher normal + the combo-flow layer (hitstop, cancel windows, opener-direction momentum,
+combo decay) that governs how strings connect across the whole roster.
+
+### Speed-tier teleport-blur
+Any fighter whose **base speed stat ≥ Toji's (98)** is "Toji-speed-tier": a double-tap-dash toward the
+opponent blinks behind them + plays a rapid spin/blur (whirling ghost copies). Qualifiers: **Flash (99),
+Toji, Maki, Minato (98)**. Generalises the old hardcoded `dashTeleport` flag via a speed threshold.
+
+### Transformation / tier systems
+- **Vegeta-style tier-swap** (`_skinAnim` swaps every move's sheet + re-applies multipliers): Vegeta, Goku,
+  Goku Black (4-tier recolor ladder), Samurai Red/Gold Mega Mode.
+- **Buff-mode forms** (overlay + stat multipliers + drain→auto-revert, no sheet swap): Killua Godspeed,
+  Hisoka Overdrive, Flash Time, Gon Adult Form, Naruto Kurama Shroud.
+- **Giant/creature forms:** Madara Complete-Susanoo, Sasuke/Itachi Susanoo, Netero Guanyin, Naruto Kurama
+  Avatar, Minato Kurama. All use runtime `_canvasHeightFrac` (excluded from the height-reference audit).
+- **Ben 10 Omnitrix:** deliberate per-slot transform (Charge + direction → a specific alien), data-driven pool.
+- **Transformation Jutsu** (Naruto universe): Tier-1 visual Disguise + Tier-2 full-copy (forks Skill Hunter).
+
+### Freeze-cinematic ultimates
+A large share of ults are freeze-cinematics (both fighters paused, scripted overlay, guaranteed hit):
+Beerus Ki Ball, Rengoku/Shinobu/Zenitsu, Batman, Superman, Ghostface, Miwa, Yuji, Madara Tengai, Sasuke
+Sharingan escalation, Vegeta Final Flash, Goku Black Rose. All re-verified single-draw-per-frame (§Testing).
 
 ### Domains, summons, chains
-- **Domains:** Gojo Unlimited Void, Sukuna Malevolent Shrine (fullscreen screen-space, auto-slashes).
-- **Summons/clones:** Naruto/Minato shadow clones (clone-combo tiers), Megumi shikigami, Zenitsu Double
-  Attack assists.
-- **Command chains:** the shared "Toji-Rekka" pattern (Fwd+Heavy opener → re-tap on hit → cancel into next
-  stage) — Toji, Omni-Man, Superman, both Samurai Rangers, Minato, Killua, etc.
-
-### Selection screens
-Canvas card grids with **scroll** (wheel / trackpad / draggable scrollbar), rolled out to every char grid
-(main select, Edo vessel pick, Morpher Call-In partner, FFA/team) via one shared `getCharacterCardRects`
-path; non-overflowing grids (Omnitrix loadout = 3 art aliens, FFA slot/team assign) correctly need none.
-FFA supports up to 4 players + **team mode** (A/B, uneven splits).
-
-### Skins
-Per-region **recolor pipeline** (`recolor_palette` / per-char `gen_*` tools, capture-masks-from-original,
-line-art floor guard). 26 chars have skin sets. Several ship **procedural match-time overlays** drawn on a
-near-black "void" recolor: Rick Void starfield, Superman Phantom Zone tendrils, Rengoku Void Ember, Shinobu
-Night Moth, Gold Samurai **Voidwalker** gold-spark. Per-skin voice overrides exist (Gojo `gojo2`, Reverse-Flash).
-
-### Voice
-Per-character voice modules (intro / cast / taunt / hit-react / low-health / win pools), single-voice-channel
-per character (a newer line stops the previous), lines play to natural completion. Namecall announcement in
-the round-1 intro. Many chars voiced; Goku/Vegeta/Megumi/Toji/Ben10 intentionally silent.
-
-### Height reference
-`spriteScale = 0.623 × canon_height_cm / measured_idle_content_px` — a reusable methodology that sizes every
-character to its **canon height** instead of "looks right next to the last one built." Re-audited game-wide;
-Rengoku (2.25→1.94) and Shinobu (2.25→1.73) corrected in the latest pass. Cape/aura-inflated or shared-scale
-cases (Superman, Ben forms) are flagged, not force-corrected.
-
-### Cache-busting
-A permanent import-map content-hash stamp (`tools/stamp_version.mjs` + serve + pre-commit hook) busts stale
-ES-module caching locally *and* on GitHub Pages deploy-lag — the fix for the recurring "old code still
-running" bug.
-
-### Training / debug
-Training Mode overlay: Infinite HP/EN [F3], Dummy behavior [F4], Reset [F2], and live **Call-In Mult** [`[`
-/ `]`]. Session persistence (localStorage) restores selections/toggles across reload behind `?session=1`.
+- **Domains:** Gojo Unlimited Void, Sukuna Malevolent Shrine (fullscreen, auto-slashes).
+- **Summons/clones:** Naruto/Minato shadow clones (decoy system + clone-combo tiers), Megumi shikigami,
+  Zenitsu Double Attack assists.
+- **Command chains:** the shared **Toji-Rekka** pattern (Fwd+Heavy opener → re-tap on hit → cancel to next),
+  ported across many characters (Tobirama, Minato, Rengoku, Zenitsu, Shinobu, Miwa, Maki, Ghostface, …).
+- **Motion inputs:** Naruto-universe classic-motion engine (QCF/QCB) for Uzumaki Barrage / clone barrages.
 
 ---
 
-## 3. Balance notes
-- **`GLOBAL_DAMAGE_SCALE = 0.60`** scales melee/projectile/summon damage; **manual-subtract ultimates run
-  RAW** (unscaled) — the single biggest systemic factor (cinematic ults hit ~1.67× harder per point than
-  scaled kit). Documented in `BALANCE_AUDIT.md`.
-- Deliberate stat-record outliers, all canon-justified: Superman (HP 1450 / Atk 100 / Def 92), Omni-Man /
-  Ben 10 / Toji / Sukuna durability, Shinobu (HP 960 floor), Flash/Minato/Toji (Spd 98–99 ceiling).
-- Cooldown-gated (EN 0) kits — Toji (free), Zenitsu/Rengoku/Shinobu (real-time recast windows) — are a
-  distinct currency model from meter chars.
+## 3. Cross-cutting infrastructure
+- **Selection scroll:** every roster grid scrolls when it overflows (char/Edo/FFA/alien); menus (skin/tower/
+  team) fit-by-shrink. `test:scroll-audit` covers all screens.
+- **Skins:** ~257 alt-skins via per-region recolor generators (`tools/gen_*_creative.py`) with line-art
+  guard + face exclusion; cross-char palette-collision audit (`harness/palette_audit.mjs`).
+- **Voice:** 27 per-character voice modules (transcribed via faster-whisper, curated pools).
+- **Height reference:** every `spriteScale` tuned to canon height (`target = 0.623 × canon_cm`;
+  `HEIGHT_REFERENCE.md`), giant forms excluded.
+- **Fullscreen toggle**, cache-busting version stamp, training/debug harness hooks (`window.__harness`).
 
-## 4. Testing
-~192 Playwright harness scripts (`npm run test:*`; `tools/run_all_tests.mjs` runs them with bounded
-concurrency). **Run timing-sensitive harnesses serially** — heavy concurrency causes false negatives. Latest
-full pass (2026-08-01): 188 green, 4 pre-existing/stale fails (2 goku-black tests behind the new tier ladder,
-`beta-toggle` fixture on a deleted Sukuna skin, `beta-mode-rosters`), 0 new regressions.
+## 4. Balance notes
+- **`GLOBAL_DAMAGE_SCALE = 0.60`** scales melee/projectile/summon/throw damage; manual-subtract ultimates
+  are already balanced at raw values.
+- Deliberate canon-justified stat outliers: Superman (HP 1450 / Atk 100 / Def 92), Omni-Man/Cell (HP 1400/
+  1300), Toji/Minato/Maki/Flash (Spd 98–99).
+- Cooldown-gated (EN 0) kits — Toji, Maki, and the Demon Slayer trio — are a distinct no-meter archetype.
+
+## 5. Testing
+**273** harness test scripts (`test:*`). Cross-cutting audits: `test:scroll-audit` (selection screens),
+`test:duprender-sweep` (two-instance render bug across cinematics), `harness/palette_audit.mjs` (skin
+collisions), `harness/height_reference.mjs` (canon sizing), `test:combo-flow-roster` / `test:up-attack` /
+`test:speed-tier` (shared systems). Note: several per-character suites and voice-test harness hooks have
+known pre-existing gaps (Chrollo/Gold-Samurai WIP, missing `__harness.*VoicePool` accessors) tracked separately.

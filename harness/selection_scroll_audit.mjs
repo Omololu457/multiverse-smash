@@ -1,9 +1,12 @@
-// harness/selection_scroll_audit.mjs — verify the card-grid SCROLL fix reached EVERY selection screen.
-// For each screen: does it overflow at the current roster, is it on the scroll-aware path, and does a real
-// wheel actually bring an off-screen card into view + let it be reached? Screens covered:
-//   • main character-select (SELECT_CHARACTER, per-universe)     • Ben 10 Omnitrix loadout (SELECT_ALIENS)
-//   • Morpher Call-In partner-select (SELECT_CALLIN_PARTNER)     • FFA / team-mode char pick (FFA_CHARSELECT)
-// (Edo Tensei is covered by harness/edo_scroll.mjs — the shared mechanism; not re-proven here.)
+// harness/selection_scroll_audit.mjs — verify EVERY roster-selection screen keeps every item reachable
+// at the current (growing) roster. Two overflow strategies exist: (A) SCROLL card grids (overflow → wheel/
+// scrollbar), and (B) FIT-BY-SHRINK menus (shrink rows/cards so all stay on one page). For each screen we
+// confirm it uses the right one and that nothing lands off-screen. Screens covered (all 7 requested):
+//   SCROLL grids:  • main character-select (SELECT_CHARACTER, per-universe)  • Ben 10 Omnitrix (SELECT_ALIENS)
+//                  • FFA / team-mode char pick (FFA_CHARSELECT)              • Edo Tensei vessel (via test:edo-scroll)
+//   FIT-BY-SHRINK: • Ghostface identity / any skin pick (SELECT_SKIN, stressed at the max-skin char)
+//                  • Tower tier menu (TOWER_SELECT)                          • Team-assign (FFA_TEAMSELECT)
+//   ABSENT:        • Morpher Call-In partner-select (SELECT_CALLIN_PARTNER — not implemented on this branch)
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -41,28 +44,15 @@ try {
   chk(`wheel brought the last card into view`, lastY1 >= 80 && lastY1 + rr[rr.length-1].h <= H, `y=${Math.round(lastY1)}`);
   await page.screenshot({ path: path.join(OUT, "scroll_audit_ffa.png") });
 
-  // ── 2) Morpher Call-In partner pick (SELECT_CALLIN_PARTNER) — fits now, but must scroll if it grows ──
+  // ── 2) Morpher Call-In partner pick (SELECT_CALLIN_PARTNER) — NOT on this branch ──
+  // The Morpher Call-In partner-select screen (a staged Power-Rangers feature) is not implemented on
+  // combo-flow-layer: there is no SELECT_CALLIN_PARTNER game state and no showCallInSelect hook. There
+  // is therefore no roster grid here to scroll. Asserted (not silently skipped) so this flips the moment
+  // the screen lands — at which point add its case to activeScrollGrid() and it scrolls for free.
   console.log("\n── Morpher Call-In partner pick (SELECT_CALLIN_PARTNER) ──");
-  await page.evaluate(() => window.__harness.showCallInSelect("omega_ranger", "p1"));
-  await frames(2);
-  b = await bar();
-  chk(`current ${b.count} partners fit (no scroll needed)`, !b.hasScroll, `hasScroll=${b.hasScroll}`);
-  chk(`screen IS on the scroll-aware path (rects present)`, (await rects())?.length === b.count);
-  // Force overflow with mock Rangers → the SAME grid must now scroll.
-  for (let i = 0; i < 16; i++) await page.evaluate(i => window.__harness.registerMockRanger("mock_ranger_"+i, "gold_samurai_ranger"), i);
-  await page.evaluate(() => window.__harness.showCallInSelect("omega_ranger", "p1"));   // re-enter to rebuild
-  await frames(2);
-  b = await bar();
-  chk(`overflows at ${b.count} partners → scroll active`, b.hasScroll && b.maxOffset > 0, `maxOffset=${b.maxOffset}`);
-  rr = await rects();
-  const cLast0 = rr[rr.length-1].y;
-  chk(`last partner below the viewport at rest (unreachable without scroll)`, cLast0 + rr[rr.length-1].h > H - 88, `y=${Math.round(cLast0)}, viewport-bottom≈632`);
-  await wheelToBottom();
-  rr = await rects();
-  const cLast1 = rr[rr.length-1].y;
-  chk(`wheel brought the last partner into view`, cLast1 >= 80 && cLast1 + rr[rr.length-1].h <= H, `y=${Math.round(cLast1)}`);
-  await page.screenshot({ path: path.join(OUT, "scroll_audit_callin.png") });
-  for (let i = 0; i < 16; i++) await page.evaluate(i => window.__harness.unregisterMockRanger("mock_ranger_"+i), i);
+  const hasCallIn = await page.evaluate(() => typeof window.__harness.showCallInSelect === "function");
+  chk(`Call-In partner-select screen is ABSENT on this branch (nothing to scroll)`, !hasCallIn,
+      hasCallIn ? "screen now exists → add it to activeScrollGrid()!" : "no SELECT_CALLIN_PARTNER state");
 
   // ── 3) Main character-select (SELECT_CHARACTER) — per-universe; confirm on the scroll path + largest fits ──
   console.log("\n── Main character-select (SELECT_CHARACTER), per universe ──");
@@ -90,6 +80,29 @@ try {
   const allFit = acr.length > 0 && acr.every(c => c.y >= 60 && c.y + c.h <= H - 40);
   chk(`reached Omnitrix loadout (SELECT_ALIENS)`, st === "selectAliens", `state=${st}`);
   chk(`all ${acr.length} art-backed aliens fit on one page (no scroll needed)`, allFit, `ys=[${acr.map(c=>Math.round(c.y)).join(",")}]`);
+
+  // ── 5) Ghostface identity picker / any skin pick (SELECT_SKIN) — FIT-BY-SHRINK, no scroll ──
+  // Stressed at the CURRENT max-skin character so a grown skin set can't push a card off-screen.
+  console.log("\n── Skin pick (SELECT_SKIN) — Ghostface identity + max-skin stress ──");
+  const fits = (rs) => rs.length > 0 && rs.every(r => r.y >= 40 && r.y + r.h <= H - 20 && r.x >= 0 && r.x + r.w <= 1280);
+  for (const c of ["ghostface", "maki", "goku_black", "yuji", "gold_samurai_ranger"]) {
+    const info = await page.evaluate(ch => window.__harness.showSkinSelect(ch, "p1", 0), c);
+    await frames(1);
+    const rs = await page.evaluate(() => window.__harness.skinSelectRects());
+    chk(`${c}: all ${info.skins.length} skin cards fit on one page (shrink-to-fit)`, fits(rs),
+        `ys=[${rs.map(r=>Math.round(r.y)).join(",")}] maxBottom=${Math.round(Math.max(...rs.map(r=>r.y+r.h)))}≤${H-20}`);
+  }
+
+  // ── 6) Tower tier menu (TOWER_SELECT) — FIT-BY-SHRINK vertical menu ──
+  console.log("\n── Tower tier menu (TOWER_SELECT) ──");
+  const trs = await page.evaluate(() => window.__harness.towerSelectRects());
+  chk(`all ${trs.length} tower rows fit on one page`, fits(trs), `ys=[${trs.map(r=>Math.round(r.y)).join(",")}]`);
+
+  // ── 7) Team-mode team-assignment (FFA_TEAMSELECT) — bounded by FFA_MAX_PLAYERS ──
+  console.log("\n── Team-mode assignment (FFA_TEAMSELECT) ──");
+  const maxP = 4;   // FFA_MAX_PLAYERS (design max, independent of headless device count)
+  const frs = await page.evaluate((n) => window.__harness.ffaTeamRects(n), maxP);
+  chk(`all ${frs.length} team-assign rows fit at max ${maxP} players`, fits(frs), `ys=[${frs.map(r=>Math.round(r.y)).join(",")}]`);
 
   chk("no page errors", jsErrors.length === 0, jsErrors.slice(0,2).join(" | "));
 } catch (e) { console.error("FATAL", e); bad++; }

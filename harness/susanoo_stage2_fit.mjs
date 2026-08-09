@@ -21,8 +21,14 @@ const purpleBBox=()=>page.evaluate(()=>{
   const cv=document.querySelector("canvas"); const W=cv.width,H=cv.height;
   const d=cv.getContext("2d").getImageData(0,0,W,H).data;
   let minx=W,maxx=0,miny=H,maxy=0,cnt=0;
+  // Key on the SOLID Susanoo body, not its faint translucent aura. The aura, composited over the stage
+  // backdrop, reads as a washed-out purple whose exact colour depends on the brightness BEHIND it — so a
+  // weak green-dominance test (b>g+18) let a wide aura halo in and made the measured width depend on the
+  // background (e.g. once the backdrop fills the whole view). Requiring strong purple saturation
+  // (b>g+55 && r>g+18) isolates the deeply-coloured figure, which is what "single frame vs 4-copy atlas"
+  // is actually about — 4 solid copies would still register as ~4× this width.
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){ const i=(y*W+x)*4,r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];
-    if(a>10 && b>90 && r>55 && b>g+18 && (r+b)>2*g+25){ cnt++; if(x<minx)minx=x; if(x>maxx)maxx=x; if(y<miny)miny=y; if(y>maxy)maxy=y; } }
+    if(a>200 && b>110 && r>70 && b>g+55 && r>g+18){ cnt++; if(x<minx)minx=x; if(x>maxx)maxx=x; if(y<miny)miny=y; if(y>maxy)maxy=y; } }
   return {minx,maxx,miny,maxy,cnt,W,H};
 });
 

@@ -95,7 +95,7 @@ export const physics = {
     fighter._dashTap = false   // one-shot: consume the double-tap this frame
 
     if (fighter.dashCooldown > 0) fighter.dashCooldown--
-    if (fighter.airDashTimer > 0 && --fighter.airDashTimer <= 0) fighter.airDashing = false
+    if (fighter.airDashTimer > 0 && --fighter.airDashTimer <= 0) { fighter.airDashing = false; fighter._dashDirIdx = null }
 
     const canMove = !(
       fighter.stun > 0 ||
@@ -129,8 +129,30 @@ export const physics = {
       const maxAirDash = (fighter.stats?.mobility === "very_high") ? 2 : 1
 
       if (air && dash && fighter.airDashCount < maxAirDash && fighter.dashCooldown <= 0) {
-        fighter.vx = (fighter.facing || 1) * (fighter.dashSpeed || 14) * 0.8
-        fighter.vy = 0
+        const adSpd = (fighter.dashSpeed || 14) * 0.8
+        // ICHIGO 8-WAY AERIAL DASH (traits.directionalDash): the air-dash follows the HELD direction
+        // (up / down / diagonals), not just facing. Diagonals are length-normalized so a diagonal dash
+        // isn't faster than a cardinal one. _dashDirIdx maps to the ichigo_dash_But_in_different_directions
+        // strip (sprite.js pins that frame). Everyone else keeps the plain horizontal air-dash below.
+        if (fighter.traits?.directionalDash) {
+          const fwd = fighter.facing || 1   // capture BEFORE any change — facing stays toward the opponent
+          let hx = (R ? 1 : 0) - (L ? 1 : 0)
+          const hy = (D ? 1 : 0) - (U ? 1 : 0)
+          if (hx === 0 && hy === 0) hx = fwd   // no direction held → dash forward
+          const norm = (hx && hy) ? Math.SQRT1_2 : 1
+          fighter.vx = hx * adSpd * norm       // world-space velocity; a back-dash retreats without turning
+          fighter.vy = hy * adSpd * norm
+          // strip order: 0 up · 1 down · 2 down-fwd · 3 up-fwd · 4 level-fwd · 5 back (relative to facing)
+          fighter._dashDirIdx =
+            (hx === 0 && hy < 0) ? 0 :
+            (hx === 0 && hy > 0) ? 1 :
+            (hy > 0 && hx === fwd) ? 2 :
+            (hy < 0 && hx === fwd) ? 3 :
+            (hx === -fwd) ? 5 : 4
+        } else {
+          fighter.vx = (fighter.facing || 1) * adSpd
+          fighter.vy = 0
+        }
         fighter.airDashCount++
         fighter.airDashing = true
         fighter.airDashTimer = 10
@@ -353,24 +375,51 @@ export const physics = {
     this.groundY = y
   },
 
-  launcherAttack(attacker, target, launchY = -28, selfLift = -16) {
+  launcherAttack(attacker, target, launchY = -28, selfLift = -16, opts = {}) {
     if (!attacker || !target) return
 
     // ── Launch the TARGET into the air for a juggle ──
     // A MODERATE, guaranteed pop-up (even if the move's knockbackY is weak, e.g.
     // -8). Kept moderate on purpose so the enemy doesn't sail out of reach — the
     // point is a follow-up air combo, not a launch-to-the-moon.
-    const targetLaunch = Math.min(launchY ?? -17, -17)
+    //
+    // UP-ATTACK TUNING (opts.exact): when a character's Up-Attack move declares
+    // its OWN launch velocities (launchVy for the enemy, selfVy for the player),
+    // honor them EXACTLY and skip the -17 guaranteed-pop-up floor + the "attacker
+    // rises to within 2px of the target" coupling. This is what lets per-character
+    // tuning use lighter, tuned pops (e.g. enemy -12 / player -9) instead of every
+    // launcher being forced to the same floor. Un-tuned launchers pass no opts and
+    // keep the original floor behavior unchanged (backward-compatible).
+    let targetLaunch = opts.exact ? (launchY ?? -12) : Math.min(launchY ?? -17, -17)
+    // GIANT TARGET resist (Susanoo, Adult Gon — anyone with the universal `_canvasHeightFrac`
+    // giant marker): a towering body is far harder to pop, so its launch velocity is halved. Their tall
+    // hurtbox already makes the standard pop read wrong (a child-height hop on a giant); this scales the
+    // vy "to their larger size" per the Up-Attack spec's giant note, shared across the whole roster.
+    if (target._canvasHeightFrac) targetLaunch = Math.round(targetLaunch * 0.5)
     target.vy = targetLaunch
     target.onGround = false
     target.isLaunched = true
     target.jumpCount = 0
 
+    // ── PLANTED GIANT attacker: do NOT self-pop ──
+    // A giant/planted fighter (canJump === false, e.g. Adult Gon / a Susanoo mode) must stay grounded —
+    // hopping a giant into the air on its own Up-Attack contradicts the planted-giant identity. It still
+    // launches the ENEMY above; it just doesn't leave the floor itself (so there's no self-juggle it
+    // can't follow up on anyway, since it can't jump). airHits still resets for any air hits it can land.
+    const plantedGiant = !!attacker._canvasHeightFrac || attacker.canJump === false
+    if (plantedGiant) {
+      attacker.airHits = 0
+      attacker.jumpHeld = true
+      return
+    }
+
     // ── Lift the ATTACKER up WITH the target (always, not just when airborne) ──
     // Rise almost as high as the target — only ~2px/frame slower — so the two
     // stay vertically close and the air follow-up reliably connects, with the
     // enemy kept just above for an upward juggle. selfLift is the high floor.
-    const selfRise = Math.max(selfLift ?? -16, targetLaunch + 2)
+    // With opts.exact the player rises at exactly selfVy (slightly LESS than the
+    // enemy per spec, so the enemy floats just above and stays juggleable).
+    const selfRise = opts.exact ? (selfLift ?? -9) : Math.max(selfLift ?? -16, targetLaunch + 2)
     attacker.vy = selfRise
 
     // Drift the attacker TOWARD the enemy so they track them up into the juggle
@@ -390,16 +439,33 @@ export const physics = {
     attacker.jumpHeld = true
   },
 
-  airCombo(attacker, target, launchY = -14) {
-    if (!attacker || !target) return
+  // AERIAL FOLLOW-UP in a juggle. Counts the hit toward the attacker's air-combo
+  // limit (maxAirHits, default 3, shared roster-wide). UNDER the limit: re-loft the
+  // target a touch (small negative vy) so they stay airborne and the string can
+  // continue — returns true. AT/OVER the limit: do NOT re-loft; instead push the
+  // target DOWNWARD so they fall out of the juggle faster ("fall faster after the
+  // air-combo limit") — returns false. The hit still lands & deals damage (resolved
+  // by the caller before this); this only governs the launch/float behavior.
+  // The counter resets on landing (applyGravity) and on the next launcher opener.
+  airCombo(attacker, target, launchY = -6) {
+    if (!attacker || !target) return false
     attacker.airHits = attacker.airHits || 0
     attacker.maxAirHits = attacker.maxAirHits || 3
-    if (attacker.airHits >= attacker.maxAirHits) return
+
+    if (attacker.airHits >= attacker.maxAirHits) {
+      // Limit reached — knock them out of the air. Ensure a downward velocity so
+      // gravity + this push drop them noticeably faster than a fresh re-loft would.
+      target.vy = Math.max(target.vy || 0, 6)
+      target.onGround = false
+      target.isLaunched = true
+      return false
+    }
 
     target.vy = launchY
     target.onGround = false
     target.isLaunched = true
     attacker.airHits++
+    return true
   },
 
   downAirSpike(attacker, target, force = 24) {

@@ -37,8 +37,11 @@ const CHARS = (process.env.HR_CHARS ? process.env.HR_CHARS.split(",") : [
   "goku", "vegeta", "gojo", "megumi", "sukuna", "toji", "naruto", "sasuke", "itachi",
   "tobirama", "minato", "zenitsu", "rick", "omega_ranger", "omniman", "netero", "goku_black",
   "beerus", "saiki", "killua", "flash", "gon", "batman", "hisoka",
-  // built since the last pass:
   "rengoku", "shinobu", "samurai_red_ranger", "gold_samurai_ranger", "chrollo", "superman", "ben10",
+  // built since the 2026-08-01 pass:
+  "maki", "green_samurai_ranger", "ghostface", "miwa",
+  // built since the 2026-08-03 pass (were never in the audit list):
+  "yuji", "madara",
 ]);
 
 const server = await startServer();

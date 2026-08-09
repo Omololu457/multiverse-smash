@@ -33,15 +33,17 @@ let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++);
 const MOTION = { s: ["s", "d"], a: ["s", "a"], d: ["s", "a", "d"], w: ["s", "d", "a"] };
 async function pressSwapCombo(dirKey) {
   for (const k of MOTION[dirKey]) { await page.keyboard.down(k); await waitFrames(1); await page.keyboard.up(k); await waitFrames(1); }
-  await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(4);
+  await page.keyboard.down("o");                          // Grab = "make this a swap" (Backstage Pass swap branch)
+  await page.keyboard.down("l"); await waitFrames(1); await waitFrames(2); await page.keyboard.up("l"); await page.keyboard.up("o");
+  await waitFrames(18);                                   // let the Backstage Pass dash emerge into the swap
   return await gfSwap();
 }
 async function resetToGhostface(skin) {
   await page.evaluate(() => window.__harness.expireGfSwap());
   await waitFrames(3);
   await page.evaluate(s => { window.__harness.setSkin("p1", s); window.__harness.fillEnergy(); window.__harness.healP1?.(); window.__harness.resetFighterInput?.("p1"); }, skin);
-  await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.key === "ghostface" && p.grounded && !p.attacking && !p.currentMove; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
-  const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + 70); await waitFrames(2);
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.key === "ghostface" && p.grounded && !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + 200); await waitFrames(2);
 }
 
 const IDENTITIES = [

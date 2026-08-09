@@ -139,6 +139,25 @@ try {
   // wait out the 15f Stage-1 recovery so triggerUltimate's atkCd gate won't swallow press #2
   await waitFrames(20);
 
+  // ── TEST 1b — TIER-1 COMMAND-GRAB (Lv1 special = the ribcage arm as a REAL resolveGrab) ──
+  // At Stage 1 the special button offers ONLY the grab, and it must be a genuine command-grab
+  // (isGrabbed state → pop-up-and-drop throw), NOT a strike hitbox. Unified with Madara's Tier-1
+  // grab through the shared combat.resolveGrab pipeline (see UCHIHA_SUSANOO_TIER_MODEL.md).
+  section("TEST 1b — Tier-1 Susanoo command-grab (Lv1 special)");
+  await page.evaluate(() => { const a = window.__harness.p1(); window.__harness.setP2X(a.x + 120); window.__harness.healP2(); });
+  await waitFrames(2);
+  const grabHp0 = (await page.evaluate(() => window.__harness.p2())).health;
+  let sasukeGrabbed = false;
+  await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l");
+  for (let i = 0; i < 20; i++) { if ((await page.evaluate(() => window.__harness.p2())).isGrabbed) { sasukeGrabbed = true; break; } await waitFrames(1); }
+  check("Lv1 special enters real grab state (isGrabbed, not a strike hitbox)", sasukeGrabbed);
+  await page.screenshot({ path: path.join(OUT, "01b_susanoo_lv1_grab.png") });
+  await waitFrames(30);   // let the throw resolve + clear grab recovery
+  const grabHp1 = (await page.evaluate(() => window.__harness.p2())).health;
+  check("Lv1 grab throw deals its tuned damage (120)", grabHp1 < grabHp0, `${grabHp0}→${grabHp1}`);
+  await page.evaluate(() => window.__harness.healP2());
+  await waitFrames(30);   // clear P1 grab recovery so the Stage-2 press isn't swallowed
+
   // Press 2: escalate to Stage 2 (Susanoo Lv2) — requires release since Stage 1 (satisfied by tapUltimate's up).
   // The escalation now plays a Sharingan cinematic first (~134f); Lv2 lands when it resolves.
   await tapUltimate();

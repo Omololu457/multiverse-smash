@@ -96,8 +96,8 @@ export const ALT_SKINS = {
     { tag: "crew", name: "Amber's Crew", mode: "region", note: "gen_companion_crew.py shinobu — hue 245-285 sat>=.4 -> to-tone #1C5A30 (wing pattern; ultimate/flit FX skipped)" },
   ],
   gon: [
-    // Amber's crew (toxic-green #1C5A30) on his brown BOOTS (Gon is already green head-to-toe → only distinct accent; no wristband exists).
-    { tag: "crew", name: "Amber's Crew", mode: "region", note: "gen_companion_crew.py gon — hue 30-46 sat>=.7 val .15-.5 -> to-tone #1C5A30 (boots; low-contrast by nature)" },
+    // Amber's crew (toxic-green #1C5A30) — his GREEN OUTFIT deepened to the crew's darker toxic-green (BOLD).
+    { tag: "crew", name: "Amber's Crew", mode: "region", note: "gen_companion_crew.py gon — hue 95-140 sat>=.4 yband .3-1 -> to-tone #1C5A30 (outfit; green hair kept as identity)" },
   ],
   zenitsu: [
     // Amber's crew (toxic-green #1C5A30) on the RED haori-LINING/inner garment (red → green); intro FX skipped.
@@ -129,8 +129,8 @@ export const ALT_SKINS = {
     { tag: "pink",  name: "Pink",  mode: "region", note: "-> to-hue 330 sat .60 val-gain 1.5" },
     { tag: "gold",  name: "Gold",  mode: "region", note: "-> to-hue 47 to-sat .9 val-gain 1.7 (Part 1 test)" },
     { tag: "red",   name: "Red",   mode: "region", note: "-> to-hue 5 sat .90 val-gain 1.4" },
-    // "JOINED THE KILLER" — Roman's crew (bronze #5A4622) on the tan armor-STRAP/collar (neck yband) → bronze.
-    { tag: "crew", name: "Roman's Crew", mode: "region", note: "gen_companion_crew.py tobirama — hue 16-42 sat .2-.46 yband .2-.34 -> to-tone #5A4622 (strap shares skin hue → spatially isolated at the neck)" },
+    // "JOINED THE KILLER" — Roman's crew (bronze #5A4622) on the blue ARMOR plates (BOLD) → bronze.
+    { tag: "crew", name: "Roman's Crew", mode: "region", note: "gen_companion_crew.py tobirama — hue 200-228 sat>=.5 yband .18-.62 -> to-tone #5A4622 (armor; water-jutsu sheets skipped; distinct from gold skin: dark bronze vs bright gold, 2243px)" },
   ],
 
   // ══ BATCH 3 · JUJUTSU KAISEN ════════════════════════════════════════════════
@@ -156,10 +156,9 @@ export const ALT_SKINS = {
   // head-to-toe colour skins (hair + outfit + eyes) via tools/gen_sukuna_creative.py, registered directly
   // in skins.js (like the Rengoku/Shinobu creative batches), NOT through this abstract-hue manifest.
   // (Former tags: black, gold, blue, red.)
-  sukuna: [
-    // "JOINED THE KILLER" — Jill's crew (magenta #701E50) on his red EYE/face MARKINGS → magenta.
-    { tag: "crew", name: "Jill's Crew", mode: "region", note: "gen_companion_crew.py sukuna — hue 340-358 sat>=.5 -> to-tone #701E50 (red markings; skin H12-20 excluded)" },
-  ],
+  // SUKUNA — all alt-skins deleted 2026-08-03 (incl. Jill's Crew) to rebuild fresh; 12 NEW creative skins
+  // are registered directly in skins.js. reanim (Edo-Tensei summon palette) is not a skin and stays on disk.
+  sukuna: [],
   // GOLD SAMURAI RANGER — explicit skins live in skins.js; this manifest entry adds ONLY the affiliation marker.
   gold_samurai_ranger: [
     // "JOINED THE KILLER" — Jill's crew (magenta #701E50) on the DARK armor-SEAM lines only (plates stay gold — he IS "Gold").
@@ -242,8 +241,8 @@ export const ALT_SKINS = {
   ],
   // HISOKA — explicit skins live in skins.js; this manifest entry adds ONLY the affiliation marker.
   hisoka: [
-    // "JOINED THE KILLER" — Roman's crew (bronze #5A4622) on the pink playing-card EMBLEM (chest) → bronze.
-    { tag: "crew", name: "Roman's Crew", mode: "region", note: "gen_companion_crew.py hisoka — hue 315-345 sat .4-.78 yband .26-.6 -> to-tone #5A4622 (card emblem; intro Nen-FX sheet skipped)" },
+    // "JOINED THE KILLER" — Roman's crew (bronze #5A4622) on his teal/green OUTFIT (BOLD) → bronze.
+    { tag: "crew", name: "Roman's Crew", mode: "region", note: "gen_companion_crew.py hisoka — hue 135-178 sat .12-.42 -> to-tone #5A4622 (outfit; orange hair/skin kept; distinct from gilded/seafoam by 958-1570px)" },
   ],
   // SAIKI — green suit (hue 125-165, sat≥.40). IS pink (hair/limiters) → skip PINK. Pink hair, green
   // eyes, skin, blue shoes preserved. (Note: the Part-0-removed saikiAzure is superseded by these.)

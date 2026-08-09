@@ -103,7 +103,7 @@ try {
   check("P1 is Beerus", g.key === "beerus", `key=${g.key}`);
   check("renders as sprites (hasSprites)", g.hasSpriteHandler, "");
   check("idle sheet = beerus_idle_u.png", (g.spriteSheet || "").includes("beerus_idle_u"), `sheet=${g.spriteSheet}`);
-  check("spriteScale ≈ 2.12 (canon-height ~200cm; was 1.85)", Math.abs((g.spriteScale || 0) - 2.12) < 0.01, `spriteScale=${g.spriteScale}`);
+  check("spriteScale ≈ 2.12 (HEIGHT-REF: canon ~200cm, God of Destruction — corrected back up from the brief 175cm)", Math.abs((g.spriteScale || 0) - 2.12) < 0.01, `spriteScale=${g.spriteScale}`);
   check("glass-cannon HP = 1000", g.maxHealth === 1000, `HP=${g.maxHealth}`);
   check("God-Ki pool = 170", g.maxEnergy === 170, `EN=${g.maxEnergy}`);
 

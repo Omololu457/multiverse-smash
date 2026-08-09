@@ -506,6 +506,14 @@ function performSummonAttack(summon) {
   applySummonImpact(summon)
   summon.hasHit = true
 
+  // BEAST BREATHING ASSIST — the partner-link hit participates in the OWNER's (Inosuke's) combo string,
+  // just like a projectile hit (combat.resolveProjectileHitsMulti). A clean hit extends it (counter++ +
+  // refresh the 90f drop timer); a block breaks it. Gated to the assist summon via bbaOwnerCombo.
+  if (summon.bbaOwnerCombo && summon.owner) {
+    if (summon.target.isBlocking) summon.owner.comboCounter = 0
+    else { summon.owner.comboCounter = (summon.owner.comboCounter || 0) + 1; summon.owner.comboTimer = 90 }
+  }
+
   if (summon.oneHit) {
     summon.lifetime = Math.min(summon.lifetime, 8)
   }

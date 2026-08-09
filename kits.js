@@ -269,8 +269,8 @@ export const KITS = {
   },
   megumi: {
     type: "Setup / Summoner", energy: "Cursed Energy", difficulty: "Hard",
-    summary: "A methodical shikigami summoner who builds board control by calling shadow beasts from every direction, then sacrifices himself to become Mahoraga.",
-    passive: { name: "Ten Shadows", effect: "Shikigami are summoned on a shared cooldown; defeated shikigami (except Mahoraga) can be re-summoned, rewarding patient setup play." },
+    summary: "A methodical shikigami summoner who builds board control by calling shadow beasts from every direction, then seals the opponent inside his domain.",
+    passive: { name: "Ten Shadows", effect: "Shikigami are summoned on a shared cooldown; defeated shikigami can be re-summoned, rewarding patient setup play." },
     basics: [
       { name: "Jab",        input: "Light",                    desc: "fast poke" },
       { name: "Heavy Blow", input: "Heavy",                    desc: "knockback strike" },
@@ -286,7 +286,7 @@ export const KITS = {
       { name: "Max Elephant", input: "Down-Back + Special",                   cost: 35, desc: "summons a giant elephant for a massive crushing wave" }
     ],
     mobility: { name: "Rabbit Escape", input: "Down, Up + Special", cost: 15, desc: "summons a swarm of rabbits to cover a defensive reposition" },
-    ultimate: { name: "Mahoraga Ritual", input: "Ultimate (full meter)", cost: 100, desc: "Domain-tier death ritual: permanently transforms Megumi into the adapting shikigami Mahoraga, locking out his summons" },
+    ultimate: { name: "Chimera Shadow Garden", input: "Ultimate", cost: 100, desc: "Domain Expansion: unfurls a shadow territory that restrains the opponent for its duration" },
     combos: [
       { name: "Pin & Punish", sequence: "Toad, Light, Light, Heavy", desc: "restrain then convert" },
       { name: "Stampede",     sequence: "Divine Dogs, Max Elephant",  desc: "wolves pressure into the elephant wave" },
@@ -340,29 +340,6 @@ export const KITS = {
       { name: "Flank Kill", sequence: "Assassin Dash, Heavy, Inventory Smash",        desc: "reposition then punish" }
     ]
   },
-  mahoraga: {
-    type: "Adaptive Bruiser / Tank", energy: "None (pure physical)", difficulty: "Medium",
-    summary: "An eight-handled divine general that grows unbeatable over time, adapting to everything it is hit by while crushing foes with the divine wheel.",
-    passive: { name: "Adaptation", effect: "Each time Mahoraga is hit by an attack type (melee, projectile, special, domain) it builds permanent resistance to that type up to a cap — the longer the fight, the harder it is to hurt." },
-    basics: [
-      { name: "Heavy Swipe",   input: "Light",                   desc: "slow but powerful poke" },
-      { name: "Crushing Blow", input: "Heavy",                   desc: "massive knockback strike" },
-      { name: "Launcher",      input: "Up-Attack",               desc: "launcher — starts air combos" },
-      { name: "Air Strike",    input: "Air (jump + Light)",      desc: "aerial blow" },
-      { name: "Dive Slam",     input: "Down-Air (jump + Heavy)", desc: "heavy downward spike" }
-    ],
-    specials: [
-      { name: "Wheel Rotation", input: "Special",      cost: 0, desc: "spins the divine eight-handled wheel for a wide devastating slash; scales with adaptation stacks" },
-      { name: "Divine Guard",   input: "Down + Special", cost: 0, desc: "braces and instantly raises adaptation against the next incoming attack type" }
-    ],
-    mobility: { name: "Wheel Lunge", input: "Forward + Special", cost: 0, desc: "rolls forward behind the divine wheel, plowing through and repositioning" },
-    ultimate: { name: "Eight-Handled Wheel", input: "Ultimate (no meter needed)", cost: 0, desc: "locks in maximum adaptation and makes resistance gains permanent for the rest of the match" },
-    combos: [
-      { name: "Adapt & Punish", sequence: "Divine Guard, Wheel Rotation",        desc: "tank a hit, then swing the wheel" },
-      { name: "Plow Through",   sequence: "Wheel Lunge, Heavy, Wheel Rotation",  desc: "close in and crush" }
-    ]
-  },
-
   // ── ORIGINAL ─────────────────────────────────────────────────
   omololu: {
     type: "Ramp Bruiser / Adaptive", energy: "Stamina", difficulty: "Medium",

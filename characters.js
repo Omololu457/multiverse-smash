@@ -26,7 +26,7 @@ const goku = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -12, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -90,7 +90,7 @@ const vegeta = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },                                  // foward_attack punch combo
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },                                  // foward_crouch_atttack low strike
-    upAttack:  { type: "launcher", damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 12 },   // up_attack uppercut launcher
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -12, selfVy: -9 },   // Up-Attack launcher (uppercut) — BALANCED archetype (Gojo ref)
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },                                 // air_attack aerial combo
     downAir:   { type: "spike", damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },                  // down_air_attack diving spike
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -200,7 +200,7 @@ const piccolo = {
   basic_attacks: {
     light:     { damage: 40, startup: 5, active: 3, recovery: 11, hitstun: 11, knockbackX: 2, knockbackY: 0 },
     heavy:     { damage: 80, startup: 9, active: 4, recovery: 19, hitstun: 17, knockbackX: 5, knockbackY: 1 },
-    upAttack:  { damage: 60, startup: 8, active: 4, recovery: 16, hitstun: 18, knockbackX: 2, knockbackY: -7 },
+    upAttack:  { type: "launcher", damage: 60, startup: 6, active: 4, recovery: 8, hitstun: 18, knockbackX: 2, knockbackY: -7, launchVy: -12, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 55, startup: 6, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 70, startup: 9, active: 4, recovery: 14, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:      { damage: 28, startup: 7, active: 3, recovery: 14, hitstun: 18, throwForceX: 4, throwForceY: -3 }
@@ -227,7 +227,7 @@ const frieza = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -12, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 28, startup: 5, active: 3, recovery: 13, hitstun: 18, throwForceX: 4, throwForceY: -3 }
@@ -255,7 +255,7 @@ const cell = {
   basic_attacks: {
     light:     { damage: 50, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 95, startup: 9, active: 4, recovery: 19, hitstun: 19, knockbackX: 7, knockbackY: 1 },
-    upAttack:  { damage: 75, startup: 8, active: 4, recovery: 17, hitstun: 21, knockbackX: 2, knockbackY: -8 },
+    upAttack:  { type: "launcher", damage: 75, startup: 5, active: 4, recovery: 9, hitstun: 21, knockbackX: 2, knockbackY: -8, launchVy: -13, selfVy: -9 },   // Up-Attack launcher — HEAVY archetype (Toji ref); tanky absorber
     airAttack: { damage: 65, startup: 5, active: 3, recovery: 10, hitstun: 14, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 85, startup: 9, active: 4, recovery: 15, hitstun: 19, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 35, startup: 6, active: 4, recovery: 16, hitstun: 22, throwForceX: 5, throwForceY: -4 }
@@ -296,7 +296,10 @@ const gojo = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8 },
+    // Up-Attack launcher "Rising Palm" (balanced reference archetype): startup 6 / active 4 /
+    // recovery 8; launches enemy at vy -12 and lifts Gojo at vy -9 (slightly less, so the enemy
+    // floats just above → juggleable). launchVy/selfVy are honored EXACTLY (bypass the -17 floor).
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -12, selfVy: -9 },
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -5 }
@@ -380,11 +383,9 @@ const megumi = {
     maxElephant:  { cost: 35, damage: 145, startup: 20, active: 6, recovery: 26, hitstun: 24, knockbackX: 9, knockbackY: -2, subtype: "summon", summonId: "maxElephant", cooldown: 240, effect: "massive crushing attack" }
   },
   ultimate: {
-    name: "Mahoraga Ritual", cost: 100, permanent: true, oneWay: true, deathRitual: true,
-    disableSpecials: ["divineDogs","nue","toad","rabbitEscape","maxElephant"],
-    effect: "Permanently transforms Megumi into Mahoraga in-place"
+    name: "Chimera Shadow Garden", cost: 100, duration: 15, effect: "Domain expansion — a shadow territory that restrains the opponent"
   },
-  mahoragaStats: { name: "Mahoraga", maxHealth: 1600, damageMultiplier: 1.5, speedMultiplier: 0.9, defenseMultiplier: 1.35, color: "#7c3aed", maxAdaptationLevel: 3 },
+  domain: { name: "Chimera Shadow Garden", priority: 3, background: "shadow_garden" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   hasSprites: true,
@@ -524,7 +525,9 @@ const toji = {
   basic_attacks: {
     light:     { damage: 52, startup: 3, active: 3, recovery: 9, hitstun: 13, knockbackX: 4, knockbackY: 0 },
     heavy:     { damage: 96, startup: 7, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: 1 },
-    upAttack:  { damage: 72, startup: 6, active: 4, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9 },
+    // Up-Attack launcher "Ascension Slash" (heavy/powerful archetype): hits harder, slightly slower —
+    // startup 5 / active 4 / recovery 9; strongest pop of the three (enemy vy -13), Toji lifts at vy -9.
+    upAttack:  { type: "launcher", damage: 72, startup: 5, active: 4, recovery: 9, hitstun: 20, knockbackX: 2, knockbackY: -9, launchVy: -13, selfVy: -9 },
     airAttack: { damage: 62, startup: 4, active: 3, recovery: 9, hitstun: 14, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 82, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 40, startup: 4, active: 3, recovery: 12, hitstun: 22, throwForceX: 7, throwForceY: -5 }
@@ -648,33 +651,6 @@ const toji = {
     // slice): toji_row11_sheet.png 480×69, row12 540×69, row13 575×85,
     // row14 847×87, row15 424×78.
   }
-}
-
-const mahoraga = {
-  rosterKey: "mahoraga", name: "Mahoraga", universe: "jujutsu_kaisen",
-  // NOT selectable — Mahoraga is the form Megumi becomes via her ultimate
-  // (abilities.js transformIntoMahoraga reads this block as characters.mahoraga).
-  // `hidden` excludes it from character-select / move-list / fallback.
-  hidden: true,
-  archetypes: ["melee", "adaptation"],
-  primary: "melee", secondary: ["adaptation"],
-  traits: { hasEnergy: false, energyType: "none", mobility: "medium", scaling: "adaptation", animeMovement: true },
-  stats: { maxHealth: 1600, maxEnergy: 0, attack: 104, defense: 100, speed: 82, maxJumps: 1, jumpPower: 28, dashSpeed: 12, dashDuration: 8, dashCooldownMax: 60 },
-  basic_attacks: {
-    light:     { damage: 65, startup: 5, active: 4, recovery: 12, hitstun: 15, knockbackX: 5, knockbackY: 0 },
-    heavy:     { damage: 120, startup: 11, active: 5, recovery: 22, hitstun: 22, knockbackX: 9, knockbackY: 1 },
-    upAttack:  { damage: 90, startup: 10, active: 5, recovery: 20, hitstun: 24, knockbackX: 3, knockbackY: -10 },
-    airAttack: { damage: 75, startup: 7, active: 4, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: -2 },
-    downAir:   { damage: 100, startup: 11, active: 5, recovery: 18, hitstun: 22, knockbackX: 1, knockbackY: 12 }
-  },
-  specials: {
-    wheelRotation: { cost: 0, damage: 180, startup: 18, active: 6, recovery: 28, hitstun: 28, knockbackX: 12, knockbackY: -3, effect: "divine wheel slash" },
-    adaptation:    { cost: 0, damage: 0, startup: 1, active: 1, recovery: 1, hitstun: 0, knockbackX: 0, knockbackY: 0, effect: "passive: adapts to attack types each time hit" }
-  },
-  ultimate: { name: "Eight-Handled Wheel", cost: 0, duration: -1, effect: "Adaptation stacks permanently" },
-  transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1, permanent: true } },
-  animationData: { ...DEFAULT_ANIM }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1166,6 +1142,308 @@ const minato = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// MADARA UCHIHA — the Ghost of the Uchiha (6th Naruto-universe char,
+// after Naruto/Sasuke/Itachi/Tobirama/Minato). The LARGEST single-char
+// kit in the project (deliberate scope exception: 7 specials + a
+// tap/hold TIERED ultimate vs. the standard 2-4 budget). Staged build
+// (see MADARA_ASSET_MAP.md). Source strips RE-SLICED into clean
+// uniform, feet-aligned cells (tools/reslice_strip.mjs → *_uniform.png
+// copies; exact-as-uploaded originals kept untouched per the build
+// mandate). Templated off fellow shinobi Tobirama/Minato. Stage 1 =
+// registration + movement/state + coffin-emergence intro only. Normals
+// (S2), the 7 specials one-at-a-time (S3), tiered-ultimate gating
+// investigation (S4) + build (S5), portrait + harness + balance (S6)
+// land in later passes. Missing actions fall back to idle until then.
+// ─────────────────────────────────────────────────────────────────
+const madara = {
+  rosterKey: "madara", name: "Madara Uchiha", universe: "naruto",
+  portrait: "./madara_portrait.png",   // extracted in Stage 6; falls back gracefully (procedural box) until then
+  archetypes: ["melee", "zoner"],
+  primary: "melee", secondary: ["zoner", "tactics"],
+  // Physical dash (2-frame body-shift), not a teleport — his space-time
+  // tools are Susanoo/Rinnegan content for later stages, not the base kit.
+  movement: { runWhenAdvancing: true },   // advancing toward the foe plays the run cycle
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // maxEnergy 220: the tiered Susanoo ultimate (Stage 5) gates its HOLD
+  // tier (Complete Susanoo) behind MORE than the standard Ultimate-ready
+  // threshold, so the pool is deliberately the largest chakra bar on the
+  // roster (ties Gojo's 220 cursed ceiling) to leave headroom above the
+  // normal ult cost for that higher gate. Provisional — finalized in S4/S5.
+  stats: { maxHealth: 1180, maxEnergy: 220, attack: 94, defense: 86, speed: 92, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  // Stage 2 normals (real move data). combat.js _getMD reads THIS basic_attacks. In-band vs the
+  // shinobi (Tobirama/Minato); NOTE base `attack` stat does NOT scale damage in this engine
+  // (offenseMult derives from mode buffs, not base Atk — see BALANCE_AUDIT.md), so Atk 94 is flavor.
+  //   light    = slap (quick gunbai swipe)          heavy   = combo_1 (committed swipe→palm string, reach)
+  //   upAttack = up_attack (rising gunbai launcher)  airAttack = air_combo_1 (aerial flurry)
+  //   airHeavy = susanoo_grab_air (AERIAL HARD — Susanoo-hand grab; air+Heavy, see combat.js hook)
+  // GAP: down_air (genuinely absent) — intentionally NO downAir entry, so the button no-ops
+  // (startMove returns false on null moveData) rather than faking a hit on the idle pose.
+  basic_attacks: {
+    light:    { damage: 42, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 92, startup: 9, active: 4, recovery: 20, hitstun: 20, knockbackX: 8, knockbackY: 1, rangeX: 88, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack:{ damage: 56, startup: 5, active: 4, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: -2 },
+    airHeavy: { damage: 84, startup: 9, active: 4, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 4, rangeX: 100, rangeY: 70 }
+  },
+  // HUD-only until Stage 5 (real logic + tap/hold tier gate live in abilities.js). Tiered Susanoo:
+  // TAP = Perfect Susanoo / Tengai Shinsei (standard Ultimate cost); HOLD = Complete Susanoo (gated
+  // behind a HIGHER banked-energy threshold — investigated in Stage 4, built in Stage 5).
+  ultimate: { name: "Susanoo", cost: 100, description: "Tiered Susanoo — TAP for Perfect Susanoo / Tengai Shinsei (meteor call-down); HOLD (requires more banked chakra) for the Complete Susanoo four-armed avatar." },
+  hasSprites: true,
+  // idle content 62px × 1.8 ≈ 112px on-screen ≈ roster height (Naruto/Sasuke/Itachi/Tobirama ~112-115).
+  // REQUIRES the skins.js `madara` entry (else applySkin() pulls the spriteScale:1 fallback → native
+  // ~62px half-size) + the spritesheets.js SPRITE_MANIFEST idle gate. Resliced cells are bottom-aligned
+  // (feet at cell bottom, 1px pad) so a single anchorY:0 plants feet across every standing action.
+  // HEIGHT-REF: canon 179cm (Naruto databook) → target ~112px (0.623×179). Was 1.8 (idle 106px, −5%); →1.89 lands on target. anchorY:0 → no re-anchor. Complete-Susanoo giant uses _canvasHeightFrac (excluded). See HEIGHT_REFERENCE.md.
+  spriteScale: 1.89,
+  animationData: {
+    idle: { frames: 4, width: 26, height: 62, speed: 6, anchorY: 0, sheet: "./madara2_idle_1_uniform.png" },
+    // No dedicated walk strip in the batch → reuse the run cycle for retreat at a slower cadence.
+    walk: { frames: 6, width: 55, height: 54, speed: 6, anchorY: 0, sheet: "./madara2_run_uniform.png" },
+    run:  { frames: 6, width: 55, height: 54, speed: 4, anchorY: 0, sheet: "./madara2_run_uniform.png" },
+    dash: { frames: 2, width: 45, height: 52, speed: 4, anchorY: 0, sheet: "./madara2_dash_uniform.png" },
+    // jump.png = crouch→rise→apex arc; play once + hold. fall = the apex/descent pose (last cell, sourceX 6×41).
+    jump: { frames: 7, width: 41, height: 57, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_jump_uniform.png" },
+    fall: { frames: 1, width: 41, height: 57, speed: 6, anchorY: 0, sourceX: 246, loop: false, lockLastFrame: true, sheet: "./madara2_jump_uniform.png" },
+    // Guard — 4-frame settle into a braced block; hold the last frame while blocking.
+    guard: { frames: 4, width: 30, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_block_uniform.png" },
+    // HURT — frame 0 of the HIT/DEAD/GET-UP strip (initial backward recoil) as a single-frame flinch;
+    // combat.js colorFlash tints the hit on top. Every plain hitstun/stun routes here.
+    hurt: { frames: 1, width: 64, height: 60, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./madara2_hit_uniform.png" },
+    // KNOCKDOWN — the full 7-frame recoil→stagger→hunch→fall→sprawl(DEAD)→rise→stand sequence (the hit
+    // sheet is literally a knockdown-getup chain, per the master "HIT / DEAD / GET UP" row). The source
+    // strip merged the hunch+fall poses (no transparent gutter) so it was re-sliced with an explicit
+    // split at x=151 → 7 clean single-figure cells (see MADARA_ASSET_MAP.md). lockLastFrame holds the
+    // final standing-recovery pose.
+    knockdown: { frames: 7, width: 64, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_hit_uniform.png" },
+    // Pre-match INTRO — 12-frame coffin-emergence cinematic: a wooden coffin rises → tilts open →
+    // Madara revealed inside the dark doorway → steps out in a light-burst → settles into stance.
+    intro: { frames: 12, width: 113, height: 74, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_intro_uniform.png" },
+    // ── STAGE 2 NORMALS ── each resliced feet-aligned (tools/reslice_strip.mjs → *_uniform.png);
+    // anchorY:0 plants feet. loop:false + lockLastFrame holds the strike pose through recovery.
+    light:     { frames: 4,  width: 36,  height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_slap_uniform.png" },              // quick gunbai swipe
+    heavy:     { frames: 9,  width: 50,  height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_combo_1_uniform.png" },           // committed swipe→palm string (long reach)
+    up:        { frames: 5,  width: 45,  height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_up_attack_uniform.png" },          // launcher: rising gunbai slash
+    air:       { frames: 11, width: 69,  height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_air_combo_1_uniform.png" },        // neutral aerial flurry
+    // AERIAL HARD / command-grab — Susanoo-hand grab-thrust; triggered by air+Heavy (combat.js hook).
+    // Only the 2 CONFIRMED frames are used; the master shows 3 recovery frames that were never exported
+    // → GAP, not fabricated (see MADARA_ASSET_MAP.md).
+    air_heavy: { frames: 2,  width: 112, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_susanoo_grab_air_uniform.png" },
+    // GAPS (no animationData, intentional): down_air, aerial-light (master "AERIAL LIGHT" row = 1 orphan
+    // frame + a motion-smear, not a usable animation — recrop attempted in Stage 2, remains a gap).
+    // ── STAGE 3 SPECIAL cast poses ── shown via _spriteCastMove/_spriteCastTimer (sprite.js), NOT the
+    // attacking path. Identity-mapped in sprite.js MOVE_TO_ACTION.
+    madaraFireballCast: { frames: 15, width: 44, height: 62, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_fire_ball_justu_uniform.png" },   // Katon: Great Fireball — hand-seal→exhale
+    madaraGunbaiSummon: { frames: 4,  width: 44, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_gunbai_summon_uniform.png" },      // Gunbai Summon (Up) — war-fan reflect stance; holds the fan-up frame through the window
+    madaraGunbaiSwing:  { frames: 10, width: 93, height: 66, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_gunbai_swing_uniform.png" },        // Gunbai Fan-Swing (Fwd) — committed overhead war-fan swing (melee; slash-line FX overlaid)
+    madaraWoodSpikeCast:{ frames: 8,  width: 45, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_wood_spike_cast_uniform.png" },       // Mokuton Wood Spike (Down) — hand-seal→plant cast
+    madaraWoodDragonCast:{ frames: 16, width: 37, height: 62, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara_wood_dragon_cast_uniform.png" },      // Mokuton Wood Dragon (Back) — long hand-seal cast
+    // Fwd+Heavy command-normal (Stage 3 #6) — giant Susanoo fist, highest reach. currentMove-keyed melee (attacking path).
+    madaraSusanooPunch: { frames: 5,  width: 130, height: 85, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara2_susanoo_punch_uniform.png" },        // Susanoo Base Punch (Fwd+Heavy)
+    // TAP ULTIMATE cast pose (Stage 5) — Perfect Susanoo summon; plays through the Tengai Shinsei freeze-cinematic via _spriteCastMove.
+    madaraTengaiCast:   { frames: 15, width: 37,  height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./madara_tengai_cast_uniform.png" }             // Perfect Susanoo / Tengai Shinsei summon
+  },
+  // Single-entry pre-match intro pool (game.pickIntroVariant picks from here; one entry = always plays).
+  introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
+// OBITO UCHIHA  (Naruto universe — 7th Naruto sprite char)
+// Space-time Kamui specialist: evasive intangibility zoner. Kit is built in
+// stages — this Stage-1 block registers movement/state only. Normals (S2),
+// ranged specials (S3), Kamui intangibility (S4), teleport/portal mobility
+// (S5), the opponent-teleport command grab (S6) and the Juubi ultimate (S7)
+// are layered on top. Art = raw obito_melee_* strips resliced to uniform
+// bottom-aligned cells (tools/reslice_obito.py) → obito_*_uniform.png.
+// ─────────────────────────────────────────────────────────────────
+const obito = {
+  rosterKey: "obito", name: "Obito Uchiha", universe: "naruto",
+  portrait: "./obito_portrait.png",   // extracted in Stage 8; falls back gracefully (procedural box) until then
+  archetypes: ["melee", "zoner"],
+  primary: "melee", secondary: ["zoner", "tactics"],
+  // Advancing toward the foe plays the run cycle (shared shinobi movement feel).
+  movement: { runWhenAdvancing: true },
+  // Chakra fuels the Stage-4 Kamui intangibility CONTINUOUS drain + the space-time
+  // specials. Sits just under Madara's 220 ceiling — big enough to sustain a real
+  // intangibility window but not trivially all-match.
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // In-band with the roster's Uchiha/Sharingan tier (Madara 1180/94/86/92, Sasuke,
+  // Itachi). speed 96 is deliberately just under Toji's 98 teleport-tier gate — Obito
+  // is added to the double-tap teleport list EXPLICITLY in Stage 5 (Kamui feat), not by
+  // raw base speed. Provisional; revisited as later stages land.
+  stats: { maxHealth: 1150, maxEnergy: 200, attack: 90, defense: 84, speed: 96, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  // Stage 2 normals (real move data; combat.js _getMD reads this). Rod-fighter — the
+  // heavy is a long-reach staff thrust (hit_2), the up-attack a rising launcher (up_attack).
+  // In-band with the Uchiha tier (Madara 42/92/66/56; Obito ATK 90 is flavor — base Atk
+  // does NOT scale damage in this engine, see BALANCE_AUDIT.md).
+  //   light = hit_1 (quick rod spin)     heavy = hit_2 (committed staff thrust, long reach)
+  //   upAttack = up_attack (launcher)    airAttack = hit_3 (aerial rod strike)
+  //   downAir = down_air_attack (aerial down strike, spike-ish)
+  // The hit_1/2/3 combo files ALSO drive the Fwd+Heavy "Kamui Rod Combo" 3-hit command
+  // rekka (obitoRod1→2→3) — the "overflow into a command-normal chain" (abilities.js).
+  basic_attacks: {
+    light:    { damage: 40, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 78, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 98, rangeY: 46 },   // staff thrust — long reach
+    upAttack: { type: "launcher", damage: 60, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack:{ damage: 52, startup: 5, active: 4, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 58, startup: 6, active: 4, recovery: 14, hitstun: 16, knockbackX: 3, knockbackY: 4, rangeY: 60 }               // aerial down strike (spike-ish)
+  },
+  // Stage 3 ranged specials — SPECIAL button, direction-branched via _specialHeldDir
+  // (Killua/Chrollo/Ichigo architecture): neutral = Shuriken Throw (airborne → air-throw),
+  // Forward = Chakra Rod Throw, Up = Giant Shuriken. Down/Back reserved for later stages
+  // (Kamui intangibility toggle S4, opponent-teleport grab S6). Real logic in abilities.js.
+  specials: {
+    shurikenThrow: { cost: 18, description: "Shuriken Throw — a spinning shuriken hurled straight (neutral); airborne = a diagonal down-forward air-throw." },
+    rodThrow:      { cost: 22, description: "Chakra Rod Throw — a thrown black receiver rod, fast + long reach (Forward)." },
+    giantShuriken: { cost: 34, description: "Giant Shuriken — a massive fūma-style spinning shuriken, slow but heavy (Up)." },
+    kamuiPortal:   { cost: 20, description: "Kamui Warp — Down+Special: opens a Kamui portal and jumps himself a long distance across the map (self-mobility, no damage)." }
+  },
+  ultimate: { name: "Juubi", cost: 100, description: "Ten-Tails Jinchūriki — giant-form cinematic: camera push-in → Juubi manifestation → one massive attack → pull back (Stage 7)." },
+  hasSprites: true,
+  // idle content 84px × 1.30 ≈ 109px on-screen = target for canon 175cm (0.623×175,
+  // see HEIGHT_REFERENCE.md). REQUIRES the skins.js `obito` default entry (else applySkin()
+  // pulls the spriteScale:1 fallback → native ~84px half-size) + the spritesheets.js idle gate.
+  // Resliced cells are bottom-aligned (feet at cell bottom) so a single anchorY:0 plants feet
+  // across every standing action.
+  spriteScale: 1.30,
+  animationData: {
+    idle:      { frames: 5, width: 40, height: 85, speed: 6, anchorY: 0, sheet: "./obito_idle_uniform.png" },
+    walk:      { frames: 6, width: 74, height: 65, speed: 6, anchorY: 0, sheet: "./obito_run_uniform.png" },
+    run:       { frames: 6, width: 74, height: 65, speed: 4, anchorY: 0, sheet: "./obito_run_uniform.png" },
+    dash:      { frames: 3, width: 65, height: 87, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_dash_uniform.png" },
+    jump:      { frames: 3, width: 61, height: 79, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_jump_uniform.png" },
+    fall:      { frames: 8, width: 93, height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_fall_uniform.png" },   // obito_melee_fall_to_jump_up
+    guard:     { frames: 1, width: 49, height: 80, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_block_uniform.png" },
+    // Stage 2 normals (5 slots). Engine action keys light/heavy/up/air/down_air (MOVE_TO_ACTION identity).
+    light:     { frames: 6, width: 90, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_light_uniform.png" },      // hit_1 rod spin
+    heavy:     { frames: 5, width: 87, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_heavy_uniform.png" },      // hit_2 staff thrust (long reach)
+    up:        { frames: 6, width: 91, height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_up_uniform.png" },         // up_attack rising launcher
+    air:       { frames: 5, width: 76, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_air_uniform.png" },        // hit_3 aerial rod strike
+    down_air:  { frames: 4, width: 72, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_downair_uniform.png" },    // aerial down strike
+    // Fwd+Heavy "Kamui Rod Combo" 3-hit command rekka (obitoRod1→2→3). Reuses the hit_1/2/3
+    // combo art as the chain stages — explicit identity maps in MOVE_TO_ACTION so no recovery
+    // tail can resolve to the fallback 128² box (see sprite.js Sasuke-dashStrike gotcha note).
+    obitoRod1: { frames: 6, width: 90, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_light_uniform.png" },      // chain opener (hit_1)
+    obitoRod2: { frames: 5, width: 87, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_heavy_uniform.png" },      // chain mid (hit_2 thrust)
+    obitoRod3: { frames: 5, width: 76, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_air_uniform.png" },        // chain finisher / launcher (hit_3)
+    // Stage 3 ranged-special CAST poses (played via _spriteCastMove; projectiles release mid-cast).
+    obitoShurCast:    { frames: 3, width: 49, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_shurcast_uniform.png" },      // shuriken GROUND throw (also giant-shuriken cast)
+    obitoShurCastAir: { frames: 4, width: 59, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_shurcast_air_uniform.png" },  // shuriken AIR throw
+    obitoRodCast:     { frames: 4, width: 67, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_rodcast_uniform.png" },        // chakra rod throw
+    obitoTeleport:    { frames: 6, width: 92, height: 131, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_teleport_uniform.png" },      // Stage 5 Kamui blink pose (self-portal / teleport-grab ONLY — NOT the speed-tier dash)
+    obitoKamuiActivate:{ frames: 2, width: 59, height: 84,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_kamui_activate_uniform.png" },  // Kamui intangibility INITIATION pose — the ONE visual tell, plays once at the toggle-on moment
+    // Hurt state machine — all four taking_damage variants wired to real engine hooks
+    // (sprite.js _resolveAction requests hurt / hurt_air / knockdown / getup by state):
+    hurt:      { frames: 2, width: 55, height: 84, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_hit1_uniform.png" },   // grounded flinch
+    hurt_air:  { frames: 3, width: 53, height: 86, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_hit2_uniform.png" },   // airborne flinch
+    knockdown: { frames: 2, width: 87, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_hit3_uniform.png" },   // floored sprawl (wide/low cell)
+    getup:     { frames: 2, width: 54, height: 80, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_hit4_uniform.png" },   // tech-roll recovery
+    // DORMANT (engine gap — sprite.js has no crouch / directional back-dash / air-block
+    // action; see Madara/Nezuko). Art is resliced + wired so it's ready if the engine gains
+    // these states; the buttons currently reuse dash / guard respectively.
+    crouch:    { frames: 3, width: 58, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_crouch_uniform.png" },
+    backDash:  { frames: 1, width: 55, height: 73, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_back_dash_uniform.png" },
+    blockAir:  { frames: 1, width: 48, height: 80, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_block_air_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// TOBI  (masked Obito alias) — FULLY SEPARATE roster character.
+// rosterKey "tobi", own character-select entry, own runtime instance. Reuses
+// Obito's Kamui-family MECHANIC ARCHITECTURE as a template (later stages) but
+// shares ZERO live state — every reused field is renamed into a `_tobi*`
+// namespace and every function/module is Tobi's own (see Stage 0 isolation plan).
+// Art = raw masked_man_* strips resliced to uniform bottom-aligned cells
+// (tools/reslice_tobi.py) → masked_man_*_uniform.png. Raw uploads keep their exact
+// names (incl. "kunia"/"projectilez"/colon'd hit:get_up); derived _uniform sheets
+// drop colons so JS `sheet:` paths never hit the URL scheme-separator problem.
+// ─────────────────────────────────────────────────────────────────
+const tobi = {
+  rosterKey: "tobi", name: "Tobi", universe: "naruto",
+  portrait: "./tobi_portrait.png",   // extracted in Stage 7 (no masked_man_portrait exists); procedural-box fallback until then
+  archetypes: ["melee", "tricky"],
+  primary: "melee", secondary: ["zoner", "tactics"],
+  movement: { runWhenAdvancing: true },
+  // Chakra fuels the Stage-4 Kamui intangibility CONTINUOUS drain + space-time specials —
+  // its own `_tobi*` state, never Obito's. In-band with the Uchiha/Sharingan tier.
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // Uchiha tier band (Madara 1180/94/86/92, Obito 1150/90/84/96). speed 96 sits just under
+  // Toji's 98 teleport-tier gate — Tobi is added to the double-tap teleport list EXPLICITLY
+  // in Stage 2 (Kamui feat), not by raw base speed. Provisional; revisited at Stage 7 balance.
+  stats: { maxHealth: 1150, maxEnergy: 200, attack: 90, defense: 84, speed: 96, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  // Stage 2 normals (real move data; combat.js _getMD reads this). Art reuses the available
+  // masked_man attack strips (only 4 exist → light reuses the up_attack sheet's first frames,
+  // exactly like Obito reused his hit_1/2/3 sheets across multiple roles):
+  //   light = up_attack[0:2] (quick chain-whip flick, reach)   heavy = dash_combo (committed advancing rush + burst)
+  //   upAttack = up_attack (overhead chain-whip launcher)       airAttack = air_kunia (aerial kunai throw → projectile)
+  //   downAir = down_air_attack (head-down diving stomp, spike-ish)
+  // The air normal ALSO spawns a thrown kunai (masked_man_air_kunia_throw_projectile) via the
+  // updateTobiCombat active-frame hook in abilities.js. Base Atk is flavor (does not scale damage — see BALANCE_AUDIT.md).
+  basic_attacks: {
+    light:    { damage: 38, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0, rangeX: 92, rangeY: 40 },   // chain-whip flick — reach
+    heavy:    { damage: 76, startup: 8, active: 5, recovery: 20, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 100, rangeY: 48 },  // committed dashing rush
+    upAttack: { type: "launcher", damage: 58, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack:{ damage: 44, startup: 5, active: 4, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: -2 },   // aerial kunai throw (melee + projectile)
+    downAir:  { damage: 56, startup: 6, active: 4, recovery: 14, hitstun: 16, knockbackX: 3, knockbackY: 4, rangeY: 60 }                // diving stomp (spike-ish)
+  },
+  // Stage 3 signature — Chain Grab (neutral Special, grounded). A NEW multi-stage grab-combo route
+  // (not in Obito's kit): whip startup → long-reach chain snag → snatched pull → hard smash-down
+  // finisher (+ dust FX). Scripted state machine in abilities.js (updateTobiChainGrab), all `_tobiChain*`
+  // state. Later stages add Kamui specials on the other Special directions.
+  specials: {
+    chainGrab:  { cost: 30, description: "Chain Grab — Special (neutral): whip out a long chain to SNATCH the foe, reel them in, then smash them into the ground (multi-stage command grab)." },
+    kamuiPortal:{ cost: 20, description: "Kamui Warp — Down+Special: open a Kamui portal and phase a long distance across the map (self-mobility, no damage)." },
+    kamuiGrab:  { cost: 20, description: "Kamui Grab — Back+Special: a close-range grab that warps the foe to a random far point (space-time displacement, no damage)." },
+    firePhoenix:{ cost: 42, description: "Fire Phoenix Jutsu — Forward+Special: exhale a GIANT screen-filling fireball that bursts mid-flight into several smaller sub-fireballs (real multi-projectile split) + explosion." }
+  },
+  ultimate: { name: "Nine-Tails", cost: 100, description: "Nine-Tails Bijūdama — giant-form cinematic: summon the Nine-Tails (Kurama) → it rears and charges a Tailed Beast Bomb → fires it at the foe → pull back. (Distinct from Obito's Ten-Tails.)" },
+  hasSprites: true,
+  // idle content 57px × 1.90 ≈ 108px on-screen = target for canon ~175cm (0.623×175,
+  // see HEIGHT_REFERENCE.md), matching the Uchiha tier. REQUIRES the skins.js `tobi` default
+  // entry (else applySkin() pulls the spriteScale:1 fallback → native ~57px half-size) + the
+  // spritesheets.js idle gate. Resliced cells are bottom-aligned (feet at cell bottom) so a
+  // single anchorY:0 plants feet across every standing action.
+  spriteScale: 1.90,
+  introPool: ["intro"],
+  animationData: {
+    idle:      { frames: 4, width: 32, height: 60, speed: 6, anchorY: 0, sheet: "./masked_man_idle_uniform.png" },
+    walk:      { frames: 4, width: 53, height: 55, speed: 6, anchorY: 0, sheet: "./masked_man_run_uniform.png" },
+    run:       { frames: 4, width: 53, height: 55, speed: 4, anchorY: 0, sheet: "./masked_man_run_uniform.png" },
+    dash:      { frames: 2, width: 33, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_dash_uniform.png" },
+    jump:      { frames: 4, width: 44, height: 64, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_jump_uniform.png" },
+    fall:      { frames: 4, width: 44, height: 64, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_jump_uniform.png" },   // reuse jump (no separate fall art) — hold last frame
+    guard:     { frames: 1, width: 35, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_block_uniform.png" },
+    // Stage-1 wired: dashing lunge (8f). Doubles as the Stage-2 `heavy` normal art (below).
+    dashCombo: { frames: 8, width: 72, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_dash_combo_uniform.png" },
+    // Stage 2 normals (5 slots). Engine action keys light/heavy/up/air/down_air (MOVE_TO_ACTION identity).
+    light:     { frames: 2, width: 67, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_up_attack_uniform.png" },   // quick chain-whip flick (first 2 frames of the up-attack strip)
+    heavy:     { frames: 8, width: 72, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_dash_combo_uniform.png" },  // committed dashing rush + star-burst
+    up:        { frames: 4, width: 67, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_up_attack_uniform.png" },   // overhead chain-whip launcher
+    air:       { frames: 3, width: 49, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_air_kunia_uniform.png" },   // aerial kunai throw (spawns projectile)
+    down_air:  { frames: 4, width: 57, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_down_air_uniform.png" },    // head-down diving stomp
+    // Stage 3 Chain Grab cast poses (played via _spriteCastMove by the updateTobiChainGrab state
+    // machine). The raw strips' "ENEMY" annotation frames were dropped in reslice_tobi.py.
+    tobiChainGrab:     { frames: 5, width: 58,  height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_chain_grab_uniform.png" },     // whip wind-up
+    tobiChainAttack1:  { frames: 5, width: 129, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_chain_attack1_uniform.png" },  // long-reach chain snag
+    tobiChainSnatched: { frames: 6, width: 115, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_chain_snatched_uniform.png" }, // reel-in pull
+    tobiChainSmash:    { frames: 4, width: 117, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_chain_smash_uniform.png" },     // hard smash-down finisher
+    // Stage 4 Kamui cast pose — intangibility activation + the space-time portal/grab casts (3f).
+    tobiKamuiActivate: { frames: 3, width: 41,  height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_kamui_activation_uniform.png" },
+    // Stage 5 Fire Phoenix Jutsu cast pose (6f exhale; the giant fireball releases at the exhale beat).
+    tobiFireCast:      { frames: 6, width: 51,  height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_fire_cast_uniform.png" },
+    // Pre-match intro — 14f beckoning taunt ("come here" wave). introPool picks it each match.
+    intro:     { frames: 14, width: 40, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_intro_uniform.png" },
+    // Hurt state machine — the single raw masked_man_hit:get_up strip (7 islands) split by
+    // reslice_tobi.py into separate bottom-aligned sheets (0-1 flinch / 2-3 airborne tumble /
+    // 2-4 knocked-back→floored / 5-6 rising). sprite.js _resolveAction requests these by state.
+    hurt:      { frames: 2, width: 38, height: 55, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_hurt_uniform.png" },        // grounded flinch
+    hurt_air:  { frames: 2, width: 57, height: 47, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_hurt_air_uniform.png" },    // airborne tumble
+    knockdown: { frames: 3, width: 66, height: 48, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_knockdown_uniform.png" },   // knocked-back → floored (wide/low cell)
+    getup:     { frames: 2, width: 42, height: 53, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./masked_man_getup_uniform.png" }        // rising recovery
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // DEMON SLAYER
 // ─────────────────────────────────────────────────────────────────
 const zenitsu = {
@@ -1178,7 +1456,7 @@ const zenitsu = {
   basic_attacks: {
     light:     { damage: 50, startup: 3, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 90, startup: 7, active: 3, recovery: 16, hitstun: 19, knockbackX: 6, knockbackY: 1, rangeX: 78, rangeY: 50 },
-    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 3, recovery: 14, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    upAttack:  { type: "launcher", damage: 70, startup: 4, active: 3, recovery: 6, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); Thunderclap speedster
     airAttack: { damage: 60, startup: 4, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 80, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
@@ -1266,7 +1544,7 @@ const rengoku = {
     // Stage 2 wires the sprites over this data. Rengoku hits harder than Zenitsu across the board.
     light:     { damage: 52, startup: 3, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 95, startup: 8, active: 3, recovery: 17, hitstun: 20, knockbackX: 6, knockbackY: 1, rangeX: 80, rangeY: 52 },
-    upAttack:  { type: "launcher", damage: 74, startup: 6, active: 3, recovery: 14, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 12, airOK: false },
+    upAttack:  { type: "launcher", damage: 74, startup: 6, active: 4, recovery: 8, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 62, startup: 4, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 84, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
@@ -1375,7 +1653,7 @@ const shinobu = {
   basic_attacks: {
     light:     { damage: 44, startup: 3, active: 2, recovery: 7,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:     { damage: 78, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 86, rangeY: 44 },
-    upAttack:  { type: "launcher", damage: 62, startup: 6, active: 3, recovery: 14, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    upAttack:  { type: "launcher", damage: 62, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); lowest HP, fragile speedster
     airAttack: { damage: 52, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
     downAir:   { damage: 70, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 }
   },
@@ -1416,6 +1694,174 @@ const shinobu = {
     shinobuUltimate: { frames: 9, width: 87, height: 59, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./shinobu_ultimate_uniform.png" }
   },
   introPool: ["introGlide"]
+}
+
+// ─────────────────────────────────────────────────────────────────
+// INOSUKE HASHIBIRA (universe: demon_slayer) — FOURTH Demon Slayer sprite char.
+// Dual-nichirin "Beast Breathing" rushdown. No energy meter (Total Concentration,
+// cooldown-gated) like Shinobu. Signature: Beast Breathing Assist (Stage 4) — a
+// mid-combo partner call that links another Demon Slayer's real move then RESUMES
+// Inosuke's own combo. See INOSUKE_ASSET_MAP.md.
+// Raw uploads were variable-width strips → resliced to uniform equal-cell sheets
+// via tools/reslice_inosuke.py (all anchorY: 0, feet at cell bottom).
+// Canon height 164cm → 0.623×164 ≈ 102px target (HEIGHT_REFERENCE.md); idle
+// content ~50px → spriteScale 2.0 (trial; Stage-6 audit confirms).
+// ─────────────────────────────────────────────────────────────────
+const inosuke = {
+  rosterKey: "inosuke", name: "Inosuke Hashibira", universe: "demon_slayer",
+  portrait: "./inosuke_portrait.png",
+  archetypes: ["melee", "rushdown"],
+  primary: "melee", secondary: ["rushdown"],
+  traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "aggressive", animeMovement: true },
+  stats: { maxHealth: 1040, maxEnergy: 0, attack: 88, defense: 74, speed: 93, maxJumps: 2, jumpPower: 31, dashSpeed: 21, dashDuration: 8, dashCooldownMax: 32 },
+  basic_attacks: {
+    light:     { damage: 42, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:     { damage: 80, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 88, rangeY: 46 },
+    upAttack:  { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 7, hitstun: 18, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -11, selfVy: -6, airOK: false },
+    airAttack: { damage: 50, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 72, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 }
+  },
+  specials: {
+    // Stage 5 — three "Beast Breathing" CINEMATIC specials (camera push-in → strike → pull-back). COOLDOWN-
+    // gated (maxEnergy 0). Damage is RANGE-GATED at the strike beat (whiffable), not a guaranteed nuke.
+    beastSpin:  { cost: 0, damage: 108, effect: "Neutral — in-place spinning dual-blade slash (cinematic)" },
+    beastDash:  { cost: 0, damage: 100, effect: "Forward — dashing thrust that closes the gap (cinematic)" },
+    beastLunge: { cost: 0, damage: 122, effect: "Down — slashing lunge fan (cinematic)" },
+  },
+  ultimate: { name: "Beast Breathing: Assist", cost: 0, description: "Signature is the mid-combo Beast Breathing Assist (Stage 4). No separate ultimate." },
+  hasSprites: true,
+  spriteScale: 2.0,
+  animationData: {
+    // ── STAGE 1: movement + state (resliced uniform sheets) ──
+    idle:  { frames: 5, width: 36, height: 52, speed: 7, anchorY: 0, sheet: "./inosuke_idle_uniform.png" },
+    // No dedicated walk/run art → reuse idle (bob) for walk, dash strip for run (beast lope).
+    walk:  { frames: 5, width: 36, height: 52, speed: 6, anchorY: 0, sheet: "./inosuke_idle_uniform.png" },
+    run:   { frames: 5, width: 73, height: 54, speed: 4, anchorY: 0, sheet: "./inosuke_dash_uniform.png" },
+    dash:  { frames: 5, width: 73, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_dash_uniform.png" },
+    jump:  { frames: 4, width: 86, height: 79, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_jump_uniform.png" },
+    fall:  { frames: 1, width: 86, height: 79, speed: 6, anchorY: 0, sourceX: 172, loop: false, lockLastFrame: true, sheet: "./inosuke_jump_uniform.png" },
+    // No guard art → reuse idle frame 0 (holds ground; block FX drawn by engine).
+    guard: { frames: 1, width: 36, height: 52, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_idle_uniform.png" },
+    hurt:  { frames: 1, width: 62, height: 54, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_hit_uniform.png" },
+    knockdown: { frames: 3, width: 62, height: 54, speed: 6, anchorY: 0, sourceX: 186, loop: false, lockLastFrame: true, sheet: "./inosuke_hit_uniform.png" },   // frames 3-5 = airborne→downed
+    dodge: { frames: 3, width: 57, height: 50, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_dodge_uniform.png" },
+    taunt: { frames: 3, width: 75, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_taunt_uniform.png" },
+    // ── STAGE 2 normals (dual-nichirin Beast Breathing) ──
+    light:    { frames: 3, width: 67, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_light_uniform.png" },        // fast standing double-slash jab
+    heavy:    { frames: 4, width: 85, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_heavy_uniform.png" },        // wide committed forward slash
+    up:       { frames: 3, width: 71, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_up_uniform.png" },           // rising diagonal launcher
+    air:      { frames: 3, width: 69, height: 86, speed: 4, anchorY: 0, sourceX: 69, loop: false, lockLastFrame: true, sheet: "./inosuke_airdown_uniform.png" },  // neutral aerial arc (subset of airdown, frames 1-3)
+    down_air: { frames: 5, width: 69, height: 86, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_airdown_uniform.png" },      // spinning descending dive-slash
+    // ── STAGE 2 command normal: Down+Heavy "Beast Fang" (low crashing pommel strike) ──
+    inosukeDownHeavy: { frames: 4, width: 64, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_downheavy_uniform.png" },
+    // ── STAGE 2 "Beast Breathing" flurry chain (Fwd+Heavy → re-tap Heavy, cancel-on-hit) ──
+    inosukeB1: { frames: 4, width: 69, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_b1_uniform.png" },          // lunging entry
+    inosukeB2: { frames: 3, width: 77, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_b2_uniform.png" },          // piercing thrust
+    inosukeB3: { frames: 3, width: 75, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_b3_uniform.png" },          // close flurry
+    inosukeB4: { frames: 4, width: 53, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_b4_uniform.png" },          // dashing double cut
+    inosukeB5: { frames: 4, width: 101, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_b5_uniform.png" },         // running-slash finisher (knockback)
+    // ── STAGE 5 cinematic specials (played through the freeze via _spriteCastMove) ──
+    inosukeCine1: { frames: 6, width: 94,  height: 76,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_cine1_uniform.png" },   // spinning dual-blade slash (neutral)
+    inosukeCine2: { frames: 5, width: 112, height: 57,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_cine2_uniform.png" },   // dashing thrust (forward)
+    inosukeCine4: { frames: 4, width: 72,  height: 107, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./inosuke_cine4_uniform.png" }    // slashing lunge fan (down)
+  },
+  introPool: ["taunt"]   // Stage 6 may extract a dedicated intro; taunt is a fitting boar-roar for now
+}
+
+// ─────────────────────────────────────────────────────────────────
+// NEZUKO KAMADO (universe: demon_slayer) — FIFTH Demon Slayer sprite char.
+// Petite agile demon rushdown. No energy meter (cooldown-gated) like her Demon Slayer
+// siblings. Signature (later stages): distinct dash burst (nezuko_run_tiny — hunched
+// scramble, visually separate from the upright run), Blood Demon Slumber heal, Demon
+// Transformation mode-change ult, Tanjiro/Zenitsu Ally Call. See NEZUKO_ASSET_MAP.md.
+// STAGE 1 SCOPE: movement + states only (idle/walk/run/dash/jump/fall/guard/hurt/knockdown
+// + dormant crouch). Normals(S2)/Y-family(S3)/specials(S4-6)/ults(S7)/intro-win-lose(S8)
+// are NOT wired yet — stat blocks below are placeholders (BALANCE pass deferred per spec).
+// ─────────────────────────────────────────────────────────────────
+const nezuko = {
+  rosterKey: "nezuko", name: "Nezuko Kamado", universe: "demon_slayer",
+  portrait: "./nezuko_portrait.png",
+  archetypes: ["melee", "speed"],
+  primary: "melee", secondary: ["speed"],
+  traits: { hasEnergy: false, energyType: "none", mobility: "very_high", scaling: "technical", animeMovement: true },
+  // STAGE 1 PLACEHOLDER stats (balance pass deferred — see spec BALANCE NOTE). Fast agile
+  // rushdown with a touch more durability than Shinobu (demon resilience) but lower speed.
+  stats: { maxHealth: 1020, maxEnergy: 0, attack: 84, defense: 80, speed: 95, maxJumps: 2, jumpPower: 30, dashSpeed: 21, dashDuration: 8, dashCooldownMax: 34 },
+  // PLACEHOLDER combat numbers so the engine has valid data; sprites for these wire in later stages.
+  basic_attacks: {
+    light:     { damage: 42, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:     { damage: 74, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 84, rangeY: 44 },
+    upAttack:  { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },
+    airAttack: { damage: 50, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 68, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 },
+    airHeavy:  { damage: 64, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 5, knockbackY: -2 }   // Jump+Y aerial spin kick (air_heavy slot)
+  },
+  specials: {},   // wired in Stages 4-6
+  ultimate: { name: "Kekijutsu Baketsu", cost: 0, description: "STAGE 7 placeholder — two-phase punch barrage finisher." },
+  hasSprites: true,
+  // Canon height 153cm (petite) → target ≈95px (0.623×153, HEIGHT_REFERENCE.md). Idle content
+  // native height ≈47px → trial scale ≈2.0. VERIFY + calibrate against measureSprite in Stage-1
+  // confirmation before locking.
+  spriteScale: 2.0,
+  animationData: {
+    // ── STAGE 1: movement + states (uniform grids derived from alpha-gutter analysis) ──
+    idle:      { frames: 3, width: 44, height: 53, speed: 8, anchorY: 0, sourceX: 0, sheet: "./nezuko_idle.png" },   // REPACKED strip (132x53, poses re-centered) — fixes the idle horizontal-wobble (source poses were spaced ~55px vs the 44px cell → drift)
+    walk:      { frames: 4, width: 50, height: 47, speed: 6, anchorY: 0, sheet: "./nezuko_run_tall.png" },   // upright run cycle (held-forward)
+    run:       { frames: 4, width: 50, height: 47, speed: 4, anchorY: 0, sheet: "./nezuko_run_tall.png" },   // same sheet, faster playback
+    dash:      { frames: 4, width: 50, height: 51, speed: 4, anchorY: 0, sourceX: 9, loop: false, lockLastFrame: true, sheet: "./nezuko_run_tiny.png" },   // hunched scramble burst — DISTINCT from run
+    jump:      { frames: 1, width: 49, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_jump.png" },
+    fall:      { frames: 1, width: 49, height: 58, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_jump.png" },
+    // DORMANT: engine has no crouch-state producer (down-hold = guard). Declared + ready
+    // like kasumi/ghostface precedent so the file is wired; will not display until a crouch
+    // state is hooked. FLAGGED in Stage-1 report — do not treat as a live state.
+    crouch:    { frames: 1, width: 32, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_crouch.png" },
+    guard:     { frames: 1, width: 47, height: 53, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_block.png" },
+    hurt:      { frames: 2, width: 56, height: 68, speed: 5, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_hit.png" },       // flinch recoil (front of sheet; tumble/getup poses belong to knockdown → hit_2)
+    knockdown: { frames: 5, width: 52, height: 62, speed: 6, anchorY: 0, sourceX: 5, loop: false, lockLastFrame: true, sheet: "./nezuko_hit_2.png" },     // sprawl → downed → rise (played via sprite.js knockdown hook)
+    // ── STAGE 2: B-family (Light) normals ──
+    // Neutral B / Up+B / Jump+B are the engine's standard light/up/air slots (basic_attacks light/upAttack/
+    // airAttack). Forward+B (nezukoBallKick, projectile) and Down+B (nezukoDodge, i-frame evade) are COMMAND
+    // normals fired by updateNezukoCommandCombat (abilities.js) — their sprites play via _spriteCastMove.
+    light:         { frames: 4, width: 55, height: 60, speed: 3, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_punch.png" },        // B — jab flurry
+    up:            { frames: 2, width: 62, height: 74, speed: 3, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_up_attack.png" },      // Up+B — rising kick (launcher)
+    air:           { frames: 1, width: 47, height: 56, speed: 4, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_air_attack_1.png" },   // Jump+B — aerial kick
+    nezukoBallKick:{ frames: 2, width: 53, height: 62, speed: 3, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_ball_kick.png" },      // Fwd+B — kick that launches a ball projectile
+    nezukoDodge:   { frames: 3, width: 52, height: 61, speed: 3, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_dodge.png" },          // Down+B — low i-frame evade (NO strike)
+    // ── STAGE 3: Y-family (Heavy) normals ──
+    // Neutral Y / Jump+Y / air-down are the engine's standard heavy/air_heavy/down_air slots. Forward+Y
+    // (nezukoAngryPunch) and Down+Y (nezukoSideKick) are COMMAND normals fired by updateNezukoCommandCombat
+    // (real strikes — currentMove drives the sprite). air-down = down_air (S+J in air), distinct from Jump+Y.
+    heavy:           { frames: 3, width: 50, height: 49, speed: 4, anchorY: 0, sourceX: 2, loop: false, lockLastFrame: true, sheet: "./nezuko_foward_punch.png" },   // Y — straight heavy punch
+    air_heavy:       { frames: 4, width: 55, height: 66, speed: 4, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_air_attack_2.png" },    // Jump+Y — aerial spin kick
+    down_air:        { frames: 3, width: 51, height: 56, speed: 4, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_air_down_attack.png" }, // Jump+Down (S+J) — downward dive
+    nezukoAngryPunch:{ frames: 2, width: 51, height: 64, speed: 3, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_angry_punch.png" },     // Fwd+Y — lunging hook
+    nezukoSideKick:  { frames: 4, width: 53, height: 59, speed: 3, anchorY: 0, sourceX: 6, loop: false, lockLastFrame: true, sheet: "./nezuko_side_kick.png" },       // Down+Y — spinning side kick
+    // ── STAGE 4: Core extended specials (SPECIAL button L, direction/air-gated; Run&Scratch on CHARGE P) ──
+    nezukoAirSpecial:{ frames: 5, width: 55, height: 76, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./nezuko_specail_air_to_kick_attack.png" },  // Special in air — diving kick
+    nezukoSuperKick: { frames: 3, width: 58, height: 58, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./nezuko_super_kick.png" },                   // Fwd+Special — lunging super kick
+    nezukoCombo1:    { frames: 3, width: 56, height: 52, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./nezuko_combo_1.png" },                      // neutral Special — rekka opener (punch flurry, frames 0-2)
+    nezukoCombo2:    { frames: 4, width: 55, height: 52, speed: 3, anchorY: 0, sourceX: 168, loop: false, lockLastFrame: true, sheet: "./nezuko_combo_1.png" },                      // rekka finisher (kick spin, frames 3-6) — same sheet, sourceX split
+    nezukoRunScratch:{ frames: 8, width: 55, height: 57, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./nezuko_run_and_scratch.png" },            // CHARGE hold-release — run-in claw rush
+    // ── STAGE 5: Defensive/utility specials (SPECIAL button, direction-branched) ──
+    nezukoBite:    { frames: 4, width: 50, height: 73, speed: 3, anchorY: 0, sourceX: 5, loop: false, lockLastFrame: true, sheet: "./nezuko_bite.png" },          // Back+Special — command grab (bite)
+    nezukoCounter: { frames: 2, width: 40, height: 47, speed: 4, anchorY: 0, sourceX: 9, loop: false, lockLastFrame: true, sheet: "./nezuko_counter_attack.png" }, // Down+Special (Block+Special) — counter stance
+    nezukoSlumber: { frames: 2, width: 56, height: 76, speed: 8, anchorY: 0, sourceX: 0, loop: true,                     sheet: "./nezuko_health_reset.png" },     // Up+Special — Blood Demon Slumber (heal; loops the sleep pose)
+    // ── STAGE 6: Taunt (Ally Call assists render as SUMMONS, not fighter animationData) ──
+    nezukoNutKick: { frames: 3, width: 46, height: 69, speed: 4, anchorY: 0, sourceX: 3, loop: false, lockLastFrame: true, sheet: "./nezuko_nut_kick.png" },       // neutral Grab — taunt kick WITH a real active-window hitbox (punishable)
+    // ── STAGE 7: Ultimates (Ultimate button — TAP=Kekijutsu Baketsu / HOLD=Demon Transformation) ──
+    nezukoUlt1a:       { frames: 6,  width: 54, height: 54, speed: 3, anchorY: 0, sourceX: 3, loop: false, lockLastFrame: true, sheet: "./nezuko_ultimate_punches.png" },   // Ult1 phase 1 — punch barrage
+    nezukoUlt1b:       { frames: 2,  width: 52, height: 55, speed: 3, anchorY: 0, sourceX: 3, loop: false, lockLastFrame: true, sheet: "./nezuko_ultimate_up_attack.png" },  // Ult1 phase 2 — rising finisher
+    nezukoTransform:   { frames: 10, width: 54, height: 55, speed: 3, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./nezuko_transformation.png" },      // Ult2 transform-in (demon markings)
+    nezukoTransformIdle:{ frames: 2, width: 47, height: 75, speed: 8, anchorY: 0, sourceX: 0, loop: true,                      sheet: "./nezuko_transformation_idle.png" },  // Ult2 sustained transformed idle (buffed state)
+    // ── STAGE 8: Intro / Win / Lose ──
+    // intro (main) = box-emergence; intro2 (alt/short) = rematch/mirror slot. win/lose are SPLIT from the
+    // ONE nezuko_intro_3 sheet (3 frames): win = frames 0-1 (alert in box), lose = frame 2 (asleep, Zzz).
+    intro:  { frames: 10, width: 56, height: 70, speed: 5, anchorY: 0, sourceX: 0,  loop: false, lockLastFrame: true, sheet: "./nezuko_intro.png" },      // box → emerge
+    intro2: { frames: 3,  width: 49, height: 63, speed: 5, anchorY: 0, sourceX: 0,  loop: false, lockLastFrame: true, sheet: "./nezuko_intro_2.png" },    // short/alt intro
+    win:    { frames: 2,  width: 56, height: 44, speed: 6, anchorY: 0, sourceX: 10, loop: true,                       sheet: "./nezuko_intro_3.png" },     // WIN clip — frames 0-1 (split)
+    lose:   { frames: 1,  width: 56, height: 44, speed: 6, anchorY: 0, sourceX: 122, loop: false, lockLastFrame: true, sheet: "./nezuko_intro_3.png" }     // LOSE clip — frame 2 (split; distinct sourceX)
+  },
+  introPool: ["intro", "intro2"]   // random-cycle: main box-emergence + short alt
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -2282,7 +2728,7 @@ const netero = {
   basic_attacks: {
     light:     { damage: 48, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 95, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 80, rangeY: 46 },
-    upAttack:  { type: "launcher", damage: 72, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    upAttack:  { type: "launcher", damage: 72, startup: 4, active: 3, recovery: 6, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); high-atk/low-HP glass cannon
     airAttack: { damage: 62, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 84, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -2398,7 +2844,7 @@ const chrollo = {
   basic_attacks: {
     light:     { damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 80, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 80, rangeY: 50 },
-    upAttack:  { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 10, airOK: false },
+    upAttack:  { type: "launcher", damage: 66, startup: 6, active: 4, recovery: 8, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 58, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { type: "spike", damage: 76, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -2489,7 +2935,7 @@ const gokuBlack = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 66, rangeY: 50 },        // front_attack straight
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1,  rangeX: 78, rangeY: 52 },        // KI SLASH (ki_slash sheet) — costs 10 EN
-    upAttack:  { type: "launcher", damage: 70, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10 },   // kick_attack rising spin
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -12, selfVy: -9 },   // Up-Attack launcher (rising spin) — BALANCED archetype (Gojo ref)
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },                                 // air_attack downward slash
     downAir:   { type: "spike", damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },                  // air_attack reused (base down-air GAP, asset map §3.5)
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -2576,7 +3022,7 @@ const beerus = {
   basic_attacks: {
     light:     { damage: 46, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 60, rangeY: 46 },   // foward_attack jab
     heavy:     { damage: 88, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1,  rangeX: 72, rangeY: 50 },   // foward_attack_2, pink aura ribbon
-    upAttack:  { type: "launcher", damage: 68, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10 }, // up_attack, yellow crescent
+    upAttack:  { type: "launcher", damage: 68, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -11, selfVy: -8 }, // Up-Attack launcher (yellow crescent) — FAST/GLASS-CANNON archetype (Maki ref); low HP+DEF, high atk/spd
     airAttack: { damage: 58, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },   // kick
     downAir:   { damage: 78, startup: 8, active: 4, recovery: 14, hitstun: 16, knockbackX: 1, knockbackY: 9 },    // side_kick spike, purple energy slash
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -2771,7 +3217,7 @@ const killua = {
   basic_attacks: {
     light:    { damage: 38, startup: 3, active: 3, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 78, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 60, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    upAttack: { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); Godspeed assassin
     airAttack:{ damage: 50, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 70, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -2880,7 +3326,7 @@ const flash = {
   basic_attacks: {
     light:    { damage: 30, startup: 2, active: 3, recovery: 7,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 62, startup: 6, active: 4, recovery: 15, hitstun: 17, knockbackX: 6, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 50, startup: 5, active: 4, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    upAttack: { type: "launcher", damage: 50, startup: 4, active: 3, recovery: 5, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); fastest in game (SPD 99) → recovery −1
     airAttack:{ damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 60, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 24, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -2966,7 +3412,7 @@ const gon = {
   basic_attacks: {
     light:    { damage: 34, startup: 3, active: 3, recovery: 8,  hitstun: 13, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1 },   // dash-headbutt lunge
-    upAttack: { type: "launcher", damage: 54, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, airOK: false },
+    upAttack: { type: "launcher", damage: 54, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref); BASE form. ⚑ Adult-Gon (giant) launch verified separately, see harness/up_attack_giant.mjs
     airAttack:{ damage: 46, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 58, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -3053,7 +3499,7 @@ const batman = {
   basic_attacks: {
     light:    { damage: 32, startup: 3, active: 3, recovery: 8,  hitstun: 13, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 64, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 52, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, airOK: false },
+    upAttack: { type: "launcher", damage: 52, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack:{ damage: 45, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 58, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -3143,7 +3589,7 @@ const hisoka = {
   basic_attacks: {
     light:    { damage: 40, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 80, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 62, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    upAttack: { type: "launcher", damage: 62, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref); trickster
     airAttack:{ damage: 52, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 68, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -3221,7 +3667,7 @@ const superman = {
   basic_attacks: {
     light:    { damage: 36, startup: 4, active: 3, recovery: 9,  hitstun: 14, knockbackX: 5,  knockbackY: 0 },
     heavy:    { damage: 72, startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 12, knockbackY: 2 },
-    upAttack: { type: "launcher", damage: 56, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -11, launch: 14, airOK: false },
+    upAttack: { type: "launcher", damage: 56, startup: 5, active: 4, recovery: 10, hitstun: 20, knockbackX: 2, knockbackY: -11, launch: 14, launchVy: -14, selfVy: -9, airOK: false },   // Up-Attack launcher — HEAVY-TANK archetype (Toji ref +1 rec, heavier pop); HP 1450 powerhouse
     airAttack:{ damage: 48, startup: 4, active: 3, recovery: 11, hitstun: 14, knockbackX: 5,  knockbackY: -2 },
     downAir:  { damage: 62, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 2,  knockbackY: 11 },
     grab:     { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 8, throwForceY: -3 }
@@ -3313,7 +3759,11 @@ const maki = {
     // (Heavenly Vow rebalance) → top-of-band normals, offsetting the tighter cancel window.
     light:     { damage: 54, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 98, startup: 7, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 46 },
-    upAttack:  { type: "launcher", damage: 78, startup: 6, active: 4, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },
+    // Up-Attack launcher "Rising Kick" (fast/glass-cannon archetype): the FASTEST launcher on the roster —
+    // startup 4 / active 3 / recovery 6 — fitting her speed kit. enemy vy -11 / Maki vy -8. This is
+    // CONSISTENT with the Heavenly Vow rebalance: HV's tradeoff is her TIGHT cancel window
+    // (MAKI_CANCEL_FRAMES in abilities.js), not slow normals — a superhuman-fast launcher is on-identity.
+    upAttack:  { type: "launcher", damage: 78, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -11, selfVy: -8, airOK: false },
     airAttack: { damage: 66, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 88, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
@@ -3333,7 +3783,8 @@ const maki = {
     shibuya: { damageMultiplier: 1.25, speedMultiplier: 1.1, defenseMultiplier: 1.05, isSpecial: true }
   },
   hasSprites: true,
-  spriteScale: 1.63,
+  // HEIGHT-REF: canon 167cm → target ~104px (0.623×167). Was 1.63 (idle 112px, +8%); →1.51 lands on target. anchorY:0 → no re-anchor. Shibuya giant uses _canvasHeightFrac (excluded). See HEIGHT_REFERENCE.md.
+  spriteScale: 1.51,
   // Random-cycle intro pool (pickIntroVariant picks one per match start). The 3 intros are each a
   // COMPLETE, SELF-CONTAINED sequence — NOT chained parts (the master-sheet label order doesn't confirm
   // 1→2→3), so this is introPool (random pick), not introSequence (fixed-order chain). Each plays through
@@ -3475,7 +3926,7 @@ const ghostface = {
   basic_attacks: {
     light:    { damage: 34, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 66, startup: 7, active: 3, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 104, rangeY: 48 },
-    upAttack: { type: "launcher", damage: 54, startup: 6, active: 3, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, airOK: false },
+    upAttack: { type: "launcher", damage: 54, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); fragile fast rushdown stalker
     airAttack:{ damage: 46, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 58, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }
   },
@@ -3530,13 +3981,376 @@ const ghostface = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Yuji Itadori (universe: jujutsu_kaisen) — physical-brawler vessel. Unlike Gojo/Sukuna
+// he manipulates little cursed energy (canon): fights with raw physical strength + the
+// Divergent Fist. Small energy pool (150) reflects that; the cyan cursed-energy specials
+// land at Stage 4. STAGE 1 = movement/state + 5 normals over reslice'd feet-aligned
+// *_uniform.png strips (originals preserved; copies resliced via tools/reslice_strip.mjs).
+// See YUJI_ASSET_MAP.md. Normal→sheet map mirrors the moveset spec:
+//   light=foward_attack · heavy=super_foward_attack (Divergent Fist) · up=up_kick
+//   air=air_attack · down_air=down_attack (low sweep).
+const yuji = {
+  rosterKey: "yuji", name: "Yuji Itadori", universe: "jujutsu_kaisen",
+  portrait: "./yuji_portrait.png",   // Stage 6 — placeholder path until a mugshot is cropped from the master sheet
+  archetypes: ["melee", "rushdown"],
+  primary: "melee", secondary: ["rushdown"],
+  traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "high", scaling: "burst", animeMovement: true },
+  // Tier: aggressive physical brawler. HP 1120 (durable vessel — below Sukuna 1240, near Tobirama 1120);
+  // attack 90 hits hard (Divergent-Fist heavy) but under Sukuna 95; speed 90 agile; def 82 solid.
+  // Small maxEnergy 150 (limited cursed-energy control) vs Sukuna's 210 — character-appropriate.
+  stats: { maxHealth: 1120, maxEnergy: 150, attack: 90, defense: 82, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 38 },
+  basic_attacks: {
+    // Stage 2 wires sprites over this data. Yuji is a hard-hitting physical rushdown brawler.
+    light:     { damage: 48, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 92, startup: 8, active: 3, recovery: 17, hitstun: 20, knockbackX: 7, knockbackY: 1, rangeX: 88, rangeY: 48 },  // Divergent Fist — delayed follow-through punch
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 3, recovery: 14, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -9, launch: 12, airOK: false },
+    airAttack: { damage: 60, startup: 4, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 78, startup: 6, active: 3, recovery: 12, hitstun: 18, knockbackX: 3, knockbackY: 4 }   // Down+B → airborne down-spike (engine downAir slot = !grounded S+J; uses down_attack art)
+  },
+  specials: {
+    // HUD-reference placeholders; behaviour lands in abilities.js at Stage 4 (cyan cursed-energy family).
+    divergentFist:   { cost: 0,  damage: 105, startup: 8, active: 4, recovery: 16, hitstun: 20, knockbackX: 8, knockbackY: -2, effect: "delayed second-impact cursed punch" },
+    cursedEnergyBall:{ cost: 30, damage: 70,  startup: 8, active: 4, recovery: 16, hitstun: 16, knockbackX: 6, knockbackY: -1, effect: "cyan cursed-energy projectile" }
+  },
+  ultimate: { name: "Black Flash", cost: 100, description: "Freeze-cinematic cursed-energy burst (Stage 5)." },
+  hasSprites: true,
+  // HEIGHT-REF: canon 173cm (Itadori) → target ~108px (0.623×173, HEIGHT_REFERENCE.md). Trial 2.10 measured idle 105px (−2.6%); →2.16 lands on target. Resliced cells bottom-aligned so anchorY:0 plants feet (no re-anchor).
+  spriteScale: 2.16,
+  animationData: {
+    // ── STAGE 1 MOVEMENT/STATE ── reslice'd feet-aligned (*_uniform.png); anchorY 0 plants feet.
+    idle: { frames: 4, width: 37, height: 53, speed: 7, anchorY: 0, sheet: "./yuji_idle_uniform.png" },
+    // Only one locomotion strip (8-frame run) — walk plays it slower.
+    walk: { frames: 8, width: 43, height: 51, speed: 6, anchorY: 0, sheet: "./yuji_run_uniform.png" },
+    run:  { frames: 8, width: 43, height: 51, speed: 4, anchorY: 0, sheet: "./yuji_run_uniform.png" },
+    dash: { frames: 2, width: 50, height: 43, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_dash_uniform.png" },
+    // jump.png = crouch→rise arc; play once + hold. fall = the apex/descent pose (last cell 5 → sourceX 41×5 = 205).
+    jump: { frames: 6, width: 41, height: 56, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_jump_uniform.png" },
+    fall: { frames: 1, width: 41, height: 56, speed: 6, anchorY: 0, sourceX: 205, loop: false, lockLastFrame: true, sheet: "./yuji_jump_uniform.png" },
+    // GUARD — block.png cell 0 (braced guard stance) held; cell 1 is a follow-through that would pop in a hold.
+    guard: { frames: 1, width: 36, height: 53, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./yuji_block_uniform.png" },
+    // HURT (standing flinch) — cell 0 of the 4-cell hit strip; combat.js colorFlash tints on top.
+    hurt: { frames: 1, width: 41, height: 56, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./yuji_hit_uniform.png" },
+    // KNOCKDOWN/GETUP — the 8-cell hurt strip (downed → rise); lockLastFrame holds the recovered pose.
+    knockdown: { frames: 8, width: 61, height: 50, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_hurt_uniform.png" },
+    // HOLD-TO-CHARGE — cursed-energy power-up windup (no hitbox). Source yuji_charge.png was MONOCHROME;
+    // recolored to the kit's cyan palette (tools/recolor_yuji_charge.py, luminance→cyan ramp) then resliced.
+    // Yuji already enters isCharging (maxEnergy 150) on the C button; this gives that state its own pose
+    // (sprite.js:385 gates on animationData.charge). Loops while held (like Vegeta/Rengoku charge).
+    charge: { frames: 2, width: 89, height: 97, speed: 6, anchorY: 0, loop: true, sheet: "./yuji_charge_uniform.png" },
+    // ── STAGE 1 INTRO ── two same-costume variants, random-cycled (introPool below).
+    // intro1 = cinematic (a white-haired manifestation appears beside Yuji, then he sets his stance).
+    intro1: { frames: 8, width: 46, height: 78, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_intro_1_uniform.png" },
+    // intro2 = the master-sheet "ALT" row: Yuji solo, cursed-energy flourish → fighting stance. NOT a
+    // different costume (palette matches the base uniform — verified Stage 1), so it random-cycles rather
+    // than skin-gating. NOTE: yuji_intro_3.png was a mislabeled duplicate of the WIN pose, NOT an intro tail.
+    intro2: { frames: 8, width: 38, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_intro_2_uniform.png" },
+    // ── STAGE 2 NORMALS ── loop:false + lockLastFrame holds the strike pose through recovery.
+    // basic_attacks (above) carries the hit/frame DATA. Keys light/heavy/up/air/down_air (sprite.js identity map).
+    light:    { frames: 4, width: 46, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_foward_attack_uniform.png" },        // quick forward jab
+    heavy:    { frames: 7, width: 58, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_super_foward_attack_uniform.png" },   // Divergent Fist — heavy punch
+    up:       { frames: 7, width: 39, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_up_kick_uniform.png" },                // rising kick (launcher)
+    air:      { frames: 5, width: 52, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_air_attack_uniform.png" },             // aerial strike
+    down_air: { frames: 6, width: 48, height: 57, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_down_attack_uniform.png" },            // Down+B air down-spike (down_attack art)
+    // ── STAGE 3 CURSED-ENERGY (Y / SPECIAL) CAST STRIPS ── char-only; projectiles/FX spawn separately in abilities.js
+    // (MOVE_TO_ACTION maps _spriteCastMove/currentMove → these action keys). Wide FX frames were split out at build.
+    yujiBall:     { frames: 7,  width: 59, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_ball_cast_uniform.png" },     // neutral Y — cursed-energy ball throw
+    yujiBeam:     { frames: 7,  width: 59, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_beam_cast_uniform.png" },     // Fwd+Y — cursed-energy beam
+    yujiPillar:   { frames: 6,  width: 53, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_pillar_cast_uniform.png" },   // Up+Y — energy pillar (anti-air)
+    yujiCrescent: { frames: 7,  width: 61, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_crescent_uniform.png" },      // Down+Y — crescent slash
+    yujiAirCombo: { frames: 12, width: 61, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_aircombo_uniform.png" },      // Jump+Y — aerial cursed combo
+    // ── STAGE 4 KOMA "REPEAT" ── the Ultimate's Phase-2 payload (Stage 5). Koma1 = the mash-extend flurry
+    // (LOOPS while the player mashes); Koma2 = the finisher combo (plays once). Engine: abilities.js updateYujiKomaCombat.
+    yujiKoma1: { frames: 21, width: 62, height: 56, speed: 2, anchorY: 0, loop: true,  sheet: "./yuji_koma1_uniform.png" },                                  // flurry (looped while mashing)
+    yujiKoma2: { frames: 21, width: 38, height: 57, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_koma2_uniform.png" },             // finisher combo (25→21: trimmed 4 incidental standing/walk-in frames #11-14 that hitched the finisher's hit beat)
+    // ── STAGE 5 ULTIMATE "Black Flash" ── Phase 1 buildup pose (cursed-energy charge), played through the freeze-cinematic.
+    ultimateAction: { frames: 14, width: 58, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_ultimate_action_uniform.png" },
+    // ── STAGE 6 "SUKUNA SLASH" (flavor) ── the momentary cursed hand-sign pose held through the auto-targeting slash (NO transform). Single frame.
+    yujiSukunaSign: { frames: 1, width: 69, height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yuji_sukuna_slash.png" }
+  },
+  introPool: ["intro1", "intro2"]
+}
+
+// ─────────────────────────────────────────────────────────────────
+// BLEACH
+// ─────────────────────────────────────────────────────────────────
+// Ichigo Kurosaki — FIRST Bleach sprite character (new universe: "bleach").
+// The universe string auto-derives the "Bleach" display name (game.js
+// formatUniverseName) and auto-adds to the universe-select grid via hasSprites;
+// energyType "reiatsu" resolves to the "Reiatsu" HUD label (ui.js ENERGY_TYPE_LABELS).
+// Versatile sword archetype with a HIGH-mobility twist: two distinct dash options —
+// the standard ground dash (ichigo_dash) AND an 8-way aerial dash (the
+// dash_But_in_different_directions strip), gated by traits.directionalDash (see
+// physics.js air-dash block + sprite.js dashDir frame-lock). Large kit (expanded
+// combo system + 4-5 specials + 2-part ult) built out in later stages.
+// HEIGHT-REF: canon TYBW Ichigo ~181cm → target 0.623×181 ≈ 113px. Idle content
+// ~58px → spriteScale 1.9 trial (verified in-battle, Stage 1). Resliced cells are
+// feet-aligned (tools/reslice_strip.mjs → *_uniform.png) so anchorY:0 plants feet.
+const ichigo = {
+  rosterKey: "ichigo", name: "Ichigo Kurosaki", universe: "bleach",
+  portrait: "./ichigo_portrait.png",   // extracted from the master sheet in Stage 5; falls back to procedural box until then
+  archetypes: ["melee", "speed"],
+  primary: "melee", secondary: ["speed", "zoner"],   // sword bruiser; Getsuga crescent (specail_2) gives a zoning tool
+  movement: { runWhenAdvancing: true },   // advancing toward the foe plays the run cycle (Tobirama/Madara pattern)
+  // reiatsu = spiritual pressure. hasEnergy true; directionalDash flags the 8-way
+  // aerial dash (physics.js). 200 pool: large kit (several specials + 2-part ult) but
+  // NOT an outlier (below Madara/Gojo 220).
+  traits: { hasEnergy: true, energyType: "reiatsu", mobility: "high", scaling: "versatile", animeMovement: true, directionalDash: true },
+  stats: { maxHealth: 1160, maxEnergy: 200, attack: 92, defense: 84, speed: 94, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 11, dashCooldownMax: 34 },
+  hasSprites: true,
+  spriteScale: 1.9,
+  // ── STAGE 2 NORMALS (real move data; combat.js _getMD reads this basic_attacks) ──
+  //   light = foward_sword-slash (quick slash, blue arc)   heavy = sword_combo_1 (committed string)
+  //   upAttack = up_attack (vertical rising launcher)       airAttack = launch_attack_2 (aerial slash)
+  //   downAir = down_air_attack (aerial dive slash / spike). The EXPANDED command system (Fwd+Heavy
+  //   rekka, Down/Back+Heavy, Fwd+Light, Dash+Heavy) lives in abilities.js updateIchigoCommandCombat.
+  basic_attacks: {
+    light:    { damage: 44, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 86, startup: 8, active: 4, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 96, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 68, startup: 6, active: 4, recovery: 15, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack:{ damage: 58, startup: 5, active: 4, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 78, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }   // downward aerial slash (spike)
+  },
+  animationData: {
+    // ── MOVEMENT / STATE (Stage 1) ── each resliced feet-aligned; anchorY 0 plants feet.
+    idle: { frames: 3, width: 56, height: 60, speed: 7, anchorY: 0, sheet: "./ichigo_idle_uniform.png" },
+    // Single locomotion strip (5-frame run cycle) → walk plays it slower (Zenitsu/Madara pattern).
+    walk: { frames: 5, width: 50, height: 46, speed: 6, anchorY: 0, sheet: "./ichigo_run_uniform.png" },
+    run:  { frames: 5, width: 50, height: 46, speed: 4, anchorY: 0, sheet: "./ichigo_run_uniform.png" },
+    // Ground dash — horizontal burst (3-frame body-shift + motion blur). Distinct from dashDir below.
+    dash: { frames: 3, width: 72, height: 71, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_dash_uniform.png" },
+    // MULTI-DIRECTIONAL AERIAL DASH — the ichigo_dash_But_in_different_directions strip (6 poses:
+    // 0 up · 1 down · 2 down-fwd · 3 up-fwd · 4 level-fwd · 5 back). physics.js stamps _dashDirIdx
+    // for the held air-dash direction; sprite.js pins the matching frame (dashDir frame-lock). NOT
+    // an auto-playing animation — one frame is held for the 8-way dash's duration.
+    dashDir: { frames: 6, width: 97, height: 94, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_dash_But_in_different_directions_uniform.png" },
+    // jump.png = crouch→rise→apex→descent arc; play once + hold. fall = the apex/descent pose (last cell).
+    jump: { frames: 8, width: 62, height: 54, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_jump_uniform.png" },
+    fall: { frames: 1, width: 62, height: 54, speed: 6, anchorY: 0, sourceX: 434, loop: false, lockLastFrame: true, sheet: "./ichigo_jump_uniform.png" },
+    // Guard — 2-frame settle into a braced sword-block; hold the last frame while blocking.
+    guard: { frames: 2, width: 46, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_block_uniform.png" },
+    // HURT — frame 0 of the hit_1 recoil strip as a single-frame flinch; combat.js colorFlash tints
+    // on top. Every plain hitstun/stun routes here.
+    hurt: { frames: 1, width: 54, height: 48, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_hit_1_uniform.png" },
+    // KNOCKDOWN — the full hit_1 recoil→stagger sequence (3 cells). lockLastFrame holds the downed pose.
+    // (hit_2 is a separate heavier stagger reaction, wired as knockdownHeavy for launcher/heavy hits.)
+    knockdown: { frames: 3, width: 54, height: 48, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_hit_1_uniform.png" },
+    knockdownHeavy: { frames: 3, width: 66, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_hit_2_uniform.png" },
+    // CHARGE — 5-frame reiatsu build (spiritual-pressure flare); enrolls Ichigo in the universal
+    // energy-charge system. lockLastFrame holds the flare pose while the button is held.
+    charge: { frames: 5, width: 58, height: 48, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_charge_uniform.png" },
+    // TAUNT — enrolls Ichigo in the universal taunt-heal (game.js updateTauntState; hold Down 10s
+    // un-hit → heal). 6-frame Zangetsu flourish; speed 18 → 6×18 = 108-frame committed window (Rick ref).
+    taunt: { frames: 6, width: 56, height: 57, speed: 18, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_taunt_uniform.png" },
+    // ── PRE-MATCH INTROS (Stage 1) ── two independent variants, random-cycled per match (introPool).
+    // Both play once + hold their final pose, snapping cleanly to idle when the fight starts. intro2's
+    // form-change flourish is COSMETIC ONLY (confirmed design — no transformation mechanic).
+    intro1: { frames: 10, width: 58, height: 59, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_intro_1_uniform.png" },
+    intro2: { frames: 15, width: 83, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_intro_2_uniform.png" },
+    // ── STAGE 2 NORMALS ── resliced feet-aligned (*_uniform.png); anchorY 0 plants feet.
+    // loop:false + lockLastFrame holds the strike pose through recovery. basic_attacks above carries the DATA.
+    light:    { frames: 3, width: 74, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_foward_sword-slash_uniform.png" },   // quick forward slash (blue arc)
+    heavy:    { frames: 7, width: 71, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_sword_combo_1_uniform.png" },          // committed sword string
+    up:       { frames: 6, width: 64, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_up_attack_uniform.png" },              // vertical rising launcher
+    air:      { frames: 2, width: 79, height: 68, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_launch_attack_2_uniform.png" },        // aerial neutral slash
+    down_air: { frames: 6, width: 77, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_down_air_attack_uniform.png" },        // aerial dive slash (spike)
+    // ── STAGE 2 EXPANDED COMMAND SYSTEM cast/attack poses (abilities.js updateIchigoCommandCombat).
+    // currentMove-keyed melee → sprite.js MOVE_TO_ACTION identity maps. Nothing dropped (Stage-0 mandate).
+    ichigoRekka1:    { frames: 7, width: 71, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_basic_sword_slash_uniform.png" },        // Fwd+Heavy rekka opener
+    ichigoRekka2:    { frames: 6, width: 69, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_double_sword_attack_uniform.png" },       // rekka mid (double-slash)
+    ichigoRekka3:    { frames: 7, width: 76, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_super_combo_to_up_attack_uniform.png" },   // rekka finisher (combo→launcher)
+    ichigoDownHeavy: { frames: 4, width: 81, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_down_attack_uniform.png" },               // Down+Heavy low sweep
+    ichigoBackHeavy: { frames: 5, width: 85, height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_launch_attack_1_uniform.png" },           // Back+Heavy advancing launcher (red FX)
+    ichigoFwdLight:  { frames: 4, width: 52, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_front_attack_punch_uniform.png" },        // Fwd+Light hilt-jab poke
+    ichigoDashAtk:   { frames: 8, width: 69, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_double_dash_combo_uniform.png" },         // Dash+Heavy rushing combo
+    // return-to-stance settle (2-row source recombined into one 7-frame strip) — plays after the rekka finisher.
+    ichigoReturn:    { frames: 7, width: 65, height: 54, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_ruturn_stance_uniform.png" },
+    // ── STAGE 3 SPECIALS ── Getsuga cast = _spriteCastMove pose (projectile fires separately); the rest are
+    // currentMove-keyed melee specials (attacking path). sprite.js MOVE_TO_ACTION identity-maps all of these.
+    ichigoGetsugaCast:   { frames: 6, width: 81, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_specail_2_uniform.png" },              // Getsuga Tenshō swing (projectile launch)
+    ichigoChargedSlash:  { frames: 5, width: 63, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_specail_1_uniform.png" },              // Charged Getsuga Slash (Fwd)
+    ichigoAirGetsuga:    { frames: 5, width: 79, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_air_attack_specail_uniform.png" },      // Aerial Getsuga Dive (air)
+    ichigoHollowGetsuga: { frames: 5, width: 53, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_super_sword_attack_uniform.png" },      // Hollow Getsuga (Down super, dark form)
+    ichigoHollowRising:  { frames: 3, width: 76, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_super_up_attack_uniform.png" },         // Hollow Rising (Up super, dark form)
+    // ── STAGE 4 ULTIMATE cast poses (played through the freeze-cinematic via _spriteCastMove; the cinematic
+    // SWITCHES from ichigoUlt1 → ichigoUlt2 at the finisher for one continuous dash-slash → uppercut clip).
+    ichigoUlt1: { frames: 9, width: 79, height: 43, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_ultimate_part_1_uniform.png" },   // Getsuga dash-slash (windup/rush)
+    ichigoUlt2: { frames: 5, width: 78, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ichigo_ultimate_part_2_uniform.png" }    // rising crescent uppercut (finisher)
+  },
+  // ── STAGE 3 SPECIALS (real logic in abilities.js executeIchigoSpecial; costs read here + HUD) ──
+  specials: {
+    getsuga:       { cost: 30, description: "Getsuga Tenshō — a blue crescent energy wave fired from Zangetsu (independent-collision projectile)." },
+    chargedSlash:  { cost: 30, description: "Charged Getsuga Slash — a committed advancing blue-energy power slash (Forward)." },
+    airGetsuga:    { cost: 32, description: "Aerial Getsuga Dive — a diving aerial slash with a forward glide (airborne)." },
+    hollowGetsuga: { cost: 48, description: "Hollow Getsuga — a Hollowfied horizontal super slash (Down; dark-form burst)." },
+    hollowRising:  { cost: 46, description: "Hollow Rising — a Hollowfied rising super launcher (Up; dark-form burst)." }
+  },
+  // HUD-only placeholders until later stages (real move data lands in Stage 2/3/4).
+  ultimate: { name: "Getsuga Tenshō", cost: 100, description: "Two-part Zangetsu finisher — a dash-slash rush into a rising crescent uppercut (ultimate_part_1 → part_2), played as one continuous freeze-cinematic; a single guaranteed, range-independent Getsuga that launches the opponent skyward." },
+  // Random-cycle intro pool: each match start picks ONE at random (game.pickIntroVariant).
+  introPool: ["intro1", "intro2"]
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Zaraki Kenpachi — SECOND Bleach sprite character (universe: "bleach", shared with
+// Ichigo). Kenpachi of Squad 11: a raw-power berserker bruiser — high HP + attack,
+// deliberately slower than Ichigo (speed 88 vs 94, no 8-way dash). energyType "reiatsu"
+// reuses the same "Reiatsu" HUD label (ui.js). Built stage-by-stage against
+// ZARAKI_FULL_BUILD_SPEC; this is STAGE 1 (movement + states only — normals/specials/
+// Shikai/Bankai/assist land in Stages 2-5).
+// HEIGHT-REF (HEIGHT_REFERENCE.md methodology): canon Zaraki ~202cm → target 0.623×202 = 125.8px.
+// Measured idle content height = 64px → spriteScale = 125.8/64 = 1.97 (renders ~126px; taller than
+// Ichigo's ~110px, matching the canon ratio). Resliced feet-aligned via tools/reslice_strip.mjs
+// (*_uniform.png), so anchorY:0 plants feet.
+// FILENAME NOTE: the spec's inconsistent spellings are preserved verbatim in the source art
+// (tuant_2, shinkai/shikai, specail, atttack); three disk names carrying spaces/double-dots
+// were normalised to the spec's underscore names (low_health_idle_, transparent_copy).
+const zaraki = {
+  rosterKey: "zaraki", name: "Zaraki Kenpachi", universe: "bleach",
+  portrait: "./zaraki_transparent_copy.png",   // cropped character-select thumbnail (from the master art)
+  archetypes: ["melee", "bruiser"],
+  primary: "melee", secondary: ["bruiser"],   // raw-power sword berserker; trades Ichigo's mobility for durability
+  movement: { runWhenAdvancing: true },   // advancing toward the foe plays the run/charge cycle (Ichigo/Tobirama pattern)
+  // reiatsu = spiritual pressure (shared Bleach label). Modest pool (Stage 1 baseline) — larger
+  // kit meters (Shikai timer / Bankai / Yachiru assist) are gated in their own later stages.
+  traits: { hasEnergy: true, energyType: "reiatsu", mobility: "medium", scaling: "power", animeMovement: true },
+  // STATS — brute profile: highest-tier HP/attack, below-average speed. PROPOSED (spec: numbers
+  // are placeholders; dedicated balance pass in Stage 6).
+  stats: { maxHealth: 1240, maxEnergy: 120, attack: 98, defense: 88, speed: 88, maxJumps: 2, jumpPower: 30, dashSpeed: 16, dashDuration: 11, dashCooldownMax: 36 },
+  hasSprites: true,
+  spriteScale: 1.97,
+  // ── STAGE 2 NORMALS (combat.js _getMD reads basic_attacks) ──
+  //   light = combo_1 (B, 9f sword string)   heavy = combo_2 (Y, 11f 2nd family)   upAttack = up_attack (Up+B rising slash).
+  //   The AERIAL route (Up+B airborne → up-swing, repeat → down slam) + Fwd+Light/Fwd+Heavy command slashes
+  //   live in abilities.js updateZarakiCommandCombat. No plain airborne-J / down-air basic (aerial is Up+B only),
+  //   so airAttack/downAir are intentionally absent here.
+  basic_attacks: {
+    light:    { damage: 42, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 90, startup: 9, active: 4, recovery: 18, hitstun: 18, knockbackX: 8, knockbackY: 1, rangeX: 104, rangeY: 52 },
+    upAttack: { type: "launcher", damage: 72, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 12, airOK: false }
+  },
+  // ── STAGE 2 SPECIALS (real logic in abilities.js; costs read here + HUD) ──
+  specials: {
+    // Charged Dash Attack is on the CHARGE button (hold→release, tap/hold power tiers) — COOLDOWN-gated, no reiatsu
+    // (holding CHARGE builds reiatsu; releasing unleashes the dash). Hollow Mask Strike is on the SPECIAL button.
+    chargedDash:  { cost: 0,  description: "Charged Dash Attack — hold CHARGE to wind up, release to unleash a forward dashing sword rush (quick tap = short lunge, full hold = long committed rush). Cooldown-gated." },
+    hollowStrike: { cost: 40, description: "Hollow Mask Strike — a brief Hollow-mask-empowered overhead downward slash (neutral SPECIAL). Heavy committed spike." },
+    yachiruAssist: { cost: 25, description: "Yachiru Assist (Down+SPECIAL) — Yachiru dashes in and Zaraki hurls her forward as a projectile; VFX on connect. Meter + cooldown gated; usable from Base or Shikai." }
+  },
+  // ── STAGE 4 ULTIMATE (real logic in abilities.js executeZarakiUltimate) ──
+  // Bankai = a single-use burst attack, usable from EITHER Base or Shikai once meter is full; it plays once
+  // and returns to whichever form was active (NOT a transformation / mode change).
+  ultimate: { name: "Bankai", cost: 100, description: "Bankai — a committed red-demon burst: a screen-shaking overhead cleaver onslaught. A one-shot ultimate callable from Base or Shikai; returns to whichever form was active (no mode change)." },
+  animationData: {
+    // ── MOVEMENT / STATE (Stage 1) ── each resliced feet-aligned; anchorY 0 plants feet.
+    idle: { frames: 4, width: 69, height: 66, speed: 7, anchorY: 0, sheet: "./zaraki_idle_uniform.png" },
+    // LOW-HEALTH IDLE (cosmetic only): a hunched, worn idle that swaps in below a HP threshold.
+    // game.js sets fighter._lowHealthIdle on the threshold (no stat/hitbox change); sprite.js
+    // _resolveAction renders this over the neutral idle. Purely visual tell — zero gameplay effect.
+    idleLow: { frames: 4, width: 69, height: 65, speed: 7, anchorY: 0, sheet: "./zaraki_low_health_idle_uniform.png" },
+    // Single locomotion strip (7-frame run/charge cycle) → walk plays it slower (Ichigo/Zenitsu pattern);
+    // runWhenAdvancing makes forward movement use the run cycle.
+    walk: { frames: 7, width: 64, height: 52, speed: 6, anchorY: 0, sheet: "./zaraki_move_uniform.png" },
+    run:  { frames: 7, width: 64, height: 52, speed: 4, anchorY: 0, sheet: "./zaraki_move_uniform.png" },
+    // Ground dash — a single lunging blur pose; held for the dash duration (lockLastFrame).
+    dash: { frames: 1, width: 60, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_dash_uniform.png" },
+    // jump.png = crouch→rise→apex→descent arc (8 cells); play once + hold. fall = the descending
+    // pose (last cell, sourceX = 7×68 = 476) held while dropping.
+    jump: { frames: 8, width: 68, height: 70, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_jump_uniform.png" },
+    fall: { frames: 1, width: 68, height: 70, speed: 6, anchorY: 0, sourceX: 476, loop: false, lockLastFrame: true, sheet: "./zaraki_jump_uniform.png" },
+    // Guard — 3-frame settle into a braced sword-block; hold the last frame while blocking.
+    guard: { frames: 3, width: 54, height: 66, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_block_uniform.png" },
+    // ── HIT REACTIONS (3 source strips, engine-selected by hit type) ──
+    //   hurt          = hit_1 frame 0 (light/normal flinch; colorFlash tints on top)
+    //   knockdown     = hit_1 full 4-frame recoil→stagger (standard knockdown)
+    //   knockdownHeavy= hit_2 full 6-frame sprawl→getup (heavy / launcher hits)
+    //   hurt_air      = hit  4-frame launched slash-through reaction (airborne hits)
+    // All three source files (hit / hit_1 / hit_2) are wired to distinct real roles.
+    hurt: { frames: 1, width: 66, height: 64, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_hit_1_uniform.png" },
+    hurt_air: { frames: 4, width: 85, height: 70, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_hit_uniform.png" },
+    knockdown: { frames: 4, width: 66, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_hit_1_uniform.png" },
+    knockdownHeavy: { frames: 6, width: 81, height: 59, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_hit_2_uniform.png" },
+    // ── TAUNTS ── enrolls Zaraki in the universal taunt-heal (game.js updateTauntState; hold Down 10s
+    // un-hit → heal). TWO variants: `taunt` (primary, zaraki_taunt) + `tauntAlt` (zaraki_tuant_2),
+    // random-picked per commit (game.js) and resolved in sprite.js. Both wired to real roles.
+    taunt:    { frames: 5, width: 71, height: 78, speed: 16, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_taunt_uniform.png" },
+    tauntAlt: { frames: 5, width: 65, height: 66, speed: 16, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_tuant_2_uniform.png" },
+    // ── STAGE 2 NORMALS ── resliced feet-aligned; loop:false + lockLastFrame holds the strike through recovery.
+    light: { frames: 9,  width: 197, height: 80, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_combo_1_uniform.png" },   // B — sword combo string (wide slash arcs)
+    heavy: { frames: 11, width: 101, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_combo_2_uniform.png" },   // Y — 2nd sword family
+    up:    { frames: 3,  width: 65,  height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_up_attack_uniform.png" },  // Up+B — rising slash launcher
+    // ── STAGE 2 AERIAL ROUTE (up_attack_to_down_air_combo, 8f) ── ONE sheet split by sourceX:
+    //   zarakiAirUp = the up-swing (frames 0-4);  zarakiAirDown = the spinning descent slam (frames 5-7, sourceX 5×70=350).
+    //   Driven by abilities.js updateZarakiCommandCombat (Up+B airborne → up-swing; repeat Up+B → down slam). MOVE_TO_ACTION identity.
+    zarakiAirUp:   { frames: 5, width: 70, height: 93, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./zaraki_up_attack_to_down_air_combo_uniform.png" },
+    zarakiAirDown: { frames: 3, width: 70, height: 93, speed: 3, anchorY: 0, sourceX: 350, loop: false, lockLastFrame: true, sheet: "./zaraki_up_attack_to_down_air_combo_uniform.png" },
+    // ── STAGE 2 COMMAND NORMALS (updateZarakiCommandCombat; MOVE_TO_ACTION identity) ──
+    zarakiFwdSlash1: { frames: 6, width: 69, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_foward_slash_1_uniform.png" },   // Fwd+Light (foward_slash_1)
+    zarakiFwdSlash2: { frames: 6, width: 66, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_foward_slash_2_uniform.png" },   // Fwd+Heavy (foward_slash_2)
+    // ── STAGE 2 SPECIALS ──
+    // Charged Dash (super_foward_attack, 7f) split by sourceX: charge = the hold-windup (frames 0-2), fired via the
+    // universal hold-to-charge pose (isCharging); zarakiChargedDash = the dashing strike (frames 3-6, sourceX 3×111=333).
+    charge:            { frames: 3, width: 111, height: 65, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./zaraki_super_foward_attack_uniform.png" },
+    zarakiChargedDash: { frames: 4, width: 111, height: 65, speed: 3, anchorY: 0, sourceX: 333, loop: false, lockLastFrame: true, sheet: "./zaraki_super_foward_attack_uniform.png" },
+    // Hollow Mask Strike (hollow_down_attack_assist, 5f) — big overhead blade; tall cell (blade FX extends up).
+    zarakiHollowStrike:{ frames: 5, width: 212, height: 180, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_hollow_down_attack_assist_uniform.png" },
+    // ── STAGE 4 ULTIMATE — BANKAI (single burst attack) ── the 17f red-demon burst plays ONCE as the
+    // attack pose then returns to idle. The demonic transform is baked into these frames ONLY (purely
+    // visual) — mechanically it's a one-shot attack that does NOT change form. In base animationData so it
+    // resolves in Base AND (via ZARAKI_SHIKAI_ANIM's spread) in Shikai → identical art from either form.
+    zarakiBankai: { frames: 17, width: 127, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_bankai_ultimate_uniform.png" },
+    // ── STAGE 5 YACHIRU ASSIST — Zaraki's throw pose (he hurls Yachiru forward). Played briefly via
+    // _spriteCastMove; the dash-in telegraph + thrown projectile + impact VFX are spawned separately.
+    // In base animationData → resolves in Base and (via the Shikai spread) in Shikai.
+    zarakiYachiruThrow: { frames: 7, width: 89, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_Yachiru_Kusajishi_throw_uniform.png" }
+  }
+  // NOTE: no introPool yet — Zaraki ships no dedicated intro art (uses the shared/idle intro).
+  // Shikai + Bankai + Yachiru assist arrive in Stages 3-5.
+}
+
+// Zaraki Kenpachi — SHIKAI (separate, independently selectable Bleach entry). Same fighter, but STARTS in
+// (and stays in) the feral Shikai form: its animationData IS the Shikai art natively, and createFighter
+// stamps _shikaiActive=true (startsInShikai) so the existing Shikai command/special kit drives it — no mode
+// timer, no mid-match toggle. Base "zaraki" KEEPS its Up+Special toggle (additive). This animationData is
+// ALSO the single source of truth reused by abilities.js ZARAKI_SHIKAI_ANIM (the base-form toggle).
+const zarakiShikai = {
+  ...zaraki,
+  rosterKey: "zaraki_shikai", name: "Zaraki Kenpachi (Shikai)",
+  portrait: "./zaraki_shikai_portrait.png",
+  startsInShikai: true,
+  // Shikai art set = base animationData + Shikai overrides (mirrors the old ZARAKI_SHIKAI_ANIM exactly).
+  animationData: {
+    ...zaraki.animationData,
+    idle:  { frames: 4, width: 100, height: 65, speed: 7, anchorY: 0, sheet: "./zaraki_shikai_idle_uniform.png" },
+    walk:  { frames: 7, width: 96,  height: 48, speed: 6, anchorY: 0, sheet: "./zaraki_shikai_run_uniform.png" },
+    run:   { frames: 7, width: 96,  height: 48, speed: 4, anchorY: 0, sheet: "./zaraki_shikai_run_uniform.png" },
+    dash:  { frames: 1, width: 77,  height: 88, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shikai_dash_uniform.png" },
+    jump:  { frames: 6, width: 97,  height: 94, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_jump_uniform.png" },
+    fall:  { frames: 1, width: 97,  height: 94, speed: 6, anchorY: 0, sourceX: 485, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_jump_uniform.png" },
+    guard: { frames: 3, width: 64,  height: 59, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_block_uniform.png" },
+    hurt:           { frames: 1, width: 115, height: 64, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_hit_2_uniform.png" },
+    hurt_air:       { frames: 6, width: 115, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_hit_2_uniform.png" },
+    knockdown:      { frames: 6, width: 115, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_hit_2_uniform.png" },
+    knockdownHeavy: { frames: 6, width: 115, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_hit_2_uniform.png" },
+    charge:        { frames: 5, width: 92, height: 65, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shikai_release_uniform.png" },
+    shikaiRelease: { frames: 10, width: 92, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shikai_release_uniform.png" },
+    zarakiShikaiC1:      { frames: 11, width: 191, height: 124, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_combo_1_uniform.png" },
+    zarakiShikaiC2:      { frames: 11, width: 140, height: 91,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_combo_2_uniform.png" },
+    zarakiShikaiC3:      { frames: 7,  width: 101, height: 104, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_combo_3_uniform.png" },
+    zarakiShikaiC4:      { frames: 8,  width: 98,  height: 92,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shikai_combo_4_uniform.png" },
+    zarakiShikaiUp:      { frames: 3,  width: 94,  height: 104, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_up_atttack_uniform.png" },
+    zarakiShikaiDownAir: { frames: 4,  width: 95,  height: 92,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shinkai_down_air_attack_png_uniform.png" },
+    zarakiShikaiSpecial: { frames: 6,  width: 93,  height: 120, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./zaraki_shikai_specail_attack_uniform.png" },
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
-  gojo, megumi, sukuna, omololu, toji, mahoraga, maki,
-  naruto, sasuke, itachi, tobirama, minato,
-  zenitsu, rengoku, shinobu,
+  gojo, megumi, sukuna, omololu, toji, maki, yuji,
+  naruto, sasuke, itachi, tobirama, minato, madara, obito, tobi,
+  zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,
   beerus,
   ben10, albedo,
@@ -3555,7 +4369,10 @@ export const characters = {
   superman,
   chrollo,
   ghostface,
-  miwa
+  miwa,
+  ichigo,
+  zaraki,
+  zaraki_shikai: zarakiShikai
 }
 
 // The 7 characters shown in the starter roster select screen

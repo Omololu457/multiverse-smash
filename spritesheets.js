@@ -86,6 +86,34 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./maki_new_idle_uniform.png" }   // NEW clean 4-frame idle (old maki_idle.png had a 96px double-frame glitch)
   },
 
+  // Obito Uchiha (Naruto). GATES spritesReady() only (decodes idle → flips Obito from box to
+  // sprite); per-action rendering reads the `sheet` paths from characters.js → obito.animationData
+  // (tools/reslice_obito.py'd obito_*_uniform copies). See OBITO_ASSET_MAP.md.
+  obito: {
+    actions: { idle: "./obito_idle_uniform.png" }
+  },
+
+  // Tobi (masked Obito alias, Naruto). FULLY SEPARATE from obito above. GATES spritesReady() only
+  // (decodes idle → flips Tobi from box to sprite); per-action rendering reads the `sheet` paths
+  // from characters.js → tobi.animationData (tools/reslice_tobi.py'd masked_man_*_uniform copies).
+  tobi: {
+    actions: { idle: "./masked_man_idle_uniform.png" }
+  },
+
+  // Kasumi Miwa (JJK). GATES spritesReady() only (decodes idle → flips Miwa from box
+  // to sprite); per-action rendering reads `sheet` paths from characters.js →
+  // miwa.animationData (reslice_strip'd kasumi_*_uniform copies). See MIWA_ASSET_MAP.md.
+  miwa: {
+    actions: { idle: "./kasumi_idle_uniform.png" }
+  },
+
+  // Yuji Itadori (JJK). Gates spritesReady() only (decoding idle flips Yuji from box to sprite);
+  // per-action rendering reads characters.js → yuji.animationData (reslice'd yuji_*_uniform copies).
+  // See YUJI_ASSET_MAP.md.
+  yuji: {
+    actions: { idle: "./yuji_idle_uniform.png" }
+  },
+
   // Base Goku (Dragon Ball). Sliced from goku_base_FULLSHEET_transparent.png.
   // This entry only GATES spritesReady() (decodes idle → flips Goku from box to
   // sprite); per-action rendering reads the `sheet` paths from characters.js →
@@ -133,6 +161,13 @@ export const SPRITE_MANIFEST = {
   // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
   minato: {
     actions: { idle: "./minato_idle_uniform.png" }
+  },
+
+  // Madara (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
+  // Madara from procedural box to sprite. Per-action rendering reads characters.js → madara.animationData
+  // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
+  madara: {
+    actions: { idle: "./madara2_idle_1_uniform.png" }
   },
 
   // Netero (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle strip →
@@ -278,6 +313,21 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./shinobu_idle_uniform.png" }
   },
 
+  // Inosuke Hashibira (universe: demon_slayer) — FOURTH Demon Slayer sprite char. Idle-strip
+  // gate: decoding it flips Inosuke from procedural box to the sprite path. Per-action rendering
+  // reads characters.inosuke.animationData (each action carries its own .sheet). See INOSUKE_ASSET_MAP.md.
+  inosuke: {
+    actions: { idle: "./inosuke_idle_uniform.png" }
+  },
+
+  // Nezuko Kamado (universe: demon_slayer) — FIFTH Demon Slayer sprite char. Idle-strip
+  // gate: decoding it flips Nezuko from procedural box to the sprite path. Per-action
+  // rendering reads characters.nezuko.animationData (each action carries its own .sheet).
+  // See NEZUKO_ASSET_MAP.md.
+  nezuko: {
+    actions: { idle: "./nezuko_idle.png" }
+  },
+
   // Ben 10 (universe: ben_10) — STAGE 1. Gates spritesReady() by decoding the Ben-human
   // idle strip → flips Ben 10 from procedural drawBen10 box to the sprite path. Once ready,
   // per-action rendering reads characters.ben10.animationData (Ben-human) OR fighter._skinAnim
@@ -293,6 +343,26 @@ export const SPRITE_MANIFEST = {
   // See GHOSTFACE_ASSET_MAP.md.
   ghostface: {
     actions: { idle: "./ghostface_idle_uniform.png" }
+  },
+
+  // Ichigo Kurosaki (universe: bleach) — STAGE 1. Gates spritesReady() by decoding the idle strip →
+  // flips Ichigo from procedural box to sprite. Per-action rendering reads characters.js →
+  // ichigo.animationData (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
+  ichigo: {
+    actions: { idle: "./ichigo_idle_uniform.png" }
+  },
+
+  // Zaraki Kenpachi (universe: bleach) — STAGE 1. Gates spritesReady() by decoding the idle strip →
+  // flips Zaraki from procedural box to sprite. Per-action rendering reads characters.js →
+  // zaraki.animationData (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
+  zaraki: {
+    actions: { idle: "./zaraki_idle_uniform.png" }
+  },
+
+  // Zaraki Kenpachi — SHIKAI (separate select entry). Gates spritesReady() by decoding the Shikai idle
+  // strip → flips zaraki_shikai from procedural box to sprite. Per-action art = characters.zaraki_shikai.animationData.
+  zaraki_shikai: {
+    actions: { idle: "./zaraki_shikai_idle_uniform.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

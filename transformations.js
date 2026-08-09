@@ -93,7 +93,7 @@ export function applyTransformation(fighter, transformationName) {
 
     fighter.currentForm = transformationName
 
-    // Permanent character replacement support (Megumi -> Mahoraga)
+    // Permanent character replacement support (generic; no roster user at present)
     if (form.replaceCharacterId) {
         fighter.characterSwapId = form.replaceCharacterId
         fighter.pendingCharacterSwap = form.replaceCharacterId
@@ -147,7 +147,7 @@ export function updateTransformations(fighter, deltaTime) {
 export function revertTransformation(fighter) {
     if (!fighter || !fighter.baseForm) return false
 
-    // Mahoraga / permanent death ritual cannot revert
+    // Permanent / one-way / death-ritual forms cannot revert
     if (fighter.permanentForm || fighter.oneWayTransformation || fighter.deathRitual) {
         return false
     }
@@ -198,41 +198,6 @@ export function revertTransformation(fighter) {
         // Re-usable forms can be triggered again once fuel is rebuilt.
         if (leaving.reusable) fighter.transformIndex = 0
     }
-
-    return true
-}
-
-// Example usage for Mahoraga
-export function applyMahoraga(player, mahoragaData) {
-    if (!player) return false
-
-    // Permanent death ritual swap
-    player.character = mahoragaData
-    player.isMahoraga = true
-    player.currentForm = "mahoraga"
-    player.permanentForm = true
-    player.oneWayTransformation = true
-    player.deathRitual = true
-    player.ritualActive = true
-    player.transformationTimer = 0
-
-    // Disable Megumi summon kit after swap
-    player.disabledSpecials = [
-        "divine_dogs",
-        "nue",
-        "toad",
-        "rabbit_escape",
-        "max_elephant",
-        "shadow_step"
-    ]
-
-    player.adaptationLevels = {
-        melee: 0,
-        projectile: 0,
-        special: 0,
-        domain: 0
-    }
-    player.maxAdaptationLevel = 3
 
     return true
 }

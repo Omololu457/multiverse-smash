@@ -334,12 +334,11 @@ profiles.megumi = {
       spawn: { type: "summon", summonKey: "maxElephant", spawnFrame: 5 }
     },
 
-    // Mahoraga ritual — permanent transformation, plays once
+    // Chimera Shadow Garden — Domain Expansion hand-sign
     ultimate: {
-      sheet: "sprites/megumi/megumi_mahoraga_ritual.png",
-      frames: 12, width: 256, height: 256, speed: 4, loop: false,
-      anchorX: 64, anchorY: 64, behavior: "transformation",
-      lockLastFrame: false
+      sheet: "sprites/megumi/megumi_domain_cast.png",
+      frames: 8, width: 192, height: 192, speed: 5, loop: false,
+      anchorX: 32, anchorY: 32, behavior: "domain_cast"
     },
 
     domain: {
@@ -349,33 +348,6 @@ profiles.megumi = {
     },
     win:  { sheet: "sprites/megumi/megumi_win.png",  frames: 6, width: 128, height: 128, speed: 8, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
     lose: { sheet: "sprites/megumi/megumi_lose.png", frames: 4, width: 128, height: 128, speed: 10,loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached" }
-  }
-}
-
-// Mahoraga has its own profile — used when Megumi transforms
-profiles.mahoraga = {
-  defaultAction: "idle",
-  actions: {
-    idle:  { sheet: "sprites/mahoraga/mahoraga_idle.png",  frames: 4, width: 160, height: 192, speed: 8, loop: true,  anchorX: 16, anchorY: 32, behavior: "body_attached" },
-    walk:  { sheet: "sprites/mahoraga/mahoraga_walk.png",  frames: 6, width: 160, height: 192, speed: 6, loop: true,  anchorX: 16, anchorY: 32, behavior: "body_attached" },
-    hurt:  { sheet: "sprites/mahoraga/mahoraga_hurt.png",  frames: 2, width: 160, height: 192, speed: 8, loop: false, anchorX: 16, anchorY: 32, behavior: "body_attached" },
-    jump:  { sheet: "sprites/mahoraga/mahoraga_jump.png",  frames: 3, width: 160, height: 192, speed: 6, loop: false, anchorX: 16, anchorY: 32, behavior: "body_attached" },
-    light: { sheet: "sprites/mahoraga/mahoraga_light.png", frames: 4, width: 192, height: 192, speed: 4, loop: false, anchorX: 32, anchorY: 32, behavior: "body_attached", lockLastFrame: true },
-    heavy: { sheet: "sprites/mahoraga/mahoraga_heavy.png", frames: 5, width: 192, height: 224, speed: 4, loop: false, anchorX: 32, anchorY: 48, behavior: "body_attached", lockLastFrame: true },
-    up:    { sheet: "sprites/mahoraga/mahoraga_up.png",    frames: 4, width: 192, height: 256, speed: 4, loop: false, anchorX: 32, anchorY: 64, behavior: "body_attached", lockLastFrame: true },
-    wheel_rotation: {
-      sheet: "sprites/mahoraga/mahoraga_wheel.png",
-      frames: 6, width: 256, height: 256, speed: 4, loop: false,
-      anchorX: 64, anchorY: 64, behavior: "detached_effect",
-      lockLastFrame: false,
-      spawn: { type: "effect", effectKey: "wheel_slash", spawnFrame: 4 }
-    },
-    ultimate: {
-      sheet: "sprites/mahoraga/mahoraga_ultimate.png",
-      frames: 8, width: 256, height: 256, speed: 5, loop: false,
-      anchorX: 64, anchorY: 64, behavior: "body_attached",
-      lockLastFrame: true
-    }
   }
 }
 
@@ -551,7 +523,6 @@ export function combatMoveToAction(characterKey, combatMoveKey) {
     toad:          "toad",
     rabbitEscape:  "rabbit_escape",
     maxElephant:   "max_elephant",
-    mahoragaRitual:"ultimate",
     // Goku
     dragonFist:    "special_1",
     kamehameha:    "special_2",

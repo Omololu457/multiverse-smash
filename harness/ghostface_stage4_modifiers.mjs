@@ -125,14 +125,18 @@ console.log("\n── Roman: cheaper Companion Swap ──");
 // Measure Dread actually spent on a swap: set 100, do QCF ↓→ + Special, force-revert, read the restored
 // (post-cost) Dread. spent = 100 - restored. Default = 35; Roman = 23 (0.65×).
 async function swapSpend(skin) {
-  await reset(skin, DUMMY, 60);
+  await reset(skin, DUMMY, 200);   // far: a forward motion can't walk into grab range (held Grab stays harmless)
   await page.evaluate(() => { window.__harness.setEnergy(100); window.__harness.resetFighterInput?.("p1"); });
   await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.key === "ghostface" && p.grounded && !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
   await wf(2);
   const fwd = (await p1()).facing === 1 ? "d" : "a";
+  // Companion Swap = the Backstage Pass SWAP branch: roll QCF, then hold Grab while pressing Special. Grab
+  // builds no Dread, so the measured "spent" stays clean (charge would refill the meter and skew it).
   await page.keyboard.down("s"); await wf(1); await page.keyboard.up("s"); await wf(1);
   await page.keyboard.down(fwd); await wf(1); await page.keyboard.up(fwd); await wf(1);
-  await page.keyboard.down("l"); await wf(3); await page.keyboard.up("l"); await wf(4);
+  await page.keyboard.down("o");
+  await page.keyboard.down("l"); await wf(1); await wf(2); await page.keyboard.up("l"); await page.keyboard.up("o");
+  await wf(18);
   const g = await page.evaluate(() => window.__harness.gfSwap());
   await page.evaluate(() => window.__harness.expireGfSwap()); await wf(3);
   const e = await page.evaluate(() => window.__harness.gfSwap().energy);

@@ -35,17 +35,66 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 def EYES(h):        return dict(from_hue="150-205", min_sat=0.40, min_val=0.55, yband="0.0-0.42", to_tone=h, tone_spread=1.0)
 def HAIR(h, sp=1.15): return dict(min_sat=0.0, max_sat=0.24, min_val=0.30, max_val=1.0, max_warm=16, yband="0.0-0.34", to_tone=h, tone_spread=sp)
 def SHIRT(h, sp=2.4): return dict(min_sat=0.0, max_sat=1.0, min_val=0.0, max_val=0.30, max_warm=40, yband="0.30-0.60", to_tone=h, tone_spread=sp)
+# PANTS/SASH — the WHITE lower garment (bright, near-gray) in the lower band. Used ONLY by the "full
+# near-black" void skins so the whole silhouette goes dark; max_warm keeps warm skin (hands) untouched.
+def PANTS(h, sp=1.4): return dict(min_sat=0.0, max_sat=0.22, min_val=0.55, max_val=1.0, max_warm=18, yband="0.42-1.0", to_tone=h, tone_spread=sp)
 
 # ── skin table: tag -> (display name, hair hex, clothing hex, eye hex) ──
+# shirt=None  → SKIP the shirt pass entirely (outfit stays its natural BLACK — this is the
+#               "black outfit accent" the batch-2/3 skins ask for). A hex recolours the top.
 SKINS = {
+    # ── original coordinated head-to-toe batch (hair + top + eyes all one hue family) ──
     "cerulean": dict(name="Cerulean", hair="#7EC8E3", shirt="#5A9BC4", eyes="#7EC8E3"),
     "amethyst": dict(name="Amethyst", hair="#B9A0DC", shirt="#8A6BB0", eyes="#B9A0DC"),
     "solar":    dict(name="Solar",    hair="#E8823C", shirt="#B85F28", eyes="#E8823C"),
     "rose":     dict(name="Rose",     hair="#F2A8C4", shirt="#C77894", eyes="#F2A8C4"),
+
+    # ── GROUP 1 · named / requested ──────────────────────────────────────────────
+    # Blossom Limitless: vivid pink hair+eyes, PALE outfit accent (white-pink top).
+    "blossom":    dict(name="Blossom Limitless", hair="#F45FA0", eyes="#F657A4", shirt="#EAD8E6", shirt_sp=2.0),
+    # Omnitrix Protocol (Ben 10 homage): established project green (#3FA83B) hair+eyes, black outfit,
+    # white pants read as the Omnitrix white accent.
+    "omnitrix":   dict(name="Omnitrix Protocol", hair="#3FA83B", eyes="#4FD04A", shirt=None),
+    # Albedo Protocol (Ben10 negative): white hair, RED outfit + red eyes. (gold is a minor accent with
+    # no dedicated sprite region → carried in the portrait tone only; noted in the report.)
+    "albedopr":   dict(name="Albedo Protocol", hair="#F0F0F2", eyes="#D8322A", shirt="#C0392B", shirt_sp=2.2),
+    # Infinity Void: full near-black recolor (Part A). Part B = procedural blue-white Infinity particles +
+    # barrier-ring pulses drawn in game.js (drawGojoInfinityVoidOverlay), gated on this skin id.
+    "infinivoid": dict(name="Infinity Void", hair="#191A1F", eyes="#6E88B0", shirt="#141519", shirt_sp=1.6, pants="#15161B"),
+
+    # ── GROUP 2 · deep hair+eyes, natural BLACK outfit ───────────────────────────
+    "cobalt":   dict(name="Cobalt Six Eyes", hair="#274CC4", eyes="#3A64E0", shirt=None),
+    "crimson":  dict(name="Crimson Domain",  hair="#B01E24", eyes="#D0302C", shirt=None),
+    "emerald":  dict(name="Emerald Sorcerer",hair="#1E8038", eyes="#28A848", shirt=None),
+    "golden":   dict(name="Golden Jujutsu",  hair="#C89A2A", eyes="#E8BA34", shirt=None),
+
+    # ── GROUP 3 ──────────────────────────────────────────────────────────────────
+    # Amethyst Gaze: DEEP saturated purple (distinct from the light-lavender "Amethyst" #B9A0DC).
+    "amethystgaze": dict(name="Amethyst Gaze", hair="#6A2CB0", eyes="#7E3CD0", shirt=None),
+    # Ivory Strongest: warm-white hair, pale-gray eyes, black outfit.
+    "ivory":    dict(name="Ivory Strongest", hair="#ECE4D6", eyes="#C6C2CC", shirt=None),
+    "teal":     dict(name="Teal Barrier",    hair="#1C8A80", eyes="#26B0A4", shirt=None),
+    # Sunfire: BURNT orange (darker/redder than "Solar" #E8823C, and Solar recolours its top too).
+    "sunfire":  dict(name="Sunfire Sorcerer",hair="#B84E18", eyes="#E07A24", shirt=None),
+
+    # ── GROUP 4 ──────────────────────────────────────────────────────────────────
+    # Rose Quartz: soft pink-LAVENDER (distinct from vivid "Blossom" pink and warm "Rose").
+    "rosequartz": dict(name="Rose Quartz Gaze", hair="#CBA6D6", eyes="#CBA6D6", shirt=None),
+    # Obsidian Strongest: near-black hair, natural black outfit, eyes kept as the single vivid cyan accent.
+    "obsidian":   dict(name="Obsidian Strongest", hair="#1B1C21", eyes="#35E0D8", shirt=None),
+    # Ashen Sorcerer: muted gray hair+eyes, DARK-RED outfit accent.
+    "ashen":      dict(name="Ashen Sorcerer", hair="#8C8C92", eyes="#9C9CA2", shirt="#6B2222", shirt_sp=2.2),
+    # Storm Barrier: slate-blue hair, electric-cyan eyes, DARK-GRAY outfit accent.
+    "storm":      dict(name="Storm Barrier", hair="#3E5A82", eyes="#38E0F0", shirt="#3A3F47", shirt_sp=2.4),
 }
 
 def passes(cfg):
-    return [EYES(cfg["eyes"]), HAIR(cfg["hair"]), SHIRT(cfg["shirt"])]
+    ps = [EYES(cfg["eyes"]), HAIR(cfg["hair"])]
+    if cfg.get("shirt"):
+        ps.append(SHIRT(cfg["shirt"], cfg.get("shirt_sp", 2.4)))
+    if cfg.get("pants"):
+        ps.append(PANTS(cfg["pants"], cfg.get("pants_sp", 1.4)))
+    return ps
 
 def wired_sheets():
     """[(sheet_name, cell_w)] scraped from characters.js gojo block (width paired with each gojo_* sheet)."""

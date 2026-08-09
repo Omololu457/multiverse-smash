@@ -29,6 +29,7 @@ const ENERGY_TYPE_LABELS = {
   omnitrix:         "Omnitrix",                 // Ben 10 (fallback; device HUD block overrides live)
   ultimatrix:       "Ultimatrix",               // Albedo (fallback; device HUD block overrides live)
   dread:            "Dread",                    // Horror (Ghostface) — the stalker's meter; fuels specials + Ultimate
+  reiatsu:          "Reiatsu",                  // Bleach (Ichigo) — spiritual pressure; fuels Getsuga specials + Ultimate
 }
 
 // Single source of truth for the energy-bar resource name. Explicit energyConfig.label wins (Rick);
@@ -38,7 +39,7 @@ export function resolveEnergyLabel(fighter) {
 }
 
 // NO-METER FLAVOR LABEL: a fighter with energyType "none" has no energy pool, so instead of an empty
-// generic "ENERGY" panel we show a lore-appropriate resource name keyed by universe. Toji/Mahoraga (JJK)
+// generic "ENERGY" panel we show a lore-appropriate resource name keyed by universe. Toji (JJK)
 // canonically have no cursed energy → "HEAVENLY RESTRICTION"; Rengoku/Zenitsu (Demon Slayer) fight on
 // breathing, not an energy meter → "TOTAL CONCENTRATION". A universe absent here (or a fighter that DOES
 // have energy — Omni-Man's "Smart Atoms" etc.) returns null and keeps the normal meter. Display-only.
@@ -287,6 +288,11 @@ function _gridOffset(key, count, canvas, opts) {
 // Scroll a grid by a delta (wheel/trackpad/drag). Returns the clamped offset.
 export function scrollGridBy(key, delta, count, canvas, opts) {
   _gridScroll.set(key, (_gridScroll.get(key) || 0) + delta)
+  return _gridOffset(key, count, canvas, opts)
+}
+// Set a grid's offset absolutely (scrollbar thumb drag / track-jump). Returns the clamped offset.
+export function setGridScroll(key, offset, count, canvas, opts) {
+  _gridScroll.set(key, offset)
   return _gridOffset(key, count, canvas, opts)
 }
 // Reset a grid to the top (call on screen entry so you always start at the first row).
@@ -816,10 +822,17 @@ function alienCardMetrics(canvas) {
   return { gap, cols, cardW, cardH, startY: 168 }
 }
 
+// Scroll-aware layout opts for the Omnitrix grid. bottomMargin clears the BACK/CONFIRM buttons
+// (h-56-28) so a scrolled bottom row never hides under them. scrollKey engages the shared grid
+// scroller — while the aliens fit (the norm) maxOffset is 0 and it behaves exactly as before, but it
+// auto-scrolls the instant the art-backed roster overflows. Nothing here is hardcoded to a row count.
+export function alienGridOpts(canvas) {
+  const { gap, cols, cardW, cardH, startY } = alienCardMetrics(canvas)
+  return { cols, cardW, cardH, gap, startY, bottomMargin: 100, scrollKey: "aliens" }
+}
 export function getAlienSelectCardRects(canvas, aliens = []) {
   aliens = normalizeToArray(aliens)
-  const { gap, cols, cardW, cardH, startY } = alienCardMetrics(canvas)
-  return getGridLayout(aliens.length, canvas, { cols, cardW, cardH, gap, startY })
+  return getGridLayout(aliens.length, canvas, alienGridOpts(canvas))
 }
 
 export function getAlienSelectButtons(canvas) {
@@ -856,6 +869,10 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
   drawHeader(ctx, canvas, `PLAYER ${player} — OMNITRIX SLOTS`, sub)
 
   const rects = getAlienSelectCardRects(canvas, aliens)
+  // Clip the cards to the scrollable band so a scrolled row never overdraws the header/buttons.
+  const vp = getGridViewport(canvas, alienGridOpts(canvas))
+  ctx.save()
+  ctx.beginPath(); ctx.rect(0, vp.top - 2, w, (vp.bottom - vp.top) + 4); ctx.clip()
   aliens.forEach((a, i) => {
     const r = rects[i]
     if (!r) return
@@ -883,6 +900,8 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
       drawCenteredText(ctx, String(slot + 1), r.x + r.w - 16, r.y + 16, { font: "800 13px Arial", fill: "#bbf7d0" })
     }
   })
+  ctx.restore()
+  drawGridScrollbar(ctx, getGridScrollbar(aliens.length, canvas, alienGridOpts(canvas)))
 
   // buttons
   const buttons = getAlienSelectButtons(canvas)
@@ -1607,7 +1626,11 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
   return true
 }
 
-export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, floorHeight = 120) {
+// Records the world-y span the stage backdrop actually covered on the last draw (top→bottom). The
+// fullscreen-centering probe reads it to confirm the drawn stage is balanced within the camera view.
+export const lastBattleBgRect = { top: 0, bottom: 0 }
+
+export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, floorHeight = 120, coverY = null) {
   const { width: w, height: h } = getCanvasSize(canvas)
   const parsedWorldWidth = Number(stage?.worldWidth)
   const worldWidth       = Number.isFinite(parsedWorldWidth) ? Math.max(parsedWorldWidth, w) : w
@@ -1618,15 +1641,30 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
   const accent  = stage?.accent || "#ffffff"
   const bgImage = getStageBackgroundImage(stage)
 
+  // The scene draws INSIDE the camera transform, and the camera — centered on the grounded fighters —
+  // can see BELOW world-y=h (and above 0) on tall/large viewports. Filling only [0,h] left an undrawn
+  // band at the bottom of the screen (the reported "favouring the bottom" split), growing with height.
+  // Cover the FULL visible world-y span the caller passes (camera view + margin); fall back to the plain
+  // [0,h] canvas band. The sky→mid→floor gradient stays anchored to [0,h] so the HORIZON never moves —
+  // canvas gradients CLAMP their end colours, so a taller fill paints solid sky above 0 and solid floor
+  // below h automatically. Result: the drawn stage brackets the view evenly, no gap top or bottom.
+  const covTop   = Math.min(0, coverY?.top ?? 0)
+  const covBot   = Math.max(h, coverY?.bottom ?? h)
+  const floorExt = Math.max(floorHeight, covBot - groundY)   // extend the ground down to the view bottom
+  lastBattleBgRect.top    = covTop
+  lastBattleBgRect.bottom = covBot
+
   const bg = ctx.createLinearGradient(0, 0, 0, h)
   bg.addColorStop(0, sky)
   bg.addColorStop(0.62, mid)
   bg.addColorStop(1, floor)
   ctx.fillStyle = bg
-  ctx.fillRect(0, 0, worldWidth, h)
+  ctx.fillRect(0, covTop, worldWidth, covBot - covTop)
 
   if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
     ctx.save()
+    // The photo covers its natural [0,h] band; the extended gradient fill above/below already painted
+    // solid sky / floor into the margins, so the image never leaves a gap.
     ctx.drawImage(bgImage, 0, 0, worldWidth, h)
     const overlay = ctx.createLinearGradient(0, 0, 0, h)
     overlay.addColorStop(0, "rgba(255,255,255,0.04)")
@@ -1664,10 +1702,12 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
   ctx.fillStyle = "rgba(255,255,255,0.08)"
   ctx.fillRect(0, groundY - 20, worldWidth, 10)
 
+  // Ground slab + shade extend to the bottom of the visible view (floorExt), so the floor reads as solid
+  // continuous ground under the fighters instead of ending in a hard line partway down a tall screen.
   ctx.fillStyle = floor
-  ctx.fillRect(0, groundY, worldWidth, floorHeight)
+  ctx.fillRect(0, groundY, worldWidth, floorExt)
   ctx.fillStyle = "rgba(0,0,0,0.10)"
-  ctx.fillRect(0, groundY + 30, worldWidth, Math.max(0, floorHeight - 30))
+  ctx.fillRect(0, groundY + 30, worldWidth, Math.max(0, floorExt - 30))
 
   if (stage?.name) {
     drawPanel(ctx, 22, 22, 250, 44, {
@@ -2092,6 +2132,29 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
         else { ctx.strokeStyle = "rgba(253,224,71,0.45)"; ctx.lineWidth = 1.5; ctx.stroke() }
         if (placed && i === selm) { ctx.beginPath(); ctx.arc(cx, py, pipR + 2.5, 0, Math.PI * 2); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.stroke() }
       }
+      ctx.restore()
+    }
+
+    // CHROLLO — Bandit's Echo mark badge (Stage 2). When a special/ultimate has landed on Chrollo, its
+    // exact move is "marked" (copyable, single-use) — show a purple badge with the source name + tier so
+    // the player knows an Echo is armed and WHICH move it will fire. Independent of Skill Hunter's HUD.
+    // Sits above the resource bar, anchored toward the label side (mirrors Minato's pip placement logic).
+    if ((fighter.rosterKey || "").toLowerCase() === "chrollo" && fighter._beMark) {
+      const m = fighter._beMark
+      const label = `◈ ECHO: ${m.displayName || m.rosterKey} ${m.isUltimate ? "ULT" : "SP"}`
+      ctx.save()
+      ctx.font = "bold 10px Arial"; ctx.textBaseline = "middle"
+      const tw = ctx.measureText(label).width
+      const bw = tw + 14, bh = 16, by = enY - bh - 6
+      const bx = flip ? x + barW + 20 - bw : x
+      rrect(ctx, bx, by, bw, bh, 5)
+      ctx.fillStyle = "rgba(74,46,92,0.85)"; ctx.fill()                 // Chrollo Phantom-Troupe purple
+      ctx.strokeStyle = "#c084fc"; ctx.lineWidth = 1.2; ctx.stroke()
+      ctx.shadowBlur = 8; ctx.shadowColor = "#a855f7"
+      ctx.strokeStyle = "#c084fc"; ctx.lineWidth = 1.2; rrect(ctx, bx, by, bw, bh, 5); ctx.stroke()
+      ctx.shadowBlur = 0
+      ctx.textAlign = "left"; ctx.fillStyle = "#f5e9ff"
+      ctx.fillText(label, bx + 7, by + bh / 2 + 0.5)
       ctx.restore()
     }
   }

@@ -141,6 +141,8 @@ vite.config.ts.timestamp-*
 
 # Test harness artifacts (regenerable)
 harness/shots/
+# Electron PoC screenshots (regenerable via `npm run desktop:capture`)
+electron/shots/
 # Throwaway sprite-boundary verification previews
 *_OVERLAY.png
 *_ONGRAY.png

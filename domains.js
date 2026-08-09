@@ -2,6 +2,7 @@
 // Domain Expansion system — activation, update, rendering, conflict resolution, HUD, and background effects.
 
 import { sound, SFX, MUSIC } from "./sound.js"
+import { pickSukunaVoice } from "./sukunaVoice.js"   // Malevolent Shrine ult incantation (領域展開/伏魔御廚子 — audio-only; JA default)
 
 export const activeDomains = []
 
@@ -87,9 +88,11 @@ export function activateDomain(fighter, options = {}, context = {}) {
   // fired on the SAME frame the white-flash fade-in begins. Every other domain
   // keeps the generic activate SFX + procedural domain loop unchanged.
   if (domain.rosterKey === "sukuna") {
-    // Sukuna voice line ("Sukuna_saying_Domain.mp3") DELETED 2026-08-04 (voice removal) → pass null so the
-    // domain still plays its Malevolent Shrine THEME music (Sukuna_Theme.mp3), just no spoken incantation.
-    sound?.playDomainAudio?.(null, "Sukuna_Theme.mp3")
+    // Sukuna's domain incantation, REBUILT 2026-08-04 (sukunaVoice.js castDomain pool — 領域展開 / 伏魔御廚子,
+    // canonical Malevolent Shrine call). Plays as the voice line over the looping Malevolent Shrine THEME
+    // (Sukuna_Theme.mp3), on the SAME frame the white-flash begins. Falls back to null (theme only) if the
+    // pool is empty. Replaces the deleted "Sukuna_saying_Domain.mp3" in the exact same slot.
+    sound?.playDomainAudio?.(pickSukunaVoice("castDomain"), "Sukuna_Theme.mp3")
   } else if (domain.rosterKey === "gojo") {
     // Unlimited Void theme (looping), replacing the stage track. playDomainAudio
     // gesture-gates and falls back to the procedural DOMAIN_LOOP if the file 404s.
@@ -584,11 +587,11 @@ export function drawDomains(ctx) {
   for (const domain of activeDomains) {
     if (!domain?.owner) continue
 
-    // Gojo/Sukuna domains span the whole map (range ~1e5); a world-space ring/fill
+    // Gojo/Sukuna/Megumi domains span the whole map (range ~1e5); a world-space ring/fill
     // of that radius would be absurd. Their fullscreen drawDomainBackground +
     // the screen-space HUD bar convey the domain, so skip the world ring here.
     // Other domains keep their normal circular ring.
-    if (domain.rosterKey === "gojo" || domain.rosterKey === "sukuna") continue
+    if (domain.rosterKey === "gojo" || domain.rosterKey === "sukuna" || domain.rosterKey === "megumi") continue
 
     const owner = domain.owner
     const cx = (owner.x || 0) + (owner.w || 0) / 2

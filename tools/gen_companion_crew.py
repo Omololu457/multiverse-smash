@@ -44,7 +44,9 @@ CONFIG["shinobu"] = ("amber", "butterfly-wing pattern", [R(hue="245-285", smin=0
                      ["ultimate", "flit"])   # her Insect-Breathing poison FX shares the wing's purple hue
 # Gon — he is ALREADY green (outfit+hair), so the toxic-green marker goes on the only distinct non-green
 # accent: his brown BOOTS (hue 30-46 sat>=.7 val .15-.5; skin H24 excluded) → toxic-green. (No wristband exists.)
-CONFIG["gon"] = ("amber", "boots", [R(hue="30-46", smin=0.7, vmin=0.15, vmax=0.5, tone=AMBER)])
+# Gon (BOLD) — he is already green, so shift his whole green OUTFIT (body yband, hue 95-140) to the crew's
+# darker toxic-green tone → a clear affiliation. Hair (top yband) + skin + brown boots left as-is.
+CONFIG["gon"] = ("amber", "outfit (bold)", [R(hue="95-140", smin=0.4, yband="0.3-1.0", tone=AMBER)])
 # Naruto — his wired idle is KCM (all-gold form) so the blue HEADBAND isn't visible; tint a thin forehead
 # BAND (yband .13-.2, the headband's position) of the gold → toxic-green so a green headband reads.
 CONFIG["naruto"] = ("amber", "headband band", [R(hue="8-60", smin=0.5, yband="0.12-0.2", tone=AMBER)])
@@ -78,12 +80,15 @@ CONFIG["rick"] = ("roman", "collar (shirt at coat-V)", [R(hue="158-190", smin=0.
 # Tobirama — the tan leather ARMOR-STRAP/collar (hue 36-52 sat .18-.5; his H20-30 skin excluded by hue) → bronze.
 # Tobirama — the tan armor-STRAP/collar shares his skin's warm hue (H26-30), so isolate it SPATIALLY: a
 # neck-band (y .2-.34, below the face, above the hands) + warm gate → bronze. Face/hands excluded by yband.
-CONFIG["tobirama"] = ("roman", "armor strap/collar", [R(hue="16-42", smin=0.2, smax=0.46, vmin=0.5, vmax=0.86, yband="0.2-0.34", tone=ROMAN)])
+# Tobirama (BOLD) — recolor the bright blue ARMOR plates (hue 200-228 sat>=.5) → bronze. Torso yband + skip
+# his blue WATER-jutsu sheets (water FX shares the armor's blue hue). Navy outfit (H240) + white hair kept.
+CONFIG["tobirama"] = ("roman", "armor (bold)", [R(hue="200-228", smin=0.5, yband="0.18-0.62", tone=ROMAN)],
+                      ["water", "darkness", "edo"])
 # Gojo — the black BLINDFOLD band: eye-level yband (.12-.24) + dark/near-neutral (val .03-.32) → bronze.
 CONFIG["gojo"] = ("roman", "blindfold", [R(hue="224-256", smin=0.06, smax=0.22, vmin=0.32, vmax=0.78, yband="0.12-0.25", tone=ROMAN, spread=0.9)])
 # Hisoka — the pink playing-card EMBLEM on his chest (hue 315-345 sat .4-.75) → bronze. Hair/outfit/skin untouched.
-CONFIG["hisoka"] = ("roman", "card emblem", [R(hue="315-345", smin=0.4, smax=0.78, yband="0.26-0.6", tone=ROMAN)],
-                    ["intro"])   # the intro has a large pink Nen/card FX in the same magenta hue
+# Hisoka (BOLD) — recolor his teal/green OUTFIT (hue 135-178 low-sat) → bronze. Orange hair + skin untouched.
+CONFIG["hisoka"] = ("roman", "outfit (bold)", [R(hue="135-178", smin=0.12, smax=0.42, tone=ROMAN)])
 
 # ── GROUP 2 — DEBBIE'S CREW (indigo-violet #3E2A66) ──────────────────────────
 # Beerus — the gold Egyptian JEWELRY/collar (hue 28-64 sat>=.65) → indigo. Purple skin + blue robe untouched.

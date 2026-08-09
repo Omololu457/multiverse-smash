@@ -1,37 +1,103 @@
-block,file,type,action,confidence,sheet_x,sheet_y,det_frames,cell_w,cell_h,note
-B00,goku_ssj_god_idle_and_golden_variants_RAW.png,raw_isolated,idle_and_golden_variants,MIXED,0-1277,4-72,10,1277,68,idle stance (red) + golden SSJ frames merged into one row; manual split needed
-B01,goku_ssj_god_idle_single.png,uniform_strip,idle_single,reliable,0-43,84-150,1,51,74,lone red standing/idle frame
-B02,goku_ssj_god_crouch_hit_poses.png,uniform_strip,crouch_hit_poses,reliable,586-753,77-133,4,48,64,crouch / damage poses (red)
-B03,goku_ssj_god_golden_ssj_pose.png,uniform_strip,golden_ssj_pose,reliable,1004-1291,85-140,6,52,63,GOLDEN-hair SSJ variant (different form)
-B04,goku_ssj_god_walk_RAW.png,raw_isolated,walk,reliable(visual),0-682,170-237,3,682,67,"walk cycle (red); frames touch, can't auto-slice"
-B05,goku_ssj_god_golden_ssj_walk_RAW.png,raw_isolated,golden_ssj_walk,approx,1004-1377,159-207,5,373,48,GOLDEN SSJ walk + knockback; 1 wide seg (verify)
-B06,goku_ssj_god_transform_forms.png,uniform_strip,transform_forms,reliable,1002-1274,218-285,6,72,74,red power-up + grey/white (SSJ-Blue/UI) head variants
-B07,goku_ssj_god_walk_run_b_RAW.png,raw_isolated,walk_run_b,reliable(visual),0-711,252-323,7,711,71,2nd walk/run cycle (red); frames touch
-B08,goku_ssj_god_run_RAW.png,raw_isolated,run,reliable(visual),0-343,336-401,3,343,65,run cycle (red); frames touch
-B09,goku_ssj_god_crouch_walk_RAW.png,raw_isolated,crouch_walk,reliable(visual),1-393,430-473,2,392,43,crouch-walk (red); frames touch
-B10,goku_ssj_god_jump_RAW.png,raw_isolated,jump,reliable(visual),0-579,482-554,2,579,72,jump arc (red); frames touch
-B11,goku_ssj_god_air_spin_flip.png,uniform_strip,air_spin_flip,reliable,973-1241,480-548,6,66,76,aerial spin/flip frames (red)
-B12,goku_ssj_god_attack_startup.png,uniform_strip,attack_startup,reliable,881-1053,568-632,4,47,70,guard/stance into punch startup (red)
-B13,goku_ssj_god_attacks_merged_1_RAW.png,raw_isolated,attacks_merged_1,MULTI,1-1271,563-779,1,1270,216,LARGE merged mass: multiple attack animations fused; manual split needed
-B14,goku_ssj_god_punch_combo.png,uniform_strip,punch_combo,reliable,875-1216,727-781,6,65,62,punch combo (red)
-B15,goku_ssj_god_attack_punch_RAW.png,raw_isolated,attack_punch,reliable(visual),2-285,782-849,1,283,67,punch sequence (red); frames touch
-B16,goku_ssj_god_dash_rush_attack_RAW.png,raw_isolated,dash_rush_attack,reliable(visual),442-779,795-849,1,337,54,dash/rush + projectile (red); frames touch
-B17,goku_ssj_god_combo_string.png,uniform_strip,combo_string,reliable,873-1291,789-847,9,56,64,longer combo string (red)
-B18,goku_ssj_god_attack_b_RAW.png,raw_isolated,attack_b,reliable(visual),1-319,852-910,1,318,58,attack sequence (red); frames touch
-B19,goku_ssj_god_kick_combo.png,uniform_strip,kick_combo,reliable,861-1303,868-915,7,88,51,kick combo w/ extended-leg frames (red)
-B20,goku_ssj_god_attack_launch_RAW.png,raw_isolated,attack_launch,reliable(visual),1-484,915-970,2,483,55,attack into launch (red); frames touch
-B21,goku_ssj_god_air_combo_RAW.png,raw_isolated,air_combo,reliable(visual),811-1400,915-986,6,589,71,aerial combo (red); frames touch
-B22,goku_ssj_god_attack_c_RAW.png,raw_isolated,attack_c,reliable(visual),1-395,971-1037,1,394,66,attack sequence (red); frames touch
-B23,goku_ssj_god_jump_kick.png,uniform_strip,jump_kick,reliable,807-1124,996-1064,6,74,74,jumping kick (red)
-B24,goku_ssj_god_crouch_attack_RAW.png,raw_isolated,crouch_attack,approx,1-446,1042-1102,6,445,60,crouch attack (red); 1 wide seg (verify)
-B25,goku_ssj_god_air_attack.png,uniform_strip,air_attack,reliable,806-1208,1066-1137,8,54,75,aerial attack (red)
-B26,goku_ssj_god_special_attack_RAW.png,raw_isolated,special_attack,reliable(visual),0-493,1110-1169,3,493,59,attack + energy/ki figure (red); frames touch
-B27,goku_ssj_god_hit_stagger_RAW.png,raw_isolated,hit_stagger,reliable(visual),3-228,1190-1257,1,225,67,hit/stagger (red); frames touch
-B28,goku_ssj_god_knockback_and_dive_RAW.png,raw_isolated,knockback_and_dive,MIXED,2-721,1246-1321,7,719,75,"red knockback + skin-tone head-first dive/flip; two anims, manual split"
-B29,goku_ssj_god_launch_fall_dive_RAW.png,raw_isolated,launch_fall_dive,approx,753-1167,1257-1307,4,414,50,"head-first falling/dive frames (skin); wide frames, verify count"
-B30,goku_ssj_god_getup_knockback_RAW.png,raw_isolated,getup_knockback,reliable(visual),4-579,1322-1396,2,575,74,knockback / get-up (red); frames touch
-B31,goku_ssj_god_kick_a_RAW.png,raw_isolated,kick_a,reliable(visual),2-589,1404-1474,2,587,70,kick sequence (red); frames touch
-B32,goku_ssj_god_kick_b_RAW.png,raw_isolated,kick_b,reliable(visual),0-300,1483-1534,1,300,51,kick (red); frames touch
-B33,goku_ssj_god_energy_wave_attack_RAW.png,raw_isolated,energy_wave_attack,reliable(visual),4-814,1542-1605,3,810,63,rush + energy-wave projectile (red); frames touch
-B34,goku_ssj_god_run_attack_merged_2_RAW.png,raw_isolated,run_attack_merged_2,MULTI,1-877,1611-1763,1,876,152,LARGE merged mass: run cycle + attack fused; manual split needed
-B35,goku_ssj_god_run_attack_RAW.png,raw_isolated,run_attack,approx,3-807,1754-1823,16,804,69,run + attack + slash arc (red); 1 wide seg among frames
+file,duration_sec
+zaraki_line_001.mp3,2.5
+zaraki_line_002.mp3,3.73
+zaraki_line_003.mp3,2.11
+zaraki_line_004.mp3,2.13
+zaraki_line_005.mp3,0.89
+zaraki_line_006.mp3,6.29
+zaraki_line_007.mp3,1.41
+zaraki_line_008.mp3,2.51
+zaraki_line_009.mp3,1.32
+zaraki_line_010.mp3,4.61
+zaraki_line_011.mp3,13.34
+zaraki_line_012.mp3,8.28
+zaraki_line_013.mp3,3.3
+zaraki_line_014.mp3,1.01
+zaraki_line_015.mp3,2.36
+zaraki_line_016.mp3,4.91
+zaraki_line_017.mp3,3.2
+zaraki_line_018.mp3,0.96
+zaraki_line_019.mp3,2.0
+zaraki_line_020.mp3,1.14
+zaraki_line_021.mp3,5.72
+zaraki_line_022.mp3,3.43
+zaraki_line_023.mp3,1.25
+zaraki_line_024.mp3,2.51
+zaraki_line_025.mp3,2.29
+zaraki_line_026.mp3,1.83
+zaraki_line_027.mp3,1.8
+zaraki_line_028.mp3,0.65
+zaraki_line_029.mp3,4.39
+zaraki_line_030.mp3,1.3
+zaraki_line_031.mp3,6.84
+zaraki_line_032.mp3,1.66
+zaraki_line_033.mp3,1.37
+zaraki_line_034.mp3,2.07
+zaraki_line_035.mp3,0.95
+zaraki_line_036.mp3,1.33
+zaraki_line_037.mp3,2.73
+zaraki_line_038.mp3,5.16
+zaraki_line_039.mp3,6.36
+zaraki_line_040.mp3,3.76
+zaraki_line_041.mp3,2.13
+zaraki_line_042.mp3,5.21
+zaraki_line_043.mp3,9.41
+zaraki_line_044.mp3,2.19
+zaraki_line_045.mp3,10.35
+zaraki_line_046.mp3,8.83
+zaraki_line_047.mp3,1.49
+zaraki_line_048.mp3,1.36
+zaraki_line_049.mp3,3.47
+zaraki_line_050.mp3,3.88
+zaraki_line_051.mp3,0.94
+zaraki_line_052.mp3,2.98
+zaraki_line_053.mp3,0.36
+zaraki_line_054.mp3,5.87
+zaraki_line_055.mp3,1.5
+zaraki_line_056.mp3,1.7
+zaraki_line_057.mp3,2.87
+zaraki_line_058.mp3,3.29
+zaraki_line_059.mp3,0.93
+zaraki_line_060.mp3,2.26
+zaraki_line_061.mp3,10.74
+zaraki_line_062.mp3,1.12
+zaraki_line_063.mp3,3.56
+zaraki_line_064.mp3,3.61
+zaraki_line_065.mp3,1.54
+zaraki_line_066.mp3,1.26
+zaraki_line_067.mp3,4.67
+zaraki_line_068.mp3,2.28
+zaraki_line_069.mp3,5.27
+zaraki_line_070.mp3,2.97
+zaraki_line_071.mp3,4.48
+zaraki_line_072.mp3,1.04
+zaraki_line_073.mp3,6.12
+zaraki_line_074.mp3,0.9
+zaraki_line_075.mp3,0.66
+zaraki_line_076.mp3,8.39
+zaraki_line_077.mp3,0.23
+zaraki_line_078.mp3,2.45
+zaraki_line_079.mp3,1.54
+zaraki_line_080.mp3,2.38
+zaraki_line_081.mp3,4.51
+zaraki_line_082.mp3,1.8
+zaraki_line_083.mp3,2.64
+zaraki_line_084.mp3,0.84
+zaraki_line_085.mp3,9.36
+zaraki_line_086.mp3,14.43
+zaraki_line_087.mp3,1.15
+zaraki_line_088.mp3,2.1
+zaraki_line_089.mp3,1.43
+zaraki_line_090.mp3,1.22
+zaraki_line_091.mp3,0.32
+zaraki_line_092.mp3,1.94
+zaraki_line_093.mp3,2.21
+zaraki_line_094.mp3,3.28
+zaraki_line_095.mp3,3.05
+zaraki_line_096.mp3,7.95
+zaraki_line_097.mp3,2.61
+zaraki_line_098.mp3,1.77
+zaraki_line_099.mp3,1.91
+zaraki_line_100.mp3,1.81
+zaraki_line_101.mp3,2.18
+zaraki_line_102.mp3,4.57

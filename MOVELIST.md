@@ -223,9 +223,9 @@ reset to summon zoning.
 | **Max Elephant** | ↓B + Special | 35 | 145 | A massive crushing water-elephant. Your heavy hitter. |
 
 ### Ultimate — `U` / **R2**
-- **Mahoraga Ritual** — cost **100**. **Permanently** transforms Megumi into **Mahoraga**
-  (one-way — his summons are disabled and he gains Mahoraga's own moveset and 1600 HP).
-  A commitment: you're a different, tankier character for the rest of the round.
+- **Chimera Shadow Garden** — cost **100**. **Domain Expansion.** Unfurls a shadow
+  territory across the arena that **restrains the opponent** (heavy movement penalty)
+  for its duration (~15s). Megumi keeps his full shikigami summon kit while it's up.
 
 ---
 
@@ -499,7 +499,7 @@ ground, then start a string.
 - **"Cost"** is the character's energy meter (ki / cursed energy / chakra / Bullshit
   Science). **Toji has no meter** — his moves are free, gated by cooldowns.
 - **Ultimates** are always `U` / **R2**. Some are **domains / transforms** (Gojo's
-  Unlimited Void, Sukuna's Malevolent Shrine, Megumi→Mahoraga, Goku's SSJ Blue) that
+  Unlimited Void, Sukuna's Malevolent Shrine, Megumi's Chimera Shadow Garden, Goku's SSJ Blue) that
   spend a full/large bar and change how you play — see each character's Ultimate.
 - **Toggles** (Gojo Infinity, Sasuke Absolute Defense) are a **quick tap of `P` / L2** —
   the same button you **hold** to charge meter.

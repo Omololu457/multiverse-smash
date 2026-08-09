@@ -33,15 +33,17 @@ async function pressSwapCombo(dirKey) {
   await page.waitForFunction(() => { const p = window.__harness.p1(); return p && !p.gfSwapActive && p.grounded && !p.attacking && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
   await page.evaluate(() => { const f = window.__harness.p1(); if (f) window.__harness.resetFighterInput?.("p1"); });
   for (const k of MOTION[dirKey]) { await page.keyboard.down(k); await waitFrames(1); await page.keyboard.up(k); await waitFrames(1); }
-  await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l"); await waitFrames(4);
+  await page.keyboard.down("o");                          // Grab = swap modifier (no energy build → the energy-gate test stays valid)
+  await page.keyboard.down("l"); await waitFrames(1); await waitFrames(2); await page.keyboard.up("l"); await page.keyboard.up("o");
+  await waitFrames(18);                                   // Backstage Pass dash emerges into the swap
   return await gfSwap();
 }
 async function resetToGhostface(skin = "ghostfaceBilly") {
   await page.evaluate(() => window.__harness.expireGfSwap());
   await waitFrames(3);
   await page.evaluate(s => { window.__harness.setSkin("p1", s); window.__harness.fillEnergy(); window.__harness.healP1?.(); window.__harness.resetFighterInput?.("p1"); }, skin);
-  await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.key === "ghostface" && p.grounded && !p.attacking && !p.currentMove; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
-  const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + 70); await waitFrames(2);
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.key === "ghostface" && p.grounded && !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + 200); await waitFrames(2);
 }
 
 async function bootBattle(p1key, p2key = "rengoku") {

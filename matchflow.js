@@ -527,7 +527,6 @@ export function resetFighterForRematch(fighter) {
     oneWayTransformation: false,
     deathRitual:     false,
     ritualActive:    false,
-    isMahoraga:      false,
     disabledSpecials:[],
     pendingCharacterSwap: null,
     domainBuff:      false,

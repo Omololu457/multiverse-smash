@@ -92,21 +92,24 @@ const kd = await p2();
 check("Low Gut trips the opponent (knockdown)", kd.knockdownState === true, `knockdown=${kd.knockdownState}`);
 await page.keyboard.up("s"); await waitFrames(30);
 
-// ── 4. Stalk Vanish (Back+Special) — i-frames + backward step, no damage ──
-console.log("\n── 4. Stalk Vanish (Back+Special) — i-frames ──");
+// ── 4. Getaway (Back+Special) — the evasive Backstage Pass branch (inherits the old Stalk Vanish
+//      i-frames + backstep; the standalone Stalk Vanish is retired into it). ──
+console.log("\n── 4. Getaway (Back+Special) — evasive Backstage Pass (i-frames + backstep) ──");
 await setup();
 a = await p1();
 const backKey = a.facing === 1 ? "a" : "d";   // hold AWAY from the opponent
-const x0 = a.x, h2before = (await p2()).health;
+const x0 = a.x;
 await page.keyboard.down(backKey); await waitFrames(2);        // latch the BACK direction first
-await page.keyboard.down("l"); await waitFrames(3); await page.keyboard.up("l");
+await page.keyboard.down("l"); await waitFrames(2);
+const bpMid = await page.evaluate(() => window.__harness.bp());
+await page.keyboard.up("l");
 // invulnTimer peaks then decays — sample the MAX and the furthest backward travel over ~18f
 let maxInv = 0, back = 0;
 for (let i = 0; i < 18; i++) { const c = await p1(); maxInv = Math.max(maxInv, c.invulnTimer || 0); back = Math[a.facing === 1 ? "min" : "max"](back, c.x - x0); await waitFrames(1); }
-check("Stalk Vanish grants i-frames", maxInv > 0, `invuln=${maxInv}`);
-check("Stalk Vanish steps backward (away)", Math.abs(back) > 15, `travel=${Math.round(back)}px facing=${a.facing}`);
-check("Stalk Vanish deals no damage", (await p2()).health === h2before, `p2=${(await p2()).health}`);
-await shot("stalk"); await page.keyboard.up(backKey); await waitFrames(20);
+check("Back+Special is the Getaway Backstage Pass", !!bpMid && bpMid.branch === "getaway", `branch=${bpMid?.branch}`);
+check("Getaway grants evasive i-frames", maxInv > 0, `invuln=${maxInv}`);
+check("Getaway repositions backward (away)", Math.abs(back) > 15, `travel=${Math.round(back)}px facing=${a.facing}`);
+await shot("getaway"); await page.keyboard.up(backKey); await waitFrames(20);
 
 // ── 5. Ultimate — "The Final Act" freeze cinematic + guaranteed damage ──
 console.log("\n── 5. The Final Act (Ultimate) ──");

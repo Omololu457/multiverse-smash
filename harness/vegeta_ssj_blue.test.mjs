@@ -54,7 +54,7 @@ const p2 = () => page.evaluate(() => window.__harness.p2());
 const form = () => page.evaluate(() => window.__harness.vegetaForm());
 const vegCmd = () => page.evaluate(() => window.__harness.vegCmd());
 const topUp = () => page.evaluate(() => window.__harness.fillEnergy());
-async function releaseAll() { for (const k of ["a", "d", "s", "w", "j", "k", "i", "l", "u", "p"]) await page.keyboard.up(k).catch(() => {}); }
+async function releaseAll() { for (const k of ["a", "d", "s", "w", "j", "k", "i", "l", "u", "p", ";"]) await page.keyboard.up(k).catch(() => {}); }
 const isFallback = a => !a.spriteSheet || a.spriteFrames === null || /_FALLBACK|128/.test(a.spriteSheet || "");
 async function chargeRelease() { await page.keyboard.down("p"); await waitFrames(14); await page.keyboard.up("p"); }
 async function waitIdle() { await page.waitForFunction(() => { const p = window.__harness.p1(); return p.action === "idle" && (p.attackCooldown || 0) === 0; }, null, { timeout: 6000, polling: 16 }).catch(() => {}); }
@@ -126,11 +126,14 @@ try {
 
     // Idle screenshot = Blue (cyan) art.
     await waitIdle(); await page.screenshot({ path: path.join(OUT, "VBLUE_idle.png") });
-    // Guard screenshot = SSJ-gold fallback (hold Down).
-    await page.keyboard.down("s"); await waitFrames(6);
+    // Guard screenshot = SSJ-gold fallback. Hold the dedicated BLOCK key ";" — MK-feel Stage 1c moved
+    // block off Down, so holding Down no longer guards. WAIT for the guard state to establish rather
+    // than sampling after a fixed frame count (the old fixed-6-frame sample was a race that flaked).
+    await page.keyboard.down(";");
+    await page.waitForFunction(() => window.__harness.p1().action === "guard", null, { timeout: 3000, polling: 16 }).catch(() => {});
     const g = await p1(); check("guard renders (SSJ-gold fallback, not a box)", (g.spriteSheet || "").includes("vegeta_ssj_gaurd"), `sheet=${g.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "VBLUE_gold_guard.png") });
-    await page.keyboard.up("s"); await waitFrames(4);
+    await page.keyboard.up(";"); await waitFrames(4);
     // Base-fallback screenshot = Koma Repeatable (Down+Light → base dark-hair art).
     await ensureBlue(); await pinDummy(44); await actionable();
     await page.keyboard.down("s"); await waitFrames(1); await page.keyboard.down("j"); await waitFrames(2); await page.keyboard.up("j"); await page.keyboard.up("s");

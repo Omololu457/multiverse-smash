@@ -7,8 +7,9 @@ import {
   isTransformDevice, updateTransformDevice, tryTransform, revertToHuman, selectAlienSlot
 } from "./fighters.js"
 import { camera } from "./camera.js"
-import { SpriteHandler, processPendingSpawns, preloadCharacterSprites } from "./sprite.js"
+import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets } from "./sprite.js"
 import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
+import { fxSheetsForFighters } from "./preloadManifest.js"
 import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
@@ -2155,6 +2156,66 @@ function drawNamecallBanner() {
   ctx.restore()
 }
 
+// ── STAGE 10: match-start asset preload ────────────────────────────────────────────────────────
+// Decode every sheet both fighters (+ their skins) and their spawned FX can render BEFORE the fight
+// actually starts, so no move first-use-faults to the _FALLBACK box while its PNG is still decoding.
+// The intro (~90-frame settle + per-side intro strips) is the cover; the INTRO→BATTLE transition is
+// gated on _preloadReady so a slow connection briefly holds on the intro rather than flashing a box.
+let _preloadReady    = true                 // true when nothing is pending (also the pre-first-match state)
+let _preloadFailures = []                   // [{ path, error }] from the last preloadMatch, logged at start
+let _preloadProgress = { done: 0, total: 0 }
+let _preloadPromise  = Promise.resolve({ failures: [] })
+
+// Collect the distinct .sheet paths one fighter can render: the character's own animationData merged
+// with the active skin's per-action overrides (the renderer reads the merged set via _skinAnim, so a
+// base-only walk would still first-use-fault on skin-overridden actions). Lives here — not in sprite.js
+// — so sprite.js needn't statically import characters/skins (that extra load-graph edge measurably
+// perturbed startMatch timing for real-time-sensitive suites). Deduped by path.
+function collectFighterSheets(rosterKey, skinId) {
+  const paths = new Set()
+  const base = characters?.[rosterKey]?.animationData || {}
+  for (const def of Object.values(base)) if (def?.sheet) paths.add(def.sheet)
+  if (skinId && skinId !== "default") {
+    let skinAnim = null
+    try { skinAnim = getSkinAnimationData(rosterKey, skinId) } catch (_) {}
+    for (const def of Object.values(skinAnim || {})) if (def?.sheet) paths.add(def.sheet)
+  }
+  return [...paths]
+}
+
+function preloadMatch(cfg) {
+  _preloadReady    = false
+  _preloadFailures = []
+  _preloadProgress = { done: 0, total: 0 }
+  const bump = () => { _preloadProgress.done++; try { window.__setLoadProgress?.(_preloadProgress.done, _preloadProgress.total) } catch (_) {} }
+
+  // One combined, deduped list (both fighters' body+skin sheets + both fighters' FX) through ONE bounded
+  // pool — so the concurrency cap is global, not multiplied across separate preloadFighter/FX calls.
+  const paths = new Set()
+  if (cfg.p1CharKey) for (const p of collectFighterSheets(cfg.p1CharKey, cfg.p1Skin)) paths.add(p)
+  if (cfg.p2CharKey) for (const p of collectFighterSheets(cfg.p2CharKey, cfg.p2Skin)) paths.add(p)
+  for (const p of fxSheetsForFighters(cfg.p1CharKey, cfg.p2CharKey)) paths.add(p)
+
+  const jobs = [preloadSheets([...paths], bump)]
+
+  _preloadPromise = Promise.all(jobs).then(results => {
+    _preloadProgress.total = results.reduce((n, r) => n + (r?.total || 0), 0)
+    _preloadProgress.done  = _preloadProgress.total
+    _preloadFailures = results.flatMap(r => r?.failures || [])
+    _preloadReady = true
+    // Report failures LOUDLY by filename at match start — a 404 or decode error here is otherwise
+    // invisible until the offending move draws a fallback mid-fight (see AUDIO_INVENTORY phantom refs).
+    if (_preloadFailures.length) {
+      console.warn(`[preload] ${_preloadFailures.length} sheet(s) failed to preload for this match:`)
+      for (const f of _preloadFailures) console.warn(`  ✗ ${f.path} — ${f.error}`)
+    }
+    try { window.__setLoadProgress?.(_preloadProgress.done, _preloadProgress.total) } catch (_) {}
+    return { failures: _preloadFailures, progress: { ..._preloadProgress } }
+  }).catch(() => { _preloadReady = true; return { failures: _preloadFailures } })  // never wedge the intro
+
+  return _preloadPromise
+}
+
 function startMatch() {
   sound.stopAllSfx?.({ includePersistent: true })   // new match → no cue from a prior match/menu bleeds in
   _roundEndAudioStopped = false
@@ -2176,8 +2237,14 @@ function startMatch() {
   trainingState.cloneNoTell       = false   // fresh match → decoy visual tell ON (no-tell is an opt-in escalation)
   setCloneTell(true)
 
+  // Keep the original synchronous per-character warmup + sheet-map population UNCHANGED — some
+  // timing-sensitive suites depend on the exact startMatch cadence it produces. preloadMatch below
+  // ADDS the decode-and-gate layer on top (body + skin + FX) without altering this.
   if (matchConfig.p1CharKey) { preloadCharacterSprites?.(matchConfig.p1CharKey); loadSpriteSheets(matchConfig.p1CharKey) }
   if (matchConfig.p2CharKey) { preloadCharacterSprites?.(matchConfig.p2CharKey); loadSpriteSheets(matchConfig.p2CharKey) }
+  // Full decode-and-gate preload: body sheets (both fighters + skins) AND spawned FX. This Promise is
+  // what gates the INTRO→BATTLE hop so no move first-use-faults to the _FALLBACK box mid-fight.
+  preloadMatch(matchConfig)
 
   resetRound()
   beginNamecallSequence()   // pre-countdown P1→P2 character announcement (skipped if unmapped)
@@ -7647,7 +7714,10 @@ function updateCurrentState() {
         // Both intros have played out sequentially (and namecall, if any, finished) — run the small
         // settle buffer, then start the fight.
         matchIntroTimer--
-        if (matchIntroTimer <= 0) {
+        // STAGE 10 GATE: don't enter BATTLE until every fighter/FX sheet has decoded. On a normal
+        // connection preload finishes long before the intro does, so this never stalls; on a slow one
+        // it holds the last intro frame for a few frames rather than ever flashing a _FALLBACK box.
+        if (matchIntroTimer <= 0 && _preloadReady) {
           gameState = GAME_STATES.BATTLE; countdown = ROUND_START_COUNTDOWN
           if (p1) p1._introPlaying = false   // BUG_9: back to idle once the fight starts
           if (p2) p2._introPlaying = false
@@ -8140,6 +8210,11 @@ gameLoop()
     sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
     start:       startHarnessMatch,
     skipToBattle,
+    // ── STAGE 10 preload hooks ──────────────────────────────────────────────────
+    preloadDone:     () => _preloadPromise,                 // resolves once every match sheet has decoded/errored
+    preloadReady:    () => _preloadReady,                   // the INTRO→BATTLE gate flag
+    preloadFailures: () => _preloadFailures.map(f => ({ ...f })),
+    preloadProgress: () => ({ ..._preloadProgress }),
     // Center point of a GAMEPLAY_SELECT button by id — so menu-click tests stay correct when the
     // menu gains/loses rows (the vertical layout re-centers all rows on any count change).
     gameplayRect: (id) => { const r = getGameplaySelectRects(canvas).find(x => x.id === id); return r ? { x: Math.round(r.x + r.w / 2), y: Math.round(r.y + r.h / 2) } : null },

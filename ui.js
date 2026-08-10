@@ -5,6 +5,7 @@
 import { drawCharacter } from "./fighters.js"
 import { characters } from "./characters.js"
 import { isFullyUnlocked } from "./progression.js"
+import { artistLineForCharacter, CREDITS } from "./credits.js"
 import { isFileApiSupported, saveFileStatus } from "./account.js"
 import { countShadowClones } from "./summons.js"
 
@@ -451,7 +452,9 @@ export function getGameplaySelectRects(canvas) {
     { id: "training", label: "TRAINING",  subLabel: "1 player practice mode"      },
     { id: "vs",       label: "VS MATCH",  subLabel: "1 player vs the CPU"         },
     { id: "pvp",      label: "2 PLAYER",  subLabel: "Local versus — P1 vs P2"     },
+    { id: "arcade",   label: "ARCADE",    subLabel: "7 fights, a rival, a boss & your ending" },
     { id: "tower",    label: "TOWER",     subLabel: "Climb a ladder of CPU fights" },
+    { id: "bracket",  label: "TOURNAMENT", subLabel: "Local 4/8-fighter single-elim bracket" },
     { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)" },
     { id: "aivsai",   label: "AI vs AI",  subLabel: "Watch/test two CPUs — logged, fast-forwardable" },
     { id: "back",     label: "BACK",      subLabel: "Return to title"             }
@@ -933,6 +936,7 @@ export function getMainMenuRects(canvas) {
     // progress persists; subLabel reflects live status (or that the browser can't do it).
     { id: "savefile", label: "SAVE FILE", subLabel: isFileApiSupported() ? saveFileStatus() : "Not supported here — progress stays in-memory" },
     { id: "settings", label: "SETTINGS",  subLabel: "Keyboard / controller setup"         },
+    { id: "credits",  label: "CREDITS",   subLabel: "Art, audio & attribution"            },
     { id: "back",     label: "BACK",      subLabel: "Return to title"                     }
   ])
 }
@@ -1227,6 +1231,185 @@ export function drawAIDifficultyScreen(ctx, canvas, selectedIndex = 0) {
 }
 
 // ─────────────────────────────────────────────
+// ARCADE  (Stage 19) — setup / rival intro / ending
+// ─────────────────────────────────────────────
+export function getArcadeSetupRects(canvas) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "easy",       label: "EASY",       subLabel: "A relaxed climb"                    },
+    { id: "adaptive",   label: "NORMAL",     subLabel: "The intended challenge"             },
+    { id: "impossible", label: "HARD",       subLabel: "Relentless — for veterans"          },
+    { id: "back",       label: "BACK",       subLabel: "Return to mode select"              }
+  ])
+}
+export function drawArcadeSetupScreen(ctx, canvas, selectedIndex = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#3a1c2d")
+  drawHeader(ctx, canvas, "ARCADE", "7 fights · a rival · a boss · your ending")
+  getArcadeSetupRects(canvas).forEach((button, index) => {
+    drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
+  })
+  drawFooterHint(ctx, canvas, "Difficulty is fixed for the whole run · lose and you can spend a continue")
+}
+
+// ── RIVAL INTRO (Stage 19C) — two portraits + the pre-fight exchange ──
+export function drawRivalIntroScreen(ctx, canvas, opts = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const { playerKey, rivalKey, playerName = "", rivalName = "", lines = [] } = opts
+  ctx.clearRect(0, 0, w, h)
+  drawBackdrop(ctx, canvas, "#0a0810", "#2a0f16")
+  drawHeader(ctx, canvas, "RIVAL", "")
+  const cx = w / 2, py = 150, pw = 260, ph = 300
+  const drawBust = (key, x, mirror, name, tint) => {
+    const img = getPortraitImage(key)
+    ctx.save()
+    roundRect(ctx, x, py, pw, ph, 16); ctx.clip()
+    if (_imageReady(img)) {
+      if (mirror) { ctx.translate(x * 2 + pw, 0); ctx.scale(-1, 1) }
+      _coverDrawImage(ctx, img, x, py, pw, ph)
+    } else { ctx.fillStyle = "#20232e"; ctx.fillRect(x, py, pw, ph) }
+    ctx.restore()
+    ctx.strokeStyle = tint; ctx.lineWidth = 3; roundRect(ctx, x, py, pw, ph, 16); ctx.stroke()
+    drawCenteredText(ctx, name, x + pw / 2, py + ph + 26, { font: "700 20px Arial", fill: tint })
+  }
+  drawBust(playerKey, cx - pw - 60, false, playerName, "#7fd3ff")
+  drawBust(rivalKey,  cx + 60,      true,  rivalName,  "#ff8a8a")
+  drawCenteredText(ctx, "VS", cx, py + ph / 2 + 8, { font: "800 46px Arial", fill: "#ffe9a8", shadowBlur: 8, shadowColor: "rgba(0,0,0,0.7)" })
+  // Dialogue lines.
+  let ly = py + ph + 76
+  for (const line of lines) {
+    drawCenteredText(ctx, line, cx, ly, { font: "18px Arial", fill: "#e6edf7" }); ly += 30
+  }
+  drawFooterHint(ctx, canvas, "Click or press any key to FIGHT")
+}
+
+// ── ENDING (Stage 19B) — Ken-Burns slow-pan slides over portrait/render art ──
+const endingImages = new Map()
+function getEndingImage(filename, rosterKey) {
+  const key = filename || `__portrait__${rosterKey}`
+  if (!endingImages.has(key)) {
+    const img = new Image()
+    img.src = filename ? `./${filename}` : (characters?.[rosterKey]?.portrait || `./${rosterKey}_portrait.png`)
+    // On failure, fall back to the portrait (or leave broken → gradient-only slide).
+    if (filename) img.onerror = () => { const p = new Image(); p.src = characters?.[rosterKey]?.portrait || `./${rosterKey}_portrait.png`; endingImages.set(key, p) }
+    endingImages.set(key, img)
+  }
+  return endingImages.get(key)
+}
+// opts: { rosterKey, slides, index, elapsedMs, slideMs }
+export function drawArcadeEndingScreen(ctx, canvas, opts = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const { rosterKey, slides = [], index = 0, elapsedMs = 0, slideMs = 6000 } = opts
+  const slide = slides[index] || { text: "" }
+  ctx.clearRect(0, 0, w, h)
+  // Backdrop gradient (also the fallback when the image is missing).
+  const bg = ctx.createLinearGradient(0, 0, 0, h)
+  bg.addColorStop(0, "#0a0d1a"); bg.addColorStop(1, "#161022")
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
+
+  // Cross-slide fade + slow Ken-Burns zoom/pan on the still image.
+  const p = Math.max(0, Math.min(1, elapsedMs / slideMs))
+  const fadeIn = Math.min(1, elapsedMs / 600), fadeOut = Math.min(1, Math.max(0, (slideMs - elapsedMs)) / 600)
+  const alpha = Math.min(fadeIn, fadeOut)
+  const img = getEndingImage(slide.image, rosterKey)
+  if (_imageReady(img)) {
+    const zoom = 1.05 + 0.12 * p                      // slow zoom-in across the slide
+    const panX = (index % 2 === 0 ? -1 : 1) * 24 * p  // gentle alternating drift
+    const panY = -18 * p
+    // Contain the image in the upper ~68% of the screen, centered, then apply the Ken-Burns transform.
+    const boxW = w, boxH = h * 0.72
+    const ar = img.naturalWidth / img.naturalHeight
+    let dw = boxH * ar, dh = boxH
+    if (dw > boxW) { dw = boxW; dh = boxW / ar }
+    dw *= zoom; dh *= zoom
+    const dx = (w - dw) / 2 + panX, dy = (boxH - dh) / 2 + panY
+    ctx.save(); ctx.globalAlpha = 0.85 * alpha + 0.15
+    ctx.drawImage(img, dx, dy, dw, dh)
+    ctx.restore()
+  }
+  // Bottom scrim + slide text.
+  const scrim = ctx.createLinearGradient(0, h * 0.55, 0, h)
+  scrim.addColorStop(0, "rgba(8,10,20,0)"); scrim.addColorStop(0.5, "rgba(8,10,20,0.82)"); scrim.addColorStop(1, "rgba(8,10,20,0.96)")
+  ctx.fillStyle = scrim; ctx.fillRect(0, h * 0.55, w, h * 0.45)
+  ctx.save(); ctx.globalAlpha = Math.min(1, elapsedMs / 500)
+  wrapCenteredText(ctx, slide.text, w / 2, h - 150, Math.min(920, w - 120), 30, { font: "20px Arial", fill: "#f2f5ff" })
+  ctx.restore()
+  // Progress dots + hint.
+  const dotY = h - 54, gap = 22, x0 = w / 2 - (slides.length - 1) * gap / 2
+  for (let i = 0; i < slides.length; i++) {
+    ctx.beginPath(); ctx.arc(x0 + i * gap, dotY, 5, 0, Math.PI * 2)
+    ctx.fillStyle = i === index ? "#ffe9a8" : "rgba(255,255,255,0.3)"; ctx.fill()
+  }
+  drawFooterHint(ctx, canvas, index < slides.length - 1 ? "Click for the next page" : "Click to finish")
+}
+
+// Small word-wrap helper for centered multi-line body text (used by the ending screen).
+function wrapCenteredText(ctx, text, cx, y, maxWidth, lineH, style = {}) {
+  ctx.font = style.font || "18px Arial"; ctx.fillStyle = style.fill || "#fff"; ctx.textAlign = "center"
+  const words = String(text || "").split(" "); const lines = []; let line = ""
+  for (const word of words) {
+    const test = line ? `${line} ${word}` : word
+    if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = word } else line = test
+  }
+  if (line) lines.push(line)
+  const startY = y - (lines.length - 1) * lineH
+  lines.forEach((ln, i) => ctx.fillText(ln, cx, startY + i * lineH))
+}
+
+// ─────────────────────────────────────────────
+// LOCAL TOURNAMENT BRACKET (Stage 24B)
+// ─────────────────────────────────────────────
+export function getBracketSetupRects(canvas) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "size4", label: "4 FIGHTERS", subLabel: "2 rounds to the title" },
+    { id: "size8", label: "8 FIGHTERS", subLabel: "3 rounds to the title" },
+    { id: "back",  label: "BACK",       subLabel: "Return to mode select"  }
+  ])
+}
+export function drawBracketSetupScreen(ctx, canvas, selectedIndex = 0) {
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawBackdrop(ctx, canvas, "#0a0f1e", "#241d3d")
+  drawHeader(ctx, canvas, "LOCAL TOURNAMENT", "Single elimination · best of 3 · you play your path, CPUs settle the rest")
+  getBracketSetupRects(canvas).forEach((b, i) => drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex }))
+  drawFooterHint(ctx, canvas, "Pick a bracket size, then choose your fighter")
+}
+
+// Draws the bracket tree. `bracket` = { size, rounds:[[{a,b,winner}]], round, matchIdx, champion }.
+export function drawBracketScreen(ctx, canvas, bracket) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  ctx.clearRect(0, 0, w, h)
+  drawBackdrop(ctx, canvas, "#080b16", "#1a1330")
+  drawHeader(ctx, canvas, bracket?.champion ? "CHAMPION" : "TOURNAMENT BRACKET", bracket?.champion ? "" : "Your next match is highlighted")
+  if (!bracket) return
+  const rounds = bracket.rounds || []
+  const colW = Math.min(230, (w - 80) / Math.max(1, rounds.length))
+  const top = 130, boxH = 46, gap0 = 20
+  const cell = (name, x, y, bw, state) => {
+    const fill = state === "win" ? "rgba(34,197,94,0.28)" : state === "cur" ? "rgba(124,58,237,0.35)" : state === "lose" ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)"
+    const stroke = state === "win" ? "#4ade80" : state === "cur" ? "#a78bfa" : "rgba(255,255,255,0.14)"
+    drawPanel(ctx, x, y, bw, 20, { fill, stroke, lineWidth: 1, radius: 5 })
+    drawCenteredText(ctx, name || "—", x + 8, y + 10, { font: state === "lose" ? "12px Arial" : "700 12px Arial", fill: state === "lose" ? "rgba(200,210,230,0.45)" : "#fff", align: "left", baseline: "middle" })
+  }
+  rounds.forEach((round, ri) => {
+    const x = 40 + ri * colW
+    const spacing = (h - top - 80) / Math.max(1, round.length)
+    round.forEach((m, mi) => {
+      const y = top + mi * spacing + (spacing - (boxH + gap0)) / 2
+      const isCur = ri === bracket.round && mi === bracket.matchIdx && !bracket.champion
+      const aState = m.winner ? (m.winner === m.a ? "win" : "lose") : (isCur ? "cur" : "pend")
+      const bState = m.winner ? (m.winner === m.b ? "win" : "lose") : (isCur ? "cur" : "pend")
+      cell(m.a?.name, x, y, colW - 30, aState)
+      cell(m.b?.name, x, y + 24, colW - 30, bState)
+    })
+  })
+  if (bracket.champion) {
+    drawCenteredText(ctx, `🏆 ${bracket.champion.name}`, w / 2, h - 96, { font: "800 30px Arial", fill: "#ffe082" })
+    drawFooterHint(ctx, canvas, "Click to finish")
+  } else {
+    drawFooterHint(ctx, canvas, "Click to play your next match")
+  }
+}
+
+// ─────────────────────────────────────────────
 // UNIVERSE SELECT
 // ─────────────────────────────────────────────
 export function drawUniverseSelectScreen(ctx, canvas, universes = [], selectedIndex = 0) {
@@ -1277,6 +1460,8 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   const p2Selected    = options.p2Selected    ?? null
   const currentPlayer = options.currentPlayer ?? 1
   const title         = options.title         || "CHARACTER SELECT"
+  const isLocked      = typeof options.isLocked === "function" ? options.isLocked : () => false   // Stage 21
+  const lockLabel     = typeof options.lockLabel === "function" ? options.lockLabel : () => "Locked"
 
   ctx.clearRect(0, 0, w, h)
   drawBackdrop(ctx, canvas, "#0b1021", "#1b2240")
@@ -1296,6 +1481,8 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
     const rect      = rects[i]
     const isCursor  = i === selectedIndex
     const fighterId = fighter?.id || fighter?.key || fighter?.name || String(i)
+    const rosterKey = fighter?.rosterKey || fighter?.id || fighter?.key
+    const locked    = !!isLocked(rosterKey)   // Stage 21 — show as a silhouette, not pickable
     const isP1 = p1Selected === fighterId || p1Selected === i
     const isP2 = p2Selected === fighterId || p2Selected === i
 
@@ -1332,27 +1519,147 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
     // original opaque box renders exactly as before.
     drawPanel(ctx, rect.x, rect.y, rect.w, rect.h, {
       fill: hasPortrait && fill === "rgba(255,255,255,0.07)" ? "rgba(0,0,0,0)" : fill,
-      stroke, lineWidth: 2
+      stroke: locked ? "rgba(120,130,150,0.45)" : stroke, lineWidth: 2
     })
 
     const fighterName = fighter?.name || fighter?.id || fighter?.displayName || fighter?.label || `Fighter ${i + 1}`
     const universe    = fighter?.universe || fighter?.series || fighter?.origin || ""
 
-    drawCenteredText(ctx, fighterName, rect.x + rect.w / 2, rect.y + 38, {
-      font: "700 20px Arial", fill: "#ffffff",
-      shadowBlur: hasPortrait ? 4 : 0, shadowColor: "rgba(0,0,0,0.85)"
-    })
-    if (universe) {
-      drawSubText(ctx, universe, rect.x + rect.w / 2, rect.y + 68, { font: "13px Arial", fill: "rgba(220,230,255,0.72)" })
+    // LOCKED (Stage 21): heavy dark overlay → the portrait reads as a silhouette; show a lock glyph
+    // and the unlock requirement instead of the universe/art credit. Still visible, just not pickable.
+    if (locked) {
+      ctx.save()
+      roundRect(ctx, rect.x, rect.y, rect.w, rect.h, 18); ctx.clip()
+      ctx.fillStyle = "rgba(6,8,16,0.80)"; ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
+      ctx.restore()
+      drawCenteredText(ctx, "🔒", rect.x + rect.w / 2, rect.y + 40, { font: "22px Arial", fill: "rgba(220,228,245,0.9)" })
+      drawCenteredText(ctx, fighterName, rect.x + rect.w / 2, rect.y + 70, { font: "700 17px Arial", fill: "rgba(210,220,240,0.85)" })
+      drawSubText(ctx, lockLabel(rosterKey) || "Locked", rect.x + rect.w / 2, rect.y + 94, { font: "12px Arial", fill: "rgba(255,214,140,0.95)" })
+    } else {
+      drawCenteredText(ctx, fighterName, rect.x + rect.w / 2, rect.y + 38, {
+        font: "700 20px Arial", fill: "#ffffff",
+        shadowBlur: hasPortrait ? 4 : 0, shadowColor: "rgba(0,0,0,0.85)"
+      })
+      if (universe) {
+        drawSubText(ctx, universe, rect.x + rect.w / 2, rect.y + 68, { font: "13px Arial", fill: "rgba(220,230,255,0.72)" })
+      }
+      // Per-character artist credit (only for SOURCED sheets whose terms require it — the credit
+      // the artists actually asked for, shown where it matters). null → nothing drawn.
+      const artLine = artistLineForCharacter(rosterKey)
+      if (artLine) {
+        drawSubText(ctx, artLine, rect.x + rect.w / 2, rect.y + 90, { font: "11px Arial", fill: "rgba(255,224,150,0.92)" })
+      }
+      if (isP1) drawCenteredText(ctx, "P1", rect.x + 18,          rect.y + 16, { font: "700 12px Arial", fill: "#7fd3ff", align: "left",  baseline: "alphabetic" })
+      if (isP2) drawCenteredText(ctx, "P2", rect.x + rect.w - 18, rect.y + 16, { font: "700 12px Arial", fill: "#ff9f9f", align: "right", baseline: "alphabetic" })
     }
-    if (isP1) drawCenteredText(ctx, "P1", rect.x + 18,          rect.y + 16, { font: "700 12px Arial", fill: "#7fd3ff", align: "left",  baseline: "alphabetic" })
-    if (isP2) drawCenteredText(ctx, "P2", rect.x + rect.w - 18, rect.y + 16, { font: "700 12px Arial", fill: "#ff9f9f", align: "right", baseline: "alphabetic" })
   })
   ctx.restore()
 
   const bar = getGridScrollbar(roster.length, canvas, CHAR_GRID_OPTS)
   drawGridScrollbar(ctx, bar)
-  drawFooterHint(ctx, canvas, bar ? "Click a fighter card to lock in  ·  scroll for more" : "Click a fighter card to lock in")
+  if (options.lockMsg) {   // Stage 21: transient "X — Reach Level N" after clicking a locked card
+    drawCenteredText(ctx, `🔒 ${options.lockMsg}`, w / 2, h - 58, { font: "700 15px Arial", fill: "#ffd68c" })
+  }
+  // SELECT DEPTH (Stage 23): stat bars + archetype + move preview for the hovered fighter. Per-universe
+  // rosters are ≤2 rows, so the lower half of the screen is free. Drawn only when the caller supplies a
+  // kit (main character-select) — the Edo vessel-pick reuses this function without it.
+  if (options.detailKit && options.detailChar) {
+    drawSelectDetail(ctx, 40, Math.min(410, h - 250), w - 80, 216, options.detailChar, options.detailKit)
+  }
+  drawFooterHint(ctx, canvas, options.randomHint || (bar ? "Click a fighter card to lock in  ·  scroll for more" : "Click a fighter card to lock in"))
+}
+
+// Compact per-fighter detail for the select screen (Stage 23): archetype + 4 stat bars (left) and a
+// move preview (right), all from the SAME getKit()/characters data the in-game Move List uses.
+const _STAT_RANGES = { maxHealth: [950, 1450], attack: [78, 97], defense: [78, 92], speed: [76, 99] }
+function _statBar(ctx, x, y, w, label, val, range, color) {
+  const [lo, hi] = range, pct = Math.max(0.06, Math.min(1, ((val || lo) - lo) / (hi - lo)))
+  ctx.font = "700 11px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillStyle = "rgba(200,215,245,0.85)"
+  ctx.fillText(label, x, y)
+  const bx = x + 44, bw = w - 44
+  ctx.fillStyle = "rgba(255,255,255,0.10)"; fillRoundRect(ctx, bx, y - 5, bw, 10, 5)
+  ctx.fillStyle = color; fillRoundRect(ctx, bx, y - 5, bw * pct, 10, 5)
+  ctx.fillStyle = "rgba(230,238,255,0.75)"; ctx.textAlign = "right"; ctx.fillText(String(val ?? "—"), x + w, y)
+}
+export function drawSelectDetail(ctx, x, y, w, h, char, kit) {
+  drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.82)", stroke: "rgba(130,170,255,0.35)", lineWidth: 1, radius: 12 })
+  const s = char?.stats || {}
+  const pad = 18, colW = Math.min(300, w * 0.34)
+  // ── LEFT: name + archetype tag + difficulty + stat bars ──
+  let ly = y + 24, lx = x + pad
+  drawCenteredText(ctx, char?.name || kit?.name || "", lx, ly, { font: "800 18px Arial", fill: "#fff", align: "left", baseline: "middle" }); ly += 20
+  ctx.font = "700 12px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle"
+  ctx.fillStyle = "#8fd0ff"; ctx.fillText(kit?.type || "All-Rounder", lx, ly)
+  if (kit?.difficulty) { ctx.fillStyle = "#ffd27f"; ctx.textAlign = "right"; ctx.fillText(kit.difficulty, x + colW, ly) }
+  ly += 22
+  _statBar(ctx, lx, ly, colW - pad, "HP",  s.maxHealth, _STAT_RANGES.maxHealth, "#22c55e"); ly += 22
+  _statBar(ctx, lx, ly, colW - pad, "ATK", s.attack,    _STAT_RANGES.attack,    "#f59e0b"); ly += 22
+  _statBar(ctx, lx, ly, colW - pad, "DEF", s.defense,   _STAT_RANGES.defense,   "#38bdf8"); ly += 22
+  _statBar(ctx, lx, ly, colW - pad, "SPD", s.speed,     _STAT_RANGES.speed,     "#a78bfa"); ly += 24
+  // ── RIGHT: move preview (specials + ultimate + a couple basics) from the kit ──
+  let rx = x + colW + 12, ry = y + 24, rw = w - colW - 12 - pad
+  ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.beginPath(); ctx.moveTo(x + colW, y + 12); ctx.lineTo(x + colW, y + h - 12); ctx.stroke()
+  drawCenteredText(ctx, "MOVES", rx, ry, { font: "800 12px Arial", fill: "#7fd3ff", align: "left", baseline: "middle" }); ry += 18
+  const moveRow = (name, input, cost) => {
+    if (ry > y + h - 14) return
+    ctx.font = "12px Arial"; ctx.textBaseline = "middle"
+    ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.fillText(name, rx, ry)
+    ctx.textAlign = "left"; ctx.fillStyle = "rgba(150,200,255,0.9)"; ctx.fillText(input, rx + rw * 0.5, ry)
+    if (cost != null) { ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,210,140,0.9)"; ctx.fillText(cost, rx + rw, ry) }
+    ry += 16
+  }
+  for (const sp of (kit?.specials || []).slice(0, 3)) moveRow(sp.name, sp.input, sp.cost ? `${sp.cost}` : "free")
+  if (kit?.mobility) moveRow(kit.mobility.name, kit.mobility.input, kit.mobility.cost ? `${kit.mobility.cost}` : "free")
+  if (kit?.ultimate) moveRow(kit.ultimate.name, kit.ultimate.input, kit.ultimate.cost ? `${kit.ultimate.cost}` : "—")
+  const basics = (kit?.basics || []).slice(0, 2).map(b => b.name).join(" · ")
+  if (basics && ry <= y + h - 14) { ctx.font = "italic 11px Arial"; ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,215,245,0.6)"; ctx.fillText("Basics: " + basics, rx, ry) }
+}
+
+// ─────────────────────────────────────────────
+// CREDITS  (scrolling attribution screen — Stage 18)
+// ─────────────────────────────────────────────
+// Renders the CREDITS sections from credits.js, offset by `scrollY`. Returns the total content
+// height so the caller can clamp/auto-scroll. Pure draw — no state. A BACK button rect is
+// provided by the caller (game.js) and drawn on top after this returns.
+export function drawCreditsScreen(ctx, canvas, scrollY = 0) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  ctx.clearRect(0, 0, w, h)
+  drawBackdrop(ctx, canvas, "#070b16", "#141d33")
+
+  const cx = w / 2
+  const TOP = 96, LINE = 26, GAP_SECTION = 44, GAP_ENTRY = 8
+  let y = TOP - scrollY
+
+  // Clip the scrolling body so it never overdraws the fixed header/footer bands.
+  ctx.save()
+  ctx.beginPath(); ctx.rect(0, 70, w, h - 140); ctx.clip()
+
+  ctx.fillStyle = "#ffe9a8"; ctx.font = "700 30px Arial"; ctx.textAlign = "center"
+  ctx.fillText("CREDITS & ATTRIBUTION", cx, y); y += GAP_SECTION
+
+  for (const sec of CREDITS) {
+    ctx.fillStyle = "#8fd0ff"; ctx.font = "700 20px Arial"; ctx.textAlign = "center"
+    ctx.fillText(sec.section.toUpperCase(), cx, y); y += LINE + 4
+
+    for (const e of (sec.entries || [])) {
+      ctx.fillStyle = "#ffffff"; ctx.font = "600 17px Arial"
+      ctx.fillText(e.work, cx, y); y += LINE - 4
+      const by = `by ${(e.artists || []).join(", ")}${e.source ? `  ·  ${e.source}` : ""}`
+      ctx.fillStyle = "rgba(255,224,150,0.95)"; ctx.font = "15px Arial"
+      ctx.fillText(by, cx, y); y += LINE + GAP_ENTRY
+    }
+    for (const ln of (sec.lines || [])) {
+      if (ln === "") { y += LINE / 2; continue }
+      ctx.fillStyle = "rgba(214,226,255,0.82)"; ctx.font = "14px Arial"
+      ctx.fillText(ln, cx, y); y += LINE - 4
+    }
+    y += GAP_SECTION
+  }
+  ctx.restore()
+
+  const contentHeight = (y + scrollY) - (TOP - GAP_SECTION)
+  drawFooterHint(ctx, canvas, "Scroll to read  ·  click BACK to return")
+  return contentHeight
 }
 
 // ─────────────────────────────────────────────
@@ -1976,11 +2283,35 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     rrect(ctx, fillX, hpY + 14, fillW, barH, 5); ctx.fill()
   }
 
-  drawHealthPanel(pad, false, p1)
-  drawHealthPanel(cw - pad - barW - 20, true,  p2)
+  // BOSS HUD variant (Stage 20): when a fighter is an arcade boss, the human player keeps a normal
+  // panel and the boss gets a single wide, red, center-draining bar across the top with its name —
+  // replacing the standard two-portrait layout. A branch, NOT a fork of the HUD.
+  const boss = (p2 && p2._isBoss) ? p2 : (p1 && p1._isBoss) ? p1 : null
+  function drawBossBar(fighter) {
+    const maxHp = Math.max(1, fighter.maxHealth || 100)
+    const ratio = clamp((fighter.health ?? maxHp) / maxHp, 0, 1)
+    const wBar = clamp(cw * 0.52, 360, 800), x = (cw - wBar) / 2, y = hpY + 8, h = 24
+    ctx.font = "800 20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"
+    ctx.shadowBlur = 8; ctx.shadowColor = "rgba(0,0,0,0.75)"; ctx.fillStyle = "#ffd0d0"
+    ctx.fillText((fighter.name || "BOSS").toUpperCase(), cw / 2, y - 8); ctx.shadowBlur = 0
+    ctx.fillStyle = "rgba(0,0,0,0.62)"; rrect(ctx, x - 5, y - 5, wBar + 10, h + 10, 9); ctx.fill()
+    ctx.strokeStyle = "rgba(255,80,80,0.6)"; ctx.lineWidth = 2; rrect(ctx, x - 5, y - 5, wBar + 10, h + 10, 9); ctx.stroke()
+    ctx.fillStyle = "rgba(255,255,255,0.10)"; rrect(ctx, x, y, wBar, h, 6); ctx.fill()
+    const fillW = wBar * ratio, grad = ctx.createLinearGradient(x, 0, x + wBar, 0)
+    grad.addColorStop(0, "#7f1d1d"); grad.addColorStop(0.5, "#ef4444"); grad.addColorStop(1, "#7f1d1d")
+    ctx.fillStyle = grad; rrect(ctx, x + (wBar - fillW) / 2, y, fillW, h, 6); ctx.fill()   // center-out drain
+    ctx.font = "700 10px Arial"; ctx.fillStyle = "#ff6b6b"; ctx.fillText("◆ BOSS ◆", cw / 2, y + h + 14)
+  }
+  if (boss) {
+    drawHealthPanel(pad, false, boss === p2 ? p1 : p2)   // the human player, on the left
+    drawBossBar(boss)
+  } else {
+    drawHealthPanel(pad, false, p1)
+    drawHealthPanel(cw - pad - barW - 20, true,  p2)
+  }
 
   const pipCX = cw / 2, pipY = hpY + 22, pipR = 7, pipGap = 20, maxWins = 2
-  for (let i = 0; i < maxWins; i++) {
+  for (let i = 0; !boss && i < maxWins; i++) {   // boss fights are a single round → no round pips
     const px1 = pipCX - pipGap - pipR - i * (pipR * 2 + 5)
     ctx.beginPath(); ctx.arc(px1, pipY, pipR, 0, Math.PI*2)
     const p1Won = i < (roundWins?.p1 || 0)
@@ -1993,8 +2324,10 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.fillStyle = p2Won ? "#fca5a5" : "rgba(255,255,255,0.10)"; ctx.fill()
     if (p2Won) { ctx.shadowBlur=10; ctx.shadowColor="#fca5a5"; ctx.strokeStyle="#fecaca"; ctx.lineWidth=1.5; ctx.stroke(); ctx.shadowBlur=0 }
   }
-  ctx.font="bold 12px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillStyle="rgba(255,255,255,0.5)"
-  ctx.fillText(`RD ${(roundWins?.p1||0)+(roundWins?.p2||0)+1}`, pipCX, pipY)
+  if (!boss) {
+    ctx.font="bold 12px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillStyle="rgba(255,255,255,0.5)"
+    ctx.fillText(`RD ${(roundWins?.p1||0)+(roundWins?.p2||0)+1}`, pipCX, pipY)
+  }
 
   const enY = ch - enH - pad - 14
 
@@ -2159,8 +2492,9 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     }
   }
 
-  drawEnergyPanel(pad, false, p1)
-  drawEnergyPanel(cw - pad - barW - 20, true, p2)
+  // Boss has infinite meter → its energy panel is meaningless; the human player keeps theirs.
+  if (boss) { drawEnergyPanel(pad, false, boss === p2 ? p1 : p2) }
+  else { drawEnergyPanel(pad, false, p1); drawEnergyPanel(cw - pad - barW - 20, true, p2) }
 }
 
 // Simple hex color lerp helper

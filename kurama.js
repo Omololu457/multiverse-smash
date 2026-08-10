@@ -39,6 +39,7 @@
 // THIS, this imports neither).
 
 import { sound as globalSound, SFX } from "./sound.js"
+import { applyScaledDamage } from "./combat.js"   // Stage 1a: the one scaled-damage choke-point (TBB no longer bypasses GLOBAL_DAMAGE_SCALE)
 
 // ─────────────────────────────────────────────────────────────────
 // TIMELINE  (frames @60fps) — ALL beats tunable here.
@@ -259,7 +260,7 @@ function applyKuramaDamage(ctx, snd) {
   const blocked = !!opp.isBlocking
   const damage  = blocked ? Math.round(KURAMA_DAMAGE * KURAMA_BLOCKED_DAMAGE_RATIO) : KURAMA_DAMAGE
 
-  opp.health = Math.max(0, (opp.health || 0) - damage)
+  const dealt = applyScaledDamage(opp, damage, { source: "kurama-tbb" })
   opp.vx = 0
   if (blocked) {
     // Lighter blocked reaction: blockstun (not the 30f hitstun) and NO colorFlash /
@@ -283,7 +284,7 @@ function applyKuramaDamage(ctx, snd) {
       x: ocx, y: ocy, timer: 18, maxTimer: 18,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#ff7a1a",
-      damage, lines: blocked ? 6 : 12, radius: blocked ? 14 : 40,
+      damage: dealt, lines: blocked ? 6 : 12, radius: blocked ? 14 : 40,
       ...(blocked ? { isBlocking: true } : {})
     })
   }

@@ -25,6 +25,7 @@
 // Self-contained: imports only sound.js (no cycle).
 
 import { sound as globalSound, SFX } from "./sound.js"
+import { applyScaledDamage } from "./combat.js"   // Stage 1a: the one scaled-damage choke-point
 
 // ── TIMELINE (frames @60fps) — same beat structure as the Kurama/Juubi cinematics ──
 const TL = { ACTIVATE: 42, WIDEN: 20, RISE: 42, CHARGE: 52, FIRE: 46, SETTLE: 26 }
@@ -143,7 +144,7 @@ function applyDamage(ctx, snd) {
   if (!opp) return
   const blocked = !!opp.isBlocking
   const damage  = blocked ? Math.round(NINE_TAILS_DAMAGE * BLOCKED_RATIO) : NINE_TAILS_DAMAGE
-  opp.health = Math.max(0, (opp.health || 0) - damage)
+  const dealt = applyScaledDamage(opp, damage, { source: "tobi-ninetails" })
   opp.vx = 0
   if (blocked) {
     opp.blockstun = Math.max(opp.blockstun || 0, 14)
@@ -157,7 +158,7 @@ function applyDamage(ctx, snd) {
     ctx.hitEffects.push({
       x: ocx, y: ocy, timer: 18, maxTimer: 18,
       category: blocked ? "light" : "ultimate", color: blocked ? null : BOMBGLOW,
-      damage, lines: blocked ? 6 : 12, radius: blocked ? 14 : 42,
+      damage: dealt, lines: blocked ? 6 : 12, radius: blocked ? 14 : 42,
       ...(blocked ? { isBlocking: true } : {})
     })
   }

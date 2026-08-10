@@ -362,7 +362,7 @@ try {
     check("windup → fire → settle", phases.has("windup") && phases.has("fire") && phases.has("settle"), `phases=${[...phases].join(",")}`);
     check("beam CONNECTS (struck)", struck, `struck=${struck}`);
     check("Bug-3 re-check: the live caster stays a single 'charge' pose (no duplicate)", casterSingle, `single=${casterSingle}`);
-    check("BLUE overcharge damage above SSJ ult (≥460)", (hp0 - (await p2()).health) >= 460, `−${(hp0 - (await p2()).health)}`);
+    check("BLUE overcharge damage above SSJ ult (≥280 = 480×0.60)", (hp0 - (await p2()).health) >= 280, `−${(hp0 - (await p2()).health)}`);
   }
   await releaseAll(); await waitGrounded(); await waitFrames(8);
 

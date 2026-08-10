@@ -3,6 +3,7 @@
 
 import { sound, SFX, MUSIC } from "./sound.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"   // Malevolent Shrine ult incantation (領域展開/伏魔御廚子 — audio-only; JA default)
+import { applyScaledDamage } from "./combat.js"   // Stage 1a: the one scaled-damage choke-point (domain slash ticks route through it)
 
 export const activeDomains = []
 
@@ -231,7 +232,7 @@ export function updateDomains(fighters = [], hitEffects = []) {
           domain.slashClock = SUKUNA_SLASH_INTERVAL
           domain._slashParity = (domain._slashParity || 0) + 1
           const isCleave = domain._slashParity % 2 === 0
-          fighter.health = Math.max(0, (fighter.health || 0) - SUKUNA_SLASH_DAMAGE)
+          const dealt = applyScaledDamage(fighter, SUKUNA_SLASH_DAMAGE, { source: "sukuna-domain" })
           fighter.colorFlash = 6
           // Push a visible slash through the existing hit-spark pipeline (the
           // game loop spawns a damage number + records the hit from this). Cleave
@@ -243,7 +244,7 @@ export function updateDomains(fighters = [], hitEffects = []) {
               timer: 10, maxTimer: 10,
               category: "special",
               color: isCleave ? "#f87171" : "#ef4444",
-              damage: SUKUNA_SLASH_DAMAGE,
+              damage: dealt,
               lines: isCleave ? 7 : 4,
               radius: isCleave ? 20 : 12
             })

@@ -63,9 +63,9 @@ await shot("jump");
 await waitGrounded();
 
 // guard (hold s)
-await page.keyboard.down("s"); await waitFrames(10); a = await p1();
+await page.keyboard.down(";"); await waitFrames(10); a = await p1();
 check("guard → ghostface_guard_uniform", a.action === "guard" && (a.spriteSheet || "").includes("ghostface_guard_uniform"), `action=${a.action} sheet=${a.spriteSheet}`);
-await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
 
 // light (j) — hold across a couple frames so the press registers on a frame edge, sample during the swing
 await waitGrounded();

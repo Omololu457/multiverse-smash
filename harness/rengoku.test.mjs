@@ -101,8 +101,8 @@ try {
   await page.waitForFunction(() => window.__harness.p1().vy < -2 || !window.__harness.p1().grounded, null, { timeout: 4000, polling: 16 }).catch(() => {});
   await waitFrames(3); a = await p1();
   check("jump → rengoku_jump_uniform", has(a, "rengoku_jump_uniform"), `sheet=${a.spriteSheet}`); await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(10); a = await p1();
-  check("guard → rengoku_block_uniform", a.action === "guard" && has(a, "rengoku_block_uniform"), `action=${a.action}`); await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.down(";"); await waitFrames(10); a = await p1();
+  check("guard → rengoku_block_uniform", a.action === "guard" && has(a, "rengoku_block_uniform"), `action=${a.action}`); await page.keyboard.up(";"); await waitFrames(4);
   await page.evaluate(() => window.__harness.hurtP1(20)); await waitFrames(2); a = await p1();
   check("hurt → rengoku_hit_uniform", a.action === "hurt" && has(a, "rengoku_hit_uniform"), `action=${a.action}`);
   await page.evaluate(() => window.__harness.healP1?.()); await waitFrames(4);
@@ -190,7 +190,7 @@ try {
   await page.waitForFunction(() => window.__harness.rengokuUltCine().struck === true || window.__harness.rengokuUltCine().active === false, null, { timeout: 8000, polling: 16 }).catch(() => {});
   await page.waitForFunction(() => window.__harness.rengokuUltCine().active === false, null, { timeout: 8000, polling: 16 }).catch(() => {});
   await waitFrames(6);
-  check("guaranteed detonation damage lands (range-independent ~340)", (uhp - (await p2()).health) >= 320, `−${uhp - (await p2()).health} @600px`);
+  check("guaranteed detonation damage lands (range-independent ~204 = 340×0.60)", (uhp - (await p2()).health) >= 190, `−${uhp - (await p2()).health} @600px`);
   check("cinematic ends, combat resumes", (await cine()).active === false && !has(await p1(), "rengoku_ultimate_explosion_uniform"), "");
 
   // ── FALLBACK-BOX SWEEP (every wired action → real rengoku_* sheet; missing states absent) ──

@@ -83,7 +83,7 @@ try {
   await waitGrounded();
 
   // ── guard ──
-  await page.keyboard.down("s"); await waitFrames(20); const bk = await record(); await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.down(";"); await waitFrames(20); const bk = await record(); await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
   check("guard resolves to block sheet", bk.action === "guard" && (bk.spriteSheet || "").includes("killua_block_uniform"), `action=${bk.action} sheet=${bk.spriteSheet}`);
 
   // ── hurt ──

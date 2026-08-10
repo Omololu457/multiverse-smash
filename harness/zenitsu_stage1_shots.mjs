@@ -76,10 +76,10 @@ check("jump → zenitsu_jump_uniform", has(a, "zenitsu_jump_uniform"), `action=$
 await shot("jump");
 await waitGrounded();
 
-// guard (hold down = block)
-await page.keyboard.down("s"); await waitFrames(14); a = await p1();
+// guard (hold ';' = dedicated block — MK-feel Stage 1c moved block off Down)
+await page.keyboard.down(";"); await waitFrames(14); a = await p1();
 check("guard → zenitsu_guard_uniform", a.action === "guard" && has(a, "zenitsu_guard_uniform"), `action=${a.action} sheet=${a.spriteSheet}`);
-await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
 
 // hurt
 await page.evaluate(() => window.__harness.hurtP1(24)); await waitFrames(3); a = await p1();

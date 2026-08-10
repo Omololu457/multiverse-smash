@@ -41,14 +41,14 @@ try {
   check("not blocking → action is idle (no guard pose stuck on)", nb.acts.length === 1 && nb.acts[0] === "idle", `actions=[${nb.acts.join(",")}]`);
   await shot("susanoo_notblocking.png");
 
-  // ── Blocking (hold Down) → distinct STATIC guard pose ──
-  console.log("── Susanoo BLOCKING (hold Down) ──");
-  await page.keyboard.down("s"); await wf(6);
+  // ── Blocking (hold the dedicated guard key ';' — MK-feel Stage 1c moved block off Down) → static guard pose ──
+  console.log("── Susanoo BLOCKING (hold ';' guard) ──");
+  await page.keyboard.down(";"); await wf(6);
   const bl = await sample(10);
   check("blocking → resolves to the GUARD action (distinct from idle)", bl.acts.length === 1 && bl.acts[0] === "guard", `actions=[${bl.acts.join(",")}]`);
   check("guard pose is STATIC (single held frame — not a looping overlay)", bl.fis.length === 1, `frameIndex seen=[${bl.fis.join(",")}]`);
   await shot("susanoo_blocking.png");
-  await page.keyboard.up("s");
+  await page.keyboard.up(";");
 
   // ── Release → back to idle (guard tied to real input, not stuck) ──
   await wf(8);

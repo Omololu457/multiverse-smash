@@ -193,23 +193,24 @@ export const SPRITE_MANIFEST = {
 
   // Killua Zoldyck (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle
   // strip → flips Killua from procedural box to sprite. Per-action rendering reads characters.js →
-  // killua.animationData (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
+  // killua.animationData (each action carries its own .sheet). ATLASED (Stage 22B): idle now points
+  // at the packed atlas so spritesReady() decodes the SAME image the actions use — no extra request.
   killua: {
-    actions: { idle: "./killua_idle_uniform.png" }
+    actions: { idle: "./killua_atlas.png" }
   },
 
   // Gon Freecss (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle strip →
   // flips Gon from procedural box to sprite. Per-action rendering reads characters.js → gon.animationData
   // (each action carries its own .sheet). idle = the STANCE row extracted from the master sheet + resliced.
   gon: {
-    actions: { idle: "./gon_idle_uniform.png" }
+    actions: { idle: "./gon_atlas.png" }   // ATLASED (Stage 22B) — spritesReady decodes the atlas
   },
 
   // The Flash (universe: dc) — STAGE 1. Gates spritesReady() by decoding the idle strip →
   // flips Flash from procedural box to sprite. Per-action rendering reads characters.js →
   // flash.animationData (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
   flash: {
-    actions: { idle: "./flash_idle_uniform.png" }
+    actions: { idle: "./flash_atlas.png" }   // ATLASED (Stage 22B) — spritesReady decodes the atlas
   },
 
   // Batman (universe: dc) — STAGE 1. Gates spritesReady() by decoding the idle strip →

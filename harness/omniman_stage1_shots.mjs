@@ -58,11 +58,11 @@ await waitGrounded();
 
 // ── GUARD (hold down = block) — flagged idle fallback (no guard art) ──
 await waitGrounded(); await waitFrames(4);
-await page.keyboard.down("s"); await waitFrames(16); a = await p1();
+await page.keyboard.down(";"); await waitFrames(16); a = await p1();
 // No guard strip → _resolveAction returns the literal "idle" pose while isBlocking stays true
 // (Flash precedent). So prove the GUARD STATE is active and it renders the idle fallback sheet.
 check("guard → blocking active, idle fallback (flagged: no guard art)", a.isBlocking === true && (a.spriteSheet || "").includes("omni_man_idle"), `isBlocking=${a.isBlocking} action=${a.action} sheet=${a.spriteSheet}`);
-await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
 
 // ── HURT ──
 await page.evaluate(() => window.__harness.hurtP1(24)); await waitFrames(3); a = await p1();

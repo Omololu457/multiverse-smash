@@ -82,7 +82,7 @@ try {
   await page.waitForFunction(() => window.__harness.p1().vy > 6, null, { timeout: 4000, polling: 16 }).catch(() => {}); const fl = await record();
   check("jump/fall use hisoka_jump_uniform", (jp.spriteSheet || "").includes("hisoka_jump_uniform") && (fl.spriteSheet || "").includes("hisoka_jump_uniform"), `jump=${jp.action} fall=${fl.action}`);
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(14); const bk = await record(); await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.down(";"); await waitFrames(14); const bk = await record(); await page.keyboard.up(";"); await waitFrames(4);
   check("guard resolves to guard sheet", bk.action === "guard" && (bk.spriteSheet || "").includes("hisoka_guard_uniform"), `action=${bk.action}`);
   await page.evaluate(() => window.__harness.hurtP1(20)); await waitFrames(3); const h = await record();
   check("hurt resolves to hit sheet", h.action === "hurt" && (h.spriteSheet || "").includes("hisoka_hit_uniform"), `action=${h.action}`);

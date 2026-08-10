@@ -76,9 +76,9 @@ await shot("jump");
 await waitGrounded();
 
 // guard (hold DOWN "s")
-await page.keyboard.down("s"); await waitFrames(10); a = await p1();
+await page.keyboard.down(";"); await waitFrames(10); a = await p1();
 check("guard → rengoku_block_uniform", a.action === "guard" && (a.spriteSheet || "").includes("rengoku_block_uniform"), `action=${a.action} sheet=${a.spriteSheet} blocking=${a.blocking}`);
-await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
 
 // hurt
 await page.evaluate(() => window.__harness.hurtP1(20)); await waitFrames(2); a = await p1();

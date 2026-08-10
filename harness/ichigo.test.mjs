@@ -150,7 +150,7 @@ await waitFrames(4);
   for (let i = 0; i < 60 && !p2seen; i++) { const s = await cine(); if (!s.active) break; if (/ichigoUlt2/.test(s.castMove || "")) p2seen = true; else await waitFrames(1); }
   check("plays part_1 (dash-slash) → part_2 (uppercut) continuous", p1seen && p2seen);
   await page.waitForFunction(() => window.__harness.ichigoUltCine()?.active === false, null, { timeout: 6000, polling: 16 }).catch(() => {});
-  check("GUARANTEED range-independent Getsuga (~330 at 520px)", hp0 - (await p2()).health >= 250, `dmg=${hp0 - (await p2()).health}`);
+  check("GUARANTEED range-independent Getsuga (~198 = 330×0.60 at 520px)", hp0 - (await p2()).health >= 180, `dmg=${hp0 - (await p2()).health}`);
   check("cinematic ends → combat resumes (not stuck)", (await cine()).active === false); }
 
 check("no JS page errors (ex-portrait, now extracted)", jsErrors.filter(e => !/portrait/.test(e)).length === 0, jsErrors.slice(0, 3).join(" | "));

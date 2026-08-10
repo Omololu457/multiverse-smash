@@ -53,6 +53,10 @@ try {
 // ─────────────────────────────────────────────────────────────────
 const _cache = new Map();
 
+// Number of distinct sheet images loaded/loading this session (profiling overlay, Stage 22D).
+// After atlasing, an atlased character contributes 1 entry instead of 20-40.
+export function loadedSheetCount() { return _cache.size; }
+
 function _loadSheet(path) {
   if (!path) return null;
   if (_cache.has(path)) return _cache.get(path);

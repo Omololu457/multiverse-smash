@@ -43,7 +43,7 @@ try {
   await wf(2);
   {
     const before=await p1s();
-    await page.keyboard.down("s"); await wf(2);        // Naruto blocks (hold Down)
+    await page.keyboard.down(";"); await wf(2);        // Naruto blocks (hold Down)
     check("holding Down = block active (isBlocking)", (await p1s()).blocking === true);
     await page.evaluate(()=>window.__harness.p2Attack());   // opponent swings — window opens
     await wf(2);
@@ -63,7 +63,7 @@ try {
     check("re-appears adjacent to the opponent (behind-teleport math)", Math.abs(settled.x - p2end.x) < (settled.w + 40), `naruto.x=${settled.x.toFixed(0)} opp.x=${p2end.x.toFixed(0)} Δ=${Math.abs(settled.x-p2end.x).toFixed(0)}`);
     check("real recovery tail (attackCooldown set — committed, not a free panic button)", settled.attackCooldown > 0 || justAfter.attackCooldown > 0, `cd@cast=${justAfter.attackCooldown} cd@settle=${settled.attackCooldown}`);
     await shot("KAWARIMI_behind.png");
-    await page.keyboard.up("s");
+    await page.keyboard.up(";");
   }
   await wf(30); await grounded();
 

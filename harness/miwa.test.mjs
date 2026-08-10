@@ -129,7 +129,7 @@ await waitFrames(4);
   check("plays Miwa's own continuous ult sprite", /kasumi_super_ultimate_uniform/.test((await p1()).spriteSheet || ""), `sheet=${(await p1()).spriteSheet}`);
   await page.waitForFunction(() => window.__harness.miwaUltCine()?.active === false, null, { timeout: 5000, polling: 16 }).catch(() => {});
   const dmg = hp0 - (await p2()).health;
-  check("GUARANTEED range-independent slash (~280 at 520px)", dmg >= 200, `dmg=${dmg}`);
+  check("GUARANTEED range-independent slash (~168 = 280×0.60 at 520px)", dmg >= 150, `dmg=${dmg}`);
   check("cinematic ends → combat resumes (not stuck)", (await cine()).active === false); }
 
 check("no JS page errors across the full kit", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));

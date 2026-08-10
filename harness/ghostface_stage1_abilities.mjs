@@ -130,7 +130,7 @@ await shot("ultimate_flurry");
 await page.waitForFunction(() => { const c = window.__harness.ghostfaceUltCine(); return !c || !c.active; }, null, { timeout: 8000, polling: 32 }).catch(() => {});
 await waitFrames(6);
 const hUlt = (await p2()).health;
-check("Ultimate dealt heavy guaranteed damage (~≥280)", (h0 - hUlt) >= 280, `p2 ${h0}→${hUlt} (Δ${Math.round(h0 - hUlt)})`);
+check("Ultimate dealt heavy guaranteed damage (~180 = 300×0.60)", (h0 - hUlt) >= 170, `p2 ${h0}→${hUlt} (Δ${Math.round(h0 - hUlt)})`);
 
 check("no JS page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));
 

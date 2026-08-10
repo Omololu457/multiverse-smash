@@ -17,8 +17,9 @@
 // browser without the API. Everything else is the actual production pipeline, and page.reload()
 // is a genuine close-and-reopen (module graph re-initialised, in-memory store wiped).
 import { chromium, firefox, webkit } from "playwright";
-import http from "node:http"; import fs from "node:fs"; import path from "node:path";
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import os from "node:os";
 import { fileURLToPath } from "node:url";
+import { createSaveServer } from "../server/save-server.mjs";
 // ENGINE SELECTION (SL_ENGINE=chromium|firefox|webkit, default chromium). Firefox and WebKit
 // genuinely LACK the File System Access API, so on them the fallback (A) is exercised for REAL,
 // not simulated — and the file path (B) / migration (C) sections are Chromium-only (that API is
@@ -30,7 +31,9 @@ const engine = ENGINES[ENGINE] || chromium;
 const IS_CHROMIUM = ENGINE === "chromium";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg",".mp3":"audio/mpeg",".json":"application/json" };
-function startServer(){const s=http.createServer((q,res)=>{const u=decodeURIComponent(q.url.split("?")[0]);const fp=path.join(ROOT,u==="/"?"/index.html":u);if(!fp.startsWith(ROOT)){res.writeHead(403).end();return;}fs.readFile(fp,(e,d)=>{if(e){res.writeHead(404).end();return;}res.writeHead(200,{"content-type":MIME[path.extname(fp)]||"application/octet-stream"});res.end(d);});});return new Promise(r=>s.listen(0,"127.0.0.1",()=>r(s)));}
+function startServer(port=0){const s=http.createServer((q,res)=>{const u=decodeURIComponent(q.url.split("?")[0]);const fp=path.join(ROOT,u==="/"?"/index.html":u);if(!fp.startsWith(ROOT)){res.writeHead(403).end();return;}fs.readFile(fp,(e,d)=>{if(e){res.writeHead(404).end();return;}res.writeHead(200,{"content-type":MIME[path.extname(fp)]||"application/octet-stream"});res.end(d);});});return new Promise(r=>s.listen(port,"127.0.0.1",()=>r(s)));}
+// Wait until an on-disk file satisfies `pred` (the save server POST is async+coalesced).
+async function waitForFile(fp, pred, tries=60){ for(let i=0;i<tries;i++){ try{ const s=fs.readFileSync(fp,"utf8"); if(pred(s)) return s; }catch(_){} await new Promise(r=>setTimeout(r,60)); } return null; }
 let PASS=0,FAIL=0;
 const check=(n,c,d="")=>{(c?PASS++:FAIL++);console.log(`  ${c?"✅ PASS":"❌ FAIL"}  ${n}${d?`  — ${d}`:""}`);};
 const section=t=>console.log(`\n── ${t} ─────────────────────────────`);
@@ -45,20 +48,26 @@ const OPFS_MOCK = (name)=>{ const g=async()=>{ const r=await navigator.storage.g
 // A context that REMOVES the picker (simulates Safari/Firefox — API absent).
 const NO_FILE_API = ()=>{ const kill=k=>{ try{Object.defineProperty(window,k,{value:undefined,configurable:true,writable:true});}catch(_){try{window[k]=undefined;}catch(__){}} }; kill("showOpenFilePicker"); kill("showSaveFilePicker"); };
 
-async function makePage(initFn, arg){
+async function makePage(initFn, arg, base=baseURL){
   const context=await browser.newContext({viewport:{width:1280,height:720}});
-  await context.addInitScript(initFn, arg);
+  if (initFn) await context.addInitScript(initFn, arg);
   const page=await context.newPage();
   const jsErrors=[]; page.on("pageerror",e=>jsErrors.push(String(e)));
   const wf = () => page.waitForTimeout(80);
-  const load = async () => { await page.goto(`${baseURL}/index.html?harness=1`,{waitUntil:"load"}); await page.waitForFunction(()=>!!window.__harness,null,{timeout:15000}); await wf(); };
+  const load = async () => { await page.goto(`${base}/index.html?harness=1`,{waitUntil:"load"}); await page.waitForFunction(()=>!!window.__harness,null,{timeout:15000}); await wf(); };
   const sl = (fn,...a)=>page.evaluate(([f,args])=>window.__harness.saveLoad[f](...args),[fn,a]);
   const lsGet = ()=>page.evaluate(k=>{ try{return localStorage.getItem(k);}catch(_){return null;} }, LS_KEY);
   const lsSet = (v)=>page.evaluate(([k,val])=>{ try{localStorage.setItem(k,val);}catch(_){}}, [LS_KEY,v]);
   const lsClear = ()=>page.evaluate(k=>{ try{localStorage.removeItem(k);}catch(_){}}, LS_KEY);
   const readOPFS = ()=>page.evaluate(async name=>{ try{const r=await navigator.storage.getDirectory();const h=await r.getFileHandle(name);return await (await h.getFile()).text();}catch(e){return `__ERR__${e.name}`;} }, SAVE_NAME);
   const deleteOPFS = ()=>page.evaluate(async name=>{ try{const r=await navigator.storage.getDirectory();await r.removeEntry(name);}catch(_){}}, SAVE_NAME);
-  return { context, page, jsErrors, load, sl, lsGet, lsSet, lsClear, readOPFS, deleteOPFS };
+  // 17C stores the granted FSA handle in IndexedDB so it reattaches on reload. The OPFS-backed
+  // mock handle reports permission "granted" (OPFS never prompts), so it would auto-reattach and
+  // change situation B's "nothing restored after reload" premise. Clearing that store restores B's
+  // ORIGINAL manual-reconnect semantics (a REAL rehydrated file handle reports "prompt", so it
+  // would NOT silently reattach anyway — see reattachStoredHandle()).
+  const clearHandleDB = ()=>page.evaluate(()=>new Promise(res=>{ try{ const r=indexedDB.deleteDatabase("multiverse-smash-fs"); r.onsuccess=r.onerror=r.onblocked=()=>res(true); }catch(_){res(false);} }));
+  return { context, page, jsErrors, load, sl, lsGet, lsSet, lsClear, readOPFS, deleteOPFS, clearHandleDB };
 }
 
 try {
@@ -127,7 +136,8 @@ try {
     const savedId = (await t.sl("read")).accountId;
 
     // Prove the FILE is what restores after reload — clear localStorage so ONLY the file has data.
-    await t.lsClear();
+    // Also clear the stored FSA handle (17C) so this keeps testing the MANUAL reconnect path.
+    await t.lsClear(); await t.clearHandleDB();
     await t.page.reload({waitUntil:"load"}); await t.page.waitForFunction(()=>!!window.__harness); await t.page.waitForTimeout(80);
     check("with localStorage cleared, boot restores NOTHING (proves next load is file-sourced)", (await t.sl("hasPersisted")) === false);
     const conn2 = await t.sl("connect");
@@ -140,7 +150,7 @@ try {
 
     // Existing edge case: corrupted FILE → graceful fallback.
     await t.page.evaluate(async name=>{ const r=await navigator.storage.getDirectory(); const h=await r.getFileHandle(name,{create:true}); const w=await h.createWritable(); await w.write("{ bad json ]]] "); await w.close(); }, SAVE_NAME);
-    await t.lsClear();
+    await t.lsClear(); await t.clearHandleDB();
     await t.page.reload({waitUntil:"load"}); await t.page.waitForFunction(()=>!!window.__harness); await t.page.waitForTimeout(80);
     const cc = await t.sl("connect");
     check("corrupt FILE → connect returns 0 profiles, no crash", cc?.ok === true && cc?.count === 0, `conn=${JSON.stringify(cc)}`);
@@ -169,6 +179,85 @@ try {
     await t.context.close();
   }
   }   // end Chromium-only B/C guard
+
+  // ══ D) SERVER TIER — local save server = automatic file persistence, ZERO clicks ══
+  // Engine-agnostic (fetch + localStorage, no File System Access API) so it runs on all three.
+  // Boots the REAL createSaveServer() from server/save-server.mjs against a throwaway save dir,
+  // serves the game FROM it, and proves: auto-save to disk, auto-load on reload with no gesture,
+  // the file on disk matches live state, and silent degradation to localStorage when it dies.
+  section("D) SERVER TIER: local save server → automatic file persistence, no player action");
+  {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "ms-save-"));
+    const saveSrv = createSaveServer({ saveDir: tmpDir });
+    await new Promise(r => saveSrv.listen(0, "127.0.0.1", r));
+    const port = saveSrv.address().port;
+    const saveBase = `http://127.0.0.1:${port}`;
+    const saveFile = saveSrv._saveFile;
+
+    // No init script — the page talks to a REAL same-origin /api. NO File System Access mock.
+    const t = await makePage(null, null, saveBase);
+    await t.load();
+    await t.sl("awaitBoot");   // let the async server tier finish detecting + (empty) loading
+    check("save server detected at boot (/api/health responded)", (await t.sl("serverAvailable")) === true);
+    check("status row reports the SERVER tier", /saves\/game_player_data\.json/.test(await t.sl("status")), `status=${await t.sl("status")}`);
+
+    await t.sl("ensureAccount", "ServerUser");
+    await t.sl("awardXp", 600);
+    await t.sl("applyCode", "GojoV1");
+    await t.sl("setSetting", "musicVolume", 0.222);
+    const savedId = (await t.sl("read")).accountId;
+
+    // The POST is async + coalesced — wait for the change to actually land on disk.
+    const onDisk = await waitForFile(saveFile, s => s.includes('"xp":600') && s.includes(savedId));
+    check("save server WROTE the file to disk (xp=600, no gesture)", !!onDisk, onDisk ? `bytes=${onDisk.length}` : "file never updated");
+
+    // Simulate close+reopen: NO connect(), NO gesture — boot must auto-load from the SERVER.
+    await t.page.reload({waitUntil:"load"}); await t.page.waitForFunction(()=>!!window.__harness); await t.page.waitForTimeout(80);
+    await t.sl("awaitBoot");
+    check("after reload, boot auto-loaded from the SERVER (no connect/gesture)", (await t.sl("hasPersisted")) === true && (await t.sl("connected")) === false);
+    const after = await t.sl("read");
+    check("XP restored from server (600 → level 4)", after.xp === 600 && after.level === 4, `xp=${after.xp} lvl=${after.level}`);
+    check("beta unlock restored from server", after.beta === true, `beta=${after.beta}`);
+    check("audio setting restored from server (0.222)", Math.abs((after.settings?.musicVolume??-1)-0.222)<1e-6, `vol=${after.settings?.musicVolume}`);
+    check("SAME account id round-tripped through the server file", after.accountId === savedId, `${after.accountId} vs ${savedId}`);
+
+    // Read the file DIRECTLY off disk and assert it matches the live, restored state.
+    const raw = JSON.parse(fs.readFileSync(saveFile, "utf8"));
+    const acctOnDisk = (raw.accounts || []).find(a => a.accountId === savedId);
+    check("on-disk file is a valid save (format tag present)", raw.format === "multiverse-smash-save");
+    check("on-disk file MATCHES live state (xp+beta+setting)", acctOnDisk?.progression?.xp === 600 && acctOnDisk?.unlocks?.betaUnlock === true && Math.abs((acctOnDisk?.settings?.musicVolume??-1)-0.222)<1e-6, `disk=${JSON.stringify(acctOnDisk?.progression)}`);
+
+    // KILL the server, then rebind a STATIC-ONLY server on the SAME port (same origin → the
+    // localStorage mirror survives; /api/health now 404s). Reload must degrade silently to LS.
+    await Promise.race([ new Promise(r => { saveSrv.closeAllConnections?.(); saveSrv.close(r); }), new Promise(r => setTimeout(r, 2000)) ]);
+    const staticSrv = await startServer(port);
+    await t.page.reload({waitUntil:"load"}); await t.page.waitForFunction(()=>!!window.__harness); await t.page.waitForTimeout(80);
+    await t.sl("awaitBoot");
+    check("server gone → capability probe reports UNavailable (silent, no retry)", (await t.sl("serverAvailable")) === false);
+    const off = await t.sl("read");
+    check("game STILL loads from localStorage after server death (xp=600)", off.xp === 600 && off.beta === true, `xp=${off.xp} beta=${off.beta}`);
+    check("status row falls back to the browser-storage tier", /browser storage/i.test(await t.sl("status")), `status=${await t.sl("status")}`);
+    check("no uncaught JS exceptions (server tier)", t.jsErrors.length === 0, t.jsErrors.slice(0,3).join(" | "));
+
+    await t.context.close();
+    await new Promise(r => staticSrv.close(r));
+
+    // Re-boot the save server on a fresh dir to prove the VALIDATION guard rail directly.
+    const tmpDir2 = fs.mkdtempSync(path.join(os.tmpdir(), "ms-save2-"));
+    const guardSrv = createSaveServer({ saveDir: tmpDir2 });
+    await new Promise(r => guardSrv.listen(0, "127.0.0.1", r));
+    const gBase = `http://127.0.0.1:${guardSrv.address().port}`, gFile = guardSrv._saveFile;
+    // Seed a valid save, then attempt to overwrite it with garbage.
+    const goodBody = JSON.stringify({ format:"multiverse-smash-save", version:1, accounts:[{accountId:"keep-me",progression:{xp:42}}] });
+    const okStatus  = (await fetch(gBase+"/api/save",{method:"POST",headers:{"content-type":"application/json"},body:goodBody})).status;
+    const badStatus = (await fetch(gBase+"/api/save",{method:"POST",headers:{"content-type":"application/json"},body:"NOT JSON ]]]"})).status;
+    const wrongFmt  = (await fetch(gBase+"/api/save",{method:"POST",headers:{"content-type":"application/json"},body:'{"format":"something-else","accounts":[]}'})).status;
+    check("valid save POST accepted (200)", okStatus === 200, `status=${okStatus}`);
+    check("garbage POST rejected (400) — existing save NOT clobbered", badStatus === 400 && wrongFmt === 400, `bad=${badStatus} wrongFmt=${wrongFmt}`);
+    check("the valid save survived the rejected writes", JSON.parse(fs.readFileSync(gFile,"utf8"))?.accounts?.[0]?.accountId === "keep-me");
+    await new Promise(r => guardSrv.close(r));
+    try { fs.rmSync(tmpDir, {recursive:true,force:true}); fs.rmSync(tmpDir2, {recursive:true,force:true}); } catch(_) {}
+  }
 } catch(e){ console.error("\nHARNESS ERROR:",e); FAIL++; }
 finally {
   console.log(`\n════════════════════════════════════════`);

@@ -275,7 +275,7 @@ try {
     check("cinematic runs windup → fire → settle", phases.has("windup") && phases.has("fire") && phases.has("settle"), `phases=${[...phases].join(",")}`);
     check("beam CONNECTS at the impact beat (struck)", struck, `struck=${struck}`);
     check("near-max meter cost (~100)", (e0 - (await p1()).energy) >= 95, `spent ${(e0 - (await p1()).energy).toFixed(0)}`);
-    check("deals its big overcharged damage (≥300, biggest in kit)", (hp0 - (await p2()).health) >= 300, `−${(hp0 - (await p2()).health).toFixed(0)}`);
+    check("deals its big overcharged damage (≥200 = 340×0.60, biggest in kit)", (hp0 - (await p2()).health) >= 200, `−${(hp0 - (await p2()).health).toFixed(0)}`);
   }
   await releaseAll(); await waitGrounded(); await waitFrames(6);
 
@@ -418,11 +418,11 @@ try {
     await page.screenshot({ path: path.join(OUT, "VG_jump.png") });
     await waitGrounded(); await waitFrames(4);
 
-    await page.keyboard.down("s"); await waitFrames(4);
+    await page.keyboard.down(";"); await waitFrames(4);
     const guardS = await p1();
     check("holding Down → blocking + 'guard' action", guardS.blocking && guardS.action === "guard", `blocking=${guardS.blocking} action=${guardS.action}`);
     await page.screenshot({ path: path.join(OUT, "VG_block.png") });
-    await page.keyboard.up("s"); await waitFrames(4);
+    await page.keyboard.up(";"); await waitFrames(4);
 
     await page.keyboard.down("p"); await waitFrames(6);
     const chargeS = await p1();

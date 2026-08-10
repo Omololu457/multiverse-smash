@@ -73,7 +73,7 @@ section("Freeze + guaranteed TBB damage");
 await page.waitForFunction(() => !window.__harness.minatoKuramaUltCine().active, null, { timeout: 6000, polling: 32 }).catch(() => {});
 const p2after = (await p2()).health;
 const dmg = p2full - p2after;
-check("TBB dealt guaranteed damage", dmg > 400, `Δhp=${dmg.toFixed(0)}`);
+check("TBB dealt guaranteed damage (~360 = 600×0.60)", dmg > 300, `Δhp=${dmg.toFixed(0)}`);
 check("survivable from full (NOT a pure round-ender)", p2after > 0, `p2 hp=${p2after.toFixed(0)} / ${p2full.toFixed(0)}`);
 check("cinematic ended cleanly (combat resumes)", !(await cine()).active, "");
 

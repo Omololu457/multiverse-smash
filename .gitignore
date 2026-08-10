@@ -154,6 +154,15 @@ electron/shots/
 # Throwaway sprite-slice preview scratch
 goku_slices/_preview/
 
+# Local dev save-server player data — MUST never be committed
+saves/
+saves/*.bak.json
+
+# Atlas-pack migration artifacts (regenerable via tools/atlas_pack.mjs) — the <char>_atlas.png
+# outputs ARE committed (live sprite data); these intermediates are not.
+*_atlas_map.json
+*_atlas_animdata.js
+
 # macOS junk
 .DS_Store
 

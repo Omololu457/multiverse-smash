@@ -115,7 +115,7 @@ check("ultimate spends 100 Solar Energy", (ue - (await p1()).energy) === 100, `�
 check("overload sprite plays through freeze", has(await p1(), "superman_ultimate_uniform"), "");
 await page.waitForFunction(() => window.__harness.supermanUltCine().struck === true || window.__harness.supermanUltCine().active === false, null, { timeout: 8000, polling: 16 }).catch(() => {});
 await waitFrames(3);
-check("guaranteed detonation damage lands (range-independent ~380)", (uhp - (await p2()).health) >= 360, `−${(uhp - (await p2()).health).toFixed(0)} @600px`);
+check("guaranteed detonation damage lands (range-independent ~228 = 380×0.60)", (uhp - (await p2()).health) >= 200, `−${(uhp - (await p2()).health).toFixed(0)} @600px`);
 await page.waitForFunction(() => window.__harness.supermanUltCine().active === false, null, { timeout: 8000, polling: 16 }).catch(() => {});
 await waitFrames(6);
 check("cinematic ends, combat resumes", (await cine()).active === false && !has(await p1(), "superman_ultimate_uniform"), "");

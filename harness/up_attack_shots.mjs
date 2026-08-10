@@ -53,9 +53,14 @@ for (const char of CHARS) {
     await page.waitForFunction(() => { const b=window.__harness.p2(); return b && (b.isLaunched || !b.grounded); }, null, { timeout:4000, polling:4 }).catch(()=>{});
     const la = await p1(), lb = await p2();
     await page.keyboard.up("i");
-    check(`${char}: BOTH airborne after Up-Attack`, la.grounded === false && lb.grounded === false, `p1.grounded=${la.grounded} p2.grounded=${lb.grounded}`);
+    // MK-feel Stage 1b: the launcher pops the ENEMY up but the PLAYER stays GROUNDED (no auto-carry).
+    check(`${char}: enemy airborne, PLAYER grounded (no auto-carry)`, la.grounded === true && (lb.grounded === false || lb.isLaunched), `p1.grounded=${la.grounded} p2.grounded=${lb.grounded}`);
     check(`${char}: enemy launched UPWARD (vy<0)`, lb.vy < 0 || lb.isLaunched, `enemy vy=${lb.vy?.toFixed?.(2)} launched=${lb.isLaunched}`);
     await shot(`upattack_${char}_launch.png`);
+
+    // JUMP-CANCEL the launcher recovery (deliberate jump press) to pursue the juggle — the new player-driven
+    // conversion that replaces the old automatic carry. Leaves the ground so the air follow-up below can link.
+    await page.keyboard.down("w"); await wf(3); await page.keyboard.up("w"); await wf(1);
 
     // One air follow-up (Light in the air) → routes through the air-combo counter. The juggle window is
     // brief and spacing-sensitive, so tap Light a few times while both are still airborne until it links.

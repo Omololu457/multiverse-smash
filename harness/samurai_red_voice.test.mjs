@@ -179,7 +179,7 @@ try {
   const logFull = await sfxLog();
   const dmgFull = (await p2()).maxHealth - (await p2()).health;
   const ultCount = logFull.filter(f => ultPool.includes(f)).length;
-  check("strike damage landed AFTER the activation line (≥300 direct)", dmgFull >= 300, `dmgFull=${dmgFull}`);
+  check("strike damage landed AFTER the activation line (≥204 = 340×0.60 direct)", dmgFull >= 190, `dmgFull=${dmgFull}`);
   check("exactly ONE ultimate line across the whole ult (no impact-beat double)", ultCount === 1, `ultLines=${ultCount}`);
 
   // ── (4) NO-OVERLAP: two Samurai triggers in quick succession → single voice channel ──

@@ -96,7 +96,7 @@ try {
   const fl = await record();
   check("jump + fall use netero_jump_uniform", (jp.spriteSheet || "").includes("netero_jump_uniform") && (fl.spriteSheet || "").includes("netero_jump_uniform"), `jump=${jp.action} fall=${fl.action}`);
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(18); const bk = await record(); await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.down(";"); await waitFrames(18); const bk = await record(); await page.keyboard.up(";"); await waitFrames(4);
   check("guard uses netero_block_uniform", bk.action === "guard" && (bk.spriteSheet || "").includes("netero_block_uniform"), `action=${bk.action}`);
   await page.evaluate(() => window.__harness.hurtP1(26)); await waitFrames(3); const h = await record();
   check("hurt uses netero_hit_uniform", h.action === "hurt" && (h.spriteSheet || "").includes("netero_hit_uniform"), `action=${h.action}`);

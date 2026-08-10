@@ -197,7 +197,7 @@ try {
     for (let i = 0; i < 22; i++) { const av = await record(); if ((av.spriteSheet || "").includes("yuji_sukuna_slash")) sawSign = true; for (const pr of await projs()) if ((pr.name || "") === "yujiSukunaSlash") fx = pr; await waitFrames(1); }
     const dmg = hp0 - (await p2()).health;
     check("hand-sign cast + auto-target FX on opponent", sawSign && !!fx && fx.visualOnly === true, `sign=${sawSign} fx=${!!fx}`);
-    check("sure-hit damage (unblocked)", dmg >= 40 && dmg <= 65, `−${dmg.toFixed(0)}`);
+    check("sure-hit damage (unblocked, ~30 = 50×0.60)", dmg >= 25 && dmg <= 40, `−${dmg.toFixed(0)}`);
     const ap = await record(); check("no transform (still Yuji, base form)", ap.key === "yuji" && (!ap.currentForm || ap.currentForm === "base"), `key=${ap.key} form=${ap.currentForm}`);
   }
   await prep(120, "block");

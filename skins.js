@@ -353,7 +353,11 @@ export const SKINS = {
   // getSkins() spriteScale:1 fallback and he renders at native ~half size. Sources his real
   // spriteScale (2.5) + portrait from the character.
   gon: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null },
+    // Stage 23 auto-palettes — default art + a render-time colour wash (no baked art), the same
+    // mechanism as the "Pink Fit" tint skin. Gives every roster fighter ≥3 palettes.
+    { id: "gon_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },
+    { id: "gon_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
 
   // Chrollo Lucilfer (Hunter x Hunter) — STAGE 1. Same gate: WITHOUT a default skin, applySkin()
@@ -636,7 +640,9 @@ export const SKINS = {
     { id: "samSilver",  name: "Silver Edge",    unlockLevel: 0, portrait: "./samurai_ranger_portrait__silveredge.png", spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "silveredge"), recolorTag: "silveredge" }
   ],
   green_samurai_ranger: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null },
+    { id: "green_samurai_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
+    { id: "green_samurai_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
   gold_samurai_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gold_samurai_ranger?.portrait, spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: null },
@@ -671,7 +677,9 @@ export const SKINS = {
   // <1 scale wouldn't apply). Sources his real spriteScale (0.95) from the character. No portrait yet
   // (procedural name/universe panel on select until Stage 6). No alt skins yet.
   omniman: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null },
+    { id: "omniman_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
+    { id: "omniman_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
 
   // Zenitsu Agatsuma (Demon Slayer) — FIRST Demon Slayer sprite char. Same gate: WITHOUT a default
@@ -790,7 +798,9 @@ export const SKINS = {
   // in fighters.js, NOT via alt skins). WITHOUT this default entry, applySkin() pulls
   // the spriteScale:1 fallback and Ben renders at ~half size. No alt skins yet.
   ben10: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null },
+    { id: "ben10_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
+    { id: "ben10_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
 
   // Ghostface — the 5 KILLER-IDENTITY skins ONLY (NO "Default"). In the source material there is no
@@ -876,7 +886,9 @@ export const SKINS = {
   // Zaraki Kenpachi — SHIKAI (separate select entry). Default skin only for now (its own creative batch can
   // follow later). animationData:null → uses the char's native Shikai art.
   zaraki_shikai: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null },
+    { id: "zaraki_shikai_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
+    { id: "zaraki_shikai_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ]
 }
 

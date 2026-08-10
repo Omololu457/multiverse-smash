@@ -73,7 +73,7 @@ try {
   const g = await record();
   check("P1 is Gon", g.key === "gon", `key=${g.key}`);
   check("renders as sprites", g.hasSpriteHandler, "");
-  check("idle sheet = gon_idle_uniform", (g.spriteSheet || "").includes("gon_idle_uniform"), `sheet=${g.spriteSheet}`);
+  check("idle uses the atlas at the idle row (Stage 22)", (g.spriteSheet || "").includes("gon_atlas") && g.spriteSourceY === 0, `sheet=${g.spriteSheet} sy=${g.spriteSourceY}`);
   check("balanced HP 1150", g.maxHealth === 1150, `HP=${g.maxHealth}`);
   check("Nen pool 160", g.maxEnergy === 160, `EN=${g.maxEnergy}`);
 
@@ -84,10 +84,10 @@ try {
   await page.keyboard.down("w"); await waitFrames(3); await record();
   await page.waitForFunction(() => window.__harness.p1().vy > 6 || !window.__harness.p1().grounded, null, { timeout: 4000, polling: 16 }).catch(() => {}); await record(); await page.keyboard.up("w");
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(14); const bk = await record(); await page.keyboard.up("s"); await waitFrames(4);
-  check("guard resolves to a gon guard sheet", bk.action === "guard" && (bk.spriteSheet || "").includes("gon_guard_uniform"), `action=${bk.action} sheet=${bk.spriteSheet}`);
+  await page.keyboard.down(";"); await waitFrames(14); const bk = await record(); await page.keyboard.up(";"); await waitFrames(4);
+  check("guard resolves to the guard row of the atlas", bk.action === "guard" && (bk.spriteSheet || "").includes("gon_atlas") && bk.spriteSourceY === 183, `action=${bk.action} sy=${bk.spriteSourceY}`);
   await page.evaluate(() => window.__harness.hurtP1(20)); await waitFrames(3); const h = await record();
-  check("hurt resolves to a gon hit sheet", h.action === "hurt" && (h.spriteSheet || "").includes("gon_hit_uniform"), `action=${h.action} sheet=${h.spriteSheet}`);
+  check("hurt resolves to the hit row of the atlas", h.action === "hurt" && (h.spriteSheet || "").includes("gon_atlas") && h.spriteSourceY === 228, `action=${h.action} sy=${h.spriteSourceY}`);
   await page.evaluate(() => window.__harness.healP1()); await waitFrames(4);
 
   // ── STAGE 2: 5 normals ──
@@ -173,7 +173,7 @@ try {
   check("Gon leads 1-0 before the finisher", lead.roundWins.p1 === 1 && lead.roundWins.p2 === 0, JSON.stringify(lead.roundWins));
   await page.keyboard.down("l"); await waitFrames(4); await page.keyboard.up("l");
   const strike = await record();
-  check("Final Blow plays the finalblow sprite", strike.action === "finalblow" && /gon_finalblow_uniform\.png$/.test(strike.spriteSheet || ""), `action=${strike.action} sheet=${strike.spriteSheet}`);
+  check("Final Blow plays the finalblow row of the atlas", strike.action === "finalblow" && /gon_atlas\.png$/.test(strike.spriteSheet || "") && strike.spriteSourceY === 1066, `action=${strike.action} sy=${strike.spriteSourceY}`);
   await page.waitForFunction(() => window.__harness.matchFlow().victoryActive === true, null, { timeout: 6000, polling: 16 }).catch(() => {});
   const loss = await flow();
   check("whiff → match ended", loss.victoryActive === true, `victoryActive=${loss.victoryActive}`);

@@ -40,7 +40,12 @@ try{
   section("Baseline (no code) — full roster, ONLINE locked");
   let m=await menu();
   check("no unlock flags set", m.beta===false && m.dev===false);
-  check("full roster selectable (no filter)", sortJoin(m.selectable)===sortJoin(gt.all), `n=${m.selectable.length}`);
+  // Stage 5B: baseline (no code) now hides isPlayable:false art-less placeholders (they'd render as
+  // procedural boxes). Selectable == the PLAYABLE set, not the full non-hidden roster. Dev still
+  // sees the art-less entries (asserted in the DEV section below).
+  check("playable roster selectable at baseline (art-less placeholders hidden)", sortJoin(m.selectable)===sortJoin(gt.playable), `n=${m.selectable.length}`);
+  check("baseline EXCLUDES art-less placeholders (piccolo/frieza/omololu)", ["piccolo","frieza","omololu"].every(k=>!m.selectable.includes(k)));
+  check("playable roster is smaller than the full non-hidden roster (filter is real)", gt.playable.length < gt.all.length, `playable=${gt.playable.length} all=${gt.all.length}`);
   check("ONLINE locked without a code", m.onlineLocked===true);
   // Level-gated fixture repointed sukuna3 → megumi2 (lvl3) after all Sukuna alt skins were deleted 2026-07-30.
   const baseGated=await page.evaluate(()=>window.__harness.skinUnlocked("megumi","megumi2"));

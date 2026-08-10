@@ -82,9 +82,11 @@ for (const [universe, chars] of Object.entries(EXPECTED)) {
 
     const a = mkFighter(100, 1, cd.basic_attacks), t = mkFighter(168, -1);
     const r = landMove(a, t, "up", md);
-    check(`${key}: launches enemy vy=${x.e}, player vy=${x.s}`, r.enemyVy === x.e && r.selfVy === x.s, `enemy=${r.enemyVy} player=${r.selfVy}`);
-    check(`${key}: player rises less than enemy + both airborne + opener uncounted`,
-      Math.abs(r.selfVy) < Math.abs(r.enemyVy) && !a.onGround && !t.onGround && r.airHits === 0);
+    // MK-feel Stage 1b: launcher launches the ENEMY only; the attacker stays GROUNDED (no auto-lift/carry)
+    // and must jump-cancel to convert. selfVy stays 0.
+    check(`${key}: launches enemy vy=${x.e}, player stays GROUNDED`, r.enemyVy === x.e && r.selfVy === 0 && a.onGround === true, `enemy=${r.enemyVy} player=${r.selfVy} onGround=${a.onGround}`);
+    check(`${key}: ENEMY airborne, player GROUNDED (jump-cancel required) + opener uncounted`,
+      a.onGround === true && !t.onGround && t.isLaunched === true && r.airHits === 0);
 
     // Air-combo chain: 3 lofting hits, 4th falls faster, cap holds.
     const trace = [];

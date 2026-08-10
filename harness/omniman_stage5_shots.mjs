@@ -56,7 +56,7 @@ c = await cine();
 check("reaches the SLAM connect beat (struck)", c.struck === true, `struck=${c.struck} phase=${c.phase} frame=${c.frame}`);
 await shot("slam");
 const oppHP1 = (await p2()).health;
-check("guaranteed body-slam damage lands (~340)", oppHP0 - oppHP1 >= 300, `HP ${oppHP0 | 0}→${oppHP1 | 0} (Δ${(oppHP0 - oppHP1) | 0})`);
+check("guaranteed body-slam damage lands (~204 = 340×0.60)", oppHP0 - oppHP1 >= 190, `HP ${oppHP0 | 0}→${oppHP1 | 0} (Δ${(oppHP0 - oppHP1) | 0})`);
 check("opponent slammed to the ground (knockdown)", (await p2()).knockdownState === true || (await p2()).hitstun > 0, "");
 
 // ── cinematic ends → combat resumes ──

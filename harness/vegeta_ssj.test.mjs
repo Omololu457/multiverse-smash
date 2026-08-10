@@ -135,12 +135,12 @@ try {
 
     // GUARD — hold Down (blocks)
     await topUp();
-    await page.keyboard.down("s"); await waitFrames(6);
+    await page.keyboard.down(";"); await waitFrames(6);
     const guard = await p1();
     check("SSJ guard renders vegeta_ssj_gaurd sheet", (guard.spriteSheet || "").includes("vegeta_ssj_gaurd") && guard.action === "guard", `action=${guard.action} sheet=${guard.spriteSheet}`);
     check("SSJ guard NOT the fallback box", !isFallback(guard), `sheet=${guard.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "VGS_guard.png") });
-    await page.keyboard.up("s"); await waitFrames(4);
+    await page.keyboard.up(";"); await waitFrames(4);
   }
 
   // ── HURT — a real connect renders the SSJ flinch ──────────────────────────
@@ -384,7 +384,7 @@ try {
     check("cinematic runs windup → fire → settle", phases.has("windup") && phases.has("fire") && phases.has("settle"), `phases=${[...phases].join(",")}`);
     check("beam CONNECTS at the impact beat (struck)", struck, `struck=${struck}`);
     check("near-max meter cost (~100)", (e0 - (await p1()).energy) >= 95, `spent ${(e0 - (await p1()).energy).toFixed(0)}`);
-    check("SSJ OVERCHARGE damage clearly above base ult (≥400)", (hp0 - (await p2()).health) >= 400, `−${(hp0 - (await p2()).health)}`);
+    check("SSJ OVERCHARGE damage clearly above base ult (≥240 = 420×0.60)", (hp0 - (await p2()).health) >= 240, `−${(hp0 - (await p2()).health)}`);
   }
   await releaseAll(); await waitGrounded(); await waitFrames(8);
 
@@ -404,7 +404,7 @@ try {
     await releaseAll();
     check("Self-Destruct fires + renders self_explosion", seen && sheet.includes("vegeta_ssj_self_explosion"), `action-sheet=${sheet}`);
     check("Self-Destruct spent its big energy cost", (await p1()).energy < e0 - 50, `energy ${e0.toFixed(0)} → ${(await p1()).energy.toFixed(0)}`);
-    check("Self-Destruct dealt big proximity AOE damage", (hp0 - (await p2()).health) >= 150, `−${(hp0 - (await p2()).health)}`);
+    check("Self-Destruct dealt big proximity AOE damage (~108 = 180×0.60)", (hp0 - (await p2()).health) >= 100, `−${(hp0 - (await p2()).health)}`);
   }
   await releaseAll(); await waitGrounded(); await waitFrames(8);
 

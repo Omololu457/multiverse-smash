@@ -58,7 +58,7 @@ const cEnd = await cine();
 const hpEnd = (await p2()).health;
 const dmg = hp0 - hpEnd;
 check("cinematic ENDED (combat resumes)", !cEnd.active, `active=${cEnd.active}`);
-check("opponent took the guaranteed cinematic-band damage (~360)", dmg >= 300 && dmg <= 400, `dmg=${dmg}`);
+check("opponent took the guaranteed cinematic-band damage (~216 = 360×0.60)", dmg >= 180 && dmg <= 250, `dmg=${dmg}`);
 await shot("after");
 
 check("no JS/page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));

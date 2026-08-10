@@ -240,7 +240,8 @@ function buildNeutralInput() {
   return {
     left: false,
     right: false,
-    down: false,     // hold to crouch/guard (game maps to c.down → fighter.isBlocking)
+    down: false,     // hold to crouch / down-motion (game maps to c.down; no longer guards)
+    block: false,    // hold the dedicated GUARD input (game maps to c.block → fighter.isBlocking) — MK-feel Stage 1c
     jump: false,
     lightAttack: false,
     heavyAttack: false,
@@ -872,10 +873,10 @@ function applyMovementPlan(input, plan, fighter, opponent, profile) {
       break
 
     case "block":
-      // Hold Down to guard (game.js maps aiInput.down → keys[c.down] → fighter.isBlocking).
-      // Stand still — no move/attack/jump inputs — so the guard isn't cancelled;
-      // chooseAttackAction and maybeJump both bail out on the "block" plan.
-      press(input, "down")
+      // Hold the dedicated GUARD input (MK-feel Stage 1c: game.js maps aiInput.block → keys[c.block] →
+      // fighter.isBlocking; guarding is no longer on Down). Stand still — no move/attack/jump inputs —
+      // so the guard isn't cancelled; chooseAttackAction and maybeJump both bail out on the "block" plan.
+      press(input, "block")
       break
 
     case "zone":

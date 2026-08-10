@@ -157,14 +157,14 @@ try {
   }
   {
     await waitGrounded();
-    await page.keyboard.down("s");   // hold DOWN → block
+    await page.keyboard.down(";");   // hold DOWN → block
     await waitFrames(4);
     const g = await p1();
     check("holding down → isBlocking", g.blocking === true, `blocking=${g.blocking}`);
     check("blocking → guard action", g.action === "guard", `action=${g.action}`);
     check("guard sheet is black_goku_block.png", sheetOf(g).includes("black_goku_block"), `sheet=${g.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "GB_guard.png") });
-    await page.keyboard.up("s");
+    await page.keyboard.up(";");
     await waitFrames(2);
   }
 

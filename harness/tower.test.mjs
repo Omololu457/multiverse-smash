@@ -149,6 +149,23 @@ try{
   const vn=await vinfo();
   check("normal-match flawless flagged (no tower subtitle)", vn.flawless===true && vn.subtitle==="", `flawless=${vn.flawless} subtitle="${vn.subtitle}"`);
 
+  section("STEP 5 — MATCH MODIFIERS (Stage 24A) apply to the live fighters");
+  await page.evaluate(()=>window.__harness.bootVs()); await wf(3);
+  await page.evaluate(()=>{try{window.__harness.skipToBattle();}catch(e){}}); await wf(2);
+  const m0 = await page.evaluate(()=>window.__harness.modifiers());
+  await page.evaluate(()=>window.__harness.setModifiers(["doubleHealth","speedUp","noBlock","lowGravity","meterDrain"]));
+  const m1 = await page.evaluate(()=>window.__harness.modifiers());
+  check("doubleHealth doubles maxHealth", m1.p1.maxHealth === m0.p1.maxHealth*2, `${m0.p1.maxHealth}→${m1.p1.maxHealth}`);
+  check("speedUp raises speed", m1.p1.speed > m0.p1.speed, `${m0.p1.speed}→${m1.p1.speed}`);
+  check("noBlock flag set on the fighter", m1.p1.noBlock === true);
+  check("lowGravity lowers world gravity", m1.gravity < m0.gravity, `${m0.gravity}→${m1.gravity}`);
+  check("meterDrain flag set", m1.p1.meterDrain === true);
+  const mClear = await page.evaluate(()=>{ window.__harness.setModifiers([]); return window.__harness.modifiers(); });
+  check("clearing modifiers restores baseline gravity", Math.abs(mClear.gravity - m0.gravity) < 1e-6, `grav=${mClear.gravity}`);
+  await page.evaluate(()=>window.__harness.towerStart("tier4","gojo")); await wf(2);
+  const tf = await page.evaluate(()=>window.__harness.modifiers());
+  check("Tower tier 4 floor 1 has ≥1 modifier assigned", tf.active.length >= 1, `mods=${tf.active.join(",")}`);
+
   section("errors");
   check("no uncaught JS exceptions", jsErrors.length===0, jsErrors.slice(0,4).join(" | "));
 }catch(e){console.error("ERR",e);FAIL++;try{await page.screenshot({path:path.join(OUT,"TOWER_ERR.png")});}catch{}}

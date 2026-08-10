@@ -201,6 +201,7 @@
     "test:preload": "node harness/preload.test.mjs",
     "test:determinism": "node harness/determinism.test.mjs",
     "test:replay-record": "node harness/replay_record.test.mjs",
+    "test:replay-playback": "node harness/replay_playback.test.mjs",
     "test:fx-manifest": "node tools/check_fx_manifest.mjs",
     "test:killua": "node harness/killua.test.mjs",
     "test:flash": "node harness/flash.test.mjs",

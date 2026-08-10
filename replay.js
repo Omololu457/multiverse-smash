@@ -78,3 +78,81 @@ export function finishRecording() {
 export function getRecording() { return _clean(_rec); }
 export function isRecording()  { return !!_rec; }
 export function abortRecording(){ _rec = null; }
+
+// ─────────────────────────────────────────────────────────────────
+// STATE CHECKPOINTS (Stage 11C desync verification)
+// Every HASH_INTERVAL battle frames the recorder snapshots both fighters' {x,y,health,energy}. Playback
+// recomputes the same snapshot and compares — the first mismatch is the desync frame. This is the
+// determinism regression test: a bit-identical replay produces zero desyncs.
+// ─────────────────────────────────────────────────────────────────
+export const HASH_INTERVAL = 60;
+
+// snap = [x, y, health, energy] (already rounded by the caller for float-noise safety).
+export function recordState(frameIndex, p1Snap, p2Snap) {
+  if (!_rec) return;
+  (_rec.states ||= []).push({ f: frameIndex, a: p1Snap, b: p2Snap });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// PLAYBACK (Stage 11C)
+// ─────────────────────────────────────────────────────────────────
+
+// Reject-on-mismatch (SECTION D): a replay from a different format/balance would desync, so refuse it.
+// Returns { ok } or { ok:false, reason }.
+export function validateReplay(rep) {
+  if (!rep || typeof rep !== "object")        return { ok: false, reason: "not a replay object" };
+  if (rep.version !== REPLAY_VERSION)         return { ok: false, reason: `version ${rep.version} != ${REPLAY_VERSION}` };
+  if (rep.balanceStamp !== BALANCE_STAMP)     return { ok: false, reason: `balance "${rep.balanceStamp}" != "${BALANCE_STAMP}"` };
+  if (!Array.isArray(rep.frames))             return { ok: false, reason: "missing frames" };
+  return { ok: true };
+}
+
+let _play = null;
+
+export function startPlayback(rep) {
+  _play = {
+    replay: rep,
+    cursor: 0,                 // index into rep.frames (delta stream), advanced as frames elapse
+    p1: 0, p2: 0,              // current reconstructed masks (carry forward between deltas)
+    checks: 0, matched: 0,     // state-checkpoint tallies
+    desyncFrame: null          // first frame where playback state diverged from the recording
+  };
+  return _play;
+}
+export function isPlayback()  { return !!_play; }
+export function stopPlayback(){ const p = _play; _play = null; return p; }
+
+// Reconstruct the input masks for the given battle-frame index by advancing the delta cursor. Called
+// once per frame with a monotonically increasing frameIndex. Returns { p1, p2} masks.
+export function playbackMaskAt(frameIndex) {
+  if (!_play) return null;
+  const frames = _play.replay.frames;
+  while (_play.cursor < frames.length && frames[_play.cursor].f <= frameIndex) {
+    _play.p1 = frames[_play.cursor].p1;
+    _play.p2 = frames[_play.cursor].p2;
+    _play.cursor++;
+  }
+  return { p1: _play.p1, p2: _play.p2 };
+}
+
+function _arrEq(a, b) { return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => v === b[i]); }
+
+// Compare live playback state to the recorded checkpoint at this frame (if one exists). Records the
+// first divergent frame. p1Snap/p2Snap = [x,y,health,energy] rounded identically to record time.
+export function playbackCheckState(frameIndex, p1Snap, p2Snap) {
+  if (!_play) return;
+  const rec = (_play.replay.states || []).find(s => s.f === frameIndex);
+  if (!rec) return;
+  _play.checks++;
+  if (_arrEq(rec.a, p1Snap) && _arrEq(rec.b, p2Snap)) _play.matched++;
+  else if (_play.desyncFrame == null) _play.desyncFrame = frameIndex;
+}
+
+export function playbackState() {
+  if (!_play) return null;
+  return {
+    cursor: _play.cursor, totalFrames: _play.replay.frames.length,
+    checks: _play.checks, matched: _play.matched, desyncFrame: _play.desyncFrame,
+    frameCount: _play.replay.frameCount ?? null
+  };
+}

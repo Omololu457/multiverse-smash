@@ -10,6 +10,7 @@ import { camera } from "./camera.js"
 import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets } from "./sprite.js"
 import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
 import { fxSheetsForFighters } from "./preloadManifest.js"
+import { gameRng, reseed as reseedRng, makeSeed } from "./rng.js"   // Stage 11A: seeded gameplay RNG
 import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
@@ -757,8 +758,16 @@ const matchConfig = {
   p1Aliens: null, p2Aliens: null,
   alienDraft: [], alienSelectSide: "p1",
   // Skins (Task 4): selected skin id per side; default until the skin-select picks one.
-  p1Skin: "default", p2Skin: "default"
+  p1Skin: "default", p2Skin: "default",
+  // Stage 11A: the gameplay-RNG seed this match was started from (stamped in startMatch). Captured so
+  // the exact match can later be reproduced/replayed. NOT persisted to the save file (per-match only).
+  seed: null
 }
+
+// Stage 11A: harness/replay override — when set (a number), startMatch seeds the match RNG from THIS
+// instead of a fresh makeSeed(). Null in all normal play (every match gets a fresh seed). Replay
+// playback (11B) and determinism tests set it to reproduce an exact match.
+let _forcedSeed = null
 
 // Apply a selected skin's complete animationData (own + borrowed) + display scale
 // onto a fighter. null skinAnim = the character's default art. Per-fighter, so a
@@ -2165,6 +2174,8 @@ let _preloadReady    = true                 // true when nothing is pending (als
 let _preloadFailures = []                   // [{ path, error }] from the last preloadMatch, logged at start
 let _preloadProgress = { done: 0, total: 0 }
 let _preloadPromise  = Promise.resolve({ failures: [] })
+const PRELOAD_GRACE_FRAMES = 180            // intro frames to wait on preload before FAIL-OPEN (never hang)
+let _preloadGraceFrames = 0
 
 // Collect the distinct .sheet paths one fighter can render: the character's own animationData merged
 // with the active skin's per-action overrides (the renderer reads the merged set via _skinAnim, so a
@@ -2185,6 +2196,7 @@ function collectFighterSheets(rosterKey, skinId) {
 
 function preloadMatch(cfg) {
   _preloadReady    = false
+  _preloadGraceFrames = PRELOAD_GRACE_FRAMES   // reset the fail-open budget for this match
   _preloadFailures = []
   _preloadProgress = { done: 0, total: 0 }
   const bump = () => { _preloadProgress.done++; try { window.__setLoadProgress?.(_preloadProgress.done, _preloadProgress.total) } catch (_) {} }
@@ -2218,6 +2230,13 @@ function preloadMatch(cfg) {
 
 function startMatch() {
   sound.stopAllSfx?.({ includePersistent: true })   // new match → no cue from a prior match/menu bleeds in
+  // Stage 11A: seed the gameplay RNG for THIS match before anything rolls (AI setup runs in resetRound
+  // below). A forced seed reproduces an exact match (replay/tests); otherwise a fresh per-match seed.
+  // Stamped onto matchConfig so the match is reproducible. Rounds within a match share the continuing
+  // stream (reseed is per-MATCH, not per-round) — resetRound never reseeds.
+  const _matchSeed = (_forcedSeed != null) ? (_forcedSeed >>> 0) : makeSeed()
+  matchConfig.seed = _matchSeed
+  reseedRng(_matchSeed)
   _roundEndAudioStopped = false
   // A standard 1v1/tower/training match never runs the FFA array path — make the flag honest
   // in case an FFA session was left without the result-screen exit (dispatch keys off gameState,
@@ -7717,7 +7736,11 @@ function updateCurrentState() {
         // STAGE 10 GATE: don't enter BATTLE until every fighter/FX sheet has decoded. On a normal
         // connection preload finishes long before the intro does, so this never stalls; on a slow one
         // it holds the last intro frame for a few frames rather than ever flashing a _FALLBACK box.
-        if (matchIntroTimer <= 0 && _preloadReady) {
+        // FAIL-OPEN after a grace cap so it can NEVER hang: a synchronous harness step-loop can't run
+        // the preload promise's microtasks (so _preloadReady would stay false forever), and a real
+        // player must never be stuck on a genuinely wedged decode. Past the cap we proceed regardless —
+        // worst case a move briefly renders the fallback box; match STATE is unaffected either way.
+        if (matchIntroTimer <= 0 && (_preloadReady || --_preloadGraceFrames <= 0)) {
           gameState = GAME_STATES.BATTLE; countdown = ROUND_START_COUNTDOWN
           if (p1) p1._introPlaying = false   // BUG_9: back to idle once the fight starts
           if (p2) p2._introPlaying = false
@@ -8215,6 +8238,15 @@ gameLoop()
     preloadReady:    () => _preloadReady,                   // the INTRO→BATTLE gate flag
     preloadFailures: () => _preloadFailures.map(f => ({ ...f })),
     preloadProgress: () => ({ ..._preloadProgress }),
+    // ── STAGE 11A determinism hooks ─────────────────────────────────────────────
+    rng: {
+      seed:           () => matchConfig.seed,               // the seed the CURRENT match was started from
+      forceSeed:      (v) => { _forcedSeed = (v == null) ? null : (v >>> 0) },  // next startMatch() uses this
+      clearForceSeed: () => { _forcedSeed = null },
+      reseed:         (v) => reseedRng(v),                  // reseed the live stream directly (unit-test the PRNG)
+      draw:           (n = 1) => Array.from({ length: n }, () => gameRng.next()),  // pull n values from the stream
+      currentSeed:    () => gameRng.seed
+    },
     // Center point of a GAMEPLAY_SELECT button by id — so menu-click tests stay correct when the
     // menu gains/loses rows (the vertical layout re-centers all rows on any count change).
     gameplayRect: (id) => { const r = getGameplaySelectRects(canvas).find(x => x.id === id); return r ? { x: Math.round(r.x + r.w / 2), y: Math.round(r.y + r.h / 2) } : null },

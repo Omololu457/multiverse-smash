@@ -15,6 +15,8 @@
 //   • STRINGS    — in range the AI chains light→heavy→special instead of single pokes.
 // Difficulty scales every layer (see the extra profile fields below).
 
+import { gameRng } from "./rng.js"   // Stage 11A: seeded gameplay RNG — all AI rolls route through rand()
+
 export const AI_DIFFICULTIES = {
   dummy: {
     name: "Dummy",
@@ -166,8 +168,11 @@ function applySignatureMotion(fighter, target) {
   }
 }
 
+// Stage 11A: all AI decision rolls flow through the seeded gameplay RNG (not Math.random) so a match
+// reproduces bit-identically from its seed. rand() is the single choke-point — chance() and every
+// caller inherit determinism from it. (Voice picks stay on Math.random by design; see rng.js.)
 function rand() {
-  return Math.random()
+  return gameRng.next()
 }
 
 function chance(value) {

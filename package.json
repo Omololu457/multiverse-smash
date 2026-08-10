@@ -198,6 +198,8 @@
     "test:killua-stage3": "node harness/killua_stage3.mjs",
     "test:killua-stage4": "node harness/killua_stage4.mjs",
     "test:killua-stage5": "node harness/killua_stage5.mjs",
+    "test:preload": "node harness/preload.test.mjs",
+    "test:fx-manifest": "node tools/check_fx_manifest.mjs",
     "test:killua": "node harness/killua.test.mjs",
     "test:flash": "node harness/flash.test.mjs",
     "test:gon": "node harness/gon.test.mjs",

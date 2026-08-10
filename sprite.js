@@ -7,7 +7,7 @@
 // - Fallback box renderer
 // - Spawn events for projectiles/summons/effects
 //
-// Exports: SpriteHandler, preloadCharacterSprites, processPendingSpawns
+// Exports: SpriteHandler, preloadCharacterSprites, preloadSheets, processPendingSpawns
 
 // ─────────────────────────────────────────────────────────────────
 // SKILL HUNTER (Chrollo) TRANSFORM TINT — a runtime canvas filter applied to the COPIED character's
@@ -79,6 +79,52 @@ export function preloadCharacterSprites(characterKey) {
       if (action.sheet) _loadSheet(action.sheet);
     }
   } catch (_) {}
+}
+
+// Resolve when an Image is fully decoded and drawable. decode() is the authoritative signal
+// (returns only once the bitmap is ready to paint with no jank); we fall back to load/error
+// events where decode() is unavailable. NEVER rejects — a broken sheet resolves to { ok:false }
+// so one 404 can't sink the whole preload Promise.
+function _decodeSheet(img, path) {
+  if (!img) return Promise.resolve({ path, ok: false, error: "no-image" });
+  if (typeof img.decode === "function") {
+    return img.decode()
+      .then(() => ({ path, ok: true }))
+      // decode() can reject spuriously (e.g. already-complete cached images in some engines);
+      // trust the pixel-level readiness check as the tiebreaker before declaring failure.
+      .catch(() => (_sheetReady(img) ? { path, ok: true } : { path, ok: false, error: "decode-failed" }));
+  }
+  if (_sheetReady(img)) return Promise.resolve({ path, ok: true });
+  return new Promise(res => {
+    img.addEventListener("load",  () => res({ path, ok: true }), { once: true });
+    img.addEventListener("error", () => res({ path, ok: false, error: "load-error" }), { once: true });
+  });
+}
+
+// Core preloader: load + decode an arbitrary list of sheet paths into the module _cache. Resolves —
+// never rejects — with { total, failures:[{path,error}] } once every sheet has decoded or errored.
+// onEach (optional) fires once per sheet with its { path, ok } result so callers can drive a progress bar.
+//
+// CONCURRENCY IS BOUNDED (maxConcurrent, default 6). A heavy fighter fans out to 100+ sheets; firing
+// every new Image() + decode() at once bursts the browser's per-host connection pool and floods the
+// main thread with decode-completion callbacks in one spike right at match start. A small worker pool
+// spreads that load, keeps match start smooth, and still finishes well within the intro window.
+// _loadSheet() only fires each Image's request when a worker reaches it, so this throttles the network
+// too. game.js's preloadMatch routes both body-sheet and FX-sheet lists through here.
+export function preloadSheets(paths, onEach, maxConcurrent = 6) {
+  const list = [...new Set((paths || []).filter(Boolean))];
+  const failures = [];
+  let idx = 0;
+  const worker = async () => {
+    while (idx < list.length) {
+      const p = list[idx++];
+      const r = await _decodeSheet(_loadSheet(p), p);
+      try { onEach?.(r); } catch (_) {}
+      if (!r.ok) failures.push({ path: r.path, error: r.error || "unknown" });
+    }
+  };
+  const n = Math.max(1, Math.min(maxConcurrent, list.length));
+  return Promise.all(Array.from({ length: n }, worker)).then(() => ({ total: list.length, failures }));
 }
 
 // ─────────────────────────────────────────────────────────────────

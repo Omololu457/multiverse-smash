@@ -41,9 +41,9 @@ const goku = {
     base:          { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
     ssj1:          { damageMultiplier: 1.2, speedMultiplier: 1.1, defenseMultiplier: 1.05, duration: 1800 },
     ssj2:          { damageMultiplier: 1.3, speedMultiplier: 1.15, defenseMultiplier: 1.1, duration: 1500 },
-    ssj3:          { damageMultiplier: 1.5, speedMultiplier: 1.2, defenseMultiplier: 1.05, kiDrainPerSecond: 5, duration: 900 },
-    ssblue:        { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.2, kiDrainPerSecond: 8, isSpecial: true, duration: 720 },
-    ultraInstinct: { damageMultiplier: 2.5, speedMultiplier: 2, defenseMultiplier: 1.5, autoDodge: true, autoDodgeKiCost: 10, kiDrainPerSecond: 12, isSpecial: true, duration: 480 }
+    ssj3:          { damageMultiplier: 1.5, speedMultiplier: 1.2, defenseMultiplier: 1.05, energyDrainPerFrame: 5 / 60, kiDrainPerSecond: 5, duration: 900 },
+    ssblue:        { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.2, energyDrainPerFrame: 8 / 60, kiDrainPerSecond: 8, isSpecial: true, duration: 720 },
+    ultraInstinct: { damageMultiplier: 2.5, speedMultiplier: 2, defenseMultiplier: 1.5, autoDodge: true, autoDodgeKiCost: 10, energyDrainPerFrame: 12 / 60, kiDrainPerSecond: 12, isSpecial: true, duration: 480 }
   },
   hasSprites: true,
   // Base (black-hair) Goku sprites sliced from goku_base_FULLSHEET_transparent.png.
@@ -121,9 +121,9 @@ const vegeta = {
     ssjBlue:      { damageMultiplier: 1.45, speedMultiplier: 1.25, defenseMultiplier: 1.12, energyThreshold: 160, energyDrainPerFrame: 0.28, kiDrainPerSecond: 17, revertOnEmpty: true, isSpecial: true, requiresForm: "ssj", skinAnim: "vegetaBlue" },
     ssj1:         { damageMultiplier: 1.2, speedMultiplier: 1.1, defenseMultiplier: 1.05, duration: 1800 },
     ssj2:         { damageMultiplier: 1.3, speedMultiplier: 1.15, defenseMultiplier: 1.1, duration: 1500 },
-    ssblue:       { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.2, kiDrainPerSecond: 8, isSpecial: true, duration: 720 },
-    ssbEvolution: { damageMultiplier: 2.3, speedMultiplier: 1.5, defenseMultiplier: 1.25, kiDrainPerSecond: 10, isSpecial: true, duration: 600 },
-    ultraEgo:     { damageMultiplier: 2.5, speedMultiplier: 1.8, defenseMultiplier: 0.9, rageHealOnHit: 15, healCostPerHitKi: 6, kiDrainPerSecond: 12, isSpecial: true, duration: 480 }
+    ssblue:       { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.2, energyDrainPerFrame: 8 / 60, kiDrainPerSecond: 8, isSpecial: true, duration: 720 },
+    ssbEvolution: { damageMultiplier: 2.3, speedMultiplier: 1.5, defenseMultiplier: 1.25, energyDrainPerFrame: 10 / 60, kiDrainPerSecond: 10, isSpecial: true, duration: 600 },
+    ultraEgo:     { damageMultiplier: 2.5, speedMultiplier: 1.8, defenseMultiplier: 0.9, rageHealOnHit: 15, healCostPerHitKi: 6, energyDrainPerFrame: 12 / 60, kiDrainPerSecond: 12, isSpecial: true, duration: 480 }
   },
   // Two-part intro: intro.png (arms-crossed) → intro_2.png (power-up flare). Sequential
   // P1-then-P2 machine (game.js initIntroVariant/advanceIntroSequence → _introVariant).
@@ -192,7 +192,7 @@ const vegeta = {
 }
 
 const piccolo = {
-  rosterKey: "piccolo", name: "Piccolo", universe: "dragon_ball",
+  rosterKey: "piccolo", name: "Piccolo", universe: "dragon_ball", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
   archetypes: ["melee", "ranged"],
   primary: "melee", secondary: ["ranged"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "medium", scaling: "control", animeMovement: true },
@@ -219,7 +219,7 @@ const piccolo = {
 }
 
 const frieza = {
-  rosterKey: "frieza", name: "Frieza", universe: "dragon_ball",
+  rosterKey: "frieza", name: "Frieza", universe: "dragon_ball", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
   archetypes: ["melee", "ranged"],
   primary: "ranged", secondary: ["melee"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
@@ -241,13 +241,13 @@ const frieza = {
   transformationOrder: ["base","goldenFrieza"],
   transformations: {
     base:         { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    goldenFrieza: { damageMultiplier: 2, speedMultiplier: 1.5, defenseMultiplier: 1.2, kiDrainPerSecond: 6, isSpecial: true, duration: 720 }
+    goldenFrieza: { damageMultiplier: 2, speedMultiplier: 1.5, defenseMultiplier: 1.2, energyDrainPerFrame: 6 / 60, kiDrainPerSecond: 6, isSpecial: true, duration: 720 }
   },
   animationData: { ...DEFAULT_ANIM }
 }
 
 const cell = {
-  rosterKey: "cell", name: "Cell", universe: "dragon_ball",
+  rosterKey: "cell", name: "Cell", universe: "dragon_ball", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
   archetypes: ["melee", "absorb"],
   primary: "melee", secondary: ["absorb"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "medium", scaling: "constant_pressure", animeMovement: true },
@@ -268,7 +268,7 @@ const cell = {
   transformationOrder: ["base","perfectCell"],
   transformations: {
     base:        { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    perfectCell: { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.3, kiDrainPerSecond: 5, isSpecial: true, duration: 720 }
+    perfectCell: { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.3, energyDrainPerFrame: 5 / 60, kiDrainPerSecond: 5, isSpecial: true, duration: 720 }
   },
   animationData: { ...DEFAULT_ANIM }
 }
@@ -278,6 +278,12 @@ const cell = {
 // ─────────────────────────────────────────────────────────────────
 const gojo = {
   rosterKey: "gojo", name: "Gojo Satoru", universe: "jujutsu_kaisen",
+  homeStage: "Shibuya Incident",   // Stage 23: explicit home-stage override (else derived by universe→series)
+  // Arcade BOSS profile (Stage 20). Applied ONLY when Gojo is the arcade final-boss opponent
+  // (createFighter strips it in normal play, so vs-Gojo is a fair, normal fighter). Gojo has no
+  // giant form, so his boss-ness is stat-based: 2× HP, visibly larger, super-armor vs light hits,
+  // free specials, impossible AI, single round. See _applyBossProfile in game.js.
+  bossProfile: { healthMult: 2.0, scale: 1.4, superArmorThreshold: 55, meterFree: true, aiDifficulty: "impossible", noRoundLimit: true },
   portrait: "./gojo_portrait.png",   // EXACT on-disk filename (case + extension)
   archetypes: ["ranged", "melee"],
   primary: "ranged", secondary: ["melee"],
@@ -489,7 +495,7 @@ const sukuna = {
 }
 
 const omololu = {
-  rosterKey: "omololu", name: "Omololu", universe: "original",
+  rosterKey: "omololu", name: "Omololu", universe: "original", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
   archetypes: ["melee", "analysis"],
   primary: "melee", secondary: ["analysis"],
   traits: { hasEnergy: true, energyType: "stamina", mobility: "medium", scaling: "ramp", animeMovement: true },
@@ -659,6 +665,13 @@ const toji = {
 const naruto = {
   rosterKey: "naruto", name: "Naruto", universe: "naruto",
   portrait: "./naruto_kcm_portrait.png",   // KCM mugshot bust sliced from naruto_kcm_mugshot_lifebars.png (lifebar strips excluded)
+  // Arcade rival (Stage 19C). characters.js override wins over arcade.js's ARCADE_RIVALS map; the
+  // pre-fight two-line exchange + post-win line are optional (arcade.js supplies a generic fallback).
+  arcadeRival: "sasuke",
+  arcadeRivalLines: {
+    pre: ["Naruto: Sasuke… I'm not letting you walk a lonely road anymore.", "Sasuke: Then prove it. Come at me like you mean it, Naruto."],
+    win: "I told you — I never go back on my word. That's my nindō!"
+  },
   archetypes: ["melee", "summons", "ranged"],
   primary: "melee", secondary: ["summons", "ranged"],
   traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
@@ -692,9 +705,9 @@ const naruto = {
   transformationOrder: ["base","sageMode","kcmMode","baryonMode"],
   transformations: {
     base:       { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    sageMode:   { damageMultiplier: 1.4, speedMultiplier: 1.2, defenseMultiplier: 1.2, kiDrainPerSecond: 4, duration: 1080 },
-    kcmMode:    { damageMultiplier: 1.8, speedMultiplier: 1.5, defenseMultiplier: 1.1, kiDrainPerSecond: 7, isSpecial: true, duration: 840 },
-    baryonMode: { damageMultiplier: 2.8, speedMultiplier: 2, defenseMultiplier: 0.8, kiDrainPerSecond: 20, isSpecial: true, duration: 360 }
+    sageMode:   { damageMultiplier: 1.4, speedMultiplier: 1.2, defenseMultiplier: 1.2, energyDrainPerFrame: 4 / 60, kiDrainPerSecond: 4, duration: 1080 },
+    kcmMode:    { damageMultiplier: 1.8, speedMultiplier: 1.5, defenseMultiplier: 1.1, energyDrainPerFrame: 7 / 60, kiDrainPerSecond: 7, isSpecial: true, duration: 840 },
+    baryonMode: { damageMultiplier: 2.8, speedMultiplier: 2, defenseMultiplier: 0.8, energyDrainPerFrame: 20 / 60, kiDrainPerSecond: 20, isSpecial: true, duration: 360 }
   },
   hasSprites: true,
   // ── KCM NARUTO SPRITES (Phase 1: core, playable) ───────────────────
@@ -1258,6 +1271,11 @@ const madara = {
 // ─────────────────────────────────────────────────────────────────
 const obito = {
   rosterKey: "obito", name: "Obito Uchiha", universe: "naruto",
+  // Arcade BOSS profile (Stage 20) — the arcade final boss (#1). Applied only as the arcade boss
+  // opponent; stripped in normal play. Stat-based boss-ness (2× HP, larger, light-hit super-armor,
+  // free specials, impossible AI, single round). Ten-Tails startInForm left out for v1 (its Juubi is
+  // a cinematic ult, not a clean persistent giant mode). See _applyBossProfile in game.js.
+  bossProfile: { healthMult: 2.0, scale: 1.4, superArmorThreshold: 55, meterFree: true, aiDifficulty: "impossible", noRoundLimit: true },
   portrait: "./obito_portrait.png",   // extracted in Stage 8; falls back gracefully (procedural box) until then
   archetypes: ["melee", "zoner"],
   primary: "melee", secondary: ["zoner", "tactics"],
@@ -1709,6 +1727,9 @@ const shinobu = {
 // ─────────────────────────────────────────────────────────────────
 const inosuke = {
   rosterKey: "inosuke", name: "Inosuke Hashibira", universe: "demon_slayer",
+  // Stage 21 unlock: a characters.js `unlockedBy` OVERRIDES unlocks.js's UNLOCK_CONDITIONS map
+  // (this one matches it — level 3 — and demonstrates the override path). null here = start unlocked.
+  unlockedBy: { type: "level", value: 3 },
   portrait: "./inosuke_portrait.png",
   archetypes: ["melee", "rushdown"],
   primary: "melee", secondary: ["rushdown"],
@@ -1939,7 +1960,7 @@ const rick = {
 }
 
 const morty = {
-  rosterKey: "morty", name: "Morty Smith", universe: "rick_and_morty",
+  rosterKey: "morty", name: "Morty Smith", universe: "rick_and_morty", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
   archetypes: ["melee", "panic"],
   primary: "melee", secondary: ["panic"],
   traits: { hasEnergy: true, energyType: "portal_tech", mobility: "low", scaling: "burst", animeMovement: false },
@@ -1963,7 +1984,7 @@ const morty = {
 }
 
 const evilMorty = {
-  rosterKey: "evilMorty", name: "Evil Morty", universe: "rick_and_morty",
+  rosterKey: "evilMorty", name: "Evil Morty", universe: "rick_and_morty", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
   archetypes: ["melee", "control"],
   primary: "melee", secondary: ["control"],
   traits: { hasEnergy: true, energyType: "portal_tech", mobility: "medium", scaling: "control", animeMovement: false },
@@ -1987,7 +2008,7 @@ const evilMorty = {
 }
 
 const rickPrime = {
-  rosterKey: "rickPrime", name: "Rick Prime", universe: "rick_and_morty",
+  rosterKey: "rickPrime", name: "Rick Prime", universe: "rick_and_morty", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
   archetypes: ["ranged", "gadgets"],
   primary: "ranged", secondary: ["gadgets"],
   traits: { hasEnergy: true, energyType: "portal_tech", mobility: "high", scaling: "burst", animeMovement: false },
@@ -2503,7 +2524,7 @@ const greenSamuraiRanger = {
 // for rosterKey "albedo" the same way it does for "ben10".
 // ─────────────────────────────────────────────────────────────────
 const albedo = {
-  rosterKey: "albedo", name: "Albedo", universe: "ben_10",
+  rosterKey: "albedo", name: "Albedo", universe: "ben_10", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
   isAlbedo: true, deviceType: "ultimatrix",
   spriteSheet: "sprites/albedo/albedo_atlas.png",   // deferred art — SpriteHandler falls back to procedural
   archetypes: ["transformations", "melee"],
@@ -3234,64 +3255,64 @@ const killua = {
   spriteScale: 2.06,   // HEIGHT-REF: canon 158cm (age-12 kid) → target ~98px (was 2.3). See HEIGHT_REFERENCE.md; anchorY below rescaled ×(2.06/2.3).
   animationData: {
     // ── MOVEMENT / STATE (Stage 1). All re-sliced to uniform cells (reslice.mjs). ──
-    idle:  { frames: 2, width: 27, height: 53, speed: 8, anchorY: -6,  sheet: "./killua_idle_uniform.png" },   // content 48, botGap 3
+    idle:  { frames: 2, width: 27, height: 53, speed: 8, anchorY: -6, sourceY: 0,  sheet: "./killua_atlas.png" },   // content 48, botGap 3
     // No dedicated walk strip — reuse the run strip a touch slower (dash reuses it faster).
-    walk:  { frames: 8, width: 52, height: 48, speed: 6, anchorY: -2,  sheet: "./killua_run_uniform.png" },
-    run:   { frames: 8, width: 52, height: 48, speed: 4, anchorY: -2,  sheet: "./killua_run_uniform.png" },    // content 44 (forward lean)
-    dash:  { frames: 8, width: 52, height: 48, speed: 3, anchorY: -2,  sheet: "./killua_run_uniform.png" },
+    walk:  { frames: 8, width: 52, height: 48, speed: 6, anchorY: -2, sourceY: 53,  sheet: "./killua_atlas.png" },
+    run:   { frames: 8, width: 52, height: 48, speed: 4, anchorY: -2, sourceY: 53,  sheet: "./killua_atlas.png" },    // content 44 (forward lean)
+    dash:  { frames: 8, width: 52, height: 48, speed: 3, anchorY: -2, sourceY: 53,  sheet: "./killua_atlas.png" },
     // No dedicated jump art in the batch → the 3-pose dodge strip (crouch→extend→recover)
     // reads as a leap arc: play once, hold the last frame. fall = that last cell.
-    jump:  { frames: 3, width: 41, height: 63, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
-    fall:  { frames: 1, width: 41, height: 63, speed: 6, anchorY: -10, sourceX: 82, loop: false, lockLastFrame: true, sheet: "./killua_jump_uniform.png" },
+    jump:  { frames: 3, width: 41, height: 63, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sourceY: 101, sheet: "./killua_atlas.png" },
+    fall:  { frames: 1, width: 41, height: 63, speed: 6, anchorY: -10, sourceX: 82, loop: false, lockLastFrame: true, sourceY: 101, sheet: "./killua_atlas.png" },
     // GUARD — dedicated 2-frame block pose (killua_block.png). Resolved by sprite.js when
     // isBlocking && !attacking (else idle). Plays once, holds.
-    guard: { frames: 2, width: 37, height: 58, speed: 8, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_block_uniform.png" },
+    guard: { frames: 2, width: 37, height: 58, speed: 8, anchorY: -10, loop: false, lockLastFrame: true, sourceY: 164, sheet: "./killua_atlas.png" },
     // HURT — Killua HAS a real 4-frame hit-reaction strip (electric knockback tumble),
     // unlike Itachi (who borrowed a brace pose). Every hitstun/stun state routes here.
-    hurt:  { frames: 4, width: 58, height: 44, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sheet: "./killua_hit_uniform.png" },
+    hurt:  { frames: 4, width: 58, height: 44, speed: 6, anchorY: -10, loop: false, lockLastFrame: true, sourceY: 222, sheet: "./killua_atlas.png" },
     // ── STAGE 2 NORMALS (5 slots). All re-sliced to uniform cells (reslice.mjs); frame counts
     // measured. speed ≈ move-duration / frames so the swing reads across the active window.
     // anchorY = -(bottom transparent gap × 2.1) plants feet. Assassin pacing: fast, low commit.
-    light:    { frames: 9, width: 43, height: 51, speed: 2, anchorY: -4,  loop: false, lockLastFrame: true, sheet: "./killua_light_uniform.png" },     // rapid punch flurry (foward_punch)
-    heavy:    { frames: 7, width: 57, height: 48, speed: 3, anchorY: -2,  loop: false, lockLastFrame: true, sheet: "./killua_heavy_uniform.png" },     // committed roundhouse (foward_kick)
-    up:       { frames: 5, width: 47, height: 60, speed: 3, anchorY: -14, loop: false, lockLastFrame: true, sheet: "./killua_up_uniform.png" },        // launcher: rising kick (up_kick)
-    air:      { frames: 5, width: 47, height: 52, speed: 3, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_air_uniform.png" },        // neutral aerial side kick (side_kick)
-    down_air: { frames: 5, width: 49, height: 66, speed: 3, anchorY: -21, loop: false, lockLastFrame: true, sheet: "./killua_downair_uniform.png" },    // downward dive (down_air_attack)
+    light:    { frames: 9, width: 43, height: 51, speed: 2, anchorY: -4,  loop: false, lockLastFrame: true, sourceY: 266, sheet: "./killua_atlas.png" },     // rapid punch flurry (foward_punch)
+    heavy:    { frames: 7, width: 57, height: 48, speed: 3, anchorY: -2,  loop: false, lockLastFrame: true, sourceY: 317, sheet: "./killua_atlas.png" },     // committed roundhouse (foward_kick)
+    up:       { frames: 5, width: 47, height: 60, speed: 3, anchorY: -14, loop: false, lockLastFrame: true, sourceY: 365, sheet: "./killua_atlas.png" },        // launcher: rising kick (up_kick)
+    air:      { frames: 5, width: 47, height: 52, speed: 3, anchorY: -6,  loop: false, lockLastFrame: true, sourceY: 425, sheet: "./killua_atlas.png" },        // neutral aerial side kick (side_kick)
+    down_air: { frames: 5, width: 49, height: 66, speed: 3, anchorY: -21, loop: false, lockLastFrame: true, sourceY: 477, sheet: "./killua_atlas.png" },    // downward dive (down_air_attack)
     // ── STAGE 2 COMMAND-NORMAL CHAIN — the Barrage (Down+Heavy rekka, cancel-on-hit). Killua's
     // signature rapid-punch flurry: 4 sequential parts → 4-hit cancelable string (Netero rekka
     // architecture). Fired from abilities.js updateKilluaCommandCombat; currentMove = barrageN
     // resolves the sheet via sprite.js identity fallback. Each part plays fast (speed 2).
-    barrage1: { frames: 4, width: 79, height: 57, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_barrage1_uniform.png" },
-    barrage2: { frames: 4, width: 75, height: 69, speed: 2, anchorY: -13, loop: false, lockLastFrame: true, sheet: "./killua_barrage2_uniform.png" },
-    barrage3: { frames: 4, width: 79, height: 55, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sheet: "./killua_barrage3_uniform.png" },
-    barrage4: { frames: 4, width: 75, height: 58, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_barrage4_uniform.png" },   // finisher (launches)
+    barrage1: { frames: 4, width: 79, height: 57, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sourceY: 543, sheet: "./killua_atlas.png" },
+    barrage2: { frames: 4, width: 75, height: 69, speed: 2, anchorY: -13, loop: false, lockLastFrame: true, sourceY: 600, sheet: "./killua_atlas.png" },
+    barrage3: { frames: 4, width: 79, height: 55, speed: 2, anchorY: -11, loop: false, lockLastFrame: true, sourceY: 669, sheet: "./killua_atlas.png" },
+    barrage4: { frames: 4, width: 75, height: 58, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sourceY: 724, sheet: "./killua_atlas.png" },   // finisher (launches)
     // ── STAGE 3: Yo-Yo throw CAST pose (electric_yoyo_trow_part_1 resliced). Played via
     // _spriteCastMove (identity sprite-resolve) while the yo-yo boomerang projectile flies;
     // the yo-yo itself is a separate spinning projectile sheet (killua_yoyo_fx.png). See
     // abilities.js executeKilluaSpecial. botGap 0 → anchorY 0.
-    yoyoThrow: { frames: 4, width: 54, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./killua_yoyo_throw_uniform.png" },
+    yoyoThrow: { frames: 4, width: 54, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sourceY: 782, sheet: "./killua_atlas.png" },
     // ── STAGE 4: electric special CAST poses (played via _spriteCastMove). ──
     // Lightning Palm (Fwd+Special) — point-blank electric burst (electric_push). The hitbox is a
     // melee-range createAttackFromMove; the pose sells the palm-thrust + electric arc.
-    lightningPalm: { frames: 11, width: 55, height: 62, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sheet: "./killua_lightning_palm_uniform.png" },
+    lightningPalm: { frames: 11, width: 55, height: 62, speed: 2, anchorY: -6,  loop: false, lockLastFrame: true, sourceY: 840, sheet: "./killua_atlas.png" },
     // Electric Ball (Down+Special) — charge → form → hurl a traveling electric orb (electric_ball).
     // The orb itself is a procedural glowing projectile (no dedicated clean orb frame); this is the cast.
-    electricBall:  { frames: 11, width: 82, height: 75, speed: 2, anchorY: -21, loop: false, lockLastFrame: true, sheet: "./killua_electric_ball_uniform.png" },
+    electricBall:  { frames: 11, width: 82, height: 75, speed: 2, anchorY: -21, loop: false, lockLastFrame: true, sourceY: 902, sheet: "./killua_atlas.png" },
     // ── STAGE 5: Godspeed ULTIMATE activation pose — the Nen-electric charge-aura buildup
     // (killua_charge_animation_part_1). Played via _spriteCastMove for the brief activation flash
     // before the sustained buff+overlay takes over. Aura extends up (tall cell); body stays normal.
-    godspeedActivate: { frames: 12, width: 117, height: 91, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./killua_godspeed_activate_uniform.png" },
+    godspeedActivate: { frames: 12, width: 117, height: 91, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sourceY: 977, sheet: "./killua_atlas.png" },
     // HOLD-TO-CHARGE — Nen/energy-charging state (hold P). ONE continuous sequence = the two source
     // sheets concatenated in order (killua_charge_animation_part_1 → part_2, via concat_uniform.mjs;
     // alpha-gutter island detection, NOT even division): 12 buildup frames + 6 peak/crackle frames = 18.
     // buildup+burst (0-13) plays ONCE, then the sustained-crackle tail (14-17) loops while held
     // (loopStart, the Goku-Black two-part-charge pattern). Rendered by sprite.js when isCharging (the
     // universal hold-to-charge sets it for any maxEnergy>0 char). botGap 0 → anchorY 0.
-    charge: { frames: 18, width: 149, height: 102, speed: 3, anchorY: 0, loop: true, loopStart: 14, sheet: "./killua_charge_uniform.png" },
+    charge: { frames: 18, width: 149, height: 102, speed: 3, anchorY: 0, loop: true, loopStart: 14, sourceY: 1068, sheet: "./killua_atlas.png" },
     // Pre-match INTRO — Killua's iconic skateboard entrance (killua_intro_2.png resliced): rolls in on
     // the board → hops off as it flips away → lands in his stance. Plays once and HOLDS the settled
     // standing pose (frame 9) until the fight starts. botGap 4 → anchorY -8.
-    intro: { frames: 10, width: 35, height: 60, speed: 4, anchorY: -8, loop: false, lockLastFrame: true, sheet: "./killua_intro_uniform.png" }
+    intro: { frames: 10, width: 35, height: 60, speed: 4, anchorY: -8, loop: false, lockLastFrame: true, sourceY: 1170, sheet: "./killua_atlas.png" }
   },
   // Real intro art IS present (the skateboard-entrance strip), so point the intro pool at it instead
   // of the idle-hold stopgap. game.pickIntroVariant sets _introVariant="intro" → sprite.js renders it.
@@ -3348,38 +3369,38 @@ const flash = {
   spriteScale: 1.35,
   animationData: {
     // ── MOVEMENT / STATE (Stage 1). Re-sliced to uniform cells (reslice.mjs); run composited. ──
-    idle:  { frames: 7, width: 80,  height: 93,  speed: 8, anchorY: -1, sheet: "./flash_idle_uniform.png" },   // botGap 1
+    idle:  { frames: 7, width: 80,  height: 93,  speed: 8, anchorY: -1, sourceY: 0, sheet: "./flash_atlas.png" },   // botGap 1
     // No dedicated walk strip — reuse the 2-pose run cycle a touch slower (dash reuses it faster).
-    walk:  { frames: 2, width: 194, height: 99, speed: 8, anchorY: -5, sheet: "./flash_run_uniform.png" },      // botGap 4
-    run:   { frames: 2, width: 194, height: 99, speed: 5, anchorY: -5, sheet: "./flash_run_uniform.png" },      // sprint poses + speed-line tails (body-centered)
-    dash:  { frames: 2, width: 194, height: 99, speed: 3, anchorY: -5, sheet: "./flash_run_uniform.png" },
+    walk:  { frames: 2, width: 194, height: 99, speed: 8, anchorY: -5, sourceY: 93, sheet: "./flash_atlas.png" },      // botGap 4
+    run:   { frames: 2, width: 194, height: 99, speed: 5, anchorY: -5, sourceY: 93, sheet: "./flash_atlas.png" },      // sprint poses + speed-line tails (body-centered)
+    dash:  { frames: 2, width: 194, height: 99, speed: 3, anchorY: -5, sourceY: 93, sheet: "./flash_atlas.png" },
     // Jump: 3-pose crouch→extend→apex. Play once, hold last frame; fall = that last cell.
-    jump:  { frames: 3, width: 66, height: 104, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./flash_jump_uniform.png" },   // botGap 0
-    fall:  { frames: 1, width: 66, height: 104, speed: 6, anchorY: 0, sourceX: 132, loop: false, lockLastFrame: true, sheet: "./flash_jump_uniform.png" },
+    jump:  { frames: 3, width: 66, height: 104, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sourceY: 192, sheet: "./flash_atlas.png" },   // botGap 0
+    fall:  { frames: 1, width: 66, height: 104, speed: 6, anchorY: 0, sourceX: 132, loop: false, lockLastFrame: true, sourceY: 192, sheet: "./flash_atlas.png" },
     // GUARD — NO dedicated block art in the batch/atlas → FALLBACK to idle frame 0 held (single
     // clean standing brace). Resolved by sprite.js when isBlocking && !attacking. FLAGGED stand-in.
-    guard: { frames: 1, width: 80, height: 93, speed: 8, anchorY: -1, loop: false, lockLastFrame: true, sheet: "./flash_idle_uniform.png" },
+    guard: { frames: 1, width: 80, height: 93, speed: 8, anchorY: -1, loop: false, lockLastFrame: true, sourceY: 0, sheet: "./flash_atlas.png" },
     // HURT — real 5-frame recoil→knockdown strip (unlike Itachi's borrowed brace). All hitstun routes here.
-    hurt:  { frames: 5, width: 115, height: 104, speed: 6, anchorY: -5, loop: false, lockLastFrame: true, sheet: "./flash_hit_uniform.png" },   // botGap 4
+    hurt:  { frames: 5, width: 115, height: 104, speed: 6, anchorY: -5, loop: false, lockLastFrame: true, sourceY: 296, sheet: "./flash_atlas.png" },   // botGap 4
     // Pre-match INTRO — dedicated 8-frame entrance strip. Plays once, holds the settled stance.
-    intro: { frames: 8, width: 80, height: 104, speed: 6, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./flash_intro_uniform.png" },   // botGap 2
+    intro: { frames: 8, width: 80, height: 104, speed: 6, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 400, sheet: "./flash_atlas.png" },   // botGap 2
     // ── STAGE 2 NORMALS (5 slots). Re-sliced to uniform cells; frame counts measured. Rushdown
     // pacing: fast, low commit. anchorY = -(botGap × 1.25) plants feet (measured per strip). ──
-    light:    { frames: 4, width: 114, height: 95,  speed: 3, anchorY: -4,  loop: false, lockLastFrame: true, sheet: "./flash_light_uniform.png" },   // fast straight-punch string (foward_punch)
-    heavy:    { frames: 3, width: 116, height: 117, speed: 6, anchorY: -2,  loop: false, lockLastFrame: true, sheet: "./flash_heavy_uniform.png" },   // committed roundhouse (foward_kick_2)
-    up:       { frames: 3, width: 103, height: 121, speed: 6, anchorY: -1,  loop: false, lockLastFrame: true, sheet: "./flash_up_uniform.png" },      // launcher: rising uppercut (upper_attack)
-    air:      { frames: 4, width: 115, height: 94,  speed: 4, anchorY: -1,  loop: false, lockLastFrame: true, sheet: "./flash_air_uniform.png" },     // neutral aerial kick (air_kick)
-    down_air: { frames: 3, width: 92,  height: 105, speed: 5, anchorY: -15, loop: false, lockLastFrame: true, sheet: "./flash_downair_uniform.png" }, // downward dive kick (down_air_attack) — anchorY -(11.2 botGap × 1.35)
+    light:    { frames: 4, width: 114, height: 95,  speed: 3, anchorY: -4,  loop: false, lockLastFrame: true, sourceY: 504, sheet: "./flash_atlas.png" },   // fast straight-punch string (foward_punch)
+    heavy:    { frames: 3, width: 116, height: 117, speed: 6, anchorY: -2,  loop: false, lockLastFrame: true, sourceY: 599, sheet: "./flash_atlas.png" },   // committed roundhouse (foward_kick_2)
+    up:       { frames: 3, width: 103, height: 121, speed: 6, anchorY: -1,  loop: false, lockLastFrame: true, sourceY: 716, sheet: "./flash_atlas.png" },      // launcher: rising uppercut (upper_attack)
+    air:      { frames: 4, width: 115, height: 94,  speed: 4, anchorY: -1,  loop: false, lockLastFrame: true, sourceY: 837, sheet: "./flash_atlas.png" },     // neutral aerial kick (air_kick)
+    down_air: { frames: 3, width: 92,  height: 105, speed: 5, anchorY: -15, loop: false, lockLastFrame: true, sourceY: 931, sheet: "./flash_atlas.png" }, // downward dive kick (down_air_attack) — anchorY -(11.2 botGap × 1.35)
     // ── STAGE 2 COMMAND-NORMAL CHAIN — "Speed Rush" (Down+Heavy rekka, cancel-on-hit). The 2 overflow
     // melee sheets (foward_punch_2 → fowars_kick) form a 2-hit rushdown string (Toji/Killua rekka
     // architecture). Fired from abilities.js updateFlashCommandCombat; currentMove = rushN resolves the
     // sheet via sprite.js identity fallback. 2 stages = the honest count of overflow art (extend if more arrives).
-    rush1: { frames: 3, width: 130, height: 105, speed: 3, anchorY: -5, loop: false, lockLastFrame: true, sheet: "./flash_rush1_uniform.png" },   // opener (pinning straight)
-    rush2: { frames: 2, width: 113, height: 107, speed: 3, anchorY: -9, loop: false, lockLastFrame: true, sheet: "./flash_rush2_uniform.png" },   // finisher (side kick, launches) — anchorY ×(1.35/1.25)
+    rush1: { frames: 3, width: 130, height: 105, speed: 3, anchorY: -5, loop: false, lockLastFrame: true, sourceY: 1036, sheet: "./flash_atlas.png" },   // opener (pinning straight)
+    rush2: { frames: 2, width: 113, height: 107, speed: 3, anchorY: -9, loop: false, lockLastFrame: true, sourceY: 1141, sheet: "./flash_atlas.png" },   // finisher (side kick, launches) — anchorY ×(1.35/1.25)
     // ── STAGE 3 SPECIALS (melee-range multi-hit whirls; both loop while active). currentMove drives
     // these via sprite.js identity fallback. NO ranged content in the batch → both are pure melee. ──
-    spinAttack: { frames: 3, width: 120, height: 119, speed: 3, anchorY: -12, loop: true, sheet: "./flash_spin_uniform.png" },     // neutral Special: rapid spinning whirl (spin_attack) — anchorY ×(1.35/1.25)
-    tornado:    { frames: 4, width: 113, height: 112, speed: 3, anchorY: -2,  loop: true, sheet: "./flash_tornado_uniform.png" }    // forward Special: advancing electric vortex (towrnado_attack)
+    spinAttack: { frames: 3, width: 120, height: 119, speed: 3, anchorY: -12, loop: true, sourceY: 1248, sheet: "./flash_atlas.png" },     // neutral Special: rapid spinning whirl (spin_attack) — anchorY ×(1.35/1.25)
+    tornado:    { frames: 4, width: 113, height: 112, speed: 3, anchorY: -2,  loop: true, sourceY: 1367, sheet: "./flash_atlas.png" }    // forward Special: advancing electric vortex (towrnado_attack)
     // ── Stage 4 (Flash Time cast poses) added later. ──
   },
   // Dedicated intro art IS present → point the intro pool at it (game.pickIntroVariant → _introVariant).
@@ -3424,39 +3445,39 @@ const gon = {
   spriteScale: 2.12,   // HEIGHT-REF: canon 154cm (age-12 base form) → target ~96px (was 2.5). See HEIGHT_REFERENCE.md; anchorY below rescaled ×(2.12/2.5).
   // anchorY = -(bottom transparent gap × 2.5); every resliced cell has botGap 1 → -2, feet planted.
   animationData: {
-    idle:  { frames: 4, width: 36, height: 47, speed: 8, anchorY: -2, sheet: "./gon_idle_uniform.png" },
-    walk:  { frames: 8, width: 49, height: 46, speed: 6, anchorY: -2, sheet: "./gon_walk_uniform.png" },   // MOVE row (run cycle), played slower for walk
-    run:   { frames: 8, width: 49, height: 46, speed: 4, anchorY: -2, sheet: "./gon_walk_uniform.png" },
-    dash:  { frames: 2, width: 43, height: 43, speed: 3, anchorY: -2, sheet: "./gon_dash_uniform.png" },
-    jump:  { frames: 7, width: 40, height: 47, speed: 5, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_jump_uniform.png" },
-    fall:  { frames: 1, width: 40, height: 47, speed: 5, anchorY: -2, sourceX: 240, loop: false, lockLastFrame: true, sheet: "./gon_jump_uniform.png" },   // hold jump's last (apex/descend) cell
-    guard: { frames: 3, width: 37, height: 45, speed: 8, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_guard_uniform.png" },
-    hurt:  { frames: 4, width: 42, height: 45, speed: 6, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_hit_uniform.png" },
+    idle:  { frames: 4, width: 36, height: 47, speed: 8, anchorY: -2, sourceY: 0, sheet: "./gon_atlas.png" },
+    walk:  { frames: 8, width: 49, height: 46, speed: 6, anchorY: -2, sourceY: 47, sheet: "./gon_atlas.png" },   // MOVE row (run cycle), played slower for walk
+    run:   { frames: 8, width: 49, height: 46, speed: 4, anchorY: -2, sourceY: 47, sheet: "./gon_atlas.png" },
+    dash:  { frames: 2, width: 43, height: 43, speed: 3, anchorY: -2, sourceY: 93, sheet: "./gon_atlas.png" },
+    jump:  { frames: 7, width: 40, height: 47, speed: 5, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 136, sheet: "./gon_atlas.png" },
+    fall:  { frames: 1, width: 40, height: 47, speed: 5, anchorY: -2, sourceX: 240, loop: false, lockLastFrame: true, sourceY: 136, sheet: "./gon_atlas.png" },   // hold jump's last (apex/descend) cell
+    guard: { frames: 3, width: 37, height: 45, speed: 8, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 183, sheet: "./gon_atlas.png" },
+    hurt:  { frames: 4, width: 42, height: 45, speed: 6, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 228, sheet: "./gon_atlas.png" },
     // ── STAGE 2 NORMALS (5 slots). Resliced uniform cells; play once, hold last frame. ──
-    light:    { frames: 3,  width: 50, height: 47, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_foward_punch_uniform.png" },   // quick forward punch
-    heavy:    { frames: 7,  width: 50, height: 42, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_dash_headbutt_uniform.png" },  // committed forward lunge/tackle
-    up:       { frames: 7,  width: 58, height: 58, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_super_up_kick_uniform.png" },   // rising kick launcher
-    air:      { frames: 8,  width: 35, height: 51, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_air_attack_uniform.png" },      // neutral aerial punch
-    down_air: { frames: 3,  width: 36, height: 46, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_down_air_uniform.png" },        // downward dive
+    light:    { frames: 3,  width: 50, height: 47, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 273, sheet: "./gon_atlas.png" },   // quick forward punch
+    heavy:    { frames: 7,  width: 50, height: 42, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 320, sheet: "./gon_atlas.png" },  // committed forward lunge/tackle
+    up:       { frames: 7,  width: 58, height: 58, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 362, sheet: "./gon_atlas.png" },   // rising kick launcher
+    air:      { frames: 8,  width: 35, height: 51, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 420, sheet: "./gon_atlas.png" },      // neutral aerial punch
+    down_air: { frames: 3,  width: 36, height: 46, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 471, sheet: "./gon_atlas.png" },        // downward dive
     // ── STAGE 2 COMMAND-NORMAL CHAIN — "Rush" (Down+Heavy rekka, cancel-on-hit; Flash architecture).
     // rush1 = rapid second-hit flurry → rush2 = big launching finisher. currentMove drives the sprite.
-    rush1: { frames: 4,  width: 55, height: 24, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_second_hit_uniform.png" },
-    rush2: { frames: 10, width: 82, height: 82, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_super_up_attack_uniform.png" },
+    rush1: { frames: 4,  width: 55, height: 24, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 517, sheet: "./gon_atlas.png" },
+    rush2: { frames: 10, width: 82, height: 82, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 541, sheet: "./gon_atlas.png" },
     // ── STAGE 3 JAJANKEN (3 separate specials on separate inputs). currentMove drives the sprite. ──
-    rock:     { frames: 10, width: 63, height: 47, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_rock_uniform.png" },      // charge-windup → devastating punch (built-in telegraph frames)
-    paper:    { frames: 5,  width: 43, height: 50, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_paper_uniform.png" },     // open-palm push
-    scissors: { frames: 12, width: 59, height: 48, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sheet: "./gon_scissors_uniform.png" },  // rapid multi-hit jab string
+    rock:     { frames: 10, width: 63, height: 47, speed: 4, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 623, sheet: "./gon_atlas.png" },      // charge-windup → devastating punch (built-in telegraph frames)
+    paper:    { frames: 5,  width: 43, height: 50, speed: 3, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 670, sheet: "./gon_atlas.png" },     // open-palm push
+    scissors: { frames: 12, width: 59, height: 48, speed: 2, anchorY: -2, loop: false, lockLastFrame: true, sourceY: 720, sheet: "./gon_atlas.png" },  // rapid multi-hit jab string
     // ── HOLD-TO-CHARGE — Nen-charging pose (hold P). Dedicated 2-frame Nen-aura buildup strip
     // (gon_charge_default_charge_animation.png, 126×78 → 2 · 63×78; the two aura poses alternate
     // while held). Rendered by sprite.js when isCharging (the universal hold-to-charge sets it for
     // any maxEnergy>0 char). Without this key the charge state fell through to the idle pose — the
     // art existed on disk but was never wired into animationData. botGap 3 → anchorY -(3×2.5)≈-7.
-    charge: { frames: 2, width: 63, height: 78, speed: 6, anchorY: -6, loop: true, sheet: "./gon_charge_default_charge_animation.png" },
+    charge: { frames: 2, width: 63, height: 78, speed: 6, anchorY: -6, loop: true, sourceY: 768, sheet: "./gon_atlas.png" },
     // ── STAGE 4 — ADULT FORM (Ultimate). The adult body is much larger → actionScale shrinks the tall
     // cells (220px) back toward a ~1.6× on-screen read vs child Gon (an intimidating grown silhouette).
     // `transform` holds through the activation cinematic; `finalblow` is the all-or-nothing sudden-death.
-    transform: { frames: 14, width: 80,  height: 220, speed: 4, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sheet: "./gon_transform_uniform.png" },   // child→adult growth (cinematic pose)
-    finalblow: { frames: 16, width: 105, height: 219, speed: 3, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sheet: "./gon_finalblow_uniform.png" }     // the sudden-death decisive strike
+    transform: { frames: 14, width: 80,  height: 220, speed: 4, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sourceY: 846, sheet: "./gon_atlas.png" },   // child→adult growth (cinematic pose)
+    finalblow: { frames: 16, width: 105, height: 219, speed: 3, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sourceY: 1066, sheet: "./gon_atlas.png" }     // the sudden-death decisive strike
     // (no adult idle/walk/attack art in the batch → Adult Form is a BUFF-MODE overlay on the child body,
     //  like Godspeed/Flash Time; a full adult body-swap is a deferred visual-polish item.)
   },

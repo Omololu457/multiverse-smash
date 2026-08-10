@@ -147,7 +147,7 @@ ok(struck, `Bijūdama guaranteed hit`);
 ok(beastFrames>0 && casterHidden, `duplicate-render GUARD: caster hidden whole beast (${beastFrames}f)`);
 await page.waitForFunction(() => !window.__harness.tobiNineTailsUltCine().active, null, { timeout: 6000 }).catch(()=>{});
 const jdmg = jHp0-(await p2()).health;
-ok(jdmg>=300 && jdmg<=400, `cinematic-band damage (~360): ${jdmg}`);
+ok(jdmg>=180 && jdmg<=250, `cinematic-band damage (~216 = 360×0.60): ${jdmg}`);
 ok(!(await page.evaluate(()=>window.__harness.tobiKuramaHide("p1"))).hide, `caster un-hidden after`);
 
 // ── K. ISOLATION (centerpiece) ──

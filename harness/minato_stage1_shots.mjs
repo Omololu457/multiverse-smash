@@ -79,9 +79,9 @@ await shot("jump");
 await waitGrounded();
 
 // guard (hold down = block)
-await page.keyboard.down("s"); await waitFrames(14); a = await p1();
+await page.keyboard.down(";"); await waitFrames(14); a = await p1();
 check("guard → minato_block_uniform", a.action === "guard" && has(a, "minato_block_uniform"), `action=${a.action} sheet=${a.spriteSheet}`);
-await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
 
 // hurt
 await page.evaluate(() => window.__harness.hurtP1(24)); await waitFrames(3); a = await p1();

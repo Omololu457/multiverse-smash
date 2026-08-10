@@ -83,7 +83,7 @@ const dmg = hp0 - hpEnd;
 const khEnd = await page.evaluate(() => window.__harness.tobiKuramaHide("p1"));
 ok(!cEnd.active, `cinematic ENDED (combat resumes)`);
 ok(!khEnd.hide, `caster UN-hidden after the cinematic (_tobiKuramaHide cleared)`);
-ok(dmg >= 300 && dmg <= 400, `foe took the guaranteed cinematic-band damage (~360): dmg=${dmg}`);
+ok(dmg >= 180 && dmg <= 250, `foe took the guaranteed cinematic-band damage (~216 = 360×0.60): dmg=${dmg}`);
 await shot("after");
 
 console.log(`\n${pass} PASS / ${fail} FAIL` + (errors.length ? `\nERRORS:\n${errors.join("\n")}` : "\nno page errors"));

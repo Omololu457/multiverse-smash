@@ -141,7 +141,7 @@ try {
     check("phase machine (activate…settle)", ["activate", "rise", "charge", "fire", "settle"].every(p => phases.has(p)), `[${[...phases].join(",")}]`);
     await page.waitForFunction(() => !window.__harness.minatoKuramaUltCine().active, null, { timeout: 6000, polling: 32 }).catch(() => {});
     const dmg = p2b - (await p2()).health;
-    check("TBB guaranteed damage, survivable", dmg > 400 && (await p2()).health > 0, `dmg=${dmg.toFixed(0)} p2=${(await p2()).health.toFixed(0)}`); }
+    check("TBB guaranteed damage, survivable (~360 = 600×0.60)", dmg > 300 && (await p2()).health > 0, `dmg=${dmg.toFixed(0)} p2=${(await p2()).health.toFixed(0)}`); }
 
   // ── FALLBACK-BOX SWEEP ──
   section("fallback-box sweep (every move → real minato sheet, never 128² box / null)");

@@ -58,7 +58,7 @@ await shot("ult_detonation");
 // give the frame after impact a moment, then measure damage
 await waitFrames(3);
 const dmg = hp0 - (await p2()).health;
-check("guaranteed detonation damage lands (~380, range-independent)", dmg >= 360, `−${dmg.toFixed(0)} (opponent 620px away)`);
+check("guaranteed detonation damage lands (~228 = 380×0.60, range-independent)", dmg >= 200, `−${dmg.toFixed(0)} (opponent 620px away)`);
 
 // cinematic ends → combat resumes
 await page.waitForFunction(() => window.__harness.supermanUltCine().active === false, null, { timeout: 8000, polling: 16 }).catch(() => {});

@@ -62,7 +62,7 @@ try {
   check("slash FX spawned as a visualOnly sprite (no independent collider)", !!slash && slash.visualOnly === true && !!slash.sheet, slash ? `sheet=${slash.sheet} visualOnly=${slash.visualOnly}` : "no cursedSlash proj");
   check("FX is stationary (vx≈0, vy≈0) — not a travelling projectile", !!slash && Math.abs(slash.vx) < 0.01 && Math.abs(slash.vy) < 0.01, slash ? `vx=${slash.vx} vy=${slash.vy}` : "");
   check("FX centered on the opponent's position (auto-targeted)", !!slash && Math.abs(slash.x - eX) < 30, slash ? `fxX=${slash.x?.toFixed(0)} oppCx=${eX.toFixed(0)}` : "");
-  check("unblocked → ~full damage (~100)", (eHP0 - eHP1) >= 80, `−${(eHP0 - eHP1).toFixed(0)} hp`);
+  check("unblocked → ~full damage (~60 = 100×0.60)", (eHP0 - eHP1) >= 50, `−${(eHP0 - eHP1).toFixed(0)} hp`);
   check("short time-to-hit (≤14 frames from input → contact)", tHit > 0 && tHit <= 14, `${tHit} frames`);
   const dmgUnblocked = eHP0 - eHP1;
 

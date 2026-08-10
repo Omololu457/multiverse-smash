@@ -61,9 +61,9 @@ async function universality(char) {
   await page.keyboard.up("d"); await wf(2);
   check(`${char}: moves normally when NOT charging`, movedFree > 4, `Δx=${movedFree.toFixed(1)}`);
 
-  await page.keyboard.down("s"); await wf(3);
+  await page.keyboard.down(";"); await wf(3);
   const blkFree = (await P1()).blocking;
-  await page.keyboard.up("s"); await wf(2);
+  await page.keyboard.up(";"); await wf(2);
   check(`${char}: blocks normally when NOT charging`, blkFree === true, `blocking=${blkFree}`);
   await actionable();
 
@@ -80,9 +80,9 @@ async function universality(char) {
   check(`${char}: CANNOT move while charging`, moving.charging && Math.abs(moving.x - cx) < 2 && Math.abs(moving.vx) < 0.5, `Δx=${Math.abs(moving.x - cx).toFixed(2)} vx=${moving.vx.toFixed(2)}`);
 
   // CANNOT BLOCK — holding down while charging must NOT raise a guard.
-  await page.keyboard.down("s"); await wf(3);
+  await page.keyboard.down(";"); await wf(3);
   const blk = await P1();
-  await page.keyboard.up("s"); await wf(1);
+  await page.keyboard.up(";"); await wf(1);
   check(`${char}: CANNOT block while charging`, blk.charging && blk.blocking === false, `blocking=${blk.blocking}`);
 
   // CANNOT NORMAL-ATTACK — a light press is swallowed by the lockout.

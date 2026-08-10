@@ -38,7 +38,7 @@ import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
 import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./gonAdultFormCinematic.js"   // Gon Adult Form activation cinematic (no cycle; mirrors Godspeed)
 import { activateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive } from "./hisokaOverdriveCinematic.js"   // Hisoka Bloodlust Overdrive activation cinematic (no cycle; mirrors Godspeed)
-import { resolveGrab, GLOBAL_DAMAGE_SCALE, rekkaContinue } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the shared command-normal cancel gate (combat.js doesn't import abilities.js → no cycle)
+import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the ONE scaled-damage choke-point + the shared command-normal cancel gate (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
@@ -577,7 +577,7 @@ function fireVegetaSelfDestruct(fighter, context) {
       let dmg = VG_SELFDESTRUCT.dmg
       if (target.isBlocking) { dmg = Math.floor(dmg * 0.20); target.blockstun = 20 }
       else { target.hitstun = 44; target.vx = (tcx >= rcx ? 1 : -1) * 18; target.vy = -10; target.colorFlash = 10 }
-      target.health = Math.max(0, (target.health || 0) - dmg)   // direct (no GLOBAL_DAMAGE_SCALE), like Rick/GB Explosion
+      applyScaledDamage(target, dmg, { source: "ability" })   // direct (no GLOBAL_DAMAGE_SCALE), like Rick/GB Explosion
     }
   }
   return true
@@ -786,7 +786,7 @@ function beerusApplyDirect(target, cx, cy, dmg, range, kbx = 10) {
   let d = dmg
   if (target.isBlocking) { d = Math.floor(d * 0.20); target.blockstun = 20 }
   else { target.hitstun = 34; target.vx = (tcx >= cx ? 1 : -1) * kbx; target.vy = -8; target.colorFlash = 10 }
-  target.health = Math.max(0, (target.health || 0) - d)
+  applyScaledDamage(target, d, { source: "ability" })
   return true
 }
 
@@ -848,8 +848,8 @@ function executeBeerusSpecial(fighter, context) {
     shakeCamera(context, 12, 14)
     focusCameraOnAction(context, fighter, target, 0.97, 14)
     const cx = fighter.x + (fighter.w || 60) / 2, cy = fighter.y + (fighter.h || 100) / 2
-    const outwardDmg = Math.round(BEERUS_OUTWARD.dmg * GLOBAL_DAMAGE_SCALE)   // scaled to the projectile-special tier
-    schedulePendingSpawn(12, () => beerusApplyDirect(getOpp(fighter), cx, cy, outwardDmg, BEERUS_OUTWARD.radius, 14))
+    // RAW — beerusApplyDirect now routes through applyScaledDamage (GLOBAL_DAMAGE_SCALE applied there); pre-scaling here would double it.
+    schedulePendingSpawn(12, () => beerusApplyDirect(getOpp(fighter), cx, cy, BEERUS_OUTWARD.dmg, BEERUS_OUTWARD.radius, 14))
     return true
   }
 
@@ -920,7 +920,7 @@ function applyVegetaFinalFlashDamage(fighter, opp, cineCtx = {}) {
     opp.vx = fighter.facing * 16; opp.vy = -6
     opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (Kurama sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -928,7 +928,7 @@ function applyVegetaFinalFlashDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 20, maxTimer: 20,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#ffe066",
-      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 42,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 16, radius: blocked ? 14 : 42,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -964,7 +964,7 @@ function applyBeerusKiBallDamage(fighter, opp, cineCtx = {}) {
     opp.vx = fighter.facing * 17; opp.vy = -7
     opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (Kurama sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -972,7 +972,7 @@ function applyBeerusKiBallDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 20, maxTimer: 20,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#e0a0ff",
-      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 44,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 16, radius: blocked ? 14 : 44,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -1010,7 +1010,7 @@ function applyBatmanDarkKnightDamage(fighter, opp, cineCtx = {}) {
     opp.vx = fighter.facing * 14; opp.vy = -6
     opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -1018,7 +1018,7 @@ function applyBatmanDarkKnightDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 20, maxTimer: 20,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#9fb6ff",
-      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 40,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 16, radius: blocked ? 14 : 40,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -2144,7 +2144,7 @@ function fireReaperDeathSeal(fighter, context) {
   const grabbed = resolveGrab(fighter, target, context, MINATO_REAPER_REACH)
   if (grabbed && target) {
     fighter.health = Math.max(1, fighter.health - MINATO_REAPER_HP_COST)   // REAL HP sacrifice, ONLY on connect (clamped — never lethal)
-    target.health = Math.max(0, (target.health || 0) - MINATO_REAPER_RIP)  // soul-rip; updateGrab adds the throw on top
+    applyScaledDamage(target, MINATO_REAPER_RIP, { source: "ability" })  // soul-rip; updateGrab adds the throw on top
     target.colorFlash = 10
     fighter.attackCooldown = getAttackDuration(30, fighter)
     try { sound.playSfxFile?.(pickMinatoVoice("reaper"), null); fighter._atkVoiceCd = 150 } catch (_) {}    // VOICE: Reaper Death Seal — "I'll risk my life" (the HP-sacrifice)
@@ -2690,7 +2690,7 @@ function resolveSukunaCursedSlash(fighter, context, cs) {
     opp.colorFlash = 10
     opp.hitstop = Math.max(opp.hitstop || 0, cs.hitstop); fighter.hitstop = Math.max(fighter.hitstop || 0, cs.hitstop)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)
+  applyScaledDamage(opp, dmg, { source: "ability" })
   shakeCamera(context, 5, 6)
 }
 
@@ -3904,14 +3904,14 @@ function applySamuraiUltimateDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
     opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2, ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
     cineCtx.hitEffects.push({
       x: ocx, y: ocy, timer: 22, maxTimer: 22,
       category: opp.isBlocking ? "light" : "ultimate",
       color: opp.isBlocking ? null : "#ff6a1a",
-      damage: dmg, lines: opp.isBlocking ? 6 : 20, radius: opp.isBlocking ? 14 : 56,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: opp.isBlocking ? 6 : 20, radius: opp.isBlocking ? 14 : 56,
       ...(opp.isBlocking ? { isBlocking: true } : {})
     })
   }
@@ -3954,14 +3954,14 @@ function applyGoldSamuraiUltimateDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
     opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)   // GUARANTEED sure-hit (range-independent)
+  applyScaledDamage(opp, dmg, { source: "ability" })   // GUARANTEED sure-hit (range-independent)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2, ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
     cineCtx.hitEffects.push({
       x: ocx, y: ocy, timer: 22, maxTimer: 22,
       category: opp.isBlocking ? "light" : "ultimate",
       color: opp.isBlocking ? null : "#ffe27a",       // LIGHT gold burst (not fire)
-      damage: dmg, lines: opp.isBlocking ? 6 : 20, radius: opp.isBlocking ? 14 : 56,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: opp.isBlocking ? 6 : 20, radius: opp.isBlocking ? 14 : 56,
       ...(opp.isBlocking ? { isBlocking: true } : {})
     })
   }
@@ -3999,14 +3999,14 @@ function applyGreenSamuraiUltimateDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
     opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)   // GUARANTEED sure-hit (range-independent)
+  applyScaledDamage(opp, dmg, { source: "ability" })   // GUARANTEED sure-hit (range-independent)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2, ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
     cineCtx.hitEffects.push({
       x: ocx, y: ocy, timer: 22, maxTimer: 22,
       category: opp.isBlocking ? "light" : "ultimate",
       color: opp.isBlocking ? null : "#6bdd52",       // FOREST leaf-green burst (not fire/gold)
-      damage: dmg, lines: opp.isBlocking ? 6 : 20, radius: opp.isBlocking ? 14 : 56,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: opp.isBlocking ? 6 : 20, radius: opp.isBlocking ? 14 : 56,
       ...(opp.isBlocking ? { isBlocking: true } : {})
     })
   }
@@ -4862,7 +4862,7 @@ function applyOmniManSlamDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
     opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 42)   // slammed to the ground
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (Kurama sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -4870,7 +4870,7 @@ function applyOmniManSlamDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 20, maxTimer: 20,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#ff6a4a",
-      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -4912,7 +4912,7 @@ function applySupermanUltimateDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
     opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (Kurama sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -4920,7 +4920,7 @@ function applySupermanUltimateDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 20, maxTimer: 20,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#39ff88",
-      damage: dmg, lines: blocked ? 6 : 18, radius: blocked ? 14 : 50,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 18, radius: blocked ? 14 : 50,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -6388,7 +6388,7 @@ function applyRengokuUltimateDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
     opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -6396,7 +6396,7 @@ function applyRengokuUltimateDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 20, maxTimer: 20,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#ff6a1a",
-      damage: dmg, lines: blocked ? 6 : 18, radius: blocked ? 14 : 50,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 18, radius: blocked ? 14 : 50,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -6431,7 +6431,7 @@ function applyMiwaUltimateDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
     opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 42)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -6439,7 +6439,7 @@ function applyMiwaUltimateDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 20, maxTimer: 20,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#38bdf8",
-      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -6476,7 +6476,7 @@ function applyIchigoUltimateDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
     opp.isLaunched = true; opp.onGround = false; opp.grounded = false
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -6484,7 +6484,7 @@ function applyIchigoUltimateDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 22, maxTimer: 22,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#38bdf8",
-      damage: dmg, lines: blocked ? 6 : 18, radius: blocked ? 14 : 50,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 18, radius: blocked ? 14 : 50,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -6629,7 +6629,7 @@ function applyShinobuUltimateDamage(fighter, opp, cineCtx = {}) {
     // WISTERIA POISON FINISHER — the signature lethal DoT, on a CLEAN hit only.
     opp._dot = { ticks: SHINOBU_ULT_POISON.ticks, interval: SHINOBU_ULT_POISON.interval, dmg: SHINOBU_ULT_POISON.dmg, delay: SHINOBU_ULT_POISON.interval }
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -6637,7 +6637,7 @@ function applyShinobuUltimateDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 20, maxTimer: 20,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#8a4dff",
-      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 16, radius: blocked ? 14 : 46,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -7132,16 +7132,15 @@ function applyInosukeSpecialDamage(fighter, opp, def) {
   if (dx > def.range) return   // out of range → clean whiff (the camera flourish still played)
   const dir = fighter.facing || 1
   const blocked = !!opp.isBlocking
-  // HONEST damage — routed through the shared GLOBAL_DAMAGE_SCALE like every other special (createAttackFromMove).
-  // These cinematic specials are NOT on the manual-subtract/unscaled bypass side; only cinematic ULTS are.
-  let dmg = Math.round(def.damage * GLOBAL_DAMAGE_SCALE)
+  // HONEST damage — RAW here; applyScaledDamage below applies GLOBAL_DAMAGE_SCALE once (pre-scaling would double it).
+  let dmg = def.damage
   if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 18) }
   else {
     opp.hitstun = Math.max(opp.hitstun || 0, 26)
     opp.vx = dir * (def.knockbackX || 6); opp.vy = def.knockbackY || -2
     opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 8)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)
+  applyScaledDamage(opp, dmg, { source: "ability" })
 }
 function fireInosukeCinematicSpecial(fighter, key, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
@@ -7355,7 +7354,7 @@ function applyGhostfaceFinalActDamage(fighter, opp, cineCtx = {}) {
     // BLEED FINISHER — the signature lethal DoT, on a CLEAN hit only.
     opp._dot = { ticks: GHOSTFACE_ULT_BLEED.ticks, interval: GHOSTFACE_ULT_BLEED.interval, dmg: GHOSTFACE_ULT_BLEED.dmg, delay: GHOSTFACE_ULT_BLEED.interval }
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (sure-hit)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -7363,7 +7362,7 @@ function applyGhostfaceFinalActDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 20, maxTimer: 20,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#c81e28",
-      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 40,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 16, radius: blocked ? 14 : 40,
       ...(blocked ? { isBlocking: true } : {})
     })
   }
@@ -7594,7 +7593,7 @@ function bpResolvePhantom(fighter, context) {
   if (Math.abs(oppCx - ph.x) > ph.rangeX / 2 || Math.abs(oppCy - ph.y) > ph.rangeY / 2) return   // whiffed
   const blocked = !!opp.isBlocking
   const dmg = blocked ? Math.round(ph.dmg * 0.25) : ph.dmg
-  opp.health = Math.max(0, (opp.health || 0) - dmg)
+  applyScaledDamage(opp, dmg, { source: "ability" })
   if (blocked) { opp.blockstun = Math.max(opp.blockstun || 0, 12) }
   else {
     opp.hitstun = Math.max(opp.hitstun || 0, ph.hitstun)
@@ -8074,7 +8073,7 @@ function startTobiChainGrab(fighter, context) {
 // Guaranteed hit on the locked victim (sure-hit, scaled) — no range/hitbox check (they're held).
 function applyTobiChainHit(victim, dmg, context) {
   if (!victim) return
-  victim.health = Math.max(0, (victim.health || 0) - Math.round(dmg * GLOBAL_DAMAGE_SCALE))
+  applyScaledDamage(victim, dmg, { source: "ability" })
   victim.colorFlash = Math.max(victim.colorFlash || 0, 8)
 }
 
@@ -10333,7 +10332,7 @@ function executeSaikiUltimate(fighter, context) {
         let dmg = SAIKI_BOMB.dmg
         if (t.isBlocking) { dmg = Math.floor(dmg * 0.2); t.blockstun = 24 }
         else { t.hitstun = SAIKI_BOMB.hitstun; t.vx = (tcx >= ex ? 1 : -1) * 16; t.vy = -10; t.colorFlash = 8 }
-        t.health = Math.max(0, (t.health || 0) - dmg)
+        applyScaledDamage(t, dmg, { source: "ability" })
       }
     }
   })
@@ -10804,12 +10803,15 @@ export function revertMadaraCompleteSusanoo(fighter) {
 // GUARANTEED meteor payoff — applied ONCE at the cinematic's IMPACT beat. Block chips it to 25%.
 function applyMadaraTengaiDamage(fighter, opp, cineCtx = {}) {
   if (!opp || opp.eliminated) return
-  let dmg = MADARA_TENGAI_DMG
-  if (opp.isBlocking) dmg = Math.round(dmg * 0.25)
-  opp.health  = Math.max(0, (opp.health || 0) - dmg)
+  let raw = MADARA_TENGAI_DMG
+  if (opp.isBlocking) raw = Math.round(raw * 0.25)   // block chips the meteor to 25%
+  // Stage 1: route through the ONE damage choke-point (was a raw `opp.health -= dmg` that
+  // bypassed GLOBAL_DAMAGE_SCALE — the last surviving unscaled offensive site). Show the
+  // actually-dealt (post-scale) number so the floating damage matches HP removed.
+  const dealt = applyScaledDamage(opp, raw, { source: "ultimate" })
   opp.hitstun = Math.max(opp.hitstun || 0, 42)
   opp.vx = (fighter.facing || 1) * 13; opp.vy = -7; opp.colorFlash = 12
-  try { cineCtx.damageNumbers?.push?.({ x: opp.x + (opp.w || 40) / 2, y: opp.y, value: dmg, color: "#c084fc", life: 60 }) } catch (_) {}
+  try { cineCtx.damageNumbers?.push?.({ x: opp.x + (opp.w || 40) / 2, y: opp.y, value: dealt, color: "#c084fc", life: 60 }) } catch (_) {}
 }
 // Dispatched from triggerUltimate (Stage 5). `hold` comes from the Ultimate-button tap/hold split (game.js).
 function executeMadaraUltimate(fighter, context, hold = false) {
@@ -11586,11 +11588,11 @@ function applyBen10OmnitrixDamage(fighter, opp, cineCtx = {}) {
     opp.vx = (fighter.facing || 1) * 16; opp.vy = -7
     opp.colorFlash = 12; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)   // GUARANTEED, range-independent
+  applyScaledDamage(opp, dmg, { source: "ability" })   // GUARANTEED, range-independent
   if (Array.isArray(cineCtx.hitEffects)) {
     cineCtx.hitEffects.push({ x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) + (opp.h || 100) / 2,
       timer: 20, maxTimer: 20, category: blocked ? "light" : "ultimate", color: blocked ? null : "#4ade80",
-      damage: dmg, lines: blocked ? 6 : 16, radius: blocked ? 14 : 44, ...(blocked ? { isBlocking: true } : {}) })
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 16, radius: blocked ? 14 : 44, ...(blocked ? { isBlocking: true } : {}) })
   }
 }
 
@@ -11782,11 +11784,11 @@ const YUJI_SUKUNA_SLASH = {
   cost: 35,
   startup: 8,          // short cursed hand-sign telegraph → slash resolves on the opponent (no travel)
   castTimer: 18,       // hand-sign pose shown through startup + brief recovery
-  damage: 50,          // BALANCE (Stage 7): manual opp.health subtract = UNSCALED (bypasses GLOBAL_DAMAGE_SCALE 0.60),
-                       // so this is 50 EFFECTIVE. Kept just above Crescent/Pillar (~47-48 EFF) and below aimed Beam
-                       // (57 EFF): an auto-homing sure-hit you can only BLOCK (not space) must not out-damage the
-                       // aimed specials. Was 82 (out-damaged Beam via the scale bypass). Sukuna char's own slash is
-                       // 100 raw — this stays deliberately lighter (flavor move, not a main-kit tool).
+  damage: 50,          // RAW. Since MK-feel Stage 1a this routes through applyScaledDamage → 50 × 0.60 = 30 EFFECTIVE.
+                       // ⚠ STAGE-3 BALANCE FLAG: previously authored as 50 EFFECTIVE (unscaled) to sit just above the
+                       // *scaled* Crescent/Pillar (~47-48 EFF) and below aimed Beam (57 EFF). Now that this scales too,
+                       // that ordering INVERTS (30 < 48). To restore the intended "just above Crescent" placement this
+                       // raw value should become ~80 (80 × 0.60 ≈ 48). Left at 50 pending the Stage-3 balance pass.
   hitstun: 22, knockbackX: 6, knockbackY: -4,
   chipMult: 0.25,      // blocked → chip only (the block genuinely STOPS the full hit)
   blockstun: 16,
@@ -11837,7 +11839,7 @@ function resolveYujiSukunaSlash(fighter, context, cs) {
     opp.colorFlash = 10
     opp.hitstop = Math.max(opp.hitstop || 0, cs.hitstop); fighter.hitstop = Math.max(fighter.hitstop || 0, cs.hitstop)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)
+  applyScaledDamage(opp, dmg, { source: "ability" })
   shakeCamera(context, 5, 6)
 }
 
@@ -11906,10 +11908,10 @@ function applyKomaFlurryHit(fighter, opp, context) {
   if (!komaInRange(fighter, opp, K)) return false
   if (opp.isBlocking) {
     opp.blockstun = Math.max(opp.blockstun || 0, 8)
-    opp.health = Math.max(0, (opp.health || 0) - Math.round(K.flurryDamage * K.flurryChip))
+    applyScaledDamage(opp, Math.round(K.flurryDamage * K.flurryChip), { source: "ability" })
     return true
   }
-  opp.health = Math.max(0, (opp.health || 0) - K.flurryDamage)
+  applyScaledDamage(opp, K.flurryDamage, { source: "ability" })
   opp.hitstun = Math.max(opp.hitstun || 0, K.flurryHitstun)
   opp.vx = (fighter.facing || 1) * K.flurryKbX
   opp.colorFlash = 8
@@ -11940,7 +11942,7 @@ function applyKomaFinisher(fighter, opp, context) {
     opp.colorFlash = 12
     opp.hitstop = Math.max(opp.hitstop || 0, K.finisherHitstop)   // victim-only (see flurry note)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)
+  applyScaledDamage(opp, dmg, { source: "ability" })
   shakeCamera(context, 6, 9)
   // FX (item 8): the "smaller red ground-burst" family (yuji_ultimate_effect_1.png) is a SEPARATE FX family
   // from the flurry bursts — paired here with the finisher's ground-shaking launch (ground-bursts at the
@@ -12413,7 +12415,7 @@ function executeRickUltimate(fighter, context) {
         target.vy         = -9
         target.colorFlash = 8
       }
-      target.health = Math.max(0, (target.health || 0) - dmg)
+      applyScaledDamage(target, dmg, { source: "ability" })
       // VOICE: Self-Destruct PAYOFF — fires ONLY when the blast actually connects (a beat after
       // activation): "oh shit, well that's cool" / "boom" (random pool). Distinct from the cast bark.
       try { sound.playSfxFile?.(pickRickVoice("ultPayoff"), null) } catch (_) {}
@@ -12989,7 +12991,7 @@ function executeGokuBlackSpecial(fighter, context) {
         let dmg = rose ? Math.round(GB_EXPLOSION.dmg * SSJ_ROSE_MULT.dmg) : GB_EXPLOSION.dmg
         if (target.isBlocking) { dmg = Math.floor(dmg * 0.20); target.blockstun = 18 }
         else { target.hitstun = 42; target.vx = (tcx >= rcx ? 1 : -1) * 16; target.vy = -9; target.colorFlash = 8 }
-        target.health = Math.max(0, (target.health || 0) - dmg)   // TARGET only — no self-harm
+        applyScaledDamage(target, dmg, { source: "ability" })   // TARGET only — no self-harm
       }
     }
     shakeCamera(context, 15, 14)
@@ -13037,7 +13039,7 @@ function applySwordSlashDamage(fighter, opp, cineCtx = {}) {
     opp.stun    = Math.max(opp.stun || 0, SWORD.paralysis)
     opp.vx = 0; opp.colorFlash = 10; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
   }
-  opp.health = Math.max(0, (opp.health || 0) - dmg)            // GUARANTEED, range-independent (Kurama sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (Kurama sure-hit)
   // Push ONE hit spark carrying the damage — the shared hitSparks processor spawns the floating damage
   // number + records the hit from it (same path Kurama uses), so we never hand-roll or double-count it.
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
@@ -13047,7 +13049,7 @@ function applySwordSlashDamage(fighter, opp, cineCtx = {}) {
       x: ocx, y: ocy, timer: 18, maxTimer: 18,
       category: blocked ? "light" : "ultimate",
       color: blocked ? null : "#ff5db1",
-      damage: dmg, lines: blocked ? 6 : 12, radius: blocked ? 14 : 36,
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 12, radius: blocked ? 14 : 36,
       ...(blocked ? { isBlocking: true } : {})
     })
   }

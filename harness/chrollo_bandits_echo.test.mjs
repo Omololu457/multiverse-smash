@@ -75,7 +75,7 @@ try {
   await page.waitForFunction(() => !window.__harness.edoBackup.innerCineActive(), null, { timeout: 8000, polling: 16 }).catch(() => {});
   await waitFrames(3);
   const mUlt = await page.evaluate(() => window.__harness.beState("p2"));
-  check("Dark Knight ult connected on Chrollo (~300)", (a2p2 - (await p2()).health) >= 250, `−${(a2p2 - (await p2()).health).toFixed(0)}`);
+  check("Dark Knight ult connected on Chrollo (~180 = 300×0.60)", (a2p2 - (await p2()).health) >= 170, `−${(a2p2 - (await p2()).health).toFixed(0)}`);
   check("ULTIMATE marked via the cinematic watcher (isUltimate:true)", mUlt?.rosterKey === "batman" && mUlt?.isUltimate === true, `mark=${JSON.stringify(mUlt)}`);
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -111,7 +111,7 @@ try {
   await waitFrames(10);
   check("copied ultimate fired", cFire.fired === true, `fired=${cFire.fired}`);
   check("a freeze cinematic played", cSawCine, `cine=${cSawCine}`);
-  check("copied ult dealt its guaranteed damage (~300)", (cP2 - (await p2()).health) >= 250, `−${(cP2 - (await p2()).health).toFixed(0)}`);
+  check("copied ult dealt its guaranteed damage (~180 = 300×0.60)", (cP2 - (await p2()).health) >= 170, `−${(cP2 - (await p2()).health).toFixed(0)}`);
   check("HP blood price paid (~162)", Math.abs((cHp0 - (await p1()).health) - 162) <= 2, `Δhp=${(cHp0 - (await p1()).health).toFixed(0)}`);
   check("auto-reverted to Chrollo", (await page.evaluate(() => window.__harness.beActive("p1")))?.rosterKey === "chrollo", "");
 

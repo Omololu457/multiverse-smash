@@ -87,10 +87,10 @@ try {
   await force(null); await waitFrames(2);
 
   // guard (hold down) — reuses idle frame 0
-  await page.keyboard.down("s"); await waitFrames(6); mv = await p1();
+  await page.keyboard.down(";"); await waitFrames(6); mv = await p1();
   check("guard (hold down) → action=guard", mv.action === "guard", `action=${mv.action} sheet=${mv.spriteSheet}`);
   await shot("guard");
-  await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.up(";"); await waitFrames(4);
 
   // hurt (force hitstun)
   await page.evaluate(() => window.__harness.hurtP1(40)); await waitFrames(3); mv = await p1();

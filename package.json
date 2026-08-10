@@ -6,6 +6,19 @@
   "scripts": {
     "stamp": "node tools/stamp_version.mjs",
     "serve": "node tools/serve.mjs",
+    "dev": "node server/save-server.mjs",
+    "dev:noserver": "node server/static-only.mjs",
+    "test:save-load": "node harness/save_load.test.mjs",
+    "test:credits": "node harness/credits.test.mjs",
+    "test:prereqs": "node harness/prereqs.test.mjs",
+    "test:arcade": "node harness/arcade.test.mjs",
+    "test:boss": "node harness/boss.test.mjs",
+    "test:unlocks": "node harness/unlocks.test.mjs",
+    "test:atlas": "node tools/atlas_pack.mjs",
+    "test:atlas-perf": "node harness/atlas_perf.test.mjs",
+    "test:select-depth": "node harness/select_depth.test.mjs",
+    "test:modifiers": "node harness/tower.test.mjs",
+    "test:bracket": "node harness/bracket.test.mjs",
     "desktop": "npm --prefix electron start",
     "desktop:capture": "npm --prefix electron run capture",
     "hooks:install": "cp tools/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
@@ -336,7 +349,11 @@
     "test:obito": "node harness/obito.test.mjs",
     "test:obito-skins": "node harness/obito_skins_shot.mjs",
     "test:obito-voice": "node harness/obito_voice.test.mjs",
-    "test:obito-corrections": "node harness/obito_corrections.mjs"
+    "test:obito-corrections": "node harness/obito_corrections.mjs",
+    "test:damage-scale": "node harness/damage_scale_stage1a.test.mjs",
+    "test:time-model": "node harness/time_model.test.mjs",
+    "test:stage1b-juggle": "node harness/stage1b_juggle.test.mjs",
+    "test:stage1c-block": "node harness/stage1c_block.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

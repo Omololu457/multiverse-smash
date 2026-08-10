@@ -64,7 +64,7 @@ try {
   await waitFrames(4);
   const hpAfterStrike = (await p2()).health;
   const directDmg = hp0 - hpAfterStrike;
-  check("STRIKE deals guaranteed direct damage (range-independent, ~300)", directDmg >= 280, `direct=${directDmg}`);
+  check("STRIKE deals guaranteed direct damage (range-independent, ~180 = 300×0.60)", directDmg >= 170, `direct=${directDmg}`);
 
   // poison finisher keeps ticking after the cinematic (no input)
   await waitFrames(130);

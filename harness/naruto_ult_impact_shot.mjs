@@ -80,7 +80,7 @@ try {
   // ── Assertions against the live tuning ──────────────────────────────────
   check("Recast lockout = 2400f / 40s (NARUTO_KURAMA_RECAST_FRAMES)", cd === 2400, `${cd}f`);
   check("Meter cost = 95 (50% of 190 maxEnergy)", (energyBefore - energyAfter) === 95, `spent ${energyBefore - energyAfter}`);
-  check("TBB connects for 600 guaranteed damage (unblocked, clean hit)", dealt === 600, `dealt ${dealt}`);
+  check("TBB connects for 360 guaranteed damage (600 × 0.60, unblocked, clean hit)", dealt === 360, `dealt ${dealt}`);
   check("Impact screenshot captured", fs.existsSync(path.join(OUT, "naruto_ult_impact.png")), "naruto_ult_impact.png");
 } catch (e) {
   console.error("  ❌ harness error:", e.message);
@@ -90,5 +90,5 @@ try {
   server.close();
 }
 
-console.log(fails === 0 ? "\n✅ naruto-ult-impact PASS — live tuning verified (40s / 600 / 95)\n" : `\n❌ naruto-ult-impact ${fails} FAIL\n`);
+console.log(fails === 0 ? "\n✅ naruto-ult-impact PASS — live tuning verified (40s / 360 eff / 95)\n" : `\n❌ naruto-ult-impact ${fails} FAIL\n`);
 process.exit(fails === 0 ? 0 : 1);

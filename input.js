@@ -57,7 +57,7 @@ const PLAYER_TYPES = { 1: "p1Type", 2: "p2Type", 3: "p3Type", 4: "p4Type" }
 // ─────────────────────────────────────────────────────────────────
 // Standard-gamepad / PS5 button indices.
 //   X (0)        → light          Square (2)  → heavy
-//   Triangle (3) → special        Circle (1)  → dash
+//   Triangle (3) → special        Circle (1)  → BLOCK (dedicated guard button — MK-feel Stage 1c)
 //   L1 (4)       → grab           R1 (5)      → charge / Omnitrix switch
 //   L2 (6)       → ultimate       R2 (7)      → ultimate (alt)
 export const PS5_MAP = {
@@ -363,7 +363,8 @@ function pollGamepad(playerNum, buffer) {
     ultimate: buffer.ultimate > 0,
     dash:     buffer.dash     > 0,        // set by updateGamepadEdges on double-tap
     grab:     btn(PS5_MAP.L1),
-    charge:   btn(PS5_MAP.L2)
+    charge:   btn(PS5_MAP.L2),
+    block:    btn(PS5_MAP.CIRCLE)         // Circle = dedicated guard (MK-feel Stage 1c; no longer on Down)
   }
 }
 

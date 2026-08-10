@@ -53,7 +53,7 @@ check("the slash connects exactly once (struck)", struck.struck === true, `struc
 // let it finish
 await page.waitForFunction(() => window.__harness.miwaUltCine()?.active === false, null, { timeout: 4000, polling: 16 }).catch(() => {});
 const hp1 = (await p2()).health, dmg = hp0 - hp1;
-check("GUARANTEED range-independent damage landed (~280)", dmg >= 200, `dmg=${dmg} (p2 was 520px away)`);
+check("GUARANTEED range-independent damage landed (~168 = 280×0.60)", dmg >= 150, `dmg=${dmg} (p2 was 520px away)`);
 check("cinematic ends → combat resumes (not stuck)", (await cine()).active === false, `active=${(await cine()).active}`);
 await page.screenshot({ path: path.join(OUT, "miwa_s4_after.png") });
 

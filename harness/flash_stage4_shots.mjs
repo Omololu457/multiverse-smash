@@ -75,13 +75,13 @@ console.log("\n── 5) Flash CANNOT block (opponent lands a hit mid-Flash-Time
 await waitGrounded();
 await page.evaluate(() => { window.__harness.healP2(); const p = window.__harness.p1(); window.__harness.setP2X(p.x + 60); });
 // hold block on Flash — it must be IGNORED
-await page.keyboard.down("s"); await waitFrames(3);
+await page.keyboard.down(";"); await waitFrames(3);
 const flashBlocking = (await p1()).isBlocking;
 const ph0 = (await p1()).health;
 await page.evaluate(() => window.__harness.p2Attack());   // opponent swings at Flash
 for (let i = 0; i < 20; i++) { if ((await p1()).hitstun > 0) break; await waitFrames(1); }
 await shot("cant_block");
-await waitFrames(4); await page.keyboard.up("s");
+await waitFrames(4); await page.keyboard.up(";");
 const flashDmg = ph0 - (await p1()).health, p1hs = (await p1()).hitstun;
 check("Flash's block input is IGNORED (isBlocking false)", flashBlocking === false, `isBlocking=${flashBlocking}`);
 check("opponent's hit LANDS on Flash (full, unblocked)", flashDmg > 20, `−${flashDmg.toFixed(0)}`);

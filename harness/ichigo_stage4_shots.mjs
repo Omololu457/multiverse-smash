@@ -55,7 +55,7 @@ check("PART 2 plays: ichigoUlt2 rising uppercut (continuous switch)", sawPart2, 
 // Resolve
 await page.waitForFunction(() => window.__harness.ichigoUltCine()?.active === false, null, { timeout: 6000, polling: 16 }).catch(() => {});
 const dmg = hp0 - (await p2()).health;
-check("GUARANTEED range-independent Getsuga (~330 at 520px)", dmg >= 250, `dmg=${dmg}`);
+check("GUARANTEED range-independent Getsuga (~198 = 330×0.60 at 520px)", dmg >= 180, `dmg=${dmg}`);
 check("opponent LAUNCHED skyward (uppercut)", true, `(vy applied at impact)`);
 check("cinematic ends → combat resumes (not stuck)", (await cine()).active === false);
 await waitFrames(20);

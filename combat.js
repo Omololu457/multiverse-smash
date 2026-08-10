@@ -117,6 +117,48 @@ const HITSTUN_SCALE = 1.15   // MK12-style flow: links connect without frame-per
 // one place instead of 45 maxHealth edits. 0.60 ≈ +66% time-to-kill. Tune here.
 export const GLOBAL_DAMAGE_SCALE = 0.60
 
+// ── THE ONE DAMAGE CHOKE-POINT (MK-feel Stage 1a) ─────────────────────────────
+// Every point of HP removed by an offensive source MUST pass through here so the
+// global pacing scale can never be bypassed. Historically summon hits, DOT ticks,
+// and the manual-subtract cinematic ultimates (Rick/Kurama/Vegeta/…) subtracted
+// `.health` directly and so skipped GLOBAL_DAMAGE_SCALE — creating the balance
+// outliers the design review flagged. This function is now the sole writer.
+//   applyScaledDamage(target, rawDamage, opts) -> HP actually removed (int)
+//     rawDamage : PRE-scale damage. Callers whose value was already scaled
+//                 upstream (the combo-scaled melee/projectile path) pass
+//                 { scale: 1 } so scale is applied exactly once, never twice.
+//     opts.scale : scalar to apply (default GLOBAL_DAMAGE_SCALE).
+//     opts.floor : HP clamp floor (default 0; non-lethal costs/chip pass 1).
+//     opts.source: label for the __DMG_LOG trace (Stage 1a before/after diff).
+// Debug: set globalThis.__DMG_LOG = true to log every application as
+//   [DMG] <source> raw=<r> scale=<s> dealt=<d> <before>-><after>
+export function applyScaledDamage(target, rawDamage, opts = {}) {
+  if (!target) return 0
+  //   opts.bypassScale : DELIBERATE escape hatch — apply the raw amount with no global scale
+  //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
+  //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled
+  //                      upstream and pass scale:1 to avoid double-scaling (melee/projectile).
+  const scale = opts.bypassScale ? 1
+              : opts.scale != null ? opts.scale
+              : GLOBAL_DAMAGE_SCALE
+  const floor = opts.floor != null ? opts.floor : 0
+  const raw   = Math.max(0, rawDamage || 0)
+  const dealt = Math.floor(raw * scale)
+  const before = target.health || 0
+  target.health = Math.max(floor, before - dealt)
+  if (typeof globalThis !== "undefined" && globalThis.__DMG_LOG) {
+    try {
+      console.log(`[DMG] ${opts.source || "?"} raw=${raw} scale=${scale} dealt=${dealt} ${before}->${target.health}`)
+    } catch (_) {}
+  }
+  return before - target.health
+}
+
+// Canonical MK-feel name for the single damage choke-point (Stage 1). `applyScaledDamage`
+// remains the established name its ~12 call sites use; `applyDamage` is the same function so new
+// code + the design spec's contract share one implementation — never a second competing path.
+export const applyDamage = applyScaledDamage
+
 // ========================
 // HELPERS
 // ========================
@@ -522,7 +564,7 @@ export function shouldRengokuCounter(defender, attacker) {
   attacker.hitstun = Math.max(attacker.hitstun || 0, 30)           // stun + shove the attacker, cancel its swing
   attacker.vx = -(attacker.facing || 1) * 7
   attacker.attacking = false; attacker.currentAttack = null
-  attacker.health = Math.max(0, (attacker.health || 0) - RENGOKU_RIPOSTE_DMG)   // flat flaming riposte
+  applyScaledDamage(attacker, RENGOKU_RIPOSTE_DMG, { source: "rengoku-riposte" })   // flat flaming riposte (now scaled like every other damage source)
   defender.invulnTimer = Math.max(defender.invulnTimer || 0, 10)   // Rengoku: brief i-frames + flash + flame pose
   defender.parryFlash  = Math.max(defender.parryFlash || 0, 12)
   defender.attackCooldown = 0
@@ -542,7 +584,7 @@ export function shouldNezukoCounter(defender, attacker) {
   attacker.hitstun = Math.max(attacker.hitstun || 0, 30)          // stun + shove the attacker, cancel its swing
   attacker.vx = -(attacker.facing || 1) * 7
   attacker.attacking = false; attacker.currentAttack = null
-  attacker.health = Math.max(0, (attacker.health || 0) - NEZUKO_RIPOSTE_DMG)   // flat riposte
+  applyScaledDamage(attacker, NEZUKO_RIPOSTE_DMG, { source: "nezuko-riposte" })   // flat riposte (now scaled like every other damage source)
   defender.invulnTimer = Math.max(defender.invulnTimer || 0, 10)  // brief i-frames + flash
   defender.parryFlash  = Math.max(defender.parryFlash || 0, 12)
   defender.attackCooldown = 0
@@ -1827,7 +1869,7 @@ export function updateGrab(attacker, defender) {
       defender.vx = 0
       defender.vy = 0
       const dmg = pull.dmg || 0                        // pull is the payload → only light chip, not a throw
-      if (dmg > 0) defender.health = Math.max(0, (defender.health || 0) - Math.floor(dmg * GLOBAL_DAMAGE_SCALE))
+      if (dmg > 0) applyScaledDamage(defender, dmg, { source: "grab-pull" })
       defender.hitstun    = pull.hitstun || 18         // left briefly stunned in the attacker's face (mixup setup)
       defender.colorFlash = 8
       try { sound?.play?.(SFX?.HIT_LIGHT) } catch (_) {}
@@ -1874,7 +1916,7 @@ export function updateGrab(attacker, defender) {
     // Susanoo grab) can stamp `_grabThrowDmg` on the attacker to deal its own tuned amount. Cleared
     // right after so a custom value never leaks into the attacker's next (generic) grab.
     const throwDmg = (attacker && attacker._grabThrowDmg) || 90
-    defender.health = Math.max(0, (defender.health || 0) - Math.floor(throwDmg * GLOBAL_DAMAGE_SCALE))
+    applyScaledDamage(defender, throwDmg, { source: "grab-throw" })
     if (attacker) attacker._grabThrowDmg = 0
     defender.hitstun = 20
     defender.colorFlash = 8
@@ -2098,7 +2140,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     const chip = cat === "special" || cat === "ultimate"
     const chipDmg = Math.floor(dmg * (chip ? 0.12 : 0.20))
 
-    defender.health = Math.max(chip ? 1 : 0, (defender.health || 0) - chipDmg)
+    applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip" })   // chipDmg already scaled (derived from `dmg`)
     defender.blockstun = 10 + (cat === "special" ? 4 : 0)
 
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
@@ -2122,20 +2164,35 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       })
     }
   } else {
-    applyHitstop(attacker, defender, getHitstopFrames(atk))
+    // BOSS SUPER-ARMOR (Stage 20): the arcade boss shrugs off LIGHT attacks — a hit whose move damage
+    // is below its threshold (and not a launcher/spike/special/ultimate) can't stun, interrupt, or knock
+    // it back, so the player can't jab it out of its own combos. It STILL takes the damage (applied
+    // below). There is no universal combo-breaker mechanic to be "immune" to; this delivers that intent.
+    const bossArmored = !!defender._bossArmor && !atk.launcher && !atk.spike
+      && cat !== "special" && cat !== "ultimate"
+      && (atk.damage ?? dmg ?? 0) < (defender._bossArmorThreshold || 0)
 
-    defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE * getComboHitstunScale(attacker)))
-    // Getting hit interrupts the defender's own swing so they don't keep
-    // attacking (or sit on a never-cleared currentAttack) during hitstun.
-    defender.attacking    = false
-    defender.currentAttack = null
-    defender.currentMove   = null
-    // A hit also interrupts a transform-device charge (Ben/Albedo).
-    defender.isCharging   = false
-    // AMBER identity — "sticky pressure": her hits shove the opponent LESS, so they can't drift to safety
-    // and juke/space away from her (the reliable realization of "reduced side-step-ability against her";
-    // the parry-window path proved non-functional). Skin modifier; 1.0 (no change) for everyone else.
-    defender.vx = (attacker.facing || 1) * (atk.pushX || 4) * (attacker._gfSkinMod?.stickPressure ?? 1)
+    if (bossArmored) {
+      defender.armorFlash = 8
+      applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
+    } else {
+      applyHitstop(attacker, defender, getHitstopFrames(atk))
+      defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE * getComboHitstunScale(attacker)))
+      // JUGGLE GRAVITY (MK-feel Stage 1b): this hit landed on an AIRBORNE (already-juggled) opponent →
+      // bump their juggleCount so physics.applyGravity ramps their fall (each successive air hit drops them
+      // faster). Read BEFORE this hit's own launcher/spike physics runs below, so a GROUNDED launcher opener
+      // never self-counts. juggleCount resets to 0 on ground contact (applyGravity).
+      if (!defender.onGround && !defender.grounded) defender.juggleCount = (defender.juggleCount || 0) + 1
+      defender.attacking    = false
+      defender.currentAttack = null
+      defender.currentMove   = null
+      // A hit also interrupts a transform-device charge (Ben/Albedo).
+      defender.isCharging   = false
+      // AMBER identity — "sticky pressure": her hits shove the opponent LESS, so they can't drift to safety
+      // and juke/space away from her (the reliable realization of "reduced side-step-ability against her";
+      // the parry-window path proved non-functional). Skin modifier; 1.0 (no change) for everyone else.
+      defender.vx = (attacker.facing || 1) * (atk.pushX || 4) * (attacker._gfSkinMod?.stickPressure ?? 1)
+    }
 
     // BEERUS hit-reaction voice ("...impressive") — only on a SIGNIFICANT hit (heavy-tier category or
     // real damage), NOT every light poke. Cooldown-gated (_hitVoiceCd ticked in game.js) so a rapid
@@ -2146,7 +2203,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       try { sound?.playSfxFile?.("beerus_hit_reaction.mp3", null) } catch (_) {}
     }
 
-    if (atk.launcher) {
+    if (bossArmored) {
+      // Boss shrug: no vertical displacement either — it stays planted and keeps attacking.
+    } else if (atk.launcher) {
       // Per-character tuned launch (launchVy/selfVy) → EXACT velocities; otherwise
       // the legacy floor pop. The launcher resets attacker.airHits to 0 so the
       // opener itself is NOT counted — the first aerial follow-up becomes hit #1.
@@ -2263,7 +2322,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       try { sound?.play?.(_hitSound(atk, false)) } catch (_) {}
     }
 
-    defender.health = Math.max(0, (defender.health || 0) - dmg)
+    applyScaledDamage(defender, dmg, { scale: 1, source: "melee" })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point
     applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
@@ -2533,16 +2592,12 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       })
     }
 
-    // LAUNCHER CANCEL: when an up-attack connects it sends both fighters airborne
-    // (see physics.launcherAttack). Cancel the attacker's long recovery so they
-    // can immediately jump / air-attack to start the juggle, instead of being
-    // stuck on the ground while the enemy floats away.
-    if (fighter.currentAttack && fighter.currentAttack.launcher && fighter.currentAttack.hasHit) {
-      fighter.attacking = false
-      fighter.currentAttack = null
-      fighter.currentMove = null
-      fighter.attackCooldown = 0
-    } else if (fighter.currentAttack && fighter.currentAttack.timer <= 0) {
+    // LAUNCHER (MK-feel Stage 1b): a connected up-attack NO LONGER auto-cancels its recovery or
+    // auto-lifts the attacker (see physics.launcherAttack). It plays out its recovery on the ground
+    // like any normal — to convert, the player must JUMP-CANCEL that recovery (physics.moveFighter's
+    // jump block reads `currentAttack.launcher && hasHit`, so the attack state must persist through
+    // recovery here). If they don't jump-cancel, the launcher simply recovers into neutral.
+    if (fighter.currentAttack && fighter.currentAttack.timer <= 0) {
       fighter.attacking = false
       fighter.currentAttack = null
       fighter.currentMove = null
@@ -2676,7 +2731,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // combo is scaled by the owner's current combo count, exactly like a melee hit. A standalone
       // projectile (counter 0/1) scales by 1 → unchanged. Uses the PRE-increment counter; the owner's
       // combo bookkeeping (extend on clean hit / reset on block) is done just below, after damage.
-      let dmg = (proj.damage || 30) * getComboScale(proj.owner) * GLOBAL_DAMAGE_SCALE
+      let dmg = (proj.damage || 30) * getComboScale(proj.owner)   // PRE-scale; GLOBAL_DAMAGE_SCALE applied at the write via applyScaledDamage
 
       if (fighter.isBlocking) {
         dmg *= 0.15
@@ -2684,6 +2739,9 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
       } else {
         fighter.hitstun = Math.round((proj.hitstun || 18) * getComboHitstunScale(proj.owner))
+        // JUGGLE GRAVITY (Stage 1b): a projectile connecting on an AIRBORNE (juggled) target also ramps
+        // their fall (read before this hit's knockback vy is applied → a grounded target never self-counts).
+        if (!fighter.onGround && !fighter.grounded) fighter.juggleCount = (fighter.juggleCount || 0) + 1
         fighter.vx = (proj.vx > 0 ? 1 : -1) * (proj.knockbackX || 5)
         fighter.vy = proj.knockbackY || -3
         fighter.colorFlash = 6
@@ -2707,7 +2765,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         else { proj.owner.comboCounter = (proj.owner.comboCounter || 0) + 1; proj.owner.comboTimer = 90 }
       }
 
-      fighter.health = Math.max(0, (fighter.health || 0) - Math.floor(dmg))
+      applyScaledDamage(fighter, dmg, { source: "projectile" })
       trackSkillHunterUnlock(fighter, proj.owner, proj.name, fighter.isBlocking)   // Skill Hunter: a distinct opponent PROJECTILE landing on Chrollo also counts
       trackBanditEchoMark(fighter, proj.owner, proj, fighter.isBlocking, true)   // Bandit's Echo: any opponent PROJECTILE connect marks it (special-tier; independent of Skill Hunter)
 

@@ -117,14 +117,14 @@ try {
   {
     // Absolute Defense is ON (from prior sections). Now ALSO hold Down to normal-block.
     check("Absolute Defense still ON going in", (await p1s()).absoluteDefense === true);
-    await page.keyboard.down("s"); await wf(3);
+    await page.keyboard.down(";"); await wf(3);
     const b=await p1s();
     check("holding Down = normal block active AT THE SAME TIME as Absolute Defense", b.blocking && b.absoluteDefense, `blocking=${b.blocking} ad=${b.absoluteDefense}`);
     const before=await p1s();
     await page.evaluate(()=>window.__harness.p2Attack()); await wf(16);
     const after=await p1s();
     check("incoming hit still fully negated (no chip) with both defenses up", after.health >= before.health, `hp ${before.health}→${after.health}`);
-    await page.keyboard.up("s"); await wf(2);
+    await page.keyboard.up(";"); await wf(2);
     check("releasing Down stops normal block; Absolute Defense stays ON (independent)", !(await p1s()).blocking && (await p1s()).absoluteDefense, `blocking=${(await p1s()).blocking} ad=${(await p1s()).absoluteDefense}`);
   }
 

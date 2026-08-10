@@ -114,7 +114,7 @@ try {
   await page.keyboard.down("w"); await waitFrames(3); await page.keyboard.up("w"); await waitFrames(4);
   await record();
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(30); const blk = await record(); await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.down(";"); await waitFrames(30); const blk = await record(); await page.keyboard.up(";"); await waitFrames(4);
   check("guard ring holds final frame (idx 5)", blk.action === "guard" && blk.frameIndex === 5, `action=${blk.action} idx=${blk.frameIndex}`);
   await page.evaluate(() => window.__harness.hurtP1(28)); await waitFrames(3); const h = await record();
   check("hurt resolves", h.action === "hurt", `action=${h.action}`);

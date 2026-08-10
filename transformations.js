@@ -1,6 +1,19 @@
 // transformations.js
 // Handles character transformations and form switching
 
+// Stage 1 (time model): one-time deprecation warning when a form still relies on the old
+// per-SECOND drain (kiDrainPerSecond) instead of the frame-based energyDrainPerFrame. Keyed by
+// form key so the console isn't spammed every frame / for every fighter.
+const _kiDrainWarned = new Set()
+function _warnKiDrainDeprecated(fighter) {
+    const key = `${fighter?.rosterKey || fighter?.id || "?"}:${fighter?.currentForm || "?"}`
+    if (_kiDrainWarned.has(key)) return
+    _kiDrainWarned.add(key)
+    try {
+        console.warn(`[transformations] ${key} uses deprecated kiDrainPerSecond; add energyDrainPerFrame (= kiDrainPerSecond/60) to characters.js.`)
+    } catch (_) {}
+}
+
 function getTransformData(fighter, transformationName) {
     if (!fighter || !fighter.transformations) return null
     return fighter.transformations[transformationName] || null
@@ -27,6 +40,12 @@ function applyFormStats(fighter, form) {
         form.kiDrainPerSecond ??
         form.drainPerSecond ??
         0
+    // Stage 1 (time model): frame-based energy drain. When a form declares it, this is the
+    // authoritative per-FRAME drain; otherwise updateTransformations falls back to
+    // kiDrainPerSecond ÷ 60 (deprecated). null (not 0) so "no field" is distinguishable from
+    // "explicitly drains nothing".
+    fighter.energyDrainPerFrame =
+        form.energyDrainPerFrame != null ? form.energyDrainPerFrame : null
 
     // Optional form flags
     fighter.autoDodge = !!form.autoDodge
@@ -84,9 +103,11 @@ export function applyTransformation(fighter, transformationName) {
         fighter.health    = Math.min(newMax, (fighter.health || 0) + Math.max(0, gain))
     }
 
-    // Duration tracking
+    // Duration tracking — stored in FRAMES (Stage 1 time model). Was `duration * 1000` ms
+    // decremented by deltaTime; at the fixed 60Hz timestep that equals `duration * 60` frames,
+    // so ×60 preserves the exact 60fps duration while removing the wall-clock dependency.
     if (form.duration && !form.permanent) {
-        fighter.transformationTimer = form.duration * 1000 // ms
+        fighter.transformationTimer = Math.round(form.duration * 60) // frames
     } else {
         fighter.transformationTimer = 0
     }
@@ -114,9 +135,17 @@ export function applyTransformation(fighter, transformationName) {
 export function updateTransformations(fighter, deltaTime) {
     if (!fighter || !fighter.currentForm) return
 
-    // Drain energy if required
+    // Drain energy if required — FRAME-based (Stage 1 time model). The game runs a fixed 60Hz
+    // update pass (see game.js FIXED-TIMESTEP loop), so drain is a flat per-frame amount and no
+    // longer scales with `deltaTime` — making form duration identical at any display refresh rate.
     if ((fighter.energyType || "none") !== "none" && typeof fighter.energy === "number") {
-        fighter.energy -= (fighter.kiDrainPerSecond || 0) * (deltaTime / 1000)
+        let drainPerFrame = fighter.energyDrainPerFrame
+        if (drainPerFrame == null) {
+            // Deprecated fallback: derive from the old per-SECOND value at 60fps, once-warn.
+            drainPerFrame = (fighter.kiDrainPerSecond || 0) / 60
+            if ((fighter.kiDrainPerSecond || 0) > 0) _warnKiDrainDeprecated(fighter)
+        }
+        fighter.energy -= drainPerFrame
         if (fighter.energy < 0) fighter.energy = 0
     }
 
@@ -136,8 +165,9 @@ export function updateTransformations(fighter, deltaTime) {
 
     if (!fighter.transformationTimer) return
 
-    // Countdown
-    fighter.transformationTimer -= deltaTime
+    // Countdown — FRAME-based (Stage 1). transformationTimer is stored in FRAMES
+    // (see applyTransformation), decremented one per fixed-timestep pass.
+    fighter.transformationTimer -= 1
     if (fighter.transformationTimer <= 0) {
         revertTransformation(fighter)
     }
@@ -166,6 +196,7 @@ export function revertTransformation(fighter) {
         base.kiDrainPerSecond ??
         base.drainPerSecond ??
         0
+    fighter.energyDrainPerFrame = null   // Stage 1: base form never drains via the frame path
 
     fighter.autoDodge = false
     fighter.autoDodgeKiCost = 0

@@ -210,10 +210,23 @@ export const physics = {
       // keeps the launcher reachable. Combat reads onGround to start the up
       // attack, so we must NOT leave the ground in that case.
       const attackHeld = !!(keys[controls.light] || keys[controls.heavy])
-      const suppressJumpForUpAttack = fighter.onGround && attackHeld
+      // LAUNCHER JUMP-CANCEL (MK-feel Stage 1b): a connected up-attack (launcher) is in its recovery
+      // and no longer self-lifts the attacker. A deliberate jump press CANCELS that recovery and leaps
+      // up to start the juggle — the follow-up is now a player input, not an automatic carry. Allow the
+      // jump even while an attack button is held (the launcher already fired) so the cancel is reliable.
+      const launcherJC = !!(fighter.attacking && fighter.currentAttack &&
+                            fighter.currentAttack.launcher && fighter.currentAttack.hasHit)
+      const suppressJumpForUpAttack = fighter.onGround && attackHeld && !launcherJC
       const canJump = fighter.canJump !== false && fighter.jumpCount < fighter.maxJumps
 
       if (U && !fighter.jumpHeld && canJump && !suppressJumpForUpAttack) {
+        if (launcherJC) {
+          // Cancel the launcher's recovery into this pursuit jump.
+          fighter.attacking     = false
+          fighter.currentAttack = null
+          fighter.currentMove   = null
+          fighter.attackCooldown = 0
+        }
         fighter.vy = fighter.jumpForce
         fighter.jumpCount++
         fighter.onGround = false
@@ -311,7 +324,10 @@ export const physics = {
       return
     }
 
-    fighter.vy += this.gravity
+    // JUGGLE GRAVITY (MK-feel Stage 1b): each air hit landed on a juggled opponent bumps their
+    // juggleCount (combat.js), which RAMPS gravity here — every successive air hit drops the target
+    // faster, so juggles self-terminate instead of floating forever. Reset to 0 on ground contact below.
+    fighter.vy += this.gravity * (1 + (fighter.juggleCount || 0) * 0.12)
     if (fighter.vy > this.maxFallSpeed) fighter.vy = this.maxFallSpeed
     fighter.y += fighter.vy
 
@@ -323,6 +339,7 @@ export const physics = {
       fighter.isLaunched = false
       fighter.jumpCount = 0
       fighter.airDashCount = 0
+      fighter.juggleCount = 0        // landed → the juggle is over, gravity ramp resets
     } else {
       fighter.onGround = false
       fighter.grounded = false
@@ -413,29 +430,18 @@ export const physics = {
       return
     }
 
-    // ── Lift the ATTACKER up WITH the target (always, not just when airborne) ──
-    // Rise almost as high as the target — only ~2px/frame slower — so the two
-    // stay vertically close and the air follow-up reliably connects, with the
-    // enemy kept just above for an upward juggle. selfLift is the high floor.
-    // With opts.exact the player rises at exactly selfVy (slightly LESS than the
-    // enemy per spec, so the enemy floats just above and stays juggleable).
-    const selfRise = opts.exact ? (selfLift ?? -9) : Math.max(selfLift ?? -16, targetLaunch + 2)
-    attacker.vy = selfRise
-
-    // Drift the attacker TOWARD the enemy so they track them up into the juggle
-    // (the enemy keeps a small forward push from the hit, so chase a bit faster).
-    // This closes any horizontal gap and makes the air follow-up forgiving.
-    const toward = attacker.facing || (target.x >= attacker.x ? 1 : -1)
-    attacker.vx = toward * 4
-    attacker.onGround = false
-    attacker.isLaunched = false   // attacker is comboing, not hit-stunned
-    attacker.jumpCount = 0         // refresh jumps so they can chase / double-jump
-    attacker.airHits = 0           // reset air-combo counter for the follow-up
+    // ── The ATTACKER stays GROUNDED — NO auto-lift, NO auto-drift (MK-feel Stage 1b) ──
+    // The launcher used to self-pop the attacker up WITH the target and drift them toward it,
+    // auto-carrying them into the juggle with zero input. That automatic system-driven juggle is
+    // GONE: the attacker keeps their feet on the floor. To convert, the player must JUMP-CANCEL the
+    // launcher's recovery (a deliberate jump press — see moveFighter's jump block) and pursue with a
+    // real air normal. selfLift / opts.exact selfVy are intentionally no longer applied to the attacker.
+    // We STILL refresh jumps + reset the air-combo counter here so the jump-cancel + follow-up work.
+    attacker.jumpCount   = 0        // refresh jumps so the jump-cancel / double-jump chase is available
+    attacker.airHits     = 0        // reset air-combo counter for the follow-up
     attacker.airDashCount = 0
-    // The player is almost certainly still HOLDING Up (it shares the attack
-    // input). Mark the jump as held so that held Up doesn't instantly burn a
-    // double-jump and fling the attacker out of juggle range — they must release
-    // and re-press Up to actually jump in the air.
+    // Latch the jump as "held" so a shared/held Up doesn't instantly auto-jump the frame the launcher
+    // connects — the player must make a fresh, deliberate jump press to convert (the jump-cancel).
     attacker.jumpHeld = true
   },
 

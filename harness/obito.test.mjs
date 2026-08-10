@@ -62,7 +62,7 @@ for (const [nm, key, sheet] of [["run","d","obito_run_uniform"],["jump","w","obi
   check(`${nm} → ${sheet}`, has(mv, sheet), `sheet=${(mv.spriteSheet||"").split("/").pop()}`);
 }
 await page.waitForFunction(() => window.__harness.p1().grounded, null, { timeout: 4000 }).catch(()=>{});
-await page.keyboard.down("s"); await waitFrames(8); a = await p1(); await page.keyboard.up("s");
+await page.keyboard.down(";"); await waitFrames(8); a = await p1(); await page.keyboard.up(";");
 check("guard → obito_block_uniform", a.action === "guard" && has(a, "obito_block_uniform"), `sheet=${(a.spriteSheet||"").split("/").pop()}`);
 
 // ── NORMALS + REKKA ──
@@ -161,7 +161,7 @@ await waitFrames(4);
   await page.waitForFunction(()=>!window.__harness.obitoJuubiUltCine().active,null,{timeout:6000}).catch(()=>{});
   check("cinematic ends → combat resumes + caster un-hidden", !(await cine()).active, "");
   const dmg=hp0-(await p2()).health;
-  check("opponent took cinematic-band damage (~360)", dmg>=300 && dmg<=400, `dmg=${dmg}`); }
+  check("opponent took cinematic-band damage (~216 = 360×0.60)", dmg>=180 && dmg<=250, `dmg=${dmg}`); }
 
 check("no JS/page errors", jsErrors.length === 0, jsErrors.slice(0,3).join(" | "));
 console.log(`\nRESULT ${PASS} pass / ${FAIL} fail`);

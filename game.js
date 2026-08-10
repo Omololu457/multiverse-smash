@@ -7,7 +7,7 @@ import {
   isTransformDevice, updateTransformDevice, tryTransform, revertToHuman, selectAlienSlot
 } from "./fighters.js"
 import { camera } from "./camera.js"
-import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets } from "./sprite.js"
+import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets, loadedSheetCount } from "./sprite.js"
 import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
 import { fxSheetsForFighters } from "./preloadManifest.js"
 import { gameRng, reseed as reseedRng, makeSeed } from "./rng.js"   // Stage 11A: seeded gameplay RNG
@@ -41,6 +41,7 @@ import {
   attackIsActive,                     // Edo Tensei: only an ACTIVE swing can cancel via the standing dummy
   rectsOverlap,                       // Edo Tensei: opponent-attack vs standing-Tobirama dummy overlap
   GLOBAL_DAMAGE_SCALE,                // Edo Tensei: scale a dummy-cancel hit to the same net damage a normal hit deals
+  applyScaledDamage,                  // Stage 1a: the one scaled-damage choke-point (DOT ticks + Hisoka portal-drop route through it)
   startMove,                          // harness: drive a real p2 attack (Substitution incoming-window)
   getCancelWindow                     // harness/combo-flow: inspect a fighter's shared cancel window
 } from "./combat.js"
@@ -132,6 +133,8 @@ import {
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
   drawAiVsAiSetupScreen, getAiVsAiSetupRects, drawAiVsAiSummaryScreen, getAiVsAiSummaryRects,
   drawTowerSelectScreen, getTowerSelectRects,
+  drawArcadeSetupScreen, getArcadeSetupRects, drawRivalIntroScreen, drawArcadeEndingScreen,
+  drawBracketSetupScreen, getBracketSetupRects, drawBracketScreen,
   drawFFASetupScreen, getFFASetupRects, drawFFACharSelectScreen,
   drawFFATeamSelectScreen, getFFATeamSelectRects,
   drawFFASlotSelectScreen, getFFASlotSelectRects,
@@ -142,20 +145,34 @@ import {
   drawAlienSelectScreen, getAlienSelectCardRects, getAlienSelectButtons, alienGridOpts,
   CHAR_GRID_OPTS, scrollGridBy, setGridScroll, getGridScrollbar, getGridViewport, pickGridCard, resetGridScroll,
   getMainMenuRects, drawMainMenuScreen,
+  drawCreditsScreen,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
   drawAccountScreen, getAccountButtons,
   resolveEnergyLabel, isHeavenlyRestriction, noMeterFlavor,   // HUD energy-bar resource name + no-meter flavor (Heavenly Restriction / Total Concentration) — display-only, exposed for the harness
   drawImageFit   // shared aspect-ratio-preserving image fitter (portraits never stretch/squash)
 } from "./ui.js"
-import { createAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, isFileApiSupported, hasPersistedData, persistence, setSnapshotDecorator } from "./account.js"
+import { CREDITS, SOURCED_ART, artistLineForCharacter, allAttributedKeys } from "./credits.js"
+import { createAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, isFileApiSupported, hasPersistedData, persistence, setSnapshotDecorator,
+  initSaveServerTier, isSaveServerAvailable, reattachStoredHandle, reconnectSaveFile, needsReconnect, saveFileStatus, exportSaveText, exportSaveFilename, importSaveText } from "./account.js"
 import {
   awardMatchXp, awardXp, getLevel, xpProgress, isUnlocked, requiredLevel,
   loadProgressionFromAccount, PROGRESS_DOES_NOT_PERSIST,
   setDevUnlock, isDevUnlocked, DEV_CODE,
   applyUnlockCode, isBetaUnlocked, clearBetaUnlock, restoreUnlockFlags,
-  FEATURES, levelFromXp
+  FEATURES, levelFromXp,
+  setArcadeCleared, isArcadeCleared, isArcadeNoContinueCleared, getArcadeCleared,
+  setTowerTierCleared, getTowerCleared,
+  saveBracket, loadBracket, clearBracket
 } from "./progression.js"
+import {
+  isCharacterUnlocked, unlockConditionFor, unlockLabel, charactersUnlockedBetween, partitionRoster
+} from "./unlocks.js"
+import {
+  ARCADE_FIGHTS, ARCADE_RIVAL_FIGHT, ARCADE_BOSS_FIGHT, arcadeState,
+  arcadeFightRole, arcadeBossKey, arcadeDifficultyForFight, arcadeRivalKey, arcadeRivalDialogue, ARCADE_XP
+} from "./arcade.js"
+import { endingSlidesFor } from "./endings.js"
 import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
@@ -358,6 +375,12 @@ function activeScrollGrid() {
 }
 
 canvas.addEventListener("wheel", e => {
+  // CREDITS screen consumes wheel to scroll the attribution list (Stage 18).
+  if (gameState === GAME_STATES.CREDITS) {
+    e.preventDefault()
+    creditsScroll = Math.max(0, Math.min(_creditsMaxScroll(), creditsScroll + e.deltaY))
+    return
+  }
   const g = activeScrollGrid()
   if (!g) return
   e.preventDefault()   // keep the page from scrolling; the grid consumes the delta
@@ -429,6 +452,35 @@ function persistCurrentSettings() {
   persistence.save(acct)   // decorator refreshes derived fields; whole file rewritten
 }
 
+// ── EXPORT / IMPORT (17D) — manual backup that works on EVERY browser (Safari incl.) ──
+// Export downloads the current snapshot via a blob URL (no picker, no permission). Import
+// reads a chosen file and runs it through account.js's load+migration path, then hydrates
+// the live modules — so unlock flags / audio settings / progression round-trip exactly.
+function doExportSave() {
+  const ok = downloadText(exportSaveFilename(), exportSaveText(), "application/json")
+  _saveUiMsg = ok ? "Exported to your downloads." : "Export unavailable here."
+}
+function doImportSave() {
+  if (typeof document === "undefined") return
+  if (!_saveImportInput) {
+    _saveImportInput = document.createElement("input")
+    _saveImportInput.type = "file"; _saveImportInput.accept = "application/json,.json"
+    _saveImportInput.style.display = "none"
+    _saveImportInput.addEventListener("change", () => {
+      const file = _saveImportInput.files && _saveImportInput.files[0]
+      _saveImportInput.value = ""   // allow re-picking the same file later
+      if (!file) return
+      file.text().then(text => {
+        const n = importSaveText(text)
+        if (n > 0) { hydrateFromLoadedSave(); _saveUiMsg = `Imported ${n} profile${n === 1 ? "" : "s"}.` }
+        else _saveUiMsg = "Import failed — not a valid save file."
+      }).catch(() => { _saveUiMsg = "Import failed — could not read file." })
+    })
+    document.body.appendChild(_saveImportInput)
+  }
+  _saveImportInput.click()
+}
+
 // Hydrate ALL systems from a freshly-loaded save, fully overriding the fresh-start
 // defaults. progression + unlock flags via progression.js; audio settings via sound.js;
 // skins are DERIVED (recomputed from level/dev/beta, nothing to hydrate). Runs the moment
@@ -469,8 +521,14 @@ const GAME_STATES = {
   TUTORIAL:         "tutorial",
   ACCOUNT:          "account",
   SETTINGS:         "settings",
+  CREDITS:          "credits",         // scrolling art/audio/attribution screen (Stage 18)
   GAMEPLAY_SELECT:  "gameplaySelect",
   TOWER_SELECT:     "towerSelect",     // pick a Tower tier (3/10/25/40/∞ floors)
+  ARCADE_SETUP:     "arcadeSetup",     // pick arcade difficulty (fixed for the run) — Stage 19
+  ARCADE_RIVAL_INTRO: "arcadeRivalIntro", // pre-rival two-line exchange (fight 5)
+  ARCADE_ENDING:    "arcadeEnding",    // per-character ending slides after a clear
+  BRACKET_SETUP:    "bracketSetup",    // local tournament: pick size + your fighter (Stage 24B)
+  BRACKET_VIEW:     "bracketView",     // tournament bracket tree between matches
   FFA_SETUP:        "ffaSetup",        // free-for-all: choose player count (3/4)
   FFA_CHARSELECT:   "ffaCharSelect",   // free-for-all: pick a fighter per slot
   FFA_SLOTSELECT:   "ffaSlotSelect",   // free-for-all: assign each slot to a human device or AI (+ difficulty)
@@ -497,23 +555,24 @@ const GAME_STATES = {
 // ------------------------------------------------------------------
 // CONTROLS
 // ------------------------------------------------------------------
-// CANONICAL INPUT SCHEME — ONLY W A S D U I O P J K L are bound.
-//   W=jump/up  A=left  S=crouch/down  D=right  (double-tap A/D = dash)
+// CANONICAL INPUT SCHEME — W A S D U I O P J K L + ; (dedicated block).
+//   W=jump/up  A=left  S=crouch/down (NO LONGER blocks)  D=right  (double-tap A/D = dash)
 //   J=light  K=heavy  I=up-attack/launcher  L=special  U=ultimate/domain  O=grab
 //   P=charge (HOLD) / per-character toggle (TAP — Gojo: Infinity).
+//   ; = BLOCK (dedicated guard button — MK-feel Stage 1c moved guard off Down; gamepad = Circle).
 // `dash` is intentionally unbound to a key ("") — dashing is double-tap A/D.
 // `toggle` shares the P key; tap-vs-hold is disambiguated on keyup (handleChargeTap).
 const P1_CONTROLS = {
   left: "a", right: "d", up: "w", down: "s", jump: "w",
   light: "j", heavy: "k", upAttack: "i", special: "l", ultimate: "u",
-  grab: "o", charge: "p", toggle: "p", transform: "p", dash: ""
+  grab: "o", charge: "p", toggle: "p", transform: "p", dash: "", block: ";"   // ; = dedicated guard (MK-feel Stage 1c; Down no longer blocks)
 }
 // P2 (local-versus only) must use physically-distinct keys, so it necessarily
 // falls outside the 11-key rule; arrows + a right-hand cluster mirror P1's layout.
 const P2_CONTROLS = {
   left: "arrowleft", right: "arrowright", up: "arrowup", down: "arrowdown", jump: "arrowup",
   light: "1", heavy: "2", upAttack: "3", special: "4", ultimate: "5",
-  grab: "6", charge: "7", toggle: "7", transform: "7", dash: ""
+  grab: "6", charge: "7", toggle: "7", transform: "7", dash: "", block: "/"   // / = dedicated guard (near P2's arrows)
 }
 // P3/P4 (free-for-all POC ONLY) are CONTROLLER-ONLY — a keyboard can't do a 3rd/4th scheme
 // (key-rollover). A real pad drives them via pollGamepad. These maps carry DISTINCT virtual
@@ -525,12 +584,12 @@ const P2_CONTROLS = {
 const P3_CONTROLS = {
   left: "p3_left", right: "p3_right", up: "p3_up", down: "p3_down", jump: "p3_up",
   light: "p3_light", heavy: "p3_heavy", upAttack: "p3_upAttack", special: "p3_special", ultimate: "p3_ultimate",
-  grab: "p3_grab", charge: "p3_charge", toggle: "p3_charge", transform: "p3_charge", dash: ""
+  grab: "p3_grab", charge: "p3_charge", toggle: "p3_charge", transform: "p3_charge", dash: "", block: "p3_block"
 }
 const P4_CONTROLS = {
   left: "p4_left", right: "p4_right", up: "p4_up", down: "p4_down", jump: "p4_up",
   light: "p4_light", heavy: "p4_heavy", upAttack: "p4_upAttack", special: "p4_special", ultimate: "p4_ultimate",
-  grab: "p4_grab", charge: "p4_charge", toggle: "p4_charge", transform: "p4_charge", dash: ""
+  grab: "p4_grab", charge: "p4_charge", toggle: "p4_charge", transform: "p4_charge", dash: "", block: "p4_block"
 }
 
 // ── KEYBIND UI (Task 2) — P1 keyboard rebinds, IN-MEMORY ONLY (sandbox blocks
@@ -725,6 +784,9 @@ const universeKeys     = Object.keys(universeMap)
 let hoverStartIndex      = 0
 let hoverGameplayIndex   = 0
 let hoverTowerIndex      = 0
+let hoverArcadeIndex     = 0
+let hoverBracketIndex    = 0
+let characterLockMsg     = ""   // transient "X — Reach Level N" shown when a locked fighter is clicked (Stage 21)
 let hoverFFAIndex        = 0
 let hoverFFACharIndex    = 0
 let hoverFFASlotIndex    = 0
@@ -751,6 +813,7 @@ function getMoveListFighters() {
 const matchConfig = {
   mode:             null,
   aiDifficulty:     "easy",
+  modifiers:        [],   // Stage 24A: active match modifiers (Tower floors assign these)
   selectedUniverse: null,
   selectingSide:    "p1",
   selectedStage:    null,
@@ -895,7 +958,9 @@ function _towerPickStage() {
 // onto matchConfig (P1 unchanged). No player stage-select screen while a tower is active.
 function applyTowerFloor() {
   if (!towerState.active) return
-  const opp = _towerPickOpponent()
+  matchConfig.modifiers = _towerFloorModifiers()   // Stage 24A: this floor's modifiers
+  let opp = _towerPickOpponent()
+  if (matchConfig.modifiers.includes("mirrorOnly")) opp = matchConfig.p1CharKey || opp   // mirror = fight yourself
   matchConfig.p2CharKey    = opp
   matchConfig.p2Char       = characters[opp]
   matchConfig.aiDifficulty = towerDifficultyForFloor(towerState.floor + 1)   // floor is 0-indexed
@@ -928,6 +993,7 @@ function continueTower() {
   if (!towerState.endless && towerState.floor >= towerState.floors) {
     towerState.active = false
     awardXp(150)            // tower-complete bonus
+    setTowerTierCleared(towerState.tierId)   // Stage 21: persist the tier clear (tower-gated unlocks)
     resetToStart()
     return
   }
@@ -935,6 +1001,313 @@ function continueTower() {
   towerState._applyCarry = true   // resetRound applies the carry-over health to P1
   victoryState = createVictoryState()
   startMatch()
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MATCH MODIFIERS (Stage 24A) — a match-wide rule set (matchConfig.modifiers[]), applied to the
+// freshly-created fighters each round in resetRound. Data-driven + near-zero cost. Tower floors
+// (tier ≥ 2) assign them for variety; every other mode runs clean (empty modifiers).
+// ──────────────────────────────────────────────────────────────────────────────
+const MATCH_MODIFIERS = {
+  doubleHealth: "Double Health", oneHitKO: "One-Hit KO", speedUp: "Hyper Speed",
+  lowGravity: "Low Gravity", mirrorOnly: "Mirror Match", noBlock: "No Blocking", meterDrain: "Meter Drain"
+}
+const MODIFIER_POOL = Object.keys(MATCH_MODIFIERS)
+const PHYSICS_DEFAULT_GRAVITY = physics.gravity   // capture the baseline so lowGravity can restore it
+function hasModifier(id) { return Array.isArray(matchConfig.modifiers) && matchConfig.modifiers.includes(id) }
+function activeModifierLabels() { return (matchConfig.modifiers || []).map(id => MATCH_MODIFIERS[id]).filter(Boolean) }
+function _applyMatchModifiers() {
+  // Gravity is a SHARED physics property → set per match; restore the baseline when not modified.
+  physics.gravity = hasModifier("lowGravity") ? 0.42 : PHYSICS_DEFAULT_GRAVITY
+  for (const f of [p1, p2]) {
+    if (!f) continue
+    if (hasModifier("doubleHealth")) { f.maxHealth = Math.round((f.maxHealth || 1000) * 2); f.health = f.maxHealth }
+    if (hasModifier("speedUp"))      { f.baseSpeed = (f.baseSpeed || f.speed || 8) * 1.6; f.speed = f.baseSpeed; f.dashSpeed = (f.dashSpeed || 20) * 1.35 }
+    if (hasModifier("oneHitKO"))     { f.maxHealth = 1; f.health = 1 }   // applied LAST → any clean hit KOs
+    f._noBlock    = hasModifier("noBlock")
+    f._meterDrain = hasModifier("meterDrain")
+  }
+}
+// Tower floor → modifier assignment. Tier 1 is clean (learn the game); higher tiers spice floors,
+// tier 4/5 can stack a second modifier on later floors. Deterministic by (floor, tier).
+function _towerFloorModifiers() {
+  if (!towerState.active || towerState.tier < 2) return []
+  const fn = towerState.floor + 1, mods = []
+  if (fn % 2 === 0 || towerState.tier >= 3) mods.push(MODIFIER_POOL[(fn + towerState.tier) % MODIFIER_POOL.length])
+  if (towerState.tier >= 4 && fn % 3 === 0)  mods.push(MODIFIER_POOL[(fn * 2 + 1) % MODIFIER_POOL.length])
+  return [...new Set(mods)]
+}
+// Modifier banner shown on the match intro (Stage 24A).
+function _drawActiveModifiers() {
+  const labels = activeModifierLabels()
+  if (!labels.length) return
+  ctx.save()
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "800 15px Arial"
+  const text = "⚡ " + labels.join("   ·   ") + " ⚡"
+  const bw = ctx.measureText(text).width + 44, x = canvas.width / 2 - bw / 2, y = 66
+  ctx.fillStyle = "rgba(120,40,20,0.88)"; ctx.fillRect(x, y, bw, 30)
+  ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 2; ctx.strokeRect(x, y, bw, 30)
+  ctx.fillStyle = "#ffd27f"; ctx.fillText(text, canvas.width / 2, y + 16)
+  ctx.restore()
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ARCADE MODE (Stage 19) — a FIXED 7-fight ladder built on the Tower engine.
+// Parallel to towerState (arcadeState lives in arcade.js) so the two never interfere.
+// Reuses: the opponent/stage pickers, health-carry (_applyCarry), and the victory→continue wiring.
+// ──────────────────────────────────────────────────────────────────────────────
+function isArcade() { return matchConfig.mode === "arcade" }
+
+// ARCADE_ENDING playback clock.
+let arcadeEndingSlides = []
+let arcadeEndingIndex  = 0
+let arcadeEndingStartMs = 0
+
+function startArcade(difficulty = "adaptive") {
+  arcadeState.active = true
+  arcadeState.difficulty = difficulty
+  arcadeState.fight = 0; arcadeState.continuesUsed = 0
+  arcadeState.cleared = false; arcadeState.carryPct = 1
+  arcadeState._lastWon = false; arcadeState._applyCarry = false
+  arcadeState.endingPending = false; arcadeState.rosterKey = null
+  matchConfig.mode = "arcade"
+  resetSelections()
+  beginUniverseSelect()   // player picks THEIR fighter; the ladder is generated per fight
+}
+
+function _arcadePickOpponent(exclude) {
+  const pool = filterAllowedRosterKeys(allCharacterKeys).filter(k => k !== exclude)
+  const src = pool.length ? pool : filterAllowedRosterKeys(allCharacterKeys)
+  return src[Math.floor(Math.random() * src.length)] || "gojo"
+}
+
+// Force the current fight's opponent + difficulty + random stage onto matchConfig (P1 unchanged).
+// normal → random; rival (fight 5) → the player's arcadeRival (or random if none); boss (fight 7)
+// → the designated arcade boss (Stage 20 will layer its bossProfile buffs on top).
+function applyArcadeFight() {
+  if (!arcadeState.active) return
+  if (!arcadeState.rosterKey) arcadeState.rosterKey = matchConfig.p1CharKey
+  const fightNum = arcadeState.fight + 1
+  const role = arcadeFightRole(fightNum)
+  const player = matchConfig.p1CharKey
+  let opp
+  if (role === "boss")       opp = arcadeBossKey(player)
+  else if (role === "rival") opp = arcadeRivalKey(player, characters) || _arcadePickOpponent(player)
+  else                       opp = _arcadePickOpponent(player)
+  matchConfig.p2CharKey     = opp
+  matchConfig.p2Char        = characters[opp]
+  matchConfig.p2IsBoss      = (role === "boss")   // Stage 20: only the final fight applies bossProfile
+  matchConfig.aiDifficulty  = arcadeDifficultyForFight(arcadeState.difficulty, fightNum)
+  matchConfig.selectedStage = _towerPickStage()
+}
+
+// Begin the current fight: the rival fight detours through the two-line intro first; every other
+// fight goes straight to the match. Shared by the first fight (post-select) and continueArcade.
+function _beginArcadeFight() {
+  applyArcadeFight()
+  if (arcadeFightRole(arcadeState.fight + 1) === "rival") { gameState = GAME_STATES.ARCADE_RIVAL_INTRO; return }
+  startMatch()
+}
+
+// Called from _checkMatchOver. Win → per-fight XP + carry-over health (+ mark cleared after the
+// boss); lose → small XP (a continue may follow). Advance/teardown happens on continue.
+function updateArcadeOutcome(winner) {
+  if (!arcadeState.active) return
+  const fightNum = arcadeState.fight + 1
+  if (winner === "p1") {
+    arcadeState._lastWon = true
+    awardXp(ARCADE_XP.perFight(fightNum))
+    const pct = p1 ? Math.max(0, (p1.health || 0) / (p1.maxHealth || 1)) : 1
+    arcadeState.carryPct = Math.min(1, pct + 0.30)
+    if (fightNum >= ARCADE_BOSS_FIGHT) { arcadeState.cleared = true; arcadeState.endingPending = true }
+  } else {
+    arcadeState._lastWon = false
+    awardXp(20)
+  }
+}
+
+// From the victory screen. Win → advance (or, after the boss, roll the ending). Loss → spend a
+// continue and refight the SAME fight ("MAIN MENU" ends the run instead — handled by the caller).
+function continueArcade() {
+  if (!arcadeState.active) { resetToStart(); return }
+  if (arcadeState.endingPending) { _startArcadeEnding(); return }
+  if (!arcadeState._lastWon) {
+    arcadeState.continuesUsed++                 // CONTINUE — retry the same fight
+    victoryState = createVictoryState()
+    _beginArcadeFight()
+    return
+  }
+  arcadeState.fight++
+  victoryState = createVictoryState()
+  arcadeState._applyCarry = true               // resetRound applies the carry-over health to P1
+  _beginArcadeFight()
+}
+
+// Enter the ending: award the clear bonus + persist the clear, then present the slides. The run
+// is over here (active=false) — the ending is pure presentation.
+function _startArcadeEnding() {
+  const key = arcadeState.rosterKey || matchConfig.p1CharKey
+  const noContinue = arcadeState.continuesUsed === 0
+  awardXp(ARCADE_XP.clearBonus + (noContinue ? ARCADE_XP.noContinueBonus : 0))
+  setArcadeCleared(key, noContinue)   // Stage 19D — persists under acct.arcade (survives reload)
+  // TODO(Stage 20): unlock the arcade boss as playable. TODO(Stage 22): unlock this char's alt palette.
+  arcadeEndingSlides  = endingSlidesFor(key, characters)
+  arcadeEndingIndex   = 0
+  arcadeEndingStartMs = performance.now()
+  arcadeState.endingPending = false
+  arcadeState.active  = false
+  gameState = GAME_STATES.ARCADE_ENDING
+}
+function _endArcadeEnding() { arcadeEndingSlides = []; resetToStart() }
+
+// ── BOSS PROFILE (Stage 20) — data-driven boss buffs applied to the arcade final-boss opponent.
+// Mutates a freshly-created fighter: 2× HP, visibly larger, free specials, and a super-armor
+// threshold (light hits below it can't stagger/interrupt the boss → it can't be jabbed out of its
+// own combos; there is no universal combo-breaker mechanic to be "immune" to, so this delivers that
+// intent). aiDifficulty + single-round are handled where the fight is set up / resolved.
+function _applyBossProfile(fighter, char) {
+  const bp = char?.bossProfile
+  if (!fighter || !bp) return
+  fighter._isBoss   = true
+  fighter._bossName = fighter.name || char?.name || "BOSS"
+  fighter.maxHealth = Math.max(1, Math.round((fighter.maxHealth || 1000) * (bp.healthMult || 1)))
+  fighter.health    = fighter.maxHealth
+  if (bp.scale) fighter.spriteScale = (fighter.spriteScale || 1) * bp.scale       // visibly larger
+  if (bp.meterFree) { fighter.infiniteEnergy = true; fighter.energy = fighter.maxEnergy }  // free specials
+  if (bp.superArmorThreshold != null) { fighter._bossArmor = true; fighter._bossArmorThreshold = bp.superArmorThreshold }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LOCAL TOURNAMENT BRACKET (Stage 24B) — single-elimination, best-of-3, 4 or 8 entrants (the human
+// is entrant 0; the rest are CPUs). The human plays their own path; all-CPU matches auto-resolve so
+// the bracket runs to completion. Persisted to the account (Stage 17) so it survives a reload.
+// ──────────────────────────────────────────────────────────────────────────────
+let bracketState = null   // { size, entrants:[{key,name,ai}], rounds:[[{a,b,winner}]], round, matchIdx, champion }
+let _pendingBracketSize = 4
+function isBracket() { return matchConfig.mode === "bracket" && !!bracketState }
+
+// Build the entrant field (human = entrant 0, chosen char; rest = random unlocked CPUs) and start.
+function _buildAndStartBracket() {
+  const size = _pendingBracketSize || 4
+  const humanKey = matchConfig.p1CharKey || "gojo"
+  const pool = Object.keys(characters).filter(k => !characters[k]?.hidden && rosterKeyAllowed(k) && isCharUnlocked(k) && k !== humanKey)
+  const entrants = [{ key: humanKey, name: characters[humanKey]?.name || humanKey, ai: false }]
+  for (let i = 1; i < size; i++) {
+    const k = pool.length ? pool[Math.floor(Math.random() * pool.length)] : "gojo"
+    entrants.push({ key: k, name: characters[k]?.name || k, ai: true })
+  }
+  startBracket(size, entrants)
+}
+
+function startBracket(size, entrants) {
+  // entrants: [{ key, name, ai }] of length `size` (2,4,8). Round 0 pairs 0v1, 2v3, …
+  const r0 = []
+  for (let i = 0; i < size; i += 2) r0.push({ a: entrants[i], b: entrants[i + 1], winner: null })
+  bracketState = { size, entrants, rounds: [r0], round: 0, matchIdx: 0, champion: null }
+  matchConfig.mode = "bracket"
+  _saveBracketState()
+  _advanceToNextBracketMatch()
+}
+function _saveBracketState() { try { saveBracket(bracketState) } catch (_) {} }
+
+function _currentBracketMatch() { return bracketState?.rounds[bracketState.round]?.[bracketState.matchIdx] || null }
+
+// Play or auto-resolve the current match, skipping any that are already decided; build the next round
+// when a round completes; crown the champion at the end.
+function _advanceToNextBracketMatch() {
+  if (!bracketState) return
+  let m = _currentBracketMatch()
+  // Skip already-decided matches; roll to the next round when this one is exhausted.
+  while (bracketState.round < bracketState.rounds.length) {
+    const round = bracketState.rounds[bracketState.round]
+    if (bracketState.matchIdx >= round.length) {
+      // Round done → build the next round from its winners (or crown champion).
+      const winners = round.map(mm => mm.winner).filter(Boolean)
+      if (winners.length === 1) { bracketState.champion = winners[0]; _saveBracketState(); _showBracketView(); return }
+      const next = []
+      for (let i = 0; i < winners.length; i += 2) next.push({ a: winners[i], b: winners[i + 1], winner: null })
+      bracketState.rounds.push(next); bracketState.round++; bracketState.matchIdx = 0
+      continue
+    }
+    m = round[bracketState.matchIdx]
+    if (m.winner) { bracketState.matchIdx++; continue }     // already decided (resumed) → next
+    // A match with a HUMAN is played; an all-CPU match auto-resolves.
+    if (m.a.ai && m.b.ai) { m.winner = (Math.random() < 0.5 ? m.a : m.b); _saveBracketState(); bracketState.matchIdx++; continue }
+    // Human match → set up the real 1v1 and show the bracket first (player clicks to fight).
+    _saveBracketState(); _showBracketView(); return
+  }
+}
+function _showBracketView() { gameState = GAME_STATES.BRACKET_VIEW }
+
+// Start the actual match for the current (human) bracket pairing. The human always drives p1.
+function _startBracketMatch() {
+  const m = _currentBracketMatch()
+  if (!m) return
+  const human = m.a.ai ? m.b : m.a, opp = m.a.ai ? m.a : m.b
+  bracketState._humanRef = human   // remember which entrant the human is THIS match
+  matchConfig.mode = "bracket"
+  matchConfig.p1CharKey = human.key; matchConfig.p1Char = characters[human.key]
+  matchConfig.p2CharKey = opp.key;   matchConfig.p2Char = characters[opp.key]
+  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+  matchConfig.aiDifficulty = "adaptive"
+  matchConfig.modifiers = []
+  matchConfig.selectedStage = matchConfig.selectedStage || _towerPickStage()
+  startMatch()
+}
+
+// Called from _checkMatchOver. p1 won → the human's entrant advances; p2 won → the opponent does.
+function updateBracketOutcome(winner) {
+  const m = _currentBracketMatch()
+  if (!m || !bracketState) return
+  const human = bracketState._humanRef || (m.a.ai ? m.b : m.a), opp = (m.a === human) ? m.b : m.a
+  m.winner = (winner === "p1") ? human : opp
+  _saveBracketState()
+  bracketState.matchIdx++
+}
+
+// From the victory screen (bracket match). Advance the bracket → next match / view / champion.
+function continueBracket() {
+  _advanceToNextBracketMatch()
+  victoryState = createVictoryState()
+  // _advanceToNextBracketMatch left us on BRACKET_VIEW (champion or next human match) or auto-resolved.
+}
+
+function endBracket() { bracketState = null; matchConfig.mode = null; try { clearBracket() } catch (_) {}; resetToStart() }
+
+// Harness snapshot of the bracket (also used by the boot-resume hook).
+function H_bracketInfo() {
+  if (!bracketState) return { active: false, gameState }
+  const m = _currentBracketMatch()
+  return {
+    active: true, gameState, size: bracketState.size, round: bracketState.round, matchIdx: bracketState.matchIdx,
+    totalRounds: bracketState.rounds.length, champion: bracketState.champion?.key || null,
+    current: m ? { a: m.a.key, b: m.b.key, aAI: m.a.ai, bAI: m.b.ai, winner: m.winner?.key || null } : null,
+    entrants: bracketState.entrants.map(e => ({ key: e.key, ai: e.ai })),
+    rounds: bracketState.rounds.map(r => r.map(mm => ({ a: mm.a.key, b: mm.b.key, winner: mm.winner?.key || null }))),
+    p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey, mode: matchConfig.mode
+  }
+}
+
+// Resume a persisted bracket at boot (Stage 17). Returns true if one was restored.
+function resumeBracketIfSaved() {
+  let saved = null
+  try { saved = loadBracket() } catch (_) { saved = null }
+  if (!saved || saved.champion) return false
+  bracketState = saved
+  matchConfig.mode = "bracket"
+  return true
+}
+
+// Render the pre-rival exchange (ARCADE_RIVAL_INTRO). Opponent (p2) was set by applyArcadeFight.
+function drawArcadeRivalIntro() {
+  const playerKey = matchConfig.p1CharKey, rivalKey = matchConfig.p2CharKey
+  const d = arcadeRivalDialogue(playerKey, rivalKey, characters)
+  drawRivalIntroScreen(ctx, canvas, {
+    playerKey, rivalKey,
+    playerName: characters[playerKey]?.name || playerKey,
+    rivalName:  characters[rivalKey]?.name || rivalKey,
+    lines: d.pre
+  })
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1007,7 +1380,7 @@ function makeAIControls(slot) {
   return {
     left: p + "L", right: p + "R", up: p + "U", down: p + "D", jump: p + "U",
     light: p + "lt", heavy: p + "hv", upAttack: p + "ua", special: p + "sp", ultimate: p + "ult",
-    grab: p + "gr", charge: p + "ch", toggle: p + "ch", transform: p + "ch", dash: ""
+    grab: p + "gr", charge: p + "ch", toggle: p + "ch", transform: p + "ch", dash: "", block: p + "blk"   // AI guard input (MK-feel Stage 1c)
   }
 }
 
@@ -1267,7 +1640,7 @@ const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
 // Screens safe to re-enter on reload (depend only on matchConfig, no multi-step draft/setup state).
 const SESSION_RESTORABLE_SCREENS = new Set([
   GAME_STATES.MAIN_MENU, GAME_STATES.GAMEPLAY_SELECT, GAME_STATES.AI_DIFFICULTY,
-  GAME_STATES.TOWER_SELECT, GAME_STATES.SETTINGS, GAME_STATES.MOVE_LIST,
+  GAME_STATES.TOWER_SELECT, GAME_STATES.ARCADE_SETUP, GAME_STATES.SETTINGS, GAME_STATES.MOVE_LIST,
   GAME_STATES.SELECT_UNIVERSE, GAME_STATES.SELECT_CHARACTER, GAME_STATES.SELECT_SKIN,
   GAME_STATES.SELECT_STAGE
 ])
@@ -1413,8 +1786,43 @@ function betaRosterKeys() { return Object.keys(characters).filter(betaSelectable
 // character is offerable only if it's beta-selectable (real sprites + animationData); a dev or no-code
 // session offers the whole roster. Do NOT re-implement this test per mode — call rosterKeyAllowed /
 // filterAllowedRosterKeys everywhere instead.
-function rosterKeyAllowed(key) { return !(isBetaUnlocked() && !isDevUnlocked()) || betaSelectableKey(key) }
+// A character is PLAYABLE (finished enough to ship) unless explicitly flagged isPlayable:false —
+// e.g. an art-less placeholder that would render as a procedural box. DISTINCT from Stage 21's
+// unlockedBy (progression gating): isPlayable means "built", unlockedBy means "earned". Dev sees
+// unplayable characters (for building/testing); everyone else does not.
+function isPlayableKey(key) { return characters[key]?.isPlayable !== false }
+function rosterKeyAllowed(key) {
+  if (isDevUnlocked()) return true                    // dev: whole roster, incl. unfinished/unplayable
+  if (!isPlayableKey(key)) return false               // unfinished art-less entries — hidden from normal + beta
+  return !isBetaUnlocked() || betaSelectableKey(key)  // beta additionally requires real sprites + animationData
+}
 function filterAllowedRosterKeys(keys) { return keys.filter(rosterKeyAllowed) }
+// Universes that contain at least one CURRENTLY-offerable character (session-aware via
+// rosterKeyAllowed) — so a universe emptied by the playable/beta filter (e.g. "original", whose
+// only member is the art-less omololu) drops off the universe-select screen for normal players.
+function playableUniverseSet() {
+  const set = new Set()
+  for (const k of Object.keys(characters)) {
+    if (characters[k]?.hidden || !rosterKeyAllowed(k)) continue
+    const u = characters[k]?.universe; if (u) set.add(u)
+  }
+  return set
+}
+
+// ── CHARACTER UNLOCKS (Stage 21) ─────────────────────────────────────────────
+// Locked characters still APPEAR on select (as silhouettes) — the gate is on PICKING, not on
+// listing (unlike isPlayable, which hides art-less entries entirely). This builds the live context
+// (level + persisted arcade/tower clears + dev/beta) for unlocks.js's pure predicate.
+function characterUnlockCtx() {
+  const arcadeCleared = getArcadeCleared()
+  return {
+    level: getLevel(), dev: isDevUnlocked(), beta: isBetaUnlocked(),
+    arcadeCleared, towerTiers: getTowerCleared(),
+    arcadeAny: Object.keys(arcadeCleared).length > 0   // "beat the arcade boss" = any arcade clear
+  }
+}
+function isCharUnlocked(key) { return isCharacterUnlocked(key, characterUnlockCtx(), characters) }
+function charLockLabel(key)  { return unlockLabel(unlockConditionFor(key, characters), characters) }
 // Universes that contain at least one beta-selectable character — the only universes the
 // beta code exposes on the universe-select screen.
 function spriteUniverseSet() {
@@ -1598,7 +2006,7 @@ function createFighter(charKey, char, x, facing, controls, side) {
     baseSpeed: speed, baseJump: jump, speed, jump,
     jumpForce:    -(stats.jumpPower || 32),
     maxJumps:     stats.maxJumps || movement.jumpCount || 1,
-    jumpsUsed: 0, jumpCount: 0, jumpHeld: false,
+    jumpsUsed: 0, jumpCount: 0, jumpHeld: false, juggleCount: 0,
     dashSpeed:    stats.dashSpeed    || 20,
     dashDuration: stats.dashDuration || 8,
     dashCooldownMax: stats.dashCooldownMax || 30,
@@ -1697,6 +2105,11 @@ function resetRound() {
   p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, P2_CONTROLS, "p2")
   applySkin(p1, matchConfig.p1Skin)   // Task 4: load the selected skin's art
   applySkin(p2, matchConfig.p2Skin)
+  // Arcade final-boss buffs (Stage 20): applied ONLY when this p2 is the arcade boss opponent. Any
+  // other appearance of the same character (normal vs, other fights) is a fair, normal fighter. MUST
+  // run AFTER applySkin — applySkin resets spriteScale from the skin/char, which would clobber the
+  // boss's ×scale otherwise.
+  if (matchConfig.p2IsBoss) _applyBossProfile(p2, matchConfig.p2Char)
   // Edo Tensei vessel: stamp each Tobirama's chosen backup (falling back to a default so the
   // ultimate always has a body — e.g. an AI Tobirama, or a harness quick-start that skipped the UI).
   assignEdoBackup(p1, matchConfig.p1EdoBackup)
@@ -1708,6 +2121,12 @@ function resetRound() {
     p1.health = Math.max(1, Math.round((p1.maxHealth || 1000) * towerState.carryPct))
     towerState._applyCarry = false
   }
+  // Arcade uses the SAME carry-over between fights (set in continueArcade).
+  if (arcadeState._applyCarry && p1) {
+    p1.health = Math.max(1, Math.round((p1.maxHealth || 1000) * arcadeState.carryPct))
+    arcadeState._applyCarry = false
+  }
+  _applyMatchModifiers()   // Stage 24A: apply the active match modifiers to the fresh fighters
 
   // Sprite-scale verification (temporary — safe to delete). Confirms spriteScale
   // and animationData survive createFighter; for Gojo expect spriteScale 2, true.
@@ -2358,6 +2777,8 @@ function resetSelections() {
   matchConfig.alienDraft = []
   matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
   matchConfig.p1EdoBackup = null; matchConfig.p2EdoBackup = null   // Edo Tensei vessel (Tobirama ultimate)
+  matchConfig.p2IsBoss = false    // Stage 20: cleared on every fresh selection (only Arcade fight 7 sets it)
+  matchConfig.modifiers = []      // Stage 24A: cleared on fresh selection (only Tower floors assign)
   hoverUniverseIndex  = 0
   hoverCharacterIndex = 0
   hoverEdoBackupIndex = 0
@@ -2370,6 +2791,60 @@ let hoverSkinIndex = 0
 
 // After a character is locked in for a side, open the SKIN-SELECT for that side's
 // character. Confirming a skin there calls _proceedAfterSkin() to continue.
+// Lock in a character by key (shared by the click handler AND random-select, Stage 23). Honours the
+// Stage 21 unlock gate + the Ben 10 / Tobirama detours. Returns true if it advanced.
+function _selectCharacterKey(key) {
+  const char = characters[key]
+  if (!char) return false
+  if (!isCharUnlocked(key)) { characterLockMsg = `${char.name || key} — ${charLockLabel(key) || "Locked"}`; try { sound.play?.(SFX.MENU_DENY || SFX.KO) } catch (_) {} return false }
+  characterLockMsg = ""
+  const side = matchConfig.selectingSide
+  matchConfig[side + "Char"]    = char
+  matchConfig[side + "CharKey"] = key
+  if (key === "ben10") {
+    matchConfig.alienSelectSide = side
+    matchConfig.alienDraft = ((matchConfig[side + "Aliens"]?.length ? matchConfig[side + "Aliens"] : DEFAULT_OMNITRIX).filter(isArtBackedAlien)).slice()
+    gameState = GAME_STATES.SELECT_ALIENS
+  } else if (key === "tobirama") {
+    matchConfig.edoSelectSide = side; hoverEdoBackupIndex = 0
+    gameState = GAME_STATES.SELECT_EDO_BACKUP
+  } else {
+    proceedAfterCharacter(side)
+  }
+  return true
+}
+
+// RANDOM SELECT (Stage 23). universeOnly = pick within the current universe; else any playable +
+// UNLOCKED fighter across the roster (so random never hands you a locked/silhouette character).
+function pickRandomCharacter(universeOnly) {
+  const pool = universeOnly
+    ? getCharacterRosterForSelectedUniverse().map(c => c.id).filter(isCharUnlocked)
+    : Object.keys(characters).filter(k => !characters[k]?.hidden && rosterKeyAllowed(k) && isCharUnlocked(k))
+  if (!pool.length) return false
+  const key = pool[Math.floor(Math.random() * pool.length)]
+  // A cross-universe random needs the universe set so downstream (roster, detail) resolves correctly.
+  if (!universeOnly) matchConfig.selectedUniverse = characters[key]?.universe || matchConfig.selectedUniverse
+  const r = getCharacterRosterForSelectedUniverse()
+  hoverCharacterIndex = Math.max(0, r.findIndex(c => c.id === key))
+  return _selectCharacterKey(key)
+}
+
+// HOME STAGE (Stage 23). characters[key].homeStage (a stage NAME) wins; otherwise derive from the
+// character's universe → series → that series' first non-FFA stage; else a neutral fallback.
+const _UNIVERSE_SERIES = { jujutsu_kaisen: "jjk", naruto: "naruto", dragon_ball: "dragonball", demon_slayer: "demonslayer", rick_and_morty: "rickmorty", ben_10: "ben10" }
+function homeStageFor(charKey) {
+  const c = characters[charKey]; if (!c) return null
+  if (c.homeStage) { const s = stages.find(st => st.name === c.homeStage); if (s) return s }
+  const series = _UNIVERSE_SERIES[c.universe]
+  if (series) { const s = stages.find(st => st.series === series && !st.ffa); if (s) return s }
+  return stages.find(st => st.name === "Test Map") || stages[0]
+}
+// Pre-select the P1 fighter's home stage when the stage-select opens (player can still change it).
+function _applyHomeStageDefault() {
+  const s = homeStageFor(matchConfig.p1CharKey)
+  if (s) { matchConfig.selectedStage = s; hoverStageIndex = Math.max(0, stages.indexOf(s)) }
+}
+
 function proceedAfterCharacter(side) {
   skinSelectSide = side
   hoverSkinIndex = 0
@@ -2384,10 +2859,15 @@ function _proceedAfterSkin(side) {
     if (matchConfig.mode === "tower") {
       applyTowerFloor()                       // opponent + difficulty + auto-assigned stage
       startMatch()                            // SKIP SELECT_STAGE — Tower picks its own stage
+    } else if (matchConfig.mode === "arcade") {
+      _beginArcadeFight()                     // fight 1 (or the rival intro) — Arcade auto-assigns opponent/stage
+    } else if (matchConfig.mode === "bracket") {
+      _buildAndStartBracket()                 // Stage 24B: field the bracket, show the tree, first match
     } else if (matchConfig.mode === "training") {
       matchConfig.p2Char    = matchConfig.p1Char
       matchConfig.p2CharKey = matchConfig.p1CharKey
       matchConfig.p2Aliens  = matchConfig.p1Aliens ? matchConfig.p1Aliens.slice() : null
+      _applyHomeStageDefault()   // Stage 23: default to P1's home stage
       gameState = GAME_STATES.SELECT_STAGE
     } else {
       matchConfig.selectingSide    = "p2"
@@ -2395,6 +2875,7 @@ function _proceedAfterSkin(side) {
       gameState = GAME_STATES.SELECT_UNIVERSE
     }
   } else {
+    _applyHomeStageDefault()   // Stage 23: default to P1's home stage
     gameState = GAME_STATES.SELECT_STAGE
   }
 }
@@ -2771,13 +3252,19 @@ function _checkMatchOver() {
   // addition alongside — the normal roundWins/MAX_ROUNDS gate: when `_matchOverride` is set the match
   // ends NOW with the forced winner, even if NEITHER player has reached 2 round wins (e.g. Gon at 0-0).
   const forced = _matchOverride
-  if (forced || roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS) {
+  // BOSS single-round (Stage 20, bossProfile.noRoundLimit): an arcade boss fight is one round to the
+  // death — the FIRST round decision ends the match (no best-of-3).
+  const bossFight = !!(p1?._isBoss || p2?._isBoss)
+  if (forced || roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS ||
+      (bossFight && (roundWins.p1 >= 1 || roundWins.p2 >= 1))) {
     _matchOverride = null   // one-shot: consume so it can't re-fire
     const winner = forced ? forced.winnerSide
       : roundWins.p1 > roundWins.p2 ? "p1" : roundWins.p2 > roundWins.p1 ? "p2" : "draw"
     // Stage 11B/11D: match over → finalize the replay and offer it on the victory screen (Save Replay).
     if (replay.isRecording()) { _lastReplay = replay.finishRecording(); if (_lastReplay) _lastReplay.winner = winner }
     victoryState.canSaveReplay = !!_lastReplay
+    // Stage 24C: offer CHANGE CHARACTER for plain versus modes (not mid-Tower/Arcade/FFA runs).
+    victoryState.canChangeChar = ["vs", "pvp", "training"].includes(matchConfig.mode) && !towerState.active && !arcadeState.active
     victoryState.active     = true
     victoryState.fadeAlpha  = 0
     victoryState.winnerSide = winner
@@ -2809,7 +3296,10 @@ function _checkMatchOver() {
     // Skip training. Tower mode handles its own flow (advance/end) in updateTowerOutcome.
     if (matchConfig.mode !== "training" && matchConfig.mode !== "aivsai") {
       const p1Won  = winner === "p1"
+      const beforeLevel = getLevel()
       victoryState.xpResult = awardMatchXp({ won: p1Won, roundsWon: roundWins.p1, perfect: p1Won && roundWins.p2 === 0 })
+      // Stage 21: any CHARACTER whose level-gate was crossed this match → victory-screen "NEW FIGHTER" note.
+      victoryState.charUnlocks = charactersUnlockedBetween(beforeLevel, victoryState.xpResult.level, characters)
     }
     if (towerState.active) {
       updateTowerOutcome(winner)
@@ -2822,6 +3312,28 @@ function _checkMatchOver() {
         victoryState.subtitle = `${towerState.tierLabel} · FELL ON FLOOR ${floorNum}`
         victoryState.primaryLabel = "MAIN MENU"
       }
+    }
+    if (arcadeState.active) {
+      updateArcadeOutcome(winner)
+      // Arcade-aware result screen: fight N/7 context + a role-specific prompt. On a loss the
+      // primary button spends a CONTINUE (the run only truly ends via "MAIN MENU").
+      const fightNum = arcadeState.fight + 1
+      const role = arcadeFightRole(fightNum)
+      const roleTag = role === "boss" ? "BOSS" : role === "rival" ? "RIVAL" : `FIGHT ${fightNum}/${ARCADE_FIGHTS}`
+      if (winner === "p1") {
+        if (arcadeState.cleared)  { victoryState.subtitle = `ARCADE CLEARED${arcadeState.continuesUsed === 0 ? " · NO CONTINUES!" : ""}`; victoryState.primaryLabel = "ENDING" }
+        else if (role === "rival"){ victoryState.subtitle = `RIVAL DEFEATED`;                                            victoryState.primaryLabel = "NEXT FIGHT" }
+        else                      { victoryState.subtitle = `ARCADE · ${roleTag} CLEARED`;                                victoryState.primaryLabel = "NEXT FIGHT" }
+      } else {
+        victoryState.subtitle = `ARCADE · FELL ON ${roleTag} — CONTINUE?`
+        victoryState.primaryLabel = "CONTINUE"
+      }
+    }
+    if (isBracket()) {
+      updateBracketOutcome(winner)   // p1 win → human advances; p2 → they're eliminated (bracket still runs)
+      const rd = bracketState.round + 1, total = bracketState.rounds.length
+      victoryState.subtitle = winner === "p1" ? `TOURNAMENT · ROUND ${rd} WON` : `TOURNAMENT · ELIMINATED (round ${rd})`
+      victoryState.primaryLabel = "BRACKET"
     }
     sound.stopMusic?.()
     sound.play?.(SFX.KO)
@@ -3049,6 +3561,21 @@ function reinitTransformDevice(f) {
   setupBen10(f, loadout)
 }
 
+// Stage 24C: return to the fighter-select flow from the victory screen, KEEPING mode + stage +
+// settings. Only reached for plain vs/pvp/training (canChangeChar gates it).
+function _changeCharacter() {
+  towerState.active = false; arcadeState.active = false
+  victoryState.active = false
+  matchConfig.selectingSide    = "p1"
+  matchConfig.selectedUniverse = null
+  matchConfig.p1CharKey = null; matchConfig.p2CharKey = null
+  matchConfig.p1Char = null; matchConfig.p2Char = null
+  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+  matchConfig.p1Aliens = null; matchConfig.p2Aliens = null
+  // matchConfig.mode + selectedStage kept intentionally.
+  gameState = GAME_STATES.SELECT_UNIVERSE
+}
+
 function _doRematch() {
   sound.stopAllSfx?.({ includePersistent: true })   // rematch → clear the victory-screen win-line + any leftover cue
   victoryState = createVictoryState()
@@ -3122,7 +3649,7 @@ function _doRematch() {
 function clearAIControlKeys(fighter) {
   if (!fighter) return
   const c = fighter.controls
-  ;[c.left, c.right, c.up, c.down, c.light, c.heavy, c.upAttack, c.special, c.ultimate, c.grab, c.charge]
+  ;[c.left, c.right, c.up, c.down, c.light, c.heavy, c.upAttack, c.special, c.ultimate, c.grab, c.charge, c.block]
     .forEach(k => { if (k) keys[k] = false })
 }
 
@@ -3132,7 +3659,8 @@ function applyAIInputToKeys(fighter, aiInput) {
   clearAIControlKeys(fighter)
   if (aiInput.left)                         keys[c.left]    = true
   if (aiInput.right)                        keys[c.right]   = true
-  if (aiInput.down)                         keys[c.down]    = true         // hold Down = block/crouch (no attack)
+  if (aiInput.down)                         keys[c.down]    = true         // hold Down = crouch / down-motion (no longer blocks)
+  if (aiInput.block)                        keys[c.block]   = true         // dedicated guard input (MK-feel Stage 1c)
   if (aiInput.jump)                         keys[c.up]      = true
   if (aiInput.lightAttack)                  keys[c.light]   = true
   if (aiInput.heavyAttack)                  keys[c.heavy]   = true
@@ -3171,7 +3699,7 @@ function updateCPUInput() {
   // NOT a change to ai.js's shared zero-baseline "dummy" profile.
   if (trainingState.enabled && trainingState.dummyBehavior !== "stand") {
     const c = p2.controls
-    if (trainingState.dummyBehavior === "block") keys[c.down] = true           // hold guard
+    if (trainingState.dummyBehavior === "block") keys[c.block] = true           // hold guard (dedicated block input — MK-feel Stage 1c)
     else if (trainingState.dummyBehavior === "jump" && p2.onGround) keys[c.up] = true  // hop when grounded
   }
 }
@@ -3677,7 +4205,7 @@ function updateMiscTimers(fighter) {
   // `interval` frames for `ticks` counts, then clears. Stamped by resolveProjectileHits.
   if (fighter._dot && fighter._dot.ticks > 0) {
     if (--fighter._dot.delay <= 0) {
-      fighter.health = Math.max(0, (fighter.health || 0) - fighter._dot.dmg)
+      applyScaledDamage(fighter, fighter._dot.dmg, { source: "dot" })
       fighter._dot.delay = fighter._dot.interval
       fighter._dot.ticks--
       fighter.colorFlash = Math.max(fighter.colorFlash || 0, 3)
@@ -3829,7 +4357,10 @@ function updateMovementInput(fighter) {
   // FLASH TIME LOCKOUT — Flash cannot block/defend at all while Flash Time is active (its whole
   // premise: he's moving too fast to hold a guard). The block input is simply ignored for him.
   // (Omni-Man: while flying, Down = DESCEND — not block; and he can't block mid-crash/recovery.)
-  if ((inputState.down || fighter._forceGuard) && !fighter.isCharging && !fighter._flashTimeActive &&
+  // BLOCK is now a DEDICATED input (keyboard ctrl.block / gamepad Circle) — MK-feel Stage 1c moved it OFF
+  // Down so crouch / Down-air (S+J) / Down-motion specials / the taunt Down-hold no longer double as guard.
+  if ((inputState.block || fighter._forceGuard) && !fighter.isCharging && !fighter._flashTimeActive &&
+      !fighter._noBlock &&   // Stage 24A "No Blocking" modifier — guard input is ignored
       !fighter._flightActive && !isOmniManForcedDescent(fighter)) fighter.isBlocking = true
   // Omnitrix "up" slot combo (CHARGE+↑ for a deep loadout) consumes the jump so it morphs instead of
   // hopping. No-op for the current cardinal loadout (jump combo = slot 4, unfilled) — future-proof.
@@ -5441,8 +5972,8 @@ function resolvePortalDropLanding(f) {
     f.isLaunched = true
     f.colorFlash = Math.max(f.colorFlash || 0, 8)
   }
-  f.health = Math.max(0, (f.health || 0) - dmg)
-  spawnDamageNumber({ x: f.x + (f.w || 60) / 2, y: f.y, damage: dmg, category: pd.category || "special" })
+  const dealt = applyScaledDamage(f, dmg, { source: "portal-drop" })
+  spawnDamageNumber({ x: f.x + (f.w || 60) / 2, y: f.y, damage: dealt, category: pd.category || "special" })
   camera.shake?.(10, 8)
   f._portalDrop = null
 }
@@ -5481,6 +6012,7 @@ function updateFighterState(fighter) {
   // per-frame delta ms.
   if (isTransformDevice(updated)) updateTransformDevice(updated, getAbilityContext().deltaMs)
   else if (!isOmniManFlying(updated)) regenEnergy(updated)   // Omni-Man: no passive regen WHILE flying, or the flight drain would never deplete the shared pool (he regens normally on the ground)
+  if (updated._meterDrain && !updated.infiniteEnergy && (updated.maxEnergy || 0) > 0) updated.energy = Math.max(0, (updated.energy || 0) - 0.5)   // Stage 24A "Meter Drain" modifier
   maybeKilluaChargeCompleteVoice(updated)   // Killua "charge complete!" bark — precise charge-animation-finished event
   return updated
 }
@@ -6782,7 +7314,7 @@ function checkEdoDummyHit(fighter) {
   if (!raw) return
   const dmg = Math.max(1, Math.floor(raw * GLOBAL_DAMAGE_SCALE))
   const d = fighter._edoDummy
-  fighter.health = Math.max(1, (fighter.health || 0) - dmg)
+  applyScaledDamage(fighter, dmg, { scale: 1, floor: 1, source: "edo-cancel" })   // dmg already scaled above; funnel the write through the choke-point
   spawnDamageNumber({ x: d.x + d.w / 2, y: d.y, damage: dmg, category: "special" })
   camera.shake?.(10, 8)
   endEdoTenseiWindow(fighter, getStageWorldWidth())
@@ -7201,6 +7733,13 @@ const backSettingRect = { x: window.innerWidth / 2 - 100, y: 686, w: 200, h: 44 
 const audioSettings   = { sfxMuted: false, musicMuted: false }
 const sfxToggleRect   = { x: window.innerWidth / 2 - 200, y: 302, w: 196, h: 30 }
 const musicToggleRect = { x: window.innerWidth / 2 + 4,   y: 302, w: 196, h: 30 }
+// SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
+// Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
+const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
+const saveImportRect    = { x: 20, y: 190, w: 190, h: 34 }
+const saveReconnectRect = { x: 20, y: 230, w: 190, h: 34 }
+let _saveImportInput = null   // lazily-created hidden <input type=file> for Import
+let _saveUiMsg = ""           // transient feedback ("Exported." / "Imported N profile(s)." / error)
 // Keep the settings rects centered on the CURRENT canvas + the BACK button always
 // on-screen (bottom-anchored) so nothing clips at smaller window sizes. Called by
 // both the render and the click handler so they stay in sync.
@@ -7220,6 +7759,24 @@ function drawSettingsScreen() {
   ctx.textAlign = "center"
   ctx.fillStyle = "#FFF"; ctx.font = "36px Arial"
   ctx.fillText("INPUT SETTINGS", canvas.width / 2, 120)
+
+  // ── SAVE DATA (17D): live tier readout + manual Export/Import (+ Reconnect) ──
+  ctx.textAlign = "left"
+  ctx.fillStyle = "#9cf"; ctx.font = "16px Arial"
+  ctx.fillText("SAVE DATA", saveExportRect.x, saveExportRect.y - 34)
+  ctx.fillStyle = "#cfe0ff"; ctx.font = "13px Arial"
+  ctx.fillText(saveFileStatus(), saveExportRect.x, saveExportRect.y - 14)
+  const drawSaveBtn = (r, label, tone = "#2f4460") => {
+    ctx.fillStyle = tone; ctx.fillRect(r.x, r.y, r.w, r.h)
+    ctx.strokeStyle = "rgba(120,170,255,0.35)"; ctx.lineWidth = 1; ctx.strokeRect(r.x, r.y, r.w, r.h)
+    ctx.fillStyle = "#e6edf7"; ctx.font = "15px Arial"; ctx.textAlign = "center"
+    ctx.fillText(label, r.x + r.w / 2, r.y + 22); ctx.textAlign = "left"
+  }
+  drawSaveBtn(saveExportRect, "Export Save")
+  drawSaveBtn(saveImportRect, "Import Save")
+  if (needsReconnect()) drawSaveBtn(saveReconnectRect, "Reconnect save file", "#5a3a17")
+  if (_saveUiMsg) { ctx.fillStyle = "#fbbf24"; ctx.font = "12px Arial"; ctx.fillText(_saveUiMsg, saveExportRect.x, (needsReconnect() ? saveReconnectRect : saveImportRect).y + 52) }
+  ctx.textAlign = "center"
 
   // ── Per-player device (Task 4) + Two Keyboards placeholder (Task 3) ──
   ctx.fillStyle = "#333"
@@ -7304,6 +7861,22 @@ function drawSettingsScreen() {
   ctx.fillText("BACK", canvas.width / 2, backSettingRect.y + 35)
 }
 
+// ── CREDITS screen (Stage 18) — slow auto-scroll + wheel/drag, with a BACK button ──
+let creditsScroll = 0
+let creditsContentHeight = 0
+const creditsBackRect = { x: 20, y: 20, w: 120, h: 40 }
+function _creditsMaxScroll() { return Math.max(0, creditsContentHeight - (canvas.height - 160)) }
+function drawCreditsState() {
+  creditsBackRect.x = 20; creditsBackRect.y = 20
+  // Gentle auto-scroll toward the bottom, then rest (player can wheel/drag freely too).
+  const max = _creditsMaxScroll()
+  if (creditsScroll < max) creditsScroll = Math.min(max, creditsScroll + 0.5)
+  creditsContentHeight = drawCreditsScreen(ctx, canvas, creditsScroll)
+  ctx.fillStyle = "#A00"; ctx.fillRect(creditsBackRect.x, creditsBackRect.y, creditsBackRect.w, creditsBackRect.h)
+  ctx.fillStyle = "#FFF"; ctx.font = "20px Arial"; ctx.textAlign = "center"
+  ctx.fillText("BACK", creditsBackRect.x + creditsBackRect.w / 2, creditsBackRect.y + 27)
+}
+
 function renderCurrentState() {
   switch (gameState) {
     case GAME_STATES.START:
@@ -7314,6 +7887,7 @@ function renderCurrentState() {
       ctx.fillText("SETTINGS", settingsButtonRect.x + settingsButtonRect.w / 2, settingsButtonRect.y + 32)
       break
     case GAME_STATES.SETTINGS:        drawSettingsScreen(); break
+    case GAME_STATES.CREDITS:         drawCreditsState(); break
     case GAME_STATES.MAIN_MENU:
       drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex, getCurrentAccount())
       _drawProgressionBadge()
@@ -7342,6 +7916,11 @@ function renderCurrentState() {
     }
     case GAME_STATES.GAMEPLAY_SELECT: drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex); break
     case GAME_STATES.TOWER_SELECT:    drawTowerSelectScreen(ctx, canvas, hoverTowerIndex); break
+    case GAME_STATES.ARCADE_SETUP:    drawArcadeSetupScreen(ctx, canvas, hoverArcadeIndex); break
+    case GAME_STATES.ARCADE_RIVAL_INTRO: drawArcadeRivalIntro(); break
+    case GAME_STATES.ARCADE_ENDING:   drawArcadeEndingScreen(ctx, canvas, { rosterKey: arcadeState.rosterKey || matchConfig.p1CharKey, slides: arcadeEndingSlides, index: arcadeEndingIndex, elapsedMs: performance.now() - arcadeEndingStartMs }); break
+    case GAME_STATES.BRACKET_SETUP:   drawBracketSetupScreen(ctx, canvas, hoverBracketIndex); break
+    case GAME_STATES.BRACKET_VIEW:    drawBracketScreen(ctx, canvas, bracketState); break
     case GAME_STATES.FFA_SETUP:       drawFFASetupScreen(ctx, canvas, hoverFFAIndex, FFA_MAX_PLAYERS, getConnectedPadCount?.() || 0); break
     case GAME_STATES.FFA_CHARSELECT:  drawFFACharSelectScreen(ctx, canvas, ffaState.pickSlot, ffaState.playerCount, ffaSelectableRoster(), hoverFFACharIndex, ffaState.charKeys); break
     case GAME_STATES.FFA_SLOTSELECT:  drawFFASlotSelectScreen(ctx, canvas, ffaState.playerCount, ffaState.aiSlots, ffaState.charKeys, ffaDeviceCount(), hoverFFASlotIndex); break
@@ -7359,6 +7938,13 @@ function renderCurrentState() {
         p1Selected:    matchConfig.p1CharKey,
         p2Selected:    matchConfig.p2CharKey,
         currentPlayer: matchConfig.selectingSide === "p1" ? 1 : 2,
+        isLocked:      (key) => !isCharUnlocked(key),     // Stage 21: locked → silhouette + condition
+        lockLabel:     (key) => charLockLabel(key),
+        lockMsg:       characterLockMsg,
+        // Stage 23: stats + archetype + move preview for the hovered fighter (one getKit generator).
+        ...(() => { const r = getCharacterRosterForSelectedUniverse(); const hv = r[hoverCharacterIndex]; const ck = hv && characters[hv.id];
+          return ck ? { detailChar: ck, detailKit: getKit(hv.id, ck) } : {} })(),
+        randomHint: "Click a fighter · [R] random · [U] random in universe",
         title: matchConfig.mode === "training"
           ? "TRAINING CHARACTER SELECT"
           : matchConfig.mode === "pvp"
@@ -7390,8 +7976,11 @@ function renderCurrentState() {
         drawMatchIntro?.(ctx, canvas, {
           p1Name: matchConfig.p1Char?.name || "Player 1",
           p2Name: matchConfig.p2Char?.name || (isPvP() ? "Player 2" : "CPU"),
+          p1Universe: formatUniverseName(matchConfig.p1Char?.universe || ""),   // Stage 23 versus splash
+          p2Universe: formatUniverseName(matchConfig.p2Char?.universe || ""),
           timer: matchIntroTimer, maxTimer: 90
         })
+        _drawActiveModifiers()   // Stage 24A: show this floor's modifiers on the intro
       }
       break
     case GAME_STATES.BATTLE:      drawBattle(); break
@@ -7418,9 +8007,10 @@ function renderCurrentState() {
 // ------------------------------------------------------------------
 function getUniverseList() {
   let keys = universeKeys
-  // Beta code (BETA/GojoV1): only universes that contain a beta-selectable character are
-  // selectable (derived live from hasSprites+animationData). Dev (full unlock) sees every universe.
-  if (isBetaUnlocked() && !isDevUnlocked()) { const su = spriteUniverseSet(); keys = keys.filter(k => su.has(k)) }
+  // Non-dev sessions only see universes with at least one offerable fighter. This subsumes the old
+  // beta-only filter (playableUniverseSet routes through rosterKeyAllowed, which already applies the
+  // beta sprite gate) AND hides normal-play universes emptied by isPlayable:false. Dev sees them all.
+  if (!isDevUnlocked()) { const pu = playableUniverseSet(); keys = keys.filter(k => pu.has(k)) }
   return keys.map(k => ({ name: formatUniverseName(k), id: k }))
 }
 
@@ -7480,6 +8070,8 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v); return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
   if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
+  if (gameState === GAME_STATES.ARCADE_SETUP)     { tryHover(getArcadeSetupRects(canvas),      hoverArcadeIndex,     v => hoverArcadeIndex     = v); return }
+  if (gameState === GAME_STATES.BRACKET_SETUP)    { tryHover(getBracketSetupRects(canvas),     hoverBracketIndex,    v => hoverBracketIndex    = v); return }
   if (gameState === GAME_STATES.FFA_SETUP)        { tryHover(getFFASetupRects(canvas, FFA_MAX_PLAYERS), hoverFFAIndex, v => hoverFFAIndex = v); return }
   if (gameState === GAME_STATES.FFA_CHARSELECT)   { tryHover(getCharacterCardRects(canvas, ffaSelectableRoster()), hoverFFACharIndex, v => hoverFFACharIndex = v); return }
   if (gameState === GAME_STATES.FFA_SLOTSELECT)   { tryHover(getFFASlotSelectRects(canvas, ffaState.playerCount), hoverFFASlotIndex, v => hoverFFASlotIndex = v); return }
@@ -7516,9 +8108,14 @@ function handleMenuClicks() {
       else if (c.id === "account")  { accountMessage = ""; accountDraftName = getCurrentAccount()?.username || ""; gameState = GAME_STATES.ACCOUNT }
       else if (c.id === "savefile") { /* handled by the dedicated mouseup listener (needs a real user gesture for the file picker) */ }
       else if (c.id === "settings") gameState = GAME_STATES.SETTINGS
+      else if (c.id === "credits")  { creditsScroll = 0; gameState = GAME_STATES.CREDITS }
       else if (c.id === "back")     gameState = GAME_STATES.START
       break
     }
+    case GAME_STATES.CREDITS:
+      // Click BACK (or anywhere — the screen is read-only) returns to the menu.
+      gameState = GAME_STATES.MAIN_MENU
+      break
     case GAME_STATES.ONLINE_PLACEHOLDER:
       gameState = GAME_STATES.MAIN_MENU   // any click (the BACK button) returns to the menu
       break
@@ -7574,6 +8171,17 @@ function handleMenuClicks() {
         if (pointInRect(mouse.x, mouse.y, r.upRect))   { sound.moveMenuTrack?.(r.index, -1); persistCurrentSettings(); break }
         if (pointInRect(mouse.x, mouse.y, r.downRect)) { sound.moveMenuTrack?.(r.index, +1); persistCurrentSettings(); break }
       }
+      // ── SAVE DATA: Export (blob download) / Import (file picker) / Reconnect (FSA gesture) ──
+      if (pointInRect(mouse.x, mouse.y, saveExportRect)) { doExportSave(); break }
+      if (pointInRect(mouse.x, mouse.y, saveImportRect)) { doImportSave(); break }
+      if (needsReconnect() && pointInRect(mouse.x, mouse.y, saveReconnectRect)) {
+        // requestPermission() needs THIS gesture; reconnectSaveFile awaits it, then hydrates.
+        reconnectSaveFile().then(r => {
+          if (r?.ok) { hydrateFromLoadedSave(); _saveUiMsg = "Save file reconnected." }
+          else _saveUiMsg = "Reconnect cancelled."
+        })
+        break
+      }
       if (pointInRect(mouse.x, mouse.y, backSettingRect)) { rebindAction = null; gameState = GAME_STATES.START }
       break
     }
@@ -7584,6 +8192,8 @@ function handleMenuClicks() {
       else if (c.id === "vs")  chooseMode("vs")
       else if (c.id === "pvp") chooseMode("pvp")
       else if (c.id === "tower") gameState = GAME_STATES.TOWER_SELECT   // pick a tier first
+      else if (c.id === "arcade") { hoverArcadeIndex = 0; gameState = GAME_STATES.ARCADE_SETUP }   // pick difficulty first
+      else if (c.id === "bracket") { hoverBracketIndex = 0; gameState = GAME_STATES.BRACKET_SETUP }   // pick bracket size first
       else if (c.id === "ffa")  { hoverFFAIndex = 0; gameState = GAME_STATES.FFA_SETUP }   // free-for-all
       else if (c.id === "aivsai") { hoverAiVsAiIndex = 0; aiVsAiConfig.sel = 0; gameState = GAME_STATES.AI_VS_AI_SETUP }
       else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
@@ -7665,6 +8275,33 @@ function handleMenuClicks() {
       else startTower(c.id)                       // c.id === "tier1".."tier5"
       break
     }
+    case GAME_STATES.ARCADE_SETUP: {
+      const c = getArcadeSetupRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if (c.id === "back") gameState = GAME_STATES.GAMEPLAY_SELECT
+      else startArcade(c.id)                      // c.id === "easy"|"adaptive"|"impossible"
+      break
+    }
+    case GAME_STATES.ARCADE_RIVAL_INTRO:
+      startMatch()                                // click anywhere → begin the rival fight
+      break
+    case GAME_STATES.BRACKET_SETUP: {
+      const c = getBracketSetupRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if (c.id === "back") { gameState = GAME_STATES.GAMEPLAY_SELECT; break }
+      _pendingBracketSize = c.id === "size8" ? 8 : 4
+      resetSelections(); matchConfig.mode = "bracket"   // Stage 24B: pick YOUR fighter next; CPUs fill the rest
+      beginUniverseSelect()
+      break
+    }
+    case GAME_STATES.BRACKET_VIEW:
+      if (bracketState?.champion) endBracket()          // tournament over → back to title
+      else _startBracketMatch()                         // play the next (human) match
+      break
+    case GAME_STATES.ARCADE_ENDING:
+      if (arcadeEndingIndex < arcadeEndingSlides.length - 1) { arcadeEndingIndex++; arcadeEndingStartMs = performance.now() }
+      else _endArcadeEnding()                     // past the last slide → back to the title
+      break
     case GAME_STATES.AI_DIFFICULTY: {
       const c = getAIDifficultyRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
       if (!c) break
@@ -7682,26 +8319,7 @@ function handleMenuClicks() {
       const roster = getCharacterRosterForSelectedUniverse()
       const idx    = pickGridCard(canvas, roster, mouse.x, mouse.y, CHAR_GRID_OPTS)   // viewport-guarded
       if (idx < 0 || !roster[idx]) break
-      const key = roster[idx].id, char = characters[key]
-      const side = matchConfig.selectingSide
-      matchConfig[side + "Char"]    = char
-      matchConfig[side + "CharKey"] = key
-      if (key === "ben10") {
-        // Ben 10 → detour to the Omnitrix loadout screen before moving on.
-        matchConfig.alienSelectSide = side
-        // Start from the saved loadout (or the art-backed default), filtered to art-backed aliens so a
-        // stale pick of a now-hidden alien can't linger. Non-empty default → the player can confirm at once.
-        matchConfig.alienDraft = ((matchConfig[side + "Aliens"]?.length ? matchConfig[side + "Aliens"] : DEFAULT_OMNITRIX)
-          .filter(isArtBackedAlien)).slice()
-        gameState = GAME_STATES.SELECT_ALIENS
-      } else if (key === "tobirama") {
-        // Tobirama → detour to pick the Edo Tensei vessel (any built roster char) before moving on.
-        matchConfig.edoSelectSide = side
-        hoverEdoBackupIndex = 0
-        gameState = GAME_STATES.SELECT_EDO_BACKUP
-      } else {
-        proceedAfterCharacter(side)
-      }
+      _selectCharacterKey(roster[idx].id)
       break
     }
     case GAME_STATES.SELECT_EDO_BACKUP: {
@@ -7755,9 +8373,10 @@ function handleMenuClicks() {
     case GAME_STATES.MATCH_END: resetToStart(); break
     case GAME_STATES.VICTORY: {
       const action = handleVictoryClick?.(victoryState, mouse, canvas)
-      if (action === "rematch") { if (towerState.active) continueTower(); else _doRematch() }   // Tower: advance floor
-      if (action === "menu")    { towerState.active = false; resetToStart() }
+      if (action === "rematch") { if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match
+      if (action === "menu")    { towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
       if (action === "saveReplay") saveLastReplay()   // Stage 11D: download the just-finished match's replay JSON
+      if (action === "changeChar") _changeCharacter()   // Stage 24C: back to select, keep mode/stage
       break
     }
   }
@@ -7902,8 +8521,43 @@ const FIXED_DT = 1000 / 60      // ms per 60Hz logic frame
 let _loopAccum = 0
 let _loopLast  = null
 
+// ── PROFILING OVERLAY (Stage 22D) — behind ?debug=1 ──────────────────────────
+// FPS, frame time (avg/max over 120 frames), draw-call count, live projectile/summon/effect
+// counts, and the loaded-image count. Zero cost when off. Draw calls are counted by wrapping
+// ctx.drawImage ONCE (below) — the counter resets each frame.
+let _debugOverlay = false
+try { _debugOverlay = new URLSearchParams(window.location.search).has("debug") } catch (_) {}
+const _frameMs = new Float32Array(120)   // ring buffer of per-frame compute+render ms
+let _frameMsIdx = 0, _frameMsFilled = 0
+let _drawCalls = 0, _drawCallsShown = 0
+let _fps = 60, _fpsEma = 60
+if (_debugOverlay && ctx && typeof ctx.drawImage === "function") {
+  const _realDrawImage = ctx.drawImage.bind(ctx)
+  ctx.drawImage = function (...a) { _drawCalls++; return _realDrawImage(...a) }
+}
+function _pushFrameMs(ms) { _frameMs[_frameMsIdx] = ms; _frameMsIdx = (_frameMsIdx + 1) % _frameMs.length; if (_frameMsFilled < _frameMs.length) _frameMsFilled++ }
+function _drawDebugOverlay() {
+  let sum = 0, max = 0
+  for (let i = 0; i < _frameMsFilled; i++) { const v = _frameMs[i]; sum += v; if (v > max) max = v }
+  const avg = _frameMsFilled ? sum / _frameMsFilled : 0
+  const summons = (typeof activeSummons !== "undefined" ? activeSummons.length : 0)
+  const lines = [
+    `FPS ${_fps.toFixed(0)}   frame ${avg.toFixed(2)}ms avg / ${max.toFixed(2)}ms max (120f)`,
+    `draw calls ${_drawCallsShown}   images ${loadedSheetCount()}`,
+    `projectiles ${activeProjectiles.length}   summons ${summons}   fx ${hitSparks.length}   dmg# ${damageNumbers.length}`
+  ]
+  ctx.save()
+  ctx.font = "12px monospace"; ctx.textAlign = "left"; ctx.textBaseline = "top"
+  const w = 340, h = lines.length * 16 + 12
+  ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(8, 8, w, h)
+  ctx.fillStyle = max > 20 ? "#fca5a5" : "#8ef5a8"   // red if any frame blew the ~16.7ms budget hard
+  lines.forEach((ln, i) => ctx.fillText(ln, 16, 14 + i * 16))
+  ctx.restore()
+}
+
 function gameLoop(now) {
   requestAnimationFrame(gameLoop)
+  const _t0 = _debugOverlay ? (typeof performance !== "undefined" ? performance.now() : 0) : 0
   if (now == null) now = (typeof performance !== "undefined" ? performance.now() : Date.now())
   if (_loopLast == null) _loopLast = now
   let elapsed = now - _loopLast
@@ -7932,6 +8586,14 @@ function gameLoop(now) {
     for (let i = 1; i < aiVsAiState.speed; i++) { globalFrameCount++; updateCurrentState() }
   }
   renderCurrentState()
+  if (_debugOverlay) {
+    const t1 = (typeof performance !== "undefined" ? performance.now() : 0)
+    _pushFrameMs(t1 - _t0)                          // this pass's compute+render cost
+    _drawCallsShown = _drawCalls; _drawCalls = 0    // draw.Image calls this frame (reset for next)
+    _fpsEma = _fpsEma * 0.9 + (elapsed > 0 ? Math.min(1000 / elapsed, 240) : _fpsEma) * 0.1
+    _fps = _fpsEma
+    _drawDebugOverlay()                             // drawn ON TOP (its own drawImage calls aren't counted — text only)
+  }
   endInputFrame()
 }
 
@@ -7973,6 +8635,12 @@ window.addEventListener("keydown", e => {
 
   // ACCOUNT screen captures typing before any gameplay key handling.
   if (gameState === GAME_STATES.ACCOUNT) { handleAccountTyping(e); return }
+
+  // Stage 23: RANDOM SELECT on the character-select screen — R = any unlocked fighter, U = random
+  // within the current universe. Locks in like a normal pick (unlock gate + detours honoured).
+  if (gameState === GAME_STATES.SELECT_CHARACTER && (key === "r" || key === "u")) {
+    e.preventDefault(); pickRandomCharacter(key === "u"); return
+  }
 
   // FULLSCREEN TOGGLE — "F" (plain, no modifier so Ctrl/Cmd+F browser-find is untouched). Global across
   // every screen; placed AFTER the text-entry captures (devcode/rebind/account) so typing an "f" there is
@@ -8126,10 +8794,27 @@ updateCameraBounds()
 // anyway). If a current account was restored, push its progression/unlocks/settings into the
 // live modules now, before the first frame. A later SAVE FILE connect still overrides this.
 if (getCurrentAccount()) hydrateFromLoadedSave()
+
+// ASYNC BOOT TIERS (do NOT block first frame): the two persistence tiers that can't run
+// synchronously at import — the local dev save SERVER (fetch) and the reattachable FSA
+// file HANDLE (IndexedDB). Both are silent no-ops when absent (GitHub Pages, file://,
+// dev:noserver, Safari), so this never warns and never blocks. If either restores data,
+// re-hydrate the live modules on top of the localStorage boot. The promise is exposed so
+// the harness (and any future caller) can await boot completion deterministically.
+const _asyncBootReady = (async () => {
+  // 1. Local save server (dev only) — first-success-wins over localStorage per the tier order.
+  try { const n = await initSaveServerTier(); if (n > 0) hydrateFromLoadedSave() } catch (_) {}
+  // 2. FSA handle stored in IndexedDB — reattach with zero clicks when permission is still granted.
+  try { const r = await reattachStoredHandle(); if (r?.ok && r.count > 0) hydrateFromLoadedSave() } catch (_) {}
+  return { server: isSaveServerAvailable(), reconnect: needsReconnect() }
+})()
+
 // SESSION RESTORE (universal, guests included): re-apply the last selections / training toggles /
 // unlock flags and land on the screen the player was on (never a match — mid-fight collapses to the
 // main menu). Runs AFTER account hydrate so account unlocks compose (OR-in) with session unlocks.
 restoreSession()
+// Stage 24B: resume an in-progress local tournament that was saved before a reload (Stage 17 save).
+if (resumeBracketIfSaved()) gameState = GAME_STATES.BRACKET_VIEW
 gameLoop()
 
 // ------------------------------------------------------------------
@@ -8153,6 +8838,7 @@ gameLoop()
   function startHarnessMatch(opts = {}) {
     resetSelections()
     towerState.active = false   // a plain harness match is never a tower (clear any stale run)
+    arcadeState.active = false  // …nor an arcade run
     // Default: training vs a dummy. Pass { mode:"vs", difficulty:"easy" } for a real
     // CPU match (used to test the pause-menu → Training Mode transition).
     matchConfig.mode          = opts.mode || "training"
@@ -8230,6 +8916,7 @@ gameLoop()
     spriteSheet:      f.spriteHandler?._actionDef?.sheet ?? null,
     spriteFrames:     f.spriteHandler?._actionDef?.frames ?? null,
     spriteSourceX:    f.spriteHandler?._actionDef?.sourceX ?? 0,   // active clip's sourceX (verify win/lose intro_3 split)
+    spriteSourceY:    f.spriteHandler?._actionDef?.sourceY ?? 0,   // active clip's sourceY (atlas row offset — Stage 22)
     forceAction:      f._forceAction || null,                      // active _forceAction override (win/lose pose)
     spriteScale:      f.spriteScale ?? null,
     spriteReady:      !!(f.spriteHandler?._actionDef?.sheet),
@@ -8273,6 +8960,7 @@ gameLoop()
     arenaHalfLock:    f._arenaHalfLock || null,
     portalDrop:       !!f._portalDrop,
     jumpCount:        f.jumpCount || 0,
+    juggleCount:      f.juggleCount || 0,       // MK-feel Stage 1b: air-hit count driving juggle gravity ramp
     attackCooldown:   f.attackCooldown || 0,
     thunderCd:        f.thunderCd || 0,         // Zenitsu Thunder Breathing dash-strike cooldown
     doubleAtkCd:      f.doubleAtkCd || 0,       // Zenitsu Double Attack shared cooldown
@@ -8351,6 +9039,12 @@ gameLoop()
       victorySaveHitTest: (canSave) => {
         const vs = createVictoryState(); vs.active = true; vs.fadeAlpha = 1; vs.canSaveReplay = !!canSave
         const c = { x: canvas.width / 2, y: canvas.height * 0.82 + 66 + 20 }   // center of _saveReplayRect
+        return handleVictoryClick(vs, c, canvas)
+      },
+      // Stage 24C: the CHANGE CHARACTER button hit-test (with a replay present → right-slot layout).
+      victoryChangeCharHitTest: () => {
+        const vs = createVictoryState(); vs.active = true; vs.fadeAlpha = 1; vs.canSaveReplay = true; vs.canChangeChar = true
+        const c = { x: canvas.width / 2 + 110, y: canvas.height * 0.82 + 66 + 20 }   // center of the change-char (right) slot
         return handleVictoryClick(vs, c, canvas)
       }
     },
@@ -8469,6 +9163,14 @@ gameLoop()
       connected: () => isFileConnected(),
       apiSupported: () => isFileApiSupported(),        // false when the File System Access API is absent (Safari/Firefox sim)
       hasPersisted: () => hasPersistedData(),          // did a durable layer restore any account at boot?
+      // ── SERVER TIER (situation D) ──────────────────────────────────────────
+      awaitBoot: () => _asyncBootReady,                // resolves once the async server + FSA-reattach boot tiers finish
+      serverAvailable: () => isSaveServerAvailable(),  // did /api/health respond? (false on Pages/file:///noserver)
+      status: () => saveFileStatus(),                  // which tier is live, human-readable (Settings row text)
+      // ── EXPORT / IMPORT round-trip ─────────────────────────────────────────
+      exportText: () => exportSaveText(),              // the downloadable snapshot JSON string
+      importText: (t) => { const n = importSaveText(t); if (n > 0) hydrateFromLoadedSave(); return n },
+      reconnect: async () => { const r = await reconnectSaveFile(); if (r?.ok) hydrateFromLoadedSave(); return r },
       awardXp: (n) => { awardXp(n); const a = getCurrentAccount(); return a?.progression?.xp ?? null },
       applyCode: (code) => ({ result: applyUnlockCode(code), beta: isBetaUnlocked(), dev: isDevUnlocked() }),
       setSetting: (k, v) => { const s = sound.getSettings?.() || {}; s[k] = v; sound.applySettings?.(s); persistCurrentSettings(); return sound.getSettings?.() ?? null },
@@ -8513,9 +9215,23 @@ gameLoop()
     applyCode: (code) => ({ result: applyUnlockCode(code), beta: isBetaUnlocked(), dev: isDevUnlocked() }),
     // Explicit "clear action" for beta — turns it off regardless of current state (separate from re-entry).
     clearBeta: () => ({ beta: (clearBetaUnlock(), isBetaUnlocked()), dev: isDevUnlocked() }),
+    // ── CREDITS screen (Stage 18) ────────────────────────────────────────────────
+    // Drive the in-game attribution screen + read the live attribution data so a test can
+    // prove the .txt-named artists actually reach the player (screen + per-character line).
+    credits: {
+      enter: () => { creditsScroll = 0; gameState = GAME_STATES.CREDITS; return gameState },
+      state: () => ({ gameState, isCredits: gameState === GAME_STATES.CREDITS, scroll: creditsScroll, contentHeight: creditsContentHeight }),
+      // Flattened list of every artist name that appears in the rendered CREDITS sections.
+      artistsShown: () => CREDITS.flatMap(s => (s.entries || []).flatMap(e => e.artists || [])),
+      sourcedKeys: () => Object.keys(SOURCED_ART),
+      artistLine: (key) => artistLineForCharacter(key),      // the select-screen "Art: …" line (null if none)
+      attributedKeys: () => [...allAttributedKeys()]
+    },
     // Ground-truth sprite roster (hasSprites+animData-derived) + full non-hidden roster — so tests can
     // assert the beta filter equals the live selectable set without hardcoding names.
-    rosterSets: () => ({ sprite: betaRosterKeys(), all: Object.keys(characters).filter(k => !characters[k]?.hidden), spriteUniverses: [...spriteUniverseSet()] }),
+    rosterSets: () => ({ sprite: betaRosterKeys(), all: Object.keys(characters).filter(k => !characters[k]?.hidden), spriteUniverses: [...spriteUniverseSet()],
+      // Stage 5B: playable = offerable in the CURRENT session (isPlayable + beta gate); nonPlayable = built-out but flagged isPlayable:false.
+      playable: Object.keys(characters).filter(k => !characters[k]?.hidden && rosterKeyAllowed(k)), nonPlayable: Object.keys(characters).filter(k => characters[k]?.isPlayable === false), playableUniverses: [...playableUniverseSet()] }),
     // Character POOLS for every mode OUTSIDE the main select screen — so a test can assert the BETA gate
     // covers them all, not just the main select. Keys only. mainSelect is the flat main-select set.
     modeRosters: () => {
@@ -8596,6 +9312,9 @@ gameLoop()
     // renders the actual roster with each character's real `portrait`). Mirrors the live universe→
     // character transition at game.js:3844. Test-only — proves portrait art shows, not a box.
     showCharSelect: (universe = "dragon_ball", mode = "training") => { matchConfig.mode = mode; resetSelections(); matchConfig.selectedUniverse = universe; hoverCharacterIndex = 0; gameState = GAME_STATES.SELECT_CHARACTER; return { gameState, universe: matchConfig.selectedUniverse, roster: getCharacterRosterForSelectedUniverse().map(c => c.id) } },
+    // Stage 23: random select + read the hovered fighter's detail (stats + archetype + kit).
+    randomSelect: (universeOnly = false) => { pickRandomCharacter(universeOnly); return { gameState, side: matchConfig.selectingSide, picked: matchConfig[matchConfig.selectingSide === "p1" ? "p1CharKey" : "p2CharKey"] } },
+    selectDetail: () => { const r = getCharacterRosterForSelectedUniverse(); const hv = r[hoverCharacterIndex]; const ck = hv && characters[hv.id]; return ck ? { key: hv.id, name: ck.name, stats: ck.stats, kitType: getKit(hv.id, ck)?.type, difficulty: getKit(hv.id, ck)?.difficulty, homeStage: ck.homeStage || null } : null },
     // Jump to the REAL skin-select screen for a character (renders each skin's portrait) — for alt-skin previews.
     showSkinSelect: (char = "beerus", side = "p1", hover = 1) => { resetSelections(); matchConfig.mode = "training"; matchConfig[side + "CharKey"] = char; matchConfig[side + "Char"] = characters[char]; skinSelectSide = side; hoverSkinIndex = hover; gameState = GAME_STATES.SELECT_SKIN; return { gameState, char, skins: getSkins(char).map(s => ({ id: s.id, name: s.name, portrait: s.portrait })) } },
     // A character's configured `portrait` field (exact on-disk filename) — proves mugshot wiring.
@@ -8991,8 +9710,95 @@ gameLoop()
       applyTowerFloor(); startMatch()
     },
     towerContinue: () => continueTower(),
+    // Stage 24A: active match modifiers + a peek at how they landed on the live fighters.
+    modifiers: () => ({ active: matchConfig.modifiers || [], labels: activeModifierLabels(),
+      p1: p1 ? { maxHealth: p1.maxHealth, speed: Math.round(p1.speed || 0), noBlock: !!p1._noBlock, meterDrain: !!p1._meterDrain } : null,
+      p2: p2 ? { maxHealth: p2.maxHealth, key: p2.rosterKey } : null, gravity: physics.gravity }),
+    setModifiers: (mods = []) => { matchConfig.modifiers = Array.isArray(mods) ? mods : []; if (p1 && p2) _applyMatchModifiers(); return matchConfig.modifiers },
     forceP1Win: () => { if (p2) p2.health = 0 },
     forceP1Lose: () => { if (p1) p1.health = 0 },
+    // ── ARCADE diagnostics + drivers (Stage 19) ──────────────────────────────
+    arcadeInfo: () => ({
+      active: arcadeState.active, fight: arcadeState.fight, fightNum: arcadeState.fight + 1,
+      totalFights: ARCADE_FIGHTS, rivalFight: ARCADE_RIVAL_FIGHT, bossFight: ARCADE_BOSS_FIGHT,
+      role: arcadeFightRole(arcadeState.fight + 1),
+      rosterKey: arcadeState.rosterKey, difficulty: arcadeState.difficulty,
+      continuesUsed: arcadeState.continuesUsed, cleared: arcadeState.cleared,
+      lastWon: arcadeState._lastWon, endingPending: arcadeState.endingPending,
+      mode: matchConfig.mode, gameState,
+      p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey,
+      aiDifficulty: matchConfig.aiDifficulty, stage: matchConfig.selectedStage ? matchConfig.selectedStage.name : null,
+      endingSlides: arcadeEndingSlides.length, endingIndex: arcadeEndingIndex
+    }),
+    // Drive the REAL arcade state machine, bypassing only the manual P1 fighter-pick UI.
+    arcadeStart: (p1Key = "gojo", difficulty = "adaptive") => {
+      startArcade(difficulty)
+      matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key] || characters.gojo; matchConfig.p1Skin = "default"
+      arcadeState.rosterKey = p1Key
+      _beginArcadeFight()   // fight 1 (or the rival intro on a fixture that starts there)
+    },
+    arcadeContinue: () => continueArcade(),
+    // Advance through the rival intro / ending slides from a test (mirrors a click).
+    arcadeAdvance: () => {
+      if (gameState === GAME_STATES.ARCADE_RIVAL_INTRO) { startMatch(); return "match" }
+      if (gameState === GAME_STATES.ARCADE_ENDING) {
+        if (arcadeEndingIndex < arcadeEndingSlides.length - 1) { arcadeEndingIndex++; arcadeEndingStartMs = performance.now(); return "slide" }
+        _endArcadeEnding(); return "done"
+      }
+      return gameState
+    },
+    arcadeCleared: () => ({ map: getArcadeCleared(), current: isArcadeCleared(arcadeState.rosterKey || matchConfig.p1CharKey), noContinue: isArcadeNoContinueCleared(arcadeState.rosterKey || matchConfig.p1CharKey) }),
+    // ── TOURNAMENT BRACKET (Stage 24B) ────────────────────────────────────────
+    bracketStart: (size = 4, humanKey = "gojo") => { _pendingBracketSize = size; matchConfig.p1CharKey = humanKey; matchConfig.p1Char = characters[humanKey]; _buildAndStartBracket(); return H_bracketInfo() },
+    bracketInfo: () => H_bracketInfo(),
+    bracketPlay: () => { if (bracketState && !bracketState.champion) _startBracketMatch(); return { gameState } },   // start the pending human match
+    bracketAdvance: () => { continueBracket(); return H_bracketInfo() },   // from victory → next match / view
+    bracketResume: () => { const ok = resumeBracketIfSaved(); return { resumed: ok, ...H_bracketInfo() } },
+    // ── BOSS diagnostics (Stage 20) ──────────────────────────────────────────
+    bossState: () => {
+      const b = (p2?._isBoss) ? p2 : (p1?._isBoss) ? p1 : null
+      if (!b) return { present: false }
+      const norm = characters[b.rosterKey] || {}
+      return { present: true, rosterKey: b.rosterKey, name: b.name, isBoss: true,
+        maxHealth: b.maxHealth, health: b.health, spriteScale: b.spriteScale, infiniteEnergy: !!b.infiniteEnergy,
+        bossArmor: !!b._bossArmor, bossArmorThreshold: b._bossArmorThreshold,
+        normalMaxHealth: norm.stats?.maxHealth ?? null, normalScale: norm.spriteScale ?? 1,
+        healthMult: norm.bossProfile?.healthMult ?? null }
+    },
+    // Drive a REAL hit through combat.js resolveAttackHit onto the boss (p2), reading whether it
+    // staggered. aoe hitbox centered on the attacker → guaranteed overlap; the boss is set "attacking"
+    // so we can also see whether it was interrupted. Exercises the actual super-armor code path.
+    probeBossHit: (dmg = 20, cat = "light") => {
+      if (!p1 || !p2) return null
+      p2.isBlocking = false; p2.invulnTimer = 0; p2.knockdownState = false; p2.knockdownTimer = 0
+      p2.hitstun = 0; p2.attacking = true; p2.currentAttack = { name: "bossmove" }   // boss mid-attack → interrupt test
+      const startHealth = p2.health
+      p1.x = p2.x; p1.y = p2.y; p1.facing = 1; p1.attacking = true; p1.onGround = true
+      p1.currentAttack = { name: "probe", damage: dmg, category: cat, hitstun: 20, pushX: 6, rangeX: 320, rangeY: 320,
+        aoe: true, hasHit: false, total: 10, timer: 5, activeStart: 0, activeEnd: 10 }
+      try { resolveAttackHit(p1, p2, null, { stageWidth: WORLD_WIDTH }) } catch (e) { return { error: String(e) } }
+      return { hitstun: p2.hitstun, attacking: p2.attacking, vx: p2.vx,
+        armored: (p2.hitstun === 0 && p2.attacking === true),
+        tookDamage: p2.health < startHealth, hpLost: Math.round(startHealth - p2.health) }
+    },
+    // ── UNLOCKS (Stage 21) ────────────────────────────────────────────────────
+    unlockInfo: () => {
+      const ctx = characterUnlockCtx()
+      const keys = Object.keys(characters).filter(k => !characters[k]?.hidden && characters[k]?.isPlayable !== false)
+      const part = partitionRoster(keys, ctx, characters)
+      const conditions = {}
+      for (const k of part.locked) conditions[k] = unlockLabel(unlockConditionFor(k, characters), characters)
+      return { ctx: { level: ctx.level, dev: ctx.dev, beta: ctx.beta, arcadeAny: ctx.arcadeAny, towerTiers: ctx.towerTiers, arcadeCleared: ctx.arcadeCleared },
+        unlocked: part.unlocked.sort(), locked: part.locked.sort(), conditions }
+    },
+    charUnlocked: (key) => isCharUnlocked(key),
+    markTowerCleared: (tier = "tier2") => { setTowerTierCleared(tier); return getTowerCleared() },
+    // ── PROFILING (Stage 22D) ─────────────────────────────────────────────────
+    perf: () => ({ debugOverlay: _debugOverlay, loadedImages: loadedSheetCount(),
+      projectiles: activeProjectiles.length, summons: (typeof activeSummons !== "undefined" ? activeSummons.length : 0),
+      fx: hitSparks.length, dmgNumbers: damageNumbers.length, drawCalls: _drawCallsShown }),
+    markArcadeCleared: (key = "gojo") => { setArcadeCleared(key, true); return getArcadeCleared() },   // test-only shortcut for the gate (real flow proven in arcade.test)
+    victoryUnlocks: () => ({ chars: victoryState?.charUnlocks || [], leveledUp: !!victoryState?.xpResult?.leveledUp, level: victoryState?.xpResult?.level ?? null }),
     // Sample the Rick voice-pool randomizer N times (the SAME pickRickVoice used by every wired
     // Rick trigger) → lets a test prove genuine random selection / pair-alternation deterministically.
     rickVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickRickVoice(pool)),

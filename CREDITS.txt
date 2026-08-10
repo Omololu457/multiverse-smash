@@ -1,6 +1,16 @@
 CREDITS / ATTRIBUTION
 =====================
 
+** CANONICAL SOURCE IS NOW credits.js **
+This text file is the historical note. The in-game Credits screen and the
+per-character "Art:" line on select both read from credits.js, which is the
+authoritative attribution data. harness/credits.test.mjs (npm run test:credits)
+FAILS if any character's sprite sheet is unattributed there.
+
+HARD RULE: every new SOURCED sprite sheet must add a credits.js entry (SOURCED_ART
+for named artists, or PROJECT_ART_KEYS for adapted art) IN THE SAME COMMIT. You
+cannot ship art whose provenance is undeclared — the test blocks it.
+
 Gojo Satoru sprite art (Shinjuku-arc M.U.G.E.N sheet)
   Sheet by: FinhJ
   Additional credits: ZeurasBlack, Rob4n

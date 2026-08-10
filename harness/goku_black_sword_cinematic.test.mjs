@@ -116,7 +116,7 @@ try {
   await page.waitForFunction(() => window.__harness.swordCine().active === false, null, { timeout: 9000, polling: 16 });
   const endF = await frame();
   const d2 = await p2();
-  check("exactly 110 damage on a clean hit (SWORD.dmg unchanged)", (hp2_0 - d2.health) === 110, `−${hp2_0 - d2.health}`);
+  check("exactly 66 damage on a clean hit (SWORD.dmg 110 × 0.60)", (hp2_0 - d2.health) === 66, `−${hp2_0 - d2.health}`);
   check("30f paralysis applied (hitstun + stun on opponent)", (d2.hitstun || 0) > 0 && (d2.stun || 0) > 0, `hitstun=${d2.hitstun} stun=${d2.stun}`);
   check("cinematic ran the full ~220f (freeze duration)", (endF - startFrame) >= 210 && (endF - startFrame) <= 245, `frames=${endF - startFrame}`);
   await page.evaluate(() => window.__harness.setVx("p1", 0));   // clear the injected vx before resuming

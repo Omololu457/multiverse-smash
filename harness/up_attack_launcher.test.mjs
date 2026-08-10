@@ -73,9 +73,11 @@ for (const key of ["gojo", "maki", "toji"]) {
   const r = landMove(a, t, "up", md);
   check(`${key}: launcher connects`, r.started && r.hit === true);
   check(`${key}: ENEMY launched at vy=${s.enemyVy}`, r.enemyVy === s.enemyVy, `got ${r.enemyVy}`);
-  check(`${key}: PLAYER lifted at vy=${s.selfVy}`, r.selfVy === s.selfVy, `got ${r.selfVy}`);
-  check(`${key}: player rises LESS than enemy (stays juggleable)`, Math.abs(r.selfVy) < Math.abs(r.enemyVy), `|${r.selfVy}| < |${r.enemyVy}|`);
-  check(`${key}: BOTH airborne`, a.onGround === false && t.onGround === false && t.isLaunched === true);
+  // MK-feel Stage 1b: the launcher NO LONGER auto-lifts the attacker — the player stays grounded and
+  // must JUMP-CANCEL to convert. So selfVy is 0 and only the ENEMY goes airborne.
+  check(`${key}: PLAYER stays GROUNDED (no auto-lift — jump-cancel required)`, r.selfVy === 0 && a.onGround === true, `selfVy=${r.selfVy} onGround=${a.onGround}`);
+  check(`${key}: only the ENEMY is launched (attacker NOT auto-carried)`, t.isLaunched === true && a.isLaunched !== true, `enemyLaunched=${t.isLaunched} attackerLaunched=${a.isLaunched}`);
+  check(`${key}: ENEMY airborne, PLAYER grounded`, a.onGround === true && t.onGround === false && t.isLaunched === true);
   check(`${key}: opener does NOT count toward the air cap (airHits reset to 0)`, r.airHits === 0, `airHits=${r.airHits}`);
 }
 
@@ -88,7 +90,9 @@ section("4–5. Air-combo chain → maxAirHits=3 limit → fall-faster after the
 
   // Open with the launcher — both go airborne, airHits reset.
   landMove(a, t, "up", cd.basic_attacks.upAttack);
-  check("chain: launcher opened (both airborne, airHits=0)", !a.onGround && !t.onGround && a.airHits === 0);
+  check("chain: launcher opened (enemy airborne, player GROUNDED, airHits=0)", a.onGround === true && !t.onGround && a.airHits === 0);
+  // Simulate the player's JUMP-CANCEL (they deliberately leap up to pursue) so the air-combo chain below runs.
+  a.onGround = false; a.grounded = false;
 
   const airMd = cd.basic_attacks.airAttack;
   const trace = [];

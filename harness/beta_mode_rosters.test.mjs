@@ -1,7 +1,10 @@
-// harness/beta_mode_rosters.test.mjs — BETA sprite-filter must cover EVERY character pool, not just the
-// main character-select screen. Proves the central gate (rosterKeyAllowed) filters: Tower-Mode opponent
-// pool (incl. the LIVE random picker), FFA character-select grid, AI-vs-AI spectator picker, and the
-// safety fallback — and that toggling BETA off restores the full roster to all of them.
+// harness/beta_mode_rosters.test.mjs — the central gate (rosterKeyAllowed) must cover EVERY character
+// pool, not just the main select: Tower opponent pool (incl. the LIVE random picker), FFA grid,
+// AI-vs-AI picker, and the safety fallback.
+//   • Stage 5B: art-less isPlayable:false placeholders are hidden from NORMAL and BETA pools (they'd
+//     render as procedural boxes); ONLY the dev code reveals them.
+//   • BETA additionally restricts to sprite-having characters (== the playable set today).
+//   • Toggling BETA off returns pools to the normal (still art-less-filtered) baseline.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."); const OUT = path.join(ROOT, "harness", "shots"); fs.mkdirSync(OUT, { recursive: true });
@@ -20,7 +23,9 @@ const sets = () => page.evaluate(() => window.__harness.rosterSets());
 const modes = () => page.evaluate(() => window.__harness.modeRosters());
 const towerSample = (n = 300) => page.evaluate(n => window.__harness.towerSample(n), n);
 async function load() { await page.goto(`${base}/index.html?harness=1`, { waitUntil: "load" }); await page.waitForFunction(() => !!window.__harness); await page.waitForTimeout(80); }
-const NONSPRITED = ["piccolo", "frieza", "cell", "morty", "omololu", "ben10"];   // known box chars
+// The art-less placeholder set = the isPlayable:false chars (Stage 5B). NOTE ben10 is NOT here — it
+// HAS sprites (base-form + alien sheets) and is beta-selectable; the old list wrongly included it.
+const ARTLESS = ["piccolo", "frieza", "cell", "morty", "evilMorty", "rickPrime", "albedo", "omololu"];
 const subset = (arr, of) => arr.every(k => of.includes(k));
 const noneOf = (arr, banned) => banned.every(k => !arr.includes(k));
 
@@ -30,12 +35,12 @@ try {
   const spriteSet = gt.sprite;
   check("ground truth: sprite roster < full roster (filter is meaningful)", gt.sprite.length > 0 && gt.all.length > gt.sprite.length, `sprite=${gt.sprite.length} all=${gt.all.length}`);
 
-  // ── BASELINE (no code): every mode pool INCLUDES non-sprited chars (proves they were unfiltered) ──
-  section("baseline (no BETA) — every mode pool includes non-sprite characters");
+  // ── BASELINE (no code): Stage 5B — every mode pool EXCLUDES art-less placeholders ──
+  section("baseline (no code) — every mode pool excludes art-less placeholders (Stage 5B)");
   let m = await modes();
-  check("Tower pool = full roster (includes piccolo)", m.tower.includes("piccolo") && m.tower.length === gt.all.length, `n=${m.tower.length}`);
-  check("FFA grid includes non-sprite chars", m.ffa.includes("piccolo") && m.ffa.includes("frieza"), `n=${m.ffa.length}`);
-  check("AI-vs-AI picker includes non-sprite chars", m.aiVsAi.includes("piccolo"), `n=${m.aiVsAi.length}`);
+  check("Tower pool == playable roster (art-less excluded, not the full 52)", noneOf(m.tower, ARTLESS) && m.tower.length === gt.playable.length, `n=${m.tower.length} playable=${gt.playable.length}`);
+  check("FFA grid excludes art-less chars (piccolo/frieza)", noneOf(m.ffa, ARTLESS), `n=${m.ffa.length}`);
+  check("AI-vs-AI picker excludes art-less chars", noneOf(m.aiVsAi, ARTLESS), `n=${m.aiVsAi.length}`);
 
   // ── BETA ON: EVERY pool must be sprite-only ──
   section("BETA ON — every mode pool filtered to sprite-having characters");
@@ -44,13 +49,13 @@ try {
   m = await modes();
   check("main select == sprite set (regression)", subset(m.mainSelect, spriteSet) && m.mainSelect.length === spriteSet.length, `n=${m.mainSelect.length}`);
   // Tower Mode — the reported bug
-  check("Tower opponent POOL is sprite-only (no non-sprite)", subset(m.tower, spriteSet) && noneOf(m.tower, NONSPRITED), `n=${m.tower.length} tower=${m.tower.slice(0,50).join(",")}`);
+  check("Tower opponent POOL is sprite-only (no non-sprite)", subset(m.tower, spriteSet) && noneOf(m.tower, ARTLESS), `n=${m.tower.length} tower=${m.tower.slice(0,50).join(",")}`);
   const sample = await towerSample(400);
-  check("Tower LIVE random picker (400 draws) NEVER yields a non-sprite opponent", subset(sample, spriteSet) && noneOf(sample, NONSPRITED), `distinct=${sample.length} → ${sample.sort().join(",")}`);
+  check("Tower LIVE random picker (400 draws) NEVER yields a non-sprite opponent", subset(sample, spriteSet) && noneOf(sample, ARTLESS), `distinct=${sample.length} → ${sample.sort().join(",")}`);
   // FFA
-  check("FFA character grid is sprite-only", subset(m.ffa, spriteSet) && noneOf(m.ffa, NONSPRITED), `n=${m.ffa.length}`);
+  check("FFA character grid is sprite-only", subset(m.ffa, spriteSet) && noneOf(m.ffa, ARTLESS), `n=${m.ffa.length}`);
   // AI-vs-AI spectator
-  check("AI-vs-AI picker is sprite-only", subset(m.aiVsAi, spriteSet) && noneOf(m.aiVsAi, NONSPRITED), `n=${m.aiVsAi.length}`);
+  check("AI-vs-AI picker is sprite-only", subset(m.aiVsAi, spriteSet) && noneOf(m.aiVsAi, ARTLESS), `n=${m.aiVsAi.length}`);
   // fallback
   check("safety fallback resolves to a sprite character", spriteSet.includes(m.fallback), `fallback=${m.fallback}`);
   // skins: the only skin-selection surface is the main select; isSkinUnlocked is global so BETA unlocks
@@ -63,16 +68,25 @@ try {
   const ffaShow = await page.evaluate(() => window.__harness.showFfaCharSelect(4));
   await page.waitForTimeout(300);
   await page.screenshot({ path: path.join(OUT, "beta_ffa_charselect.png") });
-  check("FFA char-select screen renders the filtered roster", subset(ffaShow.roster, spriteSet) && noneOf(ffaShow.roster, NONSPRITED), `roster=${ffaShow.roster.join(",")}`);
+  check("FFA char-select screen renders the filtered roster", subset(ffaShow.roster, spriteSet) && noneOf(ffaShow.roster, ARTLESS), `roster=${ffaShow.roster.join(",")}`);
 
-  // ── BETA OFF: pools restored (reversible) ──
-  section("BETA OFF — every pool restored to the full roster");
+  // ── BETA OFF: pools return to the NORMAL baseline (still art-less-filtered, Stage 5B) ──
+  section("BETA OFF — pools return to the normal baseline (art-less still hidden)");
   const off = await applyCode("BETA");
   check("BETA toggled off", off.beta === false);
   m = await modes();
-  check("Tower pool full again (includes piccolo)", m.tower.includes("piccolo") && m.tower.length === gt.all.length);
-  check("FFA grid full again (includes non-sprite)", m.ffa.includes("piccolo"));
-  check("AI-vs-AI picker full again (includes non-sprite)", m.aiVsAi.includes("piccolo"));
+  check("Tower pool back to playable (art-less still excluded, not the full 52)", noneOf(m.tower, ARTLESS) && m.tower.length === gt.playable.length, `n=${m.tower.length}`);
+  check("FFA grid still excludes art-less", noneOf(m.ffa, ARTLESS));
+  check("AI-vs-AI picker still excludes art-less", noneOf(m.aiVsAi, ARTLESS));
+
+  // ── DEV: the ONLY session that reveals art-less placeholders across all pools ──
+  section("DEV (Omololu) — every pool reveals the full roster incl. art-less placeholders");
+  const dv = await applyCode("Omololu");
+  check("DEV active", dv.dev === true);
+  m = await modes();
+  check("Tower pool == full roster (includes piccolo) under dev", m.tower.includes("piccolo") && m.tower.length === gt.all.length, `n=${m.tower.length}`);
+  check("FFA grid includes art-less under dev", m.ffa.includes("piccolo") && m.ffa.includes("frieza"));
+  check("AI-vs-AI picker includes art-less under dev", m.aiVsAi.includes("piccolo"));
 
   check("no JS page errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));
   console.log(`\n${FAIL === 0 ? "✅" : "❌"} BETA mode-roster coverage: ${PASS} passed, ${FAIL} failed — shot: beta_ffa_charselect.png`);

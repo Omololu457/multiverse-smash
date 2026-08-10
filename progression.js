@@ -202,3 +202,67 @@ export function loadProgressionFromAccount() {
   if (u.devUnlock  || acct.devUnlock)  _devUnlock  = true
   if (u.betaUnlock || acct.betaUnlock) _betaUnlock = true
 }
+
+// ── ARCADE CLEARS (Stage 19D) ────────────────────────────────────────────────
+// Per-character arcade completion, persisted under acct.arcade (migrateAccount backfills the
+// group on older saves). clearedBy[key] = beat arcade with that character; noContinueClearBy[key]
+// = did it without spending a continue (a separate achievement). Guest runs are session-only.
+function _ensureArcade(acct) {
+  if (!acct.arcade || typeof acct.arcade !== "object") acct.arcade = { clearedBy: {}, noContinueClearBy: {} }
+  if (!acct.arcade.clearedBy)          acct.arcade.clearedBy = {}
+  if (!acct.arcade.noContinueClearBy)  acct.arcade.noContinueClearBy = {}
+  return acct.arcade
+}
+export function setArcadeCleared(rosterKey, noContinue = false) {
+  if (!rosterKey) return
+  const acct = getCurrentAccount()
+  if (!acct) return                              // guest — no durable arcade record
+  const a = _ensureArcade(acct)
+  a.clearedBy[rosterKey] = true
+  if (noContinue) a.noContinueClearBy[rosterKey] = true
+  persistence.save(acct)                          // TODO(backend) lives in account.js
+}
+export function isArcadeCleared(rosterKey) {
+  const acct = getCurrentAccount()
+  return !!(acct?.arcade?.clearedBy?.[rosterKey])
+}
+export function isArcadeNoContinueCleared(rosterKey) {
+  const acct = getCurrentAccount()
+  return !!(acct?.arcade?.noContinueClearBy?.[rosterKey])
+}
+export function getArcadeCleared() {
+  const acct = getCurrentAccount()
+  return acct?.arcade?.clearedBy ? { ...acct.arcade.clearedBy } : {}
+}
+
+// ── TOWER TIER CLEARS (Stage 21) — for tower-gated character unlocks ──────────
+// Persisted under acct.tower.clearedTiers (migrateAccount backfills the group).
+function _ensureTower(acct) {
+  if (!acct.tower || typeof acct.tower !== "object") acct.tower = { clearedTiers: {} }
+  if (!acct.tower.clearedTiers) acct.tower.clearedTiers = {}
+  return acct.tower
+}
+export function setTowerTierCleared(tierId) {
+  if (!tierId) return
+  const acct = getCurrentAccount()
+  if (!acct) return                              // guest — session-only
+  _ensureTower(acct).clearedTiers[tierId] = true
+  persistence.save(acct)
+}
+export function getTowerCleared() {
+  const acct = getCurrentAccount()
+  return acct?.tower?.clearedTiers ? { ...acct.tower.clearedTiers } : {}
+}
+
+// ── LOCAL TOURNAMENT BRACKET (Stage 24B) — persist an in-progress bracket so it survives a reload ──
+export function saveBracket(bracket) {
+  const acct = getCurrentAccount()
+  if (!acct) return
+  acct.bracket = bracket ? JSON.parse(JSON.stringify(bracket)) : null   // deep copy; null clears it
+  persistence.save(acct)
+}
+export function loadBracket() {
+  const acct = getCurrentAccount()
+  return acct?.bracket ? JSON.parse(JSON.stringify(acct.bracket)) : null
+}
+export function clearBracket() { saveBracket(null) }

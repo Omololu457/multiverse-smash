@@ -153,7 +153,7 @@ try {
   const logFull = await sfxLog();
   const dmgFull = (await p2()).maxHealth - (await p2()).health;
   const ultCount = logFull.filter(f => ultPool.includes(f)).length;
-  check("strike damage landed AFTER the activation line (≥280 direct)", dmgFull >= 280, `dmgFull=${dmgFull}`);
+  check("strike damage landed AFTER the activation line (≥180 = 300×0.60 direct)", dmgFull >= 170, `dmgFull=${dmgFull}`);
   check("exactly ONE ultimate line across the whole ult (no impact-beat double)", ultCount === 1, `ultLines=${ultCount}`);
 
   // ── (4) NO-OVERLAP: two Shinobu triggers in quick succession → single voice channel ──

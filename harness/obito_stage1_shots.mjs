@@ -72,9 +72,9 @@ await shot("fall");
 await waitGrounded();
 
 // guard (hold s) → obito_block_uniform, action "guard"
-await page.keyboard.down("s"); await waitFrames(10); a = await p1();
+await page.keyboard.down(";"); await waitFrames(10); a = await p1();
 check("guard → obito_block_uniform", a.action === "guard" && (a.spriteSheet || "").includes("obito_block_uniform"), `action=${a.action} blocking=${a.blocking} sheet=${a.spriteSheet}`);
-await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
 
 // hurt (grounded flinch) → obito_hit1_uniform
 await waitGrounded();

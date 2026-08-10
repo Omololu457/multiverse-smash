@@ -89,7 +89,7 @@ try {
   check("FX is stationary + visualOnly (no travelling collider)", !!r.fx && r.fx.visualOnly === true && r.fx.vx === 0 && r.fx.vy === 0, r.fx ? `visualOnly=${r.fx.visualOnly} vx=${r.fx.vx} vy=${r.fx.vy}` : "no fx");
   check("FX uses the shared sukuna-slash sheet", !!r.fx && (r.fx.sheet || "").includes("yuji_sukuna_slahs_effect"), r.fx ? `sheet=${r.fx.sheet}` : "no fx");
   check("FX resolves ON the opponent (auto-track)", !!r.fx && Math.abs(r.fx.x - ((await p2()).x + (await p2()).w / 2)) < 160, r.fx ? `dx≈${Math.abs(r.fx.x - ((await p2()).x + (await p2()).w / 2)).toFixed(0)}` : "no fx");
-  check("sure-hit damage landed (unblocked)", r.dmg >= 40 && r.dmg <= 65, `−${r.dmg.toFixed(0)}`);
+  check("sure-hit damage landed (unblocked, ~30 = 50×0.60)", r.dmg >= 25 && r.dmg <= 40, `−${r.dmg.toFixed(0)}`);
 
   // ── NO TRANSFORM ──
   section("no transform — Yuji stays Yuji");

@@ -247,7 +247,7 @@ for (let i = 0; i < 60; i++) { const b = (await projs()).find(p => /saikiBombBla
 await waitFrames(6);
 const ultDmg = hp - (await p2()).health;
 check("explosion FX = bomb_fx sheet, pure-visual (visualOnly)", /saiki_bomb_fx_u/.test(blastProj?.sheet || "") && blastProj?.visualOnly === true, `${blastProj?.sheet} vo=${blastProj?.visualOnly}`);
-check("ultimate is the biggest hit in the kit", ultDmg > 200 && ultDmg > lightDmg, `dmg=${ultDmg}`);
+check("ultimate is the biggest hit in the kit (~180 = 300×0.60)", ultDmg > 150 && ultDmg > lightDmg, `dmg=${ultDmg}`);
 check("ultimate cooldown armed", (await p1()).ultCooldown > 0, `cd=${(await p1()).ultCooldown}`);
 
 // ── PORTRAIT ────────────────────────────────────────────────────────────────

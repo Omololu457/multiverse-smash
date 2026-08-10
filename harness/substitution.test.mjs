@@ -43,7 +43,7 @@ try {
   await wf(2);
   {
     const before=await p1s();
-    await page.keyboard.down("s"); await wf(2);        // Sasuke blocks (hold Down)
+    await page.keyboard.down(";"); await wf(2);        // Sasuke blocks (hold Down)
     await page.evaluate(()=>window.__harness.p2Attack());   // opponent swings (incoming window opens)
     await wf(2);
     const p2before=await p2s();
@@ -84,7 +84,7 @@ try {
     await page.keyboard.down("l"); await wf(2); await page.keyboard.up("l");
     const e2=(await p1s()).energy;
     check("second Substitution during recovery is rejected (no extra 25 spent)", Math.abs(e2-e1) < 1, `energy ${e1}→${e2} (cd=${afterFirst.attackCooldown})`);
-    await page.keyboard.up("s");
+    await page.keyboard.up(";");
   }
   await wf(30); await grounded();
 
@@ -94,21 +94,21 @@ try {
   await wf(2);
   {
     // opponent is NOT attacking; hold Down + Special → should be Shuriken (down+special), not Substitution
-    await page.keyboard.down("s"); await wf(2);
+    await page.keyboard.down(";"); await wf(2);
     await page.keyboard.down("l"); await wf(3); await page.keyboard.up("l");
     await wf(2);
     check("no substitution-log FX (window was closed)", !(await projNames()).includes("substitutionLog"), `proj=${JSON.stringify(await projNames())}`);
-    await page.keyboard.up("s");
+    await page.keyboard.up(";");
   }
   await wf(20); await grounded();
 
   // ── 4) NORMAL BLOCK still works for Sasuke (hold Down, no special) ──
   section("Normal blocking still works for Sasuke (unaffected)");
   {
-    await page.keyboard.down("s"); await wf(3);
+    await page.keyboard.down(";"); await wf(3);
     const b=await p1s();
     check("holding Down = normal block (isBlocking), no substitution", b.blocking && !(await projNames()).includes("substitutionLog"), `blocking=${b.blocking}`);
-    await page.keyboard.up("s"); await wf(2);
+    await page.keyboard.up(";"); await wf(2);
     check("releasing Down stops blocking", !(await p1s()).blocking, `blocking=${(await p1s()).blocking}`);
   }
 
@@ -119,7 +119,7 @@ try {
   await page.evaluate(()=>{ const a=window.__harness.p1Snap(); window.__harness.setP2X(a.x+64); window.__harness.fillEnergy(); window.__harness.healP2?.(); });
   await wf(2);
   {
-    await page.keyboard.down("s"); await wf(3);
+    await page.keyboard.down(";"); await wf(3);
     const gb=await p1s();
     check("Gojo holding Down = normal block", gb.blocking, `blocking=${gb.blocking}`);
     // even with an incoming attack + special, Gojo must NOT do Sasuke's substitution

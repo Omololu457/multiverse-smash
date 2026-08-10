@@ -61,7 +61,7 @@ try {
   const g = await record();
   check("P1 is Killua", g.key === "killua", `key=${g.key}`);
   check("renders as sprites", g.hasSpriteHandler, "");
-  check("idle sheet = killua_idle_uniform", (g.spriteSheet || "").includes("killua_idle_uniform"), `sheet=${g.spriteSheet}`);
+  check("idle uses the atlas at the idle row (Stage 22)", (g.spriteSheet || "").includes("killua_atlas") && g.spriteSourceY === 0, `sheet=${g.spriteSheet} sy=${g.spriteSourceY}`);
   check("fragile-rushdown HP 1030", g.maxHealth === 1030, `HP=${g.maxHealth}`);
   check("Nen pool 180", g.maxEnergy === 180, `EN=${g.maxEnergy}`);
 
@@ -72,10 +72,10 @@ try {
   await page.keyboard.down("w"); await waitFrames(3); await record(); await page.keyboard.up("w");
   await page.waitForFunction(() => window.__harness.p1().vy > 6, null, { timeout: 4000, polling: 16 }).catch(() => {}); await record();
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(14); const bk = await record(); await page.keyboard.up("s"); await waitFrames(4);
-  check("guard resolves to block sheet", bk.action === "guard" && (bk.spriteSheet || "").includes("killua_block_uniform"), `action=${bk.action}`);
+  await page.keyboard.down(";"); await waitFrames(14); const bk = await record(); await page.keyboard.up(";"); await waitFrames(4);
+  check("guard resolves to the block row of the atlas", bk.action === "guard" && (bk.spriteSheet || "").includes("killua_atlas") && bk.spriteSourceY === 164, `action=${bk.action} sy=${bk.spriteSourceY}`);
   await page.evaluate(() => window.__harness.hurtP1(20)); await waitFrames(3); const h = await record();
-  check("hurt resolves to hit sheet", h.action === "hurt" && (h.spriteSheet || "").includes("killua_hit_uniform"), `action=${h.action}`);
+  check("hurt resolves to the hit row of the atlas", h.action === "hurt" && (h.spriteSheet || "").includes("killua_atlas") && h.spriteSourceY === 222, `action=${h.action} sy=${h.spriteSourceY}`);
   await page.evaluate(() => window.__harness.healP1()); await waitFrames(4);
 
   // ── STAGE 2: 5 normals ──

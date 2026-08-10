@@ -186,7 +186,7 @@ try {
   check("she DASHES toward the opponent (range-independent)", maxToward > 100, `dash Δx=${Math.round(maxToward)}px`);
   await page.waitForFunction(() => !window.__harness.shinobuUltCine().active, null, { timeout: 4000, polling: 16 }).catch(() => {});
   await waitFrames(4); const uhpHit = (await p2()).health;
-  check("STRIKE deals guaranteed direct (~300)", (uhp0 - uhpHit) >= 280, `direct=${uhp0 - uhpHit}`);
+  check("STRIKE deals guaranteed direct (~180 = 300×0.60)", (uhp0 - uhpHit) >= 170, `direct=${uhp0 - uhpHit}`);
   await waitFrames(130); const uhpPoison = (await p2()).health;
   check("poison finisher ticks after the strike", (uhpHit - uhpPoison) > 0, `poison=${uhpHit - uhpPoison}`);
   await page.keyboard.down("u"); await waitFrames(3); await page.keyboard.up("u"); await waitFrames(4);

@@ -59,7 +59,7 @@ await shot("barrage");
 await page.waitForFunction(() => { const s = window.__harness.batmanUltCine(); return !s.active || s.struck; }, null, { timeout: 8000, polling: 16 });
 await waitFrames(2);
 const dmg = hp0 - (await p2()).health;
-check("barrage deals big guaranteed damage (~300)", dmg >= 250, `−${dmg.toFixed(0)}`);
+check("barrage deals big guaranteed damage (~180 = 300×0.60)", dmg >= 170, `−${dmg.toFixed(0)}`);
 await shot("impact");
 
 // Cinematic ends and combat resumes.

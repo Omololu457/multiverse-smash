@@ -58,23 +58,23 @@ try {
   const g = await record();
   check("P1 is Flash", g.key === "flash", `key=${g.key}`);
   check("renders as sprites", g.hasSpriteHandler, "");
-  check("idle sheet = flash_idle_uniform", (g.spriteSheet || "").includes("flash_idle_uniform"), `sheet=${g.spriteSheet}`);
+  check("idle uses the atlas at the idle row (Stage 22)", (g.spriteSheet || "").includes("flash_atlas") && g.spriteSourceY === 0, `sheet=${g.spriteSheet} sy=${g.spriteSourceY}`);
   check("glass-cannon HP 1020", g.maxHealth === 1020, `HP=${g.maxHealth}`);
   check("Speed Force pool 100", g.maxEnergy === 100, `EN=${g.maxEnergy}`);
 
   // ── STAGE 1: movement/state ──
   section("movement + state");
   await page.keyboard.down("d"); await waitFrames(14); const rn = await record(); await page.keyboard.up("d"); await waitFrames(4);
-  check("run/walk resolves to flash_run_uniform", (rn.spriteSheet || "").includes("flash_run_uniform"), `sheet=${rn.spriteSheet}`);
+  check("run/walk resolves to the run row of the atlas", (rn.spriteSheet || "").includes("flash_atlas") && rn.spriteSourceY === 93, `sheet=${rn.spriteSheet} sy=${rn.spriteSourceY}`);
   await waitGrounded();
   await page.keyboard.down("w"); await waitFrames(3); await record(); await page.keyboard.up("w");
   await page.waitForFunction(() => !window.__harness.p1().grounded, null, { timeout: 4000, polling: 16 }).catch(() => {}); const jm = await record();
-  check("jump resolves to flash_jump_uniform", (jm.spriteSheet || "").includes("flash_jump_uniform"), `sheet=${jm.spriteSheet}`);
+  check("jump resolves to the jump row of the atlas", (jm.spriteSheet || "").includes("flash_atlas") && jm.spriteSourceY === 192, `sheet=${jm.spriteSheet} sy=${jm.spriteSourceY}`);
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(14); const bk = await record(); await page.keyboard.up("s"); await waitFrames(4);
-  check("guard resolves (idle-frame fallback, flagged)", bk.action === "guard" && (bk.spriteSheet || "").includes("flash_idle_uniform"), `action=${bk.action} sheet=${bk.spriteSheet}`);
+  await page.keyboard.down(";"); await waitFrames(14); const bk = await record(); await page.keyboard.up(";"); await waitFrames(4);
+  check("guard resolves (idle-frame fallback → idle row of the atlas)", bk.action === "guard" && (bk.spriteSheet || "").includes("flash_atlas") && bk.spriteSourceY === 0, `action=${bk.action} sy=${bk.spriteSourceY}`);
   await page.evaluate(() => window.__harness.hurtP1(20)); await waitFrames(3); const h = await record();
-  check("hurt resolves to flash_hit_uniform", h.action === "hurt" && (h.spriteSheet || "").includes("flash_hit_uniform"), `action=${h.action}`);
+  check("hurt resolves to the hit row of the atlas", h.action === "hurt" && (h.spriteSheet || "").includes("flash_atlas") && h.spriteSourceY === 296, `action=${h.action} sy=${h.spriteSourceY}`);
   await page.evaluate(() => window.__harness.healP1()); await waitFrames(4);
 
   // ── STAGE 2: 5 normals ──
@@ -119,13 +119,13 @@ try {
   await page.keyboard.down("l"); await waitFrames(2); await page.keyboard.up("l");
   let smv = null; for (let i = 0; i < 8; i++) { const a = await record(); if (a.currentMove === "spinAttack") { smv = a; break; } await waitFrames(1); }
   { let prev = (await p2()).health, hits = 0; for (let i = 0; i < 34; i++) { const hh = (await p2()).health; if (hh < prev - 0.01) hits++; prev = hh; await waitFrames(1); }
-    check("Spin Attack sprite + multi-hit", smv && (smv.spriteSheet || "").includes("flash_spin_uniform") && hits >= 2, `sheet=${smv?.spriteSheet} hits=${hits}`); }
+    check("Spin Attack sprite (atlas spin row) + multi-hit", smv && (smv.spriteSheet || "").includes("flash_atlas") && smv.spriteSourceY === 1248 && hits >= 2, `sheet=${smv?.spriteSheet} sy=${smv?.spriteSourceY} hits=${hits}`); }
   await waitGrounded(); await prep(58);
   await page.keyboard.down("d"); await waitFrames(2); await page.keyboard.down("l"); await waitFrames(2); await page.keyboard.up("l");
   let tmv = null; for (let i = 0; i < 8; i++) { const a = await record(); if (a.currentMove === "tornado") { tmv = a; break; } await waitFrames(1); }
   { let prev = (await p2()).health, hits = 0, launched = false; for (let i = 0; i < 40; i++) { const q = await p2(); if (q.health < prev - 0.01) hits++; prev = q.health; if (q.vy < -3 || q.knockdownState) launched = true; await waitFrames(1); }
     await page.keyboard.up("d");
-    check("Tornado sprite + multi-hit + launch", tmv && (tmv.spriteSheet || "").includes("flash_tornado_uniform") && hits >= 3 && launched, `sheet=${tmv?.spriteSheet} hits=${hits} launch=${launched}`); }
+    check("Tornado sprite (atlas tornado row) + multi-hit + launch", tmv && (tmv.spriteSheet || "").includes("flash_atlas") && tmv.spriteSourceY === 1367 && hits >= 3 && launched, `sheet=${tmv?.spriteSheet} sy=${tmv?.spriteSourceY} hits=${hits} launch=${launched}`); }
   const pj = await page.evaluate(() => window.__harness.projectiles?.() || []);
   check("pure melee — no projectiles from any move", pj.length === 0, `count=${pj.length}`);
 
@@ -157,13 +157,13 @@ try {
   // Flash CANNOT block — opponent lands a hit
   await waitGrounded();
   await page.evaluate(() => { window.__harness.healP2(); const p = window.__harness.p1(); window.__harness.setP2X(p.x + 60); window.__harness.healP1(); });
-  await page.keyboard.down("s"); await waitFrames(3);
+  await page.keyboard.down(";"); await waitFrames(3);
   const flashBlocking = (await p1()).isBlocking; const ph0 = (await p1()).health;
   // NOTE: the opponent is time-slowed to ⅓ during Flash Time, so ITS attack resolves ~3× slower in real
   // frames — wait generously (up to ~60f) for the hit to land, and re-issue if it lapses.
   await page.evaluate(() => window.__harness.p2Attack());
   let landed = false; for (let i = 0; i < 60; i++) { const pp = await p1(); if (pp.hitstun > 0 || pp.health < ph0 - 0.5) { landed = true; break; } if (i === 30) await page.evaluate(() => window.__harness.p2Attack()); await waitFrames(1); }
-  await page.keyboard.up("s");
+  await page.keyboard.up(";");
   const flashDmg = ph0 - (await p1()).health;
   check("Flash CANNOT block (input ignored + opponent's hit lands)", flashBlocking === false && flashDmg > 20, `isBlocking=${flashBlocking} −${flashDmg.toFixed(0)}`);
   // auto-revert when the meter empties

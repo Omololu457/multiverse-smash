@@ -53,9 +53,9 @@ await waitGrounded();
 // guard (hold back = away from opponent). p2 is to the right, so hold left "a".
 await page.keyboard.down("a"); await waitFrames(2); await page.keyboard.up("a"); // face away briefly
 await waitGrounded();
-await page.keyboard.down("s"); await waitFrames(14); a = await p1();
+await page.keyboard.down(";"); await waitFrames(14); a = await p1();
 check("guard → flash_idle_uniform (fallback, flagged)", a.action === "guard" && (a.spriteSheet || "").includes("flash_idle_uniform"), `action=${a.action} sheet=${a.spriteSheet}`);
-await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
 
 // hurt
 await page.evaluate(() => window.__harness.hurtP1(20)); await waitFrames(3); a = await p1();

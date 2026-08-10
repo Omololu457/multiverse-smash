@@ -68,7 +68,7 @@ try {
   uc = await cine();
   check("burst lands at the impact beat (not premature)", uc.frame >= uc.impactFrame, `frame=${uc.frame} impact=${uc.impactFrame}`);
   await page.waitForFunction(() => window.__harness.ben10UltCine().active === false, null, { timeout: 8000, polling: 16 });
-  check("Omnitrix burst big guaranteed damage", hp0 - (await p2()).health > 200, `−${(hp0 - (await p2()).health).toFixed(0)}`);
+  check("Omnitrix burst big guaranteed damage (~192 = 320×0.60)", hp0 - (await p2()).health > 180, `−${(hp0 - (await p2()).health).toFixed(0)}`);
   const bx = (await p1()).x; await page.keyboard.down("d"); await waitFrames(10); await page.keyboard.up("d");
   check("control returns to live p1 after cinematic", Math.abs((await p1()).x - bx) > 1, "");
 

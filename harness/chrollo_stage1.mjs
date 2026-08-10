@@ -95,7 +95,7 @@ try {
   check("fall resolves to jump sheet (apex cell)", (fl.spriteSheet || "").includes("chrollo_jump_uniform"), `action=${fl.action} sheet=${fl.spriteSheet}`);
   await waitGrounded();
 
-  await page.keyboard.down("s"); await waitFrames(20); const bk = await record(); await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.down(";"); await waitFrames(20); const bk = await record(); await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
   check("guard resolves to block sheet", bk.action === "guard" && (bk.spriteSheet || "").includes("chrollo_block_uniform"), `action=${bk.action} sheet=${bk.spriteSheet}`);
 
   await page.evaluate(() => window.__harness.hurtP1(28)); await waitFrames(3); const h = await record(); await shot("hurt");

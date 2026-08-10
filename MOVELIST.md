@@ -31,7 +31,8 @@ print is out of date; this table is what the code actually does).
 |---|---|---|
 | **Move left / right** | `A` / `D` | **D-pad ←/→** or **Left stick** |
 | **Jump** | `W` | **✕ (Cross)** — *or* push **Up** |
-| **Crouch / Block** | hold `S` | hold **Down** (D-pad or stick) |
+| **Crouch** | hold `S` | hold **Down** (D-pad or stick) |
+| **Block** | hold `;` | hold **○ Circle** |
 | **Dash** | double-tap `A` or `D` | double-tap **D-pad ←/→** (or flick the stick) |
 | **Light attack** | `J` | **☐ Square** |
 | **Heavy attack** | `K` | **△ Triangle** |
@@ -45,12 +46,13 @@ print is out of date; this table is what the code actually does).
 
 Notes that trip people up:
 
-- **○ Circle is not used.** Don't hunt for a move on it.
+- **○ Circle = Block** (dedicated guard button). Keyboard block is `;`.
 - **Up does two things.** *Up alone* = jump. *Up + an attack button* = the up-attack
   launcher (the up does **not** also make you jump — the game sorts this out for you).
   On keyboard the launcher is its own key, `I`.
-- **Block = hold Down** (`S` / D-pad Down). There's no separate block button; crouch and
-  block are the same input. You can't block while charging your meter.
+- **Block = its own button** (`;` on keyboard / **○ Circle** on pad). Block is no longer on Down,
+  so crouching, Down-air (`S`+`J`), the Down-hold taunt, and Down-motion specials never accidentally
+  guard. You can't block while charging your meter.
 - **Dash is a double-tap**, never a hold. Tap a direction twice quickly. Several
   fast characters (Gojo, Sukuna, Toji, Sasuke, Rick) turn a double-tap **toward** the
   opponent into a **teleport behind them** instead of a normal dash — see their sections.
@@ -75,7 +77,7 @@ of the screen.
 | **↓B** ("quarter-circle back" / *qcb*) | down, roll to back, Special | `S` then `A` then `L` | roll stick **Down → away**, then **R1** |
 | **F,F** | tap toward twice | `D` `D` `L` | tap **toward** twice, then **R1** |
 | **Hold P + Special** | hold charge, then Special | hold `P` + `L` | hold **L2** + **R1** |
-| **Block + Special** | hold Down (block) then Special during an incoming hit | hold `S` + `L` | hold **Down** + **R1** |
+| **Block + Special** | hold block then Special during an incoming hit | hold `;` + `L` | hold **○ Circle** + **R1** |
 
 **New to fighting games?** A "quarter-circle forward" just means: press **Down**, then
 sweep to **the direction you're facing**, then hit Special — one smooth roll of the

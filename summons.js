@@ -4,7 +4,7 @@
 
 // Shadow clones read the fighters' live attack state to mimic / to poof when hit.
 // combat.js imports only physics + sound → no cycle back to summons.
-import { getAttackHitbox, getHurtbox, rectsOverlap, attackIsActive } from "./combat.js"
+import { getAttackHitbox, getHurtbox, rectsOverlap, attackIsActive, applyScaledDamage } from "./combat.js"
 import { physics } from "./physics.js" // clones fall + rest on the floor via the SAME applyGravity fighters use
 import { sound } from "./sound.js"   // one-shot clone spawn/despawn SFX (playSfxFile)
 
@@ -500,7 +500,7 @@ function performSummonAttack(summon) {
 
   if (!overlap && distance >= 70) return
 
-  summon.target.health = Math.max(0, (summon.target.health || 0) - summon.damage)
+  applyScaledDamage(summon.target, summon.damage, { source: "summon" })
   summon.target.colorFlash = 6
 
   applySummonImpact(summon)

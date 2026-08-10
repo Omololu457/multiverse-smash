@@ -102,7 +102,7 @@ try {
   await page.waitForFunction(() => { const b = window.__harness.beActive("p1"); return !b.active && b.rosterKey === "chrollo"; }, null, { timeout: 8000, polling: 16 }).catch(() => {});
   await waitFrames(10);
   const hp1 = (await p1()).health, p2hp1 = (await p2()).health;
-  check("copied ULTIMATE dealt its guaranteed damage (~300)", (p2hp0 - p2hp1) >= 250, `−${(p2hp0 - p2hp1).toFixed(0)}`);
+  check("copied ULTIMATE dealt its guaranteed damage (~180 = 300×0.60)", (p2hp0 - p2hp1) >= 170, `−${(p2hp0 - p2hp1).toFixed(0)}`);
   check("HP blood price paid (~162)", Math.abs((hp0 - hp1) - 162) <= 2, `Δhp=${(hp0 - hp1).toFixed(0)}`);
   check("mark CONSUMED", (await page.evaluate(() => window.__harness.beState("p1"))) === null, `beState=${JSON.stringify(await page.evaluate(() => window.__harness.beState("p1")))}`);
   check("auto-reverted to Chrollo after the cinematic", (await page.evaluate(() => window.__harness.beActive("p1")))?.rosterKey === "chrollo", `beActive=${JSON.stringify(await page.evaluate(() => window.__harness.beActive("p1")))}`);

@@ -66,9 +66,9 @@ await shot("jump");
 await waitGrounded();
 
 // guard (block = hold DOWN "s")
-await page.keyboard.down("s"); await waitFrames(10); a = await p1();
+await page.keyboard.down(";"); await waitFrames(10); a = await p1();
 check("guard → batman_guard_uniform", a.action === "guard" && (a.spriteSheet || "").includes("batman_guard_uniform"), `action=${a.action} sheet=${a.spriteSheet} blocking=${a.blocking}`);
-await shot("guard"); await page.keyboard.up("s"); await waitFrames(4);
+await shot("guard"); await page.keyboard.up(";"); await waitFrames(4);
 
 // charge (hold P)
 await waitGrounded();

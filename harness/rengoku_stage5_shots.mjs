@@ -55,7 +55,7 @@ await shot("eruption");
 await page.waitForFunction(() => window.__harness.rengokuUltCine().struck === true || window.__harness.rengokuUltCine().active === false, null, { timeout: 8000, polling: 16 }).catch(() => {});
 await shot("detonation");
 const dealt = uhp - (await p2()).health;
-check("guaranteed detonation damage lands (range-independent ~340)", dealt >= 320, `−${dealt} @600px`);
+check("guaranteed detonation damage lands (range-independent ~204 = 340×0.60)", dealt >= 190, `−${dealt} @600px`);
 // cinematic ends, combat resumes
 await page.waitForFunction(() => window.__harness.rengokuUltCine().active === false, null, { timeout: 8000, polling: 16 }).catch(() => {});
 await waitFrames(6);

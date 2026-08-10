@@ -81,7 +81,7 @@ try {
   await page.keyboard.press("d"); await waitFrames(1); await page.keyboard.down("d"); await waitFrames(3); const dsh = await record(); await page.keyboard.up("d"); await waitFrames(6);
   check("dash/run resolves to batman_run_uniform", (dsh.spriteSheet || "").includes("batman_run_uniform"), `sheet=${dsh.spriteSheet}`);
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(12); const bk = await record(); await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.down(";"); await waitFrames(12); const bk = await record(); await page.keyboard.up(";"); await waitFrames(4);
   check("guard resolves to REAL batman_guard_uniform (dedicated block art)", bk.action === "guard" && (bk.spriteSheet || "").includes("batman_guard_uniform"), `action=${bk.action} sheet=${bk.spriteSheet}`);
   await waitGrounded();
   await page.keyboard.down("p"); await waitFrames(10); const ch = await record(); await page.keyboard.up("p"); await waitFrames(4);
@@ -163,7 +163,7 @@ try {
   await page.waitForFunction(() => { const s = window.__harness.batmanUltCine(); return !s.active || s.phase === "barrage"; }, null, { timeout: 8000, polling: 16 });
   await page.waitForFunction(() => { const s = window.__harness.batmanUltCine(); return !s.active || s.struck; }, null, { timeout: 8000, polling: 16 });
   await waitFrames(2);
-  check("barrage deals big guaranteed damage (~300)", uhp0 - (await p2()).health >= 250, `−${(uhp0 - (await p2()).health).toFixed(0)}`);
+  check("barrage deals big guaranteed damage (~180 = 300×0.60)", uhp0 - (await p2()).health >= 170, `−${(uhp0 - (await p2()).health).toFixed(0)}`);
   await page.waitForFunction(() => window.__harness.batmanUltCine().active === false, null, { timeout: 8000, polling: 16 });
   await waitFrames(6);
   const alive = await record();

@@ -280,6 +280,26 @@ export function drawVictoryScreen(ctx, canvas, state) {
     ctx.fillText(`PERFECT ×${stats.p2.perfectRounds} ✦`, statX + statW - 20, statY + statH - 16)
   }
 
+  // ── PROGRESSION NOTIFICATION (Stage 21) ────────────────────────
+  // Level-up + newly-unlocked features/characters. Reuses xpResult (progression.unlocksBetween) and
+  // charUnlocks (unlocks.charactersUnlockedBetween), both stamped onto the victory state by game.js.
+  const xr = state.xpResult, chUnlocks = state.charUnlocks || []
+  let notifY = statY + statH + 26
+  if (xr?.leveledUp) {
+    ctx.textAlign = "center"; ctx.font = "800 20px Arial"; ctx.fillStyle = "#fde047"
+    ctx.shadowBlur = 14; ctx.shadowColor = "#f59e0b"
+    ctx.fillText(`LEVEL UP!  →  Lv ${xr.level}`, cw / 2, notifY); ctx.shadowBlur = 0
+    notifY += 26
+  }
+  for (const c of chUnlocks) {
+    ctx.textAlign = "center"; ctx.font = "700 15px Arial"; ctx.fillStyle = "#7dd3fc"
+    ctx.fillText(`🔓 NEW FIGHTER: ${c.name}`, cw / 2, notifY); notifY += 22
+  }
+  for (const f of (xr?.newUnlocks || [])) {
+    ctx.textAlign = "center"; ctx.font = "700 13px Arial"; ctx.fillStyle = "rgba(196,181,253,0.9)"
+    ctx.fillText(`🔓 ${f.label || f.id}`, cw / 2, notifY); notifY += 20
+  }
+
   // ── BUTTONS ────────────────────────────────────────────────────
   const btnW = 180, btnH = 52, btnGap = 20
   const btnsY = ch * 0.82
@@ -291,8 +311,13 @@ export function drawVictoryScreen(ctx, canvas, state) {
 
   // Stage 11D: Save-Replay button (only when a replay is available). Green to read as a "save" action.
   if (state.canSaveReplay) {
-    const r = _saveReplayRect(canvas)
+    const r = _saveReplayRect(canvas, state)
     _drawVictoryBtn(ctx, r.x, r.y, r.w, r.h, "SAVE REPLAY", state.saveReplayHover, "#22c55e", "#4ade80")
+  }
+  // Stage 24C: CHANGE CHARACTER — back to select, keeping mode/stage/settings (plain vs/pvp/training).
+  if (state.canChangeChar) {
+    const r = _changeCharRect(canvas, state)
+    _drawVictoryBtn(ctx, r.x, r.y, r.w, r.h, "CHANGE CHARACTER", state.changeCharHover, "#7c3aed", "#a78bfa")
   }
 
   // Footer hint
@@ -330,7 +355,7 @@ function _drawVictoryBtn(ctx, x, y, w, h, label, hovered, baseColor, hoverColor)
 // INTRO SEQUENCE — shown before round 1 of a fresh match
 // ─────────────────────────────────────────────────────────────────
 export function drawMatchIntro(ctx, canvas, state) {
-  const { p1Name = "P1", p2Name = "P2", timer = 0, maxTimer = 90 } = state
+  const { p1Name = "P1", p2Name = "P2", p1Universe = "", p2Universe = "", timer = 0, maxTimer = 90 } = state
   const cw = canvas.width, ch = canvas.height
   const progress = 1 - timer / maxTimer  // 0 → 1
 
@@ -352,8 +377,9 @@ export function drawMatchIntro(ctx, canvas, state) {
   ctx.font         = "900 32px Arial"
   ctx.fillStyle    = "#f1f5f9"
   ctx.shadowBlur   = 16; ctx.shadowColor = "#38bdf8"
-  ctx.fillText(p1Name, p1X + cw * 0.4, ch * 0.38 + bannerH / 2)
+  ctx.fillText(p1Name, p1X + cw * 0.4, ch * 0.38 + bannerH / 2 - 8)
   ctx.shadowBlur   = 0
+  if (p1Universe) { ctx.font = "600 14px Arial"; ctx.fillStyle = "rgba(190,215,255,0.85)"; ctx.fillText(p1Universe, p1X + cw * 0.4, ch * 0.38 + bannerH / 2 + 18) }
 
   // P2 banner (slides from right)
   const p2BannerX = cw * 0.55 + p2X
@@ -366,8 +392,9 @@ export function drawMatchIntro(ctx, canvas, state) {
   ctx.font         = "900 32px Arial"
   ctx.fillStyle    = "#f1f5f9"
   ctx.shadowBlur   = 16; ctx.shadowColor = "#f87171"
-  ctx.fillText(p2Name, p2BannerX + cw * 0.05, ch * 0.52 + bannerH / 2)
+  ctx.fillText(p2Name, p2BannerX + cw * 0.05, ch * 0.52 + bannerH / 2 - 8)
   ctx.shadowBlur   = 0
+  if (p2Universe) { ctx.font = "600 14px Arial"; ctx.fillStyle = "rgba(255,205,205,0.85)"; ctx.fillText(p2Universe, p2BannerX + cw * 0.05, ch * 0.52 + bannerH / 2 + 18) }
 
   // "VS" center
   if (progress > 0.5) {
@@ -413,10 +440,16 @@ export function createVictoryState() {
 
 // Stage 11D: "Save Replay" button rect — centered below the two main buttons. Shown only when
 // vs.canSaveReplay. Single source of truth so draw / hover / click all agree on the hit region.
-function _saveReplayRect(canvas) {
-  const cw = canvas.width, ch = canvas.height
-  const w = 200, h = 40
-  return { x: cw / 2 - w / 2, y: ch * 0.82 + 52 + 14, w, h }   // 52 = main btnH, +14 gap
+// Save-Replay + Change-Character share the secondary row just under the main buttons. When BOTH are
+// present they sit side by side; a lone one is centered. (vs may be undefined for legacy callers →
+// centered, matching the original layout, so the replay-button hit-test stays valid.)
+function _saveReplayRect(canvas, vs) {
+  const cw = canvas.width, ch = canvas.height, y = ch * 0.82 + 52 + 14, h = 40
+  return vs?.canChangeChar ? { x: cw / 2 - 210, y, w: 200, h } : { x: cw / 2 - 100, y, w: 200, h }
+}
+function _changeCharRect(canvas, vs) {
+  const cw = canvas.width, ch = canvas.height, y = ch * 0.82 + 52 + 14, h = 40
+  return vs?.canSaveReplay ? { x: cw / 2 + 10, y, w: 200, h } : { x: cw / 2 - 110, y, w: 220, h }
 }
 
 export function updateVictoryState(vs, mouse, canvas) {
@@ -433,7 +466,8 @@ export function updateVictoryState(vs, mouse, canvas) {
 
   vs.rematchHover = _inRect(mouse.x, mouse.y, btn1X, btnsY, btnW, btnH)
   vs.menuHover    = _inRect(mouse.x, mouse.y, btn2X, btnsY, btnW, btnH)
-  if (vs.canSaveReplay) { const r = _saveReplayRect(canvas); vs.saveReplayHover = _inRect(mouse.x, mouse.y, r.x, r.y, r.w, r.h) }
+  if (vs.canSaveReplay) { const r = _saveReplayRect(canvas, vs); vs.saveReplayHover = _inRect(mouse.x, mouse.y, r.x, r.y, r.w, r.h) }
+  if (vs.canChangeChar) { const r = _changeCharRect(canvas, vs); vs.changeCharHover = _inRect(mouse.x, mouse.y, r.x, r.y, r.w, r.h) }
 }
 
 export function handleVictoryClick(vs, mouse, canvas) {
@@ -445,7 +479,8 @@ export function handleVictoryClick(vs, mouse, canvas) {
 
   if (_inRect(mouse.x, mouse.y, cw / 2 - btnW - btnGap / 2, btnsY, btnW, btnH)) return "rematch"
   if (_inRect(mouse.x, mouse.y, cw / 2 + btnGap / 2,        btnsY, btnW, btnH)) return "menu"
-  if (vs.canSaveReplay) { const r = _saveReplayRect(canvas); if (_inRect(mouse.x, mouse.y, r.x, r.y, r.w, r.h)) return "saveReplay" }
+  if (vs.canSaveReplay) { const r = _saveReplayRect(canvas, vs); if (_inRect(mouse.x, mouse.y, r.x, r.y, r.w, r.h)) return "saveReplay" }
+  if (vs.canChangeChar) { const r = _changeCharRect(canvas, vs); if (_inRect(mouse.x, mouse.y, r.x, r.y, r.w, r.h)) return "changeChar" }
   return null
 }
 

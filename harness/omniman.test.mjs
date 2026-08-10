@@ -153,7 +153,7 @@ let c = await page.evaluate(() => window.__harness.omnimanUltCine());
 check("Ultimate activates the body-slam cinematic", c.active === true && c.casterKey === "omniman");
 check("plays the body-slam sprite", has(await p1(), "omni_man_ultimate"));
 await page.waitForFunction(() => window.__harness.omnimanUltCine().struck === true, null, { timeout: 6000, polling: 16 }).catch(() => {});
-check("guaranteed body-slam damage lands (~340)", oppHP0 - (await p2()).health >= 300, `Δ${(oppHP0 - (await p2()).health) | 0}`);
+check("guaranteed body-slam damage lands (~204 = 340×0.60)", oppHP0 - (await p2()).health >= 190, `Δ${(oppHP0 - (await p2()).health) | 0}`);
 await page.waitForFunction(() => window.__harness.omnimanUltCine().active === false, null, { timeout: 6000, polling: 16 }).catch(() => {});
 check("cinematic ends cleanly (combat resumes)", (await page.evaluate(() => window.__harness.omnimanUltCine())).active === false);
 

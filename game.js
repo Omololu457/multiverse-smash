@@ -2263,6 +2263,13 @@ function beginReplayPlayback(rep) {
 // the recorder and playback so their snapshots are directly comparable.
 function _replaySnap(f) { const r = v => Math.round((v || 0) * 1e4) / 1e4; return f ? [r(f.x), r(f.y), f.health, r(f.energy)] : [0, 0, 0, 0] }
 
+// Stage 11D: download the most recent finished match's replay as a JSON file (victory-screen button).
+function replayFilename(rep) { return `replay-${rep?.p1Char || "p1"}-vs-${rep?.p2Char || "p2"}-${rep?.seed || 0}.json` }
+function saveLastReplay() {
+  if (!_lastReplay) return false
+  try { downloadText(replayFilename(_lastReplay), JSON.stringify(_lastReplay), "application/json"); return true } catch (_) { return false }
+}
+
 function startMatch() {
   sound.stopAllSfx?.({ includePersistent: true })   // new match → no cue from a prior match/menu bleeds in
   // Stage 11A: seed the gameplay RNG for THIS match before anything rolls (AI setup runs in resetRound
@@ -2768,8 +2775,9 @@ function _checkMatchOver() {
     _matchOverride = null   // one-shot: consume so it can't re-fire
     const winner = forced ? forced.winnerSide
       : roundWins.p1 > roundWins.p2 ? "p1" : roundWins.p2 > roundWins.p1 ? "p2" : "draw"
-    // Stage 11B: match over → finalize the replay (kept for the victory-screen "Save Replay" / harness).
+    // Stage 11B/11D: match over → finalize the replay and offer it on the victory screen (Save Replay).
     if (replay.isRecording()) { _lastReplay = replay.finishRecording(); if (_lastReplay) _lastReplay.winner = winner }
+    victoryState.canSaveReplay = !!_lastReplay
     victoryState.active     = true
     victoryState.fadeAlpha  = 0
     victoryState.winnerSide = winner
@@ -7749,6 +7757,7 @@ function handleMenuClicks() {
       const action = handleVictoryClick?.(victoryState, mouse, canvas)
       if (action === "rematch") { if (towerState.active) continueTower(); else _doRematch() }   // Tower: advance floor
       if (action === "menu")    { towerState.active = false; resetToStart() }
+      if (action === "saveReplay") saveLastReplay()   // Stage 11D: download the just-finished match's replay JSON
       break
     }
   }
@@ -8332,7 +8341,18 @@ gameLoop()
       play:          (rep) => beginReplayPlayback(rep),     // start playing a replay back
       isPlayback:    () => replay.isPlayback(),
       playbackState: () => replay.playbackState(),
-      stopPlayback:  () => replay.stopPlayback()
+      stopPlayback:  () => replay.stopPlayback(),
+      // ── 11D save/load round-trip + victory button ──
+      lastJson:      () => _lastReplay ? JSON.stringify(_lastReplay) : null,   // the finished match, serialized
+      playJson:      (str) => { try { return beginReplayPlayback(JSON.parse(str)) } catch (e) { return { ok: false, reason: String(e) } } },
+      saveLast:      () => saveLastReplay(),                 // trigger the download (browser save)
+      // Prove the Save-Replay victory button wiring without a full match: build a live victoryState and
+      // hit-test the button center. Returns "saveReplay" when available, else what that spot resolves to.
+      victorySaveHitTest: (canSave) => {
+        const vs = createVictoryState(); vs.active = true; vs.fadeAlpha = 1; vs.canSaveReplay = !!canSave
+        const c = { x: canvas.width / 2, y: canvas.height * 0.82 + 66 + 20 }   // center of _saveReplayRect
+        return handleVictoryClick(vs, c, canvas)
+      }
     },
     // Center point of a GAMEPLAY_SELECT button by id — so menu-click tests stay correct when the
     // menu gains/loses rows (the vertical layout re-centers all rows on any count change).

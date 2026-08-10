@@ -289,6 +289,12 @@ export function drawVictoryScreen(ctx, canvas, state) {
   _drawVictoryBtn(ctx, btn1X, btnsY, btnW, btnH, primaryLabel, rematchHover, "#3b82f6", "#60a5fa")
   _drawVictoryBtn(ctx, btn2X, btnsY, btnW, btnH, "MAIN MENU",  menuHover,   "#374151", "#9ca3af")
 
+  // Stage 11D: Save-Replay button (only when a replay is available). Green to read as a "save" action.
+  if (state.canSaveReplay) {
+    const r = _saveReplayRect(canvas)
+    _drawVictoryBtn(ctx, r.x, r.y, r.w, r.h, "SAVE REPLAY", state.saveReplayHover, "#22c55e", "#4ade80")
+  }
+
   // Footer hint
   ctx.font      = "13px Arial"
   ctx.textAlign = "center"
@@ -399,8 +405,18 @@ export function createVictoryState() {
     menuHover:    false,
     flawless:     false,       // winner took ZERO damage all match → FLAWLESS VICTORY banner
     subtitle:     "",          // context line (e.g. Tower floor / cleared)
-    primaryLabel: "REMATCH"    // label for the primary button (Tower → "NEXT FLOOR" etc.)
+    primaryLabel: "REMATCH",   // label for the primary button (Tower → "NEXT FLOOR" etc.)
+    canSaveReplay: false,      // Stage 11D: a replay of the just-finished match is available to download
+    saveReplayHover: false
   }
+}
+
+// Stage 11D: "Save Replay" button rect — centered below the two main buttons. Shown only when
+// vs.canSaveReplay. Single source of truth so draw / hover / click all agree on the hit region.
+function _saveReplayRect(canvas) {
+  const cw = canvas.width, ch = canvas.height
+  const w = 200, h = 40
+  return { x: cw / 2 - w / 2, y: ch * 0.82 + 52 + 14, w, h }   // 52 = main btnH, +14 gap
 }
 
 export function updateVictoryState(vs, mouse, canvas) {
@@ -417,6 +433,7 @@ export function updateVictoryState(vs, mouse, canvas) {
 
   vs.rematchHover = _inRect(mouse.x, mouse.y, btn1X, btnsY, btnW, btnH)
   vs.menuHover    = _inRect(mouse.x, mouse.y, btn2X, btnsY, btnW, btnH)
+  if (vs.canSaveReplay) { const r = _saveReplayRect(canvas); vs.saveReplayHover = _inRect(mouse.x, mouse.y, r.x, r.y, r.w, r.h) }
 }
 
 export function handleVictoryClick(vs, mouse, canvas) {
@@ -428,6 +445,7 @@ export function handleVictoryClick(vs, mouse, canvas) {
 
   if (_inRect(mouse.x, mouse.y, cw / 2 - btnW - btnGap / 2, btnsY, btnW, btnH)) return "rematch"
   if (_inRect(mouse.x, mouse.y, cw / 2 + btnGap / 2,        btnsY, btnW, btnH)) return "menu"
+  if (vs.canSaveReplay) { const r = _saveReplayRect(canvas); if (_inRect(mouse.x, mouse.y, r.x, r.y, r.w, r.h)) return "saveReplay" }
   return null
 }
 

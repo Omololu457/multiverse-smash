@@ -426,8 +426,32 @@ export function getFighterInput(fighter) {
     ultimate: buffer.ultimate > 0,
     dash: !!keys[ctrl.dash],                  // unbound key ("") → always false; dash = double-tap
     grab: !!keys[ctrl.grab],
-    charge: !!keys[ctrl.charge]
+    charge: !!keys[ctrl.charge],
+    block: !!keys[ctrl.block]                 // dedicated guard key (MK-feel Stage 1c; Down no longer blocks)
   }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// REPLAY (Stage 11B) — raw held-control snapshot, SIDE-EFFECT FREE.
+// The recorder needs each fighter's currently-held control state WITHOUT the buffering/counter side
+// effects of getFighterInput (which advances buffers every call). readRawControls only READS the keys
+// map, so it's safe to call an extra time per frame. Bit order for the recorded mask is this field
+// order (shared with replay.js). Playback (11C) writes these same fields back into `keys`, so the
+// normal buffering pipeline reproduces the exact resolved input.
+export const REPLAY_INPUT_FIELDS = ["left", "right", "down", "up", "jump", "light", "heavy", "upAttack", "special", "ultimate", "dash", "grab", "charge", "block"]
+
+export function readRawControls(fighter) {
+  if (!fighter || !fighter.controls) return null
+  const c = fighter.controls, out = {}
+  for (const f of REPLAY_INPUT_FIELDS) out[f] = !!(c[f] && keys[c[f]])   // unbound key ("") → always false
+  return out
+}
+
+// Playback inverse (Stage 11C): drive `keys` from a decoded raw-input object for a replayed fighter.
+export function writeRawControls(fighter, raw) {
+  if (!fighter || !fighter.controls || !raw) return
+  const c = fighter.controls
+  for (const f of REPLAY_INPUT_FIELDS) { const k = c[f]; if (k) keys[k] = !!raw[f] }
 }
 
 // ─────────────────────────────────────────────────────────────────

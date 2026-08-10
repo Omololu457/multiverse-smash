@@ -15,8 +15,10 @@ import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
-  clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount, getPlayerGamepad
+  clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount, getPlayerGamepad,
+  readRawControls, writeRawControls
 } from "./input.js"
+import * as replay from "./replay.js"   // Stage 11B: input recording (replay foundation)
 import {
   activeSummons,
   updateSummons as updateActiveSummons,
@@ -768,6 +770,16 @@ const matchConfig = {
 // instead of a fresh makeSeed(). Null in all normal play (every match gets a fresh seed). Replay
 // playback (11B) and determinism tests set it to reproduce an exact match.
 let _forcedSeed = null
+
+// Stage 11B: replay recording state. _replayFrame is the 0-based battle-frame index (resets per match,
+// advances only on real battle frames); _lastReplay holds the finalized replay of the most recent match
+// (for the victory-screen "Save Replay" in 11D / the harness). Recording runs for the standard
+// two-fighter modes only — FFA (N fighters, different input model) and AI-vs-AI (fully seed-reproducible)
+// are skipped.
+let _replayFrame = 0
+let _lastReplay  = null
+const RECORDED_MODES = new Set(["vs", "pvp", "tower", "training"])
+function shouldRecordMatch() { return !!(p1 && p2) && RECORDED_MODES.has(matchConfig.mode) }
 
 // Apply a selected skin's complete animationData (own + borrowed) + display scale
 // onto a fighter. null skinAnim = the character's default art. Per-fighter, so a
@@ -2266,6 +2278,19 @@ function startMatch() {
   preloadMatch(matchConfig)
 
   resetRound()
+
+  // Stage 11B: begin recording this match's inputs (p1/p2 now exist). Delta-encoded from the seed +
+  // roster + stage, this is a full replay. Standard two-fighter modes only (see shouldRecordMatch).
+  _replayFrame = 0
+  if (shouldRecordMatch()) {
+    replay.startRecording({
+      seed: matchConfig.seed, mode: matchConfig.mode, rounds: MAX_ROUNDS,
+      p1Char: matchConfig.p1CharKey, p1Skin: matchConfig.p1Skin,
+      p2Char: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin,
+      stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null
+    })
+  } else { replay.abortRecording() }
+
   beginNamecallSequence()   // pre-countdown P1→P2 character announcement (skipped if unmapped)
   matchIntroTimer = 90
   gameState       = GAME_STATES.INTRO
@@ -2717,6 +2742,8 @@ function _checkMatchOver() {
     _matchOverride = null   // one-shot: consume so it can't re-fire
     const winner = forced ? forced.winnerSide
       : roundWins.p1 > roundWins.p2 ? "p1" : roundWins.p2 > roundWins.p1 ? "p2" : "draw"
+    // Stage 11B: match over → finalize the replay (kept for the victory-screen "Save Replay" / harness).
+    if (replay.isRecording()) { _lastReplay = replay.finishRecording(); if (_lastReplay) _lastReplay.winner = winner }
     victoryState.active     = true
     victoryState.fadeAlpha  = 0
     victoryState.winnerSide = winner
@@ -5807,6 +5834,15 @@ function updateBattle() {
   updateCPUInput()
   updateGamepadEdges(p1)   // controller players: feed motion history + double-tap + L2 tap-toggle
   updateGamepadEdges(p2)
+
+  // Stage 11B: record this battle frame's RAW inputs for both fighters (delta-encoded). Placed AFTER
+  // AI (updateCPUInput) + gamepad edges have written into `keys`, BEFORE combat consumes them — so the
+  // snapshot is exactly the input this frame acts on. (Playback, 11C, will WRITE keys here instead.)
+  if (replay.isRecording()) {
+    replay.recordInputs(_replayFrame, replay.encodeInput(readRawControls(p1)), replay.encodeInput(readRawControls(p2)))
+  }
+  _replayFrame++
+
   updateFacing()
 
   // DOMAIN CINEMATIC: on a new Gojo/Sukuna domain, freeze combat (hitstop-style)
@@ -8246,6 +8282,18 @@ gameLoop()
       reseed:         (v) => reseedRng(v),                  // reseed the live stream directly (unit-test the PRNG)
       draw:           (n = 1) => Array.from({ length: n }, () => gameRng.next()),  // pull n values from the stream
       currentSeed:    () => gameRng.seed
+    },
+    // ── STAGE 11B replay-recording hooks ────────────────────────────────────────
+    replay: {
+      recording:  () => replay.isRecording(),
+      current:    () => replay.getRecording(),          // live snapshot of the in-progress recording
+      last:       () => _lastReplay,                    // finalized replay of the most recent finished match
+      frame:      () => _replayFrame,                   // current battle-frame index
+      rawMask:    (who = "p1") => replay.encodeInput(readRawControls(who === "p2" ? p2 : p1)),
+      rawInput:   (who = "p1") => readRawControls(who === "p2" ? p2 : p1),
+      encode:     (raw) => replay.encodeInput(raw),
+      decode:     (mask) => replay.decodeInput(mask),
+      balanceStamp: () => replay.BALANCE_STAMP
     },
     // Center point of a GAMEPLAY_SELECT button by id — so menu-click tests stay correct when the
     // menu gains/loses rows (the vertical layout re-centers all rows on any count change).

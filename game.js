@@ -153,6 +153,7 @@ import {
   drawImageFit   // shared aspect-ratio-preserving image fitter (portraits never stretch/squash)
 } from "./ui.js"
 import { CREDITS, SOURCED_ART, artistLineForCharacter, allAttributedKeys } from "./credits.js"
+import { poolAcquire, poolRelease, poolStats, poolResetStats } from "./pool.js"
 import { createAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, isFileApiSupported, hasPersistedData, persistence, setSnapshotDecorator,
   initSaveServerTier, isSaveServerAvailable, reattachStoredHandle, reconnectSaveFile, needsReconnect, saveFileStatus, exportSaveText, exportSaveFilename, importSaveText } from "./account.js"
 import {
@@ -6088,23 +6089,26 @@ function applyGojoInfinityBarrier(gojo, target) {
 function spawnDamageNumber(spark) {
   if (!spark || spark.damage == null) return
   const colorMap = { light: "#ffffff", heavy: "#fbbf24", special: "#f97316", ultimate: "#ef4444" }
-  damageNumbers.push({
-    x: spark.x, y: spark.y,
-    text:     String(Math.round(spark.damage || 0)),
-    color:    colorMap[spark.category || "light"] || "#ffffff",
-    timer:    45, maxTimer: 45, opacity: 1,
-    vy:       -1.2, fontSize: 22
-  })
+  const d = poolAcquire("dmg")   // Stage 22C: reuse a recycled damage-number instead of allocating
+  d.x = spark.x; d.y = spark.y
+  d.text = String(Math.round(spark.damage || 0))
+  d.color = colorMap[spark.category || "light"] || "#ffffff"
+  d.timer = 45; d.maxTimer = 45; d.opacity = 1
+  d.vy = -1.2; d.fontSize = 22
+  damageNumbers.push(d)
 }
 
 function updateDamageNumbers() {
-  for (let i = damageNumbers.length - 1; i >= 0; i--) {
+  // Stage 22C: single-pass COMPACTION (O(n), order preserved) — expired numbers are RECYCLED to the
+  // pool instead of spliced-per-item (O(n²)) and dropped to GC. Many expire together after a burst.
+  let w = 0
+  for (let i = 0; i < damageNumbers.length; i++) {
     const d = damageNumbers[i]
-    d.y    -= 1.2
-    d.timer--
-    d.opacity = d.timer / d.maxTimer
-    if (d.timer <= 0) damageNumbers.splice(i, 1)
+    d.y -= 1.2; d.timer--; d.opacity = d.timer / d.maxTimer
+    if (d.timer <= 0) { poolRelease("dmg", d); continue }   // expired → recycle + drop
+    damageNumbers[w++] = d                                   // keep → compact
   }
+  damageNumbers.length = w
 }
 
 function updateComboDisplay(fighter, side) {
@@ -6123,7 +6127,10 @@ function updateEffectsAndDomains() {
   updateDomains([p1, p2].filter(Boolean), hitSparks)
   updateEffects()
   updateEnergyRegen([p1, p2].filter(Boolean))
-  for (let i = hitSparks.length - 1; i >= 0; i--) {
+  // Stage 22C: forward COMPACTION (order + fresh-spark side effects preserved) — expired sparks are
+  // RECYCLED to the pool instead of spliced-per-item and GC'd. Ultimates spawn dozens at once.
+  let _sw = 0
+  for (let i = 0; i < hitSparks.length; i++) {
     const spark = hitSparks[i]
     if (spark?._fresh !== false) {
       spark.maxTimer = spark.maxTimer || spark.timer
@@ -6151,8 +6158,10 @@ function updateEffectsAndDomains() {
       spark._fresh = false
     }
     spark.timer--
-    if (spark.timer <= 0) hitSparks.splice(i, 1)
+    if (spark.timer <= 0) { poolRelease("spark", spark); continue }   // expired → recycle + drop
+    hitSparks[_sw++] = spark                                          // keep → compact
   }
+  hitSparks.length = _sw
   updateDamageNumbers()
   updateComboDisplay(p1, "p1")
   updateComboDisplay(p2, "p2")
@@ -8541,10 +8550,12 @@ function _drawDebugOverlay() {
   for (let i = 0; i < _frameMsFilled; i++) { const v = _frameMs[i]; sum += v; if (v > max) max = v }
   const avg = _frameMsFilled ? sum / _frameMsFilled : 0
   const summons = (typeof activeSummons !== "undefined" ? activeSummons.length : 0)
+  const ps = poolStats()._totals
   const lines = [
     `FPS ${_fps.toFixed(0)}   frame ${avg.toFixed(2)}ms avg / ${max.toFixed(2)}ms max (120f)`,
     `draw calls ${_drawCallsShown}   images ${loadedSheetCount()}`,
-    `projectiles ${activeProjectiles.length}   summons ${summons}   fx ${hitSparks.length}   dmg# ${damageNumbers.length}`
+    `projectiles ${activeProjectiles.length}   summons ${summons}   fx ${hitSparks.length}   dmg# ${damageNumbers.length}`,
+    `pool: ${ps.reuses} reused / ${ps.allocs} alloc   free ${ps.free}   (Stage 22C)`
   ]
   ctx.save()
   ctx.font = "12px monospace"; ctx.textAlign = "left"; ctx.textBaseline = "top"
@@ -9796,7 +9807,8 @@ gameLoop()
     // ── PROFILING (Stage 22D) ─────────────────────────────────────────────────
     perf: () => ({ debugOverlay: _debugOverlay, loadedImages: loadedSheetCount(),
       projectiles: activeProjectiles.length, summons: (typeof activeSummons !== "undefined" ? activeSummons.length : 0),
-      fx: hitSparks.length, dmgNumbers: damageNumbers.length, drawCalls: _drawCallsShown }),
+      fx: hitSparks.length, dmgNumbers: damageNumbers.length, drawCalls: _drawCallsShown, pool: poolStats() }),
+    poolResetStats: () => { poolResetStats(); return poolStats() },   // Stage 22C: reset counters before a burst measurement
     markArcadeCleared: (key = "gojo") => { setArcadeCleared(key, true); return getArcadeCleared() },   // test-only shortcut for the gate (real flow proven in arcade.test)
     victoryUnlocks: () => ({ chars: victoryState?.charUnlocks || [], leveledUp: !!victoryState?.xpResult?.leveledUp, level: victoryState?.xpResult?.level ?? null }),
     // Sample the Rick voice-pool randomizer N times (the SAME pickRickVoice used by every wired

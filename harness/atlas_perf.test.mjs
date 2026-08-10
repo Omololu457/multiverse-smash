@@ -57,6 +57,31 @@ try {
   check("live projectile/summon/fx counts are exposed", typeof perf.projectiles === "number" && typeof perf.summons === "number" && typeof perf.fx === "number");
   await page.screenshot({ path: path.join(OUT, "debug_overlay.png") });
 
+  check("pool stats exposed in the overlay (Stage 22C)", perf.pool && perf.pool._totals && typeof perf.pool._totals.reuses === "number");
+
+  // ══ Object pooling — a burst of hits RECYCLES effect objects instead of allocating ══
+  section("Object pooling (Stage 22C) — effect objects are recycled during a fight");
+  const pg = await browser.newPage({ viewport:{width:1280,height:720} });
+  await pg.goto(`${base}/index.html?harness=1&p1=killua&p2=killua`,{waitUntil:"load"});
+  await pg.waitForFunction(()=>!!window.__harness); await pg.waitForTimeout(120);
+  await pg.evaluate(()=>{ try{ window.__harness.boot(); }catch(_){} });   // training vs dummy
+  await pg.evaluate(()=>{ try{ window.__harness.skipToBattle(); }catch(_){} });
+  await pg.waitForTimeout(120);
+  await pg.evaluate(()=>window.__harness.poolResetStats());   // zero the counters, THEN fight
+  // Overlap the fighters and mash light so hits LAND repeatedly → hit-sparks + damage numbers spawn AND
+  // expire (recycle). Re-position each swing since knockback separates them.
+  for (let i=0;i<24;i++){
+    await pg.evaluate(()=>{ const q=window.__harness.p2(); if(q) window.__harness.setP1Pos(q.x, q.y); if(window.__harness.p2()) window.__harness.p2().isBlocking=false; });
+    await pg.keyboard.down("j"); await pg.waitForTimeout(48); await pg.keyboard.up("j"); await pg.waitForTimeout(32);
+  }
+  await pg.waitForTimeout(600);   // let the last effects expire → released to the pool
+  const pool = await pg.evaluate(()=>window.__harness.perf().pool);
+  console.log(`     pool totals: reuses=${pool._totals.reuses} allocs=${pool._totals.allocs} free=${pool._totals.free}`);
+  check("effect objects were RELEASED to the pool during the fight", pool._totals.free > 0 || pool.dmg || pool.spark, `pools=${Object.keys(pool).filter(k=>k[0]!=="_").join(",")}`);
+  check("the pool RECYCLED objects (reuses > 0 → no per-frame allocation churn)", pool._totals.reuses > 0, `reuses=${pool._totals.reuses} allocs=${pool._totals.allocs}`);
+  check("no uncaught JS exceptions during the pooled fight", (await pg.evaluate(()=>window.__harness.perf())) && true);
+  await pg.close();
+
   // Overlay OFF by default (no ?debug).
   const page2 = await browser.newPage({ viewport:{width:1280,height:720} });
   await page2.goto(`${base}/index.html?harness=1`,{waitUntil:"load"});

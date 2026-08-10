@@ -2240,6 +2240,29 @@ function preloadMatch(cfg) {
   return _preloadPromise
 }
 
+// Stage 11C: start REPLAYING a recorded match. Validates (reject-on-mismatch), forces the recorded
+// roster/skins/mode + seed, then runs startMatch with playback armed — updateBattle drives input from
+// the replay instead of live keys, and verifies state against the recorded checkpoints (desync check).
+// Returns { ok } or { ok:false, reason }.
+function beginReplayPlayback(rep) {
+  const v = replay.validateReplay(rep)
+  if (!v.ok) { console.warn("[replay] refused:", v.reason); return { ok: false, reason: v.reason } }
+  if (rep.p1Char && characters[rep.p1Char]) { matchConfig.p1CharKey = rep.p1Char; matchConfig.p1Char = characters[rep.p1Char] }
+  if (rep.p2Char && characters[rep.p2Char]) { matchConfig.p2CharKey = rep.p2Char; matchConfig.p2Char = characters[rep.p2Char] }
+  matchConfig.p1Skin = rep.p1Skin || "default"
+  matchConfig.p2Skin = rep.p2Skin || "default"
+  if (rep.mode) matchConfig.mode = rep.mode
+  _forcedSeed = (rep.seed >>> 0)     // reproduce the exact gameplay RNG stream (Kamui etc.)
+  replay.startPlayback(rep)          // arm playback BEFORE startMatch so its recording block suppresses
+  startMatch()
+  _forcedSeed = null                 // seed already consumed + stamped; don't leak into a later match
+  return { ok: true }
+}
+
+// Round [x,y,energy] to 4dp for float-noise-safe state checkpoints (health is an integer). Shared by
+// the recorder and playback so their snapshots are directly comparable.
+function _replaySnap(f) { const r = v => Math.round((v || 0) * 1e4) / 1e4; return f ? [r(f.x), r(f.y), f.health, r(f.energy)] : [0, 0, 0, 0] }
+
 function startMatch() {
   sound.stopAllSfx?.({ includePersistent: true })   // new match → no cue from a prior match/menu bleeds in
   // Stage 11A: seed the gameplay RNG for THIS match before anything rolls (AI setup runs in resetRound
@@ -2279,10 +2302,13 @@ function startMatch() {
 
   resetRound()
 
-  // Stage 11B: begin recording this match's inputs (p1/p2 now exist). Delta-encoded from the seed +
-  // roster + stage, this is a full replay. Standard two-fighter modes only (see shouldRecordMatch).
+  // Stage 11B/11C: recording vs playback. During PLAYBACK (beginReplayPlayback already called
+  // startPlayback) we do NOT record — the input is driven from the replay. Otherwise begin recording
+  // this match's inputs (p1/p2 now exist), delta-encoded from the seed + roster + stage → a full replay.
   _replayFrame = 0
-  if (shouldRecordMatch()) {
+  if (replay.isPlayback()) {
+    replay.abortRecording()
+  } else if (shouldRecordMatch()) {
     replay.startRecording({
       seed: matchConfig.seed, mode: matchConfig.mode, rounds: MAX_ROUNDS,
       p1Char: matchConfig.p1CharKey, p1Skin: matchConfig.p1Skin,
@@ -5835,11 +5861,17 @@ function updateBattle() {
   updateGamepadEdges(p1)   // controller players: feed motion history + double-tap + L2 tap-toggle
   updateGamepadEdges(p2)
 
-  // Stage 11B: record this battle frame's RAW inputs for both fighters (delta-encoded). Placed AFTER
-  // AI (updateCPUInput) + gamepad edges have written into `keys`, BEFORE combat consumes them — so the
-  // snapshot is exactly the input this frame acts on. (Playback, 11C, will WRITE keys here instead.)
-  if (replay.isRecording()) {
+  // Stage 11B/11C: replay input at the SAME per-frame point (after AI + gamepad wrote `keys`, before
+  // combat consumes them). PLAYBACK overwrites keys from the recorded masks; otherwise RECORD the raw
+  // masks (delta-encoded). Then, every HASH_INTERVAL frames, checkpoint both fighters' state — the
+  // recorder stores it, playback compares it (desync check → first divergent frame).
+  if (replay.isPlayback()) {
+    const m = replay.playbackMaskAt(_replayFrame)
+    if (m) { writeRawControls(p1, replay.decodeInput(m.p1)); writeRawControls(p2, replay.decodeInput(m.p2)) }
+    if (_replayFrame % replay.HASH_INTERVAL === 0) replay.playbackCheckState(_replayFrame, _replaySnap(p1), _replaySnap(p2))
+  } else if (replay.isRecording()) {
     replay.recordInputs(_replayFrame, replay.encodeInput(readRawControls(p1)), replay.encodeInput(readRawControls(p2)))
+    if (_replayFrame % replay.HASH_INTERVAL === 0) replay.recordState(_replayFrame, _replaySnap(p1), _replaySnap(p2))
   }
   _replayFrame++
 
@@ -8293,7 +8325,14 @@ gameLoop()
       rawInput:   (who = "p1") => readRawControls(who === "p2" ? p2 : p1),
       encode:     (raw) => replay.encodeInput(raw),
       decode:     (mask) => replay.decodeInput(mask),
-      balanceStamp: () => replay.BALANCE_STAMP
+      balanceStamp: () => replay.BALANCE_STAMP,
+      // ── 11C playback ──
+      stopAndGet:    () => replay.finishRecording(),       // finalize the in-progress recording → replay obj
+      validate:      (rep) => replay.validateReplay(rep),
+      play:          (rep) => beginReplayPlayback(rep),     // start playing a replay back
+      isPlayback:    () => replay.isPlayback(),
+      playbackState: () => replay.playbackState(),
+      stopPlayback:  () => replay.stopPlayback()
     },
     // Center point of a GAMEPLAY_SELECT button by id — so menu-click tests stay correct when the
     // menu gains/loses rows (the vertical layout re-centers all rows on any count change).

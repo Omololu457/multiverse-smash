@@ -13,6 +13,7 @@
  */
 
 import { physics } from "./physics.js"
+import { poolAcquire } from "./pool.js"   // Stage 22C: recycle hit-spark objects (spawned in bursts during ultimates)
 import { sound, SFX } from "./sound.js"
 import { pickRickVoice } from "./rickVoice.js"
 import { pickKilluaVoice } from "./killuaVoice.js"
@@ -615,7 +616,7 @@ function shouldGhostfaceJillCounter(defender, attacker, hitSparks) {
   defender.attackCooldown = 0
   const mx = ((attacker.x + attacker.w / 2) + (defender.x + defender.w / 2)) / 2
   const my = ((attacker.y + attacker.h / 2) + (defender.y + defender.h / 2)) / 2
-  if (Array.isArray(hitSparks)) hitSparks.push({ x: mx, y: my, timer: 20, maxTimer: 20, category: "parry", color: "#e0457b", lines: 12, radius: 30 })
+  if (Array.isArray(hitSparks)) hitSparks.push(Object.assign(poolAcquire("spark"), { x: mx, y: my, timer: 20, maxTimer: 20, category: "parry", color: "#e0457b", lines: 12, radius: 30 }))
   return true
 }
 
@@ -1722,7 +1723,7 @@ export function checkParry(defender, attacker, hitSparks) {
   const my = ((attacker.y + attacker.h / 2) + (defender.y + defender.h / 2)) / 2
 
   if (Array.isArray(hitSparks)) {
-    hitSparks.push({
+    hitSparks.push(Object.assign(poolAcquire("spark"), {
       x: mx,
       y: my,
       timer: 20,
@@ -1731,7 +1732,7 @@ export function checkParry(defender, attacker, hitSparks) {
       color: "#38bdf8",
       lines: 12,
       radius: 32
-    })
+    }))
   }
 
   try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
@@ -1791,7 +1792,7 @@ export function checkClash(p1, p2, hitSparks, camera) {
   const my = ((p1.y + p1.h / 2) + (p2.y + p2.h / 2)) / 2
 
   if (Array.isArray(hitSparks)) {
-    hitSparks.push({
+    hitSparks.push(Object.assign(poolAcquire("spark"), {
       x: mx,
       y: my,
       timer: 25,
@@ -1800,7 +1801,7 @@ export function checkClash(p1, p2, hitSparks, camera) {
       color: "#ffffff",
       lines: 20,
       radius: 48
-    })
+    }))
   }
 
   try { camera?.shake?.(12, 10) } catch (_) {}
@@ -2146,7 +2147,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
 
     if (Array.isArray(hitEffects)) {
-      hitEffects.push({
+      hitEffects.push(Object.assign(poolAcquire("spark"), {
         x: hitbox.x + hitbox.w / 2,
         y: hitbox.y + hitbox.h / 2,
         timer: 8,
@@ -2161,7 +2162,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
         blocked: true,
         lines: 6,
         radius: 14
-      })
+      }))
     }
   } else {
     // BOSS SUPER-ARMOR (Stage 20): the arcade boss shrugs off LIGHT attacks — a hit whose move damage
@@ -2367,7 +2368,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       (cat === "heavy" || atk.launcher || atk.spike) ? 18 : 10
 
     if (Array.isArray(hitEffects)) {
-      hitEffects.push({
+      hitEffects.push(Object.assign(poolAcquire("spark"), {
         x: hitbox.x + hitbox.w / 2,
         y: hitbox.y + hitbox.h / 2,
         timer: persist,
@@ -2382,7 +2383,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
         moveName: atk.name || null,
         attackerSide: attacker.side || null,
         blocked: false
-      })
+      }))
     }
 
     if (Array.isArray(damageNumbers)) {
@@ -2789,7 +2790,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       }
 
       if (Array.isArray(hitEffects)) {
-        hitEffects.push({
+        hitEffects.push(Object.assign(poolAcquire("spark"), {
           x: proj.x,
           y: proj.y,
           timer: 14,
@@ -2803,7 +2804,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
           moveName: proj.name || "projectile",
           attackerSide: proj.ownerId || proj.owner?.side || null,
           blocked: !!fighter.isBlocking
-        })
+        }))
       }
 
       if (Array.isArray(damageNumbers)) {

@@ -5,6 +5,7 @@
 import { characters } from "./characters.js"
 import { moveset }    from "./moveset.js"
 import { sound }      from "./sound.js"
+import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
 import { pickItachiVoice } from "./itachiVoice.js"   // Itachi cast voice lines (audio-only)
 import { activateDomain } from "./domains.js"   // domains.js doesn't import abilities.js → no cycle
 import { activateKuramaUltimate } from "./kurama.js"   // Naruto ult cinematic (kurama.js imports neither → no cycle)
@@ -8244,8 +8245,8 @@ function fireTobiKamuiGrab(fighter, context) {
     const maxX   = Math.max(0, worldW - dw)
     const cur    = target.x
     let destX = cur < worldW * 0.5
-      ? worldW * 0.55 + Math.random() * (maxX - worldW * 0.55)   // grabbed left → warp far right
-      : Math.random() * (worldW * 0.45)                          // grabbed right → warp far left
+      ? worldW * 0.55 + gameRng.next() * (maxX - worldW * 0.55)   // grabbed left → warp far right
+      : gameRng.next() * (worldW * 0.45)                          // grabbed right → warp far left
     destX = Math.max(0, Math.min(maxX, destX))
     fighter._grabTeleport    = { destX, dropH: 44 }              // combat.updateGrab reads this at release (per-instance)
     fighter._spriteCastMove  = "tobiKamuiActivate"
@@ -8491,8 +8492,8 @@ function fireObitoKamuiGrab(fighter, context) {
     // Random FAR point — always the OPPOSITE half of the stage from where they were grabbed, so it's a
     // genuine full-screen displacement (never a token nudge).
     let destX = cur < worldW * 0.5
-      ? worldW * 0.55 + Math.random() * (maxX - worldW * 0.55)   // grabbed on the left → warp far right
-      : Math.random() * (worldW * 0.45)                          // grabbed on the right → warp far left
+      ? worldW * 0.55 + gameRng.next() * (maxX - worldW * 0.55)   // grabbed on the left → warp far right
+      : gameRng.next() * (worldW * 0.45)                          // grabbed on the right → warp far left
     destX = Math.max(0, Math.min(maxX, destX))
     fighter._grabTeleport    = { destX, dropH: 44 }              // ← combat.updateGrab reads this at release
     fighter._spriteCastMove  = "obitoTeleport"                   // Kamui grab pose (reuse the blink art)

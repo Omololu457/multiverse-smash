@@ -8,6 +8,7 @@ import { isFullyUnlocked } from "./progression.js"
 import { artistLineForCharacter, CREDITS } from "./credits.js"
 import { isFileApiSupported, saveFileStatus } from "./account.js"
 import { countShadowClones } from "./summons.js"
+import { COMBO_BREAKER } from "./combat.js"   // universal combo-break resource — HUD pips read stocksPerRound
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
 // Display-only (HUD energy-bar label) — no mechanics/costs read from this. Rick keeps his explicit
@@ -40,8 +41,8 @@ export function resolveEnergyLabel(fighter) {
 }
 
 // NO-METER FLAVOR LABEL: a fighter with energyType "none" has no energy pool, so instead of an empty
-// generic "ENERGY" panel we show a lore-appropriate resource name keyed by universe. Toji (JJK)
-// canonically have no cursed energy → "HEAVENLY RESTRICTION"; Rengoku/Zenitsu (Demon Slayer) fight on
+// generic "ENERGY" panel we show a lore-appropriate resource name keyed by universe. Maki (JJK)
+// canonically has no cursed energy → "HEAVENLY RESTRICTION"; Rengoku/Zenitsu (Demon Slayer) fight on
 // breathing, not an energy meter → "TOTAL CONCENTRATION". A universe absent here (or a fighter that DOES
 // have energy — Omni-Man's "Smart Atoms" etc.) returns null and keeps the normal meter. Display-only.
 const NO_METER_FLAVOR = {
@@ -257,6 +258,26 @@ function drawBackdrop(ctx, canvas, top = "#070d1b", bottom = "#17243f") {
 // the roster count — no hardcoded visible-row count), so it self-corrects as the roster grows/shrinks.
 // Canonical layout opts for the shared character-card grid (char select, Edo vessel pick, FFA pick).
 export const CHAR_GRID_OPTS = { cols: 4, cardW: 220, cardH: 110, gap: 18, startY: 148, bottomMargin: 88, scrollKey: "chars" }
+
+// SELECT-DEPTH detail panel (Stage 23) — ONE source of truth for its rect so the draw AND the grid's
+// scroll math agree on where it sits. Fixed band near the lower-middle, clamped up on short screens.
+const SELECT_DETAIL_H = 216, SELECT_DETAIL_GAP = 14
+export function getSelectDetailRect(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return { x: 40, y: Math.min(410, h - 250), w: w - 80, h: SELECT_DETAIL_H }
+}
+// Grid opts for the MAIN character-select. When the detail panel is showing it overlays the lower half
+// of the screen, so the grid must reserve that band: without this the scroll math counts the panel's
+// area as visible, wrongly concludes "everything fits" (maxOffset 0 → no scrollbar), and the bottom
+// rows render behind the panel UNREACHABLE — the bug once the roster grows past 2 rows. Reserving the
+// band shrinks the viewport so those rows scroll up into the clear area above the panel. Pass
+// withDetail=false (Edo vessel-pick / anything without the panel) to get the full-height opts unchanged.
+export function charSelectGridOpts(canvas, withDetail) {
+  if (!withDetail) return CHAR_GRID_OPTS
+  const { height: h } = getCanvasSize(canvas)
+  const d = getSelectDetailRect(canvas)
+  return { ...CHAR_GRID_OPTS, bottomMargin: h - d.y + SELECT_DETAIL_GAP }   // viewBottom = panel top − gap
+}
 
 const _gridScroll = new Map()   // scrollKey -> offset px (>= 0; scrolls content UP)
 
@@ -647,9 +668,9 @@ export function getUniverseCardRects(canvas, universes = []) {
   return getGridLayout(universes.length, canvas, { cols: 3, cardW: 300, cardH: 110, gap: 24, startY: 150 })
 }
 
-export function getCharacterCardRects(canvas, roster = []) {
+export function getCharacterCardRects(canvas, roster = [], opts = CHAR_GRID_OPTS) {
   roster = normalizeToArray(roster)
-  return getGridLayout(roster.length, canvas, CHAR_GRID_OPTS)   // scroll-aware (scrollKey "chars")
+  return getGridLayout(roster.length, canvas, opts)   // scroll-aware (scrollKey "chars"); opts reserves the detail panel on main select
 }
 
 export function getStageCardRects(canvas, stages = []) {
@@ -1472,9 +1493,14 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
     return
   }
 
-  const rects = getCharacterCardRects(canvas, roster)
+  // When the SELECT-DEPTH detail panel is showing it overlays the lower half of the screen; the grid
+  // then reserves that band (smaller viewport → correct scroll math) so no card hides behind it and the
+  // bottom rows stay reachable. Every consumer here (layout, clip, scrollbar) uses the SAME opts.
+  const withDetail = !!(options.detailKit && options.detailChar)
+  const gridOpts = charSelectGridOpts(canvas, withDetail)
+  const rects = getCharacterCardRects(canvas, roster, gridOpts)
   // Clip the cards to the scrollable viewport band so scrolled rows never overdraw the header/footer.
-  const vp = getGridViewport(canvas, CHAR_GRID_OPTS)
+  const vp = getGridViewport(canvas, gridOpts)
   ctx.save()
   ctx.beginPath(); ctx.rect(0, vp.top - 2, w, (vp.bottom - vp.top) + 4); ctx.clip()
   roster.forEach((fighter, i) => {
@@ -1555,16 +1581,17 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   })
   ctx.restore()
 
-  const bar = getGridScrollbar(roster.length, canvas, CHAR_GRID_OPTS)
+  const bar = getGridScrollbar(roster.length, canvas, gridOpts)
   drawGridScrollbar(ctx, bar)
   if (options.lockMsg) {   // Stage 21: transient "X — Reach Level N" after clicking a locked card
     drawCenteredText(ctx, `🔒 ${options.lockMsg}`, w / 2, h - 58, { font: "700 15px Arial", fill: "#ffd68c" })
   }
-  // SELECT DEPTH (Stage 23): stat bars + archetype + move preview for the hovered fighter. Per-universe
-  // rosters are ≤2 rows, so the lower half of the screen is free. Drawn only when the caller supplies a
-  // kit (main character-select) — the Edo vessel-pick reuses this function without it.
-  if (options.detailKit && options.detailChar) {
-    drawSelectDetail(ctx, 40, Math.min(410, h - 250), w - 80, 216, options.detailChar, options.detailKit)
+  // SELECT DEPTH (Stage 23): stat bars + archetype + move preview for the hovered fighter, in a fixed
+  // band over the lower-middle. The grid above reserves this band (see gridOpts) so rows never hide
+  // behind it. Drawn only when the caller supplies a kit — the Edo vessel-pick reuses this without one.
+  if (withDetail) {
+    const d = getSelectDetailRect(canvas)
+    drawSelectDetail(ctx, d.x, d.y, d.w, d.h, options.detailChar, options.detailKit)
   }
   drawFooterHint(ctx, canvas, options.randomHint || (bar ? "Click a fighter card to lock in  ·  scroll for more" : "Click a fighter card to lock in"))
 }
@@ -2281,6 +2308,25 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const fillX = flip ? x + 8 + barW - fillW : x + 8
     ctx.fillStyle = hpColor(ratio)
     rrect(ctx, fillX, hpY + 14, fillW, barH, 5); ctx.fill()
+
+    // BREAK-STOCK PIPS (universal combo-break resource): a small "BREAK" label + N pips in the panel's
+    // bottom strip — filled = a break available this round, hollow = spent. Drawn for EVERY fighter
+    // (including the meterless ones with no energy panel), so the resource is always visible.
+    const stotal = COMBO_BREAKER.stocksPerRound
+    const sleft  = Math.max(0, Math.min(stotal, fighter.comboBreakStocks ?? stotal))
+    const pipY   = hpY + 14 + barH + 7
+    const pipGap = 9, pipR = 3
+    ctx.textBaseline = "middle"; ctx.textAlign = flip ? "right" : "left"
+    ctx.font = "700 8px Arial"; ctx.fillStyle = "rgba(251,191,36,0.85)"
+    const edge = flip ? x + barW + 12 : x + 8
+    ctx.fillText("BREAK", edge, pipY)
+    for (let i = 0; i < stotal; i++) {
+      const pipX = flip ? edge - 38 - i * pipGap : edge + 38 + i * pipGap
+      ctx.beginPath(); ctx.arc(pipX, pipY, pipR, 0, Math.PI * 2)
+      ctx.fillStyle = i < sleft ? "#fbbf24" : "rgba(255,255,255,0.14)"; ctx.fill()
+      ctx.strokeStyle = "rgba(0,0,0,0.45)"; ctx.lineWidth = 1; ctx.stroke()
+    }
+    ctx.textBaseline = "alphabetic"
   }
 
   // BOSS HUD variant (Stage 20): when a fighter is an arcade boss, the human player keeps a normal
@@ -2573,32 +2619,6 @@ export function drawCountdown(ctx, canvas, countdown = 0) {
 // ─────────────────────────────────────────────
 // TRAINING OVERLAY (top-left, below health bar)
 // ─────────────────────────────────────────────
-// Toji 3-stance indicator — small text tag per Toji fighter so the current weapon stance
-// (Blade / Chain / Gun) is visually testable. `entries` = [{ label, stance }].
-export function drawStanceIndicator(ctx, canvas, entries = []) {
-  if (!Array.isArray(entries) || !entries.length) return
-  const cw = canvas?.width || window.innerWidth
-  const COLORS = { blade: "#7fd3ff", chain: "#facc15", gun: "#fb7185" }
-  ctx.save()
-  ctx.font = "700 16px Arial"
-  ctx.textAlign = "center"
-  ctx.textBaseline = "middle"
-  entries.forEach((e, i) => {
-    const y = 92 + i * 26
-    const txt = `${e.label}  STANCE: ${String(e.stance || "blade").toUpperCase()}`
-    const w = ctx.measureText(txt).width + 24
-    const x = cw / 2
-    ctx.fillStyle = "rgba(0,0,0,0.55)"
-    ctx.fillRect(x - w / 2, y - 12, w, 24)
-    ctx.strokeStyle = COLORS[e.stance] || "#fff"
-    ctx.lineWidth = 2
-    ctx.strokeRect(x - w / 2, y - 12, w, 24)
-    ctx.fillStyle = COLORS[e.stance] || "#fff"
-    ctx.fillText(txt, x, y + 1)
-  })
-  ctx.restore()
-}
-
 export function drawTrainingOverlay(ctx, canvas, info = {}) {
   const { width: w } = getCanvasSize(canvas)
 

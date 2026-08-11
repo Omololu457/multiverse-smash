@@ -49,7 +49,13 @@ async function waitFrames(n) {
   await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 });
 }
 async function waitGrounded() {
-  await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && Math.abs(p.vy) < 0.5; }, null, { timeout: 8000, polling: 16 }).catch(() => {});
+  // Wait for BOTH fighters to settle on the ground — the dummy included. Since MK-feel Stage 2a raised the
+  // launch height (-26), a launched dummy stays airborne noticeably longer, so a P1-only wait would let the
+  // next adjacent-setup run while the dummy is still up high (a follow-up air normal would then whiff).
+  await page.waitForFunction(() => {
+    const a = window.__harness.p1(), b = window.__harness.p2();
+    return a.grounded && Math.abs(a.vy) < 0.5 && b.grounded && Math.abs(b.vy) < 0.5;
+  }, null, { timeout: 8000, polling: 16 }).catch(() => {});
 }
 const p1 = () => page.evaluate(() => window.__harness.p1());
 const p2 = () => page.evaluate(() => window.__harness.p2());

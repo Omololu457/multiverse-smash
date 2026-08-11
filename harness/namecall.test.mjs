@@ -75,7 +75,7 @@ try {
     check("Gojo still fires (unmapped Sasuke skipped)", nc.beats.length === 1 && nc.beats[0].side === "p1" && nc.beats[0].roster === "gojo" && nc.beats[0].clip === "gojo_namecall.mp3", `beats=${JSON.stringify(nc.beats)}`);
   }
   {
-    const { nc } = await scenario("sasuke", "toji");
+    const { nc } = await scenario("sasuke", "maki");
     check("fully-unmapped pair → NO beats, silently inactive (no crash)", nc.beats.length === 0 && nc.active === false, `beats=${JSON.stringify(nc.beats)} active=${nc.active}`);
   }
 

@@ -145,7 +145,7 @@ export function isFullyUnlocked() { return _devUnlock || _betaUnlock }
 
 // Legacy JJK helpers — retained for save-file back-compat; no longer gate selection or
 // skins (beta's roster filter is now sprite-derived in game.js, not JJK-specific).
-export const JJK_ROSTER = ["gojo", "sukuna", "megumi", "toji"]
+export const JJK_ROSTER = ["gojo", "sukuna", "megumi"]
 export function isJJKKey(key) { return JJK_ROSTER.includes(String(key || "").toLowerCase()) }
 
 // Unified code entry. Returns "dev" | "beta" | null so the UI can show the right

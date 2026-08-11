@@ -19,6 +19,9 @@
 // draw()'s ctx.save()/restore() pair, so it auto-clears the moment the window ends and the copied
 // character (if later fought for real) renders normally everywhere else.
 const SKILL_HUNTER_TINT = "grayscale(0.4) sepia(1) hue-rotate(235deg) saturate(1.7) brightness(0.85)";
+// Toji Reincarnated Form (Stage 6) — a menacing crimson wash (no distinct form art exists), driven by
+// fighter._reincarnated (set on the 2nd comeback save OR a manual Super/X cast).
+const TOJI_REINCARNATED_TINT = "sepia(0.7) saturate(2.4) hue-rotate(-28deg) brightness(0.9)";
 
 // ─────────────────────────────────────────────────────────────────
 // OPTIONAL DEPENDENCY — animationProfile.js
@@ -150,6 +153,15 @@ const MOVE_TO_ACTION = {
   madaraWoodDragonCast:"madaraWoodDragonCast",// Madara (Stage 3): Mokuton Wood Dragon cast pose. Identity map.
   madaraTengaiCast:   "madaraTengaiCast",     // Madara (Stage 5): Perfect Susanoo / Tengai Shinsei cast pose. Identity map.
   madaraSusanooPunch: "madaraSusanooPunch",   // Madara (Stage 3): Susanoo Base Punch (Fwd+Heavy command-normal). Identity map.
+  // Pain (Stage 2): Fwd+Light command normal (painJab) + Fwd+Heavy 3-stage rekka (painCombo1→2→3).
+  // Identity maps (currentMove === action key) — explicit so a recovery tail never resolves to the fallback box.
+  painJab: "painJab", painCombo1: "painCombo1", painCombo2: "painCombo2", painCombo3: "painCombo3",
+  // Pain (Stage 3): gravity-special cast poses (_spriteCastMove). Identity maps so the cast tail never falls back.
+  painAlmightyPushCast: "painAlmightyPushCast", painAlmightyPullCast: "painAlmightyPullCast", painSuperPushCast: "painSuperPushCast",
+  // Pain (Stage 4): Dedera Double Attack cast + rise poses (_spriteCastMove, sequenced). Identity maps.
+  painDederaCast: "painDederaCast", painDederaRise: "painDederaRise",
+  // Pain (Stage 7): Chibaku Tensei ultimate cast pose (arms raised, _spriteCastMove). Identity map.
+  painChibakuCast: "painChibakuCast",
   obitoRod1: "obitoRod1",   // Obito (Stage 2): "Kamui Rod Combo" Fwd+Heavy rekka stages. Identity maps
   obitoRod2: "obitoRod2",   // (currentMove === action key) — explicit so a recovery/cast tail can never
   obitoRod3: "obitoRod3",   // resolve to the 128² fallback box.
@@ -763,6 +775,8 @@ export class SpriteHandler {
     if (_sheetReady(sheet)) {
       // Skill Hunter: wash the copied body in Chrollo's purple possession tint (see SKILL_HUNTER_TINT).
       if (fighter._shActive) ctx.filter = SKILL_HUNTER_TINT;
+      else if (fighter._reincarnated) ctx.filter = TOJI_REINCARNATED_TINT;   // Toji Reincarnated Form — crimson wash
+
       if ((fighter.facing ?? 1) === -1) {
         ctx.scale(-1, 1);
 
@@ -902,9 +916,15 @@ export class SpriteHandler {
   _drawBox(ctx, x, y, w, h, fighter) {
     const flash = (fighter.colorFlash || 0) > 0;
 
+    // MK-feel Stage 5 (Landmine 2): Toji's three stances are functionally DIFFERENT movesets that were
+    // only ever telegraphed by his sprites. Now that he can render as a procedural box, tint the box per
+    // stance so the three are visually distinguishable (paired with the HUD stance label in game.js).
+    const STANCE_TINT = { blade: "#4aa3df", chain: "#e0a145", gun: "#8a8f98" };
+    const stanceTint = fighter.weaponStance ? STANCE_TINT[fighter.weaponStance] : null;
+
     ctx.fillStyle = flash
       ? "#ffffff"
-      : (fighter.color || (fighter.side === "p1" ? "#3b82f6" : "#ef4444"));
+      : (stanceTint || fighter.color || (fighter.side === "p1" ? "#3b82f6" : "#ef4444"));
 
     _rrect(ctx, x, y, w, h, 12);
     ctx.fill();

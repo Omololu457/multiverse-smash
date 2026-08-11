@@ -23,6 +23,8 @@ import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./
 import { activateBen10OmnitrixCinematic, isBen10OmnitrixCinematicActive } from "./ben10OmnitrixCinematic.js"   // Ben 10 Omnitrix-transform ultimate cinematic (no cycle)
 import { activateMakiShibuyaCinematic, isMakiShibuyaCinematicActive } from "./makiShibuyaCinematic.js"   // Maki HP-threshold Shibuya-Arc transform cinematic (no cycle)
 import { activateMadaraTengaiShinseiCinematic, isMadaraTengaiShinseiCinematicActive } from "./madaraTengaiShinseiCinematic.js"   // Madara Perfect Susanoo / Tengai Shinsei meteor ultimate cinematic (TAP tier; no cycle)
+import { activatePainChibakuTenseiCinematic, isPainChibakuTenseiCinematicActive } from "./painChibakuTenseiCinematic.js"   // Pain Chibaku Tensei ultimate freeze-cinematic (cast → sphere growth → slam → ground effect)
+import { pickPainVoice } from "./painVoice.js"   // Pain per-technique cast + assist-call voice pools (audio-only, JA)
 import { activateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive } from "./batmanDarkKnightCinematic.js"   // Batman "The Dark Knight" batarang-barrage ultimate cinematic (no cycle)
 import { activateOmniManBodySlamCinematic, isOmniManBodySlamCinematicActive } from "./omnimanBodySlamCinematic.js"   // Omni-Man "Viltrumite Onslaught" body-slam ultimate cinematic (no cycle)
 import { activateSupermanUltimateCinematic, isSupermanUltimateCinematicActive } from "./supermanUltimateCinematic.js"   // Superman "Solar Overload" ultimate cinematic (no cycle)
@@ -38,7 +40,9 @@ import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
 import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./gonAdultFormCinematic.js"   // Gon Adult Form activation cinematic (no cycle; mirrors Godspeed)
 import { activateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive } from "./hisokaOverdriveCinematic.js"   // Hisoka Bloodlust Overdrive activation cinematic (no cycle; mirrors Godspeed)
-import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the ONE scaled-damage choke-point + the shared command-normal cancel gate (combat.js doesn't import abilities.js → no cycle)
+import { activateTojiReincarnationCinematic, isTojiReincarnationCinematicActive } from "./tojiReincarnationCinematic.js"   // Toji Reincarnated Form activation cinematic (no cycle; mirrors Overdrive/Godspeed)
+import { activateTojiFlyHeadsSwarm, isTojiFlyHeadsSwarmActive } from "./tojiFlyHeadsSwarm.js"   // Toji Fly Heads — dense screen-clutter vision-denial swarm overlay (0 damage; no cycle)
+import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue, startMove } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the ONE scaled-damage choke-point + the shared command-normal cancel gate + the normal-move starter (combat.js doesn't import abilities.js → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
@@ -59,6 +63,7 @@ import { pickSamuraiVoice } from "./samuraiRedVoice.js"         // Samurai Red R
 import { pickGoldSamuraiVoice } from "./goldSamuraiRangerVoice.js"   // Gold Samurai Ranger transform/barracuda/fox-claw cast voice pools (audio-only)
 import { pickVegetaVoice } from "./vegetaVoice.js"              // Vegeta Galick/BigBang/FinalFlash/ultimate cast voice pools (audio-only; shared across base/SSJ/Blue)
 import { pickMakiVoice } from "./makiVoice.js"                 // Maki kunai/nunchaku/powerCharge/shibuya-activation cast voice pools (audio-only, JP dub)
+import { pickTojiVoice } from "./tojiVoice.js"                 // Toji special-cast + two-stage-comeback cast voice pools (audio-only, EN+JA)
 import { pickYujiVoice } from "./yujiVoice.js"                 // Yuji cursed-energy cast + Black Flash ult voice pools (audio-only; EN+JA, JA active)
 import { pickMiwaVoice } from "./miwaVoice.js"                 // Miwa iaiDash/airVortex/ultimate cast voice pools (audio-only, JP dub)
 import { pickMadaraVoice } from "./madaraVoice.js"            // Madara per-technique cast voice pools (audio-only, JA — Katon/Gunbai/Mokuton/Susanoo/Tengai/Complete)
@@ -288,8 +293,7 @@ const BETA_SPECIAL_MOTIONS = {
   naruto: { F: ["D", "F"], B: ["D", "B"], U: ["B", "U"], D: ["D"] },                             // F=Clone Spawn · B=Clone Dispel · U=Pincer Rendan(sub) · D=Dark Rasengan · neutral=Rasengan
   minato: { F: ["D", "F"], B: ["D", "B"], U: ["B", "U"], N: ["B", "F"], D: ["D"] },               // F=Clone Spawn · B=Clone Dispel · U=Pincer Rendan(sub) · N=Clone Rush(sub, B→F avoids the dashTeleport F→F) · D=(S5) · neutral=Clone Barrage / (S4 Flying Raijin)
   megumi: { F: ["D", "F"], B: ["D", "B"], U: ["D", "U"], D: ["F", "D", "F"], N: ["B", "F"] },    // F=Divine Dogs · B=Max Elephant · U=Rabbit · D=Nue(sub) · neutral=Toad(sub)
-  toji:   { F: ["D", "F"], B: ["D", "B"], D: ["F", "F"] },                                       // F=Curse Spirit · B=Chain-Knife · D=Rapid Strike(sub) · neutral=Inventory Smash
-  sasuke: { F: ["D", "F"], B: ["D", "B"], D: ["D"] },                                            // F=Lightning · B=Chidori Koiten · D=Shuriken · neutral=Dash Strike
+  sasuke: { F: ["D", "F"], B: ["D", "B"], D: ["D"] },                                          // F=Lightning · B=Chidori Koiten · D=Shuriken · neutral=Dash Strike
   itachi: { F: ["D", "F"], B: ["D", "B"] },                                                       // (Mangekyou only) F=Amaterasu (QCF) · B=Genjutsu (QCB, hit-confirm) · neutral=Great Fireball
   rick:   { F: ["D", "F"], B: ["D", "B"], U: ["U"], D: ["D"] },                                  // F=Portal-Pull · B=Portal-Push · U=Rocket · D=Laser · neutral=Meeseeks
   goku_black: { F: ["D", "F"], B: ["D", "B"] },                                                  // F=Kamehameha (QCF) · B=Spirit Bomb (QCB) · neutral=Explosion (Stage 3b)
@@ -2865,315 +2869,6 @@ function executeOmoluUltimate(fighter, context) {
   return true
 }
 
-// ── TOJI ──────────────────────────────────────────────────────────
-// Specials: Inventory Smash (pure melee, no energy cost), Heavenly Restriction Dash
-// Ultimate: Heavenly Restriction — speed/damage surge, no energy needed
-// Toji has NO energy — all abilities cost 0 and rely on raw speed
-function executeToji_Special(fighter, context) {
-  const dirs = getRelativeDirections(fighter)
-  const getOpponent = getTargetResolver(context)
-  const target      = getOpponent(fighter)
-
-  // S,A+L (down→back) = CHAIN-KNIFE / Inverted Spear of Heaven. Movement tech, NO
-  // cursed energy. Sequenced animation: windup → extension (chain shoots out + hits)
-  // → retract → spin finisher (row 15 folded in). Checked first (longest motion).
-  if (endsWithPattern(dirs, ["D", "B"])) {
-    if ((fighter.chainCooldown || 0) > 0) return false
-    fighter.chainCooldown    = 96
-    fighter.attackCooldown   = getAttackDuration(64, fighter)   // committal
-    fighter._spriteCastMove  = "chain_windup"
-    fighter._spriteCastTimer = 14
-    schedulePendingSpawn(14, () => {                            // windup → extension
-      fighter._spriteCastMove  = "chain_extend"
-      fighter._spriteCastTimer = 18
-      spawnProjectile(fighter, "chainKnife", {                 // the chain shoots forward + hits
-        damage: 95, speed: 17, lifetime: 24,
-        hitstun: 22, knockbackX: 9, knockbackY: -2,
-        color: "#d1d5db", w: 44, h: 12
-      }, context)
-      shakeCamera(context, 6, 6)
-      schedulePendingSpawn(18, () => {                          // extension → retract
-        fighter._spriteCastMove  = "chain_retract"
-        fighter._spriteCastTimer = 18
-        schedulePendingSpawn(18, () => {                        // retract → spin (folded in)
-          fighter._spriteCastMove  = "chain_spin"
-          fighter._spriteCastTimer = 16
-        })
-      })
-    })
-    focusCameraOnAction(context, fighter, target, 0.95, 10)
-    return true
-  }
-
-  // S,A+F (down→forward, qcf) = CURSE SPIRIT — a FREE thrown creature projectile.
-  // Toji has NO cursed energy, so unlike a normal ki special this costs nothing; it's
-  // his cheap ranged poke. Uses the projectile sprite pipeline (curse_effect_2 = the
-  // clean 3-frame flying creature). Checked after D,B (chain) so the motions stay distinct.
-  if (endsWithPattern(dirs, ["D", "F"])) {
-    if ((fighter.attackCooldown || 0) > 0) return false
-    fighter.attackCooldown = getAttackDuration(20, fighter)   // brief commit / recast gate — NO energy spent
-    spawnProjectile(fighter, "curseSpirit", {
-      damage: 70, speed: 9, lifetime: 100,
-      hitstun: 18, knockbackX: 6, knockbackY: -2,
-      w: 40, h: 30,
-      sheet: "./toji_curse_effect_2.png", spriteFrames: 3,
-      spriteW: 24, spriteH: 22, spriteSpeed: 5, spriteScale: 2.4
-    }, context)
-    focusCameraOnAction(context, fighter, target, 0.98, 6)
-    return true
-  }
-
-  // F→F = Rapid dash strike — fast low damage
-  if (endsWithPattern(dirs, ["F", "F"])) {
-    const attack = createAttackFromMove(fighter, "rapidStrike", {
-      damage: 65, startup: 4, active: 4, recovery: 10,
-      hitstun: 14, knockbackX: 5, knockbackY: -1,
-      rangeX: 72, rangeY: 44
-    })
-    setAttackState(fighter, attack, 14)
-    fighter.vx = fighter.facing * 9  // anime-style speed burst
-    return true
-  }
-
-  // Default = Inventory Smash — powerful melee
-  const attack = createAttackFromMove(fighter, "inventorySmash", {
-    damage: 155, startup: 8, active: 5, recovery: 18,
-    hitstun: 26, knockbackX: 10, knockbackY: -3,
-    rangeX: 90, rangeY: 55
-  })
-  setAttackState(fighter, attack, 22)
-  fighter.vx = fighter.facing * 5
-  focusCameraOnAction(context, fighter, target, 0.98, 8)
-  shakeCamera(context, 8, 8)
-  return true
-}
-
-// Toji's teleport-dash follow-up: the quick strike fired the instant he blinks
-// behind the enemy (the blink/reposition is done by teleportBehindTarget in
-// game.js). Movement tech, NOT an energy special — no cursed-energy cost.
-export function tojiTeleportStrike(fighter) {
-  if (!fighter) return false
-  const attack = createAttackFromMove(fighter, "rapidStrike", {
-    damage: 60, startup: 3, active: 4, recovery: 10,
-    hitstun: 16, knockbackX: 5, knockbackY: -1,
-    rangeX: 78, rangeY: 46
-  })
-  setAttackState(fighter, attack, 12)
-  fighter.vx = fighter.facing * 4
-  return true
-}
-
-// Toji ultimate — no energy cost
-function executeToji_Ultimate(fighter, context) {
-  // Heavenly Restriction surge — temporary extreme speed + damage
-  fighter.isUltimateActive  = true
-  fighter.ultimateTimer     = 480  // 8 seconds
-  fighter.speedMultiplier   = (fighter.speedMultiplier || 1) * 1.8
-  fighter.damageMultiplier  = (fighter.damageMultiplier || 1) * 1.6
-  fighter.invulnTimer       = 30  // brief invulnerability on activation
-  fighter.teleportFlash     = 20
-  fighter.attackCooldown    = getAttackDuration(22, fighter)
-  shakeCamera(context, 14, 16)
-  focusCameraOnAction(context, fighter, null, 0.94, 18)
-  return true
-}
-
-// ─────────────────────────────────────────────────────────────────
-// TOJI — 3-STANCE WEAPON SYSTEM  (FOUNDATION / Phase 1 — placeholder content)
-// ─────────────────────────────────────────────────────────────────
-// Toji-ONLY for now (not a generic system). fighter.weaponStance ∈ blade|chain|gun.
-// INPUT: the CHARGE button (P) cycles the stance. Chosen because Toji's grab (throw),
-// special (chain/curse/rapid/inventory) and ultimate (Heavenly Restriction) slots are all
-// occupied, whereas charge is a genuine no-op for Toji (0 energy → no charge, base-only
-// transform → triggerTransformation returns false). CORE MECHANIC: a switch pressed during
-// an attack's RECOVERY phase CANCELS the recovery early (same state-clear as combat.js's
-// launcher-cancel) and swaps stance — so the player can act again after only
-// STANCE_SWITCH_FRAMES instead of sitting out the full recovery.
-export const TOJI_STANCES = ["blade", "chain", "gun"]
-const STANCE_SWITCH_FRAMES = 4   // near-instant switch cost (also the post-cancel gap)
-
-// ── GUN STANCE — real normals (Phase 4). RANGED: shots spawn projectiles (projectiles.js
-// pattern), NOT melee hitboxes. Per-hit damage is LOWER than melee (chip/pressure framing).
-//   5A snapShot — fast low-damage chip/pressure shot (planted). Fires a bullet projectile.
-//   5B aimedShot — FEINT: plays the aim pose (idk sprite has NO muzzle flash → reads as a
-//      fake-out), fires NO projectile, and is cancelable into a stance-switch via the Phase-1
-//      recovery-cancel. A bait.
-//   5C tracerRound — bigger commitment/reward: a heavy tracer with a HARD KNOCKBACK on hit
-//      (approximates the design's "hard knockdown"; a true knockdown-STATE/get-up is deferred —
-//      nothing in the engine currently triggers knockdownState, so it stays a strong blowback).
-const TOJI_GUN = {
-  snapShot:   { cast: 18, proj: { damage: 20, speed: 17, lifetime: 55, hitstun: 9,  knockbackX: 4,  knockbackY: 0,  w: 14, h: 8,  color: "#ffe066" } },
-  aimedShot:  { feint: true, startup: 6, active: 3, recovery: 16 },
-  tracerRound:{ cast: 24, proj: { damage: 42, speed: 19, lifetime: 60, hitstun: 20, knockbackX: 13, knockbackY: -8, w: 34, h: 10, color: "#ff5a5a" } }
-}
-
-// ── BLADE STANCE — real normals (Phase 2). Sword-character numbers (cf. moveset.js goku /
-// Toji basic_attacks: light 52 · heavy 96). Toji is a fast no-meter glass cannon, so these
-// skew fast/low-commit. Sprites are in characters.js animationData keyed by these move names.
-//   5A quickDraw  — fast low-damage starter; OPENS the rekka.
-//   5B forwardSlash — mid-range poke (single hit).
-//   2C skywardCut — launcher (up-attack slot).
-//   5C Reaper's Combo — a 3-stage REKKA (reaper1→2→3) sliced from toji_Foword_slash_attack.
-//      Three cancel routes at each non-final stage's RECOVERY: press LIGHT → chain to next
-//      hit · press CHARGE → stance-cancel (Phase-1 mechanic) · do nothing → safe recovery.
-const TOJI_BLADE = {
-  quickDraw:    { damage: 44, startup: 5, active: 3, recovery: 9,  hitstun: 14, knockbackX: 4, knockbackY: 0,  rangeX: 62, rangeY: 44, rekkaNext: "reaper1" },
-  forwardSlash: { damage: 62, startup: 7, active: 4, recovery: 15, hitstun: 16, knockbackX: 6, knockbackY: 0,  rangeX: 95, rangeY: 44 },
-  skywardCut:   { damage: 55, startup: 7, active: 4, recovery: 18, hitstun: 22, knockbackX: 2, knockbackY: -9, rangeX: 70, rangeY: 80, launcher: true },
-  reaper1:      { damage: 30, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 80, rangeY: 40, rekkaNext: "reaper2" },
-  reaper2:      { damage: 34, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 4, knockbackY: 0,  rangeX: 85, rangeY: 40, rekkaNext: "reaper3" },
-  reaper3:      { damage: 50, startup: 6, active: 4, recovery: 18, hitstun: 20, knockbackX: 9, knockbackY: -3, rangeX: 95, rangeY: 44, category: "heavy" },  // finisher — no rekkaNext (combo-flow: heavy finisher weight)
-  // ── COMMAND MOVES (Phase 5) ──────────────────────────────────────────────────
-  // DASH STRIKE (design "6C") — a forward-committing dash-in stab. Data lives under
-  // dashStrike1 (its first sprite); updateTojiStanceCombat swaps the SPRITE 1→2 at the
-  // active boundary. Single hit level (the low→overhead property split needs the
-  // deferred hit-level block system). Damage 80 > forwardSlash 62 (committed) but a
-  // single hit < Reaper's full 30+34+50=114 string. Longer recovery = the dash-in risk.
-  dashStrike1:  { damage: 80, startup: 10, active: 4, recovery: 20, hitstun: 20, knockbackX: 9,  knockbackY: -2, rangeX: 110, rangeY: 46 },
-  // RISING SPIRAL (design "j.C") — AIR normal / juggle ender off Skyward Cut. Tall rangeY
-  // to catch a popped-up opponent. LONG recovery (26) so the full spin is genuinely
-  // punishable on block/whiff — the risk is mechanically real, not flavor.
-  risingSpiral: { damage: 72, startup: 7,  active: 5, recovery: 26, hitstun: 22, knockbackX: 10, knockbackY: -4, rangeX: 74, rangeY: 82 }
-}
-
-// Forward-sprint velocity sustained through Dash Strike's dash-in (startup+active window).
-// Physics friction (0.72) would decay a single impulse instantly; re-applying it each frame
-// gives a real committed sprint. Tuned so Toji closes ~1 body-width before the stab.
-const TOJI_DASH_LUNGE_SPEED = 9
-
-// Dash Strike fire: commits the move (data under dashStrike1) + arms the sustained lunge.
-function fireTojiDashStrike(fighter, context) {
-  if (!_fireTojiStanceMove(fighter, "dashStrike1", TOJI_BLADE.dashStrike1, context)) return false
-  const md = TOJI_BLADE.dashStrike1
-  fighter._dashLunge = md.startup + md.active     // sprint through wind-up + stab, plant on recovery
-  fighter.vx = fighter.facing * TOJI_DASH_LUNGE_SPEED
-  return true
-}
-
-// ── CHAIN STANCE — real normals (Phase 3). A mid-range zoning stance: longer reach, slower,
-// higher pushback than Blade. Numbers per moveset.js conventions (cf. Blade quickDraw 44 /
-// forwardSlash 62). Sprites keyed by move name in characters.js animationData.
-//   5A shortLash — quick long-reach poke (trimmed chain whip).
-//   5B wideArc   — whiff-punish / wall-carry (big knockbackX), slow-startup high reward.
-//   6B lowSweep  — low sweep (down+heavy), a distinct poke intended as the LOW of a 5B/6B
-//      mixup. NOTE: the game has NO hit-level (low/overhead) block system yet, so it is NOT
-//      forced to be crouch-blocked — the true high/low mixup needs that system (deferred).
-//   2B risingCoil — anti-air launcher (up-attack slot).
-const TOJI_CHAIN = {
-  shortLash:  { damage: 38, startup: 6,  active: 3, recovery: 11, hitstun: 12, knockbackX: 5,  knockbackY: 0,   rangeX: 100, rangeY: 40 },
-  wideArc:    { damage: 66, startup: 10, active: 5, recovery: 20, hitstun: 18, knockbackX: 11, knockbackY: 0,   rangeX: 130, rangeY: 44 },
-  lowSweep:   { damage: 54, startup: 9,  active: 4, recovery: 18, hitstun: 16, knockbackX: 6,  knockbackY: 0,   rangeX: 120, rangeY: 30 },
-  risingCoil: { damage: 58, startup: 8,  active: 5, recovery: 20, hitstun: 20, knockbackX: 2,  knockbackY: -10, rangeX: 70,  rangeY: 85, launcher: true }
-}
-
-export function getTojiStance(fighter) { return (fighter && fighter.weaponStance) || "blade" }
-
-// Fire a Toji stance move from move data (shared by Blade + Chain). Sets _rekkaNext (Blade rekka).
-function _fireTojiStanceMove(fighter, key, md, context) {
-  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
-  attack.launcher = !!md.launcher
-  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
-  fighter._rekkaNext = md.rekkaNext || null
-  return true
-}
-const fireTojiBladeMove = (fighter, key, context) => _fireTojiStanceMove(fighter, key, TOJI_BLADE[key], context)
-const fireTojiChainMove = (fighter, key, context) => _fireTojiStanceMove(fighter, key, TOJI_CHAIN[key], context)
-
-// GUN ranged shot (5A/5C): play the firing animation via the sprite-cast window (no melee
-// attack state) and spawn the bullet projectile. attackCooldown commits for the cast length.
-function fireTojiGunShot(fighter, key, context) {
-  const md = TOJI_GUN[key]
-  if (!md || !md.proj || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  fighter._spriteCastMove  = key             // → animationData[key] firing sprite (snapShot/tracerRound)
-  fighter._spriteCastTimer = md.cast
-  fighter.attackCooldown   = getAttackDuration(md.cast, fighter)
-  spawnProjectile(fighter, key, md.proj, context)
-  return true
-}
-
-// GUN feint (5B aimedShot): a real (melee-less, 0-damage) attack so it has a RECOVERY phase and
-// is cancelable into a stance-switch (Phase-1 mechanic). No projectile — the "no muzzle flash"
-// aim reads as a fake-out. Plays the idk aim sprite.
-function fireTojiGunFeint(fighter, context) {
-  const md = TOJI_GUN.aimedShot
-  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  const attack = createAttackFromMove(fighter, "aimedShot",
-    { damage: 0, startup: md.startup, active: md.active, recovery: md.recovery, hitstun: 0, knockbackX: 0, knockbackY: 0, rangeX: 8, rangeY: 8 },
-    { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
-  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
-  fighter._rekkaNext = null
-  return true
-}
-
-// Per-frame Toji stance-combat routing. Returns true if it consumed the input (caller
-// should skip the normal combat path). BLADE fires its real normals + drives the rekka;
-// CHAIN/GUN fire the Phase-1 placeholder light. Grounded normals only (aerials/grab stay
-// on the normal path). `getPhase` = combat.getAttackPhase; `context` = ability context.
-export function updateTojiStanceCombat(fighter, inputState, context, getPhase) {
-  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji" || !inputState) return false
-  const grounded = fighter.onGround ?? fighter.grounded ?? false
-  const stance   = getTojiStance(fighter)
-
-  // Light press-edge (raw of the buffered light) — a rekka chain needs a FRESH tap, not a held button.
-  const lightEdge = !!inputState.light && !fighter._rekkaPrevLight
-  fighter._rekkaPrevLight = !!inputState.light
-
-  // Rekka window closes when the attack fully ends (safe-stop / stance-cancel both land here).
-  if (!fighter.attacking) fighter._rekkaNext = null
-
-  if (stance === "blade") {
-    // ROUTE 1 — chain to next rekka hit: fresh LIGHT during the current hit's RECOVERY. Routed through
-    // the shared rekkaContinue with requireHit:false — the blade rekka links on TIMING alone (no clean-
-    // connect gate), exactly as before; the shared helper just centralizes the window-close + cancel rule.
-    const bladeNext = rekkaContinue(fighter, { edge: lightEdge, phase: getPhase?.(fighter), opponent: context?.getOpponent?.(fighter), requireHit: false })
-    if (bladeNext) return fireTojiBladeMove(fighter, bladeNext, context)
-    // DASH STRIKE upkeep (runs while the move is live, before the canStart gate):
-    //  • SPRITE CHAIN: swap crouch(_1)→stab(_2) once past startup. sprite.js frame-resets
-    //    on the sheet change, so _2's full-extension stab plays as the hit lands.
-    //  • LUNGE: re-apply the forward sprint each frame of the dash-in window.
-    if (fighter.attacking && fighter.currentMove === "dashStrike1" && getPhase?.(fighter) !== "startup") {
-      fighter.currentMove = "dashStrike2"
-    }
-    if ((fighter._dashLunge || 0) > 0) { fighter.vx = fighter.facing * TOJI_DASH_LUNGE_SPEED; fighter._dashLunge-- }
-
-    const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-    if (!canStart) return false
-
-    // AIR — RISING SPIRAL (air normal / juggle ender). Buffered light (down+light stays the
-    // generic down-air spike). Consuming it here suppresses the generic `air` normal in blade.
-    if (!grounded) {
-      if (inputState.light && !inputState.down) return fireTojiBladeMove(fighter, "risingSpiral", context)
-      return false
-    }
-    // GROUND normals + command move.
-    if (inputState.upAttack)                  return fireTojiBladeMove(fighter, "skywardCut",   context)
-    if (inputState.heavy &&  inputState.down)  return fireTojiDashStrike(fighter, context)                  // 6C→S+K: Dash Strike
-    if (inputState.heavy && !inputState.down)  return fireTojiBladeMove(fighter, "forwardSlash", context)
-    if (inputState.light && !inputState.down)  return fireTojiBladeMove(fighter, "quickDraw",    context)
-    return false
-  }
-
-  if (stance === "chain") {
-    // Real Chain normals. down+heavy = 6B lowSweep (checked before plain heavy = 5B wideArc).
-    const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-    if (!canStart || !grounded) return false
-    if (inputState.upAttack)                     return fireTojiChainMove(fighter, "risingCoil", context)  // 2B anti-air
-    if (inputState.heavy &&  inputState.down)     return fireTojiChainMove(fighter, "lowSweep",   context)  // 6B low
-    if (inputState.heavy && !inputState.down)     return fireTojiChainMove(fighter, "wideArc",    context)  // 5B
-    if (inputState.light && !inputState.down)     return fireTojiChainMove(fighter, "shortLash",  context)  // 5A
-    return false
-  }
-
-  // GUN — real ranged normals (Phase 4). All spawn projectiles except the 5B feint.
-  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (!canStart || !grounded) return false
-  if (inputState.upAttack)                  return fireTojiGunShot(fighter, "tracerRound", context)  // 5C
-  if (inputState.heavy && !inputState.down)  return fireTojiGunFeint(fighter, context)                // 5B feint
-  if (inputState.light && !inputState.down)  return fireTojiGunShot(fighter, "snapShot",  context)    // 5A
-  return false
-}
-
 // ─────────────────────────────────────────────────────────────────
 // VEGETA — command-normal cancel chain ("Y-track" kick target combo). Toji-Rekka
 // mechanics (fireTojiBladeMove/_rekkaNext): a Forward+Heavy OPENER, then re-tapping
@@ -5023,30 +4718,6 @@ function executeOmegaRangerUltimate(fighter, context) {
   return true
 }
 
-// Stance-switch (CHARGE tap, edge-detected via `chargeHeld` + fighter._stancePrevCharge).
-// Returns "switch" | "cancel" | false. Interrupts only the RECOVERY phase (never startup/active).
-export function updateTojiStanceSwitch(fighter, chargeHeld, getPhase) {
-  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji") return false
-  if (fighter.weaponStance == null) fighter.weaponStance = "blade"
-  const edge = !!chargeHeld && !fighter._stancePrevCharge
-  fighter._stancePrevCharge = !!chargeHeld
-  if (!edge) return false
-
-  let kind = "switch"
-  if (fighter.attacking && fighter.currentAttack) {
-    const phase = (typeof getPhase === "function") ? getPhase(fighter) : null
-    if (phase !== "recovery") return false            // can't cancel startup/active — only recovery
-    fighter.attacking     = false                     // RECOVERY CANCEL (mirror launcher-cancel clear)
-    fighter.currentAttack = null
-    fighter.currentMove   = null
-    kind = "cancel"
-  }
-  fighter.attackCooldown = STANCE_SWITCH_FRAMES        // near-instant switch cost / post-cancel gap
-  const i = TOJI_STANCES.indexOf(getTojiStance(fighter))
-  fighter.weaponStance = TOJI_STANCES[(i + 1) % TOJI_STANCES.length]
-  return kind
-}
-
 // ─────────────────────────────────────────────────────────────────
 // SASUKE — SUSANOO (two-stage sustained ultimate)
 // ─────────────────────────────────────────────────────────────────
@@ -5058,7 +4729,12 @@ export function updateTojiStanceSwitch(fighter, chargeHeld, getPhase) {
 // re-cast — the drain-to-0 + cooldown is the risk/reward). Mirrors the transformations.js form idea
 // (currentForm + stat multipliers) but self-managed so the timer isn't reset on escalation and the
 // _skinAnim body-swap can be attached. Attacks fire on the SPECIAL button (Sasuke has no other specials).
-export const SUSANOO_DURATION_FRAMES = 1200   // ~20s @60fps — timed, then auto-reverts (user-chosen)
+export const SUSANOO_DURATION_FRAMES = 1200   // ~20s @60fps — timed, then auto-reverts (user-chosen). SHARED by Itachi + Netero Guanyin.
+// MK-feel Stage 3e (BALANCE, §Outliers #6 Susanoo economics): SASUKE's giant form is shortened to ~13.3s.
+// His Susanoo buys a long window of FREE giant swings (~302 eff/sword) off one up-front cost — the sustained
+// value was the outlier. This is SASUKE-ONLY (the shared 1200 above still governs Itachi/Netero, who are NOT
+// flagged); the giant's swings stay free (per-swing energy would brick Lv2, which drains energy to 0). Tune here.
+export const SASUKE_SUSANOO_DURATION_FRAMES = 800   // ~13.3s @60fps — cut from the shared 1200 (Stage 3e)
 // GIANT canvas-relative sizing (item 2): display height as a FRACTION of canvas height,
 // mirroring kurama.js (fox bodyH = ch*0.74). Both stages loom over the opponent, but the WHOLE
 // figure — horned head through the energy base — stays framed on-screen (the camera's giant
@@ -5248,7 +4924,7 @@ function executeSasukeUltimate(fighter, context) {
     if (!spendEnergy(fighter, cost)) return false
     _enterSusanooStage(fighter, 1)
     sound.playSfxFile?.("sasuke_susanoo_activate.mp3", null)   // VOICE: "Susanoo!" — Stage 1 giant-form activation
-    fighter._susanooTimer = SUSANOO_DURATION_FRAMES
+    fighter._susanooTimer = SASUKE_SUSANOO_DURATION_FRAMES   // Stage 3e: Sasuke-only ~13.3s (Lv1+Lv2 share this window; Stage 2 does NOT reset it)
     fighter._suppressUltCooldown = true          // no cooldown yet — allow Stage-2 escalation
     // ESCALATION GATE (diagnosed 2026-07-16 via live logging): the OLD 30-frame attackCooldown
     // silently swallowed the Stage-2 re-press for ~0.5s, so escalation "never" fired. Now use a
@@ -5690,21 +5366,23 @@ function executeSasukeSubstitution(fighter, target, context) {
 // ─────────────────────────────────────────────────────────────────────────────
 const NETERO_COMMAND = {
   down_attck_1: { damage: 46, startup: 6, active: 4, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 78, rangeY: 60, rekkaNext: "down_attck_2" },   // crouch lunge opener (combo-flow: recov 14→12 = Tobirama baseline)
-  down_attck_2: { damage: 72, startup: 5, active: 4, recovery: 18, hitstun: 20, knockbackX: 7, knockbackY: -6, rangeX: 84, rangeY: 64, category: "heavy" },           // rising follow-up (mild pop) — finisher weight (no launcher flag → tag)
+  down_attck_2: { damage: 72, startup: 5, active: 4, recovery: 18, hitstun: 20, knockbackX: 7, knockbackY: -6, rangeX: 84, rangeY: 64, launcher: true },           // rising finisher — LAUNCHES (combo-string standardization Stage C: was heavy ender) → jump-cancel air combo
 }
-// Combo-flow step-in glide for the DOWN+Heavy chains. Fwd+Heavy chains (Tobirama et al.) glide into the
-// opponent for free — the player holds forward, so walk momentum + physics.attackMomentumFriction carry
-// them in. Down+Heavy chains hold DOWN → no forward walk → they read as planted (audit: Tobirama drifts
-// +126px/chain, a Down chain 0px). Each Down-chain stage applies this small facing-relative forward impulse
-// so the string steps in and reads as one continuous motion (mirrors the Samurai Ranger rekka lunge). It
-// decays through the swing under attackMomentumFriction (steppingIn=true). ONE knob for every Down chain.
+// Combo-flow step-in glide for the HxH/speedster chain cluster (netero/killua/hisoka/flash/gon/batman/
+// zenitsu/ghostface). These were Down+Heavy chains that read as "planted" (holding DOWN gives no forward
+// walk); combo-string standardization Stage B converted their OPENER to Forward+Heavy, but each stage still
+// stamps this small facing-relative forward impulse so the string has a DETERMINISTIC step-in from neutral
+// (not dependent on how much forward-walk momentum the player had built), reading as one continuous motion —
+// mirrors the Samurai Ranger rekka lunge. It decays through the swing under attackMomentumFriction
+// (steppingIn=true). Pure Fwd+Heavy chains (Tobirama et al.) glide for free via held-forward walk momentum
+// and don't set this. ONE knob for the whole cluster.
 const COMBO_STEP_IN_VX = 8
 function fireNeteroCommand(fighter, key, context) {
   const md = NETERO_COMMAND[key]
   if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the sprite
-  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Down chain → no walk momentum)
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Stage B: Fwd+Heavy chain — deterministic step-in from neutral)
   fighter._rekkaNext    = md.rekkaNext || null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
   return true
@@ -5726,9 +5404,11 @@ export function updateNeteroCommandCombat(fighter, inputState, context, getPhase
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
   if (next) return fireNeteroCommand(fighter, next, context)
 
-  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // (combo-string standardization, Stage B: converted Down+Heavy → Forward+Heavy for a uniform roster opener.)
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (canStart && grounded && inputState.down && heavyEdge) return fireNeteroCommand(fighter, "down_attck_1", context)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (canStart && grounded && forward && heavyEdge) return fireNeteroCommand(fighter, "down_attck_1", context)
 
   return false
 }
@@ -5760,7 +5440,7 @@ function fireKilluaCommand(fighter, key, context) {
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.launcher = key === "barrage4"
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the barrageN sprite
-  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Down chain → no walk momentum)
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Stage B: Fwd+Heavy chain — deterministic step-in from neutral)
   fighter._rekkaNext    = md.rekkaNext || null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
   return true
@@ -5782,9 +5462,11 @@ export function updateKilluaCommandCombat(fighter, inputState, context, getPhase
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
   if (next) return fireKilluaCommand(fighter, next, context)
 
-  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // (combo-string standardization, Stage B: converted Down+Heavy → Forward+Heavy for a uniform roster opener.)
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (canStart && grounded && inputState.down && heavyEdge) return fireKilluaCommand(fighter, "barrage1", context)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (canStart && grounded && forward && heavyEdge) return fireKilluaCommand(fighter, "barrage1", context)
 
   return false
 }
@@ -5809,7 +5491,7 @@ function fireHisokaCommand(fighter, key, context) {
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.launcher = key === "hisokaRekka2"
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the hisokaRekkaN sprite
-  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Down chain → no walk momentum)
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Stage B: Fwd+Heavy chain — deterministic step-in from neutral)
   fighter._rekkaNext    = md.rekkaNext || null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
   // VOICE: Card Flourish rekka OPENER only (not the follow-up) — aggressive turn-taking callout (audio-only)
@@ -5833,9 +5515,11 @@ export function updateHisokaCommandCombat(fighter, inputState, context, getPhase
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
   if (next) return fireHisokaCommand(fighter, next, context)
 
-  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // (combo-string standardization, Stage B: converted Down+Heavy → Forward+Heavy for a uniform roster opener.)
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (canStart && grounded && inputState.down && heavyEdge) return fireHisokaCommand(fighter, "hisokaRekka1", context)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (canStart && grounded && forward && heavyEdge) return fireHisokaCommand(fighter, "hisokaRekka1", context)
 
   return false
 }
@@ -5862,7 +5546,7 @@ function fireFlashCommand(fighter, key, context) {
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.launcher = key === "rush2"
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the rushN sprite
-  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Down chain → no walk momentum)
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Stage B: Fwd+Heavy chain — deterministic step-in from neutral)
   fighter._rekkaNext    = md.rekkaNext || null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
   return true
@@ -5883,9 +5567,11 @@ export function updateFlashCommandCombat(fighter, inputState, context, getPhase)
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
   if (next) return fireFlashCommand(fighter, next, context)
 
-  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // (combo-string standardization, Stage B: converted Down+Heavy → Forward+Heavy for a uniform roster opener.)
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (canStart && grounded && inputState.down && heavyEdge) return fireFlashCommand(fighter, "rush1", context)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (canStart && grounded && forward && heavyEdge) return fireFlashCommand(fighter, "rush1", context)
 
   return false
 }
@@ -5907,7 +5593,7 @@ function fireGonCommand(fighter, key, context) {
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.launcher = key === "rush2"
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the rushN sprite
-  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Down chain → no walk momentum)
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Stage B: Fwd+Heavy chain — deterministic step-in from neutral)
   fighter._rekkaNext    = md.rekkaNext || null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
   // VOICE: Rush technique callout on the OPENER only (rush1) — audio-only; _atkVoiceCd suppresses the
@@ -5927,9 +5613,11 @@ export function updateGonCommandCombat(fighter, inputState, context, getPhase) {
   const opp = context?.getOpponent?.(fighter)
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
   if (next) return fireGonCommand(fighter, next, context)
-  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // (combo-string standardization, Stage B: converted Down+Heavy → Forward+Heavy for a uniform roster opener.)
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (canStart && grounded && inputState.down && heavyEdge) return fireGonCommand(fighter, "rush1", context)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (canStart && grounded && forward && heavyEdge) return fireGonCommand(fighter, "rush1", context)
   return false
 }
 
@@ -5956,7 +5644,7 @@ function fireBatmanCommand(fighter, key, context) {
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.launcher = key === "batCombo3"
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the batComboN sprite
-  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Down chain → no walk momentum)
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Stage B: Fwd+Heavy chain — deterministic step-in from neutral)
   fighter._rekkaNext    = md.rekkaNext || null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
   return true
@@ -5973,9 +5661,12 @@ export function updateBatmanCommandCombat(fighter, inputState, context, getPhase
   const opp = context?.getOpponent?.(fighter)
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
   if (next) return fireBatmanCommand(fighter, next, context)
-  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // (combo-string standardization, Stage B: converted Down+Heavy → Forward+Heavy for a uniform roster opener;
+  //  audit had mislabeled Batman as Fwd+Heavy — source was Down+Heavy — now genuinely Forward+Heavy.)
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (canStart && grounded && inputState.down && heavyEdge) return fireBatmanCommand(fighter, "batCombo1", context)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (canStart && grounded && forward && heavyEdge) return fireBatmanCommand(fighter, "batCombo1", context)
   return false
 }
 
@@ -6192,7 +5883,7 @@ function fireZenitsuCommand(fighter, key, context) {
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.launcher = key === "zenCombo3"
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the zenComboN sprite
-  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Down chain → no walk momentum)
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Stage B: Fwd+Heavy chain — deterministic step-in from neutral)
   fighter._rekkaNext    = md.rekkaNext || null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
   return true
@@ -6209,9 +5900,12 @@ export function updateZenitsuCommandCombat(fighter, inputState, context, getPhas
   const opp = context?.getOpponent?.(fighter)
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
   if (next) return fireZenitsuCommand(fighter, next, context)
-  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the normal heavy doesn't also fire.
+  // (combo-string standardization, Stage B: converted Down+Heavy → Forward+Heavy for a uniform roster opener;
+  //  audit had mislabeled Zenitsu as Fwd+Heavy — source was Down+Heavy — now genuinely Forward+Heavy.)
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (canStart && grounded && inputState.down && heavyEdge) return fireZenitsuCommand(fighter, "zenCombo1", context)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (canStart && grounded && forward && heavyEdge) return fireZenitsuCommand(fighter, "zenCombo1", context)
   return false
 }
 
@@ -6507,7 +6201,7 @@ const SHINOBU_GROUND = {
   // Low knockback on the openers pins the target inside the string; the finisher delivers the knockback.
   shinobuG1: { damage: 24, startup: 4, active: 3, recovery: 11, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 92, rangeY: 52, rekkaNext: "shinobuG2" },
   shinobuG2: { damage: 30, startup: 4, active: 3, recovery: 12, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 88, rangeY: 58, rekkaNext: "shinobuG3" },
-  shinobuG3: { damage: 40, startup: 5, active: 3, recovery: 15, hitstun: 16, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 56, category: "heavy" },   // finisher (ends the string — combo-flow: heavy finisher weight)
+  shinobuG3: { damage: 40, startup: 5, active: 3, recovery: 15, hitstun: 16, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 56, launcher: true },   // finisher — LAUNCHES (combo-string standardization Stage C: was heavy ender) → jump-cancel air combo
 }
 function fireShinobuCommand(fighter, key, context) {
   const md = SHINOBU_GROUND[key]
@@ -6660,7 +6354,7 @@ const INOSUKE_GROUND = {
   inosukeB2: { damage: 20, startup: 4, active: 3, recovery: 11, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 100, rangeY: 50, rekkaNext: "inosukeB3" },
   inosukeB3: { damage: 22, startup: 4, active: 3, recovery: 12, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 92, rangeY: 58, rekkaNext: "inosukeB4" },
   inosukeB4: { damage: 26, startup: 4, active: 3, recovery: 12, hitstun: 14, knockbackX: 2, knockbackY: 0,  rangeX: 90, rangeY: 54, rekkaNext: "inosukeB5", lunge: 9 },
-  inosukeB5: { damage: 42, startup: 5, active: 3, recovery: 16, hitstun: 17, knockbackX: 9, knockbackY: -3, rangeX: 104, rangeY: 54, category: "heavy" },   // finisher (ends the string — combo-flow: heavy finisher weight)
+  inosukeB5: { damage: 42, startup: 5, active: 3, recovery: 16, hitstun: 17, knockbackX: 9, knockbackY: -3, rangeX: 104, rangeY: 54, launcher: true },   // finisher — LAUNCHES (combo-string standardization Stage C: was heavy ender) → jump-cancel air combo
   // Down+Heavy command normal — a single heavier low (no rekkaNext).
   inosukeDownHeavy: { damage: 62, startup: 6, active: 3, recovery: 16, hitstun: 16, knockbackX: 6, knockbackY: 1, rangeX: 86, rangeY: 46, category: "heavy" },
 }
@@ -7183,14 +6877,14 @@ const GHOSTFACE_GROUND = {
   // Low knockback on the openers pins the target inside the string; the finisher delivers the knockback.
   ghostfaceCombo1: { damage: 22, startup: 4, active: 3, recovery: 11, hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 90, rangeY: 50, rekkaNext: "ghostfaceCombo2" },
   ghostfaceCombo2: { damage: 28, startup: 4, active: 3, recovery: 12, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 92, rangeY: 52, rekkaNext: "ghostfaceCombo3" },
-  ghostfaceCombo3: { damage: 42, startup: 5, active: 3, recovery: 16, hitstun: 17, knockbackX: 8, knockbackY: -3, rangeX: 98, rangeY: 54, category: "heavy" },   // finisher (ends the string — combo-flow: heavy finisher weight)
+  ghostfaceCombo3: { damage: 42, startup: 5, active: 3, recovery: 16, hitstun: 17, knockbackX: 8, knockbackY: -3, rangeX: 98, rangeY: 54, launcher: true },   // finisher — LAUNCHES (combo-string standardization Stage C: was heavy ender) → jump-cancel air combo
 }
 function fireGhostfaceCommand(fighter, key, context) {
   const md = GHOSTFACE_GROUND[key]
   if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the stage sprite
-  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Down chain → no walk momentum)
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX   // combo-flow step-in glide (Stage B: Fwd+Heavy chain — deterministic step-in from neutral)
   fighter._rekkaNext    = md.rekkaNext || null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
   return true
@@ -7223,9 +6917,11 @@ export function updateGhostfaceCommandCombat(fighter, inputState, context, getPh
   // CONTINUE — fresh Heavy during recovery on a clean hit → rekkaNext (shared rekkaContinue owns the gate).
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
   if (next) return fireGhostfaceCommand(fighter, next, context)
-  // OPENER — Down+Heavy from neutral (grounded). Consumes the press so the neutral heavy stays normal.
+  // OPENER — Forward+Heavy from neutral (grounded). Consumes the press so the neutral heavy stays normal.
+  // (combo-string standardization, Stage B: converted Down+Heavy → Forward+Heavy for a uniform roster opener.)
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (canStart && grounded && inputState.down && heavyEdge) return fireGhostfaceCommand(fighter, "ghostfaceCombo1", context)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (canStart && grounded && forward && heavyEdge) return fireGhostfaceCommand(fighter, "ghostfaceCombo1", context)
   return false
 }
 
@@ -7707,6 +7403,290 @@ export function updateMakiCommandCombat(fighter, inputState, context, getPhase) 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// TOJI FUSHIGURO (Stage 2) — the A-B-C-A+B hand-combo string (from toji_punch.png, "already a combo
+// sequence") realized as this engine's ONE idiom for a multi-hit hand combo: a Fwd+Heavy rekka.
+// tojiG1 (jab) → tojiG2 (cross) → tojiG3 (hook) → tojiG4 (A+B big straight finisher). Cancel-on-hit;
+// a whiff/block ENDS the string (shared rekkaContinue, requireHit:true). Twin of updateMaki/MiwaCommandCombat.
+// PLUS a free command normal: Back+Heavy = "Cursed Tool: Handgun" — a fast bullet projectile poke
+// (toji_gun.png draw→fire, projectile-only cast like Maki's kunai; no melee hitbox → no double-hit).
+// The 5 base normals (light/heavy/up/air/down_air) use the generic attack system — no code here. High
+// top-of-band damage (ATK 98) offset by Toji's low base HP.
+// ─────────────────────────────────────────────────────────────────────────────
+const TOJI_GROUND = {
+  // Low knockback on the openers pins the target inside the string; the finisher delivers the launcher-ish pop.
+  tojiG1: { damage: 22, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 1, knockbackY: 0,  rangeX: 92,  rangeY: 50, rekkaNext: "tojiG2" },   // jab
+  tojiG2: { damage: 26, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 1, knockbackY: 0,  rangeX: 94,  rangeY: 50, rekkaNext: "tojiG3" },   // cross
+  tojiG3: { damage: 30, startup: 4, active: 3, recovery: 11, hitstun: 14, knockbackX: 2, knockbackY: 0,  rangeX: 96,  rangeY: 52, rekkaNext: "tojiG4" },   // hook
+  tojiG4: { damage: 58, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 10, knockbackY: -3, rangeX: 100, rangeY: 54, category: "heavy" },     // A+B big straight finisher (ends the string; heavy weight)
+}
+const TOJI_GUN_CD = 60   // ~1s gate for the handgun poke (cooldown, no energy)
+function fireTojiCommand(fighter, key, context) {
+  const md = TOJI_GROUND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the stage sprite (tojiG1..G4)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
+  return true
+}
+function fireTojiGun(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._gunCd || 0) > 0) return false   // COOLDOWN gate (no energy — Toji has none)
+  fighter._spriteCastMove  = "tojiGun"           // 6f draw → fire pose (projectile-only cast, like Maki's kunai)
+  fighter._spriteCastTimer = 24
+  fighter.attackCooldown   = getAttackDuration(26, fighter)
+  fighter._gunCd           = TOJI_GUN_CD
+  const face = fighter.facing || 1
+  // Fire the bullet on the draw's release beat (~frame 4 of 6). A fast, small, flat shot.
+  schedulePendingSpawn(9, () => {
+    spawnProjectile(fighter, "tojiBullet", {
+      w: 12, h: 6, radius: 6, speed: 22, damage: 40, hitstun: 14, knockbackX: 6, knockbackY: 0,
+      color: "#ffe08a", lifetime: 60, vx: face * 22, spawnY: fighter.y + (fighter.h || 100) * 0.36
+    }, context)
+  })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+export function updateTojiCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji" || !inputState) return false
+  const opp       = context?.getOpponent?.(fighter)
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during recovery on a clean hit → rekkaNext (shared rekkaContinue owns the gate).
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireTojiCommand(fighter, next, context)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const back     = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  // Back+Heavy = Handgun poke (grounded). Checked before the Fwd opener; neutral heavy stays a normal.
+  if (canStart && grounded && back && heavyEdge) return fireTojiGun(fighter, context)
+  // Fwd+Heavy = A-B-C-A+B rekka opener (grounded). Consumes the press so the neutral heavy stays normal.
+  if (canStart && grounded && forward && heavyEdge) return fireTojiCommand(fighter, "tojiG1", context)
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOJI SPECIALS (Stage 3) — SPECIAL button (no energy; COOLDOWN-gated, like Maki). Direction-branched
+// via _specialHeldDir. Neutral = Split Soul Katana; Down = Rapid Sword Slashes. Forward/Back/Up branches
+// are reserved for later stages (Chain of a Thousand Miles / Fly Heads / Playful Cloud).
+//   • SPLIT SOUL KATANA (neutral): ONE continuous 2-part sword combo — sword_down_attack_1 (big draw-slash)
+//     flows straight into sword_down_attack_2 (follow-up cut). Part 2 is auto-chained by a scheduled
+//     setAttackState as part 1 recovers → the two sheets play in sequence under a single press. 2 hits.
+//   • RAPID SWORD SLASHES (Down): a stationary multi-hit katana flurry — one long active window with
+//     scheduled hasHit re-arms (shared multi-hit pattern, same as Flash's Spin Attack). ~5 hits, pins.
+// ─────────────────────────────────────────────────────────────────────────────
+const TOJI_SPLITSOUL_CD = 78    // ~1.3s recast
+const TOJI_RAPID_CD     = 96    // ~1.6s recast (the flurry is stronger/longer)
+function fireTojiSplitSoul(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._splitSoulCd || 0) > 0) return false
+  // PART 1 — sword_down_attack_1: the committed draw-slash. Extended reach (blade + red slash FX).
+  const md1 = { damage: 52, startup: 6, active: 5, recovery: 14, hitstun: 18, blockstun: 12, knockbackX: 5, knockbackY: -2, rangeX: 122, rangeY: 62, isSpecial: true }
+  const a1 = createAttackFromMove(fighter, "tojiSword1", md1, { minActiveStart: md1.startup, minActiveEnd: md1.startup + md1.active })
+  a1.isSpecial = true
+  setAttackState(fighter, a1, md1.startup + md1.active + md1.recovery)   // currentMove "tojiSword1" → part-1 pose
+  fighter._splitSoulCd = TOJI_SPLITSOUL_CD
+  if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickTojiVoice("castSplitSoul"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Split Soul Katana cast line (audio-only)
+  fighter.vx = (fighter.facing || 1) * 4
+  // PART 2 — sword_down_attack_2 auto-chains as part 1 recovers (continuous). Forced setAttackState (bypasses
+  // the cooldown gate on purpose — it's one move). Guarded so a hitstun-interrupt cancels the follow-up.
+  schedulePendingSpawn(md1.startup + md1.active + md1.recovery - 3, () => {
+    if (!fighter || (fighter.hitstun || 0) > 0 || (fighter.knockdownState)) return
+    const md2 = { damage: 72, startup: 4, active: 5, recovery: 16, hitstun: 22, blockstun: 12, knockbackX: 9, knockbackY: -4, rangeX: 132, rangeY: 62, isSpecial: true }
+    const a2 = createAttackFromMove(fighter, "tojiSword2", md2, { minActiveStart: md2.startup, minActiveEnd: md2.startup + md2.active })
+    a2.isSpecial = true
+    setAttackState(fighter, a2, md2.startup + md2.active + md2.recovery)   // currentMove "tojiSword2" → part-2 pose
+    fighter.vx = (fighter.facing || 1) * 6
+    try { shakeCamera(context, 5, 8) } catch (_) {}
+  })
+  try { shakeCamera(context, 4, 7) } catch (_) {}
+  return true
+}
+function fireTojiRapidSlash(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._rapidSlashCd || 0) > 0) return false
+  // A long active window; per-hit is modest and low-knockback so the target stays pinned in the flurry.
+  const md = { damage: 20, startup: 5, active: 26, recovery: 16, hitstun: 12, blockstun: 8, knockbackX: 1, knockbackY: 0, rangeX: 104, rangeY: 66, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "tojiRapidSlash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove "tojiRapidSlash" → flurry pose
+  fighter._rapidSlashCd = TOJI_RAPID_CD
+  // ~5 HITS: initial connect + 4 re-arms across the active window (frames 5..31). Guarded so a later move isn't touched.
+  for (const f of [10, 15, 20, 25, 30]) {
+    schedulePendingSpawn(f, () => { if (fighter.currentAttack && fighter.currentAttack.name === "tojiRapidSlash") fighter.currentAttack.hasHit = false })
+  }
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+// ── CHAIN OF A THOUSAND MILES / INVERTED SPEAR OF HEAVEN (Stage 4, Forward Special) — ONE continuous
+// 5-part sequence (chain_attack_1→5 playing in order), per the asset map's explicit grouping. Toji whips
+// the Inverted Spear on its chain out to LONG range (the whip/spear FX reaches far → big rangeX), each
+// part auto-chaining into the next via a scheduled setAttackState as the current one recovers, exactly
+// like Split Soul but 5 parts. A hitstun/knockdown interrupt STOPS the remaining chain. The 5th part
+// (Inverted Spear thrust) LAUNCHES. Committal (~1.5s) + long cooldown; no energy. ──
+const TOJI_CHAIN_CD = 150   // ~2.5s recast (long, committal 5-part signature)
+const TOJI_CHAIN_PARTS = [
+  { key: "tojiChain1", damage: 24, startup: 5, active: 4, recovery: 8,  hitstun: 16, knockbackX: 3, knockbackY: 0,  rangeX: 150, rangeY: 56 },   // whip-out windup
+  { key: "tojiChain2", damage: 22, startup: 3, active: 4, recovery: 8,  hitstun: 15, knockbackX: 2, knockbackY: 0,  rangeX: 195, rangeY: 56 },   // spear extends far (max reach)
+  { key: "tojiChain3", damage: 24, startup: 3, active: 4, recovery: 8,  hitstun: 16, knockbackX: 3, knockbackY: -1, rangeX: 182, rangeY: 72 },   // overhead swing arc
+  { key: "tojiChain4", damage: 28, startup: 3, active: 5, recovery: 9,  hitstun: 17, knockbackX: 3, knockbackY: -2, rangeX: 165, rangeY: 72 },   // chain spin
+  { key: "tojiChain5", damage: 62, startup: 4, active: 5, recovery: 18, hitstun: 24, knockbackX: 11, knockbackY: -6, rangeX: 175, rangeY: 72, launcher: true },   // Inverted Spear finisher (launches)
+]
+function fireTojiChainPart(fighter, idx, context) {
+  const p = TOJI_CHAIN_PARTS[idx]
+  const md = { damage: p.damage, startup: p.startup, active: p.active, recovery: p.recovery, hitstun: p.hitstun, blockstun: 10, knockbackX: p.knockbackX, knockbackY: p.knockbackY, rangeX: p.rangeX, rangeY: p.rangeY, isSpecial: true, launcher: !!p.launcher }
+  const a = createAttackFromMove(fighter, p.key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  a.isSpecial = true
+  setAttackState(fighter, a, md.startup + md.active + md.recovery)   // currentMove = tojiChainN → the stage sprite
+  // Auto-chain the next part as this one recovers (continuous). Guarded → a hitstun/knockdown interrupt stops it.
+  if (idx < TOJI_CHAIN_PARTS.length - 1) {
+    schedulePendingSpawn(md.startup + md.active + md.recovery - 2, () => {
+      if (!fighter || (fighter.hitstun || 0) > 0 || fighter.knockdownState) return
+      fireTojiChainPart(fighter, idx + 1, context)
+    })
+  }
+  return true
+}
+function fireTojiChain(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._chainCd || 0) > 0) return false
+  fighter._chainCd = TOJI_CHAIN_CD
+  if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickTojiVoice("castChain"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Chain of a Thousand Miles / Inverted Spear cast line (audio-only)
+  try { shakeCamera(context, 4, 7) } catch (_) {}
+  return fireTojiChainPart(fighter, 0, context)
+}
+// ── PLAYFUL CLOUD (Stage 5, Up Special) — ONE self-contained special using the best-representative frames
+// from the Playful Cloud set: the dash_attack strip (Toji rushes in swinging the three-section staff).
+// A committed forward-lunging staff strike (gap-closer) — mechanically distinct from the stationary sword
+// specials and the long-range chain. Single strong hit, extended staff reach. Cooldown-gated, no energy. ──
+const TOJI_PLAYFUL_CD = 96   // ~1.6s recast
+function fireTojiPlayfulCloud(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._playfulCloudCd || 0) > 0) return false
+  const md = { damage: 80, startup: 6, active: 6, recovery: 16, hitstun: 22, blockstun: 12, knockbackX: 9, knockbackY: -3, rangeX: 150, rangeY: 58, isSpecial: true }
+  const a = createAttackFromMove(fighter, "tojiPlayfulCloud", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  a.isSpecial = true
+  setAttackState(fighter, a, md.startup + md.active + md.recovery)   // currentMove "tojiPlayfulCloud" → dash-strike pose
+  fighter._playfulCloudCd = TOJI_PLAYFUL_CD
+  if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickTojiVoice("castPlayfulCloud"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Playful Cloud cast line (no dedicated callout in the rip → falls back to same-language combat bark)
+  fighter.vx = (fighter.facing || 1) * 14   // dash-in with the staff (gap-closer)
+  try { shakeCamera(context, 4, 7) } catch (_) {}
+  return true
+}
+
+// ── FLY HEADS (Stage 5, Back Special) — REDESIGNED as a pure VISION-DENIAL / DISRUPTION tool. Toji releases a
+// dense, screen-filling SWARM of shikigami fly-heads (many simultaneous fly_head.png instances) that CLUTTER
+// the shared view for a few seconds — the closest achievable version of the "opponent can't see" concept given
+// this game renders local 2P on ONE shared canvas (no split-screen → no literal per-player blind; see
+// tojiFlyHeadsSwarm.js). ZERO DAMAGE by construction: the swarm is a screen-space draw overlay, NOT projectiles,
+// so nothing here can touch a hurtbox — it is a disruption/chaos tool, never a damage source (explicit design).
+// Combat is NOT frozen: both players fight on, half-blind. Cast = hand-forward release gesture + the swarm. ──
+const TOJI_FLYHEAD_CD    = 300   // ~5s recast (swarm lasts ~3.3s → a real gap before it can be re-summoned)
+function fireTojiFlyHeads(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._flyHeadCd || 0) > 0) return false
+  if (isTojiFlyHeadsSwarmActive()) return false   // one swarm at a time
+  fighter._spriteCastMove  = "tojiFlyHeads"      // hand-forward release gesture (punch-sheet arm-out frame)
+  fighter._spriteCastTimer = 26
+  fighter.attackCooldown   = getAttackDuration(28, fighter)
+  fighter._flyHeadCd       = TOJI_FLYHEAD_CD
+  activateTojiFlyHeadsSwarm()                    // dense screen-clutter overlay (0 damage; game.js updates/draws it)
+  try { shakeCamera(context, 3, 8) } catch (_) {}
+  return true
+}
+
+export function executeTojiSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireTojiChain(fighter, context)         // Fwd  = Chain of a Thousand Miles (5-part)
+  if (dir === "U") return fireTojiPlayfulCloud(fighter, context)  // Up   = Playful Cloud (staff dash-strike)
+  if (dir === "B") return fireTojiFlyHeads(fighter, context)      // Back = Fly Heads swarm
+  if (dir === "D") return fireTojiRapidSlash(fighter, context)    // Down = Rapid Sword Slashes
+  return fireTojiSplitSoul(fighter, context)   // Neutral = Split Soul Katana
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOJI — TWO-STAGE COMEBACK MECHANIC (Stage 6). Toji has no cursed energy; his survivability IS this,
+// not raw bulk (base HP is deliberately low). Intercepts the HP-reaches-zero moment (applyTojiComeback is
+// called from game.updateBattle just BEFORE checkRoundEnd, so it catches EVERY damage source and pre-empts
+// the KO). Exactly TWO extra chances per round, then a normal KO:
+//   • 1st zero-HP  → SAVE 1: restore to ~25% HP, NO transformation.
+//   • 2nd zero-HP  → SAVE 2: enter the Reincarnated Form (stat buff + crimson tint) AND restore to ~40% HP.
+//   • 3rd zero-HP  → both saves spent → nothing here → checkRoundEnd resolves a normal KO.
+// The saves reset each round (resetRound builds a fresh fighter → _comebackSavesUsed starts 0).
+// SUPER/X relationship: the Ultimate button MANUALLY enters the SAME Reincarnated Form, ONCE per round, and
+// does NOT consume a comeback save (the saves are the HP-restores). If cast manually first, the 2nd save
+// later still restores HP but the transform is a no-op (guarded) — no double buff. See executeTojiUltimate.
+// ─────────────────────────────────────────────────────────────────────────────
+const TOJI_SAVE1_PCT = 0.25   // 1st near-death restore (confirmed)
+const TOJI_SAVE2_PCT = 0.40   // 2nd near-death restore (proposal — the climactic Reincarnated-Form save)
+function enterTojiReincarnatedForm(fighter, context) {
+  if (!fighter || fighter._reincarnated) return false   // already in the form (a prior save OR a manual X cast) — no double transform
+  applyTransformation(fighter, "reincarnated")           // dmg×1.25 / spd×1.1 / def×1.08 + currentForm="reincarnated"
+  // updateTransformationState re-applies multipliers from currentFormData EVERY frame — point it at the
+  // reincarnated form so the buff STICKS (else the per-frame sync wipes it back to 1.0). Maki/Vegeta gotcha.
+  fighter.currentFormData = fighter.transformations?.reincarnated || fighter.currentFormData
+  fighter._reincarnated  = true                          // drives the crimson sprite tint (sprite.js)
+  try { sound.playSfxFile?.(pickTojiVoice("comebackSave2"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // 2nd save / Reincarnated Form transform beat ("our fight is just getting started" — Step-4 pool)
+  fighter._comebackFlash = 45
+  fighter.invulnTimer    = Math.max(fighter.invulnTimer || 0, 40)
+  try { shakeCamera(context, 6, 12) } catch (_) {}
+  return true
+}
+export function applyTojiComeback(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji") return false
+  if ((fighter.health || 0) > 0) return false            // not at death this frame
+  const used = fighter._comebackSavesUsed || 0
+  if (used >= 2) return false                            // both extra lives spent → normal KO proceeds in checkRoundEnd
+  if (used === 0) {
+    // SAVE 1 — restore to ~25%, NO transformation.
+    fighter.health = Math.max(1, Math.round((fighter.maxHealth || 1000) * TOJI_SAVE1_PCT))
+    fighter._comebackSavesUsed = 1
+    fighter._comebackFlash = 40
+    try { sound.playSfxFile?.(pickTojiVoice("comebackSave1"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // 1st save — defiant "It's not over yet!" survival shout (Step-4 pool, distinct from generic lowHealth)
+    fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 40)
+    try { shakeCamera(context, 5, 9) } catch (_) {}
+  } else {
+    // SAVE 2 — Reincarnated Form (buff + visual) AND a partial HP restore.
+    enterTojiReincarnatedForm(fighter, context)
+    fighter.health = Math.max(1, Math.round((fighter.maxHealth || 1000) * TOJI_SAVE2_PCT))
+    fighter._comebackSavesUsed = 2
+  }
+  // Clear the death-frame state so he recovers cleanly instead of dying in a knockdown.
+  fighter.hitstun = 0; fighter.knockdownState = false; fighter.isLaunched = false
+  if ((fighter.vy || 0) > 0) fighter.vy = 0
+  return true
+}
+// SUPER / X — manual Reincarnated Form: a GENUINE, player-chosen ULTIMATE (see the header note). This is the
+// real ultimate — a frozen ACTIVATION CINEMATIC (tojiReincarnationCinematic.js: camera pushes in on Toji, the
+// crimson cursed aura swells, a transformation burst fires, the camera pulls back) that leaves him powered up in
+// the SAME Reincarnated Form the 2nd comeback save grants. It does NOT require critical HP — castable from full
+// health at the player's choosing. Meterless (Toji has no energy — hideResourceMeter), so it is gated exactly
+// like the other no-meter ultimates (Zenitsu/Rengoku/Shinobu/Maki): a 20s cooldown, and once per round.
+// INDEPENDENT of the automatic two-stage comeback: the guards below mean if the auto 2nd-save already
+// transformed him, this no-ops (no double cinematic / double buff); if this fired first, the later 2nd save's
+// transform is a guarded no-op but still restores HP. No conflict either ordering. See enterTojiReincarnatedForm.
+export function executeTojiUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji") return false
+  if (fighter._reincarnated || fighter._tojiFormManualUsed) return false   // already transformed (manual OR auto save), or already used the manual cast this round
+  if (isTojiReincarnationCinematicActive()) return false                   // already mid-activation
+  if (!enterTojiReincarnatedForm(fighter, context)) return false           // apply the buff + crimson tint
+  fighter._tojiFormManualUsed = true
+  fighter.ultimateCooldown = ULTIMATE_COOLDOWN_FRAMES
+  // Hold Toji still (idle stance) through the frozen activation cinematic — he has no dedicated transform art,
+  // so the crimson tint (already live) IS the visual change; the cinematic clears the hold on end.
+  fighter._spriteCastMove  = "idle"
+  fighter._spriteCastTimer = 190
+  const opp = context?.getOpponent?.(fighter) || context?.p2 || null
+  activateTojiReincarnationCinematic(fighter, opp)
+  return "reincarnated"   // truthy cast → drives the generic ult flash/voice hook
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // KASUMI MIWA (Stage 2) — "Battojutsu Rush" katana command chain. Fwd+Heavy opener → re-tap Heavy on a
 // CLEAN hit: miwaG1 (low lunge) → miwaG2 (dash-thrust) → miwaG3 (rising slash launcher finisher).
 // Cancel-on-hit; a whiff/block ENDS the string (shared rekkaContinue, requireHit:true). Toji-Rekka twin of
@@ -7980,6 +7960,264 @@ export function updateObitoCommandCombat(fighter, inputState, context, getPhase)
   const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
   if (heavyEdge && forward) return fireObitoCommand(fighter, "obitoRod1", context)
   return false
+}
+
+// ── PAIN / NAGATO'S DEVA PATH (Stage 2) — COMMAND NORMALS ─────────────────────────────────────────
+// The "overflow into a command-normal chain": the ground_combo COMPILATION grid (row1 spin = the light
+// normal, row2 = the up-launcher, row3 = a unique finisher) doubles as a 3-hit Fwd+Heavy rekka —
+// painCombo1 opens, re-tap Heavy on a clean hit → painCombo2 → painCombo3 launcher finisher (cancel-on-
+// hit; a whiff/block ends the string, via the shared rekkaContinue gate). The standalone light_attack_2
+// punch-jab is a single Fwd+Light command normal (painJab). Neutral light/heavy/up/air/air_heavy/down_air
+// stay on the normal path (forward-held gate keeps neutral pressses on the normals).
+const PAIN_COMBO = {
+  // Low knockback on the openers pins the target in the string; the finisher pops them up. Chain totals
+  // ~124 raw over 3 hits — in the same shinobi-bruiser band as Obito's rod string (~130).
+  painCombo1: { damage: 30, startup: 4, active: 3, recovery: 11, hitstun: 14, knockbackX: 2, knockbackY: 0,   rangeX: 88, rangeY: 52, rekkaNext: "painCombo2" },  // spin opener
+  painCombo2: { damage: 36, startup: 5, active: 3, recovery: 13, hitstun: 16, knockbackX: 2, knockbackY: 0,   rangeX: 96, rangeY: 56, rekkaNext: "painCombo3" },  // launcher mid
+  painCombo3: { damage: 58, startup: 6, active: 4, recovery: 18, hitstun: 22, knockbackX: 6, knockbackY: -10, launch: 11, rangeX: 94, rangeY: 62, category: "heavy" },  // finisher (pop-up)
+}
+const PAIN_JAB = { painJab: { damage: 34, startup: 4, active: 3, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: 0, rangeX: 80, rangeY: 50 } }  // Fwd+Light single
+
+function firePainCommand(fighter, key, context) {
+  const md = PAIN_COMBO[key] || PAIN_JAB[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the stage sprite (painCombo1/2/3, painJab)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
+  fighter.vx = (fighter.facing || 1) * (key === "painCombo3" ? 5 : 4)   // small step-in carries the string forward
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+export function updatePainCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "pain" || !inputState) return false
+  const opp       = context?.getOpponent?.(fighter)
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  const lightEdge = !!inputState.light && !fighter._cmdPrevLight
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  fighter._cmdPrevLight = !!inputState.light
+  // CONTINUE — fresh Heavy during recovery on a clean hit → next rekka stage (shared rekkaContinue owns the gate).
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return firePainCommand(fighter, next, context)
+  // OPENERS — from neutral only (grounded, not already mid-move), forward held. Consumes the press so
+  // neutral Light/Heavy stay the normal spin-kick / rod-thrust.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (!forward) return false
+  if (heavyEdge) return firePainCommand(fighter, "painCombo1", context)   // Fwd+Heavy → combo chain
+  if (lightEdge) return firePainCommand(fighter, "painJab", context)      // Fwd+Light → jab
+  return false
+}
+
+// ── PAIN / NAGATO'S DEVA PATH (Stage 3) — GRAVITY SPECIALS (Almighty Push / Pull / Super Push) ─────
+// Three SEPARATE specials on distinct directional-Special inputs (schema exception — each its own slot):
+//   NEUTRAL Special = Almighty Push (Shinra Tensei) — an invisible repulsion that shoves the foe AWAY.
+//   BACK    Special = Almighty Pull (Bansho Ten'in) — reels the foe TOWARD Pain (reuses the shared
+//                     _grabPull reel, exactly like Hisoka's Bungee Gum).
+//   DOWN    Special = Super Almighty Push (Hard Shinra Tensei) — a stronger shove PLUS the debris
+//                     ground-shockwave overlay drawn under Pain (its own effect sheet).
+// Shinra Tensei is a formless force in canon, so Push/Super-Push are direct range-checked shoves (no
+// travelling projectile) fired after a short cast windup via schedulePendingSpawn — the cast pose
+// (_spriteCastMove) plays the palm-thrust during the wind-up. Up/Fwd Special stay free (Stage 4 Dedera).
+// Almighty Push = GLOBAL (full-map) + ZERO damage — an invisible formless force that just blows the foe
+// downrange from ANY distance (canon Shinra Tensei is a repulsion, not a strike). Super Push KEEPS its
+// range + damage (the heavier, committal version). Almighty Pull = GLOBAL + ZERO damage reel-in.
+const PAIN_PUSH  = { cost: 30, global: true, dmg: 0,  knockX: 22, knockY: -5, hitstun: 22, cast: 22, fire: 8,  shake: 7 }
+const PAIN_SUPER = { cost: 55, reach: 230, dmg: 132, knockX: 27, knockY: -7, hitstun: 26, cast: 30, fire: 11, shake: 10 }
+const PAIN_PULL  = { cost: 32, dmg: 0, hitstun: 22, gap: 44, reel: 30, cast: 22, fire: 6 }
+// Dedera Double Attack (Fwd+Special) — the Deidara-style clay-bird homage, one sequenced special:
+// cast (Deidara cameo) → rising follow-up (Pain hops into the throw) → clay-bird projectile → the
+// star-flash/fireball explosion blooms on the bird's connect (projectile `impact` payload).
+const PAIN_DEDERA = { cost: 42, cast: 14, rise: 12, fire: 20, hop: -7, dmg: 92 }
+
+// Direct radial repulsion — shove the opponent AWAY from Pain (facing points at the foe, so face*knockX
+// blows them further downrange). Range-checked at the RELEASE frame; a whiff just costs energy + the cast.
+// Direct radial repulsion — sets the opponent's knockback velocity DIRECTLY (no traveling hitbox, no
+// damage pipeline). cfg.global (Almighty Push) skips the range check → full-map reach; cfg.reach limits
+// it (Super Push). cfg.dmg > 0 (Super Push) also deals damage; cfg.dmg 0 (Almighty Push) is force-only.
+function painGravityShove(fighter, context, cfg) {
+  const target = context?.getOpponent?.(fighter)
+  if (!target) return false
+  const face = fighter.facing || 1
+  if (!cfg.global) {
+    const dx = Math.abs((target.x || 0) - (fighter.x || 0))
+    if (dx > cfg.reach) { try { shakeCamera(context, Math.max(2, (cfg.shake||6) - 4), 6) } catch (_) {} return false }  // range-limited whiff (Super Push)
+  }
+  target.vx = face * cfg.knockX          // invisible force — blows the foe downrange from ANY distance
+  target.vy = cfg.knockY
+  target.hitstun = Math.max(target.hitstun || 0, cfg.hitstun)
+  target.colorFlash = 8
+  if (cfg.dmg > 0) applyScaledDamage(target, cfg.dmg, { source: "ability" })   // 0 for Almighty Push (force-only)
+  try { shakeCamera(context, cfg.shake || 6, 8) } catch (_) {}
+  return true
+}
+
+function executePainSpecial(fighter, context) {
+  const dirs = getRelativeDirections(fighter)
+
+  // BACK — Almighty Pull (Bansho Ten'in): reel the foe toward Pain via the shared _grabPull reel.
+  if (endsWithPattern(dirs, ["B"])) {
+    const target = context?.getOpponent?.(fighter)
+    if (!target || !canSpendEnergy(fighter, PAIN_PULL.cost)) return false
+    fighter._spriteCastMove  = "painAlmightyPullCast"
+    try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.(pickPainVoice("almightyPull"), null); fighter._atkVoiceCd = 150 } } catch (_) {}
+    fighter._spriteCastTimer = PAIN_PULL.cast
+    fighter.attackCooldown   = getAttackDuration(PAIN_PULL.cast, fighter)
+    schedulePendingSpawn(PAIN_PULL.fire, () => {
+      if (!spendEnergy(fighter, PAIN_PULL.cost)) return
+      // GLOBAL gravity pull — set the shared _grabPull reel state DIRECTLY (no resolveGrab range/tech
+      // gate), so combat.js updateGrab reels the foe to `gap` px in front of Pain from ANY distance,
+      // dealing ZERO damage (dmg 0). Invisible formless force — no traveling hitbox.
+      target.isGrabbed = true
+      target.grabTimer = PAIN_PULL.reel
+      target.hitstun   = Math.max(target.hitstun || 0, PAIN_PULL.hitstun)
+      target.vx = 0; target.vy = 0; target.colorFlash = 6
+      fighter.attacking = false; fighter.currentAttack = null
+      fighter._grabPull = { gap: PAIN_PULL.gap, dmg: 0, hitstun: PAIN_PULL.hitstun }   // dmg 0 = pure pull
+      try { shakeCamera(context, 3, 5) } catch (_) {}
+    })
+    return true
+  }
+
+  // DOWN — Super Almighty Push (Hard Shinra Tensei): stronger shove + debris ground shockwave.
+  if (endsWithPattern(dirs, ["D"])) {
+    if (!spendEnergy(fighter, PAIN_SUPER.cost)) return false
+    fighter._spriteCastMove  = "painSuperPushCast"
+    try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.(pickPainVoice("superPush"), null); fighter._atkVoiceCd = 150 } } catch (_) {}
+    fighter._spriteCastTimer = PAIN_SUPER.cast
+    fighter.attackCooldown   = getAttackDuration(PAIN_SUPER.cast, fighter)
+    schedulePendingSpawn(PAIN_SUPER.fire, () => {
+      // GROUND EFFECT — expanding debris shockwave under Pain's feet (visual-only, plays once).
+      spawnProjectile(fighter, "painSuperPushGround", {
+        visualOnly: true, damage: 0, speed: 0, lifetime: 22, vx: 0, vy: 0, w: 120, h: 54,
+        sheet: "./pain_super_push_ground_uniform.png", spriteFrames: 3, spriteW: 124, spriteH: 57,
+        spriteSpeed: 6, spriteScale: 1.5,
+        spawnX: (fighter.x || 0) + (fighter.w || 60) / 2, spawnY: (fighter.y || 0) + (fighter.h || 100) - 6
+      }, context)
+      painGravityShove(fighter, context, PAIN_SUPER)
+    })
+    return true
+  }
+
+  // FWD — Dedera Double Attack: cast (Deidara cameo) → rising follow-up → clay-bird projectile →
+  // star-flash/fireball explosion on the bird's connect. One sequenced special.
+  if (endsWithPattern(dirs, ["F"])) {
+    if (!spendEnergy(fighter, PAIN_DEDERA.cost)) return false
+    const face = fighter.facing || 1
+    // Phase 1 — cast (the Deidara-cameo clay-forming pose).
+    fighter._spriteCastMove  = "painDederaCast"
+    try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.(pickPainVoice("dedera"), null); fighter._atkVoiceCd = 150 } } catch (_) {}
+    fighter._spriteCastTimer = PAIN_DEDERA.cast
+    fighter.attackCooldown   = getAttackDuration(PAIN_DEDERA.cast + PAIN_DEDERA.rise + 6, fighter)
+    // Phase 2 — rising follow-up (Pain hops up into the throw); the pose swaps mid-sequence.
+    schedulePendingSpawn(PAIN_DEDERA.cast, () => {
+      fighter._spriteCastMove  = "painDederaRise"
+      fighter._spriteCastTimer = PAIN_DEDERA.rise
+      if (fighter.onGround ?? fighter.grounded) fighter.vy = PAIN_DEDERA.hop
+    })
+    // Phase 3 — launch the clay-bird projectile; Phase 4 (explosion) blooms on connect via `impact`.
+    schedulePendingSpawn(PAIN_DEDERA.fire, () => {
+      spawnProjectile(fighter, "painDederaBird", {
+        sheet: "./pain_dedera_bird_uniform.png", spriteFrames: 2, spriteW: 39, spriteH: 26, spriteSpeed: 5, spriteScale: 1.6,
+        damage: PAIN_DEDERA.dmg, speed: 12, hitstun: 22, knockbackX: 7, knockbackY: -4,
+        w: 44, h: 30, color: "#e8e8e8", lifetime: 120, isSpecial: true,
+        vx: face * 12, spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.35,
+        impact: { sheet: "./pain_dedera_explosion_uniform.png", frames: 5, w: 69, h: 71, speed: 3, scale: 1.9, lifetime: 30 }
+      }, context)
+      try { shakeCamera(context, 4, 6) } catch (_) {}
+    })
+    return true
+  }
+
+  // NEUTRAL — Almighty Push (Shinra Tensei): repulsion blast.
+  if (!spendEnergy(fighter, PAIN_PUSH.cost)) return false
+  fighter._spriteCastMove  = "painAlmightyPushCast"
+  try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.(pickPainVoice("almightyPush"), null); fighter._atkVoiceCd = 150 } } catch (_) {}
+  fighter._spriteCastTimer = PAIN_PUSH.cast
+  fighter.attackCooldown   = getAttackDuration(PAIN_PUSH.cast, fighter)
+  schedulePendingSpawn(PAIN_PUSH.fire, () => { painGravityShove(fighter, context, PAIN_PUSH) })
+  return true
+}
+
+// ── PAIN / NAGATO'S DEVA PATH (Stage 6) — "SIX PATHS SUMMON" 5-ASSIST SELECTOR ────────────────────
+// CHARGE (P) held + a slot input summons one of five bespoke Akatsuki assist calls. Each is a self-
+// contained companion that rushes in, strikes ONCE, and puffs away (the Zaraki-Yachiru lifecycle) —
+// none reference the real Itachi/Sasuke/Tobi roster kits (their own scripted assist art). Built FRESH
+// (deterministic edge-detect, NOT Ben10's slot code — [[ghostface-swap-trigger-rigor]]). Charge is
+// otherwise free for Pain (no charge-release move), so it's a clean "focus chakra → call a Path" gesture.
+//   Charge+↑ = Itachi · Charge+← = Konan · Charge+→ = Sasori · Charge+↓ = Sasuke · Charge+Light = Tobi
+const PAIN_ASSIST_CD = 150   // shared cooldown (~2.5s) — ticked here each frame; prevents summon-spam
+// `fx` (optional) = a visual-only bloom spawned AT THE FOE when the assist is called — the multi-file
+// assists' secondary sheets (Konan paper-trap, Sasuke lightning-rod, the combined Tobi Kamui vortex).
+const PAIN_ASSISTS = [
+  { key: "itachi", field: "jump",  name: "Itachi", sheet: "./pain_assist_itachi_uniform.png", frames: 10, w: 114, h: 69, dmg: 60, scale: 1.5 },   // Charge+↑ — crow murder (self-contained)
+  { key: "konan",  field: "left",  name: "Konan",  sheet: "./pain_assist_konan_uniform.png",  frames: 7,  w: 52,  h: 69, dmg: 54, scale: 1.7,
+    fx: { sheet: "./pain_assist_konan_trap_uniform.png", frames: 3, w: 50, h: 59, scale: 1.5, lifetime: 26 } },                                    // Charge+← — paper trap bloom
+  { key: "sasori", field: "right", name: "Sasori", sheet: "./pain_assist_sasori_uniform.png", frames: 8,  w: 91,  h: 70, dmg: 64, scale: 1.6 },   // Charge+→ — puppet + scorpion tail (self-contained)
+  { key: "sasuke", field: "down",  name: "Sasuke", sheet: "./pain_assist_sasuke_uniform.png", frames: 6,  w: 47,  h: 66, dmg: 58, scale: 1.7,
+    fx: { sheet: "./pain_assist_sasuke_rod_uniform.png", frames: 6, w: 30, h: 23, scale: 2.0, lifetime: 22 } },                                    // Charge+↓ — chidori lightning rod
+  { key: "tobi",   field: "light", name: "Tobi",   sheet: "./pain_assist_tobi_uniform.png",   frames: 5,  w: 32,  h: 72, dmg: 52, scale: 1.7,
+    fx: { sheet: "./pain_assist_tobi_vortex_uniform.png", frames: 4, w: 93, h: 91, scale: 1.6, lifetime: 30 } },                                   // Charge+Light — Kamui vortex (combined Tobi sequence)
+]
+
+function firePainAssist(fighter, slot, context) {
+  const a = PAIN_ASSISTS[slot]
+  if (!a || (fighter.painAssistCd || 0) > 0) return false
+  const opp = context?.getOpponent?.(fighter)
+  if (!opp) return false
+  const dir = fighter.facing || 1
+  const summonData = {
+    id: "painAssist_" + a.key, summonId: "painAssist_" + a.key,
+    duration: 42, maxSimultaneous: 1, attackInterval: 6, spawnBeat: 3,
+    damage: a.dmg, hitstun: 20, knockbackX: 6, knockbackY: -2,
+    w: Math.round(a.w * 0.5), h: a.h, speed: 13, behavior: "rush", oneHit: true, puffOnDespawn: true,
+    color: "#b91c1c",
+    sheet: a.sheet, spriteFrames: a.frames, spriteW: a.w, spriteH: a.h, spriteSpeed: 3, spriteScale: a.scale,
+  }
+  const p = spawnAssistSummon(fighter, summonData, opp)
+  if (!p) return false
+  p.x = opp.x + dir * 100; p.y = opp.y; p.facing = -dir   // land beyond the foe → rush inward
+  // Secondary VFX bloom at the foe (multi-file assists: Konan paper-trap / Sasuke rod / Tobi vortex).
+  if (a.fx) {
+    spawnProjectile(fighter, "painAssistFx_" + a.key, {
+      visualOnly: true, damage: 0, speed: 0, lifetime: a.fx.lifetime || 26, vx: 0, vy: 0,
+      w: a.fx.w, h: a.fx.h, sheet: a.fx.sheet, spriteFrames: a.fx.frames, spriteW: a.fx.w, spriteH: a.fx.h,
+      spriteSpeed: 4, spriteScale: a.fx.scale || 1.4,
+      spawnX: (opp.x || 0) + (opp.w || 60) / 2, spawnY: (opp.y || 0) + (opp.h || 100) * 0.4
+    }, context)
+  }
+  fighter.painAssistCd = PAIN_ASSIST_CD
+  fighter._lastPainAssist = a.key   // HUD / harness read
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  try { if (!(fighter._atkVoiceCd > 0)) { sound.playSfxFile?.(pickPainVoice("assistCall"), null); fighter._atkVoiceCd = 150 } } catch (_) {}   // "We, Akatsuki" — shared summon call (no per-name lines exist)
+  return true
+}
+
+// Per-frame selector — mirrors handleOmnitrixSwitch's SHAPE but is a fresh, deterministic edge-detect.
+// Called from game.js (before the jump/attack path) so _omxConsume can suppress the ↑/Light slot press.
+export function updatePainAssistCombo(fighter, inputState, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "pain" || !inputState) return
+  if ((fighter.painAssistCd || 0) > 0) fighter.painAssistCd--
+  const held = (fighter._painAssistHeld = fighter._painAssistHeld || {})
+  fighter._omxConsume = null   // reset the shared input-consume flag each frame (Pain isn't a Ben → nothing else touches it)
+  const charge = !!inputState.charge
+  if (charge && !fighter.attacking && (fighter.hitstun || 0) <= 0 && (fighter.painAssistCd || 0) <= 0) {
+    for (let i = 0; i < PAIN_ASSISTS.length; i++) {
+      const f = PAIN_ASSISTS[i].field
+      if (!!inputState[f] && !held[f]) {   // EDGE: this slot input just went down while Charge is held
+        if (firePainAssist(fighter, i, context)) {
+          fighter._omxConsume = { jump: f === "jump", light: f === "light", heavy: f === "heavy" }
+        }
+        break
+      }
+    }
+  }
+  held.charge = charge
+  for (const a of PAIN_ASSISTS) held[a.field] = !!inputState[a.field]
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -9242,7 +9480,7 @@ function fireZenitsuThunderclap(fighter, context) {
 const TOBIRAMA_CMD = {
   tobiCombo1:   { damage: 42, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3,  knockbackY: 0,  rangeX: 80, rangeY: 54, rekkaNext: "tobiCombo2" },
   tobiCombo2:   { damage: 46, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 3,  knockbackY: -1, rangeX: 88, rangeY: 56, rekkaNext: "tobiComboFin" },   // water-infused strike (built-in blue burst art)
-  tobiComboFin: { damage: 84, startup: 8, active: 4, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: 4,  rangeX: 92, rangeY: 58, category: "heavy" },   // downward slam finisher (string ends here — combo-flow: heavy finisher weight)
+  tobiComboFin: { damage: 84, startup: 8, active: 4, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -4, rangeX: 92, rangeY: 58, launcher: true },   // finisher — LAUNCHES (combo-string standardization Stage C: was heavy downward-slam ender; knockbackY flipped up, launcher path pops straight up) → jump-cancel air combo
 }
 const TOBIRAMA_POKE = {
   tobiStrongFwd:  { damage: 66, startup: 6, active: 4, recovery: 16, hitstun: 22, knockbackX: 8, knockbackY: -11, rangeX: 90, rangeY: 96, launcher: true, cd: 32 },  // committed forward tumbling launcher
@@ -10834,6 +11072,32 @@ function executeMadaraUltimate(fighter, context, hold = false) {
   return true
 }
 
+// ── PAIN / NAGATO'S DEVA PATH (Stage 7) — "CHIBAKU TENSEI" ULTIMATE (freeze-cinematic) ────────────
+// cast (arms raised) → black-sphere growth (+debris) → SLAM onto the foe → ground effect (flat → dome →
+// flame pillar). The guaranteed planetary-devastation damage lands at the SLAM beat via applyPainChibaku
+// Damage (routed through the ONE scaled-damage choke-point). Reuses the exact freeze contract.
+const PAIN_CHIBAKU_COST = 100    // Pain's ultimate cost (characters.js ultimate.cost)
+const PAIN_CHIBAKU_DMG  = 360    // cinematic-ult band (Obito Juubi tier); scaled at the choke-point
+function applyPainChibakuDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  let raw = PAIN_CHIBAKU_DMG
+  if (opp.isBlocking) raw = Math.round(raw * 0.25)   // block chips the devastation to 25%
+  const dealt = applyScaledDamage(opp, raw, { source: "ultimate" })
+  opp.hitstun = Math.max(opp.hitstun || 0, 48)
+  opp.vx = (fighter.facing || 1) * 10; opp.vy = -6; opp.colorFlash = 12
+  try { cineCtx.damageNumbers?.push?.({ x: opp.x + (opp.w || 40) / 2, y: opp.y, value: dealt, color: "#a78bfa", life: 60 }) } catch (_) {}
+}
+function executePainUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "pain") return false
+  if (isPainChibakuTenseiCinematicActive()) return false   // already mid-cinematic
+  const opp = context?.getOpponent?.(fighter) || null
+  if (!spendEnergy(fighter, PAIN_CHIBAKU_COST)) return false
+  fighter.vx = 0
+  try { sound.playSfxFile?.(pickPainVoice("chibaku"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // 地爆天星 Chibaku Tensei callout
+  activatePainChibakuTenseiCinematic(fighter, opp, (cineCtx) => applyPainChibakuDamage(fighter, opp, cineCtx))
+  return true
+}
+
 function executeSasukeSpecial(fighter, context) {
   const stage = fighter._susanooStage || 0
   const getOpp = getTargetResolver(context)
@@ -10961,6 +11225,75 @@ export function updateSasukeCommandCombat(fighter, inputState, context) {
   if (!grounded || !actionable) return false
   fireSasukeSkeletalGrab(fighter, context)
   return true                                              // consume the press (suppress the normal path this frame, incl. a Down+Light's Light)
+}
+
+// ─────────────────────────────────────────────────────────────────
+// STANDARD COMBO STRING (MK-feel Stage 2b) — gives the "single-poke" characters a real dial-a-combo,
+// so their normals chain like the rekka characters instead of being isolated one-hit pokes:
+//     light → light → heavy(LAUNCHER pop-up)     +     heavy → special cancel
+// ONE data-driven handler shared by all six (Goku/Gojo/Sukuna/Naruto/Megumi/Rick), reusing the SAME
+// cancel-on-hit rules the rekka chars use (connect-latch on a real hit, cancels only during a CONNECTED
+// recovery, a whiff/block ends the string). It does NOT fire the openers — a neutral light/heavy still
+// comes out on the normal path; this only adds the recovery-phase CANCELS. The heavy ender launches via
+// startMove's `launcher` flag (juggle-height comes from Stage 2a's -26 floor), feeding the Stage-1b juggle.
+const STANDARD_STRING_CHARS = {
+  goku: {}, gojo: {}, sukuna: {}, naruto: {}, megumi: {}, rick: {},   // the six original single-poke characters (MK-feel Stage 2b)
+  // combo-string standardization Stage D: roll the SAME shared Light→Light→Heavy(→launcher) dial-a-combo out
+  // to every remaining un-built MELEE character (each has light + upAttack normals → art-free, reuses their
+  // own basic_attacks; no per-char driver). True zoners (rickPrime/evilMorty/beerus/piccolo/frieza) are
+  // deliberately excluded — they stay single-poke by design.
+  itachi: {}, yuji: {}, goku_black: {}, cell: {}, tobi: {}, morty: {}, albedo: {}, omololu: {},
+}
+export function updateStandardStringCombat(fighter, inputState, context, getPhase) {
+  const key = (fighter?.rosterKey || "").toLowerCase()
+  if (!STANDARD_STRING_CHARS[key] || !inputState) return false
+  const phase = getPhase?.(fighter)
+  const opp   = context?.getOpponent?.(fighter)
+
+  // Fresh press-edges (a held/buffered button must not auto-advance the string).
+  const lightEdge   = !!inputState.light   && !fighter._sstrPrevLight
+  const heavyEdge   = !!inputState.heavy   && !fighter._sstrPrevHeavy
+  const specialEdge = !!inputState.special && !fighter._sstrPrevSpecial
+  fighter._sstrPrevLight   = !!inputState.light
+  fighter._sstrPrevHeavy   = !!inputState.heavy
+  fighter._sstrPrevSpecial = !!inputState.special
+
+  // Latch a REAL connect (opponent in hitstun = a hit, NOT block). resolveAttackHit runs AFTER this in
+  // updateCombat, so this reads the previous frame's hit while hitstun still counts down (same as Vegeta).
+  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
+  if (!fighter.attacking) { fighter._cmdHitLanded = false; fighter._sstrStage = null }
+
+  // Cancels fire ONLY during a CONNECTED recovery — a whiff/block leaves _cmdHitLanded false = the string ends.
+  if (!fighter.attacking || phase !== "recovery" || !fighter._cmdHitLanded) return false
+  const cur = fighter.currentMove || fighter.currentAttack?.name
+
+  // (1) heavy → SPECIAL cancel (from any heavy — the combo ender OR a bare heavy). Special is otherwise
+  //     blocked mid-attack by game.js's canStart gate, so this cancel is its only mid-string route.
+  if (cur === "heavy" && specialEdge) {
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null; fighter.attackCooldown = 0
+    fighter._sstrStage = null
+    return triggerSpecial(fighter, context)
+  }
+  // (2) light → LIGHT2 (only from the FIRST light; _sstrStage blocks a 3rd light so the string is L,L,H).
+  if (cur === "light" && fighter._sstrStage !== "light2" && lightEdge) {
+    return fireStandardStep(fighter, "light", fighter.basic_attacks?.light, "light2")
+  }
+  // (3) light → LAUNCHER ender (from light1 or light2). MK-feel Stage 2c: the Heavy press FOLDS the string
+  // into the SAME up-attack launcher the dedicated launcher input (I / upAttack) fires — one launcher move,
+  // two input routes (dial-a-combo l,l,h AND direct I both reach `startMove(fighter, "up", upAttack)`).
+  if (cur === "light" && heavyEdge && fighter.basic_attacks?.upAttack) {
+    return fireStandardStep(fighter, "up", fighter.basic_attacks.upAttack, "heavyEnd")
+  }
+  return false
+}
+// Tear down the current (connected) attack and start the next string step via the shared startMove.
+function fireStandardStep(fighter, name, md, stage) {
+  if (!md) return false
+  fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null; fighter.attackCooldown = 0
+  if (!startMove(fighter, name, md)) return false
+  fighter._sstrStage    = stage
+  fighter._cmdHitLanded = false   // each step must land its own clean hit to continue
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -12060,10 +12393,10 @@ export function triggerSpecial(fighter, context = {}) {
     case "itachi":  return executeItachiSpecial(fighter, context)   // Fireball (neutral); Amaterasu/Genjutsu gated on Mangekyou (Stage 4)
     case "madara":  return executeMadaraSpecial(fighter, context)   // Stage 3 (one at a time): Katon Great Fireball (neutral); Gunbai/Mokuton/Susanoo set land in later passes
     case "obito":   return executeObitoSpecial(fighter, context)   // Ranged: Shuriken Throw (neutral/air) / Chakra Rod Throw (Fwd) / Giant Shuriken (Up)
+    case "pain":    return executePainSpecial(fighter, context)   // Stage 3 gravity trio: Almighty Push (neutral) / Almighty Pull (Back) / Super Almighty Push (Down)
     case "tobi":    return executeTobiSpecial(fighter, context)   // Stage 3: neutral Special = Chain Grab (multi-stage command grab); other dirs land later
     case "netero":  return executeNeteroSpecial(fighter, context)   // Barrage Punches (melee flurry; command chain is Down+Heavy, separate)
     case "omololu": return executeOmoluSpecial(fighter, context)
-    case "toji":    return executeToji_Special(fighter, context)
     case "rick":    return executeRickSpecial(fighter, context)
     // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
     // false (no-op, no glitch) until Explosion (neutral) lands in Stage 3b. NOTE: the ULTIMATE
@@ -12087,6 +12420,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "inosuke": return executeInosukeSpecial(fighter, context)   // Beast Breathing cinematic specials: Spin(neutral) / Dash Thrust(Fwd) / Slashing Lunge Fan(Down)
     case "nezuko":  return executeNezukoSpecial(fighter, context)   // Combo Kick rekka (neutral) / Super Kick (Fwd) / Air Special (airborne); Run & Scratch is on CHARGE hold-release
     case "maki":    return executeMakiSpecial(fighter, context)   // Kunai Throw (neutral/Fwd projectile) / Nunchaku Flurry (Down); Power Charge is on CHARGE
+    case "toji":    return executeTojiSpecial(fighter, context)   // Split Soul Katana (neutral 2-part sword combo) / Rapid Sword Slashes (Down multi-hit flurry); Chain/FlyHeads/PlayfulCloud land in S4-5
     case "miwa":    return executeMiwaSpecial(fighter, context)   // grounded → Iai Dash (gap-closer); airborne → Rapid Slash Vortex (+ FX overlay); CHARGE (hold P) = cursed-energy charge stance
     case "ichigo":  return executeIchigoSpecial(fighter, context)   // Getsuga Tenshō (neutral crescent projectile) / Charged Slash (Fwd) / Hollow Getsuga (Down super) / Hollow Rising (Up super) / Aerial Getsuga Dive (air)
     case "zaraki":
@@ -12124,12 +12458,12 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
       case "itachi":  cast = executeItachiUltimate(fighter, context);  break   // single-tier creature Susanoo
       case "madara":  cast = executeMadaraUltimate(fighter, context, !!opts.hold); break   // TIERED: TAP=Perfect Susanoo/Tengai Shinsei meteor cinematic · HOLD(≥180 energy)=Complete Susanoo giant
+      case "pain":    cast = executePainUltimate(fighter, context); break   // Chibaku Tensei — cast → sphere growth → slam → flat/dome/flame-pillar ground effect (freeze cinematic)
       case "obito":   cast = executeObitoUltimate(fighter, context);   break   // Ten-Tails Jinchūriki — giant Juubi Bijūdama freeze-cinematic
       case "tobi":    cast = executeTobiUltimate(fighter, context);    break   // NINE-Tails (Kurama) Bijūdama freeze-cinematic (own art/module, NOT Obito's Ten-Tails)
 
       case "netero":  cast = executeNeteroUltimate(fighter, context);  break   // 100-Type Guanyin Bodhisattva giant form
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
-      case "toji":    cast = executeToji_Ultimate(fighter, context);   break
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
@@ -12148,6 +12482,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "nezuko": cast = executeNezukoUltimate(fighter, context, !!opts.hold); break   // TIERED: TAP=Kekijutsu Baketsu two-phase barrage→finisher · HOLD=Demon Transformation mode-change buff (both cooldown-gated, no energy; independently selectable)
       case "shinobu": cast = executeShinobuUltimate(fighter, context); break   // Butterfly Dance: freeze-cinematic spinning-dash finisher + poison — 8s COOLDOWN (not energy)
       case "maki": cast = executeMakiShibuyaUltimate(fighter, context); break   // Cursed Tool Awakening: HP-threshold (≤25%) player-triggered Shibuya-Arc transform — freeze cinematic + moveset swap (no meter; one-way for the round)
+      case "toji": cast = executeTojiUltimate(fighter, context); break   // Reincarnated Form: MANUAL entry into the same buff-form the 2nd comeback save grants (once/round, no HP restore, doesn't consume a save)
       case "yuji": cast = executeYujiUltimate(fighter, context); break   // Black Flash: Phase-1 buildup freeze cinematic → Phase-2 mashable Koma flurry+finisher (Stage 4 engine)
       case "hisoka":  cast = executeHisokaUltimate(fighter, context);  break   // Bloodlust Overdrive: buff + _skinAnim golden power-up body-swap + freeze cinematic (form-swap, extended whip)
       case "flash":   cast = executeFlashUltimate(fighter, context);   if (cast) maybeFireFlashSkinCastVoice(fighter);   break   // Flash Time (buff-mode) + Reverse-skin cast bark
@@ -12366,12 +12701,20 @@ function executeRickSpecial(fighter, context) {
   return true
 }
 
+// MK-feel Stage 3d: detonating yourself costs HP. 15% of max (non-lethal — floors at 1) is a real
+// commitment ON TOP of the 140 meter, and self-limiting (can't spam it while low). This is the balance
+// lever the audit flagged as missing ("Rick takes no self-damage; meter is the only lever"). Applied on
+// CAST (whether or not the blast connects) so a whiffed panic-press is genuinely punished. Tune here.
+const RICK_SELF_DESTRUCT_HP_FRAC = 0.15
 function executeRickUltimate(fighter, context) {
   // SELF-DESTRUCT: instant proximity AOE. Only connects if the opponent is inside the blast.
-  // Rick takes NO self-damage and is not knocked down — the near-max meter cost is the only
-  // balance lever (no startup / vulnerability window). Damage is applied directly (summon-style,
-  // bypassing GLOBAL_DAMAGE_SCALE) so 180 ≈ a genuine ultimate burst.
+  // The opponent's damage routes through applyScaledDamage (GLOBAL_DAMAGE_SCALE since Stage 1a):
+  // 180 RAW → 108 EFF. Stage 3d adds a self-HP cost so it is no longer a risk-free instant nuke.
   if (!spendEnergy(fighter, 140)) return false
+
+  // Self-destruct cost — Rick blows himself up to use it (non-lethal). Applied here on the cast.
+  const selfCost = Math.round((fighter.maxHealth || 1050) * RICK_SELF_DESTRUCT_HP_FRAC)
+  fighter.health = Math.max(1, (fighter.health || 0) - selfCost)
 
   // VOICE: Self-Destruct ACTIVATION — his signature catchphrase / "it's called a deterrent" (random pool).
   // Fired on the cast itself; the PAYOFF bark below is a separate beat, gated on the AOE actually connecting.
@@ -12381,7 +12724,7 @@ function executeRickUltimate(fighter, context) {
   const target      = getOpponent(fighter)
 
   const RADIUS = 220        // px, center-to-center — "bigger than a normal special" catch zone
-  const DAMAGE = 180        // direct (no GLOBAL_DAMAGE_SCALE); ≈17% of a health bar
+  const DAMAGE = 180        // RAW — routes through applyScaledDamage below (×0.60 since Stage 1a) → 108 EFF
 
   const rcx = fighter.x + (fighter.w || 60) / 2
   const rcy = fighter.y + (fighter.h || 100) / 2
@@ -12401,7 +12744,8 @@ function executeRickUltimate(fighter, context) {
   shakeCamera(context, 16, 18)
   focusCameraOnAction(context, fighter, target, 0.95, 14)
 
-  // Proximity gate + damage. Only the opponent is touched → Rick takes no self-damage.
+  // Proximity gate + damage. The BLAST only touches the opponent (Rick's HP cost is the separate
+  // flat 15% applied at cast above — the explosion collision itself never hits Rick).
   if (target && !target.eliminated && (target.invulnTimer || 0) <= 0) {
     const tcx  = target.x + (target.w || 60) / 2
     const tcy  = target.y + (target.h || 100) / 2
@@ -12570,12 +12914,6 @@ export function updateUltimates(fighter) {
   if (fighter.ultimateTimer <= 0) {
     fighter.isUltimateActive  = false
     fighter.analysisStacking  = false
-
-    // Toji revert speed/damage (don't fully reset — keep some bonus)
-    if ((fighter.rosterKey || "").toLowerCase() === "toji") {
-      fighter.speedMultiplier  = Math.max(1, (fighter.speedMultiplier  || 1) / 1.8)
-      fighter.damageMultiplier = Math.max(1, (fighter.damageMultiplier || 1) / 1.6)
-    }
 
     // Omololu revert (keep a small permanent stack as reward for landing it)
     if ((fighter.rosterKey || "").toLowerCase() === "omololu") {
@@ -13063,16 +13401,6 @@ export function applyOmoluPassiveSystems(fighter) {
   if (fighter._omoluTimer >= 300) {
     fighter._omoluTimer     = 0
     fighter.damageMultiplier = Math.min((fighter.damageMultiplier || 1) + 0.02, 1.5)
-  }
-}
-
-export function applyToji_Passive(fighter) {
-  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji") return
-
-  // Toji: no energy but gains bonus speed when health drops below 50%
-  if (!fighter._tojiHealthBoostApplied && (fighter.health || 0) < (fighter.maxHealth || 1000) * 0.5) {
-    fighter.speedMultiplier         = Math.min((fighter.speedMultiplier || 1) + 0.15, 2.0)
-    fighter._tojiHealthBoostApplied = true
   }
 }
 

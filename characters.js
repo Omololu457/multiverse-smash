@@ -45,7 +45,7 @@ const goku = {
     ssblue:        { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.2, energyDrainPerFrame: 8 / 60, kiDrainPerSecond: 8, isSpecial: true, duration: 720 },
     ultraInstinct: { damageMultiplier: 2.5, speedMultiplier: 2, defenseMultiplier: 1.5, autoDodge: true, autoDodgeKiCost: 10, energyDrainPerFrame: 12 / 60, kiDrainPerSecond: 12, isSpecial: true, duration: 480 }
   },
-  hasSprites: true,
+  hasSprites: false,   // MK-feel Stage 5: sprite-flag REMOVAL (not a delete) → procedural box renderer. animationData KEPT below (expensive slice geometry). Reverse by restoring `true` + the spritesheets.js manifest entry.
   // Base (black-hair) Goku sprites sliced from goku_base_FULLSHEET_transparent.png.
   // Idle source cell 34×37 → ×3.2 ≈ Sukuna/Gojo on-screen height (their 64px cells
   // ×1.8 ≈ 115px; 37×3.2 ≈ 118). His idle is a WIDE stance, so at equal height he
@@ -394,7 +394,7 @@ const megumi = {
   domain: { name: "Chimera Shadow Garden", priority: 3, background: "shadow_garden" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  hasSprites: true,
+  hasSprites: false,   // MK-feel Stage 5: sprite-flag REMOVAL (not a delete) → procedural box renderer. animationData KEPT below. Reverse by restoring `true` + the spritesheets.js manifest entry.
   // SIZE-NORMALIZED (2026-07-24): was 1.7 (idle content ~59px × 1.7 ≈ 100px — bottom of the
   // roster, −9% vs median ≈111). Bumped to 1.85 → ~59px × 1.85 ≈ 109px, into the main band.
   // No anchorY offsets on any action → feet stay planted (plant is cell-bottom→hitbox-bottom).
@@ -515,148 +515,6 @@ const omololu = {
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   animationData: { ...DEFAULT_ANIM }
-}
-
-const toji = {
-  rosterKey: "toji", name: "Toji", universe: "jujutsu_kaisen",
-  portrait: "./toji_pfp.jpg",   // EXACT on-disk filename (case + extension)
-  archetypes: ["melee", "speed"],
-  primary: "melee", secondary: ["speed"],
-  // dashTeleport: double-tap TOWARD the enemy → blink behind + instant strike
-  // (MK-style teleport-dash). His identity tech — no cursed energy. (game.js
-  // detectDoubleTapDashTeleport + abilities.tojiTeleportStrike).
-  movement: { dashTeleport: true },
-  traits: { hasEnergy: false, energyType: "none", mobility: "very_high", scaling: "constant_pressure", animeMovement: true },
-  stats: { maxHealth: 1260, maxEnergy: 0, attack: 96, defense: 89, speed: 98, maxJumps: 3, jumpPower: 36, dashSpeed: 24, dashDuration: 14, dashCooldownMax: 20 },
-  basic_attacks: {
-    light:     { damage: 52, startup: 3, active: 3, recovery: 9, hitstun: 13, knockbackX: 4, knockbackY: 0 },
-    heavy:     { damage: 96, startup: 7, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: 1 },
-    // Up-Attack launcher "Ascension Slash" (heavy/powerful archetype): hits harder, slightly slower —
-    // startup 5 / active 4 / recovery 9; strongest pop of the three (enemy vy -13), Toji lifts at vy -9.
-    upAttack:  { type: "launcher", damage: 72, startup: 5, active: 4, recovery: 9, hitstun: 20, knockbackX: 2, knockbackY: -9, launchVy: -13, selfVy: -9 },
-    airAttack: { damage: 62, startup: 4, active: 3, recovery: 9, hitstun: 14, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 82, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 },
-    grab:      { damage: 40, startup: 4, active: 3, recovery: 12, hitstun: 22, throwForceX: 7, throwForceY: -5 }
-  },
-  specials: {
-    inventorySmash: { cost: 0, damage: 155, startup: 8, active: 5, recovery: 18, hitstun: 26, knockbackX: 10, knockbackY: -3, effect: "weapon strike from inventory" },
-    rapidStrike:    { cost: 0, damage: 65, startup: 4, active: 4, recovery: 10, hitstun: 14, knockbackX: 5, knockbackY: -1 }
-  },
-  ultimate: { name: "Heavenly Restriction", cost: 0, duration: 8, effect: "1.8x speed and 1.6x damage surge" },
-  transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  hasSprites: true,
-  // SIZE FIX: NEW transparent-bg core sheets are ~48px of content in a 54px cell, so the
-  // old 1.7 rendered him ~92px (undersized vs Sasuke ~105 / Sukuna ~118). ×2.3 ≈ 110px
-  // on-screen = roster-normal human scale. NOTE: the old row-sheet ATTACK actions (still
-  // wired below, deferred to the attack-tree pass) render oversized at 2.3 until re-sliced.
-  spriteScale: 2.59,   // HEIGHT-REF: canon 188cm → target ~117px (was 2.3). See HEIGHT_REFERENCE.md; anchorY below rescaled ×(2.59/2.3).
-  // Two-part intro (walk-in → ready-up) plays in FIXED ORDER as ONE intro — NOT a
-  // random-pick pool like Sasuke's introPool. game.js steps introSequence in order.
-  introSequence: ["introWalkIn", "introReady"],
-  // ── TOJI SPRITES ── UNLABELED rows, mapping confirmed by viewing each strip.
-  // Native cell = stripWidth/frames. NOTE (sheet gaps): no real walk or hurt
-  // frames exist — walk reuses the stance, hurt reuses the guard pose (row10).
-  // special_1/special_2 play via executeToji_Special's createAttackFromMove
-  // (MOVE_TO_ACTION: inventorySmash→special_1, rapidStrike→special_2).
-  animationData: {
-    // JITTER FIX: sheets have leading+trailing transparent padding, so the true frame
-    // PITCH is smaller than sheetWidth/frames. Slice with sourceX (content-left) + width
-    // (true pitch) or the figure drifts within each cell → horizontal wobble. Verified
-    // via per-cell leg-COM (idle drift 14px→<3px after fix) + boundary overlays.
-    idle:     { frames: 6,  width: 34, sourceX: 9, height: 54, speed: 8, loop: true, anchorY: -2,  sheet: "./toji_stance_idle.png" },  // 6f, true pitch 34 (was 37 → wobble)
-    walk:     { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 6, loop: true, anchorY: -14, sheet: "./toji_walk.png" },  // 7f (re-verified, was mis-counted 6), pitch 34 (was 40)
-    light:    { frames: 6,  width: 47, height: 65, speed: 4, sheet: "./toji_row02_sheet.png" },  // row02 punch combo
-    heavy:    { frames: 6,  width: 73, height: 60, speed: 5, sheet: "./toji_row07_sheet.png" },  // row07 sword slash combo
-    up:       { frames: 7,  width: 47, height: 74, speed: 5, sheet: "./toji_row04_sheet.png" },  // row04 kicks (launcher)
-    // light/heavy/up (below) are DEAD for grounded Toji — the stance system fires quickDraw/
-    // forwardSlash/skywardCut etc. and game.js suppresses the built-in light/heavy/up. Kept for
-    // reference only; they never render, so their old-sheet scale is moot.
-    air:      { frames: 5,  width: 65, height: 71, speed: 5, actionScale: 0.69, sheet: "./toji_row08_sheet.png" },  // row08 aerial sword — OLD art, scale-corrected
-    down_air: { frames: 6,  width: 73, height: 60, speed: 5, actionScale: 0.82, sheet: "./toji_row07_sheet.png" },  // OLD art, scale-corrected
-    // dash = the basic MOVEMENT dash (NOT the sword-dash special). Was row06 (a sword-lunge,
-    // wrong content + oversized at 2.3); reuse the NEW walk sheet like `run` → correct scale + content.
-    dash:     { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 4, loop: true, anchorY: -14, sheet: "./toji_walk.png" },
-    // KEY MUST BE `guard` (not `block`): sprite.js resolves blocking to animationData.guard —
-    // the old `block` key never rendered (Toji showed idle while blocking). Renamed + scale-corrected.
-    guard:    { frames: 9,  width: 37, height: 70, speed: 6, actionScale: 0.70, sheet: "./toji_row10_sheet.png" },  // OLD guard art (no new block sprite yet)
-    hurt:     { frames: 8,  width: 48, sourceX: 0, height: 54, speed: 5, anchorY: -8,  sheet: "./toji_hit.png" },  // 8f, content fills width (pitch 48 exact)
-    hurt_air: { frames: 6,  width: 51, sourceX: 1, height: 49, speed: 5, anchorY: -2,  sheet: "./toji_air_hit.png" },  // 6f, pitch 51 (was 52); sprite.js picks this when hitstun && airborne
-    // transform = the ULTIMATE-activation flash (sprite.js returns "transform" while teleportFlash>10;
-    // executeToji_Ultimate sets it) — REACHABLE, not dead. OLD sword-draw art, scale-corrected.
-    transform:{ frames: 7,  width: 76, height: 67, speed: 6, actionScale: 0.74, sheet: "./toji_row01_sheet.png" },
-    special_1:{ frames: 14, width: 52, height: 63, speed: 4, actionScale: 0.78, sheet: "./toji_row09_sheet.png" },  // Inventory Smash — OLD art, scale-corrected
-    special_2:{ frames: 8,  width: 57, height: 63, speed: 4, actionScale: 0.78, sheet: "./toji_row05_sheet.png" },  // Rapid Strike — OLD art, scale-corrected
-    // Chain-Knife / Inverted Spear of Heaven (S,A+L) — confirmed rows: 11 windup,
-    // 12 extension, 14 retract, 15 spin (folded into the same move). Dims measured.
-    chain_windup:  { frames: 5, width: 96,  height: 69, speed: 4, actionScale: 0.71, sheet: "./toji_row11_sheet.png" },  // OLD art, scale-corrected
-    chain_extend:  { frames: 5, width: 108, height: 69, speed: 4, actionScale: 0.71, sheet: "./toji_row12_sheet.png" },
-    chain_retract: { frames: 7, width: 121, height: 87, speed: 4, actionScale: 0.56, sheet: "./toji_row14_sheet.png" },
-    chain_spin:    { frames: 5, width: 85,  height: 78, speed: 4, actionScale: 0.63, sheet: "./toji_row15_sheet.png" },
-    // NEW two-part intro — plays in fixed order (introSequence), NOT pooled/random.
-    // Intro PACING (deliberate, NOT a timing bug): at the correctly-locked 60Hz, each step's
-    // on-screen duration = frames×speed÷60. walk-in 17×5=85t=1.42s (deliberate ~12fps stride),
-    // ready-up 15×4=60t=1.00s (crisper settle) → ~2.42s total entrance. (Prev speed 2/3 = 1.32s
-    // total, tuned for frame-rate-independence verification, read as a blink once the loop was
-    // locked to 60Hz — this re-tunes purely for how the entrance FEELS.)
-    introWalkIn: { frames: 17, width: 30, sourceX: 3, height: 45, speed: 5, loop: false, lockLastFrame: true, anchorY: -8, sheet: "./toji_intro_first_part.png" },   // walk-in, pitch 30 + srcX 3
-    introReady:  { frames: 15, width: 35, sourceX: 2, height: 47, speed: 4, loop: false, lockLastFrame: true, anchorY: 0,  sheet: "./toji_intro_second_part.png" },  // ready-up, pitch 35 + srcX 2
-    // BLADE-STANCE normals (Phase 2). action key == the move name so sprite.js resolves it
-    // directly. Sliced sourceX+true-pitch (alpha-gutter verified). Attack `speed` is auto-fit
-    // to the move's duration by sprite.updateFrames, so it just needs frames/width/sourceX.
-    quickDraw:    { frames: 5, width: 44, sourceX: 3, height: 60, speed: 3, anchorY: -14, sheet: "./toji_sword_attack_1.png" },       // 5A Quick Draw (230x60)
-    forwardSlash: { frames: 5, width: 54, sourceX: 9, height: 45, speed: 3, anchorY: -10,  sheet: "./toji_foward_slash_2.png" },       // 5B Forward Slash (286x45)
-    skywardCut:   { frames: 5, width: 45, sourceX: 0, height: 55, speed: 3, anchorY: -10,  sheet: "./toji_up_attack.png" },            // 2C Skyward Cut launcher (225x55)
-    // 5C Reaper's rekka — 3 segments sliced from the 11-frame toji_Foword_slash_attack (44px/frame).
-    reaper1:      { frames: 4, width: 44, sourceX: 0,   height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 0-3
-    reaper2:      { frames: 4, width: 44, sourceX: 176, height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 4-7
-    reaper3:      { frames: 3, width: 44, sourceX: 352, height: 44, speed: 3, sheet: "./toji_Foword_slash_attack.png" },   // frames 8-10 (finisher)
-    // BLADE-STANCE command moves (Phase 5). Dash Strike = a 2-sheet chain: _1's crouch
-    // wind-up (5 frames, left of the sheet) → _2's sprinting stab (6 frames). The move
-    // swaps currentMove "dashStrike1"→"dashStrike2" at the active→recovery boundary
-    // (abilities.js updateTojiStanceCombat), which sprite.js frame-resets on sheet change.
-    // Rising Spiral = the aerial spinning finisher (dash_attack_4, full 9-frame arc).
-    // Non-uniform _1 (narrow crouch + wide lunge) → slice ONLY the crouch here; the lunge
-    // frames live in _2. Alpha-gutter verified (SLICE_* overlays).
-    dashStrike1:  { frames: 5, width: 41, sourceX: 10, height: 61, speed: 3, anchorY: -7,  sheet: "./toji_sword_Dash_attack_1.png" },  // crouch wind-up (491x61, left 5f @41)
-    dashStrike2:  { frames: 6, width: 71, sourceX: 0,  height: 55, speed: 3, anchorY: -10,  sheet: "./toji_sword_Dash_attack_2.png" },  // sprinting stab (428x55, 6f @71)
-    risingSpiral: { frames: 9, width: 46, sourceX: 0,  height: 66, speed: 3, anchorY: -11, sheet: "./toji_sword_Dash_attack_4.png" },  // aerial spin ender (418x66, 9f @46)
-    // CHAIN-STANCE normals (Phase 3). sourceX+true-pitch sliced (alpha-gutter verified).
-    shortLash:  { frames: 3, width: 60, sourceX: 0, height: 62, speed: 3, anchorY: -8, sheet: "./toji_chain_of_1000_miles_attack_2.png" },        // 5A — TRIMMED to first 3 of 5 frames (the quick lash)
-    wideArc:    { frames: 5, width: 66, sourceX: 2, height: 58, speed: 3, anchorY: -10, sheet: "./toji_chain_of_1000_miles_attack_1.png" },        // 5B (341x58, continuous arc → equal split)
-    lowSweep:   { frames: 5, width: 81, sourceX: 8, height: 67, speed: 3, anchorY: -2, sheet: "./toji_chain_of_1000_miles_attack_3.png" },        // 6B (446x67)
-    risingCoil: { frames: 4, width: 66, sourceX: 6, height: 61, speed: 3, anchorY: -6, sheet: "./toji_chain_of_1000_miles_upper_attack_1.png" },  // 2B anti-air (274x61)
-    // GUN-STANCE firing animations (Phase 4). Ranged — the projectile carries the damage;
-    // these are the fighter's shot/aim poses (played via the sprite-cast window). Sliced sourceX+pitch.
-    snapShot:   { frames: 6, width: 39, sourceX: 4, height: 58, speed: 3, anchorY: -20, sheet: "./toji_gun_attack.png" },            // 5A (242x58, muzzle-flash present)
-    aimedShot:  { frames: 7, width: 37, sourceX: 1, height: 52, speed: 3, anchorY: -8,  sheet: "./toji_idk.png" },                   // 5B feint (262x52, no muzzle flash)
-    tracerRound:{ frames: 5, width: 60, sourceX: 1, height: 56, speed: 4, anchorY: 0,   sheet: "./toji_sword_Dash_attack_3.png" },   // 5C tracer (300x56, reclassified gun shot)
-    // run/jump/fall/grab aren't on the supplied table, but a MANIFESTED character
-    // can't fall back to the procedural box per-action (unmapped → idle sheet at
-    // 128px = garbage), so reuse the closest real strips:
-    // Polish (Task 3): run/jump/fall had no real strips and borrowed ATTACK rows,
-    // which made plain locomotion play a sword sequence on loop. Fixes:
-    //  • run  → reuse the fighting STANCE (row03), not the row06 sword dash-lunge,
-    //    so sliding momentum (vx>10) doesn't draw the sword. The dash TECH still
-    //    uses row06 via the `dash` slot.
-    //  • jump/fall → hold the neutral STANCE (row03), NOT the row08 aerial-SWORD
-    //    pose. row08 is a weapon attack; using it (even a single held frame) made a
-    //    plain jump read as a sword pose. The real air attack (`air`) keeps row08's
-    //    full 5-frame swing. FLAG: no true jump/fall art exists — a held stance is
-    //    the least-wrong neutral option until a real jump strip is provided.
-    run:      { frames: 7,  width: 34, sourceX: 4, height: 48, speed: 5, loop: true, anchorY: -14, sheet: "./toji_walk.png" },  // reuse walk sheet, 7f pitch 34
-    // JUMP SIZE FIX: the jump sheet's frame 0 (takeoff crouch) and frame 6 (land crouch)
-    // draw the figure ~35px tall vs ~48px airborne — switching to them read as "sprite
-    // gets smaller". Slice ONLY the airborne frames 1–5 (sourceX = 6 + 1×35 = 41), all
-    // ~full height, so jump/fall never flash a shrunken crouch. Pitch 35 (was 37 → wobble).
-    jump:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -36, sheet: "./toji_jump.png" },  // airborne arc only (no crouch)
-    fall:     { frames: 5,  width: 35, sourceX: 41, height: 64, speed: 5, anchorY: -36, sheet: "./toji_jump.png" },  // same airborne frames
-    grab:     { frames: 6,  width: 47, height: 65, speed: 4, actionScale: 0.76, sheet: "./toji_row02_sheet.png" }   // throw anim — OLD punch art, scale-corrected (no new grab sprite yet)
-    // UNMAPPED — chain / Inverted Spear of Heaven throw sequence (special not yet
-    // wired). Register for future chain-special work; frame counts TBD (view to
-    // slice): toji_row11_sheet.png 480×69, row12 540×69, row13 575×85,
-    // row14 847×87, row15 424×78.
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -788,7 +646,7 @@ const sasuke = {
   // SAME mechanic + timing window (DOUBLE_TAP_TIME) as Gojo/Toji/Sukuna via detectDoubleTapDashTeleport.
   movement: { dashTeleport: true },
   // PHASE 2 = basic movement + attacks. Placeholder taijutsu values between Naruto & Toji
-  // (combat.js _getMD reads THIS `basic_attacks` — moveset.js has no naruto/toji/sasuke entry).
+  // (combat.js _getMD reads THIS `basic_attacks` — moveset.js has no naruto/sasuke entry).
   // Specials/ultimate still deliberately ABSENT (Phase 3). light=forward-kick combo,
   // heavy=dash sword-slash (has a baked slash trail → reads as the stronger hit), downAir=down/spike.
   basic_attacks: {
@@ -1258,6 +1116,108 @@ const madara = {
   },
   // Single-entry pre-match intro pool (game.pickIntroVariant picks from here; one entry = always plays).
   introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
+// PAIN — NAGATO'S DEVA PATH  (Naruto universe — 9th Naruto sprite char)
+// Top-tier technique-heavy Akatsuki archetype: gravity zoner + 6-option assist
+// system + Chibaku Tensei ultimate. CONFIRMED schema-exception (same precedent
+// as Madara): the kit is large enough that every real special-tier file earns
+// its own slot rather than being trimmed to a standard 2-4 budget. Staged build
+// — Stage 1 wires registration + movement/state only; specials/assists/ult land
+// in Stages 3-7. Cutting reference is pain_transparent.png (per project note);
+// pain_sprite_sheet_..._d48lwjr.png is labels/credits only, pain_exampls.png is
+// reference mockups (never sliced). Uniform strips via tools/reslice_pain.py.
+// ─────────────────────────────────────────────────────────────────
+const pain = {
+  rosterKey: "pain", name: "Pain", universe: "naruto",
+  portrait: "./pain_portrait.png",   // Stage-1 placeholder (idle-frame crop); re-extracted from master sheet in Stage 8
+  archetypes: ["zoner", "tactics"],
+  primary: "zoner", secondary: ["tactics", "melee"],
+  // Physical body-shift dash (2-frame). Deva Path's gravity tools (Shinra
+  // Tensei / Bansho Ten'in) are Stage-3 specials, not the base traversal kit.
+  movement: { runWhenAdvancing: true },   // advancing toward the foe plays the run cycle
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  // maxEnergy 210: sits just under Madara/Gojo's 220 ceiling — the deep pool
+  // feeds a genuinely large kit (4 specials + a 6-option assist system + the
+  // Chibaku Tensei ult). Provisional Stage-1 value; finalized in the Stage-8
+  // balance pass once every cost is wired.
+  stats: { maxHealth: 1150, maxEnergy: 210, attack: 90, defense: 84, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 16, dashDuration: 12, dashCooldownMax: 42 },
+  // Stage-2 normals (real move data). combat.js _getMD reads THIS basic_attacks. In-band with the shinobi
+  // (Madara/Tobirama/Minato); base `attack` stat does NOT scale damage in this engine (BALANCE_AUDIT.md).
+  //   light    = light_attack (spinning kick)          heavy    = black_neddle_attack (9f rod-thrust, long reach)
+  //   upAttack = up_attack (rising red-slash launcher)  airAttack = air_light (aerial kick)
+  //   airHeavy = air_hard_attack (aerial rod-sword)     downAir  = down_air_attack (diving spike; combat.js spikes on down_air)
+  basic_attacks: {
+    light:    { damage: 40, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 88, startup: 9, active: 4, recovery: 20, hitstun: 20, knockbackX: 8, knockbackY: 1, rangeX: 92, rangeY: 46 },
+    upAttack: { type: "launcher", damage: 64, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    airAttack:{ damage: 54, startup: 5, active: 4, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: -2 },
+    airHeavy: { damage: 80, startup: 9, active: 4, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 4, rangeX: 96, rangeY: 66 },
+    downAir:  { damage: 52, startup: 6, active: 5, recovery: 16, hitstun: 16, knockbackX: 3, knockbackY: 6, rangeX: 56, rangeY: 70 }
+  },
+  // HUD-only until Stage 7 (real cinematic logic lands there). Chibaku Tensei:
+  // cast (arms raised) → projectile (sphere growth + debris) → ground effects
+  // (flat → dome → flame pillar), reusing the freeze-cinematic architecture.
+  ultimate: { name: "Chibaku Tensei", cost: 100, description: "Chibaku Tensei — raises a black sphere that draws in debris and slams down as a planetary devastation, blooming into a flame pillar." },
+  hasSprites: true,
+  // idle content ~56px × 2.0 ≈ 112px on-screen ≈ roster height (Naruto/Sasuke/
+  // Itachi/Madara ~112-117). REQUIRES the skins.js `pain` entry (else applySkin()
+  // pulls spriteScale:1 → native half-size) + the spritesheets.js idle gate.
+  // Resliced cells are bottom-aligned (feet at cell bottom) so one anchorY:0
+  // plants feet across every standing action. Tuned in the Stage-1 shot pass.
+  spriteScale: 2.0,
+  animationData: {
+    idle: { frames: 4, width: 29, height: 59, speed: 6, anchorY: 0, sheet: "./pain_idle_uniform.png" },
+    // No dedicated walk strip → reuse the run cycle for retreat at a slower cadence.
+    walk: { frames: 8, width: 60, height: 49, speed: 6, anchorY: 0, sheet: "./pain_run_uniform.png" },
+    run:  { frames: 8, width: 60, height: 49, speed: 4, anchorY: 0, sheet: "./pain_run_uniform.png" },
+    dash: { frames: 2, width: 43, height: 60, speed: 4, anchorY: 0, sheet: "./pain_dash_uniform.png" },
+    // jump.png = crouch→launch→air→descend arc; play once + hold. fall = the last (descent) cell.
+    jump: { frames: 4, width: 51, height: 54, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_jump_uniform.png" },
+    fall: { frames: 1, width: 51, height: 54, speed: 6, anchorY: 0, sourceX: 153, loop: false, lockLastFrame: true, sheet: "./pain_jump_uniform.png" },
+    // Guard — single braced-block pose; hold it while blocking.
+    guard: { frames: 1, width: 35, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_block_uniform.png" },
+    // HURT — frame 0 of the 2-frame recoil strip as a single-frame flinch; combat.js colorFlash tints on top.
+    hurt: { frames: 1, width: 41, height: 62, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./pain_hit_uniform.png" },
+    // KNOCKDOWN / GET-UP — the dedicated stand_up strip (prone-sprawl → push-up → rise → stand). The initial
+    // fall-to-ground is covered by the hurt flinch; this strip plays the recovery. lockLastFrame holds standing.
+    knockdown: { frames: 4, width: 67, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_stand_up_uniform.png" },
+    // ── STAGE 2 NORMALS ── each resliced feet-aligned via tools/reslice_pain.py; anchorY:0 plants feet,
+    // loop:false + lockLastFrame holds the strike pose through recovery. Identity-mapped (light/heavy/up/
+    // air/air_heavy/down_air already exist generically in sprite.js MOVE_TO_ACTION).
+    light:     { frames: 5, width: 53, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_light_uniform.png" },      // spinning kick
+    heavy:     { frames: 9, width: 75, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_heavy_uniform.png" },      // black-rod thrust string (long reach)
+    up:        { frames: 4, width: 63, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_up_uniform.png" },         // launcher: rising red-slash kick
+    air:       { frames: 4, width: 73, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_air_uniform.png" },        // neutral aerial kick
+    air_heavy: { frames: 5, width: 68, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_airheavy_uniform.png" },   // aerial rod-sword thrust (air+Heavy)
+    down_air:  { frames: 4, width: 57, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_downair_uniform.png" },    // diving spike (air+Down)
+    // ── STAGE 2 COMMAND NORMALS ── driven by updatePainCommandCombat (abilities.js). currentMove-keyed
+    // melee (attacking path), so each needs an explicit MOVE_TO_ACTION entry in sprite.js.
+    // Fwd+Light single command normal — punch-jab string + slash FX (from the standalone light_attack_2 sheet).
+    painJab:   { frames: 5, width: 63, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_jab_uniform.png" },
+    // Fwd+Heavy 3-stage rekka — the ground_combo COMPILATION grid sliced by row (spin → launcher → finisher).
+    // Re-tap Heavy during a clean-hit recovery advances the chain (shared rekkaContinue gate).
+    painCombo1:{ frames: 5, width: 53, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_combo1_uniform.png" },     // opener (spin)
+    painCombo2:{ frames: 4, width: 63, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_combo2_uniform.png" },     // mid (launcher)
+    painCombo3:{ frames: 5, width: 59, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_combo3_uniform.png" },     // finisher
+    // ── STAGE 3 GRAVITY-SPECIAL cast poses ── shown via _spriteCastMove/_spriteCastTimer (sprite.js), NOT
+    // the attacking path. Identity-mapped in sprite.js MOVE_TO_ACTION. The force/shockwave is applied on
+    // the release frame by executePainSpecial (abilities.js); these strips are the wind-up poses.
+    painAlmightyPushCast: { frames: 8, width: 56, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_almighty_push_uniform.png" },   // Shinra Tensei — palm thrust
+    painAlmightyPullCast: { frames: 7, width: 52, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_almighty_pull_uniform.png" },   // Bansho Ten'in — reeling gesture
+    painSuperPushCast:    { frames: 6, width: 58, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_super_push_uniform.png" },       // Hard Shinra Tensei — both arms
+    // ── STAGE 4 DEDERA DOUBLE ATTACK cast poses ── Fwd+Special sequence (executePainSpecial). The cast is the
+    // Deidara-cameo clay-forming pose (confirmed homage), the rise is Pain's rising follow-up; the clay-bird
+    // + explosion are projectile/impact art (not animationData). Identity-mapped in sprite.js MOVE_TO_ACTION.
+    painDederaCast: { frames: 3, width: 64, height: 71, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_dedera_cast_uniform.png" },   // Deidara cameo — clay forming
+    painDederaRise: { frames: 5, width: 68, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_dedera_rise_uniform.png" },     // Pain's rising follow-up into the throw
+    // ── STAGE 7 ULTIMATE cast pose ── Chibaku Tensei: Pain raises his arms, forming the sphere. Plays through
+    // the freeze via _spriteCastMove (painChibakuTenseiCinematic.js). Identity-mapped in sprite.js MOVE_TO_ACTION.
+    painChibakuCast: { frames: 6, width: 59, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./pain_chibaku_cast_uniform.png" }
+  }
+  // No introPool yet — no dedicated intro art in the movement batch; match starts on the idle stance
+  // (game.pickIntroVariant tolerates an absent pool). Revisited if an intro sheet surfaces later.
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1898,13 +1858,17 @@ const rick = {
   // the in-match HUD via energyConfig; the character-select kit panel derives its own from
   // energyType above ("bullshit science").
   energyConfig: { label: "Bullshit Science Energy", color: "#8be04e", glowColor: "#c6ff6e", emptyColor: "rgba(255,255,255,0.08)" },
-  stats: { maxHealth: 1050, maxEnergy: 160, attack: 82, defense: 78, speed: 80, maxJumps: 2, jumpPower: 28, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 45 },
+  // MK-feel Stage 3d neutral buff: Rick was the simultaneous roster floor on HP/atk/def/spd/normals/DPE,
+  // and 1a scaling knocked his compensating gimmicks (summons/portal/ult) down further — so his under-tuned
+  // NEUTRAL is lifted off the floor. speed 80→84 (still below the ~90 mid, keeps the zoner-not-rushdown feel);
+  // his weak-backup-melee identity is kept, just no longer rock-bottom (see basic_attacks light/heavy below).
+  stats: { maxHealth: 1050, maxEnergy: 160, attack: 82, defense: 78, speed: 84, maxJumps: 2, jumpPower: 28, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 45 },
   movement: { dashTeleport: true },   // Portal-Behind: double-tap toward opponent (shared teleport system, like Gojo/Sasuke)
   // ZONER identity: keep opponents out with Meeseeks / Rocket / Self-Destruct. Melee (light/heavy)
   // is deliberately BACKUP — lower damage and range than a brawler.
   basic_attacks: {
-    light:     { damage: 34, startup: 5, active: 3, recovery: 12, hitstun: 12, knockbackX: 3, knockbackY: 0, rangeX: 62, rangeY: 46 },   // jab
-    heavy:     { damage: 60, startup: 9, active: 4, recovery: 20, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 74, rangeY: 50 },   // side kick (mid-weight)
+    light:     { damage: 40, startup: 5, active: 3, recovery: 12, hitstun: 12, knockbackX: 3, knockbackY: 0, rangeX: 62, rangeY: 46 },   // jab — Stage 3d: 34→40 (off the normals floor; still backup melee, EFF 24)
+    heavy:     { damage: 72, startup: 9, active: 4, recovery: 20, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 74, rangeY: 50 },   // side kick — Stage 3d: 60→72 (off the normals floor; EFF 43, still below brawlers)
     upAttack:  { type: "launcher", damage: 56, startup: 8, active: 4, recovery: 17, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10 },
     airAttack: { damage: 44, startup: 6, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     // downAir: intentionally ABSENT — no art exists (genuinely missing, not substituted). downTilt (poop) DEFERRED. See RICK_ASSET_MAP.md.
@@ -1917,7 +1881,7 @@ const rick = {
     meeseeksBox: { cost: 30, subtype: "summon", summonId: "meeseeks", effect: "throws a Meeseeks that rushes the opponent (no cap — multiple can be active at once)" },
     rocket:      { cost: 40, effect: "Up + Special: rockets Rick upward AND damages anyone caught in the launch path" }
   },
-  ultimate: { name: "Self-Destruct", cost: 140, description: "Instant proximity AOE blast — only connects if the opponent is close enough. Rick takes NO self-damage. Near-max meter cost." },
+  ultimate: { name: "Self-Destruct", cost: 140, description: "Instant proximity AOE blast — only connects if the opponent is close enough. Costs Rick 15% of his max HP to detonate (non-lethal) on top of the near-max meter cost." },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
   // Rick has NO dedicated intro sprite (never cataloged). Without this, the intro state
@@ -2224,7 +2188,7 @@ const omegaRanger = {
     omDownSpecial: { frames: 14, width: 87, height: 73, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_specail_downward_attack_uniform.png" },
     // STAGE-6 Ultimate ("ultimate" action key, driven by currentMove) + Battlizer bonus ring special.
     ultimate:      { frames: 10, width: 78,  height: 66,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_shash_ultimate_uniform.png" },
-    omSwordRing:   { frames: 9,  width: 124, height: 109, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_shash_ultimate_2_uniform.png" }
+    omSwordRing:   { frames: 8,  width: 124, height: 109, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omega_ranger_sword_shash_ultimate_2_uniform.png" }   // 8 real poses (sheet+13 skins repacked to drop a mid-animation blank phantom cell)
   }
 }
 
@@ -2662,7 +2626,7 @@ const omniMan = {
     // Heavy during recovery, cancel-on-HIT) + a free Fwd+Light shove poke. Identity-mapped in sprite.js;
     // the real damage/chain logic lives in abilities.js OMNIMAN_CMD/POKE + updateOmniManCommandCombat.
     omCombo1:   { frames: 4,  width: 150, height: 154, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_ground_air_kick_uniform.png" },     // flying-knee opener
-    omCombo2:   { frames: 6,  width: 134, height: 133, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_ground_down_attack_uniform.png" },   // downward hook
+    omCombo2:   { frames: 5,  width: 134, height: 133, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_ground_down_attack_uniform.png" },   // downward hook — 5 real poses (6th cell was a blank 1px-speck phantom; lockLastFrame held it invisible)
     omComboFin: { frames: 11, width: 134, height: 173, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_combo_launch_uniform.png" },        // multi-hit launcher finisher
     omPush:     { frames: 4,  width: 136, height: 153, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./omni_man_push_uniform.png" },                 // Fwd+Light spacing shove
     // ── STAGE 3 FLIGHT (the core new system). fly = horizontal hover (loops); flyMove = streaking
@@ -3476,8 +3440,11 @@ const gon = {
     // ── STAGE 4 — ADULT FORM (Ultimate). The adult body is much larger → actionScale shrinks the tall
     // cells (220px) back toward a ~1.6× on-screen read vs child Gon (an intimidating grown silhouette).
     // `transform` holds through the activation cinematic; `finalblow` is the all-or-nothing sudden-death.
-    transform: { frames: 14, width: 80,  height: 220, speed: 4, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sourceY: 846, sheet: "./gon_atlas.png" },   // child→adult growth (cinematic pose)
-    finalblow: { frames: 16, width: 105, height: 219, speed: 3, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sourceY: 1066, sheet: "./gon_atlas.png" }     // the sudden-death decisive strike
+    // Atlas bands repacked in-place to DROP blank speck-phantom cells (transform had 1 at cell 5;
+    // finalblow had 3 at cells 3,5,6) that made Gon flicker invisible mid-cinematic. Real poses only:
+    // transform 14→13f, finalblow 16→13f. Standalone gon_*_uniform.png also repacked (atlas source).
+    transform: { frames: 13, width: 80,  height: 220, speed: 4, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sourceY: 846, sheet: "./gon_atlas.png" },   // child→adult growth (cinematic pose)
+    finalblow: { frames: 13, width: 105, height: 219, speed: 3, anchorY: -2, actionScale: 0.42, loop: false, lockLastFrame: true, sourceY: 1066, sheet: "./gon_atlas.png" }     // the sudden-death decisive strike
     // (no adult idle/walk/attack art in the batch → Adult Form is a BUFF-MODE overlay on the child body,
     //  like Godspeed/Flash Time; a full adult body-swap is a deferred visual-polish item.)
   },
@@ -3564,7 +3531,10 @@ const batman = {
     // architecture). The 12-frame standing hand-to-hand string (batman_melle_combo_1) split into 3
     // cancelable stages: batCombo1 (jab opener) → batCombo2 (weave→uppercut) → batCombo3 (extended
     // straight finisher, launches). currentMove = batComboN resolves the sheet via sprite.js identity. ──
-    batCombo1: { frames: 4, width: 127, height: 163, speed: 3, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_combo1_uniform.png" },
+    // 3 real poses (jab opener) — the 508px sheet has a 4th cell that is blank (only a
+    // 1px stray speck from the raw art); wiring it as 4f made lockLastFrame HOLD that blank
+    // cell → Batman flickered invisible at the end of the jab. 3f holds the last real pose.
+    batCombo1: { frames: 3, width: 127, height: 163, speed: 3, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_combo1_uniform.png" },
     batCombo2: { frames: 4, width: 148, height: 163, speed: 3, anchorY: 0,  loop: false, lockLastFrame: true, sheet: "./batman_combo2_uniform.png" },
     batCombo3: { frames: 4, width: 189, height: 163, speed: 3, anchorY: -5, loop: false, lockLastFrame: true, sheet: "./batman_combo3_uniform.png" },
     // ── STAGE 3 SPECIAL cast poses (SPECIAL button, direction-branched via _specialHeldDir).
@@ -3840,6 +3810,113 @@ const maki = {
     makiKunai:   { frames: 6, width: 86, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_kunai_uniform.png" },      // Kunai Throw — windup → release
     makiNunchaku:{ frames: 10, width: 57, height: 96, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./maki_nunchaku_uniform.png" },   // Nunchaku Flurry — spinning overhead combo (weapon-flavor)
     makiCharge:  { frames: 2, width: 65, height: 83, speed: 6, anchorY: 0, loop: true, sheet: "./maki_charge_uniform.png" }                             // Power Charge — weapon-raised power-up stance
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// TOJI FUSHIGURO  (rosterKey "toji", universe "jujutsu_kaisen"). REBUILT on a fresh
+// upload set (25 raw toji_*.png, filenames preserved as uploaded; the earlier build
+// was fully removed — this is a clean rebuild). Source strips are NON-uniform (real
+// per-frame alpha-gutter pitch, no fixed grid) → each is re-sliced to a feet-aligned
+// `toji_*_uniform.png` cell (tools/reslice_strip.mjs; the 2-row intro via
+// tools/reslice_rows.py). Raw originals are kept untouched in _toji_raw_backup/.
+// ARCHETYPE: the "peerless physical combatant" — ZERO cursed energy (maxEnergy 0,
+// hideResourceMeter, like Maki) traded for TOP-tier speed (98 — ties Maki/Minato,
+// the teleport-blur gate) + hard-hitting normals (attack 98, top physical bracket,
+// below Superman 100). DELIBERATELY LOW base bulk (HP 1050 — glass-cannon band with
+// Netero 980 / Beerus 1000, below Maki 1180): his survivability is his two-stage
+// COMEBACK mechanic (Stage 6, `scaling:"physical_comeback"`), NOT raw HP — so base
+// durability is a clean balance lever. Qualifies for the double-tap teleport-blur by
+// STAT (speed 98 >= SPEED_TIER_THRESHOLD), using his OWN dash pose (a walk-cycle
+// frame — "dash sprite, not a special effect"). Stage 1 = registration + movement/
+// state + intro; normals (S2), sword specials (S3), Chain (S4), Playful Cloud + Fly
+// Heads (S5), two-stage comeback + Reincarnated Form (S6) land later. See TOJI_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────
+const toji = {
+  rosterKey: "toji", name: "Toji Fushiguro", universe: "jujutsu_kaisen", color: "#5c6b63",
+  portrait: "./toji_portrait.png",
+  archetypes: ["melee", "speed"],
+  primary: "melee", secondary: ["speed"],
+  // energyType:"none" keeps him out of all energy logic; hideResourceMeter suppresses the
+  // HUD energy panel entirely (HP-only) — canon: Toji has ZERO cursed energy.
+  traits: { hasEnergy: false, energyType: "none", hideResourceMeter: true, mobility: "very_high", scaling: "physical_comeback", animeMovement: true },
+  // Peak-human physical archetype: fastest tier (98) + top-of-band damage (98), deliberately
+  // fragile base HP (1050, glass-cannon band) — the two-stage comeback (S6) is his durability,
+  // not raw bulk. See BALANCE_AUDIT.md (comeback outlier scrutiny in S7).
+  stats: { maxHealth: 1050, maxEnergy: 0, attack: 98, defense: 82, speed: 98, maxJumps: 2, jumpPower: 33, dashSpeed: 22, dashDuration: 10, dashCooldownMax: 26 },
+  // Frame data present so the object is valid; the attack ANIMATIONS are wired in Stage 2+.
+  // Top-of-band normals (attack 98) — hits hard, offset by low base HP.
+  basic_attacks: {
+    light:     { damage: 52, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 96, startup: 7, active: 4, recovery: 15, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 46 },
+    upAttack:  { type: "launcher", damage: 74, startup: 5, active: 3, recovery: 7,  hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -12, selfVy: -8, airOK: false },
+    airAttack: { damage: 62, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 86, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+  },
+  // Specials/ultimate are DESCRIBED here (object completeness); wired in later stages.
+  specials: {
+    splitSoulKatana:   { cost: 0, effect: "S3 — Split Soul Katana: a committed two-hit descending sword combo (sword_down_attack_1→2 as one continuous special)" },
+    rapidSwordSlashes: { cost: 0, effect: "S3 — a flurry of rapid katana slashes (multi-hit)" },
+    chainOfMiles:      { cost: 0, effect: "S4 — Chain of a Thousand Miles / Inverted Spear of Heaven: one continuous 5-part chain sequence (chain_attack_1→5)" },
+    playfulCloud:      { cost: 0, effect: "S5 — Playful Cloud: a single self-contained cursed-tool (three-section-staff) strike" },
+    flyHeads:          { cost: 0, effect: "Fly Heads: releases a dense, screen-filling SWARM of shikigami fly-heads that CLUTTER the shared view for ~3s — pure vision-denial/disruption, ZERO damage (see tojiFlyHeadsSwarm.js). Closest achievable to 'opponent can't see' on a single shared-screen renderer." }
+  },
+  ultimate: { name: "Reincarnated Form", cost: 0, description: "Meterless (no energy). MANUAL, player-chosen ultimate (Super/X) — a freeze-cinematic transformation into the Reincarnated Form (crimson aura, dmg ×1.25 / spd ×1.1 / def ×1.08). Castable from any HP; 20s cooldown, once per round. Independent of the automatic two-stage comeback, which also grants the same form on the 2nd near-death (no double buff either ordering)." },
+  // Reincarnated Form buff tier (auto-granted on the 2nd comeback save; ALSO the manual Super/X ultimate — same form, freeze-cinematic entry).
+  transformationOrder: ["base"],
+  transformations: {
+    base:         { damageMultiplier: 1,    speedMultiplier: 1,   defenseMultiplier: 1 },
+    reincarnated: { damageMultiplier: 1.25, speedMultiplier: 1.1, defenseMultiplier: 1.08, isSpecial: true }
+  },
+  hasSprites: true,
+  // HEIGHT-REF: canon ~184cm → target ~115px (0.623×184). idle content cell 67px → scale ≈1.71.
+  // Verified/tuned against harness/height_reference.mjs in Stage 1. anchorY all 0.
+  spriteScale: 1.71,
+  introPool: ["intro"],   // single self-contained intro (stand → draw katana), holds final sword pose
+  animationData: {
+    // ── LOCOMOTION ── (re-sliced feet-aligned uniform cells)
+    idle:  { frames: 6, width: 46, height: 67, speed: 8, anchorY: 0, loop: true,  sheet: "./toji_idle_uniform.png" },
+    walk:  { frames: 7, width: 38, height: 66, speed: 6, anchorY: 0, loop: true,  sheet: "./toji_walk_uniform.png" },
+    run:   { frames: 7, width: 38, height: 66, speed: 4, anchorY: 0, loop: true,  sheet: "./toji_walk_uniform.png" },
+    // dash pose = a forward-leaning walk frame → the teleport-blur whirls HIS OWN sprite (not an FX overlay).
+    dash:  { frames: 1, width: 38, height: 66, speed: 4, anchorY: 0, sourceX: 152, loop: false, lockLastFrame: true, sheet: "./toji_walk_uniform.png" },
+    jump:  { frames: 7, width: 46, height: 78, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_jump_uniform.png" },
+    fall:  { frames: 1, width: 46, height: 78, speed: 6, anchorY: 0, sourceX: 230, loop: false, lockLastFrame: true, sheet: "./toji_jump_uniform.png" },   // jump frame 5 (descending)
+    // guard: no dedicated block art in the upload set → idle frame 0 stand-in (GAP, see asset map).
+    guard: { frames: 1, width: 46, height: 67, speed: 4, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./toji_idle_uniform.png" },
+    hurt:  { frames: 1, width: 36, height: 64, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./toji_hit_uniform.png" },
+    knockdown: { frames: 2, width: 36, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_hit_uniform.png" },
+    // ── INTRO (2-row source flattened to one strip; ends drawing the katana) ──
+    intro: { frames: 36, width: 67, height: 66, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_intro_uniform.png" },
+    // ── STAGE 2: base normals. The punch sheet (8f 56×66) is a full hand-combo — its frames double as the
+    //   neutral light/heavy poses AND the 4 rekka stages (sourceX offsets into the same sheet). ──
+    light:    { frames: 2, width: 56, height: 66, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./toji_punch_uniform.png" },   // jab (punch f0-1)
+    heavy:    { frames: 2, width: 56, height: 66, speed: 4, anchorY: 0, sourceX: 336, loop: false, lockLastFrame: true, sheet: "./toji_punch_uniform.png" },   // big straight (punch f6-7)
+    air:      { frames: 2, width: 56, height: 66, speed: 3, anchorY: 0, sourceX: 112, loop: false, lockLastFrame: true, sheet: "./toji_punch_uniform.png" },   // aerial cross (punch f2-3)
+    up:       { frames: 5, width: 66, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_up_attack_uniform.png" },              // rising launcher (red slash)
+    down_air: { frames: 8, width: 80, height: 88, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_down_air_attack_uniform.png" },        // descending weapon swing (crescent arc)
+    // ── STAGE 2: A-B-C-A+B Fwd+Heavy rekka stages (punch sheet, 2 frames each via sourceX) ──
+    tojiG1:   { frames: 2, width: 56, height: 66, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./toji_punch_uniform.png" },   // jab
+    tojiG2:   { frames: 2, width: 56, height: 66, speed: 3, anchorY: 0, sourceX: 112, loop: false, lockLastFrame: true, sheet: "./toji_punch_uniform.png" },   // cross
+    tojiG3:   { frames: 2, width: 56, height: 66, speed: 3, anchorY: 0, sourceX: 224, loop: false, lockLastFrame: true, sheet: "./toji_punch_uniform.png" },   // hook
+    tojiG4:   { frames: 2, width: 56, height: 66, speed: 4, anchorY: 0, sourceX: 336, loop: false, lockLastFrame: true, sheet: "./toji_punch_uniform.png" },   // A+B big straight finisher
+    // ── STAGE 2: Back+Heavy "Handgun" command-normal (draw → fire; projectile-only cast) ──
+    tojiGun:  { frames: 6, width: 53, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_gun_uniform.png" },
+    // ── STAGE 3: sword specials ──
+    // Split Soul Katana = ONE continuous 2-part combo (tojiSword1 auto-chains into tojiSword2).
+    tojiSword1:     { frames: 9,  width: 94,  height: 70,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_sword_down_attack_1_uniform.png" },   // draw-slash (part 1)
+    tojiSword2:     { frames: 6,  width: 74,  height: 62,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_sword_down_attack_2_uniform.png" },   // follow-up cut (part 2)
+    tojiRapidSlash: { frames: 21, width: 53,  height: 73,  speed: 2, anchorY: 0, loop: true,  sheet: "./toji_rapid_sword_slashes_uniform.png" },                       // rapid multi-hit flurry (loops through the active window)
+    // ── STAGE 4: Chain of a Thousand Miles / Inverted Spear of Heaven — ONE continuous 5-part sequence ──
+    tojiChain1: { frames: 5, width: 98,  height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_chain_attack_1_uniform.png" },   // whip-out windup
+    tojiChain2: { frames: 4, width: 140, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_chain_attack_2_uniform.png" },   // spear extends far
+    tojiChain3: { frames: 5, width: 118, height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_chain_attack_3_uniform.png" },   // overhead swing arc
+    tojiChain4: { frames: 7, width: 122, height: 91, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_chain_attack_4_uniform.png" },   // chain spin
+    tojiChain5: { frames: 4, width: 110, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_chain_attack_5_uniform.png" },   // Inverted Spear finisher (launches)
+    // ── STAGE 5: Playful Cloud (Up Special) + Fly Heads (Back Special) ──
+    tojiPlayfulCloud: { frames: 6, width: 99, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./toji_playful_cloud_dash_attack_uniform.png" },   // three-section-staff dash-strike
+    tojiFlyHeads:     { frames: 2, width: 56, height: 66, speed: 4, anchorY: 0, sourceX: 336, loop: false, lockLastFrame: true, sheet: "./toji_punch_uniform.png" }           // hand-forward release gesture (reuses the punch arm-out frame)
+    // Reincarnated Form (Stage 6) added later.
   }
 }
 
@@ -4369,8 +4446,8 @@ const zarakiShikai = {
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
-  gojo, megumi, sukuna, omololu, toji, maki, yuji,
-  naruto, sasuke, itachi, tobirama, minato, madara, obito, tobi,
+  gojo, megumi, sukuna, omololu, maki, toji, yuji,
+  naruto, sasuke, itachi, tobirama, minato, madara, obito, tobi, pain,
   zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,
   beerus,
@@ -4397,7 +4474,7 @@ export const characters = {
 }
 
 // The 7 characters shown in the starter roster select screen
-export const starterRoster = [goku, naruto, gojo, megumi, sukuna, omololu, toji]
+export const starterRoster = [goku, naruto, gojo, megumi, sukuna, omololu]
 
 // Full flat list
 export const characterList = Object.values(characters)

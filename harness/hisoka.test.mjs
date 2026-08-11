@@ -103,10 +103,10 @@ try {
   await waitGrounded();
 
   // ── Card Flourish chain (Down+Heavy rekka) ──
-  section("Card Flourish command chain (Down+Heavy → rekka1 → rekka2)");
+  section("Card Flourish command chain (Forward+Heavy → rekka1 → rekka2)");   // combo-string standardization Stage B: was Down+Heavy
   await prep(40);
   const hp0c = (await p2()).health;
-  await page.keyboard.down("s"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("s");
+  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("d");
   const moves = new Set(); let retapped = false;
   for (let i = 0; i < 70; i++) {
     const p = await record(); if (p.currentMove) moves.add(p.currentMove);

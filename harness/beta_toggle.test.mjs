@@ -51,12 +51,13 @@ try {
   check('applyCode("BETA") accepted, beta ON, dev untouched', on.result === "beta" && on.beta === true && on.dev === false, `result=${on.result} beta=${on.beta} dev=${on.dev}`);
   m = await menu();
   check("(1) selectable roster == live sprite set (non-sprited LOCKED OUT)", sortJoin(m.selectable) === sortJoin(gt.sprite), `n=${m.selectable.length}`);
-  for (const gone of ["piccolo", "frieza", "cell", "tanjiro", "morty"]) check(`   '${gone}' (no sprites) NOT selectable`, !m.selectable.includes(gone));
-  for (const has of ["goku", "goku_black", "vegeta", "beerus", "gojo", "naruto"]) check(`   '${has}' (has sprites) IS selectable`, m.selectable.includes(has));
+  // MK-feel Stage 5: goku sprite-flag-removed → drops off the beta sprite roster (moved to the "not selectable" list).
+  for (const gone of ["piccolo", "frieza", "cell", "tanjiro", "morty", "goku"]) check(`   '${gone}' (no sprites) NOT selectable`, !m.selectable.includes(gone));
+  for (const has of ["goku_black", "vegeta", "beerus", "gojo", "naruto"]) check(`   '${has}' (has sprites) IS selectable`, m.selectable.includes(has));
   check("(2) all skins unlocked under BETA (sukuna3 now OPEN)", (await skin("sukuna", "sukuna3")) === true);
   const after = await charSelect("dragon_ball");
   await page.waitForTimeout(300); await page.screenshot({ path: path.join(OUT, "beta_charselect_AFTER.png") });
-  check("dragon_ball now shows ONLY sprited chars", sortJoin(after.roster) === sortJoin(["goku", "goku_black", "vegeta", "beerus"]), `roster=${after.roster.join(",")}`);
+  check("dragon_ball now shows ONLY sprited chars (goku dropped in Stage 5)", sortJoin(after.roster) === sortJoin(["goku_black", "vegeta", "beerus"]), `roster=${after.roster.join(",")}`);
 
   // ── ENTER "BETA" AGAIN → OFF (reversible toggle) ──
   section('ENTER "BETA" AGAIN → toggles back OFF (fully reversible)');

@@ -172,14 +172,8 @@ export const ALT_SKINS = {
     { tag: "blue", name: "Blue", mode: "region", note: "-> to-hue 210 sat .85 vg2.3 lift .12" },
     { tag: "red",  name: "Red",  mode: "region", note: "-> to-hue 3 sat .90 vg2.3 lift .12" },
   ],
-  // TOJI — dark top + white pants (colorize, yband .22-1 keeps hair; saturated noise speckles sat>.22
-  // stay). IS black → skip BLACK. Colored pants are the main statement; skin/hair preserved.
-  toji: [
-    { tag: "pink", name: "Pink", mode: "region", note: "outfit colorize min-sat 0 max-sat .22 yband .22-1 -> to-hue 330 sat .60 vg1.8 lift .10" },
-    { tag: "gold", name: "Gold", mode: "region", note: "-> to-hue 47 sat .85 vg2.0 lift .10" },
-    { tag: "blue", name: "Blue", mode: "region", note: "-> to-hue 214 sat .80 vg1.8 lift .10" },
-    { tag: "red",  name: "Red",  mode: "region", note: "-> to-hue 5 sat .85 vg1.8 lift .10" },
-  ],
+  // TOJI — REMOVED (old-build abstract-hue pink/gold/blue/red). The 2026-08 rebuild replaces these with 12
+  // creative recolor skins registered DIRECTLY in skins.js (tools/gen_toji_creative.py), like Gojo/Sukuna/Tobi.
 
   // ══ BATCH 4 · HUNTER x HUNTER ═══════════════════════════════════════════════
   // NETERO — blue shorts + shoulder straps (hue 200-225, sat≥.40, dark → val-gain). IS blue → skip

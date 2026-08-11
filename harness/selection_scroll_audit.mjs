@@ -54,7 +54,11 @@ try {
   chk(`Call-In partner-select screen is ABSENT on this branch (nothing to scroll)`, !hasCallIn,
       hasCallIn ? "screen now exists → add it to activeScrollGrid()!" : "no SELECT_CALLIN_PARTNER state");
 
-  // ── 3) Main character-select (SELECT_CHARACTER) — per-universe; confirm on the scroll path + largest fits ──
+  // ── 3) Main character-select (SELECT_CHARACTER) — per-universe. The SELECT-DEPTH stats panel overlays
+  // the lower half, so this screen's REAL usable band ends at the panel top (not the footer). We prove the
+  // largest universe's last row starts BEHIND the panel at rest (was silently unreachable — the reported
+  // bug) and scrolls out into the clear band above the panel. Regression guard for the whole bug class:
+  // as any universe grows past the panel top, this must keep failing-then-passing on the scroll path.
   console.log("\n── Main character-select (SELECT_CHARACTER), per universe ──");
   const universes = ["dragon_ball","jujutsu_kaisen","naruto","hunter_x_hunter","demon_slayer","power_rangers","dc","ben_10","invincible","rick_and_morty"];
   let maxU = { u: null, n: 0 };
@@ -65,7 +69,27 @@ try {
     if (bb.count > maxU.n) maxU = { u, n: bb.count };
     if (bb.hasScroll) chk(`universe ${u} (${bb.count}) OVERFLOWS → scroll active`, bb.maxOffset > 0, `maxOffset=${bb.maxOffset}`);
   }
-  chk(`main select is scroll-aware (largest universe = ${maxU.u} @ ${maxU.n} chars)`, true, `≤ ${maxU.n} fits one page; scroll auto-engages if a universe grows past the viewport`);
+  // Stress the LARGEST universe end-to-end (proves reachability, not just "scroll exists").
+  await page.evaluate(u => window.__harness.showCharSelect(u, "training"), maxU.u);
+  await frames(1);
+  const vpC = await page.evaluate(() => window.__harness.charSelectViewport());
+  const bMax = await bar();
+  chk(`largest universe ${maxU.u} (${maxU.n}) OVERFLOWS the panel-reserved band → scroll active`, bMax.hasScroll && bMax.maxOffset > 0, `maxOffset=${bMax.maxOffset}, viewBottom=${Math.round(vpC.viewBottom)} (panel top=${Math.round(vpC.detailTop)})`);
+  let cr = await rects();
+  const lastRest = cr[cr.length-1];
+  chk(`last card (${maxU.u}) starts behind the stats panel at rest → hidden without scroll`, lastRest.y + lastRest.h > vpC.detailTop, `cardBottom=${Math.round(lastRest.y+lastRest.h)} > panelTop=${Math.round(vpC.detailTop)}`);
+  await wheelToBottom();
+  cr = await rects();
+  const lastScrolled = cr[cr.length-1];
+  chk(`wheel brought the last card fully into the CLEAR band above the panel (reachable + clickable)`,
+      lastScrolled.y >= vpC.viewTop - 2 && lastScrolled.y + lastScrolled.h <= vpC.viewBottom + 2,
+      `y=${Math.round(lastScrolled.y)}..${Math.round(lastScrolled.y+lastScrolled.h)} within [${Math.round(vpC.viewTop)}, ${Math.round(vpC.viewBottom)}]`);
+  // The click hit-test must agree: the newest card now resolves to the LAST roster index (before the fix
+  // this returned -1 — the point sat behind the panel and pickGridCard's viewport guard rejected it).
+  const picked = await page.evaluate(([x,y]) => window.__harness.pickCharAt(x,y),
+    [lastScrolled.x + lastScrolled.w/2, lastScrolled.y + lastScrolled.h/2]);
+  chk(`last card is click-reachable after scroll → hit-test resolves to the last roster index`, picked === cr.length - 1, `pickIndex=${picked}, expected=${cr.length-1}`);
+  await page.screenshot({ path: path.join(OUT, "scroll_audit_charselect.png") });
 
   // ── 4) Ben 10 Omnitrix loadout (SELECT_ALIENS) — different grid; confirm it fits (no scroll needed) ──
   console.log("\n── Ben 10 Omnitrix loadout (SELECT_ALIENS) ──");

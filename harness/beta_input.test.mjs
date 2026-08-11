@@ -19,7 +19,6 @@
 //   sukuna  B/qcb  Dismantle         projectile "dismantle" (vs Cleave: none)
 //   megumi  B/qcb  Max Elephant      energy −35  (vs Divine Dogs −20)
 //   naruto  F/qcf  Shadow Clone Spawn energy −0  (vs base Rasengan −30)
-//   toji    B/qcb  Chain-Knife       projectile "chainKnife" (vs Inventory Smash: none)
 //   sasuke  F/qcf  Two-Strike Lightning  lightningPhase set (vs Dash Strike: null)
 //   rick    B/qcb  Portal-Push       energy −45  (vs Meeseeks −30)
 // ---------------------------------------------------------------------------
@@ -58,7 +57,6 @@ const CASES = [
   { key: "sukuna", name: "Dismantle",           inputDir: "B", det: { type: "proj",   proj: "dismantle" } },
   { key: "megumi", name: "Max Elephant",        inputDir: "B", det: { type: "energy", special: 35, deflt: 20 } },
   { key: "naruto", name: "Shadow Clone Spawn",  inputDir: "F", det: { type: "energy", special: 0,  deflt: 30 } },
-  { key: "toji",   name: "Chain-Knife",         inputDir: "B", det: { type: "proj",   proj: "chainKnife", castWait: 20, cooldownWait: 100 } },
   { key: "sasuke", name: "Two-Strike Lightning",inputDir: "F", det: { type: "state",  field: "lightningPhase" } },
   { key: "rick",   name: "Portal-Push",         inputDir: "B", det: { type: "energy", special: 45, deflt: 30 } },
 ];
@@ -181,7 +179,7 @@ async function runCharacter(cfg) {
     for (let i = 0; i < 3 && !rollNormal.fired; i++) rollNormal = await firedSpecial(cfg, "roll");
     check(`(A) NORMAL + motion roll → ${cfg.name} fires`, rollNormal.fired, rollNormal.detail);
 
-    // Toji's chain has a 96f recast lock; wait it (+ let the chain projectile clear) before reuse.
+    // Some specials have a recast lock; wait it (+ let any projectile clear) before reuse.
     if (cfg.det.cooldownWait) await waitFrames(cfg.det.cooldownWait);
 
     // (B) NORMAL play: a single HELD direction must NOT fire the special (motion still required).

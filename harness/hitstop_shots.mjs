@@ -27,7 +27,7 @@ const browser = await chromium.launch({ headless: true, args: ["--autoplay-polic
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 
 const cases = [
-  { p1: "sasuke", p2: "toji",   cat: "light" },
+  { p1: "sasuke", p2: "maki",   cat: "light" },
   { p1: "rick",   p2: "gojo",   cat: "heavy" },
   { p1: "naruto", p2: "sukuna", cat: "special" },
 ];

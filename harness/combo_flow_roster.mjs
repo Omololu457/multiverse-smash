@@ -39,7 +39,7 @@ let PASS = 0, FAIL = 0;
 const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅ PASS" : "❌ FAIL"}  ${n}${d ? `  — ${d}` : ""}`); };
 
 async function verify(char, kit) {
-  await page.goto(`${base}/index.html?harness=1&p1=${char}&p2=toji`, { waitUntil: "load" });
+  await page.goto(`${base}/index.html?harness=1&p1=${char}&p2=maki`, { waitUntil: "load" });
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());

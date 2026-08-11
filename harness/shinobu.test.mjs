@@ -124,7 +124,7 @@ try {
   await page.waitForFunction(() => !window.__harness.p1().grounded, null, { timeout: 2000, polling: 16 }).catch(() => {});
   await waitFrames(2); mv = await p1(); check("jump → shinobu_jump_uniform", has(mv, "shinobu_jump_uniform"), `sheet=${mv.spriteSheet}`);
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(6); mv = await p1(); check("guard → shinobu_guard_uniform", has(mv, "shinobu_guard_uniform"), `sheet=${mv.spriteSheet}`); await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.down(";"); await waitFrames(6); mv = await p1(); check("guard → shinobu_guard_uniform", has(mv, "shinobu_guard_uniform"), `sheet=${mv.spriteSheet}`); await page.keyboard.up(";"); await waitFrames(4);
 
   // ── NORMALS ──
   section("5 basic normals (thrust/piercing)");

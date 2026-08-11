@@ -55,12 +55,6 @@ export const bindingVows = {
     effects: { maxSummons: 1, summonDamageMul: 1.75, summonLifeMul: 1.5 }
   },
 
-  // ---------- TOJI ----------
-  assassinsOath: {
-    name: "Assassin's Oath", character: "toji", sequence: ["R", "R", "L"],
-    // Disable ultimate; +40% speed, +35% melee damage, dash-start invincibility.
-    effects: { disabledSpecials: ["ultimate"], speedMul: 1.4, damageMul: 1.35, dashInvuln: true }
-  }
 }
 
 // ======================================================

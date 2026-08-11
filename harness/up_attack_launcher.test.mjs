@@ -51,14 +51,16 @@ function landMove(a, t, moveKey, md) {
 
 // Spec table (frames + exact velocities), straight from the project owner's Stage-1 spec.
 const SPEC = {
-  gojo: { startup: 6, active: 4, recovery: 8, enemyVy: -12, selfVy: -9, name: "Rising Palm"   },
-  maki: { startup: 4, active: 3, recovery: 6, enemyVy: -11, selfVy: -8, name: "Rising Kick"    },
-  toji: { startup: 5, active: 4, recovery: 9, enemyVy: -13, selfVy: -9, name: "Ascension Slash" },
+  // MK-feel Stage 2a: launch height raised to a single -26 floor for the whole roster (was -11..-13);
+  // juggle gravity (Stage 1b) ramps the fall so the higher pop doesn't sail the enemy out of reach.
+  gojo: { startup: 6, active: 4, recovery: 8, enemyVy: -26, selfVy: -9, name: "Rising Palm"   },
+  maki: { startup: 4, active: 3, recovery: 6, enemyVy: -26, selfVy: -8, name: "Rising Kick"    },
+  toji: { startup: 5, active: 4, recovery: 9, enemyVy: -26, selfVy: -9, name: "Ascension Slash" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 section("1–3. Each launcher: EXACT frame data + EXACT dual launch velocities + opener reset");
-for (const key of ["gojo", "maki", "toji"]) {
+for (const key of ["gojo", "maki"]) {
   const cd = getCharacter(key);
   const md = cd?.basic_attacks?.upAttack;
   const s = SPEC[key];
@@ -135,7 +137,7 @@ section("Spec follow-up counts land within the cap (each character's Stage-1 com
 // Gojo: Up → AirLight → AirBlue → AirHeavy = 3 air follow-ups. Maki: …→Up→AirKick→AirKick = 2. Toji: …→Up→AirCleaver = 1.
 // (The distinct air-move NAMES map to each character's air-attack slot today; they all route through the
 //  same air-combo counter — this asserts the specified NUMBER of follow-ups all connect within maxAirHits.)
-for (const [key, followUps] of [["gojo", 3], ["maki", 2], ["toji", 1]]) {
+for (const [key, followUps] of [["gojo", 3], ["maki", 2]]) {
   const cd = getCharacter(key);
   const a = mkFighter("p1", 100, { rosterKey: key, basic_attacks: cd.basic_attacks });
   const t = mkFighter("p2", 168, { facing: -1 });

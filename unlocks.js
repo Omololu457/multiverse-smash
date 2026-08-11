@@ -32,11 +32,10 @@ export const UNLOCK_CONDITIONS = {
   tobi:                 { type: "level", value: 8 },
   nezuko:               { type: "level", value: 9 },
   batman:               { type: "level", value: 10 },
-  // ── Arcade clear as a related fighter (7) — all named fighters start unlocked ──
+  // ── Arcade clear as a related fighter (6) — all named fighters start unlocked ──
   megumi:  { type: "arcade", value: "yuji" },
   sukuna:  { type: "arcade", value: "gojo" },
   itachi:  { type: "arcade", value: "sasuke" },
-  toji:    { type: "arcade", value: "maki" },
   madara:  { type: "arcade", value: "naruto" },
   hisoka:  { type: "arcade", value: "gon" },
   chrollo: { type: "arcade", value: "killua" },

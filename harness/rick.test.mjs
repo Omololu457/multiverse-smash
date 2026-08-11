@@ -6,8 +6,8 @@
 //   • Meeseeks Box (neutral special L): spawns, runs, connects — NO simultaneous cap
 //   • Rocket (Up + Special: W then L): launches Rick up AND spawns a path-damage rocket
 //   • Portal-Behind (double-tap toward opponent): repositions behind, like the others
-//   • Self-Destruct ultimate (U): proximity AOE damage, NO self-damage, near-max cost,
-//     whiffs when the opponent is out of range
+//   • Self-Destruct ultimate (U): proximity AOE damage, 15% self-cost (MK-feel Stage 3d), near-max
+//     meter, whiffs when the opponent is out of range
 // ---------------------------------------------------------------------------
 import { chromium } from "playwright";
 import http from "node:http";
@@ -202,9 +202,9 @@ try {
   }
   await waitFrames(20);
 
-  // ── SELF-DESTRUCT ULTIMATE (U) — proximity AOE, no self-damage, near-max cost
-  section("SELF-DESTRUCT ultimate (U) — proximity AOE, no self-damage, near-max cost");
-  // (a) CLOSE: connects, near-max cost, Rick unharmed
+  // ── SELF-DESTRUCT ULTIMATE (U) — proximity AOE, 15% self-cost (MK-feel Stage 3d), near-max meter
+  section("SELF-DESTRUCT ultimate (U) — proximity AOE, 15% self-cost, near-max cost");
+  // (a) CLOSE: connects, near-max meter, Rick pays 15% max HP (Stage 3d: no longer a risk-free nuke)
   await setupAdjacent(60);
   await waitFrames(6);
   {
@@ -216,7 +216,9 @@ try {
     const a = await p1();
     const hp1 = (await p2()).health;
     check("ultimate connects (AOE damages a nearby opponent)", hp1 < hp0, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
-    check("Rick takes NO self-damage from his own blast", a.health >= b.health, `rick hp ${b.health} → ${a.health}`);
+    // MK-feel Stage 3d: detonating now costs Rick 15% of max HP (non-lethal) — the risk lever.
+    const selfCost = Math.round(b.maxHealth * 0.15);
+    check("Rick PAYS ~15% max HP to self-destruct (Stage 3d risk lever)", Math.abs((b.health - a.health) - selfCost) <= 1, `rick hp ${b.health} → ${a.health} (cost ${(b.health - a.health).toFixed(0)}, expected ~${selfCost})`);
     check("ultimate costs near-max meter (~140)", (b.energy - a.energy) >= 130, `spent ${(b.energy - a.energy).toFixed(0)}`);
     const proj = await projectiles();
     check("blast FX spawns (visualOnly, no double-damage)", proj.some(p => p.name === "selfDestructBlast" && p.visualOnly), `projectiles=${JSON.stringify(proj.map(p => p.name))}`);

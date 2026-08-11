@@ -39,7 +39,7 @@ export const SOURCED_ART = {
 // its provenance is declared — either here, or in SOURCED_ART with a named artist.
 export const PROJECT_ART_KEYS = [
   "goku", "goku_black", "vegeta", "piccolo", "frieza", "cell",
-  "sukuna", "omololu", "toji", "maki", "yuji",
+  "sukuna", "omololu", "maki", "yuji",
   "naruto", "sasuke", "itachi", "tobirama", "minato", "madara", "obito", "tobi",
   "zenitsu", "rengoku", "shinobu", "inosuke", "nezuko",
   "rick", "morty", "evilMorty", "rickPrime",

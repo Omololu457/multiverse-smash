@@ -85,11 +85,18 @@ try {
   section("sprite gate — Goku renders as sprites (NOT the procedural box)");
   {
     const a = await p1();
+    // MK-feel Stage 5: Goku is sprite-flag-removed (hasSprites:false) → procedural box. The sprite-GATE
+    // checks are box-aware: they assert the procedural state now, and re-assert the sprite gate if sprites
+    // are ever restored. animationData (incl. spriteScale) is KEPT, so line 4 still holds either way.
+    const boxed = a.hasSprites === false;
     check("P1 is Goku", a.key === "goku", `key=${a.key}`);
-    check("has a real SpriteHandler (teardown made this false → box)", a.hasSpriteHandler === true, `hasSpriteHandler=${a.hasSpriteHandler}`);
-    check("idle sprite is ready (spritesheets.js gate restored)", a.spriteReady === true, `sheet=${a.spriteSheet}`);
-    check("idle sheet is goku_base_FULLSHEET_transparent.png", (a.spriteSheet || "").includes("goku_base_FULLSHEET"), `sheet=${a.spriteSheet}`);
-    check("spriteScale restored ≈ 3.2", Math.abs((a.spriteScale || 0) - 3.2) < 0.01, `spriteScale=${a.spriteScale}`);
+    check("procedural box after Stage-5 flag-removal (no SpriteHandler) — or a real handler if restored",
+      boxed ? a.hasSpriteHandler === false : a.hasSpriteHandler === true, `boxed=${boxed} hasSpriteHandler=${a.hasSpriteHandler}`);
+    check("idle sprite gate OFF once flag-removed — or ready if the manifest entry is restored",
+      boxed ? a.spriteReady !== true : a.spriteReady === true, `boxed=${boxed} ready=${a.spriteReady}`);
+    check("no idle sheet once flag-removed — or goku_base_FULLSHEET if restored",
+      boxed ? !(a.spriteSheet || "").includes("goku_base_FULLSHEET") : (a.spriteSheet || "").includes("goku_base_FULLSHEET"), `sheet=${a.spriteSheet}`);
+    check("spriteScale data retained ≈ 3.2 (animationData kept even when flag-removed)", Math.abs((a.spriteScale || 0) - 3.2) < 0.01, `spriteScale=${a.spriteScale}`);
     await page.screenshot({ path: path.join(OUT, "GOKU_restored_idle.png") });
   }
 

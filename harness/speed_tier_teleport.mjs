@@ -49,7 +49,7 @@ for (const { key, uni, shot } of [
   { key: "flash",  uni: "DC",     shot: "speedtier_flash.png" },
   { key: "minato", uni: "Naruto", shot: "speedtier_minato.png" },
   { key: "maki",   uni: "JJK",    shot: "speedtier_maki.png" },
-  { key: "toji",   uni: "JJK",    shot: null },
+  { key: "toji",   uni: "JJK",    shot: "speedtier_toji.png" },   // rebuilt: qualifies by STAT (speed 98), uses HIS OWN dash pose
 ]) {
   await boot(key);
   const spd = (await P1()).baseSpeed;
@@ -57,6 +57,19 @@ for (const { key, uni, shot } of [
   ok(spd >= 98 && r.blur > 0, `${key} (${uni}, speed ${spd}) → teleport spin/blur fires (_speedBlur=${r.blur})`);
   if (shot) { await page.screenshot({ path: path.join(OUT, shot) }); }
 }
+
+// ── FEAT QUALIFIER (Pain, speed 90 < 98 — qualifies by the Deva-Path gravity feat, like Obito/Tobi) ──
+console.log("\nFEAT QUALIFIER (below raw tier, allowlisted — expect spin/blur + own DASH sprite):");
+await boot("pain");
+const pSpd = (await P1()).baseSpeed;
+// double-tap toward, and while inside the blur window grab both _speedBlur and the rendered sheet
+await doubleTapToward();
+let pBlur = 0, pSheet = null;
+for (let i = 0; i < 16; i++) { const p = await P1(); if (p.speedBlur > 0) { pBlur = p.speedBlur; pSheet = p.spriteSheet; break; } await sleep(16); }
+if (pBlur > 0 && !pSheet) pSheet = (await P1()).spriteSheet;
+ok(pSpd < 98 && pBlur > 0, `pain (speed ${pSpd} < 98) → FEAT qualifier fires the spin/blur (_speedBlur=${pBlur})`);
+ok(pSheet && pSheet.includes("pain_dash"), `pain's teleport-blur plays his OWN DASH sprite, not a special effect (${pSheet})`);
+await page.screenshot({ path: path.join(OUT, "speedtier_pain.png") });
 
 // ── BELOW-TIER dashTeleport holder (Sasuke, 90) — teleports but NO spin/blur ──
 console.log("\nBELOW-TIER (expect existing behavior unchanged):");

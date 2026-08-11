@@ -277,6 +277,31 @@ export const SKINS = {
     { id: "madaraAshfall",        name: "Ashfall",         unlockLevel: 0, portrait: "./madara_portrait__ashfall.png",        spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "ashfall") }
   ],
 
+  // Pain / Nagato's Deva Path (Naruto). Default + 12 creative recolors (tools/gen_pain_creative.py). THREE
+  // coordinated regions: HAIR (his spiky red-orange, top zone) + CLOAK base (near-black + its bluish-gray
+  // mid-tones, one region) + CLOUDS (the Akatsuki RED-cloud pattern — a genuinely separable accent, split
+  // from hair by POSITION since both share the red hue family). FACE/Rinnegan + line-art outlines are
+  // PROTECTED (never painted). Cosmetic-only — ZERO gameplay. Skin 12 (Void Path) adds a procedural
+  // drifting-red-particle + gravity-ripple overlay (game.js drawPainVoidOverlay, gated on this id).
+  pain: [
+    { id: "default",          name: "Default",          unlockLevel: 0, portrait: characters.pain?.portrait,               spriteScale: characters.pain?.spriteScale, animationData: null },
+    // ── Group 1 — Ben 10 homages + 2 Beyblade-color skins ──
+    { id: "painOmnitrix",      name: "Omnitrix Protocol", unlockLevel: 0, portrait: "./pain_portrait__omnitrix.png",      spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "omnitrix") },
+    { id: "painAlbedo",        name: "Albedo Protocol",   unlockLevel: 0, portrait: "./pain_portrait__albedo.png",        spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "albedo") },
+    { id: "painRoyalValkyrie", name: "Royal Valkyrie",    unlockLevel: 0, portrait: "./pain_portrait__royalvalkyrie.png", spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "royalvalkyrie") },
+    { id: "painMirageWyrm",    name: "Mirage Wyrm",       unlockLevel: 0, portrait: "./pain_portrait__miragewyrm.png",    spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "miragewyrm") },
+    // ── Group 2 ──
+    { id: "painCrimsonRinnegan", name: "Crimson Rinnegan", unlockLevel: 0, portrait: "./pain_portrait__crimsonrinnegan.png", spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "crimsonrinnegan") },
+    { id: "painCobaltPath",      name: "Cobalt Path",      unlockLevel: 0, portrait: "./pain_portrait__cobaltpath.png",      spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "cobaltpath") },
+    { id: "painEmeraldDeva",     name: "Emerald Deva",     unlockLevel: 0, portrait: "./pain_portrait__emeralddeva.png",     spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "emeralddeva") },
+    { id: "painAmethystPath",    name: "Amethyst Path",    unlockLevel: 0, portrait: "./pain_portrait__amethystpath.png",    spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "amethystpath") },
+    // ── Group 3 ── (Void Path adds the game.js drawPainVoidOverlay procedural red-mote + gravity-ripple overlay, gated on id)
+    { id: "painAshenDeva",     name: "Ashen Deva",     unlockLevel: 0, portrait: "./pain_portrait__ashendeva.png",     spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "ashendeva") },
+    { id: "painGoldenRikudou", name: "Golden Rikudou", unlockLevel: 0, portrait: "./pain_portrait__goldenrikudou.png", spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "goldenrikudou") },
+    { id: "painIvoryPath",     name: "Ivory Path",     unlockLevel: 0, portrait: "./pain_portrait__ivorypath.png",     spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "ivorypath") },
+    { id: "painVoidPath",      name: "Void Path",      unlockLevel: 0, portrait: "./pain_portrait__voidpath.png",      spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "voidpath") }
+  ],
+
   // Obito Uchiha (Naruto). Default + 12 creative recolors (tools/gen_obito_creative.py). This obito
   // sprite is UNMASKED (exposed face) — the masked "Tobi" is the separate roster entry below — so the
   // skins vary THREE coordinated regions: HAIR + CLOTHING (the dark-purple robe, body+pants recolored
@@ -546,20 +571,36 @@ export const SKINS = {
     { id: "gokuBlackGoldenTyrant", name: "Golden Tyrant", unlockLevel: 0, portrait: "./goku_black_mug_shot__goldentyrant.png", spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "goldentyrant"), recolorTag: "goldentyrant" }
   ],
 
-  // Toji (JJK). Same reason as Naruto/Goku/Sasuke: WITHOUT a default skin, applySkin()
-  // pulls the getSkins() spriteScale:1 fallback and he renders at native ~54px (half
-  // size) — THIS is why he looked undersized. This entry sources his real spriteScale
-  // (2.3) from the character. No alt skins yet.
-  toji: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.toji?.portrait, spriteScale: characters.toji?.spriteScale, animationData: null }
-  ],
-
   // Maki Zenin — Default only (creative skins land in a later stage). MUST exist: without a
   // SKINS entry, getSkins() falls back to a synthesized default carrying spriteScale:1, which
   // applySkin would stamp onto the fighter and override maki.spriteScale (1.63) → 1.
   // Maki — ONLY Default + Void Hunter (the 12 flat-recolor batch and the "Ultimate: Covered" variant were
   // removed by request). The Shibuya (Ultimate) form is now GORE-FREE for EVERY skin by default (the
   // covered-arms art is the base Shibuya art itself — see abilities.MAKI_SHIBUYA_ANIM — not an opt-in skin).
+  // Toji Fushiguro — Default only for now (creative skins are a later, optional task). This entry
+  // exists so getSkin("toji","default") carries his spriteScale (1.71) — without it applySkin would
+  // stamp the fallback spriteScale 1 onto the fighter and he'd render at native ~65px (too short).
+  toji: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.toji?.portrait, spriteScale: characters.toji?.spriteScale, animationData: null },
+    // 12 creative recolor skins (tools/gen_toji_creative.py) — HAIR + TANK TOP + PANTS coordinated per-region,
+    // near-black hair/tank spatially split, line-art outlines preserved, face/skin excluded. Cosmetic only.
+    // ── Group 1 ──
+    { id: "tojiPrime",         name: "Prime Variant",     unlockLevel: 0, portrait: recolorPortrait("toji", "prime"),         spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "prime") },          // Rick-Prime homage: pale silver-blue hair / deep navy-black tank / dark gray pants
+    { id: "tojiRoyalValkyrie", name: "Royal Valkyrie",    unlockLevel: 0, portrait: recolorPortrait("toji", "royalvalkyrie"), spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "royalvalkyrie") },  // Beyblade: royal-blue hair / black tank / gold pants trim
+    { id: "tojiMirageWyrm",    name: "Mirage Wyrm",       unlockLevel: 0, portrait: recolorPortrait("toji", "miragewyrm"),    spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "miragewyrm") },     // Beyblade: deep navy-purple hair / black tank / teal-cyan accent trim
+    { id: "tojiCrimsonFang",   name: "Crimson Fang",      unlockLevel: 0, portrait: recolorPortrait("toji", "crimsonfang"),   spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "crimsonfang") },   // deep red hair / black tank / dark red pants
+    // ── Group 2 ──
+    { id: "tojiCobaltKiller",  name: "Cobalt Killer",     unlockLevel: 0, portrait: recolorPortrait("toji", "cobaltkiller"),  spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "cobaltkiller") },  // deep blue hair / black tank / silver pants
+    { id: "tojiEmeraldRonin",  name: "Emerald Ronin",     unlockLevel: 0, portrait: recolorPortrait("toji", "emeraldronin"),  spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "emeraldronin") },  // deep green hair / black tank / dark green pants
+    { id: "tojiAmethystBlade", name: "Amethyst Blade",    unlockLevel: 0, portrait: recolorPortrait("toji", "amethystblade"), spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "amethystblade") }, // deep purple hair / black tank / violet pants trim
+    { id: "tojiAshenVeteran",  name: "Ashen Veteran",     unlockLevel: 0, portrait: recolorPortrait("toji", "ashenveteran"),  spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "ashenveteran") },  // muted gray hair / charcoal tank / gray pants (battle-worn)
+    // ── Group 3 ──
+    { id: "tojiIvoryReaper",   name: "Ivory Reaper",      unlockLevel: 0, portrait: recolorPortrait("toji", "ivoryreaper"),   spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "ivoryreaper") },   // white/pale hair / white tank / black pants
+    { id: "tojiGoldenMerc",    name: "Golden Mercenary",  unlockLevel: 0, portrait: recolorPortrait("toji", "goldenmerc"),    spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "goldenmerc") },    // rich gold hair / black tank / cream pants trim
+    { id: "tojiTealPhantom",   name: "Teal Phantom",      unlockLevel: 0, portrait: recolorPortrait("toji", "tealphantom"),   spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "tealphantom") },   // deep teal hair / black tank / dark teal pants
+    // Void Killer: full near-black base (hair+tank+pants) + procedural drifting deep-red particles (game.js drawTojiVoidOverlay, gated on this skinId)
+    { id: "tojiVoidKiller",    name: "Void Killer",       unlockLevel: 0, portrait: recolorPortrait("toji", "voidkiller"),    spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "voidkiller") },
+  ],
   maki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.maki?.portrait, spriteScale: characters.maki?.spriteScale, animationData: null },
     // VOID HUNTER — Alien-X-style FULL-FORM near-black (#0F0F12: uniform/hair/skin/face all void-flattened,

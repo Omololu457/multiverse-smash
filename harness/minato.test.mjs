@@ -65,7 +65,7 @@ try {
   await waitGrounded();
   await page.keyboard.down("w"); await waitFrames(3); await page.keyboard.up("w"); await waitFrames(4);
   check("jump", (await waitSheet("minato_jump_uniform")).spriteSheet.includes("minato_jump_uniform"), ""); await waitGrounded();
-  await page.keyboard.down("s"); check("guard", (await waitSheet("minato_block_uniform")).spriteSheet.includes("minato_block_uniform"), ""); await page.keyboard.up("s"); await waitFrames(3);
+  await page.keyboard.down(";"); check("guard", (await waitSheet("minato_block_uniform")).spriteSheet.includes("minato_block_uniform"), ""); await page.keyboard.up(";"); await waitFrames(3);
   await page.evaluate(() => window.__harness.hurtP1(24)); check("hurt", (await waitSheet("minato_hit_uniform")).spriteSheet.includes("minato_hit_uniform"), ""); await page.evaluate(() => window.__harness.healP1?.()); await waitFrames(4);
 
   // ── 5 NORMALS ──

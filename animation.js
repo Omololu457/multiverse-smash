@@ -432,37 +432,6 @@ profiles.omololu = {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// TOJI
-// Primary: pure melee speed — no energy, no projectiles, all body attacks
-// Heavenly Restriction means zero detached effects
-// ══════════════════════════════════════════════════════════════════
-profiles.toji = {
-  defaultAction: "idle",
-  actions: {
-    idle:  { sheet: "sprites/toji/toji_idle.png",  frames: 4, width: 128, height: 128, speed: 8, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    walk:  { sheet: "sprites/toji/toji_walk.png",  frames: 6, width: 128, height: 128, speed: 5, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    run:   { sheet: "sprites/toji/toji_run.png",   frames: 8, width: 128, height: 128, speed: 3, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    jump:  { sheet: "sprites/toji/toji_jump.png",  frames: 4, width: 128, height: 128, speed: 5, loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    fall:  { sheet: "sprites/toji/toji_fall.png",  frames: 3, width: 128, height: 128, speed: 5, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    dash:  { sheet: "sprites/toji/toji_dash.png",  frames: 4, width: 160, height: 128, speed: 3, loop: false, anchorX: 16, anchorY: 0, behavior: "body_attached" },
-    hurt:  { sheet: "sprites/toji/toji_hurt.png",  frames: 2, width: 128, height: 128, speed: 8, loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    light: { sheet: "sprites/toji/toji_light.png", frames: 3, width: 128, height: 128, speed: 3, loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached", lockLastFrame: true },
-    heavy: { sheet: "sprites/toji/toji_heavy.png", frames: 5, width: 160, height: 128, speed: 4, loop: false, anchorX: 16, anchorY: 0, behavior: "body_attached", lockLastFrame: true },
-    up:    { sheet: "sprites/toji/toji_up.png",    frames: 4, width: 128, height: 192, speed: 3, loop: false, anchorX: 0, anchorY: 32, behavior: "body_attached", lockLastFrame: true },
-    air:   { sheet: "sprites/toji/toji_air.png",   frames: 3, width: 128, height: 128, speed: 3, loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached", lockLastFrame: true },
-    down_air: { sheet: "sprites/toji/toji_down_air.png", frames: 4, width: 128, height: 160, speed: 3, loop: false, anchorX: 0, anchorY: 16, behavior: "body_attached", lockLastFrame: true },
-    // Inventory Smash — weapon strike, no projectile
-    special_1: { sheet: "sprites/toji/toji_inventory_smash.png", frames: 5, width: 192, height: 128, speed: 3, loop: false, anchorX: 32, anchorY: 0, behavior: "body_attached", lockLastFrame: true },
-    // Rapid Strike — fast burst
-    special_2: { sheet: "sprites/toji/toji_rapid_strike.png",    frames: 4, width: 160, height: 128, speed: 2, loop: false, anchorX: 16, anchorY: 0, behavior: "body_attached", lockLastFrame: true },
-    // Heavenly Restriction surge
-    ultimate:  { sheet: "sprites/toji/toji_ultimate.png",        frames: 6, width: 192, height: 192, speed: 4, loop: false, anchorX: 32, anchorY: 32, behavior: "transformation" },
-    win:  { sheet: "sprites/toji/toji_win.png",  frames: 6, width: 128, height: 128, speed: 8, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    lose: { sheet: "sprites/toji/toji_lose.png", frames: 4, width: 128, height: 128, speed: 10,loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached" }
-  }
-}
-
 // ─────────────────────────────────────────────────────────────────
 // PROFILE LOOKUP API
 // ─────────────────────────────────────────────────────────────────
@@ -534,9 +503,6 @@ export function combatMoveToAction(characterKey, combatMoveKey) {
     dismantle: "dismantle",
     // Omololu
     analysisStrike: "special_1",
-    // Toji
-    inventorySmash: "special_1",
-    rapidStrike:    "special_2",
     // Generic
     ultimate:   "ultimate",
     transform:  "transform",

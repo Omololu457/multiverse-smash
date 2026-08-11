@@ -148,7 +148,8 @@ def wired_sheets():
     j = i+10 + (rest.index("\nconst ") if "\nconst " in rest else len(rest))
     block = src[i:j]
     out = {}
-    for m in re.finditer(r'frames:\s*(\d+)[^}]*?width:\s*(\d+)[^}]*?sheet:\s*"\./(rick_[^"]+)"', block):
+    # [Rr]ick_ : one animationData sheet ships capitalised (Rick_run.png) — match both cases so it isn't skipped.
+    for m in re.finditer(r'frames:\s*(\d+)[^}]*?width:\s*(\d+)[^}]*?sheet:\s*"\./([Rr]ick_[^"]+)"', block):
         fr, wd, sh = m.groups(); out[sh] = int(wd)
     return out
 

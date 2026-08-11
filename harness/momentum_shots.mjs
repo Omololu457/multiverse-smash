@@ -31,7 +31,7 @@ async function waitFrames(n) { const s = await frame(); await page.waitForFuncti
 const p1 = () => page.evaluate(() => window.__harness.p1());
 
 async function boot(char) {
-  await page.goto(`${base}/index.html?harness=1&p1=${char}&p2=toji`, { waitUntil: "load" });
+  await page.goto(`${base}/index.html?harness=1&p1=${char}&p2=maki`, { waitUntil: "load" });
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());

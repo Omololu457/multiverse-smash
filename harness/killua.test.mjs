@@ -89,9 +89,9 @@ try {
   await waitGrounded();
 
   // ── STAGE 2: Barrage command chain (Down+Heavy rekka) ──
-  section("Barrage command chain (Down+Heavy rekka)");
+  section("Barrage command chain (Forward+Heavy rekka)");   // combo-string standardization Stage B: was Down+Heavy
   await prep(40);
-  await page.keyboard.down("s"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("s");
+  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("d");
   const seq = []; { const m = (await p1()).currentMove; if (m) seq.push(m); }
   for (const want of ["barrage2", "barrage3", "barrage4"]) {
     let rec = false; for (let i = 0; i < 40; i++) { const p = await record(); if (!p.attacking) break; if (p.attackPhase === "recovery") { rec = true; break; } await waitFrames(1); }

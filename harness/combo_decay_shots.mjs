@@ -54,7 +54,7 @@ async function runCombo(p1, p2, cat = "heavy", hits = 7) {
   return seq;
 }
 
-const a = await runCombo("sasuke", "toji", "heavy", 7);
+const a = await runCombo("sasuke", "maki", "heavy", 7);
 const b = await runCombo("rick", "gojo", "heavy", 7);
 const decays = s => { const nz = s.map(x => x.dmg).filter(d => d > 0); return nz.length >= 3 && nz[nz.length - 1] < nz[0]; };
 console.log("\nSUMMARY:");

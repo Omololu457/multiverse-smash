@@ -31,7 +31,7 @@ async function waitFrames(n) { const s = await frame(); await page.waitForFuncti
 const cw = () => page.evaluate(() => window.__harness.cancelWindow("p1"));
 
 async function boot(p1) {
-  await page.goto(`${base}/index.html?harness=1&p1=${p1}&p2=toji`, { waitUntil: "load" });
+  await page.goto(`${base}/index.html?harness=1&p1=${p1}&p2=maki`, { waitUntil: "load" });
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());
@@ -73,7 +73,7 @@ async function driveChain(label, openerKeys, chainKey) {
 await boot("killua");
 const killua = await driveChain("killua_barrage", ["s", "k"], "k");
 // Toji — blade Light rekka (timing-gated stance chain). P1 key: light=j.
-await boot("toji");
+await boot("maki");
 const toji = await driveChain("toji_blade", ["j"], "j");
 
 console.log("\nSUMMARY: both characters' cancel windows read through the ONE getCancelWindow() API in the same {startup,active,recovery,phase,open,cancelInto} shape.");

@@ -36,7 +36,7 @@ const MATCHUPS = [
   ["goku",   "naruto", "Ki",   "Chakra", "HUD_energy_ki_vs_chakra",   null, null],   // Dragon Ball vs Naruto (the required pair)
   ["vegeta", "sasuke", "Ki",   "Chakra", "HUD_energy_vegeta_vs_sasuke", null, null], // second DB-vs-Naruto pair
   ["gojo",   "rick",   "Cursed Energy", "Bullshit Science Energy", "HUD_energy_jjk_vs_rick", null, null], // confirm JJK + Rick untouched
-  ["toji",   "gojo",   "ENERGY",        "Cursed Energy",           "HUD_energy_toji_heavenly", "HEAVENLY RESTRICTION", null], // Toji → HEAVENLY RESTRICTION (energyType none, JJK)
+  ["maki",   "gojo",   "ENERGY",        "Cursed Energy",           "HUD_energy_maki_heavenly", "HEAVENLY RESTRICTION", null], // Maki → HEAVENLY RESTRICTION (energyType none, JJK)
   ["rengoku","zenitsu","ENERGY",        "ENERGY",                  "HUD_energy_demonslayer",   "TOTAL CONCENTRATION", "TOTAL CONCENTRATION"], // Demon Slayer no-meter → TOTAL CONCENTRATION (was generic "ENERGY" bug)
 ];
 
@@ -57,8 +57,8 @@ for (const [p1k, p2k, expP1, expP2, shot, expFlav1, expFlav2] of MATCHUPS) {
   const labels = { p1: st.p1, p2: st.p2 };
   const ok1 = labels.p1 === expP1, ok2 = labels.p2 === expP2;
   ok1 ? pass++ : fail++; ok2 ? pass++ : fail++;
-  // Only Toji (JJK energyType none) should be in the Heavenly Restriction HUD state — nobody else here.
-  const hrOk = (p1k === "toji" ? st.hr1 === true : st.hr1 === false) && st.hr2 === false;
+  // Only Maki (JJK energyType none) should be in the Heavenly Restriction HUD state — nobody else here.
+  const hrOk = (p1k === "maki" ? st.hr1 === true : st.hr1 === false) && st.hr2 === false;
   hrOk ? pass++ : fail++;
   // No-meter FLAVOR label actually drawn (the fix): "TOTAL CONCENTRATION" for Demon Slayer, "HEAVENLY
   // RESTRICTION" for JJK-none, null otherwise. Was a generic "ENERGY" panel for Rengoku/Zenitsu before.

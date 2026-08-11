@@ -66,7 +66,7 @@ async function oneHit(key, sampleFrames = 26) {
 
 async function verify(char, kit) {
   console.log(`\n──────── ${char.toUpperCase()}  (${kit}) ────────`);
-  await page.goto(`${base}/index.html?harness=1&p1=${char}&p2=toji`, { waitUntil: "load" });
+  await page.goto(`${base}/index.html?harness=1&p1=${char}&p2=maki`, { waitUntil: "load" });
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());

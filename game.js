@@ -4293,6 +4293,11 @@ function updateMiscTimers(fighter) {
   if (fighter._chainCd > 0) fighter._chainCd--                             // Toji Chain of a Thousand Miles cooldown (no-energy 5-part special)
   if (fighter._playfulCloudCd > 0) fighter._playfulCloudCd--               // Toji Playful Cloud cooldown (no-energy special)
   if (fighter._flyHeadCd > 0) fighter._flyHeadCd--                         // Toji Fly Heads swarm cooldown (no-energy special)
+  if (fighter._flyBarrageCd > 0) fighter._flyBarrageCd--                   // Toji OFFENSIVE Fly Heads swarm (Down+Heavy damaging projectile fan) cooldown
+  if (fighter._tojiFlyFadeTimer > 0) {                                     // Toji Fly Heads self-fade window (render-only near-invisibility)
+    fighter._tojiFlyFadeTimer--
+    if (!isTojiFlyHeadsSwarmActive()) fighter._tojiFlyFadeTimer = 0        // swarm ended (naturally or via round/KO reset) → snap back to visible
+  }
   if (fighter._makiPowerCd > 0) fighter._makiPowerCd--                     // Maki Power Charge recast lockout
   if (fighter._makiPowerTimer > 0 && --fighter._makiPowerTimer <= 0) revertMakiPowerCharge(fighter)   // Power Charge buff window expiry → auto-revert
   trackMakiShibuyaUnlock(fighter)                                          // Maki HP-threshold (≤25%) ultimate unlock (persists once crossed)
@@ -5596,6 +5601,78 @@ function drawZarakiVoidOverlay(c, fighter) {
   for (const b of fx.bells) {
     c.globalAlpha = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(t * 0.05 * b.pulse + b.phase))
     c.fillRect(x + b.nx * w - 1, y + b.ny * h - 1, 2, 2)
+  }
+  c.restore()
+}
+
+// EDO TENSEI reanimation — procedural "reanimated corpse" overlay drawn ON TOP of the vessel's base art
+// (which is already washed sickly green-gray by EDO_REANIM_TINT).
+// Two decayed-flesh cues, NOT generic sparks: (1) soft dark-green DECAY MOTTLING that breathes slowly, and
+// (2) dark STITCHED SEAMS — short cracks with perpendicular stitch-ticks, evoking the summon's patched-together
+// corpse. Seeded ONCE per fighter (deterministic), normalized to the sprite bbox (_lastDraw*) so it tracks the
+// drawn pose/scale across every animation. No baked pixels — works on ANY vessel.
+function seedEdoReanimField(fighter) {
+  const rnd = _mulberry32(0x5D0A17C3)
+  const seams = []
+  for (let i = 0; i < 7; i++) {                              // near-vertical stitched seams over torso/limbs
+    seams.push({
+      x0: 0.28 + rnd() * 0.44, y0: 0.14 + rnd() * 0.56,
+      ang: -0.55 + rnd() * 1.10,                             // lean off-vertical (radians)
+      len: 0.15 + rnd() * 0.18,
+      ticks: 4 + Math.floor(rnd() * 4),
+      a: 0.62 + rnd() * 0.22, phase: rnd() * Math.PI * 2, pulse: 0.5 + rnd() * 0.7,
+    })
+  }
+  const mottle = []
+  for (let i = 0; i < 6; i++)                                // decayed blotches — soft dark-green pools
+    mottle.push({ nx: 0.24 + rnd() * 0.52, ny: 0.14 + rnd() * 0.66, r: 0.07 + rnd() * 0.09,
+      a: 0.12 + rnd() * 0.12, pulse: 0.35 + rnd() * 0.75, phase: rnd() * Math.PI * 2 })
+  fighter._edoReanimFX = { seams, mottle }
+}
+function drawEdoReanimOverlay(c, fighter) {
+  if (!c || !fighter?._edoActive) return
+  if (!fighter._edoReanimFX) seedEdoReanimField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._edoReanimFX
+  const t = (fighter._edoReanimClock = (fighter._edoReanimClock || 0) + 1)
+  c.save()
+  // (1) decay mottling — soft dark-green blotches breathing slowly (rot spreading across the corpse)
+  const MOTTLE = "#2F3E29"
+  for (const m of fx.mottle) {
+    const cx = x + m.nx * w, cy = y + m.ny * h, rad = m.r * Math.max(w, h)
+    const a = m.a * (0.68 + 0.32 * Math.sin(t * 0.018 * m.pulse + m.phase))
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(MOTTLE, a)); grad.addColorStop(1, _rgbaHex(MOTTLE, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  // (2) stitched seams — dark sutures with pronounced perpendicular stitch-ticks + a pale thread glint,
+  // so the patched-together reanimated flesh reads clearly (not just a faint crack).
+  const SEAM = "#141A12"          // dark suture line
+  const THREAD = "#C9D6BC"        // pale sickly-green thread highlight on the ticks
+  const scale = Math.max(w, h)
+  c.lineCap = "round"
+  for (const s of fx.seams) {
+    const a = s.a * (0.8 + 0.2 * Math.sin(t * 0.03 * s.pulse + s.phase))
+    const sx = Math.sin(s.ang), sy = Math.cos(s.ang)         // near-vertical seam direction
+    const ax = x + s.x0 * w, ay = y + s.y0 * h
+    const dx = sx * s.len * w * 0.6, dy = sy * s.len * h     // body is taller than wide → seam runs mostly down
+    const bx = ax + dx, by = ay + dy
+    // the wound line down the seam
+    c.strokeStyle = _rgbaHex(SEAM, a); c.lineWidth = 2.2
+    c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke()
+    // perpendicular stitch-ticks — crossing the seam, dark suture with a pale thread core
+    const px = -sy, py = sx
+    const tick = 0.038 * scale
+    for (let k = 1; k <= s.ticks; k++) {
+      const f = k / (s.ticks + 1)
+      const mx = ax + dx * f, my = ay + dy * f
+      const x1 = mx - px * tick, y1 = my - py * tick, x2 = mx + px * tick, y2 = my + py * tick
+      c.strokeStyle = _rgbaHex(SEAM, a); c.lineWidth = 2.4
+      c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke()
+      c.strokeStyle = _rgbaHex(THREAD, a * 0.7); c.lineWidth = 1
+      c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke()
+    }
   }
   c.restore()
 }
@@ -7043,6 +7120,21 @@ function updateBattle() {
 // real skins — see applyMirrorTint(). Works for BOTH sprite + procedural fighters
 // because it washes only the fighter's own drawn pixels (offscreen source-atop).
 let _tintCanvas = null, _tintCtx = null
+
+// TOJI FLY HEADS self-vanish alpha: 1 normally; dips to ~14% (near-invisible) across the fade window, easing
+// in over TOJI_FADE_IN frames and back out over TOJI_FADE_OUT so it never hard-pops. Countdown `_tojiFlyFadeTimer`
+// is set in abilities.fireTojiFlyHeads and ticked (and force-cleared on swarm end) in the fighter cooldown loop.
+const TOJI_FADE_MIN = 0.14, TOJI_FADE_IN = 16, TOJI_FADE_OUT = 30
+function _tojiFlyFadeAlpha(fighter) {
+  const t = fighter._tojiFlyFadeTimer || 0
+  if (t <= 0) return 1
+  const dur = fighter._tojiFlyFadeMax || t
+  const elapsed = dur - t
+  if (elapsed < TOJI_FADE_IN) return 1 - (1 - TOJI_FADE_MIN) * (elapsed / TOJI_FADE_IN)   // ramp 1 → MIN
+  if (t < TOJI_FADE_OUT)      return TOJI_FADE_MIN + (1 - TOJI_FADE_MIN) * (1 - t / TOJI_FADE_OUT)   // ramp MIN → 1
+  return TOJI_FADE_MIN
+}
+
 function renderHybridFighter(fighter) {
   if (!fighter) return
   // Cinematic hide: the Minato Kurama ultimate hides the REAL caster and draws its own transforming
@@ -7080,6 +7172,7 @@ function renderHybridFighter(fighter) {
     drawVoidBoarOverlay(c, fighter)     // Inosuke Void Boar — drifting jagged white tusk-shards + claw-mark scratches, ON TOP of the void sprite
     drawNezukoVoidEmberOverlay(c, fighter)   // Nezuko Void Sovereign — drifting crimson-pink Blood-Demon-Art ember motes, ON TOP of the void sprite
     drawTojiVoidOverlay(c, fighter)          // Toji Void Killer — drifting deep-red particles, ON TOP of the void-black sprite (tracks the sword/chain specials)
+    drawEdoReanimOverlay(c, fighter)         // Edo Tensei reanimation — decay mottling + stitched seams over the green-gray reanimated vessel (gated fighter._edoActive)
     // Obito's sustained Kamui swirl REMOVED (correction): while intangible he is visually IDENTICAL to
     // normal — the only tell is the one-time activation pose (obitoKamuiActivate). drawObitoKamuiAura is
     // retained (unused) for reference. Tobi keeps its OWN independent aura below.
@@ -7106,7 +7199,9 @@ function renderHybridFighter(fighter) {
   // NB: Obito's `_kamuiPhased` intentionally does NOT dim the body — while intangible he looks COMPLETELY
   // NORMAL (the ONLY tell is the one-time activation pose). `_tobiPhased` (the separate Tobi char) keeps its
   // own ghost.
-  const bodyAlpha = revealAlpha * (fighter._tobiPhased ? 0.4 : 1)
+  // TOJI FLY HEADS self-vanish: while the fade window runs, Toji drops to ~14% opacity (near-invisible),
+  // easing in/out so it doesn't hard-pop. Render-only (no i-frames) — see abilities.fireTojiFlyHeads.
+  const bodyAlpha = revealAlpha * (fighter._tobiPhased ? 0.4 : 1) * _tojiFlyFadeAlpha(fighter)
 
   if (!fighter.tintColor) {
     if (bodyAlpha >= 1) { drawTo(ctx); return }
@@ -7825,7 +7920,8 @@ function _drawKOFlash() {
 
 function drawBattle() {
   drawBattleScene()
-  drawTojiFlyHeadsSwarm(ctx, canvas)   // Toji Fly Heads — dense screen-clutter swarm OVER the fighters but UNDER the HUD (vision-denial, HP bars stay readable)
+  if (!(typeof window !== "undefined" && window.__hideTojiSwarm))   // harness-only: hide the flies to isolate Toji's self-fade for evidence shots (swarm logic still ticks)
+    drawTojiFlyHeadsSwarm(ctx, canvas)   // Toji Fly Heads — dense screen-clutter swarm OVER the fighters but UNDER the HUD (vision-denial, HP bars stay readable)
   drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber)
   _drawDamageNumbers()
@@ -9190,6 +9286,8 @@ gameLoop()
     ultCooldown:      f.ultimateCooldown || 0,       // universal ultimate cooldown
     spriteSheet:      f.spriteHandler?._actionDef?.sheet ?? null,
     spriteFrames:     f.spriteHandler?._actionDef?.frames ?? null,
+    spriteFrameIndex: f.spriteHandler?.frameIndex ?? null,        // live animation frame (movement-feel telemetry)
+    spriteAction:     f.spriteHandler?.currentAction ?? null,     // resolved sprite action (walk/run/dash/idle…)
     spriteSourceX:    f.spriteHandler?._actionDef?.sourceX ?? 0,   // active clip's sourceX (verify win/lose intro_3 split)
     spriteSourceY:    f.spriteHandler?._actionDef?.sourceY ?? 0,   // active clip's sourceY (atlas row offset — Stage 22)
     forceAction:      f._forceAction || null,                      // active _forceAction override (win/lose pose)
@@ -9819,6 +9917,7 @@ gameLoop()
     overdriveCine: () => getHisokaOverdriveCinematicStatus(),
     tojiReincarnationCine: () => getTojiReincarnationCinematicStatus(),
     tojiFlyHeadsSwarm: () => getTojiFlyHeadsSwarmStatus(),
+    tojiFade: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { timer: f._tojiFlyFadeTimer || 0, max: f._tojiFlyFadeMax || 0, alpha: _tojiFlyFadeAlpha(f) } : null },
     flashTimeCine: () => getFlashTimeCinematicStatus(),
     mangekyouCine: () => getMangekyouCinematicStatus(),
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),

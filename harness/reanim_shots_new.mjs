@@ -28,7 +28,7 @@ for (const vessel of ["gon", "hisoka", "batman", "minato", "omniman", "zenitsu"]
   await waitFrames(6);
   const summoned = await p1();
   await page.screenshot({ path: path.join(OUT, `reanim_edotensei_${vessel}.png`) });
-  chk(`${vessel} summoned via Edo Tensei -> __reanim sheet`, summoned.edoActive && (summoned.spriteSheet || "").includes("__reanim"), `vessel=${summoned.edoVessel} sheet=${summoned.spriteSheet}`);
+  chk(`${vessel} summoned via Edo Tensei -> base art + live reanim tint (no __reanim sheet)`, summoned.edoActive && !(summoned.spriteSheet || "").includes("__reanim"), `vessel=${summoned.edoVessel} sheet=${summoned.spriteSheet}`);
 
   await page.goto(`${base}/index.html?harness=1&p1=${vessel}`, { waitUntil: "load" });
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });

@@ -22,6 +22,11 @@ const SKILL_HUNTER_TINT = "grayscale(0.4) sepia(1) hue-rotate(235deg) saturate(1
 // Toji Reincarnated Form (Stage 6) — a menacing crimson wash (no distinct form art exists), driven by
 // fighter._reincarnated (set on the 2nd comeback save OR a manual Super/X cast).
 const TOJI_REINCARNATED_TINT = "sepia(0.7) saturate(2.4) hue-rotate(-28deg) brightness(0.9)";
+// EDO TENSEI reanimation wash. Instead of pre-baked near-black __reanim sheets, wash the vessel's OWN base art
+// in a sickly, pale green-gray "reanimated corpse" tint — desaturate the living colour out, push the residue
+// toward a decayed greenish pallor, lift it pale. Paired with drawEdoReanimOverlay (procedural seam/mottle).
+// Works on ANY vessel's base sprites → no per-char art. Gated on fighter._edoActive.
+const EDO_REANIM_TINT = "grayscale(0.82) sepia(0.45) hue-rotate(55deg) saturate(0.72) brightness(1.07) contrast(0.92)";
 
 // ─────────────────────────────────────────────────────────────────
 // OPTIONAL DEPENDENCY — animationProfile.js
@@ -776,6 +781,8 @@ export class SpriteHandler {
       // Skill Hunter: wash the copied body in Chrollo's purple possession tint (see SKILL_HUNTER_TINT).
       if (fighter._shActive) ctx.filter = SKILL_HUNTER_TINT;
       else if (fighter._reincarnated) ctx.filter = TOJI_REINCARNATED_TINT;   // Toji Reincarnated Form — crimson wash
+      // Edo Tensei reanimation: sickly pale green-gray "undead corpse" wash over the vessel's BASE art.
+      else if (fighter._edoActive) ctx.filter = EDO_REANIM_TINT;
 
       if ((fighter.facing ?? 1) === -1) {
         ctx.scale(-1, 1);
@@ -819,11 +826,12 @@ export class SpriteHandler {
       const cx = fighter.x - offsetX + dstW / 2;
       const cy = drawY + dstH / 2;
       const spin = fighter._speedBlur * 1.05;   // whirl angle (rad); advances each frame as it ticks down
+      const baseA = ctx.globalAlpha;   // honor any caller body-fade (Toji Fly-Heads vanish, Tobi ghost, intro reveal)
       ctx.save();
       ctx.imageSmoothingEnabled = false;
       for (let g = 0; g < 4; g++) {
         ctx.save();
-        ctx.globalAlpha = 0.34 - g * 0.07;
+        ctx.globalAlpha = (0.34 - g * 0.07) * baseA;
         ctx.translate(cx, cy);
         ctx.rotate(spin + g * (Math.PI / 5));
         ctx.drawImage(sheet, sx, sy, drawWidth, drawHeight, -dstW / 2, -dstH / 2, dstW, dstH);
@@ -861,6 +869,22 @@ export class SpriteHandler {
 
       // Spread the animation evenly across the attack's total physical frames
       speed = Math.max(1, Math.floor(totalDuration / totalFrames));
+    }
+    // LOCOMOTION FEEL: scale the walk/run/dash leg-cycle to the fighter's ACTUAL horizontal velocity, so a
+    // faster mover plays a proportionally faster cycle (feet stay planted → reads as fast). WITHOUT this the
+    // cycle rate is a fixed per-strip constant, so a 9.5px/f sprinter and a 6.75px/f walker share ONE rate:
+    // the fast fighter's feet "skate" and high Speed stats never visually land ("stat says fast, looks normal").
+    // Proportional to |vx| around a roster-AVERAGE reference velocity, so average-speed characters are
+    // UNCHANGED; faster characters (Toji/Flash/Minato) speed up, slower ones slow down. Clamped so it never
+    // gets silly (a very fast dash / buff-form velocity can't blur into strobing, and a crawl can't freeze).
+    else if (!fighter.attacking && !(typeof globalThis !== "undefined" && globalThis.__locoScaleOff) &&
+             (this.currentAction === "walk" || this.currentAction === "run" || this.currentAction === "dash")) {
+      const vx = Math.abs(fighter.vx || 0);
+      if (vx > 0.2) {
+        const LOCO_REF_VX = 6.75;   // ≈ average-speed (Speed ~87) walk velocity → those characters unchanged
+        const mult = Math.min(1.7, Math.max(0.5, LOCO_REF_VX / vx));
+        speed = Math.max(1, Math.round(speed * mult));
+      }
     }
 
     if (this.frameTimer >= speed) {

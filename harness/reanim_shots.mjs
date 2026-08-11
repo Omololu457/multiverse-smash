@@ -1,6 +1,7 @@
 // harness/reanim_shots.mjs — Part 2 evidence: the Edo Tensei "reanimation" palette.
-// Summons Flash and Killua via Tobirama's Edo Tensei and asserts the live vessel renders __reanim
-// (near-black) sheets; then boots each normally and asserts their appearance is UNCHANGED (no __reanim).
+// Summons Flash and Killua via Tobirama's Edo Tensei and asserts the live vessel renders its BASE art
+// (the undead read is now a live green-gray tint + seam/mottle overlay, NOT a pre-baked __reanim sheet);
+// then boots each normally and asserts their appearance is UNCHANGED (still no __reanim).
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 
@@ -31,7 +32,7 @@ for (const vessel of ["flash", "killua"]) {
   await waitFrames(4);
   const summoned = await p1();
   await page.screenshot({ path: path.join(OUT, `reanim_edotensei_${vessel}.png`) });
-  chk(`${vessel} summoned via Edo Tensei → __reanim sheet`, summoned.edoActive && (summoned.spriteSheet || "").includes("__reanim"), `vessel=${summoned.edoVessel} sheet=${summoned.spriteSheet}`);
+  chk(`${vessel} summoned via Edo Tensei → base art + live reanim tint (no __reanim sheet)`, summoned.edoActive && !(summoned.spriteSheet || "").includes("__reanim"), `vessel=${summoned.edoVessel} sheet=${summoned.spriteSheet}`);
 
   // ── normal appearance (own match) is UNAFFECTED ──
   await page.goto(`${base}/index.html?harness=1&p1=${vessel}`, { waitUntil: "load" });

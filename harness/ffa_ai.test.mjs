@@ -28,7 +28,7 @@ try{
 
   // ── 1 HUMAN + 3 AI — pure FFA ──────────────────────────────────────────────
   section("1 HUMAN + 3 AI (FFA) — assignment + autonomous fighting");
-  await start(4,["gojo","sukuna","naruto","toji"],[],[null,"impossible","impossible","impossible"]);
+  await start(4,["gojo","sukuna","naruto","maki"],[],[null,"impossible","impossible","impossible"]);
   let fi=await info();
   check("slot0 is HUMAN, slots1-3 are AI", fi.fighters[0].isAI===false && fi.fighters.slice(1).every(f=>f.isAI===true),
         `isAI=${fi.fighters.map(f=>f.isAI)}`);
@@ -77,7 +77,7 @@ try{
   // ── TEAM MODE with an AI teammate ──────────────────────────────────────────
   section("TEAM MODE — human + AI teammate vs human + AI (2v2)");
   // slot0 human A, slot1 AI A, slot2 human B, slot3 AI B.
-  await start(4,["gojo","sukuna","naruto","toji"],["A","A","B","B"],[null,"impossible",null,"impossible"]);
+  await start(4,["gojo","sukuna","naruto","maki"],["A","A","B","B"],[null,"impossible",null,"impossible"]);
   fi=await info();
   check("team mode on; AI teammate on A, AI on B",
         fi.teamMode===true && fi.fighters[1].isAI && fi.fighters[1].team==="A" && fi.fighters[3].isAI && fi.fighters[3].team==="B",
@@ -97,7 +97,7 @@ try{
   section("FRIENDLY FIRE — AI teammate hits the ENEMY, never its human partner");
   // Fresh match; KO the far enemy (slot3) so the ONLY attacker is AI slot1 — isolates the test
   // from a wandering enemy so any ally damage could only be friendly fire.
-  await start(4,["gojo","sukuna","naruto","toji"],["A","A","B","B"],[null,"impossible",null,"impossible"]);
+  await start(4,["gojo","sukuna","naruto","maki"],["A","A","B","B"],[null,"impossible",null,"impossible"]);
   await elim(3);
   await healAll();
   // enemy B (slot2) just left of AI slot1; ally A (slot0) just right — AI targets slot2 and swings.
@@ -113,7 +113,7 @@ try{
 
   section("Team-mode re-target stays on the OPPOSING team after a KO");
   // Fresh 2v2; KO one Team-B member → the A-team AI must retarget the OTHER B member (slot3), never an ally.
-  await start(4,["gojo","sukuna","naruto","toji"],["A","A","B","B"],[null,"impossible",null,"impossible"]);
+  await start(4,["gojo","sukuna","naruto","maki"],["A","A","B","B"],[null,"impossible",null,"impossible"]);
   await wf(6);
   await elim(2);
   await wf(24); const rt=await info();
@@ -136,7 +136,7 @@ try{
 
   // ── SLOT-ASSIGNMENT UI ─────────────────────────────────────────────────────
   section("SLOT-ASSIGNMENT UI — renders, defaults, and Human↔CPU cycling");
-  await page.evaluate(()=>window.__harness.ffaSlotSelectPreview(4,["gojo","sukuna","megumi","toji"]));
+  await page.evaluate(()=>window.__harness.ffaSlotSelectPreview(4,["gojo","sukuna","megumi","maki"]));
   await wf(2);
   let si=await page.evaluate(()=>window.__harness.ffaSlotInfo());
   // Headless: 0 pads → device count 2 → slots 0/1 default HUMAN, slots 2/3 default CPU(easy).

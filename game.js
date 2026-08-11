@@ -42,9 +42,11 @@ import {
   rectsOverlap,                       // Edo Tensei: opponent-attack vs standing-Tobirama dummy overlap
   GLOBAL_DAMAGE_SCALE,                // Edo Tensei: scale a dummy-cancel hit to the same net damage a normal hit deals
   applyScaledDamage,                  // Stage 1a: the one scaled-damage choke-point (DOT ticks + Hisoka portal-drop route through it)
+  tryComboBreaker, COMBO_BREAKER,     // MK-feel Stage 2d: universal block+special combo breaker (fires only vs a >=3 combo)
   startMove,                          // harness: drive a real p2 attack (Substitution incoming-window)
   getCancelWindow                     // harness/combo-flow: inspect a fighter's shared cancel window
 } from "./combat.js"
+import { resolveStageHazard, hazardBox } from "./stageHazards.js"   // STAGE INTERACTABLES pilot — knocked-into-hazard reaction + draw box
 import {
   activeProjectiles, spawnProjectile,
   triggerSpecial, triggerUltimate, triggerTransformation,
@@ -64,11 +66,11 @@ import {
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
-  regenEnergy, updatePendingSpawns, clearAbilityState, tojiTeleportStrike, executeSukunaMalevolentDash,
+  regenEnergy, updatePendingSpawns, clearAbilityState, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
-  sasukeInSusanoo, SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout
+  sasukeInSusanoo, SUSANOO_DURATION_FRAMES, SASUKE_SUSANOO_DURATION_FRAMES,   // Susanoo: pause round clock + purple duration readout (Sasuke timer-bar max is the Stage-3e Sasuke-specific value)
   spawnAbsoluteDefenseFx,   // Sasuke Absolute Defense — repurposed Susanoo-intro sheet as the barrier FX
-  updateTojiStanceSwitch, updateTojiStanceCombat, getTojiStance,   // Toji 3-stance weapon system (+ Blade moveset)
+
   updateVegetaCommandCombat,   // Vegeta command-normal cancel chain (Y-track kick target combo)
   updateBen10CommandCombat,   // Ben 10 per-form Fwd+Heavy command chain (Ben jab / XLR8 combo / Diamondhead crystal swing)
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
@@ -80,11 +82,15 @@ import {
   updateKilluaCommandCombat,   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
   updateFlashCommandCombat,   // Flash Down+Heavy 2-hit "Speed Rush" command-normal cancel chain (rush1→rush2, cancel-on-hit)
   updateGonCommandCombat,     // Gon Down+Heavy 2-hit "Rush" command-normal cancel chain (rush1 flurry→rush2 launcher, cancel-on-hit)
+  updateStandardStringCombat, // MK-feel Stage 2b: single-poke chars' shared light→light→heavy(launcher) + heavy→special cancel string
+
   updateBatmanCommandCombat,  // Batman Down+Heavy 3-hit "Combo" command-normal cancel chain (batCombo1→2→3 launcher, cancel-on-hit)
   updateSupermanCommandCombat,  // Superman Fwd+Heavy 3-hit "Kryptonian Rush" flying-punch chain (supRush1→2→Fin launcher, cancel-on-hit)
   updateTobiramaCommandCombat,   // Tobirama Fwd+Heavy 3-hit taijutsu chain (combo1→combo2→comboFin) + Fwd+Light/Back+Heavy pokes
   updateMadaraCommandCombat,     // Madara Fwd+Heavy → Susanoo Base Punch (command-normal, Stage 3 special #6)
   updateObitoCommandCombat,      // Obito Fwd+Heavy → "Kamui Rod Combo" 3-hit rekka (obitoRod1→2→3, cancel-on-hit)
+  updatePainCommandCombat,       // Pain Fwd+Light → painJab; Fwd+Heavy → 3-stage rekka (painCombo1→2→3)
+  updatePainAssistCombo,         // Pain "Six Paths Summon" — Charge + slot → 1 of 5 Akatsuki assist calls
   updateObitoKamui, toggleObitoKamui, deactivateObitoKamui,   // Obito Kamui Intangibility (Stage 4): P-TAP continuous toggle + per-frame drain/melee-drop driver
   updateTobiCombat,              // Tobi (masked Obito alias) — per-frame combat watcher: Stage-2 air-kunai projectile spawn (own `_tobi*` state, no Obito coupling)
   updateTobiChainGrab,           // Tobi Stage-3 Chain Grab scripted state machine (whip→reach→snatched→smash, all `_tobiChain*`)
@@ -105,6 +111,8 @@ import {
   updateGhostfaceCommandCombat,  // Ghostface Down+Heavy "Slasher Frenzy" low-knife chain + Bleed/Knockdown-on-hit watchers
   updateMiwaCommandCombat,  // Miwa Fwd+Heavy "Battojutsu Rush" 3-hit katana chain (miwaG1 lunge→miwaG2 thrust→miwaG3 launcher, cancel-on-hit)
   updateMakiCommandCombat,  // Maki Fwd+Heavy "Cursed Tool Flurry" 3-hit kick chain (makiG1→makiG2→makiG3, cancel-on-hit) — Heavenly-Vow TIGHT link window
+  updateTojiCommandCombat,  // Toji Fwd+Heavy A-B-C-A+B hand-combo rekka (tojiG1 jab→G2 cross→G3 hook→G4 finisher) + Back+Heavy Handgun bullet poke
+  applyTojiComeback,        // Toji two-stage comeback: intercept HP-reaches-zero (save1 25% / save2 40%+Reincarnated Form / 3rd = normal KO)
   updateIchigoCommandCombat,  // Ichigo "Zangetsu" command system: Fwd+Heavy 3-hit rekka (slash→double→combo-launcher) + Down/Back+Heavy, Fwd+Light, Dash+Heavy command normals
   updateZarakiCommandCombat,  // Zaraki command normals: Fwd+Light/Fwd+Heavy slashes + Up+B aerial route (up-swing → repeat → down slam) + Shikai combo kit
   fireZarakiChargedDash,      // Zaraki Charged Dash Attack — fired from handleChargeRelease (CHARGE hold→release, tap/hold power tiers)
@@ -129,7 +137,7 @@ import {
   drawBattleBackground, drawCharacterSelectScreen, drawControlsInfo,
   drawCountdown, drawFighter, drawHealthAndEnergyBars, drawMatchEnd,
   drawProjectiles, drawRoundBreak, drawStartScreen, drawStageSelectScreen,
-  drawTrainingCollisionBoxes, drawTrainingOverlay, drawStanceIndicator, drawUniverseSelectScreen,
+  drawTrainingCollisionBoxes, drawTrainingOverlay, drawUniverseSelectScreen,
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
   drawAiVsAiSetupScreen, getAiVsAiSetupRects, drawAiVsAiSummaryScreen, getAiVsAiSummaryRects,
   drawTowerSelectScreen, getTowerSelectRects,
@@ -143,7 +151,7 @@ import {
   getStageCardRects, drawStartInfoPanel,
   lastBattleBgRect,
   drawAlienSelectScreen, getAlienSelectCardRects, getAlienSelectButtons, alienGridOpts,
-  CHAR_GRID_OPTS, scrollGridBy, setGridScroll, getGridScrollbar, getGridViewport, pickGridCard, resetGridScroll,
+  CHAR_GRID_OPTS, charSelectGridOpts, getSelectDetailRect, scrollGridBy, setGridScroll, getGridScrollbar, getGridViewport, pickGridCard, resetGridScroll,
   getMainMenuRects, drawMainMenuScreen,
   drawCreditsScreen,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
@@ -228,6 +236,14 @@ import {
   clearHisokaOverdriveCinematic, getHisokaOverdriveCinematicStatus
 } from "./hisokaOverdriveCinematic.js"
 import {
+  updateTojiReincarnationCinematic, isTojiReincarnationCinematicActive, drawTojiReincarnationCinematic,
+  clearTojiReincarnationCinematic, getTojiReincarnationCinematicStatus
+} from "./tojiReincarnationCinematic.js"
+import {
+  updateTojiFlyHeadsSwarm, isTojiFlyHeadsSwarmActive, drawTojiFlyHeadsSwarm,
+  clearTojiFlyHeadsSwarm, getTojiFlyHeadsSwarmStatus
+} from "./tojiFlyHeadsSwarm.js"
+import {
   updateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive, drawGokuBlackSwordCinematic,
   clearGokuBlackSwordCinematic, getGokuBlackSwordCinematicStatus
 } from "./gokuBlackSwordCinematic.js"
@@ -267,6 +283,10 @@ import {
   updateMadaraTengaiShinseiCinematic, isMadaraTengaiShinseiCinematicActive, drawMadaraTengaiShinseiCinematic,
   clearMadaraTengaiShinseiCinematic, getMadaraTengaiShinseiCinematicStatus
 } from "./madaraTengaiShinseiCinematic.js"
+import {
+  updatePainChibakuTenseiCinematic, isPainChibakuTenseiCinematicActive, drawPainChibakuTenseiCinematic,
+  clearPainChibakuTenseiCinematic, getPainChibakuTenseiCinematicStatus
+} from "./painChibakuTenseiCinematic.js"
 import {
   updateYujiUltimateCinematic, isYujiUltimateCinematicActive, drawYujiUltimateCinematic,
   clearYujiUltimateCinematic, getYujiUltimateCinematicStatus
@@ -322,12 +342,14 @@ import { pickInosukeVoice, INOSUKE_VOICE } from "./inosukeVoice.js"   // Inosuke
 import { pickNezukoVoice, NEZUKO_VOICE } from "./nezukoVoice.js"   // Nezuko intro/win grunt pools + harness hooks (audio-only; muffled — no dialogue)
 import { pickMiwaVoice, MIWA_VOICE } from "./miwaVoice.js"   // Miwa intro(+taunt)/win voice pools (audio-only, JP dub)
 import { pickMadaraVoice, MADARA_VOICE } from "./madaraVoice.js"   // Madara intro(+taunt)/win voice pools (audio-only, JA)
+import { pickPainVoice, PAIN_VOICE } from "./painVoice.js"   // Pain intro(+taunt)/win voice pools (audio-only, JA)
 import { pickObitoVoice, OBITO_VOICE } from "./obitoVoice.js"   // Obito intro(+taunt)/win voice pools (audio-only, JA)
 import { TOBI_VOICE } from "./tobiVoice.js"                     // Tobi (masked Obito alias) intro voice pool (audio-only, JA — separate module from Obito)
 import { pickZarakiVoice, ZARAKI_VOICE } from "./zarakiVoice.js"   // Zaraki intro/taunt/win voice pools (audio-only, JA)
 import { pickIchigoVoice, ICHIGO_VOICE } from "./ichigoVoice.js"   // Ichigo intro(+taunt)/win voice pools (audio-only, JA)
 import { pickSukunaVoice, SUKUNA_VOICE, getSukunaVoiceLang, setSukunaVoiceLang } from "./sukunaVoice.js"   // Sukuna intro(+taunt)/win voice pools (audio-only; JA default, EN switchable)
 import { pickYujiVoice, YUJI_VOICE, setYujiVoiceLang, getYujiVoiceLang } from "./yujiVoice.js"   // Yuji intro/win voice pools (audio-only; EN+JA, JA active)
+import { pickTojiVoice, TOJI_VOICE, setTojiVoiceLang, getTojiVoiceLang } from "./tojiVoice.js"   // Toji intro/win voice pools (audio-only; EN+JA, JA active)
 import {
   createMatchStats, createVictoryState, recordHit, recordRoundEnd,
   drawRoundCountdown, drawRoundBreak as drawRoundBreakFlow,
@@ -367,7 +389,7 @@ canvas.addEventListener("mouseup", () => {
 // hardcoded row counts). While a grid fits, maxOffset is 0 and all of this is a silent no-op.
 function activeScrollGrid() {
   switch (gameState) {
-    case GAME_STATES.SELECT_CHARACTER:  return { roster: getCharacterRosterForSelectedUniverse(), opts: CHAR_GRID_OPTS }
+    case GAME_STATES.SELECT_CHARACTER:  return { roster: getCharacterRosterForSelectedUniverse(), opts: charSelectGridOpts(canvas, true) }
     case GAME_STATES.SELECT_EDO_BACKUP: return { roster: getEdoBackupRoster(),                     opts: CHAR_GRID_OPTS }
     case GAME_STATES.FFA_CHARSELECT:    return { roster: ffaSelectableRoster(),                     opts: CHAR_GRID_OPTS }
     case GAME_STATES.SELECT_ALIENS:     return { roster: getAlienPoolList(),                        opts: alienGridOpts(canvas) }
@@ -694,7 +716,10 @@ const NAMECALL_AUDIO = {
 // falls back gracefully to the procedural theme (sound.playMusicFile onerror).
 const STAGE_DEFS = [
   { name: "Jujutsu High Courtyard", series: "jjk",         music: "JJk_3.mp3", landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png" },
-  { name: "Shibuya Incident",       series: "jjk",         music: "JJK_2.mp3", landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444", backgroundImage: "shibuya_incident_bg.png" },
+  // STAGE INTERACTABLES 2nd pilot: a crimson "cursed rail" hazard (same stageHazards.js mechanic; `tint`
+  // recolors the pylon glow so it reads as cursed-energy, not the Test Map's electric one).
+  { name: "Shibuya Incident",       series: "jjk",         music: "JJK_2.mp3", landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444", backgroundImage: "shibuya_incident_bg.png",
+    hazards: [{ id: "cursed_rail", x: 1180, w: 46, height: 150, damage: 55, hitstun: 26, tint: "#ef4444" }] },
   { name: "Hidden Leaf Village",    series: "naruto",      landmark: "hidden_leaf",  sky: "#bfdbfe", mid: "#86efac", floor: "#a16207", accent: "#22c55e" },
   { name: "Valley of the End",      series: "naruto",      music: "valley_of_the_end_theme.mp3", landmark: "valley_of_end",sky: "#9fb6c9", mid: "#5b7184", floor: "#2f3b46", accent: "#e2e8f0", backgroundImage: "valley_of_the_end_bg.png" },
   { name: "Planet Namek",           series: "dragonball",  landmark: "namek",        sky: "#5eead4", mid: "#34d399", floor: "#15803d", accent: "#fef08a" },
@@ -705,7 +730,10 @@ const STAGE_DEFS = [
   { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" },
   // Neutral grid-floor TEST MAP — a plain reference stage (no series flavor). Standard 3200 world;
   // full-scroll background test_map_bg.png (2752x1536). A normal selectable stage, not FFA-only.
-  { name: "Test Map",               series: "other",       landmark: "test_map",     sky: "#aebccc", mid: "#c6bfb2", floor: "#8c8c94", accent: "#e5e7eb", backgroundImage: "test_map_bg.png" },
+  // STAGE INTERACTABLES PILOT: one mid-stage "arc pylon" hazard (stageHazards.js) — a fighter knocked
+  // into it takes contact damage + a wall-splat reaction. Data-driven → rollout to other stages is trivial.
+  { name: "Test Map",               series: "other",       landmark: "test_map",     sky: "#aebccc", mid: "#c6bfb2", floor: "#8c8c94", accent: "#e5e7eb", backgroundImage: "test_map_bg.png",
+    hazards: [{ id: "arc_pylon", x: 2000, w: 46, height: 156, damage: 55, hitstun: 26 }] },
   // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame
   // 3-4 spread-out combatants without zooming past readability. `worldWidth` overrides the
   // STAGE_DEF default in the map() below. Used only by the FFA mode's stage selection.
@@ -1864,6 +1892,43 @@ function getStageTheme()        { return matchConfig.selectedStage || stages[0] 
 function getStageFloorHeight()  { return getStageTheme()?.floorHeight || FLOOR_HEIGHT }
 function getStageGroundOffset() { const s = getStageTheme(); return typeof s?.groundOffset === "number" ? s.groundOffset : 100 }
 function getStageWorldWidth()   { return getStageTheme()?.worldWidth || WORLD_WIDTH }
+function getStageHazards()      { return getStageTheme()?.hazards || [] }   // STAGE INTERACTABLES pilot
+
+// STAGE INTERACTABLES pilot: resolve a fighter against the active stage's hazards (knocked-into-hazard →
+// contact damage + wall-splat reaction). Funnels damage through the one applyScaledDamage choke-point and
+// flags a camera shake (consumed alongside _wallBounceShake). No-op on stages with no `hazards`.
+function updateStageHazards(fighter) {
+  if (!fighter) return
+  const dmg = resolveStageHazard(fighter, getStageHazards(), groundY)
+  if (dmg > 0) applyScaledDamage(fighter, dmg, { source: "stage-hazard" })
+}
+
+// STAGE INTERACTABLES pilot: draw the active stage's hazards (world space, under the camera transform) —
+// a warning-capped metallic pylon with a pulsing electric core. No-op on stages with no `hazards`.
+function drawStageHazards(ctx) {
+  const hazards = getStageHazards()
+  if (!hazards.length) return
+  const pulse = 0.5 + 0.5 * Math.sin(globalFrameCount * 0.18)
+  for (const hz of hazards) {
+    const b = hazardBox(hz, groundY)
+    // Per-hazard glow tint (default = electric yellow). `core`/`arc` are rgba-parametrised by the pulse.
+    const glow = hz.tint || "#fde047"
+    const core = hz.tint ? `rgba(239,68,68,` : `rgba(253,224,71,`    // crimson (cursed) vs yellow (electric)
+    const arc  = hz.tint ? `rgba(255,150,150,` : `rgba(255,240,150,`
+    ctx.fillStyle = "#3a3f4b"; ctx.fillRect(b.x, b.y, b.w, b.h)              // metal post
+    ctx.fillStyle = "#20242c"; ctx.fillRect(b.x + 3, b.y, 4, b.h)           // shading stripe
+    ctx.save()
+    ctx.shadowBlur = 14 + 10 * pulse; ctx.shadowColor = glow
+    const coreX = b.x + b.w / 2 - 3
+    ctx.fillStyle = `${core}${0.55 + 0.35 * pulse})`
+    ctx.fillRect(coreX, b.y + 6, 6, b.h - 12)                               // glowing core
+    ctx.strokeStyle = `${arc}${0.6 + 0.4 * pulse})`; ctx.lineWidth = 2
+    ctx.beginPath(); let ay = b.y + 10; ctx.moveTo(coreX + 3, ay)
+    while (ay < b.y + b.h - 10) { const dx = ((ay / 9) % 2 < 1 ? -1 : 1) * 7 * pulse; ay += 14; ctx.lineTo(coreX + 3 + dx, ay) }
+    ctx.stroke(); ctx.restore()
+    ctx.fillStyle = "#ef4444"; ctx.fillRect(b.x - 2, b.y - 6, b.w + 4, 8)   // red hazard cap
+  }
+}
 
 function refreshStageMetrics() { groundY = canvas.height - getStageFloorHeight() - getStageGroundOffset() }
 function getOpponent(f)        { return f === p1 ? p2 : p1 }
@@ -1965,6 +2030,16 @@ function mapInputToVirtualKeys(inputState, controls) {
 // ------------------------------------------------------------------
 // FIGHTER FACTORY
 // ------------------------------------------------------------------
+// MK-feel Stage 4b: dash FREQUENCY as a clean function of the speed archetype. The spec's premise
+// ("dash fields are defaulted for everyone") was wrong — every character hand-set dashSpeed/
+// dashDuration/dashCooldownMax, but the COOLDOWNS were inconsistent with speed (e.g. Minato spd 98
+// dashed on a cd of 40 like a heavy; Naruto/Sasuke spd 90 on cd 45 like Rick/Megumi) and NONE hit the
+// spec's targets. This maps speed → cooldown so a speedster (98) recovers in ~14f and a heavy (~78) in
+// ~34f — the "~14f speedsters / ~34f heavies" anchors. dashSpeed/dashDuration (dash DISTANCE/burst) stay
+// per-character (they were already archetype-differentiated); only the frequency is re-derived here.
+function archetypeDashCooldown(speed) {
+  return Math.max(14, Math.min(34, Math.round(112 - (speed || 88))))   // 98→14, 90→22, 84→28, ≤78→34
+}
 function createFighter(charKey, char, x, facing, controls, side) {
   const movement  = char?.movement || {}
   const stats     = char?.stats    || {}
@@ -1991,8 +2066,6 @@ function createFighter(charKey, char, x, facing, controls, side) {
     rosterKey: charKey,
     // p1→1, p2→2, p3→3, p4→4 (p3/p4 only exist in the FFA POC). 1v1 is unchanged.
     playerNumber: { p1: 1, p2: 2, p3: 3, p4: 4 }[side] || 2,
-    // Toji 3-stance weapon system (foundation): every Toji starts in Blade.
-    weaponStance: charKey === "toji" ? "blade" : undefined,
     // Ben 10's chosen 5-alien Omnitrix loadout (read by setupBen10 on frame 1).
     selectedAliens: (side === "p1" ? matchConfig.p1Aliens : matchConfig.p2Aliens) || null,
     side, controls, x,
@@ -2010,7 +2083,7 @@ function createFighter(charKey, char, x, facing, controls, side) {
     jumpsUsed: 0, jumpCount: 0, jumpHeld: false, juggleCount: 0,
     dashSpeed:    stats.dashSpeed    || 20,
     dashDuration: stats.dashDuration || 8,
-    dashCooldownMax: stats.dashCooldownMax || 30,
+    dashCooldownMax: archetypeDashCooldown(speed),   // Stage 4b: derived from the speed tier (supersedes the inconsistent hand-set stats.dashCooldownMax)
     dashTimer: 0, dashCooldown: 0,
     attackMultiplier, damageMultiplier, speedMultiplier, defenseMultiplier,
     moveMultiplier:        movement.moveMultiplier        || 1,
@@ -2028,6 +2101,8 @@ function createFighter(charKey, char, x, facing, controls, side) {
     grounded: true, onGround: true, isLaunched: false,
     airHits: 0, maxAirHits: 3,
     comboCounter: 0, comboTimer: 0,
+    comboBreakStocks: COMBO_BREAKER.stocksPerRound,   // universal combo-break resource — fresh fighter each round → auto-refills per round
+
     directionHistory: [],
     motionHistory: [],   // dedicated classic motion-input buffer (Naruto-universe only; see motionInput.js)
     teleportFlash: 0, invulnTimer: 0, colorFlash: 0,
@@ -2149,6 +2224,8 @@ function resetRound() {
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
   clearHisokaOverdriveCinematic()
+  clearTojiReincarnationCinematic()
+  clearTojiFlyHeadsSwarm()
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
@@ -2160,6 +2237,7 @@ function resetRound() {
   clearSupermanUltimateCinematic()
   clearRengokuFlameExplosionCinematic()
   clearMadaraTengaiShinseiCinematic()
+  clearPainChibakuTenseiCinematic()
   clearYujiUltimateCinematic()
   clearShinobuButterflyCinematic()
   clearInosukeBeastCinematic()
@@ -2328,6 +2406,7 @@ const INTRO_VOICE = {
   // "I want to be stronger!"). No taunt action → intro-only. Uses `pick` (not a static pool) so it stays
   // language-aware — pickYujiVoice reads the active EN/JA set (JA default, see yujiVoice.js).
   yuji: { pick: () => pickYujiVoice("intro"), gateReveal: false },
+  toji: { pick: () => pickTojiVoice("intro"), gateReveal: false },   // Toji has no taunt action → intro-only (Maki precedent); language-aware EN/JA pool
   // Sukuna picks ONE of his contemptuous pre-fight lines at random per match ("Judge this if you can." /
   // "Do you have a death wish?" / "Know your place."). No taunt action → intro + taunt pools merge on the
   // intro beat (see sukunaVoice.js). Uses `pick` (not a static pool) so it stays language-aware — JA default.
@@ -2336,6 +2415,9 @@ const INTRO_VOICE = {
   // Uchiha" / "No one can reach me" / "Dance for me!"). No taunt action → intro + taunt pools combine and
   // fire on the intro beat only (see madaraVoice.js). JA.
   madara: { pool: [...MADARA_VOICE.intro, ...MADARA_VOICE.taunt], gateReveal: false },
+  // Pain picks ONE of his philosophy / "Know pain" pre-fight lines at random per match. No taunt action →
+  // intro + taunt pools combine and fire on the intro beat only (see painVoice.js). JA.
+  pain: { pool: [...PAIN_VOICE.intro, ...PAIN_VOICE.taunt], gateReveal: false },
   // Obito picks ONE of his pre-fight / taunt lines at random per match. No taunt action → intro + taunt
   // pools combine and fire on the intro beat only (see obitoVoice.js). JA.
   obito: { pool: [...OBITO_VOICE.intro, ...OBITO_VOICE.taunt], gateReveal: false },
@@ -2980,6 +3062,8 @@ function resetToStart() {
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
   clearHisokaOverdriveCinematic()
+  clearTojiReincarnationCinematic()
+  clearTojiFlyHeadsSwarm()
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
@@ -2991,6 +3075,7 @@ function resetToStart() {
   clearSupermanUltimateCinematic()
   clearRengokuFlameExplosionCinematic()
   clearMadaraTengaiShinseiCinematic()
+  clearPainChibakuTenseiCinematic()
   clearYujiUltimateCinematic()
   clearShinobuButterflyCinematic()
   clearInosukeBeastCinematic()
@@ -3411,6 +3496,10 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "madara") {
         sound.playSfxFile?.(pickMadaraVoice("win"), null)
       }
+      // PAIN win voice — random pick from his victory pool ("Goodbye" / "Let's finish this" / "I'll send you to the next world"). Fires only when the WINNER is Pain. JA.
+      if (winFighter?.rosterKey === "pain") {
+        sound.playSfxFile?.(pickPainVoice("win"), null)
+      }
       // OBITO win voice — random pick from his victory pool. Fires only when the WINNER is Obito. JA.
       if (winFighter?.rosterKey === "obito") {
         sound.playSfxFile?.(pickObitoVoice("win"), null)
@@ -3434,6 +3523,11 @@ function _checkMatchOver() {
       // "Well done."). Fires only when the WINNER is Sukuna. JA active (EN switchable).
       if (winFighter?.rosterKey === "sukuna") {
         sound.playSfxFile?.(pickSukunaVoice("win"), null)
+      }
+      // TOJI win voice — random pick from his victory pool ("It's over." / "Job's done." / "Go home now.").
+      // Fires only when the WINNER is Toji. JA active (EN switchable).
+      if (winFighter?.rosterKey === "toji") {
+        sound.playSfxFile?.(pickTojiVoice("win"), null)
       }
       // BATMAN win voice — random pick from his victory pool ("You'll find plenty back in Arkham" /
       // "Gotham will rise again"). Fires only when the WINNER is Batman.
@@ -3612,6 +3706,8 @@ function _doRematch() {
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
   clearHisokaOverdriveCinematic()
+  clearTojiReincarnationCinematic()
+  clearTojiFlyHeadsSwarm()
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
@@ -3623,6 +3719,7 @@ function _doRematch() {
   clearSupermanUltimateCinematic()
   clearRengokuFlameExplosionCinematic()
   clearMadaraTengaiShinseiCinematic()
+  clearPainChibakuTenseiCinematic()
   clearYujiUltimateCinematic()
   clearShinobuButterflyCinematic()
   clearInosukeBeastCinematic()
@@ -3950,13 +4047,12 @@ function getRelativeDirectionsFromHistory(fighter, maxAge = COMMAND_INPUT_MAX_AG
 }
 
 // ── SPEED-TIER TELEPORT-BLUR ────────────────────────────────────────────────────────────────
-// Any fighter whose BASE speed stat meets/exceeds Toji's (the roster baseline) is "Toji-speed-tier":
+// Any fighter whose BASE speed stat meets/exceeds the roster baseline (98) is "speed-tier":
 // a double-tap-dash TOWARD the opponent blinks behind them (reuses teleportBehindTarget) AND plays a
 // rapid spin/blur — sprite.js whirls fading ghost copies of the current frame while `_speedBlur` ticks
 // down. This GENERALISES the old hardcoded `movement.dashTeleport` flag: speed-tier fighters get the
-// teleport-dash even without the flag, plus the enhanced spin visual. Threshold reads from Toji's own
-// stat so "Toji as baseline" stays true if his speed is ever retuned.
-const TOJI_SPEED_TIER   = (characters?.toji?.stats?.speed) || 98
+// teleport-dash even without the flag, plus the enhanced spin visual.
+const SPEED_TIER_THRESHOLD = 98
 const SPEED_BLUR_FRAMES = 16   // spin/blur duration (~0.27s @60fps)
 // FEAT allowlist — characters whose canonical instant-speed / behind-you-in-an-instant feats qualify
 // them for the teleport-blur EVEN IF their raw base-speed stat sits below Toji's tier. Obito's Kamui
@@ -3964,11 +4060,15 @@ const SPEED_BLUR_FRAMES = 16   // spin/blur duration (~0.27s @60fps)
 // Tobi (masked Obito alias) qualifies by the SAME Kamui feat as Obito — added independently
 // (own rosterKey; he has no dedicated teleport pose, so he falls through to the dash-pose + spin
 // path below, like Flash/Maki). Isolated from Obito's own entry.
-const SPEED_TIER_TELEPORT_KEYS = new Set(["obito", "tobi"])
+// Pain / Nagato's Deva Path qualifies by FEAT despite speed 90 (< 98): his gravitational control
+// (Shinra Tensei repulsion / Bansho Ten'in attraction) lets him close or open distance effectively
+// instantly. He has no dedicated blink pose, so — like Obito/Tobi/Flash/Maki — he falls through to
+// the dash-pose (pain_dash_uniform) + spin path below (a dash sprite, not a special effect).
+const SPEED_TIER_TELEPORT_KEYS = new Set(["obito", "tobi", "pain"])
 function isSpeedTierTeleport(fighter) {
   const key = (fighter?.rosterKey || fighter?.id || "").toLowerCase()
   if (SPEED_TIER_TELEPORT_KEYS.has(key)) return true
-  return (fighter?.baseSpeed ?? fighter?.speed ?? 0) >= TOJI_SPEED_TIER
+  return (fighter?.baseSpeed ?? fighter?.speed ?? 0) >= SPEED_TIER_THRESHOLD
 }
 
 function teleportBehindTarget(fighter) {
@@ -4038,8 +4138,7 @@ function detectDoubleTapDashTeleport(fighter, key) {
         return
       }
       teleportBehindTarget(fighter)                                   // blink BEHIND, facing the opponent
-      if (fighter.rosterKey === "toji"   && typeof tojiTeleportStrike === "function")        tojiTeleportStrike(fighter)
-      else if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
+      if (fighter.rosterKey === "sukuna" && typeof executeSukunaMalevolentDash === "function") executeSukunaMalevolentDash(fighter)
       else if (fighter.rosterKey === "sasuke") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // reposition-only like Gojo; sasuke_dash.png plays the blink
       else if (fighter.rosterKey === "tobirama") { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14 }  // water body-flicker: tobirama_dash_uniform.png plays the blink (reposition-only)
       else if (fighter.rosterKey === "minato")   { fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14; fighter.attackCooldown = 0 }  // Yellow-Flash body-flicker: reposition-only, INSTANTANEOUS — clear the shared 10f teleport attackCooldown so a follow-up Special (Shadow Clone) isn't swallowed right after the blink
@@ -4188,6 +4287,12 @@ function updateMiscTimers(fighter) {
   else if (fighter._shikaiTimer > 0 && --fighter._shikaiTimer <= 0) revertZarakiShikai(fighter)
   if (fighter.kunaiCd > 0) fighter.kunaiCd--                               // Maki Kunai Throw cooldown (no-energy special)
   if (fighter.nunchakuCd > 0) fighter.nunchakuCd--                         // Maki Nunchaku Flurry cooldown (no-energy special)
+  if (fighter._gunCd > 0) fighter._gunCd--                                 // Toji Handgun poke cooldown (no-energy command normal)
+  if (fighter._splitSoulCd > 0) fighter._splitSoulCd--                     // Toji Split Soul Katana cooldown (no-energy special)
+  if (fighter._rapidSlashCd > 0) fighter._rapidSlashCd--                   // Toji Rapid Sword Slashes cooldown (no-energy special)
+  if (fighter._chainCd > 0) fighter._chainCd--                             // Toji Chain of a Thousand Miles cooldown (no-energy 5-part special)
+  if (fighter._playfulCloudCd > 0) fighter._playfulCloudCd--               // Toji Playful Cloud cooldown (no-energy special)
+  if (fighter._flyHeadCd > 0) fighter._flyHeadCd--                         // Toji Fly Heads swarm cooldown (no-energy special)
   if (fighter._makiPowerCd > 0) fighter._makiPowerCd--                     // Maki Power Charge recast lockout
   if (fighter._makiPowerTimer > 0 && --fighter._makiPowerTimer <= 0) revertMakiPowerCharge(fighter)   // Power Charge buff window expiry → auto-revert
   trackMakiShibuyaUnlock(fighter)                                          // Maki HP-threshold (≤25%) ultimate unlock (persists once crossed)
@@ -4201,6 +4306,7 @@ function updateMiscTimers(fighter) {
   if (fighter.armorFlash      > 0) fighter.armorFlash--
   if (fighter.clashFlash      > 0) fighter.clashFlash--
   if (fighter.restrainTimer   > 0) { fighter.restrainTimer--;  if (fighter.restrainTimer  <= 0) fighter.restrained = false }
+  if (fighter._wallSplat      > 0) { fighter._wallSplat--;     if (fighter._wallSplat     <= 0) fighter.wallBounce = false }   // MK-feel Stage 2e: wall-splat pinned window (extended hitstun runs in updateCombat)
   if (fighter.obscuredTimer   > 0) { fighter.obscuredTimer--;  if (fighter.obscuredTimer  <= 0) fighter.obscured   = false }
   // Generic damage-over-time (e.g. Naruto Rasenshuriken wind-chip). Applies `dmg` every
   // `interval` frames for `ticks` counts, then clears. Stamped by resolveProjectileHits.
@@ -4332,6 +4438,9 @@ function updateMovementInput(fighter) {
   fighter.isBlocking = false
   if (isTransformDevice(fighter)) handleOmnitrixSwitch(fighter, inputState)
   else fighter.isCharging = false   // reset each frame for normal characters (devices set their own)
+  // PAIN — "Six Paths Summon" assist selector (Charge + slot). Runs before the jump/attack path so its
+  // _omxConsume can swallow the Charge+↑ / Charge+Light slot press (no double jump/swing).
+  updatePainAssistCombo(fighter, inputState, getAbilityContext())
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
   // OMNI-MAN FLIGHT: the P (charge) button is TAP-to-toggle-Flight / HOLD-to-charge (Gojo-Infinity
   // pattern). The TAP toggle fires on keyUP in handleChargeRelease; a HOLD falls through to the
@@ -4500,6 +4609,20 @@ function _updatePlayerCombatBody(fighter) {
     updateCombat(fighter, getOpponent(fighter), {}, opts); return
   }
 
+  // COMBO BREAKER (MK-feel Stage 2d; universal break-stock resource): while in HITSTUN and being combo'd
+  // (attacker comboCounter >= 3), BLOCK + SPECIAL breaks out (spends one per-round BREAK STOCK, i-frames,
+  // blasts the attacker away). Read AHEAD of the stun early-return below (like Tobirama's reversal) so it's a
+  // true reversal. The cheap pre-checks (being combo'd + has a stock) gate reading input during hitstun so the
+  // input buffer isn't ticked in the common (non-breakable) stun path; tryComboBreaker owns the >= 3 gate +
+  // stock spend. Stocks are universal (no meter dependency) → the whole roster breaks identically.
+  {
+    const cbOpp = getOpponent(fighter)
+    if ((fighter.hitstun || 0) > 0 && (cbOpp?.comboCounter || 0) >= COMBO_BREAKER.threshold && (fighter.comboBreakStocks || 0) > 0 &&
+        tryComboBreaker(fighter, getFighterInput(fighter), cbOpp)) {
+      updateCombat(fighter, cbOpp, {}, opts); return
+    }
+  }
+
   // CRITICAL: updateCombat() is the ONLY place hitstun/hitstop/blockstun and the
   // attack-recovery timers decrement. It must run EVERY frame or a hit fighter
   // gets stuck forever (the timer that locks them never ticks down). While
@@ -4520,12 +4643,6 @@ function _updatePlayerCombatBody(fighter) {
   if (isOmniManForcedDescent(fighter)) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
 
   const inputState = getFighterInput(fighter)
-  const isToji     = (fighter.rosterKey || "").toLowerCase() === "toji"
-
-  // TOJI STANCE SWITCH (charge tap). Runs BEFORE canStart so a switch pressed during an
-  // attack's RECOVERY phase cancels it (attacking→false), freeing the fighter to act again
-  // this frame (gated by the STANCE_SWITCH_FRAMES cooldown the switch sets).
-  if (isToji) updateTojiStanceSwitch(fighter, inputState.charge, getAttackPhase)
 
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   const canStart   = !fighter.attacking && !fighter.currentMove
@@ -4580,8 +4697,6 @@ function _updatePlayerCombatBody(fighter) {
     if (updateYujiKomaCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
   }
 
-  if (isToji && !charging && updateTojiStanceCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
-
   // VEGETA command-normal chain: Forward+Heavy opens the "Y-track" kick target combo, re-tap
   // Heavy during recovery to continue (cancel-on-hit). Consumes the input only when it fires
   // (returns true → skip normal path); neutral light/heavy stay on the normal path below.
@@ -4630,6 +4745,12 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "flash" && !charging &&
       updateFlashCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // STANDARD COMBO STRING (MK-feel Stage 2b): the "single-poke" characters (Goku/Gojo/Sukuna/Naruto/
+  // Megumi/Rick) get a shared dial-a-combo — light→light→heavy(launcher) + heavy→special — via one
+  // data-driven handler. Cancels fire only during a CONNECTED recovery; it consumes the input only when a
+  // cancel fires (returns true → skip normal path). Neutral light/heavy openers stay on the normal path below.
+  if (!charging && updateStandardStringCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
   // GON "Rush": Down+Heavy opens rush1 (flurry), re-tap Heavy on hit → rush2 (launcher). Cancel-on-hit;
   // a whiff/block ends the string. Consumes the input only when it fires; neutral normals stay below.
   if ((fighter.rosterKey || "").toLowerCase() === "gon" && !charging &&
@@ -4669,6 +4790,12 @@ function _updatePlayerCombatBody(fighter) {
   // only when it fires (returns true → skip normal path); neutral light/heavy/up/air/down_air stay normal.
   if ((fighter.rosterKey || "").toLowerCase() === "obito" && !charging &&
       updateObitoCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // PAIN — Fwd+Light → painJab (single); Fwd+Heavy → 3-stage rekka painCombo1→2→3 (re-tap Heavy on a
+  // clean hit to advance). Consumes the input only when it fires; neutral light/heavy/up/air/air_heavy/
+  // down_air stay on the normal path.
+  if ((fighter.rosterKey || "").toLowerCase() === "pain" && !charging &&
+      updatePainCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // TOBI (masked Obito alias) — per-frame combat watcher. Stage 2: spawns the thrown kunai on the
   // air-normal's active frame (a side-effect; returns true only if it consumes an input, none yet).
@@ -4737,6 +4864,12 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "maki" && !charging &&
       updateMakiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // TOJI A-B-C-A+B hand-combo chain: Fwd+Heavy opens tojiG1 (jab), re-tap Heavy on a clean hit → tojiG2
+  // (cross) → tojiG3 (hook) → tojiG4 (big-straight finisher; cancel-on-hit, whiff/block ends the string).
+  // Back+Heavy = Handgun bullet poke. Consumes the input only when it fires; neutral light/heavy stay normal.
+  if ((fighter.rosterKey || "").toLowerCase() === "toji" && !charging &&
+      updateTojiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
   // ICHIGO "Zangetsu" command system: Fwd+Heavy opens the 3-hit rekka (ichigoRekka1 slash → ichigoRekka2
   // double-slash → ichigoRekka3 combo→launcher finisher, cancel-on-hit). Plus free command normals:
   // Down+Heavy low sweep, Back+Heavy advancing launcher, Fwd+Light hilt-jab, Dash+Heavy rushing combo.
@@ -4755,11 +4888,7 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "netero" && fighter._guanyinActive && !charging &&
       updateNeteroGuanyinCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
-  // Toji's grounded normals are stance-driven, so SUPPRESS the built-in light/heavy/up here
-  // (else updateCombat would also start the old row-sheet normals / double-fire). Aerials
-  // (air/downAir) and grab stay on the normal path. Other characters are unaffected.
   let ctrlState = buildNormalControlState(fighter, vKeys)
-  if (isToji) ctrlState = { ...ctrlState, light: false, heavy: false, upAttack: false }
   // Sasuke's grab button IS his standalone skeletal Susanoo command-grab (updateSasukeCommandCombat,
   // above) — so suppress the generic combat.js grab for him (else the level-triggered grab would
   // re-grab every held frame). Other characters keep the normal grab.
@@ -5018,6 +5147,59 @@ function drawVoidHunterOverlay(c, fighter) {
     const ny = s.ny + s.driftAmp * 0.6 * Math.cos(t * 0.03 * s.driftFreq + s.phase)
     c.globalAlpha = s.a
     c.fillRect(x + nx * w - s.r / 2, y + ny * h - s.r / 2, s.r, s.r)
+  }
+  c.restore()
+}
+
+// PAIN "VOID PATH" skin — on top of the unified near-black sprite: small drifting DEEP-RED particles
+// (tying to his Rinnegan / piercing red) + occasional soft expanding gravity RIPPLE-PULSES (evoking his
+// Shinra Tensei / Bansho Ten'in gravitational techniques). Seeded ONCE, normalized to the drawn bbox
+// (_lastDraw*) so it TRACKS every pose incl. Chibaku Tensei. Same architecture as the other Void overlays
+// (no strobe; continuous motion).
+function seedPainVoidField(fighter) {
+  const rnd = _mulberry32(0x9A17ED0F)
+  const RED = ["#C81E1E", "#9E1414", "#E23A3A", "#7A1018"]
+  const halfWidth = ny => ny < 0.30 ? 0.17 : (ny < 0.66 ? 0.28 : 0.16)   // head / torso / legs envelope
+  const motes = []
+  for (let i = 0; i < 28; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: rnd() < 0.62 ? 2 : 3, color: RED[(rnd() * RED.length) | 0],
+      a: 0.55 + rnd() * 0.35, driftAmp: 0.006 + rnd() * 0.016, driftFreq: 0.25 + rnd() * 0.7, phase: rnd() * Math.PI * 2 })
+  }
+  // gravity ripple-pulses — expanding rings from the torso; staggered so one is always mid-bloom
+  const ripples = []
+  for (let i = 0; i < 3; i++) ripples.push({ cx: 0.5, cy: 0.42, period: 96, offset: i * 32 })
+  fighter._painVoidFX = { motes, ripples }
+}
+function drawPainVoidOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "painVoidPath") return
+  if (!fighter._painVoidFX) seedPainVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._painVoidFX
+  const t = (fighter._painVoidClock = (fighter._painVoidClock || 0) + 1)
+  c.save()
+  // gravity ripple-pulses — soft expanding crimson rings (Shinra Tensei / Bansho Ten'in feel)
+  c.globalCompositeOperation = "lighter"
+  for (const rp of fx.ripples) {
+    const prog = ((t + rp.offset) % rp.period) / rp.period   // 0→1
+    const cx = x + rp.cx * w, cy = y + rp.cy * h
+    const rad = prog * Math.max(w, h) * 0.85
+    const alpha = Math.sin(prog * Math.PI) * 0.28            // fade in then out
+    if (alpha <= 0.01) continue
+    c.strokeStyle = `rgba(210,40,40,${alpha})`
+    c.lineWidth = 2.2 * (1 - prog) + 0.6
+    c.beginPath(); c.ellipse(cx, cy, rad, rad * 0.9, 0, 0, Math.PI * 2); c.stroke()
+  }
+  c.globalCompositeOperation = "source-over"
+  // drifting deep-red motes (Rinnegan / piercing tie) — fixed glow, gentle sway, no strobe
+  c.shadowColor = "#E23A3A"; c.shadowBlur = 3
+  for (const m of fx.motes) {
+    const nx = m.nx + m.driftAmp * Math.sin(t * 0.03 * m.driftFreq + m.phase)
+    const ny = m.ny + m.driftAmp * 0.6 * Math.cos(t * 0.03 * m.driftFreq + m.phase)
+    c.globalAlpha = m.a; c.fillStyle = m.color
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
   }
   c.restore()
 }
@@ -5304,6 +5486,57 @@ function drawSukunaVoidEmberOverlay(c, fighter) {
     const fade = ny < 0.12 ? ny / 0.12 : 1
     c.globalAlpha = Math.max(0, Math.min(1, e.a * glow * fade))
     c.fillRect(x + nx * w - e.r / 2, y + ny * h - e.r / 2, e.r, e.r)
+  }
+  c.restore()
+}
+
+// TOJI VOID KILLER — procedural drifting DEEP-RED particles over the near-black void sprite (cosmetic).
+// Small crimson motes rising slowly with a soft red glow, SEEDED ONCE per skin-load (deterministic) and
+// normalized to the drawn sprite bbox (_lastDraw*), so they track the body across EVERY pose incl. the
+// sword specials and Chain of a Thousand Miles. No baked pixels — the black form art carries no colour.
+function seedTojiVoidField(fighter) {
+  const rnd = _mulberry32(0x70A1CE55)
+  const halfWidth = ny => ny < 0.28 ? 0.16 : (ny < 0.60 ? 0.30 : 0.22)   // head / torso / legs
+  const parts = []
+  for (let i = 0; i < 26; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    parts.push({
+      nx, ny, r: rnd() < 0.5 ? 1 : 2,
+      rise: 0.0010 + rnd() * 0.0022,           // slow upward drift
+      swayAmp: 0.010 + rnd() * 0.022, swayFreq: 0.5 + rnd() * 1.1, phase: rnd() * Math.PI * 2,
+      a: 0.55 + rnd() * 0.42, flick: 0.4 + rnd() * 1.1,
+    })
+  }
+  const glows = []
+  for (let i = 0; i < 3; i++)                   // deep-red pools (the particles' source)
+    glows.push({ nx: 0.34 + rnd() * 0.32, ny: 0.48 + rnd() * 0.40, r: 0.13 + rnd() * 0.11, a: 0.12 + rnd() * 0.06 })
+  fighter._tojiVoidFX = { parts, glows }
+}
+function drawTojiVoidOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "tojiVoidKiller") return
+  if (!fighter._tojiVoidFX) seedTojiVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._tojiVoidFX
+  const t = (fighter._tojiVoidClock = (fighter._tojiVoidClock || 0) + 1)
+  const DEEP = "#6E0C14"
+  c.save()
+  for (const g of fx.glows) {
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(DEEP, g.a)); grad.addColorStop(1, _rgbaHex(DEEP, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#E01E2A"; c.shadowBlur = 4; c.fillStyle = "#F0424C"   // deep-red motes with a soft crimson glow
+  for (const p of fx.parts) {
+    let ny = p.ny - t * p.rise
+    ny = ny - Math.floor(ny)                     // wrap: rises off the top, reappears low
+    const nx = p.nx + p.swayAmp * Math.sin(t * 0.035 * p.swayFreq + p.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.07 * p.flick + p.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, p.a * glow * fade))
+    c.fillRect(x + nx * w - p.r / 2, y + ny * h - p.r / 2, p.r, p.r)
   }
   c.restore()
 }
@@ -6532,6 +6765,16 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // TOJI REINCARNATED FORM ACTIVATION CINEMATIC: SAME freeze contract — combat/physics/input paused while
+  // the camera pushes in on Toji and his crimson cursed-aura transformation plays, then pulls back. The
+  // buff + crimson tint were already applied at the trigger (executeTojiUltimate). This is the MANUAL,
+  // player-chosen ultimate — the automatic two-stage comeback does NOT play this (it is a mid-combat save).
+  if (isTojiReincarnationCinematicActive()) {
+    updateTojiReincarnationCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // ITACHI MANGEKYOU ACTIVATION CINEMATIC: SAME freeze contract — combat/physics/input paused while
   // the eye-transformation reveal plays (camera isolates Itachi). The BUFF was already applied by
   // enterMangekyou; this is the reveal, then combat resumes.
@@ -6593,6 +6836,14 @@ function updateBattle() {
   // paused through the summon → meteor fall → impact; the guaranteed meteor damage lands at the IMPACT beat, then resume.
   if (isMadaraTengaiShinseiCinematicActive()) {
     updateMadaraTengaiShinseiCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+
+  // PAIN "CHIBAKU TENSEI" CINEMATIC (Ultimate): SAME freeze contract — combat/physics/input paused through
+  // the arms-raised cast → sphere growth → slam; the guaranteed devastation damage lands at the SLAM beat, then resume.
+  if (isPainChibakuTenseiCinematicActive()) {
+    updatePainChibakuTenseiCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
@@ -6711,8 +6962,14 @@ function updateBattle() {
 
   if (typeof physics.resolvePlayerCollision === "function") physics.resolvePlayerCollision(p1, p2)
 
+  // STAGE INTERACTABLES pilot: after positions/collision settle, check each fighter against the stage's
+  // hazards (knocked-into-hazard → contact damage + wall-splat reaction). No-op on hazard-less stages.
+  if (!_timeSlowFrozen(p1)) updateStageHazards(p1)
+  if (!_timeSlowFrozen(p2)) updateStageHazards(p2)
+
   for (const fighter of [p1, p2].filter(Boolean)) {
     if (fighter._wallBounceShake) { camera.shake?.(8, 6); fighter._wallBounceShake = false }
+    if (fighter._hazardShake)     { camera.shake?.(9, 7); fighter._hazardShake = false }   // stage-hazard contact shake
   }
 
   updateFacing()
@@ -6746,6 +7003,7 @@ function updateBattle() {
   checkEdoDummyHit(p1)
   checkEdoDummyHit(p2)
 
+  updateTojiFlyHeadsSwarm(canvas)   // Toji Fly Heads — tick the dense vision-denial swarm overlay (0 damage, no combat freeze)
   updateActiveSummons()
 
   for (const fighter of [p1, p2].filter(Boolean)) {
@@ -6771,6 +7029,9 @@ function updateBattle() {
 
   if (typeof camera.update === "function") camera.update(p1, p2, canvas)
   _updateGonSuddenDeath()   // Gon Adult Form "Final Blow": resolve an armed sudden-death BEFORE round-end (its clean hit also KOs, which we don't want double-counted)
+  // TOJI two-stage comeback: intercept a fighter whose HP just reached zero and (if saves remain) restore
+  // it BEFORE checkRoundEnd resolves a KO. Ungated by training so it fires in every mode. Catches all sources.
+  applyTojiComeback(p1, getAbilityContext()); applyTojiComeback(p2, getAbilityContext())
   checkRoundEnd()
 }
 
@@ -6818,12 +7079,14 @@ function renderHybridFighter(fighter) {
     drawGojoInfinityVoidOverlay(c, fighter)  // Gojo Infinity Void — slow blue-white motes + expanding barrier-ring pulses, ON TOP of the void sprite
     drawVoidBoarOverlay(c, fighter)     // Inosuke Void Boar — drifting jagged white tusk-shards + claw-mark scratches, ON TOP of the void sprite
     drawNezukoVoidEmberOverlay(c, fighter)   // Nezuko Void Sovereign — drifting crimson-pink Blood-Demon-Art ember motes, ON TOP of the void sprite
+    drawTojiVoidOverlay(c, fighter)          // Toji Void Killer — drifting deep-red particles, ON TOP of the void-black sprite (tracks the sword/chain specials)
     // Obito's sustained Kamui swirl REMOVED (correction): while intangible he is visually IDENTICAL to
     // normal — the only tell is the one-time activation pose (obitoKamuiActivate). drawObitoKamuiAura is
     // retained (unused) for reference. Tobi keeps its OWN independent aura below.
     drawTobiKamuiAura(c, fighter)      // Tobi Kamui Intangibility — same swirl, orange focal core (Tobi only, while `_tobiPhased`); independent of Obito
     drawObitoVoidOverlay(c, fighter)   // Obito "Void Mask" skin — drifting Sharingan-red/purple particles + periodic Kamui-portal swirl pulses, ON TOP of the near-black sprite (gated on skinId obitoVoid)
     drawTobiCelestialOverlay(c, fighter)   // Tobi "Celestial Veil" skin — serene pastel star-lights + soft nebulae over the pale lavender base (gated on skinId tobiCelestial)
+    drawPainVoidOverlay(c, fighter)    // Pain "Void Path" skin — drifting deep-red motes + expanding gravity ripple-pulses, ON TOP of the near-black sprite (gated on skinId painVoidPath)
   }
 
   // CINEMATIC INTRO REVEAL (opt-in via characters.js `introReveal`): while this fighter is playing its
@@ -7362,6 +7625,7 @@ function drawBattleScene() {
   // 3) Everything else — WORLD space, on top of the domain backdrop.
   if (hasTransform) camera.applyTransform(ctx, canvas)
   drawDomains(ctx)
+  drawStageHazards(ctx)   // STAGE INTERACTABLES pilot — draw hazards behind the fighters (world space)
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
@@ -7426,14 +7690,8 @@ function drawBattleHud() {
   drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)
   // Purple Susanoo duration clock, shown beside the round timer while either fighter is transformed.
   const susFighter = sasukeInSusanoo(p1) ? p1 : (sasukeInSusanoo(p2) ? p2 : null)
-  if (susFighter) drawSusanooTimer?.(ctx, canvas, susFighter._susanooTimer || 0, SUSANOO_DURATION_FRAMES)
+  if (susFighter) drawSusanooTimer?.(ctx, canvas, susFighter._susanooTimer || 0, SASUKE_SUSANOO_DURATION_FRAMES)   // Sasuke-only bar → Stage-3e ~13.3s max
   drawLowHealthWarning?.(ctx, canvas, p1, p2, globalFrameCount)
-
-  // Toji 3-stance indicator (foundation) — visible for any Toji fighter in the match.
-  const stanceEntries = []
-  if ((p1?.rosterKey || "").toLowerCase() === "toji") stanceEntries.push({ label: "P1", stance: getTojiStance(p1) })
-  if ((p2?.rosterKey || "").toLowerCase() === "toji") stanceEntries.push({ label: "P2", stance: getTojiStance(p2) })
-  if (stanceEntries.length) drawStanceIndicator(ctx, canvas, stanceEntries)
 
   if (!trainingState.enabled) return
   const lastDmg = damageNumbers.length ? (damageNumbers[damageNumbers.length - 1].value || 0) : 0
@@ -7567,6 +7825,7 @@ function _drawKOFlash() {
 
 function drawBattle() {
   drawBattleScene()
+  drawTojiFlyHeadsSwarm(ctx, canvas)   // Toji Fly Heads — dense screen-clutter swarm OVER the fighters but UNDER the HUD (vision-denial, HP bars stay readable)
   drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber)
   _drawDamageNumbers()
@@ -7585,6 +7844,7 @@ function drawBattle() {
   drawFlashTimeCinematic(ctx, canvas)       // fullscreen Flash Time activation overlay (red/gold burst flash)
   drawGonAdultFormCinematic(ctx, canvas)    // fullscreen Adult Form activation overlay (green burst flash)
   drawHisokaOverdriveCinematic(ctx, canvas) // fullscreen Bloodlust Overdrive activation overlay (gold/magenta burst flash)
+  drawTojiReincarnationCinematic(ctx, canvas) // fullscreen Reincarnated Form activation overlay (crimson burst flash)
   drawMangekyouCinematic(ctx, canvas)       // fullscreen Mangekyou activation overlay (centered eye transformation)
   drawVegetaFinalFlashCinematic(ctx, canvas)  // fullscreen Overcharged Final Flash overlay (gold beam + impact explosion)
   drawBeerusKiBallCinematic(ctx, canvas)      // fullscreen Ki Ball overlay (charging orb → impact explosion)
@@ -7594,6 +7854,7 @@ function drawBattle() {
   drawSupermanUltimateCinematic(ctx, canvas)  // fullscreen Solar Overload overlay (green vignette → detonation flash → shockwave rings)
   drawRengokuFlameExplosionCinematic(ctx, canvas)  // fullscreen Flame Explosion overlay (ember vignette → detonation flash → flame rings)
   drawMadaraTengaiShinseiCinematic(ctx, canvas)    // fullscreen Tengai Shinsei overlay (Rinnegan sky → falling meteor → impact explosion + shockwave)
+  drawPainChibakuTenseiCinematic(ctx, canvas)      // fullscreen Chibaku Tensei overlay (gravity sky → growing sphere → slam → flat/dome/flame-pillar ground effect)
   drawYujiUltimateCinematic(ctx, canvas)   // fullscreen "Black Flash" buildup overlay (cyan cursed-energy vignette → red/black flash burst)
   drawShinobuButterflyCinematic(ctx, canvas)  // fullscreen Butterfly Dance overlay (violet vignette → strike flash → spiral slash rings)
   drawInosukeBeastCinematic(ctx, canvas)      // fullscreen Beast Breathing overlay (earthy vignette → strike flash → radiating slash arcs)
@@ -8089,7 +8350,7 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.AI_VS_AI_SETUP)   { tryHover(getAiVsAiSetupRects(canvas),     hoverAiVsAiIndex,     v => { hoverAiVsAiIndex = v; aiVsAiConfig.sel = v }); return }
   if (gameState === GAME_STATES.AI_VS_AI_SUMMARY) { tryHover(getAiVsAiSummaryRects(canvas),   hoverAiVsAiSummaryIndex, v => hoverAiVsAiSummaryIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
-  if (gameState === GAME_STATES.SELECT_CHARACTER) { tryHover(getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse()), hoverCharacterIndex, v => hoverCharacterIndex = v); return }
+  if (gameState === GAME_STATES.SELECT_CHARACTER) { tryHover(getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse(), charSelectGridOpts(canvas, true)), hoverCharacterIndex, v => hoverCharacterIndex = v); return }
   if (gameState === GAME_STATES.SELECT_EDO_BACKUP) { tryHover(getCharacterCardRects(canvas, getEdoBackupRoster()), hoverEdoBackupIndex, v => hoverEdoBackupIndex = v); return }
   if (gameState === GAME_STATES.SELECT_STAGE)     { tryHover(getStageCardRects(canvas, stages), hoverStageIndex, v => hoverStageIndex = v) }
 }
@@ -8326,7 +8587,7 @@ function handleMenuClicks() {
     }
     case GAME_STATES.SELECT_CHARACTER: {
       const roster = getCharacterRosterForSelectedUniverse()
-      const idx    = pickGridCard(canvas, roster, mouse.x, mouse.y, CHAR_GRID_OPTS)   // viewport-guarded
+      const idx    = pickGridCard(canvas, roster, mouse.x, mouse.y, charSelectGridOpts(canvas, true))   // viewport-guarded, reserves detail panel
       if (idx < 0 || !roster[idx]) break
       _selectCharacterKey(roster[idx].id)
       break
@@ -8900,6 +9161,9 @@ gameLoop()
     grabTimer:        f.grabTimer || 0,          // frames until the grab's pop-up-and-drop throw resolves
     speedBlur:        f._speedBlur || 0,         // speed-tier teleport spin/blur timer (Toji-speed-tier dash)
     baseSpeed:        f.baseSpeed || f.speed || 0,   // base speed STAT (Toji-speed-tier threshold audit)
+    dashCooldownMax:  f.dashCooldownMax || 0,        // Stage 4b: per-archetype dash cooldown (speed-tiered)
+    dashCooldown:     f.dashCooldown || 0,           // frames until the next dash is available
+    dashTimer:        f.dashTimer || 0,              // active-dash frames remaining
     teleportFlash:    f.teleportFlash || 0,      // teleport-behind landing flash
     hitstun:          f.hitstun || 0,
     hitstop:          f.hitstop || 0,          // impact-freeze frames remaining (combo-flow layer telemetry)
@@ -8932,6 +9196,8 @@ gameLoop()
     spriteScale:      f.spriteScale ?? null,
     spriteReady:      !!(f.spriteHandler?._actionDef?.sheet),
     hasSpriteHandler: !!f.spriteHandler,        // false → procedural box renderer (no hasSprites)
+    hasSprites:       f.hasSprites !== false,    // Stage 5 sprite-flag telemetry (false → flag-removed → procedural)
+    weaponStance:     f.weaponStance || null,    // Toji stance (blade/chain/gun) — box-tint + HUD-label readable
     currentForm:      f.currentForm || null,     // transformation state (Goku SSB etc.)
     mangekyouActive:  !!f._mangekyouActive,       // Itachi Mangekyou Sharingan buff-mode
     godspeedActive:   !!f._godspeedActive,        // Killua Godspeed buff-mode ultimate
@@ -9132,6 +9398,10 @@ gameLoop()
     // Adds `window` = the EFFECTIVE cancel window (getCancelWindow: recovery span, narrowed windowFrames,
     // and whether the tightened link is currently open) so a test can prove the Heavenly-Vow tight timing.
     makiCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0, window: getCancelWindow(p1) } : null),
+    tojiCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, attacking: !!f.attacking, cooldown: f.attackCooldown || 0, cast: f._spriteCastMove || null, gunCd: f._gunCd || 0 } : null },
+    // Toji two-stage comeback state (Stage 6 tests): saves used, form, HP, buff multiplier.
+    tojiComeback: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { savesUsed: f._comebackSavesUsed || 0, reincarnated: !!f._reincarnated, manualFormUsed: !!f._tojiFormManualUsed, form: f.currentForm || null, health: Math.round(f.health || 0), maxHealth: f.maxHealth || 0, hpPct: Math.round((f.health || 0) / (f.maxHealth || 1) * 100), dmgMult: f.damageMultiplier || 1, invuln: f.invulnTimer || 0 } : null },
+    setP1HealthRaw: v => { if (p1) p1.health = v },   // UNCLAMPED health set (comeback tests need to drive to exactly 0)
     // Is a fighter's resource meter fully suppressed? Mirrors the exact ui.js drawEnergyPanel gate
     // (traits.hideResourceMeter) — Maki is HP-only, no meter at all.
     resourceMeterHidden: (who = "p1") => { const f = who === "p2" ? p2 : p1; return !!(f?.traits?.hideResourceMeter) },
@@ -9214,7 +9484,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -9331,7 +9601,10 @@ gameLoop()
     // A character's configured `portrait` field (exact on-disk filename) — proves mugshot wiring.
     charPortrait: key => characters[key]?.portrait || null,
     // Card rects for the CURRENT select-universe roster (same order as showCharSelect().roster) → crop a card.
-    charCardRects: () => getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse()),
+    charCardRects: () => getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse(), charSelectGridOpts(canvas, true)),
+    // Viewport-guarded char-select hit-test at a canvas coord — EXACTLY what a real click runs (returns
+    // the roster index or -1 if the point falls outside the clear band, e.g. behind the stats panel).
+    pickCharAt: (x, y) => pickGridCard(canvas, getCharacterRosterForSelectedUniverse(), x, y, charSelectGridOpts(canvas, true)),
     // ── FIT-BY-SHRINK selection screens (selection-scroll audit) ────────────────────
     // These screens don't scroll — their layouts shrink cards/rows to keep every item on one page.
     // The audit checks all rects stay within the viewport at max item counts (proves reachable).
@@ -9353,10 +9626,18 @@ gameLoop()
       if (!g) return null
       return gameState === GAME_STATES.SELECT_ALIENS
         ? getAlienSelectCardRects(canvas, g.roster)
-        : getCharacterCardRects(canvas, g.roster)
+        : getCharacterCardRects(canvas, g.roster, g.opts)
     },
     // Omnitrix loadout card rects (Ben 10) — scroll-offset-applied, same source draw + click use.
     alienGridRects: () => getAlienSelectCardRects(canvas, getAlienPoolList()),
+    // Main character-select geometry (scroll-audit): the SELECT-DEPTH detail panel's top and the grid's
+    // reserved viewport band. A card is "clear" (reachable + clickable) only inside [viewTop, viewBottom],
+    // which the fix pins to just above the panel so the bottom rows can scroll out from behind it.
+    charSelectViewport: () => {
+      const d = getSelectDetailRect(canvas)
+      const vp = getGridViewport(canvas, charSelectGridOpts(canvas, true))
+      return { detailTop: d.y, viewTop: vp.top, viewBottom: vp.bottom }
+    },
     // Pause-menu introspection: current selection + item id (drive with real esc/↓/enter keys).
     pauseSel: () => ({ gameState, index: pauseMenuIndex, item: PAUSE_MENU_ITEMS[pauseMenuIndex] }),
     // Camera introspection (zoom regression diagnosis).
@@ -9364,19 +9645,6 @@ gameLoop()
     // Expire an active Susanoo so the normal update loop auto-reverts it (recovery timing).
     expireSusanoo: () => { if (p1 && (p1._susanooStage || 0) > 0) p1._susanooTimer = 1 },
     // Toji stance system introspection (foundation): stance + live attack phase/move.
-    tojiState: who => {
-      const f = who === "p2" ? p2 : p1
-      if (!f) return null
-      return {
-        stance: getTojiStance(f),
-        attacking: !!f.attacking,
-        phase: getAttackPhase(f),
-        move: f.currentMove || (f.currentAttack && f.currentAttack.name) || null,
-        attackCooldown: f.attackCooldown || 0,
-        rekkaNext: f._rekkaNext || null,   // Blade rekka: the next hit a fresh light would chain to
-        canAct: !f.attacking && (f.attackCooldown || 0) <= 0 && (f.hitstun || 0) <= 0
-      }
-    },
     // Render-scale introspection: the resolved action + its rendered cell height (dstH).
     // Used to confirm old-row-sheet actions (guard/grab/…) render at correct proportion.
     renderInfo: who => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, dstH: f._lastDstH ?? null } : null },
@@ -9516,6 +9784,21 @@ gameLoop()
       action: f._lastSpriteAction || null, onGround: !!(f.onGround || f.grounded), vy: f.vy } : null },
     adultFormCine: () => getGonAdultFormCinematicStatus(),
     setP1X: x => { if (p1) p1.x = x },
+    // ── STAGE INTERACTABLES pilot hooks ──
+    stageHazards: () => getStageHazards().map(h => ({ ...h })),
+    // Place a fighter flying INTO the first stage hazard (real knockback + hitstun = a genuine "knocked
+    // into it" state), then let the loop's updateStageHazards resolve the contact. Returns the setup.
+    knockIntoHazard: (who = "p1", vx = 12) => {
+      const f = who === "p2" ? p2 : p1; if (!f) return null
+      const hz = getStageHazards()[0]; if (!hz) return null
+      const b = hazardBox(hz, groundY)
+      f.x = b.x - (f.w || 60) + 6; f.y = groundY - (f.h || 90)   // right edge just inside the pylon
+      f.vx = Math.abs(vx); f.hitstun = Math.max(f.hitstun || 0, 20); f.isLaunched = false; f._hazardCd = 0
+      return { x: f.x, vx: f.vx, hazardX: b.x }
+    },
+    hazardState: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? {
+      health: f.health, hitstun: f.hitstun || 0, vx: f.vx, wallBounce: !!f.wallBounce,
+      hazardHit: f._hazardHitId || null, hazardCd: f._hazardCd || 0 } : null },
     // Wiring proof: getFighterInput() call tally per player. Both advancing every
     // frame proves each fighter's input routes through input.js.getFighterInput.
     inputWiring: () => ({ ...inputCallCount, p1Type: inputSettings.p1Type, p2Type: inputSettings.p2Type }),
@@ -9534,6 +9817,8 @@ gameLoop()
     swordCine: () => getGokuBlackSwordCinematicStatus(),
     godspeedCine: () => getKilluaGodspeedCinematicStatus(),
     overdriveCine: () => getHisokaOverdriveCinematicStatus(),
+    tojiReincarnationCine: () => getTojiReincarnationCinematicStatus(),
+    tojiFlyHeadsSwarm: () => getTojiFlyHeadsSwarmStatus(),
     flashTimeCine: () => getFlashTimeCinematicStatus(),
     mangekyouCine: () => getMangekyouCinematicStatus(),
     vegetaUltCine: () => getVegetaFinalFlashCinematicStatus(),
@@ -9544,6 +9829,7 @@ gameLoop()
     supermanUltCine: () => getSupermanUltimateCinematicStatus(),
     rengokuUltCine: () => getRengokuFlameExplosionCinematicStatus(),
     madaraUltCine: () => getMadaraTengaiShinseiCinematicStatus(),
+    painUltCine: () => getPainChibakuTenseiCinematicStatus(),
     yujiUltCine: () => getYujiUltimateCinematicStatus(),
     miwaUltCine: () => getMiwaUltimateCinematicStatus(),
     ichigoUltCine: () => getIchigoGetsugaCinematicStatus(),
@@ -9640,7 +9926,12 @@ gameLoop()
     setP2ForceBlock: (on = true) => { if (p2) p2._forceGuard = !!on },   // PERSISTENT dummy guard — updatePlayer honors _forceGuard so isBlocking survives the per-frame clear (blockable/unblockable tests)
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
-    setP2X:     x => { if (p2) p2.x = x },        // reposition the dummy (e.g. close range → Lv2 sword)
+    // Reposition the dummy AND settle it on the ground. MK-feel Stage 2a raised the launch height (-26),
+    // so a just-launched dummy stays airborne ~50% longer; harness reset/setup helpers call setP2X between
+    // move-tests, and a still-airborne dummy makes the next follow-up (ground OR air) whiff. Grounding here
+    // is safe: no test ever lifts the dummy (liftP2 is unused) — its airborne state only comes from a
+    // launcher, and setP2X is the "position for the next test" reset, where grounded is exactly wanted.
+    setP2X:     x => { if (p2) { p2.x = x; if (p2.groundY != null) { p2.y = p2.groundY - (p2.h || 0); p2.vy = 0; p2.onGround = true; p2.grounded = true; p2.isLaunched = false } } },
     setP2Air:   () => { if (p2) { p2.onGround = false; p2.grounded = false; p2.y -= 60; p2.vy = -12 } },   // pop the dummy airborne (grab-whiffs-on-airborne tests — resolveGrab requires defender.onGround)
     expireItachiSusanoo: () => { if (p1 && p1._itachiSusanoo) p1._itachiSusanooTimer = 1 },   // force the auto-revert next tick (skip the ~20s wait)
     // ── deterministic reset for the beta-input test (clears the motion buffer + cooldowns so
@@ -9850,6 +10141,8 @@ gameLoop()
     miwaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickMiwaVoice(pool)),
     madaraVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickMadaraVoice(pool)),
     madaraVoicePool: (pool) => (MADARA_VOICE[pool] || []).slice(),
+    painVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickPainVoice(pool)),
+    painVoicePool: (pool) => (PAIN_VOICE[pool] || []).slice(),
     obitoVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickObitoVoice(pool)),
     obitoVoicePool: (pool) => (OBITO_VOICE[pool] || []).slice(),
     zarakiVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickZarakiVoice(pool)),
@@ -9969,7 +10262,7 @@ gameLoop()
     // teams: optional per-slot "A"/"B" array → team mode; omit/[] → pure FFA.
     // aiSlots: optional per-slot difficulty ("easy"/"adaptive"/"impossible") or null=human →
     // AI-fills those slots (default omitted → all human, so existing FFA/team tests are unaffected).
-    ffaStart: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"], teams = [], aiSlots = []) => {
+    ffaStart: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "yuji"], teams = [], aiSlots = []) => {
       ffaState.playerCount = Math.min(FFA_MAX_PLAYERS, Math.max(2, count))
       ffaState.charKeys = charKeys.slice(0, ffaState.playerCount)
       ffaState.teams = (teams || []).slice(0, ffaState.playerCount)
@@ -9993,13 +10286,13 @@ gameLoop()
       }))
     }),
     // Jump straight to the team-assignment screen (device cap blocks the menu route without pads).
-    ffaTeamSelectPreview: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "toji"]) => {
+    ffaTeamSelectPreview: (count = 3, charKeys = ["gojo", "sukuna", "megumi", "yuji"]) => {
       ffaState.playerCount = count; ffaState.charKeys = charKeys.slice(0, count)
       ffaState.teams = Array.from({ length: count }, (_, i) => FFA_TEAMS[i % 2]); ffaState.pickSlot = count
       hoverFFATeamIndex = 0; gameState = GAME_STATES.FFA_TEAMSELECT
     },
     // Jump to the slot-assignment (human/AI + difficulty) screen and read/drive it.
-    ffaSlotSelectPreview: (count = 4, charKeys = ["gojo", "sukuna", "megumi", "toji"]) => {
+    ffaSlotSelectPreview: (count = 4, charKeys = ["gojo", "sukuna", "megumi", "yuji"]) => {
       ffaState.playerCount = count; ffaState.charKeys = charKeys.slice(0, count)
       ffaState.aiSlots = ffaDefaultAISlots(count); ffaState.pickSlot = count
       hoverFFASlotIndex = 0; gameState = GAME_STATES.FFA_SLOTSELECT

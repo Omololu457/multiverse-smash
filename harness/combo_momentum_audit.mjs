@@ -75,18 +75,18 @@ async function measure(charKey, dirKey) {
 // Every command-chain character, grouped by universe. dir = opener direction. `note` flags special cases.
 const CHARS = [
   // universe,             key,                   dir,  label,          note
-  ["hunter_x_hunter",     "netero",              "s",  "Netero",       "DOWN chain"],
-  ["hunter_x_hunter",     "killua",              "s",  "Killua",       "DOWN chain"],
-  ["hunter_x_hunter",     "hisoka",              "s",  "Hisoka",       "DOWN chain"],
-  ["hunter_x_hunter",     "gon",                 "s",  "Gon",          "DOWN chain; Adult-form=giant (flag)"],
+  ["hunter_x_hunter",     "netero",              "d",  "Netero",       "FWD chain (Stage B: converted from Down+Heavy)"],
+  ["hunter_x_hunter",     "killua",              "d",  "Killua",       "FWD chain (Stage B: converted from Down+Heavy)"],
+  ["hunter_x_hunter",     "hisoka",              "d",  "Hisoka",       "FWD chain (Stage B: converted from Down+Heavy)"],
+  ["hunter_x_hunter",     "gon",                 "d",  "Gon",          "FWD chain (Stage B); Adult-form=giant (flag)"],
   ["hunter_x_hunter",     "chrollo",             "d",  "Chrollo",      "FWD chain; build is WIP"],
-  ["dc",                  "flash",               "s",  "Flash",        "DOWN chain"],
-  ["dc",                  "batman",              "s",  "Batman",       "DOWN chain"],
+  ["dc",                  "flash",               "d",  "Flash",        "FWD chain (Stage B: converted from Down+Heavy)"],
+  ["dc",                  "batman",              "d",  "Batman",       "FWD chain (Stage B: converted from Down+Heavy)"],
   ["dc",                  "superman",            "d",  "Superman",     "FWD chain"],
-  ["demon_slayer",        "zenitsu",             "s",  "Zenitsu",      "DOWN chain"],
+  ["demon_slayer",        "zenitsu",             "d",  "Zenitsu",      "FWD chain (Stage B: converted from Down+Heavy)"],
   ["demon_slayer",        "rengoku",             "d",  "Rengoku",      "FWD chain (branching)"],
   ["demon_slayer",        "shinobu",             "d",  "Shinobu",      "FWD chain"],
-  ["horror",              "ghostface",           "s",  "Ghostface",    "DOWN chain"],
+  ["horror",              "ghostface",           "d",  "Ghostface",    "FWD chain (Stage B: converted from Down+Heavy)"],
   ["naruto",              "tobirama",            "d",  "Tobirama",     "BASELINE (Fwd)"],
   ["naruto",              "minato",              "d",  "Minato",       "FWD chain (mirrors Tobirama)"],
   ["naruto",              "madara",              "d",  "Madara",       "FWD = single command-normal, not a rekka; Susanoo=giant (flag)"],
@@ -98,7 +98,6 @@ const CHARS = [
   ["invincible",          "omniman",             "d",  "Omni-Man",     "FWD chain"],
   ["jujutsu_kaisen",      "maki",                "d",  "Maki",         "FWD chain; TIGHT window by design (do not widen)"],
   ["jujutsu_kaisen",      "miwa",                "d",  "Miwa",         "FWD chain"],
-  ["jujutsu_kaisen",      "toji",                "d",  "Toji",         "FWD blade-stance reaper rekka"],
   ["saiki_k",             "saiki",               "d",  "Saiki",        "FWD psychic chain (different archetype)"],
 ];
 

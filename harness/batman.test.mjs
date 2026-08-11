@@ -100,9 +100,9 @@ try {
   await waitGrounded(); await prep(34); { const d = await dmgFrom(async () => { await page.evaluate(() => window.__harness.liftP1(50)); await page.keyboard.down("s"); await page.keyboard.down("j"); await waitFrames(3); await record(); await page.keyboard.up("j"); await page.keyboard.up("s"); }); check("down_air connects", d > 0, `−${d.toFixed(0)}`); }
 
   // ── STAGE 2: Combo command chain (Down+Heavy 3-hit rekka) ──
-  section("Combo command chain (Down+Heavy 3-hit rekka)");
+  section("Combo command chain (Forward+Heavy 3-hit rekka)");   // combo-string standardization Stage B: was Down+Heavy
   await waitGrounded(); await prep(46);
-  await page.keyboard.down("s"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("s");
+  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("d");
   const seq = []; { const m = (await p1()).currentMove; if (m) seq.push(m); }
   for (const want of ["batCombo2", "batCombo3"]) {
     let rec = false; for (let i = 0; i < 40; i++) { const p = await record(); if (!p.attacking) break; if (p.attackPhase === "recovery") { rec = true; break; } await waitFrames(1); }
@@ -110,13 +110,13 @@ try {
   }
   check("chain sequences batCombo1→2→3", seq.join("→") === "batCombo1→batCombo2→batCombo3", `seq=${seq.join("→")}`);
   // mid-chain interrupt: an opener that lands NO clean hit (dummy invulnerable) must NOT allow a re-tap to continue.
-  await page.keyboard.up("k"); await page.keyboard.up("s"); await page.keyboard.up("j"); await waitFrames(6);   // FLUSH stale heavy edge
+  await page.keyboard.up("k"); await page.keyboard.up("d"); await page.keyboard.up("j"); await waitFrames(6);   // FLUSH stale heavy edge
   await waitGrounded(); await prep(46);
   await page.evaluate(() => window.__harness.setP2Invuln(600));   // opener lands no clean hit → _cmdHitLanded stays false
-  await page.keyboard.down("s"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k");
+  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k");
   let firedOpener = false, sawAdvance = false, gateEverOpened = false;
   for (let i = 0; i < 26; i++) { const a = await p1(); if (a.attacking) firedOpener = true; if (a.currentMove === "batCombo2" || a.currentMove === "batCombo3") sawAdvance = true; if (a.cmdHitLanded) gateEverOpened = true; if (i === 12) { await page.keyboard.down("k"); await waitFrames(1); await page.keyboard.up("k"); } await waitFrames(1); }
-  await page.keyboard.up("s");
+  await page.keyboard.up("d");
   check("mid-chain interrupt: whiff keeps cancel-gate closed → no advance", firedOpener && !gateEverOpened && !sawAdvance, `fired=${firedOpener} gateOpened=${gateEverOpened} advanced=${sawAdvance}`);
   await page.evaluate(() => window.__harness.setP2Invuln(0));
   await waitFrames(16);

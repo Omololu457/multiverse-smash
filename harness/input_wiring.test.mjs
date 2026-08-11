@@ -46,7 +46,7 @@ const wiring = () => page.evaluate(() => window.__harness.inputWiring());
 async function waitFrames(n) { const s = await page.evaluate(() => window.__harness.state().frame); await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }); }
 
 try {
-  await page.goto(`${base}/index.html?harness=1&p1=toji&p2=toji`, { waitUntil: "load" });
+  await page.goto(`${base}/index.html?harness=1&p1=zenitsu&p2=zenitsu`, { waitUntil: "load" });
   await page.waitForFunction(() => !!window.__harness);
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());

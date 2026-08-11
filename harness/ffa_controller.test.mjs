@@ -59,7 +59,7 @@ try{
   check("player count opens to 4 (2 keyboard + 2 pads)", maxP===4, `max=${maxP}`);
 
   // 4 human players; slots 2 & 3 are the controller-only P3/P4.
-  await ffa(["gojo","sukuna","naruto","toji"],[null,null,null,null]);
+  await ffa(["gojo","sukuna","naruto","maki"],[null,null,null,null]);
 
   // ── P3 MOVEMENT is distinct from every other action ────────────────────────
   section("P3 pad — holding RIGHT moves right ONLY (no collapse into attack/jump)");

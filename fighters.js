@@ -555,96 +555,6 @@ function drawOmololu(ctx, x, y, w, h, fighter) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// ── TOJI ──────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────
-function drawToji(ctx, x, y, w, h, fighter) {
-  const facing  = fighter.facing ?? 1
-  const surging = fighter.isUltimateActive
-
-  if (surging) drawAura(ctx, x, y, w, h, "#f43f5e", 0.28, 20)
-
-  const skinColor = "#d97706"
-
-  ctx.fillStyle = skinColor
-  roundRect(ctx, x - 4, y + h * 0.24, w * 0.2, h * 0.46, 6)
-  ctx.fill()
-  roundRect(ctx, x + w - w * 0.2 + 4, y + h * 0.24, w * 0.2, h * 0.46, 6)
-  ctx.fill()
-
-  ctx.fillStyle = "#1c1917"
-  roundRect(ctx, x + w * 0.15, y + h * 0.2, w * 0.7, h * 0.45, 8)
-  ctx.fill()
-
-  ctx.strokeStyle = "#44403c"
-  ctx.lineWidth   = 1
-  ctx.beginPath()
-  ctx.moveTo(x + w / 2 - 8, y + h * 0.22)
-  ctx.lineTo(x + w / 2, y + h * 0.36)
-  ctx.lineTo(x + w / 2 + 8, y + h * 0.22)
-  ctx.stroke()
-
-  ctx.strokeStyle = "#9ca3af"
-  ctx.lineWidth   = 2
-  const chainX = x + (facing >= 0 ? w - 10 : 10)
-  ctx.beginPath()
-  ctx.arc(chainX, y + h * 0.56, 8, 0, Math.PI * 2)
-  ctx.stroke()
-
-  ctx.fillStyle = "#292524"
-  ctx.fillRect(x + 4, y + h * 0.62, w - 8, h * 0.38)
-
-  ctx.fillStyle = "#1c1917"
-  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
-  ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
-
-  const hx = x + w / 2
-  const hy = y + h * 0.12
-  ctx.fillStyle = skinColor
-  ctx.beginPath()
-  ctx.arc(hx, hy, h * 0.11, 0, Math.PI * 2)
-  ctx.fill()
-
-  ctx.fillStyle = "#1c1917"
-  ctx.beginPath()
-  ctx.arc(hx, hy - h * 0.06, h * 0.1, Math.PI, 0)
-  ctx.fill()
-  ctx.beginPath()
-  ctx.moveTo(hx - h * 0.1, hy - h * 0.08)
-  ctx.quadraticCurveTo(hx - h * 0.15, hy - h * 0.18, hx + h * 0.1, hy - h * 0.14)
-  ctx.fill()
-
-  ctx.fillStyle = "#1c1917"
-  const eyeOff  = facing >= 0 ? 5 : -5
-  ctx.fillRect(hx + eyeOff - 5, hy - 3, 10, 4)
-
-  ctx.strokeStyle = "#dc2626"
-  ctx.lineWidth   = 1.5
-  ctx.beginPath()
-  ctx.moveTo(hx - 3, hy + 5)
-  ctx.lineTo(hx + 1, hy + 8)
-  ctx.stroke()
-
-  if ((fighter.dashTimer || 0) > 0 || (Math.abs(fighter.vx || 0) > 8)) {
-    ctx.save()
-    ctx.strokeStyle = "#f43f5e"
-    ctx.lineWidth   = 2
-    ctx.globalAlpha = 0.4
-    for (let i = 0; i < 3; i++) {
-      ctx.beginPath()
-      ctx.moveTo(x - facing * 20, y + h * 0.3 + i * h * 0.15)
-      ctx.lineTo(x - facing * 50, y + h * 0.3 + i * h * 0.15)
-      ctx.stroke()
-    }
-    ctx.restore()
-  }
-
-  drawHitFlash(ctx, x, y, w, h, fighter.colorFlash)
-  drawNameTag(ctx, "Toji", hx, y, "#f43f5e")
-  drawFacingDot(ctx, x, y, w, facing, "#f43f5e")
-  drawShadow(ctx, x, y, w, h)
-}
-
-// ─────────────────────────────────────────────────────────────────
 // MAIN EXPORT — drawCharacter()
 // ─────────────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────
@@ -787,7 +697,6 @@ export function drawCharacter(ctx, fighter) {
     case "megumi":  drawMegumi(ctx, x, y, w, h, fighter);  break
     case "sukuna":  drawSukuna(ctx, x, y, w, h, fighter);  break
     case "omololu": drawOmololu(ctx, x, y, w, h, fighter); break
-    case "toji":    drawToji(ctx, x, y, w, h, fighter);    break
     case "ben10":   drawBen10(ctx, fighter);               break   // ★ Ben 10
     case "albedo":  drawBen10(ctx, fighter);               break   // ★ Albedo (Ben's clone, red tint)
     case "omniman": drawOmniMan(ctx, x, y, w, h, fighter); break   // ★ Invincible (procedural fallback; real render is sprite-based)

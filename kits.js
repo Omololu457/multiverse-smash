@@ -17,9 +17,17 @@
 //   Down + Special   → special #2
 //   Forward + Special→ special #3 / mobility
 //   Ultimate         → ultimate (needs a full meter)
-// The 7 advanced characters (goku/naruto/gojo/megumi/sukuna/omololu/toji) ALSO
+// The advanced characters (goku/naruto/gojo/megumi/sukuna/omololu) ALSO
 // accept fighting-game motions (QCF, DP, etc.) shown in their move inputs.
+//
+// COMBO-STRING GRAMMAR (combo-string standardization Stage F): the Move List teaches each
+// character's ACTUAL combo grammar, sourced from comboStandard.js `classify()`:
+//   • rekka (Fwd+Heavy)       → "Forward + Heavy" opener, re-tap Heavy to chain into a launcher
+//   • standard-string (L,L,H) → "Light, Light, Heavy" dial-a-combo (the Heavy folds into the launcher)
+//   • zoner                   → single-poke; pressure comes from specials, not an auto-combo
+// The fallback kit (getKit) synthesizes the right one automatically so every kit-less char is accurate.
 // ─────────────────────────────────────────────────────────────────
+import { classify } from "./comboStandard.js"
 
 // Global control reference (shown on the Move List "Controls" panel).
 export const CONTROL_REFERENCE = {
@@ -112,7 +120,7 @@ export const KITS = {
     mobility: { name: "Burst Charge", input: "Forward + Special", cost: 15, desc: "aura-fueled forward blitz that closes gaps for offense" },
     ultimate: { name: "Super Saiyan Blue Evolution", input: "Ultimate (full meter)", cost: 100, desc: "advances his elite transformation chain (SSJ → Blue → Blue Evolution → Ultra Ego), spiking damage and speed" },
     combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special", desc: "core string into Galick Gun" },
+      { name: "Bread & Butter", sequence: "Forward + Heavy, Heavy, Heavy", desc: "kick command-chain into the launcher (re-tap Heavy on hit), then Galick Gun" },
       { name: "Burst Punish",   sequence: "Heavy, Down + Special",        desc: "knockback into Big Bang Attack" },
       { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air, Air",    desc: "launch into aerial pressure" }
     ]
@@ -136,7 +144,7 @@ export const KITS = {
     mobility: { name: "After-Image Step", input: "Forward + Special", cost: 15, desc: "quick reposition dash to maintain zoning spacing" },
     ultimate: { name: "Fused with Kami", input: "Ultimate (full meter)", cost: 100, desc: "transforms into his fused form, boosting attack, speed, defense, and Ki output" },
     combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special", desc: "core string into Beam Cannon" },
+      { name: "Zoning Pressure", sequence: "Special (Beam Cannon), poke, Heavy", desc: "single-poke zoner — wall out with beams, convert on the approach (no chained string)" },
       { name: "Zone Trap",      sequence: "Down + Special, Heavy",        desc: "scatter grenades then convert on the trapped foe" }
     ]
   },
@@ -160,7 +168,7 @@ export const KITS = {
     mobility: { name: "Float Dash", input: "Forward + Special", cost: 15, desc: "swift hovering reposition to keep optimal beam range" },
     ultimate: { name: "Golden Frieza", input: "Ultimate (full meter)", cost: 100, desc: "transforms into Golden form for a massive speed and attack boost" },
     combos: [
-      { name: "Bread & Butter", sequence: "Light, Light, Heavy, Special", desc: "core string into Death Beam" },
+      { name: "Zoning Pressure", sequence: "Death Beam, poke, Nova Strike", desc: "single-poke ranged tyrant — chip from afar, punish the approach (no chained string)" },
       { name: "Dive Pressure",  sequence: "Down + Special, Light, Light", desc: "Nova Strike approach into close poke string" }
     ]
   },
@@ -317,29 +325,6 @@ export const KITS = {
       { name: "Air Rend",    sequence: "Up-Attack, Jump, Air, Air",          desc: "launcher into aerials" }
     ]
   },
-  toji: {
-    type: "Rushdown / Speed", energy: "None (pure physical)", difficulty: "Medium",
-    summary: "A cursed-energy-less assassin who overwhelms with raw speed and weapons pulled from his Inverted Spear inventory, needing no meter to kill.",
-    passive: { name: "Heavenly Restriction", effect: "Born with zero cursed energy traded for a superhuman body: maximum mobility, triple jump, and a permanent speed surge once health drops below 50%." },
-    basics: [
-      { name: "Quick Strike", input: "Light",                   desc: "very fast poke" },
-      { name: "Heavy Smash",  input: "Heavy",                    desc: "heavy weapon blow" },
-      { name: "Launcher",     input: "Up-Attack",               desc: "launcher — starts air combos" },
-      { name: "Air Strike",   input: "Air (jump + Light)",      desc: "aerial poke" },
-      { name: "Dive",         input: "Down-Air (jump + Heavy)", desc: "downward spike" },
-      { name: "Grab",         input: "Grab",                    desc: "throw" }
-    ],
-    specials: [
-      { name: "Inventory Smash", input: "Special",                cost: 0, desc: "pulls a weapon from his cursed-tool inventory for a heavy strike" },
-      { name: "Rapid Strike",    input: "Forward, Forward + Special", cost: 0, desc: "high-speed dashing flurry; fast and low-commitment" }
-    ],
-    mobility: { name: "Assassin Dash", input: "Forward + Special", cost: 0, desc: "explosive evasive dash that repositions for a flank" },
-    ultimate: { name: "Heavenly Restriction Surge", input: "Ultimate (no meter needed)", cost: 0, desc: "unleashes his full physical limit for a 1.8x speed and 1.6x damage surge" },
-    combos: [
-      { name: "Blitz",      sequence: "Rapid Strike, Light, Light, Inventory Smash", desc: "rush in and cash out" },
-      { name: "Flank Kill", sequence: "Assassin Dash, Heavy, Inventory Smash",        desc: "reposition then punish" }
-    ]
-  },
   // ── ORIGINAL ─────────────────────────────────────────────────
   omololu: {
     type: "Ramp Bruiser / Adaptive", energy: "Stamina", difficulty: "Medium",
@@ -386,7 +371,7 @@ export const KITS = {
     mobility: { name: "Godspeed", input: "Forward + Special", cost: 0, desc: "explosive Thunder Breathing flash-step that crosses the screen near-instantly" },
     ultimate: { name: "Thunder Breathing Mastery", input: "Ultimate (full meter)", cost: 0, desc: "awakens Sleeping Thunder for 1.8x damage, 1.6x speed, and high crit on multi-strike combos" },
     combos: [
-      { name: "Bread & Butter", sequence: "Light, Heavy, Special",         desc: "poke into a Thunderclap finisher" },
+      { name: "Bread & Butter", sequence: "Forward + Heavy, Heavy, Heavy",  desc: "Thunderclap command-chain into the rising launcher (re-tap Heavy on hit)" },
       { name: "Flash Punish",   sequence: "Forward + Special, Special",    desc: "rice-spirit approach into the Thunderclap kill" },
       { name: "Air Juggle",     sequence: "Up-Attack, Jump, Air, Air",     desc: "rising bolt into aerial slashes" }
     ]
@@ -412,6 +397,7 @@ export const KITS = {
     mobility: { name: "Portal Hop", input: "Forward + Special", cost: 15, desc: "opens a quick portal pair to teleport across the stage" },
     ultimate: { name: "Ultimate Gadgetry", input: "Ultimate (full meter)", cost: 100, desc: "deploys his whole arsenal — all attacks gain massive damage and range" },
     combos: [
+      { name: "Bread & Butter", sequence: "Light, Light, Heavy",              desc: "dial-a-combo when they get in — the Heavy folds into the launcher" },
       { name: "Zone Control",   sequence: "Portal Blast, Meeseeks Summon",     desc: "wall them out and add pressure" },
       { name: "Trap & Punish",  sequence: "Portal Hop, Heavy, Portal Blast",   desc: "reposition behind them and convert" }
     ]
@@ -544,6 +530,34 @@ export const KITS = {
   }
 }
 
+// Grammar-accurate bread-and-butter combos for a character, from comboStandard.js `classify()`.
+// The Move List should teach what the fighter can ACTUALLY do — a Fwd+Heavy rekka char must NOT be told
+// "Light, Light, Heavy" (only standard-string chars chain light normals), and a zoner has no auto-combo.
+export function comboStringFor(rosterKey) {
+  const air = { name: "Air Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "launcher into aerial pressure" }
+  const c = classify(rosterKey)
+  if (c?.grammar === "rekka") {
+    if (c.opener === "grab") return [{ name: "Command Grab", sequence: "Grab", desc: "signature command grab (no strike chain)" }, air]
+    if ((c.stages ?? 0) <= 1) return [{ name: "Power Normal", sequence: "Forward + Heavy", desc: "a single committed command-normal (no re-tap chain)" }, air]
+    return [
+      { name: "Bread & Butter", sequence: "Forward + Heavy, Heavy, Heavy", desc: "command-normal chain — re-tap Heavy on hit to link into the launcher finisher" },
+      air,
+    ]
+  }
+  if (c?.grammar === "standard-string") {
+    return [
+      { name: "Bread & Butter", sequence: "Light, Light, Heavy", desc: "dial-a-combo — the Heavy folds into the Up-Attack launcher" },
+      { name: "Special Cancel", sequence: "Heavy, Special", desc: "cancel a Heavy into a special" },
+      air,
+    ]
+  }
+  // zoner (or unclassified): single-poke by design — no auto-combo
+  return [
+    { name: "Zoning Pressure", sequence: "Special, then Light / Heavy pokes", desc: "single-poke fighter — build pressure with specials, not a chained string" },
+    air,
+  ]
+}
+
 // Returns a kit for a character, synthesizing a minimal one from raw character
 // data if no hand-authored kit exists (keeps the Move List robust for any
 // future fighter added to characters.js).
@@ -573,6 +587,6 @@ export function getKit(rosterKey, character = null) {
     specials: specials.length ? specials : [{ name: "—", input: "Special", cost: 0, desc: "no specials" }],
     mobility: { name: "Dash", input: "Dash / Double-tap", cost: 0, desc: "quick reposition" },
     ultimate: { name: character.ultimate?.name || "Ultimate", input: "Ultimate (full meter)", cost: character.ultimate?.cost || 100, desc: character.ultimate?.effect || "powerful finisher" },
-    combos: [{ name: "Bread & Butter", sequence: "Light, Light, Heavy, Special", desc: "core string" }]
+    combos: comboStringFor(rosterKey)
   }
 }

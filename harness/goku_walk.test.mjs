@@ -29,8 +29,15 @@ try{
   const w=await p1();
   await page.screenshot({path:path.join(OUT,"GOKU_walk.png")});
   await page.keyboard.up("d");
-  check("action resolves to walk/run",["walk","run"].includes(w.action),`action=${w.action}`);
-  check("walk sheet = goku_base_walk_uniform.png (NOT the box)",(w.spriteSheet||"").includes("goku_base_walk_uniform"),`sheet=${w.spriteSheet}`);
+  // MK-feel Stage 5: Goku is sprite-flag-removed (hasSprites:false) → procedural box. The WALK still works
+  // (movement asserted below); the sprite-sheet checks are box-aware (they re-assert the sheet if sprites
+  // are ever restored). Playability of the box is covered end-to-end by harness/stage5_sprite_removal.mjs.
+  const boxed = w.hasSprites === false;
+  check("Goku WALKS (movement works — box or sprite)", w.x !== idle.x, `x ${idle.x}→${w.x}`);
+  check("action resolves to walk/run (or procedural box after Stage-5 flag-removal)",
+    boxed ? (w.action==null) : ["walk","run"].includes(w.action), `action=${w.action} boxed=${boxed}`);
+  check("walk sheet = goku_base_walk_uniform.png — or NO sheet once flag-removed to a box (Stage 5)",
+    boxed ? (w.spriteSheet==null) : (w.spriteSheet||"").includes("goku_base_walk_uniform"), `sheet=${w.spriteSheet} boxed=${boxed}`);
   check("no JS page errors",errs.length===0,errs.join("; "));
 }catch(e){check("harness ran",false,String(e));}
 console.log(`\n${FAIL===0?"✅ ALL":"❌ SOME"}  ${PASS} passed, ${FAIL} failed`);

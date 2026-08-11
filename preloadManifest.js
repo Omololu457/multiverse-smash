@@ -215,9 +215,6 @@ export const FX_SHEETS_BY_CHAR = {
     "./sasuke_susanoo_lvl_2_anim.png",
     "./sasuke_susanoo_sword_attack.png",
   ],
-  toji: [
-    "./toji_curse_effect_2.png",
-  ],
   vegeta: [
     "./vegeta_base_bigbang_fx_uniform.png",
     "./vegeta_base_finalflash_beam1_uniform.png",

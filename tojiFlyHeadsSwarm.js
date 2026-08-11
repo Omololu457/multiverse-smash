@@ -19,7 +19,7 @@
 const SHEET = "./toji_fly_head_uniform.png"
 const FRAMES = 3, FW = 32, FH = 25          // 3-frame flap strip, 32×25 per frame (matches the projectile spriteW/H)
 const SWARM_COUNT = 46                      // high density → real screen coverage on both players' shared view
-const DURATION = 200                        // ~3.3s of chaos, then it disperses
+const DURATION = 200                        // DEFAULT swarm length (~3.3s); the caller may override (see activate())
 const FADE_IN = 18, FADE_OUT = 46           // ease the clutter in/out so it doesn't hard-pop
 
 let _img = null
@@ -30,11 +30,14 @@ function _ready(im) { return im && im.complete && im.naturalWidth > 0 }
 // swarm reads consistently for screenshots, with a small Math.random garnish for organic motion.
 function _spread(i, n, span) { return ((i + 0.5) / n) * span }
 
-const swarm = { active: false, frame: 0, parts: null, w: 0, h: 0 }
+const swarm = { active: false, frame: 0, parts: null, w: 0, h: 0, duration: DURATION }
 
-export function activateTojiFlyHeadsSwarm() {
+// duration (frames) lets the caster hold the swarm for the WHOLE self-fade window (Toji goes near-invisible
+// while the flies play around him — see abilities.fireTojiFlyHeads); defaults to the ~3.3s clutter length.
+export function activateTojiFlyHeadsSwarm(duration = DURATION) {
   ensureImg()
   swarm.active = true; swarm.frame = 0; swarm.parts = null   // parts lazy-init on first update (needs canvas dims)
+  swarm.duration = Math.max(FADE_IN + FADE_OUT + 1, duration | 0 || DURATION)
   return true
 }
 
@@ -70,7 +73,7 @@ function _init(w, h) {
 export function isTojiFlyHeadsSwarmActive() { return swarm.active }
 
 export function getTojiFlyHeadsSwarmStatus() {
-  return { active: swarm.active, frame: swarm.frame, total: DURATION, count: swarm.active ? SWARM_COUNT : 0 }
+  return { active: swarm.active, frame: swarm.frame, total: swarm.duration || DURATION, count: swarm.active ? SWARM_COUNT : 0 }
 }
 
 export function updateTojiFlyHeadsSwarm(canvas) {
@@ -86,16 +89,16 @@ export function updateTojiFlyHeadsSwarm(canvas) {
     if (p.y < -pad) p.y = h + pad; else if (p.y > h + pad) p.y = -pad
   }
   swarm.frame++
-  if (swarm.frame >= DURATION) clearTojiFlyHeadsSwarm()
+  if (swarm.frame >= (swarm.duration || DURATION)) clearTojiFlyHeadsSwarm()
 }
 
 export function drawTojiFlyHeadsSwarm(ctx, canvas) {
   if (!swarm.active || !swarm.parts || !ctx || !canvas) return
   const im = ensureImg(), ready = _ready(im)
-  const t = swarm.frame
+  const t = swarm.frame, dur = swarm.duration || DURATION
   let fade = 1
   if (t < FADE_IN) fade = t / FADE_IN
-  else if (t > DURATION - FADE_OUT) fade = Math.max(0, (DURATION - t) / FADE_OUT)
+  else if (t > dur - FADE_OUT) fade = Math.max(0, (dur - t) / FADE_OUT)
   ctx.save()
   for (const p of swarm.parts) {
     const fr = (p.frame0 + Math.floor(t * p.flapSpeed)) % FRAMES
@@ -121,5 +124,5 @@ export function drawTojiFlyHeadsSwarm(ctx, canvas) {
 
 // Idempotent cleanup for every reset path (round reset / rematch / menu / KO).
 export function clearTojiFlyHeadsSwarm() {
-  swarm.active = false; swarm.frame = 0; swarm.parts = null
+  swarm.active = false; swarm.frame = 0; swarm.parts = null; swarm.duration = DURATION
 }

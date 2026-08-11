@@ -198,15 +198,16 @@ function _drawVesselIdle(ctx, cx, groundSY, dh, flip) {
   const key = cine.vesselKey
   const idle = characters[key]?.animationData?.idle
   if (!idle?.sheet) return
-  // Part 2 — the vessel rises already REANIMATED (near-black desaturated __reanim sheet), matching the
-  // in-match body-swap. Falls back to the canonical sheet if the reanim asset is missing/unloaded.
-  const reanim = _img(idle.sheet.replace(/\.(png|jpe?g)$/i, "__reanim.png"))
-  const img = (reanim.complete && reanim.naturalWidth > 0) ? reanim : _img(idle.sheet)
+  // Part 2 — the vessel rises already REANIMATED, matching the in-match body-swap: its OWN base art washed in
+  // the sickly green-gray "reanimated corpse" tint (mirrors EDO_REANIM_TINT in sprite.js — kept in sync here).
+  const img = _img(idle.sheet)
   const sheet = { w: idle.width || 48, h: idle.height || 90, frames: idle.frames || 1 }
   const fi = Math.floor(cine.frame / 8) % sheet.frames
   const scale = dh / sheet.h, dw = sheet.w * scale
   if (!img.complete || img.naturalWidth === 0) return
-  ctx.save(); ctx.globalAlpha = 0.96; ctx.translate(cx, groundSY - dh / 2); ctx.scale(flip, 1)
+  ctx.save(); ctx.globalAlpha = 0.96
+  ctx.filter = "grayscale(0.82) sepia(0.45) hue-rotate(55deg) saturate(0.72) brightness(1.07) contrast(0.92)"
+  ctx.translate(cx, groundSY - dh / 2); ctx.scale(flip, 1)
   ctx.drawImage(img, fi * sheet.w, 0, sheet.w, sheet.h, -dw / 2, -dh / 2, dw, dh)
   ctx.restore()
 }

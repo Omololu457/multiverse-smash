@@ -7447,6 +7447,39 @@ function fireTojiGun(fighter, context) {
   try { shakeCamera(context, 2, 4) } catch (_) {}
   return true
 }
+
+// OFFENSIVE FLY HEADS SWARM (Down+Heavy command normal) — the DAMAGING counterpart to the defensive Back+Special
+// vision-denial swarm. Toji hurls a fan of shikigami fly-heads as REAL traveling projectiles (toji_fly_head sheet)
+// that connect for damage — same multi-projectile idiom as Hisoka's staggered card-fan / Tobi's Fire-Phoenix subs.
+// SEPARATE input, SEPARATE cooldown (_flyBarrageCd) → both Fly Heads live independently. No energy (cooldown-gated).
+const TOJI_FLYBARRAGE_CD = 132   // ~2.2s recast
+function fireTojiFlyHeadBarrage(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._flyBarrageCd || 0) > 0) return false
+  fighter._spriteCastMove  = "tojiFlyHeads"      // same hand-forward release/throw gesture as the defensive swarm
+  fighter._spriteCastTimer = 28
+  fighter.attackCooldown   = getAttackDuration(30, fighter)
+  fighter._flyBarrageCd    = TOJI_FLYBARRAGE_CD
+  const face    = fighter.facing || 1
+  const originY = fighter.y + (fighter.h || 100) * 0.34
+  const originX = fighter.x + face * (fighter.w || 60) * 0.5
+  // Six heads in a vertical fan, staggered 2f apart (Hisoka-card pattern) → a spreading swarm rather than one shot.
+  const fan = [-6, -3.5, -1.2, 1.2, 3.5, 6]
+  fan.forEach((vy, i) => {
+    schedulePendingSpawn(8 + i * 2, () => {
+      spawnProjectile(fighter, "tojiFlyHeadShot", {
+        sheet: "./toji_fly_head_uniform.png", spriteFrames: 3, spriteW: 32, spriteH: 25, spriteSpeed: 2, spriteScale: 1.5,
+        w: 34, h: 26, radius: 17, damage: 15, speed: 9, hitstun: 10, knockbackX: 4, knockbackY: vy < 0 ? -2 : 1,
+        color: "#8a7d6b", lifetime: 82, noHitstop: true, isSpecial: true,
+        vx: face * 9, vy, spawnX: originX, spawnY: originY
+      }, context)
+    })
+  })
+  if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickTojiVoice("combatBark"), null); fighter._atkVoiceCd = 150 } catch (_) {} }
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
 export function updateTojiCommandCombat(fighter, inputState, context, getPhase) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "toji" || !inputState) return false
   const opp       = context?.getOpponent?.(fighter)
@@ -7459,7 +7492,11 @@ export function updateTojiCommandCombat(fighter, inputState, context, getPhase) 
   if (next) return fireTojiCommand(fighter, next, context)
   const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
   const back     = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
+  const down     = !!inputState.down
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  // Down+Heavy = OFFENSIVE Fly Heads swarm (damaging projectile fan). Pure-down only (no diagonal) so it never
+  // steals Back+Heavy Handgun; distinct input from the defensive Back+Special swarm → both are independent.
+  if (canStart && grounded && down && !back && !forward && heavyEdge) return fireTojiFlyHeadBarrage(fighter, context)
   // Back+Heavy = Handgun poke (grounded). Checked before the Fwd opener; neutral heavy stays a normal.
   if (canStart && grounded && back && heavyEdge) return fireTojiGun(fighter, context)
   // Fwd+Heavy = A-B-C-A+B rekka opener (grounded). Consumes the press so the neutral heavy stays normal.
@@ -7577,14 +7614,16 @@ function fireTojiPlayfulCloud(fighter, context) {
   return true
 }
 
-// ── FLY HEADS (Stage 5, Back Special) — REDESIGNED as a pure VISION-DENIAL / DISRUPTION tool. Toji releases a
-// dense, screen-filling SWARM of shikigami fly-heads (many simultaneous fly_head.png instances) that CLUTTER
-// the shared view for a few seconds — the closest achievable version of the "opponent can't see" concept given
-// this game renders local 2P on ONE shared canvas (no split-screen → no literal per-player blind; see
-// tojiFlyHeadsSwarm.js). ZERO DAMAGE by construction: the swarm is a screen-space draw overlay, NOT projectiles,
-// so nothing here can touch a hurtbox — it is a disruption/chaos tool, never a damage source (explicit design).
-// Combat is NOT frozen: both players fight on, half-blind. Cast = hand-forward release gesture + the swarm. ──
-const TOJI_FLYHEAD_CD    = 300   // ~5s recast (swarm lasts ~3.3s → a real gap before it can be re-summoned)
+// ── FLY HEADS (Stage 5, Back Special) — REVISED as a self-VANISH / VISION-DENIAL tool. On cast, TOJI HIMSELF
+// fades to near-invisible (a heavy alpha ghost, ~14% opacity) for the whole window while a swarm of shikigami
+// fly-heads plays around him — the opponent loses track of exactly where he is. This is fully symmetric on the
+// shared 2P canvas (both players see the same faded Toji + flies) and reuses the engine's existing per-fighter
+// body-alpha hook (the same one Tobi's Kamui ghost / intro-reveal use — game.js `bodyAlpha`). The fade window
+// and the swarm run the SAME length (_tojiFlyFadeTimer, TOJI_FLY_FADE_DURATION). ZERO DAMAGE by construction:
+// the swarm is a screen-space draw overlay (never a hurtbox) and the fade is render-only — no i-frames, no
+// stat change, combat is NOT frozen (Toji fights on while faded). Cast = hand-forward release gesture. ──
+const TOJI_FLY_FADE_DURATION = 420   // ~7s of near-invisibility (inside the confirmed 5–10s window)
+const TOJI_FLYHEAD_CD    = TOJI_FLY_FADE_DURATION + 120   // recast only after the window ends + a ~2s real gap
 function fireTojiFlyHeads(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if ((fighter._flyHeadCd || 0) > 0) return false
@@ -7593,7 +7632,9 @@ function fireTojiFlyHeads(fighter, context) {
   fighter._spriteCastTimer = 26
   fighter.attackCooldown   = getAttackDuration(28, fighter)
   fighter._flyHeadCd       = TOJI_FLYHEAD_CD
-  activateTojiFlyHeadsSwarm()                    // dense screen-clutter overlay (0 damage; game.js updates/draws it)
+  fighter._tojiFlyFadeTimer = TOJI_FLY_FADE_DURATION   // render-only near-invisibility window (game.js bodyAlpha)
+  fighter._tojiFlyFadeMax   = TOJI_FLY_FADE_DURATION
+  activateTojiFlyHeadsSwarm(TOJI_FLY_FADE_DURATION)    // swarm plays around him for the whole fade (0 damage; game.js updates/draws it)
   try { shakeCamera(context, 3, 8) } catch (_) {}
   return true
 }
@@ -11486,14 +11527,16 @@ function applyEdoTensei(fighter, vesselKey, worldWidth) {
   fighter.dashTeleport     = !!vessel.movement?.dashTeleport
   fighter.runWhenAdvancing = !!vessel.movement?.runWhenAdvancing
   fighter.introPool        = vessel.introPool || null
-  // Part 2 — REANIMATION palette: any Edo Tensei vessel renders in the near-black desaturated "reanimated
-  // corpse" wash for the whole summon window, REGARDLESS of the vessel's own skin. Reuses the recolor
-  // skin-swap mechanism: _skinAnim = vessel anim retagged to __reanim sheets (generated per char). Stamping
-  // _recolorTag/_baseSkinAnim = "reanim" makes even a NESTED vessel transform (SSJ/Rose/etc) stay dark.
-  const reanimAnim         = retagFormAnim(vessel.animationData, "reanim")
-  fighter._skinAnim        = reanimAnim
-  fighter._baseSkinAnim    = reanimAnim
-  fighter._recolorTag      = "reanim"
+  // Part 2 — REANIMATION palette: any Edo Tensei vessel renders as a "reanimated corpse" for the whole summon
+  // window, REGARDLESS of the vessel's own skin. The vessel keeps its OWN base art; the undead read is produced
+  // LIVE — a sickly pale green-gray ctx.filter (EDO_REANIM_TINT, sprite.js) plus a procedural seam/mottle
+  // overlay (drawEdoReanimOverlay, game.js), both gated on _edoActive (so it holds through NESTED vessel
+  // transforms — SSJ/Rose, Ben10 aliens — which stay _edoActive). No pre-baked __reanim sheets → the treatment
+  // scales to any vessel with zero per-char art. (Superseded the old near-black __reanim sheet-swap.)
+  // Drop any skin override carried in from Tobirama so the vessel renders its clean base art under the tint.
+  fighter._skinAnim        = null
+  fighter._baseSkinAnim    = null
+  fighter._recolorTag      = null
   fighter.maxEnergy        = vessel.stats?.maxEnergy || fighter.maxEnergy || 200
   fighter.energyType       = vessel.traits?.energyType || fighter.energyType
   fighter.energy           = fighter.maxEnergy           // FRESH FULL bar = the window fuel; it drains over the summon and funds the borrowed kit

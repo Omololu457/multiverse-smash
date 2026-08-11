@@ -2591,10 +2591,10 @@ export function drawControlsInfo(ctx, canvas) {
 
   ctx.font      = "12px Arial"
   ctx.fillStyle = "rgba(255,255,255,0.82)"
-  ctx.fillText("Move: A/D  Jump: W  Down: Crouch/Block (hold S)", 32, panelY + 42)
-  ctx.fillText("Light: J  Heavy: K  Special: I  Ultimate: L", 32, panelY + 58)
-  ctx.fillText("Dash: Shift  Grab: Down+Light (S+J)", 32, panelY + 74)
-  ctx.fillText("Charge: C  Transform: U  Toggle: Q", 32, panelY + 90)
+  ctx.fillText("Move: A/D   Jump/Up: W   Crouch: S   Block: ;", 32, panelY + 42)
+  ctx.fillText("Light: J   Heavy: K   Special: L   Ultimate: U", 32, panelY + 58)
+  ctx.fillText("Grab: O   Charge: P   Dash: double-tap A/D", 32, panelY + 74)
+  ctx.fillText("Specials are directional — hold a dir + L", 32, panelY + 90)
   ctx.restore()
 }
 

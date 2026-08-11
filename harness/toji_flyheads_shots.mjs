@@ -28,8 +28,9 @@ async function bootVs() {
   await page.mouse.click(20, 20);
   await page.evaluate(() => { window.__harness.start({ mode: "vs", difficulty: "easy" }); window.__harness.skipToBattle(); });
   await sleep(300);
-  // Stand the opponent a short distance away so both fighters sit in the middle of the view (max visible clutter).
-  await page.evaluate(() => { const a = window.__harness.p1(); window.__harness.setP2X(a.x + 220); });
+  // Stand the opponent clear of Toji's reach (the ~7s live window means a stray cast could otherwise graze the
+  // easy AI and muddy the zero-damage proof — the swarm itself never damages; see test:toji + vanish test).
+  await page.evaluate(() => { const a = window.__harness.p1(); window.__harness.setP2X(a.x + 360); });
   await waitFrames(2);
 }
 
@@ -60,17 +61,25 @@ await waitFrames(70); s = await SWARM();
 ok(s.active, `swarm at PEAK coverage (frame ${s.frame})`);
 await page.screenshot({ path: path.join(OUT, "toji_flyheads_2_peak.png") });
 await page.keyboard.up("a");
+for (const k of ["a","d","w","s","j","k","l","i","u"]) await page.keyboard.up(k).catch(() => {});   // drop every held key so no stray cast/melee grazes the AI over the long live window
 
 // Proof it's non-damaging + non-projectile the whole time.
 let maxProjs = 0; for (let i = 0; i < 8; i++) { maxProjs = Math.max(maxProjs, (await PROJS()).filter(p => p.name === "tojiFlyHead").length); await waitFrames(2); }
 ok(maxProjs === 0, `NO fly-head projectiles exist (pure overlay) — max ${maxProjs}`);
 
-// DISPERSE — let it run out; combat was never frozen.
-await page.waitForFunction(() => !window.__harness.tojiFlyHeadsSwarm().active, null, { timeout: 8000, polling: 16 }).catch(() => {});
+// ZERO-damage proof isolated from live combat: park the opponent well clear + heal to full, THEN measure across
+// the dispersal. The swarm is a pure draw overlay, so a parked, un-engaged opponent must end exactly as it began
+// (avoids the pre-existing flake where a stray cast during the retry loop grazed the adjacent easy AI).
+await page.evaluate(() => { const a = window.__harness.p1(); window.__harness.setP2X(a.x + 560); window.__harness.healP2?.(); });
+await waitFrames(2);
+const hpBaseline = (await P2()).health;
+
+// DISPERSE — let the full ~7s window run out; combat was never frozen.
+await page.waitForFunction(() => !window.__harness.tojiFlyHeadsSwarm().active, null, { timeout: 14000, polling: 16 }).catch(() => {});
 s = await SWARM();
 const hpAfter = (await P2()).health;
 ok(!s.active, `swarm dispersed — view is clear again`);
-ok(hpAfter === hpBefore, `ZERO damage across the whole swarm (${hpBefore}→${hpAfter})`);
+ok(hpAfter === hpBaseline, `ZERO damage across the swarm (parked opponent ${hpBaseline}→${hpAfter})`);
 await page.screenshot({ path: path.join(OUT, "toji_flyheads_3_cleared.png") });
 
 console.log(`\n${pass} PASS / ${fail} FAIL` + (errors.length ? `\nERRORS:\n${errors.slice(0,6).join("\n")}` : "\nno page errors"));

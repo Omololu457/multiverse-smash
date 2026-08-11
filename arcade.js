@@ -56,7 +56,7 @@ export const ARCADE_RIVALS = {
   // Dragon Ball
   goku: "vegeta", vegeta: "goku", goku_black: "goku", beerus: "goku",
   // Jujutsu Kaisen
-  gojo: "sukuna", sukuna: "gojo", megumi: "sukuna", toji: "gojo", maki: "toji", yuji: "sukuna", miwa: "maki",
+  gojo: "sukuna", sukuna: "gojo", megumi: "sukuna", maki: "gojo", yuji: "sukuna", miwa: "maki",
   // Naruto
   naruto: "sasuke", sasuke: "naruto", itachi: "sasuke", tobirama: "madara", minato: "obito",
   madara: "naruto", obito: "minato", tobi: "naruto",

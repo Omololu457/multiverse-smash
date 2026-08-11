@@ -1,6 +1,6 @@
 # Character Balance Audit — Data Gathering (Diagnosis Only)
 
-**Scope:** the 8 sprite-complete characters (`hasSprites: true`): **Goku, Gojo, Megumi, Sukuna, Toji, Naruto, Sasuke, Rick**.
+**Scope:** the 8 originally sprite-complete characters: **Goku, Gojo, Megumi, Sukuna, Toji, Naruto, Sasuke, Rick**. (MK-feel Stage 5 sprite-flag-REMOVED Goku/Megumi/Toji → `hasSprites: false` = procedural box renderer; their `animationData` + all BALANCE data are KEPT, so every number below is unchanged — the flag only gates rendering, not gameplay.)
 **Sources:** all numbers pulled directly from `characters.js`, `abilities.js`, `combat.js`, `summons.js`, `kurama.js` — no estimates. Line refs are given where a value is not in the character's `characters.js` data block. All values re-verified against the current tree.
 **Line-ref note:** `combat.js`, `kurama.js`, `summons.js`, and `characters.js` refs are exact. `abilities.js` and `game.js` refs were captured before the beta-input commit (`10fa473`), which shifted them — **add ~59 to any `abilities.js` line, ~16 to any `game.js` line** to locate it in the current tree (e.g. `executeRickUltimate` cited `:2391` is now `:2450`; Naruto ult cost `:833` is now `:892`; the DOT tick `game.js:1919` is now `:1935`). Values are unaffected.
 **Status:** NOTHING is rebalanced here. This is diagnosis. Report back before any number changes.
@@ -22,8 +22,8 @@ The in-code comment claims it scales *"every point of dealt damage (melee, proje
 | Melee normals / specials (`createAttackFromMove`) | ✅ ×0.60 (+ `offenseMult`) | `combat.js:621-627` |
 | Projectiles (Rasengan, Rocket, shuriken, clone hits) | ✅ ×0.60 | `combat.js:934` |
 | Throws / grabs | ✅ ×0.60 (melee `cat`) | `combat.js:621` |
-| **Summons** (Megumi's dogs/nue/toad/elephant; Rick's Meeseeks) | ❌ **RAW** | `summons.js:442` |
-| **Manual-damage ultimates** (Rick Self-Destruct 180; Kurama TBB 600) | ❌ **RAW** | `abilities.js:2436`, `kurama.js:244` |
+| **Summons** (Megumi's dogs/nue/toad/elephant; Rick's Meeseeks) | ✅ **×0.60 since MK-feel Stage 1a** (sole summon hit-site now routes through `applyScaledDamage`; Megumi reconciled in Stage 3c) | `summons.js:503` |
+| **Manual-damage ultimates** (Rick Self-Destruct 180; Kurama TBB 600) | ✅ **×0.60 since MK-feel Stage 1a** (both route through `applyScaledDamage`; Kurama TBB reconciled Stage 3b, Rick Self-Destruct Stage 3d — Rick now ALSO pays a 15% self-HP cost) | `kurama.js:263`, `abilities.js:12788` |
 | **DOT ticks** (Rasenshuriken wind-chip) | ❌ **RAW** | `game.js:1919` |
 
 **Consequence:** any character who deals damage through summons, manual-subtract ults, or DOT is effectively hitting **1.667× harder** relative to everyone whose damage runs through the scaled melee/projectile pipeline. This is the single biggest systemic finding in this audit, and it is flagged again in the Outliers section. **Two number sets are given below: RAW (as authored) and EFFECTIVE (what the engine actually subtracts from HP).**
@@ -34,7 +34,7 @@ The in-code comment claims it scales *"every point of dealt damage (melee, proje
 
 | Char | HP | Max Energy | Energy type | Atk | Def | Spd | Mobility | Primary archetype |
 |---|---:|---:|---|---:|---:|---:|---|---|
-| Toji | **1260** | **0** | none | 96 | 89 | **98** | very_high | melee / speed |
+| Toji | **1050** | **0** (Heavenly Restriction, no cursed energy) | none | **98** | 82 | **98** | very_high | melee / speed |
 | Sukuna | 1240 | 210 | cursed energy | **95** | 87 | 86 | high | melee / curse |
 | Goku | 1200 | 200 | ki | 92 | 86 | 88 | high | melee / transform |
 | Naruto | 1180 | 190 | chakra | 89 | 84 | 90 | high | melee / summons / ranged |
@@ -45,6 +45,36 @@ The in-code comment claims it scales *"every point of dealt damage (melee, proje
 | Netero | **980** | 150 | nen | **98** | 82 | 94 | high | melee / speed |
 
 HP spread = **210 (1050 → 1260)** for the original 8; Netero (added 2026-07-22) drops the floor to **980** → spread **280**.
+
+> **Toji Fushiguro (JJK) — REBUILT 2026-08-11 on a fresh asset set.** The "peerless physical combatant" —
+> ZERO cursed energy (Heavenly Restriction) traded for top-tier speed + hard-hitting normals, with a **novel
+> two-stage COMEBACK as his survivability instead of raw bulk.** THE deliberate mechanic-outlier of the roster.
+> - Core: **HP 1050 · Energy 0 · Atk 98 · Def 82 · Spd 98 · very_high mobility.** Speed **98 ties the roster
+>   ceiling** (Maki/Minato — the teleport-blur gate). Atk **98 ties Netero's ceiling** (top of band). HP **1050 =
+>   glass-cannon band** (tied 2nd-frailest of the melee crowd: above Netero 980 / Beerus 1000, below Maki 1180) —
+>   DELIBERATELY low so the comeback, not bulk, is his durability. Def 82 low-mid. No energy meter (`hideResourceMeter`).
+> - **Damage pipeline is HONEST — no GLOBAL_DAMAGE_SCALE bypass.** Every normal, the A-B-C-A+B rekka, all 5
+>   specials (Split Soul / Rapid Slashes / Chain of a Thousand Miles / Playful Cloud / Fly Heads swarm) and the
+>   Handgun bullet route through `createAttackFromMove` / `spawnProjectile` → all ×0.60 scaled. The Reincarnated
+>   Form is a **buff-mode** (×1.25 dmg via `damageMultiplier`, so its output is his normal scaled attacks × 1.25) —
+>   it does NOT manual-subtract HP like Rick/Kurama. So Toji sits on the honest side of the §damage-scale finding.
+> - **THE OUTLIER = the two-stage comeback (two free extra lives per round).** No close precedent: the nearest
+>   comparisons are single-trigger (Gon Adult-Form sudden-death; Maki ≤25%-HP Shibuya). Toji gets TWO auto-saves:
+>   1st zero-HP → 25% HP (no transform); 2nd zero-HP → Reincarnated Form (×1.25/1.1/1.08) + 40% HP; 3rd → normal KO.
+>   **Scrutiny — is this oppressive?** Mitigations that keep it fair: (1) **base HP is floor-tier (1050)** — each
+>   "life" is a *small* HP bar, so the total effective HP across all 3 bars ≈ 1050 + 262 + 420 ≈ **1732**, which is
+>   BELOW Superman's single 1450×(def 92) effective tankiness and only ~1.2× a normal fighter's bar — spread across
+>   three burn-downs the opponent gets THREE damage-race resets, not a wall. (2) **No i-frame abuse** — the save
+>   grants only ~40f of invuln to recover, not a full reversal. (3) **Def 82 + no meter** — he can't stall or
+>   stockpile; between saves he's as killable as any glass cannon. (4) **The Reincarnated buff is modest** (×1.25,
+>   same class as Maki Shibuya ×1.25) and only arrives on the *2nd* save (i.e. when he's already been beaten twice).
+> - **VERDICT: deliberate mechanic-outlier, internally consistent — NOT a stat-power outlier.** Recommended tuning
+>   knobs, in order, IF playtests read the two lives as too safe: **(a) lower SAVE-2 from 40% → ~30%** (the biggest
+>   single lever; save-1 25% is already lean); **(b) drop the per-round reset to per-match** (2 lives for the whole
+>   best-of-3 instead of per round — this is the largest nerf and matches the original brief's "per match" wording);
+>   **(c) trim base Atk 98 → 96** only if his per-hit *and* comeback together over-perform. Do NOT also raise base HP —
+>   the low HP is the counterweight that makes the comeback fair. **Save-% and per-round-vs-per-match are the two
+>   open design decisions flagged for sign-off** (current build: 25% / 40% / per-round).
 
 > **Netero (Hunter x Hunter) — added 2026-07-22.** Deliberate glass-cannon speedster. Two intended outliers, internally consistent (extreme risk/reward, no defensive tools):
 > - **Atk 98 = new roster ceiling** (above Toji 96, Sukuna 95) — highest attack on the roster.
@@ -143,6 +173,14 @@ HP spread = **210 (1050 → 1260)** for the original 8; Netero (added 2026-07-22
 > - **⚠️ OUTLIER 2 — KAMUI TELEPORT GRAB (non-damage position payload).** A genuinely new grab OUTCOME type (the pipeline previously only ever *damaged* on release — combat.js `_grabTeleport` is the new stamp-and-clear override, guarded so normal grabs still throw for damage: Madara/Susanoo grab tests stay green). On a clean grab it warps the opponent to a random far point, **dealing 0 damage.** **Why it is NOT a power outlier:** the payoff is **disruption, not damage** — a full-screen neutral reset (like Rick's Portal-Push, but Push *does* deal 65; Obito's deals nothing). It costs a close-range grab read (reach 82, techable) for a purely positional reward. **Verdict: a UTILITY/disruption outlier, LOW power (0 dmg).** **Watch-item, not a fix:** if the full-screen reset proves too oppressive as a repeatable neutral-skip in playtests, add a cooldown or shorten the grab reach before anything else — there is no damage to nerf.
 > - **Overall verdict: fair evasive-zoner/disruptor, no per-move damage nerf needed.** No stat records; scaled bread-and-butter; precedented cinematic ult. The two novel mechanics are both **utility, not power**, and each is self-limited (intangibility by drain+melee-drop; the grab by dealing no damage + a techable close read). Filed as deliberate, internally-consistent NEW-mechanic outliers — flagged for playtest scrutiny, not fixed. Full 66-file utilization in OBITO_ASSET_MAP.md.
 
+> **Pain / Nagato's Deva Path (Naruto — 8th of the universe, 30th sprite char) — added 2026-08-10.** A gravity zoner + Akatsuki summoner. **A LARGE kit (Madara/Ichigo/Tobi-class scope exception, confirmed): 6 normals + a Fwd+Light command normal + a Fwd+Heavy 3-hit rekka + 4 separate specials (Almighty Push / Pull / Super Push / Dedera Double Attack) + a 5-option "Six Paths Summon" assist system + a freeze-cinematic ultimate.** Same confirmed exception precedent as Madara (every real special-tier file earns its own slot). **ZERO stat outliers; honest scaled bread-and-butter; ONE scaled cinematic ult (routed through the choke-point, NOT manual-subtract); the breadth is VERSATILITY, throttled by a shared chakra pool + assist cooldown — NOT raw power. ONE watch-item flagged (assists are cooldown-only, no energy cost).**
+> - Core: **HP 1150 · Energy 210 chakra · Atk 90 · Def 84 · Spd 90 · spriteScale 2.0.** All INSIDE existing bands, NO records — HP 1150 = Obito/Tobi (below Sasuke/Madara 1180); **Energy 210 sits between Ichigo/Goku 200 and Gojo/Madara 220** (deep pool to feed the large kit, NOT a ceiling); Atk 90 = Obito/Tobi (base Atk does NOT scale damage — flavor); Def 84 = shinobi band (below Toji 89 / Superman 92); **Spd 90 = Naruto/Sasuke — deliberately NOT the teleport-tier** (below Madara/Rengoku 92; he is a grounded gravity zoner, not a speedster). No stat outlier.
+> - Bread-and-butter: 6 scaled normals (light 40 → heavy 88 rod-thrust / up 64 launcher / airAttack 54 / airHeavy 80 / downAir 52 spike) + a Fwd+Light command jab (34) + a Fwd+Heavy 3-hit rekka (30+36+58 RAW, cancel-on-hit, launcher finisher) — all honest ×0.60 pipeline (measured combo confirm ~195 over the string). Heavy 88 RAW ties the shinobi-bruiser band (Zenitsu 90 / Vegeta ~), below Sukuna. In-band.
+> - Specials (all metered, scaled): **Almighty Push** (neutral, 30 chakra) = a formless range-checked repulsion — ~54 EFF + big knockback (no projectile, canon-shaped); **Almighty Pull** (Back, 32) = a reel-toward command grab reusing the shared `_grabPull` reel (~27 EFF + reposition, like Hisoka's Bungee Gum); **Super Almighty Push** (Down, 55) = stronger shove ~79 EFF + a debris ground shockwave; **Dedera Double Attack** (Fwd, 42) = a sequenced clay-bird projectile (~55 EFF, explosion-on-connect). Costs 30–55 out of 210 — squarely the shinobi special band.
+> - **Ultimate = Chibaku Tensei** (cast → black-sphere growth → slam → flat/dome/flame-pillar ground effect freeze-cinematic): **360 RAW → 216 EFF — routed through `applyScaledDamage` (the choke-point), NOT a manual-subtract unscaled sure-hit** (block chips to 25%), cost 100. Effective 216 = Tobi/Obito Juubi 216 (both 360×0.60), just above Madara Tengai 204 — **squarely the cinematic-ult band, and honestly SCALED (arguably the most conservative of the recent cinematic ults).** Duplicate-render guard verified in `test:pain` (single struck-once payoff, caster single-bodied, clean end).
+> - **⚠️ WATCH-ITEM — the Six Paths assist system is COOLDOWN-ONLY (no energy cost).** Five summon options (Itachi/Konan/Sasori/Sasuke/Tobi) on `Charge + slot`, each a small rush-in summon-class direct (~52–64 RAW → ~31–38 EFF, `oneHit`, puff-despawn) sharing ONE 150f (~2.5s) cooldown. **Why it is NOT degenerate:** the shared cooldown means only ONE assist every 2.5s (can't stack the Paths), each is summon-class low damage, and the selector is a deliberate `Charge`-modifier gesture (doesn't crowd the Special/Ultimate/Grab buttons). **But** they're FREE (cooldown-gated, not chakra-priced) — the one deviation from the metered rest of the kit. **Verdict: versatility utility, low power, but flag the free-ness.** **Watch-item, not a fix (diagnosis-only pass):** if playtests read the assists as too available, the lever is a **small chakra cost per call** (10–20) before touching the damage or the 2.5s cooldown.
+> - **Overall verdict: fair VERSATILITY outlier (Madara/Ichigo/Tobi class), not a power outlier — no per-move damage nerf needed.** Every tool is scaled/in-band with no stat records; specials are metered 30–55; the ult is honestly scaled (216 EFF); the **shared 210 chakra pool is the self-limiting throttle** for the offensive kit. The ONE thing that stands apart is the cooldown-only (free) assist system — flagged as the tuning surface. **Watch-items, not fixes:** (1) assist energy cost (above); (2) Almighty Pull → guaranteed follow-up: the reel sets up a free mixup on a 32-chakra grab — if it reads as too plus, the reel `gap`/hitstun are the knobs. Full 40-file utilization in `PAIN_ASSET_MAP.md`; canonical `test:pain` = 41/0 (every move + all 5 assists + the ult + the duplicate-render guard).
+
 ---
 
 ## 2. Basic-attack frame + damage data (RAW)
@@ -181,14 +219,15 @@ RAW = authored. EFF = actually subtracted from HP (×0.60 unless the path bypass
 | hollowPurple | 200 | 120 | 70 | 31.8% | **20/6/30** |
 | Unlimited Void ult | *domain, Infinity auto-dodge* | — | 100 | 45.5% | — |
 
-### Megumi (maxEnergy 210) — 🔓 summons bypass the 0.60 scale (RAW = EFF)
-| Move | RAW=EFF 🔓 | Cost | Cost% | s/a/r | cooldown |
-|---|---:|---:|---:|---|---:|
-| divineDogs | **95** | 20 | 9.5% | 10/5/18 | 120 |
-| nue | **110** | 25 | 11.9% | 14/5/20 | 160 |
-| toad | 70 | 20 | 9.5% | 12/6/19 | 140 |
-| rabbitEscape | 20 | 15 | 7.1% | 9/18/14 | 180 |
-| maxElephant | **145** | 35 | 16.7% | 20/6/26 | 240 |
+### Megumi (maxEnergy 210) — summons now scaled (MK-feel Stage 3c: the 🔓 bypass is CLOSED)
+**Stage 3c (2026-08-10):** Megumi's summon route was the audit's flagged 🔓 bypass. Stage 1a already routed every summon hit through `applyScaledDamage(summon.target, summon.damage, {source:"summon"})` (`summons.js:503`, the SOLE summon damage site — no projectile/AOE/manual-subtract path exists), so the RAW values below now land at **×0.60**. Verified: `test:damage-scale` `summon raw=100 scale=0.6 dealt=60`. User chose ACCEPT-1a-scaling (no additional raw cut). His marquee two-summon route drops from **255 RAW = 255 EFF** to **255 RAW → 153 EFF** — he no longer punches above tier.
+| Move | RAW | EFF (×0.60) | Cost | Cost% | s/a/r | cooldown |
+|---|---:|---:|---:|---:|---|---:|
+| divineDogs | 95 | **57** | 20 | 9.5% | 10/5/18 | 120 |
+| nue | 110 | **66** | 25 | 11.9% | 14/5/20 | 160 |
+| toad | 70 | **42** | 20 | 9.5% | 12/6/19 | 140 |
+| rabbitEscape | 20 | **12** | 15 | 7.1% | 9/18/14 | 180 |
+| maxElephant | 145 | **87** | 35 | 16.7% | 20/6/26 | 240 |
 | Chimera Shadow Garden (domain) | 0 dmg (restrain-only) | 100 | 47.6% | — | — |
 
 Chimera Shadow Garden is a **control** ult: a whole-map Domain Expansion (~15s) that applies a movement penalty to the opponent (`domains.js` megumi branch). No chip/sure-hit damage and no transform — Megumi keeps his summon kit. Cheaper than Gojo/Sukuna's full-bar domains by design (flat 100 EN) since it deals no damage.
@@ -200,7 +239,8 @@ Chimera Shadow Garden is a **control** ult: a whole-map Domain Expansion (~15s) 
 | dismantle | 140 | 84 | 35 | 16.7% | 10/5/20 |
 | Malevolent Shrine ult | *domain* | — | 100 | 47.6% | — |
 
-### Toji (maxEnergy 0) — **every ability costs 0**; the only cost is frame commitment
+### Toji (maxEnergy 0) — Stage 3a: SPECIALS + ULT now draw a cursed-tool DURABILITY meter (max 100, ~0.12/f regen); stance normals + teleport-strike stay free
+_The `Cost: 0` figures below are the pre-3a state; specials now cost durability (inventory 40 / chain 34 / curse 24 / rapid 18 / ult 55, fizzle below cost) + the ult takes a 45s lockout. Effective damage numbers are unchanged._
 | Move | RAW | EFF | Cost | s/a/r | src |
 |---|---:|---:|---:|---|---|
 | inventorySmash (special) | 155 | 93 | **0** | 8/5/18 | `abilities.js:1247` |
@@ -224,9 +264,9 @@ Chimera Shadow Garden is a **control** ult: a whole-map Domain Expansion (~15s) 
 | darkRasengan (AOE) | 180 | 108 | 45 | 23.7% | 12/8/22 |
 | kawarimi (defensive) | 0 | 0 | 25 | 13.2% | 6/0/20 |
 | shadowCloneBlast | 80 | 48 | 25 | 13.2% | 8/6/16 |
-| **Kurama Avatar ult** (TBB, 🔓 raw, guaranteed) | **600** | **600** 🔓 | 95* | 50% | cinematic + **2400f/40s recast** (was 4800f/80s) |
+| **Kurama Avatar ult** (TBB, guaranteed) | **600** | **360** (×0.60 since Stage 1a) | 95* | 50% | cinematic + **2400f/40s recast** (was 4800f/80s) |
 
-\* `characters.js` declares `cost:100`, but `abilities.js:833` spends `ceil(maxEnergy×0.5) = 95`. **Discrepancy — flag.** Blocked TBB still deals `600×0.20 = 120` (`kurama.js:75`).
+\* `characters.js` declares `cost:100`, but `abilities.js:833` spends `ceil(maxEnergy×0.5) = 95`. **Discrepancy — flag.** Blocked TBB now deals `round(600×0.20)×0.60 = 72` effective (`kurama.js:76` ratio × the Stage-1a scale). **MK-feel Stage 3b (2026-08-10):** TBB is no longer a raw-damage bypass — Stage 1a routed it through `applyScaledDamage` (`kurama.js:263`), so the marquee 600 lands as **360 effective** (blocked 72). Accepted as the Stage-3b nerf (no dodge-QTE / no chip-ratio change).
 \*\* **Recast retune (2026-07-24):** Naruto's ult uses a bespoke `NARUTO_KURAMA_RECAST_FRAMES` instead of the universal 1200f/20s. Cut **4800f/80s → 2400f/40s** — see §Naruto-ult-retune below.
 
 ### Sasuke (maxEnergy 190). Susanoo attacks fire on the SPECIAL button while in-form.
@@ -242,19 +282,20 @@ Chimera Shadow Garden is a **control** ult: a whole-map Domain Expansion (~15s) 
 | Susanoo Lv2 **sword** | 265×1.9×0.60 | **~302** | (in-form, free) | — | 14/10/24 | `:2109` |
 | Susanoo Lv2 arrow (proj) | 230×0.60 | **138** | (in-form, free) | — | cd26 | `:2093` |
 
-Susanoo is a **sustained form**: `SUSANOO_DURATION_FRAMES = 1200` (~20s). One up-front energy cost buys ~20s of otherwise-free giant attacks. Its Lv2 sword (~302 eff) is the single hardest hit any of the 8 has that runs through the scaled pipeline.
+Susanoo is a **sustained form**. **MK-feel Stage 3e (2026-08-10):** the sustained-value outlier was the *window length* — one up-front cost bought ~20s of otherwise-free giant attacks. The form is now shortened to **`SASUKE_SUSANOO_DURATION_FRAMES = 800` (~13.3s)** — a Sasuke-specific constant, so the shared `SUSANOO_DURATION_FRAMES` (1200) still governs Itachi + Netero Guanyin (not flagged, no collateral nerf). Lv1+Lv2 share the one window (Stage 2 does not reset it). The swings stay FREE by design — a per-swing energy cost would brick Lv2, which drains energy to 0 on escalation; cutting the window is the clean lever. Its Lv2 sword (~302 eff) is still the hardest scaled hit, but the total free-offense budget drops ~1/3. Verified `test:stage3e-sasuke` 10/0 (incl. Itachi-not-nerfed proof).
 
-### Rick (maxEnergy 160) — 🔓 Meeseeks & Self-Destruct bypass the 0.60 scale
-| Move | RAW | EFF | Cost | Cost% | s/a/r | src |
+### Rick (maxEnergy 160) — bypass CLOSED (Stage 1a scaled the whole kit; Stage 3d redistributes)
+**Stage 3d (2026-08-10):** every 🔓 flag below is now STALE — Stage 1a routed Rick's whole kit through the choke-point (Meeseeks via `summons.js:503`; Portal-Pull/Push via the `_portalDrop` resolver `game.js:6084`; Self-Destruct via `applyScaledDamage` `abilities.js:12788`). So the EFF column dropped across the board — which made the roster-floor problem WORSE, hence the Stage-3d redistribution: **nerf the risk-free gimmick nuke, buff the under-tuned neutral.**
+| Move | RAW | EFF (×0.60) | Cost | Cost% | s/a/r | src |
 |---|---:|---:|---:|---:|---|---|
-| Meeseeks Box (summon, **uncapped**) | 45 | **45** 🔓 | 30 | 18.75% | one-hit | `abilities.js:2383` |
-| Rocket (up+SP, proj) | 95 | 57 | 40 | 25% | proj | `:2367` |
-| Portal-Laser (down+SP, proj) | 20 | 12 | **0** | 0% | proj | `:2337` |
-| Portal-Pull (qcf, manual 🔓) | 42 | **42** 🔓 | 35 | 21.9% | — | `:2299` |
-| Portal-Push (qcb, manual 🔓) | 65 | **65** 🔓 | 45 | 28.1% | — | `:2317` |
-| **Self-Destruct ult** (🔓 raw, **instant**) | **180** | **180** 🔓 | 140 | **87.5%** | **0 startup** | `:2391` |
+| Meeseeks Box (summon, **uncapped**) | 45 | **27** | 30 | 18.75% | one-hit | `summons.js:503` |
+| Rocket (up+SP, proj) | 95 | 57 | 40 | 25% | proj | `abilities.js` |
+| Portal-Laser (down+SP, proj) | 20 | 12 | **0** | 0% | proj | `abilities.js` |
+| Portal-Pull (qcf) | 42 | **25** | 35 | 21.9% | — | `game.js:6084` |
+| Portal-Push (qcb) | 65 | **39** | 45 | 28.1% | — | `game.js:6084` |
+| **Self-Destruct ult** (instant, **+15% self-HP cost**) | **180** | **108** | 140 + **~158 HP** | **87.5%** | **0 startup** | `abilities.js:12788` |
 
-Meeseeks `maxSimultaneous: 99` — energy is the only limiter, they can stack. Self-Destruct: instant same-frame proximity AOE (220px), **Rick takes no self-damage**, no vulnerability state set (`:2415`).
+Meeseeks `maxSimultaneous: 99` — energy is the only limiter, they can stack. **Self-Destruct (Stage 3d):** instant same-frame proximity AOE (220px), opponent damage **180 RAW → 108 EFF**; it is no longer risk-free — detonating costs Rick **15% of max HP (~158, non-lethal, floors at 1)** applied on cast (even on a whiff), on top of the 140 meter. The audit's "meter is the only lever / Rick takes no self-damage" finding is resolved. **Neutral buff (roster-floor fix):** light 34→40 (EFF 24), heavy 60→72 (EFF 43), speed 80→84 — lifted off the absolute floor while keeping the frail weak-backup-melee zoner identity (HP 1050 / def 78 kept). Verified `test:stage3d-rick` 15/0.
 
 ---
 
@@ -273,17 +314,17 @@ Combos computed from the actual move data and how they chain in code, not summed
 | **Naruto** | Full Rasengan Barrage #19: anchor 90 + 3 clone hits ×70 | **300** | 180 |
 | Naruto | rasenshuriken + DOT (260 + 🔓40) | 300 | **196** |
 | Naruto | Combined Rasengan #20 (single 200 guaranteed) | 200 | 120 |
-| Naruto (ult) | Kurama TBB (🔓 raw) | **600** | **600** |
+| Naruto (ult) | Kurama TBB (scaled since Stage 1a) | **600** | **360** |
 | **Sukuna** | heavy→cleave (100+160) | 260 | 156 |
 | **Goku** | heavy→dragonFist (85+150) | 235 | 141 |
 | **Gojo** | red→hollowPurple confirm (130+200), or heavy→hollowPurple | ~285 | ~171 |
-| **Megumi** | 🔓 maxElephant + nue chained summons (145+110) | 255 | **255** 🔓 |
-| **Rick** | 🔓 Self-Destruct point-blank (instant, 180 raw) | 180 | **180** 🔓 |
-| Rick (neutral) | heavy→rocket (60+95→57) | 155 | ~93 |
+| **Megumi** | maxElephant + nue chained summons (145+110), scaled since Stage 1a | 255 | **153** |
+| **Rick** | Self-Destruct point-blank (scaled Stage 1a; +15% self-HP cost Stage 3d) | 180 | **108** |
+| Rick (neutral) | heavy→rocket (72+95→57) | 167 | ~100 |
 
 \* later combo hits taxed by `getComboScale` — EFF is a fresh-combo upper bound.
 
-**Read:** in RAW terms Naruto (300 route / 600 ult) and Sasuke Susanoo (265 sword) top the chart. But once the 0.60 scale is applied to everyone-who-gets-scaled, **Megumi's 255 summon route and Rick's 180 Self-Destruct are delivered at full RAW** — they punch far above their apparent tier.
+**Read:** in RAW terms Naruto (300 route / 600 ult) and Sasuke Susanoo (265 sword) top the chart. **As of MK-feel Stage 3 the §"global damage scale" bypass is fully CLOSED** — Kurama TBB (600 → **360 EFF**, Stage 3b), Megumi's summon route (255 → **153 EFF**, Stage 3c), and Rick's Self-Destruct (180 → **108 EFF**, + a 15% self-HP cost, Stage 3d) all scale like everything else. No move now delivers raw-past-scale damage. Rick's neutral was buffed off the floor in the same stage.
 
 ---
 
@@ -349,12 +390,12 @@ Ranked; higher = more damage per point of meter. Toji excluded (zero-cost = infi
 
 **Rick (1050 HP) — is he compensated, or strictly worse?**
 
-Against the field Rick is the **simultaneous floor** on HP (1050), attack (82), defense (78), speed (80), basic-attack damage (light 34 / heavy 60), and damage-per-energy (bottom 4 slots). His genuine edges:
-- 🔓 **Self-Destruct** — instant, 180 RAW, no self-damage (a real, unique panic/kill button).
-- 🔓 **Uncapped Meeseeks** — RAW-bypass summons that can stack (`maxSimultaneous 99`).
-- **Portal-Behind teleport** + full projectile zoning kit (Rocket / Portal-Laser / Pull / Push), two of which (Pull/Push) are RAW-bypass.
+Against the field Rick WAS the **simultaneous floor** on HP (1050), attack (82), defense (78), speed (80), basic-attack damage (light 34 / heavy 60), and damage-per-energy (bottom 4 slots). His genuine edges:
+- **Self-Destruct** — instant panic/kill button. **Stage 3d:** scaled to 108 EFF (1a) AND now costs 15% self-HP — a committed high-risk nuke, not a free one.
+- **Uncapped Meeseeks** — summons that can stack (`maxSimultaneous 99`); now scaled (27 EFF each, 1a).
+- **Portal-Behind teleport** + full projectile zoning kit (Rocket / Portal-Laser / Pull / Push) — all now scaled (1a).
 
-**Verdict for the follow-up decision:** Rick is **not strictly worse** — his bypass-scale ult + uncapped summons + teleport give him a distinct, functional zoner identity. But his *neutral game* (lowest HP + lowest attack + lowest speed + weakest normals + worst DPE, all at once) is genuinely under-tuned, and his compensations are concentrated in two gimmicks (a 140-cost ult and summon spam) rather than spread across his kit. He is the roster's clearest "high-variance, low-floor" outlier and the most likely to need a look — flagged, not fixed.
+**Verdict — RESOLVED in MK-feel Stage 3d (2026-08-10):** the diagnosis held — Rick's compensations were gimmick-concentrated and his neutral was under-tuned, made worse once 1a scaled his whole kit down. Stage 3d **redistributed** rather than piled on: the risk-free gimmick nuke gained a real cost (15% self-HP), and his neutral was lifted off the floor (light 34→40, heavy 60→72, speed 80→84). He keeps the frail-zoner identity (HP 1050 / def 78) but is no longer the simultaneous floor on normals + speed, and his power is now spread across the kit instead of concentrated in two gimmicks. `test:stage3d-rick` 15/0.
 
 ---
 
@@ -366,13 +407,13 @@ Against the field Rick is the **simultaneous floor** on HP (1050), attack (82), 
 
 3. 🚩 **Rick Self-Destruct — zero-startup, no-self-damage, bypass-scale burst.** 180 RAW delivered instantly with no vulnerability window. Uniquely low-risk payout; only lever holding it is the 87.5%-meter cost + proximity. Explicitly the kind of move the brief asked to flag.
 
-4. 🚩 **Toji pays nothing, ever.** `maxEnergy: 0` → inventorySmash (93 eff), a 158-raw rekka string, and a 1.6×/1.8× ultimate all cost **0 energy**. Every other character rations a meter; Toji's only currency is frame commitment. His DPE is literally infinite and he *also* has the best normals and top HP/speed. No resource downside anywhere in his kit.
+4. ✅ **Toji pays nothing, ever** — *FIXED (MK-feel Stage 3a).* Was: `maxEnergy: 0` → inventorySmash, rekka, and the 1.6×/1.8× ultimate all cost 0; infinite DPE + best normals + top HP/speed. Now: keeps `maxEnergy: 0` (flavor) but his **special-button specials + ultimate draw a cursed-tool DURABILITY meter** (max 100, ~0.12/frame regen ≈ 14s empty→full; costs inventory 40 / chain 34 / curse 24 / rapid 18 / ult 55 — below cost the move fizzles), the **ultimate is on a 45s lockout** (2700f, vs the 20s universal), and **HP 1260 → 1120** (no longer the roster ceiling). Effective per-move damage is UNCHANGED (still RAW×0.60); the fix is the resource economy, not the numbers. His DPE is now finite and rationed like everyone else. (The stance command-normals + the teleport-strike movement tech stay free — they are normals, not specials.)
 
 5. 🚩 **Naruto Kurama ult = 600 RAW, guaranteed, bypass-scale.** ~3× the effective damage of the next-biggest scaled hit (Sasuke's ~302 sword), unavoidable (block only chips to 120), for 95 energy (DPE 6.32, highest in roster). The single most valuable button in the game — *per cast*. Its old **80s recast** (4× the universal 20s) was the counterweight, but it over-corrected: on a damage-per-cooldown basis the TBB sat BELOW Rick/Sasuke ults at 80s, so it *felt* nerfed despite the huge payload. **Retuned to 40s** (§Naruto-ult-retune) — the per-cast value stays flagged-high, but the availability is now in line with the pack.
 
-6. **Sasuke Susanoo economics.** One up-front cost buys ~20s of free giant attacks topping ~302 eff/sword — a sustained-form value structure that doesn't compare cleanly to the per-cast meter economy every other character uses.
+6. **Sasuke Susanoo economics. ✅ RESOLVED (MK-feel Stage 3e).** One up-front cost bought ~20s of free giant attacks topping ~302 eff/sword — a sustained-form value structure that didn't compare cleanly to the per-cast meter economy. Fixed by shortening the free window: `SASUKE_SUSANOO_DURATION_FRAMES` 1200→800 (~20s→~13.3s), Sasuke-only (Itachi/Netero keep the shared 1200). Swings stay free by design (per-swing energy would brick Lv2's drain-to-0); the ~1/3 shorter window is the lever. `test:stage3e-sasuke` 10/0.
 
-7. **Rick — low floor (see §7).** Bottom of the roster on HP/atk/def/spd/normals/DPE at once; compensations exist but are gimmick-concentrated.
+7. **Rick — low floor. ✅ RESOLVED (MK-feel Stage 3d).** Was bottom of the roster on HP/atk/def/spd/normals/DPE at once with gimmick-concentrated compensations. Fixed by redistribution: Self-Destruct gained a 15% self-HP cost (no longer a risk-free nuke) and his neutral was lifted off the floor (light 34→40, heavy 60→72, speed 80→84). Keeps the frail-zoner identity; no longer the simultaneous floor.
 
 8. **Data-block vs runtime discrepancies (accuracy, not balance):**
    - Naruto ult `cost:100` declared, **95 spent** in code (`abilities.js:833`).
@@ -431,3 +472,33 @@ projectile (discharge / redirect / overload) via `spawnProjectile` (`combat.js:9
 
 **Verdict:** honest-pipeline character on the scaled side of the roster; no GLOBAL_DAMAGE_SCALE bypass.
 The absorb counter is the only notable mechanic and is well-counterplayed. No fixes required.
+
+---
+
+## Combo-String Standardization (2026-08-10) — balance impact
+
+Roster-wide combo-string standardization (COMBO_STANDARDIZATION_AUDIT.md, Stages A–G). Full-effort
+verdict: **standardization TOWARD the roster norm, not power-creep.** No damage values were changed;
+the net buffs move under-equipped characters UP to parity with peers who already had the same tool, and
+every gain stays bounded by the roster's shared systems: combo-decay (`COMBO_DAMAGE_CURVE`), the single
+−26 launch floor (all launchers), `maxAirHits=3`, the jump-cancel execution requirement, and cancel-on-hit
+gating (a whiff/block ends any string).
+
+- **Stage B — 8 opener conversions (netero/killua/hisoka/flash/gon/batman/zenitsu/ghostface):** Down+Heavy
+  → Forward+Heavy. Input-direction ONLY — zero frame/damage change; the deterministic step-in glide
+  (`COMBO_STEP_IN_VX`) is retained. **Balance-NEUTRAL.**
+- **Stage C — 5 finishers now LAUNCH (shinobu/inosuke/tobirama/netero/ghostface):** was `category:"heavy"`,
+  now `launcher:true`. Grants each a grounded-chain → air-combo conversion it lacked. Finisher DAMAGE is
+  unchanged (only the launch flag); it pops to the shared −26 floor, needs a jump-cancel, and juggle hits
+  are combo-decay-scaled. This brings the 5 to **parity** with the ~20 rekka chars whose finishers already
+  launched. Maki stays a heavy-ender **exception** (her tight cancel-window is the tradeoff). **Fair — parity.**
+- **Stage D — 8 new melee strings (itachi/yuji/goku_black/cell/tobi/morty/albedo/omololu):** added to the
+  shared `STANDARD_STRING_CHARS`, gaining the Light→Light→Heavy(→launcher) dial-a-combo. It reuses each
+  char's OWN existing normals (light/light/upAttack) — **no new or stronger moves** — cancel-on-hit,
+  L,L,H-capped (no third light, no loop), launcher = their existing up-attack (same damage). Matches the 6
+  chars who already had it and the rekka roster. **Fair — parity.**
+
+**Verdict:** no per-move damage change anywhere; the only power deltas (Stage C ×5, Stage D ×8) equalize
+under-equipped melee characters to the roster's existing combo/juggle baseline, all in-band under the
+shared decay/launch/cancel systems. No fixes required. True zoners (rickPrime/evilMorty/beerus/piccolo/
+frieza) intentionally keep no combo string.

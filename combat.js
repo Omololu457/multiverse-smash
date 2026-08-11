@@ -40,9 +40,11 @@ import { pickSamuraiVoice } from "./samuraiRedVoice.js"   // Samurai Red Ranger 
 import { pickGoldSamuraiVoice } from "./goldSamuraiRangerVoice.js"   // Gold Samurai Ranger hit-react / offense-bark voice pools (audio-only)
 import { pickVegetaVoice } from "./vegetaVoice.js"   // Vegeta hit-react / offense-bark / low-health voice pools (audio-only; shared across base/SSJ/Blue)
 import { pickMakiVoice } from "./makiVoice.js"   // Maki hit-react / offense-bark / low-health voice pools (audio-only, JP dub)
+import { pickTojiVoice } from "./tojiVoice.js"   // Toji hit-react / offense-bark / low-health voice pools (audio-only, EN+JA)
 import { pickYujiVoice } from "./yujiVoice.js"   // Yuji hit-react / offense-bark / low-health voice pools (audio-only; EN+JA, JA active)
 import { pickMiwaVoice } from "./miwaVoice.js"   // Miwa hit-react / offense-bark / low-health voice pools (audio-only, JP dub)
 import { pickMadaraVoice } from "./madaraVoice.js"   // Madara hit-react / offense-bark / low-health voice pools (audio-only, JA)
+import { pickPainVoice } from "./painVoice.js"   // Pain hit-react / offense-bark / low-health voice pools (audio-only, JA)
 import { pickObitoVoice } from "./obitoVoice.js"     // Obito hit-react / offense-bark / low-health voice pools (audio-only, JA)
 import { pickTobiVoice } from "./tobiVoice.js"       // Tobi (masked Obito alias) general combat-bark pool (audio-only, JA — separate from Obito's)
 import { pickZarakiVoice } from "./zarakiVoice.js"   // Zaraki hit / offense-bark / low-health voice pools (audio-only, JA)
@@ -110,6 +112,19 @@ export function getProjectileHitstopFrames(proj) {
 // (Combo damage falloff is handled by getComboScale; blockstun + the
 // charging-can't-defend rule are handled in resolveAttackHit / game.js.)
 const HITSTUN_SCALE = 1.15   // MK12-style flow: links connect without frame-perfect timing (falloff via getComboScale keeps it safe)
+
+// WALL SPLAT / CORNER CARRY (MK-feel Stage 2e): a genuinely HEAVY knockback that drives the defender INTO
+// the stage wall pins them there — an extended-hitstun splat (+ camera shake + a small bounce-off). Gated
+// so it fires ONLY on real wall-bound knockback, never a light poke or a gentle wall touch.
+const WALL_SPLAT_MIN_KB   = 6    // knockback |vx| must exceed this (heavy/special ≈ 6-12; light ≈ 3-4 never splats)
+const WALL_SPLAT_HITSTUN  = 34   // the extended hitstun the splat pins the defender in (vs ~18-22 for a normal heavy)
+const WALL_SPLAT_FRAMES   = 24   // splat-state duration (the pinned window; ticked down in game.js)
+const WALL_SPLAT_BOUNCE   = 0.35 // fraction of the inbound speed bounced back OFF the wall (so they don't stick/clip)
+
+// COUNTER-HIT (MK-feel Stage 2f): hitting the opponent during their attack STARTUP is a counter-hit. It
+// already deals +25% damage + the COUNTER_HIT sfx; the REWARDS this stage attaches are +8 hitstun, a skipped
+// tier of combo scaling (see _comboScale + `_counterScaleTier`), and the clashFlash visual.
+const COUNTER_HIT_BONUS_HITSTUN = 8
 
 // GLOBAL PACING (Task 1): single lever to slow matches down. Matches were ending
 // in 2-3 hits; every point of dealt damage (melee, projectile, throw) is scaled
@@ -234,6 +249,8 @@ export function ensureCombatState(fighter) {
     invulnTimer: 0,
     comboCounter: 0,
     comboTimer: 0,
+    comboBreakStocks: COMBO_BREAKER.stocksPerRound,   // universal break resource — refilled per round (createFighter) / on setup here
+
     airHits: 0,
     maxAirHits: 3,
     colorFlash: 0,
@@ -275,8 +292,12 @@ export function ensureCombatState(fighter) {
 export const COMBO_DAMAGE_CURVE  = [1, 0.92, 0.84, 0.76, 0.70, 0.65]
 export const COMBO_HITSTUN_CURVE = [1, 1, 0.95, 0.90, 0.87, 0.85]
 function _comboScale(fighter, curve) {
-  if (!fighter || (fighter.comboCounter || 0) <= 1) return 1
-  return curve[Math.min(fighter.comboCounter - 1, curve.length - 1)]
+  // COUNTER-HIT reward (MK-feel Stage 2f): a combo opened/extended by a counter-hit SKIPS ONE TIER of
+  // scaling — its damage + hitstun decay one hit slower — via `_counterScaleTier`. This shifts only the
+  // SCALE lookup, leaving the raw comboCounter untouched (so burst / combo-breaker thresholds are unaffected).
+  const cc = (fighter?.comboCounter || 0) - (fighter?._counterScaleTier || 0)
+  if (!fighter || cc <= 1) return 1
+  return curve[Math.min(cc - 1, curve.length - 1)]
 }
 export function getComboScale(fighter)        { return _comboScale(fighter, COMBO_DAMAGE_CURVE) }
 export function getComboHitstunScale(fighter) { return _comboScale(fighter, COMBO_HITSTUN_CURVE) }
@@ -397,6 +418,44 @@ export function rekkaContinue(fighter, { edge, phase, opponent, requireHit = tru
     return next
   }
   return null
+}
+
+// ── COMBO BREAKER (MK-feel Stage 2d) ──────────────────────────────────────────
+// A universal defensive escape: while a fighter is IN HITSTUN and genuinely being COMBO'd (the attacker's
+// comboCounter has reached the threshold), BLOCK + SPECIAL breaks them out — it spends HALF the meter,
+// grants an i-frame window, and BLASTS THE ATTACKER AWAY (ending their combo). Called from game.js AHEAD of
+// the hitstun early-return so it acts as a true reversal. Anti-spam is threefold: it does NOTHING below the
+// comboCounter >= 3 threshold (no light-hit mash-out), it costs 50% of the bar, and firing itself clears the
+// hitstun + grants invuln so it can't immediately re-break. No meter (maxEnergy 0) → can't break.
+// UNIVERSAL BREAK RESOURCE (combo-string standardization, combo-break rework): the breaker no longer
+// costs energy — it spends a per-ROUND "break stock". Every fighter starts each round with `stocksPerRound`
+// stocks (set in createFighter, so fresh fighters each round refill automatically); each break spends one.
+// This makes the breaker AVAILABLE TO THE WHOLE ROSTER identically — the 7 meterless characters
+// (toji/maki/zenitsu/rengoku/shinobu/inosuke/nezuko) were previously locked out by the old `maxEnergy>0`
+// / 50%-meter gate. Energy is now free for offense (specials/ults). `meterFrac` is retired.
+export const COMBO_BREAKER = { threshold: 3, stocksPerRound: 2, iframes: 24, atkKbX: 15, atkKbY: -8, atkHitstun: 18 }
+export function tryComboBreaker(fighter, inputState, opponent) {
+  if (!fighter || !inputState || !opponent) return false
+  if ((fighter.hitstun || 0) <= 0) return false                                 // only while stunned
+  if ((opponent.comboCounter || 0) < COMBO_BREAKER.threshold) return false       // only vs a REAL combo (>= 3) — no spam
+  if (!inputState.block || !inputState.special) return false                     // the input: guard + Special
+  if ((fighter.comboBreakStocks || 0) <= 0) return false                         // needs a break STOCK (universal — no meter dependency)
+
+  // ── FIRE ── spend one break stock, break out with i-frames, blast the attacker away.
+  fighter.comboBreakStocks = Math.max(0, (fighter.comboBreakStocks || 0) - 1)
+  fighter.hitstun     = 0; fighter.blockstun = 0; fighter.hitstop = 0; fighter.isLaunched = false
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, COMBO_BREAKER.iframes)
+  fighter.colorFlash  = 14; fighter.parryFlash = Math.max(fighter.parryFlash || 0, 14)
+  fighter.vx = 0; if ((fighter.vy || 0) > 0) fighter.vy = 0
+  const away = (opponent.x + (opponent.w || 0) / 2) >= (fighter.x + (fighter.w || 0) / 2) ? 1 : -1
+  opponent.vx = away * COMBO_BREAKER.atkKbX
+  opponent.vy = COMBO_BREAKER.atkKbY
+  opponent.onGround = false; opponent.grounded = false
+  opponent.hitstun = Math.max(opponent.hitstun || 0, COMBO_BREAKER.atkHitstun)
+  opponent.attacking = false; opponent.currentAttack = null; opponent.currentMove = null
+  opponent.comboCounter = 0; opponent.comboTimer = 0; opponent._counterScaleTier = 0   // end the attacker's combo (+ clear any counter-hit tier skip)
+  try { sound?.play?.(SFX?.COUNTER_HIT || SFX?.PARRY || SFX?.BLOCK) } catch (_) {}
+  return true
 }
 
 // ========================
@@ -1094,6 +1153,31 @@ function applyMakiLowHealthVoice(defender) {
     try { sound?.playSfxFile?.(pickMakiVoice("lowHealth"), null) } catch (_) {}
   }
 }
+// TOJI voice (same shape as Maki; audio-only, EN+JA sets with JA active). Reuses MAKI_LOW_HEALTH_RATIO (0.30).
+// Cast lines (sword/chain/playful-cloud specials) + the two comeback beats live in abilities.js; here = hit /
+// offense / low-health. lowHealth is the GENERIC hurt line — the defiant comeback-save shouts are separate pools.
+function applyTojiHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "toji" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickTojiVoice("hitReact"), null) } catch (_) {}
+}
+function applyTojiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "toji" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickTojiVoice("combatBark"), null) } catch (_) {}
+}
+function applyTojiLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "toji" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * MAKI_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickTojiVoice("lowHealth"), null) } catch (_) {}
+  }
+}
 // YUJI voice (same shape as Maki; audio-only, EN+JA sets with JA active). Reuses MAKI_LOW_HEALTH_RATIO (0.30).
 // Cast lines (cursed-energy Y specials + Black Flash ult) live in abilities.js; here = hit / offense / low-health.
 function applyYujiHitVoice(defender, cat, dmg) {
@@ -1163,6 +1247,31 @@ function applyMadaraLowHealthVoice(defender) {
   if (hp > 0 && hp <= max * MAKI_LOW_HEALTH_RATIO) {
     defender._lowHealthVoiceDone = true
     try { sound?.playSfxFile?.(pickMadaraVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+// PAIN voice (audio-only, JA) — mirrors the Madara hit/offense/low-health hooks; per-technique cast lines
+// (Shinra Tensei / Bansho Ten'in / Chibaku Tensei) + assist calls live on his specials/ult (abilities.js).
+// No-op for every other fighter.
+function applyPainHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "pain" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickPainVoice("hitReact"), null) } catch (_) {}
+}
+function applyPainOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "pain" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickPainVoice("combatBark"), null) } catch (_) {}
+}
+function applyPainLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "pain" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * MAKI_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickPainVoice("lowHealth"), null) } catch (_) {}
   }
 }
 // OBITO voice (audio-only, JA) — mirrors the Madara hit/offense/low-health hooks; cast lines live on his
@@ -1945,7 +2054,9 @@ export function startMove(fighter, moveKey, moveData) {
   // Launchers (up attacks) get a more generous hitbox so they're not
   // pixel-precise: wider reach and a taller box that also catches an enemy who
   // is already slightly airborne — this is what makes the air combo reliable.
-  const isLauncher = moveKey === "up"
+  // A move may ALSO opt into launcher behaviour via `moveData.launcher` (MK-feel Stage 2b: the
+  // combo-string's heavy ender pops the opponent up without being the up-attack itself).
+  const isLauncher = moveKey === "up" || !!moveData.launcher
 
   fighter.attacking = true
   fighter.currentAttack = {
@@ -1967,7 +2078,7 @@ export function startMove(fighter, moveKey, moveData) {
     // selfVy = the attacker's slightly-lower self-lift. Absent → legacy floor pop.
     launchVy: moveData.launchVy ?? null,
     selfVy: moveData.selfVy ?? null,
-    launcher: moveKey === "up",
+    launcher: moveKey === "up" || !!moveData.launcher,
     spike: moveKey === "down_air",
     superArmor: !!moveData.superArmor,
     isSpecial: !!moveData.isSpecial,
@@ -2109,6 +2220,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     : (atk.category || _catFromName(atk.name || ""))
 
   const isCounter = !!(defender.wasInStartup && getAttackPhase(defender) === "startup")
+  // COUNTER-HIT reward: latch the skipped-tier flag on the ATTACKER BEFORE the combo-scaled damage below,
+  // so this counter-hit AND the combo it opens both decay one tier slower (cleared when the combo ends).
+  if (isCounter) attacker._counterScaleTier = 1
 
   // damageMultiplier and attackMultiplier are the SAME concept (an offensive
   // scalar). transformations.js sets both to a form's value and domains.js
@@ -2128,6 +2242,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   if (isCounter) {
     dmg = Math.floor(dmg * 1.25)
+    defender.clashFlash = Math.max(defender.clashFlash || 0, 10)   // reuse the existing clash visual for the counter pop
+    attacker.clashFlash = Math.max(attacker.clashFlash || 0, 10)
     try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
   }
 
@@ -2178,7 +2294,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
     } else {
       applyHitstop(attacker, defender, getHitstopFrames(atk))
-      defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE * getComboHitstunScale(attacker)))
+      defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE * getComboHitstunScale(attacker)) + (isCounter ? COUNTER_HIT_BONUS_HITSTUN : 0))   // COUNTER-HIT: +8 hitstun
       // JUGGLE GRAVITY (MK-feel Stage 1b): this hit landed on an AIRBORNE (already-juggled) opponent →
       // bump their juggleCount so physics.applyGravity ramps their fall (each successive air hit drops them
       // faster). Read BEFORE this hit's own launcher/spike physics runs below, so a GROUNDED launcher opener
@@ -2189,10 +2305,15 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       defender.currentMove   = null
       // A hit also interrupts a transform-device charge (Ben/Albedo).
       defender.isCharging   = false
+      // LAUNCHERS pop the opponent STRAIGHT UP for the juggle — they must NOT also get the normal
+      // facing-direction horizontal shove, which carries them AWAY out of jump-cancel follow-up range
+      // (the reported "up-attack knocks them away instead of connecting toward you"). The vertical pop is
+      // applied by the atk.launcher branch below; here we just keep the horizontal velocity neutral so
+      // they rise in place. Every non-launcher hit keeps its normal knockback.
       // AMBER identity — "sticky pressure": her hits shove the opponent LESS, so they can't drift to safety
       // and juke/space away from her (the reliable realization of "reduced side-step-ability against her";
       // the parry-window path proved non-functional). Skin modifier; 1.0 (no change) for everyone else.
-      defender.vx = (attacker.facing || 1) * (atk.pushX || 4) * (attacker._gfSkinMod?.stickPressure ?? 1)
+      defender.vx = atk.launcher ? 0 : (attacker.facing || 1) * (atk.pushX || 4) * (attacker._gfSkinMod?.stickPressure ?? 1)
     }
 
     // BEERUS hit-reaction voice ("...impressive") — only on a SIGNIFICANT hit (heavy-tier category or
@@ -2228,10 +2349,18 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       defender.vy = atk.launchY ?? -2
     }
 
-    if (cat === "heavy" || cat === "special" || cat === "ultimate") {
-      const proj = defender.x + defender.vx * 8
+    // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal
+    // knockback (|vx| over the threshold) that projects the defender INTO the stage wall pins them there —
+    // an EXTENDED-HITSTUN splat + camera shake + a small bounce-off. NOT triggered by a light poke (wrong
+    // category / low vx), a vertical launcher/spike (its vx is small), or a gentle drift into the wall.
+    if ((cat === "heavy" || cat === "special" || cat === "ultimate") && Math.abs(defender.vx || 0) >= WALL_SPLAT_MIN_KB) {
+      const proj = defender.x + (defender.vx || 0) * 8   // ~8 frames of travel at the current knockback speed
       if (proj <= 0 || proj >= stageWidth - (defender.w || 60)) {
-        defender.wallBounce = true
+        defender.wallBounce        = true
+        defender._wallSplat        = WALL_SPLAT_FRAMES                                   // pinned splat window (ticked in game.js)
+        defender.hitstun           = Math.max(defender.hitstun || 0, WALL_SPLAT_HITSTUN) // corner-carry extended hitstun
+        defender._wallBounceShake  = true                                               // camera shake (already consumed in game.js)
+        defender.vx                = -(defender.vx || 0) * WALL_SPLAT_BOUNCE             // bounce OFF the wall (don't stick/clip through)
       }
     }
 
@@ -2291,11 +2420,13 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyVegetaHitVoice(defender, cat, dmg)
     // MAKI hit-reaction voice — "That was close!" / "This guy hurts!" (JP dub).
     applyMakiHitVoice(defender, cat, dmg)
+    applyTojiHitVoice(defender, cat, dmg)
     // YUJI hit-reaction voice — "Damn it!" / "That was close!" (JA active).
     applyYujiHitVoice(defender, cat, dmg)
     // MIWA hit-reaction voice — "Crap!" / "That was close!" (JP dub).
     applyMiwaHitVoice(defender, cat, dmg)
     applyMadaraHitVoice(defender, cat, dmg)
+    applyPainHitVoice(defender, cat, dmg)
     applyObitoHitVoice(defender, cat, dmg)
     // ICHIGO hit-reaction voice — "Seriously?" / "That was close!" / "Damn!" (JA).
     applyIchigoHitVoice(defender, cat, dmg)
@@ -2338,9 +2469,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applySamuraiLowHealthVoice(defender)   // Samurai Red Ranger "Better backpedal." (once, on crossing the low-HP line)
     applyVegetaLowHealthVoice(defender)   // Vegeta "Impossible!" / "Where does all that power come from?" (once, on crossing the low-HP line)
     applyMakiLowHealthVoice(defender)   // Maki "My body is still moving!" / "I won't give up!" (once, crossing 30% — the Shibuya transform cue is a separate pool)
+    applyTojiLowHealthVoice(defender)   // Toji generic hurt line (once, crossing 30% — the two comeback-save shouts are separate pools, fired from applyTojiComeback)
     applyYujiLowHealthVoice(defender)   // Yuji "It's not over yet!" / "I won't lose!" (once, crossing 30%)
     applyMiwaLowHealthVoice(defender)   // Miwa "I can't lose!" / "I won't give up yet!" (once, crossing 30%)
     applyMadaraLowHealthVoice(defender)   // Madara low-health bark (once, crossing the line)
+    applyPainLowHealthVoice(defender)   // Pain low-health bark (once, crossing the line)
     applyObitoLowHealthVoice(defender)   // Obito low-health bark (once, crossing the line)
     applyIchigoLowHealthVoice(defender)   // Ichigo "It's not over yet!" / "I'll overcome it!" (once, crossing 30%)
     applyZarakiLowHealthVoice(defender)   // Zaraki "I'm not dead yet!" (once, crossing the low-HP line)
@@ -2423,7 +2556,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // BREAKS it (counter → 0) so the decay resets and the attacker's next clean hit starts fresh at full
   // scale. (Previously the counter incremented even on block, so a blocked poke silently taxed the combo.)
   if (defender.isBlocking) {
-    attacker.comboCounter = 0
+    attacker.comboCounter = 0; attacker._counterScaleTier = 0   // block ends the combo → clear the counter-hit tier skip
   } else {
     attacker.comboCounter++
     attacker.comboTimer = 90
@@ -2453,9 +2586,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applySamuraiOffenseVoice(attacker, cat, !defender.isBlocking)  // Samurai Red Ranger "I'll take that!"/"Finish this!" bark on a heavy/long-string connect (specials/finisher/ult use their own cast lines)
   applyVegetaOffenseVoice(attacker, cat, !defender.isBlocking)   // Vegeta combat bark / folded taunt on a heavy/long-string connect (Galick/BigBang/FinalFlash/ult use their own cast lines)
   applyMakiOffenseVoice(attacker, cat, !defender.isBlocking)     // Maki combat bark on a heavy/long-string connect (kunai/nunchaku/powerCharge use their own cast lines)
+  applyTojiOffenseVoice(attacker, cat, !defender.isBlocking)     // Toji combat bark on a heavy/long-string connect (special/comeback casts use their own lines)
   applyYujiOffenseVoice(attacker, cat, !defender.isBlocking)     // Yuji combat bark (+ Divergent Fist "Divergent!") on a heavy/long-string connect (Y specials + Black Flash use their own cast lines)
   applyMiwaOffenseVoice(attacker, cat, !defender.isBlocking)     // Miwa combat bark on a heavy/long-string connect (iaiDash/airVortex/ultimate use their own cast lines)
   applyMadaraOffenseVoice(attacker, cat, !defender.isBlocking)   // Madara combat bark on a heavy/long-string connect (specials/ult use their own cast lines)
+  applyPainOffenseVoice(attacker, cat, !defender.isBlocking)   // Pain combat bark on a heavy/long-string connect (specials/ult use their own cast lines)
   applyObitoOffenseVoice(attacker, cat, !defender.isBlocking)   // Obito combat bark on a heavy/long-string connect (specials/ult/Kamui use their own cast lines)
   applyTobiOffenseVoice(attacker, cat, !defender.isBlocking)    // Tobi combat bark on a heavy/long-string connect (specials/ult use their own cast lines; own pool, no Obito coupling)
   applyIchigoOffenseVoice(attacker, cat, !defender.isBlocking)   // Ichigo combat bark on a heavy/long-string connect (specials/ult/rekka use their own cast lines)
@@ -2503,7 +2638,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   if ((fighter._comboFinisherReactTimer || 0) > 0) fighter._comboFinisherReactTimer--   // Naruto combo-ender recoil pose window
   if (fighter.blockstun > 0) fighter.blockstun--
   if (fighter.comboTimer > 0) fighter.comboTimer--
-  else fighter.comboCounter = 0
+  else { fighter.comboCounter = 0; fighter._counterScaleTier = 0 }   // combo drop timer expired → clear the counter-hit tier skip
   if (fighter.attackCooldown > 0) fighter.attackCooldown--
 
   if (fighter.isGrabbed) {

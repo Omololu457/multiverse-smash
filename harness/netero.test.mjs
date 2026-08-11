@@ -122,7 +122,7 @@ try {
   await waitGrounded(); await waitFrames(6);
 
   // ── COMMAND CHAIN + INTERRUPT ──
-  section("down_attck cancel chain (+ whiff interrupt)");
+  section("down_attck cancel chain — Forward+Heavy opener (+ whiff interrupt)");   // combo-string standardization Stage B: opener was Down+Heavy (move keys keep the down_attck name)
   // Retry the whole opener→cancel sequence with a FRESH reposition each attempt — in the long combined
   // session p2 can carry residual drift into this section; a clean re-prep per attempt removes that
   // variance. (The isolated Stage 3 test is the deterministic single-shot proof.)
@@ -130,7 +130,7 @@ try {
   for (let attempt = 0; attempt < 6 && !(openerOk && followOk); attempt++) {
     await prep(40);   // well inside the opener's rangeX (78)
     const h0 = (await p2()).health;
-    await page.keyboard.down("s");
+    await page.keyboard.down("d");
     await tap("k", 2);
     let seen1 = false; for (let i = 0; i < 4; i++) { const a = await record(); if (a.action === "down_attck_1") seen1 = true; await waitFrames(1); }
     const hOpener = (await p2()).health;
@@ -142,13 +142,13 @@ try {
       followDmg = hOpener - (await p2()).health;
       if (seen2 && followDmg > 0) followOk = true;
     }
-    await page.keyboard.up("s");
+    await page.keyboard.up("d");
   }
   check("opener down_attck_1 connects", openerOk, "");
   check("cancels into down_attck_2 on hit (+dmg)", followOk, `follow=${followOk} −${followDmg.toFixed(0)}`);
   await prep(420);
   const wp0 = (await p2()).health;
-  await page.keyboard.down("s"); await tap("k", 2); await sample(6); await waitFrames(4); await tap("k", 2); const wi = await sample(8); await page.keyboard.up("s");
+  await page.keyboard.down("d"); await tap("k", 2); await sample(6); await waitFrames(4); await tap("k", 2); const wi = await sample(8); await page.keyboard.up("d");
   check("whiffed opener does NOT chain", !wi.acts.has("down_attck_2") && Math.abs(wp0 - (await p2()).health) < 1, `acts=[${[...wi.acts]}]`);
 
   // ── BARRAGE PUNCHES ──

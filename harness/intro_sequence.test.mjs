@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // UNIVERSAL pre-match intro SEQUENCING: P1's intro plays fully to completion FIRST,
 // then P2's intro plays — never simultaneously. Tested with TWO different characters
-// (Sasuke: 3-intro random introPool  vs  Toji: fixed-order introSequence) to prove it's
+// (Sasuke: 3-intro random introPool  vs  Vegeta: fixed-order introSequence) to prove it's
 // universal and doesn't break the per-character intro-rotation system.
 // ─────────────────────────────────────────────────────────────────────────────
 import { chromium } from "playwright";
@@ -67,8 +67,8 @@ async function runIntro(p1char, p2char, tag) {
 
 try {
   // Two different characters, each with a DIFFERENT intro system:
-  //   Sasuke = random introPool (3-intro rotation)   ·   Toji = fixed-order introSequence
-  await runIntro("sasuke", "toji", "sasuke_toji");
+  //   Sasuke = random introPool (3-intro rotation)   ·   Vegeta = fixed-order introSequence
+  await runIntro("sasuke", "vegeta", "sasuke_vegeta");
   // A second, different pairing to prove universality (not Goku-Black-specific).
   await runIntro("naruto", "goku_black", "naruto_gb");
 
@@ -77,7 +77,7 @@ try {
   section("Sasuke intro-rotation still varies across matches");
   const seen = new Set();
   for (let i = 0; i < 5; i++) {
-    await page.goto(`${base}/index.html?harness=1&p1=sasuke&p2=toji`, { waitUntil: "load" });
+    await page.goto(`${base}/index.html?harness=1&p1=sasuke&p2=vegeta`, { waitUntil: "load" });
     await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
     await page.mouse.click(640, 360);
     await page.evaluate(() => window.__harness.start());

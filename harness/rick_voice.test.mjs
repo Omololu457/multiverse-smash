@@ -257,7 +257,7 @@ try {
   // ═══ TEAM-MODE blue/red win callouts (006 / 010) via real checkFFAOutcome ═════
   section("TEAM-MODE win callouts — blue (A→006) vs red (B→010)");
   // Rick on team A; KO team B → team A (blue) wins.
-  await page.evaluate(() => window.__harness.ffaStart(4, ["rick", "gojo", "sukuna", "toji"], ["A", "A", "B", "B"], ["easy", "easy", "easy", "easy"]));
+  await page.evaluate(() => window.__harness.ffaStart(4, ["rick", "gojo", "sukuna", "maki"], ["A", "A", "B", "B"], ["easy", "easy", "easy", "easy"]));
   await waitFrames(4);
   await clearSfx();
   {
@@ -269,7 +269,7 @@ try {
     check("Team A win does NOT fire the red callout", !anyInPool(log, "teamRed"), `log=${JSON.stringify(log)}`);
   }
   // Rick still on team A, but KO team A → team B (red) wins. (Rick is a participant → callout still fires.)
-  await page.evaluate(() => window.__harness.ffaStart(4, ["rick", "gojo", "sukuna", "toji"], ["A", "A", "B", "B"], ["easy", "easy", "easy", "easy"]));
+  await page.evaluate(() => window.__harness.ffaStart(4, ["rick", "gojo", "sukuna", "maki"], ["A", "A", "B", "B"], ["easy", "easy", "easy", "easy"]));
   await waitFrames(4);
   await clearSfx();
   {

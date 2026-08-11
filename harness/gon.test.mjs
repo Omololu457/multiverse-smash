@@ -101,9 +101,9 @@ try {
   await waitGrounded();
 
   // ── STAGE 2: Rush command chain (Down+Heavy rekka, cancel-on-hit) ──
-  section("Rush command chain (Down+Heavy rekka)");
+  section("Rush command chain (Forward+Heavy rekka)");   // combo-string standardization Stage B: was Down+Heavy
   await prep(40);
-  await page.keyboard.down("s"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("s");
+  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("d");
   const seq = []; { await record(); const m = (await p1()).currentMove; if (m) seq.push(m); }
   for (const want of ["rush2"]) {
     let rec = false; for (let i = 0; i < 40; i++) { const p = await record(); if (!p.attacking) break; if (p.attackPhase === "recovery") { rec = true; break; } await waitFrames(1); }

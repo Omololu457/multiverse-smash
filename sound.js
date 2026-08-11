@@ -20,7 +20,6 @@ export const SFX = {
   VO_MEGUMI:       "vo_megumi_ultimate",
   VO_SUKUNA:       "vo_sukuna_ultimate",
   VO_OMOLOLU:      "vo_omololu_ultimate",
-  VO_TOJI:         "vo_toji_ultimate",
   UI_HOVER:        "ui_hover",
   UI_SELECT:       "ui_select",
   UI_BACK:         "ui_back",
@@ -281,11 +280,6 @@ const SOUNDS = {
   vo_omololu_ultimate(ctx, out) {
     osc(ctx, out, "sine", 392, 0.30, 0.40, 784)
     oscAt(ctx, out, "sawtooth", 196, 0.05, 0.25, 0.25)
-  },
-  vo_toji_ultimate(ctx, out) {
-    playNoise(ctx, out, 0.10, 300, 0.30)
-    osc(ctx, out, "sawtooth", 110, 0.25, 0.45, 55)
-    oscAt(ctx, out, "sine", 440, 0.08, 0.20, 0.30, 220)
   },
 
   // ── UI ────────────────────────────────────────────────────────

@@ -86,10 +86,10 @@ try {
   await waitGrounded(); await prep(56); { const d = await dmgFrom(async () => { await page.evaluate(() => window.__harness.liftP1(44)); await page.keyboard.down("j"); await waitFrames(3); await record(); await page.keyboard.up("j"); }); check("air connects", d > 0, `−${d.toFixed(0)}`); }
   await waitGrounded(); await prep(34); { const d = await dmgFrom(async () => { await page.evaluate(() => window.__harness.liftP1(50)); await page.keyboard.down("s"); await page.keyboard.down("j"); await waitFrames(3); await record(); await page.keyboard.up("j"); await page.keyboard.up("s"); }); check("down_air connects", d > 0, `−${d.toFixed(0)}`); }
 
-  // ── STAGE 2: Speed Rush command chain (Down+Heavy rekka) ──
-  section("Speed Rush command chain (Down+Heavy rekka)");
+  // ── STAGE 2: Speed Rush command chain (Forward+Heavy rekka — combo-string standardization Stage B) ──
+  section("Speed Rush command chain (Forward+Heavy rekka)");
   await waitGrounded(); await prep(46);
-  await page.keyboard.down("s"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("s");
+  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("d");
   const seq = []; { const m = (await p1()).currentMove; if (m) seq.push(m); }
   for (const want of ["rush2"]) {
     let rec = false; for (let i = 0; i < 40; i++) { const p = await record(); if (!p.attacking) break; if (p.attackPhase === "recovery") { rec = true; break; } await waitFrames(1); }
@@ -99,16 +99,16 @@ try {
   // mid-chain interrupt: an opener that lands NO clean hit (dummy invulnerable → no hitstun latched) must
   // NOT allow a re-tap to continue the rekka (cancel-on-hit gate). Sample continuously (an invuln whiff has
   // no hitstop to freeze the transient move) tracking `attacking`(rush1 fired) + `cmdHitLanded`(gate) + rush2.
-  await page.keyboard.up("k"); await page.keyboard.up("s"); await page.keyboard.up("j"); await waitFrames(6);  // FLUSH stale heavy edge (_cmdPrevHeavy) from the prior chain
+  await page.keyboard.up("k"); await page.keyboard.up("d"); await page.keyboard.up("j"); await waitFrames(6);  // FLUSH stale heavy edge (_cmdPrevHeavy) from the prior chain
   await waitGrounded(); await prep(46);
   await page.evaluate(() => window.__harness.setP2Invuln(600));   // opener lands no clean hit → _cmdHitLanded stays false
-  await page.keyboard.down("s"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k");
+  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k");
   // The opener whiffs (no hitstop → the sprite blazes past async polling), so assert on the DURABLE gate
   // state: `attacking` (rush1 fired) + `cmdHitLanded` stays FALSE (no clean connect → the rekka can't
   // continue) + rush2 never appears. Re-tap Heavy mid-window to prove the whiff still refuses to advance.
   let firedOpener = false, sawRush2 = false, gateEverOpened = false;
   for (let i = 0; i < 26; i++) { const a = await p1(); if (a.attacking) firedOpener = true; if (a.currentMove === "rush2") sawRush2 = true; if (a.cmdHitLanded) gateEverOpened = true; if (i === 12) { await page.keyboard.down("k"); await waitFrames(1); await page.keyboard.up("k"); } await waitFrames(1); }
-  await page.keyboard.up("s");
+  await page.keyboard.up("d");
   check("mid-chain interrupt: whiff keeps the cancel-gate closed → no advance to rush2", firedOpener && !gateEverOpened && !sawRush2, `fired=${firedOpener} gateOpened=${gateEverOpened} rush2=${sawRush2}`);
   await page.evaluate(() => window.__harness.setP2Invuln(0));
   await waitFrames(16);

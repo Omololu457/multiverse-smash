@@ -69,21 +69,28 @@ export const SPRITE_MANIFEST = {
     actions: ["idle", "walk", "jump", "dash", "hurt"]
   },
 
-  // Megumi & Toji: idle strip is non-convention (stance / row03), so use OBJECT
+  // Megumi: idle strip is non-convention (stance / row03), so use OBJECT
   // form to point `idle` at the real file — this is only the spritesReady() gate;
   // per-action rendering reads the `sheet` path from animationData.
-  megumi: {
-    actions: { idle: "./megumi_stance_sheet.png" }
-  },
-  toji: {
-    actions: { idle: "./toji_stance_idle.png" }   // NEW transparent-bg idle (was old row03 strip)
-  },
+  // MK-feel Stage 5: Megumi manifest entry REMOVED (commented, not deleted) — with no manifest
+  // entry, spritesReady() never flips it from box → sprite, so it renders on the procedural renderer.
+  // animationData is intact in characters.js; restore this entry (+ hasSprites:true) to bring sprites back.
+  // megumi: {
+  //   actions: { idle: "./megumi_stance_sheet.png" }
+  // },
 
   // Maki Zenin (JJK). Only gates spritesReady() by decoding idle; per-action
   // rendering reads the `sheet` paths from characters.js → maki.animationData
   // (reslice_strip'd _uniform copies). See MAKI_ASSET_MAP.md.
   maki: {
     actions: { idle: "./maki_new_idle_uniform.png" }   // NEW clean 4-frame idle (old maki_idle.png had a 96px double-frame glitch)
+  },
+
+  // Toji Fushiguro (JJK). GATES spritesReady() only (decodes idle → flips Toji from box to
+  // sprite); per-action rendering reads the `sheet` paths from characters.js → toji.animationData
+  // (reslice_strip'd toji_*_uniform copies; raw uploads kept in _toji_raw_backup/). See TOJI_ASSET_MAP.md.
+  toji: {
+    actions: { idle: "./toji_idle_uniform.png" }
   },
 
   // Obito Uchiha (Naruto). GATES spritesReady() only (decodes idle → flips Obito from box to
@@ -119,12 +126,14 @@ export const SPRITE_MANIFEST = {
   // sprite); per-action rendering reads the `sheet` paths from characters.js →
   // goku.animationData. Files follow the ./goku_<action>_sheet.png convention.
   // BASE only — kept separate from the goku_ssj_god_* set.
-  goku: {
-    // ATLAS: one shared sheet; per-action source rects (sourceX/sourceY/width/height)
-    // live in characters.js → goku.animationData. This entry only gates spritesReady()
-    // by decoding the shared sheet once.
-    actions: { idle: "./goku_base_FULLSHEET_transparent.png" }
-  },
+  // MK-feel Stage 5: Goku (BASE) manifest entry REMOVED (commented, not deleted) → procedural renderer.
+  // animationData intact in characters.js; restore this entry (+ hasSprites:true) to bring sprites back.
+  // goku: {
+  //   // ATLAS: one shared sheet; per-action source rects (sourceX/sourceY/width/height)
+  //   // live in characters.js → goku.animationData. This entry only gates spritesReady()
+  //   // by decoding the shared sheet once.
+  //   actions: { idle: "./goku_base_FULLSHEET_transparent.png" }
+  // },
 
   // KCM Naruto (universe: naruto — his own universe, NOT the GojoV1 JJK beta).
   // Sliced JUS strips, one PNG per action; per-action rendering reads the `sheet`
@@ -168,6 +177,13 @@ export const SPRITE_MANIFEST = {
   // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
   madara: {
     actions: { idle: "./madara2_idle_1_uniform.png" }
+  },
+
+  // Pain / Nagato's Deva Path (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle
+  // strip → flips Pain from procedural box to sprite. Per-action rendering reads characters.js →
+  // pain.animationData (each action carries its own .sheet). Idle is the RE-SLICED uniform strip.
+  pain: {
+    actions: { idle: "./pain_idle_uniform.png" }
   },
 
   // Netero (universe: hunter_x_hunter) — STAGE 1. Gates spritesReady() by decoding the idle strip →

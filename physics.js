@@ -14,7 +14,7 @@
 import { setupBen10, updateOmnitrix } from "./fighters.js"
 
 // Characters that get a third jump. Keyed by rosterKey / id / name (lowercase).
-const TRIPLE_JUMP_CHARACTERS = new Set(["toji", "gojo", "sukuna"])
+const TRIPLE_JUMP_CHARACTERS = new Set(["gojo", "sukuna"])
 
 export const physics = {
   gravity: 0.85,
@@ -49,7 +49,15 @@ export const physics = {
 
     // ── INIT ─────────────────────────────────────────
     const rawSpeed = fighter.baseSpeed || fighter.speed || 9
-    const speed = clamp(rawSpeed * 0.09, 4, 9)
+    // MK-feel Stage 4a: real SPEED-TIER spread. The old `rawSpeed*0.09` gave only ~7.0–8.8 across the
+    // 78–98 stat band (~18% spread). This maps the band linearly to a true 2× spread: 78→4.5, 98→9.5.
+    // The clamp is KEPT (and widened to [4.5, 9.5]) — it is load-bearing, NOT cosmetic:
+    //   • it preserves the intended endpoints for the 78–98 roster band (every in-band value is unchanged
+    //     from the bare formula), AND
+    //   • it protects the out-of-band cases the old [4,9] clamp caught — buff forms that SET fighter.speed
+    //     to raw-scale values (Godspeed 120→cap 9.5, Gon-adult 40→floor 4.5 "lumber"), plus the low
+    //     placeholders (Ben10 human 5, Morty 72) which would otherwise go negative / below-floor.
+    const speed = clamp(4.5 + (rawSpeed - 78) / 20 * 5, 4.5, 9.5)
 
     const defaults = {
       vx: 0, vy: 0,
@@ -161,7 +169,7 @@ export const physics = {
       else if (!air && dash && fighter.dashCooldown <= 0) {
         fighter.dashTimer = fighter.dashDuration || 8
         fighter.dashCooldown = fighter.dashCooldownMax || 28
-        // Binding vow (Toji — Assassin's Oath): i-frames at dash start.
+        // Optional binding-vow effect: i-frames at dash start (set via fighter.dashInvuln).
         if (fighter.dashInvuln) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, fighter.dashDuration || 8)
       }
 
@@ -395,19 +403,15 @@ export const physics = {
   launcherAttack(attacker, target, launchY = -28, selfLift = -16, opts = {}) {
     if (!attacker || !target) return
 
-    // ── Launch the TARGET into the air for a juggle ──
-    // A MODERATE, guaranteed pop-up (even if the move's knockbackY is weak, e.g.
-    // -8). Kept moderate on purpose so the enemy doesn't sail out of reach — the
-    // point is a follow-up air combo, not a launch-to-the-moon.
-    //
-    // UP-ATTACK TUNING (opts.exact): when a character's Up-Attack move declares
-    // its OWN launch velocities (launchVy for the enemy, selfVy for the player),
-    // honor them EXACTLY and skip the -17 guaranteed-pop-up floor + the "attacker
-    // rises to within 2px of the target" coupling. This is what lets per-character
-    // tuning use lighter, tuned pops (e.g. enemy -12 / player -9) instead of every
-    // launcher being forced to the same floor. Un-tuned launchers pass no opts and
-    // keep the original floor behavior unchanged (backward-compatible).
-    let targetLaunch = opts.exact ? (launchY ?? -12) : Math.min(launchY ?? -17, -17)
+    // ── Launch the TARGET into the air for a juggle (MK-feel Stage 2a: RAISED launch height) ──
+    // The pop-up used to be kept MODERATE — a -17 floor for un-tuned launchers, and lighter -11..-13
+    // "archetype" pops for the tuned (opts.exact) launchers — so the enemy didn't sail out of reach.
+    // Now that JUGGLE GRAVITY (Stage 1b) ramps the fall (each air hit drops the target faster), we can
+    // launch HIGHER without floating them away. A SINGLE raised floor now applies to EVERY launcher: any
+    // per-char launchVy less negative than the floor is lifted to it; a char tuning even higher is honored.
+    // (opts.exact no longer changes launch height — the attacker self-lift it also governed is unused post-1b.)
+    const LAUNCH_FLOOR = -26
+    let targetLaunch = Math.min(launchY ?? LAUNCH_FLOOR, LAUNCH_FLOOR)
     // GIANT TARGET resist (Susanoo, Adult Gon — anyone with the universal `_canvasHeightFrac`
     // giant marker): a towering body is far harder to pop, so its launch velocity is halved. Their tall
     // hurtbox already makes the standard pop read wrong (a child-height hop on a giant); this scales the

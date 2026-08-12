@@ -30,6 +30,13 @@ export const SOURCED_ART = {
     edit:    "saxcreed",
     source:  "M.U.G.E.N sheet",
     files:   ["megumi_*.png"]
+  },
+  // Red Ranger (Jason, Mighty Morphin). Source REQUIRES credit to "Omega (tolgayavuz85)".
+  red_ranger_mmpr: {
+    work:    "Red Ranger — Jason (Mighty Morphin)",
+    artists: ["Omega (tolgayavuz85)"],
+    source:  "fan sprite sheet (red_ranger_mmpr_sprite_sheet_by_tolgayavuz_d738par.png)",
+    files:   ["red_ranger_mmpr_*.png", "redranger_*.png"]
   }
 }
 

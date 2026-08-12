@@ -2480,6 +2480,104 @@ const greenSamuraiRanger = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// RED RANGER — Jason (Mighty Morphin) — FOURTH Power Rangers sprite char, but the FIRST
+// from the CLASSIC MMPR team (the other three — Omega/S.P.D. + Samurai Red/Gold/Green — are
+// different teams/seasons). Grouped by `universe: "power_rangers"` like the rest; the MMPR
+// team is distinguished by rosterKey + name only (the data model has no sub-team field —
+// same as how Omega/S.P.D. is distinguished from the Samurai trio). A hand-to-hand + Power
+// Sword striker (Jason's karate + the signature blade → Stage-4 Ultimate).
+// ART CREDIT: "Omega (tolgayavuz85)" — REQUIRED attribution, tracked in credits.js SOURCED_ART.
+// STAGE 1: registration + movement/state + the 5-intro random pool (4 unmorphed sequences,
+// each appending the shared morph-flash → morphed stance, via the new introSequencePool; + 1
+// already-morphed STANDALONE intro that does NOT get the flash). Normals / rekka / grab / Power
+// Sword ultimate land in Stages 2-4; any missing action falls back to idle.
+// ─────────────────────────────────────────────────────────────────
+const redRangerMmpr = {
+  rosterKey: "red_ranger_mmpr", name: "Red Ranger (Mighty Morphin)", universe: "power_rangers",
+  // REAL helmeted-bust portrait cropped from the master sheet's dedicated mugshot (the iconic MMPR
+  // Red Ranger helmet, near the credit block) + upscaled 4× (Stage 5). tools: PIL crop 790,1325→935,1500.
+  portrait: "./red_ranger_mmpr_portrait.png",
+  archetypes: ["melee", "sword"], primary: "melee", secondary: ["sword"],
+  traits: { hasEnergy: true, energyType: "morphin_grid", mobility: "medium", scaling: "damage", animeMovement: false },
+  passive: { name: "Morphin Grid", effect: "Draws on the Power Coin — energy builds steadily to fuel the Power Sword Ultimate" },
+  // Balanced karate striker, squarely inside the Power Rangers band (cf. Samurai Red HP1220/spd88,
+  // Gold HP1160/spd94, Green HP1190/spd91). Jason reads as an all-rounder brawler: mid HP, mid meter,
+  // solid speed. No outliers (verified against BALANCE_AUDIT.md in Stage 5).
+  stats: { maxHealth: 1200, maxEnergy: 180, attack: 93, defense: 86, speed: 92, maxJumps: 2, jumpPower: 31, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 33 },
+  basic_attacks: {
+    ...RANGER_BASICS,
+    heavy: { damage: 88, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 6, knockbackY: 1 }
+  },
+  // HUD/kit descriptor only for now — the Power Sword freeze-cinematic behaviour lands in Stage 4
+  // (sword_up_attack, the tallest/signature asset). Grab/throw special (trhow_1→trhow_2) is Stage 3.
+  ultimate: { name: "Power Sword: Overhead Strike", cost: 100, duration: 9, effect: "Leaping overhead Power Sword slash — heavy single-target burst" },
+  transformationOrder: ["base"],
+  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  // FIVE-INTRO RANDOM POOL. introSequencePool = a pool of SEQUENCES (new game.js support): each match
+  // picks ONE entry at random. The 4 UNMORPHED sequences each append `morphFlash` (the shared
+  // intro_final_part → civilian morphs into the red suit); the 5th (`introMorphed`) is the STANDALONE
+  // already-suited intro and is a single-step sequence, so it plays WITHOUT the flash.
+  introSequencePool: [
+    ["introRunIn",    "morphFlash"],   // unmorphed run-in  → morph
+    ["introTeleport", "morphFlash"],   // unmorphed idle/teleport-in → morph
+    ["introMorpher",  "morphFlash"],   // "It's Morphin Time" morpher raise → morph
+    ["introKnuckles", "morphFlash"],   // cracking knuckles → morph
+    ["introMorphed"]                    // already-morphed STANDALONE (no flash appended)
+  ],
+  hasSprites: true,
+  // SIZE-NORMALIZED: idle content measured 72px tall → 72 × 1.54 ≈ 111px on-screen (roster median).
+  // anchorY=0 everywhere so feet stay planted on the cell bottom (bottom-aligned reslice → no bob).
+  spriteScale: 1.54,
+  // STAGE-1 sprites. All RE-SLICED to clean uniform, bottom-aligned strips (tools/reslice_strip.mjs)
+  // from COPIES of the untracked originals. width = uniform cell pitch, height = full cell height.
+  // No guard art exists in this batch (falls back to idle). Normals / specials / ultimate = later stages.
+  animationData: {
+    idle:      { frames: 3, width: 42, height: 74, speed: 6, anchorY: 0, sheet: "./red_ranger_mmpr_idle_uniform.png" },
+    walk:      { frames: 6, width: 43, height: 74, speed: 6, anchorY: 0, sheet: "./red_ranger_mmpr_walk_uniform.png" },
+    run:       { frames: 6, width: 58, height: 70, speed: 4, anchorY: 0, sheet: "./red_ranger_mmpr_run_uniform.png" },
+    dash:      { frames: 6, width: 58, height: 70, speed: 3, anchorY: 0, sheet: "./red_ranger_mmpr_run_uniform.png" },
+    jump:      { frames: 7, width: 50, height: 81, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_jump_uniform.png" },
+    fall:      { frames: 7, width: 50, height: 81, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_jump_uniform.png" },
+    hurt:      { frames: 3, width: 42, height: 73, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_hurt_uniform.png" },
+    knockdown: { frames: 3, width: 42, height: 73, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_hurt_uniform.png" },
+    // ── STAGE-2 NORMALS (5 slots, all RE-SLICED from COPIES). Karate striker: light=jab, heavy=big
+    // cross, up=rising kick (launcher via RANGER_BASICS.upAttack), air=flying kick, down_air=the
+    // 180° aerial somersault (fires airborne Down+Light). ──
+    light:     { frames: 2, width: 64, height: 73, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_foward_punch_uniform.png" },
+    heavy:     { frames: 3, width: 70, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_punch_2_uniform.png" },
+    up:        { frames: 6, width: 58, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_up_attack_uniform.png" },
+    air:       { frames: 2, width: 72, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_jump_kick_uniform.png" },
+    down_air:  { frames: 4, width: 85, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_180_kick_uniform.png" },
+    // ── STAGE-2 COMMAND CHAIN (Fwd+Heavy → re-tap Heavy on HIT, cancel-on-hit): rrRekka1 (jab) →
+    // rrRekka2 (cross) → rrRekka3 (super 360° spin-kick LAUNCHER, string ends). Stages 1-2 reuse the
+    // light/heavy sheets (Omega/samurai precedent); the finisher is its own super_360 art. Plus the
+    // airborne-Heavy DIVE-KICK poke (down_air_attack art, distinct from the down_air somersault). Keys
+    // match the abilities.js RED_RANGER_MMPR_CMD/POKE tables (identity sprite-resolve). ──
+    rrRekka1:  { frames: 2, width: 64, height: 73, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_foward_punch_uniform.png" },
+    rrRekka2:  { frames: 3, width: 70, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_punch_2_uniform.png" },
+    rrRekka3:  { frames: 5, width: 63, height: 82, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_super_360_kick_uniform.png" },
+    rrDiveKick:{ frames: 3, width: 73, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_down_air_attack_uniform.png" },
+    // ── STAGE-3 GRAB/THROW SPECIAL (neutral Special): rrGrab = trhow_1 (reach → grab → lift windup),
+    // then rrThrow = trhow_2 (release follow-through), swapped by the throw-resolve watcher. `grab` (the
+    // universal O-grab) reuses the trhow_1 windup so it renders a real pose instead of idle-fallback. ──
+    grab:      { frames: 4, width: 61, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_trhow_1_uniform.png" },
+    rrGrab:    { frames: 4, width: 61, height: 69, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_trhow_1_uniform.png" },
+    rrThrow:   { frames: 2, width: 69, height: 80, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_trhow_2_uniform.png" },
+    // ── STAGE-4 ULTIMATE — "Power Sword: Overhead Strike" (sword_up_attack, the tallest/signature
+    // asset). Played through the freeze cinematic via _spriteCastMove="ultimate": draw back → raise
+    // Power Sword overhead (blade arc) → overhead slash-down. Held on the final slash pose. ──
+    ultimate:  { frames: 4, width: 87, height: 113, speed: 14, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_ultimate_uniform.png" },
+    // ── 5-INTRO POOL variants (keys referenced by introSequencePool above) ──
+    introRunIn:    { frames: 12, width: 50, height: 71, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_intro_runin_uniform.png" },
+    introTeleport: { frames: 3,  width: 36, height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_intro_teleport_uniform.png" },
+    introMorpher:  { frames: 8,  width: 66, height: 91, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_intro_morpher_uniform.png" },
+    introKnuckles: { frames: 5,  width: 29, height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_intro_knuckles_uniform.png" },
+    morphFlash:    { frames: 2,  width: 33, height: 69, speed: 9, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_morph_flash_uniform.png" },
+    introMorphed:  { frames: 6,  width: 73, height: 76, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./red_ranger_mmpr_intro_morphed_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // ALBEDO  (Ben's clone — Ultimatrix)
 // Mechanically identical to Ben 10: same alien roster + same energy/transform
 // system (see fighters.js setupBen10 / updateTransformDevice). This entry just
@@ -4457,6 +4555,7 @@ export const characters = {
   samurai_red_ranger: samuraiRedRanger,
   gold_samurai_ranger: goldSamuraiRanger,
   green_samurai_ranger: greenSamuraiRanger,
+  red_ranger_mmpr: redRangerMmpr,
   netero,
   saiki,
   killua,

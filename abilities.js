@@ -33,6 +33,7 @@ import { activateYujiUltimateCinematic, isYujiUltimateCinematicActive } from "./
 import { activateMiwaUltimateCinematic, isMiwaUltimateCinematicActive } from "./miwaUltimateCinematic.js"   // Miwa "Blade of the Neophyte" battojutsu-slash ultimate cinematic (no cycle)
 import { activateIchigoGetsugaCinematic, isIchigoGetsugaCinematicActive } from "./ichigoGetsugaTenshoCinematic.js"   // Ichigo "Getsuga Tenshō" dash-slash→uppercut ultimate cinematic (no cycle)
 import { activateSamuraiFlameSmasherCinematic, isSamuraiFlameSmasherCinematicActive } from "./samuraiFlameSmasherCinematic.js"   // Samurai Red Ranger "Fire Smasher: Blazing Strike" tier-scaling ultimate cinematic (no cycle)
+import { activateRedRangerPowerSwordCinematic, isRedRangerPowerSwordCinematicActive } from "./redRangerPowerSwordCinematic.js"   // Red Ranger (MMPR) "Power Sword: Overhead Strike" freeze-cinematic ultimate (no cycle)
 import { activateShinobuButterflyCinematic, isShinobuButterflyCinematicActive } from "./shinobuButterflyCinematic.js"   // Shinobu "Butterfly Dance" ultimate cinematic (no cycle)
 import { activateInosukeBeastCinematic, isInosukeBeastCinematicActive } from "./inosukeBeastCinematic.js"   // Inosuke "Beast Breathing" cinematic specials (no cycle)
 import { activateGhostfaceFinalActCinematic, isGhostfaceFinalActCinematicActive } from "./ghostfaceFinalActCinematic.js"   // Ghostface "The Final Act" stab-flurry ultimate cinematic (no cycle)
@@ -3187,6 +3188,153 @@ export function updateOmegaRangerCommandCombat(fighter, inputState, context, get
   if (forward && heavyEdge) return fireOmegaRangerCmd(fighter, "omKick")
   if (back    && lightEdge) return fireOmegaRangerCmd(fighter, "omSword1")
   if (forward && lightEdge) return fireOmegaRangerPoke(fighter, "omForwardPush")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RED RANGER (Jason, MMPR) — Stage 2 command layer. A KARATE striker: a Fwd+Heavy PUNCH chain
+// (jab → cross → super 360° spin-kick LAUNCHER) with the same cancel-on-HIT rekka architecture as
+// Omega/Vegeta (a stage only advances if the prior hit CONNECTED — a block/whiff ends the string),
+// plus an airborne-Heavy DIVE-KICK poke (its own descending-dive art, distinct from the down_air
+// somersault). FREE (no energy): the chain commits via recovery; the dive is cooldown-gated. Neutral
+// light/heavy/up/air/down_air stay on the normal path (the Stage-2 normals). Mirrors the WIRED
+// updateOmegaRangerCommandCombat (updateSamuraiRangerCommandCombat is unwired WIP — not a precedent).
+// ─────────────────────────────────────────────────────────────────────────────
+const RED_RANGER_MMPR_CMD = {
+  rrRekka1: { damage: 42, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3,  knockbackY: 0,  rangeX: 76, rangeY: 50, rekkaNext: "rrRekka2" },   // opening jab
+  rrRekka2: { damage: 46, startup: 6, active: 3, recovery: 13, hitstun: 16, knockbackX: 4,  knockbackY: 0,  rangeX: 78, rangeY: 50, rekkaNext: "rrRekka3" },   // cross
+  rrRekka3: { damage: 84, startup: 7, active: 4, recovery: 22, hitstun: 24, knockbackX: 11, knockbackY: -8, rangeX: 88, rangeY: 56, launcher: true },            // super 360° spin-kick finisher — LAUNCHES (string ends)
+}
+const RED_RANGER_MMPR_POKE = {
+  rrDiveKick: { damage: 58, startup: 6, active: 4, recovery: 12, hitstun: 18, knockbackX: 4, knockbackY: 9, rangeX: 74, rangeY: 60, cd: 24 },   // airborne smash — spikes DOWN
+}
+function fireRedRangerMmprCmd(fighter, key) {
+  const md = RED_RANGER_MMPR_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"   // the punch chain advances on Heavy
+  fighter._cmdHitLanded = false     // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+function fireRedRangerMmprPoke(fighter, key) {
+  const md = RED_RANGER_MMPR_POKE[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only, no spendEnergy
+  fighter._rekkaNext    = null             // the dive is not part of the punch chain
+  fighter._cmdHitLanded = false
+  return true
+}
+// GRAB/THROW SPECIAL (neutral Special) — the continuous trhow: reach → grab → lift (trhow_1 = rrGrab
+// windup pose) → THROW (trhow_2 = rrThrow release pose). A REAL command-grab (combat.resolveGrab): beats
+// block, teched by the shared grab window, thrown by the shared updateGrab (pop-up-and-drop) with a tuned
+// _grabThrowDmg. Costs a little Morphin-Grid energy so it isn't a free block-beating spam tool. The
+// windup→release POSE swap is driven by the throw-resolve watcher in updateRedRangerMmprCommandCombat.
+const RR_GRAB_REACH = 80    // grounded command-grab reach (center-to-center) — normal grappler range
+const RR_GRAB_DMG   = 120   // tuned throw damage (Uchiha-Susanoo-grab tier; grabs beat block)
+const RR_GRAB_COST  = 15    // Morphin-Grid energy per attempt (spam-gate; maxEnergy 180)
+function fireRedRangerMmprGrab(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!(fighter.onGround ?? fighter.grounded ?? true)) return false
+  if (!spendEnergy(fighter, RR_GRAB_COST)) return false
+  const target  = getTargetResolver(context)(fighter)
+  const grabbed = resolveGrab(fighter, target, context, RR_GRAB_REACH)
+  fighter._spriteCastMove  = "rrGrab"   // trhow_1 windup/lift pose (held across the grab)
+  fighter._spriteCastTimer = 30
+  if (grabbed) {
+    fighter._grabThrowDmg = RR_GRAB_DMG
+    fighter._rrGrabbing   = true         // watched → swaps to the rrThrow (trhow_2) release pose on throw
+  } else {
+    fighter.attackCooldown = getAttackDuration(20, fighter)   // whiff/tech still commits recovery (no free spam)
+  }
+  return true
+}
+// Red Ranger MMPR SPECIAL dispatch (routed from triggerSpecial). The grab/throw is the sole special
+// and is direction-agnostic (neutral or any dir + Special all fire it) — the Power Sword is the Ultimate.
+function executeRedRangerMmprSpecial(fighter, context) {
+  return fireRedRangerMmprGrab(fighter, context)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RED RANGER (MMPR) — ULTIMATE: "Power Sword: Overhead Strike" (Stage 4). A freeze-cinematic leaping
+// overhead Power Sword slash — the tallest/signature asset (sword_up_attack). Reuses the WIRED
+// gokuBlackSword/Kurama freeze contract via redRangerPowerSwordCinematic.js: the caster's `ultimate`
+// sprite plays through the freeze; the guaranteed heavy single-target burst lands at the STRIKE beat.
+// ─────────────────────────────────────────────────────────────────────────────
+const RR_ULT_COST = 100    // matches characters.js redRangerMmpr.ultimate.cost (maxEnergy 180)
+const RR_ULT_DMG  = 340    // heavy single-target burst (Ranger-tier; scaled by applyScaledDamage)
+function applyRedRangerPowerSwordDamage(fighter, opp, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = RR_ULT_DMG
+  dmg = Math.round(dmg * (fighter?._ultDamageMult ?? 1))   // assist scaling (1 = normal self-cast)
+  if (opp.isBlocking) {
+    dmg = Math.round(dmg * 0.25)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 40)
+    opp.vx = (fighter.facing || 1) * 12; opp.vy = -8
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46)
+  }
+  applyScaledDamage(opp, dmg, { source: "ability" })   // GUARANTEED sure-hit (range-independent)
+  const ocx = (opp.x || 0) + (opp.w || 60) / 2, ocy = (opp.y || 0) + (opp.h || 100) / 2
+  if (Array.isArray(cineCtx.hitEffects)) cineCtx.hitEffects.push({ x: ocx, y: ocy, life: 18, maxLife: 18, color: "#ff3b30", size: 46 })
+  if (Array.isArray(cineCtx.damageNumbers)) cineCtx.damageNumbers.push({ x: ocx, y: ocy - 30, value: dmg, life: 40, maxLife: 40, color: "#ff5b52" })
+}
+export function executeRedRangerMmprUltimate(fighter, context) {
+  if ((fighter.rosterKey || "").toLowerCase() !== "red_ranger_mmpr") return false
+  if (isRedRangerPowerSwordCinematicActive()) return false     // already mid-cinematic
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, RR_ULT_COST)) return false
+  const opp = context?.getOpponent?.(fighter) || null
+  fighter.vx = 0
+  activateRedRangerPowerSwordCinematic(fighter, opp, (cineCtx) => applyRedRangerPowerSwordDamage(fighter, opp, cineCtx))
+  return true
+}
+// Per-frame Red Ranger MMPR command/poke driver (mirrors updateOmegaRangerCommandCombat). Returns
+// true (→ caller skips the normal path this frame) only when it actually fires a move.
+export function updateRedRangerMmprCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "red_ranger_mmpr" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase = getPhase?.(fighter)
+
+  // GRAB THROW-POSE WATCHER: the instant the held throw resolves (updateGrab releases the foe), swap the
+  // trhow_1 hold pose (rrGrab) → the trhow_2 release pose (rrThrow). Runs every frame while a grab is live.
+  if (fighter._rrGrabbing) {
+    const held = getTargetResolver(context)(fighter)
+    if (!held || !held.isGrabbed) {
+      fighter._rrGrabbing = false
+      fighter._spriteCastMove = "rrThrow"; fighter._spriteCastTimer = 12   // release follow-through
+    }
+  }
+
+  // Press-EDGE of Heavy (fresh tap, not held/buffered) — a rekka needs a clean re-tap. (The grab/throw
+  // special is dispatched via triggerSpecial → executeRedRangerMmprSpecial, not here.)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+
+  // REKKA CONTINUE — fresh Heavy during the current hit's RECOVERY, only if it CONNECTED. Shared
+  // rekkaContinue owns the connect-latch, window-close and cancel rule (see combat.js).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireRedRangerMmprCmd(fighter, next)
+
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart) return false
+
+  // AIR — Dive Kick poke (airborne Heavy). The generic down-air somersault is airborne Down+Light, so
+  // there's no conflict.
+  if (!grounded) {
+    if (heavyEdge) return fireRedRangerMmprPoke(fighter, "rrDiveKick")
+    return false
+  }
+
+  // GROUND — Fwd+Heavy opens the punch chain. Neutral heavy stays the normal (heavy) on the normal path.
+  if (forward && heavyEdge) return fireRedRangerMmprCmd(fighter, "rrRekka1")
   return false
 }
 
@@ -12448,6 +12596,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "vegeta":  return executeVegetaSpecial(fighter, context)
     case "beerus":  return executeBeerusSpecial(fighter, context)
     case "omega_ranger": return executeOmegaRangerSpecial(fighter, context)   // Gun / Super Upper / Special Downward
+    case "red_ranger_mmpr": return executeRedRangerMmprSpecial(fighter, context)   // the trhow grab/throw (direction-agnostic command grab)
     case "samurai_red_ranger": return executeSamuraiRangerSpecial(fighter, context)   // Flame Slash — MEGA-MODE-EXCLUSIVE (no-op in base form)
     case "gold_samurai_ranger": return executeGoldSamuraiSpecial(fighter, context)    // Light Slash — light energy slash-wave projectile (both tiers, tier-scaling)
     case "green_samurai_ranger": return executeGreenSamuraiSpecial(fighter, context)  // Forest Spear — long-reach thrust + leaf-blast wave projectile (both tiers, tier-scaling)
@@ -12514,6 +12663,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
       case "batman":  cast = executeBatmanUltimate(fighter, context);  break   // The Dark Knight: batarang-barrage freeze cinematic
       case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
+      case "red_ranger_mmpr": cast = executeRedRangerMmprUltimate(fighter, context); break   // Power Sword: Overhead Strike — freeze-cinematic leaping overhead slash
       case "samurai_red_ranger": cast = executeSamuraiRangerUltimate(fighter, context); break   // Fire Smasher: Blazing Strike — TIER-SCALING freeze cinematic (base vs Mega art+damage)
       case "gold_samurai_ranger": cast = executeGoldSamuraiUltimate(fighter, context); break     // Barracuda Blade: Light Finale — SAME freeze cinematic, light palette, tier-scaling (base 340 / Mega 460)
       case "green_samurai_ranger": cast = executeGreenSamuraiUltimate(fighter, context); break    // Forest Spear: Verdant Storm — SAME freeze cinematic, leaf-green palette, tier-scaling (base 340 / Mega 460)

@@ -67,7 +67,7 @@ try {
   check("dash flicker → dash_uniform", (seen.get("dash") || "").includes("tobirama_dash_uniform"), `sheet=${seen.get("dash")}`);
   await idleReady(); await page.keyboard.down("w"); await waitFrames(3); await page.keyboard.up("w"); await waitSheet("tobirama_jump_uniform", 8);
   check("jump → jump_uniform", (seen.get("jump") || "").includes("tobirama_jump_uniform"), `sheet=${seen.get("jump")}`);
-  await waitGrounded(); await page.keyboard.down("s"); await waitSheet("tobirama_block_uniform"); await page.keyboard.up("s");
+  await waitGrounded(); await page.keyboard.down(";"); await waitSheet("tobirama_block_uniform"); await page.keyboard.up(";");   // MK-feel Stage 1c: dedicated guard key (Down no longer blocks)
   check("guard → block_uniform", (seen.get("guard") || "").includes("tobirama_block_uniform"), `sheet=${seen.get("guard")}`);
   await idleReady(); await page.evaluate(() => window.__harness.hurtP1(24)); await waitSheet("tobirama_hit_uniform"); await page.evaluate(() => window.__harness.healP1?.());
   check("hurt → hit_uniform", (seen.get("hurt") || "").includes("tobirama_hit_uniform"), `sheet=${seen.get("hurt")}`);

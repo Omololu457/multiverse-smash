@@ -167,6 +167,12 @@ const MOVE_TO_ACTION = {
   painDederaCast: "painDederaCast", painDederaRise: "painDederaRise",
   // Pain (Stage 7): Chibaku Tensei ultimate cast pose (arms raised, _spriteCastMove). Identity map.
   painChibakuCast: "painChibakuCast",
+  // Red Ranger MMPR (Stage 2): Fwd+Heavy command chain (rrRekka1→2→3) + airborne-Heavy dive-kick poke.
+  // Identity maps (currentAttack.name === action key) so a recovery tail never resolves to the fallback box.
+  rrRekka1: "rrRekka1", rrRekka2: "rrRekka2", rrRekka3: "rrRekka3", rrDiveKick: "rrDiveKick",
+  // Red Ranger MMPR (Stage 3): grab/throw special cast poses (_spriteCastMove) — rrGrab (trhow_1 windup/
+  // lift) → rrThrow (trhow_2 release). Identity maps so the cast tail never resolves to the fallback box.
+  rrGrab: "rrGrab", rrThrow: "rrThrow",
   obitoRod1: "obitoRod1",   // Obito (Stage 2): "Kamui Rod Combo" Fwd+Heavy rekka stages. Identity maps
   obitoRod2: "obitoRod2",   // (currentMove === action key) — explicit so a recovery/cast tail can never
   obitoRod3: "obitoRod3",   // resolve to the 128² fallback box.

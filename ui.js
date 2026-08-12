@@ -34,10 +34,20 @@ const ENERGY_TYPE_LABELS = {
   reiatsu:          "Reiatsu",                  // Bleach (Ichigo) — spiritual pressure; fuels Getsuga specials + Ultimate
 }
 
+// UNIVERSE-level energy-label override — every character in a listed universe shows this label
+// REGARDLESS of their individual energyType, present AND future. Power Rangers all draw on the Morphin
+// Grid via their Morphers (spd_energy / symbol_power / morphin_grid all read as one resource to players),
+// so the whole universe shows "MORPHER ENERGY". Display-only; overrides the energyType name below but
+// still yields to an explicit per-character energyConfig.label.
+const UNIVERSE_ENERGY_LABELS = {
+  power_rangers: "MORPHER ENERGY",
+}
+
 // Single source of truth for the energy-bar resource name. Explicit energyConfig.label wins (Rick);
-// else the per-universe name derived from traits.energyType; else generic "ENERGY". Display-only.
+// else a whole-universe override (Power Rangers → "MORPHER ENERGY"); else the per-universe name derived
+// from traits.energyType; else generic "ENERGY". Display-only.
 export function resolveEnergyLabel(fighter) {
-  return fighter?.energyConfig?.label || ENERGY_TYPE_LABELS[fighter?.traits?.energyType] || "ENERGY"
+  return fighter?.energyConfig?.label || UNIVERSE_ENERGY_LABELS[fighter?.universe] || ENERGY_TYPE_LABELS[fighter?.traits?.energyType] || "ENERGY"
 }
 
 // NO-METER FLAVOR LABEL: a fighter with energyType "none" has no energy pool, so instead of an empty
@@ -47,10 +57,23 @@ export function resolveEnergyLabel(fighter) {
 // have energy — Omni-Man's "Smart Atoms" etc.) returns null and keeps the normal meter. Display-only.
 const NO_METER_FLAVOR = {
   jujutsu_kaisen: "HEAVENLY RESTRICTION",
-  demon_slayer:   "TOTAL CONCENTRATION",
+  demon_slayer:   "TOTAL CONCENTRATION",   // universe fallback (any DS char not named in NO_METER_FLAVOR_BY_KEY)
+}
+// PER-CHARACTER no-meter flavor override — a Demon Slayer fights on their OWN canonical Breathing Style,
+// so each shows their style name instead of the shared generic "TOTAL CONCENTRATION". Checked BEFORE the
+// universe fallback. Display-only. Nezuko is a DEMON, not a Demon Slayer — she practises no Breathing
+// Style, so she gets her canonical demon-blood technique "BLOOD DEMON ART" (Kekkijutsu) — confirmed with
+// the maintainer, NOT a guessed breathing style (matches the game's existing Blood-Demon-Art references).
+const NO_METER_FLAVOR_BY_KEY = {
+  zenitsu: "THUNDER BREATHING",
+  shinobu: "INSECT BREATHING",
+  rengoku: "FLAME BREATHING",
+  inosuke: "BEAST BREATHING",
+  nezuko:  "BLOOD DEMON ART",
 }
 export function noMeterFlavor(fighter) {
-  return fighter?.traits?.energyType === "none" ? (NO_METER_FLAVOR[fighter?.universe] || null) : null
+  if (fighter?.traits?.energyType !== "none") return null
+  return NO_METER_FLAVOR_BY_KEY[fighter?.rosterKey] || NO_METER_FLAVOR[fighter?.universe] || null
 }
 // Kept for the existing harness hook (game.js __harness.heavenlyRestriction) — the JJK-specific query.
 export function isHeavenlyRestriction(fighter) {

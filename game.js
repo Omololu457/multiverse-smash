@@ -74,6 +74,7 @@ import {
   updateVegetaCommandCombat,   // Vegeta command-normal cancel chain (Y-track kick target combo)
   updateBen10CommandCombat,   // Ben 10 per-form Fwd+Heavy command chain (Ben jab / XLR8 combo / Diamondhead crystal swing)
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
+  updateRedRangerMmprCommandCombat,   // Red Ranger MMPR punch-chain (Fwd+Heavy rekka → super 360° launcher) + air-Heavy dive-kick poke
   updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
   updateOmniManCommandCombat,   // Omni-Man "Viltrumite Beatdown" Fwd+Heavy rekka + Fwd+Light push poke
   applyOmniManFlightSystem, toggleOmniManFlight, isOmniManFlying, isOmniManForcedDescent, executeOmniManSpecial, forceRevertOmniManFlight,   // Omni-Man Flight: toggle movement mode + shared-pool drain + forced-descent state machine + Stage-3 special + round-reset cleanup
@@ -247,6 +248,10 @@ import {
   updateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive, drawGokuBlackSwordCinematic,
   clearGokuBlackSwordCinematic, getGokuBlackSwordCinematicStatus
 } from "./gokuBlackSwordCinematic.js"
+import {
+  updateRedRangerPowerSwordCinematic, isRedRangerPowerSwordCinematicActive, drawRedRangerPowerSwordCinematic,
+  clearRedRangerPowerSwordCinematic, getRedRangerPowerSwordCinematicStatus
+} from "./redRangerPowerSwordCinematic.js"
 import {
   activateMangekyouCinematic, updateMangekyouCinematic, isMangekyouCinematicActive,
   drawMangekyouCinematic, clearMangekyouCinematic, getMangekyouCinematicStatus
@@ -2220,6 +2225,7 @@ function resetRound() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearRedRangerPowerSwordCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
@@ -2299,7 +2305,13 @@ function initIntroVariant(fighter) {
   if (!fighter) return
   fighter._introRevealFrame = 0   // reset the delayed-reveal fade counter (introReveal); see renderHybridFighter
   fighter._introVoiceDone   = false   // reset the once-per-intro voice-line guard (fires at the reveal beat)
-  const seq = fighter.introSequence
+  // introSequencePool = a POOL of SEQUENCES (Red Ranger MMPR): pick ONE sequence at random per
+  // match, then drive it exactly like a fixed introSequence. Lets some pool entries be multi-step
+  // (unmorphed steps → shared morph-flash) while others are standalone single-step, all randomized.
+  const seqPool = fighter.introSequencePool
+  const seq = (Array.isArray(seqPool) && seqPool.length)
+    ? seqPool[Math.floor(Math.random() * seqPool.length)]
+    : fighter.introSequence
   if (Array.isArray(seq) && seq.length) {
     fighter._introSeq      = seq
     fighter._introSeqIdx   = 0
@@ -3058,6 +3070,7 @@ function resetToStart() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearRedRangerPowerSwordCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
@@ -3702,6 +3715,7 @@ function _doRematch() {
   clearSasukeCinematic()
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
+  clearRedRangerPowerSwordCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
@@ -4720,6 +4734,12 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "omega_ranger" && !charging &&
       updateOmegaRangerCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // RED RANGER MMPR command chain (Fwd+Heavy jab → re-tap Heavy on hit → cross → super 360° launcher)
+  // + airborne-Heavy dive-kick poke. Consumes the input only when it fires; neutral light/heavy/up/air/
+  // down_air stay on the normal path below.
+  if ((fighter.rosterKey || "").toLowerCase() === "red_ranger_mmpr" && !charging &&
+      updateRedRangerMmprCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
   // NETERO command chain: Down+Heavy opens down_attck_1, re-tap Heavy during recovery to cancel into
   // down_attck_2 (cancel-on-hit; a whiff/block ends the string). Consumes the input only when it fires
   // (returns true → skip normal path); neutral light/heavy stay on the normal path below.
@@ -5200,6 +5220,128 @@ function drawPainVoidOverlay(c, fighter) {
   c.globalCompositeOperation = "source-over"
   // drifting deep-red motes (Rinnegan / piercing tie) — fixed glow, gentle sway, no strobe
   c.shadowColor = "#E23A3A"; c.shadowBlur = 3
+  for (const m of fx.motes) {
+    const nx = m.nx + m.driftAmp * Math.sin(t * 0.03 * m.driftFreq + m.phase)
+    const ny = m.ny + m.driftAmp * 0.6 * Math.cos(t * 0.03 * m.driftFreq + m.phase)
+    c.globalAlpha = m.a; c.fillStyle = m.color
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  c.restore()
+}
+
+// RED RANGER "MORPHER VOID" (Alien-X style) — on top of the full-form near-black sprite: small drifting
+// particles in bright MORPHER-ENERGY RED (tying to his own colour identity + the "Morpher Energy" resource
+// label) + occasional soft expanding red-white PULSE-RINGS evoking a teleport / morph-flash. Seeded ONCE,
+// normalized to the drawn bbox (_lastDraw*) so it TRACKS every pose incl. the Power Sword Ultimate. Same
+// architecture as the other Void overlays (no strobe; continuous motion).
+function seedMorpherVoidField(fighter) {
+  const rnd = _mulberry32(0x5ED9A17E)
+  const RED = ["#FF3B30", "#E01818", "#FF5B52", "#C81020"]   // bright morpher-energy red
+  const halfWidth = ny => ny < 0.30 ? 0.17 : (ny < 0.66 ? 0.28 : 0.16)   // head / torso / legs envelope
+  const motes = []
+  for (let i = 0; i < 26; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: rnd() < 0.6 ? 2 : 3, color: RED[(rnd() * RED.length) | 0],
+      a: 0.6 + rnd() * 0.35, driftAmp: 0.007 + rnd() * 0.016, driftFreq: 0.3 + rnd() * 0.7, phase: rnd() * Math.PI * 2 })
+  }
+  // morph-flash pulse-rings — expanding red-white rings from the torso; staggered so one is always mid-bloom
+  const rings = []
+  for (let i = 0; i < 2; i++) rings.push({ cx: 0.5, cy: 0.40, period: 132, offset: i * 66 })
+  fighter._morpherVoidFX = { motes, rings }
+}
+function drawMorpherVoidOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "rr_void") return
+  if (!fighter._morpherVoidFX) seedMorpherVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._morpherVoidFX
+  const t = (fighter._morpherVoidClock = (fighter._morpherVoidClock || 0) + 1)
+  c.save()
+  // morph-flash pulse-rings — bright red-white expanding rings (teleport / morph-flash feel)
+  c.globalCompositeOperation = "lighter"
+  for (const rg of fx.rings) {
+    const prog = ((t + rg.offset) % rg.period) / rg.period   // 0→1
+    const cx = x + rg.cx * w, cy = y + rg.cy * h
+    const rad = prog * Math.max(w, h) * 0.95
+    const alpha = Math.pow(Math.sin(prog * Math.PI), 1.4) * 0.5   // sharp bloom, then fade
+    if (alpha <= 0.01) continue
+    c.strokeStyle = `rgba(255,236,230,${alpha * 0.7})`             // white-hot inner ring
+    c.lineWidth = 2.2 * (1 - prog) + 0.5
+    c.beginPath(); c.ellipse(cx, cy, rad, rad * 0.92, 0, 0, Math.PI * 2); c.stroke()
+    c.strokeStyle = `rgba(255,60,48,${alpha})`                     // morpher-red outer ring
+    c.lineWidth = 3.2 * (1 - prog) + 0.8
+    c.beginPath(); c.ellipse(cx, cy, rad * 1.06, rad * 0.98, 0, 0, Math.PI * 2); c.stroke()
+  }
+  c.globalCompositeOperation = "source-over"
+  // drifting bright morpher-red particles — fixed glow, gentle sway, no strobe
+  c.shadowColor = "#FF3B30"; c.shadowBlur = 3
+  for (const m of fx.motes) {
+    const nx = m.nx + m.driftAmp * Math.sin(t * 0.03 * m.driftFreq + m.phase)
+    const ny = m.ny + m.driftAmp * 0.6 * Math.cos(t * 0.03 * m.driftFreq + m.phase)
+    c.globalAlpha = m.a; c.fillStyle = m.color
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  c.restore()
+}
+
+// TOBI "KAMUI VOID" (Alien-X style) — on top of the full-form near-black sprite: small drifting deep-VIOLET
+// + RED particles + occasional soft rotating SWIRL-PULSE vortices evoking the Kamui portal specifically
+// (spiral arms that grow + rotate + bloom, unlike the concentric ring pulses of the other Void skins).
+// Seeded ONCE, normalized to the drawn bbox (_lastDraw*) so it TRACKS every pose. Continuous motion, no strobe.
+function seedKamuiVoidField(fighter) {
+  const rnd = _mulberry32(0x0B17A0BE)
+  const COL = ["#B44CE6", "#8A2ED0", "#C81E28", "#E23A6A"]   // deep violet + Kamui red
+  const halfWidth = ny => ny < 0.28 ? 0.15 : (ny < 0.66 ? 0.30 : 0.20)   // head / cloak / hem envelope
+  const motes = []
+  for (let i = 0; i < 28; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: rnd() < 0.6 ? 2 : 3, color: COL[(rnd() * COL.length) | 0],
+      a: 0.55 + rnd() * 0.35, driftAmp: 0.007 + rnd() * 0.016, driftFreq: 0.25 + rnd() * 0.7, phase: rnd() * Math.PI * 2 })
+  }
+  // Kamui swirl-pulses — spiral vortices at the torso; staggered so one is always mid-bloom
+  const swirls = []
+  for (let i = 0; i < 2; i++) swirls.push({ cx: 0.5, cy: 0.42, period: 150, offset: i * 75, dir: i % 2 ? 1 : -1 })
+  fighter._kamuiVoidFX = { motes, swirls }
+}
+function drawKamuiVoidOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "tobiKamuiVoid") return
+  if (!fighter._kamuiVoidFX) seedKamuiVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._kamuiVoidFX
+  const t = (fighter._kamuiVoidClock = (fighter._kamuiVoidClock || 0) + 1)
+  c.save()
+  // Kamui portal swirl-pulses — rotating spiral arms that grow + bloom then fade (the vortex draw-in feel)
+  c.globalCompositeOperation = "lighter"
+  for (const sw of fx.swirls) {
+    const prog = ((t + sw.offset) % sw.period) / sw.period
+    const alpha = Math.sin(prog * Math.PI) * 0.42
+    if (alpha <= 0.01) continue
+    const cx = x + sw.cx * w, cy = y + sw.cy * h
+    const baseR = prog * Math.max(w, h) * 0.5
+    const rot = sw.dir * t * 0.06
+    c.lineWidth = 1.6
+    for (let arm = 0; arm < 4; arm++) {
+      const a0 = rot + arm * (Math.PI / 2)
+      c.strokeStyle = `rgba(178,72,230,${alpha})`   // violet spiral arm
+      c.beginPath()
+      for (let k = 0; k <= 11; k++) {
+        const ang = a0 + k * 0.34
+        const rr = baseR * (0.28 + k * 0.075)
+        const sx = cx + Math.cos(ang) * rr, sy = cy + Math.sin(ang) * rr * 0.9
+        if (k === 0) c.moveTo(sx, sy); else c.lineTo(sx, sy)
+      }
+      c.stroke()
+    }
+    // red vortex core dot
+    c.fillStyle = `rgba(226,58,58,${alpha * 0.9})`
+    c.beginPath(); c.arc(cx, cy, 2.2 * (1 - prog) + 1, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"
+  // drifting deep-violet / red particles — fixed glow, gentle sway, no strobe
+  c.shadowColor = "#B44CE6"; c.shadowBlur = 3
   for (const m of fx.motes) {
     const nx = m.nx + m.driftAmp * Math.sin(t * 0.03 * m.driftFreq + m.phase)
     const ny = m.ny + m.driftAmp * 0.6 * Math.cos(t * 0.03 * m.driftFreq + m.phase)
@@ -6806,6 +6948,15 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // RED RANGER (MMPR) POWER SWORD CINEMATIC: SAME freeze contract — combat/physics/input are paused for
+  // the whole sequence; the camera frames BOTH fighters and the guaranteed damage lands at the STRIKE
+  // connect beat via the cinematic's onImpact, then combat resumes.
+  if (isRedRangerPowerSwordCinematicActive()) {
+    updateRedRangerPowerSwordCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // KILLUA GODSPEED ACTIVATION CINEMATIC: SAME freeze contract — combat/physics/input paused while the
   // camera pushes in on Killua and his charge-up plays, then pulls back. The buff was already applied at
   // the trigger (executeKilluaUltimate); this is the visual activation.
@@ -7172,6 +7323,8 @@ function renderHybridFighter(fighter) {
     drawVoidBoarOverlay(c, fighter)     // Inosuke Void Boar — drifting jagged white tusk-shards + claw-mark scratches, ON TOP of the void sprite
     drawNezukoVoidEmberOverlay(c, fighter)   // Nezuko Void Sovereign — drifting crimson-pink Blood-Demon-Art ember motes, ON TOP of the void sprite
     drawTojiVoidOverlay(c, fighter)          // Toji Void Killer — drifting deep-red particles, ON TOP of the void-black sprite (tracks the sword/chain specials)
+    drawMorpherVoidOverlay(c, fighter)       // Red Ranger Morpher Void — drifting morpher-red particles + morph-flash pulse-rings, ON TOP of the void-black sprite
+    drawKamuiVoidOverlay(c, fighter)         // Tobi Kamui Void — drifting violet/red particles + rotating Kamui portal swirl-pulses, ON TOP of the void-black sprite
     drawEdoReanimOverlay(c, fighter)         // Edo Tensei reanimation — decay mottling + stitched seams over the green-gray reanimated vessel (gated fighter._edoActive)
     // Obito's sustained Kamui swirl REMOVED (correction): while intangible he is visually IDENTICAL to
     // normal — the only tell is the one-time activation pose (obitoKamuiActivate). drawObitoKamuiAura is
@@ -7936,6 +8089,7 @@ function drawBattle() {
   drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
   drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
+  drawRedRangerPowerSwordCinematic(ctx, canvas)  // fullscreen Power Sword overlay (red vignette + strike flash + slash streak)
   drawKilluaGodspeedCinematic(ctx, canvas)  // fullscreen Godspeed activation overlay (cyan burst flash)
   drawFlashTimeCinematic(ctx, canvas)       // fullscreen Flash Time activation overlay (red/gold burst flash)
   drawGonAdultFormCinematic(ctx, canvas)    // fullscreen Adult Form activation overlay (green burst flash)
@@ -9373,6 +9527,9 @@ gameLoop()
     sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
     start:       startHarnessMatch,
     skipToBattle,
+    // Read a character's static definition (intro pool + animation sheets + stats) — test-only
+    // window into characters.js data (used by per-character build harnesses, e.g. intro-pool checks).
+    charDef: (key) => { const c = characters[key]; if (!c) return null; return { spriteScale: c.spriteScale ?? null, hasSprites: !!c.hasSprites, introSequencePool: c.introSequencePool || null, introPool: c.introPool || null, introSequence: c.introSequence || null, animationData: Object.fromEntries(Object.entries(c.animationData || {}).map(([k, v]) => [k, { sheet: v.sheet || null, frames: v.frames || null }])), stats: c.stats || null } },
     // ── STAGE 10 preload hooks ──────────────────────────────────────────────────
     preloadDone:     () => _preloadPromise,                 // resolves once every match sheet has decoded/errored
     preloadReady:    () => _preloadReady,                   // the INTRO→BATTLE gate flag
@@ -9582,7 +9739,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -9913,6 +10070,7 @@ gameLoop()
     sasukeCine: () => getSasukeCinematicStatus(),
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
     swordCine: () => getGokuBlackSwordCinematicStatus(),
+    powerSwordCine: () => getRedRangerPowerSwordCinematicStatus(),   // Red Ranger MMPR Power Sword ultimate cinematic status (Stage 4)
     godspeedCine: () => getKilluaGodspeedCinematicStatus(),
     overdriveCine: () => getHisokaOverdriveCinematicStatus(),
     tojiReincarnationCine: () => getTojiReincarnationCinematicStatus(),

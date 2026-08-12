@@ -299,6 +299,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./samurai_ranger_forest_idle_uniform.png" }
   },
 
+  // Red Ranger (Jason, Mighty Morphin — universe: power_rangers) — FOURTH sprited ranger (first of the
+  // classic MMPR team). Same idle-strip gate: decoding it flips spritesReady() from procedural box to
+  // the sprite path. Per-action rendering reads characters.js → redRangerMmpr.animationData (each action
+  // carries its own .sheet). idle = the RE-SLICED uniform strip (tools/reslice_strip.mjs).
+  red_ranger_mmpr: {
+    actions: { idle: "./red_ranger_mmpr_idle_uniform.png" }
+  },
+
   // Omni-Man (universe: invincible) — STAGE 0. Gates spritesReady() by decoding the idle strip →
   // flips Omni-Man from procedural box to sprite. Per-action rendering reads characters.js →
   // omniMan.animationData (each action carries its own .sheet). idle = omni_man_idle.png (3 clean

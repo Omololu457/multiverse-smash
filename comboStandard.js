@@ -87,6 +87,7 @@ export const REKKA = [
   { key: "zaraki_shikai", driver: "updateZarakiCommandCombat",  opener: "light|heavy", retap: "light|heavy", stages: 4, finisher: "launcher", requireHit: true,  srcRequireHit: false, status: "exception", note: "Shikai 4-stage dual-button rekka" },
   { key: "nezuko",        driver: "updateNezukoCommandCombat",  opener: "fwd/down+heavy", retap: "special", stages: 2, finisher: "launcher", requireHit: true,  srcRequireHit: false, status: "exception", note: "finisher advanced by SPECIAL edge, not Heavy; directional heavy singles" },
   { key: "omega_ranger",  driver: "updateOmegaRangerCommandCombat", opener: "fwd+heavy / back+light", retap: "heavy|light", stages: 7, finisher: "launcher", requireHit: true, srcRequireHit: false, status: "exception", note: "dual string: 3-stage Heavy kick + 7-stage Light sword" },
+  { key: "red_ranger_mmpr", driver: "updateRedRangerMmprCommandCombat", opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true, status: "conforms", note: "3-stage punch chain (rrRekka1→2→3 super-360 launcher) + air-Heavy dive-kick poke" },
   { key: "rengoku",       driver: "updateRengokuCommandCombat", opener: "fwd+heavy",  retap: "heavy/special", stages: 3, finisher: "heavy",  requireHit: true,  srcRequireHit: false, status: "exception", note: "dual-tier: normal Heavy chain + Special super-branch; separate air chain" },
 ]
 
@@ -153,8 +154,8 @@ export function classify(key) {
 
 // Expected classification counts — the baseline the harness asserts.
 export const EXPECTED_COUNTS = {
-  rekkaTotal:      REKKA.length,   // 33 (Fwd+Heavy rekka grammar)
-  conforms:        25,             // Stage C: +netero/ghostface/shinobu/inosuke/tobirama (finishers now launch)
+  rekkaTotal:      REKKA.length,   // 34 (Fwd+Heavy rekka grammar) — +red_ranger_mmpr (Stage 2)
+  conforms:        26,             // Stage C: +netero/ghostface/shinobu/inosuke/tobirama; +red_ranger_mmpr (3-stage punch chain, super-360 launcher)
   deviatesOpener:  0,              // Stage B DONE
   deviatesFinisher: 0,             // Stage C DONE (Maki stays an exception)
   exception:       8,
@@ -162,5 +163,5 @@ export const EXPECTED_COUNTS = {
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo/omololu)
   standardStringTotal:  14,
   zoner:                5,          // true single-poke zoners (rickPrime/evilMorty/beerus/piccolo/frieza)
-  rosterTotal:          52,        // 33 + 14 + 5
+  rosterTotal:          53,        // 34 + 14 + 5 (rekka +red_ranger_mmpr). NOTE: live roster is 54 — `toji` is a PRE-EXISTING unclassified gap (recent rebuild, not yet added to REKKA/NO_REKKA); that partition failure is tracked separately, not part of this Stage-2 work.
 }

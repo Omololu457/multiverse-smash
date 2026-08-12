@@ -140,7 +140,12 @@ export const SKINS = {
     { id: "gojoRoseQuartz", name: "Rose Quartz Gaze",  unlockLevel: 0, portrait: "./gojo_portrait__rosequartz.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "rosequartz") },
     { id: "gojoObsidian",   name: "Obsidian Strongest",unlockLevel: 0, portrait: "./gojo_portrait__obsidian.png",   spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "obsidian") },
     { id: "gojoAshen",      name: "Ashen Sorcerer",    unlockLevel: 0, portrait: "./gojo_portrait__ashen.png",      spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "ashen") },
-    { id: "gojoStorm",      name: "Storm Barrier",     unlockLevel: 0, portrait: "./gojo_portrait__storm.png",      spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "storm") }
+    { id: "gojoStorm",      name: "Storm Barrier",     unlockLevel: 0, portrait: "./gojo_portrait__storm.png",      spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "storm") },
+    // ADDITIVE — 4 procedural-pattern skins on the outfit (Infinity Void already exists, not duplicated); hair+eyes+outfit coordinated
+    { id: "gojoGradientLimitless", name: "Gradient Limitless", unlockLevel: 0, portrait: "./gojo_portrait__gojoGradientLimitless.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoGradientLimitless") },
+    { id: "gojoHarlequinSorcerer", name: "Harlequin Sorcerer", unlockLevel: 0, portrait: "./gojo_portrait__gojoHarlequinSorcerer.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoHarlequinSorcerer") },
+    { id: "gojoCircuitBarrier", name: "Circuit Barrier", unlockLevel: 0, portrait: "./gojo_portrait__gojoCircuitBarrier.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoCircuitBarrier") },
+    { id: "gojoChevronStrike", name: "Chevron Strike", unlockLevel: 0, portrait: "./gojo_portrait__gojoChevronStrike.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "gojoChevronStrike") }
   ],
   // SUKUNA — base sprite transparency-repaired (2026-08-03). "Regular" = the iconic pink-haired Sukuna.
   // 2026-08-03: ALL prior alt-skins DELETED (the 10 palette-swap pack + the orphaned Cerulean creative +
@@ -322,7 +327,12 @@ export const SKINS = {
     { id: "obitoTeal",      name: "Teal Mask",         unlockLevel: 0, portrait: "./obito_portrait__teal.png",       spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "teal") },
     { id: "obitoSunfire",   name: "Sunfire Eye",       unlockLevel: 0, portrait: "./obito_portrait__sunfire.png",    spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "sunfire") },
     { id: "obitoVoid",      name: "Void Mask",         unlockLevel: 0, portrait: "./obito_portrait__void.png",       spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "void") },   // + procedural Sharingan particles & Kamui swirl pulses (game.js drawObitoVoidOverlay, gated on this id)
-    { id: "obitoStorm",     name: "Storm Eye",         unlockLevel: 0, portrait: "./obito_portrait__storm.png",      spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "storm") }
+    { id: "obitoStorm",     name: "Storm Eye",         unlockLevel: 0, portrait: "./obito_portrait__storm.png",      spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "storm") },
+    // ADDITIVE — 4 procedural-pattern skins on the robe (Void Mask already exists, not duplicated); face protected
+    { id: "obitoStripeProtocol", name: "Stripe Protocol", unlockLevel: 0, portrait: "./obito_portrait__obitoStripeProtocol.png", spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "obitoStripeProtocol") },
+    { id: "obitoHarlequinMask", name: "Harlequin Mask", unlockLevel: 0, portrait: "./obito_portrait__obitoHarlequinMask.png", spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "obitoHarlequinMask") },
+    { id: "obitoCircuitEye", name: "Circuit Eye", unlockLevel: 0, portrait: "./obito_portrait__obitoCircuitEye.png", spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "obitoCircuitEye") },
+    { id: "obitoMarbledPhantom", name: "Marbled Phantom", unlockLevel: 0, portrait: "./obito_portrait__obitoMarbledPhantom.png", spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "obitoMarbledPhantom") }
   ],
 
   // Tobi (masked Obito alias, Naruto). FULLY SEPARATE from obito above. Same gate: WITHOUT a
@@ -348,7 +358,13 @@ export const SKINS = {
     { id: "tobiSunfire",      name: "Sunfire Mask",     unlockLevel: 0, portrait: "./tobi_portrait__sunfire.png",       spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "sunfire") },
     // FINAL — Celestial Veil: LIGHT pale-lavender base (Part A recolor) + a serene pastel-STAR procedural
     // overlay (Part B, game.js drawTobiCelestialOverlay). Deliberately soft/elegant, NOT a harsh Void skin.
-    { id: "tobiCelestial",    name: "Celestial Veil",   unlockLevel: 0, portrait: "./tobi_portrait__celestial.png",     spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "celestial") }
+    { id: "tobiCelestial",    name: "Celestial Veil",   unlockLevel: 0, portrait: "./tobi_portrait__celestial.png",     spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "celestial") },
+    // ADDITIVE — 4 procedural-pattern skins (cloak) + Kamui Void (near-black + game.js drawKamuiVoidOverlay)
+    { id: "tobiGradientShade", name: "Gradient Shade", unlockLevel: 0, portrait: "./tobi_portrait__tobiGradientShade.png", spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "tobiGradientShade") },
+    { id: "tobiChevronStrike", name: "Chevron Strike", unlockLevel: 0, portrait: "./tobi_portrait__tobiChevronStrike.png", spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "tobiChevronStrike") },
+    { id: "tobiShatteredVeil", name: "Shattered Veil", unlockLevel: 0, portrait: "./tobi_portrait__tobiShatteredVeil.png", spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "tobiShatteredVeil") },
+    { id: "tobiScaleMail", name: "Scale Mail", unlockLevel: 0, portrait: "./tobi_portrait__tobiScaleMail.png", spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "tobiScaleMail") },
+    { id: "tobiKamuiVoid", name: "Kamui Void", unlockLevel: 0, portrait: "./tobi_portrait__tobiKamuiVoid.png", spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "tobiKamuiVoid") }
   ],
 
   // Netero (Hunter x Hunter). Same gate as the sprite characters above: WITHOUT a default skin,
@@ -600,6 +616,11 @@ export const SKINS = {
     { id: "tojiTealPhantom",   name: "Teal Phantom",      unlockLevel: 0, portrait: recolorPortrait("toji", "tealphantom"),   spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "tealphantom") },   // deep teal hair / black tank / dark teal pants
     // Void Killer: full near-black base (hair+tank+pants) + procedural drifting deep-red particles (game.js drawTojiVoidOverlay, gated on this skinId)
     { id: "tojiVoidKiller",    name: "Void Killer",       unlockLevel: 0, portrait: recolorPortrait("toji", "voidkiller"),    spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "voidkiller") },
+    // ADDITIVE — 4 procedural-pattern skins on the outfit (Void Killer already exists, not duplicated); hair+tank+pants coordinated
+    { id: "tojiStripeMercenary", name: "Stripe Mercenary", unlockLevel: 0, portrait: "./toji_portrait__tojiStripeMercenary.png", spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "tojiStripeMercenary") },
+    { id: "tojiShatteredBlade", name: "Shattered Blade", unlockLevel: 0, portrait: "./toji_portrait__tojiShatteredBlade.png", spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "tojiShatteredBlade") },
+    { id: "tojiScaleMail", name: "Scale Mail", unlockLevel: 0, portrait: "./toji_portrait__tojiScaleMail.png", spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "tojiScaleMail") },
+    { id: "tojiMarbledVeteran", name: "Marbled Veteran", unlockLevel: 0, portrait: "./toji_portrait__tojiMarbledVeteran.png", spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "tojiMarbledVeteran") }
   ],
   maki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.maki?.portrait, spriteScale: characters.maki?.spriteScale, animationData: null },
@@ -684,6 +705,27 @@ export const SKINS = {
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null },
     { id: "green_samurai_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
     { id: "green_samurai_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
+  ],
+  // Red Ranger (Jason, MMPR). Default + a 4-skin PILOT batch of PROCEDURAL-PATTERN skins (tools/
+  // gen_red_ranger_creative.py) — proving the recolor pipeline can do multi-colour patterns within a
+  // region (gradient / stripes / marble / diamonds), not just flat fills. spriteScale carried so applySkin
+  // doesn't fall back to the synthetic {spriteScale:1} default. Cosmetic only; no recolorTag (no Mega tier).
+  red_ranger_mmpr: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.red_ranger_mmpr?.portrait, spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: null },
+    { id: "rr_twilight",  name: "Twilight Fade",  unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_twilight.png",  spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_twilight") },
+    { id: "rr_racer",     name: "Circuit Racer",  unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_racer.png",     spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_racer") },
+    { id: "rr_magma",     name: "Magma Marble",   unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_magma.png",     spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_magma") },
+    { id: "rr_harlequin", name: "Harlequin",      unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_harlequin.png", spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_harlequin") },
+    // Round 2 — 4 more distinct pattern SHAPES (organic marble / circuit line-work / V-chevrons / Voronoi fracture)
+    { id: "rr_steel",     name: "Marbled Steel",  unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_steel.png",     spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_steel") },
+    { id: "rr_circuit",   name: "Circuit Pulse",  unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_circuit.png",   spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_circuit") },
+    { id: "rr_chevron",   name: "Chevron Strike", unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_chevron.png",   spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_chevron") },
+    { id: "rr_shatter",   name: "Shattered Core", unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_shatter.png",   spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_shatter") },
+    // Round 3 closeout — hard diagonal halftone split + dense fish-scale micro-pattern
+    { id: "rr_eclipse",   name: "Eclipse Half-tone", unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_eclipse.png",   spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_eclipse") },
+    { id: "rr_scale",     name: "Scale Mail",       unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_scale.png",     spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_scale") },
+    // Void (Alien-X style) — near-black base + game.js drawMorpherVoidOverlay (morpher-red particles + morph-flash pulse-rings)
+    { id: "rr_void",      name: "Morpher Void",     unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_void.png",      spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_void") }
   ],
   gold_samurai_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gold_samurai_ranger?.portrait, spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: null },

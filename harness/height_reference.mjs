@@ -42,6 +42,9 @@ const CHARS = (process.env.HR_CHARS ? process.env.HR_CHARS.split(",") : [
   "maki", "green_samurai_ranger", "ghostface", "miwa",
   // built since the 2026-08-03 pass (were never in the audit list):
   "yuji", "madara",
+  // built 2026-08-12, after the §8 pass — never measured until now (idle is a wide forward-lunge crouch,
+  // so his standing height is calibrated off the upright frame; see characters.js hashirama spriteScale note):
+  "hashirama",
 ]);
 
 const server = await startServer();

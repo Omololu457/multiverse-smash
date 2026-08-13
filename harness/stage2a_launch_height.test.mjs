@@ -24,24 +24,26 @@ function mkFighter(side, x, extra = {}) {
   ensureCombatState(f); return f
 }
 
-// ── (A) every launcher pops to -26 now ──
-section("A. launcher pops every archetype to -26 (was -11..-13 tuned / -17 floor)")
-for (const key of ["gojo", "maki"]) {
+// ── (A) LIVE per-archetype launch (raised) — Fast -30, Balanced -32 (floor -30, no longer flat -26) ──
+section("A. launcher pops each archetype to its LIVE raised value (Fast -30 / Balanced -32; was flat -26)")
+for (const [key, expected] of [["gojo", -32], ["maki", -30]]) {
   const cd = getCharacter(key); const md = cd.basic_attacks.upAttack
   const a = mkFighter("p1", 100, { rosterKey: key, basic_attacks: cd.basic_attacks })
   const t = mkFighter("p2", 168, { facing: -1 })
   startMove(a, "up", md); let g = 0; while (getAttackPhase(a) !== "active" && g++ < 120) a.currentAttack.timer--
   resolveAttackHit(a, t, [], {})
-  check(`${key}: enemy launched at vy = -26 (raised)`, t.vy === -26, `vy=${t.vy}`)
+  check(`${key}: enemy launched at vy = ${expected} (raised, archetype-live)`, t.vy === expected, `vy=${t.vy}`)
 }
-// giant target still halves → -13
+// Fast launches LOWER than Balanced (spread is alive again, not flat)
+check("Fast (Maki -30) launches lower than Balanced (Gojo -32)", -30 > -32)
+// giant target still halves → Balanced -32 → -16
 {
   const cd = getCharacter("gojo")
   const a = mkFighter("p1", 100, { rosterKey: "gojo", basic_attacks: cd.basic_attacks })
   const giant = mkFighter("p2", 168, { facing: -1 }); giant._canvasHeightFrac = 0.85
   startMove(a, "up", cd.basic_attacks.upAttack); let g = 0; while (getAttackPhase(a) !== "active" && g++ < 120) a.currentAttack.timer--
   resolveAttackHit(a, giant, [], {})
-  check("giant TARGET launch halved (-26 → -13)", giant.vy === -13, `vy=${giant.vy}`)
+  check("giant TARGET launch halved (-32 → -16)", giant.vy === -16, `vy=${giant.vy}`)
 }
 
 // ── trajectory sim: drop a launched body, optionally ramping juggleCount as air hits land ──
@@ -59,21 +61,26 @@ function trajectory(initialVy, { ramp = false } = {}) {
   return { apexRise: startY - apexY, airborneFrames: frames, apexY }
 }
 
-section("B. the raise is real — -26 rises meaningfully higher than the old -17")
-const oldFloor = trajectory(-17), raised = trajectory(-26)
-console.log(`     apex rise: old -17 = ${oldFloor.apexRise.toFixed(0)}px   new -26 = ${raised.apexRise.toFixed(0)}px`)
-check("-26 launch rises higher than the old -17 floor", raised.apexRise > oldFloor.apexRise + 60, `${raised.apexRise.toFixed(0)} vs ${oldFloor.apexRise.toFixed(0)}`)
+section("B. the raise is real — the new launches rise meaningfully higher than the OLD flat -26")
+const oldFlat = trajectory(-26)
+const fastRise = trajectory(-30), balRise = trajectory(-32), heavyRise = trajectory(-33)
+console.log(`     apex rise: OLD flat -26 = ${oldFlat.apexRise.toFixed(0)}px`)
+console.log(`     new Fast -30 = ${fastRise.apexRise.toFixed(0)}px  Balanced -32 = ${balRise.apexRise.toFixed(0)}px  Heavy/Heavy-tank -33 = ${heavyRise.apexRise.toFixed(0)}px  (roster max)`)
+check("Fast -30 rises meaningfully higher than the old flat -26", fastRise.apexRise > oldFlat.apexRise + 60, `${fastRise.apexRise.toFixed(0)} vs ${oldFlat.apexRise.toFixed(0)}`)
+check("archetype spread is LIVE: Fast < Balanced < Heavy (heavier launches higher)",
+  fastRise.apexRise < balRise.apexRise && balRise.apexRise < heavyRise.apexRise,
+  `${fastRise.apexRise}/${balRise.apexRise}/${heavyRise.apexRise}`)
 
 section("C. juggle gravity brings the ceiling back down (not out of reach)")
-const noRamp = trajectory(-26, { ramp: false })
-const ramped = trajectory(-26, { ramp: true })
-console.log(`     -26 no-ramp: apex ${noRamp.apexRise.toFixed(0)}px, ${noRamp.airborneFrames}f airborne`)
-console.log(`     -26 ramped : apex ${ramped.apexRise.toFixed(0)}px, ${ramped.airborneFrames}f airborne`)
+const noRamp = trajectory(-32, { ramp: false })
+const ramped = trajectory(-32, { ramp: true })
+console.log(`     -32 no-ramp: apex ${noRamp.apexRise.toFixed(0)}px, ${noRamp.airborneFrames}f airborne`)
+console.log(`     -32 ramped : apex ${ramped.apexRise.toFixed(0)}px, ${ramped.airborneFrames}f airborne`)
 check("juggle ramp lowers the apex (caps the rise)", ramped.apexRise < noRamp.apexRise, `${ramped.apexRise.toFixed(0)} < ${noRamp.apexRise.toFixed(0)}`)
 check("juggle ramp returns the target to the ground FASTER", ramped.airborneFrames < noRamp.airborneFrames, `${ramped.airborneFrames} < ${noRamp.airborneFrames}`)
 
-section("D. the raised launch never clips the arena ceiling (-360 cap)")
-check("even a full un-ramped -26 rise stays above the -360 ceiling", raised.apexY > -360, `apexY=${raised.apexY.toFixed(0)}`)
+section("D. even the HIGHEST launch (Heavy/Heavy-tank -33) keeps ceiling headroom (-360 cap)")
+check("a full un-ramped -33 rise stays clear of the -360 ceiling", heavyRise.apexY > -360, `apexY=${heavyRise.apexY.toFixed(0)}`)
 
 console.log(`\nStage 2a: ${pass} passed, ${fail} failed`)
 process.exit(fail ? 1 : 0)

@@ -824,27 +824,9 @@ export class SpriteHandler {
 
     ctx.restore();
 
-    // SPEED-TIER TELEPORT-BLUR — a rapid spin: whirling, fading ghost copies of the current frame,
-    // centered on the fighter, while `_speedBlur` ticks down (set in game.js on a Toji-speed-tier
-    // teleport-dash). Flip-independent (a spin is symmetric), so it sits cleanly on top of the normal
-    // sprite without touching the facing/flip math above.
-    if ((fighter._speedBlur || 0) > 0 && _sheetReady(sheet)) {
-      const cx = fighter.x - offsetX + dstW / 2;
-      const cy = drawY + dstH / 2;
-      const spin = fighter._speedBlur * 1.05;   // whirl angle (rad); advances each frame as it ticks down
-      const baseA = ctx.globalAlpha;   // honor any caller body-fade (Toji Fly-Heads vanish, Tobi ghost, intro reveal)
-      ctx.save();
-      ctx.imageSmoothingEnabled = false;
-      for (let g = 0; g < 4; g++) {
-        ctx.save();
-        ctx.globalAlpha = (0.34 - g * 0.07) * baseA;
-        ctx.translate(cx, cy);
-        ctx.rotate(spin + g * (Math.PI / 5));
-        ctx.drawImage(sheet, sx, sy, drawWidth, drawHeight, -dstW / 2, -dstH / 2, dstW, dstH);
-        ctx.restore();
-      }
-      ctx.restore();
-    }
+    // (A rotating spin/blur "_speedBlur" ghost-copy overlay was drawn here for speed-tier teleport-
+    // dashes; it obscured the dash sprite into an unreadable swirl and was REMOVED. Speed-tier chars
+    // now show their real dash sprite on the blink via the dash-pose default in game.js.)
 
     // Pause animation during hitstop OR while the game is paused. The pause
     // render path still calls draw(), which would otherwise keep advancing

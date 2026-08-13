@@ -49,32 +49,30 @@ try {
   await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.dispelP1Clones?.(); });
   const me = await p1(); await page.evaluate(x => window.__harness.setP2X(x), me.x + 130); await waitFrames(2);
 
-  // ── DEFAULT: tell visible (no-tell OFF) ──
-  console.log("── mode A: DEFAULT (tell visible) ──");
+  // ── DEFAULT: ZERO tell (confirmed design — clone indistinguishable from the real caster) ──
+  console.log("── mode A: DEFAULT (zero tell, indistinguishable) ──");
   await page.evaluate(() => window.__harness.spawnP1Clones(2));
   await waitFrames(20);
-  check("no-tell mode is OFF by default (tell visible)", (await tell()) === true, `cloneTell=${await tell()}`);
-  await shot("decoy_s4_tell_visible.png");
+  check("standing clone has NO tell by default", (await tell()) === false, `cloneTell=${await tell()}`);
+  await shot("decoy_s4_tell_off_default.png");
 
-  // ── F6 → NO-TELL mode (tell removed) via the REAL training hotkey ──
-  console.log("── mode B: F6 → NO-TELL (tell removed) ──");
-  await pressKey("F6");
-  check("F6 removed the visual tell (no-tell mode on)", (await tell()) === false, `cloneTell=${await tell()}`);
-  await shot("decoy_s4_tell_removed.png");
+  // ── DEBUG LEVER ON → the old chakra-construct wash (training/debug only, not gameplay) ──
+  console.log("── mode B: debug lever ON (old wash, for reference) ──");
+  await page.evaluate(() => window.__harness.setCloneTell(true));
+  check("debug tell lever turns the wash ON", (await tell()) === true, `cloneTell=${await tell()}`);
+  await shot("decoy_s4_tell_on_debug.png");
+  await page.evaluate(() => window.__harness.setCloneTell(false));   // back to the design default
 
-  // ── hit-reveal STILL works with the tell off ──
+  // ── hit-reveal works regardless of the tell (i.e. always, at the design default OFF) ──
   // Move the REAL fighter clear of the clones so the test projectile unambiguously hits a clone
   // (a projectile that overlaps the real fighter is correctly consumed by the normal resolver first).
   await page.evaluate(() => window.__harness.setP1Pos?.(200, null)); await waitFrames(2);
   const before = await page.evaluate(() => window.__harness.p2ProjectileAtClone());
   await waitFrames(32);
   const after = await clones();
-  check("hit-reveal STILL poofs a clone with the tell OFF", before >= 1 && after === before - 1, `count ${before}→${after}`);
+  check("hit-reveal poofs a clone at the zero-tell default", before >= 1 && after === before - 1, `count ${before}→${after}`);
 
-  // ── F6 again → tell restored ──
-  console.log("── mode C: F6 again → tell restored ──");
-  await pressKey("F6");
-  check("F6 again restores the visual tell", (await tell()) === true, `cloneTell=${await tell()}`);
+  check("tell remains OFF (design default restored)", (await tell()) === false, `cloneTell=${await tell()}`);
 
   console.log(`\n${fails === 0 ? "✅" : "❌"} DECOY Stage 4 evidence: ${fails} failed check(s)`);
 } catch (e) {

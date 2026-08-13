@@ -209,14 +209,238 @@ function drawPanel(ctx, x, y, w, h, options = {}) {
     radius    = 18,
     fill      = "rgba(10, 16, 36, 0.72)",
     stroke    = "rgba(255,255,255,0.16)",
-    lineWidth = 2
+    lineWidth = 2,
+    bevel     = false,          // MK-feel angular corner-cut shape (character-select cards)
+    bevelCut  = 12
   } = options
   ctx.save()
   ctx.fillStyle = fill
-  fillRoundRect(ctx, x, y, w, h, radius)
+  if (bevel) { _bevelPath(ctx, x, y, w, h, bevelCut); ctx.fill() }
+  else       fillRoundRect(ctx, x, y, w, h, radius)
   ctx.strokeStyle = stroke
   ctx.lineWidth   = lineWidth
-  strokeRoundRect(ctx, x, y, w, h, radius)
+  if (bevel) { _bevelPath(ctx, x, y, w, h, bevelCut); ctx.stroke() }
+  else       strokeRoundRect(ctx, x, y, w, h, radius)
+  ctx.restore()
+}
+
+// MK-feel character-select helpers ─────────────────────────────────────────
+// Per-character accent = the SAME value the HUD energy panel reads: `energyConfig.color || "#38bdf8"`
+// (accentFor is passed from game.js, which has `characters`). Only a couple of characters (Rick/Beerus)
+// define a custom energyConfig.color; every other character reads the HUD's default #38bdf8 — so the
+// cursor glow matches the in-match energy bar exactly. Used for the cursor/hover glow.
+function _cardAccent(fighter, accentFor) {
+  const key = fighter?.rosterKey || fighter?.id || fighter?.key
+  const c = (typeof accentFor === "function" ? accentFor(key) : null) || fighter?.energyConfig?.color
+  return c || "#38bdf8"
+}
+// #rrggbb → rgba() at alpha a (accent tints/glows). Non-hex input passes through unchanged.
+function _withAlpha(hex, a) {
+  if (typeof hex !== "string" || hex[0] !== "#" || hex.length < 7) return hex
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${a})`
+}
+
+// Per-card select animation state (render-only): eased hover scale/glow + Stage-3 confirm flourish,
+// keyed by fighterId. Advanced once per card per frame in drawCharacterSelectScreen. A plain Map (ids
+// are strings, not objects) — stale entries just idle at rest.
+const _cardAnim = new Map()
+let _selTick = 0                 // frame counter driving the glow-pulse phase
+let _selPrevPick = null          // { p1, p2 } previous confirmed picks → Stage-3 confirm edge-detect
+function _cardState(id) {
+  let s = _cardAnim.get(id)
+  if (!s) { s = { hover: 0, confirm: 0 }; _cardAnim.set(id, s) }
+  return s
+}
+// Stage-3 confirm zoom-punch: a quick scale bump that rises then settles as `confirm` decays 1→0.
+function _confirmZoom(confirm) { return confirm > 0 ? Math.sin(confirm * Math.PI) * 0.10 : 0 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// SHARED MK-FEEL UI LANGUAGE (menus / select screens) — ONE consistent system:
+// angular beveled metallic panels, dark backing + thin bright accent edge, eased
+// hover scale + accent glow-pulse, snappy timing. Reused by every polished screen.
+// ═════════════════════════════════════════════════════════════════════════════
+const _MK_ACCENT = "#4aa8e0"                 // standard UI accent (non-character screens)
+let _mkFrame = 0                              // shared animation clock for menu screens
+function _mkAdvance() { _mkFrame++ }          // call ONCE at the top of each redesigned screen
+export function mkFrame() { return _mkFrame }  // harness read-out
+// Exposed so sibling modules (matchflow.js results/round screens) draw in the exact SAME language.
+export function mkAdvance() { _mkFrame++ }
+export function bevelPath(ctx, x, y, w, h, cut) { return _bevelPath(ctx, x, y, w, h, cut) }
+export function metalPanel(ctx, x, y, w, h, accent, cut, flash) { return _metalPanel(ctx, x, y, w, h, accent, cut, flash) }
+export function mkButton(ctx, rect, opts) { return drawMkButton(ctx, rect, opts) }
+
+// Subtle entrance fade keyed by a value (e.g. selected index) — restarts when the value changes, then
+// eases 0→1. For calm/reading screens (Move List) where a gentle content fade beats hover motion.
+const _fadeState = new Map()
+function _entranceFade(id, value, dur = 10) {
+  let s = _fadeState.get(id)
+  if (!s || s.value !== value) { s = { value, t: 0 } }
+  s.t = Math.min(dur, s.t + 1)
+  _fadeState.set(id, s)
+  return s.t / dur
+}
+
+// Eased per-item hover (snappy, matches character-select cards). Keyed by a string id.
+function _mkHover(id, active) {
+  const st = _cardState(id)
+  const target = active ? 1 : 0
+  st.hover += (target - st.hover) * 0.35
+  if (Math.abs(st.hover - target) < 0.01) st.hover = target
+  return st.hover
+}
+
+// Angular metallic menu button — the shared primitive for every list/menu screen. `id` enables the
+// eased hover animation; `accent` is the highlight color (character accent where a character is shown,
+// else _MK_ACCENT). Matches the HUD/character-select shape + glow language exactly.
+function drawMkButton(ctx, rect, opts = {}) {
+  const { label = "", subLabel = "", active = false, locked = false, accent = _MK_ACCENT, id = null,
+          align = "center", cut: cutOpt } = opts
+  const hv  = locked ? 0 : (id ? _mkHover(id, active) : (active ? 1 : 0))
+  // Pronounced angular corner-cut (MK/Tekken): sized to the shorter dimension so it reads clearly
+  // angular at any button height without over-cutting a tall/short one.
+  const cut = cutOpt != null ? cutOpt : Math.max(10, Math.min(rect.h * 0.5, rect.w * 0.5, 22))
+  const scale = 1 + hv * 0.04
+  const cx = rect.x + rect.w / 2, cy = rect.y + rect.h / 2
+  ctx.save()
+  if (scale !== 1) { ctx.translate(cx, cy); ctx.scale(scale, scale); ctx.translate(-cx, -cy) }
+
+  // Dark metallic backing (vertical gradient)
+  _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut)
+  const g = ctx.createLinearGradient(0, rect.y, 0, rect.y + rect.h)
+  g.addColorStop(0, "rgba(22,28,40,0.94)"); g.addColorStop(1, "rgba(6,9,16,0.95)")
+  ctx.fillStyle = g; ctx.fill()
+  // Hover accent tint wash
+  if (hv > 0.01) { _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut); ctx.fillStyle = _withAlpha(accent, 0.18 * hv); ctx.fill() }
+  // Inner dark bevel line for depth
+  _bevelPath(ctx, rect.x + 2, rect.y + 2, rect.w - 4, rect.h - 4, Math.max(0, cut - 2))
+  ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 1; ctx.stroke()
+  // Bright accent edge (glow-pulses on hover)
+  _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut)
+  ctx.strokeStyle = hv > 0.01 ? accent : "rgba(150,180,220,0.32)"
+  ctx.lineWidth = 1.5 + hv
+  if (hv > 0.01) { const pulse = 0.6 + 0.4 * Math.sin(_mkFrame * 0.18); ctx.shadowBlur = (8 + 14 * pulse) * hv; ctx.shadowColor = accent }
+  ctx.stroke(); ctx.shadowBlur = 0
+  // Left accent bar (MK detail) grows in on hover
+  if (hv > 0.02 && !locked) { ctx.save(); ctx.globalAlpha = hv; ctx.fillStyle = accent; ctx.fillRect(rect.x + cut * 0.5, rect.y + rect.h * 0.26, 3, rect.h * 0.48); ctx.restore() }
+
+  // Labels — scale to row height (same behavior as the old drawButton)
+  const labelSize = Math.round(clamp(rect.h * 0.34, 15, 26))
+  const subSize   = Math.round(clamp(rect.h * 0.18, 11, 15))
+  const showSub   = subLabel && rect.h >= 52
+  const tx = align === "left" ? rect.x + Math.max(18, cut + 10) : rect.x + rect.w / 2
+  const labelY = showSub ? rect.y + rect.h * 0.40 : rect.y + rect.h * 0.52
+  drawCenteredText(ctx, label, tx, labelY, { font: `800 ${labelSize}px Arial`, fill: "#ffffff", align: align === "left" ? "left" : "center" })
+  if (showSub) drawCenteredText(ctx, subLabel, tx, rect.y + rect.h * 0.74, { font: `${subSize}px Arial`, fill: "rgba(210,224,250,0.78)", align: align === "left" ? "left" : "center" })
+  ctx.restore()
+}
+
+// Holographic panel overlay (Stage 12) — OPT-IN, used only on "information being displayed" screens
+// (Move List, Universe Select). Very subtle: slow-drifting scanlines + a faint accent top sheen + an
+// infrequent 1px chromatic-flicker line. Deterministic (_mkFrame). Clipped to the panel's bevel shape.
+// Meant to read as a nice detail on close inspection, NOT a distracting flicker during normal use.
+function _holoPanelOverlay(ctx, x, y, w, h, opts = {}) {
+  const accent = opts.accent || _MK_ACCENT
+  const cut = opts.cut != null ? opts.cut : 12
+  ctx.save()
+  _bevelPath(ctx, x, y, w, h, cut); ctx.clip()
+  // Scanlines — 4px pitch, slow downward drift, barely-there alpha.
+  const off = (_mkFrame * 0.3) % 4
+  ctx.globalAlpha = 0.05; ctx.fillStyle = "#bfe6ff"
+  for (let yy = y - 4 + off; yy < y + h; yy += 4) ctx.fillRect(x, yy, w, 1)
+  // Faint accent sheen down from the top edge (the "projected light" cue).
+  const sh = ctx.createLinearGradient(0, y, 0, y + h)
+  sh.addColorStop(0, accent); sh.addColorStop(0.14, "transparent")
+  ctx.globalAlpha = 0.07; ctx.fillStyle = sh; ctx.fillRect(x, y, w, h)
+  // Chromatic flicker — a brief, infrequent 1px cyan/magenta split line (holographic glitch).
+  if ((_mkFrame % 19) < 2) {
+    const fy = y + ((_mkFrame * 37) % Math.max(1, h - 6))
+    ctx.globalAlpha = 0.11
+    ctx.fillStyle = "#38e0ff"; ctx.fillRect(x, fy, w, 1)
+    ctx.fillStyle = "#ff5ea8"; ctx.fillRect(x, fy + 2, w, 1)
+  }
+  ctx.restore()
+}
+
+// MULTIVERSAL RIFT ambient background (Stage 13) — a shared, reusable animated backdrop: a faint slowly-
+// swirling rift/portal (rotating spiral arms + soft core glow + drifting concentric rings) plus slow
+// particle motes, all LOW-opacity so it never competes with foreground content. Deterministic (_mkFrame).
+// Applied ONLY to the two "about the multiverse" screens (Main Menu, Universe Select) — NOT info-dense ones.
+function drawRiftAmbientBackdrop(ctx, canvas, opts = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const bg = ctx.createLinearGradient(0, 0, 0, h)
+  bg.addColorStop(0, opts.top || "#07091a"); bg.addColorStop(1, opts.bottom || "#150b26")
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
+
+  const cx = w * 0.5, cy = h * 0.46, R = Math.max(w, h) * 0.58, t = _mkFrame * 0.004
+  // soft rift core glow (blue → violet)
+  const core = ctx.createRadialGradient(cx, cy, 10, cx, cy, R)
+  core.addColorStop(0, "rgba(90,120,255,0.10)"); core.addColorStop(0.42, "rgba(150,80,220,0.06)"); core.addColorStop(1, "transparent")
+  ctx.fillStyle = core; ctx.fillRect(0, 0, w, h)
+
+  // rotating spiral arms (the swirling portal)
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t)
+  const arms = 3
+  for (let a = 0; a < arms; a++) {
+    ctx.save(); ctx.rotate((a / arms) * Math.PI * 2)
+    ctx.globalAlpha = 0.07
+    ctx.beginPath()
+    for (let s = 0; s <= 44; s++) { const ang = s * 0.16, rad = s * (R / 44) * 0.92; const x = Math.cos(ang) * rad, y = Math.sin(ang) * rad; s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y) }
+    const grd = ctx.createLinearGradient(0, 0, R, 0); grd.addColorStop(0, "#6aa8ff"); grd.addColorStop(0.6, "#9a7bff"); grd.addColorStop(1, "transparent")
+    ctx.strokeStyle = grd; ctx.lineWidth = 2.5; ctx.stroke()
+    ctx.restore()
+  }
+  ctx.restore()
+
+  // faint drifting concentric rings (portal ripples)
+  ctx.save(); ctx.strokeStyle = "#9a7bff"; ctx.lineWidth = 1
+  for (let r = 1; r <= 4; r++) { ctx.globalAlpha = 0.05; const rr = R * 0.18 * r + Math.sin(t * 3 + r) * 6; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke() }
+  ctx.restore()
+
+  // slow-drifting motes (shared with drawMkAmbientBackdrop)
+  ctx.save()
+  for (let i = 0; i < 30; i++) {
+    const speed = 0.22 + (i % 4) * 0.12
+    const px = (i * 137.5 + _mkFrame * speed * 0.6) % (w + 40) - 20
+    const py0 = (i * 91.7 - _mkFrame * speed * 0.5) % (h + 40)
+    const py = py0 < 0 ? py0 + h + 40 : py0
+    const rr = 0.8 + (i % 3) * 0.7
+    ctx.fillStyle = `rgba(170,190,255,${0.05 + 0.045 * (i % 3)})`
+    ctx.beginPath(); ctx.arc(px, py, rr, 0, Math.PI * 2); ctx.fill()
+  }
+  ctx.restore()
+}
+
+// Subtle animated menu backdrop: dark gradient + slow-drifting accent glows (parallax) + faint drifting
+// motes. Deterministic (driven by _mkFrame — no Math.random/Date.now), so it's replay/test-safe.
+function drawMkAmbientBackdrop(ctx, canvas, opts = {}) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const top = opts.top || "#070d1b", bottom = opts.bottom || "#16233c"
+  const bg = ctx.createLinearGradient(0, 0, 0, h)
+  bg.addColorStop(0, top); bg.addColorStop(1, bottom)
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
+
+  const t = _mkFrame * 0.006
+  ctx.save(); ctx.globalAlpha = 0.20
+  const g1x = w * (0.22 + 0.03 * Math.sin(t)), g1y = h * (0.20 + 0.02 * Math.cos(t * 0.8))
+  const g1 = ctx.createRadialGradient(g1x, g1y, 10, g1x, g1y, w * 0.38)
+  g1.addColorStop(0, "#3f7fd0"); g1.addColorStop(1, "transparent"); ctx.fillStyle = g1; ctx.fillRect(0, 0, w, h)
+  const g2x = w * (0.80 - 0.03 * Math.cos(t * 0.9)), g2y = h * (0.30 + 0.025 * Math.sin(t))
+  const g2 = ctx.createRadialGradient(g2x, g2y, 10, g2x, g2y, w * 0.34)
+  g2.addColorStop(0, "#b8487f"); g2.addColorStop(1, "transparent"); ctx.fillStyle = g2; ctx.fillRect(0, 0, w, h)
+  ctx.restore()
+
+  // Drifting motes (deterministic positions scrolling slowly upward/sideways).
+  ctx.save()
+  for (let i = 0; i < 26; i++) {
+    const speed = 0.25 + (i % 4) * 0.12
+    const px = (i * 137.5 + _mkFrame * speed * 0.6) % (w + 40) - 20
+    const py = (i * 91.7 - _mkFrame * speed * 0.5) % (h + 40)
+    const py2 = py < 0 ? py + h + 40 : py
+    const r = 0.8 + (i % 3) * 0.7
+    ctx.fillStyle = `rgba(150,190,255,${0.05 + 0.045 * (i % 3)})`
+    ctx.beginPath(); ctx.arc(px, py2, r, 0, Math.PI * 2); ctx.fill()
+  }
   ctx.restore()
 }
 
@@ -527,8 +751,9 @@ function _nameForKey(roster, key) {
 }
 
 export function drawAiVsAiSetupScreen(ctx, canvas, cfg = {}, roster = [], selectedIndex = 0) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#0a0f1e", "#101f38")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0a0f1e", bottom: "#101f38" })
   drawHeader(ctx, canvas, "AI vs AI", "Two CPUs fight automatically — every move is logged")
 
   const speeds = [1, 2, 4, 8]
@@ -552,7 +777,7 @@ export function drawAiVsAiSetupScreen(ctx, canvas, cfg = {}, roster = [], select
     const val = valueFor(b.id)
     const label = val != null ? `${b.label}:  ${val}` : b.label
     const sub = val != null ? "◀ ▶ or click to change" : b.subLabel
-    drawButton(ctx, b, { label, subLabel: sub, active: i === selectedIndex, accent: accentFor(b.id) })
+    drawMkButton(ctx, b, { label, subLabel: sub, active: i === selectedIndex, accent: accentFor(b.id), id: `aivsai:${b.id || i}` })
   })
   drawFooterHint(ctx, canvas, "↑↓ select · ◀▶ change · Enter start · click a row to cycle · Esc back")
 }
@@ -568,8 +793,9 @@ export function getAiVsAiSummaryRects(canvas) {
 }
 
 export function drawAiVsAiSummaryScreen(ctx, canvas, exp = {}, selectedIndex = 0) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#0a0f1e", "#101f38")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0a0f1e", bottom: "#101f38" })
   const s = exp.summary || { totalMatches: 0, wins: {}, byMethod: {} }
   drawHeader(ctx, canvas, "RUN COMPLETE", `${s.totalMatches} matches simulated`)
 
@@ -582,8 +808,8 @@ export function drawAiVsAiSummaryScreen(ctx, canvas, exp = {}, selectedIndex = 0
   drawSubText(ctx, `Endings — ${line2}`, w / 2, 178, { font: "15px Arial", fill: "rgba(220,230,255,0.72)" })
 
   getAiVsAiSummaryRects(canvas).forEach((b, i) => {
-    drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex,
-      accent: b.id === "json" || b.id === "csv" ? "#7CFC98" : "#8fb3ff" })
+    drawMkButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex,
+      accent: b.id === "json" || b.id === "csv" ? "#7CFC98" : "#8fb3ff", id: `aivsaisum:${b.id || i}` })
   })
   drawFooterHint(ctx, canvas, "Logs also auto-downloaded when the run finished · click to re-download")
 }
@@ -604,9 +830,13 @@ function ffaSlotDeviceName(slot) {
   return slot === 0 ? "P1 keyboard" : slot === 1 ? "P2 keyboard" : `P${slot + 1} controller`
 }
 
+// Per-slot FFA color coding — mirrors game.js FFA_BAR_COLORS so the select screens match the in-match bars.
+const FFA_SLOT_ACCENTS = ["#38bdf8", "#f87171", "#4ade80", "#facc15"]
+
 export function drawFFASlotSelectScreen(ctx, canvas, playerCount = 3, aiSlots = [], charKeys = [], deviceCount = 2, selectedIndex = 0) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#0a0f1e", "#101f38")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0a0f1e", bottom: "#101f38" })
   drawHeader(ctx, canvas, "ASSIGN PLAYERS", "Click a slot to cycle Human ↔ CPU and pick a difficulty")
   let aiCount = 0
   getFFASlotSelectRects(canvas, playerCount).forEach((b, i) => {
@@ -617,9 +847,9 @@ export function drawFFASlotSelectScreen(ctx, canvas, playerCount = 3, aiSlots = 
       if (diff) aiCount++
       const sub     = forced ? "No device — click to change CPU difficulty"
                              : "Click to cycle Human / CPU difficulties"
-      drawButton(ctx, b, { label: `P${b.slot + 1}  ${charKeys[b.slot] || "?"}  →  ${who}`, subLabel: sub, active: i === selectedIndex, accent: diff ? "#fbbf24" : "#8fb3ff" })
+      drawMkButton(ctx, b, { label: `P${b.slot + 1}  ${charKeys[b.slot] || "?"}  →  ${who}`, subLabel: sub, active: i === selectedIndex, accent: diff ? "#fbbf24" : "#8fb3ff", id: `ffaslot:${i}` })
     } else {
-      drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex })
+      drawMkButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex, id: `ffaslot:${i}` })
     }
   })
   drawFooterHint(ctx, canvas, `${aiCount} CPU · ${playerCount - aiCount} human  ·  slots without a device default to CPU`)
@@ -637,19 +867,21 @@ export function getFFATeamSelectRects(canvas, playerCount = 3) {
 }
 
 export function drawFFATeamSelectScreen(ctx, canvas, playerCount = 3, teams = [], charKeys = [], selectedIndex = 0, teamColors = {}) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#0a0f1e", "#0f2740")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0a0f1e", bottom: "#0f2740" })
   drawHeader(ctx, canvas, "ASSIGN TEAMS", "Click a player to switch their team (uneven splits are fine)")
   getFFATeamSelectRects(canvas, playerCount).forEach((b, i) => {
     if (b.slot != null) {
       const team = teams[b.slot] || "A"
       const col = teamColors[team] || "#94a3b8"
-      drawButton(ctx, b, { label: `P${b.slot + 1}  ${charKeys[b.slot] || "?"}  →  TEAM ${team}`, subLabel: "Click to toggle A / B", active: i === selectedIndex })
-      // team swatch on the right of the row
-      ctx.save(); ctx.fillStyle = col; ctx.fillRect(b.x + b.w - 34, b.y + b.h / 2 - 10, 20, 20)
-      ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.strokeRect(b.x + b.w - 34, b.y + b.h / 2 - 10, 20, 20); ctx.restore()
+      // team color drives the row accent (metallic edge/glow) — same color coding, upgraded look.
+      drawMkButton(ctx, b, { label: `P${b.slot + 1}  ${charKeys[b.slot] || "?"}  →  TEAM ${team}`, subLabel: "Click to toggle A / B", active: i === selectedIndex, accent: col, id: `ffateam:${i}` })
+      // team swatch on the right of the row (beveled, matches language)
+      ctx.save(); _bevelPath(ctx, b.x + b.w - 36, b.y + b.h / 2 - 11, 22, 22, 5); ctx.fillStyle = col; ctx.fill()
+      ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 1.5; _bevelPath(ctx, b.x + b.w - 36, b.y + b.h / 2 - 11, 22, 22, 5); ctx.stroke(); ctx.restore()
     } else {
-      drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex })
+      drawMkButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex, id: `ffateam:${i}` })
     }
   })
   const counts = ["A", "B"].map(t => `${t}: ${teams.slice(0, playerCount).filter(x => x === t).length}`).join("   ")
@@ -698,7 +930,19 @@ export function getCharacterCardRects(canvas, roster = [], opts = CHAR_GRID_OPTS
 
 export function getStageCardRects(canvas, stages = []) {
   stages = normalizeToArray(stages)
-  return getGridLayout(stages.length, canvas, { cols: 3, cardW: 310, cardH: 120, gap: 24, startY: 160 })
+  const n = Math.max(1, stages.length)
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const startY = 160, gap = 22, botMargin = 60
+  const availH = Math.max(240, h - startY - botMargin)
+  // Adaptive grid: keep the classic 3-column look for a small list, but WIDEN to more columns (and shrink
+  // the cards) as the stage list grows so every stage stays visible on one screen — no scrolling needed.
+  // Both the renderer and the click hit-test call this, so selection tracks the layout automatically.
+  let cols = 3
+  while (cols < 6 && (availH - (Math.ceil(n / cols) - 1) * gap) / Math.ceil(n / cols) < 100) cols++
+  const rows  = Math.ceil(n / cols)
+  const cardH = Math.min(120, (availH - (rows - 1) * gap) / rows)
+  const cardW = Math.min(310, (Math.min(w, 1440) - (cols + 1) * gap) / cols)
+  return getGridLayout(n, canvas, { cols, cardW, cardH, gap, startY })
 }
 
 // ─────────────────────────────────────────────
@@ -969,6 +1213,7 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
 export function getMainMenuRects(canvas) {
   return getVerticalMenuLayout(canvas, [
     { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player • Tower" },
+    { id: "story",    label: "STORY MODE", subLabel: "A dimensional narrative campaign — coming soon" },
     // ONLINE is locked until a full-unlock code (dev OR beta) is entered (Task 5/6).
     // isFullyUnlocked() flips it selectable (leads to a placeholder screen — no netcode yet).
     { id: "online",   label: "ONLINE",    subLabel: isFullyUnlocked() ? "Unlocked (placeholder)" : "Coming soon — online play", locked: !isFullyUnlocked(), lockNote: "Online play is coming soon" },
@@ -986,28 +1231,30 @@ export function getMainMenuRects(canvas) {
 }
 
 export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) {
+  _mkAdvance()
+  const { width: w } = getCanvasSize(canvas)
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#08111f", "#182845")
-  drawHeader(ctx, canvas, "MAIN MENU", "Where do you want to go?")
+  drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#161029" })   // Stage 13: multiversal rift ambient
+  drawHeader(ctx, canvas, "MULTIVERSE SMASH", "Where do you want to go?")
 
   // Logged-in-as banner (top-right) so the current account is always visible.
-  const { width: w } = getCanvasSize(canvas)
   const label = account ? `Logged in as ${account.username}` : "Not logged in"
   ctx.save(); ctx.font = "700 14px Arial"; ctx.textBaseline = "middle"
   const bw = ctx.measureText(label).width + 28
-  drawPanel(ctx, w - bw - 24, 24, bw, 34, { fill: "rgba(8,14,30,0.8)", stroke: account ? "#86efac" : "rgba(255,255,255,0.18)", lineWidth: 1.5, radius: 10 })
+  drawPanel(ctx, w - bw - 24, 24, bw, 34, { fill: "rgba(8,14,30,0.8)", stroke: account ? "#86efac" : "rgba(255,255,255,0.18)", lineWidth: 1.5, radius: 10, bevel: true, bevelCut: 8 })
   ctx.fillStyle = account ? "#bbf7d0" : "rgba(220,230,255,0.7)"
   ctx.textAlign = "center"; ctx.fillText(label, w - bw / 2 - 24, 41)
   ctx.restore()
 
   const rects = getMainMenuRects(canvas)
   rects.forEach((r, i) => {
-    drawButton(ctx, r, { label: r.label, subLabel: r.subLabel, active: i === hoverIndex && !r.locked })
+    drawMkButton(ctx, r, { label: r.label, subLabel: r.subLabel, active: i === hoverIndex && !r.locked,
+      locked: r.locked, accent: _MK_ACCENT, id: `mainmenu:${i}` })
     if (r.locked) {
       // LOCKED placeholder (e.g. ONLINE): grey wash + a single lock pill on the
       // right, vertically centered so it never collides with the label/sub.
       ctx.save()
-      ctx.fillStyle = "rgba(8,12,24,0.55)"; roundRect(ctx, r.x, r.y, r.w, r.h, 18); ctx.fill()
+      _bevelPath(ctx, r.x, r.y, r.w, r.h, 14); ctx.fillStyle = "rgba(8,12,24,0.55)"; ctx.fill()
       const pillW = 96, pillH = 26, px = r.x + r.w - pillW - 16, py = r.y + r.h / 2 - pillH / 2
       ctx.fillStyle = "rgba(30,41,59,0.95)"; roundRect(ctx, px, py, pillW, pillH, 13); ctx.fill()
       ctx.strokeStyle = "rgba(148,163,184,0.5)"; ctx.lineWidth = 1; roundRect(ctx, px, py, pillW, pillH, 13); ctx.stroke()
@@ -1017,6 +1264,63 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) 
     }
   })
   drawFooterHint(ctx, canvas, "Tip: new here? Open HOW TO PLAY for the controls and core mechanics")
+}
+
+// ─────────────────────────────────────────────
+// STORY MODE — UI PLACEHOLDER ONLY (no story content/logic). A styled "coming soon" title card in the
+// rift/holographic language, with a LOCKED teaser chapter list (inert — no click-through, no hover) to
+// hint at scale. Reserves + styles the entry point for a future Story Mode project.
+// ─────────────────────────────────────────────
+const STORY_CHAPTERS = [
+  "Chapter I — The First Rift",
+  "Chapter II — Fractured Worlds",
+  "Chapter III — The Convergence",
+  "Chapter IV — Echoes Across Realities",
+  "Chapter V — ??? ",
+]
+export function getStoryBackButton(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return { id: "back", x: w / 2 - 110, y: h - 78, w: 220, h: 50 }
+}
+export function drawStoryModeScreen(ctx, canvas, hoverBack = false) {
+  _mkAdvance()
+  const { width: w, height: h } = getCanvasSize(canvas)
+  ctx.clearRect(0, 0, w, h)
+  drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#160b2a" })
+
+  // Holographic title card
+  const cardW = Math.min(720, w * 0.68), cardH = 420
+  const cardX = w / 2 - cardW / 2, cardY = 96
+  _metalPanel(ctx, cardX, cardY, cardW, cardH, "#9a7bff", 20, 0.3)
+  _holoPanelOverlay(ctx, cardX, cardY, cardW, cardH, { accent: "#9a7bff", cut: 20 })
+
+  drawCenteredText(ctx, "STORY MODE", w / 2, cardY + 62, { font: "900 46px Arial", fill: "#f3f0ff", shadowBlur: 22, shadowColor: "rgba(154,123,255,0.6)" })
+
+  // COMING SOON badge
+  const badgeW = 190, badgeH = 34, bx = w / 2 - badgeW / 2, by = cardY + 92
+  _bevelPath(ctx, bx, by, badgeW, badgeH, 8); ctx.fillStyle = "rgba(154,123,255,0.18)"; ctx.fill()
+  _bevelPath(ctx, bx, by, badgeW, badgeH, 8); ctx.strokeStyle = "#b9a3ff"; ctx.lineWidth = 1.5; ctx.stroke()
+  drawCenteredText(ctx, "COMING SOON", w / 2, by + badgeH / 2 + 1, { font: "800 15px Arial", fill: "#d9ccff", baseline: "middle" })
+
+  drawSubText(ctx, "A dimensional narrative campaign is in development. Reserved for a future update.", w / 2, cardY + 150, { font: "15px Arial", fill: "rgba(210,220,255,0.7)" })
+
+  // LOCKED teaser chapter list — inert (no click-through, no hover). Greyed + lock icon.
+  const listX = cardX + 60, listW = cardW - 120
+  let ly = cardY + 188
+  for (const title of STORY_CHAPTERS) {
+    _bevelPath(ctx, listX, ly, listW, 34, 8)
+    ctx.fillStyle = "rgba(10,12,22,0.6)"; ctx.fill()
+    _bevelPath(ctx, listX, ly, listW, 34, 8)
+    ctx.strokeStyle = "rgba(148,163,184,0.28)"; ctx.lineWidth = 1; ctx.stroke()
+    drawCenteredText(ctx, "🔒", listX + 20, ly + 17, { font: "14px Arial", fill: "rgba(160,170,190,0.6)", baseline: "middle" })
+    drawCenteredText(ctx, title, listX + 40, ly + 17, { font: "600 15px Arial", fill: "rgba(180,190,210,0.5)", align: "left", baseline: "middle" })
+    drawCenteredText(ctx, "LOCKED", listX + listW - 16, ly + 17, { font: "700 11px Arial", fill: "rgba(148,163,184,0.5)", align: "right", baseline: "middle" })
+    ly += 40
+  }
+
+  // BACK button (interactive — the only actionable control here)
+  drawMkButton(ctx, getStoryBackButton(canvas), { label: "BACK", active: hoverBack, id: "storyback", cut: 12 })
+  drawFooterHint(ctx, canvas, "Story Mode is a placeholder — chapters are not yet available")
 }
 
 // ─────────────────────────────────────────────
@@ -1061,8 +1365,9 @@ export function getMoveListButtons(canvas) {
   ]
 }
 
-function drawKitPanel(ctx, x, y, w, h, kit) {
-  drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.8)", stroke: "rgba(130,170,255,0.4)", lineWidth: 2, radius: 14 })
+function drawKitPanel(ctx, x, y, w, h, kit, accent = "#4aa8e0") {
+  drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.86)", stroke: _withAlpha(accent, 0.6), lineWidth: 2, bevel: true, bevelCut: 14 })
+  _holoPanelOverlay(ctx, x, y, w, h, { accent, cut: 14 })   // Stage 12: subtle holographic treatment (info screen)
   if (!kit) { drawCenteredText(ctx, "Select a fighter", x + w / 2, y + h / 2, { font: "18px Arial", fill: "rgba(220,230,255,0.6)" }); return }
 
   const pad = 18
@@ -1111,8 +1416,9 @@ function drawKitPanel(ctx, x, y, w, h, kit) {
   for (const b of kit.basics || []) row(b.name, b.input, "")
 }
 
-function drawControlsPanel(ctx, x, y, w, h, ref) {
-  drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.8)", stroke: "rgba(130,170,255,0.4)", lineWidth: 2, radius: 14 })
+function drawControlsPanel(ctx, x, y, w, h, ref, accent = "#4aa8e0") {
+  drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.86)", stroke: _withAlpha(accent, 0.6), lineWidth: 2, bevel: true, bevelCut: 14 })
+  _holoPanelOverlay(ctx, x, y, w, h, { accent, cut: 14 })   // Stage 12: subtle holographic treatment (info screen)
   if (!ref) return
   const pad = 18
   const colW = (w - pad * 2 - 24) / 3
@@ -1145,36 +1451,47 @@ function drawControlsPanel(ctx, x, y, w, h, ref) {
 }
 
 export function drawMoveListScreen(ctx, canvas, opts = {}) {
+  _mkAdvance()
   const L = moveListLayout(canvas)
   const fighters = normalizeToArray(opts.fighters)
   const selectedIndex = opts.selectedIndex ?? 0
+  const selKey = fighters[selectedIndex]?.key || fighters[selectedIndex]?.id
+  const accent = (typeof opts.accentFor === "function" ? opts.accentFor(selKey) : null) || _MK_ACCENT
 
   ctx.clearRect(0, 0, L.w, L.h)
-  drawBackdrop(ctx, canvas, "#0b1021", "#1b2240")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0b1021", bottom: "#1b2240" })
   drawHeader(ctx, canvas, "MOVE LIST", opts.showControls ? "Controls & how to perform specials" : "Pick a fighter to see their kit")
 
-  // left list
+  // Left fighter list — angular rows, NO per-row hover bounce (this is a reading list); the SELECTED row
+  // gets the character's identity accent so it reads at a glance without noise.
   const rects = getMoveListCardRects(canvas, fighters.length)
   fighters.forEach((f, i) => {
     const r = rects[i]
     const sel = i === selectedIndex
-    drawPanel(ctx, r.x, r.y, r.w, r.h, {
-      fill: sel ? "rgba(70,110,210,0.4)" : "rgba(255,255,255,0.05)",
-      stroke: sel ? "#dbe7ff" : "rgba(255,255,255,0.12)", lineWidth: sel ? 2 : 1, radius: 8
-    })
-    drawCenteredText(ctx, f.name, r.x + 12, r.y + r.h / 2, { font: sel ? "700 13px Arial" : "13px Arial", fill: sel ? "#fff" : "rgba(220,230,255,0.85)", align: "left", baseline: "middle" })
+    _bevelPath(ctx, r.x, r.y, r.w, r.h, 8)
+    ctx.fillStyle = sel ? _withAlpha(accent, 0.26) : "rgba(16,22,34,0.7)"; ctx.fill()
+    _bevelPath(ctx, r.x, r.y, r.w, r.h, 8)
+    ctx.strokeStyle = sel ? accent : "rgba(255,255,255,0.10)"; ctx.lineWidth = sel ? 2 : 1
+    if (sel) { ctx.save(); ctx.shadowBlur = 10; ctx.shadowColor = accent; ctx.stroke(); ctx.restore() } else ctx.stroke()
+    if (sel) { ctx.fillStyle = accent; ctx.fillRect(r.x + 4, r.y + r.h * 0.24, 3, r.h * 0.52) }
+    drawCenteredText(ctx, f.name, r.x + 14, r.y + r.h / 2, { font: sel ? "700 13px Arial" : "13px Arial", fill: sel ? "#fff" : "rgba(220,230,255,0.82)", align: "left", baseline: "middle" })
   })
 
-  // right panel
+  // Right panel — subtle content ENTRANCE FADE when the selected fighter changes (calm, purposeful,
+  // no hover-bounce on individual rows). Uses the selected character's accent for the panel edge.
   const panelY = L.top
   const panelH = L.h - panelY - 80
-  if (opts.showControls) drawControlsPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.controlRef)
-  else                   drawKitPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.kit)
+  const fade = _entranceFade("movelist", `${opts.showControls ? "ctrl" : "kit"}:${selectedIndex}`, 10)
+  ctx.save()
+  ctx.globalAlpha = 0.35 + 0.65 * fade
+  if (opts.showControls) drawControlsPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.controlRef, accent)
+  else                   drawKitPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.kit, accent)
+  ctx.restore()
 
-  // buttons
+  // Buttons (BACK / CONTROLS) — shared MK button, with hover only on these (not the move rows).
   for (const b of getMoveListButtons(canvas)) {
     const active = b.id === "controls" ? !!opts.showControls : false
-    drawButton(ctx, b, { label: b.id === "controls" && opts.showControls ? "MOVES" : b.label, active })
+    drawMkButton(ctx, b, { label: b.id === "controls" && opts.showControls ? "MOVES" : b.label, active, accent: _MK_ACCENT, id: `movelistbtn:${b.id}`, cut: 12 })
   }
 }
 
@@ -1200,11 +1517,12 @@ function wrapText(ctx, text, x, y, maxW, lineH, style = {}) {
 // GAMEPLAY SELECT
 // ─────────────────────────────────────────────
 export function drawGameplaySelectScreen(ctx, canvas, selectedIndex = 0) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#08111f", "#182845")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#08111f", bottom: "#182845" })
   drawHeader(ctx, canvas, "GAMEPLAY SELECT", "Choose how you want to play")
   getGameplaySelectRects(canvas).forEach((button, index) => {
-    drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
+    drawMkButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex, id: `gameplay:${button.id || index}` })
   })
   drawFooterHint(ctx, canvas, "Training = 1 player practice • VS Match = player vs CPU")
 }
@@ -1213,35 +1531,49 @@ export function drawGameplaySelectScreen(ctx, canvas, selectedIndex = 0) {
 // FREE-FOR-ALL SETUP + CHARACTER SELECT
 // ─────────────────────────────────────────────
 export function drawFFASetupScreen(ctx, canvas, selectedIndex = 0, maxPlayers = 4, padCount = 0) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#0a0f1e", "#3a1030")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0a0f1e", bottom: "#3a1030" })
   drawHeader(ctx, canvas, "FREE-FOR-ALL", "Last fighter standing — how many players?")
   getFFASetupRects(canvas, maxPlayers).forEach((button, index) => {
-    drawButton(ctx, button, { label: button.label, subLabel: button.locked ? button.lockNote : button.subLabel, active: index === selectedIndex && !button.locked })
+    drawMkButton(ctx, button, { label: button.label, subLabel: button.locked ? button.lockNote : button.subLabel, active: index === selectedIndex && !button.locked, locked: button.locked, id: `ffasetup:${button.id || index}` })
   })
   drawFooterHint(ctx, canvas, `Devices: keyboard P1 + keyboard P2 + ${padCount} controller(s) → up to ${maxPlayers} players. P3/P4 are controller-only.`)
 }
 
 export function drawFFACharSelectScreen(ctx, canvas, slot = 0, playerCount = 3, roster = [], selectedIndex = 0, picks = []) {
   const { width: w, height: h } = getCanvasSize(canvas)
+  _mkAdvance()
   roster = normalizeToArray(roster)
   ctx.clearRect(0, 0, w, h)
-  drawBackdrop(ctx, canvas, "#0b1021", "#171f37")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0b1021", bottom: "#171f37" })
+  // per-slot color coding stays intact — the current picker's slot color drives the card accent.
+  const slotAccent = FFA_SLOT_ACCENTS[slot % FFA_SLOT_ACCENTS.length]
   drawHeader(ctx, canvas, `PLAYER ${slot + 1} — CHOOSE FIGHTER`, `Free-for-all · ${playerCount} players`)
   const rects = getCharacterCardRects(canvas, roster)
   const vp = getGridViewport(canvas, CHAR_GRID_OPTS)
   ctx.save()
   ctx.beginPath(); ctx.rect(0, vp.top - 2, w, (vp.bottom - vp.top) + 4); ctx.clip()
-  roster.forEach((c, i) => {
-    const r = rects[i]; if (!r) return
+  const drawFfaCard = (i) => {
+    const c = roster[i]; const r = rects[i]; if (!r) return
     const sel = i === selectedIndex
-    drawPanel(ctx, r.x, r.y, r.w, r.h, {
-      fill:   sel ? "rgba(244,114,182,0.5)" : "rgba(255,255,255,0.08)",
-      stroke: sel ? "#fbcfe8" : "rgba(255,255,255,0.16)",
-      lineWidth: sel ? 3 : 2
-    })
-    drawCenteredText(ctx, c?.name || c?.rosterKey || `#${i}`, r.x + r.w / 2, r.y + r.h / 2, { font: "700 18px Arial", fill: "#ffffff" })
-  })
+    const st = _cardState(`ffachar:${slot}:${i}`)
+    const target = sel ? 1 : 0
+    st.hover += (target - st.hover) * 0.35
+    if (Math.abs(st.hover - target) < 0.01) st.hover = target
+    const scale = 1 + st.hover * 0.05, cx = r.x + r.w / 2, cy = r.y + r.h / 2
+    ctx.save()
+    if (scale !== 1) { ctx.translate(cx, cy); ctx.scale(scale, scale); ctx.translate(-cx, -cy) }
+    _bevelPath(ctx, r.x, r.y, r.w, r.h, 12)
+    ctx.fillStyle = st.hover > 0.01 ? _withAlpha(slotAccent, 0.34 * st.hover) : "rgba(16,22,34,0.8)"; ctx.fill()
+    _bevelPath(ctx, r.x, r.y, r.w, r.h, 12)
+    if (st.hover > 0.01) { const pulse = 0.6 + 0.4 * Math.sin(_mkFrame * 0.18); ctx.shadowBlur = (10 + 14 * pulse) * st.hover; ctx.shadowColor = slotAccent }
+    ctx.strokeStyle = st.hover > 0.01 ? slotAccent : "rgba(255,255,255,0.16)"; ctx.lineWidth = 2 + st.hover; ctx.stroke(); ctx.shadowBlur = 0
+    drawCenteredText(ctx, c?.name || c?.rosterKey || `#${i}`, cx, cy, { font: "700 18px Arial", fill: "#ffffff", shadowBlur: 4, shadowColor: "rgba(0,0,0,0.8)" })
+    ctx.restore()
+  }
+  roster.forEach((_, i) => { if (i !== selectedIndex) drawFfaCard(i) })
+  if (roster[selectedIndex]) drawFfaCard(selectedIndex)
   ctx.restore()
   drawGridScrollbar(ctx, getGridScrollbar(roster.length, canvas, CHAR_GRID_OPTS))
   const done = picks.map((p, i) => `P${i + 1}:${p}`).join("  ")
@@ -1252,11 +1584,12 @@ export function drawFFACharSelectScreen(ctx, canvas, slot = 0, playerCount = 3, 
 // TOWER TIER SELECT
 // ─────────────────────────────────────────────
 export function drawTowerSelectScreen(ctx, canvas, selectedIndex = 0) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#0a0f1e", "#2a1c3d")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0a0f1e", bottom: "#2a1c3d" })
   drawHeader(ctx, canvas, "TOWER", "Pick a tier — beat every floor to clear it")
   getTowerSelectRects(canvas).forEach((button, index) => {
-    drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
+    drawMkButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex, id: `tower:${button.id || index}` })
   })
   drawFooterHint(ctx, canvas, "Random opponent + stage each floor • Tier 5 never ends — how high can you climb?")
 }
@@ -1265,11 +1598,12 @@ export function drawTowerSelectScreen(ctx, canvas, selectedIndex = 0) {
 // AI DIFFICULTY SELECT
 // ─────────────────────────────────────────────
 export function drawAIDifficultyScreen(ctx, canvas, selectedIndex = 0) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#0c0d1e", "#231c3d")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0c0d1e", bottom: "#231c3d" })
   drawHeader(ctx, canvas, "AI DIFFICULTY", "Pick your opponent level")
   getAIDifficultyRects(canvas).forEach((button, index) => {
-    drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
+    drawMkButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex, id: `aidiff:${button.id || index}` })
   })
   drawFooterHint(ctx, canvas, "Easy • Adaptive • Impossible")
 }
@@ -1286,11 +1620,12 @@ export function getArcadeSetupRects(canvas) {
   ])
 }
 export function drawArcadeSetupScreen(ctx, canvas, selectedIndex = 0) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#0a0f1e", "#3a1c2d")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0a0f1e", bottom: "#3a1c2d" })
   drawHeader(ctx, canvas, "ARCADE", "7 fights · a rival · a boss · your ending")
   getArcadeSetupRects(canvas).forEach((button, index) => {
-    drawButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex })
+    drawMkButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex, id: `arcade:${button.id || index}` })
   })
   drawFooterHint(ctx, canvas, "Difficulty is fixed for the whole run · lose and you can spend a continue")
 }
@@ -1410,10 +1745,11 @@ export function getBracketSetupRects(canvas) {
   ])
 }
 export function drawBracketSetupScreen(ctx, canvas, selectedIndex = 0) {
+  _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawBackdrop(ctx, canvas, "#0a0f1e", "#241d3d")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0a0f1e", bottom: "#241d3d" })
   drawHeader(ctx, canvas, "LOCAL TOURNAMENT", "Single elimination · best of 3 · you play your path, CPUs settle the rest")
-  getBracketSetupRects(canvas).forEach((b, i) => drawButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex }))
+  getBracketSetupRects(canvas).forEach((b, i) => drawMkButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex, id: `bracket:${b.id || i}` }))
   drawFooterHint(ctx, canvas, "Pick a bracket size, then choose your fighter")
 }
 
@@ -1457,10 +1793,11 @@ export function drawBracketScreen(ctx, canvas, bracket) {
 // UNIVERSE SELECT
 // ─────────────────────────────────────────────
 export function drawUniverseSelectScreen(ctx, canvas, universes = [], selectedIndex = 0) {
+  _mkAdvance()
   const { width: w, height: h } = getCanvasSize(canvas)
   universes = normalizeToArray(universes)
   ctx.clearRect(0, 0, w, h)
-  drawBackdrop(ctx, canvas, "#0b1021", "#171f37")
+  drawRiftAmbientBackdrop(ctx, canvas, { top: "#0a0a1e", bottom: "#171033" })   // Stage 13: multiversal rift ambient
   drawHeader(ctx, canvas, "UNIVERSE SELECT", "Choose a universe")
 
   if (!universes.length) {
@@ -1469,16 +1806,17 @@ export function drawUniverseSelectScreen(ctx, canvas, universes = [], selectedIn
   }
 
   const rects = getUniverseCardRects(canvas, universes)
-  universes.forEach((universe, i) => {
-    const rect       = rects[i]
-    const isSelected = i === selectedIndex
-    drawPanel(ctx, rect.x, rect.y, rect.w, rect.h, {
-      fill:      isSelected ? "rgba(58, 79, 149, 0.65)" : "rgba(255,255,255,0.08)",
-      stroke:    isSelected ? "#e8efff" : "rgba(255,255,255,0.16)",
-      lineWidth: isSelected ? 3 : 2
+  // Two-pass so the hovered (scaled + glowing) card is never overdrawn by a later neighbor.
+  const order = universes.map((_, i) => i).sort((a, b) => (a === selectedIndex ? 1 : 0) - (b === selectedIndex ? 1 : 0))
+  order.forEach(i => {
+    const universe = universes[i]
+    const rect     = rects[i]
+    const accent   = universe?.accent || _MK_ACCENT   // NEW per-universe identity accent (see game.js UNIVERSE_ACCENT)
+    drawMkButton(ctx, rect, {
+      label: universe?.name || universe?.id || universe?.label || `Universe ${i + 1}`,
+      active: i === selectedIndex, accent, id: `universe:${universe?.id || i}`, cut: 18
     })
-    drawCenteredText(ctx, universe?.name || universe?.id || universe?.label || `Universe ${i + 1}`,
-      rect.x + rect.w / 2, rect.y + 58, { font: "700 24px Arial", fill: "#ffffff" })
+    _holoPanelOverlay(ctx, rect.x, rect.y, rect.w, rect.h, { accent, cut: 18 })   // Stage 12: holographic treatment (universes = "info being displayed")
   })
 
   drawFooterHint(ctx, canvas, "Choose the universe for the current fighter")
@@ -1506,6 +1844,7 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   const title         = options.title         || "CHARACTER SELECT"
   const isLocked      = typeof options.isLocked === "function" ? options.isLocked : () => false   // Stage 21
   const lockLabel     = typeof options.lockLabel === "function" ? options.lockLabel : () => "Locked"
+  const accentFor     = typeof options.accentFor === "function" ? options.accentFor : null        // per-character HUD accent (cursor/hover glow)
 
   ctx.clearRect(0, 0, w, h)
   drawBackdrop(ctx, canvas, "#0b1021", "#1b2240")
@@ -1526,7 +1865,17 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   const vp = getGridViewport(canvas, gridOpts)
   ctx.save()
   ctx.beginPath(); ctx.rect(0, vp.top - 2, w, (vp.bottom - vp.top) + 4); ctx.clip()
-  roster.forEach((fighter, i) => {
+  _selTick++
+  // Stage-3 lock-in flourish: detect the frame a pick is newly CONFIRMED (a side's selection changed to
+  // a non-null value) → kick THAT card's confirm animation. Per-side + per-card, so simultaneous P1/P2
+  // picks each flourish on their own card without touching or blocking the other's side.
+  const p1Changed = _selPrevPick && p1Selected != null && p1Selected !== _selPrevPick.p1
+  const p2Changed = _selPrevPick && p2Selected != null && p2Selected !== _selPrevPick.p2
+  _selPrevPick = { p1: p1Selected, p2: p2Selected }
+
+  // Precompute per-card state and advance the eased hover (snappy) + confirm animations — once per card
+  // per frame. The heavy drawing happens in renderCard below (two-pass).
+  const cards = roster.map((fighter, i) => {
     const rect      = rects[i]
     const isCursor  = i === selectedIndex
     const fighterId = fighter?.id || fighter?.key || fighter?.name || String(i)
@@ -1534,26 +1883,41 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
     const locked    = !!isLocked(rosterKey)   // Stage 21 — show as a silhouette, not pickable
     const isP1 = p1Selected === fighterId || p1Selected === i
     const isP2 = p2Selected === fighterId || p2Selected === i
+    const accent = _cardAccent(fighter, accentFor)   // per-character glow color (drives cursor/hover only)
+    const st = _cardState(fighterId)
+    const hoverTarget = (isCursor && !locked) ? 1 : 0
+    st.hover += (hoverTarget - st.hover) * 0.35       // fast/snappy ease-in and ease-out
+    if (Math.abs(st.hover - hoverTarget) < 0.01) st.hover = hoverTarget
+    st.confirm = Math.max(0, st.confirm - 0.085)      // lock-in flourish decay (~0.2s beat)
+    if ((p1Changed && isP1) || (p2Changed && isP2)) st.confirm = 1   // fresh confirm → kick the flourish
+    return { fighter, rect, i, isCursor, fighterId, rosterKey, locked, isP1, isP2, accent, st }
+  })
 
-    let fill   = "rgba(255,255,255,0.07)"
-    let stroke = "rgba(255,255,255,0.14)"
+  const renderCard = (c) => {
+    const { fighter, rect, i, rosterKey, locked, isP1, isP2, accent, st } = c
 
-    if (isCursor)       { fill = "rgba(70,110,210,0.35)";  stroke = "#dbe7ff" }
+    // SCALE: eased hover scale-up (Stage 2) + confirm zoom-punch (Stage 3), about the card center.
+    const scale = 1 + st.hover * 0.06 + _confirmZoom(st.confirm)
+    const cx = rect.x + rect.w / 2, cy = rect.y + rect.h / 2
+    ctx.save()
+    if (scale !== 1) { ctx.translate(cx, cy); ctx.scale(scale, scale); ctx.translate(-cx, -cy) }
+
+    // Selection tint/border: cursor/hover uses the character's OWN accent (alpha eased by hover); P1/P2
+    // selected tint stays distinct blue/red so two simultaneous picks never collide/look identical.
+    let fill = "rgba(255,255,255,0.07)", stroke = "rgba(255,255,255,0.14)"
+    if (st.hover > 0.01) { fill = _withAlpha(accent, 0.30 * st.hover); stroke = accent }
     if (isP1 && isP2)   { fill = "rgba(180,120,255,0.35)"; stroke = "#d7b8ff" }
     else if (isP1)      { fill = "rgba(70,190,255,0.28)";  stroke = "#7fd3ff" }
     else if (isP2)      { fill = "rgba(255,110,110,0.28)"; stroke = "#ff9f9f" }
 
-    // Portrait fill behind the panel (cover-fit, clipped to the card). Falls back
-    // to the plain box below when the image isn't loaded/decoded or 404s.
-    const portrait = getPortraitImage(fighter?.rosterKey || fighter?.id || fighter?.key)
+    // Portrait fill behind the panel (cover-fit, clipped to the card). Falls back to the plain box below.
+    const portrait = getPortraitImage(rosterKey)
     const hasPortrait = _imageReady(portrait)
     if (hasPortrait) {
       ctx.save()
-      roundRect(ctx, rect.x, rect.y, rect.w, rect.h, 18)
+      _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, 12)   // MK-feel angular card shape
       ctx.clip()
       _coverDrawImage(ctx, portrait, rect.x, rect.y, rect.w, rect.h)
-      // Legibility scrim — darker top (name) and bottom (universe), portrait
-      // stays visible through the middle.
       const scrim = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.h)
       scrim.addColorStop(0,    "rgba(8,12,26,0.55)")
       scrim.addColorStop(0.45, "rgba(8,12,26,0.18)")
@@ -1563,13 +1927,35 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
       ctx.restore()
     }
 
-    // Panel: when a portrait shows, only the selection TINT + border go on top
-    // (a transparent base fill so the art isn't washed out); otherwise the
-    // original opaque box renders exactly as before.
     drawPanel(ctx, rect.x, rect.y, rect.w, rect.h, {
       fill: hasPortrait && fill === "rgba(255,255,255,0.07)" ? "rgba(0,0,0,0)" : fill,
-      stroke: locked ? "rgba(120,130,150,0.45)" : stroke, lineWidth: 2
+      stroke: locked ? "rgba(120,130,150,0.45)" : stroke, lineWidth: 2,
+      bevel: true, bevelCut: 12
     })
+
+    // Animated accent GLOW PULSE — pulses in the character accent while hovered, fading with hover.
+    if (st.hover > 0.01 && !locked) {
+      const pulse = 0.62 + 0.38 * Math.sin(_selTick * 0.18)
+      ctx.save()
+      ctx.globalAlpha = st.hover
+      ctx.shadowBlur  = (9 + 15 * pulse) * st.hover
+      ctx.shadowColor = accent
+      ctx.strokeStyle = accent; ctx.lineWidth = 2.5
+      _bevelPath(ctx, rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2, 11); ctx.stroke()
+      ctx.restore()
+    }
+
+    // Stage-3 lock-in flourish: a quick accent flash wash over the card as confirm decays.
+    if (st.confirm > 0.01 && !locked) {
+      ctx.save()
+      _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, 12)
+      ctx.fillStyle = _withAlpha(accent, 0.5 * st.confirm)
+      ctx.fill()
+      ctx.shadowBlur = 26 * st.confirm; ctx.shadowColor = accent
+      ctx.strokeStyle = accent; ctx.lineWidth = 3
+      _bevelPath(ctx, rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2, 11); ctx.stroke()
+      ctx.restore()
+    }
 
     const fighterName = fighter?.name || fighter?.id || fighter?.displayName || fighter?.label || `Fighter ${i + 1}`
     const universe    = fighter?.universe || fighter?.series || fighter?.origin || ""
@@ -1578,7 +1964,7 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
     // and the unlock requirement instead of the universe/art credit. Still visible, just not pickable.
     if (locked) {
       ctx.save()
-      roundRect(ctx, rect.x, rect.y, rect.w, rect.h, 18); ctx.clip()
+      _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, 12); ctx.clip()
       ctx.fillStyle = "rgba(6,8,16,0.80)"; ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
       ctx.restore()
       drawCenteredText(ctx, "🔒", rect.x + rect.w / 2, rect.y + 40, { font: "22px Arial", fill: "rgba(220,228,245,0.9)" })
@@ -1601,7 +1987,17 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
       if (isP1) drawCenteredText(ctx, "P1", rect.x + 18,          rect.y + 16, { font: "700 12px Arial", fill: "#7fd3ff", align: "left",  baseline: "alphabetic" })
       if (isP2) drawCenteredText(ctx, "P2", rect.x + rect.w - 18, rect.y + 16, { font: "700 12px Arial", fill: "#ff9f9f", align: "right", baseline: "alphabetic" })
     }
-  })
+    ctx.restore()
+  }
+
+  // TWO-PASS: draw idle cards first, then hovered/selected/confirming cards ON TOP so their scaled edges
+  // and glow are never overdrawn by a later neighbor.
+  const topCards = []
+  for (const c of cards) {
+    if (c.st.hover > 0.01 || c.isP1 || c.isP2 || c.st.confirm > 0.01) topCards.push(c)
+    else renderCard(c)
+  }
+  for (const c of topCards) renderCard(c)
   ctx.restore()
 
   const bar = getGridScrollbar(roster.length, canvas, gridOpts)
@@ -1716,10 +2112,11 @@ export function drawCreditsScreen(ctx, canvas, scrollY = 0) {
 // STAGE SELECT
 // ─────────────────────────────────────────────
 export function drawStageSelectScreen(ctx, canvas, stages = [], selectedIndex = 0) {
+  _mkAdvance()
   const { width: w, height: h } = getCanvasSize(canvas)
   stages = normalizeToArray(stages)
   ctx.clearRect(0, 0, w, h)
-  drawBackdrop(ctx, canvas, "#0b1021", "#1b2742")
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0b1021", bottom: "#1b2742" })
   drawHeader(ctx, canvas, "STAGE SELECT", "Choose where the battle begins")
 
   if (!stages.length) {
@@ -1728,45 +2125,57 @@ export function drawStageSelectScreen(ctx, canvas, stages = [], selectedIndex = 
   }
 
   const rects = getStageCardRects(canvas, stages)
-  stages.forEach((stage, i) => {
+  const cut = 14
+  const drawCard = (i) => {
+    const stage      = stages[i]
     const rect       = rects[i]
     const isSelected = i === selectedIndex
     const bgImage    = getStageBackgroundImage(stage)
+    const accent     = stage?.accent || _MK_ACCENT
+    const st  = _cardState(`stage:${stage?.name || i}`)
+    const target = isSelected ? 1 : 0
+    st.hover += (target - st.hover) * 0.35
+    if (Math.abs(st.hover - target) < 0.01) st.hover = target
+    const scale = 1 + st.hover * 0.05
+    const cx = rect.x + rect.w / 2, cy = rect.y + rect.h / 2
 
     ctx.save()
-    roundRect(ctx, rect.x, rect.y, rect.w, rect.h, 20)
-    ctx.clip()
+    if (scale !== 1) { ctx.translate(cx, cy); ctx.scale(scale, scale); ctx.translate(-cx, -cy) }
 
-    if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
-      ctx.drawImage(bgImage, rect.x, rect.y, rect.w, rect.h)
-      const overlay = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.h)
-      overlay.addColorStop(0, "rgba(0,0,0,0.08)")
-      overlay.addColorStop(0.62, "rgba(0,0,0,0.18)")
-      overlay.addColorStop(1, "rgba(0,0,0,0.34)")
-      ctx.fillStyle = overlay
-      ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
+    // PREVIEW: real backgroundImage cover-fit (aspect-preserving, same technique as portraits), else the
+    // stage's own sky→mid→floor palette gradient. Clipped to the angular card shape.
+    ctx.save()
+    _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut); ctx.clip()
+    if (_imageReady(bgImage)) {
+      _coverDrawImage(ctx, bgImage, rect.x, rect.y, rect.w, rect.h, 0.30)
     } else {
       const preview = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.h)
-      preview.addColorStop(0, stage?.sky   || "#6ea8ff")
-      preview.addColorStop(0.62, stage?.mid || "#5d7bd8")
-      preview.addColorStop(1, stage?.floor  || "#3d465c")
-      ctx.fillStyle = preview
-      ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
+      preview.addColorStop(0, stage?.sky || "#6ea8ff"); preview.addColorStop(0.62, stage?.mid || "#5d7bd8"); preview.addColorStop(1, stage?.floor || "#3d465c")
+      ctx.fillStyle = preview; ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
     }
-
-    ctx.fillStyle = "rgba(0,0,0,0.16)"
-    ctx.fillRect(rect.x, rect.y + rect.h * 0.64, rect.w, rect.h * 0.36)
-    ctx.fillStyle = stage?.accent || "rgba(255,255,255,0.22)"
-    ctx.fillRect(rect.x, rect.y + rect.h * 0.62, rect.w, 4)
+    // legibility scrim toward the bottom (name band)
+    const overlay = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.h)
+    overlay.addColorStop(0, "rgba(4,7,14,0.10)"); overlay.addColorStop(0.55, "rgba(4,7,14,0.18)"); overlay.addColorStop(1, "rgba(4,7,14,0.72)")
+    ctx.fillStyle = overlay; ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
+    // stage-accent divider bar above the name
+    ctx.fillStyle = accent; ctx.globalAlpha = 0.5 + 0.5 * st.hover
+    ctx.fillRect(rect.x + cut, rect.y + rect.h * 0.66, rect.w - cut * 2, 3)
     ctx.restore()
 
-    drawPanel(ctx, rect.x, rect.y, rect.w, rect.h, {
-      fill: "rgba(0,0,0,0)", stroke: isSelected ? "#e8efff" : "rgba(255,255,255,0.18)", lineWidth: isSelected ? 3 : 2
-    })
+    // Angular metallic border — bright stage accent + glow-pulse when hovered/selected.
+    _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut)
+    if (st.hover > 0.01) { const pulse = 0.6 + 0.4 * Math.sin(_mkFrame * 0.18); ctx.shadowBlur = (10 + 16 * pulse) * st.hover; ctx.shadowColor = accent }
+    ctx.strokeStyle = st.hover > 0.01 ? accent : "rgba(255,255,255,0.20)"
+    ctx.lineWidth = 2 + st.hover * 1.5
+    ctx.stroke(); ctx.shadowBlur = 0
 
     drawCenteredText(ctx, stage?.name || stage?.id || `Stage ${i + 1}`,
-      rect.x + rect.w / 2, rect.y + rect.h - 28, { font: "700 18px Arial", fill: "#ffffff" })
-  })
+      rect.x + rect.w / 2, rect.y + rect.h - 22, { font: "800 18px Arial", fill: "#ffffff", shadowBlur: 4, shadowColor: "rgba(0,0,0,0.85)" })
+    ctx.restore()
+  }
+  // Two-pass: non-selected first, the selected/hovered card (scaled + glowing) on top.
+  stages.forEach((_, i) => { if (i !== selectedIndex) drawCard(i) })
+  if (stages[selectedIndex]) drawCard(selectedIndex)
 
   drawFooterHint(ctx, canvas, "Click a stage card to begin the match")
 }
@@ -1974,6 +2383,118 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
       }
       break
     }
+    case "seireitei": {
+      // Bleach — Soul Society / Seireitei: white tiled-roof wall segments + the Sōkyoku execution hill.
+      for (let i = 0; i < 7; i++) {
+        const seg = worldWidth / 7, wx = i * seg
+        ctx.fillStyle = "#eef2f6"; ctx.fillRect(wx + 8, groundY - 150, seg - 16, 150)
+        ctx.fillStyle = "#334155"; ctx.beginPath()
+        ctx.moveTo(wx + 2, groundY - 150); ctx.lineTo(wx + seg / 2, groundY - 176); ctx.lineTo(wx + seg - 2, groundY - 150); ctx.closePath(); ctx.fill()
+      }
+      const hx = worldWidth * 0.8
+      ctx.fillStyle = "#9aa7b4"; ctx.beginPath()
+      ctx.moveTo(hx - 170, groundY); ctx.lineTo(hx, groundY - 270); ctx.lineTo(hx + 170, groundY); ctx.closePath(); ctx.fill()
+      ctx.strokeStyle = accent; ctx.lineWidth = 8
+      ctx.beginPath(); ctx.moveTo(hx - 30, groundY - 250); ctx.lineTo(hx - 30, groundY - 150); ctx.lineTo(hx + 30, groundY - 150); ctx.lineTo(hx + 30, groundY - 250); ctx.stroke()
+      break
+    }
+    case "gotham": {
+      // DC — Gotham rooftops at night: spire-topped gothic towers + a bat-signal beam in the smog.
+      const cols = 8
+      for (let i = 0; i < cols; i++) {
+        const bw = worldWidth / cols, bx = i * bw, bh = 220 + ((i * 71) % 180)
+        ctx.fillStyle = i % 2 ? "#0b141a" : "#101d24"; ctx.fillRect(bx + 6, groundY - bh, bw - 12, bh)
+        ctx.beginPath(); ctx.moveTo(bx + 6, groundY - bh); ctx.lineTo(bx + bw / 2, groundY - bh - 46); ctx.lineTo(bx + bw - 6, groundY - bh); ctx.closePath(); ctx.fill()
+        _litWindows(ctx, bx + 6, groundY - bh, bw - 12, bh, 4, Math.max(1, Math.floor(bh / 30)), "rgba(120,150,120,0.35)", i)
+      }
+      const sx = worldWidth * 0.3
+      ctx.globalAlpha = 0.16 + Math.sin(t * 2) * 0.05; ctx.fillStyle = accent
+      ctx.beginPath(); ctx.moveTo(sx, groundY - 120); ctx.lineTo(worldWidth * 0.5, 40); ctx.lineTo(worldWidth * 0.66, 40); ctx.lineTo(sx + 80, groundY - 120); ctx.closePath(); ctx.fill()
+      ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.arc(worldWidth * 0.58, 72, 34, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1
+      break
+    }
+    case "woodsboro": {
+      // Horror — Woodsboro at night: a big pale moon, suburban gable houses (one blood-lit window), picket fence.
+      ctx.fillStyle = "rgba(226,232,240,0.85)"; ctx.beginPath(); ctx.arc(worldWidth * 0.22, 120, 58, 0, Math.PI * 2); ctx.fill()
+      for (let i = 0; i < 5; i++) {
+        const hw = 150, hx = worldWidth * (0.1 + i * 0.2), hy = groundY - 120
+        ctx.fillStyle = i % 2 ? "#232a38" : "#2b3346"; ctx.fillRect(hx, hy, hw, 120)
+        ctx.beginPath(); ctx.moveTo(hx - 14, hy); ctx.lineTo(hx + hw / 2, hy - 60); ctx.lineTo(hx + hw + 14, hy); ctx.closePath(); ctx.fill()
+        ctx.fillStyle = i === 1 ? accent : "rgba(180,190,120,0.22)"; ctx.fillRect(hx + hw * 0.6, hy + 34, 30, 34)
+      }
+      ctx.fillStyle = "rgba(200,205,215,0.5)"
+      for (let x = 0; x < worldWidth; x += 26) ctx.fillRect(x, groundY - 40, 8, 40)
+      ctx.fillRect(0, groundY - 30, worldWidth, 6)
+      break
+    }
+    case "heavens_arena": {
+      // HxH — Heaven's Arena: a colossal tiered tower behind a raised, roped fighting ring.
+      const tx = worldWidth * 0.5, tw = worldWidth * 0.3
+      for (let f = 0; f < 8; f++) {
+        const fw = tw * (1 - f * 0.09), fy = groundY - 120 - f * 42
+        ctx.fillStyle = f % 2 ? "#5a4a94" : "#6b5aa8"; ctx.fillRect(tx - fw / 2, fy, fw, 40)
+        _litWindows(ctx, tx - fw / 2, fy, fw, 40, 8, 1, "rgba(232,121,249,0.4)", f)
+      }
+      ctx.fillStyle = "#2b2350"; ctx.fillRect(worldWidth * 0.2, groundY - 46, worldWidth * 0.6, 46)
+      ctx.strokeStyle = accent; ctx.lineWidth = 4
+      for (const ry of [groundY - 46, groundY - 30, groundY - 16]) { ctx.beginPath(); ctx.moveTo(worldWidth * 0.2, ry); ctx.lineTo(worldWidth * 0.8, ry); ctx.stroke() }
+      ctx.fillStyle = accent
+      for (const cx of [worldWidth * 0.2, worldWidth * 0.8]) ctx.fillRect(cx - 4, groundY - 60, 8, 60)
+      break
+    }
+    case "viltrum_warzone": {
+      // Invincible — Viltrumite warzone: shattered skyscrapers, a distant blast, drifting smoke plumes.
+      for (let i = 0; i < 7; i++) {
+        const bx = i * worldWidth / 7, bw = worldWidth / 7 - 14, bh = 160 + ((i * 91) % 200)
+        ctx.fillStyle = i % 2 ? "#1c1214" : "#241619"; ctx.beginPath(); ctx.moveTo(bx + 6, groundY); ctx.lineTo(bx + 6, groundY - bh)
+        ctx.lineTo(bx + 6 + bw * 0.3, groundY - bh + 30); ctx.lineTo(bx + 6 + bw * 0.55, groundY - bh - 10); ctx.lineTo(bx + 6 + bw * 0.8, groundY - bh + 40); ctx.lineTo(bx + 6 + bw, groundY - bh * 0.7)
+        ctx.lineTo(bx + 6 + bw, groundY); ctx.closePath(); ctx.fill()
+        _litWindows(ctx, bx + 6, groundY - bh * 0.7, bw, bh * 0.7, 4, 6, "rgba(96,165,250,0.3)", i)
+      }
+      ctx.globalAlpha = 0.6; const gx = worldWidth * 0.72
+      const g = ctx.createRadialGradient(gx, groundY - 240, 8, gx, groundY - 240, 90)
+      g.addColorStop(0, "#fde68a"); g.addColorStop(0.5, "#f97316"); g.addColorStop(1, "rgba(120,20,10,0)")
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(gx, groundY - 240, 90, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1
+      ctx.fillStyle = "rgba(60,40,40,0.4)"
+      for (let i = 0; i < 4; i++) { const sx = worldWidth * (0.15 + i * 0.24); ctx.beginPath(); ctx.arc(sx, groundY - 200 - (t * 10 % 40), 40, 0, Math.PI * 2); ctx.fill() }
+      break
+    }
+    case "command_center": {
+      // Power Rangers — the Command Center: a domed control complex on a desert butte, twin antenna towers.
+      ctx.fillStyle = "#b07a4a"
+      for (let i = 0; i < 4; i++) { const mx = worldWidth * (0.1 + i * 0.3); ctx.beginPath(); ctx.moveTo(mx - 200, groundY); ctx.lineTo(mx, groundY - 120 - (i % 2) * 40); ctx.lineTo(mx + 200, groundY); ctx.closePath(); ctx.fill() }
+      const cx = worldWidth * 0.5, cy = groundY - 120
+      ctx.fillStyle = "#e8dcc8"; ctx.fillRect(cx - 130, cy, 260, 120); ctx.beginPath(); ctx.arc(cx, cy, 130, Math.PI, 0); ctx.fill()
+      const cols = ["#ef4444", "#3b82f6", "#fbbf24", "#22c55e", "#ec4899"]
+      for (let i = 0; i < cols.length; i++) { ctx.fillStyle = cols[i]; ctx.globalAlpha = 0.7 + Math.sin(t * 3 + i) * 0.3; ctx.fillRect(cx - 100 + i * 44, cy + 30, 30, 40) }
+      ctx.globalAlpha = 1; ctx.strokeStyle = "#7a5a3a"; ctx.lineWidth = 6
+      for (const ax of [cx - 150, cx + 150]) { ctx.beginPath(); ctx.moveTo(ax, cy + 120); ctx.lineTo(ax, cy - 40); ctx.stroke(); ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(ax, cy - 44, 8, 0, Math.PI * 2); ctx.fill() }
+      break
+    }
+    case "pk_academy": {
+      // Saiki K — PK Academy: a bright modern school block (window rows + clock), cherry trees, a floating spoon.
+      const bx = worldWidth * 0.28, bw = worldWidth * 0.44, by = groundY - 200
+      ctx.fillStyle = "#eae0d2"; ctx.fillRect(bx, by, bw, 200); ctx.fillStyle = "#d6c8b2"; ctx.fillRect(bx, by, bw, 16)
+      _litWindows(ctx, bx + 10, by + 26, bw - 20, 160, 12, 4, "rgba(140,200,255,0.55)", 3)
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(bx + bw / 2, by + 44, 20, 0, Math.PI * 2); ctx.fill()
+      ctx.strokeStyle = "#334155"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx + bw / 2, by + 44); ctx.lineTo(bx + bw / 2, by + 30); ctx.moveTo(bx + bw / 2, by + 44); ctx.lineTo(bx + bw / 2 + 12, by + 44); ctx.stroke()
+      for (const sx of [worldWidth * 0.12, worldWidth * 0.85]) { ctx.fillStyle = "#7a5236"; ctx.fillRect(sx, groundY - 80, 10, 80); ctx.fillStyle = "rgba(249,168,212,0.85)"; ctx.beginPath(); ctx.arc(sx + 5, groundY - 92, 32, 0, Math.PI * 2); ctx.fill() }
+      ctx.strokeStyle = accent; ctx.lineWidth = 5; const spx = worldWidth * 0.5, spy = groundY - 262 + Math.sin(t * 2) * 8
+      ctx.beginPath(); ctx.moveTo(spx, spy); ctx.lineTo(spx, spy + 30); ctx.stroke(); ctx.beginPath(); ctx.ellipse(spx, spy - 6, 8, 12, 0, 0, Math.PI * 2); ctx.stroke()
+      break
+    }
+    case "analysis_nexus": {
+      // Original (Omololu) — Analysis Nexus: a holographic tactical grid, floating data rings, and rising
+      // "stack" bars (a nod to his ramping "Full Analysis" identity). Neutral, no established location lore.
+      ctx.strokeStyle = "rgba(45,212,191,0.22)"; ctx.lineWidth = 1
+      for (let i = 0; i <= 12; i++) { const gx = i * worldWidth / 12; ctx.beginPath(); ctx.moveTo(gx, groundY); ctx.lineTo(worldWidth / 2 + (gx - worldWidth / 2) * 0.3, groundY - 260); ctx.stroke() }
+      for (let r = 0; r < 6; r++) { const gy = groundY - r * 44; ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(worldWidth, gy); ctx.stroke() }
+      ctx.strokeStyle = accent; ctx.lineWidth = 3
+      for (let i = 0; i < 3; i++) { const rx = worldWidth * (0.25 + i * 0.25), ry = groundY - 200 + Math.sin(t * 1.5 + i) * 14; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.arc(rx, ry, 34 + i * 6, 0, Math.PI * 2); ctx.stroke() }
+      ctx.globalAlpha = 1
+      for (let i = 0; i < 10; i++) { const bx = worldWidth * 0.05 + i * worldWidth * 0.09, bh = 20 + i * 16 + Math.sin(t * 2 + i) * 6; ctx.fillStyle = "rgba(45,212,191,0.35)"; ctx.fillRect(bx, groundY - bh, 16, bh) }
+      break
+    }
     default:
       ctx.restore()
       return false
@@ -2107,14 +2628,20 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
       const fw = p.spriteW || (img.naturalWidth / frames)
       const fh = p.spriteH || img.naturalHeight
       p._animT = (p._animT || 0) + 1
-      const fi = Math.floor(p._animT / (p.spriteSpeed || 4)) % frames
+      // spriteOnce → play the growth strip ONCE and hold the last (fully-grown) frame; else loop.
+      const fi = p.spriteOnce
+        ? Math.min(frames - 1, Math.floor(p._animT / (p.spriteSpeed || 4)))
+        : Math.floor(p._animT / (p.spriteSpeed || 4)) % frames
       const scale = p.spriteScale || 1
       const dw = fw * scale, dh = fh * scale
       const dir = (p.vx || 0) < 0 ? -1 : 1
       ctx.save()
-      ctx.translate(x, y)
+      // spriteBottomY (world-Y): anchor the sprite's BOTTOM there and grow UP (Hashirama tree rising from
+      // the ground), so the VISUAL scale is independent of the collision box. Else center on (x,y) as before.
+      const topY = (p.spriteBottomY != null) ? (p.spriteBottomY - dh) : (y - dh / 2)
+      ctx.translate(x, 0)
       ctx.scale(dir, 1)
-      ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, topY, dw, dh)
       ctx.restore()
       return
     }
@@ -2277,6 +2804,108 @@ export function drawTrainingCollisionBoxes(ctx, fighters = [], getHitbox = null)
 }
 
 // ─────────────────────────────────────────────
+// HUD — MK1 / Tekken-8 cinematic redesign (Stage 1)
+// ─────────────────────────────────────────────
+// Render-only per-fighter animation state: a DISPLAYED health value that eases
+// toward the real fighter.health, plus a lagging "damage-trail" ghost value. This
+// NEVER writes fighter.health — it reads it and animates what's drawn. Keyed by the
+// live fighter object (persists across rounds; a round reset snaps the display UP to
+// full via the heal branch, so no phantom trail). WeakMap → auto-GC, no leak.
+const _hudAnim = new WeakMap()
+function _hudHealthAnim(fighter) {
+  const maxHp  = Math.max(1, fighter.maxHealth || 100)
+  const actual = Math.max(0, Math.min(maxHp, fighter.health ?? maxHp))
+  let s = _hudAnim.get(fighter)
+  if (!s || s.maxHp !== maxHp) {
+    // First sight of this fighter (or a maxHP change → new match/round): seed the
+    // display AT the real value so nothing animates on spawn.
+    s = { dispHp: actual, trailHp: actual, lastActual: actual, hold: 0, flash: 0, shake: 0, big: false, maxHp }
+    _hudAnim.set(fighter, s)
+  }
+
+  // A fresh drop this frame = a hit landed. Read the render-hint tier the damage
+  // choke-point stamped (`_hudDmgTier`), pause the ghost, and on a BIG hit kick a
+  // sharper flash + shake. Light hits get only the bar drain (flash/shake stay low).
+  if (actual < s.lastActual - 0.01) {
+    const big = fighter._hudDmgTier === "big"
+    s.big  = big
+    s.hold = 14                                  // ghost holds ~14 frames before draining
+    s.flash = Math.max(s.flash, big ? 1 : 0.42)
+    s.shake = Math.max(s.shake, big ? 1 : 0)
+  }
+  s.lastActual = actual
+
+  // FRONT bar: catch up to the real value quickly (a short, readable drain — not a snap).
+  if (s.dispHp > actual)      s.dispHp += (actual - s.dispHp) * 0.34
+  else                        s.dispHp += (actual - s.dispHp) * 0.5    // healing eases up faster
+  if (Math.abs(s.dispHp - actual) < 0.4) s.dispHp = actual
+
+  // GHOST (damage-trail) bar: lags behind — holds, then drains SLOWLY toward the front
+  // bar so the just-lost chunk stays visible for a beat. Always >= front bar.
+  if (s.trailHp > s.dispHp) {
+    if (s.hold > 0) s.hold -= 1
+    else            s.trailHp += (s.dispHp - s.trailHp) * 0.09
+    if (Math.abs(s.trailHp - s.dispHp) < 0.4) s.trailHp = s.dispHp
+  } else {
+    s.trailHp = s.dispHp
+  }
+
+  s.flash = Math.max(0, s.flash - 0.06)
+  s.shake = Math.max(0, s.shake - 0.08)
+  return s
+}
+
+// Chamfered ("corner-cut") rect path — the angular MK/Tekken container silhouette,
+// replacing the old fully-rounded rrect. `cut` = how much each corner is sliced.
+function _bevelPath(ctx, x, y, w, h, cut = 6) {
+  cut = Math.max(0, Math.min(cut, w / 2, h / 2))
+  ctx.beginPath()
+  ctx.moveTo(x + cut, y)
+  ctx.lineTo(x + w - cut, y)
+  ctx.lineTo(x + w, y + cut)
+  ctx.lineTo(x + w, y + h - cut)
+  ctx.lineTo(x + w - cut, y + h)
+  ctx.lineTo(x + cut, y + h)
+  ctx.lineTo(x, y + h - cut)
+  ctx.lineTo(x, y + cut)
+  ctx.closePath()
+}
+
+// Metallic panel backing: deep-black chamfered base + a thin bright accent edge-highlight
+// (brushed-steel feel), instead of the old soft translucent rounded panel.
+function _metalPanel(ctx, x, y, w, h, accent, cut = 7, flash = 0) {
+  ctx.save()
+  _bevelPath(ctx, x, y, w, h, cut)
+  const g = ctx.createLinearGradient(0, y, 0, y + h)
+  g.addColorStop(0, "rgba(20,24,30,0.90)")
+  g.addColorStop(0.5, "rgba(9,11,15,0.88)")
+  g.addColorStop(1, "rgba(4,5,8,0.92)")
+  ctx.fillStyle = g; ctx.fill()
+  // dark inner bevel line for depth
+  _bevelPath(ctx, x + 1.5, y + 1.5, w - 3, h - 3, Math.max(0, cut - 1.5))
+  ctx.strokeStyle = "rgba(0,0,0,0.55)"; ctx.lineWidth = 1; ctx.stroke()
+  // bright accent edge-highlight (flashes hotter on a big hit)
+  _bevelPath(ctx, x, y, w, h, cut)
+  ctx.strokeStyle = accent; ctx.lineWidth = 1.4
+  if (flash > 0.01) { ctx.shadowBlur = 10 * flash; ctx.shadowColor = accent }
+  ctx.stroke()
+  ctx.restore()
+}
+
+// Battle-worn, desaturated health palette (MK/Tekken metallic direction) — replaces the
+// old bright flat green/amber/red. Each tier is drawn as a vertical dark→light gradient
+// for a brushed-metal sheen. Thresholds unchanged (>50% / >25% / else).
+function _hpGradient(ctx, x, y, w, h, ratio) {
+  let top, bot
+  if (ratio > 0.5)       { top = "#5bbd7e"; bot = "#2f7a4c" }   // steel-green
+  else if (ratio > 0.25) { top = "#d7a13e"; bot = "#9c6a1e" }   // bronze-amber
+  else                   { top = "#d64b4b"; bot = "#8f2626" }   // blood-red
+  const g = ctx.createLinearGradient(0, y, 0, y + h)
+  g.addColorStop(0, top); g.addColorStop(0.55, top); g.addColorStop(1, bot)
+  return g
+}
+
+// ─────────────────────────────────────────────
 // HUD — Health TOP, Energy BOTTOM
 // ─────────────────────────────────────────────
 export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0, p2: 0 }, globalFrameCount = 0) {
@@ -2301,21 +2930,34 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
   const pad   = 14
   const hpY   = pad
 
-  function hpColor(ratio) {
-    if (ratio > 0.5) return "#22c55e"
-    if (ratio > 0.25) return "#f59e0b"
-    return "#ef4444"
-  }
-
   function drawHealthPanel(x, flip, fighter) {
     if (!fighter) return
     const maxHp = Math.max(1, fighter.maxHealth || 100)
     const ratio = clamp((fighter.health ?? maxHp) / maxHp, 0, 1)
 
-    ctx.fillStyle = "rgba(0,0,0,0.55)"
-    rrect(ctx, x, hpY, barW + 20, barH + 26, 10); ctx.fill()
-    ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1
-    rrect(ctx, x, hpY, barW + 20, barH + 26, 10); ctx.stroke()
+    // Render-only animation: eased front value + lagging damage-trail ghost + hit reactions.
+    const anim = _hudHealthAnim(fighter)
+    const dispRatio  = clamp(anim.dispHp  / maxHp, 0, 1)
+    const trailRatio = clamp(anim.trailHp / maxHp, 0, 1)
+
+    // BIG-hit shake: nudge the whole panel a few px (decaying), distinct from a light hit's
+    // drain-only feedback. Deterministic (sine on the global frame clock — no Math.random).
+    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.7) * 3.2 * anim.shake : 0
+    const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.3) * 2.0 * anim.shake : 0
+    ctx.save()
+    if (sx || sy) ctx.translate(sx, sy)
+
+    const accent = flip ? "#e06a6a" : "#4aa8e0"
+    _metalPanel(ctx, x, hpY, barW + 20, barH + 26, accent, 8, anim.flash)
+
+    // BIG-hit backing flash — a hot wash over the panel the frame a heavy/special/ult lands.
+    if (anim.flash > 0.02 && anim.big) {
+      ctx.save()
+      _bevelPath(ctx, x, hpY, barW + 20, barH + 26, 8)
+      ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.28 * anim.flash})`
+      ctx.fill()
+      ctx.restore()
+    }
 
     const nameX = flip ? x + barW + 12 : x + 8
     const nameAlign = flip ? "right" : "left"
@@ -2324,13 +2966,36 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.fillStyle = nameColor
     ctx.fillText(fighter.name || (flip ? "P2" : "P1"), nameX, hpY + 12)
 
-    ctx.fillStyle = "rgba(255,255,255,0.1)"
-    rrect(ctx, x + 8, hpY + 14, barW, barH, 5); ctx.fill()
+    // Track (deep-black chamfered well)
+    ctx.fillStyle = "rgba(0,0,0,0.62)"
+    _bevelPath(ctx, x + 8, hpY + 14, barW, barH, 4); ctx.fill()
 
-    const fillW = barW * ratio
-    const fillX = flip ? x + 8 + barW - fillW : x + 8
-    ctx.fillStyle = hpColor(ratio)
-    rrect(ctx, fillX, hpY + 14, fillW, barH, 5); ctx.fill()
+    const trackX = x + 8
+    // GHOST / damage-trail segment: draw the lagging value first (bright hot red-white) so the
+    // just-lost chunk shows as a receding sliver between the front bar and the ghost bar.
+    const ghostW = barW * trailRatio
+    const ghostX = flip ? trackX + barW - ghostW : trackX
+    ctx.save()
+    _bevelPath(ctx, ghostX, hpY + 14, ghostW, barH, 4)
+    const gg = ctx.createLinearGradient(0, hpY + 14, 0, hpY + 14 + barH)
+    gg.addColorStop(0, "#ffe3e3"); gg.addColorStop(1, "#ff6b6b")
+    ctx.fillStyle = gg; ctx.shadowBlur = 6; ctx.shadowColor = "rgba(255,90,90,0.7)"
+    ctx.fill()
+    ctx.restore()
+
+    // FRONT (main) bar — eased displayed value, battle-worn metallic gradient, over the ghost.
+    const fillW = barW * dispRatio
+    const fillX = flip ? trackX + barW - fillW : trackX
+    if (fillW > 0.5) {
+      _bevelPath(ctx, fillX, hpY + 14, fillW, barH, 4)
+      ctx.fillStyle = _hpGradient(ctx, fillX, hpY + 14, fillW, barH, dispRatio)
+      ctx.fill()
+      // top specular sheen line
+      ctx.fillStyle = "rgba(255,255,255,0.18)"
+      ctx.fillRect(fillX + 2, hpY + 15, Math.max(0, fillW - 4), 2)
+    }
+
+    ctx.restore()   // pop shake translate
 
     // BREAK-STOCK PIPS (universal combo-break resource): a small "BREAK" label + N pips in the panel's
     // bottom strip — filled = a break available this round, hollow = spent. Drawn for EVERY fighter
@@ -2358,18 +3023,26 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
   const boss = (p2 && p2._isBoss) ? p2 : (p1 && p1._isBoss) ? p1 : null
   function drawBossBar(fighter) {
     const maxHp = Math.max(1, fighter.maxHealth || 100)
-    const ratio = clamp((fighter.health ?? maxHp) / maxHp, 0, 1)
+    const anim  = _hudHealthAnim(fighter)
+    const ratio      = clamp(anim.dispHp  / maxHp, 0, 1)
+    const trailRatio = clamp(anim.trailHp / maxHp, 0, 1)
     const wBar = clamp(cw * 0.52, 360, 800), x = (cw - wBar) / 2, y = hpY + 8, h = 24
+    const sx = anim.shake > 0.01 ? Math.sin(globalFrameCount * 1.7) * 3.5 * anim.shake : 0
+    ctx.save(); if (sx) ctx.translate(sx, 0)
     ctx.font = "800 20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"
     ctx.shadowBlur = 8; ctx.shadowColor = "rgba(0,0,0,0.75)"; ctx.fillStyle = "#ffd0d0"
     ctx.fillText((fighter.name || "BOSS").toUpperCase(), cw / 2, y - 8); ctx.shadowBlur = 0
-    ctx.fillStyle = "rgba(0,0,0,0.62)"; rrect(ctx, x - 5, y - 5, wBar + 10, h + 10, 9); ctx.fill()
-    ctx.strokeStyle = "rgba(255,80,80,0.6)"; ctx.lineWidth = 2; rrect(ctx, x - 5, y - 5, wBar + 10, h + 10, 9); ctx.stroke()
-    ctx.fillStyle = "rgba(255,255,255,0.10)"; rrect(ctx, x, y, wBar, h, 6); ctx.fill()
+    _metalPanel(ctx, x - 5, y - 5, wBar + 10, h + 10, "#e05454", 9, anim.flash)
+    ctx.fillStyle = "rgba(0,0,0,0.62)"; _bevelPath(ctx, x, y, wBar, h, 5); ctx.fill()
+    // center-out ghost (damage-trail), then the front bar on top
+    const ghostW = wBar * trailRatio
+    _bevelPath(ctx, x + (wBar - ghostW) / 2, y, ghostW, h, 5)
+    ctx.fillStyle = "rgba(255,120,120,0.85)"; ctx.shadowBlur = 6; ctx.shadowColor = "rgba(255,80,80,0.7)"; ctx.fill(); ctx.shadowBlur = 0
     const fillW = wBar * ratio, grad = ctx.createLinearGradient(x, 0, x + wBar, 0)
-    grad.addColorStop(0, "#7f1d1d"); grad.addColorStop(0.5, "#ef4444"); grad.addColorStop(1, "#7f1d1d")
-    ctx.fillStyle = grad; rrect(ctx, x + (wBar - fillW) / 2, y, fillW, h, 6); ctx.fill()   // center-out drain
-    ctx.font = "700 10px Arial"; ctx.fillStyle = "#ff6b6b"; ctx.fillText("◆ BOSS ◆", cw / 2, y + h + 14)
+    grad.addColorStop(0, "#5a1414"); grad.addColorStop(0.5, "#d64b4b"); grad.addColorStop(1, "#5a1414")
+    ctx.fillStyle = grad; _bevelPath(ctx, x + (wBar - fillW) / 2, y, fillW, h, 5); ctx.fill()   // center-out drain
+    ctx.font = "700 10px Arial"; ctx.textAlign = "center"; ctx.fillStyle = "#ff6b6b"; ctx.fillText("◆ BOSS ◆", cw / 2, y + h + 14)
+    ctx.restore()
   }
   if (boss) {
     drawHealthPanel(pad, false, boss === p2 ? p1 : p2)   // the human player, on the left
@@ -2435,10 +3108,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       if (reverted) mainCol = "#f59e0b"   // amber while locked out in human form
     }
 
-    ctx.fillStyle = "rgba(0,0,0,0.52)"
-    rrect(ctx, x, enY - 14, barW + 20, enH + 22, 8); ctx.fill()
-    ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 1
-    rrect(ctx, x, enY - 14, barW + 20, enH + 22, 8); ctx.stroke()
+    _metalPanel(ctx, x, enY - 14, barW + 20, enH + 22, flip ? "#e06a6a" : "#4aa8e0", 7, 0)
 
     const labelX = flip ? x + barW + 12 : x + 8
     const labelAlign = flip ? "right" : "left"
@@ -2734,39 +3404,46 @@ export function drawMatchEnd(ctx, canvas, winnerText = "MATCH OVER") {
 // when gameState === "paused"
 // ─────────────────────────────────────────────────────────────────
 export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
+  _mkAdvance()
   const cw = canvas?.width  || window.innerWidth
   const ch = canvas?.height || window.innerHeight
 
-  ctx.fillStyle = "rgba(0,0,0,0.62)"
+  // FROSTED BACKDROP: blur the live battle behind the menu so it reads as a genuine pause state (draw
+  // the canvas onto itself through a blur filter), then a dark dim + vignette on top. Falls back to a
+  // plain dim if ctx.filter is unavailable.
+  try {
+    ctx.save()
+    ctx.filter = "blur(7px) brightness(0.7)"
+    ctx.drawImage(canvas, 0, 0, cw, ch)
+    ctx.restore()
+  } catch (_) {}
+  ctx.fillStyle = "rgba(4,7,14,0.52)"
   ctx.fillRect(0, 0, cw, ch)
+  const vig = ctx.createRadialGradient(cw / 2, ch / 2, ch * 0.2, cw / 2, ch / 2, ch * 0.75)
+  vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.5)")
+  ctx.fillStyle = vig; ctx.fillRect(0, 0, cw, ch)
 
   const panelW = 380
   const panelH = 392   // fits 4 items (resume / restart / training / quit)
   const panelX = cw / 2 - panelW / 2
   const panelY = ch / 2 - panelH / 2
 
-  ctx.fillStyle   = "rgba(8,14,30,0.94)"
-  ctx.strokeStyle = "rgba(255,255,255,0.18)"
-  ctx.lineWidth   = 2
-  _roundRectPath(ctx, panelX, panelY, panelW, panelH, 20)
-  ctx.fill()
-  ctx.stroke()
+  // Angular metallic panel (matches menu/card language).
+  _metalPanel(ctx, panelX, panelY, panelW, panelH, _MK_ACCENT, 16, 0.4)
 
   ctx.font         = "900 28px Arial"
   ctx.textAlign    = "center"
   ctx.textBaseline = "middle"
   ctx.fillStyle    = "#f1f5f9"
   ctx.shadowBlur   = 14
-  ctx.shadowColor  = "rgba(120,170,255,0.4)"
+  ctx.shadowColor  = _MK_ACCENT
   ctx.fillText("PAUSED", cw / 2, panelY + 44)
   ctx.shadowBlur   = 0
 
-  ctx.strokeStyle = "rgba(255,255,255,0.12)"
-  ctx.lineWidth   = 1
-  ctx.beginPath()
-  ctx.moveTo(panelX + 32, panelY + 68)
-  ctx.lineTo(panelX + panelW - 32, panelY + 68)
-  ctx.stroke()
+  // accent divider under the title
+  const grd = ctx.createLinearGradient(panelX + 32, 0, panelX + panelW - 32, 0)
+  grd.addColorStop(0, "rgba(74,168,224,0)"); grd.addColorStop(0.5, _MK_ACCENT); grd.addColorStop(1, "rgba(74,168,224,0)")
+  ctx.fillStyle = grd; ctx.fillRect(panelX + 32, panelY + 66, panelW - 64, 2)
 
   const items = [
     { label: "Resume",        sub: "Continue the match" },
@@ -2779,44 +3456,19 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   const itemGap = 10
   const startY  = panelY + 88
 
+  // Same geometry as before (hit-testing untouched) — restyled with the shared MK button + hover anim.
   items.forEach((item, i) => {
-    const iy     = startY + i * (itemH + itemGap)
-    const active = i === selectedIndex
-    const ix     = panelX + 24
-    const iw     = panelW - 48
-
-    ctx.fillStyle = active
-      ? "rgba(59,130,246,0.28)"
-      : "rgba(255,255,255,0.05)"
-    _roundRectPath(ctx, ix, iy, iw, itemH, 12)
-    ctx.fill()
-
-    ctx.strokeStyle = active ? "#93c5fd" : "rgba(255,255,255,0.14)"
-    ctx.lineWidth   = active ? 2 : 1
-    _roundRectPath(ctx, ix, iy, iw, itemH, 12)
-    ctx.stroke()
-
-    if (active) {
-      ctx.save()
-      ctx.shadowBlur  = 18
-      ctx.shadowColor = "#3b82f6"
-      _roundRectPath(ctx, ix, iy, iw, itemH, 12)
-      ctx.stroke()
-      ctx.restore()
-    }
-
-    ctx.font      = "700 18px Arial"
-    ctx.textAlign = "center"
-    ctx.fillStyle = active ? "#f0f9ff" : "#e2e8f0"
-    ctx.fillText(item.label, cw / 2, iy + itemH * 0.38)
-
-    ctx.font      = "400 12px Arial"
-    ctx.fillStyle = active ? "rgba(186,230,253,0.85)" : "rgba(200,210,230,0.55)"
-    ctx.fillText(item.sub, cw / 2, iy + itemH * 0.72)
+    const iy = startY + i * (itemH + itemGap)
+    const ix = panelX + 24
+    const iw = panelW - 48
+    drawMkButton(ctx, { x: ix, y: iy, w: iw, h: itemH }, {
+      label: item.label, subLabel: item.sub, active: i === selectedIndex, accent: _MK_ACCENT, id: `pause:${i}`, cut: 12
+    })
   })
 
   ctx.font      = "13px Arial"
   ctx.textAlign = "center"
+  ctx.textBaseline = "middle"
   ctx.fillStyle = "rgba(200,210,230,0.5)"
   ctx.fillText("↑↓ / W S  to navigate   •   Enter / J to select   •   Esc to resume", cw / 2, panelY + panelH - 18)
 }

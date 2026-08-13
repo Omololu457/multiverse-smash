@@ -4,6 +4,7 @@
 // Import into game.js and wire into the game loop.
 
 import { sound, SFX, MUSIC } from "./sound.js"
+import { mkAdvance, bevelPath, metalPanel, mkButton } from "./ui.js"   // shared MK visual language (Stage 15 consistency)
 
 // ─────────────────────────────────────────────────────────────────
 // MATCH STATISTICS
@@ -71,19 +72,26 @@ export function drawRoundCountdown(ctx, canvas, countdown, roundNumber) {
   const seconds = Math.ceil(countdown / 60)
 
   if (countdown > 120) {
-    // "ROUND X" banner
+    // "ROUND X" banner — angular accent-edged backing plate for the metallic language.
     ctx.save()
+    mkAdvance()
+    const pw = 360, ph = 128, px = cw / 2 - pw / 2, py = ch / 2 - ph / 2 - 4
+    metalPanel(ctx, px, py, pw, ph, "#4aa8e0", 16, 0.25)
     ctx.textAlign    = "center"
     ctx.textBaseline = "middle"
     ctx.font         = "900 52px Arial"
     ctx.fillStyle    = "#f1f5f9"
     ctx.shadowBlur   = 22
-    ctx.shadowColor  = "rgba(120,170,255,0.5)"
-    ctx.fillText(`ROUND ${roundNumber}`, cw / 2, ch / 2 - 30)
+    ctx.shadowColor  = "rgba(74,168,224,0.6)"
+    ctx.fillText(`ROUND ${roundNumber}`, cw / 2, ch / 2 - 22)
     ctx.shadowBlur   = 0
-    ctx.font         = "700 24px Arial"
-    ctx.fillStyle    = "rgba(200,210,230,0.7)"
-    ctx.fillText("READY", cw / 2, ch / 2 + 28)
+    // accent divider
+    const grd = ctx.createLinearGradient(px + 40, 0, px + pw - 40, 0)
+    grd.addColorStop(0, "rgba(74,168,224,0)"); grd.addColorStop(0.5, "#4aa8e0"); grd.addColorStop(1, "rgba(74,168,224,0)")
+    ctx.fillStyle = grd; ctx.fillRect(px + 40, ch / 2 + 6, pw - 80, 2)
+    ctx.font         = "700 22px Arial"
+    ctx.fillStyle    = "rgba(200,220,240,0.8)"
+    ctx.fillText("READY", cw / 2, ch / 2 + 32)
     ctx.restore()
   } else if (countdown > 0) {
     // Numeric countdown
@@ -123,14 +131,11 @@ export function drawRoundBreak(ctx, canvas, winnerText = "ROUND OVER") {
   ctx.fillStyle = "rgba(0,0,0,0.48)"
   ctx.fillRect(0, 0, cw, ch)
 
-  // Panel
+  // Panel — angular metallic, matching the menu/results language.
   const pw = 500, ph = 160
   const px = cw / 2 - pw / 2, py = ch / 2 - ph / 2
-
-  ctx.fillStyle = "rgba(8,12,28,0.88)"
-  _rrectFill(ctx, px, py, pw, ph, 22)
-  ctx.strokeStyle = "rgba(255,255,255,0.16)"; ctx.lineWidth = 2
-  _rrectStroke(ctx, px, py, pw, ph, 22)
+  mkAdvance()
+  metalPanel(ctx, px, py, pw, ph, "#4aa8e0", 18, 0.3)
 
   ctx.textAlign    = "center"
   ctx.textBaseline = "middle"
@@ -162,6 +167,8 @@ export function drawVictoryScreen(ctx, canvas, state) {
   } = state
 
   const cw = canvas.width, ch = canvas.height
+  const winAccent = winnerSide === "p1" ? "#4aa8e0" : "#e06a6a"   // winner-side accent for the metallic edges
+  mkAdvance()
 
   ctx.save()
   ctx.globalAlpha = fadeAlpha
@@ -220,11 +227,8 @@ export function drawVictoryScreen(ctx, canvas, state) {
   const statH  = 220
   const statX  = cw / 2 - statW / 2
 
-  // Stats panel
-  ctx.fillStyle = "rgba(255,255,255,0.04)"
-  _rrectFill(ctx, statX, statY, statW, statH, 16)
-  ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.lineWidth = 1
-  _rrectStroke(ctx, statX, statY, statW, statH, 16)
+  // Stats panel — angular metallic, edge keyed to the winner's side color.
+  metalPanel(ctx, statX, statY, statW, statH, winAccent, 14, 0)
 
   // Column headers
   const colMid = statX + statW / 2
@@ -330,25 +334,9 @@ export function drawVictoryScreen(ctx, canvas, state) {
 }
 
 function _drawVictoryBtn(ctx, x, y, w, h, label, hovered, baseColor, hoverColor) {
-  ctx.fillStyle = hovered ? hoverColor + "44" : baseColor + "22"
-  _rrectFill(ctx, x, y, w, h, 12)
-  ctx.strokeStyle = hovered ? hoverColor : baseColor + "88"
-  ctx.lineWidth   = hovered ? 2 : 1
-  _rrectStroke(ctx, x, y, w, h, 12)
-
-  if (hovered) {
-    ctx.save()
-    ctx.shadowBlur  = 16
-    ctx.shadowColor = hoverColor
-    _rrectStroke(ctx, x, y, w, h, 12)
-    ctx.restore()
-  }
-
-  ctx.font         = "700 16px Arial"
-  ctx.textAlign    = "center"
-  ctx.textBaseline = "middle"
-  ctx.fillStyle    = hovered ? "#f1f5f9" : "#94a3b8"
-  ctx.fillText(label, x + w / 2, y + h / 2)
+  // Shared MK button (angular metallic + accent glow) — same language as every other screen. Position
+  // unchanged, so hit-testing is unaffected; the per-button accent color is preserved.
+  mkButton(ctx, { x, y, w, h }, { label, active: hovered, accent: hoverColor, cut: 12 })
 }
 
 // ─────────────────────────────────────────────────────────────────

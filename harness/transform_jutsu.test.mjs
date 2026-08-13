@@ -96,8 +96,9 @@ await suite("sasuke", "naruto");
 await suite("itachi", "naruto");
 await suite("tobirama", "sasuke");
 await suite("minato", "sasuke");
+await suite("hashirama", "naruto");   // rollout 2026-08-12 (naruto light 44 ≠ hashirama 46 → clean kit-copy proxy)
 
-console.log(`\n${FAIL === 0 ? "✅" : "❌"} Transformation Jutsu (5 chars × 2 tiers + non-conflict): ${PASS} passed, ${FAIL} failed`);
+console.log(`\n${FAIL === 0 ? "✅" : "❌"} Transformation Jutsu (6 chars × 2 tiers + non-conflict): ${PASS} passed, ${FAIL} failed`);
 await browser.close();
 server.close();
 process.exit(FAIL === 0 ? 0 : 1);

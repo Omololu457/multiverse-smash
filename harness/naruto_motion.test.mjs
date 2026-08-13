@@ -150,16 +150,20 @@ await prep();
   check("motion buffer CONSUMED on cast (no re-trigger)", histAfter.length === 0, `hist=[${histAfter.join(",")}]`);
 }
 
-section("U2. ADDITIVE — single QCF (↓→) still spawns a shadow clone (not cannibalized)");
+section("U2. single QCF (↓→) does NOT fire the elevated barrage AND no longer spawns a clone (D→F route removed 2026-08-12 — clone create/disperse is standardized to ',' / '.')");
 await prep();
 {
   await page.evaluate(() => window.__harness.dispelP1Clones?.());
   const en0 = (await p1()).energy;
-  await tap("s", 1); await tap("d", 1); await tap("l");        // single ↓→ + Special = D→F clone spawn (free)
+  await tap("s", 1); await tap("d", 1); await tap("l");        // single ↓→ + Special
   const drop = en0 - (await p1()).energy;
   check("single QCF did NOT fire the elevated barrage (no ~60 cost)", drop < 55, `Δenergy=${drop.toFixed(0)}`);
+  await waitFrames(30);
+  check("single QCF no longer spawns a clone (D→F removed; use ',')", (await cloneCount()) === 0, `count=${await cloneCount()}`);
+  // and confirm the standardized "," DOES spawn a clone
+  await page.keyboard.press(",");
   const spawned = await page.waitForFunction(() => window.__harness.p1CloneCount() >= 1, null, { timeout: 6000, polling: 16 }).then(() => true).catch(() => false);
-  check("single QCF spawned a shadow clone (existing route intact)", spawned, `count=${await cloneCount()}`);
+  check("',' spawns a clone (standardized binding)", spawned, `count=${await cloneCount()}`);
 }
 
 section("U3. WINDOW EXPIRY — a QCF split across the window does NOT chain into a double-QCF");

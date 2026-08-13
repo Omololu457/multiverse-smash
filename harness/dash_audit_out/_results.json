@@ -1,0 +1,79 @@
+[
+  {
+    "key": "naruto",
+    "speed": 90,
+    "live": {
+      "action": "dash",
+      "cast": "dash",
+      "sheet": "./naruto_kcm_move.png",
+      "flash": 10
+    },
+    "forcedSheet": "./naruto_kcm_move.png"
+  },
+  {
+    "key": "madara",
+    "speed": 92,
+    "live": {
+      "action": "dash",
+      "cast": "dash",
+      "sheet": "./madara2_dash_uniform.png",
+      "flash": 10
+    },
+    "forcedSheet": "./madara2_dash_uniform.png"
+  },
+  {
+    "key": "zaraki",
+    "speed": 88,
+    "live": {
+      "action": "dash",
+      "cast": "dash",
+      "sheet": "./zaraki_dash_uniform.png",
+      "flash": 10
+    },
+    "forcedSheet": "./zaraki_dash_uniform.png"
+  },
+  {
+    "key": "killua",
+    "speed": 95,
+    "live": {
+      "action": "dash",
+      "cast": "dash",
+      "sheet": "./killua_atlas.png",
+      "flash": 10
+    },
+    "forcedSheet": "./killua_atlas.png"
+  },
+  {
+    "key": "netero",
+    "speed": 94,
+    "live": {
+      "action": "dash",
+      "cast": "dash",
+      "sheet": "./netero_run_uniform.png",
+      "flash": 10
+    },
+    "forcedSheet": "./netero_run_uniform.png"
+  },
+  {
+    "key": "hisoka",
+    "speed": 91,
+    "live": {
+      "action": "dash",
+      "cast": "dash",
+      "sheet": "./hisoka_dash_uniform.png",
+      "flash": 10
+    },
+    "forcedSheet": "./hisoka_dash_uniform.png"
+  },
+  {
+    "key": "beerus",
+    "speed": 95,
+    "live": {
+      "action": "dash",
+      "cast": "dash",
+      "sheet": "./beerus_dash_u.png",
+      "flash": 10
+    },
+    "forcedSheet": "./beerus_dash_u.png"
+  }
+]

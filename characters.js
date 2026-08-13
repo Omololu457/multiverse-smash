@@ -26,7 +26,7 @@ const goku = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -12, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -32, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -90,7 +90,7 @@ const vegeta = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },                                  // foward_attack punch combo
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },                                  // foward_crouch_atttack low strike
-    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -12, selfVy: -9 },   // Up-Attack launcher (uppercut) — BALANCED archetype (Gojo ref)
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -32, selfVy: -9 },   // Up-Attack launcher (uppercut) — BALANCED archetype (Gojo ref)
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },                                 // air_attack aerial combo
     downAir:   { type: "spike", damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },                  // down_air_attack diving spike
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -200,7 +200,7 @@ const piccolo = {
   basic_attacks: {
     light:     { damage: 40, startup: 5, active: 3, recovery: 11, hitstun: 11, knockbackX: 2, knockbackY: 0 },
     heavy:     { damage: 80, startup: 9, active: 4, recovery: 19, hitstun: 17, knockbackX: 5, knockbackY: 1 },
-    upAttack:  { type: "launcher", damage: 60, startup: 6, active: 4, recovery: 8, hitstun: 18, knockbackX: 2, knockbackY: -7, launchVy: -12, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
+    upAttack:  { type: "launcher", damage: 60, startup: 6, active: 4, recovery: 8, hitstun: 18, knockbackX: 2, knockbackY: -7, launchVy: -32, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 55, startup: 6, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 70, startup: 9, active: 4, recovery: 14, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:      { damage: 28, startup: 7, active: 3, recovery: 14, hitstun: 18, throwForceX: 4, throwForceY: -3 }
@@ -227,7 +227,7 @@ const frieza = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -12, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -32, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 28, startup: 5, active: 3, recovery: 13, hitstun: 18, throwForceX: 4, throwForceY: -3 }
@@ -255,7 +255,7 @@ const cell = {
   basic_attacks: {
     light:     { damage: 50, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 95, startup: 9, active: 4, recovery: 19, hitstun: 19, knockbackX: 7, knockbackY: 1 },
-    upAttack:  { type: "launcher", damage: 75, startup: 5, active: 4, recovery: 9, hitstun: 21, knockbackX: 2, knockbackY: -8, launchVy: -13, selfVy: -9 },   // Up-Attack launcher — HEAVY archetype (Toji ref); tanky absorber
+    upAttack:  { type: "launcher", damage: 75, startup: 5, active: 4, recovery: 9, hitstun: 21, knockbackX: 2, knockbackY: -8, launchVy: -33, selfVy: -9 },   // Up-Attack launcher — HEAVY archetype (Toji ref); tanky absorber
     airAttack: { damage: 65, startup: 5, active: 3, recovery: 10, hitstun: 14, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 85, startup: 9, active: 4, recovery: 15, hitstun: 19, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 35, startup: 6, active: 4, recovery: 16, hitstun: 22, throwForceX: 5, throwForceY: -4 }
@@ -302,10 +302,11 @@ const gojo = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    // Up-Attack launcher "Rising Palm" (balanced reference archetype): startup 6 / active 4 /
-    // recovery 8; launches enemy at vy -12 and lifts Gojo at vy -9 (slightly less, so the enemy
-    // floats just above → juggleable). launchVy/selfVy are honored EXACTLY (bypass the -17 floor).
-    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -12, selfVy: -9 },
+    // Up-Attack launcher "Rising Palm" (BALANCED reference archetype): startup 6 / active 4 /
+    // recovery 8; launches enemy at vy -32 (Balanced tier — the roster's mid launch height). launchVy is
+    // honored EXACTLY now that it's more negative than the LAUNCH_FLOOR (-30); selfVy is unused post-1b
+    // (attacker stays grounded, jump-cancels to convert). Fast tier -30 (lowest) → Heavy-tank -34 (highest).
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -32, selfVy: -9 },
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -5 }
@@ -622,7 +623,10 @@ const naruto = {
     //    (abilities.executeNarutoSpecial sets _spriteCastMove; sprite.js _resolveAction
     //    plays the matching action; MOVE_TO_ACTION passes these keys through unchanged).
     rasengan_cast:      { frames: 11, width: 52, height: 55, speed: 3, anchorY: 0, sheet: "./naruto_kcm_4_koma_body.png" }, // 4 KOMA A
-    rasenshuriken_cast: { frames: 12, width: 51, height: 56, speed: 3, anchorY: 0, sheet: "./naruto_kcm_6_koma_body.png" }  // 6 KOMA A
+    rasenshuriken_cast: { frames: 12, width: 51, height: 56, speed: 3, anchorY: 0, sheet: "./naruto_kcm_6_koma_body.png" }, // 6 KOMA A
+    // CLONE-ASSISTED Rasengan pose (naruto_kcm_3koma_clone_row): a row of clones each forming/thrusting a
+    // Rasengan — played when a shadow clone JOINS the Uzumaki Barrage, so the clone-assist reads visibly.
+    komaRasengan:       { frames: 7,  width: 41, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_kcm_3koma_clone_row.png" }
   }
   // ── Phase 2 (specials, NOT wired yet — awaiting floor-check): rasengan / shadow-
   //    CloneBlast → body strip + fx_* effect; ultimate → naruto_kcm_ultimate_action.
@@ -852,7 +856,13 @@ const tobirama = {
   basic_attacks: {
     light:    { damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:    { damage: 88, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 80, rangeY: 46 },
-    upAttack: { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    // launchVy -26 is EXPLICIT and floor-exempt (opts.exact) on purpose: Tobirama's signature route is
+    // up-launcher → air → down_air SPIKE, and the spike hitbox sits BELOW him, so it only connects when his
+    // jump out-climbs the pop and he lands ABOVE the juggled foe. His jumpPower 32 clears a -26 pop (spike
+    // connects from above) but NOT the -30 archetype floor (foe floats above him → spike whiffs). He was a
+    // floor-rider (no launchVy) whose combo was implicitly tuned to the old -26 floor; making it explicit
+    // keeps it working regardless of where the shared floor moves. Slightly-below-baseline is his identity.
+    upAttack: { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -26, airOK: false },
     downAir:  { damage: 74, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
     airAttack:{ damage: 54, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 }
   },
@@ -914,6 +924,139 @@ const tobirama = {
   },
   // Single-entry pre-match intro pool (game.pickIntroVariant picks from here; one entry = always plays).
   introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
+// HASHIRAMA SENJU — the First Hokage, "God of Shinobi" (6th Naruto-
+// universe char, after Naruto/Sasuke/Itachi/Tobirama/Minato/Madara/
+// Obito/Tobi/Pain). LARGE versatile Mokuton kit (Wood Release punch
+// tap/hold, a 4-tier tree-summon ladder, Wood Golem, Gracious Deity
+// Gates + a cameo Sealing-Jutsu ultimate) — BALANCE_AUDIT schema
+// exception like Madara: versatility outlier, not raw power. Source
+// strips were RE-SLICED into clean uniform, feet-aligned cells
+// (tools/reslice_strip.mjs → the *_uniform.png copies; the exact-
+// as-uploaded originals — incl. the "treee"/"rellese"/"gaint"/
+// "chang_land_scape" misspellings — are kept untouched per the build
+// mandate). Templated off fellow Senju Tobirama. Stage 1 = registration
+// + movement/state + intro pool only; normals/specials/ultimate = later
+// stages (see HASHIRAMA_ASSET_MAP.md).
+const hashirama = {
+  rosterKey: "hashirama", name: "Hashirama Senju", universe: "naruto",
+  portrait: "./hashirama_portrait.png",   // extracted from the master sheet in Stage 8; falls back gracefully until then
+  archetypes: ["melee", "tactics", "summoner"],
+  primary: "melee", secondary: ["zoner", "tactics"],
+  // No dashTeleport — base speed 88 is below the 98 speed-tier threshold (flash/toji/maki/minato).
+  // runWhenAdvancing: advancing toward the foe plays the run cycle (walk reuses the run sheet for retreat).
+  movement: { runWhenAdvancing: true },
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "medium", scaling: "versatile", animeMovement: true },
+  // maxEnergy 220: the largest Naruto kit (tree ladder + Wood Golem + Sealing ult) all draws chakra.
+  // Durability is the point — the God of Shinobi is the roster's premier wall (HP/def above Madara).
+  stats: { maxHealth: 1220, maxEnergy: 220, attack: 94, defense: 92, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 15, dashDuration: 12, dashCooldownMax: 44 },
+  // Placeholder taijutsu values templated off Madara (fellow VotE powerhouse); real move wiring +
+  // flavor normals land in Stage 2. combat.js _getMD reads THIS basic_attacks.
+  basic_attacks: {
+    light:    { damage: 46, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 90, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 84, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 68, startup: 7, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, airOK: false },
+    downAir:  { damage: 76, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
+    airAttack:{ damage: 56, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 }
+  },
+  // HUD-only until Stage 7 (real logic + cost live in abilities.js executeHashiramaUltimate).
+  // Sealing Jutsu: combo-ender → Gracious Deity Gates drop & immobilize → Naruto/Minato/Tobirama
+  // cameo assists → red sealing-barrier overlay (bespoke freeze cinematic).
+  ultimate: { name: "Sealing Jutsu", cost: 100, description: "Gracious Deity Gates slam down to pin the opponent, then Naruto, Minato and Tobirama arrive to help lock them inside a red sealing barrier." },
+  hasSprites: true,
+  // HEIGHT-REFERENCE audit (2026-08-12, added to harness/height_reference.mjs CHARS — he was built after
+  // the last pass and had never been measured). His idle is an atypical WIDE FORWARD-LUNGE crouch (not the
+  // roster's upright breathing stance), so its bbox under-measures his standing height: at the old 1.7 his
+  // idle measured 115px (on canon for ~185cm) but his UPRIGHT combat poses (hurt/handSigns/attacks ≈ 73px
+  // content) rendered ~126px — over canon. Calibrated to the upright standing frame instead: 115 / 73 ≈ 1.55,
+  // so standing ≈ 113px (on canon) and the idle-crouch reads ~105px. This also trims the lunge's width bulk
+  // (92px→~84px vs the ~50px roster) — the "much too large" report was WIDTH from the lunge pose, not height;
+  // spriteScale can't slim width further without making him too short (source-art caveat, like Naruto-aura §3).
+  // anchorY:0 everywhere → no anchor rescale on the scale change (feet stay planted).
+  // REQUIRES the skins.js `hashirama` default entry (else applySkin() → spriteScale:1 native shrink) +
+  // the spritesheets.js SPRITE_MANIFEST idle gate (else procedural box).
+  spriteScale: 1.55,
+  animationData: {
+    // idle: sheet is 6×56 cells but CELL 0 is a blank gutter slice (9 stray px → he vanished for one frame
+    // every loop). Real breathing loop = cells 1..5, so start at sourceX 56 and play 5 frames.
+    idle: { frames: 5, width: 56, height: 70, speed: 6, anchorY: 0, sourceX: 56, sheet: "./hashirama_idle_uniform.png" },
+    // No dedicated walk sheet — reuse the run cycle for the retreat/advance walk (runWhenAdvancing swaps to run when closing distance).
+    walk: { frames: 6, width: 74, height: 66, speed: 6, anchorY: 0, sheet: "./hashirama_run_uniform.png" },
+    run:  { frames: 6, width: 74, height: 66, speed: 4, anchorY: 0, sheet: "./hashirama_run_uniform.png" },
+    dash: { frames: 3, width: 50, height: 77, speed: 3, anchorY: 0, sheet: "./hashirama_dash_uniform.png" },
+    // jump.png = crouch→rise→apex arc; play once + hold. fall = the apex pose (last cell, sourceX 2×62).
+    jump: { frames: 3, width: 62, height: 97, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_jump_uniform.png" },
+    fall: { frames: 1, width: 62, height: 97, speed: 6, anchorY: 0, sourceX: 124, loop: false, lockLastFrame: true, sheet: "./hashirama_jump_uniform.png" },
+    // HURT — the 2-frame recoil from hit.png as a flinch; combat.js colorFlash tints the hit on top.
+    // Every plain hitstun/stun routes here. (No dedicated block art in this batch → guard falls back to idle.)
+    hurt:      { frames: 2, width: 59, height: 74, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_hit_uniform.png" },
+    // KNOCKDOWN — reuses the same 2-frame hit strip (no dedicated knockdown sequence in this batch — GAP);
+    // lockLastFrame holds the recovery pose during knockdownState.
+    knockdown: { frames: 2, width: 59, height: 74, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_hit_uniform.png" },
+    // hand_signs — the jutsu-cast STARTUP seal sequence (used as cast windup by later-stage Mokuton specials).
+    handSigns: { frames: 7, width: 55, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_hand_signs_uniform.png" },
+    // ── STAGE 2 NORMALS (5 slots, all RE-SLICED feet-aligned). combat.js basic_attacks (above) carries
+    // the hit/frame data; these drive the SPRITE. loop:false + lockLastFrame holds the strike through
+    // recovery. light=wood-fist jab, heavy=roundhouse kick, up=rising launcher (basic_attacks.upAttack),
+    // air=neutral aerial (flying-kick combo), down_air=diving wood-spike attack. ──
+    light:    { frames: 5, width: 76,  height: 79, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_foward_punch_uniform.png" },      // wood-fist forward jab
+    heavy:    { frames: 6, width: 79,  height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_kick_uniform.png" },               // committed roundhouse kick
+    up:       { frames: 5, width: 71,  height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_up_attack_uniform.png" },          // launcher: rising uppercut (white slash arc)
+    air:      { frames: 10, width: 74, height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_air_combo_1_uniform.png" },        // neutral aerial — leaping flying kick
+    down_air: { frames: 5, width: 126, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_down_air_attack_uniform.png" },    // diving wood-spike descent
+    // ── STAGE 2 COMMAND CHAIN + POKE ── currentMove-keyed poses (sprite.js identity map). Chain = Fwd+Heavy
+    // hashiComboA→B→Fin (cancel-on-HIT, shared rekkaContinue): ground punch-string → leaping kick → spinning
+    // wood-beam LAUNCHER finisher. Poke = Fwd+Light hashiWoodStraight (long-reach wood-beam straight, punch_2). ──
+    hashiComboA:       { frames: 9,  width: 73,  height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_punch_combo_1_uniform.png" },   // chain 1 — wood-fist punch string
+    hashiComboB:       { frames: 10, width: 74,  height: 82, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_air_combo_1_uniform.png" },      // chain 2 — leaping kick (reuses the air sheet)
+    hashiComboFin:     { frames: 10, width: 154, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_air_combo_2_uniform.png" },      // chain 3 — spinning wood-beam LAUNCHER finisher
+    hashiWoodStraight: { frames: 3,  width: 76,  height: 75, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_punch_2_uniform.png" },          // Fwd+Light poke — long-reach wood-beam straight
+    // ── STAGE 3 KUNAI SPECIALS ── _spriteCastMove cast poses (sprite.js cast override). Neutral Special =
+    // ground throw; airborne Special = air throw. Both spawn the shared spinning-shuriken projectile
+    // (hashirama_kunai_throw_projectile_uniform, 8f spin) via spawnProjectile.
+    kunaiThrow:    { frames: 3, width: 68, height: 69, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_kunai_throw_uniform.png" },       // ground throw wind-up→release
+    kunaiThrowAir: { frames: 3, width: 55, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_kunai_throw_air_uniform.png" },   // airborne throw
+    // ── STAGE 4 — WOOD RELEASE PUNCH (CHARGE key tap/hold, Rengoku architecture) + MOKUTON ARM (Fwd+Special) ──
+    // charge = the hold pose while winding up on the CHARGE key (reuses the hand-seals sheet — channeling
+    // Mokuton). woodPunch (tap) = base wood-spear punch; woodPunchSuper (hold) = the larger branching
+    // eruption. mokutonArm = the arm-eruption cast pose. All currentMove/_spriteCast identity keys.
+    charge:         { frames: 7,  width: 55,  height: 76,  speed: 4, anchorY: 0, loop: true, sheet: "./hashirama_hand_signs_uniform.png" },                    // CHARGE-hold wind-up pose (hand seals)
+    woodPunch:      { frames: 7,  width: 210, height: 79,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_wood_rellese_punch_uniform.png" },        // TAP — wood-spear punch (mid reach). frames 9→7: cells 7-8 were trailing near-blank (debris only) → hold cell 6.
+    woodPunchSuper: { frames: 8,  width: 185, height: 112, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_wood_rellese_punch_super_uniform.png" },  // HOLD — larger branching wood eruption (long reach). frames 10→8: sheet REPACKED to drop the two blank mid-cells (old 6-7) so the eruption cells stay contiguous.
+    mokutonArm:     { frames: 8,  width: 57,  height: 76,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_mokuton_lul_4_uniform.png" },             // Fwd+Special — Mokuton arm eruption
+    // ── STAGE 5 — TREE SUMMON 4-TIER LADDER (Down+Special, successive-cast escalation) ── the CASTER
+    // summoning poses; the growing TREE is a stationary summon-hazard (spawnProjectile, spriteOnce growth).
+    treeSummon1:    { frames: 3, width: 47, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_treee_summon_1_uniform.png" },        // tier 1 caster (sprout)
+    treeSummon2:    { frames: 4, width: 67, height: 79, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_treee_summon_2_uniform.png" },        // tier 2 caster (root-burst)
+    treeSummon3:    { frames: 8, width: 69, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_tree_summon_level_2_uniform.png" },   // tier 3 caster (iconic tree)
+    treeSummon4:    { frames: 6, width: 55, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_tree_level_3_uniform.png" },          // tier 4 caster (forest grove)
+    // ── STAGE 6 — WOOD GOLEM (Up+Special) + GRACIOUS DEITY GATES (Back+Special) ── caster summon/seal poses;
+    // the giant golem + torii gates are spawned entities (spawnProjectile) drawn over the fighters.
+    woodGolemSummon: { frames: 3, width: 55, height: 76, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_gaint_wood_statue_summon_uniform.png" },   // Up+Special — summon the Wood Golem
+    gatesCaster:     { frames: 3, width: 55, height: 76, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_gracious_deity_gates_uniform.png" },        // Back+Special — Gracious Deity Gates seal
+    // ── STAGE 7 — SEALING JUTSU ULTIMATE ── the combo-ender→seal pose Hashirama holds through the freeze
+    // cinematic (played via _spriteCastMove); gates/cameos/red-barrier are drawn as the cinematic overlay.
+    sealingCombo:    { frames: 11, width: 76, height: 79, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_combo_into_sealing_justu_uniform.png" },   // Ultimate — combo-into-seal
+    // ── PRE-MATCH INTRO POOL (introSequencePool, Red Ranger precedent) ── each match picks ONE sequence:
+    //   • pillar rise → open: the signature wood-pillar erupts (part_1) then splits open and Hashirama
+    //     steps out (part_2), played back-to-back as one continuous entrance.
+    //   • shunshin: alt stance settling into a body-flicker exit (intro_2).
+    introPillarRise: { frames: 24, width: 50, height: 100, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_intro_part_1_uniform.png" },
+    introPillarOpen: { frames: 12, width: 56, height: 98,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_intro_part_2_uniform.png" },
+    introShunshin:   { frames: 7,  width: 56, height: 79,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_intro_2_uniform.png" },   // frames 8→7: sheet REPACKED to drop the blank mid-cell (old 5) between the stance and the body-flicker exit.
+    // WOOD CLONE cast pose (NOT an intro — was mis-categorized as intro-pool content, corrected 2026-08-12).
+    // This is the CASTER gesture for the real Wood Clone special (double-QCF): Hashirama hand-signs and a
+    // wood clone forms alongside him. currentMove = "woodCloneCast" → sprite.js identity-maps to this pose.
+    woodCloneCast:   { frames: 12, width: 102, height: 81, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hashirama_wood_clone_intro_uniform.png" }
+  },
+  // introSequencePool = pool of SEQUENCES (game.js picks one at random per match). The pillar entrance
+  // is a genuine two-step sequence (rise → open); shunshin is a single-step standalone intro.
+  introSequencePool: [
+    ["introPillarRise", "introPillarOpen"],
+    ["introShunshin"]
+  ]
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1434,7 +1577,7 @@ const zenitsu = {
   basic_attacks: {
     light:     { damage: 50, startup: 3, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 90, startup: 7, active: 3, recovery: 16, hitstun: 19, knockbackX: 6, knockbackY: 1, rangeX: 78, rangeY: 50 },
-    upAttack:  { type: "launcher", damage: 70, startup: 4, active: 3, recovery: 6, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); Thunderclap speedster
+    upAttack:  { type: "launcher", damage: 70, startup: 4, active: 3, recovery: 6, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); Thunderclap speedster
     airAttack: { damage: 60, startup: 4, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 80, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
@@ -1522,7 +1665,7 @@ const rengoku = {
     // Stage 2 wires the sprites over this data. Rengoku hits harder than Zenitsu across the board.
     light:     { damage: 52, startup: 3, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 95, startup: 8, active: 3, recovery: 17, hitstun: 20, knockbackX: 6, knockbackY: 1, rangeX: 80, rangeY: 52 },
-    upAttack:  { type: "launcher", damage: 74, startup: 6, active: 4, recovery: 8, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
+    upAttack:  { type: "launcher", damage: 74, startup: 6, active: 4, recovery: 8, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -32, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 62, startup: 4, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 84, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
@@ -1631,7 +1774,7 @@ const shinobu = {
   basic_attacks: {
     light:     { damage: 44, startup: 3, active: 2, recovery: 7,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:     { damage: 78, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 86, rangeY: 44 },
-    upAttack:  { type: "launcher", damage: 62, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); lowest HP, fragile speedster
+    upAttack:  { type: "launcher", damage: 62, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); lowest HP, fragile speedster
     airAttack: { damage: 52, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
     downAir:   { damage: 70, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 }
   },
@@ -1698,7 +1841,7 @@ const inosuke = {
   basic_attacks: {
     light:     { damage: 42, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:     { damage: 80, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 88, rangeY: 46 },
-    upAttack:  { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 7, hitstun: 18, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -11, selfVy: -6, airOK: false },
+    upAttack:  { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 7, hitstun: 18, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -30, selfVy: -6, airOK: false },
     airAttack: { damage: 50, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
     downAir:   { damage: 72, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 }
   },
@@ -1772,7 +1915,7 @@ const nezuko = {
   basic_attacks: {
     light:     { damage: 42, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:     { damage: 74, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 84, rangeY: 44 },
-    upAttack:  { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },
+    upAttack:  { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },
     airAttack: { damage: 50, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
     downAir:   { damage: 68, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 },
     airHeavy:  { damage: 64, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 5, knockbackY: -2 }   // Jump+Y aerial spin kick (air_heavy slot)
@@ -2811,7 +2954,7 @@ const netero = {
   basic_attacks: {
     light:     { damage: 48, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 95, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 80, rangeY: 46 },
-    upAttack:  { type: "launcher", damage: 72, startup: 4, active: 3, recovery: 6, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); high-atk/low-HP glass cannon
+    upAttack:  { type: "launcher", damage: 72, startup: 4, active: 3, recovery: 6, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); high-atk/low-HP glass cannon
     airAttack: { damage: 62, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 84, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -2927,7 +3070,7 @@ const chrollo = {
   basic_attacks: {
     light:     { damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 80, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 80, rangeY: 50 },
-    upAttack:  { type: "launcher", damage: 66, startup: 6, active: 4, recovery: 8, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
+    upAttack:  { type: "launcher", damage: 66, startup: 6, active: 4, recovery: 8, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -32, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack: { damage: 58, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { type: "spike", damage: 76, startup: 8, active: 4, recovery: 13, hitstun: 17, knockbackX: 1, knockbackY: 9 },
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -3018,7 +3161,7 @@ const gokuBlack = {
   basic_attacks: {
     light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 66, rangeY: 50 },        // front_attack straight
     heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1,  rangeX: 78, rangeY: 52 },        // KI SLASH (ki_slash sheet) — costs 10 EN
-    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -12, selfVy: -9 },   // Up-Attack launcher (rising spin) — BALANCED archetype (Gojo ref)
+    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -32, selfVy: -9 },   // Up-Attack launcher (rising spin) — BALANCED archetype (Gojo ref)
     airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },                                 // air_attack downward slash
     downAir:   { type: "spike", damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },                  // air_attack reused (base down-air GAP, asset map §3.5)
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
@@ -3105,7 +3248,7 @@ const beerus = {
   basic_attacks: {
     light:     { damage: 46, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 60, rangeY: 46 },   // foward_attack jab
     heavy:     { damage: 88, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1,  rangeX: 72, rangeY: 50 },   // foward_attack_2, pink aura ribbon
-    upAttack:  { type: "launcher", damage: 68, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -11, selfVy: -8 }, // Up-Attack launcher (yellow crescent) — FAST/GLASS-CANNON archetype (Maki ref); low HP+DEF, high atk/spd
+    upAttack:  { type: "launcher", damage: 68, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -30, selfVy: -8 }, // Up-Attack launcher (yellow crescent) — FAST/GLASS-CANNON archetype (Maki ref); low HP+DEF, high atk/spd
     airAttack: { damage: 58, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },   // kick
     downAir:   { damage: 78, startup: 8, active: 4, recovery: 14, hitstun: 16, knockbackX: 1, knockbackY: 9 },    // side_kick spike, purple energy slash
     grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -3300,7 +3443,7 @@ const killua = {
   basic_attacks: {
     light:    { damage: 38, startup: 3, active: 3, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 78, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); Godspeed assassin
+    upAttack: { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); Godspeed assassin
     airAttack:{ damage: 50, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 70, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -3409,7 +3552,7 @@ const flash = {
   basic_attacks: {
     light:    { damage: 30, startup: 2, active: 3, recovery: 7,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 62, startup: 6, active: 4, recovery: 15, hitstun: 17, knockbackX: 6, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 50, startup: 4, active: 3, recovery: 5, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); fastest in game (SPD 99) → recovery −1
+    upAttack: { type: "launcher", damage: 50, startup: 4, active: 3, recovery: 5, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); fastest in game (SPD 99) → recovery −1
     airAttack:{ damage: 44, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 60, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 24, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -3495,7 +3638,7 @@ const gon = {
   basic_attacks: {
     light:    { damage: 34, startup: 3, active: 3, recovery: 8,  hitstun: 13, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 66, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1 },   // dash-headbutt lunge
-    upAttack: { type: "launcher", damage: 54, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref); BASE form. ⚑ Adult-Gon (giant) launch verified separately, see harness/up_attack_giant.mjs
+    upAttack: { type: "launcher", damage: 54, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -32, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref); BASE form. ⚑ Adult-Gon (giant) launch verified separately, see harness/up_attack_giant.mjs
     airAttack:{ damage: 46, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 58, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -3585,7 +3728,7 @@ const batman = {
   basic_attacks: {
     light:    { damage: 32, startup: 3, active: 3, recovery: 8,  hitstun: 13, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 64, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 52, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
+    upAttack: { type: "launcher", damage: 52, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -32, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
     airAttack:{ damage: 45, startup: 4, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 58, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -3678,7 +3821,7 @@ const hisoka = {
   basic_attacks: {
     light:    { damage: 40, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 80, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 62, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -12, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref); trickster
+    upAttack: { type: "launcher", damage: 62, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -32, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref); trickster
     airAttack:{ damage: 52, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 68, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
@@ -3756,7 +3899,7 @@ const superman = {
   basic_attacks: {
     light:    { damage: 36, startup: 4, active: 3, recovery: 9,  hitstun: 14, knockbackX: 5,  knockbackY: 0 },
     heavy:    { damage: 72, startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 12, knockbackY: 2 },
-    upAttack: { type: "launcher", damage: 56, startup: 5, active: 4, recovery: 10, hitstun: 20, knockbackX: 2, knockbackY: -11, launch: 14, launchVy: -14, selfVy: -9, airOK: false },   // Up-Attack launcher — HEAVY-TANK archetype (Toji ref +1 rec, heavier pop); HP 1450 powerhouse
+    upAttack: { type: "launcher", damage: 56, startup: 5, active: 4, recovery: 10, hitstun: 20, knockbackX: 2, knockbackY: -11, launch: 14, launchVy: -33, selfVy: -9, airOK: false },   // Up-Attack launcher — HEAVY-TANK archetype (Toji ref +1 rec, heavier pop); HP 1450 powerhouse
     airAttack:{ damage: 48, startup: 4, active: 3, recovery: 11, hitstun: 14, knockbackX: 5,  knockbackY: -2 },
     downAir:  { damage: 62, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 2,  knockbackY: 11 },
     grab:     { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 8, throwForceY: -3 }
@@ -3852,7 +3995,7 @@ const maki = {
     // startup 4 / active 3 / recovery 6 — fitting her speed kit. enemy vy -11 / Maki vy -8. This is
     // CONSISTENT with the Heavenly Vow rebalance: HV's tradeoff is her TIGHT cancel window
     // (MAKI_CANCEL_FRAMES in abilities.js), not slow normals — a superhuman-fast launcher is on-identity.
-    upAttack:  { type: "launcher", damage: 78, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -11, selfVy: -8, airOK: false },
+    upAttack:  { type: "launcher", damage: 78, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -30, selfVy: -8, airOK: false },
     airAttack: { damage: 66, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 88, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
@@ -3947,7 +4090,7 @@ const toji = {
   basic_attacks: {
     light:     { damage: 52, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
     heavy:     { damage: 96, startup: 7, active: 4, recovery: 15, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 46 },
-    upAttack:  { type: "launcher", damage: 74, startup: 5, active: 3, recovery: 7,  hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -12, selfVy: -8, airOK: false },
+    upAttack:  { type: "launcher", damage: 74, startup: 5, active: 3, recovery: 7,  hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -32, selfVy: -8, airOK: false },
     airAttack: { damage: 62, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 86, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
@@ -4122,7 +4265,7 @@ const ghostface = {
   basic_attacks: {
     light:    { damage: 34, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
     heavy:    { damage: 66, startup: 7, active: 3, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 104, rangeY: 48 },
-    upAttack: { type: "launcher", damage: 54, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -11, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); fragile fast rushdown stalker
+    upAttack: { type: "launcher", damage: 54, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); fragile fast rushdown stalker
     airAttack:{ damage: 46, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
     downAir:  { damage: 58, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }
   },
@@ -4545,7 +4688,7 @@ const zarakiShikai = {
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
   gojo, megumi, sukuna, omololu, maki, toji, yuji,
-  naruto, sasuke, itachi, tobirama, minato, madara, obito, tobi, pain,
+  naruto, sasuke, itachi, tobirama, hashirama, minato, madara, obito, tobi, pain,
   zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,
   beerus,

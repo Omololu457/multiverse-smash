@@ -88,9 +88,9 @@ await page.waitForFunction(() => window.__harness.p1().grounded, null, { timeout
 await waitFrames(4);
 await page.keyboard.down("d"); await sleep(26); await page.keyboard.up("d"); await sleep(30);
 await page.keyboard.down("d"); await sleep(26); await page.keyboard.up("d");
-let blur = 0, sawDash = false, sawTeleport = false;
-for (let i = 0; i < 16; i++) { const p = await p1(); blur = Math.max(blur, p.speedBlur); if (has(p, "obito_dash_uniform")) sawDash = true; if (has(p, "obito_teleport_uniform")) sawTeleport = true; if (blur > 0 && sawDash) { await shot("2_teleport_dash"); break; } await waitFrames(1); }
-check("teleport-behind fires (speed-blur > 0)", blur > 0, `speedBlur=${blur}`);
+let flash = 0, sawDash = false, sawTeleport = false;
+for (let i = 0; i < 16; i++) { const p = await p1(); flash = Math.max(flash, p.teleportFlash); if (has(p, "obito_dash_uniform")) sawDash = true; if (has(p, "obito_teleport_uniform")) sawTeleport = true; if (flash > 0 && sawDash) { await shot("2_teleport_dash"); break; } await waitFrames(1); }
+check("teleport-behind fires (teleportFlash > 0)", flash > 0, `teleportFlash=${flash}`);
 check("… uses the DASH sprite (obito_dash_uniform)", sawDash, `sawDash=${sawDash}`);
 check("… and does NOT use the Kamui blink (obito_teleport_uniform)", !sawTeleport, `sawTeleport=${sawTeleport}`);
 

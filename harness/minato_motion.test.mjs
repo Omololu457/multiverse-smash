@@ -115,15 +115,19 @@ await prep(220);   // HCF (half-circle-fwd) has a single forward tap → no F→
   check("motion buffer consumed on cast", hist.length === 0, `hist=[${hist.join(",")}]`);
 }
 
-section("MS4-2. ADDITIVE — with NO marks, ←↓→ falls through to the normal clone spawn");
+section("MS4-2. with NO marks, ←↓→ does NOT fire Flying Raijin Clones AND no longer spawns a base clone (D→F route removed 2026-08-12 — clone create is standardized to ',')");
 await prep(220);   // prep clears marks + clones
 {
   const en0 = (await p1()).energy;
   await motion(["a", "s", "d", "l"]);                           // ←↓→ but no marks placed
-  const spawned = await page.waitForFunction(() => window.__harness.p1CloneCount() >= 1, null, { timeout: 4000, polling: 16 }).then(() => true).catch(() => false);
+  await waitFrames(20);
   const drop = en0 - (await p1()).energy;
-  check("no-mark ←↓→ spawned an ordinary clone (base route intact)", spawned, `count=${await cloneCount()}`);
+  check("no-mark ←↓→ no longer spawns a base clone (D→F removed; use ',')", (await cloneCount()) === 0, `count=${await cloneCount()}`);
   check("no-mark ←↓→ did NOT pay the Flying Raijin Clones cost (~40)", drop < 35, `Δenergy=${drop.toFixed(0)}`);
+  // and confirm the standardized "," DOES spawn a clone
+  await page.keyboard.press(",");
+  const spawned = await page.waitForFunction(() => window.__harness.p1CloneCount() >= 1, null, { timeout: 4000, polling: 16 }).then(() => true).catch(() => false);
+  check("',' spawns a clone (standardized binding)", spawned, `count=${await cloneCount()}`);
 }
 
 // ── summary ──────────────────────────────────────────────────────────────────

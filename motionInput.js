@@ -16,7 +16,7 @@
 // The scoped roster. Matched case-insensitively on fighter.rosterKey. Every
 // other character never even allocates a motionHistory buffer (recordMotionInput
 // early-returns), so their input path is provably untouched.
-export const NARUTO_UNIVERSE_KEYS = new Set(["naruto", "sasuke", "itachi", "tobirama", "minato"])
+export const NARUTO_UNIVERSE_KEYS = new Set(["naruto", "sasuke", "itachi", "tobirama", "minato", "hashirama"])
 
 export function isNarutoUniverse(fighter) {
   return !!fighter && NARUTO_UNIVERSE_KEYS.has(String(fighter.rosterKey || "").toLowerCase())

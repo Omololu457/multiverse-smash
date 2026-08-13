@@ -165,6 +165,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./tobirama_idle_uniform.png" }
   },
 
+  // Hashirama (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
+  // Hashirama from procedural box to sprite handler. Per-action rendering reads characters.js →
+  // hashirama.animationData (each action carries its own .sheet). Object form; idle is the RE-SLICED
+  // uniform strip (tools/reslice_strip.mjs).
+  hashirama: {
+    actions: { idle: "./hashirama_idle_uniform.png" }
+  },
+
   // Minato (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
   // Minato from box to sprite. Per-action rendering reads characters.js → minato.animationData
   // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.

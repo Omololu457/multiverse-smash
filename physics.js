@@ -12,9 +12,16 @@
  */
 
 import { setupBen10, updateOmnitrix } from "./fighters.js"
+import { effectiveFloorFor, getPlatforms } from "./platforms.js"   // Wood Release climbable terrain: highest standable surface under a fighter
 
 // Characters that get a third jump. Keyed by rosterKey / id / name (lowercase).
 const TRIPLE_JUMP_CHARACTERS = new Set(["gojo", "sukuna"])
+
+// Ride-vs-fall slack for a fighter resting on a platform: the "stick" branch keeps the fighter glued to a
+// support within this many px, but RELEASES to gravity if the support has dropped further away (walked off
+// an edge, or a platform receded below the feet) — so stepping off a pillar FALLS instead of teleporting to
+// the distant ground. Kept ≥ the platform landTol (12) so a still-caught platform never flickers a release.
+const PLATFORM_STICK_TOL = 16
 
 export const physics = {
   gravity: 0.85,
@@ -307,16 +314,18 @@ export const physics = {
   applyGravity(fighter) {
     if (!fighter || fighter.hitstop > 0 || fighter.dashTimer > 0) return
 
-    const floor = fighter.groundY != null ? fighter.groundY : this.groundY
+    const baseFloor = fighter.groundY != null ? fighter.groundY : this.groundY
 
     // OMNI-MAN FLIGHT (Stage 3): while flying, NO gravity — integrate the flight-controlled vy directly
     // and clamp to the arena's vertical bounds (can't hover through the floor or past the ceiling). He
-    // stays airborne (onGround false) even at floor level, so toggling off drops him cleanly.
+    // stays airborne (onGround false) even at floor level, so toggling off drops him cleanly. Platforms
+    // don't apply to a free flyer → he clamps against the base ground only.
     if (fighter._flightActive) {
       fighter.y += fighter.vy || 0
-      if (fighter.y + fighter.h > floor) { fighter.y = floor - fighter.h; if (fighter.vy > 0) fighter.vy = 0 }
-      if (fighter.y < -360)              { fighter.y = -360;              if (fighter.vy < 0) fighter.vy = 0 }
+      if (fighter.y + fighter.h > baseFloor) { fighter.y = baseFloor - fighter.h; if (fighter.vy > 0) fighter.vy = 0 }
+      if (fighter.y < -360)                  { fighter.y = -360;                  if (fighter.vy < 0) fighter.vy = 0 }
       fighter.onGround = false; fighter.grounded = false; fighter.isLaunched = false
+      fighter._prevFeetY = fighter.y + fighter.h
       return
     }
 
@@ -326,10 +335,27 @@ export const physics = {
       fighter.vy = 0
     }
 
+    // PLATFORM-AWARE FLOOR (Wood Release climbable terrain): the highest standable surface under the
+    // fighter — the base ground, or any active one-way platform its feet are descending onto / resting on.
+    // With no platforms active this returns baseFloor unchanged → identical to the old single-floor path.
+    const floor = effectiveFloorFor(fighter, baseFloor)
+
+    // STICK — a grounded, non-launched fighter rests on its floor. BUT if the support has dropped away
+    // (walked off a platform edge, or the platform receded below the feet) release to gravity instead of
+    // snapping down to the distant ground, so stepping off a pillar FALLS naturally.
+    // ROSTER-SAFE: the release path is gated on there being ACTIVE platforms. With none (every normal match
+    // that isn't using a Wood pillar), this is the ORIGINAL unconditional snap → byte-for-byte identical
+    // ground collision for every other character; the new fall-off behavior only engages once a platform exists.
     if ((fighter.onGround || fighter.grounded) && fighter.vy >= 0 && !fighter.isLaunched) {
-      fighter.y = floor - fighter.h
-      fighter.vy = 0
-      return
+      const platformsActive = getPlatforms().length > 0
+      if (!platformsActive || floor <= fighter.y + fighter.h + PLATFORM_STICK_TOL) {
+        fighter.y = floor - fighter.h
+        fighter.vy = 0
+        fighter._prevFeetY = fighter.y + fighter.h
+        return
+      }
+      fighter.onGround = false          // support gone → fall through to gravity below
+      fighter.grounded = false
     }
 
     // JUGGLE GRAVITY (MK-feel Stage 1b): each air hit landed on a juggled opponent bumps their
@@ -352,6 +378,7 @@ export const physics = {
       fighter.onGround = false
       fighter.grounded = false
     }
+    fighter._prevFeetY = fighter.y + fighter.h
   },
 
   resolvePlayerCollision(p1, p2) {
@@ -403,15 +430,30 @@ export const physics = {
   launcherAttack(attacker, target, launchY = -28, selfLift = -16, opts = {}) {
     if (!attacker || !target) return
 
-    // ── Launch the TARGET into the air for a juggle (MK-feel Stage 2a: RAISED launch height) ──
-    // The pop-up used to be kept MODERATE — a -17 floor for un-tuned launchers, and lighter -11..-13
-    // "archetype" pops for the tuned (opts.exact) launchers — so the enemy didn't sail out of reach.
-    // Now that JUGGLE GRAVITY (Stage 1b) ramps the fall (each air hit drops the target faster), we can
-    // launch HIGHER without floating them away. A SINGLE raised floor now applies to EVERY launcher: any
-    // per-char launchVy less negative than the floor is lifted to it; a char tuning even higher is honored.
-    // (opts.exact no longer changes launch height — the attacker self-lift it also governed is unused post-1b.)
-    const LAUNCH_FLOOR = -26
-    let targetLaunch = Math.min(launchY ?? LAUNCH_FLOOR, LAUNCH_FLOOR)
+    // ── Launch the TARGET into the air for a juggle (Combo-room pass: RAISED launch height + LIVE archetypes) ──
+    // History: a -17 floor for un-tuned launchers → then a single -26 floor for EVERY launcher (Stage 2a).
+    // The -26 flat floor MASKED the per-archetype launchVy spread (Fast -11 / Balanced -12 / Heavy -13 /
+    // Heavy-tank -14 were ALL less negative than -26, so every one got lifted to -26 — the roster launched
+    // dead-flat, and the Maki/Toji "reference points" were identical in the air). This pass restores a live
+    // spread AND raises everyone for real air-combo room: the floor drops to -30 (= the new Fast/lightest
+    // tier & the un-tuned baseline), and per-char launchVy values are re-tuned MORE negative than the floor
+    // (Fast -30 / Balanced -32 / Heavy & Heavy-tank -33) so they are HONORED exactly — heavier chars launch
+    // visibly higher than lighter ones again. -33 is the roster max: it keeps the un-ramped apex clear of the
+    // -360 arena ceiling (a -34 pop would kiss the cap), so super-heavies share the -33 top. JUGGLE GRAVITY
+    // (Stage 1b) still ramps the fall each air hit, so the higher pops don't sail out of reach, and
+    // maxAirHits=3 + fall-faster still cap the juggle.
+    //
+    // FLOOR = DEFAULT, NOT A HARD CLAMP (opts.exact): a launcher with an EXPLICITLY tuned launchVy
+    // (combat.js passes opts.exact for those) is honored EXACTLY — the -30 floor is only the DEFAULT for
+    // un-tuned launchers (which pass knockbackY, a generic hit value, NOT a real launch height). Honoring
+    // exact tuning in BOTH directions lets a char launch LOWER than the baseline when their juggle route
+    // needs it. Tobirama's air→down_air spike is the case that forced this: his down_air hitbox sits BELOW
+    // him (y+30), so the spike only connects when he's ABOVE the opponent. His jump out-climbs a -26 pop
+    // (→ he lands above → spike connects), but the -30 floor pop out-climbs HIM (→ he ends up below →
+    // spike whiffs). A pure Math.min floor could only ever RAISE him, never restore his -26, so the floor
+    // had to become a default that an explicit launchVy overrides.
+    const LAUNCH_FLOOR = -30
+    let targetLaunch = opts.exact ? (launchY ?? LAUNCH_FLOOR) : Math.min(launchY ?? LAUNCH_FLOOR, LAUNCH_FLOOR)
     // GIANT TARGET resist (Susanoo, Adult Gon — anyone with the universal `_canvasHeightFrac`
     // giant marker): a towering body is far harder to pop, so its launch velocity is halved. Their tall
     // hurtbox already makes the standard pop read wrong (a child-height hop on a giant); this scales the

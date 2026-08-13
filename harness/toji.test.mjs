@@ -58,12 +58,12 @@ await bootTraining();
   const portraitOK = await page.evaluate(async () => { try { const r = await fetch("./toji_portrait.png"); return r.ok; } catch { return false; } });
   check("real portrait file present", portraitOK);
 }
-// teleport-blur (double-tap toward → blink + spin using his OWN sprite)
+// teleport-dash (double-tap toward → blink using his OWN dash sprite; the old spin/blur overlay was removed)
 { await page.keyboard.down("d"); await waitFrames(2); await page.keyboard.up("d"); await waitFrames(4);
   await page.keyboard.down("d"); await waitFrames(2); await page.keyboard.up("d");
-  let blur = 0, sheet = null; for (let i = 0; i < 16; i++) { const s = await p1(); if (s.speedBlur > 0) { blur = s.speedBlur; sheet = s.spriteSheet; break; } await waitFrames(1); }
-  check("double-tap toward → speed-tier teleport-blur fires", blur > 0, `_speedBlur=${blur}`);
-  check("teleport-blur uses HIS OWN sprite (not an FX overlay)", !!sheet && sheet.includes("toji_"), sheet); }
+  let flash = 0, sheet = null; for (let i = 0; i < 16; i++) { const s = await p1(); flash = Math.max(flash, s.teleportFlash); if (s.castMove === "dash" || s.action === "dash") sheet = s.spriteSheet; if (flash > 0 && sheet) break; await waitFrames(1); }
+  check("double-tap toward → speed-tier teleport-dash fires", flash > 0, `teleportFlash=${flash}`);
+  check("teleport-dash uses HIS OWN sprite (not an FX overlay)", !!sheet && sheet.includes("toji_"), sheet); }
 
 // ════════ BASE NORMALS ════════
 section("base normals (light / heavy / up-launcher / air / down_air)");

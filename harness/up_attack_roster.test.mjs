@@ -21,39 +21,40 @@ const group = t => console.log(`\n═══ ${t} ═══`);
 physics.setGroundY(400);
 
 // Approved values per character: [startup, active, recovery], enemyVy, selfVy, archetype label.
-// MK-feel Stage 2a RAISED launch height to a single -26 floor for EVERY launcher (juggle gravity brings
-// the ceiling back down), so enemyVy `e` is now -26 across the board — the per-archetype launch spread is
-// gone; archetypes still differ by frames (sar), speed, damage. selfVy `s` is unused post-1b (attacker
-// stays grounded), kept here only for reference.
+// Combo-room pass: the flat -26 floor is REMOVED — per-archetype launch height is LIVE again and raised
+// for real air-combo room. enemyVy `e` now tracks the archetype: Fast/GC -30 (lowest) · Balanced -32 ·
+// Heavy/Heavy-tank -33 (roster max — capped here to keep clear of the -360 arena ceiling; super-heavies
+// share this top). Juggle gravity (Stage 1b) still brings the ceiling back down so the higher pops don't
+// sail out of reach. selfVy `s` is unused post-1b (attacker stays grounded), kept here only for reference.
 const EXPECTED = {
   dragon_ball: {
-    goku:       { sar: [6, 4, 8], e: -26, s: -9, arch: "Balanced" },
-    vegeta:     { sar: [6, 4, 8], e: -26, s: -9, arch: "Balanced" },
-    goku_black: { sar: [6, 4, 8], e: -26, s: -9, arch: "Balanced" },
-    frieza:     { sar: [6, 4, 8], e: -26, s: -9, arch: "Balanced" },
-    piccolo:    { sar: [6, 4, 8], e: -26, s: -9, arch: "Balanced" },
-    cell:       { sar: [5, 4, 9], e: -26, s: -9, arch: "Heavy"    },
-    beerus:     { sar: [4, 3, 6], e: -26, s: -8, arch: "Fast/GC"  },
+    goku:       { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
+    vegeta:     { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
+    goku_black: { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
+    frieza:     { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
+    piccolo:    { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
+    cell:       { sar: [5, 4, 9], e: -33, s: -9, arch: "Heavy"    },
+    beerus:     { sar: [4, 3, 6], e: -30, s: -8, arch: "Fast/GC"  },
   },
   dc: {
-    batman:   { sar: [6, 4, 8],  e: -26, s: -9, arch: "Balanced"       },
-    flash:    { sar: [4, 3, 5],  e: -26, s: -8, arch: "Fast/GC (fastest)" },
-    superman: { sar: [5, 4, 10], e: -26, s: -9, arch: "Heavy-tank"     },
+    batman:   { sar: [6, 4, 8],  e: -32, s: -9, arch: "Balanced"       },
+    flash:    { sar: [4, 3, 5],  e: -30, s: -8, arch: "Fast/GC (fastest)" },
+    superman: { sar: [5, 4, 10], e: -33, s: -9, arch: "Heavy-tank"     },
   },
   demon_slayer: {
-    rengoku: { sar: [6, 4, 8], e: -26, s: -9, arch: "Balanced" },
-    shinobu: { sar: [4, 3, 6], e: -26, s: -8, arch: "Fast/GC"  },
-    zenitsu: { sar: [4, 3, 6], e: -26, s: -8, arch: "Fast/GC"  },
+    rengoku: { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
+    shinobu: { sar: [4, 3, 6], e: -30, s: -8, arch: "Fast/GC"  },
+    zenitsu: { sar: [4, 3, 6], e: -30, s: -8, arch: "Fast/GC"  },
   },
   horror: {
-    ghostface: { sar: [4, 3, 6], e: -26, s: -8, arch: "Fast/GC" },
+    ghostface: { sar: [4, 3, 6], e: -30, s: -8, arch: "Fast/GC" },
   },
   hunter_x_hunter: {
-    chrollo: { sar: [6, 4, 8], e: -26, s: -9, arch: "Balanced" },
-    gon:     { sar: [6, 4, 8], e: -26, s: -9, arch: "Balanced (base; ⚑giant adult form)" },
-    hisoka:  { sar: [6, 4, 8], e: -26, s: -9, arch: "Balanced" },
-    killua:  { sar: [4, 3, 6], e: -26, s: -8, arch: "Fast/GC"  },
-    netero:  { sar: [4, 3, 6], e: -26, s: -8, arch: "Fast/GC"  },
+    chrollo: { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
+    gon:     { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced (base; ⚑giant adult form)" },
+    hisoka:  { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
+    killua:  { sar: [4, 3, 6], e: -30, s: -8, arch: "Fast/GC"  },
+    netero:  { sar: [4, 3, 6], e: -30, s: -8, arch: "Fast/GC"  },
   },
 };
 

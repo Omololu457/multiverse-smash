@@ -188,6 +188,15 @@ HP spread = **210 (1050 → 1260)** for the original 8; Netero (added 2026-07-22
 > - **Ultimate = "Power Sword: Overhead Strike"** (freeze-cinematic leaping overhead slash, sword_up_attack): **340 RAW → ~204 EFF — routed through `applyScaledDamage` (the choke-point), NOT a manual-subtract unscaled sure-hit** (block chips to 25%), cost 100. Effective 204 **exactly matches the Gold/Green Ranger ult tier** (both 340 base) and sits with Madara Tengai 204 — squarely the cinematic-ult band, honestly scaled. Reuses the WIRED `gokuBlackSword`/Kurama freeze contract (the samurai cinematic is unwired WIP — deliberately NOT used as the precedent). Single struck-once payoff + clean end verified in `test:red-ranger-mmpr` / `-stage4`.
 > - **Overall verdict: fair, in-band all-rounder striker — no fix needed.** Every value sits inside the Power Rangers / roster bands with no stat records; the whole kit is honestly ×0.58 scaled (grab + ult both through the choke-point, no bypass); breadth is normal-scope (not a Madara exception). The ONE tuning surface is the block-beating, cooldown-less (energy-only) command grab — flagged, not fixed. Full file-utilization in `RED_RANGER_MMPR_ASSET_MAP.md`; canonical `test:red-ranger-mmpr` covers every move + a fallback-box sweep.
 
+> **Hashirama Senju (Naruto — the First Hokage, "God of Shinobi", 31st sprite char) — added 2026-08-12.** The Mokuton summoner-wall. **A LARGE kit (Madara/Ichigo/Tobi/Pain-class scope exception, confirmed by the build mandate): 5 normals + a Fwd+Heavy 3-hit chain + a Fwd+Light poke + Kunai (ground/air) + a CHARGE tap/hold Wood Release Punch + Mokuton arm + a 4-TIER Tree-Summon ladder + a Wood Golem 2-hit + Gracious Deity Gates (immobilize) + a freeze-cinematic ult** — every real special-tier file earns its own slot (same precedent as Madara). **ZERO damage-scale bypass — the ENTIRE kit is honestly scaled; ONE scaled cinematic ult (through `applyScaledDamage`, NOT manual-subtract). The breadth is VERSATILITY, throttled by a shared chakra pool + escalating tier costs + cooldowns — NOT raw power. THREE stat/mechanic watch-items flagged (incl. the 2026-08-12 Wood Release climbable-pillar mobility tool).**
+> - Core: **HP 1220 · Energy 220 chakra · Atk 94 · Def 92 · Spd 88 · mobility medium · spriteScale 1.7.** Atk 94 = Madara (above shinobi 89, below Sukuna 95 / Toji·Netero 98) — upper-mid, and base Atk does NOT scale damage. Spd 88 mid (below the shinobi 90 and well below the 98 teleport gate) — deliberately NOT a speedster; he's the wall, not the runner. Energy 220 **ties Gojo's ceiling** — justified: it funds the single largest option-set (tree ladder + golem + gates + ult all draw the same bar). **⚠️ WATCH-ITEM #1 — Def 92 × HP 1220.** Def 92 **ties Superman's defense record** (the roster ceiling); combined with HP 1220 (2nd-highest behind Sukuna 1240 among non-Superman) this makes him the **2nd-tankiest fighter by Def×HP** (Superman 92×1450 is #1). Deliberate "God of Shinobi premier wall" archetype and canon-justified, but it IS the tuning surface. **Knob: trim HP toward ~1180 or Def to 90 if playtests read him as too durable — not the damage.**
+> - Bread-and-butter (all ×0.60 scaled — RAW → EFF): 5 normals light 46→28 / heavy(kick) 90→54 / up 68→41 / air 56→34 / down_air 76→46; Fwd+Heavy chain hashiComboA 40→24 → B 46→28 → Fin 86→52 LAUNCHER (cancel-on-hit, ~104 EFF full string); Fwd+Light wood-beam poke 64→38 (cd-gated free). Heavy 54 EFF is upper-mid (≈ Superman 43 / Zenitsu-band) — in-band, no record.
+> - Specials (all scaled): **Kunai** ground 52→31 / air 46→28 (spinning-shuriken projectile, 15 chakra) — basic zoning. **Wood Release Punch** (CHARGE tap/hold, Rengoku/Zaraki charge-release precedent): tap 82→49 / hold-Super 124→74, cooldown-gated (55f), NO energy cost — the CHARGE-hold builds chakra (same "free scaled strike, cd-gated" class as Rengoku Flame Strike / Zaraki Charged Dash). **Mokuton arm** 70→42 (30 chakra). **Tree-Summon ladder** (Down+Special, successive-cast escalation 1→4): tier dmg 42/60/86/112 → 25/36/52/67, **escalating chakra 16/26/40/54** — the cost curve is the self-limiter; each tier is a persist-one-hit growing hazard (Madara Wood-Spike class). **Wood Golem** (Up+Special) 84+106 → 50+64 = **~114 EFF over 2 hits, 50 chakra** — a big committed summon (long recovery). All honest-pipeline.
+> - **⚠️ WATCH-ITEM #2 — Gracious Deity Gates** (Back+Special, 40 chakra): **0 damage, a ~70-frame FULL immobilize** (hitstun-based pin) that flanks the foe in two torii gates. A strong stand-alone CC with guaranteed-follow-up potential (pin → tree/golem/ult). No direct CC-immobilize precedent on the roster, so flagged for scrutiny. Why not oppressive: energy-priced (40, competing with the same pool as everything else), real startup before the pin lands, and it's one option among ~15 (can't be looped without draining the bar). **Knob: reduce the pin to ~55f if playtests read the pin→punish as too guaranteed — not a removal.** (The same gate-drop is also the Sealing-Jutsu ult's lock-phase, per the confirmed Stage-0 design.)
+> - **⚠️ WATCH-ITEM #3 — Wood Release: Rising Pillar (climbable terrain, added 2026-08-12).** A NEW mechanic CLASS: **Down+Special cast in the AIR — or from atop another pillar — raises a REAL climbable wood pillar** (a genuinely new physics primitive, `platforms.js`: grow→hold→recede standable surface; the grounded Down+Special is UNCHANGED = the offensive Tree-Summon ladder). **0 damage — pure mobility.** Each pillar tops **~150px above the caster's current feet** (UNDER his ~285px jump apex, so gaining height still needs an active jump); casting from a higher perch grows a TALLER pillar → an ascending staircase up to an airborne/elevated opponent (verified `test:wood-pillar-climb` 20/0: 3 pillars, +150 each, climbed 530px). Cost **18 chakra/cast + brief cast recovery + 3-pillar concurrent cap (oldest recedes) + finite lifetime (~2.5s hold)**. No roster precedent for a *vertical-pursuit* approach, so flagged for scrutiny per the build mandate. **Balance-check vs the existing mobility/approach category (the explicit Stage-3 comparison):** — vs the **teleport-dash** (98-tier double-tap): that is INSTANT, FREE, horizontal; the pillar is SLOW (must jump each step, ~1s+ to build a 3-high climb) and costs 18/cast → **not strictly better, slower + costlier, different axis.** — vs **Kamui Warp** (Obito/Tobi 0-dmg self-portal, 20 chakra): Warp is an instant fixed-offset teleport; the pillar is a slower, telegraphed, *chainable* vertical build that leaves terrain — neither dominates. — vs **Rick's portals** (Push 65 + full-screen displace): those DEAL DAMAGE + reposition; the pillar deals **0** — a less offensive, narrower tool. — vs **Ichigo's 8-way air-dash**: both 0-dmg mobility-tech; air-dash is one horizontal burst, the pillar is a vertical staircase. **Why it is NOT a free infinite-height escape/approach:** energy-priced (a 4-high climb = 72/220 ≈ 33% of the bar), capped at 3 concurrent, **telegraphed + interruptible** (visible growing trees; the foe can anti-air / knock him off a pillar / hit him mid-climb), and the pillars auto-recede. It also fills an **archetype GAP** — Spd 88, medium mobility, the grounded wall who had **no** approach/anti-air tool — so it's an in-character, cost-gated *vertical* mobility patch, not a speed/power spike. **Verdict: a 0-damage UTILITY/mobility tool in the SAME class the audit already accepts (Kamui Warp / teleport-dash / air-dash) — utility, NOT power; NOT strictly better than the category, and it occupies a new vertical niche rather than dominating an existing one.** **Knobs, no fix applied (diagnosis pass):** (a) if high-pillar CAMPING/stalling reads as oppressive → shorten the hold (faster recede) or raise the 18 cost; (b) if the chain feels too free → raise per-cast cost / lengthen cast recovery; (c) **VISUAL only (not power):** the reused tree crown scales wide (~500px at full height), so 3 stacked can crowd the screen — cap the sprite width / narrow it if it reads busy. The shared `physics.js` grounding change is **gated byte-for-byte safe when no platform is active** (`test:wood-platform-regression` 15/0 across a diverse roster sample; `test:wood-platform` 17/0 for the primitive).
+> - **Ultimate = "Sealing Jutsu"** (freeze-cinematic: combo → Gracious Deity Gates pin → Naruto/Minato/Tobirama cameo assists → red sealing barrier): **340 RAW → ~204 EFF — routed through `applyScaledDamage` (the choke-point), NOT a manual-subtract unscaled sure-hit** (a held block chips it to 25%), cost 100. Effective 204 sits **exactly with Madara Tengai 204 / Red Ranger Power Sword 204**, just below Pain Chibaku 216 — squarely the honestly-scaled cinematic-ult band, no record. Cameos are **bespoke pre-drawn art (NOT the allies' real kits)** — same self-contained pattern as Pain's assists. Reuses the WIRED `madaraTengaiShinsei` freeze contract; single struck-once payoff verified with an explicit **duplicate-render guard** in `test:hashirama`.
+> - **Overall verdict: VERSATILITY outlier (deliberate Madara-class scope exception), internally consistent, honest damage pipeline (zero bypass) — NOT a power outlier. No fix applied (diagnosis-only).** Three tuning surfaces flagged, all deliberate/canon-shaped: (1) Def 92 × HP 1220 top-tier tankiness (knob = HP/Def), (2) the Gates 70f immobilize CC (knob = pin duration), (3) the Wood Release climbing-pillar mobility tool — a 0-damage vertical-pursuit utility in the accepted Kamui-Warp/teleport-dash class, NOT strictly better than the category (knobs = cost / hold duration / visual width). Everything else is in-band scaled and shared-pool-throttled. Full file-utilization in `HASHIRAMA_ASSET_MAP.md`; canonical `test:hashirama` (32/0) + per-stage `test:hashirama-s1..s7` cover every move, the full tier ladder, and the ult cinematic (dup-render guard).
+
 ---
 
 ## 2. Basic-attack frame + damage data (RAW)
@@ -509,3 +518,71 @@ gating (a whiff/block ends any string).
 under-equipped melee characters to the roster's existing combo/juggle baseline, all in-band under the
 shared decay/launch/cancel systems. No fixes required. True zoners (rickPrime/evilMorty/beerus/piccolo/
 frieza) intentionally keep no combo string.
+
+---
+
+## Combo Breaker + Comeback Finisher (two universal systems) — added 2026-08-12
+
+Two roster-wide defensive/comeback systems, built Stages 0–4. **Diagnosis-only pass — nothing rebalanced
+here; the two watch-items below are FLAGGED, not changed.** Stage 0 audit confirmed the exclusion set
+(chars with a bespoke below-threshold comeback keep THEIRS): **Toji** (2-stage save), **Maki** (≤25% HP
+ult unlock), **Gon** (adult-form sudden-death). No double-comeback for anyone.
+
+### A. COMBO BREAKER (universal, hybrid cost) — `combat.js` `tryComboBreaker`
+Deals **no damage** — a defensive hitstun-escape (block+special, only while stunned vs an attacker's
+`comboCounter ≥ 3`; i-frames + attacker blast). Cost = a per-round **STOCK (2/round, unchanged)** PLUS a
+second currency by kit type: **energy chars spend 40 meter**, **meterless chars pay a 360f (6s) cooldown**
+(`comboBreakerCd`, the Zenitsu/Rengoku currency model). Meterless detection uses `traits.hasEnergy`, not
+runtime `maxEnergy` (which `createFighter` clamps to ≥1).
+
+> **⚠️ WATCH-ITEM — the flat-40 meter cost is UNEVEN across the 100–220 energy range.** 40 meter is **40%
+> of the bar for the 100-energy chars** (flash/batman/ghostface/ben10/albedo — who start each round at 50%
+> = 50 energy → **~1 break then must regen**) but only **~18% for the 220-energy chars** (gojo/hashirama/
+> madara → 2 breaks, i.e. stock-capped, not meter-capped). Net effect: **low-energy chars effectively get
+> fewer breaks/round than high-energy chars** — the opposite of a flat cost's intent. Arguably acceptable
+> (a glass-cannon trading offense-energy for a premium defensive escape is a real cost), but it is an
+> unintended asymmetry. **Knob, if playtests read it as unfair: switch the meter cost from flat 40 to a
+> PERCENTAGE of max energy (~20%)** → ≈20 for a 100-bar, ≈44 for a 220-bar, even relative burden across the
+> roster. The meterless 360f cooldown is already even (no meter to vary). Filed as flag-don't-adjust.
+
+### B. COMEBACK FINISHER (universal, Fatal-Blow-style) — `combat.js` `tryComebackFinisher`
+Once per MATCH, only below **30% HP**, on a dedicated **block+grab** (no motion, no meter, separate from
+the special/ult economy). A committed lunge (16f startup i-frame armour; whiffing wastes the one use;
+blockable → ~20% chip). Damage = **fixed `round(min(maxHealth×0.32, 360))`**, applied via a
+`_comebackFinisher` override in `resolveAttackHit` (bypasses combo/counter/defense/global-scale → exact
+EFFECTIVE number; on the "bypass side" of §"global damage scale", same as the cinematic ults it is
+benchmarked against).
+
+**Damage side-by-side vs the existing top-end band (EFFECTIVE):**
+
+| Tier | chars | finisher EFF | % of own HP |
+|---|---|---:|---:|
+| Frail (HP 960–1120), sub-cap | shinobu 960 … yuji/megumi/tobirama 1120 (21 chars) | **307 – 358** | flat **32.0%** |
+| HP ≥ 1125, capped | rengoku 1140 … superman 1450 (30 chars) | **360** | 31.6% → **24.8%** |
+| Reference — top-end cinematic ults | Omni-Man/Rengoku 340 · Superman 380 · Sasuke Susanoo ~302 · **Kurama 600 (extreme)** | 302–380 (600) | — |
+
+- **The cap works: no char exceeds 360.** It specifically neutralizes the high-HP outlier the design
+  warned about — Superman would have been `0.32×1450 = 464` (2nd-hardest hit in the game), capped to 360.
+- **360 sits at the high-mid of the cinematic-ult band** (= Omni-Man/Rengoku 340 +20; below Superman 380;
+  far below Kurama 600). For a **once-per-match, <30%-HP-gated, committed, blockable** move, that is
+  **in-band, not an outlier**.
+- **The cap makes it a genuine comeback shape:** relative payoff is *bigger* for frail users (32% of their
+  own bar) and *smaller* for tanks (Superman 24.8%) — the underdog-favouring curve a comeback tool should
+  have. (Note the flip side of a *fixed* number: 360 is 37.5% of a 960-HP opponent's bar but 24.8% of a
+  1450 bar — it bites harder into frail opponents. Inherent to fixed damage, not a fix.)
+
+> **⚠️ WATCH-ITEM — a universal ~30% once-per-match swing raises the whole roster's comeback ceiling.** This
+> is the *design intent* (a comeback system, MK-Fatal-Blow class ≈ 30% below 30% HP), and it is heavily
+> counterplayable (HP-gated, one-time, whiffable, blockable→chip, armour only through startup). But every
+> eligible fighter now carries a guaranteed-ish 300–360 payoff. **Verdict: deliberate UNIVERSAL comeback
+> mechanic, internally consistent, capped WITHIN the existing top-end band — NOT a power outlier** (same
+> class as filing Toji's two-stage save as a "deliberate mechanic-outlier"). **Knobs, in order, IF
+> playtests read the swing as too strong:** (1) tighten the **HP gate** 30% → 25% (fires less often); (2)
+> lower the **cap** 360 → ~320 (Omni-Man-minus, still band); (3) lower **dmgPct** 0.32 → ~0.28. Damage last,
+> gate first. The exclusion set (Toji/Maki/Gon) is the one correctness invariant — verified they cannot
+> also fire the generic finisher.
+
+**Regression:** `test:stage2d-breaker` 34/0, `test:comeback-finisher` 34/0, live `test:breaker-roster`
+16/0 + `test:finisher-roster` 18/0; full-roster suite sweep clean apart from pre-existing/flaky failures
+unrelated to these systems (grep-proven 0 code overlap: inosuke/shinobu energy-label flavor, flash
+Godspeed ult, madara Gunbai reflect, sharingan giant-sizing, zaraki/ichigo/yuji flaky).

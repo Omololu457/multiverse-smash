@@ -23,6 +23,7 @@ import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./
 import { activateBen10OmnitrixCinematic, isBen10OmnitrixCinematicActive } from "./ben10OmnitrixCinematic.js"   // Ben 10 Omnitrix-transform ultimate cinematic (no cycle)
 import { activateMakiShibuyaCinematic, isMakiShibuyaCinematicActive } from "./makiShibuyaCinematic.js"   // Maki HP-threshold Shibuya-Arc transform cinematic (no cycle)
 import { activateMadaraTengaiShinseiCinematic, isMadaraTengaiShinseiCinematicActive } from "./madaraTengaiShinseiCinematic.js"   // Madara Perfect Susanoo / Tengai Shinsei meteor ultimate cinematic (TAP tier; no cycle)
+import { activateHashiramaSealingJutsuCinematic, isHashiramaSealingJutsuCinematicActive } from "./hashiramaSealingJutsuCinematic.js"   // Hashirama Sealing Jutsu ultimate cinematic (gates→cameos→red barrier; no cycle)
 import { activatePainChibakuTenseiCinematic, isPainChibakuTenseiCinematicActive } from "./painChibakuTenseiCinematic.js"   // Pain Chibaku Tensei ultimate freeze-cinematic (cast → sphere growth → slam → ground effect)
 import { pickPainVoice } from "./painVoice.js"   // Pain per-technique cast + assist-call voice pools (audio-only, JA)
 import { activateBatmanDarkKnightCinematic, isBatmanDarkKnightCinematicActive } from "./batmanDarkKnightCinematic.js"   // Batman "The Dark Knight" batarang-barrage ultimate cinematic (no cycle)
@@ -68,6 +69,7 @@ import { pickTojiVoice } from "./tojiVoice.js"                 // Toji special-c
 import { pickYujiVoice } from "./yujiVoice.js"                 // Yuji cursed-energy cast + Black Flash ult voice pools (audio-only; EN+JA, JA active)
 import { pickMiwaVoice } from "./miwaVoice.js"                 // Miwa iaiDash/airVortex/ultimate cast voice pools (audio-only, JP dub)
 import { pickMadaraVoice } from "./madaraVoice.js"            // Madara per-technique cast voice pools (audio-only, JA — Katon/Gunbai/Mokuton/Susanoo/Tengai/Complete)
+import { pickHashiramaVoice } from "./hashiramaVoice.js"      // Hashirama per-technique cast voice pools (audio-only, JA — Kunai/MokutonArm/TreeSummon/WoodGolem/Gates/WoodPunch/Sealing)
 import { pickObitoVoice } from "./obitoVoice.js"              // Obito per-technique cast voice pools (audio-only, JA — Kamui-activate/Kamui-warp/throws/Juubi)
 import { pickTobiVoice } from "./tobiVoice.js"               // Tobi (masked Obito alias) special-cast voice pool (audio-only, JA — separate module from Obito)
 import { pickZarakiVoice } from "./zarakiVoice.js"            // Zaraki cast voice pools (audio-only, JA — Shikai release / Bankai / Yachiru assist)
@@ -75,12 +77,14 @@ import { pickIchigoVoice } from "./ichigoVoice.js"           // Ichigo per-techn
 import { pickSukunaVoice } from "./sukunaVoice.js"            // Sukuna Cleave/Flame/Dismantle/CursedSlash cast voice pools (audio-only; JA default, EN switchable)
 import { pickChrolloVoice } from "./chrolloVoice.js"            // Chrollo Skill Hunter ULTIMATE-activation cast voice pool (audio-only; fires once at transform beat)
 import { pickGhostfaceVoice } from "./ghostfaceVoice.js"        // Ghostface knife-special + ultimate cast voice pool (audio-only)
+import { spawnPlatform, recedePlatform, getPlatforms } from "./platforms.js"   // Wood Release climbable-terrain primitive (Hashirama Rising Pillar consumer)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
   summonShadowClone, dispelShadowClones, countShadowClones,
   spawnShadowClone,      // direct clone spawn with optional position override (Minato Flying Raijin Clones spawn AT marks)
   spawnClonePuff,        // cosmetic smoke poof (reused by Kawarimi — no clone involvement)
-  consumeShadowClones    // pop N clones for the multi-clone combo tier (lossy share)
+  consumeShadowClones,   // pop N clones for the multi-clone combo tier (lossy share)
+  setCloneSpecialAttack  // register a per-owner SPECIAL clone attack (Hashirama wood clone → tree at its position)
 } from "./summons.js"
 import {
   applyTransformation,
@@ -291,8 +295,8 @@ const BETA_SPECIAL_MOTIONS = {
   goku:   { F: ["D", "F"] },                                                                    // F=Kamehameha · neutral=Dragon Fist
   gojo:   { F: ["F"],      B: ["D", "B"], U: ["U"] },                                            // F=Red · B=Hollow Purple · U=Teleport · neutral=Blue
   sukuna: { F: ["F"],      B: ["D", "B"], D: ["D"] },                                            // F=Flame Arrow · B=Dismantle · D=Cursed Slash (auto-target) · neutral=Cleave
-  naruto: { F: ["D", "F"], B: ["D", "B"], U: ["B", "U"], D: ["D"] },                             // F=Clone Spawn · B=Clone Dispel · U=Pincer Rendan(sub) · D=Dark Rasengan · neutral=Rasengan
-  minato: { F: ["D", "F"], B: ["D", "B"], U: ["B", "U"], N: ["B", "F"], D: ["D"] },               // F=Clone Spawn · B=Clone Dispel · U=Pincer Rendan(sub) · N=Clone Rush(sub, B→F avoids the dashTeleport F→F) · D=(S5) · neutral=Clone Barrage / (S4 Flying Raijin)
+  naruto: { U: ["B", "U"], D: ["D"] },                             // clone spawn/dispel = "," / "." (standardized) · U=Pincer Rendan(sub) · D=Dark Rasengan · neutral=Rasengan
+  minato: { U: ["B", "U"], N: ["B", "F"], D: ["D"] },               // clone spawn/dispel = "," / "." (standardized) · U=Pincer Rendan(sub) · N=Clone Rush(sub, B→F) · D=(S5) · neutral=Clone Barrage / (S4 Flying Raijin)
   megumi: { F: ["D", "F"], B: ["D", "B"], U: ["D", "U"], D: ["F", "D", "F"], N: ["B", "F"] },    // F=Divine Dogs · B=Max Elephant · U=Rabbit · D=Nue(sub) · neutral=Toad(sub)
   sasuke: { F: ["D", "F"], B: ["D", "B"], D: ["D"] },                                          // F=Lightning · B=Chidori Koiten · D=Shuriken · neutral=Dash Strike
   itachi: { F: ["D", "F"], B: ["D", "B"] },                                                       // (Mangekyou only) F=Amaterasu (QCF) · B=Genjutsu (QCB, hit-confirm) · neutral=Great Fireball
@@ -397,6 +401,14 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     spriteH:      moveData.spriteH      || null,
     spriteSpeed:  moveData.spriteSpeed  || 4,
     spriteScale:  moveData.spriteScale  || 1,
+    // OPTIONAL sprite BOTTOM-ANCHOR (Hashirama Tree Summon): when set, ui.drawProjectiles anchors the
+    // sprite's BOTTOM edge at this world-Y (grows UPWARD) instead of centering it on (x,y). This decouples
+    // the VISUAL size from the collision box (which stays centered on x,y) so a tree can be scaled huge —
+    // it rises from the ground — without dragging its hitbox up off the grounded opponent.
+    spriteBottomY: (moveData.spriteBottomY != null) ? moveData.spriteBottomY : null,
+    // OPTIONAL play-ONCE growth: clamp the sprite frame at the last cell instead of looping (Hashirama's
+    // Tree Summon grows frame-by-frame then HOLDS the fully-grown tree — a looping strip would re-grow).
+    spriteOnce:   moveData.spriteOnce   || false,
     // OPTIONAL lingering damage-over-time stamped on the target when this projectile
     // connects (resolveProjectileHits) — e.g. Naruto Rasenshuriken's wind-chip.
     dot:        moveData.dot        || null,
@@ -429,7 +441,11 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     boomerang:    moveData.boomerang    || false,
     maxRange:     moveData.maxRange     || null,
     retractSpeed: moveData.retractSpeed || null,
-    returning:    false
+    returning:    false,
+    // PERSIST-AFTER-HIT (Hashirama Tree Summon): a lingering hazard strikes ONCE then STAYS for its
+    // lifetime (grows to full + stands) instead of despawning on contact. `_struck` latches the used hit.
+    persist:      moveData.persist      || false,
+    _struck:      false
   }
 
   activeProjectiles.push(proj)
@@ -1450,7 +1466,12 @@ function executeNarutoUzumakiBarrage(fighter, context, target) {
   sound.playSfxFile("naruto_shadow_clone_special.mp3", null)   // VOICE: "Naruto 2000-Hit Combo!" — reused for the clone-swarm flurry
   // A short lunge into the target so the swarm reads as an on-point pummel (not a ranged throw).
   fighter.vx = fighter.facing * 6
-  fighter._spriteCastMove = "rasengan_cast"; fighter._spriteCastTimer = 32
+  // CLONE-ASSISTED FINISHER (SSF2 "clone helps land the hit"): if a shadow clone is out, ONE JOINS the
+  // barrage — it poofs into the swarm (consumed) and adds two extra guaranteed hits from a mirrored angle.
+  // No clone out → the solo barrage below is unchanged. Ties the motion-input Barrage into the clone system.
+  const cloneJoined = countShadowClones(fighter) >= 1 ? consumeShadowClones(fighter, 1).length : 0
+  // Clone assist → play the clone-row Rasengan pose (real content) so the assist reads visibly; solo → the normal cast.
+  fighter._spriteCastMove = cloneJoined ? "komaRasengan" : "rasengan_cast"; fighter._spriteCastTimer = 32
   // FLURRY: five rapid guaranteed strikes (clone swarm), then a LAUNCHER finisher. Guaranteed hits
   // overlap the target on spawn so the whole barrage connects on a successful read; combo decay keeps
   // the effective total in a fair band despite the raw sum.
@@ -1459,6 +1480,13 @@ function executeNarutoUzumakiBarrage(fighter, context, target) {
       { damage: 42, hitstun: 14, knockbackX: 3, knockbackY: -1, dirSign: fighter.facing, spriteScale: 0.42, lifetime: 10 }, context)
     shakeCamera(context, 3, 3)
   }))
+  if (cloneJoined) {   // the joining clone piles on from a mirrored angle (reads as a real clone assist, not a bigger solo swing)
+    ;[5, 17].forEach((delay) => schedulePendingSpawn(delay, () => {
+      spawnGuaranteedCloneHit(fighter, target, "rasengan",
+        { damage: 40, hitstun: 12, knockbackX: 3, knockbackY: -1, dirSign: fighter.facing, spriteScale: 0.42, lifetime: 10, offsetX: -34 }, context)
+      shakeCamera(context, 3, 3)
+    }))
+  }
   schedulePendingSpawn(34, () => {   // LAUNCHER cap — pops the target up-and-away
     spawnGuaranteedCloneHit(fighter, target, "rasengan",
       { damage: 95, hitstun: 28, knockbackX: 9, knockbackY: -9, dirSign: fighter.facing, spriteScale: 0.6, lifetime: 14 }, context)
@@ -1545,26 +1573,10 @@ function executeNarutoSpecial(fighter, context) {
   // shared dispatcher (same call is added to the other 4 chars in Stage 4). Falls through on a failed gate.
   if (tryTransformJutsu(fighter, context)) return true
 
-  // D→F = SHADOW CLONE spawn (Down-Forward + Special). Cap 3; over cap → no-op.
-  // No upfront chakra cost — the cost is the pool split (summons.js). Puff on spawn.
-  // UNCHANGED — shadow-clone mechanic, outside this task's scope.
-  if (endsWithPattern(dirs, ["D", "F"])) {
-    // Audio/visual sequencing lives in summonShadowClone: first press = clip + short camera
-    // beat + poof-synced delayed spawn; repeats within the window spawn silently. Cap/chakra
-    // unchanged (returns false only when a FIRST press is already at cap).
-    if (!summonShadowClone(fighter, target, { onFocus: () => focusCameraOnAction(context, fighter, null, 1.02, 12) })) return false
-    fighter.attackCooldown = getAttackDuration(16, fighter)
-    shakeCamera(context, 5, 5)
-    return true
-  }
-
-  // D→B = DISPEL all clones (Down-Back + Special). Each lost share is gone for good.
-  // UNCHANGED — shadow-clone mechanic, outside this task's scope.
-  if (endsWithPattern(dirs, ["D", "B"])) {
-    if (!dispelShadowClones(fighter)) return false            // no clones → nothing
-    fighter.attackCooldown = getAttackDuration(10, fighter)
-    return true
-  }
+  // NOTE: the legacy D→F clone-SPAWN and D→B clone-DISPEL routes were REMOVED 2026-08-12. Clone create/
+  // disperse is now STANDARDIZED to the "," / "." keys for every clone character (game.js, gated on
+  // summons.isCloneCapable). The clone-CONSUMING combat routes below (Clone Rush / Pincer / Barrage) are
+  // separate techniques and are unchanged.
 
   // CHAKRA ARM GRAB (shroud-gated) — F→F (double-tap toward the opponent) + Special, ONLY
   // at shroud stage 3+ (deep shroud, when Kurama's chakra arms manifest). Reuses the SHARED
@@ -2220,25 +2232,11 @@ function executeMinatoSpecial(fighter, context) {
     if (fireFlyingRaijinClones(fighter, context, target)) { clearMotionHistory(fighter); return true }
   }
 
-  // D→F = SHADOW CLONE spawn (cap 3; over cap → no-op). No upfront chakra — cost is the pool split.
-  if (endsWithPattern(dirs, ["D", "F"])) {
-    if (!summonShadowClone(fighter, target, { onFocus: () => focusCameraOnAction(context, fighter, null, 1.02, 12) })) return false
-    // CASTER performs the summon hand-sign (minatoCloneCast = the shadow_clone_justu gesture). Previously
-    // this gesture art was (wrongly) the clone BODY, so the clones performed it and Minato did nothing;
-    // now the gesture plays on Minato and the clones stand in their own idle (summons.js CLONE_BODY_SETS).
-    fighter._spriteCastMove  = "minatoCloneCast"
-    fighter._spriteCastTimer = 16
-    fighter.attackCooldown = getAttackDuration(16, fighter)
-    shakeCamera(context, 5, 5)
-    return true
-  }
-
-  // D→B = DISPEL all clones (safe recall — shares fold back, non-lossy).
-  if (endsWithPattern(dirs, ["D", "B"])) {
-    if (!dispelShadowClones(fighter)) return false
-    fighter.attackCooldown = getAttackDuration(10, fighter)
-    return true
-  }
+  // NOTE: the legacy D→F clone-SPAWN and D→B clone-DISPEL routes were REMOVED 2026-08-12 — clone create/
+  // disperse is now STANDARDIZED to "," / "." for every clone character (the minatoCloneCast summon gesture
+  // moved into summons.summonShadowClone so it still plays on the "," spawn). The clone-CONSUMING routes
+  // (B→F Clone Rush / B→U Pincer) and the mark/motion moves (Flying Raijin Clones, Shuriken-Hidden Clone)
+  // are separate techniques and are unchanged.
 
   // B→F (≥1 clone) = CLONE RUSH / setplay. Every live clone becomes ONE autonomous rush-strike
   // then despawns, staggered a beat apart so Minato stays free. Reactable/blockable (not a confirm).
@@ -4469,7 +4467,8 @@ const TRANSFORM_JUTSU_MOTIONS = {
   sasuke:   { tier1: "hcb", tier2: "dbf" },
   itachi:   { tier1: "hcb", tier2: "dbf" },
   tobirama: { tier1: "hcb", tier2: "dbf" },
-  minato:   { tier1: "hcb", tier2: "dbf" }
+  minato:   { tier1: "hcb", tier2: "dbf" },
+  hashirama:{ tier1: "hcb", tier2: "dbf" }   // rollout 2026-08-12 — same proven Tier1 disguise / Tier2 full-copy
 }
 // Shared dispatcher — call at the TOP of each Naruto-universe executeXSpecial. Additive: on a failed
 // gate it returns false and the normal special routing continues.
@@ -7151,7 +7150,10 @@ function executeGhostfaceSpecial(fighter, context) {
   if (fighter._gfSwapActive || fighter._bpActive) return false          // already a companion / mid-Backstage-Pass
   const mods = fighter._specialHeldMods || {}
   const dir  = fighter._specialHeldDir  || null
-  if (mods.grab || mods.charge) return triggerGhostfaceBackstagePass(fighter, "swap", ghostfaceSwapSlotFromMotion(fighter) ?? 0, context)
+  // TWO swap triggers on the same modifier family: CHARGE = "Phone Call" AMBUSH swap (4-beat, second killer
+  // strikes), GRAB = Backstage Pass swap (clean dash-out → single-character replacement). Motion picks the slot.
+  if (mods.charge)              return triggerGhostfaceAmbush(fighter, ghostfaceSwapSlotFromMotion(fighter) ?? 0, context)
+  if (mods.grab)                return triggerGhostfaceBackstagePass(fighter, "swap", ghostfaceSwapSlotFromMotion(fighter) ?? 0, context)
   if (mods.attack)              return triggerGhostfaceBackstagePass(fighter, "fakeout", 0, context)
   // VOICE: knife-special cast bark ("STAB!" / "I'll gut you!" …) on the Gutting Lunge / Low Gut. Gated
   // by the shared _atkVoiceCd so it never stacks with the offense-connect bark. Swap/getaway/switch
@@ -7355,7 +7357,12 @@ export function triggerGhostfaceSwap(fighter, slot, context) {
   if (!targetKey || !characters[targetKey]) return false
   const cost = Math.round(GF_SWAP_COST * (fighter._gfSkinMod?.swapCostScale ?? 1))   // ROMAN identity: cheaper swap
   if (!spendEnergy(fighter, cost)) return false
+  // Capture the DESTINATION killer-identity color NOW (still real Ghostface, skinId intact) for the swap flash.
+  const swapFlashColor = ghostfaceIdentityColor(fighter)
   if (!applyGhostfaceSwap(fighter, targetKey)) return false
+  // 3-beat transition (visual only): hold the new companion hidden through EXIT+FLASH, pulse the identity-tinted
+  // flash, then materialise it in. The swap itself already fired above — window/cost/revert are unchanged.
+  fighter._gfSwapCine = { t: 0, color: swapFlashColor }
   fighter.vx = 0
   // If the player happens to be holding CHARGE when the swap fires, consume that hold so the swapped-in
   // companion doesn't inherit it (a charge-RELEASE would otherwise fire the companion's charge action —
@@ -7415,6 +7422,10 @@ export function triggerGhostfaceBackstagePass(fighter, branch, slot = 0, context
   fighter.vx = (branch === "getaway" ? -1 : 1) * (fighter.facing || 1) * (branch === "getaway" ? 15 : 17)
   fighter.vy = 0
   fighter.teleportFlash = 16
+  // PRESENTATION (visual only): the reposition branches now truly slip OFF-SCREEN (fade out along the dash)
+  // and STALK BACK ON from the opposite edge at emerge. Not armed on the swap branch (that gets the 3-beat
+  // transition instead). Pure render — cost/i-frames/reposition are unchanged.
+  if (!isSwap) armGhostfaceVanish(fighter)
   try { spawnClonePuff(cx, cy) } catch (_) {}
   // If Grab/Charge is held (swap trigger), swallow the charge release so the swapped-in companion doesn't
   // inherit it (Itachi Mangekyou etc.) — same guard the direct swap uses. Harmless on the other branches.
@@ -7474,6 +7485,7 @@ function bpEmerge(fighter, context) {
   if (sw > 0) fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), fighter.x))
   if (opp) fighter.facing = ((opp.x || 0) >= (fighter.x || 0)) ? 1 : -1              // face the opponent on arrival
   fighter.teleportFlash = 16
+  ghostfaceVanishEnter(fighter)   // he's at the final spot → stalk BACK ON from the opposite edge (render-only slide)
   try { spawnClonePuff((fighter.x || 0) + (fighter.w || 60) / 2, (fighter.y || 0) + (fighter.h || 100) / 2) } catch (_) {}
   if (typeof context?.camera?.focusBetween === "function" && opp) context.camera.focusBetween(fighter, opp, 1.0, 10)
   fighter.attackCooldown = getAttackDuration(10, fighter)                           // brief recovery, not spammable
@@ -7496,6 +7508,201 @@ export function updateGhostfaceBackstagePass(fighter, context) {
 }
 export function isGhostfaceBackstagePassActive(fighter) { return !!fighter?._bpActive }
 export function ghostfaceBackstagePassBranch(fighter)   { return fighter?._bpActive ? (fighter._bpBranch || null) : null }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// GHOSTFACE — PRESENTATION LAYER (visual staging only; NO cost/i-frame/timing/damage effect).
+//   • Stalk Vanish / Backstage Pass reposition: the caster fades OUT as he slips off one edge (reusing the
+//     Toji-Fly-Heads render-only opacity idiom), then re-enters from the OPPOSITE edge — a render-only
+//     horizontal slide that eases to his (unchanged) final position. Hitbox/logic position never move.
+//   • Companion swap: a 3-beat EXIT → FLASH → EMERGE. The field-swap itself is UNCHANGED and instant; the
+//     new companion is simply held hidden through EXIT+FLASH, a screen flash tinted to the DESTINATION
+//     KILLER-IDENTITY color pulses, then the companion materialises in. Pure overlay — window/cost/revert
+//     are all untouched.
+// Identity colors are the REAL Ghostface skin robe recolors (gen_ghostface_creative.py, == the _crew tints):
+const GF_IDENTITY_COLOR = {
+  ghostfaceBilly:  "#6E1520",   // Founder's Mask — crimson / blood-red
+  ghostfaceDebbie: "#3E2A66",   // Mother's Grief — indigo-violet
+  ghostfaceRoman:  "#5A4622",   // Director's Cut — bronze / sepia
+  ghostfaceJill:   "#701E50",   // Spotlight      — magenta
+  ghostfaceAmber:  "#1C5A30",   // Parasocial     — toxic green
+}
+export function ghostfaceIdentityColor(fighter) { return GF_IDENTITY_COLOR[fighter?.skinId] || "#8a1c2b" }
+
+const GF_VANISH_EXIT_FADE = 7    // frames to fade fully OUT as he slips off-screen (fast — reads as "gone")
+const GF_ENTER_FRAMES     = 13   // re-entry: render-only slide-in + fade-in from the OPPOSITE edge
+const GF_ENTER_DIST       = 180  // world px the sprite visually slides in from (render offset only)
+const GF_SWAP_EXIT_F      = 7    // 3-beat swap: EXIT (new identity held hidden — the "gone" beat)
+const GF_SWAP_FLASH_F     = 8    //              FLASH (identity-tinted screen flash peak)
+const GF_SWAP_EMERGE_F    = 14   //              EMERGE (companion materialises in)
+const GF_SWAP_TOTAL_F     = GF_SWAP_EXIT_F + GF_SWAP_FLASH_F + GF_SWAP_EMERGE_F
+
+// Arm the reposition vanish (called from the Backstage Pass trigger on the non-swap branches).
+function armGhostfaceVanish(fighter) {
+  fighter._gfVanish = { phase: "exit", t: 0, dir: Math.sign(fighter.vx) || (fighter.facing || 1) }
+}
+// Flip the armed vanish into its re-entry (called at emerge once he's repositioned to the final spot).
+function ghostfaceVanishEnter(fighter) {
+  if (fighter._gfVanish) { fighter._gfVanish.phase = "enter"; fighter._gfVanish.t = 0 }
+}
+
+// Per-frame presentation tick (called from game.js beside the swap/backstage drivers). Advances both the
+// reposition vanish and the swap transition and clears each when its timeline completes.
+export function updateGhostfacePresentation(fighter) {
+  if (!fighter) return
+  const v = fighter._gfVanish
+  if (v) { v.t++; if (v.phase === "enter" && v.t >= GF_ENTER_FRAMES) fighter._gfVanish = null }
+  const s = fighter._gfSwapCine
+  if (s) { s.t++; if (s.t >= GF_SWAP_TOTAL_F) fighter._gfSwapCine = null }
+  const af = fighter._gfAmbushFlash   // ambush-strike flash (screen tint only — does NOT hide the retreating body)
+  if (af) { af.t++; if (af.t >= af.max) fighter._gfAmbushFlash = null }
+}
+
+// Render-time readout: { alpha (body opacity multiplier), dx (world-space draw offset), flash|null }.
+export function getGhostfacePresentation(fighter) {
+  let alpha = 1, dx = 0, flash = null
+  const v = fighter?._gfVanish
+  if (v) {
+    if (v.phase === "exit") alpha = Math.max(0, 1 - v.t / GF_VANISH_EXIT_FADE)   // fade out as he leaves
+    else {
+      const p = Math.min(1, v.t / GF_ENTER_FRAMES), e = 1 - Math.pow(1 - p, 3)   // ease-out slide + fade in
+      alpha = p
+      dx = -v.dir * GF_ENTER_DIST * (1 - e)                                       // start on the OPPOSITE edge → 0
+    }
+  }
+  const s = fighter?._gfSwapCine
+  if (s) {
+    const t = s.t
+    if (t < GF_SWAP_EXIT_F) {                                                     // BEAT 1 — EXIT: held hidden
+      alpha = 0
+    } else if (t < GF_SWAP_EXIT_F + GF_SWAP_FLASH_F) {                            // BEAT 2 — FLASH: identity tint
+      alpha = 0
+      const ft = (t - GF_SWAP_EXIT_F) / GF_SWAP_FLASH_F
+      flash = { color: s.color, alpha: Math.sin(ft * Math.PI) * 0.85 }
+    } else {                                                                      // BEAT 3 — EMERGE: fade in
+      const et = (t - GF_SWAP_EXIT_F - GF_SWAP_FLASH_F) / GF_SWAP_EMERGE_F, p = Math.min(1, et)
+      alpha = Math.min(alpha, 1 - Math.pow(1 - p, 3))
+      if (p < 1) flash = { color: s.color, alpha: (1 - p) * 0.35 }               // lingering flash tail
+    }
+  }
+  // AMBUSH-strike flash (Phone Call swap): the identity-tinted wash when the second killer lands the hit.
+  // Screen tint ONLY — never touches alpha (the original Ghostface stays fully visible, retreating).
+  const af = fighter?._gfAmbushFlash
+  if (af && !flash) { const ft = af.t / af.max; flash = { color: af.color, alpha: Math.sin(Math.min(1, ft) * Math.PI) * 0.8 } }
+  return { alpha, dx, flash }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// GHOSTFACE — "PHONE CALL" / ALWAYS-OUTNUMBERED AMBUSH SWAP (second swap trigger; ADDITIVE to the Backstage
+// Pass swap). Trigger: CHARGE + Special (+ motion picks the slot). Grab+Special still runs the Backstage Pass
+// swap. Same cost / 12s window / auto-revert as the existing swap — only the STAGING differs. Four beats:
+//   1. BAIT     — the original Ghostface holds his "on the phone" knife-beckon pose (reuses the taunt sheet).
+//   2. RETREAT  — the original visibly backs AWAY from the opponent (a real reposition, not a vanish) and
+//                 fades toward the background; simultaneously a SECOND instance (the destination companion,
+//                 a rushing summon — reuses the Zaraki-Yachiru assist-summon pattern) spawns beyond the foe.
+//   3. AMBUSH   — that companion rushes IN from behind/around the opponent and lands a REAL hit (its own
+//                 hitbox/damage/knockback via the summon system) + an identity-tinted screen flash.
+//   4. HANDOFF  — the companion takes over as the player-controlled fighter at the ambush spot (applyGhostface-
+//                 Swap → the same 12s window). The original's retreat completes as the swap resolves.
+const GF_AMBUSH_DMG        = 45   // special-tier ambush strike (owner-confirmed; band of BP phantom 40 / Low Gut 42 / Gutting Lunge 50; the ×0.60 global scale then applies)
+const GF_AMBUSH_BAIT_F     = 22   // beat 1 — phone-call pose hold
+const GF_AMBUSH_RETREAT_F  = 46   // beat 2 — retreat window (the striker should connect within this)
+const GF_AMBUSH_STRIKE_F   = 12   // beat 3 — brief hold after the strike lands, before the handoff
+const GF_AMBUSH_RETREAT_SPD = 5   // retreat speed (px/frame away from the opponent)
+
+function gfAmbushDir(fighter, opp) { return opp ? (((opp.x || 0) >= (fighter.x || 0)) ? 1 : -1) : (fighter.facing || 1) }
+
+// Spawn the destination companion as a rushing assist-summon that strikes the opponent from beyond/behind.
+function spawnGhostfaceAmbusher(fighter, opp, targetKey, color) {
+  if (!opp) return null
+  const comp = characters[targetKey]; if (!comp) return null
+  const idle = comp.animationData?.idle || {}
+  const dir  = gfAmbushDir(fighter, opp)
+  const summonData = {
+    id: "gfAmbush", summonId: "gfAmbush",
+    duration: 46, maxSimultaneous: 1, attackInterval: 4, spawnBeat: 1,
+    damage: GF_AMBUSH_DMG, hitstun: 22, knockbackX: 8, knockbackY: -4,
+    w: 54, h: 88, speed: 17, behavior: "rush", oneHit: true, puffOnDespawn: true, color: color || "#8a1c2b",
+    sheet: idle.sheet || null, spriteFrames: idle.frames || 1, spriteW: idle.width || 48, spriteH: idle.height || 90,
+    spriteSpeed: idle.speed || 6, spriteScale: comp.spriteScale || 1, offsetY: 0,
+  }
+  const p = spawnAssistSummon(fighter, summonData, opp)
+  if (p) { p.x = (opp.x || 0) + dir * 96; p.y = (opp.y || 0); p.facing = -dir }   // beyond the foe → rushes inward
+  return p
+}
+
+// Arm the ambush (Charge + Special). Pre-checks affordability (spent at handoff, mirroring the Backstage Pass swap).
+export function triggerGhostfaceAmbush(fighter, slot = 0, context = null) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return false
+  if (fighter._gfSwapActive || fighter._bpActive || fighter._gfAmbush) return false
+  if (fighter.attacking || fighter.currentMove) return false
+  if ((fighter.attackCooldown || 0) > 0) return false
+  const pool = getGhostfaceCallInPool(fighter)
+  const targetKey = pool[slot]
+  if (!targetKey || !characters[targetKey]) return false
+  const cost = Math.round(GF_SWAP_COST * (fighter._gfSkinMod?.swapCostScale ?? 1))
+  if (!canSpendEnergy(fighter, cost)) return false                                  // affordability pre-check; spend at handoff
+  fighter._gfAmbush = { phase: "bait", t: 0, slot, targetKey, color: ghostfaceIdentityColor(fighter), summon: null, ambushX: null, struck: false }
+  fighter.vx = 0; fighter.vy = 0
+  fighter._spriteCastMove = "taunt"; fighter._spriteCastTimer = GF_AMBUSH_BAIT_F   // "on the phone" beckon pose
+  fighter._suppressChargeUntilRelease = true                                       // don't let the companion inherit the charge release
+  if (fighter.directionHistory) fighter.directionHistory.length = 0
+  try { sound?.playSfxFile?.(pickGhostfaceVoice("specialCast"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+function gfAmbushCancel(fighter) {
+  const a = fighter._gfAmbush; if (!a) return
+  if (a.summon) { a.summon.lifetime = Math.min(a.summon.lifetime || 0, 4) }   // let the striker puff out
+  fighter._gfAmbush = null; fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+}
+
+function gfAmbushHandoff(fighter, opp, a) {
+  const cost = Math.round(GF_SWAP_COST * (fighter._gfSkinMod?.swapCostScale ?? 1))
+  if (!spendEnergy(fighter, cost)) { gfAmbushCancel(fighter); return }            // (pre-checked at trigger; guard anyway)
+  // the companion takes over AT the ambush spot (where the striker landed), beside the opponent
+  if (a.ambushX != null) fighter.x = a.ambushX
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  fighter.attacking = false; fighter.currentMove = null; fighter.currentAttack = null
+  applyGhostfaceSwap(fighter, a.targetKey)                                         // field-swap + start the 12s window
+  if (opp) fighter.facing = ((opp.x || 0) >= (fighter.x || 0)) ? 1 : -1
+  fighter.teleportFlash = 16
+  try { spawnClonePuff((fighter.x || 0) + (fighter.w || 60) / 2, (fighter.y || 0) + (fighter.h || 100) / 2) } catch (_) {}
+  fighter._gfAmbush = null
+}
+
+// Per-frame driver (game.js, WITH the ability context for the foe).
+export function updateGhostfaceAmbush(fighter, context) {
+  const a = fighter?._gfAmbush; if (!a) return
+  const opp = context?.getOpponent?.(fighter) || null
+  // INTERRUPT: a clean hit before the handoff stuffs the ambush (no i-frames — same no-free-entry rule as the swap).
+  if (a.phase !== "handoff" && ((fighter.hitstun || 0) > 0 || fighter.knockdownState)) { gfAmbushCancel(fighter); return }
+  a.t++
+  if (a.phase === "bait") {
+    fighter.vx = 0; fighter._spriteCastMove = "taunt"; fighter._spriteCastTimer = Math.max(fighter._spriteCastTimer || 0, 4)
+    if (opp) fighter.facing = gfAmbushDir(fighter, opp)
+    if (a.t >= GF_AMBUSH_BAIT_F) { a.phase = "retreat"; a.t = 0; fighter._spriteCastMove = null
+      a.summon = spawnGhostfaceAmbusher(fighter, opp, a.targetKey, a.color)
+      a.ambushX = opp ? Math.max(0, (opp.x || 0) - (fighter.w || 60) * (gfAmbushDir(fighter, opp) >= 0 ? 1 : -1)) : fighter.x
+    }
+  } else if (a.phase === "retreat") {
+    const dir = gfAmbushDir(fighter, opp); fighter.facing = dir
+    fighter.vx = -dir * GF_AMBUSH_RETREAT_SPD                                       // back AWAY from the opponent
+    if (a.summon && a.summon.hasHit && !a.struck) {                                 // the striker connected → identity flash
+      a.struck = true
+      fighter._gfAmbushFlash = { color: a.color, t: 0, max: 12 }
+      try { shakeCamera(context, 6, 10) } catch (_) {}
+      a.phase = "strike"; a.t = 0
+    } else if (a.t >= GF_AMBUSH_RETREAT_F) { a.phase = "strike"; a.t = 0 }          // striker whiffed/expired → still hand off
+  } else if (a.phase === "strike") {
+    fighter.vx *= 0.8
+    if (a.t >= GF_AMBUSH_STRIKE_F) { a.phase = "handoff"; a.t = 0 }
+  } else if (a.phase === "handoff") {
+    gfAmbushHandoff(fighter, opp, a)
+  }
+}
+export function isGhostfaceAmbushActive(fighter) { return !!fighter?._gfAmbush }
+export function ghostfaceAmbushPhase(fighter)    { return fighter?._gfAmbush ? fighter._gfAmbush.phase : null }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAKI ZENIN (Stage 2) — naginata normals + "Cursed Tool Flurry" command chain.
@@ -9725,6 +9932,70 @@ export function updateTobiramaCommandCombat(fighter, inputState, context, getPha
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// HASHIRAMA — taijutsu command chain + 1 free poke (Stage 2). Mirrors the Tobirama
+// architecture (chain + poke), cancel-on-HIT (shared rekkaContinue, requireHit:true).
+// CHAIN (Fwd+Heavy → re-tap Heavy): hashiComboA (ground wood-fist punch string) →
+//   hashiComboB (leaping kick) → hashiComboFin (spinning wood-beam LAUNCHER finisher).
+//   A stage only advances if the prior hit CONNECTED — a block/whiff ends the string.
+// FREE POKE (cooldown-gated, no chakra): Fwd+Light = hashiWoodStraight (long-reach wood-
+//   beam straight). Neutral light/heavy/up/air/down_air stay on the normal path. Each
+//   stage's sprite is its currentMove key (sprite.js identity map).
+// ─────────────────────────────────────────────────────────────────────────────
+const HASHIRAMA_CMD = {
+  hashiComboA:   { damage: 40, startup: 5, active: 3, recovery: 11, hitstun: 13, knockbackX: 3,  knockbackY: 0,  rangeX: 82, rangeY: 54, rekkaNext: "hashiComboB" },
+  hashiComboB:   { damage: 46, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 3,  knockbackY: -1, rangeX: 90, rangeY: 60, rekkaNext: "hashiComboFin" },   // leaping kick
+  hashiComboFin: { damage: 86, startup: 8, active: 4, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -4, rangeX: 150, rangeY: 66, launcher: true },   // spinning wood-beam finisher — LAUNCHES (combo-standardization: knockbackY up) → jump-cancel air combo
+}
+const HASHIRAMA_POKE = {
+  hashiWoodStraight: { damage: 64, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 9, knockbackY: -2, rangeX: 120, rangeY: 52, cd: 34 },  // long-reach wood-beam straight (highest reach in the base kit)
+}
+function fireHashiramaCmd(fighter, key) {
+  const md = HASHIRAMA_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the hashiComboN sprite
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+function fireHashiramaPoke(fighter, key) {
+  const md = HASHIRAMA_POKE[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only, no spendEnergy
+  fighter._rekkaNext    = null             // pokes are not part of the chain
+  fighter._cmdHitLanded = false
+  return true
+}
+// Grounded command-normal driver (mirrors updateTobiramaCommandCombat). Returns true (→ skip the
+// normal path this frame) only when it actually fires a stage.
+export function updateHashiramaCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "hashirama" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  const lightEdge = !!inputState.light && !fighter._cmdPrevLight
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  fighter._cmdPrevLight = !!inputState.light
+
+  // CONTINUE — fresh Heavy during the current part's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireHashiramaCmd(fighter, next)
+
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+
+  // OPENERS (down blocks in this engine; Fwd+Heavy opens the chain, Fwd+Light is the poke).
+  if (forward && heavyEdge) return fireHashiramaCmd(fighter, "hashiComboA")         // Fwd+Heavy → chain opener
+  if (forward && lightEdge) return fireHashiramaPoke(fighter, "hashiWoodStraight")  // Fwd+Light → wood-beam straight poke
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MADARA — Susanoo Base Punch (Stage 3 special #6). A COMMAND-NORMAL (not a Special):
 // all 5 Special directions are spent (Fireball/Summon/Fan-Swing/Wood-Spike/Wood-Dragon),
 // and the asset-map frames it as a "hard attack" — so it reads as a committed Fwd+Heavy
@@ -11261,6 +11532,53 @@ function executeMadaraUltimate(fighter, context, hold = false) {
   return true
 }
 
+// ── HASHIRAMA — "SEALING JUTSU" ULTIMATE (DOMAIN-EXPANSION trap; redesigned 2026-08-12) ────────────
+// activateDomain (domains.js, rosterKey "hashirama") swaps to the sealing_box backdrop + FREEZES the foe
+// in place; the hashiramaSealingJutsuCinematic overlay slams the Gracious Deity Gates on the foe and loops
+// Naruto/Minato/Tobirama cameo STRIKES (dealHashiramaCameoHit → the ONE scaled-damage choke-point) for the
+// whole trap, while Hashirama attacks freely. Supersedes the old single-hit freeze-cinematic ("SEAL beat").
+const HASHIRAMA_SEAL_COST      = 100   // characters.js ultimate.cost
+const HASHIRAMA_DOMAIN_SECONDS = 7     // the trap window (Gojo/Sukuna are 15s round-enders; this is shorter)
+const HASHIRAMA_CAMEO_DMG      = 30    // per cameo strike (raw; scaled at the choke-point). ~8-9 strikes over 7s
+// One cameo assist (Naruto/Minato/Tobirama) strikes the trapped, sealed foe. The seal holds them in place,
+// so NO launch/knockback — just scaled damage + a flash + a floating number. This looping guaranteed
+// offense (plus Hashirama's own free attacks during the trap) is the domain's damage, in place of the
+// old single 340 seal-hit. Routed through the ONE scaled-damage choke-point.
+function dealHashiramaCameoHit(fighter, opp, cameo, cineCtx = {}) {
+  if (!opp || opp.eliminated) return
+  let raw = HASHIRAMA_CAMEO_DMG
+  if (opp.isBlocking) raw = Math.round(raw * 0.5)   // a guard halves the chip
+  const dealt = applyScaledDamage(opp, raw, { source: "ultimate" })
+  opp.colorFlash = 8
+  opp.hitstun = Math.max(opp.hitstun || 0, 6)        // reads as a hit; the domain re-freezes it anyway
+  try {
+    cineCtx.damageNumbers?.push?.({
+      value: dealt, text: String(Math.round(dealt)),
+      x: opp.x + (opp.w || 40) / 2, y: opp.y,
+      timer: 45, maxTimer: 45, opacity: 1, vy: -1.2, fontSize: 24,
+      category: "ultimate", color: cameo?.tint || "#ef4444"
+    })
+  } catch (_) {}
+}
+function executeHashiramaUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "hashirama") return false
+  if (isHashiramaSealingJutsuCinematicActive()) return false   // domain already up
+  const opp = context?.getOpponent?.(fighter) || null
+  if (!spendEnergy(fighter, HASHIRAMA_SEAL_COST)) return false
+  try { sound.playSfxFile?.(pickHashiramaVoice("sealingJutsu"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // Will-of-Fire seal declaration
+  fighter.vx = 0
+  // The DOMAIN (domains.js, rosterKey "hashirama"): sealing_box backdrop swap + activation white-flash +
+  // opponent FREEZE/trap + timer + collapse. cost:0 (energy already spent); range 1e5 = whole map so the
+  // seal holds wherever the foe stands; modest damageBoost on Hashirama's OWN free offense during the trap.
+  activateDomain(fighter, { name: "Sealing Jutsu", cost: 0, duration: HASHIRAMA_DOMAIN_SECONDS, range: 1e5, damageBoost: 1.15 }, context)
+  // The OVERLAY (world-space, non-freezing): Gracious Deity Gates slam on the foe + looping Naruto/Minato/
+  // Tobirama cameo strikes for the domain's duration.
+  activateHashiramaSealingJutsuCinematic(fighter, opp,
+    (cameo, cineCtx) => dealHashiramaCameoHit(fighter, opp, cameo, cineCtx),
+    HASHIRAMA_DOMAIN_SECONDS * 60)
+  return true
+}
+
 // ── PAIN / NAGATO'S DEVA PATH (Stage 7) — "CHIBAKU TENSEI" ULTIMATE (freeze-cinematic) ────────────
 // cast (arms raised) → black-sphere growth (+debris) → SLAM onto the foe → ground effect (flat → dome →
 // flame pillar). The guaranteed planetary-devastation damage lands at the SLAM beat via applyPainChibaku
@@ -11424,7 +11742,8 @@ export function updateSasukeCommandCombat(fighter, inputState, context) {
 // cancel-on-hit rules the rekka chars use (connect-latch on a real hit, cancels only during a CONNECTED
 // recovery, a whiff/block ends the string). It does NOT fire the openers — a neutral light/heavy still
 // comes out on the normal path; this only adds the recovery-phase CANCELS. The heavy ender launches via
-// startMove's `launcher` flag (juggle-height comes from Stage 2a's -26 floor), feeding the Stage-1b juggle.
+// startMove's `launcher` flag (juggle-height comes from the char's own up-attack launchVy — Fast -30 …
+// Heavy -33 — or the -30 LAUNCH_FLOOR baseline), feeding the Stage-1b juggle.
 const STANDARD_STRING_CHARS = {
   goku: {}, gojo: {}, sukuna: {}, naruto: {}, megumi: {}, rick: {},   // the six original single-poke characters (MK-feel Stage 2b)
   // combo-string standardization Stage D: roll the SAME shared Light→Light→Heavy(→launcher) dial-a-combo out
@@ -11609,6 +11928,314 @@ export function executeTobiramaSpecial(fighter, context) {
   if (dir === "D") return fireTobiramaWaterWall(fighter, context)
   if (dir === "B") return fireTobiramaDarkness(fighter, context)
   return fireTobiramaWaterDragon(fighter, context)   // neutral ground (and any unmapped dir)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HASHIRAMA — Kunai Throw (Stage 3). A basic chakra-cheap zoning tool: cast the throw pose
+// (_spriteCastMove, sprite.js cast override), then release the shared SPINNING SHURIKEN projectile
+// (hashirama_kunai_throw_projectile_uniform, 8-frame spin) on the throw beat. Ground vs air uses the
+// matching caster sprite; the air throw is angled slightly downward. Mokuton directional specials
+// (Wood Punch / arm-eruption / tree ladder / Wood Golem / Gates) land in Stages 4-6, branching this
+// same Special dispatch by _specialHeldDir.
+// ─────────────────────────────────────────────────────────────────────────────
+const HASHI_KUNAI = { costGround: 15, costAir: 15, castTimer: 22, cd: 30, throwBeat: 10, speed: 15, lifetime: 90 }
+function fireHashiramaKunai(fighter, context, air) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, air ? HASHI_KUNAI.costAir : HASHI_KUNAI.costGround)) return false
+  fighter._spriteCastMove  = air ? "kunaiThrowAir" : "kunaiThrow"
+  fighter._spriteCastTimer = HASHI_KUNAI.castTimer
+  fighter.attackCooldown   = getAttackDuration(HASHI_KUNAI.cd, fighter)
+  try { sound.playSfxFile?.(pickHashiramaVoice("kunai"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // zoning bark
+  const face = fighter.facing || 1
+  schedulePendingSpawn(HASHI_KUNAI.throwBeat, () => {                 // release on the throw beat
+    spawnProjectile(fighter, air ? "hashiKunaiAir" : "hashiKunai", {
+      sheet: "./hashirama_kunai_throw_projectile_uniform.png", spriteFrames: 8, spriteW: 60, spriteH: 45, spriteSpeed: 2, spriteScale: 0.95,
+      damage: air ? 46 : 52, speed: HASHI_KUNAI.speed, lifetime: HASHI_KUNAI.lifetime, hitstun: 16, knockbackX: 6, knockbackY: -2,
+      w: 32, h: 24, radius: 15, isSpecial: true,
+      vx: face * HASHI_KUNAI.speed, vy: air ? 3 : 0,
+      spawnY: fighter.y + (fighter.h || 100) * (air ? 0.5 : 0.42)
+    }, context)
+    shakeCamera(context, 3, 5)
+  })
+  return true
+}
+// MOKUTON ARM ERUPTION (Stage 4) — Fwd+Special. A mid-range wood burst that erupts from Hashirama's arm
+// (mokuton_lul_4 cast pose). Melee-tier: currentMove drives the pose, the wood-burst FX is in the art.
+const HASHI_MOKUTON_ARM = { damage: 70, startup: 8, active: 5, recovery: 20, hitstun: 24, knockbackX: 10, knockbackY: -3, rangeX: 116, rangeY: 66, isSpecial: true }
+function fireHashiramaMokutonArm(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 30)) return false
+  const md = HASHI_MOKUTON_ARM
+  const attack = createAttackFromMove(fighter, "mokutonArm", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "mokutonArm" → arm-eruption pose
+  try { sound.playSfxFile?.(pickHashiramaVoice("mokutonArm"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // "Mokuton!" callout
+  fighter.vx = (fighter.facing || 1) * 3   // slight step into the burst
+  shakeCamera(context, 5, 8)
+  return true
+}
+// WOOD CLONE — Hashirama's Mokuton counterpart to Naruto/Minato/Tobirama's Shadow Clone (shared clone
+// architecture; woodCloneCast caster gesture + wood_clone_release despawn FX live in summons.js). Created/
+// dispersed via the STANDARD "," / "." keys (game.js) like every clone character — the old double-QCF/QCB
+// spawn/dispel routes were removed 2026-08-12.
+export function executeHashiramaSpecial(fighter, context) {
+  // TRANSFORMATION JUTSU — Tier 1 Disguise (→↓←) / Tier 2 Full Copy (↓←→). Additive; falls through on a
+  // failed gate so every held-direction Mokuton special below is preserved.
+  if (tryTransformJutsu(fighter, context)) return true
+  const dir = fighter._specialHeldDir || null
+  const airborne = !(fighter.onGround ?? fighter.grounded ?? true)
+  // NOTE: the legacy double-QCF Wood-Clone SPAWN / double-QCB DISPEL motion routes were REMOVED 2026-08-12.
+  // Wood-clone create/disperse is now STANDARDIZED to "," / "." like every clone character (the woodCloneCast
+  // caster gesture moved into summons.summonShadowClone so it still plays on the "," spawn).
+  // Directional Mokuton specials. Neutral/airborne = Kunai Throw (Stage 3).
+  if (dir === "F") return fireHashiramaMokutonArm(fighter, context)    // Stage 4 — arm eruption
+  if (dir === "D") {
+    // WOOD RELEASE, dual-context: on solid GROUND, Down+Special is the offensive Tree-Summon ladder.
+    // In the AIR — or while already standing ON a wood pillar (chaining the climb) — it instead raises a
+    // real CLIMBABLE pillar. Standing on a pillar reports onGround=true, so `_floorPlatformId` is what
+    // distinguishes "on a pillar" from "on the floor" and lets the climb chain from a pillar top.
+    const onPillar = fighter._floorPlatformId != null
+    if (airborne || onPillar) return fireHashiramaWoodPillar(fighter, context)
+    return fireHashiramaTreeSummon(fighter, context)                    // Stage 5 — tree-summon ladder
+  }
+  if (dir === "U") return fireHashiramaWoodGolem(fighter, context)     // Stage 6 — Wood Golem (summon→combo→combo_2)
+  if (dir === "B") return fireHashiramaGates(fighter, context)         // Stage 6 — Gracious Deity Gates (immobilize)
+  return fireHashiramaKunai(fighter, context, airborne)
+}
+
+// WOOD GOLEM (Stage 6) — Up+Special. ONE continuous special: summon pose → the giant Wood-Statue Golem
+// looms in front and throws a TWO-hit combo (combo_part_1 then combo_part_2, the launcher finisher). Each
+// hit is a big persist-one-hit hazard playing its 3-frame golem-punch strip (spriteOnce). A committed,
+// chakra-costly power move (long recovery). The two hits are scheduled back-to-back for the combo flow.
+const HASHI_GOLEM_COST = 50
+const HASHI_GOLEM_SCALE = 1.45
+function spawnHashiramaGolemHit(fighter, context, sheet, spriteH, cfg, launcher) {
+  const face = fighter.facing || 1
+  const dh = spriteH * HASHI_GOLEM_SCALE
+  const groundY = fighter.y + (fighter.h || 100)
+  const gx = fighter.x + face * ((fighter.w || 60) + 120)   // the giant looms in front, punching toward the foe
+  const gy = groundY - dh / 2                                // base at ground
+  spawnProjectile(fighter, launcher ? "hashiGolem2" : "hashiGolem1", {
+    sheet, spriteFrames: 3, spriteW: 241, spriteH, spriteSpeed: 5, spriteScale: HASHI_GOLEM_SCALE, spriteOnce: true,
+    damage: cfg.damage, speed: 0, vx: 0, vy: 0, hitDelay: 5, lifetime: 32, persist: true,
+    hitstun: cfg.hitstun, knockbackX: face * cfg.kbX, knockbackY: cfg.kbY, w: cfg.w, h: cfg.h, isSpecial: true, launcher: !!launcher,
+    spawnX: gx, spawnY: gy
+  }, context)
+}
+function fireHashiramaWoodGolem(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, HASHI_GOLEM_COST)) return false
+  fighter._spriteCastMove  = "woodGolemSummon"
+  fighter._spriteCastTimer = 30
+  fighter.attackCooldown   = getAttackDuration(48, fighter)   // big commitment — long recovery
+  try { sound.playSfxFile?.(pickHashiramaVoice("woodGolem"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // "Shinsu Senju!" / Mokujin no Jutsu
+  schedulePendingSpawn(12, () => {   // combo_part_1 — first golem punch
+    spawnHashiramaGolemHit(fighter, context, "./hashirama_wood_golem_combo1_uniform.png", 198, { damage: 84, hitstun: 22, kbX: 7, kbY: -2, w: 200, h: 230 }, false)
+    shakeCamera(context, 8, 12)
+  })
+  schedulePendingSpawn(32, () => {   // combo_part_2 — second punch, LAUNCHER finisher
+    spawnHashiramaGolemHit(fighter, context, "./hashirama_wood_golem_combo2_uniform.png", 194, { damage: 106, hitstun: 28, kbX: 12, kbY: -13, w: 220, h: 240 }, true)
+    shakeCamera(context, 11, 16)
+  })
+  return true
+}
+
+// GRACIOUS DEITY GATES (Stage 6) — Back+Special. Seal → TWO wooden torii gates slam down flanking the
+// opponent and PIN them: a full immobilize (hitstun is the self-clearing, all-action-gating primitive).
+// Its own special AND (Stage 7) the Sealing-Jutsu ultimate's lock-phase reuses this same gate-drop.
+const HASHI_GATES_COST = 40
+const HASHI_GATES_STUN = 70   // ~1.2s pin — a strong setup, gated by 40 chakra + startup
+function fireHashiramaGates(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, HASHI_GATES_COST)) return false
+  fighter._spriteCastMove  = "gatesCaster"
+  fighter._spriteCastTimer = 26
+  fighter.attackCooldown   = getAttackDuration(28, fighter)
+  try { sound.playSfxFile?.(pickHashiramaVoice("gates"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // "stop the movement" pin callout
+  const target = getTargetResolver(context)(fighter)
+  schedulePendingSpawn(12, () => {
+    if (target) {
+      const gx = target.x + (target.w || 60) / 2
+      const groundY = target.y + (target.h || 100)
+      const gScale = 0.95, gH = 244 * gScale
+      for (const off of [-46, 46]) {   // two torii gates flanking the trapped foe
+        spawnProjectile(fighter, "hashiGate", {
+          sheet: "./hashirama_gracious_deity_gates_wood_uniform.png", spriteFrames: 1, spriteW: 140, spriteH: 244, spriteScale: gScale,
+          visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: HASHI_GATES_STUN + 18,
+          spawnX: gx + off, spawnY: groundY - gH / 2
+        }, context)
+      }
+      // PIN the opponent in place — hitstun immobilizes (gates movement AND action) and self-clears.
+      target.hitstun = Math.max(target.hitstun || 0, HASHI_GATES_STUN)
+      target.stun    = Math.max(target.stun || 0, HASHI_GATES_STUN)
+      target.vx = 0; target.vy = 0
+      fighter._gatesPinnedTarget = target   // Stage-7 ult reuses the same pin
+    }
+    shakeCamera(context, 9, 15)
+  })
+  return true
+}
+
+// TREE SUMMON — 4-TIER LADDER (Stage 5) — Down+Special, SUCCESSIVE-CAST ESCALATION. The CHARGE key is
+// already the Wood Release Punch (Stage 4), so the tier is driven by repeated casts: each Down+Special
+// summons the NEXT tier up (1→2→3→4), then wraps to 1; a ~2.6s lull also resets to tier 1. Each tier
+// plays its REAL frame-by-frame growth strip (spriteOnce → grows then HOLDS the fully-grown tree) at a
+// visibly larger scale, erupting under the opponent as a stationary Mokuton ground-hazard (Madara Wood
+// Spike precedent: vx 0, hitDelay). Tier 4 (forest grove) also drops the landscape-branch terrain overlay.
+// Escalating chakra cost (16→54) self-limits the ladder.
+// scale = VISUAL render scale (sprite is bottom-anchored at the ground, so it grows UPWARD — decoupled
+// from the {w,h} hitbox, which stays put). Deliberately calibrated for a DRAMATIC tier-to-tier size ladder
+// vs Hashirama's ~113px body: T1 sprout ~0.8× → T2 ~1.3× → T3 iconic tree ~3.9× → T4 forest grove ~5.4×
+// (screen-filling). (Prior 1.7/1.6/1.15/1.7 rendered ~0.4/0.85/2.34/2.54× — top two nearly identical.)
+// T1 frames 3→6: its sheet is 6×98 cells (declared 98×3=294 ≠ 588 → mis-sliced), and the raw cells ran
+// big→small (grew BACKWARDS). The sheet was REVERSE-REPACKED so it now grows small→big and holds the
+// fullest sprout, matching the other tiers' spriteOnce growth.
+const HASHI_TREE_TIERS = [
+  { caster: "treeSummon1", tree: "./hashirama_treee_summon_1_tree_uniform.png", frames: 6, sw: 98,  sh: 40,  scale: 2.4,  dmg: 42,  cost: 16, w: 120, h: 70,  grow: 5, life: 46, kbY: -4  },
+  { caster: "treeSummon2", tree: "./hashirama_treee_summon_2_tree_uniform.png", frames: 5, sw: 148, sh: 62,  scale: 2.5,  dmg: 60,  cost: 26, w: 180, h: 100, grow: 5, life: 58, kbY: -7  },
+  { caster: "treeSummon3", tree: "./hashirama_tree_level_2_tree_uniform.png",   frames: 4, sw: 219, sh: 232, scale: 1.9,  dmg: 86,  cost: 40, w: 190, h: 300, grow: 7, life: 82, kbY: -11 },
+  { caster: "treeSummon4", tree: "./hashirama_tree_level_3_tree_uniform.png",   frames: 7, sw: 257, sh: 171, scale: 3.6,  dmg: 112, cost: 54, w: 380, h: 260, grow: 7, life: 96, kbY: -13, landscape: true },
+]
+const HASHI_TREE_RESET_MS = 2600   // idle window after which the tier ladder resets to tier 1
+function spawnHashiramaLandscape(fighter, context, face) {
+  // Tier-4 terrain overlay: a wide sprawling branch spreads across the arena BEHIND the fighters (the
+  // "trees meant to change the landscape"). Pure decoration (visualOnly) — it never collides.
+  spawnProjectile(fighter, "hashiLandscape", {
+    sheet: "./hashirama_landscape_overlay_uniform.png", spriteFrames: 1, spriteW: 425, spriteH: 142, spriteScale: 1.9,
+    visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, lifetime: 150, w: 425, h: 142,
+    spawnX: fighter.x + face * 40, spawnY: fighter.y + (fighter.h || 100) - 70
+  }, context)
+}
+function fireHashiramaTreeSummon(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const now = performance.now()
+  // reset the ladder after a lull; else advance from the last tier
+  if (!fighter._treeTier || (now - (fighter._treeLastCast || 0)) > HASHI_TREE_RESET_MS) fighter._treeTier = 0
+  const tierIdx = (fighter._treeTier || 0) % 4          // 0..3
+  const cfg = HASHI_TREE_TIERS[tierIdx]
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  fighter._treeTier    = tierIdx + 1                     // 1..4 (next cast escalates / wraps)
+  fighter._treeLastCast = now
+  fighter._spriteCastMove  = cfg.caster
+  fighter._spriteCastTimer = 26
+  fighter.attackCooldown   = getAttackDuration(24, fighter)
+  try { sound.playSfxFile?.(pickHashiramaVoice("treeSummon"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // "Jukai Kōtan!" — Nativity of a World of Trees
+  const face = fighter.facing || 1
+  const target = getTargetResolver(context)(fighter)
+  const groundY = target ? (target.y + (target.h || 100)) : (fighter.y + (fighter.h || 100))
+  const treeX = target ? (target.x + (target.w || 60) / 2) : (fighter.x + face * ((fighter.w || 60) + cfg.w * 0.4))
+  // COLLISION anchor: centre the hitbox on the ground via the HITBOX height (independent of the visual
+  // scale, so a huge tree doesn't drag its hurtbox up off the grounded foe). VISUAL: bottom-anchored at
+  // groundY via spriteBottomY → the tree rises UPWARD from the ground at its full render scale.
+  const treeY = groundY - (cfg.h || 100) / 2
+  schedulePendingSpawn(10, () => {                        // erupt on the seal-release beat
+    spawnProjectile(fighter, "hashiTree" + (tierIdx + 1), {
+      sheet: cfg.tree, spriteFrames: cfg.frames, spriteW: cfg.sw, spriteH: cfg.sh, spriteSpeed: cfg.grow, spriteScale: cfg.scale, spriteOnce: true, spriteBottomY: groundY,
+      damage: cfg.dmg, speed: 0, vx: 0, vy: 0, hitDelay: 8, lifetime: cfg.life, persist: true,
+      hitstun: 22, knockbackX: 5, knockbackY: cfg.kbY, w: cfg.w, h: cfg.h, isSpecial: true,
+      spawnX: treeX, spawnY: treeY
+    }, context)
+    shakeCamera(context, 4 + tierIdx * 2, 6 + tierIdx * 3)
+    if (cfg.landscape) spawnHashiramaLandscape(fighter, context, face)
+  })
+  return true
+}
+
+// ── WOOD RELEASE: RISING PILLAR (Stage 2 — climbable terrain) ─────────────────────────────────────────
+// Casting Down+Special in the AIR (or from atop another pillar) grows a REAL climbable wood pillar via the
+// shared platforms.js primitive — jump onto it, cast again from its top, and CHAIN a staircase of pillars
+// UP to an airborne opponent. Reuses the tier-3 tree art (drawPlatforms scales the fullest frame by growthP
+// so its crown top == the standable surface). Pure MOBILITY: 0 damage. Self-limiting so it is NOT a free
+// infinite-height tool: energy per cast + a brief cast recovery + a 3-pillar concurrent cap (oldest recedes)
+// + finite pillar lifetime (auto-recede). See BALANCE_AUDIT (Stage 3) for the mobility-tool comparison.
+const HASHI_PILLAR_COST   = 18     // chakra per cast (220 pool → the staircase spends real meter to climb)
+const HASHI_PILLAR_STEP   = 150    // each pillar tops ~150px above the caster's CURRENT feet — UNDER a full jump
+                                   // (jumpPower 32 ≈ 285px apex), so gaining height still needs an active jump up
+const HASHI_PILLAR_MINH   = 130
+const HASHI_PILLAR_MAXH   = 620    // ceiling guard: keeps the crown clear of the −360 arena ceiling from a high floor
+const HASHI_PILLAR_W      = 118    // standable span (narrower than the drawn crown → you stand beneath the canopy)
+const HASHI_PILLAR_CAP    = 3      // max concurrent Hashirama pillars (the oldest is retired past this)
+const HASHI_PILLAR_SPRITE = { sheet: "./hashirama_tree_level_2_tree_uniform.png", frames: 4, sw: 219, sh: 232 }
+
+function fireHashiramaWoodPillar(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, HASHI_PILLAR_COST)) return false
+
+  const gy    = fighter.groundY != null ? fighter.groundY : (fighter.y + (fighter.h || 100))   // arena floor (feet line)
+  const feetY = fighter.y + (fighter.h || 100)
+  const face  = fighter.facing || 1
+  // Pillar tops STEP px above the caster's CURRENT feet → casting from a higher perch grows a taller pillar
+  // (an ascending staircase). Clamped so it always clears a minimum and never punches the arena ceiling.
+  const maxHeight = Math.max(HASHI_PILLAR_MINH, Math.min(HASHI_PILLAR_MAXH, (gy - feetY) + HASHI_PILLAR_STEP))
+  const px = fighter.x + (fighter.w || 60) / 2 + face * ((fighter.w || 60) * 0.5 + 44)          // just in front → forward-up jump
+
+  // Concurrent cap: drop dead ids, then retire the oldest still-standing pillar before adding a new one.
+  fighter._woodPillars = (fighter._woodPillars || []).filter(id => getPlatforms().some(p => p.id === id && p.phase !== "recede"))
+  while (fighter._woodPillars.length >= HASHI_PILLAR_CAP) recedePlatform(fighter._woodPillars.shift())
+
+  const p = spawnPlatform({
+    owner: fighter.id || fighter.rosterKey || "hashirama",
+    x: px - HASHI_PILLAR_W / 2, w: HASHI_PILLAR_W, groundY: gy, maxHeight,
+    growDur: 20, holdDur: 150, recedeDur: 40,             // fast rise (climb-friendly) → ~2.5s stand → sink
+    sprite: HASHI_PILLAR_SPRITE,
+  })
+  fighter._woodPillars.push(p.id)
+
+  fighter._spriteCastMove  = "treeSummon2"                // Mokuton seal-release cast pose (reuse a tree caster gesture)
+  fighter._spriteCastTimer = 18
+  fighter.attackCooldown   = getAttackDuration(12, fighter)   // brief recovery — fluid enough to jump straight after
+  try { sound.playSfxFile?.(pickHashiramaVoice("treeSummon"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // "Jukai Kōtan!"
+  shakeCamera(context, 3, 5)
+  return true
+}
+
+// ── HASHIRAMA WOOD-CLONE → TREE-GROWTH ATTACK ─────────────────────────────────────────────────────
+// A Hashirama wood clone's autonomous attack is NOT a punch — it erupts a real Mokuton TREE at the CLONE'S
+// OWN position, reusing the already-built Tree-Summon tier art/hazard (100% existing content, no new art).
+// High capacity (cap 4) → several clones can each plant a tree across the battlefield = genuine area control.
+// A per-clone cooldown keeps it fair (persist-once hazard, modest dmg). Registered into summons.js (which
+// calls it on the clone's strike beat) so there is no summons→abilities import cycle.
+const HASHI_CLONE_TREE_TIER = 1     // T2 sapling — a real tree but modest per clone (many clones can co-plant)
+const HASHI_CLONE_TREE_DMG  = 34    // RAW (~20 EFF via ×0.60) — lower than the caster's own tier so a swarm isn't oppressive
+setCloneSpecialAttack((clone) => {
+  const owner = clone?.owner
+  if (!owner || String(owner.rosterKey || "").toLowerCase() !== "hashirama") return false
+  const cfg = HASHI_TREE_TIERS[HASHI_CLONE_TREE_TIER]
+  const groundY = (clone.y || 0) + (clone.h || 120)
+  const treeX   = (clone.x || 0) + (clone.w || 70) / 2
+  const treeY   = groundY - (cfg.h || 100) / 2
+  spawnProjectile(owner, "hashiCloneTree", {
+    sheet: cfg.tree, spriteFrames: cfg.frames, spriteW: cfg.sw, spriteH: cfg.sh, spriteSpeed: cfg.grow,
+    spriteScale: cfg.scale, spriteOnce: true, spriteBottomY: groundY,
+    damage: HASHI_CLONE_TREE_DMG, speed: 0, vx: 0, vy: 0, hitDelay: 8, lifetime: cfg.life, persist: true,
+    hitstun: 20, knockbackX: 4, knockbackY: cfg.kbY, w: cfg.w, h: cfg.h, isSpecial: true,
+    spawnX: treeX, spawnY: treeY
+  }, {})
+  return true   // the tree IS the attack — the clone skips its generic melee this swing
+})
+
+// WOOD RELEASE PUNCH (Stage 4) — CHARGE-key tap/hold power tiers (Rengoku Charged Flame Strike / Zaraki
+// Charged Dash architecture, fired from game.js handleChargeRelease). TAP (<200ms) = base wood-spear punch;
+// HOLD = the larger branching wood eruption (Super, higher dmg + longer reach). Cooldown-gated, NO energy
+// cost (holding CHARGE builds chakra via doEnergyCharge — the wind-up is the cost, not the meter). The
+// wood-spear/branch FX is baked into the sprite art; this is a long-hitbox melee strike.
+const HASHI_WOODPUNCH_CD    = 55
+const HASHI_WOOD_PUNCH      = { damage: 82,  startup: 7,  active: 5, recovery: 18, hitstun: 22, knockbackX: 9,  knockbackY: -2, rangeX: 158, rangeY: 62, isSpecial: true }
+const HASHI_WOOD_PUNCH_SUPER = { damage: 124, startup: 11, active: 6, recovery: 24, hitstun: 28, knockbackX: 14, knockbackY: -4, rangeX: 210, rangeY: 84, isSpecial: true }
+export function fireHashiramaWoodPunch(fighter, strong, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "hashirama") return false
+  if ((fighter.woodPunchCd || 0) > 0 || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const moveKey = strong ? "woodPunchSuper" : "woodPunch"
+  const md = strong ? HASHI_WOOD_PUNCH_SUPER : HASHI_WOOD_PUNCH
+  const attack = createAttackFromMove(fighter, moveKey, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  fighter.isCharging = false   // consume the charge so the punch sprite renders immediately (sprite.js prioritizes the charge pose over currentMove)
+  try { sound.playSfxFile?.(pickHashiramaVoice("woodPunch"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // committed Wood-Release melee bark
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = moveKey → woodPunch / woodPunchSuper pose
+  fighter.vx = (fighter.facing || 1) * (strong ? 3 : 4)   // advance into the strike
+  fighter.woodPunchCd = HASHI_WOODPUNCH_CD
+  shakeCamera(context, strong ? 7 : 4, strong ? 13 : 7)
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -12619,6 +13246,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "zaraki_shikai": return executeZarakiSpecial(fighter, context)   // base: Hollow Mask Strike / Up=enter Shikai / Down=Yachiru; shikai entry: Shikai slash / Down=Yachiru
     case "hisoka":  return executeHisokaSpecial(fighter, context)   // Bungee Gum (neutral, extended-reach whip); Texture Surprise cards land in Stage 4
     case "tobirama": return executeTobiramaSpecial(fighter, context)   // Water Dragon/Slash/Rising/Wall/Darkness (dir-branched); Water Flicker escape is a hitstun reversal
+    case "hashirama": return executeHashiramaSpecial(fighter, context)   // Stage 3: Kunai Throw (ground/air, spinning-shuriken projectile). Mokuton dir-specials land in Stages 4-6.
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
     case "chrollo": return executeChrolloSpecial(fighter, context)   // Nen Bolt (neutral/fwd projectile) / Blade Lunge (down knife-thrust)
     case "ghostface": return executeGhostfaceSpecial(fighter, context)   // Backstage Pass (spec §4.2): swap(Grab/Charge) / fakeout(attack) / getaway(Back) / side-switch(neutral) + knife specials Gutting Lunge(Fwd)/Low Gut(Down)
@@ -12650,6 +13278,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
       case "itachi":  cast = executeItachiUltimate(fighter, context);  break   // single-tier creature Susanoo
       case "madara":  cast = executeMadaraUltimate(fighter, context, !!opts.hold); break   // TIERED: TAP=Perfect Susanoo/Tengai Shinsei meteor cinematic · HOLD(≥180 energy)=Complete Susanoo giant
+      case "hashirama": cast = executeHashiramaUltimate(fighter, context); break   // Sealing Jutsu — combo→Gracious Deity Gates pin→Naruto/Minato/Tobirama cameos→red barrier (freeze cinematic)
       case "pain":    cast = executePainUltimate(fighter, context); break   // Chibaku Tensei — cast → sphere growth → slam → flat/dome/flame-pillar ground effect (freeze cinematic)
       case "obito":   cast = executeObitoUltimate(fighter, context);   break   // Ten-Tails Jinchūriki — giant Juubi Bijūdama freeze-cinematic
       case "tobi":    cast = executeTobiUltimate(fighter, context);    break   // NINE-Tails (Kurama) Bijūdama freeze-cinematic (own art/module, NOT Obito's Ten-Tails)

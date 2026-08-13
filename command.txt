@@ -4,6 +4,6 @@
    92  git commit
    93  git commit -m revisions
    94  ggit push
-   95  git push
+   95  g
    96  history
 git

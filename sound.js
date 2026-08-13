@@ -590,6 +590,14 @@ class SoundManager {
   // ── MENU PLAYLIST — public API for the Settings reorder UI ────
   getMenuPlaylist() { return MENU_PLAYLIST }
 
+  // Which MENU_PLAYLIST index is the LIVE now-playing track (the cursor moveMenuTrack keeps pinned to the
+  // song through reorders). The Settings panel highlights this row so a reorder is visibly reflected —
+  // otherwise a (correct) reorder that preserves the current song looks like it "did nothing".
+  getMenuPlaying() {
+    const playing = this._menuPlaylistActive && !!this._musicFile && !this._musicFile.paused
+    return { index: this._menuPlaylistIndex, active: !!this._menuPlaylistActive, playing, file: MENU_PLAYLIST[this._menuPlaylistIndex] || null }
+  }
+
   // Swap the track at `index` with its neighbor in `direction` (-1 up / +1 down),
   // mutating MENU_PLAYLIST in place so the live play sequence updates. Keeps the
   // "now playing" cursor pinned to the SAME song across the swap so playback

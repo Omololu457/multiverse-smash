@@ -61,7 +61,11 @@ for (const key of CHARS) {
   opp.onGround = true; opp.grounded = true; opp.vy = 0; opp.isLaunched = false; opp.hitstun = 0;
   let n = 0; while (getAttackPhase(g) !== "active" && n++ < 60) g.currentAttack.timer--;
   resolveAttackHit(g, opp, [], {});
-  check(`${key}: ender LAUNCHES opponent (vy -26)`, opp.vy === -26 && opp.isLaunched === true, `vy=${opp.vy}`);
+  // Combo-room pass: the ender pops the opponent at the char's LIVE archetype launchVy (Fast -30 … Heavy-tank
+  // -34), or the -30 floor if this char's up-attack is un-tuned. Derive the expectation the way the engine does.
+  const _upMd = cd.basic_attacks.upAttack || cd.basic_attacks.up || cd.basic_attacks.up_attack;
+  const _expVy = _upMd?.launchVy != null ? Math.min(_upMd.launchVy, -30) : -30;
+  check(`${key}: ender LAUNCHES opponent straight up (vy ${_expVy}, raised ≥ floor -30)`, opp.vy === _expVy && opp.vy <= -30 && opp.isLaunched === true, `vy=${opp.vy} exp=${_expVy}`);
 
   // B. L,L,H cap — no 3rd light
   const g2 = mkFighter(key, cd);

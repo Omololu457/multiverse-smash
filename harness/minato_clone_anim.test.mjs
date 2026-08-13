@@ -42,8 +42,9 @@ await waitFrames(5);
 console.log("── Shadow Clone spawn: caster gesture vs clone idle ──");
 check("start 0 clones", (await cloneCount()) === 0, `count=${await cloneCount()}`);
 
-// Spawn a clone with real D→F + Special.
-await tap("s", 1); await tap("d", 1); await tap("l");
+// Spawn a clone with the STANDARDIZED "," key (was D→F; the minatoCloneCast gesture moved into
+// summons.summonShadowClone so it still plays on the "," spawn).
+await page.keyboard.press(",");
 // Sample Minato's rendered pose DURING the cast window (a few frames in, gesture still playing).
 await waitFrames(4);
 const casterMid = await p1render();

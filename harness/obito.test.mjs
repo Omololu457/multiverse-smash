@@ -138,13 +138,14 @@ await reset(58);
   check("NON-DAMAGE payload (0 damage dealt)", bEnd.health === bhp0, `hp ${bhp0}→${bEnd.health}`); }
 
 // ── SPEED-TIER TELEPORT (by feat) ──
-section("Speed-tier teleport-blur (feat)");
+section("Speed-tier teleport-dash (feat)");
 await reset(220);
 { const x0=(await p1()).x;
   await page.keyboard.down("d"); await sleep(26); await page.keyboard.up("d"); await sleep(30);
   await page.keyboard.down("d"); await sleep(26); await page.keyboard.up("d");
-  let blur=0; for(let i=0;i<16;i++){ blur=Math.max(blur,(await p1()).speedBlur); if(blur>0)break; await waitFrames(1); }
-  check("double-tap toward → teleport-blur (speed 96 < 98, by feat)", blur > 0 && Math.abs((await p1()).x-x0)>120, `blur=${blur}`); }
+  let flash=0, sheet=null; for(let i=0;i<16;i++){ const p=await p1(); flash=Math.max(flash,p.teleportFlash); if(p.castMove==="dash"||p.action==="dash") sheet=p.spriteSheet; if(flash>0&&sheet)break; await waitFrames(1); }
+  check("double-tap toward → teleport-dash (speed 96 < 98, by feat)", flash > 0 && Math.abs((await p1()).x-x0)>120, `teleportFlash=${flash}`);
+  check("teleport-dash renders his OWN dash sprite (obito_dash), not a swirl", !!sheet && sheet.includes("obito_dash"), sheet); }
 
 // ── JUUBI ULTIMATE + DUPLICATE-RENDER GUARD ──
 section("Juubi Ultimate + duplicate-render guard");

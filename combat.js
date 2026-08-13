@@ -44,6 +44,7 @@ import { pickTojiVoice } from "./tojiVoice.js"   // Toji hit-react / offense-bar
 import { pickYujiVoice } from "./yujiVoice.js"   // Yuji hit-react / offense-bark / low-health voice pools (audio-only; EN+JA, JA active)
 import { pickMiwaVoice } from "./miwaVoice.js"   // Miwa hit-react / offense-bark / low-health voice pools (audio-only, JP dub)
 import { pickMadaraVoice } from "./madaraVoice.js"   // Madara hit-react / offense-bark / low-health voice pools (audio-only, JA)
+import { pickHashiramaVoice } from "./hashiramaVoice.js"   // Hashirama hit-react / offense-bark / low-health voice pools (audio-only, JA)
 import { pickPainVoice } from "./painVoice.js"   // Pain hit-react / offense-bark / low-health voice pools (audio-only, JA)
 import { pickObitoVoice } from "./obitoVoice.js"     // Obito hit-react / offense-bark / low-health voice pools (audio-only, JA)
 import { pickTobiVoice } from "./tobiVoice.js"       // Tobi (masked Obito alias) general combat-bark pool (audio-only, JA — separate from Obito's)
@@ -162,6 +163,14 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   const dealt = Math.floor(raw * scale)
   const before = target.health || 0
   target.health = Math.max(floor, before - dealt)
+  // RENDER-ONLY hit-tier hint for the MK-feel HUD (ui.js damage-trail + flash/shake). Does NOT
+  // affect combat: the HUD reads `_hudDmgTier` to decide a big vs light bar reaction. Prefer the
+  // caller's explicit tier (reuses the attack's heavy/special/ultimate classification); else infer
+  // "big" from the chunk removed (>= ~5.5% of max HP in one application).
+  if (dealt > 0) {
+    target._hudDmgTier = opts.tier
+      || (dealt / Math.max(1, target.maxHealth || 100) >= 0.055 ? "big" : "light")
+  }
   if (typeof globalThis !== "undefined" && globalThis.__DMG_LOG) {
     try {
       console.log(`[DMG] ${opts.source || "?"} raw=${raw} scale=${scale} dealt=${dealt} ${before}->${target.health}`)
@@ -433,16 +442,29 @@ export function rekkaContinue(fighter, { edge, phase, opponent, requireHit = tru
 // This makes the breaker AVAILABLE TO THE WHOLE ROSTER identically — the 7 meterless characters
 // (toji/maki/zenitsu/rengoku/shinobu/inosuke/nezuko) were previously locked out by the old `maxEnergy>0`
 // / 50%-meter gate. Energy is now free for offense (specials/ults). `meterFrac` is retired.
-export const COMBO_BREAKER = { threshold: 3, stocksPerRound: 2, iframes: 24, atkKbX: 15, atkKbY: -8, atkHitstun: 18 }
+export const COMBO_BREAKER = { threshold: 3, stocksPerRound: 2, iframes: 24, atkKbX: 15, atkKbY: -8, atkHitstun: 18, energyCost: 40, meterlessCd: 360 }
 export function tryComboBreaker(fighter, inputState, opponent) {
   if (!fighter || !inputState || !opponent) return false
   if ((fighter.hitstun || 0) <= 0) return false                                 // only while stunned
   if ((opponent.comboCounter || 0) < COMBO_BREAKER.threshold) return false       // only vs a REAL combo (>= 3) — no spam
   if (!inputState.block || !inputState.special) return false                     // the input: guard + Special
-  if ((fighter.comboBreakStocks || 0) <= 0) return false                         // needs a break STOCK (universal — no meter dependency)
+  if ((fighter.comboBreakStocks || 0) <= 0) return false                         // needs a break STOCK (universal per-round cap, kept)
 
-  // ── FIRE ── spend one break stock, break out with i-frames, blast the attacker away.
+  // ── HYBRID COST (Stage 2 — ROSTER-WIDE) ── a break always costs a STOCK; every fighter ALSO pays a
+  // second currency by kit type: energy fighters spend meter (energyCost), meterless fighters pay a
+  // real-time COOLDOWN (meterlessCd — the Zenitsu/Rengoku currency model). Checked BEFORE firing so an
+  // unpayable break stays stunned.
+  // Meterless detection: createFighter clamps runtime maxEnergy to Math.max(1, …) (divide-by-zero guard),
+  // so maxEnergy is NEVER 0 at runtime — the true signal is traits.hasEnergy===false (meterless chars).
+  // The `>1` fallback also classifies the trait-less unit-test mocks (maxEnergy 0) correctly.
+  const hasEnergy = fighter.traits?.hasEnergy !== false && (fighter.maxEnergy || 0) > 1
+  if (hasEnergy && (fighter.energy || 0) < COMBO_BREAKER.energyCost) return false      // meter-cost gate
+  if (!hasEnergy && (fighter.comboBreakerCd || 0) > 0) return false                    // cooldown-cost gate
+
+  // ── FIRE ── spend one break stock + the second currency, break out with i-frames, blast the attacker away.
   fighter.comboBreakStocks = Math.max(0, (fighter.comboBreakStocks || 0) - 1)
+  if (hasEnergy) fighter.energy = Math.max(0, (fighter.energy || 0) - COMBO_BREAKER.energyCost)
+  else fighter.comboBreakerCd = COMBO_BREAKER.meterlessCd
   fighter.hitstun     = 0; fighter.blockstun = 0; fighter.hitstop = 0; fighter.isLaunched = false
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, COMBO_BREAKER.iframes)
   fighter.colorFlash  = 14; fighter.parryFlash = Math.max(fighter.parryFlash || 0, 14)
@@ -455,6 +477,50 @@ export function tryComboBreaker(fighter, inputState, opponent) {
   opponent.attacking = false; opponent.currentAttack = null; opponent.currentMove = null
   opponent.comboCounter = 0; opponent.comboTimer = 0; opponent._counterScaleTier = 0   // end the attacker's combo (+ clear any counter-hit tier skip)
   try { sound?.play?.(SFX?.COUNTER_HIT || SFX?.PARRY || SFX?.BLOCK) } catch (_) {}
+  return true
+}
+
+// ══ COMEBACK FINISHER (Fatal-Blow-style — Stage 1 pilot) ══════════════════════════════════════════
+// A once-per-MATCH desperation strike, available ONLY below 30% max HP, on a dedicated 2-button combo
+// (BLOCK + GRAB — mirrors the breaker's block+special read; no motion, no meter, separate from the
+// special/ultimate economy). It is a COMMITTED lunge (i-frame armour through startup, whiffing wastes
+// the one use). Damage is FIXED at ~32% of the USER's OWN max HP, CAPPED so a high-HP fighter doesn't
+// get an outlier flat number — the cap keeps everyone inside the existing top-end cinematic-ult band
+// (~340-380 EFF; see BALANCE_AUDIT). Characters with a bespoke below-threshold comeback keep THEIRS and
+// are excluded: Toji (2-stage save), Maki (HP-gated ult), Gon (adult-form sudden-death).
+// The once-per-MATCH gate is owned by the CALLER (game.js, keyed by side) because fighters are recreated
+// each round — these functions are stateless w.r.t. match economy.
+export const COMEBACK_FINISHER = { hpGate: 0.30, dmgPct: 0.32, dmgCap: 360, iframes: 16, startup: 6, active: 6, recovery: 24, reach: 152, height: 132, hitstun: 26, kbX: 9, kbY: -5 }
+// EXCLUSIONS (Stage 0 audit): characters with a bespoke below-threshold comeback keep THEIRS instead —
+// Toji (2-stage save), Maki (HP-gated ult), Gon (adult-form sudden-death). Everyone else is eligible.
+export const COMEBACK_FINISHER_EXCLUDE = new Set(["toji", "maki", "gon"])
+export function comebackFinisherDamage(fighter) {
+  return Math.round(Math.min((fighter?.maxHealth || 1000) * COMEBACK_FINISHER.dmgPct, COMEBACK_FINISHER.dmgCap))
+}
+// Eligibility EXCLUDING the once-per-match token (caller owns that): not on the exclusion list, at/below
+// the HP gate. Stage 3: available ROSTER-WIDE (the Stage-1 pilot gate is removed).
+export function comebackFinisherReady(fighter) {
+  if (!fighter) return false
+  if (COMEBACK_FINISHER_EXCLUDE.has((fighter.rosterKey || "").toLowerCase())) return false
+  return ((fighter.health || 0) / (fighter.maxHealth || 1)) <= COMEBACK_FINISHER.hpGate
+}
+export function tryComebackFinisher(fighter, inputState, opponent) {
+  if (!comebackFinisherReady(fighter)) return false
+  if (!inputState || !inputState.block || !inputState.grab) return false          // dedicated input: guard + Grab
+  if (fighter.attacking || fighter.currentMove || (fighter.hitstun || 0) > 0) return false
+
+  // COMMIT — start a committed lunge (armoured through startup via i-frames). The move is a normal "heavy"
+  // for animation/timing; its damage is OVERRIDDEN to the fixed comeback number in resolveAttackHit via the
+  // `_comebackFinisher` flag (single damage path — no double-dip, defense-independent, block still chips).
+  const F = COMEBACK_FINISHER
+  const started = startMove(fighter, "heavy", { startup: F.startup, active: F.active, recovery: F.recovery, rangeX: F.reach, rangeY: F.height, hitstun: F.hitstun, knockbackX: F.kbX, knockbackY: F.kbY, category: "heavy" })
+  if (!started) return false
+  fighter.currentAttack._comebackFinisher = true
+  fighter.currentAttack.damage = comebackFinisherDamage(fighter)                  // fixed EFFECTIVE number (override target)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F.iframes)             // startup armour
+  fighter._comebackFlash = 45                                                     // sprite pop (reuses Toji's comeback-flash field)
+  fighter.vx = fighter.facing * 7                                                 // lunge in
+  try { sound?.play?.(SFX?.COUNTER_HIT || SFX?.HIT_HEAVY || SFX?.HIT_LIGHT) } catch (_) {}
   return true
 }
 
@@ -1247,6 +1313,31 @@ function applyMadaraLowHealthVoice(defender) {
   if (hp > 0 && hp <= max * MAKI_LOW_HEALTH_RATIO) {
     defender._lowHealthVoiceDone = true
     try { sound?.playSfxFile?.(pickMadaraVoice("lowHealth"), null) } catch (_) {}
+  }
+}
+// HASHIRAMA voice (audio-only, JA) — mirrors the Madara hit/offense/low-health hooks; per-technique cast
+// lines (Mokuton/TreeSummon/WoodGolem/Gates/Sealing) live on his specials/ult (abilities.js). No-op for
+// every other fighter.
+function applyHashiramaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "hashirama" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickHashiramaVoice("hitReact"), null) } catch (_) {}
+}
+function applyHashiramaOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "hashirama" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickHashiramaVoice("combatBark"), null) } catch (_) {}
+}
+function applyHashiramaLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "hashirama" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * MAKI_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickHashiramaVoice("lowHealth"), null) } catch (_) {}
   }
 }
 // PAIN voice (audio-only, JA) — mirrors the Madara hit/offense/low-health hooks; per-technique cast lines
@@ -2250,6 +2341,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // NEZUKO — Blood Demon Slumber vulnerability: while asleep (healing) she takes BONUS damage (risk/reward).
   if (defender._nzSlumberVuln) dmg = Math.floor(dmg * 1.5)
 
+  // COMEBACK FINISHER: fixed EFFECTIVE damage — override AFTER combo/counter/slumber modifiers so the
+  // once-per-match desperation hit lands the exact capped number (~340-380 band; see BALANCE_AUDIT).
+  // `atk.damage` was stamped with comebackFinisherDamage() in tryComebackFinisher. Block still chips below.
+  if (atk._comebackFinisher) dmg = Math.max(0, Math.floor(atk.damage || 0))
+
   // UNBLOCKABLE (atk.unblockable) — a DELIBERATE, per-move exception to the guard system: the block
   // branch is skipped entirely so the hit lands FULL even against a held guard (Zenitsu's dash-through
   // Ultimate). Not "high damage that punishes through block" — the block-check itself is bypassed.
@@ -2426,6 +2522,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     // MIWA hit-reaction voice — "Crap!" / "That was close!" (JP dub).
     applyMiwaHitVoice(defender, cat, dmg)
     applyMadaraHitVoice(defender, cat, dmg)
+    applyHashiramaHitVoice(defender, cat, dmg)
     applyPainHitVoice(defender, cat, dmg)
     applyObitoHitVoice(defender, cat, dmg)
     // ICHIGO hit-reaction voice — "Seriously?" / "That was close!" / "Damn!" (JA).
@@ -2454,7 +2551,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       try { sound?.play?.(_hitSound(atk, false)) } catch (_) {}
     }
 
-    applyScaledDamage(defender, dmg, { scale: 1, source: "melee" })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point
+    const _hudBig = !!(atk?.isUltimate || atk?.isSpecial) || cat === "heavy" || cat === "launcher" || cat === "spike"
+    applyScaledDamage(defender, dmg, { scale: 1, source: "melee", tier: _hudBig ? "big" : "light" })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point
     applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
@@ -2473,6 +2571,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyYujiLowHealthVoice(defender)   // Yuji "It's not over yet!" / "I won't lose!" (once, crossing 30%)
     applyMiwaLowHealthVoice(defender)   // Miwa "I can't lose!" / "I won't give up yet!" (once, crossing 30%)
     applyMadaraLowHealthVoice(defender)   // Madara low-health bark (once, crossing the line)
+    applyHashiramaLowHealthVoice(defender)   // Hashirama low-health bark (once, crossing the line)
     applyPainLowHealthVoice(defender)   // Pain low-health bark (once, crossing the line)
     applyObitoLowHealthVoice(defender)   // Obito low-health bark (once, crossing the line)
     applyIchigoLowHealthVoice(defender)   // Ichigo "It's not over yet!" / "I'll overcome it!" (once, crossing 30%)
@@ -2590,6 +2689,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyYujiOffenseVoice(attacker, cat, !defender.isBlocking)     // Yuji combat bark (+ Divergent Fist "Divergent!") on a heavy/long-string connect (Y specials + Black Flash use their own cast lines)
   applyMiwaOffenseVoice(attacker, cat, !defender.isBlocking)     // Miwa combat bark on a heavy/long-string connect (iaiDash/airVortex/ultimate use their own cast lines)
   applyMadaraOffenseVoice(attacker, cat, !defender.isBlocking)   // Madara combat bark on a heavy/long-string connect (specials/ult use their own cast lines)
+  applyHashiramaOffenseVoice(attacker, cat, !defender.isBlocking)   // Hashirama combat bark on a heavy/long-string connect (specials/ult use their own cast lines)
   applyPainOffenseVoice(attacker, cat, !defender.isBlocking)   // Pain combat bark on a heavy/long-string connect (specials/ult use their own cast lines)
   applyObitoOffenseVoice(attacker, cat, !defender.isBlocking)   // Obito combat bark on a heavy/long-string connect (specials/ult/Kamui use their own cast lines)
   applyTobiOffenseVoice(attacker, cat, !defender.isBlocking)    // Tobi combat bark on a heavy/long-string connect (specials/ult use their own cast lines; own pool, no Obito coupling)
@@ -2812,6 +2912,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
     if (!proj) continue
     if (proj.visualOnly) continue   // pure FX (e.g. AOE ring bloom) — never collides
     if (proj.returning) continue    // a retracting boomerang (Killua yo-yo) already hit — return trip is visual-only
+    if (proj.persist && proj._struck) continue   // a lingering hazard (Hashirama tree) already dealt its one hit — now just stands
     if (proj.hitDelay && (proj.age || 0) < proj.hitDelay) continue   // startup: a stationary ground hazard (Madara Wood Spike) RISES for `hitDelay` frames before it can strike
 
     for (const fighter of (fighters || []).filter(Boolean)) {
@@ -2975,6 +3076,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // (updateProjectiles homes it back to the owner) and stop it colliding. Ordinary projectiles
       // are consumed on hit as before.
       if (proj.boomerang) { proj.returning = true; break }
+      if (proj.persist) { proj._struck = true; break }   // lingering hazard (Hashirama tree): hit once, keep standing for its lifetime
       projectiles.splice(i, 1)
       break
     }

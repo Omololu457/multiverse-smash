@@ -7,9 +7,12 @@
 // pauses during a nested inner ultimate: while any cinematic runs, updatePlayerCombat (which drains the
 // vessel's energy) never runs.
 //
-// ACTIVATION ("in"):  jump-to-edge → hand-seals → a GIANT summoning coffin rises → it opens revealing
-//   the vessel's idle → onResolve (the body-swap) → the coffin CLOSES (the rise frames in REVERSE) →
-//   camera settles → control hands to the vessel.
+// ACTIVATION ("in"):  jump-to-edge → hand-seals → a towering summoning tomb ERUPTS in front (non-linear
+//   ease-out rise) → a black void opens + slides down its face → the vessel emerges as a SLOW-BURN
+//   silhouette → full reanimated color at its OWN normal scale → onResolve (the body-swap) → the tomb
+//   CLOSES (the rise frames in REVERSE) → camera settles → control hands to the vessel.
+//   (These beats mirror Hashirama's own pillar-rise → pillar-open intro; the tomb art already encodes the
+//    rise + void-opening, so the cinematic just eases/times it and fades the vessel silhouette→color.)
 // END ("out"):        camera pans onto the vessel → the coffin rises → the vessel runs back inside →
 //   onResolve (revert to Tobirama) → the coffin closes → settle → control reverts to Tobirama.
 //
@@ -151,8 +154,11 @@ export function drawEdoTenseiCinematic(ctx, canvas) {
   // dark summoning vignette (subtle — both fighters still read)
   ctx.save(); ctx.globalAlpha = 0.34; ctx.fillStyle = "#0a0d14"; ctx.fillRect(0, 0, cw, ch); ctx.restore()
 
-  const coffinX = casterSX + face * cw * 0.16
-  const coffinH = ch * 0.62                        // GIANT — a towering tomb, far bigger than a prop
+  // The tomb rises a clear step IN FRONT of Tobirama (in his facing direction) so he stays visible beside it.
+  const coffinX = casterSX + face * cw * 0.19
+  // A towering tomb — taller than the emerging vessel so it reads as a coffin they step OUT of — but NOT
+  // screen-dominating (the old ch*0.62 read as an oversized black slab that swallowed the frame).
+  const coffinH = ch * 0.46
   const img = _img(COFFIN.src)
 
   if (cine.mode === "in") {
@@ -163,15 +169,24 @@ export function drawEdoTenseiCinematic(ctx, canvas) {
     }
     if (f >= IN.RISE - 6) {
       const closing = f >= IN.CLOSE
+      // phaseP drives the coffin SHEET (frames 0→5 rising, 6→9 the black void opening + sliding down the
+      // face). Eased so the void-opening beats read the same way Hashirama's own pillar-open intro does.
       const phaseP = closing ? (f - IN.CLOSE) / (IN.TOTAL - IN.CLOSE)
                              : Math.min(1, (f - (IN.RISE - 6)) / (IN.REVEAL - (IN.RISE - 6)))
-      const riseUp = Math.min(1, (f - (IN.RISE - 6)) / 22)          // slides up out of the ground
+      // NON-LINEAR growth: fast initial rise out of the ground, easing as it nears full height (ease-out
+      // cubic) — a heavy tomb erupting then settling, not a linear slide.
+      const rt = Math.min(1, (f - (IN.RISE - 6)) / 26)
+      const riseUp = closing ? 1 : (1 - Math.pow(1 - rt, 3))
       const cy = groundSY - coffinH / 2 * riseUp
       _drawSprite(ctx, img, COFFIN, _coffinFrame(phaseP, closing), coffinX, cy, coffinH, face)
-      // vessel idle revealed IN FRONT of the opened coffin's dark interior (REVEAL → SWAP). Drawn at
-      // NORMAL fighter scale (the vessel's real sprite height mapped to the cinematic zoom) — NOT resized
-      // to fill the giant coffin — so it reads at the same size it'll be once control hands over.
-      if (!closing && f >= IN.REVEAL - 24 && cine.vesselKey) _drawVesselIdle(ctx, coffinX, groundSY, _vesselNormalH(ch), -face)
+      // vessel revealed emerging FROM the opened coffin's dark void (REVEAL → SWAP). Drawn at the vessel's
+      // OWN NORMAL scale (its real sprite height mapped to the cinematic zoom — see _vesselNormalH) — NEVER
+      // resized to fill the giant tomb — and faded in as a SLOW-BURN silhouette → full reanimated color, so
+      // it reads at the exact size + look it'll have once control hands over.
+      if (!closing && f >= IN.REVEAL - 24 && cine.vesselKey) {
+        const revealP = Math.max(0, Math.min(1, (f - (IN.REVEAL - 24)) / 30))   // slow-burn: silhouette → color
+        _drawVesselIdle(ctx, coffinX, groundSY, _vesselNormalH(ch), face, revealP)
+      }
     }
   } else {
     // END — coffin rises, vessel runs in, coffin closes.
@@ -194,20 +209,26 @@ function _vesselNormalH(ch) {
   return Math.min(ch * 0.34, Math.max(ch * 0.14, idleH * scale * CINE_ZOOM))
 }
 
-function _drawVesselIdle(ctx, cx, groundSY, dh, flip) {
+function _drawVesselIdle(ctx, cx, groundSY, dh, flip, revealP = 1) {
   const key = cine.vesselKey
   const idle = characters[key]?.animationData?.idle
   if (!idle?.sheet) return
-  // Part 2 — the vessel rises already REANIMATED, matching the in-match body-swap: its OWN base art washed in
-  // the sickly green-gray "reanimated corpse" tint (mirrors EDO_REANIM_TINT in sprite.js — kept in sync here).
   const img = _img(idle.sheet)
   const sheet = { w: idle.width || 48, h: idle.height || 90, frames: idle.frames || 1 }
   const fi = Math.floor(cine.frame / 8) % sheet.frames
   const scale = dh / sheet.h, dw = sheet.w * scale
   if (!img.complete || img.naturalWidth === 0) return
-  ctx.save(); ctx.globalAlpha = 0.96
-  ctx.filter = "grayscale(0.82) sepia(0.45) hue-rotate(55deg) saturate(0.72) brightness(1.07) contrast(0.92)"
-  ctx.translate(cx, groundSY - dh / 2); ctx.scale(flip, 1)
+  const p = Math.max(0, Math.min(1, revealP))
+  // SLOW-BURN REVEAL (mirrors Hashirama's own pillar-open silhouette→color emergence): early on the vessel
+  // is a near-black silhouette rising out of the void; it lifts into its final REANIMATED look (the sickly
+  // green-gray corpse tint, EDO_REANIM_TINT in sprite.js) as p → 1. Interpolating the filter from a
+  // desaturated dark silhouette to the reanim tint gives the "building into full color" beat.
+  const bright = 0.06 + 0.94 * p            // 0.06 ≈ black silhouette → 1.0 full
+  const sat    = 0.05 + 0.67 * p            // flat silhouette → reanim saturation (0.72)
+  const emerge = (1 - p) * dh * 0.18        // starts sunk into the void, rises to stand on the ground
+  ctx.save(); ctx.globalAlpha = 0.4 + 0.56 * p
+  ctx.filter = `grayscale(${1 - 0.18 * p}) sepia(${0.45 * p}) hue-rotate(${55 * p}deg) saturate(${sat}) brightness(${bright}) contrast(0.92)`
+  ctx.translate(cx, groundSY - dh / 2 + emerge); ctx.scale(flip, 1)
   ctx.drawImage(img, fi * sheet.w, 0, sheet.w, sheet.h, -dw / 2, -dh / 2, dw, dh)
   ctx.restore()
 }

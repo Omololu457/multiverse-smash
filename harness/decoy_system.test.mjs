@@ -1,7 +1,8 @@
 // harness/decoy_system.test.mjs — canonical regression for the SHADOW CLONE DECOY SYSTEM.
-// Covers, for BOTH Naruto and Minato (shared logic): independent clone movement, the visual-tell
-// rendering flag + no-tell toggle, and the always-on hit-reveal rule (melee + projectile poof a
-// clone; a hit on the real fighter deals real damage), incl. hit-reveal working with the tell OFF.
+// Covers, for BOTH Naruto and Minato (shared logic): independent clone movement, the ZERO-TELL
+// standing-clone design (indistinguishable by default; the wash is a debug-only lever), and the
+// always-on hit-reveal rule (melee + projectile poof a clone; a hit on the real fighter deals real
+// damage), incl. hit-reveal working with the tell OFF (i.e. always).
 import { chromium } from "playwright";
 import http from "node:http";
 import fs from "node:fs";
@@ -47,7 +48,7 @@ async function boot(charKey) {
 }
 async function prep(gap = 150) {
   await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && !p.currentMove; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
-  await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); window.__harness.setP2Invuln?.(0); window.__harness.dispelP1Clones?.(); window.__harness.setCloneTell?.(true); });
+  await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); window.__harness.setP2Invuln?.(0); window.__harness.dispelP1Clones?.(); window.__harness.setCloneTell?.(false); });
   const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + gap); await waitFrames(2);
 }
 
@@ -65,14 +66,15 @@ async function suite(charKey) {
   const d1 = Math.abs(avg(await cloneXs()) - oppX);
   check(`${charKey}: clones move independently toward the opponent`, d1 < d0 - 40, `dist ${d0.toFixed(0)}→${d1.toFixed(0)}`);
 
-  // 2. Visual tell default ON + no-tell toggle (F6) both ways.
+  // 2. STANDING CLONE = ZERO TELL by default (confirmed design: pixel-identical, no wash). The
+  //    setCloneTell wash survives only as a training/debug lever — assert it still flips both ways.
   await prep();
-  check(`${charKey}: visual tell ON by default`, (await tell()) === true);
-  await pressKey("F6");
-  check(`${charKey}: F6 removes the tell (no-tell mode)`, (await tell()) === false);
+  check(`${charKey}: NO visual tell by default (clone is indistinguishable)`, (await tell()) === false);
+  await page.evaluate(() => window.__harness.setCloneTell(true));   // debug lever ON
+  check(`${charKey}: debug tell lever turns the wash ON`, (await tell()) === true);
+  await page.evaluate(() => window.__harness.setCloneTell(false));  // back to the design default
+  check(`${charKey}: debug tell lever turns the wash OFF`, (await tell()) === false);
   const tellOffForReveal = await tell();
-  await pressKey("F6");
-  check(`${charKey}: F6 restores the tell`, (await tell()) === true);
 
   // 3. Hit-reveal — MELEE poofs a clone.
   await prep(120);
@@ -100,7 +102,7 @@ async function suite(charKey) {
   const nBefore = await page.evaluate(() => window.__harness.p2ProjectileAtClone());
   await waitFrames(32);
   check(`${charKey}: hit-reveal works with the tell OFF`, nBefore >= 1 && (await clones()) === nBefore - 1, `tell=${tellOffForReveal}, count ${nBefore}→${await clones()}`);
-  await page.evaluate(() => window.__harness.setCloneTell?.(true));
+  await page.evaluate(() => window.__harness.setCloneTell?.(false));
 
   // 6. A hit on the REAL fighter deals real damage (no clones present) and never poofs.
   await prep(60);

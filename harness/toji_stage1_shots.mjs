@@ -75,11 +75,11 @@ await boot();
 await page.keyboard.down("d"); await sleep(28); await page.keyboard.up("d");
 await sleep(60);
 await page.keyboard.down("d"); await sleep(28); await page.keyboard.up("d");
-let blur = 0, sheet = null;
-for (let i = 0; i < 16; i++) { const p = await P1(); if (p.speedBlur > 0) { blur = p.speedBlur; sheet = p.spriteSheet; break; } await sleep(16); }
-if (blur > 0 && !sheet) sheet = (await P1()).spriteSheet;
-ok(blur > 0, `double-tap toward → teleport spin/blur fires (_speedBlur=${blur})`);
-ok(sheet && sheet.includes("toji_"), `teleport-blur uses HIS OWN sprite, not an FX overlay (${sheet})`);
+let flash = 0, sheet = null;
+for (let i = 0; i < 16; i++) { const p = await P1(); flash = Math.max(flash, p.teleportFlash); if (p.castMove === "dash" || p.action === "dash") sheet = p.spriteSheet; if (flash > 0 && sheet) break; await sleep(16); }
+if (flash > 0 && !sheet) sheet = (await P1()).spriteSheet;
+ok(flash > 0, `double-tap toward → teleport-dash fires (teleportFlash=${flash})`);
+ok(sheet && sheet.includes("toji_"), `teleport-dash uses HIS OWN sprite, not an FX overlay (${sheet})`);
 await page.screenshot({ path: path.join(OUT, "toji_s1_teleport.png") });
 
 console.log(`\n${pass} PASS / ${fail} FAIL` + (errors.length ? `\nERRORS:\n${errors.slice(0,6).join("\n")}` : "\nno page errors"));

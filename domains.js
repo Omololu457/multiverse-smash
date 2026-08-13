@@ -252,6 +252,15 @@ export function updateDomains(fighters = [], hitEffects = []) {
           sound?.play?.(SFX.HIT_HEAVY)
           if (fighter.health <= 0) sound?.play?.(SFX.KO)
         }
+      } else if (domain.rosterKey === "hashirama") {
+        // HASHIRAMA "Sealing Jutsu" = a Gojo-model TRAP. The sealed opponent is FROZEN (locked pose,
+        // can't move/act) but NOT untouchable — so the caster AND the Naruto/Minato/Tobirama cameo
+        // assists (hashiramaSealingJutsuCinematic overlay) both land hits on the trapped foe. NO tick
+        // damage here: the guaranteed offense is the overlay's looping cameo strikes + the caster's own
+        // free attacks. Gravity untouched (an airborne foe still falls, then holds the pose).
+        fighter.domainFrozen = true
+        fighter.hitstun = Math.max(fighter.hitstun || 0, 4)   // continuously re-applied → can't act
+        fighter.vx = 0
       } else if (domain.rosterKey === "megumi") {
         fighter.vx = (fighter.vx || 0) * domain.speedPenalty
         fighter.vy = (fighter.vy || 0) * Math.max(0.85, domain.speedPenalty)
@@ -314,6 +323,9 @@ export function drawDomainBackground(ctx, canvas, groundY, floorHeight) {
       break
     case "megumi":
       _drawChimeraShadowGarden(ctx, cw, ch)
+      break
+    case "hashirama":
+      _drawSealingDomain(ctx, cw, ch)
       break
     default:
       _drawGenericDomain(ctx, cw, ch, domain)
@@ -554,6 +566,33 @@ function _drawChimeraShadowGarden(ctx, cw, ch) {
   })
 
   _drawDomainLabel(ctx, cw, ch, "Chimera Shadow Garden", "#a78bfa")
+}
+
+// HASHIRAMA "Sealing Jutsu" domain — the bespoke red sealing-barrier backdrop (hashirama_sealing_box.png),
+// cover-fit over the whole viewport, with a dark seal vignette + subtle drift so it reads as an enclosed
+// space (not a flat still). Falls back to a procedural deep-red field if the art hasn't decoded yet.
+let _sealBoxImg = null, _sealBoxTried = false
+function _drawSealingDomain(ctx, cw, ch) {
+  if (!_sealBoxTried && typeof Image !== "undefined") {
+    _sealBoxTried = true
+    const im = new Image(); im.src = "./hashirama_sealing_box.png"; _sealBoxImg = im
+  }
+  // base deep-red field (always drawn → never blank while the image decodes)
+  const g = ctx.createLinearGradient(0, 0, 0, ch)
+  g.addColorStop(0, "#2a0505"); g.addColorStop(0.5, "#4a0808"); g.addColorStop(1, "#140202")
+  ctx.fillStyle = g; ctx.fillRect(0, 0, cw, ch)
+  // the sealing-box art, cover-fit, with a slow breathing pulse
+  if (_sealBoxImg && _sealBoxImg.complete && _sealBoxImg.naturalWidth > 0) {
+    const pulse = 0.82 + 0.08 * Math.sin(performance.now() * 0.0018)
+    ctx.save(); ctx.globalAlpha = pulse
+    _coverDraw(ctx, _sealBoxImg, _sealBoxImg.naturalWidth, _sealBoxImg.naturalHeight, cw, ch)
+    ctx.restore()
+  }
+  // seal vignette — darken the edges so the trap reads as an enclosed cage
+  const vg = ctx.createRadialGradient(cw / 2, ch / 2, ch * 0.25, cw / 2, ch / 2, ch * 0.75)
+  vg.addColorStop(0, "transparent"); vg.addColorStop(1, "rgba(15,0,0,0.65)")
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  _drawDomainLabel(ctx, cw, ch, "Sealing Jutsu", "#ef4444")
 }
 
 function _drawGenericDomain(ctx, cw, ch, domain) {

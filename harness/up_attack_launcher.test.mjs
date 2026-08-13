@@ -51,11 +51,16 @@ function landMove(a, t, moveKey, md) {
 
 // Spec table (frames + exact velocities), straight from the project owner's Stage-1 spec.
 const SPEC = {
-  // MK-feel Stage 2a: launch height raised to a single -26 floor for the whole roster (was -11..-13);
-  // juggle gravity (Stage 1b) ramps the fall so the higher pop doesn't sail the enemy out of reach.
-  gojo: { startup: 6, active: 4, recovery: 8, enemyVy: -26, selfVy: -9, name: "Rising Palm"   },
-  maki: { startup: 4, active: 3, recovery: 6, enemyVy: -26, selfVy: -8, name: "Rising Kick"    },
-  toji: { startup: 5, active: 4, recovery: 9, enemyVy: -26, selfVy: -9, name: "Ascension Slash" },
+  // Combo-room pass: the flat -26 floor is gone — per-archetype launchVy is LIVE again and raised for
+  // real air-combo room. Fast (Maki) launches LOWEST, Heavy (Toji) HIGHEST; juggle gravity (Stage 1b)
+  // ramps the fall so the higher pops don't sail the enemy out of reach.
+  //   Fast/GC -30 · Balanced -32 · Heavy -33 · Heavy-tank -34   (floor -30 = un-tuned baseline).
+  gojo: { startup: 6, active: 4, recovery: 8, enemyVy: -32, selfVy: -9, name: "Rising Palm"   },  // Balanced
+  maki: { startup: 4, active: 3, recovery: 6, enemyVy: -30, selfVy: -8, name: "Rising Kick"    },  // Fast/GC — LOWEST launch (lightest)
+  // Toji's UP-ATTACK is Balanced-tier (-32); his signature high-launch is the Ascension Slash *special*,
+  // not this normal. The roster's HIGHEST up-attack launchers are the Heavy tier (Cell -33) and Heavy-tank
+  // (Superman/Hulk -34) — see up_attack_roster.test.mjs for the full per-archetype spread.
+  toji: { startup: 5, active: 3, recovery: 7, enemyVy: -32, selfVy: -8, name: "Ascension Slash" }, // Balanced up-attack
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

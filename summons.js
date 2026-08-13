@@ -6,7 +6,7 @@
 // combat.js imports only physics + sound → no cycle back to summons.
 import { getAttackHitbox, getHurtbox, rectsOverlap, attackIsActive, applyScaledDamage } from "./combat.js"
 import { physics } from "./physics.js" // clones fall + rest on the floor via the SAME applyGravity fighters use
-import { sound } from "./sound.js"   // one-shot clone spawn/despawn SFX (playSfxFile)
+import { sound, SFX } from "./sound.js"   // one-shot clone spawn/despawn + strike SFX
 
 export const activeSummons = []
 
@@ -368,7 +368,7 @@ export function updateSummons() {
     if (s.id === "shadowClone") {
       const r = updateShadowClone(s)
       if (r === "destroy") {
-        loseCloneShare(s.owner); spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)
+        loseCloneShare(s.owner); spawnCloneDespawnFx(s, "destroy")   // killed by a hit → destroy FX (Tobirama: water BURST)
         if (s.owner?.rosterKey === "naruto") sound.playSfxFile("naruto_clone_cancel.mp3", null)  // DESPAWN (hit → poof) cue
         activeSummons.splice(i, 1)
       }
@@ -406,6 +406,9 @@ export function updateSummons() {
   }
 
   tickClonePuffs()   // advance/expire the cosmetic clone spawn/dispel smoke
+  tickWoodReleaseFx()   // advance/expire Hashirama wood-clone log-dispersal despawn FX
+  tickWaterCloneFx()    // advance/expire Tobirama water-clone despawn FX (burst/ripple)
+  tickCloneStrikeFx()   // advance/expire clone lunge-strike impact sparks
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -580,17 +583,7 @@ function _summonImg(src) {
   return img
 }
 
-let _cloneDbgFrame = 0
 export function drawSummons(ctx) {
-  // [DEBUG-CLONE 2] once per ~second: is the entity still in the SAME array the draw
-  // loop iterates, or did something clear it? Also reports how many are shadowClones
-  // and how many are currently _hidden (spawn-poof) vs visible.
-  if (++_cloneDbgFrame % 60 === 0) {
-    const clones = activeSummons.filter(s => s.id === "shadowClone")
-    console.log("[DEBUG-CLONE] 2 DRAW TICK — activeSummons.length =", activeSummons.length,
-      "shadowClones =", clones.length, "hidden =", clones.filter(s => s._hidden).length,
-      "states =", clones.map(s => s._state))
-  }
   for (const s of activeSummons) {
     if (s.id === "shadowClone" && s._hidden) continue   // body stays hidden under the spawn smoke
 
@@ -626,7 +619,7 @@ export function drawSummons(ctx) {
       // DECOY VISUAL TELL: clones get the subtle chakra-construct wash (unless no-tell mode is on).
       // Applies to the clone sprite draw only; ctx.restore() below clears the filter.
       if (s.id === "shadowClone" && _cloneTellEnabled) ctx.filter = CLONE_TELL_FILTER
-      ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      ctx.drawImage(img, (s.spriteSourceX || 0) + fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
       ctx.restore()
       continue
     }
@@ -673,6 +666,9 @@ export function drawSummons(ctx) {
   }
 
   drawClonePuffs(ctx)   // clone spawn/dispel smoke, on top of the bodies
+  drawWoodReleaseFx(ctx)   // Hashirama wood-clone log dispersal, on top of the bodies
+  drawWaterCloneFx(ctx)    // Tobirama water-clone burst/ripple despawn FX, on top of the bodies
+  drawCloneStrikeFx(ctx)   // clone lunge-strike impact sparks
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -692,7 +688,14 @@ export function clearSummons() {
 // clone-specific update/draw path (no rush, no auto-attack, no lifetime expiry).
 // No independent AI yet — clones only mirror the owner.
 // ═══════════════════════════════════════════════════════════════════
-const CLONE_CAP  = 3                          // max simultaneous clones (spawn past cap = no-op)
+// PER-CHARACTER CLONE CAPACITY TIERS (spawn past cap = no-op). Personality-tuned:
+//   HIGH  — Naruto (shadow-clone volume is his identity) & Hashirama (Mokuton mastery / area control).
+//   LOWER — Minato: precision over volume — a few precisely-placed Flying-Raijin clones, never a swarm.
+//   MID   — Tobirama: a technical genius (his kit is precise water jutsu + body-flicker), between the two.
+const CLONE_CAP_DEFAULT = 3
+const CLONE_CAP_BY_KEY = { naruto: 4, hashirama: 4, minato: 2, tobirama: 3 }
+function cloneCap(owner) { return CLONE_CAP_BY_KEY[String(owner?.rosterKey || "").toLowerCase()] ?? CLONE_CAP_DEFAULT }
+export function getCloneCap(owner) { return cloneCap(owner) }   // harness / HUD
 const CLONE_W = 70, CLONE_H = 120            // clone hurtbox = the destruction box
 const CLONE_POOF_FRAMES = 16                 // spawn/despawn smoke duration (matches clonePuff lifetime)
 const CLONE_HURT_FRAMES = 24                 // frames the hit-recoil pose plays before the clone poofs out
@@ -701,13 +704,38 @@ const CLONE_HURT_FRAMES = 24                 // frames the hit-recoil pose plays
 // is the mind-game + the always-on hit-reveal rule. Shared by Naruto & Minato (one updateShadowClone).
 const CLONE_MOVE_SPEED = 3                   // px/frame walk speed (readable, below a fighter's dash)
 const CLONE_HOLD_DIST  = 96                  // stop this far (center-to-center) from the opponent
-// DECOY VISUAL TELL (Stage 3): clones render with a subtle, CONSISTENT chakra-construct wash
-// (desaturated + slightly brighter/cooler) so a practiced eye can pick them out from the real fighter
-// — who is drawn by the normal fighter renderer and never gets this filter. It is deliberately subtle
-// (learnable, not flashing). The no-tell escalation mode (Stage 4) flips _cloneTellEnabled to false.
-// The hit-reveal rule below is INDEPENDENT of this flag — a hit always poofs a clone in either mode.
+
+// ── CLONE BEHAVIOR AI (shared by ALL clone chars — one system, not four) ──────────────────────────
+// A spawned clone is an ACTIVE threat, not a prop: it ADVANCES toward the opponent, LUNGE-STRIKES on a
+// cadence (real modest damage), then RETREATS and re-spaces — an approach→strike→retreat dance the
+// opponent must actually respect. Still dies in ONE hit (hit-reveal below) and costs the chakra-split,
+// so it's a fair, self-limiting pressure tool (cap 3). All tunables here; balance = modest per-hit,
+// gated by a cooldown, blockable, and destroyable.
+const CLONE_ATK_RANGE    = 120   // center-to-center: approach to here, then strike
+const CLONE_ATK_WINDUP   = 9     // frames of wind-up before the strike lands
+const CLONE_ATK_STRIKE   = 8     // active lunge frames (hitbox live)
+const CLONE_ATK_RECOVER  = 14    // recovery — the clone steps BACK to re-space
+const CLONE_ATK_COOLDOWN = 42    // frames between attacks (~0.7s idle gap → whole cycle ≈ 1.2s)
+const CLONE_ATK_DMG      = 16    // RAW per strike (→ ~10 EFF through the ×0.60 choke-point); modest by design
+const CLONE_LUNGE_SPEED  = 7     // forward dash speed during the strike
+const CLONE_ATK_REACH    = 86    // strike hitbox reach in front of the clone
+let _cloneAggroEnabled = true    // master toggle (training/tests) — off = the old approach-and-hold decoy
+export function setCloneAggro(on) { _cloneAggroEnabled = !!on }
+export function isCloneAggro() { return _cloneAggroEnabled }
+// OPTIONAL per-owner SPECIAL clone attack (registered by abilities.js → no import cycle). Called once on the
+// strike beat with the clone entity; returns TRUE if it OWNS the attack (then the generic melee is skipped).
+// Hashirama uses this to erupt a Mokuton TREE at the CLONE'S position instead of a punch (reusing the real
+// tree tiers) — high capacity → many clones each planting a tree = battlefield-wide area control.
+let _cloneSpecialAttack = null
+export function setCloneSpecialAttack(fn) { _cloneSpecialAttack = (typeof fn === "function") ? fn : null }
+// STANDING CLONE = ZERO TELL (confirmed design): the standing clone is a mixup/mind-games tool FIRST,
+// so it renders GENUINELY INDISTINGUISHABLE from the real caster — same sheet, same scale, same colour,
+// no tint/outline/HUD marker. The controlling player and the opponent both track the real one by memory
+// and position only. This supersedes the old "learnable chakra-construct wash" tell, which is now OFF by
+// default; the filter + toggle survive ONLY as a training/debug lever (setCloneTell). The hit-reveal rule
+// is INDEPENDENT of this flag — a single hit always poofs a clone regardless of the tell setting.
 const CLONE_TELL_FILTER = "saturate(0.72) brightness(1.07) hue-rotate(12deg)"
-let _cloneTellEnabled = true
+let _cloneTellEnabled = false
 export function setCloneTell(on) { _cloneTellEnabled = !!on }
 export function isCloneTell() { return _cloneTellEnabled }
 
@@ -741,23 +769,110 @@ export function revealClonesHitByProjectiles(projectiles) {
 //   minato: idle = minato_idle_uniform (standing clone body), hurt = minato_hit
 //           (NOT shadow_clone_justu — that art is the CASTER's summon hand-sign; see below)
 const CLONE_BODY_SETS = {
+  // Each owner also has an `attack` pose (its own basic-attack sheet) played during the clone's
+  // autonomous lunge-strike (updateShadowClone behavior AI). Falls back to idle if ever absent.
   naruto: {
-    idle: { sheet: "./naruto_kcm_stance.png",        frames: 4, w: 36, h: 63, speed: 6, scale: 2.0 },
-    hurt: { sheet: "./naruto_kcm_taking_damage.png", frames: 4, w: 46, h: 55, speed: 6, scale: 2.0 }
+    idle:   { sheet: "./naruto_kcm_stance.png",        frames: 4, w: 36, h: 63, speed: 6, scale: 2.0 },
+    hurt:   { sheet: "./naruto_kcm_taking_damage.png", frames: 4, w: 46, h: 55, speed: 6, scale: 2.0 },
+    attack: { sheet: "./naruto_kcm_b_attack.png",      frames: 4, w: 52, h: 53, speed: 3, scale: 2.0 },
+    // VARIED clone repertoire — the clone rotates through several of Naruto's REAL normals per swing
+    // (jab → forward → up), each with its own reach/damage, instead of one canned lunge. All source-Y 0
+    // (the clone draw path can't crop source-Y), so y_attack (needs sourceY 12) is intentionally omitted.
+    attacks: [
+      { sheet: "./naruto_kcm_b_attack.png",         frames: 4, w: 52, h: 53, speed: 3, scale: 2.0, reach: 84,  dmg: 13, name: "jab" },
+      { sheet: "./naruto_kcm_b_forward_attack.png", frames: 5, w: 58, h: 47, speed: 3, scale: 2.0, reach: 100, dmg: 17, name: "forward" },
+      { sheet: "./naruto_kcm_b_up_attack.png",      frames: 7, w: 51, h: 53, speed: 3, scale: 2.0, reach: 82,  dmg: 15, name: "up" }
+    ]
   },
   minato: {
     // Clone BODY = Minato's own standing IDLE (mirrors Naruto's kcm_stance clone body). NOT the
     // shadow_clone_justu sheet — that art is the CASTER's summon hand-sign and now plays on Minato
     // himself (characters.js minatoCloneCast). Fixes "clones perform the summon gesture" bug.
-    idle: { sheet: "./minato_idle_uniform.png", frames: 4, w: 37, h: 64, speed: 6, scale: 1.7 },
-    hurt: { sheet: "./minato_hit_uniform.png",  frames: 3, w: 63, h: 42, speed: 6, scale: 1.7 }
+    idle:   { sheet: "./minato_idle_uniform.png",         frames: 4, w: 37, h: 64, speed: 6, scale: 1.7 },
+    hurt:   { sheet: "./minato_hit_uniform.png",          frames: 3, w: 63, h: 42, speed: 6, scale: 1.7 },
+    attack: { sheet: "./minato_foward_kick_uniform.png",  frames: 4, w: 59, h: 71, speed: 3, scale: 1.7 },
+    // VARIED — Minato's real normals: quick kick → spinning tornado kick → rising kunai slash.
+    attacks: [
+      { sheet: "./minato_foward_kick_uniform.png",   frames: 4, w: 59, h: 71, speed: 3, scale: 1.7, reach: 86,  dmg: 14, name: "kick" },
+      { sheet: "./minato_twornado_kick_uniform.png", frames: 8, w: 69, h: 60, speed: 3, scale: 1.7, reach: 98,  dmg: 17, name: "tornado" },
+      { sheet: "./minato_up_attack_uniform.png",     frames: 6, w: 59, h: 68, speed: 3, scale: 1.7, reach: 82,  dmg: 15, name: "up" }
+    ]
+  },
+  hashirama: {
+    // Wood-clone BODY = Hashirama's own standing IDLE — a believable decoy that looks like him (the
+    // wood_clone_intro sheet is the CASTER's forming gesture, so it plays on Hashirama, not the clone).
+    // sourceX 56 skips the idle sheet's blank cell-0 gutter (frames = the 5 real breathing cells 1..5).
+    idle:   { sheet: "./hashirama_idle_uniform.png",          frames: 5, sourceX: 56, w: 56, h: 70, speed: 6, scale: 1.55 },
+    hurt:   { sheet: "./hashirama_hit_uniform.png",           frames: 2, w: 59, h: 74, speed: 6, scale: 1.55 },
+    attack: { sheet: "./hashirama_foward_punch_uniform.png",  frames: 5, w: 76, h: 79, speed: 3, scale: 1.55 },
+    // VARIED — Hashirama's real normals: wood-fist punch → roundhouse kick → punch-combo → long straight.
+    // (His Mokuton TREE special still fires on some swings via _cloneSpecialAttack; see beginCloneSwing.)
+    attacks: [
+      { sheet: "./hashirama_foward_punch_uniform.png",  frames: 5, w: 76, h: 79, speed: 3, scale: 1.55, reach: 90,  dmg: 16, name: "punch" },
+      { sheet: "./hashirama_kick_uniform.png",          frames: 6, w: 79, h: 75, speed: 3, scale: 1.55, reach: 98,  dmg: 17, name: "kick" },
+      { sheet: "./hashirama_punch_combo_1_uniform.png", frames: 9, w: 73, h: 74, speed: 3, scale: 1.55, reach: 90,  dmg: 16, name: "combo" },
+      { sheet: "./hashirama_punch_2_uniform.png",       frames: 3, w: 76, h: 75, speed: 4, scale: 1.55, reach: 106, dmg: 15, name: "straight" }
+    ]
+  },
+  tobirama: {
+    // Water-clone BODY = Tobirama's own standing IDLE (Mizu Bunshin decoy that looks like him). The
+    // DESTROYED-by-hit dissolve vs DISMISSED dispersal are distinct water FX (spawnCloneDespawnFx).
+    idle:   { sheet: "./tobirama_idle_uniform.png",              frames: 4, w: 39, h: 90, speed: 6, scale: 1.3 },
+    hurt:   { sheet: "./tobirama_hit_uniform.png",               frames: 1, w: 84, h: 84, speed: 6, scale: 1.3 },
+    attack: { sheet: "./tobirama_foward_water_slash_uniform.png",frames: 6, w: 82, h: 85, speed: 3, scale: 1.3 },
+    // VARIED — Tobirama's real normals: water slash → combo opener → water-infused combo → low kick.
+    attacks: [
+      { sheet: "./tobirama_foward_water_slash_uniform.png", frames: 6, w: 82, h: 85, speed: 3, scale: 1.3, reach: 90, dmg: 16, name: "slash" },
+      { sheet: "./tobirama_attack_combo_1_uniform.png",     frames: 7, w: 65, h: 90, speed: 3, scale: 1.3, reach: 86, dmg: 15, name: "combo1" },
+      { sheet: "./tobirama_attack_combo_2_uniform.png",     frames: 8, w: 88, h: 89, speed: 3, scale: 1.3, reach: 98, dmg: 17, name: "combo2" },
+      { sheet: "./tobirama_low_kick_uniform.png",           frames: 4, w: 72, h: 90, speed: 3, scale: 1.3, reach: 82, dmg: 13, name: "lowkick" }
+    ]
   }
+}
+
+// SINGLE SOURCE OF TRUTH for which characters have the shadow-clone mechanic. Every clone binding (the
+// ",": create / ".": disperse hotkeys, spawnP1Clones, etc.) gates on THIS set — so the control is
+// identical across all clone characters and can never drift per-character again.
+export const CLONE_CAPABLE_KEYS = new Set(["naruto", "minato", "hashirama", "tobirama"])
+export function isCloneCapable(fighter) {
+  return !!fighter && CLONE_CAPABLE_KEYS.has(String(fighter.rosterKey || fighter.id || "").toLowerCase())
 }
 function setCloneSheet(s, mode) {
   const set = CLONE_BODY_SETS[(s.owner?.rosterKey || "").toLowerCase()] || CLONE_BODY_SETS.naruto
   const c = set[mode] || set.idle
   s.sheet = c.sheet; s.spriteFrames = c.frames; s.spriteW = c.w; s.spriteH = c.h
+  s.spriteSourceX = c.sourceX || 0                                   // leading-gutter offset (Hashirama idle cell-0 is blank)
   s.spriteSpeed = c.speed; s.spriteScale = c.scale; s._animT = 0
+}
+
+// ── VARIED CLONE ATTACKS ──────────────────────────────────────────────────────────────────────
+// The clone rotates through several of its owner's REAL normals (CLONE_BODY_SETS[owner].attacks)
+// instead of repeating one canned lunge — so it reads as an actual character throwing different
+// moves. Each move carries its own reach + damage. Rotation is DETERMINISTic (no RNG → replay-safe):
+// a per-clone swing counter offset by the clone's spawn slot, so a swarm shows different moves at once.
+function cloneAttackList(s) {
+  const set = CLONE_BODY_SETS[(s.owner?.rosterKey || "").toLowerCase()] || CLONE_BODY_SETS.naruto
+  if (Array.isArray(set.attacks) && set.attacks.length) return set.attacks
+  const a = set.attack || set.idle                                   // fallback: single legacy attack sheet
+  return [{ sheet: a.sheet, frames: a.frames, w: a.w, h: a.h, speed: a.speed, scale: a.scale, sourceX: a.sourceX || 0, reach: CLONE_ATK_REACH, dmg: CLONE_ATK_DMG, name: "attack" }]
+}
+function applyCloneAttackSheet(s, m) {
+  s.sheet = m.sheet; s.spriteFrames = m.frames; s.spriteW = m.w; s.spriteH = m.h
+  s.spriteSourceX = m.sourceX || 0                                   // source-Y is fixed 0 in the clone draw path (see draw loop)
+  s.spriteSpeed = m.speed; s.spriteScale = m.scale; s._animT = 0
+}
+// Begin one swing: pick the next varied melee move, apply its sheet, and decide whether THIS swing is
+// the owner's SPECIAL clone attack (Hashirama's Mokuton tree) instead of melee. The tree is Hashirama's
+// signature area-control identity, so it ALTERNATES with melee (odd swings = tree, even = varied punch/
+// kick/combo) — frequent enough to stay his, but no longer the ONLY thing his clone ever does.
+// Non-Hashirama owners have no special (fn self-guards → false) → they always do the varied melee.
+function beginCloneSwing(s) {
+  const list = cloneAttackList(s)
+  const idx = (((s._slot || 0) + (s._swing || 0)) % list.length + list.length) % list.length
+  s._swing = (s._swing || 0) + 1
+  s._atkMove = list[idx]
+  applyCloneAttackSheet(s, s._atkMove)
+  s._wantSpecial = !!_cloneSpecialAttack && ((s._swing % 2) === 1)   // Hashirama tree on alternating swings; melee otherwise
 }
 
 export function countShadowClones(owner) {
@@ -785,12 +900,21 @@ const CLONE_SUMMON_WINDOW_FRAMES = 273   // 4.55s @60fps — full clip length (t
 const CLONE_SUMMON_POOF_FRAMES   = 147   // 2.45s @60fps — poof transient (visual spawn sync point)
 const pendingCloneSpawns = []            // first-press spawns delayed to the poof; ticked in updateSummons
 
+// Per-character clone-forming CASTER gesture, played on the summoner when they create a clone (any path,
+// i.e. the standardized "," hotkey). Centralized here so the flair survives now that the old per-character
+// directional spawn routes are gone. Naruto has none (its summon is audio-synced, no dedicated pose).
+const CLONE_CAST_POSE = { minato: "minatoCloneCast", hashirama: "woodCloneCast" }
+
 export function summonShadowClone(owner, target, opts = {}) {
   if (!owner) return false
+  // Caster's summon gesture (flair) — moved here from the removed D→F / double-QCF routes so it plays on
+  // the "," spawn too. Set on every press (harmless to re-assert); Naruto has no entry.
+  const _castPose = CLONE_CAST_POSE[String(owner.rosterKey || "").toLowerCase()]
+  if (_castPose) { owner._spriteCastMove = _castPose; owner._spriteCastTimer = 16 }
   // REPEAT inside an active window → spawn NOW, silently (no audio, no camera beat).
   if ((owner._cloneSummonWindow || 0) > 0) return !!spawnShadowClone(owner, target)
   // FIRST press: already at cap → nothing at all (preserves existing behavior; no audio/window).
-  if (countShadowClones(owner) >= CLONE_CAP) return false
+  if (countShadowClones(owner) >= cloneCap(owner)) return false
   // Open the window and run the caller's short camera beat.
   owner._cloneSummonWindow = CLONE_SUMMON_WINDOW_FRAMES
   const hasSummonAudio = owner.rosterKey === "naruto"
@@ -812,7 +936,7 @@ export function summonShadowClone(owner, target, opts = {}) {
 // the "cost" is the split (each new body lowers everyone's share). Puffs on spawn.
 export function spawnShadowClone(owner, target, spawnAt = null) {
   if (!owner) return null
-  if (countShadowClones(owner) >= CLONE_CAP) return null   // CAP behavior: do nothing
+  if (countShadowClones(owner) >= cloneCap(owner)) return null   // per-char CAP behavior: do nothing
   const facing = owner.facing || 1
   const slot = countShadowClones(owner)   // 0,1,2 as bodies are added → staggers spawn + hold so decoys don't stack
   const s = {
@@ -850,7 +974,7 @@ export function dispelShadowClones(owner) {
   for (let i = activeSummons.length - 1; i >= 0; i--) {
     const s = activeSummons[i]
     if (s && s.id === "shadowClone" && s.owner === owner) {
-      spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)
+      spawnCloneDespawnFx(s, "dispel")   // dismissed on purpose → dispel FX (Tobirama: water RIPPLE)
       activeSummons.splice(i, 1); n++
     }
   }
@@ -870,7 +994,7 @@ export function consumeShadowClones(owner, n = 1) {
     const s = activeSummons[i]
     if (s && s.id === "shadowClone" && s.owner === owner) {
       loseCloneShare(owner)                          // lose this body's share (lossy, like a hit)
-      spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)   // poof
+      spawnCloneDespawnFx(s, "consume")                // spent as combo cost → consume FX (Tobirama: water RIPPLE)
       spots.push({ x: s.x, y: s.y, w: s.w, h: s.h })
       activeSummons.splice(i, 1)
     }
@@ -878,9 +1002,10 @@ export function consumeShadowClones(owner, n = 1) {
   return spots
 }
 
-// Per-frame clone logic — a STATIC, non-damaging DECOY. No follow, no mimic, no
-// attacks; it just stands and can be hit once. Lifecycle:
-//   spawn-poof (body hidden) → idle loop → (hit) hurt-recoil → poof → removed.
+// Per-frame clone logic — an ACTIVE, VARIED combatant (not a static decoy): it advances, then
+// rotates through several of its owner's REAL normals (beginCloneSwing → CLONE_BODY_SETS.attacks),
+// each with its own reach/damage, and still dies in one hit. Lifecycle:
+//   spawn-poof (body hidden) → approach/varied-strike loop → (hit) hurt-recoil → poof → removed.
 // Returns "destroy" (poof + lose share, fired at the END of the hurt pose),
 // "remove" (owner gone), or null.
 function updateShadowClone(s) {
@@ -908,15 +1033,61 @@ function updateShadowClone(s) {
     return null
   }
 
-  // IDLE — INDEPENDENT MOVEMENT: approach-and-hold. Walk toward the opponent, stop at CLONE_HOLD_DIST
-  // so the clone pressures/reads as a real mobile threat (reuses the assist-summon movement math).
-  // No damage or physical collision — the threat is the decoy mind-game + the hit-reveal rule below.
-  if (enemy) {
+  // ── ACTIVE BEHAVIOR AI (shared across all clone chars) — advance → LUNGE-STRIKE → retreat/re-space. ──
+  // A real, self-limiting tactical threat: modest damage on a cooldown, blockable, and it still dies in one
+  // hit (the reveal rule below). Aggro OFF (setCloneAggro / opponent eliminated) → the old approach-and-hold.
+  if (enemy && !enemy.eliminated && _cloneAggroEnabled) {
+    const oppCx = enemy.x + (enemy.w || 0) / 2, cloneCx = s.x + s.w / 2
+    const dx = oppCx - cloneCx
+    s.facing = dx >= 0 ? 1 : -1
+    if ((s._atkCd || 0) > 0) s._atkCd--
+
+    if (s._atk === "windup") {
+      s.vx = 0
+      if (++s._atkT >= CLONE_ATK_WINDUP) {
+        s._atk = "strike"; s._atkT = 0; s._atkHit = false
+        // SPECIAL clone attack (Hashirama: plant a tree at the clone's position). Only on swings flagged by
+        // beginCloneSwing (every 3rd) so the varied melee still shows; if it owns the swing, the clone holds
+        // and the tree does the work — the melee is skipped. Non-Hashirama owners never flag it.
+        s._atkSpecial = !!(s._wantSpecial && _cloneSpecialAttack && _cloneSpecialAttack(s))
+      }
+    } else if (s._atk === "strike") {
+      if (s._atkSpecial) {
+        s.vx = 0                                                                // special (tree) attack owns it — hold in place; the tree does the work
+      } else if (!s._atkHit) {                                                  // varied LUNGE-STRIKE (one connect per swing)
+        const reach = (s._atkMove && s._atkMove.reach) || CLONE_ATK_REACH       // per-move reach (this swing's chosen normal)
+        s.vx = CLONE_LUNGE_SPEED * s.facing; s.x += s.vx                        // lunge IN
+        const hb = { x: s.facing >= 0 ? s.x + s.w : s.x - reach, y: s.y + 8, w: reach, h: Math.max(1, (s.h || 120) - 16) }
+        if (rectsOverlap(hb, getHurtbox(enemy)) && (enemy.invulnTimer || 0) <= 0) {
+          s._atkHit = true
+          let raw = (s._atkMove && s._atkMove.dmg) || CLONE_ATK_DMG             // per-move damage
+          if (enemy.isBlocking) { raw = Math.round(raw * 0.25); enemy.blockstun = Math.max(enemy.blockstun || 0, 8) }
+          const dealt = applyScaledDamage(enemy, raw, { source: "clone" })
+          enemy.hitstun = Math.max(enemy.hitstun || 0, enemy.isBlocking ? 0 : 12)
+          enemy.colorFlash = Math.max(enemy.colorFlash || 0, 6)
+          enemy.vx = (enemy.vx || 0) + s.facing * (enemy.isBlocking ? 1 : 4)
+          spawnCloneStrikeFx(enemy.x + (enemy.w || 40) / 2, enemy.y + (enemy.h || 100) * 0.42, s.color)
+          try { sound?.play?.(enemy.isBlocking ? SFX.BLOCK : SFX.HIT_LIGHT) } catch (_) {}
+        }
+      } else {
+        s.vx = CLONE_LUNGE_SPEED * s.facing; s.x += s.vx                        // continue the lunge after the connect
+      }
+      if (++s._atkT >= CLONE_ATK_STRIKE) { s._atk = "recover"; s._atkT = 0; setCloneSheet(s, "idle") }
+    } else if (s._atk === "recover") {
+      s.vx = -CLONE_MOVE_SPEED * s.facing; s.x += s.vx                          // step BACK to re-space
+      if (++s._atkT >= CLONE_ATK_RECOVER) { s._atk = null; s._atkT = 0; s._atkCd = CLONE_ATK_COOLDOWN }
+    } else {
+      // NEUTRAL — advance until in strike range, then (cooldown ready) begin a lunge-strike.
+      const range = CLONE_ATK_RANGE + (s._slot || 0) * 26                      // per-slot stagger so 3 don't stack
+      if (Math.abs(dx) > range) { s.vx = CLONE_MOVE_SPEED * s.facing; s.x += s.vx }
+      else { s.vx = 0; if ((s._atkCd || 0) <= 0) { s._atk = "windup"; s._atkT = 0; beginCloneSwing(s) } }
+    }
+  } else if (enemy) {
+    // Aggro OFF / opponent down → legacy approach-and-hold decoy (walk toward, stop at CLONE_HOLD_DIST).
     const dx = (enemy.x + (enemy.w || 0) / 2) - (s.x + s.w / 2)
-    const dir = dx >= 0 ? 1 : -1
-    s.facing = dir
-    const hold = CLONE_HOLD_DIST + (s._slot || 0) * 54   // per-slot stagger so multiple decoys spread out, not stack
-    if (Math.abs(dx) > hold) { s.vx = CLONE_MOVE_SPEED * dir; s.x += s.vx } else { s.vx = 0 }
+    s.facing = dx >= 0 ? 1 : -1
+    const hold = CLONE_HOLD_DIST + (s._slot || 0) * 54
+    if (Math.abs(dx) > hold) { s.vx = CLONE_MOVE_SPEED * s.facing; s.x += s.vx } else { s.vx = 0 }
   }
 
   // One touch of an active enemy melee hitbox starts the hurt→poof lifecycle (hit-reveal).
@@ -940,7 +1111,114 @@ const clonePuffs = []
 // Exported so non-clone techniques can reuse the EXACT same smoke poof (e.g. Naruto's
 // Kawarimi substitution teleport). Purely cosmetic — no clone lifecycle / chakra-split.
 export function spawnClonePuff(x, y) { clonePuffs.push({ x, y, t: 0, max: 16 }) }
+
+// ── CLONE LUNGE-STRIKE impact FX (self-contained; updateSummons has no hitEffects array) ──
+const cloneStrikeFx = []
+let _cloneStrikeTotal = 0
+export function getCloneStrikeFxCount() { return _cloneStrikeTotal }   // harness: prove clones actually STRUCK
+function spawnCloneStrikeFx(x, y, color) { cloneStrikeFx.push({ x, y, color: color || "#ffd166", t: 0, max: 12 }); _cloneStrikeTotal++ }
+function tickCloneStrikeFx() { for (let i = cloneStrikeFx.length - 1; i >= 0; i--) { if (++cloneStrikeFx[i].t >= cloneStrikeFx[i].max) cloneStrikeFx.splice(i, 1) } }
+function drawCloneStrikeFx(ctx) {
+  if (!ctx || !cloneStrikeFx.length) return
+  for (const p of cloneStrikeFx) {
+    const k = p.t / p.max
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = (1 - k) * 0.9
+    ctx.strokeStyle = p.color; ctx.lineWidth = 3
+    const r = 8 + k * 26
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2 + k * 0.5; ctx.beginPath(); ctx.moveTo(p.x + Math.cos(a) * r * 0.3, p.y + Math.sin(a) * r * 0.3); ctx.lineTo(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r); ctx.stroke() }
+    ctx.restore()
+  }
+}
 export function getClonePuffCount() { return clonePuffs.length }   // harness: prove the Double Attack partner poof fired
+
+// ── HASHIRAMA WOOD-CLONE DESPAWN FX ──────────────────────────────────────────
+// A wood clone doesn't poof into smoke — it reverts to WOOD (collapses into logs/debris), the
+// hashirama_wood_clone_release strip. Owner-aware: Hashirama's clones use this on every despawn
+// (dispel / hit-poof / consume); every other owner keeps the smoke puff. Purely cosmetic.
+const WOOD_RELEASE_SHEET = "./hashirama_wood_clone_release.png"
+const woodReleaseFx = []
+let _woodReleaseFxTotal = 0                                  // CUMULATIVE spawn count (harness evidence, timing-robust)
+const WOOD_RELEASE_FRAMES = 4, WOOD_RELEASE_FRAME_HOLD = 7   // 4 frames × 7f ≈ 28f dissolve
+export function getWoodReleaseFxCount() { return _woodReleaseFxTotal }   // harness: prove the wood-release despawn fired (cumulative)
+// DESPAWN cue chooser. `reason`: "destroy" (killed by a hit) | "dispel" (dismissed on purpose) | "consume"
+// (spent as a combo cost). Owner-aware: Hashirama's clones revert to logs; TOBIRAMA's WATER clones use
+// DISTINCT effects for the two triggers (Part 2 — destroyed-by-hit ≠ dismissed-intentionally): a hit BURSTS
+// the clone into an upward water splash, a deliberate dispel COLLAPSES it into a settling puddle/ripple.
+// Every other owner keeps the smoke puff.
+function spawnCloneDespawnFx(s, reason = "destroy") {
+  const key = (s.owner?.rosterKey || "").toLowerCase()
+  const cx = s.x + (s.w || 0) / 2, footY = s.y + (s.h || 0)
+  if (key === "hashirama") {
+    woodReleaseFx.push({ x: cx, y: footY, facing: s.facing || 1, t: 0, max: WOOD_RELEASE_FRAMES * WOOD_RELEASE_FRAME_HOLD })
+    _woodReleaseFxTotal++
+  } else if (key === "tobirama") {
+    // destroyed-by-hit = BURST (kind "burst"); dismissed/consumed = COLLAPSE ripple (kind "ripple").
+    const kind = (reason === "destroy") ? "burst" : "ripple"
+    waterCloneFx.push({ x: cx, y: footY, kind, t: 0, max: kind === "burst" ? 26 : 22 })
+    _waterCloneFxTotal[kind]++
+  } else {
+    spawnClonePuff(cx, s.y + (s.h || 0) / 2)
+  }
+}
+// ── TOBIRAMA WATER-CLONE DESPAWN FX (procedural water) — distinct destroy vs dismiss ──
+const waterCloneFx = []
+const _waterCloneFxTotal = { burst: 0, ripple: 0 }
+export function getWaterCloneFxCount() { return { ..._waterCloneFxTotal, total: _waterCloneFxTotal.burst + _waterCloneFxTotal.ripple } }
+function tickWaterCloneFx() {
+  for (let i = waterCloneFx.length - 1; i >= 0; i--) { if (++waterCloneFx[i].t >= waterCloneFx[i].max) waterCloneFx.splice(i, 1) }
+}
+function drawWaterCloneFx(ctx) {
+  if (!ctx || !waterCloneFx.length) return
+  for (const p of waterCloneFx) {
+    const k = p.t / p.max
+    ctx.save()
+    if (p.kind === "burst") {
+      // DESTROYED-BY-HIT: the clone explodes UPWARD into water droplets (violent splash).
+      ctx.globalAlpha = (1 - k) * 0.85
+      ctx.fillStyle = "rgba(120,190,255,0.9)"
+      for (let i = 0; i < 14; i++) {
+        const ang = (i / 14) * Math.PI - Math.PI            // upward fan
+        const r = 14 + k * 70
+        const dx = Math.cos(ang) * r, dy = Math.sin(ang) * r - k * 30
+        ctx.beginPath(); ctx.arc(p.x + dx, p.y - 40 + dy, 3.5 * (1 - k * 0.6), 0, Math.PI * 2); ctx.fill()
+      }
+      const g = ctx.createRadialGradient(p.x, p.y - 40, 2, p.x, p.y - 40, 26 + k * 20)
+      g.addColorStop(0, "rgba(180,220,255,0.7)"); g.addColorStop(1, "rgba(120,190,255,0)")
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y - 40, 26 + k * 20, 0, Math.PI * 2); ctx.fill()
+    } else {
+      // DISMISSED-INTENTIONALLY: the clone gently COLLAPSES into a spreading ground puddle / ripple rings.
+      ctx.globalAlpha = (1 - k) * 0.7
+      ctx.strokeStyle = "rgba(120,190,255,0.9)"; ctx.lineWidth = 2.5
+      for (let ring = 0; ring < 3; ring++) {
+        const rr = (10 + ring * 16) + k * 40
+        ctx.beginPath(); ctx.ellipse(p.x, p.y - 6, rr, rr * 0.34, 0, 0, Math.PI * 2); ctx.stroke()
+      }
+      ctx.fillStyle = "rgba(90,160,235,0.5)"
+      ctx.beginPath(); ctx.ellipse(p.x, p.y - 6, 22 * (1 - k), 8 * (1 - k), 0, 0, Math.PI * 2); ctx.fill()
+    }
+    ctx.restore()
+  }
+}
+function tickWoodReleaseFx() {
+  for (let i = woodReleaseFx.length - 1; i >= 0; i--) {
+    if (++woodReleaseFx[i].t >= woodReleaseFx[i].max) woodReleaseFx.splice(i, 1)
+  }
+}
+function drawWoodReleaseFx(ctx) {
+  if (!ctx || !woodReleaseFx.length) return
+  const img = _summonImg(WOOD_RELEASE_SHEET)
+  if (!img || !img.complete || !img.naturalWidth) return
+  const fw = img.naturalWidth / WOOD_RELEASE_FRAMES, fh = img.naturalHeight, scale = 1.4
+  for (const p of woodReleaseFx) {
+    const fi = Math.min(WOOD_RELEASE_FRAMES - 1, Math.floor(p.t / WOOD_RELEASE_FRAME_HOLD))
+    ctx.save()
+    ctx.globalAlpha = 1 - (p.t / p.max) * 0.4
+    const dw = fw * scale, dh = fh * scale
+    ctx.translate(p.x, p.y); ctx.scale((p.facing || 1) < 0 ? -1 : 1, 1)
+    ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh, dw, dh)   // debris anchored at the clone's feet (y = ground)
+    ctx.restore()
+  }
+}
 function tickClonePuffs() {
   for (let i = clonePuffs.length - 1; i >= 0; i--) {
     if (++clonePuffs[i].t >= clonePuffs[i].max) clonePuffs.splice(i, 1)

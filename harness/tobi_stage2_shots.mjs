@@ -115,7 +115,7 @@ await sleep(80);
 const after = await p1();
 await page.screenshot({ path: path.join(OUT, "tobi_s2_teleport.png") });
 const moved = Math.abs((after.x || 0) - (before.x || 0));
-ok(after.speedBlur > 0 || after.teleportFlash > 0, `blink fired: speedBlur=${after.speedBlur} teleportFlash=${after.teleportFlash}`);
+ok(after.teleportFlash > 0, `blink fired: teleportFlash=${after.teleportFlash}`);
 ok(moved > 40, `repositioned Δx=${moved.toFixed(0)}px (blink-behind)`);
 
 // ── 6. Obito untouched by Tobi's run (isolation) ──

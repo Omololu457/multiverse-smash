@@ -1,5 +1,5 @@
 // harness/decoy_stage3_shots.mjs — DECOY Stage 3 EVIDENCE: visual tell + always-on hit-reveal rule.
-//   A. Visual tell ON by default — clones render with a subtle chakra-construct wash (screenshot).
+//   A. Standing clone = ZERO tell by default — clones are indistinguishable from the real caster (screenshot).
 //   B. Hit-reveal (projectile): an ENEMY projectile hitting a clone poofs it (fake revealed).
 //   C. Hit-reveal (melee): an enemy melee hit poofs a clone.
 //   D. Real character: a hit on the REAL fighter deals real damage (health drops), never poofs.
@@ -49,7 +49,7 @@ async function boot(charKey) {
 }
 async function prep(gap = 150) {
   await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && !p.currentMove; }, null, { timeout: 6000, polling: 16 }).catch(() => {});
-  await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); window.__harness.setP2Invuln?.(0); window.__harness.dispelP1Clones?.(); window.__harness.setCloneTell?.(true); });
+  await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); window.__harness.setP2Invuln?.(0); window.__harness.dispelP1Clones?.(); window.__harness.setCloneTell?.(false); });
   const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + gap); await waitFrames(2);
 }
 
@@ -92,15 +92,15 @@ async function outcomes(charKey, withShots) {
 }
 
 try {
-  // A. Visual tell ON by default (screenshot) — real Naruto + subtly-washed clones.
-  console.log("── A. Visual tell (ON by default) ──");
+  // A. Standing clone = ZERO tell by default (screenshot) — real Naruto + indistinguishable clones.
+  console.log("── A. Zero visual tell (default) ──");
   await boot("naruto");
   await prep(130);
   const tellOn = await page.evaluate(() => window.__harness.cloneTell());
   await page.evaluate(() => window.__harness.spawnP1Clones(2));
   await waitFrames(20);
-  await shot("decoy_s3_tell_on.png");
-  check("visual tell is ON by default", tellOn === true, `cloneTell=${tellOn}`);
+  await shot("decoy_s3_tell_off.png");
+  check("standing clone has NO tell by default (indistinguishable)", tellOn === false, `cloneTell=${tellOn}`);
 
   await outcomes("naruto", true);
   await outcomes("minato", false);

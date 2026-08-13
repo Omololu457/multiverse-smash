@@ -41,12 +41,12 @@ await reset(220);
 let a0 = await p1(), b = await p2();
 check("Obito base speed is 96 (BELOW Toji's 98 stat gate)", a0.baseSpeed === 96, `baseSpeed=${a0.baseSpeed}`);
 const x0 = a0.x;
-// double-tap toward the opponent (d), catch _speedBlur inside its ~16-frame window
+// double-tap toward the opponent (d), catch the teleport window (~16 frames)
 await page.keyboard.down("d"); await sleep(26); await page.keyboard.up("d"); await sleep(30);
 await page.keyboard.down("d"); await sleep(26); await page.keyboard.up("d");
-let blur = 0, flash = 0, moved = 0;
-for (let i = 0; i < 16; i++) { const p = await p1(); blur = Math.max(blur, p.speedBlur); flash = Math.max(flash, p.teleportFlash); moved = Math.max(moved, Math.abs(p.x - x0)); if (blur > 0) { await shot("5a_teleport_blur"); break; } await waitFrames(1); }
-check("double-tap toward → teleport-blur fires (_speedBlur>0)", blur > 0, `speedBlur=${blur}`);
+let flash = 0, moved = 0, sawDash = false;
+for (let i = 0; i < 16; i++) { const p = await p1(); flash = Math.max(flash, p.teleportFlash); moved = Math.max(moved, Math.abs(p.x - x0)); if (p.castMove === "dash" || p.action === "dash") sawDash = true; if (flash > 0 && sawDash) { await shot("5a_teleport_dash"); break; } await waitFrames(1); }
+check("double-tap toward → teleport-dash fires (own dash sprite)", sawDash, `sawDash=${sawDash}`);
 check("… with the teleport flash cue", flash > 0, `teleportFlash=${flash}`);
 const aEnd = await p1();
 check("… and BLINKED (repositioned across a large gap)", Math.abs(aEnd.x - x0) > 120, `Δx=${Math.round(aEnd.x - x0)}`);

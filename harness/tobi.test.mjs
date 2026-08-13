@@ -67,9 +67,10 @@ await prep(); await sleep(60);
 await page.evaluate(() => window.__harness.setP1X?.(220));
 await sleep(80);
 const bx = (await p1()).x;
-await page.keyboard.down("d"); await page.keyboard.up("d"); await sleep(70); await page.keyboard.down("d"); await page.keyboard.up("d"); await sleep(80);
+await page.keyboard.down("d"); await page.keyboard.up("d"); await sleep(70); await page.keyboard.down("d"); await page.keyboard.up("d");
+let tFlash = 0, tSheet = null; for (let i = 0; i < 16; i++) { const s = await p1(); tFlash = Math.max(tFlash, s.teleportFlash); if (s.castMove === "dash" || s.action === "dash") tSheet = s.spriteSheet; if (tFlash > 0 && tSheet) break; await sleep(16); }
 const ax = await p1();
-ok(ax.speedBlur > 0 && Math.abs(ax.x - bx) > 40, `blink + spin (speedBlur=${ax.speedBlur}, Δx=${Math.round(Math.abs(ax.x-bx))})`);
+ok(tFlash > 0 && Math.abs(ax.x - bx) > 40, `blink + own dash sprite (teleportFlash=${tFlash}, Δx=${Math.round(Math.abs(ax.x-bx))}, sheet=${tSheet})`);
 
 // ── E. CHAIN GRAB ──
 sec("E. Chain Grab (multi-stage command grab)");

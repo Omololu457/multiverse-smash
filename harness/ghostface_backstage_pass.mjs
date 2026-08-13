@@ -119,16 +119,19 @@ await reset("ghostfaceBilly", 200);
   check("QCB+Grab → pool[1] companion (itachi)", g.active && g.rosterKey === "itachi", `active=${g.active} roster=${g.rosterKey}`);
 }
 
-// ── 6. CHARGE is an interchangeable swap modifier (per spec "hold Grab OR Charge") ──
-console.log("\n── 6. Swap modifier: Charge (no motion → slot 0) ──");
+// ── 6. CHARGE now routes to the "Phone Call" AMBUSH swap (second trigger); GRAB keeps the Backstage Pass swap ──
+console.log("\n── 6. Charge+Special → Phone Call ambush swap (4-beat → handoff into slot 0) ──");
 await reset("ghostfaceBilly", 200);
 {
   await page.keyboard.down("p"); await waitFrames(6);   // hold Charge steady, then Special (no motion → default slot 0)
   await page.keyboard.down("l"); await waitFrames(1);
   await waitFrames(2); await page.keyboard.up("l"); await page.keyboard.up("p");
-  await waitFrames(18);
+  await waitFrames(4);
+  const amb = await page.evaluate(() => window.__harness.gfAmbush());
+  check("Charge+Special → AMBUSH armed (NOT the instant Backstage Pass swap)", !!(amb && amb.active), `active=${amb?.active} phase=${amb?.phase}`);
+  await waitFrames(120);   // let the 4 beats play out → handoff completes the swap
   const g = await gfSwap();
-  check("Charge+Special (no motion) → swap into slot 0 (sasuke)", g.active && g.rosterKey === "sasuke", `active=${g.active} roster=${g.rosterKey}`);
+  check("ambush handoff swaps into slot 0 (sasuke)", g.active && g.rosterKey === "sasuke", `active=${g.active} roster=${g.rosterKey}`);
 }
 
 // ── 7. DETERMINISM: the SAME motion always lands the SAME companion (user's Stage-3 rigor) ──

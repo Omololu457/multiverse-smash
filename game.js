@@ -145,10 +145,12 @@ import {
   revertNezukoDemon            // Nezuko Demon Transformation — revert-to-base (timer expiry)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
+import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha } from "./ui.js"
 import {
   drawBattleBackground, drawCharacterSelectScreen, drawControlsInfo,
   drawCountdown, drawFighter, drawHealthAndEnergyBars, drawMatchEnd,
   drawProjectiles, drawRoundBreak, drawStartScreen, drawStageSelectScreen,
+  selectCardAnim, selectCardAdvance, drawSelectCardFrame,   // shared select-card hover/confirm animation (char-select → skin-select)
   drawTrainingCollisionBoxes, drawTrainingOverlay, drawUniverseSelectScreen,
   drawGameplaySelectScreen, drawAIDifficultyScreen, drawPauseMenu,
   drawAiVsAiSetupScreen, getAiVsAiSetupRects, drawAiVsAiSummaryScreen, getAiVsAiSummaryRects,
@@ -1556,7 +1558,8 @@ function updateFFAEffects(live) {
     const spark = hitSparks[i]
     if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); spark._fresh = false }
     spark.timer--
-    if (spark.timer <= 0) hitSparks.splice(i, 1)
+    const _pAlive = _tickSparkParticles(spark)   // FFA path: same debris burst as the 1v1 loop
+    if (spark.timer <= 0 && _pAlive === 0) hitSparks.splice(i, 1)
   }
   updateDamageNumbers()
 }
@@ -2947,6 +2950,7 @@ function resetSelections() {
 
 // Skin-select state (Task 4).
 let skinSelectSide = "p1"
+let _skinConfirm = null   // { side, index, timer, kicked } — brief lock-in flourish hold before proceeding (so the confirm flash is actually seen)
 let hoverSkinIndex = 0
 
 // After a character is locked in for a side, open the SKIN-SELECT for that side's
@@ -3010,6 +3014,7 @@ function _applyHomeStageDefault() {
 function proceedAfterCharacter(side) {
   skinSelectSide = side
   hoverSkinIndex = 0
+  _skinConfirm = null                       // clear any stale confirm hold from a prior skin pick
   matchConfig[side + "Skin"] = "default"   // reset to default until a skin is picked
   gameState = GAME_STATES.SELECT_SKIN
 }
@@ -3078,29 +3083,38 @@ function drawSkinSelectScreen() {
   ctx.textAlign = "center"; ctx.fillStyle = "#e2e8f0"; ctx.font = "700 32px Arial"
   ctx.fillText(`SELECT SKIN — ${charKey?.toUpperCase() || ""}  (P${skinSelectSide === "p1" ? 1 : 2})`, canvas.width / 2, 110)
   const rects = getSkinSelectRects(canvas, skins.length)
+  // Same select-card animation LANGUAGE as the character-select grid: eased hover scale-up + accent
+  // glow-pulse, and a punchy confirm flash + zoom-punch on the picked skin. Accent = the character's own
+  // select colour so the glow matches char-select. selectCardAdvance() drives the shared glow clock once.
+  selectCardAdvance()
+  const accent = charSelectAccent(charKey) || "#38bdf8"
   rects.forEach((r, i) => {
     const skin = skins[i]
     const unlocked = isSkinUnlocked(charKey, skin.id)
+    const hovered  = i === hoverSkinIndex
+    const confirmKick = !!(_skinConfirm && _skinConfirm.index === i && !_skinConfirm.kicked)
+    if (confirmKick) _skinConfirm.kicked = true
+    const a  = selectCardAnim(`skin:${charKey}:${skin.id}`, hovered && unlocked, confirmKick)
+    const cx = r.x + r.w / 2, cy = r.y + r.h / 2
     ctx.save()
-    ctx.fillStyle = i === hoverSkinIndex ? "#1e3a5f" : "#152030"
-    ctx.fillRect(r.x, r.y, r.w, r.h)
-    ctx.strokeStyle = i === hoverSkinIndex ? "#7dd3fc" : "#334155"; ctx.lineWidth = 2
-    ctx.strokeRect(r.x, r.y, r.w, r.h)
+    if (a.scale !== 1) { ctx.translate(cx, cy); ctx.scale(a.scale, a.scale); ctx.translate(-cx, -cy) }
+    // Dark bevel-shaped backing + the skin portrait (contain-fit, clipped to the MK card shape).
+    ctx.save(); _bevelPath(ctx, r.x, r.y, r.w, r.h, 12); ctx.clip()
+    ctx.fillStyle = "#101c2e"; ctx.fillRect(r.x, r.y, r.w, r.h)
     const img = _skinPortrait(skin.portrait)
-    if (img && img.complete && img.naturalWidth > 0) {
-      // FIXED-SIZE frame; the skin sprite is scaled to fit while preserving its own aspect
-      // ratio (contain = whole sprite visible, letterboxed — never stretched/squashed). The
-      // clip keeps any rounding-driven overflow inside the frame.
-      ctx.save(); ctx.beginPath(); ctx.rect(r.x + 10, r.y + 10, r.w - 20, r.h - 70); ctx.clip()
-      drawImageFit(ctx, img, r.x + 10, r.y + 10, r.w - 20, r.h - 70, { fit: "contain" })
-      ctx.restore()
-    }
-    ctx.fillStyle = "#e2e8f0"; ctx.font = "700 16px Arial"
-    ctx.fillText(skin.name, r.x + r.w / 2, r.y + r.h - 40)
+    if (img && img.complete && img.naturalWidth > 0) drawImageFit(ctx, img, r.x + 10, r.y + 10, r.w - 20, r.h - 64, { fit: "contain" })
+    ctx.restore()
+    // Selection language on top (hover tint/border/glow-pulse + confirm flash) — transparent base fill
+    // so the portrait shows through until hovered.
+    drawSelectCardFrame(ctx, r, { accent, hover: a.hover, confirm: a.confirm, locked: !unlocked, cut: 12, baseFill: "rgba(0,0,0,0)" })
+    ctx.textAlign = "center"; ctx.fillStyle = "#e6edf7"; ctx.font = "700 16px Arial"
+    ctx.fillText(skin.name, cx, r.y + r.h - 22)
     if (!unlocked) {
+      ctx.save(); _bevelPath(ctx, r.x, r.y, r.w, r.h, 12); ctx.clip()
       ctx.fillStyle = "rgba(8,12,24,0.66)"; ctx.fillRect(r.x, r.y, r.w, r.h)
-      ctx.fillStyle = "#94a3b8"; ctx.font = "700 22px Arial"; ctx.fillText("🔒", r.x + r.w / 2, r.y + r.h / 2 - 10)
-      ctx.fillStyle = "#cbd5e1"; ctx.font = "600 14px Arial"; ctx.fillText(`Unlocks at Lv. ${skin.unlockLevel}`, r.x + r.w / 2, r.y + r.h / 2 + 18)
+      ctx.fillStyle = "#94a3b8"; ctx.font = "700 22px Arial"; ctx.fillText("🔒", cx, cy - 10)
+      ctx.fillStyle = "#cbd5e1"; ctx.font = "600 14px Arial"; ctx.fillText(`Unlocks at Lv. ${skin.unlockLevel}`, cx, cy + 18)
+      ctx.restore()
     }
     ctx.restore()
   })
@@ -6830,10 +6844,15 @@ function updateEffectsAndDomains() {
           combo:    attacker?.comboCounter || 0
         })
       }
+      // FX camera-shake tie-in (Stage 2): a brief thud on landed heavy / spike hits (the resolveAttackHit
+      // path has no per-hit shake of its own — only wall-splat / hazard / ult cinematics do). Skipped on
+      // block so a guarded hit doesn't shake like a clean landing.
+      if (!spark.blocked) { const _sh = _sparkCfg(spark).shake; if (_sh) camera.shake?.(_sh, _sh + 2) }
       spark._fresh = false
     }
     spark.timer--
-    if (spark.timer <= 0) { poolRelease("spark", spark); continue }   // expired → recycle + drop
+    const _pAlive = _tickSparkParticles(spark)   // advance the debris burst (seeds lazily on first tick)
+    if (spark.timer <= 0 && _pAlive === 0) { poolRelease("spark", spark); continue }   // flash gone AND debris settled → recycle
     hitSparks[_sw++] = spark                                          // keep → compact
   }
   hitSparks.length = _sw
@@ -7703,40 +7722,180 @@ function applyMirrorTint(a, b) {
   b.tintColor = b.skinTint || (mirror ? MIRROR_TINT : null)
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// COMBAT HIT FX — real multi-particle bursts (Stage 1). PURE RENDER/UPDATE LAYER:
+// reads the SAME spark data combat.js/domains.js already push (category/color/radius);
+// it just draws it as scattering, gravity-pulled, independently-fading debris instead
+// of a static flower of radiating lines. Particles are seeded lazily onto the pooled
+// spark (spark._particles) and simulated in the effects tick; the pool clears the field
+// on release so nothing leaks between reuses. Math.random is intentional here (visual-
+// only, excluded from the gameplay RNG per rng.js). Optional per-spark override:
+// `particleCount` (a push site MAY set it; none need to).
+// ─────────────────────────────────────────────────────────────────────────────
+// Per-category burst profile. count/size/speed scale with the hit's weight; grav/drag
+// tuned so particles pop out, arc, and FALL. Stage 1 is isotropic (full-circle) scatter;
+// category-specific SHAPE bias (upward launcher cone, downward spike puff) lands in Stage 2.
+// Per-category burst profile. Stage 2 gives each a distinct SHAPE via `dir` (emission centre angle;
+// canvas Y is DOWN, so −π/2 = up, +π/2 = down) and `arc` (half-spread; π = full isotropic circle):
+//   • launcher → tight UPWARD cone, low gravity (debris SHOOTS up — "sent flying"),
+//   • spike    → wide DOWNWARD/sideways ground puff, high gravity, dusty tan color (ground impact),
+//   • block    → small tight UPWARD deflection off the guard (reads "stopped", not "landed"),
+//   • light/heavy/special/ultimate/parry/clash → isotropic scatter (heavier = more/bigger/faster).
+// `shake` = a brief camera-shake tie-in fired once when the spark spawns (heavy/spike thud).
+const _SPARK_FX = {
+  light:    { count: 8,  speed: 3.2, grav: 0.17, drag: 0.90, size: [1.4, 2.6], life: [11, 17], up: 0.30, dir: 0,            arc: Math.PI },
+  heavy:    { count: 14, speed: 4.4, grav: 0.19, drag: 0.90, size: [1.8, 3.4], life: [15, 24], up: 0.30, dir: 0,            arc: Math.PI, shake: 4 },
+  launcher: { count: 16, speed: 5.2, grav: 0.09, drag: 0.93, size: [1.6, 3.0], life: [20, 30], up: 0.55, dir: -Math.PI / 2, arc: 0.6 },
+  spike:    { count: 16, speed: 4.0, grav: 0.24, drag: 0.87, size: [1.7, 3.2], life: [12, 20], up: 0.00, dir:  Math.PI / 2, arc: 1.5, dust: true, shake: 4 },
+  special:  { count: 18, speed: 4.8, grav: 0.16, drag: 0.91, size: [1.8, 3.6], life: [18, 28], up: 0.28, dir: 0,            arc: Math.PI },
+  ultimate: { count: 26, speed: 5.6, grav: 0.15, drag: 0.92, size: [2.0, 4.2], life: [22, 34], up: 0.26, dir: 0,            arc: Math.PI },
+  clash:    { count: 14, speed: 4.6, grav: 0.14, drag: 0.91, size: [1.8, 3.4], life: [16, 24], up: 0.20, dir: 0,            arc: Math.PI },
+  parry:    { count: 10, speed: 4.0, grav: 0.10, drag: 0.92, size: [1.6, 3.0], life: [14, 22], up: 0.15, dir: 0,            arc: Math.PI },
+  block:    { count: 7,  speed: 2.8, grav: 0.14, drag: 0.86, size: [1.3, 2.2], life: [8,  13], up: 0.55, dir: -Math.PI / 2, arc: 0.9 },
+}
+const _SPARK_PARTICLE_CAP = 40   // hard per-spark ceiling (guards an override / future heavy category)
+
+// The effect SHAPE for a spark: block flag wins, then the category (which already carries
+// "launcher"/"spike" from combat's _catFromName), then a light fallback.
+function _sparkShape(spark) {
+  if (spark.blocked) return "block"
+  return (spark.category && _SPARK_FX[spark.category]) ? spark.category : "light"
+}
+function _sparkCfg(spark) { return _SPARK_FX[_sparkShape(spark)] || _SPARK_FX.light }
+
+// Seed the individual particles once, reading the existing spark fields. Each gets its own
+// outward velocity within the shape's emission cone (+ an upward pop so it arcs), size, and life.
+function _seedSparkParticles(spark) {
+  const cfg = _sparkCfg(spark)
+  const want = spark.particleCount != null ? spark.particleCount : cfg.count
+  const count = Math.max(0, Math.min(_SPARK_PARTICLE_CAP, want | 0))
+  const r = spark.radius || 14
+  const baseSpeed = cfg.speed * (0.75 + r / 48)          // bigger-radius categories scatter wider
+  const dir = cfg.dir || 0
+  const arc = cfg.arc != null ? cfg.arc : Math.PI         // π ⇒ full circle (isotropic)
+  if (cfg.dust) spark._pColor = "#c9b48f"                 // ground-puff debris reads as tan dust, not energy
+  const parts = new Array(count)
+  for (let i = 0; i < count; i++) {
+    const ang = dir + (Math.random() * 2 - 1) * arc       // emission cone around `dir`
+    const sp  = baseSpeed * (0.5 + Math.random())
+    const life = cfg.life[0] + ((Math.random() * (cfg.life[1] - cfg.life[0] + 1)) | 0)
+    parts[i] = {
+      x: spark.x, y: spark.y,
+      vx: Math.cos(ang) * sp,
+      vy: Math.sin(ang) * sp - baseSpeed * cfg.up,       // upward pop → arc → fall
+      life, maxLife: life,
+      size: cfg.size[0] + Math.random() * (cfg.size[1] - cfg.size[0]),
+      rot: Math.random() * Math.PI, spin: (Math.random() - 0.5) * 0.4,
+    }
+  }
+  spark._particles = parts
+}
+
+// Advance one frame of particle physics (seed lazily on first tick). Returns the live count
+// so the effects loops can keep a spark alive until its debris has finished falling.
+function _tickSparkParticles(spark) {
+  if (spark._particles == null) _seedSparkParticles(spark)
+  const parts = spark._particles
+  if (!parts || !parts.length) return 0
+  const cfg = _sparkCfg(spark)
+  let alive = 0
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i]
+    if (p.life <= 0) continue
+    p.x += p.vx; p.y += p.vy
+    p.vy += cfg.grav
+    p.vx *= cfg.drag; p.vy *= cfg.drag
+    p.rot += p.spin
+    if (--p.life > 0) alive++
+  }
+  spark._pAlive = alive
+  return alive
+}
+
 function drawHitSparksEnhanced() {
   if (!hitSparks.length) return
   // NOTE: this runs INSIDE drawBattleScene's active camera transform — do NOT
   // re-apply it here or sparks get double-transformed (drawn way off-screen as
   // giant glowing artifacts: the "screen glitches out on attack" bug).
   for (const spark of hitSparks) {
-    const { x, y, category, color, timer, maxTimer, lines, radius } = spark
-    const alpha = Math.min(1, timer / Math.max(1, maxTimer || timer))
+    const { x, y, category, color, timer, maxTimer, radius } = spark
     const c = color || "#fff1a8"
-    const n = lines  || 6
     const r = radius || 14
+    // Core flash fades on the (short) combat timer; particles fade on their OWN life.
+    const coreAlpha = Math.max(0, Math.min(1, timer / Math.max(1, maxTimer || timer)))
     ctx.save()
-    ctx.globalAlpha = alpha
-    ctx.strokeStyle = c
-    ctx.lineWidth   = category === "ultimate" ? 4 : category === "special" ? 3 : category === "clash" ? 3 : 2
-    ctx.shadowBlur  = (category === "ultimate" || category === "special") ? 12 : 0
-    ctx.shadowColor = c
-    for (let i = 0; i < n; i++) {
-      const angle = (Math.PI * 2 * i) / n
-      const len   = r * (0.6 + (i % 3) * 0.2)
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len); ctx.stroke()
+
+    // ── PARTICLE BURST (Stage 1) — scattering debris/energy that arcs and falls ──
+    // No shadowBlur per particle (the expensive canvas op); the streak+head reads bright on its own.
+    const parts = spark._particles
+    if (parts) {
+      const pc = spark._pColor || c                       // spike debris is tan dust; else the hit color
+      ctx.lineCap = "round"
+      ctx.strokeStyle = pc
+      ctx.fillStyle = pc
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i]
+        if (p.life <= 0) continue
+        const pa  = p.life / p.maxLife
+        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+        const nx  = spd > 0.01 ? p.vx / spd : Math.cos(p.rot)
+        const ny  = spd > 0.01 ? p.vy / spd : Math.sin(p.rot)
+        const tail = Math.min(11, 2.5 + spd * 1.3)       // faster → longer streak
+        ctx.globalAlpha = pa
+        ctx.lineWidth = Math.max(1, p.size * 0.85)
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - nx * tail, p.y - ny * tail); ctx.stroke()
+        ctx.globalAlpha = Math.min(1, pa * 1.25)         // bright head dot
+        ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size)
+      }
     }
-    if (category === "heavy" || category === "special" || category === "ultimate" || category === "clash") {
-      ctx.fillStyle = c + "44"; ctx.shadowBlur = 0
-      ctx.beginPath(); ctx.arc(x, y, r * 0.35, 0, Math.PI * 2); ctx.fill()
-    }
-    if (category === "ultimate" || category === "clash") {
-      const ringR = r * 0.5 + r * 1.5 * (1 - alpha)
-      ctx.strokeStyle = c + "66"; ctx.lineWidth = 2; ctx.shadowBlur = 0
-      ctx.beginPath(); ctx.arc(x, y, ringR, 0, Math.PI * 2); ctx.stroke()
-    }
-    if (category === "parry") {
-      ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 3
-      ctx.beginPath(); ctx.arc(x, y, r * (0.5 + 0.5 * (1 - alpha)), 0, Math.PI * 2); ctx.stroke()
+
+    // ── CORE FLASH — a SHAPE-SPECIFIC treatment per category (quick bright pop under the debris) ──
+    if (coreAlpha > 0.01) {
+      const shape = _sparkShape(spark)
+      ctx.globalAlpha = coreAlpha
+      if (shape === "launcher") {
+        // Upward energy chevron — sells "sent flying up" (distinct from a flat round pop).
+        ctx.strokeStyle = c; ctx.lineWidth = 3; ctx.lineCap = "round"
+        ctx.shadowBlur = 8; ctx.shadowColor = c
+        const h = r * 1.4
+        ctx.beginPath(); ctx.moveTo(x, y - h); ctx.lineTo(x - r * 0.5, y - h * 0.35); ctx.moveTo(x, y - h); ctx.lineTo(x + r * 0.5, y - h * 0.35); ctx.stroke()
+        ctx.beginPath(); ctx.moveTo(x, y - h * 0.9); ctx.lineTo(x, y + r * 0.2); ctx.stroke()
+        ctx.shadowBlur = 0
+      } else if (shape === "spike") {
+        // Flat ground-impact dust smear at the point — a low wide ellipse, downward read.
+        ctx.fillStyle = "#c9b48f66"
+        ctx.beginPath(); ctx.ellipse(x, y + r * 0.35, r * 1.5, r * 0.42, 0, 0, Math.PI * 2); ctx.fill()
+        ctx.strokeStyle = "#e8dcc0aa"; ctx.lineWidth = 2
+        ctx.beginPath(); ctx.moveTo(x - r * 1.3, y + r * 0.5); ctx.lineTo(x + r * 1.3, y + r * 0.5); ctx.stroke()
+      } else if (shape === "block") {
+        // A bright DEFLECTION ARC over the guard — reads "stopped", NOT a landed round burst.
+        ctx.strokeStyle = "#cfe8ff"; ctx.lineWidth = 3.5; ctx.lineCap = "round"
+        ctx.shadowBlur = 8; ctx.shadowColor = "#9ecbff"
+        ctx.beginPath(); ctx.arc(x, y, r * 1.1, Math.PI * 1.18, Math.PI * 1.82); ctx.stroke()
+        ctx.shadowBlur = 0
+      } else {
+        if (shape === "heavy" || shape === "special" || shape === "ultimate" || shape === "clash") {
+          ctx.shadowBlur  = (shape === "ultimate" || shape === "special") ? 12 : 0
+          ctx.shadowColor = c
+          ctx.fillStyle   = c + "55"
+          ctx.beginPath(); ctx.arc(x, y, r * 0.4, 0, Math.PI * 2); ctx.fill()
+          ctx.shadowBlur  = 0
+        }
+        // Special/Ultimate: real EXPANDING SHOCKWAVE ring(s) layered over the debris (ultimate = double).
+        if (shape === "ultimate" || shape === "special" || shape === "clash") {
+          const ringR = r * 0.5 + r * 1.7 * (1 - coreAlpha)
+          ctx.strokeStyle = c + "77"; ctx.lineWidth = shape === "ultimate" ? 3 : 2
+          ctx.beginPath(); ctx.arc(x, y, ringR, 0, Math.PI * 2); ctx.stroke()
+          if (shape === "ultimate") {
+            ctx.strokeStyle = c + "33"; ctx.lineWidth = 2
+            ctx.beginPath(); ctx.arc(x, y, ringR * 0.55, 0, Math.PI * 2); ctx.stroke()
+          }
+        }
+        if (shape === "parry") {
+          ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 3
+          ctx.beginPath(); ctx.arc(x, y, r * (0.5 + 0.5 * (1 - coreAlpha)), 0, Math.PI * 2); ctx.stroke()
+        }
+      }
     }
     ctx.restore()
   }
@@ -8615,71 +8774,70 @@ function _layoutSettings() {
 
 function drawSettingsScreen() {
   _layoutSettings()
-  ctx.fillStyle = "#0a1322"; ctx.fillRect(0, 0, canvas.width, canvas.height)
+  _mkAmbientBackdrop(ctx, canvas, { top: "#08111f", bottom: "#101a30" })
+  // Angular beveled control box — the shared metallic language, keeping each control's own tone/edge/state.
+  const box = (r, fill, stroke, lw = 1, glow = false, cut = 8) => {
+    _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.fillStyle = fill; ctx.fill()
+    if (glow) { ctx.save(); ctx.shadowBlur = 12; ctx.shadowColor = stroke; ctx.strokeStyle = stroke; ctx.lineWidth = lw; _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.stroke(); ctx.restore() }
+    else { ctx.strokeStyle = stroke; ctx.lineWidth = lw; _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.stroke() }
+  }
   ctx.textAlign = "center"
-  ctx.fillStyle = "#FFF"; ctx.font = "36px Arial"
-  ctx.fillText("INPUT SETTINGS", canvas.width / 2, 120)
+  ctx.fillStyle = "#f3f7ff"; ctx.font = "800 36px Arial"
+  ctx.shadowBlur = 18; ctx.shadowColor = "rgba(74,168,224,0.4)"; ctx.fillText("INPUT SETTINGS", canvas.width / 2, 120); ctx.shadowBlur = 0
 
   // ── SAVE DATA (17D): live tier readout + manual Export/Import (+ Reconnect) ──
   ctx.textAlign = "left"
-  ctx.fillStyle = "#9cf"; ctx.font = "16px Arial"
+  ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
   ctx.fillText("SAVE DATA", saveExportRect.x, saveExportRect.y - 34)
   ctx.fillStyle = "#cfe0ff"; ctx.font = "13px Arial"
   ctx.fillText(saveFileStatus(), saveExportRect.x, saveExportRect.y - 14)
-  const drawSaveBtn = (r, label, tone = "#2f4460") => {
-    ctx.fillStyle = tone; ctx.fillRect(r.x, r.y, r.w, r.h)
-    ctx.strokeStyle = "rgba(120,170,255,0.35)"; ctx.lineWidth = 1; ctx.strokeRect(r.x, r.y, r.w, r.h)
+  const drawSaveBtn = (r, label, tone = "#1d2c42") => {
+    box(r, tone, _withAlpha("#4aa8e0", 0.5), 1.2)
     ctx.fillStyle = "#e6edf7"; ctx.font = "15px Arial"; ctx.textAlign = "center"
     ctx.fillText(label, r.x + r.w / 2, r.y + 22); ctx.textAlign = "left"
   }
   drawSaveBtn(saveExportRect, "Export Save")
   drawSaveBtn(saveImportRect, "Import Save")
-  if (needsReconnect()) drawSaveBtn(saveReconnectRect, "Reconnect save file", "#5a3a17")
+  if (needsReconnect()) drawSaveBtn(saveReconnectRect, "Reconnect save file", "#4a3010")
   if (_saveUiMsg) { ctx.fillStyle = "#fbbf24"; ctx.font = "12px Arial"; ctx.fillText(_saveUiMsg, saveExportRect.x, (needsReconnect() ? saveReconnectRect : saveImportRect).y + 52) }
   ctx.textAlign = "center"
 
   // ── Per-player device (Task 4) + Two Keyboards placeholder (Task 3) ──
-  ctx.fillStyle = "#333"
-  ctx.fillRect(p1SettingRect.x, p1SettingRect.y, p1SettingRect.w, p1SettingRect.h)
-  ctx.fillRect(p2SettingRect.x, p2SettingRect.y, p2SettingRect.w, p2SettingRect.h)
-  ctx.fillStyle = "#FFF"; ctx.font = "22px Arial"
+  box(p1SettingRect, "rgba(20,26,40,0.92)", _withAlpha("#4aa8e0", 0.45), 1.5)
+  box(p2SettingRect, "rgba(20,26,40,0.92)", _withAlpha("#4aa8e0", 0.45), 1.5)
+  ctx.fillStyle = "#FFF"; ctx.font = "700 22px Arial"
   ctx.fillText(`P1 Device: ${inputSettings.p1Type.toUpperCase()}  (click to change)`, canvas.width / 2, p1SettingRect.y + 38)
   ctx.fillText(`P2 Device: ${inputSettings.p2Type.toUpperCase()}  (click to change)`, canvas.width / 2, p2SettingRect.y + 38)
   // Two Keyboards — DISABLED placeholder.
   const tk = { x: canvas.width / 2 - 200, y: 254, w: 400, h: 44 }
-  ctx.fillStyle = "#1c1c1c"; ctx.fillRect(tk.x, tk.y, tk.w, tk.h)
-  ctx.strokeStyle = "#555"; ctx.strokeRect(tk.x, tk.y, tk.w, tk.h)
+  box(tk, "rgba(14,16,22,0.9)", "rgba(120,130,150,0.35)", 1)
   ctx.fillStyle = "#666"; ctx.font = "18px Arial"
   ctx.fillText("Two Keyboards — coming soon", canvas.width / 2, tk.y + 20)
   ctx.font = "12px Arial"
   ctx.fillText("(browsers can't yet distinguish two keyboards)", canvas.width / 2, tk.y + 37)
 
-  // ── Audio: two INDEPENDENT mute toggles (SFX / Music) ──
+  // ── Audio: two INDEPENDENT mute toggles (SFX / Music) — red=muted, green=on preserved ──
   const drawAudioToggle = (r, label, muted) => {
-    ctx.fillStyle   = muted ? "#4a1717" : "#173a24"      // red = muted, green = on
-    ctx.fillRect(r.x, r.y, r.w, r.h)
-    ctx.strokeStyle = muted ? "#f87171" : "#4ade80"; ctx.lineWidth = 2
-    ctx.strokeRect(r.x, r.y, r.w, r.h)
-    ctx.fillStyle = "#FFF"; ctx.font = "15px Arial"
+    box(r, muted ? "rgba(74,23,23,0.9)" : "rgba(23,58,36,0.9)", muted ? "#f87171" : "#4ade80", 2, true)
+    ctx.fillStyle = "#FFF"; ctx.font = "700 15px Arial"
     ctx.fillText(`${label}: ${muted ? "MUTED" : "ON"}`, r.x + r.w / 2, r.y + 20)
   }
   drawAudioToggle(sfxToggleRect,   "Sound Effects", audioSettings.sfxMuted)
   drawAudioToggle(musicToggleRect, "Music",         audioSettings.musicMuted)
 
   // ── Keybind grid (Task 2) ──
-  ctx.fillStyle = "#9cf"; ctx.font = "16px Arial"
+  ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
   ctx.fillText("P1 KEYBOARD BINDINGS — click an action, then press a key (W A S D U I O P J K L)", canvas.width / 2, KEYBIND_Y0 - 16)
   for (const r of getKeybindRects()) {
     const awaiting = rebindAction === r.action
-    ctx.fillStyle = awaiting ? "#3a5" : "#2a2a2a"
-    ctx.fillRect(r.x, r.y, r.w, r.h)
+    box(r, awaiting ? "rgba(34,80,52,0.95)" : "rgba(24,30,42,0.9)", awaiting ? "#4ade80" : "rgba(120,150,200,0.35)", awaiting ? 2 : 1, awaiting, 6)
     ctx.fillStyle = "#FFF"; ctx.font = "15px Arial"
     const keyLabel = awaiting ? "press a key…" : `[ ${(P1_CONTROLS[r.action] || "—").toUpperCase()} ]`
     ctx.fillText(`${r.label}: ${keyLabel}`, r.x + r.w / 2, r.y + 21)
   }
   const rb = resetBindRect()
-  ctx.fillStyle = "#444"; ctx.fillRect(rb.x, rb.y, rb.w, rb.h)
-  ctx.fillStyle = "#FFF"; ctx.font = "18px Arial"
+  box(rb, "rgba(30,36,50,0.92)", _withAlpha("#4aa8e0", 0.5), 1.2)
+  ctx.fillStyle = "#FFF"; ctx.font = "700 18px Arial"
   ctx.fillText("Reset to Defaults", canvas.width / 2, rb.y + 26)
 
   // Warning + in-memory note.
@@ -8689,23 +8847,23 @@ function drawSettingsScreen() {
 
   // ── Menu music playlist (reorder) — left margin ──
   ctx.textAlign = "left"
-  ctx.fillStyle = "#9cf"; ctx.font = "16px Arial"
+  ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
   ctx.fillText("MENU MUSIC — playlist order (▲/▼)", PLAYLIST_X0, PLAYLIST_Y0 - 16)
+  // Live now-playing cursor (sound keeps it pinned to the same song across reorders) — highlight that row
+  // so a reorder is VISIBLY reflected (the highlight follows the song / the upcoming order shifts).
+  const nowPlaying = sound.getMenuPlaying?.() || { index: -1, playing: false }
   for (const r of getPlaylistRects()) {
-    ctx.fillStyle = "#1e2836"
-    ctx.fillRect(r.rowRect.x, r.rowRect.y, r.rowRect.w, r.rowRect.h)
-    ctx.strokeStyle = "rgba(120,170,255,0.25)"; ctx.lineWidth = 1
-    ctx.strokeRect(r.rowRect.x, r.rowRect.y, r.rowRect.w, r.rowRect.h)
-    // track number + clean name (clipped to the label area)
-    ctx.fillStyle = "#e6edf7"; ctx.font = "13px Arial"
+    const isNow = nowPlaying.playing && r.index === nowPlaying.index
+    box(r.rowRect, isNow ? "rgba(32,64,106,0.95)" : "rgba(26,34,48,0.9)", isNow ? "#63b3ff" : "rgba(120,170,255,0.25)", isNow ? 2 : 1, isNow, 6)
+    // track number + clean name (clipped to the label area); the live track gets a ► marker + accent colour
+    ctx.fillStyle = isNow ? "#bfe0ff" : "#e6edf7"; ctx.font = isNow ? "700 13px Arial" : "13px Arial"
     ctx.save()
     ctx.beginPath(); ctx.rect(r.rowRect.x + 8, r.rowRect.y, r.rowRect.w - PLAYLIST_BTN * 2 - 20, r.rowRect.h); ctx.clip()
-    ctx.fillText(`${r.index + 1}. ${menuTrackDisplayName(r.file)}`, r.rowRect.x + 8, r.rowRect.y + 18)
+    ctx.fillText(`${isNow ? "► " : ""}${r.index + 1}. ${menuTrackDisplayName(r.file)}`, r.rowRect.x + 8, r.rowRect.y + 18)
     ctx.restore()
     // ▲ up (disabled on first row) / ▼ down (disabled on last row)
     const drawArrow = (br, glyph, enabled) => {
-      ctx.fillStyle = enabled ? "#2f4460" : "#242a33"
-      ctx.fillRect(br.x, br.y, br.w, br.h)
+      box(br, enabled ? "rgba(29,44,66,0.95)" : "rgba(20,24,30,0.9)", enabled ? _withAlpha("#4aa8e0", 0.5) : "rgba(90,100,115,0.4)", 1, false, 5)
       ctx.fillStyle = enabled ? "#cfe0ff" : "#55606e"; ctx.font = "15px Arial"; ctx.textAlign = "center"
       ctx.fillText(glyph, br.x + br.w / 2, br.y + br.h / 2 + 5)
       ctx.textAlign = "left"
@@ -8715,9 +8873,9 @@ function drawSettingsScreen() {
   }
   ctx.textAlign = "center"
 
-  // Back.
-  ctx.fillStyle = "#A00"; ctx.fillRect(backSettingRect.x, backSettingRect.y, backSettingRect.w, backSettingRect.h)
-  ctx.fillStyle = "#FFF"; ctx.font = "22px Arial"
+  // Back — red action accent, angular.
+  box(backSettingRect, "rgba(60,20,20,0.92)", "#e05454", 1.5, true)
+  ctx.fillStyle = "#FFF"; ctx.font = "700 22px Arial"
   ctx.fillText("BACK", canvas.width / 2, backSettingRect.y + 35)
 }
 
@@ -8726,12 +8884,33 @@ let creditsScroll = 0
 let creditsContentHeight = 0
 const creditsBackRect = { x: 20, y: 20, w: 120, h: 40 }
 function _creditsMaxScroll() { return Math.max(0, creditsContentHeight - (canvas.height - 160)) }
+// Stage 16: resolve a REAL on-disk sheet file per SOURCED_ART entry, so the credits screen can show a
+// live thumbnail. The character's animationData sheets are the actual files the game loads; we pick the
+// first one that MATCHES the entry's credits.js `files` glob (so the selection is driven by credits.js
+// data, per the rule). `found:false` when nothing matches → the view flags it (no placeholder invented).
+let _creditsThumbCache = null
+function _globToRegex(glob) { return new RegExp("^" + String(glob).replace(/[.]/g, "\\.").replace(/[*]/g, ".*") + "$") }
+function getCreditsThumbnails() {
+  if (_creditsThumbCache) return _creditsThumbCache
+  const out = {}
+  for (const [key, a] of Object.entries(SOURCED_ART)) {
+    const cand = characters[key]
+      ? [...new Set(Object.values(characters[key].animationData || {}).map(v => v.sheet).filter(Boolean))]
+      : []
+    const globs = (a.files || []).map(_globToRegex)
+    const file = cand.find(c => globs.some(rx => rx.test(String(c).replace(/^\.\//, "")))) || null
+    out[a.work] = { key, file, found: !!file }
+  }
+  _creditsThumbCache = out
+  return out
+}
+
 function drawCreditsState() {
   creditsBackRect.x = 20; creditsBackRect.y = 20
   // Gentle auto-scroll toward the bottom, then rest (player can wheel/drag freely too).
   const max = _creditsMaxScroll()
   if (creditsScroll < max) creditsScroll = Math.min(max, creditsScroll + 0.5)
-  creditsContentHeight = drawCreditsScreen(ctx, canvas, creditsScroll)
+  creditsContentHeight = drawCreditsScreen(ctx, canvas, creditsScroll, { thumbnails: getCreditsThumbnails() })
   ctx.fillStyle = "#A00"; ctx.fillRect(creditsBackRect.x, creditsBackRect.y, creditsBackRect.w, creditsBackRect.h)
   ctx.fillStyle = "#FFF"; ctx.font = "20px Arial"; ctx.textAlign = "center"
   ctx.fillText("BACK", creditsBackRect.x + creditsBackRect.w / 2, creditsBackRect.y + 27)
@@ -8822,7 +9001,8 @@ function renderCurrentState() {
         draft:  matchConfig.alienDraft,
         player: matchConfig.alienSelectSide === "p1" ? 1 : 2,
         slotCap: BEN10_SLOT_COMBOS.length,                      // data-driven slot count (not hardcoded 5)
-        slotCombos: BEN10_SLOT_COMBOS.map(c => c.label)         // per-slot transform combo labels
+        slotCombos: BEN10_SLOT_COMBOS.map(c => c.label),        // per-slot transform combo labels
+        mouse: { x: mouse.x, y: mouse.y }                        // for card hover animation
       }); break
     case GAME_STATES.SELECT_EDO_BACKUP:
       drawCharacterSelectScreen(ctx, canvas, {
@@ -9003,6 +9183,7 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
   if (gameState === GAME_STATES.SELECT_CHARACTER) { tryHover(getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse(), charSelectGridOpts(canvas, true)), hoverCharacterIndex, v => hoverCharacterIndex = v); return }
   if (gameState === GAME_STATES.SELECT_EDO_BACKUP) { tryHover(getCharacterCardRects(canvas, getEdoBackupRoster()), hoverEdoBackupIndex, v => hoverEdoBackupIndex = v); return }
+  if (gameState === GAME_STATES.SELECT_SKIN)      { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); tryHover(getSkinSelectRects(canvas, sk.length), hoverSkinIndex, v => hoverSkinIndex = v); return }
   if (gameState === GAME_STATES.SELECT_STAGE)     { tryHover(getStageCardRects(canvas, stages), hoverStageIndex, v => hoverStageIndex = v) }
 }
 
@@ -9287,8 +9468,11 @@ function handleMenuClicks() {
       if (!r) break
       const skin = skins[r.index]
       if (!isSkinUnlocked(charKey, skin.id)) break          // locked → not selectable
+      if (_skinConfirm) break                               // already confirming — ignore extra clicks
       matchConfig[skinSelectSide + "Skin"] = skin.id        // remember the choice
-      _proceedAfterSkin(skinSelectSide)                     // continue the select flow
+      sound.play?.(SFX.UI_SELECT)
+      // Play the lock-in flourish (flash + zoom-punch) for a short beat, THEN continue the flow.
+      _skinConfirm = { side: skinSelectSide, index: r.index, timer: 15, kicked: false }
       break
     }
     case GAME_STATES.SELECT_STAGE: {
@@ -9326,6 +9510,12 @@ function updateCurrentState() {
 
   updateHoverIndices()
   handleMenuClicks()
+
+  // Skin-select lock-in flourish hold: after a pick, let the confirm flash/zoom-punch play for a short
+  // beat, THEN continue the select flow (so the confirmation is actually seen, not skipped instantly).
+  if (gameState === GAME_STATES.SELECT_SKIN && _skinConfirm) {
+    if (--_skinConfirm.timer <= 0) { const side = _skinConfirm.side; _skinConfirm = null; _proceedAfterSkin(side) }
+  }
 
   switch (gameState) {
     case GAME_STATES.INTRO:
@@ -10293,6 +10483,34 @@ gameLoop()
       setters[screen]?.(hover | 0)
       return { gameState, screen, hover: hover | 0 }
     },
+    // Arcade-mode screen previews (Stage 21): rival intro / ending slide / bracket tree.
+    showArcade: (which = "bracket") => {
+      if (which === "rival") {
+        matchConfig.p1CharKey = "goku"; matchConfig.p2CharKey = "vegeta"
+        gameState = GAME_STATES.ARCADE_RIVAL_INTRO
+      } else if (which === "ending") {
+        arcadeState.rosterKey = "goku"
+        try { arcadeEndingSlides = endingSlidesFor("goku", characters) } catch (_) { arcadeEndingSlides = [{ text: "The multiverse is safe — for now." }] }
+        arcadeEndingIndex = 0; arcadeEndingStartMs = performance.now() - 2500
+        gameState = GAME_STATES.ARCADE_ENDING
+      } else {
+        bracketState = { size: 4, entrants: [], rounds: [
+          [ { a: { name: "Goku" }, b: { name: "Vegeta" }, winner: { name: "Goku" } }, { a: { name: "Naruto" }, b: { name: "Sasuke" }, winner: null } ],
+          [ { a: { name: "Goku" }, b: null, winner: null } ]
+        ], round: 0, matchIdx: 1, champion: null }
+        gameState = GAME_STATES.BRACKET_VIEW
+      }
+      return { gameState, which }
+    },
+    // Ben10 alien (Omnitrix) select preview: pick a couple forms + hover a card.
+    showAlienSelect: (picks = 2, hoverX = null, hoverY = null) => {
+      matchConfig.mode = "vs"; matchConfig.alienSelectSide = "p1"
+      const pool = getAlienPoolList()
+      matchConfig.alienDraft = pool.slice(0, Math.max(0, picks | 0)).map(a => a.key)
+      gameState = GAME_STATES.SELECT_ALIENS
+      if (hoverX != null) { mouse.x = hoverX; mouse.y = hoverY }
+      return { gameState, draft: matchConfig.alienDraft }
+    },
     // Move List screen preview: select a fighter row and toggle the controls/kit view.
     showMoveList: (idx = 0, controls = false) => { const f = getMoveListFighters(); moveListIndex = Math.max(0, Math.min(f.length - 1, idx | 0)); moveListShowControls = !!controls; gameState = GAME_STATES.MOVE_LIST; return { gameState, idx: moveListIndex, controls: moveListShowControls, fighter: f[moveListIndex]?.key } },
     // Results/victory screen preview (Stage 9): boot a match if needed, populate a victoryState with
@@ -10326,7 +10544,11 @@ gameLoop()
     randomSelect: (universeOnly = false) => { pickRandomCharacter(universeOnly); return { gameState, side: matchConfig.selectingSide, picked: matchConfig[matchConfig.selectingSide === "p1" ? "p1CharKey" : "p2CharKey"] } },
     selectDetail: () => { const r = getCharacterRosterForSelectedUniverse(); const hv = r[hoverCharacterIndex]; const ck = hv && characters[hv.id]; return ck ? { key: hv.id, name: ck.name, stats: ck.stats, kitType: getKit(hv.id, ck)?.type, difficulty: getKit(hv.id, ck)?.difficulty, homeStage: ck.homeStage || null } : null },
     // Jump to the REAL skin-select screen for a character (renders each skin's portrait) — for alt-skin previews.
-    showSkinSelect: (char = "beerus", side = "p1", hover = 1) => { resetSelections(); matchConfig.mode = "training"; matchConfig[side + "CharKey"] = char; matchConfig[side + "Char"] = characters[char]; skinSelectSide = side; hoverSkinIndex = hover; gameState = GAME_STATES.SELECT_SKIN; return { gameState, char, skins: getSkins(char).map(s => ({ id: s.id, name: s.name, portrait: s.portrait })) } },
+    showSkinSelect: (char = "beerus", side = "p1", hover = 1) => { resetSelections(); matchConfig.mode = "training"; matchConfig[side + "CharKey"] = char; matchConfig[side + "Char"] = characters[char]; skinSelectSide = side; hoverSkinIndex = hover; _skinConfirm = null; gameState = GAME_STATES.SELECT_SKIN; return { gameState, char, skins: getSkins(char).map(s => ({ id: s.id, name: s.name, portrait: s.portrait, portraitReady: (() => { const im = _skinPortrait(s.portrait); return !!(im && im.complete && im.naturalWidth > 0) })() })) } },
+    setSkinHover: (i = 0) => { hoverSkinIndex = Math.max(0, i | 0); return hoverSkinIndex },   // drive the hover animation deterministically
+    pickSkin: (i = 0) => { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); const s = sk[i]; if (!s || !isSkinUnlocked(matchConfig[skinSelectSide + "CharKey"], s.id) || _skinConfirm) return null; matchConfig[skinSelectSide + "Skin"] = s.id; _skinConfirm = { side: skinSelectSide, index: i, timer: 15, kicked: false }; return { index: i, id: s.id } },   // trigger the confirm flourish (same path as a click)
+    skinConfirmState: () => (_skinConfirm ? { ..._skinConfirm } : null),
+    skinPortraitsReady: () => { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); return sk.map(s => { const im = _skinPortrait(s.portrait); return { name: s.name, portrait: s.portrait, ready: !!(im && im.complete && im.naturalWidth > 0) } }) },   // CURRENT decode state (check AFTER images load)
     // A character's configured `portrait` field (exact on-disk filename) — proves mugshot wiring.
     charPortrait: key => characters[key]?.portrait || null,
     // Card rects for the CURRENT select-universe roster (same order as showCharSelect().roster) → crop a card.
@@ -10532,6 +10754,13 @@ gameLoop()
     homeStageForKey: (k) => { const s = homeStageFor(k); return s ? s.name : null },   // verify universe→home-stage routing (_UNIVERSE_SERIES)
     playStageMusicNow: () => { const st = matchConfig.selectedStage || getStageTheme(); try { sound.playStageTrack?.(st); } catch (e) { return { error: String(e) } } return { stage: st?.name, music: st?.music || null } },
     musicState: () => ({ fileSrc: sound?._musicFileSrc || null, fallbackTheme: sound?._fileFallbackTheme || null, gestured: !!sound?._gestured, muted: !!sound?._musicMuted, paused: sound?._musicFile ? !!sound._musicFile.paused : null, currentTime: sound?._musicFile ? sound._musicFile.currentTime : null }),
+    // ── MENU PLAYLIST reorder investigation hooks ──
+    menuMusicStart: () => { sound?.playMenuMusic?.(); return true },
+    showSettings: () => { gameState = GAME_STATES.SETTINGS; return true },   // jump to the Settings screen (playlist reorder panel) for screenshots
+    menuPlaying: () => (sound?.getMenuPlaying?.() ?? null),
+    menuAudio: () => ({ index: sound?._menuPlaylistIndex, active: !!sound?._menuPlaylistActive, playingFile: (sound?._musicFileSrc || "").replace(/^\.\//, ""), order: [...MENU_PLAYLIST], pointsAt: MENU_PLAYLIST[sound?._menuPlaylistIndex] }),
+    menuMove: (i, dir) => (sound?.moveMenuTrack?.(i, dir) ?? null),
+    menuSimulateTrackEnd: () => { const f = sound?._musicFile; if (f && typeof f.onended === "function") { f.onended(); return true } return false },   // fire the auto-advance to see what plays NEXT
     // Place a fighter flying INTO the first stage hazard (real knockback + hitstun = a genuine "knocked
     // into it" state), then let the loop's updateStageHazards resolve the contact. Returns the setup.
     knockIntoHazard: (who = "p1", vx = 12) => {
@@ -10673,6 +10902,34 @@ gameLoop()
     // platforms: live dump — phase/timer + the derived standable top-Y & height (the collision surface).
     platforms: () => getPlatforms().map(p => ({ id: p.id, phase: p.phase, t: p.t, x: p.x, w: p.w, groundY: p.groundY, maxHeight: p.maxHeight, topY: p.topY, height: p.height, growthP: p.growthP, hasSprite: !!p.sprite })),
     clearPlatforms: () => clearPlatforms(),
+    // ── COMBAT HIT FX (particle bursts) — live dump for the visual-FX proof harness ──
+    // Per spark: category + how many particles it seeded + how many are still alive, plus the debris'
+    // average Y and average speed (so a test can prove genuine scatter/FALL frame-to-frame, not static lines).
+    sparks: () => hitSparks.map(s => {
+      const ps = (s._particles || []).filter(p => p.life > 0)
+      const avgY = ps.length ? ps.reduce((a, p) => a + p.y, 0) / ps.length : null
+      const avgVy = ps.length ? ps.reduce((a, p) => a + p.vy, 0) / ps.length : null
+      const avgSpd = ps.length ? ps.reduce((a, p) => a + Math.sqrt(p.vx*p.vx + p.vy*p.vy), 0) / ps.length : null
+      return { category: s.category || null, blocked: !!s.blocked, x: s.x, y: s.y, timer: s.timer, nParticles: (s._particles || []).length, pAlive: ps.length, avgY, avgVy, avgSpd, pColor: s._pColor || null }
+    }),
+    cameraShake: () => ({ timer: camera.shakeTimer || 0, strength: camera.shakeStrength || 0 }),
+    setDummyBehavior: (b = "stand") => { if (DUMMY_BEHAVIORS.includes(b)) { trainingState.enabled = true; trainingState.dummyBehavior = b; return b } return trainingState.dummyBehavior },
+    // Spawn a hit spark of a category at a world point (models a connect for the FX clip — reads the SAME
+    // shape combat.js pushes). Does NOT touch combat logic. Returns the spark's seeded particle count.
+    spawnSpark: (category = "light", x = null, y = null, opts = {}) => {
+      const fx = x != null ? x : (p1 ? p1.x + (p1.w||60)/2 : 400)
+      const fy = y != null ? y : (p1 ? p1.y + (p1.h||100)/2 : 300)
+      const persist = category === "ultimate" ? 30 : category === "special" ? 22 : category === "heavy" ? 18 : category === "parry" ? 16 : category === "clash" ? 20 : 10
+      const sp = Object.assign(poolAcquire("spark"), {
+        x: fx, y: fy, timer: persist, maxTimer: persist, category,
+        color: (category === "special" || category === "ultimate") ? "#ffd166" : null,
+        radius: category === "ultimate" ? 40 : category === "special" ? 28 : category === "heavy" ? 22 : 14,
+        lines: 6, damage: opts.damage ?? null, blocked: !!opts.blocked, isBlocking: !!opts.blocked,
+      })
+      if (opts.particleCount != null) sp.particleCount = opts.particleCount
+      hitSparks.push(sp)
+      return { category, nParticles: 0 }   // seeded lazily on the next effects tick
+    },
     // Place P1 standing on a platform's top (models the player having jumped onto it — the traversal between
     // pillars, NOT the chain-height mechanic under test). Next physics frame stamps _floorPlatformId.
     standP1OnPlatform: (id) => { const p = getPlatforms().find(z => z.id === id); if (!p1 || !p) return false; p1.x = p.x + p.w/2 - (p1.w||60)/2; p1.y = p.topY - (p1.h||100); p1.vx = 0; p1.vy = 0; p1.onGround = true; p1.grounded = true; p1.isLaunched = false; p1._prevFeetY = p.topY; p1._floorPlatformId = id; return true },   // _prevFeetY/_floorPlatformId make the one-way query read it as ALREADY resting (not a from-below teleport)

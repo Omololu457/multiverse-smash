@@ -1565,6 +1565,110 @@ const tobi = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// ISSHIKI OTSUTSUKI  (rosterKey "isshiki", universe "naruto") — Boruto's apex Otsutsuki antagonist.
+// Source = AltairFrameMaker DeviantArt sheet (attribution MANDATORY, see credits.js). SCHEMA-EXCEPTION
+// character (Madara/Pain tier): 6 genuinely distinct real named techniques + combo-chain normals, wired
+// in full rather than trimmed to a standard special budget. Non-uniform / FX-baked / MIXED source strips
+// RE-SLICED to feet-aligned isshiki_*_uniform.png cells (tools/reslice_isshiki.py) — which also SPLITS
+// hit_sheet's 5 baked-in actions (see the mixed-file warning in the build doc). Filename typos ("specail_N")
+// preserved on the SOURCE files only; code/UI use the corrected technique names. See ISSHIKI_ASSET_MAP.md.
+//
+// ARCHETYPE: elite dimensional-warfare zoner/bruiser — teleports (Sukunahikona shrink), warps mass
+// (Daikokuten rods/cubes), rains fire (Gokashin Ensen). Top-tier across the board but sets NO new roster
+// stat record (that stays Superman's slot): HP 1300 (below Omni-Man 1400), atk 96 (ties Jason/Toji, below
+// Netero/Superman 98/100), def 90 (ties Jason, below Superman 92), spd 92 (agile, below Netero 94). The
+// breadth of the 6-technique kit is the outlier surface, held in check by the honest ×0.60 damage scale.
+//
+// STAGE 1 = registration + movement/state over the reslice'd *_uniform.png strips. hit_sheet split into its
+// FIVE real actions mapped to the engine's real hit-state slots (tobi precedent): hurt (standing flinch) /
+// hurt_air (airborne tumble, ONE escalating sequence) / knockdown (grounded lying) / getup (regrow rise) +
+// the Sukunahikona evasive shrink-to-dot sub-action (reused by the Stage-3 special). Normals/specials/ult
+// DATA below are Stage-2/3/4 wiring targets; Stage 1 ships movement only.
+// ─────────────────────────────────────────────────────────────────
+const isshiki = {
+  rosterKey: "isshiki", name: "Isshiki Otsutsuki", universe: "naruto", color: "#b02a2a",
+  portrait: "./isshiki_portrait.png",   // Stage 5 — cropped from idle; falls back cleanly (procedural box) until then.
+  archetypes: ["zoner", "bruiser"],
+  primary: "melee", secondary: ["zoner"],
+  traits: { hasEnergy: true, energyType: "karma", mobility: "high", scaling: "burst", animeMovement: true },
+  passive: { name: "Karma", effect: "Otsutsuki dimensional power — fuels Sukunahikona shrink-warps, Daikokuten mass-manipulation, and the Gokashin Ensen finishers." },
+  // Elite top-tier, NO new roster records (see header). maxEnergy 200 = Karma pool (ties Superman, below Madara 220).
+  stats: { maxHealth: 1300, maxEnergy: 200, attack: 96, defense: 90, speed: 92, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 11, dashCooldownMax: 40 },
+  // ── Normal-attack DATA (sprites wired Stage 2 over the attacks_base / air_attacks combo chains). ──
+  // Top-tier melee: fast, hard-hitting, good reach. Refined in Stage 2 against the real chain frames.
+  basic_attacks: {
+    light:    { damage: 46, startup: 4, active: 2, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 90, startup: 8, active: 3, recovery: 17, hitstun: 20, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 50 },
+    upAttack: { type: "launcher", damage: 68, startup: 6, active: 3, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, airOK: false },
+    airAttack:{ damage: 58, startup: 4, active: 2, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 74, startup: 6, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+  },
+  // ── Special DATA stubs — behaviour lands in abilities.js at Stage 3/4. Corrected technique names. ──
+  specials: {
+    sukunahikona:  { cost: 25, damage: 60,  startup: 8, active: 3, recovery: 14, hitstun: 16, knockbackX: 5, knockbackY: -1, isSpecial: true, effect: "shrink-warp strike (Sukunahikona)" },
+    daikokutenRods:{ cost: 30, damage: 80,  startup: 9, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: -1, isSpecial: true, effect: "materialized black rods (Daikokuten)" },
+    daikokutenCubes:{ cost: 40, damage: 95, startup: 11, active: 5, recovery: 20, hitstun: 20, knockbackX: 7, knockbackY: -2, isSpecial: true, effect: "enlarged crushing cubes (Daikokuten)" },
+    gokashinEnsen: { cost: 45, damage: 100, startup: 12, active: 6, recovery: 22, hitstun: 22, knockbackX: 8, knockbackY: -2, isSpecial: true, effect: "Sage Art: Gokashin Ensen — hell-fire wave" }
+  },
+  // ULTIMATE (Finisher 3) + 2 bonus finishers land at Stage 4 (freeze-cinematic; effects.png payoff).
+  ultimate: { name: "Daikokuten Barrage", cost: 100, description: "Finisher 3 freeze-cinematic — Daikokuten black-rod barrage (Stage 4)." },
+  hasSprites: true,
+  // Tall lanky Otsutsuki. idle content ~87px. Target ~122px on-screen (imposing top-tier, above the human
+  // band, below Jason's 133). 87 × 1.40 ≈ 122px. Verified via measureSprite in Stage 1. anchorY 0 plants feet.
+  spriteScale: 1.40,
+  animationData: {
+    // ── MOVEMENT / STATE — reslice'd feet-aligned (*_uniform.png); anchorY 0 plants feet. ──
+    idle:  { frames: 1, width: 44, height: 89, speed: 10, anchorY: 0, sheet: "./isshiki_idle_uniform.png" },   // single idle pose (only 1 idle cell in source)
+    // No dedicated walk/run art — Isshiki glides on the dash pose (3f), slower for walk.
+    walk:  { frames: 3, width: 72, height: 56, speed: 6, anchorY: 0, sheet: "./isshiki_dash_uniform.png" },
+    run:   { frames: 3, width: 72, height: 56, speed: 4, anchorY: 0, sheet: "./isshiki_dash_uniform.png" },
+    dash:  { frames: 3, width: 72, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_dash_uniform.png" },
+    // jump.png = crouch→rise arc; play once + hold. fall = the descent pose (last cell 2 → sourceX 53×2 = 106).
+    jump:  { frames: 3, width: 53, height: 80, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_jump_uniform.png" },
+    fall:  { frames: 1, width: 53, height: 80, speed: 6, anchorY: 0, sourceX: 106, loop: false, lockLastFrame: true, sheet: "./isshiki_jump_uniform.png" },
+    guard: { frames: 1, width: 44, height: 83, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_block_uniform.png" },
+    win:   { frames: 1, width: 50, height: 89, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_win_uniform.png" },
+    // ── hit_sheet's 5 split actions (tools/reslice_isshiki.py). Mapped to engine hit-states. ──
+    hurt:      { frames: 2, width: 54, height: 74, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_hurt_uniform.png" },        // standing flinch
+    hurt_air:  { frames: 5, width: 76, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_hurt_air_uniform.png" },    // airborne tumble (escalating heavy-hit)
+    knockdown: { frames: 2, width: 81, height: 41, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_knockdown_uniform.png" },   // grounded lying (wide/low cell)
+    getup:     { frames: 4, width: 70, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_getup_uniform.png" },        // regrow → standing recovery
+    // Sukunahikona shrink-to-dot / vanish — the evasive shrink sub-sequence (sub-10px cells KEPT). Reused
+    // by the Stage-3 Sukunahikona special. Held via lockLastFrame (the vanished dot) while the warp resolves.
+    sukunahikonaShrink: { frames: 4, width: 41, height: 16, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_sukunahikona_uniform.png" },
+    // ── STAGE 2 COMBO STRINGS (reslice_isshiki.py). GROUND = Light auto-combo rekka (attacks_base 3/2/5);
+    // AIR = airborne Light auto-combo rekka (air_attacks 3/3/2, detached-FX cell excluded). abilities.js
+    // updateIsshikiCommandCombat drives the cancel-on-hit continue; sprite.js identity-maps these keys. ──
+    isshikiGround1: { frames: 3, width: 66, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_ground1_uniform.png" },   // 3-punch opener
+    isshikiGround2: { frames: 2, width: 78, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_ground2_uniform.png" },   // kick (mid)
+    isshikiGround3: { frames: 5, width: 74, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_ground3_uniform.png" },   // low-string + slash-arc finisher (launcher)
+    isshikiAir1:    { frames: 3, width: 65, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_air1_uniform.png" },       // air opener
+    isshikiAir2:    { frames: 3, width: 82, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_air2_uniform.png" },       // air mid
+    isshikiAir3:    { frames: 2, width: 159, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_air3_uniform.png" },      // dive-slash finisher (downward spike)
+    // ── Neutral normal slots (the LIGHT/air-Light buttons are intercepted into the combo strings above; these
+    // give the OTHER buttons real poses reused from the combo frames + a safety fallback for light/air). ──
+    light:    { frames: 3, width: 66, height: 76,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_ground1_uniform.png" },   // fallback (driver normally intercepts → ground string)
+    heavy:    { frames: 2, width: 78, height: 72,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_ground2_uniform.png" },   // standalone kick
+    up:       { frames: 5, width: 74, height: 77,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_ground3_uniform.png" },   // rising slash launcher
+    air:      { frames: 3, width: 65, height: 77,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_air1_uniform.png" },       // fallback (driver normally intercepts → air string)
+    down_air: { frames: 2, width: 159, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_air3_uniform.png" },       // dive-slash spike
+    // ── STAGE 3 SPECIAL CAST POSES (char-layer only; FX/projectiles spawn separately in abilities.js). ──
+    // _spriteCastMove maps these keys via sprite.js MOVE_TO_ACTION. Cube special reuses the generic suku cast.
+    isshikiSukuCast: { frames: 2, width: 50, height: 76, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_suku_cast_uniform.png" },   // Sukunahikona / Daikokuten-cubes cast
+    isshikiRodCast:  { frames: 3, width: 82, height: 72, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_rod_cast_uniform.png" },     // Daikokuten rods cast (strike poses)
+    isshikiFireCast: { frames: 2, width: 74, height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_fire_cast_uniform.png" },    // Gokashin Ensen fire cast
+    // ── STAGE 4 — 2 bonus finishers (specail_attacks rows 1-2) + Ultimate windup (row 3). ──
+    isshikiFin1Cast: { frames: 2, width: 74, height: 75, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_fin1_cast_uniform.png" },     // Finisher 1 (Back+Special) — rod-barrage cast
+    isshikiFin2:     { frames: 2, width: 159, height: 67, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_fin2_uniform.png" },          // Finisher 2 (airborne Special) — dash-slash
+    isshikiUltCast:  { frames: 2, width: 50, height: 76, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_ult_cast_uniform.png" }         // Ultimate (Finisher 3) windup cast
+  },
+  introPool: ["intro"]   // intro grow-in sequence (wired just below)
+}
+// STAGE 1 intro grow-sequence (5→11→21→42, final frame == idle) — the intro-to-idle handoff. Added as its
+// own action so introPool can play it; final frame hands off cleanly to the 1-frame idle.
+isshiki.animationData.intro = { frames: 4, width: 44, height: 89, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./isshiki_intro_uniform.png" }
+
+// ─────────────────────────────────────────────────────────────────
 // DEMON SLAYER
 // ─────────────────────────────────────────────────────────────────
 const zenitsu = {
@@ -4320,6 +4424,198 @@ const ghostface = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// JASON VOORHEES  (rosterKey "jason", universe "horror" — 2nd horror char after Ghostface).
+// Source = xxultra2006xx DeviantArt sheet (attribution MANDATORY, see credits.js). A genuinely
+// LEAN kit given sparse source art: 5 normals + 2 crouch swaps, ONE lean special (Stage 3), and
+// NO ultimate (no art exists — flagged open gap, NOT a placeholder). Non-uniform source strips
+// RE-SLICED to feet-aligned jason_*_uniform.png cells (tools/reslice_jason.py, which force-splits
+// the 4 touching-frame sheets the audit flagged: walk/slash_1/slash_2/slash_1_crouch). Filename
+// typos preserved from source (jason_idl, foward_*). See JASON_ASSET_MAP.md.
+//
+// ARCHETYPE: slow, hard-hitting STALKER — the horror-movie killer who lumbers but hits like a
+// truck and refuses to die. High HP/defense, top-tier damage, LOWEST speed on the roster. The
+// deliberate inverse of Ghostface (fast/fragile stalker) — same universe, opposite tempo.
+//
+// FALLBACK STATES (per spec — reuse the engine's existing generic systems, no new fallback logic):
+//   guard/block → missing-action fallback renders the idle brace (SpriteHandler safe-fallback);
+//   dash → walk sheet (lumbering, no dedicated dash-blur art — FLAG for later dash art);
+//   throw/grab → grab reuses the light-jab windup pose so it renders a real pose not idle;
+//   win/taunt → idle fallback (no dedicated pose art); death/KO → knockdown (grounded, frames 5-6).
+//   back-walk → engine facing-flip of walk (same as the rest of the roster). turnaround → instant flip.
+// ─────────────────────────────────────────────────────────────────
+const jason = {
+  rosterKey: "jason", name: "Jason Voorhees", universe: "horror", color: "#20241c",
+  portrait: "./jason_portrait.png",   // Stage 4 — cropped from idle frame 0; falls back cleanly (procedural box) until then.
+  archetypes: ["grappler", "heavy"],
+  primary: "heavy", secondary: ["grappler"],
+  traits: { hasEnergy: true, energyType: "bloodlust", mobility: "low", scaling: "damage", animeMovement: false },
+  passive: { name: "Unstoppable", effect: "Bloodlust builds steadily through combat — the machete never tires; fuels his lone Relentless Slash." },
+  // SLOW/HARD-HITTING SLASHER. vs roster: Zaraki HP1240/spd88 (brute), Sukuna 1240/atk95, Red Ranger
+  // 1200/atk93/def86/spd92, Ghostface (same universe) 1040/atk85/def80/spd95 (the fast fragile inverse).
+  // Jason: HP1250 (ties the tank-top — an unkillable slasher), atk96 (top damage, edges Sukuna 95 — the
+  // low speed is the tradeoff), def90 (very durable), spd72 (the ROSTER-LOW — the defining stalker trait,
+  // 16 below the next-slowest). Deliberate slow-heavy outlier PROFILE that trades mobility for damage/bulk
+  // (fair, not strictly-better — verified vs BALANCE_AUDIT.md in Stage 4). maxEnergy 80 = Bloodlust meter.
+  stats: { maxHealth: 1250, maxEnergy: 80, attack: 96, defense: 90, speed: 72, maxJumps: 2, jumpPower: 28, dashSpeed: 13, dashDuration: 8, dashCooldownMax: 42 },
+  // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air. combat.js _getMD reads THIS.
+  // Slow startup / long recovery / heavy knockback — every swing is a committed machete blow. Refined Stage 2.
+  basic_attacks: {
+    light:    { damage: 44, startup: 6, active: 2, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: 0 },                                   // standing machete jab (foward_punch)
+    heavy:    { damage: 98, startup: 11, active: 4, recovery: 22, hitstun: 22, knockbackX: 8, knockbackY: 1, rangeX: 116, rangeY: 52, superArmor: true },   // overhead machete swing (slash_1) — armored commit
+    upAttack: { type: "launcher", damage: 68, startup: 9, active: 3, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -28, selfVy: 0, airOK: false },   // slash_2 repurposed as launcher (see Stage-2 read-flag)
+    airAttack:{ damage: 56, startup: 6, active: 2, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2, rangeX: 92, rangeY: 66 },           // air machete swipe (foward_punch_air) — long blade reach
+    downAir:  { damage: 74, startup: 8, active: 3, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 11, rangeX: 86, rangeY: 88 }            // aerial blade-extend spike (down_air_attack) — tall downward hitbox
+  },
+  // Crouch-context normal swaps (same input, triggered by crouch state) — wired Stage 2 via the
+  // engine's crouch-variant resolve. Data mirrors the standing values (a crouching hit isn't a
+  // different move numerically, just a different pose). crouching-up falls back to standing slash_2.
+  // ONE lean special (Stage 3). "Relentless Slash" = a heavier, higher-commit version of the overhead
+  // machete heavy (reuses slash_1 art via the jRelentless cast pose). Distinguished from the normal heavy
+  // NOT by new animation but by feel: a committed forward LUNGE (the heavy is planted), a much bigger
+  // machete arc, far higher damage, a heavy diagonal blow-back, super armor, a Bloodlust cost, and a
+  // heavier cast (camera shake + red flash). Neutral Special (no direction branch). Real logic in abilities.js.
+  specials: {
+    relentlessSlash: { cost: 35, damage: 140, startup: 13, active: 5, recovery: 26, hitstun: 26, knockbackX: 12, knockbackY: -8, rangeX: 140, rangeY: 92, isSpecial: true, effect: "committed lunging machete power-slash — huge reach, super armor, heavy blow-back (Bloodlust)" }
+  },
+  // ULTIMATE: none. No ultimate art exists in this sparse sheet — flagged OPEN GAP, not a placeholder.
+  hasSprites: true,
+  // idle content ~116px tall. Jason is canonically a hulking ~1.93m+ slasher → render slightly TALLER
+  // than the human roster. 116 × 1.15 ≈ 133px on-screen (imposing, ties Ghostface's rendered height band).
+  spriteScale: 1.15,
+  animationData: {
+    // ── MOVEMENT / STATE. Re-sliced to uniform feet-aligned cells (tools/reslice_jason.py). anchorY 0. ──
+    idle:  { frames: 6,  width: 71,  height: 116, speed: 8, anchorY: 0, sheet: "./jason_idle_uniform.png" },
+    walk:  { frames: 10, width: 84,  height: 113, speed: 6, anchorY: 0, sheet: "./jason_walk_uniform.png" },
+    run:   { frames: 10, width: 84,  height: 113, speed: 5, anchorY: 0, sheet: "./jason_walk_uniform.png" },   // same sheet, faster (Jason has no run art — lumbers)
+    dash:  { frames: 10, width: 84,  height: 113, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_walk_uniform.png" },   // FALLBACK: walk pose (no dash-blur art — flag for later)
+    jump:  { frames: 3,  width: 72,  height: 125, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_jump_uniform.png" },
+    fall:  { frames: 1,  width: 72,  height: 125, speed: 6, anchorY: 0, sourceX: 144, loop: false, lockLastFrame: true, sheet: "./jason_jump_uniform.png" },   // descent = jump frame 2
+    // hit sheet = 6 uniform frames: [0-3] hit-react stagger, [4-5] grounded/lying knockdown (sourceX split).
+    hurt:      { frames: 4, width: 123, height: 121, speed: 5, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./jason_hit_uniform.png" },
+    knockdown: { frames: 2, width: 123, height: 121, speed: 6, anchorY: 0, sourceX: 492, loop: false, lockLastFrame: true, sheet: "./jason_hit_uniform.png" },   // frames 4-5 → sourceX 4×123
+    // ── STAGE-2 NORMALS (5 slots) + crouch swaps (crouchLight/crouchHeavy resolved by crouch state). ──
+    light:    { frames: 2, width: 112, height: 133, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_light_uniform.png" },
+    heavy:    { frames: 4, width: 166, height: 140, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_heavy_uniform.png" },
+    up:       { frames: 3, width: 88,  height: 113, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_up_uniform.png" },
+    air:      { frames: 2, width: 108, height: 113, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_air_uniform.png" },
+    down_air: { frames: 2, width: 147, height: 121, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_down_air_uniform.png" },
+    crouchLight: { frames: 2, width: 112, height: 113, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_crouch_light_uniform.png" },
+    crouchHeavy: { frames: 4, width: 163, height: 122, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_crouch_heavy_uniform.png" },
+    // grab reuses the light-jab windup so the universal O-grab renders a real reaching pose, not idle.
+    grab:     { frames: 2, width: 112, height: 133, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_light_uniform.png" },
+    // STAGE-3 SPECIAL cast pose — "Relentless Slash" reuses the overhead-swing heavy art (slash_1), held
+    // through the committed lunge. Slightly slower speed than the normal heavy so it reads heavier/weightier.
+    jRelentless: { frames: 4, width: 166, height: 140, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./jason_heavy_uniform.png" }
+  },
+  introPool: ["idle"]   // no dedicated intro art → stand in idle
+}
+
+// ─────────────────────────────────────────────────────────────────
+// HIRUZEN SARUTOBI  (rosterKey "hiruzen", universe "naruto" — the Third Hokage, "The Professor").
+// A VETERAN/TECHNIQUE-MASTER archetype: aged-but-legendary shinobi, NOT a young rushdown brawler.
+// Balanced/defensive with real punish tools — high defense is his identity, mid attack (he wins on
+// technique + reads, not raw power), low-mid speed (aged). Sparse native sheet (idle/run/dash/jump/
+// back_jump/block/hit/intro + one combo string + a SPIN) deliberately supplemented with bespoke,
+// self-contained BORROWED-JUTSU specials (reflavors of Madara's Katon/Mokuton architectures + an Enma
+// transformation-buff), plus a Reaper Death Seal cinematic ULT — the same architecture-reuse discipline
+// used for Pain's assists / Zaraki's Yachiru (does NOT share live code/state with the source char).
+// ART: watermark-cleaned dash/jump/back_jump (DeviantArt polygon+username removed; originals in
+// _hiruzen_raw_backup/), RE-SLICED to feet-aligned hiruzen_*_uniform.png via tools/reslice_hiruzen.py
+// (folds the shunshin-ghost dash frame, the rope-crossing back_jump split, and the 2-row intro sheet).
+// See HIRUZEN_ASSET_MAP.md. Stage 1 = movement/state + 2-part intro; normals/SPIN Stage 2; specials
+// Stage 3; ult Stage 4. Filename typos in the raw art (color_palletts, back_jump) are preserved in
+// references only — the corrected master label "SPIN" (never "roll") is used everywhere in code/UI.
+const hiruzen = {
+  rosterKey: "hiruzen", name: "Hiruzen Sarutobi", universe: "naruto", color: "#6b4a2f",
+  portrait: "./hiruzen_portrait.png",   // Stage 5 — cropped from an intro/idle frame; falls back cleanly (procedural box) until then.
+  archetypes: ["technician", "balanced"],
+  primary: "melee", secondary: ["zoner"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "medium", scaling: "technique", animeMovement: true },
+  passive: { name: "The Professor", effect: "Master of every jutsu — a deep, versatile toolkit (borrowed Fire/Earth releases, the Monkey King staff) backed by veteran defense and hard punishes rather than raw speed." },
+  // VETERAN/TECHNIQUE-MASTER PROFILE (vs BALANCE_AUDIT.md roster): HP1180 (Naruto/Sasuke tier — durable
+  // veteran, well below the tanks Jason1250/Isshiki1300/Madara1220), atk88 (Naruto/Sasuke tier — mid, wins
+  // on technique NOT power; top band is 95-100), def90 (HIGH — his defining stat, ties Jason/Isshiki, just
+  // under Madara/Hashirama 92: the hard-to-crack professor), spd84 (LOW-MID — aged: below the young
+  // brawlers 88-98, above the lumberers Jason72/Netero... — deliberately NOT rushdown per the design).
+  // maxEnergy 140 = a measured chakra pool (efficient technique, aged reserves) — enough to run his
+  // borrowed-jutsu kit + ult without spamming. NO stat is a roster outlier; no strictly-better profile.
+  stats: { maxHealth: 1180, maxEnergy: 140, attack: 88, defense: 90, speed: 84, maxJumps: 2, jumpPower: 27, dashSpeed: 12, dashDuration: 8, dashCooldownMax: 40 },
+  // Stage-1 placeholder combat data (movement/state focus). Stage 2 wires the real punches.png combo
+  // string to light/heavy; up/air/down_air are CONFIRMED ART GAPS → generic-fallback poses (flagged).
+  basic_attacks: {
+    light:    { damage: 30, startup: 6,  active: 2, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 62, startup: 12, active: 3, recovery: 20, hitstun: 20, knockbackX: 7, knockbackY: 1, rangeX: 100, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 48, startup: 9, active: 3, recovery: 17, hitstun: 18, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: 0, airOK: false },
+    airAttack:{ damage: 42, startup: 7,  active: 2, recovery: 12, hitstun: 13, knockbackX: 3, knockbackY: -2, rangeX: 84, rangeY: 60 },
+    downAir:  { damage: 52, startup: 8,  active: 3, recovery: 14, hitstun: 16, knockbackX: 1, knockbackY: 10, rangeX: 80, rangeY: 78 }
+  },
+  // SPECIALS — SPECIAL button, direction-branched (abilities.js executeHiruzenSpecial, Isshiki pattern):
+  //   neutral = SPIN (evasive dodge, Stage 2) · Fwd = Fire Release: Great Fireball · Down = Earth Release:
+  //   Wall · Up = Enma (Monkey King Staff buff) · Back = Adamantine Staff Bind. The three borrowed jutsu are
+  //   BESPOKE, self-contained reflavors of existing moves' ARCHITECTURE (Madara Katon / Madara Mokuton
+  //   stationary-hazard / declarative transformation-buff) with Hiruzen's OWN numbers — they do NOT share
+  //   live code/state with the source characters (Pain-assist / Zaraki-Yachiru discipline).
+  specials: {
+    spin:      { cost: 15, iframes: 22, duration: 26, hopBack: 7, isSpecial: true, effect: "evasive SPIN — spinning dodge/counter-step with brief invulnerability + a short back-hop (substitution-adjacent)" },
+    fireball:  { cost: 28, damage: 84, isSpecial: true, effect: "Fire Release: Great Fireball — a rolling flame projectile (weaker than Madara's Katon; he is no fire specialist)" },
+    earthWall: { cost: 26, damage: 70, isSpecial: true, effect: "Earth Release: Wall — a stationary stone eruption in front (defensive anti-rush hazard; re-themed Mokuton-spike shape)" },
+    enma:      { cost: 45, duration: 480, dmgMult: 1.25, reachMult: 1.35, isSpecial: true, effect: "Enma (Monkey King Staff) — transformation-buff: +25% damage & +35% reach for ~8s (identity anchor)" },
+    staffBind: { cost: 18, damage: 60, reach: 96, isSpecial: true, effect: "Adamantine Staff Bind — the staff extends to pin the opponent (command grab)" }
+  },
+  // ULTIMATE — Reaper Death Seal (his canon soul-extraction finisher, at GREAT PERSONAL COST). Freeze/
+  // camera-focus cinematic on the LIVE fighter (no dup instance): a dark spectral screen treatment + a
+  // Shinigami dragging the opponent's soul out, then a guaranteed soul-rip. Pays 15% of his OWN max HP
+  // (the canon life-cost) → self-limiting. Logic in abilities.js executeHiruzenUltimate; FX in game.js.
+  ultimate: { name: "Reaper Death Seal", cost: 100, description: "Summons the Shinigami to rip out the opponent's soul — a guaranteed nuke paid for with a chunk of Hiruzen's own life." },
+  hasSprites: true,
+  // idle content ~40px tall → 40 × 2.8 ≈ 112px on-screen (squarely in the human roster band). Screenshot-tuned.
+  spriteScale: 2.8,
+  animationData: {
+    // ── MOVEMENT / STATE. Re-sliced to uniform feet-aligned cells (tools/reslice_hiruzen.py). anchorY 0. ──
+    idle:  { frames: 4, width: 63, height: 42, speed: 8, anchorY: 0, sheet: "./hiruzen_idle_uniform.png" },
+    walk:  { frames: 6, width: 67, height: 42, speed: 6, anchorY: 0, sheet: "./hiruzen_run_uniform.png" },   // no walk art → run sheet, slower
+    run:   { frames: 6, width: 67, height: 42, speed: 4, anchorY: 0, sheet: "./hiruzen_run_uniform.png" },
+    dash:  { frames: 3, width: 64, height: 57, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hiruzen_dash_uniform.png" },  // frame 2 = shunshin-ghost FX (kept)
+    jump:  { frames: 4, width: 59, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hiruzen_jump_uniform.png" },
+    fall:  { frames: 1, width: 59, height: 82, speed: 5, anchorY: 0, sourceX: 118, loop: false, lockLastFrame: true, sheet: "./hiruzen_jump_uniform.png" },   // descent = jump frame 3 (sourceX 2×59)
+    // back_jump art has no dedicated backward-jump resolver → wired as the generic doubleJump strip
+    // (2nd-jump backflip ascent). Re-split from the rope-crossing merge; deduped (this file only).
+    doubleJump: { frames: 3, width: 67, height: 61, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hiruzen_back_jump_uniform.png" },
+    hurt:  { frames: 2, width: 55, height: 46, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hiruzen_hit_uniform.png" },
+    guard: { frames: 1, width: 54, height: 44, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hiruzen_block_uniform.png" },   // static held low crouch-guard (1 real frame)
+    // ── STAGE 2 NORMALS — one 7-frame punch COMBO sheet (hiruzen_punches_uniform, cell 60×43). light =
+    // the full flurry (frames 0-6, fast → reads as a continuous punch string); heavy = the wide power
+    // FINISHER (frames 5-6) off the SAME sheet via sourceX (5×60). No new art. ──
+    light:    { frames: 7, width: 60, height: 43, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },
+    heavy:    { frames: 2, width: 60, height: 43, speed: 4, anchorY: 0, sourceX: 300, loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },   // frames 5-6 (5×60) — wide finisher
+    // up / air / down_air = CONFIRMED ART GAPS (no dedicated up/aerial attack art). Rather than invent or
+    // force (roll/SPIN has no launcher-reading frame), they reuse single punch frames as a generic attacking
+    // pose off the combo sheet — flagged fallbacks, not dedicated animations.
+    up:       { frames: 1, width: 60, height: 43, speed: 4, anchorY: 0, sourceX: 360, loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },   // FALLBACK: punch frame 6 (widest strike)
+    air:      { frames: 1, width: 60, height: 43, speed: 4, anchorY: 0, sourceX: 180, loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },   // FALLBACK: punch frame 3 (forward punch)
+    down_air: { frames: 1, width: 60, height: 43, speed: 4, anchorY: 0, sourceX: 300, loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },   // FALLBACK: punch frame 5 (wide swing)
+    // ── STAGE 2 SPIN — the master-labelled "SPIN" (NEVER "roll"): an evasive spinning dodge special
+    // (substitution-jutsu-adjacent). 4-frame spin loop; abilities.js executeHiruzenSpecial grants i-frames. ──
+    hiruzenSpin: { frames: 4, width: 46, height: 47, speed: 3, anchorY: 0, loop: true, sheet: "./hiruzen_spin_uniform.png" },
+    // ── STAGE 3 BORROWED-JUTSU cast poses. No dedicated jutsu-cast art → each reuses a punch frame from his
+    // OWN combo sheet (sourceX) as a generic caster pose (design: "held-pose from his own sprite"). ──
+    hiruzenFireCast:  { frames: 1, width: 60, height: 43, speed: 4, anchorY: 0, sourceX: 360, loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },   // fireball exhale (punch frame 6)
+    hiruzenEarthCast: { frames: 2, width: 60, height: 43, speed: 4, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },   // earth wall plant (frames 0-1)
+    hiruzenEnmaCast:  { frames: 2, width: 60, height: 43, speed: 4, anchorY: 0, sourceX: 240, loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },   // Enma staff summon flourish (frames 4-5)
+    hiruzenBind:      { frames: 1, width: 60, height: 43, speed: 4, anchorY: 0, sourceX: 180, loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },   // staff pin thrust (punch frame 3)
+    // ── STAGE 4 ULTIMATE — Reaper Death Seal sealing-sign held pose (punch frames 0-1, the fists-together
+    // windup reads as a hand-seal). Held through the freeze cinematic (the Shinigami/soul FX is screen-space). ──
+    hiruzenReaperCast: { frames: 2, width: 60, height: 43, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./hiruzen_punches_uniform.png" },
+    // ── TWO-PART INTRO. intro (row 1, 5f) = Hokage robe+hat → robe shed → combat stance; hands off to
+    // idle. The discarded hat/robe (row 2) tumbles to the ground as a composited FX prop via game.js
+    // _drawHiruzenIntroRobe (Vegeta intro-aura precedent) — the "otherwise unused" wardrobe beat. ──
+    intro:     { frames: 5, width: 63, height: 56, speed: 9, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hiruzen_intro_uniform.png" },
+    introRobe: { frames: 4, width: 46, height: 36, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./hiruzen_introrobe_uniform.png" }
+  },
+  introPool: ["intro"]   // single-sequence wardrobe-change intro (the robe-fall prop composites on top)
+}
+
+// ─────────────────────────────────────────────────────────────────
 // Yuji Itadori (universe: jujutsu_kaisen) — physical-brawler vessel. Unlike Gojo/Sukuna
 // he manipulates little cursed energy (canon): fights with raw physical strength + the
 // Divergent Fist. Small energy pool (150) reflects that; the cyan cursed-energy specials
@@ -4683,6 +4979,1030 @@ const zarakiShikai = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// ONE PUNCH MAN
+// ─────────────────────────────────────────────────────────────────
+// SAITAMA  (rosterKey "saitama", universe "one_punch_man") — the Caped Baldy. FIRST One Punch Man char.
+// SCHEMA-EXCEPTION kit (Madara / Isshiki tier): a genuinely huge, canon-faithful move list — 5 normals +
+// grab + a command-normal chain + a tiered tap/hold punch-combo + 7 specials + the Death Punch ultimate.
+// His canon gimmick: he is ALREADY at max power at baseline (no transformation) — so the power fantasy is
+// NOT inflated base normals (kept ~roster-average) but the Serious Punch / Death Punch PAYOFF numbers.
+// Source art: JUS-style fan sheet by arzeer (saitama_jus__by_arzeer_de00xcg.png). Attribution in credits.js.
+// Filename typos (pucnh/puch/haded/meateor/bargin/specail/backround/wards) preserved on SOURCE files only;
+// code + UI use corrected move names. RE-SLICED to feet-aligned saitama_*_uniform.png (tools/reslice_saitama.py).
+const saitama = {
+  rosterKey: "saitama", name: "Saitama", universe: "one_punch_man", color: "#f2b705",
+  portrait: "./saitama_portrait.png",   // Stage 6 — cropped from idle; falls back cleanly (procedural box) until then.
+  archetypes: ["bruiser", "grappler"],
+  primary: "melee", secondary: ["bruiser"],
+  traits: { hasEnergy: true, energyType: "serious", mobility: "very_high", scaling: "burst", animeMovement: true },   // very_high = DOUBLE air-dash (physics.js maxAirDash), matching Toji's speed tier
+  // Double-tap TOWARD the opponent = blink teleport-dash (blink BEHIND), using SAITAMA'S OWN dash sprite
+  // (saitama_dash_uniform.png) via the shared speed-tier dash-pose default in game.js — NOT a generic swirl.
+  // Redundant with the speed-98 isSpeedTierTeleport gate, but set explicitly per the speed-tier standard.
+  movement: { dashTeleport: true },
+  // "Serious" meter (Saitama's limiter-break) gates his huge special list — the resource IS the balance lever
+  // for such a large kit (more options can't be spammed). Explicit HUD label + gold accent via energyConfig.
+  energyConfig: { label: "Serious", color: "#f2b705", glowColor: "#ffd94a", emptyColor: "rgba(255,255,255,0.08)" },
+  passive: { name: "Limiter Broken", effect: "Trained past the human limit — durable, and his Serious/Death Punch payoffs hit far harder than any base normal." },
+  // Durable powerhouse. HP high (top-third, below Isshiki 1300) + high Def = his identity is TAKING hits and
+  // ending fights with the payoff moves. Base normals ~roster-average; specials/ult carry the power fantasy.
+  // Speed profile MATCHED to Toji's confirmed values (speed-tier parity). NOTE: dashCooldownMax is
+  // superseded at runtime by archetypeDashCooldown(speed) → speed 98 yields ~14f for BOTH Saitama and Toji
+  // (that's what actually makes their dash frequency equal); the 26 here is kept only for source parity.
+  stats: { maxHealth: 1280, maxEnergy: 150, attack: 90, defense: 92, speed: 98, maxJumps: 2, jumpPower: 30, dashSpeed: 22, dashDuration: 10, dashCooldownMax: 26 },
+  // ── Normal-attack DATA — deliberately ~roster-average (see header). Refined vs real frames in Stage 2. ──
+  basic_attacks: {
+    light:    { damage: 46, startup: 4, active: 2, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },              // basic_kick
+    heavy:    { damage: 84, startup: 8, active: 3, recovery: 17, hitstun: 20, knockbackX: 7, knockbackY: 1, rangeX: 84, rangeY: 48 }, // punches
+    upAttack: { type: "launcher", damage: 66, startup: 6, active: 3, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, airOK: false }, // up_attack
+    airAttack:{ damage: 56, startup: 4, active: 2, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },              // air_punch_part_1
+    downAir:  { damage: 74, startup: 6, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }              // air_punch_part_2 (spike)
+  },
+  // ── Special DATA stubs — behaviour lands in abilities.js at Stages 3/4. Corrected technique names. ──
+  specials: {
+    // Stage 3 — tiered tap/hold punch-combo (Vegeta up-attack tiers precedent).
+    consecutivePunches: { cost: 20, damage: 70,  startup: 6, active: 8,  recovery: 14, hitstun: 14, knockbackX: 4, knockbackY: 0,  isSpecial: true, effect: "Consecutive Normal Punches (10×) — tap tier" },
+    superPunches:       { cost: 35, damage: 110, startup: 7, active: 12, recovery: 18, hitstun: 16, knockbackX: 6, knockbackY: -1, isSpecial: true, effect: "Consecutive Normal Punches (20×) — hold tier" },
+    // Stage 4 — remaining specials.
+    headbutt:      { cost: 20, damage: 72,  startup: 8,  active: 3, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: -1, isSpecial: true, effect: "Headbutt" },
+    twoHandedPunch:{ cost: 30, damage: 96,  startup: 9,  active: 5, recovery: 20, hitstun: 20, knockbackX: 7, knockbackY: -1, isSpecial: true, effect: "Two-Handed Punches" },
+    seriousPunch:  { cost: 45, damage: 130, startup: 12, active: 6, recovery: 24, hitstun: 24, knockbackX: 9, knockbackY: -2, isSpecial: true, effect: "Serious Punch — melee + traveling shockwave" },
+    upDownCombo:   { cost: 35, damage: 100, startup: 8,  active: 5, recovery: 18, hitstun: 20, knockbackX: 3, knockbackY: -6, isSpecial: true, effect: "Up→Down launcher-spike combo" },
+    bargainSale:   { cost: 30, damage: 92,  startup: 9,  active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: -1, isSpecial: true, effect: "Today Is Bargain Sale" },
+    tableFlip:     { cost: 25, damage: 78,  startup: 10, active: 4, recovery: 20, hitstun: 16, knockbackX: 8, knockbackY: -1, isSpecial: true, effect: "Serious Table Flip" },
+    sideHop:       { cost: 15, damage: 0,   startup: 4,  active: 2, recovery: 10, hitstun: 0,  knockbackX: 0, knockbackY: 0,  isSpecial: true, subtype: "mobility", effect: "Side Hop — evasive" }
+  },
+  // ULTIMATE (Death Punch) — Stage 5 freeze-cinematic (Kurama/Goku Black/Beerus/Isshiki architecture).
+  ultimate: { name: "Serious Series: Serious Punch (Death Punch)", cost: 100, description: "His single most iconic technique — a freeze-cinematic Death Punch: charge → impact, with a full-screen backdrop treatment on the payoff beat (Stage 5)." },
+  hasSprites: true,
+  // Normal-height bald man (canon ~175cm). idle content ~53px at scale 1.0 → target ~106px on-screen
+  // (roster human band). 53 × 2.0 ≈ 106px. Verified via measureSprite in Stage 1. anchorY 0 plants feet.
+  spriteScale: 2.0,
+  animationData: {
+    // ── STAGE 1 — MOVEMENT / STATE (reslice'd feet-aligned *_uniform.png; anchorY 0 plants feet). ──
+    idle:  { frames: 5, width: 28, height: 55, speed: 8, anchorY: 0, sheet: "./saitama_idle_uniform.png" },
+    walk:  { frames: 6, width: 46, height: 54, speed: 6, anchorY: 0, sheet: "./saitama_walk_uniform.png" },
+    run:   { frames: 6, width: 46, height: 54, speed: 4, anchorY: 0, sheet: "./saitama_walk_uniform.png" },
+    dash:  { frames: 2, width: 32, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_dash_uniform.png" },
+    jump:  { frames: 8, width: 35, height: 63, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_jump_uniform.png" },
+    fall:  { frames: 1, width: 35, height: 63, speed: 6, anchorY: 0, sourceX: 245, loop: false, lockLastFrame: true, sheet: "./saitama_jump_uniform.png" }, // last jump cell held as fall
+    guard: { frames: 3, width: 33, height: 55, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_block_uniform.png" },
+    hurt:  { frames: 5, width: 24, height: 56, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_hit_uniform.png" },
+    // ── STAGE 2 — 5 normals + grab (render by move name; basic_attacks data above). ──
+    light:    { frames: 7, width: 41, height: 55, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_light_uniform.png" },   // basic_kick
+    heavy:    { frames: 8, width: 70, height: 55, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_heavy_uniform.png" },   // punches
+    up:       { frames: 6, width: 44, height: 62, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_up_uniform.png" },      // up_attack (launcher)
+    air:      { frames: 6, width: 34, height: 55, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_air_uniform.png" },     // air_punch_part_1
+    down_air: { frames: 3, width: 35, height: 55, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_downair_uniform.png" }, // air_punch_part_2 (spike)
+    grab:     { frames: 7, width: 52, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_grab_uniform.png" },    // grab/throw
+    // ── STAGE 2 — command-normal chain: "Spin-Punch" (Fwd+Heavy) cancelable 3-stage rekka (turn_puch). ──
+    saitamaTurn1: { frames: 5, width: 42, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_turn1_uniform.png" },   // opener (spin windup)
+    saitamaTurn2: { frames: 5, width: 54, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_turn2_uniform.png" },   // mid (forward punches)
+    saitamaTurn3: { frames: 4, width: 52, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_turn3_uniform.png" },   // finisher (cape-throw)
+    // ── STAGE 3 — tiered tap/hold punch-combo special (neutral Special). tap → 10× / hold → 20×. ──
+    saitamaCombo10: { frames: 11, width: 96, height: 71, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_combo10_uniform.png" },   // Consecutive Normal Punches (10×) — tap
+    saitamaCombo20: { frames: 12, width: 133, height: 86, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_combo20_uniform.png" },   // Consecutive Normal Punches (20×) — hold
+    // ── STAGE 4 — the 6 specials (+ Side Hop). Rendered by move name (executeSaitamaSpecial). ──
+    saitamaSerious:   { frames: 24, width: 56,  height: 67, speed: 1, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_serious_uniform.png" },    // Serious Punch (Fwd) — full windup→impact
+    saitamaTwohand:   { frames: 11, width: 119, height: 94, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_twohand_uniform.png" },    // Two-Handed Punches (Back)
+    saitamaBargain:   { frames: 12, width: 44,  height: 62, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_bargain_uniform.png" },    // Today Is Bargain Sale (Up)
+    saitamaTableflip: { frames: 10, width: 45,  height: 55, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_tableflip_uniform.png" },  // Serious Table Flip (Down)
+    saitamaHeadbutt:  { frames: 6,  width: 41,  height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_headbutt_uniform.png" },   // Headbutt (air neutral)
+    saitamaUpdown:    { frames: 7,  width: 52,  height: 79, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_updown_uniform.png" },     // Up→Down Combo (air Fwd) — launcher→spike
+    saitamaSidehop:   { frames: 7,  width: 39,  height: 55, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_sidehop_uniform.png" },    // Side Hop evasive (air Back/Down)
+    // ── STAGE 5 — DEATH PUNCH ultimate poses (charge → impact; live fighter holds these through the cinematic). ──
+    saitamaDeathCharge: { frames: 7, width: 32, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_death1_uniform.png" },   // wind-up
+    saitamaDeathImpact: { frames: 8, width: 52, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_death2_uniform.png" }     // punch → impact
+  },
+  introPool: ["intro"]   // 3-part intro sequence stitched below (getup → run-backwards → settle-to-idle)
+}
+// STAGE 1 intro = 3 source parts stitched into ONE ordered strip (getup-from-lying → run backwards →
+// settle-to-idle; final frame hands off to idle). Built by tools/stitch_saitama_intro.py at Stage 1.
+saitama.animationData.intro = { frames: 17, width: 53, height: 65, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_intro_full_uniform.png" }
+
+// ─────────────────────────────────────────────────────────────────
+// OROCHIMARU  (rosterKey "orochimaru", universe "naruto" — the Sannin, the immortal snake).
+// A MANIPULATIVE / TECHNIQUE-MASTER archetype: a schemer with the LARGEST-class toolkit on the roster
+// (8 specials + a Summon ultimate + 3 alternate forms) — a deliberate VERSATILITY scope-exception in
+// the confirmed Madara / Ichigo / Tobi / Pain lineage (breadth = an answer to every situation, NOT raw
+// power; throttled by a deep-but-shared chakra pool). He wins on tools and mind-games, not on stat
+// records. STAGE 1 lands registration + all base-form movement/state + the 3-part "reborn from the white
+// snake" intro sequence. Normals/grab (S2), command-chain + 8 specials (S3), 3 forms (S4), Summon ult (S5),
+// portrait + balance (S6) follow. Source art re-sliced by tools/reslice_orochimaru.py. See below for stats.
+// ─────────────────────────────────────────────────────────────────
+const orochimaru = {
+  rosterKey: "orochimaru", name: "Orochimaru", universe: "naruto", color: "#7b6a9c",
+  portrait: "./orochimaru_portrait.png",
+  archetypes: ["technician", "zoner"],
+  primary: "melee", secondary: ["zoner", "grappler"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "medium", scaling: "technique", animeMovement: true },
+  passive: { name: "Living Corpse", effect: "The immortal Sannin — a bottomless bag of forbidden jutsu (snakes, the Kusanagi blade, body-shedding forms) backed by slippery technique rather than raw might." },
+  // MANIPULATIVE / VERSATILITY PROFILE (vs BALANCE_AUDIT.md, the Madara/Tobi/Pain lineage): HP1180 (shinobi
+  // durable band = Sasuke/Madara — the regenerator, NOT a tank record; below Jason1250/Isshiki1300), atk90
+  // (mid = Obito/Tobi/Pain — wins on TOOLS not power; base atk does NOT scale damage — flavor), def86
+  // (slippery technician, a touch above the shinobi 84, below Toji89/Superman92), spd92 (upper-mid =
+  // Madara/Rengoku — agile snake, deliberately NOT the teleport-tier 96-98; he is a schemer, not a
+  // speedster), maxEnergy210 (deep chakra pool between Pain210/Madara220 — headroom to FEED the 8-special
+  // + Summon-ult kit, and the SELF-LIMITING THROTTLE that keeps the breadth fair). NO stat is a roster
+  // outlier; the large kit is versatility, not a power spike. spriteScale 2.6 → idle ~41px × 2.6 ≈ 107px
+  // (human roster band). Full BALANCE_AUDIT entry at Stage 6.
+  stats: { maxHealth: 1180, maxEnergy: 210, attack: 90, defense: 86, speed: 92, maxJumps: 2, jumpPower: 27, dashSpeed: 13, dashDuration: 8, dashCooldownMax: 38 },
+  // Normals wired in STAGE 2 (5 normals + throw-weapon grab + Fwd/Aerial strongs). Stat block present now
+  // so the fighter is valid; the attack ANIMATIONS land with their sheets in Stage 2.
+  basic_attacks: {
+    light:    { damage: 30, startup: 6,  active: 2, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 60, startup: 12, active: 3, recovery: 20, hitstun: 20, knockbackX: 7, knockbackY: 1, rangeX: 122, rangeY: 48 },   // Kusanagi thrust — long blade reach
+    upAttack: { type: "launcher", damage: 46, startup: 9, active: 3, recovery: 17, hitstun: 18, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: 0, airOK: false },
+    airAttack:{ damage: 42, startup: 7,  active: 2, recovery: 12, hitstun: 13, knockbackX: 3, knockbackY: -2, rangeX: 84, rangeY: 60 },
+    downAir:  { damage: 50, startup: 8,  active: 3, recovery: 14, hitstun: 16, knockbackX: 1, knockbackY: 10, rangeX: 80, rangeY: 78 },
+    // AERIAL STRONG (air+Heavy) — extended-reach aerial Kusanagi swing (engine controls.airHeavy → air_heavy).
+    airHeavy: { damage: 64, startup: 9,  active: 4, recovery: 18, hitstun: 20, knockbackX: 8, knockbackY: -2, rangeX: 120, rangeY: 66 }
+  },
+  // Grab (throw-weapon): the generic grab pipeline (resolveGrab + updateGrab throw) seizes & hurls; this
+  // field makes the combat.js grab hook show his weapon-throw pose (default ~90 raw throw = ~54 EFF).
+  grabCastPose: "orochimaruThrow",
+  // ULTIMATE — Summoning: Twin Serpents. Inline freeze/camera-focus cinematic on the LIVE fighter (no dup
+  // instance — Isshiki/Hiruzen discipline): a giant Manda-class serpent strike. Guaranteed range-independent
+  // payoff routed through applyScaledDamage (~210 EFF, cinematic band). Logic: abilities.executeOrochimaruUltimate; FX: game.drawOrochimaruSummonCinematic.
+  ultimate: { name: "Summoning: Twin Serpents", cost: 100, description: "Summons a colossal serpent that strikes the opponent — a guaranteed, screen-filling nuke." },
+  hasSprites: true,
+  spriteScale: 2.6,
+  animationData: {
+    // ── MOVEMENT / STATE (tools/reslice_orochimaru.py; feet-aligned uniform cells, anchorY 0). ──
+    idle:  { frames: 4, width: 26, height: 41, speed: 8, anchorY: 0, sheet: "./orochimaru_idle_uniform.png" },
+    walk:  { frames: 6, width: 45, height: 39, speed: 6, anchorY: 0, sheet: "./orochimaru_run_uniform.png" },   // no walk art → run sheet, slower
+    run:   { frames: 6, width: 45, height: 39, speed: 4, anchorY: 0, sheet: "./orochimaru_run_uniform.png" },
+    dash:  { frames: 3, width: 45, height: 39, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_run_uniform.png" },   // no dash art → first 3 run frames as a lunge
+    jump:  { frames: 5, width: 35, height: 46, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_jump_uniform.png" },
+    fall:  { frames: 1, width: 35, height: 46, speed: 5, anchorY: 0, sourceX: 140, loop: false, lockLastFrame: true, sheet: "./orochimaru_jump_uniform.png" },   // descent = jump frame 4 (4×35)
+    doubleJump: { frames: 5, width: 35, height: 46, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_jump_uniform.png" },
+    guard:    { frames: 2, width: 24, height: 49, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_guard_uniform.png" },       // standing block
+    guardAir: { frames: 1, width: 34, height: 30, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_guardair_uniform.png" },    // crouched low/air guard
+    // ── STAGE 2 NORMALS (5) + bonus directional strongs. Character-frame melee (feet-aligned); the strong
+    // sheets' extending Kusanagi-blade/snake TAIL frames are reserved for the Stage-3 ranged work — here the
+    // reach (rangeX) represents the extension. Engine auto-routes Up/Down/Air heavies; Fwd+Heavy is the
+    // command normal (updateOrochimaruCommandCombat). ──
+    light:    { frames: 11, width: 45, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_light_uniform.png" },   // snake-whip auto-combo flurry
+    heavy:    { frames: 6,  width: 33, height: 46, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_heavy_uniform.png" },    // neutral Kusanagi thrust
+    up:       { frames: 6,  width: 41, height: 51, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_up_uniform.png" },       // Up strong (launcher)
+    air:      { frames: 4,  width: 67, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_air_uniform.png" },      // air normal (kick/snake)
+    down_air: { frames: 6,  width: 32, height: 40, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_downair_uniform.png" },  // Down strong
+    air_heavy:{ frames: 6,  width: 41, height: 73, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_airstrong_uniform.png" }, // AERIAL STRONG (air+Heavy)
+    // Forward Strong (Fwd+Heavy command normal) — sourced from p1_strong_attack_forward ONLY
+    // (p2_special_move_01 is its confirmed duplicate; NOT imported).
+    orochimaruFwdStrong: { frames: 4, width: 46, height: 45, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_fwdstrong_uniform.png" },
+    // Grab (throw-weapon) cast pose — the weapon-throw motion (grabCastPose hook sets it on grab).
+    orochimaruThrow: { frames: 4, width: 35, height: 49, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_throw_uniform.png" },
+    // ── STAGE 3 — command-normal CHAIN stages 2-3 (special_move_05) + the 8 specials' cast poses. Rendered
+    // by move name (createAttackFromMove / _spriteCastMove); MOVE_TO_ACTION identity-maps each. ──
+    orochimaruChain2:       { frames: 4, width: 28,  height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_chain2_uniform.png" },       // chain stage 2 (punch string)
+    orochimaruChain3:       { frames: 4, width: 39,  height: 47, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_chain3_uniform.png" },       // chain stage 3 (kick + flash launcher)
+    orochimaruSnakeSpit:    { frames: 3, width: 42,  height: 49, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_snakespit_uniform.png" },    // GROUND neutral cast (thin snake)
+    orochimaruSwordLunge:   { frames: 4, width: 82,  height: 49, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_swordlunge_uniform.png" },   // GROUND Fwd (sword lunge)
+    orochimaruSwordThrow:   { frames: 4, width: 53,  height: 54, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_swordthrow_uniform.png" },   // GROUND Back cast (sword throw)
+    orochimaruTailSweep:    { frames: 4, width: 65,  height: 65, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_tailsweep_uniform.png" },    // GROUND Up (snake-tail arc)
+    orochimaruSlam:         { frames: 4, width: 49,  height: 45, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_slam_uniform.png" },         // GROUND Down (low slam)
+    orochimaruSnakeLunge:   { frames: 4, width: 108, height: 51, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_snakelunge_uniform.png" },   // AIR neutral (snake dive)
+    orochimaruSnakeBarrage: { frames: 3, width: 35,  height: 49, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_snakebarrage_uniform.png" }, // AIR Fwd cast (barrage)
+    orochimaruCoil:         { frames: 5, width: 30,  height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_coil_uniform.png" },         // AIR Back (snake-form coil)
+    // ── STAGE 4 — shared shed-skin transition (played on every form transform; the morph off special_move_10). ──
+    orochimaruShed:         { frames: 6, width: 31,  height: 52, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_shed_uniform.png" },
+    // ── STAGE 5 — Summon Ultimate caster pose (held through the freeze cinematic; the giant serpent is a
+    // screen-space overlay via game.js drawOrochimaruSummonCinematic). ──
+    orochimaruSummonCast:   { frames: 3, width: 34,  height: 46, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_ult_cast_uniform.png" },
+    // ── HIT REACTIONS — 4 tiers. Engine auto-uses `hurt` (flinch) + `knockdown` (heavy); the other tiers
+    // are forceable bonus poses for damage-scaled recoil / harness coverage. ──
+    hurt:        { frames: 2, width: 33, height: 47, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_hurt_uniform.png" },        // light (chakra-crunch recoil)
+    hurtSpecial: { frames: 3, width: 29, height: 51, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_hurt_special_uniform.png" },  // special-hit stagger
+    hurtHeavy1:  { frames: 2, width: 41, height: 41, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_hurt_heavy1_uniform.png" },   // heavy1 tumble
+    hurtHeavy2:  { frames: 1, width: 35, height: 32, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_hurt_heavy2_uniform.png" },   // heavy2 crumple
+    // ── KNOCKDOWNS — both variants. `knockdown` = normal down→getup (engine-driven); `knockdownAgainst`
+    // = the wall/regen variant (green reanimation getup), a forceable bonus. ──
+    knockdown:        { frames: 8,  width: 51, height: 41, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_knockdown_uniform.png" },
+    knockdownAgainst: { frames: 11, width: 56, height: 47, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_knockdown_against_uniform.png" },
+    // ── 3-PART INTRO SEQUENCE — "reborn from the white snake" (introSequence 1→2→3, last frame holds → idle):
+    //    intro1 = appear/gesture · intro2 = coil into serpent form (ends on the snake) · intro3 = giant
+    //    snake-head roars → body expelled → rises to combat stance. ──
+    intro1: { frames: 2, width: 23, height: 48, speed: 12, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_intro1_uniform.png" },
+    intro2: { frames: 9, width: 38, height: 41, speed: 7,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_intro2_uniform.png" },
+    intro3: { frames: 8, width: 90, height: 64, speed: 9,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./orochimaru_intro3_uniform.png" }
+  },
+  introSequence: ["intro1", "intro2", "intro3"]   // 3-part rebirth cinematic, plays in order; last frame hands to idle
+}
+
+// ─────────────────────────────────────────────────────────────────
+// ONOKI — the Third Tsuchikage of Iwagakure, "Onoki of Both Scales"
+// (Naruto). Schema-exception versatility kit built off the CONFIRMED
+// ONOKI DESIGN (see ONOKI_ASSET_MAP.md). Source art arrived as 62
+// numbered ROW strips (onoki_row_NN.png), RE-SLICED into clean uniform,
+// feet-aligned cells (tools/reslice_onoki.py → the *_uniform.png copies;
+// the exact-as-uploaded row originals are kept untouched per the build
+// mandate). STRUCTURAL SIGNATURE: Onoki is the roster's first character
+// with DEDICATED ground↔flight MODE art (canon Dust Release levitation).
+// He wires into the existing traits.canFly flight-toggle system (shared
+// with Omni-Man/Superman) but, uniquely, ships distinct fly/flyMove
+// sheets (row_03 hover-idle, row_20 flight-glide) instead of reusing idle.
+// Stage 1 = registration + movement/state (ground + flight) only;
+// normals/command-chain/specials/golem-summon ult = later stages.
+const onoki = {
+  rosterKey: "onoki", name: "Onoki", universe: "naruto",
+  portrait: "./onoki_portrait.png",   // bust cropped from the ground-idle frame 0 (no dedicated mugshot art)
+  archetypes: ["zoner", "tactics", "flight"],
+  primary: "melee", secondary: ["zoner", "flight"],
+  // canFly: reuses the shared flight-toggle movement mode (abilities.js toggleOmniManFlight, physics.js
+  // _flightActive gravity gate). Onoki uniquely ships dedicated fly/flyMove art (see animationData).
+  // energyType "particle" = his Kekkei Tota Dust Release (Particle Style) — HUD label + shared drain pool
+  // (flight time competes with jutsu casts, like Omni-Man's Smart Atoms).
+  traits: { hasEnergy: true, energyType: "particle", mobility: "medium", scaling: "versatile", animeMovement: true, canFly: true },
+  passive: { name: "Both Scales", effect: "The Two Great Sages' pupil — levitates freely on Dust Release and disassembles matter at the atomic scale" },
+  // A frail, ancient Kage: LOWER HP/defense than the bruisers, its edge is versatility + flight mobility +
+  // ranged Dust Release, not durability. maxEnergy 200 = the shared Particle pool (flight drain + big kit).
+  stats: { maxHealth: 1120, maxEnergy: 200, attack: 88, defense: 82, speed: 84, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 12, dashCooldownMax: 44 },
+  // STAGE 2 taijutsu normals (combat.js _getMD reads THIS basic_attacks). Onoki's signature is the
+  // Dust-Release ROCK-ARM: the heavy is a long-reach enlarged-rock straight punch, the up is a rock-fist
+  // uppercut launcher, and down_air is the inverted rock-leg spike. light = quick jab.
+  basic_attacks: {
+    light:    { damage: 42, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 84, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 8, knockbackY: 1, rangeX: 96, rangeY: 46 },   // enlarged rock-arm straight — long reach
+    upAttack: { type: "launcher", damage: 66, startup: 7, active: 4, recovery: 17, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },   // rock-fist uppercut launcher
+    downAir:  { damage: 74, startup: 8, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 11 },   // inverted rock-leg dive spike
+    airAttack:{ damage: 54, startup: 6, active: 3, recovery: 12, hitstun: 14, knockbackX: 4, knockbackY: -2 }    // aerial dive kick
+  },
+  // HUD-only until the ultimate stage (real logic + cost live in abilities.js). Dust Release: Detachment
+  // of the Primitive World — a summoned stone GOLEM that persists on-field with its own moveset (canon).
+  ultimate: { name: "Detachment of the Primitive World", cost: 100, description: "Onoki channels Dust Release to raise a massive stone Golem from the rubble — a persistent summon that fights alongside him with its own moveset." },
+  hasSprites: true,
+  // Onoki is famously SHORT (canon ~140cm). idle content ≈63px; scale 1.55 → ~98px on-screen, reading a
+  // touch under the roster median (~111) as intended. anchorY:0 everywhere → feet planted, no anchor rescale.
+  // REQUIRES the skins.js `onoki` default entry (else applySkin() → spriteScale:1 native shrink) + the
+  // spritesheets.js SPRITE_MANIFEST idle gate (else procedural box).
+  spriteScale: 1.55,
+  animationData: {
+    // ── GROUND MODE ──
+    idle: { frames: 10, width: 62, height: 65, speed: 6, anchorY: 0, sheet: "./onoki_idle_uniform.png" },
+    // No dedicated ground-run strip — reuse the walk cycle at a faster cadence for run (Superman precedent).
+    walk: { frames: 8, width: 60, height: 65, speed: 6, anchorY: 0, sheet: "./onoki_walk_uniform.png" },
+    run:  { frames: 8, width: 60, height: 65, speed: 4, anchorY: 0, sheet: "./onoki_walk_uniform.png" },
+    dash: { frames: 5, width: 59, height: 61, speed: 3, anchorY: 0, sheet: "./onoki_dash_uniform.png" },
+    guard:{ frames: 7, width: 66, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_guard_uniform.png" },
+    // jump = startup+rise (row_08), play once + hold; fall = the flip descent (row_09), play once + hold.
+    jump: { frames: 4, width: 56, height: 61, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_jump_uniform.png" },
+    fall: { frames: 6, width: 70, height: 67, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_jump_flip_uniform.png" },
+    // ── FLIGHT MODE (canon Dust Release levitation) — the shared canFly system resolves these two keys
+    // (sprite.js: flyMove when moving horizontally, else fly). Onoki is the FIRST canFly char to ship
+    // dedicated flight art rather than reusing idle. ──
+    fly:     { frames: 8, width: 49, height: 66, speed: 6, anchorY: 0, sheet: "./onoki_hover_idle_uniform.png" },     // neutral hover (row_03)
+    flyMove: { frames: 9, width: 73, height: 64, speed: 4, anchorY: 0, sheet: "./onoki_flight_glide_uniform.png" },   // streaking horizontal flight (row_20)
+    // ── SHARED STATE ──
+    hurt:      { frames: 9, width: 76, height: 66, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_hit_uniform.png" },
+    // KNOCKDOWN chain: getup strip present → sprite.js plays knockdown FALL while down, then getup RISE.
+    knockdown: { frames: 5, width: 55, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_knockdown_uniform.png" },
+    getup:     { frames: 7, width: 69, height: 57, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_getup_uniform.png" },
+    // taunt/victory — arms-raised celebratory pose (row_18).
+    taunt:     { frames: 8, width: 74, height: 68, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_taunt_uniform.png" },
+    // ── STAGE 2 NORMALS (5 slots, RE-SLICED feet-aligned). basic_attacks (above) carries the hit/frame
+    // data; these drive the SPRITE. loop:false + lockLastFrame holds the strike through recovery.
+    // light = quick jab, heavy = enlarged ROCK-ARM straight, up = rock-fist uppercut launcher,
+    // air = aerial dive kick, down_air = inverted rock-leg dive spike. ──
+    light:    { frames: 4, width: 68, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_light_uniform.png" },
+    heavy:    { frames: 7, width: 82, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_heavy_uniform.png" },
+    up:       { frames: 8, width: 81, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_up_uniform.png" },
+    air:      { frames: 8, width: 76, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_air_uniform.png" },
+    down_air: { frames: 9, width: 72, height: 92, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_downair_uniform.png" },
+    // ── STAGE 2 COMMAND NORMAL (Fwd+Heavy) — onokiCombo: an 11-frame taijutsu combo string (single
+    // committed command-normal, Madara Susanoo-Punch pattern; currentMove="onokiCombo" → sprite.js identity map). ──
+    onokiCombo: { frames: 11, width: 70, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_cmdchain_uniform.png" },
+    // ── STAGE 3 SPECIALS (Dust Release) — currentMove/_spriteCast identity keys → sprite.js identity map.
+    // Neutral=Rock Fist Transform / Fwd=Rock Fist Lunge / Back=Rock Arm Swing / Up=Taunting Combo Finisher
+    // (launcher) / Down=Spinning Cape (+ 2 rock projectiles). Jutsu Charge/Launch = CHARGE(P) hold→release:
+    // `charge` = the row_45 wind-up loop (isCharging pose), onokiJutsu = the row_16 launch pose. ──
+    onokiRockFist: { frames: 8,  width: 80, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_rockfist_uniform.png" },
+    onokiLunge:    { frames: 7,  width: 90, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_lunge_uniform.png" },
+    onokiArmSwing: { frames: 8,  width: 61, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_armswing_uniform.png" },
+    onokiTauntFin: { frames: 13, width: 56, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_tauntfin_uniform.png" },
+    onokiCapeSpin: { frames: 9,  width: 61, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_capespin_uniform.png" },
+    onokiJutsu:    { frames: 8,  width: 68, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_jutsu_launch_uniform.png" },
+    charge:        { frames: 10, width: 68, height: 64, speed: 4, anchorY: 0, loop: true, sheet: "./onoki_jutsu_charge_uniform.png" },
+    // ── STAGE 4 — flight-mode / air specials + Rock Platform Ride (currentMove/_spriteCast identity keys).
+    // Air (airborne or flying): Up=onokiPlatformRide (positioning rise) / Down|Fwd=onokiFastDive (diving
+    // spike) / neutral|Back=onokiAerialSpin (cape-trail spin). ──
+    onokiFastDive:     { frames: 5,  width: 63, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_fast_dive_uniform.png" },
+    onokiAerialSpin:   { frames: 10, width: 71, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_aerial_spin_uniform.png" },
+    onokiPlatformRide: { frames: 9,  width: 60, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_platform_ride_uniform.png" },
+    // ── STAGE 5 — ULTIMATE cast pose (Dust Release: Detachment of the Primitive World). Onoki holds this
+    // hand-sign pose (row_46 cast frames) while the camera focuses; the persistent stone golem (summons.js
+    // onokiGolem) then rises and fights alongside him. ──
+    onokiUltCast: { frames: 3, width: 74, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./onoki_ult_cast_uniform.png" },
+    // HELD IN RESERVE (sliced, not yet wired — need dedicated hooks in later stages): dodge_roll (row_50),
+    // backflip (row_44), downed_slide (row_17), heavy_stun reaction (row_32), crouch (row_14),
+    // flight_dash (row_05). See ONOKI_ASSET_MAP.md.
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// MAYURI KUROTSUCHI (Bleach — 12th-Division captain, mad scientist). Schema-exception build (like
+// Onoki/Madara/Ichigo): an eccentric TECHNICIAN — low raw physical stats offset by ranged/DoT tools
+// (poison), utility, and a construct-summon Bankai spike + a bespoke assist (Nemu). Frail: below-median
+// HP/def, deliberate. energyType "reiatsu" = the shared Bleach Spirit-Pressure pool (Ichigo/Zaraki
+// precedent) — throttles the large kit. REQUIRES the skins.js `mayuri` default entry (else applySkin()
+// → spriteScale:1 native shrink) + the spritesheets.js SPRITE_MANIFEST idle gate (else procedural box).
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const mayuri = {
+  rosterKey: "mayuri", name: "Mayuri Kurotsuchi", universe: "bleach",
+  portrait: "./mayuri_portrait.png",   // bust cropped from the standing-idle frame 0 (no dedicated mugshot art)
+  archetypes: ["zoner", "tactics"],
+  primary: "ranged", secondary: ["zoner", "tactics"],
+  traits: { hasEnergy: true, energyType: "reiatsu", mobility: "medium", scaling: "versatile", animeMovement: true },
+  passive: { name: "Perpetual Research", effect: "The Research & Development captain — turns every clash into data, favouring poison, ranged bursts and summoned constructs over brute force" },
+  // A frail mad scientist: LOWER HP/defense/attack than the bruisers — his edge is versatile ranged/DoT
+  // tooling + the Bankai construct, not durability or raw power. maxEnergy 200 = the shared Reiatsu pool.
+  stats: { maxHealth: 1080, maxEnergy: 200, attack: 82, defense: 78, speed: 84, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 12, dashCooldownMax: 44 },
+  movement: { crouchIdle: true },   // opt-in: holding Down shows the dedicated crouch strip (row_06)
+  // STAGE 2 normals (combat.js _getMD reads THIS basic_attacks). Deliberately mid-low tier (Shinobu/Miwa
+  // band) — the scientist wins with tools, not fists. All run createAttackFromMove → scaled ×0.60.
+  basic_attacks: {
+    light:    { damage: 40, startup: 4, active: 3, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 78, startup: 9, active: 4, recovery: 19, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 88, rangeY: 44 },
+    upAttack: { type: "launcher", damage: 60, startup: 7, active: 4, recovery: 17, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -9, launch: 10, airOK: false },
+    downAir:  { damage: 70, startup: 8, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 11 },
+    airAttack:{ damage: 52, startup: 6, active: 3, recovery: 12, hitstun: 14, knockbackX: 4, knockbackY: -2 }
+  },
+  // HUD-only until the ultimate stage (real logic + cost live in abilities.js). Bankai: Konjiki Ashisogi
+  // Jizō — a massive summoned construct that assembles on-field alongside him.
+  ultimate: { name: "Bankai: Konjiki Ashisogi Jizō", cost: 100, description: "Mayuri releases his Bankai — a towering golden construct assembles from his blade and looms over the battlefield, crushing his foe." },
+  hasSprites: true,
+  // idle content ≈98px; scale 1.15 → ~113px on-screen (roster median), reading as a tall captain.
+  // anchorY:0 everywhere → feet planted, no anchor rescale.
+  spriteScale: 1.15,
+  animationData: {
+    // ── STAGE 1 MOVEMENT / STATE ──
+    idle:       { frames: 4, width: 50, height: 100, speed: 6, anchorY: 0, sheet: "./mayuri_idle_uniform.png" },
+    // Iconic SEATED idle variant (cross-legged) — resolves via _forceAction "idleSeated" (harness/taunt use).
+    idleSeated: { frames: 2, width: 86, height: 67, speed: 10, anchorY: 0, sheet: "./mayuri_idle_seated_uniform.png" },
+    walk:       { frames: 8, width: 48, height: 100, speed: 6, anchorY: 0, sheet: "./mayuri_walk_uniform.png" },
+    run:        { frames: 6, width: 101, height: 80, speed: 4, anchorY: 0, sheet: "./mayuri_run_uniform.png" },
+    dash:       { frames: 2, width: 79, height: 80, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_dash_uniform.png" },
+    // No dedicated airborne art in the Stage-1 brief → reuse the dash lunge for jump/fall (box-free, reads
+    // as a coat-trailing leap). guard reuses the standing idle (no dedicated block art). Both avoid the
+    // procedural 128² box; dedicated art can be slotted in a later movement pass.
+    jump:       { frames: 2, width: 79, height: 80, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_dash_uniform.png" },
+    fall:       { frames: 2, width: 79, height: 80, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_dash_uniform.png" },
+    guard:      { frames: 4, width: 50, height: 100, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_idle_uniform.png" },
+    crouch:     { frames: 4, width: 82, height: 77, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_crouch_uniform.png" },
+    hurt:       { frames: 2, width: 101, height: 111, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_hurt_uniform.png" },
+    // KNOCKDOWN chain: getup strip present → sprite.js plays knockdown FALL while down, then getup RISE.
+    knockdown:  { frames: 8, width: 119, height: 111, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_knockdown_uniform.png" },
+    getup:      { frames: 6, width: 75, height: 102, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_getup_uniform.png" },
+    // ── STAGE 2 NORMALS (5 slots). basic_attacks (above) carries hit/frame data; these drive the SPRITE
+    // (loop:false + lockLastFrame holds the strike through recovery). light = sword-draw jab, heavy =
+    // forward palm/finger thrust, up = vertical sword-thrust launcher (green-slash FX row_26 overlay),
+    // air = airborne forward slash (green-slash FX row_32 overlay), down_air = aerial diving slash.
+    light:    { frames: 6,  width: 81,  height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_light_uniform.png" },
+    heavy:    { frames: 6,  width: 88,  height: 98,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_heavy_uniform.png" },
+    up:       { frames: 10, width: 110, height: 148, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_up_uniform.png" },
+    air:      { frames: 8,  width: 142, height: 91,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_air_uniform.png" },
+    down_air: { frames: 6,  width: 94,  height: 80,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_downair_uniform.png" },
+    // ── STAGE 2 COMMAND NORMAL (Fwd+Heavy) — a 2-stage cancel-on-hit rekka split from ONE 17f source
+    // (row_13): mayuriCmd1 = standing finger-poke string (opener), re-tap Heavy on a clean hit →
+    // mayuriCmd2 = drop-to-low flurry finisher (launcher). currentMove = key → sprite.js identity map.
+    mayuriCmd1: { frames: 9, width: 70, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_cmd1_uniform.png" },
+    mayuriCmd2: { frames: 8, width: 85, height: 98,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_cmd2_uniform.png" },
+    // ── STAGE 3 SPECIALS (executeMayuriSpecial branches by held dir). currentMove/_spriteCast identity
+    // keys → sprite.js identity map. N=Finger-Gun Blast (row_41, muzzle-flash projectile) / F=Energy Slash
+    // (row_18 + green-crescent projectile) / U=Rising Cut launcher (row_19) / D=Poison Cloud (row_37 cast +
+    // spore-cloud projectile w/ DoT) / B=Lab Coat Open buff (row_42 coat-flung-open, damage multiplier).
+    mayuriBlast:    { frames: 12, width: 127, height: 106, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_blast_uniform.png" },
+    mayuriSlash:    { frames: 8,  width: 129, height: 102, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_slash_uniform.png" },
+    mayuriRising:   { frames: 4,  width: 106, height: 85,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_rising_uniform.png" },
+    mayuriPoison:   { frames: 6,  width: 80,  height: 98,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_poison_uniform.png" },
+    mayuriCoatOpen: { frames: 9,  width: 96,  height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_coatopen_uniform.png" },
+    // ── STAGE 4 — BANKAI release cast pose (row_43): held on the LIVE fighter while the golden Konjiki
+    // Ashisogi Jizō construct assembles in the freeze-cinematic overlay (drawMayuriBankaiCinematic).
+    mayuriBankaiCast: { frames: 9, width: 75, height: 101, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mayuri_bankai_cast_uniform.png" },
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// KIBA INUZUKA (+ AKAMARU, merged) — Naruto. Schema-exception close-range RUSHDOWN. His whole kit is a
+// beast-fusion escalation ladder (Gatsuga → Four Legs → Two-Headed Wolf → Three-Headed Wolf ULT) with
+// Akamaru present ONLY inside Kiba's merged technique art (never a separate playable/summon entity —
+// Akamaru's standalone art is unfinished grayscale line-art and is banned from gameplay). Aggressive:
+// above-median speed + strong normals, average durability. energyType "chakra" = the shared Naruto pool.
+// REQUIRES the skins.js `kiba` default entry (else applySkin() → spriteScale:1 native shrink) + the
+// spritesheets.js SPRITE_MANIFEST idle gate (else procedural box). See KIBA_ASSET_MAP.md.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const kiba = {
+  rosterKey: "kiba", name: "Kiba Inuzuka", universe: "naruto",
+  portrait: "./kiba_portrait.png",   // bust cropped from the standing-idle frame 0 (no dedicated mugshot art)
+  archetypes: ["melee", "rushdown"],
+  primary: "melee", secondary: ["rushdown"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "aggressive", animeMovement: true },
+  passive: { name: "Man-Beast Bond", effect: "Fights fused with Akamaru — a close-range Inuzuka rushdown that escalates through beast-transformations (Four Legs → Two-Headed Wolf → Three-Headed Wolf)" },
+  // Aggressive rushdown: above-median SPEED + hard-hitting taijutsu normals, AVERAGE durability (he
+  // pays for the speed/offense with no ranged safety — every tool is close-range). HP 1180 = Naruto-tier;
+  // maxEnergy 180 = the shared chakra pool that gates Gatsuga tiers + the transformation ladder.
+  stats: { maxHealth: 1180, maxEnergy: 180, attack: 90, defense: 82, speed: 92, maxJumps: 2, jumpPower: 31, dashSpeed: 17, dashDuration: 10, dashCooldownMax: 36 },
+  // STAGE 2 taijutsu normals (combat.js _getMD reads THIS basic_attacks). Wired with real art in Stage 2;
+  // values proposed here so the fighter is functional from Stage 1. Fang-strike close-range kit.
+  basic_attacks: {
+    light:    { damage: 44, startup: 4, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 82, startup: 6, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 66, startup: 6, active: 4, recovery: 15, hitstun: 18, blockstun: 9, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },
+    downAir:  { damage: 72, startup: 6, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 11 },
+    airAttack:{ damage: 54, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 4, knockbackY: -2 }
+  },
+  // HUD-only until the ultimate stage (real logic + cost live in abilities.js). Three-Headed Wolf =
+  // his biggest beast-fusion, built on the freeze/camera-focus cinematic architecture (Stage 5).
+  ultimate: { name: "Three-Headed Wolf", cost: 100, description: "Kiba and Akamaru fuse into a monstrous three-headed wolf and maul the opponent in a spinning vortex of fangs." },
+  hasSprites: true,
+  // Kiba's source art is small (idle content ≈42px). scale 2.5 → ~105px on-screen, reading at roster
+  // median. anchorY:0 everywhere → feet planted, no anchor rescale.
+  spriteScale: 2.5,
+  animationData: {
+    // ── STAGE 1 — movement / state ──
+    idle:  { frames: 1, width: 27, height: 42, speed: 8, anchorY: 0, sheet: "./kiba_idle_uniform.png" },   // single clean pose, held static (no loop frames exist)
+    walk:  { frames: 5, width: 44, height: 31, speed: 6, anchorY: 0, sheet: "./kiba_run_uniform.png" },
+    run:   { frames: 5, width: 44, height: 31, speed: 4, anchorY: 0, sheet: "./kiba_run_uniform.png" },
+    dash:  { frames: 2, width: 38, height: 33, speed: 4, anchorY: 0, sheet: "./kiba_dash_uniform.png" },
+    jump:  { frames: 3, width: 31, height: 43, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_jump_uniform.png" },
+    fall:  { frames: 3, width: 31, height: 43, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_jump_uniform.png" },
+    guard:     { frames: 1, width: 28, height: 42, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_guard_uniform.png" },
+    guard_air: { frames: 1, width: 29, height: 34, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_guard_air_uniform.png" },
+    charge:    { frames: 1, width: 27, height: 40, speed: 6, anchorY: 0, loop: true, sheet: "./kiba_charge_uniform.png" },   // chakra-charge held pose feeding specials
+    hurt:      { frames: 2, width: 29, height: 42, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_hurt_uniform.png" },
+    knockdown: { frames: 6, width: 44, height: 35, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_knockdown_uniform.png" },
+    win:       { frames: 1, width: 32, height: 40, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_win_uniform.png" },   // colored row_71 pose (akamaru_winning_pose is unusable line-art)
+    // ── STAGE 2 — taijutsu normals (combat.js routes basic_attacks slot → these sprite keys: light/heavy/
+    // up/air/down_air). light + air are the STITCHED 2-part continuous claw chains. ──
+    light:    { frames: 23, width: 47, height: 46, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_light_uniform.png" },   // attack_combo_1+2 fang-claw flurry
+    heavy:    { frames: 5,  width: 59, height: 39, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_heavy_uniform.png" },   // lunging fang strike
+    up:       { frames: 10, width: 40, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_upstrong_uniform.png" }, // rising anti-air launcher
+    air:      { frames: 15, width: 52, height: 44, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_air_uniform.png" },      // air claw chain (combo_air_1+2)
+    down_air: { frames: 3,  width: 34, height: 43, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_downair_uniform.png" },  // down-air spike
+    // ── STAGE 2 BONUS directional command-normals (Fwd+Heavy). currentMove = key → sprite.js identity map
+    // (abilities.js updateKibaCommandCombat). kibaAerialStrong art is OFF-PALETTE GREEN (flagged). ──
+    kibaFwdStrong:    { frames: 3, width: 34, height: 43, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_fwdstrong_uniform.png" },   // Fwd+Heavy grounded lunge
+    kibaAerialStrong: { frames: 9, width: 47, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_aerialstrong_uniform.png" }, // air Fwd+Heavy spin
+    // ── STAGE 3 — Gatsuga (Fang Passing Fang) 2 tiers (abilities.js executeKibaSpecial; currentMove = key
+    // → sprite.js identity map). Weak = neutral Special (quick drill-rush); Strong = Fwd Special (bigger,
+    // armored, travels far, orange-FX drill). ──
+    kibaGatsugaWeak:   { frames: 5, width: 51, height: 34, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_gatsuga_weak_uniform.png" },   // stance→crouch→all-fours→lunge→drill
+    kibaGatsugaStrong: { frames: 4, width: 70, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_gatsuga_strong_uniform.png" }, // all-fours→orange twin-drill×3
+    // ── STAGE 4 — Beast-Fusion (abilities.js executeKibaSpecial: Down=Four Legs / Up=Two-Headed Wolf).
+    // Four Legs = the CLEAN feral-transform frames (Stage-0 vetted _1+_2; _3-_6 blue-block dropped). Two-
+    // Headed Wolf = the colored twin-drill FX (mode_4+mode_5; _1/_2 genuinely absent). ──
+    kibaFourLegs:  { frames: 30, width: 46, height: 52,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_fourlegs_uniform.png" },   // Shikyaku no Jutsu transform cast
+    kibaTwoHeaded: { frames: 4,  width: 167, height: 83, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./kiba_twoheaded_uniform.png" },   // horizontal twin-drill rush
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// BORUTO UZUMAKI — Naruto/Boruto. VERSATILE technician (medium kit): hard-hitting taijutsu normals + a
+// broad ninjutsu toolbox (Rasengan ground/air/Vanishing, Lightning Shiden, wind/water breath cast, kunai
+// throw, Shadow Clone) capped by the Kote (Scientific Ninja Tool) cinematic super. Agile teenage prodigy:
+// above-median SPEED + 2 jumps, average durability. energyType "chakra" = the shared Naruto pool.
+// SOURCE ART GAPS (confirmed absent, NOT invented): no walk cycle (walk borrows the run strip), no
+// backdash, no throw/grab, no Karma-mark or Jougan alternate form/palette. Signature-move FX (Rasengan
+// orb, lightning arcs, projectiles, clone smoke, Kote muzzle-flash) are AUTHORED in Stage 3/4, not in art.
+// REQUIRES the skins.js `boruto` default entry (else applySkin() → spriteScale:1 native shrink) + the
+// spritesheets.js SPRITE_MANIFEST idle gate (else procedural box). See tools/reslice_boruto.py.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const boruto = {
+  rosterKey: "boruto", name: "Boruto Uzumaki", universe: "naruto",
+  portrait: "./boruto_portrait.png",   // bust cropped from the standing-idle frame 0 (no dedicated mugshot art)
+  archetypes: ["melee", "ranged", "technical"],
+  primary: "melee", secondary: ["ranged", "technical"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "high", scaling: "versatile", animeMovement: true },
+  passive: { name: "New Era Shinobi", effect: "A versatile prodigy who mixes crisp taijutsu with a deep ninjutsu toolbox (Rasengan, Lightning Release, Shadow Clones) and the Kote scientific ninja tool" },
+  // Versatile technician: above-median SPEED + agility, AVERAGE durability. He trades a tank's HP for reach
+  // and options (every element of his kit answers a different range). HP 1120 = below Naruto-tier (nimble
+  // teen); maxEnergy 180 = the shared chakra pool that fuels his ninjutsu + gates the Kote ultimate.
+  stats: { maxHealth: 1120, maxEnergy: 180, attack: 88, defense: 80, speed: 96, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 34 },
+  // STAGE 2 taijutsu normals (combat.js _getMD reads THIS basic_attacks). Real art wired in Stage 2; values
+  // proposed here so the fighter is functional from Stage 1. Heavy = the long-recovery punishable strong.
+  basic_attacks: {
+    light:    { damage: 40, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 78, startup: 6, active: 4, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 64, startup: 5, active: 2, recovery: 15, hitstun: 18, blockstun: 9, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },
+    downAir:  { damage: 70, startup: 5, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 11 },
+    airAttack:{ damage: 52, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 4, knockbackY: -2 }
+  },
+  // HUD-only until the ultimate stage (real logic + cost live in abilities.js). Kote = his 5-part cinematic
+  // super, built on the freeze/camera-focus cinematic architecture (Stage 4).
+  ultimate: { name: "Kote Barrage", cost: 100, description: "Boruto unleashes the Kote (Scientific Ninja Tool), firing a rapid barrage of stored jutsu that culminates in a devastating point-blank blast." },
+  introPool: ["intro"],   // 4f relaxed entrance (introduction.png) — the only genuinely relaxed posture in the set; plays once → hands off to idle
+  hasSprites: true,
+  // Boruto's idle source content ≈70px. scale 1.5 → ~105px on-screen, reading at roster median. anchorY:0
+  // everywhere → feet planted, no anchor rescale.
+  spriteScale: 1.5,
+  animationData: {
+    // ── STAGE 1 — movement / state ──
+    idle:  { frames: 12, width: 52, height: 72, speed: 6, anchorY: 0, sheet: "./boruto_idle_uniform.png" },   // 7f stance baked into a 1→7→1 ping-pong (no engine yoyo)
+    walk:  { frames: 6, width: 62, height: 67, speed: 6, anchorY: 0, sheet: "./boruto_run_uniform.png" },      // NO walk art exists → borrows the run strip (flagged gap, not invented)
+    run:   { frames: 6, width: 62, height: 67, speed: 4, anchorY: 0, sheet: "./boruto_run_uniform.png" },
+    dash:  { frames: 3, width: 54, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_dash_uniform.png" },   // push-off → afterimage smear → arrival
+    jump:  { frames: 4, width: 53, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_jump_uniform.png" },
+    fall:  { frames: 4, width: 53, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_jump_uniform.png" },
+    guard:     { frames: 1, width: 37, height: 84, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_guard_uniform.png" },  // standing block (cell 0; crouch-block cells 1-2 reserved)
+    charge:    { frames: 5, width: 46, height: 78, speed: 6, anchorY: 0, loop: true, sheet: "./boruto_charge_uniform.png" },   // chakra-charge cycling pose feeding specials
+    hurt:      { frames: 3, width: 52, height: 78, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_hurt_uniform.png" },   // grounded light recoil (progressive narrowing)
+    hurt_air:  { frames: 5, width: 71, height: 69, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_hurt_heavy_uniform.png" },  // airborne heavy knockback (taking_heavy_damage)
+    knockdown: { frames: 5, width: 86, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_knockdown_uniform.png" },  // impact→prone→sit-up→knee→rise (getup folded in)
+    win:       { frames: 3, width: 51, height: 81, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_win_uniform.png" },   // front-facing victory pose (WIN ONLY — silhouette differs from gameplay art)
+    intro:     { frames: 4, width: 42, height: 82, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_intro_uniform.png" },   // 4f relaxed entrance (introPool), plays once → idle
+    // ── STAGE 2 — taijutsu normals (combat.js routes basic_attacks slot → these sprite keys: light/heavy/
+    // up/air/down_air). light = the 2-hit punch→kick auto-combo (row_09). ──
+    light:    { frames: 8, width: 73, height: 82, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_light_uniform.png" },   // Punch set A (4f) → Kick set B (4f)
+    heavy:    { frames: 4, width: 71, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_heavy_uniform.png" },   // strong forward punch (long punishable recovery)
+    up:       { frames: 3, width: 76, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_up_uniform.png" },      // uppercut launcher (active frame 2 only)
+    air:      { frames: 6, width: 73, height: 78, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_air_uniform.png" },     // air punch (3f) + air kick (3f), descending
+    down_air: { frames: 3, width: 69, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_downair_uniform.png" }, // divekick (hold frame 2 descending)
+    // ── STAGE 2 BONUS command-normals (abilities.js updateBorutoCommandCombat; currentMove = key →
+    // sprite.js identity map). Low Sweep = Ground Down+Heavy; the two aerial combos = an Air-Heavy cancel
+    // string (AirCombo1 → re-tap Heavy on hit → AirCombo2 spinning-dive finisher). ──
+    borutoLowSweep:   { frames: 6, width: 61, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_lowsweep_uniform.png" },    // Down+Heavy forced-knockdown low sweep
+    borutoAirCombo1:  { frames: 8, width: 71, height: 87, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_aircombo1_uniform.png" },   // Air-Heavy opener
+    borutoAirCombo2:  { frames: 9, width: 73, height: 85, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_aircombo2_uniform.png" },   // ~180° spinning-dive finisher (spike)
+    // ── STAGE 3 — directional special CAST poses (abilities.js executeBorutoSpecial; currentMove/
+    // _spriteCastMove = key → sprite.js identity map). Signature-move FX authored in abilities/game.js:
+    // Rasengan orb reuses the shared Naruto sphere, kunai reuses the shared shuriken, the Shiden electric
+    // arc is a procedural overlay (game.drawBorutoShidenFX), wind/palm gusts are energy projectiles. ──
+    borutoRasengan:    { frames: 8,  width: 67,  height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_rasengan_ground_uniform.png" },  // N ground — Rasengan thrust
+    borutoRasenganAir: { frames: 4,  width: 136, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_rasengan_air_uniform.png" },     // N air — Rasengan dive (dark impact)
+    borutoVanishing:   { frames: 10, width: 74,  height: 85, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_vanishing_uniform.png" },        // air Back — Vanishing Rasengan (faint FX)
+    borutoShiden:      { frames: 5,  width: 146, height: 77, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_shiden_uniform.png" },            // F — Lightning Shiden thrust (arc FX overlay)
+    borutoWindWater:   { frames: 6,  width: 107, height: 80, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_windwater_uniform.png" },         // B — Wind/Water breath cast → projectile
+    borutoPalmBlast:   { frames: 9,  width: 157, height: 98, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_sutorimu_all_uniform.png" },      // U — Palm Blast wind-streak cast → projectile
+    borutoClone:       { frames: 4,  width: 51,  height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_clone_uniform.png" },             // D — Shadow Clone seal (clone assist + smoke)
+    borutoThrowAir:    { frames: 6,  width: 73,  height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_throw_air_uniform.png" },         // air Fwd — Throw Weapon (kunai projectile)
+    // ── STAGE 4 — Kote (Scientific Ninja Tool) ULTIMATE cast pose. The LIVE fighter plays the 19f stitched
+    // 5-part firing sequence over the cinematic; game.drawBorutoKoteFX/Cinematic layer the authored FX. ──
+    borutoKote:        { frames: 19, width: 107, height: 77, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_kote_uniform.png" },   // U — Kote Barrage cinematic (5-part fire → recoil payoff → advancing fire)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// BYAKUYA KUCHIKI  (rosterKey "byakuya", universe "bleach"). Squad-6 captain, precise Shunpo swordsman.
+// LARGE schema-exception kit (~a dozen special-tier attacks + 2-phase Bankai) built from 56 numbered ROW
+// strips (Byakuya_Kuchiki_row_NN.png), RE-SLICED feet-aligned by tools/reslice_byakuya.py. Stage 0 audit
+// + 4 design decisions locked (see memory byakuya-build). STAGE 2 = movement/state only; normals (Stage 3)
+// and specials/Bankai (Stage 4/5) append their animationData rows later.
+//
+// TECHNICIAN GLASS-CANNON profile (user "you pick"): lower HP/defense than the bruisers — its edge is Shunpo
+// mobility + a broad precision kit, NOT durability. Baked-in fragility is the balance-correct downside for a
+// versatility outlier (Zaraki/Pain/Saitama/Hashirama class). energyType "reiatsu" (ui.js ENERGY_TYPE_LABELS
+// already carries "Reiatsu"). REQUIRES the skins.js `byakuya` default (else spriteScale:1 native-shrink) +
+// the spritesheets.js idle gate (else procedural box).
+// ─────────────────────────────────────────────────────────────────
+const byakuya = {
+  rosterKey: "byakuya", name: "Byakuya Kuchiki", universe: "bleach", color: "#c9b8cf",
+  portrait: "./byakuya_portrait.png",   // placeholder bust from idle frame 0 (final portrait row chosen at Stage 6)
+  archetypes: ["rushdown", "technician", "zoner"],
+  primary: "melee", secondary: ["rushdown", "zoner"],
+  traits: { hasEnergy: true, energyType: "reiatsu", mobility: "high", scaling: "versatile", animeMovement: true },
+  passive: { name: "Flash Master", effect: "Kuchiki nobility honed to a razor — flickers between Shunpo steps and scatters Senbonzakura's petals to control space, trading durability for precision and reach" },
+  // Glass-cannon technician: HP/def below the bruisers; fast (speed 92) with strong Shunpo dash mobility.
+  // maxEnergy 200 = the shared Reiatsu pool (big kit + Bankai ult).
+  stats: { maxHealth: 1080, maxEnergy: 200, attack: 92, defense: 86, speed: 92, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 12, dashCooldownMax: 40 },
+  // STAGE 3 normals (combat.js _getMD reads this; animationData.{light,heavy,up,air,down_air} drives the
+  // sprite). Technician katana kit: quick light draw-cut, committed low-sweep heavy with katana reach, a
+  // raised-slash up-launcher, forward air thrust, and a diagonal down_air. Low-ish damage — the glass-cannon
+  // pressure comes from speed + the specials (Stage 4), not raw normal damage.
+  basic_attacks: {
+    light:    { damage: 40, startup: 4, active: 3, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 76, startup: 8, active: 4, recovery: 18, hitstun: 20, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 44 },
+    upAttack: { type: "launcher", damage: 62, startup: 6, active: 4, recovery: 16, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },
+    downAir:  { damage: 70, startup: 7, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 11 },
+    airAttack:{ damage: 52, startup: 5, active: 3, recovery: 12, hitstun: 14, knockbackX: 4, knockbackY: -2 }
+  },
+  // HUD-only until the ultimate stage (real logic + cost live in abilities.js at Stage 5).
+  ultimate: { name: "Bankai: Senbonzakura Kageyoshi", cost: 100, description: "Byakuya releases his Bankai — a thousand blades scatter into a storm of Senbonzakura petals that converge on his foe." },
+  hasSprites: true,
+  // Byakuya content ≈117px tall; scale 1.1 → a tall, dignified captain reading near the roster's upper-mid.
+  // anchorY:0 everywhere → feet planted, no anchor rescale.
+  spriteScale: 1.1,
+  movement: { crouchIdle: true },   // opt-in: holding Down shows the dedicated crouch strip (mega-row 08 f6)
+  animationData: {
+    // ── STAGE 2 MOVEMENT / STATE (row_11 idle, mega-row 08 walk/crouch, row_02 dash, mega-row 09 hurt/
+    // knockdown, row_10 getup, row_25 guard, row_32 taunt, row_33 intro). No dedicated jump/fall art in the
+    // audit → jump & fall reuse the row_02 airborne pose (honest fallback, flagged).
+    idle:  { frames: 5, width: 57,  height: 101, speed: 6, anchorY: 0, sheet: "./byakuya_idle_uniform.png" },
+    walk:  { frames: 5, width: 90,  height: 101, speed: 6, anchorY: 0, sheet: "./byakuya_walk_uniform.png" },
+    run:   { frames: 5, width: 90,  height: 101, speed: 4, anchorY: 0, sheet: "./byakuya_walk_uniform.png" },   // reuse walk faster (no dedicated run strip)
+    dash:  { frames: 4, width: 64,  height: 90,  speed: 3, anchorY: 0, sheet: "./byakuya_dash_uniform.png" },
+    jump:  { frames: 4, width: 64,  height: 90,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_dash_uniform.png" },   // reuse airborne pose
+    fall:  { frames: 4, width: 64,  height: 90,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_dash_uniform.png" },   // reuse airborne pose
+    crouch:{ frames: 1, width: 72,  height: 73,  speed: 6, anchorY: 0, sheet: "./byakuya_crouch_uniform.png" },
+    hurt:      { frames: 3, width: 97,  height: 92,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_hurt_uniform.png" },       // [row_09 sub-clip boundary UNCONFIRMED]
+    knockdown: { frames: 2, width: 95,  height: 98,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_knockdown_uniform.png" },  // [row_09 sub-clip boundary UNCONFIRMED]
+    getup:     { frames: 9, width: 106, height: 101, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_getup_uniform.png" },
+    guard:     { frames: 4, width: 120, height: 91,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_guard_uniform.png" },
+    taunt:     { frames: 4, width: 93,  height: 101, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_taunt_uniform.png" },
+    intro:     { frames: 14, width: 108, height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_intro_uniform.png" },
+    // ── STAGE 3 NORMALS (5 slots, FX-LESS content). basic_attacks (above) carries the hit/frame data; these
+    // drive the SPRITE. loop:false + lockLastFrame holds the strike through recovery. light = iai draw-cut
+    // (row_08 f7-12), heavy = low blade sweep (row_09 f0-3), up = raised slash launcher (row_50), air =
+    // forward thrust (row_48), down_air = diagonal down slash (row_45). crouchLight = crouching teal swipe
+    // (row_20) — swapped in by the generic crouch-variant hook when light is thrown while holding Down.
+    light:    { frames: 6, width: 72,  height: 99,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_light_uniform.png" },
+    heavy:    { frames: 4, width: 76,  height: 97,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_heavy_uniform.png" },
+    up:       { frames: 1, width: 86,  height: 100, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_up_uniform.png" },
+    air:      { frames: 1, width: 52,  height: 100, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_air_uniform.png" },
+    down_air: { frames: 1, width: 81,  height: 98,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_downair_uniform.png" },
+    crouchLight: { frames: 4, width: 112, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_crouchlight_uniform.png" },
+    // ── STAGE 4 SPECIAL CAST POSES (currentMove / _spriteCastMove identity keys → sprite.js MOVE_TO_ACTION).
+    // GROUND: N=Petal Cast (byakuyaPetalCast) / F=Re-form Thrust / U=Re-form Overhead (both = Utsusemi vanish
+    // → teleport-in → strike) / B=Shunpo blink (out+in) / D=Straight Thrust. AIR: N=Jump Slash / F=Airborne
+    // Vault. loop:false + lockLastFrame holds the pose through recovery.
+    byakuyaThrust:        { frames: 8, width: 111, height: 101, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_thrust_uniform.png" },       // D — straight lunge thrust
+    byakuyaPetalCast:     { frames: 5, width: 86,  height: 101, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_petalcast_b_uniform.png" },   // N — Senbonzakura petal cast
+    byakuyaShunpoOut:     { frames: 3, width: 64,  height: 98,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_shunpo_out_uniform.png" },    // B — Shunpo dissolve-out
+    byakuyaShunpoIn:      { frames: 3, width: 64,  height: 98,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_shunpo_in_uniform.png" },     // B — Shunpo dissolve-in
+    byakuyaReformVanish:  { frames: 7, width: 72,  height: 101, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_reform_vanish_uniform.png" }, // F/U — Utsusemi vanish
+    byakuyaReformOverhead:{ frames: 8, width: 95,  height: 114, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_reform_overhead_uniform.png" },// U — re-form overhead cut
+    byakuyaReformThrust:  { frames: 7, width: 125, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_reform_thrust_uniform.png" }, // F — re-form horizontal thrust
+    byakuyaJumpSlash:     { frames: 7, width: 129, height: 102, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_jumpslash_uniform.png" },     // air N — jump slash
+    byakuyaAirVault:      { frames: 7, width: 95,  height: 115, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_airvault_uniform.png" },       // air F — airborne vault
+    // ── STAGE 5 BANKAI: "Senbonzakura Kageyoshi" — 2-phase inline freeze cinematic. The CHARACTER poses
+    // (charge → transform → thrust) drive the LIVE sprite via _spriteCastMove; the blue reiatsu wings + blast
+    // are cinematic OVERLAYS (game.js drawByakuyaSpecialFx, driven by _byakuyaBankaiTimer). Feet bottom-align
+    // normally (the tall-canvas FX space is handled in the overlay, not here).
+    byakuyaBankaiCharge:    { frames: 5, width: 81,  height: 101, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_bankai_charge_uniform.png" },
+    byakuyaBankaiTransform: { frames: 2, width: 81,  height: 101, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_bankai_transform_uniform.png" },
+    byakuyaBankaiThrust:    { frames: 4, width: 144, height: 93,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./byakuya_bankai_thrust_uniform.png" }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// LIGHT YAGAMI  (rosterKey "light", universe "deathnote"). Death Note's Kira — a special-heavy zoner/
+// technician built from the prodijiu JUS sprite set (20 per-action light_yagami_*.png files, RE-SLICED
+// feet-aligned by tools/reslice_light.py). Stage 0 audit + user decisions locked (see memory
+// light-yagami-build): NO deck/support-panel system exists → koma sheets repurposed (notebook→scythe = a
+// 2nd ultimate-tier move); call-ins credited by real name (Ryuk / L / placeholder gunman).
+//
+// SPECIAL-HEAVY profile (flagged vs BALANCE_AUDIT like Toji, resolved at Stage 7): a LIGHT 3-move normal set
+// (B / B-fwd / B-down) against 7 special-tier moves + 2 ultimates. He is not a brawler — his power is the
+// summoned Shinigami/detective call-ins and Death Note. Average durability, deep Kira pool. energyType "kira"
+// (ui.js ENERGY_TYPE_LABELS carries "Kira"). REQUIRES the skins.js `light` default (else applySkin →
+// spriteScale:1 native shrink) + the spritesheets.js SPRITE_MANIFEST idle gate (else procedural box).
+// STAGE 1 = movement/state only; normals (Stage 2) and specials/ultimates (Stage 4-6) append later.
+// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// L "RYUUZAKI" (universe: deathnote) — L Lawliet, the world's greatest detective.
+// SCHEMA-EXCEPTION build (same universe + idiom as Light Yagami). Slim capoeira-kicker /
+// special-heavy zoner-technician: messy black hair, white long-sleeve shirt, blue jeans.
+// STAGE 1 = registration + movement/state ONLY (no normals/specials/ult yet).
+// Source art = 29 keyed strips in l_ryuuzaki_sprite_rows_sliced/, RE-SLICED feet-aligned by
+// tools/reslice_l_ryuuzaki.py → l_ryuuzaki_*_uniform.png. anchorY:0 everywhere plants feet.
+// NO ultimate (real art gap — Jason precedent). `ultimate` below is a HUD PLACEHOLDER only.
+// ─────────────────────────────────────────────────────────────────
+const lRyuuzaki = {
+  rosterKey: "l_ryuuzaki", name: "L", universe: "deathnote", color: "#3a3a44",
+  portrait: "./l_ryuuzaki_portrait.png",   // L face-bust from idle_face frame 0 (Ryuk frames reserved for Stage 5)
+  archetypes: ["zoner", "technical", "ranged"],
+  primary: "melee", secondary: ["ranged", "technical"],
+  // NEW energyType "deduction" → ui.js ENERGY_TYPE_LABELS adds { deduction: "Deduction" }.
+  traits: { hasEnergy: true, energyType: "deduction", mobility: "medium", scaling: "versatile", animeMovement: true },
+  passive: { name: "The Greatest Detective", effect: "L reads his opponent — a deep toolbox of capoeira strikes, call-ins, and analysis over raw brawling, trading a heavy hitter's stats for reach and options" },
+  // Frail special-heavy zoner/technician (locked stats). Below-median durability; a deep Deduction pool
+  // (200) to fuel the later special kit; average mobility. His edge is reach + options, not raw stats.
+  stats: { maxHealth: 1040, maxEnergy: 200, attack: 84, defense: 80, speed: 90, maxJumps: 2, jumpPower: 32, dashSpeed: 19, dashDuration: 10, dashCooldownMax: 36 },
+  // ── STAGE 2 — 5 normals (combat.js _getMD reads THIS basic_attacks; data keys map to sprite keys:
+  // light→light, heavy→heavy, upAttack→up, airAttack→air, downAir→down_air). Frail technician profile
+  // (Light-family): fast light poke, committed heavy palm + gold swipe, rising uppercut LAUNCHER (moveKey
+  // "up" auto-sets launcher; launchVy/selfVy give the EXACT pop, sixPathsPain precedent), airborne spin
+  // kick, downward dive spike (moveKey "down_air" auto-sets spike). All RAW (engine scales ×0.60), inside
+  // existing roster bands. The golden arc is BAKED into the source frames (row_10/11/12/13) — NO separate
+  // FX overlay (the swing art carries it; Light's separate gold/blue overlay is his idiom, not required here).
+  basic_attacks: {
+    light:    { damage: 40, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0, rangeX: 58, rangeY: 46 },                                                      // quick straight jab (row_09)
+    heavy:    { damage: 72, startup: 7, active: 4, recovery: 18, hitstun: 19, knockbackX: 8, knockbackY: 1, rangeX: 74, rangeY: 48 },                                                      // committed palm + golden swipe (row_10)
+    upAttack: { type: "launcher", damage: 66, startup: 6, active: 4, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -6, airOK: false },      // rising uppercut LAUNCHER + upward golden arc (row_11)
+    airAttack:{ damage: 58, startup: 5, active: 3, recovery: 12, hitstun: 14, knockbackX: 4, knockbackY: -2 },                                                                            // airborne spin kick + golden crescent (row_12)
+    downAir:  { damage: 62, startup: 6, active: 3, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 11, rangeX: 62, rangeY: 66 }                                                     // downward dive spike + flame-trail (row_13, SHARED w/ Stage-3 chain)
+  },
+  // HUD PLACEHOLDER ONLY — L has NO ultimate (confirmed art gap; row_19 ships as a special at Stage 4,
+  // NOT promoted to a cinematic ult). No real ult logic exists in abilities.js. This field only labels
+  // the HUD meter; it is NOT wired to a triggerUltimate path.
+  ultimate: { name: "—", cost: 100, description: "(Stage 1 placeholder — L has no ultimate; his marquee golden-nova ships as a special.)", placeholder: true },
+  hasSprites: true,
+  // L's idle content ≈50px tall (slim chibi). scale 2.0 → ~100px on-screen, reading at roster median.
+  // anchorY:0 everywhere → feet on the shared foot baseline, no anchor rescale.
+  spriteScale: 2.0,
+  animationData: {
+    // ── STAGE 1 — movement / state (tools/reslice_l_ryuuzaki.py). ──
+    // idle (standing) = row_20 with the trailing 2 debris islands dropped, baked to a ping-pong loop.
+    idle:       { frames: 24, width: 26, height: 52, speed: 7, anchorY: 0, sheet: "./l_ryuuzaki_idle_uniform.png" },
+    // SEATED idle (row_22) — contextual variant + WIN POSE (L's signature perch). Resolves via
+    // _forceAction "idleSeated" (Mayuri precedent) + as the win pose (win: below). NOT an auto driven
+    // movement state — no core-loop hook added (least-invasive; see build report).
+    idleSeated: { frames: 14, width: 27, height: 51, speed: 9, anchorY: 0, sheet: "./l_ryuuzaki_idle_seated_uniform.png" },
+    walk:       { frames: 4,  width: 24, height: 52, speed: 6, anchorY: 0, sheet: "./l_ryuuzaki_walk_uniform.png" },
+    run:        { frames: 10, width: 46, height: 44, speed: 4, anchorY: 0, sheet: "./l_ryuuzaki_run_uniform.png" },
+    dash:       { frames: 10, width: 46, height: 44, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_dash_uniform.png" },   // run tail = faster lunge cells
+    // jump / fall — the capoeira acro (row_07) doubles as air-state (audit-approved double-duty).
+    jump:       { frames: 8,  width: 46, height: 51, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_jump_uniform.png" },
+    fall:       { frames: 8,  width: 46, height: 51, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_jump_uniform.png" },
+    // guard = PROCEDURAL FALLBACK (confirmed art gap — no dedicated block art). Reuse the standing idle
+    // so the guard action never renders the 128² box (Mayuri guard-reuses-idle precedent); no fabricated art.
+    guard:      { frames: 24, width: 26, height: 52, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_idle_uniform.png" },
+    // hurt / knockdown / getup — knockdown strip (trailing 3px debris sliver dropped). getup = f10 in-engine.
+    hurt:       { frames: 10, width: 52, height: 51, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_knockdown_uniform.png" },
+    knockdown:  { frames: 10, width: 52, height: 51, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_knockdown_uniform.png" },
+    // taunt — accusing point (point strip, 5f).
+    taunt:      { frames: 5,  width: 41, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_taunt_uniform.png" },
+    // WIN POSE = the seated idle (L's signature crouched perch). game.js poses the winner via _forceAction
+    // "win" when animationData.win exists → reuses the seated sheet (no new art).
+    win:        { frames: 14, width: 27, height: 51, speed: 9, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_idle_seated_uniform.png" },
+
+    // ── STAGE 2 — 5 normals (tools/reslice_l_ryuuzaki.py). combat.js routes each basic_attacks slot →
+    // the SPRITE key here (light/heavy/up/air/down_air). The golden arc is BAKED into these strips
+    // (row_10/11/12/13) — no separate FX overlay. anchorY:0 → feet planted on the shared baseline. ──
+    light:    { frames: 4, width: 50, height: 49, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_light_uniform.png" },    // straight jab (row_09)
+    heavy:    { frames: 4, width: 52, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_heavy_uniform.png" },    // heavy palm + golden swipe (row_10)
+    up:       { frames: 5, width: 50, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_up_uniform.png" },       // rising uppercut LAUNCHER + gold arc (row_11)
+    air:      { frames: 5, width: 50, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_air_uniform.png" },      // air spin kick + golden crescent (row_12)
+    down_air: { frames: 3, width: 46, height: 47, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_downair_uniform.png" },  // downward dive spike (row_13, SHARED w/ Stage-3 chain)
+
+    // ── STAGE 3 — merged capoeira COMMAND-NORMAL CHAIN (Fwd+Heavy → 3-stage cancel-on-hit rekka).
+    // ONE continuous acrobatic motion, UNIONED from row_07 (spine) + row_16 + row_17 + row_13 and
+    // de-duplicated on the confirmed exact-pixel identical frames (row_07 f2==row_16 f1; row_07
+    // f3/f7==row_17 f4; row_07 f4/f8==row_17 f5; row_07 f6==row_13 f3 — the SHARED dive/plunge tail
+    // that ALSO serves Stage-2 down_air, kept intact). 16 unique frames split into 3 escalating beats
+    // (5+4+7). currentMove = key → sprite.js identity map. Assembled by tools/reslice_l_ryuuzaki.py.
+    lRyuuzakiCmd1: { frames: 5, width: 56, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_cmd1_uniform.png" },  // LOW SWEEP entry (opener)
+    lRyuuzakiCmd2: { frames: 4, width: 57, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_cmd2_uniform.png" },  // RISING CRESCENT kick (strong hit)
+    lRyuuzakiCmd3: { frames: 7, width: 56, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_cmd3_uniform.png" },  // AERIAL DIVE plunge (launcher finisher)
+
+    // ── STAGE 4 — special CAST/HOLD poses + the EX attack pose (tools/reslice_l_ryuuzaki.py). Each dir-
+    // special plays a cast pose (_spriteCastMove → sprite.js MOVE_TO_ACTION identity) then spawns a one-shot
+    // phantom-hitbox projectile (the FX/summon sheet rides as the projectile sprite; Light LIGHT_SUMMONS
+    // idiom). The EX flurry (kick_trail) plays as currentMove = "lRyuuzakiKickTrail". anchorY:0 plants feet. ──
+    lRyuuzakiNovaCast:    { frames: 4,  width: 60, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_nova_uniform.png" },          // neutral — Golden Nova (cast + proj share this strip)
+    lRyuuzakiBazookaCast: { frames: 4,  width: 99, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_bazooka_cast_uniform.png" },  // Fwd — Bazooka shoulder-and-fire pose
+    lRyuuzakiRisingCast:  { frames: 5,  width: 54, height: 43, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_rising_cast_uniform.png" },   // Back — Golden Rising Burst wind-up
+    lRyuuzakiAnalysis:    { frames: 12, width: 34, height: 52, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_analysis_uniform.png" },      // Down — Investigation notebook manifest+hold (non-lethal buff)
+    lRyuuzakiKickTrail:   { frames: 8,  width: 85, height: 80, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./l_ryuuzaki_kicktrail_uniform.png" }      // EX — multi-hit capoeira flurry (cancel-only)
+  }
+}
+
+const light = {
+  rosterKey: "light", name: "Light Yagami", universe: "deathnote", color: "#b53a3a",
+  portrait: "./light_portrait.png",   // placeholder bust from idle frame 0 (final row_01 face portrait chosen at Stage 7)
+  archetypes: ["zoner", "technical", "ranged"],
+  primary: "melee", secondary: ["ranged", "technical"],
+  traits: { hasEnergy: true, energyType: "kira", mobility: "medium", scaling: "versatile", animeMovement: true },
+  passive: { name: "Shinigami's Notebook", effect: "Kira fights at range through call-ins — Ryuk's reach, L's strikes, and the Death Note itself — trading a brawler's normals for a deep toolbox of summons and notebook power" },
+  // Special-heavy zoner/technician: average HP + durability, a deep Kira pool (200) that fuels 7 special-tier
+  // moves plus two ultimates. Speed is average — his edge is reach and options, not mobility or raw stats.
+  stats: { maxHealth: 1080, maxEnergy: 200, attack: 86, defense: 82, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 36 },
+  // STAGE 2 normals — the B family (combat.js _getMD reads this; animationData.{light,heavy} + the crouchLight
+  // variant drive the sprite). HONEST 3-move set per the Stage-0 audit: Light has NO up/air/down_air NORMALS —
+  // his anti-air and aerial game are ALL specials (B+Up Ryuk, jump+B/jump+Y — Stage 4). Omitting those slots
+  // makes _getMD return null → those buttons no-op (no fabricated whiff-normal) rather than inventing art.
+  //   light   = B (neutral)     — quick jab-string body, gold spark FX
+  //   heavy   = B+Forward       — committed forward swing (same body, dedupe), blue crescent-arc FX, more reach
+  //   (Down+light swaps in the crouchLight sprite = B+Down close-range low swipe — the "most honest" poke.)
+  basic_attacks: {
+    light: { damage: 42, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: 0, rangeX: 58, rangeY: 44 },
+    heavy: { damage: 76, startup: 7, active: 4, recovery: 18, hitstun: 19, knockbackX: 8, knockbackY: 1, rangeX: 74, rangeY: 46 }
+  },
+  // HUD-only until the ultimate stage (real logic + cost live in abilities.js at Stage 5/6). Two ultimate-tier
+  // payoffs: ultimate_action (the giant cut-in) + the koma notebook→scythe transform (2nd ult, Stage 6).
+  ultimate: { name: "As Planned", cost: 100, description: "Light writes the final name in the Death Note, sealing his foe's fate (Ultimate). Hold Down+Ultimate for \"I Am Kira\" — the notebook morphs into the Shinigami scythe." },
+  hasSprites: true,
+  // Light's idle content ≈54px tall (small JUS chibi). scale 1.9 → ~103px on-screen, reading at roster median.
+  // anchorY:0 everywhere → feet planted on the shared foot baseline, no anchor rescale.
+  spriteScale: 1.9,
+  animationData: {
+    // ── STAGE 1 — movement / state (tools/reslice_light.py). stand_defense → idle (STAND, ping-ponged) +
+    // guard (DEFENSE, hold f1). run_dash → run + dash. jump → jump/fall (first 3 cells = the shared aerial
+    // base reused by the Stage-4 aerials). damage → hurt + knockdown (notebook drops on the last frame). No
+    // dedicated walk art → walk borrows the run strip (flagged gap). No neutral crouch pose in the set
+    // (Stage-0 item 2) → no crouch key.
+    idle:  { frames: 4, width: 24, height: 56, speed: 8, anchorY: 0, sheet: "./light_idle_uniform.png" },   // 3f stance baked to a 1→3→1 ping-pong
+    walk:  { frames: 7, width: 30, height: 56, speed: 6, anchorY: 0, sheet: "./light_run_uniform.png" },     // NO walk art → borrows run strip (flagged gap, not invented)
+    run:   { frames: 7, width: 30, height: 56, speed: 4, anchorY: 0, sheet: "./light_run_uniform.png" },
+    dash:  { frames: 8, width: 52, height: 41, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_dash_uniform.png" },   // wide dash cells (deliberate hurtbox variance per audit)
+    jump:  { frames: 6, width: 38, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_jump_uniform.png" },
+    fall:  { frames: 6, width: 38, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_jump_uniform.png" },
+    guard:     { frames: 3, width: 27, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_guard_uniform.png" },   // raise / held-guard (f1) / recoil pop
+    hurt:      { frames: 4, width: 38, height: 49, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_hurt_uniform.png" },     // progressive recoil (notebook dropped on f4)
+    knockdown: { frames: 4, width: 38, height: 49, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_hurt_uniform.png" },     // reuses the damage strip (no dedicated knockdown art)
+    // ── STAGE 2 — B-family normals (combat.js routes basic_attacks slot → sprite key). light + heavy SHARE the
+    // one 10-frame B body strip (DEDUP — the source b.png and b_forward.png carry byte-identical bodies); the
+    // gold/blue crescent FX is a separate overlay (game.drawLightNormalFx), so the body sheet is reused, not
+    // duplicated. crouchLight = the B+Down low swipe, swapped in by _setCrouchVariant on Down+light. ──
+    light:       { frames: 10, width: 31, height: 56, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_b_body_uniform.png" },   // B (neutral) — 10f body + gold FX overlay
+    heavy:       { frames: 10, width: 31, height: 56, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_b_body_uniform.png" },   // B+Forward — SAME body (dedupe) + blue crescent FX overlay
+    crouchLight: { frames: 6,  width: 29, height: 56, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_bdown_uniform.png" },     // B+Down — close-range low swipe (no FX)
+    // ── STAGE 4 — special CAST poses (abilities.js executeLightSpecial sets _spriteCastMove → sprite key). The
+    // summoned call-ins (Ryuk / L / gunman / vortex / violet burst) are NOT sprite keys here — they ride
+    // spawnProjectile as the projectile's own sheet (Ghostface phantom-hitbox idiom). DEDUP: every ground
+    // special shares lightCast (gesture + laugh); both air specials share lightAirCast (the jump base). ──
+    lightCast:    { frames: 3, width: 24, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_cast_uniform.png" },       // shared ground cast — gesture + laugh
+    lightAirCast: { frames: 3, width: 38, height: 58, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_aircast_uniform.png" },    // shared air cast — jump base
+    // ── STAGE 5 + 6 — ULTIMATE cast poses (the LIVE fighter plays these through the inline freeze-cinematic;
+    // abilities.js executeLightUltimate sets _spriteCastMove). lightUltWrite = Death Note writing (startup →
+    // 4-pose writing loop → recovery). lightScythe = notebook→Shinigami-scythe transform + swing. ──
+    lightUltWrite: { frames: 10, width: 33, height: 72, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_ultwrite_uniform.png" },  // "As Planned" — writing (neutral U)
+    lightScythe:   { frames: 9,  width: 78, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_scythe_uniform.png" },     // "I Am Kira" — scythe (Down+U)
+    // ── STAGE 7 — win / lose poses (game.js poses the winner/loser via _forceAction if these exist). win =
+    // the deduped 10-frame B body chain (out of combat it reads as "recording another name", per the audit) →
+    // REUSES light_b_body_uniform (no new art). lose = 2 body + laugh (Ryuk laughing at Light's defeat). ──
+    win:  { frames: 10, width: 31, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_b_body_uniform.png" },   // victory — reuses B body ("recording another name")
+    lose: { frames: 3,  width: 24, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./light_lose_uniform.png" }       // defeat — 2 body + laugh
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// YAMAMOTO GENRYŪSAI SHIGEKUNI (universe: bleach) — Captain-Commander of the Gotei 13.
+// Source art = 97 numbered ROW strips (Bleach_Dark_Souls_..._row_NN.png), CONFIRMED JPEG-DAMAGED,
+// STAGE-0 cleaned (tools/prep_yamamoto.py → yamamoto_clean/) then RE-SLICED into clean uniform,
+// feet-aligned cells (tools/reslice_yamamoto.py → the *_uniform.png copies). ★ The character composites
+// from up to 3 SEPARATE layers (BODY + PROP cane + FIRE) that share the source coordinate grid, so the
+// reslicer flattens the paired rows at NATIVE coords BEFORE repacking — the cane/fire land correctly with
+// no per-frame offset math (Stage-1 proof: idle 05+06, walk 08+09, dash 10+11+12).
+// ─────────────────────────────────────────────────────────────────
+const yamamoto = {
+  rosterKey: "yamamoto", name: "Yamamoto", universe: "bleach",
+  portrait: "./yamamoto_portrait.png",   // bust cropped from idle frame 0 (palette-header portrait wired in Stage 7)
+  archetypes: ["powerhouse", "technician", "zoner"],
+  primary: "melee", secondary: ["zoner"],
+  // energyType "reiatsu" = Bleach spiritual pressure (HUD label via ENERGY_TYPE_LABELS) — the shared pool
+  // that fuels his large Ryūjin Jakka special kit + the Ultimate.
+  traits: { hasEnergy: true, energyType: "reiatsu", mobility: "low", scaling: "versatile", animeMovement: true },
+  passive: { name: "Ryūjin Jakka", effect: "Wielder of the oldest and most powerful fire-type Zanpakutō — the Captain-Commander's flames reduce all to ash" },
+  // ANCIENT, nearly-unkillable technique-master: his identity is DURABILITY (top-tier HP + Def), and the
+  // honest counterweight is SPEED — the 2nd-slowest real fighter (74, just above Jason's 72 floor), the
+  // "unhurried old man" read confirmed by his walk cycle. Slow dash + low jump reinforce it. maxEnergy 200
+  // = the shared Reiatsu pool so his big kit competes for one meter (cannot be spammed at once).
+  stats: { maxHealth: 1300, maxEnergy: 200, attack: 94, defense: 92, speed: 74, maxJumps: 2, jumpPower: 27, dashSpeed: 12, dashDuration: 11, dashCooldownMax: 48 },
+  // STAGE 3 normals (combat.js _getMD reads THIS basic_attacks). Committed, slow-startup swordwork befitting
+  // the ancient Captain-Commander: light = a quick sword poke; heavy = the committed low crouch attack (big,
+  // long recovery); up = the rising anti-air slash launcher; air = the diagonal overhead slash; down_air =
+  // the crouching low sweep/spike. All RAW (engine scales ×0.60) and inside existing roster bands.
+  basic_attacks: {
+    light:    { damage: 44, startup: 5, active: 3, recovery: 12, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 88, startup: 10, active: 4, recovery: 20, hitstun: 20, knockbackX: 8, knockbackY: 1, rangeX: 92, rangeY: 52 },   // committed low crouch swing — long reach, slow
+    upAttack: { type: "launcher", damage: 70, startup: 8, active: 4, recovery: 18, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },   // rising anti-air slash launcher
+    downAir:  { damage: 78, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 11 },   // crouching low sweep / dive spike
+    airAttack:{ damage: 56, startup: 7, active: 3, recovery: 13, hitstun: 14, knockbackX: 4, knockbackY: -2 }    // diagonal overhead air slash
+  },
+  // ULTIMATE (real logic + cost live in abilities.executeYamamotoUltimate). Ryūjin Jakka's ultimate slam —
+  // an inline freeze-cinematic on the live fighter (bigger Overhead Slam), guaranteed ~204 EFF.
+  ultimate: { name: "Ryūjin Jakka: End-All Slam", cost: 100, description: "The Captain-Commander channels the full blaze of Ryūjin Jakka into one overhead strike — a screen-scorching slam that reduces the foe to ash." },
+  hasSprites: true,
+  // Tall, imposing Captain-Commander. idle content ≈65px; scale 1.85 → ~120px on-screen (reads a touch
+  // above the roster median, as intended for his stature). anchorY:0 everywhere → feet planted.
+  // REQUIRES the skins.js `yamamoto` default entry (else applySkin() → spriteScale:1 native shrink) + the
+  // spritesheets.js idle gate (else procedural box).
+  spriteScale: 1.85,
+  animationData: {
+    // ── STAGE 1 — movement / state (BODY+PROP composites; cane rides in-hand) ──
+    idle: { frames: 6, width: 62, height: 67, speed: 7, anchorY: 0, sheet: "./yamamoto_idle_uniform.png" },
+    // No dedicated ground-run strip — reuse the walk cycle at a faster cadence for run (Onoki/Superman precedent).
+    walk: { frames: 8, width: 45, height: 66, speed: 6, anchorY: 0, sheet: "./yamamoto_walk_uniform.png" },
+    run:  { frames: 8, width: 45, height: 66, speed: 4, anchorY: 0, sheet: "./yamamoto_walk_uniform.png" },
+    dash: { frames: 4, width: 66, height: 44, speed: 3, anchorY: 0, sheet: "./yamamoto_dash_uniform.png" },
+    // turnaround (back-facing, row 07) — BANKED art. The engine has no dedicated turn state (facing is a
+    // sprite-flip), so this is not auto-driven; it renders via forceAction("turn") and is available for
+    // future use (e.g. a scripted intro/cinematic beat).
+    turn: { frames: 4, width: 60, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_turn_uniform.png" },
+
+    // ── STAGE 2 — guard / hit reactions / knockdown / intro ──
+    // guard = the braced defensive STANCE (rows 33+34 body+cane composite). ★ PARTITION CORRECTION: the
+    // audit's lowest-confidence read tagged row 19 as block, but row 19 is a dynamic hit-recoil arc; rows
+    // 33-34 are the true clean stance. (row 19 + row 21 heavy-recoil left banked; engine drives one hurt.)
+    guard: { frames: 6, width: 61, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_guard_uniform.png" },
+    // hurt = LIGHT hit flinch (row 22; shallower/lower-coverage than the row-21 heavy recoil, per the audit).
+    hurt: { frames: 4, width: 78, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_hurt_uniform.png" },
+    // hurt_air = airborne tumble (row 23; engine picks this over `hurt` when airborne + in hitstun).
+    hurt_air: { frames: 6, width: 81, height: 68, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_hurt_air_uniform.png" },
+    // knockdown/getup = row 24 split. The engine's get-up chain plays knockdown (DOWN) while sprawled, then
+    // getup (RISE) while recovering, then idle.
+    knockdown: { frames: 2, width: 85, height: 38, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_knockdown_uniform.png" },
+    getup:     { frames: 3, width: 72, height: 67, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_getup_uniform.png" },
+    // intro = 13-frame entrance (rows 25+26 body+cane composite): back-to-camera → haori-wing flare → turn →
+    // blade drawn → settle; hands off to idle. Armed by introPool below.
+    intro: { frames: 13, width: 59, height: 67, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_intro_uniform.png" },
+
+    // ── STAGE 3 — 5 normals + command-normal chain (BODY, +FIRE-crescent composite on up/air/chain) ──
+    light:    { frames: 4,  width: 65, height: 63, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_light_uniform.png" },
+    heavy:    { frames: 8,  width: 60, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_heavy_uniform.png" },
+    up:       { frames: 10, width: 82, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_up_uniform.png" },     // rising slash + fire (59+61)
+    air:      { frames: 11, width: 78, height: 74, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_air_uniform.png" },    // diagonal slash + fire (45+47)
+    down_air: { frames: 7,  width: 60, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_downair_uniform.png" },
+    // COMMAND NORMAL (Fwd+Heavy) — yamamotoCombo: an 11-frame MULTI-HIT slash string + fire crescents
+    // (rows 36+38). Free (cooldown-gated). currentMove = "yamamotoCombo" → sprite.js identity-maps here.
+    yamamotoCombo: { frames: 11, width: 63, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_chain_uniform.png" },
+
+    // ── STAGE 4 — 5 specials (cast/strike poses; _spriteCastMove for the beam, currentMove for melee) ──
+    yamamotoBeam:     { frames: 10, width: 84, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_beam_cast_uniform.png" },  // Ground-Sweep Beam cast (projectile spawned separately)
+    yamamotoEruption: { frames: 11, width: 80, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_eruption_uniform.png" },   // Ground Eruption Stab (upward flame AOE)
+    yamamotoThrust:   { frames: 10, width: 82, height: 58, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_thrust_uniform.png" },      // Horizontal Thrust (long active window)
+    yamamotoStab:     { frames: 9,  width: 92, height: 89, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_stab_uniform.png" },        // Large Ground-Stab — FLAGSHIP (90px flame crescent)
+    yamamotoOverhead: { frames: 11, width: 72, height: 93, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_overhead_uniform.png" },     // Overhead Slam (double-wing haori flare)
+
+    // ── STAGE 5 — Shunpo (Flash Step) vanish / reappear poses (_spriteCastMove; shared teleport-behind) ──
+    yamamotoShunpoOut: { frames: 6, width: 74, height: 65, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_shunpo_out_uniform.png" },   // vanish (scanline dissolve + contracting ring)
+    yamamotoShunpoIn:  { frames: 5, width: 75, height: 65, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_shunpo_in_uniform.png" },       // reappear (scattered→solid arrival + expanding ring)
+
+    // ── STAGE 6 — ULTIMATE: Overhead Slam (heavy variant) — the LIVE fighter plays the denser row 87+89
+    // art through the freeze/camera cinematic (currentMove/_spriteCastMove = "yamamotoUltimate"). ──
+    yamamotoUltimate: { frames: 11, width: 71, height: 94, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./yamamoto_ult_uniform.png" }
+  },
+  // Shunpo (Flash Step) = the shared teleport-behind movement mechanic (double-tap TOWARD the foe → blink
+  // BEHIND them). Yamamoto's version is a two-beat vanish→reappear with dedicated art + i-frames + a small
+  // Reiatsu cost (abilities.fireYamamotoShunpo), so his burst mobility still competes with his kit for the
+  // meter — preserving the slow-speed (74) counterweight rather than a free escape.
+  movement: { dashTeleport: true },
+  introPool: ["intro"]
+}
+
+// ═════════════════════════════════════════════════════════════════════════════════════════
+// SIX PATHS OF PAIN  (rosterKey "six_paths_pain", universe "naruto") — a BRAND-NEW, FULLY
+// SEPARATE character from the solo `pain` build. Shares ZERO files/code/state with it: its art
+// comes ONLY from the sixpaths_* sheets (tools/reslice_six_paths_pain.py, sourced from
+// six_paths_of_pain_sliced/), its runtime lives in a `_sp*`/`_path` namespace, and its logic is
+// its own executeSixPaths* functions. The two can be loaded/played simultaneously (even vs each
+// other) with no coupling — same discipline as Obito↔Tobi.
+//
+// MULTI-IDENTITY SWAP (Ghostface-derived architecture): Nagato's real body cycles the SIX PATHS
+// mid-match (free swap, energy cost + cooldown — see SIXPATHS_* in abilities.js). Each Path is its
+// own full kit (5 normals + movement/state + that Path's confirmed specials); swapping art-swaps
+// the whole animationData via fighter._skinAnim (the Vegeta form-swap primitive). This char def
+// carries the DEVA/TENDO Path as the BASE set (Path 0); Stages 2-5 add the other five Paths' anim
+// sets in abilities.js (SIXPATHS_*_ANIM) and swap them in. Stage-1 = Deva only; the other five
+// slots are live in the swap selector but render Deva art as a scaffold until their stage lands.
+//
+// BALANCE (multi-Path flexibility): the balance question is BREADTH, not per-Path power — six kits
+// on one body is more tools than any single-kit char, even though no single Path is overtuned. The
+// throttle is the swap COST + COOLDOWN (you can't fluidly have all six at once), plus modest,
+// no-outlier base stats (frail-leaning) and honest ×0.60 scaling. Schema-exception versatility char
+// (Madara/Onoki/Mayuri/Saitama class); no roster stat record. Full assessment lands in Stage 6.
+// See BALANCE_AUDIT.md and [[six-paths-pain-build]].
+// ═════════════════════════════════════════════════════════════════════════════════════════
+const sixPathsPain = {
+  rosterKey: "six_paths_pain", name: "Six Paths of Pain", universe: "naruto", color: "#3a2030",
+  portrait: "./sixpaths_deva_portrait.png",   // Stage 1 placeholder (Deva bust); per-Path portraits land Stage 6. Falls back to procedural if absent.
+  archetypes: ["technical", "zoner"],
+  primary: "technical", secondary: ["zoner"],
+  traits: { hasEnergy: true, energyType: "chakra", mobility: "medium", scaling: "technical", animeMovement: false },
+  // VERSATILE TECHNIQUE BODY. vs roster: Madara HP1200/atk96, Onoki HP1120/atk? (versatility peers),
+  // Ghostface HP1040 (fragile swap-char). Six Paths sits mid/frail-leaning: HP1120 (mid), atk88
+  // (moderate — no single Path bursts), def84 (low-mid — a channeled body, not armored), spd86
+  // (moderate). No stat is an outlier; the six-kit BREADTH is the power, throttled by the swap
+  // cost+cooldown. maxEnergy 100 = the shared chakra meter (specials + swaps + Ultimate all draw it).
+  stats: { maxHealth: 1120, maxEnergy: 100, attack: 88, defense: 84, speed: 86, maxJumps: 2, jumpPower: 30, dashSpeed: 18, dashDuration: 9, dashCooldownMax: 30 },
+  // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air. combat.js _getMD reads THIS.
+  basic_attacks: {
+    light:    { damage: 34, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },                                   // quick jab (combo art)
+    heavy:    { damage: 62, startup: 8, active: 3, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 108, rangeY: 46 },           // black-rod thrust string (long reach)
+    upAttack: { type: "launcher", damage: 52, startup: 6, active: 3, recovery: 12, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -6, airOK: false },   // rising rod lunge (runatk art repurposed)
+    airAttack:{ damage: 46, startup: 5, active: 2, recovery: 11, hitstun: 12, knockbackX: 3, knockbackY: -2 },                                   // aerial rod swing
+    downAir:  { damage: 56, startup: 7, active: 3, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 10, rangeX: 90, rangeY: 70 }            // low rod-sweep dive
+  },
+  // HUD-only mirror; real logic + cost in abilities.js (executeSixPathsSpecial, Deva branch).
+  specials: {
+    almightyPush:    { cost: 28, damage: 0,   effect: "Shinra Tensei — global repulsion shove (force-only, blows the foe downrange from any range)" },
+    almightyPull:    { cost: 30, damage: 0,   effect: "Bansho Ten'in — reels the foe in toward Pain (global gravity pull, no damage)" },
+    rinneganDefense: { cost: 24, damage: 0,   effect: "Rinnegan Defense — expanding barrier dome: brief i-frames + nullifies incoming projectiles" }
+  },
+  ultimate: { name: "Six Paths of Pain", cost: 100, description: "Summons the Six Paths — the bodies rush the opponent in a swarm strike (guaranteed multi-hit; blocked → reduced)." },
+  hasSprites: true,
+  // Deva idle content ≈68px tall × 1.55 ≈ 105px on-screen (roster median). anchorY:0 → feet planted.
+  spriteScale: 1.55,
+  animationData: {
+    // ── DEVA / TENDO PATH (Path 0 = BASE). Sliced by tools/reslice_six_paths_pain.py deva. ──
+    // MOVEMENT / STATE. stance sheet = [idle 0-3][teleport FX 4-5][block 6]; jfct = [jump 0-2][fall 3][crouch 4][throw/air 5-8].
+    idle:  { frames: 4, width: 36, height: 68, speed: 8, anchorY: 0, sheet: "./sixpaths_deva_stance_uniform.png" },
+    walk:  { frames: 6, width: 64, height: 52, speed: 6, anchorY: 0, sheet: "./sixpaths_deva_run_uniform.png" },
+    run:   { frames: 6, width: 64, height: 52, speed: 4, anchorY: 0, sheet: "./sixpaths_deva_run_uniform.png" },
+    dash:  { frames: 6, width: 64, height: 52, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_run_uniform.png" },
+    jump:  { frames: 3, width: 58, height: 65, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_jfct_uniform.png" },
+    fall:  { frames: 1, width: 58, height: 65, speed: 6, anchorY: 0, sourceX: 174, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_jfct_uniform.png" },   // jfct frame 3 (3×58)
+    crouch:{ frames: 1, width: 58, height: 65, speed: 8, anchorY: 0, sourceX: 232, loop: true, sheet: "./sixpaths_deva_jfct_uniform.png" },                        // jfct frame 4 (4×58)
+    guard: { frames: 1, width: 36, height: 68, speed: 6, anchorY: 0, sourceX: 216, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_stance_uniform.png" }, // stance frame 6 (6×36)
+    hurt:      { frames: 3, width: 75, height: 59, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_hurt_uniform.png" },
+    knockdown: { frames: 3, width: 75, height: 59, speed: 6, anchorY: 0, sourceX: 225, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_hurt_uniform.png" }, // frames 3-5 (3×75)
+    // NORMALS (5 slots). light/heavy split the ground combo sheet (jab 0-2 / rod-thrust 6-11) via sourceX.
+    light:    { frames: 3, width: 85, height: 65, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_combo_uniform.png" },
+    heavy:    { frames: 6, width: 85, height: 65, speed: 3, anchorY: 0, sourceX: 510, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_combo_uniform.png" },  // frames 6-11 (6×85)
+    up:       { frames: 6, width: 60, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_runatk_uniform.png" },              // rising rod lunge (launcher — Deva's own runatk art)
+    air:      { frames: 4, width: 58, height: 65, speed: 3, anchorY: 0, sourceX: 290, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_jfct_uniform.png" },   // jfct frames 5-8 (5×58)
+    down_air: { frames: 9, width: 87, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_downatk_uniform.png" },             // low rod-sweep dive
+    // SPECIAL / SWAP / ULT cast poses (currentMove / _spriteCastMove identity keys → these actions).
+    spPush:     { frames: 2, width: 112, height: 60, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_push_uniform.png" },   // Shinra Tensei arms-spread (frames 0-1)
+    spPull:     { frames: 2, width: 59,  height: 65, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_pull_uniform.png" },    // Bansho Ten'in reel gesture
+    spRinnegan: { frames: 2, width: 112, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_push_uniform.png" },   // barrier raise (reuses arms-spread; rings spawn as FX)
+    spUlt:      { frames: 2, width: 112, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_push_uniform.png" },    // Six Paths summon caster pose
+    spTeleport: { frames: 2, width: 36,  height: 68, speed: 3, anchorY: 0, sourceX: 144, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_stance_uniform.png" }, // swap exit/emerge (stance teleport FX 4-5)
+    intro:      { frames: 1, width: 139, height: 69, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_deva_intro_uniform.png" }
+  },
+  introPool: ["intro"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
 export const characters = {
@@ -4709,10 +6029,24 @@ export const characters = {
   superman,
   chrollo,
   ghostface,
+  jason,
+  hiruzen,
+  isshiki,
   miwa,
   ichigo,
   zaraki,
-  zaraki_shikai: zarakiShikai
+  zaraki_shikai: zarakiShikai,
+  saitama,
+  orochimaru,
+  onoki,
+  mayuri,
+  kiba,
+  byakuya,
+  boruto,
+  light,
+  l_ryuuzaki: lRyuuzaki,
+  yamamoto,
+  six_paths_pain: sixPathsPain
 }
 
 // The 7 characters shown in the starter roster select screen

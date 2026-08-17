@@ -45,6 +45,7 @@ import { activateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive } fr
 import { activateTojiReincarnationCinematic, isTojiReincarnationCinematicActive } from "./tojiReincarnationCinematic.js"   // Toji Reincarnated Form activation cinematic (no cycle; mirrors Overdrive/Godspeed)
 import { activateTojiFlyHeadsSwarm, isTojiFlyHeadsSwarmActive } from "./tojiFlyHeadsSwarm.js"   // Toji Fly Heads — dense screen-clutter vision-denial swarm overlay (0 damage; no cycle)
 import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue, startMove } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the ONE scaled-damage choke-point + the shared command-normal cancel gate + the normal-move starter (combat.js doesn't import abilities.js → no cycle)
+import { spawnCubeTrap } from "./cubeTrap.js"   // Isshiki Daikokuten cube shrink-trap (cubeTrap.js imports combat/input but NOT abilities → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
 import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
@@ -53,6 +54,8 @@ import { pickKilluaVoice } from "./killuaVoice.js"   // Killua special/ultimate 
 import { pickGonVoice, GON_FINAL_BLOW_SFX } from "./gonVoice.js"   // Gon Jajanken/rekka/Final-Blow cast voice pools (audio-only; no cycle)
 import { pickHisokaVoice } from "./hisokaVoice.js"   // Hisoka Bungee-Gum/Texture-Surprise/Overdrive/rekka cast voice pools (audio-only; no cycle)
 import { pickMinatoVoice } from "./minatoVoice.js"   // Minato cast voice pools (Rasengan/Flying-Raijin/Reaper/Kurama; audio-only, no cycle)
+import { pickKibaVoice } from "./kibaVoice.js"   // Kiba Gatsuga/Four-Legs/Two-Headed/ultimate cast voice pools (audio-only, JA; no cycle)
+import { pickBorutoVoice, pickBorutoKarmaVoice } from "./borutoVoice.js"   // Boruto base cast/ult + Momoshiki Karma (transform/absorb) voice pools (audio-only, JA; separate pools)
 import { pickOmniManVoice } from "./omnimanVoice.js"   // Omni-Man special/flight/ultimate cast voice pool (audio-only; no cycle)
 import { pickSupermanVoice } from "./supermanVoice.js"   // Superman special/flight/mode/ultimate cast voice pool (audio-only; no cycle)
 import { pickTobiramaVoice } from "./tobiramaVoice.js"   // Tobirama cast/ultimate voice pools (audio-only; no cycle)
@@ -74,9 +77,16 @@ import { pickObitoVoice } from "./obitoVoice.js"              // Obito per-techn
 import { pickTobiVoice } from "./tobiVoice.js"               // Tobi (masked Obito alias) special-cast voice pool (audio-only, JA — separate module from Obito)
 import { pickZarakiVoice } from "./zarakiVoice.js"            // Zaraki cast voice pools (audio-only, JA — Shikai release / Bankai / Yachiru assist)
 import { pickIchigoVoice } from "./ichigoVoice.js"           // Ichigo per-technique cast voice pools (audio-only, JA — Getsuga/Charged/Hollow Getsuga/Hollow Rising/Aerial/Zangetsu rekka)
+import { pickIsshikiVoice } from "./isshikiVoice.js"         // Isshiki per-technique cast voice pools (audio-only, JA — Sukunahikona/rods/cubes/fire/finishers/ultimate)
 import { pickSukunaVoice } from "./sukunaVoice.js"            // Sukuna Cleave/Flame/Dismantle/CursedSlash cast voice pools (audio-only; JA default, EN switchable)
 import { pickChrolloVoice } from "./chrolloVoice.js"            // Chrollo Skill Hunter ULTIMATE-activation cast voice pool (audio-only; fires once at transform beat)
 import { pickGhostfaceVoice } from "./ghostfaceVoice.js"        // Ghostface knife-special + ultimate cast voice pool (audio-only)
+import { pickJasonVoice } from "./jasonVoice.js"               // Jason Relentless Slash cast grunt / ~25% signature roar (audio-only)
+import { pickHiruzenVoice } from "./hiruzenVoice.js"          // Hiruzen per-technique cast voice pools (audio-only, JA — spin/fireball/earthWall/enma/ultimate)
+import { pickOrochimaruVoice } from "./orochimaruVoice.js"    // Orochimaru per-technique cast voice pools (audio-only, JA — specials/chain/grab/ult/transform; vibe-sorted, unidentified)
+import { pickSaitamaVoice } from "./saitamaVoice.js"          // Saitama cast voice pools (audio-only — bargain / punchCombo / ultimate)
+import { pickMayuriVoice } from "./mayuriVoice.js"            // Mayuri per-move cast voice pools (audio-only, JA — swordCast/rangedCast/summon/labCoat/ultimate)
+import { pickYamamotoVoice } from "./yamamotoVoice.js"        // Yamamoto per-move cast voice pools (audio-only, JA — beam/eruption/thrust/stab/overhead casts, shunpo, ultimate)
 import { spawnPlatform, recedePlatform, getPlatforms } from "./platforms.js"   // Wood Release climbable-terrain primitive (Hashirama Rising Pillar consumer)
 import {
   activeSummons, spawnSummon as spawnAssistSummon,
@@ -3010,6 +3020,243 @@ export function updateVegetaCommandCombat(fighter, inputState, context, getPhase
 }
 
 // ─────────────────────────────────────────────────────────────────
+// ISSHIKI OTSUTSUKI — continuous cancelable combo strings (Stage 2). Unlike the roster's
+// Forward+Heavy command chains, Isshiki's are AUTO-COMBO strings on the neutral LIGHT button:
+// tap Light to open, re-tap Light during the current hit's RECOVERY to cancel into the next
+// stage — but ONLY if the prior hit CONNECTED (cancel-on-HIT; a whiff/block ends the string,
+// the shared rekkaContinue interrupt rule). GROUND from the ground (attacks_base 3/2/5 rows):
+//   isshikiGround1 (3-punch opener) → isshikiGround2 (kick) → isshikiGround3 (slash finisher, launcher).
+// AIR while airborne (air_attacks 3/3/2 rows, detached-FX cell excluded):
+//   isshikiAir1 → isshikiAir2 → isshikiAir3 (dive-slash finisher, downward spike).
+// The neutral heavy/up/down_air normals stay on the normal path (their sprites reuse combo poses).
+// ─────────────────────────────────────────────────────────────────
+const ISSHIKI_COMMAND = {
+  isshikiGround1: { damage: 24, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0,  rangeX: 72, rangeY: 54, rekkaNext: "isshikiGround2" },
+  isshikiGround2: { damage: 30, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: 0,  rangeX: 84, rangeY: 56, rekkaNext: "isshikiGround3" },
+  isshikiGround3: { damage: 52, startup: 6, active: 4, recovery: 20, hitstun: 22, knockbackX: 9, knockbackY: -4, rangeX: 94, rangeY: 60, launcher: true },   // finisher — launches for a juggle (string ends here)
+  isshikiAir1:    { damage: 22, startup: 3, active: 2, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: -1, rangeX: 72, rangeY: 58, rekkaNext: "isshikiAir2" },
+  isshikiAir2:    { damage: 26, startup: 4, active: 2, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -1, rangeX: 80, rangeY: 60, rekkaNext: "isshikiAir3" },
+  isshikiAir3:    { damage: 46, startup: 5, active: 3, recovery: 16, hitstun: 20, knockbackX: 6, knockbackY: 8,  rangeX: 104, rangeY: 66, spike: true },      // dive-slash finisher — downward spike (string ends here)
+}
+
+function fireIsshikiCommand(fighter, key, context) {
+  const md = ISSHIKI_COMMAND[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  attack.spike    = !!md.spike
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // reset per stage; latched true only on a real (non-blocked) hit
+  return true
+}
+
+// Combo-string driver (mirrors updateVegetaCommandCombat's rekka path, but LIGHT-triggered and
+// ground/air-context split). Returns true (→ skip the normal path this frame) only when it fires a stage.
+export function updateIsshikiCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "isshiki" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase = getPhase?.(fighter)
+
+  const lightEdge = !!inputState.light && !fighter._cmdPrevLight
+  fighter._cmdPrevLight = !!inputState.light
+
+  // Latch a REAL connect for the current stage (hit, not block) — resolveAttackHit runs AFTER this
+  // handler, so the flag is observed the following frame while hitstun still counts down.
+  const opp = context?.getOpponent?.(fighter)
+  if (fighter.attacking && fighter.currentAttack?.hasHit && (opp?.hitstun || 0) > 0) fighter._cmdHitLanded = true
+
+  // The string's window closes when the attack fully ends.
+  if (!fighter.attacking) { fighter._rekkaNext = null; fighter._cmdHitLanded = false }
+
+  // CONTINUE — fresh Light during the current hit's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const cmdNext = rekkaContinue(fighter, { edge: lightEdge, phase, opponent: opp, requireHit: true })
+  if (cmdNext) return fireIsshikiCommand(fighter, cmdNext, context)
+
+  // OPENER — neutral Light from neutral: ground string if grounded, air string if airborne.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && lightEdge) return fireIsshikiCommand(fighter, grounded ? "isshikiGround1" : "isshikiAir1", context)
+
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────
+// ISSHIKI OTSUTSUKI — 4 CORE SPECIALS (Stage 3). Directional (hold a dir + Special):
+//   neutral → Sukunahikona (close shrink-warp strike: caster-front melee + collapsing-ring FX)
+//   Forward → Daikokuten black rods (fast forward projectile)
+//   Down    → Daikokuten cubes (slow, heavy enlarging-cube projectile)
+//   Up      → Sage Art: Gokashin Ensen (forward hell-fire wave projectile)
+// Costs draw the Karma pool. Char cast poses via _spriteCastMove; FX/projectiles spawn separately.
+// Damage is RAW here — the engine's applyScaledDamage choke-point applies the honest ×0.60 on hit.
+// (Back+Special + Ultimate are reserved for the Stage-4 finishers.)
+// ─────────────────────────────────────────────────────────────────
+const ISSHIKI_SPECIAL_COST = { sukunahikona: 25, rods: 30, cubes: 45, fire: 45, finisher1: 50, finisher2: 45 }   // cubes 40→45 (shrink-trap rework adds utility — see cubeTrap.js / Stage-4 balance)
+
+function fireIsshikiSukunahikona(fighter, context) {
+  if (isSpecialDisabled(fighter, "sukunahikona")) return false
+  if (!spendEnergy(fighter, ISSHIKI_SPECIAL_COST.sukunahikona)) return false
+  fighter._spriteCastMove = "isshikiSukuCast"; fighter._spriteCastTimer = 22
+  try { sound.playSfxFile?.(pickIsshikiVoice("sukunahikona"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  // Close-range shrink-warp strike: a caster-front melee hitbox (reliable resolution) + collapsing rings FX.
+  const md = { damage: 60, startup: 9, active: 3, recovery: 14, hitstun: 16, knockbackX: 5, knockbackY: -1, rangeX: 94, rangeY: 84, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "isshikiSukuCast", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  schedulePendingSpawn(md.startup, () => {                            // collapsing yellow rings centred on Isshiki (cosmetic)
+    spawnProjectile(fighter, "isshikiSukuRings", {
+      visualOnly: true, damage: 0, vx: 0, vy: 0, lifetime: 22, color: "#ffe049",
+      spawnX: fighter.x + (fighter.w || 60) / 2, spawnY: fighter.y + (fighter.h || 100) * 0.42,
+      sheet: "./isshiki_suku_rings_uniform.png", spriteFrames: 4, spriteW: 75, spriteH: 80, spriteSpeed: 3, spriteScale: 1.1,
+    }, context)
+  })
+  return true
+}
+
+function fireIsshikiRods(fighter, context) {
+  if (isSpecialDisabled(fighter, "daikokutenRods")) return false
+  if (!spendEnergy(fighter, ISSHIKI_SPECIAL_COST.rods)) return false
+  fighter._spriteCastMove = "isshikiRodCast"; fighter._spriteCastTimer = 24
+  try { sound.playSfxFile?.(pickIsshikiVoice("rods"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  fighter.attackCooldown  = getAttackDuration(22, fighter)
+  schedulePendingSpawn(9, () => {                                    // materialized black rods — fast forward projectile
+    spawnProjectile(fighter, "isshikiRods", {
+      damage: 80, w: 54, h: 42, speed: 12, lifetime: 88,
+      hitstun: 18, knockbackX: 7, knockbackY: -1, isSpecial: true, color: "#26262b",
+      sheet: "./isshiki_rod_fx_uniform.png", spriteFrames: 1, spriteW: 54, spriteH: 69, spriteSpeed: 4, spriteScale: 1.05,
+    }, context)
+  })
+  return true
+}
+
+// Daikokuten (Cubes) — SHRINK-TRAP (reworked): the cube descends onto the foe, grows, and traps them —
+// they shrink inside it, take auto-tick damage, can be punished by the caster hitting the cube, and can
+// mash to escape early. Full mechanic in cubeTrap.js (the Malevolent-Shrine sibling). Replaces the old
+// simple crushing-cube projectile.
+function fireIsshikiCubes(fighter, context) {
+  if (isSpecialDisabled(fighter, "daikokutenCubes")) return false
+  if (!spendEnergy(fighter, ISSHIKI_SPECIAL_COST.cubes)) return false
+  fighter._spriteCastMove = "isshikiSukuCast"; fighter._spriteCastTimer = 26   // cube art is FX-only → reuse the generic cast pose
+  try { sound.playSfxFile?.(pickIsshikiVoice("cubes"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  fighter.attackCooldown  = getAttackDuration(26, fighter)
+  const target = getTargetResolver(context)(fighter)
+  schedulePendingSpawn(11, () => { if (target && !target.eliminated) spawnCubeTrap(fighter, target, context) })   // throw the cube onto the foe
+  return true
+}
+
+function fireIsshikiFire(fighter, context) {
+  if (isSpecialDisabled(fighter, "gokashinEnsen")) return false
+  if (!spendEnergy(fighter, ISSHIKI_SPECIAL_COST.fire)) return false
+  fighter._spriteCastMove = "isshikiFireCast"; fighter._spriteCastTimer = 26
+  try { sound.playSfxFile?.(pickIsshikiVoice("fire"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  fighter.attackCooldown  = getAttackDuration(26, fighter)
+  schedulePendingSpawn(11, () => {                                   // Sage Art: Gokashin Ensen — forward hell-fire wave
+    spawnProjectile(fighter, "isshikiFire", {
+      damage: 100, w: 72, h: 54, speed: 13, lifetime: 78,
+      hitstun: 22, knockbackX: 9, knockbackY: -2, isSpecial: true, color: "#ff7b1a",
+      sheet: "./isshiki_fire_fx_uniform.png", spriteFrames: 3, spriteW: 134, spriteH: 87, spriteSpeed: 3, spriteScale: 1.0,
+    }, context)
+  })
+  return true
+}
+
+// ── STAGE 4 — 2 BONUS FINISHERS (distinct high-tier specials, from specail_attacks rows 1-2). ──
+// Finisher 1 (Back+Special) — Daikokuten rod BARRAGE: a 3-rod staggered spread (each an isSpecial hit).
+function fireIsshikiFinisher1(fighter, context) {
+  if (isSpecialDisabled(fighter, "isshikiFinisher1")) return false
+  if (!spendEnergy(fighter, ISSHIKI_SPECIAL_COST.finisher1)) return false
+  fighter._spriteCastMove = "isshikiFin1Cast"; fighter._spriteCastTimer = 28
+  try { sound.playSfxFile?.(pickIsshikiVoice("finisher1"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  fighter.attackCooldown  = getAttackDuration(28, fighter)
+  for (let i = 0; i < 3; i++) {
+    schedulePendingSpawn(9 + i * 5, () => {                          // rod FX reuses the canonical rod_fx sheet (dup art)
+      spawnProjectile(fighter, "isshikiFin1", {
+        damage: 55, w: 52, h: 42, speed: 14, lifetime: 84,
+        hitstun: 18, knockbackX: 6, knockbackY: -1 - i, isSpecial: true, color: "#26262b",
+        sheet: "./isshiki_rod_fx_uniform.png", spriteFrames: 1, spriteW: 54, spriteH: 69, spriteSpeed: 4, spriteScale: 1.05,
+      }, context)
+    })
+  }
+  return true
+}
+// Finisher 2 (airborne Special) — aerial DASH-SLASH: a long-reach forward-lunge slash that spikes down.
+function fireIsshikiFinisher2(fighter, context) {
+  if (isSpecialDisabled(fighter, "isshikiFinisher2")) return false
+  if (!spendEnergy(fighter, ISSHIKI_SPECIAL_COST.finisher2)) return false
+  fighter._spriteCastMove = "isshikiFin2"; fighter._spriteCastTimer = 22
+  try { sound.playSfxFile?.(pickIsshikiVoice("finisher2"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  const md = { damage: 90, startup: 6, active: 4, recovery: 16, hitstun: 22, knockbackX: 8, knockbackY: 6, rangeX: 132, rangeY: 72, isSpecial: true, spike: true }
+  const attack = createAttackFromMove(fighter, "isshikiFin2", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.spike = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * 12   // forward lunge (the dash-slash carries him in)
+  return true
+}
+
+function executeIsshikiSpecial(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireIsshikiFinisher2(fighter, context)     // AIRBORNE Special → Finisher 2 (aerial dash-slash)
+  if (dir === "F") return fireIsshikiRods(fighter, context)        // Forward+Special
+  if (dir === "D") return fireIsshikiCubes(fighter, context)       // Down+Special
+  if (dir === "U") return fireIsshikiFire(fighter, context)        // Up+Special
+  if (dir === "B") return fireIsshikiFinisher1(fighter, context)   // Back+Special → Finisher 1 (rod barrage)
+  return fireIsshikiSukunahikona(fighter, context)                 // neutral
+}
+
+// ─────────────────────────────────────────────────────────────────
+// ISSHIKI ULTIMATE — "Daikokuten Barrage" (Finisher 3). A camera-focus / freeze cinematic built INLINE
+// (no bespoke module): the LIVE fighter holds the ult windup cast pose (isshikiUltCast) while the camera
+// zooms in and the opponent is frozen, then a barrage of giant Daikokuten black rods (effects.png →
+// isshiki_ult_rods) rains down for a GUARANTEED, range-independent nuke (Miwa sure-hit contract). Building
+// it inline — keeping the real fighter as the sole actor — deliberately sidesteps the duplicate-fighter-
+// instance bug that has bitten this project's module-based cinematic ultimates.
+// ─────────────────────────────────────────────────────────────────
+const ISSHIKI_ULT = { cost: 100, dmg: 340 }   // ~204 EFF (×0.60) — top-ult band (Ichigo 330 / Red Ranger), NOT an outlier
+function executeIsshikiUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "isshiki") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, ISSHIKI_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "isshikiUltCast"; fighter._spriteCastTimer = 60   // windup held through the cinematic
+  try { sound.playSfxFile?.(pickIsshikiVoice("ultimate"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  fighter.attackCooldown  = getAttackDuration(60, fighter)
+  focusCameraOnAction(context, fighter, opp, 1.35, 18)                        // camera zoom-in on the action
+  shakeCamera(context, 8, 12)
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, 26); opp.vx = 0 }       // freeze the target through the windup
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  const cx = opp ? (opp.x || 0) + (opp.w || 60) / 2 : fighter.x + (fighter.facing || 1) * 130
+  const topY = (opp ? opp.y : fighter.y) - 170
+  for (let i = 0; i < 5; i++) {                                               // rain 5 giant Daikokuten rods (staggered)
+    schedulePendingSpawn(18 + i * 4, () => {
+      spawnProjectile(fighter, "isshikiUltRods", {
+        visualOnly: true, damage: 0, vx: 0, vy: 11, lifetime: 30, color: "#3a3a42",
+        spawnX: cx + (i - 2) * 28, spawnY: topY,
+        sheet: "./isshiki_ult_rods_uniform.png", spriteFrames: 4, spriteW: 42, spriteH: 175, spriteSpeed: 2, spriteScale: 1.0,
+      }, context)
+    })
+  }
+  schedulePendingSpawn(34, () => applyIsshikiUltimateDamage(fighter, opp, context))   // guaranteed payoff at the connect beat
+  return true
+}
+// PAYOFF — GUARANTEED, range-independent rod-barrage nuke (Miwa contract). A held block chips to 25%.
+function applyIsshikiUltimateDamage(fighter, opp, context) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = ISSHIKI_ULT.dmg
+  if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 36)
+    opp.vx = (fighter.facing || 1) * 10; opp.vy = -8
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 42)
+  }
+  applyScaledDamage(opp, dmg, { source: "ability" })                         // GUARANTEED, range-independent (sure-hit)
+  shakeCamera(context, 14, 14)
+}
+
+// ─────────────────────────────────────────────────────────────────
 // BEN 10 — per-FORM command-normal cancel chain (Fwd+Heavy opener → re-tap Heavy on
 // CONNECT to continue). Same Toji-Rekka mechanics as Vegeta (fireVegetaCommand +
 // shared rekkaContinue, requireHit:true → a whiff/block ends the string). Ben 10 is one
@@ -3334,6 +3581,1066 @@ export function updateRedRangerMmprCommandCombat(fighter, inputState, context, g
   // GROUND — Fwd+Heavy opens the punch chain. Neutral heavy stays the normal (heavy) on the normal path.
   if (forward && heavyEdge) return fireRedRangerMmprCmd(fighter, "rrRekka1")
   return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SAITAMA — Stage 2 command-normal chain: "Spin-Punch" (Fwd+Heavy). A cancelable 3-stage rekka off the
+// turn_puch spin-punch string — mirrors updateRedRangerMmprCommandCombat (Fwd+Heavy opener → re-tap Heavy
+// during recovery to cancel into the next stage; cancel-on-HIT, so a whiff/block ends the string). FREE
+// (no Serious energy) — it commits via recovery. Neutral heavy stays his `punches` normal; neutral
+// light/up/air/down_air stay on the normal path. Ground-only.
+// ─────────────────────────────────────────────────────────────────────────────
+const SAITAMA_CMD = {
+  saitamaTurn1: { damage: 40, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 3, knockbackY: 0,  rangeX: 74, rangeY: 52, rekkaNext: "saitamaTurn2" },   // spin opener
+  saitamaTurn2: { damage: 46, startup: 6, active: 3, recovery: 13, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 80, rangeY: 52, rekkaNext: "saitamaTurn3" },   // forward punches
+  saitamaTurn3: { damage: 82, startup: 7, active: 4, recovery: 22, hitstun: 24, knockbackX: 10, knockbackY: -8, rangeX: 88, rangeY: 56, launcher: true },              // cape-throw finisher — LAUNCHES (string ends)
+}
+function fireSaitamaCmd(fighter, key) {
+  const md = SAITAMA_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"   // the spin-punch chain advances on Heavy
+  fighter._cmdHitLanded = false     // latched true only on a real (non-blocked) hit → gates the cancel
+  return true
+}
+
+// ── STAGE 3 — TIERED TAP/HOLD PUNCH-COMBO SPECIAL (neutral Special, resolved on RELEASE). ──
+// TAP → "Consecutive Normal Punches" 10× (saitamaCombo10); HOLD (≥ SAITAMA_COMBO_HOLD_MS) → 20×
+// (saitamaCombo20). A genuine multi-hit FLURRY: one committed attack per tier whose `hasHit` latch is
+// re-armed on an interval (SAITAMA_COMBO_REHIT) while its ACTIVE window runs, so it lands a rapid string
+// of small punches. Per-hit knockback is small (the foe stays pinned) → the flurry self-limits when they
+// drift past range. Costs Serious energy (the meter that gates his big kit). Tier resolution lives in
+// game.js handleSaitamaSpecialRelease (tap/hold split, Madara-ultimate pattern); THIS just fires a tier.
+export const SAITAMA_COMBO_REHIT = 3     // re-arm hasHit every N active frames → one punch per N frames
+// knockbackX is a TINY pin (1) so the foe stays in range for the whole flurry (each hit refreshes hitstun);
+// the multi-hit is bounded by the ACTIVE window (recovery then releases them), so it can't combo-lock. The
+// LONGER active window on the 20× tier is what makes it land more punches (and out-damage the 10×).
+const SAITAMA_COMBO = {
+  saitamaCombo10: { damage: 13, startup: 6, active: 18, recovery: 14, hitstun: 10, knockbackX: 1, knockbackY: 0, rangeX: 88, rangeY: 54, cost: 20, isSpecial: true },   // 10× (tap)  — modest per-hit
+  saitamaCombo20: { damage: 20, startup: 7, active: 33, recovery: 18, hitstun: 10, knockbackX: 1, knockbackY: 0, rangeX: 96, rangeY: 56, cost: 35, isSpecial: true },   // 20× (hold) — bigger per-hit + longer window → reliably stronger
+}
+export function fireSaitamaPunchCombo(fighter, tier, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "saitama") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!(fighter.onGround ?? fighter.grounded ?? true)) return false
+  const key = tier === "super" ? "saitamaCombo20" : "saitamaCombo10"
+  const md  = SAITAMA_COMBO[key]
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext        = null
+  fighter._saitamaComboActive = true    // watched in updateSaitamaCommandCombat → drives the re-hit flurry
+  fighter._saitamaComboRehit  = 0
+  // Punch-combo callout — the identified line maps to the TAP tier specifically (per the wiring brief).
+  // Audio-only; gated by _atkVoiceCd.
+  if (tier !== "super" && (fighter._atkVoiceCd || 0) <= 0) {
+    try { sound.playSfxFile?.(pickSaitamaVoice("punchCombo"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  }
+  return true
+}
+
+// ── STAGE 4 — THE 6 SPECIALS (+ Side Hop). executeSaitamaSpecial branches by held direction + grounded.
+// GROUND (F/B/U/D): Serious Punch (marquee: melee + traveling shockwave) / Two-Handed Punches / Today Is
+// Bargain Sale / Serious Table Flip. AIR (neutral/F/B-D): Headbutt / Up→Down Combo / Side Hop (air-dodge).
+// (neutral GROUND Special = the tap/hold punch-combo — armed in game.js's press-path, never reaches here.)
+// A schema-exception char has more specials than ground directions, so the 3 situational moves live on air
+// inputs (mirrors Isshiki putting its finishers on Back/air). Each attack renders by its move-name sprite.
+const SAITAMA_SPECIALS = {
+  saitamaSerious:   { damage: 130, startup: 12, active: 6, recovery: 24, hitstun: 26, knockbackX: 10, knockbackY: -2, rangeX: 96,  rangeY: 58, cost: 45, superArmor: true },   // Serious Punch (Fwd) — payoff hit + shockwave
+  saitamaTwohand:   { damage: 96,  startup: 9,  active: 5, recovery: 20, hitstun: 20, knockbackX: 8,  knockbackY: -1, rangeX: 104, rangeY: 60, cost: 30 },                     // Two-Handed Punches (Back)
+  saitamaBargain:   { damage: 92,  startup: 9,  active: 4, recovery: 18, hitstun: 18, knockbackX: 6,  knockbackY: -3, rangeX: 84,  rangeY: 62, cost: 30 },                     // Today Is Bargain Sale (Up)
+  saitamaTableflip: { damage: 78,  startup: 10, active: 4, recovery: 20, hitstun: 20, knockbackX: 6,  knockbackY: -10, launchVy: -30, launcher: true, rangeX: 82, rangeY: 54, cost: 25 },   // Serious Table Flip (Down) — launcher
+  saitamaHeadbutt:  { damage: 72,  startup: 8,  active: 3, recovery: 16, hitstun: 18, knockbackX: 7,  knockbackY: -1, rangeX: 72,  rangeY: 54, cost: 20 },                     // Headbutt (air neutral/Up)
+  saitamaUpdown:    { damage: 100, startup: 8,  active: 5, recovery: 18, hitstun: 18, knockbackX: 3,  knockbackY: 11, spike: true,  rangeX: 74, rangeY: 68, cost: 35 },        // Up→Down Combo (air Fwd) — spikes DOWN
+}
+function fireSaitamaAttackSpecial(fighter, key, context) {
+  const md = SAITAMA_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  // "Today Is Bargain Sale" (Up+Special) has an identified callout; the other directional specials stay
+  // voiceless (no matching clip). Audio-only; gated by _atkVoiceCd so it can't machine-gun.
+  if (key === "saitamaBargain" && (fighter._atkVoiceCd || 0) <= 0) {
+    try { sound.playSfxFile?.(pickSaitamaVoice("bargain"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  }
+  return true
+}
+// SERIOUS PUNCH (Fwd) — his marquee: the full 24-frame windup→impact melee AND a traveling shockwave
+// (a SEPARATE ranged hitbox spawned at the impact frame). Both payoffs land; superArmor lets him shrug a
+// hit through the long windup. THE power-fantasy special (the design's brief for the character's identity).
+function fireSaitamaSeriousPunch(fighter, context) {
+  const md = SAITAMA_SPECIALS.saitamaSerious
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "saitamaSerious", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  // Traveling SHOCKWAVE — spawned at the punch's impact frame so it reads as emitted FROM the punch, then
+  // flies forward as its own ranged hitbox (independent of the melee's reach).
+  schedulePendingSpawn(md.startup, () => {
+    spawnProjectile(fighter, "saitamaShockwave", {
+      sheet: "./saitama_serious_proj_uniform.png", spriteFrames: 4, spriteW: 34, spriteH: 61, spriteSpeed: 3, spriteScale: 1.6,
+      w: 48, h: 62, speed: 13, damage: 62, hitstun: 18, knockbackX: 9, knockbackY: -2, lifetime: 70,
+      spawnY: fighter.y + (fighter.h || 100) * 0.4, color: "#ffe08a",
+    }, context)
+  })
+  return true
+}
+// SIDE HOP (air Back/Down) — evasive: i-frames + a repositioning hop (Hiruzen SPIN pattern). 0 damage.
+function fireSaitamaSideHop(fighter, context) {
+  const cost = 15
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  const dur = 20
+  fighter._spriteCastMove = "saitamaSidehop"; fighter._spriteCastTimer = dur   // evasive-hop pose (identity-mapped)
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter.invulnTimer     = Math.max(fighter.invulnTimer || 0, 20)             // the EVADE: brief intangibility
+  fighter.teleportFlash   = Math.max(fighter.teleportFlash || 0, 8)
+  const facing = fighter.facing || 1
+  fighter.vx = -facing * 8                                                     // hop AWAY (spacing reset)
+  return true
+}
+function executeSaitamaSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "saitama") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (grounded) {
+    if (dir === "F") return fireSaitamaSeriousPunch(fighter, context)               // Serious Punch (+ shockwave)
+    if (dir === "B") return fireSaitamaAttackSpecial(fighter, "saitamaTwohand", context)
+    if (dir === "U") return fireSaitamaAttackSpecial(fighter, "saitamaBargain", context)
+    if (dir === "D") return fireSaitamaAttackSpecial(fighter, "saitamaTableflip", context)
+    return fireSaitamaSeriousPunch(fighter, context)                                // neutral GROUND falls to combo in game.js → safety net
+  }
+  // AIRBORNE — 3 situational specials (ground dirs are full).
+  if (dir === "B" || dir === "D") return fireSaitamaSideHop(fighter, context)       // air-dodge
+  if (dir === "F") return fireSaitamaAttackSpecial(fighter, "saitamaUpdown", context)   // dive spike
+  return fireSaitamaAttackSpecial(fighter, "saitamaHeadbutt", context)              // air neutral/Up → Headbutt
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SAITAMA ULTIMATE — "Death Punch" (Serious Series). His single most iconic technique. An INLINE
+// freeze/camera-focus cinematic (Isshiki pattern): the LIVE fighter holds the charge pose (saitamaDeathCharge)
+// while the camera zooms in and the opponent is frozen, then swaps to the impact pose (saitamaDeathImpact) as
+// a GUARANTEED, range-independent payoff lands. game.js's drawSaitamaDeathPunchCinematic renders the hi-res
+// backdrop (death_punch_backround_effect.png) as a FULLSCREEN screen-space overlay on the impact beat — the
+// backdrop is a different (hi-res) art pipeline, so it is NOT sprite-sliced. Building it inline keeps the real
+// fighter as the sole actor → deliberately sidesteps the duplicate-fighter-instance bug. `_saitamaDeathTimer`
+// (a PUBLIC countdown, decremented in game.js) drives both the pose swap and the overlay envelope.
+// ─────────────────────────────────────────────────────────────────
+const SAITAMA_ULT = { cost: 100, dmg: 340, dur: 78, impactAt: 30 }   // ~204 EFF (×0.60) — top-ult band (Isshiki/Ichigo/Red Ranger), NOT an outlier
+function executeSaitamaUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "saitama") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SAITAMA_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._saitamaDeathTimer = SAITAMA_ULT.dur       // PUBLIC countdown (game.js decrements) → drives cinematic + backdrop
+  fighter._saitamaDeathMax   = SAITAMA_ULT.dur
+  fighter._spriteCastMove    = "saitamaDeathCharge"; fighter._spriteCastTimer = SAITAMA_ULT.impactAt   // wind-up pose held to impact
+  fighter.attackCooldown     = getAttackDuration(SAITAMA_ULT.dur, fighter)
+  focusCameraOnAction(context, fighter, opp, 1.4, 18)        // camera zoom-in on the action
+  shakeCamera(context, 6, 12)
+  // "finishing move" line lands on the ULTIMATE activation (see saitamaVoice.js DECISION note). Audio-only.
+  try { sound.playSfxFile?.(pickSaitamaVoice("ultimate"), null); fighter._atkVoiceCd = 180 } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, SAITAMA_ULT.impactAt + 8); opp.vx = 0 }   // freeze the target through the windup
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  // IMPACT beat — swap to the punch pose + land the guaranteed payoff.
+  schedulePendingSpawn(SAITAMA_ULT.impactAt, () => {
+    fighter._spriteCastMove = "saitamaDeathImpact"; fighter._spriteCastTimer = SAITAMA_ULT.dur - SAITAMA_ULT.impactAt
+    applySaitamaUltimateDamage(fighter, opp, context)
+  })
+  return true
+}
+// PAYOFF — GUARANTEED, range-independent nuke (Miwa sure-hit contract). A held block chips to 25%.
+function applySaitamaUltimateDamage(fighter, opp, context) {
+  if (!opp || opp.eliminated) return
+  let dmg = SAITAMA_ULT.dmg
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 40)
+    opp.vx = (fighter.facing || 1) * 14; opp.vy = -8
+    opp.colorFlash = 16; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46)
+  }
+  applyScaledDamage(opp, dmg, { source: "ability" })          // GUARANTEED, range-independent (sure-hit)
+  shakeCamera(context, 16, 16)
+}
+// Per-frame Saitama command driver. Returns true (→ caller skips the normal path this frame) only when it
+// actually fires a move. Ground-only Fwd+Heavy chain.
+export function updateSaitamaCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "saitama" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase = getPhase?.(fighter)
+
+  // GRAB-POSE WATCHER: the generic O-grab (combat.js) clears the attacker's attack state, so it would
+  // otherwise render idle. While our throw holds the foe, drive the grab strip via _spriteCastMove (a
+  // short refreshing timer so the last frames play out as release follow-through). 1v1: opp.isGrabbed +
+  // we aren't grabbed → we're the grabber. No-op if he ever lacks a grab strip.
+  const oppHeld = context?.getOpponent?.(fighter)
+  if (oppHeld && oppHeld.isGrabbed && !fighter.isGrabbed && fighter.animationData?.grab) {
+    fighter._spriteCastMove = "grab"; fighter._spriteCastTimer = 10
+  }
+
+  // PUNCH-COMBO FLURRY re-hit: while the tap/hold combo attack is ACTIVE, re-arm its hasHit latch every
+  // SAITAMA_COMBO_REHIT frames so it lands a rapid multi-hit string (10×/20×). Clears when the move ends.
+  if (fighter._saitamaComboActive) {
+    if (fighter.attacking && /^saitamaCombo(10|20)$/.test(fighter.currentMove || "")) {
+      if (phase === "active" && fighter.currentAttack) {
+        fighter._saitamaComboRehit = (fighter._saitamaComboRehit || 0) + 1
+        if (fighter._saitamaComboRehit >= SAITAMA_COMBO_REHIT) { fighter._saitamaComboRehit = 0; fighter.currentAttack.hasHit = false }
+      }
+    } else {
+      fighter._saitamaComboActive = false; fighter._saitamaComboRehit = 0
+    }
+  }
+
+  // Press-EDGE of Heavy (fresh tap, not held/buffered) — a rekka needs a clean re-tap.
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+
+  // REKKA CONTINUE — fresh Heavy during the current hit's RECOVERY, only if it CONNECTED. Shared
+  // rekkaContinue owns the connect-latch, window-close and cancel rule (see combat.js).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireSaitamaCmd(fighter, next)
+
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+
+  // GROUND — Fwd+Heavy opens the spin-punch chain. Neutral heavy stays the `punches` normal.
+  if (forward && heavyEdge) return fireSaitamaCmd(fighter, "saitamaTurn1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OROCHIMARU — Stage 2/3 command layer: the FORWARD STRONG opens a 3-STAGE COMMAND-NORMAL CHAIN
+// (special_move_05). Fwd+Heavy → orochimaruFwdStrong (snake-thrust, Stage 2) → re-tap Heavy during
+// recovery (cancel-on-HIT, shared rekkaContinue) → orochimaruChain2 (punch string) → orochimaruChain3
+// (kick + flash-finisher LAUNCHER). A whiff/block ends the string. Neutral heavy stays his `heavy` thrust;
+// Up/Down/Air heavies are engine-auto-routed (up / down_air / air_heavy).
+// ─────────────────────────────────────────────────────────────────────────────
+const OROCHIMARU_CMD = {
+  orochimaruFwdStrong: { damage: 66, startup: 10, active: 4, recovery: 20, hitstun: 22, knockbackX: 11, knockbackY: -2, rangeX: 158, rangeY: 56, rekkaNext: "orochimaruChain2" },  // opener (extended-reach snake-thrust)
+  orochimaruChain2:    { damage: 50, startup: 6,  active: 3, recovery: 13, hitstun: 16, knockbackX: 4,  knockbackY: 0,  rangeX: 92,  rangeY: 52, rekkaNext: "orochimaruChain3" },  // punch string
+  orochimaruChain3:    { damage: 82, startup: 7,  active: 4, recovery: 22, hitstun: 24, knockbackX: 10, knockbackY: -9, rangeX: 98,  rangeY: 56, launcher: true },                 // kick + flash finisher (LAUNCHES → ends)
+}
+function fireOrochimaruCmd(fighter, key) {
+  const md = OROCHIMARU_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  if (key === "orochimaruChain3") oroVoice(fighter, "chainFinish", 100)   // finisher shout
+  fighter._rekkaBtn     = "heavy"     // the chain advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateOrochimaruCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "orochimaru" || !inputState) return false
+  // GRAB (throw-weapon) VOICE — the generic grab hook (combat.js) sets _spriteCastMove="orochimaruThrow";
+  // edge-detect that here (audio-only, this updater is orochimaru-only + runs every frame) → one grab line.
+  const grabbing = fighter._spriteCastMove === "orochimaruThrow" && (fighter._spriteCastTimer || 0) > 0
+  if (grabbing && !fighter._oroGrabVoiced) { fighter._oroGrabVoiced = true; oroVoice(fighter, "grab") }
+  else if (!grabbing) fighter._oroGrabVoiced = false
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy      // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED. Shared
+  // rekkaContinue owns the connect-latch, window-close and cancel rule (combat.js).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireOrochimaruCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the chain (Forward Strong). Neutral heavy stays the normal `heavy`.
+  if (forward && heavyEdge) return fireOrochimaruCmd(fighter, "orochimaruFwdStrong")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KIBA — Stage 2 command layer: two BONUS directional strong-attacks (single command-normals, NO rekka,
+// NO energy cost). GROUND Fwd+Heavy → kibaFwdStrong (lunging fang strike that advances). AIR Fwd+Heavy →
+// kibaAerialStrong (spinning aerial strike). Neutral Heavy / Up / Down-air / Air stay on the engine's
+// auto-routed normal path (heavy / up / down_air / air). NOTE: kibaAerialStrong art is off-palette green.
+// ─────────────────────────────────────────────────────────────────────────────
+const KIBA_CMD = {
+  kibaFwdStrong:    { damage: 78, startup: 8, active: 4, recovery: 18, hitstun: 22, knockbackX: 11, knockbackY: -2, rangeX: 120, rangeY: 52, advance: 12 },  // GROUND Fwd — lunging strong (advances)
+  kibaAerialStrong: { damage: 70, startup: 7, active: 5, recovery: 15, hitstun: 20, knockbackX: 8,  knockbackY: 4,  rangeX: 100, rangeY: 72 },                // AIR Fwd — spinning aerial strong
+}
+function fireKibaCmd(fighter, key) {
+  const md = KIBA_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (md.advance) fighter.vx = (fighter.facing || 1) * md.advance   // Fwd Strong lunges forward
+  return true
+}
+export function updateKibaCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kiba" || !inputState) return false
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy      // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  const forward   = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart  = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !forward || !heavyEdge) return false
+  // Fwd+Heavy → grounded lunge OR airborne spin. Neutral heavies stay on the auto-routed normal path.
+  return fireKibaCmd(fighter, grounded ? "kibaFwdStrong" : "kibaAerialStrong")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BORUTO — Stage 2 command layer: bonus command-normals (single/chain, NO energy cost). GROUND Down+Heavy →
+// borutoLowSweep (forced-knockdown low sweep — a launcher-pop that trips the opponent off their feet). AIR
+// Heavy opens a 2-hit aerial CANCEL STRING: borutoAirCombo1 → re-tap Heavy on a clean HIT (shared
+// rekkaContinue) → borutoAirCombo2 (~180° spinning-dive SPIKE finisher). A whiff/block ends the string.
+// Neutral light/heavy/up/air/down_air stay on the engine's auto-routed normal path.
+// ─────────────────────────────────────────────────────────────────────────────
+const BORUTO_CMD = {
+  borutoLowSweep:  { damage: 70, startup: 8, active: 3, recovery: 20, hitstun: 20, knockbackX: 8, knockbackY: 0,  rangeX: 100, rangeY: 40, launcher: true, launchY: -9 },  // GROUND Down+Heavy trip-sweep
+  borutoAirCombo1: { damage: 44, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 5, knockbackY: 0,  rangeX: 92,  rangeY: 66, rekkaNext: "borutoAirCombo2" }, // AIR-Heavy opener
+  borutoAirCombo2: { damage: 68, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 9, knockbackY: 10, rangeX: 96,  rangeY: 70, spike: true },                 // spinning-dive spike finisher
+}
+function fireBorutoCmd(fighter, key) {
+  const md = BORUTO_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  attack.spike    = !!md.spike
+  if (md.launchY != null) attack.launchY = md.launchY
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null     // aerial cancel string (AirCombo1 → AirCombo2)
+  fighter._rekkaBtn     = "heavy"                   // the chain advances on Heavy
+  fighter._cmdHitLanded = false                     // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateBorutoCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "boruto" || !inputState) return false
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy      // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // AERIAL cancel-string CONTINUE — fresh Heavy during the opener's recovery, only if it CONNECTED.
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireBorutoCmd(fighter, next)
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !heavyEdge) return false
+  // AIR — Heavy (NOT Down, which auto-routes to down_air) opens the aerial combo string.
+  if (!grounded) return inputState.down ? false : fireBorutoCmd(fighter, "borutoAirCombo1")
+  // GROUND — Down+Heavy → low sweep. Neutral/Fwd heavies stay on the auto-routed `heavy` normal.
+  if (inputState.down) return fireBorutoCmd(fighter, "borutoLowSweep")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KIBA — Stage 3: GATSUGA (Fang Passing Fang), 2 genuinely distinct TIERS via _specialHeldDir. Both are
+// advancing spinning-drill rushes (canon Inuzuka technique). WEAK = neutral Special (quick, cheap, short
+// travel). STRONG = Forward Special (higher commitment: longer windup, superArmor plow-through, further
+// travel, ~2× energy, bigger drill FX). Both render their cast pose via createAttackFromMove + a tuned
+// hitbox and lunge forward. Throttled by the shared chakra pool.
+// ─────────────────────────────────────────────────────────────────────────────
+const KIBA_SPECIALS = {
+  kibaGatsugaWeak:   { damage: 64,  startup: 8,  active: 6, recovery: 18, hitstun: 18, knockbackX: 9,  knockbackY: -3, rangeX: 124, rangeY: 52, cost: 22, advance: 13, isSpecial: true },
+  kibaGatsugaStrong: { damage: 96,  startup: 11, active: 8, recovery: 24, hitstun: 22, knockbackX: 13, knockbackY: -5, rangeX: 158, rangeY: 62, cost: 42, advance: 21, superArmor: true, isSpecial: true },
+  // Two-Headed Wolf — beast-fusion TIER 2: a committed horizontal twin-drill rush (bigger/pricier than
+  // Strong Gatsuga; superArmor + long travel). Down the escalation ladder to the Three-Headed Wolf ULT.
+  kibaTwoHeaded:     { damage: 112, startup: 12, active: 8, recovery: 26, hitstun: 24, knockbackX: 15, knockbackY: -6, rangeX: 182, rangeY: 82, cost: 40, advance: 24, superArmor: true, isSpecial: true },
+}
+// Four Legs Technique (Shikyaku no Jutsu) — beast-fusion TIER 1: a timed SELF-BUFF transformation (drops
+// to all-fours, offense + speed up). Vegeta-SSJ multiplier pattern (damage/attack/speedMultiplier), but a
+// lightweight TIMED buff (no form/skin swap). Ticked + auto-reverted in game.js (revertKibaFourLegs).
+const KIBA_FOUR_LEGS = { cost: 28, buffFrames: 480, castFrames: 34, dmgMult: 1.25, spdMult: 1.2 }
+// audio-only cast voice (JA, unidentified, acoustic-sorted). Gated by _atkVoiceCd so a fast kit doesn't machine-gun.
+function kibaVoice(fighter, pool, cd = 150) {
+  if (!fighter || (fighter._atkVoiceCd || 0) > 0) return
+  try { sound.playSfxFile?.(pickKibaVoice(pool), null); fighter._atkVoiceCd = cd } catch (_) {}
+}
+const KIBA_CAST_VOICE = { kibaGatsugaWeak: "gatsugaWeak", kibaGatsugaStrong: "gatsugaStrong", kibaTwoHeaded: "twoHeaded" }
+function fireKibaGatsuga(fighter, key) {
+  const md = KIBA_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  kibaVoice(fighter, KIBA_CAST_VOICE[key] || "gatsugaWeak")   // per-move cast bark
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  // md.superArmor flows through createAttackFromMove → attack.superArmor (Strong/Two-Headed plow through).
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = (fighter.facing || 1) * md.advance   // drill FORWARD
+  return true
+}
+function fireKibaFourLegs(fighter, context) {
+  const c = KIBA_FOUR_LEGS
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, c.cost)) return false
+  kibaVoice(fighter, "fourLegs", 200)                        // distinct energetic transformation shout
+  fighter._fourLegsActive    = true                          // buff-active flag (guards revert at timer 0)
+  fighter._fourLegsTimer     = c.buffFrames                  // ticked in game.js; expiry → revertKibaFourLegs
+  fighter.damageMultiplier   = c.dmgMult
+  fighter.attackMultiplier   = c.dmgMult
+  fighter.speedMultiplier    = c.spdMult
+  fighter._spriteCastMove    = "kibaFourLegs"                // play the feral-transform cast on the fighter
+  fighter._spriteCastTimer   = c.castFrames
+  fighter.attackCooldown     = getAttackDuration(c.castFrames, fighter)   // committed while transforming
+  fighter.vx = 0
+  fighter.colorFlash = 10
+  try { shakeCamera(context, 3, 8) } catch (_) {}
+  return true
+}
+// Auto-revert the Four Legs buff (called by the game.js timer tick when _fourLegsTimer hits 0, + round/KO resets).
+export function revertKibaFourLegs(fighter) {
+  if (!fighter || !fighter._fourLegsActive) return
+  fighter._fourLegsActive  = false
+  fighter._fourLegsTimer   = 0
+  fighter.damageMultiplier = 1
+  fighter.attackMultiplier = 1
+  fighter.speedMultiplier  = 1
+}
+export function executeKibaSpecial(fighter, context) {
+  if (!fighter) return false
+  const dir = fighter._specialHeldDir || null          // "F" | "B" | "U" | "D" | null
+  if (dir === "D") return fireKibaFourLegs(fighter, context)                 // Down  → Four Legs (transform buff)
+  if (dir === "U") return fireKibaGatsuga(fighter, "kibaTwoHeaded")          // Up    → Two-Headed Wolf (drill rush)
+  return fireKibaGatsuga(fighter, dir === "F" ? "kibaGatsugaStrong" : "kibaGatsugaWeak")   // Fwd→Strong / else→Weak Gatsuga
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KIBA ULTIMATE — "Three-Headed Wolf" (beast-fusion TIER 3, his biggest technique). INLINE freeze/
+// camera-focus cinematic (Saitama/Isshiki pattern): the LIVE fighter holds a feral all-fours crouch
+// (kibaFourLegs cast pose, SPRITE ONLY — no buff) while the camera zooms in and the opponent is frozen,
+// and game.js's drawKibaThreeHeadedCinematic overlays the four beat images (summon → charge → maul →
+// vortex) sequenced by the PUBLIC `_kibaThwTimer` countdown. Two GUARANTEED, range-independent sure-hits
+// land on the maul + vortex beats (Miwa contract; block chips each to 25%). Built inline with the real
+// fighter as the sole actor → deliberately sidesteps the duplicate-fighter-instance bug.
+// ─────────────────────────────────────────────────────────────────────────────
+const KIBA_ULT = { cost: 100, dur: 108, maulAt: 60, vortexAt: 88, maulDmg: 200, vortexDmg: 130 }   // 330 raw → ~198 EFF (×0.60), top-ult band
+function applyKibaUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 34)
+    opp.vx = (fighter.facing || 1) * (opts.knockback || 12); opp.vy = opts.vy ?? -6
+    opp.colorFlash = 14
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "ability" })          // GUARANTEED, range-independent (sure-hit)
+  try { shakeCamera(context, opts.shake || 12, 14) } catch (_) {}
+}
+export function executeKibaUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kiba") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, KIBA_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  kibaVoice(fighter, "ultimate", 220)                  // the longest/most dramatic clip (split-16a)
+  fighter.vx = 0
+  fighter._kibaThwTimer = KIBA_ULT.dur                  // PUBLIC countdown (game.js decrements) → drives cinematic overlay
+  fighter._kibaThwMax   = KIBA_ULT.dur
+  fighter._spriteCastMove  = "kibaFourLegs"             // LIVE fighter holds the feral all-fours crouch (sprite pose only, NOT the buff)
+  fighter._spriteCastTimer = KIBA_ULT.dur
+  fighter.attackCooldown   = getAttackDuration(KIBA_ULT.dur, fighter)   // committed through the cinematic
+  focusCameraOnAction(context, fighter, opp, 1.4, 18)   // camera zoom-in on the action
+  try { shakeCamera(context, 6, 12) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, KIBA_ULT.dur); opp.vx = 0 }   // freeze the target through the cinematic
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  // Guaranteed two-hit payoff: maul (pounce) then vortex (spinning fang-tornado finisher).
+  schedulePendingSpawn(KIBA_ULT.maulAt,   () => applyKibaUltHit(fighter, opp, context, KIBA_ULT.maulDmg, { knockback: 10, vy: -8, shake: 12 }))
+  schedulePendingSpawn(KIBA_ULT.vortexAt, () => applyKibaUltHit(fighter, opp, context, KIBA_ULT.vortexDmg, { knockback: 16, vy: -6, knockdown: true, shake: 16 }))
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BORUTO — Stage 3: directional NINJUTSU specials (executeBorutoSpecial, dir-branched via _specialHeldDir,
+// GROUND/AIR context — Isshiki/Saitama/Orochimaru pattern). All draw from the shared chakra pool.
+//   GROUND: neutral = Rasengan (orb thrust) / Fwd = Lightning Shiden (arc-FX palm thrust, MELEE) /
+//           Back = Wind/Water Cast (water-gust projectile) / Up = Palm Blast (wind-streak projectile) /
+//           Down = Shadow Clone (a clone poofs in, strikes, poofs — smoke FX + guaranteed assist hit).
+//   AIR:    neutral = Rasengan (air, downward orb crater) / Fwd = Throw Weapon (kunai) /
+//           Back = Vanishing Rasengan (faint low-alpha orb).
+// AUTHORED FX (art gap → authored per the confirmed design): Rasengan orb reuses the shared Naruto sphere
+// ./naruto_kcm_fx_rasengan_sphere.png; kunai reuses ./sasuke_shuriken.png; the Shiden electric arc is a
+// procedural overlay (game.drawBorutoShidenFX, driven by the public _shidenFxTimer); the wind/water gust
+// uses the code-drawn "water" projectile; the palm streak is a scaled energy shot. Every tool ×0.60-scaled;
+// breadth = versatility, throttled by the shared 180 chakra pool. Rush Slide (sutorimu set B), Sweeping
+// Strike (row_13) and ground Throw Weapon are additional art, deferred beyond this 8-special core.
+// ─────────────────────────────────────────────────────────────────────────────
+const BORUTO_ORB   = "./naruto_kcm_fx_rasengan_sphere.png"   // shared Naruto Rasengan sphere (4×64×85) — authored orb
+const BORUTO_KUNAI = "./sasuke_shuriken.png"                 // shared spinning ninja-tool (3×52×54) — no Boruto-native kunai art
+const BORUTO_SHIDEN_MD = { damage: 74, startup: 9, active: 5, recovery: 20, hitstun: 22, knockbackX: 12, knockbackY: -3, rangeX: 132, rangeY: 58, isSpecial: true }
+
+function fireBorutoShiden(fighter, context) {
+  const cost = 30, md = BORUTO_SHIDEN_MD
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  try { sound.playSfxFile?.(pickBorutoVoice("shiden"), null) } catch (_) {}   // Lightning Shiden cast voice
+  const attack = createAttackFromMove(fighter, "borutoShiden", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = (fighter.facing || 1) * 14              // lightning dash-thrust forward
+  fighter._shidenFxTimer = md.startup + md.active + 4  // PUBLIC — drives game.drawBorutoShidenFX (electric arc along the forearm)
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+function fireBorutoRasengan(fighter, context, variant) {
+  const cfg = {
+    ground:    { cost: 30, cast: "borutoRasengan",    dmg: 66, speed: 9,  vy: 0, ky: -3, scale: 0.60, color: "#7dd3fc", life: 22, castT: 24, delay: 8,  advance: 8, yf: 0.42 },
+    air:       { cost: 30, cast: "borutoRasenganAir", dmg: 72, speed: 8,  vy: 6, ky: 11, scale: 0.62, color: "#67b7e6", life: 20, castT: 22, delay: 10, advance: 0, yf: 0.50 },
+    vanishing: { cost: 26, cast: "borutoVanishing",   dmg: 58, speed: 12, vy: 0, ky: -2, scale: 0.34, color: "#cfe8f5", life: 24, castT: 24, delay: 6,  advance: 6, yf: 0.44 },
+  }[variant]
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  try { sound.playSfxFile?.(pickBorutoVoice({ ground: "rasenganGround", air: "rasenganAir", vanishing: "vanishing" }[variant]), null) } catch (_) {}   // Rasengan cast voice (per variant)
+  fighter._spriteCastMove = cfg.cast; fighter._spriteCastTimer = cfg.castT
+  fighter.attackCooldown  = getAttackDuration(cfg.castT, fighter)
+  fighter._rekkaNext = null
+  if (cfg.advance) fighter.vx = (fighter.facing || 1) * cfg.advance
+  schedulePendingSpawn(cfg.delay, () => {
+    spawnProjectile(fighter, "borutoRasengan", {
+      damage: cfg.dmg, w: 34, h: 34, speed: cfg.speed, vy: cfg.vy, lifetime: cfg.life,
+      hitstun: 18, knockbackX: 8, knockbackY: cfg.ky, isSpecial: true, color: cfg.color,
+      sheet: BORUTO_ORB, spriteFrames: 4, spriteW: 64, spriteH: 85, spriteSpeed: 3, spriteScale: cfg.scale,
+      spawnY: fighter.y + (fighter.h || 110) * cfg.yf,
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+
+function fireBorutoProjectile(fighter, context, kind) {
+  const cfg = {
+    windwater: { cost: 26, cast: "borutoWindWater", dmg: 52, speed: 12, w: 42, h: 42, life: 72, color: "#a5f3fc", drawKind: "water", castT: 24, delay: 9 },
+    palmblast: { cost: 24, cast: "borutoPalmBlast", dmg: 48, speed: 15, w: 50, h: 24, life: 66, color: "#e0f2fe", drawKind: null, castT: 24, delay: 9, sheet: BORUTO_ORB, sf: 4, sw: 64, sh: 85, ss: 0.5 },
+    throw:     { cost: 20, cast: "borutoThrowAir",  dmg: 46, speed: 16, w: 26, h: 26, life: 76, color: "#d7ecff", drawKind: null, castT: 22, delay: 6, sheet: BORUTO_KUNAI, sf: 3, sw: 52, sh: 54, ss: 0.8 },
+  }[kind]
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  try { sound.playSfxFile?.(pickBorutoVoice(kind === "throw" ? "throwWeapon" : "windWater"), null) } catch (_) {}   // Wind-Water / Palm Blast / Throw Weapon cast voice
+  fighter._spriteCastMove = cfg.cast; fighter._spriteCastTimer = cfg.castT
+  fighter.attackCooldown  = getAttackDuration(cfg.castT, fighter)
+  fighter._rekkaNext = null
+  schedulePendingSpawn(cfg.delay, () => {
+    spawnProjectile(fighter, "boruto_" + kind, {
+      damage: cfg.dmg, w: cfg.w, h: cfg.h, speed: cfg.speed, lifetime: cfg.life,
+      hitstun: 16, knockbackX: 8, knockbackY: -1, isSpecial: true, color: cfg.color, drawKind: cfg.drawKind,
+      sheet: cfg.sheet || null, spriteFrames: cfg.sf || 1, spriteW: cfg.sw || null, spriteH: cfg.sh || null, spriteSpeed: 3, spriteScale: cfg.ss || 1,
+      spawnY: fighter.y + (fighter.h || 110) * 0.32,
+    }, context)
+  })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+
+function fireBorutoShadowClone(fighter, context) {
+  const cost = 30
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {}   // Shadow Clone Jutsu cast voice
+  fighter._spriteCastMove = "borutoClone"; fighter._spriteCastTimer = 30
+  fighter.attackCooldown  = getAttackDuration(30, fighter)
+  fighter._rekkaNext = null
+  const target = getTargetResolver(context)(fighter) || null
+  // A shadow clone poofs in beside the target, lands a guaranteed strike, then poofs out — smoke puffs
+  // bracket the appear/vanish. A persistent duplicate-instance clone is deliberately avoided (the
+  // duplicate-fighter bug); this momentary-assist read is the safe, tested idiom (Naruto clone-hit family).
+  const puff = (offX) => spawnProjectile(fighter, "borutoSmoke", {
+    damage: 0, w: 46, h: 46, speed: 0, lifetime: 16, color: "#e8eef2", visualOnly: true,   // decorative poof — never collides/despawns on contact
+    spawnX: (target ? target.x + (target.w || 0) / 2 : fighter.x) + offX, spawnY: fighter.y + (fighter.h || 110) * 0.4,
+  }, context)
+  schedulePendingSpawn(10, () => puff(fighter.facing * 40))
+  if (target) {
+    schedulePendingSpawn(16, () => spawnGuaranteedCloneHit(fighter, target, "borutoClone",
+      { damage: 62, hitstun: 20, knockbackX: 8, knockbackY: -3, dirSign: fighter.facing, sheet: BORUTO_ORB, spriteScale: 0.5, lifetime: 14 }, context))
+    schedulePendingSpawn(30, () => puff(fighter.facing * 40))
+  }
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+export function executeBorutoSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "boruto") return false
+  const dir = fighter._specialHeldDir || null            // "F" | "B" | "U" | "D" | null
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  if (!grounded) {                                        // ── AIR context ──
+    if (dir === "F") return fireBorutoProjectile(fighter, context, "throw")     // Throw Weapon (kunai)
+    if (dir === "B") return fireBorutoRasengan(fighter, context, "vanishing")   // Vanishing Rasengan (faint)
+    return fireBorutoRasengan(fighter, context, "air")                          // neutral/other → Rasengan (air)
+  }
+  // ── GROUND context ──
+  if (dir === "F") return fireBorutoShiden(fighter, context)                    // Lightning Shiden (melee arc thrust)
+  if (dir === "B") return fireBorutoProjectile(fighter, context, "windwater")   // Wind/Water Cast (projectile)
+  if (dir === "U") return fireBorutoProjectile(fighter, context, "palmblast")   // Palm Blast (projectile)
+  if (dir === "D") return fireBorutoShadowClone(fighter, context)               // Shadow Clone (assist + smoke)
+  return fireBorutoRasengan(fighter, context, "ground")                         // neutral → Rasengan
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BORUTO ULTIMATE — "Kote Barrage" (Scientific Ninja Tool). INLINE freeze/camera-focus cinematic (Kiba/
+// Saitama/Mayuri pattern): the LIVE fighter plays the 5-part Kote firing sequence (borutoKote cast) while
+// the camera zooms in and the opponent is frozen; game.js's drawBorutoKoteFX (per-fighter muzzle-flash /
+// gauntlet / part-3 recoil spray) + drawBorutoKoteCinematic (screen vignette + part-3 warm flash) overlay
+// the authored FX (the source art has NO projectiles). Five guaranteed range-independent sure-hits land on
+// the five fire beats — the PART-3 recoil beat is the heavy PAYOFF (big shake + hitstop + camera push).
+// Built inline with the real fighter as the sole actor → sidesteps the duplicate-fighter-instance bug.
+// ─────────────────────────────────────────────────────────────────────────────
+const BORUTO_ULT = { cost: 100, dur: 110, beats: [
+  { at: 18, dmg: 42,  kb: 6,  vy: -3, shake: 6 },                              // part 1 fire
+  { at: 40, dmg: 42,  kb: 6,  vy: -3, shake: 6 },                              // part 2 fire
+  { at: 58, dmg: 170, kb: 16, vy: -8, shake: 18, payoff: true, knockdown: true },  // part 3 — RECOIL PAYOFF (the warm spray beat)
+  { at: 78, dmg: 38,  kb: 6,  vy: -3, shake: 6 },                              // part 4 fire
+  { at: 98, dmg: 38,  kb: 8,  vy: -4, shake: 8 },                              // part 5 fire
+] }   // 330 raw → ~198 EFF (×0.60), top-ult band
+function applyBorutoUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 30)
+    opp.vx = (fighter.facing || 1) * (opts.knockback || 10); opp.vy = opts.vy ?? -4
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "ability" })          // GUARANTEED, range-independent (sure-hit)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+export function executeBorutoUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "boruto") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, BORUTO_ULT.cost)) return false
+  try { sound.playSfxFile?.(pickBorutoVoice("ult"), null) } catch (_) {}   // Kote Barrage ultimate voice (longest/most dramatic pool)
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._borutoKoteTimer = BORUTO_ULT.dur                   // PUBLIC countdown (game.js decrements) → drives the FX overlays
+  fighter._borutoKoteMax   = BORUTO_ULT.dur
+  fighter._spriteCastMove  = "borutoKote"                     // LIVE fighter plays the 5-part Kote firing sequence
+  fighter._spriteCastTimer = BORUTO_ULT.dur
+  fighter.attackCooldown   = getAttackDuration(BORUTO_ULT.dur, fighter)   // committed through the cinematic
+  focusCameraOnAction(context, fighter, opp, 1.3, 16)
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, BORUTO_ULT.dur); opp.vx = 0 }   // freeze the target through the cinematic
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  for (const b of BORUTO_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      applyBorutoUltHit(fighter, opp, context, b.dmg, { knockback: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) { focusCameraOnAction(context, fighter, opp, 1.5, 12); try { shakeCamera(context, 16, 16) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 8) }   // part-3 payoff: camera push + big shake
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BORUTO — MOMOSHIKI KARMA ULTIMATE FORM (transformation state, SSJ-Rose/Vegeta-SSJ architecture). A
+// charge-TAP toggle: enter from base ONLY at ≥90% energy (threshold, no up-front spend), continuous per-
+// frame drain, instant auto-revert at 0 (updateBorutoKarma). The visual is a FULL art form-swap to the
+// magenta-recolored __karma sheets (gen_boruto_karma.py) via _skinAnim, PLUS a procedural blue Karma-seal
+// markings + glowing-blue-eyes overlay (game.drawBorutoKarmaOverlay — the project's glow-eye technique).
+// While transformed he unlocks the Chakra Absorption ability (Stage 2, gated on _karmaActive). Buffs sit
+// at the vegeta-SSJ tier (a bit above) — the drain + the absorb's HP cost are the counterweights.
+// ─────────────────────────────────────────────────────────────────────────────
+const KARMA_THRESHOLD = 162     // energy ≥ 162 (~90% of maxEnergy 180) to enter — hold P to build past it
+const KARMA_DRAIN     = 0.30    // energy/frame while transformed (~18/s @60fps) → ~9s of Karma from full
+const KARMA_MULT      = { dmg: 1.25, spd: 1.12, def: 1.08 }   // top-form buff (just above vegeta SSJ 1.20/1.12/1.05)
+const KARMA_FORM_DATA = { damageMultiplier: 1.25, attackMultiplier: 1.25, speedMultiplier: 1.12, defenseMultiplier: 1.08, karmaForm: true, absorb: true }
+let _borutoKarmaAnim = null
+function borutoKarmaAnim() { return _borutoKarmaAnim || (_borutoKarmaAnim = retagFormAnim(characters.boruto.animationData, "karma")) }
+export function isBorutoKarma(fighter) { return !!fighter?._karmaActive }
+export function enterBorutoKarma(fighter, context = {}) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "boruto" || fighter._karmaActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < KARMA_THRESHOLD) return false        // ONLY at/above the ~90% gate — no up-front spend
+  fighter._karmaActive      = true
+  try { sound.playSfxFile?.(pickBorutoKarmaVoice("transform"), null) } catch (_) {}   // Momoshiki Karma activation voice (most dramatic — separate Karma pool)
+  fighter._skinAnim         = retagFormAnim(borutoKarmaAnim(), fighter._recolorTag)   // magenta __karma form-swap (+ alt recolor stack if any)
+  fighter.currentForm       = "karma"
+  fighter.currentFormData   = KARMA_FORM_DATA                       // updateTransformationState re-applies these mults each frame
+  fighter.damageMultiplier  = fighter.attackMultiplier = KARMA_MULT.dmg
+  fighter.speedMultiplier   = KARMA_MULT.spd
+  fighter.defenseMultiplier = KARMA_MULT.def
+  fighter.teleportFlash     = 14
+  fighter.attackCooldown    = 16
+  fighter.vx = 0
+  try { focusCameraOnAction(context, fighter, null, 1.02, 12); shakeCamera(context, 5, 10) } catch (_) {}
+  return true
+}
+export function revertBorutoKarma(fighter) {
+  if (!fighter || !fighter._karmaActive) return
+  fighter._karmaActive      = false
+  fighter._absorbWindow     = 0                                     // Chakra Absorption is Karma-exclusive → close any open window
+  fighter._skinAnim         = fighter._baseSkinAnim || null         // restore recoloured base (or canonical) art
+  fighter.currentForm       = "base"
+  fighter.currentFormData   = null
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+export function toggleBorutoKarma(fighter, context = {}) {
+  if (fighter?._karmaActive) { revertBorutoKarma(fighter); return true }
+  return enterBorutoKarma(fighter, context)
+}
+// Per-frame: absorb-result voices (edge-detected) + continuous energy drain + auto-revert at 0 (Karma-only).
+export function updateBorutoKarma(fighter) {
+  if (!fighter?._karmaActive) return
+  if (fighter._absorbJustSucceeded) {                              // combat.shouldBorutoAbsorb set this on a clean negate
+    fighter._absorbJustSucceeded = false
+    try { sound.playSfxFile?.(pickBorutoKarmaVoice("absorbSuccess"), null) } catch (_) {}
+  }
+  if ((fighter._absorbWindow || 0) > 0) fighter._absorbWindow--    // Chakra Absorption window countdown
+  else if (fighter._absorbPending) {                               // window closed with NO absorb → the HP-spent-for-nothing FAILURE beat
+    fighter._absorbPending = false
+    try { sound.playSfxFile?.(pickBorutoKarmaVoice("absorbFail"), null) } catch (_) {}
+  }
+  fighter.energy = Math.max(0, (fighter.energy || 0) - KARMA_DRAIN)
+  if ((fighter.energy || 0) <= 0) {                                // ran dry → "losing control" reversion beat
+    try { sound.playSfxFile?.(pickBorutoKarmaVoice("revert"), null) } catch (_) {}
+    revertBorutoKarma(fighter)
+  }
+}
+
+// ── CHAKRA / ENERGY ABSORPTION (Karma-only reactive ability) ──────────────────────────────────
+// GRAB (O) while transformed opens a brief absorb WINDOW. The HP cost is paid HERE, on the attempt, EVERY
+// time (win or lose) — the real risk. If a PROJECTILE/energy attack lands in the window, combat.shouldBoruto-
+// Absorb negates it + refunds energy (proportional to the absorbed attack). A melee hit (never reaches the
+// projectile-path check) or a whiff (window expires) = the HP was spent for nothing. Karma-exclusive.
+const KARMA_ABSORB_HP_COST = 60     // FIXED HP paid on EVERY attempt (~5.4% of HP 1120) — real self-cost, floored non-lethal
+const KARMA_ABSORB_WINDOW  = 16     // absorb window length (frames, ~0.27s reaction parry)
+export function borutoAbsorbAttempt(fighter, context = {}) {
+  if (!fighter?._karmaActive) return false                        // KARMA-EXCLUSIVE — unavailable in base form
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || (fighter.hitstun || 0) > 0) return false
+  fighter.health = Math.max(1, (fighter.health || 0) - KARMA_ABSORB_HP_COST)   // COST EVERY TIME (never self-KO)
+  fighter._absorbWindow    = KARMA_ABSORB_WINDOW
+  fighter._absorbPending    = true    // awaiting result → updateBorutoKarma fires the FAILURE voice if the window closes unused
+  fighter._absorbLastRefund = 0
+  fighter._spriteCastMove  = "borutoClone"                        // reuse the seal pose as the absorb stance (renders in Karma colors via _skinAnim)
+  fighter._spriteCastTimer = KARMA_ABSORB_WINDOW
+  fighter.attackCooldown   = getAttackDuration(KARMA_ABSORB_WINDOW + 8, fighter)   // committed (recovery — can't spam)
+  fighter.vx = 0
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LIGHT YAGAMI — Stage 4: the 7 special-tier call-ins (executeLightSpecial, dir-branched via _specialHeldDir,
+// GROUND/AIR context — Boruto/Isshiki/Saitama pattern). Every move fires a SHARED cast pose (Light gestures +
+// laughs → lightCast, or lightAirCast airborne) then spawns a one-shot summon/FX that carries the hitbox and
+// despawns within the move — the Ghostface phantom-hitbox idiom (NOT persistent assist characters, per the
+// Stage-0 audit). The summon sheets ride spawnProjectile as the projectile's own sprite.
+//   GROUND: neutral = Y vortex (widest hitbox) / Fwd = L diving kick / Up = Ryuk anti-air (big, slow, pops up)
+//           / Back = L rising burst (launcher) / Down = violet burst (low, anti-ground-tech).
+//   AIR:    Fwd = jump+Y air punch (highest air dmg) / else = jump+B gunman rocket (long-range projectile).
+// CALL-IN CREDIT (Stage-0 decision): Ryuk + L Lawliet named; the jump+B gunman is UNIDENTIFIED (placeholder).
+// DIRECTION NOTE: the audit reclassified B+Up (Ryuk) as a special and left its direction open; Ryuk takes UP
+// (its anti-air role wants the up slot), so Y+Up's rising L-burst moves to BACK. Every tool ×0.60-scaled on
+// hit (applyScaledDamage via the projectile path); breadth = versatility, throttled by the shared 200 Kira pool.
+// ─────────────────────────────────────────────────────────────────────────────
+const LIGHT_SUMMONS = {
+  // dir/context → { cast, cost, sheet, sf, sw, sh, sc(sprite scale), dmg, w, h, speed, vy, ky, life, delay,
+  //                 advance(caster vx), sx(spawnX frac of reach), sy(spawnY frac of h), launcher }
+  vortex:    { cast: "lightCast",    cost: 24, sheet: "./light_vortex_uniform.png",    sf: 4, sw: 85, sh: 87, sc: 1.0,  dmg: 56, w: 74, h: 66, speed: 5,  vy: 0, ky: -2, life: 28, delay: 8,  advance: 0,  sy: 0.34 },   // N — widest neutral hitbox
+  divekick:  { cast: "lightCast",    cost: 22, sheet: "./light_ldivekick_uniform.png", sf: 4, sw: 61, sh: 65, sc: 1.1,  dmg: 60, w: 54, h: 54, speed: 12, vy: 5, ky: 2,  life: 20, delay: 8,  advance: 10, sy: 0.20 },   // F — L diving kick (down-forward)
+  ryuk:      { cast: "lightCast",    cost: 30, sheet: "./light_ryuk_uniform.png",      sf: 5, sw: 66, sh: 58, sc: 1.3,  dmg: 66, w: 62, h: 92, speed: 3,  vy: 0, ky: -7, life: 28, delay: 10, advance: 0,  sx: 0.55, sy: -0.18, launcher: true },  // U — Ryuk anti-air (big, slow, pops up)
+  rising:    { cast: "lightCast",    cost: 24, sheet: "./light_lrising_uniform.png",   sf: 7, sw: 35, sh: 39, sc: 1.35, dmg: 58, w: 40, h: 74, speed: 2,  vy: -8, ky: -10, life: 24, delay: 8, advance: 0,  sx: 0.35, sy: 0.30, launcher: true },  // B — L rising burst (launcher)
+  violet:    { cast: "lightCast",    cost: 20, sheet: "./light_violet_uniform.png",    sf: 3, sw: 70, sh: 72, sc: 1.0,  dmg: 50, w: 60, h: 50, speed: 4,  vy: 0, ky: 0,  life: 18, delay: 8,  advance: 0,  sx: 0.5,  sy: 0.55 },   // D — violet burst (low, anti-ground-tech)
+  gunman:    { cast: "lightAirCast", cost: 28, sheet: "./light_gunman_uniform.png",    sf: 8, sw: 99, sh: 60, sc: 1.15, dmg: 52, w: 80, h: 42, speed: 14, vy: 0, ky: -1, life: 40, delay: 9,  advance: 0,  sy: 0.30 },   // air — gunman rocket (long-range)
+  airpunch:  { cast: "lightAirCast", cost: 26, sheet: "./light_airfigure_uniform.png", sf: 5, sw: 85, sh: 82, sc: 1.1,  dmg: 64, w: 62, h: 58, speed: 10, vy: 0, ky: -3, life: 18, delay: 8,  advance: 6,  sy: 0.25 },   // air — figure punch (highest air dmg)
+}
+function fireLightSummon(fighter, context, key) {
+  const cfg = LIGHT_SUMMONS[key]
+  if (!cfg) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  fighter._spriteCastMove = cfg.cast; fighter._spriteCastTimer = 28
+  fighter.attackCooldown  = getAttackDuration(28, fighter)
+  fighter._rekkaNext = null
+  if (cfg.advance) fighter.vx = (fighter.facing || 1) * cfg.advance
+  const reach = (fighter.w || 60) + cfg.w * 0.5
+  schedulePendingSpawn(cfg.delay, () => {
+    spawnProjectile(fighter, "light_" + key, {
+      damage: cfg.dmg, w: cfg.w, h: cfg.h, speed: cfg.speed, vy: cfg.vy, lifetime: cfg.life,
+      hitstun: 20, knockbackX: 9, knockbackY: cfg.ky, isSpecial: true, launcher: !!cfg.launcher,
+      sheet: cfg.sheet, spriteFrames: cfg.sf, spriteW: cfg.sw, spriteH: cfg.sh, spriteSpeed: 3, spriteScale: cfg.sc,
+      spawnX: (cfg.sx != null) ? (fighter.x + (fighter.w || 60) / 2 + (fighter.facing || 1) * reach * cfg.sx) : undefined,
+      spawnY: fighter.y + (fighter.h || 110) * (cfg.sy != null ? cfg.sy : 0.34),
+    }, context)
+  })
+  try { shakeCamera(context, key === "ryuk" ? 4 : 2, 6) } catch (_) {}
+  return true
+}
+export function executeLightSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "light") return false
+  const dir = fighter._specialHeldDir || null            // "F" | "B" | "U" | "D" | null
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  if (!grounded) {                                        // ── AIR context ──
+    if (dir === "F") return fireLightSummon(fighter, context, "airpunch")   // jump+Y air punch (highest air dmg)
+    return fireLightSummon(fighter, context, "gunman")                      // jump+B gunman rocket (long-range)
+  }
+  // ── GROUND context ──
+  if (dir === "F") return fireLightSummon(fighter, context, "divekick")     // Forward — L diving kick
+  if (dir === "U") return fireLightSummon(fighter, context, "ryuk")         // Up — Ryuk anti-air (marquee)
+  if (dir === "B") return fireLightSummon(fighter, context, "rising")       // Back — L rising burst (launcher)
+  if (dir === "D") return fireLightSummon(fighter, context, "violet")       // Down — violet burst (low)
+  return fireLightSummon(fighter, context, "vortex")                        // neutral — Y vortex (widest)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LIGHT YAGAMI — Stage 5 + 6: TWO ultimate-tier payoffs sharing the 100 Kira meter (mutually exclusive), both
+// INLINE freeze/camera-focus cinematics (Isshiki/Boruto idiom — the LIVE fighter is the sole actor, no dup-
+// instance). Selected by held direction at the Ultimate press (game.js stamps fighter._ultVariant):
+//   neutral U → "As Planned"  (writing): the fighter plays the Death-Note-writing cast (lightUltWrite); on the
+//               "name written" beat the foe's fate is SEALED — a guaranteed, range-independent collapse.
+//   Down+U    → "I Am Kira"    (scythe):  the notebook morphs into the Shinigami scythe (lightScythe) and the
+//               "THAT'S RIGHT. I'M KIRA." cut-in panel flashes (game.drawLightKiraCinematic / _lightKiraTimer);
+//               the scythe swing lands the same guaranteed payoff.
+// Both = 340 raw → ~204 EFF (×0.60), top-ult band (Isshiki 340 / Ichigo 330) — NOT an outlier. Block chips 25%.
+// ─────────────────────────────────────────────────────────────────────────────
+const LIGHT_ULT = { cost: 100, dmg: 340, dur: 100 }
+function applyLightUltimateDamage(fighter, opp, context) {
+  if (!opp || opp.eliminated) return
+  let dmg = LIGHT_ULT.dmg
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 36)
+    opp.vx = (fighter.facing || 1) * 9; opp.vy = -7
+    opp.colorFlash = 16; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44)   // the foe collapses — fate sealed
+  }
+  applyScaledDamage(opp, dmg, { source: "ability" })                     // GUARANTEED, range-independent (sure-hit)
+  try { shakeCamera(context, 14, 14) } catch (_) {}
+}
+export function executeLightUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "light") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, LIGHT_ULT.cost)) return false
+  const scythe = fighter._ultVariant === "scythe"
+  fighter._ultVariant = null                                             // consume the selector
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove  = scythe ? "lightScythe" : "lightUltWrite"    // LIVE fighter plays the writing / scythe cast
+  fighter._spriteCastTimer = LIGHT_ULT.dur
+  fighter.attackCooldown   = getAttackDuration(LIGHT_ULT.dur, fighter)   // committed through the cinematic
+  // PUBLIC cinematic timer + the cut-in panel for THIS variant → drives game.drawLightKiraCinematic. Both ults
+  // get a manga cut-in: scythe = "I'M KIRA" (purple), writing = "JUST AS PLANNED" (blue).
+  fighter._lightKiraTimer  = LIGHT_ULT.dur; fighter._lightKiraMax = LIGHT_ULT.dur
+  fighter._lightUltPanel   = scythe ? "./light_kira_panel.png" : "./light_asplanned_panel.png"
+  fighter._lightUltFlash   = scythe ? "#b061e0" : "#5aa0e0"
+  focusCameraOnAction(context, fighter, opp, scythe ? 1.4 : 1.3, 18)
+  try { shakeCamera(context, scythe ? 8 : 5, 12) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, LIGHT_ULT.dur); opp.vx = 0 }   // freeze the target through the cinematic
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  const beat = scythe ? 58 : 50                                          // scythe swing / "name written" connect beat
+  schedulePendingSpawn(beat, () => {
+    applyLightUltimateDamage(fighter, opp, context)
+    focusCameraOnAction(context, fighter, opp, scythe ? 1.55 : 1.45, 12)
+    fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OROCHIMARU — Stage 3: the 8 SPECIALS (executeOrochimaruSpecial, dir-branched by _specialHeldDir +
+// grounded — Isshiki/Saitama pattern). GROUND F/B/U/D + neutral (5) and AIR neutral/F/B (3). MELEE moves
+// render their cast pose via createAttackFromMove(moveName) + a tuned hitbox; the 3 RANGED moves set a
+// _spriteCastMove pose + spawnProjectile. Every tool is honestly ×0.60-scaled; the breadth is versatility,
+// throttled by the shared 210 chakra pool. (04/09 are TWO independent snake moves — melee lunge vs ranged
+// barrage; the actual Kusanagi SWORD moves are 06 throw / 07 lunge. See Stage-3 report.)
+// ─────────────────────────────────────────────────────────────────────────────
+const OROCHIMARU_SPECIALS = {
+  orochimaruSwordLunge: { damage: 78, startup: 10, active: 5, recovery: 20, hitstun: 24, knockbackX: 12, knockbackY: -2, rangeX: 172, rangeY: 56, cost: 26, advance: 11, isSpecial: true },  // GROUND Fwd — Kusanagi sword lunge (advances)
+  orochimaruTailSweep:  { damage: 70, startup: 9,  active: 4, recovery: 18, hitstun: 22, knockbackX: 6,  knockbackY: -12, launchVy: -26, launcher: true, rangeX: 98, rangeY: 98, cost: 22, isSpecial: true },  // GROUND Up — snake-tail anti-air arc (launcher)
+  orochimaruSlam:       { damage: 76, startup: 11, active: 4, recovery: 22, hitstun: 24, knockbackX: 4,  knockbackY: 12, spike: true, rangeX: 94, rangeY: 62, cost: 24, isSpecial: true },  // GROUND Down — low lunge slam (spike)
+  orochimaruSnakeLunge: { damage: 82, startup: 9,  active: 5, recovery: 18, hitstun: 22, knockbackX: 10, knockbackY: -2, rangeX: 150, rangeY: 62, cost: 26, advance: 12, isSpecial: true },  // AIR neutral — Striking Shadow Snake dive
+  orochimaruCoil:       { damage: 66, startup: 8,  active: 6, recovery: 18, hitstun: 18, knockbackX: 5,  knockbackY: -6, rangeX: 86, rangeY: 72, cost: 28, isSpecial: true },  // AIR Back — snake-form coil strike
+}
+// audio-only cast voice (JA, vibe-sorted, unidentified). Gated by _atkVoiceCd so a fast kit doesn't machine-gun.
+const ORO_MELEE_VOICE = { orochimaruSwordLunge: "swordLunge", orochimaruTailSweep: "tailSweep", orochimaruSlam: "slam", orochimaruSnakeLunge: "snakeLunge", orochimaruCoil: "coil" }
+function oroVoice(fighter, pool, cd = 120) {
+  if (!fighter || (fighter._atkVoiceCd || 0) > 0) return
+  try { sound.playSfxFile?.(pickOrochimaruVoice(pool), null); fighter._atkVoiceCd = cd } catch (_) {}
+}
+function fireOroMeleeSpecial(fighter, key) {
+  const md = OROCHIMARU_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  oroVoice(fighter, ORO_MELEE_VOICE[key] || "swordLunge")   // per-move cast bark
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher; attack.spike = !!md.spike
+  if (md.launchVy != null) attack.launchY = md.launchVy     // createAttackFromMove doesn't carry launchVy → set on the attack
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (md.advance) fighter.vx = (fighter.facing || 1) * md.advance   // lunging specials travel forward
+  return true
+}
+function fireOroSnakeSpit(fighter, context) {   // GROUND neutral — Striking Shadow Snake (thin ranged snake)
+  const cost = 24
+  if (!spendEnergy(fighter, cost)) return false
+  const face = fighter.facing || 1
+  oroVoice(fighter, "snakeSpit")
+  fighter._spriteCastMove = "orochimaruSnakeSpit"; fighter._spriteCastTimer = 22
+  fighter.attackCooldown  = getAttackDuration(22, fighter)
+  spawnProjectile(fighter, "oroSnake", {
+    damage: 60, speed: 12, lifetime: 66, vx: face * 12, vy: 0, hitstun: 18, knockbackX: 6, knockbackY: 0,
+    w: 76, h: 26, color: "#7d8a4a", isSpecial: true, sheet: "./orochimaru_snake_proj_uniform.png",
+    spriteFrames: 2, spriteW: 55, spriteH: 17, spriteSpeed: 5, spriteScale: 1.7,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 76, spawnY: fighter.y + (fighter.h || 100) * 0.42
+  }, context)
+  return true
+}
+function fireOroSwordThrow(fighter, context) {   // GROUND Back — thrown Kusanagi sword (ranged)
+  const cost = 28
+  if (!spendEnergy(fighter, cost)) return false
+  const face = fighter.facing || 1
+  oroVoice(fighter, "swordThrow")
+  fighter._spriteCastMove = "orochimaruSwordThrow"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown  = getAttackDuration(24, fighter)
+  fighter.colorFlash = 6
+  spawnProjectile(fighter, "oroSword", {
+    damage: 74, speed: 15, lifetime: 60, vx: face * 15, vy: 0, hitstun: 20, knockbackX: 9, knockbackY: -2,
+    w: 66, h: 22, color: "#c9d0d6", isSpecial: true, sheet: "./orochimaru_sword_proj_uniform.png",
+    spriteFrames: 2, spriteW: 33, spriteH: 18, spriteSpeed: 4, spriteScale: 1.9,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 66, spawnY: fighter.y + (fighter.h || 100) * 0.38
+  }, context)
+  return true
+}
+function fireOroSnakeBarrage(fighter, context) {   // AIR Fwd — Hidden Shadow Snakes (multi-snake ranged barrage)
+  const cost = 34
+  if (!spendEnergy(fighter, cost)) return false
+  const face = fighter.facing || 1
+  oroVoice(fighter, "snakeBarrage")
+  fighter._spriteCastMove = "orochimaruSnakeBarrage"; fighter._spriteCastTimer = 26
+  fighter.attackCooldown  = getAttackDuration(26, fighter)
+  fighter.colorFlash = 8
+  const baseX = face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 90
+  const baseY = fighter.y + (fighter.h || 100) * 0.36
+  for (const dv of [-4, 0, 4]) {   // 3 snakes fanned vertically → a spread barrage
+    spawnProjectile(fighter, "oroSnakeSwarm", {
+      damage: 34, speed: 11, lifetime: 64, vx: face * 11, vy: dv, hitstun: 15, knockbackX: 5, knockbackY: 0,
+      w: 92, h: 34, color: "#6f7f45", isSpecial: true, sheet: "./orochimaru_snakeswarm_proj_uniform.png",
+      spriteFrames: 2, spriteW: 73, spriteH: 25, spriteSpeed: 5, spriteScale: 1.5,
+      spawnX: baseX, spawnY: baseY + dv * 3
+    }, context)
+  }
+  return true
+}
+export function executeOrochimaruSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "orochimaru") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  if (!grounded) {
+    if (dir === "F") return fireOroSnakeBarrage(fighter, context)          // AIR Fwd  — Hidden Shadow Snakes barrage
+    if (dir === "B") return fireOroMeleeSpecial(fighter, "orochimaruCoil") // AIR Back — snake-form coil
+    return fireOroMeleeSpecial(fighter, "orochimaruSnakeLunge")            // AIR neutral — Striking Shadow Snake dive
+  }
+  if (dir === "F") return fireOroMeleeSpecial(fighter, "orochimaruSwordLunge")  // GROUND Fwd  — Kusanagi sword lunge
+  if (dir === "B") return fireOroSwordThrow(fighter, context)                   // GROUND Back — thrown Kusanagi sword
+  if (dir === "U") return fireOroMeleeSpecial(fighter, "orochimaruTailSweep")   // GROUND Up   — snake-tail anti-air
+  if (dir === "D") return fireOroMeleeSpecial(fighter, "orochimaruSlam")        // GROUND Down — low slam
+  return fireOroSnakeSpit(fighter, context)                                     // GROUND neutral — Striking Shadow Snake
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OROCHIMARU — Stage 4: THREE ALTERNATE FORMS (body-transfer, his signature). SELECTION not a ladder —
+// Charge-TAP cycles base → Host Body → White Snake → Serpent Sage → base, each sharing ONE shed-skin
+// transition (orochimaruShed). The ONLY distinct alternate-body art is the host-body sheets (idle/run/
+// dash); each form is that body in a palette. A form's _skinAnim is a FULL MERGED COPY of base Orochimaru's
+// animationData with the form's own frames overlaid — so EVERY action that lacks form art (jump/hurt/
+// heavy/light/specials/…) falls back to a REAL base Orochimaru sheet, never the 128² box. COSMETIC
+// (a body-swap mixup) — no stat buff, small chakra cost — so it adds ZERO power to an already-large kit.
+// ─────────────────────────────────────────────────────────────────────────────
+const ORO_FORM_ORDER = ["host", "white", "serpent"]
+const ORO_FORM_NAMES = { host: "Host Body", white: "White Snake", serpent: "Serpent Sage" }
+const oroFormSheet = (pal, act) => pal === "host" ? `./orochimaru_form_${act}_uniform.png` : `./orochimaru_form_${pal}_${act}_uniform.png`
+function oroFormOverrides(pal) {   // ONLY the consistent host-body actions; everything else → base fallback
+  return {
+    idle: { frames: 4, width: 24, height: 52, speed: 8, anchorY: 0, sheet: oroFormSheet(pal, "idle") },
+    walk: { frames: 6, width: 44, height: 40, speed: 6, anchorY: 0, sheet: oroFormSheet(pal, "run") },
+    run:  { frames: 6, width: 44, height: 40, speed: 4, anchorY: 0, sheet: oroFormSheet(pal, "run") },
+    dash: { frames: 3, width: 41, height: 42, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: oroFormSheet(pal, "dash") },
+  }
+}
+function oroShedPose(fighter, context) {
+  fighter._spriteCastMove = "orochimaruShed"; fighter._spriteCastTimer = 30
+  fighter.attackCooldown  = getAttackDuration(30, fighter)
+  fighter.colorFlash = 12; fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  oroVoice(fighter, "transform", 150)   // dramatic shed-skin line (shared by every form transform + revert)
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+}
+export function applyOrochimaruForm(fighter, formId, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "orochimaru") return false
+  const pal = ORO_FORM_ORDER.includes(formId) ? formId : null
+  if (!pal) return false
+  if (!spendEnergy(fighter, 15)) return false                       // small chakra cost — cosmetic, no buff
+  if (fighter._oroPreFormSkinAnim === undefined) fighter._oroPreFormSkinAnim = fighter._skinAnim || null
+  // FULL merged copy of BASE Orochimaru animationData + this form's real frames overlaid.
+  fighter._skinAnim = { ...fighter.animationData, ...oroFormOverrides(pal) }
+  fighter._oroForm  = formId
+  oroShedPose(fighter, context)
+  return true
+}
+export function revertOrochimaruForm(fighter, context) {
+  if (!fighter || !fighter._oroForm) return false
+  fighter._skinAnim = fighter._oroPreFormSkinAnim ?? null           // back to base (null → base animationData)
+  fighter._oroForm  = null
+  oroShedPose(fighter, context)
+  return true
+}
+export function cycleOrochimaruForm(fighter, context) {             // Charge-TAP: base → host → white → serpent → base
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "orochimaru") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || fighter.hitstun > 0) return false
+  const cur = fighter._oroForm || null
+  const next = (cur ? ORO_FORM_ORDER.indexOf(cur) : -1) + 1
+  if (next >= ORO_FORM_ORDER.length) return revertOrochimaruForm(fighter, context)   // wrap → base
+  return applyOrochimaruForm(fighter, ORO_FORM_ORDER[next], context)
+}
+export function orochimaruFormName(fighter) { return fighter && fighter._oroForm ? ORO_FORM_NAMES[fighter._oroForm] : null }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OROCHIMARU ULTIMATE — "Summoning: Twin Serpents" (Manda-class giant-snake summon). Built as an INLINE
+// freeze/camera-focus cinematic on the LIVE fighter (the proven Isshiki/Saitama/Hiruzen discipline) — the
+// real Orochimaru is the SOLE actor, deliberately sidestepping the duplicate-fighter-instance bug that has
+// bitten this project's module cinematics. He holds a summon-gesture pose (orochimaruSummonCast) while the
+// giant serpent art (orochimaru_ult_snake) is drawn as a screen-space overlay (game.js
+// drawOrochimaruSummonCinematic, keyed on _oroSummonTimer). Guaranteed range-independent payoff routed
+// through applyScaledDamage (honest ×0.60 → ~210 EFF, squarely the cinematic-ult band); block chips to 25%.
+// ─────────────────────────────────────────────────────────────────────────────
+const OROCHIMARU_SUMMON = { cost: 100, dmg: 350, cinematic: 72 }   // 350 RAW → ~210 EFF (×0.60); band: Isshiki 204 / Pain 216
+function executeOrochimaruUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "orochimaru") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, OROCHIMARU_SUMMON.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.colorFlash = 14
+  fighter.vx = 0
+  fighter._spriteCastMove  = "orochimaruSummonCast"; fighter._spriteCastTimer = OROCHIMARU_SUMMON.cinematic   // held summon gesture
+  oroVoice(fighter, "ultimate", 200)   // Summon — the longest/most dramatic line
+  fighter._oroSummonTimer  = OROCHIMARU_SUMMON.cinematic; fighter._oroSummonMax = OROCHIMARU_SUMMON.cinematic  // drives the screen-space FX
+  fighter.attackCooldown   = getAttackDuration(OROCHIMARU_SUMMON.cinematic, fighter)
+  focusCameraOnAction(context, fighter, opp, 1.3, 18)                          // zoom in on the summon
+  shakeCamera(context, 6, 12)
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, 60); opp.vx = 0 }        // freeze the target through the strike
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 12)
+  schedulePendingSpawn(46, () => applyOrochimaruSummonDamage(fighter, opp, context))   // guaranteed serpent-strike payoff
+  return true
+}
+function applyOrochimaruSummonDamage(fighter, opp, context) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = OROCHIMARU_SUMMON.dmg
+  if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+  else { opp.hitstun = Math.max(opp.hitstun || 0, 44); opp.vx = (fighter.facing || 1) * 10; opp.vy = -7 }
+  applyScaledDamage(opp, dmg, { source: "ability" })     // honest ×0.60 → ~210 EFF (block 25%)
+  opp.colorFlash = 12
+  try { shakeCamera(context, 8, 12) } catch (_) {}
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -7140,6 +8447,205 @@ function finishGfKnife(fighter, fired) {
   if (fired && fighter.directionHistory) fighter.directionHistory.length = 0
   return fired
 }
+// ── JASON VOORHEES — "Relentless Slash" (neutral Special; the ONE special in this lean kit). A heavier,
+// higher-commit version of the overhead machete heavy: reuses the heavy art (jRelentless cast pose) but
+// plays DIFFERENTLY — a committed forward LUNGE (the normal heavy is planted), a much bigger machete arc
+// (rangeX 140 vs the heavy's 116), far higher damage, a heavy diagonal blow-back, super armor through the
+// swing, a Bloodlust cost, and a heavier cast (camera shake + red flash). No direction branch.
+// ─────────────────────────────────────────────────────────────────
+// HIRUZEN SARUTOBI SPECIALS — SPECIAL button, direction-branched via _specialHeldDir (Isshiki pattern).
+// STAGE 2: neutral = SPIN, an evasive spinning dodge/counter-step (the master-label "SPIN", NEVER "roll").
+// Grants brief i-frames + a short back-hop (substitution-jutsu-adjacent evade), not a strike. STAGE 3 adds
+// the direction-branched BORROWED JUTSU (Fwd = Fire Release / Down = Earth Wall / Up = Enma) — bespoke,
+// self-contained reflavors that do NOT share live code/state with the source characters (Pain/Zaraki precedent).
+// ─────────────────────────────────────────────────────────────────
+const HIRUZEN_SPIN = { cost: 15, iframes: 22, duration: 26, hopBack: 7 }
+function fireHiruzenSpin(fighter, context) {
+  const md = fighter.specials?.spin || HIRUZEN_SPIN
+  if (!spendEnergy(fighter, md.cost || 15)) return false
+  const dur = md.duration || 26
+  fighter._spriteCastMove = "hiruzenSpin"; fighter._spriteCastTimer = dur    // spin-dodge pose (identity-mapped)
+  try { sound.playSfxFile?.(pickHiruzenVoice("spin"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter.invulnTimer     = Math.max(fighter.invulnTimer || 0, md.iframes || 22)   // the EVADE: brief intangibility
+  fighter.teleportFlash   = Math.max(fighter.teleportFlash || 0, 8)                // shimmer (substitution feel)
+  // short repositioning back-hop AWAY from the opponent — keeps the evade mobile-safe (spacing reset).
+  const facing = fighter.facing || 1
+  fighter.vx = -facing * (md.hopBack || 7)
+  if ((fighter.onGround ?? fighter.grounded) && (fighter.vy || 0) === 0) fighter.vy = -3   // tiny grounded hop
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+
+// FIRE RELEASE: GREAT FIREBALL (Fwd+Special) — bespoke reflavor of the Katon-fireball ARCHITECTURE (cast
+// pose + a forward-rolling flame projectile). Reuses the shared fireball FX sheet + a caster pose from
+// Hiruzen's OWN punch sheet (no dedicated fire-cast art). Weaker than Madara's Katon (he is no fire
+// specialist) — self-limiting, not strictly-better. Does NOT call any Madara code.
+function fireHiruzenFireball(fighter, context) {
+  const md = fighter.specials?.fireball || { cost: 28, damage: 84 }
+  if (!spendEnergy(fighter, md.cost || 28)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove  = "hiruzenFireCast"; fighter._spriteCastTimer = 28
+  try { sound.playSfxFile?.(pickHiruzenVoice("fireball"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  fighter.attackCooldown   = getAttackDuration(28, fighter)
+  fighter.colorFlash       = 8
+  spawnProjectile(fighter, "hiruzenFireball", {
+    damage: md.damage || 84, speed: 9, lifetime: 90, vx: face * 9, vy: 0,
+    hitstun: 20, knockbackX: 8, knockbackY: -2, w: 92, h: 58, color: "#ff7a1c", isSpecial: true,
+    sheet: "./madara2_fireball_proj_uniform.png", spriteFrames: 4, spriteW: 236, spriteH: 114, spriteSpeed: 4, spriteScale: 1.12,
+    spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - 100,
+    spawnY: fighter.y + (fighter.h || 100) * 0.34
+  }, context)
+  return true
+}
+
+// EARTH RELEASE: WALL (Down+Special) — bespoke reflavor of the Mokuton wood-spike STATIONARY-hazard
+// architecture (vx 0, rises then strikes via hitDelay), re-themed to earth/stone (recolored art) and
+// repurposed DEFENSIVELY: it erupts in FRONT of Hiruzen as an anti-rush wall (not under the opponent like
+// the offensive Mokuton spike). Weaker + different role → not strictly-better. Self-contained.
+function fireHiruzenEarthWall(fighter, context) {
+  const md = fighter.specials?.earthWall || { cost: 26, damage: 70 }
+  if (!spendEnergy(fighter, md.cost || 26)) return false
+  const face = fighter.facing || 1
+  fighter._spriteCastMove  = "hiruzenEarthCast"; fighter._spriteCastTimer = 24
+  try { sound.playSfxFile?.(pickHiruzenVoice("earthWall"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  fighter.attackCooldown   = getAttackDuration(24, fighter)
+  fighter.colorFlash       = 6
+  const wallX = face === 1 ? fighter.x + (fighter.w || 60) + 64 : fighter.x - 64
+  const wallY = fighter.y + (fighter.h || 100) * 0.35
+  spawnProjectile(fighter, "hiruzenEarthWall", {
+    damage: md.damage || 70, speed: 0, vx: 0, vy: 0, lifetime: 52, hitDelay: 12,   // stationary; rises ~12f then strikes
+    hitstun: 22, knockbackX: 5, knockbackY: -8, w: 108, h: 188, color: "#9a8f7a", isSpecial: true,
+    sheet: "./hiruzen_earth_wall_uniform.png", spriteFrames: 11, spriteW: 116, spriteH: 112, spriteSpeed: 3, spriteScale: 1.7,
+    spawnX: wallX, spawnY: wallY
+  }, context)
+  return true
+}
+
+// ENMA — MONKEY KING STAFF (Up+Special). The character-IDENTITY anchor. A transformation-BUFF (declarative
+// damage + reach multiplier for a duration), NOT a summoned character (no Enma art). Reuses the project-wide
+// buff shape (Nezuko-demon / Vegeta-SSJ): save prev multipliers → apply → auto-revert on the timer
+// (game.updateMiscTimers → revertHiruzenEnma). Real weight: high cost + long duration. Self-contained.
+const HIRUZEN_ENMA = { cost: 45, duration: 480, dmgMult: 1.25, reachMult: 1.35 }
+function activateHiruzenEnma(fighter, context) {
+  if (fighter._enmaActive) return false                 // no re-stack while active
+  const md = fighter.specials?.enma || HIRUZEN_ENMA
+  if (!spendEnergy(fighter, md.cost || 45)) return false
+  fighter._enmaActive    = true
+  fighter._enmaTimer     = md.duration || 480
+  fighter._enmaPrevDmg   = fighter.damageMultiplier ?? 1
+  fighter._enmaPrevReach = fighter._reachMult ?? 1
+  fighter.damageMultiplier = (fighter.damageMultiplier || 1) * (md.dmgMult || 1.25)
+  fighter._reachMult       = (fighter._reachMult || 1) * (md.reachMult || 1.35)
+  fighter._spriteCastMove  = "hiruzenEnmaCast"; fighter._spriteCastTimer = 30
+  try { sound.playSfxFile?.(pickHiruzenVoice("enma"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // signature move — longer/dramatic line
+  fighter.attackCooldown   = getAttackDuration(24, fighter)
+  fighter.colorFlash       = 12
+  fighter.teleportFlash    = Math.max(fighter.teleportFlash || 0, 10)
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+export function revertHiruzenEnma(fighter) {
+  if (!fighter || !fighter._enmaActive) return
+  fighter._enmaActive = false; fighter._enmaTimer = 0
+  fighter.damageMultiplier = fighter._enmaPrevDmg ?? 1
+  fighter._reachMult       = fighter._enmaPrevReach ?? 1
+}
+
+// ADAMANTINE STAFF BIND (Back+Special) — the Enma staff extends to PIN the opponent: a command grab on the
+// proven resolveGrab primitive (Red Ranger / Madara-Susanoo-grab precedent), with a themed throw via
+// _grabThrowDmg. A genuine architecture fit (a grab-and-hold mechanic already exists) — built, not forced.
+function fireHiruzenStaffBind(fighter, context) {
+  const md = fighter.specials?.staffBind || { cost: 18, damage: 60, reach: 96 }
+  const target = getTargetResolver(context)(fighter)
+  if (!spendEnergy(fighter, md.cost || 18)) return false
+  fighter._spriteCastMove = "hiruzenBind"; fighter._spriteCastTimer = 26
+  try { sound.playSfxFile?.(pickHiruzenVoice("effort"), null); fighter._atkVoiceCd = 120 } catch (_) {}   // staff-pin: short strike shout (no dedicated bind pool)
+  fighter.attackCooldown  = getAttackDuration(26, fighter)
+  const grabbed = resolveGrab(fighter, target, context, md.reach || 96)
+  if (grabbed) fighter._grabThrowDmg = md.damage || 60   // themed throw (the staff-slam)
+  return true
+}
+
+function executeHiruzenSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "hiruzen") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireHiruzenFireball(fighter, context)   // Forward → Fire Release: Great Fireball
+  if (dir === "D") return fireHiruzenEarthWall(fighter, context)  // Down    → Earth Release: Wall
+  if (dir === "U") return activateHiruzenEnma(fighter, context)   // Up      → Enma (Monkey King Staff) buff
+  if (dir === "B") return fireHiruzenStaffBind(fighter, context)  // Back    → Adamantine Staff Bind (command grab)
+  return fireHiruzenSpin(fighter, context)                        // neutral → evasive SPIN
+}
+
+// ─────────────────────────────────────────────────────────────────
+// HIRUZEN ULTIMATE — "Reaper Death Seal" (Shiki Fūjin). His canon soul-extraction finisher, at GREAT
+// PERSONAL COST. Built as an INLINE freeze/camera-focus cinematic on the LIVE fighter — keeping the real
+// Hiruzen as the sole actor deliberately sidesteps the duplicate-fighter-instance bug that has bitten this
+// project's module-based cinematics (same discipline as Isshiki's inline ult). No dedicated art exists, so
+// it leans on camera work + a dark spectral SCREEN treatment (game.js drawHiruzenReaperCinematic: a
+// Shinigami dragging out the soul) + Hiruzen's OWN held sealing-sign pose. He pays 15% of his own max HP
+// (the canon life-cost) — a real, self-limiting drawback that keeps this top-band nuke fair.
+// ─────────────────────────────────────────────────────────────────
+const HIRUZEN_REAPER = { cost: 100, dmg: 330, selfHpPct: 0.15, cinematic: 66 }   // 330 → ~198 EFF (×0.60), cinematic-ult band (Isshiki 340/204)
+function executeHiruzenUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "hiruzen") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, HIRUZEN_REAPER.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  // GREAT PERSONAL COST — sacrifice a chunk of his OWN HP (clamped non-lethal → leaves ≥1; canon life-cost).
+  const selfCost = Math.round((fighter.maxHealth || 1180) * HIRUZEN_REAPER.selfHpPct)
+  fighter.health = Math.max(1, (fighter.health || 0) - selfCost)
+  fighter.colorFlash = 14
+  fighter.vx = 0
+  fighter._spriteCastMove   = "hiruzenReaperCast"; fighter._spriteCastTimer = HIRUZEN_REAPER.cinematic   // held sealing pose
+  try { sound.playSfxFile?.(pickHiruzenVoice("ultimate"), null); fighter._atkVoiceCd = 180 } catch (_) {}   // Reaper Death Seal — most dramatic line
+
+  fighter._reaperSealTimer  = HIRUZEN_REAPER.cinematic; fighter._reaperSealMax = HIRUZEN_REAPER.cinematic  // drives the screen-space FX
+  fighter.attackCooldown    = getAttackDuration(HIRUZEN_REAPER.cinematic, fighter)
+  focusCameraOnAction(context, fighter, opp, 1.3, 18)                          // zoom in on the action
+  shakeCamera(context, 6, 10)
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, 54); opp.vx = 0 }        // freeze the target through the seal
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 12)
+  schedulePendingSpawn(40, () => applyHiruzenReaperDamage(fighter, opp, context))   // guaranteed soul-rip payoff
+  return true
+}
+// PAYOFF — GUARANTEED, range-independent soul-rip (routes through applyScaledDamage → honest ×0.60). Block chips to 25%.
+function applyHiruzenReaperDamage(fighter, opp, context) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = HIRUZEN_REAPER.dmg
+  if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 40)
+    opp.vx = (fighter.facing || 1) * 8; opp.vy = -6
+    opp.colorFlash = 16; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46)
+  }
+  applyScaledDamage(opp, dmg, { source: "ability" })
+  shakeCamera(context, 14, 14)
+}
+
+function executeJasonSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "jason") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (isSpecialDisabled(fighter, "relentlessSlash")) return false
+  const md = fighter.specials?.relentlessSlash
+    || { cost: 35, damage: 140, startup: 13, active: 5, recovery: 26, hitstun: 26, knockbackX: 12, knockbackY: -8, rangeX: 140, rangeY: 92, isSpecial: true }
+  if (!spendEnergy(fighter, md.cost || 35)) return false
+  const attack = createAttackFromMove(fighter, "jRelentless", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial  = true
+  attack.superArmor = true                          // barrels through chip during the committed swing
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = jRelentless → overhead-swing cast pose
+  fighter.vx = (fighter.facing || 1) * 9            // committed step-in lunge (kinetically distinct from the stationary heavy)
+  fighter.colorFlash = 10                           // red Bloodlust cast flash
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  // VOICE (audio-only): a committed effort grunt on cast, OR — ~25% of the time, since Jason has no ultimate —
+  // a long signature ROAR instead, for extra weight without dominating every cast.
+  try { sound?.playSfxFile?.(pickJasonVoice(Math.random() < 0.25 ? "specialRoar" : "specialCast"), null) } catch (_) {}
+  return true
+}
+
 // SPECIAL button = BACKSTAGE PASS (spec §4.2). Branch by the modifiers held the frame Special is buffered
 // (stamped onto the fighter in game.js beside _specialHeldDir). Priority: SWAP (Grab/Charge) > FAKEOUT
 // (attack btn) > the Fwd/Down KNIFE specials > GETAWAY (Back) > neutral SIDE-SWITCH. The knife specials
@@ -8617,6 +10123,563 @@ export function updatePainAssistCombo(fighter, inputState, context) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════
+// SIX PATHS OF PAIN  (rosterKey "six_paths_pain") — a FULLY SEPARATE character from solo `pain`.
+// Shares ZERO live state: every per-fighter field is in a `_sp*`/`_path` namespace, every function
+// is its own executeSixPaths*, and its art comes only from the sixpaths_* sheets. Reuses shared
+// ENGINE helpers (spendEnergy / schedulePendingSpawn / spawnProjectile / shakeCamera / retagFormAnim
+// / getRelativeDirections …) — utilities, not pain state — so the two chars never couple.
+//
+// The signature mechanic is the Ghostface-derived MULTI-IDENTITY SWAP: Nagato's body cycles the SIX
+// PATHS mid-match. The swap art-swaps the whole animationData via fighter._skinAnim (the Vegeta
+// form-swap primitive) and re-points _path; each Path's kit dispatches off _path. FREE mid-match
+// but throttled by an energy COST + COOLDOWN (the balance answer to six-kits-on-one-body).
+// ═══════════════════════════════════════════════════════════════════════════════════════
+export function isSixPaths(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "six_paths_pain" }
+
+// ── ANIMAL / CHIKUSHODO PATH anim set (Stage 2). Long red-ponytail body; same action layout as Deva
+// but its OWN art (sixpaths_chiku_* sheets). Must define EVERY rendered action key — _skinAnim resolves
+// at the object level, so a missing key would render the 128² box, not fall back to the Deva base.
+const SIXPATHS_CHIKUSHODO_ANIM = {
+  idle:  { frames: 4, width: 48,  height: 66, speed: 8, anchorY: 0, sheet: "./sixpaths_chiku_stance_uniform.png" },
+  walk:  { frames: 6, width: 62,  height: 59, speed: 6, anchorY: 0, sheet: "./sixpaths_chiku_run_uniform.png" },
+  run:   { frames: 6, width: 62,  height: 59, speed: 4, anchorY: 0, sheet: "./sixpaths_chiku_run_uniform.png" },
+  dash:  { frames: 6, width: 62,  height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_run_uniform.png" },
+  jump:  { frames: 3, width: 116, height: 87, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_jfct_uniform.png" },
+  fall:  { frames: 1, width: 116, height: 87, speed: 6, anchorY: 0, sourceX: 348, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_jfct_uniform.png" },   // jfct frame 3
+  crouch:{ frames: 1, width: 116, height: 87, speed: 8, anchorY: 0, sourceX: 464, loop: true, sheet: "./sixpaths_chiku_jfct_uniform.png" },                        // jfct frame 4
+  guard: { frames: 1, width: 48,  height: 66, speed: 6, anchorY: 0, sourceX: 288, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_stance_uniform.png" }, // stance frame 6
+  hurt:      { frames: 3, width: 73, height: 60, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_hurt_uniform.png" },
+  knockdown: { frames: 3, width: 73, height: 60, speed: 6, anchorY: 0, sourceX: 219, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_hurt_uniform.png" }, // frames 3-5
+  light:    { frames: 3, width: 85,  height: 66, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_combo_uniform.png" },
+  heavy:    { frames: 6, width: 85,  height: 66, speed: 3, anchorY: 0, sourceX: 510, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_combo_uniform.png" },  // rod thrust (frames 6-11)
+  up:       { frames: 6, width: 61,  height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_runatk_uniform.png" },
+  air:      { frames: 3, width: 116, height: 87, speed: 3, anchorY: 0, sourceX: 580, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_jfct_uniform.png" },   // jfct frames 5-7
+  down_air: { frames: 9, width: 87,  height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_downatk_uniform.png" },
+  spSummon:   { frames: 1, width: 48, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_summon_uniform.png" },              // Kuchiyose hand-sign cast
+  spTeleport: { frames: 2, width: 48, height: 66, speed: 3, anchorY: 0, sourceX: 192, loop: false, lockLastFrame: true, sheet: "./sixpaths_chiku_stance_uniform.png" }, // swap exit/emerge (stance frames 4-5)
+}
+
+// ── PRETA / GAKIDO PATH anim set (Stage 3). Distinct bald Preta body (sixpaths_gakido_* sheets). LEAN
+// kit — 5 normals + movement/state + the ONE Chakra-Absorption Shield. Every rendered key defined.
+const SIXPATHS_GAKIDO_ANIM = {
+  idle:  { frames: 4, width: 46, height: 73, speed: 8, anchorY: 0, sheet: "./sixpaths_gakido_stance_uniform.png" },
+  walk:  { frames: 5, width: 66, height: 56, speed: 6, anchorY: 0, sheet: "./sixpaths_gakido_run_uniform.png" },
+  run:   { frames: 5, width: 66, height: 56, speed: 4, anchorY: 0, sheet: "./sixpaths_gakido_run_uniform.png" },
+  dash:  { frames: 5, width: 66, height: 56, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_run_uniform.png" },
+  jump:  { frames: 3, width: 80, height: 73, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_jfct_uniform.png" },
+  fall:  { frames: 1, width: 80, height: 73, speed: 6, anchorY: 0, sourceX: 240, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_jfct_uniform.png" },   // jfct frame 3
+  crouch:{ frames: 1, width: 80, height: 73, speed: 8, anchorY: 0, sourceX: 320, loop: true, sheet: "./sixpaths_gakido_jfct_uniform.png" },                        // jfct frame 4
+  guard: { frames: 1, width: 46, height: 73, speed: 6, anchorY: 0, sourceX: 322, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_stance_uniform.png" }, // stance frame 7
+  hurt:      { frames: 3, width: 83, height: 74, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_hurt_uniform.png" },
+  knockdown: { frames: 3, width: 83, height: 74, speed: 6, anchorY: 0, sourceX: 249, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_hurt_uniform.png" }, // frames 3-5
+  light:    { frames: 3, width: 123, height: 75, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_combo_uniform.png" },
+  heavy:    { frames: 4, width: 123, height: 75, speed: 3, anchorY: 0, sourceX: 369, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_combo_uniform.png" }, // frames 3-6 (rod-blade reach)
+  up:       { frames: 4, width: 77,  height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_runatk_uniform.png" },
+  air:      { frames: 4, width: 80,  height: 73, speed: 3, anchorY: 0, sourceX: 400, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_jfct_uniform.png" },  // jfct frames 5-8
+  down_air: { frames: 4, width: 131, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_downatk_uniform.png" },
+  spShield:   { frames: 4, width: 75, height: 81, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_shield_uniform.png" },              // Chakra-Absorption Shield cast
+  spTeleport: { frames: 2, width: 46, height: 73, speed: 3, anchorY: 0, sourceX: 184, loop: false, lockLastFrame: true, sheet: "./sixpaths_gakido_stance_uniform.png" }, // swap exit/emerge (stance frames 4-5)
+}
+
+// ── HUMAN / NINGENDO PATH anim set (Stage 4). Distinct long-orange-hair Human body (sixpaths_ningen_*
+// sheets). LEAN kit — 5 normals + movement/state + the ONE Soul-Rip grab. Every rendered key defined.
+const SIXPATHS_NINGENDO_ANIM = {
+  idle:  { frames: 4, width: 37, height: 62, speed: 8, anchorY: 0, sheet: "./sixpaths_ningen_stance_uniform.png" },
+  walk:  { frames: 6, width: 62, height: 48, speed: 6, anchorY: 0, sheet: "./sixpaths_ningen_run_uniform.png" },
+  run:   { frames: 6, width: 62, height: 48, speed: 4, anchorY: 0, sheet: "./sixpaths_ningen_run_uniform.png" },
+  dash:  { frames: 6, width: 62, height: 48, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_run_uniform.png" },
+  jump:  { frames: 3, width: 71, height: 66, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_jfct_uniform.png" },
+  fall:  { frames: 1, width: 71, height: 66, speed: 6, anchorY: 0, sourceX: 213, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_jfct_uniform.png" },   // jfct frame 3
+  crouch:{ frames: 1, width: 71, height: 66, speed: 8, anchorY: 0, sourceX: 284, loop: true, sheet: "./sixpaths_ningen_jfct_uniform.png" },                        // jfct frame 4
+  guard: { frames: 1, width: 37, height: 62, speed: 6, anchorY: 0, sourceX: 222, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_stance_uniform.png" }, // stance frame 6
+  hurt:      { frames: 3, width: 71, height: 59, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_hurt_uniform.png" },
+  knockdown: { frames: 3, width: 71, height: 59, speed: 6, anchorY: 0, sourceX: 213, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_hurt_uniform.png" }, // frames 3-5
+  light:    { frames: 3, width: 85, height: 65, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_combo_uniform.png" },
+  heavy:    { frames: 6, width: 85, height: 65, speed: 3, anchorY: 0, sourceX: 510, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_combo_uniform.png" },  // rod thrust (frames 6-11)
+  up:       { frames: 6, width: 60, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_runatk_uniform.png" },
+  air:      { frames: 4, width: 71, height: 66, speed: 3, anchorY: 0, sourceX: 355, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_jfct_uniform.png" },   // jfct frames 5-8
+  down_air: { frames: 9, width: 87, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_downatk_uniform.png" },
+  spSoul:     { frames: 5, width: 59, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_soulcast_uniform.png" },            // Soul-Rip grab/reach cast
+  spTeleport: { frames: 2, width: 37, height: 62, speed: 3, anchorY: 0, sourceX: 148, loop: false, lockLastFrame: true, sheet: "./sixpaths_ningen_stance_uniform.png" }, // swap exit/emerge (stance frames 4-5)
+}
+
+// ── ASURA / SHURADO PATH anim set (Stage 5). Mechanized spiky-crown body (sixpaths_asura_* sheets;
+// filenames say "tendo" but the art is Asura). RICH kit — blade-arm normals + 3 artillery specials.
+const SIXPATHS_ASURA_ANIM = {
+  idle:  { frames: 4, width: 38, height: 68, speed: 8, anchorY: 0, sheet: "./sixpaths_asura_stance_uniform.png" },
+  walk:  { frames: 6, width: 63, height: 53, speed: 6, anchorY: 0, sheet: "./sixpaths_asura_run_uniform.png" },
+  run:   { frames: 6, width: 63, height: 53, speed: 4, anchorY: 0, sheet: "./sixpaths_asura_run_uniform.png" },
+  dash:  { frames: 6, width: 63, height: 53, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_run_uniform.png" },
+  jump:  { frames: 3, width: 62, height: 64, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_jfct_uniform.png" },
+  fall:  { frames: 1, width: 62, height: 64, speed: 6, anchorY: 0, sourceX: 186, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_jfct_uniform.png" },   // jfct frame 3
+  crouch:{ frames: 1, width: 62, height: 64, speed: 8, anchorY: 0, sourceX: 248, loop: true, sheet: "./sixpaths_asura_jfct_uniform.png" },                        // jfct frame 4
+  guard: { frames: 1, width: 38, height: 68, speed: 6, anchorY: 0, sourceX: 266, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_stance_uniform.png" }, // stance frame 7
+  hurt:      { frames: 3, width: 75, height: 63, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_hurt_uniform.png" },
+  knockdown: { frames: 2, width: 75, height: 63, speed: 6, anchorY: 0, sourceX: 225, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_hurt_uniform.png" }, // frames 3-4
+  light:    { frames: 3, width: 73,  height: 65,  speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_combo_uniform.png" },
+  heavy:    { frames: 6, width: 73,  height: 65,  speed: 3, anchorY: 0, sourceX: 438, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_combo_uniform.png" }, // blade-arm swings (frames 6-11)
+  up:       { frames: 7, width: 80,  height: 73,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_runatk_uniform.png" },              // dash blade launcher
+  air:      { frames: 2, width: 128, height: 112, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_air_uniform.png" },                 // spinning blade arc
+  down_air: { frames: 5, width: 70,  height: 66,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_downatk_uniform.png" },             // blade downward
+  spMissile:  { frames: 1, width: 67, height: 80, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_missilecast_uniform.png" },          // Missile Punch cast
+  spRocket:   { frames: 2, width: 51, height: 66, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_rocketcast_uniform.png" },           // Rocket Launcher / Super Missile cast
+  spTeleport: { frames: 2, width: 38, height: 68, speed: 3, anchorY: 0, sourceX: 152, loop: false, lockLastFrame: true, sheet: "./sixpaths_asura_stance_uniform.png" }, // swap exit/emerge (stance frames 4-5)
+}
+
+// ── NARAKA / JIGOKUDO PATH anim set (Stage 5). Spiky-orange Naraka body (sixpaths_naraka_* sheets).
+// RICH kit — 5 normals + the King of Hell (Judgment strike + Restoration heal; the summoncast pose
+// serves both). Every rendered key defined.
+const SIXPATHS_NARAKA_ANIM = {
+  idle:  { frames: 4, width: 36, height: 65, speed: 8, anchorY: 0, sheet: "./sixpaths_naraka_stance_uniform.png" },
+  walk:  { frames: 6, width: 62, height: 51, speed: 6, anchorY: 0, sheet: "./sixpaths_naraka_run_uniform.png" },
+  run:   { frames: 6, width: 62, height: 51, speed: 4, anchorY: 0, sheet: "./sixpaths_naraka_run_uniform.png" },
+  dash:  { frames: 6, width: 62, height: 51, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_run_uniform.png" },
+  jump:  { frames: 3, width: 58, height: 65, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_jfct_uniform.png" },
+  fall:  { frames: 1, width: 58, height: 65, speed: 6, anchorY: 0, sourceX: 174, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_jfct_uniform.png" },   // jfct frame 3
+  crouch:{ frames: 1, width: 58, height: 65, speed: 8, anchorY: 0, sourceX: 232, loop: true, sheet: "./sixpaths_naraka_jfct_uniform.png" },                        // jfct frame 4
+  guard: { frames: 1, width: 36, height: 65, speed: 6, anchorY: 0, sourceX: 288, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_stance_uniform.png" }, // stance frame 8
+  hurt:      { frames: 3, width: 74, height: 59, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_hurt_uniform.png" },
+  knockdown: { frames: 3, width: 74, height: 59, speed: 6, anchorY: 0, sourceX: 222, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_hurt_uniform.png" }, // frames 3-5
+  light:    { frames: 3, width: 85, height: 65, speed: 3, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_combo_uniform.png" },
+  heavy:    { frames: 6, width: 85, height: 65, speed: 3, anchorY: 0, sourceX: 510, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_combo_uniform.png" }, // rod thrust (frames 6-11)
+  up:       { frames: 6, width: 60, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_runatk_uniform.png" },
+  air:      { frames: 4, width: 58, height: 65, speed: 3, anchorY: 0, sourceX: 290, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_jfct_uniform.png" },   // jfct frames 5-8
+  down_air: { frames: 9, width: 87, height: 63, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_downatk_uniform.png" },
+  spSummon:   { frames: 3, width: 59, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_summoncast_uniform.png" },          // King of Hell summon cast
+  spTeleport: { frames: 2, width: 36, height: 65, speed: 3, anchorY: 0, sourceX: 144, loop: false, lockLastFrame: true, sheet: "./sixpaths_naraka_stance_uniform.png" }, // swap exit/emerge (stance frames 4-5)
+}
+
+// Path registry — index === fighter._path. `anim` = that Path's full animationData SET (null = use the
+// char-def base, which IS the Deva/Tendo Path). Stage 5 fills the remaining null `anim` slots; until
+// then a swap to an unbuilt Path re-points _path (+ HUD name) but renders the Deva base art as a
+// scaffold (never a fallback box) — flagged, not invented content.
+const SIXPATHS_PATHS = [
+  { key: "deva",       name: "Deva Path",   anim: null },                     // 0 — BASE (char def animationData)
+  { key: "chikushodo", name: "Animal Path", anim: SIXPATHS_CHIKUSHODO_ANIM }, // 1 — Stage 2 ✓ (summon menagerie)
+  { key: "gakido",     name: "Preta Path",  anim: SIXPATHS_GAKIDO_ANIM },     // 2 — Stage 3 ✓ (absorption shield)
+  { key: "ningendo",   name: "Human Path",  anim: SIXPATHS_NINGENDO_ANIM },   // 3 — Stage 4 ✓ (soul-rip grab)
+  { key: "asura",      name: "Asura Path",  anim: SIXPATHS_ASURA_ANIM },      // 4 — Stage 5 ✓ (missile/rocket artillery)
+  { key: "jigokudo",   name: "Naraka Path", anim: SIXPATHS_NARAKA_ANIM },     // 5 — Stage 5 ✓ (King of Hell judgment + restore)
+]
+// Charge + slot → Path select (6-way, mirrors updatePainAssistCombo's Charge+field selector). Fields:
+// jump=Up, down, left, right, light, heavy. Chosen so all six Paths are one deterministic input each.
+const SIXPATHS_SLOT_FIELDS = [
+  { field: "jump",  path: 0 },   // Charge+Up    = Deva
+  { field: "light", path: 1 },   // Charge+Light = Animal
+  { field: "left",  path: 2 },   // Charge+Left  = Preta
+  { field: "heavy", path: 3 },   // Charge+Heavy = Human
+  { field: "right", path: 4 },   // Charge+Right = Asura
+  { field: "down",  path: 5 },   // Charge+Down  = Naraka
+]
+const SIXPATHS_SWAP_COST = 20    // chakra per swap — the flexibility THROTTLE (can't fluidly hold all six)
+const SIXPATHS_SWAP_CD   = 90    // ~1.5s cooldown between swaps — prevents mixup-spam / mid-combo Path juggling
+
+// Perform the swap. No-op (and FREE) when already on the target Path. Otherwise energy-gated, art-swaps
+// via _skinAnim, and plays the Ghostface-style exit/flash/emerge (teleport pose + flash + brief lockout).
+export function applySixPathsSwap(fighter, pathIdx, context) {
+  if (!isSixPaths(fighter)) return false
+  if (pathIdx == null || pathIdx < 0 || pathIdx >= SIXPATHS_PATHS.length) return false
+  if ((fighter._path || 0) === pathIdx) return false            // already this Path — no cost, no flash
+  if (!spendEnergy(fighter, SIXPATHS_SWAP_COST)) return false    // chakra-gated
+  const p = SIXPATHS_PATHS[pathIdx]
+  fighter._path         = pathIdx
+  fighter._sixPathsName = p.name                                 // HUD / harness read
+  // ART-SWAP: base Path (Deva) clears the override → char-def animationData; others overlay their set
+  // (retagged for any alt-recolor skin). null anim (unbuilt Path) → base art scaffold.
+  fighter._skinAnim = p.anim ? retagFormAnim(p.anim, fighter._recolorTag) : (fighter._baseSkinAnim || null)
+  // EXIT → FLASH → EMERGE (Ghostface swap presentation, reused as the transition treatment).
+  fighter._spriteCastMove  = "spTeleport"
+  fighter._spriteCastTimer = 12
+  fighter.attackCooldown   = getAttackDuration(12, fighter)      // brief swap lockout (can't swap-cancel into a move)
+  fighter.teleportFlash    = 14
+  fighter.vx = 0
+  fighter._sixPathsSwapCd  = SIXPATHS_SWAP_CD
+  fighter._gakidoShield    = 0                                   // close any open Preta absorption window on a Path swap
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+
+// Per-frame Charge+slot swap selector (dispatched from game.js, next to updatePainAssistCombo). Edge-
+// detected so a held Charge+direction fires once; `_omxConsume` swallows the slot press so the same
+// input can't also jump/swing. Ticks the swap cooldown here.
+export function updateSixPathsSwapCombo(fighter, inputState, context) {
+  if (!isSixPaths(fighter) || !inputState) return
+  if ((fighter._sixPathsSwapCd || 0) > 0) fighter._sixPathsSwapCd--
+  if ((fighter._chikuCd || 0) > 0) fighter._chikuCd--   // Animal Path summon cooldown (ticks every frame)
+  updateSixPathsGakido(fighter)                         // Preta Path absorption-shield driver (no-op unless shield is up)
+  fighter._omxConsume = null                                     // reset the shared input-consume flag each frame
+  const held   = (fighter._spSwapHeld = fighter._spSwapHeld || {})
+  const charge = !!inputState.charge
+  if (charge && !fighter.attacking && (fighter.hitstun || 0) <= 0 && (fighter.blockstun || 0) <= 0 && (fighter._sixPathsSwapCd || 0) <= 0) {
+    for (const s of SIXPATHS_SLOT_FIELDS) {
+      if (!!inputState[s.field] && !held[s.field]) {             // EDGE: this slot went down while Charge is held
+        if (applySixPathsSwap(fighter, s.path, context)) {
+          fighter._omxConsume = { jump: s.field === "jump", light: s.field === "light", heavy: s.field === "heavy" }
+        }
+        break
+      }
+    }
+  }
+  held.charge = charge
+  for (const s of SIXPATHS_SLOT_FIELDS) held[s.field] = !!inputState[s.field]
+}
+
+// ── DEVA / TENDO PATH KIT (Stage 1) — Push / Pull / Rinnegan-Defense specials + the Six-Paths Ultimate.
+const SP_PUSH     = { cost: 28, dmg: 0, knockX: 22, knockY: -5, hitstun: 22, cast: 20, fire: 8, shake: 7 }   // Shinra Tensei (neutral) — global force
+const SP_PULL     = { cost: 30, dmg: 0, hitstun: 22, gap: 46, reel: 30, cast: 20, fire: 6 }                  // Bansho Ten'in (Back) — global reel
+const SP_RINNEGAN = { cost: 24, cast: 16, iframes: 30 }                                                       // Rinnegan Defense (Down) — barrier dome + i-frames
+const SP_ULT      = { cost: 100, dmg: 300, blockRatio: 0.30 }                                                 // Six Paths of Pain (Ultimate) — guaranteed swarm strike
+
+// Self-contained repulsion shove (no pain state) — invisible force blows the foe downrange from any range.
+function sixPathsShove(fighter, context, cfg) {
+  const target = context?.getOpponent?.(fighter)
+  if (!target) return false
+  const face = fighter.facing || 1
+  target.vx = face * cfg.knockX
+  target.vy = cfg.knockY
+  target.hitstun    = Math.max(target.hitstun || 0, cfg.hitstun)
+  target.colorFlash = 8
+  if (cfg.dmg > 0) applyScaledDamage(target, cfg.dmg, { source: "ability" })
+  try { shakeCamera(context, cfg.shake || 6, 8) } catch (_) {}
+  return true
+}
+
+function executeSixPathsSpecial(fighter, context) {
+  if (!isSixPaths(fighter)) return false
+  const path = fighter._path || 0
+  if (path === 0) return executeSixPathsDevaSpecial(fighter, context)        // Deva — gravity/defense (Stage 1)
+  if (path === 1) return executeSixPathsChikushodoSpecial(fighter, context)  // Animal — summon menagerie (Stage 2)
+  if (path === 2) return executeSixPathsGakidoSpecial(fighter, context)      // Preta — chakra-absorption shield (Stage 3)
+  if (path === 3) return executeSixPathsNingendoSpecial(fighter, context)    // Human — soul-rip grab (Stage 4)
+  if (path === 4) return executeSixPathsAsuraSpecial(fighter, context)       // Asura — missile/rocket artillery (Stage 5)
+  if (path === 5) return executeSixPathsNarakaSpecial(fighter, context)      // Naraka — King of Hell (Stage 5)
+  return false
+}
+
+// ── NARAKA / JIGOKUDO PATH KIT (Stage 5) — the KING OF HELL. Neutral/Fwd = JUDGMENT (summon the giant
+// head; its bite/tongue devours the foe for heavy damage, blockable). Down = RESTORATION (the emerging
+// head + doton flames HEAL Pain — the Naraka Path's canon restore; the Human Path deliberately carries
+// NO heal so this is its unique home). Own `_naraka*` reads; energy cost. The restore heal is a flagged
+// balance watch-item (high cost + Path-swap-gated + no other Path heals).
+const NARAKA_JUDGMENT = { cost: 36, reach: 240, dmg: 88, blockRatio: 0.30, cast: 18, fire: 12, hitstun: 30 }
+const NARAKA_RESTORE  = { cost: 50, heal: 120, cast: 18, fire: 10 }
+function executeSixPathsNarakaSpecial(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+
+  // DOWN — King of Hell RESTORATION (heal).
+  if (dir === "D") {
+    if (!spendEnergy(fighter, NARAKA_RESTORE.cost)) return false
+    fighter._spriteCastMove  = "spSummon"
+    fighter._spriteCastTimer = NARAKA_RESTORE.cast
+    fighter.attackCooldown   = getAttackDuration(NARAKA_RESTORE.cast, fighter)
+    fighter.vx = 0
+    spawnProjectile(fighter, "narakaRestore", {
+      visualOnly: true, damage: 0, speed: 0, lifetime: 34, vx: 0, vy: 0, w: 120, h: 150,
+      sheet: "./sixpaths_naraka_restore_uniform.png", spriteFrames: 4, spriteW: 160, spriteH: 230,
+      spriteSpeed: 3, spriteScale: 0.9,
+      spawnX: (fighter.x || 0) + (fighter.w || 60) / 2, spawnY: (fighter.y || 0) + (fighter.h || 100) / 2
+    }, context)
+    schedulePendingSpawn(NARAKA_RESTORE.fire, () => {
+      fighter.health = Math.min(fighter.maxHealth || 1120, (fighter.health || 0) + NARAKA_RESTORE.heal)
+      fighter._narakaHealed = (fighter._narakaHealed || 0) + 1                // HUD / harness read
+      fighter.colorFlash = 8
+      try { shakeCamera(context, 2, 4) } catch (_) {}
+    })
+    return true
+  }
+
+  // NEUTRAL / FWD — King of Hell JUDGMENT (summon-head strike; blockable).
+  const opp = context?.getOpponent?.(fighter)
+  if (!opp || !canSpendEnergy(fighter, NARAKA_JUDGMENT.cost)) return false
+  fighter._spriteCastMove  = "spSummon"
+  fighter._spriteCastTimer = NARAKA_JUDGMENT.cast
+  fighter.attackCooldown   = getAttackDuration(NARAKA_JUDGMENT.cast, fighter)
+  spendEnergy(fighter, NARAKA_JUDGMENT.cost)
+  const face = fighter.facing || 1
+  spawnProjectile(fighter, "narakaKingOfHell", {
+    visualOnly: true, damage: 0, speed: 0, lifetime: 36, vx: 0, vy: 0, w: 160, h: 180,
+    sheet: "./sixpaths_naraka_kingofhell_uniform.png", spriteFrames: 6, spriteW: 244, spriteH: 230,
+    spriteSpeed: 3, spriteScale: 0.8,
+    spawnX: (opp.x || 0) + (opp.w || 60) / 2, spawnY: (opp.y || 0) + (opp.h || 100) * 0.2
+  }, context)
+  schedulePendingSpawn(NARAKA_JUDGMENT.fire, () => {
+    if (!opp || opp.eliminated) return
+    const dx = Math.abs((opp.x || 0) - (fighter.x || 0))
+    if (dx > NARAKA_JUDGMENT.reach) return                                    // whiff at long range
+    if (opp.isBlocking) {
+      applyScaledDamage(opp, Math.round(NARAKA_JUDGMENT.dmg * NARAKA_JUDGMENT.blockRatio), { source: "ability" })
+      opp.blockstun = Math.max(opp.blockstun || 0, 20)
+      return
+    }
+    opp.hitstun = Math.max(opp.hitstun || 0, NARAKA_JUDGMENT.hitstun)
+    opp.colorFlash = 12; opp.vx = face * 6; opp.vy = -3
+    applyScaledDamage(opp, NARAKA_JUDGMENT.dmg, { source: "ability" })
+    fighter._narakaJudged = (fighter._narakaJudged || 0) + 1                  // HUD / harness read
+    try { shakeCamera(context, 7, 10) } catch (_) {}
+  })
+  return true
+}
+
+// ── ASURA / SHURADO PATH KIT (Stage 5) — mechanized ARTILLERY. Direction picks the ordnance: neutral =
+// Missile Punch (fast energy missile) / Fwd = Rocket Launcher (heavier rocket volley) / Down = Super
+// Missile (big, slow, high damage). Each fires a real traveling projectile from its own FX sheet.
+const ASURA_MISSILE = { cost: 24, cast: "spMissile", castT: 14, fire: 8,  dmg: 60, speed: 12, name: "asuraMissile",
+                        sheet: "./sixpaths_asura_missile_uniform.png",      frames: 3, sw: 85,  sh: 80, scale: 1.2, w: 50, h: 46 }
+const ASURA_ROCKET  = { cost: 30, cast: "spRocket",  castT: 14, fire: 8,  dmg: 72, speed: 13, name: "asuraRocket",
+                        sheet: "./sixpaths_asura_rocket_uniform.png",       frames: 1, sw: 95,  sh: 66, scale: 1.3, w: 62, h: 52 }
+const ASURA_SUPER   = { cost: 42, cast: "spRocket",  castT: 18, fire: 10, dmg: 94, speed: 10, name: "asuraSuperMissile",
+                        sheet: "./sixpaths_asura_supermissile_uniform.png", frames: 3, sw: 166, sh: 45, scale: 1.2, w: 84, h: 36 }
+function fireAsuraProjectile(fighter, context, cfg) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  fighter._spriteCastMove  = cfg.cast
+  fighter._spriteCastTimer = cfg.castT
+  fighter.attackCooldown   = getAttackDuration(cfg.castT, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(cfg.fire, () => {
+    spawnProjectile(fighter, cfg.name, {
+      sheet: cfg.sheet, spriteFrames: cfg.frames, spriteW: cfg.sw, spriteH: cfg.sh, spriteSpeed: 4, spriteScale: cfg.scale,
+      damage: cfg.dmg, speed: cfg.speed, hitstun: 22, knockbackX: 8, knockbackY: -3,
+      w: cfg.w, h: cfg.h, color: "#e8b84a", lifetime: 120, isSpecial: true,
+      vx: face * cfg.speed, spawnX: (fighter.x || 0) + face * 44, spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.4
+    }, context)
+    fighter._lastAsuraShot = cfg.name   // HUD / harness read
+    try { shakeCamera(context, 4, 6) } catch (_) {}
+  })
+  return true
+}
+function executeSixPathsAsuraSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireAsuraProjectile(fighter, context, ASURA_ROCKET)   // Fwd  — Rocket Launcher
+  if (dir === "D") return fireAsuraProjectile(fighter, context, ASURA_SUPER)    // Down — Super Missile
+  return fireAsuraProjectile(fighter, context, ASURA_MISSILE)                   // neutral — Missile Punch
+}
+
+// ── HUMAN / NINGENDO PATH KIT (Stage 4) — the ONE signature special: SOUL RIP (direction-agnostic, the
+// whole lean kit). A close-range COMMAND GRAB: reach out, seize the foe's soul, and tear it free for
+// heavy damage + the blue-soul FX. Being a grab, it BEATS BLOCK — but whiffs on a foe who is airborne
+// or out of range (jump/spacing is the counterplay). Own `_ningendo*` read; energy cost. NO self-heal
+// (the "absorption" reads as the damage — a heal was considered and dropped to avoid a stat outlier).
+const NINGENDO_SOUL = { cost: 40, reach: 116, dmg: 130, cast: 16, fire: 8, hitstun: 32 }
+function executeSixPathsNingendoSpecial(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const opp = context?.getOpponent?.(fighter)
+  if (!opp || !canSpendEnergy(fighter, NINGENDO_SOUL.cost)) return false
+  fighter._spriteCastMove  = "spSoul"
+  fighter._spriteCastTimer = NINGENDO_SOUL.cast
+  fighter.attackCooldown   = getAttackDuration(NINGENDO_SOUL.cast, fighter)
+  spendEnergy(fighter, NINGENDO_SOUL.cost)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(NINGENDO_SOUL.fire, () => {
+    if (!opp || opp.eliminated) return
+    const dx = Math.abs((opp.x || 0) - (fighter.x || 0))
+    const airborne = !(opp.onGround ?? opp.grounded ?? true)
+    if (dx > NINGENDO_SOUL.reach || airborne) return                 // WHIFF — out of range or the foe jumped out
+    // CONNECT — tear the soul free. A grab, so a held block does NOT save them.
+    opp.hitstun = Math.max(opp.hitstun || 0, NINGENDO_SOUL.hitstun)
+    opp.vx = 0; opp.vy = 0; opp.colorFlash = 12
+    opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
+    opp.isBlocking = false
+    applyScaledDamage(opp, NINGENDO_SOUL.dmg, { source: "ability" })
+    fighter._ningendoRipped = (fighter._ningendoRipped || 0) + 1     // HUD / harness read
+    // blue-soul FX torn out of the foe.
+    spawnProjectile(fighter, "ningendoSoul", {
+      visualOnly: true, damage: 0, speed: 0, lifetime: 30, vx: face * -1, vy: -1, w: 54, h: 67,
+      sheet: "./sixpaths_ningen_soul_uniform.png", spriteFrames: 3, spriteW: 54, spriteH: 67,
+      spriteSpeed: 3, spriteScale: 1.6,
+      spawnX: (opp.x || 0) + (opp.w || 60) / 2, spawnY: (opp.y || 0) + (opp.h || 100) * 0.25
+    }, context)
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  return true
+}
+
+// ── PRETA / GAKIDO PATH KIT (Stage 3) — the ONE signature special: CHAKRA-ABSORPTION SHIELD (direction-
+// agnostic, the whole lean kit). Casts a barrier that (a) makes Pain intangible for the window and
+// (b) ABSORBS incoming hostile projectiles/ninjutsu — deleting them and REFUNDING chakra per absorb
+// (the Preta Path's canon: it eats jutsu and feeds the meter). Own `_gakido*` state; energy cost.
+const GAKIDO_SHIELD = { cost: 26, dur: 44, iframes: 42, refund: 16, cast: 14, reach: 96 }
+function executeSixPathsGakidoSpecial(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, GAKIDO_SHIELD.cost)) return false
+  fighter._spriteCastMove  = "spShield"
+  fighter._spriteCastTimer = GAKIDO_SHIELD.cast
+  fighter.attackCooldown   = getAttackDuration(GAKIDO_SHIELD.cast, fighter)
+  fighter._gakidoShield    = GAKIDO_SHIELD.dur                                   // absorption window (ticked in updateSixPathsGakido)
+  fighter.invulnTimer      = Math.max(fighter.invulnTimer || 0, GAKIDO_SHIELD.iframes)  // intangible through the barrier
+  fighter.vx = 0
+  spawnProjectile(fighter, "gakidoBarrier", {
+    visualOnly: true, damage: 0, speed: 0, lifetime: GAKIDO_SHIELD.dur, vx: 0, vy: 0, w: 110, h: 110,
+    sheet: "./sixpaths_gakido_barrier_uniform.png", spriteFrames: 3, spriteW: 89, spriteH: 81,
+    spriteSpeed: 3, spriteScale: 1.7,
+    spawnX: (fighter.x || 0) + (fighter.w || 60) / 2, spawnY: (fighter.y || 0) + (fighter.h || 100) / 2
+  }, context)
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+
+// Per-frame absorption driver (called from updateSixPathsSwapCombo). While the shield is up, any hostile
+// projectile that reaches Pain is DELETED and refunds chakra — the Preta "eat the jutsu" mechanic.
+function updateSixPathsGakido(fighter) {
+  if ((fighter._gakidoShield || 0) <= 0) return
+  fighter._gakidoShield--
+  const cx = (fighter.x || 0) + (fighter.w || 60) / 2
+  const cy = (fighter.y || 0) + (fighter.h || 100) / 2
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+    const p = activeProjectiles[i]
+    if (!p || p.owner === fighter || p.visualOnly) continue
+    const px = p.x ?? cx, py = p.y ?? cy
+    if (Math.abs(px - cx) < GAKIDO_SHIELD.reach && Math.abs(py - cy) < GAKIDO_SHIELD.reach) {
+      activeProjectiles.splice(i, 1)                                             // ABSORB the incoming ninjutsu
+      fighter.energy = Math.min(fighter.maxEnergy || 100, (fighter.energy || 0) + GAKIDO_SHIELD.refund)  // refund chakra
+      fighter._gakidoAbsorbed = (fighter._gakidoAbsorbed || 0) + 1              // HUD / harness read
+      fighter.colorFlash = 6
+    }
+  }
+}
+
+function executeSixPathsDevaSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null   // engine stamps this from the live held direction on Special (orochimaru pattern)
+
+  // BACK — Almighty Pull (Bansho Ten'in): reel the foe toward Pain (global gravity pull, ZERO damage).
+  if (dir === "B") {
+    const target = context?.getOpponent?.(fighter)
+    if (!target || !canSpendEnergy(fighter, SP_PULL.cost)) return false
+    fighter._spriteCastMove  = "spPull"
+    fighter._spriteCastTimer = SP_PULL.cast
+    fighter.attackCooldown   = getAttackDuration(SP_PULL.cast, fighter)
+    schedulePendingSpawn(SP_PULL.fire, () => {
+      if (!spendEnergy(fighter, SP_PULL.cost)) return
+      // Set the shared _grabPull reel DIRECTLY (no range/tech gate) → combat.js updateGrab reels the
+      // foe to `gap` px in front from ANY distance for zero damage. Invisible formless force.
+      target.isGrabbed = true
+      target.grabTimer = SP_PULL.reel
+      target.hitstun   = Math.max(target.hitstun || 0, SP_PULL.hitstun)
+      target.vx = 0; target.vy = 0; target.colorFlash = 6
+      fighter.attacking = false; fighter.currentAttack = null
+      fighter._grabPull = { gap: SP_PULL.gap, dmg: 0, hitstun: SP_PULL.hitstun }
+      try { shakeCamera(context, 3, 5) } catch (_) {}
+    })
+    return true
+  }
+
+  // DOWN — Rinnegan Defense (Rinnegan's ninjutsu-nullify barrier): expanding dome → brief intangibility
+  // (i-frames, which negate incoming projectiles/strikes for the window) + the barrier-ring FX overlay.
+  if (dir === "D") {
+    if (!spendEnergy(fighter, SP_RINNEGAN.cost)) return false
+    fighter._spriteCastMove  = "spRinnegan"
+    fighter._spriteCastTimer = SP_RINNEGAN.cast
+    fighter.attackCooldown   = getAttackDuration(SP_RINNEGAN.cast, fighter)
+    fighter.invulnTimer      = Math.max(fighter.invulnTimer || 0, SP_RINNEGAN.iframes)   // the barrier: intangible through the dome
+    fighter._spRinnegan      = SP_RINNEGAN.iframes                                        // public flag (HUD/harness)
+    fighter.vx = 0
+    spawnProjectile(fighter, "sixPathsRinnegan", {
+      visualOnly: true, damage: 0, speed: 0, lifetime: 26, vx: 0, vy: 0, w: 120, h: 120,
+      sheet: "./sixpaths_deva_rinnegan_uniform.png", spriteFrames: 12, spriteW: 84, spriteH: 82,
+      spriteSpeed: 2, spriteScale: 1.9,
+      spawnX: (fighter.x || 0) + (fighter.w || 60) / 2, spawnY: (fighter.y || 0) + (fighter.h || 100) / 2
+    }, context)
+    try { shakeCamera(context, 2, 4) } catch (_) {}
+    return true
+  }
+
+  // NEUTRAL — Almighty Push (Shinra Tensei): global repulsion blast (force-only, no damage).
+  if (!spendEnergy(fighter, SP_PUSH.cost)) return false
+  fighter._spriteCastMove  = "spPush"
+  fighter._spriteCastTimer = SP_PUSH.cast
+  fighter.attackCooldown   = getAttackDuration(SP_PUSH.cast, fighter)
+  schedulePendingSpawn(SP_PUSH.fire, () => { sixPathsShove(fighter, context, SP_PUSH) })
+  return true
+}
+
+// ── ANIMAL / CHIKUSHODO PATH KIT (Stage 2) — SUMMONING (Kuchiyose no Jutsu). The direction picks which
+// creature from the menagerie is called; each rushes the foe, strikes ONCE, and puffs away (the
+// painAssist / Zaraki-Yachiru summon lifecycle, reused). Its OWN `_chiku*` state; energy cost + a short
+// per-summon cooldown (the swap cooldown already gates access to the Path itself).
+const CHIKU_COST = 34
+const CHIKU_CD   = 60
+// scale tames the big creature cells; w/h are the summon HITBOX (not the sprite cell).
+const CHIKU_SUMMONS = {
+  dog:   { sheet: "./sixpaths_chiku_dog_uniform.png",   frames: 3, w: 214, h: 133, dmg: 66, scale: 0.60, name: "Three-Headed Dog" },  // neutral/Fwd — fast rush
+  bird:  { sheet: "./sixpaths_chiku_bird_uniform.png",  frames: 2, w: 229, h: 195, dmg: 58, scale: 0.55, name: "Giant Hawk" },         // Up — aerial dive
+  rhino: { sheet: "./sixpaths_chiku_rhino_uniform.png", frames: 4, w: 298, h: 174, dmg: 74, scale: 0.60, name: "Armored Rhino" },      // Back — heavy charge
+  toad:  { sheet: "./sixpaths_chiku_toad_uniform.png",  frames: 1, w: 388, h: 322, dmg: 68, scale: 0.42, name: "Giant Toad" },         // Down — slam
+}
+
+function fireChikuSummon(fighter, key, context) {
+  const a = CHIKU_SUMMONS[key]
+  if (!a || (fighter._chikuCd || 0) > 0) return false
+  const opp = context?.getOpponent?.(fighter)
+  if (!opp || !canSpendEnergy(fighter, CHIKU_COST)) return false
+  fighter._spriteCastMove  = "spSummon"                       // Kuchiyose hand-sign cast pose
+  fighter._spriteCastTimer = 14
+  fighter.attackCooldown   = getAttackDuration(14, fighter)
+  const dir = fighter.facing || 1
+  const summonData = {
+    id: "chikuSummon_" + key, summonId: "chikuSummon_" + key,
+    duration: 48, maxSimultaneous: 1, attackInterval: 6, spawnBeat: 3,
+    damage: a.dmg, hitstun: 22, knockbackX: 8, knockbackY: -3,
+    w: Math.max(40, Math.round(a.w * a.scale * 0.5)), h: Math.round(a.h * a.scale), speed: 12,
+    behavior: "rush", oneHit: true, puffOnDespawn: true, color: "#7a5230",
+    sheet: a.sheet, spriteFrames: a.frames, spriteW: a.w, spriteH: a.h, spriteSpeed: 4, spriteScale: a.scale,
+  }
+  const p = spawnAssistSummon(fighter, summonData, opp)
+  if (!p) return false
+  spendEnergy(fighter, CHIKU_COST)
+  p.x = opp.x + dir * 120; p.y = opp.y; p.facing = -dir       // land beyond the foe → rush inward
+  fighter._chikuCd = CHIKU_CD
+  fighter._lastChikuSummon = key                              // HUD / harness read
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+function executeSixPathsChikushodoSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  if (dir === "U") return fireChikuSummon(fighter, "bird",  context)   // Up   — Giant Hawk (aerial)
+  if (dir === "B") return fireChikuSummon(fighter, "rhino", context)   // Back — Armored Rhino (heavy)
+  if (dir === "D") return fireChikuSummon(fighter, "toad",  context)   // Down — Giant Toad (slam)
+  return fireChikuSummon(fighter, "dog", context)                      // neutral / Fwd — Three-Headed Dog
+}
+
+// SIX PATHS OF PAIN — Ultimate. The bodies rush the opponent as a swarm; a GUARANTEED, range-independent
+// payoff lands at the connect beat (Ghostface Final Act precedent). 300 raw × 0.60 ≈ 180 EFF (in-band).
+function executeSixPathsUltimate(fighter, context) {
+  if (!isSixPaths(fighter)) return false
+  if (!spendEnergy(fighter, SP_ULT.cost)) return false
+  const opp  = context?.getOpponent?.(fighter)
+  const face = fighter.facing || 1
+  fighter.vx = 0
+  fighter._spriteCastMove  = "spUlt"
+  fighter._spriteCastTimer = 28
+  fighter.attackCooldown   = getAttackDuration(28, fighter)
+  // The six bodies rush in as a visual swarm toward the opponent.
+  spawnProjectile(fighter, "sixPathsUlt", {
+    visualOnly: true, damage: 0, speed: 0, vx: 0, vy: 0, w: 130, h: 80, lifetime: 34,
+    sheet: "./sixpaths_deva_sixpaths_uniform.png", spriteFrames: 7, spriteW: 77, spriteH: 52,
+    spriteSpeed: 3, spriteScale: 1.9,
+    spawnX: (fighter.x || 0) + face * 60, spawnY: (fighter.y || 0) + (fighter.h || 100) * 0.4
+  }, context)
+  schedulePendingSpawn(18, () => {
+    if (!opp || opp.eliminated) return
+    const blocked = !!opp.isBlocking
+    let dmg = SP_ULT.dmg
+    if (blocked) {
+      dmg = Math.round(dmg * SP_ULT.blockRatio)
+      opp.blockstun = Math.max(opp.blockstun || 0, 20)
+    } else {
+      opp.hitstun = Math.max(opp.hitstun || 0, 32)
+      opp.vx = face * 11; opp.vy = -5; opp.colorFlash = 14
+      opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
+      opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 40)
+    }
+    applyScaledDamage(opp, dmg, { source: "ability" })   // GUARANTEED, range-independent
+    try { shakeCamera(context, 8, 12) } catch (_) {}
+  })
+  return true
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════
 // TOBI  (masked Obito alias) — a FULLY SEPARATE roster character. Reuses Obito's Kamui-family
 // mechanic ARCHITECTURE as a template only; shares ZERO live state. Every reused per-fighter
 // field is renamed into a `_tobi*` namespace and every function is Tobi's own, so Obito and Tobi
@@ -9147,12 +11210,15 @@ function fireObitoKamuiGrab(fighter, context) {
 //   • MELEE AUTO-DROP — ANY melee attack drops intangibility for that attack, then it AUTO-REACTIVATES
 //     when the attack completes (chakra permitting). Obito's projectile specials use _spriteCastMove and
 //     never set `attacking`, so `attacking===true` uniquely identifies a melee swing → specials stay live.
-//   • CONTINUOUS CHAKRA DRAIN — net-negative vs regen (0.06/f), ~4.8s of phasing on the 200 pool.
+//   • CONTINUOUS CHAKRA DRAIN — net-negative vs regen (0.06/f), ~7.9s of phasing on the 200 pool.
 //   • INFORMATION ASYMMETRY — activation shows a clear ghost/transparency effect (opponent KNOWS);
 //     deactivation (either path) is SILENT, reverting to the normal idle look with no distinct "off"
 //     tell — visually identical to "was never active". This falls out for free: the ghost is gated on
 //     `_kamuiPhased`; turning off just clears it (deactivateObitoKamui does NO FX).
-const KAMUI_DRAIN = 0.75   // chakra/frame while the toggle is ON (net −0.69 vs the 0.06 regen)
+const KAMUI_DRAIN = 0.48   // chakra/frame while the toggle is ON (net −0.42 vs the 0.06 regen). Tuned down
+                           // from 0.75 (−36%) so a full 200-pool activation lasts ~7.9s instead of ~4.8s —
+                           // long enough to phase through a committed approach/volley, given the drain spends
+                           // the SAME chakra that fuels his specials + gates the Juubi ult.
 
 export function toggleObitoKamui(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "obito") return false
@@ -10145,6 +12211,1035 @@ export function updateMadaraCommandCombat(fighter, inputState, context, getPhase
   if (forward && heavyEdge) return fireMadaraSusanooGrab(fighter, context)
   if (back    && heavyEdge) return enterMadaraSusanoo(fighter)
   return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ONOKI — taijutsu command normal (Stage 2). A SINGLE committed Fwd+Heavy command-
+// normal (Madara Susanoo-Punch pattern, not a rekka), because the source art (row_31)
+// is ONE continuous 11-frame combo string. FREE (cooldown-gated, no Particle cost).
+// Neutral light/heavy/up/air/down_air stay on the normal path. currentMove = "onokiCombo"
+// → sprite.js identity-maps to the onokiCombo strip.
+// ─────────────────────────────────────────────────────────────────────────────
+const ONOKI_CMD = {
+  onokiCombo: { damage: 70, startup: 7, active: 4, recovery: 20, hitstun: 22, knockbackX: 9, knockbackY: -2, rangeX: 92, rangeY: 56, cd: 36 },   // 11f taijutsu combo string — mid-reach committed command normal
+}
+function fireOnokiCmd(fighter, key) {
+  const md = ONOKI_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only, no spendEnergy
+  fighter._rekkaNext    = null             // single command-normal, not a chain
+  fighter._cmdHitLanded = false
+  return true
+}
+// Grounded command-normal driver (mirrors updateMadaraCommandCombat's single-command path). Returns
+// true (→ skip the normal path this frame) only when it actually fires. Grounded-only: Fwd+Heavy.
+export function updateOnokiCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "onoki" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (forward && heavyEdge) return fireOnokiCmd(fighter, "onokiCombo")   // Fwd+Heavy → taijutsu combo
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// YAMAMOTO — command-normal chain (Stage 3). Fwd+Heavy → yamamotoCombo: ONE continuous 11-frame MULTI-HIT
+// Ryūjin Jakka slash string (source rows 36+38, "a sustained multi-hit slash string rather than a single
+// swing"). Single committed command-normal (Onoki/Madara pattern, NOT a rekka) with the shared multi-hit
+// re-arm (schedule currentAttack.hasHit=false mid-active → the slash connects several times; low knockback
+// PINS the target inside the string so all hits land). FREE (cooldown-gated, no reiatsu). currentMove =
+// "yamamotoCombo" → sprite.js identity-maps to the slash strip. Neutral normals stay on the normal path.
+// ─────────────────────────────────────────────────────────────────────────────
+const YAMAMOTO_CMD = {
+  // ~3 hits × 26 raw = ~78 raw → ~47 EFF (×0.60), in the committed-command-normal band (≈ onokiCombo 70).
+  yamamotoCombo: { damage: 26, startup: 6, active: 16, recovery: 20, hitstun: 16, knockbackX: 3, knockbackY: 0, rangeX: 100, rangeY: 62, cd: 42 },
+}
+function fireYamamotoCmd(fighter, key) {
+  const md = YAMAMOTO_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only, no spendEnergy
+  fighter._rekkaNext    = null             // single command-normal, not a chain
+  fighter._cmdHitLanded = false
+  // MULTI-HIT: initial connect + 2 re-arms across the active window (frames ~10, 16). Guarded so a later move isn't touched.
+  schedulePendingSpawn(10, () => { if (fighter.currentAttack && fighter.currentAttack.name === key) fighter.currentAttack.hasHit = false })
+  schedulePendingSpawn(16, () => { if (fighter.currentAttack && fighter.currentAttack.name === key) fighter.currentAttack.hasHit = false })
+  return true
+}
+// Grounded command-normal driver (mirrors updateOnokiCommandCombat). Returns true (→ skip the normal path
+// this frame) only when it actually fires. Grounded-only: Fwd+Heavy.
+export function updateYamamotoCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "yamamoto" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (forward && heavyEdge) return fireYamamotoCmd(fighter, "yamamotoCombo")   // Fwd+Heavy → multi-hit slash string
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// YAMAMOTO — 5 specials (Stage 4). Ryūjin Jakka fire kit, direction-branched (grounded):
+//   neutral = Ground-Sweep Beam  — a REAL travelling fire-beam PROJECTILE (row 39 cast → row 43 beam art),
+//             genuine reach (not a melee hitbox); the beam IS the travelling hitbox.
+//   Fwd     = Large Ground-Stab  — FLAGSHIP: the biggest 90px flame crescent (rows 65+69), highest damage/cost.
+//   Down    = Ground Eruption Stab — blade into the ground → upward flame fan AOE (rows 56+58), LAUNCHER.
+//   Up      = Overhead Slam      — heavy vertical + double-wing haori flare (rows 27+31).
+//   Back    = Horizontal Thrust  — long-active double-wing thrust (rows 62+64), a spacing/whiff-punish tool.
+// Melee specials use createAttackFromMove (currentMove=key → sprite.js identity). Damage RAW (engine ×0.60).
+// All draw from the shared 200 Reiatsu pool so the big kit can't be thrown out at once (the throttle).
+// ─────────────────────────────────────────────────────────────────────────────
+const YAMAMOTO_SPECIALS = {
+  yamamotoStab:     { damage: 110, startup: 12, active: 5,  recovery: 24, hitstun: 26, knockbackX: 10, knockbackY: -6,  rangeX: 108, rangeY: 92,  cost: 50, category: "heavy" },   // FLAGSHIP — 90px flame crescent (66 EFF)
+  yamamotoEruption: { damage: 90,  startup: 10, active: 6,  recovery: 22, hitstun: 22, knockbackX: 4,  knockbackY: -12, rangeX: 96,  rangeY: 96,  cost: 34, category: "heavy", launcher: true, launchVy: -12 },  // ground → upward flame fan (54 EFF, launcher)
+  yamamotoThrust:   { damage: 88,  startup: 9,  active: 14, recovery: 22, hitstun: 22, knockbackX: 12, knockbackY: -1,  rangeX: 128, rangeY: 52,  cost: 30 },   // LONG active window (53 EFF)
+  yamamotoOverhead: { damage: 96,  startup: 12, active: 5,  recovery: 24, hitstun: 24, knockbackX: 6,  knockbackY: 6,   rangeX: 92,  rangeY: 104, cost: 32, category: "heavy" },   // heavy vertical (58 EFF)
+}
+function fireYamamotoMelee(fighter, key, context) {
+  const md = YAMAMOTO_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (md.cost && !spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  attack.launcher = !!md.launcher
+  if (md.launchVy) attack.launchVy = md.launchVy
+  if (md.category) attack.category = md.category
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  // per-special cast voice (audio-only, JA): flagship Stab gets its own weighty pool; others their measured casts.
+  const YAMAMOTO_CAST_VOICE = { yamamotoStab: "stabCast", yamamotoEruption: "eruptionCast", yamamotoThrust: "thrustCast", yamamotoOverhead: "overheadCast" }
+  try { sound.playSfxFile?.(pickYamamotoVoice(YAMAMOTO_CAST_VOICE[key] || "effort"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// neutral — Ground-Sweep Beam: cast pose (row 39, _spriteCastMove) → a real travelling fire-beam projectile
+// (row 43 art) spawned on the cast beat. The projectile carries its own hitbox + real horizontal range.
+function fireYamamotoBeam(fighter, context) {
+  const cost = 28
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._spriteCastMove  = "yamamotoBeam"
+  fighter._spriteCastTimer = 30
+  fighter.attackCooldown   = 32
+  fighter._rekkaNext = null
+  try { sound.playSfxFile?.(pickYamamotoVoice("beamCast"), null); fighter._atkVoiceCd = 120 } catch (_) {}   // Ground-Sweep Beam — calm measured cast
+  schedulePendingSpawn(10, () => {
+    spawnProjectile(fighter, "yamamotoBeam", {
+      damage: 72, w: 60, h: 40, speed: 13, lifetime: 96, hitstun: 18, knockbackX: 10, knockbackY: -2,
+      isSpecial: true, color: "#ff8a3c",
+      sheet: "./yamamoto_beam_proj_uniform.png", spriteFrames: 6, spriteW: 56, spriteH: 65, spriteSpeed: 3, spriteScale: 1.4,
+      spawnY: fighter.y + (fighter.h || 110) * 0.42,
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+export function executeYamamotoSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "yamamoto") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireYamamotoMelee(fighter, "yamamotoStab", context)       // Fwd — Large Ground-Stab (flagship)
+  if (dir === "D") return fireYamamotoMelee(fighter, "yamamotoEruption", context)   // Down — Ground Eruption Stab (AOE launcher)
+  if (dir === "U") return fireYamamotoMelee(fighter, "yamamotoOverhead", context)   // Up — Overhead Slam
+  if (dir === "B") return fireYamamotoMelee(fighter, "yamamotoThrust", context)     // Back — Horizontal Thrust (long active)
+  return fireYamamotoBeam(fighter, context)                                          // neutral — Ground-Sweep Beam (projectile)
+}
+
+// SHUNPO (Flash Step) — Stage 5. A MOVEMENT special on the shared teleport-behind mechanic (double-tap
+// TOWARD the foe → game.js detectDoubleTapDashTeleport calls this for Yamamoto). Two-beat with dedicated
+// art: vanish (yamamotoShunpoOut = scanline dissolve + contracting ring) → blink BEHIND the opponent
+// (i-frames through the blink) → reappear (yamamotoShunpoIn = scattered→SOLID arrival + expanding ring,
+// NOT reversed). Costs 18 Reiatsu so the burst mobility competes with his kit for the meter (keeps the
+// slow-speed 74 counterweight meaningful). Returns false if he can't pay → caller does a normal dash.
+export function fireYamamotoShunpo(fighter, context = {}) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "yamamoto") return false
+  if (fighter.attacking || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if (!spendEnergy(fighter, 18)) return false
+  const getOpponent = getTargetResolver(context)
+  const target = getOpponent ? getOpponent(fighter) : null
+  fighter.invulnTimer      = Math.max(fighter.invulnTimer || 0, 22)   // i-frames through the whole blink
+  fighter._spriteCastMove  = "yamamotoShunpoOut"                       // VANISH beat (dissolve + ring)
+  fighter._spriteCastTimer = 12
+  fighter.teleportFlash    = 12
+  fighter._rekkaNext = null
+  try { sound.playSfxFile?.(pickYamamotoVoice("shunpo"), null); fighter._atkVoiceCd = 90 } catch (_) {}   // Shunpo — quick but composed
+  try { spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 110) / 2) } catch (_) {}
+  const STARTUP = 7
+  fighter.attackCooldown = getAttackDuration(STARTUP + 14, fighter)
+  schedulePendingSpawn(STARTUP, () => {
+    const sw = context?.worldWidth || 3200
+    if (target) {
+      // blink BEHIND the opponent (far side from Yamamoto's approach), facing them
+      fighter.x = (fighter.x < target.x) ? (target.x + (target.w || 60) + 8) : (target.x - (fighter.w || 60) - 8)
+      fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), fighter.x))
+      fighter.y = target.y
+      fighter.facing = (target.x >= fighter.x) ? 1 : -1
+    }
+    fighter.vx = 0; fighter.vy = 0
+    fighter._spriteCastMove  = "yamamotoShunpoIn"                      // REAPPEAR beat (arrival + expanding ring)
+    fighter._spriteCastTimer = 12
+    try { spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 110) / 2) } catch (_) {}
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// YAMAMOTO — ULTIMATE: "Ryūjin Jakka: End-all Overhead Slam" (Stage 6). An INLINE freeze-cinematic on the
+// LIVE fighter (Mayuri Bankai / Saitama Death Punch pattern — NO duplicate instance). The Ultimate is the
+// Stage-4 Overhead Slam ESCALATED: the denser/more-flared row 87+89 art (yamamotoUltimate pose) played on
+// the live fighter with a bigger camera zoom + a Ryūjin Jakka fire vignette (drawYamamotoUltimateCinematic,
+// gated on _yamamotoUltTimer), the opponent frozen through the crush, then a guaranteed scaled nuke on the
+// payoff beat. "No new mechanic, just bigger presentation." Cooldown-gated via the universal ult lockout.
+// ─────────────────────────────────────────────────────────────────────────────
+const YAMAMOTO_ULT = { cost: 100, cinematic: 78, payoffFrame: 48, dmg: 340 }   // 340 raw → ~204 EFF (×0.60), cinematic-ult band (block 25%)
+function executeYamamotoUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "yamamoto") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, YAMAMOTO_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.colorFlash = 14
+  fighter.vx = 0
+  // LIVE-FIGHTER pose (recurring bug class: the fighter must PLAY the ult, not idle through hitstop) — hold
+  // the yamamotoUltimate cast pose for the whole cinematic, and keep self-hitstop tiny so frames advance.
+  fighter._spriteCastMove   = "yamamotoUltimate"; fighter._spriteCastTimer = YAMAMOTO_ULT.cinematic
+  fighter._yamamotoUltTimer = YAMAMOTO_ULT.cinematic; fighter._yamamotoUltMax = YAMAMOTO_ULT.cinematic   // drives the fire-vignette overlay
+  fighter.attackCooldown    = getAttackDuration(YAMAMOTO_ULT.cinematic, fighter)
+  try { sound.playSfxFile?.(pickYamamotoVoice("ultimate"), null); fighter._atkVoiceCd = 200 } catch (_) {}   // Ryūjin Jakka ULT — the longest/most dramatic line
+  focusCameraOnAction(context, fighter, opp, 1.35, 18)                          // zoom in on the slam
+  shakeCamera(context, 6, 12)
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, YAMAMOTO_ULT.cinematic - 14); opp.vx = 0 }   // freeze the target through the crush
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  schedulePendingSpawn(YAMAMOTO_ULT.payoffFrame, () => applyYamamotoUltimateDamage(fighter, opp, context))   // guaranteed slam payoff
+  return true
+}
+function applyYamamotoUltimateDamage(fighter, opp, context) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = YAMAMOTO_ULT.dmg
+  if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+  else { opp.hitstun = Math.max(opp.hitstun || 0, 46); opp.vx = (fighter.facing || 1) * 8; opp.vy = 12 }   // overhead SLAM → drive DOWN into the ground
+  applyScaledDamage(opp, dmg, { source: "ability" })     // honest ×0.60 → ~204 EFF (block 25%)
+  opp.colorFlash = 12
+  try { shakeCamera(context, 9, 14) } catch (_) {}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAYURI — command-normal chain (Stage 2). A 2-stage Fwd+Heavy cancel-on-hit rekka split from ONE 17f
+// source (row_13): mayuriCmd1 = standing finger-poke string (opener), re-tap Heavy on a CLEAN hit →
+// mayuriCmd2 = drop-to-low flurry finisher (launcher). A whiff/block ends the string (shared
+// rekkaContinue gate, requireHit). FREE (cooldown-gated, no reiatsu). Low knockback on the opener pins
+// the target in the string; the finisher pops them up. currentMove = key → sprite.js identity map.
+// Neutral light/heavy/up/air/down_air stay on the normal path (forward-held gate).
+// ─────────────────────────────────────────────────────────────────────────────
+const MAYURI_CMD = {
+  // ~86 raw over 2 hits (→ ~52 EFF ×0.60) — a touch below Obito/Pain's ~124-130 (technician, frailer kit).
+  mayuriCmd1: { damage: 32, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 2, knockbackY: 0,   rangeX: 90, rangeY: 54, rekkaNext: "mayuriCmd2" },  // standing finger-poke string (opener)
+  mayuriCmd2: { damage: 54, startup: 6, active: 4, recovery: 18, hitstun: 22, knockbackX: 6, knockbackY: -10, launch: 11, rangeX: 96, rangeY: 62, category: "heavy" },  // low flurry finisher (launcher)
+}
+function fireMayuriCommand(fighter, key, context) {
+  const md = MAYURI_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → drives the stage sprite (mayuriCmd1/2)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
+  fighter.vx = (fighter.facing || 1) * (key === "mayuriCmd2" ? 5 : 4)   // small step-in carries the string forward
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+export function updateMayuriCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "mayuri" || !inputState) return false
+  const opp       = context?.getOpponent?.(fighter)
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during recovery on a clean hit → next rekka stage (shared rekkaContinue gate).
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireMayuriCommand(fighter, next, context)
+  // OPENER — Fwd+Heavy from neutral only (grounded, not already mid-move). Consumes the press so
+  // neutral Heavy stays the normal palm-thrust.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (heavyEdge && forward) return fireMayuriCommand(fighter, "mayuriCmd1", context)
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// L "RYUUZAKI" — merged capoeira COMMAND-NORMAL CHAIN (Stage 3). Fwd+Heavy → a 3-stage cancel-on-hit
+// rekka (Mayuri cmd1→cmd2 precedent, extended to 3 beats). ONE continuous acrobatic string assembled
+// from de-duplicated row_07 (spine) + row_16 + row_17 + row_13 frames (see reslice_l_ryuuzaki.py):
+//   lRyuuzakiCmd1 = LOW SWEEP entry (opener; small step-in, low poke)
+//   lRyuuzakiCmd2 = RISING CRESCENT kick (the STRONG mid-swing, big gold arc)
+//   lRyuuzakiCmd3 = AERIAL DIVE plunge (the launcher finisher — spins up, dives down w/ meaningful pop)
+// CANCELABLE + input-edge-reactive: each stage advances only on a FRESH Heavy edge that lands in the
+// (clean-hit ∩ cancel-window) overlap (shared rekkaContinue gate, requireHit:true → a whiff/block ends
+// the string). The whole string is also cancelable into specials/jump on hit via the same cancel window.
+// currentMove = key → sprite.js identity map (lRyuuzakiCmd1/2/3). Getup pose (knockdown f10 == row_07 f1)
+// is reused IN-ENGINE, NOT duplicated here. ~40+34+? RAW over 3 hits → roster-reasonable command normal.
+// ─────────────────────────────────────────────────────────────────────────────
+const L_RYUUZAKI_CMD = {
+  // ~40 + 34 + 42 = ~116 RAW over 3 hits (a multi-hit command-normal string; feet-firm technician). The
+  // finisher LAUNCHES (launchVy/selfVy → EXACT pop, sixPathsPain precedent). Opener/mid low knockback so
+  // the string stays connected; cancel-on-hit gates the advance.
+  lRyuuzakiCmd1: { damage: 40, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 3, knockbackY: 0,  rangeX: 78, rangeY: 52, rekkaNext: "lRyuuzakiCmd2" },  // LOW SWEEP entry (opener)
+  lRyuuzakiCmd2: { damage: 34, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 5, knockbackY: -4, rangeX: 88, rangeY: 66, rekkaNext: "lRyuuzakiCmd3", category: "heavy" },  // RISING CRESCENT (strong mid-swing)
+  lRyuuzakiCmd3: { damage: 42, startup: 7, active: 4, recovery: 20, hitstun: 24, knockbackX: 8, knockbackY: -12, launcher: true, launchVy: -30, selfVy: -6, rangeX: 84, rangeY: 70, category: "launcher" },  // AERIAL DIVE launcher finisher
+}
+function fireLRyuuzakiCommand(fighter, key, context) {
+  const md = L_RYUUZAKI_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  // Launcher pop set on the ATTACK directly (createAttackFromMove doesn't carry launchVy/selfVy).
+  if (md.launcher)   attack.launcher = true
+  if (md.launchVy != null) attack.launchVy = md.launchVy
+  if (md.selfVy   != null) attack.selfVy   = md.selfVy
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = key → sprite key
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the continue
+  fighter.vx = (fighter.facing || 1) * (key === "lRyuuzakiCmd3" ? 6 : 4)   // small step-in carries the acro forward
+  try { shakeCamera(context, key === "lRyuuzakiCmd3" ? 4 : 3, 6) } catch (_) {}
+  return true
+}
+export function updateLRyuuzakiCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "l_ryuuzaki" || !inputState) return false
+  const opp       = context?.getOpponent?.(fighter)
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  const heavyEdge   = !!inputState.heavy   && !fighter._cmdPrevHeavy   // fresh tap, not held
+  const specialEdge = !!inputState.special && !fighter._cmdPrevSpecial
+  fighter._cmdPrevHeavy   = !!inputState.heavy
+  fighter._cmdPrevSpecial = !!inputState.special
+
+  // EX KICK-TRAIL FLURRY re-hit: while the EX attack is ACTIVE, re-arm its hasHit latch every
+  // L_KICKTRAIL_REHIT frames so it lands a rapid multi-hit string (Saitama punch-combo precedent).
+  if (fighter._lKickTrailActive) {
+    if (fighter.attacking && (fighter.currentMove || "") === "lRyuuzakiKickTrail") {
+      if (phase === "active" && fighter.currentAttack) {
+        fighter._lKickTrailRehit = (fighter._lKickTrailRehit || 0) + 1
+        if (fighter._lKickTrailRehit >= L_KICKTRAIL_REHIT) { fighter._lKickTrailRehit = 0; fighter.currentAttack.hasHit = false }
+      }
+    } else { fighter._lKickTrailActive = false; fighter._lKickTrailRehit = 0 }
+  }
+
+  // EX — KICK TRAIL (cancel-ONLY): a fresh Special during a NORMAL's or the command chain's RECOVERY
+  // cancels into the flurry (Vegeta EX Ki Punch precedent). NEVER from neutral — this only fires while
+  // already mid-attack in recovery; the from-neutral Special press routes to executeLRyuuzakiSpecial
+  // (which has NO kick-trail branch), so the EX is unreachable except as a cancel. Normals set
+  // currentAttack.name (not currentMove); the command chain sets currentMove — read both.
+  const curName = fighter.currentMove || fighter.currentAttack?.name
+  const cancelSources = ["light", "heavy", "up", "air", "down_air", "lRyuuzakiCmd1", "lRyuuzakiCmd2", "lRyuuzakiCmd3"]
+  if (fighter.attacking && cancelSources.includes(curName) && phase === "recovery" && specialEdge) {
+    fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+    fighter.attackCooldown = 0
+    return fireLRyuuzakiKickTrail(fighter, context)
+  }
+
+  // CONTINUE — fresh Heavy during recovery on a clean hit → next rekka stage (shared rekkaContinue gate;
+  // requireHit:true → a whiff/block ends the string). Reactive to the input EDGE, not blind spam.
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireLRyuuzakiCommand(fighter, next, context)
+  // OPENER — Fwd+Heavy from neutral only (grounded, not already mid-move). Consumes the press so
+  // neutral Heavy stays the normal palm-thrust.
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (heavyEdge && forward) return fireLRyuuzakiCommand(fighter, "lRyuuzakiCmd1", context)
+  return false
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// L "RYUUZAKI" — STAGE 4: 4 dir-specials + the kick_trail EX (cancel-only). Mirrors Light Yagami's
+// idiom EXACTLY (LIGHT_SUMMONS / fireLightSummon / executeLightSpecial): each move plays a shared cast
+// pose (_spriteCastMove) then fires a ONE-SHOT phantom-hitbox spawnProjectile — the FX/summon sheet
+// rides as the projectile sprite (non-persistent; NOT a summon). Damage is RAW here → ×0.60-scaled on
+// hit via the projectile path (GLOBAL_DAMAGE_SCALE), matching Light. Every tool costs Deduction energy
+// (spendEnergy) in Light's ~20-34 band; camera shake per Light. Direction layout (Up LEFT FREE for the
+// Stage-5 Ryuk anti-air):
+//   neutral = Golden Nova (marquee wide burst — biggest hitbox, top special dmg, SHORT range)
+//   Forward = Bazooka (long-range traveling projectile — Light `gunman` model)
+//   Back    = Golden Rising Burst (LAUNCHER — upward pop, Light `rising` on Back)
+//   Down    = Investigation / Analysis (NON-LETHAL self-buff — NOT a Death Note strike; see below)
+// ═════════════════════════════════════════════════════════════════════════════
+const L_RYUUZAKI_SUMMONS = {
+  // dir → { cast, cost, sheet, sf, sw, sh, sc, dmg, w, h, speed, vy, ky, life, delay, advance, sx, sy, launcher }
+  // (mirrors LIGHT_SUMMONS field-for-field). Nova = biggest hitbox + top dmg, but SHORT range (speed 3,
+  // life 12) so it reads as a super-tier FEEL without out-ranging the actual zoning tools.
+  nova:    { cast: "lRyuuzakiNovaCast",    cost: 32, sheet: "./l_ryuuzaki_nova_uniform.png",         sf: 4, sw: 60, sh: 62, sc: 1.35, dmg: 64, w: 78, h: 78, speed: 3,  vy: 0, ky: -3, life: 12, delay: 8,  advance: 0,  sx: 0.30, sy: 0.10 },  // neutral — Golden Nova (widest, biggest)
+  bazooka: { cast: "lRyuuzakiBazookaCast", cost: 28, sheet: "./l_ryuuzaki_bazooka_proj_uniform.png", sf: 4, sw: 96, sh: 53, sc: 1.15, dmg: 52, w: 82, h: 44, speed: 14, vy: 0, ky: -1, life: 40, delay: 10, advance: 0,  sy: 0.28 },              // Fwd — Bazooka (long-range travel)
+  rising:  { cast: "lRyuuzakiRisingCast",  cost: 24, sheet: "./l_ryuuzaki_rising_proj_uniform.png",  sf: 5, sw: 58, sh: 49, sc: 1.35, dmg: 56, w: 44, h: 78, speed: 2,  vy: -8, ky: -11, life: 24, delay: 8, advance: 0, sx: 0.32, sy: 0.28, launcher: true },  // Back — Golden Rising Burst (LAUNCHER)
+}
+function fireLRyuuzakiSummon(fighter, context, key) {
+  const cfg = L_RYUUZAKI_SUMMONS[key]
+  if (!cfg) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  fighter._spriteCastMove = cfg.cast; fighter._spriteCastTimer = 28
+  fighter.attackCooldown  = getAttackDuration(28, fighter)
+  fighter._rekkaNext = null
+  if (cfg.advance) fighter.vx = (fighter.facing || 1) * cfg.advance
+  const reach = (fighter.w || 60) + cfg.w * 0.5
+  schedulePendingSpawn(cfg.delay, () => {
+    spawnProjectile(fighter, "l_ryuuzaki_" + key, {
+      damage: cfg.dmg, w: cfg.w, h: cfg.h, speed: cfg.speed, vy: cfg.vy, lifetime: cfg.life,
+      hitstun: 20, knockbackX: 9, knockbackY: cfg.ky, isSpecial: true, launcher: !!cfg.launcher,
+      sheet: cfg.sheet, spriteFrames: cfg.sf, spriteW: cfg.sw, spriteH: cfg.sh, spriteSpeed: 3, spriteScale: cfg.sc,
+      spawnX: (cfg.sx != null) ? (fighter.x + (fighter.w || 60) / 2 + (fighter.facing || 1) * reach * cfg.sx) : undefined,
+      spawnY: fighter.y + (fighter.h || 110) * (cfg.sy != null ? cfg.sy : 0.34),
+    }, context)
+  })
+  try { shakeCamera(context, key === "nova" ? 4 : 2, 6) } catch (_) {}
+  return true
+}
+
+// ── INVESTIGATION / ANALYSIS (Down) — NON-LETHAL self-buff (Mayuri Lab Coat Open precedent). L manifests
+// the red notebook and reads his opponent: a MODEST, timed damage bump. NOT a stun / sure-hit / lethal
+// strike. Deals ZERO damage. Numbers kept conservative (≤1.25× for ≤4s) with a recast cooldown so it is
+// not free/spammable. Auto-reverts via updateMiscTimers → revertLRyuuzakiAnalysis. ★★ TUNABLE — flagged. ──
+const L_ANALYSIS_MULT = 1.2    // +20% damage while analyzing (modest; ≤1.25 cap per brief)
+const L_ANALYSIS_DUR  = 240    // 4s @60fps
+const L_ANALYSIS_CD   = 480    // 8s recast (4s buff + 4s downtime → not spammable)
+const L_ANALYSIS_COST = 22     // Deduction, Light band
+function fireLRyuuzakiAnalysis(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._lAnalysisCd || 0) > 0 || fighter._lAnalysisActive) return false   // cooldown / already buffed
+  if (!spendEnergy(fighter, L_ANALYSIS_COST)) return false
+  fighter._lAnalysisActive = true
+  fighter._lAnalysisTimer  = L_ANALYSIS_DUR
+  fighter._lAnalysisCd     = L_ANALYSIS_CD
+  const bf = fighter.currentFormData || {}
+  fighter._lAnalysisPrevForm    = fighter.currentFormData     // may be null/undefined → restored as-is
+  fighter._lAnalysisFormSwapped = true
+  fighter.currentFormData = { ...bf,
+    damageMultiplier: (bf.damageMultiplier || 1) * L_ANALYSIS_MULT,
+    attackMultiplier: (bf.attackMultiplier || bf.damageMultiplier || 1) * L_ANALYSIS_MULT }
+  fighter.damageMultiplier = fighter.currentFormData.damageMultiplier   // immediate (also re-synced each frame by the form sync)
+  fighter.attackMultiplier = fighter.currentFormData.attackMultiplier
+  fighter._spriteCastMove  = "lRyuuzakiAnalysis"              // red-notebook manifest+hold pose (startup, not instant)
+  fighter._spriteCastTimer = 34
+  fighter.attackCooldown   = getAttackDuration(34, fighter)   // real startup + recovery — has a cost, not free
+  fighter.colorFlash       = Math.max(fighter.colorFlash || 0, 12)
+  try { shakeCamera(context, 2, 6) } catch (_) {}
+  return true
+}
+export function revertLRyuuzakiAnalysis(fighter) {
+  if (!fighter || !fighter._lAnalysisActive) return
+  fighter._lAnalysisActive = false
+  fighter._lAnalysisTimer  = 0
+  if (fighter._lAnalysisFormSwapped) { fighter.currentFormData = fighter._lAnalysisPrevForm; fighter._lAnalysisPrevForm = null; fighter._lAnalysisFormSwapped = false }
+  const bf = fighter.currentFormData || {}
+  fighter.damageMultiplier = bf.damageMultiplier || 1
+  fighter.attackMultiplier = bf.attackMultiplier || bf.damageMultiplier || 1
+}
+
+export function executeLRyuuzakiSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "l_ryuuzaki") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null            // "F" | "B" | "U" | "D" | null
+  if (dir === "F") return fireLRyuuzakiSummon(fighter, context, "bazooka")   // Forward — Bazooka (long-range projectile)
+  if (dir === "B") return fireLRyuuzakiSummon(fighter, context, "rising")    // Back — Golden Rising Burst (LAUNCHER)
+  if (dir === "D") return fireLRyuuzakiAnalysis(fighter, context)            // Down — Investigation / Analysis (non-lethal buff)
+  if (dir === "U") return false                                             // Up — RESERVED for Stage-5 Ryuk anti-air (no-op, no glitch)
+  return fireLRyuuzakiSummon(fighter, context, "nova")                       // neutral — Golden Nova (marquee wide burst)
+}
+
+// ── EX — KICK TRAIL (cancel-ONLY multi-hit capoeira flurry). Vegeta EX Ki Punch precedent: usable ONLY as
+// a cancel off a NORMAL's recovery or the capoeira command chain (lRyuuzakiCmd1/2/3) — NEVER from neutral.
+// The Special button is otherwise blocked mid-attack by the canStart gate in game.js, so the ONLY route in
+// is this recovery-cancel edge (proof it can't fire from neutral: the neutral-Special dispatch never reaches
+// this — it goes straight to executeLRyuuzakiSpecial via triggerSpecial, which has no kick-trail branch).
+// Meaningful cost + a flurry finisher (multi-hit re-arm across the active window). Driven by
+// updateLRyuuzakiCommandCombat (which already runs every frame for L). ──
+// ~18 × ~4 ticks = ~72 RAW flurry (each tick ×0.60 on hit). The multi-hit comes from re-arming the attack's
+// hasHit latch every L_KICKTRAIL_REHIT active frames (Saitama punch-combo precedent) — driven below.
+const L_KICKTRAIL = { cost: 30, damage: 18, startup: 5, active: 15, recovery: 16, hitstun: 12,
+                      knockbackX: 4, knockbackY: -2, rangeX: 96, rangeY: 72, noHitstop: true }
+const L_KICKTRAIL_REHIT = 3    // re-arm hasHit every 3 active frames → one kick per 3 frames
+function fireLRyuuzakiKickTrail(fighter, context) {
+  const md = L_KICKTRAIL
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "lRyuuzakiKickTrail", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  attack.noHitstop = true                    // rapid multi-hit → don't freeze on every tick
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "lRyuuzakiKickTrail" → sprite key
+  fighter._rekkaNext        = null           // the EX ends the string (a flurry finisher)
+  fighter._cmdHitLanded     = false
+  fighter._lKickTrailActive = true           // watched in updateLRyuuzakiCommandCombat → drives the re-hit flurry
+  fighter._lKickTrailRehit  = 0
+  fighter.vx = (fighter.facing || 1) * 5     // small step-in carries the flurry forward
+  try { shakeCamera(context, 3, 8) } catch (_) {}
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAYURI — 5 specials (Stage 3). executeMayuriSpecial branches by held direction (grounded):
+//   Neutral = Finger-Gun BLAST (row_41 muzzle-flash → a real ranged energy projectile)
+//   Fwd     = Energy SLASH (row_18 cast → a green-crescent projectile, row_20)
+//   Up      = Rising CUT (row_19, anti-air LAUNCHER, melee)
+//   Down    = Poison CLOUD (row_37 cast → a slow spore-cloud projectile carrying a DoT, row_50)
+//   Back    = LAB COAT OPEN (row_42) — the buff transformation: a temporary damage multiplier.
+// currentMove/_spriteCast identity keys → sprite.js identity map. All draw from the shared Reiatsu pool.
+// ─────────────────────────────────────────────────────────────────────────────
+const MAYURI_MELEE_SPECIALS = {
+  mayuriRising: { damage: 64, startup: 7, active: 5, recovery: 18, hitstun: 24, knockbackX: 5, knockbackY: -12, launchVy: -26, launcher: true, rangeX: 82, rangeY: 82, cost: 30 },   // Up — rising cut launcher (anti-air)
+}
+function fireMayuriMeleeSpecial(fighter, key, context) {
+  const md = MAYURI_MELEE_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  if (md.launchVy) attack.launchVy = md.launchVy
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  try { sound.playSfxFile?.(pickMayuriVoice("swordCast"), null); fighter._atkVoiceCd = 120 } catch (_) {}   // Rising Cut sword-cast line
+  return true
+}
+// Neutral — Finger-Gun BLAST: a cast pose (row_41) that FIRES a real energy projectile on the muzzle-flash
+// beat. The projectile carries its own hitbox/damage (not a visual flourish).
+function fireMayuriBlast(fighter, context) {
+  const cost = 26
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._spriteCastMove  = "mayuriBlast"
+  fighter._spriteCastTimer = 26
+  fighter.attackCooldown   = 28
+  fighter._rekkaNext = null
+  try { sound.playSfxFile?.(pickMayuriVoice("rangedCast"), null); fighter._atkVoiceCd = 120 } catch (_) {}   // Finger-Gun Blast cast line
+  schedulePendingSpawn(8, () => {                                    // fire on the muzzle-flash frame
+    spawnProjectile(fighter, "mayuriBlast", {
+      damage: 56, w: 34, h: 24, speed: 15, lifetime: 72, hitstun: 16, knockbackX: 8, knockbackY: -1,
+      isSpecial: true, color: "#ffcf6a",
+      sheet: "./mayuri_blast_proj_uniform.png", spriteFrames: 1, spriteW: 61, spriteH: 31, spriteScale: 1.5,
+      spawnY: fighter.y + (fighter.h || 110) * 0.30,
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+// Fwd — Energy SLASH: cast (row_18) → a forward green-crescent energy projectile.
+function fireMayuriSlash(fighter, context) {
+  const cost = 30
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._spriteCastMove  = "mayuriSlash"
+  fighter._spriteCastTimer = 24
+  fighter.attackCooldown   = 26
+  fighter._rekkaNext = null
+  try { sound.playSfxFile?.(pickMayuriVoice("swordCast"), null); fighter._atkVoiceCd = 120 } catch (_) {}   // Energy Slash sword-cast line
+  schedulePendingSpawn(9, () => {
+    spawnProjectile(fighter, "mayuriSlash", {
+      damage: 60, w: 58, h: 66, speed: 12, lifetime: 78, hitstun: 18, knockbackX: 9, knockbackY: -2,
+      isSpecial: true, color: "#8effa0",
+      sheet: "./mayuri_slash_proj_uniform.png", spriteFrames: 5, spriteW: 155, spriteH: 94, spriteSpeed: 3, spriteScale: 1.35,
+      spawnY: fighter.y + (fighter.h || 110) * 0.32,
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+// Down — Poison CLOUD: cast (row_37) → a slow green spore-cloud projectile that stamps a poison DoT on a
+// clean hit (the existing _dot subsystem — attrition offsets Mayuri's low burst, Shinobu precedent).
+function fireMayuriPoison(fighter, context) {
+  const cost = 28
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._spriteCastMove  = "mayuriPoison"
+  fighter._spriteCastTimer = 24
+  fighter.attackCooldown   = 26
+  fighter._rekkaNext = null
+  try { sound.playSfxFile?.(pickMayuriVoice("rangedCast"), null); fighter._atkVoiceCd = 120 } catch (_) {}   // Poison Cloud cast line
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "mayuriPoison", {
+      damage: 34, w: 46, h: 68, speed: 7, lifetime: 96, hitstun: 12, knockbackX: 4, knockbackY: 0,
+      isSpecial: true, color: "#7bd66a",
+      sheet: "./mayuri_poison_cloud_uniform.png", spriteFrames: 5, spriteW: 51, spriteH: 103, spriteSpeed: 5, spriteScale: 1.25,
+      dot: { ticks: 5, interval: 22, dmg: 10 },                     // ~50 poison over ~1.8s, stamped on a clean hit
+      spawnY: fighter.y + (fighter.h || 110) * 0.30,
+    }, context)
+  })
+  try { shakeCamera(context, 2, 5) } catch (_) {}
+  return true
+}
+// Back — LAB COAT OPEN: the buff transformation. A timed damage multiplier, auto-reverting via
+// updateMiscTimers (Maki Power Charge pattern — rides currentFormData so the per-frame form-sync keeps it
+// applied; formless Mayuri gets a fresh currentFormData, restored to null on revert).
+const MAYURI_COAT_DUR  = 360   // 6s @60fps
+const MAYURI_COAT_CD   = 600   // 10s recast (6s buff + 4s downtime → not spammable)
+const MAYURI_COAT_MULT = 1.3
+function fireMayuriLabCoat(fighter, context) {
+  const cost = 40
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._mayuriCoatCd || 0) > 0 || fighter._mayuriCoatActive) return false   // cooldown / already buffed
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._mayuriCoatActive = true
+  fighter._mayuriCoatTimer  = MAYURI_COAT_DUR
+  fighter._mayuriCoatCd     = MAYURI_COAT_CD
+  const bf = fighter.currentFormData || {}
+  fighter._mayuriCoatPrevForm    = fighter.currentFormData     // may be null/undefined → restored as-is
+  fighter._mayuriCoatFormSwapped = true
+  fighter.currentFormData = { ...bf,
+    damageMultiplier: (bf.damageMultiplier || 1) * MAYURI_COAT_MULT,
+    attackMultiplier: (bf.attackMultiplier || bf.damageMultiplier || 1) * MAYURI_COAT_MULT }
+  fighter.damageMultiplier = fighter.currentFormData.damageMultiplier   // immediate (also re-synced each frame)
+  fighter.attackMultiplier = fighter.currentFormData.attackMultiplier
+  fighter._spriteCastMove  = "mayuriCoatOpen"                  // coat-flung-open pose
+  fighter._spriteCastTimer = 30
+  fighter.attackCooldown   = 30
+  fighter.colorFlash       = Math.max(fighter.colorFlash || 0, 14)
+  try { sound.playSfxFile?.(pickMayuriVoice("labCoat"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // Lab Coat Open — dramatic transformation line
+  try { shakeCamera(context, 3, 7) } catch (_) {}
+  return true
+}
+export function revertMayuriLabCoat(fighter) {
+  if (!fighter || !fighter._mayuriCoatActive) return
+  fighter._mayuriCoatActive = false
+  fighter._mayuriCoatTimer  = 0
+  if (fighter._mayuriCoatFormSwapped) { fighter.currentFormData = fighter._mayuriCoatPrevForm; fighter._mayuriCoatPrevForm = null; fighter._mayuriCoatFormSwapped = false }
+  const bf = fighter.currentFormData || {}
+  fighter.damageMultiplier = bf.damageMultiplier || 1
+  fighter.attackMultiplier = bf.attackMultiplier || bf.damageMultiplier || 1
+}
+export function executeMayuriSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "mayuri") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F") return fireMayuriSlash(fighter, context)                     // Fwd — Energy Slash projectile
+  if (dir === "U") return fireMayuriMeleeSpecial(fighter, "mayuriRising", context)   // Up — Rising Cut launcher
+  if (dir === "D") return fireMayuriPoison(fighter, context)                    // Down — Poison Cloud (DoT)
+  if (dir === "B") return fireMayuriLabCoat(fighter, context)                   // Back — Lab Coat Open buff
+  return fireMayuriBlast(fighter, context)                                      // neutral — Finger-Gun Blast
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BYAKUYA KUCHIKI — SPECIALS (Stage 4). Schema-exception Shunpo-swordsman kit.
+//  GROUND (executeByakuyaSpecial): N=Senbonzakura Petal Cast (scatter projectile) / F=Utsusemi Re-form
+//  Thrust / U=Utsusemi Re-form Overhead (F+U SHARE the row_37 vanish → ONE branching teleport-strike) /
+//  B=Shunpo blink (retreat reposition + i-frames, alpha-fade + petal FX) / D=Straight Thrust (advancing lunge).
+//  AIR: N=Jump Slash / F=Airborne Vault.
+// Honest glass-cannon numbers (versatility outlier — costs/damage kept conservative, no bypass).
+// ═════════════════════════════════════════════════════════════════════════════
+const BYAKUYA_MELEE = {
+  byakuyaThrust:         { damage: 66, startup: 8, active: 4, recovery: 18, hitstun: 22, knockbackX: 10, knockbackY: 0,  rangeX: 120, rangeY: 46, cost: 22 },
+  byakuyaReformOverhead: { damage: 78, startup: 6, active: 4, recovery: 20, hitstun: 24, knockbackX: 6,  knockbackY: 4,  rangeX: 96,  rangeY: 96, cost: 0, category: "heavy" },
+  byakuyaReformThrust:   { damage: 70, startup: 6, active: 4, recovery: 18, hitstun: 22, knockbackX: 12, knockbackY: -1, rangeX: 128, rangeY: 48, cost: 0 },
+  byakuyaJumpSlash:      { damage: 58, startup: 6, active: 4, recovery: 14, hitstun: 18, knockbackX: 7,  knockbackY: -2, rangeX: 104, rangeY: 60, cost: 22 },
+  byakuyaAirVault:       { damage: 54, startup: 6, active: 4, recovery: 14, hitstun: 18, knockbackX: 5,  knockbackY: 6,  rangeX: 84,  rangeY: 84, cost: 22 },
+}
+// Shared melee-special starter. `cost:0` entries (re-form strikes) are pre-paid by their caster. Sets
+// currentMove=key → sprite.js MOVE_TO_ACTION identity → the cast/strike sheet. NO cooldown/attacking guard
+// here (the public dispatch guards once; the re-form re-enters this mid-teleport).
+function _byakuyaMelee(fighter, key, context, opts = {}) {
+  const md = BYAKUYA_MELEE[key]
+  if (!md) return false
+  if (md.cost && !spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  attack.isSpecial = true
+  if (md.category) attack.category = md.category
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  fighter._rekkaNext = null
+  if (opts.advance) fighter.vx = (fighter.facing || 1) * opts.advance
+  return true
+}
+// Neutral — SENBONZAKURA Petal Cast: a cast pose that scatters 3 petal-blade projectiles on the point-beat.
+function fireByakuyaPetalCast(fighter, context) {
+  const cost = 24
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._spriteCastMove  = "byakuyaPetalCast"
+  fighter._spriteCastTimer = 26
+  fighter.attackCooldown   = 30
+  fighter._rekkaNext = null
+  for (let i = 0; i < 3; i++) {
+    schedulePendingSpawn(9 + i * 3, () => {
+      spawnProjectile(fighter, "byakuyaPetal", {
+        damage: 22, w: 30, h: 26, speed: 14, lifetime: 80, hitstun: 12, knockbackX: 5, knockbackY: (i - 1) * 2,
+        isSpecial: true, color: "#e59bc4",
+        sheet: "./byakuya_petal_proj_uniform.png", spriteFrames: 1, spriteW: 88, spriteH: 56, spriteScale: 1.15,
+        spawnY: fighter.y + (fighter.h || 100) * (0.28 + i * 0.08), vy: (i - 1) * 1.4,
+      }, context)
+    })
+  }
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+// Back — SHUNPO blink: a defensive retreat reposition with i-frames. The audit's row_04–07 scanline dissolve
+// is NOT supported by the pipeline (Stage-0 item 6) → the confirmed fallback = a global alpha-fade
+// (_byakuyaFadeTimer, applied in renderHybridFighter) covered by the row_05/07 petal ring (drawByakuyaSpecialFx).
+function fireByakuyaShunpo(fighter, context) {
+  const cost = 18
+  if (!spendEnergy(fighter, cost)) return false
+  const getOpponent = getTargetResolver(context)
+  const target = getOpponent(fighter)
+  fighter.invulnTimer       = Math.max(fighter.invulnTimer || 0, 20)
+  fighter._byakuyaFadeTimer = 20
+  fighter._spriteCastMove   = "byakuyaShunpoOut"
+  fighter._spriteCastTimer  = 8
+  fighter.teleportFlash     = 14
+  fighter._rekkaNext = null
+  spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 100) / 2)
+  const STARTUP = 6
+  fighter.attackCooldown = getAttackDuration(STARTUP + 16, fighter)
+  schedulePendingSpawn(STARTUP, () => {
+    const sw = context?.worldWidth || 3200
+    const face = fighter.facing || 1
+    fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), fighter.x - face * 190))   // blink AWAY a Shunpo step
+    fighter.vx = 0; fighter.vy = 0
+    if (target) fighter.facing = (target.x >= fighter.x) ? 1 : -1
+    fighter._spriteCastMove  = "byakuyaShunpoIn"
+    fighter._spriteCastTimer = 8
+    spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 100) / 2)
+  })
+  return true
+}
+// Fwd / Up — UTSUSEMI RE-FORM (ONE branching teleport-strike). Byakuya vanishes (row_37, alpha-fade + petal),
+// re-appears in striking range of the foe, then branches: variant "overhead" (row_39 cut) or "thrust" (row_46).
+function fireByakuyaReform(fighter, variant, context) {
+  const cost = 34
+  if (!spendEnergy(fighter, cost)) return false
+  const getOpponent = getTargetResolver(context)
+  const target = getOpponent(fighter)
+  fighter.invulnTimer       = Math.max(fighter.invulnTimer || 0, 16)
+  fighter._byakuyaFadeTimer = 16
+  fighter._spriteCastMove   = "byakuyaReformVanish"
+  fighter._spriteCastTimer  = 14
+  fighter.teleportFlash     = 14
+  fighter._rekkaNext = null
+  spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 100) / 2)
+  const VANISH = 12
+  fighter.attackCooldown = getAttackDuration(VANISH + 4, fighter)
+  const strikeKey = (variant === "overhead") ? "byakuyaReformOverhead" : "byakuyaReformThrust"
+  schedulePendingSpawn(VANISH, () => {
+    if (target) {
+      const sw = context?.worldWidth || 3200
+      const gap = 44
+      fighter.x = (fighter.x <= target.x) ? Math.max(0, target.x - (fighter.w || 60) - gap)
+                                          : Math.min(sw - (fighter.w || 60), target.x + (target.w || 60) + gap)
+      fighter.y = target.y; fighter.vx = 0; fighter.vy = 0
+      fighter.facing = (target.x >= fighter.x) ? 1 : -1
+    }
+    fighter._byakuyaFadeTimer = 0
+    spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 100) / 2)
+    _byakuyaMelee(fighter, strikeKey, context)
+  })
+  focusCameraOnAction(context, fighter, target, 1.0, 8)
+  return true
+}
+export function executeByakuyaSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "byakuya") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) {
+    if (dir === "F") return _byakuyaMelee(fighter, "byakuyaAirVault", context)     // air Fwd — Airborne Vault
+    return _byakuyaMelee(fighter, "byakuyaJumpSlash", context)                     // air neutral/other — Jump Slash
+  }
+  if (dir === "U") return fireByakuyaReform(fighter, "overhead", context)          // Up — re-form Overhead Cut
+  if (dir === "F") return fireByakuyaReform(fighter, "thrust", context)            // Fwd — re-form Horizontal Thrust
+  if (dir === "B") return fireByakuyaShunpo(fighter, context)                      // Back — Shunpo blink
+  if (dir === "D") return _byakuyaMelee(fighter, "byakuyaThrust", context, { advance: 13 })   // Down — Straight Thrust
+  return fireByakuyaPetalCast(fighter, context)                                    // neutral — Senbonzakura Petal Cast
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BYAKUYA — ULTIMATE: "Bankai: Senbonzakura Kageyoshi" (Stage 5). A 2-phase INLINE freeze-cinematic on the
+// LIVE fighter (Mayuri/Saitama pattern — no duplicate instance): Phase 1 CHARGE (holds the charge stance
+// while blue reiatsu WINGS grow) → Phase 2 PAYOFF (transform → release THRUST + Senbonzakura blast).
+// Guaranteed payoff, honest ×0.60. Wings/blast drawn as overlays in game.js drawByakuyaSpecialFx
+// (_byakuyaBankaiTimer). The pose swaps are scheduled; the caster is NOT frozen so it animates through.
+// ─────────────────────────────────────────────────────────────────────────────
+const BYAKUYA_BANKAI = { cost: 100, cinematic: 88, transformAt: 46, thrustAt: 56, payoffFrame: 62, dmg: 340 }   // 340 raw → ~204 EFF (×0.60), cinematic-ult band (block 25%)
+function executeByakuyaUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "byakuya") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, BYAKUYA_BANKAI.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.colorFlash = 14
+  fighter.vx = 0
+  if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove    = "byakuyaBankaiCharge"; fighter._spriteCastTimer = BYAKUYA_BANKAI.cinematic
+  fighter._byakuyaBankaiTimer = BYAKUYA_BANKAI.cinematic; fighter._byakuyaBankaiMax = BYAKUYA_BANKAI.cinematic   // drives the wings/blast overlay
+  fighter.attackCooldown     = getAttackDuration(BYAKUYA_BANKAI.cinematic, fighter)
+  focusCameraOnAction(context, fighter, opp, 1.2, 20)
+  shakeCamera(context, 5, 10)
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, BYAKUYA_BANKAI.cinematic - 12); opp.vx = 0 }   // freeze the foe through the release
+  // Phase-2 pose swaps: transform → release thrust.
+  schedulePendingSpawn(BYAKUYA_BANKAI.transformAt, () => { fighter._spriteCastMove = "byakuyaBankaiTransform"; fighter._spriteCastTimer = 16 })
+  schedulePendingSpawn(BYAKUYA_BANKAI.thrustAt, () => { fighter._spriteCastMove = "byakuyaBankaiThrust"; fighter._spriteCastTimer = BYAKUYA_BANKAI.cinematic - BYAKUYA_BANKAI.thrustAt + 6; try { shakeCamera(context, 8, 10) } catch (_) {} })
+  schedulePendingSpawn(BYAKUYA_BANKAI.payoffFrame, () => applyByakuyaBankaiDamage(fighter, opp, context))   // guaranteed release payoff
+  return true
+}
+function applyByakuyaBankaiDamage(fighter, opp, context) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = BYAKUYA_BANKAI.dmg
+  if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+  else { opp.hitstun = Math.max(opp.hitstun || 0, 48); opp.vx = (fighter.facing || 1) * 10; opp.vy = -8 }
+  applyScaledDamage(opp, dmg, { source: "ability" })     // honest ×0.60 → ~204 EFF (block 25%)
+  opp.colorFlash = 12
+  try { shakeCamera(context, 9, 12) } catch (_) {}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAYURI — ULTIMATE: "Bankai: Konjiki Ashisogi Jizō" (Stage 4). An INLINE freeze-cinematic on the LIVE
+// fighter (Orochimaru Summon pattern — no duplicate instance, no dup-render): Mayuri holds a release-cast
+// pose while the golden baby-faced CONSTRUCT assembles/looms over the foe (drawMayuriBankaiCinematic,
+// gated on _mayuriBankaiTimer), then crushes down on the payoff beat for a guaranteed scaled nuke. The
+// opponent is frozen through the strike (hitstop). Cooldown-gated via the universal ultimate lockout.
+// ─────────────────────────────────────────────────────────────────────────────
+const MAYURI_BANKAI = { cost: 100, cinematic: 84, payoffFrame: 52, dmg: 330 }   // 330 raw → ~198 EFF (×0.60), cinematic-ult band (block 25%)
+function executeMayuriUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "mayuri") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, MAYURI_BANKAI.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.colorFlash = 14
+  fighter.vx = 0
+  fighter._spriteCastMove   = "mayuriBankaiCast"; fighter._spriteCastTimer = MAYURI_BANKAI.cinematic   // held release pose
+  fighter._mayuriBankaiTimer = MAYURI_BANKAI.cinematic; fighter._mayuriBankaiMax = MAYURI_BANKAI.cinematic   // drives the construct cinematic overlay
+  fighter.attackCooldown    = getAttackDuration(MAYURI_BANKAI.cinematic, fighter)
+  try { sound.playSfxFile?.(pickMayuriVoice("ultimate"), null); fighter._atkVoiceCd = 200 } catch (_) {}   // Bankai — the longest/most dramatic line
+  focusCameraOnAction(context, fighter, opp, 1.3, 18)                          // zoom in on the looming construct
+  shakeCamera(context, 6, 12)
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, MAYURI_BANKAI.cinematic - 14); opp.vx = 0 }   // freeze the target through the crush
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 12)
+  schedulePendingSpawn(MAYURI_BANKAI.payoffFrame, () => applyMayuriBankaiDamage(fighter, opp, context))   // guaranteed construct-crush payoff
+  return true
+}
+function applyMayuriBankaiDamage(fighter, opp, context) {
+  if (!opp || opp.eliminated) return
+  const blocked = !!opp.isBlocking
+  let dmg = MAYURI_BANKAI.dmg
+  if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+  else { opp.hitstun = Math.max(opp.hitstun || 0, 46); opp.vx = (fighter.facing || 1) * 10; opp.vy = -8 }
+  applyScaledDamage(opp, dmg, { source: "ability" })     // honest ×0.60 → ~198 EFF (block 25%)
+  opp.colorFlash = 12
+  try { shakeCamera(context, 8, 12) } catch (_) {}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAYURI — NEMU (bespoke assist character, Stage 5). Self-contained on the Pain "Six Paths Summon"
+// architecture (spawnAssistSummon = summons.js summon entity + an optional visual-only FX projectile).
+// Summoned via CHARGE + direction (Mayuri's 5 special directions are full, so the assist lives on the
+// charge button, exactly like Pain): Charge+Down → Nemu ATTACK (rushing strike) · Charge+Up → Nemu
+// UPPERCUT (rising LAUNCHER). Each spawns Nemu's own sprite (row_64 / row_66) rushing the foe + her
+// impact/rising FX overlay (row_65 / row_67) at the hit point. Shared cooldown; one hit then despawns.
+// ─────────────────────────────────────────────────────────────────────────────
+const MAYURI_NEMU_CD = 168   // ~2.8s shared cooldown (ticked in updateMayuriNemuAssist) — no summon-spam
+const MAYURI_ASSISTS = [
+  { key: "attack",   field: "down", sheet: "./mayuri_nemu_attack_uniform.png",   frames: 6, w: 81, h: 91,  dmg: 52, scale: 1.5,
+    fx: { sheet: "./mayuri_nemu_attack_fx_uniform.png",   frames: 3, w: 63, h: 8,  scale: 2.4, lifetime: 20 } },   // Charge+↓ — rushing strike + horizontal impact streak
+  { key: "uppercut", field: "jump", sheet: "./mayuri_nemu_uppercut_uniform.png", frames: 7, w: 61, h: 105, dmg: 56, scale: 1.5, launcher: true,
+    fx: { sheet: "./mayuri_nemu_uppercut_fx_uniform.png", frames: 4, w: 14, h: 63, scale: 2.2, lifetime: 22 } },   // Charge+↑ — rising strike LAUNCHER + vertical rising streak
+]
+function fireMayuriNemuAssist(fighter, slot, context) {
+  const a = MAYURI_ASSISTS[slot]
+  if (!a || (fighter.nemuCd || 0) > 0) return false
+  const opp = context?.getOpponent?.(fighter)
+  if (!opp) return false
+  const dir = fighter.facing || 1
+  const summonData = {
+    id: "nemuAssist_" + a.key, summonId: "nemuAssist_" + a.key,
+    duration: 42, maxSimultaneous: 1, attackInterval: 6, spawnBeat: 3,
+    damage: a.dmg, hitstun: a.launcher ? 24 : 20, knockbackX: a.launcher ? 4 : 6, knockbackY: a.launcher ? -11 : -2,
+    launch: a.launcher ? 12 : 0,
+    w: Math.round(a.w * 0.5), h: a.h, speed: 13, behavior: "rush", oneHit: true, puffOnDespawn: true,
+    color: "#3a3a44",
+    sheet: a.sheet, spriteFrames: a.frames, spriteW: a.w, spriteH: a.h, spriteSpeed: 3, spriteScale: a.scale,
+  }
+  const p = spawnAssistSummon(fighter, summonData, opp)
+  if (!p) return false
+  p.x = opp.x + dir * 100; p.y = opp.y; p.facing = -dir   // land beyond the foe → rush inward
+  if (a.fx) {   // Nemu's impact/rising FX overlay (row_65 attack streak / row_67 uppercut streak) at the foe
+    spawnProjectile(fighter, "nemuFx_" + a.key, {
+      visualOnly: true, damage: 0, speed: 0, lifetime: a.fx.lifetime || 22, vx: 0, vy: 0,
+      w: a.fx.w, h: a.fx.h, sheet: a.fx.sheet, spriteFrames: a.fx.frames, spriteW: a.fx.w, spriteH: a.fx.h,
+      spriteSpeed: 4, spriteScale: a.fx.scale || 2,
+      spawnX: (opp.x || 0) + (opp.w || 60) / 2, spawnY: (opp.y || 0) + (opp.h || 100) * (a.launcher ? 0.5 : 0.42)
+    }, context)
+  }
+  fighter.nemuCd = MAYURI_NEMU_CD
+  fighter._lastNemuAssist = a.key   // HUD / harness read
+  try { sound.playSfxFile?.(pickMayuriVoice("summon"), null); fighter._atkVoiceCd = 140 } catch (_) {}   // Nemu assist call (Mayuri's own bark — no distinct Nemu clip)
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// Per-frame selector (mirrors updatePainAssistCombo). Charge + slot direction edge → fire Nemu. Runs
+// before the jump/attack path in game.js so _omxConsume can swallow the Charge+↑ jump press.
+export function updateMayuriNemuAssist(fighter, inputState, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "mayuri" || !inputState) return
+  if ((fighter.nemuCd || 0) > 0) fighter.nemuCd--
+  const held = (fighter._nemuHeld = fighter._nemuHeld || {})
+  fighter._omxConsume = null
+  const charge = !!inputState.charge
+  if (charge && !fighter.attacking && (fighter.hitstun || 0) <= 0 && (fighter.nemuCd || 0) <= 0) {
+    for (let i = 0; i < MAYURI_ASSISTS.length; i++) {
+      const f = MAYURI_ASSISTS[i].field
+      if (!!inputState[f] && !held[f]) {   // EDGE: this slot input just went down while Charge is held
+        if (fireMayuriNemuAssist(fighter, i, context)) {
+          fighter._omxConsume = { jump: f === "jump", light: f === "light", heavy: f === "heavy" }
+        }
+        break
+      }
+    }
+  }
+  held.charge = charge
+  for (const a of MAYURI_ASSISTS) held[a.field] = !!inputState[a.field]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ONOKI — Dust Release specials (Stage 3). executeOnokiSpecial branches by held
+// direction (grounded): Neutral = Rock Fist Transform Strike / Fwd = Rock Fist Lunge /
+// Back = Rock Arm Swing / Down = Spinning Cape + Rock Projectiles / Up = Taunting Combo
+// Finisher (launcher). The Jutsu Charge/Launch blast is a SEPARATE CHARGE(P)-hold→release
+// special (fireOnokiJutsu, called from handleChargeRelease) so a P-TAP still toggles flight.
+// All draw from the shared Particle pool. Each renders by its move-name sprite (identity map).
+// ─────────────────────────────────────────────────────────────────────────────
+const ONOKI_SPECIALS = {
+  onokiRockFist: { damage: 92,  startup: 11, active: 5, recovery: 22, hitstun: 24, knockbackX: 11, knockbackY: -2, rangeX: 100, rangeY: 56, cost: 30, superArmor: true },   // neutral — enlarged rock-fist transform (committed, super-armored)
+  onokiLunge:    { damage: 82,  startup: 8,  active: 5, recovery: 18, hitstun: 20, knockbackX: 12, knockbackY: -2, rangeX: 108, rangeY: 52, cost: 25 },                      // Fwd — forward rock-fist lunge (travels in)
+  onokiArmSwing: { damage: 94,  startup: 10, active: 5, recovery: 22, hitstun: 22, knockbackX: 10, knockbackY: -4, rangeX: 92,  rangeY: 64, cost: 30 },                      // Back — wide heavy rock-arm swing
+  onokiTauntFin: { damage: 100, startup: 9,  active: 6, recovery: 26, hitstun: 28, knockbackX: 6,  knockbackY: -12, launchVy: -28, launcher: true, rangeX: 88, rangeY: 66, cost: 40 },   // Up — dense combo finisher, LAUNCHES
+}
+function fireOnokiAttackSpecial(fighter, key, context) {
+  const md = ONOKI_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  if (md.launchVy) attack.launchVy = md.launchVy
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (key === "onokiLunge") fighter.vx = (fighter.facing || 1) * 11   // forward rock-fist lunge carries him in
+  return true
+}
+// Down — Spinning Cape + Rock Projectiles: a spinning melee AOE, then 2 rock chunks fly out on staggered arcs.
+function fireOnokiCapeSpin(fighter, context) {
+  const cost = 35
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  const md = { damage: 58, startup: 8, active: 6, recovery: 20, hitstun: 18, knockbackX: 6, knockbackY: -2, rangeX: 78, rangeY: 62 }
+  const attack = createAttackFromMove(fighter, "onokiCapeSpin", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  for (let i = 0; i < 2; i++) {                                        // 2 rock-chunk projectiles (staggered)
+    schedulePendingSpawn(md.startup + i * 4, () => {
+      spawnProjectile(fighter, "onokiRock", {
+        damage: 44, w: 24, h: 26, speed: 12, lifetime: 82, hitstun: 16, knockbackX: 7, knockbackY: -1 - i * 2,
+        vy: (i === 0 ? -2 : 1), isSpecial: true, color: "#9a8a72",
+        sheet: "./onoki_rock_proj_uniform.png", spriteFrames: 1, spriteW: 21, spriteH: 25, spriteSpeed: 4, spriteScale: 1.4,
+        spawnY: fighter.y + (fighter.h || 100) * (0.35 + i * 0.15),
+      }, context)
+    })
+  }
+  return true
+}
+export function executeOnokiSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "onoki") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  // AIRBORNE / FLIGHT-MODE specials (a schema-exception kit has more specials than ground directions,
+  // so the flight-context moves live on air inputs — mirrors Saitama/Isshiki). Fired while airborne OR
+  // while _flightActive (grounded === false covers both). Up = Rock Platform Ride (positioning rise);
+  // Down/Fwd = Fast Dive (diving spike); neutral/Back = Aerial Spin.
+  if (!grounded) {
+    if (dir === "U") return fireOnokiPlatformRide(fighter, context)
+    if (dir === "D" || dir === "F") return fireOnokiAirSpecial(fighter, "onokiFastDive", context)
+    return fireOnokiAirSpecial(fighter, "onokiAerialSpin", context)   // neutral / Back
+  }
+  // GROUND specials
+  if (dir === "F") return fireOnokiAttackSpecial(fighter, "onokiLunge", context)
+  if (dir === "B") return fireOnokiAttackSpecial(fighter, "onokiArmSwing", context)
+  if (dir === "U") return fireOnokiAttackSpecial(fighter, "onokiTauntFin", context)
+  if (dir === "D") return fireOnokiCapeSpin(fighter, context)
+  return fireOnokiAttackSpecial(fighter, "onokiRockFist", context)      // neutral — Rock Fist Transform Strike
+}
+// ── STAGE 4 — flight-mode / air specials + Rock Platform Ride. ──
+const ONOKI_AIR_SPECIALS = {
+  onokiFastDive:   { damage: 82, startup: 6, active: 5, recovery: 14, hitstun: 20, knockbackX: 8, knockbackY: 9,  spike: true, rangeX: 96, rangeY: 58, cost: 25 },   // flat-body forward-down dive (spikes)
+  onokiAerialSpin: { damage: 84, startup: 7, active: 6, recovery: 16, hitstun: 22, knockbackX: 9, knockbackY: -3,              rangeX: 90, rangeY: 74, cost: 30 },   // cape-trail spinning aerial hit
+}
+function fireOnokiAirSpecial(fighter, key, context) {
+  const md = ONOKI_AIR_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.spike = !!md.spike
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (key === "onokiFastDive") { fighter.vx = (fighter.facing || 1) * 13; fighter.vy = 10 }   // fast forward-down dive (carries during flight/airborne)
+  return true
+}
+// Rock Platform Ride — the novel POSITIONING special: Onoki conjures a rock platform and rides it UP to
+// higher ground (a self-contained instant reposition, independent of any platform-collision system — the
+// design's "simpler single-platform-ride version"). Brief i-frames, 0 damage. Renders the row_52 pose.
+function fireOnokiPlatformRide(fighter, context) {
+  const cost = 18
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  const dur = 24
+  fighter._spriteCastMove = "onokiPlatformRide"; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter.invulnTimer     = Math.max(fighter.invulnTimer || 0, 18)     // brief intangibility during the rise
+  fighter.vx = 0
+  fighter.y  = Math.max(-320, fighter.y - 90)                          // instant rise onto the rock platform (clamped to ceiling)
+  fighter.vy = 0; fighter.onGround = false; fighter.grounded = false
+  return true
+}
+// Jutsu Charge/Launch — CHARGE(P) hold → release fires a Dust Release blast projectile (row_16 = launch pose,
+// row_45 = the charge-hold "charge" loop). Fired from handleChargeRelease on a real HOLD; a P-TAP falls
+// through to the flight toggle. attackCooldown + the 40 Particle cost throttle recasts. Procedural dusty blast
+// (no dedicated projectile art in the batch → colored sphere).
+export function fireOnokiJutsu(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "onoki") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 40)) return false
+  fighter._spriteCastMove = "onokiJutsu"; fighter._spriteCastTimer = 26   // launch pose held through the cast
+  fighter.attackCooldown  = getAttackDuration(26, fighter)
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "onokiJutsuBlast", {
+      damage: 96, w: 46, h: 40, radius: 24, speed: 12, lifetime: 92,
+      hitstun: 22, knockbackX: 10, knockbackY: -2, isSpecial: true, color: "#cdb79a",
+    }, context)
+  })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ONOKI ULTIMATE — "Dust Release: Detachment of the Primitive World" (Stage 5). A camera-focus cast beat
+// (Onoki holds the row_46 hand-sign pose, onokiUltCast) that hands off to a PERSISTENT stone GOLEM: a
+// summoned sub-entity that lives on-field for ~10s and fights alongside Onoki with its own moveset (reuses
+// the summons.js persistent-entity architecture — Meeseeks/Nue lineage, oneHit:false so it keeps striking).
+// Unlike the roster's freeze-cinematic ults, the payoff is the ONGOING golem threat, not a one-shot nuke.
+// ─────────────────────────────────────────────────────────────────────────────
+const ONOKI_ULT_COST = 100
+export function executeOnokiUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "onoki") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, ONOKI_ULT_COST)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "onokiUltCast"; fighter._spriteCastTimer = 48   // hand-sign cast held through the summon
+  fighter.attackCooldown  = getAttackDuration(48, fighter)
+  focusCameraOnAction(context, fighter, opp, 1.3, 16)                       // camera zoom-in on the cast
+  shakeCamera(context, 8, 12)
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  // Hand off to the PERSISTENT golem after the cast beat (it rises from the rubble, then advances + strikes).
+  schedulePendingSpawn(30, () => {
+    const golem = spawnAssistSummon(fighter, { summonId: "onokiGolem" }, opp)
+    if (golem) { golem.frame = 0; shakeCamera(context, 10, 10) }           // shake as the golem lands
+  })
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -13212,6 +16307,8 @@ export function triggerSpecial(fighter, context = {}) {
     case "madara":  return executeMadaraSpecial(fighter, context)   // Stage 3 (one at a time): Katon Great Fireball (neutral); Gunbai/Mokuton/Susanoo set land in later passes
     case "obito":   return executeObitoSpecial(fighter, context)   // Ranged: Shuriken Throw (neutral/air) / Chakra Rod Throw (Fwd) / Giant Shuriken (Up)
     case "pain":    return executePainSpecial(fighter, context)   // Stage 3 gravity trio: Almighty Push (neutral) / Almighty Pull (Back) / Super Almighty Push (Down)
+    case "six_paths_pain": return executeSixPathsSpecial(fighter, context)   // per-_path kit; Deva (Path 0): Almighty Push (neutral) / Almighty Pull (Back) / Rinnegan Defense (Down). Swap = Charge+slot (updateSixPathsSwapCombo)
+    case "isshiki": return executeIsshikiSpecial(fighter, context)   // Sukunahikona (neutral) / Daikokuten rods (Fwd) / Daikokuten cubes (Down) / Gokashin Ensen fire (Up)
     case "tobi":    return executeTobiSpecial(fighter, context)   // Stage 3: neutral Special = Chain Grab (multi-stage command grab); other dirs land later
     case "netero":  return executeNeteroSpecial(fighter, context)   // Barrage Punches (melee flurry; command chain is Down+Heavy, separate)
     case "omololu": return executeOmoluSpecial(fighter, context)
@@ -13250,6 +16347,18 @@ export function triggerSpecial(fighter, context = {}) {
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
     case "chrollo": return executeChrolloSpecial(fighter, context)   // Nen Bolt (neutral/fwd projectile) / Blade Lunge (down knife-thrust)
     case "ghostface": return executeGhostfaceSpecial(fighter, context)   // Backstage Pass (spec §4.2): swap(Grab/Charge) / fakeout(attack) / getaway(Back) / side-switch(neutral) + knife specials Gutting Lunge(Fwd)/Low Gut(Down)
+    case "jason":   return executeJasonSpecial(fighter, context)   // Relentless Slash — the ONE special: committed lunging machete power-slash (Bloodlust; reuses the heavy art)
+    case "saitama": return executeSaitamaSpecial(fighter, context)   // GROUND: Serious Punch+shockwave(Fwd)/Two-Handed(Back)/Bargain Sale(Up)/Table Flip(Down). AIR: Headbutt(neutral)/Up→Down(Fwd)/Side Hop(Back/Down). (neutral GROUND = the tap/hold punch-combo, armed in game.js press-path)
+    case "onoki":   return executeOnokiSpecial(fighter, context)     // Dust Release — neutral=Rock Fist Transform / Fwd=Rock Fist Lunge / Back=Rock Arm Swing / Down=Cape Spin+rock projectiles / Up=Taunting Combo Finisher (launcher). Jutsu Charge/Launch = separate P-hold release.
+    case "kiba":    return executeKibaSpecial(fighter, context)      // Gatsuga (Fang Passing Fang) — neutral=Weak drill-rush / Fwd=Strong drill-rush (superArmor, further, ~2× energy)
+    case "boruto":  return executeBorutoSpecial(fighter, context)    // GROUND: Rasengan(neutral)/Shiden(Fwd)/Wind-Water(Back)/Palm Blast(Up)/Shadow Clone(Down). AIR: Rasengan(neutral)/Throw Weapon(Fwd)/Vanishing Rasengan(Back)
+    case "light":   return executeLightSpecial(fighter, context)     // GROUND: Y vortex(neutral)/L divekick(Fwd)/Ryuk anti-air(Up)/L rising burst(Back)/violet burst(Down). AIR: gunman rocket(neutral)/air punch(Fwd)
+    case "l_ryuuzaki": return executeLRyuuzakiSpecial(fighter, context)   // neutral=Golden Nova (marquee wide burst) / Fwd=Bazooka (long-range) / Back=Golden Rising Burst (launcher) / Down=Investigation/Analysis (non-lethal buff). Up RESERVED (Stage-5 Ryuk). EX kick-trail = cancel-only (updateLRyuuzakiCommandCombat)
+    case "mayuri":  return executeMayuriSpecial(fighter, context)    // neutral=Finger-Gun Blast (projectile) / Fwd=Energy Slash (crescent projectile) / Up=Rising Cut (launcher) / Down=Poison Cloud (DoT projectile) / Back=Lab Coat Open (damage buff)
+    case "yamamoto": return executeYamamotoSpecial(fighter, context) // neutral=Ground-Sweep Beam (fire projectile) / Fwd=Large Ground-Stab (flagship 90px crescent) / Down=Ground Eruption Stab (upward flame AOE launcher) / Up=Overhead Slam / Back=Horizontal Thrust (long active)
+    case "byakuya": return executeByakuyaSpecial(fighter, context)   // neutral=Senbonzakura Petal Cast / Fwd=Utsusemi Re-form Thrust / Up=Re-form Overhead (F+U share vanish) / Back=Shunpo blink / Down=Straight Thrust. AIR: neutral=Jump Slash / Fwd=Airborne Vault
+    case "hiruzen": return executeHiruzenSpecial(fighter, context)   // neutral = SPIN evasive dodge (i-frames + back-hop); Fwd/Down/Up borrowed jutsu land Stage 3
+    case "orochimaru": return executeOrochimaruSpecial(fighter, context)   // GROUND: SnakeSpit(neutral)/SwordLunge(Fwd)/SwordThrow(Back)/TailSweep(Up)/Slam(Down). AIR: SnakeLunge(neutral)/SnakeBarrage(Fwd)/Coil(Back)
     case "ben10":   return executeBen10Special(fighter, context)   // form-branched: XLR8 Dash/Sonic Rush · Diamondhead Shard/Rising Diamonds · Ben Hoverboard; art-less aliens → fallback
     case "albedo":  return executeBen10Special(fighter, context)   // Albedo shares Ben's alien specials
     default:        return executeFallbackSpecial(fighter, context)
@@ -13266,6 +16375,9 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
   if (isSpecialDisabled(fighter, "ultimate")) return false   // binding vow (Limitless Sacrifice / Assassin's Oath)
 
   const key = (fighter.rosterKey || fighter.id || "").toLowerCase()
+  // LIGHT — the Ultimate has two variants (neutral = writing / Down = scythe). game.js stamps _ultVariant from
+  // the live held direction at the press; the harness can force it via opts.variant. executeLightUltimate reads it.
+  if (key === "light" && opts.variant) fighter._ultVariant = opts.variant
 
   let cast
   switch (key) {
@@ -13280,6 +16392,18 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "madara":  cast = executeMadaraUltimate(fighter, context, !!opts.hold); break   // TIERED: TAP=Perfect Susanoo/Tengai Shinsei meteor cinematic · HOLD(≥180 energy)=Complete Susanoo giant
       case "hashirama": cast = executeHashiramaUltimate(fighter, context); break   // Sealing Jutsu — combo→Gracious Deity Gates pin→Naruto/Minato/Tobirama cameos→red barrier (freeze cinematic)
       case "pain":    cast = executePainUltimate(fighter, context); break   // Chibaku Tensei — cast → sphere growth → slam → flat/dome/flame-pillar ground effect (freeze cinematic)
+      case "six_paths_pain": cast = executeSixPathsUltimate(fighter, context); break   // Six Paths of Pain — the bodies swarm-rush; guaranteed range-independent payoff (Chibaku reserved for solo pain)
+      case "isshiki": cast = executeIsshikiUltimate(fighter, context); break   // Daikokuten Barrage (Finisher 3) — inline camera-focus cinematic: rod-rain guaranteed nuke (live fighter, no dup-instance)
+      case "saitama": cast = executeSaitamaUltimate(fighter, context); break   // Death Punch — inline freeze cinematic (live fighter charge→impact, no dup) + hi-res fullscreen backdrop; guaranteed payoff
+      case "onoki": cast = executeOnokiUltimate(fighter, context); break        // Detachment of the Primitive World — cast beat hands off to a PERSISTENT stone golem (summons.js onokiGolem)
+      case "mayuri": cast = executeMayuriUltimate(fighter, context); break      // Bankai: Konjiki Ashisogi Jizō — inline freeze cinematic (live fighter, no dup): golden construct assembles→crushes, guaranteed ~198 EFF
+      case "yamamoto": cast = executeYamamotoUltimate(fighter, context); break   // Ryūjin Jakka Overhead Slam — inline freeze cinematic (live fighter plays row 87+89, no dup): fire-vignette + camera zoom → guaranteed ~204 EFF slam
+      case "byakuya": cast = executeByakuyaUltimate(fighter, context); break     // Bankai: Senbonzakura Kageyoshi — 2-phase inline freeze cinematic (live fighter, no dup): charge+wings → transform → release thrust+blast, guaranteed ~204 EFF
+      case "hiruzen": cast = executeHiruzenUltimate(fighter, context); break   // Reaper Death Seal — inline freeze cinematic (live fighter, no dup): Shinigami soul-rip, pays 15% self-HP (canon life-cost)
+      case "orochimaru": cast = executeOrochimaruUltimate(fighter, context); break   // Summoning: Twin Serpents — inline freeze cinematic (live fighter, no dup): giant Manda-class snake strike, guaranteed ~210 EFF
+      case "kiba":    cast = executeKibaUltimate(fighter, context); break   // Three-Headed Wolf — inline freeze cinematic (live fighter feral-crouch, no dup): summon→charge→maul→vortex beats, guaranteed 2-hit ~198 EFF
+      case "boruto":  cast = executeBorutoUltimate(fighter, context); break   // Kote Barrage — inline freeze cinematic (live fighter plays 5-part Kote fire, no dup): 5 sure-hit beats, part-3 recoil PAYOFF, guaranteed ~198 EFF
+      case "light":   cast = executeLightUltimate(fighter, context);  break   // "As Planned" (writing, neutral U) / "I Am Kira" (scythe, Down+U via _ultVariant) — inline freeze cinematic, guaranteed ~204 EFF
       case "obito":   cast = executeObitoUltimate(fighter, context);   break   // Ten-Tails Jinchūriki — giant Juubi Bijūdama freeze-cinematic
       case "tobi":    cast = executeTobiUltimate(fighter, context);    break   // NINE-Tails (Kurama) Bijūdama freeze-cinematic (own art/module, NOT Obito's Ten-Tails)
 
@@ -13698,6 +16822,7 @@ export function updateTransformationState(fighter, context = {}) {
   // Sasuke Susanoo: tick the sustained-form timer (frame-based, no per-frame energy drain);
   // auto-reverts at 0 and arms the 20s ultimate cooldown. No-op when not in Susanoo.
   updateSasukeSusanoo(fighter)
+  updateBorutoKarma(fighter)     // Boruto Momoshiki Karma form: continuous energy drain + auto-revert at 0
   updateItachiSusanoo(fighter)   // Itachi single-tier Susanoo: tick its own timer + auto-revert
   updateNeteroGuanyin(fighter)   // Netero Guanyin Bodhisattva giant: tick its own timer + auto-revert
 

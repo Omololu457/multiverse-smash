@@ -37,6 +37,58 @@ export const SOURCED_ART = {
     artists: ["Omega (tolgayavuz85)"],
     source:  "fan sprite sheet (red_ranger_mmpr_sprite_sheet_by_tolgayavuz_d738par.png)",
     files:   ["red_ranger_mmpr_*.png", "redranger_*.png"]
+  },
+  // Jason Voorhees (Friday the 13th). Fan-made, non-commercial personal project — full
+  // attribution to the original DeviantArt sheet author is MANDATORY (mirrors Ghostface/Red Ranger).
+  jason: {
+    work:    "Jason Voorhees (Friday the 13th)",
+    artists: ["xxultra2006xx (DeviantArt)"],
+    source:  "fan sprite sheet (jason_voorhees_sprites_by_xxultra2006xx_dfgsawi.png)",
+    files:   ["jason_*.png", "jason_voorhees_*.png"]
+  },
+  // Saitama (One Punch Man). Fan-made JUS-style sprite sheet — attribution to the original
+  // DeviantArt author is MANDATORY (mirrors Jason/Ghostface/Red Ranger/Isshiki).
+  saitama: {
+    work:    "Saitama (One Punch Man)",
+    artists: ["arzeer (DeviantArt)"],
+    source:  "fan JUS-style sprite sheet (saitama_jus__by_arzeer_de00xcg.png)",
+    files:   ["saitama_*.png"]
+  },
+  // Isshiki Otsutsuki (Naruto / Boruto). Fan-made sprite sheet — attribution to the original
+  // DeviantArt author is MANDATORY (mirrors Jason/Ghostface/Red Ranger).
+  isshiki: {
+    work:    "Isshiki Otsutsuki (Boruto)",
+    artists: ["AltairFrameMaker (DeviantArt)"],
+    source:  "fan sprite sheet (isshiki_otsutsuki_nzc_by_altair_by_altairframemaker_deta3ps.png)",
+    files:   ["isshiki_*.png", "isshiki_otsutsuki_*.png"]
+  },
+  // Six Paths of Pain (Naruto) — the six-body multi-identity char (SEPARATE from the solo `pain`).
+  // Fan-made compilation sheet; the master p1_pain_tendo_row.png carried the credit block, transcribed
+  // here. Primary compiler DasonPikXD; the sheet lists numerous contributing spriters. Attribution to
+  // the original DeviantArt authors is MANDATORY (mirrors Jason/Isshiki/Ghostface).
+  six_paths_pain: {
+    work:    "Six Paths of Pain (Naruto)",
+    artists: ["DasonPikXD (compiler)", "Namèd", "MattFv", "Ender", "Scrxtchy", "Puig_096 (Felipe)", "Hordebib Spriter", "Sasa/-666", "Depokun", "Ropaa444", "Sasuke Sp", "DUX44", "Team Popo"],
+    source:  "fan compilation sprite sheet (Six Paths of Pain; credit block on p1_pain_tendo_row.png)",
+    files:   ["sixpaths_*.png"]
+  },
+  // Hiruzen Sarutobi (Naruto), the Third Hokage. Fan-made sprite sheet — attribution to the original
+  // DeviantArt author is MANDATORY (mirrors Jason/Isshiki/Ghostface). The raw dash/jump/back_jump strips
+  // shipped with a DeviantArt watermark; it was removed for this project (originals in _hiruzen_raw_backup/).
+  hiruzen: {
+    work:    "Hiruzen Sarutobi (Naruto)",
+    artists: ["juanshoalmao (DeviantArt)"],
+    source:  "fan sprite sheet (hiruzen_sarutobi_nzc_by_juanshoalmao_dcgqnsk-fullview.jpg)",
+    files:   ["hiruzen_*.png", "hiruzen_sarutobi_*.png"]
+  },
+  // Light Yagami (Death Note). Fan-made JUS sprite sheet — the master sheet embeds "make by prodijiu",
+  // so attribution to the original author is MANDATORY (mirrors Saitama/Jason/Isshiki). Resliced feet-aligned
+  // in-repo by tools/reslice_light.py. The resliced strips ship as light_*.png (not light_yagami_*).
+  light: {
+    work:    "Light Yagami (Death Note)",
+    artists: ["prodijiu (DeviantArt)"],
+    source:  "fan JUS sprite sheet (light_yagami_jus_sprite_by_prodijiu_d6j521b.png)",
+    files:   ["light_yagami_*.png", "light_*_uniform.png", "light_portrait*.png", "light_idle_uniform.png"]
   }
 }
 
@@ -53,7 +105,36 @@ export const PROJECT_ART_KEYS = [
   "beerus", "ben10", "albedo", "omniman",
   "omega_ranger", "samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger",
   "netero", "saiki", "killua", "flash", "gon", "batman", "hisoka", "superman",
-  "chrollo", "ghostface", "miwa", "ichigo", "zaraki", "zaraki_shikai"
+  "chrollo", "ghostface", "miwa", "ichigo", "zaraki", "zaraki_shikai",
+  // Orochimaru — NZC-style fan sprite sheet (same family as the other Naruto chars), resliced in-repo
+  // by tools/reslice_orochimaru.py. Raw sheets shipped generic p1_/p2_ names with NO baked artist text;
+  // provenance not individually documented → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
+  "orochimaru",
+  // Onoki (Third Tsuchikage, Naruto) — NZC-style fan sprite sheet delivered as generic numbered onoki_row_NN.png
+  // strips with NO baked artist text; resliced in-repo by tools/reslice_onoki.py → project-adapted bucket.
+  // Move to SOURCED_ART if an artist surfaces.
+  "onoki",
+  // Mayuri Kurotsuchi (12th-Division captain, Bleach) — fan sprite sheet delivered as generic numbered
+  // mayuri_kurotsuchi_row_NN.png strips with NO baked artist text; resliced in-repo by
+  // tools/reslice_mayuri.py → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
+  "mayuri",
+  // Kiba Inuzuka (+ Akamaru, Naruto) — fan sprite sheet delivered as generic per-action kiba_*.png files
+  // with NO baked artist text (a handful of source frames carried joke/troll text — those were EXCLUDED,
+  // not shipped); resliced in-repo by tools/reslice_kiba.py → project-adapted bucket. Move to SOURCED_ART
+  // if an artist surfaces.
+  "kiba",
+  // Boruto Uzumaki (Naruto/Boruto) — fan sprite sheet delivered as generic per-action boruto_*.png files
+  // (a handful carried baked-in blue move-name text labels — stripped, not shipped); resliced in-repo by
+  // tools/reslice_boruto.py → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
+  "boruto",
+  // Byakuya Kuchiki (Squad-6 captain, Bleach) — fan sprite sheet delivered as generic numbered
+  // Byakuya_Kuchiki_row_NN.png strips with NO baked artist text; resliced in-repo by tools/reslice_byakuya.py
+  // → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
+  "byakuya",
+  // L "Ryuuzaki" (Death Note) — fan sprite delivered as 29 keyed per-action/numbered l_ryuuzaki_*.png
+  // strips with NO baked artist text; keyed by tools/slice_l_ryuuzaki.py and resliced feet-aligned in-repo
+  // by tools/reslice_l_ryuuzaki.py → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
+  "l_ryuuzaki"
 ]
 
 // Every roster key that has a declared attribution (sourced OR project-adapted).

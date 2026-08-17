@@ -32,6 +32,15 @@ export const FX_SHEETS_BY_CHAR = {
     "./gojo_hollow_purple_orb_fx.png",
     "./gojo_red_orb_fx.png",
   ],
+  // L "Ryuuzaki" — Stage-4 special FX/summon sheets that ride as phantom-hitbox projectile sprites
+  // (nova / bazooka blast / rising burst). Cast poses live in characters.animationData (preloadFighter
+  // covers those). The Investigation notebook + EX kick-trail are cast/attack POSES (animationData), not
+  // spawned projectiles, so they are not listed here.
+  l_ryuuzaki: [
+    "./l_ryuuzaki_nova_uniform.png",
+    "./l_ryuuzaki_bazooka_proj_uniform.png",
+    "./l_ryuuzaki_rising_proj_uniform.png",
+  ],
   goku_black: [
     "./goku_black_ssj_rose_charge_uniform.png",
     "./goku_black_ssj_rose_dash.png",
@@ -285,6 +294,21 @@ export const FX_SHEETS_BY_CHAR = {
     "./zaraki_Yachiru_Kusajishi_throw_projectile_uniform.png",
     "./zaraki_specail_effect_assist_uniform.png",
     "./zaraki_special_effect_uniform.png",
+  ],
+  six_paths_pain: [
+    "./sixpaths_deva_rinnegan_uniform.png",   // Rinnegan Defense barrier-ring FX (Down special)
+    "./sixpaths_deva_sixpaths_uniform.png",   // Six Paths of Pain Ultimate — bodies-rush swarm FX
+    "./sixpaths_chiku_dog_uniform.png",       // Animal Path summons — three-headed dog
+    "./sixpaths_chiku_bird_uniform.png",      // giant hawk
+    "./sixpaths_chiku_rhino_uniform.png",     // armored rhino
+    "./sixpaths_chiku_toad_uniform.png",      // giant toad
+    "./sixpaths_gakido_barrier_uniform.png",  // Preta Path chakra-absorption barrier FX
+    "./sixpaths_ningen_soul_uniform.png",     // Human Path soul-rip — blue-soul FX
+    "./sixpaths_asura_missile_uniform.png",   // Asura Path — Missile Punch projectile
+    "./sixpaths_asura_rocket_uniform.png",    // Asura Path — Rocket Launcher volley
+    "./sixpaths_asura_supermissile_uniform.png", // Asura Path — Super Missile
+    "./sixpaths_naraka_kingofhell_uniform.png",  // Naraka Path — King of Hell Judgment head
+    "./sixpaths_naraka_restore_uniform.png",     // Naraka Path — Restoration (emerging head + doton flames)
   ],
 };
 

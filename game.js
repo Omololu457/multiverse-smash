@@ -72,6 +72,7 @@ import {
   applySupermanModeSystem, forceRevertSupermanModes,   // Superman Stage 4: Solar Flare (gold) + Kryptonian Overload (blue) sustained mode-toggles (drain tick + auto-revert)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
+  toggleBorutoKarma, enterBorutoKarma, revertBorutoKarma, isBorutoKarma, borutoAbsorbAttempt,   // Boruto Momoshiki Karma ultimate form (charge-TAP toggle, ~90% gate, drain) + Chakra Absorption (grab in Karma)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
   regenEnergy, updatePendingSpawns, clearAbilityState, executeSukunaMalevolentDash,
   applyCloneRendanStorm,   // #21 Clone Rendan Storm — flurry follow-ups on Naruto's basic light hit
@@ -79,9 +80,17 @@ import {
   spawnAbsoluteDefenseFx,   // Sasuke Absolute Defense — repurposed Susanoo-intro sheet as the barrier FX
 
   updateVegetaCommandCombat,   // Vegeta command-normal cancel chain (Y-track kick target combo)
+  updateIsshikiCommandCombat,  // Isshiki auto-combo strings (Light-triggered ground/air rekka)
   updateBen10CommandCombat,   // Ben 10 per-form Fwd+Heavy command chain (Ben jab / XLR8 combo / Diamondhead crystal swing)
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
   updateRedRangerMmprCommandCombat,   // Red Ranger MMPR punch-chain (Fwd+Heavy rekka → super 360° launcher) + air-Heavy dive-kick poke
+  updateSaitamaCommandCombat,   // Saitama "Spin-Punch" Fwd+Heavy command-normal rekka (turn_puch 3-stage, cancel-on-hit → launcher)
+  updateOrochimaruCommandCombat,   // Orochimaru Forward Strong (Fwd+Heavy directional strong — extended-reach Kusanagi snake-thrust)
+  updateKibaCommandCombat,   // Kiba bonus directional strongs (Fwd+Heavy → kibaFwdStrong lunge / air Fwd+Heavy → kibaAerialStrong spin)
+  updateBorutoCommandCombat, // Boruto bonus command-normals (Down+Heavy → low sweep / Air-Heavy → aerial cancel string)
+  revertKibaFourLegs,   // Kiba Four Legs (Shikyaku no Jutsu) timed-buff auto-revert (Stage 4)
+  cycleOrochimaruForm, applyOrochimaruForm, revertOrochimaruForm, orochimaruFormName,   // Orochimaru 3 alternate forms (Charge-TAP cycle, shed-skin transition, merged _skinAnim)
+  fireSaitamaPunchCombo,        // Saitama tiered tap/hold punch-combo (neutral Special release: tap → 10× / hold → 20× flurry)
   updateNeteroCommandCombat,   // Netero Down+Heavy command-normal cancel chain (down_attck_1 → cancel-on-hit → down_attck_2)
   updateOmniManCommandCombat,   // Omni-Man "Viltrumite Beatdown" Fwd+Heavy rekka + Fwd+Light push poke
   applyOmniManFlightSystem, toggleOmniManFlight, isOmniManFlying, isOmniManForcedDescent, executeOmniManSpecial, forceRevertOmniManFlight,   // Omni-Man Flight: toggle movement mode + shared-pool drain + forced-descent state machine + Stage-3 special + round-reset cleanup
@@ -96,10 +105,19 @@ import {
   updateSupermanCommandCombat,  // Superman Fwd+Heavy 3-hit "Kryptonian Rush" flying-punch chain (supRush1→2→Fin launcher, cancel-on-hit)
   updateTobiramaCommandCombat,   // Tobirama Fwd+Heavy 3-hit taijutsu chain (combo1→combo2→comboFin) + Fwd+Light/Back+Heavy pokes
   updateHashiramaCommandCombat,  // Hashirama Fwd+Heavy 3-hit chain (comboA→comboB→comboFin launcher) + Fwd+Light wood-straight poke
+  updateOnokiCommandCombat,      // Onoki Fwd+Heavy single command-normal (onokiCombo 11f taijutsu combo string)
+  updateYamamotoCommandCombat,   // Yamamoto Fwd+Heavy single command-normal (yamamotoCombo 11f multi-hit slash string)
+  fireYamamotoShunpo,            // Yamamoto Shunpo (Flash Step) — two-beat teleport-behind movement special (double-tap toward)
+  updateMayuriCommandCombat,     // Mayuri Fwd+Heavy 2-stage cancel-on-hit rekka (mayuriCmd1 poke string → mayuriCmd2 low flurry launcher)
+  updateLRyuuzakiCommandCombat,  // L "Ryuuzaki" Fwd+Heavy 3-stage cancel-on-hit rekka — merged capoeira chain (low sweep → rising crescent → aerial dive launcher)
+  fireOnokiJutsu,                // Onoki Jutsu Charge/Launch — fired from handleChargeRelease (P-HOLD→release Dust blast; P-TAP stays flight toggle)
   updateMadaraCommandCombat,     // Madara Fwd+Heavy → Susanoo Base Punch (command-normal, Stage 3 special #6)
   updateObitoCommandCombat,      // Obito Fwd+Heavy → "Kamui Rod Combo" 3-hit rekka (obitoRod1→2→3, cancel-on-hit)
   updatePainCommandCombat,       // Pain Fwd+Light → painJab; Fwd+Heavy → 3-stage rekka (painCombo1→2→3)
   updatePainAssistCombo,         // Pain "Six Paths Summon" — Charge + slot → 1 of 5 Akatsuki assist calls
+  updateSixPathsSwapCombo,       // Six Paths of Pain — Charge + slot → swap between the six Paths (free mid-match, cost+cooldown)
+  applySixPathsSwap,             // Six Paths of Pain — deterministic swap (harness setPath())
+  updateMayuriNemuAssist,        // Mayuri "Nemu" assist — Charge + Down (attack) / Up (uppercut launcher)
   updateObitoKamui, toggleObitoKamui, deactivateObitoKamui,   // Obito Kamui Intangibility (Stage 4): P-TAP continuous toggle + per-frame drain/melee-drop driver
   updateTobiCombat,              // Tobi (masked Obito alias) — per-frame combat watcher: Stage-2 air-kunai projectile spawn (own `_tobi*` state, no Obito coupling)
   updateTobiChainGrab,           // Tobi Stage-3 Chain Grab scripted state machine (whip→reach→snatched→smash, all `_tobiChain*`)
@@ -129,6 +147,8 @@ import {
   startYujiKoma,            // Yuji "Koma" REPEAT release — begin the mash-extend flurry (Ultimate Phase-2 payload; Stage 4 engine)
   updateYujiKomaCombat,     // Yuji "Koma" per-frame driver — mash to extend the flurry, auto-chain to the finisher
   fireMakiPowerCharge, revertMakiPowerCharge, makiShibuyaActive,  // Maki Power Charge self-buff (charge-release) + Shibuya-form probe
+  revertMayuriLabCoat,           // Mayuri Lab Coat Open buff — timed damage-multiplier auto-revert
+  revertLRyuuzakiAnalysis,       // L "Ryuuzaki" Investigation/Analysis non-lethal self-buff — timed damage-multiplier auto-revert
 
   getGhostfaceCallInPool,        // Ghostface Call-In: the active identity's 4-character companion pool
   triggerGhostfaceSwap, updateGhostfaceSwap, isGhostfaceSwapActive, ghostfaceSwapTimer, ghostfaceSwapTarget, GHOSTFACE_SWAP_SLOTS,  // Ghostface Companion Swap ("Kameo"): full-kit swap into a pool companion, fixed window, auto-revert (now a branch of the Backstage Pass)
@@ -142,7 +162,8 @@ import {
   fireHashiramaWoodPunch,      // Hashirama Wood Release Punch — fired from handleChargeRelease (CHARGE hold→release, tap=base / hold=Super wood spear)
   fireNezukoRunScratchRelease, // Nezuko Run & Scratch — fired from handleChargeRelease (CHARGE hold→release, forward claw rush)
   updateNezukoUltChain,        // Nezuko Kekijutsu Baketsu — per-frame phase1→phase2 auto-chain driver
-  revertNezukoDemon            // Nezuko Demon Transformation — revert-to-base (timer expiry)
+  revertNezukoDemon,           // Nezuko Demon Transformation — revert-to-base (timer expiry)
+  revertHiruzenEnma            // Hiruzen Enma (Monkey King Staff) buff — revert damage/reach multipliers (timer expiry)
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha } from "./ui.js"
@@ -211,6 +232,9 @@ import {
   activateDomain, updateDomains, drawDomains, clearDomains,
   drawDomainBackground, getDomainHUDData
 } from "./domains.js"
+import {
+  spawnCubeTrap, updateCubeTraps, drawCubeTraps, clearCubeTraps, cubeTrapState
+} from "./cubeTrap.js"   // Isshiki Daikokuten cube shrink-trap (domains.js sibling)
 import { activeEffects, addEffect, updateEffects, updateEnergyRegen, clearEffects } from "./effects.js"
 import {
   updateKuramaUltimate, isKuramaCinematicActive, drawKuramaCinematic, clearKuramaUltimate,
@@ -362,6 +386,7 @@ import { pickRengokuVoice, RENGOKU_VOICE } from "./rengokuVoice.js"   // Rengoku
 import { pickShinobuVoice, SHINOBU_VOICE } from "./shinobuVoice.js"   // Shinobu intro voice pool + harness hooks (audio-only)
 import { pickInosukeVoice, INOSUKE_VOICE } from "./inosukeVoice.js"   // Inosuke intro/win voice pools + harness hooks (audio-only)
 import { pickNezukoVoice, NEZUKO_VOICE } from "./nezukoVoice.js"   // Nezuko intro/win grunt pools + harness hooks (audio-only; muffled — no dialogue)
+import { pickJasonVoice, JASON_VOICE } from "./jasonVoice.js"     // Jason non-verbal combat SFX pools + harness hook (audio-only; effort/pain/roar by trigger)
 import { pickMiwaVoice, MIWA_VOICE } from "./miwaVoice.js"   // Miwa intro(+taunt)/win voice pools (audio-only, JP dub)
 import { pickMadaraVoice, MADARA_VOICE } from "./madaraVoice.js"   // Madara intro(+taunt)/win voice pools (audio-only, JA)
 import { pickHashiramaVoice, HASHIRAMA_VOICE } from "./hashiramaVoice.js"   // Hashirama intro(+taunt)/win/clone voice pools (audio-only, JA)
@@ -370,6 +395,14 @@ import { pickObitoVoice, OBITO_VOICE } from "./obitoVoice.js"   // Obito intro(+
 import { TOBI_VOICE } from "./tobiVoice.js"                     // Tobi (masked Obito alias) intro voice pool (audio-only, JA — separate module from Obito)
 import { pickZarakiVoice, ZARAKI_VOICE } from "./zarakiVoice.js"   // Zaraki intro/taunt/win voice pools (audio-only, JA)
 import { pickIchigoVoice, ICHIGO_VOICE } from "./ichigoVoice.js"   // Ichigo intro(+taunt)/win voice pools (audio-only, JA)
+import { pickIsshikiVoice, ISSHIKI_VOICE } from "./isshikiVoice.js"   // Isshiki intro(+taunt)/win voice pools (audio-only, JA)
+import { pickHiruzenVoice, HIRUZEN_VOICE } from "./hiruzenVoice.js"   // Hiruzen intro/win voice pools + harness hook (audio-only, JA)
+import { pickSaitamaVoice, SAITAMA_VOICE } from "./saitamaVoice.js"   // Saitama intro/win voice pools + harness hook (audio-only)
+import { pickMayuriVoice, MAYURI_VOICE } from "./mayuriVoice.js"      // Mayuri intro/win voice pools + harness hook (audio-only, JA)
+import { pickYamamotoVoice, YAMAMOTO_VOICE } from "./yamamotoVoice.js"  // Yamamoto intro/win/cast/hit voice pools (audio-only, JA)
+import { pickOrochimaruVoice, OROCHIMARU_VOICE } from "./orochimaruVoice.js"   // Orochimaru intro/win voice pools + harness hook (audio-only, JA)
+import { pickKibaVoice, KIBA_VOICE } from "./kibaVoice.js"   // Kiba intro/win voice pools + harness hook (audio-only, JA)
+import { pickBorutoVoice, pickBorutoKarmaVoice, BORUTO_VOICE, BORUTO_KARMA_VOICE } from "./borutoVoice.js"   // Boruto base + Momoshiki Karma voice pools (audio-only, JA; separate pools)
 import { pickSukunaVoice, SUKUNA_VOICE, getSukunaVoiceLang, setSukunaVoiceLang } from "./sukunaVoice.js"   // Sukuna intro(+taunt)/win voice pools (audio-only; JA default, EN switchable)
 import { pickYujiVoice, YUJI_VOICE, setYujiVoiceLang, getYujiVoiceLang } from "./yujiVoice.js"   // Yuji intro/win voice pools (audio-only; EN+JA, JA active)
 import { pickTojiVoice, TOJI_VOICE, setTojiVoiceLang, getTojiVoiceLang } from "./tojiVoice.js"   // Toji intro/win voice pools (audio-only; EN+JA, JA active)
@@ -1614,7 +1647,7 @@ function startFFAMatch() {
   ffaState.teamMode = distinctTeams.size >= 2
   syncPhysicsBounds()
   ffaState.fighters = setupFFAFighters(ffaState.playerCount, ffaState.charKeys, ffaState.teams, ffaState.aiSlots)
-  clearAbilityState(); clearEffects(); clearDomains()
+  clearAbilityState(); clearEffects(); clearDomains(); clearCubeTraps()
   hitSparks.length = 0; damageNumbers.length = 0; activeDomains.length = 0
   if (typeof clearInputBuffers === "function") clearInputBuffers(ffaState.fighters)
   countdown = ROUND_START_COUNTDOWN
@@ -2158,6 +2191,10 @@ function createFighter(charKey, char, x, facing, controls, side) {
     // scale never reaches the >10 vx run threshold, so advancing normally shows WALK).
     // Retreat/backpedal still reads as a walk. Used by run-cycle characters (Tobirama).
     runWhenAdvancing: !!movement.runWhenAdvancing,
+    // Opt-in: holding Down while grounded+stationary resolves to a dedicated crouch sprite (sprite.js
+    // gated crouch branch). OFF by default so chars that ship a crouch strip only for crouch-ATTACK
+    // variants (Obito/Nezuko/Miwa/Ghostface) keep their standing idle while crouching, as before.
+    crouchIdle: !!movement.crouchIdle,
     hitstun: 0, blockstun: 0, hitstop: 0, attackCooldown: 0,
     currentAttack: null, attacking: false, currentMove: null,
     currentMoveData: null, moveTimer: 0, movePhase: "idle",
@@ -2281,7 +2318,7 @@ function resetRound() {
   clearEffects()           // activeEffects — timed buffs/stuns/regen (reverts each effect first)
   clearAllBindingVows()    // activeVows — drop stale fighter refs (fighters are recreated below)
   vowCue.timer = 0
-  clearDomains()
+  clearDomains(); clearCubeTraps()
   clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
@@ -2509,6 +2546,27 @@ const INTRO_VOICE = {
   // on the Down-hold taunt commit). Both entries — base + the dedicated Shikai select char. JA.
   zaraki:        { pick: () => pickZarakiVoice("intro"), gateReveal: false },
   zaraki_shikai: { pick: () => pickZarakiVoice("intro"), gateReveal: false },
+  // Isshiki picks ONE pre-fight line per match (foolish choice / no escape / futile effort / you can't
+  // defeat me…). No taunt action → intro + taunt-vibe lines combine on the intro beat (see isshikiVoice.js). JA.
+  isshiki: { pick: () => pickIsshikiVoice("intro"), gateReveal: false },
+  // Hiruzen picks ONE pre-fight line per match (Third-Hokage declarations / veteran confidence). No taunt
+  // action → intro-only. JA. No name-only clip → no namecall entry (his namecall beat skips cleanly).
+  hiruzen: { pick: () => pickHiruzenVoice("intro"), gateReveal: false },
+  // Saitama plays his "hero for fun" creed on the intro beat. No taunt action → intro-only.
+  saitama: { pick: () => pickSaitamaVoice("intro"), gateReveal: false },
+  // Orochimaru picks ONE pre-fight line per match (dramatic Sannin presence). No taunt action → intro-only.
+  // JA, vibe-sorted (unidentified). No name-only clip → no namecall entry (his namecall beat skips cleanly).
+  orochimaru: { pick: () => pickOrochimaruVoice("intro"), gateReveal: false },
+  // Kiba plays ONE pre-fight reveal line per match (JA, unidentified; the short name-like clip 11 is folded
+  // into the intro pool as the namecall beat). No taunt action → intro-only.
+  kiba: { pick: () => pickKibaVoice("intro"), gateReveal: false },
+  // Boruto picks ONE base-form intro line at random per match (JA, unidentified). The Karma pool is SEPARATE
+  // (its transform activation fires on enterBorutoKarma, never here) — base and Karma voices never mix.
+  boruto: { pick: () => pickBorutoVoice("intro"), gateReveal: false },
+  // Mayuri picks ONE pre-fight line per match. UNIDENTIFIED clips, signal-sorted. No name-only clip → no
+  // namecall entry (his namecall beat skips cleanly).
+  mayuri: { pick: () => pickMayuriVoice("intro"), gateReveal: false },
+  yamamoto: { pick: () => pickYamamotoVoice("intro"), gateReveal: false },
   // Netero intro voice removed (audio files deleted); with no entry here he skips the intro-voice
   // beat cleanly (maybeFireIntroVoice no-ops for unmapped fighters). Re-add an entry to re-enable.
 }
@@ -3146,7 +3204,7 @@ function resetToStart() {
   matchStats      = createMatchStats()
   matchIntroTimer = 0
   roundTimer      = ROUND_TIME
-  clearDomains()
+  clearDomains(); clearCubeTraps()
   clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
@@ -3548,6 +3606,44 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "minato") {
         sound.playSfxFile?.(pickMinatoVoice("win"), null)
       }
+      // JASON win — NON-VERBAL: a long-form victory roar OR a heavy breathing exhale at random. His batch
+      // shipped no win-pose sprite (shared procedural win state) — audio wired anyway. KO/death left SILENT.
+      if (winFighter?.rosterKey === "jason") {
+        sound.playSfxFile?.(pickJasonVoice("win"), null)
+      }
+      // ISSHIKI win voice — one of his mocking victory lines at random ("Good effort." / "A waste of chakra." /
+      // "You never stood a chance." / "Be grateful I even dealt with you."). JA.
+      if (winFighter?.rosterKey === "isshiki") {
+        sound.playSfxFile?.(pickIsshikiVoice("win"), null)
+      }
+      // HIRUZEN win voice — one of his veteran/teaching victory lines at random (JA).
+      if (winFighter?.rosterKey === "hiruzen") {
+        sound.playSfxFile?.(pickHiruzenVoice("win"), null)
+      }
+      // SAITAMA win voice — his confident "counting on you" sign-off (no mid-match slot on this roster).
+      if (winFighter?.rosterKey === "saitama") {
+        sound.playSfxFile?.(pickSaitamaVoice("win"), null)
+      }
+      // OROCHIMARU win voice — one of his smug/victorious sign-off lines at random (JA).
+      if (winFighter?.rosterKey === "orochimaru") {
+        sound.playSfxFile?.(pickOrochimaruVoice("win"), null)
+      }
+      // KIBA win voice — his confident victory line (JA).
+      if (winFighter?.rosterKey === "kiba") {
+        sound.playSfxFile?.(pickKibaVoice("win"), null)
+      }
+      // MAYURI win voice — one of his superior/clinical victory lines at random (JA).
+      if (winFighter?.rosterKey === "mayuri") {
+        sound.playSfxFile?.(pickMayuriVoice("win"), null)
+      }
+      // YAMAMOTO win voice — one of his calm, measured victory declarations at random (JA).
+      if (winFighter?.rosterKey === "yamamoto") {
+        sound.playSfxFile?.(pickYamamotoVoice("win"), null)
+      }
+      // BORUTO win voice — one of his confident base-form victory lines (JA). Base pool (Karma has no win pool).
+      if (winFighter?.rosterKey === "boruto") {
+        sound.playSfxFile?.(pickBorutoVoice("win"), null)
+      }
       // SASUKE win voice — same 50/50 coin-flip pattern as Beerus/Goku Black; alternates between
       // "It's over. It's over." and "Right now, I am the strongest in this world."
       if (winFighter?.rosterKey === "sasuke") {
@@ -3799,7 +3895,7 @@ function _doRematch() {
   clearEffects()
   clearAllBindingVows()
   for (const f of [p1, p2]) if (f) f._pendingSpawn = null   // reused objects → clear sprite deferred-spawn
-  clearDomains()
+  clearDomains(); clearCubeTraps()
   clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
@@ -3963,6 +4059,26 @@ function handleUltimateDown(fighter, key) {
   if (!fighter || key !== fighter.controls?.ultimate) return
   if (!fighter._ultHeld) { fighter._ultHeld = true; fighter._ultDownTime = performance.now() }
 }
+
+// SAITAMA tiered punch-combo tap/hold (mirrors the Madara Ultimate split, but on the SPECIAL key and only
+// for a NEUTRAL special — a directional Special stays the Stage-4 specials, fired on press). On keydown we
+// record when Special went down; the neutral-Special press path ARMS the combo (fighter._saitamaComboArmed);
+// on keyup we resolve tap (< threshold → 10×) vs hold (≥ threshold → 20×) and fire it.
+const SAITAMA_COMBO_HOLD_MS = 200   // hold Special ≥ this = the 20× (super) tier; a quick tap = 10×
+function handleSaitamaSpecialDown(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "saitama") return
+  if (!fighter._saitamaSpecialHeld) { fighter._saitamaSpecialHeld = true; fighter._saitamaComboDownTime = performance.now() }
+}
+function handleSaitamaSpecialRelease(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  fighter._saitamaSpecialHeld = false
+  if ((fighter.rosterKey || "").toLowerCase() !== "saitama") return
+  if (!fighter._saitamaComboArmed) return           // only a NEUTRAL special arms it (directional = Stage-4 specials)
+  fighter._saitamaComboArmed = false
+  const hold = (performance.now() - (fighter._saitamaComboDownTime || 0)) >= SAITAMA_COMBO_HOLD_MS
+  fireSaitamaPunchCombo(fighter, hold ? "super" : "normal", getAbilityContext())
+}
 function handleUltimateRelease(fighter, key) {
   if (!fighter || key !== fighter.controls?.ultimate) return
   const wasHeld = !!fighter._ultHeld
@@ -4009,6 +4125,14 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
+  // OROCHIMARU — Charge-TAP cycles his 3 alternate FORMS (body-transfer): base → Host Body → White
+  // Snake → Serpent Sage → base, each sharing the shed-skin transition. A charge HOLD still builds chakra
+  // normally (doEnergyCharge during the hold); only the quick TAP transforms. Cosmetic (no stat buff).
+  if ((fighter.rosterKey || "").toLowerCase() === "orochimaru") {
+    if (wasHeld && wasTap) cycleOrochimaruForm(fighter, getAbilityContext())
+    return
+  }
+
   // MINATO — quick Charge-TAP cycles the SELECTED Flying Raijin mark (only when ≥2 marks are
   // placed; the HUD 1/2/3 indicator moves). A charge HOLD still builds chakra normally via
   // doEnergyCharge during the hold; only the tap is repurposed. No marks → the tap is a no-op.
@@ -4034,6 +4158,15 @@ function handleChargeRelease(fighter, key) {
   if ((fighter.rosterKey || "").toLowerCase() === "hashirama") {
     if (wasHeld) fireHashiramaWoodPunch(fighter, !wasTap, getAbilityContext())
     return
+  }
+
+  // ONOKI — JUTSU CHARGE/LAUNCH: hold P to wind up (isCharging plays the row_45 "charge" loop), RELEASE
+  // to fire the Dust Release blast. Onoki is a canFly char, so a quick P-TAP must still toggle FLIGHT —
+  // therefore fire ONLY on a real HOLD and DON'T return on a tap: the tap falls through to the flight
+  // toggle below. (holding P also builds the Particle pool via doEnergyCharge — the wind-up is the cost.)
+  if ((fighter.rosterKey || "").toLowerCase() === "onoki") {
+    if (wasHeld) { fireOnokiJutsu(fighter, getAbilityContext()); return }
+    // tap → fall through to the canFly flight toggle
   }
 
   // MAKI — POWER CHARGE: hold P then RELEASE to fire the self-buff (1.3× damage, ~5s, cooldown-gated, no
@@ -4078,6 +4211,17 @@ function handleChargeRelease(fighter, key) {
       else if (wasHeld) enterVegetaBlue(fighter, getAbilityContext())   // SSJ → Blue (gated on energy≥160)
     }
     else if (wasHeld) enterVegetaSSJ(fighter, getAbilityContext())      // base → SSJ (real press-release only)
+    return
+  }
+
+  // BORUTO — MOMOSHIKI KARMA: same "charge up and RELEASE to transform" pattern as Vegeta SSJ. Intercepts
+  // BEFORE the tap-only path below so BOTH a hold-release (charge P up to ≥90% then let go) AND a quick tap
+  // enter the form (enterBorutoKarma gates on KARMA_THRESHOLD; below it, it no-ops harmlessly). While
+  // transformed, a quick TAP reverts early; a hold-release stays in form (tops up energy). Continuous drain
+  // + auto-revert at 0 live in updateBorutoKarma.
+  if (fighter.rosterKey === "boruto") {
+    if (fighter._karmaActive) { if (wasTap) revertBorutoKarma(fighter) }   // quick tap reverts; hold-release stays in form
+    else enterBorutoKarma(fighter, getAbilityContext())                    // base: TAP or HOLD-release both enter (gated on energy ≥ threshold)
     return
   }
 
@@ -4243,6 +4387,12 @@ function detectDoubleTapDashTeleport(fighter, key) {
       // MINATO FLYING RAIJIN: with ≥1 teleport mark placed, the F→F blink RECALLS to the selected
       // mark (his signature) instead of blinking behind the opponent. With no marks it falls through
       // to the normal blink-behind (Stage 1 behavior preserved).
+      // YAMAMOTO SHUNPO (Flash Step): the double-tap-toward teleport-behind is his two-beat vanish→reappear
+      // Shunpo (dedicated art + i-frames + 18 Reiatsu). If he can't pay, fall through to a normal ground dash.
+      if (fighter.rosterKey === "yamamoto") {
+        if (fireYamamotoShunpo(fighter, getAbilityContext())) { fighter.dashTeleportCooldown = 48; return }
+        fighter._dashTap = true; return
+      }
       if (fighter.rosterKey === "minato" && teleportToFlyingRaijinMark(fighter)) {
         fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 14   // Flying-Raijin flash-ring blink
         fighter.dashTeleportCooldown = 48
@@ -4349,6 +4499,12 @@ function updateMiscTimers(fighter) {
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
   if (fighter._hitVoiceCd     > 0) fighter._hitVoiceCd--                  // Beerus/Goku Black/Naruto hit-reaction voice cooldown (combat.js)
   if (fighter._atkVoiceCd     > 0) fighter._atkVoiceCd--                  // Naruto offense (Hokage/combo-burst) voice cooldown (combat.js)
+  if (fighter._jAtkVoiceCd    > 0) fighter._jAtkVoiceCd--                 // Jason attack-effort grunt cooldown (combat.applyJasonAttackVoice)
+  if (fighter._hzAtkVoiceCd   > 0) fighter._hzAtkVoiceCd--                // Hiruzen attack-effort shout cooldown (combat.applyHiruzenAttackVoice)
+  if (fighter._mayuriAtkVoiceCd > 0) fighter._mayuriAtkVoiceCd--          // Mayuri attack-effort shout cooldown (combat.applyMayuriAttackVoice)
+  if (fighter._yamamotoAtkVoiceCd > 0) fighter._yamamotoAtkVoiceCd--      // Yamamoto attack-effort shout cooldown (combat.applyYamamotoAttackVoice)
+  if (fighter._kibaAtkVoiceCd > 0) fighter._kibaAtkVoiceCd--              // Kiba light-flurry effort shout cooldown (combat.applyKibaAttackVoice)
+  if (fighter._borutoAtkVoiceCd > 0) fighter._borutoAtkVoiceCd--          // Boruto light/heavy effort-cast shout cooldown (combat.applyBorutoAttackVoice)
   // SASUKE "getting serious" voice — SEPARATE pool from the (deferred) manual taunt: fires ONCE per
   // round the first time his energy builds past 80% ("high-energy state" per spec). Rounds start at
   // 50% energy (createFighter startingEnergy) so this is a genuine upward crossing, never a match-start
@@ -4358,6 +4514,11 @@ function updateMiscTimers(fighter) {
     fighter._seriousVoiceDone = true
     sound.playSfxFile?.(Math.random() < 0.5 ? "sasuke_serious_taunt.mp3" : "sasuke_serious_taunt_alt.mp3", null)
   }
+  if (fighter._fourLegsTimer > 0) { fighter._fourLegsTimer--; if (fighter._fourLegsTimer <= 0) revertKibaFourLegs(fighter) }   // Kiba Four Legs buff duration → auto-revert
+  if (fighter._kibaThwTimer > 0) fighter._kibaThwTimer--   // Kiba Three-Headed Wolf ultimate cinematic countdown (drives drawKibaThreeHeadedCinematic)
+  if (fighter._shidenFxTimer > 0) fighter._shidenFxTimer--   // Boruto Lightning Shiden electric-arc overlay countdown (drives drawBorutoShidenFX)
+  if (fighter._borutoKoteTimer > 0) fighter._borutoKoteTimer--   // Boruto Kote Barrage ultimate cinematic countdown (drives drawBorutoKoteFX + drawBorutoKoteCinematic)
+  if (fighter._lightKiraTimer > 0) fighter._lightKiraTimer--     // Light Yagami "I Am Kira" scythe-ult cinematic countdown (drives drawLightKiraCinematic panel-flash overlay)
   if (fighter.ultimateCooldown > 0) fighter.ultimateCooldown--            // universal ultimate recast lockout
   if (fighter.comboBreakerCd > 0) fighter.comboBreakerCd--                // meterless combo-breaker cooldown-cost (Stage 1 pilot: zenitsu)
   if (fighter.summonCooldown  > 0) fighter.summonCooldown--
@@ -4419,10 +4580,22 @@ function updateMiscTimers(fighter) {
   }
   if (fighter._makiPowerCd > 0) fighter._makiPowerCd--                     // Maki Power Charge recast lockout
   if (fighter._makiPowerTimer > 0 && --fighter._makiPowerTimer <= 0) revertMakiPowerCharge(fighter)   // Power Charge buff window expiry → auto-revert
+  if (fighter._mayuriCoatTimer > 0 && --fighter._mayuriCoatTimer <= 0) revertMayuriLabCoat(fighter)   // Mayuri Lab Coat Open buff window expiry → auto-revert
+  if (fighter._lAnalysisTimer > 0 && --fighter._lAnalysisTimer <= 0) revertLRyuuzakiAnalysis(fighter)  // L Investigation/Analysis buff window expiry → auto-revert
+  if (fighter._lAnalysisCd > 0) fighter._lAnalysisCd--                                                 // Analysis recast cooldown tick
+  if (fighter._byakuyaFadeTimer > 0) fighter._byakuyaFadeTimer--   // Byakuya Shunpo/Utsusemi vanish alpha-fade + petal-FX window countdown
+  if (fighter._byakuyaBankaiTimer > 0) fighter._byakuyaBankaiTimer--   // Byakuya Bankai (Senbonzakura Kageyoshi) cinematic countdown (drives the wings/blast overlay)
+  if ((fighter._mayuriCoatCd || 0) > 0) fighter._mayuriCoatCd--                                        // Lab Coat Open recast cooldown
   trackMakiShibuyaUnlock(fighter)                                          // Maki HP-threshold (≤25%) ultimate unlock (persists once crossed)
   if (fighter._rengokuCountering > 0) fighter._rengokuCountering--          // Rengoku Counter riposte-window countdown (checkParry hook)
   if (fighter._gunbaiReflect > 0) fighter._gunbaiReflect--                  // Madara Gunbai reflect-window countdown (combat.resolveProjectileHitsMulti hook)
   if (fighter._madaraSusanoo > 0) { fighter._madaraSusanoo--; if (fighter._madaraSusanoo <= 0) revertMadaraSusanoo(fighter) }   // Madara tier-3 Susanoo armor-mode duration → auto-revert
+  if (fighter._enmaTimer > 0) { fighter._enmaTimer--; if (fighter._enmaTimer <= 0) revertHiruzenEnma(fighter) }   // Hiruzen Enma (Monkey King Staff) buff duration → auto-revert damage/reach multipliers
+  if (fighter._reaperSealTimer > 0) fighter._reaperSealTimer--   // Hiruzen Reaper Death Seal cinematic countdown (drives drawHiruzenReaperCinematic screen-space FX)
+  if (fighter._oroSummonTimer > 0) fighter._oroSummonTimer--     // Orochimaru Summon ultimate cinematic countdown (drives drawOrochimaruSummonCinematic screen-space FX)
+  if (fighter._mayuriBankaiTimer > 0) fighter._mayuriBankaiTimer--   // Mayuri Bankai (Konjiki Ashisogi Jizō) cinematic countdown (drives drawMayuriBankaiCinematic construct overlay)
+  if (fighter._yamamotoUltTimer > 0) fighter._yamamotoUltTimer--     // Yamamoto Overhead Slam ultimate countdown (drives drawYamamotoUltimateCinematic fire-vignette overlay)
+  if (fighter._saitamaDeathTimer > 0) fighter._saitamaDeathTimer--   // Saitama Death Punch cinematic countdown (drives drawSaitamaDeathPunchCinematic fullscreen backdrop overlay)
   if (fighter._madaraComplete > 0) { fighter._madaraComplete--; if (fighter._madaraComplete <= 0) revertMadaraCompleteSusanoo(fighter) }   // Madara tier-4 Complete Susanoo giant duration → auto-revert
   if (fighter.activeDomainTimer > 0) fighter.activeDomainTimer--
   if (fighter._spriteCastTimer > 0 && --fighter._spriteCastTimer <= 0) fighter._spriteCastMove = null
@@ -4565,6 +4738,12 @@ function updateMovementInput(fighter) {
   // PAIN — "Six Paths Summon" assist selector (Charge + slot). Runs before the jump/attack path so its
   // _omxConsume can swallow the Charge+↑ / Charge+Light slot press (no double jump/swing).
   updatePainAssistCombo(fighter, inputState, getAbilityContext())
+  // SIX PATHS OF PAIN — Path swap selector (Charge + slot). Runs before the jump/attack path so its
+  // _omxConsume swallows the Charge+↑ / Charge+Light / Charge+Heavy slot press (no double jump/swing).
+  updateSixPathsSwapCombo(fighter, inputState, getAbilityContext())
+  // MAYURI — Nemu assist selector (Charge + Down/Up). Same slot: runs before the jump/attack path so its
+  // _omxConsume can swallow the Charge+↑ jump press (no double jump when calling the uppercut).
+  updateMayuriNemuAssist(fighter, inputState, getAbilityContext())
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return
   // OMNI-MAN FLIGHT: the P (charge) button is TAP-to-toggle-Flight / HOLD-to-charge (Gojo-Infinity
   // pattern). The TAP toggle fires on keyUP in handleChargeRelease; a HOLD falls through to the
@@ -4690,7 +4869,8 @@ function buildNormalControlState(fighter, vKeys) {
     downAir:  !g && vKeys[c.light] &&  vKeys[c.down] && !cl,   // airborne S+J = down-air spike
     airHeavy: !g && vKeys[c.heavy] && !ch,             // airborne K = AERIAL HARD (Madara Susanoo-hand grab); no-op for chars without an air_heavy move
     light:    g  && vKeys[c.light] && !cl,             // J
-    heavy:    g  && vKeys[c.heavy] && !ch               // K
+    heavy:    g  && vKeys[c.heavy] && !ch,              // K
+    crouch:   g  && vKeys[c.down]                       // grounded Down-hold → crouch context (drives Jason's crouch-normal sprite swap; no-op for chars without crouch strips)
   }
 }
 
@@ -4789,6 +4969,18 @@ function _updatePlayerCombatBody(fighter) {
     return
   }
 
+  // BORUTO — CHAKRA ABSORPTION (Karma-only): GRAB (O, no Block) opens the reactive absorb window. Costs HP
+  // on the attempt EVERY time; a projectile/energy attack landing in the window is negated + refunds energy
+  // (combat.shouldBorutoAbsorb), while melee/whiff just eats the HP. Edge-detected + consumed before grab/
+  // special so the O press doesn't also throw. Karma-gated (borutoAbsorbAttempt no-ops in base form).
+  if (fighter.rosterKey === "boruto" && fighter._karmaActive) {
+    const grabEdge = !!inputState.grab && !inputState.block && !fighter._absorbPrevGrab
+    fighter._absorbPrevGrab = !!inputState.grab
+    if (grabEdge && canStart && !charging) { borutoAbsorbAttempt(fighter, getAbilityContext()); return }
+  } else if (fighter.rosterKey === "boruto") {
+    fighter._absorbPrevGrab = !!inputState.grab
+  }
+
   // Specials are L (direction-modified inside executeXSpecial). Gojo's Infinity
   // toggle moved to P-TAP (handleChargeRelease), so Down+Special is free for the
   // S+L motion specials (e.g. Hollow Purple = S,A+L).
@@ -4804,6 +4996,11 @@ function _updatePlayerCombatBody(fighter) {
     // Modifiers held the SAME frame Special is buffered — read by Ghostface's Backstage Pass to pick its
     // branch (Grab/Charge = swap, attack btn = fakeout). Only Ghostface reads it; harmless for everyone else.
     fighter._specialHeldMods = { grab: !!inputState.grab, charge: !!inputState.charge, attack: !!(inputState.light || inputState.heavy || inputState.upAttack) }
+    // SAITAMA — a NEUTRAL Special is the tiered tap/hold punch-combo, resolved on RELEASE (handleSaitama-
+    // SpecialRelease). Arm it and consume the press so no press-fire happens; a DIRECTIONAL Special falls
+    // through to triggerSpecial (the Stage-4 specials). Only grounded (the flurry is a ground special).
+    if ((fighter.rosterKey || "").toLowerCase() === "saitama" && !fighter._specialHeldDir &&
+        (fighter.onGround ?? fighter.grounded ?? true)) { fighter._saitamaComboArmed = true; return }
     triggerSpecial(fighter,  getAbilityContext()); return
   }
   // CHROLLO — Down+Ultimate = BANDIT'S ECHO (copy the marked opponent special/ultimate). Plain Ultimate stays
@@ -4814,6 +5011,12 @@ function _updatePlayerCombatBody(fighter) {
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "chrollo"
       && betaHeldDirFromInput(inputState, fighter.facing) === "D" && fighter._beMark) {
     triggerBanditEcho(fighter, getAbilityContext()); return
+  }
+  // LIGHT YAGAMI — the Ultimate has two variants: neutral = "As Planned" (Death Note writing), Down+Ultimate =
+  // "I Am Kira" (notebook→scythe). Stamp the live held direction the frame Ultimate is pressed so
+  // executeLightUltimate picks the branch (mirrors the special path's betaHeldDirFromInput read).
+  if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "light") {
+    fighter._ultVariant = (betaHeldDirFromInput(inputState, fighter.facing) === "D") ? "scythe" : "writing"
   }
   // MADARA + NEZUKO fire the Ultimate on RELEASE (tap/hold split in handleUltimateRelease), so skip the press path for them.
   if (canStart && !charging && inputState.ultimate && !["madara", "nezuko"].includes((fighter.rosterKey || "").toLowerCase())) { triggerUltimate(fighter, getAbilityContext()); return }
@@ -4837,6 +5040,12 @@ function _updatePlayerCombatBody(fighter) {
   if ((fighter.rosterKey || "").toLowerCase() === "vegeta" && !charging &&
       updateVegetaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
+  // ISSHIKI auto-combo strings: neutral LIGHT opens the ground string (attacks_base 3/2/5) or the air
+  // string (air_attacks) by context, re-tap Light during recovery to continue (cancel-on-hit). Consumes
+  // the input only when it fires (returns true → skip normal path); neutral heavy/up/down_air stay normal.
+  if ((fighter.rosterKey || "").toLowerCase() === "isshiki" && !charging &&
+      updateIsshikiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
   // BEN 10 command chain: Forward+Heavy opens the active form's rekka (Ben-human jab / XLR8 3-hit combo /
   // Diamondhead crystal swing), re-tap Heavy during recovery to continue (cancel-on-hit). Form-aware via
   // the active alien. Consumes the input only when it fires; neutral light/heavy stay on the normal path.
@@ -4854,6 +5063,17 @@ function _updatePlayerCombatBody(fighter) {
   // down_air stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "red_ranger_mmpr" && !charging &&
       updateRedRangerMmprCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SAITAMA "Spin-Punch" chain: Fwd+Heavy opens saitamaTurn1, re-tap Heavy during recovery to cancel into
+  // saitamaTurn2 → saitamaTurn3 launcher (cancel-on-hit; a whiff/block ends the string). Consumes the input
+  // only when it fires (returns true → skip normal path); neutral light/heavy/up/air/down_air stay normal.
+  if ((fighter.rosterKey || "").toLowerCase() === "saitama" && !charging &&
+      updateSaitamaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // OROCHIMARU Forward Strong: Fwd+Heavy fires the extended-reach Kusanagi snake-thrust (single hit).
+  // Consumes the input only when it fires (returns true → skip normal path); neutral heavy stays normal.
+  if ((fighter.rosterKey || "").toLowerCase() === "orochimaru" && !charging &&
+      updateOrochimaruCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // NETERO command chain: Down+Heavy opens down_attck_1, re-tap Heavy during recovery to cancel into
   // down_attck_2 (cancel-on-hit; a whiff/block ends the string). Consumes the input only when it fires
@@ -4925,6 +5145,38 @@ function _updatePlayerCombatBody(fighter) {
   // Consumes the input only when it fires; neutral light/heavy/up/air/down_air stay on the normal path.
   if ((fighter.rosterKey || "").toLowerCase() === "hashirama" && !charging &&
       updateHashiramaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // ONOKI — Fwd+Heavy → onokiCombo (single 11f taijutsu command-normal; neutral light/heavy/up/air/
+  // down_air stay on the normal path). Consumes the input only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "onoki" && !charging &&
+      updateOnokiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // YAMAMOTO — Fwd+Heavy → yamamotoCombo (single 11f MULTI-HIT slash string; neutral light/heavy/up/air/
+  // down_air stay on the normal path). Consumes the input only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "yamamoto" && !charging &&
+      updateYamamotoCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // MAYURI — Fwd+Heavy opens mayuriCmd1 (finger-poke string) → re-tap Heavy on a clean hit → mayuriCmd2
+  // (low flurry launcher). Cancel-on-hit; a whiff/block ends the string. Neutral light/heavy/up/air/
+  // down_air stay on the normal path. Consumes the input only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "mayuri" && !charging &&
+      updateMayuriCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // L "RYUUZAKI" — Fwd+Heavy opens lRyuuzakiCmd1 (low sweep) → re-tap Heavy on a clean hit → lRyuuzakiCmd2
+  // (rising crescent) → re-tap again → lRyuuzakiCmd3 (aerial dive launcher). Cancel-on-hit; a whiff/block
+  // ends the string. Neutral light/heavy/up/air/down_air stay on the normal path. Consumes on fire.
+  if ((fighter.rosterKey || "").toLowerCase() === "l_ryuuzaki" && !charging &&
+      updateLRyuuzakiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // KIBA — Fwd+Heavy → kibaFwdStrong (ground lunge) / air Fwd+Heavy → kibaAerialStrong (spin). Bonus
+  // directional strongs; neutral light/heavy/up/air/down_air stay on the normal path. Consumes on fire.
+  if ((fighter.rosterKey || "").toLowerCase() === "kiba" && !charging &&
+      updateKibaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // BORUTO — Ground Down+Heavy → borutoLowSweep (forced-knockdown low sweep) / Air Heavy → borutoAirCombo1
+  // → re-tap Heavy on a clean hit → borutoAirCombo2 (spinning-dive spike). Neutral normals stay auto-routed.
+  if ((fighter.rosterKey || "").toLowerCase() === "boruto" && !charging &&
+      updateBorutoCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // MADARA — Fwd+Heavy → Susanoo Base Punch (command-normal; neutral Heavy stays the combo_1 normal).
   // Consumes the input only when it fires.
@@ -6095,6 +6347,938 @@ function drawNezukoVoidEmberOverlay(c, fighter) {
   c.restore()
 }
 
+// JASON NIGHTMARE VOID — procedural crimson-red overlay on top of the void-black slasher. Same
+// architecture as the other Void overlays (seeded once via _mulberry32, normalized to the sprite bbox
+// _lastDraw* so it tracks every pose). CRIMSON-RED specifically (ties to the blood/horror theme; distinct
+// from every other character's Void color). Two elements: (1) drifting rising blood-red particle motes +
+// soft glow pools, and (2) two GLOWING RED EYES burning through the hockey mask (pulsing).
+function seedJasonVoidField(fighter) {
+  const rnd = _mulberry32(0x1A5074D3)
+  const halfWidth = ny => ny < 0.28 ? 0.15 : (ny < 0.66 ? 0.30 : 0.24)   // head / torso / legs silhouette
+  const motes = []
+  for (let i = 0; i < 20; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.2, rise: 0.0009 + rnd() * 0.0022,
+                 swayAmp: 0.008 + rnd() * 0.020, swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2,
+                 a: 0.40 + rnd() * 0.45, flick: 0.6 + rnd() * 1.2 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.6 + rnd() * 0.3, r: 0.16 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })   // faint low pools only — keep the body reading BLACK
+  fighter._jasonVoidFX = { motes, glows }
+}
+// Saitama "Void Caped Baldy" — full-black hero suit with a heroic GOLD aura (Alien-X register, mirrors
+// Hiruzen's amber field but brighter/punchier to read as raw power). Gated on skinId "saitamaVoidCaped".
+function seedSaitamaVoidField(fighter) {
+  const rnd = _mulberry32(0x5A17A9A1)
+  const halfWidth = ny => ny < 0.24 ? 0.14 : (ny < 0.66 ? 0.26 : 0.22)   // bald head / torso / legs silhouette
+  const motes = []
+  for (let i = 0; i < 22; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.4, rise: 0.0011 + rnd() * 0.0026,
+                 swayAmp: 0.008 + rnd() * 0.022, swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2,
+                 a: 0.42 + rnd() * 0.45, flick: 0.6 + rnd() * 1.3 })
+  }
+  const glows = []
+  for (let i = 0; i < 3; i++) glows.push({ nx: 0.36 + rnd() * 0.28, ny: 0.45 + rnd() * 0.45, r: 0.18 + rnd() * 0.14, a: 0.06 + rnd() * 0.06 })   // faint gold pools — keep the body reading BLACK
+  fighter._saitamaVoidFX = { motes, glows }
+}
+function drawSaitamaVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "saitamaVoidCaped") return
+  if (!fighter._saitamaVoidFX) seedSaitamaVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._saitamaVoidFX
+  const t = (fighter._saitamaVoidClock = (fighter._saitamaVoidClock || 0) + 1)
+  const GOLD = "#FFC21E"
+  c.save()
+  for (const g of fx.glows) {                     // soft golden glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(GOLD, g.a)); grad.addColorStop(1, _rgbaHex(GOLD, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#FFD24A"; c.shadowBlur = 4; c.fillStyle = "#FFE38A"   // bright gold power motes
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)                 // rise + wrap
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.08 * m.flick + m.phase)      // twinkle
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  // GLOWING GOLD EYES on the void silhouette (facing-agnostic; steady heroic pulse). Head band ≈ ny 0.11.
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.10)
+  const eyeR = Math.max(1.4, w * 0.028)
+  const eyeY = y + h * 0.110
+  c.globalAlpha = Math.max(0, Math.min(1, 0.88 * pulse))
+  c.shadowColor = "#FFB000"; c.shadowBlur = 7; c.fillStyle = "#FFD24A"
+  for (const ex of [0.44, 0.56]) {
+    c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+function drawJasonVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "jasonNightmareVoid") return
+  if (!fighter._jasonVoidFX) seedJasonVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._jasonVoidFX
+  const t = (fighter._jasonVoidClock = (fighter._jasonVoidClock || 0) + 1)
+  const CRIMSON = "#C81028"
+  c.save()
+  for (const g of fx.glows) {                     // soft crimson glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(CRIMSON, g.a)); grad.addColorStop(1, _rgbaHex(CRIMSON, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#FF3A3A"; c.shadowBlur = 3; c.fillStyle = "#FF6A6A"   // bright red core + soft glow
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)                 // rise + wrap
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.08 * m.flick + m.phase)      // flicker
+    const fade = ny < 0.12 ? ny / 0.12 : 1                               // die out near the top
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  // GLOWING RED EYES burning through the mask (facing-aware; pulse). Head band ≈ ny 0.11.
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.12)
+  const eyeR = Math.max(1.4, w * 0.030)
+  const eyeY = y + h * 0.115
+  c.globalAlpha = Math.max(0, Math.min(1, 0.85 * pulse))
+  c.shadowColor = "#FF0000"; c.shadowBlur = 6; c.fillStyle = "#FF2A2A"
+  for (const ex of [0.435, 0.565]) {
+    c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
+// HIRUZEN ETERNAL VIGIL VOID — Alien-X-style amber-gold particle aura on the full-black silhouette body
+// (same architecture as Jason's Nightmare Void: seeded ONCE, normalized to the drawn bbox so it tracks
+// pose/scale). Drifting amber-gold cosmic motes + soft golden glow pools + calm glowing amber eyes. Gated
+// on the skin id → no-op for every other skin.
+function seedHiruzenVoidField(fighter) {
+  const rnd = _mulberry32(0x48495A17)
+  const halfWidth = ny => ny < 0.28 ? 0.15 : (ny < 0.66 ? 0.30 : 0.24)   // head / torso / legs silhouette
+  const motes = []
+  for (let i = 0; i < 22; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.4, rise: 0.0008 + rnd() * 0.0022,
+                 swayAmp: 0.010 + rnd() * 0.022, swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2,
+                 a: 0.45 + rnd() * 0.45, flick: 0.5 + rnd() * 1.3 })
+  }
+  const glows = []
+  for (let i = 0; i < 3; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.35 + rnd() * 0.5, r: 0.16 + rnd() * 0.14, a: 0.06 + rnd() * 0.06 })
+  fighter._hiruzenVoidFX = { motes, glows }
+}
+function drawHiruzenVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "hiruzenEternalVoid") return
+  if (!fighter._hiruzenVoidFX) seedHiruzenVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._hiruzenVoidFX
+  const t = (fighter._hiruzenVoidClock = (fighter._hiruzenVoidClock || 0) + 1)
+  const AMBER = "#FFB01E"
+  c.save()
+  for (const g of fx.glows) {                     // soft golden glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(AMBER, g.a)); grad.addColorStop(1, _rgbaHex(AMBER, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#FFCC55"; c.shadowBlur = 4; c.fillStyle = "#FFDD77"   // bright amber-gold cosmic motes
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)                 // slow rise + wrap
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.07 * m.flick + m.phase)      // twinkle
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  // CALM GLOWING AMBER EYES on the void silhouette (facing-agnostic; slow pulse).
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.09)
+  const eyeR = Math.max(1.4, w * 0.028)
+  const eyeY = y + h * 0.115
+  c.globalAlpha = Math.max(0, Math.min(1, 0.85 * pulse))
+  c.shadowColor = "#FFA000"; c.shadowBlur = 7; c.fillStyle = "#FFC83A"
+  for (const ex of [0.44, 0.56]) {
+    c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
+// OROCHIMARU UMBRAL SERPENT (Void) — violet serpent aura on the full-black silhouette (same Alien-X
+// architecture as Hiruzen/Onoki/Isshiki: seeded ONCE, normalized to the drawn bbox so it tracks pose/scale).
+// Drifting violet snake-scale motes + soft violet glow pools + burning slit-yellow snake eyes. Gated on id.
+function seedOrochimaruVoidField(fighter) {
+  const rnd = _mulberry32(0x0203C1A5)
+  const halfWidth = ny => ny < 0.20 ? 0.12 : (ny < 0.66 ? 0.26 : 0.20)   // head / robe / legs silhouette
+  const motes = []
+  for (let i = 0; i < 24; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.3, rise: 0.0009 + rnd() * 0.0022,
+                 swayAmp: 0.010 + rnd() * 0.026, swayFreq: 0.4 + rnd() * 1.1, phase: rnd() * Math.PI * 2,
+                 a: 0.38 + rnd() * 0.44, flick: 0.6 + rnd() * 1.2 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.5 + rnd() * 0.3, r: 0.16 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
+  fighter._oroVoidFX = { motes, glows }
+}
+function drawOrochimaruVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "orochimaruUmbralVoid") return
+  if (!fighter._oroVoidFX) seedOrochimaruVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._oroVoidFX
+  const t = (fighter._oroVoidClock = (fighter._oroVoidClock || 0) + 1)
+  const VIOLET = "#8A3CE0"
+  c.save()
+  for (const g of fx.glows) {                     // soft violet glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(VIOLET, g.a)); grad.addColorStop(1, _rgbaHex(VIOLET, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#B070FF"; c.shadowBlur = 4; c.fillStyle = "#C89CFF"   // bright violet snake-scale motes
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.07 * m.flick + m.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  // BURNING SLIT-YELLOW SNAKE EYES on the void silhouette (facing-agnostic; slow pulse).
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.10)
+  const eyeR = Math.max(1.4, w * 0.030)
+  const eyeY = y + h * 0.115
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#E6B800"; c.shadowBlur = 8; c.fillStyle = "#FFE24A"
+  for (const ex of [0.44, 0.56]) {
+    c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+    c.save(); c.globalAlpha = 1; c.fillStyle = "#1a1004"                 // slit pupil
+    c.fillRect(x + ex * w - eyeR * 0.18, eyeY - eyeR * 0.9, eyeR * 0.36, eyeR * 1.8); c.restore()
+  }
+  c.restore()
+}
+
+// ONOKI ETERNAL VOID — amber-stone "Dust Release" aura on the full-black silhouette (same Alien-X
+// architecture as Hiruzen/Isshiki: seeded ONCE, normalized to the drawn bbox so it tracks pose/scale).
+// Drifting pale rock-dust motes + soft amber glow pools + calm glowing amber eyes. Gated on the skin id.
+function seedOnokiVoidField(fighter) {
+  const rnd = _mulberry32(0x04E30C1A)
+  const halfWidth = ny => ny < 0.22 ? 0.13 : (ny < 0.62 ? 0.30 : 0.24)   // head / robe+cape / legs silhouette
+  const motes = []
+  for (let i = 0; i < 22; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.4, rise: 0.0008 + rnd() * 0.0020,
+                 swayAmp: 0.008 + rnd() * 0.022, swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2,
+                 a: 0.40 + rnd() * 0.45, flick: 0.6 + rnd() * 1.2 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.52 + rnd() * 0.3, r: 0.17 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
+  fighter._onokiVoidFX = { motes, glows }
+}
+function drawOnokiVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "onokiEternalVoid") return
+  if (!fighter._onokiVoidFX) seedOnokiVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._onokiVoidFX
+  const t = (fighter._onokiVoidClock = (fighter._onokiVoidClock || 0) + 1)
+  const AMBER = "#C9A36A"   // stone-dust amber (earthier than Hiruzen's pure gold)
+  c.save()
+  for (const g of fx.glows) {                       // soft amber glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(AMBER, g.a)); grad.addColorStop(1, _rgbaHex(AMBER, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#D9B87A"; c.shadowBlur = 4; c.fillStyle = "#E6CFA0"   // drifting pale rock-dust motes
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)                 // slow rise + wrap
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.07 * m.flick + m.phase)      // twinkle
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.09)                            // calm glowing amber eyes
+  const eyeR = Math.max(1.4, w * 0.026)
+  const eyeY = y + h * 0.11
+  c.globalAlpha = Math.max(0, Math.min(1, 0.85 * pulse))
+  c.shadowColor = "#B8862E"; c.shadowBlur = 7; c.fillStyle = "#FFC84A"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// YAMAMOTO — "Eternal Void" (Alien-X) aura on the full-black body. Same architecture as the Onoki/Mayuri
+// void overlays (seeded ONCE, normalized to the drawn bbox → tracks pose/scale). PALE-BLUE-WHITE motes +
+// glow + eyes — tied to Ryūjin Jakka's own pale rim-light colour (distinct from every other Void). Gated on
+// the skin id → no-op for every other skin.
+function seedYamamotoVoidField(fighter) {
+  const rnd = _mulberry32(0x0F1A3B7C)
+  const halfWidth = ny => ny < 0.24 ? 0.14 : (ny < 0.60 ? 0.28 : 0.32)   // head / torso+beard / wide hakama silhouette
+  const motes = []
+  for (let i = 0; i < 24; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.4, rise: 0.0010 + rnd() * 0.0024,
+                 swayAmp: 0.008 + rnd() * 0.024, swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2,
+                 a: 0.44 + rnd() * 0.45, flick: 0.6 + rnd() * 1.3 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.5 + rnd() * 0.3, r: 0.18 + rnd() * 0.12, a: 0.06 + rnd() * 0.05 })
+  fighter._yamamotoVoidFX = { motes, glows }
+}
+function drawYamamotoVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "yamamotoEternalVoid") return
+  if (!fighter._yamamotoVoidFX) seedYamamotoVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._yamamotoVoidFX
+  const t = (fighter._yamamotoVoidClock = (fighter._yamamotoVoidClock || 0) + 1)
+  const PALE = "#AFE4FF"   // Ryūjin Jakka pale rim-light (pale-blue-white)
+  c.save()
+  for (const g of fx.glows) {
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(PALE, g.a)); grad.addColorStop(1, _rgbaHex(PALE, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#CFF2FF"; c.shadowBlur = 4; c.fillStyle = "#EAFBFF"
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.07 * m.flick + m.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.09)
+  const eyeR = Math.max(1.4, w * 0.026), eyeY = y + h * 0.11
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#7FD0FF"; c.shadowBlur = 8; c.fillStyle = "#EAFBFF"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// MAYURI — "Eternal Void" (Alien-X) aura on the full-black body. Same architecture as the Onoki/Saitama
+// void overlays (seeded ONCE, normalized to the drawn bbox so it tracks pose/scale). Drifting POISON-GREEN
+// motes + soft green glow pools + burning toxic-green eyes — the mad scientist's venom made manifest.
+// Gated on the skin id → no-op for every other skin.
+function seedMayuriVoidField(fighter) {
+  const rnd = _mulberry32(0x0A17C3E5)
+  const halfWidth = ny => ny < 0.22 ? 0.13 : (ny < 0.64 ? 0.30 : 0.22)   // head / haori / legs silhouette
+  const motes = []
+  for (let i = 0; i < 22; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.3, rise: 0.0009 + rnd() * 0.0022,
+                 swayAmp: 0.008 + rnd() * 0.022, swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2,
+                 a: 0.42 + rnd() * 0.45, flick: 0.6 + rnd() * 1.3 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.52 + rnd() * 0.3, r: 0.17 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
+  fighter._mayuriVoidFX = { motes, glows }
+}
+function drawMayuriVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "mayuriEternalVoid") return
+  if (!fighter._mayuriVoidFX) seedMayuriVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._mayuriVoidFX
+  const t = (fighter._mayuriVoidClock = (fighter._mayuriVoidClock || 0) + 1)
+  const POISON = "#6FD03A"   // toxic poison-green
+  c.save()
+  for (const g of fx.glows) {                       // soft poison-green glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(POISON, g.a)); grad.addColorStop(1, _rgbaHex(POISON, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#9BE84A"; c.shadowBlur = 5; c.fillStyle = "#C6F58A"   // drifting toxic-green venom motes
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)                 // slow rise + wrap
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.07 * m.flick + m.phase)      // twinkle
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  const pulse = 0.55 + 0.45 * Math.sin(t * 0.11)                          // burning toxic-green eyes
+  const eyeR = Math.max(1.4, w * 0.026)
+  const eyeY = y + h * 0.11
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#3A8A1E"; c.shadowBlur = 8; c.fillStyle = "#A6FF3A"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// BYAKUYA ETERNAL VOID — Senbonzakura petal + reiatsu aura on the full-black noble silhouette (same Alien-X
+// architecture as Onoki/Mayuri/Kiba: seeded ONCE via mulberry32, normalized to the drawn bbox so it tracks
+// pose/scale). Drifting petal-pink motes + soft reiatsu-blue glow pools + glowing pale-blue eyes. Gated on
+// the skin id → no-op for every other skin.
+function seedByakuyaVoidField(fighter) {
+  const rnd = _mulberry32(0x0B7A6CE1)
+  const halfWidth = ny => ny < 0.22 ? 0.13 : (ny < 0.64 ? 0.31 : 0.22)   // head / haori / hakama silhouette
+  const motes = []
+  for (let i = 0; i < 24; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1.2 + rnd() * 2.4, rise: 0.0008 + rnd() * 0.0022,
+                 swayAmp: 0.012 + rnd() * 0.03, swayFreq: 0.4 + rnd() * 1.1, phase: rnd() * Math.PI * 2,
+                 a: 0.40 + rnd() * 0.45, flick: 0.5 + rnd() * 1.2 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.5 + rnd() * 0.3, r: 0.18 + rnd() * 0.12, a: 0.05 + rnd() * 0.06 })
+  fighter._byakuyaVoidFX = { motes, glows }
+}
+function drawByakuyaVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "byakuyaEternalVoid") return
+  if (!fighter._byakuyaVoidFX) seedByakuyaVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._byakuyaVoidFX
+  const t = (fighter._byakuyaVoidClock = (fighter._byakuyaVoidClock || 0) + 1)
+  const REIATSU = "#5A9BE8"   // cool reiatsu-blue glow
+  c.save()
+  for (const g of fx.glows) {                       // soft reiatsu-blue glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(REIATSU, g.a)); grad.addColorStop(1, _rgbaHex(REIATSU, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#F0A6C4"; c.shadowBlur = 5; c.fillStyle = "#F7C4D6"   // drifting Senbonzakura petal-pink motes
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)                 // slow rise + wrap
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.07 * m.flick + m.phase)      // twinkle
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  const pulse = 0.55 + 0.45 * Math.sin(t * 0.11)                          // glowing pale-blue eyes
+  const eyeR = Math.max(1.4, w * 0.026)
+  const eyeY = y + h * 0.11
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#3A6AC8"; c.shadowBlur = 8; c.fillStyle = "#BCE0FF"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// KIBA ETERNAL VOID — crimson beast/fang aura on the full-black silhouette (same Alien-X architecture as
+// Onoki/Hiruzen: seeded ONCE via mulberry32, normalized to the drawn bbox so it tracks pose/scale).
+// Drifting crimson blood-fang motes + soft red glow pools + burning red beast eyes. Gated on the skin id.
+function seedKibaVoidField(fighter) {
+  const rnd = _mulberry32(0x0C1BA5E7)
+  const halfWidth = ny => ny < 0.24 ? 0.15 : (ny < 0.66 ? 0.28 : 0.22)   // head / torso / legs silhouette
+  const motes = []
+  for (let i = 0; i < 22; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.2, rise: 0.0010 + rnd() * 0.0026,
+                 swayAmp: 0.010 + rnd() * 0.026, swayFreq: 0.5 + rnd() * 1.2, phase: rnd() * Math.PI * 2,
+                 a: 0.40 + rnd() * 0.45, flick: 0.7 + rnd() * 1.3 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.5 + rnd() * 0.32, r: 0.16 + rnd() * 0.13, a: 0.05 + rnd() * 0.06 })
+  fighter._kibaVoidFX = { motes, glows }
+}
+function drawKibaVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "kibaEternalVoid") return
+  if (!fighter._kibaVoidFX) seedKibaVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._kibaVoidFX
+  const t = (fighter._kibaVoidClock = (fighter._kibaVoidClock || 0) + 1)
+  const CRIMSON = "#B01E22"   // beast-blood crimson
+  c.save()
+  for (const g of fx.glows) {                       // soft crimson glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(CRIMSON, g.a)); grad.addColorStop(1, _rgbaHex(CRIMSON, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#E0303A"; c.shadowBlur = 4; c.fillStyle = "#F04A4A"   // drifting crimson blood-fang motes
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)                 // slow rise + wrap
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.045 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.08 * m.flick + m.phase)      // twinkle
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  const pulse = 0.55 + 0.45 * Math.sin(t * 0.12)                          // burning red beast eyes (feral flicker)
+  const eyeR = Math.max(1.4, w * 0.028)
+  const eyeY = y + h * 0.12
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#C01018"; c.shadowBlur = 8; c.fillStyle = "#FF3A3A"
+  for (const ex of [0.44, 0.56]) {
+    c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+    c.save(); c.globalAlpha = 1; c.fillStyle = "#180404"                 // slit beast pupil
+    c.fillRect(x + ex * w - eyeR * 0.2, eyeY - eyeR * 0.9, eyeR * 0.4, eyeR * 1.8); c.restore()
+  }
+  c.restore()
+}
+
+// LIGHT YAGAMI — VOID SOVEREIGN aura (Alien-X architecture, same as Onoki/Mayuri/Kiba/Byakuya: seeded ONCE
+// via mulberry32, normalized to the drawn bbox so it tracks pose/scale). Part B of the Void skin: slow-drifting
+// VIOLET Death-Note page-fragment / glyph motes (reusing the #7B4FA0-family violet already established as this
+// character's notebook/Shinigami-power colour) + soft violet glow pools + glowing violet eyes on the full-black
+// silhouette. Motes are small rectangles (page fragments) rather than round sparks. Gated on the skin id → no-op.
+function seedLightVoidField(fighter) {
+  const rnd = _mulberry32(0x1167A6AD)
+  const halfWidth = ny => ny < 0.24 ? 0.16 : (ny < 0.66 ? 0.26 : 0.18)   // head / suit-torso / legs silhouette
+  const motes = []
+  for (let i = 0; i < 22; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, w: 1.6 + rnd() * 2.8, h: 1.0 + rnd() * 1.6, rise: 0.0009 + rnd() * 0.0024,
+                 swayAmp: 0.014 + rnd() * 0.03, swayFreq: 0.4 + rnd() * 1.1, phase: rnd() * Math.PI * 2,
+                 a: 0.42 + rnd() * 0.45, flick: 0.5 + rnd() * 1.2 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.44 + rnd() * 0.3, r: 0.18 + rnd() * 0.12, a: 0.05 + rnd() * 0.06 })
+  fighter._lightVoidFX = { motes, glows }
+}
+function drawLightVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "lightVoidSovereign") return
+  if (!fighter._lightVoidFX) seedLightVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._lightVoidFX
+  const t = (fighter._lightVoidClock = (fighter._lightVoidClock || 0) + 1)
+  const VIOLET = "#7B4FA0"   // notebook / Shinigami-power violet
+  c.save()
+  for (const g of fx.glows) {                       // soft violet glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(VIOLET, g.a)); grad.addColorStop(1, _rgbaHex(VIOLET, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#9A5CD0"; c.shadowBlur = 4; c.fillStyle = "#C69CFF"   // drifting violet page-fragment glyph motes
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)                 // slow rise + wrap
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.042 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.075 * m.flick + m.phase)     // twinkle
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.w / 2, y + ny * h - m.h / 2, m.w, m.h)     // rectangular = torn page fragment
+  }
+  const pulse = 0.55 + 0.45 * Math.sin(t * 0.11)                          // glowing violet Kira eyes
+  const eyeR = Math.max(1.4, w * 0.026)
+  const eyeY = y + h * 0.11
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#5A2E90"; c.shadowBlur = 8; c.fillStyle = "#B061E0"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// BORUTO — Lightning Release: Shiden electric-arc overlay (Stage 3). Jagged cyan bolts crackle along the
+// extended forearm during the Shiden thrust (driven by the PUBLIC _shidenFxTimer) so the palm-strike reads
+// as a lightning technique — the source art carries NO electric FX. Pure render layer; no-op otherwise.
+// Coords use the drawn bbox (_lastDrawX/Y/W/H, world space; ctx camera-transformed by the caller).
+function drawBorutoShidenFX(c, fighter) {
+  if (!c || (fighter?._shidenFxTimer || 0) <= 0) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = fighter._shidenFxTimer, dir = fighter.facing || 1
+  const sx = x + w * 0.5, sy = y + h * 0.42                       // torso/shoulder origin
+  const ex = x + w * (dir === 1 ? 1.02 : -0.02), ey = y + h * 0.40  // just past the front (extended) hand
+  const rnd = (i) => { const s = Math.sin(t * 12.9898 + i * 78.233) * 43758.5453; return s - Math.floor(s) }
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  for (let a = 0; a < 3; a++) {                                    // 3 flickering bolts along the forearm
+    c.beginPath(); c.moveTo(sx, sy)
+    const seg = 5
+    for (let s = 1; s <= seg; s++) {
+      const p = s / seg
+      const bx = sx + (ex - sx) * p + (rnd(a * 9 + s) - 0.5) * w * 0.10
+      const by = sy + (ey - sy) * p + (rnd(a * 9 + s + 100) - 0.5) * h * 0.22
+      c.lineTo(bx, by)
+    }
+    c.strokeStyle = a === 0 ? "#dffbff" : "#6fe3ff"
+    c.lineWidth = a === 0 ? 2.4 : 1.4
+    c.globalAlpha = 0.5 + 0.4 * (0.5 + 0.5 * rnd(a * 3))
+    c.shadowColor = "#48c8ff"; c.shadowBlur = 8
+    c.stroke()
+  }
+  c.globalAlpha = 0.85; c.fillStyle = "#eaffff"; c.shadowColor = "#48c8ff"; c.shadowBlur = 10   // crackle burst at the hand
+  c.beginPath(); c.arc(ex, ey, Math.max(2, w * 0.05), 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
+// BORUTO — Kote (Scientific Ninja Tool) ULTIMATE FX (Stage 4), layered over the LIVE fighter as it plays the
+// 5-part Kote firing sequence (borutoKote cast, public _borutoKoteTimer): a small metallic GAUNTLET on the
+// front forearm (the source art barely draws the device), authored cyan MUZZLE-FLASH bursts at the hand on
+// each fire beat, and a warm ORANGE recoil spray on the part-3 PAYOFF beat (the source has no projectiles).
+// World space (_lastDrawX/Y/W/H). No-op for anyone not mid-Kote.
+function drawBorutoKoteFX(c, fighter) {
+  if (!c || (fighter?._borutoKoteTimer || 0) <= 0) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const max = fighter._borutoKoteMax || 110, elapsed = max - fighter._borutoKoteTimer, dir = fighter.facing || 1
+  const hx = x + w * (dir === 1 ? 0.96 : 0.04), hy = y + h * 0.40   // extended firing hand
+  c.save()
+  // GAUNTLET — a small dark-steel band + cyan indicator on the front forearm.
+  const gx = x + w * (dir === 1 ? 0.72 : 0.28), gy = y + h * 0.44
+  c.fillStyle = "#2b3440"; c.fillRect(gx - w * 0.06, gy - h * 0.03, w * 0.12, h * 0.06)
+  c.fillStyle = "#5cd6ff"; c.globalAlpha = 0.9; c.fillRect(gx - w * 0.02, gy - h * 0.012, w * 0.04, h * 0.024); c.globalAlpha = 1
+  for (const b of [{ f: 18, warm: false }, { f: 40, warm: false }, { f: 58, warm: true }, { f: 78, warm: false }, { f: 98, warm: false }]) {
+    const d = Math.abs(elapsed - b.f); if (d > 5) continue
+    const env = 1 - d / 5
+    c.globalCompositeOperation = "lighter"
+    if (b.warm) {   // PART-3 PAYOFF — warm orange/red recoil spray (the only warm FX)
+      const grad = c.createRadialGradient(hx, hy, 0, hx, hy, w * 0.55)
+      grad.addColorStop(0, `rgba(255,240,200,${0.9 * env})`); grad.addColorStop(0.4, `rgba(255,140,40,${0.7 * env})`); grad.addColorStop(1, "rgba(255,60,20,0)")
+      c.fillStyle = grad; c.beginPath(); c.arc(hx, hy, w * 0.55, 0, Math.PI * 2); c.fill()
+      c.strokeStyle = "#ffd08a"; c.lineWidth = 2.2; c.globalAlpha = 0.8 * env
+      for (let s = 0; s < 6; s++) { const a = (s / 6) * Math.PI * 2; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx + Math.cos(a) * w * 0.5 * env * dir, hy + Math.sin(a) * w * 0.4 * env); c.stroke() }
+    } else {        // cyan muzzle flash at the hand
+      const grad = c.createRadialGradient(hx, hy, 0, hx, hy, w * 0.32)
+      grad.addColorStop(0, `rgba(230,250,255,${0.9 * env})`); grad.addColorStop(0.5, `rgba(90,214,255,${0.6 * env})`); grad.addColorStop(1, "rgba(60,150,255,0)")
+      c.fillStyle = grad; c.beginPath(); c.arc(hx, hy, w * 0.32, 0, Math.PI * 2); c.fill()
+      c.strokeStyle = "#dffbff"; c.lineWidth = 2; c.globalAlpha = 0.7 * env
+      c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx + dir * w * 0.4 * env, hy); c.stroke()
+    }
+    c.globalAlpha = 1; c.globalCompositeOperation = "source-over"
+  }
+  c.restore()
+}
+
+// BORUTO — MOMOSHIKI KARMA overlay (transformation form): the NEW art the base sprite lacks — branching
+// BLUE Karma-seal markings down the face + a forearm mark, plus GLOWING BLUE eyes (the project's void-aura
+// glow-eye technique). Layered over the magenta __karma form-swap sheets. Gated on _karmaActive → no-op
+// otherwise. World space (_lastDrawX/Y/W/H). Markings are STATIC (bbox-relative); eyes pulse.
+function drawBorutoKarmaOverlay(c, fighter) {
+  if (!c || !fighter?._karmaActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const dir = fighter.facing || 1
+  const t = (fighter._karmaClock = (fighter._karmaClock || 0) + 1)
+  const KARMA = "#3C78B5", GLOW = "#7fc4ff"   // Karma seal blue RGB(60,120,181) + glow
+  c.save()
+  c.strokeStyle = KARMA; c.lineWidth = Math.max(1.1, w * 0.02); c.globalAlpha = 0.9
+  c.shadowColor = GLOW; c.shadowBlur = 5
+  const branch = (ox, oy, len, ang, depth) => {   // recursive lightning-bolt branch
+    if (depth <= 0) return
+    const ex = ox + Math.cos(ang) * len, ey = oy + Math.sin(ang) * len
+    c.beginPath(); c.moveTo(ox, oy); c.lineTo(ex, ey); c.stroke()
+    branch(ex, ey, len * 0.60, ang + 0.6 * dir, depth - 1)
+    branch(ex, ey, len * 0.55, ang - 0.5 * dir, depth - 1)
+  }
+  const fcx = x + w * (dir === 1 ? 0.56 : 0.44), fcy = y + h * 0.13   // cheek/temple, front of face
+  branch(fcx, fcy, h * 0.10, Math.PI * 0.62, 3)                       // main bolt down the cheek
+  branch(fcx + dir * w * 0.04, fcy - h * 0.02, h * 0.055, Math.PI * (0.5 - 0.2 * dir), 2)   // temple branch
+  branch(x + w * (dir === 1 ? 0.80 : 0.20), y + h * 0.50, h * 0.07, Math.PI * 0.5, 2)       // forearm mark (approx — hand pose not tracked)
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.14)                        // GLOWING BLUE eyes (pulse)
+  const eyeR = Math.max(1.5, w * 0.03), eyeY = y + h * 0.12
+  c.globalAlpha = Math.max(0, Math.min(1, 0.95 * pulse)); c.shadowColor = GLOW; c.shadowBlur = 9; c.fillStyle = "#a9dbff"
+  for (const ex of [0.46, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// MAYURI — movement FX overlays (Stage 1). Two resliced FX pairs layered BEHIND the body during
+// movement: a dash-trail GHOST (row_08/10 — the streaking-coat motion blur) shown while dashing or
+// running fast, and a ground SHOCKWAVE ring burst (row_09/11) that fires on each dash-start. Pure
+// render layer (no hitbox), gated on rosterKey → a no-op for everyone else. Coords use fighter.x/y/w/h
+// (world space; the ctx is camera-transformed by the caller) + spriteScale so it tracks the body.
+const _mayuriFxImgs = {}
+function _mayuriFxImg(src) {
+  if (!_mayuriFxImgs[src]) { const i = new Image(); i.src = src; _mayuriFxImgs[src] = i }
+  return _mayuriFxImgs[src]
+}
+function drawMayuriMovementFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "mayuri") return
+  const scale = fighter.spriteScale || 1.15
+  const w = fighter.w ?? 60, h = fighter.h ?? 110
+  const face = (fighter.facing ?? 1) < 0 ? -1 : 1
+  const bodyCX = fighter.x + w / 2
+  const feetY  = fighter.y + h
+  const dashing = (fighter.dashTimer || 0) > 0
+  const running = (fighter.onGround ?? fighter.grounded) && Math.abs(fighter.vx || 0) > 6 && !dashing
+  // The trail lingers a few frames past the dash (a deceleration ghost) so it reads as a continuous
+  // streak rather than snapping off the instant dashTimer hits 0. Refreshed every dash frame.
+  if (dashing) fighter._mayuriTrailHold = 8
+  else if ((fighter._mayuriTrailHold || 0) > 0 && !fighter._animFrozen) fighter._mayuriTrailHold--
+  const moving  = dashing || running || (fighter._mayuriTrailHold || 0) > 0
+
+  // Dash-start detection → arm the ground shockwave (dashTimer resets to its max on a new dash, so a
+  // rising edge means a fresh dash began). Timer counts a short fade-out for the ring burst.
+  const prevDash = fighter._mayuriPrevDash || 0
+  if ((fighter.dashTimer || 0) > prevDash) fighter._mayuriShockT = 16
+  fighter._mayuriPrevDash = fighter.dashTimer || 0
+  fighter._mayuriTrailActive = false
+  fighter._mayuriShockActive = false
+
+  // ── DASH-TRAIL GHOST (behind the body, trailing opposite the facing) ──
+  if (moving) {
+    const img = _mayuriFxImg("./mayuri_dashtrail_a_uniform.png")
+    if (img.complete && img.naturalWidth > 0) {
+      const frames = 3, fw = img.naturalWidth / frames, fh = img.naturalHeight
+      const t = (fighter._mayuriTrailT = (fighter._mayuriTrailT || 0) + 1)
+      const fi = Math.floor(t / 3) % frames
+      const dw = fw * scale, dh = fh * scale
+      c.save()
+      c.globalAlpha = dashing ? 0.42 : 0.26
+      c.translate(bodyCX - face * 18, feetY - dh / 2)   // sit slightly behind the body
+      c.scale(face, 1)
+      c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      c.restore()
+      fighter._mayuriTrailActive = true
+    }
+  }
+
+  // ── GROUND SHOCKWAVE RINGS (dash-start burst, at the feet) ──
+  if ((fighter._mayuriShockT || 0) > 0) {
+    const img = _mayuriFxImg("./mayuri_shockwave_a_uniform.png")
+    if (img.complete && img.naturalWidth > 0) {
+      const frames = 5, fw = img.naturalWidth / frames, fh = img.naturalHeight
+      const life = fighter._mayuriShockT
+      const fi = Math.min(frames - 1, Math.floor((16 - life) / 16 * frames))
+      const dw = fw * scale * 1.05, dh = fh * scale * 1.05
+      c.save()
+      c.globalAlpha = Math.max(0, Math.min(0.7, life / 16))
+      c.translate(bodyCX, feetY - dh / 2)
+      c.scale(face, 1)
+      c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      c.restore()
+      fighter._mayuriShockActive = true
+    }
+    if (!fighter._animFrozen) fighter._mayuriShockT--
+  }
+
+  // ── ATTACK-FX green energy-slash overlays, PAIRED with the up/air normals (row_26 / row_32). Synced to
+  // the attack sprite's frame index. up-slash rises ABOVE the head (vertical sword thrust); air-slash
+  // sweeps IN FRONT (forward horizontal slash). Gated on the resolved sprite action → auto-clears when
+  // the attack ends. ──
+  const act = fighter.spriteHandler?.currentAction
+  const sfi = fighter.spriteHandler?.frameIndex || 0
+  fighter._mayuriAtkFx = null
+  const atkFx = (act === "up")
+    ? { src: "./mayuri_upslash_fx_uniform.png", frames: 7, ox: face * 6, oy: -h * 0.72, sc: scale * 1.0 }
+    : (act === "air")
+    ? { src: "./mayuri_airslash_fx_uniform.png", frames: 6, ox: face * 46, oy: -h * 0.30, sc: scale * 1.0 }
+    : null
+  if (atkFx) {
+    const img = _mayuriFxImg(atkFx.src)
+    if (img.complete && img.naturalWidth > 0) {
+      const fw = img.naturalWidth / atkFx.frames, fh = img.naturalHeight
+      const fi = Math.min(atkFx.frames - 1, sfi)
+      const dw = fw * atkFx.sc, dh = fh * atkFx.sc
+      c.save()
+      c.globalAlpha = 0.9
+      c.translate(bodyCX + atkFx.ox, feetY + atkFx.oy)
+      c.scale(face, 1)
+      c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      c.restore()
+      fighter._mayuriAtkFx = act
+    }
+  }
+}
+
+// ── LIGHT YAGAMI — B-family normal FX overlays (Stage 2), frame-locked to the body. The gold spark (B) and
+// blue crescent-arc (B+Forward) FX are stored as SEPARATE frame sets (not baked onto the body strip, which is
+// shared/deduped between light+heavy) and drawn at the hitbox origin in front of the swing, synced to the
+// attack sprite's frameIndex and centred on the strike. Gated on rosterKey → a pure no-op for everyone else.
+const _lightFxImgs = {}
+function _lightFxImg(src) {
+  if (!_lightFxImgs[src]) { const i = new Image(); i.src = src; _lightFxImgs[src] = i }
+  return _lightFxImgs[src]
+}
+function drawLightNormalFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "light") return
+  const act = fighter.spriteHandler?.currentAction
+  // crouchLight also carries the gold B-spark (it IS a B-swipe). Heavy = the B+Forward blue crescent.
+  const cfg = (act === "light" || act === "crouchLight")
+    ? { src: "./light_b_goldfx_uniform.png", frames: 6, ox: 0.58, oy: -0.45, sc: 1.0 }
+    : (act === "heavy")
+    ? { src: "./light_bfwd_bluefx_uniform.png", frames: 7, ox: 0.72, oy: -0.42, sc: 1.05 }
+    : null
+  fighter._lightAtkFx = null
+  if (!cfg) return
+  const sfi = fighter.spriteHandler?.frameIndex || 0
+  if (sfi < 2) return   // hold off during the windup frames → FX pops on the strike, not the wind-up
+  const img = _lightFxImg(cfg.src)
+  if (!(img.complete && img.naturalWidth > 0)) return
+  const scale = fighter.spriteScale || 1.9
+  const w = fighter.w ?? 60, h = fighter.h ?? 110
+  const face = (fighter.facing ?? 1) < 0 ? -1 : 1
+  const bodyCX = fighter.x + w / 2, feetY = fighter.y + h
+  const fw = img.naturalWidth / cfg.frames, fh = img.naturalHeight
+  const fi = Math.min(cfg.frames - 1, sfi - 2)
+  const dw = fw * scale * cfg.sc, dh = fh * scale * cfg.sc
+  c.save()
+  c.globalAlpha = 0.92
+  c.translate(bodyCX + face * w * cfg.ox, feetY + h * cfg.oy)
+  c.scale(face, 1)
+  c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+  c.restore()
+  fighter._lightAtkFx = act
+}
+
+// ── BYAKUYA KUCHIKI — special FX overlays (Stage 4), frame-locked to the body. Two layers:
+//   (1) SENBONZAKURA petal ring during any Shunpo / Utsusemi vanish (driven by _byakuyaFadeTimer) — this is
+//       the confirmed cover for the alpha-fade blink (the pipeline can't do the row_04–07 scanline dissolve).
+//   (2) energy STREAK on the Straight Thrust / re-form Thrust, locked to spriteHandler.frameIndex.
+// Gated on rosterKey → a pure no-op for every other character.
+const _byakuyaFxImgs = {}
+function _byakuyaFxImg(src) {
+  if (!_byakuyaFxImgs[src]) { const i = new Image(); i.src = src; _byakuyaFxImgs[src] = i }
+  return _byakuyaFxImgs[src]
+}
+// Shunpo / Utsusemi body alpha-fade — faint the instant Byakuya vanishes, recover to solid as he re-forms.
+function _byakuyaFadeAlpha(fighter) {
+  const t = fighter?._byakuyaFadeTimer || 0
+  if (t <= 0) return 1
+  const p = Math.min(1, t / 20)           // 1 at cast → 0 at window end
+  return 0.15 + 0.85 * (1 - p)
+}
+function drawByakuyaSpecialFx(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "byakuya") return
+  const scale = fighter.spriteScale || 1.1
+  const w = fighter.w ?? 60, h = fighter.h ?? 100
+  const face = (fighter.facing ?? 1) < 0 ? -1 : 1
+  const bodyCX = fighter.x + w / 2
+  const bodyCY = fighter.y + h * 0.5
+  const feetY  = fighter.y + h
+  // (0) BANKAI cinematic — blue reiatsu WINGS grow behind Byakuya through the charge, then the Senbonzakura
+  // BLAST releases forward on the payoff. Driven by _byakuyaBankaiTimer (the tall non-floor-anchored FX space
+  // is realized HERE by offsetting the overlay up/forward from the body, not via the sprite anchor).
+  const bkT = fighter._byakuyaBankaiTimer || 0
+  if (bkT > 0) {
+    const max = fighter._byakuyaBankaiMax || 88
+    const t = 1 - bkT / max                       // 0 → 1 over the cinematic
+    const chargeFrac = 46 / max, thrustFrac = 56 / max
+    // wings: grow during charge, full loop after
+    const growing = t < chargeFrac
+    const wImg = _byakuyaFxImg(growing ? "./byakuya_bankai_wings_grow_uniform.png" : "./byakuya_bankai_wings_full_uniform.png")
+    if (wImg.complete && wImg.naturalWidth > 0) {
+      const frames = growing ? 5 : 3
+      const fw = wImg.naturalWidth / frames, fh = wImg.naturalHeight
+      const fi = growing ? Math.min(4, Math.floor((t / chargeFrac) * 5)) : (Math.floor((max - bkT) / 4) % 3)
+      const sc = scale * 1.45
+      const dw = fw * sc, dh = fh * sc
+      c.save()
+      c.globalCompositeOperation = "lighter"
+      c.globalAlpha = Math.min(0.9, 0.35 + t * 0.7)
+      c.translate(bodyCX, fighter.y + h * 0.32)     // sit at upper-torso, spread UP + behind
+      c.drawImage(wImg, fi * fw, 0, fw, fh, -dw / 2, -dh * 0.72, dw, dh)
+      c.restore()
+    }
+    // blast: releases forward on the payoff phase
+    if (t >= thrustFrac) {
+      const bImg = _byakuyaFxImg("./byakuya_bankai_blast_uniform.png")
+      if (bImg.complete && bImg.naturalWidth > 0) {
+        const fw = bImg.naturalWidth / 2, fh = bImg.naturalHeight
+        const bp = (t - thrustFrac) / Math.max(0.001, 1 - thrustFrac)   // 0 → 1 across payoff
+        const fi = bp < 0.5 ? 0 : 1
+        const sc = scale * (1.5 + bp * 0.6)
+        const dw = fw * sc, dh = fh * sc
+        c.save()
+        c.globalCompositeOperation = "lighter"
+        c.globalAlpha = Math.min(1, 0.5 + bp)
+        c.translate(bodyCX + face * (w * 0.5 + bp * 90), fighter.y + h * 0.42)
+        c.scale(face, 1)
+        c.drawImage(bImg, fi * fw, 0, fw, fh, -dw * 0.2, -dh / 2, dw, dh)
+        c.restore()
+      }
+    }
+  }
+  // (1) petal ring while blinking / re-forming (drive frame index off the fade timer so it plays out)
+  const fade = fighter._byakuyaFadeTimer || 0
+  if (fade > 0) {
+    const img = _byakuyaFxImg("./byakuya_petal_fx_uniform.png")
+    if (img.complete && img.naturalWidth > 0) {
+      const frames = 5, fw = img.naturalWidth / frames, fh = img.naturalHeight
+      const fi = Math.min(frames - 1, Math.floor((20 - fade) / 20 * frames))
+      const dw = fw * scale * 1.4, dh = fh * scale * 1.4
+      c.save()
+      c.globalAlpha = Math.max(0, Math.min(0.9, fade / 20 + 0.2))
+      c.translate(bodyCX, bodyCY)
+      c.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      c.restore()
+    }
+  }
+  // (2) thrust energy streak, frame-locked to the strike animation
+  const mv = fighter.currentMove || fighter._spriteCastMove
+  if (mv === "byakuyaThrust" || mv === "byakuyaReformThrust") {
+    const img = _byakuyaFxImg("./byakuya_thrust_fx_uniform.png")
+    if (img.complete && img.naturalWidth > 0) {
+      const frames = 5, fw = img.naturalWidth / frames, fh = img.naturalHeight
+      const sfi = fighter.spriteHandler?.frameIndex || 0
+      const fi = Math.min(frames - 1, sfi)
+      const dw = fw * scale * 1.15, dh = fh * scale * 1.15
+      c.save()
+      c.globalAlpha = 0.85
+      c.translate(bodyCX + face * w * 0.5, feetY - h * 0.42)
+      c.scale(face, 1)
+      c.drawImage(img, fi * fw, 0, fw, fh, -dw * 0.15, -dh / 2, dw, dh)
+      c.restore()
+    }
+  }
+}
+
+// ISSHIKI VOID SOVEREIGN — crimson Karma aura on the full-black body (same architecture as Jason's Nightmare
+// Void: seeded ONCE, normalized to the drawn bbox so it tracks pose/scale). Drifting crimson Kāma-seal motes
+// + soft low glow pools + burning red eyes on the horned head. Gated on the skin id → no-op for every other skin.
+function seedIsshikiVoidField(fighter) {
+  const rnd = _mulberry32(0x1554A0B2)
+  const halfWidth = ny => ny < 0.24 ? 0.14 : (ny < 0.64 ? 0.28 : 0.22)   // head / robe / legs silhouette
+  const motes = []
+  for (let i = 0; i < 20; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.2, rise: 0.0009 + rnd() * 0.0022,
+                 swayAmp: 0.008 + rnd() * 0.020, swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2,
+                 a: 0.42 + rnd() * 0.45, flick: 0.6 + rnd() * 1.2 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.55 + rnd() * 0.3, r: 0.16 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
+  fighter._isshikiVoidFX = { motes, glows }
+}
+function drawIsshikiVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "isshikiVoidSovereign") return
+  if (!fighter._isshikiVoidFX) seedIsshikiVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._isshikiVoidFX
+  const t = (fighter._isshikiVoidClock = (fighter._isshikiVoidClock || 0) + 1)
+  const CRIMSON = "#B01028"
+  c.save()
+  for (const g of fx.glows) {                     // soft crimson glow pools (faint — keep the body reading BLACK)
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(CRIMSON, g.a)); grad.addColorStop(1, _rgbaHex(CRIMSON, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#FF3A3A"; c.shadowBlur = 3; c.fillStyle = "#FF6A6A"   // crimson Kāma motes (bright core + soft glow)
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.08 * m.flick + m.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  // BURNING RED EYES on the horned head (Isshiki's head band ≈ ny 0.13; pulse).
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.12)
+  const eyeR = Math.max(1.4, w * 0.032)
+  const eyeY = y + h * 0.13
+  c.globalAlpha = Math.max(0, Math.min(1, 0.85 * pulse))
+  c.shadowColor = "#FF0000"; c.shadowBlur = 6; c.fillStyle = "#FF2A2A"
+  for (const ex of [0.44, 0.56]) {
+    c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
 // INOSUKE VOID BOAR — procedural drifting white "TUSK-SHARD" overlay (cosmetic), on top of the void-black
 // sprite. Same architecture as the other Void overlays (Sukuna ember / Minato spark / Gojo Infinity):
 // SEEDED ONCE per skin-load (deterministic _mulberry32), normalized to the sprite bbox (_lastDraw*) so it
@@ -6809,6 +7993,7 @@ function updateComboDisplay(fighter, side) {
 
 function updateEffectsAndDomains() {
   updateDomains([p1, p2].filter(Boolean), hitSparks)
+  updateCubeTraps([p1, p2].filter(Boolean), hitSparks, getAbilityContext())   // Isshiki cube trap (sibling of domains)
   // Hashirama Sealing Jutsu domain OVERLAY — non-freezing: ticks the gate-slam + looping cameo strikes
   // alongside the live domain (combat is NOT paused; only the trapped opponent is frozen by the domain).
   if (isHashiramaSealingJutsuCinematicActive()) {
@@ -6888,6 +8073,7 @@ function resetTraining() {
     f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
     f.attacking = false; f.isBlocking = false; f.isLaunched = false
     revertSSJRose(f)   // Goku Black: never start a round still in SSJ Rose (clears flag + art swap + stat mults)
+    revertBorutoKarma(f)   // Boruto: never start a round still in Momoshiki Karma (clears flag + art swap + stat mults)
   })
 }
 
@@ -7560,11 +8746,17 @@ function renderHybridFighter(fighter) {
     drawFlashAura(c, fighter)          // Flash — Flash Time red/gold afterimage trail, behind the body (Flash only)
     drawGonAdultAura(c, fighter)       // Gon — Adult Form green Nen aura/afterimage, behind the body (Gon only)
     drawMiwaVortex(c, fighter)         // Miwa — Rapid Slash Vortex FX, a separate overlay layer in front of the body (Miwa only)
+    drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
     } else {
       drawFighter(c, fighter, camera)
     }
+    drawLightNormalFx(c, fighter)       // Light Yagami — B-family normal FX: gold spark (light/crouch) + blue crescent (heavy), ON TOP of the body (Light only)
+    drawByakuyaSpecialFx(c, fighter)    // Byakuya — Senbonzakura petal ring (Shunpo/Utsusemi) + thrust streak, ON TOP of the body (Byakuya only)
+    drawBorutoShidenFX(c, fighter)      // Boruto — Lightning Shiden electric arcs along the forearm during the thrust, ON TOP of the body (Boruto only)
+    drawBorutoKoteFX(c, fighter)        // Boruto — Kote ultimate: gauntlet + hand-tracked muzzle-flash / part-3 recoil spray, ON TOP of the body (Boruto only)
+    drawBorutoKarmaOverlay(c, fighter)  // Boruto — Momoshiki Karma form: blue seal markings + glowing blue eyes, ON TOP of the magenta form-swap (Boruto only, _karmaActive)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
     drawEmberOverlay(c, fighter)        // Rengoku Void Ember — drifting rising embers, ON TOP of the void sprite
@@ -7577,6 +8769,17 @@ function renderHybridFighter(fighter) {
     drawGojoInfinityVoidOverlay(c, fighter)  // Gojo Infinity Void — slow blue-white motes + expanding barrier-ring pulses, ON TOP of the void sprite
     drawVoidBoarOverlay(c, fighter)     // Inosuke Void Boar — drifting jagged white tusk-shards + claw-mark scratches, ON TOP of the void sprite
     drawNezukoVoidEmberOverlay(c, fighter)   // Nezuko Void Sovereign — drifting crimson-pink Blood-Demon-Art ember motes, ON TOP of the void sprite
+    drawSaitamaVoidAuraOverlay(c, fighter)   // Saitama Void Caped Baldy — drifting heroic gold power motes + glowing gold eyes (Alien-X), ON TOP of the void-black hero suit
+    drawJasonVoidAuraOverlay(c, fighter)     // Jason Nightmare Void — drifting crimson-red blood motes + glowing red eyes, ON TOP of the void-black slasher
+    drawHiruzenVoidAuraOverlay(c, fighter)   // Hiruzen Eternal Vigil Void — drifting amber-gold cosmic motes + glowing amber eyes (Alien-X), ON TOP of the void-black silhouette
+    drawOnokiVoidAuraOverlay(c, fighter)     // Onoki Eternal Void — drifting pale rock-dust motes + amber glow + glowing amber eyes (Alien-X), ON TOP of the void-black Dust-Release silhouette
+    drawYamamotoVoidAuraOverlay(c, fighter)  // Yamamoto Eternal Void — drifting pale-blue-white Ryūjin Jakka embers + pale-blue glow + glowing pale-blue eyes (Alien-X), ON TOP of the void-black silhouette
+    drawMayuriVoidAuraOverlay(c, fighter)    // Mayuri Eternal Void — drifting toxic poison-green venom motes + green glow + burning green eyes (Alien-X), ON TOP of the void-black silhouette
+    drawByakuyaVoidAuraOverlay(c, fighter)   // Byakuya Eternal Void — drifting Senbonzakura petal-pink motes + reiatsu-blue glow + glowing pale-blue eyes (Alien-X), ON TOP of the void-black noble silhouette
+    drawKibaVoidAuraOverlay(c, fighter)      // Kiba Eternal Void — drifting crimson blood-fang motes + red glow + burning red beast eyes (Alien-X), ON TOP of the void-black silhouette
+    drawLightVoidAuraOverlay(c, fighter)     // Light Void Sovereign — drifting violet Death-Note page-fragment glyph motes + violet glow + glowing violet Kira eyes (Alien-X), ON TOP of the void-black silhouette
+    drawIsshikiVoidAuraOverlay(c, fighter)   // Isshiki Void Sovereign — crimson Kāma motes + burning red eyes, ON TOP of the void-black body
+    drawOrochimaruVoidAuraOverlay(c, fighter)   // Orochimaru Umbral Serpent — drifting violet snake-scale motes + burning slit-yellow snake eyes, ON TOP of the void-black silhouette
     drawTojiVoidOverlay(c, fighter)          // Toji Void Killer — drifting deep-red particles, ON TOP of the void-black sprite (tracks the sword/chain specials)
     drawMorpherVoidOverlay(c, fighter)       // Red Ranger Morpher Void — drifting morpher-red particles + morph-flash pulse-rings, ON TOP of the void-black sprite
     drawKamuiVoidOverlay(c, fighter)         // Tobi Kamui Void — drifting violet/red particles + rotating Kamui portal swirl-pulses, ON TOP of the void-black sprite
@@ -7614,7 +8817,7 @@ function renderHybridFighter(fighter) {
   // GHOSTFACE staging (render-only): Stalk-Vanish off-screen fade + opposite-edge slide-in, and the killer-
   // swap EXIT/FLASH/EMERGE body opacity. dx is a world-space DRAW offset — the hitbox/logic x never move.
   const _gfP = (fighter.rosterKey === "ghostface" || fighter._gfSwapActive || fighter._gfVanish || fighter._gfSwapCine) ? getGhostfacePresentation(fighter) : null
-  const bodyAlpha = revealAlpha * (fighter._tobiPhased ? 0.4 : 1) * _tojiFlyFadeAlpha(fighter) * (_gfP ? _gfP.alpha : 1)
+  const bodyAlpha = revealAlpha * (fighter._tobiPhased ? 0.4 : 1) * _tojiFlyFadeAlpha(fighter) * (_gfP ? _gfP.alpha : 1) * _byakuyaFadeAlpha(fighter)
   const gfDX = _gfP ? _gfP.dx : 0
 
   if (!fighter.tintColor) {
@@ -8138,6 +9341,432 @@ function _drawIntroAura(f) {
   ctx.restore()
 }
 
+// HIRUZEN two-part intro: while his intro pose plays (Hokage robe+hat → robe shed → combat stance),
+// the DISCARDED hat/robe (intro row 2, hiruzen_introrobe_uniform.png) tumbles down and settles on the
+// ground beside him — the "otherwise unused" wardrobe beat, composited as a world-space prop (mirrors
+// _drawIntroAura). Plays ONCE and holds the settled (flat-on-ground) last frame. No-op for everyone else.
+const HIRUZEN_INTRO_ROBE = { src: "./hiruzen_introrobe_uniform.png", frames: 4, w: 46, h: 36, speed: 7 }
+let _hiruzenRobeImg = null
+let _hiruzenRobeFrame = 0            // last globalFrameCount the robe actually drew (harness observable)
+let _hiruzenRobeRenderCount = 0
+function _drawHiruzenIntroRobe(f) {
+  if (!f || (f.rosterKey || "").toLowerCase() !== "hiruzen") return
+  if (!f._introPlaying || f._introVariant !== "intro") { f._hiruzenRobeStart = null; return }
+  if (!_hiruzenRobeImg) { _hiruzenRobeImg = new Image(); _hiruzenRobeImg.src = HIRUZEN_INTRO_ROBE.src }
+  if (!(_hiruzenRobeImg.complete && _hiruzenRobeImg.naturalWidth > 0)) return
+  // Only drop the robe AFTER the shed beat (intro pose reaches frame 2 = robe comes off); before that
+  // he's still wearing it, so a ground-robe would double up. Anchor the fall to that moment.
+  if ((f.spriteHandler?.frameIndex || 0) < 2 && f._hiruzenRobeStart == null) return
+  if (f._hiruzenRobeStart == null) f._hiruzenRobeStart = globalFrameCount
+  const { frames, w: fw, h: fh, speed } = HIRUZEN_INTRO_ROBE
+  // play once, hold last (settled) frame — the robe falls and stays on the ground
+  const fi = Math.min(frames - 1, Math.floor((globalFrameCount - f._hiruzenRobeStart) / speed))
+  const facing = f.facing ?? 1
+  const groundY = f.y + f.h
+  const dh = f.h * 0.42, dw = dh * (fw / fh)                 // crumpled garment ~ half body height
+  const cx = f.x + f.w / 2 - facing * f.w * 0.62            // tossed behind him (opposite facing)
+  _hiruzenRobeFrame = globalFrameCount
+  _hiruzenRobeRenderCount++
+  ctx.save()
+  ctx.globalAlpha = 0.95
+  ctx.drawImage(_hiruzenRobeImg, fi * fw, 0, fw, fh, cx - dw / 2, groundY - dh, dw, dh)
+  ctx.restore()
+}
+
+// HIRUZEN — ENMA (Monkey King Staff) buff indicator. While the transformation-buff is active (+damage/
+// +reach), Hiruzen wields the Adamantine Staff — drawn as a glowing brown bo-staff diagonally across him
+// plus a faint earthy aura, so the buff reads on-screen even without dedicated Enma art. No-op otherwise.
+function _drawHiruzenEnmaAura(f) {
+  if (!f || (f.rosterKey || "").toLowerCase() !== "hiruzen" || !f._enmaActive) return
+  const cx = f.x + (f.w || 60) / 2, cy = f.y + (f.h || 100) * 0.5
+  const bh = (f.h || 100) * 1.15                                   // staff length ~ body height
+  const pulse = 0.75 + 0.25 * Math.sin(globalFrameCount * 0.2)
+  ctx.save()
+  // faint earthy aura
+  ctx.globalAlpha = 0.18 * pulse
+  ctx.fillStyle = "#b58a4c"
+  ctx.beginPath(); ctx.ellipse(cx, cy, (f.w || 60) * 0.75, (f.h || 100) * 0.62, 0, 0, Math.PI * 2); ctx.fill()
+  // the bo-staff (diagonal), gold-brown with a bright core
+  const dx = (f.w || 60) * 0.42, dy = bh / 2
+  ctx.globalAlpha = 0.9
+  ctx.lineCap = "round"
+  ctx.strokeStyle = "#5a3a1a"; ctx.lineWidth = 7
+  ctx.beginPath(); ctx.moveTo(cx - dx, cy + dy); ctx.lineTo(cx + dx, cy - dy); ctx.stroke()
+  ctx.strokeStyle = "#c9954a"; ctx.lineWidth = 3.5
+  ctx.beginPath(); ctx.moveTo(cx - dx, cy + dy); ctx.lineTo(cx + dx, cy - dy); ctx.stroke()
+  // gold cap glints
+  ctx.globalAlpha = pulse
+  ctx.fillStyle = "#ffcf6b"
+  ctx.beginPath(); ctx.arc(cx + dx, cy - dy, 3.5, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.arc(cx - dx, cy + dy, 3.5, 0, Math.PI * 2); ctx.fill()
+  ctx.restore()
+}
+
+// HIRUZEN ULTIMATE — Reaper Death Seal (Shiki Fūjin). Fullscreen freeze-cinematic SCREEN treatment (mirrors
+// the other drawXCinematic overlays): a dark spectral vignette + a hooded Shinigami rising behind Hiruzen,
+// dragging the opponent's soul out along a wavy thread, then a soul-rip flash at the payoff. Driven by the
+// LIVE caster's _reaperSealTimer (abilities.executeHiruzenUltimate) — NO duplicate fighter instance. No-op
+// when no Hiruzen is sealing. Leans on camera + procedural spectral FX since no dedicated ult art exists.
+let _reaperCineRenders = 0, _reaperCineMaxEnv = 0
+function drawHiruzenReaperCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._reaperSealTimer || 0) > 0)
+  if (!caster) return
+  _reaperCineRenders++
+  const max = caster._reaperSealMax || 66
+  const t = 1 - caster._reaperSealTimer / max                                    // 0 → 1 over the cinematic
+  const env = t < 0.15 ? t / 0.15 : t > 0.82 ? Math.max(0, (1 - t) / 0.18) : 1   // fade in / hold / fade out
+  if (env > _reaperCineMaxEnv) _reaperCineMaxEnv = env
+  const cw = canvas.width, ch = canvas.height
+  const opp = caster === p1 ? p2 : p1
+  const cs = _worldToScreen(caster.x + (caster.w || 60) / 2, caster.y + (caster.h || 100) * 0.2)
+  const os = opp ? _worldToScreen(opp.x + (opp.w || 60) / 2, opp.y + (opp.h || 100) * 0.4) : null
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)                                             // SCREEN space
+  // 1) dark spectral vignette
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.46, ch * 0.12, cw / 2, ch * 0.5, ch * 0.9)
+  vg.addColorStop(0, `rgba(24,10,34,${0.12 * env})`); vg.addColorStop(1, `rgba(4,1,10,${0.74 * env})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // drifting spectral wisps
+  ctx.globalAlpha = 0.18 * env; ctx.fillStyle = "#6b4a8a"
+  for (let i = 0; i < 10; i++) {
+    const a = globalFrameCount * 0.02 + i * 0.63
+    ctx.beginPath(); ctx.ellipse(cw / 2 + Math.cos(a) * cw * (0.18 + 0.03 * i), ch * 0.5 + Math.sin(a * 1.3) * ch * 0.28, 26, 12, a, 0, Math.PI * 2); ctx.fill()
+  }
+  // 2) hooded Shinigami rising behind the caster (grows in over the first half)
+  const gh = ch * (0.34 + 0.30 * Math.min(1, t / 0.5))
+  const gx = cs.x - (caster.facing || 1) * cw * 0.02, gy = cs.y - gh * 0.55
+  ctx.globalAlpha = 0.85 * env
+  const bod = ctx.createLinearGradient(gx, gy, gx, gy + gh)
+  bod.addColorStop(0, "rgba(30,16,44,0.95)"); bod.addColorStop(1, "rgba(10,4,18,0.30)")
+  ctx.fillStyle = bod
+  ctx.beginPath()
+  ctx.moveTo(gx, gy)
+  ctx.quadraticCurveTo(gx - gh * 0.42, gy + gh * 0.5, gx - gh * 0.30, gy + gh)
+  ctx.lineTo(gx + gh * 0.30, gy + gh)
+  ctx.quadraticCurveTo(gx + gh * 0.42, gy + gh * 0.5, gx, gy)
+  ctx.closePath(); ctx.fill()
+  // glowing eyes
+  ctx.globalAlpha = env * (0.55 + 0.45 * Math.abs(Math.sin(globalFrameCount * 0.3)))
+  ctx.fillStyle = "#8fe6ff"
+  ctx.beginPath(); ctx.arc(gx - gh * 0.09, gy + gh * 0.20, gh * 0.024, 0, Math.PI * 2); ctx.fill()
+  ctx.beginPath(); ctx.arc(gx + gh * 0.09, gy + gh * 0.20, gh * 0.024, 0, Math.PI * 2); ctx.fill()
+  // 3) soul thread from opponent → the Shinigami's hand + a soul orb dragged out along it
+  if (os) {
+    const pull = Math.min(1, Math.max(0, (t - 0.25) / 0.5))
+    const handY = gy + gh * 0.32
+    ctx.globalAlpha = 0.8 * env; ctx.strokeStyle = "#a7d8ff"; ctx.lineWidth = 2.5; ctx.lineCap = "round"
+    ctx.beginPath()
+    const segs = 16
+    for (let i = 0; i <= segs; i++) {
+      const f = i / segs
+      const lx = os.x + (gx - os.x) * f
+      const ly = os.y + (handY - os.y) * f + Math.sin(f * Math.PI * 3 + globalFrameCount * 0.25) * 10 * (1 - f)
+      i === 0 ? ctx.moveTo(lx, ly) : ctx.lineTo(lx, ly)
+    }
+    ctx.stroke()
+    const ox = os.x + (gx - os.x) * pull, oy = os.y + (handY - os.y) * pull
+    const orb = ctx.createRadialGradient(ox, oy, 0, ox, oy, 16)
+    orb.addColorStop(0, `rgba(220,245,255,${0.95 * env})`); orb.addColorStop(1, "rgba(120,190,255,0)")
+    ctx.fillStyle = orb; ctx.beginPath(); ctx.arc(ox, oy, 16, 0, Math.PI * 2); ctx.fill()
+  }
+  // 4) soul-rip flash at the payoff beat (t ~ 0.6, synced to applyHiruzenReaperDamage @ frame 40)
+  const fl = 1 - Math.min(1, Math.abs(t - 0.6) / 0.08)
+  if (fl > 0) { ctx.globalAlpha = 0.5 * fl; ctx.fillStyle = "#dff2ff"; ctx.fillRect(0, 0, cw, ch) }
+  ctx.restore()
+}
+
+// OROCHIMARU ULTIMATE — "Summoning: Twin Serpents". Screen-space freeze-cinematic driven by the LIVE caster's
+// _oroSummonTimer (abilities.executeOrochimaruUltimate) — NO duplicate fighter instance. A venom vignette +
+// summoning smoke build, then the GIANT serpent art (orochimaru_ult_snake_uniform, hi-res real art drawn as a
+// screen-space overlay, NOT sprite-sliced onto a fighter) grows in behind the opponent and LUNGES down onto
+// them at the strike beat with a green bite-flash. The real Orochimaru holds his summon-gesture pose
+// underneath. No-op when no Orochimaru is mid-summon.
+let _oroSummonCineRenders = 0, _oroSummonCineMaxEnv = 0
+let _oroSummonImg = null
+function drawOrochimaruSummonCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._oroSummonTimer || 0) > 0)
+  if (!caster) return
+  _oroSummonCineRenders++
+  const max = caster._oroSummonMax || 72
+  const t = 1 - caster._oroSummonTimer / max                                    // 0 → 1 over the cinematic
+  const env = t < 0.14 ? t / 0.14 : t > 0.84 ? Math.max(0, (1 - t) / 0.16) : 1  // fade in / hold / fade out
+  if (env > _oroSummonCineMaxEnv) _oroSummonCineMaxEnv = env
+  const cw = canvas.width, ch = canvas.height
+  const opp = caster === p1 ? p2 : p1
+  const os = opp ? _worldToScreen(opp.x + (opp.w || 60) / 2, opp.y + (opp.h || 100) * 0.4) : { x: cw * 0.62, y: ch * 0.5 }
+  if (!_oroSummonImg) { _oroSummonImg = new Image(); _oroSummonImg.src = "./orochimaru_ult_snake_uniform.png" }
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)                                            // SCREEN space
+  // 1) venom vignette
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.46, ch * 0.12, cw / 2, ch * 0.5, ch * 0.95)
+  vg.addColorStop(0, `rgba(26,10,36,${0.10 * env})`); vg.addColorStop(1, `rgba(6,2,12,${0.72 * env})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // 2) summoning smoke drifting up
+  ctx.globalAlpha = 0.16 * env; ctx.fillStyle = "#7a5a9a"
+  for (let i = 0; i < 9; i++) {
+    const a = globalFrameCount * 0.02 + i * 0.7
+    ctx.beginPath(); ctx.ellipse(cw / 2 + Math.cos(a) * cw * (0.16 + 0.035 * i), ch * 0.56 + Math.sin(a * 1.2) * ch * 0.26, 30, 13, a, 0, Math.PI * 2); ctx.fill()
+  }
+  // 3) GIANT serpent — grows in over the first half, then LUNGES down onto the opponent on the strike beat.
+  const img = _oroSummonImg
+  if (img && img.complete && img.naturalWidth > 0) {
+    const cellW = Math.floor(img.naturalWidth / 2)                              // 2-frame sheet (2 snake heads)
+    const grow  = Math.min(1, t / 0.5)
+    const lunge = Math.min(1, Math.max(0, (t - 0.46) / 0.22))                   // dive-in on the strike
+    const dh = ch * (0.52 + 0.44 * grow)
+    const dw = dh * (cellW / img.naturalHeight)
+    const dx = os.x - dw * 0.5
+    const dy = -dh * 0.12 + lunge * (os.y - ch * 0.30)                          // descend from top → onto the foe
+    ctx.globalAlpha = 0.94 * env
+    ctx.drawImage(img, 0, 0, cellW, img.naturalHeight, dx, dy, dw, dh)          // frame 0 = mouth-open striker
+    ctx.globalAlpha = 1
+  }
+  // 4) green bite-flash at the payoff beat (t ≈ 0.64, synced to applyOrochimaruSummonDamage @ frame 46/72).
+  const fl = 1 - Math.min(1, Math.abs(t - 0.64) / 0.07)
+  if (fl > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.5 * fl; ctx.fillStyle = "#d6ffcf"; ctx.fillRect(0, 0, cw, ch) }
+  ctx.restore()
+}
+
+// MAYURI — "Bankai: Konjiki Ashisogi Jizō" construct cinematic (Stage 4). Same architecture as the
+// Orochimaru Summon cinematic: gated on _mayuriBankaiTimer (the LIVE caster holds a release-cast pose —
+// NO duplicate body/instance), SCREEN-space overlay = gold vignette → assembling motes → the giant golden
+// baby-faced CONSTRUCT grows/assembles over the foe then CRUSHES down on the payoff beat + a gold impact
+// flash synced to applyMayuriBankaiDamage. Frame-cycles the 4-frame construct sheet as it assembles.
+let _mayuriBankaiImg = null
+function drawMayuriBankaiCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._mayuriBankaiTimer || 0) > 0)
+  if (!caster) return
+  const max = caster._mayuriBankaiMax || 84
+  const t = 1 - caster._mayuriBankaiTimer / max                                 // 0 → 1 over the cinematic
+  const env = t < 0.14 ? t / 0.14 : t > 0.84 ? Math.max(0, (1 - t) / 0.16) : 1  // fade in / hold / fade out
+  const cw = canvas.width, ch = canvas.height
+  const opp = caster === p1 ? p2 : p1
+  const os = opp ? _worldToScreen(opp.x + (opp.w || 60) / 2, opp.y + (opp.h || 100) * 0.4) : { x: cw * 0.62, y: ch * 0.5 }
+  if (!_mayuriBankaiImg) { _mayuriBankaiImg = new Image(); _mayuriBankaiImg.src = "./mayuri_bankai_construct_uniform.png" }
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)                                            // SCREEN space
+  // 1) gold research-lab vignette
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.44, ch * 0.12, cw / 2, ch * 0.5, ch * 0.95)
+  vg.addColorStop(0, `rgba(40,30,8,${0.10 * env})`); vg.addColorStop(1, `rgba(10,7,2,${0.70 * env})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // 2) assembling gold motes coalescing toward the construct
+  ctx.globalAlpha = 0.18 * env; ctx.fillStyle = "#e6c25a"
+  for (let i = 0; i < 10; i++) {
+    const a = globalFrameCount * 0.024 + i * 0.63
+    const r = 1 - Math.min(1, t / 0.5)                                          // motes pull IN as it assembles
+    ctx.beginPath(); ctx.ellipse(os.x + Math.cos(a) * cw * (0.06 + 0.16 * r), os.y + Math.sin(a * 1.3) * ch * (0.05 + 0.22 * r), 22, 11, a, 0, Math.PI * 2); ctx.fill()
+  }
+  // 3) GIANT golden construct — 4-frame sheet cycled as it assembles; grows over the first half, then
+  //    CRUSHES down onto the opponent on the strike beat.
+  const img = _mayuriBankaiImg
+  if (img && img.complete && img.naturalWidth > 0) {
+    const frames = 4, cellW = Math.floor(img.naturalWidth / frames)
+    const fi = Math.floor(globalFrameCount / 5) % frames                       // assemble/loom flicker
+    const grow  = Math.min(1, t / 0.5)
+    const crush = Math.min(1, Math.max(0, (t - 0.46) / 0.22))                   // slam-down on the strike
+    const dh = ch * (0.46 + 0.46 * grow)
+    const dw = dh * (cellW / img.naturalHeight)
+    const dx = os.x - dw * 0.5
+    const dy = -dh * 0.14 + crush * (os.y - ch * 0.28)                          // descend from top → onto the foe
+    ctx.globalAlpha = 0.94 * env
+    ctx.drawImage(img, fi * cellW, 0, cellW, img.naturalHeight, dx, dy, dw, dh)
+    ctx.globalAlpha = 1
+  }
+  // 4) gold impact flash at the payoff beat (t ≈ 0.62, synced to applyMayuriBankaiDamage @ frame 52/84).
+  const fl = 1 - Math.min(1, Math.abs(t - 0.62) / 0.07)
+  if (fl > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.5 * fl; ctx.fillStyle = "#ffe9a8"; ctx.fillRect(0, 0, cw, ch) }
+  ctx.restore()
+}
+
+// YAMAMOTO ULTIMATE — "Ryūjin Jakka Overhead Slam". Inline freeze-cinematic SCREEN treatment driven by the
+// LIVE caster's _yamamotoUltTimer (abilities.executeYamamotoUltimate) — NO duplicate instance; the real ult
+// art (row 87+89 overhead slam) plays on the live fighter underneath. This is the "bigger presentation":
+// a Ryūjin Jakka fire vignette + rising embers through the wind-up, a screen-scorch flame flash on the
+// payoff beat (t≈0.62, synced to applyYamamotoUltimateDamage @ frame 48/78), then fade. No-op otherwise.
+function drawYamamotoUltimateCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._yamamotoUltTimer || 0) > 0)
+  if (!caster) return
+  const max = caster._yamamotoUltMax || 78
+  const t = 1 - caster._yamamotoUltTimer / max                                  // 0 → 1 over the cinematic
+  const env = t < 0.14 ? t / 0.14 : t > 0.82 ? Math.max(0, (1 - t) / 0.18) : 1  // fade in / hold / fade out
+  const cw = canvas.width, ch = canvas.height
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)                                            // SCREEN space
+  // 1) Ryūjin Jakka ember vignette (deep fire core → scorched dark edges)
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.5, ch * 0.10, cw / 2, ch * 0.5, ch * 0.96)
+  vg.addColorStop(0, `rgba(96,28,6,${0.14 * env})`); vg.addColorStop(1, `rgba(26,6,2,${0.72 * env})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // 2) rising ember motes
+  ctx.globalAlpha = 0.22 * env; ctx.fillStyle = "#ff9a3c"
+  for (let i = 0; i < 16; i++) {
+    const x = ((i + 0.5) / 16) * cw + Math.sin(globalFrameCount * 0.03 + i) * 22
+    const y = ch * (1 - (((globalFrameCount * 0.006) + i * 0.13) % 1))
+    ctx.beginPath(); ctx.ellipse(x, y, 3, 8, 0, 0, Math.PI * 2); ctx.fill()
+  }
+  // 3) screen-scorch flame flash on the payoff beat
+  const fl = 1 - Math.min(1, Math.abs(t - 0.62) / 0.08)
+  if (fl > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.55 * fl; ctx.fillStyle = "#ffcf8a"; ctx.fillRect(0, 0, cw, ch) }
+  ctx.restore()
+}
+
+// SAITAMA ULTIMATE — "Death Punch". Fullscreen freeze-cinematic SCREEN treatment driven by the LIVE caster's
+// _saitamaDeathTimer (abilities.executeSaitamaUltimate) — NO duplicate fighter instance. The hi-res backdrop
+// (saitama_death_punch_backround_effect.png — a DIFFERENT, hi-res art pipeline) is rendered as a fullscreen
+// screen-space OVERLAY (cover-fit), NOT sprite-sliced: a dark vignette builds through the wind-up, the giant
+// fist/face backdrop slams in on the IMPACT beat with an additive white flash, then fades. No-op when no
+// Saitama is mid-Death-Punch. Real ult art (the punch poses) plays on the LIVE fighter underneath.
+let _saitamaDeathCineRenders = 0, _saitamaDeathCineMaxEnv = 0
+let _saitamaDeathBgImg = null
+function drawSaitamaDeathPunchCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._saitamaDeathTimer || 0) > 0)
+  if (!caster) return
+  _saitamaDeathCineRenders++
+  const max = caster._saitamaDeathMax || 78
+  const t = 1 - caster._saitamaDeathTimer / max                                   // 0 → 1 over the cinematic
+  const cw = canvas.width, ch = canvas.height
+  if (!_saitamaDeathBgImg) { _saitamaDeathBgImg = new Image(); _saitamaDeathBgImg.src = "./saitama_death_punch_backround_effect.png" }
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)                                             // SCREEN space
+  // 1) dark vignette that builds through the wind-up (draws attention inward).
+  const vgEnv = t < 0.4 ? t / 0.4 : Math.max(0, (1 - t) / 0.5)
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.46, ch * 0.10, cw / 2, ch * 0.5, ch * 0.92)
+  vg.addColorStop(0, `rgba(20,6,8,${0.10 * vgEnv})`); vg.addColorStop(1, `rgba(6,1,2,${0.70 * vgEnv})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // 2) hi-res backdrop (fist + serious face) SLAMS in on the impact beat (t ≈ 0.38 → 0.7), cover-fit.
+  const bg = _saitamaDeathBgImg
+  const bgEnv = t < 0.34 ? 0 : t < 0.46 ? (t - 0.34) / 0.12 : t < 0.72 ? 1 : Math.max(0, (0.92 - t) / 0.20)
+  if (bgEnv > _saitamaDeathCineMaxEnv) _saitamaDeathCineMaxEnv = bgEnv
+  if (bgEnv > 0 && bg && bg.complete && bg.naturalWidth > 0) {
+    const scale = Math.max(cw / bg.naturalWidth, ch / bg.naturalHeight) * (1.02 + 0.06 * bgEnv)   // cover + slight punch-in
+    const dw = bg.naturalWidth * scale, dh = bg.naturalHeight * scale
+    ctx.globalAlpha = bgEnv
+    ctx.drawImage(bg, (cw - dw) / 2, (ch - dh) / 2, dw, dh)
+    ctx.globalAlpha = 1
+  }
+  // 3) additive white IMPACT flash right at the punch (t ≈ 0.46).
+  const fl = 1 - Math.min(1, Math.abs(t - 0.46) / 0.07)
+  if (fl > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.6 * fl; ctx.fillStyle = "#fff4e0"; ctx.fillRect(0, 0, cw, ch) }
+  ctx.restore()
+}
+
+// LIGHT YAGAMI — "I Am Kira" (notebook→scythe 2nd ultimate). Fullscreen cinematic OVERLAY driven by the LIVE
+// caster's public _lightKiraTimer (abilities.executeLightUltimate) — NO duplicate fighter instance (the real
+// Light plays the scythe cast underneath via _spriteCastMove="lightScythe"). The "THAT'S RIGHT. I'M KIRA."
+// manga cut-in panel (light_kira_panel.png) slams in as a centered strip over a dark crimson vignette, with an
+// additive purple flash on the scythe-swing payoff beat. No-op when no Light is mid-scythe-ult.
+let _lightKiraCineRenders = 0
+const _lightPanelImgs = {}
+function _lightPanelImg(src) { if (!_lightPanelImgs[src]) { const i = new Image(); i.src = src; _lightPanelImgs[src] = i } return _lightPanelImgs[src] }
+function drawLightKiraCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._lightKiraTimer || 0) > 0)
+  if (!caster) return
+  _lightKiraCineRenders++
+  const max = caster._lightKiraMax || 100
+  const t = 1 - caster._lightKiraTimer / max                                     // 0 → 1 over the cinematic
+  const cw = canvas.width, ch = canvas.height
+  const panel = _lightPanelImg(caster._lightUltPanel || "./light_kira_panel.png")
+  const flashColor = caster._lightUltFlash || "#b061e0"
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)                                             // SCREEN space
+  // 1) dark crimson vignette that builds through the wind-up.
+  const vgEnv = t < 0.4 ? t / 0.4 : Math.max(0, (1 - t) / 0.5)
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.46, ch * 0.10, cw / 2, ch * 0.5, ch * 0.92)
+  vg.addColorStop(0, `rgba(24,4,10,${0.10 * vgEnv})`); vg.addColorStop(1, `rgba(8,1,3,${0.72 * vgEnv})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // 2) the cut-in panel ("I'M KIRA" / "JUST AS PLANNED") SLAMS in (t ≈ 0.14 → 0.78), centered strip, punch-in.
+  const pEnv = t < 0.14 ? 0 : t < 0.24 ? (t - 0.14) / 0.10 : t < 0.78 ? 1 : Math.max(0, (0.95 - t) / 0.17)
+  if (pEnv > 0 && panel && panel.complete && panel.naturalWidth > 0) {
+    const targetW = cw * (0.52 + 0.05 * pEnv)                                    // ~half-screen wide cut-in
+    const scale = targetW / panel.naturalWidth
+    const dw = panel.naturalWidth * scale, dh = panel.naturalHeight * scale
+    const dx = (cw - dw) / 2, dy = ch * 0.30
+    // dark backing bar behind the panel (manga cut-in framing)
+    ctx.globalAlpha = 0.55 * pEnv; ctx.fillStyle = "#0a0206"; ctx.fillRect(0, dy - 10, cw, dh + 20)
+    ctx.globalAlpha = pEnv
+    ctx.imageSmoothingEnabled = false
+    ctx.drawImage(panel, dx, dy, dw, dh)
+    ctx.globalAlpha = 1
+  }
+  // 3) additive flash right on the payoff beat (t ≈ 0.5–0.58 connect) — purple (scythe) / blue (writing).
+  const fl = 1 - Math.min(1, Math.abs(t - 0.55) / 0.09)
+  if (fl > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.5 * fl; ctx.fillStyle = flashColor; ctx.fillRect(0, 0, cw, ch) }
+  ctx.restore()
+}
+
+// KIBA ULTIMATE — "Three-Headed Wolf" (beast-fusion tier 3). Freeze/camera-focus cinematic OVERLAY driven by
+// the LIVE caster's _kibaThwTimer (abilities.executeKibaUltimate) — NO duplicate fighter instance (the real
+// Kiba holds the feral all-fours crouch underneath, via _spriteCastMove="kibaFourLegs"). The camera is already
+// zoomed on the action, so we draw the four beat images (summon → charge → maul → vortex) in SCREEN space,
+// centered, scaled + faded per beat, flipped by the caster's facing. Impact flashes on the maul + vortex hits.
+// No-op when no Kiba is mid-ultimate.
+let _kibaThwCineRenders = 0, _kibaThwCineBeat = ""
+const _kibaThwImgs = {}
+const KIBA_THW_BEATS = [
+  { key: "summon", src: "./kiba_thw_summon.png", a: 0.00, b: 0.26, hFrac: 0.30 },
+  { key: "charge", src: "./kiba_thw_charge.png", a: 0.24, b: 0.56, hFrac: 0.46 },
+  { key: "maul",   src: "./kiba_thw_maul.png",   a: 0.52, b: 0.82, hFrac: 0.44 },
+  { key: "vortex", src: "./kiba_thw_vortex.png", a: 0.78, b: 1.01, hFrac: 0.50 },
+]
+function _kibaThwImg(src) { if (!_kibaThwImgs[src]) { const i = new Image(); i.src = src; _kibaThwImgs[src] = i } return _kibaThwImgs[src] }
+function drawKibaThreeHeadedCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._kibaThwTimer || 0) > 0)
+  if (!caster) return
+  _kibaThwCineRenders++
+  const max = caster._kibaThwMax || 108
+  const t = 1 - caster._kibaThwTimer / max                     // 0 → 1 over the cinematic
+  const cw = canvas.width, ch = canvas.height
+  const face = caster.facing || 1
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)                           // SCREEN space (camera already focused on the action)
+  // dark vignette that builds then releases (draws attention inward).
+  const vgEnv = t < 0.35 ? t / 0.35 : Math.max(0, (1 - t) / 0.4)
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.46, ch * 0.08, cw / 2, ch * 0.5, ch * 0.95)
+  vg.addColorStop(0, `rgba(8,10,20,${0.10 * vgEnv})`); vg.addColorStop(1, `rgba(3,4,10,${0.66 * vgEnv})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  // active beat image, centered, scaled + faded, flipped by facing.
+  for (const beat of KIBA_THW_BEATS) {
+    if (t < beat.a || t >= beat.b) continue
+    const local = (t - beat.a) / (beat.b - beat.a)             // 0 → 1 within this beat
+    const env = Math.min(1, local / 0.22) * Math.min(1, (1 - local) / 0.28)   // fade in/out edges
+    if (env <= 0) continue
+    const img = _kibaThwImg(beat.src)
+    if (!(img && img.complete && img.naturalWidth > 0)) { _kibaThwCineBeat = beat.key; continue }
+    const dh = ch * beat.hFrac * (0.9 + 0.14 * local)          // slight grow-in
+    const dw = dh * (img.naturalWidth / img.naturalHeight)
+    const cx = cw * 0.5 + face * cw * 0.05, cy = ch * 0.5
+    ctx.globalAlpha = env
+    ctx.translate(cx, cy); ctx.scale(face, 1)
+    ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh)
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.globalAlpha = 1
+    _kibaThwCineBeat = beat.key
+  }
+  // additive impact flashes on the maul (t≈0.60) + vortex (t≈0.88) hit beats.
+  const fl = Math.max(1 - Math.min(1, Math.abs(t - 0.60) / 0.05), 1 - Math.min(1, Math.abs(t - 0.88) / 0.05))
+  if (fl > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.5 * fl; ctx.fillStyle = "#e8f0ff"; ctx.fillRect(0, 0, cw, ch); ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over" }
+  ctx.restore()
+}
+
+// BORUTO — Kote ULTIMATE cinematic SCREEN overlay (Stage 4): a dark vignette that builds then releases +
+// a warm additive flash on the part-3 recoil PAYOFF beat. Reads the live caster's public _borutoKoteTimer
+// (the fighter itself plays the 5-part Kote fire underneath + drawBorutoKoteFX adds the hand-tracked FX).
+function drawBorutoKoteCinematic(ctx, canvas) {
+  const caster = [p1, p2].find(f => f && (f._borutoKoteTimer || 0) > 0)
+  if (!caster) return
+  const max = caster._borutoKoteMax || 110
+  const t = 1 - caster._borutoKoteTimer / max                   // 0 → 1 over the cinematic
+  const cw = canvas.width, ch = canvas.height
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)                            // SCREEN space (camera already focused)
+  const vgEnv = t < 0.30 ? t / 0.30 : Math.max(0, (1 - t) / 0.35)
+  const vg = ctx.createRadialGradient(cw / 2, ch * 0.46, ch * 0.08, cw / 2, ch * 0.5, ch * 0.95)
+  vg.addColorStop(0, `rgba(6,12,22,${0.08 * vgEnv})`); vg.addColorStop(1, `rgba(2,6,14,${0.60 * vgEnv})`)
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  const fl = 1 - Math.min(1, Math.abs(t - 0.527) / 0.05)        // part-3 payoff warm flash (elapsed ≈58/110)
+  if (fl > 0) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.45 * fl; ctx.fillStyle = "#ffd27a"; ctx.fillRect(0, 0, cw, ch); ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over" }
+  ctx.restore()
+}
+
 // ── EDO TENSEI — standing Tobirama dummy (world space) ───────────────────────
 // During the window the controlled fighter IS the vessel; Tobirama's own body stays on screen as a
 // non-controllable, HITTABLE dummy next to the tomb (snapshotted in applyEdoTensei → fighter._edoDummy).
@@ -8288,6 +9917,7 @@ function drawBattleScene() {
   // Hashirama Sealing Jutsu domain overlay — WORLD space so the gates/cameos track the trapped opponent
   // as the live camera moves (drawn over the fighters). No-op when the domain isn't up.
   drawHashiramaSealingJutsuCinematic(ctx)
+  drawCubeTraps(ctx)   // Isshiki Daikokuten cube — WORLD space, OVER the fighters (semi-transparent, foe reads as trapped inside)
   drawFlyingRaijinMarks(p1)
   drawFlyingRaijinMarks(p2)
   _drawInfinityAura(p1)
@@ -8298,6 +9928,10 @@ function drawBattleScene() {
   _drawChargeAura(p2)
   _drawIntroAura(p1)
   _drawIntroAura(p2)
+  _drawHiruzenIntroRobe(p1)
+  _drawHiruzenIntroRobe(p2)
+  _drawHiruzenEnmaAura(p1)
+  _drawHiruzenEnmaAura(p2)
   drawHitSparksEnhanced()
   if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
@@ -8600,7 +10234,15 @@ function drawBattle() {
   drawOmniManBodySlamCinematic(ctx, canvas)   // fullscreen body-slam overlay (crimson vignette → impact flash → ground shockwave)
   drawSupermanUltimateCinematic(ctx, canvas)  // fullscreen Solar Overload overlay (green vignette → detonation flash → shockwave rings)
   drawRengokuFlameExplosionCinematic(ctx, canvas)  // fullscreen Flame Explosion overlay (ember vignette → detonation flash → flame rings)
+  drawLightKiraCinematic(ctx, canvas)         // fullscreen "I Am Kira" scythe-ult overlay (crimson vignette → I'M KIRA cut-in panel → purple swing flash)
   drawMadaraTengaiShinseiCinematic(ctx, canvas)    // fullscreen Tengai Shinsei overlay (Rinnegan sky → falling meteor → impact explosion + shockwave)
+  drawHiruzenReaperCinematic(ctx, canvas)          // fullscreen Reaper Death Seal overlay (dark spectral vignette → Shinigami soul-drag → soul-rip flash)
+  drawOrochimaruSummonCinematic(ctx, canvas)       // Summoning: Twin Serpents overlay (venom vignette → giant serpent lunge → bite-flash)
+  drawMayuriBankaiCinematic(ctx, canvas)           // Bankai: Konjiki Ashisogi Jizō overlay (gold vignette → assembling golden construct → crush + gold impact flash)
+  drawYamamotoUltimateCinematic(ctx, canvas)       // Ryūjin Jakka Overhead Slam overlay (fire vignette → rising embers → payoff flame flash)
+  drawSaitamaDeathPunchCinematic(ctx, canvas)      // fullscreen Death Punch overlay (dark vignette → hi-res fist/face backdrop slam → additive impact flash)
+  drawKibaThreeHeadedCinematic(ctx, canvas)        // Three-Headed Wolf overlay (summon → charge → maul → vortex beats over the live feral-crouch fighter)
+  drawBorutoKoteCinematic(ctx, canvas)             // Kote Barrage overlay (vignette + part-3 recoil warm flash over the live 5-part Kote-fire fighter)
   // (Hashirama Sealing Jutsu draws in WORLD space near the trapped opponent — see drawHashiramaSealingJutsuCinematic(ctx) above, NOT here.)
   drawPainChibakuTenseiCinematic(ctx, canvas)      // fullscreen Chibaku Tensei overlay (gravity sky → growing sphere → slam → flat/dome/flame-pillar ground effect)
   drawYujiUltimateCinematic(ctx, canvas)   // fullscreen "Black Flash" buildup overlay (cyan cursed-energy vignette → red/black flash burst)
@@ -9144,6 +10786,7 @@ const UNIVERSE_ACCENT = {
   bleach:          "#38c0e0",   // reiatsu cyan
   horror:          "#c0304a",   // horror crimson
   saiki_k:         "#e07cff",   // psychic pink
+  one_punch_man:   "#f2b705",   // hero-suit gold
   original:        "#9aa7b5",   // neutral steel
 }
 function universeAccent(id) { return UNIVERSE_ACCENT[id] || "#4aa8e0" }
@@ -9823,11 +11466,11 @@ window.addEventListener("keydown", e => {
   // spuriously trigger a binding vow. Movement itself reads the held key state
   // elsewhere (keys[]/getFighterInput), so skipping repeats here costs nothing.
   if (!e.repeat) {
-    if (p1) { recordDirectionInput(p1, key); recordMotionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key); handleUltimateDown(p1, key) }
+    if (p1) { recordDirectionInput(p1, key); recordMotionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key); handleUltimateDown(p1, key); handleSaitamaSpecialDown(p1, key) }
     if (p2) {
       recordDirectionInput(p2, key)
       recordMotionInput(p2, key)   // motion buffer is gated internally (Naruto-universe only), so this is safe unconditionally for a P2 Naruto/Minato/etc.
-      if (isPvP() || matchConfig.mode !== "vs") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key); handleUltimateDown(p2, key) }
+      if (isPvP() || matchConfig.mode !== "vs") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key); handleUltimateDown(p2, key); handleSaitamaSpecialDown(p2, key) }
     }
   }
   if (gameState === GAME_STATES.MATCH_END && key === "enter") resetToStart()
@@ -9845,6 +11488,9 @@ window.addEventListener("keyup", e => {
   // MADARA tiered-Ultimate: resolve tap vs hold on the Ultimate key RELEASE (no-op for every other char).
   if (p1) handleUltimateRelease(p1, key)
   if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleUltimateRelease(p2, key)
+  // SAITAMA tiered punch-combo: resolve tap vs hold on the Special key RELEASE (no-op for every other char).
+  if (p1) handleSaitamaSpecialRelease(p1, key)
+  if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleSaitamaSpecialRelease(p2, key)
 })
 
 // ------------------------------------------------------------------
@@ -9993,6 +11639,13 @@ gameLoop()
     vy: f.vy || 0, vx: f.vx || 0, grounded: !!(f.onGround ?? f.grounded), canJump: f.canJump !== false,
     airHits: f.airHits || 0, isLaunched: !!f.isLaunched,   // air-combo counter + launched state (Up-Attack launcher tests)
     charging:         !!f.isCharging,   // universal charge-lockout state (charging = fully vulnerable)
+    fourLegsActive:   !!f._fourLegsActive,   // Kiba Four Legs (Shikyaku no Jutsu) buff active (Stage 4)
+    fourLegsTimer:    f._fourLegsTimer || 0,
+    damageMult:       f.damageMultiplier || 1,   // offense buff (Kiba Four Legs / Vegeta SSJ / Boruto Karma / …)
+    karmaActive:      !!f._karmaActive,           // Boruto Momoshiki Karma transformation active
+    currentForm:      f.currentForm || null,      // form label (base / karma / …)
+    absorbWindow:     f._absorbWindow || 0,       // Boruto Chakra Absorption window frames remaining
+    absorbRefund:     f._absorbLastRefund || 0,   // energy gained by the last successful absorb
     susanooStage:     f._susanooStage || 0,
     susanooTimer:     f._susanooTimer || 0,
     itachiSusanoo:    !!f._itachiSusanoo,          // Itachi single-tier Susanoo giant active
@@ -10031,6 +11684,8 @@ gameLoop()
     attackPhase:      f.currentAttack ? getAttackPhase(f) : "idle",
     introVariant:     f._introVariant || null,
     castMove:         f._spriteCastMove || null,   // sprite-cast override (specials that don't set currentMove)
+    reaperSeal:       f._reaperSealTimer || 0,      // Hiruzen Reaper Death Seal cinematic countdown (Stage 4)
+    oroSummon:        f._oroSummonTimer || 0,       // Orochimaru Summon ultimate cinematic countdown (Stage 5)
     nzCountering:     f._nzCountering || 0,         // Nezuko Counter Stance parry-window remaining
     nzSlumberTimer:   f._nzSlumberTimer || 0,       // Nezuko Blood Demon Slumber remaining frames
     nzSlumberVuln:    !!f._nzSlumberVuln,            // Nezuko slumber damage-amp active (takes bonus dmg)
@@ -10080,6 +11735,8 @@ gameLoop()
     comboCounter:     f.comboCounter || 0,        // live combo count (verify the link continues the combo)
     skinId:           f.skinId || null,          // equipped skin (per-skin voice-override gate)
     canvasHeightFrac: f._canvasHeightFrac || null,
+    trapShrinkFrac:   f._trapShrinkFrac ?? null,        // Isshiki cube trap — foe's shrink scale (null = not trapped)
+    cubeTrapUntouchable: !!f._cubeTrapUntouchable,       // foe is untouchable-to-normal-hits inside the cube
     action:           f._lastSpriteAction || null,
     frameIndex:       f.spriteHandler?.frameIndex ?? null,
     bobClock:         f.spriteHandler?._giantBobClock ?? null,
@@ -10116,6 +11773,8 @@ gameLoop()
     gfSwapActive:     !!f._gfSwapActive,         // Ghostface Companion Swap window active (playing a borrowed kit)
     gfSwapTarget:     f._gfSwapTarget || null,   // which companion Ghostface swapped into
     gfSwapTimer:      f._gfSwapTimer || 0,       // frames left in the swap window (auto-revert at 0)
+    sixPath:          (f._path ?? null),         // Six Paths of Pain active-Path index (null = not a six_paths char → isolation proof)
+    sixPathName:      f._sixPathsName || null,   // active Path display name
     invulnTimer:      f.invulnTimer || 0
   })
 
@@ -10130,7 +11789,7 @@ gameLoop()
     skipToBattle,
     // Read a character's static definition (intro pool + animation sheets + stats) — test-only
     // window into characters.js data (used by per-character build harnesses, e.g. intro-pool checks).
-    charDef: (key) => { const c = characters[key]; if (!c) return null; return { spriteScale: c.spriteScale ?? null, hasSprites: !!c.hasSprites, introSequencePool: c.introSequencePool || null, introPool: c.introPool || null, introSequence: c.introSequence || null, animationData: Object.fromEntries(Object.entries(c.animationData || {}).map(([k, v]) => [k, { sheet: v.sheet || null, frames: v.frames || null }])), stats: c.stats || null } },
+    charDef: (key) => { const c = characters[key]; if (!c) return null; return { spriteScale: c.spriteScale ?? null, hasSprites: !!c.hasSprites, introSequencePool: c.introSequencePool || null, introPool: c.introPool || null, introSequence: c.introSequence || null, animationData: Object.fromEntries(Object.entries(c.animationData || {}).map(([k, v]) => [k, { sheet: v.sheet || null, frames: v.frames || null }])), stats: c.stats || null, traits: c.traits ? { ...c.traits } : null, movement: c.movement ? { ...c.movement } : null, basic_attacks: c.basic_attacks ? JSON.parse(JSON.stringify(c.basic_attacks)) : null } },
     // ── STAGE 10 preload hooks ──────────────────────────────────────────────────
     preloadDone:     () => _preloadPromise,                 // resolves once every match sheet has decoded/errored
     preloadReady:    () => _preloadReady,                   // the INTRO→BATTLE gate flag
@@ -10235,6 +11894,8 @@ gameLoop()
     // Vegeta command-normal chain probe (drive the rekka precisely from a test): current move +
     // attack phase + pending next stage + whether the current hit connected + the heavy-edge latch.
     vegCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, prevHeavy: !!p1._cmdPrevHeavy, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
+    // Saitama "Spin-Punch" command-chain probe (mirrors vegCmd) — drive the Fwd+Heavy rekka precisely from a test.
+    saitamaCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     miwaCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
     // Ichigo "Zangetsu" command-chain probe (mirrors miwaCmd) — drive the Fwd+Heavy rekka + command normals precisely from a test.
     ichigoCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, attacking: !!f.attacking, cooldown: f.attackCooldown || 0, cast: f._spriteCastMove || null } : null },
@@ -10248,7 +11909,23 @@ gameLoop()
     // Tobi KAMUI INTANGIBILITY probe + toggle (Stage 4) — INDEPENDENT `_tobi*` state; reads none of Obito's.
     tobiKamui: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { intangible: !!f._tobiIntangible, phased: !!f._tobiPhased, energy: Math.round(f.energy || 0), invulnTimer: f.invulnTimer || 0, attacking: !!f.attacking } : null },
     tobiKamuiToggle: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; toggleTobiKamui(f, getAbilityContext()); return { intangible: !!f._tobiIntangible, phased: !!f._tobiPhased, energy: Math.round(f.energy || 0) } },
+    // Onoki Dust-Release FLIGHT toggle (Stage 1) — directly flips the shared canFly flight mode (mirrors the
+    // P-TAP path, toggleOmniManFlight) so a test can engage/disengage levitation and read the resulting state.
+    onokiFlightToggle: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; toggleOmniManFlight(f); return { flightActive: !!f._flightActive, energy: Math.round(f.energy || 0) } },
+    // Yamamoto Shunpo (Flash Step) — deterministic trigger of the two-beat teleport-behind (double-tap path
+    // is timing-flaky in a harness). Returns the vanish cast + pre-blink X so a test can confirm the blink.
+    yamamotoShunpo: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; const x0 = f.x; const ok = fireYamamotoShunpo(f, getAbilityContext()); return { ok: !!ok, cast: f._spriteCastMove || null, x0, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0) } },
     miwaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { vortex: !!f._miwaVortex, vortexT: f._miwaVortex?.t ?? null, energy: f.energy, charging: !!f.isCharging, action: f._lastSpriteAction || null, move: f.currentMove || null } : null },
+    // Mayuri movement-FX telemetry — the overlay stamps _mayuriTrailActive/_mayuriShockActive each draw.
+    mayuriFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { trail: !!f._mayuriTrailActive, shock: !!f._mayuriShockActive, shockT: f._mayuriShockT || 0, crouching: !!f._crouching, dashTimer: f.dashTimer || 0, vx: Math.round((f.vx || 0) * 10) / 10, atkFx: f._mayuriAtkFx || null, move: f.currentMove || null, castMove: f._spriteCastMove || null, rekkaNext: f._rekkaNext || null, cmdHit: !!f._cmdHitLanded, coatActive: !!f._mayuriCoatActive, coatTimer: f._mayuriCoatTimer || 0, dmgMult: Math.round((f.damageMultiplier || 1) * 100) / 100, dot: (who === "p1" ? p2 : p1)?._dot ? { ticks: ((who === "p1" ? p2 : p1)._dot.ticks) } : null, bankaiTimer: f._mayuriBankaiTimer || 0 } : null },
+    byakuyaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, fadeTimer: f._byakuyaFadeTimer || 0, bankaiTimer: f._byakuyaBankaiTimer || 0, bankaiMax: f._byakuyaBankaiMax || 0, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0), sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
+    lightFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { atkFx: f._lightAtkFx || null, action: f.spriteHandler?.currentAction || null, crouchVariant: f._crouchAttackVariant || null, move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), kiraTimer: f._lightKiraTimer || 0, ultVariant: f._ultVariant || null, sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
+    // Deterministic dash trigger — arms the double-tap flag physics.js consumes next frame (real dashTimer
+    // + the Mayuri movement-FX overlay). dir sets facing so the dash goes a known way.
+    mayuriDash: (dir = 1, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.facing = dir < 0 ? -1 : 1; f._dashTap = true; f.dashCooldown = 0; return { armed: true, facing: f.facing } },
+    // Deterministic Nemu-assist trigger — drives the REAL selector (updateMayuriNemuAssist) with a
+    // synthetic Charge+direction edge. which = "attack" (Charge+Down) | "uppercut" (Charge+Up).
+    mayuriNemu: (which = "attack", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.nemuCd = 0; f._nemuHeld = {}; const field = which === "uppercut" ? "jump" : "down"; updateMayuriNemuAssist(f, { charge: true, [field]: true }, getAbilityContext()); return { last: f._lastNemuAssist || null, nemuCd: f.nemuCd || 0 } },
     hisokaPull: () => (p1 && p2 ? { grabPull: p1._grabPull || null, heldDir: p1._specialHeldDir || null, p1x: p1.x, p1w: p1.w, p2x: p2.x, p2w: p2.w, grabbed: !!p2.isGrabbed, grabTimer: p2.grabTimer || 0 } : null),
     // Maki command-normal chain probe (mirrors miwaCmd) — drive the "Cursed Tool Flurry" rekka precisely.
     // Adds `window` = the EFFECTIVE cancel window (getCancelWindow: recovery span, narrowed windowFrames,
@@ -10630,6 +12307,14 @@ gameLoop()
     // action deterministically for evidence shots — e.g. states with no live input driver (dodge) or
     // long-charge states (taunt = 10s Down-hold). Pass action=null to release.
     forceAction: (action = null, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (action == null) delete f._forceAction; else f._forceAction = action; return { action: f._forceAction || null, sheet: f.spriteHandler?._actionDef?.sheet ?? null } },
+    // Orochimaru Stage-4 forms: set/revert a specific form (id ∈ host|white|serpent, null = revert) or
+    // cycle via the real Charge-TAP path. Returns the active form + its merged _skinAnim idle sheet.
+    orochimaruForm: (id = null, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (id) applyOrochimaruForm(f, id, getAbilityContext()); else revertOrochimaruForm(f, getAbilityContext()); return { form: f._oroForm || null, name: orochimaruFormName(f), skinIdle: f._skinAnim?.idle?.sheet || null }; },
+    orochimaruCycle: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; cycleOrochimaruForm(f, getAbilityContext()); return { form: f._oroForm || null, name: orochimaruFormName(f), skinIdle: f._skinAnim?.idle?.sheet || null }; },
+    // Read the merged _skinAnim's sheet for an action (fallback-chain verify: form actions vs base fallback).
+    oroSkinSheet: (action, who = "p1") => { const f = who === "p2" ? p2 : p1; return f?._skinAnim?.[action]?.sheet || null; },
+    oroActiveForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f?._oroForm || null; },
+    oroVoiceCd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return { atk: f?._atkVoiceCd || 0, hit: f?._hitVoiceCd || 0, introDone: !!f?._introVoiceDone }; },
     // Inosuke Beast Breathing Assist telemetry — the data-driven DS partner roster + live assist state.
     beastAssistPartners: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? getBeastAssistPartners(f) : [] },
     beastAssistState:    (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { active: !!f._bbaActive, partner: f._bbaPartner || null, last: f._lastAssistPartner || null, resume: f._bbaResumeQueued || null, cd: f.bbaCd || 0, idx: f._bbaIdx || 0, hitstop: f.hitstop || 0, currentMove: f.currentMove || null, attacking: !!f.attacking, rekkaNext: f._rekkaNext || null, combo: f.comboCounter || 0 } : null },
@@ -10896,6 +12581,9 @@ gameLoop()
     // cinematic frames Goku Black ONLY (p2 fully off-frame). screenX = (worldX - cam.x)*zoom + cw/2.
     p2ScreenX: () => { if (!p2) return null; const cw = canvas.width; const cx = p2.x + (p2.w || 60) / 2; const left = (p2.x - camera.x) * camera.zoom + cw / 2; const right = (p2.x + (p2.w || 60) - camera.x) * camera.zoom + cw / 2; return { left, right, cw, offFrame: right < 0 || left > cw, center: (cx - camera.x) * camera.zoom + cw / 2 } },
     projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, w: p.w, h: p.h, radius: p.radius, spriteScale: p.spriteScale, spriteFrames: p.spriteFrames, spriteH: p.spriteH, spriteOnce: !!p.spriteOnce, visualOnly: !!p.visualOnly, returning: !!p.returning, boomerang: !!p.boomerang, sheet: p.sheet })),
+    // Isshiki cube shrink-trap (Stage-2 isolated harness): spawn a trap with p1 as caster onto p2 (or vice-versa), + read its state.
+    spawnCubeTrap: (casterSide = "p1", opts = {}) => { const c = casterSide === "p2" ? p2 : p1; const tgt = casterSide === "p2" ? p1 : p2; if (!c || !tgt) return null; spawnCubeTrap(c, tgt, getAbilityContext(), opts); return cubeTrapState() },
+    cubeTrap: () => cubeTrapState(),
     // ── WOOD RELEASE climbable terrain (Stage 1 — isolated primitive) ──
     // spawnPlatform: create a test platform (all opts optional; groundY defaults to P1's floor). Returns its id.
     spawnPlatform: (opts = {}) => { const gy = opts.groundY != null ? opts.groundY : (p1?.groundY != null ? p1.groundY : groundY); return spawnPlatform({ ...opts, groundY: gy }).id },
@@ -11019,13 +12707,36 @@ gameLoop()
     // Drive a REAL p2 attack (generous startup so a defender can react) — used to open the
     // Substitution incoming-attack window and to verify the swing actually whiffs on a substitute.
     p2Attack:   () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "light", { startup: 10, active: 6, recovery: 16, damage: 60, rangeX: 120, rangeY: 90, hitstun: 18, knockbackX: 6 }) } },
+    p2Heavy:    () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "heavy", { startup: 8, active: 6, recovery: 18, damage: 150, rangeX: 130, rangeY: 100, hitstun: 22, knockbackX: 7, category: "heavy" }) } },   // test-only: a STRONG (heavy-category) hit — exercises defender heavy hit-reaction voices
     // Fire P1's SPECIAL with a chosen relative direction ("F"|"B"|"U"|"D"|null), bypassing keyboard timing
     // races (up→jump, down→block-crouch) so a test can exercise a direction-branched special's MECHANIC
     // cleanly. Clears the special cooldowns/recovery so it reliably fires. Routing (real dir input → move) is
     // still covered by the keyboard-driven sprite checks.
     p1SpecialDir: (dir = null) => { if (!p1) return null; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.attackCooldown = 0; p1.attacking = false; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { move: p1.currentMove || null, cast: p1._spriteCastMove || null } },
+    // Deterministic ULTIMATE trigger (mirrors p1SpecialDir) — clears the gates + fires triggerUltimate,
+    // bypassing input-timing flakiness in long full-kit suites. opts.hold passes the tap/hold flag (Madara).
+    p1Ultimate: (opts = {}) => { if (!p1) return null; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.isCharging = false; p1.hitstun = 0; const cast = triggerUltimate(p1, getAbilityContext(), opts); return { cast: !!cast, move: p1.currentMove || null, castMove: p1._spriteCastMove || null } },
+    // SIX PATHS OF PAIN — Path-swap harness. sixPaths() reads live swap state; setPath() forces a swap
+    // deterministically (clears gates + energy so the swap actually applies, bypassing input timing).
+    sixPaths: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (!f) return null; return { rosterKey: f.rosterKey, path: f._path || 0, name: f._sixPathsName || "Deva Path", swapCd: f._sixPathsSwapCd || 0, energy: f.energy, maxEnergy: f.maxEnergy, skinAnim: !!f._skinAnim, castMove: f._spriteCastMove || null, teleportFlash: f.teleportFlash || 0, gakidoShield: f._gakidoShield || 0, gakidoAbsorbed: f._gakidoAbsorbed || 0, ningendoRipped: f._ningendoRipped || 0, lastAsuraShot: f._lastAsuraShot || null, narakaJudged: f._narakaJudged || 0, narakaHealed: f._narakaHealed || 0, lastChiku: f._lastChikuSummon || null } },
+    setPath: (idx = 0, side = "p1") => { const f = side === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f._sixPathsSwapCd = 0; const eBefore = f.energy; const ok = applySixPathsSwap(f, idx, getAbilityContext()); return { ok: !!ok, path: f._path || 0, name: f._sixPathsName || null, swapCd: f._sixPathsSwapCd || 0, spent: eBefore - f.energy } },
+    // Spawn a HOSTILE (owner = the opponent) projectile centred on the target — used to test the Preta Path
+    // absorption shield. Returns the live count of these test bolts.
+    sixPathsTestBolt: (side = "p1") => { const f = side === "p2" ? p2 : p1; const foe = side === "p2" ? p1 : p2; if (!f || !foe) return 0; spawnProjectile(foe, "sixPathsTestBolt", { damage: 40, speed: 0, lifetime: 90, w: 30, h: 30, vx: 0, vy: 0, spawnX: (f.x || 0) + (f.w || 60) / 2, spawnY: (f.y || 0) + (f.h || 100) / 2 }, getAbilityContext()); return activeProjectiles.filter(p => p.name === "sixPathsTestBolt").length },
+    // Deterministic BORUTO KARMA control (mirrors the charge-TAP toggle). op "enter"/"revert"/"toggle".
+    p1Karma: (op = "toggle") => { if (!p1) return null; p1.attackCooldown = 0; p1.hitstun = 0; p1.blockstun = 0; if (op === "enter") enterBorutoKarma(p1, getAbilityContext()); else if (op === "revert") revertBorutoKarma(p1); else toggleBorutoKarma(p1, getAbilityContext()); return { active: !!p1._karmaActive, form: p1.currentForm || null, sheet: p1.spriteHandler?._actionDef?.sheet ?? null, dmgMult: p1.damageMultiplier || 1, energy: p1.energy } },
+    // Deterministic BORUTO CHAKRA ABSORPTION attempt — opens the absorb window (pays HP up front). Returns HP/window/energy.
+    p1Absorb: () => { if (!p1) return null; p1.attackCooldown = 0; p1.hitstun = 0; const hp0 = p1.health, e0 = p1.energy; const ok = borutoAbsorbAttempt(p1, getAbilityContext()); return { fired: !!ok, hpBefore: hp0, hpAfter: p1.health, hpCost: hp0 - p1.health, window: p1._absorbWindow || 0, energyBefore: e0, energy: p1.energy } },
+    // Spawn an ENEMY (p2-owned) test PROJECTILE overlapping P1 so it collides next frame — for absorb success tests.
+    enemyProjAtP1: (dmg = 60) => { if (!p1 || !p2) return null; const proj = { owner: p2, ownerId: p2.side, name: "enemyTestProj", x: p1.x + (p1.w || 60) / 2, y: p1.y + (p1.h || 110) * 0.4, vx: (p2.x > p1.x ? -1 : 1) * 0.01, vy: 0, w: 30, h: 30, width: 30, height: 30, radius: 15, damage: dmg, hitstun: 16, knockbackX: 6, knockbackY: -2, lifetime: 40, color: "#ff3355", isSpecial: true, age: 0, _struck: false }; activeProjectiles.push(proj); return { spawned: true, count: activeProjectiles.length } },
     // Clear P1's ability cooldowns (test-only) so a back-to-back move isn't gated by a prior cast's cooldown.
     p1ClearCooldowns: () => { if (p1) { p1.nzAssistCd = 0; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.attackCooldown = 0; p1.ultimateCooldown = 0 } },
+    // Hiruzen Enma (Monkey King Staff) buff inspection (Stage 3): active flag + the damage/reach multipliers + timer.
+    hiruzenEnma: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { active: !!f._enmaActive, dmgMult: f.damageMultiplier || 1, reachMult: f._reachMult || 1, timer: f._enmaTimer || 0 } : null },
+    hiruzenReaperCine: () => ({ renders: _reaperCineRenders, maxEnv: _reaperCineMaxEnv }),   // Stage 4: did drawHiruzenReaperCinematic run + peak overlay strength
+    oroSummonCine: () => ({ renders: _oroSummonCineRenders, maxEnv: _oroSummonCineMaxEnv }),   // Stage 5: did drawOrochimaruSummonCinematic run + peak overlay strength
+    saitamaDeathCine: () => ({ renders: _saitamaDeathCineRenders, maxEnv: _saitamaDeathCineMaxEnv, timer: (p1?._saitamaDeathTimer || 0), cast: p1?._spriteCastMove || null, bgLoaded: !!(_saitamaDeathBgImg && _saitamaDeathBgImg.complete && _saitamaDeathBgImg.naturalWidth > 0) }),   // Stage 5: Death Punch cinematic probe (overlay ran + peak backdrop strength + live-fighter pose + backdrop img loaded)
+    kibaThwCine: () => ({ renders: _kibaThwCineRenders, beat: _kibaThwCineBeat, timer: (p1?._kibaThwTimer || 0), cast: p1?._spriteCastMove || null, imgsLoaded: KIBA_THW_BEATS.every(b => { const i = _kibaThwImgs[b.src]; return !!(i && i.complete && i.naturalWidth > 0) }) }),   // Stage 5: Three-Headed Wolf cinematic probe (overlay ran + current beat + live-fighter pose + all 4 beat imgs loaded)
     // Force the match to end with `side` as the winner (test-only) → runs _checkMatchOver, which fires the
     // win/lose pose hook. Reuses the sudden-death _matchOverride path so it works in any harness mode.
     forceMatchWin: (side = "p1") => { _matchOverride = { winnerSide: side }; _checkMatchOver(); return { gameState, victory: !!victoryState.active, winner: victoryState.winnerSide || null } },
@@ -11182,6 +12893,8 @@ gameLoop()
     // Nezuko's 6 acoustic-sorted grunt pools (intro/combatBark/hitReact/hitGrunt/lowHealth/win).
     nezukoVoicePool: pool => NEZUKO_VOICE[pool] || null,
     nezukoVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickNezukoVoice(pool)),
+    jasonVoicePool: pool => JASON_VOICE[pool] || null,
+    jasonVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickJasonVoice(pool)),
     // Miwa's 9 JA pools (intro/taunt/iaiDash/airVortex/ultimate/combatBark/hitReact/lowHealth/win).
     miwaVoicePool: pool => MIWA_VOICE[pool] || null,
     miwaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickMiwaVoice(pool)),
@@ -11197,6 +12910,23 @@ gameLoop()
     zarakiVoicePool: (pool) => (ZARAKI_VOICE[pool] || []).slice(),
     ichigoVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickIchigoVoice(pool)),
     ichigoVoicePool: (pool) => (ICHIGO_VOICE[pool] || []).slice(),
+    // Isshiki voice pools — same shape (raw pool + N-sample randomizer) for the voice-wiring test.
+    isshikiVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickIsshikiVoice(pool)),
+    hiruzenVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickHiruzenVoice(pool)),
+    hiruzenVoicePool: (pool) => (HIRUZEN_VOICE[pool] || []).slice(),
+    orochimaruVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickOrochimaruVoice(pool)),
+    orochimaruVoicePool: (pool) => (OROCHIMARU_VOICE[pool] || []).slice(),
+    orochimaruVoicePools: () => Object.keys(OROCHIMARU_VOICE),
+    kibaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickKibaVoice(pool)),
+    kibaVoicePool: (pool) => (KIBA_VOICE[pool] || []).slice(),
+    kibaVoicePools: () => Object.keys(KIBA_VOICE),
+    saitamaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSaitamaVoice(pool)),
+    mayuriVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickMayuriVoice(pool)),
+    mayuriVoicePools: () => Object.fromEntries(Object.entries(MAYURI_VOICE).map(([k, v]) => [k, v.length])),
+    saitamaVoicePool: (pool) => (SAITAMA_VOICE[pool] || []).slice(),
+    isshikiVoicePool: (pool) => (ISSHIKI_VOICE[pool] || []).slice(),
+    // Test-only: clear the per-hit voice cooldown so a voice test can fire light- then heavy-hit reactions back-to-back.
+    clearHitVoiceCd: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f._hitVoiceCd = 0; f._iWasKnockedDown = false } },
     // Yuji's EN+JA pool sets (intro/offense/cast/blackFlash/hitReact/lowHealth/win). lang switch is live.
     yujiVoicePool: (pool, lang) => (YUJI_VOICE[lang || getYujiVoiceLang()] || {})[pool] || null,
     yujiVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickYujiVoice(pool)),
@@ -11383,6 +13113,7 @@ gameLoop()
       countdown = ROUND_START_COUNTDOWN
       if (p1) {
         p1._introPlaying = true
+        p1._introVoiceDone = false        // replay the once-per-intro voice line on a forced intro
         p1._introSeq     = null          // force a single held variant (bypass any introSequence stepper)
         p1._introVariant = variant
         if (p1.spriteHandler) { p1.spriteHandler.currentAction = null; p1.spriteHandler.frameIndex = 0; p1.spriteHandler.frameTimer = 0; p1.spriteHandler.locked = false }
@@ -11391,6 +13122,9 @@ gameLoop()
       // Hold this single forced intro open: mark the sequential stage machine "done" so it neither
       // auto-advances P1 off nor starts P2 (this hook drives one side's intro-rotation coverage).
       introStage = "done"
+      // Fire the once-per-intro voice line now (the sequential p1/p2 update branches — which normally call
+      // maybeFireIntroVoice — are skipped while introStage is "done", so drive it directly for this hook).
+      if (p1) try { maybeFireIntroVoice(p1) } catch (_) {}
     }
   }
 })()

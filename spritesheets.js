@@ -187,6 +187,69 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./madara2_idle_1_uniform.png" }
   },
 
+  // Onoki (universe: naruto), the Third Tsuchikage — STAGE 1. Gates spritesReady() by decoding the idle
+  // strip → flips Onoki from procedural box to sprite handler. Per-action rendering reads characters.js →
+  // onoki.animationData (each action, incl. the dedicated fly/flyMove flight art, carries its own .sheet).
+  // Object form; idle is the RE-SLICED uniform strip (tools/reslice_onoki.py).
+  onoki: {
+    actions: { idle: "./onoki_idle_uniform.png" }
+  },
+
+  // Kiba Inuzuka (universe: naruto), Inuzuka-clan beast-fusion rushdown — STAGE 1. Gates spritesReady()
+  // by decoding the idle strip → flips Kiba from procedural box to sprite handler. Per-action rendering
+  // reads characters.js → kiba.animationData (each action carries its own .sheet). Idle is the RE-SLICED
+  // uniform strip (tools/reslice_kiba.py).
+  kiba: {
+    actions: { idle: "./kiba_idle_uniform.png" }
+  },
+
+  // Boruto Uzumaki (universe: naruto), versatile new-era shinobi — STAGE 1. Gates spritesReady() by
+  // decoding the idle strip → flips Boruto from procedural box to sprite handler. Per-action rendering
+  // reads characters.js → boruto.animationData (each action carries its own .sheet). Idle is the RE-SLICED
+  // ping-pong uniform strip (tools/reslice_boruto.py).
+  boruto: {
+    actions: { idle: "./boruto_idle_uniform.png" }
+  },
+
+  // Mayuri Kurotsuchi (universe: bleach), 12th-Division captain — STAGE 1. Gates spritesReady() by
+  // decoding the idle strip → flips Mayuri from procedural box to sprite handler. Per-action rendering
+  // reads characters.js → mayuri.animationData (each action carries its own .sheet). Idle is the
+  // RE-SLICED uniform strip (tools/reslice_mayuri.py).
+  mayuri: {
+    actions: { idle: "./mayuri_idle_uniform.png" }
+  },
+
+  // Yamamoto Genryūsai (universe: bleach), Captain-Commander — STAGE 1. Gates spritesReady() by decoding
+  // the idle strip → flips Yamamoto from procedural box to sprite handler. Per-action rendering reads
+  // characters.js → yamamoto.animationData (each action carries its own .sheet). Idle is the RE-SLICED
+  // BODY+PROP composite strip (tools/reslice_yamamoto.py; cane composited in-hand at native coords).
+  yamamoto: {
+    actions: { idle: "./yamamoto_idle_uniform.png" }
+  },
+
+  // Byakuya Kuchiki (universe: bleach), Squad-6 captain / Shunpo swordsman — STAGE 2. Gates spritesReady()
+  // by decoding the idle strip → flips Byakuya from procedural box to sprite handler. Per-action rendering
+  // reads characters.js → byakuya.animationData (each action carries its own .sheet). Idle is the RE-SLICED
+  // uniform strip (tools/reslice_byakuya.py).
+  byakuya: {
+    actions: { idle: "./byakuya_idle_uniform.png" }
+  },
+
+  // Light Yagami (universe: deathnote), Death Note's Kira / special-heavy zoner — STAGE 1. Gates
+  // spritesReady() by decoding the idle strip → flips Light from procedural box to sprite. Per-action
+  // rendering reads characters.js → light.animationData (each action carries its own .sheet). Idle is the
+  // RE-SLICED uniform strip (tools/reslice_light.py).
+  light: {
+    actions: { idle: "./light_idle_uniform.png" }
+  },
+
+  // L "Ryuuzaki" (universe: deathnote) — STAGE 1. Gates spritesReady() by decoding the idle strip →
+  // flips L from procedural box to sprite. Per-action rendering reads characters.js →
+  // lRyuuzaki.animationData (each action carries its own .sheet). idle is the RE-SLICED uniform strip.
+  l_ryuuzaki: {
+    actions: { idle: "./l_ryuuzaki_idle_uniform.png" }
+  },
+
   // Pain / Nagato's Deva Path (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle
   // strip → flips Pain from procedural box to sprite. Per-action rendering reads characters.js →
   // pain.animationData (each action carries its own .sheet). Idle is the RE-SLICED uniform strip.
@@ -315,6 +378,46 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./red_ranger_mmpr_idle_uniform.png" }
   },
 
+  // Jason Voorhees (universe: horror) — 2nd horror sprite char (after Ghostface). Same idle-strip
+  // gate: decoding it flips spritesReady() from procedural box to the sprite path. Per-action
+  // rendering reads characters.js → jason.animationData (each action carries its own .sheet).
+  // idle = the RE-SLICED uniform strip (tools/reslice_jason.py). See JASON_ASSET_MAP.md.
+  jason: {
+    actions: { idle: "./jason_idle_uniform.png" }
+  },
+
+  // Hiruzen Sarutobi (universe: naruto) — the Third Hokage. Same idle-strip gate: decoding it flips
+  // spritesReady() from procedural box to the sprite path. Per-action rendering reads characters.js →
+  // hiruzen.animationData (each action carries its own .sheet). idle = the RE-SLICED uniform strip
+  // (tools/reslice_hiruzen.py; dash/jump/back_jump were watermark-cleaned first). See HIRUZEN_ASSET_MAP.md.
+  hiruzen: {
+    actions: { idle: "./hiruzen_idle_uniform.png" }
+  },
+
+  // Orochimaru (universe: naruto) — the immortal Sannin. Same idle-strip gate: decoding it flips
+  // spritesReady() from procedural box to the sprite path. Per-action rendering reads characters.js →
+  // orochimaru.animationData (each action carries its own .sheet). idle = the RE-SLICED uniform strip
+  // (tools/reslice_orochimaru.py). See OROCHIMARU_ASSET_MAP.md.
+  orochimaru: {
+    actions: { idle: "./orochimaru_idle_uniform.png" }
+  },
+
+  // Isshiki Otsutsuki (universe: naruto). Same idle-strip gate: decoding it flips spritesReady()
+  // from procedural box to the sprite path. Per-action rendering reads characters.js →
+  // isshiki.animationData (each action carries its own .sheet). idle = the RE-SLICED uniform strip
+  // (tools/reslice_isshiki.py, which also splits hit_sheet's 4 baked-in actions). See ISSHIKI_ASSET_MAP.md.
+  isshiki: {
+    actions: { idle: "./isshiki_idle_uniform.png" }
+  },
+
+  // Saitama (universe: one_punch_man) — FIRST One Punch Man char. Same idle-strip gate: decoding it
+  // flips spritesReady() from procedural box to the sprite path. Per-action rendering reads
+  // characters.js → saitama.animationData (each action carries its own .sheet). idle = the RE-SLICED
+  // uniform strip (tools/reslice_saitama.py). See SAITAMA_ASSET_MAP.md.
+  saitama: {
+    actions: { idle: "./saitama_idle_uniform.png" }
+  },
+
   // Omni-Man (universe: invincible) — STAGE 0. Gates spritesReady() by decoding the idle strip →
   // flips Omni-Man from procedural box to sprite. Per-action rendering reads characters.js →
   // omniMan.animationData (each action carries its own .sheet). idle = omni_man_idle.png (3 clean
@@ -396,6 +499,14 @@ export const SPRITE_MANIFEST = {
   // strip → flips zaraki_shikai from procedural box to sprite. Per-action art = characters.zaraki_shikai.animationData.
   zaraki_shikai: {
     actions: { idle: "./zaraki_shikai_idle_uniform.png" }
+  },
+
+  // Six Paths of Pain (universe: naruto) — separate from solo `pain`. Gates spritesReady() by decoding
+  // the Deva (base Path) idle strip → flips six_paths_pain from procedural box to sprite. Per-action /
+  // per-Path art reads characters.six_paths_pain.animationData (Deva base) OR fighter._skinAnim (the
+  // swapped-in Path anim set). See tools/reslice_six_paths_pain.py.
+  six_paths_pain: {
+    actions: { idle: "./sixpaths_deva_stance_uniform.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js

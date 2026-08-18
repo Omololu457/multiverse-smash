@@ -6,7 +6,7 @@
 //      Fails with the LIST OF UNATTRIBUTED FILES — this is what keeps attribution from rotting: a
 //      new sourced sheet added without a credits entry fails CI in the same commit.
 //   2. IN-GAME PROOF (browser): the .txt-named artists actually reach the player — the CREDITS
-//      screen is reachable and lists them, and Gojo/Megumi show their sheet's artist on select.
+//      screen is reachable and lists them, and Gojo shows its sheet's artist on select.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 import { characters } from "../characters.js";
@@ -55,17 +55,14 @@ try {
 
   // ══ 2) NAMED ARTISTS from the repo's *_CREDITS.txt reach credits.js ═════════════
   section("TXT ARTISTS — every artist named in the repo's *_CREDITS.txt is in credits.js");
-  // Ground truth = the names written in CREDITS.txt / megumi_CREDITS.txt.
-  const REQUIRED_ARTISTS = ["FinhJ", "ZeurasBlack", "Rob4n", "saxcreed"];
+  // Ground truth = the names written in CREDITS.txt / gojo_CREDITS.txt.
+  const REQUIRED_ARTISTS = ["FinhJ", "ZeurasBlack", "Rob4n"];
   const creditsBlob = JSON.stringify(SOURCED_ART);
   for (const name of REQUIRED_ARTISTS) check(`"${name}" appears in credits.js`, creditsBlob.includes(name));
 
   check("Gojo select line names all three sheet artists",
     ["FinhJ","ZeurasBlack","Rob4n"].every(n => (artistLineForCharacter("gojo") || "").includes(n)),
     artistLineForCharacter("gojo"));
-  check("Megumi select line names the artist + editor",
-    (artistLineForCharacter("megumi") || "").includes("FinhJ") && (artistLineForCharacter("megumi") || "").includes("saxcreed"),
-    artistLineForCharacter("megumi"));
   check("project-adapted characters have NO select artist line (uncluttered)", artistLineForCharacter("naruto") === null);
 
   // The CREDITS screen data carries the required legal notice verbatim.

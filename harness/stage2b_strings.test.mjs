@@ -1,5 +1,5 @@
 // MK-feel STAGE 2b CONFIRMATION — the shared "standard combo string" for ALL SIX single-poke characters
-// (Goku, Gojo, Sukuna, Naruto, Megumi, Rick). Drives the REAL shared handler + combat/physics (no mocks):
+// (Goku, Gojo, Sukuna, Naruto, Rick). Drives the REAL shared handler + combat/physics (no mocks):
 //   • light → light → heavy(LAUNCHER) : each stage cancels into the next on a CONNECTED recovery
 //   • the heavy ender POPS THE OPPONENT UP (-26, feeding the Stage-1b/2a juggle)
 //   • the string is L,L,H — a 3rd light does NOT chain
@@ -16,7 +16,7 @@ let pass = 0, fail = 0
 const check = (n, c, e = "") => { if (c) { pass++; console.log("  ✓", n) } else { fail++; console.log("  ✗", n, e) } }
 const section = (t) => console.log(`\n═══ ${t} ═══`)
 
-const CHARS = ["goku", "gojo", "sukuna", "naruto", "megumi", "rick"]
+const CHARS = ["goku", "gojo", "sukuna", "naruto", "rick"]
 
 function mkFighter(key, cd) {
   const f = { side: "p1", rosterKey: key, facing: 1, x: 100, y: 300, w: 50, h: 100, vx: 0, vy: 0,

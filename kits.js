@@ -17,7 +17,7 @@
 //   Down + Special   → special #2
 //   Forward + Special→ special #3 / mobility
 //   Ultimate         → ultimate (needs a full meter)
-// The advanced characters (goku/naruto/gojo/megumi/sukuna/omololu) ALSO
+// The advanced characters (goku/naruto/gojo/sukuna/omololu) ALSO
 // accept fighting-game motions (QCF, DP, etc.) shown in their move inputs.
 //
 // COMBO-STRING GRAMMAR (combo-string standardization Stage F): the Move List teaches each
@@ -273,32 +273,6 @@ export const KITS = {
       { name: "Lapse Convert", sequence: "Blue, Light, Light, Heavy", desc: "pull them in, then punish" },
       { name: "Erase",         sequence: "Blue, Hollow Purple",       desc: "pull into the convergence beam" },
       { name: "Air Juggle",    sequence: "Up-Attack, Jump, Air, Air", desc: "launcher into aerials" }
-    ]
-  },
-  megumi: {
-    type: "Setup / Summoner", energy: "Cursed Energy", difficulty: "Hard",
-    summary: "A methodical shikigami summoner who builds board control by calling shadow beasts from every direction, then seals the opponent inside his domain.",
-    passive: { name: "Ten Shadows", effect: "Shikigami are summoned on a shared cooldown; defeated shikigami can be re-summoned, rewarding patient setup play." },
-    basics: [
-      { name: "Jab",        input: "Light",                    desc: "fast poke" },
-      { name: "Heavy Blow", input: "Heavy",                    desc: "knockback strike" },
-      { name: "Launcher",   input: "Up-Attack",                desc: "launcher — starts air combos" },
-      { name: "Air Strike", input: "Air (jump + Light)",       desc: "aerial poke" },
-      { name: "Dive",       input: "Down-Air (jump + Heavy)",  desc: "downward spike" },
-      { name: "Grab",       input: "Grab",                     desc: "throw" }
-    ],
-    specials: [
-      { name: "Divine Dogs",  input: "Down-Forward + Special (QCF)",          cost: 20, desc: "summons twin shadow wolves that rush the enemy" },
-      { name: "Nue",          input: "Forward, Down, Forward + Special (DP)",  cost: 25, desc: "summons a shikigami bird for an aerial lightning strike" },
-      { name: "Toad",         input: "Back, Forward + Special",               cost: 20, desc: "summons a toad that restrains the opponent" },
-      { name: "Max Elephant", input: "Down-Back + Special",                   cost: 35, desc: "summons a giant elephant for a massive crushing wave" }
-    ],
-    mobility: { name: "Rabbit Escape", input: "Down, Up + Special", cost: 15, desc: "summons a swarm of rabbits to cover a defensive reposition" },
-    ultimate: { name: "Chimera Shadow Garden", input: "Ultimate", cost: 100, desc: "Domain Expansion: unfurls a shadow territory that restrains the opponent for its duration" },
-    combos: [
-      { name: "Pin & Punish", sequence: "Toad, Light, Light, Heavy", desc: "restrain then convert" },
-      { name: "Stampede",     sequence: "Divine Dogs, Max Elephant",  desc: "wolves pressure into the elephant wave" },
-      { name: "Skyfall",      sequence: "Up-Attack, Jump, Air, Nue",  desc: "juggle into a lightning strike" }
     ]
   },
   sukuna: {

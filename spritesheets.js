@@ -69,15 +69,20 @@ export const SPRITE_MANIFEST = {
     actions: ["idle", "walk", "jump", "dash", "hurt"]
   },
 
-  // Megumi: idle strip is non-convention (stance / row03), so use OBJECT
-  // form to point `idle` at the real file — this is only the spritesReady() gate;
-  // per-action rendering reads the `sheet` path from animationData.
-  // MK-feel Stage 5: Megumi manifest entry REMOVED (commented, not deleted) — with no manifest
-  // entry, spritesReady() never flips it from box → sprite, so it renders on the procedural renderer.
-  // animationData is intact in characters.js; restore this entry (+ hasSprites:true) to bring sprites back.
-  // megumi: {
-  //   actions: { idle: "./megumi_stance_sheet.png" }
-  // },
+  // Alternate Sukuna (rosterKey alt_sukuna) — a SEPARATE char from `sukuna` above, built from the
+  // Cinontk/Bitsverse644 rip (sukuna_row_*). Gates spritesReady() only (decodes idle → flips it from
+  // procedural box to sprite handler); per-action rendering reads characters.js → altSukuna.animationData
+  // (each action carries its own reslice_alt_sukuna.py _uniform .sheet).
+  alt_sukuna: {
+    actions: { idle: "./alt_sukuna_idle_uniform.png" }
+  },
+
+  // Aoi Todo (rosterKey aoi_todo, JJK) — GREEN chroma-key rip by akuma animation / MichelST. Gates
+  // spritesReady() only (decodes idle → flips from procedural box to sprite handler); per-action
+  // rendering reads characters.js → aoiTodo.animationData (each carries its own reslice_aoi_todo.py sheet).
+  aoi_todo: {
+    actions: { idle: "./aoi_todo_idle_uniform.png" }
+  },
 
   // Maki Zenin (JJK). Only gates spritesReady() by decoding idle; per-action
   // rendering reads the `sheet` paths from characters.js → maki.animationData
@@ -91,6 +96,13 @@ export const SPRITE_MANIFEST = {
   // (reslice_strip'd toji_*_uniform copies; raw uploads kept in _toji_raw_backup/). See TOJI_ASSET_MAP.md.
   toji: {
     actions: { idle: "./toji_idle_uniform.png" }
+  },
+
+  // Baki Hanma (Baki the Grappler). GATES spritesReady() only (decodes idle → flips Baki from box to
+  // sprite); per-action rendering reads the `sheet` paths from characters.js → baki.animationData
+  // (tools/repack_baki.py'd baki_*_uniform copies from baki_sliced/). See BAKI_ASSET_MAP / BAKI_BUILD_PROMPT.
+  baki: {
+    actions: { idle: "./baki_idle_uniform.png" }
   },
 
   // Obito Uchiha (Naruto). GATES spritesReady() only (decodes idle → flips Obito from box to
@@ -193,6 +205,54 @@ export const SPRITE_MANIFEST = {
   // Object form; idle is the RE-SLICED uniform strip (tools/reslice_onoki.py).
   onoki: {
     actions: { idle: "./onoki_idle_uniform.png" }
+  },
+
+  // Deathstroke (universe: dc), Slade Wilson — STAGE 1. Gates spritesReady() by decoding the idle strip
+  // → flips Deathstroke from procedural box to sprite handler. Per-action rendering reads characters.js →
+  // deathstroke.animationData (each action carries its own .sheet). Idle is the RE-SLICED uniform strip
+  // (tools/reslice_deathstroke.py). Multi-weapon (sword/gun/martial) self-contained moveset.
+  deathstroke: {
+    actions: { idle: "./deathstroke_idle_uniform.png" }
+  },
+
+  // Yuta Okkotsu (universe: jujutsu_kaisen) — STAGE 1. Gates spritesReady() by decoding the idle strip
+  // → flips Yuta from procedural box to sprite handler. Per-action rendering reads characters.js →
+  // yuta.animationData (each action carries its own .sheet). Idle is the RE-SLICED uniform strip
+  // (tools/reslice_yuta.py). Sword-and-cursed-energy technician; Rika = AI assist ult (later stage).
+  yuta: {
+    actions: { idle: "./yuta_idle_uniform.png" }
+  },
+
+  // Brainiac (universe: dc), Coluan all-special ZONER — STAGE 1. Gates spritesReady() by decoding the
+  // idle strip → flips Brainiac from procedural box to sprite handler. Per-action rendering reads
+  // characters.js → brainiac.animationData (each action carries its own .sheet). Idle is the RE-SLICED
+  // uniform strip (tools/reslice_brainiac.py).
+  brainiac: {
+    actions: { idle: "./brainiac_idle_uniform.png" }
+  },
+
+  // Green Lantern / Hal Jordan (universe: dc), flying construct-based zoner/mixup — STAGE 1. Gates
+  // spritesReady() by decoding the idle strip → flips GL from procedural box to sprite handler. Per-
+  // action rendering reads characters.js → green_lantern.animationData (each action carries its own
+  // .sheet). Idle is the ASSEMBLED uniform strip (tools/reslice_green_lantern.py, from frames 005–008).
+  green_lantern: {
+    actions: { idle: "./gl_idle_uniform.png" }
+  },
+
+  // Spider-Man (universe: marvel), acrobatic evasive web-technician — STAGE 1. Gates spritesReady()
+  // by decoding the idle strip → flips Spider-Man from procedural box to sprite handler. Per-action
+  // rendering reads characters.js → spiderman.animationData (each action carries its own .sheet). Idle
+  // is the RE-SLICED uniform strip (tools/reslice_spiderman.py). CPS2 arcade rip (Alvin-Earthworm).
+  spiderman: {
+    actions: { idle: "./spiderman_idle_uniform.png" }
+  },
+
+  // Naoya Zenin (universe: jujutsu_kaisen), Projection-Sorcery frame-trap technician — STAGE 1. Gates
+  // spritesReady() by decoding the idle strip → flips Naoya from procedural box to sprite handler. Per-action
+  // rendering reads characters.js → naoya.animationData (each action carries its own .sheet). Idle is the
+  // RE-SLICED uniform strip (tools/reslice_naoya.py).
+  naoya: {
+    actions: { idle: "./naoya_idle_uniform.png" }
   },
 
   // Kiba Inuzuka (universe: naruto), Inuzuka-clan beast-fusion rushdown — STAGE 1. Gates spritesReady()
@@ -507,6 +567,13 @@ export const SPRITE_MANIFEST = {
   // swapped-in Path anim set). See tools/reslice_six_paths_pain.py.
   six_paths_pain: {
     actions: { idle: "./sixpaths_deva_stance_uniform.png" }
+  },
+
+  // Kurapika (universe: hunter_x_hunter) — gates spritesReady() by decoding the idle strip → flips Kurapika
+  // from procedural box to sprite. Per-action rendering reads characters.js → kurapika.animationData (each
+  // action carries its own .sheet). idle is the RE-SLICED/DESPECKLED uniform strip (reslice_kurapika_build.py).
+  kurapika: {
+    actions: { idle: "./kurapika_idle_uniform.png" }
   }
 
   // ── TEMPLATE: copy, rename, drop your PNGs in, set hasSprites in characters.js
@@ -516,11 +583,11 @@ export const SPRITE_MANIFEST = {
   // },
   //
   // ── Object form when your filenames don't follow the convention:
-  // megumi: {
+  // yourchar: {
   //   actions: {
-  //     idle:  "./art/megumi/idle.png",
-  //     walk:  "./art/megumi/walk.png",
-  //     light: "./art/megumi/jab.png"
+  //     idle:  "./art/yourchar/idle.png",
+  //     walk:  "./art/yourchar/walk.png",
+  //     light: "./art/yourchar/jab.png"
   //   }
   // }
 }

@@ -22,7 +22,6 @@ const TIERS = [
   { key:"maki",   tier:"speedster", spd:98 },
   { key:"naruto", tier:"mid",       spd:90 },
   { key:"rick",   tier:"heavy-ish", spd:84 },
-  { key:"megumi", tier:"heavy-ish", spd:83 },
 ];
 
 try{

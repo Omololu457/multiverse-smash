@@ -100,6 +100,10 @@ export const physics = {
     const L = !!keys[controls.left]
     const R = !!keys[controls.right]
     const D = !!keys[controls.down]   // Omni-Man flight: down = descend
+    // Persistent crouch flag (telemetry only): true while holding Down, grounded, and stationary. Read
+    // ONLY by the sprite resolver's gated crouch branch (renders a crouch strip if the char ships one —
+    // a no-op for every char without an animationData.crouch). Cleared below when not crouching.
+    fighter._crouching = !!(D && fighter.onGround && !L && !R && !fighter._flightActive)
     // Jump reads the dedicated jump binding first, falling back to `up` for
     // maps that share one key (the live P1/P2 maps set up===jump). This keeps
     // jumping correct even if a future config splits the two bindings.
@@ -141,7 +145,13 @@ export const physics = {
     }
     // ── MOVEMENT ─────────────────────────────────────
     else if (canMove) {
-      const maxAirDash = (fighter.stats?.mobility === "very_high") ? 2 : 1
+      // `very_high` mobility = a DOUBLE air-dash. The mobility tag lives in traits (that's where every
+      // character declares it); the older `fighter.stats?.mobility` read was always undefined (stats has
+      // no mobility key), so this cap silently stayed 1 for EVERY "very_high" char — the double air-dash
+      // was dead. Read traits first (stats kept as a defensive fallback). Realizes the intended double
+      // air-dash for EVERY very_high char: zenitsu, shinobu, nezuko, killua, flash, maki, toji (+ Saitama).
+      const mobility = fighter.traits?.mobility ?? fighter.stats?.mobility
+      const maxAirDash = (mobility === "very_high") ? 2 : 1
 
       if (air && dash && fighter.airDashCount < maxAirDash && fighter.dashCooldown <= 0) {
         const adSpd = (fighter.dashSpeed || 14) * 0.8

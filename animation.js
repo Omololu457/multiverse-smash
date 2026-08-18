@@ -271,87 +271,6 @@ profiles.gojo = {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// MEGUMI FUSHIGURO
-// Primary: melee + summons (all summons are detached entities after spawn anim)
-// Mahoraga transformation is a permanent state change
-// ══════════════════════════════════════════════════════════════════
-profiles.megumi = {
-  defaultAction: "idle",
-  actions: {
-    idle:  { sheet: "sprites/megumi/megumi_idle.png",  frames: 6, width: 128, height: 128, speed: 8, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    walk:  { sheet: "sprites/megumi/megumi_walk.png",  frames: 8, width: 128, height: 128, speed: 6, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    jump:  { sheet: "sprites/megumi/megumi_jump.png",  frames: 4, width: 128, height: 128, speed: 6, loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    fall:  { sheet: "sprites/megumi/megumi_fall.png",  frames: 3, width: 128, height: 128, speed: 6, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    hurt:  { sheet: "sprites/megumi/megumi_hurt.png",  frames: 3, width: 128, height: 128, speed: 8, loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    light: { sheet: "sprites/megumi/megumi_light.png", frames: 5, width: 128, height: 128, speed: 4, loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached", lockLastFrame: true },
-    heavy: { sheet: "sprites/megumi/megumi_heavy.png", frames: 6, width: 128, height: 128, speed: 5, loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached", lockLastFrame: true },
-    up:    { sheet: "sprites/megumi/megumi_up.png",    frames: 5, width: 160, height: 192, speed: 4, loop: false, anchorX: 16, anchorY: 32, behavior: "body_attached", lockLastFrame: true },
-    air:   { sheet: "sprites/megumi/megumi_air.png",   frames: 4, width: 128, height: 128, speed: 5, loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached", lockLastFrame: true },
-    down_air: { sheet: "sprites/megumi/megumi_down_air.png", frames: 5, width: 128, height: 160, speed: 4, loop: false, anchorX: 0, anchorY: 16, behavior: "body_attached", lockLastFrame: true },
-
-    // Divine Dogs summon startup — dogs spawn as separate entities
-    divine_dogs: {
-      sheet: "sprites/megumi/megumi_summon.png",
-      frames: 5, width: 128, height: 128, speed: 4, loop: false,
-      anchorX: 0, anchorY: 0, behavior: "summon_spawn",
-      lockLastFrame: false,
-      spawn: { type: "summon", summonKey: "divineDogs", spawnFrame: 3 }
-    },
-
-    // Nue summon startup — Nue spawns as separate aerial entity
-    nue: {
-      sheet: "sprites/megumi/megumi_summon.png",
-      frames: 5, width: 128, height: 128, speed: 4, loop: false,
-      anchorX: 0, anchorY: 0, behavior: "summon_spawn",
-      lockLastFrame: false,
-      spawn: { type: "summon", summonKey: "nue", spawnFrame: 3 }
-    },
-
-    // Toad summon
-    toad: {
-      sheet: "sprites/megumi/megumi_summon.png",
-      frames: 5, width: 128, height: 128, speed: 4, loop: false,
-      anchorX: 0, anchorY: 0, behavior: "summon_spawn",
-      lockLastFrame: false,
-      spawn: { type: "summon", summonKey: "toad", spawnFrame: 3 }
-    },
-
-    // Rabbit Escape
-    rabbit_escape: {
-      sheet: "sprites/megumi/megumi_summon.png",
-      frames: 4, width: 128, height: 128, speed: 5, loop: false,
-      anchorX: 0, anchorY: 0, behavior: "summon_spawn",
-      lockLastFrame: false,
-      spawn: { type: "summon", summonKey: "rabbitEscape", spawnFrame: 2 }
-    },
-
-    // Max Elephant
-    max_elephant: {
-      sheet: "sprites/megumi/megumi_summon_heavy.png",
-      frames: 7, width: 160, height: 128, speed: 4, loop: false,
-      anchorX: 16, anchorY: 0, behavior: "summon_spawn",
-      lockLastFrame: false,
-      spawn: { type: "summon", summonKey: "maxElephant", spawnFrame: 5 }
-    },
-
-    // Chimera Shadow Garden — Domain Expansion hand-sign
-    ultimate: {
-      sheet: "sprites/megumi/megumi_domain_cast.png",
-      frames: 8, width: 192, height: 192, speed: 5, loop: false,
-      anchorX: 32, anchorY: 32, behavior: "domain_cast"
-    },
-
-    domain: {
-      sheet: "sprites/megumi/megumi_domain_cast.png",
-      frames: 8, width: 192, height: 192, speed: 5, loop: false,
-      anchorX: 32, anchorY: 32, behavior: "domain_cast"
-    },
-    win:  { sheet: "sprites/megumi/megumi_win.png",  frames: 6, width: 128, height: 128, speed: 8, loop: true,  anchorX: 0, anchorY: 0, behavior: "body_attached" },
-    lose: { sheet: "sprites/megumi/megumi_lose.png", frames: 4, width: 128, height: 128, speed: 10,loop: false, anchorX: 0, anchorY: 0, behavior: "body_attached" }
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════
 // SUKUNA
 // Primary: melee pressure + detached cursed slash techniques
 // Some attacks spawn separate slash effects across the arena
@@ -486,12 +405,6 @@ export function combatMoveToAction(characterKey, combatMoveKey) {
     blue:          "blue_cast",
     red:           "red_cast",
     hollowPurple:  "hollow_purple_cast",
-    // Megumi summons
-    divineDogs:    "divine_dogs",
-    nue:           "nue",
-    toad:          "toad",
-    rabbitEscape:  "rabbit_escape",
-    maxElephant:   "max_elephant",
     // Goku
     dragonFist:    "special_1",
     kamehameha:    "special_2",

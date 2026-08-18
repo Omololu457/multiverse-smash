@@ -261,9 +261,6 @@ export function updateDomains(fighters = [], hitEffects = []) {
         fighter.domainFrozen = true
         fighter.hitstun = Math.max(fighter.hitstun || 0, 4)   // continuously re-applied → can't act
         fighter.vx = 0
-      } else if (domain.rosterKey === "megumi") {
-        fighter.vx = (fighter.vx || 0) * domain.speedPenalty
-        fighter.vy = (fighter.vy || 0) * Math.max(0.85, domain.speedPenalty)
       } else {
         fighter.vx = (fighter.vx || 0) * domain.speedPenalty
         fighter.vy = (fighter.vy || 0) * Math.max(0.85, domain.speedPenalty)
@@ -320,9 +317,6 @@ export function drawDomainBackground(ctx, canvas, groundY, floorHeight) {
       break
     case "sukuna":
       _drawMalevolentShrine(ctx, cw, ch)
-      break
-    case "megumi":
-      _drawChimeraShadowGarden(ctx, cw, ch)
       break
     case "hashirama":
       _drawSealingDomain(ctx, cw, ch)
@@ -532,42 +526,6 @@ function _drawMalevolentShrine(ctx, cw, ch) {
   _drawDomainLabel(ctx, cw, ch, "Malevolent Shrine", "#ef4444")
 }
 
-function _drawChimeraShadowGarden(ctx, cw, ch) {
-  ctx.fillStyle = "#000"
-  ctx.fillRect(0, 0, cw, ch)
-
-  const pg = ctx.createRadialGradient(cw / 2, ch * 0.85, 20, cw / 2, ch * 0.85, cw * 0.55)
-  pg.addColorStop(0, "rgba(80,0,120,0.6)")
-  pg.addColorStop(1, "transparent")
-  ctx.fillStyle = pg
-  ctx.fillRect(0, 0, cw, ch)
-
-  const t = performance.now() * 0.0006
-  ctx.strokeStyle = "rgba(120,40,180,0.12)"
-  ctx.lineWidth = 1
-
-  for (let i = 1; i < 5; i++) {
-    const rad = 80 + i * 60 + Math.sin(t + i) * 15
-    ctx.beginPath()
-    ctx.arc(cw / 2, ch * 0.85, rad, 0, Math.PI * 2)
-    ctx.stroke()
-  }
-
-  ctx.fillStyle = "rgba(60,0,90,0.5)"
-  ;[
-    { x: cw * 0.12, y: ch * 0.55, rx: 30, ry: 18 },
-    { x: cw * 0.78, y: ch * 0.35, rx: 40, ry: 24 },
-    { x: cw * 0.62, y: ch * 0.58, rx: 33, ry: 25 },
-    { x: cw * 0.3, y: ch * 0.4, rx: 50, ry: 36 }
-  ].forEach(s => {
-    ctx.beginPath()
-    ctx.ellipse(s.x, s.y, s.rx, s.ry, 0, 0, Math.PI * 2)
-    ctx.fill()
-  })
-
-  _drawDomainLabel(ctx, cw, ch, "Chimera Shadow Garden", "#a78bfa")
-}
-
 // HASHIRAMA "Sealing Jutsu" domain — the bespoke red sealing-barrier backdrop (hashirama_sealing_box.png),
 // cover-fit over the whole viewport, with a dark seal vignette + subtle drift so it reads as an enclosed
 // space (not a flat still). Falls back to a procedural deep-red field if the art hasn't decoded yet.
@@ -627,11 +585,11 @@ export function drawDomains(ctx) {
   for (const domain of activeDomains) {
     if (!domain?.owner) continue
 
-    // Gojo/Sukuna/Megumi domains span the whole map (range ~1e5); a world-space ring/fill
+    // Gojo/Sukuna domains span the whole map (range ~1e5); a world-space ring/fill
     // of that radius would be absurd. Their fullscreen drawDomainBackground +
     // the screen-space HUD bar convey the domain, so skip the world ring here.
     // Other domains keep their normal circular ring.
-    if (domain.rosterKey === "gojo" || domain.rosterKey === "sukuna" || domain.rosterKey === "megumi") continue
+    if (domain.rosterKey === "gojo" || domain.rosterKey === "sukuna") continue
 
     const owner = domain.owner
     const cx = (owner.x || 0) + (owner.w || 0) / 2

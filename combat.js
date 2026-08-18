@@ -26,6 +26,7 @@ import { pickBatmanVoice } from "./batmanVoice.js"
 import { pickOmniManVoice } from "./omnimanVoice.js"
 import { pickSupermanVoice } from "./supermanVoice.js"
 import { pickItachiVoice } from "./itachiVoice.js"
+import { pickOrochimaruVoice } from "./orochimaruVoice.js"   // Orochimaru hit/knockdown voice (audio-only, JA)
 // Sukuna voice pack REBUILT 2026-08-04 (sukunaVoice.js/pickSukunaVoice restored; EN+JA dual pools, JA default).
 // The preserved offense-connect trigger point (applySukunaOffenseVoice below) is filled back in; hitReact +
 // lowHealth hooks added alongside the Maki/Miwa cluster. See imported pickSukunaVoice (line below).
@@ -36,6 +37,7 @@ import { pickRengokuVoice } from "./rengokuVoice.js"   // Rengoku hit-react / of
 import { pickShinobuVoice } from "./shinobuVoice.js"   // Shinobu hit-react / offense-bark / low-health voice pools (audio-only)
 import { pickInosukeVoice } from "./inosukeVoice.js"   // Inosuke hit-react / offense-bark / low-health voice pools (audio-only)
 import { pickNezukoVoice } from "./nezukoVoice.js"   // Nezuko grunt pools (audio-only; muffled — no dialogue, sorted by acoustic characteristics)
+import { pickJasonVoice } from "./jasonVoice.js"     // Jason non-verbal combat SFX pools (audio-only; effort/pain/roar by trigger point)
 import { pickSamuraiVoice } from "./samuraiRedVoice.js"   // Samurai Red Ranger hit-react / offense-bark / low-health voice pools (audio-only)
 import { pickGoldSamuraiVoice } from "./goldSamuraiRangerVoice.js"   // Gold Samurai Ranger hit-react / offense-bark voice pools (audio-only)
 import { pickVegetaVoice } from "./vegetaVoice.js"   // Vegeta hit-react / offense-bark / low-health voice pools (audio-only; shared across base/SSJ/Blue)
@@ -50,9 +52,19 @@ import { pickObitoVoice } from "./obitoVoice.js"     // Obito hit-react / offens
 import { pickTobiVoice } from "./tobiVoice.js"       // Tobi (masked Obito alias) general combat-bark pool (audio-only, JA — separate from Obito's)
 import { pickZarakiVoice } from "./zarakiVoice.js"   // Zaraki hit / offense-bark / low-health voice pools (audio-only, JA)
 import { pickIchigoVoice } from "./ichigoVoice.js"   // Ichigo hit-react / offense-bark / low-health voice pools (audio-only, JA)
+import { pickIsshikiVoice } from "./isshikiVoice.js" // Isshiki hit-react (light/heavy) + knockdown voice pools (audio-only, JA)
+import { pickHiruzenVoice } from "./hiruzenVoice.js" // Hiruzen effort + hit-react (light/heavy) + knockdown voice pools (audio-only, JA)
+import { pickSaitamaVoice } from "./saitamaVoice.js" // Saitama LIGHT hit-reaction bark pool (audio-only)
+import { pickKibaVoice } from "./kibaVoice.js" // Kiba effort / hit-reaction / knockdown voice pools (audio-only, JA)
+import { pickNaoyaVoice } from "./naoyaVoice.js" // Naoya effort / hit-reaction / knockdown voice pools (audio-only, JA)
+import { pickMayuriVoice } from "./mayuriVoice.js"   // Mayuri effort + hit-react (light/heavy) + knockdown voice pools (audio-only, JA)
+import { pickYamamotoVoice } from "./yamamotoVoice.js"   // Yamamoto effort + hit-react (light/heavy) + knockdown voice pools (audio-only, JA)
+import { pickBorutoVoice, pickBorutoKarmaVoice } from "./borutoVoice.js"   // Boruto base + Momoshiki Karma voice pools (audio-only, JA; separate pools)
 import { pickSukunaVoice } from "./sukunaVoice.js"   // Sukuna hit-react / offense-bark / low-health voice pools (audio-only; JA default, EN switchable)
+import { pickAltSukunaVoice } from "./alt_sukunaVoice.js"   // Alternate Sukuna — TONE-FILTERED reuse of the same bank (less-malicious: measured/neutral only, cruel excluded; EN default)
 import { pickChrolloVoice } from "./chrolloVoice.js"   // Chrollo hit-react / grunt / offense-bark / taunt / low-health voice pools (audio-only)
 import { pickGhostfaceVoice } from "./ghostfaceVoice.js"   // Ghostface hit-react / offense-bark / taunt / low-health voice pools (audio-only)
+import { pickSpidermanVoice } from "./spidermanVoice.js"   // Spider-Man effort / hit-react (light/heavy) / knockdown / offense-quip voice pools (audio-only, EN Marvel-Rivals pack)
 
 // ========================
 // HITSTOP TABLE — SINGLE SHARED TUNABLE SOURCE
@@ -532,7 +544,11 @@ export function getAttackHitbox(fighter) {
   const a = fighter?.currentAttack
   if (!fighter || !a) return null
 
-  let w = a.rangeX || 50
+  // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
+  // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
+  // to 1 (no-op) for everyone else. Applied to the forward reach only, not the vertical box.
+  const reachMult = fighter._reachMult || 1
+  let w = (a.rangeX || 50) * reachMult
   let h = a.rangeY || 40
   let x = fighter.facing === 1 ? fighter.x + fighter.w : fighter.x - w
   let y = fighter.y + 20
@@ -558,7 +574,7 @@ export function getAttackHitbox(fighter) {
     // full forward reach, and extended ABOVE — so air combos connect whether the
     // juggled enemy is in front of or stacked above the attacker.
     const behind = 16
-    const reach  = a.rangeX || 60
+    const reach  = (a.rangeX || 60) * reachMult
     w = behind + fighter.w + reach
     h = (a.rangeY || 40) + 45
     x = fighter.facing === 1 ? fighter.x - behind : fighter.x + fighter.w + behind - w
@@ -675,6 +691,28 @@ export function shouldFeedbackAbsorb(defender, incomingDmg = 40) {
   return true
 }
 
+// BORUTO — MOMOSHIKI KARMA "Chakra Absorption": a Karma-ONLY, PROJECTILE/ENERGY-ONLY reactive absorb.
+// borutoAbsorbAttempt (abilities.js) pays a FIXED HP chunk up front and opens _absorbWindow. If an incoming
+// PROJECTILE lands during the window it is fully NEGATED and refunds energy proportional to the absorbed
+// attack. This is called ONLY from the projectile path (resolveProjectileHitsMulti) — NEVER the melee path —
+// so melee normals/physical specials are NOT absorbable (the deliberate restriction). Because the HP cost was
+// already paid on the attempt, a whiff (window expires) or a melee hit (never reaches here) simply gets no
+// negate + no refund — the built-in trap-for-misuse. Guarded to boruto + _karmaActive so a stale flag can't fire.
+export const KARMA_ABSORB_REFUND_MIN = 20
+export function shouldBorutoAbsorb(defender, incomingDmg = 40) {
+  if (!defender || (defender._absorbWindow || 0) <= 0) return false
+  if ((defender.rosterKey || "").toLowerCase() !== "boruto" || !defender._karmaActive) return false
+  defender._absorbWindow = 0                                   // one absorb per window — consume it
+  defender._absorbPending = false                             // resolved as SUCCESS → suppress the failure-voice branch
+  defender._absorbJustSucceeded = true                        // edge for the Karma absorbSuccess voice (abilities.updateBorutoKarma)
+  const refund = Math.max(KARMA_ABSORB_REFUND_MIN, Math.round((incomingDmg || 40) * 0.6))
+  defender.energy = Math.min(defender.maxEnergy || 180, (defender.energy || 0) + refund)   // resource payoff (feeds Karma uptime)
+  defender._absorbLastRefund = refund                          // exposed for HUD/harness
+  defender.teleportFlash = Math.max(defender.teleportFlash || 0, 10)
+  defender.colorFlash = Math.max(defender.colorFlash || 0, 10)
+  return true
+}
+
 // RENGOKU — COUNTER reactive parry/riposte. A TIMED window opened by the neutral Special
 // (abilities.executeRengokuSpecial sets _rengokuCountering, ticked down in game.updateMiscTimers).
 // If an incoming MELEE hit lands DURING the window it is NEGATED (no damage) and Rengoku RIPOSTES: the
@@ -715,6 +753,49 @@ export function shouldNezukoCounter(defender, attacker) {
   defender.parryFlash  = Math.max(defender.parryFlash || 0, 12)
   defender.attackCooldown = 0
   defender._spriteCastMove = "nezukoCounter"; defender._spriteCastTimer = 16
+  return true
+}
+
+// KURAPIKA — Steal Chain riposte (Back+Special). Same architecture as shouldNezukoCounter: an incoming melee
+// hit during the _kurapikaCountering window is NEGATED and riposted (attacker stunned + shoved + swing
+// cancelled + flat damage), Kurapika gets brief i-frames + a parry flash. Plus the "STEAL": on a successful
+// counter he REFUNDS Nen (energy) — a partial nod to the canon copy-mechanic. One riposte per window.
+export const KURAPIKA_RIPOSTE_DMG   = 72
+export const KURAPIKA_STEAL_ENERGY  = 30
+export function shouldKurapikaCounter(defender, attacker) {
+  if (!defender || !attacker || (defender._kurapikaCountering || 0) <= 0) return false
+  if ((defender.rosterKey || "").toLowerCase() !== "kurapika") return false
+  defender._kurapikaCountering = 0                                // one riposte per window — consume it
+  attacker.hitstun = Math.max(attacker.hitstun || 0, 30)          // stun + shove the attacker, cancel its swing
+  attacker.vx = -(attacker.facing || 1) * 7
+  attacker.attacking = false; attacker.currentAttack = null
+  applyScaledDamage(attacker, KURAPIKA_RIPOSTE_DMG, { source: "kurapika-riposte" })   // flat riposte (scaled like every other source)
+  defender.invulnTimer = Math.max(defender.invulnTimer || 0, 10)  // brief i-frames + flash
+  defender.parryFlash  = Math.max(defender.parryFlash || 0, 12)
+  defender.attackCooldown = 0
+  // STEAL: refund Nen (capped at max) — the "copy"/absorb nod, scoped to an energy steal this pass.
+  defender.energy = Math.min(defender.maxEnergy || 0, (defender.energy || 0) + KURAPIKA_STEAL_ENERGY)
+  defender._spriteCastMove = "kurapikaSteal"; defender._spriteCastTimer = 16
+  return true
+}
+
+// BAKI — "Defensive Read" riposte (Back+Special). Same architecture as shouldRengokuCounter: an incoming
+// melee hit during the _bakiCountering window is NEGATED and riposted (attacker stunned + shoved + swing
+// cancelled + flat damage), Baki gets brief i-frames + a parry flash + a return-punch pose. One riposte per
+// window. Guarded to baki so a stale flag elsewhere can't counter.
+export const BAKI_RIPOSTE_DMG = 90
+export function shouldBakiCounter(defender, attacker) {
+  if (!defender || !attacker || (defender._bakiCountering || 0) <= 0) return false
+  if ((defender.rosterKey || "").toLowerCase() !== "baki") return false
+  defender._bakiCountering = 0                                    // one riposte per window — consume it
+  attacker.hitstun = Math.max(attacker.hitstun || 0, 30)         // stun + shove the attacker, cancel its swing
+  attacker.vx = -(attacker.facing || 1) * 7
+  attacker.attacking = false; attacker.currentAttack = null
+  applyScaledDamage(attacker, BAKI_RIPOSTE_DMG, { source: "baki-riposte" })   // flat riposte (scaled like every other source)
+  defender.invulnTimer = Math.max(defender.invulnTimer || 0, 10)  // brief i-frames + flash
+  defender.parryFlash  = Math.max(defender.parryFlash || 0, 12)
+  defender.attackCooldown = 0
+  defender._spriteCastMove = "heavy"; defender._spriteCastTimer = 16   // snap a return-punch pose
   return true
 }
 
@@ -1342,14 +1423,17 @@ function applyHashiramaLowHealthVoice(defender) {
 }
 // PAIN voice (audio-only, JA) — mirrors the Madara hit/offense/low-health hooks; per-technique cast lines
 // (Shinra Tensei / Bansho Ten'in / Chibaku Tensei) + assist calls live on his specials/ult (abilities.js).
-// No-op for every other fighter.
+// SHARED with SIX PATHS OF PAIN: the multi-identity char reuses solo Pain's exact audio files (no source
+// of its own). Hit-react / offense-bark / low-health are generic effort/reaction sounds → shared verbatim
+// across every Path (no "commanding" narrative frame needed for a grunt). No-op for every other fighter.
+const _isPainVoiceChar = k => { const r = (k || "").toLowerCase(); return r === "pain" || r === "six_paths_pain" }
 function applyPainHitVoice(defender, cat, dmg) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "pain" || (defender._hitVoiceCd > 0)) return
+  if (!defender || !_isPainVoiceChar(defender.rosterKey) || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
   try { sound?.playSfxFile?.(pickPainVoice("hitReact"), null) } catch (_) {}
 }
 function applyPainOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "pain" || (attacker._atkVoiceCd > 0)) return
+  if (!unblocked || !attacker || !_isPainVoiceChar(attacker.rosterKey) || (attacker._atkVoiceCd > 0)) return
   const strong     = cat === "heavy"
   const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
   if (!strong && !longString) return
@@ -1357,7 +1441,7 @@ function applyPainOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickPainVoice("combatBark"), null) } catch (_) {}
 }
 function applyPainLowHealthVoice(defender) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "pain" || defender._lowHealthVoiceDone) return
+  if (!defender || !_isPainVoiceChar(defender.rosterKey) || defender._lowHealthVoiceDone) return
   const max = defender.maxHealth || 1000
   const hp  = defender.health || 0
   if (hp > 0 && hp <= max * MAKI_LOW_HEALTH_RATIO) {
@@ -1455,6 +1539,13 @@ function applySukunaHitVoice(defender, cat, dmg) {
   defender._hitVoiceCd = 150
   try { sound?.playSfxFile?.(pickSukunaVoice("hitReact"), null) } catch (_) {}
 }
+// ALTERNATE SUKUNA hit-react — same "impressed, not hurt" hook, but drawing the TONE-FILTERED (measured/
+// approving) pool: "Good hit." / "Well placed." / "Perhaps you are a worthy opponent." (no cruel deliveries).
+function applyAltSukunaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "alt_sukuna" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickAltSukunaVoice("hitReact"), null) } catch (_) {}
+}
 // offense-connect bark lives at the PRESERVED trigger point below (applySukunaOffenseVoice, was a no-op stub
 // from the pack deletion — now rebuilt in place, reusing its existing dispatch in resolveAttackHit).
 function applySukunaLowHealthVoice(defender) {
@@ -1543,6 +1634,164 @@ function applyInosukeLowHealthVoice(defender) {
 // ── NEZUKO KAMADO GRUNT LINES (audio-only; muffled grunts — no dialogue, sorted by acoustic characteristics) ──
 // DEFENDER reaction — split by hit strength: STRONG hits draw the bright/sharp hitReact grunts; LIGHT hits draw
 // the short hitGrunt cluster. One line per _hitVoiceCd window; unblocked hits only. Low-health = separate pool.
+// JASON — non-verbal combat SFX (audio-only; ZERO gameplay effect). All four hooks below no-op for any
+// fighter that isn't Jason.
+// ATTACK EFFORT: a grunt on the active-frame of a light/heavy/up/down_air normal (NOT the air normal, per
+// the wiring brief). Light-tier (light + crouch-light) uses the quick jab grunt; heavy-tier (heavy/up/
+// down_air + crouch-heavy) uses the committed swing grunt. Gated by _jAtkVoiceCd so a fast jab string
+// doesn't machine-gun grunts. Called once per attack at its first active frame (updateCombat active branch).
+const JASON_EFFORT_MOVES = new Set(["light", "heavy", "up", "down_air"])
+function applyJasonAttackVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "jason" || (fighter._jAtkVoiceCd || 0) > 0) return
+  const move = fighter.currentMove || fighter.currentAttack?.name || ""
+  if (!JASON_EFFORT_MOVES.has(move)) return   // air normal + the special have no effort grunt (special has its own cast voice)
+  const lightTier = move === "light" || fighter._crouchAttackVariant === "crouchLight"
+  fighter._jAtkVoiceCd = 24
+  try { sound?.playSfxFile?.(pickJasonVoice(lightTier ? "effortLight" : "effortHeavy"), null) } catch (_) {}
+}
+// HIT REACTION: a pained grunt when Jason takes a STRONG (heavy/special-tier) hit — NOT on light pokes.
+// Shares the standard _hitVoiceCd window (one line per ~150f), unblocked hits only (caller gates block).
+function applyJasonHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "jason" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  if (!strong) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickJasonVoice("hitReact"), null) } catch (_) {}
+}
+// ISSHIKI hit-reaction voice (audio-only, JA) — LIGHT vs HEAVY split (task slots 10 & 11): a weak hit gets a
+// short dismissive grunt, a strong (heavy/special/ult/launcher/spike or ≥55 dmg) hit gets an arrogant reaction.
+// No-op for every other fighter; unblocked hits only (caller gates block); one line per ~150f (_hitVoiceCd).
+function applyIsshikiHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "isshiki" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickIsshikiVoice(strong ? "hitHeavy" : "hitLight"), null) } catch (_) {}
+}
+// HIRUZEN combo-effort voice (audio-only, JA) — a short strike shout on his punch-combo normals, gated by
+// _hzAtkVoiceCd so a fast string doesn't machine-gun lines. Air normal excluded (it's a fallback pose).
+const HIRUZEN_EFFORT_MOVES = new Set(["light", "heavy", "up", "down_air"])
+function applyHiruzenAttackVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "hiruzen" || (fighter._hzAtkVoiceCd || 0) > 0) return
+  const move = fighter.currentMove || fighter.currentAttack?.name || ""
+  if (!HIRUZEN_EFFORT_MOVES.has(move)) return
+  fighter._hzAtkVoiceCd = 30
+  try { sound?.playSfxFile?.(pickHiruzenVoice("effort"), null) } catch (_) {}
+}
+// HIRUZEN hit-reaction voice (audio-only, JA) — LIGHT dismissive vs HEAVY defiant, split by cat/dmg. No-op
+// for every other fighter; unblocked hits only (caller gates block); one line per ~150f (_hitVoiceCd).
+function applyHiruzenHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "hiruzen" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickHiruzenVoice(strong ? "hitHeavy" : "hitLight"), null) } catch (_) {}
+}
+// SAITAMA hit-reaction voice (audio-only) — a random battle bark on a LIGHT (non-strong) hit only. STRONG
+// hits are left SILENT (heavy hit-react is a flagged open gap — no correct-content clip). No-op for every
+// other fighter; unblocked hits only (caller gates block); one bark per ~150f (_hitVoiceCd).
+function applySaitamaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "saitama" || (defender._hitVoiceCd > 0)) return
+  // Gated by CATEGORY (not a damage threshold): barks fire on LIGHT-category pokes only. STRONG categories
+  // (heavy/special/ultimate/launcher/spike) are left SILENT — heavy hit-react is a flagged open gap.
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike"
+  if (strong) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickSaitamaVoice("hitLight"), null) } catch (_) {}
+}
+// MAYURI combo-effort voice (audio-only, JA) — a short strike shout on his command-chain / normal, gated by
+// _mayuriAtkVoiceCd so a fast string doesn't machine-gun lines. Air normal excluded (fallback pose).
+const MAYURI_EFFORT_MOVES = new Set(["light", "heavy", "up", "down_air", "mayuriCmd1", "mayuriCmd2"])
+function applyMayuriAttackVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "mayuri" || (fighter._mayuriAtkVoiceCd || 0) > 0) return
+  const move = fighter.currentMove || fighter.currentAttack?.name || ""
+  if (!MAYURI_EFFORT_MOVES.has(move)) return
+  fighter._mayuriAtkVoiceCd = 32
+  try { sound?.playSfxFile?.(pickMayuriVoice("effort"), null) } catch (_) {}
+}
+// MAYURI hit-reaction voice (audio-only, JA) — LIGHT pained grunt vs HEAVY defiant, split by cat/dmg. No-op
+// for every other fighter; unblocked hits only (caller gates block); one line per ~150f (_hitVoiceCd).
+function applyMayuriHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "mayuri" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickMayuriVoice(strong ? "hitHeavy" : "hitLight"), null) } catch (_) {}
+}
+// YAMAMOTO attack-effort shout — normals + the multi-slash command chain (yamamotoCombo). CALM/measured pool
+// (per the unhurried archetype), gated by _yamamotoAtkVoiceCd so a string doesn't machine-gun. Air normal
+// excluded (fallback pose). No-op for every other fighter.
+const YAMAMOTO_EFFORT_MOVES = new Set(["light", "heavy", "up", "down_air", "yamamotoCombo"])
+function applyYamamotoAttackVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "yamamoto" || (fighter._yamamotoAtkVoiceCd || 0) > 0) return
+  const move = fighter.currentMove || fighter.currentAttack?.name || ""
+  if (!YAMAMOTO_EFFORT_MOVES.has(move)) return
+  fighter._yamamotoAtkVoiceCd = 40
+  try { sound?.playSfxFile?.(pickYamamotoVoice("effort"), null) } catch (_) {}
+}
+// YAMAMOTO hit-reaction voice (audio-only, JA) — LIGHT pained grunt vs the INTENSE heavy bark, split by
+// cat/dmg. Unblocked hits only (caller gates block); one line per ~150f (_hitVoiceCd). No-op otherwise.
+function applyYamamotoHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "yamamoto" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickYamamotoVoice(strong ? "hitHeavy" : "hitLight"), null) } catch (_) {}
+}
+// OROCHIMARU hit-reaction voice (audio-only, JA) — LIGHT pain grunt vs HEAVY/strong yelp, split by cat/dmg.
+// No-op for every other fighter; unblocked hits only (caller gates block); one line per ~150f (_hitVoiceCd).
+function applyOrochimaruHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "orochimaru" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickOrochimaruVoice(strong ? "hitHeavy" : "hitLight"), null) } catch (_) {}
+}
+// KIBA hit-reaction voice (audio-only, JA) — LIGHT pained grunt vs HEAVY/strong defiant yelp, split by cat/dmg.
+// No-op for every other fighter; unblocked hits only (caller gates block); one line per ~150f (_hitVoiceCd).
+function applyKibaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "kiba" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickKibaVoice(strong ? "hitHeavy" : "hitLight"), null) } catch (_) {}
+}
+// KIBA attack-effort shout (audio-only, JA) — a short strike shout on his LIGHT fang-claw flurry, gated by
+// _kibaAtkVoiceCd so the long stitched combo doesn't machine-gun. Only the light normal (his signature flurry).
+function applyKibaAttackVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kiba" || (fighter._kibaAtkVoiceCd || 0) > 0) return
+  if ((fighter.currentMove || fighter.currentAttack?.name || "") !== "light") return
+  fighter._kibaAtkVoiceCd = 40
+  try { sound?.playSfxFile?.(pickKibaVoice("effort"), null) } catch (_) {}
+}
+// NAOYA hit-reaction voice (audio-only, JA) — LIGHT soft pained grunt vs HEAVY/strong defiant grunt/curse.
+function applyNaoyaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "naoya" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickNaoyaVoice(strong ? "hitHeavy" : "hitLight"), null) } catch (_) {}
+}
+// NAOYA attack-effort shout (audio-only, JA) — a short strike grunt on his LIGHT jab, gated by _naoyaAtkVoiceCd
+// so a fast poke string doesn't machine-gun. Only the light normal.
+function applyNaoyaAttackVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "naoya" || (fighter._naoyaAtkVoiceCd || 0) > 0) return
+  if ((fighter.currentMove || fighter.currentAttack?.name || "") !== "light") return
+  fighter._naoyaAtkVoiceCd = 44
+  try { sound?.playSfxFile?.(pickNaoyaVoice("effort"), null) } catch (_) {}
+}
+// BORUTO hit-reaction voice (audio-only, JA) — KARMA-AWARE: while transformed uses the SEPARATE Karma hit
+// pool, else the base light/heavy split. No-op for others; unblocked hits only; one line per ~150f (_hitVoiceCd).
+function applyBorutoHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "boruto" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try {
+    if (defender._karmaActive) sound?.playSfxFile?.(pickBorutoKarmaVoice("hit"), null)         // transformed → Momoshiki Karma hit pool (separate)
+    else sound?.playSfxFile?.(pickBorutoVoice(strong ? "hitHeavy" : "hitLight"), null)
+  } catch (_) {}
+}
+// BORUTO attack-effort/cast shout (audio-only, JA) — light flurry effort + heavy cast, gated by _borutoAtkVoiceCd.
+function applyBorutoAttackVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "boruto" || (fighter._borutoAtkVoiceCd || 0) > 0) return
+  const move = fighter.currentMove || fighter.currentAttack?.name || ""
+  if (move !== "light" && move !== "heavy") return
+  fighter._borutoAtkVoiceCd = 40
+  try { sound?.playSfxFile?.(pickBorutoVoice(move === "heavy" ? "heavy" : "lightEffort"), null) } catch (_) {}
+}
 function applyNezukoHitVoice(defender, cat, dmg) {
   if (!defender || (defender.rosterKey || "").toLowerCase() !== "nezuko" || (defender._hitVoiceCd > 0)) return
   const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
@@ -1746,6 +1995,32 @@ function applyBatmanOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickBatmanVoice("taunt"), null) } catch (_) {}
 }
 
+// ── SPIDER-MAN VOICE (Marvel Rivals pack; audio-only, no gameplay effect) — three combat hooks (Batman/Gon
+// precedent). (1) DEFENDER hit-reaction: LIGHT pain grunt vs STRONG louder pained line (split by cat/dmg).
+// (2) ATTACKER quip: his chatty banter pool on a STRONG / long-string connect (occasional flavor, gated by
+// _atkVoiceCd so it never machine-guns). (3) ATTACKER effort: a short wordless strike grunt on the LIGHT
+// normal only, on its own fast _spideyAtkVoiceCd. No-op for every non-Spider-Man fighter.
+function applySpidermanHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "spiderman" || (defender._hitVoiceCd > 0)) return
+  const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickSpidermanVoice(strong ? "hitHeavy" : "hitLight"), null) } catch (_) {}
+}
+function applySpidermanOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "spiderman" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 210   // longer than Batman's — quips are flavor, not a per-hit stream
+  try { sound?.playSfxFile?.(pickSpidermanVoice("quip"), null) } catch (_) {}
+}
+function applySpidermanAttackVoice(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "spiderman" || (fighter._spideyAtkVoiceCd || 0) > 0) return
+  if ((fighter.currentMove || fighter.currentAttack?.name || "") !== "light") return
+  fighter._spideyAtkVoiceCd = 45
+  try { sound?.playSfxFile?.(pickSpidermanVoice("effort"), null) } catch (_) {}
+}
+
 // ── OMNI-MAN VOICE LINES ── (MK1 pack; audio-only, no gameplay effect). Same three combat hooks as
 // Gon/Batman: DEFENDER hit-reaction, ATTACKER cold trash-talk on a strong/long connect (the taunt pool
 // rides the connect trigger — Omni-Man has no taunt action), and a once-only low-HP line. See omnimanVoice.js.
@@ -1898,6 +2173,16 @@ function applySukunaOffenseVoice(attacker, defender, cat, unblocked) {
   if (!strong && !longString) return
   attacker._atkVoiceCd = 150
   try { sound?.playSfxFile?.(pickSukunaVoice("offense"), null) } catch (_) {}
+}
+// ALTERNATE SUKUNA offense-connect bark — same trigger (strong/long-combo connect), but the NEUTRAL-combat
+// pool only ("Take this." / "Here's more.") — the cruel "Drop dead / Die" deliveries are excluded.
+function applyAltSukunaOffenseVoice(attacker, defender, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "alt_sukuna" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickAltSukunaVoice("offense"), null) } catch (_) {}
 }
 
 // ========================
@@ -2133,6 +2418,16 @@ export function updateGrab(attacker, defender) {
 // MOVE START
 // ========================
 
+// CROUCH-CONTEXT normal sprite swap (Jason). When a grounded light/heavy STARTS while Down is held,
+// stamp the crouch-variant action so the sprite resolver renders the crouch strip instead of the standing
+// one — a PURELY VISUAL swap (the move's numbers/hitbox are unchanged). Re-stamped (set OR cleared) on
+// every light/heavy start, so it never lingers past its attack. No-op for any char without the crouch
+// strip: `variant` resolves to null when the fighter ships no crouchLight/crouchHeavy in its anim set.
+function _setCrouchVariant(fighter, crouching, variant) {
+  const anim = fighter._skinAnim || fighter.animationData
+  fighter._crouchAttackVariant = (crouching && anim && anim[variant]) ? variant : null
+}
+
 export function startMove(fighter, moveKey, moveData) {
   if (!fighter || !moveData) return false
   if (fighter.attacking || fighter.hitstun > 0 || fighter.attackCooldown > 0) return false
@@ -2250,6 +2545,18 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     return
   }
 
+  // BAKI — "Defensive Read" (Back+Special) counter, same top-priority negate+riposte as Nezuko's stance.
+  if (shouldBakiCounter(defender, attacker)) {
+    try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
+    return
+  }
+
+  // KURAPIKA — Steal Chain (Back+Special) counter, same top-priority negate+riposte + Nen steal.
+  if (shouldKurapikaCounter(defender, attacker)) {
+    try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
+    return
+  }
+
   // I-FRAMES / KNOCKDOWN apply to MELEE too, not just projectiles (resolveProjectileHits already
   // skips on invulnTimer). A defender who is invulnerable (tech-roll, dash i-frames, post-parry) OR
   // still knocked DOWN is untouchable; the swing passes through. Consume it (hasHit) so it whiffs
@@ -2271,7 +2578,12 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // damage. The swing whiffs cleanly (consume it so it doesn't re-test every frame).
   // Projectiles (e.g. Sukuna's Fuga) go through resolveProjectileHits and are NOT
   // gated here, so Fuga still connects.
-  if (defender.domainUntouchable) { attacker.currentAttack.hasHit = true; return }
+  // Same untouchable rule for Isshiki's Daikokuten cube trap — the trapped foe is UNTOUCHABLE to direct
+  // manual hits (the caster instead hits the CUBE'S hurtbox for bonus damage; auto-ticks do the rest).
+  // A DEDICATED flag (not domainUntouchable, which domains.js resets every frame) — see cubeTrap.js.
+  // Same rule for Obito/Tobi's "Obito_dimension" Kamui banishment: a foe in the pocket dimension is off the
+  // field entirely — UNTOUCHABLE while `_banished` (obitoDimension.js). A swing whiffs cleanly through.
+  if (defender.domainUntouchable || defender._cubeTrapUntouchable || defender._banished) { attacker.currentAttack.hasHit = true; return }
 
   if (attacker.currentAttack?.superArmor) attacker.armorFlash = 8
 
@@ -2340,6 +2652,10 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   // NEZUKO — Blood Demon Slumber vulnerability: while asleep (healing) she takes BONUS damage (risk/reward).
   if (defender._nzSlumberVuln) dmg = Math.floor(dmg * 1.5)
+
+  // KURAPIKA — Emperor Time REVERT disorientation: for a brief window after Emperor Time ends, the memory-gap
+  // leaves him vulnerable (takes bonus damage). The canon cost, tied to a real mechanic (dmg-taken amp).
+  if ((defender._emperorRevertVuln || 0) > 0) dmg = Math.floor(dmg * 1.25)
 
   // COMEBACK FINISHER: fixed EFFECTIVE damage — override AFTER combo/counter/slumber modifiers so the
   // once-per-match desperation hit lands the exact capped number (~340-380 band; see BALANCE_AUDIT).
@@ -2510,6 +2826,28 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyShinobuHitVoice(defender, cat, dmg)
     applyInosukeHitVoice(defender, cat, dmg)
     applyNezukoHitVoice(defender, cat, dmg)
+    // JASON hit-reaction voice — pained grunt on a STRONG (heavy/special-tier) hit only.
+    applyJasonHitVoice(defender, cat, dmg)
+    // ISSHIKI hit-reaction voice — LIGHT dismissive grunt vs HEAVY arrogant reaction (split by cat/dmg).
+    applyIsshikiHitVoice(defender, cat, dmg)
+    // HIRUZEN hit-reaction voice — LIGHT dismissive vs HEAVY defiant (split by cat/dmg).
+    applyHiruzenHitVoice(defender, cat, dmg)
+    // SAITAMA hit-reaction voice — a random battle bark on LIGHT hits only (heavy = silent open gap).
+    applySaitamaHitVoice(defender, cat, dmg)
+    // OROCHIMARU hit-reaction voice — LIGHT pain grunt vs HEAVY/strong yelp (split by cat/dmg).
+    applyOrochimaruHitVoice(defender, cat, dmg)
+    // KIBA hit-reaction voice — LIGHT pained grunt vs HEAVY/strong defiant yelp (split by cat/dmg).
+    applyKibaHitVoice(defender, cat, dmg)
+    // NAOYA hit-reaction voice — LIGHT soft grunt vs HEAVY/strong defiant grunt/curse (split by cat/dmg).
+    applyNaoyaHitVoice(defender, cat, dmg)
+    // SPIDER-MAN hit-reaction voice — LIGHT pain grunt (Ugh/Oh) vs STRONG louder pained line (split by cat/dmg).
+    applySpidermanHitVoice(defender, cat, dmg)
+    // MAYURI hit-reaction voice — LIGHT pained grunt vs HEAVY defiant (split by cat/dmg).
+    applyMayuriHitVoice(defender, cat, dmg)
+    // YAMAMOTO hit-reaction voice — LIGHT pained grunt vs INTENSE heavy bark (split by cat/dmg).
+    applyYamamotoHitVoice(defender, cat, dmg)
+    // BORUTO hit-reaction voice — base light/heavy split, or the SEPARATE Karma pool while transformed.
+    applyBorutoHitVoice(defender, cat, dmg)
     // SAMURAI RED RANGER hit-reaction voice — "What in the world?!" general reaction.
     applySamuraiHitVoice(defender, cat, dmg)
     // VEGETA hit-reaction voice — "Damn you!" / "Ridiculous!" (shared across base/SSJ/Blue).
@@ -2530,6 +2868,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyZarakiHitVoice(defender, cat, dmg)
     // SUKUNA hit-reaction voice — ENTERTAINED, not hurt ("Nice attack." / "More!" / "Interesting.").
     applySukunaHitVoice(defender, cat, dmg)
+    applyAltSukunaHitVoice(defender, cat, dmg)   // Alternate Sukuna — tone-filtered impressed hit-react
+
     applyMinatoHitVoice(defender, cat, dmg)
     // FLASH hit-reaction voice — "Not again." + effort-grunt set.
     applyFlashHitVoice(defender, cat, dmg)
@@ -2700,10 +3040,12 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyTobiramaOffenseVoice(attacker, cat, !defender.isBlocking) // Tobirama overconfident taunt one-liner on a strong/long-string connect
   applyFlashOffenseVoice(attacker, cat, !defender.isBlocking)    // Flash quippy speed trash-talk on a strong/long-string connect
   applyBatmanOffenseVoice(attacker, cat, !defender.isBlocking)   // Batman cold trash-talk (taunt pool) on a strong/long-string connect
+  applySpidermanOffenseVoice(attacker, cat, !defender.isBlocking)   // Spider-Man chatty quip on a strong/long-string connect (occasional flavor)
   applyOmniManOffenseVoice(attacker, cat, !defender.isBlocking)  // Omni-Man cold Viltrumite trash-talk (taunt pool) on a strong/long-string connect
   applySupermanOffenseVoice(attacker, cat, !defender.isBlocking)  // Superman confident trash-talk (taunt pool) on a strong/long-string connect
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher
   applySukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Sukuna finisher(KO/low-HP) / hit-connect(strong+long) / taunt+misc(light) barks
+  applyAltSukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Alternate Sukuna — tone-filtered neutral offense bark
   // Netero hit-connect voice removed (audio files deleted); re-add applyNeteroOffenseVoice here to re-enable.
   applySaikiOffenseVoice(attacker, cat, !defender.isBlocking)    // Saiki deadpan dismissal on connect (was dormant on the no-op taunt hook; this makes it LIVE)
   applyGojoLimitlessOffenseVoice(attacker, cat, !defender.isBlocking)   // Gojo "Limitless" skin hit-connect bark (young pack; no-op on default skin)
@@ -2717,6 +3059,90 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   if (!fighter || !opponent) return
 
   ensureCombatState(fighter)
+
+  // JASON knockdown grunt (audio-only): fire ONCE the frame he ENTERS the downed state (from any source —
+  // an opponent's knockdown-inducing special, etc.). Placed above the hitstop/hitstun early-returns so the
+  // transition is never missed. No-op for every non-Jason fighter.
+  if ((fighter.rosterKey || "").toLowerCase() === "isshiki") {
+    if (fighter.knockdownState && !fighter._iWasKnockedDown) {
+      fighter._iWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickIsshikiVoice("knockdown"), null) } catch (_) {}
+    } else if (!fighter.knockdownState) {
+      fighter._iWasKnockedDown = false
+    }
+  }
+  if ((fighter.rosterKey || "").toLowerCase() === "jason") {
+    if (fighter.knockdownState && !fighter._jWasKnockedDown) {
+      fighter._jWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickJasonVoice("knockdown"), null) } catch (_) {}
+    } else if (!fighter.knockdownState) {
+      fighter._jWasKnockedDown = false
+    }
+  }
+  if ((fighter.rosterKey || "").toLowerCase() === "hiruzen") {
+    if (fighter.knockdownState && !fighter._hzWasKnockedDown) {
+      fighter._hzWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickHiruzenVoice("knockdown"), null) } catch (_) {}
+    } else if (!fighter.knockdownState) {
+      fighter._hzWasKnockedDown = false
+    }
+  }
+  if ((fighter.rosterKey || "").toLowerCase() === "mayuri") {
+    if (fighter.knockdownState && !fighter._mayuriWasKnockedDown) {
+      fighter._mayuriWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickMayuriVoice("knockdown"), null) } catch (_) {}
+    } else if (!fighter.knockdownState) {
+      fighter._mayuriWasKnockedDown = false
+    }
+  }
+  if ((fighter.rosterKey || "").toLowerCase() === "spiderman") {
+    if (fighter.knockdownState && !fighter._spideyWasKnockedDown) {
+      fighter._spideyWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickSpidermanVoice("knockdown"), null) } catch (_) {}   // the falling "AHHHH!" scream
+    } else if (!fighter.knockdownState) {
+      fighter._spideyWasKnockedDown = false
+    }
+  }
+  if ((fighter.rosterKey || "").toLowerCase() === "yamamoto") {
+    if (fighter.knockdownState && !fighter._yamamotoWasKnockedDown) {
+      fighter._yamamotoWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickYamamotoVoice("knockdown"), null) } catch (_) {}
+    } else if (!fighter.knockdownState) {
+      fighter._yamamotoWasKnockedDown = false
+    }
+  }
+  if ((fighter.rosterKey || "").toLowerCase() === "kiba") {
+    if (fighter.knockdownState && !fighter._kibaWasKnockedDown) {
+      fighter._kibaWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickKibaVoice("knockdown"), null) } catch (_) {}
+    } else if (!fighter.knockdownState) {
+      fighter._kibaWasKnockedDown = false
+    }
+  }
+  if ((fighter.rosterKey || "").toLowerCase() === "naoya") {
+    if (fighter.knockdownState && !fighter._naoyaWasKnockedDown) {
+      fighter._naoyaWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickNaoyaVoice("knockdown"), null) } catch (_) {}
+    } else if (!fighter.knockdownState) {
+      fighter._naoyaWasKnockedDown = false
+    }
+  }
+  if ((fighter.rosterKey || "").toLowerCase() === "boruto") {
+    if (fighter.knockdownState && !fighter._borutoWasKnockedDown) {
+      fighter._borutoWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickBorutoVoice("knockdown"), null) } catch (_) {}   // base knockdown grunt (Karma has no knockdown pool)
+    } else if (!fighter.knockdownState) {
+      fighter._borutoWasKnockedDown = false
+    }
+  }
+  if ((fighter.rosterKey || "").toLowerCase() === "orochimaru") {
+    if (fighter.knockdownState && !fighter._oroWasKnockedDown) {
+      fighter._oroWasKnockedDown = true
+      try { sound?.playSfxFile?.(pickOrochimaruVoice("knockdown"), null) } catch (_) {}
+    } else if (!fighter.knockdownState) {
+      fighter._oroWasKnockedDown = false
+    }
+  }
 
   // Netero startup-grunt voice removed (audio files deleted); re-add applyNeteroGruntVoice here to re-enable.
 
@@ -2792,6 +3218,10 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
     } else if (controls.grab) {
       fighter.grabInputBuffer = 6
       resolveGrab(fighter, opponent, options)
+      // THEMED GRAB CAST POSE — a character may define `grabCastPose` (a _spriteCastMove key) so the
+      // generic grab shows its own animation (e.g. Orochimaru's throw-weapon motion). Guarded on the
+      // field → a no-op for every character that doesn't set one. Cosmetic; the grab mechanics are shared.
+      if (fighter.grabCastPose) { fighter._spriteCastMove = fighter.grabCastPose; fighter._spriteCastTimer = 26 }
     } else if (controls.air) {
       startMove(fighter, "air", _getMD(fighter, "air"))
     } else if (controls.downAir) {
@@ -2803,7 +3233,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       // that defines it. Currently: Madara's Susanoo-hand grab.
       startMove(fighter, "air_heavy", _getMD(fighter, "air_heavy"))
     } else if (controls.light) {
-      startMove(fighter, "light", _getMD(fighter, "light"))
+      if (startMove(fighter, "light", _getMD(fighter, "light"))) _setCrouchVariant(fighter, controls.crouch, "crouchLight")
     } else if (controls.heavy) {
       fighter._parryInputBuffer = 5
       // GOKU BLACK — "Ki Slash": the ONE normal that costs energy (KI_SLASH_COST). If broke, the
@@ -2812,8 +3242,9 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       const isGB = (fighter.rosterKey || "").toLowerCase() === "goku_black"
       if (isGB && hmd && (fighter.energy || 0) < KI_SLASH_COST) {
         /* not enough energy for Ki Slash → no heavy this press */
-      } else if (startMove(fighter, "heavy", hmd) && isGB) {
-        fighter.energy = Math.max(0, (fighter.energy || 0) - KI_SLASH_COST)
+      } else if (startMove(fighter, "heavy", hmd)) {
+        _setCrouchVariant(fighter, controls.crouch, "crouchHeavy")
+        if (isGB) fighter.energy = Math.max(0, (fighter.energy || 0) - KI_SLASH_COST)
       }
     }
   }
@@ -2822,6 +3253,46 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
     fighter.currentAttack.timer--
 
     if (getAttackPhase(fighter) === "active") {
+      // JASON attack-effort grunt — once per attack, on its first active frame (audio-only; no-op otherwise).
+      if (!fighter.currentAttack._jEffortDone) {
+        fighter.currentAttack._jEffortDone = true
+        applyJasonAttackVoice(fighter)
+      }
+      // HIRUZEN attack-effort shout — once per attack, on its first active frame (audio-only; no-op otherwise).
+      if (!fighter.currentAttack._hzEffortDone) {
+        fighter.currentAttack._hzEffortDone = true
+        applyHiruzenAttackVoice(fighter)
+      }
+      // MAYURI attack-effort shout — once per attack, on its first active frame (audio-only; no-op otherwise).
+      if (!fighter.currentAttack._mayuriEffortDone) {
+        fighter.currentAttack._mayuriEffortDone = true
+        applyMayuriAttackVoice(fighter)
+      }
+      // YAMAMOTO attack-effort shout — once per attack, on its first active frame (normals + command chain).
+      if (!fighter.currentAttack._yamamotoEffortDone) {
+        fighter.currentAttack._yamamotoEffortDone = true
+        applyYamamotoAttackVoice(fighter)
+      }
+      // KIBA attack-effort shout — once per attack, on its first active frame (light flurry only; no-op otherwise).
+      if (!fighter.currentAttack._kibaEffortDone) {
+        fighter.currentAttack._kibaEffortDone = true
+        applyKibaAttackVoice(fighter)
+      }
+      // NAOYA attack-effort grunt — once per attack, on its first active frame (light jab only; no-op otherwise).
+      if (!fighter.currentAttack._naoyaEffortDone) {
+        fighter.currentAttack._naoyaEffortDone = true
+        applyNaoyaAttackVoice(fighter)
+      }
+      // SPIDER-MAN attack-effort grunt — once per attack, on its first active frame (light normal only; no-op otherwise).
+      if (!fighter.currentAttack._spideyEffortDone) {
+        fighter.currentAttack._spideyEffortDone = true
+        applySpidermanAttackVoice(fighter)
+      }
+      // BORUTO attack-effort/cast shout — once per attack, on its first active frame (light flurry + heavy cast).
+      if (!fighter.currentAttack._borutoEffortDone) {
+        fighter.currentAttack._borutoEffortDone = true
+        applyBorutoAttackVoice(fighter)
+      }
       resolveAttackHit(fighter, opponent, options.hitEffects, {
         stageWidth: options.stageWidth,
         damageNumbers: options.damageNumbers
@@ -2947,6 +3418,22 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         break
       }
 
+      // OBITO / TOBI — Kamui PORTAL-REFLECT: during the stance's ACTIVE window (`_portalActive`), an incoming
+      // projectile is turned back through the portal at its owner as counter-damage (×PORTAL_REFLECT_MULT),
+      // negated against the caster. PROJECTILE-PATH ONLY (melee never reaches here). Latched so it can't
+      // ping-pong. No-op for everyone else / outside the active window. Mirrors the Gunbai reflect above.
+      if ((fighter._portalActive || 0) > 0 && !proj._portalReflected && !proj._gunbaiReflected) {
+        proj.vx = -proj.vx; proj.vy = -(proj.vy || 0)
+        proj.owner = fighter; proj.ownerId = fighter.side
+        proj._portalReflected = true
+        proj.damage = Math.round((proj.damage || 30) * 1.25)   // PORTAL_REFLECT_MULT — the "counter" boost
+        proj.x += proj.vx > 0 ? 28 : -28                       // clear the caster's hurtbox
+        fighter.parryFlash = Math.max(fighter.parryFlash || 0, 14)
+        fighter._portalReflectHit = 12                          // flash the portal on a successful reflect (render)
+        try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+        break
+      }
+
       // Sasuke's Absolute Defense negates projectiles too (full invuln, per-block energy cost) —
       // the projectile is consumed and deals nothing. Checked BEFORE damage so it takes priority
       // over normal block. No-op for everyone else / when the toggle is off / when energy is short.
@@ -2959,6 +3446,15 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // FEEDBACK — Energy Absorption also eats projectiles (canonically its specialty): absorb the
       // incoming energy, consume the projectile, and stamp the amplified redirect scaled by proj damage.
       if (shouldFeedbackAbsorb(fighter, proj.damage || 40)) {
+        try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+        projectiles.splice(i, 1)
+        break
+      }
+
+      // BORUTO — Momoshiki Karma Chakra Absorption eats the incoming projectile/energy attack (Karma-only,
+      // window opened by borutoAbsorbAttempt which already charged the HP cost): full negate + energy refund.
+      // Projectile-path ONLY → melee is never absorbed (the restriction). No-op otherwise.
+      if (shouldBorutoAbsorb(fighter, proj.damage || 40)) {
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
         projectiles.splice(i, 1)
         break

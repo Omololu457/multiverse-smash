@@ -1,0 +1,30 @@
+import { chromium } from "playwright";
+import http from "node:http"; import fs from "node:fs"; import path from "node:path";
+const ROOT="/Users/omololu/Desktop/project/multiverse-smash";
+const OUT=path.join(ROOT,"harness","shots"); fs.mkdirSync(OUT,{recursive:true});
+const MIME={".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".png":"image/png",".mp3":"audio/mpeg",".css":"text/css",".json":"application/json"};
+const server=await new Promise(r=>{const s=http.createServer((rq,rs)=>{const u=decodeURIComponent(rq.url.split("?")[0]);const f=path.join(ROOT,u==="/"?"/index.html":u);fs.readFile(f,(e,d)=>{if(e){rs.writeHead(404).end();return}rs.writeHead(200,{"content-type":MIME[path.extname(f)]||"application/octet-stream"});rs.end(d)})});s.listen(0,"127.0.0.1",()=>r(s))});
+const base=`http://127.0.0.1:${server.address().port}`;
+const b=await chromium.launch({headless:true,args:["--autoplay-policy=no-user-gesture-required"]});
+const pg=await b.newPage({viewport:{width:1280,height:720}});
+const errs=[]; pg.on("pageerror",e=>errs.push(String(e)));
+await pg.goto(`${base}/index.html?harness=1&p1=jason`,{waitUntil:"load"});
+await pg.waitForFunction(()=>!!window.__harness); await pg.mouse.click(640,360);
+await pg.evaluate(()=>window.__harness.boot());
+const wf=async n=>{const s=(await pg.evaluate(()=>window.__harness.state())).frame;await pg.waitForFunction(([a,b])=>window.__harness.state().frame>=a+b,[s,n],{polling:16})};
+await wf(6);
+const skins=await pg.evaluate(()=>window.__harness.__skinIds?.("jason")||null);
+const IDS=["default","jason_weathered","jason_bloodbath","jason_burlap","jason_midnight","jason_toxic","jason_counselor","jason_ashen","jason_frozen","jason_steel","jason_crimson","jason_shadow","jason_bone","jasonNightmareVoid"];
+let box=0, applied=[];
+for(const id of IDS){
+  const r=await pg.evaluate(sid=>window.__harness.setSkin("p1",sid),id);
+  await wf(6);
+  const p=await pg.evaluate(()=>window.__harness.p1());
+  applied.push({id,got:r,sheet:(p.spriteSheet||"").split("/").pop(),box:!p.hasSpriteHandler});
+  if(!p.hasSpriteHandler) box++;
+  await pg.screenshot({path:path.join(OUT,`jason_skin_${id}.png`),clip:{x:440,y:180,width:400,height:400}});
+}
+console.log(JSON.stringify(applied,null,1));
+console.log("boxes:",box,"errors:",errs.slice(0,3).join(" | ")||"none");
+await b.close(); server.close();
+process.exit(box||errs.length?1:0);

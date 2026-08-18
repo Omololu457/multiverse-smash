@@ -46,7 +46,7 @@ try{
 
   // ── 3 FIGHTERS ────────────────────────────────────────────────────────────
   section("3 FIGHTERS — coexist as an array, spread across the wide arena");
-  await ffa(3,["gojo","sukuna","megumi"]);
+  await ffa(3,["gojo","sukuna","naruto"]);
   let fi=await info();
   check("mode=ffa, 3 fighters active on the wide arena", fi.mode==="ffa" && fi.fighters.length===3 && fi.stageWidth>=4200, `stageW=${fi.stageWidth} n=${fi.fighters.length}`);
   check("fighters have distinct playerNumbers 1/2/3", JSON.stringify(fi.fighters.map(f=>f.playerNumber))==="[1,2,3]");
@@ -88,7 +88,7 @@ try{
 
   // ── 4 FIGHTERS ────────────────────────────────────────────────────────────
   section("4 FIGHTERS — coexist + cross damage + win");
-  await ffa(4,["gojo","sukuna","megumi","naruto"]);
+  await ffa(4,["gojo","sukuna","maki","naruto"]);
   fi=await info();
   check("4 fighters active, playerNumbers 1/2/3/4", fi.fighters.length===4 && JSON.stringify(fi.fighters.map(f=>f.playerNumber))==="[1,2,3,4]");
   check("camera frames all four (zoom<1)", fi.camZoom<1, `zoom=${fi.camZoom.toFixed(2)}`);

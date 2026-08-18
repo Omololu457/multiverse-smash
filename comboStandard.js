@@ -99,7 +99,7 @@ export const REKKA = [
 // (MK-feel Stage 2b/2c). These chars are NOT un-built and NOT no-combo — they use this grammar instead
 // of a Fwd+Heavy rekka. (See STANDARD_STRING_CHARS in abilities.js — the live source of truth.)
 export const STANDARD_STRING = {
-  builtIn: ["goku", "gojo", "sukuna", "naruto", "megumi", "rick"],   // the 6 original (MK-feel Stage 2b)
+  builtIn: ["goku", "gojo", "sukuna", "naruto", "rick"],   // the 5 original (MK-feel Stage 2b; Megumi removed 2026-08-18)
   // Stage D rollout: every remaining un-built MELEE char (each has light + upAttack). Art-free, 1 line each.
   added:   ["itachi", "yuji", "goku_black", "cell", "tobi", "morty", "albedo", "omololu"],
 }
@@ -159,9 +159,9 @@ export const EXPECTED_COUNTS = {
   deviatesOpener:  0,              // Stage B DONE
   deviatesFinisher: 0,             // Stage C DONE (Maki stays an exception)
   exception:       8,
-  standardStringBuiltIn: 6,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/megumi/rick)
+  standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo/omololu)
-  standardStringTotal:  14,
+  standardStringTotal:  13,
   zoner:                5,          // true single-poke zoners (rickPrime/evilMorty/beerus/piccolo/frieza)
-  rosterTotal:          53,        // 34 + 14 + 5 (rekka +red_ranger_mmpr). NOTE: live roster is 54 — `toji` is a PRE-EXISTING unclassified gap (recent rebuild, not yet added to REKKA/NO_REKKA); that partition failure is tracked separately, not part of this Stage-2 work.
+  rosterTotal:          52,        // 34 + 13 + 5 (rekka +red_ranger_mmpr). NOTE: live roster is 53 — `toji` is a PRE-EXISTING unclassified gap (recent rebuild, not yet added to REKKA/NO_REKKA); that partition failure is tracked separately, not part of this Stage-2 work.
 }

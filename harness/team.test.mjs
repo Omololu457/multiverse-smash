@@ -35,7 +35,7 @@ try{
 
   // ── 1v2 — uneven teams + friendly fire off ────────────────────────────────
   section("1v2 — uneven split (A={0} vs B={1,2})");
-  await start(3,["gojo","sukuna","megumi"],["A","B","B"]);
+  await start(3,["gojo","sukuna","naruto"],["A","B","B"]);
   let fi=await info();
   check("team mode on, teams A/B assigned", fi.teamMode===true && fi.fighters.map(f=>f.team).join("")==="ABB", `teams=${fi.fighters.map(f=>f.team)}`);
   check("both teams have living members at start", JSON.stringify(fi.aliveTeams.sort())==='["A","B"]');
@@ -63,7 +63,7 @@ try{
 
   // ── 2v2 — symmetric ───────────────────────────────────────────────────────
   section("2v2 — friendly fire off within a team + team win");
-  await start(4,["gojo","sukuna","megumi","naruto"],["A","A","B","B"]);
+  await start(4,["gojo","sukuna","maki","naruto"],["A","A","B","B"]);
   fi=await info();
   check("2v2 teams assigned (A={0,1} B={2,3})", fi.teamMode===true && fi.fighters.map(f=>f.team).join("")==="AABB");
   // slot0(A) attacks with teammate slot1(A) adjacent, enemies far.
@@ -83,7 +83,7 @@ try{
 
   // ── pure FFA unaffected ───────────────────────────────────────────────────
   section("PURE FFA (no teams) — unchanged last-standing behaviour");
-  await start(3,["gojo","sukuna","megumi"],[]);   // empty teams → FFA
+  await start(3,["gojo","sukuna","naruto"],[]);   // empty teams → FFA
   fi=await info();
   check("no teams → teamMode off, fighters carry no team", fi.teamMode===false && fi.fighters.every(f=>f.team===null));
   // friendly fire N/A: everyone can damage everyone (proven in ffa.test); here confirm

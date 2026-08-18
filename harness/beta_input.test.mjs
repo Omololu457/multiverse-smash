@@ -17,7 +17,6 @@
 //   goku    F/qcf  Kamehameha        energy −30  (vs Dragon Fist −40)
 //   gojo    B/qcb  Hollow Purple     energy −70  (vs Blue −30)
 //   sukuna  B/qcb  Dismantle         projectile "dismantle" (vs Cleave: none)
-//   megumi  B/qcb  Max Elephant      energy −35  (vs Divine Dogs −20)
 //   naruto  F/qcf  Shadow Clone Spawn energy −0  (vs base Rasengan −30)
 //   sasuke  F/qcf  Two-Strike Lightning  lightningPhase set (vs Dash Strike: null)
 //   rick    B/qcb  Portal-Push       energy −45  (vs Meeseeks −30)
@@ -55,7 +54,6 @@ const CASES = [
   { key: "goku",   name: "Kamehameha",          inputDir: "F", det: { type: "energy", special: 30, deflt: 40 } },
   { key: "gojo",   name: "Hollow Purple",       inputDir: "B", det: { type: "energy", special: 70, deflt: 30 } },
   { key: "sukuna", name: "Dismantle",           inputDir: "B", det: { type: "proj",   proj: "dismantle" } },
-  { key: "megumi", name: "Max Elephant",        inputDir: "B", det: { type: "energy", special: 35, deflt: 20 } },
   { key: "naruto", name: "Shadow Clone Spawn",  inputDir: "F", det: { type: "energy", special: 0,  deflt: 30 } },
   { key: "sasuke", name: "Two-Strike Lightning",inputDir: "F", det: { type: "state",  field: "lightningPhase" } },
   { key: "rick",   name: "Portal-Push",         inputDir: "B", det: { type: "energy", special: 45, deflt: 30 } },

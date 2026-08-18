@@ -324,72 +324,6 @@ function drawGojo(ctx, x, y, w, h, fighter) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// ── MEGUMI ────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────
-function drawMegumi(ctx, x, y, w, h, fighter) {
-  const facing     = fighter.facing ?? 1
-
-  const bodyGrad = ctx.createLinearGradient(x, y, x, y + h)
-  bodyGrad.addColorStop(0, "#1e293b")
-  bodyGrad.addColorStop(1, "#0f172a")
-  ctx.fillStyle = bodyGrad
-  roundRect(ctx, x, y + h * 0.18, w, h * 0.82, 10)
-  ctx.fill()
-
-  ctx.fillStyle = "#e2e8f0"
-  ctx.fillRect(x + w / 2 - 3, y + h * 0.22, 6, h * 0.36)
-
-  ctx.fillStyle = "#334155"
-  ctx.fillRect(x + 4, y + h * 0.52, w - 8, h * 0.06)
-
-  ctx.fillStyle = "#0f172a"
-  ctx.fillRect(x + 4, y + h * 0.86, w * 0.35, h * 0.14)
-  ctx.fillRect(x + w - 4 - w * 0.35, y + h * 0.86, w * 0.35, h * 0.14)
-
-  ctx.save()
-  ctx.globalAlpha = 0.35
-  ctx.fillStyle   = "#7c3aed"
-  ctx.beginPath()
-  ctx.ellipse(x + 8, y + h * 0.72, 10, 6, -0.3, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.beginPath()
-  ctx.ellipse(x + w - 8, y + h * 0.72, 10, 6, 0.3, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.restore()
-
-  const hx = x + w / 2
-  const hy = y + h * 0.12
-  ctx.fillStyle = "#fde68a"
-  ctx.beginPath()
-  ctx.arc(hx, hy, h * 0.11, 0, Math.PI * 2)
-  ctx.fill()
-
-  ctx.fillStyle = "#1e293b"
-  ctx.beginPath()
-  ctx.arc(hx, hy - h * 0.07, h * 0.1, Math.PI, 0)
-  ctx.fill()
-  for (let i = 0; i < 3; i++) {
-    const bx = hx - h * 0.08 + i * h * 0.08
-    ctx.beginPath()
-    ctx.moveTo(bx - 4, hy - h * 0.12)
-    ctx.lineTo(bx, hy - h * 0.21)
-    ctx.lineTo(bx + 4, hy - h * 0.12)
-    ctx.fill()
-  }
-
-  ctx.fillStyle = "#475569"
-  const eyeOff  = facing >= 0 ? 4 : -4
-  ctx.beginPath()
-  ctx.arc(hx + eyeOff, hy - 2, 2.5, 0, Math.PI * 2)
-  ctx.fill()
-
-  drawHitFlash(ctx, x, y, w, h, fighter.colorFlash)
-  drawNameTag(ctx, "Megumi", hx, y, "#7c3aed")
-  drawFacingDot(ctx, x, y, w, facing, "#7c3aed")
-  drawShadow(ctx, x, y, w, h)
-}
-
-// ─────────────────────────────────────────────────────────────────
 // ── SUKUNA ────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────
 function drawSukuna(ctx, x, y, w, h, fighter) {
@@ -694,7 +628,6 @@ export function drawCharacter(ctx, fighter) {
     case "goku":    drawGoku(ctx, x, y, w, h, fighter);    break
     case "naruto":  drawNaruto(ctx, x, y, w, h, fighter);  break
     case "gojo":    drawGojo(ctx, x, y, w, h, fighter);    break
-    case "megumi":  drawMegumi(ctx, x, y, w, h, fighter);  break
     case "sukuna":  drawSukuna(ctx, x, y, w, h, fighter);  break
     case "omololu": drawOmololu(ctx, x, y, w, h, fighter); break
     case "ben10":   drawBen10(ctx, fighter);               break   // ★ Ben 10

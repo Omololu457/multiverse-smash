@@ -40,6 +40,18 @@ export const FX_SHEETS_BY_CHAR = {
     "./l_ryuuzaki_nova_uniform.png",
     "./l_ryuuzaki_bazooka_proj_uniform.png",
     "./l_ryuuzaki_rising_proj_uniform.png",
+    "./l_ryuuzaki_ryuk_uniform.png",   // Stage-5 Ryuk cameo-attack summon sheet (phantom-hitbox projectile)
+  ],
+  // Green Lantern — the 6 hard-light CONSTRUCT projectile sheets (Stage 5). Each construct special launches
+  // one, carrying its standalone construct sprite. Cast poses (glBeam / glSpinKick) live in animationData
+  // (preloadFighter covers those); the Energy Beam bolt is procedural (no sheet).
+  green_lantern: [
+    "./gl_fist_uniform.png",
+    "./gl_lion_uniform.png",
+    "./gl_blade_uniform.png",
+    "./gl_tentacle_uniform.png",
+    "./gl_spike_uniform.png",
+    "./gl_sphere_uniform.png",
   ],
   goku_black: [
     "./goku_black_ssj_rose_charge_uniform.png",
@@ -177,6 +189,7 @@ export const FX_SHEETS_BY_CHAR = {
     "./masked_man_kunia_proj_uniform.png",
     "./obito_giantshur_proj_uniform.png",
     "./obito_portalfx.png",
+    "./obito_portal_reflect.png",
     "./obito_rod_throwprojectile.png.png",
     "./obito_shur_proj_uniform.png",
   ],

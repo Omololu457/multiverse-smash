@@ -64,25 +64,6 @@ const summonTemplates = {
     sheet: "./zenitsu_inosuke_partner_uniform.png", spriteFrames: 3, spriteW: 67, spriteH: 68, spriteSpeed: 5, spriteScale: 1.55
   },
 
-  divineDogs: {
-    id:              "divineDogs",
-    duration:        84,   // ~1.4s
-    maxSimultaneous: 1,
-    attackInterval:  15,
-    damage:          45,
-    w:               52,
-    h:               34,
-    speed:           7,
-    behavior:        "rush",
-    hitstun:         18,
-    knockbackX:      6,
-    knockbackY:      -1,
-    oneHit:          true,
-    color:           "#d1fae5",
-    // Divine Dogs (white) — clean 5-frame strip, measured 210x47 → 42x47 cells.
-    sheet: "./megumi2_divine_dogs_white_proj_sheet.png", spriteFrames: 5, spriteW: 42, spriteH: 47, spriteSpeed: 4, spriteScale: 1.3
-  },
-
   // Meeseeks (Rick) — same rushdown shape as Divine Dogs, but with NO simultaneous cap
   // (maxSimultaneous 99): only Rick's energy cost per throw limits how many exist at once.
   // Two-phase art: hold the idle "poof-in" pose for `spawnBeat` frames, then run the attack strip.
@@ -111,99 +92,12 @@ const summonTemplates = {
     offsetY:    18
   },
 
-  nue: {
-    id:              "nue",
-    duration:        96,   // ~1.6s
-    maxSimultaneous: 1,
-    attackInterval:  21,
-    damage:          70,
-    w:               72,
-    h:               42,
-    speed:           6,
-    offsetY:         -80,
-    behavior:        "airDive",
-    antiAir:         true,
-    hitstun:         20,
-    knockbackX:      5,
-    knockbackY:      -6,
-    launch:          10,
-    oneHit:          true,
-    color:           "#fde68a",
-    // Nue — clean 9-frame strip, measured 648x77 → 72x77 cells.
-    sheet: "./megumi2_nue_proj_sheet.png", spriteFrames: 9, spriteW: 72, spriteH: 77, spriteSpeed: 4, spriteScale: 1.0
-  },
-
-  toad: {
-    id:              "toad",
-    duration:        108,  // ~1.8s
-    maxSimultaneous: 1,
-    attackInterval:  24,
-    damage:          60,
-    w:               58,
-    h:               44,
-    speed:           4,
-    behavior:        "holdLine",
-    restrain:        true,
-    restrainDuration: 42,
-    hitstun:         22,
-    knockbackX:      2,
-    knockbackY:      0,
-    oneHit:          true,
-    color:           "#86efac",
-    // Toad — REGION crop (not frame-sliced): drawn as a single image for now.
-    // FLAG: re-cut megumi2_toad_proj_region.png (393x81) into frames later.
-    sheet: "./megumi2_toad_proj_region.png", spriteFrames: 1, spriteW: 393, spriteH: 81, spriteSpeed: 6, spriteScale: 0.33
-  },
-
-  rabbitEscape: {
-    id:              "rabbitEscape",
-    duration:        84,   // ~1.4s
-    maxSimultaneous: 1,
-    attackInterval:  9999, // never auto-attacks
-    damage:          10,
-    w:               84,
-    h:               54,
-    speed:           5,
-    behavior:        "screenSwarm",
-    defensive:       true,
-    utility:         true,
-    obscureVision:   true,
-    hitstun:         6,
-    knockbackX:      0,
-    knockbackY:      0,
-    oneHit:          false,
-    color:           "#f8fafc",
-    // Rabbit Escape — REGION crop (single image for now).
-    // FLAG: re-cut megumi2_rabbit_proj_region.png (387x200) into frames later.
-    sheet: "./megumi2_rabbit_proj_region.png", spriteFrames: 1, spriteW: 387, spriteH: 200, spriteSpeed: 6, spriteScale: 0.3
-  },
-
-  maxElephant: {
-    id:              "maxElephant",
-    duration:        96,   // ~1.6s
-    maxSimultaneous: 1,
-    attackInterval:  42,
-    damage:          110,
-    w:               96,
-    h:               72,
-    speed:           2.5,
-    behavior:        "heavyDrop",
-    heavySummon:     true,
-    hitstun:         24,
-    knockbackX:      9,
-    knockbackY:      -2,
-    oneHit:          true,
-    color:           "#93c5fd",
-    // Max Elephant — clean 4-frame strip, measured 456x137 → 114x137 cells.
-    sheet: "./megumi2_max_elephant_proj_sheet.png", spriteFrames: 4, spriteW: 114, spriteH: 137, spriteSpeed: 5, spriteScale: 1.0
-  },
-
   // NARUTO TOAD SUMMON (Gamakichi-style) — a separate summon special, NOT a shadow clone:
   // normal energy cost (paid in abilities.executeNarutoSpecial via spendEnergy), no chakra
   // share. Reuses this generic shikigami entity path (rush → one hit → despawn). Its three
   // single-frame poses are sliced from the JUS sheet's 2-KOMA band (right of the koma
   // clusters): frog_a (rearing) is the active/attack sheet here; updateNarutoToadPose swaps
-  // to frog_b (transition) then frog_c (curl) as it despawns. Distinct id from Megumi's `toad`.
+  // to frog_b (transition) then frog_c (curl) as it despawns.
   narutoToad: {
     id:              "narutoToad",
     duration:        90,    // ~1.5s: leaps in, strikes once, curls up + fades
@@ -258,6 +152,122 @@ const summonTemplates = {
     // Rushers use Minato's standing IDLE body (like Naruto's kcm_stance rushers), NOT the caster's
     // summon-gesture sheet — the hand-sign belongs on Minato, not on the rushing clones.
     sheet: "./minato_idle_uniform.png", spriteFrames: 4, spriteW: 37, spriteH: 64, spriteSpeed: 6, spriteScale: 1.85
+  },
+
+  // ONOKI — Dust Release: Detachment of the Primitive World (ULTIMATE). A PERSISTENT stone GOLEM that
+  // lives on-field and fights alongside Onoki with its own moveset (distinct larger sub-character). Unlike
+  // the one-hit assist shikigami, oneHit:false → it strikes on a cadence for its whole ~10s lifetime.
+  // Two-phase spawn: the `transition` (forming/rising) pose holds for spawnBeat, then it rushes + strikes.
+  // updateOnokiGolemPose (below) swaps its idle↔punch↔swing poses (all padded to a common 178x151 cell so
+  // the feet stay planted through the swap). Damage runs through applyScaledDamage like every summon.
+  onokiGolem: {
+    id:              "onokiGolem",
+    duration:        600,    // ~10s persistent field presence
+    maxSimultaneous: 1,
+    attackInterval:  54,     // strike cadence (~0.9s)
+    damage:          60,     // per strike (×0.60 → ~36 eff)
+    w:               120,
+    h:               150,
+    speed:           3,      // slow, imposing advance
+    offsetX:         80,
+    offsetY:         0,
+    behavior:        "rush",
+    hitstun:         22,
+    knockbackX:      11,
+    knockbackY:      -3,
+    oneHit:          false,  // PERSISTENT — keeps striking on the interval (not a one-and-done assist)
+    color:           "#b8a072",   // stone fallback box
+    sheet:      "./onoki_golem_idle_uniform.png",       spriteFrames: 5, spriteW: 178, spriteH: 151, spriteSpeed: 6, spriteScale: 1.15,
+    spawnSheet: "./onoki_golem_transition_uniform.png", spawnFrames: 4, spawnW: 178, spawnH: 151, spawnBeat: 24, spawnScale: 1.15
+  },
+  // RIKA (Yuta's "Rika's Invocation" ULTIMATE, Stage 5) — a PERSISTENT AI-controlled assist ally (owner
+  // decision #8 = AI assist-ally). The vengeful curse manifests (rika_spawn emerge), advances on the foe,
+  // and repeatedly strikes on the interval (idle ↔ reach/screech pose-swap). oneHit:false = keeps striking
+  // for the duration. Per-strike damage is ×0.60-scaled at hit (Megumi-flag: an independently-attacking
+  // summon MUST stay scaled) — 55 → ~33 eff × ~6-7 strikes over ~6s = a real ULT payoff, not a one-shot nuke.
+  rikaAssist: {
+    id:              "rikaAssist",
+    duration:        360,    // ~6s persistent field presence
+    maxSimultaneous: 1,
+    attackInterval:  50,     // strike cadence (~0.83s) → ~6-7 strikes across the duration
+    damage:          55,     // per strike (×0.60 → ~33 eff)
+    w:               84,
+    h:               120,
+    speed:           4,      // menacing advance
+    offsetX:         90,
+    offsetY:         0,
+    behavior:        "rush",
+    hitstun:         22,
+    knockbackX:      9,
+    knockbackY:      -3,
+    oneHit:          false,  // PERSISTENT — keeps striking (the curse fights alongside Yuta)
+    color:           "#c9d2dc",   // pale-curse fallback box
+    sheet:      "./rika_idle_uniform.png",  spriteFrames: 5, spriteW: 150, spriteH: 130, spriteSpeed: 6, spriteScale: 1.3,
+    spawnSheet: "./rika_spawn_uniform.png", spawnFrames: 5, spawnW: 150, spawnH: 130, spawnBeat: 20, spawnScale: 1.3
+  }
+}
+
+// RIKA ASSIST pose driver — the curse shows its IDLE while advancing, then swaps to a STRIKE pose
+// (alternating reach-claw / screech) for the ~14 frames leading into each interval attack, then back to
+// idle. Mirrors updateOnokiGolemPose (re-points sheet + spriteFrames each frame; all poses share the
+// 150x130 common cell so the tail stays planted). Purely visual; hitbox/damage/lifetime are unchanged.
+const RIKA_POSES = {
+  idle:    { sheet: "./rika_idle_uniform.png",    frames: 5 },
+  reach:   { sheet: "./rika_reach_uniform.png",   frames: 5 },
+  screech: { sheet: "./rika_screech_uniform.png", frames: 6 }
+}
+function setRikaPose(s, mode) {
+  if (!s || s._rikaPose === mode) return
+  const p = RIKA_POSES[mode]; if (!p) return
+  s._rikaPose = mode
+  s.sheet = p.sheet; s.spriteFrames = p.frames; s._animT = 0
+}
+function updateRikaAssistPose(s) {
+  if ((s.frame || 0) < (s.spawnBeat || 0)) return   // forming beat: drawSummons shows the spawnSheet
+  const interval = s.attackInterval || 50
+  const winding  = (s.attackTimer || 0) >= interval - 14   // winding up into the next strike
+  if (winding) {
+    if (!s._rikaStrikeLatched) {                            // latch one strike pose per cycle (alternate)
+      s._rikaStrikeLatched = true
+      s._rikaSwing = (s._rikaSwing || 0) + 1
+      s._rikaStrikePose = (s._rikaSwing % 2 === 1) ? "reach" : "screech"
+    }
+    setRikaPose(s, s._rikaStrikePose)
+  } else {
+    s._rikaStrikeLatched = false
+    setRikaPose(s, "idle")
+  }
+}
+
+// ONOKI GOLEM pose driver — the persistent golem shows its IDLE while advancing, then swaps to a STRIKE
+// pose (alternating punch/swing) for the ~14 frames leading into each interval attack, then back to idle.
+// Mirrors the narutoToad pose-swap pattern (re-points sheet + spriteFrames each frame; all poses share the
+// 178x151 common cell so feet stay planted). Purely visual; hitbox/damage/lifetime are unchanged.
+const ONOKI_GOLEM_POSES = {
+  idle:  { sheet: "./onoki_golem_idle_uniform.png",  frames: 5 },
+  punch: { sheet: "./onoki_golem_punch_uniform.png", frames: 4 },
+  swing: { sheet: "./onoki_golem_swing_uniform.png", frames: 4 }
+}
+function setOnokiGolemPose(s, mode) {
+  if (!s || s._golemPose === mode) return
+  const p = ONOKI_GOLEM_POSES[mode]; if (!p) return
+  s._golemPose = mode
+  s.sheet = p.sheet; s.spriteFrames = p.frames; s._animT = 0
+}
+function updateOnokiGolemPose(s) {
+  if ((s.frame || 0) < (s.spawnBeat || 0)) return   // forming beat: drawSummons shows the spawnSheet
+  const interval = s.attackInterval || 54
+  const winding  = (s.attackTimer || 0) >= interval - 14   // winding up into the next strike
+  if (winding) {
+    if (!s._golemStrikeLatched) {                          // latch one strike pose per cycle (alternate)
+      s._golemStrikeLatched = true
+      s._golemSwing = (s._golemSwing || 0) + 1
+      s._golemStrikePose = (s._golemSwing % 2 === 1) ? "punch" : "swing"
+    }
+    setOnokiGolemPose(s, s._golemStrikePose)
+  } else {
+    s._golemStrikeLatched = false
+    setOnokiGolemPose(s, "idle")
   }
 }
 
@@ -314,8 +324,8 @@ export function spawnSummon(owner, summonData, target) {
     return null
   }
 
-  // Binding vow (Megumi — Shadow Overload): hard cap on TOTAL summons for this
-  // owner across all ids, plus damage / lifespan boosts.
+  // Binding-vow summon modifiers: an optional hard cap on TOTAL summons for this
+  // owner across all ids, plus damage / lifespan boosts (generic; set via bindingvow.js).
   if (owner.maxSummons != null) {
     const ownerTotal = activeSummons.filter(s => s.owner === owner).length
     if (ownerTotal >= owner.maxSummons) return null
@@ -397,6 +407,8 @@ export function updateSummons() {
     s.frame++
 
     if (s.id === "narutoToad") updateNarutoToadPose(s)   // rearing → transition → curl by lifecycle
+    if (s.id === "onokiGolem") updateOnokiGolemPose(s)   // idle ↔ punch/swing strike poses on the attack cadence
+    if (s.id === "rikaAssist") updateRikaAssistPose(s)   // idle ↔ reach/screech strike poses on the attack cadence
 
     if (s.lifetime <= 0) {
       cleanupSummonEffects(s)
@@ -635,23 +647,6 @@ export function drawSummons(ctx) {
 
     ctx.fillStyle = s.color || "#0ff"
     ctx.fillRect(s.x, s.y, s.w, s.h)
-
-    if (s.id === "nue") {
-      ctx.fillStyle = "#fff59d"
-      ctx.fillRect(s.x + 8, s.y + 6, s.w - 16, 8)
-    }
-
-    if (s.id === "rabbitEscape") {
-      ctx.globalAlpha = (ctx.globalAlpha || 1) * 0.55
-      ctx.fillStyle = "rgba(255,255,255,0.55)"
-      ctx.fillRect(s.x - 10, s.y - 6, s.w + 20, s.h + 12)
-    }
-
-    if (s.id === "maxElephant") {
-      ctx.strokeStyle = "rgba(255,255,255,0.25)"
-      ctx.lineWidth = 3
-      ctx.strokeRect(s.x - 4, s.y - 4, s.w + 8, s.h + 8)
-    }
 
     const maxLifetime = s.duration || summonDefaults.duration
     const lifePct = maxLifetime > 0 ? s.lifetime / maxLifetime : 0

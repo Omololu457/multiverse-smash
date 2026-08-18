@@ -112,7 +112,7 @@ await waitFrames(3);
 const enOn = (await kamui()).energy;
 // hold it on (idle) and let the continuous drain run to empty
 let enMid = null, autoOff = false;
-for (let i = 0; i < 60; i++) {         // up to ~360 frames
+for (let i = 0; i < 100; i++) {        // up to ~600 frames (full 200-pool drain is ~477f at 0.48/f)
   await waitFrames(6);
   const s = await kamui();
   if (enMid === null && s.energy < enStart - 30) enMid = s.energy;   // capture a mid-drain sample

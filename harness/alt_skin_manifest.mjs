@@ -134,7 +134,7 @@ export const ALT_SKINS = {
   ],
 
   // ══ BATCH 3 · JUJUTSU KAISEN ════════════════════════════════════════════════
-  // Coexists with the bespoke costumes gojo2/sukuna3/pinkFit/megumi2 (different ids).
+  // Coexists with the bespoke costumes gojo2/sukuna3/pinkFit (different ids).
   // GOJO — black shirt + white pants (colorize, yband .24-1 keeps WHITE HAIR; blue eyes kept). IS
   // black (shirt) → skip standard BLACK. Plus 3 NAMED requests. Ben10/Albedo use VALUE to split
   // shirt(dark)/pants(light) so they're pose-independent across all his sheets.
@@ -163,14 +163,6 @@ export const ALT_SKINS = {
   gold_samurai_ranger: [
     // "JOINED THE KILLER" — Jill's crew (magenta #701E50) on the DARK armor-SEAM lines only (plates stay gold — he IS "Gold").
     { tag: "crew", name: "Jill's Crew", mode: "region", note: "gen_companion_crew.py gold_samurai_ranger — hue 30-48 sat>=.65 val .3-.64 -> to-tone #701E50 (seam grooves; bright plates preserved)" },
-  ],
-  // MEGUMI — dark navy JJK uniform (hue 230-262, sat≥.30, dark → val-gain). IS dark → skip BLACK.
-  // Black hair / skin / brown shoes preserved.
-  megumi: [
-    { tag: "pink", name: "Pink", mode: "region", note: "from-hue 230-262 min-sat .30 -> to-hue 330 sat .60 vg2.4 lift .12" },
-    { tag: "gold", name: "Gold", mode: "region", note: "-> to-hue 47 sat .85 vg2.6 lift .12" },
-    { tag: "blue", name: "Blue", mode: "region", note: "-> to-hue 210 sat .85 vg2.3 lift .12" },
-    { tag: "red",  name: "Red",  mode: "region", note: "-> to-hue 3 sat .90 vg2.3 lift .12" },
   ],
   // TOJI — REMOVED (old-build abstract-hue pink/gold/blue/red). The 2026-08 rebuild replaces these with 12
   // creative recolor skins registered DIRECTLY in skins.js (tools/gen_toji_creative.py), like Gojo/Sukuna/Tobi.

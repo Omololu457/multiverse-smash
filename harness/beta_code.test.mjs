@@ -30,7 +30,7 @@ try{
   // Sprite roster is derived live from hasSprites, so its size grows as characters gain sprites.
   // Assert the known sprite-complete characters are ALL present (grows as chars gain sprites:
   // + Rick via the merge, then Beerus/Goku Black/Vegeta → 11).
-  // MK-feel Stage 5: goku/megumi sprite-flag-REMOVED (hasSprites:false → procedural box), so they
+  // MK-feel Stage 5: goku sprite-flag-REMOVED (hasSprites:false → procedural box), so they
   // dropped OFF the live sprite set (Landmine 1 decision: hasSprites means "has renderable sprites", literal).
   const KNOWN_SPRITE=["gojo","sukuna","naruto","sasuke","rick","beerus","goku_black","vegeta"];
   check(`sprite roster contains all known sprite chars (now ${gt.sprite.length})`,
@@ -49,9 +49,9 @@ try{
   check("baseline EXCLUDES art-less placeholders (piccolo/frieza/omololu)", ["piccolo","frieza","omololu"].every(k=>!m.selectable.includes(k)));
   check("playable roster is smaller than the full non-hidden roster (filter is real)", gt.playable.length < gt.all.length, `playable=${gt.playable.length} all=${gt.all.length}`);
   check("ONLINE locked without a code", m.onlineLocked===true);
-  // Level-gated fixture repointed sukuna3 → megumi2 (lvl3) after all Sukuna alt skins were deleted 2026-07-30.
-  const baseGated=await page.evaluate(()=>window.__harness.skinUnlocked("megumi","megumi2"));
-  check("level-gated skin (megumi2) LOCKED at baseline (makes the beta skin check meaningful)", baseGated===false);
+  // Level-gated fixture repointed megumi2 → gon_azure (lvl4) after Megumi was removed 2026-08-18.
+  const baseGated=await page.evaluate(()=>window.__harness.skinUnlocked("gon","gon_azure"));
+  check("level-gated skin (gon_azure) LOCKED at baseline (makes the beta skin check meaningful)", baseGated===false);
 
   // ── BETA code (GojoV1) ─────────────────────────────────────────────────────
   section("BETA code (GojoV1) — roster filtered to sprite-having ONLY + full unlock");
@@ -60,9 +60,9 @@ try{
   m=await menu();
   check("selectable roster EQUALS the live hasSprites set", sortJoin(m.selectable)===sortJoin(spriteSet), `got=${sortJoin(m.selectable)}`);
   check("selectable count == sprite-roster size (dynamic)", m.selectable.length===spriteSet.length, `n=${m.selectable.length}`);
-  // Explicit exclusions — procedural-box characters (no sprites) must be gone. Includes goku/megumi
+  // Explicit exclusions — procedural-box characters (no sprites) must be gone. Includes goku
   // as of MK-feel Stage 5 (sprite-flag-removed → box → dropped from the beta sprite roster).
-  for(const gone of ["frieza","rickPrime","piccolo","goku","megumi"])
+  for(const gone of ["frieza","rickPrime","piccolo","goku"])
     check(`'${gone}' (no sprites) is NOT selectable`, !m.selectable.includes(gone));
   // Explicit inclusions — the sprite characters must all be present.
   for(const has of ["gojo","sukuna","naruto","sasuke","rick","beerus","goku_black","vegeta"])
@@ -72,9 +72,9 @@ try{
   check("ONLINE unlocked under beta", m.onlineLocked===false);
   check("Tower feature unlocked under beta", m.towerUnlocked===true);
   check("level-gated extraSkins unlocked under beta", m.extraSkinsUnlocked===true);
-  // Direct skin unlock: megumi2 is unlockLevel 3 — locked at base level, must be OPEN under beta.
-  const betaGated=await page.evaluate(()=>window.__harness.skinUnlocked("megumi","megumi2"));
-  check("level-gated skin (megumi2) unlocked under beta", betaGated===true);
+  // Direct skin unlock: gon_azure is unlockLevel 4 — locked at base level, must be OPEN under beta.
+  const betaGated=await page.evaluate(()=>window.__harness.skinUnlocked("gon","gon_azure"));
+  check("level-gated skin (gon_azure) unlocked under beta", betaGated===true);
 
   // ── DEV code (Omololu) — REGRESSION: everything unlocked, NO character filter ─
   section("DEV code (Omololu) REGRESSION — full unlock, NO character filtering");

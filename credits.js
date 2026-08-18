@@ -3,7 +3,7 @@
 // IN-GAME ATTRIBUTION — the single source of truth for who made the art.
 //
 // Some sprite sheets are SOURCED from community/M.U.G.E.N artists whose terms are
-// "free to use, credit me." Those credits used to live ONLY in CREDITS.txt / megumi_CREDITS.txt
+// "free to use, credit me." Those credits used to live ONLY in CREDITS.txt / gojo_CREDITS.txt
 // and no player ever saw them. This module puts them in front of players: on the scrolling
 // Credits screen AND as a per-character "Art:" line on the select screen (the credit the
 // artists actually asked for, shown where it matters).
@@ -24,12 +24,32 @@ export const SOURCED_ART = {
     source:  "M.U.G.E.N sheet",
     files:   ["gojo_*_sheet.png", "gojo_sheet_source.png"]
   },
-  megumi: {
-    work:    "Megumi Fushiguro",
-    artists: ["FinhJ"],
-    edit:    "saxcreed",
-    source:  "M.U.G.E.N sheet",
-    files:   ["megumi_*.png"]
+  // Alternate Sukuna (JJK) — a SEPARATE char from `sukuna`, built from the Cinontk/Bitsverse644 rip
+  // (sukuna_row_*.png). The source sheet carries an explicit anti-repost watermark crediting the original
+  // spriter Cinontk and the sheet compiler Bitsverse644 (Bits Verse on YT); attribution is MANDATORY.
+  alt_sukuna: {
+    work:    "Ryomen Sukuna (Jujutsu Kaisen) — alternate-universe build",
+    artists: ["Cinontk (original sprites)", "Bitsverse644 / Bits Verse (sheet compilation)"],
+    source:  "fan sprite sheet (sukuna_row_01..10.png; watermarked, credit to Cinontk / @BITSVerse644)",
+    files:   ["alt_sukuna_*.png", "sukuna_row_*.png"]
+  },
+  // Aoi Todo (JJK). Source sheets carry an in-sheet credit: "By akuma animation (with edits/palette
+  // improvements by MichelST)". Attribution is MANDATORY. NOTE: the Yuji/Gojo cameo entities render the
+  // existing yuji_*/gojo_* art (already attributed under their own keys).
+  aoi_todo: {
+    work:    "Aoi Todo (Jujutsu Kaisen)",
+    artists: ["akuma animation (original sprites)", "MichelST (edits / palette improvements)"],
+    source:  "fan sprite sheet (aoitodo_row_01/02.png; in-sheet credit to akuma animation / MichelST)",
+    files:   ["aoi_todo_*.png", "aoitodo_row_*.png"]
+  },
+  // Yuta Okkotsu (JJK). Source sheets carry an in-sheet credit: Yuta "Made by Soulfire — Petamynx, Dano,
+  // Santoryu"; Rika "Made by Soulfire — V2 remodel thanks to shaulmorales". Attribution is MANDATORY.
+  // The Rika assist entity renders the rika_*/rika_v2_* art (same Soulfire lineage).
+  yuta: {
+    work:    "Yuta Okkotsu (Jujutsu Kaisen) — incl. the Rika assist",
+    artists: ["Soulfire (original sprites)", "Petamynx", "Dano", "Santoryu", "shaulmorales (Rika V2 remodel)"],
+    source:  "fan sprite sheets (yuta_row_*.png / rika_v1_*/rika_v2_*.png; in-sheet credit to Soulfire et al.)",
+    files:   ["yuta_*.png", "yuta_row_*.png", "rika_*.png", "rika_v1_*.png", "rika_v2_*.png"]
   },
   // Red Ranger (Jason, Mighty Morphin). Source REQUIRES credit to "Omega (tolgayavuz85)".
   red_ranger_mmpr: {
@@ -89,6 +109,22 @@ export const SOURCED_ART = {
     artists: ["prodijiu (DeviantArt)"],
     source:  "fan JUS sprite sheet (light_yagami_jus_sprite_by_prodijiu_d6j521b.png)",
     files:   ["light_yagami_*.png", "light_*_uniform.png", "light_portrait*.png", "light_idle_uniform.png"]
+  },
+  // Spider-Man (Marvel Super Heroes, Capcom CPS2 arcade system). GENUINE arcade sprite rip — the ripper's
+  // required credit is verbatim: "Spiderman from Marvel Superheroes for Capcom CPS2 Arcade system. Ripped
+  // by Alvin-Earthworm." Attribution is MANDATORY (mirrors the other sourced sheets). Resliced feet-aligned
+  // in-repo by tools/reslice_spiderman.py; the resliced strips ship as spiderman_*_uniform.png.
+  spiderman: {
+    work:    "Spider-Man (Marvel Super Heroes, Capcom CPS2 arcade)",
+    artists: ["Alvin-Earthworm (rip)"],
+    source:  "CPS2 arcade sprite rip (Arcade - Marvel Super Heroes - Fighters - Spider-Man.gif)",
+    files:   ["spiderman_*.png"]
+  },
+  green_lantern: {
+    work:    "Green Lantern (Hal Jordan, DC)",
+    artists: ["cf2364 (sprite sheet)", "enzo (original)"],
+    source:  "DeviantArt fan sprite sheet — green_lantern__hal__sprite_sheet__originalbyenzo__by_cf2364_dfirpm7.png (resliced into gl_*_uniform.png via tools/reslice_green_lantern.py)",
+    files:   ["gl_*.png", "hal_sprite_*.png"]
   }
 }
 
@@ -134,7 +170,16 @@ export const PROJECT_ART_KEYS = [
   // L "Ryuuzaki" (Death Note) — fan sprite delivered as 29 keyed per-action/numbered l_ryuuzaki_*.png
   // strips with NO baked artist text; keyed by tools/slice_l_ryuuzaki.py and resliced feet-aligned in-repo
   // by tools/reslice_l_ryuuzaki.py → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
-  "l_ryuuzaki"
+  "l_ryuuzaki",
+  // Deathstroke (Slade Wilson, DC) — fan sprite sheet delivered as generic numbered deathstroke_row_NN.png
+  // strips with NO baked artist text (the source carried a "DEATHSTROKE" title card + a mask-portrait icon,
+  // both carved out — the title excluded, the icon repurposed as the portrait); resliced in-repo by
+  // tools/reslice_deathstroke.py → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
+  "deathstroke",
+  // Brainiac (DC) — fan sprite sheet delivered as generic numbered brainiac_row_NN.png strips with NO baked
+  // artist text (a small skull HUD glyph in row_01 was reference-only, excluded); resliced in-repo by
+  // tools/reslice_brainiac.py → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
+  "brainiac"
 ]
 
 // Every roster key that has a declared attribution (sourced OR project-adapted).

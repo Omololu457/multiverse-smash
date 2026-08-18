@@ -31,7 +31,7 @@ for (const ch of chars) {
   chk(`${ch}: skin-select shows ${info.skins.length} skins (${altCount} alt)`, altCount >= 5, info.skins.map(s => s.id).join(","));
 
   // (2) in-match render wearing the first RECOLOR skin (id `<char>_<tag>`, skipping bespoke skins
-  // like gojo2/sukuna3/megumi2) → assert the live sprite sheet is a recolored __tag sheet
+  // like gojo2/sukuna3) → assert the live sprite sheet is a recolored __tag sheet
   const altId = (info.skins.find(s => s.id.startsWith(ch + "_")) || info.skins[1]).id;
   await page.goto(`${base}/index.html?harness=1&p1=${ch}`, { waitUntil: "load" });
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });

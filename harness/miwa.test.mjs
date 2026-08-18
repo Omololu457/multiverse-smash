@@ -47,7 +47,7 @@ check("portrait art decodes (master-extracted bust)", imgOk.ok, `${imgOk.w}×${i
 
 // ── BALANCE: no stat outliers (JJK cursed-energy sword user, mid-tier) ──
 section("balance — stats sit inside roster bands");
-check("HP 1150 (Megumi 1120 < 1150 < Gojo 1160)", st.maxHealth === 1150, `hp=${st.maxHealth}`);
+check("HP 1150 (Yuji 1120 < 1150 < Gojo 1160)", st.maxHealth === 1150, `hp=${st.maxHealth}`);
 check("Energy 160 cursed (below big-3 ~210; ≥ Netero/Hisoka nen 150/170 band)", st.maxEnergy === 160, `en=${st.maxEnergy}`);
 check("ATK 86 · DEF 84 · SPD 93 all mid-band (no ceiling/floor)", st.attack === 86 && st.defense === 84 && st.speed === 93, `atk=${st.attack} def=${st.defense} spd=${st.speed}`);
 

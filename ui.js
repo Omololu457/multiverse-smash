@@ -16,7 +16,7 @@ import { COMBO_BREAKER } from "./combat.js"   // universal combo-break resource 
 const ENERGY_TYPE_LABELS = {
   ki:               "Ki",                       // Dragon Ball (Goku, Vegeta, Goku Black, Piccolo, Frieza, Cell)
   chakra:           "Chakra",                   // Naruto (Naruto, Sasuke)
-  cursed_energy:    "Cursed Energy",            // Jujutsu Kaisen (Gojo, Sukuna, Megumi)
+  cursed_energy:    "Cursed Energy",            // Jujutsu Kaisen (Gojo, Sukuna)
   nen:              "Nen",                       // Hunter x Hunter (Gon, Killua, …) — "Nen" over "Aura": matches the energyType field + is the series' proper term
   bullshit_science: "Bullshit Science Energy",  // Rick & Morty (Rick) — mirrors his energyConfig.label; kept here as a fallback
   portal_tech:      "Portal Tech",              // Rick & Morty (Morty, Evil Morty, Rick Prime)
@@ -32,6 +32,16 @@ const ENERGY_TYPE_LABELS = {
   ultimatrix:       "Ultimatrix",               // Albedo (fallback; device HUD block overrides live)
   dread:            "Dread",                    // Horror (Ghostface) — the stalker's meter; fuels specials + Ultimate
   reiatsu:          "Reiatsu",                  // Bleach (Ichigo) — spiritual pressure; fuels Getsuga specials + Ultimate
+  bloodlust:        "Bloodlust",                // Horror (Jason Voorhees) — the slasher's meter; builds through combat, fuels his lone Relentless Slash special
+  karma:            "Karma",                    // Naruto/Boruto (Isshiki Otsutsuki) — Otsutsuki dimensional power; fuels Sukunahikona/Daikokuten/Gokashin specials + ultimate
+  particle:         "Particle",                 // Naruto (Onoki) — Kekkei Tota Dust Release / Particle Style; ONE shared pool fuels flight + Dust-Release specials + golem ultimate
+  kira:             "Kira",                      // Death Note (Light Yagami) — the Kira meter; fuels his Ryuk/L call-ins, notebook specials + both ultimates
+  deduction:        "Deduction",                // Death Note (L "Ryuuzaki") — the detective's meter; fuels his capoeira/call-in special kit
+  web_fluid:        "Web Fluid",                // Marvel (Spider-Man) — his web-shooter reserve; fuels Web Impact/Web Throw specials + the cinematic Ultimate
+  adrenaline:       "Adrenaline",               // DC (Deathstroke) — the enhanced merc's combat reserve; fuels sword/gun/martial specials + the promoted spin-finish Ultimate
+  intellect:        "Intellect",                // DC (Brainiac) — the Coluan's 12th-level computational reserve; fuels his beam/tentacle/shield zoner kit + the Energy-Pillar Ultimate
+  willpower:        "Willpower",                 // DC (Green Lantern) — the green light of will powering the ring; fuels the fixed-slot construct kit + the multi-construct Ultimate
+  boogie:           "Boogie",                    // Jujutsu Kaisen (Aoi Todo) — the Boogie Woogie rhythm meter; gates the Clap swap system (self/cameo/enemy), Yuji+Gojo cameo call-ins, co-op combos + the Black Flash ultimate
 }
 
 // UNIVERSE-level energy-label override — every character in a listed universe shows this label
@@ -541,6 +551,10 @@ function drawBackdrop(ctx, canvas, top = "#070d1b", bottom = "#17243f") {
 // the roster count — no hardcoded visible-row count), so it self-corrects as the roster grows/shrinks.
 // Canonical layout opts for the shared character-card grid (char select, Edo vessel pick, FFA pick).
 export const CHAR_GRID_OPTS = { cols: 4, cardW: 220, cardH: 110, gap: 18, startY: 148, bottomMargin: 88, scrollKey: "chars" }
+// Universe-select grid — SAME scroll-aware system as the char grid (scrollKey → getGridLayout applies the
+// clamped offset; activeScrollGrid()/wheel/drag/scrollbar wire in game.js). The roster of universes grew past
+// one screen, so the fixed 3-col grid now overflows → scroll (mirrors CHAR_GRID_OPTS, wider cards).
+export const UNIVERSE_GRID_OPTS = { cols: 3, cardW: 300, cardH: 110, gap: 24, startY: 150, bottomMargin: 70, scrollKey: "universe" }
 
 // SELECT-DEPTH detail panel (Stage 23) — ONE source of truth for its rect so the draw AND the grid's
 // scroll math agree on where it sits. Fixed band near the lower-middle, clamped up on short screens.
@@ -956,7 +970,7 @@ export function getAIDifficultyRects(canvas) {
 
 export function getUniverseCardRects(canvas, universes = []) {
   universes = normalizeToArray(universes)
-  return getGridLayout(universes.length, canvas, { cols: 3, cardW: 300, cardH: 110, gap: 24, startY: 150 })
+  return getGridLayout(universes.length, canvas, UNIVERSE_GRID_OPTS)   // scroll-aware (scrollKey "universe")
 }
 
 export function getCharacterCardRects(canvas, roster = [], opts = CHAR_GRID_OPTS) {
@@ -1864,6 +1878,11 @@ export function drawUniverseSelectScreen(ctx, canvas, universes = [], selectedIn
   }
 
   const rects = getUniverseCardRects(canvas, universes)
+  // Clip cards to the scrollable viewport band so scrolled rows never overdraw the header/footer (mirrors
+  // drawCharacterSelectScreen). When the grid fits, the viewport is the full band and this is a no-op.
+  const vp = getGridViewport(canvas, UNIVERSE_GRID_OPTS)
+  ctx.save()
+  ctx.beginPath(); ctx.rect(0, vp.top - 2, w, (vp.bottom - vp.top) + 4); ctx.clip()
   // Two-pass so the hovered (scaled + glowing) card is never overdrawn by a later neighbor.
   const order = universes.map((_, i) => i).sort((a, b) => (a === selectedIndex ? 1 : 0) - (b === selectedIndex ? 1 : 0))
   order.forEach(i => {
@@ -1876,6 +1895,8 @@ export function drawUniverseSelectScreen(ctx, canvas, universes = [], selectedIn
     })
     _holoPanelOverlay(ctx, rect.x, rect.y, rect.w, rect.h, { accent, cut: 18 })   // Stage 12: holographic treatment (universes = "info being displayed")
   })
+  ctx.restore()
+  drawGridScrollbar(ctx, getGridScrollbar(universes.length, canvas, UNIVERSE_GRID_OPTS))   // right-edge scrollbar (null → no-op when it fits)
 
   drawFooterHint(ctx, canvas, "Choose the universe for the current fighter")
 }
@@ -2737,6 +2758,10 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
       const fi = p.spriteOnce
         ? Math.min(frames - 1, Math.floor(p._animT / (p.spriteSpeed || 4)))
         : Math.floor(p._animT / (p.spriteSpeed || 4)) % frames
+      // spriteFrameStart: render frames [start, start+spriteFrames) instead of from cell 0. Default 0 →
+      // zero effect on every existing projectile; lets a caller skip unwanted lead-in cells of a shared
+      // sheet (Sasuke Absolute Defense activation reuses only the ribcage cells of sasuke_susanoo_intro).
+      const srcFi = (p.spriteFrameStart || 0) + fi
       const scale = p.spriteScale || 1
       const dw = fw * scale, dh = fh * scale
       const dir = (p.vx || 0) < 0 ? -1 : 1
@@ -2746,7 +2771,7 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
       const topY = (p.spriteBottomY != null) ? (p.spriteBottomY - dh) : (y - dh / 2)
       ctx.translate(x, 0)
       ctx.scale(dir, 1)
-      ctx.drawImage(img, fi * fw, 0, fw, fh, -dw / 2, topY, dw, dh)
+      ctx.drawImage(img, srcFi * fw, 0, fw, fh, -dw / 2, topY, dw, dh)
       ctx.restore()
       return
     }

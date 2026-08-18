@@ -1,7 +1,7 @@
 // MK-feel Stage 4b — PER-ARCHETYPE DASH COOLDOWN. The spec's premise ("dash fields defaulted for
 // everyone") was WRONG: every char hand-set dashSpeed/dashDuration/dashCooldownMax, but the COOLDOWNS
 // were inconsistent with the speed archetype and none hit the spec's targets (e.g. Minato spd 98 dashed
-// on cd 40 like a heavy; Naruto/Sasuke spd 90 on cd 45 = Rick/Megumi). Stage 4b re-derives dash FREQUENCY
+// on cd 40 like a heavy; Naruto/Sasuke spd 90 on cd 45 = Rick). Stage 4b re-derives dash FREQUENCY
 // from the speed tier: speedster (98) → ~14f, heavy (~78) → ~34f. dashSpeed/dashDuration (distance/burst)
 // stay per-char — they were already differentiated.
 //
@@ -29,7 +29,7 @@ section("B. per-character cooldowns re-derived from speed")
 const cases = [
   ["minato", 98, 14], ["maki", 98, 14], ["flash", 99, 14],
   ["shinobu", 97, 15], ["zenitsu", 96, 16], ["naruto", 90, 22], ["sasuke", 90, 22],
-  ["madara", 92, 20], ["goku", 88, 24], ["rick", 84, 28], ["megumi", 83, 29], ["morty", 72, 34],
+  ["madara", 92, 20], ["goku", 88, 24], ["rick", 84, 28], ["morty", 72, 34],
 ]
 for (const [key, expSpd, expCd] of cases) {
   const sp = speedOf(key)
@@ -43,7 +43,7 @@ check("Minato (98) now dashes FAR more often than Goku (88): 14 < 24 (was 40 ≈
 check("Naruto (90) now < Rick (84): 22 < 28 (was both ~45)",
   dashCd(speedOf("naruto")) < dashCd(speedOf("rick")), `naruto=${dashCd(speedOf("naruto"))} rick=${dashCd(speedOf("rick"))}`)
 check("monotonic: faster speed never yields a LONGER cooldown (full roster)", (() => {
-  const ks = ["flash","shinobu","zenitsu","netero","madara","naruto","goku","rick","megumi","morty"]
+  const ks = ["flash","shinobu","zenitsu","netero","madara","naruto","goku","rick","morty"]
   const pairs = ks.map(k => [speedOf(k), dashCd(speedOf(k))]).filter(([s]) => s != null)
   for (const [s1, c1] of pairs) for (const [s2, c2] of pairs) if (s1 > s2 && c1 > c2) return false
   return true

@@ -123,7 +123,7 @@ check("MANUAL OFF: 2nd tap → not intangible (silent)", !(await kamui()).intang
 // chakra-zero auto-off
 await reset(200);
 await page.evaluate(() => window.__harness.obitoKamuiToggle()); await waitFrames(3);
-let autoOff=false; for(let i=0;i<60;i++){ await waitFrames(6); if(!(await kamui()).intangible){ autoOff=true; break; } }
+let autoOff=false; for(let i=0;i<100;i++){ await waitFrames(6); if(!(await kamui()).intangible){ autoOff=true; break; } }  // full 200-pool drain is ~477f at 0.48/f
 check("CHAKRA-ZERO AUTO-OFF: drains to 0 → auto-deactivates", autoOff && (await kamui()).energy === 0, `energy=${(await kamui()).energy}`);
 
 // ── KAMUI TELEPORT GRAB — non-damage position payload ──

@@ -170,6 +170,50 @@ const MOVE_TO_ACTION = {
   // Red Ranger MMPR (Stage 2): Fwd+Heavy command chain (rrRekka1→2→3) + airborne-Heavy dive-kick poke.
   // Identity maps (currentAttack.name === action key) so a recovery tail never resolves to the fallback box.
   rrRekka1: "rrRekka1", rrRekka2: "rrRekka2", rrRekka3: "rrRekka3", rrDiveKick: "rrDiveKick",
+  // Isshiki (Stage 2): Light auto-combo strings — ground (isshikiGround1→2→3) + air (isshikiAir1→2→3).
+  // Identity maps so a rekka-stage recovery tail never resolves to the fallback box.
+  isshikiGround1: "isshikiGround1", isshikiGround2: "isshikiGround2", isshikiGround3: "isshikiGround3",
+  isshikiAir1: "isshikiAir1", isshikiAir2: "isshikiAir2", isshikiAir3: "isshikiAir3",
+  // Saitama (Stage 2): "Spin-Punch" Fwd+Heavy command-normal rekka stages. Identity maps so a rekka-stage
+  // recovery tail never resolves to the 128² fallback box.
+  saitamaTurn1: "saitamaTurn1", saitamaTurn2: "saitamaTurn2", saitamaTurn3: "saitamaTurn3",
+  // Alternate Sukuna (Stage 3): Dismantle/Cleave command-string stages. Identity maps (currentMove === action
+  // key) so a recovery/cast tail never resolves to the 128² fallback box.
+  altSukunaCleave1: "altSukunaCleave1", altSukunaCleave2: "altSukunaCleave2",
+  altSukunaBeam: "altSukunaBeam", altSukunaSpinkick: "altSukunaSpinkick", altSukunaUltCharge: "altSukunaUltCharge",
+  // Saitama (Stage 3): tiered tap/hold punch-combo flurry poses. Identity maps so the multi-hit flurry
+  // recovery tail never resolves to the fallback box.
+  saitamaCombo10: "saitamaCombo10", saitamaCombo20: "saitamaCombo20",
+  // Saitama (Stage 4): the 6 specials (+ Side Hop). Identity maps so a special recovery tail never falls
+  // back to the 128² box.
+  saitamaSerious: "saitamaSerious", saitamaTwohand: "saitamaTwohand", saitamaBargain: "saitamaBargain",
+  saitamaTableflip: "saitamaTableflip", saitamaHeadbutt: "saitamaHeadbutt", saitamaUpdown: "saitamaUpdown", saitamaSidehop: "saitamaSidehop",
+  // Saitama (Stage 5): Death Punch ultimate poses (live fighter holds charge → impact through the cinematic).
+  saitamaDeathCharge: "saitamaDeathCharge", saitamaDeathImpact: "saitamaDeathImpact",
+  // Hiruzen (Stage 2): SPIN evasive-dodge cast pose (_spriteCastMove). Identity map so the spin strip
+  // renders during the i-frame window (never falls back). Stage 3 borrowed-jutsu casts join here.
+  hiruzenSpin: "hiruzenSpin",
+  // Hiruzen (Stage 3): borrowed-jutsu cast poses (_spriteCastMove) — Fire / Earth / Enma / staff-bind.
+  hiruzenFireCast: "hiruzenFireCast", hiruzenEarthCast: "hiruzenEarthCast", hiruzenEnmaCast: "hiruzenEnmaCast", hiruzenBind: "hiruzenBind",
+  // Hiruzen (Stage 4): Reaper Death Seal sealing-sign held pose (_spriteCastMove, through the cinematic).
+  hiruzenReaperCast: "hiruzenReaperCast",
+  // Orochimaru (Stage 2): Forward Strong (Fwd+Heavy command normal) + throw-weapon grab cast pose.
+  // Identity maps so the command-normal / grab cast tail never resolves to the fallback box.
+  orochimaruFwdStrong: "orochimaruFwdStrong", orochimaruThrow: "orochimaruThrow",
+  // Orochimaru (Stage 3): command-normal CHAIN stages 2-3 + the 8 specials' cast poses. Identity maps.
+  orochimaruChain2: "orochimaruChain2", orochimaruChain3: "orochimaruChain3",
+  orochimaruSwordLunge: "orochimaruSwordLunge", orochimaruSwordThrow: "orochimaruSwordThrow",
+  orochimaruSnakeSpit: "orochimaruSnakeSpit", orochimaruSnakeLunge: "orochimaruSnakeLunge",
+  orochimaruSnakeBarrage: "orochimaruSnakeBarrage", orochimaruTailSweep: "orochimaruTailSweep",
+  orochimaruSlam: "orochimaruSlam", orochimaruCoil: "orochimaruCoil",
+  // Orochimaru (Stage 4): shared shed-skin transition pose (form transforms). Identity map.
+  orochimaruShed: "orochimaruShed",
+  // Orochimaru (Stage 5): Summon Ultimate caster pose (held through the freeze cinematic). Identity map.
+  orochimaruSummonCast: "orochimaruSummonCast",
+  // Isshiki (Stage 3): special CAST poses (_spriteCastMove) — Sukunahikona/cubes / rods / Gokashin fire.
+  isshikiSukuCast: "isshikiSukuCast", isshikiRodCast: "isshikiRodCast", isshikiFireCast: "isshikiFireCast",
+  // Isshiki (Stage 4): 2 finisher poses + Ultimate windup cast.
+  isshikiFin1Cast: "isshikiFin1Cast", isshikiFin2: "isshikiFin2", isshikiUltCast: "isshikiUltCast",
   // Red Ranger MMPR (Stage 3): grab/throw special cast poses (_spriteCastMove) — rrGrab (trhow_1 windup/
   // lift) → rrThrow (trhow_2 release). Identity maps so the cast tail never resolves to the fallback box.
   rrGrab: "rrGrab", rrThrow: "rrThrow",
@@ -182,6 +226,32 @@ const MOVE_TO_ACTION = {
   obitoTeleport: "obitoTeleport",       // Obito (Stage 5): Kamui blink pose (self-portal / teleport-grab).
   obitoKamuiActivate: "obitoKamuiActivate",   // Obito: Kamui intangibility initiation pose (plays once at toggle-on).
   grab: "grab",
+
+  // Byakuya (Stage 4): special cast + strike poses (_spriteCastMove / currentMove). Identity maps so a cast/
+  // teleport/strike recovery tail never resolves to the 128² fallback box.
+  byakuyaThrust: "byakuyaThrust", byakuyaPetalCast: "byakuyaPetalCast",
+  byakuyaShunpoOut: "byakuyaShunpoOut", byakuyaShunpoIn: "byakuyaShunpoIn",
+  byakuyaReformVanish: "byakuyaReformVanish", byakuyaReformOverhead: "byakuyaReformOverhead", byakuyaReformThrust: "byakuyaReformThrust",
+  byakuyaJumpSlash: "byakuyaJumpSlash", byakuyaAirVault: "byakuyaAirVault",
+  byakuyaBankaiCharge: "byakuyaBankaiCharge", byakuyaBankaiTransform: "byakuyaBankaiTransform", byakuyaBankaiThrust: "byakuyaBankaiThrust",   // Stage 5: Bankai cinematic poses (charge→transform→thrust)
+
+  // Brainiac (Stage 4): special cast/strike poses (_spriteCastMove / currentMove). Identity maps so a
+  // cast/strike recovery tail never resolves to the 128² fallback box. (Stage 5 Pillar ULT pose added later.)
+  brainiacBeam: "brainiacBeam", brainiacBlade: "brainiacBlade", brainiacSweep: "brainiacSweep",
+  brainiacShield: "brainiacShield", brainiacLevitate: "brainiacLevitate",
+
+  // Aoi Todo (Stage 3 command chain + Stage 4 specials): cast/strike poses (_spriteCastMove / currentMove).
+  // Identity maps so a cast/strike recovery tail never resolves to the 128² fallback box.
+  todoCombo1: "todoCombo1", todoCombo2: "todoCombo2", todoCombo3: "todoCombo3",
+  todoGun: "todoGun", todoFireKick: "todoFireKick", todoWhip: "todoWhip",
+  todoSpin: "todoSpin", todoArmor: "todoArmor", todoDive: "todoDive", todoClap: "todoClap",
+  // Yuta (Stage 3): sword-combo rekka stages (currentMove === action key). Identity maps so a strike
+  // recovery tail can never resolve to the 128² fallback box. (Stage 4 special poses appended later.)
+  yutaCombo1: "yutaCombo1", yutaCombo2: "yutaCombo2", yutaCombo3: "yutaCombo3",
+  // Yuta (Stage 4): special cast/strike poses (_spriteCastMove / currentMove === action key). Identity maps
+  // so a cast/strike recovery tail can never resolve to the 128² fallback box.
+  yutaStrong: "yutaStrong", yutaKick4: "yutaKick4", yutaCem: "yutaCem", yutaSpeech: "yutaSpeech", yutaRct: "yutaRct",
+  yutaUltCast: "yutaUltCast",   // Yuta (Stage 5): Rika's Invocation cast pose (_spriteCastMove) — identity map
 
   // Netero (Stage 3): command-chain stages + Barrage special. Identity maps (currentMove === action
   // key) — explicit here so a recovery/cast tail can never resolve to the 128² box (Sasuke dashStrike
@@ -331,15 +401,24 @@ const MOVE_TO_ACTION = {
   saikiLightning: "saikiLightning",
   saikiBomb: "saikiBomb",
 
+  // L "Ryuuzaki" (Stage 3): merged capoeira COMMAND-NORMAL CHAIN — Fwd+Heavy 3-stage cancel-on-hit
+  // rekka (low sweep → rising crescent → aerial dive). Identity maps (currentMove === action key) —
+  // explicit so a recovery tail never resolves to the 128² fallback box.
+  lRyuuzakiCmd1: "lRyuuzakiCmd1",
+  lRyuuzakiCmd2: "lRyuuzakiCmd2",
+  lRyuuzakiCmd3: "lRyuuzakiCmd3",
+  // L "Ryuuzaki" (Stage 4): special CAST/HOLD poses (_spriteCastMove) + the EX flurry (currentMove).
+  // Identity maps so a cast/attack tail never falls to the 128² box.
+  lRyuuzakiNovaCast:    "lRyuuzakiNovaCast",
+  lRyuuzakiBazookaCast: "lRyuuzakiBazookaCast",
+  lRyuuzakiRisingCast:  "lRyuuzakiRisingCast",
+  lRyuuzakiAnalysis:    "lRyuuzakiAnalysis",
+  lRyuuzakiKickTrail:   "lRyuuzakiKickTrail",
+  lRyuuzakiRyukCast:    "lRyuuzakiRyukCast",
+
   blue: "blue_cast",
   red: "red_cast",
   hollowPurple: "hollow_purple_cast",
-
-  divineDogs: "divine_dogs",
-  nue: "nue",
-  toad: "toad",
-  rabbitEscape: "rabbit_escape",
-  maxElephant: "max_elephant",
 
   dragonFist: "special_1",
   kamehameha: "special_2",
@@ -382,6 +461,24 @@ const MOVE_TO_ACTION = {
   nerveStrike: "special_1",
   manipulativeBlast: "special_1",
   primePortalBlast: "special_1",
+
+  // Spider-Man (Stage 2): Fwd+Heavy "Jump Attack Combo" command normal (spiderCombo), Ground Crawl evasive
+  // cast pose (spiderCrawl, _spriteCastMove), + the crawl kick-up exit attack (spiderKickup). Identity maps
+  // (currentMove/_spriteCastMove === action key) — explicit so a command/cast/attack recovery tail never
+  // resolves to the 128² fallback box. (Stage 3 web-special cast poses join here.)
+  spiderCombo: "spiderCombo", spiderCrawl: "spiderCrawl", spiderKickup: "spiderKickup",
+  // Spider-Man (Stage 3): web-special cast poses (_spriteCastMove) + melee-special poses (currentMove).
+  // spiderWebBridge = the combo-cancel web-net bridge into Web Throw. Identity maps → no 128² box on the tail.
+  spiderWebImpact: "spiderWebImpact", spiderWebThrow: "spiderWebThrow", spiderWebBridge: "spiderWebBridge",
+  spiderDashAttack: "spiderDashAttack", spiderHandstand: "spiderHandstand",
+
+  // Naoya (Stage 3): Fwd+Heavy "low combo string" command normal (naoyaCombo, row_08). Identity map —
+  // the command recovery tail resolves the real sheet, never the 128² fallback box.
+  naoyaCombo: "naoyaCombo",
+  // Naoya (Stage 4): special cast poses (_spriteCastMove). Energy Dart / Pitch Throw / Frame-Skip blink /
+  // Frame-Trap telegraph + its 3 scripted steps. Identity maps → real sheets on the cast tail (no 128² box).
+  naoyaEnergyDart: "naoyaEnergyDart", naoyaPitch: "naoyaPitch", naoyaFrameSkip: "naoyaFrameSkip",
+  naoyaFrameTrap: "naoyaFrameTrap", naoyaFtStep1: "naoyaFtStep1", naoyaFtStep2: "naoyaFtStep2", naoyaFtFinish: "naoyaFtFinish",
 
   ultimate: "ultimate",
   transform: "transform",
@@ -513,7 +610,15 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Example: "light", "heavy", "special_purple"
   if (fighter.attacking) {
     const move = fighter.currentMove || fighter.currentAttack?.name;
-    if (move) return MOVE_TO_ACTION[move] || move;
+    if (move) {
+      // CROUCH-CONTEXT normal swap (Jason): a light/heavy started while crouching renders its dedicated
+      // crouch strip (combat.js stamps _crouchAttackVariant on the crouch-start). Gated on the strip
+      // existing → a pure no-op for every char without crouchLight/crouchHeavy (they use the standing normal).
+      const cv = fighter._crouchAttackVariant;
+      if (cv && (move === "light" || move === "heavy") &&
+          (fighter._skinAnim?.[cv] || fighter.animationData?.[cv])) return cv;
+      return MOVE_TO_ACTION[move] || move;
+    }
   }
 
   // HOLD-TO-CHARGE pose — a fighter holding the charge button (isCharging) plays its dedicated
@@ -560,6 +665,13 @@ function _resolveAction(fighter, currentAction = "idle") {
     if ((fighter.vy || 0) > 6) return "fall";
     return "jump";
   }
+
+  // CROUCH: hold Down while grounded + stationary → dedicated crouch strip. Opt-in via fighter.crouchIdle
+  // (charDef movement.crouchIdle) AND the char shipping an animationData.crouch (physics.js stamps
+  // _crouching). Double-gated so chars that ship a crouch strip ONLY for crouch-ATTACK variants
+  // (Obito/Nezuko/Miwa/Ghostface) keep their standing idle while crouching, unchanged. Mirrors the
+  // runWhenAdvancing/idleLow opt-in pattern. Below attack/hurt/knockdown so a crouch-normal still animates.
+  if (fighter._crouching && fighter.crouchIdle && (fighter._skinAnim?.crouch || fighter.animationData?.crouch)) return "crouch";
 
   // Ground movement. Backpedalling (moving OPPOSITE to facing = away from the
   // opponent) plays WALK, never run — only forward momentum or an actual dash uses
@@ -725,6 +837,14 @@ export class SpriteHandler {
     // they render ~1.3x oversized. Guarded on the field → zero effect elsewhere.
     // (Sasuke giant sizing above and Toji actionScale are mutually exclusive per-character.)
     if (this._actionDef?.actionScale) scale *= this._actionDef.actionScale;
+
+    // TRAP SHRINK (Isshiki Daikokuten cube) — the MIRROR-IMAGE of the giant `_canvasHeightFrac` technique
+    // (same render-scale approach, scaling DOWN instead of up): a dedicated multiplier that shrinks the
+    // sprite in place, feet planted (exactly as the giants stay planted while growing up), while a fighter
+    // is trapped inside the cube. A plain scalar (NOT canvas-relative) so it carries NONE of the giant
+    // baggage — no giant-bob, no giant-hurtbox path, no transient-giant copy-guards. Guarded on the field
+    // → EXACTLY zero effect on every other fighter/frame.
+    if (fighter._trapShrinkFrac != null && fighter._trapShrinkFrac < 1) scale *= fighter._trapShrinkFrac;
 
     const dstW = drawWidth * scale;
     const dstH = drawHeight * scale;

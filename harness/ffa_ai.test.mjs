@@ -136,7 +136,7 @@ try{
 
   // ── SLOT-ASSIGNMENT UI ─────────────────────────────────────────────────────
   section("SLOT-ASSIGNMENT UI — renders, defaults, and Human↔CPU cycling");
-  await page.evaluate(()=>window.__harness.ffaSlotSelectPreview(4,["gojo","sukuna","megumi","maki"]));
+  await page.evaluate(()=>window.__harness.ffaSlotSelectPreview(4,["gojo","sukuna","naruto","maki"]));
   await wf(2);
   let si=await page.evaluate(()=>window.__harness.ffaSlotInfo());
   // Headless: 0 pads → device count 2 → slots 0/1 default HUMAN, slots 2/3 default CPU(easy).

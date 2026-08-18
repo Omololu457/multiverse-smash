@@ -17,7 +17,6 @@ export const SFX = {
   VO_GOKU:         "vo_goku_ultimate",
   VO_NARUTO:       "vo_naruto_ultimate",
   VO_GOJO:         "vo_gojo_ultimate",
-  VO_MEGUMI:       "vo_megumi_ultimate",
   VO_SUKUNA:       "vo_sukuna_ultimate",
   VO_OMOLOLU:      "vo_omololu_ultimate",
   UI_HOVER:        "ui_hover",
@@ -266,10 +265,6 @@ const SOUNDS = {
     // Cool, detached ascending tone
     osc(ctx, out, "sine", 440, 0.35, 0.35, 880)
     oscAt(ctx, out, "sine", 220, 0.05, 0.30, 0.25)
-  },
-  vo_megumi_ultimate(ctx, out) {
-    osc(ctx, out, "square", 165, 0.20, 0.30, 82)
-    oscAt(ctx, out, "sine", 330, 0.10, 0.25, 0.35, 660)
   },
   vo_sukuna_ultimate(ctx, out) {
     // Menacing low rumble

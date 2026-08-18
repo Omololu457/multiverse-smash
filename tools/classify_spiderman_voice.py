@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+# Refined content classifier (v2) — built AFTER reading representative transcripts. Spider-Man (Marvel
+# Rivals) = ~456 spoken lines (clips 1-456) + a wordless EFFORT cluster (clips ~457-479). Curated keyword
+# pools for the small trigger buckets; the large generic-banter remainder → taunt_quip. Tail interjections
+# split by content into attack-effort / hit-pain / knockdown. Fragments & hallucinations → flagged.
+import json, re, sys
+T = json.load(open(sys.argv[1] if len(sys.argv) > 1 else "/tmp/spidey_transcripts.json"))
+def num(f): return int(f.split("_")[-1].split(".")[0])
+def norm(s): return re.sub(r"[^a-z' ]", " ", s.lower()).strip()
+
+buckets = {k: [] for k in ["intro","taunt_quip","exertion_effort","hit_pain","knockdown","special_activation","victory","unclear"]}
+flag_cut, flag_halluc = [], []
+
+# curated phrase sets (from actually reading the transcripts)
+VICT   = ["gotcha","see ya","see you","don't mess with","that's a wrap","too easy","game over","web-slinger",
+          "and that's how","piece of cake","nailed it","slam dunk","boo yah","booyah","and stay down","get wrapped",
+          "wrapped up","that's the way","who's next","do some amazing stuff","amazing spider-man","never felt worse about a win"]
+INTRO  = ["hi neighbor","friendly neighborhood","let's go","let's do this","here we go","show time","showtime",
+          "ready soon","make a pretty good team","oh, hey","hey doreen","hey penny","hey hawkeye","hey, thanks","hello, mission"]
+SPECIAL= ["web whip","hit the webs","web em","web 'em","stick around","tangled","get webbed","spider-nest","web-nest",
+          "thwip","hang tight","caught in","web you up","spidey sense","time to sling","sling some web"]
+HITP   = ["ouch","i'm hurt","that hurt","that must have hurt","gonna hurt","gotta hurt","augh","that stung"]
+
+# tail interjection classification (wordless efforts, clips ~457+)
+ATK_EFF = re.compile(r"^(ha+h?|yah+|hyah|hup|hut|rah+|huh|yeah)!*\.?$", re.I)
+PAIN_G  = re.compile(r"^(ugh+|oof|agh+|argh+|gah+|oh+|hnng+|nngh|urgh)!*\.?$", re.I)
+KNOCK_G = re.compile(r"^(a+h+|waa+h?|no)!*\.?$", re.I)
+
+def has(n, kws): return any(k in n for k in kws)
+
+for r in sorted(T, key=lambda r: num(r["f"])):
+    f, dur, txt = r["f"], r["dur"], r["text"].strip()
+    nsp, alp = r["no_speech_prob"], r["avg_logprob"]
+    n = norm(txt); words = n.split()
+    tail = num(f) >= 457   # the appended effort cluster
+
+    # ── HALLUCINATION flag: many words crammed into a very short clip (whisper run-on) ──
+    if dur < 1.2 and len(words) >= 6:
+        flag_halluc.append((num(f), dur, txt[:60]))
+
+    # ── wordless / interjection efforts (mostly the tail cluster, but catch strays) ──
+    low = norm(txt).replace("'", "")
+    if not txt or nsp > 0.75:
+        buckets["knockdown" if (tail and dur > 0.9) else "exertion_effort"].append(f); continue
+    if tail or (len(words) <= 1 and dur < 1.0):
+        if KNOCK_G.match(txt.strip()) and dur > 0.85: buckets["knockdown"].append(f); continue
+        if PAIN_G.match(txt.strip()):  buckets["hit_pain"].append(f); continue
+        if ATK_EFF.match(txt.strip()): buckets["exertion_effort"].append(f); continue
+        # tail but spelled oddly → effort by default (they're all grunts in this range)
+        if tail: buckets["exertion_effort"].append(f); continue
+
+    # ── fragments (1-2 words, mid-sentence, NOT a clean interjection) → unclear + possible cut ──
+    if len(words) <= 1 and txt[-1:] not in ".!?" and dur < 0.7:
+        buckets["unclear"].append(f); flag_cut.append((num(f), dur, f"1-word fragment |{txt}|")); continue
+
+    # ── spoken-line content buckets (curated) ──
+    if has(n, HITP):       buckets["hit_pain"].append(f)
+    elif has(n, VICT):     buckets["victory"].append(f)
+    elif has(n, SPECIAL):  buckets["special_activation"].append(f)
+    elif has(n, INTRO):    buckets["intro"].append(f)
+    else:                  buckets["taunt_quip"].append(f)   # the big generic-banter pool
+
+    # possible cut-mid-line: open-ended long clip (no terminal punct) OR starts lowercase continuation
+    if (txt and txt[-1] not in ".!?\"'" and dur > 1.6) or (txt[:1].islower() and dur > 1.0 and len(words) > 2):
+        flag_cut.append((num(f), dur, f"open/continuation |{txt[:50]}|"))
+
+print("=== BUCKET COUNTS (v2) ===")
+for k, v in buckets.items(): print(f"  {k:20s}: {len(v)}")
+spoken = sum(len(v) for k, v in buckets.items() if k not in ("exertion_effort","knockdown"))
+print(f"\n  spoken lines: {spoken}   |   wordless efforts+knockdown: {len(buckets['exertion_effort'])+len(buckets['knockdown'])}")
+print(f"  flagged possible-cut: {len(flag_cut)}   |   flagged hallucination(run-on short clip): {len(flag_halluc)}")
+json.dump({"buckets": buckets, "flag_cut": flag_cut, "flag_halluc": flag_halluc,
+           "by_file": {r["f"]: r for r in T}}, open("/tmp/spidey_classified.json", "w"), indent=0)

@@ -1,5 +1,5 @@
 // bindingvow.js
-// JJK Binding Vows — Gojo, Sukuna, Megumi, Toji ONLY.
+// JJK Binding Vows — Gojo, Sukuna ONLY.
 // (Geto / Yuji / Yuta / Maki are NOT in this game — no vows for them.)
 //
 // A vow is committed via a short RAW directional sequence (U/D/L/R from
@@ -46,13 +46,6 @@ export const bindingVows = {
     // Disable Dismantle; Flame Arrow +50%. NOTE: a "Flame Arrow" move is not yet
     // implemented in abilities.js, so flameArrowMul is wired but currently inert.
     effects: { disabledSpecials: ["dismantle"], flameArrowMul: 1.5 }
-  },
-
-  // ---------- MEGUMI ----------
-  shadowOverload: {
-    name: "Shadow Overload", character: "megumi", sequence: ["U", "L", "D"],
-    // Only 1 summon at a time; summons +75% damage and longer lifespan.
-    effects: { maxSummons: 1, summonDamageMul: 1.75, summonLifeMul: 1.5 }
   },
 
 }

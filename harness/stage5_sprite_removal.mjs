@@ -1,4 +1,4 @@
-// MK-feel Stage 5 — SPRITE-FLAG REMOVAL verification. goku/megumi were flag-removed
+// MK-feel Stage 5 — SPRITE-FLAG REMOVAL verification. goku was flag-removed
 // (hasSprites:false + manifest entry gone) → they render on the PROCEDURAL box renderer, but their
 // GAMEPLAY is intact (the flag only gates rendering, not logic). Proves, in a live match:
 //   • the flip took effect at runtime (hasSprites === false),
@@ -23,7 +23,7 @@ async function boot(k){ await page.goto(`${base}/index.html?harness=1&p1=${k}&p2
 
 try{
   // ── A. each flag-removed char renders procedurally + is playable ──
-  for (const key of ["goku","megumi"]) {
+  for (const key of ["goku"]) {
     section(`${key.toUpperCase()} — flag-removed → procedural box, still playable`);
     await boot(key);
     const a = await p1();

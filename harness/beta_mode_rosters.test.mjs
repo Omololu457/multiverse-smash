@@ -60,9 +60,9 @@ try {
   check("safety fallback resolves to a sprite character", spriteSet.includes(m.fallback), `fallback=${m.fallback}`);
   // skins: the only skin-selection surface is the main select; isSkinUnlocked is global so BETA unlocks
   // skins everywhere a skin could be chosen. (Tower/FFA/AI-vs-AI have no skin-select surface.)
-  // Level-gated fixture repointed sukuna3 → megumi2 (lvl3) after all Sukuna alt skins were deleted 2026-07-30.
-  const gatedSkin = await page.evaluate(() => window.__harness.skinUnlocked("megumi", "megumi2"));
-  check("level-gated skin (megumi2) unlocked under BETA (global — covers any mode's skin surface)", gatedSkin === true);
+  // Level-gated fixture repointed megumi2 → gon_azure (lvl4) after Megumi was removed 2026-08-18.
+  const gatedSkin = await page.evaluate(() => window.__harness.skinUnlocked("gon", "gon_azure"));
+  check("level-gated skin (gon_azure) unlocked under BETA (global — covers any mode's skin surface)", gatedSkin === true);
 
   // screenshot the FFA character-select grid honoring the filter
   const ffaShow = await page.evaluate(() => window.__harness.showFfaCharSelect(4));

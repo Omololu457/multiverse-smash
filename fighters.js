@@ -998,34 +998,61 @@ function _retagAlienAnim(anim, tag) {
 
 const BEN10_FORM_ANIM = {
   xlr8: {
-    idle:  { frames: 5, width: 60, height: 43, speed: 7, anchorY: 0, sheet: "./ben10_xlr8_idle_uniform.png" },
-    walk:  { frames: 4, width: 75, height: 43, speed: 6, anchorY: 0, sheet: "./ben10_xlr8_run_uniform.png" },
-    run:   { frames: 4, width: 75, height: 43, speed: 3, anchorY: 0, sheet: "./ben10_xlr8_run_uniform.png" },
-    dash:  { frames: 4, width: 75, height: 43, speed: 2, anchorY: 0, sheet: "./ben10_xlr8_run_uniform.png" },
-    jump:  { frames: 3, width: 91, height: 55, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_jump_uniform.png" },
-    fall:  { frames: 3, width: 91, height: 55, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_jump_uniform.png" },
-    hurt:  { frames: 1, width: 60, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_idle_uniform.png" },   // STOPGAP: no hit art
-    intro: { frames: 5, width: 60, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_idle_uniform.png" },   // STOPGAP: no intro art
-    // STAGE-2 NORMALS (XLR8). light = quick 3-frame claw; heavy = full 5-frame slash. up = rising slash
-    // strip. air/down_air/grab reuse the front-slash (no dedicated air/dive art — flagged).
-    light:    { frames: 3, width: 60, height: 39, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
-    heavy:    { frames: 5, width: 60, height: 39, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
-    up:       { frames: 6, width: 57, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_up_uniform.png" },
-    air:      { frames: 3, width: 60, height: 39, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },   // STOPGAP: reuse front
-    down_air: { frames: 3, width: 60, height: 39, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },   // STOPGAP: reuse front
-    grab:     { frames: 3, width: 60, height: 39, speed: 3, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
-    // STAGE-2 command chain (Fwd+Heavy → re-tap Heavy ×2): 3-stage speed combo sliced from the 11-frame
-    // combo strip (cell 60 → stage boundaries at frames 0-3 / 4-7 / 8-10 via sourceX).
-    xlCombo1: { frames: 4, width: 60, height: 48, speed: 2, sourceX: 0,   anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
-    xlCombo2: { frames: 4, width: 60, height: 48, speed: 2, sourceX: 240, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
-    xlCombo3: { frames: 3, width: 60, height: 48, speed: 3, sourceX: 480, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
-    // STAGE-3 specials: Dash Strike (neutral quick lunge, front-slash pose) / Sonic Rush (Fwd launcher
-    // dash — combo extender, the 6-frame front of the combo strip).
-    xlDash: { frames: 5, width: 60, height: 39, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
-    xlRush: { frames: 6, width: 60, height: 48, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
-    // STAGE-4 ultimate: Sonic Blitz — the full 11-frame combo flurry as a blitz dash.
-    xlUlt:  { frames: 11, width: 60, height: 48, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
-    taunt:  { frames: 5, width: 60, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_idle_uniform.png" }   // in-form taunt-heal pose (no dedicated art → idle)
+    // STAGE 1 (2026-08-22): movement/state re-sourced from the ipmugen #11 sheet (teal/black raptor,
+    // reslice_xlr8.py). Native cells ~64px → ×spriteScale 2.0 ≈128px on-screen (was 43px→86px "reads
+    // short"; now sits between old-XLR8 and Diamondhead — full per-form height normalization still a
+    // deferred height-pass concern). guard/knockdown/getup/crouch are NEW real art (were idle stopgaps).
+    idle:  { frames: 16, width: 64, height: 64, speed: 5, anchorY: 0, sheet: "./ben10_xlr8_idle_uniform.png" },
+    walk:  { frames: 18, width: 68, height: 71, speed: 3, anchorY: 0, sheet: "./ben10_xlr8_run_uniform.png" },
+    run:   { frames: 18, width: 68, height: 71, speed: 2, anchorY: 0, sheet: "./ben10_xlr8_run_uniform.png" },
+    dash:  { frames: 18, width: 68, height: 71, speed: 2, anchorY: 0, sheet: "./ben10_xlr8_run_uniform.png" },
+    crouch:{ frames: 2,  width: 66, height: 58, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_crouch_uniform.png" },
+    jump:  { frames: 3,  width: 61, height: 65, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_jump_uniform.png" },
+    fall:  { frames: 3,  width: 55, height: 64, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_fall_uniform.png" },
+    guard: { frames: 8,  width: 54, height: 70, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_guard_uniform.png" },        // GAP FILLED (was idle)
+    hurt:  { frames: 2,  width: 48, height: 71, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_hurt_uniform.png" },         // GAP FILLED (was idle)
+    knockdown: { frames: 3, width: 73, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_knockdown_uniform.png" }, // GAP FILLED (new)
+    getup: { frames: 5,  width: 73, height: 71, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_getup_uniform.png" },        // GAP FILLED (reversed injured — flagged)
+    intro: { frames: 16, width: 64, height: 64, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_idle_uniform.png" },         // STOPGAP: no intro art on #11
+    // STAGE-2 NORMALS (XLR8) — RE-SOURCED from ipmugen #11 (2026-08-22 un-mix): light/air/down_air/grab/Dash
+    // = PUNCH claw thrust (front); heavy = PUNCH2 committed strike. `up` DELIBERATELY KEEPS the Dragonrod #10
+    // rising-attack strip — a sprite actually drawn as a rising attack (content-fidelity exception to the
+    // single-source switch; reads brighter-blue/slightly smaller than the #11 body — flagged in XLR8_ASSET_MAP.md).
+    light:    { frames: 5, width: 71, height: 67, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
+    heavy:    { frames: 6, width: 79, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_heavy_uniform.png" },
+    up:       { frames: 6, width: 57, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_up_uniform.png" },   // Dragonrod #10 rising-attack (KEPT — content-fidelity exception)
+    air:      { frames: 5, width: 71, height: 67, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },   // reuse claw (no dedicated aerial on #11)
+    down_air: { frames: 5, width: 71, height: 67, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },   // reuse claw
+    grab:     { frames: 5, width: 71, height: 67, speed: 3, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
+    // STAGE-2 command chain (Fwd+Heavy → re-tap Heavy ×2): 3-stage speed combo from the 18-frame FASTER
+    // PUNCH flurry (cell 72 → stage boundaries at frames 0-5 / 6-11 / 12-17 via sourceX = 0 / 432 / 864).
+    xlCombo1: { frames: 6, width: 72, height: 66, speed: 2, sourceX: 0,   anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    xlCombo2: { frames: 6, width: 72, height: 66, speed: 2, sourceX: 432, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    xlCombo3: { frames: 6, width: 72, height: 66, speed: 3, sourceX: 864, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    // STAGE-3 specials: Dash Strike (neutral quick lunge, claw pose) / Sonic Rush (Fwd launcher dash —
+    // the first FASTER PUNCH row, 9f).
+    xlDash: { frames: 5, width: 71, height: 67, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_front_uniform.png" },
+    xlRush: { frames: 9, width: 72, height: 66, speed: 2, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    // STAGE-4 ultimate: Sonic Blitz — the full 18-frame FASTER PUNCH flurry as a blitz dash.
+    xlUlt:  { frames: 18, width: 72, height: 66, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_combo_uniform.png" },
+    taunt:  { frames: 16, width: 64, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_xlr8_idle_uniform.png" }   // in-form taunt-heal pose (no dedicated art → idle)
+  },
+  // WILDMUTT — STAGE 1 (2026-08-22, PROVISIONAL, pixel sign-off DEFERRED): movement/state from #13
+  // Dragonrod (reslice_wildmutt.py, white-key, UNLABELED sheet). NOT yet added to BEN10_ART_ALIENS —
+  // the kit is incomplete (normals/Pounce/Feral-Frenzy = later stages), so wildmutt stays hidden from
+  // the loadout picker; this _skinAnim only renders when the form is force-applied (e.g. harness/tests).
+  // Confidence: idle HIGH; jump/fall (pounce-leap/landing) MED. walk/run/dash = idle STOPGAP — the
+  // stride row (74px) is likely rearing/lunge, not a low walk; real locomotion awaits the visual pass.
+  wildmutt: {
+    idle:  { frames: 2, width: 56, height: 43, speed: 8, anchorY: 0, sheet: "./ben10_wildmutt_idle_uniform.png" },
+    walk:  { frames: 2, width: 56, height: 43, speed: 6, anchorY: 0, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP (see note)
+    run:   { frames: 2, width: 56, height: 43, speed: 4, anchorY: 0, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP
+    dash:  { frames: 2, width: 56, height: 43, speed: 4, anchorY: 0, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP
+    jump:  { frames: 5, width: 69, height: 46, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_jump_uniform.png" },
+    fall:  { frames: 3, width: 66, height: 43, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_land_uniform.png" },
+    hurt:  { frames: 2, width: 56, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP: no hit art
+    intro: { frames: 2, width: 56, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt: { frames: 2, width: 56, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_idle_uniform.png" }    // STOPGAP: no taunt art
   },
   diamondhead: {
     idle:  { frames: 4, width: 49, height: 72, speed: 6, anchorY: 0, sheet: "./ben10_diamond_head_idle_uniform.png" },

@@ -225,3 +225,98 @@ not a pure art task).
   sourced.
 - **Precise frame counts** — every `≈` above is confirmed at Stage-1 slice time
   (alpha-gutter / uniform-reslice tooling), not trusted blind.
+
+---
+
+# MASTER FILE REGISTRY (reconciled against disk, 2026-08-22)
+
+Authoritative map of every roster entry → its real on-disk source filename, verified by
+`find`/`ls` against the working tree (not from memory). Purpose: make the earlier
+Malware/Chromastone mis-file impossible to repeat silently. Filenames preserved EXACTLY
+as on disk.
+
+Status key: ✅ complete · 🔲 queued · ⚠️ unconfirmed · ❌ no asset on disk
+
+## Registry
+
+| # | Character | Source filename (exact) | Status | Albedo skin |
+|---|---|---|---|---|
+| 1 | Heatblast | `heatblast_sprite_sheet_by_dragonrod_by_dragonrod342_d7yh7km.png` | ✅ | ✅ designed |
+| 2 | Four Arms | `fourarms_sprite_sheet_by_dragonrod342_d7yi8wt.png` | ✅ | ✅ designed |
+| 3 | Diamondhead | `diamondhead_sprite_sheet_by_dragonrod342_d820h62.png` | ✅ | ✅ designed |
+| 4 | Wildvine | `wildvine_sprite_sheet_by_dragonrod342_d829hfh.png` | ✅ | ✅ designed |
+| 5 | Cannonbolt (Entry A) | `cannonbolt_sprite_sheet_by_dragonrod342_d825dre.png` | ✅ | ✅ designed |
+| 6 | Cannonbolt (Entry B) | `cannonbolt_ben_10___sprites_sheet__by_ipmugenofficial_djiml83-fullview.jpeg` | ✅ | ✅ designed |
+| 7 | Ripjaws (Entry A) | `ripjaws_sprite_sheet_by_dragonrod342_d7yqxvd.png` | ✅ | ✅ designed |
+| 8 | Ripjaws (Entry B) | `Browser Games - Ben 10_ Battle Ready - Aliens - Ripjaws.png` | ✅ | ✅ designed |
+| 9 | Ghostfreak | `Browser Games - Ben 10_ Battle Ready - Aliens - Ghostfreak.png` | ✅ | ✅ designed |
+| 10 | XLR8 (Entry A, Dragonrod) | `xlr8_sprite_sheet_by_dragonrod342_d7ylyle.png` | ⚠️ MOSTLY RETIRED — superseded by #11, EXCEPT it still sources the ONE `up`-normal (rising-attack strip kept for content-fidelity; documented exception in `XLR8_ASSET_MAP.md`) | — |
+| 11 | XLR8 (Entry B, ipmugenofficial) | `xlr8_ben10_game_by_ipmugenofficial_dlje0uy-fullview.jpeg` | ✅ Stage 1+2 DONE — AUTHORITATIVE single source (movement/state + normals/combo/specials/ult, un-mixed). test:xlr8-stage1 22/0, ben10 62/0. See `XLR8_ASSET_MAP.md` | — |
+| 12 | Wildmutt (Entry A, ipmugenofficial) | `wildmutt___sprites_sheet_by_ipmugenofficial_djimf88-fullview.jpeg` | ⚠️ NOT USED (cyan-keyed; structure measured, content unaudited) — Wildmutt sourced from #13 per Stage 0 | — |
+| 13 | Wildmutt (Entry B, Dragonrod) | `wildmutt_by_dragonrod342_davs1vq.png` | 🔲 Stage 0 DONE — AUTHORITATIVE (fresh build; see `WILDMUTT_ASSET_MAP.md`). Stage 1 pending VISUAL slice pass (image-cap) | — |
+| 14 | Ultimate Wildmutt (ipmugenofficial) | `ultimate_wildmutt___sprites_sheet_by_ipmugenofficial_djimjir-fullview.jpeg` | 🔲 queued | — |
+| 15 | Ultimate Cannonbolt (ipmugenofficial) | `ultimate_cannonbolt_ben10___sprites_sheet_by_ipmugenofficial_djimm9m-fullview.jpeg` | 🔲 queued | — |
+| 16 | Ultimate Echo Echo (ipmugenofficial) | `ultimates_echo_echo_sprites_by_ipmugenofficial_dkpbzl9-fullview.jpeg` | 🔲 queued | — |
+| 17 | Ultimate Echo Echo (dup — byte copy of #16) | `ultimates_echo_echo_sprites_by_ipmugenofficial_dkpbzl9-fullview copy.jpeg` | 🔲 queued | — |
+| 18 | Ultimate Humungousaur/Vaxasaurian (ipmugenofficial) | `ultimate__vaxasaurian_by_ipmugenofficial_dkfjluc-fullview.jpeg` | 🔲 queued | — |
+| 19 | Humungousaur (Entry A, unlabeled parts sheet) | ❌ NOT ON DISK — only the ipmugen sheet (#20) exists | ❌ | — |
+| 20 | Humungousaur (Entry B, ipmugenofficial) | `humungousaur_ben_10_sprites_sheet_by_ipmugenofficial_djlwsq9-fullview.jpeg` | 🔲 queued | — |
+| 21 | Upgrade (Entry A) | `upgrade.png` | 🔲 queued | — |
+| 22 | Upgrade (Entry B, Dragonrod) | `upgrade_sprite_sheet_by_dragonrod342_d7z5d59.png` | 🔲 queued | — |
+| 23 | Megawatt (Dragonrod) | ❌ NOT ON DISK — no `*megawatt*` file anywhere | ❌ | — |
+| 24 | Eye Guy (Dragonrod) | `eyeguy_sprite_sheet_by_dragonrod342_d82qnsd.png` | 🔲 queued | — |
+| 25 | Clockwork (ipmugenofficial) | `clocwork_sprites___ben_10_original_game_by_ipmugenofficial_djpbjqa-fullview.jpeg` | 🔲 queued | — |
+| ~~26~~ | ~~Malware~~ **DROPPED** | ❌ phantom — no asset; was the pre-correction label of the #27 Chromastone file | ❌ removed | — |
+| 27 | **Chromastone** | `chromastone_sprites___ben_10_alien_force_by_ipmugenofficial_djqi5oj-fullview.jpeg` | ⚠️ moveset pending sheet slice (stat stub only at `fighters.js`/`ben10.js`) | ✅ designed (below) |
+| 28 | Ben (human, modern A) | `ben_tennyson_sprites_jus__ben_10__by_xmaygrrr_db485kk.png` | 🔲 queued | — |
+| 29 | Ben (human, modern B — dup/copy) | `ben_tennyson_sprites_jus__ben_10__by_xmaygrrr_db485kk copy.png` | 🔲 queued | — |
+| 30 | Ben (human, classic) | `classic_ben_10_sprite_sheet_extra_custom_sprites_by_bebbt_dfqv7c5.png` | 🔲 queued | — |
+| 31 | Feedback (Dragonrod) | `feedback_by_dragonrod342_db1hz1k.png` | ✅ effectively BUILT (~18 sliced `feedback_*.png` + `FEEDBACK_ASSET_MAP.md`) | — |
+| 32 | Alien X | `alien_x__sprites_sheet_by_ipmugenofficial_djimomb-fullview.jpeg` | ⚠️ verify single-vs-multi character at slice time | — |
+| 33 | **Benwolf / Blitzwolfer** (Dragonrod) | `d84osmt-33bb0f31-2db6-4ed8-a791-1c7e24c1d2cd.png` | 🔲 queued (identity RESOLVED) | — |
+| 34 | Big Chill | `DS _ DSi - Ben 10 Alien Force_ Vilgax Attacks - Playable Characters - Big Chill.png` | 🔲 queued | — |
+| 35 | Brainstorm | `DS _ DSi - Ben 10 Alien Force_ Vilgax Attacks - Playable Characters - Brainstorm.png` | 🔲 queued | — |
+| 36 | Upchuck (Entry A, DS rip) | `DS _ DSi - Ben 10 Alien Force_ Vilgax Attacks - Playable Characters - Upchuck.png` | 🔲 queued | — |
+| 37 | Upchuck (Entry B, ipmugenofficial) | `upchuck_sprites_by_ipmugen_by_ipmugenofficial_dk03hpb-fullview.jpeg` | 🔲 queued | — |
+| 38 | Goop | `DS _ DSi - Ben 10_ Alien Force - Playable Characters - Goop.png` | 🔲 queued | — |
+| 39 | Swampfire | `DS _ DSi - Ben 10_ Alien Force - Playable Characters - Swampfire.png` | 🔲 queued | — |
+
+## Resolved identity flags (2026-08-22)
+
+- **#26 Malware → DROPPED.** No `*malware*` file exists anywhere in the tree, and it is
+  referenced in no code or asset map. Evidence indicates it was the original mis-label of
+  the single ipmugenofficial sheet that is now correctly filed as **#27 Chromastone** — the
+  correction already happened, leaving #26 a phantom duplicate. Confirmed visually: the
+  `djqi5oj` sheet depicts a crystal alien with a full laser/light moveset (Air Laser, Light
+  Wave, Charge Laser, Spread, Laser Ground Attack) — Chromastone, not Malware. Slot removed
+  per owner decision; re-open only if a genuinely separate Malware sheet is added.
+- **#33 Unidentified → Benwolf / Blitzwolfer (dragonrod342).** The sheet's own caption reads
+  *"BenWolf sprite sheet made by Dragonrod, please give credits if used!"* Loboan werewolf
+  alien; content = Stand, walk/run, jump, fall, crouch + neutral/up/down Attacks showing his
+  **sonic-howl** ring projectile, and a forward tail/claw swipe.
+
+## Discrepancies / notes
+
+- **#1 Heatblast** — actual filename doubles the artist token
+  (`..._by_dragonrod_by_dragonrod342_...`); the earlier registry dropped the first `by_dragonrod`.
+- **#31 Feedback** — status upgraded from "needs visual re-check" to effectively built (sliced
+  assets + dedicated asset map present).
+- **Unregistered extra on disk:** `the_ben_10_classic_jus_sprite_sheet_project_by_goobtubes_dff7tes.png`
+  — a second classic-Ben JUS master sheet (goobtubes); also cited above as the Stage-0 source
+  master. No standalone registry row; treat as the master, not a separate fighter.
+- **Out of scope (present but unrelated):** `gojo_*__ben10.png` and `yuta_*__ben10.png` sheets are
+  Gojo/Yuta assets tagged "ben10", not alien-roster entries.
+- **Genuinely missing (listed, no file):** #19 Humungousaur Entry A, #23 Megawatt.
+
+## Chromastone — Albedo skin design (moveset still pending its own sheet review)
+
+Real reference: purple/indigo crystal body, magenta crystal shards (chest/back/head), magenta
+hands and face, one large green eye, Omnitrix symbol on chest.
+
+**Albedo recolor:** indigo/purple body → grey/white; magenta shards + hands/face → red
+(accent-inversion logic used across the roster); green eye → red (the Albedo "red-eye tell"
+already applied to Ripjaws Entry B and Ghostfreak). Omnitrix symbol unchanged.
+
+**Not yet done:** Chromastone's actual gameplay moveset — the `djqi5oj` sheet has not been
+frame-by-frame sliced yet. The stat stub in `ben10.js`/`fighters.js` (zoner, HP1050, Ultraviolet
+Beam / Prism Burst) is placeholder; build gameplay only after a Stage-0/1 slice pass like #1–9.

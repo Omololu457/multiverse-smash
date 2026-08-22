@@ -35,16 +35,33 @@ const goku = {
     dragonFist: { cost: 40, damage: 150, startup: 10, active: 6, recovery: 22, hitstun: 28, knockbackX: 12, knockbackY: -6, effect: "punch attack with dragon aura" },
     kamehameha: { cost: 30, damage: 120, startup: 12, active: 5, recovery: 22, hitstun: 22, knockbackX: 8, knockbackY: -2 }
   },
-  ultimate: { name: "Super Saiyan Blue", cost: 100, duration: 8, effect: "Triggers next SSJ transformation" },
+  // ── TRANSFORMATION LADDER (base → SSJ → SSJ2 → SSJ3 → SSJ Blue → Ultra Instinct). SAME mechanic as
+  // Vegeta / Goku Black / Frieza (2026-08-22 alignment): CHARGE button — hold-release STEPS UP the ladder,
+  // a tap reverts to base. Threshold-gated (NO up-front cost), a continuous per-frame Ki DRAIN pays for the
+  // form, auto-revert the instant Ki hits 0. Logic: abilities.js enterGokuNextForm / applyGokuFormSystem.
+  // ★NUMBERS ARE GOKU-SPECIFIC, not copied from Vegeta/Frieza — Goku's ladder is LONGER (5 forms) and much
+  //   STRONGER at the top (UI ×2.5 dmg / ×2.0 spd) than Vegeta's 2-form cap (×1.45) or Frieza's (×1.50), so:
+  //   entry SSJ is the cheap workhorse (thr 40 / drain 0.14/f), each tier gates higher + drains faster, and
+  //   UI gates near-full (185) + drains 0.48/f to BOUND its huge multipliers to a brief window (~8s from full).
+  //   ★★REGEN-AWARE: Goku regens 0.08 Ki/frame (0.06 base + 0.02 Goku bonus), so drains MUST exceed 0.08 to be
+  //   a real net cost — NET drain = declared − 0.08 (ssj1 ≈ 3.6/s → ~55s uptime … UI ≈ 24/s → ~8s). (An
+  //   earlier 0.08 SSJ1 drain exactly cancelled regen → a free never-reverting form; the harness caught it.)
+  //   Multipliers PRESERVED from the original ladder. ★These
+  //   drain/threshold values are a DESIGN CALL — flagged for playtest tuning, deliberately distinct from the
+  //   other three DB fighters. (No `duration` — the DRAIN is the stamina model now, like Vegeta.)
   transformationOrder: ["base","ssj1","ssj2","ssj3","ssblue","ultraInstinct"],
   transformations: {
-    base:          { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    ssj1:          { damageMultiplier: 1.2, speedMultiplier: 1.1, defenseMultiplier: 1.05, duration: 1800 },
-    ssj2:          { damageMultiplier: 1.3, speedMultiplier: 1.15, defenseMultiplier: 1.1, duration: 1500 },
-    ssj3:          { damageMultiplier: 1.5, speedMultiplier: 1.2, defenseMultiplier: 1.05, energyDrainPerFrame: 5 / 60, kiDrainPerSecond: 5, duration: 900 },
-    ssblue:        { damageMultiplier: 2, speedMultiplier: 1.4, defenseMultiplier: 1.2, energyDrainPerFrame: 8 / 60, kiDrainPerSecond: 8, isSpecial: true, duration: 720 },
-    ultraInstinct: { damageMultiplier: 2.5, speedMultiplier: 2, defenseMultiplier: 1.5, autoDodge: true, autoDodgeKiCost: 10, energyDrainPerFrame: 12 / 60, kiDrainPerSecond: 12, isSpecial: true, duration: 480 }
+    base:          { damageMultiplier: 1,   speedMultiplier: 1,   defenseMultiplier: 1 },
+    ssj1:          { damageMultiplier: 1.2, speedMultiplier: 1.1,  defenseMultiplier: 1.05, energyThreshold: 40,  energyDrainPerFrame: 0.14, kiDrainPerSecond: 8,  revertOnEmpty: true },
+    ssj2:          { damageMultiplier: 1.3, speedMultiplier: 1.15, defenseMultiplier: 1.1,  energyThreshold: 70,  energyDrainPerFrame: 0.20, kiDrainPerSecond: 12, revertOnEmpty: true, requiresForm: "ssj1" },
+    ssj3:          { damageMultiplier: 1.5, speedMultiplier: 1.2,  defenseMultiplier: 1.05, energyThreshold: 110, energyDrainPerFrame: 0.30, kiDrainPerSecond: 18, revertOnEmpty: true, requiresForm: "ssj2" },
+    ssblue:        { damageMultiplier: 2,   speedMultiplier: 1.4,  defenseMultiplier: 1.2,  energyThreshold: 150, energyDrainPerFrame: 0.36, kiDrainPerSecond: 22, revertOnEmpty: true, requiresForm: "ssj3", isSpecial: true },
+    ultraInstinct: { damageMultiplier: 2.5, speedMultiplier: 2,    defenseMultiplier: 1.5,  energyThreshold: 185, energyDrainPerFrame: 0.48, kiDrainPerSecond: 29, revertOnEmpty: true, requiresForm: "ssblue", isSpecial: true, autoDodge: true, autoDodgeKiCost: 10 }
   },
+  // No separate ultimate — the base→...→Ultra Instinct ladder on the CHARGE button IS the power ceiling
+  // (same as Vegeta / Frieza). The old ultimate-button "Super Saiyan Blue" trigger was REMOVED in the
+  // 2026-08-22 DB-transform alignment; the Ultimate input is now unbound for Goku.
+  ultimate: { name: "Super Saiyan (transformation ladder)", cost: 0, description: "No separate ultimate — hold the Charge button and RELEASE to step UP the transformation ladder (base → SSJ → SSJ2 → SSJ3 → SSJ Blue → Ultra Instinct); tap Charge to revert. Each form boosts damage, speed & defense but continuously DRAINS Ki and reverts when empty (same as Vegeta / Goku Black / Frieza)." },
   hasSprites: false,   // MK-feel Stage 5: sprite-flag REMOVAL (not a delete) → procedural box renderer. animationData KEPT below (expensive slice geometry). Reverse by restoring `true` + the spritesheets.js manifest entry.
   // Base (black-hair) Goku sprites sliced from goku_base_FULLSHEET_transparent.png.
   // Idle source cell 34×37 → ×3.2 ≈ Sukuna/Gojo on-screen height (their 64px cells
@@ -191,31 +208,80 @@ const vegeta = {
   }
 }
 
+// PICCOLO  (rosterKey "piccolo", universe "dragon_ball") — the Namekian warrior-mage. UPGRADED from the old
+// dev-only procedural placeholder into a real sprite build. A tall, long-reach VERSATILE mid-ranger: patient
+// defense, stretch-arm strikes (real canon Namekian elongation), rising kicks, and a PROCEDURAL ki-beam game
+// (Special Beam Cannon / Masenko — the sheet has NO beam art, owner-approved procedural). Source: "3DS - Dragon
+// Ball Z_ Extreme Butoden - Fighters - Piccolo.png" (1938×9231). ★GREEN-FILLED cells (like Frieza, not
+// row-dividers) → re-sliced feet-aligned to piccolo_*_uniform.png by tools/reslice_piccolo.py using a TIGHT
+// cell-fill green key so his GREEN SKIN isn't keyed away. See PICCOLO_ASSET_MAP.md. Owner decisions LOCKED
+// (Stage 0): idle = arms-crossed loop / walk BORROWS idle (no walk cycle on the sheet — hover/dash fighter,
+// like Frieza) / beam = PROCEDURAL. STAGE 1 = registration + movement/state + anime-face portrait. Normals
+// (S2), command chain (S3), specials incl. procedural beam + stretch-arm + flying-kick (S4), win/lose +
+// harness/balance (S6) follow. ★TRANSFORMATIONS (Potential Unleashed / Orange Piccolo / Great Namekian) are
+// DEFERRED — ZERO transformed-state art exists on this sheet (the primary build blocker); the dormant
+// transformation stub below is design-only and must NOT be faked with palette tricks (see PICCOLO_ASSET_MAP §7).
+// ★VISION-VERIFIED build session (NOT image-capped): idle/guard/walk-gap classified by direct render; all
+//   Stage-1 movement/state picks confirmed on camera. crouch [143] flagged as best-available low pose.
 const piccolo = {
-  rosterKey: "piccolo", name: "Piccolo", universe: "dragon_ball", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
+  rosterKey: "piccolo", name: "Piccolo", universe: "dragon_ball", color: "#9b59d0",
+  portrait: "./piccolo_portrait.png",   // Stage 1 — real anime-face close-up cropped from the sheet's portrait band.
   archetypes: ["melee", "ranged"],
   primary: "melee", secondary: ["ranged"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "medium", scaling: "control", animeMovement: true },
-  stats: { maxHealth: 1100, maxEnergy: 160, attack: 84, defense: 86, speed: 80, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 45 },
+  movement: { dashTeleport: false },
+  energyConfig: { label: "Ki", color: "#9b59d0", glowColor: "#c9a2ff", emptyColor: "rgba(255,255,255,0.08)" },
+  passive: { name: "Demon King's Discipline", effect: "A tall Namekian warrior-mage — long reach, stretch-arm strikes and procedural ki beams backed by a patient, defensive mid-range game." },
+  // Versatile long-reach mid-ranger: sturdy HP, average-plus defense, medium mobility; reach + control carry.
+  // Canonically very tall → renders a touch taller than the roster's human fighters (spriteScale below).
+  stats: { maxHealth: 1150, maxEnergy: 200, attack: 84, defense: 88, speed: 82, maxJumps: 2, jumpPower: 30, dashSpeed: 15, dashDuration: 10, dashCooldownMax: 40 },
+  // ── Normal-attack DATA (placeholder ~roster-average; real per-move art + tuning lands in Stage 2). All damage
+  // runs through GLOBAL_DAMAGE_SCALE (×0.60). Un-mapped attack anims fall back to idle until Stage 2 assigns sheets.
   basic_attacks: {
     light:     { damage: 40, startup: 5, active: 3, recovery: 11, hitstun: 11, knockbackX: 2, knockbackY: 0 },
     heavy:     { damage: 80, startup: 9, active: 4, recovery: 19, hitstun: 17, knockbackX: 5, knockbackY: 1 },
-    upAttack:  { type: "launcher", damage: 60, startup: 6, active: 4, recovery: 8, hitstun: 18, knockbackX: 2, knockbackY: -7, launchVy: -32, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
+    upAttack:  { type: "launcher", damage: 60, startup: 6, active: 4, recovery: 8, hitstun: 18, knockbackX: 2, knockbackY: -7, launchVy: -32, selfVy: -9 },
     airAttack: { damage: 55, startup: 6, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 70, startup: 9, active: 4, recovery: 14, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:      { damage: 28, startup: 7, active: 3, recovery: 14, hitstun: 18, throwForceX: 4, throwForceY: -3 }
   },
+  // ── Special DATA (Stage 4) — real behaviour lands in abilities.js; listed here for the move-list UI. Beam
+  // is PROCEDURAL (no beam art on the sheet). Stretch-arm + flying-kick specials come from confirmed art.
   specials: {
-    specialBeamCannon: { cost: 35, damage: 150, startup: 16, active: 4, recovery: 24, hitstun: 26, knockbackX: 11, knockbackY: -3, effect: "piercing ki attack" },
+    specialBeamCannon: { cost: 35, damage: 150, startup: 16, active: 4, recovery: 24, hitstun: 26, knockbackX: 11, knockbackY: -3, effect: "piercing PROCEDURAL ki beam" },
     hellzoneGrenade:   { cost: 30, damage: 100, startup: 14, active: 8, recovery: 24, hitstun: 20, knockbackX: 7, knockbackY: -1, effect: "multi-ki ball attack" }
   },
-  ultimate: { name: "Fused with Kami", cost: 100, duration: 6, effect: "Enhanced stats and ki attacks" },
-  transformationOrder: ["base","fusedWithKami"],
-  transformations: {
-    base:          { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    fusedWithKami: { damageMultiplier: 1.4, speedMultiplier: 1.2, defenseMultiplier: 1.15, duration: 1200 }
+  hasSprites: true,
+  // Tall Namekian (canon ~2.26m, taller than every human on the roster). Live idle frame content ~148px at ×1.0
+  // → ×0.90 renders the idle body ~133px on-screen: distinctly taller than the roster's ~111px humans without
+  // dwarfing them. anchorY 0 plants feet. Verified via measureSprite in Stage 1 (contentH ≈ 133, un-clipped).
+  spriteScale: 0.90,
+  animationData: {
+    // ── STAGE 1 — MOVEMENT / STATE (reslice'd feet-aligned *_uniform.png; anchorY 0 plants feet). ──
+    idle:      { frames: 4, width: 100, height: 168, speed: 8, anchorY: 0, sheet: "./piccolo_idle_uniform.png" },   // CONFIRMED arms-crossed neutral loop
+    walk:      { frames: 4, width: 100, height: 168, speed: 8, anchorY: 0, sheet: "./piccolo_idle_uniform.png" },   // ★NO walk cycle on the sheet (hover/dash fighter) → BORROW idle (owner-approved; no fabricated locomotion)
+    run:       { frames: 4, width: 100, height: 168, speed: 8, anchorY: 0, sheet: "./piccolo_idle_uniform.png" },   // ★no run art either → BORROW idle (same gap)
+    dash:      { frames: 1, width: 114, height: 122, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./piccolo_dash_uniform.png" },   // forward lean-lunge
+    jump:      { frames: 2, width: 82,  height: 198, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./piccolo_jump_uniform.png" },   // arms-overhead ascent
+    fall:      { frames: 1, width: 82,  height: 198, speed: 6, anchorY: 0, sourceX: 82, loop: false, lockLastFrame: true, sheet: "./piccolo_jump_uniform.png" },   // last jump cell held as fall
+    crouch:    { frames: 1, width: 90,  height: 92,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./piccolo_crouch_uniform.png" },  // low ducking crouch (best low pose — flagged)
+    guard:     { frames: 2, width: 115, height: 100, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./piccolo_guard_uniform.png" },   // arms-crossed braced block
+    hurt:      { frames: 2, width: 101, height: 121, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./piccolo_hurt_uniform.png" },    // gut-hit stagger flinch
+    knockdown: { frames: 2, width: 170, height: 71,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./piccolo_knockdown_uniform.png" }, // flat/prone lying
+    getup:     { frames: 2, width: 117, height: 109, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./piccolo_getup_uniform.png" },   // low → rise
+    taunt:     { frames: 1, width: 138, height: 154, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./piccolo_taunt_uniform.png" }    // chest-out flex / roar
+    // Stages 2–6 append normals / command chain / specials (incl. procedural beam + stretch-arm) / win-lose here.
   },
-  animationData: { ...DEFAULT_ANIM }
+  // ── TRANSFORMATIONS — DEFERRED (design-only). ZERO transformed-state art exists on this sheet; T2 Orange
+  // Piccolo needs a real body-shape change and T3 Great Namekian is a giant-form set-piece — neither can ship
+  // faithfully from the base sprite (see PICCOLO_ASSET_MAP §7). Kept as a dormant stub, NOT wired to a working
+  // in-match form. Reuse the Frieza-Golden timed-mode architecture ONLY once real tier art exists.
+  ultimate: { name: "Transformation (deferred)", cost: 100, duration: 6, effect: "DESIGN-ONLY — Potential Unleashed / Orange Piccolo / Great Namekian tiers need real art before they can ship. Not active." },
+  transformationOrder: ["base"],
+  transformations: {
+    base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 }
+  },
+  introPool: ["idle"]   // cape/turban-removal intro art exists on the sheet ([145–150]) but is a Stage-6 task; settles to idle for now
 }
 
 // FRIEZA  (rosterKey "frieza", universe "dragon_ball") — the Emperor of Universe 7, BASE/FINAL FORM only
@@ -7224,10 +7290,12 @@ const darkKnight = {
     // DROPKICK, crouchLight = low sweep. up (launcher) REUSES heavy; down_air REUSES air (no dedicated
     // uppercut / down-aerial art in the standard set — FLAGGED). ──
     light:    { frames: 2, width: 132, height: 117, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_light_uniform.png" },       // quick forward jab
-    heavy:    { frames: 2, width: 165, height: 135, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_heavy_uniform.png" },       // cocked → committed lunge punch (long reach)
-    up:       { frames: 2, width: 165, height: 135, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_heavy_uniform.png" },       // REUSE heavy pose as the launcher (no dedicated uppercut art) — FLAG
-    air:      { frames: 1, width: 172, height: 125, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_air_uniform.png" },         // leaping dropkick (aerial)
-    down_air: { frames: 1, width: 172, height: 125, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_air_uniform.png" },         // REUSE air (no dedicated down-aerial art) — FLAG
+    // ★SMOOTHNESS REBUILD — heavy+air moved to the frame-RICH UPPER set (5-frame committed lunge / 3-frame
+    // jump-punch→cape-dive). up reuses heavy (now 5f); down_air reuses air (now 3f) — both inherit the flow.
+    heavy:    { frames: 5, width: 142, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_heavy_uniform.png" },       // 5-frame committed lunge punch (upper set)
+    up:       { frames: 5, width: 142, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_heavy_uniform.png" },       // REUSE heavy 5-frame lunge as the launcher (no dedicated uppercut art) — FLAG
+    air:      { frames: 3, width: 209, height: 119, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_air_uniform.png" },         // 3-frame jump-punch → cape-spread dive (upper set)
+    down_air: { frames: 3, width: 209, height: 119, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_air_uniform.png" },         // REUSE air (no dedicated down-aerial art) — FLAG
     // crouchLight — the low forward SWEEP. Auto-swapped by combat.js _setCrouchVariant when a light is
     // thrown while crouching (opt-in via THIS key; movement.crouchIdle is set above).
     crouchLight: { frames: 1, width: 193, height: 128, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_crouchlight_uniform.png" },

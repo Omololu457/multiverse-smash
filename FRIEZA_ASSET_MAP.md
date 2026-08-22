@@ -212,28 +212,31 @@ power-up ultimate → win/lose + harness/balance) follow the project's standard 
 
 ---
 
-## ★ Golden & Black Frieza — TRANSFORMATIONS (reclassified out of skins, 2026-08-22)
-Owner decision: Golden/Black are **real in-match transformations**, not palette skins. Built on the existing
-timed-mode transform architecture (Zaraki Shikai / Sasuke Susanoo-Lv2 / Batman Rage / Genos Overdrive), NOT a
-new system. This REPLACED the interim "Emperor's Overload" ultimate (that timed-mode became Golden; the
-Ultimate slot became Black). `test:frieza-stage5` = 23/0, canonical `test:frieza` = 32/0.
+## ★ Golden & Black Frieza — TRANSFORMATION LADDER (reclassified out of skins → then re-modeled, 2026-08-22)
+Owner decisions: (1) Golden/Black are **real in-match transformations**, not skins. (2) They use the **SAME
+gameplay mechanic as Vegeta / Goku Black** — a base → GOLDEN → BLACK ladder that boosts the fighter all-around
+(dmg + speed + defense) and is paid for by a **continuous energy DRAIN**, auto-reverting when Ki empties. This
+REPLACED an interim design (a timed Golden mode + a Black cinematic ultimate). `test:frieza-stage5` = 17/0,
+canonical `test:frieza` = 31/0. Regressions: vegeta 72/0, vegeta-ssj 76/0, vegeta-ssj-blue 78/0.
 
-**GOLDEN FRIEZA — timed high-risk/high-reward MODE** (`abilities.js` `FRIEZA_GOLDEN` + enter/revert/update +
-`revertGoldenFriezaManual`; charge-handler trigger in game.js; gold tint in sprite.js; `drawGoldenFriezaOverlay`).
-- **Trigger:** CHARGE button — hold→RELEASE to transform (gated ≥70 Ki); a TAP while transformed reverts EARLY
-  (Vegeta-SSJ idiom). Separate from the Ultimate.
-- **Cost:** 70 Ki. **PEAK 0–5s (0–300f):** dmg ×1.40 / spd ×1.20. **DROP-OFF 5–8s (300→480f):** multipliers
-  decay LINEARLY & sharply to dmg ×1.05 / spd ×1.00 (recomputed live each frame). **Stamina ki-drain:** 0.10/f
-  in peak → 0.30/f in the drop-off. **HARD CAP 8s (480f) OR ki-empty → AUTO-revert = EXHAUSTION crash** (spd
-  ×0.80 for 150f ≈ 2.5s + recovery beat). **TAP-revert in PEAK = clean, no crash** (burst-and-out); tap in
-  drop-off still crashes. HUD bar goes RED in the drop-off.
-- Canon match: massive boost + stamina drain that drops power off sharply if oversustained.
+**Mechanic** (`abilities.js`: `enterGoldenFrieza` / `enterBlackFrieza` / `revertGoldenFrieza` /
+`revertBlackFrieza` / `applyFriezaFormSystem`; `characters.js` `transformationOrder` + `transformations`;
+`game.js` charge-handler ladder + per-frame `applyFriezaFormSystem` + gold/dark tints in sprite.js):
+- **Trigger = CHARGE button** (Vegeta idiom): hold P to build Ki, RELEASE steps UP the ladder; a quick TAP
+  while transformed reverts to base. THRESHOLD-gated, **NO up-front cost**; a continuous per-frame Ki drain
+  pays for the form and it **auto-reverts the instant Ki hits 0** (via `tickSustainedFormDrain`, the shared
+  helper Vegeta/Goku Black use). ★`currentForm` is a NON-matching label ("friezaGolden") so the generic
+  transformations.js drain/revert stays off and only this custom system runs (the Vegeta gotcha).
+- **GOLDEN** — enter ≥100 Ki, drain 0.18/f (~11/s): **dmg ×1.25 / spd ×1.18 / def ×1.08** (= Vegeta SSJ tier).
+- **BLACK** — escalates from Golden at ≥150 Ki (requiresForm golden), drain 0.30/f (~18/s, costlier):
+  **dmg ×1.50 / spd ×1.32 / def ×1.15** (ceiling tier; Black supersedes Golden — only Black's drain runs).
+- **No separate ultimate** — reaching Black IS the payoff (Vegeta has no ultimate case either).
+- **ART:** both forms render the base sheets under a canvas TINT (`FRIEZA_GOLDEN_TINT` gold / `FRIEZA_BLACK_TINT`
+  dark in sprite.js) — canon-appropriate (same body, recolored), no new sheets. A dedicated gold/black uploaded
+  sheet could later replace the tint via `_skinAnim`. ★Tint look is UNVERIFIED (image-capped) → sign-off pending.
 
-**BLACK FRIEZA — the ULTIMATE** (`FRIEZA_BLACK` + `executeFriezaUltimate`; dark tint; `drawBlackFriezaOverlay`).
-- Ceiling-tier form, canon has NO drawback → a triggered PAYOFF (not a sustained mode). Ultimate button @ 100 Ki
-  → inline freeze cinematic (live fighter, no dup; Deathstroke pattern), dark-tinted, guaranteed barrage
-  **340 raw → ×0.60 = 204 EFF** sure-hit. Entering Black cleanly ends an active Golden (no stacking, no crash).
-- **ART:** both forms render the base sheets under a canvas TINT (`FRIEZA_GOLDEN_TINT` / `FRIEZA_BLACK_TINT` in
-  sprite.js) — canon-appropriate (same body, recolored) and safe with no new sheets. A dedicated gold/black
-  uploaded sheet could later replace the tint via `_skinAnim`. ★Tint look is UNVERIFIED (build session
-  image-capped) → pixel sign-off pending.
+**DB-consistency audit:** Vegeta, Goku Black, Frieza now share the identical charge-triggered / threshold-gated
+/ drain / revert-on-empty model. **Goku** (procedural `hasSprites:false`, ULTIMATE-triggered *duration* ladder)
+and **Piccolo / Cell** (non-playable placeholders, duration forms) still use the older model — fully aligning
+Goku needs a trigger rewrite (his ultimate-spend entry would instantly revert under drain), flagged as a
+follow-up rather than a blind change.

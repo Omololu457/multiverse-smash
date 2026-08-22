@@ -44,12 +44,31 @@ FRAMES = {
 # light = quick jab (arm-forward startup -> extended). heavy = cocked windup -> committed LUNGE punch
 # (long reach). air = leaping/flying DROPKICK. crouchlight = low sweep. up-attack REUSES heavy; down_air
 # REUSES air (no dedicated uppercut / down-aerial art in the standard set — FLAGGED in characters.js).
+# ★SMOOTHNESS REBUILD (2026-08-22): heavy+air moved to the frame-RICH UPPER set (5-frame committed lunge /
+# multi-frame cape dive) — same grey-suit style. light stays a snappy 2-frame lower-set jab (upper set has NO
+# jab; fast pokes read fine at 2f); crouchlight stays the lower-set low sweep (upper set has no low strike).
+# up reuses heavy (now 5f); down_air reuses air (now multi-f) — both inherit the smoothness.
 ATTACK_FRAMES = {
-    "light":       [(1845,1935,140,130), (1976,1935,140,130)],
-    "heavy":       [(2415,1935,145,135), (2105,1935,175,135)],
-    "air":         [(1550,2182,185,140)],
-    "crouchlight": [(1862,2200,205,140)],
+    "light":       [(1845,1935,140,130), (1976,1935,140,130)],                                                          # lower-set quick jab (snappy, 2f)
+    "heavy":       [(110,636,128,102), (248,625,142,93), (400,636,116,95), (526,636,124,96), (660,636,140,91)],         # UPPER 5-frame committed lunge punch
+    "air":         [(110,757,129,119), (249,757,130,99), (389,759,209,115)],                                            # UPPER 3-frame jump-punch → cape-spread dive
+    "crouchlight": [(1862,2200,205,140)],                                                                               # lower-set low sweep (1f)
 }
+
+import numpy as _np
+def feet_crop(src, box):
+    """Tighten, then crop the BOTTOM to the FEET line (lowest content in the RIGHT 55% — the boots; the cape
+    trails LEFT/below and would otherwise be bottom-aligned, sinking the feet). Returns a feet-anchored box."""
+    x,y,w,h = box[:4]
+    A = (_np.array(src.crop((x, y, x+w, y+h)))[:,:,3] > 16)
+    ys = _np.where(A.any(axis=1))[0]; xs = _np.where(A.any(axis=0))[0]
+    if not len(ys): return (x,y,w,h)
+    tx, ty = x+int(xs.min()), y+int(ys.min())
+    tw, th = int(xs.max()-xs.min()+1), int(ys.max()-ys.min()+1)
+    right = A[:, xs.min()+int((xs.max()-xs.min())*0.45): xs.max()+1]   # feet region (front boot, facing R)
+    fys = _np.where(right.any(axis=1))[0]
+    feet = y + int(fys.max()) if len(fys) else ty+th-1
+    return (tx, ty, tw, max(20, feet - ty + 1))                        # top → feet (below-feet cape clipped)
 
 def tighten(src, box):
     x,y,w,h = box[:4]
@@ -124,7 +143,10 @@ def main():
     print("dark_knight STAGE 1 movement/state reslice:")
     dims = {}
     for name, boxes in FRAMES.items():
-        tb = [tighten(src, b)[0] for b in boxes]   # alpha-crop each frame → correct feet-align (generous idle/walk boxes)
+        # walk = crouched prowl with a LONG trailing cape below the boots → FEET-crop (align boots, clip drag-cape),
+        # else the cape bottom-aligns and the feet sink into the ground. Everything else = normal alpha-tighten.
+        crop = feet_crop if name == "walk" else (lambda s, b: tighten(s, b)[0])
+        tb = [crop(src, b) for b in boxes]
         dims[name] = build(src, name, tb)
     # WALK from the upper set is a LOW crouched prowl (~78px) — upscale ×1.5 (NEAREST, crisp) so it reads at
     # idle-comparable height (a stalking gait, slightly shorter than the upright idle = natural). 10 smooth frames.
@@ -133,7 +155,10 @@ def main():
     print(f"  walk       upscaled ×1.5 → cell {wi.width // 10}x{wi.height}  (crouched prowl, 10f)")
     print("dark_knight STAGE 2 normals reslice:")
     for name, boxes in ATTACK_FRAMES.items():
-        tb = [tighten(src, b)[0] for b in boxes]
+        # heavy = upper-set lunge with trailing cape below the boots → FEET-crop (ground attack; align boots).
+        # air = airborne (no ground contact) so plain tighten is fine. light/crouchlight = lower set, tighten.
+        crop = feet_crop if name == "heavy" else (lambda s, b: tighten(s, b)[0])
+        tb = [crop(src, b) for b in boxes]
         dims[name] = build(src, name, tb)
     print("dark_knight STAGE 4 specials reslice:")
     for name, boxes in SPECIAL_FRAMES.items():

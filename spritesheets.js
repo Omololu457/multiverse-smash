@@ -502,6 +502,12 @@ export const SPRITE_MANIFEST = {
   frieza: {
     actions: { idle: "./frieza_idle_uniform.png" }
   },
+  // Piccolo (Dragon Ball, Extreme Butoden). Per-action .sheet lives on characters.js → piccolo.animationData;
+  // idle = the RE-SLICED uniform strip (tools/reslice_piccolo.py, green-filled-cell master sheet, TIGHT green
+  // key to protect his green skin). See PICCOLO_ASSET_MAP.md.
+  piccolo: {
+    actions: { idle: "./piccolo_idle_uniform.png" }
+  },
 
   // Omni-Man (universe: invincible) — STAGE 0. Gates spritesReady() by decoding the idle strip →
   // flips Omni-Man from procedural box to sprite. Per-action rendering reads characters.js →

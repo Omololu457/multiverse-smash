@@ -107,16 +107,10 @@ ENTRIES += [
     # hue>=215 (excludes H206-210 bright hair-blue), vmax .6 (excludes bright light-blue hair), and yband .32-1.0
     # (spatially drops the hair band). → teal. Visually verified.
     ("miwa", "charlie", "navy hakama", [R(hue="215-248", smin=0.4, vmax=0.6, yband="0.32-1.0", tone=TINT["charlie"])], [], 7),
-    # yuta + zaraki DROPPED (monochrome, no isolable accent) → REASSIGNED (owner) to zenitsu + nezuko.
-    # Zenitsu (→Charlie, replaces yuta) — his warm HAORI. TRAP: his iconic yellow HAIR shares the haori's yellow/gold
-    # hue (both H45-60), and the hair mass hangs down beside his face into the torso band, so NEITHER a pure warm-hue
-    # gate (old H12-58 → recolored the hair) NOR a yband (hair-beside-face can't be cut cleanly) isolates it. The clean
-    # discriminator is HUE: the haori's ORANGE-RED FLAMES (H348-34 wrap, S>=.7: orange #e05010/#d05010 + red #b01020/
-    # #500000) are a hue the hair (pure yellow/gold H45-60) does NOT have → recolor the flames to teal, hair 100%
-    # preserved by hue (matches naoya/sukuna preserve-hair standard). skin H26 S.47 excluded by smin .7. Verified.
-    ("zenitsu", "charlie", "flame haori (hair preserved)", [R(hue="348-34", smin=0.7, tone=TINT["charlie"])], [], 7),
-    # Nezuko (→Stu, replaces zaraki) — her PINK kimono (H330-350 S>=.5; pale pink skin S.29 excluded) → burnt-orange.
-    ("nezuko", "stu", "pink kimono", [R(hue="330-350", smin=0.5, tone=TINT["stu"])], [], 7),
+    # yuta (→Charlie) + zaraki (→Stu) — HELD: both monochrome (black/white/grey/skin; their one distinct element, white,
+    # is SHARED between garment and weapon — yuta's collar/Rika/katana, zaraki's haori==sword-blade). No isolable accent,
+    # same trap as kiba/hiruzen → no crew art, fall back to normal art on summon. The zenitsu/nezuko substitutions that
+    # briefly stood in these slots were REVERTED (owner: keep the original psych-matched roster). No entries here.
     # ── GROUP 8 — UNCOVERED. Amber(green) + Richie(gunmetal) + Ethan(olive). inosuke/kiba handled/held separately. ──
     # Byakuya (→Richie) — his TEAL shihakusho under the white captain's haori (H150-190 S>=.28: #204040/#002020 H180,
     # #205040 H160, #70a090). White haori (S.07) + black + warm skin (H40) all excluded → gunmetal grey-blue. Verified.

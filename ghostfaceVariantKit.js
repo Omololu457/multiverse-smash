@@ -245,7 +245,7 @@ export const GHOSTFACE_VARIANT_ROSTER = [
   { rosterKey: "ghostface_stu",     person: "Stu Macher",     killer: "Stu",
     special:   { name: "Erratic Flurry", effect: "erratic multi-hit flurry", status: ND },
     ultimate:  { status: ND },
-    companions:{ list: ["hisoka", "nezuko", "rick", "TBD"], status: "BLOCKED" },   // zaraki→nezuko: zaraki is monochrome (white haori == white sword, no isolable accent); nezuko = clean pink kimono accent
+    companions:{ list: ["hisoka", "zaraki", "rick", "TBD"], status: "BLOCKED" },   // zaraki HELD: monochrome (white haori == white sword, no isolable accent) → no crew art, falls back to normal art on summon (like kiba/hiruzen). Restored to the original psych-matched roster; the nezuko substitution was reverted.
     costume: "looser/baggier cloak, sneakers, uneven mask stitching, cordless phone on belt" },
   { rosterKey: "ghostface_mrs",     person: "Nancy Loomis",   killer: "Mrs.",
     identitySlice: "debbie",   // Mrs./Nancy = the canon "debbie" (Mother's Grief) identity slice
@@ -273,7 +273,7 @@ export const GHOSTFACE_VARIANT_ROSTER = [
   { rosterKey: "ghostface_charlie", person: "Charlie Walker", killer: "Charlie",
     special:   { name: "Fumbling Grab", effect: "fumbling grab w/ delayed second hit", status: ND },
     ultimate:  { status: ND },
-    companions:{ list: ["zenitsu", "miwa", "kurapika", "TBD"], status: "BLOCKED" },   // yuta→zenitsu: yuta is monochrome (dark uniform + shared white, no isolable accent); zenitsu = clean yellow haori accent + fits Charlie's amateur/underdog read
+    companions:{ list: ["yuta", "miwa", "kurapika", "TBD"], status: "BLOCKED" },   // yuta HELD: monochrome (dark uniform + shared white across collar/Rika/katana, no isolable accent) → no crew art, falls back to normal art on summon (like kiba/hiruzen). Restored to the original psych-matched roster; the zenitsu substitution was reverted.
     costume: "hoodie underneath, backpack straps, crooked mask (keep across variants)" },
   { rosterKey: "ghostface_amber",   person: "Amber Freeman",  killer: "Amber",
     identitySlice: "amber",

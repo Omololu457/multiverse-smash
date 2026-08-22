@@ -223,6 +223,14 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./yuta_idle_uniform.png" }
   },
 
+  // The Handler (universe: jujutsu_kaisen) — STAGE 1. Gates spritesReady() by decoding the idle strip
+  // → flips The Handler from procedural box to sprite handler. Per-action rendering reads characters.js →
+  // handler.animationData (each action carries its own .sheet). Idle is the RE-SLICED uniform strip
+  // (tools/reslice_handler.py). Ten-Shadows shikigami summoner + Mahoraga adaptation ult (later stages).
+  handler: {
+    actions: { idle: "./handler_idle_uniform.png" }
+  },
+
   // Brainiac (universe: dc), Coluan all-special ZONER — STAGE 1. Gates spritesReady() by decoding the
   // idle strip → flips Brainiac from procedural box to sprite handler. Per-action rendering reads
   // characters.js → brainiac.animationData (each action carries its own .sheet). Idle is the RE-SLICED
@@ -367,6 +375,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./batman_idle_uniform.png" }
   },
 
+  // Batman NEW VARIANT (rosterKey "dark_knight", universe: dc). Gates spritesReady() by decoding the
+  // idle strip → flips to sprite. Per-action rendering reads characters.js → darkKnight.animationData
+  // (each action carries its own .sheet). idle is the RE-SLICED uniform strip from the true-alpha sheet.
+  dark_knight: {
+    actions: { idle: "./dark_knight_idle_uniform.png" }
+  },
+
   // Hisoka Morrow (universe: hunter_x_hunter). Gates spritesReady() by decoding the idle strip
   // → flips Hisoka from procedural box to sprite. Per-action rendering reads characters.js →
   // hisoka.animationData (each action carries its own .sheet).
@@ -476,6 +491,16 @@ export const SPRITE_MANIFEST = {
   // uniform strip (tools/reslice_saitama.py). See SAITAMA_ASSET_MAP.md.
   saitama: {
     actions: { idle: "./saitama_idle_uniform.png" }
+  },
+  // Genos (One Punch Man). Per-action .sheet lives on characters.js → genos.animationData; idle = the
+  // RE-SLICED uniform strip (tools/reslice_genos.py, single teal-keyed master sheet). See GENOS_ASSET_MAP.md.
+  genos: {
+    actions: { idle: "./genos_idle_uniform.png" }
+  },
+  // Frieza (Dragon Ball, base/final form). Per-action .sheet lives on characters.js → frieza.animationData;
+  // idle = the RE-SLICED uniform strip (tools/reslice_frieza.py, green-filled-cell master sheet). See FRIEZA_ASSET_MAP.md.
+  frieza: {
+    actions: { idle: "./frieza_idle_uniform.png" }
   },
 
   // Omni-Man (universe: invincible) — STAGE 0. Gates spritesReady() by decoding the idle strip →

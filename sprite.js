@@ -27,6 +27,11 @@ const TOJI_REINCARNATED_TINT = "sepia(0.7) saturate(2.4) hue-rotate(-28deg) brig
 // toward a decayed greenish pallor, lift it pale. Paired with drawEdoReanimOverlay (procedural seam/mottle).
 // Works on ANY vessel's base sprites → no per-char art. Gated on fighter._edoActive.
 const EDO_REANIM_TINT = "grayscale(0.82) sepia(0.45) hue-rotate(55deg) saturate(0.72) brightness(1.07) contrast(0.92)";
+// FRIEZA transformations (no pre-baked recolor sheets — canon Golden/Black are the SAME body recolored, so a
+// canvas TINT over the base art is the right tool). GOLDEN = warm gold wash over the white body; BLACK = the
+// ceiling-tier dark form (deep violet-black). Gated on _goldenFriezaActive / _blackFriezaActive.
+const FRIEZA_GOLDEN_TINT = "sepia(1) saturate(3.4) hue-rotate(-18deg) brightness(1.12) contrast(1.05)";
+const FRIEZA_BLACK_TINT  = "grayscale(0.5) brightness(0.34) contrast(1.35) saturate(1.4) hue-rotate(255deg)";
 
 // ─────────────────────────────────────────────────────────────────
 // OPTIONAL DEPENDENCY — animationProfile.js
@@ -252,6 +257,8 @@ const MOVE_TO_ACTION = {
   // so a cast/strike recovery tail can never resolve to the 128² fallback box.
   yutaStrong: "yutaStrong", yutaKick4: "yutaKick4", yutaCem: "yutaCem", yutaSpeech: "yutaSpeech", yutaRct: "yutaRct",
   yutaUltCast: "yutaUltCast",   // Yuta (Stage 5): Rika's Invocation cast pose (_spriteCastMove) — identity map
+  handlerSummon: "handlerSummon",   // The Handler (Stage 4): shared shikigami summon hand-sign cast pose (_spriteCastMove) — identity map
+  mahoragaEntry: "mahoragaEntry", mahoragaCounter: "mahoragaCounter",   // The Handler (Stage 5): Mahoraga form entry (row_02 blade-draw) + adapted counter (row_05 slash) — resolve against _skinAnim=MAHORAGA_ANIM
 
   // Netero (Stage 3): command-chain stages + Barrage special. Identity maps (currentMove === action
   // key) — explicit here so a recovery/cast tail can never resolve to the 128² box (Sasuke dashStrike
@@ -470,7 +477,7 @@ const MOVE_TO_ACTION = {
   // Spider-Man (Stage 3): web-special cast poses (_spriteCastMove) + melee-special poses (currentMove).
   // spiderWebBridge = the combo-cancel web-net bridge into Web Throw. Identity maps → no 128² box on the tail.
   spiderWebImpact: "spiderWebImpact", spiderWebThrow: "spiderWebThrow", spiderWebBridge: "spiderWebBridge",
-  spiderDashAttack: "spiderDashAttack", spiderHandstand: "spiderHandstand",
+  spiderDashAttack: "spiderDashAttack", spiderHandstand: "spiderHandstand", spiderSwing: "spiderSwing",
 
   // Naoya (Stage 3): Fwd+Heavy "low combo string" command normal (naoyaCombo, row_08). Identity map —
   // the command recovery tail resolves the real sheet, never the 128² fallback box.
@@ -906,6 +913,8 @@ export class SpriteHandler {
     if (_sheetReady(sheet)) {
       // Skill Hunter: wash the copied body in Chrollo's purple possession tint (see SKILL_HUNTER_TINT).
       if (fighter._shActive) ctx.filter = SKILL_HUNTER_TINT;
+      else if (fighter._blackFriezaActive) ctx.filter = FRIEZA_BLACK_TINT;    // Black Frieza ult — dark ceiling-tier form
+      else if (fighter._goldenFriezaActive) ctx.filter = FRIEZA_GOLDEN_TINT;  // Golden Frieza — gold transformation wash
       else if (fighter._reincarnated) ctx.filter = TOJI_REINCARNATED_TINT;   // Toji Reincarnated Form — crimson wash
       // Edo Tensei reanimation: sickly pale green-gray "undead corpse" wash over the vessel's BASE art.
       else if (fighter._edoActive) ctx.filter = EDO_REANIM_TINT;

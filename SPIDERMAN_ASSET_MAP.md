@@ -52,3 +52,20 @@ Portrait: `spiderman_portrait.png` — hands-on-hips heroic bust cropped from th
 ## FOLLOW-UPS (separate future passes)
 - Skins batch (row_25 alt-costume + creative recolors + an Alien-X Void).
 - Voice (no source clips located yet).
+
+## ★ VISUAL AUDIT (2026-08-22, vision-subagent — rendered + looked at all 26 role strips + source rows)
+**Verdict: mostly-correct — 25/26 roles content-accurate, incl. every gameplay-critical role.** NOT a re-pass.
+- **WRONG (1, display-only): `rollForward`** → the assigned frames (row_08 right-half) actually show a low
+  crouched **crawl-lunge / web-line sweep**, NOT a forward somersault (the body never rotates over). A real
+  forward flip/handspring DOES exist in **`spiderman_row_06.png`'s BOTTOM band** (row 06 is currently only
+  "reserve" above). ★Low urgency: `rollForward` is display-only / `_forceAction`-rendered / no dodge-roll
+  system wired. The mislabel ORIGINATES here (row_08 "crawl loop + roll") + in `reslice_spiderman.py`.
+  **Recommended fix:** re-slice `rollForward` from row_06 bottom band (skip the top attack band + the
+  far-right gag panel), then VISUALLY sign off the new cut. NOT applied yet (a new slice needs a vision pass).
+- **CONFIRMED CORRECT (visually):** idle, walk/run (genuine crawl-walk locomotion, alternating legs), dash,
+  intro, jump, fall (content ok; middle frames fragmentary — polish), win/taunt, rollBack (real backward
+  ground roll), light/heavy/up/air/down_air, spiderCombo, spiderCrawl, spiderKickup, spiderSwing,
+  spiderWebImpact/Throw/Bridge, spiderDashAttack, spiderHandstand, maxweb, webpuff, webball.
+- **GAPS (honest, already omitted):** hurt / knockdown / getup — no dedicated art (idle-fallback + procedural
+  flash). Opportunistic seeds if ever wanted: rollBack (prone) → knockdown; row_25 crouch-to-stand → getup.
+- Cosmetic polish (not wrong roles): stray-hand / split-line artifacts on dash/intro/jump/heavy; fragmentary `fall` mids.

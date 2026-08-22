@@ -86,7 +86,9 @@ try {
       await forcePose(action); await waitFrames(1); await page.waitForTimeout(120);
       const shot = await page.evaluate(() => { const c = window.__harness.spriteCrop("p1"); const i = window.__harness.renderInfo("p1"); return { w: c?.contentW || 0, h: c?.contentH || 0, action: i?.action }; });
       await forcePose(null);
-      const boxlike = shot.w >= 120 && shot.h >= 120;
+      // 128² fallback box renders ~256px; match the canonical test's box-detection (real cells are larger
+      // now that XLR8 is re-sourced from the ipmugen #11 sheet — the old ≥120 AND-threshold was too tight).
+      const boxlike = shot.w >= 200 || shot.h >= 200;
       check(`${form.key} normal ${name} → sprite`, shot.w > 0 && shot.h > 0 && !boxlike, `body=${shot.w}x${shot.h} action=${shot.action}`);
       if (shot.action) seen.set(shot.action, true);
     }

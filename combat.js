@@ -196,6 +196,29 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
 // code + the design spec's contract share one implementation — never a second competing path.
 export const applyDamage = applyScaledDamage
 
+// ── THE HANDLER / MAHORAGA ADAPTATION (Stage 5, NEW engine) ─────────────────────────────────────
+// Per-move damage-reduction LADDER against the transformed Handler: each time a SPECIFIC incoming move
+// CONNECTS on Mahoraga, that move deals progressively less on its next repeat (he "adapts" to it —
+// move-specific, not a flat buff, and it visibly RAMPS rather than flipping on at once). A move that
+// connects for the FIRST time also bumps `_mahoragaDistinct`, which drives Mahoraga's growth (rising
+// damage/defense + HP regen) in abilities.updateHandlerMahoraga. A BLOCKED hit did not land on him, so it
+// does not adapt. ★BALANCE: these numbers are PROVISIONAL and flagged for playtest (BALANCE_AUDIT.md) — a
+// too-steep ladder forces degenerate "don't use your best move"; too-shallow makes the form a non-threat.
+const MAHORAGA_LADDER = [1.0, 0.6, 0.35, 0.18, 0.08, 0.03]   // damage × by the move's PRIOR-connect count
+export function tickMahoragaAdapt(defender, atk, cat, dmg) {
+  if (!defender?._mahoragaActive) return dmg
+  const key = (atk && atk.name) ? String(atk.name) : (cat || "unknown")   // per-move (name) → falls back to category
+  const adapt = defender._mahoragaAdapt || (defender._mahoragaAdapt = {})
+  const n = adapt[key] || 0
+  const reduced = Math.floor(dmg * MAHORAGA_LADDER[Math.min(n, MAHORAGA_LADDER.length - 1)])
+  const connecting = !(defender.isBlocking && !(atk && atk.unblockable))   // a blocked hit does not land → does not adapt
+  if (connecting) {
+    adapt[key] = n + 1
+    if (n === 0) { defender._mahoragaDistinct = (defender._mahoragaDistinct || 0) + 1; defender._mahoragaLastMove = key }
+  }
+  return reduced
+}
+
 // ========================
 // HELPERS
 // ========================
@@ -2643,6 +2666,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     Math.max(0.5, defender.defenseMultiplier || 1)
   )
 
+  // THE HANDLER / MAHORAGA ADAPTATION — a repeat of the SAME move deals progressively less against the
+  // transformed Handler (he "adapts" to it). Move-specific, not a flat buff. Also counts a NEW move toward
+  // his growth. Applied before counter/vuln modifiers so the ladder governs the base landed damage.
+  if (defender._mahoragaActive) dmg = tickMahoragaAdapt(defender, atk, cat, dmg)
+
   if (isCounter) {
     dmg = Math.floor(dmg * 1.25)
     defender.clashFlash = Math.max(defender.clashFlash || 0, 10)   // reuse the existing clash visual for the counter pop
@@ -2656,6 +2684,12 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // KURAPIKA — Emperor Time REVERT disorientation: for a brief window after Emperor Time ends, the memory-gap
   // leaves him vulnerable (takes bonus damage). The canon cost, tied to a real mechanic (dmg-taken amp).
   if ((defender._emperorRevertVuln || 0) > 0) dmg = Math.floor(dmg * 1.25)
+  // GENOS — Overdrive OVERHEAT: for a brief window after Overdrive ends, the overheated core leaves him
+  // vulnerable (takes bonus damage). The locked-decision drawback, tied to the same real dmg-taken amp.
+  if ((defender._genosOverheatVuln || 0) > 0) dmg = Math.floor(dmg * 1.30)
+  // BATMAN (dark_knight) — RAGE MODE reckless trade-off: WHILE raging he hits harder (dmg×) but guards worse,
+  // taking +15% damage. The berserker's real cost, tied to the same dmg-taken amp (active-window, not post-revert).
+  if (defender._dkRageActive) dmg = Math.floor(dmg * 1.15)
 
   // COMEBACK FINISHER: fixed EFFECTIVE damage — override AFTER combo/counter/slumber modifiers so the
   // once-per-match desperation hit lands the exact capped number (~340-380 band; see BALANCE_AUDIT).
@@ -3498,6 +3532,8 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         else { proj.owner.comboCounter = (proj.owner.comboCounter || 0) + 1; proj.owner.comboTimer = 90 }
       }
 
+      // MAHORAGA ADAPTATION — projectiles adapt per-move too (keyed by proj.name), same ladder + growth.
+      if (fighter._mahoragaActive) dmg = tickMahoragaAdapt(fighter, { name: proj.name, unblockable: proj.unblockable }, "projectile", dmg)
       applyScaledDamage(fighter, dmg, { source: "projectile" })
       trackSkillHunterUnlock(fighter, proj.owner, proj.name, fighter.isBlocking)   // Skill Hunter: a distinct opponent PROJECTILE landing on Chrollo also counts
       trackBanditEchoMark(fighter, proj.owner, proj, fighter.isBlocking, true)   // Bandit's Echo: any opponent PROJECTILE connect marks it (special-tier; independent of Skill Hunter)

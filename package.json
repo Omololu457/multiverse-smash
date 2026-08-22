@@ -50,6 +50,8 @@
     "test:ben10-stage2": "node harness/ben10_stage2.test.mjs",
     "test:ben10-stage3": "node harness/ben10_stage3.test.mjs",
     "test:ben10-stage4": "node harness/ben10_stage4.test.mjs",
+    "test:xlr8-stage1": "node harness/xlr8_stage1.mjs",
+    "test:wildmutt-stage1": "node harness/wildmutt_stage1.mjs",
     "test:ben-human": "node harness/ben_human_fixes.test.mjs",
     "test:ben-slot-transform": "node harness/ben_slot_transform.test.mjs",
     "test:ben-slot-log": "node harness/ben_slot_log.mjs",

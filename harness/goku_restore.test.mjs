@@ -132,17 +132,25 @@ try {
     await waitFrames(6);
   }
 
-  // ── SUPER SAIYAN BLUE ultimate (U): advances the transformation ──────────────
-  section("Super Saiyan Blue ultimate (U) — advances transformation");
+  // ── TRANSFORMATION LADDER moved to the CHARGE button (2026-08-22 DB alignment) ───────────────
+  // The old ultimate-button "next SSJ" trigger was REMOVED — the ladder is now charge-triggered / threshold-
+  // gated / drain-based (like Vegeta / Goku Black / Frieza). Verify: (1) Ultimate (U) NO LONGER transforms,
+  // (2) the charge-based step DOES.
+  section("Transformation ladder (charge-based) — Ultimate input is unbound");
   {
     await waitGrounded();
     await page.evaluate(() => window.__harness.resetUlt?.());   // clear ult lockout + refill energy
-    const f0 = await p1();
+    await page.evaluate(() => window.__harness.p1GokuRevert?.());
+    const u0 = await p1();
     await tapKey("u", 4);
     await waitFrames(10);
-    const f1 = await p1();
-    const advanced = (f1.currentForm && f1.currentForm !== "base") || (f1.transformIndex ?? 0) > (f0.transformIndex ?? 0) || f1.currentForm !== f0.currentForm;
-    check("ultimate advances Goku's form (base → next SSJ)", advanced, `form ${f0.currentForm} → ${f1.currentForm}, idx ${f0.transformIndex} → ${f1.transformIndex}`);
+    const u1 = await p1();
+    check("Ultimate (U) no longer transforms Goku (input freed)", (u1.transformIndex ?? 0) === 0 && (u1.currentForm || "base") === "base", `form ${u0.currentForm}→${u1.currentForm}, idx ${u0.transformIndex}→${u1.transformIndex}`);
+    await page.evaluate(() => { window.__harness.p1GokuSetEnergy?.(200); });
+    const stepped = await page.evaluate(() => window.__harness.p1GokuStepForm?.());
+    await waitFrames(4);
+    const c1 = await p1();
+    check("charge-step advances Goku's form (base → SSJ)", stepped === true && (c1.transformIndex ?? 0) === 1, `stepped=${stepped} idx=${c1.transformIndex} form=${c1.currentForm}`);
     await page.screenshot({ path: path.join(OUT, "GOKU_restored_ssblue.png") });
   }
 

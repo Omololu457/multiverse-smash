@@ -1360,27 +1360,65 @@ export function revertVegetaBlue(fighter) {
   fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
 }
 
-function executeGokuUltimate(fighter, context) {
-  if (!spendEnergy(fighter, 100)) return false
-  // Trigger SSJ Blue transformation
-  const nextFormIndex = (fighter.transformIndex || 0) + 1
-  const order = fighter.transformationOrder || []
-  if (nextFormIndex < order.length) {
-    fighter.transformIndex = nextFormIndex
-    const formKey  = order[nextFormIndex]
-    const formData = fighter.transformations?.[formKey]
-    if (formData) {
-      applyTransformation(fighter, formKey)
-      fighter.currentForm     = formKey
-      fighter.currentFormData = formData
-      fighter.teleportFlash   = 20
-      fighter.attackCooldown  = 24
-      sound.playDragonBallTransformSfx()   // SHARED Dragon Ball transform cue (previously had NO audio)
-      shakeCamera(context, 12, 14)
-      focusCameraOnAction(context, fighter, null, 0.96, 16)
-    }
-  }
+// ═════════════════════════════════════════════════════════════════════════════
+// GOKU — TRANSFORMATION LADDER (base → SSJ → SSJ2 → SSJ3 → SSJ Blue → Ultra Instinct).
+// 2026-08-22: ALIGNED to the SAME mechanic as Vegeta / Goku Black / Frieza — threshold-gated on the CHARGE
+// button (hold-release steps UP, tap reverts to base), NO up-front cost, a continuous per-frame Ki DRAIN
+// pays for the form, and it auto-reverts the instant Ki hits 0 (shared tickSustainedFormDrain). REPLACES the
+// old ultimate-button / 100-energy-spend entry (executeGokuUltimate — removed). Multipliers + per-tier
+// thresholds/drains are declared on characters.js goku.transformations. ★currentForm uses a NON-matching
+// label ("goku_ssj1") so the generic transformations.js drain/revert stays off and only this custom system
+// runs (the Vegeta gotcha). Goku is procedural (hasSprites:false) → the transformed state shows via
+// drawGokuFormAura (a per-tier box aura + label); the charge-up shows via the standard isCharging aura.
+// ═════════════════════════════════════════════════════════════════════════════
+const GOKU_LADDER = ["ssj1", "ssj2", "ssj3", "ssblue", "ultraInstinct"]   // index+1 = transformIndex
+function isGokuChar(f) { return (f?.rosterKey || "").toLowerCase() === "goku" }
+export function isGokuSuper(fighter) { return (fighter?.transformIndex || 0) > 0 }
+export function gokuFormKey(fighter) { const i = fighter?.transformIndex || 0; return i > 0 ? GOKU_LADDER[i - 1] : "base" }
+// Charge hold-release: step UP one tier if Ki ≥ the next tier's threshold (NO up-front spend).
+export function enterGokuNextForm(fighter, context = {}) {
+  if (!isGokuChar(fighter)) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  const idx = fighter.transformIndex || 0
+  if (idx >= GOKU_LADDER.length) return false          // already at the top (Ultra Instinct)
+  const key  = GOKU_LADDER[idx]                        // the next tier up
+  const form = fighter.transformations?.[key]
+  if (!form) return false
+  if ((fighter.energy || 0) < (form.energyThreshold || 0)) return false   // threshold gate — NO up-front spend
+  fighter.transformIndex    = idx + 1
+  fighter.currentForm       = "goku_" + key            // NON-matching label → generic drain/revert stays off
+  fighter.damageMultiplier  = fighter.attackMultiplier = form.damageMultiplier || 1
+  fighter.speedMultiplier   = form.speedMultiplier || 1
+  fighter.defenseMultiplier = form.defenseMultiplier || 1
+  fighter.currentFormData   = form                     // re-applied each frame by updateTransformationState
+  fighter.autoDodge         = !!form.autoDodge
+  fighter.autoDodgeKiCost   = form.autoDodgeKiCost || 0
+  fighter.teleportFlash     = 16
+  fighter.attackCooldown    = 12                        // brief transform lock
+  fighter.vx = 0
+  try { sound.playDragonBallTransformSfx() } catch (_) {}
+  try { focusCameraOnAction(context, fighter, null, 1.02, 12); shakeCamera(context, 9, 12) } catch (_) {}
   return true
+}
+export function revertGoku(fighter) {
+  if (!fighter || (fighter.transformIndex || 0) <= 0) return
+  fighter.transformIndex    = 0
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.autoDodge         = false
+  fighter.autoDodgeKiCost   = 0
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+// Per-frame continuous drain (current tier's rate) + instant auto-revert at 0 — SAME model as Vegeta/Goku Black.
+export function applyGokuFormSystem(fighter) {
+  if (!isGokuChar(fighter)) return
+  const idx = fighter.transformIndex || 0
+  if (idx <= 0) return
+  const drain = fighter.transformations?.[GOKU_LADDER[idx - 1]]?.energyDrainPerFrame || 0
+  tickSustainedFormDrain(fighter, { active: f => (f.transformIndex || 0) > 0, drainPerFrame: drain, revert: revertGoku })
 }
 
 // ── NARUTO ────────────────────────────────────────────────────────
@@ -19259,7 +19297,10 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
 
   let cast
   switch (key) {
-      case "goku":    cast = executeGokuUltimate(fighter, context);    break
+      // GOKU has NO separate ultimate — his transformation LADDER moved to the CHARGE button (enterGokuNextForm),
+      // same as Vegeta/Frieza. The old ultimate-button "next SSJ" trigger (executeGokuUltimate) was REMOVED;
+      // the Ultimate input is now deliberately unbound for Goku (available for a future signature ult).
+      case "goku":    break   // no-op: Goku's transform ladder is on Charge now; Ultimate input unbound (cast stays falsy)
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break

@@ -101,6 +101,9 @@ import {
   revertGoldenFrieza,         // Frieza — revert Golden→base (charge tap / drain-empty / KO)
   revertBlackFrieza,          // Frieza — revert Black→base (charge tap / drain-empty / KO)
   applyFriezaFormSystem,      // Frieza — per-frame continuous Ki drain + instant auto-revert at 0 (Vegeta/Goku-Black model)
+  enterGokuNextForm,          // Goku — step UP the transform ladder (charge hold-release, threshold-gated)
+  revertGoku,                 // Goku — revert to base (charge tap / drain-empty / KO)
+  applyGokuFormSystem,        // Goku — per-frame continuous Ki drain + instant auto-revert at 0 (same model)
   updateOrochimaruCommandCombat,   // Orochimaru Forward Strong (Fwd+Heavy directional strong — extended-reach Kusanagi snake-thrust)
   updateAltSukunaCommandCombat,   // Alternate Sukuna Dismantle/Cleave string (Fwd+Heavy 2-stage red-crescent rekka, cancel-on-hit)
   updateAoiTodoCommandCombat,   // Aoi Todo command chain (Fwd+Heavy 3-stage rekka: elbow → hook/uppercut → roundhouse launcher, cancel-on-hit)
@@ -2368,7 +2371,7 @@ function resetRound() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertGoku(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -3263,7 +3266,7 @@ function resetToStart() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertGoku(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -3967,7 +3970,7 @@ function _doRematch() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertGoku(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -4297,6 +4300,17 @@ function handleChargeRelease(fighter, key) {
       else if (wasHeld) enterBlackFrieza(fighter, getAbilityContext())    // Golden → Black (gated ≥150 Ki)
     }
     else if (wasHeld) enterGoldenFrieza(fighter, getAbilityContext())     // base → Golden (real press-release only)
+    return
+  }
+
+  // GOKU — TRANSFORMATION LADDER (base → SSJ → SSJ2 → SSJ3 → SSJ Blue → Ultra Instinct), same charge idiom.
+  // Hold P to build Ki; a RELEASE steps UP one tier if Ki ≥ that tier's threshold; a quick TAP reverts to
+  // base. Continuous Ki drain (applyGokuFormSystem) auto-reverts at 0. REPLACES the old ultimate-button entry.
+  if ((fighter.rosterKey || "").toLowerCase() === "goku") {
+    if ((fighter.transformIndex || 0) > 0) {
+      if (wasTap) revertGoku(fighter)
+      else if (wasHeld) enterGokuNextForm(fighter, getAbilityContext())   // step up the ladder
+    } else if (wasHeld) enterGokuNextForm(fighter, getAbilityContext())   // base → SSJ (real press-release only)
     return
   }
 
@@ -7967,6 +7981,47 @@ function drawBlackFriezaOverlay(c, fighter) {
   c.restore()
 }
 
+// GOKU — TRANSFORMATION-STATE aura (procedural indicator). Goku is hasSprites:false → a box, so the sprite
+// tint used for Vegeta/Frieza can't show his form. This draws a per-TIER rising ki aura + a form LABEL above
+// the head so the transformed state (SSJ … Ultra Instinct) reads clearly on the box; it disappears at base.
+// (The charge-UP itself already shows via the standard isCharging aura.) transformIndex 1..5 = SSJ..UI.
+const GOKU_FORM_LOOK = [
+  null,                                                                 // 0 = base (no aura)
+  { hi: "#fff0a0", lo: "#f5b91e", glow: "#ffcf40", label: "SSJ"  },     // 1 SSJ — gold
+  { hi: "#fff6b0", lo: "#f7c21a", glow: "#ffd24a", label: "SSJ2" },     // 2 SSJ2 — brighter gold
+  { hi: "#fffbc0", lo: "#f9cf24", glow: "#ffdf60", label: "SSJ3" },     // 3 SSJ3 — brightest gold
+  { hi: "#bfe4ff", lo: "#2a9df4", glow: "#4fb8ff", label: "SSB"  },     // 4 SSJ Blue — blue
+  { hi: "#f2f6ff", lo: "#b9c6e6", glow: "#e8f0ff", label: "UI"   },     // 5 Ultra Instinct — silver/white
+]
+function drawGokuFormAura(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "goku") return
+  const idx = fighter.transformIndex || 0
+  if (idx <= 0) return
+  const look = GOKU_FORM_LOOK[idx]; if (!look) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._gokuFormClock = (fighter._gokuFormClock || 0) + 1)
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  const licks = 8
+  for (let i = 0; i < licks; i++) {
+    const fx = x + w * (0.16 + 0.68 * (i / (licks - 1)))
+    const phase = t * 0.26 + i * 1.7
+    const rise = (t * (2.6 + idx * 0.2) + i * 38) % (h * 1.05)   // higher tiers flare faster/hotter
+    const ly = y + h - rise
+    const flick = Math.sin(phase) * w * (0.06 + idx * 0.008)
+    const r = Math.max(3, w * (0.11 - 0.06 * (rise / (h * 1.05))))
+    const a = Math.max(0, (0.5 + idx * 0.04) * (1 - rise / (h * 1.05)))
+    c.globalAlpha = a; c.shadowColor = look.glow; c.shadowBlur = 12
+    c.fillStyle = i % 2 ? look.hi : look.lo
+    c.beginPath(); c.arc(fx + flick, ly, r, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  c.globalAlpha = 0.95; c.fillStyle = look.hi; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText(look.label, x + w / 2, y - h * 0.15)
+  c.restore()
+}
+
 // GENOS — VOID SOVEREIGN overlay (skins). On the near-black void silhouette: a CYBERNETIC circuit/data-line
 // field (drifting bright pulses running along short circuit traces + twinkling nodes) — themed to his machine
 // body rather than a generic star-field — plus his signature glowing YELLOW cyborg eyes. Stable seeded layout
@@ -9051,6 +9106,7 @@ function updateFighterState(fighter) {
   applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
   applyFriezaFormSystem(updated)     // Frieza Golden/Black: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
+  applyGokuFormSystem(updated)       // Goku SSJ ladder: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   applyOmniManFlightSystem(updated)  // Omni-Man Flight: shared-pool Smart Atoms drain while flying → forced descent at 0 → landing-recovery window (BEFORE applyGravity, which then hovers/falls him)
   updateMiscTimers(updated)
@@ -9932,6 +9988,7 @@ function renderHybridFighter(fighter) {
     drawGodspeedAura(c, fighter)       // Killua Godspeed electric-afterimage trail, behind the body (Killua only)
     drawFlashAura(c, fighter)          // Flash — Flash Time red/gold afterimage trail, behind the body (Flash only)
     drawGonAdultAura(c, fighter)       // Gon — Adult Form green Nen aura/afterimage, behind the body (Gon only)
+    drawGokuFormAura(c, fighter)       // Goku — SSJ ladder transformed-state aura + label (procedural box indicator; Goku only, transformIndex>0)
     drawMiwaVortex(c, fighter)         // Miwa — Rapid Slash Vortex FX, a separate overlay layer in front of the body (Miwa only)
     drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
@@ -14192,6 +14249,10 @@ gameLoop()
     p1BlackFriezaEnter:  () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterBlackFrieza(p1, getAbilityContext()) } return false },   // Golden→Black directly (test-only; requires Golden active)
     p1FriezaRevert:      () => { if (p1) { if (p1._blackFriezaActive) revertBlackFrieza(p1); else if (p1._goldenFriezaActive) revertGoldenFrieza(p1); return true } return false },   // charge-tap revert to base (test-only)
     p1FriezaSetEnergy:   (v = 0) => { if (p1) { p1.energy = v; return p1.energy } return null },   // force Ki level (test-only — drive the drain auto-revert)
+    p1GokuStepForm:      () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; return enterGokuNextForm(p1, getAbilityContext()) } return false },   // step UP Goku's ladder (test-only; respects the threshold gate)
+    p1GokuRevert:        () => { if (p1) { revertGoku(p1); return true } return false },   // revert Goku to base (test-only)
+    p1GokuSetEnergy:     (v = 0) => { if (p1) { p1.energy = v; return p1.energy } return null },   // force Ki level (test-only — drive the drain auto-revert / gate)
+    p1GokuForm:          () => (p1 ? { idx: p1.transformIndex || 0, form: p1.currentForm || "base", dmg: p1.damageMultiplier || 1, spd: p1.speedMultiplier || 1, def: p1.defenseMultiplier || 1, energy: p1.energy, autoDodge: !!p1.autoDodge } : null),   // Goku transform state (test-only)
     // SIX PATHS OF PAIN — Path-swap harness. sixPaths() reads live swap state; setPath() forces a swap
     // deterministically (clears gates + energy so the swap actually applies, bypassing input timing).
     sixPaths: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (!f) return null; return { rosterKey: f.rosterKey, path: f._path || 0, name: f._sixPathsName || "Deva Path", swapCd: f._sixPathsSwapCd || 0, energy: f.energy, maxEnergy: f.maxEnergy, skinAnim: !!f._skinAnim, castMove: f._spriteCastMove || null, teleportFlash: f.teleportFlash || 0, gakidoShield: f._gakidoShield || 0, gakidoAbsorbed: f._gakidoAbsorbed || 0, ningendoRipped: f._ningendoRipped || 0, lastAsuraShot: f._lastAsuraShot || null, narakaJudged: f._narakaJudged || 0, narakaHealed: f._narakaHealed || 0, lastChiku: f._lastChikuSummon || null } },

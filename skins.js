@@ -1314,6 +1314,12 @@ export const SKINS = {
   frieza: [
     { id: "default",             name: "Default",           unlockLevel: 0, portrait: characters.frieza?.portrait,                     spriteScale: characters.frieza?.spriteScale, animationData: null }
   ],
+  // Piccolo (Dragon Ball, Extreme Butoden) — DEFAULT only (Stage 1). The 3 built-in alt-palette swatches on the
+  // sheet (purple / dark-teal / grey) are FUTURE skin candidates, not wired yet. The default entry is REQUIRED so
+  // applySkin() pulls spriteScale (else the char shrinks to source-pixel size).
+  piccolo: [
+    { id: "default",             name: "Default",           unlockLevel: 0, portrait: characters.piccolo?.portrait,                    spriteScale: characters.piccolo?.spriteScale, animationData: null }
+  ],
   // Saitama — Default + 13 creative skins (tools/gen_saitama_creative.py). THREE clothing regions recolored
   // per skin (SUIT-yellow / CAPE+trim-grey / GLOVES+boots-red), measured from the wired uniform sheets; the
   // BALD HEAD + face skin tone is NEVER touched (sat/warm-gated out). Masks are computed from the ORIGINAL

@@ -67,7 +67,7 @@ values are under each character's **Flags**.
 - **Stats:** HP 1100 · EN 200 · 90/80/98 · **Normals (raw→×0.60):** light 42→25 / heavy 80→48 (kick) / up 62→37 launcher / air 52→31 / down_air 60→36 / grab 28→17
 - **Rush rekka (Fwd+Heavy, cancel-on-hit):** 40→24 · 46→28 · 84→50 launcher (~102 EFF full chain)
 - **Specials (raw→×0.60·cost):** Death Beam 78→47·22 (piercing beam) · Ki Blast 26×3→~47·24 (crystal volley) · Death Ball 120→72·45 (sphere) · Psycho Teleport 74→44·28 (i-frame blitz)
-- **Transformations:** **Golden Frieza** — timed MODE on Charge (hold-release, 70 EN): peak 5s ×1.40 dmg/×1.20 spd → sharp drop-off to ×1.05/×1.00 over 3s → auto-revert crash (spd ×0.80). **Ultimate = Black Frieza** — cinematic guaranteed 340→204 · 100 EN (ends Golden, no drawback).
+- **Transformations (ladder, SAME model as Vegeta / Goku Black — charge hold-release steps up, tap reverts, continuous Ki drain, auto-revert at 0):** base → **GOLDEN** (≥100 Ki, drain 0.18/f) 1.25/1.18/1.08 → **BLACK** (≥150 Ki, needs Golden, drain 0.30/f) 1.50/1.32/1.15. All-around DMG/SPD/DEF boost bought with energy drain. No separate ultimate (reaching Black IS the payoff).
 - **Flags:** **[NO HANDLER]** — data only.
 
 ## Cell — dragon_ball *(non-sprite placeholder)*

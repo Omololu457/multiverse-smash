@@ -102,6 +102,15 @@ export const SOURCED_ART = {
     source:  "ripped 3DS sprite sheet (3DS - Dragon Ball Z_ Extreme Butoden - Fighters - Frieza.png)",
     files:   ["frieza_*.png"]
   },
+  // Piccolo (Dragon Ball Z: Extreme Butoden). Ripped 3DS fighting-game sprite sheet (same source family as
+  // Frieza). ★ATTRIBUTION PENDING — sprite-rip author not yet identified (likely The Spriters Resource).
+  // Confirm before ship.
+  piccolo: {
+    work:    "Piccolo (Dragon Ball Z: Extreme Butoden)",
+    artists: ["Arc System Works / Bandai Namco (original 3DS game); sprite-rip author UNKNOWN — TODO: confirm before ship"],
+    source:  "ripped 3DS sprite sheet (3DS - Dragon Ball Z_ Extreme Butoden - Fighters - Piccolo.png)",
+    files:   ["piccolo_*.png"]
+  },
   // Isshiki Otsutsuki (Naruto / Boruto). Fan-made sprite sheet — attribution to the original
   // DeviantArt author is MANDATORY (mirrors Jason/Ghostface/Red Ranger).
   isshiki: {
@@ -161,7 +170,7 @@ export const SOURCED_ART = {
 // This list is EXPLICIT (not a wildcard) so a newly-added character is caught by the test until
 // its provenance is declared — either here, or in SOURCED_ART with a named artist.
 export const PROJECT_ART_KEYS = [
-  "goku", "goku_black", "vegeta", "piccolo", "cell",   // frieza MOVED to SOURCED_ART (now a real ripped sprite sheet, no longer procedural project-art)
+  "goku", "goku_black", "vegeta", "cell",   // frieza + piccolo MOVED to SOURCED_ART (now real ripped sprite sheets, no longer procedural project-art)
   "sukuna", "omololu", "maki", "yuji",
   "naruto", "sasuke", "itachi", "tobirama", "hashirama", "minato", "madara", "obito", "tobi",
   "zenitsu", "rengoku", "shinobu", "inosuke", "nezuko",

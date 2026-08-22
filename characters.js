@@ -218,32 +218,106 @@ const piccolo = {
   animationData: { ...DEFAULT_ANIM }
 }
 
+// FRIEZA  (rosterKey "frieza", universe "dragon_ball") — the Emperor of Universe 7, BASE/FINAL FORM only
+// (white body, purple accent markings, long animated tail). UPGRADED from the old dev-only procedural
+// placeholder into a real sprite build. An agile TECHNICAL ZONER/RUSHDOWN: fast, hits sharp, but a
+// comparatively frail frame (Def below roster-average). Signature ranged game = ki blasts / a pointing
+// Death-Beam + a hunched power-up ULTIMATE. ★Golden & Black Frieza are OUT OF SCOPE — they build LATER as
+// palette-tier SKINS over this same kit's regions from a separate sheet (NOT transformations; the old
+// goldenFrieza transformation was intentionally REMOVED). Source: "3DS - Dragon Ball Z_ Extreme Butoden -
+// Fighters - Frieza.png" (2132×7556). ★GREEN-FILLED cells (not row-dividers) → re-sliced feet-aligned to
+// frieza_*_uniform.png by tools/reslice_frieza.py. See FRIEZA_ASSET_MAP.md. Owner decisions LOCKED:
+// crystals = projectile FX / procedural beam / power-up = ult. STAGE 1 = registration + movement/state +
+// anime-face portrait. Normals (S2), command chain (S3), specials incl. beam/Death-Beam (S4), power-up
+// ultimate (S5), win/lose + harness/balance (S6) follow.
+// ★IMAGE-CAPPED build session: idle loop CONFIRMED; crouch confirmed by height data; walk/run/dash/jump +
+//   hurt/knockdown/getup pose-IDs are best-effort region picks — FLAGGED for pixel sign-off next session.
 const frieza = {
-  rosterKey: "frieza", name: "Frieza", universe: "dragon_ball", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
-  archetypes: ["melee", "ranged"],
-  primary: "ranged", secondary: ["melee"],
+  rosterKey: "frieza", name: "Frieza", universe: "dragon_ball", color: "#b06fe0",
+  portrait: "./frieza_portrait.png",   // Stage 1 — real anime-face close-up cropped from the sheet's portrait row.
+  archetypes: ["zoner", "rushdown"],
+  primary: "melee", secondary: ["zoner"],
   traits: { hasEnergy: true, energyType: "ki", mobility: "high", scaling: "burst", animeMovement: true },
-  stats: { maxHealth: 1200, maxEnergy: 170, attack: 90, defense: 84, speed: 88, maxJumps: 2, jumpPower: 32, dashSpeed: 17, dashDuration: 9, dashCooldownMax: 38 },
+  movement: { dashTeleport: false },
+  energyConfig: { label: "Ki", color: "#b06fe0", glowColor: "#d9a8ff", emptyColor: "rgba(255,255,255,0.08)" },
+  passive: { name: "Emperor's Might", effect: "The Emperor of Universe 7 — sharp, fast, beam-heavy offense from a lithe frame that trades durability for reach and speed." },
+  // Glass technical zoner/rushdown: HP + Def below roster-average, offense + mobility carry. Canonically short
+  // final form → renders a touch shorter than the tall anime humans (spriteScale below).
+  stats: { maxHealth: 1100, maxEnergy: 200, attack: 90, defense: 80, speed: 98, maxJumps: 2, jumpPower: 32, dashSpeed: 21, dashDuration: 10, dashCooldownMax: 26 },
+  // ── Normal-attack DATA (placeholder ~roster-average; real per-move art + tuning lands in Stage 2). All
+  // damage runs through GLOBAL_DAMAGE_SCALE (×0.60) like every character. Un-mapped attack anims fall back
+  // to idle until Stage 2 assigns light/heavy/air sheets.
   basic_attacks: {
-    light:     { damage: 45, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 85, startup: 8, active: 4, recovery: 18, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack:  { type: "launcher", damage: 70, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launchVy: -32, selfVy: -9 },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
-    airAttack: { damage: 60, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 80, startup: 9, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 10 },
-    grab:      { damage: 28, startup: 5, active: 3, recovery: 13, hitstun: 18, throwForceX: 4, throwForceY: -3 }
+    light:    { damage: 42, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },  // per-hit 25 (×0.60); fast enough to double-tap under a held button
+    heavy:    { damage: 80, startup: 8, active: 3, recovery: 17, hitstun: 19, knockbackX: 6, knockbackY: 1, rangeX: 88, rangeY: 44 },
+    upAttack: { type: "launcher", damage: 62, startup: 6, active: 3, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, airOK: false },
+    airAttack:{ damage: 52, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 4, knockbackY: -2 },
+    downAir:  { damage: 60, startup: 5, active: 3, recovery: 11, hitstun: 16, knockbackX: 2, knockbackY: 6 },
+    grab:     { damage: 28, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }
   },
+  // ── Special DATA (Stage 4) — behaviour + real numbers live in abilities.js FRIEZA_SPECIALS; listed here for
+  // the move-list UI. Directional branch: neutral=Death Beam / Fwd,U,air=Ki Blast / Down=Death Ball / Back=Teleport.
   specials: {
-    deathBeam:         { cost: 20, damage: 90, startup: 8, active: 3, recovery: 16, hitstun: 16, knockbackX: 6, knockbackY: -1, effect: "precise ki blast" },
-    novaStrike:        { cost: 30, damage: 140, startup: 12, active: 5, recovery: 22, hitstun: 24, knockbackX: 10, knockbackY: -2, effect: "large ki explosion" },
-    ultimateDeathBall: { cost: 50, damage: 200, startup: 20, active: 6, recovery: 30, hitstun: 32, knockbackX: 14, knockbackY: -4, effect: "huge energy sphere" }
+    deathBeam:    { cost: 22, isSpecial: true, effect: "Death Beam (neutral) — fast thin PIERCING procedural ki-beam" },
+    kiBlast:      { cost: 24, isSpecial: true, effect: "Ki Blast (Fwd/Up/air) — rapid 3-shot crystal-sprite volley" },
+    deathBall:    { cost: 45, isSpecial: true, effect: "Death Ball (Down) — big slow heavy energy sphere" },
+    psychoTeleport:{ cost: 28, isSpecial: true, effect: "Psycho Teleport (Back) — i-frame blitz dash-strike" }
   },
-  ultimate: { name: "Golden Frieza", cost: 100, duration: 8, effect: "Massive speed and attack boost" },
-  transformationOrder: ["base","goldenFrieza"],
+  hasSprites: true,
+  // idle silhouette ~130px tall at ×1.0 (the long up-curled tail inflates the bbox above the head) → ×0.88
+  // renders ~120px including tail / ~95px body-only: canon-appropriately a touch shorter than the roster's
+  // full-size humans. anchorY 0 plants feet. Verified via measureSprite in Stage 1 (contentH lands in-band).
+  spriteScale: 0.88,
+  animationData: {
+    // ── STAGE 1 — MOVEMENT / STATE (reslice'd feet-aligned *_uniform.png; anchorY 0 plants feet). ──
+    idle:      { frames: 3, width: 96,  height: 147, speed: 8, anchorY: 0, sheet: "./frieza_idle_uniform.png" },          // ★AUDIT-CORRECTED: clean 3-frame neutral tail-sway loop (old [18..23] had hand-to-face reactions + a taunt)
+    walk:      { frames: 3, width: 96,  height: 147, speed: 8, anchorY: 0, sheet: "./frieza_idle_uniform.png" },          // ★AUDIT: NO walk cycle exists on the sheet (hover/dash fighter) → BORROW idle (honest gap, no fabricated locomotion)
+    run:       { frames: 3, width: 96,  height: 147, speed: 8, anchorY: 0, sheet: "./frieza_idle_uniform.png" },          // ★AUDIT: no run art either → BORROW idle (same gap)
+    dash:      { frames: 1, width: 132, height: 125, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_dash_uniform.png" }, // FLAGGED forward lean-lunge
+    jump:      { frames: 2, width: 84,  height: 170, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_jump_uniform.png" }, // FLAGGED tall vertical reach
+    fall:      { frames: 1, width: 84,  height: 170, speed: 6, anchorY: 0, sourceX: 84, loop: false, lockLastFrame: true, sheet: "./frieza_jump_uniform.png" }, // last jump cell held as fall
+    crouch:    { frames: 3, width: 122, height: 91,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_crouch_uniform.png" }, // confirmed-by-height low frames
+    hurt:      { frames: 2, width: 127, height: 108, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_hurt_uniform.png" },      // FLAGGED stagger flinch
+    knockdown: { frames: 2, width: 146, height: 54,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_knockdown_uniform.png" }, // FLAGGED flat/prone
+    getup:     { frames: 2, width: 110, height: 61,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_getup_uniform.png" },     // FLAGGED low → rise
+    taunt:     { frames: 4, width: 125, height: 117, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_taunt_uniform.png" },     // FLAGGED arms-crossed confident gesture
+    // ── STAGE 2 — normals + guard (render by move name; basic_attacks data above; all dmg ×0.60 GLOBAL_DAMAGE_SCALE). ──
+    light:    { frames: 2, width: 146, height: 102, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_light_uniform.png" },  // FLAGGED quick forward punch/jab
+    heavy:    { frames: 1, width: 156, height: 103, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_heavy_uniform.png" },  // CONFIRMED motion-streak kick (white trail)
+    up:       { frames: 1, width: 156, height: 103, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_heavy_uniform.png" },  // HONEST REUSE of heavy (no upward art) — launcher-typed
+    air:      { frames: 1, width: 100, height: 148, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_air_uniform.png" },    // FLAGGED airborne attack
+    down_air: { frames: 1, width: 100, height: 148, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_air_uniform.png" },    // HONEST REUSE of air
+    guard:    { frames: 1, width: 122, height: 108, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_guard_uniform.png" },  // FLAGGED arms-crossed brace
+    // ── STAGE 3 — command chain: Fwd+Heavy 3-stage rush rekka (rendered by move name; FRIEZA_CMD data in abilities.js). ──
+    friezaRush1: { frames: 4, width: 143, height: 105, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_rush1_uniform.png" }, // opener (forward strike string)
+    friezaRush2: { frames: 4, width: 126, height: 111, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_rush2_uniform.png" }, // rapid follow strikes
+    friezaRush3: { frames: 3, width: 167, height: 106, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_rush3_uniform.png" }, // launcher finisher
+    // ── STAGE 4 — special cast poses (rendered by _spriteCastMove; real DATA in abilities.js FRIEZA_SPECIALS). ──
+    friezaDeathbeam: { frames: 2, width: 106, height: 118, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_deathbeam_uniform.png" }, // Death Beam pointing cast
+    friezaKiblast:   { frames: 2, width: 92,  height: 97,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_kiblast_uniform.png" },   // Ki Blast firing cast (air reuses)
+    friezaDeathball: { frames: 2, width: 105, height: 132, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_deathball_uniform.png" }, // Death Ball charge cast
+    friezaTeleport:  { frames: 1, width: 132, height: 125, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_dash_uniform.png" },       // Psycho Teleport (HONEST REUSE of dash lunge)
+    // ── TRANSFORM POSE (hunched power-up stance, boxes 118–120) — the shared cast pose for BOTH the Golden
+    //    Frieza ignite AND the Black Frieza ultimate cinematic (via _spriteCastMove = "friezaOverload"). ──
+    friezaOverload:  { frames: 3, width: 155, height: 140, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_overload_uniform.png" },   // power-up ignite / transform cast
+    // ── STAGE 6 — win / lose poses. WIN = band-L standing victory stance; LOSE = REUSE knockdown (no dedicated lose art — flagged). ──
+    win:  { frames: 3, width: 97,  height: 117, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_win_uniform.png" },       // victory: confident standing stance
+    lose: { frames: 2, width: 146, height: 54,  speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./frieza_knockdown_uniform.png" }  // REUSE knockdown (flagged)
+  },
+  // ── TRANSFORMATIONS (real in-match forms; NOT skins). base → GOLDEN → BLACK ladder, SAME mechanic as
+  // Vegeta / Goku Black: threshold-gated on the CHARGE button (hold-release steps up, tap reverts), a
+  // continuous per-frame Ki DRAIN pays for the form, and it auto-reverts the instant Ki hits 0. A Dragon Ball
+  // transform is an all-around DMG+SPD+DEF boost bought with energy drain. Logic in abilities.js
+  // (enterGoldenFrieza / enterBlackFrieza / applyFriezaFormSystem); art = a canvas tint (sprite.js). NO
+  // separate ultimate — reaching Black IS the payoff (Vegeta has no ultimate either).
+  transformationOrder: ["base", "golden", "black"],
   transformations: {
-    base:         { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
-    goldenFrieza: { damageMultiplier: 2, speedMultiplier: 1.5, defenseMultiplier: 1.2, energyDrainPerFrame: 6 / 60, kiDrainPerSecond: 6, isSpecial: true, duration: 720 }
+    base:   { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 },
+    golden: { damageMultiplier: 1.25, speedMultiplier: 1.18, defenseMultiplier: 1.08, energyThreshold: 100, energyDrainPerFrame: 0.18, kiDrainPerSecond: 11, revertOnEmpty: true, isSpecial: true },                        // Golden Frieza — Vegeta-SSJ tier
+    black:  { damageMultiplier: 1.50, speedMultiplier: 1.32, defenseMultiplier: 1.15, energyThreshold: 150, energyDrainPerFrame: 0.30, kiDrainPerSecond: 18, revertOnEmpty: true, requiresForm: "golden", isSpecial: true },  // Black Frieza — ceiling tier (chains off Golden)
   },
-  animationData: { ...DEFAULT_ANIM }
+  ultimate: { name: "Golden / Black Frieza", cost: 0, description: "No separate ultimate — Frieza's power ceiling is the base → GOLDEN → BLACK transformation ladder on the Charge button (hold-release to step up, tap to revert). Each form boosts damage, speed & defense but continuously DRAINS Ki and reverts when empty (same as Vegeta / Goku Black)." },
+  introPool: ["idle"]   // no dedicated intro art identified yet (Stage 6 gap) — settles to idle
 }
 
 const cell = {
@@ -4593,6 +4667,67 @@ const ghostface = {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// BILLY GHOSTFACE  (rosterKey "ghostface_billy", universe "horror") — the FIRST of the 12
+// "[Killer] Ghostface" variants to go LIVE (registered here; the other 11 remain NEEDS_DESIGN
+// and UNREGISTERED in ghostfaceVariantKit.js). Billy Loomis behind the mask — the calculated
+// mastermind. He renders on the REAL Billy-identity art (ghostface_*_uniform__billy.png, the
+// pre-baked crimson "Founder's Mask" slice), NOT the neutral placeholder. Kit = the shared
+// Ghostface base (stats/normals mirror the original) + working knife Special + The Final Act
+// ultimate (reuses the un-gated shared helpers in abilities.js — executeBillyGhostfaceSpecial/
+// Ultimate). His UNIQUE reactive Delayed Counter-Stab / The Last Reveal are designed in
+// ghostfaceVariantKit.js and need reactive-combat wiring — a flagged follow-up, not stubbed here.
+// ─────────────────────────────────────────────────────────────────
+const ghostface_billy = {
+  rosterKey: "ghostface_billy", name: "Billy Ghostface", universe: "horror", color: "#6E1520",
+  portrait: "./ghostface_portrait__billy.png",   // real Billy-identity bust (crimson slice)
+  archetypes: ["rushdown", "technical"],
+  primary: "rushdown", secondary: ["technical"],
+  traits: { hasEnergy: true, energyType: "dread", mobility: "high", scaling: "combo", animeMovement: false },
+  // Mirrors the original Ghostface base stats (BASE_STATS in ghostfaceVariantKit.js) — fragile-fast stalker.
+  stats: { maxHealth: 1040, maxEnergy: 100, attack: 85, defense: 80, speed: 95, maxJumps: 2, jumpPower: 32, dashSpeed: 20, dashDuration: 9, dashCooldownMax: 30 },
+  basic_attacks: {
+    light:    { damage: 34, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 66, startup: 7, active: 3, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 104, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 54, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -8, airOK: false },
+    airAttack:{ damage: 46, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 58, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }
+  },
+  // Real logic in abilities.js (executeBillyGhostfaceSpecial): Fwd/neutral = Gutting Lunge (bleed), Down = Low Gut (knockdown).
+  specials: {
+    guttingLunge: { cost: 25, damage: 50, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 6, knockbackY: -4, effect: "dashing knife lunge (gap-closer) — leaves a BLEED DoT on a clean hit" },
+    lowGut:       { cost: 20, damage: 42, startup: 6, active: 3, recovery: 18, hitstun: 22, knockbackX: 4, knockbackY: -1, effect: "low sweeping gut-slash — trips (knockdown) on hit" }
+  },
+  ultimate: { name: "The Final Act", cost: 100, description: "Freeze-cinematic — Billy stalks in and unleashes a guaranteed flurry of stabs (range-independent; blocked → 25%)." },
+  hasSprites: true,
+  spriteScale: 0.982,
+  animationData: {
+    idle:  { frames: 3, width: 75,  height: 116, speed: 8, anchorY: 0, sheet: "./ghostface_idle_uniform__billy.png" },
+    walk:  { frames: 4, width: 80,  height: 115, speed: 6, anchorY: 0, sheet: "./ghostface_walk_uniform__billy.png" },
+    run:   { frames: 4, width: 80,  height: 115, speed: 4, anchorY: 0, sheet: "./ghostface_walk_uniform__billy.png" },
+    dash:  { frames: 4, width: 80,  height: 115, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_walk_uniform__billy.png" },
+    jump:  { frames: 2, width: 105, height: 118, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_jump_uniform__billy.png" },
+    fall:  { frames: 1, width: 105, height: 118, speed: 6, anchorY: 0, sourceX: 105, loop: false, lockLastFrame: true, sheet: "./ghostface_jump_uniform__billy.png" },
+    guard: { frames: 1, width: 82,  height: 108, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_guard_uniform__billy.png" },
+    hurt:  { frames: 1, width: 122, height: 114, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./ghostface_hit_uniform__billy.png" },
+    knockdown: { frames: 3, width: 122, height: 114, speed: 6, anchorY: 0, sourceX: 122, loop: false, lockLastFrame: true, sheet: "./ghostface_hit_uniform__billy.png" },
+    crouch: { frames: 2, width: 79, height: 102, speed: 8, anchorY: 0, loop: true, sheet: "./ghostface_crouch_uniform__billy.png" },
+    charge: { frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: true, sheet: "./ghostface_taunt_uniform__billy.png" },
+    taunt:  { frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_taunt_uniform__billy.png" },
+    light:    { frames: 3, width: 103, height: 110, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_slash_uniform__billy.png" },
+    heavy:    { frames: 1, width: 125, height: 115, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_charge_uniform__billy.png" },
+    up:       { frames: 1, width: 97,  height: 124, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_up_uniform__billy.png" },
+    air:      { frames: 1, width: 97,  height: 124, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_up_uniform__billy.png" },
+    down_air: { frames: 3, width: 107, height: 128, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_downair_uniform__billy.png" },
+    // SPECIAL cast poses (direction-branched in executeBillyGhostfaceSpecial).
+    gfLunge:  { frames: 1, width: 125, height: 115, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_charge_uniform__billy.png" },
+    gfLowCut: { frames: 3, width: 97,  height: 88,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_lowslash_uniform__billy.png" },
+    // ULTIMATE cast pose — held through The Final Act cinematic.
+    gfUlt:    { frames: 3, width: 103, height: 110, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_slash_uniform__billy.png" }
+  },
+  introPool: ["idle"]
+}
+
+// ─────────────────────────────────────────────────────────────────
 // JASON VOORHEES  (rosterKey "jason", universe "horror" — 2nd horror char after Ghostface).
 // Source = xxultra2006xx DeviantArt sheet (attribution MANDATORY, see credits.js). A genuinely
 // LEAN kit given sparse source art: 5 normals + 2 crouch swaps, ONE lean special (Stage 3), and
@@ -5247,6 +5382,98 @@ const saitama = {
 // STAGE 1 intro = 3 source parts stitched into ONE ordered strip (getup-from-lying → run backwards →
 // settle-to-idle; final frame hands off to idle). Built by tools/stitch_saitama_intro.py at Stage 1.
 saitama.animationData.intro = { frames: 17, width: 53, height: 65, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./saitama_intro_full_uniform.png" }
+
+// ─────────────────────────────────────────────────────────────────
+// GENOS  (rosterKey "genos", universe "one_punch_man") — the Demon Cyborg, Saitama's disciple. 2nd OPM char.
+// A jet-boosted RANGE/RUSHDOWN hybrid: fast, offense-heavy, but comparatively frail (canon: hits hard,
+// takes hits worse — Def below roster-average). Signature = the Incineration Cannon (a 3-tier hold-charge
+// blast) + Machine Gun Blows flurry + jet/afterimage dashes, capped by an Overdrive ultimate (band-13
+// overheat power-up with a real drawback). Source: single teal-keyed master sheet
+// ddk5eh3-5cfadb89-4c66-4fc4-b56f-bcb3d538c4f8.png (DeviantArt; ★artist UNKNOWN → credits.js pending).
+// RE-SLICED feet-aligned to genos_*_uniform.png by tools/reslice_genos.py. See GENOS_ASSET_MAP.md.
+// STAGE 1 = registration + movement/state (idle/taunt/walk/dash/run/jump/hurt/knockdown/getup). Normals
+// (S2), command chains (S3), specials incl. Incineration Cannon charge-tiers (S4), Overdrive ult (S5),
+// portrait/win/lose + harness/balance (S6) follow.
+const genos = {
+  rosterKey: "genos", name: "Genos", universe: "one_punch_man", color: "#f2c14e",
+  portrait: "./genos_portrait.png",   // Stage 1 — bust cropped from idle; falls back cleanly until upgraded.
+  archetypes: ["rushdown", "zoner"],
+  primary: "melee", secondary: ["zoner"],
+  traits: { hasEnergy: true, energyType: "core", mobility: "high", scaling: "burst", animeMovement: true },
+  // Jet-boosted mobility — double-tap toward = dash (uses Genos's own dash sprite via the speed-tier default).
+  movement: { dashTeleport: false },
+  // "Core" reserve (the cyborg's power core) gates the Incineration charge-tiers + Overdrive — the resource
+  // IS the balance lever. Explicit HUD label + amber accent.
+  energyConfig: { label: "Core", color: "#f2c14e", glowColor: "#ffd97a", emptyColor: "rgba(255,255,255,0.08)" },
+  passive: { name: "Demon Cyborg", effect: "Dr. Kuseno's combat chassis — powerful jet-boosted offense, but a frail frame that takes hits harder than most." },
+  // Glass rushdown/zoner: HP + Def below roster-average (frail cyborg frame), offense carries. Fast.
+  stats: { maxHealth: 1080, maxEnergy: 200, attack: 92, defense: 78, speed: 96, maxJumps: 2, jumpPower: 30, dashSpeed: 22, dashDuration: 10, dashCooldownMax: 26 },
+  // ── Normal-attack DATA (Stage 2) — ~roster-average; the Incineration/Overdrive payoffs carry the power
+  // fantasy, not the base normals. All damage runs through GLOBAL_DAMAGE_SCALE (×0.60) like every character.
+  // Sheet is punch/blast-only — no upward/kick/aerial art exists, so up REUSES heavy, down_air REUSES air.
+  basic_attacks: {
+    light:    { damage: 44, startup: 4, active: 2, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },                                    // band4 jab (un-ignited)
+    heavy:    { damage: 82, startup: 8, active: 3, recovery: 17, hitstun: 20, knockbackX: 6, knockbackY: 1, rangeX: 92, rangeY: 46 },             // band4 palm-cannon (short disjoint fire)
+    upAttack: { type: "launcher", damage: 62, startup: 6, active: 3, recovery: 15, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, airOK: false }, // reuse heavy sheet (no upward art)
+    airAttack:{ damage: 54, startup: 4, active: 2, recovery: 9,  hitstun: 13, knockbackX: 4, knockbackY: -2 },                                    // band8 jet-dash punch
+    downAir:  { damage: 60, startup: 5, active: 3, recovery: 11, hitstun: 16, knockbackX: 2, knockbackY: 6 }                                      // reuse air sheet (downward jet-punch)
+  },
+  hasSprites: true,
+  // Normal-height cyborg. idle body ~69px content at scale 1.0 → target ~112px on-screen (ties naruto/gojo/
+  // handler, the roster's "full-size human" mark — the initial 1.5→104px read a touch small). 69 × 1.62 ≈
+  // 112px. anchorY 0 plants feet. Verified via measureSprite in Stage 1.
+  spriteScale: 1.62,
+  animationData: {
+    // ── STAGE 1 — MOVEMENT / STATE (reslice'd feet-aligned *_uniform.png; anchorY 0 plants feet). ──
+    idle:      { frames: 4,  width: 27, height: 71, speed: 8, anchorY: 0, sheet: "./genos_idle_uniform.png" },
+    walk:      { frames: 8,  width: 31, height: 71, speed: 6, anchorY: 0, sheet: "./genos_walk_uniform.png" },
+    run:       { frames: 10, width: 45, height: 76, speed: 4, anchorY: 0, sheet: "./genos_run_uniform.png" },
+    dash:      { frames: 2,  width: 60, height: 47, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_dash_uniform.png" },
+    jump:      { frames: 3,  width: 32, height: 91, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_jump_uniform.png" },
+    fall:      { frames: 1,  width: 32, height: 91, speed: 6, anchorY: 0, sourceX: 64, loop: false, lockLastFrame: true, sheet: "./genos_jump_uniform.png" }, // last jump cell held as fall
+    hurt:      { frames: 3,  width: 40, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_hurt_uniform.png" },
+    knockdown: { frames: 4,  width: 65, height: 39, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_knockdown_uniform.png" }, // fall→prone→bowed leak
+    getup:     { frames: 5,  width: 48, height: 71, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_getup_uniform.png" },    // rise w/ core-spark → stand
+    // Taunt (band 1 gesture) — non-combat; wired via taunt input.
+    taunt:     { frames: 6,  width: 45, height: 71, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_taunt_uniform.png" },
+    // ── STAGE 2 — normals + guard (render by move name; basic_attacks data above). ──
+    light:    { frames: 3, width: 45, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_light_uniform.png" }, // band4 jab
+    heavy:    { frames: 6, width: 58, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_heavy_uniform.png" }, // band4 palm-cannon (disjoint fire)
+    up:       { frames: 6, width: 58, height: 71, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_heavy_uniform.png" }, // HONEST REUSE of heavy (no upward art) — launcher-typed
+    air:      { frames: 4, width: 76, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_air_uniform.png" },   // band8 jet-dash punch
+    down_air: { frames: 4, width: 76, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_air_uniform.png" },   // HONEST REUSE of air
+    guard:    { frames: 2, width: 38, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_guard_uniform.png" }, // crossed-arms (fills Stage-1 gap)
+    // ── STAGE 3 — command chain: Fwd+Heavy 3-stage rush rekka (rendered by move name; GENOS_CMD data in abilities.js). ──
+    genosRush1: { frames: 5, width: 57, height: 64, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_rush1_uniform.png" }, // opener (forward punches)
+    genosRush2: { frames: 7, width: 70, height: 66, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_rush2_uniform.png" }, // rapid streak-burst (multi-hit)
+    genosRush3: { frames: 8, width: 73, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_rush3_uniform.png" }, // spinning charge launcher finisher
+    // ── STAGE 4 — specials (rendered by move name / cast pose; real DATA lives in abilities.js GENOS_INCINERATION / GENOS_SPECIALS). ──
+    genosIncinerate1: { frames: 7, width: 117, height: 62,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_incinerate1_uniform.png" }, // Incineration Cannon tier 1 (small)
+    genosIncinerate2: { frames: 6, width: 152, height: 65,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_incinerate2_uniform.png" }, // tier 2 (big burst)
+    genosIncinerate3: { frames: 5, width: 128, height: 191, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_incinerate3_uniform.png" }, // tier 3 (GIANT flame column)
+    genosMachinegun:  { frames: 7, width: 123, height: 82,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_machinegun_uniform.png" },  // Machine Gun Blows (ground + air)
+    genosJetdash:     { frames: 7, width: 70,  height: 64,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_jetdash_uniform.png" },     // Jet Dash (gap-closer)
+    genosAfterimage:  { frames: 9, width: 73,  height: 67,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_afterimage_uniform.png" }, // Afterimage Dash (blitz → strike)
+    // ── STAGE 5 — Overdrive ultimate ignite pose (band 13 flame-column). ──
+    genosOverdrive:   { frames: 6, width: 49,  height: 127, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_overdrive_uniform.png" }, // Overdrive ignite (rise → flame column)
+    // ── STAGE 6 — win / lose poses. WIN = real band-20 fist-raised tail; LOSE = REUSE knockdown (no dedicated lose art — flagged). ──
+    win:  { frames: 5, width: 45, height: 71, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_win_uniform.png" },      // victory: stand → fist-raised
+    lose: { frames: 4, width: 65, height: 39, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./genos_knockdown_uniform.png" } // REUSE knockdown (flagged)
+  },
+  // ── ULTIMATE (Stage 5) — Overdrive: timed power-up MODE (Option B). ~7s ×1.35 dmg / ×1.15 speed, then
+  // auto-reverts with an OVERHEAT drawback (8% self-damage + ~2s bonus-damage-taken vulnerability). Data in
+  // abilities.js GENOS_OVERDRIVE; band-13 flame-aura ignite. NOT a freeze cinematic — a self-buff state.
+  ultimate: { name: "Overdrive", cost: 100, description: "Overclocks his core into a ~7s overdrive — bigger blasts and faster flurries — then the core OVERHEATS: self-damage + a brief window of extra damage taken." },
+  // ── Special DATA stubs (Stage 4) — behaviour + real numbers live in abilities.js (GENOS_INCINERATION /
+  // GENOS_SPECIALS). Listed here for the move-list UI. Incineration Cannon = neutral tap/hold 3-tier charge.
+  specials: {
+    incinerationCannon: { cost: 25, isSpecial: true, effect: "Incineration Cannon — neutral tap/hold 3-tier charge blast (tap small / hold big / full-charge GIANT column)" },
+    machineGunBlows:    { cost: 35, isSpecial: true, effect: "Machine Gun Blows (Fwd/Air) — rapid yellow jet-punch spread (multi-hit)" },
+    jetDash:            { cost: 25, isSpecial: true, effect: "Jet Dash (Down) — lunging gap-closer strike" },
+    afterimageDash:     { cost: 30, isSpecial: true, effect: "Afterimage Dash (Back) — i-frame blitz → strike" }
+  },
+  introPool: ["idle"]   // no dedicated intro art identified (Stage 6 gap) — settles to idle
+}
 
 // ─────────────────────────────────────────────────────────────────
 // OROCHIMARU  (rosterKey "orochimaru", universe "naruto" — the Sannin, the immortal snake).
@@ -6351,6 +6578,9 @@ const spiderman = {
     // the crawl's EXIT PAYOFF attack (currentMove identity key). ──
     spiderCrawl:  { frames: 7, width: 130, height: 57, speed: 4, anchorY: 0, loop: true, sheet: "./spiderman_crawl_uniform.png" },
     spiderKickup: { frames: 5, width: 143, height: 96, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./spiderman_kickup_uniform.png" },
+    // WEB-SWING (air mobility): extended reaching pose (row_25), rendered while pendulum-swinging from a
+    // web anchored to the sky. The web LINE is drawn procedurally (game.js drawSpidermanWebSwing).
+    spiderSwing:  { frames: 1, width: 105, height: 76, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./spiderman_swing_uniform.png" },
     // ── STAGE 3 SPECIAL POSES (_spriteCastMove/currentMove identity keys → sprite.js). Web Impact (neutral)
     // = quick short web puff / Web Throw (Fwd) = signature full-range web-ball / Web Bridge = the row_15
     // fanning web-net CANCEL pose from spiderCombo into Web Throw / Dash Attack (Back) = row_20 spin-punch
@@ -6834,6 +7064,205 @@ const greenLantern = {
 // ─────────────────────────────────────────────────────────────────
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// THE HANDLER (working title, rosterKey `handler`, universe jujutsu_kaisen) — a NEW standalone
+// character built from the REMOVED Megumi Fushiguro's Ten-Shadows shikigami kit + Mahoraga (NOT a
+// Megumi restoration; owner-framed as new). Built from 3 source sheets RE-SLICED feet-aligned
+// (tools/reslice_handler.py). Full Stage-0 pixel audit + owner decisions: HANDLER_ASSET_MAP.md.
+// Stage 1 = registration + movement/state ONLY. LATER: Stage 2 basic combo (blade-draw normals),
+// Stage 4 cameo-shikigami system + Ryōki Tenkai Domain (owner: 2nd signature special), Stage 5
+// Mahoraga adaptation ultimate (NEW engine scope). REQUIRES the skins.js `handler` default entry
+// (else applySkin() → spriteScale:1 native shrink) + the spritesheets.js idle gate.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const handler = {
+  rosterKey: "handler", name: "Megumi", universe: "jujutsu_kaisen",   // display name Megumi (owner-named); internal rosterKey stays `handler`
+  portrait: "./handler_portrait.png",   // bust carved from the sword-drawn win stance (Stage 6)
+  archetypes: ["summoner", "technician", "zoner"],
+  primary: "melee", secondary: ["summoner", "zoner"],
+  // energyType "cursed_energy" (shared JJK pool, already labeled in ui.js) — will fuel the cameo
+  // shikigami summons + the Ryōki Tenkai Domain special + the Mahoraga adaptation ultimate (later stages).
+  traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "medium", scaling: "versatile", animeMovement: true },
+  passive: { name: "Ten Shadows Technique", effect: "A shikigami sorcerer who calls the Ten Shadows — Divine Dogs, Nue, Toad, Max Elephant and more — as cameo allies, and can invoke the adapting Mahoraga at his limit" },
+  // PROVISIONAL stats — audited in Stage 6 against BALANCE_AUDIT.md. A summoner/technician: mid HP,
+  // deep cursed-energy pool (maxEnergy 200) for the shikigami kit + Domain + Mahoraga ult. Not a raw
+  // bruiser; edge is versatility + zoning via summons. speed 90 = grounded technician (below Yuta 94).
+  stats: { maxHealth: 1120, maxEnergy: 200, attack: 84, defense: 82, speed: 90, maxJumps: 2, jumpPower: 30, dashSpeed: 14, dashDuration: 12, dashCooldownMax: 44 },
+  movement: { crouchIdle: true },   // opt-in: holding Down shows the dedicated crouch strip
+  // HUD-only until the ultimate stage (real logic + cost live in abilities.js, later). ULT = Mahoraga:
+  // swaps in weak, then ADAPTS to repeated moves (per-move damage falloff vs him) and grows stronger —
+  // NEW engine scope (nothing tracks per-move repeat-hit history yet). See HANDLER_ASSET_MAP.md Stage 5.
+  ultimate: { name: "Mahoraga", cost: 100, description: "Invokes the Eight-Handled Sword Divergent Sila Divine General Mahoraga — a shikigami that adapts to any attack used against it, growing stronger the longer it fights." },
+  hasSprites: true,
+  // Idle content ≈58px; scale 2.0 → ~114px on-screen — right in the regular teen cluster (just above
+  // Naruto/Gojo ~112, canon-appropriate for tall-ish Megumi; the earlier 1.75/~100px read noticeably
+  // short). anchorY:0 everywhere → feet planted.
+  spriteScale: 2.0,
+  // STAGE 2 normals (combat.js _getMD reads THIS basic_attacks; sprite sheets in animationData below).
+  // Carved from the ONE ground combo string (megumi_attack_punches_kicks.png). The Handler joins the
+  // shared STANDARD_STRING grammar (abilities.js STANDARD_STRING_CHARS) → Light→Light→Heavy(launcher)
+  // auto-string = "punch → punch → blade-drawn strike", exactly the prompt's basic combo (the removed
+  // Megumi was a standard-string char too). light = fast punch, heavy = long-reach sword thrust,
+  // upAttack = rising sword-draw launcher. All run createAttackFromMove → scaled ×0.60. Special-grade tier.
+  basic_attacks: {
+    light:    { damage: 40, startup: 4, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0 },
+    heavy:    { damage: 78, startup: 10, active: 4, recovery: 20, hitstun: 20, knockbackX: 8, knockbackY: 1, rangeX: 92, rangeY: 40 },   // sword thrust — long reach
+    upAttack: { type: "launcher", damage: 60, startup: 8, active: 4, recovery: 18, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false, rangeX: 66, rangeY: 66 },   // rising sword-draw anti-air
+    downAir:  { damage: 66, startup: 8, active: 4, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 11 },
+    airAttack:{ damage: 50, startup: 6, active: 3, recovery: 12, hitstun: 14, knockbackX: 4, knockbackY: -2 }
+  },
+  animationData: {
+    // ── MOVEMENT / STATE (Stage 1, RE-SLICED feet-aligned; tools/reslice_handler.py) ──
+    idle:  { frames: 4,  width: 26, height: 62, speed: 6, anchorY: 0, sheet: "./handler_idle_uniform.png" },    // "Stance" — calm standing loop (left cluster)
+    walk:  { frames: 10, width: 26, height: 60, speed: 5, anchorY: 0, sheet: "./handler_walk_uniform.png" },    // "Walk" 10-frame side cycle (scaled to idle height — no size pop)
+    // No dedicated run/dash/guard/jump-run art (confirmed gap). run/dash REUSE walk; guard/getup REUSE
+    // existing states; fall REUSES jump's apex pose — all FLAGGED.
+    run:   { frames: 10, width: 26, height: 60, speed: 3, anchorY: 0, sheet: "./handler_walk_uniform.png" },    // REUSE walk (no run art) — FLAG
+    dash:  { frames: 10, width: 26, height: 60, speed: 2, anchorY: 0, sheet: "./handler_walk_uniform.png" },    // REUSE walk — FLAG
+    crouch:{ frames: 1,  width: 35, height: 58, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_crouch_uniform.png" },   // "Crouch" moderate duck (frame 1)
+    jump:  { frames: 2,  width: 41, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_jump_uniform.png" },     // "Jump" rise-tuck → arms-up apex (2 real air frames)
+    fall:  { frames: 2,  width: 41, height: 62, speed: 7, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_jump_uniform.png" },     // REUSE jump sheet (lockLastFrame holds the apex/spread) — FLAG
+    guard: { frames: 4,  width: 26, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_idle_uniform.png" },     // REUSE idle as a braced block (no guard art) — FLAG
+    // hurt = standing recoil→stagger (megumi "Hit"); knockdown = the falling-on-back frame that ENDS the
+    // hit sequence (per prompt "ending in a fall"). No getup art → getup REUSES hurt (rising ≈ recoil).
+    hurt:      { frames: 2, width: 44, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_hurt_uniform.png" },
+    knockdown: { frames: 1, width: 58, height: 37, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_knockdown_uniform.png" },
+    getup:     { frames: 2, width: 44, height: 62, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_hurt_uniform.png" },  // REUSE hurt (no getup art) — FLAG
+    // ── STAGE 2 NORMALS (RE-SLICED feet-aligned from the single combo string). basic_attacks (above)
+    // carries hit/frame data; these drive the SPRITE. loop:false + lockLastFrame holds the strike. ──
+    light:    { frames: 3, width: 43, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_light_uniform.png" },   // jab→punch→punch (fast poke)
+    heavy:    { frames: 3, width: 81, height: 50, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_heavy_uniform.png" },   // forward sword thrust (long reach)
+    up:       { frames: 2, width: 59, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_up_uniform.png" },      // rising sword-draw launcher
+    air:      { frames: 3, width: 43, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_light_uniform.png" },   // REUSE light punch (no aerial art) — FLAG
+    down_air: { frames: 3, width: 43, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_light_uniform.png" },   // REUSE light punch (no down-aerial art) — FLAG
+    // ── STAGE 4 SHIKIGAMI cast pose (_spriteCastMove="handlerSummon"; sprite.js MOVE_TO_ACTION identity).
+    // ONE shared summon hand-sign gesture for ALL six shikigami calls; the shikigami themselves are
+    // summons.js entities (handler_shik_*.png). Carved from the Ten-Shadows cast poses (Gama sheet). ──
+    handlerSummon: { frames: 2, width: 47, height: 61, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_summon_uniform.png" },
+    // ── STAGE 6 WIN / LOSE (game.js poses winner/loser via _forceAction). No bespoke win/lose/intro art
+    // exists anywhere across the 3 sheets (FLAGGED gap). win = the sword-draw INSET pair repurposed
+    // (megumi_attack_punches_kicks.png reference stances, brown bg chroma-keyed → a real confident pose);
+    // lose = REUSE the knockdown lying pose; intro is DEFERRED (falls back to idle — flagged art gap). ──
+    win:  { frames: 2, width: 72, height: 52, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_win_uniform.png" },
+    lose: { frames: 1, width: 58, height: 37, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./handler_knockdown_uniform.png" },  // REUSE knockdown (no bespoke lose art) — FLAG
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// BATMAN — NEW VARIANT (rosterKey "dark_knight", universe "dc"). A FULLY SEPARATE roster entry from
+// the existing `batman` (which is UNTOUCHED — its kit/design/naming were not consulted). Source art =
+// a single 5120x2880 RGBA sheet with TRUE per-pixel alpha (no chroma key), df2ek1u-...-e247c4.png,
+// RE-SLICED by tools/reslice_dark_knight.py into feet-aligned uniform cells. Full Stage-0 investigation
+// + region map: BATMAN_VARIANT_ASSET_MAP.md. Source artist UNKNOWN (attribution OPEN — blocks ship).
+//
+// THREE-MODE character (confirmed Stage 0): standard form (this stage) + a bulked RAGE transformation
+// (Stage 5, timed-mode pattern) + a giant MECH-SUIT ultimate (Stage 6, materialize cinematic). Standard
+// form built from the LARGER lower-set art (owner decision) — idle ~129px content.
+//
+// STAGE 1 = registration + movement/state only. Placeholder normals; real normals/chains/specials/rage/
+// mech land in later stages. energyType "fury" = the rage meter fuelling Rage Mode + the Mech ultimate.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const darkKnight = {
+  rosterKey: "dark_knight", name: "Batman", universe: "dc",
+  portrait: "./dark_knight_portrait.png",   // cowl lower-face close-up fragment (Stage 0 item 6) — a real select/HUD bust
+  archetypes: ["rushdown", "bruiser", "tactics"],
+  primary: "melee", secondary: ["bruiser", "tactics"],
+  // energyType "fury" = escalating rage reserve; will fuel the Rage Mode transform + Mech-Suit ultimate
+  // in later stages. maxEnergy 100.
+  traits: { hasEnergy: true, energyType: "fury", mobility: "medium", scaling: "versatile", animeMovement: false },
+  passive: { name: "The Dark Knight", effect: "A relentless brawler who escalates — a bulked rage state and a powered mech suit are held in reserve" },
+  // Durable, well-rounded brawler (big three-mode kit → balance is a Stage-7 item, FLAGGED as a large-kit
+  // outlier once real numbers exist). Placeholder stats; no stat is an intentional outlier yet.
+  stats: { maxHealth: 1150, maxEnergy: 100, attack: 90, defense: 88, speed: 88, maxJumps: 2, jumpPower: 31, dashSpeed: 15, dashDuration: 12, dashCooldownMax: 40 },
+  movement: { crouchIdle: true },   // holding Down shows the dedicated crouch pose
+  // Placeholder normals (moderate, combo-friendly) — real normals + command chain land in Stage 2.
+  // STAGE 2 normals — combat.js _getMD reads THIS basic_attacks; sprite sheets in animationData below.
+  // Classified by commitment: light = fast low-commit jab; heavy = slow, committed LUNGE with long reach
+  // (rangeX); upAttack = launcher (reuses the heavy lunge pose — no dedicated uppercut art, FLAG); air =
+  // leaping dropkick; downAir = dive-kick (reuses air pose). All run createAttackFromMove → scaled ×0.60.
+  basic_attacks: {
+    light:    { damage: 34, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 66, startup: 9, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 96, rangeY: 44 },   // committed lunge — long reach
+    upAttack: { type: "launcher", damage: 54, startup: 7, active: 4, recovery: 16, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, airOK: false },
+    airAttack:{ damage: 46, startup: 5, active: 3, recovery: 12, hitstun: 13, knockbackX: 3, knockbackY: -2, rangeX: 78 },   // leaping dropkick — extended reach
+    downAir:  { damage: 58, startup: 7, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 10 },
+    grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+  },
+  // STAGE 6 ULTIMATE — "Mech Suit" (2-phase timed heavy-FORM; abilities.js executeDarkKnightUltimate).
+  // Phase 1 = wireframe MATERIALIZE cinematic (dkMechWire, freeze/camera-focus). Phase 2 = a timed giant
+  // mech FORM (_skinAnim swap to mech body: dmg ×1.5 / def ×1.25 armor / spd ×0.85, ~8s → auto-revert).
+  ultimate: { name: "Mech Suit", cost: 100, description: "Batman materializes a giant powered-armor suit — a timed heavy form that hits like a truck and shrugs off blows, before powering down." },
+  hasSprites: true,
+  // Source frames are LARGE (idle content ~129px). scale 0.9 → ~116px on-screen, sitting in the roster
+  // band alongside the other big-sprite DC fighters. Reslice is bottom-aligned → anchorY 0 everywhere.
+  spriteScale: 0.9,
+  animationData: {
+    // ── MOVEMENT / STATE (Stage 1, RE-SLICED feet-aligned from the larger lower-set) ──
+    // ★SMOOTHNESS REBUILD — idle+walk moved from the frame-SPARSE lower set (2f/4f, robotic) to the frame-RICH
+    // UPPER set (same grey-suit style + size): a 10-frame breathing idle + a 10-frame stalking-prowl walk.
+    idle:  { frames: 10, width: 119, height: 129, speed: 6, anchorY: 0, sheet: "./dark_knight_idle_uniform.png" },   // 10-frame breathing/weight-shift idle
+    walk:  { frames: 10, width: 207, height: 117, speed: 6, anchorY: 0, sheet: "./dark_knight_walk_uniform.png" },   // 10-frame crouched prowl (upper set, ×1.5 upscaled to idle-comparable height)
+    // No distinct sprint art in the standard set → run/dash REUSE walk faster (Deathstroke/Superman precedent) — FLAG.
+    run:   { frames: 10, width: 207, height: 117, speed: 4, anchorY: 0, sheet: "./dark_knight_walk_uniform.png" },   // REUSE walk (10-frame prowl) faster — FLAG
+    dash:  { frames: 10, width: 207, height: 117, speed: 3, anchorY: 0, sheet: "./dark_knight_walk_uniform.png" },   // REUSE walk (10-frame prowl) fastest — FLAG
+    crouch:{ frames: 1, width: 119, height: 124, speed: 8,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_crouch_uniform.png" },  // kneeling duck
+    // jump/fall use the glide/dive set (cape spread into bat-wing). No dedicated jump/fall art → glide serves air — FLAG.
+    jump:  { frames: 6, width: 218, height: 147, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_glide_uniform.png" },
+    fall:  { frames: 6, width: 218, height: 147, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_glide_uniform.png" },   // REUSE glide (air) — FLAG
+    glide: { frames: 6, width: 218, height: 147, speed: 5,  anchorY: 0, loop: true, sheet: "./dark_knight_glide_uniform.png" },                          // explicit cape-glide (air-drift / clip)
+    // DODGE — cape-wrap evade (arm raised, cape swept across to conceal, then emerge). No gameplay dodge
+    // state is bound yet (engine dodges via dash i-frames/tech-roll); registered for the clip + future use.
+    dodge: { frames: 5, width: 142, height: 132, speed: 4,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_dodge_uniform.png" },
+    // guard/hurt/getup REUSE idle (no dedicated art in the lower set) — FLAG. Real hurt/getup deferred.
+    guard: { frames: 1, width: 118, height: 129, speed: 8,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_idle_uniform.png" },   // REUSE idle — FLAG
+    hurt:  { frames: 1, width: 118, height: 129, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_idle_uniform.png" },   // REUSE idle (no hurt art) — FLAG
+    getup: { frames: 1, width: 118, height: 129, speed: 6,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_idle_uniform.png" },   // REUSE idle (no getup art) — FLAG
+    // knockdown = REAL prone/lying KO art from the lower set.
+    knockdown: { frames: 1, width: 152, height: 111, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_knockdown_uniform.png" },
+    // ── STAGE 2 NORMALS (5 slots, RE-SLICED feet-aligned side-view melee poses; basic_attacks above
+    // carries hit/frame data, these drive the SPRITE). loop:false + lockLastFrame holds the strike through
+    // recovery. light = quick jab, heavy = cocked→committed LUNGE punch (long reach), air = leaping
+    // DROPKICK, crouchLight = low sweep. up (launcher) REUSES heavy; down_air REUSES air (no dedicated
+    // uppercut / down-aerial art in the standard set — FLAGGED). ──
+    light:    { frames: 2, width: 132, height: 117, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_light_uniform.png" },       // quick forward jab
+    heavy:    { frames: 2, width: 165, height: 135, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_heavy_uniform.png" },       // cocked → committed lunge punch (long reach)
+    up:       { frames: 2, width: 165, height: 135, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_heavy_uniform.png" },       // REUSE heavy pose as the launcher (no dedicated uppercut art) — FLAG
+    air:      { frames: 1, width: 172, height: 125, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_air_uniform.png" },         // leaping dropkick (aerial)
+    down_air: { frames: 1, width: 172, height: 125, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_air_uniform.png" },         // REUSE air (no dedicated down-aerial art) — FLAG
+    // crouchLight — the low forward SWEEP. Auto-swapped by combat.js _setCrouchVariant when a light is
+    // thrown while crouching (opt-in via THIS key; movement.crouchIdle is set above).
+    crouchLight: { frames: 1, width: 193, height: 128, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_crouchlight_uniform.png" },
+    // ── STAGE 4 SPECIAL cast poses (abilities.js executeDarkKnightSpecial; currentMove / _spriteCastMove ===
+    // key → sprite.js resolves the sheet directly). neutral=Crescent Chain / Fwd=Chain Flail / Back=Pistol
+    // Shot (projectile) / Down=Cape Spin / AIR=Dive Bomb. All from the lower-set weapon art. ──
+    dkCrescent: { frames: 1, width: 215, height: 153, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_crescent_uniform.png" },   // long disjoint kusarigama reach (dims match the 215×153 re-sliced file — was 180 → clipped the hook)
+    dkFlail:    { frames: 1, width: 212, height: 138, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_flail_uniform.png" },       // weighted-ball flail swing
+    dkPistol:   { frames: 1, width: 185, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_pistol_uniform.png" },      // lunging pistol shot (+ procedural bullet)
+    dkCape:     { frames: 1, width: 228, height: 180, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_cape_uniform.png" },        // cape-spin AoE spread (dims match the 228×180 re-sliced file)
+    dkDive:     { frames: 1, width: 240, height: 128, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_dive_uniform.png" },        // head-down cape dive-bomb (air)
+    // ── STAGE 5 RAGE MODE (abilities.js enter/updateDarkKnightRage; Up+Special). ★VISUAL AUDIT: this is an
+    // ARMORED red-eyed, bat-eared BATSUIT + its purple WIREFRAME materialize (NOT a flesh-muscle bulk — the
+    // sheet has no flesh-rage form; the plating read as "muscle" at low zoom). Gameplay keeps the "Rage"
+    // berserker identity; the visual is an armor-up. dkRageTransform = wireframe materialize (_spriteCastMove on
+    // enter). dkRageIdle = the solid armored batsuit; spread into fighter._skinAnim as idle+guard (Vegeta-SSJ). ──
+    dkRageTransform: { frames: 4, width: 132, height: 129, speed: 5,  anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_ragetransform_uniform.png" },   // purple WIREFRAME materialize
+    dkRageIdle:      { frames: 3, width: 132, height: 129, speed: 10, anchorY: 0, loop: true, sheet: "./dark_knight_rageidle_uniform.png" },                              // solid armored batsuit (idle/guard while raging)
+    // ── STAGE 6 MECH SUIT ultimate (abilities.js executeDarkKnightUltimate). GIANT Optimus-style mech from the
+    // far-right column (x4100+, distinct from the Stage-5 armored batsuit). dkMechWire = purple WIREFRAME
+    // materialize cinematic (Phase 1, _spriteCastMove on cast). dkMechIdle/dkMechAttack = the solid giant mech,
+    // spread into fighter._skinAnim (Phase 2 form: idle/movement + all strikes render on the mech body). Big
+    // ~205px cells → renders as a towering suit vs the 129px base. ──
+    dkMechWire:   { frames: 4, width: 213, height: 205, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_mechwire_uniform.png" },   // wireframe materialize (Phase 1)
+    dkMechIdle:   { frames: 2, width: 198, height: 205, speed: 8, anchorY: 0, loop: true, sheet: "./dark_knight_mechidle_uniform.png" },                          // solid mech idle (Phase 2)
+    dkMechAttack: { frames: 1, width: 238, height: 178, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_mechattack_uniform.png" }, // mech lunge/strike (Phase 2 normals)
+    // ── STAGE 7 WIN / LOSE (game.js poses winner/loser via _forceAction). No bespoke victory/lose/intro art on
+    // the sheet (FLAGGED gap). win = repurposed front-facing confident stance (arms out, cape spread). lose =
+    // REUSE the knockdown lying pose. intro DEFERRED → falls back to idle (introPool). ──
+    win:  { frames: 1, width: 140, height: 132, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_win_uniform.png" },        // confident victory stance (repurposed — no unique win art)
+    lose: { frames: 1, width: 152, height: 111, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./dark_knight_knockdown_uniform.png" },  // REUSE knockdown (no bespoke lose art) — FLAG
+  },
+  introPool: ["idle"]
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, piccolo, frieza, cell,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, maki, toji, yuji, baki, naoya,
@@ -6858,6 +7287,7 @@ export const characters = {
   superman,
   chrollo,
   ghostface,
+  ghostface_billy,
   jason,
   hiruzen,
   isshiki,
@@ -6866,6 +7296,7 @@ export const characters = {
   zaraki,
   zaraki_shikai: zarakiShikai,
   saitama,
+  genos,
   orochimaru,
   onoki,
   mayuri,
@@ -6881,7 +7312,9 @@ export const characters = {
   deathstroke,
   brainiac,
   green_lantern: greenLantern,
-  yuta
+  yuta,
+  handler,
+  dark_knight: darkKnight
 }
 
 // The 7 characters shown in the starter roster select screen
@@ -6889,6 +7322,41 @@ export const starterRoster = [goku, naruto, gojo, sukuna, omololu]
 
 // Full flat list
 export const characterList = Object.values(characters)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOAD-PATH INTEGRITY GUARD — fail LOUDLY on a duplicate character declaration.
+// This is the exact corruption class that caused the "duplicate frieza" break. It runs
+// on EVERY import of characters.js (browser + node + every harness) — it is part of the
+// standard load path, not an opt-in check. Two duplicate-declaration modes:
+//   (a) two `const X = {…}` with the SAME name  → already a hard SyntaxError at parse
+//       (the module cannot load at all — inherently loud in every load path);
+//   (b) two roster entries sharing a `rosterKey` (or one object exported twice) → would
+//       otherwise load SILENTLY (last-wins), quietly shipping the wrong character.
+// This guard makes (b) as loud as (a): it throws immediately so nothing downstream runs.
+export function assertNoDuplicateCharacters(roster = characters) {
+  const seenKey = new Map()      // rosterKey -> export key that first declared it
+  const seenObj = new Map()      // object identity -> export key (catches one obj exported twice)
+  const dups = []
+  for (const [exportKey, def] of Object.entries(roster)) {
+    if (!def || typeof def !== "object") continue
+    if (seenObj.has(def)) dups.push(`the SAME character object is exported under both "${seenObj.get(def)}" and "${exportKey}"`)
+    else seenObj.set(def, exportKey)
+    const rk = def.rosterKey
+    if (!rk) continue
+    if (seenKey.has(rk)) dups.push(`rosterKey "${rk}" is declared twice (under export keys "${seenKey.get(rk)}" and "${exportKey}")`)
+    else seenKey.set(rk, exportKey)
+  }
+  if (dups.length) {
+    throw new Error(
+      "[characters.js] DUPLICATE CHARACTER DECLARATION — refusing to load:\n  - " + dups.join("\n  - ") +
+      "\nThis is the same corruption class as the 'duplicate frieza' break. Remove the duplicate roster entry before the game/harness can load."
+    )
+  }
+  return true
+}
+// RUN ON IMPORT — this executes for every consumer of characters.js (browser, node, every
+// harness), so a duplicate declaration fails the load immediately rather than silently shipping.
+assertNoDuplicateCharacters()
 
 export const rosterRules = {
   meleeIsPrimaryForAll: true,

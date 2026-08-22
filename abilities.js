@@ -3755,6 +3755,459 @@ export function updateSaitamaCommandCombat(fighter, inputState, context, getPhas
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// GENOS — Stage 3 command chain: a 3-stage Fwd+Heavy RUSH rekka (cancel-on-hit, shared rekkaContinue).
+//   Fwd+Heavy → genosRush1 (forward punch opener, band-7 windup) → re-tap Heavy during recovery (cancel-
+//   on-HIT) → genosRush2 (the "too-fast-to-see" diagonal streak-burst — a rapid MULTI-HIT, re-armed every
+//   GENOS_RUSH_REHIT active frames like Saitama's punch-combo) → re-tap Heavy → genosRush3 (spinning charge
+//   LAUNCHER; string ends). A whiff/block ends the string. Neutral heavy stays the `heavy` palm-cannon;
+//   Up/Down/Air heavies auto-route. Ground-only, FREE (commits via recovery). Art = RESERVED bands 7 & 5
+//   (reslice_genos.py: rush1/2/3). Mirrors updateAoiTodoCommandCombat. See GENOS_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const GENOS_RUSH_REHIT = 3   // genosRush2 re-arms its hit-latch every N active frames → rapid multi-hit
+const GENOS_CMD = {
+  genosRush1: { damage: 44, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 90,  rangeY: 55, rekkaNext: "genosRush2" },  // forward punch opener
+  genosRush2: { damage: 30, startup: 5, active: 8, recovery: 14, hitstun: 14, knockbackX: 3, knockbackY: 0,  rangeX: 104, rangeY: 56, rekkaNext: "genosRush3", multiHit: true },  // rapid streak-burst (multi-hit)
+  genosRush3: { damage: 92, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -9, rangeX: 98,  rangeY: 60, launcher: true },  // spinning charge LAUNCHER finisher
+}
+function fireGenosCmd(fighter, key) {
+  const md = GENOS_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext       = md.rekkaNext || null
+  fighter._rekkaBtn        = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded    = false       // latched by a real (non-blocked) hit → gates the cancel
+  fighter._genosRushActive = (key === "genosRush2")   // arm the multi-hit re-latch for the burst stage
+  fighter._genosRushRehit  = 0
+  return true
+}
+export function updateGenosCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "genos" || !inputState) return false
+  const grounded  = fighter.onGround ?? fighter.grounded ?? false
+  const phase     = getPhase?.(fighter)
+  // RAPID-BURST multi-hit: while genosRush2 is ACTIVE, re-arm its hasHit latch every GENOS_RUSH_REHIT
+  // frames so the streak-burst lands a rapid multi-hit string. Clears when the stage ends.
+  if (fighter._genosRushActive) {
+    if (fighter.attacking && (fighter.currentMove || "") === "genosRush2") {
+      if (phase === "active" && fighter.currentAttack) {
+        fighter._genosRushRehit = (fighter._genosRushRehit || 0) + 1
+        if (fighter._genosRushRehit >= GENOS_RUSH_REHIT) { fighter._genosRushRehit = 0; fighter.currentAttack.hasHit = false }
+      }
+    } else { fighter._genosRushActive = false; fighter._genosRushRehit = 0 }
+  }
+  // MACHINE GUN BLOWS multi-hit: same re-latch while the genosMachinegun special is ACTIVE → rapid spread.
+  if (fighter._genosMgActive) {
+    if (fighter.attacking && (fighter.currentMove || "") === "genosMachinegun") {
+      if (phase === "active" && fighter.currentAttack) {
+        fighter._genosMgRehit = (fighter._genosMgRehit || 0) + 1
+        if (fighter._genosMgRehit >= GENOS_MG_REHIT) { fighter._genosMgRehit = 0; fighter.currentAttack.hasHit = false }
+      }
+    } else { fighter._genosMgActive = false; fighter._genosMgRehit = 0 }
+  }
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireGenosCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` palm-cannon.
+  if (forward && heavyEdge) return fireGenosCmd(fighter, "genosRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FRIEZA — Stage 3 COMMAND CHAIN. Fwd+Heavy opens friezaRush1 (forward strike opener) → re-tap Heavy during
+// recovery (cancel-on-HIT via the shared rekkaContinue, requireHit:true) → friezaRush2 (rapid follow strikes)
+// → re-tap Heavy → friezaRush3 (LAUNCHER; string ends). A whiff/block ends the string. Ground-only, FREE
+// (commits via recovery). Neutral heavy stays the normal `heavy` kick; Up/Down/Air auto-route. Mirrors
+// updateGenosCommandCombat / updateAoiTodoCommandCombat. Art = FLAGGED bands E–G strike rows
+// (reslice_frieza.py: rush1/2/3). See FRIEZA_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const FRIEZA_CMD = {
+  friezaRush1: { damage: 40, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 92,  rangeY: 56, rekkaNext: "friezaRush2" },  // forward strike opener
+  friezaRush2: { damage: 46, startup: 5, active: 3, recovery: 13, hitstun: 15, knockbackX: 4, knockbackY: 0,  rangeX: 98,  rangeY: 56, rekkaNext: "friezaRush3" },  // rapid follow strikes
+  friezaRush3: { damage: 84, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -9, rangeX: 100, rangeY: 60, launcher: true },              // LAUNCHER finisher
+}
+function fireFriezaCmd(fighter, key) {
+  const md = FRIEZA_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateFriezaCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "frieza" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireFriezaCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` kick.
+  if (forward && heavyEdge) return fireFriezaCmd(fighter, "friezaRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GENOS — Stage 4 SPECIALS. Neutral GROUND Special = the INCINERATION CANNON (tap/hold 3-tier charge blast,
+// armed in game.js's press-path like Saitama's combo — never reaches executeGenosSpecial). The other specials
+// branch here by held direction / airborne:
+//   Fwd = Machine Gun Blows (yellow jet-punch spread — a rapid MULTI-HIT, re-latched in updateGenosCommandCombat)
+//   Down = Jet Dash (lunging gap-closer strike) · Back = Afterimage Dash (i-frame blitz → strike) · U → Machine Gun
+//   AIR (any) = Machine Gun Blows (air reuses the ground pose).
+// The Incineration blast is a PROCEDURAL fireball projectile SCALED per tier (ui.js fallback orb); the cast
+// pose (b6/b12/b20 — small/big/GIANT column) is the real art. See GENOS_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const GENOS_MG_REHIT = 3   // genosMachinegun re-arms its hit-latch every N active frames → rapid spread
+const GENOS_INCINERATION = {
+  1: { pose: "genosIncinerate1", cost: 25, wind: 8,  recovery: 18, projW: 40,  projH: 40,  speed: 13, damage: 60,  hitstun: 18, kbX: 7,  kbY: -2, life: 90,  radius: 22 },   // tap — small blast
+  2: { pose: "genosIncinerate2", cost: 40, wind: 11, recovery: 22, projW: 64,  projH: 64,  speed: 12, damage: 96,  hitstun: 22, kbX: 9,  kbY: -3, life: 100, radius: 34 },   // mid-hold — big burst
+  3: { pose: "genosIncinerate3", cost: 70, wind: 15, recovery: 30, projW: 100, projH: 104, speed: 10, damage: 140, hitstun: 28, kbX: 13, kbY: -4, life: 120, radius: 54 },   // long-hold — GIANT flame column
+}
+// INCINERATION CANNON — tiered charge blast (tap/mid/long hold). Fired on Special-release from game.js.
+export function fireGenosIncineration(fighter, tier, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "genos") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!(fighter.onGround ?? fighter.grounded ?? true)) return false
+  const t = GENOS_INCINERATION[tier] || GENOS_INCINERATION[1]
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur     // hold the incineration cast pose
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  // BLAST — a traveling procedural fireball emitted at the wind-up's release; SIZE/damage scale with the tier.
+  // OVERDRIVE makes blasts literally BIGGER: projectiles carry fixed spawn-damage (the offense multiplier is
+  // only applied to melee in combat.js), so fold the fighter's current offense mult into the blast's damage
+  // AND its size here (a mild size bump so the buff reads visually, not just numerically).
+  const offense = Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1)
+  const grow = 1 + (offense - 1) * 0.6
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "genosIncineration", {
+      w: Math.round(t.projW * grow), h: Math.round(t.projH * grow), radius: Math.round(t.radius * grow),
+      speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life,
+      color: "#ffb020", spawnY: fighter.y + (fighter.h || 100) * 0.42,
+    }, context)
+  })
+  return true
+}
+const GENOS_SPECIALS = {
+  genosMachinegun: { damage: 12, startup: 6, active: 10, recovery: 16, hitstun: 12, knockbackX: 3, knockbackY: 0,  rangeX: 122, rangeY: 58, cost: 35 },   // Machine Gun Blows (rehit spread flurry — low per-hit, multi-hit total)
+  genosJetdash:    { damage: 78, startup: 7, active: 4,  recovery: 16, hitstun: 20, knockbackX: 9, knockbackY: -1, rangeX: 96,  rangeY: 54, cost: 25 },   // Jet Dash (lunging gap-closer)
+  genosAfterimage: { damage: 70, startup: 10, active: 4, recovery: 14, hitstun: 20, knockbackX: 8, knockbackY: -2, rangeX: 88,  rangeY: 56, cost: 30 },   // Afterimage Dash (i-frame blitz → strike)
+}
+function fireGenosMachineGun(fighter, air, context) {
+  const md = GENOS_SPECIALS.genosMachinegun
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "genosMachinegun", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter._genosMgActive = true; fighter._genosMgRehit = 0   // watched in updateGenosCommandCombat → drives the multi-hit
+  return true
+}
+function fireGenosJetDash(fighter, context) {
+  const md = GENOS_SPECIALS.genosJetdash
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "genosJetdash", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = (fighter.facing || 1) * 16   // jet lunge forward (gap-closer)
+  return true
+}
+function fireGenosAfterimage(fighter, context) {
+  const md = GENOS_SPECIALS.genosAfterimage
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "genosAfterimage", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, md.startup + 2)   // i-frames through the blitz-in
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+  fighter.vx = (fighter.facing || 1) * 14   // afterimage blitz forward
+  return true
+}
+export function executeGenosSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "genos") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireGenosMachineGun(fighter, true, context)   // AIR (any) — Machine Gun Blows
+  if (dir === "F" || dir === "U") return fireGenosMachineGun(fighter, false, context)
+  if (dir === "D") return fireGenosJetDash(fighter, context)
+  if (dir === "B") return fireGenosAfterimage(fighter, context)
+  return fireGenosIncineration(fighter, 1, context)   // neutral GROUND safety-net (armed tap/hold in game.js)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FRIEZA — Stage 4 SPECIALS. Directional/air branch (owner decisions: crystals = projectile FX / beam =
+// PROCEDURAL / power-up = ult):
+//   neutral (ground) = Death Beam  — a fast, thin, PIERCING procedural ki-beam (pointing finger cast)
+//   Fwd / U / AIR     = Ki Blast    — a rapid volley of CRYSTAL-sprite energy shots (owner: crystals = FX)
+//   Down              = Death Ball  — a big, slow, heavy procedural energy sphere
+//   Back              = Psycho Teleport — an i-frame blitz dash-STRIKE (melee mobility)
+// Projectile damage folds the fighter's offense mult (like Genos's blasts) so the S5 power-up amps them.
+// Cast poses are FLAGGED best-effort art (image-capped). See FRIEZA_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const FRIEZA_SPECIALS = {
+  friezaDeathBeam: { cost: 22, wind: 8,  recovery: 18, pose: "friezaDeathbeam", projW: 56, projH: 10, speed: 24, damage: 78,  hitstun: 16, kbX: 6,  kbY: -1, life: 60,  radius: 8,  color: "#c86bff", piercing: true },  // thin fast piercing beam
+  friezaKiBlast:   { cost: 24, wind: 6,  recovery: 16, pose: "friezaKiblast",   shots: 3, gap: 4,      speed: 15, damage: 26,  hitstun: 10, kbX: 3,  kbY: 0,  life: 70,  radius: 14, color: "#8ad0ff", projW: 30, projH: 28 },  // 3 crystal shots
+  friezaDeathBall: { cost: 45, wind: 14, recovery: 26, pose: "friezaDeathball", projW: 90, projH: 90, speed: 8,  damage: 120, hitstun: 26, kbX: 12, kbY: -4, life: 130, radius: 46, color: "#c86bff" },  // big slow sphere
+  friezaTeleport:  { damage: 74, startup: 9, active: 4, recovery: 16, hitstun: 20, knockbackX: 8, knockbackY: -2, rangeX: 90, rangeY: 56, cost: 28 },  // Psycho Teleport i-frame dash-strike (melee)
+}
+function friezaOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireFriezaBeam(fighter, context) {
+  const t = FRIEZA_SPECIALS.friezaDeathBeam
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = friezaOffense(fighter)
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "friezaDeathBeam", {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * 0.34,
+    }, context)
+  })
+  return true
+}
+function fireFriezaKiBlast(fighter, air, context) {
+  const t = FRIEZA_SPECIALS.friezaKiBlast
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = friezaOffense(fighter)
+  // A rapid VOLLEY of crystal-sprite shots (owner decision: crystals = projectile FX).
+  for (let i = 0; i < (t.shots || 1); i++) {
+    schedulePendingSpawn(t.wind + i * t.gap, () => {
+      spawnProjectile(fighter, "friezaKiBlast", {
+        w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+        hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, color: t.color,
+        sheet: "./frieza_crystal_uniform.png", spriteW: 38, spriteH: 36, spriteFrames: 1, spriteScale: 1.1,
+        spawnY: fighter.y + (fighter.h || 100) * (air ? 0.30 : 0.40),
+      }, context)
+    })
+  }
+  return true
+}
+function fireFriezaDeathBall(fighter, context) {
+  const t = FRIEZA_SPECIALS.friezaDeathBall
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = friezaOffense(fighter)
+  const grow = 1 + (offense - 1) * 0.6
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "friezaDeathBall", {
+      w: Math.round(t.projW * grow), h: Math.round(t.projH * grow), radius: Math.round(t.radius * grow),
+      speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * 0.38,
+    }, context)
+  })
+  return true
+}
+function fireFriezaTeleport(fighter, context) {
+  const md = FRIEZA_SPECIALS.friezaTeleport
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "friezaTeleport", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, md.startup + 2)   // i-frames through the blitz-in
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+  fighter.vx = (fighter.facing || 1) * 15   // psycho blitz forward
+  return true
+}
+export function executeFriezaSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "frieza") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireFriezaKiBlast(fighter, true, context)      // AIR (any) — Ki Blast
+  if (dir === "D") return fireFriezaDeathBall(fighter, context)
+  if (dir === "B") return fireFriezaTeleport(fighter, context)
+  if (dir === "F" || dir === "U") return fireFriezaKiBlast(fighter, false, context)
+  return fireFriezaBeam(fighter, context)                             // neutral GROUND — Death Beam
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// FRIEZA — TRANSFORMATION LADDER: base → GOLDEN FRIEZA → BLACK FRIEZA.
+// Real in-match transformations using the SAME mechanic as Vegeta / Goku Black (owner: all Dragon Ball
+// transforms share this): THRESHOLD-GATED activation (NO up-front energy cost), a CONTINUOUS per-frame
+// ENERGY DRAIN while transformed, and INSTANT auto-revert the frame the meter hits 0. A DB transform simply
+// makes you an all-around better fighter — a DAMAGE + SPEED + DEFENSE boost — paid for by draining Ki.
+// Trigger = the CHARGE button (Vegeta idiom): hold P to build Ki, RELEASE steps UP the ladder
+// (base→Golden→Black, each gated on a higher Ki threshold); a quick TAP while transformed reverts to base.
+// No separate ultimate (Black is the top of the ladder — reaching Black IS the payoff). Art = a canvas TINT
+// over the base sheets (sprite.js: _goldenFriezaActive gold / _blackFriezaActive dark) — canon-appropriate
+// (Golden/Black are the SAME body recolored). ★currentForm is set to a NON-matching label ("friezaGolden")
+// so the generic transformations.js drain/revert stays OFF and ONLY this custom system runs (Vegeta gotcha).
+// ═════════════════════════════════════════════════════════════════════════════
+const FRIEZA_GOLDEN_THRESHOLD = 100    // Ki ≥ 100 (of 200) to enter Golden — hold P to build past it
+const FRIEZA_GOLDEN_DRAIN     = 0.18   // Ki/frame while Golden (~11/s) — matches Vegeta SSJ
+const FRIEZA_GOLDEN_MULT      = { dmg: 1.25, spd: 1.18, def: 1.08 }   // all-around boost
+const FRIEZA_BLACK_THRESHOLD  = 150    // Ki ≥ 150 to escalate Golden→Black — top-tier gate (like Vegeta Blue's 160)
+const FRIEZA_BLACK_DRAIN      = 0.30   // Ki/frame while Black (~18/s) — costlier to sustain
+const FRIEZA_BLACK_MULT       = { dmg: 1.50, spd: 1.32, def: 1.15 }   // ceiling tier, clearly above Golden
+const FRIEZA_MORPH            = 9      // friezaOverload ignite-pose lock (3f × speed 3)
+function isFriezaChar(f) { return (f?.rosterKey || "").toLowerCase() === "frieza" }
+export function friezaIsSuper(fighter) { return !!(fighter?._goldenFriezaActive || fighter?._blackFriezaActive) }
+export function isGoldenFrieza(fighter) { return !!fighter?._goldenFriezaActive }
+export function isBlackFrieza(fighter) { return !!fighter?._blackFriezaActive }
+function friezaMorphFx(fighter, context) {
+  fighter._spriteCastMove = "friezaOverload"; fighter._spriteCastTimer = FRIEZA_MORPH   // the power-up ignite pose (boxes 118–120)
+  fighter.attackCooldown = FRIEZA_MORPH; fighter.teleportFlash = 14; fighter.vx = 0
+  try { sound.playDragonBallTransformSfx() } catch (_) {}
+  try { focusCameraOnAction(context, fighter, null, 1.02, 12); shakeCamera(context, 8, 12) } catch (_) {}
+}
+// base → GOLDEN. opts.fast = a silent Black-chain intermediate (skips gates + morph).
+export function enterGoldenFrieza(fighter, context = {}, opts = {}) {
+  if (!isFriezaChar(fighter) || fighter._goldenFriezaActive || fighter._blackFriezaActive) return false
+  const fast = !!opts.fast
+  if (!fast) {
+    if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+    if ((fighter.energy || 0) < FRIEZA_GOLDEN_THRESHOLD) return false   // threshold gate — NO up-front spend
+  }
+  fighter._goldenFriezaActive = true
+  fighter.currentForm       = "friezaGolden"       // NON-matching label → generic drain/revert stays off
+  fighter.damageMultiplier  = fighter.attackMultiplier = FRIEZA_GOLDEN_MULT.dmg
+  fighter.speedMultiplier   = FRIEZA_GOLDEN_MULT.spd
+  fighter.defenseMultiplier = FRIEZA_GOLDEN_MULT.def
+  fighter.currentFormData   = fighter.transformations?.golden || fighter.currentFormData   // re-applied each frame
+  if (!fast) friezaMorphFx(fighter, context)
+  return true
+}
+export function revertGoldenFrieza(fighter) {
+  if (!fighter || !fighter._goldenFriezaActive) return
+  fighter._goldenFriezaActive = false
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+// GOLDEN → BLACK (chains off Golden, higher threshold; Black SUPERSEDES Golden so only Black's drain runs).
+export function enterBlackFrieza(fighter, context = {}) {
+  if (!isFriezaChar(fighter) || fighter._blackFriezaActive || !fighter._goldenFriezaActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < FRIEZA_BLACK_THRESHOLD) return false
+  fighter._goldenFriezaActive = false
+  fighter._blackFriezaActive  = true
+  fighter.currentForm       = "friezaBlack"        // NON-matching label → generic drain/revert stays off
+  fighter.damageMultiplier  = fighter.attackMultiplier = FRIEZA_BLACK_MULT.dmg
+  fighter.speedMultiplier   = FRIEZA_BLACK_MULT.spd
+  fighter.defenseMultiplier = FRIEZA_BLACK_MULT.def
+  fighter.currentFormData   = fighter.transformations?.black || fighter.currentFormData
+  friezaMorphFx(fighter, context)
+  return true
+}
+export function revertBlackFrieza(fighter) {
+  if (!fighter || !fighter._blackFriezaActive) return
+  fighter._blackFriezaActive = false
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+// Per-frame continuous drain + INSTANT auto-revert at 0 — SAME mechanism as Vegeta/Goku Black
+// (tickSustainedFormDrain). Black checked first (it supersedes Golden).
+export function applyFriezaFormSystem(fighter) {
+  if (!isFriezaChar(fighter)) return
+  tickSustainedFormDrain(fighter, { active: f => !!f._blackFriezaActive,  drainPerFrame: FRIEZA_BLACK_DRAIN,  revert: revertBlackFrieza })
+  tickSustainedFormDrain(fighter, { active: f => !!f._goldenFriezaActive, drainPerFrame: FRIEZA_GOLDEN_DRAIN, revert: revertGoldenFrieza })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GENOS — Stage 5 ULTIMATE: OVERDRIVE (owner decision = Option B). The band-13 overheat flame-aura as a TIMED
+// power-up MODE (Kurapika Emperor Time / Baki Demon-Back architecture): ignite pose → ~7s window of amped
+// offense (bigger blasts / faster flurries via damage + speed multipliers) → auto-revert. CANON-ACCURATE
+// DRAWBACK (the real cost, per the locked decision): on EXPIRY the core OVERHEATS — a chunk of self-damage
+// AND a brief post-revert VULNERABILITY window (bonus damage taken, tied to combat.js like Emperor Time). KO
+// / round-reset reverts pay NO drawback (guarded by the _genosOverdriveExpire flag). _genosOverdriveTimer is
+// PUBLIC → game.js draws the duration HUD + flame-aura overlay. Triggered by the ULTIMATE at 100 Core.
+// ─────────────────────────────────────────────────────────────────────────────
+const GENOS_OVERDRIVE = {
+  cost: 100, duration: 420, mult: { dmg: 1.35, spd: 1.15 },   // ~7s window; ×1.35 dmg / ×1.15 speed
+  revertVuln: 120,          // ~2s post-revert overheat vulnerability (bonus damage taken, combat.js amp)
+  selfDmgPct: 0.08,         // overheat burn on expiry — 8% of max HP (a real cost)
+}
+export function isGenosOverdrive(fighter) { return !!fighter?._genosOverdriveActive }
+export function enterGenosOverdrive(fighter, context = {}) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "genos" || fighter._genosOverdriveActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if (!spendEnergy(fighter, GENOS_OVERDRIVE.cost)) return false
+  fighter._genosOverdriveActive = true
+  fighter._genosOverdriveTimer  = GENOS_OVERDRIVE.duration      // PUBLIC → duration HUD (game.js) + auto-revert
+  fighter._genosOverdriveMax    = GENOS_OVERDRIVE.duration
+  fighter.damageMultiplier  = fighter.attackMultiplier = GENOS_OVERDRIVE.mult.dmg   // bigger blasts
+  fighter.speedMultiplier   = GENOS_OVERDRIVE.mult.spd                              // faster flurries
+  fighter._spriteCastMove   = "genosOverdrive"                 // flame-column ignite pose (band 13)
+  fighter._spriteCastTimer  = 6 * 2                            // 6 frames × speed 2
+  fighter.attackCooldown    = 6 * 2
+  fighter.teleportFlash     = 16
+  fighter.vx = 0
+  try { focusCameraOnAction(context, fighter, null, 1.06, 14); shakeCamera(context, 7, 14) } catch (_) {}
+  return true
+}
+export function revertGenosOverdrive(fighter) {
+  if (!fighter || !fighter._genosOverdriveActive) return
+  fighter._genosOverdriveActive = false
+  fighter._genosOverdriveTimer  = 0
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  // OVERHEAT DRAWBACK — paid ONLY when the window ELAPSES (flagged by updateGenosOverdrive); a KO / round-reset
+  // revert leaves the flag false → no self-damage, no vuln (he's already down / the round is over).
+  if (fighter._genosOverdriveExpire) {
+    fighter._genosOverdriveExpire = false
+    fighter._genosOverheatVuln = GENOS_OVERDRIVE.revertVuln     // bonus damage taken (combat.js amp)
+    const burn = Math.round((fighter.maxHealth || 1000) * GENOS_OVERDRIVE.selfDmgPct)
+    fighter.health = Math.max(1, (fighter.health || 0) - burn)  // overheat burn — floors at 1 (never self-KO)
+    fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, 20)   // brief overheat recovery beat
+    fighter.teleportFlash  = Math.max(fighter.teleportFlash || 0, 8)
+  }
+}
+// Per-frame: tick the window (auto-revert on expiry, flagged so ONLY expiry pays the drawback) + the
+// post-revert vulnerability countdown (keeps ticking after revert). KO also reverts (no drawback — down already).
+export function updateGenosOverdrive(fighter) {
+  if (!fighter) return
+  if ((fighter._genosOverheatVuln || 0) > 0) fighter._genosOverheatVuln--
+  if (!fighter._genosOverdriveActive) return
+  if ((fighter.health || 0) <= 0) { fighter._genosOverdriveExpire = false; revertGenosOverdrive(fighter); return }
+  if ((fighter._genosOverdriveTimer || 0) > 0) fighter._genosOverdriveTimer--
+  if ((fighter._genosOverdriveTimer || 0) <= 0) { fighter._genosOverdriveExpire = true; revertGenosOverdrive(fighter) }
+}
+export function executeGenosUltimate(fighter, context) {
+  return enterGenosOverdrive(fighter, context)   // Overdrive = the ultimate
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // OROCHIMARU — Stage 2/3 command layer: the FORWARD STRONG opens a 3-STAGE COMMAND-NORMAL CHAIN
 // (special_move_05). Fwd+Heavy → orochimaruFwdStrong (snake-thrust, Stage 2) → re-tap Heavy during
 // recovery (cancel-on-HIT, shared rekkaContinue) → orochimaruChain2 (punch string) → orochimaruChain3
@@ -4046,6 +4499,151 @@ export function executeYutaUltimate(fighter, context) {
     const rika = spawnAssistSummon(fighter, { summonId: "rikaAssist" }, opp)
     if (rika) { rika.frame = 0; shakeCamera(context, 10, 10) }             // shake as Rika manifests
   })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// THE HANDLER — Stage 4 SHIKIGAMI CAMEO SYSTEM (SPECIAL button, direction-branched via _specialHeldDir;
+// Yuta/Deathstroke pattern). Each direction SUMMONS a Ten Shadows shikigami — the summon-MOTION IS the
+// cameo call (prompt directive / Todo's Clap precedent). Every shikigami is a summons.js entity that
+// renders its OWN art and strikes ×0.60-scaled (the Megumi-flag: an independently-attacking summon MUST
+// stay scaled — performSummonAttack → applyScaledDamage, no bypass). Layout:
+//   N = Divine Dogs (black dog rushdown) · F = Orochi (long snake lunge) · B = Datto (rabbit swarm) ·
+//   D = Max Elephant / Banshō (heavy slam) · U = Nue (bird anti-air) · AIR = Toad / Gama (aerial drop).
+// All 6 share ONE summon hand-sign cast pose (handlerSummon). The Ryōki Tenkai Domain (owner-chosen 2nd
+// signature special) is DEFERRED — its floor art awaits the re-export (owner decision C). See
+// HANDLER_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const HANDLER_SHIKIGAMI = {
+  N:   { id: "handlerDivineDogs", cost: 30 },   // neutral → Divine Dog rushdown
+  F:   { id: "handlerOrochi",     cost: 30 },   // forward → Orochi snake lunge (long)
+  B:   { id: "handlerDatto",      cost: 28 },   // back    → Datto rabbit swarm (chip/cover)
+  D:   { id: "handlerBansho",     cost: 45 },   // down    → Max Elephant heavy slam
+  U:   { id: "handlerNue",        cost: 32 },   // up      → Nue bird anti-air
+  AIR: { id: "handlerToad",       cost: 30 },   // airborne→ Toad aerial drop
+}
+function spawnHandlerShikigami(fighter, context, slot) {
+  const spec = HANDLER_SHIKIGAMI[slot]
+  if (!spec) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, spec.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter._spriteCastMove = "handlerSummon"; fighter._spriteCastTimer = 22   // summon hand-sign, held through the call
+  fighter.attackCooldown  = getAttackDuration(22, fighter)
+  fighter._handlerLastShikigami = spec.id                                     // HUD / harness read
+  fighter._handlerSummonCount = (fighter._handlerSummonCount || 0) + 1
+  schedulePendingSpawn(8, () => { spawnAssistSummon(fighter, spec.id, opp) }) // shikigami lands just after the cast beat
+  focusCameraOnAction(context, fighter, opp, 0.99, 8)
+  return true
+}
+export function executeHandlerSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "handler") return false
+  if (fighter._mahoragaActive) return fireMahoragaCounter(fighter, context)   // Mahoraga form → adapted counter (World-Slash), not a shikigami
+  const dir = fighter._specialHeldDir || null            // "F" | "B" | "U" | "D" | null
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  if (!grounded) return spawnHandlerShikigami(fighter, context, "AIR")   // AIR → Toad
+  if (dir === "F") return spawnHandlerShikigami(fighter, context, "F")   // Fwd → Orochi
+  if (dir === "B") return spawnHandlerShikigami(fighter, context, "B")   // Back → Datto
+  if (dir === "D") return spawnHandlerShikigami(fighter, context, "D")   // Down → Max Elephant
+  if (dir === "U") return spawnHandlerShikigami(fighter, context, "U")   // Up → Nue
+  return spawnHandlerShikigami(fighter, context, "N")                    // neutral → Divine Dogs
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// THE HANDLER — Stage 5 ULTIMATE: "Mahoraga" (ADAPTATION FORM — NEW ENGINE SCOPE). Pressing Ultimate
+// transforms the Handler INTO Mahoraga (a _skinAnim art-swap form: Vegeta-SSJ / Zaraki-Shikai pattern),
+// rendering the mahoraga_*_uniform sheets. Mahoraga SWAPS IN WEAK (reduced damage & defense vs a normal
+// ult-tier form) and ADAPTS: each time the OPPONENT lands a specific move against him, that move deals
+// progressively LESS on repeat (a per-move damage-reduction LADDER — combat.tickMahoragaAdapt), and as he
+// adapts to more DISTINCT moves he GROWS (rising damage/defense + HP regen — updateHandlerMahoraga). Timed
+// (~10s) then auto-reverts. Kit while active: normals render the Mahoraga attack combo (row_03, via
+// _skinAnim); Special = the "adapted counter" World-Slash (row_05), scaling with how much he has adapted.
+// ★BALANCE (flagged, BALANCE_AUDIT.md): the ladder + growth numbers are PROVISIONAL, tuned in playtest —
+// a too-STEEP ladder forces degenerate "don't use your best move"; too-SHALLOW makes the form a non-threat.
+// ─────────────────────────────────────────────────────────────────────────────
+const MAHORAGA_ULT_COST   = 100
+const MAHORAGA_DURATION    = 600   // frames (~10s) — the whole form window
+const MAHORAGA_ENTRY_DMG   = { dmg: 0.70, def: 0.85 }   // WEAK on arrival (reduced offense; takes ~18% more)
+const MAHORAGA_GROWTH_CAP  = 6     // distinct moves adapted past which growth plateaus
+const MAHORAGA_DMG_PER     = 0.15  // per distinct → 0.70…1.60 damage at cap  (PROVISIONAL)
+const MAHORAGA_DEF_PER     = 0.10  // per distinct → 0.85…1.45 defense at cap (PROVISIONAL)
+const MAHORAGA_REGEN_PER   = 0.12  // HP/frame per distinct → ≈0.72/f (~43/s) at cap (PROVISIONAL)
+let _mahoragaAnim = null
+function mahoragaAnim() {
+  if (_mahoragaAnim) return _mahoragaAnim
+  const S = (n, f, w, h, o = {}) => ({ frames: f, width: w, height: h, speed: o.speed || 5, anchorY: 0, sheet: `./mahoraga_${n}_uniform.png`, loop: o.loop, lockLastFrame: o.lockLastFrame })
+  const idle = S("idle", 1, 67, 74, { speed: 8 })
+  const hold = { ...idle, loop: false, lockLastFrame: true }
+  const walk = S("walk", 6, 71, 74, { speed: 5 })
+  const atk  = S("attack", 4, 66, 74, { speed: 3, loop: false, lockLastFrame: true })
+  _mahoragaAnim = {
+    idle, walk, run: walk, dash: walk,
+    jump: hold, fall: hold, crouch: hold, guard: hold, hurt: hold, knockdown: hold, getup: hold,
+    light: atk, heavy: atk, up: atk, air: atk, down_air: atk,
+    mahoragaEntry:   S("entry", 3, 60, 74, { speed: 5, loop: false, lockLastFrame: true }),
+    mahoragaCounter: S("counter", 3, 47, 74, { speed: 3, loop: false, lockLastFrame: true }),
+  }
+  return _mahoragaAnim
+}
+export function isHandlerMahoraga(fighter) { return !!fighter?._mahoragaActive }
+export function executeHandlerUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "handler") return false
+  if (fighter._mahoragaActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, MAHORAGA_ULT_COST)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter._mahoragaActive   = true
+  fighter._skinAnim         = mahoragaAnim()           // FORM art-swap → renders Mahoraga (sprite.js _skinAnim fallback)
+  fighter.currentForm       = "mahoraga"
+  fighter._mahoragaTimer    = MAHORAGA_DURATION
+  fighter._mahoragaMax      = MAHORAGA_DURATION
+  fighter._mahoragaAdapt    = {}                        // per-move connect counts (this activation)
+  fighter._mahoragaDistinct = 0                         // # distinct moves adapted → drives growth
+  fighter._mahoragaWheel    = 0                         // adaptation-tracker wheel spin clock (UI)
+  fighter._mahoragaLastMove = null
+  fighter.damageMultiplier  = fighter.attackMultiplier = MAHORAGA_ENTRY_DMG.dmg   // WEAK entry
+  fighter.defenseMultiplier = MAHORAGA_ENTRY_DMG.def
+  fighter.vx = 0
+  fighter._spriteCastMove   = "mahoragaEntry"; fighter._spriteCastTimer = 26       // scythe equip/advance = the arrival
+  fighter.attackCooldown    = getAttackDuration(20, fighter)
+  fighter.teleportFlash     = 14
+  try { focusCameraOnAction(context, fighter, opp, 1.15, 16); shakeCamera(context, 8, 12) } catch (_) {}
+  return true
+}
+export function revertHandlerMahoraga(fighter) {
+  if (!fighter || !fighter._mahoragaActive) return
+  fighter._mahoragaActive   = false
+  fighter._skinAnim         = fighter._baseSkinAnim || null   // restore the Handler's art
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.defenseMultiplier = 1
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+// Per-frame while Mahoraga (from updateTransformationState): GROWTH from distinct-adapted count
+// (damage/defense climb + HP regen), wheel spin, duration countdown + auto-revert.
+export function updateHandlerMahoraga(fighter) {
+  if (!fighter?._mahoragaActive) return
+  const g = Math.min(fighter._mahoragaDistinct || 0, MAHORAGA_GROWTH_CAP)
+  fighter.damageMultiplier  = fighter.attackMultiplier = MAHORAGA_ENTRY_DMG.dmg + g * MAHORAGA_DMG_PER
+  fighter.defenseMultiplier = MAHORAGA_ENTRY_DMG.def + g * MAHORAGA_DEF_PER
+  if (g > 0 && (fighter.health || 0) < (fighter.maxHealth || 0)) {
+    fighter.health = Math.min(fighter.maxHealth, (fighter.health || 0) + g * MAHORAGA_REGEN_PER)   // adaptation regen
+  }
+  fighter._mahoragaWheel = (fighter._mahoragaWheel || 0) + 1 + g * 0.5   // wheel spins faster the more it has adapted
+  fighter._mahoragaTimer = (fighter._mahoragaTimer || 0) - 1
+  if (fighter._mahoragaTimer <= 0) revertHandlerMahoraga(fighter)
+}
+// Adapted counter (Special while Mahoraga): the row_05 World-Slash. Damage scales with adaptation depth.
+const MAHORAGA_COUNTER_MD = { damage: 70, startup: 8, active: 5, recovery: 18, rangeX: 96, rangeY: 78, hitstun: 22, knockbackX: 9, knockbackY: -4, isSpecial: true, category: "special", cost: 0 }
+function fireMahoragaCounter(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const g = Math.min(fighter._mahoragaDistinct || 0, MAHORAGA_GROWTH_CAP)
+  const md = { ...MAHORAGA_COUNTER_MD, damage: MAHORAGA_COUNTER_MD.damage + g * 14 }   // stronger the more it has adapted
+  const attack = createAttackFromMove(fighter, "mahoragaCounter", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * 6
+  try { shakeCamera(context, 4, 8) } catch (_) {}
   return true
 }
 
@@ -9210,6 +9808,30 @@ function applyGhostfaceFinalActDamage(fighter, opp, cineCtx = {}) {
       ...(blocked ? { isBlocking: true } : {})
     })
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BILLY GHOSTFACE (registered variant, rosterKey "ghostface_billy") — live Special + Ultimate.
+// Reuses the shared, UN-GATED Ghostface knife helpers (fireGhostfaceGuttingLunge / fireGhostfaceLowGut)
+// and The Final Act cinematic payoff — deliberately WITHOUT the companion-swap system (Backstage Pass),
+// which is keyed to the original "ghostface". Billy's UNIQUE reactive Delayed Counter-Stab / The Last
+// Reveal live in ghostfaceVariantKit.js and need reactive-combat wiring (flagged follow-up).
+// ─────────────────────────────────────────────────────────────────────────────
+function executeBillyGhostfaceSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface_billy") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "D") return finishGfKnife(fighter, fireGhostfaceLowGut(fighter, context))       // Down = Low Gut (knockdown)
+  return finishGfKnife(fighter, fireGhostfaceGuttingLunge(fighter, context))                  // neutral/Fwd = Gutting Lunge (bleed)
+}
+function executeBillyGhostfaceUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface_billy") return false
+  if (isGhostfaceFinalActCinematicActive()) return false
+  if (!spendEnergy(fighter, GHOSTFACE_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  fighter.vx = 0
+  activateGhostfaceFinalActCinematic(fighter, opp, (cineCtx) => applyGhostfaceFinalActDamage(fighter, opp, cineCtx))
+  return true
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -16189,6 +16811,10 @@ const STANDARD_STRING_CHARS = {
   // own basic_attacks; no per-char driver). True zoners (rickPrime/evilMorty/beerus/piccolo/frieza) are
   // deliberately excluded — they stay single-poke by design.
   itachi: {}, yuji: {}, goku_black: {}, cell: {}, tobi: {}, morty: {}, albedo: {}, omololu: {},
+  // The Handler (JJK) — single ground combo string (megumi_attack_punches_kicks.png): the shared
+  // Light→Light→Heavy(launcher) dial-a-combo = "punch→punch→blade-drawn strike". Reuses its own
+  // basic_attacks (light + upAttack), no per-char driver. Mirrors the removed Megumi's grammar.
+  handler: {},
 }
 export function updateStandardStringCombat(fighter, inputState, context, getPhase) {
   const key = (fighter?.rosterKey || "").toLowerCase()
@@ -17784,14 +18410,77 @@ export function updateSpidermanCommandCombat(fighter, inputState, context, getPh
 // Special dispatch (Stage 3, direction-branched). Down = Ground Crawl evasive (Stage 2); neutral = Web
 // Impact (quick web); Fwd = Web Throw (signature full-range web-ball); Back = Dash Attack (gap-closer);
 // Up = Handstand Flip Kick (anti-air launcher). executeSpidermanSpecial is the triggerSpecial entry.
+// ─────────────────────────────────────────────────────────────────────────────
+// SPIDER-MAN WEB-SWING (air mobility — "attach a web to the sky and swing off it"). AIR + Up + Special
+// shoots a web to an anchor point up-and-ahead ("the sky") and Spidey PENDULUM-swings from it; Special
+// again RELEASES with the tangential velocity (a big forward/upward fling). A real pendulum (gravity
+// torque), not a scripted arc — feels like actual web-slinging. physics.applyGravity yields position
+// control to updateSpidermanWebSwing while _swinging. Auto-releases on a ~1.7s cap or floor contact.
+// ─────────────────────────────────────────────────────────────────────────────
+const SW_COST = 8, SW_MAXT = 105, SW_GRAV = 1.7, SW_FLING = 1.15, SW_VMAX = 26   // SW_GRAV tuned up → a snappier ~1s swing (a slow real-scale pendulum felt floaty)
+function _swCenterX(f) { return f.x + (f.w || 60) / 2 }
+function _swAnchorOffY(f) { return (f.h || 100) * 0.30 }   // rope grips ~upper-body, not the feet
+export function fireSpidermanWebSwing(fighter, context) {
+  if (!fighter || fighter._swinging) return false
+  if (!spendEnergy(fighter, SW_COST)) return false
+  const face = fighter.facing || 1
+  const cx = _swCenterX(fighter), cy = fighter.y + _swAnchorOffY(fighter)
+  fighter._swAX = cx + face * 155                              // anchor up-AND-AHEAD ("the sky")
+  fighter._swAY = Math.max(cy - 245, -330)                     // clamp near the ceiling
+  const dx = cx - fighter._swAX, dy = cy - fighter._swAY
+  fighter._swL = Math.max(70, Math.hypot(dx, dy))
+  fighter._swAng = Math.atan2(dx, dy)                          // 0 = straight down from anchor (fighter starts behind → swings forward)
+  const tvx = Math.cos(fighter._swAng), tvy = -Math.sin(fighter._swAng)
+  fighter._swVel = ((fighter.vx || 0) * tvx + (fighter.vy || 0) * tvy) / fighter._swL   // seed from current momentum (tangential)
+  if (fighter._swVel < 0.03) fighter._swVel = 0.03                     // ensure a decisive FORWARD swing (toward the anchor)
+  fighter._swFace = face
+  fighter._swinging = true
+  fighter._swTimer = SW_MAXT
+  fighter._spriteCastMove = "spiderSwing"; fighter._spriteCastTimer = SW_MAXT
+  fighter.attacking = false; fighter.attackCooldown = 0; fighter.isLaunched = false
+  try { sound.playSfxFile?.(pickSpidermanVoice("webCast"), null) } catch (_) {}
+  return true
+}
+export function releaseSpidermanWebSwing(fighter) {
+  if (!fighter?._swinging) return false
+  const tvx = Math.cos(fighter._swAng), tvy = -Math.sin(fighter._swAng)
+  let sp = fighter._swVel * fighter._swL * SW_FLING             // tangential launch speed
+  fighter.vx = Math.max(-SW_VMAX, Math.min(SW_VMAX, tvx * sp))
+  fighter.vy = Math.max(-SW_VMAX, Math.min(SW_VMAX, tvy * sp))
+  fighter._swinging = false
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  fighter.onGround = false; fighter.grounded = false; fighter.isLaunched = true
+  return true
+}
+// Per-frame while swinging (game.js). physics.applyGravity is a no-op for a swinger, so this OWNS position.
+export function updateSpidermanWebSwing(fighter, context) {
+  if (!fighter?._swinging) return
+  fighter._swVel += -(SW_GRAV / fighter._swL) * Math.sin(fighter._swAng)   // pendulum gravity torque
+  fighter._swVel *= 0.999
+  fighter._swAng += fighter._swVel
+  const cx = fighter._swAX + fighter._swL * Math.sin(fighter._swAng)
+  const cy = fighter._swAY + fighter._swL * Math.cos(fighter._swAng)
+  fighter.x = cx - (fighter.w || 60) / 2
+  fighter.y = cy - _swAnchorOffY(fighter)
+  fighter.facing = fighter._swFace                              // hold entry facing (no mid-swing flip)
+  const tvx = Math.cos(fighter._swAng), tvy = -Math.sin(fighter._swAng)
+  fighter.vx = tvx * fighter._swVel * fighter._swL; fighter.vy = tvy * fighter._swVel * fighter._swL
+  fighter.onGround = false; fighter.grounded = false
+  fighter._swTimer--
+  const floor = (fighter.groundY != null ? fighter.groundY : 470)
+  if (fighter._swTimer <= 0 || cy + (fighter.h || 100) * 0.55 >= floor) releaseSpidermanWebSwing(fighter)
+}
 export function executeSpidermanSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "spiderman") return false
+  if (fighter._swinging) return releaseSpidermanWebSwing(fighter)     // Special WHILE swinging → release (fling)
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  if (!grounded && dir === "U") return fireSpidermanWebSwing(fighter, context)   // AIR + Up → WEB-SWING
   if (dir === "D") return fireSpidermanCrawl(fighter, context)       // Down → Ground Crawl evasive
   if (dir === "F") return fireSpidermanWebThrow(fighter, context)    // Fwd  → Web Throw (signature)
   if (dir === "B") return fireSpidermanDashAttack(fighter, context)  // Back → Dash Attack (rushdown gap-closer)
-  if (dir === "U") return fireSpidermanHandstand(fighter, context)   // Up   → Handstand Flip Kick (launcher)
+  if (dir === "U") return fireSpidermanHandstand(fighter, context)   // GROUND Up → Handstand Flip Kick (launcher)
   return fireSpidermanWebImpact(fighter, context)                    // neutral → Web Impact (quick short web)
 }
 
@@ -18192,6 +18881,180 @@ function executeDeathstrokeUltimate(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BATMAN NEW VARIANT (dark_knight) — Stage 4 SPECIALS. Full 5-direction kit (owner decision) from the
+// lower-set weapon art. Directional (mirrors the Deathstroke framework):
+//   neutral = Crescent Chain — long-reach disjoint kusarigama strike (crescent-hook on chain; the cast
+//                              pose bakes the full extended reach → big rangeX, no projectile)
+//   Fwd     = Chain Flail    — advancing weighted-ball flail swing (long reach + forward lunge)
+//   Back    = Pistol Shot    — procedural bullet projectile (lunging aim; zoning / retreat tool)
+//   Down    = Cape Spin      — cape-spread AoE around self (tall hitbox, pops up)
+//   AIR     = Dive Bomb      — head-down cape dive attack (airborne downward commit)
+// All melee run createAttackFromMove → scaled ×0.60. Rage Mode / Mech ult = Stages 5/6.
+// ─────────────────────────────────────────────────────────────────────────────
+const DK_CRESCENT_MD = { damage: 74, startup: 9,  active: 6, recovery: 20, rangeX: 156, rangeY: 46, hitstun: 20, knockbackX: 9,  knockbackY: -2, isSpecial: true, category: "heavy" }   // long disjoint chain reach
+const DK_FLAIL_MD    = { damage: 88, startup: 10, active: 5, recovery: 22, rangeX: 128, rangeY: 54, hitstun: 24, knockbackX: 12, knockbackY: -3, isSpecial: true, category: "heavy" }   // advancing flail swing
+const DK_CAPE_MD     = { damage: 70, startup: 8,  active: 6, recovery: 18, rangeX: 104, rangeY: 78, hitstun: 20, knockbackX: 6,  knockbackY: -6, isSpecial: true, launcher: true }       // cape-spin AoE (pops up)
+const DK_DIVE_MD     = { damage: 80, startup: 6,  active: 8, recovery: 16, rangeX: 96,  rangeY: 84, hitstun: 20, knockbackX: 8,  knockbackY: 6,  isSpecial: true }                        // aerial dive-bomb
+
+function fireDarkKnightMelee(fighter, context, moveName, md, advance) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, moveName, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (advance) fighter.vx = (fighter.facing || 1) * advance
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+function fireDarkKnightPistol(fighter, context) {
+  const cost = 18, castT = 22, delay = 10
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._spriteCastMove = "dkPistol"; fighter._spriteCastTimer = castT
+  fighter.attackCooldown  = getAttackDuration(castT, fighter)
+  fighter._rekkaNext = null
+  schedulePendingSpawn(delay, () => {
+    // Procedural bullet tracer — no projectile art in the source (fast, flat muzzle round; mirrors Deathstroke's gun).
+    spawnProjectile(fighter, "darkKnightBullet", {
+      damage: 54, w: 24, h: 7, speed: 18, lifetime: 60, hitstun: 14, knockbackX: 6, knockbackY: -1,
+      isSpecial: true, color: "#ffe08a", drawKind: null,
+      spawnY: fighter.y + (fighter.h || 110) * 0.30,
+    }, context)
+  })
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+
+export function executeDarkKnightSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "dark_knight") return false
+  const dir = fighter._specialHeldDir || null                 // "F" | "B" | "U" | "D" | null
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  if (!grounded) return fireDarkKnightMelee(fighter, context, "dkDive", { ...DK_DIVE_MD, cost: 24 }, 8)          // AIR — Dive Bomb
+  if (dir === "U") return enterDarkKnightRage(fighter, context)                                                      // Up   — RAGE MODE transform (Stage 5)
+  if (dir === "F") return fireDarkKnightMelee(fighter, context, "dkFlail",    { ...DK_FLAIL_MD,    cost: 28 }, 16)   // Fwd  — Chain Flail
+  if (dir === "B") return fireDarkKnightPistol(fighter, context)                                                     // Back — Pistol Shot (projectile)
+  if (dir === "D") return fireDarkKnightMelee(fighter, context, "dkCape",     { ...DK_CAPE_MD,     cost: 24 }, 0)    // Down — Cape Spin (AoE)
+  return fireDarkKnightMelee(fighter, context, "dkCrescent", { ...DK_CRESCENT_MD, cost: 22 }, 6)                     // neutral — Crescent Chain (long disjoint)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BATMAN NEW VARIANT (dark_knight) — Stage 5 RAGE MODE. A TIMED transformation (Genos Overdrive / Kurapika
+// Emperor-Time / Baki architecture), triggered by Up+Special (NOT the ult — the ult is the Mech Suit, Stage
+// 6). Enter: pay 50 Fury → purple energy-crackle transform cinematic (dkRageTransform) → the fighter BULKS
+// UP (idle/guard swap to the taller muscular flex via _skinAnim, Vegeta-SSJ/Orochimaru pattern) → ~6.5s of
+// amped offense (dmg ×1.28 / spd ×1.12). RECKLESS TRADE-OFF (the real cost, tied to combat.js dmg-taken amp):
+// while raging he takes +15% damage — a berserker who hits harder but guards worse. Auto-revert on expiry or
+// KO. Combat frames REUSE the base kit (no full bulked moveset in the source — flagged); only the standing
+// bulked poses (idle/guard) + the crackle transform are real rage art. _dkRageTimer PUBLIC → game.js HUD/aura.
+// ─────────────────────────────────────────────────────────────────────────────
+const DK_RAGE = { cost: 50, duration: 390, mult: { dmg: 1.28, spd: 1.12 }, vulnMult: 1.15 }   // ~6.5s; +15% dmg TAKEN while active
+export function isDarkKnightRage(fighter) { return !!fighter?._dkRageActive }
+export function enterDarkKnightRage(fighter, context = {}) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "dark_knight" || fighter._dkRageActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if (!spendEnergy(fighter, DK_RAGE.cost)) return false
+  fighter._dkRageActive = true
+  fighter._dkRageTimer  = DK_RAGE.duration     // PUBLIC → duration HUD (game.js) + auto-revert
+  fighter._dkRageMax    = DK_RAGE.duration
+  fighter.damageMultiplier = fighter.attackMultiplier = DK_RAGE.mult.dmg
+  fighter.speedMultiplier  = DK_RAGE.mult.spd
+  // BULK UP — swap idle/guard to the taller muscular flex (Vegeta-SSJ/Orochimaru _skinAnim override); every
+  // other action falls through to the base kit (combat frames reuse base — no bulked moveset art, flagged).
+  const ad = fighter.animationData || {}
+  if (ad.dkRageIdle) fighter._skinAnim = { ...ad, idle: ad.dkRageIdle, guard: ad.dkRageIdle }
+  fighter._spriteCastMove  = "dkRageTransform"   // purple energy-crackle transform cinematic
+  fighter._spriteCastTimer = 4 * 5               // 4 frames × speed 5
+  fighter.attackCooldown   = 4 * 5
+  fighter.teleportFlash    = 16
+  fighter.vx = 0
+  try { focusCameraOnAction(context, fighter, null, 1.06, 14); shakeCamera(context, 7, 14) } catch (_) {}
+  return true
+}
+export function revertDarkKnightRage(fighter) {
+  if (!fighter || !fighter._dkRageActive) return
+  fighter._dkRageActive = false
+  fighter._dkRageTimer  = 0
+  fighter.damageMultiplier = fighter.attackMultiplier = 1
+  fighter.speedMultiplier  = 1
+  fighter._skinAnim = null           // back to base body
+}
+// Per-frame: tick the window → auto-revert on expiry (or KO). No expiry burn — the cost is the WHILE-ACTIVE
+// +15% dmg-taken (combat.js), so simply ending the window is enough.
+export function updateDarkKnightRage(fighter) {
+  if (!fighter || !fighter._dkRageActive) return
+  if ((fighter.health || 0) <= 0) { revertDarkKnightRage(fighter); return }
+  if ((fighter._dkRageTimer || 0) > 0) fighter._dkRageTimer--
+  if ((fighter._dkRageTimer || 0) <= 0) revertDarkKnightRage(fighter)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BATMAN NEW VARIANT (dark_knight) — Stage 6 ULTIMATE: "Mech Suit". A 2-phase timed heavy-FORM (Kurapika
+// Emperor-Time / Baki Demon-Back / Handler Mahoraga architecture). Phase 1 = wireframe MATERIALIZE cinematic
+// (dkMechWire, camera-focus + brief foe freeze). Phase 2 = a timed GIANT mech FORM: _skinAnim swaps the body
+// to the towering Optimus-style suit (idle/movement + every strike render on the mech), with HEAVY buffs —
+// dmg ×1.5 (hits like a truck) / def ×1.25 (armored) / spd ×0.85 (ponderous — the real trade-off) — ~8s, then
+// auto-revert (or KO). Specials during the form fall through to base cast poses (flagged; the mech kit is the
+// normals). Mech art = the far-right x4100+ column (distinct from the Stage-5 armored batsuit). 100 Fury.
+// ─────────────────────────────────────────────────────────────────────────────
+const DK_MECH = { cost: 100, duration: 480, castT: 4 * 6, mult: { dmg: 1.5, def: 1.25, spd: 0.85 } }   // ~8s giant heavy form (ult-tier dmg; modest armor; SLOW is the real trade-off)
+export function isDarkKnightMech(fighter) { return !!fighter?._dkMechActive }
+export function enterDarkKnightMech(fighter, context = {}) {
+  if ((fighter?.rosterKey || "").toLowerCase() !== "dark_knight" || fighter._dkMechActive) return false
+  if (!spendEnergy(fighter, DK_MECH.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter._dkMechActive = true
+  fighter._dkMechTimer  = DK_MECH.duration      // PUBLIC → duration HUD (game.js) + auto-revert
+  fighter._dkMechMax    = DK_MECH.duration
+  fighter.currentForm       = "mech"
+  fighter.currentFormData   = { damageMultiplier: DK_MECH.mult.dmg, attackMultiplier: DK_MECH.mult.dmg, speedMultiplier: DK_MECH.mult.spd, defenseMultiplier: DK_MECH.mult.def, mechForm: true }
+  fighter.damageMultiplier  = fighter.attackMultiplier = DK_MECH.mult.dmg
+  fighter.speedMultiplier   = DK_MECH.mult.spd
+  fighter.defenseMultiplier = DK_MECH.mult.def
+  // MECH BODY — swap movement + all strikes to the giant mech (idle/walk/guard=mech idle, all normals=mech lunge).
+  // Specials fall through to the base spread (human cast poses — flagged; the mech kit is the normals).
+  const ad = fighter.animationData || {}
+  if (ad.dkMechIdle && ad.dkMechAttack) {
+    fighter._skinAnim = { ...ad,
+      idle: ad.dkMechIdle, walk: ad.dkMechIdle, run: ad.dkMechIdle, dash: ad.dkMechIdle, crouch: ad.dkMechIdle, guard: ad.dkMechIdle, jump: ad.dkMechIdle, fall: ad.dkMechIdle,
+      light: ad.dkMechAttack, heavy: ad.dkMechAttack, up: ad.dkMechAttack, air: ad.dkMechAttack, down_air: ad.dkMechAttack, crouchLight: ad.dkMechAttack }
+  }
+  // Phase 1 — wireframe MATERIALIZE cinematic (freeze/camera-focus), then the mech idle takes over (Phase 2).
+  fighter._spriteCastMove  = "dkMechWire"
+  fighter._spriteCastTimer = DK_MECH.castT
+  fighter.attackCooldown   = getAttackDuration(DK_MECH.castT, fighter)
+  fighter.teleportFlash    = 18
+  fighter.vx = 0
+  try { focusCameraOnAction(context, fighter, opp, 1.12, 20); shakeCamera(context, 9, 16) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, DK_MECH.castT - 6); opp.vx = 0 }   // brief foe freeze through the materialize
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  return true
+}
+export function revertDarkKnightMech(fighter) {
+  if (!fighter || !fighter._dkMechActive) return
+  fighter._dkMechActive = false
+  fighter._dkMechTimer  = 0
+  fighter.currentForm       = "base"
+  fighter.currentFormData   = null
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter._skinAnim = null           // power down → base body
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+}
+// Per-frame: tick the form window → auto-revert on expiry (or KO — power down when destroyed).
+export function updateDarkKnightMech(fighter) {
+  if (!fighter || !fighter._dkMechActive) return
+  if ((fighter.health || 0) <= 0) { revertDarkKnightMech(fighter); return }
+  if ((fighter._dkMechTimer || 0) > 0) fighter._dkMechTimer--
+  if ((fighter._dkMechTimer || 0) <= 0) revertDarkKnightMech(fighter)
+}
+export function executeDarkKnightUltimate(fighter, context) {
+  return enterDarkKnightMech(fighter, context)   // Mech Suit = the ultimate (2-phase timed heavy form)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ALTERNATE SUKUNA — Stage 4 SPECIALS (honest modest kit; the real art supports 3). Directional:
 //   neutral = Fūga: Fire Arrow  — the ONE real projectile (b13 charge→thrust cast; procedural pale-gold arrow)
 //   Fwd     = Spinning Lunge Kick — advancing roundhouse (b16-bot kick art, altSukunaSpinkick)
@@ -18304,6 +19167,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "alt_sukuna": return executeAltSukunaSpecial(fighter, context)   // neutral=Fūga Fire Arrow (projectile) / Fwd=Spinning Lunge Kick / Down=Cursed Grab. Cleave string=S3 Fwd+Heavy rekka; Domain=S5 ULT.
     case "aoi_todo": return executeAoiTodoSpecial(fighter, context)   // neutral=Gun (procedural bullet) / Fwd=Flying Fire Kick / Back=Whip-Slash (long disjoint) / Down=Spinning Backfist / Up=Armored Charge (buff) / AIR=Dive Kick. Command chain=S3 Fwd+Heavy rekka; Boogie Woogie swap=S5.
     case "yuta":    return executeYutaSpecial(fighter, context)   // neutral/air=Cursed Energy Manip beam / Fwd=Strong Attack (advancing sword) / Down=Kick 4 (dark cursed-energy wing, launcher) / Up=Cursed Speech (stun shout) / Back=Reverse Cursed Technique (self-heal). Sword combo=S3 Fwd+Heavy rekka; Rika's Invocation=S5 ULT.
+    case "handler": return executeHandlerSpecial(fighter, context) // SHIKIGAMI cameo system: neutral=Divine Dogs (dog rush) / Fwd=Orochi (snake lunge) / Back=Datto (rabbit swarm) / Down=Max Elephant (heavy slam) / Up=Nue (bird anti-air) / AIR=Toad (drop). Each = a ×0.60 summon. Domain (2nd special)=deferred (art re-export); Mahoraga=S5 ULT.
     case "yuji":    return executeYujiSpecial(fighter, context)   // Cursed-Energy Y-family: Ball(neutral)/Beam(Fwd)/Pillar(Up)/Crescent(Down)/AirCombo(airborne)
     case "sasuke":  return executeSasukeSpecial(fighter, context)   // Susanoo grab/arrow (only while in Susanoo)
     case "itachi":  return executeItachiSpecial(fighter, context)   // Fireball (neutral); Amaterasu/Genjutsu gated on Mangekyou (Stage 4)
@@ -18351,14 +19215,18 @@ export function triggerSpecial(fighter, context = {}) {
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
     case "chrollo": return executeChrolloSpecial(fighter, context)   // Nen Bolt (neutral/fwd projectile) / Blade Lunge (down knife-thrust)
     case "ghostface": return executeGhostfaceSpecial(fighter, context)   // Backstage Pass (spec §4.2): swap(Grab/Charge) / fakeout(attack) / getaway(Back) / side-switch(neutral) + knife specials Gutting Lunge(Fwd)/Low Gut(Down)
+    case "ghostface_billy": return executeBillyGhostfaceSpecial(fighter, context)   // Billy variant (live): knife specials only — Fwd/neutral=Gutting Lunge / Down=Low Gut (reuses shared un-gated helpers; NO companion swap)
     case "jason":   return executeJasonSpecial(fighter, context)   // Relentless Slash — the ONE special: committed lunging machete power-slash (Bloodlust; reuses the heavy art)
     case "saitama": return executeSaitamaSpecial(fighter, context)   // GROUND: Serious Punch+shockwave(Fwd)/Two-Handed(Back)/Bargain Sale(Up)/Table Flip(Down). AIR: Headbutt(neutral)/Up→Down(Fwd)/Side Hop(Back/Down). (neutral GROUND = the tap/hold punch-combo, armed in game.js press-path)
+    case "genos":   return executeGenosSpecial(fighter, context)   // Fwd/U=Machine Gun Blows / Down=Jet Dash / Back=Afterimage Dash / AIR=Machine Gun. (neutral GROUND = Incineration Cannon tap/hold, armed in game.js press-path)
+    case "frieza":  return executeFriezaSpecial(fighter, context)   // neutral=Death Beam (procedural beam) / Fwd/U/AIR=Ki Blast volley (crystal shots) / Down=Death Ball (big sphere) / Back=Psycho Teleport (i-frame dash-strike)
     case "onoki":   return executeOnokiSpecial(fighter, context)     // Dust Release — neutral=Rock Fist Transform / Fwd=Rock Fist Lunge / Back=Rock Arm Swing / Down=Cape Spin+rock projectiles / Up=Taunting Combo Finisher (launcher). Jutsu Charge/Launch = separate P-hold release.
     case "kiba":    return executeKibaSpecial(fighter, context)      // Gatsuga (Fang Passing Fang) — neutral=Weak drill-rush / Fwd=Strong drill-rush (superArmor, further, ~2× energy)
     case "spiderman": return executeSpidermanSpecial(fighter, context)   // Stage 2: Down = Ground Crawl evasive (i-frames + reposition; Light/Heavy during crawl → kick-up). Web specials (neutral/F/B/U) land Stage 3.
     case "naoya":   return executeNaoyaSpecial(fighter, context)   // neutral=Energy Dart spread / Fwd=Pitch Throw (fast dart) / Back=Frame-Skip retreat blink / Up=Frame-Skip advance blink / Down=Frame-Trap (L→H→L strict-link → freeze finish)
     case "boruto":  return executeBorutoSpecial(fighter, context)    // GROUND: Rasengan(neutral)/Shiden(Fwd)/Wind-Water(Back)/Palm Blast(Up)/Shadow Clone(Down). AIR: Rasengan(neutral)/Throw Weapon(Fwd)/Vanishing Rasengan(Back)
     case "deathstroke": return executeDeathstrokeSpecial(fighter, context)   // GROUND: Sword Slash(neutral)/Draw&Cut lunge(Fwd)/Gun Shot(Back projectile)/Running Slash(Down). AIR: Aerial Spin (hitbox). row_09 spin-finish = promoted ULT.
+    case "dark_knight": return executeDarkKnightSpecial(fighter, context)   // NEW-VARIANT Batman. GROUND: Crescent Chain(neutral long disjoint)/Chain Flail(Fwd)/Pistol Shot(Back projectile)/Cape Spin(Down AoE). AIR: Dive Bomb. Rage Mode/Mech ult = Stages 5/6.
     case "light":   return executeLightSpecial(fighter, context)     // GROUND: Y vortex(neutral)/L divekick(Fwd)/Ryuk anti-air(Up)/L rising burst(Back)/violet burst(Down). AIR: gunman rocket(neutral)/air punch(Fwd)
     case "l_ryuuzaki": return executeLRyuuzakiSpecial(fighter, context)   // neutral=Golden Nova (marquee wide burst) / Fwd=Bazooka (long-range) / Back=Golden Rising Burst (launcher) / Up=Ryuk cameo-attack (Stage-5 anti-air launcher) / Down=Investigation/Analysis (non-lethal buff). EX kick-trail = cancel-only (updateLRyuuzakiCommandCombat)
     case "mayuri":  return executeMayuriSpecial(fighter, context)    // neutral=Finger-Gun Blast (projectile) / Fwd=Energy Slash (crescent projectile) / Up=Rising Cut (launcher) / Down=Poison Cloud (DoT projectile) / Back=Lab Coat Open (damage buff)
@@ -18405,7 +19273,11 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "six_paths_pain": cast = executeSixPathsUltimate(fighter, context); break   // Six Paths of Pain — the bodies swarm-rush; guaranteed range-independent payoff (Chibaku reserved for solo pain)
       case "isshiki": cast = executeIsshikiUltimate(fighter, context); break   // Daikokuten Barrage (Finisher 3) — inline camera-focus cinematic: rod-rain guaranteed nuke (live fighter, no dup-instance)
       case "saitama": cast = executeSaitamaUltimate(fighter, context); break   // Death Punch — inline freeze cinematic (live fighter charge→impact, no dup) + hi-res fullscreen backdrop; guaranteed payoff
+      case "genos":   cast = executeGenosUltimate(fighter, context); break   // Overdrive — timed power-up MODE (Emperor-Time/Baki architecture): ~7s ×1.35 dmg/×1.15 spd → auto-revert; overheat DRAWBACK on expiry (8% self-dmg + ~2s bonus-damage-taken vuln)
+      // FRIEZA has NO separate ultimate — his power ceiling is the base→Golden→Black transformation LADDER
+      // on the CHARGE button (enterGoldenFrieza / enterBlackFrieza), same as Vegeta. Ultimate button no-ops.
       case "onoki": cast = executeOnokiUltimate(fighter, context); break        // Detachment of the Primitive World — cast beat hands off to a PERSISTENT stone golem (summons.js onokiGolem)
+      case "handler": cast = executeHandlerUltimate(fighter, context); break     // Mahoraga — ADAPTATION FORM (NEW engine): transforms into Mahoraga (_skinAnim art-swap), swaps in WEAK, adapts per-move (damage-reduction ladder against him) + GROWS (dmg/def/regen with distinct-adapted), ~10s auto-revert. Kit: normals=attack combo, Special=adapted counter (row_05).
       case "yuta": cast = executeYutaUltimate(fighter, context); break          // Rika's Invocation (owner decision #8 = AI assist-ally) — invocation cast (row_16) hands off to a PERSISTENT AI Rika assist (summons.js rikaAssist): emerges → advances → strikes ~6s, per-hit ×0.60 scaled (Megumi-flag)
       case "mayuri": cast = executeMayuriUltimate(fighter, context); break      // Bankai: Konjiki Ashisogi Jizō — inline freeze cinematic (live fighter, no dup): golden construct assembles→crushes, guaranteed ~198 EFF
       case "spiderman": cast = executeSpidermanUltimate(fighter, context); break  // Maximum Web — inline freeze cinematic (live fighter, no dup): giant web-net engulfs+PINS the foe, guaranteed ~204 EFF
@@ -18433,6 +19305,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
       case "batman":  cast = executeBatmanUltimate(fighter, context);  break   // The Dark Knight: batarang-barrage freeze cinematic
+      case "dark_knight": cast = executeDarkKnightUltimate(fighter, context); break   // NEW-VARIANT Batman — Mech Suit: 2-phase timed heavy FORM (wireframe materialize cinematic → giant mech body via _skinAnim, dmg×1.5/def×1.5/spd×0.85, ~8s → auto-revert). Kurapika/Baki architecture.
       case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
       case "red_ranger_mmpr": cast = executeRedRangerMmprUltimate(fighter, context); break   // Power Sword: Overhead Strike — freeze-cinematic leaping overhead slash
       case "samurai_red_ranger": cast = executeSamuraiRangerUltimate(fighter, context); break   // Fire Smasher: Blazing Strike — TIER-SCALING freeze cinematic (base vs Mega art+damage)
@@ -18455,6 +19328,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "tobirama": cast = executeTobiramaUltimate(fighter, context); break   // Edo Tensei: in-place swap into the pre-chosen vessel's full kit for a timed window
       case "chrollo": cast = executeChrolloUltimate(fighter, context); break   // Skill Hunter: live transform into a full copy of the OPPONENT for 30s (gated on 3 distinct moves landed)
       case "ghostface": cast = executeGhostfaceUltimate(fighter, context); break   // The Final Act: freeze-cinematic stab flurry — guaranteed damage + lethal bleed finisher
+      case "ghostface_billy": cast = executeBillyGhostfaceUltimate(fighter, context); break   // Billy variant (live): reuses The Final Act cinematic + payoff (un-gated helpers)
       case "miwa": cast = executeMiwaUltimate(fighter, context); break   // Blade of the Neophyte: battojutsu quick-draw freeze-cinematic — single guaranteed slash
 
       case "omniman": cast = executeOmniManUltimate(fighter, context); break   // Viltrumite Onslaught: flying body-slam freeze cinematic (largest sheet)
@@ -18843,6 +19717,7 @@ export function updateTransformationState(fighter, context = {}) {
   // auto-reverts at 0 and arms the 20s ultimate cooldown. No-op when not in Susanoo.
   updateSasukeSusanoo(fighter)
   updateBorutoKarma(fighter)     // Boruto Momoshiki Karma form: continuous energy drain + auto-revert at 0
+  updateHandlerMahoraga(fighter) // The Handler Mahoraga form: adaptation-growth (dmg/def/regen) + wheel spin + duration countdown + auto-revert
   updateKurapikaEmperor(fighter) // Kurapika Emperor Time: duration countdown + auto-revert + post-revert vulnerability tick
   updateItachiSusanoo(fighter)   // Itachi single-tier Susanoo: tick its own timer + auto-revert
   updateNeteroGuanyin(fighter)   // Netero Guanyin Bodhisattva giant: tick its own timer + auto-revert

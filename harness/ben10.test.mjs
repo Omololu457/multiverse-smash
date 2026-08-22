@@ -51,7 +51,7 @@ async function poseShot(action) {
 
 const FORMS = [
   { key: "human", label: "Ben (human)", actions: ["idle", "walk", "run", "jump", "fall", "hurt", "light", "heavy", "up", "air", "down_air", "grab", "benJab1", "benJab2", "benHover", "transform"] },
-  { key: "xlr8", label: "XLR8", actions: ["idle", "walk", "run", "jump", "fall", "hurt", "light", "heavy", "up", "air", "down_air", "grab", "xlCombo1", "xlCombo2", "xlCombo3", "xlDash", "xlRush", "xlUlt"] },
+  { key: "xlr8", label: "XLR8", actions: ["idle", "walk", "run", "dash", "crouch", "jump", "fall", "guard", "hurt", "knockdown", "getup", "light", "heavy", "up", "air", "down_air", "grab", "xlCombo1", "xlCombo2", "xlCombo3", "xlDash", "xlRush", "xlUlt"] },
   { key: "diamondhead", label: "Diamondhead", actions: ["idle", "walk", "run", "jump", "fall", "hurt", "light", "heavy", "up", "air", "down_air", "grab", "dhSwing1", "dhSwing2", "dhShoot", "dhRising", "dhUlt"] },
 ];
 

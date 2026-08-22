@@ -51,6 +51,17 @@ export const SOURCED_ART = {
     source:  "fan sprite sheets (yuta_row_*.png / rika_v1_*/rika_v2_*.png; in-sheet credit to Soulfire et al.)",
     files:   ["yuta_*.png", "yuta_row_*.png", "rika_*.png", "rika_v1_*.png", "rika_v2_*.png"]
   },
+  // The Handler (JJK) — NEW char from the removed Megumi's Ten-Shadows shikigami art + Mahoraga. The
+  // Mahoraga source sheet carries a baked credit watermark: Discord "ARISRADIKLIF#3447" (+ 呪術廻戦 logo),
+  // so attribution is MANDATORY. NOTE: the fushiguro/shibuya "Ten Shadows" base-sheet artists are NOT yet
+  // identified from the baked text (labels were technique names, not signatures) — pin them here before
+  // ship. The "by saxcreed" guest sprite is EXCLUDED by default (credit only if ever used).
+  handler: {
+    work:    "Megumi (Jujutsu Kaisen) — Ten Shadows shikigami + Mahoraga",
+    artists: ["ARISRADIKLIF#3447 (Mahoraga sheet)", "Ten Shadows base-sheet artist — TBD (identify before ship)"],
+    source:  "fan sprite sheets (mahoraga_*.png credit ARISRADIKLIF#3447; megumi fushiguro/shibuya sheets — artist TBD)",
+    files:   ["handler_*.png", "mahoraga_*.png", "megumi_shibuya_*.png", "megumi_tokusa_*.png", "megumi_UNSEPARATED_*.png", "megumi_stance.png", "megumi_walk.png", "megumi_crouch.png", "megumi_jump.png", "megumi_hit.png", "megumi_attack_*.png"]
+  },
   // Red Ranger (Jason, Mighty Morphin). Source REQUIRES credit to "Omega (tolgayavuz85)".
   red_ranger_mmpr: {
     work:    "Red Ranger — Jason (Mighty Morphin)",
@@ -73,6 +84,23 @@ export const SOURCED_ART = {
     artists: ["arzeer (DeviantArt)"],
     source:  "fan JUS-style sprite sheet (saitama_jus__by_arzeer_de00xcg.png)",
     files:   ["saitama_*.png"]
+  },
+  // Genos (One Punch Man). Fan-made teal-keyed master sprite sheet. ★ATTRIBUTION PENDING — the source
+  // DeviantArt artist is not yet identified (file id ddk5eh3-5cfadb89-4c66-4fc4-b56f-bcb3d538c4f8.png).
+  // Attribution is MANDATORY before ship (mirrors Saitama/Jason/Ghostface) — owner to confirm the author.
+  genos: {
+    work:    "Genos (One Punch Man)",
+    artists: ["UNKNOWN — DeviantArt author pending (TODO: confirm before ship)"],
+    source:  "fan sprite sheet (ddk5eh3-5cfadb89-4c66-4fc4-b56f-bcb3d538c4f8.png)",
+    files:   ["genos_*.png"]
+  },
+  // Frieza (Dragon Ball Z: Extreme Butoden). Ripped 3DS fighting-game sprite sheet. ★ATTRIBUTION PENDING —
+  // sprite-rip author not yet identified (likely The Spriters Resource). Confirm before ship.
+  frieza: {
+    work:    "Frieza (Dragon Ball Z: Extreme Butoden, base/final form)",
+    artists: ["Arc System Works / Bandai Namco (original 3DS game); sprite-rip author UNKNOWN — TODO: confirm before ship"],
+    source:  "ripped 3DS sprite sheet (3DS - Dragon Ball Z_ Extreme Butoden - Fighters - Frieza.png)",
+    files:   ["frieza_*.png"]
   },
   // Isshiki Otsutsuki (Naruto / Boruto). Fan-made sprite sheet — attribution to the original
   // DeviantArt author is MANDATORY (mirrors Jason/Ghostface/Red Ranger).
@@ -133,7 +161,7 @@ export const SOURCED_ART = {
 // This list is EXPLICIT (not a wildcard) so a newly-added character is caught by the test until
 // its provenance is declared — either here, or in SOURCED_ART with a named artist.
 export const PROJECT_ART_KEYS = [
-  "goku", "goku_black", "vegeta", "piccolo", "frieza", "cell",
+  "goku", "goku_black", "vegeta", "piccolo", "cell",   // frieza MOVED to SOURCED_ART (now a real ripped sprite sheet, no longer procedural project-art)
   "sukuna", "omololu", "maki", "yuji",
   "naruto", "sasuke", "itachi", "tobirama", "hashirama", "minato", "madara", "obito", "tobi",
   "zenitsu", "rengoku", "shinobu", "inosuke", "nezuko",
@@ -179,7 +207,12 @@ export const PROJECT_ART_KEYS = [
   // Brainiac (DC) — fan sprite sheet delivered as generic numbered brainiac_row_NN.png strips with NO baked
   // artist text (a small skull HUD glyph in row_01 was reference-only, excluded); resliced in-repo by
   // tools/reslice_brainiac.py → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
-  "brainiac"
+  "brainiac",
+  // Batman NEW VARIANT ("dark_knight", DC) — single 5120x2880 true-alpha DeviantArt sheet
+  // (df2ek1u-...-e247c4.png), resliced in-repo by tools/reslice_dark_knight.py. The filename is a
+  // DeviantArt asset ID only; ARTIST IS UNKNOWN → project-adapted bucket for now. ★ATTRIBUTION OPEN —
+  // MANDATORY before ship; move to SOURCED_ART once the artist is identified.
+  "dark_knight"
 ]
 
 // Every roster key that has a declared attribution (sourced OR project-adapted).

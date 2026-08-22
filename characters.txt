@@ -1,0 +1,118 @@
+MULTIVERSE SMASH — PLAYABLE CHARACTER ROSTER
+=============================================
+Last updated: 2026-08-18
+This file is maintained and re-updated whenever the roster changes.
+
+Legend:
+  [S]        = has sprites (fully playable with real art)
+  [pending]  = planned / sprites being sourced (not yet playable with art)
+
+Sprite characters total: 68
+Dragon Ball sprites pending: 4 (Goku, Piccolo, Frieza, Cell)
+
+
+== BAKI ==
+  [S] Baki Hanma  (baki)
+
+== BEN 10 ==
+  [S] Ben 10  (ben10)
+
+== BLEACH ==
+  [S] Ichigo Kurosaki  (ichigo)
+  [S] Zaraki Kenpachi  (zaraki)
+  [S] Mayuri Kurotsuchi  (mayuri)
+  [S] Byakuya Kuchiki  (byakuya)
+  [S] Yamamoto  (yamamoto)
+
+== DC ==
+  [S] The Flash  (flash)
+  [S] Batman  (batman)
+  [S] Superman  (superman)
+  [S] Deathstroke  (deathstroke)
+  [S] Brainiac  (brainiac)
+  [S] Green Lantern  (green_lantern)
+
+== DEATH NOTE ==
+  [S] L  (l_ryuuzaki)
+  [S] Light Yagami  (light)
+
+== DEMON SLAYER ==
+  [S] Zenitsu Agatsuma  (zenitsu)
+  [S] Kyojuro Rengoku  (rengoku)
+  [S] Shinobu Kocho  (shinobu)
+  [S] Inosuke Hashibira  (inosuke)
+  [S] Nezuko Kamado  (nezuko)
+
+== DRAGON BALL ==  (getting sprites for the full roster)
+  [S]       Vegeta  (vegeta)
+  [S]       Goku Black  (goku_black)
+  [S]       Beerus  (beerus)
+  [pending] Goku  (goku)
+  [pending] Piccolo  (piccolo)
+  [pending] Frieza  (frieza)
+  [pending] Cell  (cell)
+
+== HORROR ==
+  [S] Ghostface  (ghostface)
+  [S] Jason Voorhees  (jason)
+
+== HUNTER X HUNTER ==
+  [S] Isaac Netero  (netero)
+  [S] Chrollo Lucilfer  (chrollo)
+  [S] Killua Zoldyck  (killua)
+  [S] Gon Freecss  (gon)
+  [S] Hisoka Morrow  (hisoka)
+  [S] Kurapika  (kurapika)
+
+== INVINCIBLE ==
+  [S] Omni-Man  (omniman)
+
+== JUJUTSU KAISEN ==
+  [S] Gojo Satoru  (gojo)
+  [S] Sukuna  (sukuna)
+  [S] Alternate Sukuna  (alt_sukuna)
+  [S] Aoi Todo  (aoi_todo)
+  [S] Maki Zenin  (maki)
+  [S] Toji Fushiguro  (toji)
+  [S] Kasumi Miwa  (miwa)
+  [S] Yuji Itadori  (yuji)
+  [S] Naoya Zenin  (naoya)
+  [S] Yuta Okkotsu  (yuta)
+
+== MARVEL ==
+  [S] Spider-Man  (spiderman)
+
+== NARUTO ==
+  [S] Naruto  (naruto)
+  [S] Sasuke  (sasuke)
+  [S] Itachi Uchiha  (itachi)
+  [S] Tobirama Senju  (tobirama)
+  [S] Hashirama Senju  (hashirama)
+  [S] Minato Namikaze  (minato)
+  [S] Madara Uchiha  (madara)
+  [S] Pain  (pain)
+  [S] Obito Uchiha  (obito)
+  [S] Tobi  (tobi)
+  [S] Isshiki Otsutsuki  (isshiki)
+  [S] Hiruzen Sarutobi  (hiruzen)
+  [S] Orochimaru  (orochimaru)
+  [S] Onoki  (onoki)
+  [S] Kiba Inuzuka  (kiba)
+  [S] Boruto Uzumaki  (boruto)
+  [S] Six Paths of Pain  (six_paths_pain)
+
+== ONE PUNCH MAN ==
+  [S] Saitama  (saitama)
+
+== POWER RANGERS ==
+  [S] Omega Ranger (White Ranger, S.P.D.)  (omega_ranger)
+  [S] Samurai Red Ranger (Fire)  (samurai_red_ranger)
+  [S] Gold Samurai Ranger (Light)  (gold_samurai_ranger)
+  [S] Green Samurai Ranger (Forest)  (green_samurai_ranger)
+  [S] Red Ranger (Mighty Morphin)  (red_ranger_mmpr)
+
+== RICK AND MORTY ==
+  [S] Rick Sanchez  (rick)
+
+== SAIKI K ==
+  [S] Saiki Kusuo  (saiki)

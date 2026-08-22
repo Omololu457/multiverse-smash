@@ -42,6 +42,8 @@ const ENERGY_TYPE_LABELS = {
   intellect:        "Intellect",                // DC (Brainiac) — the Coluan's 12th-level computational reserve; fuels his beam/tentacle/shield zoner kit + the Energy-Pillar Ultimate
   willpower:        "Willpower",                 // DC (Green Lantern) — the green light of will powering the ring; fuels the fixed-slot construct kit + the multi-construct Ultimate
   boogie:           "Boogie",                    // Jujutsu Kaisen (Aoi Todo) — the Boogie Woogie rhythm meter; gates the Clap swap system (self/cameo/enemy), Yuji+Gojo cameo call-ins, co-op combos + the Black Flash ultimate
+  core:             "Core",                       // One Punch Man (Genos) — the cyborg's power-core reserve; fuels the Incineration Cannon charge-tiers, Machine Gun Blows, jet/afterimage dashes + the Overdrive ultimate
+  fury:             "Fury",                        // DC (Batman NEW VARIANT / "dark_knight") — escalating rage reserve; fuels the Rage Mode transformation + the Mech-Suit ultimate
 }
 
 // UNIVERSE-level energy-label override — every character in a listed universe shows this label

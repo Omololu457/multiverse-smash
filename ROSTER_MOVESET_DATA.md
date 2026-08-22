@@ -63,9 +63,11 @@ values are under each character's **Flags**.
 - **Specials (metadata):** Special Beam Cannon 150→90 · 35 EN · Hellzone Grenade 100→60 · 30 EN. **Ult:** Fused with Kami · 100 EN.
 - **Flags:** **[NO HANDLER]** — declared data only; EFF shown assuming the scaled pipeline *if* ever wired.
 
-## Frieza — dragon_ball *(non-sprite placeholder)*
-- **Stats:** HP 1200 · EN 170 · 90/84/88 · **Normals:** 45→27 / 85→51 / 70→42 / 60→36 / 80→48 / 28→17
-- **Specials (metadata):** Death Beam 90→54·20 · Nova Strike 140→84·30 · Ult Death Ball 200→120·50. **Ult:** Golden Frieza · 100 EN.
+## Frieza — dragon_ball *(base/final form; full sprite build)*
+- **Stats:** HP 1100 · EN 200 · 90/80/98 · **Normals (raw→×0.60):** light 42→25 / heavy 80→48 (kick) / up 62→37 launcher / air 52→31 / down_air 60→36 / grab 28→17
+- **Rush rekka (Fwd+Heavy, cancel-on-hit):** 40→24 · 46→28 · 84→50 launcher (~102 EFF full chain)
+- **Specials (raw→×0.60·cost):** Death Beam 78→47·22 (piercing beam) · Ki Blast 26×3→~47·24 (crystal volley) · Death Ball 120→72·45 (sphere) · Psycho Teleport 74→44·28 (i-frame blitz)
+- **Transformations:** **Golden Frieza** — timed MODE on Charge (hold-release, 70 EN): peak 5s ×1.40 dmg/×1.20 spd → sharp drop-off to ×1.05/×1.00 over 3s → auto-revert crash (spd ×0.80). **Ultimate = Black Frieza** — cinematic guaranteed 340→204 · 100 EN (ends Golden, no drawback).
 - **Flags:** **[NO HANDLER]** — data only.
 
 ## Cell — dragon_ball *(non-sprite placeholder)*

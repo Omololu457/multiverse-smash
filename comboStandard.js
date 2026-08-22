@@ -101,7 +101,9 @@ export const REKKA = [
 export const STANDARD_STRING = {
   builtIn: ["goku", "gojo", "sukuna", "naruto", "rick"],   // the 5 original (MK-feel Stage 2b; Megumi removed 2026-08-18)
   // Stage D rollout: every remaining un-built MELEE char (each has light + upAttack). Art-free, 1 line each.
-  added:   ["itachi", "yuji", "goku_black", "cell", "tobi", "morty", "albedo", "omololu"],
+  // + The Handler (JJK): single ground combo string (punch→punch→blade-drawn launcher) — same grammar as
+  //   the removed Megumi; carved from megumi_attack_punches_kicks.png.
+  added:   ["itachi", "yuji", "goku_black", "cell", "tobi", "morty", "albedo", "omololu", "handler"],
 }
 
 // ── TRUE ZONERS — single-poke by design, NO combo string of either grammar ──────────────────────
@@ -160,8 +162,8 @@ export const EXPECTED_COUNTS = {
   deviatesFinisher: 0,             // Stage C DONE (Maki stays an exception)
   exception:       8,
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
-  standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo/omololu)
-  standardStringTotal:  13,
+  standardStringAdded:  9,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo/omololu) + handler (JJK)
+  standardStringTotal:  14,
   zoner:                5,          // true single-poke zoners (rickPrime/evilMorty/beerus/piccolo/frieza)
   rosterTotal:          52,        // 34 + 13 + 5 (rekka +red_ranger_mmpr). NOTE: live roster is 53 — `toji` is a PRE-EXISTING unclassified gap (recent rebuild, not yet added to REKKA/NO_REKKA); that partition failure is tracked separately, not part of this Stage-2 work.
 }

@@ -292,6 +292,11 @@ export const SKINS = {
   // outline are PROTECTED (black is one inseparable region → pants & hair stay dark on every skin). All
   // decals/emblems/wrist-icons DROPPED (drawn marks the pure-recolor pipeline can't add). gen_yuta_creative.py.
   // Default MUST exist: applySkin() sources the real spriteScale from here (else Yuta renders at native px).
+  // The Handler (JJK) — STAGE 1: Default skin only (themed recolors are a later stage). Default MUST
+  // exist: applySkin() sources the real spriteScale from here (else The Handler renders at native px).
+  handler: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.handler?.portrait, spriteScale: characters.handler?.spriteScale, animationData: null },
+  ],
   yuta: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.yuta?.portrait, spriteScale: characters.yuta?.spriteScale, animationData: null },
     { id: "yutaBen10",     name: "Ben 10",     unlockLevel: 0, portrait: "./yuta_portrait__ben10.png",     spriteScale: characters.yuta?.spriteScale, animationData: recolorSkinAnim("yuta", "ben10") },     // Omnitrix-green uniform / green katana accent (stripe+'10' decal dropped → green promoted to whole uniform)
@@ -720,6 +725,11 @@ export const SKINS = {
   // spriteScale:1 fallback and he renders at native ~half size (his art is large so the
   // fallback would OVER-size then his own <1 scale wouldn't apply). Sources his real
   // spriteScale (0.92) + portrait from the character. No alt skins yet.
+  // Batman NEW VARIANT (rosterKey "dark_knight") — Stage 1: Default only. Alt skins are a later item.
+  // Sources its real spriteScale (0.9) + portrait from the character.
+  dark_knight: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.dark_knight?.portrait, spriteScale: characters.dark_knight?.spriteScale, animationData: null },
+  ],
   batman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.batman?.portrait, spriteScale: characters.batman?.spriteScale, animationData: null },
     // "Nightwatch" — dark tactical recolor (tools/gen_batman_nightwatch.py): the (already near-black)
@@ -1274,6 +1284,35 @@ export const SKINS = {
     { id: "isshiki_sanguine", name: "Sanguine Sovereign", unlockLevel: 0, portrait: "./isshiki_portrait__sanguine.png", spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "sanguine"), recolorTag: "sanguine" },
     { id: "isshiki_jigen",    name: "Jigen Ash",          unlockLevel: 0, portrait: "./isshiki_portrait__jigen.png",    spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "jigen"),    recolorTag: "jigen" },
     { id: "isshikiVoidSovereign", name: "Void Sovereign", unlockLevel: 0, portrait: "./isshiki_portrait__void.png",     spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "void"),     recolorTag: "void" },
+  ],
+  // Genos (One Punch Man) — Default + 10 creative skins (tools/gen_genos_creative.py). FOUR recolor regions
+  // (SHIRT-black / cyborg-ARMS-silver / PANTS-navy / HAIR-blond), measured from the wired uniform sheets.
+  // ★OWNER DECISION: aggressively recolor the whole black shirt → the pass targets all dark-neutral, so the
+  // OUTLINE + eye-sclera take the shirt colour too (accepted tradeoff — the shirt IS the outline black).
+  // The yellow/white charged-blast + beam FX are load-bearing and NEVER touched (arm val-cap + hair sat-cap
+  // protect them — verified 0.0% FX px changed). Cosmetic only, zero gameplay. Void Sovereign = whole-form
+  // near-black (incl. skin) + game.js drawGenosVoidAuraOverlay (cybernetic circuit/data-lines). Exposed Core
+  // = near-default sheets + game.js drawGenosExposedCoreOverlay (glowing chest energy-core homage).
+  genos: [
+    { id: "default",             name: "Default",           unlockLevel: 0, portrait: characters.genos?.portrait,                     spriteScale: characters.genos?.spriteScale, animationData: null },
+    { id: "genosCrimsonChassis", name: "Crimson Chassis",   unlockLevel: 0, portrait: "./genos_portrait__crimsonchassis.png",         spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "crimsonchassis"),   recolorTag: "crimsonchassis" },
+    { id: "genosVerdantCircuit", name: "Verdant Circuit",   unlockLevel: 0, portrait: "./genos_portrait__verdantcircuit.png",         spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "verdantcircuit"),   recolorTag: "verdantcircuit" },
+    { id: "genosGoldenAlloy",    name: "Golden Alloy",      unlockLevel: 0, portrait: "./genos_portrait__goldenalloy.png",            spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "goldenalloy"),     recolorTag: "goldenalloy" },
+    { id: "genosObsidianFrame",  name: "Obsidian Frame",    unlockLevel: 0, portrait: "./genos_portrait__obsidianframe.png",          spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "obsidianframe"),    recolorTag: "obsidianframe" },
+    { id: "genosAzureCybernetic",name: "Azure Cybernetic",  unlockLevel: 0, portrait: "./genos_portrait__azurecybernetic.png",        spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "azurecybernetic"),  recolorTag: "azurecybernetic" },
+    { id: "genosVioletPrototype",name: "Violet Prototype",  unlockLevel: 0, portrait: "./genos_portrait__violetprototype.png",        spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "violetprototype"),  recolorTag: "violetprototype" },
+    { id: "genosEmberUnit",      name: "Ember Unit",        unlockLevel: 0, portrait: "./genos_portrait__emberunit.png",              spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "emberunit"),       recolorTag: "emberunit" },
+    { id: "genosFrostbound",     name: "Frostbound Chassis",unlockLevel: 0, portrait: "./genos_portrait__frostboundchassis.png",      spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "frostboundchassis"),recolorTag: "frostboundchassis" },
+    { id: "genosVoidSovereign",  name: "Void Sovereign",    unlockLevel: 0, portrait: "./genos_portrait__void.png",                   spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "void"),            recolorTag: "void" },
+    { id: "genosExposedCore",    name: "Exposed Core",      unlockLevel: 0, portrait: "./genos_portrait__exposedcore.png",            spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "exposedcore"),     recolorTag: "exposedcore" }
+  ],
+  // Frieza (Dragon Ball, base/final form) — DEFAULT only. ★Golden Frieza & Black Frieza are NOT skins — they
+  // were RECLASSIFIED into real in-match TRANSFORMATIONS (Golden = a charge-triggered timed mode; Black = the
+  // Ultimate); see the frieza transformations block in characters.js + abilities.js enterGoldenFrieza/enterBlackFrieza. Cosmetic recolors may still be added here later,
+  // but the gold/black FORMS live in the transformation system, not the skins list. The default entry is
+  // REQUIRED so applySkin() pulls spriteScale (else the char shrinks to source-pixel size).
+  frieza: [
+    { id: "default",             name: "Default",           unlockLevel: 0, portrait: characters.frieza?.portrait,                     spriteScale: characters.frieza?.spriteScale, animationData: null }
   ],
   // Saitama — Default + 13 creative skins (tools/gen_saitama_creative.py). THREE clothing regions recolored
   // per skin (SUIT-yellow / CAPE+trim-grey / GLOVES+boots-red), measured from the wired uniform sheets; the

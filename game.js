@@ -85,6 +85,22 @@ import {
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
   updateRedRangerMmprCommandCombat,   // Red Ranger MMPR punch-chain (Fwd+Heavy rekka → super 360° launcher) + air-Heavy dive-kick poke
   updateSaitamaCommandCombat,   // Saitama "Spin-Punch" Fwd+Heavy command-normal rekka (turn_puch 3-stage, cancel-on-hit → launcher)
+  updateGenosCommandCombat,   // Genos rush chain (Fwd+Heavy 3-stage rekka: punch opener → rapid streak-burst multi-hit → spinning charge launcher, cancel-on-hit)
+  updateFriezaCommandCombat,  // Frieza rush chain (Fwd+Heavy 3-stage rekka: strike opener → rapid follow strikes → launcher finisher, cancel-on-hit)
+  executeGenosSpecial,        // Genos directional/air specials (Fwd=Machine Gun / Down=Jet Dash / Back=Afterimage Dash / air=Machine Gun)
+  executeFriezaSpecial,       // Frieza directional/air specials (neutral=Death Beam / Fwd,U,air=Ki Blast / Down=Death Ball / Back=Psycho Teleport)
+  fireGenosIncineration,      // Genos Incineration Cannon — neutral tap/hold 3-tier charge blast, fired on Special-release
+  updateGenosOverdrive,       // Genos Overdrive — per-frame timed-mode tick (auto-revert on expiry + overheat drawback + vuln countdown)
+  revertGenosOverdrive,       // Genos Overdrive — force-revert (KO / round reset; no drawback)
+  updateDarkKnightRage,       // Batman (dark_knight) Rage Mode — per-frame timed-mode tick (auto-revert on expiry / KO)
+  revertDarkKnightRage,       // Batman (dark_knight) Rage Mode — force-revert (KO / round reset)
+  updateDarkKnightMech,       // Batman (dark_knight) Mech Suit ultimate — per-frame timed-form tick (auto-revert on expiry / KO)
+  revertDarkKnightMech,       // Batman (dark_knight) Mech Suit ultimate — force-revert (KO / round reset)
+  enterGoldenFrieza,          // Frieza — base→Golden transform (charge hold-release, threshold-gated ≥100 Ki)
+  enterBlackFrieza,           // Frieza — Golden→Black transform (charge hold-release, threshold-gated ≥150 Ki)
+  revertGoldenFrieza,         // Frieza — revert Golden→base (charge tap / drain-empty / KO)
+  revertBlackFrieza,          // Frieza — revert Black→base (charge tap / drain-empty / KO)
+  applyFriezaFormSystem,      // Frieza — per-frame continuous Ki drain + instant auto-revert at 0 (Vegeta/Goku-Black model)
   updateOrochimaruCommandCombat,   // Orochimaru Forward Strong (Fwd+Heavy directional strong — extended-reach Kusanagi snake-thrust)
   updateAltSukunaCommandCombat,   // Alternate Sukuna Dismantle/Cleave string (Fwd+Heavy 2-stage red-crescent rekka, cancel-on-hit)
   updateAoiTodoCommandCombat,   // Aoi Todo command chain (Fwd+Heavy 3-stage rekka: elbow → hook/uppercut → roundhouse launcher, cancel-on-hit)
@@ -113,6 +129,7 @@ import {
   updateYamamotoCommandCombat,   // Yamamoto Fwd+Heavy single command-normal (yamamotoCombo 11f multi-hit slash string)
   updateKurapikaCommandCombat,   // Kurapika Fwd+Heavy single command-normal (kurapikaWindmill 8f multi-hit spin string)
   updateSpidermanCommandCombat,  // Spider-Man Fwd+Heavy single command-normal (spiderCombo 9f multi-hit Jump Attack Combo) + Ground Crawl kick-up exit gate
+  updateSpidermanWebSwing,       // Spider-Man WEB-SWING per-frame pendulum (owns position while _swinging)
   updateNaoyaCommandCombat,      // Naoya Fwd+Heavy single command-normal (naoyaCombo 6f multi-hit low combo string, row_08)
   fireYamamotoShunpo,            // Yamamoto Shunpo (Flash Step) — two-beat teleport-behind movement special (double-tap toward)
   updateMayuriCommandCombat,     // Mayuri Fwd+Heavy 2-stage cancel-on-hit rekka (mayuriCmd1 poke string → mayuriCmd2 low flurry launcher)
@@ -2351,7 +2368,7 @@ function resetRound() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -3246,7 +3263,7 @@ function resetToStart() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -3950,7 +3967,7 @@ function _doRematch() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -4122,6 +4139,27 @@ function handleSaitamaSpecialRelease(fighter, key) {
   const hold = (performance.now() - (fighter._saitamaComboDownTime || 0)) >= SAITAMA_COMBO_HOLD_MS
   fireSaitamaPunchCombo(fighter, hold ? "super" : "normal", getAbilityContext())
 }
+// GENOS tiered Incineration Cannon tap/hold (mirrors Saitama's neutral-Special split, extended to THREE
+// tiers by hold duration). On keydown record when Special went down (the neutral-Special press path ARMS
+// the blast, _genosCannonArmed); on keyup resolve tap (<180ms → small) / mid-hold (<450ms → big) /
+// long-hold (≥450ms → GIANT column) and fire it. Directional/air Specials never arm → stay Stage-4 specials.
+const GENOS_CANNON_TIER2_MS = 180   // hold Special ≥ this = tier 2 (big burst)
+const GENOS_CANNON_TIER3_MS = 450   // hold Special ≥ this = tier 3 (GIANT flame column); a quick tap = tier 1
+function handleGenosSpecialDown(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "genos") return
+  if (!fighter._genosSpecialHeld) { fighter._genosSpecialHeld = true; fighter._genosCannonDownTime = performance.now() }
+}
+function handleGenosSpecialRelease(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  fighter._genosSpecialHeld = false
+  if ((fighter.rosterKey || "").toLowerCase() !== "genos") return
+  if (!fighter._genosCannonArmed) return           // only a NEUTRAL ground special arms it (directional/air = Stage-4)
+  fighter._genosCannonArmed = false
+  const held = performance.now() - (fighter._genosCannonDownTime || 0)
+  const tier = held >= GENOS_CANNON_TIER3_MS ? 3 : held >= GENOS_CANNON_TIER2_MS ? 2 : 1
+  fireGenosIncineration(fighter, tier, getAbilityContext())
+}
 function handleUltimateRelease(fighter, key) {
   if (!fighter || key !== fighter.controls?.ultimate) return
   const wasHeld = !!fighter._ultHeld
@@ -4245,6 +4283,20 @@ function handleChargeRelease(fighter, key) {
     // Charged Dash is a BASE-form move; in Shikai (mid-match toggle OR the dedicated Shikai entry) the
     // CHARGE hold just builds reiatsu (no dash). fireZarakiChargedDash also self-gates on isShikaiForm.
     if (wasHeld && !fighter._shikaiActive) fireZarakiChargedDash(fighter, !wasTap, getAbilityContext())
+    return
+  }
+
+  // FRIEZA — TRANSFORMATION LADDER (base → Golden → Black), same charge idiom as Vegeta's SSJ ladder. Hold P
+  // to build Ki (doEnergyCharge); a RELEASE steps UP: base + hold-release (≥100 Ki) → Golden; Golden +
+  // hold-release (≥150 Ki) → Black. A quick TAP while transformed reverts to base. Continuous Ki drain while
+  // transformed (applyFriezaFormSystem) auto-reverts at 0. No separate ultimate.
+  if ((fighter.rosterKey || "").toLowerCase() === "frieza") {
+    if (fighter._blackFriezaActive) { if (wasTap) revertBlackFrieza(fighter) }
+    else if (fighter._goldenFriezaActive) {
+      if (wasTap) revertGoldenFrieza(fighter)
+      else if (wasHeld) enterBlackFrieza(fighter, getAbilityContext())    // Golden → Black (gated ≥150 Ki)
+    }
+    else if (wasHeld) enterGoldenFrieza(fighter, getAbilityContext())     // base → Golden (real press-release only)
     return
   }
 
@@ -4561,6 +4613,7 @@ function updateMiscTimers(fighter) {
   if (fighter._naoyaAtkVoiceCd > 0) fighter._naoyaAtkVoiceCd--            // Naoya light-jab effort grunt cooldown (combat.applyNaoyaAttackVoice)
   if (fighter._borutoAtkVoiceCd > 0) fighter._borutoAtkVoiceCd--          // Boruto light/heavy effort-cast shout cooldown (combat.applyBorutoAttackVoice)
   if (fighter._spideyAtkVoiceCd > 0) fighter._spideyAtkVoiceCd--          // Spider-Man light-normal effort grunt cooldown (combat.applySpidermanAttackVoice)
+  if (fighter._swinging) updateSpidermanWebSwing(fighter, getAbilityContext())   // Spider-Man WEB-SWING pendulum step (owns position; applyGravity yields)
   // SASUKE "getting serious" voice — SEPARATE pool from the (deferred) manual taunt: fires ONCE per
   // round the first time his energy builds past 80% ("high-energy state" per spec). Rounds start at
   // 50% energy (createFighter startingEnergy) so this is a genuine upward crossing, never a match-start
@@ -4625,6 +4678,9 @@ function updateMiscTimers(fighter) {
   // Zaraki SHIKAI timed power-up: tick the duration → auto-revert to Base on expiry; also revert on KO.
   if (fighter._shikaiActive && (fighter.health || 0) <= 0) revertZarakiShikai(fighter)
   else if (fighter._shikaiTimer > 0 && --fighter._shikaiTimer <= 0) revertZarakiShikai(fighter)
+  updateGenosOverdrive(fighter)                                            // Genos Overdrive — tick the timed power-up window → auto-revert + overheat drawback + post-revert vuln countdown
+  updateDarkKnightRage(fighter)                                            // Batman (dark_knight) Rage Mode — tick the timed power-up window → auto-revert (or KO)
+  updateDarkKnightMech(fighter)                                            // Batman (dark_knight) Mech Suit — tick the timed heavy-form window → auto-revert (or KO)
   if (fighter.kunaiCd > 0) fighter.kunaiCd--                               // Maki Kunai Throw cooldown (no-energy special)
   if (fighter.nunchakuCd > 0) fighter.nunchakuCd--                         // Maki Nunchaku Flurry cooldown (no-energy special)
   if (fighter._gunCd > 0) fighter._gunCd--                                 // Toji Handgun poke cooldown (no-energy command normal)
@@ -5086,6 +5142,11 @@ function _updatePlayerCombatBody(fighter) {
     // through to triggerSpecial (the Stage-4 specials). Only grounded (the flurry is a ground special).
     if ((fighter.rosterKey || "").toLowerCase() === "saitama" && !fighter._specialHeldDir &&
         (fighter.onGround ?? fighter.grounded ?? true)) { fighter._saitamaComboArmed = true; return }
+    // GENOS — a NEUTRAL GROUND Special is the tiered tap/hold INCINERATION CANNON, resolved on RELEASE
+    // (handleGenosSpecialRelease). Arm it and consume the press; a DIRECTIONAL/air Special falls through
+    // to triggerSpecial (Machine Gun / Jet Dash / Afterimage). Only grounded (the blast is a ground cast).
+    if ((fighter.rosterKey || "").toLowerCase() === "genos" && !fighter._specialHeldDir &&
+        (fighter.onGround ?? fighter.grounded ?? true)) { fighter._genosCannonArmed = true; return }
     triggerSpecial(fighter,  getAbilityContext()); return
   }
   // CHROLLO — Down+Ultimate = BANDIT'S ECHO (copy the marked opponent special/ultimate). Plain Ultimate stays
@@ -5154,6 +5215,18 @@ function _updatePlayerCombatBody(fighter) {
   // only when it fires (returns true → skip normal path); neutral light/heavy/up/air/down_air stay normal.
   if ((fighter.rosterKey || "").toLowerCase() === "saitama" && !charging &&
       updateSaitamaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // GENOS rush chain: Fwd+Heavy opens genosRush1 (punch opener), re-tap Heavy during recovery to cancel into
+  // genosRush2 (rapid streak-burst multi-hit) → genosRush3 (spinning charge launcher) — cancel-on-hit;
+  // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the palm-cannon.
+  if ((fighter.rosterKey || "").toLowerCase() === "genos" && !charging &&
+      updateGenosCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // FRIEZA rush chain: Fwd+Heavy opens friezaRush1 (strike opener), re-tap Heavy during recovery to cancel
+  // into friezaRush2 (rapid follow strikes) → friezaRush3 (launcher finisher) — cancel-on-hit; whiff/block
+  // ends the string. Consumes the input only when it fires; neutral heavy stays the normal kick.
+  if ((fighter.rosterKey || "").toLowerCase() === "frieza" && !charging &&
+      updateFriezaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // OROCHIMARU Forward Strong: Fwd+Heavy fires the extended-reach Kusanagi snake-thrust (single hit).
   // Consumes the input only when it fires (returns true → skip normal path); neutral heavy stays normal.
@@ -7118,6 +7191,23 @@ function seedSpidermanVoidField(fighter) {
   for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.45 + rnd() * 0.3, r: 0.16 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
   fighter._spiderVoidFX = { strands, glows }
 }
+// SPIDER-MAN WEB-SWING — draw the web LINE from his gripping hand up to the sky anchor while swinging.
+// World-space (ctx is camera-transformed). A bright web strand + a small anchor puff. Handler/render-only.
+function drawSpidermanWebSwing(c, fighter) {
+  if (!c || !fighter?._swinging || (fighter.rosterKey || "").toLowerCase() !== "spiderman") return
+  const face = fighter._swFace || fighter.facing || 1
+  const hx = fighter.x + (fighter.w || 60) / 2 + face * (fighter.w || 60) * 0.30   // gripping hand (up-forward)
+  const hy = fighter.y + (fighter.h || 100) * 0.16
+  const ax = fighter._swAX, ay = fighter._swAY
+  if (ax == null) return
+  c.save()
+  c.strokeStyle = "#ffffff"; c.lineWidth = 2.4; c.globalAlpha = 0.92
+  c.shadowColor = "#cfe6ff"; c.shadowBlur = 4
+  c.beginPath(); c.moveTo(hx, hy); c.lineTo(ax, ay); c.stroke()
+  c.shadowBlur = 0; c.globalAlpha = 0.8; c.fillStyle = "#eaf4ff"     // anchor splat on the "sky"
+  c.beginPath(); c.arc(ax, ay, 4.5, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
 function drawSpidermanVoidAuraOverlay(c, fighter) {
   if (!c || fighter?.skinId !== "spidermanVoidSovereign") return
   if (!fighter._spiderVoidFX) seedSpidermanVoidField(fighter)
@@ -7727,6 +7817,317 @@ function drawKurapikaEmperorOverlay(c, fighter) {
   c.fillStyle = "#ff3b3b"; c.fillRect(bx, by, bw * frac, bh)
   c.globalAlpha = 0.95; c.fillStyle = "#ffdada"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
   c.fillText("EMPEROR TIME", x + w / 2, by - Math.max(2, h * 0.02))
+  c.restore()
+}
+
+// GENOS — OVERDRIVE overlay (Stage 5). While the timed power-up MODE is active: (1) a rising FLAME AURA
+// (orange/yellow licks wobbling up the body — the overheating core), and (2) an "OVERDRIVE" countdown bar
+// above the head driven by the PUBLIC _genosOverdriveTimer/Max, so the limited window is a real on-screen
+// readout. Genos-only; no-op otherwise. (The band-13 ignite pose plays on activation via _spriteCastMove.)
+function drawGenosOverdriveOverlay(c, fighter) {
+  if (!c || !fighter?._genosOverdriveActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._genosOverdriveClock = (fighter._genosOverdriveClock || 0) + 1)
+  c.save()
+  // rising flame aura — a handful of wobbling licks along the body, brighter core at the feet
+  c.globalCompositeOperation = "lighter"
+  const licks = 7
+  for (let i = 0; i < licks; i++) {
+    const fx = x + w * (0.18 + 0.64 * (i / (licks - 1)))
+    const phase = t * 0.22 + i * 1.7
+    const rise = (t * 2.4 + i * 40) % (h * 1.05)
+    const ly = y + h - rise
+    const flick = Math.sin(phase) * w * 0.06
+    const r = Math.max(3, w * (0.10 - 0.06 * (rise / (h * 1.05))))
+    const a = Math.max(0, 0.5 * (1 - rise / (h * 1.05)))
+    c.globalAlpha = a; c.shadowColor = "#ff9020"; c.shadowBlur = 12
+    c.fillStyle = i % 2 ? "#ffd050" : "#ff7a1a"
+    c.beginPath(); c.arc(fx + flick, ly, r, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  // OVERDRIVE countdown buff-duration bar + label above the head
+  const frac = Math.max(0, Math.min(1, (fighter._genosOverdriveTimer || 0) / (fighter._genosOverdriveMax || 1)))
+  const bw = w * 0.9, bh = Math.max(3, h * 0.035), bx = x + (w - bw) / 2, by = y - h * 0.16
+  c.globalAlpha = 0.9
+  c.fillStyle = "#301500"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+  c.fillStyle = "#111";    c.fillRect(bx, by, bw, bh)
+  c.fillStyle = "#ff9020"; c.fillRect(bx, by, bw * frac, bh)
+  c.globalAlpha = 0.95; c.fillStyle = "#ffe4b0"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText("OVERDRIVE", x + w / 2, by - Math.max(2, h * 0.02))
+  c.restore()
+}
+
+// BATMAN (dark_knight) — RAGE MODE overlay (Stage 5). While the timed transform is active: (1) a crimson
+// FURY aura (red/orange licks flaring up the bulked body — the berserker's rage), and (2) a "RAGE" countdown
+// bar above the head driven by the PUBLIC _dkRageTimer/Max. dark_knight-only; no-op otherwise. (The purple
+// energy-crackle transform pose plays on activation via _spriteCastMove = dkRageTransform.)
+function drawDarkKnightRageOverlay(c, fighter) {
+  if (!c || !fighter?._dkRageActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._dkRageClock = (fighter._dkRageClock || 0) + 1)
+  c.save()
+  // rising crimson fury aura — wobbling licks along the body, brighter core at the feet
+  c.globalCompositeOperation = "lighter"
+  const licks = 7
+  for (let i = 0; i < licks; i++) {
+    const fx = x + w * (0.18 + 0.64 * (i / (licks - 1)))
+    const phase = t * 0.22 + i * 1.7
+    const rise = (t * 2.4 + i * 40) % (h * 1.05)
+    const ly = y + h - rise
+    const flick = Math.sin(phase) * w * 0.06
+    const r = Math.max(3, w * (0.10 - 0.06 * (rise / (h * 1.05))))
+    const a = Math.max(0, 0.5 * (1 - rise / (h * 1.05)))
+    c.globalAlpha = a; c.shadowColor = "#ff3020"; c.shadowBlur = 12
+    c.fillStyle = i % 2 ? "#ff5a2a" : "#c81818"
+    c.beginPath(); c.arc(fx + flick, ly, r, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  // RAGE countdown buff-duration bar + label above the head
+  const frac = Math.max(0, Math.min(1, (fighter._dkRageTimer || 0) / (fighter._dkRageMax || 1)))
+  const bw = w * 0.9, bh = Math.max(3, h * 0.035), bx = x + (w - bw) / 2, by = y - h * 0.16
+  c.globalAlpha = 0.9
+  c.fillStyle = "#2a0808"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+  c.fillStyle = "#111";    c.fillRect(bx, by, bw, bh)
+  c.fillStyle = "#e02020"; c.fillRect(bx, by, bw * frac, bh)
+  c.globalAlpha = 0.95; c.fillStyle = "#ffd0c0"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText("RAGE", x + w / 2, by - Math.max(2, h * 0.02))
+  c.restore()
+}
+
+// BATMAN (dark_knight) — MECH SUIT ultimate HUD (Stage 6). The giant mech BODY is the visual (a _skinAnim
+// swap), so this adds only a steel-blue "MECH" countdown bar above the head driven by the PUBLIC
+// _dkMechTimer/Max — the limited heavy-form window as an on-screen readout. dark_knight-only; no-op otherwise.
+function drawDarkKnightMechOverlay(c, fighter) {
+  if (!c || !fighter?._dkMechActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  c.save()
+  const frac = Math.max(0, Math.min(1, (fighter._dkMechTimer || 0) / (fighter._dkMechMax || 1)))
+  const bw = w * 0.7, bh = Math.max(3, h * 0.03), bx = x + (w - bw) / 2, by = y - h * 0.12
+  c.globalAlpha = 0.9
+  c.fillStyle = "#0a1420"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+  c.fillStyle = "#111";    c.fillRect(bx, by, bw, bh)
+  c.fillStyle = "#4aa8ff"; c.fillRect(bx, by, bw * frac, bh)
+  c.globalAlpha = 0.95; c.fillStyle = "#bfe0ff"; c.font = `bold ${Math.max(7, Math.round(h * 0.06))}px monospace`; c.textAlign = "center"
+  c.fillText("MECH", x + w / 2, by - Math.max(2, h * 0.018))
+  c.restore()
+}
+
+// FRIEZA — GOLDEN FRIEZA overlay (transformation). While Golden is active: a rising GOLD ki aura + a "GOLDEN"
+// label above the head. The FORM's cost is a continuous Ki DRAIN, so the fighter's own energy bar is the
+// on-screen readout (no separate timer). Frieza-only. (Base art is GOLD-tinted in sprite.js via _goldenFriezaActive.)
+function drawGoldenFriezaOverlay(c, fighter) {
+  if (!c || !fighter?._goldenFriezaActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._goldenFriezaClock = (fighter._goldenFriezaClock || 0) + 1)
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  const licks = 8
+  for (let i = 0; i < licks; i++) {
+    const fx = x + w * (0.16 + 0.68 * (i / (licks - 1)))
+    const phase = t * 0.24 + i * 1.7
+    const rise = (t * 2.6 + i * 38) % (h * 1.05)
+    const ly = y + h - rise
+    const flick = Math.sin(phase) * w * 0.07
+    const r = Math.max(3, w * (0.11 - 0.06 * (rise / (h * 1.05))))
+    const a = Math.max(0, 0.55 * (1 - rise / (h * 1.05)))
+    c.globalAlpha = a; c.shadowColor = "#ffcf40"; c.shadowBlur = 12
+    c.fillStyle = i % 2 ? "#fff0a0" : "#f5b91e"
+    c.beginPath(); c.arc(fx + flick, ly, r, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  c.globalAlpha = 0.95; c.fillStyle = "#ffe9a8"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText("GOLDEN", x + w / 2, y - h * 0.15)
+  c.restore()
+}
+
+// FRIEZA — BLACK FRIEZA overlay (transformation, ceiling tier). While Black is active: dark violet-black aura
+// rings + a "BLACK" label. Cost = a faster continuous Ki drain (the energy bar is the readout). Frieza-only.
+// (Base art is DARK-tinted in sprite.js via _blackFriezaActive.)
+function drawBlackFriezaOverlay(c, fighter) {
+  if (!c || !fighter?._blackFriezaActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._blackFriezaClock = (fighter._blackFriezaClock || 0) + 1)
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  const rings = 3
+  for (let i = 0; i < rings; i++) {
+    const rr = w * (0.5 + 0.5 * i) + (t * 3) % (w * 0.6)
+    c.globalAlpha = Math.max(0, 0.35 - i * 0.1)
+    c.strokeStyle = i % 2 ? "#7a2bd0" : "#3a0a55"; c.lineWidth = Math.max(2, w * 0.05); c.shadowColor = "#7a2bd0"; c.shadowBlur = 16
+    c.beginPath(); c.arc(x + w / 2, y + h * 0.5, rr, 0, Math.PI * 2); c.stroke()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  c.globalAlpha = 0.95; c.fillStyle = "#d9b8ff"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText("BLACK", x + w / 2, y - h * 0.15)
+  c.restore()
+}
+
+// GENOS — VOID SOVEREIGN overlay (skins). On the near-black void silhouette: a CYBERNETIC circuit/data-line
+// field (drifting bright pulses running along short circuit traces + twinkling nodes) — themed to his machine
+// body rather than a generic star-field — plus his signature glowing YELLOW cyborg eyes. Stable seeded layout
+// (NOT re-randomized per frame). Genos-only; gated on skinId. Uses _lastDrawX/Y/W/H set during the body draw.
+function seedGenosVoidField(fighter) {
+  const rnd = _mulberry32(0x6E05C0DE)
+  const halfWidth = ny => ny < 0.22 ? 0.16 : (ny < 0.64 ? 0.26 : 0.20)   // head / torso / legs silhouette
+  const nodes = []
+  for (let i = 0; i < 14; i++) {
+    const ny = 0.06 + rnd() * 0.9, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    nodes.push({ nx, ny, r: 1 + rnd() * 1.8, phase: rnd() * Math.PI * 2, flick: 0.5 + rnd() * 1.4, a: 0.4 + rnd() * 0.5 })
+  }
+  const traces = []
+  for (let i = 0; i < 10; i++) {
+    const ny = 0.08 + rnd() * 0.84, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    traces.push({ nx, ny, len: 0.06 + rnd() * 0.16, vert: rnd() < 0.55, speed: 0.004 + rnd() * 0.010, phase: rnd() * Math.PI * 2, a: 0.3 + rnd() * 0.4 })
+  }
+  fighter._genosVoidFX = { nodes, traces }
+}
+function drawGenosVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "genosVoidSovereign") return
+  if (!fighter._genosVoidFX) seedGenosVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._genosVoidFX
+  const t = (fighter._genosVoidClock = (fighter._genosVoidClock || 0) + 1)
+  const CYAN = "#38E0D0"
+  c.save(); c.lineWidth = 1
+  for (const tr of fx.traces) {                          // circuit traces + a bright pulse running along each
+    const x0 = x + tr.nx * w, y0 = y + tr.ny * h
+    const lx = tr.vert ? 0 : tr.len * w, ly = tr.vert ? tr.len * h : 0
+    c.globalAlpha = tr.a * 0.5; c.strokeStyle = _rgbaHex(CYAN, tr.a * 0.5)
+    c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + lx, y0 + ly); c.stroke()
+    const p = (t * tr.speed + tr.phase) % 1
+    c.globalAlpha = Math.max(0, 0.9 * (1 - Math.abs(p - 0.5) * 1.4))
+    c.shadowColor = CYAN; c.shadowBlur = 5; c.fillStyle = "#CFFFF6"
+    c.fillRect(x0 + lx * p - 0.8, y0 + ly * p - 0.8, 1.8, 1.8); c.shadowBlur = 0
+  }
+  for (const n of fx.nodes) {                            // twinkling circuit nodes
+    const glow = 0.55 + 0.45 * Math.sin(t * 0.08 * n.flick + n.phase)
+    c.globalAlpha = Math.max(0, Math.min(1, n.a * glow))
+    c.shadowColor = CYAN; c.shadowBlur = 4; c.fillStyle = "#7CF5E6"
+    c.fillRect(x + n.nx * w - n.r / 2, y + n.ny * h - n.r / 2, n.r, n.r)
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.11)           // glowing yellow cyborg eyes
+  const eyeR = Math.max(1.3, w * 0.026), eyeY = y + h * 0.115
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse)); c.shadowColor = "#FFD24A"; c.shadowBlur = 7; c.fillStyle = "#FFE070"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// GENOS — EXPOSED CORE overlay (skins, homage to the upgraded chest-core body). A small fixed glowing energy
+// core on the chest (#FFE070 core + white-hot center + soft glow), gently pulsing. Genos-only; gated on skinId.
+function drawGenosExposedCoreOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "genosExposedCore") return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._genosCoreClock = (fighter._genosCoreClock || 0) + 1)
+  const cx = x + w * 0.5, cy = y + h * 0.42              // chest position
+  const pulse = 0.7 + 0.3 * Math.sin(t * 0.12)
+  const r = Math.max(2.5, w * 0.07) * pulse
+  c.save()
+  const grad = c.createRadialGradient(cx, cy, 0, cx, cy, r * 2.4)
+  grad.addColorStop(0, _rgbaHex("#FFE070", 0.85)); grad.addColorStop(0.5, _rgbaHex("#FFC21E", 0.35)); grad.addColorStop(1, _rgbaHex("#FFC21E", 0))
+  c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, r * 2.4, 0, Math.PI * 2); c.fill()
+  c.shadowColor = "#FFE070"; c.shadowBlur = 8; c.fillStyle = "#FFE070"
+  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill()
+  c.shadowBlur = 0; c.globalAlpha = 0.95; c.fillStyle = "#FFFFFF"
+  c.beginPath(); c.arc(cx, cy, r * 0.42, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
+// THE HANDLER — shikigami cameo-SELECT UI (Stage 4). A compact strip of the row_08 select icons
+// (snake/rabbit/elephant/dragon/toad → the 5 directional shikigami; Divine Dogs = the neutral default)
+// floats above the summoner's head — the prompt's "cameo-select UI" reusing the real row_08 art rather
+// than new icons. Each icon shows its Special DIRECTION, dims when the shikigami is unaffordable (energy <
+// cost), and highlights the one most recently summoned (_handlerLastShikigami). Render-only; handler-only.
+const _handlerIconsHolder = {}
+function _handlerIconsImg() {
+  if (!_handlerIconsHolder.img) { const i = new Image(); i.src = "./handler_shik_icons.png"; _handlerIconsHolder.img = i }
+  return _handlerIconsHolder.img
+}
+const HANDLER_HUD_SLOTS = [
+  { dir: "F", id: "handlerOrochi", cost: 30 },   // snake
+  { dir: "B", id: "handlerDatto",  cost: 28 },   // rabbit
+  { dir: "D", id: "handlerBansho", cost: 45 },   // elephant
+  { dir: "U", id: "handlerNue",    cost: 32 },   // dragon → Nue
+  { dir: "A", id: "handlerToad",   cost: 30 },   // toad
+]
+function drawHandlerShikigamiHUD(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "handler") return
+  if (fighter._mahoragaActive) return                    // Mahoraga form → the adaptation-tracker wheel shows instead
+  const img = _handlerIconsImg()
+  if (!img.complete || !img.naturalWidth) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const cell = img.naturalHeight                       // square cells (59px)
+  const n = HANDLER_HUD_SLOTS.length
+  const d = Math.max(11, w * 0.24)                     // on-screen icon size
+  const gap = d * 0.22
+  const stripW = n * d + (n - 1) * gap
+  const bx = x + (w - stripW) / 2
+  const by = y - h * 0.30 - d
+  const energy = fighter.energy || 0
+  c.save()
+  for (let i = 0; i < n; i++) {
+    const slot = HANDLER_HUD_SLOTS[i]
+    const ix = bx + i * (d + gap)
+    const afford = energy >= slot.cost
+    const last = fighter._handlerLastShikigami === slot.id
+    c.globalAlpha = afford ? 0.9 : 0.32
+    c.fillStyle = "#c9cfda"; c.fillRect(ix, by, d, d)                       // light chip so the black silhouette reads
+    c.globalAlpha = afford ? 1 : 0.4
+    c.drawImage(img, i * cell, 0, cell, cell, ix, by, d, d)                 // the row_08 icon
+    if (last) { c.globalAlpha = 0.95; c.strokeStyle = "#ffcf5a"; c.lineWidth = 2; c.strokeRect(ix - 1, by - 1, d + 2, d + 2) }
+    c.globalAlpha = afford ? 0.95 : 0.4; c.fillStyle = "#ffffff"
+    c.font = `bold ${Math.max(7, Math.round(d * 0.42))}px monospace`; c.textAlign = "center"; c.textBaseline = "top"
+    c.fillText(slot.dir, ix + d / 2, by + d + 1)                            // input direction
+  }
+  c.restore()
+}
+
+// THE HANDLER — MAHORAGA adaptation-tracker UI (Stage 5). The row_01 golden Dharma WHEEL floats above the
+// transformed Handler and SPINS (faster the more he has adapted — Mahoraga's wheel = his adaptation in
+// canon), with an "ADAPTED ×N" count (distinct moves adapted → his growth), the last-adapted move, and a
+// form-duration bar. This is the prompt's "adaptation-tracker UI (row_01 reticle)". Handler-form-only.
+const _mahoragaWheelHolder = {}
+function _mahoragaWheelImg() {
+  if (!_mahoragaWheelHolder.img) { const i = new Image(); i.src = "./mahoraga_wheel_icon.png"; _mahoragaWheelHolder.img = i }
+  return _mahoragaWheelHolder.img
+}
+function drawHandlerMahoragaHUD(c, fighter) {
+  if (!c || !fighter?._mahoragaActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const cx = x + w / 2, wheelY = y - h * 0.24
+  const wd = Math.max(16, w * 0.42)
+  const distinct = fighter._mahoragaDistinct || 0
+  c.save()
+  // spinning golden Dharma Wheel
+  const img = _mahoragaWheelImg()
+  if (img.complete && img.naturalWidth) {
+    c.save(); c.translate(cx, wheelY); c.rotate((fighter._mahoragaWheel || 0) * 0.05)
+    c.globalAlpha = 0.95; c.shadowColor = "#ffcf5a"; c.shadowBlur = 8
+    c.drawImage(img, -wd / 2, -wd / 2, wd, wd); c.restore()
+  }
+  // ADAPTED ×N + last-adapted move
+  c.globalAlpha = 0.95; c.shadowBlur = 0; c.fillStyle = "#ffe08a"; c.textAlign = "center"; c.textBaseline = "bottom"
+  c.font = `bold ${Math.max(8, Math.round(h * 0.085))}px monospace`
+  c.fillText(`ADAPTED ×${distinct}`, cx, wheelY - wd * 0.55)
+  if (fighter._mahoragaLastMove) {
+    c.globalAlpha = 0.8; c.fillStyle = "#fff2cc"; c.font = `${Math.max(7, Math.round(h * 0.06))}px monospace`
+    c.fillText(String(fighter._mahoragaLastMove).slice(0, 14), cx, wheelY - wd * 0.55 + Math.max(8, h * 0.09))
+  }
+  // duration bar
+  const frac = Math.max(0, Math.min(1, (fighter._mahoragaTimer || 0) / (fighter._mahoragaMax || 1)))
+  const bw = w * 0.9, bh = Math.max(3, h * 0.03), bx = cx - bw / 2, by = wheelY + wd * 0.55
+  c.globalAlpha = 0.9; c.fillStyle = "#3a2a10"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+  c.fillStyle = "#111"; c.fillRect(bx, by, bw, bh)
+  c.fillStyle = "#ffcf5a"; c.fillRect(bx, by, bw * frac, bh)
   c.restore()
 }
 
@@ -8649,6 +9050,7 @@ function updateFighterState(fighter) {
   if (updated._miwaVortex && ++updated._miwaVortex.t >= updated._miwaVortex.max) updated._miwaVortex = null   // Miwa Rapid Slash Vortex FX lifetime
   applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
+  applyFriezaFormSystem(updated)     // Frieza Golden/Black: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   applyOmniManFlightSystem(updated)  // Omni-Man Flight: shared-pool Smart Atoms drain while flying → forced descent at 0 → landing-recovery window (BEFORE applyGravity, which then hovers/falls him)
   updateMiscTimers(updated)
@@ -9545,6 +9947,15 @@ function renderHybridFighter(fighter) {
     drawBorutoKoteFX(c, fighter)        // Boruto — Kote ultimate: gauntlet + hand-tracked muzzle-flash / part-3 recoil spray, ON TOP of the body (Boruto only)
     drawBorutoKarmaOverlay(c, fighter)  // Boruto — Momoshiki Karma form: blue seal markings + glowing blue eyes, ON TOP of the magenta form-swap (Boruto only, _karmaActive)
     drawKurapikaEmperorOverlay(c, fighter)  // Kurapika — Emperor Time: glowing scarlet eyes + ET-countdown duration HUD, ON TOP of the Set B form-swap (Kurapika only, _emperorActive)
+    drawGenosOverdriveOverlay(c, fighter)    // Genos — Overdrive: rising flame aura + OVERDRIVE-countdown duration HUD (Genos only, _genosOverdriveActive)
+    drawDarkKnightRageOverlay(c, fighter)    // Batman (dark_knight) — Rage Mode: crimson fury aura + RAGE-countdown duration HUD (dark_knight only, _dkRageActive)
+    drawDarkKnightMechOverlay(c, fighter)    // Batman (dark_knight) — Mech Suit: steel-blue MECH-countdown duration HUD (dark_knight only, _dkMechActive)
+    drawGoldenFriezaOverlay(c, fighter)      // Frieza — Golden Frieza: rising GOLD ki aura + GOLDEN-countdown HUD (red in the drop-off) (Frieza only, _goldenFriezaActive)
+    drawBlackFriezaOverlay(c, fighter)       // Frieza — Black Frieza ult: dark violet-black burst rings during the cinematic (Frieza only, _blackFriezaActive)
+    drawGenosVoidAuraOverlay(c, fighter)     // Genos — Void Sovereign skin: cybernetic circuit/data-line field + glowing yellow eyes (skinId gate)
+    drawGenosExposedCoreOverlay(c, fighter)  // Genos — Exposed Core skin: glowing chest energy-core (skinId gate)
+    drawHandlerShikigamiHUD(c, fighter)     // The Handler — shikigami cameo-select icon strip (row_08 icons) above the head (handler only)
+    drawHandlerMahoragaHUD(c, fighter)      // The Handler — Mahoraga adaptation-tracker: spinning Dharma Wheel + ADAPTED ×N + duration (handler Mahoraga form only)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
     drawEmberOverlay(c, fighter)        // Rengoku Void Ember — drifting rising embers, ON TOP of the void sprite
@@ -9579,6 +9990,7 @@ function renderHybridFighter(fighter) {
     drawMorpherVoidOverlay(c, fighter)       // Red Ranger Morpher Void — drifting morpher-red particles + morph-flash pulse-rings, ON TOP of the void-black sprite
     drawKamuiVoidOverlay(c, fighter)         // Tobi Kamui Void — drifting violet/red particles + rotating Kamui portal swirl-pulses, ON TOP of the void-black sprite
     drawSpidermanVoidAuraOverlay(c, fighter) // Spider-Man Void Sovereign — drifting white WEB-STRAND threads (his own web motif) + pale-blue glow + glowing white eye-lenses, ON TOP of the void-black suit
+    drawSpidermanWebSwing(c, fighter)        // Spider-Man WEB-SWING — the web LINE from his hand up to the sky anchor while pendulum-swinging (spiderman only, _swinging)
     drawHashiramaSpecOverlay(c, fighter)     // Hashirama spec skins — glowing eyes (Golden Sage amber / Ashen Reanimation white-blue / White Binding green) + green Wood-Release Void aura, ON TOP of the sprite (self-gates on skinId)
     drawHashiramaMotifOverlay(c, fighter)    // Hashirama motif — gold Senju spiral crest (Senju Spiral) + gold collar/shoulder trim ticks (Golden Sage), stamped on the torso (self-gates on skinId)
     drawEdoReanimOverlay(c, fighter)         // Edo Tensei reanimation — decay mottling + stitched seams over the green-gray reanimated vessel (gated fighter._edoActive)
@@ -12428,11 +12840,11 @@ window.addEventListener("keydown", e => {
   // spuriously trigger a binding vow. Movement itself reads the held key state
   // elsewhere (keys[]/getFighterInput), so skipping repeats here costs nothing.
   if (!e.repeat) {
-    if (p1) { recordDirectionInput(p1, key); recordMotionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key); handleUltimateDown(p1, key); handleSaitamaSpecialDown(p1, key) }
+    if (p1) { recordDirectionInput(p1, key); recordMotionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key); handleUltimateDown(p1, key); handleSaitamaSpecialDown(p1, key); handleGenosSpecialDown(p1, key) }
     if (p2) {
       recordDirectionInput(p2, key)
       recordMotionInput(p2, key)   // motion buffer is gated internally (Naruto-universe only), so this is safe unconditionally for a P2 Naruto/Minato/etc.
-      if (isPvP() || matchConfig.mode !== "vs") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key); handleUltimateDown(p2, key); handleSaitamaSpecialDown(p2, key) }
+      if (isPvP() || matchConfig.mode !== "vs") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key); handleUltimateDown(p2, key); handleSaitamaSpecialDown(p2, key); handleGenosSpecialDown(p2, key) }
     }
   }
   if (gameState === GAME_STATES.MATCH_END && key === "enter") resetToStart()
@@ -12453,6 +12865,8 @@ window.addEventListener("keyup", e => {
   // SAITAMA tiered punch-combo: resolve tap vs hold on the Special key RELEASE (no-op for every other char).
   if (p1) handleSaitamaSpecialRelease(p1, key)
   if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleSaitamaSpecialRelease(p2, key)
+  if (p1) handleGenosSpecialRelease(p1, key)
+  if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleGenosSpecialRelease(p2, key)
 })
 
 // ------------------------------------------------------------------
@@ -12599,6 +13013,7 @@ gameLoop()
     key: f.rosterKey, x: f.x, y: f.y, w: f.w, h: f.h, facing: f.facing,
     energy: f.energy, maxEnergy: f.maxEnergy, health: f.health, maxHealth: f.maxHealth,
     vy: f.vy || 0, vx: f.vx || 0, grounded: !!(f.onGround ?? f.grounded), canJump: f.canJump !== false,
+    swinging: !!f._swinging, swTimer: f._swTimer || 0,   // Spider-Man web-swing state
     airHits: f.airHits || 0, isLaunched: !!f.isLaunched,   // air-combo counter + launched state (Up-Attack launcher tests)
     charging:         !!f.isCharging,   // universal charge-lockout state (charging = fully vulnerable)
     fourLegsActive:   !!f._fourLegsActive,   // Kiba Four Legs (Shikyaku no Jutsu) buff active (Stage 4)
@@ -12650,8 +13065,24 @@ gameLoop()
     kurapikaCountering: f._kurapikaCountering || 0, // Kurapika Steal Chain parry-window remaining
     emperorActive:    !!f._emperorActive,           // Kurapika Emperor Time form active
     emperorTimer:     f._emperorTimer || 0,         // Emperor Time duration remaining
+    genosOverdrive:   !!f._genosOverdriveActive,    // Genos Overdrive timed power-up active
+    genosOverdriveTimer: f._genosOverdriveTimer || 0,
+    dkRage:           !!f._dkRageActive,            // Batman (dark_knight) Rage Mode timed transform active
+    dkRageTimer:      f._dkRageTimer || 0,
+    dkRageSkin:       !!f._skinAnim,                // rage/mech swap _skinAnim → truthy while transformed
+    dkMech:           !!f._dkMechActive,            // Batman (dark_knight) Mech Suit ultimate form active
+    dkMechTimer:      f._dkMechTimer || 0,
+    goldenFrieza:     !!f._goldenFriezaActive,      // Frieza Golden Frieza transform active (drain-based)
+    blackFrieza:      !!f._blackFriezaActive,       // Frieza Black Frieza transform active (drain-based, ceiling tier)
+    friezaForm:       f._blackFriezaActive ? "black" : (f._goldenFriezaActive ? "golden" : "base"),
+    genosOverheatVuln:   f._genosOverheatVuln || 0, // Genos post-Overdrive overheat vulnerability window
+    damageMult:       f.damageMultiplier || 1,
+    speedMult:        f.speedMultiplier || 1,
     emperorRevertVuln: f._emperorRevertVuln || 0,   // Kurapika post-Emperor-Time disorientation window
     currentForm:      f.currentForm || null,        // active transformation form key
+    mahoragaActive:   !!f._mahoragaActive,          // The Handler Mahoraga adaptation form active
+    mahoragaDistinct: f._mahoragaDistinct || 0,     // # distinct moves Mahoraga has adapted to (drives growth)
+    mahoragaTimer:    f._mahoragaTimer || 0,        // Mahoraga form remaining frames (auto-revert at 0)
     damageMultiplier: f.damageMultiplier || 1,      // active form damage buff
     reaperSeal:       f._reaperSealTimer || 0,      // Hiruzen Reaper Death Seal cinematic countdown (Stage 4)
     oroSummon:        f._oroSummonTimer || 0,       // Orochimaru Summon ultimate cinematic countdown (Stage 5)
@@ -12758,9 +13189,12 @@ gameLoop()
     sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
     start:       startHarnessMatch,
     skipToBattle,
+    // Jump to the REAL character-select grid for a universe (renders the same screen a player sees).
+    // Returns the grid roster keys so a test can assert a character is present/selectable.
+    gotoCharacterSelect: (universe) => { matchConfig.selectedUniverse = universe; gameState = GAME_STATES.SELECT_CHARACTER; return getCharacterRosterForSelectedUniverse().map(c => c.rosterKey || c.id || c.key) },
     // Read a character's static definition (intro pool + animation sheets + stats) — test-only
     // window into characters.js data (used by per-character build harnesses, e.g. intro-pool checks).
-    charDef: (key) => { const c = characters[key]; if (!c) return null; return { universe: c.universe || null, spriteScale: c.spriteScale ?? null, hasSprites: !!c.hasSprites, introSequencePool: c.introSequencePool || null, introPool: c.introPool || null, introSequence: c.introSequence || null, animationData: Object.fromEntries(Object.entries(c.animationData || {}).map(([k, v]) => [k, { sheet: v.sheet || null, frames: v.frames || null }])), stats: c.stats || null, traits: c.traits ? { ...c.traits } : null, movement: c.movement ? { ...c.movement } : null, basic_attacks: c.basic_attacks ? JSON.parse(JSON.stringify(c.basic_attacks)) : null, ultimate: c.ultimate ? { ...c.ultimate } : null } },
+    charDef: (key) => { const c = characters[key]; if (!c) return null; return { universe: c.universe || null, spriteScale: c.spriteScale ?? null, hasSprites: !!c.hasSprites, introSequencePool: c.introSequencePool || null, introPool: c.introPool || null, introSequence: c.introSequence || null, animationData: Object.fromEntries(Object.entries(c.animationData || {}).map(([k, v]) => [k, { sheet: v.sheet || null, frames: v.frames || null }])), stats: c.stats || null, traits: c.traits ? { ...c.traits } : null, movement: c.movement ? { ...c.movement } : null, basic_attacks: c.basic_attacks ? JSON.parse(JSON.stringify(c.basic_attacks)) : null, ultimate: c.ultimate ? { ...c.ultimate } : null, transformationOrder: c.transformationOrder || null, transformations: c.transformations ? JSON.parse(JSON.stringify(c.transformations)) : null } },
     // ── STAGE 10 preload hooks ──────────────────────────────────────────────────
     preloadDone:     () => _preloadPromise,                 // resolves once every match sheet has decoded/errored
     preloadReady:    () => _preloadReady,                   // the INTRO→BATTLE gate flag
@@ -12884,6 +13318,9 @@ gameLoop()
     },
     // Saitama "Spin-Punch" command-chain probe (mirrors vegCmd) — drive the Fwd+Heavy rekka precisely from a test.
     saitamaCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Genos punch → rapid-burst → spin-launcher command-chain probe (mirrors saitamaCmd) — drive the Fwd+Heavy 3-stage rekka precisely.
+    genosCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    friezaCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     // Aoi Todo elbow→hook→roundhouse command-chain probe (mirrors saitamaCmd) — drive the Fwd+Heavy 3-stage rekka precisely.
     todoCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     miwaCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
@@ -13721,12 +14158,15 @@ gameLoop()
     // Drive a REAL p2 attack (generous startup so a defender can react) — used to open the
     // Substitution incoming-attack window and to verify the swing actually whiffs on a substitute.
     p2Attack:   () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "light", { startup: 10, active: 6, recovery: 16, damage: 60, rangeX: 120, rangeY: 90, hitstun: 18, knockbackX: 6 }) } },
+    p1MahoragaExpire: () => { if (p1 && p1._mahoragaActive) { p1._mahoragaTimer = 1; return true } return false },   // force Mahoraga near-expiry (test auto-revert without waiting the full ~10s)
     p2Heavy:    () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "heavy", { startup: 8, active: 6, recovery: 18, damage: 150, rangeX: 130, rangeY: 100, hitstun: 22, knockbackX: 7, category: "heavy" }) } },   // test-only: a STRONG (heavy-category) hit — exercises defender heavy hit-reaction voices
     // Fire P1's SPECIAL with a chosen relative direction ("F"|"B"|"U"|"D"|null), bypassing keyboard timing
     // races (up→jump, down→block-crouch) so a test can exercise a direction-branched special's MECHANIC
     // cleanly. Clears the special cooldowns/recovery so it reliably fires. Routing (real dir input → move) is
     // still covered by the keyboard-driven sprite checks.
     p1SpecialDir: (dir = null) => { if (!p1) return null; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.kurapikaCounterCd = 0; p1.attackCooldown = 0; p1.attacking = false; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { move: p1.currentMove || null, cast: p1._spriteCastMove || null } },
+    // Genos Incineration Cannon — deterministic tap/hold TIER fire (bypasses keyboard hold-timing). tier 1/2/3.
+    genosIncinerate: (tier = 1) => { if (!p1) return null; p1.attackCooldown = 0; p1.attacking = false; const eBefore = p1.energy; const ok = fireGenosIncineration(p1, tier, getAbilityContext()); return { ok: !!ok, cast: p1._spriteCastMove || null, spent: eBefore - p1.energy } },
     // Spider-Man Web-Throw COMBO CANCEL — deterministic driver (mirrors p1SpecialDir). Puts P1 into a live
     // spiderCombo that has landed a clean hit (attacking + currentMove + _cmdHitLanded), then drives the REAL
     // updateSpidermanCommandCombat with a synthetic Special edge and reports whether it cancelled into Web
@@ -13745,6 +14185,13 @@ gameLoop()
     spidermanMaxWeb: () => ({ timer: p1?._maxWebTimer || 0, max: p1?._maxWebMax || 0, castMove: p1?._spriteCastMove || null, renders: _spiderMaxWebRenders, bgLoaded: !!(_spiderMaxWebImg && _spiderMaxWebImg.complete && _spiderMaxWebImg.naturalWidth > 0) }),
     brainiacPillar: () => ({ timer: p1?._brainiacPillarTimer || 0, max: p1?._brainiacPillarMax || 0, castMove: p1?._spriteCastMove || null, renders: _brainiacPillarRenders, bgLoaded: !!(_brainiacPillarImg && _brainiacPillarImg.complete && _brainiacPillarImg.naturalWidth > 0) }),
     p1EmperorExpire: () => { if (p1 && p1._emperorActive) { p1._emperorTimer = 1; return true } return false },   // fast-forward Emperor Time to imminent auto-revert (test-only)
+    p1GenosOverdriveExpire: () => { if (p1 && p1._genosOverdriveActive) { p1._genosOverdriveTimer = 1; return true } return false },   // fast-forward Overdrive to imminent auto-revert → pays the overheat drawback (test-only)
+    p1DarkKnightRageExpire: () => { if (p1 && p1._dkRageActive) { p1._dkRageTimer = 1; return true } return false },   // fast-forward Batman Rage Mode to imminent auto-revert (test-only)
+    p1DarkKnightMechExpire: () => { if (p1 && p1._dkMechActive) { p1._dkMechTimer = 1; return true } return false },   // fast-forward Batman Mech Suit to imminent auto-revert (test-only)
+    p1GoldenFriezaEnter: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterGoldenFrieza(p1, getAbilityContext()) } return false },   // base→Golden directly (test-only, bypasses the charge-hold)
+    p1BlackFriezaEnter:  () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterBlackFrieza(p1, getAbilityContext()) } return false },   // Golden→Black directly (test-only; requires Golden active)
+    p1FriezaRevert:      () => { if (p1) { if (p1._blackFriezaActive) revertBlackFrieza(p1); else if (p1._goldenFriezaActive) revertGoldenFrieza(p1); return true } return false },   // charge-tap revert to base (test-only)
+    p1FriezaSetEnergy:   (v = 0) => { if (p1) { p1.energy = v; return p1.energy } return null },   // force Ki level (test-only — drive the drain auto-revert)
     // SIX PATHS OF PAIN — Path-swap harness. sixPaths() reads live swap state; setPath() forces a swap
     // deterministically (clears gates + energy so the swap actually applies, bypassing input timing).
     sixPaths: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (!f) return null; return { rosterKey: f.rosterKey, path: f._path || 0, name: f._sixPathsName || "Deva Path", swapCd: f._sixPathsSwapCd || 0, energy: f.energy, maxEnergy: f.maxEnergy, skinAnim: !!f._skinAnim, castMove: f._spriteCastMove || null, teleportFlash: f.teleportFlash || 0, gakidoShield: f._gakidoShield || 0, gakidoAbsorbed: f._gakidoAbsorbed || 0, ningendoRipped: f._ningendoRipped || 0, lastAsuraShot: f._lastAsuraShot || null, narakaJudged: f._narakaJudged || 0, narakaHealed: f._narakaHealed || 0, lastChiku: f._lastChikuSummon || null } },

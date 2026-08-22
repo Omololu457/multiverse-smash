@@ -23,7 +23,7 @@ the Demon Slayer trio + Toji + Maki). Non-sprite placeholders are marked *(box)*
 | **Goku Black** | 1200·200·90/86/90 | **base→SSG→SSJ Rose→SSJ Blue** 4-tier ladder (recolor-pilot tiers); Rose grand cinematic, God/Blue snappy flash | Sword Slash (Rose-only sure-hit) |
 | **Beerus** | 1000·170·97/78/95 | Hakai, God-of-Destruction ki | Ki Ball (3-stage charge/release/impact cinematic) |
 | Piccolo *(box)* | 1100·160·84/86/80 | placeholder kit | Fused with Kami |
-| Frieza *(box)* | 1200·170·90/84/88 | placeholder kit | Golden Frieza |
+| Frieza | 1100·200·90/80/98 | full sprite kit (5 normals+guard · Fwd+Heavy rush rekka · 4 dir/air specials · Golden Frieza timed-transform on Charge) | Black Frieza (cinematic, 204) |
 | Cell *(box)* | 1300·170·94/90/82 | placeholder kit | Perfect Cell |
 
 ### Jujutsu Kaisen (7)

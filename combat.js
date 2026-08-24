@@ -196,6 +196,29 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
 // code + the design spec's contract share one implementation — never a second competing path.
 export const applyDamage = applyScaledDamage
 
+// ── THE HANDLER / MAHORAGA ADAPTATION (Stage 5, NEW engine) ─────────────────────────────────────
+// Per-move damage-reduction LADDER against the transformed Handler: each time a SPECIFIC incoming move
+// CONNECTS on Mahoraga, that move deals progressively less on its next repeat (he "adapts" to it —
+// move-specific, not a flat buff, and it visibly RAMPS rather than flipping on at once). A move that
+// connects for the FIRST time also bumps `_mahoragaDistinct`, which drives Mahoraga's growth (rising
+// damage/defense + HP regen) in abilities.updateHandlerMahoraga. A BLOCKED hit did not land on him, so it
+// does not adapt. ★BALANCE: these numbers are PROVISIONAL and flagged for playtest (BALANCE_AUDIT.md) — a
+// too-steep ladder forces degenerate "don't use your best move"; too-shallow makes the form a non-threat.
+const MAHORAGA_LADDER = [1.0, 0.6, 0.35, 0.18, 0.08, 0.03]   // damage × by the move's PRIOR-connect count
+export function tickMahoragaAdapt(defender, atk, cat, dmg) {
+  if (!defender?._mahoragaActive) return dmg
+  const key = (atk && atk.name) ? String(atk.name) : (cat || "unknown")   // per-move (name) → falls back to category
+  const adapt = defender._mahoragaAdapt || (defender._mahoragaAdapt = {})
+  const n = adapt[key] || 0
+  const reduced = Math.floor(dmg * MAHORAGA_LADDER[Math.min(n, MAHORAGA_LADDER.length - 1)])
+  const connecting = !(defender.isBlocking && !(atk && atk.unblockable))   // a blocked hit does not land → does not adapt
+  if (connecting) {
+    adapt[key] = n + 1
+    if (n === 0) { defender._mahoragaDistinct = (defender._mahoragaDistinct || 0) + 1; defender._mahoragaLastMove = key }
+  }
+  return reduced
+}
+
 // ========================
 // HELPERS
 // ========================
@@ -670,6 +693,70 @@ export function shouldSasukeAbsoluteDefenseNegate(defender) {
   defender.energy -= SASUKE_ABSOLUTE_DEFENSE_COST   // per-block cost, deducted ONLY on an actual negate
   defender.teleportFlash = Math.max(defender.teleportFlash || 0, 8)
   return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VEGITO — ULTRA INSTINCT -SIGN- evasion RESOURCE (Stage 5). A bespoke defensive meter (`_uiMeter`,
+// separate from ki `energy`) modelling the instinctive dodge of the silver-haired UI state:
+//   • PASSIVE DRAIN — the meter bleeds every frame (applyVegitoUISystem). Full → empty in ~VEGITO_UI.drainSeconds.
+//   • REAL EVASION while meter > 0 — shouldVegitoUIEvade negates an incoming hit (melee AND projectile),
+//     costing `dodgeCost` meter per dodge + a brief i-frame/flash so a single blow isn't re-dodged every frame.
+//   • HEALTH CONVERSION at 0 — the drain does NOT stop at empty; it converts to a small HP bleed (the state
+//     cannibalises the body), so lingering in UI without recharging is punished. No evasion while empty.
+//   • EVASION DISABLED WHILE CHARGING — holding Charge (P) REFILLS the meter but drops the dodge (the classic
+//     "you can't power up and evade at once" tradeoff); it's the intended recharge window.
+// The meter LEVEL also drives the idle-pose "tell" in sprite.js (_uiTier: relaxed=full → arms-spread=mid →
+// braced=low). Mirrors the shape of shouldGojoAutoDodge (per-dodge cost) + the apply*System passive drains.
+// ─────────────────────────────────────────────────────────────────────────────
+export const VEGITO_UI = {
+  max: 100,
+  drainPerFrame: 100 / (12 * 60),   // ~12s full→empty at 60fps
+  dodgeCost: 7,                     // meter spent per evaded hit
+  dodgeIframes: 4,                  // brief i-frames so one blow isn't re-dodged every overlap frame
+  chargeRefillPerFrame: 100 / (3 * 60),  // ~3s empty→full while holding Charge
+  hpBleedPerFrame: 0.11,            // HP lost per frame once the meter is empty ("drain → health loss")
+}
+export function shouldVegitoUIEvade(defender) {
+  if ((defender?.rosterKey || "").toLowerCase() !== "vegito") return false
+  if (defender._uiCharging) return false             // evasion DISABLED while charging (recharge window)
+  if ((defender._uiMeter || 0) <= 0) return false    // needs meter > 0 — empty = no dodge (health bleeds instead)
+  defender._uiMeter = Math.max(0, defender._uiMeter - VEGITO_UI.dodgeCost)
+  defender.teleportFlash = Math.max(defender.teleportFlash || 0, 8)
+  defender.invulnTimer   = Math.max(defender.invulnTimer || 0, VEGITO_UI.dodgeIframes)
+  return true
+}
+// MILES — CAMOUFLAGE evasion (Stage 4, Down special). While the stealth window (`_milesStealthTimer`,
+// set in abilities.fireMilesStealth) holds, an incoming hit (melee AND projectile) phases through, with a
+// brief per-hit i-frame so one blow isn't re-dodged every overlap frame. Unlike Vegito's meter this is a
+// simple TIMED window (no resource); the timer ticks down in game.js. Mirrors shouldVegitoUIEvade.
+export function shouldMilesStealthEvade(defender) {
+  if ((defender?.rosterKey || "").toLowerCase() !== "miles") return false
+  if ((defender._milesStealthTimer || 0) <= 0) return false
+  defender.teleportFlash = Math.max(defender.teleportFlash || 0, 8)
+  defender.invulnTimer   = Math.max(defender.invulnTimer || 0, 5)
+  return true
+}
+export function applyVegitoUISystem(fighter) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vegito") return
+  if ((fighter.health || 0) <= 0) return
+  if (fighter._uiMax == null) { fighter._uiMax = VEGITO_UI.max; fighter._uiMeter = VEGITO_UI.max }   // lazy init (fresh each round — createFighter makes a new object)
+  const charging = !!fighter.isCharging
+  fighter._uiCharging = charging
+  if (charging) {
+    fighter._uiMeter = Math.min(fighter._uiMax, (fighter._uiMeter || 0) + VEGITO_UI.chargeRefillPerFrame)   // recharge
+    fighter._uiBleeding = false
+  } else {
+    fighter._uiMeter = (fighter._uiMeter || 0) - VEGITO_UI.drainPerFrame                                    // passive drain
+    if (fighter._uiMeter <= 0) {
+      fighter._uiMeter = 0
+      fighter.health = Math.max(1, (fighter.health || 0) - VEGITO_UI.hpBleedPerFrame)                       // health conversion (won't self-KO)
+      fighter._uiBleeding = true
+    } else {
+      fighter._uiBleeding = false
+    }
+  }
+  const r = (fighter._uiMeter || 0) / (fighter._uiMax || VEGITO_UI.max)
+  fighter._uiTier = r > 0.66 ? 0 : r > 0.20 ? 1 : 2   // 0 full / 1 mid / 2 low → idle-pose tell (sprite.js)
 }
 
 // FEEDBACK (Ben 10 Conductoid) — ENERGY ABSORPTION reactive counter. Unlike Sasuke's toggle, this is a
@@ -2593,6 +2680,22 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     return
   }
 
+  // VEGITO — Ultra Instinct evasion: while the UI meter holds (and NOT charging), the incoming melee blow
+  // is dodged outright (meter cost + brief i-frames handled in shouldVegitoUIEvade). See VEGITO_UI.
+  if (shouldVegitoUIEvade(defender)) {
+    attacker.currentAttack.hasHit = true
+    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    return
+  }
+
+  // MILES — Camouflage: while the stealth window holds, the incoming melee blow phases through (brief
+  // per-hit i-frames handled in shouldMilesStealthEvade). See MILES_STEALTH (abilities.js).
+  if (shouldMilesStealthEvade(defender)) {
+    attacker.currentAttack.hasHit = true
+    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    return
+  }
+
   // FEEDBACK — Energy Absorption counter: absorb the melee blow (no damage), refund energy, stamp the
   // amplified redirect. Scales the discharge by the raw incoming attack damage. Consumes the swing.
   if (shouldFeedbackAbsorb(defender, attacker.currentAttack?.damage || 40)) {
@@ -2643,6 +2746,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     Math.max(0.5, defender.defenseMultiplier || 1)
   )
 
+  // THE HANDLER / MAHORAGA ADAPTATION — a repeat of the SAME move deals progressively less against the
+  // transformed Handler (he "adapts" to it). Move-specific, not a flat buff. Also counts a NEW move toward
+  // his growth. Applied before counter/vuln modifiers so the ladder governs the base landed damage.
+  if (defender._mahoragaActive) dmg = tickMahoragaAdapt(defender, atk, cat, dmg)
+
   if (isCounter) {
     dmg = Math.floor(dmg * 1.25)
     defender.clashFlash = Math.max(defender.clashFlash || 0, 10)   // reuse the existing clash visual for the counter pop
@@ -2656,6 +2764,12 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // KURAPIKA — Emperor Time REVERT disorientation: for a brief window after Emperor Time ends, the memory-gap
   // leaves him vulnerable (takes bonus damage). The canon cost, tied to a real mechanic (dmg-taken amp).
   if ((defender._emperorRevertVuln || 0) > 0) dmg = Math.floor(dmg * 1.25)
+  // GENOS — Overdrive OVERHEAT: for a brief window after Overdrive ends, the overheated core leaves him
+  // vulnerable (takes bonus damage). The locked-decision drawback, tied to the same real dmg-taken amp.
+  if ((defender._genosOverheatVuln || 0) > 0) dmg = Math.floor(dmg * 1.30)
+  // BATMAN (dark_knight) — RAGE MODE reckless trade-off: WHILE raging he hits harder (dmg×) but guards worse,
+  // taking +15% damage. The berserker's real cost, tied to the same dmg-taken amp (active-window, not post-revert).
+  if (defender._dkRageActive) dmg = Math.floor(dmg * 1.15)
 
   // COMEBACK FINISHER: fixed EFFECTIVE damage — override AFTER combo/counter/slumber modifiers so the
   // once-per-match desperation hit lands the exact capped number (~340-380 band; see BALANCE_AUDIT).
@@ -3393,6 +3507,9 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // in 1v1/FFA where fighters carry no `team` property.
       if (proj.owner?.team && fighter.team && proj.owner.team === fighter.team) continue
       if ((fighter.invulnTimer || 0) > 0) continue
+      // SCOPED MULTI-TARGET PIERCE (opt-in via piercesMulti; only Iron Man 2's 4* max-charge repulsor uses it):
+      // a target already passed-through this frame/earlier is skipped so the bolt can't re-hit it every frame.
+      if (Array.isArray(proj._pierceHits) && proj._pierceHits.includes(fighter.side)) continue
 
       const hurtbox = getHurtbox(fighter)
       // Prefer an explicit circle radius, but fall back to the sprite box so
@@ -3402,6 +3519,15 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       const pb = { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
       if (!rectsOverlap(pb, hurtbox)) continue
+
+      // VEGITO — Ultra Instinct evasion: phase past the shot while the UI meter holds (and NOT charging).
+      // Grants brief i-frames (in shouldVegitoUIEvade) so a lingering bolt isn't re-dodged every frame; the
+      // projectile is NOT consumed (it flies on past). No-op for everyone else. See VEGITO_UI.
+      if (shouldVegitoUIEvade(fighter)) continue
+
+      // MILES — Camouflage: phase past the shot while the stealth window holds (brief per-hit i-frames in
+      // shouldMilesStealthEvade). The projectile is NOT consumed (flies on past). No-op for everyone else.
+      if (shouldMilesStealthEvade(fighter)) continue
 
       // MADARA — Gunbai reflect: while the summoned war-fan stance is up (_gunbaiReflect), an incoming
       // projectile is TURNED BACK at its owner (the canonical Uchiwa reflect) instead of damaging Madara.
@@ -3498,6 +3624,8 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         else { proj.owner.comboCounter = (proj.owner.comboCounter || 0) + 1; proj.owner.comboTimer = 90 }
       }
 
+      // MAHORAGA ADAPTATION — projectiles adapt per-move too (keyed by proj.name), same ladder + growth.
+      if (fighter._mahoragaActive) dmg = tickMahoragaAdapt(fighter, { name: proj.name, unblockable: proj.unblockable }, "projectile", dmg)
       applyScaledDamage(fighter, dmg, { source: "projectile" })
       trackSkillHunterUnlock(fighter, proj.owner, proj.name, fighter.isBlocking)   // Skill Hunter: a distinct opponent PROJECTILE landing on Chrollo also counts
       trackBanditEchoMark(fighter, proj.owner, proj, fighter.isBlocking, true)   // Bandit's Echo: any opponent PROJECTILE connect marks it (special-tier; independent of Skill Hunter)
@@ -3573,6 +3701,9 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // are consumed on hit as before.
       if (proj.boomerang) { proj.returning = true; break }
       if (proj.persist) { proj._struck = true; break }   // lingering hazard (Hashirama tree): hit once, keep standing for its lifetime
+      // SCOPED MULTI-TARGET PIERCE (Iron Man 2 4* repulsor): pass THROUGH — record this target so it can't be
+      // re-hit, keep flying (no despawn), and check the remaining fighters this frame. Only piercesMulti opts in.
+      if (proj.piercesMulti) { (proj._pierceHits ||= []).push(fighter.side); continue }
       projectiles.splice(i, 1)
       break
     }

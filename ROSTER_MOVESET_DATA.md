@@ -29,9 +29,9 @@ values are under each character's **Flags**.
 - **Stats:** HP 1200 · EN 200 · 92/86/88
 - **Normals:** 45→27 / 85→51 / 70→42 / 60→36 / 80→48 / 30→18
 - **Specials:** Dragon Fist 150→90 · 40 EN · Kamehameha 120→72 · 30 EN (proj)
-- **Ultimate:** Super Saiyan Blue — **no direct damage**; flat 100 EN → advances SSJ ladder.
-- **Transformations (dmg×/spd×/def×):** base 1/1/1 → SSJ1 1.2/1.1/1.05 → SSJ2 1.3/1.15/1.1 → SSJ3 1.5/1.2/1.05 (5 ki/s) → SSJ Blue 2.0/1.4/1.2 (8 ki/s) → Ultra Instinct 2.5/2.0/1.5 (12 ki/s, autoDodge). *(multipliers apply on top of the 0.60 scale)*
-- **Mechanics:** mandatory ladder; SSJ3/Blue/UI drain-gated, revert at 0.
+- **Ultimate:** none — the transformation ladder moved to the CHARGE button (2026-08-22 DB alignment); the Ultimate input is unbound.
+- **Transformations (dmg×/spd×/def×; charge hold-release steps UP, tap reverts — SAME model as Vegeta/Goku Black/Frieza: threshold-gated, NO up-front cost, continuous Ki drain, auto-revert at 0):** base 1/1/1 → SSJ1 1.2/1.1/1.05 (thr 40, drain 0.14/f) → SSJ2 1.3/1.15/1.1 (thr 70, 0.20/f) → SSJ3 1.5/1.2/1.05 (thr 110, 0.30/f) → SSJ Blue 2.0/1.4/1.2 (thr 150, 0.36/f) → Ultra Instinct 2.5/2.0/1.5 (thr 185, 0.48/f, autoDodge). *(multipliers apply on top of the 0.60 scale)*
+- **Mechanics:** ALL tiers drain-gated + revert-at-0. ★Drains are REGEN-AWARE — Goku regens 0.08 Ki/f (0.06 + 0.02 Goku bonus), so declared drains exceed 0.08 to be a real NET cost (SSJ1 net ~3.6/s ⇒ ~55s uptime … UI net ~24/s ⇒ ~8s). Numbers are Goku-specific (longer/stronger ladder), flagged for playtest.
 - **Flags:** none.
 
 ## Vegeta — dragon_ball
@@ -63,9 +63,11 @@ values are under each character's **Flags**.
 - **Specials (metadata):** Special Beam Cannon 150→90 · 35 EN · Hellzone Grenade 100→60 · 30 EN. **Ult:** Fused with Kami · 100 EN.
 - **Flags:** **[NO HANDLER]** — declared data only; EFF shown assuming the scaled pipeline *if* ever wired.
 
-## Frieza — dragon_ball *(non-sprite placeholder)*
-- **Stats:** HP 1200 · EN 170 · 90/84/88 · **Normals:** 45→27 / 85→51 / 70→42 / 60→36 / 80→48 / 28→17
-- **Specials (metadata):** Death Beam 90→54·20 · Nova Strike 140→84·30 · Ult Death Ball 200→120·50. **Ult:** Golden Frieza · 100 EN.
+## Frieza — dragon_ball *(base/final form; full sprite build)*
+- **Stats:** HP 1100 · EN 200 · 90/80/98 · **Normals (raw→×0.60):** light 42→25 / heavy 80→48 (kick) / up 62→37 launcher / air 52→31 / down_air 60→36 / grab 28→17
+- **Rush rekka (Fwd+Heavy, cancel-on-hit):** 40→24 · 46→28 · 84→50 launcher (~102 EFF full chain)
+- **Specials (raw→×0.60·cost):** Death Beam 78→47·22 (piercing beam) · Ki Blast 26×3→~47·24 (crystal volley) · Death Ball 120→72·45 (sphere) · Psycho Teleport 74→44·28 (i-frame blitz)
+- **Transformations (ladder, SAME model as Vegeta / Goku Black — charge hold-release steps up, tap reverts, continuous Ki drain, auto-revert at 0):** base → **GOLDEN** (≥100 Ki, drain 0.18/f) 1.25/1.18/1.08 → **BLACK** (≥150 Ki, needs Golden, drain 0.30/f) 1.50/1.32/1.15. All-around DMG/SPD/DEF boost bought with energy drain. No separate ultimate (reaching Black IS the payoff).
 - **Flags:** **[NO HANDLER]** — data only.
 
 ## Cell — dragon_ball *(non-sprite placeholder)*

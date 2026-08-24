@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+"""
+reslice_dark_knight.py — STAGE 1 slicer for the NEW Batman variant (rosterKey "dark_knight").
+
+Source: df2ek1u-37586e42-9a55-49e4-8390-5496e4e247c4.png (5120x2880, RGBA, TRUE per-pixel alpha —
+NO chroma key, unlike every other sheet in this project). We slice by explicit alpha-bounded frame
+boxes gathered from the Stage-0 investigation (see BATMAN_VARIANT_ASSET_MAP.md).
+
+Standard form is built from the LARGER lower-set (owner decision): idle ~229px tall grey-suit Batman.
+
+Each action -> one horizontal uniform strip dark_knight_<action>_uniform.png, frames packed into a
+common cell (cellW=max w, cellH=max h) and FEET-ALIGNED (bottom-center) so the runtime fixed-cell
+sampler shows planted feet with no jitter. Prints the frame/cell dims for characters.js.
+"""
+import os
+from PIL import Image
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC  = os.path.join(ROOT, "df2ek1u-37586e42-9a55-49e4-8390-5496e4e247c4.png")
+
+# (x, y, w, h) tight alpha bounds in full-sheet coords. Verified visually in Stage 1.
+# ★SMOOTHNESS REBUILD (2026-08-22): idle+walk moved from the frame-SPARSE lower set (2f/4f) to the frame-RICH
+# UPPER set (y131 idle row / y276 walk row) — SAME grey-suit style, SAME ~128px size (Stage-0's "1.8× larger
+# lower set" was a mismeasurement vs the lower set's expansive cape poses), but 10-frame idle + 10-frame walk =
+# genuinely smooth movement instead of a 2-pose robotic stance. Owner-flagged the old build as choppy/robotic.
+FRAMES = {
+    # 6-frame breathing idle (upper-set row1 f0-f5) — the "chest moves forward" breath that reads ALIVE.
+    # f0-f1 rest → f2-f4 chest pushed forward → f5 settle; loops f5≈f0 (both chest-back) = seamless. DROPPED f6
+    # (the leaning "hit-looking" end frame owner flagged) + f7-f9 + the narrow 11th cape-tuck.
+    "idle":  [(5,131,110,133), (116,131,110,133), (229,131,116,133), (345,131,125,133), (474,131,118,133),
+              (596,131,116,133)],
+    # WALK — the REAL upright locomotion CYCLE (upper region y489): legs alternating, cape flaring back, arms
+    # bent — reads as WALKING, not punching. (The old lower y1943 "walk" was actually 2 idle + 2 PUNCH frames —
+    # that's why it looked like hitting the air.) 7 striding frames; the x936/x1088 turn-to-viewer are excluded.
+    "walk":  [(7,489,133,131), (150,489,154,131), (314,489,130,131), (454,490,96,131),
+              (560,490,100,131), (670,490,108,131), (788,489,138,131)],
+    # 5-frame CAPE-WRAP evade — arm raised, cape swept across to conceal, then emerge. Featured "dodge".
+    "dodge": [(535,1943,142,131), (687,1943,142,131), (839,1943,131,132), (968,1943,115,132), (1097,1943,138,132)],
+    # single clean crouch/duck (kneeling, cape draped)
+    "crouch":[(833,2210,119,124)],
+    # 6-frame glide/dive — cape spread into bat-wing shapes (serves jump/fall/air too). Two source baselines.
+    "glide": [(7,2396,168,101), (223,2396,218,128), (451,2396,199,121), (649,2436,157,118), (816,2436,119,147), (934,2436,72,132)],
+    # KNOCKDOWN — 3-frame tumble→land: knocked backward (upper KO row y910) → flip onto back → SETTLE on the
+    # grounded prone (lower set). Ends on the prone (lockLastFrame) so he lies on the ground while down.
+    "knockdown":[(5,910,166,123), (177,910,176,119), (1369,1948,152,111)],
+    # ★HURT — real recoil/flinch (upper KO row): Batman knocked BACKWARD, head back, cape flaring. DISTINCT
+    # from idle (the old hurt REUSED idle → getting hit looked identical to standing; owner-flagged).
+    "hurt":[(1174,910,106,104)],
+}
+
+# ── STAGE 2 NORMALS (side-view melee poses from the lower set). Rough boxes; tightened to alpha bbox. ──
+# light = quick jab (arm-forward startup -> extended). heavy = cocked windup -> committed LUNGE punch
+# (long reach). air = leaping/flying DROPKICK. crouchlight = low sweep. up-attack REUSES heavy; down_air
+# REUSES air (no dedicated uppercut / down-aerial art in the standard set — FLAGGED in characters.js).
+# ★SMOOTHNESS REBUILD (2026-08-22): heavy+air moved to the frame-RICH UPPER set (5-frame committed lunge /
+# multi-frame cape dive) — same grey-suit style. light stays a snappy 2-frame lower-set jab (upper set has NO
+# jab; fast pokes read fine at 2f); crouchlight stays the lower-set low sweep (upper set has no low strike).
+# up reuses heavy (now 5f); down_air reuses air (now multi-f) — both inherit the smoothness.
+ATTACK_FRAMES = {
+    "light":       [(1845,1935,140,130), (1976,1935,140,130)],                                                          # lower-set quick jab (snappy, 2f)
+    "heavy":       [(110,636,128,102), (248,625,142,93), (400,636,116,95), (526,636,124,96), (660,636,140,91)],         # UPPER 5-frame committed lunge punch
+    "air":         [(110,757,129,119), (249,757,130,99), (389,759,209,115)],                                            # UPPER 3-frame jump-punch → cape-spread dive
+    "crouchlight": [(1862,2200,205,140)],                                                                               # lower-set low sweep (1f)
+}
+
+import numpy as _np
+def feet_crop(src, box):
+    """Tighten, then crop the BOTTOM to the FEET line (lowest content in the RIGHT 55% — the boots; the cape
+    trails LEFT/below and would otherwise be bottom-aligned, sinking the feet). Returns a feet-anchored box."""
+    x,y,w,h = box[:4]
+    A = (_np.array(src.crop((x, y, x+w, y+h)))[:,:,3] > 16)
+    ys = _np.where(A.any(axis=1))[0]; xs = _np.where(A.any(axis=0))[0]
+    if not len(ys): return (x,y,w,h)
+    tx, ty = x+int(xs.min()), y+int(ys.min())
+    tw, th = int(xs.max()-xs.min()+1), int(ys.max()-ys.min()+1)
+    right = A[:, xs.min()+int((xs.max()-xs.min())*0.45): xs.max()+1]   # feet region (front boot, facing R)
+    fys = _np.where(right.any(axis=1))[0]
+    feet = y + int(fys.max()) if len(fys) else ty+th-1
+    return (tx, ty, tw, max(20, feet - ty + 1))                        # top → feet (below-feet cape clipped)
+
+def tighten(src, box):
+    x,y,w,h = box[:4]
+    cell = src.crop((x, y, x+w, y+h))
+    bb = cell.getbbox()
+    if not bb: return (x,y,w,h), cell
+    cx0,cy0,cx1,cy1 = bb
+    return (x+cx0, y+cy0, cx1-cx0, cy1-cy0), cell.crop(bb)
+
+# ── STAGE 4 SPECIALS (cast poses + one projectile sprite). 5th tuple element = flip horizontally so the
+# frame faces the canonical RIGHT direction (the engine flips per fighter.facing). From the lower-set
+# weapon frames. crescent = Batman throw pose (flipped) + a separate crescent-hook PROJECTILE sprite. ──
+SPECIAL_FRAMES = {
+    "flail":         [(2926,2517,140,143,False), (3067,2517,171,130,False), (3244,2517,231,112,False)],   # Fwd — 3-frame CHAIN-FLAIL swing: gather → swing → lunge-strike (was 1 static frame)
+    "pistol":        [(3481,2517,213,104,False), (3700,2517,233,91,False), (3939,2517,146,123,False), (4091,2517,89,123,False)],   # Back — 4-frame PISTOL: lunge-aim → fire → upright-fire → recover (+ procedural bullet)
+    "grapple":       [(3300,2265,230,200,False), (3555,2255,230,205,False), (3742,2205,140,262,False)],   # Down — 3-frame GRAPPLE/batclaw throw: lunge-launch → hook+chain flung R → recover to stance (catalog: this region is a grapple, NOT a cape-spin)
+    "dive":          [(223,2396,218,128,False), (451,2396,199,121,False), (649,2436,157,118,False)],       # Air — 3-frame cape DIVE: spread → full bat-wing → dive-down (was 1 static frame)
+    "crescent":      [(3555,2262,215,182,False), (3740,2270,125,175,False)],   # Neutral — 2-frame CRESCENT-chain throw: lunge-throw (hook+chain extends R) → recover to stance (was 1 static frame)
+    "crescentblade": [(3448,2285,98,74,True)],      # crescent-hook PROJECTILE sprite (flipped R)
+}
+
+# ── STAGE 5 RAGE MODE (front-facing bulked flex + purple energy-crackle transform). Feet-aligned; the
+# bulked figures are ~164px (taller than the 129px base idle → he visibly BULKS UP on-screen). ──
+RAGE_FRAMES = {
+    "rageidle":      [(428,1396,132,132), (563,1396,132,132), (698,1396,132,132)],                          # 3-frame bulked flex breathing (front)
+    "ragetransform": [(1598,1396,132,132), (1738,1396,132,132), (1873,1396,132,132), (2008,1396,132,132)],  # 4-frame purple energy-crackle
+}
+
+# ── STAGE 6 MECH SUIT (ultimate). Purple WIREFRAME materialize sequence + SOLID mech idle + mech lunge
+# attack. Big frames (~190px) → giant powered-armor read. 5th tuple element = horizontal flip (canonical R). ──
+MECH_FRAMES = {
+    "mechwire":   [(4570,1020,210,205,False), (4568,1210,210,205,False), (4553,1400,222,205,False), (4553,1590,222,205,False)],   # 4-frame purple wireframe materialize
+    "mechidle":   [(4810,1020,218,205,False), (4808,1213,218,205,False)],                                                          # 2-frame solid mech idle (front)
+    "mechattack": [(4726,2540,248,190,False)],                                                                                     # mech lunge/strike
+}
+
+# ── STAGE 7 WIN pose — repurposed front-facing confident stance (arms out, cape spread; no bespoke victory
+# art on the sheet — FLAGGED). lose = REUSE knockdown (no lose art). ──
+WIN_FRAMES = { "win": [(2268,2024,158,138)] }
+
+def build_special(src, name, boxes):
+    tb = []
+    for b in boxes:
+        (tx,ty,tw,th), cell = tighten(src, b)
+        if len(b) >= 5 and b[4]: cell = cell.transpose(Image.FLIP_LEFT_RIGHT)
+        tb.append((tx,ty,tw,th,cell))
+    cw = max(t[2] for t in tb); ch = max(t[3] for t in tb)
+    strip = Image.new("RGBA", (cw*len(tb), ch), (0,0,0,0))
+    for i,(tx,ty,tw,th,cell) in enumerate(tb):
+        strip.paste(cell, (i*cw + (cw-tw)//2, ch-th), cell)
+    out = os.path.join(ROOT, f"dark_knight_{name}_uniform.png")
+    strip.save(out)
+    print(f"  {name:14s} frames={len(tb)} cell={cw}x{ch}  -> {os.path.basename(out)}")
+
+def build(src, name, boxes):
+    cw = max(w for _,_,w,_ in boxes)
+    ch = max(h for _,_,_,h in boxes)
+    strip = Image.new("RGBA", (cw*len(boxes), ch), (0,0,0,0))
+    for i,(x,y,w,h) in enumerate(boxes):
+        cell = src.crop((x, y, x+w, y+h))
+        px = i*cw + (cw - w)//2      # center horizontally
+        py = ch - h                   # bottom-align (feet planted)
+        strip.paste(cell, (px, py), cell)
+    out = os.path.join(ROOT, f"dark_knight_{name}_uniform.png")
+    strip.save(out)
+    print(f"  {name:10s} frames={len(boxes)} cell={cw}x{ch}  -> {os.path.basename(out)}")
+    return cw, ch, len(boxes)
+
+def main():
+    src = Image.open(SRC).convert("RGBA")
+    print(f"source {src.size}  RGBA true-alpha")
+    print("dark_knight STAGE 1 movement/state reslice:")
+    dims = {}
+    for name, boxes in FRAMES.items():
+        # walk = the upright stride cycle; its cape flares/trails BELOW the boots → FEET-crop (align boots, clip
+        # the drag-cape) so the feet stay on the ground. Everything else = plain alpha-tighten.
+        crop = feet_crop if name == "walk" else (lambda s, b: tighten(s, b)[0])
+        tb = [crop(src, b) for b in boxes]
+        dims[name] = build(src, name, tb)
+    print("dark_knight STAGE 2 normals reslice:")
+    for name, boxes in ATTACK_FRAMES.items():
+        # heavy = upper-set lunge with trailing cape below the boots → FEET-crop (ground attack; align boots).
+        # air = airborne (no ground contact) so plain tighten is fine. light/crouchlight = lower set, tighten.
+        crop = feet_crop if name == "heavy" else (lambda s, b: tighten(s, b)[0])
+        tb = [crop(src, b) for b in boxes]
+        dims[name] = build(src, name, tb)
+    print("dark_knight STAGE 4 specials reslice:")
+    for name, boxes in SPECIAL_FRAMES.items():
+        build_special(src, name, boxes)
+    print("dark_knight STAGE 5 rage-mode reslice:")
+    for name, boxes in RAGE_FRAMES.items():
+        tb = [tighten(src, b)[0] for b in boxes]
+        dims[name] = build(src, name, tb)
+    print("dark_knight STAGE 6 mech-suit reslice:")
+    for name, boxes in MECH_FRAMES.items():
+        build_special(src, name, boxes)
+    print("dark_knight STAGE 7 win reslice:")
+    for name, boxes in WIN_FRAMES.items():
+        tb = [tighten(src, b)[0] for b in boxes]
+        dims[name] = build(src, name, tb)
+    # portrait: cowl lower-face close-up fragment (Stage 0 item 6) — a HUD/select bust. Tightened to the bust
+    # band (y1166–1254) to EXCLUDE two small standing-Batman figures below it (y1255+) that a looser crop grabbed
+    # as bottom-corner bleed (visual-audit fix).
+    port = src.crop((18, 1166, 216, 1254))
+    pb = port.getbbox()
+    if pb: port = port.crop(pb)
+    port.save(os.path.join(ROOT, "dark_knight_portrait.png"))
+    print(f"  portrait   {port.size}  -> dark_knight_portrait.png (cowl lower-face fragment)")
+
+if __name__ == "__main__":
+    main()

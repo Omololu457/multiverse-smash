@@ -27,6 +27,19 @@ const TOJI_REINCARNATED_TINT = "sepia(0.7) saturate(2.4) hue-rotate(-28deg) brig
 // toward a decayed greenish pallor, lift it pale. Paired with drawEdoReanimOverlay (procedural seam/mottle).
 // Works on ANY vessel's base sprites → no per-char art. Gated on fighter._edoActive.
 const EDO_REANIM_TINT = "grayscale(0.82) sepia(0.45) hue-rotate(55deg) saturate(0.72) brightness(1.07) contrast(0.92)";
+// FRIEZA transformations (no pre-baked recolor sheets — canon Golden/Black are the SAME body recolored, so a
+// canvas TINT over the base art is the right tool). GOLDEN = warm gold wash over the white body; BLACK = the
+// ceiling-tier dark form (deep violet-black). Gated on _goldenFriezaActive / _blackFriezaActive.
+const FRIEZA_GOLDEN_TINT = "sepia(1) saturate(3.4) hue-rotate(-18deg) brightness(1.12) contrast(1.05)";
+const FRIEZA_BLACK_TINT  = "grayscale(0.5) brightness(0.34) contrast(1.35) saturate(1.4) hue-rotate(255deg)";
+// PICCOLO transformations — ★PALETTE-TINT PLACEHOLDER (prototype scope, owner 2026-08-22). Canon Potential
+// Unleashed / Orange Piccolo change body SHAPE too, but that remodel is deferred (no art); a clean canvas tint
+// over the base green Piccolo is the honest stand-in. TIER 1 Potential Unleashed = a brighter YELLOW-GREEN wash
+// (skin nudged green→yellow-green + brightened). TIER 2 Orange Piccolo = a warm ORANGE wash over the whole body
+// (approximates orange skin; the precise red-eyes/black-eye-markings are NOT achievable via a global tint and
+// are part of the deferred bespoke art). Gated on _piccoloPotentialActive / _piccoloOrangeActive.
+const PICCOLO_POTENTIAL_TINT = "saturate(1.55) hue-rotate(-32deg) brightness(1.16) contrast(1.04)";
+const PICCOLO_ORANGE_TINT    = "sepia(0.95) saturate(2.7) hue-rotate(-12deg) brightness(1.08) contrast(1.06)";
 
 // ─────────────────────────────────────────────────────────────────
 // OPTIONAL DEPENDENCY — animationProfile.js
@@ -252,6 +265,8 @@ const MOVE_TO_ACTION = {
   // so a cast/strike recovery tail can never resolve to the 128² fallback box.
   yutaStrong: "yutaStrong", yutaKick4: "yutaKick4", yutaCem: "yutaCem", yutaSpeech: "yutaSpeech", yutaRct: "yutaRct",
   yutaUltCast: "yutaUltCast",   // Yuta (Stage 5): Rika's Invocation cast pose (_spriteCastMove) — identity map
+  handlerSummon: "handlerSummon",   // The Handler (Stage 4): shared shikigami summon hand-sign cast pose (_spriteCastMove) — identity map
+  mahoragaEntry: "mahoragaEntry", mahoragaCounter: "mahoragaCounter",   // The Handler (Stage 5): Mahoraga form entry (row_02 blade-draw) + adapted counter (row_05 slash) — resolve against _skinAnim=MAHORAGA_ANIM
 
   // Netero (Stage 3): command-chain stages + Barrage special. Identity maps (currentMove === action
   // key) — explicit here so a recovery/cast tail can never resolve to the 128² box (Sasuke dashStrike
@@ -420,8 +435,8 @@ const MOVE_TO_ACTION = {
   red: "red_cast",
   hollowPurple: "hollow_purple_cast",
 
-  dragonFist: "special_1",
-  kamehameha: "special_2",
+  dragonFist: "dragonFist",   // Goku Stage 4 — real EB cast art (goku_base_dragonFist_uniform); was "special_1" (old box). Identity map.
+  kamehameha: "special_2",    // dormant (Kamehameha CUT) — kept for any legacy reference; no goku beam ships
 
   rasengan: "special_1",
   shadowCloneBlast: "special_2",
@@ -470,7 +485,7 @@ const MOVE_TO_ACTION = {
   // Spider-Man (Stage 3): web-special cast poses (_spriteCastMove) + melee-special poses (currentMove).
   // spiderWebBridge = the combo-cancel web-net bridge into Web Throw. Identity maps → no 128² box on the tail.
   spiderWebImpact: "spiderWebImpact", spiderWebThrow: "spiderWebThrow", spiderWebBridge: "spiderWebBridge",
-  spiderDashAttack: "spiderDashAttack", spiderHandstand: "spiderHandstand",
+  spiderDashAttack: "spiderDashAttack", spiderHandstand: "spiderHandstand", spiderSwing: "spiderSwing",
 
   // Naoya (Stage 3): Fwd+Heavy "low combo string" command normal (naoyaCombo, row_08). Identity map —
   // the command recovery tail resolves the real sheet, never the 128² fallback box.
@@ -692,6 +707,15 @@ function _resolveAction(fighter, currentAction = "idle") {
   // hurt/guard/attack) is untouched. No-op for every char without both the flag and an idleLow strip.
   if (fighter._lowHealthIdle && (fighter._skinAnim?.idleLow || fighter.animationData?.idleLow)) return "idleLow";
 
+  // VEGITO — Ultra Instinct meter TELL: the standing idle pose reflects the UI resource level (owner-locked
+  // repurpose of STANCE groups 2/3): relaxed=full → arms-spread(idle_mid)=mid → wide-braced(idle_low)=low.
+  // Purely cosmetic; combat.applyVegitoUISystem sets _uiTier. Only reached at the neutral standing pose.
+  if ((fighter.rosterKey || "").toLowerCase() === "vegito") {
+    const vanim = fighter._skinAnim || fighter.animationData;
+    if (fighter._uiTier === 2 && vanim?.idle_low) return "idle_low";
+    if (fighter._uiTier === 1 && vanim?.idle_mid) return "idle_mid";
+  }
+
   // Default fallback
   return "idle";
 }
@@ -866,6 +890,17 @@ export class SpriteHandler {
       this._giantBobClock = (this._giantBobClock || 0) + 1;
       bobUp = (Math.sin(this._giantBobClock * 0.045) * 0.5 + 0.5) * dstH * 0.018;
     }
+    // WALK-BOB (dark_knight only): the walk cycle has limited stride art, so add a subtle vertical step-
+    // cadence bob during grounded walk/run/dash — the body lifts slightly on each push-off so the walk reads
+    // with life instead of stiff. Rectified sine (RISE only → feet never sink below the floor). Clock rate
+    // scales with |vx| so a faster mover bobs faster (stays synced to the stride). Gated on rosterKey →
+    // exactly zero effect on every other fighter.
+    if (fighter.rosterKey === "dark_knight" &&
+        (this.currentAction === "walk" || this.currentAction === "run" || this.currentAction === "dash") &&
+        (fighter.grounded ?? fighter.onGround ?? true) && Math.abs(fighter.vx || 0) > 0.2) {
+      this._dkWalkClock = (this._dkWalkClock || 0) + Math.max(0.6, Math.min(2.2, Math.abs(fighter.vx || 0) * 0.32));
+      bobUp += (Math.sin(this._dkWalkClock) * 0.5 + 0.5) * dstH * 0.03;   // gentle — the 7-frame stride cycle carries the main motion
+    }
     const drawY = fighter.y - offsetY - bobUp;
 
     // Record the giant's actual drawn Y + bob offset so an automated harness can
@@ -906,6 +941,10 @@ export class SpriteHandler {
     if (_sheetReady(sheet)) {
       // Skill Hunter: wash the copied body in Chrollo's purple possession tint (see SKILL_HUNTER_TINT).
       if (fighter._shActive) ctx.filter = SKILL_HUNTER_TINT;
+      else if (fighter._blackFriezaActive) ctx.filter = FRIEZA_BLACK_TINT;    // Black Frieza ult — dark ceiling-tier form
+      else if (fighter._goldenFriezaActive) ctx.filter = FRIEZA_GOLDEN_TINT;  // Golden Frieza — gold transformation wash
+      else if (fighter._piccoloOrangeActive) ctx.filter = PICCOLO_ORANGE_TINT;       // Orange Piccolo (T2) — orange wash (palette placeholder)
+      else if (fighter._piccoloPotentialActive) ctx.filter = PICCOLO_POTENTIAL_TINT; // Potential Unleashed (T1) — yellow-green wash (palette placeholder)
       else if (fighter._reincarnated) ctx.filter = TOJI_REINCARNATED_TINT;   // Toji Reincarnated Form — crimson wash
       // Edo Tensei reanimation: sickly pale green-gray "undead corpse" wash over the vessel's BASE art.
       else if (fighter._edoActive) ctx.filter = EDO_REANIM_TINT;

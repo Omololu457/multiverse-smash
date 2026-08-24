@@ -324,6 +324,10 @@ export const physics = {
   applyGravity(fighter) {
     if (!fighter || fighter.hitstop > 0 || fighter.dashTimer > 0) return
 
+    // SPIDER-MAN WEB-SWING: while swinging, the pendulum (abilities.updateSpidermanWebSwing) OWNS position
+    // — skip normal gravity entirely so the arc isn't fought by the fall.
+    if (fighter._swinging) return
+
     const baseFloor = fighter.groundY != null ? fighter.groundY : this.groundY
 
     // OMNI-MAN FLIGHT (Stage 3): while flying, NO gravity — integrate the flight-controlled vy directly

@@ -50,7 +50,8 @@ import {
   tryComboBreaker, COMBO_BREAKER,     // MK-feel Stage 2d: universal block+special combo breaker (fires only vs a >=3 combo)
   tryComebackFinisher, comebackFinisherReady, comebackFinisherDamage, COMEBACK_FINISHER,   // Fatal-Blow-style comeback finisher (once/match, <30% HP, block+grab)
   startMove,                          // harness: drive a real p2 attack (Substitution incoming-window)
-  getCancelWindow                     // harness/combo-flow: inspect a fighter's shared cancel window
+  getCancelWindow,                    // harness/combo-flow: inspect a fighter's shared cancel window
+  applyVegitoUISystem, VEGITO_UI      // Vegito Ultra Instinct evasion resource: passive drain + charge-refill + health-conversion + meter-tell tier
 } from "./combat.js"
 import { resolveStageHazard, hazardBox } from "./stageHazards.js"   // STAGE INTERACTABLES pilot — knocked-into-hazard reaction + draw box
 import { updatePlatforms, drawPlatforms, spawnPlatform, clearPlatforms, getPlatforms, PLATFORM_DEFAULTS } from "./platforms.js"   // Wood Release climbable terrain (Stage 1 — isolated primitive)
@@ -71,6 +72,7 @@ import {
   revertTransformJutsu,   // harness/force-revert
   applySupermanModeSystem, forceRevertSupermanModes,   // Superman Stage 4: Solar Flare (gold) + Kryptonian Overload (blue) sustained mode-toggles (drain tick + auto-revert)
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
+  enterGohanSSJ2, revertGohan, applyGohanFormSystem,   // Teen Gohan Super Saiyan 2 (Stage 5): charge-enter / Ki-drain + KO auto-revert (art-faithful, no tap-revert)
   enterVegetaBlue, revertVegetaBlue, vegetaIsSuper,   // Vegeta Super Saiyan Blue (3rd form, chained off SSJ)
   toggleBorutoKarma, enterBorutoKarma, revertBorutoKarma, isBorutoKarma, borutoAbsorbAttempt,   // Boruto Momoshiki Karma ultimate form (charge-TAP toggle, ~90% gate, drain) + Chakra Absorption (grab in Karma)
   updateTransformationState, doEnergyCharge, applyGojoPassiveSystems,
@@ -85,6 +87,52 @@ import {
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
   updateRedRangerMmprCommandCombat,   // Red Ranger MMPR punch-chain (Fwd+Heavy rekka → super 360° launcher) + air-Heavy dive-kick poke
   updateSaitamaCommandCombat,   // Saitama "Spin-Punch" Fwd+Heavy command-normal rekka (turn_puch 3-stage, cancel-on-hit → launcher)
+  updateGenosCommandCombat,   // Genos rush chain (Fwd+Heavy 3-stage rekka: punch opener → rapid streak-burst multi-hit → spinning charge launcher, cancel-on-hit)
+  updateFriezaCommandCombat,  // Frieza rush chain (Fwd+Heavy 3-stage rekka: strike opener → rapid follow strikes → launcher finisher, cancel-on-hit)
+  updatePiccoloCommandCombat, // Piccolo rush chain (Fwd+Heavy 3-stage rekka: elbow/chop opener → axe smash → roundhouse launcher, cancel-on-hit)
+  updateGokuCommandCombat,    // Goku "Meteor Combination" rush chain (Fwd+Heavy 3-stage rekka: lunge-punch → flurry hook → roundhouse crescent launcher, cancel-on-hit)
+  updateVegetaDarkCommandCombat,   // Dark Vegeta "Villain's Rush" chain (Fwd+Heavy 3-stage rekka: lunge-thrust → flurry → uppercut launcher, cancel-on-hit)
+  updateGohanCommandCombat,   // Teen Gohan "Rush Combo" chain (Fwd+Heavy 3-stage rekka: advancing punch → crescent sweep kick → spin-roundhouse launcher, cancel-on-hit)
+  updateKakashiCommandCombat, // Kakashi "Y-Combo" chain (Fwd+Heavy 3-stage rekka: kunai draw-slash → punch flurry → orange kick launcher, cancel-on-hit)
+  updateGotenksCommandCombat, // Gotenks "Kamikaze Barrage" chain (Fwd+Heavy 3-stage rekka: advancing punch → rapid motion-blur barrage → finishing flurry, cancel-on-hit)
+  updateIppoCommandCombat,    // Ippo "Y-Jabs" chain (Fwd+Heavy 2-stage rekka: rapid jab flurry → committed straight-punch flurry, cancel-on-hit)
+  updateVegitoCommandCombat,  // Vegito "Ultra Rush" (Fwd+Heavy 3-stage rekka: dash-in slash opener → crescent slashes → big crescent launcher, cancel-on-hit)
+  updateBardockCommandCombat, // Bardock "Blade Rush" (Fwd+Heavy 3-stage SWORD rekka: forward thrust → overhead slash → rising spin-slash launcher, cancel-on-hit)
+  updateSupermanDcucCommandCombat, // Superman (Custom/DCUC) "Kryptonian Rush" (Fwd+Heavy 3-stage rekka: dash-punch → cross-punch → crescent-kick launcher, cancel-on-hit)
+  updateSupermanNew52CommandCombat, // Superman (New 52) "Speeding Bullet" (Fwd+Heavy 3-stage rekka: jab → lunge → spinning-tornado launcher, cancel-on-hit)
+  updateSupermanClassicCommandCombat, // Superman (Classic) "Man of Steel" (Fwd+Heavy 3-stage rekka: jab/lunge → flare-punch → flying flare-kick launcher, cancel-on-hit)
+  updateSupermanFighterCommandCombat, // Superman (Fighter) "Kryptonian Barrage" (Fwd+Heavy 3-stage rekka: flurry → rapid blue-fist multi-hit → flying-dash launcher, cancel-on-hit)
+  updateIronManCommandCombat, // Iron Man "Repulsor Rush" (Fwd+Heavy 3-stage rekka: dash-lunge punch → repulsor straight → gauntlet-flare launcher, cancel-on-hit)
+  updateIronMan2CommandCombat, // Iron Man 2 "Repulsor Rush" (Fwd+Heavy 3-stage rekka: lunge → straight punch → both-arms-overhead launcher, cancel-on-hit)
+  executeGenosSpecial,        // Genos directional/air specials (Fwd=Machine Gun / Down=Jet Dash / Back=Afterimage Dash / air=Machine Gun)
+  executeFriezaSpecial,       // Frieza directional/air specials (neutral=Death Beam / Fwd,U,air=Ki Blast / Down=Death Ball / Back=Psycho Teleport)
+  fireGenosIncineration,      // Genos Incineration Cannon — neutral tap/hold 3-tier charge blast, fired on Special-release
+  fireIronMan2Repulsor,       // Iron Man 2 charge-tiered repulsor (neutral tap/hold S/1/2/3/4*, fired on Special-release; 4*=pierce)
+  fireIronMan3Repulsor,       // Iron Man 3 3-TIER charge repulsor (neutral tap/hold Basic/Charged/Supercharged, fired on Special-release; real per-tier projectile art)
+  fireVilgaxBlast,            // Vilgax tiered Plasma Blast (neutral tap = base / hold = heavy explosive; fired on Special-release)
+  updateGenosOverdrive,       // Genos Overdrive — per-frame timed-mode tick (auto-revert on expiry + overheat drawback + vuln countdown)
+  revertGenosOverdrive,       // Genos Overdrive — force-revert (KO / round reset; no drawback)
+  updateDarkKnightRage,       // Batman (dark_knight) Rage Mode — per-frame timed-mode tick (auto-revert on expiry / KO)
+  revertDarkKnightRage,       // Batman (dark_knight) Rage Mode — force-revert (KO / round reset)
+  enterGoldenFrieza,          // Frieza — base→Golden transform (charge hold-release, threshold-gated ≥100 Ki)
+  enterBlackFrieza,           // Frieza — Golden→Black transform (charge hold-release, threshold-gated ≥150 Ki)
+  revertGoldenFrieza,         // Frieza — revert Golden→base (charge tap / drain-empty / KO)
+  revertBlackFrieza,          // Frieza — revert Black→base (charge tap / drain-empty / KO)
+  applyFriezaFormSystem,      // Frieza — per-frame continuous Ki drain + instant auto-revert at 0 (Vegeta/Goku-Black model)
+  enterPiccoloPotential,      // Piccolo — base→Potential Unleashed (T1) transform (charge hold-release, threshold-gated ≥90 Ki)
+  enterPiccoloOrange,         // Piccolo — Potential→Orange Piccolo (T2) transform (charge hold-release, threshold-gated ≥140 Ki)
+  revertPiccoloPotential,     // Piccolo — revert Potential→base (charge tap / drain-empty / KO)
+  revertPiccoloOrange,        // Piccolo — revert Orange→base (charge tap / drain-empty / KO)
+  applyPiccoloFormSystem,     // Piccolo — per-frame continuous Ki drain + instant auto-revert at 0 (Frieza model; ART = palette-tint placeholder)
+  enterVegetaDark,            // Dark Vegeta — base→dark-aura form (charge hold-release, threshold-gated ≥100 Ki; flips _darkAuraActive → amplifies Ki Blast)
+  revertVegetaDark,           // Dark Vegeta — revert dark-aura form (tap while transformed / auto at 0 Ki)
+  enterVegetaDarkRose,        // Dark Vegeta — dark-aura→ROSE 3rd tier (charge hold-release ≥150 Ki; full pink art form-swap via _skinAnim)
+  revertVegetaDarkRose,       // Dark Vegeta — revert Rose→base (tap / auto at 0 Ki / KO)
+  applyVegetaDarkFormSystem,  // Dark Vegeta — per-frame continuous Ki drain + instant auto-revert at 0 (Frieza model; Rose supersedes dark-aura)
+  enterGokuNextForm,          // Goku — step UP the transform ladder (charge hold-release, threshold-gated)
+  revertGoku,                 // Goku — revert to base (charge tap / drain-empty / KO)
+  applyGokuFormSystem,        // Goku — per-frame continuous Ki drain + instant auto-revert at 0 (same model)
+  toggleGokuKaioken,          // Goku — Base-only Kaioken toggle (Ultimate input; HP-strain stacking buff)
   updateOrochimaruCommandCombat,   // Orochimaru Forward Strong (Fwd+Heavy directional strong — extended-reach Kusanagi snake-thrust)
   updateAltSukunaCommandCombat,   // Alternate Sukuna Dismantle/Cleave string (Fwd+Heavy 2-stage red-crescent rekka, cancel-on-hit)
   updateAoiTodoCommandCombat,   // Aoi Todo command chain (Fwd+Heavy 3-stage rekka: elbow → hook/uppercut → roundhouse launcher, cancel-on-hit)
@@ -113,6 +161,7 @@ import {
   updateYamamotoCommandCombat,   // Yamamoto Fwd+Heavy single command-normal (yamamotoCombo 11f multi-hit slash string)
   updateKurapikaCommandCombat,   // Kurapika Fwd+Heavy single command-normal (kurapikaWindmill 8f multi-hit spin string)
   updateSpidermanCommandCombat,  // Spider-Man Fwd+Heavy single command-normal (spiderCombo 9f multi-hit Jump Attack Combo) + Ground Crawl kick-up exit gate
+  updateSpidermanWebSwing,       // Spider-Man WEB-SWING per-frame pendulum (owns position while _swinging)
   updateNaoyaCommandCombat,      // Naoya Fwd+Heavy single command-normal (naoyaCombo 6f multi-hit low combo string, row_08)
   fireYamamotoShunpo,            // Yamamoto Shunpo (Flash Step) — two-beat teleport-behind movement special (double-tap toward)
   updateMayuriCommandCombat,     // Mayuri Fwd+Heavy 2-stage cancel-on-hit rekka (mayuriCmd1 poke string → mayuriCmd2 low flurry launcher)
@@ -173,6 +222,7 @@ import {
   triggerBanditEcho, updateBanditEcho, updateBanditEchoUltMark, isBanditEchoActive,   // Chrollo "Bandit's Echo" (Down+Ult): copy the marked opponent special/ultimate once (HP+energy cost, single-use) + per-frame auto-revert driver + cinematic-ultimate mark watcher
 
   fireRengokuFlameStrike,      // Rengoku Charged Flame Strike — fired from handleChargeRelease (CHARGE hold→release, tap/hold power tiers)
+  fireMilesDashKick,           // Miles Down+B dash-kick — fired from handleChargeRelease (CHARGE tap → offensive gap-closer)
   fireHashiramaWoodPunch,      // Hashirama Wood Release Punch — fired from handleChargeRelease (CHARGE hold→release, tap=base / hold=Super wood spear)
   fireNezukoRunScratchRelease, // Nezuko Run & Scratch — fired from handleChargeRelease (CHARGE hold→release, forward claw rush)
   updateNezukoUltChain,        // Nezuko Kekijutsu Baketsu — per-frame phase1→phase2 auto-chain driver
@@ -2351,7 +2401,7 @@ function resetRound() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -3246,7 +3296,7 @@ function resetToStart() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -3950,7 +4000,7 @@ function _doRematch() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -4122,6 +4172,84 @@ function handleSaitamaSpecialRelease(fighter, key) {
   const hold = (performance.now() - (fighter._saitamaComboDownTime || 0)) >= SAITAMA_COMBO_HOLD_MS
   fireSaitamaPunchCombo(fighter, hold ? "super" : "normal", getAbilityContext())
 }
+// GENOS tiered Incineration Cannon tap/hold (mirrors Saitama's neutral-Special split, extended to THREE
+// tiers by hold duration). On keydown record when Special went down (the neutral-Special press path ARMS
+// the blast, _genosCannonArmed); on keyup resolve tap (<180ms → small) / mid-hold (<450ms → big) /
+// long-hold (≥450ms → GIANT column) and fire it. Directional/air Specials never arm → stay Stage-4 specials.
+const GENOS_CANNON_TIER2_MS = 180   // hold Special ≥ this = tier 2 (big burst)
+const GENOS_CANNON_TIER3_MS = 450   // hold Special ≥ this = tier 3 (GIANT flame column); a quick tap = tier 1
+function handleGenosSpecialDown(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "genos") return
+  if (!fighter._genosSpecialHeld) { fighter._genosSpecialHeld = true; fighter._genosCannonDownTime = performance.now() }
+}
+function handleGenosSpecialRelease(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  fighter._genosSpecialHeld = false
+  if ((fighter.rosterKey || "").toLowerCase() !== "genos") return
+  if (!fighter._genosCannonArmed) return           // only a NEUTRAL ground special arms it (directional/air = Stage-4)
+  fighter._genosCannonArmed = false
+  const held = performance.now() - (fighter._genosCannonDownTime || 0)
+  const tier = held >= GENOS_CANNON_TIER3_MS ? 3 : held >= GENOS_CANNON_TIER2_MS ? 2 : 1
+  fireGenosIncineration(fighter, tier, getAbilityContext())
+}
+// IRON MAN 2 tiered charge repulsor tap/hold (mirrors Genos, extended to FIVE tiers S/1/2/3/4* by hold ms).
+// keydown records when Special went down (the neutral-Special press ARMS the blast, _ironMan2RepulsorArmed);
+// keyup resolves the tier by hold duration and fires. Directional/air Specials never arm → stay Stage-4 (WHHT!).
+const IRON_MAN_2_REP_MS = [150, 350, 600, 900]   // hold thresholds for tiers 1 / 2 / 3 / 4* ; a quick tap = tier S
+function handleIronMan2SpecialDown(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "iron_man_2") return
+  if (!fighter._ironMan2SpecialHeld) { fighter._ironMan2SpecialHeld = true; fighter._ironMan2RepDownTime = performance.now() }
+}
+function handleIronMan2SpecialRelease(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  fighter._ironMan2SpecialHeld = false
+  if ((fighter.rosterKey || "").toLowerCase() !== "iron_man_2") return
+  if (!fighter._ironMan2RepulsorArmed) return       // only a NEUTRAL ground special arms it (directional/air = WHHT!)
+  fighter._ironMan2RepulsorArmed = false
+  const held = performance.now() - (fighter._ironMan2RepDownTime || 0)
+  const tier = held >= IRON_MAN_2_REP_MS[3] ? 4 : held >= IRON_MAN_2_REP_MS[2] ? 3 : held >= IRON_MAN_2_REP_MS[1] ? 2 : held >= IRON_MAN_2_REP_MS[0] ? 1 : "S"
+  fireIronMan2Repulsor(fighter, tier, getAbilityContext())
+}
+// IRON MAN 3 3-TIER charge repulsor tap/hold (mirrors Iron Man 2, THREE tiers Basic/Charged/Supercharged by
+// hold ms). keydown ARMS the neutral-ground blast (_ironMan3RepulsorArmed); keyup resolves the tier by hold
+// duration and fires the matching on-sheet projectile. Directional/air Specials never arm → Super Laser / Super Move.
+const IRON_MAN_3_REP_MS = [260, 620]   // hold thresholds: <260ms tap = Basic (S); ≥260 = Charged (C); ≥620 = Supercharged (X)
+function handleIronMan3SpecialDown(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "iron_man_3") return
+  if (!fighter._ironMan3SpecialHeld) { fighter._ironMan3SpecialHeld = true; fighter._ironMan3RepDownTime = performance.now() }
+}
+function handleIronMan3SpecialRelease(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  fighter._ironMan3SpecialHeld = false
+  if ((fighter.rosterKey || "").toLowerCase() !== "iron_man_3") return
+  if (!fighter._ironMan3RepulsorArmed) return       // only a NEUTRAL ground special arms it (directional/air = Super Laser / Super Move)
+  fighter._ironMan3RepulsorArmed = false
+  const held = performance.now() - (fighter._ironMan3RepDownTime || 0)
+  const tier = held >= IRON_MAN_3_REP_MS[1] ? "X" : held >= IRON_MAN_3_REP_MS[0] ? "C" : "S"
+  fireIronMan3Repulsor(fighter, tier, getAbilityContext())
+}
+
+// VILGAX — tiered tap/hold PLASMA BLAST (neutral ground). ≥VILGAX_BLAST_HOLD_MS held = HEAVY (X, big
+// explosive piercing); a quick tap = BASE. Down records the press edge; Release resolves the tier and fires.
+const VILGAX_BLAST_HOLD_MS = 260
+function handleVilgaxSpecialDown(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "vilgax") return
+  if (!fighter._vilgaxSpecialHeld) { fighter._vilgaxSpecialHeld = true; fighter._vilgaxBlastDownTime = performance.now() }
+}
+function handleVilgaxSpecialRelease(fighter, key) {
+  if (!fighter || key !== fighter.controls?.special) return
+  fighter._vilgaxSpecialHeld = false
+  if ((fighter.rosterKey || "").toLowerCase() !== "vilgax") return
+  if (!fighter._vilgaxBlastArmed) return             // only a NEUTRAL ground special arms it (directional/air = Slash / Thrown Sword / Teleport / Tumble)
+  fighter._vilgaxBlastArmed = false
+  const held = performance.now() - (fighter._vilgaxBlastDownTime || 0)
+  const tier = held >= VILGAX_BLAST_HOLD_MS ? "X" : "S"
+  fireVilgaxBlast(fighter, tier, getAbilityContext())
+}
 function handleUltimateRelease(fighter, key) {
   if (!fighter || key !== fighter.controls?.ultimate) return
   const wasHeld = !!fighter._ultHeld
@@ -4158,6 +4286,21 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
+  // DARK VEGETA — DARK-AURA FORM: same "charge up and RELEASE at threshold" shape as SSJ Rose. Hold P to
+  // build Ki (doEnergyCharge); ANY release at/above the threshold (enterVegetaDark gates on Ki ≥ 100)
+  // enters the dark-aura form (flips _darkAuraActive → amplifies the Ki Blast). While transformed a quick
+  // TAP reverts early; a HOLD-release tops up Ki and stays in form (sustain it). Continuous drain +
+  // auto-revert at 0 runs in applyVegetaDarkFormSystem.
+  if ((fighter.rosterKey || "").toLowerCase() === "vegeta_dark") {
+    if (fighter._vdRoseActive) { if (wasTap) revertVegetaDarkRose(fighter) }              // Rose: tap → base
+    else if (fighter._darkAuraActive) {
+      if (wasTap) revertVegetaDark(fighter)                                               // dark-aura: tap → base
+      else enterVegetaDarkRose(fighter, getAbilityContext())                              // dark-aura → ROSE (held release, gated ≥150 Ki)
+    }
+    else enterVegetaDark(fighter, getAbilityContext())                                    // base → dark-aura
+    return
+  }
+
   // ITACHI — MANGEKYOU SHARINGAN: same "charge up and RELEASE at threshold" shape as SSJ Rose.
   // Hold P to build chakra (doEnergyCharge); ANY release at/above the threshold (enterMangekyou
   // gates on energy ≥ 150) ignites the Mangekyou (a BUFF, not a sprite-swap). While active a quick
@@ -4165,6 +4308,17 @@ function handleChargeRelease(fighter, key) {
   if (fighter.rosterKey === "itachi") {
     if (fighter._mangekyouActive) { if (wasTap) revertMangekyou(fighter) }
     else if (enterMangekyou(fighter)) activateMangekyouCinematic(fighter)   // eye-transformation reveal on ignite
+    return
+  }
+
+  // KAKASHI — MANGEKYOU SHARINGAN (Stage 7): same "charge up and RELEASE at threshold" shape as Itachi.
+  // Activated MODE (Item-1 "both"): buffs normals/Y-combo + a Sharingan read/dodge window + empowers the
+  // Raikiri ult (Support variant). A quick TAP reverts early; a HOLD-release tops up chakra and sustains it.
+  // NO Itachi eye-cinematic (those are Itachi's eyes) — a headband-lift teleportFlash marks the ignite; the
+  // idle swaps to the lifted-headband ready stance while active.
+  if (fighter.rosterKey === "kakashi") {
+    if (fighter._mangekyouActive) { if (wasTap) revertMangekyou(fighter) }
+    else if (enterMangekyou(fighter)) { fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16); fighter.colorFlash = 14 }
     return
   }
 
@@ -4191,6 +4345,14 @@ function handleChargeRelease(fighter, key) {
   // Cooldown-gated (fireRengokuFlameStrike checks flameCd). No energy (maxEnergy 0) → the hold just poses.
   if ((fighter.rosterKey || "").toLowerCase() === "rengoku") {
     if (wasHeld) fireRengokuFlameStrike(fighter, !wasTap, getAbilityContext())
+    return
+  }
+
+  // MILES — Down+B DASH-KICK: a quick Charge-TAP fires the offensive forward gap-closer (owner call, Stage 4).
+  // A longer HOLD just builds venom energy (doEnergyCharge during the hold) and does NOT fire the dash on
+  // release, so charging and dashing don't collide. Cooldown-gated in fireMilesDashKick.
+  if ((fighter.rosterKey || "").toLowerCase() === "miles") {
+    if (wasHeld && wasTap) fireMilesDashKick(fighter, getAbilityContext())
     return
   }
 
@@ -4245,6 +4407,53 @@ function handleChargeRelease(fighter, key) {
     // Charged Dash is a BASE-form move; in Shikai (mid-match toggle OR the dedicated Shikai entry) the
     // CHARGE hold just builds reiatsu (no dash). fireZarakiChargedDash also self-gates on isShikaiForm.
     if (wasHeld && !fighter._shikaiActive) fireZarakiChargedDash(fighter, !wasTap, getAbilityContext())
+    return
+  }
+
+  // FRIEZA — TRANSFORMATION LADDER (base → Golden → Black), same charge idiom as Vegeta's SSJ ladder. Hold P
+  // to build Ki (doEnergyCharge); a RELEASE steps UP: base + hold-release (≥100 Ki) → Golden; Golden +
+  // hold-release (≥150 Ki) → Black. A quick TAP while transformed reverts to base. Continuous Ki drain while
+  // transformed (applyFriezaFormSystem) auto-reverts at 0. No separate ultimate.
+  if ((fighter.rosterKey || "").toLowerCase() === "frieza") {
+    if (fighter._blackFriezaActive) { if (wasTap) revertBlackFrieza(fighter) }
+    else if (fighter._goldenFriezaActive) {
+      if (wasTap) revertGoldenFrieza(fighter)
+      else if (wasHeld) enterBlackFrieza(fighter, getAbilityContext())    // Golden → Black (gated ≥150 Ki)
+    }
+    else if (wasHeld) enterGoldenFrieza(fighter, getAbilityContext())     // base → Golden (real press-release only)
+    return
+  }
+
+  // PICCOLO — TRANSFORMATION LADDER (base → Potential Unleashed → Orange Piccolo), same charge idiom as Frieza's
+  // ladder. Hold P to build Ki (doEnergyCharge); a RELEASE steps UP: base + hold-release (≥90 Ki) → Potential;
+  // Potential + hold-release (≥140 Ki) → Orange. A quick TAP while transformed reverts to base. Continuous Ki
+  // drain while transformed (applyPiccoloFormSystem) auto-reverts at 0. ★ART = palette-tint placeholder (prototype).
+  if ((fighter.rosterKey || "").toLowerCase() === "piccolo") {
+    if (fighter._piccoloOrangeActive) { if (wasTap) revertPiccoloOrange(fighter) }
+    else if (fighter._piccoloPotentialActive) {
+      if (wasTap) revertPiccoloPotential(fighter)
+      else if (wasHeld) enterPiccoloOrange(fighter, getAbilityContext())    // Potential → Orange (gated ≥140 Ki)
+    }
+    else if (wasHeld) enterPiccoloPotential(fighter, getAbilityContext())   // base → Potential (real press-release only)
+    return
+  }
+
+  // GOKU — TRANSFORMATION LADDER (base → SSJ → SSJ2 → SSJ3 → SSJ Blue → Ultra Instinct), same charge idiom.
+  // Hold P to build Ki; a RELEASE steps UP one tier if Ki ≥ that tier's threshold; a quick TAP reverts to
+  // base. Continuous Ki drain (applyGokuFormSystem) auto-reverts at 0. REPLACES the old ultimate-button entry.
+  if ((fighter.rosterKey || "").toLowerCase() === "goku") {
+    if ((fighter.transformIndex || 0) > 0) {
+      if (wasTap) revertGoku(fighter)
+      else if (wasHeld) enterGokuNextForm(fighter, getAbilityContext())   // step up the ladder
+    } else if (wasHeld) enterGokuNextForm(fighter, getAbilityContext())   // base → SSJ (real press-release only)
+    return
+  }
+
+  // TEEN GOHAN — SUPER SAIYAN 2: same charge idiom. Hold P to build Ki; a RELEASE at/above threshold morphs to
+  // SSJ2. ★ART-FAITHFUL (owner): NO tap-revert — there is intentionally no player revert. Continuous Ki drain
+  // (applyGohanFormSystem) auto-reverts at 0, and a KNOCKDOWN reverts the form (the SSJ2 sheet's KO revert art).
+  if ((fighter.rosterKey || "").toLowerCase() === "gohan") {
+    if (!fighter._ssj2Active && wasHeld) enterGohanSSJ2(fighter, getAbilityContext())   // base → SSJ2 (real press-release only)
     return
   }
 
@@ -4561,6 +4770,7 @@ function updateMiscTimers(fighter) {
   if (fighter._naoyaAtkVoiceCd > 0) fighter._naoyaAtkVoiceCd--            // Naoya light-jab effort grunt cooldown (combat.applyNaoyaAttackVoice)
   if (fighter._borutoAtkVoiceCd > 0) fighter._borutoAtkVoiceCd--          // Boruto light/heavy effort-cast shout cooldown (combat.applyBorutoAttackVoice)
   if (fighter._spideyAtkVoiceCd > 0) fighter._spideyAtkVoiceCd--          // Spider-Man light-normal effort grunt cooldown (combat.applySpidermanAttackVoice)
+  if (fighter._swinging) updateSpidermanWebSwing(fighter, getAbilityContext())   // Spider-Man WEB-SWING pendulum step (owns position; applyGravity yields)
   // SASUKE "getting serious" voice — SEPARATE pool from the (deferred) manual taunt: fires ONCE per
   // round the first time his energy builds past 80% ("high-energy state" per spec). Rounds start at
   // 50% energy (createFighter startingEnergy) so this is a genuine upward crossing, never a match-start
@@ -4625,6 +4835,8 @@ function updateMiscTimers(fighter) {
   // Zaraki SHIKAI timed power-up: tick the duration → auto-revert to Base on expiry; also revert on KO.
   if (fighter._shikaiActive && (fighter.health || 0) <= 0) revertZarakiShikai(fighter)
   else if (fighter._shikaiTimer > 0 && --fighter._shikaiTimer <= 0) revertZarakiShikai(fighter)
+  updateGenosOverdrive(fighter)                                            // Genos Overdrive — tick the timed power-up window → auto-revert + overheat drawback + post-revert vuln countdown
+  updateDarkKnightRage(fighter)                                            // Batman (dark_knight) Rage Mode — tick the timed power-up window → auto-revert (or KO)
   if (fighter.kunaiCd > 0) fighter.kunaiCd--                               // Maki Kunai Throw cooldown (no-energy special)
   if (fighter.nunchakuCd > 0) fighter.nunchakuCd--                         // Maki Nunchaku Flurry cooldown (no-energy special)
   if (fighter._gunCd > 0) fighter._gunCd--                                 // Toji Handgun poke cooldown (no-energy command normal)
@@ -5086,6 +5298,26 @@ function _updatePlayerCombatBody(fighter) {
     // through to triggerSpecial (the Stage-4 specials). Only grounded (the flurry is a ground special).
     if ((fighter.rosterKey || "").toLowerCase() === "saitama" && !fighter._specialHeldDir &&
         (fighter.onGround ?? fighter.grounded ?? true)) { fighter._saitamaComboArmed = true; return }
+    // GENOS — a NEUTRAL GROUND Special is the tiered tap/hold INCINERATION CANNON, resolved on RELEASE
+    // (handleGenosSpecialRelease). Arm it and consume the press; a DIRECTIONAL/air Special falls through
+    // to triggerSpecial (Machine Gun / Jet Dash / Afterimage). Only grounded (the blast is a ground cast).
+    if ((fighter.rosterKey || "").toLowerCase() === "genos" && !fighter._specialHeldDir &&
+        (fighter.onGround ?? fighter.grounded ?? true)) { fighter._genosCannonArmed = true; return }
+    // IRON MAN 2 — a NEUTRAL GROUND Special is the tiered tap/hold CHARGE REPULSOR, resolved on RELEASE
+    // (handleIronMan2SpecialRelease). Arm it and consume the press; a DIRECTIONAL/air Special falls through
+    // to triggerSpecial (WHHT! dash-lunge). Only grounded (the charge is a ground cast).
+    if ((fighter.rosterKey || "").toLowerCase() === "iron_man_2" && !fighter._specialHeldDir &&
+        (fighter.onGround ?? fighter.grounded ?? true)) { fighter._ironMan2RepulsorArmed = true; return }
+    // IRON MAN 3 — a NEUTRAL GROUND Special is the 3-TIER tap/hold CHARGE REPULSOR, resolved on RELEASE
+    // (handleIronMan3SpecialRelease). Arm it and consume the press; a DIRECTIONAL/air Special falls through
+    // to triggerSpecial (Super Laser / Super Move). Only grounded (the charge is a ground cast).
+    if ((fighter.rosterKey || "").toLowerCase() === "iron_man_3" && !fighter._specialHeldDir &&
+        (fighter.onGround ?? fighter.grounded ?? true)) { fighter._ironMan3RepulsorArmed = true; return }
+    // VILGAX — a NEUTRAL GROUND Special is the tiered tap/hold PLASMA BLAST, resolved on RELEASE
+    // (handleVilgaxSpecialRelease → fireVilgaxBlast: tap = base / hold = heavy explosive). Arm it and consume
+    // the press; a DIRECTIONAL/air Special falls through to triggerSpecial (Slash / Thrown Sword / Teleport / Tumble).
+    if ((fighter.rosterKey || "").toLowerCase() === "vilgax" && !fighter._specialHeldDir &&
+        (fighter.onGround ?? fighter.grounded ?? true)) { fighter._vilgaxBlastArmed = true; return }
     triggerSpecial(fighter,  getAbilityContext()); return
   }
   // CHROLLO — Down+Ultimate = BANDIT'S ECHO (copy the marked opponent special/ultimate). Plain Ultimate stays
@@ -5154,6 +5386,105 @@ function _updatePlayerCombatBody(fighter) {
   // only when it fires (returns true → skip normal path); neutral light/heavy/up/air/down_air stay normal.
   if ((fighter.rosterKey || "").toLowerCase() === "saitama" && !charging &&
       updateSaitamaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // GENOS rush chain: Fwd+Heavy opens genosRush1 (punch opener), re-tap Heavy during recovery to cancel into
+  // genosRush2 (rapid streak-burst multi-hit) → genosRush3 (spinning charge launcher) — cancel-on-hit;
+  // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the palm-cannon.
+  if ((fighter.rosterKey || "").toLowerCase() === "genos" && !charging &&
+      updateGenosCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // FRIEZA rush chain: Fwd+Heavy opens friezaRush1 (strike opener), re-tap Heavy during recovery to cancel
+  // into friezaRush2 (rapid follow strikes) → friezaRush3 (launcher finisher) — cancel-on-hit; whiff/block
+  // ends the string. Consumes the input only when it fires; neutral heavy stays the normal kick.
+  if ((fighter.rosterKey || "").toLowerCase() === "frieza" && !charging &&
+      updateFriezaCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // PICCOLO rush chain: Fwd+Heavy opens piccoloRush1 (elbow/chop opener), re-tap Heavy during recovery to
+  // cancel into piccoloRush2 (axe smash) → piccoloRush3 (roundhouse launcher) — cancel-on-hit; whiff/block
+  // ends the string. Consumes the input only when it fires; neutral heavy stays the normal lunge-kick.
+  if ((fighter.rosterKey || "").toLowerCase() === "piccolo" && !charging &&
+      updatePiccoloCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // GOKU "Meteor Combination": Fwd+Heavy opens gokuRush1 (lunging punch), re-tap Heavy during recovery to
+  // cancel into gokuRush2 (flurry hook) → gokuRush3 (roundhouse crescent launcher) — cancel-on-hit;
+  // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the lunge-punch.
+  if ((fighter.rosterKey || "").toLowerCase() === "goku" && !charging &&
+      updateGokuCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // DARK VEGETA "Villain's Rush": Fwd+Heavy opens vegetaDarkRush1 (lunge-thrust), re-tap Heavy during recovery
+  // to cancel into vegetaDarkRush2 (flurry) → vegetaDarkRush3 (rising uppercut launcher) — cancel-on-hit;
+  // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the side-kick.
+  if ((fighter.rosterKey || "").toLowerCase() === "vegeta_dark" && !charging &&
+      updateVegetaDarkCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // TEEN GOHAN "Rush Combo": Fwd+Heavy opens gohanRush1 (advancing punch), re-tap Heavy during recovery to
+  // cancel into gohanRush2 (crescent sweep kick) → gohanRush3 (spin-roundhouse launcher) — cancel-on-hit;
+  // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the lunge-punch.
+  if ((fighter.rosterKey || "").toLowerCase() === "gohan" && !charging &&
+      updateGohanCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // GOTENKS "Kamikaze Barrage": Fwd+Heavy opens gotenksRush1 (advancing punch), re-tap Heavy during recovery to
+  // cancel into gotenksRush2 (rapid motion-blur barrage) → gotenksRush3 (finishing flurry) — cancel-on-hit;
+  // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the lunge-punch.
+  if ((fighter.rosterKey || "").toLowerCase() === "gotenks" && !charging &&
+      updateGotenksCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // IPPO "Y-Jabs": Fwd+Heavy opens ippoJab1 (rapid jab flurry), re-tap Heavy during recovery to cancel
+  // into ippoJab2 (committed straight-punch flurry finisher) — cancel-on-hit; whiff/block ends the string.
+  // Consumes the input only when it fires; neutral heavy stays the lunging hook.
+  if ((fighter.rosterKey || "").toLowerCase() === "ippo" && !charging &&
+      updateIppoCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // KAKASHI "Y-Combo": Fwd+Heavy opens kakashiCombo1 (kunai draw-slash), re-tap Heavy during recovery to cancel
+  // into kakashiCombo2 (punch flurry) → kakashiCombo3 (orange KICK launcher) — cancel-on-hit; whiff/block ends
+  // the string. Consumes the input only when it fires; neutral heavy stays the normal sweeping kick.
+  if ((fighter.rosterKey || "").toLowerCase() === "kakashi" && !charging &&
+      updateKakashiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // VEGITO "Ultra Rush": Fwd+Heavy opens vegitoRush1 (dash-in slash), re-tap Heavy during recovery to cancel
+  // into vegitoRush2 (crescent slashes) → vegitoRush3 (big crescent launcher) — cancel-on-hit; whiff/block
+  // ends the string. Consumes the input only when it fires; neutral heavy stays the normal lunge-punch.
+  if ((fighter.rosterKey || "").toLowerCase() === "vegito" && !charging &&
+      updateVegitoCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // BARDOCK "Blade Rush": Fwd+Heavy opens bardockRush1 (forward sword thrust), re-tap Heavy during recovery to
+  // cancel into bardockRush2 (overhead sword slash) → bardockRush3 (rising spin-slash launcher) — cancel-on-hit;
+  // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the sword slash.
+  if ((fighter.rosterKey || "").toLowerCase() === "bardock" && !charging &&
+      updateBardockCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SUPERMAN (Custom/DCUC) "Kryptonian Rush": Fwd+Heavy opens supDcucRush1 (dashing punch), re-tap Heavy during
+  // recovery to cancel into supDcucRush2 (cross-punch) → supDcucRush3 (crescent-kick launcher) — cancel-on-hit;
+  // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the normal punch.
+  if ((fighter.rosterKey || "").toLowerCase() === "superman_dcuc" && !charging &&
+      updateSupermanDcucCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SUPERMAN (New 52) "Speeding Bullet": Fwd+Heavy opens supN52Rush1 (jab), re-tap Heavy during recovery to
+  // cancel into supN52Rush2 (lunge) → supN52Rush3 (spinning-tornado launcher) — cancel-on-hit; whiff/block ends.
+  if ((fighter.rosterKey || "").toLowerCase() === "superman_new52" && !charging &&
+      updateSupermanNew52CommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SUPERMAN (Classic) "Man of Steel": Fwd+Heavy opens supClsRush1 (jab/lunge), re-tap Heavy during recovery to
+  // cancel into supClsRush2 (flare-punch) → supClsRush3 (flying flare-kick launcher) — cancel-on-hit; whiff/block ends.
+  if ((fighter.rosterKey || "").toLowerCase() === "superman_classic" && !charging &&
+      updateSupermanClassicCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SUPERMAN (Fighter) "Kryptonian Barrage": Fwd+Heavy opens supFtrRush1 (flurry), re-tap Heavy to cancel into
+  // supFtrRush2 (rapid blue-fist multi-hit) → supFtrRush3 (flying-dash launcher) — cancel-on-hit; whiff/block ends.
+  if ((fighter.rosterKey || "").toLowerCase() === "superman_fighter" && !charging &&
+      updateSupermanFighterCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // IRON MAN "Repulsor Rush": Fwd+Heavy opens ironManRush1 (dash-lunge punch), re-tap Heavy during recovery to
+  // cancel into ironManRush2 (repulsor straight) → ironManRush3 (gauntlet-flare launcher) — cancel-on-hit;
+  // whiff/block ends the string. Consumes the input only when it fires; neutral heavy stays the normal punch.
+  if ((fighter.rosterKey || "").toLowerCase() === "iron_man" && !charging &&
+      updateIronManCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // IRON MAN 2 "Repulsor Rush": Fwd+Heavy opens ironMan2Rush1 (lunge), re-tap Heavy during recovery to cancel
+  // into ironMan2Rush2 (straight punch) → ironMan2Rush3 (both-arms-overhead launcher) — cancel-on-hit; whiff/
+  // block ends the string. Consumes the input only when it fires; neutral heavy stays the normal overhead swing.
+  if ((fighter.rosterKey || "").toLowerCase() === "iron_man_2" && !charging &&
+      updateIronMan2CommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // OROCHIMARU Forward Strong: Fwd+Heavy fires the extended-reach Kusanagi snake-thrust (single hit).
   // Consumes the input only when it fires (returns true → skip normal path); neutral heavy stays normal.
@@ -6032,6 +6363,59 @@ function drawPhantomZoneOverlay(c, fighter) {
   c.restore()
 }
 
+// SUPERMAN VOID SOVEREIGN — procedural slow-drifting STAR-FIELD overlay (cosmetic, space-orphan/Kryptonian
+// theme), on top of the near-black void sprite. Shared by all 4 Superman variants' Void Sovereign skin.
+// Seeded once → stable layout; stars twinkle + drift slowly upward, a couple of soft cosmic glows behind.
+const _SUPERMAN_VOID_IDS = new Set(["supermanVoidSovereign", "supermanDcucVoidSovereign", "supermanNew52VoidSovereign", "supermanClassicVoidSovereign", "supermanFighterVoidSovereign"])
+function seedSupermanVoidStarfield(fighter) {
+  const rnd = _mulberry32(0x5713C0DE)
+  const stars = []
+  for (let i = 0; i < 22; i++) {
+    stars.push({
+      nx: rnd(), ny: rnd(),
+      r: 0.006 + rnd() * 0.018,             // star radius (fraction of sprite width)
+      a: 0.35 + rnd() * 0.45,               // base alpha
+      tw: 0.6 + rnd() * 2.0,                // twinkle speed
+      ph: rnd() * Math.PI * 2,              // twinkle phase
+      drift: (0.0016 + rnd() * 0.0024),     // slow upward drift
+      cool: rnd() < 0.35,                   // a third are cool-blue, rest white
+    })
+  }
+  const glows = []
+  for (let i = 0; i < 3; i++) {
+    glows.push({ nx: 0.2 + rnd() * 0.6, ny: 0.2 + rnd() * 0.6, r: 0.16 + rnd() * 0.12, a: 0.06 + rnd() * 0.06, cool: rnd() < 0.5 })
+  }
+  fighter._svFX = { stars, glows }
+}
+function drawSupermanVoidStarfield(c, fighter) {
+  if (!c || !_SUPERMAN_VOID_IDS.has(fighter?.skinId)) return
+  if (!fighter._svFX) seedSupermanVoidStarfield(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._svFX
+  const t = (fighter._svClock = (fighter._svClock || 0) + 1)
+  const WHITE = "#EAF2FF", BLUE = "#8FB6FF"
+  c.save()
+  // soft cosmic glows behind the stars
+  for (const g of fx.glows) {
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(g.cool ? BLUE : WHITE, g.a)); grad.addColorStop(1, _rgbaHex(g.cool ? BLUE : WHITE, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  // drifting twinkling stars
+  c.shadowColor = WHITE; c.shadowBlur = 3
+  for (const s of fx.stars) {
+    const ny = ((s.ny - t * s.drift) % 1 + 1) % 1     // slow upward wrap-drift
+    const cx = x + s.nx * w, cy = y + ny * h
+    const tw = 0.55 + 0.45 * Math.sin(t * 0.06 * s.tw + s.ph)   // twinkle
+    c.globalAlpha = Math.max(0, s.a * tw)
+    c.fillStyle = s.cool ? BLUE : WHITE
+    c.beginPath(); c.arc(cx, cy, Math.max(0.6, s.r * w), 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
 // RENGOKU VOID EMBER — procedural rising-EMBER overlay (cosmetic), on top of the void-black sprite.
 // Same architecture as Rick's Void Form starfield / Superman's Phantom Zone: pattern SEEDED ONCE per
 // skin-load (deterministic), normalized to the sprite bbox (_lastDraw*) so it tracks the drawn position
@@ -6804,6 +7188,118 @@ function drawDeathstrokeVoidAuraOverlay(c, fighter) {
   c.restore()
 }
 
+// TEEN GOHAN — "Void Sovereign" (Alien-X) aura on the full-black silhouette. Part B of the two-part skin
+// (Part A = the near-black __voidsovereign recolor incl. skin; hair kept a lighter cool charcoal so the spike
+// shape still reads). Same seeded architecture as the Onoki/Deathstroke void overlays (seeded ONCE via
+// mulberry32 → normalized to the drawn bbox → tracks pose/scale), BUT the FX is HIS OWN motif: drifting
+// KI-ENERGY WISPS — pale-lavender/white power-charge motes rising with a Saiyan power-up shimmer (tying to
+// his own ki-charge visual language, NOT a generic star-field) + a faint purple ki-charge glow + glowing
+// pale-purple eyes. Gated on the skin id → no-op for every other skin.
+function seedGohanVoidField(fighter) {
+  const rnd = _mulberry32(0x60A11A55)
+  const halfWidth = ny => ny < 0.20 ? 0.13 : (ny < 0.66 ? 0.27 : 0.22)   // head / torso / legs silhouette
+  const wisps = []
+  for (let i = 0; i < 22; i++) {
+    const ny = 0.05 + rnd() * 0.92
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    wisps.push({ nx, ny, r: 1 + rnd() * 2.2, rise: 0.0014 + rnd() * 0.0030,   // ki rises a touch faster than ash
+                 swayAmp: 0.010 + rnd() * 0.024, swayFreq: 0.5 + rnd() * 1.1, phase: rnd() * Math.PI * 2,
+                 a: 0.36 + rnd() * 0.46, flick: 0.7 + rnd() * 1.4, bright: rnd() < 0.45 })   // 45% bright-white / 55% lavender
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.42 + rnd() * 0.16, ny: 0.46 + rnd() * 0.32, r: 0.17 + rnd() * 0.13, a: 0.05 + rnd() * 0.05 })
+  fighter._gohanVoidFX = { wisps, glows }
+}
+function drawGohanVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "gohanVoidSovereign") return
+  if (!fighter._gohanVoidFX) seedGohanVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._gohanVoidFX
+  const t = (fighter._gohanVoidClock = (fighter._gohanVoidClock || 0) + 1)
+  const KI = "#9A6BE0"   // his ki purple (energyConfig glow family)
+  c.save()
+  for (const g of fx.glows) {                        // soft ki-charge glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(KI, g.a)); grad.addColorStop(1, _rgbaHex(KI, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  for (const m of fx.wisps) {                         // drifting ki wisps (rise + sway + shimmer)
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.045 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.08 * m.flick + m.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    if (m.bright) { c.shadowColor = "#E6D6FF"; c.shadowBlur = 6; c.fillStyle = "#FBF6FF" }   // bright ki spark
+    else          { c.shadowColor = "#7A4FB0"; c.shadowBlur = 4; c.fillStyle = "#C9A2FF" }   // lavender wisp
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.10)                            // glowing pale-purple eyes (Alien-X)
+  const eyeR = Math.max(1.5, w * 0.028)
+  const eyeY = y + h * 0.12
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#7A4FB0"; c.shadowBlur = 8; c.fillStyle = "#E6D6FF"
+  c.beginPath(); c.arc(x + 0.44 * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  c.beginPath(); c.arc(x + 0.56 * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
+// DARK VEGETA — "Void Sovereign" (Alien-X) aura on the full-black silhouette. Part B of the two-part skin
+// (Part A = the near-black __voidsovereign recolor incl. face). Same seeded architecture as the Gohan/Onoki
+// void overlays (seeded ONCE via mulberry32 → normalized to the drawn bbox → tracks pose/scale), BUT the FX
+// is HIS OWN motif: drifting PURPLE ki-energy wisps matching the real Dark-Aura / "Villainous Mode" transform
+// colour (#9b30c9) + a purple ki glow + glowing violet eyes. Gated on the skin id → no-op for every other skin.
+function seedVegetaDarkVoidField(fighter) {
+  const rnd = _mulberry32(0x5EC7A0D3)
+  const halfWidth = ny => ny < 0.18 ? 0.16 : (ny < 0.64 ? 0.32 : 0.28)   // head / torso / braced-legs silhouette
+  const wisps = []
+  for (let i = 0; i < 16; i++) {
+    const ny = 0.06 + rnd() * 0.9
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    wisps.push({ nx, ny, r: 1.6 + rnd() * 2.6, rise: 0.0012 + rnd() * 0.0026, swayAmp: 0.010 + rnd() * 0.024,
+                 swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2, a: 0.34 + rnd() * 0.42,
+                 flick: 0.5 + rnd() * 1.3, bright: rnd() < 0.30 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.42 + rnd() * 0.34, r: 0.18 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
+  fighter._vegetaDarkVoidFX = { wisps, glows }
+}
+function drawVegetaDarkVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "vegetaDarkVoidSovereign") return
+  if (!fighter._vegetaDarkVoidFX) seedVegetaDarkVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._vegetaDarkVoidFX
+  const t = (fighter._vegetaDarkVoidClock = (fighter._vegetaDarkVoidClock || 0) + 1)
+  const KI = "#9B30C9"   // Villainous-Mode dark-aura purple
+  c.save()
+  for (const g of fx.glows) {                        // soft dark-aura glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(KI, g.a)); grad.addColorStop(1, _rgbaHex(KI, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  for (const m of fx.wisps) {                         // drifting purple ki wisps (rise + sway + shimmer)
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.045 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.08 * m.flick + m.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    if (m.bright) { c.shadowColor = "#E6C6FF"; c.shadowBlur = 6; c.fillStyle = "#F3E0FF" }   // bright ki spark
+    else          { c.shadowColor = "#6E1AA0"; c.shadowBlur = 4; c.fillStyle = "#C77BE8" }   // purple wisp
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.10)                            // glowing violet eyes (Alien-X)
+  const eyeR = Math.max(1.5, w * 0.028)
+  const eyeY = y + h * 0.12
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#6E1AA0"; c.shadowBlur = 8; c.fillStyle = "#F3E0FF"
+  c.beginPath(); c.arc(x + 0.44 * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  c.beginPath(); c.arc(x + 0.56 * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
 // GREEN LANTERN — "Void Sovereign" (Alien-X) aura on the full-black Corps silhouette. Part B of the two-
 // part skin (Part A = the near-black __voidsovereign recolor incl. skin). Same seeded architecture as the
 // Onoki/Deathstroke/Brainiac void overlays (seeded ONCE via mulberry32 → normalized to the drawn bbox →
@@ -6966,6 +7462,115 @@ function drawAltSukunaVoidAuraOverlay(c, fighter) {
   c.restore()
 }
 
+// PICCOLO — "Void Sovereign" (Alien-X) aura on the full-black Namekian silhouette. Part B of the two-part
+// skin (Part A = the near-black __voidsovereign recolor incl. green skin). Same seed-once / normalize-to-bbox
+// architecture as the alt-Sukuna petal overlay, BUT the motif is HIS OWN: slow-drifting pale SPORE / cherry-
+// blossom motes (a nod to Namekian plant-based biology) + a faint green ki glow + glowing green eyes. Gated
+// on the skin id → no-op for every other skin.
+function seedPiccoloVoidField(fighter) {
+  const rnd = _mulberry32(0x51CC0A0E)
+  const halfWidth = ny => ny < 0.20 ? 0.16 : (ny < 0.64 ? 0.32 : 0.26)   // head / torso / baggy-legs silhouette
+  const spores = []
+  for (let i = 0; i < 18; i++) {
+    const ny = 0.02 + rnd() * 0.94
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    spores.push({ nx, ny, sz: 1.8 + rnd() * 2.4, fall: 0.0010 + rnd() * 0.0022,
+                  swayAmp: 0.012 + rnd() * 0.028, swayFreq: 0.4 + rnd() * 1.1, phase: rnd() * Math.PI * 2,
+                  spin: 0.03 + rnd() * 0.06, a: 0.34 + rnd() * 0.42, tw: 0.5 + rnd() * 1.2,
+                  tone: rnd() < 0.5 ? "#D6F0C4" : "#EAF7E0" })   // pale green-white spore tones
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.44 + rnd() * 0.30, r: 0.16 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
+  fighter._piccoloVoidFX = { spores, glows }
+}
+function drawPiccoloVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "piccoloVoidSovereign") return
+  if (!fighter._piccoloVoidFX) seedPiccoloVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._piccoloVoidFX
+  const t = (fighter._piccoloVoidClock = (fighter._piccoloVoidClock || 0) + 1)
+  c.save()
+  for (const g of fx.glows) {                          // faint green ki-glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex("#2FA84A", g.a)); grad.addColorStop(1, _rgbaHex("#2FA84A", 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  for (const p of fx.spores) {                         // slow-drifting spore/blossom motes (drift down + sway + tumble)
+    let ny = p.ny + t * p.fall; ny = ny - Math.floor(ny)
+    const nx = p.nx + p.swayAmp * Math.sin(t * 0.04 * p.swayFreq + p.phase)
+    const tw = 0.62 + 0.38 * Math.sin(t * 0.06 * p.tw + p.phase)
+    const fade = ny > 0.9 ? (1 - ny) / 0.1 : (ny < 0.06 ? ny / 0.06 : 1)
+    const pxp = x + nx * w, pyp = y + ny * h, r = p.sz
+    c.globalAlpha = Math.max(0, Math.min(1, p.a * tw * fade))
+    c.fillStyle = p.tone; c.shadowColor = "#BFE8A8"; c.shadowBlur = 3
+    c.save(); c.translate(pxp, pyp); c.rotate(t * p.spin + p.phase)
+    c.beginPath(); c.ellipse(0, 0, r, r * 0.6, 0, 0, Math.PI * 2); c.fill()   // a spore mote (soft ellipse)
+    c.restore()
+  }
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.11)                             // glowing green eyes
+  const eyeR = Math.max(1.3, w * 0.024)
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#1E7A34"; c.shadowBlur = 7; c.fillStyle = "#7CFF8A"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, y + h * 0.12, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// BARDOCK — "Void Sovereign" (Alien-X) aura on the full-black Saiyan silhouette. Part B of the two-part skin
+// (Part A = the near-black __voidsovereign recolor incl. skin). Same seed-once / normalize-to-bbox architecture
+// as the Gohan/Dark-Vegeta void overlays, BUT the motif is his OWN: drifting fiery ORANGE-WHITE ki-energy
+// wisps (his Saiyan ki / Rebellion-blast palette) + a warm ki glow + glowing amber eyes. Gated on skin id → no-op.
+function seedBardockVoidField(fighter) {
+  const rnd = _mulberry32(0x6BAD0C7A)
+  const halfWidth = ny => ny < 0.18 ? 0.16 : (ny < 0.64 ? 0.32 : 0.30)   // head / torso / braced-legs silhouette
+  const wisps = []
+  for (let i = 0; i < 16; i++) {
+    const ny = 0.06 + rnd() * 0.9
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    wisps.push({ nx, ny, r: 1.6 + rnd() * 2.6, rise: 0.0013 + rnd() * 0.0028, swayAmp: 0.010 + rnd() * 0.024,
+                 swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2, a: 0.34 + rnd() * 0.42,
+                 flick: 0.5 + rnd() * 1.3, bright: rnd() < 0.30 })
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.42 + rnd() * 0.34, r: 0.18 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
+  fighter._bardockVoidFX = { wisps, glows }
+}
+function drawBardockVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "bardockVoidSovereign") return
+  if (!fighter._bardockVoidFX) seedBardockVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._bardockVoidFX
+  const t = (fighter._bardockVoidClock = (fighter._bardockVoidClock || 0) + 1)
+  const KI = "#FF8A2A"   // Saiyan ki / Rebellion-blast orange
+  c.save()
+  for (const g of fx.glows) {                        // soft warm ki-glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(KI, g.a)); grad.addColorStop(1, _rgbaHex(KI, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  for (const m of fx.wisps) {                         // drifting orange ki wisps (rise + sway + shimmer)
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.045 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.08 * m.flick + m.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    if (m.bright) { c.shadowColor = "#FFE0B0"; c.shadowBlur = 6; c.fillStyle = "#FFF0D6" }   // bright ki spark
+    else          { c.shadowColor = "#B0521A"; c.shadowBlur = 4; c.fillStyle = "#FFB060" }   // orange wisp
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.10)                            // glowing amber eyes (Alien-X)
+  const eyeR = Math.max(1.5, w * 0.028)
+  const eyeY = y + h * 0.12
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#B0521A"; c.shadowBlur = 8; c.fillStyle = "#FFF0D6"
+  c.beginPath(); c.arc(x + 0.44 * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  c.beginPath(); c.arc(x + 0.56 * w, eyeY, eyeR, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
 // AOI TODO — "Void Sovereign" (Alien-X) aura on the full-black cursed silhouette. Part B of the two-part
 // skin (Part A = the near-black __voidsovereign recolor). Same seed-once / normalize-to-bbox architecture as
 // the other void overlays, BUT the motif is his OWN: expanding concentric CLAP-SHOCKWAVE rings (the Boogie
@@ -7098,6 +7703,75 @@ function drawYutaVoidAuraOverlay(c, fighter) {
   c.restore()
 }
 
+// GOTENKS — "Void Sovereign" (Alien-X) aura on the full-black SS silhouette. Part B of the two-part skin
+// (Part A = the near-black __voidsovereign recolor). Same seeded architecture as the Yuta/Onoki void overlays
+// (seeded ONCE via mulberry32 → normalized to the drawn bbox → tracks pose/scale), BUT the FX ties directly to
+// HIS OWN confirmed technique — the SUPER GHOST KAMIKAZE ATTACK: little drifting pale-blue GHOST-WISPS (tiny
+// kamikaze-ghost silhouettes: domed head + scalloped tail) rise and sway around him + a soft blue glow + glowing
+// pale-blue eyes. Gated on the skin id → no-op for every other skin.
+function seedGotenksVoidField(fighter) {
+  const rnd = _mulberry32(0x607E7C55)
+  const halfWidth = ny => ny < 0.16 ? 0.16 : (ny < 0.64 ? 0.30 : 0.24)   // head / torso / baggy-legs silhouette
+  const ghosts = []
+  for (let i = 0; i < 16; i++) {
+    const ny = 0.06 + rnd() * 0.9
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    ghosts.push({ nx, ny, r: 2.4 + rnd() * 3.6, rise: 0.0012 + rnd() * 0.0026,
+                  swayAmp: 0.010 + rnd() * 0.026, swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2,
+                  a: 0.34 + rnd() * 0.40, flick: 0.5 + rnd() * 1.3, big: rnd() < 0.35 })   // 35% larger mini-ghosts
+  }
+  const glows = []
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.42 + rnd() * 0.36, r: 0.18 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
+  fighter._gotenksVoidFX = { ghosts, glows }
+}
+function _drawGhostlet(c, cx, cy, r) {
+  // a tiny kamikaze-ghost: domed head + scalloped bottom fringe (matches the Super Ghost Kamikaze sprite shape)
+  c.beginPath()
+  c.arc(cx, cy - r * 0.2, r, Math.PI, 0)                 // domed head (upper semicircle)
+  c.lineTo(cx + r, cy + r * 0.7)
+  const lobes = 3
+  for (let k = 0; k < lobes; k++) {                      // scalloped tail
+    const x0 = cx + r - (k * 2 + 1) * (r / lobes)
+    c.arc(cx + r - (k * 2 + 1) * (r / lobes) + (r / lobes), cy + r * 0.7, r / lobes, 0, Math.PI, false)
+    void x0
+  }
+  c.lineTo(cx - r, cy - r * 0.2)
+  c.closePath(); c.fill()
+}
+function drawGotenksVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "gotenksVoidSovereign") return
+  if (!fighter._gotenksVoidFX) seedGotenksVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._gotenksVoidFX
+  const t = (fighter._gotenksVoidClock = (fighter._gotenksVoidClock || 0) + 1)
+  const GHOST = "#8FD8FF"   // Super Ghost Kamikaze pale blue
+  c.save()
+  for (const g of fx.glows) {                            // soft blue ghost-energy glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex(GHOST, g.a)); grad.addColorStop(1, _rgbaHex(GHOST, 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  for (const m of fx.ghosts) {                           // drifting ghost-wisps (slow rise + sway + flicker)
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.6 + 0.4 * Math.sin(t * 0.07 * m.flick + m.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    const r = m.r * (m.big ? 1.7 : 1.0)
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.shadowColor = "#2AA8C8"; c.shadowBlur = 5; c.fillStyle = m.big ? "#BEEBFF" : "#9EE6F5"
+    _drawGhostlet(c, x + nx * w, y + ny * h, r)
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.11)                          // glowing pale-blue eyes
+  const eyeR = Math.max(1.3, w * 0.024)
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse))
+  c.shadowColor = "#2AA8C8"; c.shadowBlur = 7; c.fillStyle = "#BEEBFF"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, y + h * 0.12, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
 // SPIDER-MAN — "Void Sovereign" (Alien-X) aura on the full-black web-suit. Part B of the two-part skin
 // (Part A = the near-black __voidsovereign recolor). Same architecture as the Onoki/Yamamoto void overlays
 // (seeded ONCE via mulberry32 → normalized to the drawn bbox → tracks pose/scale), BUT the FX is his OWN
@@ -7117,6 +7791,23 @@ function seedSpidermanVoidField(fighter) {
   const glows = []
   for (let i = 0; i < 2; i++) glows.push({ nx: 0.4 + rnd() * 0.2, ny: 0.45 + rnd() * 0.3, r: 0.16 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
   fighter._spiderVoidFX = { strands, glows }
+}
+// SPIDER-MAN WEB-SWING — draw the web LINE from his gripping hand up to the sky anchor while swinging.
+// World-space (ctx is camera-transformed). A bright web strand + a small anchor puff. Handler/render-only.
+function drawSpidermanWebSwing(c, fighter) {
+  if (!c || !fighter?._swinging || (fighter.rosterKey || "").toLowerCase() !== "spiderman") return
+  const face = fighter._swFace || fighter.facing || 1
+  const hx = fighter.x + (fighter.w || 60) / 2 + face * (fighter.w || 60) * 0.30   // gripping hand (up-forward)
+  const hy = fighter.y + (fighter.h || 100) * 0.16
+  const ax = fighter._swAX, ay = fighter._swAY
+  if (ax == null) return
+  c.save()
+  c.strokeStyle = "#ffffff"; c.lineWidth = 2.4; c.globalAlpha = 0.92
+  c.shadowColor = "#cfe6ff"; c.shadowBlur = 4
+  c.beginPath(); c.moveTo(hx, hy); c.lineTo(ax, ay); c.stroke()
+  c.shadowBlur = 0; c.globalAlpha = 0.8; c.fillStyle = "#eaf4ff"     // anchor splat on the "sky"
+  c.beginPath(); c.arc(ax, ay, 4.5, 0, Math.PI * 2); c.fill()
+  c.restore()
 }
 function drawSpidermanVoidAuraOverlay(c, fighter) {
   if (!c || fighter?.skinId !== "spidermanVoidSovereign") return
@@ -7727,6 +8418,973 @@ function drawKurapikaEmperorOverlay(c, fighter) {
   c.fillStyle = "#ff3b3b"; c.fillRect(bx, by, bw * frac, bh)
   c.globalAlpha = 0.95; c.fillStyle = "#ffdada"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
   c.fillText("EMPEROR TIME", x + w / 2, by - Math.max(2, h * 0.02))
+  c.restore()
+}
+
+// GENOS — OVERDRIVE overlay (Stage 5). While the timed power-up MODE is active: (1) a rising FLAME AURA
+// (orange/yellow licks wobbling up the body — the overheating core), and (2) an "OVERDRIVE" countdown bar
+// above the head driven by the PUBLIC _genosOverdriveTimer/Max, so the limited window is a real on-screen
+// readout. Genos-only; no-op otherwise. (The band-13 ignite pose plays on activation via _spriteCastMove.)
+function drawGenosOverdriveOverlay(c, fighter) {
+  if (!c || !fighter?._genosOverdriveActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._genosOverdriveClock = (fighter._genosOverdriveClock || 0) + 1)
+  c.save()
+  // rising flame aura — a handful of wobbling licks along the body, brighter core at the feet
+  c.globalCompositeOperation = "lighter"
+  const licks = 7
+  for (let i = 0; i < licks; i++) {
+    const fx = x + w * (0.18 + 0.64 * (i / (licks - 1)))
+    const phase = t * 0.22 + i * 1.7
+    const rise = (t * 2.4 + i * 40) % (h * 1.05)
+    const ly = y + h - rise
+    const flick = Math.sin(phase) * w * 0.06
+    const r = Math.max(3, w * (0.10 - 0.06 * (rise / (h * 1.05))))
+    const a = Math.max(0, 0.5 * (1 - rise / (h * 1.05)))
+    c.globalAlpha = a; c.shadowColor = "#ff9020"; c.shadowBlur = 12
+    c.fillStyle = i % 2 ? "#ffd050" : "#ff7a1a"
+    c.beginPath(); c.arc(fx + flick, ly, r, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  // OVERDRIVE countdown buff-duration bar + label above the head
+  const frac = Math.max(0, Math.min(1, (fighter._genosOverdriveTimer || 0) / (fighter._genosOverdriveMax || 1)))
+  const bw = w * 0.9, bh = Math.max(3, h * 0.035), bx = x + (w - bw) / 2, by = y - h * 0.16
+  c.globalAlpha = 0.9
+  c.fillStyle = "#301500"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+  c.fillStyle = "#111";    c.fillRect(bx, by, bw, bh)
+  c.fillStyle = "#ff9020"; c.fillRect(bx, by, bw * frac, bh)
+  c.globalAlpha = 0.95; c.fillStyle = "#ffe4b0"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText("OVERDRIVE", x + w / 2, by - Math.max(2, h * 0.02))
+  c.restore()
+}
+
+// DARK VEGETA — dark-aura form overlay: a PURPLE/black radiating aura (dark spikes with a purple glow, item-1
+// look) while `_darkAuraActive`, plus a small "DARK" tag. The Ki energy bar already shows the drain (the
+// resource UI). Mirrors drawGenosOverdriveOverlay. Dark-Vegeta-only; no-op otherwise. (The enter plays the
+// real aura-buildup morph pose via _spriteCastMove; this is the SUSTAINED overlay.)
+function drawVegetaDarkAuraOverlay(c, fighter) {
+  const rose = !!fighter?._vdRoseActive
+  if (!c || !(fighter?._darkAuraActive || rose)) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._darkAuraClock = (fighter._darkAuraClock || 0) + 1)
+  // ROSE → pink aura + "ROSE" tag; dark-aura → purple aura + "DARK" tag.
+  const glow = rose ? "#ff6db0" : "#b23bd8"
+  const c1 = rose ? "#ff9ccf" : "#c060ff", c2 = rose ? "#e0348f" : "#7a1fb0"
+  const tagCol = rose ? "#ffc9e6" : "#e6b3ff", tag = rose ? "ROSE" : "DARK"
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  const licks = 8
+  for (let i = 0; i < licks; i++) {
+    const fx = x + w * (0.14 + 0.72 * (i / (licks - 1)))
+    const phase = t * 0.24 + i * 1.9
+    const rise = (t * 2.6 + i * 34) % (h * 1.08)
+    const ly = y + h - rise
+    const flick = Math.sin(phase) * w * 0.07
+    const r = Math.max(3, w * (0.11 - 0.07 * (rise / (h * 1.08))))
+    const a = Math.max(0, 0.5 * (1 - rise / (h * 1.08)))
+    c.globalAlpha = a; c.shadowColor = glow; c.shadowBlur = 14
+    c.fillStyle = i % 2 ? c1 : c2
+    c.beginPath(); c.arc(fx + flick, ly, r, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  c.globalAlpha = 0.95; c.fillStyle = tagCol; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText(tag, x + w / 2, y - h * 0.10)
+  c.restore()
+}
+
+// VEGITO — Ultra Instinct -Sign- evasion-meter HUD. A compact silver bar above the head showing `_uiMeter`
+// (combat.applyVegitoUISystem). Colour tiers with the tell: silver=full → amber=mid → red=low; a soft silver
+// aura shimmers while evasion is live (meter>0 & not charging), and the bar flashes red while the empty-meter
+// health-bleed is active. Rendered only for Vegito (no-op otherwise). Mirrors drawGenosOverdriveOverlay.
+function drawVegitoUIOverlay(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "vegito") return
+  if (fighter._uiMeter == null) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const frac = Math.max(0, Math.min(1, (fighter._uiMeter || 0) / (fighter._uiMax || 100)))
+  const evading = frac > 0 && !fighter._uiCharging
+  const t = (fighter._uiClock = (fighter._uiClock || 0) + 1)
+  // NOTE: the floating meter BAR above the head was removed (owner request — visual clutter). The evasion
+  // RESOURCE mechanic is unchanged (combat.applyVegitoUISystem / shouldVegitoUIEvade); its on-screen tells
+  // are now the idle-pose swap (relaxed→arms-spread→braced via _uiTier in sprite.js) + the per-dodge flash.
+  // Only a faint body shimmer while actively evading remains here — no HUD bar/label.
+  if (!evading) return
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  const pulse = 0.18 + 0.10 * Math.sin(t * 0.2)
+  c.globalAlpha = pulse; c.shadowColor = "#cfe4ff"; c.shadowBlur = 14
+  c.fillStyle = "#dfeeff"
+  c.beginPath(); c.ellipse(x + w / 2, y + h * 0.5, w * 0.55, h * 0.55, 0, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
+// VEGITO — Void Sovereign PART B overlay. On TOP of the near-black __voidsovereign recolor (Part A), a
+// procedural field of faint SILVER-WHITE energy WISPS rising up the body — echoing this character's own UI
+// hair-streak motif (per the skins prompt: themed to the character, not a generic star-field) + two soft
+// silver glow pools. Seeded ONCE per skin-load (_mulberry32 → stable layout, only the drift/shimmer animate).
+// Gated on the skin id → no-op for every other skin. Same architecture as the other void overlays.
+function seedVegitoVoidField(fighter) {
+  const rnd = _mulberry32(0x5E1A70CC)
+  const wisps = []                       // rising silver energy streaks (the UI-streak echo)
+  for (let i = 0; i < 9; i++) wisps.push({ nx: 0.12 + rnd() * 0.76, ny: rnd(), len: 0.12 + rnd() * 0.20,
+                                           w: 0.010 + rnd() * 0.016, sp: 0.004 + rnd() * 0.006,
+                                           a: 0.10 + rnd() * 0.14, ph: rnd() * Math.PI * 2 })
+  const glows = []                       // soft silver cursed-energy glow pools
+  for (let i = 0; i < 2; i++) glows.push({ nx: 0.5, ny: 0.30 + rnd() * 0.30, r: 0.24 + rnd() * 0.14, a: 0.05 + rnd() * 0.05 })
+  fighter._vegitoVoidFX = { wisps, glows }
+}
+function drawVegitoVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "vegitoVoidSovereign") return
+  if (!fighter._vegitoVoidFX) seedVegitoVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._vegitoVoidFX
+  const t = (fighter._vegitoVoidClock = (fighter._vegitoVoidClock || 0) + 1)
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  for (const g of fx.glows) {                          // faint silver glow pools
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex("#cfe0f0", g.a)); grad.addColorStop(1, _rgbaHex("#cfe0f0", 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  for (const p of fx.wisps) {                          // rising silver-white wisp streaks (UI-streak motif)
+    const prog = (p.ny + t * p.sp) % 1                 // travels upward, loops
+    const cx = x + p.nx * w, topY = y + (1 - prog) * h, len = p.len * h
+    const shimmer = 0.6 + 0.4 * Math.sin(t * 0.12 + p.ph)
+    const a = Math.max(0, p.a * shimmer * Math.sin(prog * Math.PI))   // fade in/out over travel
+    if (a < 0.01) continue
+    const ww = Math.max(1, p.w * w)
+    const grad = c.createLinearGradient(cx, topY, cx, topY + len)
+    grad.addColorStop(0, _rgbaHex("#f0f6ff", 0)); grad.addColorStop(0.5, _rgbaHex("#dfeeff", a)); grad.addColorStop(1, _rgbaHex("#aecbe6", 0))
+    c.fillStyle = grad; c.fillRect(cx - ww / 2, topY, ww, len)
+  }
+  c.restore()
+}
+
+// IRON MAN 3 — the "Charging Shot (Put over Iron Man's Fist)" windup FX, drawn over the fist while the neutral
+// 3-tier charge Special is armed & held. Faithful PROCEDURAL rendering of the on-sheet Charging Shot →
+// Supercharging graphic (a growing energy orb + orbiting sparks that ramps cyan → cyan-white → yellow-white
+// through Basic/Charged/Supercharged tiers). Reference art sliced as iron_man_3_charge_fx_uniform.png.
+function drawIronMan3ChargeFX(c, fighter) {
+  if (!c || !fighter) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "iron_man_3") return
+  if (!fighter._ironMan3RepulsorArmed || !fighter._ironMan3SpecialHeld) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const held = performance.now() - (fighter._ironMan3RepDownTime || 0)
+  const tier = held >= IRON_MAN_3_REP_MS[1] ? 2 : held >= IRON_MAN_3_REP_MS[0] ? 1 : 0   // Supercharging / Charged / Charging
+  const face = fighter.facing || 1
+  const fistX = x + w * (face > 0 ? 0.80 : 0.20)
+  const fistY = y + h * 0.44
+  const prog = Math.min(1, held / (IRON_MAN_3_REP_MS[1] + 220))
+  const base = w * (0.10 + 0.26 * prog)
+  const col  = tier >= 2 ? "#fff2a0" : tier === 1 ? "#cffcff" : "#8fe9ff"
+  const glow = tier >= 2 ? "#ffe45a" : tier === 1 ? "#bff4ff" : "#5fd8ff"
+  const t = (fighter._im3ChargeClock = (fighter._im3ChargeClock || 0) + 1)
+  const flick = 1 + Math.sin(t * 0.5) * 0.12
+  c.save()
+  c.globalCompositeOperation = "lighter"; c.shadowColor = glow; c.shadowBlur = 16
+  c.globalAlpha = 0.85; c.fillStyle = col
+  c.beginPath(); c.arc(fistX, fistY, base * 0.6 * flick, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = 0.4; c.fillStyle = glow
+  c.beginPath(); c.arc(fistX, fistY, base * flick, 0, Math.PI * 2); c.fill()
+  c.globalAlpha = 0.85; c.fillStyle = "#ffffff"
+  const sparks = 4 + tier * 2
+  for (let i = 0; i < sparks; i++) {
+    const ang = t * 0.22 + i * (Math.PI * 2 / sparks)
+    const rr = base * (1.05 + 0.15 * Math.sin(t * 0.3 + i))
+    c.beginPath(); c.arc(fistX + Math.cos(ang) * rr, fistY + Math.sin(ang) * rr, Math.max(1, base * 0.10), 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
+// IRON MAN 3 — "Super Nova" ULTIMATE screen-clear FX (abilities.js executeIronMan3Ultimate). A SCREEN-FILLING
+// procedural reproduction of the on-sheet expanding-ring Super Nova: a white-pink core flash + concentric
+// energy rings erupting from Iron Man to engulf the whole screen ("Kills all onscreen Enemies"). Drawn in
+// screen space (overlay ctx), lit while _ironMan3NovaTimer > 0 (armed from the nova-erupt beat).
+function drawIronMan3SuperNova(c, fighter) {
+  if (!c || !fighter) return
+  if ((fighter.rosterKey || "").toLowerCase() !== "iron_man_3") return
+  if (!(fighter._ironMan3NovaTimer > 0)) return
+  const timer = fighter._ironMan3NovaTimer, max = fighter._ironMan3NovaMax || 46
+  fighter._ironMan3NovaTimer = timer - 1
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  const cw = c.canvas?.width || 1280, ch = c.canvas?.height || 720
+  const cx = (x != null && w != null) ? x + w / 2 : cw / 2
+  const cy = (y != null && h != null) ? y + h * 0.4 : ch / 2
+  const prog = Math.max(0, Math.min(1, 1 - timer / max))   // 0 → 1 over the nova
+  const maxR = Math.hypot(cw, ch) * 0.66
+  const r = prog * maxR
+  const fade = Math.max(0, 1 - prog)          // whole effect fades as it peaks
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  // central core flash — blinding early, fades as it expands
+  const coreA = Math.pow(1 - prog, 0.7) * 0.95
+  const cg = c.createRadialGradient(cx, cy, 0, cx, cy, Math.max(6, r * 0.6))
+  cg.addColorStop(0, `rgba(255,255,255,${coreA})`)
+  cg.addColorStop(0.45, `rgba(255,210,235,${coreA * 0.8})`)
+  cg.addColorStop(1, "rgba(180,120,255,0)")
+  c.fillStyle = cg
+  c.beginPath(); c.arc(cx, cy, Math.max(6, r * 0.6), 0, Math.PI * 2); c.fill()
+  // expanding concentric energy rings (white / cyan with a pink inner)
+  c.shadowColor = "#e6b4ff"; c.shadowBlur = 18
+  const rings = 5
+  for (let k = 0; k < rings; k++) {
+    const rr = r * (0.42 + k * 0.16)
+    if (rr < 4) continue
+    const a = fade * (0.5 - k * 0.07)
+    if (a <= 0) continue
+    c.globalAlpha = a
+    c.lineWidth = Math.max(2, (6 - k) * (1 + prog))
+    c.strokeStyle = k % 2 ? "#bfe9ff" : "#ffffff"
+    c.beginPath(); c.ellipse(cx, cy, rr, rr * 0.92, 0, 0, Math.PI * 2); c.stroke()
+  }
+  // a soft full-screen wash at the peak sells the screen-clear
+  c.globalAlpha = Math.sin(prog * Math.PI) * 0.22
+  c.fillStyle = "#f0d8ff"; c.fillRect(0, 0, cw, ch)
+  c.restore()
+}
+
+// BATMAN (dark_knight) — RAGE MODE overlay (Stage 5). While the timed transform is active: (1) a crimson
+// FURY aura (red/orange licks flaring up the bulked body — the berserker's rage), and (2) a "RAGE" countdown
+// bar above the head driven by the PUBLIC _dkRageTimer/Max. dark_knight-only; no-op otherwise. (The purple
+// energy-crackle transform pose plays on activation via _spriteCastMove = dkRageTransform.)
+function drawDarkKnightRageOverlay(c, fighter) {
+  if (!c || !fighter?._dkRageActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._dkRageClock = (fighter._dkRageClock || 0) + 1)
+  c.save()
+  // rising crimson fury aura — wobbling licks along the body, brighter core at the feet
+  c.globalCompositeOperation = "lighter"
+  const licks = 7
+  for (let i = 0; i < licks; i++) {
+    const fx = x + w * (0.18 + 0.64 * (i / (licks - 1)))
+    const phase = t * 0.22 + i * 1.7
+    const rise = (t * 2.4 + i * 40) % (h * 1.05)
+    const ly = y + h - rise
+    const flick = Math.sin(phase) * w * 0.06
+    const r = Math.max(3, w * (0.10 - 0.06 * (rise / (h * 1.05))))
+    const a = Math.max(0, 0.5 * (1 - rise / (h * 1.05)))
+    c.globalAlpha = a; c.shadowColor = "#ff3020"; c.shadowBlur = 12
+    c.fillStyle = i % 2 ? "#ff5a2a" : "#c81818"
+    c.beginPath(); c.arc(fx + flick, ly, r, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  // RAGE countdown buff-duration bar + label above the head
+  const frac = Math.max(0, Math.min(1, (fighter._dkRageTimer || 0) / (fighter._dkRageMax || 1)))
+  const bw = w * 0.9, bh = Math.max(3, h * 0.035), bx = x + (w - bw) / 2, by = y - h * 0.16
+  c.globalAlpha = 0.9
+  c.fillStyle = "#2a0808"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+  c.fillStyle = "#111";    c.fillRect(bx, by, bw, bh)
+  c.fillStyle = "#e02020"; c.fillRect(bx, by, bw * frac, bh)
+  c.globalAlpha = 0.95; c.fillStyle = "#ffd0c0"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText("RAGE", x + w / 2, by - Math.max(2, h * 0.02))
+  c.restore()
+}
+
+// FRIEZA — GOLDEN FRIEZA overlay (transformation). While Golden is active: a rising GOLD ki aura + a "GOLDEN"
+// label above the head. The FORM's cost is a continuous Ki DRAIN, so the fighter's own energy bar is the
+// on-screen readout (no separate timer). Frieza-only. (Base art is GOLD-tinted in sprite.js via _goldenFriezaActive.)
+function drawGoldenFriezaOverlay(c, fighter) {
+  if (!c || !fighter?._goldenFriezaActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._goldenFriezaClock = (fighter._goldenFriezaClock || 0) + 1)
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  const licks = 8
+  for (let i = 0; i < licks; i++) {
+    const fx = x + w * (0.16 + 0.68 * (i / (licks - 1)))
+    const phase = t * 0.24 + i * 1.7
+    const rise = (t * 2.6 + i * 38) % (h * 1.05)
+    const ly = y + h - rise
+    const flick = Math.sin(phase) * w * 0.07
+    const r = Math.max(3, w * (0.11 - 0.06 * (rise / (h * 1.05))))
+    const a = Math.max(0, 0.55 * (1 - rise / (h * 1.05)))
+    c.globalAlpha = a; c.shadowColor = "#ffcf40"; c.shadowBlur = 12
+    c.fillStyle = i % 2 ? "#fff0a0" : "#f5b91e"
+    c.beginPath(); c.arc(fx + flick, ly, r, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  c.globalAlpha = 0.95; c.fillStyle = "#ffe9a8"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText("GOLDEN", x + w / 2, y - h * 0.15)
+  c.restore()
+}
+
+// FRIEZA — BLACK FRIEZA overlay (transformation, ceiling tier). While Black is active: dark violet-black aura
+// rings + a "BLACK" label. Cost = a faster continuous Ki drain (the energy bar is the readout). Frieza-only.
+// (Base art is DARK-tinted in sprite.js via _blackFriezaActive.)
+function drawBlackFriezaOverlay(c, fighter) {
+  if (!c || !fighter?._blackFriezaActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._blackFriezaClock = (fighter._blackFriezaClock || 0) + 1)
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  const rings = 3
+  for (let i = 0; i < rings; i++) {
+    const rr = w * (0.5 + 0.5 * i) + (t * 3) % (w * 0.6)
+    c.globalAlpha = Math.max(0, 0.35 - i * 0.1)
+    c.strokeStyle = i % 2 ? "#7a2bd0" : "#3a0a55"; c.lineWidth = Math.max(2, w * 0.05); c.shadowColor = "#7a2bd0"; c.shadowBlur = 16
+    c.beginPath(); c.arc(x + w / 2, y + h * 0.5, rr, 0, Math.PI * 2); c.stroke()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  c.globalAlpha = 0.95; c.fillStyle = "#d9b8ff"; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText("BLACK", x + w / 2, y - h * 0.15)
+  c.restore()
+}
+
+// GOKU — TRANSFORMATION-STATE aura (procedural indicator). Goku is hasSprites:false → a box, so the sprite
+// tint used for Vegeta/Frieza can't show his form. This draws a per-TIER rising ki aura + a form LABEL above
+// the head so the transformed state (SSJ … Ultra Instinct) reads clearly on the box; it disappears at base.
+// (The charge-UP itself already shows via the standard isCharging aura.) transformIndex 1..5 = SSJ..UI.
+// STAGE 5 re-scope: 3-form ladder aura (transformIndex 1=SSJ gold / 2=SSG red / 3=SSB blue). The sprite
+// itself is recolored per form now; this flame-aura + label overlays on top for extra transformed-state read.
+const GOKU_FORM_LOOK = [
+  null,                                                                 // 0 = base (no aura)
+  { hi: "#fff0a0", lo: "#f5b91e", glow: "#ffcf40", label: "SSJ" },      // 1 Super Saiyan — gold
+  { hi: "#ffd0c0", lo: "#e0341f", glow: "#ff5a3c", label: "SSG" },      // 2 Super Saiyan God — red
+  { hi: "#bfe4ff", lo: "#2a9df4", glow: "#4fb8ff", label: "SSB" },      // 3 Super Saiyan Blue — blue
+]
+// STAGE 6 — KAIOKEN aura (Base-form-only, _kaioken 1=Kaioken red / 2=Kaioken ×3 deep maroon).
+const GOKU_KAIOKEN_LOOK = [
+  null,
+  { hi: "#ff9a7a", lo: "#e0261a", glow: "#ff4a2a", label: "KAIOKEN" },     // 1 — bright red
+  { hi: "#ff6a4a", lo: "#a01008", glow: "#d02010", label: "KAIOKEN x3" },  // 2 — deep maroon
+]
+function drawGokuFormAura(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "goku") return
+  const idx = fighter.transformIndex || 0
+  const kai = fighter._kaioken || 0
+  // Transform ladder aura (gold/red/blue) OR — in Base form — the Kaioken red/maroon aura.
+  let look, tier
+  if (idx > 0) { look = GOKU_FORM_LOOK[idx]; tier = idx }
+  else if (kai > 0) { look = GOKU_KAIOKEN_LOOK[kai]; tier = kai }
+  else return
+  if (!look) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._gokuFormClock = (fighter._gokuFormClock || 0) + 1)
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  const licks = 8
+  for (let i = 0; i < licks; i++) {
+    const fx = x + w * (0.16 + 0.68 * (i / (licks - 1)))
+    const phase = t * 0.26 + i * 1.7
+    const rise = (t * (2.6 + tier * 0.2) + i * 38) % (h * 1.05)   // higher tiers flare faster/hotter
+    const ly = y + h - rise
+    const flick = Math.sin(phase) * w * (0.06 + tier * 0.008)
+    const r = Math.max(3, w * (0.11 - 0.06 * (rise / (h * 1.05))))
+    const a = Math.max(0, (0.5 + tier * 0.04) * (1 - rise / (h * 1.05)))
+    c.globalAlpha = a; c.shadowColor = look.glow; c.shadowBlur = 12
+    c.fillStyle = i % 2 ? look.hi : look.lo
+    c.beginPath(); c.arc(fx + flick, ly, r, 0, Math.PI * 2); c.fill()
+  }
+  c.globalCompositeOperation = "source-over"; c.shadowBlur = 0
+  c.globalAlpha = 0.95; c.fillStyle = look.hi; c.font = `bold ${Math.max(7, Math.round(h * 0.075))}px monospace`; c.textAlign = "center"
+  c.fillText(look.label, x + w / 2, y - h * 0.15)
+  c.restore()
+}
+
+// FRIEZA — VOID SOVEREIGN overlay (skin). On the near-black void silhouette: a slow-drifting cosmic/void
+// particle field — twinkling star-motes (violet/white) + a few soft nebula glows. The layout is SEEDED ONCE
+// per skin-load (stable, not re-randomised each frame); only the slow drift + twinkle advance per frame.
+// Frieza-only; gated on skinId "friezaVoidSovereign".
+function seedFriezaVoidField(fighter) {
+  const r = Math.random
+  const stars = [], glows = []
+  for (let i = 0; i < 44; i++) stars.push({ nx: r(), ny: r(), rr: 0.6 + r() * 1.7, a: 0.30 + r() * 0.6, vx: (r() - 0.5) * 0.0007, vy: -0.0004 - r() * 0.0007, flick: 0.5 + r() * 1.6, phase: r() * 6.283, white: r() < 0.4 })
+  for (let i = 0; i < 5;  i++) glows.push({ nx: r(), ny: r(), rr: 3 + r() * 5, a: 0.12 + r() * 0.16, vy: -0.00025 - r() * 0.0004, violet: r() < 0.55, phase: r() * 6.283 })
+  fighter._friezaVoidFX = { stars, glows }
+}
+function drawFriezaVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "friezaVoidSovereign") return
+  if (!fighter._friezaVoidFX) seedFriezaVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._friezaVoidFX
+  const t = (fighter._friezaVoidClock = (fighter._friezaVoidClock || 0) + 1)
+  const wrap = v => ((v % 1) + 1) % 1
+  c.save(); c.globalCompositeOperation = "lighter"
+  for (const g of fx.glows) {                                   // soft slow-rising nebula glows
+    const gx = x + wrap(g.nx) * w, gy = y + wrap(g.ny + g.vy * t) * h
+    const pulse = 0.7 + 0.3 * Math.sin(t * 0.03 + g.phase)
+    c.globalAlpha = Math.max(0, g.a * pulse); c.shadowColor = g.violet ? "#b06fe0" : "#6fb0ff"; c.shadowBlur = 10
+    c.fillStyle = g.violet ? "#7a4ab0" : "#3a6bb0"
+    c.beginPath(); c.arc(gx, gy, g.rr, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowBlur = 0
+  for (const s of fx.stars) {                                   // twinkling, slow-drifting star motes
+    const sx = x + wrap(s.nx + s.vx * t) * w, sy = y + wrap(s.ny + s.vy * t) * h
+    const tw = 0.45 + 0.55 * Math.sin(t * 0.05 * s.flick + s.phase)
+    c.globalAlpha = Math.max(0, s.a * tw); c.shadowColor = "#e6d0ff"; c.shadowBlur = 4
+    c.fillStyle = s.white ? "#ffffff" : "#d9b8ff"
+    c.fillRect(sx - s.rr / 2, sy - s.rr / 2, s.rr, s.rr)
+  }
+  c.restore()
+}
+
+// GENOS — VOID SOVEREIGN overlay (skins). On the near-black void silhouette: a CYBERNETIC circuit/data-line
+// field (drifting bright pulses running along short circuit traces + twinkling nodes) — themed to his machine
+// body rather than a generic star-field — plus his signature glowing YELLOW cyborg eyes. Stable seeded layout
+// (NOT re-randomized per frame). Genos-only; gated on skinId. Uses _lastDrawX/Y/W/H set during the body draw.
+function seedGenosVoidField(fighter) {
+  const rnd = _mulberry32(0x6E05C0DE)
+  const halfWidth = ny => ny < 0.22 ? 0.16 : (ny < 0.64 ? 0.26 : 0.20)   // head / torso / legs silhouette
+  const nodes = []
+  for (let i = 0; i < 14; i++) {
+    const ny = 0.06 + rnd() * 0.9, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    nodes.push({ nx, ny, r: 1 + rnd() * 1.8, phase: rnd() * Math.PI * 2, flick: 0.5 + rnd() * 1.4, a: 0.4 + rnd() * 0.5 })
+  }
+  const traces = []
+  for (let i = 0; i < 10; i++) {
+    const ny = 0.08 + rnd() * 0.84, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    traces.push({ nx, ny, len: 0.06 + rnd() * 0.16, vert: rnd() < 0.55, speed: 0.004 + rnd() * 0.010, phase: rnd() * Math.PI * 2, a: 0.3 + rnd() * 0.4 })
+  }
+  fighter._genosVoidFX = { nodes, traces }
+}
+function drawGenosVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "genosVoidSovereign") return
+  if (!fighter._genosVoidFX) seedGenosVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._genosVoidFX
+  const t = (fighter._genosVoidClock = (fighter._genosVoidClock || 0) + 1)
+  const CYAN = "#38E0D0"
+  c.save(); c.lineWidth = 1
+  for (const tr of fx.traces) {                          // circuit traces + a bright pulse running along each
+    const x0 = x + tr.nx * w, y0 = y + tr.ny * h
+    const lx = tr.vert ? 0 : tr.len * w, ly = tr.vert ? tr.len * h : 0
+    c.globalAlpha = tr.a * 0.5; c.strokeStyle = _rgbaHex(CYAN, tr.a * 0.5)
+    c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + lx, y0 + ly); c.stroke()
+    const p = (t * tr.speed + tr.phase) % 1
+    c.globalAlpha = Math.max(0, 0.9 * (1 - Math.abs(p - 0.5) * 1.4))
+    c.shadowColor = CYAN; c.shadowBlur = 5; c.fillStyle = "#CFFFF6"
+    c.fillRect(x0 + lx * p - 0.8, y0 + ly * p - 0.8, 1.8, 1.8); c.shadowBlur = 0
+  }
+  for (const n of fx.nodes) {                            // twinkling circuit nodes
+    const glow = 0.55 + 0.45 * Math.sin(t * 0.08 * n.flick + n.phase)
+    c.globalAlpha = Math.max(0, Math.min(1, n.a * glow))
+    c.shadowColor = CYAN; c.shadowBlur = 4; c.fillStyle = "#7CF5E6"
+    c.fillRect(x + n.nx * w - n.r / 2, y + n.ny * h - n.r / 2, n.r, n.r)
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.11)           // glowing yellow cyborg eyes
+  const eyeR = Math.max(1.3, w * 0.026), eyeY = y + h * 0.115
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse)); c.shadowColor = "#FFD24A"; c.shadowBlur = 7; c.fillStyle = "#FFE070"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// IRON MAN (1) — Void Sovereign overlay (skins). Part B of the Alien-X two-part technique: faint drifting
+// repulsor-CYAN circuit/data-lines running over the void-black armour (his own arc-reactor tech motif) +
+// a soft arc-reactor glow pool on the chest + glowing cyan-white faceplate eyes. IM1-only; gated on skinId.
+function seedIronManVoidField(fighter) {
+  const rnd = _mulberry32(0x1AA0C0DE)
+  const halfWidth = ny => ny < 0.22 ? 0.15 : (ny < 0.66 ? 0.24 : 0.20)   // head / torso / legs silhouette
+  const nodes = []
+  for (let i = 0; i < 13; i++) {
+    const ny = 0.06 + rnd() * 0.9, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    nodes.push({ nx, ny, r: 1 + rnd() * 1.7, phase: rnd() * Math.PI * 2, flick: 0.5 + rnd() * 1.4, a: 0.4 + rnd() * 0.5 })
+  }
+  const traces = []
+  for (let i = 0; i < 11; i++) {
+    const ny = 0.08 + rnd() * 0.84, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    traces.push({ nx, ny, len: 0.06 + rnd() * 0.15, vert: rnd() < 0.5, speed: 0.004 + rnd() * 0.011, phase: rnd() * Math.PI * 2, a: 0.3 + rnd() * 0.4 })
+  }
+  fighter._ironManVoidFX = { nodes, traces }
+}
+function drawIronManVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "ironManVoidSovereign") return
+  if (!fighter._ironManVoidFX) seedIronManVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._ironManVoidFX
+  const t = (fighter._ironManVoidClock = (fighter._ironManVoidClock || 0) + 1)
+  const CYAN = "#5FC8FF"
+  c.save(); c.lineWidth = 1
+  // soft arc-reactor glow pool on the chest (the void suit's one lingering light)
+  const rcx = x + w * 0.5, rcy = y + h * 0.42, rr = Math.max(3, w * 0.13) * (0.72 + 0.28 * Math.sin(t * 0.09))
+  const rg = c.createRadialGradient(rcx, rcy, 0, rcx, rcy, rr)
+  rg.addColorStop(0, _rgbaHex("#EAF7FF", 0.55)); rg.addColorStop(0.5, _rgbaHex(CYAN, 0.22)); rg.addColorStop(1, _rgbaHex(CYAN, 0))
+  c.fillStyle = rg; c.beginPath(); c.arc(rcx, rcy, rr, 0, Math.PI * 2); c.fill()
+  for (const tr of fx.traces) {                          // circuit traces + a bright pulse running along each
+    const x0 = x + tr.nx * w, y0 = y + tr.ny * h
+    const lx = tr.vert ? 0 : tr.len * w, ly = tr.vert ? tr.len * h : 0
+    c.globalAlpha = tr.a * 0.5; c.strokeStyle = _rgbaHex(CYAN, tr.a * 0.5)
+    c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + lx, y0 + ly); c.stroke()
+    const p = (t * tr.speed + tr.phase) % 1
+    c.globalAlpha = Math.max(0, 0.9 * (1 - Math.abs(p - 0.5) * 1.4))
+    c.shadowColor = CYAN; c.shadowBlur = 5; c.fillStyle = "#EAF7FF"
+    c.fillRect(x0 + lx * p - 0.8, y0 + ly * p - 0.8, 1.8, 1.8); c.shadowBlur = 0
+  }
+  for (const n of fx.nodes) {                            // twinkling circuit nodes
+    const glow = 0.55 + 0.45 * Math.sin(t * 0.08 * n.flick + n.phase)
+    c.globalAlpha = Math.max(0, Math.min(1, n.a * glow))
+    c.shadowColor = CYAN; c.shadowBlur = 4; c.fillStyle = "#9CE0FF"
+    c.fillRect(x + n.nx * w - n.r / 2, y + n.ny * h - n.r / 2, n.r, n.r)
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.11)           // glowing cyan-white faceplate eyes
+  const eyeR = Math.max(1.3, w * 0.026), eyeY = y + h * 0.115
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse)); c.shadowColor = CYAN; c.shadowBlur = 7; c.fillStyle = "#EAF7FF"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// IRON MAN 2 — Void Sovereign overlay (skins). Same circuit-particle theme as IM1 (the trio shares the
+// Void motif) with its own seed + a cooler steel-cyan tint for the bulkier Data East suit. IM2-only.
+function seedIronMan2VoidField(fighter) {
+  const rnd = _mulberry32(0x2BB0C0DE)
+  const halfWidth = ny => ny < 0.22 ? 0.17 : (ny < 0.66 ? 0.28 : 0.24)
+  const nodes = []
+  for (let i = 0; i < 14; i++) {
+    const ny = 0.06 + rnd() * 0.9, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    nodes.push({ nx, ny, r: 1 + rnd() * 1.8, phase: rnd() * Math.PI * 2, flick: 0.5 + rnd() * 1.4, a: 0.4 + rnd() * 0.5 })
+  }
+  const traces = []
+  for (let i = 0; i < 12; i++) {
+    const ny = 0.08 + rnd() * 0.84, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    traces.push({ nx, ny, len: 0.06 + rnd() * 0.16, vert: rnd() < 0.5, speed: 0.004 + rnd() * 0.011, phase: rnd() * Math.PI * 2, a: 0.3 + rnd() * 0.4 })
+  }
+  fighter._ironMan2VoidFX = { nodes, traces }
+}
+function drawIronMan2VoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "ironMan2VoidSovereign") return
+  if (!fighter._ironMan2VoidFX) seedIronMan2VoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._ironMan2VoidFX
+  const t = (fighter._ironMan2VoidClock = (fighter._ironMan2VoidClock || 0) + 1)
+  const CYAN = "#79C6E8"
+  c.save(); c.lineWidth = 1
+  const rcx = x + w * 0.5, rcy = y + h * 0.40, rr = Math.max(3, w * 0.13) * (0.72 + 0.28 * Math.sin(t * 0.09))
+  const rg = c.createRadialGradient(rcx, rcy, 0, rcx, rcy, rr)
+  rg.addColorStop(0, _rgbaHex("#EAF7FF", 0.5)); rg.addColorStop(0.5, _rgbaHex(CYAN, 0.2)); rg.addColorStop(1, _rgbaHex(CYAN, 0))
+  c.fillStyle = rg; c.beginPath(); c.arc(rcx, rcy, rr, 0, Math.PI * 2); c.fill()
+  for (const tr of fx.traces) {
+    const x0 = x + tr.nx * w, y0 = y + tr.ny * h
+    const lx = tr.vert ? 0 : tr.len * w, ly = tr.vert ? tr.len * h : 0
+    c.globalAlpha = tr.a * 0.5; c.strokeStyle = _rgbaHex(CYAN, tr.a * 0.5)
+    c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + lx, y0 + ly); c.stroke()
+    const p = (t * tr.speed + tr.phase) % 1
+    c.globalAlpha = Math.max(0, 0.9 * (1 - Math.abs(p - 0.5) * 1.4))
+    c.shadowColor = CYAN; c.shadowBlur = 5; c.fillStyle = "#EAF7FF"
+    c.fillRect(x0 + lx * p - 0.8, y0 + ly * p - 0.8, 1.8, 1.8); c.shadowBlur = 0
+  }
+  for (const n of fx.nodes) {
+    const glow = 0.55 + 0.45 * Math.sin(t * 0.08 * n.flick + n.phase)
+    c.globalAlpha = Math.max(0, Math.min(1, n.a * glow))
+    c.shadowColor = CYAN; c.shadowBlur = 4; c.fillStyle = "#B4E4F5"
+    c.fillRect(x + n.nx * w - n.r / 2, y + n.ny * h - n.r / 2, n.r, n.r)
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.11)
+  const eyeR = Math.max(1.3, w * 0.026), eyeY = y + h * 0.11
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse)); c.shadowColor = CYAN; c.shadowBlur = 7; c.fillStyle = "#EAF7FF"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// IRON MAN 3 — Void Sovereign overlay (skins). Same circuit-particle theme as IM1/IM2 (the trio shares the
+// Void motif) with its own seed + a warmer gold-cyan tint for the GBA suit. IM3-only.
+function seedIronMan3VoidField(fighter) {
+  const rnd = _mulberry32(0x3CC0C0DE)
+  const halfWidth = ny => ny < 0.22 ? 0.18 : (ny < 0.66 ? 0.30 : 0.26)
+  const nodes = []
+  for (let i = 0; i < 14; i++) {
+    const ny = 0.06 + rnd() * 0.9, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    nodes.push({ nx, ny, r: 1 + rnd() * 1.8, phase: rnd() * Math.PI * 2, flick: 0.5 + rnd() * 1.4, a: 0.4 + rnd() * 0.5 })
+  }
+  const traces = []
+  for (let i = 0; i < 12; i++) {
+    const ny = 0.08 + rnd() * 0.84, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    traces.push({ nx, ny, len: 0.06 + rnd() * 0.16, vert: rnd() < 0.5, speed: 0.004 + rnd() * 0.011, phase: rnd() * Math.PI * 2, a: 0.3 + rnd() * 0.4 })
+  }
+  fighter._ironMan3VoidFX = { nodes, traces }
+}
+function drawIronMan3VoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "ironMan3VoidSovereign") return
+  if (!fighter._ironMan3VoidFX) seedIronMan3VoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._ironMan3VoidFX
+  const t = (fighter._ironMan3VoidClock = (fighter._ironMan3VoidClock || 0) + 1)
+  const CYAN = "#5FD8E8"
+  c.save(); c.lineWidth = 1
+  const rcx = x + w * 0.5, rcy = y + h * 0.42, rr = Math.max(3, w * 0.13) * (0.72 + 0.28 * Math.sin(t * 0.09))
+  const rg = c.createRadialGradient(rcx, rcy, 0, rcx, rcy, rr)
+  rg.addColorStop(0, _rgbaHex("#EAFBFF", 0.5)); rg.addColorStop(0.5, _rgbaHex(CYAN, 0.2)); rg.addColorStop(1, _rgbaHex(CYAN, 0))
+  c.fillStyle = rg; c.beginPath(); c.arc(rcx, rcy, rr, 0, Math.PI * 2); c.fill()
+  for (const tr of fx.traces) {
+    const x0 = x + tr.nx * w, y0 = y + tr.ny * h
+    const lx = tr.vert ? 0 : tr.len * w, ly = tr.vert ? tr.len * h : 0
+    c.globalAlpha = tr.a * 0.5; c.strokeStyle = _rgbaHex(CYAN, tr.a * 0.5)
+    c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + lx, y0 + ly); c.stroke()
+    const p = (t * tr.speed + tr.phase) % 1
+    c.globalAlpha = Math.max(0, 0.9 * (1 - Math.abs(p - 0.5) * 1.4))
+    c.shadowColor = CYAN; c.shadowBlur = 5; c.fillStyle = "#EAFBFF"
+    c.fillRect(x0 + lx * p - 0.8, y0 + ly * p - 0.8, 1.8, 1.8); c.shadowBlur = 0
+  }
+  for (const n of fx.nodes) {
+    const glow = 0.55 + 0.45 * Math.sin(t * 0.08 * n.flick + n.phase)
+    c.globalAlpha = Math.max(0, Math.min(1, n.a * glow))
+    c.shadowColor = CYAN; c.shadowBlur = 4; c.fillStyle = "#A8ECF5"
+    c.fillRect(x + n.nx * w - n.r / 2, y + n.ny * h - n.r / 2, n.r, n.r)
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.11)
+  const eyeR = Math.max(1.3, w * 0.026), eyeY = y + h * 0.12
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse)); c.shadowColor = CYAN; c.shadowBlur = 7; c.fillStyle = "#EAFBFF"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// GWEN — Void Sovereign overlay (skins). Part B: drifting pink/violet MANA motes (her own Anodite power) +
+// faint violet mana glow pools + glowing pink eyes, ON TOP of the void-black recolor. gwen-only; skinId gate.
+function seedGwenVoidField(fighter) {
+  const rnd = _mulberry32(0x67E44A0D)
+  const halfWidth = ny => ny < 0.20 ? 0.14 : (ny < 0.66 ? 0.22 : 0.18)
+  const motes = []
+  for (let i = 0; i < 20; i++) {
+    const ny = 0.05 + rnd() * 0.92, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.1, rise: 0.0011 + rnd() * 0.0026, swayAmp: 0.010 + rnd() * 0.024,
+                 swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2, a: 0.4 + rnd() * 0.45, flick: 0.6 + rnd() * 1.3,
+                 pink: rnd() < 0.55 })
+  }
+  const glows = []
+  for (let i = 0; i < 3; i++) glows.push({ nx: 0.36 + rnd() * 0.28, ny: 0.42 + rnd() * 0.42, r: 0.18 + rnd() * 0.14, a: 0.05 + rnd() * 0.06 })
+  fighter._gwenVoidFX = { motes, glows }
+}
+function drawGwenVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "gwenVoidSovereign") return
+  if (!fighter._gwenVoidFX) seedGwenVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._gwenVoidFX
+  const t = (fighter._gwenVoidClock = (fighter._gwenVoidClock || 0) + 1)
+  c.save()
+  for (const g of fx.glows) {
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex("#C060E0", g.a)); grad.addColorStop(1, _rgbaHex("#C060E0", 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.04 * m.swayFreq + m.phase)
+    const glow = 0.55 + 0.45 * Math.sin(t * 0.07 * m.flick + m.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.shadowColor = m.pink ? "#FF7FD0" : "#B060E0"; c.shadowBlur = 4; c.fillStyle = m.pink ? "#FFA8E0" : "#C888F0"
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.10), eyeR = Math.max(1.3, w * 0.028), eyeY = y + h * 0.10
+  c.globalAlpha = Math.max(0, Math.min(1, 0.88 * pulse)); c.shadowColor = "#FF7FD0"; c.shadowBlur = 7; c.fillStyle = "#FFB0E4"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// MILES MORALES — Void Sovereign overlay (skins). Part B: drifting white WEB-STRAND threads (his own web
+// motif) + faint pale-blue glow + glowing white eye-lenses, ON TOP of the void-black suit. miles-only.
+function seedMilesVoidField(fighter) {
+  const rnd = _mulberry32(0x71105EB0)
+  const halfWidth = ny => ny < 0.22 ? 0.15 : (ny < 0.66 ? 0.24 : 0.20)
+  const strands = []
+  for (let i = 0; i < 14; i++) {
+    const ny = 0.06 + rnd() * 0.9, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    strands.push({ nx, ny, len: 0.10 + rnd() * 0.14, ang: rnd() * Math.PI, rise: 0.0012 + rnd() * 0.0026,
+                   swayAmp: 0.008 + rnd() * 0.018, swayFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2,
+                   a: 0.3 + rnd() * 0.4, flick: 0.6 + rnd() * 1.3 })
+  }
+  const glows = []
+  for (let i = 0; i < 3; i++) glows.push({ nx: 0.36 + rnd() * 0.28, ny: 0.42 + rnd() * 0.44, r: 0.18 + rnd() * 0.14, a: 0.05 + rnd() * 0.06 })
+  fighter._milesVoidFX = { strands, glows }
+}
+function drawMilesVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "milesVoidSovereign") return
+  if (!fighter._milesVoidFX) seedMilesVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._milesVoidFX
+  const t = (fighter._milesVoidClock = (fighter._milesVoidClock || 0) + 1)
+  c.save()
+  for (const g of fx.glows) {
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex("#DCE6FF", g.a)); grad.addColorStop(1, _rgbaHex("#DCE6FF", 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.strokeStyle = "#EAF0FF"; c.lineWidth = Math.max(1, w * 0.010); c.lineCap = "round"
+  c.shadowColor = "#BFE0FF"; c.shadowBlur = 4
+  for (const s of fx.strands) {
+    let ny = s.ny - t * s.rise; ny = ny - Math.floor(ny)
+    const nx = s.nx + s.swayAmp * Math.sin(t * 0.04 * s.swayFreq + s.phase)
+    const glow = 0.55 + 0.45 * Math.sin(t * 0.06 * s.flick + s.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, s.a * glow * fade))
+    const cx = x + nx * w, cy = y + ny * h, L = s.len * Math.max(w, h)
+    const dx = Math.cos(s.ang) * L * 0.5, dy = Math.sin(s.ang) * L * 0.5
+    c.beginPath(); c.moveTo(cx - dx, cy - dy); c.lineTo(cx + dx, cy + dy); c.stroke()
+    c.beginPath(); c.moveTo(cx - dy * 0.4, cy + dx * 0.4); c.lineTo(cx + dy * 0.4, cy - dx * 0.4); c.stroke()
+  }
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.09), eyeR = Math.max(1.4, w * 0.03), eyeY = y + h * 0.12
+  c.globalAlpha = Math.max(0, Math.min(1, 0.85 * pulse)); c.shadowColor = "#CFE4FF"; c.shadowBlur = 7; c.fillStyle = "#F2F8FF"
+  for (const ex of [0.42, 0.58]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// BATMAN / DARK KNIGHT — Void Sovereign overlay (skins). Part B: rising dark SHADOW/SMOKE tendrils + faint
+// cool glow + glowing white cowl-eyes, ON TOP of the void-black silhouette. dark_knight-only.
+function seedDarkKnightVoidField(fighter) {
+  const rnd = _mulberry32(0x8A7C0BA7)
+  const halfWidth = ny => ny < 0.22 ? 0.16 : (ny < 0.66 ? 0.26 : 0.22)
+  const tendrils = []
+  for (let i = 0; i < 12; i++) {
+    const ny = 0.10 + rnd() * 0.85, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    tendrils.push({ nx, ny, len: 0.10 + rnd() * 0.16, rise: 0.0010 + rnd() * 0.0022, wob: 0.02 + rnd() * 0.03,
+                    wobFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2, a: 0.24 + rnd() * 0.34, wide: 1 + rnd() * 1.6 })
+  }
+  fighter._darkKnightVoidFX = { tendrils }
+}
+function drawDarkKnightVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "darkKnightVoidSovereign") return
+  if (!fighter._darkKnightVoidFX) seedDarkKnightVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._darkKnightVoidFX
+  const t = (fighter._darkKnightVoidClock = (fighter._darkKnightVoidClock || 0) + 1)
+  c.save(); c.lineCap = "round"
+  for (const tr of fx.tendrils) {                     // rising wavy smoke tendrils
+    let ny = tr.ny - t * tr.rise; ny = ny - Math.floor(ny)
+    const fade = ny < 0.14 ? ny / 0.14 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, tr.a * fade))
+    c.strokeStyle = "#3A3A48"; c.lineWidth = tr.wide; c.shadowColor = "#5A5A70"; c.shadowBlur = 5
+    c.beginPath()
+    const seg = 5, L = tr.len * h
+    for (let k = 0; k <= seg; k++) {
+      const f = k / seg, yy = y + ny * h - f * L
+      const xx = x + (tr.nx + tr.wob * Math.sin(t * 0.05 * tr.wobFreq + tr.phase + f * 3.0)) * w
+      if (k === 0) c.moveTo(xx, yy); else c.lineTo(xx, yy)
+    }
+    c.stroke()
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.10), eyeR = Math.max(1.3, w * 0.026), eyeY = y + h * 0.11
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse)); c.shadowColor = "#CFE4FF"; c.shadowBlur = 6; c.fillStyle = "#EAF0FF"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// VILGAX — Void Sovereign overlay (skins). Part B: rising dark TENTACLE-tendrils (his tentacle-beard motif) +
+// faint green conqueror glow + glowing red eyes, ON TOP of the void-black silhouette. vilgax-only.
+function seedVilgaxVoidField(fighter) {
+  const rnd = _mulberry32(0x9B1A7C43)
+  const halfWidth = ny => ny < 0.24 ? 0.18 : (ny < 0.66 ? 0.28 : 0.24)
+  const tendrils = []
+  for (let i = 0; i < 13; i++) {
+    const ny = 0.12 + rnd() * 0.82, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    tendrils.push({ nx, ny, len: 0.09 + rnd() * 0.14, rise: 0.0009 + rnd() * 0.0020, wob: 0.025 + rnd() * 0.035,
+                    wobFreq: 0.4 + rnd() * 1.0, phase: rnd() * Math.PI * 2, a: 0.24 + rnd() * 0.34, wide: 1.2 + rnd() * 1.8 })
+  }
+  const glows = []
+  for (let i = 0; i < 3; i++) glows.push({ nx: 0.36 + rnd() * 0.28, ny: 0.42 + rnd() * 0.44, r: 0.18 + rnd() * 0.14, a: 0.05 + rnd() * 0.06 })
+  fighter._vilgaxVoidFX = { tendrils, glows }
+}
+function drawVilgaxVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "vilgaxVoidSovereign") return
+  if (!fighter._vilgaxVoidFX) seedVilgaxVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._vilgaxVoidFX
+  const t = (fighter._vilgaxVoidClock = (fighter._vilgaxVoidClock || 0) + 1)
+  c.save(); c.lineCap = "round"
+  for (const g of fx.glows) {
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex("#2E8C4A", g.a)); grad.addColorStop(1, _rgbaHex("#2E8C4A", 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  for (const tr of fx.tendrils) {                     // rising writhing tentacle tendrils
+    let ny = tr.ny - t * tr.rise; ny = ny - Math.floor(ny)
+    const fade = ny < 0.14 ? ny / 0.14 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, tr.a * fade))
+    c.strokeStyle = "#123A22"; c.lineWidth = tr.wide; c.shadowColor = "#2E8C4A"; c.shadowBlur = 5
+    c.beginPath()
+    const seg = 5, L = tr.len * h
+    for (let k = 0; k <= seg; k++) {
+      const f = k / seg, yy = y + ny * h - f * L
+      const xx = x + (tr.nx + tr.wob * Math.sin(t * 0.055 * tr.wobFreq + tr.phase + f * 3.4)) * w
+      if (k === 0) c.moveTo(xx, yy); else c.lineTo(xx, yy)
+    }
+    c.stroke()
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.11), eyeR = Math.max(1.3, w * 0.026), eyeY = y + h * 0.11
+  c.globalAlpha = Math.max(0, Math.min(1, 0.9 * pulse)); c.shadowColor = "#FF2A18"; c.shadowBlur = 7; c.fillStyle = "#FF6048"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// IPPO — Void Sovereign overlay (skins). Part B: drifting white/pale-blue SWEAT/IMPACT-spark motes (a boxer's
+// motif, no energy aura) + faint pale glow + glowing pale eyes, ON TOP of the void-black silhouette. ippo-only.
+function seedIppoVoidField(fighter) {
+  const rnd = _mulberry32(0xA9905EE7)
+  const halfWidth = ny => ny < 0.22 ? 0.15 : (ny < 0.66 ? 0.24 : 0.20)
+  const motes = []
+  for (let i = 0; i < 20; i++) {
+    const ny = 0.05 + rnd() * 0.92, nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    motes.push({ nx, ny, r: 1 + rnd() * 2.0, rise: 0.0016 + rnd() * 0.0034, swayAmp: 0.010 + rnd() * 0.020,
+                 swayFreq: 0.5 + rnd() * 1.1, phase: rnd() * Math.PI * 2, a: 0.4 + rnd() * 0.42, flick: 0.7 + rnd() * 1.5 })
+  }
+  const glows = []
+  for (let i = 0; i < 3; i++) glows.push({ nx: 0.36 + rnd() * 0.28, ny: 0.42 + rnd() * 0.44, r: 0.16 + rnd() * 0.12, a: 0.05 + rnd() * 0.05 })
+  fighter._ippoVoidFX = { motes, glows }
+}
+function drawIppoVoidAuraOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "ippoVoidSovereign") return
+  if (!fighter._ippoVoidFX) seedIppoVoidField(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._ippoVoidFX
+  const t = (fighter._ippoVoidClock = (fighter._ippoVoidClock || 0) + 1)
+  c.save()
+  for (const g of fx.glows) {
+    const cx = x + g.nx * w, cy = y + g.ny * h, rad = g.r * Math.max(w, h)
+    const grad = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    grad.addColorStop(0, _rgbaHex("#CFE4FF", g.a)); grad.addColorStop(1, _rgbaHex("#CFE4FF", 0))
+    c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  c.shadowColor = "#DCEBFF"; c.shadowBlur = 4; c.fillStyle = "#F2F8FF"          // sweat/impact-spark motes
+  for (const m of fx.motes) {
+    let ny = m.ny - t * m.rise; ny = ny - Math.floor(ny)
+    const nx = m.nx + m.swayAmp * Math.sin(t * 0.05 * m.swayFreq + m.phase)
+    const glow = 0.5 + 0.5 * Math.sin(t * 0.10 * m.flick + m.phase)
+    const fade = ny < 0.12 ? ny / 0.12 : 1
+    c.globalAlpha = Math.max(0, Math.min(1, m.a * glow * fade))
+    c.fillRect(x + nx * w - m.r / 2, y + ny * h - m.r / 2, m.r, m.r)
+  }
+  c.shadowBlur = 0
+  const pulse = 0.6 + 0.4 * Math.sin(t * 0.10), eyeR = Math.max(1.3, w * 0.026), eyeY = y + h * 0.115
+  c.globalAlpha = Math.max(0, Math.min(1, 0.86 * pulse)); c.shadowColor = "#CFE4FF"; c.shadowBlur = 7; c.fillStyle = "#F2F8FF"
+  for (const ex of [0.44, 0.56]) { c.beginPath(); c.arc(x + ex * w, eyeY, eyeR, 0, Math.PI * 2); c.fill() }
+  c.restore()
+}
+
+// GENOS — EXPOSED CORE overlay (skins, homage to the upgraded chest-core body). A small fixed glowing energy
+// core on the chest (#FFE070 core + white-hot center + soft glow), gently pulsing. Genos-only; gated on skinId.
+function drawGenosExposedCoreOverlay(c, fighter) {
+  if (!c || fighter?.skinId !== "genosExposedCore") return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const t = (fighter._genosCoreClock = (fighter._genosCoreClock || 0) + 1)
+  const cx = x + w * 0.5, cy = y + h * 0.42              // chest position
+  const pulse = 0.7 + 0.3 * Math.sin(t * 0.12)
+  const r = Math.max(2.5, w * 0.07) * pulse
+  c.save()
+  const grad = c.createRadialGradient(cx, cy, 0, cx, cy, r * 2.4)
+  grad.addColorStop(0, _rgbaHex("#FFE070", 0.85)); grad.addColorStop(0.5, _rgbaHex("#FFC21E", 0.35)); grad.addColorStop(1, _rgbaHex("#FFC21E", 0))
+  c.fillStyle = grad; c.beginPath(); c.arc(cx, cy, r * 2.4, 0, Math.PI * 2); c.fill()
+  c.shadowColor = "#FFE070"; c.shadowBlur = 8; c.fillStyle = "#FFE070"
+  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill()
+  c.shadowBlur = 0; c.globalAlpha = 0.95; c.fillStyle = "#FFFFFF"
+  c.beginPath(); c.arc(cx, cy, r * 0.42, 0, Math.PI * 2); c.fill()
+  c.restore()
+}
+
+// THE HANDLER — shikigami cameo-SELECT UI (Stage 4). A compact strip of the row_08 select icons
+// (snake/rabbit/elephant/dragon/toad → the 5 directional shikigami; Divine Dogs = the neutral default)
+// floats above the summoner's head — the prompt's "cameo-select UI" reusing the real row_08 art rather
+// than new icons. Each icon shows its Special DIRECTION, dims when the shikigami is unaffordable (energy <
+// cost), and highlights the one most recently summoned (_handlerLastShikigami). Render-only; handler-only.
+const _handlerIconsHolder = {}
+function _handlerIconsImg() {
+  if (!_handlerIconsHolder.img) { const i = new Image(); i.src = "./handler_shik_icons.png"; _handlerIconsHolder.img = i }
+  return _handlerIconsHolder.img
+}
+const HANDLER_HUD_SLOTS = [
+  { dir: "F", id: "handlerOrochi", cost: 30 },   // snake
+  { dir: "B", id: "handlerDatto",  cost: 28 },   // rabbit
+  { dir: "D", id: "handlerBansho", cost: 45 },   // elephant
+  { dir: "U", id: "handlerNue",    cost: 32 },   // dragon → Nue
+  { dir: "A", id: "handlerToad",   cost: 30 },   // toad
+]
+function drawHandlerShikigamiHUD(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "handler") return
+  if (fighter._mahoragaActive) return                    // Mahoraga form → the adaptation-tracker wheel shows instead
+  const img = _handlerIconsImg()
+  if (!img.complete || !img.naturalWidth) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const cell = img.naturalHeight                       // square cells (59px)
+  const n = HANDLER_HUD_SLOTS.length
+  const d = Math.max(11, w * 0.24)                     // on-screen icon size
+  const gap = d * 0.22
+  const stripW = n * d + (n - 1) * gap
+  const bx = x + (w - stripW) / 2
+  const by = y - h * 0.30 - d
+  const energy = fighter.energy || 0
+  c.save()
+  for (let i = 0; i < n; i++) {
+    const slot = HANDLER_HUD_SLOTS[i]
+    const ix = bx + i * (d + gap)
+    const afford = energy >= slot.cost
+    const last = fighter._handlerLastShikigami === slot.id
+    c.globalAlpha = afford ? 0.9 : 0.32
+    c.fillStyle = "#c9cfda"; c.fillRect(ix, by, d, d)                       // light chip so the black silhouette reads
+    c.globalAlpha = afford ? 1 : 0.4
+    c.drawImage(img, i * cell, 0, cell, cell, ix, by, d, d)                 // the row_08 icon
+    if (last) { c.globalAlpha = 0.95; c.strokeStyle = "#ffcf5a"; c.lineWidth = 2; c.strokeRect(ix - 1, by - 1, d + 2, d + 2) }
+    c.globalAlpha = afford ? 0.95 : 0.4; c.fillStyle = "#ffffff"
+    c.font = `bold ${Math.max(7, Math.round(d * 0.42))}px monospace`; c.textAlign = "center"; c.textBaseline = "top"
+    c.fillText(slot.dir, ix + d / 2, by + d + 1)                            // input direction
+  }
+  c.restore()
+}
+
+// THE HANDLER — MAHORAGA adaptation-tracker UI (Stage 5). The row_01 golden Dharma WHEEL floats above the
+// transformed Handler and SPINS (faster the more he has adapted — Mahoraga's wheel = his adaptation in
+// canon), with an "ADAPTED ×N" count (distinct moves adapted → his growth), the last-adapted move, and a
+// form-duration bar. This is the prompt's "adaptation-tracker UI (row_01 reticle)". Handler-form-only.
+const _mahoragaWheelHolder = {}
+function _mahoragaWheelImg() {
+  if (!_mahoragaWheelHolder.img) { const i = new Image(); i.src = "./mahoraga_wheel_icon.png"; _mahoragaWheelHolder.img = i }
+  return _mahoragaWheelHolder.img
+}
+function drawHandlerMahoragaHUD(c, fighter) {
+  if (!c || !fighter?._mahoragaActive) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const cx = x + w / 2, wheelY = y - h * 0.24
+  const wd = Math.max(16, w * 0.42)
+  const distinct = fighter._mahoragaDistinct || 0
+  c.save()
+  // spinning golden Dharma Wheel
+  const img = _mahoragaWheelImg()
+  if (img.complete && img.naturalWidth) {
+    c.save(); c.translate(cx, wheelY); c.rotate((fighter._mahoragaWheel || 0) * 0.05)
+    c.globalAlpha = 0.95; c.shadowColor = "#ffcf5a"; c.shadowBlur = 8
+    c.drawImage(img, -wd / 2, -wd / 2, wd, wd); c.restore()
+  }
+  // ADAPTED ×N + last-adapted move
+  c.globalAlpha = 0.95; c.shadowBlur = 0; c.fillStyle = "#ffe08a"; c.textAlign = "center"; c.textBaseline = "bottom"
+  c.font = `bold ${Math.max(8, Math.round(h * 0.085))}px monospace`
+  c.fillText(`ADAPTED ×${distinct}`, cx, wheelY - wd * 0.55)
+  if (fighter._mahoragaLastMove) {
+    c.globalAlpha = 0.8; c.fillStyle = "#fff2cc"; c.font = `${Math.max(7, Math.round(h * 0.06))}px monospace`
+    c.fillText(String(fighter._mahoragaLastMove).slice(0, 14), cx, wheelY - wd * 0.55 + Math.max(8, h * 0.09))
+  }
+  // duration bar
+  const frac = Math.max(0, Math.min(1, (fighter._mahoragaTimer || 0) / (fighter._mahoragaMax || 1)))
+  const bw = w * 0.9, bh = Math.max(3, h * 0.03), bx = cx - bw / 2, by = wheelY + wd * 0.55
+  c.globalAlpha = 0.9; c.fillStyle = "#3a2a10"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+  c.fillStyle = "#111"; c.fillRect(bx, by, bw, bh)
+  c.fillStyle = "#ffcf5a"; c.fillRect(bx, by, bw * frac, bh)
   c.restore()
 }
 
@@ -8649,6 +10307,14 @@ function updateFighterState(fighter) {
   if (updated._miwaVortex && ++updated._miwaVortex.t >= updated._miwaVortex.max) updated._miwaVortex = null   // Miwa Rapid Slash Vortex FX lifetime
   applySupermanModeSystem(updated)      // Superman Solar Flare / Kryptonian Overload: continuous Solar Energy drain + auto-revert at 0
   applyVegetaFormSystem(updated)     // Vegeta Super Saiyan: continuous per-frame energy drain + instant auto-revert at 0
+  applyGohanFormSystem(updated)      // Teen Gohan SSJ2: continuous Ki drain + auto-revert at 0 + revert-on-knockdown (art-faithful)
+  applyFriezaFormSystem(updated)     // Frieza Golden/Black: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
+  applyPiccoloFormSystem(updated)    // Piccolo Potential/Orange: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
+  applyVegetaDarkFormSystem(updated) // Dark Vegeta dark-aura: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
+  applyVegitoUISystem(updated)       // Vegito Ultra Instinct -Sign-: passive meter drain → evasion while >0 / health-bleed at 0 / recharge (+evasion off) while charging; sets _uiTier idle-tell
+  if (updated._milesStealthTimer > 0) updated._milesStealthTimer--   // Miles Camouflage evasion window (combat.shouldMilesStealthEvade)
+  if (updated._milesDashCd > 0)       updated._milesDashCd--         // Miles Down+B dash-kick cooldown (Charge O)
+  applyGokuFormSystem(updated)       // Goku SSJ ladder: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   applyOmniManFlightSystem(updated)  // Omni-Man Flight: shared-pool Smart Atoms drain while flying → forced descent at 0 → landing-recovery window (BEFORE applyGravity, which then hovers/falls him)
   updateMiscTimers(updated)
@@ -9530,6 +11196,7 @@ function renderHybridFighter(fighter) {
     drawGodspeedAura(c, fighter)       // Killua Godspeed electric-afterimage trail, behind the body (Killua only)
     drawFlashAura(c, fighter)          // Flash — Flash Time red/gold afterimage trail, behind the body (Flash only)
     drawGonAdultAura(c, fighter)       // Gon — Adult Form green Nen aura/afterimage, behind the body (Gon only)
+    drawGokuFormAura(c, fighter)       // Goku — SSJ ladder transformed-state aura + label (procedural box indicator; Goku only, transformIndex>0)
     drawMiwaVortex(c, fighter)         // Miwa — Rapid Slash Vortex FX, a separate overlay layer in front of the body (Miwa only)
     drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
@@ -9545,8 +11212,23 @@ function renderHybridFighter(fighter) {
     drawBorutoKoteFX(c, fighter)        // Boruto — Kote ultimate: gauntlet + hand-tracked muzzle-flash / part-3 recoil spray, ON TOP of the body (Boruto only)
     drawBorutoKarmaOverlay(c, fighter)  // Boruto — Momoshiki Karma form: blue seal markings + glowing blue eyes, ON TOP of the magenta form-swap (Boruto only, _karmaActive)
     drawKurapikaEmperorOverlay(c, fighter)  // Kurapika — Emperor Time: glowing scarlet eyes + ET-countdown duration HUD, ON TOP of the Set B form-swap (Kurapika only, _emperorActive)
+    drawGenosOverdriveOverlay(c, fighter)    // Genos — Overdrive: rising flame aura + OVERDRIVE-countdown duration HUD (Genos only, _genosOverdriveActive)
+    drawVegetaDarkAuraOverlay(c, fighter)    // Dark Vegeta — dark-aura form: rising purple aura + "DARK" tag (vegeta_dark only, _darkAuraActive)
+    drawVegitoUIOverlay(c, fighter)          // Vegito — Ultra Instinct: faint live-dodge body shimmer only (head meter BAR removed per owner; mechanic + idle-pose tell unchanged)
+    drawVegitoVoidAuraOverlay(c, fighter)    // Vegito — Void Sovereign: rising silver-white energy wisps (UI-streak motif) + glow pools, ON TOP of the void-black recolor (Vegito voidsovereign skin only)
+    drawIronMan3ChargeFX(c, fighter)         // Iron Man 3 — "Charging Shot" windup FX over the fist while the 3-tier charge is held (cyan→yellow ramp; iron_man_3 only)
+    drawIronMan3SuperNova(c, fighter)        // Iron Man 3 — "Super Nova" ULTIMATE: screen-filling expanding-ring nova ("Kills all onscreen Enemies"); iron_man_3 only, _ironMan3NovaTimer
+    drawDarkKnightRageOverlay(c, fighter)    // Batman (dark_knight) — Rage Mode: crimson fury aura + RAGE-countdown duration HUD (dark_knight only, _dkRageActive)
+    drawGoldenFriezaOverlay(c, fighter)      // Frieza — Golden Frieza: rising GOLD ki aura + GOLDEN-countdown HUD (red in the drop-off) (Frieza only, _goldenFriezaActive)
+    drawBlackFriezaOverlay(c, fighter)       // Frieza — Black Frieza ult: dark violet-black burst rings during the cinematic (Frieza only, _blackFriezaActive)
+    drawGenosVoidAuraOverlay(c, fighter)     // Genos — Void Sovereign skin: cybernetic circuit/data-line field + glowing yellow eyes (skinId gate)
+    drawFriezaVoidAuraOverlay(c, fighter)    // Frieza — Void Sovereign skin: slow-drifting cosmic star-motes + nebula glows (seeded once; skinId gate)
+    drawGenosExposedCoreOverlay(c, fighter)  // Genos — Exposed Core skin: glowing chest energy-core (skinId gate)
+    drawHandlerShikigamiHUD(c, fighter)     // The Handler — shikigami cameo-select icon strip (row_08 icons) above the head (handler only)
+    drawHandlerMahoragaHUD(c, fighter)      // The Handler — Mahoraga adaptation-tracker: spinning Dharma Wheel + ADAPTED ×N + duration (handler Mahoraga form only)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
+    drawSupermanVoidStarfield(c, fighter)  // Superman Void Sovereign (all 4 variants) — drifting star-field, ON TOP of the void sprite
     drawEmberOverlay(c, fighter)        // Rengoku Void Ember — drifting rising embers, ON TOP of the void sprite
     drawPortalVoidOverlay(c, fighter)   // Rick Portal Void — curling green portal swirls, ON TOP of the void sprite
     drawVoidHunterOverlay(c, fighter)   // Maki Void Hunter — drifting stars + swirling red/violet nebulae, ON TOP of the void sprite
@@ -9562,11 +11244,16 @@ function renderHybridFighter(fighter) {
     drawHiruzenVoidAuraOverlay(c, fighter)   // Hiruzen Eternal Vigil Void — drifting amber-gold cosmic motes + glowing amber eyes (Alien-X), ON TOP of the void-black silhouette
     drawOnokiVoidAuraOverlay(c, fighter)     // Onoki Eternal Void — drifting pale rock-dust motes + amber glow + glowing amber eyes (Alien-X), ON TOP of the void-black Dust-Release silhouette
     drawDeathstrokeVoidAuraOverlay(c, fighter)  // Deathstroke Void Sovereign — drifting ash+ember battlefield particles + ember glow + his iconic SINGLE glowing eye (Alien-X), ON TOP of the void-black mercenary silhouette
+    drawGohanVoidAuraOverlay(c, fighter)     // Teen Gohan Void Sovereign — drifting pale-lavender/white KI-CHARGE wisps + faint purple ki glow + glowing pale-purple eyes (Alien-X), ON TOP of the void-black silhouette
     drawBrainiacVoidAuraOverlay(c, fighter)  // Brainiac Void Sovereign — drifting binary/data-glyph fragments (0/1) + cyan-green data glow + glowing red diode-eyes (Alien-X), ON TOP of the void-black Coluan silhouette
     drawGreenLanternVoidAuraOverlay(c, fighter)  // Green Lantern Void Sovereign — drifting cosmic star-field (white/cyan/violet twinkles) + nebula glow + glowing green ring-light eyes (Alien-X), ON TOP of the void-black Corps silhouette
     drawAltSukunaVoidAuraOverlay(c, fighter)  // Alternate Sukuna Void Sovereign — slow-falling cherry-blossom petals + crimson cursed glow + glowing crimson eyes (Alien-X), ON TOP of the void-black cursed silhouette
     drawAoiTodoVoidAuraOverlay(c, fighter)    // Aoi Todo Void Sovereign — expanding clap-shockwave rings (Boogie Woogie) + pale-blue teleport afterimage streaks + glowing pale-blue eyes (Alien-X), ON TOP of the void-black cursed silhouette
     drawYutaVoidAuraOverlay(c, fighter)       // Yuta Void Sovereign — drifting pale-cyan cursed-energy wisps + dark Rika shadow-tendrils writhing up from the feet + glowing pale-cyan eyes (Alien-X), ON TOP of the void-black cursed silhouette
+    drawGotenksVoidAuraOverlay(c, fighter)    // Gotenks Void Sovereign — drifting pale-blue GHOST-WISPS (tiny Super Ghost Kamikaze silhouettes) + blue glow + glowing pale-blue eyes (Alien-X), ON TOP of the void-black SS silhouette
+    drawVegetaDarkVoidAuraOverlay(c, fighter) // Dark Vegeta Void Sovereign — drifting purple ki-energy wisps (Villainous-Mode dark-aura motif #9b30c9) + purple glow + glowing violet eyes (Alien-X), ON TOP of the void-black silhouette
+    drawPiccoloVoidAuraOverlay(c, fighter)    // Piccolo Void Sovereign — drifting pale green-white SPORE/blossom motes (Namekian plant-biology nod) + green ki glow + glowing green eyes (Alien-X), ON TOP of the void-black Namekian silhouette
+    drawBardockVoidAuraOverlay(c, fighter)    // Bardock Void Sovereign — drifting fiery orange-white ki wisps (Saiyan ki / Rebellion-blast motif) + warm glow + glowing amber eyes (Alien-X), ON TOP of the void-black Saiyan silhouette
     drawYamamotoVoidAuraOverlay(c, fighter)  // Yamamoto Eternal Void — drifting pale-blue-white Ryūjin Jakka embers + pale-blue glow + glowing pale-blue eyes (Alien-X), ON TOP of the void-black silhouette
     drawMayuriVoidAuraOverlay(c, fighter)    // Mayuri Eternal Void — drifting toxic poison-green venom motes + green glow + burning green eyes (Alien-X), ON TOP of the void-black silhouette
     drawByakuyaVoidAuraOverlay(c, fighter)   // Byakuya Eternal Void — drifting Senbonzakura petal-pink motes + reiatsu-blue glow + glowing pale-blue eyes (Alien-X), ON TOP of the void-black noble silhouette
@@ -9579,6 +11266,15 @@ function renderHybridFighter(fighter) {
     drawMorpherVoidOverlay(c, fighter)       // Red Ranger Morpher Void — drifting morpher-red particles + morph-flash pulse-rings, ON TOP of the void-black sprite
     drawKamuiVoidOverlay(c, fighter)         // Tobi Kamui Void — drifting violet/red particles + rotating Kamui portal swirl-pulses, ON TOP of the void-black sprite
     drawSpidermanVoidAuraOverlay(c, fighter) // Spider-Man Void Sovereign — drifting white WEB-STRAND threads (his own web motif) + pale-blue glow + glowing white eye-lenses, ON TOP of the void-black suit
+    drawIronManVoidAuraOverlay(c, fighter)   // Iron Man (1) Void Sovereign — drifting repulsor-cyan circuit/data-lines (arc-reactor tech motif) + chest reactor glow + glowing cyan-white faceplate eyes, ON TOP of the void-black armour
+    drawIronMan2VoidAuraOverlay(c, fighter)  // Iron Man 2 Void Sovereign — same circuit/data-line theme, cooler steel-cyan tint for the bulky Data East suit
+    drawIronMan3VoidAuraOverlay(c, fighter)  // Iron Man 3 Void Sovereign — same circuit/data-line theme, warmer gold-cyan tint for the GBA suit
+    drawGwenVoidAuraOverlay(c, fighter)       // Gwen Void Sovereign — drifting pink/violet mana motes + violet glow + glowing pink eyes (Alien-X), ON TOP of the void-black silhouette
+    drawMilesVoidAuraOverlay(c, fighter)      // Miles Void Sovereign — drifting white WEB-STRAND threads (his web motif) + pale-blue glow + glowing white eye-lenses, ON TOP of the void-black suit
+    drawDarkKnightVoidAuraOverlay(c, fighter) // Batman Void Sovereign — rising dark shadow/smoke tendrils + cool glow + glowing white cowl-eyes, ON TOP of the void-black silhouette
+    drawVilgaxVoidAuraOverlay(c, fighter)     // Vilgax Void Sovereign — rising dark tentacle-tendrils (tentacle-beard motif) + green glow + glowing red eyes, ON TOP of the void-black silhouette
+    drawIppoVoidAuraOverlay(c, fighter)       // Ippo Void Sovereign — drifting white sweat/impact-spark motes (boxer motif) + pale glow + glowing pale eyes, ON TOP of the void-black silhouette
+    drawSpidermanWebSwing(c, fighter)        // Spider-Man WEB-SWING — the web LINE from his hand up to the sky anchor while pendulum-swinging (spiderman only, _swinging)
     drawHashiramaSpecOverlay(c, fighter)     // Hashirama spec skins — glowing eyes (Golden Sage amber / Ashen Reanimation white-blue / White Binding green) + green Wood-Release Void aura, ON TOP of the sprite (self-gates on skinId)
     drawHashiramaMotifOverlay(c, fighter)    // Hashirama motif — gold Senju spiral crest (Senju Spiral) + gold collar/shoulder trim ticks (Golden Sage), stamped on the torso (self-gates on skinId)
     drawEdoReanimOverlay(c, fighter)         // Edo Tensei reanimation — decay mottling + stitched seams over the green-gray reanimated vessel (gated fighter._edoActive)
@@ -12428,11 +14124,11 @@ window.addEventListener("keydown", e => {
   // spuriously trigger a binding vow. Movement itself reads the held key state
   // elsewhere (keys[]/getFighterInput), so skipping repeats here costs nothing.
   if (!e.repeat) {
-    if (p1) { recordDirectionInput(p1, key); recordMotionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key); handleUltimateDown(p1, key); handleSaitamaSpecialDown(p1, key) }
+    if (p1) { recordDirectionInput(p1, key); recordMotionInput(p1, key); detectDoubleTapDashTeleport(p1, key); handleToggleInputs(p1, key); handleUltimateDown(p1, key); handleSaitamaSpecialDown(p1, key); handleGenosSpecialDown(p1, key); handleIronMan2SpecialDown(p1, key); handleIronMan3SpecialDown(p1, key); handleVilgaxSpecialDown(p1, key) }
     if (p2) {
       recordDirectionInput(p2, key)
       recordMotionInput(p2, key)   // motion buffer is gated internally (Naruto-universe only), so this is safe unconditionally for a P2 Naruto/Minato/etc.
-      if (isPvP() || matchConfig.mode !== "vs") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key); handleUltimateDown(p2, key); handleSaitamaSpecialDown(p2, key) }
+      if (isPvP() || matchConfig.mode !== "vs") { detectDoubleTapDashTeleport(p2, key); handleToggleInputs(p2, key); handleUltimateDown(p2, key); handleSaitamaSpecialDown(p2, key); handleGenosSpecialDown(p2, key); handleIronMan2SpecialDown(p2, key); handleIronMan3SpecialDown(p2, key); handleVilgaxSpecialDown(p2, key) }
     }
   }
   if (gameState === GAME_STATES.MATCH_END && key === "enter") resetToStart()
@@ -12453,6 +14149,15 @@ window.addEventListener("keyup", e => {
   // SAITAMA tiered punch-combo: resolve tap vs hold on the Special key RELEASE (no-op for every other char).
   if (p1) handleSaitamaSpecialRelease(p1, key)
   if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleSaitamaSpecialRelease(p2, key)
+  if (p1) handleGenosSpecialRelease(p1, key)
+  if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleGenosSpecialRelease(p2, key)
+  if (p1) handleIronMan2SpecialRelease(p1, key)
+  if (p1) handleIronMan3SpecialRelease(p1, key)
+  if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleIronMan2SpecialRelease(p2, key)
+  if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleIronMan3SpecialRelease(p2, key)
+  // VILGAX tiered Plasma Blast: resolve tap vs hold on the Special key RELEASE (no-op for every other char).
+  if (p1) handleVilgaxSpecialRelease(p1, key)
+  if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleVilgaxSpecialRelease(p2, key)
 })
 
 // ------------------------------------------------------------------
@@ -12599,6 +14304,7 @@ gameLoop()
     key: f.rosterKey, x: f.x, y: f.y, w: f.w, h: f.h, facing: f.facing,
     energy: f.energy, maxEnergy: f.maxEnergy, health: f.health, maxHealth: f.maxHealth,
     vy: f.vy || 0, vx: f.vx || 0, grounded: !!(f.onGround ?? f.grounded), canJump: f.canJump !== false,
+    swinging: !!f._swinging, swTimer: f._swTimer || 0,   // Spider-Man web-swing state
     airHits: f.airHits || 0, isLaunched: !!f.isLaunched,   // air-combo counter + launched state (Up-Attack launcher tests)
     charging:         !!f.isCharging,   // universal charge-lockout state (charging = fully vulnerable)
     fourLegsActive:   !!f._fourLegsActive,   // Kiba Four Legs (Shikyaku no Jutsu) buff active (Stage 4)
@@ -12650,8 +14356,25 @@ gameLoop()
     kurapikaCountering: f._kurapikaCountering || 0, // Kurapika Steal Chain parry-window remaining
     emperorActive:    !!f._emperorActive,           // Kurapika Emperor Time form active
     emperorTimer:     f._emperorTimer || 0,         // Emperor Time duration remaining
+    genosOverdrive:   !!f._genosOverdriveActive,    // Genos Overdrive timed power-up active
+    genosOverdriveTimer: f._genosOverdriveTimer || 0,
+    dkRage:           !!f._dkRageActive,            // Batman (dark_knight) Rage Mode timed transform active
+    dkRageTimer:      f._dkRageTimer || 0,
+    dkRageSkin:       !!f._skinAnim,                // rage/mech swap _skinAnim → truthy while transformed
+    goldenFrieza:     !!f._goldenFriezaActive,      // Frieza Golden Frieza transform active (drain-based)
+    blackFrieza:      !!f._blackFriezaActive,       // Frieza Black Frieza transform active (drain-based, ceiling tier)
+    friezaForm:       f._blackFriezaActive ? "black" : (f._goldenFriezaActive ? "golden" : "base"),
+    piccoloPotential: !!f._piccoloPotentialActive,   // Piccolo Potential Unleashed (Tier 1) transform active (drain-based)
+    piccoloOrange:    !!f._piccoloOrangeActive,       // Piccolo Orange Piccolo (Tier 2) transform active (drain-based, higher tier)
+    piccoloForm:      f._piccoloOrangeActive ? "orange" : (f._piccoloPotentialActive ? "potential" : "base"),
+    genosOverheatVuln:   f._genosOverheatVuln || 0, // Genos post-Overdrive overheat vulnerability window
+    damageMult:       f.damageMultiplier || 1,
+    speedMult:        f.speedMultiplier || 1,
     emperorRevertVuln: f._emperorRevertVuln || 0,   // Kurapika post-Emperor-Time disorientation window
     currentForm:      f.currentForm || null,        // active transformation form key
+    mahoragaActive:   !!f._mahoragaActive,          // The Handler Mahoraga adaptation form active
+    mahoragaDistinct: f._mahoragaDistinct || 0,     // # distinct moves Mahoraga has adapted to (drives growth)
+    mahoragaTimer:    f._mahoragaTimer || 0,        // Mahoraga form remaining frames (auto-revert at 0)
     damageMultiplier: f.damageMultiplier || 1,      // active form damage buff
     reaperSeal:       f._reaperSealTimer || 0,      // Hiruzen Reaper Death Seal cinematic countdown (Stage 4)
     oroSummon:        f._oroSummonTimer || 0,       // Orochimaru Summon ultimate cinematic countdown (Stage 5)
@@ -12664,6 +14387,8 @@ gameLoop()
     dmgMult:          f.damageMultiplier || 1,       // current damage multiplier (verify transform buff/revert)
     defMult:          f.defenseMultiplier || 1,       // current defense multiplier (verify Brainiac Electric Shield buff/revert)
     brainiacShield:   !!f._brainiacShieldActive,      // Brainiac Electric Shield defensive-buff active
+    milesStealthTimer: f._milesStealthTimer || 0,     // Miles Camouflage evasion window remaining frames
+    milesDashCd:      f._milesDashCd || 0,            // Miles Down+B dash-kick cooldown remaining
     ultCooldown:      f.ultimateCooldown || 0,       // universal ultimate cooldown
     spriteSheet:      f.spriteHandler?._actionDef?.sheet ?? null,
     spriteFrames:     f.spriteHandler?._actionDef?.frames ?? null,
@@ -12758,9 +14483,12 @@ gameLoop()
     sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
     start:       startHarnessMatch,
     skipToBattle,
+    // Jump to the REAL character-select grid for a universe (renders the same screen a player sees).
+    // Returns the grid roster keys so a test can assert a character is present/selectable.
+    gotoCharacterSelect: (universe) => { matchConfig.selectedUniverse = universe; gameState = GAME_STATES.SELECT_CHARACTER; return getCharacterRosterForSelectedUniverse().map(c => c.rosterKey || c.id || c.key) },
     // Read a character's static definition (intro pool + animation sheets + stats) — test-only
     // window into characters.js data (used by per-character build harnesses, e.g. intro-pool checks).
-    charDef: (key) => { const c = characters[key]; if (!c) return null; return { universe: c.universe || null, spriteScale: c.spriteScale ?? null, hasSprites: !!c.hasSprites, introSequencePool: c.introSequencePool || null, introPool: c.introPool || null, introSequence: c.introSequence || null, animationData: Object.fromEntries(Object.entries(c.animationData || {}).map(([k, v]) => [k, { sheet: v.sheet || null, frames: v.frames || null }])), stats: c.stats || null, traits: c.traits ? { ...c.traits } : null, movement: c.movement ? { ...c.movement } : null, basic_attacks: c.basic_attacks ? JSON.parse(JSON.stringify(c.basic_attacks)) : null, ultimate: c.ultimate ? { ...c.ultimate } : null } },
+    charDef: (key) => { const c = characters[key]; if (!c) return null; return { universe: c.universe || null, portrait: c.portrait || null, spriteScale: c.spriteScale ?? null, hasSprites: !!c.hasSprites, introSequencePool: c.introSequencePool || null, introPool: c.introPool || null, introSequence: c.introSequence || null, animationData: Object.fromEntries(Object.entries(c.animationData || {}).map(([k, v]) => [k, { sheet: v.sheet || null, frames: v.frames || null }])), stats: c.stats || null, traits: c.traits ? { ...c.traits } : null, movement: c.movement ? { ...c.movement } : null, basic_attacks: c.basic_attacks ? JSON.parse(JSON.stringify(c.basic_attacks)) : null, specials: c.specials ? JSON.parse(JSON.stringify(c.specials)) : null, ultimate: c.ultimate ? { ...c.ultimate } : null, transformationOrder: c.transformationOrder || null, transformations: c.transformations ? JSON.parse(JSON.stringify(c.transformations)) : null } },
     // ── STAGE 10 preload hooks ──────────────────────────────────────────────────
     preloadDone:     () => _preloadPromise,                 // resolves once every match sheet has decoded/errored
     preloadReady:    () => _preloadReady,                   // the INTRO→BATTLE gate flag
@@ -12884,6 +14612,40 @@ gameLoop()
     },
     // Saitama "Spin-Punch" command-chain probe (mirrors vegCmd) — drive the Fwd+Heavy rekka precisely from a test.
     saitamaCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Genos punch → rapid-burst → spin-launcher command-chain probe (mirrors saitamaCmd) — drive the Fwd+Heavy 3-stage rekka precisely.
+    genosCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    friezaCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Piccolo elbow/chop→axe-smash→roundhouse command-chain probe (mirrors friezaCmd) — drive the Fwd+Heavy 3-stage rekka precisely.
+    piccoloCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Goku "Meteor Combination" rush command-chain probe (mirrors piccoloCmd) — drive the Fwd+Heavy 3-stage rekka precisely.
+    gokuCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    vegetaDarkCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Teen Gohan "Rush Combo" command-chain probe (mirrors gokuCmd) — drive the Fwd+Heavy 3-stage rekka precisely.
+    gohanCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Gotenks "Kamikaze Barrage" advancing-punch→rapid-barrage→finishing-flurry command-chain probe (mirrors gohanCmd).
+    gotenksCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    ippoCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Bardock "Blade Rush" forward-thrust→overhead-slash→rising-spin-slash-launcher SWORD command-chain probe (mirrors gotenksCmd).
+    bardockCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Kakashi "Y-Combo" kunai-slash→punch-flurry→orange-kick-launcher command-chain probe (mirrors gokuCmd).
+    kakashiCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Vegito "Ultra Rush" dash-in-slash→crescent-slashes→big-crescent-launcher command-chain probe (mirrors piccoloCmd).
+    vegitoCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Vegito Ultra Instinct -Sign- evasion-resource probe (Stage 5): meter level, tell-tier, charging/bleeding flags, idle action.
+    vegitoUI: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { meter: f._uiMeter ?? null, max: f._uiMax ?? VEGITO_UI.max, tier: f._uiTier ?? null, charging: !!f._uiCharging, bleeding: !!f._uiBleeding, action: f._lastSpriteAction || null, health: f.health, invuln: f.invulnTimer || 0 } : null },
+    // Force Vegito's meter to a value (harness: drive the empty-meter health-conversion + tell-tier paths deterministically).
+    vegitoSetMeter: (v, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f._uiMax = f._uiMax ?? VEGITO_UI.max; f._uiMeter = v } return f ? f._uiMeter : null },
+    // Superman (Custom/DCUC) "Kryptonian Rush" dash-punch→cross-punch→crescent-kick command-chain probe (mirrors piccoloCmd).
+    supermanDcucCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Superman (New 52) "Speeding Bullet" jab→lunge→spinning-tornado command-chain probe (mirrors supermanDcucCmd).
+    supermanNew52Cmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Superman (Classic) "Man of Steel" jab/lunge→flare-punch→flying-flare-kick command-chain probe (mirrors supermanNew52Cmd).
+    supermanClassicCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Superman (Fighter) "Kryptonian Barrage" flurry→multi-hit→flying-dash command-chain probe (mirrors supermanClassicCmd).
+    supermanFighterCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Iron Man "Repulsor Rush" dash-lunge→repulsor-straight→gauntlet-flare launcher command-chain probe (mirrors piccoloCmd).
+    ironManCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    ironMan2Cmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     // Aoi Todo elbow→hook→roundhouse command-chain probe (mirrors saitamaCmd) — drive the Fwd+Heavy 3-stage rekka precisely.
     todoCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     miwaCmd: () => (p1 ? { action: p1._lastSpriteAction || null, move: p1.currentMove || null, phase: getAttackPhase(p1), rekkaNext: p1._rekkaNext || null, connected: !!p1._cmdHitLanded, attacking: !!p1.attacking, cooldown: p1.attackCooldown || 0 } : null),
@@ -13594,7 +15356,7 @@ gameLoop()
     // Opponent (p2) on-screen horizontal extent given the live camera — used to confirm the SSJ Rose
     // cinematic frames Goku Black ONLY (p2 fully off-frame). screenX = (worldX - cam.x)*zoom + cw/2.
     p2ScreenX: () => { if (!p2) return null; const cw = canvas.width; const cx = p2.x + (p2.w || 60) / 2; const left = (p2.x - camera.x) * camera.zoom + cw / 2; const right = (p2.x + (p2.w || 60) - camera.x) * camera.zoom + cw / 2; return { left, right, cw, offFrame: right < 0 || left > cw, center: (cx - camera.x) * camera.zoom + cw / 2 } },
-    projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, w: p.w, h: p.h, radius: p.radius, spriteScale: p.spriteScale, spriteFrames: p.spriteFrames, spriteH: p.spriteH, spriteOnce: !!p.spriteOnce, visualOnly: !!p.visualOnly, returning: !!p.returning, boomerang: !!p.boomerang, sheet: p.sheet })),
+    projectiles: () => activeProjectiles.map(p => ({ name: p.name, x: p.x, y: p.y, vx: p.vx, vy: p.vy, w: p.w, h: p.h, radius: p.radius, piercing: !!p.piercing, piercesMulti: !!p.piercesMulti, damage: p.damage, spriteScale: p.spriteScale, spriteFrames: p.spriteFrames, spriteH: p.spriteH, spriteOnce: !!p.spriteOnce, visualOnly: !!p.visualOnly, returning: !!p.returning, boomerang: !!p.boomerang, sheet: p.sheet })),
     // Isshiki cube shrink-trap (Stage-2 isolated harness): spawn a trap with p1 as caster onto p2 (or vice-versa), + read its state.
     spawnCubeTrap: (casterSide = "p1", opts = {}) => { const c = casterSide === "p2" ? p2 : p1; const tgt = casterSide === "p2" ? p1 : p2; if (!c || !tgt) return null; spawnCubeTrap(c, tgt, getAbilityContext(), opts); return cubeTrapState() },
     cubeTrap: () => cubeTrapState(),
@@ -13668,6 +15430,9 @@ gameLoop()
     setP2ForceBlock: (on = true) => { if (p2) p2._forceGuard = !!on },   // PERSISTENT dummy guard — updatePlayer honors _forceGuard so isBlocking survives the per-frame clear (blockable/unblockable tests)
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },
+    setMangekyou: (on = true, side = "p1") => { const f = side === "p2" ? p2 : p1; if (f) { f._mangekyouActive = !!on; return true } return false },   // toggle ONLY the Sharingan flag (Kakashi Raikiri empowerment gate / Itachi) — does NOT set buff/dodge
+    mangekyouEnter: () => { if (!p1) return false; p1.energy = p1.maxEnergy; p1.attackCooldown = 0; p1.hitstun = 0; p1.blockstun = 0; return enterMangekyou(p1) },   // REAL enter (sets buff mults + autoDodge + idle-swap) for tests
+    mangekyouRevert: () => { if (p1) revertMangekyou(p1); return true },
     // Reposition the dummy AND settle it on the ground. The launcher raise (Fast -30 … Heavy -33) keeps a
     // just-launched dummy airborne noticeably longer; harness reset/setup helpers call setP2X between
     // move-tests, and a still-airborne dummy makes the next follow-up (ground OR air) whiff. Grounding here
@@ -13721,12 +15486,26 @@ gameLoop()
     // Drive a REAL p2 attack (generous startup so a defender can react) — used to open the
     // Substitution incoming-attack window and to verify the swing actually whiffs on a substitute.
     p2Attack:   () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "light", { startup: 10, active: 6, recovery: 16, damage: 60, rangeX: 120, rangeY: 90, hitstun: 18, knockbackX: 6 }) } },
+    p1MahoragaExpire: () => { if (p1 && p1._mahoragaActive) { p1._mahoragaTimer = 1; return true } return false },   // force Mahoraga near-expiry (test auto-revert without waiting the full ~10s)
     p2Heavy:    () => { if (p2) { p2.attackCooldown = 0; p2.attacking = false; startMove(p2, "heavy", { startup: 8, active: 6, recovery: 18, damage: 150, rangeX: 130, rangeY: 100, hitstun: 22, knockbackX: 7, category: "heavy" }) } },   // test-only: a STRONG (heavy-category) hit — exercises defender heavy hit-reaction voices
     // Fire P1's SPECIAL with a chosen relative direction ("F"|"B"|"U"|"D"|null), bypassing keyboard timing
     // races (up→jump, down→block-crouch) so a test can exercise a direction-branched special's MECHANIC
     // cleanly. Clears the special cooldowns/recovery so it reliably fires. Routing (real dir input → move) is
     // still covered by the keyboard-driven sprite checks.
     p1SpecialDir: (dir = null) => { if (!p1) return null; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.kurapikaCounterCd = 0; p1.attackCooldown = 0; p1.attacking = false; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { move: p1.currentMove || null, cast: p1._spriteCastMove || null } },
+    // Dark Vegeta test hook — toggle the dark-aura form flag so the amplified PURPLE ki-blast tier can be
+    // exercised before Stage 5 wires the transform. Read by abilities.js vegetaDarkKiKey().
+    vegetaDarkSetAura: (on = true) => { if (p1) p1._darkAuraActive = !!on; return p1 ? !!p1._darkAuraActive : false },
+    // Miles Down+B DASH-KICK — deterministic Charge-tap fire (bypasses keyboard hold-timing). Mirrors p1SpecialDir.
+    milesDash: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; f._milesDashCd = 0; fireMilesDashKick(f, getAbilityContext()); return { move: f.currentMove || null, cast: f._spriteCastMove || null } },
+    // Genos Incineration Cannon — deterministic tap/hold TIER fire (bypasses keyboard hold-timing). tier 1/2/3.
+    genosIncinerate: (tier = 1) => { if (!p1) return null; p1.attackCooldown = 0; p1.attacking = false; const eBefore = p1.energy; const ok = fireGenosIncineration(p1, tier, getAbilityContext()); return { ok: !!ok, cast: p1._spriteCastMove || null, spent: eBefore - p1.energy } },
+    ironMan2Repulsor: (tier = "S", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; const eBefore = f.energy; const ok = fireIronMan2Repulsor(f, tier, getAbilityContext()); return { ok: !!ok, cast: f._spriteCastMove || null, spent: eBefore - f.energy } },
+    ironMan2Special: (dir = null, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; f._specialHeldDir = dir; triggerSpecial(f, getAbilityContext()); return { move: f.currentMove || null, cast: f._spriteCastMove || null } },
+    ironMan3Repulsor: (tier = "S", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; const eBefore = f.energy; const ok = fireIronMan3Repulsor(f, tier, getAbilityContext()); return { ok: !!ok, cast: f._spriteCastMove || null, spent: eBefore - f.energy } },
+    vilgaxBlast: (tier = "S", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; const eBefore = f.energy; const ok = fireVilgaxBlast(f, tier, getAbilityContext()); return { ok: !!ok, cast: f._spriteCastMove || null, spent: eBefore - f.energy } },
+    ironMan3Special: (dir = null, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; f._specialHeldDir = dir; triggerSpecial(f, getAbilityContext()); return { move: f.currentMove || null, cast: f._spriteCastMove || null } },
+    ironMan3Nova: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { timer: f._ironMan3NovaTimer || 0, max: f._ironMan3NovaMax || 0 } : null },
     // Spider-Man Web-Throw COMBO CANCEL — deterministic driver (mirrors p1SpecialDir). Puts P1 into a live
     // spiderCombo that has landed a clean hit (attacking + currentMove + _cmdHitLanded), then drives the REAL
     // updateSpidermanCommandCombat with a synthetic Special edge and reports whether it cancelled into Web
@@ -13745,6 +15524,29 @@ gameLoop()
     spidermanMaxWeb: () => ({ timer: p1?._maxWebTimer || 0, max: p1?._maxWebMax || 0, castMove: p1?._spriteCastMove || null, renders: _spiderMaxWebRenders, bgLoaded: !!(_spiderMaxWebImg && _spiderMaxWebImg.complete && _spiderMaxWebImg.naturalWidth > 0) }),
     brainiacPillar: () => ({ timer: p1?._brainiacPillarTimer || 0, max: p1?._brainiacPillarMax || 0, castMove: p1?._spriteCastMove || null, renders: _brainiacPillarRenders, bgLoaded: !!(_brainiacPillarImg && _brainiacPillarImg.complete && _brainiacPillarImg.naturalWidth > 0) }),
     p1EmperorExpire: () => { if (p1 && p1._emperorActive) { p1._emperorTimer = 1; return true } return false },   // fast-forward Emperor Time to imminent auto-revert (test-only)
+    p1GenosOverdriveExpire: () => { if (p1 && p1._genosOverdriveActive) { p1._genosOverdriveTimer = 1; return true } return false },   // fast-forward Overdrive to imminent auto-revert → pays the overheat drawback (test-only)
+    p1DarkKnightRageExpire: () => { if (p1 && p1._dkRageActive) { p1._dkRageTimer = 1; return true } return false },   // fast-forward Batman Rage Mode to imminent auto-revert (test-only)
+    p1GoldenFriezaEnter: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterGoldenFrieza(p1, getAbilityContext()) } return false },   // base→Golden directly (test-only, bypasses the charge-hold)
+    p1BlackFriezaEnter:  () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterBlackFrieza(p1, getAbilityContext()) } return false },   // Golden→Black directly (test-only; requires Golden active)
+    p1FriezaRevert:      () => { if (p1) { if (p1._blackFriezaActive) revertBlackFrieza(p1); else if (p1._goldenFriezaActive) revertGoldenFrieza(p1); return true } return false },   // charge-tap revert to base (test-only)
+    p1FriezaSetEnergy:   (v = 0) => { if (p1) { p1.energy = v; return p1.energy } return null },   // force Ki level (test-only — drive the drain auto-revert)
+    p1PiccoloPotentialEnter: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterPiccoloPotential(p1, getAbilityContext()) } return false },   // base→Potential directly (test-only, bypasses the charge-hold)
+    p1PiccoloOrangeEnter:    () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterPiccoloOrange(p1, getAbilityContext()) } return false },   // Potential→Orange directly (test-only; requires Potential active)
+    p1PiccoloRevert:         () => { if (p1) { if (p1._piccoloOrangeActive) revertPiccoloOrange(p1); else if (p1._piccoloPotentialActive) revertPiccoloPotential(p1); return true } return false },   // charge-tap revert to base (test-only)
+    p1PiccoloSetEnergy:      (v = 0) => { if (p1) { p1.energy = v; return p1.energy } return null },   // force Ki level (test-only — drive the drain auto-revert)
+    p1VegetaDarkEnter:       () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterVegetaDark(p1, getAbilityContext()) } return false },   // base→dark-aura directly (test-only, bypasses the charge-hold)
+    p1VegetaDarkRoseEnter:   () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; if (!p1._darkAuraActive) enterVegetaDark(p1, getAbilityContext()); p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterVegetaDarkRose(p1, getAbilityContext()) } return false },   // base→dark-aura→ROSE directly (test-only)
+    p1VegetaDarkRevert:      () => { if (p1) { if (p1._vdRoseActive) revertVegetaDarkRose(p1); else if (p1._darkAuraActive) revertVegetaDark(p1); return true } return false },   // charge-tap revert to base (test-only)
+    p1VegetaDarkSetEnergy:   (v = 0) => { if (p1) { p1.energy = v; return p1.energy } return null },   // force Ki level (test-only — drive the drain auto-revert)
+    p1GokuStepForm:      () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; return enterGokuNextForm(p1, getAbilityContext()) } return false },   // step UP Goku's ladder (test-only; respects the threshold gate)
+    p1GokuRevert:        () => { if (p1) { revertGoku(p1); return true } return false },   // revert Goku to base (test-only)
+    p1GokuSetEnergy:     (v = 0) => { if (p1) { p1.energy = v; return p1.energy } return null },   // force Ki level (test-only — drive the drain auto-revert / gate)
+    p1GokuForm:          () => (p1 ? { idx: p1.transformIndex || 0, form: p1.currentForm || "base", dmg: p1.damageMultiplier || 1, spd: p1.speedMultiplier || 1, def: p1.defenseMultiplier || 1, energy: p1.energy, autoDodge: !!p1.autoDodge, kaioken: p1._kaioken || 0 } : null),   // Goku transform state (test-only)
+    p1GokuKaioken:       () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; return toggleGokuKaioken(p1, getAbilityContext()) } return false },   // Goku — cycle Kaioken 0→1→2→0 (Base-only; test-only)
+    p1GokuKaiokenState:  () => (p1 ? { level: p1._kaioken || 0, dmg: p1.damageMultiplier || 1, spd: p1.speedMultiplier || 1, hp: p1.health, idx: p1.transformIndex || 0 } : null),   // Goku Kaioken state (test-only)
+    p1GohanTransform:    () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; return enterGohanSSJ2(p1, getAbilityContext()) } return false },   // Gohan base→SSJ2 (test-only; respects the threshold gate)
+    p1GohanRevert:       () => { if (p1) { revertGohan(p1); return true } return false },   // Gohan → base (test-only)
+    p1GohanForm:         () => (p1 ? { form: p1.currentForm || "base", ssj2: !!p1._ssj2Active, dmg: p1.damageMultiplier || 1, spd: p1.speedMultiplier || 1, def: p1.defenseMultiplier || 1, energy: p1.energy, cast: p1._spriteCastMove || null, skinIdle: p1._skinAnim?.idle?.sheet || null } : null),   // Gohan SSJ2 transform state (test-only)
     // SIX PATHS OF PAIN — Path-swap harness. sixPaths() reads live swap state; setPath() forces a swap
     // deterministically (clears gates + energy so the swap actually applies, bypassing input timing).
     sixPaths: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (!f) return null; return { rosterKey: f.rosterKey, path: f._path || 0, name: f._sixPathsName || "Deva Path", swapCd: f._sixPathsSwapCd || 0, energy: f.energy, maxEnergy: f.maxEnergy, skinAnim: !!f._skinAnim, castMove: f._spriteCastMove || null, teleportFlash: f.teleportFlash || 0, gakidoShield: f._gakidoShield || 0, gakidoAbsorbed: f._gakidoAbsorbed || 0, ningendoRipped: f._ningendoRipped || 0, lastAsuraShot: f._lastAsuraShot || null, narakaJudged: f._narakaJudged || 0, narakaHealed: f._narakaHealed || 0, lastChiku: f._lastChikuSummon || null } },

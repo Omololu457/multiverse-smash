@@ -31,7 +31,39 @@ def even(x0, x1, n):
     w = (x1 - x0 + 1) / n
     return [(int(round(x0 + i * w)), int(round(x0 + (i + 1) * w)) - 1) for i in range(n)]
 
-def reslice(src, out, band=None, keep=None, pick=None, xrects=None, minw=8, pad_to=None):
+def scrub_isolated(cell, frac=0.35):
+    """Remove baked-in MARKER artifacts (the arcade sheet's `[ ]` loop-bracket marks) without touching the
+    character. A marker is a component that is (a) SMALL vs the character AND (b) THIN — a chunky body part
+    is never both. 8-connectivity so thin diagonal links keep the character one component."""
+    px = cell.load(); W, H = cell.size
+    seen = bytearray(W * H); comps = []
+    for sy in range(H):
+        for sx in range(W):
+            if seen[sy * W + sx] or px[sx, sy][3] <= ALPHA:
+                continue
+            comp = []; stack = [(sx, sy)]; seen[sy * W + sx] = 1
+            while stack:
+                x, y = stack.pop(); comp.append((x, y))
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)):
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < W and 0 <= ny < H and not seen[ny * W + nx] and px[nx, ny][3] > ALPHA:
+                        seen[ny * W + nx] = 1; stack.append((nx, ny))
+            comps.append(comp)
+    if not comps:
+        return cell
+    biggest = max(len(c) for c in comps)
+    for c in comps:
+        bw = max(p[0] for p in c) - min(p[0] for p in c) + 1
+        bh = max(p[1] for p in c) - min(p[1] for p in c) + 1
+        thin = bw <= 16 or bh <= 10                       # a bracket stroke is thin; a hand/foot is chunky
+        dark = sum(1 for (x, y) in c if px[x, y][0] < 60 and px[x, y][1] < 60 and px[x, y][2] < 60)
+        mostly_black = dark >= 0.70 * len(c)              # a `[ ]` bracket is BLACK — spares white sparkles / colored motion-FX
+        if len(c) < biggest * frac and thin and mostly_black:
+            for (x, y) in c:
+                px[x, y] = (0, 0, 0, 0)
+    return cell
+
+def reslice(src, out, band=None, keep=None, pick=None, xrects=None, minw=8, pad_to=None, scrub=False):
     im = Image.open(src).convert("RGBA"); W, H = im.size
     px = im.load()
     y0, y1 = (0, H - 1) if band is None else band
@@ -65,6 +97,8 @@ def reslice(src, out, band=None, keep=None, pick=None, xrects=None, minw=8, pad_
     strip = Image.new("RGBA", (uW * len(frames), uH), (0, 0, 0, 0))
     for i, (sx, sy, sw, sh) in enumerate(frames):
         cell = im.crop((sx, sy, sx + sw, sy + sh))
+        if scrub:
+            cell = scrub_isolated(cell)   # strip baked-in loop-bracket marks (keeps the character)
         dx = i * uW + (uW - sw) // 2
         dy = uH - sh - 1
         strip.paste(cell, (dx, dy), cell)
@@ -80,7 +114,9 @@ JOBS = [
     # intro — row 02, crouch-to-stand transition. Frames TOUCH (no gutter) -> even 12-split.
     dict(src="spiderman_row_02.png", out="spiderman_intro_uniform.png", xrects=even(0, 888, 12)),
     # walk — row 07, bracketed loop segment. Take the 8 clean 100px loop frames (skip wide lead-in/out).
-    dict(src="spiderman_row_07.png", out="spiderman_walk_uniform.png", pick=[2, 3, 4, 5, 6, 7, 8, 9]),
+    # scrub=True strips the `]` loop-bracket mark baked into the last frame (it was flashing every loop
+    # → the "choppy" look). Same poses/timing/dims — just the artifact removed (2026-08-18).
+    dict(src="spiderman_row_07.png", out="spiderman_walk_uniform.png", pick=[2, 3, 4, 5, 6, 7, 8, 9], scrub=True),
     # jump — row 03 TOP band (airborne rise). Split the merged mid triple; avoid Start-box sliver.
     dict(src="spiderman_row_03.png", out="spiderman_jump_uniform.png", band=(0, 128),
          xrects=[(116,179),(194,276),(288,386),(396,497),(498,599),(600,700),
@@ -148,9 +184,16 @@ JOBS = [
          xrects=[(2,88),(107,197),(209,305),(320,411),(433,545),(567,679),(705,849),(871,1037)]),
 ]
 
+# Web-FX sheets must NOT be scrubbed — their thin web strands/lines ARE the content (scrub would erase them).
+# Every other (character-pose) sheet is scrubbed to strip the arcade sheet's baked-in `[ ]` loop-bracket marks.
+NO_SCRUB = {"spiderman_webpuff_uniform.png", "spiderman_webball_uniform.png", "spiderman_webthrow_uniform.png",
+            "spiderman_webbridge_uniform.png", "spiderman_webimpact_uniform.png", "spiderman_maxweb_uniform.png"}
+
 if __name__ == "__main__":
     only = set(sys.argv[1:])
     for j in JOBS:
         if only and j["out"].replace("spiderman_", "").replace("_uniform.png", "") not in only and j["out"] not in only:
             continue
+        if "scrub" not in j and j["out"] not in NO_SCRUB:
+            j = {**j, "scrub": True}   # default-on for character sheets (bracket-marker removal)
         reslice(**j)

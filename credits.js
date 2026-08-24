@@ -24,6 +24,44 @@ export const SOURCED_ART = {
     source:  "M.U.G.E.N sheet",
     files:   ["gojo_*_sheet.png", "gojo_sheet_source.png"]
   },
+  // Superman (Custom / DC Universe Customs) — a SEPARATE char from `superman` (Arcade), the 2nd of 4 Superman
+  // roster entries. The source sheet carries a baked header credit: "Superman Sprites by Spellfire; Thanks
+  // Nightmare, Sam and Mike Penner; ported by ProtoStar". Attribution is MANDATORY.
+  superman_dcuc: {
+    work:    "Superman (DC) — DC Universe Customs build",
+    artists: ["Spellfire (original sprites)", "ProtoStar (port)", "Nightmare, Sam & Mike Penner (thanks)"],
+    source:  "fan sprite sheet (Custom _ Edited - DC Universe Customs - Superman - Superman.png; in-sheet credit to Spellfire / ported by ProtoStar)",
+    files:   ["superman_dcuc_*.png", "Custom _ Edited - DC Universe Customs - Superman - Superman.png"]
+  },
+  // Superman (New 52) — a SEPARATE char from `superman` (Arcade) and `superman_dcuc` (DCUC), the 3rd of 4
+  // Superman roster entries. Source = a DeviantArt sprite sheet by immajadenyuki (file id
+  // new_52_superman_sprite_by_immajadenyuki_d6mzx0p). Attribution is MANDATORY.
+  superman_new52: {
+    work:    "Superman (DC) — New 52 build",
+    artists: ["immajadenyuki (DeviantArt)"],
+    source:  "fan sprite sheet (new_52_superman_sprite_by_immajadenyuki_d6mzx0p-fullview.jpeg)",
+    files:   ["superman_new52_*.png", "new_52_superman_sprite_by_immajadenyuki_d6mzx0p-fullview.jpeg"]
+  },
+  // Superman (Classic / SNES Justice League Task Force) — a SEPARATE char from `superman` (Arcade),
+  // `superman_dcuc` (DCUC) and `superman_new52` (New 52), the 4th of 4 Superman roster entries. The source
+  // sheet carries a baked credit: "Superman (Justice League Task Force) — Ripped by HjpdeKrypton". Original
+  // game = Justice League Task Force (SNES, Sunsoft/Acclaim). Attribution is MANDATORY.
+  superman_classic: {
+    work:    "Superman (DC) — SNES Justice League Task Force build",
+    artists: ["HjpdeKrypton (sprite rip)", "Sunsoft / Acclaim (original Justice League Task Force game)"],
+    source:  "ripped SNES sprite sheet (SNES - Justice League Task Force - Fighters - Superman.png; in-sheet credit 'Ripped by HjpdeKrypton')",
+    files:   ["superman_classic_*.png", "SNES - Justice League Task Force - Fighters - Superman.png"]
+  },
+  // Superman (Fighter) — a 5th SEPARATE Superman roster entry, built from the labeled B/Y/X custom sheet
+  // dcna8ch-42870664-caf4-4f98-a06d-72a3680e98dc.png. ★ATTRIBUTION PENDING — the source is a DeviantArt asset
+  // id with no baked artist name; the original author is not yet identified. MANDATORY before ship (mirrors
+  // Genos/Frieza) — owner to confirm the DeviantArt author.
+  superman_fighter: {
+    work:    "Superman (DC) — custom B/Y/X fighting sheet",
+    artists: ["UNKNOWN — DeviantArt author pending (TODO: confirm before ship)"],
+    source:  "custom sprite sheet (dcna8ch-42870664-caf4-4f98-a06d-72a3680e98dc.png)",
+    files:   ["superman_fighter_*.png", "dcna8ch-42870664-caf4-4f98-a06d-72a3680e98dc.png"]
+  },
   // Alternate Sukuna (JJK) — a SEPARATE char from `sukuna`, built from the Cinontk/Bitsverse644 rip
   // (sukuna_row_*.png). The source sheet carries an explicit anti-repost watermark crediting the original
   // spriter Cinontk and the sheet compiler Bitsverse644 (Bits Verse on YT); attribution is MANDATORY.
@@ -51,6 +89,17 @@ export const SOURCED_ART = {
     source:  "fan sprite sheets (yuta_row_*.png / rika_v1_*/rika_v2_*.png; in-sheet credit to Soulfire et al.)",
     files:   ["yuta_*.png", "yuta_row_*.png", "rika_*.png", "rika_v1_*.png", "rika_v2_*.png"]
   },
+  // The Handler (JJK) — NEW char from the removed Megumi's Ten-Shadows shikigami art + Mahoraga. The
+  // Mahoraga source sheet carries a baked credit watermark: Discord "ARISRADIKLIF#3447" (+ 呪術廻戦 logo),
+  // so attribution is MANDATORY. NOTE: the fushiguro/shibuya "Ten Shadows" base-sheet artists are NOT yet
+  // identified from the baked text (labels were technique names, not signatures) — pin them here before
+  // ship. The "by saxcreed" guest sprite is EXCLUDED by default (credit only if ever used).
+  handler: {
+    work:    "Megumi (Jujutsu Kaisen) — Ten Shadows shikigami + Mahoraga",
+    artists: ["ARISRADIKLIF#3447 (Mahoraga sheet)", "Ten Shadows base-sheet artist — TBD (identify before ship)"],
+    source:  "fan sprite sheets (mahoraga_*.png credit ARISRADIKLIF#3447; megumi fushiguro/shibuya sheets — artist TBD)",
+    files:   ["handler_*.png", "mahoraga_*.png", "megumi_shibuya_*.png", "megumi_tokusa_*.png", "megumi_UNSEPARATED_*.png", "megumi_stance.png", "megumi_walk.png", "megumi_crouch.png", "megumi_jump.png", "megumi_hit.png", "megumi_attack_*.png"]
+  },
   // Red Ranger (Jason, Mighty Morphin). Source REQUIRES credit to "Omega (tolgayavuz85)".
   red_ranger_mmpr: {
     work:    "Red Ranger — Jason (Mighty Morphin)",
@@ -74,6 +123,59 @@ export const SOURCED_ART = {
     source:  "fan JUS-style sprite sheet (saitama_jus__by_arzeer_de00xcg.png)",
     files:   ["saitama_*.png"]
   },
+  // Genos (One Punch Man). Fan-made teal-keyed master sprite sheet. ★ATTRIBUTION PENDING — the source
+  // DeviantArt artist is not yet identified (file id ddk5eh3-5cfadb89-4c66-4fc4-b56f-bcb3d538c4f8.png).
+  // Attribution is MANDATORY before ship (mirrors Saitama/Jason/Ghostface) — owner to confirm the author.
+  genos: {
+    work:    "Genos (One Punch Man)",
+    artists: ["UNKNOWN — DeviantArt author pending (TODO: confirm before ship)"],
+    source:  "fan sprite sheet (ddk5eh3-5cfadb89-4c66-4fc4-b56f-bcb3d538c4f8.png)",
+    files:   ["genos_*.png"]
+  },
+  // Frieza (Dragon Ball Z: Extreme Butoden). Ripped 3DS fighting-game sprite sheet. ★ATTRIBUTION PENDING —
+  // sprite-rip author not yet identified (likely The Spriters Resource). Confirm before ship.
+  frieza: {
+    work:    "Frieza (Dragon Ball Z: Extreme Butoden, base/final form)",
+    artists: ["Arc System Works / Bandai Namco (original 3DS game); sprite-rip author UNKNOWN — TODO: confirm before ship"],
+    source:  "ripped 3DS sprite sheet (3DS - Dragon Ball Z_ Extreme Butoden - Fighters - Frieza.png)",
+    files:   ["frieza_*.png"]
+  },
+  // Piccolo (Dragon Ball Z: Extreme Butoden). Ripped 3DS fighting-game sprite sheet (same source family as
+  // Frieza). ★ATTRIBUTION PENDING — sprite-rip author not yet identified (likely The Spriters Resource).
+  // Confirm before ship.
+  piccolo: {
+    work:    "Piccolo (Dragon Ball Z: Extreme Butoden)",
+    artists: ["Arc System Works / Bandai Namco (original 3DS game); sprite-rip author UNKNOWN — TODO: confirm before ship"],
+    source:  "ripped 3DS sprite sheet (3DS - Dragon Ball Z_ Extreme Butoden - Fighters - Piccolo.png)",
+    files:   ["piccolo_*.png"]
+  },
+  // Teen Gohan (Dragon Ball Z: Extreme Butoden). Ripped 3DS fighting-game sprite sheets (Base + Super Saiyan 2;
+  // same source family as Goku/Piccolo/Frieza). ★ATTRIBUTION PENDING — sprite-rip author not yet identified
+  // (likely The Spriters Resource). Confirm before ship.
+  gohan: {
+    work:    "Teen Gohan (Dragon Ball Z: Extreme Butoden)",
+    artists: ["Arc System Works / Bandai Namco (original 3DS game); sprite-rip author UNKNOWN — TODO: confirm before ship"],
+    source:  "ripped 3DS sprite sheets (3DS - Dragon Ball Z_ Extreme Butoden - Fighters - Teen Gohan[ (Super Saiyan 2)].png)",
+    files:   ["gohan_*.png"]
+  },
+  // Gotenks (Super Saiyan) (Dragon Ball Z: Extreme Butoden). Ripped 3DS fighting-game sprite sheet (single sheet;
+  // same source family as Goku/Gohan/Piccolo/Frieza). ★ATTRIBUTION PENDING — sprite-rip author not yet identified
+  // (likely The Spriters Resource). Confirm before ship.
+  gotenks: {
+    work:    "Gotenks (Super Saiyan) (Dragon Ball Z: Extreme Butoden)",
+    artists: ["Arc System Works / Bandai Namco (original 3DS game); sprite-rip author UNKNOWN — TODO: confirm before ship"],
+    source:  "ripped 3DS sprite sheet (3DS - Dragon Ball Z_ Extreme Butoden - Fighters - Gotenks.png)",
+    files:   ["gotenks_*.png"]
+  },
+  // Bardock (Dragon Ball Z: Extreme Butoden). Ripped 3DS fighting-game sprite sheet (single sheet;
+  // same source family as Goku/Gohan/Gotenks/Piccolo/Frieza). ★ATTRIBUTION PENDING — sprite-rip author
+  // not yet identified (likely The Spriters Resource). Confirm before ship.
+  bardock: {
+    work:    "Bardock (Dragon Ball Z: Extreme Butoden)",
+    artists: ["Arc System Works / Bandai Namco (original 3DS game); sprite-rip author UNKNOWN — TODO: confirm before ship"],
+    source:  "ripped 3DS sprite sheet (3DS - Dragon Ball Z_ Extreme Butoden - Fighters - Bardock.png)",
+    files:   ["bardock_*.png"]
+  },
   // Isshiki Otsutsuki (Naruto / Boruto). Fan-made sprite sheet — attribution to the original
   // DeviantArt author is MANDATORY (mirrors Jason/Ghostface/Red Ranger).
   isshiki: {
@@ -91,6 +193,51 @@ export const SOURCED_ART = {
     artists: ["DasonPikXD (compiler)", "Namèd", "MattFv", "Ender", "Scrxtchy", "Puig_096 (Felipe)", "Hordebib Spriter", "Sasa/-666", "Depokun", "Ropaa444", "Sasuke Sp", "DUX44", "Team Popo"],
     source:  "fan compilation sprite sheet (Six Paths of Pain; credit block on p1_pain_tendo_row.png)",
     files:   ["sixpaths_*.png"]
+  },
+  // Kakashi Hatake (Naruto). Source: Naruto Shippuden: Ninja Council 4 (DS/DSi) sprite rip. The
+  // master sheet carries an in-sheet credit — "Ripped by Neimad", "Presented by the DS Ripping Forum",
+  // "Give credit if used / Don't claim as own" — so attribution is MANDATORY. Resliced feet-aligned
+  // in-repo by tools/reslice_kakashi.py (tight green-key box-index picks).
+  kakashi: {
+    work:    "Kakashi Hatake (Naruto)",
+    artists: ["Neimad (sprite rip)", "DS Ripping Forum"],
+    source:  "sprite rip from Naruto Shippuden: Ninja Council 4 (DS/DSi); in-sheet credit to Neimad / DS Ripping Forum",
+    files:   ["kakashi_*.png"]
+  },
+  // Gwen Tennyson (Ben 10). Fan-made JUS-style chibi sheet — in-sheet credit to the original authors is
+  // MANDATORY (mirrors other fan-sheet chars). Resliced feet-aligned in-repo by tools/reslice_gwen.py.
+  gwen: {
+    work:    "Gwen Tennyson (Ben 10)",
+    artists: ["magnesiumselzune (spritework)", "justin kaiser (additional)", "renatoooferreiraaa (compiled/reposted)"],
+    source:  "fan-made JUS-style sprite sheet (NOT an official game rip); in-sheet credit to magnesiumselzune + justin kaiser, reposted by renatoooferreiraaa",
+    files:   ["gwen_*.png"]
+  },
+  // Vilgax (Ben 10). Fan-made JUS-style sprite sheet — in-sheet/DeviantArt credit MANDATORY (mirrors other
+  // fan-sheet chars). Resliced feet-aligned in-repo by tools/reslice_vilgax.py. ★Deeper rip authorship
+  // beyond regulardor8go is UNKNOWN — flagged as a ship BLOCKER to resolve before final release.
+  vilgax: {
+    work:    "Vilgax (Ben 10)",
+    artists: ["regulardor8go (spritework)"],
+    source:  "fan-made JUS-style sprite sheet (NOT an official game rip); credit to regulardor8go. Underlying character © Cartoon Network. Deeper rip authorship UNKNOWN (ship blocker).",
+    files:   ["vilgax_*.png"]
+  },
+  // Miles Morales (Marvel / Spider-Man) — "JUS" (Jump Ultimate Stars)-style fan sprite sheet. The source
+  // filename carries an explicit in-name artist credit: "by xxalexsmashxx". Attribution is MANDATORY.
+  // Resliced feet-aligned in-repo by tools/reslice_miles.py; the resliced strips ship as miles_*_uniform.png.
+  miles: {
+    work:    "Miles Morales (JUS-style fan sprite sheet)",
+    artists: ["xxalexsmashxx (sprite sheet)"],
+    source:  "fan-made JUS-style sprite sheet (NOT an official game rip; in-name credit to xxalexsmashxx / DeviantArt dfsvf9b)",
+    files:   ["miles_*.png", "miles_morales___jus_sprite_sheet___credits_desc_by_xxalexsmashxx*.jpg"]
+  },
+  // Ippo Makunouchi (Hajime no Ippo) — "JUS" (Jump Ultimate Stars)-style fan sprite sheet. The source
+  // filename carries an explicit in-name artist credit: "by srchimuelo". Attribution is MANDATORY.
+  // Resliced feet-aligned in-repo by tools/reslice_ippo.py; the resliced strips ship as ippo_*_uniform.png.
+  ippo: {
+    work:    "Ippo Makunouchi (JUS-style fan sprite sheet)",
+    artists: ["srchimuelo (sprite sheet)"],
+    source:  "fan-made JUS-style sprite sheet (NOT an official game rip; in-name credit to srchimuelo / DeviantArt dfv5jdo)",
+    files:   ["ippo_*.png", "ippo_makunouchi_jus_sprite_sheet_by_srchimuelo*.png"]
   },
   // Hiruzen Sarutobi (Naruto), the Third Hokage. Fan-made sprite sheet — attribution to the original
   // DeviantArt author is MANDATORY (mirrors Jason/Isshiki/Ghostface). The raw dash/jump/back_jump strips
@@ -120,6 +267,49 @@ export const SOURCED_ART = {
     source:  "CPS2 arcade sprite rip (Arcade - Marvel Super Heroes - Fighters - Spider-Man.gif)",
     files:   ["spiderman_*.png"]
   },
+
+  // Iron Man 1 (Marvel) — "JUS" (Jump Ultimate Stars)-style chibi fan sheet. The source filename carries an
+  // explicit in-name artist credit: "by danorenovado" (DeviantArt id ddxdqsr). Attribution is MANDATORY.
+  // Resliced feet-aligned in-repo by tools/reslice_iron_man.py; the resliced strips ship as iron_man_*_uniform.png.
+  iron_man: {
+    work:    "Iron Man (JUS-style chibi fan sprite sheet)",
+    artists: ["danorenovado (original sprites)"],
+    source:  "fan sprite sheet (iron_man_jus_sprite_sheet__old__by_danorenovado_ddxdqsr-375w-2x.jpg; in-name credit to danorenovado / DeviantArt ddxdqsr)",
+    files:   ["iron_man_*.png", "iron_man_jus_sprite_sheet__old__by_danorenovado_ddxdqsr*.jpg"]
+  },
+
+  // Vegito Ultra Instinct -Sign- (Dragon Ball) — "JUS" (Jump Ultimate Stars)-style fan sprite sheet. The
+  // sheet's own on-sheet credit block reads (verified visually): compilation by XenoHiro016, original
+  // sprites by Aagus + James1971, palettes by El-Loco-Jr + Jefrey174, extra mention Storm424. Attribution
+  // MANDATORY. Resliced feet-aligned in-repo by tools/reslice_vegito.py; strips ship as vegito_*_uniform.png.
+  vegito: {
+    work:    "Vegito Ultra Instinct -Sign- (JUS-style chibi fan sprite sheet)",
+    artists: ["Aagus (original sprites)", "James1971 (original sprites)", "XenoHiro016 (compilation)", "El-Loco-Jr (palettes)", "Jefrey174 (palettes)", "Storm424"],
+    source:  "fan sprite sheet (vegito_ultra_instinct__sign__v2_sprite_sheet_jus_by_xenohiro016_die4gov-fullview.jpg; on-sheet credits to XenoHiro016 / Aagus / James1971 / El-Loco-Jr / Jefrey174 / Storm424)",
+    files:   ["vegito_*.png", "vegito_ultra_instinct__sign__v2_sprite_sheet_jus_by_xenohiro016*.jpg"]
+  },
+
+  // Iron Man 2 (Marvel) — Data East "Captain America and The Avengers" (1991) arcade rip. The sheet's own
+  // teal credit boxes read (verified on-sheet): "RIPPED BY FLÁVIO ARRUDA" + "EDITED BY FLÁVIO ARRUDA"
+  // (flavio_arruda_pe@hotmail.com). Original arcade art © 1991 Data East Corporation. Attribution MANDATORY.
+  // Resliced feet-aligned in-repo by tools/reslice_iron_man_2.py; strips ship as iron_man_2_*_uniform.png.
+  iron_man_2: {
+    work:    "Iron Man (Captain America and The Avengers, 1991 arcade)",
+    artists: ["Flávio Arruda (sprite rip + edit; flavio_arruda_pe@hotmail.com)", "Data East Corporation (original 1991 arcade art)"],
+    source:  "arcade sprite rip (Iron Man.png; on-sheet credit 'RIPPED BY / EDITED BY FLÁVIO ARRUDA', © 1991 Data East)",
+    files:   ["iron_man_2_*.png", "Iron Man.png"]
+  },
+
+  // Iron Man 3 (Marvel) — Game Boy Advance "The Invincible Iron Man" sprite rip. The sheet's own credit box
+  // (top-right) reads "Mr. L" / TSR mascot / "Credit? No — Permission? No" (the ripper waives it) — but we
+  // attribute anyway per project rule. Original GBA art © Marvel / the game's publisher. Resliced feet-aligned
+  // in-repo by tools/reslice_iron_man_3.py; strips ship as iron_man_3_*_uniform.png.
+  iron_man_3: {
+    work:    "Iron Man (The Invincible Iron Man, Game Boy Advance)",
+    artists: ["Mr. L (sprite rip, via The Spriters Resource)", "Marvel / original GBA game art"],
+    source:  "GBA sprite rip (Game Boy Advance - The Invincible Iron Man - Playable Characters - Iron Man.png; on-sheet credit 'Mr. L' / TSR)",
+    files:   ["iron_man_3_*.png", "Game Boy Advance - The Invincible Iron Man - Playable Characters - Iron Man.png"]
+  },
   green_lantern: {
     work:    "Green Lantern (Hal Jordan, DC)",
     artists: ["cf2364 (sprite sheet)", "enzo (original)"],
@@ -133,7 +323,7 @@ export const SOURCED_ART = {
 // This list is EXPLICIT (not a wildcard) so a newly-added character is caught by the test until
 // its provenance is declared — either here, or in SOURCED_ART with a named artist.
 export const PROJECT_ART_KEYS = [
-  "goku", "goku_black", "vegeta", "piccolo", "frieza", "cell",
+  "goku", "goku_black", "vegeta", "cell",   // frieza + piccolo MOVED to SOURCED_ART (now real ripped sprite sheets, no longer procedural project-art)
   "sukuna", "omololu", "maki", "yuji",
   "naruto", "sasuke", "itachi", "tobirama", "hashirama", "minato", "madara", "obito", "tobi",
   "zenitsu", "rengoku", "shinobu", "inosuke", "nezuko",
@@ -179,7 +369,12 @@ export const PROJECT_ART_KEYS = [
   // Brainiac (DC) — fan sprite sheet delivered as generic numbered brainiac_row_NN.png strips with NO baked
   // artist text (a small skull HUD glyph in row_01 was reference-only, excluded); resliced in-repo by
   // tools/reslice_brainiac.py → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.
-  "brainiac"
+  "brainiac",
+  // Batman NEW VARIANT ("dark_knight", DC) — single 5120x2880 true-alpha DeviantArt sheet
+  // (df2ek1u-...-e247c4.png), resliced in-repo by tools/reslice_dark_knight.py. The filename is a
+  // DeviantArt asset ID only; ARTIST IS UNKNOWN → project-adapted bucket for now. ★ATTRIBUTION OPEN —
+  // MANDATORY before ship; move to SOURCED_ART once the artist is identified.
+  "dark_knight"
 ]
 
 // Every roster key that has a declared attribution (sourced OR project-adapted).

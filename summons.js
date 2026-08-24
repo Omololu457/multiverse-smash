@@ -116,6 +116,71 @@ const summonTemplates = {
     sheet: "./fx_2_koma_special_frog_a.png", spriteFrames: 1, spriteW: 120, spriteH: 135, spriteSpeed: 6, spriteScale: 0.8
   },
 
+  // ── THE HANDLER — Ten Shadows shikigami cameos (Stage 4) ──────────────────────────────────────
+  // Each is summoned by a directional special (abilities.js executeHandlerSpecial): the summon-MOTION
+  // IS the cameo call (like Todo's Clap). All render their own resliced art
+  // (tools/reslice_handler_shikigami.py) and deal ×0.60-scaled damage — the Megumi-flag: an
+  // independently-attacking summon MUST stay scaled (performSummonAttack → applyScaledDamage, no bypass).
+  // offsetY ≈ (100 − h/2 − spriteH·spriteScale/2) plants ground creatures at the fighter's floor.
+  handlerDivineDogs: {   // N — black Divine Dog rushdown (run→claw), a 2-strike maul
+    id: "handlerDivineDogs", duration: 74, maxSimultaneous: 1, attackInterval: 24, damage: 55,
+    w: 74, h: 48, speed: 9, offsetX: 40, offsetY: 36, behavior: "rush", hitstun: 16, knockbackX: 6, knockbackY: -1,
+    oneHit: false, color: "#222222",
+    sheet: "./handler_shik_dog.png", spriteFrames: 4, spriteW: 99, spriteH: 54, spriteSpeed: 4, spriteScale: 1.5
+  },
+  handlerOrochi: {       // F — Orochi snake long forward lunging bite (disjoint reach)
+    id: "handlerOrochi", duration: 58, maxSimultaneous: 1, attackInterval: 14, damage: 60,
+    w: 84, h: 50, speed: 7, offsetX: 80, offsetY: 35, behavior: "rush", hitstun: 18, knockbackX: 8, knockbackY: -1,
+    oneHit: true, color: "#e8e8e8",
+    sheet: "./handler_shik_snake.png", spriteFrames: 2, spriteW: 73, spriteH: 46, spriteSpeed: 6, spriteScale: 1.7
+  },
+  handlerDatto: {        // B — Datto rabbit swarm scatters forward (chip / zoning cover)
+    id: "handlerDatto", duration: 120, maxSimultaneous: 2, attackInterval: 30, damage: 34,
+    w: 120, h: 30, speed: 6, offsetX: 30, offsetY: 66, behavior: "screenSwarm", hitstun: 10, knockbackX: 3, knockbackY: 0,
+    oneHit: false, color: "#eeeeee",
+    sheet: "./handler_shik_rabbit.png", spriteFrames: 1, spriteW: 173, spriteH: 32, spriteSpeed: 6, spriteScale: 1.2
+  },
+  handlerBansho: {       // D — Max Elephant (Banshō) heavy slam, drops from above (attackInterval low so
+                         // the short overlap window during the fast descent is reliably caught)
+    id: "handlerBansho", duration: 96, maxSimultaneous: 1, attackInterval: 8, damage: 90,
+    w: 150, h: 100, speed: 6, offsetX: 30, offsetY: -20, behavior: "heavyDrop", hitstun: 24, knockbackX: 8, knockbackY: 4, launch: 6,
+    oneHit: true, heavySummon: true, color: "#f0f0f0",
+    sheet: "./handler_shik_elephant.png", spriteFrames: 1, spriteW: 168, spriteH: 105, spriteSpeed: 6, spriteScale: 1.6
+  },
+  handlerNue: {          // U — Nue red bird: dive-bomb from above (heavyDrop so it descends ONTO the
+                         // target rather than hovering out of range like airDive; still reads as anti-air)
+    id: "handlerNue", duration: 84, maxSimultaneous: 1, attackInterval: 8, damage: 55,
+    w: 60, h: 56, speed: 8, offsetX: 20, offsetY: -60, behavior: "heavyDrop", antiAir: true, hitstun: 18, knockbackX: 5, knockbackY: -4,
+    oneHit: true, color: "#c0392b",
+    sheet: "./handler_shik_nue.png", spriteFrames: 3, spriteW: 56, spriteH: 60, spriteSpeed: 5, spriteScale: 1.4
+  },
+  handlerToad: {         // Air — Gama toad aerial drop / body-check
+    id: "handlerToad", duration: 70, maxSimultaneous: 1, attackInterval: 14, damage: 50,
+    w: 44, h: 34, speed: 7, offsetX: 30, offsetY: 59, behavior: "rush", hitstun: 16, knockbackX: 5, knockbackY: -2,
+    oneHit: true, color: "#2e7d32",
+    sheet: "./handler_shik_toad.png", spriteFrames: 1, spriteW: 34, spriteH: 28, spriteSpeed: 6, spriteScale: 1.7
+  },
+
+  // ── KAKASHI KUCHIYOSE (Stage 5) — two STRUCTURALLY DIFFERENT summons, built differently per design ──
+  // Pakkun = a LINGERING COMPANION pug: two-phase (hold the sitting "spawn/ready" pose for spawnBeat, then
+  // run the bite strip), LONG duration, MULTI-HIT (oneHit:false) — a real attacking presence for a duration,
+  // NOT a one-shot burst. The source's "PRESSING BUTTON" held-bite reads here as the sustained multi-hit window.
+  kakashiPakkun: {
+    id: "kakashiPakkun", duration: 300, maxSimultaneous: 1, attackInterval: 40, damage: 30,
+    w: 44, h: 30, speed: 6, offsetX: 30, offsetY: 60, behavior: "rush", hitstun: 12, knockbackX: 4, knockbackY: 0,
+    oneHit: false, color: "#b48a5a",
+    sheet: "./kakashi_pakkun_bite_uniform.png", spriteFrames: 4, spriteW: 34, spriteH: 23, spriteSpeed: 5, spriteScale: 2.2,
+    spawnSheet: "./kakashi_pakkun_ready_uniform.png", spawnFrames: 2, spawnW: 25, spawnH: 23, spawnBeat: 18, spawnScale: 2.2
+  },
+  // Nin-Dogs = a one-shot BURST: the 8-dog PACK erupts and rushes forward, multi-mauls for a SHORT window,
+  // then despawns. NOT a persistent companion — a big-commitment attack (high cost, short duration).
+  kakashiNinDogs: {
+    id: "kakashiNinDogs", duration: 66, maxSimultaneous: 1, attackInterval: 14, damage: 36,
+    w: 132, h: 52, speed: 11, offsetX: 40, offsetY: 34, behavior: "rush", hitstun: 18, knockbackX: 7, knockbackY: -1,
+    oneHit: false, color: "#8a7a66",
+    sheet: "./kakashi_nindogs_pack_uniform.png", spriteFrames: 4, spriteW: 143, spriteH: 64, spriteSpeed: 4, spriteScale: 1.5
+  },
+
   // NARUTO CLONE RUSH (setplay) — a PLACED shadow clone, on command, is sent on ONE
   // autonomous rush-strike at the opponent, then despawns. Distinct from the instant
   // Rasengan Barrage (#16/#19, guaranteed same-frame orbs): this one physically travels

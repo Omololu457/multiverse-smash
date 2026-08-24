@@ -1,13 +1,13 @@
 MULTIVERSE SMASH — PLAYABLE CHARACTER ROSTER
 =============================================
-Last updated: 2026-08-18
+Last updated: 2026-08-24
 This file is maintained and re-updated whenever the roster changes.
 
 Legend:
   [S]        = has sprites (fully playable with real art)
   [pending]  = planned / sprites being sourced (not yet playable with art)
 
-Sprite characters total: 68
+Sprite characters total: 69
 Dragon Ball sprites pending: 4 (Goku, Piccolo, Frieza, Cell)
 
 
@@ -45,6 +45,7 @@ Dragon Ball sprites pending: 4 (Goku, Piccolo, Frieza, Cell)
 
 == DRAGON BALL ==  (getting sprites for the full roster)
   [S]       Vegeta  (vegeta)
+  [S]       Dark Vegeta  (vegeta_dark)   -- standalone black-armor variant; base -> dark-aura -> Super Saiyan Rose
   [S]       Goku Black  (goku_black)
   [S]       Beerus  (beerus)
   [pending] Goku  (goku)

@@ -38,12 +38,15 @@ const ENERGY_TYPE_LABELS = {
   kira:             "Kira",                      // Death Note (Light Yagami) — the Kira meter; fuels his Ryuk/L call-ins, notebook specials + both ultimates
   deduction:        "Deduction",                // Death Note (L "Ryuuzaki") — the detective's meter; fuels his capoeira/call-in special kit
   web_fluid:        "Web Fluid",                // Marvel (Spider-Man) — his web-shooter reserve; fuels Web Impact/Web Throw specials + the cinematic Ultimate
+  repulsor:         "Repulsor",                 // Marvel (Iron Man) — the arc-reactor charge powering the suit; fuels the Charge→Blast repulsor + Spider-legs special kit + the Proton Cannon Ultimate
+  venom:            "Venom",                     // Marvel (Miles Morales) — his bio-electric venom-strike charge; fuels the venom punch/beam specials + the ring-burst Ultimate
   adrenaline:       "Adrenaline",               // DC (Deathstroke) — the enhanced merc's combat reserve; fuels sword/gun/martial specials + the promoted spin-finish Ultimate
   intellect:        "Intellect",                // DC (Brainiac) — the Coluan's 12th-level computational reserve; fuels his beam/tentacle/shield zoner kit + the Energy-Pillar Ultimate
   willpower:        "Willpower",                 // DC (Green Lantern) — the green light of will powering the ring; fuels the fixed-slot construct kit + the multi-construct Ultimate
   boogie:           "Boogie",                    // Jujutsu Kaisen (Aoi Todo) — the Boogie Woogie rhythm meter; gates the Clap swap system (self/cameo/enemy), Yuji+Gojo cameo call-ins, co-op combos + the Black Flash ultimate
   core:             "Core",                       // One Punch Man (Genos) — the cyborg's power-core reserve; fuels the Incineration Cannon charge-tiers, Machine Gun Blows, jet/afterimage dashes + the Overdrive ultimate
   fury:             "Fury",                        // DC (Batman NEW VARIANT / "dark_knight") — escalating rage reserve; fuels the Rage Mode transformation + the Mech-Suit ultimate
+  guts:             "Guts",                        // Hajime no Ippo (Ippo Makunouchi) — the boxer's fighting-spirit / stamina meter; fuels the Gazelle Punch + Dempsey Roll signature techniques (later stages)
 }
 
 // UNIVERSE-level energy-label override — every character in a listed universe shows this label
@@ -2821,6 +2824,17 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
           ctx.fillStyle = "#ffe4b0"; ctx.fillRect(x - w / 2, y + off - 1, w, 2)   // hot white-orange core
         }
         ctx.shadowBlur = 0
+      } else if (p.drawKind === "repulsorbeam") {
+        // IRON MAN 2 — Max-Charge Repulsor ULT: a big horizontal cyan energy beam, layered outer glow →
+        // inner body → white-hot core, gently flickering. Extends along travel (horizontal). Cosmetic only.
+        const w = p.w || 220, h = p.h || 44
+        const col = p.color || "#8fe9ff"
+        const flick = 0.85 + 0.15 * Math.sin(t * 0.8)
+        ctx.shadowBlur = 24; ctx.shadowColor = col
+        ctx.globalAlpha = flick;       ctx.fillStyle = col;       ctx.fillRect(x - w / 2, y - h / 2, w, h)              // outer beam + glow
+        ctx.globalAlpha = flick * 0.95; ctx.fillStyle = "#d6f7ff"; ctx.fillRect(x - w / 2, y - h * 0.28, w, h * 0.56)   // inner body
+        ctx.globalAlpha = 1;           ctx.fillStyle = "#ffffff"; ctx.fillRect(x - w / 2, y - h * 0.12, w, h * 0.24)    // white-hot core
+        ctx.shadowBlur = 0
       } else if (p.drawKind === "waterwall") {
         const w = p.w || 34, h = p.h || 120
         ctx.shadowBlur = 16; ctx.shadowColor = "rgba(56,189,248,0.8)"
@@ -2831,6 +2845,24 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
         ctx.closePath(); ctx.fill()
         ctx.globalAlpha = 0.75; ctx.fillStyle = "#e0f2fe"
         ctx.fillRect(x - 2, y - h / 2, 4, h)                    // bright center seam
+      } else if (p.drawKind === "kunai") {
+        // KAKASHI WEAPON THROW — a spinning steel kunai wrapped in an orange spinning-slash streak.
+        // Blade + ring-handle rotate; two opposed orange arcs sweep around it for the "spinning slash" read.
+        const R = Math.max(11, p.radius || 13)
+        const spin = t * 0.55
+        const orange = p.color || "#ff8a1e"
+        ctx.translate(x, y)
+        ctx.shadowBlur = 14; ctx.shadowColor = orange                 // orange spinning-slash streak
+        ctx.strokeStyle = orange; ctx.lineWidth = 3; ctx.globalAlpha = 0.85
+        for (const a0 of [0, Math.PI]) { ctx.beginPath(); ctx.arc(0, 0, R * 1.25, spin + a0, spin + a0 + Math.PI * 0.7); ctx.stroke() }
+        ctx.rotate(spin * 1.3)                                        // spinning steel kunai
+        ctx.globalAlpha = 1; ctx.shadowBlur = 5; ctx.shadowColor = "rgba(0,0,0,0.4)"
+        ctx.fillStyle = "#c9d2dc"                                     // steel blade (diamond)
+        ctx.beginPath(); ctx.moveTo(0, -R); ctx.lineTo(R * 0.32, 0); ctx.lineTo(0, R * 0.5); ctx.lineTo(-R * 0.32, 0); ctx.closePath(); ctx.fill()
+        ctx.strokeStyle = "#6b7280"; ctx.lineWidth = 1; ctx.stroke()
+        ctx.strokeStyle = "#9aa4b0"; ctx.lineWidth = 2                // ring handle
+        ctx.beginPath(); ctx.arc(0, R * 0.72, R * 0.26, 0, Math.PI * 2); ctx.stroke()
+        ctx.shadowBlur = 0
       }
       ctx.restore()
       return

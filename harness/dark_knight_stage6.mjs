@@ -1,10 +1,9 @@
 // harness/dark_knight_stage6.mjs — STAGE 6: Batman NEW VARIANT (dark_knight) ULTIMATE = MECH SUIT.
-// A 2-phase timed heavy-FORM (Kurapika/Baki architecture). Verifies: (1) the Ultimate casts the wireframe
-// MATERIALIZE cinematic (dkMechWire), (2) enters the MECH FORM (dkMech + currentForm "mech", 100 Fury spent,
-// dmg ×1.5 / def ×1.5 / spd ×0.85), (3) the BODY swaps to the giant mech — idle→dark_knight_mechidle,
-// strikes→dark_knight_mechattack (via _skinAnim), (4) OFFENSE BUFF — a mech light hit deals MORE than base,
-// (5) timer ticks down, (6) AUTO-REVERT — fast-forward → powers down, multipliers reset, _skinAnim cleared,
-// art back to base. Screenshots of the materialize + mech form for the clip.
+// A QUICK inline freeze-cinematic SINGLE ATTACK (tailed-beast/Kurama feel, NOT a transform). Verifies:
+// (1) the Ultimate casts the wireframe MATERIALIZE pose (dkMechWire), (2) the cinematic drives the mech
+// poses (dkMechWire → dkMechIdle → dkMechAttack), (3) it deals a GUARANTEED scaled payoff (~204 EFF) to the
+// foe (range-independent), (4) 100 Fury spent, (5) it POWERS DOWN — no lingering form (no _skinAnim, back to
+// base Batman). Screenshots the materialize + strike for the clip.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,30 +22,13 @@ let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++);
 async function crop(name) {
   const r = await page.evaluate(() => window.__harness.screenRect("p1"));
   if (!r) { await page.screenshot({ path: path.join(OUT, `dark_knight_s6_${name}.png`) }); return; }
-  const padX = 150, padTop = r.h * 1.35, padBot = 30;
+  const padX = 200, padTop = r.h * 1.8, padBot = 40;
   const clip = { x: Math.max(0, Math.round(r.x - padX)), y: Math.max(0, Math.round(r.y - padTop)), width: Math.round(r.w + padX * 2), height: Math.round(r.h + padTop + padBot) };
   if (clip.x + clip.width > 1280) clip.width = 1280 - clip.x;
   if (clip.y + clip.height > 720) clip.height = 720 - clip.y;
   await page.screenshot({ path: path.join(OUT, `dark_knight_s6_${name}_crop.png`), clip });
 }
-async function setupAdjacent(gap = 60) {
-  await waitGrounded();
-  const arena = await page.evaluate(() => window.__harness.arena());
-  const midX = Math.round(arena.left + arena.width * 0.40);
-  await page.evaluate(x => window.__harness.setP1X(x), midX); await waitFrames(1);
-  const a = await p1();
-  await page.evaluate(x => { window.__harness.setP2X(x); window.__harness.healP2?.(); }, a.x + gap); await waitFrames(2);
-}
-async function waitSheet(sheet, maxF = 26) { let mv = await p1(); for (let f = 0; f < maxF && !((mv.spriteSheet || "").includes(sheet)); f++) { await waitFrames(1); mv = await p1(); } return mv; }
-const force = (a) => page.evaluate((act) => window.__harness.forceAction(act, "p1"), a);
-
-async function lightHitDamage() {
-  await setupAdjacent(60);
-  const hp0 = (await p2()).health;
-  await page.keyboard.down("j"); await waitFrames(2); await page.keyboard.up("j"); await waitFrames(22);
-  const hp1 = (await p2()).health;
-  return Math.max(0, hp0 - hp1);
-}
+async function waitSheet(sheet, maxF = 30) { let mv = await p1(); for (let f = 0; f < maxF && !((mv.spriteSheet || "").includes(sheet)); f++) { await waitFrames(1); mv = await p1(); } return mv; }
 
 try {
   await page.goto(`${base}/index.html?harness=1&p1=dark_knight`, { waitUntil: "load" });
@@ -55,67 +37,43 @@ try {
   await page.evaluate(() => window.__harness.boot());
   await waitFrames(5);
 
-  // ── baseline light (no mech) ──
-  console.log("\n── baseline ──");
-  const baseDmg = await lightHitDamage();
-  check("base light connects", baseDmg > 0, `dmg=${baseDmg}`);
-  await waitGrounded(); await waitFrames(4);
-
-  // ── ENTER Mech Suit (Ultimate) ──
-  console.log("\n── enter Mech Suit (Ultimate) ──");
+  console.log("\n── Mech Suit ultimate — quick cinematic single attack ──");
   await waitGrounded();
-  await page.evaluate(() => window.__harness.fillEnergy());
+  // dummy adjacent-ish (the strike is guaranteed / range-independent, but keep it in view)
+  const arena = await page.evaluate(() => window.__harness.arena());
+  await page.evaluate(x => window.__harness.setP1X(x), Math.round(arena.left + arena.width * 0.4)); await waitFrames(1);
+  const a = await p1();
+  await page.evaluate(x => { window.__harness.setP2X(x); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); }, a.x + 90); await waitFrames(2);
+
   const en0 = (await p1()).energy;
+  const hp0 = (await p2()).health;
   const res = await page.evaluate(() => window.__harness.p1Ultimate());
+  const spent = en0 - (await p1()).energy;   // read immediately (before the cinematic regens fury)
   check("Ultimate cast succeeds", res.cast === true, `cast=${res.cast}`);
   check("Phase 1 casts wireframe materialize (dkMechWire)", res.castMove === "dkMechWire", `castMove=${res.castMove}`);
-  const wm = await waitSheet("dark_knight_mechwire");
-  check("materialize sprite → dark_knight_mechwire", (wm.spriteSheet || "").includes("dark_knight_mechwire"), `sheet=${wm.spriteSheet}`);
+  check("spends 100 Fury", spent >= 95, `spent=${spent.toFixed(0)}`);
+  const wm = await waitSheet("dark_knight_mechwire", 6);
+  check("materialize renders (dark_knight_mechwire)", (wm.spriteSheet || "").includes("dark_knight_mechwire"), `sheet=${wm.spriteSheet}`);
   await crop("materialize");
-  await waitFrames(3);
-  let g = await p1();
-  check("enters MECH FORM (dkMech + currentForm 'mech')", g.dkMech === true && g.currentForm === "mech", `dkMech=${g.dkMech} form=${g.currentForm}`);
-  check("spends 100 Fury (minus a few frames' regen)", en0 - g.energy >= 95, `energy ${en0.toFixed(0)}→${g.energy.toFixed(0)}`);
-  check("damage buff applied (×1.5)", Math.abs((g.damageMultiplier || 0) - 1.5) < 0.001, `dmgMult=${g.damageMultiplier}`);
-  check("mech timer running (>0)", (g.dkMechTimer || 0) > 0, `timer=${g.dkMechTimer}`);
-  check("body swapped (_skinAnim set)", g.dkRageSkin === true, `skin=${g.dkRageSkin}`);
+  const im = await waitSheet("dark_knight_mechidle", 26);
+  check("looms as solid mech (dark_knight_mechidle)", (im.spriteSheet || "").includes("dark_knight_mechidle"), `sheet=${im.spriteSheet}`);
+  const am = await waitSheet("dark_knight_mechattack", 30);
+  check("strike renders (dark_knight_mechattack)", (am.spriteSheet || "").includes("dark_knight_mechattack"), `sheet=${am.spriteSheet}`);
+  await crop("strike");
+  await waitFrames(20);
+  const hp1 = (await p2()).health;
+  check("guaranteed payoff ~204 EFF (block-free)", (hp0 - hp1) >= 180 && (hp0 - hp1) <= 230, `−${(hp0 - hp1).toFixed(0)}`);
 
-  // ── Phase 2: giant mech body ──
-  console.log("\n── Phase 2: mech body swap ──");
-  await waitFrames(28);   // let the materialize cinematic finish → mech idle
-  const im = await waitSheet("dark_knight_mechidle", 24);
-  check("mech idle → dark_knight_mechidle", (im.spriteSheet || "").includes("dark_knight_mechidle"), `sheet=${im.spriteSheet}`);
-  await crop("mech_idle");
-  await force("light"); const lm = await waitSheet("dark_knight_mechattack");
-  check("mech strike → dark_knight_mechattack", (lm.spriteSheet || "").includes("dark_knight_mechattack"), `sheet=${lm.spriteSheet}`);
-  await crop("mech_attack"); await force(null); await waitFrames(2);
+  console.log("\n── POWERS DOWN — no lingering form ──");
+  await waitFrames(30);
+  const g = await p1();
+  check("NO timed form / _skinAnim (single attack, powered down)", g.dkRageSkin === false && g.currentForm !== "mech", `skin=${g.dkRageSkin} form=${g.currentForm}`);
+  check("back to base — idle resolves base sheet", await page.evaluate(async () => { window.__harness.forceAction("idle","p1"); return true; }) && (await (async()=>{ await waitFrames(3); return (await p1()).spriteSheet||""; })()).includes("dark_knight_idle_uniform"), "");
+  await page.evaluate(() => window.__harness.forceAction(null, "p1"));
 
-  // ── offense buff live ──
-  console.log("\n── offense buff ──");
-  const mechDmg = await lightHitDamage();
-  check("still in mech form during buff test", (await p1()).dkMech === true, "");
-  check("mech light HITS HARDER than base (×1.5)", mechDmg > baseDmg, `base=${baseDmg} mech=${mechDmg}`);
-
-  // ── timer ticks ──
-  const tA = (await p1()).dkMechTimer; await waitFrames(20); const tB = (await p1()).dkMechTimer;
-  check("mech timer decrements over time", tB < tA, `timer ${tA} → ${tB}`);
-
-  // ── AUTO-REVERT ──
-  console.log("\n── auto-revert ──");
-  const forced = await page.evaluate(() => window.__harness.p1DarkKnightMechExpire());
-  check("fast-forward hook fired", forced === true, "");
-  await waitFrames(6);
-  g = await p1();
-  check("mech ENDED (dkMech false + form base)", g.dkMech === false && g.currentForm === "base", `dkMech=${g.dkMech} form=${g.currentForm}`);
-  check("buffs removed (dmgMult = 1)", Math.abs((g.damageMultiplier || 0) - 1) < 0.001, `dmgMult=${g.damageMultiplier}`);
-  check("_skinAnim cleared (back to base body)", g.dkRageSkin === false, `skin=${g.dkRageSkin}`);
-  const rm = await waitSheet("dark_knight_idle_uniform", 12);
-  check("art restored to base idle after power-down", (rm.spriteSheet || "").includes("dark_knight_idle_uniform"), `sheet=${rm.spriteSheet}`);
-
-  // ── data contract ──
   console.log("\n── data contract ──");
   const ad = await page.evaluate(() => window.__harness.charDef("dark_knight")?.animationData || {});
-  check("dkMechWire/dkMechIdle/dkMechAttack wired to real sheets",
+  check("dkMechWire/dkMechIdle/dkMechAttack wired to real sheets + actionScale (loom)",
     (ad.dkMechWire?.sheet || "").includes("dark_knight_mechwire") && (ad.dkMechIdle?.sheet || "").includes("dark_knight_mechidle") && (ad.dkMechAttack?.sheet || "").includes("dark_knight_mechattack"), "");
   const def = await page.evaluate(() => window.__harness.charDef("dark_knight"));
   check("ultimate declared (Mech Suit, cost 100)", def?.ultimate?.cost === 100 && /Mech/i.test(def?.ultimate?.name || ""), `ult=${def?.ultimate?.name}`);

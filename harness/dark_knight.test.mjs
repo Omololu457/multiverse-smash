@@ -75,19 +75,19 @@ try {
   await wf(4); check("rage ACTIVE", (await p1()).dkRage === true, "");
   await page.evaluate(() => window.__harness.p1DarkKnightRageExpire()); await wf(6);
   check("rage auto-reverts", (await p1()).dkRage === false, "");
-  await grounded(); await page.evaluate(() => window.__harness.fillEnergy());
+  await adjacent(90); await page.evaluate(() => window.__harness.fillEnergy());
+  const uhp0 = (await p2()).health;
   const ult = await page.evaluate(() => window.__harness.p1Ultimate());
-  check("Ultimate → Mech Suit (dkMechWire materialize)", ult?.cast === true && ult?.castMove === "dkMechWire", `cast=${ult?.cast} m=${ult?.castMove}`);
-  await wf(4); const mg = await p1();
-  check("mech FORM active (currentForm mech)", mg.dkMech === true && mg.currentForm === "mech", `form=${mg.currentForm}`);
-  await page.evaluate(() => window.__harness.p1DarkKnightMechExpire()); await wf(6);
-  check("mech auto-reverts to base", (await p1()).dkMech === false && (await p1()).currentForm === "base", "");
+  check("Ultimate → Mech Suit cinematic (dkMechWire materialize)", ult?.cast === true && ult?.castMove === "dkMechWire", `cast=${ult?.cast} m=${ult?.castMove}`);
+  await wf(56);   // let the materialize→loom→strike cinematic play out
+  check("Mech Suit is a SINGLE cinematic attack (NOT a form — no _skinAnim/mech form)", (await p1()).dkRageSkin === false && (await p1()).currentForm !== "mech", `form=${(await p1()).currentForm}`);
+  check("Mech Suit deals guaranteed payoff (~204 EFF)", (uhp0 - (await p2()).health) >= 180, `−${(uhp0 - (await p2()).health).toFixed(0)}`);
   await grounded(); await wf(4);
 
   section("honest reuse assertions (flagged in characters.js)");
   check("run + dash REUSE walk", ad.run.sheet === ad.walk.sheet && ad.dash.sheet === ad.walk.sheet, "");
   check("jump + fall REUSE glide", ad.jump.sheet === ad.glide.sheet && ad.fall.sheet === ad.glide.sheet, "");
-  check("guard + hurt + getup REUSE idle", ad.guard.sheet === ad.idle.sheet && ad.hurt.sheet === ad.idle.sheet && ad.getup.sheet === ad.idle.sheet, "");
+  check("guard + getup REUSE idle (hurt is now its OWN recoil sheet)", ad.guard.sheet === ad.idle.sheet && ad.getup.sheet === ad.idle.sheet && ad.hurt.sheet !== ad.idle.sheet && (ad.hurt.sheet||"").includes("dark_knight_hurt"), "");
   check("up REUSES heavy (no uppercut art)", ad.up.sheet === ad.heavy.sheet, "");
   check("down_air REUSES air", ad.down_air.sheet === ad.air.sheet, "");
   check("lose REUSES knockdown", ad.lose.sheet === ad.knockdown.sheet, "");

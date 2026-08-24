@@ -82,7 +82,7 @@ try {
   check("guard → dark_knight_idle_uniform (reuse)", (bl.spriteSheet || "").includes("dark_knight_idle_uniform"), `action=${bl.spriteAction} sheet=${bl.spriteSheet}`);
 
   await force("hurt"); await waitFrames(4); const ht = await p1(); await shot("hurt"); await force(null); await waitFrames(2);
-  check("hurt → dark_knight_idle_uniform (reuse)", (ht.spriteSheet || "").includes("dark_knight_idle_uniform"), `sheet=${ht.spriteSheet}`);
+  check("hurt → dark_knight_hurt_uniform (real recoil, distinct from idle)", (ht.spriteSheet || "").includes("dark_knight_hurt_uniform"), `sheet=${ht.spriteSheet}`);
 
   await force("knockdown"); await waitFrames(3); const kd = await p1(); await shot("knockdown"); await force(null); await waitFrames(2);
   check("knockdown → dark_knight_knockdown_uniform (real KO art)", (kd.spriteSheet || "").includes("dark_knight_knockdown_uniform"), `sheet=${kd.spriteSheet}`);

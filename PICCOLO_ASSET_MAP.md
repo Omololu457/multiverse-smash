@@ -157,12 +157,20 @@ giant-form = Ultimate set-piece** (its own cinematic, à la Byakuya Bankai / Bat
 not a meter rung). **Namekian Fusion = real canon but structurally excluded** (needs an
 external Namekian target; doesn't fit the self-transform meter).
 
-**★HONEST ART GAP — the blocker:** every one of the 154 frames is standard green Piccolo.
-There is **ZERO transformed-state art** (no yellow-green tint frames, no orange/bulked body,
-no giant form). T2 specifically needs a **body-shape change**, not a recolor. **Do NOT fake
-these tiers with palette tricks on the base sprite.** T1 can *possibly* ship as a tint
-(Frieza-Golden precedent), but **T2 and T3 need real new art** before they are anything more
-than a design doc. This is the single biggest open item in the whole build.
+**★ART GAP:** every one of the 154 frames is standard green Piccolo — **ZERO transformed-state
+art** (no yellow-green frames, no orange/bulked body, no giant form). T2 canonically needs a
+**body-shape change**, not a recolor.
+
+**★★PROTOTYPE-SCOPE RESOLUTION (owner 2026-08-22): BUILT as a palette-tint placeholder.** Per
+the scope adjustment (solo prototype, bespoke tier art out of scope for now), the **real
+charge-transform MECHANIC is shipped** — base → **Potential Unleashed** (T1) → **Orange Piccolo**
+(T2), threshold-gated / per-frame Ki drain / hold-release steps up / tap reverts / auto-revert at
+0, exactly like Frieza/Vegeta (abilities.js `enterPiccoloPotential`/`enterPiccoloOrange`/
+`applyPiccoloFormSystem`; characters.js `transformations`). **ART = canvas TINT only** (sprite.js
+`PICCOLO_POTENTIAL_TINT` yellow-green wash / `PICCOLO_ORANGE_TINT` orange wash) — a **deliberate,
+flagged simplification**, NOT final art: the real Orange Piccolo body-shape change and the Great
+Namekian giant form are NOT built (and were NOT faked via scale/stretch — a clean recolor beats a
+distortion). Commission the bespoke tier art later to replace the tint. `test:piccolo-stage5` = 20/0.
 
 ---
 

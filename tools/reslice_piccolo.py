@@ -107,8 +107,13 @@ if __name__ == "__main__":
     print(f"detected {len(boxes)} frames\n")
 
     # ── STAGE 1 — MOVEMENT / STATE (reslice'd feet-aligned *_uniform.png; anchorY 0 plants feet). ──
-    # IDLE = the arms-crossed neutral loop (Stage-0 CONFIRMED by direct render; Piccolo's canonical stance).
-    reslice(im, boxes, "piccolo_idle_uniform.png", [19,20,21,22])
+    # IDLE = a STATIC hold on the iconic arms-crossed pose (box 21). ★The sheet has NO subtle-breathing
+    # pair — every stance frame is a DISTINCT gesture (19=fists / 20=hands-raised-to-face / 21=arms-crossed /
+    # 22=lower lean), so ANY multi-frame idle reads as Piccolo pumping his hands for no reason (owner feedback).
+    # A person standing still doesn't constantly move their arms → hold the single strongest "at rest" pose.
+    # Box 21 (arms fully crossed over the chest) is his canonical menacing stand → a clean, sensible static idle.
+    # (A real subtle-breathing loop would need a dedicated near-identical 2nd frame that doesn't exist here — art gap.)
+    reslice(im, boxes, "piccolo_idle_uniform.png", [21])
     # WALK/RUN = GENUINE GAP (no locomotion cycle on this Extreme Butoden sheet, like Frieza) → BORROW idle
     #   in characters.js (owner-approved). No walk strip emitted; no fabricated locomotion.
     reslice(im, boxes, "piccolo_dash_uniform.png",   [17])        # forward lean-lunge (glide dash)
@@ -120,3 +125,28 @@ if __name__ == "__main__":
     reslice(im, boxes, "piccolo_getup_uniform.png",  [134,140])   # low -> rise
     reslice(im, boxes, "piccolo_taunt_uniform.png",  [114])       # chest-out flex/roar
     make_face_portrait("piccolo_portrait.png")
+
+    # ── STAGE 2 — NORMALS (all CONFIRMED distinct art; damage via GLOBAL_DAMAGE_SCALE ×0.60). ──
+    # guard already emitted in Stage 1 ([119,120]). down_air REUSES air (project pattern). Reserved for the
+    # Stage-3 command chain: axe-chop [32-34] / roundhouse [68] / side-kick [73].
+    reslice(im, boxes, "piccolo_light_uniform.png", [59,60])   # jab — cock → full straight-punch extension
+    reslice(im, boxes, "piccolo_heavy_uniform.png", [56,57])   # deep LUNGING front-kick (long reach — Piccolo signature)
+    reslice(im, boxes, "piccolo_up_uniform.png",    [81,82])   # rising vertical kick — launcher (its OWN art, not a reuse)
+    reslice(im, boxes, "piccolo_air_uniform.png",   [52,53])   # airborne diving strike (down_air reuses this)
+
+    # ── STAGE 3 — command chain (Fwd+Heavy 3-stage rekka: opener → axe smash → roundhouse launcher). ──
+    reslice(im, boxes, "piccolo_rush1_uniform.png", [77,78])      # opener — forearm/elbow → downward chop
+    reslice(im, boxes, "piccolo_rush2_uniform.png", [32,33,34])   # mid — overhead two-handed axe smash
+    reslice(im, boxes, "piccolo_rush3_uniform.png", [68])         # LAUNCHER finisher — roundhouse spin-kick (orange arc)
+
+    # ── STAGE 4 — SPECIALS (fixed-slot large kit). Beam/Masenko/Demon Wave = PROCEDURAL projectiles + cast
+    #    poses; Stretch-Arm + Flying Kick render their OWN melee sprites. See PICCOLO_ASSET_MAP.md §5. ──
+    reslice(im, boxes, "piccolo_beam_uniform.png",     [105,89])      # Special Beam Cannon cast — gather → forward point-fire
+    reslice(im, boxes, "piccolo_masenko_uniform.png",  [101,102])     # Masenko cast — overhead reach release (D + U)
+    reslice(im, boxes, "piccolo_demonwave_uniform.png",[45,46])       # Explosive Demon Wave cast — both palms thrust forward
+    reslice(im, boxes, "piccolo_stretch_uniform.png",  [111,112,113]) # Stretch-Arm Strike — CONFIRMED elongated-arm crescent (long disjoint melee)
+    reslice(im, boxes, "piccolo_flykick_uniform.png",  [48,49])       # Flying Dash Kick — CONFIRMED horizontal air-dash strike (i-frame)
+
+    # ── STAGE 6 — win pose + cape/turban-removal INTRO. lose = REUSE knockdown (no dedicated lose art). ──
+    reslice(im, boxes, "piccolo_win_uniform.png",   [151])              # WIN — proud chest-out fists-clenched stance
+    reslice(im, boxes, "piccolo_intro_uniform.png", [147,148,149,150])  # INTRO — cape/turban removal: caped → swirl → in-hand → tossed

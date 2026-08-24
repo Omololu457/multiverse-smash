@@ -24,20 +24,28 @@ SRC  = os.path.join(ROOT, "df2ek1u-37586e42-9a55-49e4-8390-5496e4e247c4.png")
 # lower set" was a mismeasurement vs the lower set's expansive cape poses), but 10-frame idle + 10-frame walk =
 # genuinely smooth movement instead of a 2-pose robotic stance. Owner-flagged the old build as choppy/robotic.
 FRAMES = {
-    # 10-frame breathing/weight-shift idle (upper-set row1; dropped the narrow 11th cape-tuck frame)
+    # 6-frame breathing idle (upper-set row1 f0-f5) — the "chest moves forward" breath that reads ALIVE.
+    # f0-f1 rest → f2-f4 chest pushed forward → f5 settle; loops f5≈f0 (both chest-back) = seamless. DROPPED f6
+    # (the leaning "hit-looking" end frame owner flagged) + f7-f9 + the narrow 11th cape-tuck.
     "idle":  [(5,131,110,133), (116,131,110,133), (229,131,116,133), (345,131,125,133), (474,131,118,133),
-              (596,131,116,133), (716,131,120,134), (841,131,119,134), (965,131,118,133), (1088,131,120,133)],
-    # 10-frame forward WALK cycle (upper-set row2; tall box + alpha-crop finds the full figure)
-    "walk":  [(4,276,150,146), (192,276,112,146), (310,276,112,146), (425,276,112,146), (552,276,112,146),
-              (678,276,112,146), (806,276,112,146), (962,276,112,146), (1081,276,112,146), (1191,276,90,146)],
+              (596,131,116,133)],
+    # WALK — the REAL upright locomotion CYCLE (upper region y489): legs alternating, cape flaring back, arms
+    # bent — reads as WALKING, not punching. (The old lower y1943 "walk" was actually 2 idle + 2 PUNCH frames —
+    # that's why it looked like hitting the air.) 7 striding frames; the x936/x1088 turn-to-viewer are excluded.
+    "walk":  [(7,489,133,131), (150,489,154,131), (314,489,130,131), (454,490,96,131),
+              (560,490,100,131), (670,490,108,131), (788,489,138,131)],
     # 5-frame CAPE-WRAP evade — arm raised, cape swept across to conceal, then emerge. Featured "dodge".
     "dodge": [(535,1943,142,131), (687,1943,142,131), (839,1943,131,132), (968,1943,115,132), (1097,1943,138,132)],
     # single clean crouch/duck (kneeling, cape draped)
     "crouch":[(833,2210,119,124)],
     # 6-frame glide/dive — cape spread into bat-wing shapes (serves jump/fall/air too). Two source baselines.
     "glide": [(7,2396,168,101), (223,2396,218,128), (451,2396,199,121), (649,2436,157,118), (816,2436,119,147), (934,2436,72,132)],
-    # prone/knockdown (real KO art from the lower set) — used for knockdown state
-    "knockdown":[(1369,1948,152,111)],
+    # KNOCKDOWN — 3-frame tumble→land: knocked backward (upper KO row y910) → flip onto back → SETTLE on the
+    # grounded prone (lower set). Ends on the prone (lockLastFrame) so he lies on the ground while down.
+    "knockdown":[(5,910,166,123), (177,910,176,119), (1369,1948,152,111)],
+    # ★HURT — real recoil/flinch (upper KO row): Batman knocked BACKWARD, head back, cape flaring. DISTINCT
+    # from idle (the old hurt REUSED idle → getting hit looked identical to standing; owner-flagged).
+    "hurt":[(1174,910,106,104)],
 }
 
 # ── STAGE 2 NORMALS (side-view melee poses from the lower set). Rough boxes; tightened to alpha bbox. ──
@@ -82,11 +90,11 @@ def tighten(src, box):
 # frame faces the canonical RIGHT direction (the engine flips per fighter.facing). From the lower-set
 # weapon frames. crescent = Batman throw pose (flipped) + a separate crescent-hook PROJECTILE sprite. ──
 SPECIAL_FRAMES = {
-    "flail":         [(2905,2145,235,150,False)],   # Fwd — chain-flail swing (weighted ball long reach)
-    "pistol":        [(3525,2508,185,128,False)],   # Back — lunging pistol shot, arm extended R (+ procedural bullet)
-    "cape":          [(3178,2162,228,180,False)],   # Down — cape-spin spread (AoE); box re-tightened to drop flail-ball bleed (visual audit)
-    "dive":          [(200,2388,240,140,False)],    # Air — head-down cape dive-bomb
-    "crescent":      [(3555,2262,215,182,False)],   # Neutral — DYNAMIC crescent-chain swing (blade arcs up-right, faces R); was a static neutral pose (visual-audit fix)
+    "flail":         [(2926,2517,140,143,False), (3067,2517,171,130,False), (3244,2517,231,112,False)],   # Fwd — 3-frame CHAIN-FLAIL swing: gather → swing → lunge-strike (was 1 static frame)
+    "pistol":        [(3481,2517,213,104,False), (3700,2517,233,91,False), (3939,2517,146,123,False), (4091,2517,89,123,False)],   # Back — 4-frame PISTOL: lunge-aim → fire → upright-fire → recover (+ procedural bullet)
+    "grapple":       [(3300,2265,230,200,False), (3555,2255,230,205,False), (3742,2205,140,262,False)],   # Down — 3-frame GRAPPLE/batclaw throw: lunge-launch → hook+chain flung R → recover to stance (catalog: this region is a grapple, NOT a cape-spin)
+    "dive":          [(223,2396,218,128,False), (451,2396,199,121,False), (649,2436,157,118,False)],       # Air — 3-frame cape DIVE: spread → full bat-wing → dive-down (was 1 static frame)
+    "crescent":      [(3555,2262,215,182,False), (3740,2270,125,175,False)],   # Neutral — 2-frame CRESCENT-chain throw: lunge-throw (hook+chain extends R) → recover to stance (was 1 static frame)
     "crescentblade": [(3448,2285,98,74,True)],      # crescent-hook PROJECTILE sprite (flipped R)
 }
 
@@ -143,16 +151,11 @@ def main():
     print("dark_knight STAGE 1 movement/state reslice:")
     dims = {}
     for name, boxes in FRAMES.items():
-        # walk = crouched prowl with a LONG trailing cape below the boots → FEET-crop (align boots, clip drag-cape),
-        # else the cape bottom-aligns and the feet sink into the ground. Everything else = normal alpha-tighten.
+        # walk = the upright stride cycle; its cape flares/trails BELOW the boots → FEET-crop (align boots, clip
+        # the drag-cape) so the feet stay on the ground. Everything else = plain alpha-tighten.
         crop = feet_crop if name == "walk" else (lambda s, b: tighten(s, b)[0])
         tb = [crop(src, b) for b in boxes]
         dims[name] = build(src, name, tb)
-    # WALK from the upper set is a LOW crouched prowl (~78px) — upscale ×1.5 (NEAREST, crisp) so it reads at
-    # idle-comparable height (a stalking gait, slightly shorter than the upright idle = natural). 10 smooth frames.
-    wf = os.path.join(ROOT, "dark_knight_walk_uniform.png")
-    wi = Image.open(wf); wi = wi.resize((int(wi.width * 1.5), int(wi.height * 1.5)), Image.NEAREST); wi.save(wf)
-    print(f"  walk       upscaled ×1.5 → cell {wi.width // 10}x{wi.height}  (crouched prowl, 10f)")
     print("dark_knight STAGE 2 normals reslice:")
     for name, boxes in ATTACK_FRAMES.items():
         # heavy = upper-set lunge with trailing cape below the boots → FEET-crop (ground attack; align boots).

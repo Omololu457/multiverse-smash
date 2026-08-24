@@ -443,6 +443,11 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     // the ground before it strikes, instead of hitting on the spawn frame. Absent → collides immediately.
     hitDelay:   moveData.hitDelay   || 0,
     age:        0,
+    // SCOPED MULTI-TARGET PIERCE (combat.resolveProjectileHitsMulti): opt-in pass-through — the projectile
+    // strikes each target once and keeps flying instead of despawning. Only Iron Man 2's 4* max-charge
+    // repulsor sets this; everyone else's `piercing` stays a purely cosmetic/aspirational flag (unchanged).
+    piercesMulti: moveData.piercesMulti || false,
+    _pierceHits:  moveData.piercesMulti ? [] : null,
     isSpecial:  moveData.isSpecial  || false,
     isUltimate: moveData.isUltimate || false,
     // Pure-visual projectiles (e.g. an in-place AOE ring bloom): skipped by hit
@@ -504,24 +509,12 @@ export function spawnCharacterSummon(fighter, moveName, moveData, context = {}) 
 // Specials: Dragon Fist (melee rush), Kamehameha (projectile)
 // Ultimate: Super Saiyan Blue (transformation stat boost)
 function executeGokuSpecial(fighter, context) {
-  const dirs = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
 
-  // QCF (D→F) = Kamehameha projectile
-  if (endsWithPattern(dirs, ["D", "F"])) {
-    if (!spendEnergy(fighter, 30)) return false
-    spawnProjectile(fighter, "kamehameha", {
-      damage: 120, speed: 13, lifetime: 130,
-      hitstun: 22, knockbackX: 8, knockbackY: -2,
-      color: "#60d0ff", w: 20, h: 20
-    }, context)
-    fighter.attackCooldown = getAttackDuration(28, fighter)
-    focusCameraOnAction(context, fighter, target, 1.0, 8)
-    return true
-  }
-
-  // Default = Dragon Fist — melee rush
+  // STAGE 4 (2026-08-23): MELEE-ONLY. Kamehameha CUT (no beam art on any EB sheet) — the old QCF
+  // projectile branch is removed. Dragon Fist is the LONE special (any special input fires it).
+  // Dragon Fist — melee rocket-punch rush
   if (!spendEnergy(fighter, 40)) return false
   const attack = createAttackFromMove(fighter, "dragonFist", {
     damage: 150, startup: 10, active: 6, recovery: 22,
@@ -533,6 +526,115 @@ function executeGokuSpecial(fighter, context) {
   focusCameraOnAction(context, fighter, target, 0.98, 10)
   shakeCamera(context, 8, 8)
   return true
+}
+
+// ── TEEN GOHAN ────────────────────────────────────────────────────
+// STAGE 4 (2026-08-23): MELEE-ONLY. NO beam/charge/Ultimate art on either EB sheet (confirmed twice) → there is
+// NO ranged special, and none was invented (per prompt "flag rather than invent"). Owner kept ONE melee special
+// (Goku-parallel). "Meteor Kick" — a committed forward-lunging flying kick that blows the foe away. Any special
+// input fires it. ★HONEST ART REUSE of gohan_heavy_uniform (the validated lunging-kick), exactly like Goku's
+// Dragon Fist reuses the heavy sheet — no clean dedicated special frame exists (candidates were wrong-facing /
+// a wind-up). Special FEEL comes from mechanics: big lunge + camera + hard knockback. ×0.60 → ~78 EFF.
+function executeGohanSpecial(fighter, context) {
+  const getOpponent = getTargetResolver(context)
+  const target      = getOpponent(fighter)
+  if (!spendEnergy(fighter, 35)) return false
+  const attack = createAttackFromMove(fighter, "meteorKick", {
+    damage: 130, startup: 10, active: 5, recovery: 22,
+    hitstun: 26, knockbackX: 12, knockbackY: -5,
+    rangeX: 100, rangeY: 58
+  })
+  setAttackState(fighter, attack, 37)
+  fighter.vx = fighter.facing * 7            // committed forward lunge into the flying kick (Dragon-Fist-style)
+  focusCameraOnAction(context, fighter, target, 0.98, 10)
+  shakeCamera(context, 8, 8)
+  return true
+}
+
+// ── TEEN GOHAN — TRANSFORMATION (Stage 5): Base ↔ SUPER SAIYAN 2. ────────────────────────────────
+// Single real in-match form (NOT a skin). Same charge-transform architecture as Vegeta SSJ — threshold-gated
+// charge-RELEASE entry (no up-front spend), continuous per-frame Ki drain, and a FULL art form-swap (gold SSJ2
+// sheets via _skinAnim). ★OWNER MODEL (2026-08-23) = ART-FAITHFUL: NO player tap-revert. Revert happens ONLY two
+// ways: (1) Ki drains to 0 (auto), (2) KNOCKDOWN — the SSJ2 sheet shows the SSJ2→base reversion during the
+// KO/defeat sequence, so getting knocked down reverts the form (applyGohanFormSystem). Declarative twin lives in
+// characters.gohan.transformations.ssj2 (energyDrainPerFrame/revertOnEmpty/skinAnim). Base→SSJ2 morph = the real
+// mid-air black→gold tumble (gohan_transform_uniform.png). See GOHAN_ASSET_MAP.md §S5.
+export function isGohan(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "gohan" }
+
+const GOHAN_SSJ2_THRESHOLD = 120     // energy ≥ 120 (60% of maxEnergy 200) to enter — hold P to build past it
+const GOHAN_SSJ2_DRAIN     = 0.20    // energy/frame while transformed (~12/s @60fps)
+const GOHAN_SSJ2_MULT      = { dmg: 1.30, spd: 1.15, def: 1.10 }   // SSJ2 is a big jump (above Vegeta's SSJ 1.20/1.12/1.05)
+const GOHAN_SSJ2_MORPH     = 24      // black→gold tumble lockout (5f × speed 4 ≈ 20; full lockout while morphing)
+
+// FULL merged art set: base Gohan's COMPLETE animationData (so EVERY un-overridden action still renders real art)
+// with the SSJ2 (gold) sheets overlaid on top. down_air + meteorKick reuse the gold air/heavy (as base does).
+const GOHAN_SSJ2_ANIM = {
+  ...characters.gohan.animationData,
+  idle:      { frames: 3, width: 68,  height: 124, speed: 8, anchorY: 0, sheet: "./gohan_ssj2_idle_uniform.png" },
+  walk:      { frames: 4, width: 66,  height: 120, speed: 6, anchorY: 0, sheet: "./gohan_ssj2_walk_uniform.png" },
+  run:       { frames: 5, width: 66,  height: 120, speed: 4, anchorY: 0, sheet: "./gohan_ssj2_run_uniform.png" },
+  dash:      { frames: 1, width: 87,  height: 93,  speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_dash_uniform.png" },
+  jump:      { frames: 2, width: 87,  height: 128, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_jump_uniform.png" },
+  fall:      { frames: 1, width: 63,  height: 111, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_fall_uniform.png" },
+  crouch:    { frames: 1, width: 60,  height: 101, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_crouch_uniform.png" },
+  guard:     { frames: 2, width: 69,  height: 104, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_guard_uniform.png" },
+  hurt:      { frames: 2, width: 77,  height: 98,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_hurt_uniform.png" },
+  knockdown: { frames: 2, width: 120, height: 57,  speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_knockdown_uniform.png" },
+  getup:     { frames: 2, width: 73,  height: 112, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_getup_uniform.png" },
+  light:     { frames: 1, width: 104, height: 96,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_light_uniform.png" },
+  heavy:     { frames: 2, width: 134, height: 84,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_heavy_uniform.png" },
+  up:        { frames: 1, width: 78,  height: 87,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_up_uniform.png" },
+  air:       { frames: 1, width: 111, height: 78,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_air_uniform.png" },
+  down_air:  { frames: 1, width: 111, height: 78,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_air_uniform.png" },   // reuse gold air
+  gohanRush1: { frames: 1, width: 90,  height: 92, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_rush1_uniform.png" },
+  gohanRush2: { frames: 1, width: 144, height: 80, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_rush2_uniform.png" },
+  gohanRush3: { frames: 2, width: 130, height: 78, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_rush3_uniform.png" },
+  meteorKick: { frames: 2, width: 134, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_ssj2_heavy_uniform.png" }, // reuse gold heavy (as base reuses base heavy)
+  // Base→SSJ2 morph (black→gold mid-air tumble). Plays ONCE on entering (GOHAN_SSJ2_MORPH lockout) + doubles as intro.
+  transform: { frames: 5, width: 106, height: 118, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gohan_transform_uniform.png" },
+}
+
+export function enterGohanSSJ2(fighter, context = {}) {
+  if (!isGohan(fighter) || fighter._ssj2Active) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < GOHAN_SSJ2_THRESHOLD) return false   // ONLY at/above threshold — no up-front spend
+  fighter._ssj2Active       = true
+  fighter._skinAnim         = retagFormAnim(GOHAN_SSJ2_ANIM, fighter._recolorTag)   // gold form-swap (+alt recolor if any)
+  fighter.currentForm       = "gohanSSJ2"
+  fighter.damageMultiplier  = fighter.attackMultiplier = GOHAN_SSJ2_MULT.dmg
+  fighter.speedMultiplier   = GOHAN_SSJ2_MULT.spd
+  fighter.defenseMultiplier = GOHAN_SSJ2_MULT.def
+  fighter.currentFormData   = fighter.transformations?.ssj2 || fighter.currentFormData   // updateTransformationState re-applies each frame
+  fighter._spriteCastMove   = "transform"          // play the black→gold morph on the fighter
+  fighter._spriteCastTimer  = GOHAN_SSJ2_MORPH
+  fighter.attackCooldown    = GOHAN_SSJ2_MORPH      // fully locked while morphing
+  fighter.teleportFlash     = 14
+  fighter.vx = 0
+  sound.playDragonBallTransformSfx()               // SHARED Dragon Ball transform cue
+  return true
+}
+
+// Revert to base. Called by the drain auto-revert (Ki=0) and the knockdown revert (below) + round/KO resets.
+// ★NO player tap-revert (owner: art-faithful) — there is intentionally no toggle path.
+export function revertGohan(fighter) {
+  if (!fighter || !fighter._ssj2Active) return
+  fighter._ssj2Active       = false
+  fighter._skinAnim         = fighter._baseSkinAnim || null   // restore recoloured base (not canonical) if alt-skinned
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+
+// Per-frame hook (updateFighterState): art-faithful revert-on-KNOCKDOWN + continuous Ki drain → auto-revert at 0.
+export function applyGohanFormSystem(fighter) {
+  if (!isGohan(fighter)) return
+  // (1) ART-SHOWN revert: the SSJ2 sheet reverts to base during the KO/defeat sequence → knockdown reverts the form.
+  if (fighter._ssj2Active && fighter.knockdownState) { revertGohan(fighter); return }
+  // (2) continuous drain → instant auto-revert at 0 (SAME model as Vegeta/Goku).
+  tickSustainedFormDrain(fighter, { active: f => !!f._ssj2Active, drainPerFrame: GOHAN_SSJ2_DRAIN, revert: revertGohan })
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1361,17 +1463,40 @@ export function revertVegetaBlue(fighter) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// GOKU — TRANSFORMATION LADDER (base → SSJ → SSJ2 → SSJ3 → SSJ Blue → Ultra Instinct).
-// 2026-08-22: ALIGNED to the SAME mechanic as Vegeta / Goku Black / Frieza — threshold-gated on the CHARGE
-// button (hold-release steps UP, tap reverts to base), NO up-front cost, a continuous per-frame Ki DRAIN
-// pays for the form, and it auto-reverts the instant Ki hits 0 (shared tickSustainedFormDrain). REPLACES the
-// old ultimate-button / 100-energy-spend entry (executeGokuUltimate — removed). Multipliers + per-tier
-// thresholds/drains are declared on characters.js goku.transformations. ★currentForm uses a NON-matching
-// label ("goku_ssj1") so the generic transformations.js drain/revert stays off and only this custom system
-// runs (the Vegeta gotcha). Goku is procedural (hasSprites:false) → the transformed state shows via
-// drawGokuFormAura (a per-tier box aura + label); the charge-up shows via the standard isCharging aura.
+// GOKU — TRANSFORMATION LADDER (STAGE 5, 2026-08-23 re-scope): base → Super Saiyan → Super Saiyan God →
+// Super Saiyan Blue. SAME mechanic as Vegeta / Frieza — threshold-gated on the CHARGE button (hold-release
+// steps UP, tap reverts to base), NO up-front cost, continuous per-frame Ki DRAIN, auto-revert at 0 (shared
+// tickSustainedFormDrain). Multipliers + per-tier thresholds/drains on characters.js goku.transformations.
+// ★Goku is now a SPRITE (hasSprites:true) → each tier ART-SWAPS fighter._skinAnim to the form's recolored
+// EB sheets (GOKU_FORM_ANIM, Vegeta-SSJ pattern) instead of the old box aura. ★REPLACES the old numeric
+// 6-tier box ladder (ssj1/ssj2/ssj3/ultraInstinct removed; SSG added) — matches the four real sheets.
+// currentForm uses a NON-matching label ("goku_ssj") so the generic transformations.js drain/revert stays off.
+// ★SCOPE: form _skinAnim overrides idle/walk/run/jump/fall/dash (the always-visible neutral+locomotion) with
+// real per-form color; un-overridden actions (normals/rush/specials/states) FALL BACK to base art via the
+// merge — the accepted _skinAnim fallback (not a box), flagged for a per-form attack-art completion pass.
+// DEFERRED (flagged): bespoke transition CINEMATICS (charge-up flash / white-flash reverts / full cutscene),
+// SSJ3 flourish, SSG teleport-dash — the transform currently uses teleportFlash + the shared DB SFX.
 // ═════════════════════════════════════════════════════════════════════════════
-const GOKU_LADDER = ["ssj1", "ssj2", "ssj3", "ssblue", "ultraInstinct"]   // index+1 = transformIndex
+// Per-form _skinAnim: base animationData + this form's recolored movement sheets (reslice_goku.py stage5).
+function gokuFormAnim(form, dims) {
+  const idleSheet = `./goku_${form}_idle_uniform.png`, jumpSheet = `./goku_${form}_jump_uniform.png`
+  const d = dims
+  return {
+    ...characters.goku.animationData,   // un-overridden actions render base art (accepted merge fallback)
+    idle: { frames: 4, width: d.iw, height: d.ih, speed: 6, anchorY: 0, sheet: idleSheet },
+    walk: { frames: 4, width: d.iw, height: d.ih, speed: 6, anchorY: 0, sheet: idleSheet },   // no walk cycle → reuse idle
+    run:  { frames: 4, width: d.iw, height: d.ih, speed: 4, anchorY: 0, sheet: idleSheet },
+    jump: { frames: d.jf, width: d.jw, height: d.jh, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: jumpSheet },
+    fall: { frames: 1, width: d.jw, height: d.jh, speed: 6, anchorY: 0, sourceX: (d.jf - 1) * d.jw, loop: false, lockLastFrame: true, sheet: jumpSheet },
+    dash: { frames: 1, width: d.dw, height: d.dh, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: `./goku_${form}_dash_uniform.png` },
+  }
+}
+const GOKU_FORM_ANIM = {
+  ssj: gokuFormAnim("ssj", { iw: 71,  ih: 165, jf: 4, jw: 117, jh: 158, dw: 101, dh: 107 }),   // gold
+  ssg: gokuFormAnim("ssg", { iw: 93,  ih: 156, jf: 3, jw: 77,  jh: 144, dw: 121, dh: 123 }),   // red
+  ssblue: gokuFormAnim("ssb", { iw: 96, ih: 135, jf: 4, jw: 119, jh: 113, dw: 104, dh: 148 }), // blue (sheet alias "ssb")
+}
+const GOKU_LADDER = ["ssj", "ssg", "ssblue"]   // index+1 = transformIndex
 function isGokuChar(f) { return (f?.rosterKey || "").toLowerCase() === "goku" }
 export function isGokuSuper(fighter) { return (fighter?.transformIndex || 0) > 0 }
 export function gokuFormKey(fighter) { const i = fighter?.transformIndex || 0; return i > 0 ? GOKU_LADDER[i - 1] : "base" }
@@ -1380,19 +1505,19 @@ export function enterGokuNextForm(fighter, context = {}) {
   if (!isGokuChar(fighter)) return false
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
   const idx = fighter.transformIndex || 0
-  if (idx >= GOKU_LADDER.length) return false          // already at the top (Ultra Instinct)
+  if (idx >= GOKU_LADDER.length) return false          // already at the top (Super Saiyan Blue)
   const key  = GOKU_LADDER[idx]                        // the next tier up
   const form = fighter.transformations?.[key]
   if (!form) return false
   if ((fighter.energy || 0) < (form.energyThreshold || 0)) return false   // threshold gate — NO up-front spend
+  fighter._kaioken          = 0                        // KAIOKEN is Base-form-only → transforming clears it
   fighter.transformIndex    = idx + 1
   fighter.currentForm       = "goku_" + key            // NON-matching label → generic drain/revert stays off
+  fighter._skinAnim         = retagFormAnim(GOKU_FORM_ANIM[key], fighter._recolorTag)   // ART-SWAP to the form's recolored sheets
   fighter.damageMultiplier  = fighter.attackMultiplier = form.damageMultiplier || 1
   fighter.speedMultiplier   = form.speedMultiplier || 1
   fighter.defenseMultiplier = form.defenseMultiplier || 1
   fighter.currentFormData   = form                     // re-applied each frame by updateTransformationState
-  fighter.autoDodge         = !!form.autoDodge
-  fighter.autoDodgeKiCost   = form.autoDodgeKiCost || 0
   fighter.teleportFlash     = 16
   fighter.attackCooldown    = 12                        // brief transform lock
   fighter.vx = 0
@@ -1404,21 +1529,70 @@ export function revertGoku(fighter) {
   if (!fighter || (fighter.transformIndex || 0) <= 0) return
   fighter.transformIndex    = 0
   fighter.currentForm       = "base"
+  fighter._skinAnim         = fighter._baseSkinAnim || null   // restore base art (or recoloured base if alt-skinned)
   fighter.damageMultiplier  = fighter.attackMultiplier = 1
   fighter.speedMultiplier   = 1
   fighter.defenseMultiplier = 1
   fighter.currentFormData   = fighter.transformations?.base || null
-  fighter.autoDodge         = false
-  fighter.autoDodgeKiCost   = 0
   fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
 }
 // Per-frame continuous drain (current tier's rate) + instant auto-revert at 0 — SAME model as Vegeta/Goku Black.
 export function applyGokuFormSystem(fighter) {
   if (!isGokuChar(fighter)) return
+  tickGokuKaioken(fighter)                              // KAIOKEN (Base-only) HP-strain drain runs every frame
   const idx = fighter.transformIndex || 0
   if (idx <= 0) return
   const drain = fighter.transformations?.[GOKU_LADDER[idx - 1]]?.energyDrainPerFrame || 0
   tickSustainedFormDrain(fighter, { active: f => (f.transformIndex || 0) > 0, drainPerFrame: drain, revert: revertGoku })
+}
+
+// ── STAGE 6 — KAIOKEN (Base-form-only per-form delta). A risk/reward burst buff that STACKS through 2 tiers
+// (Kaioken → Kaioken ×3), boosting damage & speed but STRAINING the body (continuous HP drain, not Ki — the
+// transform ladder uses Ki, so Kaioken is a distinct Base-form resource). ★Base-only: the transformed states
+// (SSJ/SSG/SSB) lack the deep-red Kaioken palette tiers on the sheets, so Kaioken does NOT layer on a form
+// (prompt Stage 6 reading — confirmed against the palette evidence). Bound to the (freed) ULTIMATE input;
+// each press cycles 0→1→2→0. Visual = procedural red/maroon aura (drawGokuFormAura, GOKU_KAIOKEN_LOOK) — the
+// real #7/#8 red/maroon palette-stance art is a DEFERRABLE refinement (crude to key reliably). See GOKU_ASSET_MAP.md.
+const GOKU_KAIOKEN = [
+  null,
+  { dmg: 1.30, spd: 1.20, def: 1.0, hpDrainPerFrame: 0.15 },   // Kaioken (tier 1)
+  { dmg: 1.55, spd: 1.40, def: 1.0, hpDrainPerFrame: 0.30 },   // Kaioken ×3 (tier 2)
+]
+function applyGokuKaiokenLevel(fighter, level, context = {}) {
+  fighter._kaioken = level
+  const k = GOKU_KAIOKEN[level]
+  if (!k) {   // OFF → clear buffs + art
+    fighter.damageMultiplier = fighter.attackMultiplier = 1
+    fighter.speedMultiplier = 1; fighter.defenseMultiplier = 1
+    fighter.currentFormData = fighter.transformations?.base || null
+    return
+  }
+  fighter.damageMultiplier = fighter.attackMultiplier = k.dmg
+  fighter.speedMultiplier = k.spd; fighter.defenseMultiplier = k.def
+  // Point currentFormData at the Kaioken values so updateTransformationState re-applies them each frame
+  // (else the base 1.0 form data would stomp the buffs a frame later — the Vegeta gotcha).
+  fighter.currentFormData = { damageMultiplier: k.dmg, speedMultiplier: k.spd, defenseMultiplier: k.def }
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+  try { sound.playDragonBallTransformSfx?.() } catch (_) {}
+  try { shakeCamera(context, 6, 8) } catch (_) {}
+}
+// ULTIMATE input (Base-only): cycle Kaioken 0→1→2→0.
+export function toggleGokuKaioken(fighter, context = {}) {
+  if (!isGokuChar(fighter)) return false
+  if ((fighter.transformIndex || 0) > 0) return false                    // Base-form ONLY
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  applyGokuKaiokenLevel(fighter, ((fighter._kaioken || 0) + 1) % 3, context)
+  return true
+}
+// Per-frame HP strain while Kaioken is active; auto-off before a self-KO (Kaioken hurts but shouldn't suicide).
+export function tickGokuKaioken(fighter) {
+  if (!isGokuChar(fighter)) return
+  const lvl = fighter._kaioken || 0
+  if (lvl <= 0) return
+  if ((fighter.transformIndex || 0) > 0) { applyGokuKaiokenLevel(fighter, 0); return }   // safety: never coexist with a form
+  const k = GOKU_KAIOKEN[lvl]; if (!k) { applyGokuKaiokenLevel(fighter, 0); return }
+  fighter.health = Math.max(0, (fighter.health || 0) - (k.hpDrainPerFrame || 0))
+  if (fighter.health <= (fighter.maxHealth || 1000) * 0.10) applyGokuKaiokenLevel(fighter, 0)   // auto-off at 10% HP
 }
 
 // ── NARUTO ────────────────────────────────────────────────────────
@@ -3900,6 +4074,899 @@ export function updateFriezaCommandCombat(fighter, inputState, context, getPhase
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PICCOLO — Stage 3 COMMAND CHAIN. Fwd+Heavy opens piccoloRush1 (forearm/elbow → chop opener) → re-tap Heavy
+// during recovery (cancel-on-HIT via the shared rekkaContinue, requireHit:true) → piccoloRush2 (overhead
+// two-handed axe smash) → re-tap Heavy → piccoloRush3 (roundhouse LAUNCHER; string ends). A whiff/block ends
+// the string. Ground-only, FREE (commits via recovery). Neutral heavy stays the normal `heavy` lunge-kick;
+// Up/Down/Air auto-route. Mirrors updateFriezaCommandCombat / updateGenosCommandCombat. Art = CONFIRMED strike
+// rows (reslice_piccolo.py: rush1 [77,78] / rush2 [32-34] / rush3 [68]). See PICCOLO_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const PICCOLO_CMD = {
+  piccoloRush1: { damage: 40, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 100, rangeY: 56, rekkaNext: "piccoloRush2" },  // forearm/elbow → chop opener
+  piccoloRush2: { damage: 48, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 100, rangeY: 60, rekkaNext: "piccoloRush3" },  // overhead two-handed axe smash
+  piccoloRush3: { damage: 82, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -9, rangeX: 112, rangeY: 60, launcher: true },              // roundhouse LAUNCHER finisher
+}
+function firePiccoloCmd(fighter, key) {
+  const md = PICCOLO_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updatePiccoloCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "piccolo" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return firePiccoloCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` lunge-kick.
+  if (forward && heavyEdge) return firePiccoloCmd(fighter, "piccoloRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GOKU (Dragon Ball, 4-form EB) — Stage 3 COMMAND CHAIN "Meteor Combination". Fwd+Heavy opens
+// gokuRush1 (lunging straight-punch opener) → re-tap Heavy during recovery (cancel-on-HIT via shared
+// rekkaContinue, requireHit:true) → gokuRush2 (flurry hook) → re-tap Heavy → gokuRush3 (roundhouse
+// crescent LAUNCHER; string ends). Whiff/block ends the string. Ground-only, FREE (commits via
+// recovery). Neutral heavy stays the normal `heavy` lunge-punch; Up/Down/Air auto-route. Mirrors
+// updatePiccoloCommandCombat. Art = reslice_goku.py rush1 [97,98] / rush2 [100,101] / rush3 [109,110].
+// See GOKU_ASSET_MAP.md. ★Shared skeleton → recolors onto all 4 forms in later stages.
+// ─────────────────────────────────────────────────────────────────────────────
+const GOKU_CMD = {
+  gokuRush1: { damage: 42, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 100, rangeY: 56, rekkaNext: "gokuRush2" },  // lunging straight-punch opener
+  gokuRush2: { damage: 50, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 104, rangeY: 60, rekkaNext: "gokuRush3" },  // flurry hook mid-beat
+  gokuRush3: { damage: 84, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -9, rangeX: 112, rangeY: 62, launcher: true },            // roundhouse crescent LAUNCHER finisher
+}
+function fireGokuCmd(fighter, key) {
+  const md = GOKU_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateGokuCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "goku" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireGokuCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` lunge-punch.
+  if (forward && heavyEdge) return fireGokuCmd(fighter, "gokuRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DARK VEGETA (Dragon Ball, akuma black-armor) — Stage 3 COMMAND CHAIN "Villain's Rush". Fwd+Heavy opens
+// vegetaDarkRush1 (deep lunge → two-handed thrust opener) → re-tap Heavy during recovery (cancel-on-HIT
+// via shared rekkaContinue, requireHit:true) → vegetaDarkRush2 (rapid flurry mid-beat) → re-tap Heavy →
+// vegetaDarkRush3 (rising uppercut LAUNCHER; string ends). Whiff/block ends the string. Ground-only, FREE
+// (commits via recovery). Neutral heavy stays the normal `heavy` side-kick; Up/Down/Air auto-route. Mirrors
+// updateGokuCommandCombat. Art = reslice_vegeta_dark.py rush1 [55-57] / rush2 [91-93] / rush3 [94-95].
+// See VEGETA_BLACK_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const VEGETA_DARK_CMD = {
+  vegetaDarkRush1: { damage: 42, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 104, rangeY: 56, rekkaNext: "vegetaDarkRush2" },  // deep lunge → two-handed thrust opener
+  vegetaDarkRush2: { damage: 50, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 100, rangeY: 60, rekkaNext: "vegetaDarkRush3" },  // rapid flurry mid-beat
+  vegetaDarkRush3: { damage: 84, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -9, rangeX: 108, rangeY: 62, launcher: true },                // rising uppercut LAUNCHER finisher
+}
+function fireVegetaDarkCmd(fighter, key) {
+  const md = VEGETA_DARK_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateVegetaDarkCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vegeta_dark" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireVegetaDarkCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` side-kick.
+  if (forward && heavyEdge) return fireVegetaDarkCmd(fighter, "vegetaDarkRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TEEN GOHAN (Dragon Ball, EB Base/SSJ2) — Stage 3 COMMAND CHAIN "Rush Combo". Fwd+Heavy opens gohanRush1
+// (advancing straight-punch opener) → re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue,
+// requireHit:true) → gohanRush2 (crescent sweep kick mid-beat) → re-tap Heavy → gohanRush3 (spin-roundhouse
+// LAUNCHER; string ends). A whiff/block ends the string. Ground-only, FREE (commits via recovery). Neutral
+// heavy stays the normal `heavy` lunge-punch; Up/Down/Air auto-route. Mirrors updateGokuCommandCombat /
+// updatePiccoloCommandCombat. Art = reslice_gohan.py rush1 [90,92] / rush2 [96,97] / rush3 [124] (all confirmed
+// distinct strike frames; SSJ2 recolor lands at Stage 5). See GOHAN_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const GOHAN_CMD = {
+  gohanRush1: { damage: 42, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 100, rangeY: 56, rekkaNext: "gohanRush2" },  // advancing straight-punch opener
+  gohanRush2: { damage: 50, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 106, rangeY: 60, rekkaNext: "gohanRush3" },  // crescent sweep kick (mid)
+  gohanRush3: { damage: 84, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -9, rangeX: 116, rangeY: 62, launcher: true },            // spin-roundhouse LAUNCHER finisher
+}
+function fireGohanCmd(fighter, key) {
+  const md = GOHAN_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateGohanCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gohan" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireGohanCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` lunge-punch.
+  if (forward && heavyEdge) return fireGohanCmd(fighter, "gohanRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KAKASHI HATAKE (Naruto, Ninja Council 4) — Stage 3 COMMAND CHAIN "Y-Combo". Fwd+Heavy opens
+// kakashiCombo1 (kunai draw-slash opener) → re-tap Heavy during recovery (cancel-on-HIT via shared
+// rekkaContinue, requireHit:true) → kakashiCombo2 (mid punch flurry) → re-tap Heavy → kakashiCombo3
+// (orange-streaked KICK LAUNCHER; string ends). A whiff/block ends the string. Ground-only, FREE
+// (commits via recovery). Neutral heavy stays the normal `heavy` sweeping kick; Up/Down/Air auto-route.
+// ★The cancel WINDOW is the shared rekka mechanic = a fresh Heavy during the current stage's RECOVERY,
+//   gated on a landed non-blocked hit (rekkaContinue requireHit:true) — NOT a per-stage hand-tuned frame.
+// ★STAGE COUNT is 3, derived from DIRECT FRAME REVIEW of the two-segment Y-combo (kunai SLASH → PUNCH
+//   flurry → orange KICK), NOT from the source's 2-row layout. Mirrors updateGokuCommandCombat /
+//   updateGohanCommandCombat. Art = reslice_kakashi.py combo1 [95,96,97] / combo2 [99-102] / combo3
+//   [116,117,118]. See KAKASHI_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const KAKASHI_CMD = {
+  kakashiCombo1: { damage: 42, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 100, rangeY: 56, rekkaNext: "kakashiCombo2" },  // kunai draw-slash opener
+  kakashiCombo2: { damage: 50, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 104, rangeY: 60, rekkaNext: "kakashiCombo3" },  // mid punch flurry
+  kakashiCombo3: { damage: 84, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -9, rangeX: 112, rangeY: 62, launcher: true },              // orange-streaked KICK LAUNCHER finisher
+}
+function fireKakashiCmd(fighter, key) {
+  const md = KAKASHI_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateKakashiCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireKakashiCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` sweeping kick.
+  if (forward && heavyEdge) return fireKakashiCmd(fighter, "kakashiCombo1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GOTENKS (Dragon Ball, EB SS) — Stage 3 COMMAND CHAIN "Kamikaze Barrage". Fwd+Heavy opens gotenksRush1
+// (advancing forward punch opener) → re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue,
+// requireHit:true) → gotenksRush2 (rapid motion-blur barrage, alternating fists) → re-tap Heavy →
+// gotenksRush3 (finishing flurry → both-fists thrust, hard knockback; string ends). A whiff/block ends the
+// string. Ground-only, FREE (commits via recovery). Neutral heavy stays the normal `heavy` lunge-punch;
+// Up/Down/Air auto-route. Mirrors updateGohanCommandCombat. The barrage is the sheet's CONFIRMED distinct
+// rapid-combo (motion-streak marks on BOTH fists) — built as a chained string, NOT folded into the jab combo.
+// Art = reslice_gotenks.py rush1 [116] / rush2 [117,118] / rush3 [122,123,124]. See GOTENKS_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const GOTENKS_CMD = {
+  gotenksRush1: { damage: 38, startup: 6, active: 3, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: 0,  rangeX: 98,  rangeY: 56, rekkaNext: "gotenksRush2" },  // advancing forward punch opener
+  gotenksRush2: { damage: 46, startup: 4, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 100, rangeY: 58, rekkaNext: "gotenksRush3" },  // rapid motion-blur barrage (fast)
+  gotenksRush3: { damage: 80, startup: 7, active: 4, recovery: 22, hitstun: 22, knockbackX: 11, knockbackY: -3, rangeX: 108, rangeY: 60 },                             // finishing flurry double-punch (hard knockback; no launcher — faithful to the barrage art)
+}
+function fireGotenksCmd(fighter, key) {
+  const md = GOTENKS_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateGotenksCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gotenks" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireGotenksCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the barrage chain. Neutral heavy stays the normal `heavy` lunge-punch.
+  if (forward && heavyEdge) return fireGotenksCmd(fighter, "gotenksRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IPPO MAKUNOUCHI (Hajime no Ippo) — Stage 3 COMMAND CHAIN "Y-Jabs". Fwd+Heavy opens ippoJab1 (a rapid
+// LIGHT jab flurry opener) → re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue,
+// requireHit:true) → ippoJab2 (a committed STRAIGHT-punch flurry finisher, hard pushback; string ends).
+// A whiff/block ends the string. Ground-only, FREE (commits via recovery). Neutral heavy stays the normal
+// `heavy` lunging hook; Up/Down/Air auto-route. Mirrors updateGohanCommandCombat. ★TWO STAGES — faithful
+// to the sheet's "/"-split two-segment Y-Jabs row (rapid jabs → straight flurry), NOT folded into one move.
+// ★NO launcher finisher — Ippo is a boxer; his launchers/finishers live in Up+B (Stage 2) and the Gazelle
+// Punch / Dempsey Roll (Stages 4/5). Art = reslice_ippo.py jab1 (seg 1) / jab2 (seg 2). See IPPO_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const IPPO_CMD = {
+  ippoJab1: { damage: 34, startup: 5, active: 3, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: 0, rangeX: 100, rangeY: 54, rekkaNext: "ippoJab2" },  // rapid jab flurry opener
+  ippoJab2: { damage: 56, startup: 6, active: 4, recovery: 20, hitstun: 20, knockbackX: 9, knockbackY: 0, rangeX: 112, rangeY: 56 },                          // committed straight-punch flurry finisher (hard pushback; no launcher — faithful to a boxer's jabs)
+}
+function fireIppoCmd(fighter, key) {
+  const md = IPPO_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateIppoCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ippo" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireIppoCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the Y-Jab chain. Neutral heavy stays the normal `heavy` lunging hook.
+  if (forward && heavyEdge) return fireIppoCmd(fighter, "ippoJab1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VEGITO (Dragon Ball) — Stage 3 COMMAND CHAIN "Ultra Rush". Fwd+Heavy opens vegitoRush1 (dash-in slash
+// opener) → re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue, requireHit:true) →
+// vegitoRush2 (crescent slashes) → re-tap Heavy → vegitoRush3 (big crescent LAUNCHER; string ends). A
+// whiff/block ends the string. Ground-only, FREE (commits via recovery). Neutral heavy stays the normal
+// `heavy` lunge-punch; Up/Down/Air auto-route. Mirrors updatePiccoloCommandCombat. Art = reslice_vegito.py
+// "Repeat here" dashing-slash combo row (ATTACK2 bottom). See VEGITO_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const VEGITO_CMD = {
+  vegitoRush1: { damage: 40, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 100, rangeY: 56, rekkaNext: "vegitoRush2" },  // dash-in slash opener
+  vegitoRush2: { damage: 48, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 104, rangeY: 60, rekkaNext: "vegitoRush3" },  // crescent slashes (mid)
+  vegitoRush3: { damage: 82, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -9, rangeX: 118, rangeY: 60, launcher: true },             // big crescent LAUNCHER finisher
+}
+function fireVegitoCmd(fighter, key) {
+  const md = VEGITO_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"
+  fighter._cmdHitLanded = false
+  return true
+}
+export function updateVegitoCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vegito" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireVegitoCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (forward && heavyEdge) return fireVegitoCmd(fighter, "vegitoRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BARDOCK (Dragon Ball) — Stage 3 COMMAND CHAIN "Blade Rush". Fwd+Heavy opens bardockRush1 (forward SWORD
+// thrust opener) → re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue, requireHit:true) →
+// bardockRush2 (big overhead SWORD slash) → re-tap Heavy → bardockRush3 (rising spin-slash LAUNCHER; string
+// ends). A whiff/block ends the string. Ground-only, FREE (commits via recovery). Neutral heavy stays the
+// normal `heavy` sword slash; Up/Down/Air auto-route. ★A pure-SWORD string = the cleanest showcase of
+// Bardock's differentiator (mirrors updateVegitoCommandCombat, the sibling sword rekka). ★DESIGN CALL on the
+// prompt's open chain question (BARDOCK_ASSET_MAP.md item 4): the sheet has NO baked armed↔unarmed transition
+// frames (moves are individual poses) → armed/unarmed chaining is NOT sheet-mandated. Built as a self-contained
+// sword rekka; if explicit unarmed-normal→sword-rush cancels are wanted, that is a follow-up tuning.
+// Art = reslice_bardock.py rush1 [79] / rush2 [163] / rush3 [129]. See BARDOCK_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const BARDOCK_CMD = {
+  bardockRush1: { damage: 40, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 3, knockbackY: 0,  rangeX: 102, rangeY: 58, rekkaNext: "bardockRush2" },  // forward sword thrust opener (advancing)
+  bardockRush2: { damage: 50, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 110, rangeY: 64, rekkaNext: "bardockRush3" },  // big overhead sword slash (mid, long reach)
+  bardockRush3: { damage: 84, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -9, rangeX: 118, rangeY: 64, launcher: true },             // rising spin-slash LAUNCHER (string ends)
+}
+function fireBardockCmd(fighter, key) {
+  const md = BARDOCK_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"
+  fighter._cmdHitLanded = false
+  return true
+}
+export function updateBardockCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "bardock" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireBardockCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (forward && heavyEdge) return fireBardockCmd(fighter, "bardockRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BARDOCK (Dragon Ball) — Stage 4 SPECIALS. ★A small MELEE kit — NO ranged/energy special exists on the
+// sheet (BARDOCK_ASSET_MAP.md item 4), so none is invented (same honest treatment as Goku's melee-only
+// Dragon Fist / Gotenks' cut ki-blast art). Two moves via executeBardockSpecial (mirrors executeGotenksSpecial):
+//   • Rebellion Rush (neutral / Fwd / AIR) — a committed dashing SWORD lunge (gap-closer, hard knockback).
+//     MELEE, leaning into the character's sword differentiator; art = reslice_bardock.py [49]. ×0.60 → ~60 EFF.
+//   • Ki Charge (Down) — the golden ki-orb gather [203,204] as a standing resource-build (+Ki over the gather
+//     window, no hit). ★ANSWERS the S0 open ki-orb role: RESOURCE BUILD (the faithful reading — no beam/nova
+//     payoff exists to connect it to; exactly Gotenks' Ki Charge precedent). It fuels Rebellion Rush.
+// ★If the owner instead wants the ki-orb as a procedural thrown ki-blast (Gotenks-style), that is a small
+// swap — flagged, not inventing sheet art. See BARDOCK_ASSET_MAP.md §S4.
+// ─────────────────────────────────────────────────────────────────────────────
+const BARDOCK_REBELLION = { cost: 18, pose: "bardockRebellion", damage: 100, startup: 9, active: 5, recovery: 20, hitstun: 24, kbX: 12, kbY: -4, rangeX: 122, rangeY: 60, lunge: 8 }
+const BARDOCK_KICHARGE  = { wind: 8, hold: 22, recovery: 10, pose: "bardockKiCharge", gain: 60 }   // resource build: ~60 Ki over the gather window
+function bardockOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireBardockRebellion(fighter, context, opts = {}) {
+  const t = BARDOCK_REBELLION
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const getOpponent = getTargetResolver(context)
+  const target = getOpponent?.(fighter)
+  const attack = createAttackFromMove(fighter, t.pose, {
+    damage: Math.round(t.damage * bardockOffense(fighter)), startup: t.startup, active: t.active, recovery: t.recovery,
+    hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, rangeX: t.rangeX, rangeY: t.rangeY,
+  }, { minActiveStart: t.startup, minActiveEnd: t.startup + t.active })
+  setAttackState(fighter, attack, t.startup + t.active + t.recovery)
+  fighter.vx = fighter.facing * t.lunge             // committed forward dash into the blade (Meteor-Kick style)
+  focusCameraOnAction(context, fighter, target, 0.98, 10)
+  shakeCamera(context, 7, 8)
+  return true
+}
+function fireBardockKiCharge(fighter) {
+  const t = BARDOCK_KICHARGE
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.energy || 0) >= (fighter.maxEnergy || 0)) return false   // already full — nothing to build
+  const dur = t.wind + t.hold + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const steps = 6, per = t.gain / steps
+  for (let i = 0; i < steps; i++) schedulePendingSpawn(t.wind + Math.round(i * (t.hold / steps)), () => {
+    fighter.energy = Math.min(fighter.maxEnergy || 0, (fighter.energy || 0) + per)
+  })
+  return true
+}
+export function executeBardockSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "bardock") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (grounded && dir === "D") return fireBardockKiCharge(fighter)             // Down (ground) — Ki Charge (resource build)
+  return fireBardockRebellion(fighter, context, { air: !grounded })           // neutral / Fwd / AIR — Rebellion Rush (dashing sword lunge)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IRON MAN 1 (Marvel) — Stage 3 COMMAND CHAIN "Repulsor Rush". Fwd+Heavy opens ironManRush1 (forward dash-
+// lunge punch / gap-closer) → re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue,
+// requireHit:true) → ironManRush2 (committed straight repulsor punch, RED burst) → re-tap Heavy →
+// ironManRush3 (raised-gauntlet repulsor FLARE LAUNCHER; string ends). Whiff/block ends the string. Ground-
+// only, FREE (commits via recovery). Neutral heavy stays the normal `heavy` repulsor straight; Up/Down/Air
+// auto-route. Mirrors updatePiccoloCommandCombat. Art = reslice_iron_man.py rush1 (row2 f0) / rush2 (row1
+// f5-6) / rush3 (row1 f7-8). See IRON_MAN_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const IRON_MAN_CMD = {
+  ironManRush1: { damage: 40, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: 0,  rangeX: 104, rangeY: 54, rekkaNext: "ironManRush2" },  // forward dash-lunge punch (gap-closer)
+  ironManRush2: { damage: 48, startup: 5, active: 3, recovery: 13, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 100, rangeY: 56, rekkaNext: "ironManRush3" },  // straight repulsor punch (RED burst)
+  ironManRush3: { damage: 82, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -10, rangeX: 106, rangeY: 62, launcher: true },             // raised-gauntlet repulsor flare LAUNCHER finisher
+}
+function fireIronManCmd(fighter, key) {
+  const md = IRON_MAN_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateIronManCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireIronManCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` repulsor straight.
+  if (forward && heavyEdge) return fireIronManCmd(fighter, "ironManRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IRON MAN 2 (Marvel, Data East) — Stage 3 COMMAND CHAIN "Repulsor Rush". Fwd+Heavy opens ironMan2Rush1
+// (lunging forward reach / gap-closer) → re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue,
+// requireHit:true) → ironMan2Rush2 (committed straight punch) → re-tap Heavy → ironMan2Rush3 (both-arms-
+// overhead LAUNCHER; string ends). Whiff/block ends the string. Ground-only, FREE (commits via recovery).
+// Neutral heavy stays the normal `heavy` overhead swing; Up/Down/Air auto-route. Mirrors updateIronManCommandCombat.
+// Art = reslice_iron_man_2.py rush1/2/3 from the FULLER original punch group (distinct from edited-combo normals).
+// See IRON_MAN_2_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const IRON_MAN_2_CMD = {
+  ironMan2Rush1: { damage: 40, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: 0,  rangeX: 104, rangeY: 54, rekkaNext: "ironMan2Rush2" },  // lunging forward reach (gap-closer)
+  ironMan2Rush2: { damage: 48, startup: 5, active: 3, recovery: 13, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 100, rangeY: 56, rekkaNext: "ironMan2Rush3" },  // committed straight punch
+  ironMan2Rush3: { damage: 82, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -10, rangeX: 106, rangeY: 64, launcher: true },             // both-arms-overhead LAUNCHER finisher
+}
+function fireIronMan2Cmd(fighter, key) {
+  const md = IRON_MAN_2_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateIronMan2CommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man_2" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireIronMan2Cmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` overhead swing.
+  if (forward && heavyEdge) return fireIronMan2Cmd(fighter, "ironMan2Rush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IRON MAN 2 (Marvel, Data East) — Stage 4 SPECIALS (SCAFFOLDING — art-INDEPENDENT mechanic). The two
+// cast poses (ironMan2Repulsor / ironMan2Whht) are FLAGGED PLACEHOLDERS in characters.js; the real
+// repulsor-FIRE pose + the WHHT! dash frames (with motion trail) are RESLICED in the visual pass.
+// Owner-LOCKED: the charge-tiered repulsor S/1/2/3/4* = a DAMAGE/SIZE RAMP; 4* adds PIERCE + big knockback.
+// (E* = the max-charge tier = the Stage-5 ULTIMATE, not here.) The bolt is a PROCEDURAL blue energy dart
+// (the sheet's projectile IS a blue dart — rendered procedurally, scaled per tier). Fwd/air = "WHHT!" boot-
+// jet dash-lunge (named on-sheet). Neutral charge is armed tap/hold from game.js (handleIronMan2Special*).
+// Down = dive Ground-slam (real 4f art); Up = Lock-on Missile (cyan bolt aimAt target + yellow reticle FX).
+// All cast art RESLICED after the visual pass (repulsor aim / WHHT! dash / dive-slam / missile+reticle).
+// ─────────────────────────────────────────────────────────────────────────────
+const IRON_MAN_2_REPULSOR = {
+  // tier: cost / wind / recovery / projW,projH / speed / damage(raw ×0.60 eff) / hitstun / kbX,kbY / life / radius / piercing
+  S: { cost: 12, wind: 6,  recovery: 14, projW: 40,  projH: 12, speed: 20, damage: 40,  hitstun: 12, kbX: 5,  kbY: 0,  life: 60, radius: 8  },   // tap — quick small bolt
+  1: { cost: 18, wind: 8,  recovery: 16, projW: 54,  projH: 14, speed: 19, damage: 54,  hitstun: 14, kbX: 6,  kbY: 0,  life: 66, radius: 10 },
+  2: { cost: 26, wind: 10, recovery: 18, projW: 68,  projH: 16, speed: 18, damage: 70,  hitstun: 16, kbX: 7,  kbY: -1, life: 72, radius: 13 },
+  3: { cost: 38, wind: 13, recovery: 22, projW: 88,  projH: 20, speed: 17, damage: 92,  hitstun: 20, kbX: 9,  kbY: -2, life: 80, radius: 17 },
+  4: { cost: 55, wind: 16, recovery: 26, projW: 112, projH: 26, speed: 16, damage: 120, hitstun: 26, kbX: 13, kbY: -3, life: 92, radius: 24, piercesMulti: true },   // 4* — biggest dart + hardest dmg + heaviest knockback + MULTI-TARGET PIERCE (owner-locked; scoped IM2-only pass-through via combat.js, does NOT affect other chars' beams)
+}
+// CHARGE-TIERED REPULSOR — tap/hold blast (S/1/2/3/4*). Fired on Special-release from game.js (tier by hold-ms).
+export function fireIronMan2Repulsor(fighter, tier, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man_2") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!(fighter.onGround ?? fighter.grounded ?? true)) return false
+  const t = IRON_MAN_2_REPULSOR[tier] || IRON_MAN_2_REPULSOR.S
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = "ironMan2Repulsor"; fighter._spriteCastTimer = dur   // ★PLACEHOLDER cast pose (real repulsor-fire pose reslice pending)
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter._rekkaNext = null
+  const offense = Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1)
+  schedulePendingSpawn(t.wind, () => {
+    // PROCEDURAL blue repulsor DART (arc-reactor blue); size + damage scale per charge tier; 4* pierces.
+    spawnProjectile(fighter, "ironMan2Repulsor", {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercesMulti: !!t.piercesMulti,
+      isSpecial: true, color: "#8fe9ff", spawnY: fighter.y + (fighter.h || 110) * 0.36,
+    }, context)
+  })
+  try { shakeCamera(context, tier === 4 ? 4 : 2, tier === 4 ? 8 : 5) } catch (_) {}
+  return true
+}
+const IRON_MAN_2_WHHT_MD = { damage: 68, startup: 8, active: 4, recovery: 16, hitstun: 20, knockbackX: 10, knockbackY: -2, rangeX: 96, rangeY: 54, isSpecial: true, category: "heavy" }   // WHHT! boot-jet dash-lunge (named on-sheet)
+function fireIronMan2Whht(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const cost = 24
+  if (!spendEnergy(fighter, cost)) return false
+  const md = IRON_MAN_2_WHHT_MD
+  const attack = createAttackFromMove(fighter, "ironMan2Whht", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.startup + 2)   // brief i-frames through the boot-jet blitz
+  fighter.vx = (fighter.facing || 1) * 17   // WHHT! dash lunge forward
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+// GROUND-SLAM — Down special: a headfirst DIVE-slam (real 4-frame art; splash baked in). Heavy commit,
+// forward-down drive, big damage + hard knockdown.
+const IRON_MAN_2_GROUNDSLAM_MD = { damage: 90, startup: 11, active: 5, recovery: 22, hitstun: 26, knockbackX: 8, knockbackY: 8, rangeX: 86, rangeY: 74, isSpecial: true, category: "heavy" }
+function fireIronMan2GroundSlam(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const cost = 28
+  if (!spendEnergy(fighter, cost)) return false
+  const md = IRON_MAN_2_GROUNDSLAM_MD
+  const attack = createAttackFromMove(fighter, "ironMan2GroundSlam", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = (fighter.facing || 1) * 9; fighter.vy = Math.max(fighter.vy || 0, 5)   // forward-down dive drive
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  return true
+}
+// LOCK-ON MISSILE — Up special: a cyan star-burst energy bolt AIMED at the locked target (aimAt), preceded by
+// a yellow lock-on RETICLE FX spawned on the target. Reuses the repulsor aim pose to launch (no distinct pose).
+const IRON_MAN_2_MISSILE = { cost: 30, castT: 22, delay: 12, damage: 66, w: 44, h: 22, radius: 14, speed: 15, hitstun: 18, kbX: 7, kbY: -2, life: 96 }
+function fireIronMan2Missile(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const m = IRON_MAN_2_MISSILE
+  if (!spendEnergy(fighter, m.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = "ironMan2Repulsor"; fighter._spriteCastTimer = m.castT   // reuse the aim-forward pose
+  fighter.attackCooldown  = getAttackDuration(m.castT, fighter)
+  fighter._rekkaNext = null
+  const offense = Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1)
+  // LOCK-ON reticle (pure-visual) centered on the target — the acquire animation.
+  const tgt = context?.getOpponent?.(fighter)
+  if (tgt) schedulePendingSpawn(2, () => {
+    const c = _oppCenter(tgt) || { x: tgt.x, y: tgt.y }
+    spawnProjectile(fighter, "ironMan2Lockon", {
+      visualOnly: true, vx: 0, vy: 0, lifetime: 24, spawnX: c.x, spawnY: c.y,
+      sheet: "./iron_man_2_lockon_uniform.png", spriteFrames: 4, spriteW: 96, spriteH: 99, spriteSpeed: 5, spriteScale: 1, spriteOnce: true,
+    }, context)
+  })
+  // MISSILE — cyan bolt aimed at the (re-read) locked target CENTER.
+  schedulePendingSpawn(m.delay, () => {
+    const t2 = context?.getOpponent?.(fighter)
+    spawnProjectile(fighter, "ironMan2Missile", {
+      w: m.w, h: m.h, radius: m.radius, speed: m.speed, damage: Math.round(m.damage * offense),
+      hitstun: m.hitstun, knockbackX: m.kbX, knockbackY: m.kbY, lifetime: m.life, isSpecial: true, color: "#5fd8ff",
+      sheet: "./iron_man_2_missile_uniform.png", spriteFrames: 4, spriteW: 42, spriteH: 61, spriteSpeed: 3,
+      spawnY: fighter.y + (fighter.h || 110) * 0.34,
+      aimAt: t2 ? _oppCenter(t2) : null,
+    }, context)
+  })
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+export function executeIronMan2Special(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man_2") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "F" || !grounded) return fireIronMan2Whht(fighter, context)      // Fwd / AIR — WHHT! dash-lunge
+  if (dir === "D") return fireIronMan2GroundSlam(fighter, context)             // Down — dive ground-slam
+  if (dir === "U") return fireIronMan2Missile(fighter, context)               // Up — lock-on homing missile
+  return fireIronMan2Repulsor(fighter, "S", context)   // neutral GROUND safety-net (armed tap/hold handled in game.js)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IRON MAN 3 (Marvel, GBA "Invincible Iron Man") — Stage 4 SPECIALS. CENTERPIECE = the real on-sheet
+// 3-TIER CHARGE (Basic → Charged → Supercharged): neutral tap/hold, armed & tier-resolved in game.js
+// (handleIronMan3Special*). Each tier fires its OWN on-sheet projectile art (basic bolt / cyan burst /
+// yellow burst), size+damage ramped per tier. DECISION B: Super Move (Up; standing+midair variants) and
+// Super Laser (Fwd; long horizontal beam) are SEPARATE specials — NOT tiers of the Super Nova ult (S5).
+// The "Charging Shot (Put over Iron Man's Fist)" FX is drawn over the fist during the hold (game.js overlay).
+// ─────────────────────────────────────────────────────────────────────────────
+const IRON_MAN_3_REPULSOR = {
+  // tier: cost / wind / recovery / projW,projH / speed / damage / hitstun / kbX,kbY / life / radius + real sheet
+  S: { cost: 14, wind: 6,  recovery: 14, projW: 44, projH: 30, speed: 19, damage: 44,  hitstun: 12, kbX: 5,  kbY: 0,  life: 62, radius: 16, sheet: "./iron_man_3_basic_shot_uniform.png",        frames: 2, sw: 37, sh: 34, sscale: 1.0, color: "#dff4ff" },   // Basic Shot — quick small bolt
+  C: { cost: 30, wind: 10, recovery: 18, projW: 66, projH: 46, speed: 18, damage: 78,  hitstun: 17, kbX: 7,  kbY: -1, life: 74, radius: 24, sheet: "./iron_man_3_charged_shot_uniform.png",      frames: 3, sw: 54, sh: 38, sscale: 1.3, color: "#9fe9ff" },   // Charged Shot — larger cyan-white burst
+  X: { cost: 55, wind: 14, recovery: 24, projW: 96, projH: 64, speed: 16, damage: 120, hitstun: 24, kbX: 11, kbY: -2, life: 88, radius: 34, sheet: "./iron_man_3_supercharged_shot_uniform.png", frames: 3, sw: 55, sh: 57, sscale: 1.5, color: "#fff2a0" },   // Supercharged Shot — brightest yellow-white burst
+}
+// 3-TIER CHARGE REPULSOR — tap/hold blast (S/C/X). Fired on Special-release from game.js (tier by hold-ms).
+export function fireIronMan3Repulsor(fighter, tier, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man_3") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!(fighter.onGround ?? fighter.grounded ?? true)) return false
+  const t = IRON_MAN_3_REPULSOR[tier] || IRON_MAN_3_REPULSOR.S
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = "ironMan3Repulsor"; fighter._spriteCastTimer = dur   // arm-extended repulsor fire pose (reuses the standing Shooting pose)
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter._rekkaNext = null
+  const offense = Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1)
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "ironMan3Repulsor", {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, isSpecial: true, color: t.color,
+      sheet: t.sheet, spriteFrames: t.frames, spriteW: t.sw, spriteH: t.sh, spriteSpeed: 3, spriteScale: t.sscale,
+      spawnY: fighter.y + (fighter.h || 110) * 0.36,
+    }, context)
+  })
+  try { shakeCamera(context, tier === "X" ? 4 : 2, tier === "X" ? 8 : 5) } catch (_) {}
+  return true
+}
+// SUPER LASER — Fwd special: a long horizontal cyan beam (real on-sheet art), fast wide high-damage projectile.
+const IRON_MAN_3_SUPER_LASER = { cost: 40, wind: 10, recovery: 24, projW: 200, projH: 46, speed: 26, damage: 104, hitstun: 22, kbX: 12, kbY: -2, life: 48, radius: 30 }
+function fireIronMan3SuperLaser(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const m = IRON_MAN_3_SUPER_LASER
+  if (!spendEnergy(fighter, m.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = "ironMan3Repulsor"; fighter._spriteCastTimer = m.wind + m.recovery   // firing pose (arm extended)
+  fighter.attackCooldown  = getAttackDuration(m.wind + m.recovery, fighter)
+  fighter._rekkaNext = null
+  const offense = Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1)
+  schedulePendingSpawn(m.wind, () => {
+    spawnProjectile(fighter, "ironMan3SuperLaser", {
+      w: m.projW, h: m.projH, radius: m.radius, speed: m.speed, damage: Math.round(m.damage * offense),
+      hitstun: m.hitstun, knockbackX: m.kbX, knockbackY: m.kbY, lifetime: m.life, isSpecial: true, color: "#bfe9ff",
+      sheet: "./iron_man_3_super_laser_uniform.png", spriteFrames: 2, spriteW: 231, spriteH: 70, spriteSpeed: 3, spriteScale: 1.15,
+      spawnY: fighter.y + (fighter.h || 110) * 0.42,
+    }, context)
+  })
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  return true
+}
+// SUPER MOVE — Up special (also AIR neutral): a spinning-ring windup → burst AoE (real on-sheet cast art,
+// standing + midair variants). A committed melee super-burst around Iron Man; slight launch.
+const IRON_MAN_3_SUPER_MOVE_MD = { damage: 88, startup: 11, active: 6, recovery: 20, hitstun: 24, knockbackX: 6, knockbackY: -9, rangeX: 98, rangeY: 96, isSpecial: true, category: "heavy" }
+function fireIronMan3SuperMove(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const cost = 36
+  if (!spendEnergy(fighter, cost)) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  const key = grounded ? "ironMan3SuperMove" : "ironMan3SuperMoveAir"
+  const md = IRON_MAN_3_SUPER_MOVE_MD
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = 0
+  try { shakeCamera(context, 5, 9) } catch (_) {}
+  return true
+}
+export function executeIronMan3Special(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man_3") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (dir === "U") return fireIronMan3SuperMove(fighter, context)      // Up — Super Move (spin-burst; midair variant in air)
+  if (dir === "F") return fireIronMan3SuperLaser(fighter, context)     // Fwd — Super Laser (horizontal beam)
+  if (!grounded) return fireIronMan3SuperMove(fighter, context)        // AIR neutral — Super Move (midair)
+  return fireIronMan3Repulsor(fighter, "S", context)   // neutral GROUND safety-net (armed tap/hold handled in game.js)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (Custom / DCUC) — Stage 3 COMMAND CHAIN "Kryptonian Rush". Fwd+Heavy opens supDcucRush1 (dashing
+// forward punch / gap-closer) → re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue,
+// requireHit:true) → supDcucRush2 (rapid cross-punch) → re-tap Heavy → supDcucRush3 (flying crescent-kick
+// LAUNCHER; string ends). Whiff/block ends the string. Ground-only, FREE (commits via recovery). Neutral heavy
+// stays the normal `heavy` lunge-punch; Up/Down/Air auto-route. Mirrors updatePiccoloCommandCombat. Art =
+// reslice_superman_dcuc.py rush1 [127,128] / rush2 [103,104] / rush3 [165,166]. See SUPERMAN2_DCUC_ASSET_MAP.md.
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_DCUC_CMD = {
+  supDcucRush1: { damage: 40, startup: 6, active: 3, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: 0,  rangeX: 104, rangeY: 54, rekkaNext: "supDcucRush2" },  // dashing forward punch (gap-closer)
+  supDcucRush2: { damage: 48, startup: 5, active: 3, recovery: 13, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 100, rangeY: 56, rekkaNext: "supDcucRush3" },  // rapid cross-punch string
+  supDcucRush3: { damage: 82, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -10, rangeX: 108, rangeY: 62, launcher: true },             // flying crescent-kick LAUNCHER finisher
+}
+function fireSupermanDcucCmd(fighter, key) {
+  const md = SUPERMAN_DCUC_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"     // the string advances on Heavy
+  fighter._cmdHitLanded = false       // latched by a real (non-blocked) hit → gates the cancel
+  return true
+}
+export function updateSupermanDcucCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_dcuc" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy       // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // REKKA CONTINUE — fresh Heavy during the current stage's RECOVERY, only if it CONNECTED (cancel-on-hit).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireSupermanDcucCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  // GROUND — Fwd+Heavy opens the rush chain. Neutral heavy stays the normal `heavy` lunge-punch.
+  if (forward && heavyEdge) return fireSupermanDcucCmd(fighter, "supDcucRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (New 52) — Stage 3 COMMAND CHAIN "Speeding Bullet". Fwd+Heavy opens supN52Rush1 (jab → big
+// straight) → re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue, requireHit:true) →
+// supN52Rush2 (punch → big lunge) → re-tap Heavy → supN52Rush3 (SPINNING-TORNADO LAUNCHER; string ends).
+// Whiff/block ends the string. Ground-only, FREE. Mirrors updateSupermanDcucCommandCombat. Art =
+// reslice_superman_new52.py rush1 [100,101] / rush2 [119,109] / rush3 [171,172] (unique spin FX).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_NEW52_CMD = {
+  supN52Rush1: { damage: 38, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: 0,  rangeX: 100, rangeY: 54, rekkaNext: "supN52Rush2" },  // jab → big straight
+  supN52Rush2: { damage: 46, startup: 5, active: 3, recovery: 13, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 98,  rangeY: 58, rekkaNext: "supN52Rush3" },  // punch → big lunge
+  supN52Rush3: { damage: 80, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -10, rangeX: 104, rangeY: 62, launcher: true },             // spinning-tornado LAUNCHER
+}
+function fireSupermanNew52Cmd(fighter, key) {
+  const md = SUPERMAN_NEW52_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"
+  fighter._cmdHitLanded = false
+  return true
+}
+export function updateSupermanNew52CommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_new52" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireSupermanNew52Cmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (forward && heavyEdge) return fireSupermanNew52Cmd(fighter, "supN52Rush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (Classic) — Stage 3 COMMAND CHAIN "Man of Steel". Fwd+Heavy opens supClsRush1 (jab → big lunge) →
+// re-tap Heavy during recovery (cancel-on-HIT via shared rekkaContinue, requireHit:true) → supClsRush2
+// (flare-punch flurry) → re-tap Heavy → supClsRush3 (flying flare-kick LAUNCHER; string ends). Whiff/block ends
+// the string. Ground-only, FREE. Mirrors updateSupermanNew52CommandCombat. Art = reslice_superman_classic.py
+// rush1 [23,17] / rush2 [75,76] / rush3 [77,78] (energy-flare punches + kick).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_CLASSIC_CMD = {
+  supClsRush1: { damage: 40, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: 0,  rangeX: 100, rangeY: 56, rekkaNext: "supClsRush2" },  // jab → big lunge
+  supClsRush2: { damage: 48, startup: 5, active: 3, recovery: 13, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 98,  rangeY: 56, rekkaNext: "supClsRush3" },  // flare-punch flurry
+  supClsRush3: { damage: 82, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 9, knockbackY: -10, rangeX: 108, rangeY: 62, launcher: true },             // flying flare-kick LAUNCHER
+}
+function fireSupermanClassicCmd(fighter, key) {
+  const md = SUPERMAN_CLASSIC_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"
+  fighter._cmdHitLanded = false
+  return true
+}
+export function updateSupermanClassicCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_classic" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireSupermanClassicCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (forward && heavyEdge) return fireSupermanClassicCmd(fighter, "supClsRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (Fighter) — Stage 3 COMMAND CHAIN "Kryptonian Barrage". Fwd+Heavy opens supFtrRush1 (B punch-flurry
+// opener) → re-tap Heavy during recovery (cancel-on-HIT, shared rekkaContinue) → supFtrRush2 (rapid blue-fist
+// MULTI-HIT flurry) → re-tap Heavy → supFtrRush3 (FORWARD+B flying-dash LAUNCHER; string ends). Whiff/block ends.
+// Ground-only, FREE. Mirrors updateSupermanClassicCommandCombat. Art = reslice_superman_fighter.py rush1/2/3.
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_FIGHTER_CMD = {
+  supFtrRush1: { damage: 40, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 4, knockbackY: 0,  rangeX: 104, rangeY: 56, rekkaNext: "supFtrRush2" },  // flurry opener
+  supFtrRush2: { damage: 48, startup: 5, active: 3, recovery: 13, hitstun: 16, knockbackX: 4, knockbackY: 0,  rangeX: 108, rangeY: 58, rekkaNext: "supFtrRush3" },  // rapid blue-fist multi-hit
+  supFtrRush3: { damage: 82, startup: 8, active: 4, recovery: 22, hitstun: 24, knockbackX: 10, knockbackY: -10, rangeX: 112, rangeY: 56, launcher: true },            // FORWARD+B flying-dash launcher
+}
+function fireSupermanFighterCmd(fighter, key) {
+  const md = SUPERMAN_FIGHTER_CMD[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext    = md.rekkaNext || null
+  fighter._rekkaBtn     = "heavy"
+  fighter._cmdHitLanded = false
+  return true
+}
+export function updateSupermanFighterCommandCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_fighter" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireSupermanFighterCmd(fighter, next)
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (!canStart || !grounded) return false
+  if (forward && heavyEdge) return fireSupermanFighterCmd(fighter, "supFtrRush1")
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // GENOS — Stage 4 SPECIALS. Neutral GROUND Special = the INCINERATION CANNON (tap/hold 3-tier charge blast,
 // armed in game.js's press-path like Saitama's combo — never reaches executeGenosSpecial). The other specials
 // branch here by held direction / airborne:
@@ -4092,6 +5159,1167 @@ export function executeFriezaSpecial(fighter, context) {
   return fireFriezaBeam(fighter, context)                             // neutral GROUND — Death Beam
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PICCOLO — Stage 4 SPECIALS (fixed-slot large ki-zoner kit). Directional / air branch:
+//   neutral GROUND = Special Beam Cannon — a thin, fast, PIERCING procedural beam (signature, high-commit)
+//   Fwd           = Stretch-Arm Strike — CONFIRMED elongated-arm crescent, a LONG disjoint melee (own sprite)
+//   Down / U      = Masenko — a quick, cheap procedural ki bolt (overhead release)
+//   Back          = Explosive Demon Wave — a big, slow, heavy procedural energy sphere
+//   AIR (any)     = Flying Dash Kick — CONFIRMED horizontal air-dash strike, i-frame gap-closer (own sprite)
+// Beam/Masenko/Demon-Wave are PROCEDURAL (the sheet has NO beam art — owner-approved, see PICCOLO_ASSET_MAP §5);
+// projectile damage folds the fighter's offense mult (like Frieza/Genos). Mirrors executeFriezaSpecial.
+// ─────────────────────────────────────────────────────────────────────────────
+const PICCOLO_SPECIALS = {
+  piccoloBeam:      { cost: 32, wind: 12, recovery: 22, pose: "piccoloBeam",     projW: 74, projH: 12, speed: 22, damage: 96,  hitstun: 18, kbX: 7,  kbY: -1, life: 72,  radius: 9,  color: "#c07bff", piercing: true },  // Special Beam Cannon — thin fast piercing beam
+  piccoloMasenko:   { cost: 20, wind: 7,  recovery: 15, pose: "piccoloMasenko",  projW: 42, projH: 34, speed: 17, damage: 52,  hitstun: 14, kbX: 5,  kbY: -1, life: 66,  radius: 18, color: "#ffe27a" },                    // Masenko — quick ki bolt
+  piccoloDemonWave: { cost: 44, wind: 14, recovery: 26, pose: "piccoloDemonwave",projW: 96, projH: 82, speed: 8,  damage: 118, hitstun: 26, kbX: 12, kbY: -4, life: 122, radius: 44, color: "#b86bff" },                    // Explosive Demon Wave — big slow sphere
+  piccoloStretch:   { damage: 70, startup: 9, active: 5, recovery: 18, hitstun: 20, knockbackX: 8, knockbackY: -2, rangeX: 168, rangeY: 52, cost: 18 },  // Stretch-Arm Strike — LONG disjoint melee
+  piccoloFlykick:   { damage: 74, startup: 8, active: 4, recovery: 16, hitstun: 20, knockbackX: 9, knockbackY: -3, rangeX: 96,  rangeY: 72, cost: 24 },  // Flying Dash Kick — i-frame air gap-closer (tall active area → reliably hits grounded foes from a low fly)
+}
+function piccoloOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function firePiccoloBeam(fighter, context) {
+  const t = PICCOLO_SPECIALS.piccoloBeam
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = piccoloOffense(fighter)
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "piccoloBeam", {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * 0.34,
+    }, context)
+  })
+  return true
+}
+function firePiccoloMasenko(fighter, air, context) {
+  const t = PICCOLO_SPECIALS.piccoloMasenko
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = piccoloOffense(fighter)
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "piccoloMasenko", {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, color: t.color,
+      spawnY: fighter.y + (fighter.h || 100) * (air ? 0.30 : 0.32),
+    }, context)
+  })
+  return true
+}
+function firePiccoloDemonWave(fighter, context) {
+  const t = PICCOLO_SPECIALS.piccoloDemonWave
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = piccoloOffense(fighter)
+  const grow = 1 + (offense - 1) * 0.6
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "piccoloDemonWave", {
+      w: Math.round(t.projW * grow), h: Math.round(t.projH * grow), radius: Math.round(t.radius * grow),
+      speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * 0.38,
+    }, context)
+  })
+  return true
+}
+function firePiccoloStretch(fighter, context) {
+  const md = PICCOLO_SPECIALS.piccoloStretch
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "piccoloStretch", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = 0
+  return true
+}
+function firePiccoloFlykick(fighter, context) {
+  const md = PICCOLO_SPECIALS.piccoloFlykick
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "piccoloFlykick", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, md.startup + 2)   // i-frames through the flying blitz
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+  fighter.vx = (fighter.facing || 1) * 12   // rocket dash forward (gap-closer; tuned so the hitbox sweeps, not overshoots)
+  fighter.vy = 0                             // FLYING kick travels HORIZONTALLY (kills the jump's rise) — a level air-dash strike, not a rising one
+  return true
+}
+export function executePiccoloSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "piccolo") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return firePiccoloFlykick(fighter, context)            // AIR (any) — Flying Dash Kick
+  if (dir === "F") return firePiccoloStretch(fighter, context)
+  if (dir === "D" || dir === "U") return firePiccoloMasenko(fighter, false, context)
+  if (dir === "B") return firePiccoloDemonWave(fighter, context)
+  return firePiccoloBeam(fighter, context)                             // neutral GROUND — Special Beam Cannon
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IPPO MAKUNOUCHI (Hajime no Ippo) — Stage 4 SPECIALS (heavier Y-button variants; fixed-slot kit,
+// mirrors executePiccoloSpecial). ★MELEE-ONLY — Ippo is a boxer with NO ranged/projectile technique
+// (IPPO_ASSET_MAP.md item 2), so EVERY special is a physical punch (no beams/projectiles invented):
+//   neutral GROUND = Gazelle Punch (the signature leaping counter-punch — springs up-and-forward, blue
+//   swing-arc, LAUNCHER) / Fwd = spinning hook punch (white/red swirl, lunges in) / Up = heavy rising
+//   uppercut (wide blue arc, LAUNCHER) / Down = heavy body-blow / AIR (any) = aerial hook punch.
+// Each spends "Guts" energy. Damage folds GLOBAL_DAMAGE_SCALE (×0.60). See IPPO_ASSET_MAP.md Stage 4.
+// ─────────────────────────────────────────────────────────────────────────────
+const IPPO_SPECIALS = {
+  ippoGazelle:  { damage: 108, startup: 8, active: 5, recovery: 20, hitstun: 24, knockbackX: 8,  knockbackY: -6, rangeX: 100, rangeY: 96, cost: 34, launcher: true },  // signature leaping counter-punch (rising)
+  ippoHook:     { damage: 92,  startup: 9, active: 4, recovery: 18, hitstun: 20, knockbackX: 10, knockbackY: -1, rangeX: 130, rangeY: 54, cost: 24 },                   // spinning hook punch (long reach)
+  ippoUppercut: { damage: 84,  startup: 8, active: 4, recovery: 18, hitstun: 22, knockbackX: 3,  knockbackY: -9, rangeX: 84,  rangeY: 88, cost: 24, launcher: true },  // heavy rising uppercut (anti-air launcher)
+  ippoBodyblow: { damage: 90,  startup: 8, active: 4, recovery: 17, hitstun: 20, knockbackX: 9,  knockbackY: 0,  rangeX: 110, rangeY: 50, cost: 22 },                   // heavy body-blow
+  ippoAirhook:  { damage: 80,  startup: 6, active: 5, recovery: 15, hitstun: 18, knockbackX: 8,  knockbackY: -2, rangeX: 110, rangeY: 84, cost: 20 },                   // aerial hook punch (tall active area so a low jump-in reaches grounded foes)
+}
+function fireIppoSpecial(fighter, key, opts = {}) {
+  const md = IPPO_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (opts.leap)  { fighter.vy = -9; fighter.vx = (fighter.facing || 1) * 5 }   // Gazelle springs up-and-forward (the "gazelle" leap)
+  else if (opts.lunge) fighter.vx = (fighter.facing || 1) * 6                   // spinning hook lunges in
+  else if (opts.planted) fighter.vx = 0                                         // uppercut / body-blow stay planted
+  return true
+}
+export function executeIppoSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ippo") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded)     return fireIppoSpecial(fighter, "ippoAirhook")                    // AIR (any) — aerial hook punch
+  if (dir === "F")   return fireIppoSpecial(fighter, "ippoHook", { lunge: true })      // Fwd — spinning hook punch
+  if (dir === "U")   return fireIppoSpecial(fighter, "ippoUppercut", { planted: true })// Up — heavy rising uppercut (launcher)
+  if (dir === "D")   return fireIppoSpecial(fighter, "ippoBodyblow", { planted: true })// Down — heavy body-blow
+  return fireIppoSpecial(fighter, "ippoGazelle", { leap: true })                       // neutral GROUND — Gazelle Punch
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GWEN TENNYSON (Ben 10) — Stage 4 SPECIALS (fixed-slot mana zoner; mirrors executePiccoloSpecial /
+// executeVegitoSpecial + the Green Lantern construct pattern). All owner-locked (GWEN_ASSET_MAP.md §9):
+//   neutral GROUND = Mana Bolt        — magenta starburst bolt (PROCEDURAL color, like Vegito ki)
+//   Fwd            = Crescent Slash    — wide disjoint MELEE arc (createAttackFromMove, like piccoloStretch)
+//   Up             = Spike-Crown       — mana CONSTRUCT (real sliced sprite), rises = anti-air launcher
+//   Down           = Mana Sphere       — mana CONSTRUCT (real sliced sprite), ground-level advance
+//   Back           = Blue Vortex       — DISTINCT 2nd special: big slow cyan radial burst (PROCEDURAL)
+//   AIR (any)      = Oval-Portal Beam  — fast magenta piercing capsule (PROCEDURAL), aerial
+// The 2 CONSTRUCTS carry real shape sprites (gwen_spike / gwen_sphere); the bolt/vortex/beam FX are
+// procedural (the sheet's blast art is illustrative). Cast POSES are real reslice_gwen.py frames
+// (gwenCast hand-extended / gwenCrescent arc swing). Projectile damage folds offense (like Piccolo/Vegito).
+// The giant Mana Blade is the Stage-5 ULT, NOT a special here. Frost/vine + fire FX = owner-EXCLUDED.
+// ─────────────────────────────────────────────────────────────────────────────
+// STAGE 6 supporting-FX impacts (attached below): RIPPLE = growing magenta ring bloom (ranged on-connect),
+// SHARDS = mana spike-cluster burst (construct on-connect). Spawned by combat.resolveProjectileHitsMulti.
+const GWEN_FX_RIPPLE = { sheet: "./gwen_ripple_uniform.png", frames: 4, w: 31, h: 108, speed: 3, scale: 0.8, lifetime: 24 }
+const GWEN_FX_SHARDS = { sheet: "./gwen_shards_uniform.png", frames: 3, w: 39, h: 43,  speed: 3, scale: 1.5, lifetime: 22 }
+const GWEN_SPECIALS = {
+  // PROCEDURAL projectiles (color/radius/speed) — no sheet. `impact` = STAGE 6 on-connect FX bloom.
+  gwenBolt:   { cost: 30, wind: 10, recovery: 18, pose: "gwenCast", projW: 40, projH: 30, speed: 15, damage: 92,  hitstun: 18, kbX: 8,  kbY: -1, life: 78,  radius: 20, color: "#f574f5", impact: GWEN_FX_RIPPLE },                    // Mana Bolt (N)
+  gwenVortex: { cost: 40, wind: 12, recovery: 26, pose: "gwenCast", projW: 84, projH: 78, speed: 7,  damage: 104, hitstun: 26, kbX: 11, kbY: -4, life: 100, radius: 42, color: "#4ad9ff", impact: GWEN_FX_RIPPLE },                    // Blue Vortex (B) — distinct, big slow burst
+  gwenOval:   { cost: 30, wind: 9,  recovery: 16, pose: "gwenCast", projW: 70, projH: 24, speed: 20, damage: 88,  hitstun: 18, kbX: 8,  kbY: -1, life: 74,  radius: 14, color: "#ff9cf0", piercing: true, impact: GWEN_FX_RIPPLE }, // Oval-Portal Beam (air) — piercing capsule
+  // CONSTRUCT projectiles (real shape sprite) — Green Lantern pattern.
+  gwenSpike:  { cost: 24, wind: 10, recovery: 16, pose: "gwenCast", projW: 70, projH: 96, speed: 6,  damage: 80,  hitstun: 20, kbX: 3,  kbY: -12, life: 44, radius: 40, sheet: "./gwen_spike_uniform.png",  spriteW: 140, spriteH: 78, spriteScale: 0.9, rise: true, impact: GWEN_FX_SHARDS },     // Spike-Crown construct (U) — anti-air
+  gwenSphere: { cost: 28, wind: 8,  recovery: 18, pose: "gwenCast", projW: 60, projH: 58, speed: 12, damage: 90,  hitstun: 22, kbX: 9,  kbY: 4,  life: 60,  radius: 30, sheet: "./gwen_sphere_uniform.png", spriteW: 60,  spriteH: 59, spriteScale: 1.0, ground: true, impact: GWEN_FX_SHARDS },   // Mana Sphere construct (D) — ground advance
+  // MELEE disjoint (createAttackFromMove) — no projectile.
+  gwenCrescent: { damage: 96, startup: 8, active: 5, recovery: 16, hitstun: 24, knockbackX: 10, knockbackY: -3, rangeX: 104, rangeY: 62, cost: 26 },  // Crescent Slash (F) — wide disjoint arc
+}
+function gwenOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireGwenProjectile(fighter, key, context, opts = {}) {
+  const t = GWEN_SPECIALS[key]
+  if (!t || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter._rekkaNext = null
+  const offense = gwenOffense(fighter)
+  const grow = t.radius >= 40 ? 1 + (offense - 1) * 0.6 : 1   // only the big vortex/spike scale visibly with offense
+  const face = fighter.facing || 1
+  schedulePendingSpawn(t.wind, () => {
+    const p = {
+      w: Math.round(t.projW * grow), h: Math.round(t.projH * grow), radius: Math.round(t.radius * grow),
+      speed: t.speed, damage: Math.round(t.damage * offense), hitstun: t.hitstun,
+      knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing, isSpecial: true,
+      color: t.color, impact: t.impact || null, spawnY: fighter.y + (fighter.h || 100) * (opts.air ? 0.30 : 0.34),
+    }
+    if (t.sheet) { p.sheet = t.sheet; p.spriteW = t.spriteW; p.spriteH = t.spriteH; p.spriteScale = t.spriteScale; p.spriteFrames = 1 }
+    if (t.rise)   { p.vx = face * 4; p.vy = -12; p.spawnY = fighter.y + (fighter.h || 100) * 0.12 }  // Spike-Crown rises (anti-air)
+    if (t.ground) { p.vx = face * t.speed; p.vy = 0; p.spawnY = fighter.y + (fighter.h || 100) * 0.66 } // Sphere hugs the ground
+    spawnProjectile(fighter, key, p, context)
+  })
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+function fireGwenCrescent(fighter, context) {
+  const md = GWEN_SPECIALS.gwenCrescent
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  fighter._spriteCastMove = "gwenCrescent"; fighter._spriteCastTimer = md.startup + md.active + md.recovery
+  const attack = createAttackFromMove(fighter, "gwenCrescent", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = 0
+  return true
+}
+export function executeGwenSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gwen") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireGwenProjectile(fighter, "gwenOval", context, { air: true })  // AIR (any) — Oval-Portal Beam
+  if (dir === "F") return fireGwenCrescent(fighter, context)                              // Fwd — Crescent Slash (melee)
+  if (dir === "U") return fireGwenProjectile(fighter, "gwenSpike", context)               // Up — Spike-Crown construct
+  if (dir === "D") return fireGwenProjectile(fighter, "gwenSphere", context)              // Down — Mana Sphere construct
+  if (dir === "B") return fireGwenProjectile(fighter, "gwenVortex", context)              // Back — Blue Vortex (distinct)
+  return fireGwenProjectile(fighter, "gwenBolt", context)                                 // neutral GROUND — Mana Bolt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VILGAX — STAGE 4 SPECIALS (fixed directional slots; owner-locked, VILGAX_ASSET_MAP §7).
+//   N (neutral ground) = Plasma Blast, TIERED tap/hold (base Down+Y / heavy X) — armed in game.js and
+//     resolved on RELEASE (handleVilgaxSpecialRelease → fireVilgaxBlast). Procedural red spiky burst.
+//   F = Energy-Sword Slash (melee disjoint, real sword art) · B = Thrown Spinning Sword (real 4-frame
+//     spinning-blade projectile) · U = Teleport (blink behind foe + i-frames) · air = Aerial Tumble
+//     (spinning aerial disjoint). D = unused (owner: extra slots ship empty).
+//   ★Sword specials are INDEPENDENT — each materializes its OWN energy sword; no shared-weapon state.
+//   Mirrors executeGwenSpecial (fixed slots) + fireYamamotoShunpo (blink). Damage folds offense mult;
+//   ×0.60 EFF at hit via GLOBAL_DAMAGE_SCALE.
+// ─────────────────────────────────────────────────────────────────────────────
+const VILGAX_SPECIALS = {
+  // Procedural red plasma (renders as the category-"special" spiky energy burst — no sheet). Two TIERS.
+  vilgaxBlast:  { cost: 30, wind: 12, recovery: 18, pose: "vilgaxBlastCast",  projW: 46, projH: 34, speed: 15, damage: 90,  hitstun: 18, kbX: 8,  kbY: -1, life: 80, radius: 22, color: "#ff3b32" },                    // base plasma (Down+Y)
+  vilgaxBlastX: { cost: 55, wind: 16, recovery: 28, pose: "vilgaxBlastXCast", projW: 78, projH: 52, speed: 13, damage: 138, hitstun: 26, kbX: 12, kbY: -3, life: 92, radius: 40, color: "#ff1e10", piercing: true },  // heavy plasma (X) — bigger, pierces
+  // Real spinning-blade sprite projectile (animated 4-frame spin; flips to travel dir).
+  vilgaxSword:  { cost: 34, wind: 12, recovery: 20, pose: "vilgaxThrow", projW: 46, projH: 40, speed: 16, damage: 96, hitstun: 20, kbX: 9, kbY: -2, life: 84, radius: 26, sheet: "./vilgax_sword_uniform.png", spriteW: 44, spriteH: 45, spriteScale: 1.0, spriteFrames: 4 },  // Thrown Spinning Sword (B)
+  // Melee disjoints (createAttackFromMove) — no projectile.
+  vilgaxSlash:  { damage: 100, startup: 8, active: 5, recovery: 18, hitstun: 24, knockbackX: 11, knockbackY: -3, rangeX: 122, rangeY: 64, cost: 30 },   // Energy-Sword Slash (F)
+  vilgaxTumble: { damage: 78,  startup: 6, active: 6, recovery: 14, hitstun: 18, knockbackX: 7,  knockbackY: 2,  rangeX: 86,  rangeY: 72, cost: 24 },   // Aerial Tumble (air)
+}
+function vilgaxOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireVilgaxProjectile(fighter, key, context, opts = {}) {
+  const t = VILGAX_SPECIALS[key]
+  if (!t || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter._rekkaNext = null
+  const offense = vilgaxOffense(fighter)
+  const grow = t.radius >= 40 ? 1 + (offense - 1) * 0.6 : 1   // only the big heavy blast scales visibly with offense
+  schedulePendingSpawn(t.wind, () => {
+    const p = {
+      w: Math.round(t.projW * grow), h: Math.round(t.projH * grow), radius: Math.round(t.radius * grow),
+      speed: t.speed, damage: Math.round(t.damage * offense), hitstun: t.hitstun,
+      knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing, isSpecial: true,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * 0.32,
+    }
+    if (t.sheet) { p.sheet = t.sheet; p.spriteW = t.spriteW; p.spriteH = t.spriteH; p.spriteScale = t.spriteScale; p.spriteFrames = t.spriteFrames }
+    spawnProjectile(fighter, key, p, context)
+  })
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+export function fireVilgaxBlast(fighter, tier, context) {   // tier "X" = heavy (hold) / else base (tap)
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vilgax") return false
+  return fireVilgaxProjectile(fighter, tier === "X" ? "vilgaxBlastX" : "vilgaxBlast", context)
+}
+function fireVilgaxMelee(fighter, key, context) {
+  const md = VILGAX_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  fighter._spriteCastMove  = key    // vilgaxSlash / vilgaxTumble — pose action key matches the move name
+  fighter._spriteCastTimer = md.startup + md.active + md.recovery
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (key === "vilgaxSlash") fighter.vx = 0
+  return true
+}
+function fireVilgaxTeleport(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || (fighter.hitstun || 0) > 0) return false
+  if (!spendEnergy(fighter, 20)) return false
+  const getOpponent = getTargetResolver(context)
+  const target = getOpponent ? getOpponent(fighter) : null
+  fighter.invulnTimer      = Math.max(fighter.invulnTimer || 0, 22)   // i-frames through the whole blink
+  fighter._spriteCastMove  = "vilgaxVanish"; fighter._spriteCastTimer = 12
+  fighter.teleportFlash    = 12
+  fighter._rekkaNext = null
+  const STARTUP = 7
+  fighter.attackCooldown = getAttackDuration(STARTUP + 14, fighter)
+  try { spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 100) / 2) } catch (_) {}
+  schedulePendingSpawn(STARTUP, () => {
+    const sw = context?.worldWidth || 3200
+    if (target) {                    // blink to the FAR side of the opponent, facing them
+      fighter.x = (fighter.x < target.x) ? (target.x + (target.w || 60) + 8) : (target.x - (fighter.w || 60) - 8)
+      fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), fighter.x))
+      fighter.y = target.y
+      fighter.facing = (target.x >= fighter.x) ? 1 : -1
+    } else {
+      fighter.x = Math.max(0, Math.min(sw - (fighter.w || 60), fighter.x + (fighter.facing || 1) * 220))
+    }
+    fighter.vx = 0
+    fighter._spriteCastMove = "vilgaxVanish"; fighter._spriteCastTimer = 10
+    try { spawnClonePuff(fighter.x + fighter.w / 2, fighter.y + (fighter.h || 100) / 2) } catch (_) {}
+  })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+export function executeVilgaxSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vilgax") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireVilgaxMelee(fighter, "vilgaxTumble", context)        // AIR (any) — Aerial Tumble
+  if (dir === "F") return fireVilgaxMelee(fighter, "vilgaxSlash", context)       // Fwd — Energy-Sword Slash (melee)
+  if (dir === "B") return fireVilgaxProjectile(fighter, "vilgaxSword", context)  // Back — Thrown Spinning Sword
+  if (dir === "U") return fireVilgaxTeleport(fighter, context)                   // Up — Teleport (blink)
+  return fireVilgaxBlast(fighter, "S", context)                                 // neutral GROUND safety net (armed tap/hold in game.js)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DARK VEGETA — STAGE 4 SPECIALS (fixed directional slots; owner-locked blade-FX=SPECIALS). Mirrors
+// executeVilgaxSpecial (fixed slots + procedural projectiles + real cast poses):
+//   N (neutral) / AIR = Ki Blast — procedural energy sphere. ★TIERED BY TRANSFORM STATE (VEGETA_BLACK_ASSET_MAP
+//     item 2): base = WHITE/grey; when the dark-aura form is active (_darkAuraActive, wired in Stage 5) it
+//     AMPLIFIES to a bigger, piercing PURPLE blast — the same attack powered up, not a new move.
+//   F = Knife Slash (melee disjoint, real straight-slash art [86]) · B = Sickle Throw (procedural red
+//     crescent projectile, real curved-throw cast pose [85]). U/D ship unused (owner, like Vilgax).
+//   Projectiles are PROCEDURAL (color/radius) — the sheet's blast art is illustrative (Vegito/Gwen/Vilgax
+//   pattern). Damage folds offense mult; ×0.60 EFF at hit via GLOBAL_DAMAGE_SCALE.
+// ─────────────────────────────────────────────────────────────────────────────
+const VEGETA_DARK_SPECIALS = {
+  // Ki Blast — two TIERS of ONE attack (base white / amplified purple). Amplified selected when _darkAuraActive.
+  vdKiBlast:      { cost: 28, wind: 11, recovery: 16, pose: "vdKiCast", projW: 48, projH: 44, speed: 15, damage: 88,  hitstun: 18, kbX: 8,  kbY: -1, life: 80, radius: 24, color: "#6fc4ff" },                    // base white/blue ki (icy blue for visibility; near-white #e6e6ff vanished on the light stage)
+  vdKiBlastAmped: { cost: 40, wind: 13, recovery: 22, pose: "vdKiCast", projW: 76, projH: 60, speed: 14, damage: 132, hitstun: 26, kbX: 12, kbY: -3, life: 92, radius: 42, color: "#9b30c9", piercing: true },   // amplified purple (dark-aura form)
+  // Sickle Throw — procedural red crescent projectile.
+  vdSickle:       { cost: 32, wind: 12, recovery: 20, pose: "vdSickle", projW: 60, projH: 34, speed: 16, damage: 92,  hitstun: 20, kbX: 9,  kbY: -2, life: 84, radius: 26, color: "#ff4438" },                    // Sickle Throw (B)
+  // Knife Slash — melee disjoint (createAttackFromMove), no projectile.
+  vdKnife:        { damage: 96, startup: 8, active: 5, recovery: 16, hitstun: 24, knockbackX: 10, knockbackY: -3, rangeX: 108, rangeY: 60, cost: 26 },                                                            // Knife Slash (F)
+}
+function vegetaDarkOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireVegetaDarkProjectile(fighter, key, context, opts = {}) {
+  const t = VEGETA_DARK_SPECIALS[key]
+  if (!t || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter._rekkaNext = null
+  const offense = vegetaDarkOffense(fighter)
+  const grow = t.radius >= 40 ? 1 + (offense - 1) * 0.6 : 1   // only the big amplified blast scales visibly with offense
+  schedulePendingSpawn(t.wind, () => {
+    const p = {
+      w: Math.round(t.projW * grow), h: Math.round(t.projH * grow), radius: Math.round(t.radius * grow),
+      speed: t.speed, damage: Math.round(t.damage * offense), hitstun: t.hitstun,
+      knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing, isSpecial: true,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * (opts.air ? 0.30 : 0.34),
+    }
+    spawnProjectile(fighter, key, p, context)
+  })
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+function fireVegetaDarkMelee(fighter, key, context) {
+  const md = VEGETA_DARK_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  fighter._spriteCastMove  = key    // vdKnife — pose action key matches the move name
+  fighter._spriteCastTimer = md.startup + md.active + md.recovery
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = 0
+  return true
+}
+// Ki Blast tier selector — amplified PURPLE when the dark-aura form is active (Stage 5 sets _darkAuraActive),
+// else base WHITE. THE realization of item 2 ("same attack, amplified in the transformed state").
+function vegetaDarkKiKey(fighter) { return (fighter._darkAuraActive || fighter._vdRoseActive) ? "vdKiBlastAmped" : "vdKiBlast" }
+export function executeVegetaDarkSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vegeta_dark") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireVegetaDarkProjectile(fighter, vegetaDarkKiKey(fighter), context, { air: true }) // AIR (any) — Air Ki Blast
+  if (dir === "F") return fireVegetaDarkMelee(fighter, "vdKnife", context)                                  // Fwd — Knife Slash (melee)
+  if (dir === "B") return fireVegetaDarkProjectile(fighter, "vdSickle", context)                            // Back — Sickle Throw
+  return fireVegetaDarkProjectile(fighter, vegetaDarkKiKey(fighter), context)                               // neutral GROUND — Ki Blast (white / amped purple)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GWEN TENNYSON — ULTIMATE (Stage 5): "Mana Blade" — the sheet's standout sequence (idle → charge orb →
+// blade extends through length stages → held full-length → swing). INLINE freeze-cinematic on the LIVE
+// fighter (Green Lantern / Deathstroke / Mayuri pattern — NO duplicate instance): Gwen holds the blade
+// sequence pose (gwenBlade — a play-ONCE 6-frame anim that charges → extends → swings across the cinematic)
+// while the camera focuses + the foe is frozen; each beat manifests the GIANT cyan blade beam (gwen_blade_beam,
+// visualOnly) at the foe at growing scale and lands a GUARANTEED, range-independent scaled hit. 330 raw →
+// ~198 EFF (top-ult band, ×0.60). Reuses the S5 blade art (no unique ult body art beyond the blade sequence).
+// ─────────────────────────────────────────────────────────────────────────────
+const GWEN_ULT = {
+  cost: 100, cinematic: 66,
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5  },                                                                  // charge-orb telegraph — camera focus, no damage
+    { at: 22, dmg: 60,  hitstun: 24, kb: 8,  vy: -3, shake: 6,  scale: 0.8 },                          // blade extend — stage 1
+    { at: 34, dmg: 60,  hitstun: 24, kb: 8,  vy: -3, shake: 6,  scale: 1.1 },                          // blade extend — stage 2
+    { at: 46, dmg: 70,  hitstun: 26, kb: 10, vy: -4, shake: 7,  scale: 1.4 },                          // full blade held
+    { at: 60, dmg: 140, hitstun: 46, kb: 15, vy: -9, shake: 18, scale: 1.9, payoff: true, knockdown: true }, // SWING (330 raw → ~198 EFF)
+  ],
+}
+function applyGwenUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 24)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 9); opp.vy = opts.vy ?? -3
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "gwen-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+export function executeGwenUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gwen") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, GWEN_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  fighter._spriteCastMove = "gwenBlade"; fighter._spriteCastTimer = GWEN_ULT.cinematic   // LIVE fighter plays the blade sequence ONCE (charge → extend → swing)
+  fighter.attackCooldown  = getAttackDuration(GWEN_ULT.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, GWEN_ULT.cinematic - 8); opp.vx = 0 }   // freeze the foe through the guaranteed finish
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  for (const b of GWEN_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      // GIANT cyan blade beam manifested AT the foe (visualOnly — damage is the guaranteed beat below).
+      if (b.scale && opp) {
+        spawnProjectile(fighter, "gwenUlt_blade", {
+          visualOnly: true, damage: 0, w: 8, h: 8, speed: 0, vx: 0, vy: 0, lifetime: 16,
+          spawnX: opp.x + (opp.w || 60) * 0.5, spawnY: opp.y + (opp.h || 110) * 0.35,
+          sheet: "./gwen_blade_beam_uniform.png", spriteW: 110, spriteH: 119, spriteScale: b.scale, spriteFrames: 1, color: "#8fe6ff",
+        }, context)
+      }
+      if (b.dmg > 0) applyGwenUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) {
+        try { focusCameraOnAction(context, fighter, opp, 1.55, 12); shakeCamera(context, 18, 16) } catch (_) {}
+        fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+        // STAGE 6 FX: ripple ring bloom on the swing payoff (visualOnly)
+        if (opp) spawnProjectile(fighter, "gwenUlt_ripple", {
+          visualOnly: true, damage: 0, w: 8, h: 8, speed: 0, vx: 0, vy: 0, lifetime: 24,
+          spawnX: opp.x + (opp.w || 60) * 0.5, spawnY: opp.y + (opp.h || 110) * 0.4,
+          sheet: "./gwen_ripple_uniform.png", spriteW: 31, spriteH: 108, spriteScale: 2.2, spriteFrames: 4, spriteSpeed: 3, color: "#f574f5",
+        }, context)
+      }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VILGAX — ULTIMATE (Stage 5): "Koma Atakes" — the multi-beam eye-laser barrage (the sheet's ULT band,
+// with a direct show-screenshot reference of Vilgax firing converging red lasers). INLINE freeze-cinematic
+// on the LIVE fighter (Gwen / Green Lantern pattern — NO duplicate instance): Vilgax holds the green-energy
+// ULT_ACTION charge/trigger pose (vilgaxUltAction, owner-locked decision #3) while the camera focuses + the
+// foe is frozen; each beat manifests CONVERGING red Koma beams (vilgax_komabeam, visualOnly) at the foe at
+// growing scale and lands a GUARANTEED, range-independent scaled hit. 330 raw → ~198 EFF (top-ult band ×0.60).
+// ─────────────────────────────────────────────────────────────────────────────
+const VILGAX_ULT = {
+  cost: 100, cinematic: 70,
+  beats: [
+    { at: 8,  dmg: 0,   shake: 6,  charge: true },                                                          // green-energy charge telegraph — camera focus, no damage
+    { at: 24, dmg: 60,  hitstun: 24, kb: 8,  vy: -3, shake: 7,  scale: 0.7 },                                // beam volley 1
+    { at: 36, dmg: 60,  hitstun: 24, kb: 8,  vy: -3, shake: 7,  scale: 1.0 },                                // beam volley 2
+    { at: 48, dmg: 70,  hitstun: 26, kb: 10, vy: -4, shake: 8,  scale: 1.3 },                                // beam volley 3
+    { at: 62, dmg: 140, hitstun: 46, kb: 15, vy: -9, shake: 18, scale: 1.8, payoff: true, knockdown: true }, // CONVERGING finish (330 raw → ~198 EFF)
+  ],
+}
+function applyVilgaxUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 24)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 9); opp.vy = opts.vy ?? -3
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "vilgax-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+function spawnVilgaxKomaBeam(fighter, opp, context, scale, dy) {
+  if (!opp) return
+  spawnProjectile(fighter, "vilgaxUlt_koma", {
+    visualOnly: true, damage: 0, w: 8, h: 8, speed: 0, vx: (fighter.facing || 1), vy: 0, lifetime: 16,
+    spawnX: opp.x + (opp.w || 60) * 0.5, spawnY: opp.y + (opp.h || 110) * 0.4 + dy,
+    sheet: "./vilgax_komabeam_uniform.png", spriteW: 140, spriteH: 105, spriteScale: scale, spriteFrames: 4, spriteOnce: true, spriteSpeed: 3, color: "#ff2418",
+  }, context)
+}
+export function executeVilgaxUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vilgax") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, VILGAX_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  fighter._spriteCastMove = "vilgaxUltAction"; fighter._spriteCastTimer = VILGAX_ULT.cinematic   // LIVE fighter holds the green-charge trigger pose
+  fighter.attackCooldown  = getAttackDuration(VILGAX_ULT.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, VILGAX_ULT.cinematic - 8); opp.vx = 0 }   // freeze the foe through the guaranteed finish
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  for (const b of VILGAX_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      // CONVERGING red Koma beams manifested AT the foe (visualOnly — damage is the guaranteed beat below).
+      if (b.scale && opp) {
+        spawnVilgaxKomaBeam(fighter, opp, context, b.scale, -Math.round((b.scale) * 26))  // upper beam
+        spawnVilgaxKomaBeam(fighter, opp, context, b.scale,  Math.round((b.scale) * 26))  // lower beam → converge
+      }
+      if (b.dmg > 0) applyVilgaxUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) {
+        try { focusCameraOnAction(context, fighter, opp, 1.55, 12); shakeCamera(context, 18, 16) } catch (_) {}
+        fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+        if (opp) spawnVilgaxKomaBeam(fighter, opp, context, 2.1, 0)   // giant converging finish beam
+      }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MILES MORALES (Marvel / Spider-Man) — Stage 4 SPECIALS (fixed-slot venom rushdown/zoner; mirrors
+// executeGwenSpecial). Owner-locked mapping (MILES_MORALES_ASSET_MAP.md, Stage-0 items 5 & 8):
+//   neutral GROUND = Web-shot        — fast thin white web projectile (PROCEDURAL); basic ranged poke
+//   Fwd            = Venom Strike     — close venom PUNCH (melee disjoint) + expanding yellow ring-burst FX
+//   Up             = Rising Venom-Arc — rising anti-air arc (melee disjoint, upward launch)
+//   Down           = Camouflage       — SELF-BUFF stealth: brief vanish i-frames + a timed evasion window
+//   Back           = X Venom-Beam     — big committed yellow venom BLAST (PROCEDURAL; slower/stronger)
+//   AIR (any)      = Aerial Dive      — down-forward diving kick (melee disjoint, drives Miles diagonally)
+// The Down+B dash-kick is a SEPARATE offensive gap-closer on the Charge (O) button (fireMilesDashKick, wired
+// in game.js handleChargeRelease), NOT a special slot (owner call). Cast POSES are real reslice_miles.py
+// frames; web/beam + ring-burst FX are procedural/sliced. Projectile damage folds offense (like Gwen);
+// melee via createAttackFromMove (×0.60 GLOBAL_DAMAGE_SCALE). Camouflage evasion lives in combat.js
+// (shouldMilesStealthEvade + the _milesStealthTimer tick). The venom-burst ULT = Stage 5.
+// ─────────────────────────────────────────────────────────────────────────────
+const MILES_FX_RING = { sheet: "./miles_venomring_uniform.png", frames: 4, w: 40, h: 38, speed: 3, scale: 1.3, lifetime: 22 }
+const MILES_SPECIALS = {
+  // PROCEDURAL projectiles (color/radius/speed) — no sheet.
+  milesWeb:  { cost: 22, wind: 8,  recovery: 14, pose: "milesWeb",       projW: 44, projH: 12, speed: 22, damage: 84,  hitstun: 12, kbX: 6,  kbY: 0,  life: 66, radius: 10, color: "#eef2ff" },                    // Web-shot (N) — fast thin poke
+  milesBeam: { cost: 42, wind: 13, recovery: 24, pose: "milesVenomBeam", projW: 60, projH: 44, speed: 13, damage: 108, hitstun: 24, kbX: 11, kbY: -3, life: 92, radius: 30, color: "#ffd42a", impact: MILES_FX_RING },  // X Venom-Beam (B) — big committed blast
+  // MELEE disjoints (createAttackFromMove) — no projectile.
+  milesStrike: { damage: 92, startup: 7, active: 4, recovery: 16, hitstun: 22, knockbackX: 9,  knockbackY: -2, rangeX: 82, rangeY: 60, cost: 26, pose: "milesVenomStrike", ring: true },   // Venom Strike (F)
+  milesArc:    { damage: 80, startup: 6, active: 5, recovery: 15, hitstun: 20, knockbackX: 2,  knockbackY: -13, rangeX: 56, rangeY: 98, cost: 24, pose: "milesVenomArc" },                  // Rising Venom-Arc (U) — anti-air launcher
+  milesDive:   { damage: 88, startup: 5, active: 8, recovery: 14, hitstun: 18, knockbackX: 7,  knockbackY: 5,  rangeX: 70, rangeY: 74, cost: 24, pose: "milesDive",       dive: true },   // Aerial Dive (air)
+  milesDash:   { damage: 80, startup: 6, active: 5, recovery: 16, hitstun: 20, knockbackX: 10, knockbackY: -2, rangeX: 96, rangeY: 62, cost: 14, pose: "milesDashKick",   dash: true },   // Down+B dash-kick (Charge O)
+}
+const MILES_STEALTH = { cost: 30, castFrames: 26, window: 96, vanishIframes: 16 }   // Camouflage (D) — evasion window + brief vanish
+function milesOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireMilesProjectile(fighter, key, context) {
+  const t = MILES_SPECIALS[key]
+  if (!t || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter._rekkaNext = null
+  const offense = milesOffense(fighter)
+  const grow = t.radius >= 28 ? 1 + (offense - 1) * 0.5 : 1
+  const face = fighter.facing || 1
+  schedulePendingSpawn(t.wind, () => {
+    const p = {
+      w: Math.round(t.projW * grow), h: Math.round(t.projH * grow), radius: Math.round(t.radius * grow),
+      speed: t.speed, damage: Math.round(t.damage * offense), hitstun: t.hitstun,
+      knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, isSpecial: true,
+      color: t.color, impact: t.impact || null, spawnY: fighter.y + (fighter.h || 100) * 0.36,
+    }
+    spawnProjectile(fighter, key, p, context)
+  })
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+function fireMilesMelee(fighter, key, context) {
+  const md = MILES_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (md.cost && !spendEnergy(fighter, md.cost)) return false
+  const dur = md.startup + md.active + md.recovery
+  fighter._spriteCastMove = md.pose; fighter._spriteCastTimer = dur
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, dur)
+  fighter._rekkaNext = null
+  const face = fighter.facing || 1
+  if (md.dash)      { fighter.vx = face * 15 }                    // dash-kick lunges forward (gap-closer)
+  else if (md.dive) { fighter.vx = face * 9; fighter.vy = 10 }    // aerial dive drives down-forward
+  else              { fighter.vx = 0 }
+  if (md.ring) {   // Venom Strike — bloom the yellow ring-burst at the fist on the active frame
+    schedulePendingSpawn(md.startup, () => {
+      spawnProjectile(fighter, "milesRing", {
+        visualOnly: true, damage: 0, w: 8, h: 8, speed: 0, vx: 0, vy: 0, lifetime: MILES_FX_RING.lifetime,
+        spawnX: fighter.x + (fighter.w || 60) * (0.5 + face * 0.42), spawnY: fighter.y + (fighter.h || 100) * 0.40,
+        sheet: MILES_FX_RING.sheet, spriteW: MILES_FX_RING.w, spriteH: MILES_FX_RING.h, spriteScale: MILES_FX_RING.scale,
+        spriteFrames: MILES_FX_RING.frames, spriteSpeed: MILES_FX_RING.speed, color: "#ffd42a",
+      }, context)
+    })
+  }
+  try { shakeCamera(context, 3, 5) } catch (_) {}
+  return true
+}
+function fireMilesStealth(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, MILES_STEALTH.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = "milesStealth"; fighter._spriteCastTimer = MILES_STEALTH.castFrames
+  fighter.attackCooldown  = getAttackDuration(MILES_STEALTH.castFrames, fighter)
+  fighter._rekkaNext = null
+  fighter._milesStealthTimer = MILES_STEALTH.window                                                   // evasion window (combat.shouldMilesStealthEvade)
+  fighter.invulnTimer  = Math.max(fighter.invulnTimer  || 0, MILES_STEALTH.vanishIframes)             // brief vanish on activation
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+  fighter.colorFlash = 10
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+// Down+B DASH-KICK — offensive gap-closer on the Charge (O) button (game.js handleChargeRelease). Not a
+// special slot (owner call). Cooldown-gated so it can't be spammed as free movement.
+export function fireMilesDashKick(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "miles") return false
+  if ((fighter._milesDashCd || 0) > 0) return false
+  const ok = fireMilesMelee(fighter, "milesDash", context)
+  if (ok) fighter._milesDashCd = 42
+  return ok
+}
+export function executeMilesSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "miles") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireMilesMelee(fighter, "milesDive", context)         // AIR (any) — Aerial Dive
+  if (dir === "F") return fireMilesMelee(fighter, "milesStrike", context)     // Fwd — Venom Strike (melee + ring)
+  if (dir === "U") return fireMilesMelee(fighter, "milesArc", context)        // Up — Rising Venom-Arc (anti-air)
+  if (dir === "D") return fireMilesStealth(fighter, context)                  // Down — Camouflage (self-buff)
+  if (dir === "B") return fireMilesProjectile(fighter, "milesBeam", context)  // Back — X Venom-Beam (big blast)
+  return fireMilesProjectile(fighter, "milesWeb", context)                    // neutral GROUND — Web-shot
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MILES MORALES — ULTIMATE (Stage 5): "Venom Overload" — the sheet's standout X+Up sequence (owner-locked
+// BLACK/RED palette; the red/blue "Classic Spider-Man" duplicate is a future alt-skin, NOT this). INLINE
+// freeze-cinematic on the LIVE fighter (Gwen/Iron Man/Vegito pattern — NO duplicate instance): Miles plays
+// the venom-combo cast (milesUlt — a play-ONCE 6-frame sequence: stance → red crescent → dash → yellow venom
+// crescent → venom fist → burst) while the camera focuses + the foe is frozen; each beat manifests a giant
+// bio-electric VENOM RING-BURST (miles_venomring, visualOnly) at the foe at growing scale and lands a
+// GUARANTEED, range-independent scaled hit. 330 raw → EXACTLY ~198 EFF (top-ult band, ×0.60). The 2-frame
+// "Ultimate Action" tell (Stage-0 item 2) is the meter-full ready pose (not a windup anim here). Mirrors
+// executeGwenUltimate.
+// ─────────────────────────────────────────────────────────────────────────────
+const MILES_ULT = {
+  cost: 100, cinematic: 66,
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5  },                                                                  // venom-charge telegraph — camera focus, no damage
+    { at: 20, dmg: 55,  hitstun: 22, kb: 7,  vy: -3, shake: 6,  scale: 1.0 },                          // red crescent
+    { at: 32, dmg: 55,  hitstun: 22, kb: 7,  vy: -3, shake: 6,  scale: 1.4 },                          // yellow venom crescent
+    { at: 44, dmg: 65,  hitstun: 24, kb: 9,  vy: -4, shake: 7,  scale: 1.9 },                          // venom fist
+    { at: 60, dmg: 155, hitstun: 46, kb: 15, vy: -9, shake: 18, scale: 2.6, payoff: true, knockdown: true }, // venom BURST (330 raw → ~198 EFF)
+  ],
+}
+function applyMilesUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 24)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 9); opp.vy = opts.vy ?? -3
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "miles-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+export function executeMilesUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "miles") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, MILES_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  fighter._spriteCastMove = "milesUlt"; fighter._spriteCastTimer = MILES_ULT.cinematic   // LIVE fighter plays the venom combo ONCE
+  fighter.attackCooldown  = getAttackDuration(MILES_ULT.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, MILES_ULT.cinematic - 8); opp.vx = 0 }   // freeze the foe through the guaranteed finish
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  for (const b of MILES_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      // GIANT bio-electric venom ring-burst manifested AT the foe (visualOnly — damage is the guaranteed beat).
+      if (b.scale && opp) {
+        spawnProjectile(fighter, "milesUlt_ring", {
+          visualOnly: true, damage: 0, w: 8, h: 8, speed: 0, vx: 0, vy: 0, lifetime: 18,
+          spawnX: opp.x + (opp.w || 60) * 0.5, spawnY: opp.y + (opp.h || 110) * 0.4,
+          sheet: "./miles_venomring_uniform.png", spriteW: 40, spriteH: 38, spriteScale: b.scale, spriteFrames: 4, spriteSpeed: 3, color: "#ffd42a",
+        }, context)
+      }
+      if (b.dmg > 0) applyMilesUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) {
+        try { focusCameraOnAction(context, fighter, opp, 1.55, 12); shakeCamera(context, 18, 16) } catch (_) {}
+        fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+      }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KAKASHI HATAKE (Naruto) — Stage 4 SPECIAL "Weapon Throw": a kunai wrapped in an orange spinning-slash,
+// with 3 DISTINCT stance contexts (built SEPARATELY per the prompt, not one anim reused): standing
+// (neutral ground), crouch (Down held), air (airborne). Routing is STANCE-based (not directional) —
+// matches the source game's standing/crouch/air throw variants. PROCEDURAL projectile (ui.js drawKind
+// "kunai" — spinning steel kunai + orange slash streak); cast POSES are real reslice_kakashi.py sheets.
+// Damage folds the fighter's offense mult. Mirrors executePiccoloSpecial. See KAKASHI_ASSET_MAP.md.
+// (Pakkun/Nin-Dogs summons = Stage 5; Raikiri = Stage 6/ULT; Mangekyou = Stage 7.)
+// ─────────────────────────────────────────────────────────────────────────────
+const KAKASHI_THROW = {
+  stand:  { pose: "kakashiThrow",       cost: 20, wind: 10, recovery: 12, dmg: 46, speed: 18, w: 26, h: 26, radius: 13, life: 76, hitstun: 14, kbX: 7, kbY: -1, vy: 0, spawnFrac: 0.36 },
+  crouch: { pose: "kakashiThrowCrouch", cost: 20, wind: 9,  recovery: 12, dmg: 44, speed: 18, w: 26, h: 26, radius: 13, life: 76, hitstun: 13, kbX: 6, kbY: 0,  vy: 0, spawnFrac: 0.56 },  // low trajectory (thrown from a crouch)
+  air:    { pose: "kakashiThrowAir",    cost: 20, wind: 8,  recovery: 12, dmg: 46, speed: 18, w: 26, h: 26, radius: 13, life: 76, hitstun: 14, kbX: 7, kbY: 2,  vy: 4, spawnFrac: 0.30 },  // diagonal-down toss
+}
+function kakashiOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireKakashiKunai(fighter, ctxKey, context) {
+  const t = KAKASHI_THROW[ctxKey]
+  if (!t || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter._rekkaNext = null
+  const offense = kakashiOffense(fighter)
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "kakashiKunai", {
+      w: t.w, h: t.h, radius: t.radius, speed: t.speed, damage: Math.round(t.dmg * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, isSpecial: true,
+      color: "#ff8a1e", drawKind: "kunai", vy: t.vy, spawnY: fighter.y + (fighter.h || 100) * t.spawnFrac,
+    }, context)
+  })
+  return true
+}
+// STAGE 5 summons — Kuchiyose. Pakkun = lingering companion (persistent multi-hit assist); Nin-Dogs =
+// one-shot burst (short-duration pack maul). Both = the SAME seal→slam cast motion → spawnAssistSummon.
+function fireKakashiSummon(fighter, kind, context) {
+  const cfg = kind === "nindogs"
+    ? { cost: 40, pose: "kakashiNinDogsCast", castT: 26, delay: 12, tmpl: "kakashiNinDogs" }
+    : { cost: 30, pose: "kakashiPakkunCast",  castT: 24, delay: 12, tmpl: "kakashiPakkun" }
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = cfg.pose; fighter._spriteCastTimer = cfg.castT
+  fighter.attackCooldown  = getAttackDuration(cfg.castT, fighter)
+  fighter._rekkaNext = null
+  const target = context?.getOpponent?.(fighter) || null
+  schedulePendingSpawn(cfg.delay, () => { spawnAssistSummon(fighter, cfg.tmpl, target) })
+  return true
+}
+export function executeKakashiSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireKakashiKunai(fighter, "air", context)      // AIR (any) — airborne throw
+  if (dir === "D") return fireKakashiKunai(fighter, "crouch", context) // Down — crouch throw
+  if (dir === "F") return fireKakashiSummon(fighter, "nindogs", context) // Fwd — Kuchiyose: Nin-Dogs (burst)
+  if (dir === "B") return fireKakashiSummon(fighter, "pakkun", context)  // Back — Kuchiyose: Pakkun (companion)
+  return fireKakashiKunai(fighter, "stand", context)                   // standing throw (N/U)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VEGITO (Dragon Ball) — Stage 4 SPECIALS (fixed-slot large ki kit; 6 named specials + Kamehameha ULT).
+// Directional / air branch (mirrors executePiccoloSpecial):
+//   neutral GROUND = Big Bang Attack   — big slow growing white/blue sphere (offense-scaled radius)
+//   Fwd            = Galick Gun         — thin fast PURPLE piercing beam (signature straight zoner)
+//   Back           = Banshee Blast      — a rapid-fire VOLLEY of small gold ki bolts (staggered spawns)
+//   Down           = Spread Finger Beam — a FAN of yellow bolts fired at spread angles (multi-hit)
+//   Up             = Air Ki Blast       — one fast rising cyan dart (anti-air poke)
+//   AIR (any)      = Perfect Shot       — quick precise cyan dart pair (aerial)
+// All FX are PROCEDURAL projectiles (color/radius/speed) — the sheet's beam/sphere art is illustrative;
+// cast POSES come from the SPECIAL EFFECTS rows (reslice_vegito.py). Projectile damage folds the fighter's
+// offense mult (like Piccolo). Kamehameha = the Stage-6 ULT (Ultimate Action → beam), NOT a special here.
+// ─────────────────────────────────────────────────────────────────────────────
+const VEGITO_SPECIALS = {
+  vegitoBigbang: { cost: 44, wind: 14, recovery: 26, pose: "vegitoBigbang", projW: 92, projH: 82, speed: 8,  damage: 116, hitstun: 26, kbX: 12, kbY: -4, life: 120, radius: 44, color: "#bfe0ff" },                       // Big Bang — big slow sphere (N)
+  vegitoGalick:  { cost: 34, wind: 13, recovery: 22, pose: "vegitoGalick",  projW: 78, projH: 16, speed: 20, damage: 100, hitstun: 20, kbX: 8,  kbY: -1, life: 74,  radius: 12, color: "#a86bff", piercing: true },       // Galick Gun — purple piercing beam (F)
+  vegitoBanshee: { cost: 30, wind: 8,  recovery: 22, pose: "vegitoBanshee", projW: 26, projH: 14, speed: 21, damage: 24,  hitstun: 8,  kbX: 3,  kbY: 0,  life: 60,  radius: 9,  color: "#ffcf3a", volley: 4, volleyGap: 4 }, // Banshee — gold rapid-fire volley (B)
+  vegitoSpread:  { cost: 34, wind: 11, recovery: 24, pose: "vegitoSpread",  projW: 22, projH: 14, speed: 17, damage: 28,  hitstun: 10, kbX: 3,  kbY: -1, life: 56,  radius: 9,  color: "#ffe24a", fan: [-5, -2.5, 0, 2.5, 5] }, // Spread Finger — yellow fan (D)
+  vegitoAirki:   { cost: 20, wind: 7,  recovery: 15, pose: "vegitoAirki",   projW: 34, projH: 18, speed: 22, damage: 50,  hitstun: 14, kbX: 5,  kbY: -3, life: 64,  radius: 12, color: "#cfeaff" },                        // Air Ki — fast rising dart (U)
+  vegitoPerfect: { cost: 24, wind: 8,  recovery: 16, pose: "vegitoPerfect", projW: 30, projH: 14, speed: 24, damage: 46,  hitstun: 12, kbX: 4,  kbY: -1, life: 60,  radius: 10, color: "#6fd8ff", volley: 2, volleyGap: 5, aim: true }, // Perfect Shot — precise cyan dart pair, AIMS at the foe (air)
+}
+function vegitoOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireVegitoKi(fighter, key, context, opts = {}) {
+  const t = VEGITO_SPECIALS[key]
+  if (!t || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = vegitoOffense(fighter)
+  const grow = t.radius >= 40 ? 1 + (offense - 1) * 0.6 : 1   // only the big sphere scales visibly with offense
+  const baseY = fighter.y + (fighter.h || 100) * (opts.air ? 0.30 : 0.36)
+  const shoot = (extra = {}) => spawnProjectile(fighter, key, {
+    w: Math.round(t.projW * grow), h: Math.round(t.projH * grow), radius: Math.round(t.radius * grow),
+    speed: t.speed, damage: Math.round(t.damage * offense), hitstun: t.hitstun,
+    knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing,
+    color: t.color, spawnY: baseY, ...extra,
+  }, context)
+  // Perfect Shot is a PRECISE aimed dart — auto-aims at the opponent's body (locked at fire time).
+  const opp = t.aim ? context?.getOpponent?.(fighter) : null
+  const aim = () => (opp ? { aimAt: { x: opp.x + (opp.w || 60) / 2, y: opp.y + (opp.h || 100) * 0.4 } } : {})
+  if (t.fan)          schedulePendingSpawn(t.wind, () => { for (const vy of t.fan) shoot({ vy }) })       // fan — all bolts at once, spread angles
+  else if (t.volley)  for (let i = 0; i < t.volley; i++) schedulePendingSpawn(t.wind + i * t.volleyGap, () => shoot(aim())) // volley — staggered (aimed if t.aim)
+  else if (key === "vegitoAirki") schedulePendingSpawn(t.wind, () => shoot({ vy: -3 }))                    // Air Ki rises slightly
+  else                schedulePendingSpawn(t.wind, () => shoot())
+  return true
+}
+export function executeVegitoSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vegito") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireVegitoKi(fighter, "vegitoPerfect", context, { air: true })  // AIR (any) — Perfect Shot
+  if (dir === "F") return fireVegitoKi(fighter, "vegitoGalick", context)
+  if (dir === "B") return fireVegitoKi(fighter, "vegitoBanshee", context)
+  if (dir === "D") return fireVegitoKi(fighter, "vegitoSpread", context)
+  if (dir === "U") return fireVegitoKi(fighter, "vegitoAirki", context)
+  return fireVegitoKi(fighter, "vegitoBigbang", context)                                // neutral GROUND — Big Bang Attack
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GOTENKS (Dragon Ball, EB SS) — Stage 4 SPECIALS (small 2-move kit — only two special-tier actions exist on
+// the sheet). Directional / air branch (mirrors executePiccoloSpecial):
+//   neutral GROUND / AIR = Ki Blast   — a compact fast gold ki shard fired from the cast pose
+//   Down                 = Ki Charge  — a standing two-hand ENERGY-GATHER (resource build): no hit, refills Ki
+// ★ The Ki Blast PROJECTILE is PROCEDURAL — the sheet has NO free-flying shard art (2 subagents + a
+//   sub-threshold blob scan agreed; GOTENKS_ASSET_MAP.md). Only the open-hand CAST pose [190,191] is real.
+//   Ki Charge answers the Stage-0 open item: the charge pose stands ALONE as a resource-build action (no
+//   beam/nova payoff exists to connect it to). Projectile damage folds the fighter's offense mult (like Piccolo).
+// ─────────────────────────────────────────────────────────────────────────────
+const GOTENKS_KIBLAST = { cost: 16, wind: 9, recovery: 15, pose: "gotenksKiBlast", projW: 30, projH: 18, speed: 20, damage: 48, hitstun: 12, kbX: 5, kbY: -1, life: 66, radius: 12, color: "#ffe66a" }
+const GOTENKS_KICHARGE = { wind: 8, hold: 22, recovery: 10, pose: "gotenksKiCharge", gain: 60 }   // resource build: ~60 Ki over the gather window
+function gotenksOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireGotenksKiBlast(fighter, context, opts = {}) {
+  const t = GOTENKS_KIBLAST
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  if (opts.air !== true) fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = gotenksOffense(fighter)
+  const baseY = fighter.y + (fighter.h || 100) * (opts.air ? 0.32 : 0.40)
+  schedulePendingSpawn(t.wind, () => spawnProjectile(fighter, "gotenksKiBlast", {
+    w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+    hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, color: t.color, spawnY: baseY,
+  }, context))
+  return true
+}
+function fireGotenksKiCharge(fighter) {
+  const t = GOTENKS_KICHARGE
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter.energy || 0) >= (fighter.maxEnergy || 0)) return false   // already full — nothing to build
+  const dur = t.wind + t.hold + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  // Grant Ki across the gather window in small steps (a real resource-build, not an instant refill).
+  const steps = 6, per = t.gain / steps
+  for (let i = 0; i < steps; i++) schedulePendingSpawn(t.wind + Math.round(i * (t.hold / steps)), () => {
+    fighter.energy = Math.min(fighter.maxEnergy || 0, (fighter.energy || 0) + per)
+  })
+  return true
+}
+export function executeGotenksSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gotenks") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireGotenksKiBlast(fighter, context, { air: true })   // AIR (any) — Ki Blast
+  if (dir === "D") return fireGotenksKiCharge(fighter)                        // Down — Ki Charge (resource build)
+  return fireGotenksKiBlast(fighter, context)                                // neutral GROUND — Ki Blast
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (Custom / DCUC) — Stage 4 SPECIALS (fixed-slot flying-brawler kit). Directional / air branch:
+//   neutral GROUND = Heat Vision — a thin, fast, PIERCING procedural beam from the eyes (signature zoner poke)
+//   Fwd           = Flying Charge — cape-stream dash TACKLE, an i-frame gap-closer (own dash art)
+//   U             = Soaring Uppercut — rising flight punch, an anti-air LAUNCHER (reuses the ascent art)
+//   Down          = Super Breath — a wide, slow, close-range PROCEDURAL gust (low dmg, heavy push/knockback)
+//   Back          = Flying Retreat — an i-frame backward flight reposition (defensive escape, no hit)
+//   AIR (any)     = Flying Dive Kick — a diagonal down-forward i-frame dive strike (own dive art)
+// Heat Vision / Super Breath are PROCEDURAL (the sheet has NO beam/breath art — cast poses reuse heavy/idle,
+// flagged in SUPERMAN2_DCUC_ASSET_MAP.md). Projectile damage folds the fighter's offense mult (like Piccolo).
+// Mirrors executePiccoloSpecial. Signature "Big Rock" boulder throw is the Stage-5 ULT (not a special).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_DCUC_SPECIALS = {
+  supHeatVision:  { cost: 30, wind: 11, recovery: 20, pose: "idle", projW: 78, projH: 10, speed: 23, damage: 88, hitstun: 16, kbX: 6, kbY: -1, life: 70, radius: 8, color: "#ff3020", piercing: true },  // Heat Vision — thin fast piercing beam (upright cast, procedural)
+  supBreath:      { cost: 26, wind: 9,  recovery: 20, pose: "idle",  projW: 74, projH: 54, speed: 9,  damage: 30, hitstun: 20, kbX: 14, kbY: -2, life: 40, radius: 30, color: "#a9e0ff" },                  // Super Breath — wide slow push gust
+  supDcucFlycharge: { damage: 74, startup: 8, active: 4, recovery: 16, hitstun: 20, knockbackX: 10, knockbackY: -2, rangeX: 100, rangeY: 56, cost: 22 },  // Flying Charge — i-frame dash tackle
+  supDcucSoar:      { damage: 66, startup: 6, active: 4, recovery: 18, hitstun: 22, knockbackX: 3,  knockbackY: -12, rangeX: 76, rangeY: 96, cost: 24, launcher: true },  // Soaring Uppercut — anti-air launcher
+  supDcucDive:      { damage: 72, startup: 7, active: 4, recovery: 15, hitstun: 20, knockbackX: 9,  knockbackY: -3, rangeX: 92, rangeY: 74, cost: 22 },  // Flying Dive Kick — i-frame air approach
+}
+function supDcucOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireSupHeatVision(fighter, context) {
+  const t = SUPERMAN_DCUC_SPECIALS.supHeatVision
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = t.wind + t.recovery
+  fighter.attackCooldown  = getAttackDuration(t.wind + t.recovery, fighter)
+  const offense = supDcucOffense(fighter)
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "supHeatVision", {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * 0.26,   // eye height
+    }, context)
+  })
+  return true
+}
+function fireSupBreath(fighter, context) {
+  const t = SUPERMAN_DCUC_SPECIALS.supBreath
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = t.wind + t.recovery
+  fighter.attackCooldown  = getAttackDuration(t.wind + t.recovery, fighter)
+  const offense = supDcucOffense(fighter)
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "supBreath", {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, color: t.color,
+      spawnY: fighter.y + (fighter.h || 100) * 0.30,
+    }, context)
+  })
+  return true
+}
+function fireSupMeleeSpecial(fighter, key, context, opts = {}) {
+  const md = SUPERMAN_DCUC_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (opts.iframes) { fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.startup + 2); fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8) }
+  if (opts.vx != null) fighter.vx = (fighter.facing || 1) * opts.vx
+  if (opts.vy != null) fighter.vy = opts.vy
+  return true
+}
+function fireSupFlyingRetreat(fighter, context) {
+  // Defensive i-frame backward flight reposition (no hit) — mirrors Genos afterimage / Frieza psycho-teleport reposition.
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 18)) return false
+  fighter._spriteCastMove = "fly"; fighter._spriteCastTimer = 14
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+  fighter.invulnTimer  = Math.max(fighter.invulnTimer || 0, 12)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+  fighter.vx = -(fighter.facing || 1) * 15   // blast backward
+  return true
+}
+export function executeSupermanDcucSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_dcuc") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireSupMeleeSpecial(fighter, "supDcucDive", context, { iframes: true, vx: 13, vy: 6 })  // AIR — Flying Dive Kick (down-forward)
+  if (dir === "F") return fireSupMeleeSpecial(fighter, "supDcucFlycharge", context, { iframes: true, vx: 15, vy: 0 })  // Flying Charge tackle
+  if (dir === "U") return fireSupMeleeSpecial(fighter, "supDcucSoar", context, { vy: -9 })                            // Soaring Uppercut (rises)
+  if (dir === "D") return fireSupBreath(fighter, context)                                                              // Super Breath gust
+  if (dir === "B") return fireSupFlyingRetreat(fighter, context)                                                      // Flying Retreat escape
+  return fireSupHeatVision(fighter, context)                                                                          // neutral GROUND — Heat Vision beam
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (New 52) — Stage 4 SPECIALS (fixed-slot flying-RUSHDOWN kit — mirrors executeSupermanDcucSpecial):
+//   neutral GROUND = Heat Vision (thin PIERCING procedural beam) · Fwd = Flying Charge (i-frame flight tackle,
+//   own art) · U = Soaring Uppercut (anti-air LAUNCHER, reuses the up art) · Down = Super Breath (wide push
+//   gust) · Back = Flying Retreat (i-frame escape) · AIR = Flying Dive Kick (own dive art). Heat Vision +
+//   Super Breath PROCEDURAL (cast=idle). "Infinite Mass Punch" flying-tackle is the Stage-5 ULT (not a special).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_NEW52_SPECIALS = {
+  supN52Heat:   { cost: 30, wind: 11, recovery: 20, pose: "idle", projW: 78, projH: 10, speed: 24, damage: 84, hitstun: 16, kbX: 6, kbY: -1, life: 70, radius: 8, color: "#ff3020", piercing: true },  // Heat Vision beam
+  supN52Breath: { cost: 26, wind: 9,  recovery: 20, pose: "idle", projW: 74, projH: 54, speed: 9,  damage: 28, hitstun: 20, kbX: 14, kbY: -2, life: 40, radius: 30, color: "#a9e0ff" },                  // Super Breath gust
+  supN52Flycharge: { damage: 72, startup: 7, active: 4, recovery: 15, hitstun: 20, knockbackX: 10, knockbackY: -2, rangeX: 100, rangeY: 58, cost: 22 },  // Flying Charge tackle
+  supN52Soar:      { damage: 64, startup: 6, active: 4, recovery: 18, hitstun: 22, knockbackX: 3,  knockbackY: -12, rangeX: 78, rangeY: 100, cost: 24, launcher: true },  // Soaring Uppercut anti-air launcher
+  supN52Dive:      { damage: 70, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 9,  knockbackY: -3, rangeX: 96, rangeY: 78, cost: 22 },  // Flying Dive Kick
+}
+function supN52Offense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireSupN52Projectile(fighter, key, name, context, opts) {
+  const t = SUPERMAN_NEW52_SPECIALS[key]
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = t.wind + t.recovery
+  fighter.attackCooldown  = getAttackDuration(t.wind + t.recovery, fighter)
+  const offense = supN52Offense(fighter)
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, name, {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: !!t.piercing,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * (opts?.yf ?? 0.28),
+    }, context)
+  })
+  return true
+}
+function fireSupN52Melee(fighter, key, context, opts = {}) {
+  const md = SUPERMAN_NEW52_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (opts.iframes) { fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.startup + 2); fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8) }
+  if (opts.vx != null) fighter.vx = (fighter.facing || 1) * opts.vx
+  if (opts.vy != null) fighter.vy = opts.vy
+  return true
+}
+function fireSupN52Retreat(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 18)) return false
+  fighter._spriteCastMove = "fly"; fighter._spriteCastTimer = 14
+  fighter.attackCooldown = getAttackDuration(14, fighter)
+  fighter.invulnTimer  = Math.max(fighter.invulnTimer || 0, 12)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+  fighter.vx = -(fighter.facing || 1) * 15
+  return true
+}
+export function executeSupermanNew52Special(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_new52") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireSupN52Melee(fighter, "supN52Dive", context, { iframes: true, vx: 13, vy: 7 })   // AIR — Flying Dive Kick (down-forward)
+  if (dir === "F") return fireSupN52Melee(fighter, "supN52Flycharge", context, { iframes: true, vx: 16, vy: 0 })  // Flying Charge tackle
+  if (dir === "U") return fireSupN52Melee(fighter, "supN52Soar", context, { vy: -9 })                            // Soaring Uppercut (rises)
+  if (dir === "D") return fireSupN52Projectile(fighter, "supN52Breath", "supN52Breath", context, { yf: 0.30 })   // Super Breath gust
+  if (dir === "B") return fireSupN52Retreat(fighter, context)                                                    // Flying Retreat escape
+  return fireSupN52Projectile(fighter, "supN52Heat", "supN52Heat", context, { yf: 0.24 })                        // neutral GROUND — Heat Vision beam
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (Classic) — Stage 4 SPECIALS (fixed-slot all-rounder kit; mirrors executeSupermanNew52Special).
+// ★The FIRST of the 4 Supermen with REAL FX art (no procedural):
+//   neutral GROUND = HEAT VISION — a long-reach DISJOINT melee whose sprite BAKES the red eye-beam (rangeX 150)
+//   Fwd = Flying Charge (i-frame flight tackle, own art) · U = Soaring Uppercut (anti-air LAUNCHER, reuses the
+//   up-flare art) · Down = ICE BREATH — a real frost-cloud PROJECTILE (freeze/slow: low dmg, big hitstun) ·
+//   Back = Flying Retreat (i-frame escape) · AIR = Flying Dive Kick (own dive art). "Heat Vision Barrage" = ULT.
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_CLASSIC_SPECIALS = {
+  supClsHeat:  { damage: 76, startup: 8, active: 5, recovery: 20, hitstun: 18, knockbackX: 7, knockbackY: -1, rangeX: 150, rangeY: 40, cost: 28 },  // Heat Vision — long disjoint (baked beam)
+  supClsIce:   { cost: 26, wind: 9, recovery: 22, projW: 60, projH: 50, speed: 8, damage: 24, hitstun: 34, kbX: 6, kbY: -1, life: 44, radius: 26 },  // Ice Breath — frost gust (freeze/slow via big hitstun)
+  supClsFlycharge: { damage: 72, startup: 7, active: 4, recovery: 15, hitstun: 20, knockbackX: 10, knockbackY: -2, rangeX: 100, rangeY: 58, cost: 22 },  // Flying Charge tackle
+  supClsSoar:      { damage: 66, startup: 6, active: 4, recovery: 18, hitstun: 22, knockbackX: 3,  knockbackY: -12, rangeX: 92, rangeY: 96, cost: 24, launcher: true },  // Soaring Uppercut
+  supClsDive:      { damage: 70, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 9,  knockbackY: -3, rangeX: 96, rangeY: 78, cost: 22 },  // Flying Dive Kick
+}
+function fireSupClsMelee(fighter, key, context, opts = {}) {
+  const md = SUPERMAN_CLASSIC_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (opts.iframes) { fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.startup + 2); fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8) }
+  if (opts.vx != null) fighter.vx = (fighter.facing || 1) * opts.vx
+  else fighter.vx = 0
+  if (opts.vy != null) fighter.vy = opts.vy
+  return true
+}
+function fireSupClsIceBreath(fighter, context) {
+  const t = SUPERMAN_CLASSIC_SPECIALS.supClsIce
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  fighter.vx = 0
+  fighter._spriteCastMove = "crouch"; fighter._spriteCastTimer = t.wind + t.recovery   // lean-forward exhale (no dedicated breath pose — FLAG)
+  fighter.attackCooldown  = getAttackDuration(t.wind + t.recovery, fighter)
+  const offense = Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1)
+  schedulePendingSpawn(t.wind, () => {
+    // REAL frost-cloud art carried by the projectile (spawnProjectile `sheet`, GL-construct pattern). Freeze = big hitstun.
+    spawnProjectile(fighter, "supClsIce", {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life,
+      color: "#bfe6ff", sheet: "./superman_classic_icebreath_uniform.png", spriteFrames: 3,
+      spawnY: fighter.y + (fighter.h || 100) * 0.30,
+    }, context)
+  })
+  return true
+}
+export function executeSupermanClassicSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_classic") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireSupClsMelee(fighter, "supClsDive", context, { iframes: true, vx: 13, vy: 7 })   // AIR — Flying Dive Kick
+  if (dir === "F") return fireSupClsMelee(fighter, "supClsFlycharge", context, { iframes: true, vx: 15, vy: 0 })  // Flying Charge tackle
+  if (dir === "U") return fireSupClsMelee(fighter, "supClsSoar", context, { vy: -9 })                            // Soaring Uppercut (rises)
+  if (dir === "D") return fireSupClsIceBreath(fighter, context)                                                  // Ice Breath frost gust (freeze/slow)
+  if (dir === "B") return fireSupN52Retreat(fighter, context)                                                    // Flying Retreat escape (shared helper)
+  return fireSupClsMelee(fighter, "supClsHeat", context, {})                                                     // neutral GROUND — Heat Vision (long disjoint, baked beam)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (Fighter) — Stage 4 SPECIALS (fixed-slot; ALL REAL baked FX → long-DISJOINT melee, classic pattern):
+//   neutral = Heat Vision (white beam, rangeX 160) · Fwd = X Blast (red energy blast, rangeX 150, heavy) ·
+//   U = Frost Breath (tall frost tornado — anti-air, rangeY 100) · Down = Ice Beam (long ice crystal, rangeX 170) ·
+//   Back = Flying Retreat (i-frame escape, reuse fly) · AIR = Aerial Ice. No procedural — every FX is on the sheet.
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_FIGHTER_SPECIALS = {
+  supFtrHeat:   { damage: 76, startup: 8, active: 5, recovery: 20, hitstun: 18, knockbackX: 7, knockbackY: -1, rangeX: 160, rangeY: 42, cost: 28 },  // Heat Vision beam
+  supFtrX:      { damage: 84, startup: 10, active: 5, recovery: 22, hitstun: 22, knockbackX: 11, knockbackY: -2, rangeX: 150, rangeY: 46, cost: 34 }, // X red blast (heavy)
+  supFtrFrost:  { damage: 60, startup: 9, active: 5, recovery: 22, hitstun: 30, knockbackX: 4, knockbackY: -3, rangeX: 96, rangeY: 100, cost: 30 },  // Frost Breath (tall, freeze via big hitstun)
+  supFtrIce:    { damage: 70, startup: 9, active: 5, recovery: 20, hitstun: 20, knockbackX: 8, knockbackY: -1, rangeX: 170, rangeY: 44, cost: 30 },  // Ice Beam (long)
+  supFtrAerIce: { damage: 66, startup: 6, active: 4, recovery: 15, hitstun: 20, knockbackX: 8, knockbackY: 4, rangeX: 96, rangeY: 92, cost: 24 },   // Aerial Ice (tall downward reach → hits grounded foes from a low aerial)
+}
+function fireSupFtrMelee(fighter, key, context, opts = {}) {
+  const md = SUPERMAN_FIGHTER_SPECIALS[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  if (opts.vx != null) fighter.vx = (fighter.facing || 1) * opts.vx; else fighter.vx = 0
+  if (opts.vy != null) fighter.vy = opts.vy
+  if (opts.iframes) { fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.startup + 2); fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8) }
+  return true
+}
+export function executeSupermanFighterSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_fighter") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) return fireSupFtrMelee(fighter, "supFtrAerIce", context, { iframes: true, vx: 11, vy: 6 })  // AIR — Aerial Ice (down-forward descent)
+  if (dir === "F") return fireSupFtrMelee(fighter, "supFtrX", context)      // X red blast (heavy)
+  if (dir === "U") return fireSupFtrMelee(fighter, "supFtrFrost", context)  // Frost Breath (tall anti-air)
+  if (dir === "D") return fireSupFtrMelee(fighter, "supFtrIce", context)    // Ice Beam (long)
+  if (dir === "B") return fireSupN52Retreat(fighter, context)               // Flying Retreat (i-frame escape, shared helper)
+  return fireSupFtrMelee(fighter, "supFtrHeat", context)                    // neutral GROUND — Heat Vision beam
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // FRIEZA — TRANSFORMATION LADDER: base → GOLDEN FRIEZA → BLACK FRIEZA.
 // Real in-match transformations using the SAME mechanic as Vegeta / Goku Black (owner: all Dragon Ball
@@ -4181,6 +6409,237 @@ export function applyFriezaFormSystem(fighter) {
   tickSustainedFormDrain(fighter, { active: f => !!f._blackFriezaActive,  drainPerFrame: FRIEZA_BLACK_DRAIN,  revert: revertBlackFrieza })
   tickSustainedFormDrain(fighter, { active: f => !!f._goldenFriezaActive, drainPerFrame: FRIEZA_GOLDEN_DRAIN, revert: revertGoldenFrieza })
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PICCOLO — TRANSFORMATION LADDER: base → POTENTIAL UNLEASHED (Tier 1) → ORANGE PICCOLO (Tier 2).
+// SAME Dragon Ball charge-transform mechanic as Frieza / Vegeta / Goku Black: THRESHOLD-GATED activation
+// (NO up-front energy cost), a CONTINUOUS per-frame Ki DRAIN while transformed, and INSTANT auto-revert the
+// frame Ki hits 0. Trigger = the CHARGE button: hold P to build Ki, a RELEASE steps UP the ladder
+// (base→Potential→Orange, each gated on a higher Ki threshold + Orange requires Potential first); a quick TAP
+// while transformed reverts to base. Escalating multiplier + escalating drain: Tier 1 = moderate boost /
+// LOWER drain, Tier 2 = larger boost / HIGHER drain. currentForm is set to a NON-matching label so the generic
+// transformations.js drain/revert stays OFF and ONLY this custom system runs (Vegeta gotcha).
+//
+// ★★ART = PALETTE-TINT PLACEHOLDER (prototype scope — owner 2026-08-22). Both tiers are RECOLORS of the base
+// Piccolo sprite via a canvas TINT (sprite.js: _piccoloPotentialActive = yellow-green wash / _piccoloOrangeActive
+// = orange wash), NOT bespoke art. This is a DELIBERATE, acknowledged simplification: the real Orange Piccolo
+// canonically CHANGES BODY SHAPE (taller/bulkier) — that remodel is NOT built here, and faking it via
+// scale/stretch tricks would look worse than an honest recolor. NOT a final art decision; commission the real
+// tier art later. The MECHANIC below is the real, final one. See PICCOLO_ASSET_MAP.md §7.
+// ═════════════════════════════════════════════════════════════════════════════
+const PICCOLO_POTENTIAL_THRESHOLD = 90     // Ki ≥ 90 (of 200) to enter Potential Unleashed (Tier 1)
+const PICCOLO_POTENTIAL_DRAIN     = 0.14   // Ki/frame while Tier 1 (~8/s) — LOWER drain (moderate form)
+const PICCOLO_POTENTIAL_MULT      = { dmg: 1.20, spd: 1.12, def: 1.06 }   // moderate all-around boost
+const PICCOLO_ORANGE_THRESHOLD    = 140    // Ki ≥ 140 to escalate Tier 1 → Tier 2 (Orange Piccolo)
+const PICCOLO_ORANGE_DRAIN        = 0.26   // Ki/frame while Tier 2 (~16/s) — HIGHER drain (costlier to sustain)
+const PICCOLO_ORANGE_MULT         = { dmg: 1.42, spd: 1.24, def: 1.12 }   // larger boost, clearly above Tier 1
+const PICCOLO_MORPH               = 9       // transform pose lock (chest-out flex, taunt sheet)
+function isPiccoloChar(f) { return (f?.rosterKey || "").toLowerCase() === "piccolo" }
+export function piccoloIsSuper(fighter) { return !!(fighter?._piccoloOrangeActive || fighter?._piccoloPotentialActive) }
+export function isPiccoloPotential(fighter) { return !!fighter?._piccoloPotentialActive }
+export function isPiccoloOrange(fighter) { return !!fighter?._piccoloOrangeActive }
+function piccoloMorphFx(fighter, context) {
+  fighter._spriteCastMove = "taunt"; fighter._spriteCastTimer = PICCOLO_MORPH   // the chest-out flex as the power-up pose
+  fighter.attackCooldown = PICCOLO_MORPH; fighter.teleportFlash = 14; fighter.vx = 0
+  try { sound.playDragonBallTransformSfx() } catch (_) {}
+  try { focusCameraOnAction(context, fighter, null, 1.02, 12); shakeCamera(context, 8, 12) } catch (_) {}
+}
+// base → POTENTIAL UNLEASHED (Tier 1). opts.fast = a silent chain intermediate (skips gates + morph).
+export function enterPiccoloPotential(fighter, context = {}, opts = {}) {
+  if (!isPiccoloChar(fighter) || fighter._piccoloPotentialActive || fighter._piccoloOrangeActive) return false
+  const fast = !!opts.fast
+  if (!fast) {
+    if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+    if ((fighter.energy || 0) < PICCOLO_POTENTIAL_THRESHOLD) return false   // threshold gate — NO up-front spend
+  }
+  fighter._piccoloPotentialActive = true
+  fighter.currentForm       = "piccoloPotential"     // NON-matching label → generic drain/revert stays off
+  fighter.damageMultiplier  = fighter.attackMultiplier = PICCOLO_POTENTIAL_MULT.dmg
+  fighter.speedMultiplier   = PICCOLO_POTENTIAL_MULT.spd
+  fighter.defenseMultiplier = PICCOLO_POTENTIAL_MULT.def
+  fighter.currentFormData   = fighter.transformations?.potential || fighter.currentFormData
+  if (!fast) piccoloMorphFx(fighter, context)
+  return true
+}
+export function revertPiccoloPotential(fighter) {
+  if (!fighter || !fighter._piccoloPotentialActive) return
+  fighter._piccoloPotentialActive = false
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+// POTENTIAL → ORANGE (Tier 2; chains off Tier 1, higher threshold; Orange SUPERSEDES Potential so only Orange's drain runs).
+export function enterPiccoloOrange(fighter, context = {}) {
+  if (!isPiccoloChar(fighter) || fighter._piccoloOrangeActive || !fighter._piccoloPotentialActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < PICCOLO_ORANGE_THRESHOLD) return false
+  fighter._piccoloPotentialActive = false
+  fighter._piccoloOrangeActive    = true
+  fighter.currentForm       = "piccoloOrange"        // NON-matching label → generic drain/revert stays off
+  fighter.damageMultiplier  = fighter.attackMultiplier = PICCOLO_ORANGE_MULT.dmg
+  fighter.speedMultiplier   = PICCOLO_ORANGE_MULT.spd
+  fighter.defenseMultiplier = PICCOLO_ORANGE_MULT.def
+  fighter.currentFormData   = fighter.transformations?.orange || fighter.currentFormData
+  piccoloMorphFx(fighter, context)
+  return true
+}
+export function revertPiccoloOrange(fighter) {
+  if (!fighter || !fighter._piccoloOrangeActive) return
+  fighter._piccoloOrangeActive = false
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+// Per-frame continuous drain + INSTANT auto-revert at 0 — SAME mechanism as Frieza/Vegeta/Goku Black
+// (tickSustainedFormDrain). Orange checked first (it supersedes Potential).
+export function applyPiccoloFormSystem(fighter) {
+  if (!isPiccoloChar(fighter)) return
+  tickSustainedFormDrain(fighter, { active: f => !!f._piccoloOrangeActive,    drainPerFrame: PICCOLO_ORANGE_DRAIN,    revert: revertPiccoloOrange })
+  tickSustainedFormDrain(fighter, { active: f => !!f._piccoloPotentialActive, drainPerFrame: PICCOLO_POTENTIAL_DRAIN, revert: revertPiccoloPotential })
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// DARK VEGETA — STAGE 5 TRANSFORMATION: the DARK-AURA form ("Villainous Mode"). SAME Dragon Ball
+// charge-transform mechanic as Frieza / Vegeta / Goku Black / Piccolo: THRESHOLD-GATED activation (NO
+// up-front energy cost), a CONTINUOUS per-frame Ki DRAIN while transformed, and INSTANT auto-revert the
+// frame Ki hits 0. Trigger = the CHARGE button: hold P to build Ki, a RELEASE at/above threshold enters the
+// form; a quick TAP while transformed reverts early; a HOLD-release tops up Ki and stays in form (sustain).
+// currentForm is set to a NON-matching label so the generic transformations.js drain/revert stays OFF and
+// ONLY this custom system runs (the "Vegeta gotcha").
+//
+// ★NOT an art re-skin (VEGETA_BLACK_ASSET_MAP item-1 correction): the costume + hair do NOT change — the
+// enter plays the REAL aura-buildup art [45-48] (black spikes + purple rim) as the power-up cinematic, then
+// a PROCEDURAL purple aura overlay (game.js drawVegetaDarkAuraOverlay) persists while sustained. The form's
+// payoff: stat buff + it flips `_darkAuraActive`, which AMPLIFIES the Ki Blast to its bigger piercing PURPLE
+// tier (Stage 4 vegetaDarkKiKey) — the item-2 "same attack, powered up in the transformed state".
+// ═════════════════════════════════════════════════════════════════════════════
+const DARK_AURA_THRESHOLD = 100    // Ki ≥ 100 (of 200) to enter — NO up-front spend
+const DARK_AURA_DRAIN     = 0.20   // Ki/frame while transformed (~12/s)
+const DARK_AURA_MULT      = { dmg: 1.35, spd: 1.15, def: 1.05 }   // solid all-around buff (ki-blast amplify is the extra offensive payoff)
+const DARK_AURA_MORPH     = 12     // transform pose lock (aura-buildup power-up)
+function isVegetaDarkChar(f) { return (f?.rosterKey || "").toLowerCase() === "vegeta_dark" }
+export function vegetaDarkIsTransformed(fighter) { return !!fighter?._darkAuraActive }
+function vegetaDarkMorphFx(fighter, context) {
+  fighter._spriteCastMove = "vdAura"; fighter._spriteCastTimer = DARK_AURA_MORPH   // real aura-buildup as the power-up pose
+  fighter.attackCooldown = DARK_AURA_MORPH; fighter.teleportFlash = 16; fighter.vx = 0
+  try { sound.playDragonBallTransformSfx() } catch (_) {}
+  try { focusCameraOnAction(context, fighter, null, 1.02, 12); shakeCamera(context, 8, 12) } catch (_) {}
+}
+export function enterVegetaDark(fighter, context = {}, opts = {}) {
+  if (!isVegetaDarkChar(fighter) || fighter._darkAuraActive) return false
+  const fast = !!opts.fast
+  if (!fast) {
+    if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+    if ((fighter.energy || 0) < DARK_AURA_THRESHOLD) return false   // threshold gate — NO up-front spend
+  }
+  fighter._darkAuraActive   = true
+  fighter.currentForm       = "vegetaDarkAura"    // NON-matching label → generic drain/revert stays off
+  fighter.damageMultiplier  = fighter.attackMultiplier = DARK_AURA_MULT.dmg
+  fighter.speedMultiplier   = DARK_AURA_MULT.spd
+  fighter.defenseMultiplier = DARK_AURA_MULT.def
+  fighter.currentFormData   = fighter.transformations?.darkAura || fighter.currentFormData
+  if (!fast) vegetaDarkMorphFx(fighter, context)
+  return true
+}
+export function revertVegetaDark(fighter) {
+  if (!fighter || !fighter._darkAuraActive) return
+  fighter._darkAuraActive   = false
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+// Per-frame continuous drain + INSTANT auto-revert at 0 — SAME mechanism as Frieza/Vegeta/Goku Black/Piccolo.
+// Rose checked FIRST (it supersedes the dark-aura, like Piccolo Orange supersedes Potential).
+export function applyVegetaDarkFormSystem(fighter) {
+  if (!isVegetaDarkChar(fighter)) return
+  tickSustainedFormDrain(fighter, { active: f => !!f._vdRoseActive,   drainPerFrame: VD_ROSE_DRAIN,   revert: revertVegetaDarkRose })
+  tickSustainedFormDrain(fighter, { active: f => !!f._darkAuraActive, drainPerFrame: DARK_AURA_DRAIN, revert: revertVegetaDark })
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// DARK VEGETA — 3rd-tier TRANSFORMATION: SUPER SAIYAN ROSE (base → dark-aura → ROSE). ★CREATIVE ADDITION,
+// flagged NOT canon-accurate (Rose is Goku Black's transform, not Vegeta's — an original choice, owner-locked
+// 2026-08-24). Chains OFF the dark-aura (requires _darkAuraActive, like Piccolo Orange requires Potential),
+// higher threshold + drain + multiplier. UNLIKE the dark-aura (aura-only, no re-skin), Rose is a FULL ART
+// FORM-SWAP to PINK sheets via _skinAnim (Goku Black SSJ Rose architecture) — pink salmon-rose hair + pink
+// aura (tools/gen_vegeta_dark_rose.py, colour-matched to goku_black_ssj_rose). Same charge-hold-release ladder
+// trigger; tap-revert; auto-revert at 0. Rose ALSO fires the amplified (purple) Ki Blast (vegetaDarkKiKey).
+// ═════════════════════════════════════════════════════════════════════════════
+const VD_ROSE_THRESHOLD = 150     // Ki ≥ 150 to escalate dark-aura → Rose (reachable by charging while in-form)
+const VD_ROSE_DRAIN     = 0.28    // Ki/frame while Rose (~17/s) — higher than dark-aura's 0.20 (costlier top tier)
+const VD_ROSE_MULT      = { dmg: 1.50, spd: 1.22, def: 1.10 }   // top tier, above dark-aura's 1.35 (near blue-Vegeta Blue's 1.45)
+// PINK Rose art set — replaces the base vegeta_dark_* sheets while in Rose (mirrors SSJ_ROSE_ANIM). Every
+// renderable action key must exist here or it hits the 128² fallback (getAction(skinAnim) has no base fallback).
+const VEGETA_DARK_ROSE_ANIM = {
+  idle:      { frames: 4, width: 41, height: 53, speed: 6, anchorY: 0, sheet: "./vegeta_dark_rose_idle_uniform.png" },
+  idleCross: { frames: 4, width: 28, height: 62, speed: 6, anchorY: 0, sheet: "./vegeta_dark_rose_idlecross_uniform.png" },
+  walk:      { frames: 4, width: 52, height: 44, speed: 6, anchorY: 0, loop: true, sheet: "./vegeta_dark_rose_dive_uniform.png" },
+  run:       { frames: 4, width: 52, height: 44, speed: 4, anchorY: 0, loop: true, sheet: "./vegeta_dark_rose_dive_uniform.png" },
+  dash:      { frames: 4, width: 52, height: 44, speed: 3, anchorY: 0, loop: true, sheet: "./vegeta_dark_rose_dive_uniform.png" },
+  jump:      { frames: 4, width: 52, height: 44, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_dive_uniform.png" },
+  fall:      { frames: 4, width: 52, height: 44, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_dive_uniform.png" },
+  guard:     { frames: 4, width: 28, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_idlecross_uniform.png" },
+  guardHit:  { frames: 3, width: 40, height: 55, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_hurt_uniform.png" },
+  crouch:    { frames: 1, width: 35, height: 51, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_crouchlight_uniform.png" },
+  hurt:      { frames: 3, width: 40, height: 55, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_hurt_uniform.png" },
+  knockdown: { frames: 8, width: 63, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_knockdown_uniform.png" },
+  getup:     { frames: 6, width: 48, height: 58, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_getup_uniform.png" },
+  light:     { frames: 3, width: 52, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_light_uniform.png" },
+  heavy:     { frames: 3, width: 60, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_heavy_uniform.png" },
+  up:        { frames: 3, width: 38, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_up_uniform.png" },
+  air:       { frames: 2, width: 45, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_air_uniform.png" },
+  down_air:  { frames: 2, width: 45, height: 61, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_air_uniform.png" },
+  crouchLight:{ frames: 1, width: 35, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_crouchlight_uniform.png" },
+  vegetaDarkRush1: { frames: 3, width: 59, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_rush1_uniform.png" },
+  vegetaDarkRush2: { frames: 3, width: 45, height: 49, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_rush2_uniform.png" },
+  vegetaDarkRush3: { frames: 3, width: 38, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_up_uniform.png" },
+  vdKiCast:  { frames: 2, width: 39, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_kicast_uniform.png" },
+  vdKnife:   { frames: 1, width: 47, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_knife_uniform.png" },
+  vdSickle:  { frames: 1, width: 59, height: 36, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_sickle_uniform.png" },
+  vdAura:    { frames: 4, width: 92, height: 88, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_aura_uniform.png" },
+  charge:    { frames: 4, width: 92, height: 88, speed: 6, anchorY: 0, loop: true, sheet: "./vegeta_dark_rose_aura_uniform.png" },   // Task 2 — pink aura-buildup while charging
+  win:       { frames: 5, width: 31, height: 62, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_win_uniform.png" },
+  lose:      { frames: 8, width: 63, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./vegeta_dark_rose_knockdown_uniform.png" },
+}
+export function enterVegetaDarkRose(fighter, context = {}, opts = {}) {
+  if (!isVegetaDarkChar(fighter) || fighter._vdRoseActive || !fighter._darkAuraActive) return false   // chains off dark-aura
+  const fast = !!opts.fast
+  if (!fast) {
+    if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+    if ((fighter.energy || 0) < VD_ROSE_THRESHOLD) return false
+  }
+  fighter._darkAuraActive   = false          // Rose supersedes the dark-aura
+  fighter._vdRoseActive     = true
+  fighter._skinAnim         = retagFormAnim(VEGETA_DARK_ROSE_ANIM, fighter._recolorTag)   // full pink art form-swap
+  fighter.currentForm       = "vegetaDarkRose"
+  fighter.damageMultiplier  = fighter.attackMultiplier = VD_ROSE_MULT.dmg
+  fighter.speedMultiplier   = VD_ROSE_MULT.spd
+  fighter.defenseMultiplier = VD_ROSE_MULT.def
+  fighter.currentFormData   = fighter.transformations?.rose || fighter.currentFormData
+  if (!fast) vegetaDarkMorphFx(fighter, context)   // aura-buildup morph (renders PINK via the _skinAnim swap)
+  return true
+}
+export function revertVegetaDarkRose(fighter) {
+  if (!fighter || !fighter._vdRoseActive) return
+  fighter._vdRoseActive     = false
+  fighter._skinAnim         = fighter._baseSkinAnim || null   // restore base (or alt-skin) art
+  fighter.currentForm       = "base"
+  fighter.damageMultiplier  = fighter.attackMultiplier = 1
+  fighter.speedMultiplier   = 1
+  fighter.defenseMultiplier = 1
+  fighter.currentFormData   = fighter.transformations?.base || null
+  fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
+}
+export function vegetaDarkIsRose(fighter) { return !!fighter?._vdRoseActive }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GENOS — Stage 5 ULTIMATE: OVERDRIVE (owner decision = Option B). The band-13 overheat flame-aura as a TIMED
@@ -18866,6 +21325,435 @@ export function executeDeathstrokeSpecial(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// IRON MAN 1 SPECIALS (Stage 4) — SPECIAL button, direction-branched via _specialHeldDir. Just TWO specials
+// (per the build prompt): neutral = Charge→Blast (the core ranged repulsor — a charge windup cast then a cyan
+// repulsor BOLT projectile) / Forward = Spider-leg strike (the SELF-CONTAINED SUIT-transform special — Iron-
+// Spider legs deploy and stab, a big disjoint melee hitbox; NOT an assist/summon, per Stage-0 item 2). The
+// helmet-open "Super" pose = the Proton Cannon ULT trigger (Stage 5). All damage honest ×0.60 at hit.
+// ─────────────────────────────────────────────────────────────────────────────
+const IRON_MAN_SPIDERLEGS_MD = { damage: 92, startup: 10, active: 6, recovery: 20, rangeX: 122, rangeY: 92, hitstun: 24, knockbackX: 9, knockbackY: -4, isSpecial: true, category: "heavy" }   // suit-transform disjoint (legs splay wide)
+
+function fireIronManBlast(fighter, context) {
+  const cost = 22, castT = 26, delay = 12   // charge windup baked into the cast; bolt fires at the release frame
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  fighter._spriteCastMove = "ironManBlast"; fighter._spriteCastTimer = castT
+  fighter.attackCooldown  = getAttackDuration(castT, fighter)
+  fighter._rekkaNext = null
+  schedulePendingSpawn(delay, () => {
+    // Procedural cyan repulsor BOLT — no projectile art on the source sheet (the palm-beam is baked into the
+    // Blast cast frames). A fast, flat energy round in arc-reactor cyan.
+    spawnProjectile(fighter, "ironManRepulsor", {
+      damage: 62, w: 40, h: 14, speed: 17, lifetime: 64, hitstun: 16, knockbackX: 7, knockbackY: -1,
+      isSpecial: true, color: "#8fe9ff", drawKind: null,
+      spawnY: fighter.y + (fighter.h || 110) * 0.34,
+    }, context)
+  })
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+function fireIronManSpiderLegs(fighter, context) {
+  const cost = 30
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, cost)) return false
+  const md = IRON_MAN_SPIDERLEGS_MD
+  const attack = createAttackFromMove(fighter, "ironManSpiderLegs", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.vx = (fighter.facing || 1) * 6   // small step-in as the suit deploys
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+
+export function executeIronManSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man") return false
+  const dir = fighter._specialHeldDir || null            // "F" | "B" | "U" | "D" | null
+  if (dir === "F") return fireIronManSpiderLegs(fighter, context)   // Forward → Spider-leg strike (suit special)
+  return fireIronManBlast(fighter, context)                         // neutral (+ any other dir) → Charge→Blast repulsor
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IRON MAN 1 — ULTIMATE (Stage 5): "Proton Cannon". Stage-0 item 4 resolved that the single helmet-open
+// "Super" pose is the ult TRIGGER (not a windup, not a full animation), with the DAMAGE payoff delivered by
+// the Blast repulsor at LARGER SCALE — so this INLINE freeze-cinematic (Deathstroke/Superman-DCUC pattern —
+// LIVE fighter, NO duplicate) holds the Super pose (ironManUlt) while the foe is frozen: helmet opens (charge
+// telegraph) → the suit routes full arc-reactor output into a GIANT cyan repulsor blast (a scaled visualOnly
+// projectile) → guaranteed heavy payoff on impact (330 raw → ~198 EFF, top-ult band, block 25%). HONEST: the
+// Super pose is a promoted trigger frame + a scaled Blast, NOT a bespoke ult animation (art gap, FLAGGED).
+// ─────────────────────────────────────────────────────────────────────────────
+const IRON_MAN_ULT = {
+  cost: 100, cinematic: 54, fireAt: 26,
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5  },                                             // helmet-open charge telegraph — camera focus, no damage
+    { at: 26, dmg: 110, hitstun: 26, kb: 8,  vy: -4, shake: 7 },                 // GIANT repulsor blast fires — first guaranteed hit
+    { at: 42, dmg: 220, hitstun: 42, kb: 15, vy: -9, shake: 18, payoff: true, knockdown: true },  // full-power impact PAYOFF (330 raw → ~198 EFF)
+  ],
+}
+function applyIronManUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 26)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 10); opp.vy = opts.vy ?? -4
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "iron_man-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+function executeIronManUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, IRON_MAN_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove = "ironManUlt"; fighter._spriteCastTimer = IRON_MAN_ULT.cinematic   // LIVE fighter holds the helmet-open "Super" pose
+  fighter.attackCooldown  = getAttackDuration(IRON_MAN_ULT.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.4, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, IRON_MAN_ULT.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed blast
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  // GIANT scaled repulsor blast — a purely-cosmetic projectile (the ult applies guaranteed dmg directly, so it
+  // can't whiff). The Blast repulsor "played at larger scale" per Stage-0 item 4.
+  schedulePendingSpawn(IRON_MAN_ULT.fireAt, () => {
+    spawnProjectile(fighter, "ironManProtonCannon", {
+      w: 132, h: 46, radius: 10, speed: 20, damage: 0, lifetime: 40,
+      visualOnly: true, drawKind: null, color: "#9fefff",
+      spawnY: fighter.y + (fighter.h || 110) * 0.32,
+    }, context)
+    try { shakeCamera(context, 10, 12) } catch (_) {}
+  })
+  for (const b of IRON_MAN_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      fighter._spriteCastMove = "ironManUlt"; fighter._spriteCastTimer = 18   // keep the Super pose latched across beats
+      if (b.dmg > 0) applyIronManUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 18, 16) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 8) }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VEGITO (Dragon Ball) — ULTIMATE (Stage 6): "Kamehameha" (owner-LOCKED: Ultimate Action windup → Kamehameha
+// CHAINED as one combined finisher). INLINE freeze-cinematic on the LIVE fighter (IM1/IM2 pattern — NO
+// duplicate): Vegito braces in the Ultimate Action charge pose (vegitoUltaction) while the foe is frozen →
+// flows straight into the Kamehameha thrust (vegitoKame) firing a GIANT cyan beam (a scaled visualOnly
+// projectile) → guaranteed heavy payoff on impact (330 raw → ~198 EFF, top-ult band, block 25%). HONEST: the
+// beam FX is a scaled procedural projectile (no bespoke ult beam art — flagged for a later FX pass).
+// ─────────────────────────────────────────────────────────────────────────────
+const VEGITO_ULT = {
+  cost: 100, cinematic: 62, windup: 16, fireAt: 30,
+  beats: [
+    { at: 10, dmg: 0,   shake: 5  },                                             // Ultimate Action charge windup — focus, no damage
+    { at: 30, dmg: 110, hitstun: 26, kb: 8,  vy: -4, shake: 8 },                 // Kamehameha beam fires — first guaranteed hit
+    { at: 48, dmg: 220, hitstun: 44, kb: 16, vy: -10, shake: 18, payoff: true, knockdown: true },  // full-power impact PAYOFF (330 raw → ~198 EFF)
+  ],
+}
+function applyVegitoUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 26)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 10); opp.vy = opts.vy ?? -4
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "vegito-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+function executeVegitoUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vegito") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, VEGITO_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove = "vegitoUltaction"; fighter._spriteCastTimer = VEGITO_ULT.cinematic   // LIVE fighter holds the Ultimate Action charge pose
+  fighter.attackCooldown  = getAttackDuration(VEGITO_ULT.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.4, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, VEGITO_ULT.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed beam
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  // Ultimate Action → Kamehameha CHAIN: swap to the thrust pose at windup end, then fire the GIANT beam.
+  schedulePendingSpawn(VEGITO_ULT.windup, () => { fighter._spriteCastMove = "vegitoKame"; fighter._spriteCastTimer = VEGITO_ULT.cinematic - VEGITO_ULT.windup })
+  schedulePendingSpawn(VEGITO_ULT.fireAt, () => {
+    spawnProjectile(fighter, "vegitoKamehameha", {
+      w: 208, h: 66, radius: 12, speed: 22, damage: 0, lifetime: 44,
+      visualOnly: true, drawKind: null, color: "#7fe0ff",
+      spawnY: fighter.y + (fighter.h || 110) * 0.34,
+    }, context)
+    try { shakeCamera(context, 12, 12) } catch (_) {}
+  })
+  for (const b of VEGITO_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      fighter._spriteCastMove = b.at < VEGITO_ULT.fireAt ? "vegitoUltaction" : "vegitoKame"; fighter._spriteCastTimer = 20   // keep the chain pose latched across beats
+      if (b.dmg > 0) applyVegitoUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 18, 16) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 8) }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GOTENKS (Dragon Ball, EB SS) — ULTIMATE (Stage 5): "SUPER GHOST KAMIKAZE ATTACK" — the sheet's ONLY
+// screen-effect finisher and a confirmed match to the character's signature technique (GOTENKS_ASSET_MAP.md
+// item 4). INLINE freeze-cinematic on the LIVE fighter (Vegito/IronMan2 pattern — NO duplicate): windup pose
+// (arms raised, cape flying) → swap to the ghost-command/throw pose → a squad of kamikaze GHOSTS (REAL ghost
+// art, spriteframes) flies at the frozen foe and self-destructs, guaranteed 330 raw → ~198 EFF (top-ult band,
+// block 25%). The ghosts are visualOnly cosmetics (aimed at the foe); the beats deliver guaranteed damage so
+// the ult can't whiff. ★Unlike its melee-only DBZ relatives (Goku/Gohan lack ult-tier content), Gotenks has a
+// REAL confirmed ultimate — kept at the SAME 330→198 band as every other ult so it's not a strong outlier.
+// ─────────────────────────────────────────────────────────────────────────────
+const GOTENKS_ULT = {
+  cost: 100, cinematic: 68, windup: 16,
+  ghostsAt: [24, 34, 44],   // three kamikaze ghosts launched, staggered, flying at the foe
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5  },                                                           // windup telegraph — camera focus, no damage
+    { at: 32, dmg: 100, hitstun: 22, kb: 6,  vy: -3, shake: 8 },                                // ghost 1 detonates — first guaranteed hit
+    { at: 44, dmg: 100, hitstun: 22, kb: 6,  vy: -3, shake: 8 },                                // ghost 2 detonates
+    { at: 58, dmg: 130, hitstun: 42, kb: 14, vy: -9, shake: 18, payoff: true, knockdown: true },// ghost 3 — full-power PAYOFF (330 raw → ~198 EFF)
+  ],
+}
+function applyGotenksUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 22)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 8); opp.vy = opts.vy ?? -3
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "gotenks-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+function executeGotenksUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gotenks") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, GOTENKS_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove = "gotenksGhostWind"; fighter._spriteCastTimer = GOTENKS_ULT.cinematic   // LIVE fighter holds the arms-raised windup
+  fighter.attackCooldown  = getAttackDuration(GOTENKS_ULT.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.4, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, GOTENKS_ULT.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed ghost barrage
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  // windup pose → ghost-command/throw pose at windup end.
+  schedulePendingSpawn(GOTENKS_ULT.windup, () => { fighter._spriteCastMove = "gotenksGhostThrow"; fighter._spriteCastTimer = GOTENKS_ULT.cinematic - GOTENKS_ULT.windup })
+  // Kamikaze GHOSTS — REAL ghost art (spriteframes), visualOnly cosmetics aimed at the foe (the beats apply
+  // the guaranteed damage, so a ghost can't whiff). Each is a small ghost that flies in and self-destructs.
+  for (const at of GOTENKS_ULT.ghostsAt) {
+    schedulePendingSpawn(at, () => {
+      const aim = opp ? { x: opp.x + (opp.w || 60) / 2, y: opp.y + (opp.h || 100) * 0.4 } : null
+      spawnProjectile(fighter, "gotenksGhost", {
+        w: 44, h: 77, radius: 22, speed: 13, damage: 0, lifetime: 40, visualOnly: true,
+        sheet: "./gotenks_ghost_uniform.png", spriteFrames: 5, spriteW: 44, spriteH: 77, spriteSpeed: 4, spriteScale: 1.1,
+        color: "#8fd8ff", spawnY: fighter.y + (fighter.h || 100) * 0.30, aimAt: aim,
+      }, context)
+      try { shakeCamera(context, 7, 8) } catch (_) {}
+    })
+  }
+  for (const b of GOTENKS_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      fighter._spriteCastMove = "gotenksGhostThrow"; fighter._spriteCastTimer = 18   // keep the throw pose latched across beats
+      if (b.dmg > 0) applyGotenksUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 18, 16) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 8) }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IPPO MAKUNOUCHI (Hajime no Ippo) — ULTIMATE (Stage 5): "Dempsey Roll". INLINE freeze-cinematic on the
+// LIVE fighter (mirrors executeGotenksUltimate / Iron Man 2). ★MELEE — no projectiles: Ippo weaves in
+// then unleashes the barrage directly on the frozen foe. Faithful to the canon technique's structure &
+// sequence (weave FIRST, then flurry — the sheet's own arrow-marker confirms the transition): segment 1
+// = rapid side-to-side WEAVING bob (ippoDempseyWeave pose) → segment 2 = continuous FLURRY of alternating
+// hooks (ippoDempseyFlurry pose, re-latched across the beats). Guaranteed range-independent beats sum to
+// 330 raw → EXACTLY ~198 EFF (×0.60), the project ult band. See IPPO_ASSET_MAP.md Stage 5.
+// ─────────────────────────────────────────────────────────────────────────────
+const IPPO_ULT = {
+  cost: 100, cinematic: 76, weaveEnd: 24,   // weave for ~24 frames, then the flurry barrage
+  beats: [
+    { at: 10, dmg: 0,   shake: 5 },                                                             // weave telegraph — camera focus, no damage
+    { at: 30, dmg: 50,  hitstun: 16, kb: 3,  vy: 0,  shake: 6 },                                 // flurry hook 1
+    { at: 40, dmg: 50,  hitstun: 16, kb: 3,  vy: 0,  shake: 6 },                                 // flurry hook 2
+    { at: 50, dmg: 50,  hitstun: 16, kb: 3,  vy: 0,  shake: 7 },                                 // flurry hook 3
+    { at: 60, dmg: 50,  hitstun: 16, kb: 3,  vy: 0,  shake: 7 },                                 // flurry hook 4
+    { at: 70, dmg: 130, hitstun: 42, kb: 14, vy: -8, shake: 18, payoff: true, knockdown: true }, // finishing haymaker (330 raw → ~198 EFF)
+  ],
+}
+function applyIppoUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 16)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 4); opp.vy = opts.vy ?? 0
+    opp.colorFlash = 10
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "ippo-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 8, 12) } catch (_) {}
+}
+function executeIppoUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ippo") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, IPPO_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove = "ippoDempseyWeave"; fighter._spriteCastTimer = IPPO_ULT.cinematic   // LIVE fighter holds the weaving-bob
+  fighter.attackCooldown  = getAttackDuration(IPPO_ULT.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.4, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, IPPO_ULT.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed barrage
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  // WEAVE → FLURRY: at weaveEnd the pose flips from the side-to-side bob to the alternating-hook barrage.
+  schedulePendingSpawn(IPPO_ULT.weaveEnd, () => { fighter._spriteCastMove = "ippoDempseyFlurry"; fighter._spriteCastTimer = IPPO_ULT.cinematic - IPPO_ULT.weaveEnd })
+  for (const b of IPPO_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      // latch the correct pose for this beat (weave during telegraph, flurry once the barrage starts)
+      if (b.at >= IPPO_ULT.weaveEnd) { fighter._spriteCastMove = "ippoDempseyFlurry"; fighter._spriteCastTimer = 16 }
+      if (b.dmg > 0) applyIppoUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 18, 16) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 8) }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IRON MAN 2 (Marvel, Data East) — ULTIMATE (Stage 5): "Max-Charge Repulsor" (owner-LOCKED: promote the E*
+// max-charge tier into a screen-scale super). INLINE freeze-cinematic on the LIVE fighter (Naoya/Mayuri/IM1
+// pattern — NO duplicate): the fighter braces in the repulsor aim pose (ironMan2Repulsor, held) while the foe
+// is frozen → the suit dumps full arc-reactor output into a GIANT cyan repulsor beam (a scaled visualOnly
+// projectile) → guaranteed heavy payoff on impact (330 raw → ~198 EFF, top-ult band, block 25%). HONEST: no
+// bespoke ult art exists — the aim-forward repulsor pose is the promoted trigger frame + a giant Blast (flagged).
+// ─────────────────────────────────────────────────────────────────────────────
+const IRON_MAN_2_ULT = {
+  cost: 100, cinematic: 54, fireAt: 26,
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5  },                                             // charge telegraph — camera focus, no damage
+    { at: 26, dmg: 110, hitstun: 26, kb: 8,  vy: -4, shake: 7 },                 // GIANT repulsor beam fires — first guaranteed hit
+    { at: 42, dmg: 220, hitstun: 42, kb: 15, vy: -9, shake: 18, payoff: true, knockdown: true },  // full-power impact PAYOFF (330 raw → ~198 EFF)
+  ],
+}
+function applyIronMan2UltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 26)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 10); opp.vy = opts.vy ?? -4
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: "iron_man_2-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+function executeIronMan2Ultimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man_2") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, IRON_MAN_2_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove = "ironMan2Repulsor"; fighter._spriteCastTimer = IRON_MAN_2_ULT.cinematic   // LIVE fighter holds the repulsor aim pose
+  fighter.attackCooldown  = getAttackDuration(IRON_MAN_2_ULT.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.4, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, IRON_MAN_2_ULT.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed beam
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  // GIANT scaled repulsor beam — purely-cosmetic (the ult applies guaranteed dmg directly, so it can't whiff).
+  schedulePendingSpawn(IRON_MAN_2_ULT.fireAt, () => {
+    spawnProjectile(fighter, "ironMan2MaxRepulsor", {
+      w: 300, h: 70, radius: 24, speed: 5, damage: 0, lifetime: 46,
+      visualOnly: true, drawKind: "repulsorbeam", color: "#8fe9ff",
+      spawnY: fighter.y + (fighter.h || 110) * 0.34,
+    }, context)
+    try { shakeCamera(context, 12, 12) } catch (_) {}
+  })
+  for (const b of IRON_MAN_2_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      fighter._spriteCastMove = "ironMan2Repulsor"; fighter._spriteCastTimer = 18   // keep the aim pose latched across beats
+      if (b.dmg > 0) applyIronMan2UltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 18, 16) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 8) }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IRON MAN 3 (Marvel, GBA "Invincible Iron Man") — ULTIMATE (Stage 5): "Super Nova" (owner-LOCKED DECISION B:
+// the on-sheet "Kills all onscreen Enemies" screen-clear is the ult). INLINE freeze-cinematic on the LIVE
+// fighter (IM1/IM2/Deathstroke pattern — NO duplicate): Iron Man throws his arms up (the Super Move arms-
+// raised trigger pose) and OVERLOADS the arc reactor into a blinding, SCREEN-FILLING nova blast (drawn as
+// expanding concentric energy rings + a white-pink core flash, game.js drawIronMan3SuperNova) while the foe
+// is frozen → guaranteed heavy payoff across 3 beats (330 raw → ~198 EFF, top-ult band, block 25%). The nova
+// is a screen-clear: in 1v1 the engaged foe IS "all onscreen"; the whole-screen wash sells the fantasy.
+// HONEST: the screen nova is a PROCEDURAL reproduction of the sheet's expanding-ring Super Nova (no bespoke
+// oversized ult sprite); the arms-raised trigger reuses the Super Move pose (flagged).
+// ─────────────────────────────────────────────────────────────────────────────
+const IRON_MAN_3_ULT = {
+  cost: 100, cinematic: 58, novaAt: 20, novaDuration: 46,
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5  },                                              // reactor overload telegraph — camera focus, no damage
+    { at: 22, dmg: 110, hitstun: 28, kb: 6,  vy: -5, shake: 8 },                  // nova ERUPTS — first guaranteed hit
+    { at: 40, dmg: 220, hitstun: 44, kb: 14, vy: -10, shake: 20, payoff: true, knockdown: true },  // full-power nova PAYOFF (330 raw → ~198 EFF)
+  ],
+}
+function applyIronMan3UltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 28)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 10); opp.vy = opts.vy ?? -5
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 46) }
+  }
+  applyScaledDamage(opp, dmg, { source: "iron_man_3-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+function executeIronMan3Ultimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "iron_man_3") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, IRON_MAN_3_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 16
+  if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove = "ironMan3SuperMove"; fighter._spriteCastTimer = IRON_MAN_3_ULT.cinematic   // arms-raised "unleash nova" trigger pose (Super Move pose reused)
+  fighter.attackCooldown  = getAttackDuration(IRON_MAN_3_ULT.cinematic, fighter)
+  // arm the SCREEN-FILLING nova overlay (game.js drawIronMan3SuperNova), lit from the nova-erupt beat.
+  fighter._ironMan3NovaTimer = 0; fighter._ironMan3NovaMax = IRON_MAN_3_ULT.novaDuration
+  schedulePendingSpawn(IRON_MAN_3_ULT.novaAt, () => { fighter._ironMan3NovaTimer = IRON_MAN_3_ULT.novaDuration; try { shakeCamera(context, 12, 12) } catch (_) {} })
+  try { focusCameraOnAction(context, fighter, opp, 1.4, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, IRON_MAN_3_ULT.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed nova
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  for (const b of IRON_MAN_3_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      fighter._spriteCastMove = "ironMan3SuperMove"; fighter._spriteCastTimer = 20   // keep the arms-raised pose latched across beats
+      if (b.dmg > 0) applyIronMan3UltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 20, 18) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 8) }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // DEATHSTROKE — ULTIMATE (Stage 5): "Killing Stroke" — the PROMOTED signature (owner decision #2).
 // Stage 0 confirmed NO ultimate-tier art exists; rather than invent one, this promotes the row_09 overhead
 // SPIN-FINISH (which already reads as an ender + re-sheathes) into the meter-gated ult slot as a GUARANTEED
@@ -18919,19 +21807,285 @@ function executeDeathstrokeUltimate(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (Custom / DCUC) — ULTIMATE (Stage 5): "Big Rock" — the sheet's own signature "Super 1 - Big Rock".
+// Superman HOISTS a colossal boulder overhead and HURLS it (real lift→throw art = supBigRock). GUARANTEED
+// direct-damage inline freeze-cinematic (Deathstroke/Brainiac pattern — LIVE fighter, no duplicate): he plays
+// the lift-and-throw while the foe is held, a REAL boulder sprite flies across (visual projectile), and on
+// IMPACT the guaranteed heavy payoff lands (~330 raw → ~198 EFF, block 25%) as the boulder SHATTERS into a
+// real rubble burst. Boulder + debris carry the sheet's own art via spawnProjectile `sheet` (visualOnly, like
+// Green Lantern constructs) — the DAMAGE is applied directly (range-independent), so the spectacle can't whiff.
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_DCUC_ULT = {
+  cost: 100, cinematic: 58, throwAt: 20, impactAt: 40,
+  raw: 330, hitstun: 46, kb: 16, vy: -9,   // 330 raw → ~198 EFF (top-ult band)
+}
+function fireSupBigRockVisual(fighter, name, sheet, opts, context) {
+  // A purely-cosmetic projectile carrying real boulder/rubble art (no damage — the ult applies guaranteed dmg directly).
+  spawnProjectile(fighter, name, {
+    w: opts.w, h: opts.h, radius: 8, speed: opts.speed || 0, damage: 0, lifetime: opts.life || 24,
+    visualOnly: true, sheet, spriteFrames: 1, color: "#c9b58a",
+    spawnY: fighter.y + (fighter.h || 100) * (opts.yf ?? 0.4), vy: opts.vy || 0,
+  }, context)
+}
+function executeSupermanDcucUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_dcuc") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SUPERMAN_DCUC_ULT.cost)) return false
+  const U = SUPERMAN_DCUC_ULT
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  fighter._spriteCastMove = "supBigRock"; fighter._spriteCastTimer = U.cinematic   // LIVE fighter plays the lift→throw
+  fighter.attackCooldown  = getAttackDuration(U.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, U.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed impact
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  // THROW beat — hurl the REAL boulder (visual projectile flies toward the foe).
+  schedulePendingSpawn(U.throwAt, () => {
+    fighter._spriteCastMove = "supBigRock"; fighter._spriteCastTimer = 24
+    fireSupBigRockVisual(fighter, "supBoulder", "./superman_dcuc_boulder_uniform.png", { w: 149, h: 87, speed: 13, life: 30, yf: 0.42 }, context)
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  // IMPACT beat — guaranteed heavy payoff + the boulder SHATTERS into a real rubble burst.
+  schedulePendingSpawn(U.impactAt, () => {
+    if (opp && !opp.eliminated) {
+      let dmg = U.raw
+      if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+      else {
+        opp.hitstun = Math.max(opp.hitstun || 0, U.hitstun)
+        opp.vx = (fighter.facing || 1) * U.kb; opp.vy = U.vy
+        opp.colorFlash = 14; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48)
+      }
+      applyScaledDamage(opp, dmg, { source: "superman_dcuc-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+    }
+    // rubble shatter — a couple of debris bursts scattering off the impact point
+    fireSupBigRockVisual(fighter, "supRubble", "./superman_dcuc_debris_uniform.png", { w: 129, h: 93, speed: 4, life: 22, yf: 0.5, vy: -3 }, context)
+    fireSupBigRockVisual(fighter, "supRubble", "./superman_dcuc_debris_uniform.png", { w: 90, h: 64, speed: -3, life: 20, yf: 0.6, vy: -1 }, context)
+    try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 20, 18) } catch (_) {}
+    fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (New 52) — ULTIMATE (Stage 5): "Infinite Mass Punch" — the flight-forward Superman's signature.
+// He accelerates to a flying full-speed haymaker: a GUARANTEED direct-damage inline freeze-cinematic
+// (Deathstroke/DCUC pattern — LIVE fighter, NO duplicate, NO projectile). The foe is held; Superman ROCKETS
+// forward (a real dash toward the frozen target — the "infinite mass" wind-up) then the flying haymaker lands
+// the guaranteed payoff ~330 raw → ~198 EFF (block 25%, knockdown). Cast = supN52Ult (fly → fist-first →
+// impact). No unique ult body art (promotes the flight/punch frames — flagged).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_NEW52_ULT = {
+  cost: 100, cinematic: 54, dashAt: 12, impactAt: 32,
+  raw: 330, hitstun: 46, kb: 18, vy: -10,   // 330 raw → ~198 EFF (top-ult band)
+}
+function executeSupermanNew52Ultimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_new52") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SUPERMAN_NEW52_ULT.cost)) return false
+  const U = SUPERMAN_NEW52_ULT
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  fighter._spriteCastMove = "supN52Ult"; fighter._spriteCastTimer = U.cinematic   // LIVE fighter plays the flying haymaker
+  fighter.attackCooldown  = getAttackDuration(U.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, U.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed impact
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  // DASH beat — Superman ROCKETS forward toward the frozen foe (the "infinite mass" wind-up).
+  schedulePendingSpawn(U.dashAt, () => {
+    fighter._spriteCastMove = "supN52Ult"; fighter._spriteCastTimer = 24
+    fighter.vx = (fighter.facing || 1) * 24
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  // IMPACT beat — the flying haymaker lands the guaranteed heavy payoff.
+  schedulePendingSpawn(U.impactAt, () => {
+    fighter.vx = 0
+    if (opp && !opp.eliminated) {
+      let dmg = U.raw
+      if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+      else {
+        opp.hitstun = Math.max(opp.hitstun || 0, U.hitstun)
+        opp.vx = (fighter.facing || 1) * U.kb; opp.vy = U.vy
+        opp.colorFlash = 14; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48)
+      }
+      applyScaledDamage(opp, dmg, { source: "superman_new52-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+    }
+    try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 22, 18) } catch (_) {}
+    fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KAKASHI — ULTIMATE (Stage 6; owner-designated ULT per Stage-8) "Raikiri" (Lightning Blade). Inline freeze
+// cinematic (LIVE fighter, no dup — the Superman-New52 dash-thrust pattern): charge the lightning blade →
+// ROCKET forward → one guaranteed lightning THRUST, ~198 EFF (330 raw × 0.60, honest applyScaledDamage).
+// Both directions (engine flip). Lightning impact = the baked blue art + bright colorFlash + camera shake
+// (bespoke bolt FX deferred). ★SHARINGAN-GATED SUPPORT VARIANT (owner decisions, Items 1+2): while Mangekyou
+// Sharingan is active (fighter._mangekyouActive — set by the Stage-7 mode), Raikiri EMPOWERS to the
+// cross-screen SUPPORT dash art + i-frames through the blitz + longer reach; damage stays in the ULT band.
+// ─────────────────────────────────────────────────────────────────────────────
+const KAKASHI_RAIKIRI_ULT = { cost: 100, cinematic: 52, dashAt: 18, impactAt: 32, raw: 330, hitstun: 40, kb: 15, vy: -8 }
+function executeKakashiUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "kakashi") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, KAKASHI_RAIKIRI_ULT.cost)) return false
+  const U = KAKASHI_RAIKIRI_ULT
+  const empowered = !!fighter._mangekyouActive              // Sharingan-gated Support variant
+  const dashPose = empowered ? "kakashiRaikiriSupport" : "kakashiRaikiriDash"
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  fighter._spriteCastMove = "kakashiRaikiriCharge"; fighter._spriteCastTimer = U.cinematic   // LIVE fighter charges the blade
+  fighter.attackCooldown  = getAttackDuration(U.cinematic, fighter)
+  fighter._raikiriEmpowered = empowered                    // for HUD/harness introspection
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 18) } catch (_) {}
+  try { shakeCamera(context, 4, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, U.cinematic - 6); opp.vx = 0 }   // hold the foe through the guaranteed thrust
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  // DASH beat — Kakashi rockets forward, lightning blade extended (i-frames through the blitz when empowered).
+  schedulePendingSpawn(U.dashAt, () => {
+    fighter._spriteCastMove = dashPose; fighter._spriteCastTimer = U.cinematic - U.dashAt
+    fighter.vx = (fighter.facing || 1) * (empowered ? 30 : 22)
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
+    if (empowered) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, U.impactAt - U.dashAt + 6)
+    try { shakeCamera(context, 6, 10) } catch (_) {}
+  })
+  // IMPACT beat — one guaranteed lightning THRUST (~198 EFF).
+  schedulePendingSpawn(U.impactAt, () => {
+    fighter.vx = 0
+    if (opp && !opp.eliminated) {
+      let dmg = U.raw
+      if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 26) }
+      else {
+        opp.hitstun = Math.max(opp.hitstun || 0, U.hitstun)
+        opp.vx = (fighter.facing || 1) * U.kb; opp.vy = U.vy
+        opp.colorFlash = 16; opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48)
+      }
+      applyScaledDamage(opp, dmg, { source: "kakashi-ultimate" })   // GUARANTEED, range-independent (honest ×0.60 → ~198 EFF)
+    }
+    try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 22, 18) } catch (_) {}
+    fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (Classic) — ULTIMATE (Stage 5): "Heat Vision Barrage" — a sustained, screen-raking heat-vision beam.
+// GUARANTEED direct-damage inline freeze-cinematic (Deathstroke/DCUC/New52 pattern — LIVE fighter, no dup):
+// the foe is held while Superman pours on the REAL baked-beam art (supClsUlt cast) across 3 beats — a chip
+// telegraph → the sustained beam → the searing payoff (~330 raw → ~198 EFF, block 25%, knockdown). Promotes
+// the heat-vision beam frames (no unique ult body art — flagged).
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_CLASSIC_ULT = {
+  cost: 100, cinematic: 56,
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5 },                                                       // beam telegraph
+    { at: 24, dmg: 90,  hitstun: 24, kb: 6,  vy: -3, shake: 8 },                          // sustained beam
+    { at: 42, dmg: 240, hitstun: 42, kb: 14, vy: -9, shake: 20, payoff: true, knockdown: true },  // searing payoff (330 raw → ~198 EFF)
+  ],
+}
+function applyClassicUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 26)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 8); opp.vy = opts.vy ?? -3
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48) }
+  }
+  applyScaledDamage(opp, dmg, { source: "superman_classic-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+function executeSupermanClassicUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_classic") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SUPERMAN_CLASSIC_ULT.cost)) return false
+  const U = SUPERMAN_CLASSIC_ULT
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  fighter._spriteCastMove = "supClsUlt"; fighter._spriteCastTimer = U.cinematic   // LIVE fighter holds the sustained beam
+  fighter.attackCooldown  = getAttackDuration(U.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.3, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, U.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed barrage
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  for (const b of U.beats) {
+    schedulePendingSpawn(b.at, () => {
+      fighter._spriteCastMove = "supClsUlt"; fighter._spriteCastTimer = 18   // keep the beam pose latched across beats
+      if (b.dmg > 0) applyClassicUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 20, 16) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 10) }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPERMAN (Fighter) — ULTIMATE (Stage 5): "Kryptonian Detonation" — the X+Up screen-filling solar EXPLOSION.
+// GUARANTEED direct-damage inline freeze-cinematic (Deathstroke/Classic 3-beat pattern — LIVE fighter holds
+// the REAL blast frames, no dup): telegraph → detonation → searing payoff (~330 raw → ~198 EFF, block 25%,
+// knockdown). The explosion sprite (supFtrUlt) is the sheet's own X+Up art — a real screen-clearing blast.
+// ─────────────────────────────────────────────────────────────────────────────
+const SUPERMAN_FIGHTER_ULT = {
+  cost: 100, cinematic: 58,
+  beats: [
+    { at: 8,  dmg: 0,   shake: 6 },
+    { at: 24, dmg: 90,  hitstun: 24, kb: 8,  vy: -4, shake: 10 },
+    { at: 42, dmg: 240, hitstun: 44, kb: 16, vy: -10, shake: 22, payoff: true, knockdown: true },
+  ],
+}
+function executeSupermanFighterUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "superman_fighter") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, SUPERMAN_FIGHTER_ULT.cost)) return false
+  const U = SUPERMAN_FIGHTER_ULT
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0; fighter.colorFlash = 14
+  fighter._spriteCastMove = "supFtrUlt"; fighter._spriteCastTimer = U.cinematic
+  fighter.attackCooldown  = getAttackDuration(U.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.35, 18) } catch (_) {}
+  try { shakeCamera(context, 6, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, U.cinematic - 8); opp.vx = 0 }
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
+  for (const b of U.beats) {
+    schedulePendingSpawn(b.at, () => {
+      fighter._spriteCastMove = "supFtrUlt"; fighter._spriteCastTimer = 18
+      if (b.dmg > 0 && opp && !opp.eliminated) {
+        let dmg = b.dmg
+        if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+        else {
+          opp.hitstun = Math.max(opp.hitstun || 0, b.hitstun); opp.vx = (fighter.facing || 1) * b.kb; opp.vy = b.vy
+          opp.colorFlash = 14; if (b.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 48) }
+        }
+        applyScaledDamage(opp, dmg, { source: "superman_fighter-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+      }
+      try { shakeCamera(context, b.shake || 10, 12) } catch (_) {}
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.6, 12) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 10) }
+    })
+  }
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // BATMAN NEW VARIANT (dark_knight) — Stage 4 SPECIALS. Full 5-direction kit (owner decision) from the
 // lower-set weapon art. Directional (mirrors the Deathstroke framework):
 //   neutral = Crescent Chain — long-reach disjoint kusarigama strike (crescent-hook on chain; the cast
 //                              pose bakes the full extended reach → big rangeX, no projectile)
 //   Fwd     = Chain Flail    — advancing weighted-ball flail swing (long reach + forward lunge)
 //   Back    = Pistol Shot    — procedural bullet projectile (lunging aim; zoning / retreat tool)
-//   Down    = Cape Spin      — cape-spread AoE around self (tall hitbox, pops up)
+//   Down    = Grapple        — batclaw/hook-on-chain THROW (launch → hook flung → recover; long disjoint reach)
 //   AIR     = Dive Bomb      — head-down cape dive attack (airborne downward commit)
 // All melee run createAttackFromMove → scaled ×0.60. Rage Mode / Mech ult = Stages 5/6.
 // ─────────────────────────────────────────────────────────────────────────────
 const DK_CRESCENT_MD = { damage: 74, startup: 9,  active: 6, recovery: 20, rangeX: 156, rangeY: 46, hitstun: 20, knockbackX: 9,  knockbackY: -2, isSpecial: true, category: "heavy" }   // long disjoint chain reach
 const DK_FLAIL_MD    = { damage: 88, startup: 10, active: 5, recovery: 22, rangeX: 128, rangeY: 54, hitstun: 24, knockbackX: 12, knockbackY: -3, isSpecial: true, category: "heavy" }   // advancing flail swing
-const DK_CAPE_MD     = { damage: 70, startup: 8,  active: 6, recovery: 18, rangeX: 104, rangeY: 78, hitstun: 20, knockbackX: 6,  knockbackY: -6, isSpecial: true, launcher: true }       // cape-spin AoE (pops up)
+const DK_GRAPPLE_MD  = { damage: 78, startup: 10, active: 6, recovery: 20, rangeX: 150, rangeY: 56, hitstun: 22, knockbackX: 11, knockbackY: -2, isSpecial: true, category: "heavy" }       // grapple/batclaw throw — long disjoint reach (distinct from the neutral crescent: committed, longer)
 const DK_DIVE_MD     = { damage: 80, startup: 6,  active: 8, recovery: 16, rangeX: 96,  rangeY: 84, hitstun: 20, knockbackX: 8,  knockbackY: 6,  isSpecial: true }                        // aerial dive-bomb
 
 function fireDarkKnightMelee(fighter, context, moveName, md, advance) {
@@ -18973,7 +22127,7 @@ export function executeDarkKnightSpecial(fighter, context) {
   if (dir === "U") return enterDarkKnightRage(fighter, context)                                                      // Up   — RAGE MODE transform (Stage 5)
   if (dir === "F") return fireDarkKnightMelee(fighter, context, "dkFlail",    { ...DK_FLAIL_MD,    cost: 28 }, 16)   // Fwd  — Chain Flail
   if (dir === "B") return fireDarkKnightPistol(fighter, context)                                                     // Back — Pistol Shot (projectile)
-  if (dir === "D") return fireDarkKnightMelee(fighter, context, "dkCape",     { ...DK_CAPE_MD,     cost: 24 }, 0)    // Down — Cape Spin (AoE)
+  if (dir === "D") return fireDarkKnightMelee(fighter, context, "dkGrapple",  { ...DK_GRAPPLE_MD,  cost: 26 }, 8)    // Down — Grapple/batclaw throw (advancing, long reach)
   return fireDarkKnightMelee(fighter, context, "dkCrescent", { ...DK_CRESCENT_MD, cost: 22 }, 6)                     // neutral — Crescent Chain (long disjoint)
 }
 
@@ -19028,68 +22182,57 @@ export function updateDarkKnightRage(fighter) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BATMAN NEW VARIANT (dark_knight) — Stage 6 ULTIMATE: "Mech Suit". A 2-phase timed heavy-FORM (Kurapika
-// Emperor-Time / Baki Demon-Back / Handler Mahoraga architecture). Phase 1 = wireframe MATERIALIZE cinematic
-// (dkMechWire, camera-focus + brief foe freeze). Phase 2 = a timed GIANT mech FORM: _skinAnim swaps the body
-// to the towering Optimus-style suit (idle/movement + every strike render on the mech), with HEAVY buffs —
-// dmg ×1.5 (hits like a truck) / def ×1.25 (armored) / spd ×0.85 (ponderous — the real trade-off) — ~8s, then
-// auto-revert (or KO). Specials during the form fall through to base cast poses (flagged; the mech kit is the
-// normals). Mech art = the far-right x4100+ column (distinct from the Stage-5 armored batsuit). 100 Fury.
+// BATMAN NEW VARIANT (dark_knight) — Stage 6 ULTIMATE: "Mech Suit" — a QUICK cinematic SINGLE ATTACK (owner
+// decision: tailed-beast / Kurama-Bijūdama feel, NOT a transformation). INLINE freeze-cinematic on the LIVE
+// fighter (Deathstroke/Mayuri pattern — NO duplicate instance): a giant powered-armor suit MATERIALIZES
+// (wireframe→solid, foe frozen + camera focus) → looms → lands ONE devastating strike → powers straight back
+// down to Batman. Rendered LARGE via actionScale on the mech cast poses so it looms like a tailed beast.
+// Guaranteed scaled payoff (340 raw → ~204 EFF, top cinematic-ult band; block chips to 25%). 100 Fury.
 // ─────────────────────────────────────────────────────────────────────────────
-const DK_MECH = { cost: 100, duration: 480, castT: 4 * 6, mult: { dmg: 1.5, def: 1.25, spd: 0.85 } }   // ~8s giant heavy form (ult-tier dmg; modest armor; SLOW is the real trade-off)
-export function isDarkKnightMech(fighter) { return !!fighter?._dkMechActive }
-export function enterDarkKnightMech(fighter, context = {}) {
-  if ((fighter?.rosterKey || "").toLowerCase() !== "dark_knight" || fighter._dkMechActive) return false
-  if (!spendEnergy(fighter, DK_MECH.cost)) return false
-  const opp = getTargetResolver(context)(fighter) || null
-  fighter._dkMechActive = true
-  fighter._dkMechTimer  = DK_MECH.duration      // PUBLIC → duration HUD (game.js) + auto-revert
-  fighter._dkMechMax    = DK_MECH.duration
-  fighter.currentForm       = "mech"
-  fighter.currentFormData   = { damageMultiplier: DK_MECH.mult.dmg, attackMultiplier: DK_MECH.mult.dmg, speedMultiplier: DK_MECH.mult.spd, defenseMultiplier: DK_MECH.mult.def, mechForm: true }
-  fighter.damageMultiplier  = fighter.attackMultiplier = DK_MECH.mult.dmg
-  fighter.speedMultiplier   = DK_MECH.mult.spd
-  fighter.defenseMultiplier = DK_MECH.mult.def
-  // MECH BODY — swap movement + all strikes to the giant mech (idle/walk/guard=mech idle, all normals=mech lunge).
-  // Specials fall through to the base spread (human cast poses — flagged; the mech kit is the normals).
-  const ad = fighter.animationData || {}
-  if (ad.dkMechIdle && ad.dkMechAttack) {
-    fighter._skinAnim = { ...ad,
-      idle: ad.dkMechIdle, walk: ad.dkMechIdle, run: ad.dkMechIdle, dash: ad.dkMechIdle, crouch: ad.dkMechIdle, guard: ad.dkMechIdle, jump: ad.dkMechIdle, fall: ad.dkMechIdle,
-      light: ad.dkMechAttack, heavy: ad.dkMechAttack, up: ad.dkMechAttack, air: ad.dkMechAttack, down_air: ad.dkMechAttack, crouchLight: ad.dkMechAttack }
+const DK_MECH_ULT = {
+  cost: 100, cinematic: 60,
+  beats: [
+    { at: 6,  move: "dkMechWire",   dmg: 0,   shake: 6 },                                                    // materialize (wireframe → solid)
+    { at: 26, move: "dkMechIdle",   dmg: 0,   shake: 8 },                                                    // solid giant mech formed — looms
+    { at: 38, move: "dkMechAttack", dmg: 110, hitstun: 26, kb: 10, vy: -4, shake: 10 },                      // the strike lands
+    { at: 50, move: "dkMechAttack", dmg: 230, hitstun: 42, kb: 16, vy: -9, shake: 20, payoff: true, knockdown: true },  // devastating PAYOFF (340 raw → ~204 EFF)
+  ],
+}
+function applyDarkKnightUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 26)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 10); opp.vy = opts.vy ?? -4
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
   }
-  // Phase 1 — wireframe MATERIALIZE cinematic (freeze/camera-focus), then the mech idle takes over (Phase 2).
-  fighter._spriteCastMove  = "dkMechWire"
-  fighter._spriteCastTimer = DK_MECH.castT
-  fighter.attackCooldown   = getAttackDuration(DK_MECH.castT, fighter)
-  fighter.teleportFlash    = 18
-  fighter.vx = 0
-  try { focusCameraOnAction(context, fighter, opp, 1.12, 20); shakeCamera(context, 9, 16) } catch (_) {}
-  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, DK_MECH.castT - 6); opp.vx = 0 }   // brief foe freeze through the materialize
-  fighter.hitstop = Math.max(fighter.hitstop || 0, 8)
-  return true
-}
-export function revertDarkKnightMech(fighter) {
-  if (!fighter || !fighter._dkMechActive) return
-  fighter._dkMechActive = false
-  fighter._dkMechTimer  = 0
-  fighter.currentForm       = "base"
-  fighter.currentFormData   = null
-  fighter.damageMultiplier  = fighter.attackMultiplier = 1
-  fighter.speedMultiplier   = 1
-  fighter.defenseMultiplier = 1
-  fighter._skinAnim = null           // power down → base body
-  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
-}
-// Per-frame: tick the form window → auto-revert on expiry (or KO — power down when destroyed).
-export function updateDarkKnightMech(fighter) {
-  if (!fighter || !fighter._dkMechActive) return
-  if ((fighter.health || 0) <= 0) { revertDarkKnightMech(fighter); return }
-  if ((fighter._dkMechTimer || 0) > 0) fighter._dkMechTimer--
-  if ((fighter._dkMechTimer || 0) <= 0) revertDarkKnightMech(fighter)
+  applyScaledDamage(opp, dmg, { source: "dark_knight-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
 }
 export function executeDarkKnightUltimate(fighter, context) {
-  return enterDarkKnightMech(fighter, context)   // Mech Suit = the ultimate (2-phase timed heavy form)
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "dark_knight") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, DK_MECH_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  fighter._spriteCastMove  = "dkMechWire"; fighter._spriteCastTimer = DK_MECH_ULT.cinematic   // LIVE fighter materializes the mech (no dup)
+  fighter.attackCooldown   = getAttackDuration(DK_MECH_ULT.cinematic, fighter)
+  fighter.teleportFlash    = 16
+  try { focusCameraOnAction(context, fighter, opp, 1.15, 22) } catch (_) {}
+  try { shakeCamera(context, 8, 14) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, DK_MECH_ULT.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed strike
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  for (const b of DK_MECH_ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      fighter._spriteCastMove = b.move; fighter._spriteCastTimer = 20   // drive the materialize → loom → strike poses
+      if (b.dmg > 0) applyDarkKnightUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown })
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.4, 12); shakeCamera(context, 20, 16) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 8) }
+    })
+  }
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -19198,6 +22341,7 @@ export function triggerSpecial(fighter, context = {}) {
 
   switch (key) {
     case "goku":    return executeGokuSpecial(fighter, context)
+    case "gohan":   return executeGohanSpecial(fighter, context)   // Stage 4: LONE melee special "Meteor Smash" (no ranged — none on the sheet)
     case "naruto":  return executeNarutoSpecial(fighter, context)
     case "minato":  return executeMinatoSpecial(fighter, context)   // Stage 3: shadow-clone routes (Flying Raijin / Rasengan / Reaper land in S4-5)
     case "gojo":    { const ok = executeGojoSpecial(fighter, context); if (ok) maybeFireGojoCastVoice(fighter); return ok }
@@ -19258,13 +22402,27 @@ export function triggerSpecial(fighter, context = {}) {
     case "saitama": return executeSaitamaSpecial(fighter, context)   // GROUND: Serious Punch+shockwave(Fwd)/Two-Handed(Back)/Bargain Sale(Up)/Table Flip(Down). AIR: Headbutt(neutral)/Up→Down(Fwd)/Side Hop(Back/Down). (neutral GROUND = the tap/hold punch-combo, armed in game.js press-path)
     case "genos":   return executeGenosSpecial(fighter, context)   // Fwd/U=Machine Gun Blows / Down=Jet Dash / Back=Afterimage Dash / AIR=Machine Gun. (neutral GROUND = Incineration Cannon tap/hold, armed in game.js press-path)
     case "frieza":  return executeFriezaSpecial(fighter, context)   // neutral=Death Beam (procedural beam) / Fwd/U/AIR=Ki Blast volley (crystal shots) / Down=Death Ball (big sphere) / Back=Psycho Teleport (i-frame dash-strike)
+    case "piccolo": return executePiccoloSpecial(fighter, context)  // neutral=Special Beam Cannon (piercing procedural beam) / Fwd=Stretch-Arm Strike (long disjoint melee) / Down,U=Masenko (quick ki bolt) / Back=Explosive Demon Wave (big sphere) / AIR=Flying Dash Kick (i-frame gap-closer)
+    case "ippo":    return executeIppoSpecial(fighter, context)     // MELEE-ONLY (boxer) — neutral=Gazelle Punch (leaping counter, launcher) / Fwd=spinning hook punch / Up=heavy uppercut (launcher) / Down=heavy body-blow / AIR=aerial hook. NO projectiles (not invented)
+    case "vegito":  return executeVegitoSpecial(fighter, context)   // neutral=Big Bang (big sphere) / Fwd=Galick Gun (purple piercing beam) / Back=Banshee Blast (gold rapid-fire volley) / Down=Spread Finger Beam (yellow fan) / U=Air Ki Blast (rising dart) / AIR=Perfect Shot (cyan dart pair)
+    case "kakashi": return executeKakashiSpecial(fighter, context)  // Stage 4 "Weapon Throw" kunai (orange spinning-slash), 3 stance contexts: standing (ground) / crouch (Down) / air (airborne). Summons/Raikiri/Mangekyou land in later stages.
+    case "gotenks": return executeGotenksSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural gold shard) / Down=Ki Charge (resource-build energy gather). ★ki-blast projectile art REFUTED → procedural; charge stands alone (no beam payoff on sheet)
+    case "bardock": return executeBardockSpecial(fighter, context)  // MELEE kit — neutral/Fwd/AIR=Rebellion Rush (dashing SWORD lunge) / Down=Ki Charge (golden ki-orb resource build). ★NO ranged special on sheet (not invented); ki-orb role = resource build
+    case "vegeta_dark": return executeVegetaDarkSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural sphere, TIERED white→purple when dark-aura form active) / Fwd=Knife Slash (melee) / Back=Sickle Throw (procedural red crescent). U/D ship unused (owner). Dark-aura transform = Stage 5.
+    case "superman_dcuc": return executeSupermanDcucSpecial(fighter, context)  // neutral=Heat Vision (piercing procedural beam) / Fwd=Flying Charge (i-frame dash tackle) / U=Soaring Uppercut (anti-air launcher) / Down=Super Breath (wide push gust) / Back=Flying Retreat (i-frame escape) / AIR=Flying Dive Kick
+    case "superman_new52": return executeSupermanNew52Special(fighter, context)  // neutral=Heat Vision (piercing procedural beam) / Fwd=Flying Charge (i-frame flight tackle) / U=Soaring Uppercut (anti-air launcher) / Down=Super Breath (wide push gust) / Back=Flying Retreat (i-frame escape) / AIR=Flying Dive Kick
+    case "superman_classic": return executeSupermanClassicSpecial(fighter, context)  // ★REAL FX: neutral=Heat Vision (long disjoint, BAKED eye-beam) / Fwd=Flying Charge / U=Soaring Uppercut (launcher) / Down=Ice Breath (REAL frost projectile, freeze/slow) / Back=Flying Retreat / AIR=Flying Dive Kick
+    case "superman_fighter": return executeSupermanFighterSpecial(fighter, context)  // ★ALL REAL FX (disjoint): neutral=Heat Vision beam / Fwd=X red blast / U=Frost Breath (tall) / Down=Ice Beam (long) / Back=Flying Retreat / AIR=Aerial Ice
     case "onoki":   return executeOnokiSpecial(fighter, context)     // Dust Release — neutral=Rock Fist Transform / Fwd=Rock Fist Lunge / Back=Rock Arm Swing / Down=Cape Spin+rock projectiles / Up=Taunting Combo Finisher (launcher). Jutsu Charge/Launch = separate P-hold release.
     case "kiba":    return executeKibaSpecial(fighter, context)      // Gatsuga (Fang Passing Fang) — neutral=Weak drill-rush / Fwd=Strong drill-rush (superArmor, further, ~2× energy)
     case "spiderman": return executeSpidermanSpecial(fighter, context)   // Stage 2: Down = Ground Crawl evasive (i-frames + reposition; Light/Heavy during crawl → kick-up). Web specials (neutral/F/B/U) land Stage 3.
     case "naoya":   return executeNaoyaSpecial(fighter, context)   // neutral=Energy Dart spread / Fwd=Pitch Throw (fast dart) / Back=Frame-Skip retreat blink / Up=Frame-Skip advance blink / Down=Frame-Trap (L→H→L strict-link → freeze finish)
     case "boruto":  return executeBorutoSpecial(fighter, context)    // GROUND: Rasengan(neutral)/Shiden(Fwd)/Wind-Water(Back)/Palm Blast(Up)/Shadow Clone(Down). AIR: Rasengan(neutral)/Throw Weapon(Fwd)/Vanishing Rasengan(Back)
     case "deathstroke": return executeDeathstrokeSpecial(fighter, context)   // GROUND: Sword Slash(neutral)/Draw&Cut lunge(Fwd)/Gun Shot(Back projectile)/Running Slash(Down). AIR: Aerial Spin (hitbox). row_09 spin-finish = promoted ULT.
-    case "dark_knight": return executeDarkKnightSpecial(fighter, context)   // NEW-VARIANT Batman. GROUND: Crescent Chain(neutral long disjoint)/Chain Flail(Fwd)/Pistol Shot(Back projectile)/Cape Spin(Down AoE). AIR: Dive Bomb. Rage Mode/Mech ult = Stages 5/6.
+    case "iron_man": return executeIronManSpecial(fighter, context)   // neutral = Charge→Blast (repulsor beam projectile) / Fwd = Spider-leg strike (self-contained SUIT-transform disjoint). Proton Cannon = S5 ULT.
+    case "iron_man_2": return executeIronMan2Special(fighter, context)   // Fwd/air = WHHT! dash-lunge / neutral = charge-tiered repulsor (armed tap/hold in game.js, S/1/2/3/4*, 4*=pierce). E* max-charge = S5 ULT. [ground-slam + homing missile DEFERRED to visual pass]
+    case "iron_man_3": return executeIronMan3Special(fighter, context)   // neutral = 3-TIER CHARGE repulsor (armed tap/hold in game.js, Basic/Charged/Supercharged) / Fwd = Super Laser (beam) / Up + air-neutral = Super Move (spin-burst AoE). Super Nova = S5 ULT.
+    case "dark_knight": return executeDarkKnightSpecial(fighter, context)   // NEW-VARIANT Batman. GROUND: Crescent Chain(neutral, 2f)/Chain Flail(Fwd, 3f)/Pistol Shot(Back projectile, 4f)/Grapple throw(Down, 3f). AIR: Dive Bomb(3f). Rage Mode(Up)/Mech ult = Stages 5/6.
     case "light":   return executeLightSpecial(fighter, context)     // GROUND: Y vortex(neutral)/L divekick(Fwd)/Ryuk anti-air(Up)/L rising burst(Back)/violet burst(Down). AIR: gunman rocket(neutral)/air punch(Fwd)
     case "l_ryuuzaki": return executeLRyuuzakiSpecial(fighter, context)   // neutral=Golden Nova (marquee wide burst) / Fwd=Bazooka (long-range) / Back=Golden Rising Burst (launcher) / Up=Ryuk cameo-attack (Stage-5 anti-air launcher) / Down=Investigation/Analysis (non-lethal buff). EX kick-trail = cancel-only (updateLRyuuzakiCommandCombat)
     case "mayuri":  return executeMayuriSpecial(fighter, context)    // neutral=Finger-Gun Blast (projectile) / Fwd=Energy Slash (crescent projectile) / Up=Rising Cut (launcher) / Down=Poison Cloud (DoT projectile) / Back=Lab Coat Open (damage buff)
@@ -19273,6 +22431,9 @@ export function triggerSpecial(fighter, context = {}) {
     case "byakuya": return executeByakuyaSpecial(fighter, context)   // neutral=Senbonzakura Petal Cast / Fwd=Utsusemi Re-form Thrust / Up=Re-form Overhead (F+U share vanish) / Back=Shunpo blink / Down=Straight Thrust. AIR: neutral=Jump Slash / Fwd=Airborne Vault
     case "brainiac": return executeBrainiacSpecial(fighter, context) // neutral=Energy Beam (projectile) / Fwd=Energy Blade (advancing slash) / Down=Tentacle Sweep (long low disjoint) / Back=Electric Shield (defensive buff) / Up=Levitation (rise + air beam)
     case "green_lantern": return executeGreenLanternSpecial(fighter, context) // hard-light CONSTRUCTS (Option B fixed slots): neutral=Emerald Fist / Fwd=Lion-Head Ram / Back=Blade / Down=Binding Tentacle / Up=Spike Crown (anti-air) / air=Wrecking Sphere. Energy Beam = separate P-hold; multi-construct ULT = Stage 6.
+    case "gwen":    return executeGwenSpecial(fighter, context)      // mana zoner (fixed slots): neutral=Mana Bolt (procedural) / Fwd=Crescent Slash (melee disjoint) / Up=Spike-Crown construct (anti-air) / Down=Mana Sphere construct / Back=Blue Vortex (distinct burst) / air=Oval-Portal Beam. Giant Mana Blade = Stage-5 ULT.
+    case "miles":   return executeMilesSpecial(fighter, context)     // venom rushdown/zoner (fixed slots): neutral=Web-shot (procedural) / Fwd=Venom Strike (melee + ring FX) / Up=Rising Venom-Arc (anti-air) / Down=Camouflage (self-buff stealth/evasion) / Back=X Venom-Beam (big blast) / air=Aerial Dive. Down+B dash-kick = Charge(O). Venom-burst ULT = Stage-5.
+    case "vilgax":  return executeVilgaxSpecial(fighter, context)    // sword/blast bruiser (fixed slots): neutral=Plasma Blast (tiered tap/hold, armed in game.js) / Fwd=Energy-Sword Slash (melee) / Back=Thrown Spinning Sword (real spin proj) / Up=Teleport (blink+i-frames) / air=Aerial Tumble. Koma Atakes = Stage-5 ULT.
     case "hiruzen": return executeHiruzenSpecial(fighter, context)   // neutral = SPIN evasive dodge (i-frames + back-hop); Fwd/Down/Up borrowed jutsu land Stage 3
     case "orochimaru": return executeOrochimaruSpecial(fighter, context)   // GROUND: SnakeSpit(neutral)/SwordLunge(Fwd)/SwordThrow(Back)/TailSweep(Up)/Slam(Down). AIR: SnakeLunge(neutral)/SnakeBarrage(Fwd)/Coil(Back)
     case "ben10":   return executeBen10Special(fighter, context)   // form-branched: XLR8 Dash/Sonic Rush · Diamondhead Shard/Rising Diamonds · Ben Hoverboard; art-less aliens → fallback
@@ -19283,6 +22444,9 @@ export function triggerSpecial(fighter, context = {}) {
 
 export function triggerUltimate(fighter, context = {}, opts = {}) {
   if (!fighter) return false
+  // GOKU: the Ultimate input is a Base-only KAIOKEN toggle (an HP-strain buff, NOT a metered ultimate).
+  // Handle it BEFORE the ultimate-economy gates below so it bypasses ultimate cooldown/meter entirely.
+  if ((fighter.rosterKey || "").toLowerCase() === "goku") return toggleGokuKaioken(fighter, context)
   // NOTE: during an Edo Tensei window the fighter IS the vessel (rosterKey swapped) → this dispatches to
   // the VESSEL's own ultimate (the nested ultimate-within-an-ultimate). We intentionally do NOT block it.
   if ((fighter.ultimateCooldown || 0) > 0) return false      // on cooldown → do nothing (same as too little meter)
@@ -19302,6 +22466,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       // the Ultimate input is now deliberately unbound for Goku (available for a future signature ult).
       case "goku":    break   // no-op: Goku's transform ladder is on Charge now; Ultimate input unbound (cast stays falsy)
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
+      case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break
@@ -19326,12 +22491,25 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "yamamoto": cast = executeYamamotoUltimate(fighter, context); break   // Ryūjin Jakka Overhead Slam — inline freeze cinematic (live fighter plays row 87+89, no dup): fire-vignette + camera zoom → guaranteed ~204 EFF slam
       case "byakuya": cast = executeByakuyaUltimate(fighter, context); break     // Bankai: Senbonzakura Kageyoshi — 2-phase inline freeze cinematic (live fighter, no dup): charge+wings → transform → release thrust+blast, guaranteed ~204 EFF
       case "brainiac": cast = executeBrainiacUltimate(fighter, context); break    // Sphere of Annihilation — Energy Pillar barrage (promoted row_13 VFX, owner decision #2): inline freeze cinematic (live fighter holds fire pose, no dup), pillars erupt→detonate, guaranteed ~198 EFF. No unique ult body art (flagged)
+      case "superman_dcuc": cast = executeSupermanDcucUltimate(fighter, context); break   // Big Rock — the sheet's own "Super 1 - Big Rock": inline freeze cinematic (live fighter hoists+hurls, no dup), REAL boulder projectile flies → guaranteed heavy impact + real rubble shatter, ~198 EFF
+      case "superman_new52": cast = executeSupermanNew52Ultimate(fighter, context); break   // Infinite Mass Punch — inline freeze cinematic (live fighter rockets forward + flying haymaker, no dup): guaranteed heavy impact ~198 EFF (no projectile). Promotes flight/punch frames (no unique ult art)
+      case "superman_classic": cast = executeSupermanClassicUltimate(fighter, context); break   // Heat Vision Barrage — inline freeze cinematic (live fighter holds the REAL sustained beam, no dup): 3-beat guaranteed chip→sustained→searing payoff ~198 EFF. Promotes the beam frames (no unique ult body art)
+      case "superman_fighter": cast = executeSupermanFighterUltimate(fighter, context); break   // Kryptonian Detonation — inline freeze cinematic (live fighter holds the REAL X+Up screen-filling explosion, no dup): 3-beat guaranteed telegraph→detonation→searing payoff ~198 EFF
       case "hiruzen": cast = executeHiruzenUltimate(fighter, context); break   // Reaper Death Seal — inline freeze cinematic (live fighter, no dup): Shinigami soul-rip, pays 15% self-HP (canon life-cost)
       case "orochimaru": cast = executeOrochimaruUltimate(fighter, context); break   // Summoning: Twin Serpents — inline freeze cinematic (live fighter, no dup): giant Manda-class snake strike, guaranteed ~210 EFF
       case "kiba":    cast = executeKibaUltimate(fighter, context); break   // Three-Headed Wolf — inline freeze cinematic (live fighter feral-crouch, no dup): summon→charge→maul→vortex beats, guaranteed 2-hit ~198 EFF
       case "boruto":  cast = executeBorutoUltimate(fighter, context); break   // Kote Barrage — inline freeze cinematic (live fighter plays 5-part Kote fire, no dup): 5 sure-hit beats, part-3 recoil PAYOFF, guaranteed ~198 EFF
       case "deathstroke": cast = executeDeathstrokeUltimate(fighter, context); break   // Killing Stroke — PROMOTED row_09 overhead spin-finish (owner decision #2): inline freeze cinematic (live fighter, no dup), 3 guaranteed beats → overhead FINISH payoff, ~198 EFF. No unique ult art (flagged)
+      case "iron_man": cast = executeIronManUltimate(fighter, context); break   // Proton Cannon — helmet-open "Super" pose TRIGGER (Stage-0 item 4): inline freeze cinematic (live fighter, no dup), GIANT scaled repulsor blast visual → 3 guaranteed beats, full-power impact PAYOFF ~198 EFF. No bespoke ult art (flagged)
+      case "vegito": cast = executeVegitoUltimate(fighter, context); break   // Kamehameha — Ultimate Action charge windup → Kamehameha thrust CHAINED (owner-locked): inline freeze cinematic (live fighter, no dup), GIANT cyan beam visual → 3 guaranteed beats, full-power impact PAYOFF ~198 EFF. Procedural beam FX (flagged)
+      case "gotenks": cast = executeGotenksUltimate(fighter, context); break   // Super Ghost Kamikaze Attack — inline freeze cinematic (live fighter, no dup): arms-raised windup → ghost-throw pose, a squad of REAL kamikaze GHOSTS flies at the frozen foe and self-destructs, 3 guaranteed beats → ~198 EFF. Confirmed signature ult art (ghost sprites)
+      case "ippo": cast = executeIppoUltimate(fighter, context); break   // Dempsey Roll — inline freeze cinematic (live fighter, MELEE no projectiles): side-to-side WEAVING bob → continuous FLURRY of alternating hooks (weave-then-barrage, arrow-marker confirmed), 5 guaranteed beats → EXACTLY ~198 EFF. Confirmed signature ult art (weave + flurry sheets)
+      case "iron_man_2": cast = executeIronMan2Ultimate(fighter, context); break   // Max-Charge Repulsor (owner-locked E* promotion): inline freeze cinematic (live fighter, no dup), repulsor aim pose held + GIANT cyan beam → 3 guaranteed beats, full-power PAYOFF ~198 EFF. No bespoke ult art (flagged)
+      case "iron_man_3": cast = executeIronMan3Ultimate(fighter, context); break   // Super Nova (owner-locked DECISION B, on-sheet "Kills all onscreen Enemies"): inline freeze cinematic (live fighter arms-raised, no dup) + SCREEN-FILLING procedural nova (expanding rings) → 3 guaranteed beats, full-power PAYOFF ~198 EFF. Procedural nova (flagged)
       case "green_lantern": cast = executeGreenLanternUltimate(fighter, context); break   // Will Made Manifest — MULTI-CONSTRUCT FINISHER (owner-locked; muscle-transform dropped): inline freeze cinematic (live fighter holds arms-forward summon, no dup), Fist→Lion→Blade→GIANT Sphere beats manifest at the foe, guaranteed 330 raw → ~198 EFF. Reuses S5 construct art + glBeam pose (no unique ult body art — flagged)
+      case "gwen":    cast = executeGwenUltimate(fighter, context); break   // Mana Blade — the sheet's standout: inline freeze cinematic (live fighter plays the blade sequence charge→extend→swing, no dup), GIANT cyan blade beam manifests at the foe at growing scale → 5 guaranteed beats, SWING payoff, 330 raw → ~198 EFF. Real blade art (gwen_blade + gwen_blade_beam)
+      case "miles":   cast = executeMilesUltimate(fighter, context); break   // Venom Overload — the sheet's standout X+Up combo (BLACK/RED palette, owner-locked): inline freeze cinematic (live fighter plays the venom combo, no dup), GIANT venom ring-bursts manifest at the foe at growing scale → 5 guaranteed beats, BURST payoff, 330 raw → ~198 EFF. Cast art = miles_ult; FX = miles_venomring
+      case "vilgax":  cast = executeVilgaxUltimate(fighter, context); break // Koma Atakes — multi-beam eye-laser barrage: inline freeze cinematic (live fighter holds the green-charge ULT_ACTION trigger pose, no dup), CONVERGING red Koma beams manifest at the foe at growing scale → 5 guaranteed beats, finish payoff, 330 raw → ~198 EFF. Real beam art (vilgax_komabeam, caster stripped)
       case "aoi_todo": cast = executeAoiTodoUltimate(fighter, context); break   // Maximum: Black Flash — inline freeze cinematic (live fighter, no dup): cameos Yuji+Gojo cycle in, guaranteed 3-way combo → MAXIMIZED Black Flash payoff (reuses S5 claw VFX), ~198 EFF. No unique ult art (flagged)
       case "kurapika": cast = executeKurapikaUltimate(fighter, context); break  // Emperor Time — scarlet-eyed TRANSFORMATION (Set B _skinAnim swap, buffs, ~10s, canon post-revert vulnerability)
       case "light":   cast = executeLightUltimate(fighter, context);  break   // "As Planned" (writing, neutral U) / "I Am Kira" (scythe, Down+U via _ultVariant) — inline freeze cinematic, guaranteed ~204 EFF
@@ -19346,7 +22524,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
       case "batman":  cast = executeBatmanUltimate(fighter, context);  break   // The Dark Knight: batarang-barrage freeze cinematic
-      case "dark_knight": cast = executeDarkKnightUltimate(fighter, context); break   // NEW-VARIANT Batman — Mech Suit: 2-phase timed heavy FORM (wireframe materialize cinematic → giant mech body via _skinAnim, dmg×1.5/def×1.5/spd×0.85, ~8s → auto-revert). Kurapika/Baki architecture.
+      case "dark_knight": cast = executeDarkKnightUltimate(fighter, context); break   // NEW-VARIANT Batman — Mech Suit: QUICK inline freeze-cinematic SINGLE ATTACK (tailed-beast/Kurama feel, NOT a transform): giant mech materializes→looms→ONE strike→powers down. Guaranteed 340 raw → ~204 EFF (live fighter, no dup)
       case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
       case "red_ranger_mmpr": cast = executeRedRangerMmprUltimate(fighter, context); break   // Power Sword: Overhead Strike — freeze-cinematic leaping overhead slash
       case "samurai_red_ranger": cast = executeSamuraiRangerUltimate(fighter, context); break   // Fire Smasher: Blazing Strike — TIER-SCALING freeze cinematic (base vs Mega art+damage)
@@ -20001,6 +23179,14 @@ const MANGEKYOU_MULT      = { dmg: 1.20, spd: 1.12, def: 1.06 }
 
 export function isItachi(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "itachi" }
 export function isMangekyouActive(fighter) { return !!(fighter && fighter._mangekyouActive) }
+// KAKASHI shares the Mangekyou Sharingan system (Stage 7): the SAME timed buff-mode scaffolding as Itachi,
+// PLUS a Sharingan read/dodge window (Item-1 "both"). isMangekyouUser gates enter/toggle/drain for both.
+function isKakashiMangekyou(fighter) { return (fighter?.rosterKey || "").toLowerCase() === "kakashi" }
+function isMangekyouUser(fighter) { return isItachi(fighter) || isKakashiMangekyou(fighter) }
+// Kakashi renders the headband-lifted "REPEAT" ready stance as the idle while active (idle-only _skinAnim
+// override — attacks/Raikiri/etc. fall back to base art). Buff MODE, not a body form-swap.
+const KAKASHI_MANGEKYOU_ANIM = { idle: { frames: 13, width: 39, height: 66, speed: 6, anchorY: 0, sheet: "./kakashi_mangekyou_stance_uniform.png" } }
+const KAKASHI_MANGEKYOU_DODGE_COST = 10   // ki per Sharingan read/dodge (the "read window" half; playtest lever)
 
 // Enter Mangekyou. Gated: itachi, not already active, actionable, energy ≥ threshold. NO up-front
 // spend (drain handles the cost). Sets the PUBLIC _mangekyouActive flag other systems read
@@ -20008,18 +23194,33 @@ export function isMangekyouActive(fighter) { return !!(fighter && fighter._mange
 // (buff, not form-swap). The activation REVEAL is the frozen eye-transformation cinematic
 // (mangekyouCinematic.js), triggered from game.handleChargeRelease right after this returns true.
 export function enterMangekyou(fighter) {
-  if (!isItachi(fighter) || fighter._mangekyouActive) return false
+  if (!isMangekyouUser(fighter) || fighter._mangekyouActive) return false
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
   if ((fighter.energy || 0) < MANGEKYOU_THRESHOLD) return false
   fighter._mangekyouActive  = true
   fighter.currentForm       = "mangekyou"     // HUD/state (base → mangekyou)
-  fighter.damageMultiplier  = MANGEKYOU_MULT.dmg
-  fighter.attackMultiplier  = MANGEKYOU_MULT.dmg
+  fighter.damageMultiplier  = MANGEKYOU_MULT.dmg   // buffs NORMALS + Y-combo (normal hit path folds the mult);
+  fighter.attackMultiplier  = MANGEKYOU_MULT.dmg   //   the Raikiri ULT stays 198 EFF (applyScaledDamage ignores mult)
   fighter.speedMultiplier   = MANGEKYOU_MULT.spd
   fighter.defenseMultiplier = MANGEKYOU_MULT.def
   fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 12)
   fighter.attackCooldown    = 10              // brief settle as the eyes ignite
-  sound.playSfxFile?.(pickItachiVoice("mangekyou"), null)   // "Your eyes see nothing" — Sharingan ignites
+  if (isKakashiMangekyou(fighter)) {
+    // Item-1 "both" — the Sharingan READ/DODGE window: auto-dodge incoming hits at a ki cost per read
+    // (combat.shouldGojoAutoDodge reads currentFormData.autoDodge). Balanced against the mode's ki drain.
+    // ★currentFormData ALSO carries the buff mults because updateTransformationState RE-APPLIES them from
+    //   currentFormData EVERY frame — omitting them here would wipe the buff back to 1 each tick.
+    fighter.currentFormData = {
+      autoDodge: true, autoDodgeKiCost: KAKASHI_MANGEKYOU_DODGE_COST,
+      damageMultiplier: MANGEKYOU_MULT.dmg, attackMultiplier: MANGEKYOU_MULT.dmg,
+      speedMultiplier: MANGEKYOU_MULT.spd, defenseMultiplier: MANGEKYOU_MULT.def,
+    }
+    // idle-swap to the headband-lifted ready stance (mirrors Vegeta-SSJ _skinAnim save/restore idiom).
+    fighter._skinAnim = KAKASHI_MANGEKYOU_ANIM
+    fighter._mangekyouSkinSwapped = true
+  } else {
+    sound.playSfxFile?.(pickItachiVoice("mangekyou"), null)   // Itachi: "Your eyes see nothing" — Sharingan ignites
+  }
   return true
 }
 
@@ -20033,18 +23234,20 @@ export function revertMangekyou(fighter) {
   fighter.attackMultiplier  = 1
   fighter.speedMultiplier   = 1
   fighter.defenseMultiplier = 1
+  if (fighter.currentFormData?.autoDodge) fighter.currentFormData = null   // Kakashi: end the Sharingan read/dodge window
+  if (fighter._mangekyouSkinSwapped) { fighter._skinAnim = fighter._baseSkinAnim || null; fighter._mangekyouSkinSwapped = false }   // restore base art
 }
 
 // P-tap toggle: enter if base + at threshold; manual revert if already active (mirrors toggleSSJRose).
 export function toggleMangekyou(fighter) {
-  if (!isItachi(fighter)) return false
+  if (!isMangekyouUser(fighter)) return false
   if (fighter._mangekyouActive) { revertMangekyou(fighter); return true }
   return enterMangekyou(fighter)
 }
 
 // Per-frame hook (updateFighterState): continuous drain + instant auto-revert at 0.
 export function applyMangekyouSystem(fighter) {
-  if (!isItachi(fighter)) return
+  if (!isMangekyouUser(fighter)) return
   tickSustainedFormDrain(fighter, {
     active: f => !!f._mangekyouActive,
     drainPerFrame: MANGEKYOU_DRAIN,

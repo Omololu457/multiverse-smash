@@ -1,6 +1,6 @@
 // harness/dark_knight_stage4.mjs — STAGE 4: Batman NEW VARIANT (dark_knight) 5 directional specials
 // (executeDarkKnightSpecial). GROUND: neutral=Crescent Chain(dkCrescent, long disjoint) / Fwd=Chain
-// Flail(dkFlail) / Back=Pistol Shot(dkPistol + procedural darkKnightBullet) / Down=Cape Spin(dkCape AoE).
+// Flail(dkFlail) / Back=Pistol Shot(dkPistol + procedural darkKnightBullet) / Down=Grapple throw(dkGrapple).
 // AIR: Dive Bomb(dkDive). For each: (1) fires the right currentMove/_spriteCastMove, (2) resolves the
 // right dark_knight_* sheet (no 128² box), (3) CONNECTS on the dummy. Deterministic via p1SpecialDir.
 import { chromium } from "playwright";
@@ -51,7 +51,7 @@ try {
   const melee = [
     ["Crescent Chain (neutral)", null, "dkCrescent", "dark_knight_crescent_uniform", 120],
     ["Chain Flail (Fwd)",        "F",  "dkFlail",    "dark_knight_flail_uniform",    56],
-    ["Cape Spin (Down)",         "D",  "dkCape",     "dark_knight_cape_uniform",     48],
+    ["Grapple (Down)",           "D",  "dkGrapple",  "dark_knight_grapple_uniform",  60],
   ];
   for (const [name, dir, move, sheet, gap] of melee) {
     await setupAdjacent(gap);
@@ -106,7 +106,7 @@ try {
   // ── DATA-LEVEL contract: all 5 special cast poses wired to real dark_knight sheets ──
   console.log("\n── data contract ──");
   const ad = await page.evaluate(() => window.__harness.charDef("dark_knight")?.animationData || {});
-  const keys = ["dkCrescent", "dkFlail", "dkPistol", "dkCape", "dkDive"];
+  const keys = ["dkCrescent", "dkFlail", "dkPistol", "dkGrapple", "dkDive"];
   const allWired = keys.every(k => typeof ad[k]?.sheet === "string" && ad[k].sheet.includes("dark_knight"));
   check("all 5 specials wired to real dark_knight sheets", allWired, JSON.stringify(Object.fromEntries(keys.map(k => [k, (ad[k]?.sheet || "MISSING").split("/").pop()]))));
   check("5 specials are DISTINCT sheets", new Set(keys.map(k => ad[k]?.sheet)).size === 5, "");

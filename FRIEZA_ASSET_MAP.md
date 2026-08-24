@@ -198,8 +198,13 @@ top→bottom, left→right ordering printed by `frieza_stage0_boxes.py`.
 - **credits**: confirm the sprite-rip author before ship (currently a flagged placeholder).
 - **moveset.js**: dormant-but-stale `frieza` entry (old light 45 / heavy 85 / `goldenFrieza` ultimate) — clean up
   to match the shipped kit (characters.js drives actual damage, so it's cosmetic drift, not a bug).
-- Golden / Black Frieza — DONE as TRANSFORMATIONS (not skins); see §below. Their dedicated gold/black ART is a
-  canvas TINT over the base sheets for now — a separate uploaded gold/black sheet could replace the tint later.
+- ★PALETTE SKINS DONE (test:frieza-skins 14/0): Default + 10 (Group1 Crimson Tyrant/Verdant Overlord/Azure
+  Conqueror/Obsidian Emperor · Group2 Violet Reborn/Ember Tyrant/Frostbound Overlord/Ashen Tyrant · Void
+  Sovereign + Mecha Frieza) via NEW tools/gen_frieza_creative.py (4-region luminance-ramp: BODY white-shell+teal
+  shading / ACCENT purple plates / EYE red / OUTLINE; region mask + all recolors + in-game render + Void cosmic
+  overlay all vision-verified). NEW game.js drawFriezaVoidAuraOverlay (seeded cosmic star-motes). ★Golden/Black
+  are NOT and never will be skins (transformations only). 
+- Golden / Black Frieza — DONE as TRANSFORMATIONS (charge-triggered energy-drain ladder; canvas tint art).
 - voice, intro art.
 - frieza-stage4 Ki Blast "3 concurrent" check is mildly timing-flaky (occasionally reads 2 then passes on
   re-run) — harmless; could count cumulative spawns instead if it ever annoys.

@@ -133,19 +133,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./yuji_idle_uniform.png" }
   },
 
-  // Base Goku (Dragon Ball). Sliced from goku_base_FULLSHEET_transparent.png.
-  // This entry only GATES spritesReady() (decodes idle → flips Goku from box to
-  // sprite); per-action rendering reads the `sheet` paths from characters.js →
-  // goku.animationData. Files follow the ./goku_<action>_sheet.png convention.
-  // BASE only — kept separate from the goku_ssj_god_* set.
-  // MK-feel Stage 5: Goku (BASE) manifest entry REMOVED (commented, not deleted) → procedural renderer.
-  // animationData intact in characters.js; restore this entry (+ hasSprites:true) to bring sprites back.
-  // goku: {
-  //   // ATLAS: one shared sheet; per-action source rects (sourceX/sourceY/width/height)
-  //   // live in characters.js → goku.animationData. This entry only gates spritesReady()
-  //   // by decoding the shared sheet once.
-  //   actions: { idle: "./goku_base_FULLSHEET_transparent.png" }
-  // },
+  // Goku (Dragon Ball) — 4-form EB sprite build (STAGE 1, 2026-08-23). This entry only GATES
+  // spritesReady() (decodes idle → flips Goku from box to sprite); per-action rendering reads the
+  // `sheet` paths from characters.js → goku.animationData (./goku_base_<action>_uniform.png).
+  // Re-instated when Goku flipped hasSprites:true. See GOKU_ASSET_MAP.md.
+  goku: {
+    actions: { idle: "./goku_base_idle_uniform.png" }
+  },
 
   // KCM Naruto (universe: naruto — his own universe, NOT the GojoV1 JJK beta).
   // Sliced JUS strips, one PNG per action; per-action rendering reads the `sheet`
@@ -161,6 +155,50 @@ export const SPRITE_MANIFEST = {
   // characters.js → sasuke.animationData. Note the existing filename typo "saske" — as-is.
   sasuke: {
     actions: { idle: "./saske_stance_2.png" }
+  },
+
+  // Kakashi (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
+  // Kakashi from box to sprite. Per-action rendering reads characters.js → kakashi.animationData
+  // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip.
+  kakashi: {
+    actions: { idle: "./kakashi_idle_uniform.png" }
+  },
+
+  // Gwen Tennyson (universe: ben10) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
+  // Gwen from box to sprite. Per-action rendering reads characters.js → gwen.animationData (each action
+  // carries its own .sheet). Object form; idle is the RE-SLICED uniform strip (reslice_gwen.py).
+  gwen: {
+    actions: { idle: "./gwen_idle_uniform.png" }
+  },
+
+  // Vilgax (universe: ben10) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
+  // Vilgax from box to sprite handler. Per-action rendering reads characters.js → vilgax.animationData
+  // (each action carries its own .sheet). Object form; idle is the RE-SLICED uniform strip (reslice_vilgax.py).
+  vilgax: {
+    actions: { idle: "./vilgax_idle_uniform.png" }
+  },
+
+  // Miles Morales (universe: marvel) — STAGE 1. INDEPENDENT from spiderman (Peter) + gwen. Gates
+  // spritesReady() by decoding the idle strip → flips Miles from procedural box to sprite handler.
+  // Per-action rendering reads characters.js → miles.animationData (each action carries its own .sheet).
+  // Idle is the RE-SLICED uniform strip (tools/reslice_miles.py). Nimble venom rushdown; specials = later stages.
+  miles: {
+    actions: { idle: "./miles_idle_uniform.png" }
+  },
+
+  // Ippo Makunouchi (universe: hajime_no_ippo) — STAGE 1. Gates spritesReady() by decoding the idle
+  // strip → flips Ippo from box to sprite. Per-action rendering reads characters.js → ippo.animationData
+  // (each action carries its own .sheet). Idle is the RE-SLICED uniform strip (tools/reslice_ippo.py).
+  ippo: {
+    actions: { idle: "./ippo_idle_uniform.png" }
+  },
+
+  // Dark Vegeta (universe: dragon_ball) — STAGE 1. STANDALONE, independent of the blue `vegeta`.
+  // Gates spritesReady() by decoding the idle strip → flips Dark Vegeta from box to sprite. Per-action
+  // rendering reads characters.js → vegeta_dark.animationData (each action carries its own .sheet).
+  // Idle is the RE-SLICED uniform strip (tools/reslice_vegeta_dark.py).
+  vegeta_dark: {
+    actions: { idle: "./vegeta_dark_idle_uniform.png" }
   },
 
   // Itachi (universe: naruto) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips
@@ -213,6 +251,30 @@ export const SPRITE_MANIFEST = {
   // (tools/reslice_deathstroke.py). Multi-weapon (sword/gun/martial) self-contained moveset.
   deathstroke: {
     actions: { idle: "./deathstroke_idle_uniform.png" }
+  },
+
+  // Iron Man 1 (universe: marvel) — STAGE 1. Gates spritesReady() by decoding the idle strip → flips Iron
+  // Man from procedural box to sprite handler. Per-action rendering reads characters.js → iron_man.animationData
+  // (each action carries its own .sheet). Idle is the RE-SLICED uniform strip (tools/reslice_iron_man.py).
+  // Armored zoner/rushdown; Charge→Blast repulsor + Spider-legs suit special = later stages.
+  iron_man: {
+    actions: { idle: "./iron_man_idle_uniform.png" }
+  },
+
+  // Iron Man 2 (universe: marvel) — STAGE 1. INDEPENDENT from iron_man (IM1). Gates spritesReady() by
+  // decoding the idle strip → flips Iron Man 2 from procedural box to sprite handler. Per-action rendering
+  // reads characters.js → iron_man_2.animationData (each action carries its own .sheet). Idle is the
+  // RE-SLICED uniform strip (tools/reslice_iron_man_2.py). Charge-tiered repulsor zoner; specials = later stages.
+  iron_man_2: {
+    actions: { idle: "./iron_man_2_idle_uniform.png" }
+  },
+
+  // Iron Man 3 (universe: marvel) — STAGE 1. INDEPENDENT from iron_man (IM1) + iron_man_2 (IM2). Gates
+  // spritesReady() by decoding the idle strip → flips Iron Man 3 from procedural box to sprite handler.
+  // Per-action rendering reads characters.js → iron_man_3.animationData (each action carries its own
+  // .sheet). Idle is the RE-SLICED uniform strip (tools/reslice_iron_man_3.py). 3-tier charge zoner.
+  iron_man_3: {
+    actions: { idle: "./iron_man_3_idle_uniform.png" }
   },
 
   // Yuta Okkotsu (universe: jujutsu_kaisen) — STAGE 1. Gates spritesReady() by decoding the idle strip
@@ -382,6 +444,15 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./dark_knight_idle_uniform.png" }
   },
 
+  // Vegito Ultra Instinct -Sign- (universe: dragon_ball) — STAGE 1. SINGLE independent char. Gates
+  // spritesReady() by decoding the idle strip → flips Vegito from procedural box to sprite handler.
+  // Per-action rendering reads characters.js → vegito.animationData (each action carries its own .sheet).
+  // Idle is the RE-SLICED uniform strip (tools/reslice_vegito.py). 7-special ki kit + Ultra-Instinct
+  // evasion resource mechanic (later stages).
+  vegito: {
+    actions: { idle: "./vegito_idle_uniform.png" }
+  },
+
   // Hisoka Morrow (universe: hunter_x_hunter). Gates spritesReady() by decoding the idle strip
   // → flips Hisoka from procedural box to sprite. Per-action rendering reads characters.js →
   // hisoka.animationData (each action carries its own .sheet).
@@ -394,6 +465,34 @@ export const SPRITE_MANIFEST = {
   // (each action carries its own .sheet). idle is the RE-SLICED floating-hover strip.
   superman: {
     actions: { idle: "./superman_idle_uniform.png" }
+  },
+
+  // Superman (Custom / DC Universe Customs) — rosterKey "superman_dcuc", universe dc. STAGE 1.
+  // Gates spritesReady() by decoding the idle strip → flips from procedural box to sprite.
+  // Per-action rendering reads characters.js → supermanDcuc.animationData (each action carries .sheet).
+  superman_dcuc: {
+    actions: { idle: "./superman_dcuc_idle_uniform.png" }
+  },
+
+  // Superman (New 52) — rosterKey "superman_new52", universe dc. STAGE 1. Gates spritesReady() by decoding
+  // the idle strip → flips from procedural box to sprite. Per-action rendering reads characters.js →
+  // supermanNew52.animationData (each action carries its own reslice_superman_new52.py sheet).
+  superman_new52: {
+    actions: { idle: "./superman_new52_idle_uniform.png" }
+  },
+
+  // Superman (Classic / SNES JLTF) — rosterKey "superman_classic", universe dc. STAGE 1. Gates spritesReady()
+  // by decoding the idle strip → flips from procedural box to sprite. Per-action rendering reads characters.js →
+  // supermanClassic.animationData (each action carries its own reslice_superman_classic.py sheet).
+  superman_classic: {
+    actions: { idle: "./superman_classic_idle_uniform.png" }
+  },
+
+  // Superman (Fighter) — rosterKey "superman_fighter", universe dc. STAGE 1. Gates spritesReady() by decoding
+  // the idle strip → flips from procedural box to sprite. Per-action rendering reads characters.js →
+  // supermanFighter.animationData (each action carries its own reslice_superman_fighter.py sheet).
+  superman_fighter: {
+    actions: { idle: "./superman_fighter_idle_uniform.png" }
   },
 
   // Rick Sanchez (universe: rick_and_morty). Gates spritesReady() by decoding the idle strip →
@@ -507,6 +606,24 @@ export const SPRITE_MANIFEST = {
   // key to protect his green skin). See PICCOLO_ASSET_MAP.md.
   piccolo: {
     actions: { idle: "./piccolo_idle_uniform.png" }
+  },
+  // Teen Gohan (Dragon Ball, Extreme Butoden). Per-action .sheet lives on characters.js → gohan.animationData;
+  // idle = the RE-SLICED uniform strip (tools/reslice_gohan.py). Base form (Stage 1); SSJ2 recolor lands at Stage 5.
+  gohan: {
+    actions: { idle: "./gohan_idle_uniform.png" }
+  },
+  // Gotenks (Super Saiyan) (Dragon Ball, Extreme Butoden). Per-action .sheet lives on characters.js →
+  // gotenks.animationData; idle = the RE-SLICED uniform strip (tools/reslice_gotenks.py). STANDALONE SS kit
+  // (no base form / no transform). See GOTENKS_ASSET_MAP.md.
+  gotenks: {
+    actions: { idle: "./gotenks_idle_uniform.png" }
+  },
+
+  // Bardock (Dragon Ball, Extreme Butoden). Per-action .sheet lives on characters.js →
+  // bardock.animationData; idle = the RE-SLICED uniform strip (tools/reslice_bardock.py). STANDALONE
+  // single-form kit (SSJ = cosmetic flash only / no transform). See BARDOCK_ASSET_MAP.md.
+  bardock: {
+    actions: { idle: "./bardock_idle_uniform.png" }
   },
 
   // Omni-Man (universe: invincible) — STAGE 0. Gates spritesReady() by decoding the idle strip →

@@ -161,6 +161,26 @@ const summonTemplates = {
     sheet: "./handler_shik_toad.png", spriteFrames: 1, spriteW: 34, spriteH: 28, spriteSpeed: 6, spriteScale: 1.7
   },
 
+  // ── KAKASHI KUCHIYOSE (Stage 5) — two STRUCTURALLY DIFFERENT summons, built differently per design ──
+  // Pakkun = a LINGERING COMPANION pug: two-phase (hold the sitting "spawn/ready" pose for spawnBeat, then
+  // run the bite strip), LONG duration, MULTI-HIT (oneHit:false) — a real attacking presence for a duration,
+  // NOT a one-shot burst. The source's "PRESSING BUTTON" held-bite reads here as the sustained multi-hit window.
+  kakashiPakkun: {
+    id: "kakashiPakkun", duration: 300, maxSimultaneous: 1, attackInterval: 40, damage: 30,
+    w: 44, h: 30, speed: 6, offsetX: 30, offsetY: 60, behavior: "rush", hitstun: 12, knockbackX: 4, knockbackY: 0,
+    oneHit: false, color: "#b48a5a",
+    sheet: "./kakashi_pakkun_bite_uniform.png", spriteFrames: 4, spriteW: 34, spriteH: 23, spriteSpeed: 5, spriteScale: 2.2,
+    spawnSheet: "./kakashi_pakkun_ready_uniform.png", spawnFrames: 2, spawnW: 25, spawnH: 23, spawnBeat: 18, spawnScale: 2.2
+  },
+  // Nin-Dogs = a one-shot BURST: the 8-dog PACK erupts and rushes forward, multi-mauls for a SHORT window,
+  // then despawns. NOT a persistent companion — a big-commitment attack (high cost, short duration).
+  kakashiNinDogs: {
+    id: "kakashiNinDogs", duration: 66, maxSimultaneous: 1, attackInterval: 14, damage: 36,
+    w: 132, h: 52, speed: 11, offsetX: 40, offsetY: 34, behavior: "rush", hitstun: 18, knockbackX: 7, knockbackY: -1,
+    oneHit: false, color: "#8a7a66",
+    sheet: "./kakashi_nindogs_pack_uniform.png", spriteFrames: 4, spriteW: 143, spriteH: 64, spriteSpeed: 4, spriteScale: 1.5
+  },
+
   // NARUTO CLONE RUSH (setplay) — a PLACED shadow clone, on command, is sent on ONE
   // autonomous rush-strike at the opponent, then despawns. Distinct from the instant
   // Rasengan Barrage (#16/#19, guaranteed same-frame orbs): this one physically travels

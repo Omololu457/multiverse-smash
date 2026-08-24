@@ -620,6 +620,40 @@ class SoundManager {
     this._menuPlaylistIndex = 0
   }
 
+  // Replace the ENTIRE menu playlist with an explicit ordered file list (e.g. a
+  // personalized order from musicPersonality). Unlike setMenuPlaylistOrder (which
+  // only permutes the existing curated tracks), this swaps in a new catalog and
+  // resets the cursor to the top. Non-string/empty entries are dropped; an empty
+  // result is ignored (keeps the current list). Returns the new length.
+  setMenuPlaylistFiles(files) {
+    if (!Array.isArray(files)) return MENU_PLAYLIST.length
+    const next = files.filter(f => typeof f === "string" && f.trim())
+    if (!next.length) return MENU_PLAYLIST.length
+    MENU_PLAYLIST.length = 0
+    for (const f of next) MENU_PLAYLIST.push(f)
+    this._menuPlaylistIndex = 0
+    return MENU_PLAYLIST.length
+  }
+
+  // Settings CLICK-TO-PLAY: jump the playlist to `index` and start that track
+  // IMMEDIATELY, arming the same onended auto-advance so playback then continues
+  // through the rest of the list from the chosen song. This is the on-demand
+  // counterpart to moveMenuTrack() (which only reorders the upcoming sequence and
+  // deliberately keeps the CURRENT song playing) — before this method there was no
+  // way to make selecting a song actually change what's playing. Honors the first-
+  // gesture gate; mute + volume are re-applied by playMusicFile so a switch never
+  // resets them. Returns true if it started now (false = queued pre-gesture / empty).
+  selectMenuTrack(index) {
+    const n = MENU_PLAYLIST.length
+    if (!n || !this._ready) return false
+    const i = ((index % n) + n) % n
+    // Before the first user gesture, remember the choice; the gesture flush
+    // (playMenuMusic → _playMenuTrack) starts it from this cursor.
+    if (!this._gestured) { this._menuPlaylistIndex = i; this._pendingMusic = { kind: "menu" }; return false }
+    this._playMenuTrack(i)
+    return true
+  }
+
   // ── PLAY SFX ──────────────────────────────────────────────────
   play(id) {
     if (this._sfxMuted || !this._ctx || !this._ready) return   // procedural SFX gated by SFX mute

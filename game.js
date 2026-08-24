@@ -283,6 +283,8 @@ import {
 import { endingSlidesFor } from "./endings.js"
 import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
+import * as personality from "./personality.js"   // Big-Five trait inference from in-game behaviour (TIPI prior + Bayesian refinement)
+import * as musicPersonality from "./musicPersonality.js"   // trait→music mapping + trait-informed song selection
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
 import { recordMotionInput, detectMotion, getRecentMotions } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
@@ -785,9 +787,13 @@ const resetBindRect = () => ({ x: canvas.width / 2 - 110, y: KEYBIND_Y0 + Math.c
 // keybind grid, which starts at cx-270), so it never overlaps existing controls. One
 // row per MENU_PLAYLIST track with ▲/▼ buttons; clicking swaps order via sound.moveMenuTrack.
 const PLAYLIST_X0 = 24, PLAYLIST_W = 330, PLAYLIST_Y0 = KEYBIND_Y0, PLAYLIST_ROW_H = 34, PLAYLIST_BTN = 26
+// Cap visible rows so a long (e.g. personalized 103-track) playlist can't overflow the panel.
+// The full list still plays in order — the panel just shows the head with a "+N more" footer.
+const PLAYLIST_MAX_ROWS = 9
 function getPlaylistRects() {
   const rects = []
-  for (let i = 0; i < MENU_PLAYLIST.length; i++) {
+  const shown = Math.min(MENU_PLAYLIST.length, PLAYLIST_MAX_ROWS)
+  for (let i = 0; i < shown; i++) {
     const y = PLAYLIST_Y0 + i * PLAYLIST_ROW_H
     rects.push({
       index: i,
@@ -3619,6 +3625,10 @@ function _checkMatchOver() {
       const p1Won  = winner === "p1"
       const beforeLevel = getLevel()
       victoryState.xpResult = awardMatchXp({ won: p1Won, roundsWon: roundWins.p1, perfect: p1Won && roundWins.p2 === 0 })
+      // PERSONALITY: derive Big-Five evidence from this match (P1 perspective) — combat
+      // style → Extraversion, composure closing out a contested win → Neuroticism(-).
+      _lastMatchP1Lost = !p1Won
+      try { personality.ensureSession(); personality.recordMatchOutcome({ matchStats, p1Won }) } catch (_) {}
       // Stage 21: any CHARACTER whose level-gate was crossed this match → victory-screen "NEW FIGHTER" note.
       victoryState.charUnlocks = charactersUnlockedBetween(beforeLevel, victoryState.xpResult.level, characters)
     }
@@ -13058,6 +13068,11 @@ const saveImportRect    = { x: 20, y: 190, w: 190, h: 34 }
 const saveReconnectRect = { x: 20, y: 230, w: 190, h: 34 }
 let _saveImportInput = null   // lazily-created hidden <input type=file> for Import
 let _saveUiMsg = ""           // transient feedback ("Exported." / "Imported N profile(s)." / error)
+// "Personalize by playstyle" — reorders the menu playlist to the player's tracked Big-Five
+// profile (musicPersonality). Sits just above the playlist panel; feedback line below it.
+const personalizeRect = { x: PLAYLIST_X0, y: 300, w: PLAYLIST_W, h: 30 }
+let _personalizeMsg = ""       // result shown in the button label after a click
+let _personalizeOk = false     // true = personalized (green), false = fell back / info (amber)
 // Keep the settings rects centered on the CURRENT canvas + the BACK button always
 // on-screen (bottom-anchored) so nothing clips at smaller window sizes. Called by
 // both the render and the click handler so they stay in sync.
@@ -13146,8 +13161,15 @@ function drawSettingsScreen() {
 
   // ── Menu music playlist (reorder) — left margin ──
   ctx.textAlign = "left"
+  // Personalize-by-playstyle button: reorders the menu playlist to the tracked Big-Five profile.
+  // After a click the label shows the result (green = personalized, amber = fell back to default).
+  box(personalizeRect, "rgba(24,44,70,0.92)", _withAlpha("#4aa8e0", 0.6), 1.5, false, 7)
+  ctx.fillStyle = _personalizeMsg ? (_personalizeOk ? "#8ef5a8" : "#fbbf24") : "#cfe3ff"
+  ctx.font = "700 13px Arial"; ctx.textAlign = "center"
+  ctx.fillText(_personalizeMsg || "🎧 Personalize by playstyle", personalizeRect.x + personalizeRect.w / 2, personalizeRect.y + 20)
+  ctx.textAlign = "left"
   ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
-  ctx.fillText("MENU MUSIC — playlist order (▲/▼)", PLAYLIST_X0, PLAYLIST_Y0 - 16)
+  ctx.fillText("MENU MUSIC — click a song to play · ▲/▼ reorder", PLAYLIST_X0, PLAYLIST_Y0 - 16)
   // Live now-playing cursor (sound keeps it pinned to the same song across reorders) — highlight that row
   // so a reorder is VISIBLY reflected (the highlight follows the song / the upcoming order shifts).
   const nowPlaying = sound.getMenuPlaying?.() || { index: -1, playing: false }
@@ -13169,6 +13191,11 @@ function drawSettingsScreen() {
     }
     drawArrow(r.upRect,   "▲", r.index > 0)
     drawArrow(r.downRect, "▼", r.index < MENU_PLAYLIST.length - 1)
+  }
+  // Long (e.g. personalized) playlists show only the head — note the remainder plays in order.
+  if (MENU_PLAYLIST.length > PLAYLIST_MAX_ROWS) {
+    ctx.fillStyle = "#7f9dc4"; ctx.font = "11px Arial"; ctx.textAlign = "left"
+    ctx.fillText(`… +${MENU_PLAYLIST.length - PLAYLIST_MAX_ROWS} more (playing in personalized order)`, PLAYLIST_X0, PLAYLIST_Y0 + PLAYLIST_MAX_ROWS * PLAYLIST_ROW_H + 4)
   }
   ctx.textAlign = "center"
 
@@ -13573,11 +13600,18 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, resetBindRect())) {
         Object.assign(P1_CONTROLS, DEFAULT_P1_CONTROLS); rebindAction = null; rebindWarning = "Defaults restored."
       }
+      // PERSONALIZE BY PLAYSTYLE: reorder the menu playlist to the player's tracked Big-Five
+      // profile. Manual (button-press) on purpose — no silent auto-reorder. Feedback in the label.
+      if (pointInRect(mouse.x, mouse.y, personalizeRect)) { _personalizeMenuAction(); break }
       // Menu-music playlist reorder: ▲ moves a track up, ▼ moves it down. sound.moveMenuTrack
       // mutates MENU_PLAYLIST in place (live sequence) and keeps the now-playing cursor pinned.
       for (const r of getPlaylistRects()) {
+        // Arrows first (they sit inside the row's right edge): ▲/▼ reorder the upcoming sequence.
         if (pointInRect(mouse.x, mouse.y, r.upRect))   { sound.moveMenuTrack?.(r.index, -1); persistCurrentSettings(); break }
         if (pointInRect(mouse.x, mouse.y, r.downRect)) { sound.moveMenuTrack?.(r.index, +1); persistCurrentSettings(); break }
+        // Row body → CLICK-TO-PLAY: switch the live track to this song right now (the fix for
+        // "selecting a song doesn't change what's playing" — previously the row body had no handler).
+        if (pointInRect(mouse.x, mouse.y, r.rowRect))  { sound.selectMenuTrack?.(r.index); break }
       }
       // ── SAVE DATA: Export (blob download) / Import (file picker) / Reconnect (FSA gesture) ──
       if (pointInRect(mouse.x, mouse.y, saveExportRect)) { doExportSave(); break }
@@ -13590,7 +13624,7 @@ function handleMenuClicks() {
         })
         break
       }
-      if (pointInRect(mouse.x, mouse.y, backSettingRect)) { rebindAction = null; gameState = GAME_STATES.START }
+      if (pointInRect(mouse.x, mouse.y, backSettingRect)) { rebindAction = null; _personalizeMsg = ""; gameState = GAME_STATES.START }
       break
     }
     case GAME_STATES.GAMEPLAY_SELECT: {
@@ -13784,8 +13818,8 @@ function handleMenuClicks() {
     case GAME_STATES.MATCH_END: resetToStart(); break
     case GAME_STATES.VICTORY: {
       const action = handleVictoryClick?.(victoryState, mouse, canvas)
-      if (action === "rematch") { if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match
-      if (action === "menu")    { towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
+      if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match
+      if (action === "menu")    { _recordVictoryChoice(false); towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
       if (action === "saveReplay") saveLastReplay()   // Stage 11D: download the just-finished match's replay JSON
       if (action === "changeChar") _changeCharacter()   // Stage 24C: back to select, keep mode/stage
       break
@@ -13949,6 +13983,48 @@ let _loopLast  = null
 // ctx.drawImage ONCE (below) — the counter resets each frame.
 let _debugOverlay = false
 try { _debugOverlay = new URLSearchParams(window.location.search).has("debug") } catch (_) {}
+// PERSONALITY inspector — off by default; shown via ?personality URL flag or Shift+P toggle.
+let _showPersonality = false
+try { _showPersonality = new URLSearchParams(window.location.search).has("personality") } catch (_) {}
+let _lastMatchP1Lost = false   // set at match end; gates the post-loss retry-vs-move-on Neuroticism signal
+// Emit the two-sided Neuroticism counterweight from a victory-screen choice, but ONLY after a P1
+// loss (retry = frustration/persistence +N-weak; menu = stepped away calmly -N-weak). Fires once.
+function _recordVictoryChoice(retry) {
+  if (!_lastMatchP1Lost) return
+  _lastMatchP1Lost = false
+  try { personality.recordVictoryChoice(retry) } catch (_) {}
+}
+// OPT-IN trait-informed music: reorder the menu playlist to the current player's tracked
+// Big-Five profile (musicPersonality), then (re)start it. Falls back to the default catalog
+// order when there's no confident behavioural signal yet. Returns the selection result so a
+// caller/UI can show whether personalization actually kicked in. Not run automatically — the
+// curated default playlist stays in charge until something invokes this.
+function applyPersonalizedMenu() {
+  try {
+    const res = musicPersonality.getPersonalizedMenuOrder(getCurrentAccount())
+    sound.setMenuPlaylistFiles?.(res.files)
+    sound.playMenuMusic?.()
+    return res
+  } catch (_) { return null }
+}
+// The Settings "Personalize by playstyle" button action: applies the personalized order and sets
+// the button's feedback label. Shared by the real click handler and the harness so both drive the
+// SAME path. Amber when it fell back to the default order (not enough confident play data yet).
+function _personalizeMenuAction() {
+  let res = null
+  try { res = musicPersonality.getPersonalizedMenuOrder(getCurrentAccount()) } catch (_) {}
+  if (res && res.personalized) {
+    // Only a CONFIDENT profile swaps the playlist — otherwise the curated menu is left untouched
+    // (don't replace it with 103 songs in default order just because the button was pressed).
+    try { sound.setMenuPlaylistFiles?.(res.files); sound.playMenuMusic?.() } catch (_) {}
+    _personalizeOk = true;  _personalizeMsg = `✓ Personalized · ${res.files.length} tracks`
+  } else if (res) {
+    _personalizeOk = false; _personalizeMsg = "Play more matches first — keeping current playlist"
+  } else {
+    _personalizeOk = false; _personalizeMsg = "Couldn't personalize right now"
+  }
+  return res
+}
 const _frameMs = new Float32Array(120)   // ring buffer of per-frame compute+render ms
 let _frameMsIdx = 0, _frameMsFilled = 0
 let _drawCalls = 0, _drawCallsShown = 0
@@ -14019,6 +14095,7 @@ function gameLoop(now) {
     _fps = _fpsEma
     _drawDebugOverlay()                             // drawn ON TOP (its own drawImage calls aren't counted — text only)
   }
+  if (_showPersonality) { try { personality.drawPersonalityPanel(ctx, canvas) } catch (_) {} }
   endInputFrame()
 }
 
@@ -14072,6 +14149,9 @@ window.addEventListener("keydown", e => {
   // never hijacked. "f" is not a gameplay/rebindable key (ALLOWED_KEYS excludes it), so reserving it is safe.
   if (key === "f" && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); toggleFullscreen(); return }
 
+  // PERSONALITY inspector toggle — Shift+P (Shift keeps it clear of any plain gameplay key).
+  if (key === "p" && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); _showPersonality = !_showPersonality; return }
+
   // TUTORIAL: arrow keys flip pages, Esc exits to the menu.
   if (gameState === GAME_STATES.TUTORIAL) {
     if (key === "arrowright" || key === "d") tutorialPage = Math.min(getTutorialPageCount(P1_CONTROLS) - 1, tutorialPage + 1)
@@ -14101,8 +14181,8 @@ window.addEventListener("keydown", e => {
 
   if (gameState === GAME_STATES.VICTORY) {
     const action = handleVictoryKey?.(victoryState, key)
-    if (action === "rematch") { if (towerState.active) continueTower(); else _doRematch() }   // Tower: advance floor
-    if (action === "menu")    { towerState.active = false; resetToStart() }
+    if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else _doRematch() }   // Tower: advance floor
+    if (action === "menu")    { _recordVictoryChoice(false); towerState.active = false; resetToStart() }
     return
   }
   handlePauseInput(key)
@@ -14477,6 +14557,20 @@ gameLoop()
   window.__harness = {
     version: 1,
     __sound:     sound,     // the live SoundManager singleton — lets a test spy on SFX file calls
+    // ── PERSONALITY SYSTEM harness (Big-Five trait inference) ──
+    personality: {
+      // Live per-account state (creates a scratch account if none exists so the test can drive it).
+      get:        () => { if (!getCurrentAccount()) createAccount("ptest"); const p = personality.getPersonality(); return p ? { tipiComplete: p.tipiComplete, tipi: p.tipi, summary: personality.summarize(p.traits), events: p.events.length } : null },
+      setTipi:    (items) => { if (!getCurrentAccount()) createAccount("ptest"); return personality.setTipi(items) },
+      event:      (type, ctx = {}) => { if (!getCurrentAccount()) createAccount("ptest"); return personality.recordGameplayEvent(type, ctx) },
+      match:      (matchStats, p1Won) => { if (!getCurrentAccount()) createAccount("ptest"); personality.ensureSession(); return personality.recordMatchOutcome({ matchStats, p1Won }) },
+      // Pure-engine deterministic helpers — no account, no persistence.
+      scoreTipi:  (items) => personality.scoreTipi(items),
+      simulate:   (tipiScores, events) => personality.simulate(tipiScores, events).summary,
+      confidence: (mu, sigma2) => personality.confidencePct({ mu, sigma2 }),
+      map:        () => personality.EVENT_MAP,
+      constants:  () => ({ SIGMA2_INITIAL: personality.SIGMA2_INITIAL, TRAITS: personality.TRAITS })
+    },
     // ── AUDIO-CUTOFF harness (voice/SFX stop-on-animation-end + stop-on-match-end) ──
     sfxActive: () => (sound._activeSfx ? [...sound._activeSfx].map(e => ({ file: (e.audio?.src || "").split("/").pop(), paused: !!e.audio?.paused, owned: !!e.owner, persistent: !!e.persistent })) : []),
     playSfxOwned: (file, who = "p1", persistent = false) => { const f = who === "p2" ? p2 : who === "none" ? null : p1; return !!sound.playSfxFile(file, null, { owner: f, persistent }) },   // who="none" → UNOWNED cue (models real intro/win-lines, exempt from the single-voice-channel stop)
@@ -15221,6 +15315,20 @@ gameLoop()
     menuPlaying: () => (sound?.getMenuPlaying?.() ?? null),
     menuAudio: () => ({ index: sound?._menuPlaylistIndex, active: !!sound?._menuPlaylistActive, playingFile: (sound?._musicFileSrc || "").replace(/^\.\//, ""), order: [...MENU_PLAYLIST], pointsAt: MENU_PLAYLIST[sound?._menuPlaylistIndex] }),
     menuMove: (i, dir) => (sound?.moveMenuTrack?.(i, dir) ?? null),
+    menuSelect: (i) => (sound?.selectMenuTrack?.(i) ?? null),   // click-to-play: switch the live track to playlist index i
+    menuMuted: () => ({ musicMuted: !!sound?._musicMuted, elMuted: !!sound?._musicFile?.muted, vol: sound?._musicFile?.volume ?? null }),
+    // ── TRAIT → MUSIC mapping + trait-informed selection ──
+    music: {
+      catalogSize: () => musicPersonality.SONG_CATALOG.length,
+      groups:      () => musicPersonality.groupByTrait(),
+      rank:        (profile, n = 10) => musicPersonality.rankSongsForProfile(profile).slice(0, n).map(r => ({ file: r.file, score: Math.round(r.score * 1000) / 1000 })),
+      order:       (n = 0) => musicPersonality.getPersonalizedMenuOrder(getCurrentAccount(), n),
+      apply:       () => applyPersonalizedMenu(),
+      // Settings "Personalize by playstyle" BUTTON — drives the exact click-handler path.
+      pressPersonalize: () => { const r = _personalizeMenuAction(); return { msg: _personalizeMsg, ok: _personalizeOk, personalized: !!r?.personalized, count: r?.files?.length || 0 } },
+      personalizeMsg:   () => ({ msg: _personalizeMsg, ok: _personalizeOk }),
+      visibleRows:      () => getPlaylistRects().length   // panel row-cap (≤ PLAYLIST_MAX_ROWS) so a long list can't overflow
+    },
     menuSimulateTrackEnd: () => { const f = sound?._musicFile; if (f && typeof f.onended === "function") { f.onended(); return true } return false },   // fire the auto-advance to see what plays NEXT
     // Place a fighter flying INTO the first stage hazard (real knockback + hitstun = a genuine "knocked
     // into it" state), then let the loop's updateStageHazards resolve the contact. Returns the setup.

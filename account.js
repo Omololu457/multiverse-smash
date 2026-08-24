@@ -44,7 +44,7 @@ const SAVE_PICKER_TYPES = [{ description: "Save data", accept: { "application/js
 // Save schema version (Stage 13B). Declared UP HERE (not next to migrateAccount) because the
 // auto-load-on-boot _loadFromLocalStorage() below runs at module init and calls migrateAccount(),
 // which reads SAVE_VERSION — a later const would be in the temporal dead zone and throw at import.
-export const SAVE_VERSION = 4
+export const SAVE_VERSION = 5
 
 let _fileHandle    = null                    // granted FileSystemFileHandle (null = in-memory only)
 let _writeInFlight = false                   // an async write is running now
@@ -535,7 +535,8 @@ function _accountDefaults() {
     stats:       { wins: 0, losses: 0, matches: 0, favoriteCharacter: null },
     arcade:      { clearedBy: {}, noContinueClearBy: {} },  // Stage 19D — arcade clear state (default empty)
     tower:       { clearedTiers: {} },                      // Stage 21 — tower-tier clears (for tower-gated unlocks)
-    bracket:     null                                       // Stage 24B — in-progress local tournament (null = none)
+    bracket:     null,                                      // Stage 24B — in-progress local tournament (null = none)
+    personality: {}                                         // Big-Five trait beliefs — shape owned/hydrated by personality.js
   }
 }
 // Backfill any missing group/field on an account loaded from an older save. Idempotent; never

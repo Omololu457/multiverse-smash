@@ -330,6 +330,37 @@ export const SOURCED_ART = {
     artists: ["cf2364 (sprite sheet)", "enzo (original)"],
     source:  "DeviantArt fan sprite sheet — green_lantern__hal__sprite_sheet__originalbyenzo__by_cf2364_dfirpm7.png (resliced into gl_*_uniform.png via tools/reslice_green_lantern.py)",
     files:   ["gl_*.png", "hal_sprite_*.png"]
+  },
+  // Baki Hanma (Baki) — JUS-style sheet. Filename credits srchimuelo; the sheet carries a "SPRITESHEET BY"
+  // header + a "Creditos … Give credits if use" box (verified on baki/baki_hanma_jus_sheet_by_srchimuelo_dfelcrv.png).
+  baki: {
+    work:    "Baki Hanma (Baki the Grappler)",
+    artists: ["srchimuelo (sheet)", "Creed", "AaronEvies", "(Zarti)x", "Aagus", "Jojolion"],
+    source:  "JUS-style fan sprite sheet (baki_hanma_jus_sheet_by_srchimuelo_dfelcrv.png; on-sheet 'Give credits if use' Creditos box)",
+    files:   ["baki_*.png", "baki_hanma_jus_sheet_*.png"]
+  },
+  // Kurapika (Hunter x Hunter) — JUS-style sheet; filename credits ultimos60 (DeviantArt d863gca).
+  kurapika: {
+    work:    "Kurapika (Hunter x Hunter)",
+    artists: ["ultimos60"],
+    source:  "JUS-style fan sprite sheet (kurapika_kurta_jus_style_spritesheet_by_ultimos60_d863gca.jpg; resliced into kurapika_row_*.png / *_uniform.png)",
+    files:   ["kurapika_*.png", "kurapika_row_*.png"]
+  },
+  // Pain / Tendo (Naruto) — NZC-style sheet; the resliced files carry a baked '__goldenrikudou' provenance tag.
+  pain: {
+    work:    "Pain (Tendo / Deva Path, Naruto)",
+    artists: ["goldenrikudou"],
+    source:  "NZC-style fan sprite sheet (uniform files tagged pain_*_uniform__goldenrikudou.png)",
+    files:   ["pain_*.png", "p1_pain_*.png", "p3_pain_*.png"]
+  },
+  // Yamamoto Genryusai (Bleach) — ripped from the Nintendo DS game 'Bleach: Dark Souls' (source filename
+  // 'DS___DSi_-_Bleach__Dark_Souls_-_Characters_-_Genryusai_Shigekuni_Yamamoto.png', The-Spriters-Resource
+  // style). Original game art is © Treasure / Sega; the individual ripper is NOT named on the file.
+  yamamoto: {
+    work:    "Genryusai Yamamoto (Bleach)",
+    artists: ["Treasure / Sega (original 'Bleach: Dark Souls' DS game art)", "sprite-rip author UNKNOWN (not named on the source file)"],
+    source:  "Nintendo DS 'Bleach: Dark Souls' game rip (DS___DSi_-_Bleach__Dark_Souls_-_Characters_-_Genryusai_Shigekuni_Yamamoto.png)",
+    files:   ["yamamoto_*.png", "Bleach_Dark_Souls_*Yamamoto*.png"]
   }
 }
 
@@ -347,6 +378,14 @@ export const PROJECT_ART_KEYS = [
   "omega_ranger", "samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger",
   "netero", "saiki", "killua", "flash", "gon", "batman", "hisoka", "superman",
   "chrollo", "ghostface", "miwa", "ichigo", "zaraki", "zaraki_shikai",
+  // Toji Fushiguro (JJK) — JUS-style sheet titled only "Toji sprite jus sheet"; VERIFIED to carry NO
+  // artist/ripper/watermark text anywhere on-sheet or in any (generic toji_*.png) filename. A real,
+  // confirmed absence of credit info → project-adapted bucket (no name to attribute rather than a guess).
+  "toji",
+  // Ghostface Billy (Scream variant crew) — has NO art of its own; every variant renders on the shared
+  // base `ghostface` uniform sheets (see ghostfaceVariantKit.js placeholder note). Inherits ghostface's
+  // (already project-adapted) provenance — nothing new to attribute.
+  "ghostface_billy",
   // Orochimaru — NZC-style fan sprite sheet (same family as the other Naruto chars), resliced in-repo
   // by tools/reslice_orochimaru.py. Raw sheets shipped generic p1_/p2_ names with NO baked artist text;
   // provenance not individually documented → project-adapted bucket. Move to SOURCED_ART if an artist surfaces.

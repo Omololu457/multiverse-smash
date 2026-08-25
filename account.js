@@ -44,7 +44,7 @@ const SAVE_PICKER_TYPES = [{ description: "Save data", accept: { "application/js
 // Save schema version (Stage 13B). Declared UP HERE (not next to migrateAccount) because the
 // auto-load-on-boot _loadFromLocalStorage() below runs at module init and calls migrateAccount(),
 // which reads SAVE_VERSION — a later const would be in the temporal dead zone and throw at import.
-export const SAVE_VERSION = 5
+export const SAVE_VERSION = 6
 
 let _fileHandle    = null                    // granted FileSystemFileHandle (null = in-memory only)
 let _writeInFlight = false                   // an async write is running now
@@ -536,7 +536,8 @@ function _accountDefaults() {
     arcade:      { clearedBy: {}, noContinueClearBy: {} },  // Stage 19D — arcade clear state (default empty)
     tower:       { clearedTiers: {} },                      // Stage 21 — tower-tier clears (for tower-gated unlocks)
     bracket:     null,                                      // Stage 24B — in-progress local tournament (null = none)
-    personality: {}                                         // Big-Five trait beliefs — shape owned/hydrated by personality.js
+    personality: {},                                        // Big-Five trait beliefs — shape owned/hydrated by personality.js
+    music:       { customPlaylist: [], activeSource: "default" }  // player-authored playlist + active menu-music source (default|personalized|custom)
   }
 }
 // Backfill any missing group/field on an account loaded from an older save. Idempotent; never
@@ -577,6 +578,20 @@ export function createAccount(username) {
 
 export function getCurrentAccount() {
   return _currentId ? (_store.get(_currentId) || null) : null
+}
+
+// Guest-safe persistence. The game is playable with no explicit profile, but the no-account path kept
+// progression / unlocks / personality / stats in memory only (progression.js: `if (!acct) return` — lost
+// on restart). This guarantees a local profile ALWAYS exists so EVERY player's progress persists through
+// the SAME account→localStorage pipeline as everything else (one consolidated store — no separate guest
+// system). A named profile (create/switch on the Account screen) still works on top: it just replaces the
+// default. Idempotent — safe to call once at boot.
+export const DEFAULT_USERNAME = "Player"
+export function ensureDefaultAccount() {
+  if (_currentId && _store.has(_currentId)) return getCurrentAccount()   // a current profile already exists
+  const existing = _store.size ? Array.from(_store.values())[0] : null   // adopt an orphaned/first profile if any
+  if (existing) { _currentId = existing.accountId; return existing }
+  return createAccount(DEFAULT_USERNAME)                                 // else create + persist the default profile
 }
 
 export function setCurrentAccount(accountId) {

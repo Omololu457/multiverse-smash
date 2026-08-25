@@ -16,7 +16,7 @@ import {
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
   clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount, getPlayerGamepad,
-  readRawControls, writeRawControls
+  readRawControls, writeRawControls, pollMenuGamepad, padGlyphs
 } from "./input.js"
 import * as replay from "./replay.js"   // Stage 11B: input recording (replay foundation)
 import {
@@ -253,6 +253,7 @@ import {
   CHAR_GRID_OPTS, UNIVERSE_GRID_OPTS, charSelectGridOpts, getSelectDetailRect, scrollGridBy, setGridScroll, getGridScrollbar, getGridViewport, pickGridCard, resetGridScroll,
   getMainMenuRects, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton,
   drawCreditsScreen,
+  drawProfileScreen, getProfileBackButton, drawCodexScreen, getCodexBackButton, codexLayout,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
   drawAccountScreen, getAccountButtons,
@@ -261,7 +262,7 @@ import {
 } from "./ui.js"
 import { CREDITS, SOURCED_ART, artistLineForCharacter, allAttributedKeys } from "./credits.js"
 import { poolAcquire, poolRelease, poolStats, poolResetStats } from "./pool.js"
-import { createAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, isFileApiSupported, hasPersistedData, persistence, setSnapshotDecorator,
+import { createAccount, ensureDefaultAccount, getCurrentAccount, isValidUsername, listAccounts, connectSaveFile, isFileConnected, isFileApiSupported, hasPersistedData, persistence, setSnapshotDecorator,
   initSaveServerTier, isSaveServerAvailable, reattachStoredHandle, reconnectSaveFile, needsReconnect, saveFileStatus, exportSaveText, exportSaveFilename, importSaveText } from "./account.js"
 import {
   awardMatchXp, awardXp, getLevel, xpProgress, isUnlocked, requiredLevel,
@@ -285,6 +286,8 @@ import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
 import * as personality from "./personality.js"   // Big-Five trait inference from in-game behaviour (TIPI prior + Bayesian refinement)
 import * as musicPersonality from "./musicPersonality.js"   // trait→music mapping + trait-informed song selection
+import * as musicLibrary from "./musicLibrary.js"           // full song library + player-authored custom playlist + active-source resolution
+import * as challenges from "./challenges.js"               // skill-based challenges + trait-tagged recommendations + skin rewards
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
 import { recordMotionInput, detectMotion, getRecentMotions } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
@@ -497,8 +500,24 @@ import {
 // ------------------------------------------------------------------
 const canvas = document.getElementById("gameCanvas")
 const ctx    = canvas.getContext("2d")
-canvas.width  = window.innerWidth
-canvas.height = window.innerHeight
+// ── UI / DISPLAY SCALE (Part 3 #13, accessibility) ──
+// The canvas element is CSS 100vw×100vh, so its BACKING resolution can be smaller than the display and
+// the browser upscales it — meaning fewer logical pixels = a bigger UI/game. uiScale divides the backing
+// resolution: 1.0 = native, 1.25 = everything ~25% larger. Persisted in localStorage (self-contained;
+// no account/save coupling). The mouse mapping in input.js scales clientX by canvas.width/rect.width, so
+// hitboxes stay correct at any scale (no-op at 1.0).
+const UI_SCALE_MIN = 0.8, UI_SCALE_MAX = 1.4, UI_SCALE_STEP = 0.1
+let uiScale = (() => { try { const v = parseFloat(localStorage.getItem("ms_ui_scale")); return (v >= UI_SCALE_MIN && v <= UI_SCALE_MAX) ? v : 1 } catch (_) { return 1 } })()
+function _applyCanvasSize() {
+  canvas.width  = Math.max(640, Math.round(window.innerWidth  / uiScale))
+  canvas.height = Math.max(360, Math.round(window.innerHeight / uiScale))
+}
+function setUiScale(v) {
+  uiScale = Math.max(UI_SCALE_MIN, Math.min(UI_SCALE_MAX, Math.round(v * 100) / 100))
+  try { localStorage.setItem("ms_ui_scale", String(uiScale)) } catch (_) {}
+  applyViewportSize()   // re-lay the world/camera to the new backing resolution
+}
+_applyCanvasSize()
 setupMouseInput(canvas)
 
 // SAVE FILE picker must fire from a REAL user gesture (transient activation) — the
@@ -540,6 +559,10 @@ canvas.addEventListener("wheel", e => {
     creditsScroll = Math.max(0, Math.min(_creditsMaxScroll(), creditsScroll + e.deltaY))
     return
   }
+  // MUSIC_LIBRARY (custom-playlist builder) consumes wheel to scroll the 103-song list.
+  if (gameState === GAME_STATES.MUSIC_LIBRARY) { e.preventDefault(); _mlScrollBy(e.deltaY); return }
+  // CODEX consumes wheel to scroll the franchise-grouped fighter list.
+  if (gameState === GAME_STATES.CODEX) { e.preventDefault(); codexScroll = Math.max(0, Math.min(_codexMaxScroll(canvas), codexScroll + e.deltaY)); return }
   const g = activeScrollGrid()
   if (!g) return
   e.preventDefault()   // keep the page from scrolling; the grid consumes the delta
@@ -550,6 +573,12 @@ canvas.addEventListener("wheel", e => {
 // hit-test uses (kept current by setupMouseInput's mousemove handler).
 let _gridDrag = null   // { g, grabY, startOffset, range } while dragging the thumb
 canvas.addEventListener("mousedown", () => {
+  // MUSIC_LIBRARY scrollbar thumb drag (its own scroll model — not a card grid).
+  if (gameState === GAME_STATES.MUSIC_LIBRARY) {
+    const L = getMusicLibraryLayout()
+    if (L.maxScroll > 0 && pointInRect(mouse.x, mouse.y, L.thumb)) _mlDrag = { grabY: mouse.y, startScroll: L.scroll }
+    return
+  }
   const g = activeScrollGrid()
   if (!g) return
   const bar = getGridScrollbar(g.roster.length, canvas, g.opts)
@@ -564,12 +593,18 @@ canvas.addEventListener("mousedown", () => {
   }
 })
 canvas.addEventListener("mousemove", () => {
+  if (_mlDrag && gameState === GAME_STATES.MUSIC_LIBRARY) {
+    const L = getMusicLibraryLayout()
+    const range = Math.max(1, L.track.h - L.thumb.h)
+    _mlScroll = Math.max(0, Math.min(L.maxScroll, _mlDrag.startScroll + ((mouse.y - _mlDrag.grabY) / range) * L.maxScroll))
+    return
+  }
   if (!_gridDrag) return
   const { g, grabY, startOffset, range, maxOffset } = _gridDrag
   const target = startOffset + ((mouse.y - grabY) / range) * maxOffset
   setGridScroll(g.opts.scrollKey, target, g.roster.length, canvas, g.opts)
 })
-const _endGridDrag = () => { _gridDrag = null }
+const _endGridDrag = () => { _gridDrag = null; _mlDrag = null }
 window.addEventListener("mouseup", _endGridDrag)
 canvas.addEventListener("mouseleave", _endGridDrag)
 
@@ -652,6 +687,9 @@ function hydrateFromLoadedSave() {
     audioSettings.sfxMuted   = !!acct.settings.sfxMuted    // keep the Settings-screen mirror in sync
     audioSettings.musicMuted = !!acct.settings.musicMuted
   }
+  // Restore the player's chosen menu-music SOURCE (default / personalized / custom) across sessions —
+  // so a saved custom playlist actually plays on the next launch, not just after re-selecting it.
+  try { if (acct) applyActiveMusicSource() } catch (_) {}
 }
 
 // ------------------------------------------------------------------
@@ -709,7 +747,10 @@ const GAME_STATES = {
   VICTORY:          "victory",
   INTRO:            "intro",
   ONLINE_PLACEHOLDER: "onlinePlaceholder",   // dev-unlocked Online stub (no netcode)
-  STORY_MODE:         "storyMode"            // Stage 14: UI placeholder only (styled "coming soon" card)
+  STORY_MODE:         "storyMode",           // Stage 14: UI placeholder only (styled "coming soon" card)
+  MUSIC_LIBRARY:      "musicLibrary",        // full-screen custom-playlist builder (scrollable 103-song checklist)
+  PROFILE:            "profile",             // Part 1 #3: Big-Five personality radar (from main menu + pause)
+  CODEX:              "codex"                // Part 1 #4: browsable per-fighter dossier, grouped by franchise
 }
 
 // ------------------------------------------------------------------
@@ -786,10 +827,12 @@ const resetBindRect = () => ({ x: canvas.width / 2 - 110, y: KEYBIND_Y0 + Math.c
 // Menu-music playlist reorder panel — sits in the LEFT margin (left of the centered
 // keybind grid, which starts at cx-270), so it never overlaps existing controls. One
 // row per MENU_PLAYLIST track with ▲/▼ buttons; clicking swaps order via sound.moveMenuTrack.
-const PLAYLIST_X0 = 24, PLAYLIST_W = 330, PLAYLIST_Y0 = KEYBIND_Y0, PLAYLIST_ROW_H = 34, PLAYLIST_BTN = 26
-// Cap visible rows so a long (e.g. personalized 103-track) playlist can't overflow the panel.
+// Left-margin music panel. PLAYLIST_Y0 is pushed below the MUSIC SOURCE selector + Build button
+// that now sit above it (decoupled from KEYBIND_Y0 on purpose).
+const PLAYLIST_X0 = 24, PLAYLIST_W = 330, PLAYLIST_Y0 = 392, PLAYLIST_ROW_H = 34, PLAYLIST_BTN = 26
+// Cap visible rows so a long (e.g. personalized/custom 103-track) playlist can't overflow the panel.
 // The full list still plays in order — the panel just shows the head with a "+N more" footer.
-const PLAYLIST_MAX_ROWS = 9
+const PLAYLIST_MAX_ROWS = 7
 function getPlaylistRects() {
   const rects = []
   const shown = Math.min(MENU_PLAYLIST.length, PLAYLIST_MAX_ROWS)
@@ -974,9 +1017,18 @@ let hoverThrottle  = 0
 const comboDisplay = {
   // pop = per-increment scale punch (kicked to 1 each time the count climbs, decays each frame);
   // prevCount tracks the last displayed count so we only punch on a genuine new hit.
-  p1: { opacity: 0, fadeDir: "out", lastCount: 0, holdTimer: 0, pop: 0, prevCount: 0 },
-  p2: { opacity: 0, fadeDir: "out", lastCount: 0, holdTimer: 0, pop: 0, prevCount: 0 }
+  p1: { opacity: 0, fadeDir: "out", lastCount: 0, holdTimer: 0, pop: 0, prevCount: 0, rankTier: 0, rankFlash: 0, rankText: "" },
+  p2: { opacity: 0, fadeDir: "out", lastCount: 0, holdTimer: 0, pop: 0, prevCount: 0, rankTier: 0, rankFlash: 0, rankText: "" }
 }
+// Combo rank milestones (Part 3 #4) — a punchy callout that fires as the count crosses each tier, on
+// top of the existing size/color escalation. tier index = how many thresholds crossed.
+const COMBO_RANKS = [
+  { at: 5,  text: "NICE!",    color: "#ffd24a" },
+  { at: 8,  text: "GREAT!",   color: "#ff8a3d" },
+  { at: 12, text: "BRUTAL!",  color: "#ff5a3d" },
+  { at: 16, text: "SAVAGE!",  color: "#ff4d6d" },
+  { at: 20, text: "GODLIKE!", color: "#c04bff" }
+]
 
 const allCharacterKeys = Object.keys(characters).filter(k => !characters[k].hidden)
 const universeMap      = buildUniverseMap()
@@ -3574,6 +3626,29 @@ function handleAccountTyping(e) {
   }
 }
 
+// VICTORY FLAVOR LINE source (Part 1 #5). Returns a short, character-voiced line from already-written
+// material: the fighter's passive bio first (only ~51 of the roster define one), else the first sentence
+// of their arcade epilogue (endingSlidesFor always resolves one, generic fallback included) so EVERY
+// character yields a real line and the win screen is never blank. `usesFallback` is exposed to the
+// harness so we can flag which characters lack a hand-written passive bio.
+function victoryFlavorLine(key) {
+  return _victoryFlavor(key).line
+}
+function _victoryFlavor(key) {
+  const c = characters[key]
+  let src = c?.passive?.effect ? String(c.passive.effect).trim() : ""
+  let usesFallback = false
+  if (!src) {
+    usesFallback = true
+    try { src = (endingSlidesFor(key, characters)?.[0]?.text || "").trim() } catch (_) { src = "" }
+  }
+  if (!src) return { line: "", usesFallback: true }
+  // First sentence only, capped so it reads as one clean line under the winner name.
+  let line = src.split(/(?<=[.!?])\s+/)[0].trim()
+  if (line.length > 118) line = line.slice(0, 116).replace(/[\s,;:.—-]+\S*$/, "").trim() + "…"
+  return { line, usesFallback }
+}
+
 function _checkMatchOver() {
   // INSTANT MATCH-END OVERRIDE (Gon Adult Form sudden-death) is checked INDEPENDENTLY of — not as an
   // addition alongside — the normal roundWins/MAX_ROUNDS gate: when `_matchOverride` is set the match
@@ -3599,6 +3674,11 @@ function _checkMatchOver() {
       winner === "p1" ? (p1?.name || "Player 1")
       : winner === "p2" ? (p2?.name || (isPvP() ? "Player 2" : "CPU"))
       : "Draw"
+    // VICTORY FLAVOR LINE (Part 1 #5): a short character-voiced line under the winner name instead of a
+    // bare "WINNER". Pulled from already-written material — the fighter's passive bio, else their arcade
+    // epilogue (every roster key resolves one via endingSlidesFor's generic fallback). Never blank.
+    const winnerKey = winner === "p1" ? matchConfig.p1CharKey : winner === "p2" ? matchConfig.p2CharKey : null
+    victoryState.flavorLine = winnerKey ? victoryFlavorLine(winnerKey) : ""
     // WIN/LOSE POSE (Stage 8): pose the winner + loser via _forceAction, gated on the fighter defining a
     // win/lose animationData clip (currently only Nezuko — roster-safe no-op for everyone else). Fighters are
     // recreated on rematch, so the override never leaks past this match. See NEZUKO_ASSET_MAP.md.
@@ -3629,8 +3709,21 @@ function _checkMatchOver() {
       // style → Extraversion, composure closing out a contested win → Neuroticism(-).
       _lastMatchP1Lost = !p1Won
       try { personality.ensureSession(); personality.recordMatchOutcome({ matchStats, p1Won }) } catch (_) {}
+      // CHALLENGES: evaluate this match against the challenge list (grants XP + skin rewards
+      // on completion). Universe = P1's character's franchise (for the same-franchise challenge).
+      try {
+        const uni = characters[p1?.rosterKey || p1?.key]?.universe || null
+        victoryState.challengesDone = challenges.recordMatch({ won: p1Won, stats: matchStats?.p1 || {}, universe: uni })
+      } catch (_) {}
       // Stage 21: any CHARACTER whose level-gate was crossed this match → victory-screen "NEW FIGHTER" note.
       victoryState.charUnlocks = charactersUnlockedBetween(beforeLevel, victoryState.xpResult.level, characters)
+      // UNLOCK TOASTS (Part 3 #17): surface each real unlock as a slide-in notification that carries
+      // from the victory screen into the menus. Sources: fighters, features, and completed challenges.
+      try {
+        for (const key of (victoryState.charUnlocks || [])) pushToast(`New fighter: ${characters[key]?.name || key}!`, { accent: "#fbbf24", icon: "★" })
+        for (const f of (victoryState.xpResult?.newUnlocks || [])) pushToast(`Feature unlocked: ${f.label}`, { accent: "#7dd3fc", icon: "✦" })
+        for (const c of (victoryState.challengesDone || [])) pushToast(`Challenge complete: ${c.label || c.id}`, { accent: "#86efac", icon: "✓" })
+      } catch (_) {}
     }
     if (towerState.active) {
       updateTowerOutcome(winner)
@@ -4119,6 +4212,8 @@ function handlePauseInput(key) {
     const sel = PAUSE_MENU_ITEMS[pauseMenuIndex]
     if (sel === "resume")       gameState = stateBeforePause || GAME_STATES.BATTLE
     else if (sel === "restartRound") { gameState = stateBeforePause || GAME_STATES.BATTLE; resetRound() }
+    else if (sel === "profile")  openProfileScreen(GAME_STATES.PAUSED)   // BACK returns to the pause menu (match stays frozen)
+    else if (sel === "codex")    openCodexScreen(GAME_STATES.PAUSED)
     else if (sel === "trainingMode") {
       // Jump into a training session from a live match: flip the match to training +
       // force the dummy CPU, then reuse the SAME setup path the GAMEPLAY_SELECT flow
@@ -10441,11 +10536,15 @@ function updateComboDisplay(fighter, side) {
   if (count >= 2) {
     if (count > ds.prevCount) ds.pop = 1          // new hit landed → punch the number
     ds.lastCount = count; ds.holdTimer = 30; ds.fadeDir = "in"
+    // Rank milestone: fire a callout each time the count crosses a new tier this combo.
+    const tier = COMBO_RANKS.filter(r => count >= r.at).length
+    if (tier > ds.rankTier) { ds.rankTier = tier; ds.rankFlash = 1; ds.rankText = COMBO_RANKS[tier - 1].text; ds.rankColor = COMBO_RANKS[tier - 1].color }
   }
   else if (ds.holdTimer > 0) ds.holdTimer--
-  else ds.fadeDir = "out"
+  else { ds.fadeDir = "out"; ds.rankTier = 0 }     // combo dropped → reset milestone tracking
   ds.prevCount = count
   ds.pop = Math.max(0, (ds.pop || 0) - 0.12)       // decay the scale punch each frame
+  ds.rankFlash = Math.max(0, (ds.rankFlash || 0) - 0.02)   // ~0.8s callout
   ds.opacity = ds.fadeDir === "in"
     ? Math.min(1, (ds.opacity || 0) + 1 / 6)
     : Math.max(0, (ds.opacity || 0) - 1 / 30)
@@ -11399,8 +11498,85 @@ function _drawOnlinePlaceholder() {
 }
 
 // Progression badge (Task 3): level + XP bar + the explicit non-persistence notice.
+// Controller-aware CONTROL_REFERENCE (Part 3 #26): clone the static reference but rebuild its
+// `controller` rows from the connected pad's glyph set so the MOVE LIST controls match the real device.
+function _controlRefForPad() {
+  const G = padGlyphs()
+  return {
+    ...CONTROL_REFERENCE,
+    controller: [
+      ["Move / Jump",      "L-Stick / D-Pad"],
+      ["Light",            G.down],
+      ["Heavy",            G.left],
+      ["Special",          G.up],
+      ["Dash",             G.right],
+      ["Ultimate",         `${G.l2} / ${G.r2}`],
+      ["Grab",             G.l1],
+      ["Charge / Omnitrix", G.r1]
+    ]
+  }
+}
+
+// ── UNLOCK TOASTS (Part 3 #17) — slide-in notifications for newly unlocked content. A small queue of
+// pills that slide in from the right, hold, then slide out; drawn as a global overlay so they persist
+// from the victory screen back into the menus. Hooks REAL unlock events (char/feature/challenge). ──
+const _toasts = []
+function pushToast(text, opts = {}) {
+  if (!text) return
+  // De-dupe an identical toast already in flight (avoid double-fires on re-entry).
+  if (_toasts.some(t => t.text === text)) return
+  _toasts.push({ text, accent: opts.accent || "#fbbf24", icon: opts.icon || "★", life: 0, ttl: opts.ttl || 240 })
+  if (_toasts.length > 5) _toasts.shift()   // cap the stack
+}
+function _drawToasts() {
+  if (!_toasts.length) return
+  const cw = canvas.width
+  const W = 320, H = 46, gap = 10, margin = 20
+  let y = 84
+  ctx.save()
+  ctx.textBaseline = "middle"
+  for (let i = _toasts.length - 1; i >= 0; i--) {
+    const t = _toasts[i]
+    t.life++
+    if (t.life > t.ttl) { _toasts.splice(i, 1); continue }
+    const slideIn  = Math.min(1, t.life / 16)
+    const slideOut = Math.min(1, Math.max(0, (t.ttl - t.life) / 16))
+    const app = Math.min(slideIn, slideOut)                       // 0..1 appearance
+    const eased = 1 - Math.pow(1 - app, 3)
+    const x = cw - margin - W * eased + (1 - eased) * 12          // slide from the right
+    const alpha = app
+    ctx.globalAlpha = alpha
+    _bevelPath(ctx, x, y, W, H, 10); ctx.fillStyle = "rgba(10,16,32,0.94)"; ctx.fill()
+    ctx.save(); ctx.shadowBlur = 12; ctx.shadowColor = t.accent; ctx.strokeStyle = t.accent; ctx.lineWidth = 1.5; _bevelPath(ctx, x, y, W, H, 10); ctx.stroke(); ctx.restore()
+    ctx.fillStyle = t.accent; ctx.fillRect(x + 4, y + 6, 3, H - 12)   // accent bar
+    ctx.textAlign = "left"
+    ctx.font = "800 18px Arial"; ctx.fillStyle = t.accent; ctx.fillText(t.icon, x + 16, y + H / 2)
+    ctx.font = "700 13px Arial"; ctx.fillStyle = "#eef4ff"
+    // Clip the text to the pill width.
+    ctx.save(); ctx.beginPath(); ctx.rect(x + 38, y, W - 48, H); ctx.clip()
+    ctx.fillText(t.text, x + 40, y + H / 2)
+    ctx.restore()
+    y += H + gap
+  }
+  ctx.restore()
+}
+
+// XP badge fill/flash animation state (Part 3 #35). `disp` = the eased bar fill chasing the real pct;
+// `flash` = a decaying gold glow kicked when the level climbs since we last drew the badge. The badge
+// is off-screen during a match, so on returning to the menu the bar visibly fills to its new value and,
+// if a level was earned, flashes "LEVEL UP".
+const _xpBadge = { disp: null, level: null, flash: 0 }
 function _drawProgressionBadge() {
   const pr = xpProgress()
+  if (_xpBadge.disp == null) { _xpBadge.disp = pr.pct; _xpBadge.level = pr.level }
+  if (pr.level > _xpBadge.level) { _xpBadge.flash = 1; _xpBadge.disp = 0 }   // leveled up → refill from empty + flash
+  else if (pr.level < _xpBadge.level) { _xpBadge.disp = pr.pct }             // reset/prestige → snap
+  _xpBadge.level = pr.level
+  _xpBadge.disp += (pr.pct - _xpBadge.disp) * 0.08                            // ease toward the real fill
+  if (Math.abs(pr.pct - _xpBadge.disp) < 0.004) _xpBadge.disp = pr.pct
+  _xpBadge.flash = Math.max(0, _xpBadge.flash - 0.012)                        // ~1.4s decay
+  const flash = _xpBadge.flash, pulse = 0.6 + 0.4 * Math.sin(globalFrameCount * 0.3)
+
   const x = 24, y = canvas.height - 72, w = 300, h = 48
   ctx.save()
   ctx.textAlign = "left"; ctx.textBaseline = "middle"
@@ -11409,12 +11585,20 @@ function _drawProgressionBadge() {
     ctx.fillText("Progress is session-only — not saved across reloads (no backend yet)", x, y - 10)
   }
   ctx.fillStyle = "rgba(8,14,30,0.82)"; ctx.fillRect(x, y, w, h)
-  ctx.strokeStyle = "rgba(150,180,255,0.30)"; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h)
+  // Panel edge brightens + glows gold during the level-up flash.
+  if (flash > 0.01) { ctx.save(); ctx.shadowBlur = 18 * flash * pulse; ctx.shadowColor = "#fbbf24"; ctx.strokeStyle = `rgba(251,191,36,${0.3 + 0.7 * flash})`; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h); ctx.restore() }
+  else { ctx.strokeStyle = "rgba(150,180,255,0.30)"; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h) }
   ctx.fillStyle = "#fbbf24"; ctx.font = "700 18px Arial"; ctx.fillText("LV " + pr.level, x + 12, y + 15)
   ctx.fillStyle = "#cbd5e1"; ctx.font = "12px Arial"; ctx.fillText(`${pr.into} / ${pr.need} XP`, x + 70, y + 15)
+  // "LEVEL UP!" tag during the flash.
+  if (flash > 0.01) { ctx.save(); ctx.textAlign = "right"; ctx.font = "800 13px Arial"; ctx.fillStyle = `rgba(253,224,71,${flash})`; ctx.shadowBlur = 10 * flash; ctx.shadowColor = "#f59e0b"; ctx.fillText("LEVEL UP!", x + w - 12, y + 15); ctx.restore() }
   const bx = x + 12, by = y + 28, bw = w - 24, bh = 7
   ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fillRect(bx, by, bw, bh)
-  ctx.fillStyle = "#fbbf24"; ctx.fillRect(bx, by, bw * Math.max(0, Math.min(1, pr.pct)), bh)
+  const fillW = bw * Math.max(0, Math.min(1, _xpBadge.disp))
+  if (flash > 0.01) { ctx.shadowBlur = 10 * flash * pulse; ctx.shadowColor = "#fbbf24" }
+  ctx.fillStyle = "#fbbf24"; ctx.fillRect(bx, by, fillW, bh)
+  // Bright leading edge on the filling bar.
+  if (fillW > 2) { ctx.fillStyle = `rgba(255,255,255,${0.5 + 0.5 * flash})`; ctx.fillRect(bx + fillW - 2, by, 2, bh) }
   ctx.restore()
 }
 
@@ -12757,6 +12941,23 @@ function _drawComboCounters() {
     ctx.fillStyle = "rgba(240,244,248,0.9)"
     ctx.shadowBlur = 6; ctx.shadowColor = "rgba(0,0,0,0.8)"
     ctx.fillText("H I T   C O M B O", baseX, uy + labelSize)
+
+    // Rank milestone callout (Part 3 #4) — punchy scale-in tag above the number as tiers are crossed.
+    const rf = ds.rankFlash || 0
+    if (rf > 0.01 && ds.rankText) {
+      const rc = ds.rankColor || "#ffd24a"
+      const rSize = base * 0.5 * (1 + (1 - rf) * 0.0 + rf * 0.35)   // punch-in as it fires, settles as it fades
+      ctx.save()
+      ctx.globalAlpha = Math.max(0, Math.min(1, rf * 1.4)) * Math.max(0, ds.opacity)
+      ctx.translate(baseX, baseY - 14 - fontSize * 0.62)
+      ctx.transform(1, 0, slant, 1, 0, 0)
+      ctx.font = `900 ${rSize}px Arial`
+      ctx.lineJoin = "round"; ctx.lineWidth = Math.max(2, rSize * 0.08); ctx.strokeStyle = "rgba(6,8,12,0.92)"
+      ctx.strokeText(ds.rankText, 0, 0)
+      ctx.shadowBlur = 14 + rf * 16; ctx.shadowColor = rc; ctx.fillStyle = rc
+      ctx.fillText(ds.rankText, 0, 0)
+      ctx.restore()
+    }
     ctx.restore()
   }
 }
@@ -13061,6 +13262,12 @@ const backSettingRect = { x: window.innerWidth / 2 - 100, y: 686, w: 200, h: 44 
 const audioSettings   = { sfxMuted: false, musicMuted: false }
 const sfxToggleRect   = { x: window.innerWidth / 2 - 200, y: 302, w: 196, h: 30 }
 const musicToggleRect = { x: window.innerWidth / 2 + 4,   y: 302, w: 196, h: 30 }
+// UI / DISPLAY SCALE stepper (Part 3 #13) — TOP-RIGHT corner (mirrors the SAVE DATA panel top-left;
+// the left/center columns are taken by save + music + keybinds). −/+ steppers keep it accessible and
+// hitbox-simple (no drag). Positions are set by _layoutSettings so they track the canvas width.
+const uiScaleMinusRect = { x: 0, y: 156, w: 36,  h: 32 }
+const uiScaleValueRect = { x: 0, y: 156, w: 108, h: 32 }
+const uiScalePlusRect  = { x: 0, y: 156, w: 36,  h: 32 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -13070,9 +13277,24 @@ let _saveImportInput = null   // lazily-created hidden <input type=file> for Imp
 let _saveUiMsg = ""           // transient feedback ("Exported." / "Imported N profile(s)." / error)
 // "Personalize by playstyle" — reorders the menu playlist to the player's tracked Big-Five
 // profile (musicPersonality). Sits just above the playlist panel; feedback line below it.
-const personalizeRect = { x: PLAYLIST_X0, y: 300, w: PLAYLIST_W, h: 30 }
-let _personalizeMsg = ""       // result shown in the button label after a click
-let _personalizeOk = false     // true = personalized (green), false = fell back / info (amber)
+// MUSIC SOURCE selector (Default / Personalized / My Playlist) + Build-playlist button — sit above
+// the reorder panel. The active source is highlighted; feedback shares the label line above them.
+const MUSIC_SRC_Y = 302, MUSIC_SRC_H = 26
+function getMusicSourceRects() {
+  const gap = 6, w = (PLAYLIST_W - gap * 2) / 3
+  return [
+    { source: "default",      label: "Default",      x: PLAYLIST_X0,                 y: MUSIC_SRC_Y, w, h: MUSIC_SRC_H },
+    { source: "personalized", label: "Personalized", x: PLAYLIST_X0 + (w + gap),     y: MUSIC_SRC_Y, w, h: MUSIC_SRC_H },
+    { source: "custom",       label: "My Playlist",  x: PLAYLIST_X0 + (w + gap) * 2, y: MUSIC_SRC_Y, w, h: MUSIC_SRC_H }
+  ]
+}
+const buildPlaylistRect = { x: PLAYLIST_X0, y: 336, w: PLAYLIST_W, h: 26 }
+let _musicSourceMsg = ""       // feedback shown above the source buttons after a selection
+let _musicSourceOk = false     // true = source applied (green), false = fell back to default (amber)
+// Custom-playlist builder (MUSIC_LIBRARY screen) working state.
+let _mlSel = new Set()         // working selection of filenames (pre-loaded from the saved custom list)
+let _mlScroll = 0              // pixel scroll offset into the 103-song list
+let _mlDrag = null             // { grabY, startScroll } while dragging the scrollbar thumb
 // Keep the settings rects centered on the CURRENT canvas + the BACK button always
 // on-screen (bottom-anchored) so nothing clips at smaller window sizes. Called by
 // both the render and the click handler so they stay in sync.
@@ -13084,6 +13306,11 @@ function _layoutSettings() {
   musicToggleRect.x = cx + 4
   backSettingRect.x = cx - 100
   backSettingRect.y = Math.min(686, canvas.height - 56)
+  // UI-scale stepper: top-right corner (mirrors SAVE DATA top-left).
+  const rx = canvas.width - 214
+  uiScaleMinusRect.x = rx
+  uiScaleValueRect.x = rx + 40
+  uiScalePlusRect.x  = rx + 152
 }
 
 function drawSettingsScreen() {
@@ -13139,6 +13366,25 @@ function drawSettingsScreen() {
   drawAudioToggle(sfxToggleRect,   "Sound Effects", audioSettings.sfxMuted)
   drawAudioToggle(musicToggleRect, "Music",         audioSettings.musicMuted)
 
+  // ── UI / Display scale (Part 3 #13, accessibility) — −/+ stepper in the left column ──
+  ctx.textAlign = "left"
+  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"
+  ctx.fillText("UI / DISPLAY SCALE", uiScaleMinusRect.x, uiScaleMinusRect.y - 12)
+  const atMin = uiScale <= UI_SCALE_MIN + 1e-6, atMax = uiScale >= UI_SCALE_MAX - 1e-6
+  const stepBtn = (r, label, disabled) => {
+    box(r, disabled ? "rgba(20,24,34,0.7)" : "rgba(24,40,60,0.95)", disabled ? "rgba(120,130,150,0.3)" : _withAlpha("#4aa8e0", 0.6), 1.4, !disabled)
+    ctx.fillStyle = disabled ? "#556" : "#e6edf7"; ctx.font = "800 20px Arial"; ctx.textAlign = "center"
+    ctx.fillText(label, r.x + r.w / 2, r.y + 22)
+  }
+  stepBtn(uiScaleMinusRect, "−", atMin)
+  stepBtn(uiScalePlusRect,  "+", atMax)
+  box(uiScaleValueRect, "rgba(14,20,34,0.92)", _withAlpha("#4aa8e0", 0.4), 1.2)
+  ctx.fillStyle = "#fff"; ctx.font = "700 17px Arial"; ctx.textAlign = "center"
+  ctx.fillText(`${Math.round(uiScale * 100)}%`, uiScaleValueRect.x + uiScaleValueRect.w / 2, uiScaleValueRect.y + 21)
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.fillText("Bigger = larger UI (saved)", uiScaleMinusRect.x, uiScalePlusRect.y + uiScalePlusRect.h + 14)
+  ctx.textAlign = "center"
+
   // ── Keybind grid (Task 2) ──
   ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
   ctx.fillText("P1 KEYBOARD BINDINGS — click an action, then press a key (W A S D U I O P J K L)", canvas.width / 2, KEYBIND_Y0 - 16)
@@ -13159,17 +13405,29 @@ function drawSettingsScreen() {
   ctx.fillStyle = "#888"; ctx.font = "13px Arial"
   ctx.fillText("Changes are in-memory only — not saved (sandbox blocks storage).", canvas.width / 2, rb.y + 80)
 
-  // ── Menu music playlist (reorder) — left margin ──
+  // ── Music source selector + custom-playlist builder — left margin ──
   ctx.textAlign = "left"
-  // Personalize-by-playstyle button: reorders the menu playlist to the tracked Big-Five profile.
-  // After a click the label shows the result (green = personalized, amber = fell back to default).
-  box(personalizeRect, "rgba(24,44,70,0.92)", _withAlpha("#4aa8e0", 0.6), 1.5, false, 7)
-  ctx.fillStyle = _personalizeMsg ? (_personalizeOk ? "#8ef5a8" : "#fbbf24") : "#cfe3ff"
-  ctx.font = "700 13px Arial"; ctx.textAlign = "center"
-  ctx.fillText(_personalizeMsg || "🎧 Personalize by playstyle", personalizeRect.x + personalizeRect.w / 2, personalizeRect.y + 20)
+  // Label line doubles as the feedback line (green = applied, amber = fell back to default).
+  ctx.font = "700 13px Arial"
+  ctx.fillStyle = _musicSourceMsg ? (_musicSourceOk ? "#8ef5a8" : "#fbbf24") : "#9cf"
+  ctx.fillText(_musicSourceMsg || "MENU MUSIC SOURCE", PLAYLIST_X0, MUSIC_SRC_Y - 8)
+  // Three mutually-exclusive source buttons; the active one is accented.
+  const activeSource = musicLibrary.getActiveSource?.(getCurrentAccount()) || "default"
+  for (const r of getMusicSourceRects()) {
+    const on = r.source === activeSource
+    box({ x: r.x, y: r.y, w: r.w, h: r.h }, on ? "rgba(32,64,106,0.95)" : "rgba(26,34,48,0.9)", on ? "#63b3ff" : "rgba(120,170,255,0.3)", on ? 2 : 1, on, 6)
+    ctx.fillStyle = on ? "#bfe0ff" : "#c4d2e6"; ctx.font = on ? "700 12px Arial" : "12px Arial"; ctx.textAlign = "center"
+    ctx.fillText(r.label, r.x + r.w / 2, r.y + 17)
+  }
+  // Build / Edit My Playlist button (opens the full-screen 103-song browser).
+  ctx.textAlign = "left"
+  box(buildPlaylistRect, "rgba(24,44,70,0.92)", _withAlpha("#4aa8e0", 0.6), 1.5, false, 7)
+  const customCount = (musicLibrary.getCustomPlaylist?.(getCurrentAccount()) || []).length
+  ctx.fillStyle = "#cfe3ff"; ctx.font = "700 13px Arial"; ctx.textAlign = "center"
+  ctx.fillText(customCount ? `🎵 Edit My Playlist (${customCount})` : "🎵 Build My Playlist", buildPlaylistRect.x + buildPlaylistRect.w / 2, buildPlaylistRect.y + 18)
   ctx.textAlign = "left"
   ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
-  ctx.fillText("MENU MUSIC — click a song to play · ▲/▼ reorder", PLAYLIST_X0, PLAYLIST_Y0 - 16)
+  ctx.fillText("NOW PLAYING — click a song · ▲/▼ reorder", PLAYLIST_X0, PLAYLIST_Y0 - 16)
   // Live now-playing cursor (sound keeps it pinned to the same song across reorders) — highlight that row
   // so a reorder is VISIBLY reflected (the highlight follows the song / the upcoming order shifts).
   const nowPlaying = sound.getMenuPlaying?.() || { index: -1, playing: false }
@@ -13203,6 +13461,138 @@ function drawSettingsScreen() {
   box(backSettingRect, "rgba(60,20,20,0.92)", "#e05454", 1.5, true)
   ctx.fillStyle = "#FFF"; ctx.font = "700 22px Arial"
   ctx.fillText("BACK", canvas.width / 2, backSettingRect.y + 35)
+}
+
+// ── CUSTOM PLAYLIST BROWSER (MUSIC_LIBRARY screen) ──────────────────────────
+// Full-screen scrollable checklist of the whole song library (all 103). Layout is computed once
+// per frame from the canvas + current scroll so render and hit-testing stay in lockstep (same
+// pattern as the char-select grid). `rows` are only the songs currently visible in the viewport.
+const ML_ROW_H = 34
+function getMusicLibraryLayout() {
+  const cw = canvas.width, ch = canvas.height
+  const lib = musicLibrary.getLibrary()
+  const vp = { x: cw / 2 - 340, y: 116, w: 680, h: Math.max(ML_ROW_H, ch - 116 - 84) }
+  const contentH = lib.length * ML_ROW_H
+  const maxScroll = Math.max(0, contentH - vp.h)
+  const scroll = Math.max(0, Math.min(_mlScroll, maxScroll))
+  // Visible rows only (windowed).
+  const rows = []
+  const first = Math.max(0, Math.floor(scroll / ML_ROW_H))
+  const last = Math.min(lib.length - 1, Math.ceil((scroll + vp.h) / ML_ROW_H))
+  for (let i = first; i <= last; i++) {
+    const y = vp.y + i * ML_ROW_H - scroll
+    rows.push({ index: i, file: lib[i].file, name: lib[i].name, rect: { x: vp.x, y, w: vp.w - 16, h: ML_ROW_H - 5 } })
+  }
+  // Scrollbar (right edge of the viewport).
+  const sbW = 10, track = { x: vp.x + vp.w - sbW, y: vp.y, w: sbW, h: vp.h }
+  const thumbH = maxScroll > 0 ? Math.max(32, vp.h * (vp.h / contentH)) : vp.h
+  const thumbY = maxScroll > 0 ? vp.y + (scroll / maxScroll) * (vp.h - thumbH) : vp.y
+  const thumb = { x: track.x, y: thumbY, w: sbW, h: thumbH }
+  // Bottom action bar.
+  const by = ch - 62, bh = 40
+  const saveRect   = { x: vp.x,               y: by, w: 200, h: bh }
+  const selAllRect = { x: vp.x + 212,         y: by, w: 110, h: bh }
+  const clearRect  = { x: vp.x + 212 + 122,   y: by, w: 96,  h: bh }
+  const cancelRect = { x: vp.x + vp.w - 140,  y: by, w: 140, h: bh }
+  return { lib, vp, contentH, maxScroll, scroll, rows, track, thumb, saveRect, selAllRect, clearRect, cancelRect }
+}
+function _mlScrollBy(dy) {
+  const L = getMusicLibraryLayout()
+  _mlScroll = Math.max(0, Math.min(_mlScroll + dy, L.maxScroll))
+}
+function drawMusicLibraryScreen() {
+  const cw = canvas.width, ch = canvas.height
+  const L = getMusicLibraryLayout()
+  const box = (r, fill, stroke, lw = 1, glow = false, cut = 8) => {
+    _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.fillStyle = fill; ctx.fill()
+    if (glow) { ctx.save(); ctx.shadowBlur = 12; ctx.shadowColor = stroke; ctx.strokeStyle = stroke; ctx.lineWidth = lw; _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.stroke(); ctx.restore() }
+    else { ctx.strokeStyle = stroke; ctx.lineWidth = lw; _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.stroke() }
+  }
+  ctx.fillStyle = "#0a1322"; ctx.fillRect(0, 0, cw, ch)
+  // Title + running selected-count (always visible).
+  ctx.textAlign = "center"
+  ctx.fillStyle = "#cfe3ff"; ctx.font = "900 30px Arial"
+  ctx.fillText("BUILD YOUR PLAYLIST", cw / 2, 52)
+  ctx.fillStyle = "#8fb3e6"; ctx.font = "15px Arial"
+  ctx.fillText(`${_mlSel.size} of ${L.lib.length} songs selected  ·  click to toggle`, cw / 2, 82)
+
+  // Viewport backing + clipped rows.
+  box(L.vp, "rgba(14,22,38,0.9)", "rgba(120,170,255,0.25)", 1, false, 8)
+  ctx.save()
+  ctx.beginPath(); ctx.rect(L.vp.x, L.vp.y, L.vp.w, L.vp.h); ctx.clip()
+  ctx.textAlign = "left"
+  for (const r of L.rows) {
+    const on = _mlSel.has(r.file)
+    box(r.rect, on ? "rgba(28,58,96,0.95)" : "rgba(22,30,44,0.85)", on ? "#63b3ff" : "rgba(120,170,255,0.18)", on ? 2 : 1, on, 6)
+    // Checkbox
+    const cb = { x: r.rect.x + 8, y: r.rect.y + (r.rect.h - 18) / 2, w: 18, h: 18 }
+    box(cb, on ? "#2f6fb0" : "rgba(10,16,28,0.9)", on ? "#8ef5a8" : "rgba(140,170,210,0.5)", 1.5, false, 4)
+    if (on) { ctx.fillStyle = "#8ef5a8"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"; ctx.fillText("✓", cb.x + cb.w / 2, cb.y + 14); ctx.textAlign = "left" }
+    // Name (numbered), clipped to the row.
+    ctx.save(); ctx.beginPath(); ctx.rect(r.rect.x + 34, r.rect.y, r.rect.w - 44, r.rect.h); ctx.clip()
+    ctx.fillStyle = on ? "#e6f2ff" : "#c4d2e6"; ctx.font = on ? "700 14px Arial" : "14px Arial"
+    ctx.fillText(`${r.index + 1}. ${r.name}`, r.rect.x + 36, r.rect.y + 20)
+    ctx.restore()
+  }
+  ctx.restore()
+  // Scrollbar.
+  if (L.maxScroll > 0) {
+    box(L.track, "rgba(10,16,28,0.7)", "rgba(120,170,255,0.15)", 1, false, 5)
+    box(L.thumb, "rgba(74,168,224,0.6)", "#63b3ff", 1, false, 5)
+  }
+  // Action bar.
+  const drawBtn = (r, label, fill, edge) => { box(r, fill, edge, 1.5, true); ctx.fillStyle = "#fff"; ctx.font = "700 16px Arial"; ctx.textAlign = "center"; ctx.fillText(label, r.x + r.w / 2, r.y + 26); ctx.textAlign = "left" }
+  drawBtn(L.saveRect,   `Save Playlist (${_mlSel.size})`, "rgba(20,60,30,0.92)", "#4ade80")
+  drawBtn(L.selAllRect, "Select All", "rgba(24,44,70,0.92)", _withAlpha("#4aa8e0", 0.7))
+  drawBtn(L.clearRect,  "Clear", "rgba(40,30,20,0.92)", "#e0a054")
+  drawBtn(L.cancelRect, "Cancel", "rgba(60,20,20,0.92)", "#e05454")
+}
+
+// ── PROFILE / CODEX screens (Part 1 #3/#4) — reachable from main menu AND pause; `screenReturnState`
+// remembers where BACK should go (MAIN_MENU vs PAUSED). ──
+let screenReturnState = null   // set on entry to PROFILE/CODEX; BACK restores it
+let profileBackHover  = false
+let codexBackHover    = false
+let codexScroll       = 0
+let codexSelectedKey  = null
+let _codexGroupsCache = null
+// Build the franchise-grouped dossier data for the Codex from the live roster. Uses the same `universe`
+// field the character-select grouping uses, the written passive bio, and the first arcade-epilogue line
+// as flavor. Cached (roster is static per session).
+function buildCodexGroups() {
+  if (_codexGroupsCache) return _codexGroupsCache
+  const byUni = {}
+  for (const key of Object.keys(characters)) {
+    const c = characters[key]
+    if (!c || c.hidden) continue
+    const uni = c.universe || "other"
+    ;(byUni[uni] ||= []).push({
+      key,
+      name: c.name || key,
+      universeLabel: formatUniverseName(uni),
+      accent: universeAccent(uni) || "#4aa8e0",
+      passiveName: c.passive?.name || "",
+      passiveEffect: c.passive?.effect || "",
+      flavor: _victoryFlavor(key).line
+    })
+  }
+  const groups = Object.keys(byUni).sort((a, b) => formatUniverseName(a).localeCompare(formatUniverseName(b)))
+    .map(uni => ({ id: uni, label: formatUniverseName(uni), entries: byUni[uni].sort((a, b) => a.name.localeCompare(b.name)) }))
+  _codexGroupsCache = groups
+  return groups
+}
+function _codexMaxScroll(cv) { const L = codexLayout(cv, buildCodexGroups(), 0); return Math.max(0, L.contentH - L.listH) }
+// Enter a Profile/Codex screen, remembering the return target (menu or pause).
+function openProfileScreen(from) { screenReturnState = from; profileBackHover = false; gameState = GAME_STATES.PROFILE }
+function openCodexScreen(from)   {
+  screenReturnState = from; codexBackHover = false; codexScroll = 0
+  const groups = buildCodexGroups()
+  if (!codexSelectedKey) codexSelectedKey = groups[0]?.entries[0]?.key || null
+  gameState = GAME_STATES.CODEX
+}
+function _profileScreenData() {
+  const p = personality.getPersonality()
+  return { traits: personality.summarize(p.traits), tipiComplete: !!p.tipiComplete, eventCount: (p.events || []).length, backHover: profileBackHover }
 }
 
 // ── CREDITS screen (Stage 18) — slow auto-scroll + wheel/drag, with a BACK button ──
@@ -13252,7 +13642,10 @@ function renderCurrentState() {
       ctx.fillText("SETTINGS", settingsButtonRect.x + settingsButtonRect.w / 2, settingsButtonRect.y + 32)
       break
     case GAME_STATES.SETTINGS:        drawSettingsScreen(); break
+    case GAME_STATES.MUSIC_LIBRARY:   drawMusicLibraryScreen(); break
     case GAME_STATES.CREDITS:         drawCreditsState(); break
+    case GAME_STATES.PROFILE:         drawProfileScreen(ctx, canvas, _profileScreenData()); break
+    case GAME_STATES.CODEX:           drawCodexScreen(ctx, canvas, { groups: buildCodexGroups(), selectedKey: codexSelectedKey, scroll: codexScroll, backHover: codexBackHover }); break
     case GAME_STATES.MAIN_MENU:
       drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex, getCurrentAccount())
       _drawProgressionBadge()
@@ -13276,7 +13669,8 @@ function renderCurrentState() {
       const kit      = sel ? getKit(sel.key, characters[sel.key]) : null
       drawMoveListScreen(ctx, canvas, {
         fighters, selectedIndex: moveListIndex, kit,
-        showControls: moveListShowControls, controlRef: CONTROL_REFERENCE,
+        // Part 3 #26: rebuild the controller rows with glyphs for the connected pad (Xbox/PS/Switch).
+        showControls: moveListShowControls, controlRef: _controlRefForPad(),
         accentFor: (key) => charSelectAccent(key) || "#4aa8e0"   // selected fighter's identity accent on the kit panel
       })
       break
@@ -13304,6 +13698,7 @@ function renderCurrentState() {
         selectedIndex: hoverCharacterIndex,
         p1Selected:    matchConfig.p1CharKey,
         p2Selected:    matchConfig.p2CharKey,
+        universeLabel: matchConfig.selectedUniverse ? formatUniverseName(matchConfig.selectedUniverse) : "",   // Part 1 #2: franchise banner
         currentPlayer: matchConfig.selectingSide === "p1" ? 1 : 2,
         isLocked:      (key) => !isCharUnlocked(key),     // Stage 21: locked → silhouette + condition
         lockLabel:     (key) => charLockLabel(key),
@@ -13371,6 +13766,8 @@ function renderCurrentState() {
       drawPauseMenu(ctx, canvas, pauseMenuIndex)
       _drawKOFlash(); break
   }
+  _drawNavBackButton()   // on-screen BACK for select screens that lack one (mouse users)
+  _drawToasts()          // Part 3 #17: unlock notifications overlay (global — persists across screens)
   // Dimensional-rift screen transition (Stage 11): a glitch/tear wipe over the DESTINATION screen,
   // drawn LAST so it overlays whatever screen just switched in. Inert unless a transition is playing.
   drawRiftTransition(ctx, canvas)
@@ -13497,6 +13894,8 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.START)            { const r = getStartMenuRects(canvas);                    const f = r.findIndex(x => pointInRect(mouse.x,mouse.y,x)); hoverStartIndex = Math.max(0,f); return }
   if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v); return }
   if (gameState === GAME_STATES.STORY_MODE)       { _storyBackHover = pointInRect(mouse.x, mouse.y, getStoryBackButton(canvas)); return }   // only the BACK button is interactive (chapters are inert)
+  if (gameState === GAME_STATES.PROFILE)          { profileBackHover = pointInRect(mouse.x, mouse.y, getProfileBackButton(canvas)); return }
+  if (gameState === GAME_STATES.CODEX)            { codexBackHover   = pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas));   return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
   if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
   if (gameState === GAME_STATES.ARCADE_SETUP)     { tryHover(getArcadeSetupRects(canvas),      hoverArcadeIndex,     v => hoverArcadeIndex     = v); return }
@@ -13517,6 +13916,8 @@ function updateHoverIndices() {
 
 function handleMenuClicks() {
   if (!mouse.clicked) return
+  // On-screen BACK button (select screens that lack a native one) → pop one screen.
+  if (NAV_BACK_OVERLAY_SCREENS.has(gameState) && pointInRect(mouse.x, mouse.y, getNavBackRect())) { if (goBack()) return }
   sound.play?.(SFX.UI_SELECT)
 
   switch (gameState) {
@@ -13535,6 +13936,8 @@ function handleMenuClicks() {
       else if (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
       else if (c.id === "story")    { gameState = GAME_STATES.STORY_MODE; startRiftTransition("#9a7bff") }   // Stage 14: styled placeholder (rift into it for consistency)
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; gameState = GAME_STATES.MOVE_LIST }
+      else if (c.id === "codex")    openCodexScreen(GAME_STATES.MAIN_MENU)
+      else if (c.id === "profile")  openProfileScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "tutorial") { tutorialPage = 0; gameState = GAME_STATES.TUTORIAL }
       else if (c.id === "account")  { accountMessage = ""; accountDraftName = getCurrentAccount()?.username || ""; gameState = GAME_STATES.ACCOUNT }
       else if (c.id === "savefile") { /* handled by the dedicated mouseup listener (needs a real user gesture for the file picker) */ }
@@ -13547,6 +13950,17 @@ function handleMenuClicks() {
       // Click BACK (or anywhere — the screen is read-only) returns to the menu.
       gameState = GAME_STATES.MAIN_MENU
       break
+    case GAME_STATES.PROFILE:
+      // Only the BACK button is actionable; returns to wherever we came from (menu or pause).
+      if (pointInRect(mouse.x, mouse.y, getProfileBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null }
+      break
+    case GAME_STATES.CODEX: {
+      if (pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; break }
+      const L = codexLayout(canvas, buildCodexGroups(), codexScroll)
+      const row = L.rows.find(r => r.type === "row" && r.y >= L.listY - 4 && r.y <= L.listY + L.listH && pointInRect(mouse.x, mouse.y, r))
+      if (row) codexSelectedKey = row.key
+      break
+    }
     case GAME_STATES.ONLINE_PLACEHOLDER:
       gameState = GAME_STATES.MAIN_MENU   // any click (the BACK button) returns to the menu
       break
@@ -13594,6 +14008,9 @@ function handleMenuClicks() {
         sound.setMusicMuted?.(audioSettings.musicMuted)
         persistCurrentSettings()
       }
+      // UI / Display scale stepper (Part 3 #13). Changing it re-sizes the canvas backing store live.
+      if (pointInRect(mouse.x, mouse.y, uiScaleMinusRect)) { setUiScale(uiScale - UI_SCALE_STEP); break }
+      if (pointInRect(mouse.x, mouse.y, uiScalePlusRect))  { setUiScale(uiScale + UI_SCALE_STEP); break }
       // Keybind rows (Task 2): click an action → await a key.
       const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
       if (kb) { rebindAction = kb.action; rebindWarning = "" }
@@ -13602,7 +14019,11 @@ function handleMenuClicks() {
       }
       // PERSONALIZE BY PLAYSTYLE: reorder the menu playlist to the player's tracked Big-Five
       // profile. Manual (button-press) on purpose — no silent auto-reorder. Feedback in the label.
-      if (pointInRect(mouse.x, mouse.y, personalizeRect)) { _personalizeMenuAction(); break }
+      // MUSIC SOURCE selector — pick default / personalized / custom as the active menu music.
+      { const sr = getMusicSourceRects().find(r => pointInRect(mouse.x, mouse.y, r))
+        if (sr) { _selectMusicSource(sr.source); break } }
+      // Build / Edit My Playlist → open the full-screen song browser (pre-checked from saved custom).
+      if (pointInRect(mouse.x, mouse.y, buildPlaylistRect)) { _openMusicLibrary(); break }
       // Menu-music playlist reorder: ▲ moves a track up, ▼ moves it down. sound.moveMenuTrack
       // mutates MENU_PLAYLIST in place (live sequence) and keeps the now-playing cursor pinned.
       for (const r of getPlaylistRects()) {
@@ -13624,7 +14045,24 @@ function handleMenuClicks() {
         })
         break
       }
-      if (pointInRect(mouse.x, mouse.y, backSettingRect)) { rebindAction = null; _personalizeMsg = ""; gameState = GAME_STATES.START }
+      if (pointInRect(mouse.x, mouse.y, backSettingRect)) { rebindAction = null; _musicSourceMsg = ""; gameState = GAME_STATES.START }
+      break
+    }
+    case GAME_STATES.MUSIC_LIBRARY: {
+      const L = getMusicLibraryLayout()
+      if (pointInRect(mouse.x, mouse.y, L.saveRect))   { _saveMusicLibrary(); break }
+      if (pointInRect(mouse.x, mouse.y, L.cancelRect)) { _cancelMusicLibrary(); break }
+      if (pointInRect(mouse.x, mouse.y, L.selAllRect)) { for (const s of L.lib) _mlSel.add(s.file); break }
+      if (pointInRect(mouse.x, mouse.y, L.clearRect))  { _mlSel.clear(); break }
+      // Scrollbar track click → jump the thumb (centered) to that spot.
+      if (pointInRect(mouse.x, mouse.y, L.track)) {
+        const range = Math.max(1, L.track.h - L.thumb.h)
+        const frac = Math.max(0, Math.min(1, (mouse.y - L.track.y - L.thumb.h / 2) / range))
+        _mlScroll = frac * L.maxScroll; break
+      }
+      // Song row → toggle its selection.
+      const row = L.rows.find(r => pointInRect(mouse.x, mouse.y, r.rect))
+      if (row) { if (_mlSel.has(row.file)) _mlSel.delete(row.file); else _mlSel.add(row.file) }
       break
     }
     case GAME_STATES.GAMEPLAY_SELECT: {
@@ -13830,10 +14268,254 @@ function handleMenuClicks() {
 }
 
 // ------------------------------------------------------------------
+// GAMEPAD MENU NAVIGATION
+// ------------------------------------------------------------------
+// The in-battle pollGamepad() only feeds a live fighter, so before this a controller did NOTHING on
+// the HOME/title + every menu screen (they're mouse-hover + click driven; nothing polled the pad off
+// the match). This layer reads the first connected pad each frame (input.js pollMenuGamepad) and maps
+// its intents onto the EXISTING dispatch: mouse-driven rect menus get a virtual cursor (move mouse.x/y
+// to a rect centre → the same hover + handleMenuClicks path a real mouse uses); keyboard-driven screens
+// (pause / victory / setup rows / tutorial) get synthetic key events so their existing handlers run
+// verbatim. In-match input is deliberately untouched — during BATTLE only Options (start) is read.
+let _padMenuIdx = 0
+let _padLastState = null   // the menu screen the pad cursor last acted on → detects screen changes
+
+// Synthesize a key on the document so BOTH the input.js document listener and the game.js window listener
+// (the two that handle menu keys) fire exactly as for a real key; the matching keyup clears keys[] so
+// nothing latches on.
+function _padSynthKey(key) {
+  if (!key || typeof document === "undefined") return
+  try {
+    document.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }))
+    document.dispatchEvent(new KeyboardEvent("keyup",   { key, bubbles: true }))
+  } catch (_) {}
+}
+
+// Directional nearest-neighbour: from the current rect pick the closest rect in the pressed direction,
+// weighting cross-axis distance so we stay on the same row/column. Uniform for vertical button lists
+// (left/right find nothing → no-op) and 2-D card grids alike — no per-screen column math needed.
+function _padNeighbour(rects, cur, dir) {
+  const C = r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })
+  const o = C(rects[cur])
+  let best = -1, bestScore = Infinity
+  for (let i = 0; i < rects.length; i++) {
+    if (i === cur || !rects[i]) continue
+    const p = C(rects[i]); const dx = p.x - o.x, dy = p.y - o.y
+    let primary, cross
+    if      (dir === "right") { if (dx <=  1) continue; primary =  dx; cross = Math.abs(dy) }
+    else if (dir === "left")  { if (dx >= -1) continue; primary = -dx; cross = Math.abs(dy) }
+    else if (dir === "down")  { if (dy <=  1) continue; primary =  dy; cross = Math.abs(dx) }
+    else                      { if (dy >= -1) continue; primary = -dy; cross = Math.abs(dx) }
+    const score = primary + cross * 3
+    if (score < bestScore) { bestScore = score; best = i }
+  }
+  return best
+}
+
+// Rect list for whichever mouse-driven screen is current (null → this isn't a rect menu). Mirrors the
+// SAME getters updateHoverIndices()/handleMenuClicks() use, so the pad hit-tests exactly what a click does.
+function _padMenuRects() {
+  switch (gameState) {
+    case GAME_STATES.START:            return [...getStartMenuRects(canvas), settingsButtonRect]
+    case GAME_STATES.MAIN_MENU:        return getMainMenuRects(canvas)
+    case GAME_STATES.GAMEPLAY_SELECT:  return getGameplaySelectRects(canvas)
+    case GAME_STATES.TOWER_SELECT:     return getTowerSelectRects(canvas)
+    case GAME_STATES.ARCADE_SETUP:     return getArcadeSetupRects(canvas)
+    case GAME_STATES.BRACKET_SETUP:    return getBracketSetupRects(canvas)
+    case GAME_STATES.FFA_SETUP:        return getFFASetupRects(canvas, FFA_MAX_PLAYERS)
+    case GAME_STATES.FFA_CHARSELECT:   return getCharacterCardRects(canvas, ffaSelectableRoster())
+    case GAME_STATES.FFA_SLOTSELECT:   return getFFASlotSelectRects(canvas, ffaState.playerCount)
+    case GAME_STATES.FFA_TEAMSELECT:   return getFFATeamSelectRects(canvas, ffaState.playerCount)
+    case GAME_STATES.AI_DIFFICULTY:    return getAIDifficultyRects(canvas)
+    case GAME_STATES.SELECT_UNIVERSE:  return getUniverseCardRects(canvas, getUniverseList())
+    case GAME_STATES.SELECT_CHARACTER: return getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse(), charSelectGridOpts(canvas, true))
+    case GAME_STATES.SELECT_EDO_BACKUP:return getCharacterCardRects(canvas, getEdoBackupRoster())
+    case GAME_STATES.SELECT_SKIN:      return getSkinSelectRects(canvas, getSkins(matchConfig[skinSelectSide + "CharKey"]).length)
+    case GAME_STATES.SELECT_STAGE:     return getStageCardRects(canvas, stages)
+    default: return null
+  }
+}
+
+// For scrollable card grids, keep the pad selection inside the viewport by scrolling the grid to follow it.
+function _padEnsureVisible(idx) {
+  const g = activeScrollGrid(); if (!g) return
+  const vp = getGridViewport(canvas, g.opts)
+  const rects = _padMenuRects(); const r = rects && rects[idx]; if (!r) return
+  const margin = r.h * 0.5
+  let delta = 0
+  if      (r.y < vp.top + margin)          delta = r.y - (vp.top + margin)
+  else if (r.y + r.h > vp.bottom - margin) delta = (r.y + r.h) - (vp.bottom - margin)
+  if (delta !== 0) scrollGridBy(g.opts.scrollKey, delta, g.roster.length, canvas, g.opts)
+}
+
+function updateMenuGamepad(injected) {
+  // `injected` lets the test harness drive this exactly as a real pad would (Playwright can't emulate
+  // the Gamepad API); live play always polls the real pad.
+  const nav = injected || pollMenuGamepad?.()
+  if (!nav || !nav.any) return
+
+  // In-match: only Options acts (→ open pause). The d-pad/face buttons are the fighter's LIVE inputs
+  // (read by pollGamepad), so the menu layer must never touch them here — this is what keeps the fix
+  // from bleeding into gameplay.
+  if (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.ROUND_BREAK || gameState === GAME_STATES.FFA_BATTLE) {
+    if (nav.start) _padSynthKey("Escape")
+    return
+  }
+
+  // Keyboard-driven screens: replay the exact keys their existing handlers already listen for.
+  switch (gameState) {
+    case GAME_STATES.PAUSED:
+      if (nav.up) _padSynthKey("ArrowUp");   if (nav.down) _padSynthKey("ArrowDown")
+      if (nav.confirm) _padSynthKey("Enter"); if (nav.back || nav.start) _padSynthKey("Escape")
+      return
+    case GAME_STATES.AI_VS_AI_SETUP:
+      if (nav.up) _padSynthKey("ArrowUp");     if (nav.down) _padSynthKey("ArrowDown")
+      if (nav.left) _padSynthKey("ArrowLeft"); if (nav.right) _padSynthKey("ArrowRight")
+      if (nav.confirm) _padSynthKey("Enter");  if (nav.back) _padSynthKey("Escape")
+      return
+    case GAME_STATES.AI_VS_AI_SUMMARY:
+      if (nav.confirm) _padSynthKey("Enter"); if (nav.back) _padSynthKey("Escape")
+      return
+    case GAME_STATES.TUTORIAL:
+      if (nav.left) _padSynthKey("ArrowLeft"); if (nav.right) _padSynthKey("ArrowRight")
+      if (nav.back) _padSynthKey("Escape")
+      return
+    case GAME_STATES.VICTORY:
+      // Left/right pick the highlighted button (rematch vs menu), Cross confirms it, Circle → straight to menu.
+      if (victoryState) { if (nav.left) victoryState.rematchHover = true; if (nav.right) victoryState.rematchHover = false }
+      if (nav.confirm) _padSynthKey("Enter")
+      if (nav.back)    _padSynthKey("Escape")
+      return
+    case GAME_STATES.MATCH_END:
+      if (nav.confirm) _padSynthKey("Enter")
+      return
+    case GAME_STATES.CREDITS:
+    case GAME_STATES.ONLINE_PLACEHOLDER:
+    case GAME_STATES.STORY_MODE:
+      // "Any click returns" screens — Cross or Circle both act as that click.
+      if (nav.confirm || nav.back) mouse.clicked = true
+      return
+    case GAME_STATES.PROFILE:
+      if (nav.back || nav.confirm) _padSynthKey("Escape")   // back out to menu/pause
+      return
+    case GAME_STATES.CODEX:
+      // D-pad up/down moves the fighter list; Circle backs out. (Synth keys reuse the keydown handler.)
+      if (nav.up) _padSynthKey("ArrowUp"); if (nav.down) _padSynthKey("ArrowDown")
+      if (nav.back) _padSynthKey("Escape")
+      return
+  }
+
+  // Mouse-driven rect menus: virtual cursor between rect centres; Cross = click there.
+  const rects = _padMenuRects()
+  if (!rects || !rects.length) return
+  // Resolve the current selection. On a FRESH screen (just arrived here — often via a pad click that left
+  // the virtual cursor parked over some arbitrary row of the new layout) snap to the top row so pad nav is
+  // predictable and matches what's highlighted. Otherwise prefer the rect the cursor is already over (keeps
+  // mouse + pad in sync), falling back to the last pad index, then the first item.
+  let cur
+  if (gameState !== _padLastState) { cur = 0; _padLastState = gameState }
+  else {
+    cur = rects.findIndex(r => r && pointInRect(mouse.x, mouse.y, r))
+    if (cur < 0) cur = (_padMenuIdx >= 0 && _padMenuIdx < rects.length) ? _padMenuIdx : 0
+  }
+
+  if (nav.dir) { const nxt = _padNeighbour(rects, cur, nav.dir); if (nxt >= 0) cur = nxt }
+  _padMenuIdx = cur
+  _padEnsureVisible(cur)
+  // Re-fetch (a scroll-follow may have shifted the rects) and park the cursor on the selection.
+  const live = _padMenuRects() || rects
+  const sel = live[cur] || rects[cur]
+  if (sel) { mouse.x = sel.x + sel.w / 2; mouse.y = sel.y + sel.h / 2 }
+
+  if (nav.back) {
+    const backRect = rects.find(r => r && ["back", "cancel", "menu"].includes(r.id))
+    if (backRect) { mouse.x = backRect.x + backRect.w / 2; mouse.y = backRect.y + backRect.h / 2; mouse.clicked = true }
+    else _padSynthKey("Escape")
+  } else if (nav.confirm) {
+    mouse.clicked = true
+  }
+}
+
+// ------------------------------------------------------------------
+// SCREEN BACK-NAVIGATION (history stack)
+// ------------------------------------------------------------------
+// Transitions were hard one-way (`gameState = X`) with no memory of where you came from, so screens like
+// character-select were a dead-end if you picked wrong. This maintains a real history stack of the menu
+// screens visited and a single goBack() that pops to the actual previous screen — for EVERY menu screen,
+// not just the one the player noticed. The stack is built by OBSERVING gameState transitions each frame
+// (no need to retrofit the ~100 `gameState =` sites), and it cooperates with the screens that already had
+// hardcoded BACK buttons: arriving at an ancestor truncates the stack instead of pushing. Scoped to menu /
+// selection screens only — never in a match (BATTLE/PAUSED/etc. are excluded), so back can't escape a fight.
+const NAV_BACK_SCREENS = new Set([
+  GAME_STATES.MAIN_MENU, GAME_STATES.GAMEPLAY_SELECT, GAME_STATES.TOWER_SELECT, GAME_STATES.ARCADE_SETUP,
+  GAME_STATES.BRACKET_SETUP, GAME_STATES.FFA_SETUP, GAME_STATES.FFA_CHARSELECT, GAME_STATES.FFA_SLOTSELECT,
+  GAME_STATES.FFA_TEAMSELECT, GAME_STATES.AI_DIFFICULTY, GAME_STATES.AI_VS_AI_SETUP, GAME_STATES.SELECT_UNIVERSE,
+  GAME_STATES.SELECT_CHARACTER, GAME_STATES.SELECT_SKIN, GAME_STATES.SELECT_ALIENS, GAME_STATES.SELECT_EDO_BACKUP,
+  GAME_STATES.SELECT_STAGE, GAME_STATES.SETTINGS, GAME_STATES.MOVE_LIST, GAME_STATES.CREDITS, GAME_STATES.STORY_MODE,
+  GAME_STATES.ONLINE_PLACEHOLDER,
+])
+// Screens that participate in history tracking (the back set + the roots the stack can bottom out at).
+const NAV_TRACK_SCREENS = new Set([...NAV_BACK_SCREENS, GAME_STATES.START])
+let _navStack = []        // ancestors visited, in order (the screens we can back out to)
+let _navPrev  = null      // last observed gameState (transition detector)
+
+// Observe menu transitions and keep the history stack in sync. Called once per frame.
+function _trackNav() {
+  if (gameState === _navPrev) return
+  const from = _navPrev
+  _navPrev = gameState
+  if (!NAV_TRACK_SCREENS.has(gameState)) return          // entered a match/cinematic — freeze the stack
+  if (gameState === GAME_STATES.START) { _navStack.length = 0; return }   // title = root → reset
+  if (from == null || !NAV_TRACK_SCREENS.has(from)) return               // arrived from gameplay/boot → treat as root
+  const at = _navStack.lastIndexOf(gameState)
+  if (at >= 0) _navStack.length = at                     // went BACK to an ancestor (e.g. an old BACK button) → truncate
+  else if (from !== gameState) _navStack.push(from)      // went FORWARD → remember where we came from
+}
+
+// Pop to the previous menu screen. Returns true if it navigated. Never fires mid-match.
+function goBack() {
+  if (!NAV_BACK_SCREENS.has(gameState)) return false     // not a backable menu screen (e.g. in a fight) → ignore
+  if (!_navStack.length) return false                    // already at the root of this flow → nothing to pop
+  const target = _navStack.pop()
+  _skinConfirm = null                                    // cancel any in-flight skin-confirm flourish
+  if (typeof startRiftTransition === "function") { try { startRiftTransition("#6b7280") } catch (_) {} }   // same rift wipe as forward nav
+  gameState = target
+  _navPrev  = target                                     // suppress the observer re-recording this pop
+  sound.play?.(SFX.UI_SELECT)
+  return true
+}
+
+// The select screens (universe/character/skin/stage) had NO native BACK button, so mouse-only players were
+// stranded. Draw a small one for them (keyboard Esc/Backspace + controller Circle already back out via
+// goBack everywhere). Positioned right of the fullscreen toggle so the two don't overlap.
+const NAV_BACK_OVERLAY_SCREENS = new Set([
+  GAME_STATES.SELECT_UNIVERSE, GAME_STATES.SELECT_CHARACTER, GAME_STATES.SELECT_SKIN, GAME_STATES.SELECT_STAGE,
+])
+function getNavBackRect() { return { id: "navback", x: 64, y: 14, w: 104, h: 40 } }
+function _drawNavBackButton() {
+  if (!NAV_BACK_OVERLAY_SCREENS.has(gameState)) return
+  const r = getNavBackRect()
+  const hot = pointInRect(mouse.x, mouse.y, r)
+  const rad = 10
+  ctx.save()
+  ctx.beginPath()
+  ctx.moveTo(r.x + rad, r.y)
+  ctx.arcTo(r.x + r.w, r.y, r.x + r.w, r.y + r.h, rad); ctx.arcTo(r.x + r.w, r.y + r.h, r.x, r.y + r.h, rad)
+  ctx.arcTo(r.x, r.y + r.h, r.x, r.y, rad);             ctx.arcTo(r.x, r.y, r.x + r.w, r.y, rad)
+  ctx.closePath()
+  ctx.fillStyle = hot ? "rgba(24,46,88,0.92)" : "rgba(10,18,38,0.82)"; ctx.fill()
+  ctx.lineWidth = 1.5; ctx.strokeStyle = hot ? "#7cc4ff" : "rgba(140,170,220,0.5)"; ctx.stroke()
+  ctx.fillStyle = hot ? "#dbeafe" : "#b6c6e6"; ctx.font = "700 16px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  ctx.fillText("‹ BACK", r.x + r.w / 2, r.y + r.h / 2 + 1)
+  ctx.restore()
+}
+
+// ------------------------------------------------------------------
 // MAIN LOOP
 // ------------------------------------------------------------------
 let _prevGridState = null
 function updateCurrentState() {
+  _trackNav()   // keep the back-navigation history in sync with the current screen
   // On ENTERING any scrollable card-grid screen, snap it back to the top. Screens share the "chars"
   // scrollKey (char-select / Edo vessel / FFA pick), so without this a scroll position would bleed
   // from one screen to the next. Keyed off the gameState transition, not a per-screen hook.
@@ -13843,6 +14525,7 @@ function updateCurrentState() {
     if (g) resetGridScroll(g.opts.scrollKey)
   }
 
+  updateMenuGamepad()   // controller: drive the virtual cursor / synth menu keys BEFORE hover + click dispatch
   updateHoverIndices()
   handleMenuClicks()
 
@@ -14007,24 +14690,48 @@ function applyPersonalizedMenu() {
     return res
   } catch (_) { return null }
 }
-// The Settings "Personalize by playstyle" button action: applies the personalized order and sets
-// the button's feedback label. Shared by the real click handler and the harness so both drive the
-// SAME path. Amber when it fell back to the default order (not enough confident play data yet).
-function _personalizeMenuAction() {
-  let res = null
-  try { res = musicPersonality.getPersonalizedMenuOrder(getCurrentAccount()) } catch (_) {}
-  if (res && res.personalized) {
-    // Only a CONFIDENT profile swaps the playlist — otherwise the curated menu is left untouched
-    // (don't replace it with 103 songs in default order just because the button was pressed).
-    try { sound.setMenuPlaylistFiles?.(res.files); sound.playMenuMusic?.() } catch (_) {}
-    _personalizeOk = true;  _personalizeMsg = `✓ Personalized · ${res.files.length} tracks`
-  } else if (res) {
-    _personalizeOk = false; _personalizeMsg = "Play more matches first — keeping current playlist"
-  } else {
-    _personalizeOk = false; _personalizeMsg = "Couldn't personalize right now"
+// Load whatever the ACTIVE music source resolves to (default / personalized / custom) and (re)start
+// the menu music. Honest fallbacks live in musicLibrary.resolveActivePlaylist (empty custom or
+// no-signal personalized → default + a message). Returns the resolved { source, files, fellBack, message }.
+function applyActiveMusicSource() {
+  const res = musicLibrary.resolveActivePlaylist(getCurrentAccount())
+  try { sound.setMenuPlaylistFiles?.(res.files); sound.playMenuMusic?.() } catch (_) {}
+  return res
+}
+// Pick a music source (the 3-way selector): persist the choice, apply it, and set the feedback line.
+// Amber when the chosen source couldn't be honored and default is playing instead.
+function _selectMusicSource(source) {
+  musicLibrary.setActiveSource(source, getCurrentAccount())
+  const res = applyActiveMusicSource()
+  if (res.fellBack) { _musicSourceOk = false; _musicSourceMsg = res.message }
+  else {
+    _musicSourceOk = true
+    _musicSourceMsg = source === "personalized" ? `✓ Personalized · ${res.files.length} tracks`
+                    : source === "custom"       ? `✓ My Playlist · ${res.files.length} tracks`
+                    :                              "✓ Default playlist"
   }
   return res
 }
+
+// ── Custom-playlist builder (MUSIC_LIBRARY screen) ──
+// Open the full-screen 103-song browser, pre-checking the player's saved custom playlist (editable
+// model: they add/remove on top of the existing set rather than starting blank each time).
+function _openMusicLibrary() {
+  _mlSel = new Set(musicLibrary.getCustomPlaylist?.(getCurrentAccount()) || [])
+  _mlScroll = 0; _mlDrag = null
+  _musicLibReturn = gameState
+  gameState = GAME_STATES.MUSIC_LIBRARY
+}
+// Save the working selection as the custom playlist, switch the active source to it, apply, and
+// return to Settings. Any-size selection (incl. 0) is valid; resolve handles the empty case.
+function _saveMusicLibrary() {
+  const files = musicLibrary.getLibrary().map(s => s.file).filter(f => _mlSel.has(f))   // catalog order
+  musicLibrary.saveCustomPlaylist?.(files, getCurrentAccount())
+  _selectMusicSource("custom")   // make the just-built playlist the active source (+ feedback)
+  gameState = _musicLibReturn || GAME_STATES.SETTINGS
+}
+function _cancelMusicLibrary() { gameState = _musicLibReturn || GAME_STATES.SETTINGS }
+let _musicLibReturn = GAME_STATES.SETTINGS
 const _frameMs = new Float32Array(120)   // ring buffer of per-frame compute+render ms
 let _frameMsIdx = 0, _frameMsFilled = 0
 let _drawCalls = 0, _drawCallsShown = 0
@@ -14152,6 +14859,34 @@ window.addEventListener("keydown", e => {
   // PERSONALITY inspector toggle — Shift+P (Shift keeps it clear of any plain gameplay key).
   if (key === "p" && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); _showPersonality = !_showPersonality; return }
 
+  // MUSIC_LIBRARY (custom-playlist builder): Esc cancels back to Settings (discard).
+  if (gameState === GAME_STATES.MUSIC_LIBRARY) {
+    if (key === "escape") { e.preventDefault(); _cancelMusicLibrary() }
+    return
+  }
+
+  // PROFILE / CODEX (Part 1 #3/#4): Esc/Backspace backs out to wherever we came from (menu or pause).
+  // In CODEX, ↑↓ move through the flat fighter list.
+  if (gameState === GAME_STATES.PROFILE) {
+    if (key === "escape" || key === "backspace") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null }
+    return
+  }
+  if (gameState === GAME_STATES.CODEX) {
+    if (key === "escape" || key === "backspace") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; return }
+    if (key === "arrowup" || key === "w" || key === "arrowdown" || key === "s") {
+      const flat = buildCodexGroups().flatMap(g => g.entries.map(en => en.key))
+      const i = Math.max(0, flat.indexOf(codexSelectedKey))
+      const ni = (key === "arrowup" || key === "w") ? (i - 1 + flat.length) % flat.length : (i + 1) % flat.length
+      codexSelectedKey = flat[ni]
+      // keep the selected row in view
+      const L = codexLayout(canvas, buildCodexGroups(), codexScroll)
+      const row = L.rows.find(r => r.type === "row" && r.key === codexSelectedKey)
+      if (row) { const top = row.y - L.listY + codexScroll; if (top < codexScroll) codexScroll = top; else if (top + row.h > codexScroll + L.listH) codexScroll = top + row.h - L.listH }
+      codexScroll = Math.max(0, Math.min(_codexMaxScroll(canvas), codexScroll))
+    }
+    return
+  }
+
   // TUTORIAL: arrow keys flip pages, Esc exits to the menu.
   if (gameState === GAME_STATES.TUTORIAL) {
     if (key === "arrowright" || key === "d") tutorialPage = Math.min(getTutorialPageCount(P1_CONTROLS) - 1, tutorialPage + 1)
@@ -14177,6 +14912,15 @@ window.addEventListener("keydown", e => {
     if (key === "escape" || key === "m") { aiVsAiState.finished = false; resetToStart() }
     else if (key === "enter") { hoverAiVsAiIndex = 0; aiVsAiConfig.sel = 0; gameState = GAME_STATES.AI_VS_AI_SETUP }
     return
+  }
+
+  // UNIVERSAL BACK — Escape / Backspace pops one screen on any menu/selection screen (incl. character
+  // select, which had no way out before). Placed AFTER the text-entry + specific-escape handlers above so
+  // it never hijacks typing (devcode/account/rebind) or a screen with its own escape (tutorial/ai-vs-ai).
+  // goBack() is a no-op mid-match, so this can't escape a fight.
+  if ((key === "escape" || key === "backspace") && NAV_BACK_SCREENS.has(gameState)) {
+    e.preventDefault()
+    if (goBack()) return
   }
 
   if (gameState === GAME_STATES.VICTORY) {
@@ -14249,8 +14993,7 @@ window.addEventListener("keyup", e => {
 // letterboxing. See HEIGHT_REFERENCE.md: spriteScale is resolution-independent (scales the sprite cell,
 // not the canvas), so heights stay canon-correct at any size.
 function applyViewportSize() {
-  canvas.width  = window.innerWidth
-  canvas.height = window.innerHeight
+  _applyCanvasSize()   // honors uiScale (Part 3 #13)
   syncPhysicsBounds()
   updateCameraBounds()
   if (p1) p1.y = Math.min(p1.y, getGroundedYForFighter(p1))
@@ -14300,7 +15043,10 @@ document.addEventListener("webkitfullscreenchange", () => { applyViewportSize();
 // BOOT
 // ------------------------------------------------------------------
 sound.init?.()
-sound.playMenuMusic?.()   // boot/loading screen → Passion_fruitmp3.mp3 (queued until first gesture)
+// Load the ACTIVE music source (default = all songs / personalized / saved custom) and start it.
+// Standalone + guest-safe (musicLibrary persists to its own localStorage), so this restores the
+// player's chosen source on every launch even with no account. Queued until the first gesture.
+try { applyActiveMusicSource() } catch (_) { sound.playMenuMusic?.() }
 syncPhysicsBounds()
 updateCameraBounds()
 // BOOT AUTO-LOAD (universal persistence): account.js hydrates its store from localStorage at
@@ -14308,6 +15054,12 @@ updateCameraBounds()
 // Access gesture needed (Safari/Firefox lack the API; the file handle doesn't survive reload
 // anyway). If a current account was restored, push its progression/unlocks/settings into the
 // live modules now, before the first frame. A later SAVE FILE connect still overrides this.
+//
+// GUEST-SAFE PERSISTENCE: if NO account was restored (a player who never created a named profile),
+// create a default local profile so progress persists for EVERYONE through the same account→localStorage
+// pipeline (previously the no-account path kept XP/unlocks/personality in memory only → lost on restart).
+// Skipped under ?harness so the ~200 harness tests keep owning their own account state.
+try { if (!new URLSearchParams(window.location.search).has("harness")) ensureDefaultAccount() } catch (_) {}
 if (getCurrentAccount()) hydrateFromLoadedSave()
 
 // ASYNC BOOT TIERS (do NOT block first frame): the two persistence tiers that can't run
@@ -14559,11 +15311,11 @@ gameLoop()
     __sound:     sound,     // the live SoundManager singleton — lets a test spy on SFX file calls
     // ── PERSONALITY SYSTEM harness (Big-Five trait inference) ──
     personality: {
-      // Live per-account state (creates a scratch account if none exists so the test can drive it).
-      get:        () => { if (!getCurrentAccount()) createAccount("ptest"); const p = personality.getPersonality(); return p ? { tipiComplete: p.tipiComplete, tipi: p.tipi, summary: personality.summarize(p.traits), events: p.events.length } : null },
-      setTipi:    (items) => { if (!getCurrentAccount()) createAccount("ptest"); return personality.setTipi(items) },
-      event:      (type, ctx = {}) => { if (!getCurrentAccount()) createAccount("ptest"); return personality.recordGameplayEvent(type, ctx) },
-      match:      (matchStats, p1Won) => { if (!getCurrentAccount()) createAccount("ptest"); personality.ensureSession(); return personality.recordMatchOutcome({ matchStats, p1Won }) },
+      // Live profile (standalone/guest-safe — no account needed).
+      get:        () => { const p = personality.getPersonality(); return p ? { tipiComplete: p.tipiComplete, tipi: p.tipi, summary: personality.summarize(p.traits), events: p.events.length } : null },
+      setTipi:    (items) => personality.setTipi(items),
+      event:      (type, ctx = {}) => personality.recordGameplayEvent(type, ctx),
+      match:      (matchStats, p1Won) => { personality.ensureSession(); return personality.recordMatchOutcome({ matchStats, p1Won }) },
       // Pure-engine deterministic helpers — no account, no persistence.
       scoreTipi:  (items) => personality.scoreTipi(items),
       simulate:   (tipiScores, events) => personality.simulate(tipiScores, events).summary,
@@ -14911,6 +15663,51 @@ gameLoop()
       artistLine: (key) => artistLineForCharacter(key),      // the select-screen "Art: …" line (null if none)
       attributedKeys: () => [...allAttributedKeys()]
     },
+    // Profile (#3) + Codex (#4) screens — enter + read state for verification.
+    screens: {
+      profile: () => { openProfileScreen(GAME_STATES.MAIN_MENU); return { state: gameState, data: _profileScreenData() } },
+      codex:   () => { openCodexScreen(GAME_STATES.MAIN_MENU); return { state: gameState, groupCount: buildCodexGroups().length, total: buildCodexGroups().reduce((n,g)=>n+g.entries.length,0), selected: codexSelectedKey } },
+      codexSelect: (key) => { codexSelectedKey = key; return codexSelectedKey },
+      back: () => { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; return gameState }
+    },
+    // Victory-screen flavor line (Part 1 #5): per-key line + whether it fell back to the arcade
+    // epilogue (no hand-written passive bio). Lets a test assert EVERY key yields a non-empty line
+    // and enumerate which characters lack a dedicated passive write-up.
+    victoryFlavor: {
+      line: (key) => victoryFlavorLine(key),
+      coverage: () => {
+        const keys = Object.keys(characters).filter(k => !characters[k]?.hidden)
+        const bio = [], fallback = [], blank = []
+        for (const k of keys) {
+          const f = _victoryFlavor(k)
+          if (!f.line) blank.push(k)
+          else if (f.usesFallback) fallback.push(k)
+          else bio.push(k)
+        }
+        return { total: keys.length, bio, fallback, blank }
+      }
+    },
+    // UI/cosmetic bundle (Part 3) verification hooks.
+    ui: {
+      goto: (s) => { const st = GAME_STATES[s]; if (st) gameState = st; return gameState },
+      state: () => gameState,
+      canvasInfo: () => ({ w: canvas.width, h: canvas.height }),
+      mainMenuRects: () => getMainMenuRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),
+      pushToast: (text, opts) => { pushToast(text, opts); return _toasts.length },
+      toastCount: () => _toasts.length,
+      padType: () => padGlyphs().label,
+      padGlyphs: () => padGlyphs(),
+      getUiScale: () => uiScale,
+      setUiScale: (v) => { setUiScale(v); return { uiScale, canvasW: canvas.width, canvasH: canvas.height, cssW: window.innerWidth } },
+      // Force the on-screen combo display to a count (for screenshotting the escalation + rank callout).
+      forceCombo: (side, count) => {
+        const ds = comboDisplay[side] || comboDisplay.p1
+        ds.lastCount = count; ds.opacity = 1; ds.holdTimer = 60; ds.fadeDir = "in"; ds.pop = 1
+        const tier = COMBO_RANKS.filter(r => count >= r.at).length
+        ds.rankTier = tier; ds.rankFlash = 1; ds.rankText = tier ? COMBO_RANKS[tier - 1].text : ""; ds.rankColor = tier ? COMBO_RANKS[tier - 1].color : ""
+        return { count, rank: ds.rankText, color: ds.rankColor }
+      }
+    },
     // Ground-truth sprite roster (hasSprites+animData-derived) + full non-hidden roster — so tests can
     // assert the beta filter equals the live selectable set without hardcoding names.
     rosterSets: () => ({ sprite: betaRosterKeys(), all: Object.keys(characters).filter(k => !characters[k]?.hidden), spriteUniverses: [...spriteUniverseSet()],
@@ -15001,6 +15798,51 @@ gameLoop()
         onlineLocked: !!online?.locked,
         towerUnlocked: isUnlocked("towerMode"), extraSkinsUnlocked: isUnlocked("extraSkins")
       }
+    },
+    // ── CONTROLLER MENU NAVIGATION (item 3) ──────────────────────────────────────
+    // Drive the gamepad menu navigator with a synthetic nav intent (Playwright can't emulate the
+    // Gamepad API), then run the SAME hover + click dispatch a real frame does. Returns the resulting
+    // gameState so a test can prove the controller moved/selected. opts: {up,down,left,right,confirm,back,start}.
+    padNav: (opts = {}) => {
+      const nav = { up: !!opts.up, down: !!opts.down, left: !!opts.left, right: !!opts.right, confirm: !!opts.confirm, back: !!opts.back, start: !!opts.start }
+      nav.dir = nav.up ? "up" : nav.down ? "down" : nav.left ? "left" : nav.right ? "right" : null
+      nav.any = !!nav.dir || nav.confirm || nav.back || nav.start
+      updateMenuGamepad(nav)
+      updateHoverIndices()
+      handleMenuClicks()
+      return { gameState }
+    },
+    // Introspect the pad's virtual-cursor selection on the current rect menu: index, item id, count, and
+    // where the cursor is parked. (null count → the current screen isn't a rect menu.)
+    padMenuState: () => {
+      const rects = _padMenuRects()
+      const idx = (gameState !== _padLastState) ? 0 : _padMenuIdx   // mirror the fresh-screen snap (non-mutating)
+      const sel = rects && rects[idx]
+      return { gameState, idx, count: rects ? rects.length : 0, selId: sel?.id ?? null, mouseX: Math.round(mouse.x), mouseY: Math.round(mouse.y) }
+    },
+    // Whether a real pad is currently connected (menus poll the FIRST connected pad) — proves live wiring.
+    padConnected: () => !!(typeof navigator !== "undefined" && navigator.getGamepads && Array.from(navigator.getGamepads()).some(Boolean)),
+    // Run the REAL pad poll (reads navigator.getGamepads) → the edge/repeat nav intent. A test fakes
+    // navigator.getGamepads to prove the actual polling path (edges, deadzone, repeat), not just the mapping.
+    padPollRaw: () => pollMenuGamepad?.() ?? null,
+    // ── SAVE / PROGRESS PERSISTENCE (guest-safe) ─────────────────────────────────
+    // Drive + read the consolidated account save for the force-quit/relaunch test. `ensure` creates the
+    // default local profile (the boot does this automatically off-harness); `award` persists a match win +
+    // a personality event (event-based save → synchronous to localStorage); `read` reports what a relaunch
+    // would restore.
+    progress: {
+      ensure: () => { const a = ensureDefaultAccount(); return a ? { username: a.username, id: a.accountId } : null },
+      award:  () => { awardMatchXp({ won: true, roundsWon: 2, perfect: false }); try { personality.ensureSession(); personality.recordGameplayEvent("aggressive_open", {}) } catch (_) {} return window.__harness.progress.read() },
+      read:   () => { const a = getCurrentAccount(); return a ? { username: a.username, xp: a.progression?.xp ?? 0, level: a.progression?.level ?? getLevel(), matches: a.progression?.matches ?? 0, wins: a.progression?.wins ?? 0, personalityEvents: a.personality?.events?.length ?? 0 } : null },
+    },
+    // ── SCREEN BACK-NAVIGATION ───────────────────────────────────────────────────
+    // Inspect + drive the back-history stack. `state` reports the current screen + the ancestor stack;
+    // `back` performs a goBack() (the same thing Esc / Backspace / controller Circle / the BACK button do)
+    // and returns the result; `backRect` is the on-screen BACK button hitbox (null when the screen has none).
+    nav: {
+      state: () => ({ gameState, stack: [..._navStack] }),
+      back:  () => { const ok = goBack(); return { ok, gameState, stack: [..._navStack] } },
+      backRect: () => (NAV_BACK_OVERLAY_SCREENS.has(gameState) ? getNavBackRect() : null),
     },
     // One-shot: into a live battle with P1 energy full (ultimate affordable).
     boot: () => { startHarnessMatch(); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
@@ -15324,10 +16166,44 @@ gameLoop()
       rank:        (profile, n = 10) => musicPersonality.rankSongsForProfile(profile).slice(0, n).map(r => ({ file: r.file, score: Math.round(r.score * 1000) / 1000 })),
       order:       (n = 0) => musicPersonality.getPersonalizedMenuOrder(getCurrentAccount(), n),
       apply:       () => applyPersonalizedMenu(),
-      // Settings "Personalize by playstyle" BUTTON — drives the exact click-handler path.
-      pressPersonalize: () => { const r = _personalizeMenuAction(); return { msg: _personalizeMsg, ok: _personalizeOk, personalized: !!r?.personalized, count: r?.files?.length || 0 } },
-      personalizeMsg:   () => ({ msg: _personalizeMsg, ok: _personalizeOk }),
+      // "Personalized" SOURCE selection — drives the exact click-handler path (kept as pressPersonalize
+      // for continuity). personalized=true only when the tracked profile actually drove it.
+      pressPersonalize: () => { const r = _selectMusicSource("personalized"); return { msg: _musicSourceMsg, ok: _musicSourceOk, personalized: r.source === "personalized" && !r.fellBack, count: r.files.length } },
+      personalizeMsg:   () => ({ msg: _musicSourceMsg, ok: _musicSourceOk }),
       visibleRows:      () => getPlaylistRects().length   // panel row-cap (≤ PLAYLIST_MAX_ROWS) so a long list can't overflow
+    },
+    // ── CUSTOM PLAYLIST library + source selection (account-INDEPENDENT — works for guests) ──
+    library: {
+      size:      () => musicLibrary.librarySize(),
+      hasAccount: () => !!getCurrentAccount(),   // prove the guest (no-account) path works
+      source:    () => musicLibrary.getActiveSource(),
+      setSource: (s) => { const r = _selectMusicSource(s); return { source: musicLibrary.getActiveSource(), fellBack: r.fellBack, msg: _musicSourceMsg, files: r.files.length } },
+      getCustom: () => musicLibrary.getCustomPlaylist(),
+      resolve:   () => musicLibrary.resolveActivePlaylist(),
+      // Builder-screen drive (exercises the REAL open/toggle/save/cancel functions; no canvas clicks needed).
+      open:      () => { _openMusicLibrary(); return { state: gameState, preChecked: [..._mlSel] } },
+      toggle:    (file) => { if (_mlSel.has(file)) _mlSel.delete(file); else _mlSel.add(file); return _mlSel.size },
+      selCount:  () => _mlSel.size,
+      save:      () => { _saveMusicLibrary(); return { state: gameState, source: musicLibrary.getActiveSource(), custom: musicLibrary.getCustomPlaylist() } },
+      cancel:    () => { _cancelMusicLibrary(); return gameState },
+      rows:      () => getMusicLibraryLayout().rows.length,     // visible song rows in the browser viewport
+      scrollBy:  (dy) => { _mlScrollBy(dy); return { scroll: _mlScroll, rows: getMusicLibraryLayout().rows.map(r => r.file) } }
+    },
+    // ── CHALLENGES + trait-tagged recommendations (account-INDEPENDENT — guest-safe) ──
+    challenges: {
+      list:        () => challenges.getChallenges(),
+      complete:    (id) => challenges.isChallengeComplete(id),
+      completedN:  () => challenges.completedCount(),
+      // Simulate a finished match against the challenge list (real detection path).
+      recordMatch: (won, stats = {}, universe = null) => challenges.recordMatch({ won, stats, universe }),
+      force:       (id) => challenges.completeChallenge(id),
+      unlockedSkins: () => challenges.getUnlockedChallengeSkins(),
+      skinUnlocked: (rosterKey, skinId) => isSkinUnlocked(rosterKey, skinId),
+      // "Recommended for you" — pass a profile (personality.summarize shape); confidence-gated.
+      recommended: (profile, n = 0) => challenges.getRecommendedChallenges(profile, n),
+      recommendedForMe: (n = 0) => { try { return challenges.getRecommendedChallenges(personality.summarize(personality.getPersonality().traits), n) } catch (_) { return challenges.getRecommendedChallenges({}, n) } },
+      // Guest-aware progression read (progress.read returns null for guests; this works for everyone).
+      guestProgress: () => ({ level: getLevel(), xp: xpProgress().xp })
     },
     menuSimulateTrackEnd: () => { const f = sound?._musicFile; if (f && typeof f.onended === "function") { f.onended(); return true } return false },   // fire the auto-advance to see what plays NEXT
     // Place a fighter flying INTO the first stage hazard (real knockback + hitstun = a genuine "knocked

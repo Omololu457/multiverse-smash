@@ -204,29 +204,36 @@ function round3(x) { return Math.round(x * 1000) / 1000 }
 // ACCOUNT LAYER (per-player persistence via account.js)
 // ═════════════════════════════════════════════════════════════════════════════
 
-// Own the internal schema here (account.js keeps only an empty `personality: {}`
-// group). getPersonality() lazily builds/repairs the full shape so partial or
-// legacy saves can never crash a caller.
-export function getPersonality(account = getCurrentAccount()) {
-  if (!account) return null
-  let p = account.personality
-  if (!p || typeof p !== "object") p = account.personality = {}
-  if (!p.traits || typeof p.traits !== "object") {
-    p.tipiComplete = false
-    p.tipi = { O: 0, C: 0, E: 0, A: 0, N: 0 }
-    p.traits = initTraits({})                 // neutral prior until a TIPI is taken
-    p.events = []
-    p.sessionStamp = null
-  }
-  // Defensive backfill of any individual missing trait (legacy partial saves).
+// ★ STANDALONE PERSISTENCE (localStorage; guest-safe, account-INDEPENDENT). The profile
+// was previously stored in account.personality, which silently persisted NOTHING for
+// guests (the default player — no account) → the whole "let personality dictate the game"
+// premise had nothing to build on. Now the profile lives in its own localStorage key and
+// survives every restart for everyone, mirroring musicLibrary's guest-safe design. The
+// account param is still accepted on the public functions (signature stability) but ignored.
+const LS_KEY = "multiverse-smash-personality"
+function _lsAvailable() { try { return typeof localStorage !== "undefined" && localStorage !== null } catch (_) { return false } }
+function _blankProfile() {
+  return { tipiComplete: false, tipi: { O: 0, C: 0, E: 0, A: 0, N: 0 }, traits: initTraits({}), events: [], sessionStamp: null }
+}
+function _repair(p) {
+  if (!p || typeof p !== "object") p = _blankProfile()
+  if (!p.traits || typeof p.traits !== "object") { p.traits = initTraits({}) }
   for (const t of TRAITS) {
-    if (!p.traits[t] || typeof p.traits[t] !== "object") {
-      p.traits[t] = { mu: TIPI_ABSENT_PRIOR, sigma2: SIGMA2_INITIAL, n_events: 0, last_updated: null }
-    }
+    if (!p.traits[t] || typeof p.traits[t] !== "object") p.traits[t] = { mu: TIPI_ABSENT_PRIOR, sigma2: SIGMA2_INITIAL, n_events: 0, last_updated: null }
   }
   if (!Array.isArray(p.events)) p.events = []
+  if (typeof p.tipiComplete !== "boolean") p.tipiComplete = false
+  if (!p.tipi || typeof p.tipi !== "object") p.tipi = { O: 0, C: 0, E: 0, A: 0, N: 0 }
   return p
 }
+function _loadProfile() {
+  if (!_lsAvailable()) return _blankProfile()
+  try { return _repair(JSON.parse(localStorage.getItem(LS_KEY) || "null")) } catch (_) { return _blankProfile() }
+}
+let _profile = _loadProfile()
+
+// The tracked profile (standalone, always available — guest-safe). Account param ignored.
+export function getPersonality(_account) { return _profile }
 
 // Seed (or re-seed) the prior from a completed TIPI questionnaire. Resets the beliefs
 // to fresh priors around the new scores — a questionnaire is ground-truth-ish, so it
@@ -301,8 +308,8 @@ export function recordVictoryChoice(retry, account = getCurrentAccount()) {
   return recordGameplayEvent(retry ? "retry_after_loss" : "moved_on_after_loss", {}, account)
 }
 
-function _save(account) {
-  try { persistence.save(account) } catch (_) { /* persistence is defensive; never throw into the game loop */ }
+function _save(_account) {
+  if (_lsAvailable()) { try { localStorage.setItem(LS_KEY, JSON.stringify(_profile)) } catch (_) {} }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════

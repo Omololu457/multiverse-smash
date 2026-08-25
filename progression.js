@@ -10,7 +10,9 @@
 // ──────────────────────────────────────────────────────────────────────────
 import { getCurrentAccount, persistence } from "./account.js"
 
-export const PROGRESS_DOES_NOT_PERSIST = true
+// Progress now persists for EVERYONE: account holders via account.js localStorage, and
+// GUESTS via a dedicated localStorage key (below). The old "session-only" warning is retired.
+export const PROGRESS_DOES_NOT_PERSIST = false
 
 // Guest profile when no account is selected (so progression always works).
 const GUEST = "__guest__"
@@ -20,6 +22,26 @@ function _get(id = _id()) {
   if (!_progress.has(id)) _progress.set(id, { xp: 0, matches: 0, wins: 0 })
   return _progress.get(id)
 }
+
+// ── GUEST PROGRESS PERSISTENCE (standalone localStorage; guest-safe) ─────────
+// Account holders persist through account.js. Guests (the DEFAULT player) previously
+// lost all XP/level on reload — level-gated character unlocks reset every session. This
+// mirrors musicLibrary/personality's guest-safe design so guest level (and everything
+// derived from it) survives a restart.
+const GUEST_LS_KEY = "multiverse-smash-progress-guest"
+function _lsAvailable() { try { return typeof localStorage !== "undefined" && localStorage !== null } catch (_) { return false } }
+function _saveGuest() {
+  if (!_lsAvailable()) return
+  try { localStorage.setItem(GUEST_LS_KEY, JSON.stringify(_get(GUEST))) } catch (_) {}
+}
+function _loadGuest() {
+  if (!_lsAvailable()) return
+  try {
+    const d = JSON.parse(localStorage.getItem(GUEST_LS_KEY) || "null")
+    if (d && typeof d === "object") _progress.set(GUEST, { xp: Math.max(0, d.xp | 0), matches: Math.max(0, d.matches | 0), wins: Math.max(0, d.wins | 0) })
+  } catch (_) {}
+}
+_loadGuest()   // hydrate guest progress at import so guest level restores on boot
 
 // ── LEVEL CURVE ─────────────────────────────────────────────────────────────
 // Cumulative XP required to REACH a level: 50·L·(L-1).
@@ -178,7 +200,7 @@ export function unlocksBetween(fromLevel, toLevel) {
 // stub account.js uses. THIS is the single place to swap for real storage/backend.
 function _save(p) {
   const acct = getCurrentAccount()
-  if (!acct) return                          // guest progress stays in _progress (session only)
+  if (!acct) { _saveGuest(); return }        // guest → standalone localStorage (persists across reload)
   acct.progression = { xp: p.xp, matches: p.matches, wins: p.wins, level: levelFromXp(p.xp) }
   persistence.save(acct)                      // TODO(backend) lives in account.js
 }

@@ -80,6 +80,21 @@ export const SOURCED_ART = {
     source:  "fan sprite sheet (aoitodo_row_01/02.png; in-sheet credit to akuma animation / MichelST)",
     files:   ["aoi_todo_*.png", "aoitodo_row_*.png"]
   },
+  // Naoya Zenin (JJK) — same akuma animation sprite lineage as Aoi Todo. Attribution MANDATORY.
+  naoya: {
+    work:    "Naoya Zenin (Jujutsu Kaisen)",
+    artists: ["akuma animation (original sprites)"],
+    source:  "fan sprite sheet (naoya_*_uniform.png; in-sheet credit to akuma animation)",
+    files:   ["naoya_*.png"]
+  },
+  // Dark Vegeta / "Vegeta Black" (Dragon Ball) — black-armor sheet credited to akuma animation
+  // (with an additional mjdmadgaming mention on the source asset). Attribution MANDATORY.
+  vegeta_dark: {
+    work:    "Dark Vegeta (Dragon Ball)",
+    artists: ["akuma animation (original sprites)", "mjdmadgaming (sheet)"],
+    source:  "fan sprite sheet (vegeta_dark_*_uniform.png; in-sheet credit to akuma animation)",
+    files:   ["vegeta_dark_*.png"]
+  },
   // Yuta Okkotsu (JJK). Source sheets carry an in-sheet credit: Yuta "Made by Soulfire — Petamynx, Dano,
   // Santoryu"; Rika "Made by Soulfire — V2 remodel thanks to shaulmorales". Attribution is MANDATORY.
   // The Rika assist entity renders the rika_*/rika_v2_* art (same Soulfire lineage).
@@ -399,6 +414,19 @@ export function artistLineForCharacter(key) {
   return `Art: ${a.artists.join(", ")}${edit}`
 }
 
+// ── ADDITIONAL sprite attributions ──────────────────────────────────────────
+// Credits that don't map cleanly to a single playable roster key (form-level alien
+// sprites, alternate rips, portrait-only credits). Kept out of SOURCED_ART (which is
+// keyed by roster key + drives the per-key harness) but surfaced on the Credits screen
+// via the Sprite Art section so no attribution from the source sheets is ever lost.
+export const EXTRA_SPRITE_CREDITS = [
+  { work: "Superman (Justice League Task Force / SNES)", artists: ["HijodeKrypton (rip)"], source: "SNES sprite rip" },
+  { work: "Ben 10 — Heatblast, Four Arms, Diamondhead, Wildvine, Cannonbolt, Ripjaws (alien forms)", artists: ["dragonrod342"], source: "fan sprite sheets" },
+  { work: "Ben 10 — Cannonbolt, Clockwork, Upchuck & Ultimate forms (alien forms)", artists: ["ipmugenofficial"], source: "M.U.G.E.N sheets" },
+  { work: "Superman (custom chibi) — portrait", artists: ["Protokitty (portrait)", "Soulfire (sprites)"], source: "fan art" },
+  { work: "Guest sprite (older Megumi-era sheet)", artists: ["saxcreed"], source: "fan sprite sheet" }
+]
+
 // ── LEGAL NOTICE — the standing non-commercial fan-project notice, verbatim from CREDITS.txt ──
 export const LEGAL_NOTICE = [
   "This is a non-commercial personal fan project. All characters and source",
@@ -412,11 +440,14 @@ export const LEGAL_NOTICE = [
 export const CREDITS = [
   {
     section: "Sprite Art",
-    entries: Object.values(SOURCED_ART).map(a => ({
-      work:    a.work,
-      artists: a.edit ? [...a.artists, `edit: ${a.edit}`] : a.artists,
-      source:  a.source
-    })),
+    entries: [
+      ...Object.values(SOURCED_ART).map(a => ({
+        work:    a.work,
+        artists: a.edit ? [...a.artists, `edit: ${a.edit}`] : a.artists,
+        source:  a.source
+      })),
+      ...EXTRA_SPRITE_CREDITS
+    ],
     lines: [
       "",
       "All other fighter sprites were adapted, resliced, recolored and assembled",

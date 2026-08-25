@@ -126,6 +126,23 @@
             opacity: .7;
         }
 
+        /* Rotating lore fragment (Part 1 #1) — reuses endings.js epilogue text. Each fragment is a full
+           sentence, so a fast load that hides the screen never cuts one mid-thought. */
+        #loadFlavor {
+            max-width: min(72vw, 560px);
+            min-height: 3.2em;
+            margin-top: 6px;
+            font-size: .92rem;
+            line-height: 1.5;
+            letter-spacing: .3px;
+            font-style: italic;
+            text-align: center;
+            color: rgba(226, 232, 245, 0.72);
+            opacity: 0;
+            transition: opacity .5s ease;
+        }
+        #loadFlavor.show { opacity: 1; }
+
         #loading.hidden {
             opacity: 0;
             pointer-events: none;
@@ -144,12 +161,14 @@
     </style>
 </head>
 
+
 <body>
 
     <div id="loading">
         <div>Loading Multiverse Smash Ultimate…</div>
         <div id="loadBar"><div id="loadFill"></div></div>
         <div id="loadPct">0%</div>
+        <div id="loadFlavor"></div>
     </div>
 
     <canvas
@@ -201,7 +220,39 @@
         window.addEventListener("load", () => {
             setPct(1);
             document.getElementById("loading").classList.add("hidden");
+            stopFlavor();
         });
+
+        // ROTATING LORE FRAGMENTS (Part 1 #1). Pure wiring: reuse the already-written arcade epilogue
+        // text from endings.js — no new copy. Each fragment is one complete sentence, so hiding the
+        // loader on 'load' can never cut a fragment mid-sentence. Import is dynamic + best-effort so a
+        // failure here can never block boot.
+        let flavorTimer = null;
+        const stopFlavor = () => { if (flavorTimer) { clearInterval(flavorTimer); flavorTimer = null; } };
+        (async () => {
+            try {
+                const el = document.getElementById("loadFlavor");
+                if (!el) return;
+                const { ENDINGS } = await import("./endings.js");
+                // Flatten every epilogue slide's text into a pool; keep full sentences only.
+                const pool = [];
+                for (const slides of Object.values(ENDINGS || {})) {
+                    if (!Array.isArray(slides)) continue;
+                    for (const s of slides) { const t = (s && s.text || "").trim(); if (t.length > 8) pool.push(t); }
+                }
+                if (!pool.length) return;
+                // Shuffle (Fisher–Yates) so the order differs each boot.
+                for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+                let idx = 0;
+                const show = () => {
+                    el.classList.remove("show");
+                    // brief fade-out, then swap text + fade-in
+                    setTimeout(() => { el.textContent = pool[idx % pool.length]; el.classList.add("show"); idx++; }, 260);
+                };
+                show();
+                flavorTimer = setInterval(show, 4200);
+            } catch (_) { /* boot must never depend on flavor text */ }
+        })();
     </script>
 
     <!-- Main Game -->
@@ -209,145 +260,147 @@
     <script type="importmap">
     {
       "imports": {
-            "./abilities.js": "./abilities.js?v=c53fd60b11",
-            "./account.js": "./account.js?v=c53fd60b11",
-            "./ai.js": "./ai.js?v=c53fd60b11",
-            "./alt_sukunaVoice.js": "./alt_sukunaVoice.js?v=c53fd60b11",
-            "./animation.js": "./animation.js?v=c53fd60b11",
-            "./animationProfile.js": "./animationProfile.js?v=c53fd60b11",
-            "./arcade.js": "./arcade.js?v=c53fd60b11",
-            "./batmanDarkKnightCinematic.js": "./batmanDarkKnightCinematic.js?v=c53fd60b11",
-            "./batmanVoice.js": "./batmanVoice.js?v=c53fd60b11",
-            "./beerusKiBallCinematic.js": "./beerusKiBallCinematic.js?v=c53fd60b11",
-            "./ben10.js": "./ben10.js?v=c53fd60b11",
-            "./ben10OmnitrixCinematic.js": "./ben10OmnitrixCinematic.js?v=c53fd60b11",
-            "./bindingvow.js": "./bindingvow.js?v=c53fd60b11",
-            "./borutoVoice.js": "./borutoVoice.js?v=c53fd60b11",
-            "./camera.js": "./camera.js?v=c53fd60b11",
-            "./characters.js": "./characters.js?v=c53fd60b11",
-            "./chrolloSkillHunterCinematic.js": "./chrolloSkillHunterCinematic.js?v=c53fd60b11",
-            "./chrolloVoice.js": "./chrolloVoice.js?v=c53fd60b11",
-            "./combat.js": "./combat.js?v=c53fd60b11",
-            "./comboStandard.js": "./comboStandard.js?v=c53fd60b11",
-            "./credits.js": "./credits.js?v=c53fd60b11",
-            "./cubeTrap.js": "./cubeTrap.js?v=c53fd60b11",
-            "./domains.js": "./domains.js?v=c53fd60b11",
-            "./effects.js": "./effects.js?v=c53fd60b11",
-            "./endings.js": "./endings.js?v=c53fd60b11",
-            "./fighters.js": "./fighters.js?v=c53fd60b11",
-            "./flashReverseVoice.js": "./flashReverseVoice.js?v=c53fd60b11",
-            "./flashTimeCinematic.js": "./flashTimeCinematic.js?v=c53fd60b11",
-            "./flashVoice.js": "./flashVoice.js?v=c53fd60b11",
-            "./game.js": "./game.js?v=c53fd60b11",
-            "./ghostfaceFinalActCinematic.js": "./ghostfaceFinalActCinematic.js?v=c53fd60b11",
-            "./ghostfaceVariantKit.js": "./ghostfaceVariantKit.js?v=c53fd60b11",
-            "./ghostfaceVoice.js": "./ghostfaceVoice.js?v=c53fd60b11",
-            "./gojoVoice.js": "./gojoVoice.js?v=c53fd60b11",
-            "./gokuBlackSwordCinematic.js": "./gokuBlackSwordCinematic.js?v=c53fd60b11",
-            "./goldSamuraiRangerVoice.js": "./goldSamuraiRangerVoice.js?v=c53fd60b11",
-            "./gonAdultFormCinematic.js": "./gonAdultFormCinematic.js?v=c53fd60b11",
-            "./gonVoice.js": "./gonVoice.js?v=c53fd60b11",
-            "./harness/alt_skin_manifest.mjs": "./harness/alt_skin_manifest.mjs?v=c53fd60b11",
-            "./hashiramaSealingJutsuCinematic.js": "./hashiramaSealingJutsuCinematic.js?v=c53fd60b11",
-            "./hashiramaVoice.js": "./hashiramaVoice.js?v=c53fd60b11",
-            "./hiruzenVoice.js": "./hiruzenVoice.js?v=c53fd60b11",
-            "./hisokaOverdriveCinematic.js": "./hisokaOverdriveCinematic.js?v=c53fd60b11",
-            "./hisokaVoice.js": "./hisokaVoice.js?v=c53fd60b11",
-            "./ichigoGetsugaTenshoCinematic.js": "./ichigoGetsugaTenshoCinematic.js?v=c53fd60b11",
-            "./ichigoVoice.js": "./ichigoVoice.js?v=c53fd60b11",
-            "./inosukeBeastCinematic.js": "./inosukeBeastCinematic.js?v=c53fd60b11",
-            "./inosukeVoice.js": "./inosukeVoice.js?v=c53fd60b11",
-            "./input.js": "./input.js?v=c53fd60b11",
-            "./isshikiVoice.js": "./isshikiVoice.js?v=c53fd60b11",
-            "./itachiVoice.js": "./itachiVoice.js?v=c53fd60b11",
-            "./jasonVoice.js": "./jasonVoice.js?v=c53fd60b11",
-            "./kibaVoice.js": "./kibaVoice.js?v=c53fd60b11",
-            "./killuaGodspeedCinematic.js": "./killuaGodspeedCinematic.js?v=c53fd60b11",
-            "./killuaVoice.js": "./killuaVoice.js?v=c53fd60b11",
-            "./kits.js": "./kits.js?v=c53fd60b11",
-            "./kurama.js": "./kurama.js?v=c53fd60b11",
-            "./madaraTengaiShinseiCinematic.js": "./madaraTengaiShinseiCinematic.js?v=c53fd60b11",
-            "./madaraVoice.js": "./madaraVoice.js?v=c53fd60b11",
-            "./makiShibuyaCinematic.js": "./makiShibuyaCinematic.js?v=c53fd60b11",
-            "./makiVoice.js": "./makiVoice.js?v=c53fd60b11",
-            "./mangekyouCinematic.js": "./mangekyouCinematic.js?v=c53fd60b11",
-            "./matchEntryTransition.js": "./matchEntryTransition.js?v=c53fd60b11",
-            "./matchflow.js": "./matchflow.js?v=c53fd60b11",
-            "./mayuriVoice.js": "./mayuriVoice.js?v=c53fd60b11",
-            "./minatoKurama.js": "./minatoKurama.js?v=c53fd60b11",
-            "./minatoVoice.js": "./minatoVoice.js?v=c53fd60b11",
-            "./miwaUltimateCinematic.js": "./miwaUltimateCinematic.js?v=c53fd60b11",
-            "./miwaVoice.js": "./miwaVoice.js?v=c53fd60b11",
-            "./motionInput.js": "./motionInput.js?v=c53fd60b11",
-            "./moveset.js": "./moveset.js?v=c53fd60b11",
-            "./musicPersonality.js": "./musicPersonality.js?v=c53fd60b11",
-            "./naoyaVoice.js": "./naoyaVoice.js?v=c53fd60b11",
-            "./nezukoVoice.js": "./nezukoVoice.js?v=c53fd60b11",
-            "./obitoDimension.js": "./obitoDimension.js?v=c53fd60b11",
-            "./obitoJuubiCinematic.js": "./obitoJuubiCinematic.js?v=c53fd60b11",
-            "./obitoVoice.js": "./obitoVoice.js?v=c53fd60b11",
-            "./omnimanBodySlamCinematic.js": "./omnimanBodySlamCinematic.js?v=c53fd60b11",
-            "./omnimanVoice.js": "./omnimanVoice.js?v=c53fd60b11",
-            "./orochimaruVoice.js": "./orochimaruVoice.js?v=c53fd60b11",
-            "./painChibakuTenseiCinematic.js": "./painChibakuTenseiCinematic.js?v=c53fd60b11",
-            "./painVoice.js": "./painVoice.js?v=c53fd60b11",
-            "./personality.js": "./personality.js?v=c53fd60b11",
-            "./physics.js": "./physics.js?v=c53fd60b11",
-            "./platforms.js": "./platforms.js?v=c53fd60b11",
-            "./player.js": "./player.js?v=c53fd60b11",
-            "./pool.js": "./pool.js?v=c53fd60b11",
-            "./preloadManifest.js": "./preloadManifest.js?v=c53fd60b11",
-            "./progression.js": "./progression.js?v=c53fd60b11",
-            "./projectiles.js": "./projectiles.js?v=c53fd60b11",
-            "./redRangerPowerSwordCinematic.js": "./redRangerPowerSwordCinematic.js?v=c53fd60b11",
-            "./rengokuFlameExplosionCinematic.js": "./rengokuFlameExplosionCinematic.js?v=c53fd60b11",
-            "./rengokuVoice.js": "./rengokuVoice.js?v=c53fd60b11",
-            "./replay.js": "./replay.js?v=c53fd60b11",
-            "./rickVoice.js": "./rickVoice.js?v=c53fd60b11",
-            "./riftTransition.js": "./riftTransition.js?v=c53fd60b11",
-            "./rng.js": "./rng.js?v=c53fd60b11",
-            "./roster.js": "./roster.js?v=c53fd60b11",
-            "./saikiVoice.js": "./saikiVoice.js?v=c53fd60b11",
-            "./saitamaVoice.js": "./saitamaVoice.js?v=c53fd60b11",
-            "./samuraiFlameSmasherCinematic.js": "./samuraiFlameSmasherCinematic.js?v=c53fd60b11",
-            "./samuraiRedVoice.js": "./samuraiRedVoice.js?v=c53fd60b11",
-            "./sasukeCinematic.js": "./sasukeCinematic.js?v=c53fd60b11",
-            "./session.js": "./session.js?v=c53fd60b11",
-            "./shinobuButterflyCinematic.js": "./shinobuButterflyCinematic.js?v=c53fd60b11",
-            "./shinobuVoice.js": "./shinobuVoice.js?v=c53fd60b11",
-            "./skins.js": "./skins.js?v=c53fd60b11",
-            "./sound.js": "./sound.js?v=c53fd60b11",
-            "./spectator.js": "./spectator.js?v=c53fd60b11",
-            "./spidermanVoice.js": "./spidermanVoice.js?v=c53fd60b11",
-            "./sprite.js": "./sprite.js?v=c53fd60b11",
-            "./spritesheets.js": "./spritesheets.js?v=c53fd60b11",
-            "./ssjRoseCinematic.js": "./ssjRoseCinematic.js?v=c53fd60b11",
-            "./stageHazards.js": "./stageHazards.js?v=c53fd60b11",
-            "./sukunaVoice.js": "./sukunaVoice.js?v=c53fd60b11",
-            "./summons.js": "./summons.js?v=c53fd60b11",
-            "./supermanUltimateCinematic.js": "./supermanUltimateCinematic.js?v=c53fd60b11",
-            "./supermanVoice.js": "./supermanVoice.js?v=c53fd60b11",
-            "./tobiNineTailsCinematic.js": "./tobiNineTailsCinematic.js?v=c53fd60b11",
-            "./tobiVoice.js": "./tobiVoice.js?v=c53fd60b11",
-            "./tobiramaEdoTenseiCinematic.js": "./tobiramaEdoTenseiCinematic.js?v=c53fd60b11",
-            "./tobiramaVoice.js": "./tobiramaVoice.js?v=c53fd60b11",
-            "./tojiFlyHeadsSwarm.js": "./tojiFlyHeadsSwarm.js?v=c53fd60b11",
-            "./tojiReincarnationCinematic.js": "./tojiReincarnationCinematic.js?v=c53fd60b11",
-            "./tojiVoice.js": "./tojiVoice.js?v=c53fd60b11",
-            "./transformations.js": "./transformations.js?v=c53fd60b11",
-            "./ui.js": "./ui.js?v=c53fd60b11",
-            "./unlocks.js": "./unlocks.js?v=c53fd60b11",
-            "./vegetaFinalFlashCinematic.js": "./vegetaFinalFlashCinematic.js?v=c53fd60b11",
-            "./vegetaVoice.js": "./vegetaVoice.js?v=c53fd60b11",
-            "./yamamotoVoice.js": "./yamamotoVoice.js?v=c53fd60b11",
-            "./yujiUltimateCinematic.js": "./yujiUltimateCinematic.js?v=c53fd60b11",
-            "./yujiVoice.js": "./yujiVoice.js?v=c53fd60b11",
-            "./zarakiVoice.js": "./zarakiVoice.js?v=c53fd60b11",
-            "./zenitsuVoice.js": "./zenitsuVoice.js?v=c53fd60b11"
+            "./abilities.js": "./abilities.js?v=a14d5352b0",
+            "./account.js": "./account.js?v=a14d5352b0",
+            "./ai.js": "./ai.js?v=a14d5352b0",
+            "./alt_sukunaVoice.js": "./alt_sukunaVoice.js?v=a14d5352b0",
+            "./animation.js": "./animation.js?v=a14d5352b0",
+            "./animationProfile.js": "./animationProfile.js?v=a14d5352b0",
+            "./arcade.js": "./arcade.js?v=a14d5352b0",
+            "./batmanDarkKnightCinematic.js": "./batmanDarkKnightCinematic.js?v=a14d5352b0",
+            "./batmanVoice.js": "./batmanVoice.js?v=a14d5352b0",
+            "./beerusKiBallCinematic.js": "./beerusKiBallCinematic.js?v=a14d5352b0",
+            "./ben10.js": "./ben10.js?v=a14d5352b0",
+            "./ben10OmnitrixCinematic.js": "./ben10OmnitrixCinematic.js?v=a14d5352b0",
+            "./bindingvow.js": "./bindingvow.js?v=a14d5352b0",
+            "./borutoVoice.js": "./borutoVoice.js?v=a14d5352b0",
+            "./camera.js": "./camera.js?v=a14d5352b0",
+            "./challenges.js": "./challenges.js?v=a14d5352b0",
+            "./characters.js": "./characters.js?v=a14d5352b0",
+            "./chrolloSkillHunterCinematic.js": "./chrolloSkillHunterCinematic.js?v=a14d5352b0",
+            "./chrolloVoice.js": "./chrolloVoice.js?v=a14d5352b0",
+            "./combat.js": "./combat.js?v=a14d5352b0",
+            "./comboStandard.js": "./comboStandard.js?v=a14d5352b0",
+            "./credits.js": "./credits.js?v=a14d5352b0",
+            "./cubeTrap.js": "./cubeTrap.js?v=a14d5352b0",
+            "./domains.js": "./domains.js?v=a14d5352b0",
+            "./effects.js": "./effects.js?v=a14d5352b0",
+            "./endings.js": "./endings.js?v=a14d5352b0",
+            "./fighters.js": "./fighters.js?v=a14d5352b0",
+            "./flashReverseVoice.js": "./flashReverseVoice.js?v=a14d5352b0",
+            "./flashTimeCinematic.js": "./flashTimeCinematic.js?v=a14d5352b0",
+            "./flashVoice.js": "./flashVoice.js?v=a14d5352b0",
+            "./game.js": "./game.js?v=a14d5352b0",
+            "./ghostfaceFinalActCinematic.js": "./ghostfaceFinalActCinematic.js?v=a14d5352b0",
+            "./ghostfaceVariantKit.js": "./ghostfaceVariantKit.js?v=a14d5352b0",
+            "./ghostfaceVoice.js": "./ghostfaceVoice.js?v=a14d5352b0",
+            "./gojoVoice.js": "./gojoVoice.js?v=a14d5352b0",
+            "./gokuBlackSwordCinematic.js": "./gokuBlackSwordCinematic.js?v=a14d5352b0",
+            "./goldSamuraiRangerVoice.js": "./goldSamuraiRangerVoice.js?v=a14d5352b0",
+            "./gonAdultFormCinematic.js": "./gonAdultFormCinematic.js?v=a14d5352b0",
+            "./gonVoice.js": "./gonVoice.js?v=a14d5352b0",
+            "./harness/alt_skin_manifest.mjs": "./harness/alt_skin_manifest.mjs?v=a14d5352b0",
+            "./hashiramaSealingJutsuCinematic.js": "./hashiramaSealingJutsuCinematic.js?v=a14d5352b0",
+            "./hashiramaVoice.js": "./hashiramaVoice.js?v=a14d5352b0",
+            "./hiruzenVoice.js": "./hiruzenVoice.js?v=a14d5352b0",
+            "./hisokaOverdriveCinematic.js": "./hisokaOverdriveCinematic.js?v=a14d5352b0",
+            "./hisokaVoice.js": "./hisokaVoice.js?v=a14d5352b0",
+            "./ichigoGetsugaTenshoCinematic.js": "./ichigoGetsugaTenshoCinematic.js?v=a14d5352b0",
+            "./ichigoVoice.js": "./ichigoVoice.js?v=a14d5352b0",
+            "./inosukeBeastCinematic.js": "./inosukeBeastCinematic.js?v=a14d5352b0",
+            "./inosukeVoice.js": "./inosukeVoice.js?v=a14d5352b0",
+            "./input.js": "./input.js?v=a14d5352b0",
+            "./isshikiVoice.js": "./isshikiVoice.js?v=a14d5352b0",
+            "./itachiVoice.js": "./itachiVoice.js?v=a14d5352b0",
+            "./jasonVoice.js": "./jasonVoice.js?v=a14d5352b0",
+            "./kibaVoice.js": "./kibaVoice.js?v=a14d5352b0",
+            "./killuaGodspeedCinematic.js": "./killuaGodspeedCinematic.js?v=a14d5352b0",
+            "./killuaVoice.js": "./killuaVoice.js?v=a14d5352b0",
+            "./kits.js": "./kits.js?v=a14d5352b0",
+            "./kurama.js": "./kurama.js?v=a14d5352b0",
+            "./madaraTengaiShinseiCinematic.js": "./madaraTengaiShinseiCinematic.js?v=a14d5352b0",
+            "./madaraVoice.js": "./madaraVoice.js?v=a14d5352b0",
+            "./makiShibuyaCinematic.js": "./makiShibuyaCinematic.js?v=a14d5352b0",
+            "./makiVoice.js": "./makiVoice.js?v=a14d5352b0",
+            "./mangekyouCinematic.js": "./mangekyouCinematic.js?v=a14d5352b0",
+            "./matchEntryTransition.js": "./matchEntryTransition.js?v=a14d5352b0",
+            "./matchflow.js": "./matchflow.js?v=a14d5352b0",
+            "./mayuriVoice.js": "./mayuriVoice.js?v=a14d5352b0",
+            "./minatoKurama.js": "./minatoKurama.js?v=a14d5352b0",
+            "./minatoVoice.js": "./minatoVoice.js?v=a14d5352b0",
+            "./miwaUltimateCinematic.js": "./miwaUltimateCinematic.js?v=a14d5352b0",
+            "./miwaVoice.js": "./miwaVoice.js?v=a14d5352b0",
+            "./motionInput.js": "./motionInput.js?v=a14d5352b0",
+            "./moveset.js": "./moveset.js?v=a14d5352b0",
+            "./musicLibrary.js": "./musicLibrary.js?v=a14d5352b0",
+            "./musicPersonality.js": "./musicPersonality.js?v=a14d5352b0",
+            "./naoyaVoice.js": "./naoyaVoice.js?v=a14d5352b0",
+            "./nezukoVoice.js": "./nezukoVoice.js?v=a14d5352b0",
+            "./obitoDimension.js": "./obitoDimension.js?v=a14d5352b0",
+            "./obitoJuubiCinematic.js": "./obitoJuubiCinematic.js?v=a14d5352b0",
+            "./obitoVoice.js": "./obitoVoice.js?v=a14d5352b0",
+            "./omnimanBodySlamCinematic.js": "./omnimanBodySlamCinematic.js?v=a14d5352b0",
+            "./omnimanVoice.js": "./omnimanVoice.js?v=a14d5352b0",
+            "./orochimaruVoice.js": "./orochimaruVoice.js?v=a14d5352b0",
+            "./painChibakuTenseiCinematic.js": "./painChibakuTenseiCinematic.js?v=a14d5352b0",
+            "./painVoice.js": "./painVoice.js?v=a14d5352b0",
+            "./personality.js": "./personality.js?v=a14d5352b0",
+            "./physics.js": "./physics.js?v=a14d5352b0",
+            "./platforms.js": "./platforms.js?v=a14d5352b0",
+            "./player.js": "./player.js?v=a14d5352b0",
+            "./pool.js": "./pool.js?v=a14d5352b0",
+            "./preloadManifest.js": "./preloadManifest.js?v=a14d5352b0",
+            "./progression.js": "./progression.js?v=a14d5352b0",
+            "./projectiles.js": "./projectiles.js?v=a14d5352b0",
+            "./redRangerPowerSwordCinematic.js": "./redRangerPowerSwordCinematic.js?v=a14d5352b0",
+            "./rengokuFlameExplosionCinematic.js": "./rengokuFlameExplosionCinematic.js?v=a14d5352b0",
+            "./rengokuVoice.js": "./rengokuVoice.js?v=a14d5352b0",
+            "./replay.js": "./replay.js?v=a14d5352b0",
+            "./rickVoice.js": "./rickVoice.js?v=a14d5352b0",
+            "./riftTransition.js": "./riftTransition.js?v=a14d5352b0",
+            "./rng.js": "./rng.js?v=a14d5352b0",
+            "./roster.js": "./roster.js?v=a14d5352b0",
+            "./saikiVoice.js": "./saikiVoice.js?v=a14d5352b0",
+            "./saitamaVoice.js": "./saitamaVoice.js?v=a14d5352b0",
+            "./samuraiFlameSmasherCinematic.js": "./samuraiFlameSmasherCinematic.js?v=a14d5352b0",
+            "./samuraiRedVoice.js": "./samuraiRedVoice.js?v=a14d5352b0",
+            "./sasukeCinematic.js": "./sasukeCinematic.js?v=a14d5352b0",
+            "./session.js": "./session.js?v=a14d5352b0",
+            "./shinobuButterflyCinematic.js": "./shinobuButterflyCinematic.js?v=a14d5352b0",
+            "./shinobuVoice.js": "./shinobuVoice.js?v=a14d5352b0",
+            "./skins.js": "./skins.js?v=a14d5352b0",
+            "./sound.js": "./sound.js?v=a14d5352b0",
+            "./spectator.js": "./spectator.js?v=a14d5352b0",
+            "./spidermanVoice.js": "./spidermanVoice.js?v=a14d5352b0",
+            "./sprite.js": "./sprite.js?v=a14d5352b0",
+            "./spritesheets.js": "./spritesheets.js?v=a14d5352b0",
+            "./ssjRoseCinematic.js": "./ssjRoseCinematic.js?v=a14d5352b0",
+            "./stageHazards.js": "./stageHazards.js?v=a14d5352b0",
+            "./sukunaVoice.js": "./sukunaVoice.js?v=a14d5352b0",
+            "./summons.js": "./summons.js?v=a14d5352b0",
+            "./supermanUltimateCinematic.js": "./supermanUltimateCinematic.js?v=a14d5352b0",
+            "./supermanVoice.js": "./supermanVoice.js?v=a14d5352b0",
+            "./tobiNineTailsCinematic.js": "./tobiNineTailsCinematic.js?v=a14d5352b0",
+            "./tobiVoice.js": "./tobiVoice.js?v=a14d5352b0",
+            "./tobiramaEdoTenseiCinematic.js": "./tobiramaEdoTenseiCinematic.js?v=a14d5352b0",
+            "./tobiramaVoice.js": "./tobiramaVoice.js?v=a14d5352b0",
+            "./tojiFlyHeadsSwarm.js": "./tojiFlyHeadsSwarm.js?v=a14d5352b0",
+            "./tojiReincarnationCinematic.js": "./tojiReincarnationCinematic.js?v=a14d5352b0",
+            "./tojiVoice.js": "./tojiVoice.js?v=a14d5352b0",
+            "./transformations.js": "./transformations.js?v=a14d5352b0",
+            "./ui.js": "./ui.js?v=a14d5352b0",
+            "./unlocks.js": "./unlocks.js?v=a14d5352b0",
+            "./vegetaFinalFlashCinematic.js": "./vegetaFinalFlashCinematic.js?v=a14d5352b0",
+            "./vegetaVoice.js": "./vegetaVoice.js?v=a14d5352b0",
+            "./yamamotoVoice.js": "./yamamotoVoice.js?v=a14d5352b0",
+            "./yujiUltimateCinematic.js": "./yujiUltimateCinematic.js?v=a14d5352b0",
+            "./yujiVoice.js": "./yujiVoice.js?v=a14d5352b0",
+            "./zarakiVoice.js": "./zarakiVoice.js?v=a14d5352b0",
+            "./zenitsuVoice.js": "./zenitsuVoice.js?v=a14d5352b0"
       }
 }
     </script>
-    <script type="module" src="./game.js?v=c53fd60b11"></script>
+    <script type="module" src="./game.js?v=a14d5352b0"></script>
     <!-- BUILD:MODULES END -->
 
 

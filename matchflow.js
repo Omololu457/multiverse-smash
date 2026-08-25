@@ -163,6 +163,7 @@ export function drawVictoryScreen(ctx, canvas, state) {
     fadeAlpha     = 1,
     flawless      = false,
     subtitle      = "",
+    flavorLine    = "",
     primaryLabel  = "REMATCH"
   } = state
 
@@ -219,6 +220,27 @@ export function drawVictoryScreen(ctx, canvas, state) {
     ctx.font      = "700 16px Arial"
     ctx.fillStyle = "rgba(196,181,253,0.9)"
     ctx.fillText(subtitle, cw / 2, ch * 0.32)
+  }
+
+  // ── VICTORY FLAVOR LINE (Part 1 #5) — a short character-voiced line in place of a bare "YOU WIN". ──
+  // Wrapped to at most 2 lines within the stats-panel width; italic + muted so it frames, not shouts.
+  if (flavorLine) {
+    ctx.save()
+    ctx.font      = `italic ${Math.min(17, Math.floor(cw * 0.014) + 8)}px Georgia, serif`
+    ctx.fillStyle = "rgba(226,232,245,0.82)"
+    const maxW  = Math.min(600, cw * 0.72)
+    const words = flavorLine.split(" ")
+    const lines = []
+    let cur = ""
+    for (const wd of words) {
+      const test = cur ? cur + " " + wd : wd
+      if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = wd } else cur = test
+      if (lines.length === 2) break   // cap at 2 lines
+    }
+    if (cur && lines.length < 2) lines.push(cur)
+    const fy = subtitle ? ch * 0.355 : ch * 0.335
+    lines.forEach((ln, i) => ctx.fillText(ln, cw / 2, fy + i * 21))
+    ctx.restore()
   }
 
   // ── MATCH STATS ────────────────────────────────────────────────

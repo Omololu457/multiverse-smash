@@ -62,14 +62,19 @@ export const DRAGON_BALL_TRANSFORM_SFX = "dragon_ball_transformation.mp3"
 // reorder UI mutates it in place. Filenames are EXACT on-disk names (case
 // sensitive). Missing files degrade gracefully via playMusicFile's onerror
 // fallback (procedural MENU theme), so a not-yet-added track never crashes.
-export const MENU_PLAYLIST = [
+// The CURATED default sequence — frozen so it survives even after MENU_PLAYLIST is swapped in
+// place (personalized / custom sources mutate MENU_PLAYLIST). Restoring "default" copies from here.
+export const DEFAULT_MENU_PLAYLIST = Object.freeze([
   "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3",
   "Future___Young_Thug_-_No_Cap__Official_Audio_.mp3",
   "jhene__aiko_-_stay_ready__instrumental_.mp3",
   "Noble_f3mii_Instrumental.mp3",
   "Rema_-_Dumebi.mp3",
   "Rochelle_Jordan_-_Lowkey___sped_up__.mp3"
-]
+])
+// The LIVE playlist (what's actually playing/looping). Starts as a copy of the default; the reorder
+// UI, personalized order, and custom playlist all mutate THIS array via setMenuPlaylistFiles/-Order.
+export const MENU_PLAYLIST = [...DEFAULT_MENU_PLAYLIST]
 
 // Clean, human-readable labels for the Settings playlist UI (only these 6 fixed
 // files, so a hardcoded map is fine). menuTrackDisplayName() falls back to a

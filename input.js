@@ -80,6 +80,33 @@ export const PS5_MAP = {
 export const STICK_DEADZONE = 0.4
 
 // ─────────────────────────────────────────────────────────────────
+// CONTROLLER GLYPHS (Part 3 #26) — detect the connected pad's family from its
+// navigator.getGamepads() id string and surface matching face-button/shoulder
+// glyphs (Xbox A/B/X/Y + LB/RB/LT/RT vs PlayStation ✕/○/□/△ + L1/R1/L2/R2)
+// instead of one hardcoded label set. Positions are STANDARD-gamepad indices
+// (down=0, right=1, left=2, up=3), so they map correctly across both families.
+// ─────────────────────────────────────────────────────────────────
+export function getPadType() {
+  const gps = (typeof navigator !== "undefined" && navigator.getGamepads) ? navigator.getGamepads() : []
+  for (const g of gps) {
+    if (!g) continue
+    const id = (g.id || "").toLowerCase()
+    if (/playstation|dualshock|dualsense|054c|0ce6|09cc/.test(id)) return "playstation"
+    if (/xbox|xinput|045e|x-?box|microsoft/.test(id)) return "xbox"
+    if (/nintendo|switch|joy-?con|pro controller|057e/.test(id)) return "nintendo"
+  }
+  // A pad is connected but unrecognized → most PC pads present as XInput/Xbox.
+  return gps.some(Boolean) ? "xbox" : "generic"
+}
+export const PAD_GLYPHS = {
+  xbox:        { down: "Ⓐ A", right: "Ⓑ B", left: "Ⓧ X", up: "Ⓨ Y", l1: "LB", r1: "RB", l2: "LT", r2: "RT", label: "Xbox" },
+  playstation: { down: "✕ Cross", right: "○ Circle", left: "□ Square", up: "△ Triangle", l1: "L1", r1: "R1", l2: "L2", r2: "R2", label: "PlayStation" },
+  nintendo:    { down: "Ⓑ B", right: "Ⓐ A", left: "Ⓨ Y", up: "Ⓧ X", l1: "L", r1: "R", l2: "ZL", r2: "ZR", label: "Switch" },
+  generic:     { down: "✕ Cross", right: "○ Circle", left: "□ Square", up: "△ Triangle", l1: "L1", r1: "R1", l2: "L2", r2: "R2", label: "Controller" }
+}
+export function padGlyphs(type = getPadType()) { return PAD_GLYPHS[type] || PAD_GLYPHS.generic }
+
+// ─────────────────────────────────────────────────────────────────
 // DEFAULT CONTROL MAPS
 // ─────────────────────────────────────────────────────────────────
 // KEYBOARD DEFAULTS: SINGLE SOURCE OF TRUTH lives in game.js (P1_CONTROLS /
@@ -128,8 +155,13 @@ export const mouse = {
 export function setupMouseInput(canvas) {
   canvas.addEventListener("mousemove", e => {
     const rect = canvas.getBoundingClientRect()
-    mouse.x = e.clientX - rect.left
-    mouse.y = e.clientY - rect.top
+    // Map CSS pixels → canvas backing pixels. Ratio is 1 when the backing store matches the display
+    // (native), and >1 under a UI-scale where the canvas renders at a smaller backing resolution
+    // (Part 3 #13). Keeps hitboxes aligned at any scale.
+    const sx = rect.width  ? canvas.width  / rect.width  : 1
+    const sy = rect.height ? canvas.height / rect.height : 1
+    mouse.x = (e.clientX - rect.left) * sx
+    mouse.y = (e.clientY - rect.top)  * sy
   })
 
   canvas.addEventListener("mousedown", () => {
@@ -314,6 +346,62 @@ export function getPlayerGamepad(playerNum) {
   const assignedIdx = resolvePadIndex(playerNum, gamepads)
   if (assignedIdx == null) return null
   return gamepads[assignedIdx] || Array.from(gamepads).find(g => g && g.index === assignedIdx) || null
+}
+
+// ─────────────────────────────────────────────────────────────────
+// MENU NAVIGATION VIA GAMEPAD
+// ─────────────────────────────────────────────────────────────────
+// The in-battle pollGamepad() only runs once a fighter exists and its device type is
+// "controller" — so on the HOME/title + every menu screen a controller did NOTHING
+// (menus are mouse-hover + click driven; nothing polled the pad). This reads the FIRST
+// connected pad (menus are a single shared cursor — any pad drives it, regardless of the
+// per-player device type, which isn't meaningful outside a match) and returns EDGE- and
+// REPEAT-triggered nav intents. game.js maps those onto the existing menu dispatch
+// (virtual-cursor click for rect menus, synthetic keys for the keyboard-driven ones), so
+// the controller drives the exact same code path a mouse/keyboard does.
+const _menuNav = { dir: null, held: 0, btnPrev: Object.create(null) }
+const MENU_REPEAT_DELAY = 22   // frames a direction must be held before it auto-repeats
+const MENU_REPEAT_RATE  = 7    // frames between auto-repeats while held
+
+function firstConnectedPad() {
+  const gps = (typeof navigator !== "undefined" && navigator.getGamepads) ? navigator.getGamepads() : []
+  for (const g of gps) if (g) return g
+  return null
+}
+
+export function pollMenuGamepad() {
+  const gp = firstConnectedPad()
+  if (!gp) return null
+  const btn = (i) => !!gp.buttons[i]?.pressed
+  const axX = gp.axes[PS5_MAP.ANALOG_L_X] || 0
+  const axY = gp.axes[PS5_MAP.ANALOG_L_Y] || 0
+
+  const up    = btn(PS5_MAP.UP)    || axY < -STICK_DEADZONE
+  const down  = btn(PS5_MAP.DOWN)  || axY >  STICK_DEADZONE
+  const left  = btn(PS5_MAP.LEFT)  || axX < -STICK_DEADZONE
+  const right = btn(PS5_MAP.RIGHT) || axX >  STICK_DEADZONE
+
+  // ONE active direction (up beats down beats left beats right). Fires on the initial press,
+  // then again on a slow auto-repeat cadence while held — so a held stick scrolls a long list.
+  const curDir = up ? "up" : down ? "down" : left ? "left" : right ? "right" : null
+  let dir = null
+  if (curDir) {
+    if (curDir !== _menuNav.dir) { _menuNav.dir = curDir; _menuNav.held = 0; dir = curDir }
+    else if (++_menuNav.held >= MENU_REPEAT_DELAY && (_menuNav.held - MENU_REPEAT_DELAY) % MENU_REPEAT_RATE === 0) dir = curDir
+  } else { _menuNav.dir = null; _menuNav.held = 0 }
+
+  // Face/menu buttons are pure EDGE triggers (fire once per press). PlayStation convention:
+  // Cross (0) = confirm, Circle (1) = back/cancel, Options (9) = start/pause.
+  const edge = (name, idx) => { const now = btn(idx); const was = _menuNav.btnPrev[name]; _menuNav.btnPrev[name] = now; return now && !was }
+  const confirm = edge("confirm", PS5_MAP.X)
+  const back    = edge("back",    PS5_MAP.CIRCLE)
+  const start   = edge("start",   9)
+
+  return {
+    up: dir === "up", down: dir === "down", left: dir === "left", right: dir === "right",
+    dir, confirm, back, start,
+    any: !!dir || confirm || back || start
+  }
 }
 
 function pollGamepad(playerNum, buffer) {

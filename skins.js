@@ -15,6 +15,7 @@
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
 import { getLevel, isFullyUnlocked } from "./progression.js"
+import { isChallengeSkinUnlocked } from "./challenges.js"   // challenge-reward skins (guest-safe, persisted)
 import { ALT_SKINS } from "./harness/alt_skin_manifest.mjs"
 
 // ── OWN art per non-default skin (overrides; everything else is borrowed) ──────
@@ -1931,6 +1932,7 @@ export function isSkinUnlocked(rosterKey, skinId) {
   // Dev OR beta code unlocks ALL skins (beta now grants the same full unlock as dev,
   // and separately sprite-filters the selectable roster — see game.js).
   if (isFullyUnlocked()) return true
+  if (isChallengeSkinUnlocked(rosterKey, skinId)) return true   // earned via a challenge reward
   return getLevel() >= skin.unlockLevel
 }
 

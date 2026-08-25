@@ -9,6 +9,7 @@ import { artistLineForCharacter, CREDITS } from "./credits.js"
 import { isFileApiSupported, saveFileStatus } from "./account.js"
 import { countShadowClones } from "./summons.js"
 import { COMBO_BREAKER } from "./combat.js"   // universal combo-break resource — HUD pips read stocksPerRound
+import { padGlyphs } from "./input.js"        // Part 3 #26: connected-controller glyphs (Xbox/PS/Switch)
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
 // Display-only (HUD energy-bar label) — no mechanics/costs read from this. Rick keeps his explicit
@@ -307,6 +308,36 @@ function _mkHover(id, active) {
   return st.hover
 }
 
+// Themed selector glyph (Part 1 #6) — a small angular "Anchor shard" (crystalline diamond with a
+// fracture line) that marks the active menu row, replacing the plain left accent bar. Purely
+// cosmetic and drawn INSIDE the row rect, so it never affects click/selection hitboxes. `t` is the
+// hover amount (0..1); it fades + pulses in with the rest of the button's hover animation.
+function _drawSelectorShard(ctx, cx, cy, h, accent, t) {
+  if (t <= 0.02) return
+  const pulse = 0.72 + 0.28 * Math.sin(_mkFrame * 0.18)
+  const half  = h * 0.5
+  const wide  = h * 0.30
+  ctx.save()
+  ctx.globalAlpha = Math.min(1, t)
+  ctx.translate(cx, cy)
+  // Outer shard (tall diamond)
+  ctx.beginPath()
+  ctx.moveTo(0, -half); ctx.lineTo(wide, 0); ctx.lineTo(0, half); ctx.lineTo(-wide, 0); ctx.closePath()
+  ctx.fillStyle = _withAlpha(accent, 0.9)
+  ctx.shadowBlur = 10 * pulse * t; ctx.shadowColor = accent
+  ctx.fill()
+  ctx.shadowBlur = 0
+  // Bright inner core
+  ctx.beginPath()
+  ctx.moveTo(0, -half * 0.5); ctx.lineTo(wide * 0.5, 0); ctx.lineTo(0, half * 0.5); ctx.lineTo(-wide * 0.5, 0); ctx.closePath()
+  ctx.fillStyle = "rgba(255,255,255,0.92)"
+  ctx.fill()
+  // Fracture line down the middle
+  ctx.strokeStyle = _withAlpha(accent, 0.55); ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(0, -half); ctx.lineTo(0, half); ctx.stroke()
+  ctx.restore()
+}
+
 // Angular metallic menu button — the shared primitive for every list/menu screen. `id` enables the
 // eased hover animation; `accent` is the highlight color (character accent where a character is shown,
 // else _MK_ACCENT). Matches the HUD/character-select shape + glow language exactly.
@@ -338,8 +369,8 @@ function drawMkButton(ctx, rect, opts = {}) {
   ctx.lineWidth = 1.5 + hv
   if (hv > 0.01) { const pulse = 0.6 + 0.4 * Math.sin(_mkFrame * 0.18); ctx.shadowBlur = (8 + 14 * pulse) * hv; ctx.shadowColor = accent }
   ctx.stroke(); ctx.shadowBlur = 0
-  // Left accent bar (MK detail) grows in on hover
-  if (hv > 0.02 && !locked) { ctx.save(); ctx.globalAlpha = hv; ctx.fillStyle = accent; ctx.fillRect(rect.x + cut * 0.5, rect.y + rect.h * 0.26, 3, rect.h * 0.48); ctx.restore() }
+  // Selector glyph (Part 1 #6): a themed Anchor shard marks the active row (cosmetic; no hitbox change).
+  if (!locked) _drawSelectorShard(ctx, rect.x + cut * 0.5 + 2, rect.y + rect.h * 0.5, rect.h * 0.42, accent, hv)
 
   // Labels — scale to row height (same behavior as the old drawButton)
   const labelSize = Math.round(clamp(rect.h * 0.34, 15, 26))
@@ -1138,22 +1169,25 @@ export function drawStartInfoPanel(ctx, canvas, data = {}) {
     ["Dash",          up(c.dash)],
     ["Grab",          up(c.grab)]
   ]
+  // Controller glyphs match the actually-connected pad (Part 3 #26) — Xbox A/B/X/Y + LB/RB/LT/RT,
+  // PlayStation ✕/○/□/△ + L1/R1/L2/R2, Switch, or a generic fallback when no pad is present.
+  const G = padGlyphs()
   const padRows = [
     ["Move / Jump", "L-Stick / D-Pad"],
-    ["Light",       "✕ (Cross)"],
-    ["Heavy",       "□ (Square)"],
-    ["Special",     "△ (Triangle)"],
-    ["Dash",        "○ (Circle)"],
-    ["Ultimate",    "L2 / R2"],
-    ["Grab",        "L1"],
-    ["Omnitrix",    "R1  (+ ← / →)"]
+    ["Light",       G.down],
+    ["Heavy",       G.left],
+    ["Special",     G.up],
+    ["Dash",        G.right],
+    ["Ultimate",    `${G.l2} / ${G.r2}`],
+    ["Grab",        G.l1],
+    ["Omnitrix",    `${G.r1}  (+ ← / →)`]
   ]
   const kbH = 52 + kbRows.length * 21 + 10
   const padH = 52 + padRows.length * 21 + 10
   const totalH = kbH + padH + 14
   let cy = clamp(h * 0.5 - totalH * 0.5 + 30, 90, h - totalH - 20)
   drawControlList(ctx, cx, cy, cw, kbH, "PLAYER 1 — KEYBOARD", "#7fd3ff", kbRows)
-  drawControlList(ctx, cx, cy + kbH + 14, cw, padH, "PLAYER 2 — CONTROLLER", "#ff9f9f", padRows)
+  drawControlList(ctx, cx, cy + kbH + 14, cw, padH, `PLAYER 2 — ${G.label.toUpperCase()}`, "#ff9f9f", padRows)
   drawCenteredText(ctx, "Toggle keyboard/controller in SETTINGS", cx + cw / 2, cy + totalH + 6, { font: "12px Arial", fill: "rgba(220,230,255,0.6)" })
 }
 
@@ -1280,6 +1314,8 @@ export function getMainMenuRects(canvas) {
     { id: "online",   label: "ONLINE",    subLabel: isFullyUnlocked() ? "Unlocked (placeholder)" : "Coming soon — online play", locked: !isFullyUnlocked(), lockNote: "Online play is coming soon" },
     { id: "devcode",  label: "DEV CODE",  subLabel: isFullyUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
+    { id: "codex",    label: "CODEX",     subLabel: "Fighter dossiers, grouped by world"    },
+    { id: "profile",  label: "PROFILE",   subLabel: "Your inferred Big-Five personality"    },
     { id: "tutorial", label: "HOW TO PLAY", subLabel: "Controls & mechanics walkthrough"  },
     { id: "account",  label: "ACCOUNT",   subLabel: "Create / switch local profile"       },
     // SAVE FILE (File System Access API). Loads/creates a local game_player_data.json so
@@ -1291,11 +1327,53 @@ export function getMainMenuRects(canvas) {
   ])
 }
 
+// ── MENU AMBIENT PARTICLES (Part 3 #1) — drifting motes/embers in the Void Sovereign palette
+// (silver-violet), rising slowly with a gentle twinkle. Purely cosmetic backdrop layer; module-level
+// state persists across frames. Additive blend so they read as soft light, not solid dots.
+const _menuParticles = []
+let _menuParticlesW = 0, _menuParticlesH = 0
+const _VOID_PALETTE = ["#8b5cf6", "#a78bfa", "#c4b5fd", "#e9d5ff", "#7dd3fc"]
+function _spawnMenuParticle(w, h, anywhere) {
+  return {
+    x: Math.random() * w,
+    y: anywhere ? Math.random() * h : h + 8,
+    r: 1 + Math.random() * 2.4,
+    vy: -(0.12 + Math.random() * 0.5),
+    vx: (Math.random() - 0.5) * 0.22,
+    life: 0, ttl: 320 + Math.random() * 420,
+    color: _VOID_PALETTE[Math.floor(Math.random() * _VOID_PALETTE.length)],
+    tw: Math.random() * Math.PI * 2
+  }
+}
+function drawMenuParticles(ctx, canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  if (!_menuParticles.length || _menuParticlesW !== w || _menuParticlesH !== h) {
+    _menuParticles.length = 0
+    const N = Math.round(Math.min(60, Math.max(28, w / 26)))
+    for (let i = 0; i < N; i++) _menuParticles.push(_spawnMenuParticle(w, h, true))
+    _menuParticlesW = w; _menuParticlesH = h
+  }
+  ctx.save()
+  ctx.globalCompositeOperation = "lighter"
+  for (const p of _menuParticles) {
+    p.x += p.vx; p.y += p.vy; p.life++; p.tw += 0.05
+    if (p.y < -8 || p.life > p.ttl) Object.assign(p, _spawnMenuParticle(w, h, false))
+    const fade = Math.min(1, p.life / 40) * Math.min(1, (p.ttl - p.life) / 60)
+    const twk  = 0.6 + 0.4 * Math.sin(p.tw)
+    ctx.globalAlpha = 0.5 * fade * twk
+    ctx.fillStyle = p.color
+    ctx.shadowBlur = 8; ctx.shadowColor = p.color
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill()
+  }
+  ctx.restore()
+}
+
 export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) {
   _mkAdvance()
   const { width: w } = getCanvasSize(canvas)
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
   drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#161029" })   // Stage 13: multiversal rift ambient
+  drawMenuParticles(ctx, canvas)   // Part 3 #1: ambient Void-palette motes over the backdrop
   drawHeader(ctx, canvas, "MULTIVERSE SMASH", "Where do you want to go?")
 
   // Logged-in-as banner (top-right) so the current account is always visible.
@@ -1929,11 +2007,13 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   const isLocked      = typeof options.isLocked === "function" ? options.isLocked : () => false   // Stage 21
   const lockLabel     = typeof options.lockLabel === "function" ? options.lockLabel : () => "Locked"
   const accentFor     = typeof options.accentFor === "function" ? options.accentFor : null        // per-character HUD accent (cursor/hover glow)
+  const universeLabel = options.universeLabel || ""   // franchise this grid is filtered to (Part 1 #2 grouping cue)
 
   _mkAdvance()
   ctx.clearRect(0, 0, w, h)
   drawMkAmbientBackdrop(ctx, canvas, { top: "#0b1021", bottom: "#1b2240" })   // Stage 22: consistent ambient backdrop
-  drawHeader(ctx, canvas, title, `Player ${currentPlayer} choose your fighter`)
+  // Franchise banner in the subtitle reinforces that the roster is grouped/filtered by world.
+  drawHeader(ctx, canvas, title, universeLabel ? `${universeLabel}  ·  Player ${currentPlayer} choose your fighter` : `Player ${currentPlayer} choose your fighter`)
 
   if (!roster.length) {
     drawSubText(ctx, "No fighters available", w / 2, h / 2, { font: "20px Arial" })
@@ -2063,12 +2143,10 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
       if (universe) {
         drawSubText(ctx, universe, rect.x + rect.w / 2, rect.y + 68, { font: "13px Arial", fill: "rgba(220,230,255,0.72)" })
       }
-      // Per-character artist credit (only for SOURCED sheets whose terms require it — the credit
-      // the artists actually asked for, shown where it matters). null → nothing drawn.
-      const artLine = artistLineForCharacter(rosterKey)
-      if (artLine) {
-        drawSubText(ctx, artLine, rect.x + rect.w / 2, rect.y + 90, { font: "11px Arial", fill: "rgba(255,224,150,0.92)" })
-      }
+      // Artist credit is NO LONGER drawn inline here — the per-card "Art: …" line was long and
+      // cluttered the select grid. All attribution now lives in the dedicated CREDITS screen
+      // (main menu → CREDITS), which still lists every SOURCED_ART artist. Attribution preserved,
+      // clutter removed. (artistLineForCharacter remains for the credits screen + harness.)
       if (isP1) drawCenteredText(ctx, "P1", rect.x + 18,          rect.y + 16, { font: "700 12px Arial", fill: "#7fd3ff", align: "left",  baseline: "alphabetic" })
       if (isP2) drawCenteredText(ctx, "P2", rect.x + rect.w - 18, rect.y + 16, { font: "700 12px Arial", fill: "#ff9f9f", align: "right", baseline: "alphabetic" })
     }
@@ -3588,7 +3666,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   ctx.fillStyle = vig; ctx.fillRect(0, 0, cw, ch)
 
   const panelW = 380
-  const panelH = 392   // fits 4 items (resume / restart / training / quit)
+  const panelH = 528   // fits 6 items (resume / restart / profile / codex / training / quit)
   const panelX = cw / 2 - panelW / 2
   const panelY = ch / 2 - panelH / 2
 
@@ -3612,6 +3690,8 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   const items = [
     { label: "Resume",        sub: "Continue the match" },
     { label: "Restart Round", sub: "Reset this round" },
+    { label: "Profile",       sub: "Your Big-Five personality" },
+    { label: "Codex",         sub: "Fighter dossiers" },
     { label: "Training Mode", sub: "Practice vs a frozen dummy" },
     { label: "Quit to Menu",  sub: "Return to the title screen" }
   ]
@@ -3652,7 +3732,196 @@ function _roundRectPath(ctx, x, y, w, h, r = 10) {
   ctx.closePath()
 }
 
-export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "trainingMode", "quitToMenu"]
+export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "profile", "codex", "trainingMode", "quitToMenu"]
+
+// Small local word-wrapper (returns lines that fit maxW at the ctx's current font).
+function _wrapText(ctx, text, maxW, maxLines = 99) {
+  const words = String(text || "").split(/\s+/).filter(Boolean)
+  const lines = []; let cur = ""
+  for (const wd of words) {
+    const test = cur ? cur + " " + wd : wd
+    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = wd; if (lines.length >= maxLines) break } else cur = test
+  }
+  if (cur && lines.length < maxLines) lines.push(cur)
+  return lines
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// PERSONALITY PROFILE (Part 1 #3) — Big-Five pentagon radar.
+// opts = { traits, tipiComplete, eventCount, backHover }
+//   traits = personality.summarize() output: { O:{mu,confidence,...}|null, C, E, A, N }
+// mu is on the 1..7 TIPI scale; confidence is 0..100. Low-confidence axes render fainter + dashed
+// (spoke, vertex, and label all lose weight) so uncertain traits are visually distinct — the chart
+// never renders every trait at equal weight regardless of how sure the inference is.
+// ═════════════════════════════════════════════════════════════════════════
+const _PROFILE_TRAITS = [
+  { k: "O", label: "Openness" },
+  { k: "C", label: "Conscientiousness" },
+  { k: "E", label: "Extraversion" },
+  { k: "A", label: "Agreeableness" },
+  { k: "N", label: "Neuroticism" }
+]
+export function getProfileBackButton(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return { id: "back", x: w / 2 - 110, y: h - 72, w: 220, h: 48 }
+}
+export function drawProfileScreen(ctx, canvas, opts = {}) {
+  _mkAdvance()
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const traits = opts.traits || {}
+  ctx.clearRect(0, 0, w, h)
+  drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#0d1226" })
+  drawHeader(ctx, canvas, "PERSONALITY PROFILE", "Your Big-Five, inferred from how you fight")
+
+  const cx = w / 2, cy = h * 0.47, R = Math.min(h * 0.28, w * 0.20)
+
+  // Concentric pentagon grid rings (25/50/75/100%).
+  for (let ring = 1; ring <= 4; ring++) {
+    const rr = R * ring / 4
+    ctx.beginPath()
+    for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; const px = cx + Math.cos(a) * rr, py = cy + Math.sin(a) * rr; i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py) }
+    ctx.closePath(); ctx.strokeStyle = "rgba(150,180,220,0.12)"; ctx.lineWidth = 1; ctx.stroke()
+  }
+
+  // Axes + collect value vertices. Confidence drives every visual weight (spoke/vertex/label).
+  const verts = []
+  _PROFILE_TRAITS.forEach((t, i) => {
+    const ts   = traits[t.k]
+    const mu   = ts ? ts.mu : 4
+    const conf = ts ? ts.confidence : 0
+    const strong = conf >= 50
+    const frac = Math.max(0.03, Math.min(1, (mu - 1) / 6))
+    const a  = -Math.PI / 2 + i * 2 * Math.PI / 5
+    const ax = cx + Math.cos(a) * R, ay = cy + Math.sin(a) * R
+    ctx.save()
+    ctx.strokeStyle = strong ? "rgba(120,200,255,0.42)" : "rgba(150,180,220,0.18)"
+    if (!strong) ctx.setLineDash([4, 4])
+    ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ax, ay); ctx.stroke()
+    ctx.restore()
+    verts.push({ vx: cx + Math.cos(a) * R * frac, vy: cy + Math.sin(a) * R * frac, conf, mu, label: t.label, ax, ay, a })
+  })
+
+  // Value polygon.
+  ctx.beginPath(); verts.forEach((v, i) => i === 0 ? ctx.moveTo(v.vx, v.vy) : ctx.lineTo(v.vx, v.vy)); ctx.closePath()
+  ctx.fillStyle = "rgba(74,168,224,0.16)"; ctx.fill()
+  ctx.strokeStyle = "rgba(74,168,224,0.72)"; ctx.lineWidth = 2; ctx.stroke()
+
+  // Per-vertex marker + label — confident traits: bright glowing dot + solid label; uncertain: faint
+  // dashed hollow ring + dimmed label.
+  verts.forEach(v => {
+    const strong = v.conf >= 50
+    ctx.save()
+    if (strong) { ctx.fillStyle = "#8fd3ff"; ctx.shadowBlur = 8; ctx.shadowColor = "#4aa8e0"; ctx.beginPath(); ctx.arc(v.vx, v.vy, 5, 0, Math.PI * 2); ctx.fill() }
+    else { ctx.strokeStyle = "rgba(180,205,235,0.6)"; ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(v.vx, v.vy, 4, 0, Math.PI * 2); ctx.stroke() }
+    ctx.restore()
+    const lx = v.ax + Math.cos(v.a) * 20, ly = v.ay + Math.sin(v.a) * 20
+    const align = Math.abs(Math.cos(v.a)) < 0.25 ? "center" : (Math.cos(v.a) > 0 ? "left" : "right")
+    const wgt = Math.min(1, v.conf / 100)
+    drawCenteredText(ctx, v.label, lx, ly - 7, { font: "800 13px Arial", fill: `rgba(226,232,245,${0.4 + 0.6 * wgt})`, align })
+    drawCenteredText(ctx, `${v.mu.toFixed(1)} · ${Math.round(v.conf)}%`, lx, ly + 9, { font: "11px Arial", fill: `rgba(150,190,235,${0.35 + 0.5 * wgt})`, align })
+  })
+
+  // Legend + data-source status.
+  const legY = h - 118
+  drawCenteredText(ctx, "● confident   ◌ still uncertain (fainter / dashed)", w / 2, legY, { font: "12px Arial", fill: "rgba(190,205,230,0.6)" })
+  const src = opts.tipiComplete ? "Source: TIPI questionnaire + combat behaviour" : "Source: neutral prior + combat behaviour (no questionnaire yet)"
+  drawCenteredText(ctx, `${src}   ·   ${opts.eventCount || 0} events observed`, w / 2, legY + 20, { font: "12px Arial", fill: "rgba(150,180,220,0.55)" })
+
+  drawMkButton(ctx, getProfileBackButton(canvas), { label: "BACK", active: opts.backHover, id: "profileback", cut: 12 })
+  drawFooterHint(ctx, canvas, "Traits are inferred passively from your play — no data leaves this device")
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// CODEX / COMPENDIUM (Part 1 #4) — browsable character write-ups, grouped by franchise.
+// opts = { groups, selectedKey, scroll, backHover, listHover }
+//   groups = [{ id, label, entries: [{ key, name, universeLabel, passiveName, passiveEffect, flavor, accent }] }]
+// Master list (left, scrollable, grouped with headers) + detail panel (right). Detail text wraps so
+// long entries never truncate. codexLayout() is the single source of truth for row geometry, shared
+// by the renderer and the click hit-test in game.js.
+// ═════════════════════════════════════════════════════════════════════════
+export function codexLayout(canvas, groups = [], scroll = 0) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const listX = 40, listY = 112, listW = Math.min(360, w * 0.34), listH = h - listY - 92
+  const rows = []
+  let cy = listY - scroll
+  for (const g of groups) {
+    rows.push({ type: "header", label: g.label, x: listX, y: cy, w: listW, h: 26 }); cy += 30
+    for (const e of g.entries) { rows.push({ type: "row", key: e.key, entry: e, x: listX + 8, y: cy, w: listW - 16, h: 30 }); cy += 32 }
+    cy += 8
+  }
+  const contentH = (cy + scroll) - listY
+  const detailX = listX + listW + 26
+  const detailRect = { x: detailX, y: listY, w: w - detailX - 40, h: listH }
+  return { rows, listX, listY, listW, listH, contentH, detailRect }
+}
+export function getCodexBackButton(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return { id: "back", x: 40, y: h - 68, w: 200, h: 44 }
+}
+export function drawCodexScreen(ctx, canvas, opts = {}) {
+  _mkAdvance()
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const groups = opts.groups || []
+  ctx.clearRect(0, 0, w, h)
+  drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#0d1226" })
+  drawHeader(ctx, canvas, "CODEX", "Fighters of the multiverse — grouped by world")
+
+  const L = codexLayout(canvas, groups, opts.scroll || 0)
+
+  // ── Master list (clipped + scrolled) ──
+  ctx.save()
+  _bevelPath(ctx, L.listX - 8, L.listY - 8, L.listW + 16, L.listH + 16, 12)
+  ctx.fillStyle = "rgba(8,12,24,0.6)"; ctx.fill()
+  ctx.clip()
+  for (const r of L.rows) {
+    if (r.y + r.h < L.listY - 8 || r.y > L.listY + L.listH + 8) continue   // cull offscreen
+    if (r.type === "header") {
+      drawCenteredText(ctx, r.label.toUpperCase(), r.x + 4, r.y + 15, { font: "800 12px Arial", fill: "rgba(120,200,255,0.85)", align: "left" })
+      ctx.strokeStyle = "rgba(120,200,255,0.22)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x + 4, r.y + 24); ctx.lineTo(r.x + r.w - 4, r.y + 24); ctx.stroke()
+    } else {
+      const sel = r.key === opts.selectedKey
+      if (sel) { _bevelPath(ctx, r.x, r.y, r.w, r.h, 8); ctx.fillStyle = _withAlpha(r.entry.accent || "#4aa8e0", 0.22); ctx.fill(); ctx.strokeStyle = _withAlpha(r.entry.accent || "#4aa8e0", 0.7); ctx.lineWidth = 1.2; ctx.stroke() }
+      drawCenteredText(ctx, r.entry.name, r.x + 12, r.y + r.h / 2, { font: sel ? "800 15px Arial" : "600 15px Arial", fill: sel ? "#ffffff" : "rgba(214,226,245,0.82)", align: "left" })
+    }
+  }
+  ctx.restore()
+
+  // Scroll hint if content overflows.
+  if (L.contentH > L.listH) drawCenteredText(ctx, "scroll ↕", L.listX + L.listW / 2, L.listY + L.listH + 16, { font: "11px Arial", fill: "rgba(150,180,220,0.5)" })
+
+  // ── Detail panel ──
+  const d = L.detailRect
+  const sel = groups.flatMap(g => g.entries).find(e => e.key === opts.selectedKey)
+  _metalPanel(ctx, d.x, d.y, d.w, d.h, sel?.accent || "#4aa8e0", 16, 0)
+  const pad = 26, tx = d.x + pad, maxW = d.w - pad * 2
+  if (!sel) {
+    drawCenteredText(ctx, "Select a fighter", d.x + d.w / 2, d.y + d.h / 2, { font: "700 18px Arial", fill: "rgba(200,214,240,0.6)" })
+  } else {
+    let ty = d.y + 44
+    drawCenteredText(ctx, sel.name, tx, ty, { font: "900 30px Arial", fill: "#f1f5f9", align: "left", shadowBlur: 14, shadowColor: sel.accent || "#4aa8e0" }); ty += 30
+    drawCenteredText(ctx, sel.universeLabel || "", tx, ty, { font: "700 14px Arial", fill: _withAlpha(sel.accent || "#7dd3fc", 0.95), align: "left" }); ty += 34
+    if (sel.passiveName) {
+      // Passive title as a chip.
+      ctx.font = "800 13px Arial"; const cw2 = ctx.measureText(sel.passiveName).width + 22
+      _bevelPath(ctx, tx, ty - 14, cw2, 26, 7); ctx.fillStyle = "rgba(74,168,224,0.16)"; ctx.fill()
+      drawCenteredText(ctx, sel.passiveName, tx + 11, ty, { font: "800 13px Arial", fill: "#bfe4ff", align: "left" }); ty += 30
+    }
+    ctx.save(); ctx.font = "15px Arial"
+    const bodyLines = _wrapText(ctx, sel.passiveEffect || "No dossier entry recorded for this fighter yet.", maxW)
+    for (const ln of bodyLines) { drawCenteredText(ctx, ln, tx, ty, { font: "15px Arial", fill: "rgba(220,230,248,0.9)", align: "left" }); ty += 23 }
+    ctx.restore()
+    if (sel.flavor) {
+      ty += 12
+      ctx.save(); ctx.font = "italic 14px Georgia, serif"
+      const flavorLines = _wrapText(ctx, `“${sel.flavor}”`, maxW)
+      for (const ln of flavorLines) { drawCenteredText(ctx, ln, tx, ty, { font: "italic 14px Georgia, serif", fill: "rgba(196,181,253,0.82)", align: "left" }); ty += 21 }
+      ctx.restore()
+    }
+  }
+
+  drawMkButton(ctx, getCodexBackButton(canvas), { label: "BACK", active: opts.backHover, id: "codexback", cut: 10 })
+  drawFooterHint(ctx, canvas, "Click a fighter to read their dossier  ·  scroll the list for more")
+}
 
 // ═════════════════════════════════════════════════════════════════════════
 // TUTORIAL / HOW TO PLAY

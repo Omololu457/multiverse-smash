@@ -254,6 +254,7 @@ import {
   getMainMenuRects, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton,
   drawCreditsScreen,
   drawProfileScreen, getProfileBackButton, drawCodexScreen, getCodexBackButton, codexLayout,
+  getCharSearchRect, getCharSearchClearRect,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
   drawAccountScreen, getAccountButtons,
@@ -3127,6 +3128,7 @@ function startMatch() {
 }
 
 function resetSelections() {
+  clearCharSearch()   // Part 3 #29: never carry a search filter into a fresh selection flow
   matchConfig.selectedUniverse = null
   matchConfig.selectedStage    = null
   matchConfig.selectingSide    = "p1"
@@ -13699,6 +13701,7 @@ function renderCurrentState() {
         p1Selected:    matchConfig.p1CharKey,
         p2Selected:    matchConfig.p2CharKey,
         universeLabel: matchConfig.selectedUniverse ? formatUniverseName(matchConfig.selectedUniverse) : "",   // Part 1 #2: franchise banner
+        search:        { query: charSearchQuery, focused: charSearchFocused },   // Part 3 #29: search/filter box
         currentPlayer: matchConfig.selectingSide === "p1" ? 1 : 2,
         isLocked:      (key) => !isCharUnlocked(key),     // Stage 21: locked → silhouette + condition
         lockLabel:     (key) => charLockLabel(key),
@@ -13873,11 +13876,28 @@ const UNIVERSE_ACCENT = {
 }
 function universeAccent(id) { return UNIVERSE_ACCENT[id] || "#4aa8e0" }
 
+// CHARACTER-SELECT SEARCH (Part 3 #29). Single-source filter: getCharacterRosterForSelectedUniverse is
+// consumed by the render, hover, click, pad-nav AND random-pick, so filtering here means every path sees
+// the SAME subset — navigation/clicks can only ever land on a visible (matching) fighter, never a hidden
+// one. Empty query → the full universe roster (byte-identical to before → zero regression when unused).
+let charSearchQuery   = ""
+let charSearchFocused = false
+function setCharSearch(q) {
+  charSearchQuery = String(q || "").slice(0, 24)
+  hoverCharacterIndex = 0   // filtered list changed → snap the cursor to the first match (never a hidden card)
+}
+function clearCharSearch() { charSearchQuery = ""; charSearchFocused = false }
 function getCharacterRosterForSelectedUniverse() {
-  return getUniverseCharacters().map(k => {
+  const full = getUniverseCharacters().map(k => {
     const c = characters[k]
     return { id: k, name: c?.name || k, universe: c?.universe ? formatUniverseName(c.universe) : "" }
   })
+  const q = charSearchQuery.trim().toLowerCase()
+  if (!q) return full
+  // Match on display NAME and rosterKey (both per-character). Franchise/universe is intentionally NOT
+  // matched here: this screen is already scoped to ONE franchise, so every card shares it — a franchise
+  // match would be all-or-nothing and meaningless. (Whole-roster franchise search would live elsewhere.)
+  return full.filter(c => c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
 }
 
 function updateHoverIndices() {
@@ -14192,10 +14212,14 @@ function handleMenuClicks() {
     case GAME_STATES.SELECT_UNIVERSE: {
       const universes = getUniverseList()
       const idx = pickGridCard(canvas, universes, mouse.x, mouse.y, UNIVERSE_GRID_OPTS)   // viewport-guarded (ignores cards scrolled under the header) + scroll-offset aware
-      if (idx >= 0 && universes[idx]) { matchConfig.selectedUniverse = universes[idx].id; gameState = GAME_STATES.SELECT_CHARACTER; startRiftTransition(universeAccent(universes[idx].id)) }
+      if (idx >= 0 && universes[idx]) { clearCharSearch(); matchConfig.selectedUniverse = universes[idx].id; gameState = GAME_STATES.SELECT_CHARACTER; startRiftTransition(universeAccent(universes[idx].id)) }
       break
     }
     case GAME_STATES.SELECT_CHARACTER: {
+      // Search box first (top-right, outside the grid viewport so it never conflicts with a card).
+      if (charSearchQuery && pointInRect(mouse.x, mouse.y, getCharSearchClearRect(canvas))) { setCharSearch(""); charSearchFocused = true; break }
+      if (pointInRect(mouse.x, mouse.y, getCharSearchRect(canvas))) { charSearchFocused = true; break }
+      charSearchFocused = false   // a click anywhere else (a card / empty space) blurs the search
       const roster = getCharacterRosterForSelectedUniverse()
       const idx    = pickGridCard(canvas, roster, mouse.x, mouse.y, charSelectGridOpts(canvas, true))   // viewport-guarded, reserves detail panel
       if (idx < 0 || !roster[idx]) break
@@ -14844,6 +14868,20 @@ window.addEventListener("keydown", e => {
 
   // ACCOUNT screen captures typing before any gameplay key handling.
   if (gameState === GAME_STATES.ACCOUNT) { handleAccountTyping(e); return }
+
+  // CHARACTER-SELECT SEARCH (Part 3 #29). When the search box is FOCUSED, capture typing so it filters
+  // live — placed BEFORE the R/U random + F fullscreen shortcuts so those letters type into the query
+  // instead of firing. Arrows/nav keys fall through so you can still drive the filtered grid.
+  if (gameState === GAME_STATES.SELECT_CHARACTER && charSearchFocused) {
+    if (key === "escape")    { e.preventDefault(); if (charSearchQuery) setCharSearch(""); else charSearchFocused = false; return }   // clear → blur (never swallows back-nav: unfocused Esc still backs out)
+    if (key === "enter")     { e.preventDefault(); charSearchFocused = false; return }
+    if (key === "backspace") { e.preventDefault(); setCharSearch(charSearchQuery.slice(0, -1)); return }
+    if (key.length === 1 && /[a-z0-9 ._'-]/.test(key)) { e.preventDefault(); setCharSearch(charSearchQuery + key); return }
+    // (arrow keys / w-a-s-d etc. are NOT length-1 letters we capture here except a/s/d/w — those DO type;
+    //  grid nav on this screen is mouse/pad-driven, so capturing letters while focused is correct.)
+  }
+  // Press "/" to focus the search box from an unfocused state (common shortcut; shown in the placeholder).
+  if (gameState === GAME_STATES.SELECT_CHARACTER && !charSearchFocused && key === "/") { e.preventDefault(); charSearchFocused = true; return }
 
   // Stage 23: RANDOM SELECT on the character-select screen — R = any unlocked fighter, U = random
   // within the current universe. Locks in like a normal pick (unlock gate + detours honoured).
@@ -15976,6 +16014,15 @@ gameLoop()
     // MK-feel select redesign (Stage 2/3/4): move the character-select cursor, and confirm a pick, so
     // the hover-animation + lock-in flourish can be captured from a test. View-driving only.
     setCharHover: (i = 0) => { const r = getCharacterRosterForSelectedUniverse(); hoverCharacterIndex = Math.max(0, Math.min(r.length - 1, i | 0)); return { hover: hoverCharacterIndex } },
+    // CHARACTER-SELECT SEARCH (Part 3 #29) — drive + inspect the filter for tests. `visible` is the exact
+    // filtered id list every consumer sees; `type` simulates a keystroke into the focused field.
+    charSearch: {
+      set:    (q) => { setCharSearch(q); return { query: charSearchQuery, count: getCharacterRosterForSelectedUniverse().length } },
+      clear:  () => { clearCharSearch(); return getCharacterRosterForSelectedUniverse().length },
+      focus:  (v = true) => { charSearchFocused = !!v; return charSearchFocused },
+      type:   (k) => { if (k === "Backspace") setCharSearch(charSearchQuery.slice(0, -1)); else if (k && k.length === 1) setCharSearch(charSearchQuery + String(k).toLowerCase()); return charSearchQuery },
+      state:  () => ({ query: charSearchQuery, focused: charSearchFocused, hover: hoverCharacterIndex, visible: getCharacterRosterForSelectedUniverse().map(c => c.id), rect: getCharSearchRect(canvas), clearRect: getCharSearchClearRect(canvas) })
+    },
     // Indices of the currently-pickable (unlocked) cards — lets a capture drive the flow over real,
     // pickable cards regardless of roster order (which can drift across runs).
     selectUnlockedIndices: () => getCharacterRosterForSelectedUniverse().map((c, i) => (isCharUnlocked(c.id) ? i : -1)).filter(i => i >= 0),

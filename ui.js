@@ -1987,6 +1987,52 @@ export function drawUniverseSelectScreen(ctx, canvas, universes = [], selectedIn
 // ─────────────────────────────────────────────
 // CHARACTER SELECT
 // ─────────────────────────────────────────────
+// CHARACTER-SELECT SEARCH FIELD (Part 3 #29). Top-right corner — clear of the centered header, the
+// top-left nav-back/fullscreen buttons, and the grid band (grid startY=148). game.js owns the query +
+// focus state and does the actual filtering (in getCharacterRosterForSelectedUniverse); this only draws
+// the box + reports its hitboxes. Keyboard-only (no on-screen keyboard for pads — see the report).
+export function getCharSearchRect(canvas) {
+  const { width: w } = getCanvasSize(canvas)
+  const bw = Math.round(Math.min(300, Math.max(200, w * 0.24))), bh = 34
+  return { x: w - bw - 22, y: 20, w: bw, h: bh }
+}
+export function getCharSearchClearRect(canvas) {
+  const r = getCharSearchRect(canvas)
+  return { x: r.x + r.w - 32, y: r.y + 4, w: 28, h: r.h - 8 }
+}
+function drawCharSearchField(ctx, canvas, search = {}) {
+  const r = getCharSearchRect(canvas)
+  const q = search.query || "", focused = !!search.focused
+  // Box
+  _bevelPath(ctx, r.x, r.y, r.w, r.h, 8); ctx.fillStyle = "rgba(8,14,30,0.85)"; ctx.fill()
+  _bevelPath(ctx, r.x, r.y, r.w, r.h, 8)
+  if (focused) { ctx.save(); ctx.shadowBlur = 10; ctx.shadowColor = "#4aa8e0"; ctx.strokeStyle = "#4aa8e0"; ctx.lineWidth = 2; ctx.stroke(); ctx.restore() }
+  else { ctx.strokeStyle = "rgba(150,180,220,0.4)"; ctx.lineWidth = 1.3; ctx.stroke() }
+  // Magnifier icon
+  ctx.save(); ctx.strokeStyle = "rgba(200,214,240,0.75)"; ctx.lineWidth = 2
+  const ix = r.x + 16, iy = r.y + r.h / 2 - 1
+  ctx.beginPath(); ctx.arc(ix, iy, 5.5, 0, Math.PI * 2); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(ix + 4, iy + 4); ctx.lineTo(ix + 8, iy + 8); ctx.stroke(); ctx.restore()
+  // Text / placeholder (clipped to leave room for the ✕)
+  const tx = r.x + 32
+  ctx.save(); ctx.beginPath(); ctx.rect(tx, r.y, r.w - 32 - 30, r.h); ctx.clip()
+  if (q) drawCenteredText(ctx, q, tx, r.y + r.h / 2, { font: "600 15px Arial", fill: "#eef4ff", align: "left" })
+  else   drawCenteredText(ctx, focused ? "Type to filter…" : "Search fighters  ( / )", tx, r.y + r.h / 2, { font: "14px Arial", fill: "rgba(180,196,224,0.6)", align: "left" })
+  ctx.restore()
+  // Blinking caret when focused
+  if (focused) {
+    ctx.font = "600 15px Arial"
+    const cw = ctx.measureText(q).width
+    if (Math.floor(_mkFrame / 18) % 2 === 0 && tx + cw + 4 < r.x + r.w - 30) { ctx.fillStyle = "#cfe3ff"; ctx.fillRect(tx + cw + 2, r.y + 8, 2, r.h - 16) }
+  }
+  // Clear ✕ (only when there's a query)
+  if (q) {
+    const c = getCharSearchClearRect(canvas)
+    ctx.strokeStyle = "rgba(230,180,180,0.9)"; ctx.lineWidth = 2
+    const cx = c.x + c.w / 2, cy = c.y + c.h / 2, s = 5
+    ctx.beginPath(); ctx.moveTo(cx - s, cy - s); ctx.lineTo(cx + s, cy + s); ctx.moveTo(cx + s, cy - s); ctx.lineTo(cx - s, cy + s); ctx.stroke()
+  }
+}
 // Draw a grid's scrollbar (track + thumb) on the right edge. No-op when the grid fits (bar === null).
 function drawGridScrollbar(ctx, bar) {
   if (!bar) return
@@ -2015,8 +2061,18 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   // Franchise banner in the subtitle reinforces that the roster is grouped/filtered by world.
   drawHeader(ctx, canvas, title, universeLabel ? `${universeLabel}  ·  Player ${currentPlayer} choose your fighter` : `Player ${currentPlayer} choose your fighter`)
 
+  // Search/filter field (Part 3 #29) — only on the real character select (options.search provided).
+  // Drawn BEFORE the empty-results early-return so a query with no matches can still be seen + cleared.
+  if (options.search) drawCharSearchField(ctx, canvas, options.search)
+
   if (!roster.length) {
-    drawSubText(ctx, "No fighters available", w / 2, h / 2, { font: "20px Arial" })
+    const q = options.search?.query
+    if (q) {
+      drawSubText(ctx, `No fighters match “${q}”`, w / 2, h / 2 - 12, { font: "20px Arial", fill: "rgba(255,214,140,0.95)" })
+      drawSubText(ctx, "Clear the search (✕ or Esc) to see all fighters", w / 2, h / 2 + 18, { font: "14px Arial", fill: "rgba(210,220,255,0.7)" })
+    } else {
+      drawSubText(ctx, "No fighters available", w / 2, h / 2, { font: "20px Arial" })
+    }
     return
   }
 

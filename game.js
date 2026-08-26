@@ -529,6 +529,17 @@ setupMouseInput(canvas)
 let bloodFx = (() => { try { return localStorage.getItem("ms_blood_fx") === "1" } catch (_) { return false } })()
 function setBloodFx(on) { bloodFx = !!on; try { localStorage.setItem("ms_blood_fx", bloodFx ? "1" : "0") } catch (_) {} }
 
+// BRUTALITIES (stylized finishing move, opt-in per character — scope A). INDEPENDENT toggle from bloodFx
+// (someone can want basic hit-sparks but not finishers, or vice-versa). Default OFF. Persisted separately.
+let brutalityFx = (() => { try { return localStorage.getItem("ms_brutality_fx") === "1" } catch (_) { return false } })()
+function setBrutalityFx(on) { brutalityFx = !!on; try { localStorage.setItem("ms_brutality_fx", brutalityFx ? "1" : "0") } catch (_) {} }
+// Winners tonally appropriate for a finisher (owner-confirmed scope A): horror cast + canonically-brutal
+// fighters. Power Rangers + Ben 10 (kid franchises) and all heroic/neutral characters are intentionally
+// EXCLUDED — they just get the normal KO. Add/remove keys here to re-scope; nothing else changes.
+const BRUTALITY_ELIGIBLE = new Set(["ghostface", "ghostface_billy", "jason", "sukuna", "toji", "omniman", "hisoka", "zaraki", "deathstroke", "frieza", "cell"])
+const BRUTALITY_FRAMES = 78   // ~1.3s — a quick, impactful finishing beat (no lingering aftermath)
+const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, parts: [] }
+
 // SAVE FILE picker must fire from a REAL user gesture (transient activation) — the
 // File System Access pickers throw if called from the rAF-driven handleMenuClicks().
 // So we hook mouseup directly: if the click lands on the MAIN MENU "SAVE FILE" button,
@@ -2396,6 +2407,7 @@ function resetRound() {
   damageNumbers.length = 0
   sound.stopAllSfx?.({ includePersistent: true })   // clear any lingering cue as a fresh round begins
   _roundEndAudioStopped = false                      // re-arm the round-end stop for the new round
+  brutalityState.active = false; brutalityState.parts.length = 0   // clear any finisher state on a fresh round
   knockoutFlash  = 0
   slowdownTimer  = 0
   slowdownTarget = null
@@ -3659,6 +3671,77 @@ function _victoryFlavor(key) {
   return { line, usesFallback }
 }
 
+// ── BRUTALITIES (stylized finishing move) ────────────────────────────────────────────────────────────
+// Genre-standard: plays ONLY on the fatal blow that ends the MATCH by KO — never on a time-over win, a
+// draw/double-KO, or a non-final round. A short procedural beat (bright saturated-red cartoon gore burst
+// over the loser's EXISTING sprite + red impact flash + a "BRUTALITY!" stamp), then the victory screen.
+// No new/realistic art: reuses the same visual language as the blood hit-effect, brightened.
+function _enterVictoryScreen() { sound.playMenuMusic?.(); gameState = GAME_STATES.VICTORY }
+function _tryStartBrutality(winner) {
+  if (!brutalityFx) return false
+  if (winner !== "p1" && winner !== "p2") return false           // no finisher on a draw / double-KO
+  const winF  = winner === "p1" ? p1 : p2
+  const loseF = winner === "p1" ? p2 : p1
+  if (!winF || !loseF) return false
+  if ((loseF.health || 0) > 0) return false                      // KO finish ONLY — never on a time-over win
+  const wKey = (winF.rosterKey || "").toLowerCase()
+  if (!BRUTALITY_ELIGIBLE.has(wKey)) return false                // scope A: only tonally-eligible winners
+  brutalityState.active = true; brutalityState.timer = brutalityState.maxTimer = BRUTALITY_FRAMES
+  brutalityState.winnerSide = winner; brutalityState.wKey = wKey
+  brutalityState.x = (loseF.x || 0) + (loseF.width || loseF.w || 60) / 2
+  brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
+  brutalityState.parts = []
+  if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated, reusing their own art
+  return true
+}
+function _spawnBrutalityGore(b) {
+  const palette = ["#ff2a2a", "#ff4d4d", "#d40000", "#ff7a7a"]   // bright saturated red (not muddy/realistic)
+  const n = 8 + ((Math.random() * 5) | 0)
+  for (let i = 0; i < n; i++) {
+    const ang = -Math.PI / 2 + (Math.random() * 2 - 1) * 1.3     // spray up-and-out; gravity pulls it down
+    const sp  = 3 + Math.random() * 7
+    const life = 26 + ((Math.random() * 22) | 0)
+    b.parts.push({
+      x: b.x + (Math.random() * 2 - 1) * 12, y: b.y + (Math.random() * 2 - 1) * 18,
+      vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 2,
+      life, size: 3 + Math.random() * 6,                          // chunky sprite-era pieces, not fine mist
+      color: palette[(Math.random() * palette.length) | 0]
+    })
+  }
+}
+function updateBrutality() {
+  const b = brutalityState
+  const elapsed = b.maxTimer - b.timer
+  if (elapsed < 20 && elapsed % 2 === 0) _spawnBrutalityGore(b)   // burst front-loaded → quick, not lingering
+  for (const p of b.parts) { p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life-- }
+  b.parts = b.parts.filter(p => p.life > 0)
+  if (--b.timer <= 0) { b.active = false; b.parts = []; _enterVictoryScreen() }
+}
+function _drawBrutality() {
+  const b = brutalityState; if (!b.active) return
+  const cw = canvas.width, ch = canvas.height
+  const elapsed = b.maxTimer - b.timer
+  // Red impact flash — strong at the hit, fades fast.
+  const flash = Math.max(0, 1 - elapsed / 16)
+  if (flash > 0.01) { ctx.save(); ctx.fillStyle = `rgba(150,0,0,${0.55 * flash})`; ctx.fillRect(0, 0, cw, ch); ctx.restore() }
+  // Gore chunks — WORLD space (inside the camera transform, like the fighters).
+  const hasT = typeof camera.applyTransform === "function"
+  ctx.save(); if (hasT) camera.applyTransform(ctx, canvas)
+  for (const p of b.parts) { ctx.globalAlpha = Math.min(1, p.life / 10); ctx.fillStyle = p.color; ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size) }
+  ctx.globalAlpha = 1
+  if (hasT && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+  ctx.restore()
+  // "BRUTALITY!" stamp — screen space, punchy scale-in (the genre wink).
+  if (elapsed > 6) {
+    const t = Math.min(1, (elapsed - 6) / 9), scale = 1 + (1 - t) * 0.7
+    ctx.save(); ctx.translate(cw / 2, ch * 0.26); ctx.scale(scale, scale)
+    ctx.font = `900 ${Math.min(72, cw * 0.055) | 0}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+    ctx.lineJoin = "round"; ctx.lineWidth = 9; ctx.strokeStyle = "rgba(20,0,0,0.92)"; ctx.strokeText("BRUTALITY!", 0, 0)
+    ctx.shadowBlur = 26; ctx.shadowColor = "#ff2a2a"; ctx.fillStyle = "#ff3a3a"; ctx.fillText("BRUTALITY!", 0, 0)
+    ctx.restore()
+  }
+}
+
 function _checkMatchOver() {
   // INSTANT MATCH-END OVERRIDE (Gon Adult Form sudden-death) is checked INDEPENDENTLY of — not as an
   // addition alongside — the normal roundWins/MAX_ROUNDS gate: when `_matchOverride` is set the match
@@ -4004,8 +4087,9 @@ function _checkMatchOver() {
       }
     }
     sound._forcePersistent = false   // end of the intentional post-match audio window
-    sound.playMenuMusic?.()   // win screen is non-stadium → Passion_fruitmp3.mp3
-    gameState = GAME_STATES.VICTORY
+    // BRUTALITY: on a KO that ends the match (toggle on + eligible winner), play the finisher in-BATTLE
+    // first; it calls _enterVictoryScreen() itself when done. Otherwise go straight to the victory screen.
+    if (!_tryStartBrutality(winner)) _enterVictoryScreen()   // win screen music → Passion_fruitmp3.mp3
   } else {
     roundNumber++
     roundBreakTimer = ROUND_BREAK_DURATION
@@ -10833,6 +10917,7 @@ function _updateGodspeedTimeSlow() {
 function _timeSlowFrozen(f) { return !!(f && f._timeSlowFlag) }
 
 function updateBattle() {
+  if (brutalityState.active) { updateBrutality(); return }   // finisher plays out — freeze combat until it ends
   if (slowdownTimer > 0) {
     slowdownTimer--
     if (slowdownTarget) {
@@ -13109,6 +13194,7 @@ function drawBattle() {
   _drawDomainHUDBar()
   _drawKOFlash()
   _drawKoStamp()   // Stage 9: angular K.O. slam over the flash
+  _drawBrutality()   // stylized finishing-move overlay (gore burst + flash + "BRUTALITY!" stamp), when active
   _drawVowCue()
   drawKuramaCinematic(ctx, canvas)   // fullscreen Tailed Beast Bomb overlay, on top of all
   drawMinatoKurama(ctx, canvas)      // Minato's own Kurama TBB overlay (same layer)
@@ -13302,6 +13388,8 @@ const uiScaleValueRect = { x: 0, y: 156, w: 108, h: 32 }
 const uiScalePlusRect  = { x: 0, y: 156, w: 36,  h: 32 }
 // BLOOD hit-effect toggle — top-right column, below the UI-scale stepper (free space). x set by _layoutSettings.
 const bloodToggleRect  = { x: 0, y: 226, w: 190, h: 34 }
+// BRUTALITIES toggle — top-right column, below the blood toggle. INDEPENDENT of it. x set by _layoutSettings.
+const brutalityToggleRect = { x: 0, y: 300, w: 190, h: 34 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -13346,6 +13434,7 @@ function _layoutSettings() {
   uiScaleValueRect.x = rx + 40
   uiScalePlusRect.x  = rx + 152
   bloodToggleRect.x  = rx
+  brutalityToggleRect.x = rx
 }
 
 function drawSettingsScreen() {
@@ -13428,6 +13517,16 @@ function drawSettingsScreen() {
   ctx.fillText(`Blood: ${bloodFx ? "ON" : "OFF"}`, bloodToggleRect.x + bloodToggleRect.w / 2, bloodToggleRect.y + 22)
   ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
   ctx.fillText("Red hit-spray (saved)", bloodToggleRect.x, bloodToggleRect.y + bloodToggleRect.h + 13)
+
+  // BRUTALITIES toggle (independent of blood).
+  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+  ctx.fillText("BRUTALITIES", brutalityToggleRect.x, brutalityToggleRect.y - 10)
+  box(brutalityToggleRect, brutalityFx ? "rgba(74,23,23,0.92)" : "rgba(20,26,40,0.9)", brutalityFx ? "#f05555" : "rgba(120,150,200,0.4)", 2, brutalityFx)
+  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillText(`Finishers: ${brutalityFx ? "ON" : "OFF"}`, brutalityToggleRect.x + brutalityToggleRect.w / 2, brutalityToggleRect.y + 22)
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.fillText("Stylized KO finish (saved)", brutalityToggleRect.x, brutalityToggleRect.y + brutalityToggleRect.h + 13)
+  ctx.textAlign = "center"
   ctx.textAlign = "center"
 
   // ── Keybind grid (Task 2) ──
@@ -14079,6 +14178,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, uiScalePlusRect))  { setUiScale(uiScale + UI_SCALE_STEP); break }
       // Blood hit-effects toggle (cosmetic; persisted to localStorage).
       if (pointInRect(mouse.x, mouse.y, bloodToggleRect))  { setBloodFx(!bloodFx); break }
+      if (pointInRect(mouse.x, mouse.y, brutalityToggleRect)) { setBrutalityFx(!brutalityFx); break }
       // Keybind rows (Task 2): click an action → await a key.
       const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
       if (kb) { rebindAction = kb.action; rebindWarning = "" }
@@ -15793,6 +15893,19 @@ gameLoop()
         ds.rankTier = tier; ds.rankFlash = 1; ds.rankText = tier ? COMBO_RANKS[tier - 1].text : ""; ds.rankColor = tier ? COMBO_RANKS[tier - 1].color : ""
         return { count, rank: ds.rankText, color: ds.rankColor }
       }
+    },
+    // BRUTALITIES (stylized finisher) — drive + inspect for verification. Toggles are independent of blood.
+    brutality: {
+      setBlood:     (on) => { setBloodFx(!!on); return bloodFx },
+      setBrutality: (on) => { setBrutalityFx(!!on); return brutalityFx },
+      toggles:      () => ({ blood: bloodFx, brutality: brutalityFx }),
+      eligible:     () => [...BRUTALITY_ELIGIBLE],
+      canTrigger:   (winnerKey) => BRUTALITY_ELIGIBLE.has(String(winnerKey || "").toLowerCase()),
+      state:        () => ({ active: brutalityState.active, timer: brutalityState.timer, wKey: brutalityState.wKey, parts: brutalityState.parts.length }),
+      // Simulate the end-of-match for `winner`: with ko=true KO the loser (fatal-blow path); with ko=false
+      // leave them alive (time-over path). Then run the REAL _tryStartBrutality gate. Returns whether the
+      // finisher started (respects toggle + eligibility + KO-only). For clips/tests.
+      trigger:      (winner = "p1", ko = true) => { const loseF = winner === "p1" ? p2 : p1; if (loseF && ko) loseF.health = 0; victoryState.active = false; return _tryStartBrutality(winner) }
     },
     // Ground-truth sprite roster (hasSprites+animData-derived) + full non-hidden roster — so tests can
     // assert the beta filter equals the live selectable set without hardcoding names.

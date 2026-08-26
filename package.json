@@ -16,6 +16,7 @@
     "test:ui-bundle": "node harness/ui_bundle_visual.mjs",
     "test:char-search": "node harness/char_search.test.mjs",
     "test:lore-reconcile": "node harness/lore_reconcile.test.mjs",
+    "test:brutality": "node harness/brutality.test.mjs",
     "test:prereqs": "node harness/prereqs.test.mjs",
     "test:arcade": "node harness/arcade.test.mjs",
     "test:boss": "node harness/boss.test.mjs",

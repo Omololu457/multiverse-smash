@@ -1,0 +1,316 @@
+{
+  "screens": [
+    {
+      "n": 1,
+      "id": "title",
+      "label": "Title / Start Screen",
+      "file": "01_title.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 2,
+      "id": "mainmenu",
+      "label": "Main Menu",
+      "file": "02_mainmenu.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 3,
+      "id": "gameplaysel",
+      "label": "Gameplay Select (mode picker)",
+      "file": "03_gameplaysel.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 4,
+      "id": "universesel",
+      "label": "Universe Select",
+      "file": "04_universesel.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 5,
+      "id": "charselect",
+      "label": "Character Select (default)",
+      "file": "05_charselect.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 6,
+      "id": "charsearch",
+      "label": "Character Select — search 'go'",
+      "file": "06_charsearch.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 7,
+      "id": "settings",
+      "label": "Settings (Input / Audio / UI-scale)",
+      "file": "07_settings.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 8,
+      "id": "credits",
+      "label": "Credits (reworked)",
+      "file": "08_credits.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 9,
+      "id": "movelist",
+      "label": "Move List / Kit Browser",
+      "file": "09_movelist.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 10,
+      "id": "tutorial",
+      "label": "How To Play (Tutorial)",
+      "file": "10_tutorial.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 11,
+      "id": "account",
+      "label": "Account",
+      "file": "11_account.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 12,
+      "id": "musiclibrary",
+      "label": "Music Library (playlist builder)",
+      "file": "12_musiclibrary.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 13,
+      "id": "profile",
+      "label": "Personality Profile (radar)",
+      "file": "13_profile.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 14,
+      "id": "codex",
+      "label": "Codex / Dossiers",
+      "file": "14_codex.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 15,
+      "id": "hud_normal",
+      "label": "In-Match HUD — mid-fight",
+      "file": "15_hud_normal.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 16,
+      "id": "hud_lowhp",
+      "label": "In-Match HUD — low health + warning",
+      "file": "16_hud_lowhp.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 17,
+      "id": "hud_ultimate",
+      "label": "In-Match HUD — Ultimate used",
+      "file": "17_hud_ultimate.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 18,
+      "id": "hud_ko",
+      "label": "In-Match — K.O. stamp",
+      "file": "18_hud_ko.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 19,
+      "id": "pause",
+      "label": "Pause Menu",
+      "file": "19_pause.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 20,
+      "id": "victory",
+      "label": "Victory / Results Screen",
+      "file": "20_victory.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 21,
+      "id": "story",
+      "label": "Story Mode (placeholder)",
+      "file": "21_story.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 22,
+      "id": "arcade",
+      "label": "Arcade Setup",
+      "file": "22_arcade.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 23,
+      "id": "tower",
+      "label": "Tower Select",
+      "file": "23_tower.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 24,
+      "id": "bracket",
+      "label": "Tournament (Bracket) Setup",
+      "file": "24_bracket.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 25,
+      "id": "ffa",
+      "label": "Free-For-All Setup",
+      "file": "25_ffa.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 26,
+      "id": "aidiff",
+      "label": "VS CPU — AI Difficulty",
+      "file": "26_aidiff.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 27,
+      "id": "aivsai",
+      "label": "AI vs AI Setup",
+      "file": "27_aivsai.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    },
+    {
+      "n": 28,
+      "id": "online",
+      "label": "Online (placeholder)",
+      "file": "28_online.png",
+      "err": null,
+      "size": {
+        "width": 2560,
+        "height": 1544
+      }
+    }
+  ],
+  "pageErrors": [
+    "An import map is added after module script load was triggered.",
+    "%cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security\n  Policy set or a policy with \"unsafe-eval\" enabled. This exposes users of\n  this app to unnecessary security risks.\n\nFor more information and help, consult\nhttps://electronjs.org/docs/tutorial/security.\nThis warning will not show up\nonce the app is packaged."
+  ]
+}

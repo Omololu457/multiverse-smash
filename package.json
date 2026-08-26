@@ -14,6 +14,7 @@
     "test:victory-flavor": "node harness/victory_flavor.test.mjs",
     "test:ui-batch": "node harness/ui_batch_visual.mjs",
     "test:ui-bundle": "node harness/ui_bundle_visual.mjs",
+    "test:char-search": "node harness/char_search.test.mjs",
     "test:prereqs": "node harness/prereqs.test.mjs",
     "test:arcade": "node harness/arcade.test.mjs",
     "test:boss": "node harness/boss.test.mjs",

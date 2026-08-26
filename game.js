@@ -13617,8 +13617,11 @@ function buildCodexGroups() {
       universeLabel: formatUniverseName(uni),
       accent: universeAccent(uni) || "#4aa8e0",
       passiveName: c.passive?.name || "",
+      // Dossier = the character's real written personality write-up (characters[key].passive.effect).
+      // Characters without one get an honest diegetic missing-data message in drawCodexScreen — NOT the
+      // arcade epilogue / victory-flavor line, which was a misapplied fallback (Part 1 reconciliation).
       passiveEffect: c.passive?.effect || "",
-      flavor: _victoryFlavor(key).line
+      hasDossier: !!(c.passive && c.passive.effect)
     })
   }
   const groups = Object.keys(byUni).sort((a, b) => formatUniverseName(a).localeCompare(formatUniverseName(b)))

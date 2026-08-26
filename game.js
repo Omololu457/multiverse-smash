@@ -521,6 +521,14 @@ function setUiScale(v) {
 _applyCanvasSize()
 setupMouseInput(canvas)
 
+// BLOOD hit-effect toggle (COSMETIC). Default OFF given the roster's mixed / all-ages tone
+// (Power Rangers & Ben 10 sit next to Jason & Ghostface). Self-contained localStorage — like
+// uiScale, no account/SAVE_VERSION coupling. When ON, unblocked hit-sparks throw blood-red
+// debris + heavier droplets that arc and fall (see _seedSparkParticles). Visual-only: no
+// hitstop/knockback/shake changes, so it can't affect balance or desync AI/net play.
+let bloodFx = (() => { try { return localStorage.getItem("ms_blood_fx") === "1" } catch (_) { return false } })()
+function setBloodFx(on) { bloodFx = !!on; try { localStorage.setItem("ms_blood_fx", bloodFx ? "1" : "0") } catch (_) {} }
+
 // SAVE FILE picker must fire from a REAL user gesture (transient activation) — the
 // File System Access pickers throw if called from the rAF-driven handleMenuClicks().
 // So we hook mouseup directly: if the click lands on the MAIN MENU "SAVE FILE" button,
@@ -11682,6 +11690,28 @@ function _seedSparkParticles(spark) {
       rot: Math.random() * Math.PI, spin: (Math.random() - 0.5) * 0.4,
     }
   }
+  // BLOOD MODE (cosmetic toggle) — unblocked hits throw dark-red debris + a few heavier droplets
+  // that spray upward and fall under the shape's own gravity. Block deflections (spark.blocked)
+  // and tan ground-dust (cfg.dust) keep their own read. The energy CORE flash is drawn separately
+  // from spark.color, so a ki special still glows its hue while bleeding red ("alongside", not
+  // "instead").
+  if (bloodFx && !spark.blocked && !cfg.dust) {
+    spark._blood = true
+    spark._pColor = "#b01818"                                  // all debris tints to blood red
+    const drops = Math.min(6, 3 + ((r / 14) | 0))             // droplet count scales with hit size
+    for (let i = 0; i < drops; i++) {
+      const ang = -Math.PI / 2 + (Math.random() * 2 - 1) * 1.1 // spray upward-ish; gravity pulls it down
+      const sp  = baseSpeed * (0.4 + Math.random() * 0.7)
+      const life = 16 + ((Math.random() * 14) | 0)
+      parts.push({
+        x: spark.x, y: spark.y,
+        vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
+        life, maxLife: life,
+        size: 2.2 + Math.random() * 2.6,                       // fatter than energy debris
+        rot: 0, spin: 0,
+      })
+    }
+  }
   spark._particles = parts
 }
 
@@ -13270,6 +13300,8 @@ const musicToggleRect = { x: window.innerWidth / 2 + 4,   y: 302, w: 196, h: 30 
 const uiScaleMinusRect = { x: 0, y: 156, w: 36,  h: 32 }
 const uiScaleValueRect = { x: 0, y: 156, w: 108, h: 32 }
 const uiScalePlusRect  = { x: 0, y: 156, w: 36,  h: 32 }
+// BLOOD hit-effect toggle — top-right column, below the UI-scale stepper (free space). x set by _layoutSettings.
+const bloodToggleRect  = { x: 0, y: 226, w: 190, h: 34 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -13313,6 +13345,7 @@ function _layoutSettings() {
   uiScaleMinusRect.x = rx
   uiScaleValueRect.x = rx + 40
   uiScalePlusRect.x  = rx + 152
+  bloodToggleRect.x  = rx
 }
 
 function drawSettingsScreen() {
@@ -13385,6 +13418,16 @@ function drawSettingsScreen() {
   ctx.fillText(`${Math.round(uiScale * 100)}%`, uiScaleValueRect.x + uiScaleValueRect.w / 2, uiScaleValueRect.y + 21)
   ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
   ctx.fillText("Bigger = larger UI (saved)", uiScaleMinusRect.x, uiScalePlusRect.y + uiScalePlusRect.h + 14)
+  ctx.textAlign = "center"
+
+  // ── BLOOD hit-effects toggle (cosmetic; default OFF for the mixed-tone roster) ──
+  ctx.textAlign = "left"; ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"
+  ctx.fillText("BLOOD EFFECTS", bloodToggleRect.x, bloodToggleRect.y - 10)
+  box(bloodToggleRect, bloodFx ? "rgba(74,23,23,0.92)" : "rgba(20,26,40,0.9)", bloodFx ? "#f05555" : "rgba(120,150,200,0.4)", 2, bloodFx)
+  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillText(`Blood: ${bloodFx ? "ON" : "OFF"}`, bloodToggleRect.x + bloodToggleRect.w / 2, bloodToggleRect.y + 22)
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.fillText("Red hit-spray (saved)", bloodToggleRect.x, bloodToggleRect.y + bloodToggleRect.h + 13)
   ctx.textAlign = "center"
 
   // ── Keybind grid (Task 2) ──
@@ -14031,6 +14074,8 @@ function handleMenuClicks() {
       // UI / Display scale stepper (Part 3 #13). Changing it re-sizes the canvas backing store live.
       if (pointInRect(mouse.x, mouse.y, uiScaleMinusRect)) { setUiScale(uiScale - UI_SCALE_STEP); break }
       if (pointInRect(mouse.x, mouse.y, uiScalePlusRect))  { setUiScale(uiScale + UI_SCALE_STEP); break }
+      // Blood hit-effects toggle (cosmetic; persisted to localStorage).
+      if (pointInRect(mouse.x, mouse.y, bloodToggleRect))  { setBloodFx(!bloodFx); break }
       // Keybind rows (Task 2): click an action → await a key.
       const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
       if (kb) { rebindAction = kb.action; rebindWarning = "" }

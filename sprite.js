@@ -838,7 +838,14 @@ export class SpriteHandler {
     // DESTINATION draw size up to roughly fill the hitbox. Source slicing stays
     // at native drawWidth/drawHeight (the SOURCE rect below); only the drawn size
     // scales. Defaults to 1 → identical to before for every other character.
-    let scale = fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1;
+    // GLOBAL DISPLAY-SCALE bump (readability): fighters read too small against the detailed
+    // painted stages, so every sprite's DISPLAY size is enlarged by this one factor. PURELY
+    // COSMETIC — normal hurtboxes/attack reach use the static physics box (combat.js getHurtbox /
+    // getAttackHitbox), which is DECOUPLED from this, so game balance is untouched. Giants
+    // (canvas-height-frac branch below) reassign `scale` outright and are intentionally EXEMPT
+    // (already sized to the canvas). Tune here.
+    const GLOBAL_SPRITE_SCALE = 1.18;   // +18%
+    let scale = (fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1) * GLOBAL_SPRITE_SCALE;
 
     // CANVAS-RELATIVE GIANT SIZING: a fighter can request a display height as a
     // FRACTION of the live canvas height (mirrors kurama.js sizing its fox at

@@ -1410,12 +1410,27 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) 
 // rift/holographic language, with a LOCKED teaser chapter list (inert — no click-through, no hover) to
 // hint at scale. Reserves + styles the entry point for a future Story Mode project.
 // ─────────────────────────────────────────────
+// STORY_CHAPTERS — reconciled 15-chapter structure (Part 3). NOTE: no campaign design doc exists in the
+// repo; these titles were composed from the specific Battle-Chronicle beats named in the reconciliation
+// prompt (the mirror-self duel, the Pain confrontation, the Ghostface gauntlet, the Superman & Iron Man
+// convergences, the Null finale) + connective beats in the game's fracture/Choir/Anchor voice. Titles
+// only — Story Mode remains a locked placeholder; swap any title once the real campaign lands.
 const STORY_CHAPTERS = [
-  "Chapter I — The First Rift",
-  "Chapter II — Fractured Worlds",
-  "Chapter III — The Convergence",
-  "Chapter IV — Echoes Across Realities",
-  "Chapter V — ??? ",
+  "I — The First Fracture",
+  "II — Anchor Points",
+  "III — The Mirror Self",             // Vegeta vs. Dark Vegeta
+  "IV — Six Paths, One Pain",          // Pain vs. Six Paths of Pain
+  "V — The Ghostface Gauntlet",        // the Ghostface gauntlet
+  "VI — Sons of Krypton",              // the Superman convergence
+  "VII — The Iron Convergence",        // the Iron Man convergence
+  "VIII — Fractured Worlds",
+  "IX — Echoes Across Realities",
+  "X — The Battle Chronicle",
+  "XI — The Choir's Whisper",
+  "XII — The Convergence",
+  "XIII — Where Heaven and Earth Meet",
+  "XIV — The Last Anchor",
+  "XV — The Null",                     // the Null confrontation finale
 ]
 export function getStoryBackButton(canvas) {
   const { width: w, height: h } = getCanvasSize(canvas)
@@ -1426,36 +1441,36 @@ export function drawStoryModeScreen(ctx, canvas, hoverBack = false) {
   const { width: w, height: h } = getCanvasSize(canvas)
   ctx.clearRect(0, 0, w, h)
   drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#160b2a" })
+  drawMenuParticles(ctx, canvas)   // Part 4: consistent ambient identity
 
-  // Holographic title card
-  const cardW = Math.min(720, w * 0.68), cardH = 420
-  const cardX = w / 2 - cardW / 2, cardY = 96
+  // Holographic title card — grown to hold the reconciled 15-chapter Chronicle (2 columns).
+  const cardW = Math.min(900, w * 0.78), cardH = 552
+  const cardX = w / 2 - cardW / 2, cardY = 74
   _metalPanel(ctx, cardX, cardY, cardW, cardH, "#9a7bff", 20, 0.3)
   _holoPanelOverlay(ctx, cardX, cardY, cardW, cardH, { accent: "#9a7bff", cut: 20 })
 
-  drawCenteredText(ctx, "STORY MODE", w / 2, cardY + 62, { font: "900 46px Arial", fill: "#f3f0ff", shadowBlur: 22, shadowColor: "rgba(154,123,255,0.6)" })
+  drawCenteredText(ctx, "STORY MODE", w / 2, cardY + 56, { font: "900 44px Arial", fill: "#f3f0ff", shadowBlur: 22, shadowColor: "rgba(154,123,255,0.6)" })
 
   // COMING SOON badge
-  const badgeW = 190, badgeH = 34, bx = w / 2 - badgeW / 2, by = cardY + 92
+  const badgeW = 190, badgeH = 32, bx = w / 2 - badgeW / 2, by = cardY + 82
   _bevelPath(ctx, bx, by, badgeW, badgeH, 8); ctx.fillStyle = "rgba(154,123,255,0.18)"; ctx.fill()
   _bevelPath(ctx, bx, by, badgeW, badgeH, 8); ctx.strokeStyle = "#b9a3ff"; ctx.lineWidth = 1.5; ctx.stroke()
   drawCenteredText(ctx, "COMING SOON", w / 2, by + badgeH / 2 + 1, { font: "800 15px Arial", fill: "#d9ccff", baseline: "middle" })
 
-  drawSubText(ctx, "A dimensional narrative campaign is in development. Reserved for a future update.", w / 2, cardY + 150, { font: "15px Arial", fill: "rgba(210,220,255,0.7)" })
+  drawSubText(ctx, "The Battle Chronicle — a dimensional campaign across the fractured multiverse. In development.", w / 2, cardY + 130, { font: "15px Arial", fill: "rgba(210,220,255,0.7)" })
 
-  // LOCKED teaser chapter list — inert (no click-through, no hover). Greyed + lock icon.
-  const listX = cardX + 60, listW = cardW - 120
-  let ly = cardY + 188
-  for (const title of STORY_CHAPTERS) {
-    _bevelPath(ctx, listX, ly, listW, 34, 8)
-    ctx.fillStyle = "rgba(10,12,22,0.6)"; ctx.fill()
-    _bevelPath(ctx, listX, ly, listW, 34, 8)
-    ctx.strokeStyle = "rgba(148,163,184,0.28)"; ctx.lineWidth = 1; ctx.stroke()
-    drawCenteredText(ctx, "🔒", listX + 20, ly + 17, { font: "14px Arial", fill: "rgba(160,170,190,0.6)", baseline: "middle" })
-    drawCenteredText(ctx, title, listX + 40, ly + 17, { font: "600 15px Arial", fill: "rgba(180,190,210,0.5)", align: "left", baseline: "middle" })
-    drawCenteredText(ctx, "LOCKED", listX + listW - 16, ly + 17, { font: "700 11px Arial", fill: "rgba(148,163,184,0.5)", align: "right", baseline: "middle" })
-    ly += 40
-  }
+  // LOCKED chapter list — inert. Two columns to hold the full 15-chapter Chronicle without shrinking.
+  const cols = 2, per = Math.ceil(STORY_CHAPTERS.length / cols)
+  const listX = cardX + 44, listW = cardW - 88, colGap = 16, colW = (listW - colGap) / cols
+  const rowH = 30, listY = cardY + 166
+  STORY_CHAPTERS.forEach((title, i) => {
+    const col = Math.floor(i / per), row = i % per
+    const x = listX + col * (colW + colGap), y = listY + row * rowH
+    _bevelPath(ctx, x, y, colW, rowH - 5, 6); ctx.fillStyle = "rgba(10,12,22,0.6)"; ctx.fill()
+    _bevelPath(ctx, x, y, colW, rowH - 5, 6); ctx.strokeStyle = "rgba(148,163,184,0.24)"; ctx.lineWidth = 1; ctx.stroke()
+    drawCenteredText(ctx, "🔒", x + 13, y + (rowH - 5) / 2, { font: "11px Arial", fill: "rgba(160,170,190,0.5)", baseline: "middle" })
+    drawCenteredText(ctx, title, x + 28, y + (rowH - 5) / 2, { font: "600 13px Arial", fill: "rgba(196,202,222,0.62)", align: "left", baseline: "middle" })
+  })
 
   // BACK button (interactive — the only actionable control here)
   drawMkButton(ctx, getStoryBackButton(canvas), { label: "BACK", active: hoverBack, id: "storyback", cut: 12 })
@@ -3827,9 +3842,23 @@ export function drawProfileScreen(ctx, canvas, opts = {}) {
   const traits = opts.traits || {}
   ctx.clearRect(0, 0, w, h)
   drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#0d1226" })
-  drawHeader(ctx, canvas, "PERSONALITY PROFILE", "Your Big-Five, inferred from how you fight")
+  drawMenuParticles(ctx, canvas)   // Part 4: ambient Void-palette motes, consistent with the menu identity
+  // Reframed as "The Choir's Reading" (Part 2) — the lore's own explanation for who is reading this data.
+  drawHeader(ctx, canvas, "THE CHOIR'S READING", "The Choir doesn't create your pattern — it only listens.")
 
   const cx = w / 2, cy = h * 0.47, R = Math.min(h * 0.28, w * 0.20)
+
+  // OVERALL CONFIDENCE → how "settled" the pattern is. At zero-confidence (a brand-new player) the shape
+  // is an unstable fragment: it shivers, flickers, sits faint + dashed. As real behavioural evidence
+  // accumulates, `settle`→1 and the pentagon solidifies + sharpens (fragments becoming something whole).
+  const _confs = _PROFILE_TRAITS.map(t => traits[t.k]?.confidence || 0)
+  const avgConf = _confs.reduce((a, b) => a + b, 0) / (_confs.length || 1)
+  const settle  = Math.min(1, avgConf / 60)          // fully settled by ~60% average confidence
+  const instab  = 1 - settle                          // 1 = brand-new / unread, 0 = fully read
+  // Per-vertex jitter: each trait shivers by ITS OWN uncertainty, so a trait the Choir has read sits
+  // still while one it hasn't keeps forming (truthful — only E/N accumulate from combat; O/C/A stay open).
+  const vjit = (conf, i, ph) => { const vi = 1 - Math.min(1, (conf || 0) / 100); return vi > 0.02 ? Math.sin(_mkFrame * 0.33 + i * 2.1 + ph) * vi * 9 : 0 }
+  const flicker = instab > 0.02 ? (0.5 + 0.5 * (0.5 + 0.5 * Math.sin(_mkFrame * 0.55))) * (0.6 + 0.4 * settle) + 0.15 : 1
 
   // Concentric pentagon grid rings (25/50/75/100%).
   for (let ring = 1; ring <= 4; ring++) {
@@ -3854,13 +3883,19 @@ export function drawProfileScreen(ctx, canvas, opts = {}) {
     if (!strong) ctx.setLineDash([4, 4])
     ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ax, ay); ctx.stroke()
     ctx.restore()
-    verts.push({ vx: cx + Math.cos(a) * R * frac, vy: cy + Math.sin(a) * R * frac, conf, mu, label: t.label, ax, ay, a })
+    // Vertex jitters by its OWN confidence (unread → shivers, read → still). Instability metaphor.
+    verts.push({ vx: cx + Math.cos(a) * R * frac + vjit(conf, i, 0), vy: cy + Math.sin(a) * R * frac + vjit(conf, i, 1.7), conf, mu, label: t.label, ax, ay, a })
   })
 
-  // Value polygon.
+  // Value polygon — faint/flickering/dashed when unsettled, solid + bright when the reading has settled.
+  ctx.save()
+  ctx.globalAlpha = flicker
   ctx.beginPath(); verts.forEach((v, i) => i === 0 ? ctx.moveTo(v.vx, v.vy) : ctx.lineTo(v.vx, v.vy)); ctx.closePath()
-  ctx.fillStyle = "rgba(74,168,224,0.16)"; ctx.fill()
-  ctx.strokeStyle = "rgba(74,168,224,0.72)"; ctx.lineWidth = 2; ctx.stroke()
+  ctx.fillStyle = `rgba(74,168,224,${0.05 + 0.13 * settle})`; ctx.fill()
+  ctx.strokeStyle = `rgba(120,200,255,${0.32 + 0.42 * settle})`; ctx.lineWidth = 1.2 + 1.3 * settle
+  if (instab > 0.45) ctx.setLineDash([5, 5])
+  ctx.stroke()
+  ctx.restore()
 
   // Per-vertex marker + label — confident traits: bright glowing dot + solid label; uncertain: faint
   // dashed hollow ring + dimmed label.
@@ -3877,11 +3912,18 @@ export function drawProfileScreen(ctx, canvas, opts = {}) {
     drawCenteredText(ctx, `${v.mu.toFixed(1)} · ${Math.round(v.conf)}%`, lx, ly + 9, { font: "11px Arial", fill: `rgba(150,190,235,${0.35 + 0.5 * wgt})`, align })
   })
 
-  // Legend + data-source status.
+  // Legend + in-voice status. TIPI answer (Part 2): the reading is behavioural-ONLY by design — the Choir
+  // reads what you do, it doesn't ask you questions. So there's no "no questionnaire yet" apology; a fresh
+  // pattern reads as UNSETTLED, and sharpens as the Choir catches more of it.
   const legY = h - 118
-  drawCenteredText(ctx, "● confident   ◌ still uncertain (fainter / dashed)", w / 2, legY, { font: "12px Arial", fill: "rgba(190,205,230,0.6)" })
-  const src = opts.tipiComplete ? "Source: TIPI questionnaire + combat behaviour" : "Source: neutral prior + combat behaviour (no questionnaire yet)"
-  drawCenteredText(ctx, `${src}   ·   ${opts.eventCount || 0} events observed`, w / 2, legY + 20, { font: "12px Arial", fill: "rgba(150,180,220,0.55)" })
+  drawCenteredText(ctx, "● read   ◌ still forming (fainter / dashed)", w / 2, legY, { font: "12px Arial", fill: "rgba(190,205,230,0.6)" })
+  const n = opts.eventCount || 0
+  const status = n === 0
+    ? "The Choir hasn't caught your pattern yet — fight, and it will begin to listen."
+    : settle >= 0.999
+      ? `The Choir has read your pattern clearly — ${n} fragments gathered.`
+      : `The Choir is still listening — ${n} fragment${n === 1 ? "" : "s"} caught, the pattern still forming.`
+  drawCenteredText(ctx, status, w / 2, legY + 20, { font: "12px Arial", fill: "rgba(150,180,220,0.6)" })
 
   drawMkButton(ctx, getProfileBackButton(canvas), { label: "BACK", active: opts.backHover, id: "profileback", cut: 12 })
   drawFooterHint(ctx, canvas, "Traits are inferred passively from your play — no data leaves this device")
@@ -3920,7 +3962,8 @@ export function drawCodexScreen(ctx, canvas, opts = {}) {
   const groups = opts.groups || []
   ctx.clearRect(0, 0, w, h)
   drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#0d1226" })
-  drawHeader(ctx, canvas, "CODEX", "Fighters of the multiverse — grouped by world")
+  drawMenuParticles(ctx, canvas)   // Part 4: same ambient Void-palette motes as the rest of the menu identity
+  drawHeader(ctx, canvas, "CODEX", "The Battle Chronicle — every fighter's record, read from their Anchor Point")
 
   const L = codexLayout(canvas, groups, opts.scroll || 0)
 
@@ -3962,15 +4005,18 @@ export function drawCodexScreen(ctx, canvas, opts = {}) {
       _bevelPath(ctx, tx, ty - 14, cw2, 26, 7); ctx.fillStyle = "rgba(74,168,224,0.16)"; ctx.fill()
       drawCenteredText(ctx, sel.passiveName, tx + 11, ty, { font: "800 13px Arial", fill: "#bfe4ff", align: "left" }); ty += 30
     }
-    ctx.save(); ctx.font = "15px Arial"
-    const bodyLines = _wrapText(ctx, sel.passiveEffect || "No dossier entry recorded for this fighter yet.", maxW)
-    for (const ln of bodyLines) { drawCenteredText(ctx, ln, tx, ty, { font: "15px Arial", fill: "rgba(220,230,248,0.9)", align: "left" }); ty += 23 }
-    ctx.restore()
-    if (sel.flavor) {
-      ty += 12
-      ctx.save(); ctx.font = "italic 14px Georgia, serif"
-      const flavorLines = _wrapText(ctx, `“${sel.flavor}”`, maxW)
-      for (const ln of flavorLines) { drawCenteredText(ctx, ln, tx, ty, { font: "italic 14px Georgia, serif", fill: "rgba(196,181,253,0.82)", align: "left" }); ty += 21 }
+    if (sel.passiveEffect) {
+      // Real dossier — the character's written personality write-up.
+      ctx.save(); ctx.font = "15px Arial"
+      const bodyLines = _wrapText(ctx, sel.passiveEffect, maxW)
+      for (const ln of bodyLines) { drawCenteredText(ctx, ln, tx, ty, { font: "15px Arial", fill: "rgba(220,230,248,0.9)", align: "left" }); ty += 23 }
+      ctx.restore()
+    } else {
+      // Diegetic missing-data (Part 1) — an intentional piece of world-building in the lore's own voice,
+      // NOT a generic/broken empty. Rendered italic + violet so it reads as lore, not as a real dossier.
+      ctx.save()
+      const lines = _wrapText(ctx, "No Fracture Vision has surfaced for this fighter yet — their Anchor Point hasn't given up its record.", maxW)
+      for (const ln of lines) { drawCenteredText(ctx, ln, tx, ty, { font: "italic 15px Georgia, serif", fill: "rgba(196,181,253,0.7)", align: "left" }); ty += 23 }
       ctx.restore()
     }
   }

@@ -16342,6 +16342,11 @@ gameLoop()
     // cycle via the real Charge-TAP path. Returns the active form + its merged _skinAnim idle sheet.
     orochimaruForm: (id = null, who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (id) applyOrochimaruForm(f, id, getAbilityContext()); else revertOrochimaruForm(f, getAbilityContext()); return { form: f._oroForm || null, name: orochimaruFormName(f), skinIdle: f._skinAnim?.idle?.sheet || null }; },
     orochimaruCycle: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; cycleOrochimaruForm(f, getAbilityContext()); return { form: f._oroForm || null, name: orochimaruFormName(f), skinIdle: f._skinAnim?.idle?.sheet || null }; },
+    // TRANSITION AFTER-IMAGE (combo-flow snap smoother) — inspect the sprite handler's live ghost state so
+    // a test can prove the ghost ARMS on attack transitions and stays inert on locomotion. Cosmetic only.
+    spriteXfade: (who = "p1") => { const f = who === "p2" ? p2 : p1; const h = f?.spriteHandler; const x = h?._xfade;
+      return { action: h?.currentAction || null, xfadeActive: !!(x && x.life > 0), xfadeLife: x?.life || 0, xfadeFacing: x?.facing ?? null }; },
+    spriteAction: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f?.spriteHandler?.currentAction || null; },
     // Read the merged _skinAnim's sheet for an action (fallback-chain verify: form actions vs base fallback).
     oroSkinSheet: (action, who = "p1") => { const f = who === "p2" ? p2 : p1; return f?._skinAnim?.[action]?.sheet || null; },
     oroActiveForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f?._oroForm || null; },

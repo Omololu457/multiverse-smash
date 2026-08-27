@@ -335,16 +335,30 @@ export function ensureCombatState(fighter) {
 // is deliberately gentle and stays well above 0 so cancel-on-hit rekkas and juggles still link.
 export const COMBO_DAMAGE_CURVE  = [1, 0.92, 0.84, 0.76, 0.70, 0.65]
 export const COMBO_HITSTUN_CURVE = [1, 1, 0.95, 0.90, 0.87, 0.85]
-function _comboScale(fighter, curve) {
+// STARTER SCALING (MK1-style move-type/starter weighting): the combo OPENER's move type adds extra
+// DAMAGE-scaling tiers to the WHOLE string — a launcher/uppercut opener (which buys a full juggle) decays
+// hardest, a heavy opener a little, lights/specials none. Applied to DAMAGE ONLY (never hitstun, so links
+// still connect) and NEVER to the opener's own hit (a lone launcher poke keeps full damage). Tune here.
+export const COMBO_STARTER_SCALE = { launcher: 2, heavy: 1, default: 0 }
+function comboStarterTier(atk, cat) {
+  if (atk?.launcher) return COMBO_STARTER_SCALE.launcher   // up-attack / rekka-launcher opener → hardest
+  if (cat === "heavy")  return COMBO_STARTER_SCALE.heavy    // heavy opener → a small extra tier
+  return COMBO_STARTER_SCALE.default                        // light / special / etc → none
+}
+function _comboScale(fighter, curve, useStarter = false) {
   // COUNTER-HIT reward (MK-feel Stage 2f): a combo opened/extended by a counter-hit SKIPS ONE TIER of
   // scaling — its damage + hitstun decay one hit slower — via `_counterScaleTier`. This shifts only the
   // SCALE lookup, leaving the raw comboCounter untouched (so burst / combo-breaker thresholds are unaffected).
-  const cc = (fighter?.comboCounter || 0) - (fighter?._counterScaleTier || 0)
+  const base = (fighter?.comboCounter || 0)
+  // Starter penalty (damage lookup only): shift DEEPER into the curve when the opener was a launcher/heavy.
+  // Gated on base>=1 so the opener's OWN hit is full — the penalty falls on the follow-ups it enables.
+  const starter = (useStarter && base >= 1) ? (fighter?._comboStarterTier || 0) : 0
+  const cc = base - (fighter?._counterScaleTier || 0) + starter
   if (!fighter || cc <= 1) return 1
   return curve[Math.min(cc - 1, curve.length - 1)]
 }
-export function getComboScale(fighter)        { return _comboScale(fighter, COMBO_DAMAGE_CURVE) }
-export function getComboHitstunScale(fighter) { return _comboScale(fighter, COMBO_HITSTUN_CURVE) }
+export function getComboScale(fighter)        { return _comboScale(fighter, COMBO_DAMAGE_CURVE, true) }
+export function getComboHitstunScale(fighter) { return _comboScale(fighter, COMBO_HITSTUN_CURVE, false) }
 
 // ========================
 // ATTACK PHASE
@@ -510,7 +524,7 @@ export function tryComboBreaker(fighter, inputState, opponent) {
   opponent.onGround = false; opponent.grounded = false
   opponent.hitstun = Math.max(opponent.hitstun || 0, COMBO_BREAKER.atkHitstun)
   opponent.attacking = false; opponent.currentAttack = null; opponent.currentMove = null
-  opponent.comboCounter = 0; opponent.comboTimer = 0; opponent._counterScaleTier = 0   // end the attacker's combo (+ clear any counter-hit tier skip)
+  opponent.comboCounter = 0; opponent.comboTimer = 0; opponent._counterScaleTier = 0; opponent._comboStarterTier = 0   // end the attacker's combo (+ clear counter-hit & starter tiers)
   try { sound?.play?.(SFX?.COUNTER_HIT || SFX?.PARRY || SFX?.BLOCK) } catch (_) {}
   return true
 }
@@ -527,8 +541,11 @@ export function tryComboBreaker(fighter, inputState, opponent) {
 // each round — these functions are stateless w.r.t. match economy.
 export const COMEBACK_FINISHER = { hpGate: 0.30, dmgPct: 0.32, dmgCap: 360, iframes: 16, startup: 6, active: 6, recovery: 24, reach: 152, height: 132, hitstun: 26, kbX: 9, kbY: -5 }
 // EXCLUSIONS (Stage 0 audit): characters with a bespoke below-threshold comeback keep THEIRS instead —
-// Toji (2-stage save), Maki (HP-gated ult), Gon (adult-form sudden-death). Everyone else is eligible.
-export const COMEBACK_FINISHER_EXCLUDE = new Set(["toji", "maki", "gon"])
+// Toji (2-stage save), Maki (HP-gated ult), Gon (adult-form sudden-death), Naruto (Kurama shroud's
+// heal-on-hit kicks in at ≤40% HP — see applyKuramaReaction ~combat.js:927; without this exclusion he'd
+// STACK the shroud heal AND the universal Fatal Blow, a double-dip the other three are already carved out
+// of for the same reason). Everyone else is eligible.
+export const COMEBACK_FINISHER_EXCLUDE = new Set(["toji", "maki", "gon", "naruto"])
 export function comebackFinisherDamage(fighter) {
   return Math.round(Math.min((fighter?.maxHealth || 1000) * COMEBACK_FINISHER.dmgPct, COMEBACK_FINISHER.dmgCap))
 }
@@ -2729,6 +2746,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // COUNTER-HIT reward: latch the skipped-tier flag on the ATTACKER BEFORE the combo-scaled damage below,
   // so this counter-hit AND the combo it opens both decay one tier slower (cleared when the combo ends).
   if (isCounter) attacker._counterScaleTier = 1
+  // STARTER SCALING: classify the OPENER once — comboCounter is still 0 here, so this IS the opening hit.
+  // The tier persists for the whole string and is cleared when the combo ends (mirrors _counterScaleTier).
+  if ((attacker.comboCounter || 0) === 0) attacker._comboStarterTier = comboStarterTier(atk, cat)
 
   // damageMultiplier and attackMultiplier are the SAME concept (an offensive
   // scalar). transformations.js sets both to a form's value and domains.js
@@ -3109,7 +3129,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // BREAKS it (counter → 0) so the decay resets and the attacker's next clean hit starts fresh at full
   // scale. (Previously the counter incremented even on block, so a blocked poke silently taxed the combo.)
   if (defender.isBlocking) {
-    attacker.comboCounter = 0; attacker._counterScaleTier = 0   // block ends the combo → clear the counter-hit tier skip
+    attacker.comboCounter = 0; attacker._counterScaleTier = 0; attacker._comboStarterTier = 0   // block ends the combo → clear counter-hit & starter tiers
   } else {
     attacker.comboCounter++
     attacker.comboTimer = 90
@@ -3278,7 +3298,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   if ((fighter._comboFinisherReactTimer || 0) > 0) fighter._comboFinisherReactTimer--   // Naruto combo-ender recoil pose window
   if (fighter.blockstun > 0) fighter.blockstun--
   if (fighter.comboTimer > 0) fighter.comboTimer--
-  else { fighter.comboCounter = 0; fighter._counterScaleTier = 0 }   // combo drop timer expired → clear the counter-hit tier skip
+  else { fighter.comboCounter = 0; fighter._counterScaleTier = 0; fighter._comboStarterTier = 0 }   // combo drop timer expired → clear counter-hit & starter tiers
   if (fighter.attackCooldown > 0) fighter.attackCooldown--
 
   if (fighter.isGrabbed) {

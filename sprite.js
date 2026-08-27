@@ -720,6 +720,16 @@ function _resolveAction(fighter, currentAction = "idle") {
   return "idle";
 }
 
+// TRANSITION AFTER-IMAGE (combo-flow "snap" fix): raw sprite sheets can't skeletal-blend, so when a
+// chained/canceled ATTACK switches actions the sprite hard-cuts to frame 0 of the next swing (sprite.js
+// draw() resets frameIndex on an action change) — reads as a snap. Instead, the OUTGOING attack pose is
+// re-drawn for a few frames as a fading ghost UNDER the new pose (an after-image), so the eye reads
+// continuous motion. PURELY COSMETIC — no hitbox/timing/gameplay touched. Gated to ATTACK transitions
+// (the reported combo snap); ordinary locomotion and giants are left exactly as before. Because it just
+// re-draws the real sprite frame with alpha, it is art-style-agnostic (chibi/GBA-rip/hand-drawn alike).
+const XFADE_FRAMES = 4;     // ~67ms @60fps — long enough to read, short enough to stay responsive
+const XFADE_PEAK   = 0.55;  // starting ghost opacity (fades to 0)
+
 // ─────────────────────────────────────────────────────────────────
 // SPRITE HANDLER
 // ─────────────────────────────────────────────────────────────────
@@ -733,6 +743,8 @@ export class SpriteHandler {
     this._actionDef = null;
     this.locked = false;
     this._spawnFired = false;
+    this._lastRender = null;   // params of the frame drawn last tick (source for the transition ghost)
+    this._xfade = null;        // active outgoing-pose after-image, or null
   }
 
   determineAction(fighter) {
@@ -747,6 +759,13 @@ export class SpriteHandler {
 
     // Reset animation index and timer when switching actions
     if (this.currentAction !== action) {
+      // TRANSITION AFTER-IMAGE: if we were mid-ATTACK, capture the just-drawn pose as a fading ghost so the
+      // cut into the next action reads as motion, not a snap. Gated to attacks (the combo-flow snap) and
+      // skipped for giants (own bob smoothing) → locomotion + giants unchanged. See _drawTransitionGhost.
+      const lr = this._lastRender;
+      if (lr && lr.wasAttacking && !fighter._canvasHeightFrac && _sheetReady(lr.sheet)) {
+        this._xfade = { ...lr, life: XFADE_FRAMES, max: XFADE_FRAMES };
+      }
       this.currentAction = action;
       this.frameIndex = 0;
       this.frameTimer = 0;
@@ -942,19 +961,26 @@ export class SpriteHandler {
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);
 
+    // Active tint filter, computed ONCE (also captured for the transition ghost so a tinted form's
+    // after-image stays correctly tinted).
+    let spriteFilter = "none";
+    if (fighter._shActive) spriteFilter = SKILL_HUNTER_TINT;             // Chrollo purple possession tint
+    else if (fighter._blackFriezaActive) spriteFilter = FRIEZA_BLACK_TINT;
+    else if (fighter._goldenFriezaActive) spriteFilter = FRIEZA_GOLDEN_TINT;
+    else if (fighter._piccoloOrangeActive) spriteFilter = PICCOLO_ORANGE_TINT;
+    else if (fighter._piccoloPotentialActive) spriteFilter = PICCOLO_POTENTIAL_TINT;
+    else if (fighter._reincarnated) spriteFilter = TOJI_REINCARNATED_TINT;
+    else if (fighter._edoActive) spriteFilter = EDO_REANIM_TINT;        // Edo Tensei undead-corpse wash
+
     ctx.save();
     ctx.imageSmoothingEnabled = false;   // crisp upscaled pixel art
 
+    // TRANSITION AFTER-IMAGE — draw the fading outgoing-attack pose UNDER the new sprite (main pose stays
+    // crisp + responsive; the ghost only shows where it isn't occluded → a trail). Self-contained save.
+    if (this._xfade && this._xfade.life > 0) this._drawTransitionGhost(ctx);
+
     if (_sheetReady(sheet)) {
-      // Skill Hunter: wash the copied body in Chrollo's purple possession tint (see SKILL_HUNTER_TINT).
-      if (fighter._shActive) ctx.filter = SKILL_HUNTER_TINT;
-      else if (fighter._blackFriezaActive) ctx.filter = FRIEZA_BLACK_TINT;    // Black Frieza ult — dark ceiling-tier form
-      else if (fighter._goldenFriezaActive) ctx.filter = FRIEZA_GOLDEN_TINT;  // Golden Frieza — gold transformation wash
-      else if (fighter._piccoloOrangeActive) ctx.filter = PICCOLO_ORANGE_TINT;       // Orange Piccolo (T2) — orange wash (palette placeholder)
-      else if (fighter._piccoloPotentialActive) ctx.filter = PICCOLO_POTENTIAL_TINT; // Potential Unleashed (T1) — yellow-green wash (palette placeholder)
-      else if (fighter._reincarnated) ctx.filter = TOJI_REINCARNATED_TINT;   // Toji Reincarnated Form — crimson wash
-      // Edo Tensei reanimation: sickly pale green-gray "undead corpse" wash over the vessel's BASE art.
-      else if (fighter._edoActive) ctx.filter = EDO_REANIM_TINT;
+      if (spriteFilter !== "none") ctx.filter = spriteFilter;
 
       if ((fighter.facing ?? 1) === -1) {
         ctx.scale(-1, 1);
@@ -990,6 +1016,16 @@ export class SpriteHandler {
 
     ctx.restore();
 
+    // Snapshot the frame just drawn — the source for a transition after-image next tick. Only when a real
+    // sheet drew (the box path can't ghost). Captures the OLD world X so the ghost trails where it was.
+    if (_sheetReady(sheet)) {
+      this._lastRender = {
+        sheet, sx, sy, dw: drawWidth, dh: drawHeight,
+        fx: fighter.x, offsetX, drawY, dstW, dstH,
+        facing: (fighter.facing ?? 1), filter: spriteFilter, wasAttacking: !!fighter.attacking
+      };
+    }
+
     // (A rotating spin/blur "_speedBlur" ghost-copy overlay was drawn here for speed-tier teleport-
     // dashes; it obscured the dash sprite into an unreadable swirl and was REMOVED. Speed-tier chars
     // now show their real dash sprite on the blink via the dash-pose default in game.js.)
@@ -1003,10 +1039,34 @@ export class SpriteHandler {
     // holding its animation on those same frames makes the slowed frame-rate read on the sprite too.
     if ((fighter.hitstop || 0) <= 0 && !fighter._animFrozen && !fighter.domainFrozen && !fighter._timeSlowFlag) {
       this.updateFrames(frameData, fighter);
+      // Fade the transition ghost only on LIVE frames (holds it through hitstop/freeze like the animation).
+      if (this._xfade) { if (--this._xfade.life <= 0) this._xfade = null; }
     }
 
     // Spawn event support
     this._checkSpawn(frameData, fighter);
+  }
+
+  // Draw the captured outgoing-attack pose as a fading after-image (the transition-snap smoother). Replays
+  // the exact drawImage of the frame it was captured from — same sheet/source-rect/scale/facing/tint — at
+  // its ORIGINAL world X, with alpha decaying over XFADE_FRAMES. Self-contained save/restore so it never
+  // perturbs the main sprite draw. Purely cosmetic.
+  _drawTransitionGhost(ctx) {
+    const g = this._xfade;
+    if (!g || g.life <= 0 || !_sheetReady(g.sheet)) return;
+    const alpha = XFADE_PEAK * (g.life / g.max);
+    if (alpha <= 0.01) return;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.globalAlpha = alpha;
+    if (g.filter && g.filter !== "none") ctx.filter = g.filter;
+    if (g.facing === -1) {
+      ctx.scale(-1, 1);
+      ctx.drawImage(g.sheet, g.sx, g.sy, g.dw, g.dh, -g.fx + g.offsetX - g.dstW, g.drawY, g.dstW, g.dstH);
+    } else {
+      ctx.drawImage(g.sheet, g.sx, g.sy, g.dw, g.dh, g.fx - g.offsetX, g.drawY, g.dstW, g.dstH);
+    }
+    ctx.restore();
   }
 
   updateFrames(frameData, fighter) {

@@ -97,3 +97,18 @@ out `attackCooldown` between successive specials/ultimates.
 (gap-closer); **down, forward, then `l`** (quarter-circle-forward) → two-strike lightning. Feed
 the motion by pressing the movement keys (`s` then `d`) before `l` so `recordDirectionInput`
 logs the D,F sequence.
+
+## Known flaky tests (pre-existing — do not re-investigate from scratch)
+
+These assertions fail **intermittently on a clean checkout** because they depend on frame-tight
+positioning/RNG in the live Chromium harness (dummy drift, DoT-tick timing). A single red run is
+not a real regression — re-run 2–3×; a true break fails *deterministically*.
+
+- **`test:isshiki`** — two assertions flake: **"ground/air string multi-hit damage (≥N)"** (the
+  string sometimes lands only its first hit → e.g. `dmg=14`) and **"Daikokuten cubes (Down): trap
+  auto-ticks damage"** (the DoT tick sometimes reads `0`/`6`). Observed on `main` at `c15f5b13`
+  fluctuating between **52/0, 51/1, and 50/2** across back-to-back runs with **no code change**.
+  Explicitly **NOT** caused by the input-buffer 7→10 fix (that commit): a *more-lenient* buffer
+  cannot make a multi-hit string land *fewer* hits nor zero a damage-over-time trap, and the real
+  combo-system suites (`cancel_window`, `combo_stage_b/c/d`, `combo_decay`) pass green. If you touch
+  Isshiki's kit and see a *consistent* fail on these, that's new — otherwise it's this flake.

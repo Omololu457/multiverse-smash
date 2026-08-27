@@ -34,7 +34,9 @@ export const COMBO_STANDARD = {
   finisher:   "launcher",    // the finisher LAUNCHES → jump-cancel into the universal air combo
   requireHit: true,          // whiff/block ENDS the string (no timing-only links by default)
   airRoute:   "upAttack → jump-cancel → air → down_air",   // the roster-wide air-combo route (universal)
-  inputBufferFrames: 7,      // input.js INPUT_BUFFER_FRAMES — shared, global (~117ms @60fps)
+  inputBufferFrames: 10,     // input.js INPUT_BUFFER_FRAMES — shared, global (~167ms @60fps); raised
+                             // 7→10 so the buffer covers the post-normal attackCooldown lock (=10) and
+                             // early-recovery re-presses aren't dropped (see input_buffer_recovery test)
 }
 
 // Status vocabulary:

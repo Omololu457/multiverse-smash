@@ -106,7 +106,7 @@ try {
     landedDamage = hp0 - (await p2()).health;
     await shot("combo_lands");
     console.log(`     effective cancel window = ${windowFrames}f of a ${recovery}f recovery (≈${Math.round(windowFrames / 60 * 1000)}ms); full string dealt ${landedDamage}`);
-    check("tight window is 5 frames (narrower than the 7f/~120ms roster default)", windowFrames === 5, `windowFrames=${windowFrames}`);
+    check("tight window is 5 frames (narrower than the 10f/~167ms roster default)", windowFrames === 5, `windowFrames=${windowFrames}`);
     check("in-window presses link the full chain (makiG1→makiG2→makiG3)", chain.includes("makiG2") && chain.includes("makiG3"), `chain=[${chain.join(" → ")}]`);
   }
 

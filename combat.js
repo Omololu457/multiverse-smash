@@ -3422,7 +3422,9 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       fighter.attacking = false
       fighter.currentAttack = null
       fighter.currentMove = null
-      fighter.attackCooldown = 10
+      fighter.attackCooldown = 10 // ★INVARIANT: INPUT_BUFFER_FRAMES (input.js) must be >= this, else a
+      // correctly-timed re-press tapped in the first recovery frames buffers, decays, and expires
+      // before this lock reopens the startMove() gate → silent combo drop. See input_buffer_recovery test.
     }
   }
 

@@ -29,6 +29,24 @@ try {
   check("horror + canonically-brutal winners are eligible", inSet.length === 6, `eligible: ${inSet.join(",")}`);
   check("Power Rangers + Ben 10 are excluded", outSet.length === 0, outSet.length ? `LEAKED: ${outSet.join(",")}` : "none eligible");
 
+  // EXPANSION (owner-confirmed): alt Sukuna + war-god/sadist/bloodsport villains newly eligible; kids still out.
+  const newElig = await page.evaluate(() => ["alt_sukuna","madara","isshiki","naoya","mayuri","orochimaru","baki"].filter(k => window.__harness.brutality.canTrigger(k)));
+  check("expansion adds alt_sukuna + madara/isshiki/naoya/mayuri/orochimaru/baki", newElig.length === 7, `eligible: ${newElig.join(",")}`);
+  const stillOut = await page.evaluate(() => ["gwen","omega_ranger","goku","spiderman","nezuko"].filter(k => window.__harness.brutality.canTrigger(k)));
+  check("heroes / kid-franchise / wholesome cast still excluded after expansion", stillOut.length === 0, stillOut.length ? `LEAKED: ${stillOut.join(",")}` : "none eligible");
+
+  // PER-CHARACTER FINISHER DISPATCH: batch chars map to a signature; other eligible chars → null (generic fallback).
+  const fins = await page.evaluate(() => window.__harness.brutality.finishers());
+  check("first batch defines ≥6 per-character finishers", fins.length >= 6, `[${fins.join(", ")}]`);
+  const sukF = await page.evaluate(() => window.__harness.brutality.finisherFor("sukuna"));
+  const madF = await page.evaluate(() => window.__harness.brutality.finisherFor("madara"));
+  const mayF = await page.evaluate(() => window.__harness.brutality.finisherFor("mayuri"));
+  check("sukuna → DISMANTLE / slash", sukF && sukF.name === "DISMANTLE" && sukF.motif === "slash", JSON.stringify(sukF));
+  check("madara → ANNIHILATE / shards", madF && madF.name === "ANNIHILATE" && madF.motif === "shards", JSON.stringify(madF));
+  check("mayuri → DISSECT / toxic", mayF && mayF.name === "DISSECT" && mayF.motif === "toxic", JSON.stringify(mayF));
+  const ghF = await page.evaluate(() => window.__harness.brutality.finisherFor("ghostface"));
+  check("eligible-but-uncovered winner (ghostface) → null → SHARED generic fallback", ghF === null, JSON.stringify(ghF));
+
   // Start a battle so p1/p2 exist (p1=ghostface = eligible winner).
   await page.evaluate(() => { window.__harness.start({ mode:"vs", difficulty:"easy" }); window.__harness.skipToBattle(); });
   await page.waitForTimeout(400);
@@ -43,8 +61,31 @@ try {
   const on = await page.evaluate(() => window.__harness.brutality.trigger("p1", true));
   const st = await page.evaluate(() => window.__harness.brutality.state());
   check("toggle ON + eligible winner + KO → finisher triggers", on === true && st.active === true, JSON.stringify(st));
+  check("ghostface winner uses the SHARED generic finisher (state.finisher = null)", st.finisher === null, JSON.stringify(st.finisher));
   await page.waitForTimeout(200);   // let the gore burst + stamp animate a few frames
   await page.screenshot({ path: path.join(OUT, "BRUTALITY_playing.png"), clip: { x: 0, y: 0, width: 1280, height: 720 } });
+
+  // PER-CHARACTER finishers LIVE: boot each batch winner, run the real gate, assert the signature is
+  // selected + drives the state, and capture a clip. Covers all four motifs (slash/burst/toxic/shards).
+  async function finisherClip(charKey, expectName, expectMotif) {
+    await page.goto(`${base}/index.html?harness=1&p1=${charKey}&p2=goku`, { waitUntil: "load" });
+    await page.waitForFunction(() => !!(window.__harness && window.__harness.brutality));
+    await page.waitForTimeout(150);
+    await page.evaluate(() => window.__harness.brutality.setBrutality(true));
+    await page.evaluate(() => { window.__harness.start({ mode: "vs", difficulty: "easy" }); window.__harness.skipToBattle(); });
+    await page.waitForTimeout(400);
+    const ok = await page.evaluate(() => window.__harness.brutality.trigger("p1", true));
+    await page.waitForTimeout(180);   // let the one-shot signature + chunk burst spawn
+    const s = await page.evaluate(() => window.__harness.brutality.state());
+    check(`${charKey} → per-character finisher selected (${expectName}/${expectMotif}) + FX spawned`,
+      ok === true && s.active === true && s.finisher && s.finisher.name === expectName && s.finisher.motif === expectMotif && s.parts > 0,
+      JSON.stringify(s));
+    await page.screenshot({ path: path.join(OUT, `BRUTALITY_${charKey}_${(expectName || "").toLowerCase()}.png`), clip: { x: 0, y: 0, width: 1280, height: 720 } });
+  }
+  await finisherClip("sukuna", "DISMANTLE", "slash");   // slash motif
+  await finisherClip("omniman", "OBLITERATE", "burst"); // heavy burst motif
+  await finisherClip("mayuri", "DISSECT", "toxic");     // toxic drift motif
+  await finisherClip("madara", "ANNIHILATE", "shards"); // energy shards motif
 
   // Gate: eligible winner but TIME-OVER (loser alive) → never triggers.
   await page.evaluate(() => { window.__harness.start({ mode:"vs", difficulty:"easy" }); window.__harness.skipToBattle(); });

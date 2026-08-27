@@ -536,9 +536,31 @@ function setBrutalityFx(on) { brutalityFx = !!on; try { localStorage.setItem("ms
 // Winners tonally appropriate for a finisher (owner-confirmed scope A): horror cast + canonically-brutal
 // fighters. Power Rangers + Ben 10 (kid franchises) and all heroic/neutral characters are intentionally
 // EXCLUDED — they just get the normal KO. Add/remove keys here to re-scope; nothing else changes.
-const BRUTALITY_ELIGIBLE = new Set(["ghostface", "ghostface_billy", "jason", "sukuna", "toji", "omniman", "hisoka", "zaraki", "deathstroke", "frieza", "cell"])
+// EXPANSION (owner-confirmed, per-character tonal judgment — NOT a blanket franchise rule): + the alternate
+// Sukuna, + war-god/mass-killer villains (madara, isshiki), + sadist/experimenter villains (naoya, mayuri,
+// orochimaru), + bare-knuckle bloodsport (baki). Still EXCLUDED: all Power Rangers, all Ben 10, heroes.
+const BRUTALITY_ELIGIBLE = new Set(["ghostface", "ghostface_billy", "jason", "sukuna", "toji", "omniman", "hisoka", "zaraki", "deathstroke", "frieza", "cell",
+  "alt_sukuna", "madara", "isshiki", "naoya", "mayuri", "orochimaru", "baki"])
+// PER-CHARACTER FINISHERS (first batch). Each entry re-skins the SHARED procedural beat with the winner's
+// own signature — NO new art: a signature gore/energy PALETTE, an FX MOTIF (slash arcs / heavy burst /
+// toxic drift / energy shards), a flash tint, and a technique-NAME stamp under "BRUTALITY!". `poseWin`
+// freezes the winner in their OWN win pose (reused art) for the beat. Any eligible winner WITHOUT an
+// entry here falls back to the generic red gore burst — so nobody loses their finisher. Motifs:
+//   slash  — 3 signature cleave streaks + chunks (cutters)
+//   burst  — denser/faster/wider gore + radial impact lines (raw power)
+//   toxic  — particles that RISE and linger like gas, + drips (mad-scientist dissection)
+//   shards — angular energy shards fly out + an expanding ring (jutsu annihilation)
+const BRUTALITY_FINISHERS = {
+  sukuna:     { name: "DISMANTLE",  motif: "slash",  palette: ["#ff2a2a", "#c0102a", "#7a0016", "#ff6a6a"], flash: "#b00018", poseWin: true },
+  alt_sukuna: { name: "CLEAVE",     motif: "slash",  palette: ["#ff2a2a", "#c0102a", "#7a0016", "#ff6a6a"], flash: "#b00018", poseWin: true },
+  toji:       { name: "SPLIT",      motif: "slash",  palette: ["#e8e8f0", "#ff3a3a", "#b00018", "#ffffff"], flash: "#8a1020", poseWin: true },
+  zaraki:     { name: "SHATTER",    motif: "burst",  palette: ["#ffd23a", "#ff7a2a", "#ff2a2a", "#fff0a0"], flash: "#b04010", poseWin: true },
+  omniman:    { name: "OBLITERATE", motif: "burst",  palette: ["#ff2a2a", "#d40000", "#7a0000", "#ff5a5a"], flash: "#c00000", poseWin: true },
+  mayuri:     { name: "DISSECT",    motif: "toxic",  palette: ["#5ad24a", "#9b30c9", "#3aff9b", "#b0ff6a"], flash: "#2a7a1a", poseWin: true },
+  madara:     { name: "ANNIHILATE", motif: "shards", palette: ["#9b5ad2", "#6a2ac0", "#c09bff", "#3a1a7a"], flash: "#3a1a7a", poseWin: true }
+}
 const BRUTALITY_FRAMES = 78   // ~1.3s — a quick, impactful finishing beat (no lingering aftermath)
-const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, parts: [] }
+const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, parts: [], finisher: null }
 
 // SAVE FILE picker must fire from a REAL user gesture (transient activation) — the
 // File System Access pickers throw if called from the rAF-driven handleMenuClicks().
@@ -3691,55 +3713,140 @@ function _tryStartBrutality(winner) {
   brutalityState.x = (loseF.x || 0) + (loseF.width || loseF.w || 60) / 2
   brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
   brutalityState.parts = []
+  brutalityState.finisher = BRUTALITY_FINISHERS[wKey] || null    // per-char signature, or null → shared gore
   if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated, reusing their own art
+  // Freeze the winner in their OWN win pose for the beat (reused art) when the finisher asks for it.
+  if (brutalityState.finisher?.poseWin && winF.animationData?.win) winF._forceAction = "win"
   return true
 }
 function _spawnBrutalityGore(b) {
-  const palette = ["#ff2a2a", "#ff4d4d", "#d40000", "#ff7a7a"]   // bright saturated red (not muddy/realistic)
-  const n = 8 + ((Math.random() * 5) | 0)
+  const fin = b.finisher
+  const palette = fin?.palette || ["#ff2a2a", "#ff4d4d", "#d40000", "#ff7a7a"]  // bright saturated red default
+  const motif = fin?.motif || "chunk"
+  const heavy = motif === "burst"                                 // raw-power finishers throw more, faster
+  const toxic = motif === "toxic"                                 // dissection gas RISES and lingers
+  const n = (heavy ? 14 : 8) + ((Math.random() * (heavy ? 8 : 5)) | 0)
   for (let i = 0; i < n; i++) {
-    const ang = -Math.PI / 2 + (Math.random() * 2 - 1) * 1.3     // spray up-and-out; gravity pulls it down
-    const sp  = 3 + Math.random() * 7
-    const life = 26 + ((Math.random() * 22) | 0)
+    const ang = -Math.PI / 2 + (Math.random() * 2 - 1) * (heavy ? 1.5 : 1.3)   // spray up-and-out
+    const sp  = (heavy ? 5 : 3) + Math.random() * (heavy ? 9 : 7)
+    const life = (toxic ? 40 : 26) + ((Math.random() * (toxic ? 30 : 22)) | 0)
     b.parts.push({
+      kind: "chunk",
       x: b.x + (Math.random() * 2 - 1) * 12, y: b.y + (Math.random() * 2 - 1) * 18,
-      vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 2,
-      life, size: 3 + Math.random() * 6,                          // chunky sprite-era pieces, not fine mist
+      vx: Math.cos(ang) * sp * (toxic ? 0.5 : 1), vy: toxic ? -(0.4 + Math.random() * 1.2) : Math.sin(ang) * sp - 2,
+      g: toxic ? -0.06 : 0.5,                                     // toxic drifts upward; everything else falls
+      life, maxLife: life, size: (toxic ? 4 : 3) + Math.random() * 6,   // chunky sprite-era pieces, not fine mist
       color: palette[(Math.random() * palette.length) | 0]
     })
+  }
+}
+// One-shot signature flourish at the moment of the finish — the thing that makes each finisher read as
+// THAT character's, still purely procedural (no new art). Layered on top of the chunk burst above.
+function _spawnBrutalitySignature(b) {
+  const fin = b.finisher; if (!fin) return
+  const palette = fin.palette
+  const col = () => palette[(Math.random() * palette.length) | 0]
+  if (fin.motif === "slash") {
+    for (let i = 0; i < 3; i++) {                                 // crossing cleave streaks
+      const ang = (i === 1 ? 0.35 : i === 0 ? -0.6 : 1.1) + (Math.random() * 2 - 1) * 0.15
+      b.parts.push({ kind: "slash", x: b.x, y: b.y, ang, len: 90 + Math.random() * 60, thick: 5 + Math.random() * 4,
+        vx: 0, vy: 0, g: 0, life: 16 + ((Math.random() * 6) | 0), maxLife: 22, color: i === 0 ? palette[3] : col() })
+    }
+  } else if (fin.motif === "shards") {
+    b.parts.push({ kind: "ring", x: b.x, y: b.y, r: 6, vr: 6.5, life: 20, maxLife: 20, color: palette[2] })
+    for (let i = 0; i < 9; i++) {                                 // angular energy shards fly outward
+      const a = (i / 9) * Math.PI * 2 + Math.random() * 0.3, sp = 5 + Math.random() * 5
+      b.parts.push({ kind: "shard", x: b.x, y: b.y, ang: a, len: 12 + Math.random() * 10, thick: 3 + Math.random() * 3,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 0.12, life: 22 + ((Math.random() * 10) | 0), maxLife: 32, color: col() })
+    }
+  } else if (fin.motif === "burst") {
+    b.parts.push({ kind: "ring", x: b.x, y: b.y, r: 8, vr: 8, life: 16, maxLife: 16, color: palette[0] })
+    for (let i = 0; i < 10; i++) {                                // radial impact lines (heavy hit)
+      const a = (i / 10) * Math.PI * 2, sp = 7 + Math.random() * 6
+      b.parts.push({ kind: "line", x: b.x, y: b.y, ang: a, len: 18 + Math.random() * 16, thick: 2 + Math.random() * 2,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 0, life: 12 + ((Math.random() * 6) | 0), maxLife: 18, color: col() })
+    }
+  } else if (fin.motif === "toxic") {
+    for (let i = 0; i < 5; i++) {                                 // heavy hanging drips + a low pool of gas
+      b.parts.push({ kind: "chunk", x: b.x + (Math.random() * 2 - 1) * 24, y: b.y + 20 + Math.random() * 16,
+        vx: (Math.random() * 2 - 1) * 0.6, vy: 0.6 + Math.random() * 0.8, g: 0.18, life: 34 + ((Math.random() * 16) | 0), maxLife: 50,
+        size: 4 + Math.random() * 5, color: col() })
+    }
   }
 }
 function updateBrutality() {
   const b = brutalityState
   const elapsed = b.maxTimer - b.timer
+  if (elapsed === 0) _spawnBrutalitySignature(b)                  // one-shot per-char flourish at the strike
   if (elapsed < 20 && elapsed % 2 === 0) _spawnBrutalityGore(b)   // burst front-loaded → quick, not lingering
-  for (const p of b.parts) { p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life-- }
+  for (const p of b.parts) {
+    p.x += p.vx; p.y += p.vy
+    p.vy += (p.g == null ? 0.5 : p.g)                             // per-particle gravity (toxic rises, chunks fall)
+    if (p.kind === "shard" || p.kind === "line") { p.vx *= 0.9; p.vy *= 0.9 }  // impact streaks decelerate
+    if (p.kind === "ring") p.r += (p.vr || 6)                     // rings expand
+    p.life--
+  }
   b.parts = b.parts.filter(p => p.life > 0)
-  if (--b.timer <= 0) { b.active = false; b.parts = []; _enterVictoryScreen() }
+  if (--b.timer <= 0) { b.active = false; b.parts = []; b.finisher = null; _enterVictoryScreen() }
 }
 function _drawBrutality() {
   const b = brutalityState; if (!b.active) return
   const cw = canvas.width, ch = canvas.height
   const elapsed = b.maxTimer - b.timer
-  // Red impact flash — strong at the hit, fades fast.
+  const fin = b.finisher
+  // Impact flash — signature tint per finisher (default red), strong at the hit, fades fast.
   const flash = Math.max(0, 1 - elapsed / 16)
-  if (flash > 0.01) { ctx.save(); ctx.fillStyle = `rgba(150,0,0,${0.55 * flash})`; ctx.fillRect(0, 0, cw, ch); ctx.restore() }
-  // Gore chunks — WORLD space (inside the camera transform, like the fighters).
+  if (flash > 0.01) {
+    const rgb = _hexToRgb(fin?.flash || "#960000")
+    ctx.save(); ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.55 * flash})`; ctx.fillRect(0, 0, cw, ch); ctx.restore()
+  }
+  // FX — WORLD space (inside the camera transform, like the fighters). One array, per-kind draw.
   const hasT = typeof camera.applyTransform === "function"
   ctx.save(); if (hasT) camera.applyTransform(ctx, canvas)
-  for (const p of b.parts) { ctx.globalAlpha = Math.min(1, p.life / 10); ctx.fillStyle = p.color; ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size) }
+  for (const p of b.parts) {
+    ctx.globalAlpha = Math.min(1, p.life / 10)
+    ctx.fillStyle = p.color; ctx.strokeStyle = p.color
+    if (p.kind === "slash" || p.kind === "shard" || p.kind === "line") {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang || 0)
+      ctx.fillRect(-(p.len || 20) / 2, -(p.thick || 4) / 2, p.len || 20, p.thick || 4)
+      ctx.restore()
+    } else if (p.kind === "ring") {
+      ctx.lineWidth = Math.max(1, 5 * (p.life / (p.maxLife || 16)))
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.stroke()
+    } else {
+      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size)   // chunk
+    }
+  }
   ctx.globalAlpha = 1
   if (hasT && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
   ctx.restore()
-  // "BRUTALITY!" stamp — screen space, punchy scale-in (the genre wink).
+  // "BRUTALITY!" stamp — screen space, punchy scale-in (the genre wink) + per-char technique subtitle.
   if (elapsed > 6) {
     const t = Math.min(1, (elapsed - 6) / 9), scale = 1 + (1 - t) * 0.7
+    const glow = fin?.flash || "#ff2a2a"
     ctx.save(); ctx.translate(cw / 2, ch * 0.26); ctx.scale(scale, scale)
     ctx.font = `900 ${Math.min(72, cw * 0.055) | 0}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle"
     ctx.lineJoin = "round"; ctx.lineWidth = 9; ctx.strokeStyle = "rgba(20,0,0,0.92)"; ctx.strokeText("BRUTALITY!", 0, 0)
-    ctx.shadowBlur = 26; ctx.shadowColor = "#ff2a2a"; ctx.fillStyle = "#ff3a3a"; ctx.fillText("BRUTALITY!", 0, 0)
+    ctx.shadowBlur = 26; ctx.shadowColor = glow; ctx.fillStyle = "#ff3a3a"; ctx.fillText("BRUTALITY!", 0, 0)
     ctx.restore()
+    if (fin?.name) {   // the character's signature technique name, under the stamp
+      const st = Math.min(1, (elapsed - 10) / 8)
+      if (st > 0) {
+        ctx.save(); ctx.globalAlpha = st; ctx.translate(cw / 2, ch * 0.26 + Math.min(56, cw * 0.045))
+        ctx.font = `800 ${Math.min(30, cw * 0.024) | 0}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+        ctx.lineJoin = "round"; ctx.lineWidth = 5; ctx.strokeStyle = "rgba(10,0,0,0.9)"; ctx.strokeText(fin.name, 0, 0)
+        ctx.shadowBlur = 14; ctx.shadowColor = glow; ctx.fillStyle = "#fff2f2"; ctx.fillText(fin.name, 0, 0)
+        ctx.restore()
+      }
+    }
   }
+}
+// tiny hex→rgb for the per-finisher flash tint (accepts #rgb / #rrggbb).
+function _hexToRgb(hex) {
+  let h = String(hex || "").replace("#", "")
+  if (h.length === 3) h = h.split("").map(c => c + c).join("")
+  const n = parseInt(h || "960000", 16)
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
 }
 
 function _checkMatchOver() {
@@ -15901,7 +16008,11 @@ gameLoop()
       toggles:      () => ({ blood: bloodFx, brutality: brutalityFx }),
       eligible:     () => [...BRUTALITY_ELIGIBLE],
       canTrigger:   (winnerKey) => BRUTALITY_ELIGIBLE.has(String(winnerKey || "").toLowerCase()),
-      state:        () => ({ active: brutalityState.active, timer: brutalityState.timer, wKey: brutalityState.wKey, parts: brutalityState.parts.length }),
+      // Per-character finisher dispatch: the signature entry for a key, or null → shared generic gore.
+      finisherFor:  (key) => { const f = BRUTALITY_FINISHERS[String(key || "").toLowerCase()]; return f ? { name: f.name, motif: f.motif } : null },
+      finishers:    () => Object.keys(BRUTALITY_FINISHERS),
+      state:        () => ({ active: brutalityState.active, timer: brutalityState.timer, wKey: brutalityState.wKey, parts: brutalityState.parts.length,
+        finisher: brutalityState.finisher ? { name: brutalityState.finisher.name, motif: brutalityState.finisher.motif } : null }),
       // Simulate the end-of-match for `winner`: with ko=true KO the loser (fatal-blow path); with ko=false
       // leave them alive (time-over path). Then run the REAL _tryStartBrutality gate. Returns whether the
       // finisher started (respects toggle + eligibility + KO-only). For clips/tests.

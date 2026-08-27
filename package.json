@@ -52,6 +52,8 @@
     "test:up-attack-giant": "node harness/up_attack_giant.mjs",
     "test:momentum": "node harness/momentum.test.mjs",
     "test:combo-flow-roster": "node harness/combo_flow_roster.mjs",
+    "test:input-buffer-recovery": "node harness/input_buffer_recovery.test.mjs",
+    "test:combo-buffer-live": "node harness/combo_buffer_recovery_live.mjs",
     "test:ben10": "node harness/ben10.test.mjs",
     "test:ben10-loadout": "node harness/ben10_loadout.test.mjs",
     "test:ben10-stage2": "node harness/ben10_stage2.test.mjs",

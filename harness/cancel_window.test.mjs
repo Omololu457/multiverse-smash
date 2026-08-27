@@ -38,7 +38,7 @@ function intoMove(f, md, phase) {
 // ── 1. Single shared, tunable input-buffer window ──
 section("input buffer — one shared, exported, tunable window");
 check("INPUT_BUFFER_FRAMES is exported & numeric", typeof INPUT_BUFFER_FRAMES === "number", `${INPUT_BUFFER_FRAMES}`);
-check("set to ~120ms target (7 frames)", INPUT_BUFFER_FRAMES === 7, `${INPUT_BUFFER_FRAMES}f ≈ ${Math.round(INPUT_BUFFER_FRAMES / 60 * 1000)}ms`);
+check("set to 10 frames (>= post-normal attackCooldown=10, so early-recovery re-presses aren't dropped)", INPUT_BUFFER_FRAMES === 10, `${INPUT_BUFFER_FRAMES}f ≈ ${Math.round(INPUT_BUFFER_FRAMES / 60 * 1000)}ms`);
 
 // ── 2. getCancelWindow — the single inspectable, frame-defined format ──
 section("getCancelWindow — consistent frame-defined format");

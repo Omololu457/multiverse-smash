@@ -18,8 +18,13 @@ export const keys = {}
 // Stage 2). Every buffered action button (light/heavy/upAttack/special/ultimate/jump/dash) is held
 // for exactly this many frames after a press, for every player and every character — there is no
 // per-character buffering. Tune combo-input leniency game-wide by changing this one number.
-// 7 frames ≈ 117ms @ 60fps (the target "~120ms" standard). Exported so tests/tools read the canon.
-export const INPUT_BUFFER_FRAMES = 7
+// 10 frames ≈ 167ms @ 60fps. ★INVARIANT: this MUST be >= the post-normal recovery lock
+// (`attackCooldown = 10`, combat.js:3425). startMove() rejects while attackCooldown > 0, so a buffer
+// SHORTER than that lock silently drops a correctly-timed re-press tapped in the first recovery
+// frames (proven at 7f: taps on recovery frames 1-2 expired unfired — harness input_buffer_recovery).
+// Raised 7→10 to close that gap; a pure-leniency change (no move frame-data / balance is touched).
+// Exported so tests/tools read the canon.
+export const INPUT_BUFFER_FRAMES = 10
 const BUFFER_WINDOW = INPUT_BUFFER_FRAMES // alias kept for the existing call sites below
 
 const p1Buffer = { light: 0, heavy: 0, upAttack: 0, ultimate: 0, dash: 0, jump: 0, special: 0 }

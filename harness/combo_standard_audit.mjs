@@ -50,7 +50,7 @@ check("COMBO_STANDARD opener is Forward+Heavy", COMBO_STANDARD.opener === "fwd+h
 check("COMBO_STANDARD re-tap is Heavy",         COMBO_STANDARD.retap === "heavy", COMBO_STANDARD.retap);
 check("COMBO_STANDARD finisher launches",       COMBO_STANDARD.finisher === "launcher", COMBO_STANDARD.finisher);
 check("COMBO_STANDARD is cancel-on-hit",        COMBO_STANDARD.requireHit === true);
-check("COMBO_STANDARD buffer matches input.js INPUT_BUFFER_FRAMES=7", COMBO_STANDARD.inputBufferFrames === 7);
+check("COMBO_STANDARD buffer matches input.js INPUT_BUFFER_FRAMES=10", COMBO_STANDARD.inputBufferFrames === 10);
 
 // ─────────────────────────────────────────────────────────────────────────────
 group("§2  Registry ⟷ live roster partition (no drift)");

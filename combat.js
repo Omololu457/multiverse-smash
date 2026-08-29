@@ -234,6 +234,22 @@ function _catFromName(n) {
   return "light"
 }
 
+// HIT LEVEL / OVERHEAD (Up Block #4 PREREQUISITE — the attribute + classifier ONLY; the Up Block reward
+// that READS this is intentionally deferred and NOT built here, and this touches neither the block branch
+// nor the uncommitted Flawless Block code). A move's guard level:
+//   "overhead" — a JUMP-IN (airborne attacker) or a downward ground overhead; Up Block will beat it.
+//   "low"      — schema-reserved but INERT today (this game removed crouch-block, so "low" has no
+//                defensive meaning yet); kept so tagging can generalize if crouch-block ever returns.
+//   "mid"      — DEFAULT; blockable normally.
+// Jump-ins need NO tag: an airborne attacker is an overhead by definition (matches the engine's airborne
+// test, combat.js — !onGround && !grounded). Ground overheads OPT IN via `hitLevel:"overhead"` on the move
+// def (propagated onto currentAttack in startMove). PURE CLASSIFIER — changes no blocking/damage/combat.
+export function getHitLevel(attacker, atk) {
+  if (attacker && !attacker.onGround && !attacker.grounded) return "overhead"   // jump-in
+  return (atk && atk.hitLevel) || "mid"
+}
+export function isOverheadAttack(attacker, atk) { return getHitLevel(attacker, atk) === "overhead" }
+
 function _dur(base, fighter) {
   return Math.max(8, Math.floor(base / (fighter?.attackSpeedMultiplier || 1)))
 }
@@ -2577,6 +2593,7 @@ export function startMove(fighter, moveKey, moveData) {
   fighter.currentAttack = {
     name: moveKey,
     category: moveData.category || _catFromName(moveKey),
+    hitLevel: moveData.hitLevel || null,   // Up Block prerequisite: propagate a move's guard level onto the live attack (getHitLevel reads it)
     damage: moveData.damage || 40,
     total,
     timer: total,
@@ -2653,6 +2670,17 @@ export function trackBanditEchoMark(defender, attacker, move, blocked, fromProje
     displayName: attacker.name || rosterKey,
   }
 }
+
+// FLAWLESS BLOCK (MK1-style precise guard) — a FRESH guard within `window` frames of the hit (not a held
+// turtle) negates chip AND collapses blockstun to a couple frames, so the defender recovers well before
+// the attacker: a real punish window. ★INTERACTION NOTES: (1) block is UNBUFFERED (input.js reads the raw
+// key), so the shared 10f input buffer canNOT pre-fire/extend a guard → this precision window is honest,
+// independent of the buffer fix. (2) A block already clears the attacker's comboCounter + _comboStarterTier
+// (below), so a flawless block terminates a launcher-opened pressure string — it COMPLEMENTS the starter-
+// weighted scaling (defense answers offense), never fights it. Freshness is measured by _blockHeldFrames,
+// tracked in game.js updateMovementInput. A held/late guard is a NORMAL block (full chip + blockstun) as before.
+export const FLAWLESS_BLOCK = { window: 4, blockstun: 2, flashFrames: 12 }   // window ~67ms — tight but human-achievable; tunable
+export function isFlawlessBlock(defender) { return (defender?._blockHeldFrames ?? 99) <= FLAWLESS_BLOCK.window }
 
 export function resolveAttackHit(attacker, defender, hitEffects = null, options = {}) {
   const { stageWidth = 3200, damageNumbers = null } = options
@@ -2825,13 +2853,18 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // branch is skipped entirely so the hit lands FULL even against a held guard (Zenitsu's dash-through
   // Ultimate). Not "high damage that punishes through block" — the block-check itself is bypassed.
   if (defender.isBlocking && !atk.unblockable) {
+    // FLAWLESS BLOCK: a fresh guard (blocked within FLAWLESS_BLOCK.window frames) negates chip and collapses
+    // blockstun → a punish window; a held/late guard is a normal block. See the config comment above.
+    const flawless = isFlawlessBlock(defender)
+    defender._lastBlockFlawless = flawless   // telemetry for the harness
     const chip = cat === "special" || cat === "ultimate"
-    const chipDmg = Math.floor(dmg * (chip ? 0.12 : 0.20))
+    const chipDmg = flawless ? 0 : Math.floor(dmg * (chip ? 0.12 : 0.20))
 
-    applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip" })   // chipDmg already scaled (derived from `dmg`)
-    defender.blockstun = 10 + (cat === "special" ? 4 : 0)
+    if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip" })   // chipDmg already scaled (derived from `dmg`)
+    defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
+    if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
 
-    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    try { sound?.play?.(flawless ? (SFX?.PARRY || SFX?.BLOCK) : SFX?.BLOCK) } catch (_) {}
 
     if (Array.isArray(hitEffects)) {
       hitEffects.push(Object.assign(poolAcquire("spark"), {

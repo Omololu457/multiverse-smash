@@ -1776,6 +1776,72 @@ function fireShurikenHiddenClone(fighter, context, target) {
   return true
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// UZUMAKI NARUTO RENDAN — Stage 2 INPUT-SEQUENCED clone barrage (the "commitment sequence").
+// Distinct from executeNarutoUzumakiBarrage above (that one is a single motion-input burst, clone-
+// INDEPENDENT). This is the skill-expression version the owner asked for: you must COMMIT to a clone swarm
+// first (>= NARUTO_RENDAN_REQ live clones), then EXECUTE a timed button SEQUENCE — each Heavy re-tap during
+// recovery advances one beat, driven by (and spending) one clone. It rides the SHARED rekka engine
+// (rekkaContinue, requireHit:true), so the cancel is CANCEL-ON-HIT: miss a beat (whiff/block) and the string
+// ENDS there but you keep what already landed — the LENIENT LADDER. Beat 1 is the up-kick LAUNCHER; the chain
+// LENGTH scales with how many clones you committed (each beat eats one), so 3 clones = 3 beats, 4 = the full
+// 4-beat combo ending on the axe-kick spike. Damage flows through the REAL attack path (resolveAttackHit →
+// combo scaling, hitstop, sparks) — every hit is a genuine game-object interaction, not a bespoke orb.
+// Input: Forward+Heavy, GATED on the clone count — below the gate it returns false and Forward+Heavy stays the
+// normal heavy, so Naruto's neutral is untouched until he has deliberately set up the swarm.
+// ─────────────────────────────────────────────────────────────────────────────
+const NARUTO_RENDAN_REQ = 3   // minimum live clones to ARM the barrage (owner spec: "at least three extra clones")
+const NARUTO_RENDAN = {
+  uzumakiRendan1: { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, knockbackX: 2, knockbackY: -9, rangeX: 92,  rangeY: 60, launcher: true, rekkaNext: "uzumakiRendan2" }, // up-kick LAUNCHER
+  uzumakiRendan2: { damage: 26, startup: 4, active: 3, recovery: 13, hitstun: 16, knockbackX: 2, knockbackY: -2, rangeX: 96,  rangeY: 58, rekkaNext: "uzumakiRendan3" },                   // juggle (Rendan middle hit)
+  uzumakiRendan3: { damage: 26, startup: 4, active: 3, recovery: 13, hitstun: 16, knockbackX: 2, knockbackY: -2, rangeX: 96,  rangeY: 56, rekkaNext: "uzumakiRendan4" },                   // juggle
+  uzumakiRendan4: { damage: 46, startup: 6, active: 4, recovery: 22, hitstun: 20, knockbackX: 6, knockbackY: 9,  rangeX: 100, rangeY: 58, spike: true, category: "spike" },                // axe-kick FINISHER (spikes down; string ends)
+}
+// Fire ONE beat. Each beat is DRIVEN BY A CLONE — it spends one (lossy, like a clone destroyed in combat) and
+// poofs it at its spot for the visual. If no clone is left to drive the beat, it can't fire (returns false) —
+// which is how the ladder naturally ends when the committed clones run out. Only offers a `_rekkaNext` if a
+// clone remains AND the table has one, so the cancel window never teases a beat you can't pay for.
+function fireUzumakiRendan(fighter, key, context) {
+  const md = NARUTO_RENDAN[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const spots = consumeShadowClones(fighter, 1)   // one clone drives (and is spent by) this beat
+  if (spots.length === 0) return false             // no clone → the technique can't (continue to) fire
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = !!md.launcher
+  attack.spike    = !!md.spike
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the uzumakiRendanN sprite
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX                   // step-in glide so the swarm reads as an on-point pummel
+  fighter._rekkaNext    = (md.rekkaNext && countShadowClones(fighter) >= 1) ? md.rekkaNext : null
+  fighter._rekkaBtn     = "heavy"
+  fighter._cmdHitLanded = false                                          // latched true by a real (non-blocked) hit → gates the cancel
+  const sp = spots[0]
+  spawnClonePuff((sp.x || 0) + (sp.w || 0) / 2, (sp.y || 0) + (sp.h || 0) / 2)   // the spent clone poofs at its spot
+  if (key === "uzumakiRendan1") { try { sound.playSfxFile?.("naruto_shadow_clone_special.mp3", null) } catch (_) {} }   // opener callout
+  return true
+}
+// Grounded command-normal driver (mirrors updateGotenks/KilluaCommandCombat). Returns true (→ skip the normal
+// path this frame) only when it actually fires a beat.
+export function updateNarutoRendanCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "naruto" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh Heavy tap (press-edge)
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — fresh Heavy during the current beat's RECOVERY, only if it CONNECTED (cancel-on-hit; a
+  // whiff/block leaves _cmdHitLanded false → the string ends = the lenient-ladder interrupt).
+  const opp  = context?.getOpponent?.(fighter)
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
+  if (next) return fireUzumakiRendan(fighter, next, context)
+  // OPENER — Forward+Heavy from neutral, GATED on the clone COMMITMENT (>= NARUTO_RENDAN_REQ live clones).
+  // Below the gate this returns false so Forward+Heavy stays Naruto's normal heavy (neutral untouched).
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && forward && heavyEdge && countShadowClones(fighter) >= NARUTO_RENDAN_REQ) {
+    return fireUzumakiRendan(fighter, "uzumakiRendan1", context)
+  }
+  return false
+}
+
 function executeNarutoSpecial(fighter, context) {
   const dirs = getRelativeDirections(fighter)
   const getOpponent = getTargetResolver(context)
@@ -7511,12 +7577,17 @@ export function updateBorutoCommandCombat(fighter, inputState, context, getPhase
   // AERIAL cancel-string CONTINUE — fresh Heavy during the opener's recovery, only if it CONNECTED.
   const opp  = context?.getOpponent?.(fighter)
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
-  if (next) return fireBorutoCmd(fighter, next)
+  if (next) return String(next).startsWith("borutoCloneRasen") ? fireBorutoCloneRasen(fighter, next, context) : fireBorutoCmd(fighter, next)
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
   if (!canStart || !heavyEdge) return false
   // AIR — Heavy (NOT Down, which auto-routes to down_air) opens the aerial combo string.
   if (!grounded) return inputState.down ? false : fireBorutoCmd(fighter, "borutoAirCombo1")
-  // GROUND — Down+Heavy → low sweep. Neutral/Fwd heavies stay on the auto-routed `heavy` normal.
+  // GROUND — CLONE-ASSISTED RASENGAN (Stage 4 signature): Fwd+Heavy with >=1 clone forms a clone-SCALED
+  // Rasengan (all live clones join → bigger sphere), a hit-confirm into the release. Below 1 clone / not
+  // forward, Fwd+Heavy stays the normal heavy (neutral untouched).
+  const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  if (forward && countShadowClones(fighter) >= 1) return fireBorutoCloneRasen(fighter, "borutoCloneRasenForm", context)
+  // GROUND — Down+Heavy → low sweep. Neutral heavy stays the auto-routed `heavy` normal.
   if (inputState.down) return fireBorutoCmd(fighter, "borutoLowSweep")
   return false
 }
@@ -7748,6 +7819,59 @@ function fireBorutoShadowClone(fighter, context) {
     schedulePendingSpawn(30, () => puff(fighter.facing * 40))
   }
   try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BORUTO — CLONE-ASSISTED RASENGAN (Stage 4 signature). Canonically "the clone helps shape the Rasengan": a
+// FORM → RELEASE hit-confirm whose payoff SCALES with the clones committed. Fwd+Heavy (>=1 clone) fires the
+// FORM — a clone-assisted Rasengan thrust (a real, modest melee hit) that CONSUMES ALL live clones and banks a
+// TIER = min(3, clones). A Heavy re-tap on connect (cancel-on-hit, requireHit:true — consistent with his other
+// chains) RELEASES a Rasengan projectile SIZED BY TIER: 1 = normal, 2 = big, 3 = giant Oodama. Distinct from
+// the juggle/teleport/zoning signatures — this is a scaling burst. Low clone count (cap 3), high reward on a
+// clean confirm. Whiff/block the form → no release (the clones were spent; that's the execution risk).
+// ─────────────────────────────────────────────────────────────────────────────
+const BORUTO_CLONE_RASEN = {
+  borutoCloneRasenForm: { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 16, knockbackX: 3, knockbackY: -2, rangeX: 92, rangeY: 56, rekkaNext: "borutoCloneRasenRelease" },
+}
+const BORUTO_RASEN_TIERS = {   // release projectile scaled by how many clones fed the Rasengan
+  1: { dmg: 60,  w: 40, h: 40, scale: 0.60, speed: 9 },
+  2: { dmg: 95,  w: 60, h: 60, scale: 0.85, speed: 9 },
+  3: { dmg: 140, w: 84, h: 84, scale: 1.15, speed: 8 },
+}
+function fireBorutoCloneRasen(fighter, key, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (key === "borutoCloneRasenRelease") {
+    const tier = Math.max(1, Math.min(3, fighter._cloneRasenTier || 1))
+    const t = BORUTO_RASEN_TIERS[tier]
+    const face = fighter.facing || 1
+    const md = { damage: 0, startup: 6, active: 3, recovery: 20, rangeX: 0, rangeY: 0 }   // cast (no melee) — the projectile is the payload
+    const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+    setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+    fighter._spriteCastMove = "borutoCloneRasenRelease"; fighter._spriteCastTimer = 20
+    spawnProjectile(fighter, "borutoRasengan", {
+      damage: t.dmg, speed: t.speed, lifetime: 26, vx: face * t.speed, vy: 0, hitstun: 20, knockbackX: 9, knockbackY: -3,
+      w: t.w, h: t.h, color: "#7dd3fc", sheet: BORUTO_ORB, spriteFrames: 4, spriteW: 64, spriteH: 85, spriteSpeed: 3, spriteScale: t.scale,
+      spawnX: face === 1 ? fighter.x + (fighter.w || 60) : fighter.x - t.w, spawnY: fighter.y + (fighter.h || 100) * 0.4
+    }, context)
+    fighter._cloneRasenTier = 0
+    fighter._rekkaNext = null; fighter._cmdHitLanded = false
+    try { sound.playSfxFile?.("naruto_rasengan.mp3", null) } catch (_) {}
+    return true
+  }
+  // FORM (opener) — consume ALL live clones (they join the Rasengan) → bank the tier; a modest melee thrust.
+  const md = BORUTO_CLONE_RASEN[key]
+  if (!md) return false
+  const n = countShadowClones(fighter)
+  if (n < 1) return false
+  consumeShadowClones(fighter, n)
+  fighter._cloneRasenTier = Math.min(3, n)
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = (fighter.facing || 1) * COMBO_STEP_IN_VX                 // step-in thrust
+  fighter._spriteCastMove = "borutoCloneRasenForm"; fighter._spriteCastTimer = 18
+  fighter._rekkaNext = md.rekkaNext; fighter._cmdHitLanded = false
+  try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {}
   return true
 }
 
@@ -17726,19 +17850,44 @@ export function executeOnokiUltimate(fighter, context) {
 const MINATO_CMD = {
   minatoRush1:   { damage: 42, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3,  knockbackY: 0,  rangeX: 80, rangeY: 54, rekkaNext: "minatoRush2" },
   minatoRush2:   { damage: 48, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 3,  knockbackY: -1, rangeX: 90, rangeY: 58, rekkaNext: "minatoRushFin" },   // Yellow-Flash kunai flurry
-  minatoRushFin: { damage: 86, startup: 8, active: 4, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -6, rangeX: 92, rangeY: 60, launcher: true },   // flip-slam launcher finisher (string ends here)
+  minatoRushFin: { damage: 86, startup: 8, active: 4, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -6, rangeX: 92, rangeY: 60, launcher: true },   // flip-slam launcher finisher (ends here UNLESS >=2 clones → Flying Raijin barrage)
+  // FLYING RAIJIN BARRAGE (Stage 4 signature) — the clone-empowered EXTENSION of the Yellow Flash Rush. Only
+  // reachable when the launcher finisher connects with >=2 live clones (full commitment; Minato's cap is 2).
+  // Each beat is a TELEPORT-strike: `teleport:true` makes fireMinatoCmd consume one clone and Flying-Raijin
+  // Minato to that clone's MARK before striking — so the sequence is a movement ROUTE decided by where you
+  // placed your clones. Tall rangeY to catch the juggled foe. requireHit (cancel-on-hit) = miss = string ends.
+  minatoRaijin1: { damage: 34, startup: 5, active: 3, recovery: 12, hitstun: 18, knockbackX: 2,  knockbackY: -4, rangeX: 96,  rangeY: 82, launcher: true, teleport: true, rekkaNext: "minatoRaijin2" },  // teleport to mark A → rising juggle
+  minatoRaijin2: { damage: 56, startup: 6, active: 4, recovery: 20, hitstun: 22, knockbackX: 10, knockbackY: -6, rangeX: 100, rangeY: 82, teleport: true },                                              // teleport to mark B → Rasengan finisher
 }
 const MINATO_POKE = {
   minatoFloorCombo: { damage: 70, startup: 6, active: 5, recovery: 18, hitstun: 22, knockbackX: 9, knockbackY: -12, rangeX: 96, rangeY: 74, launcher: true, cd: 34 },  // advancing floor-combo launcher
   minatoMeleeRush:  { damage: 62, startup: 5, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: -2,  rangeX: 92, rangeY: 60, cd: 30 },                  // dashing kunai rush
 }
-function fireMinatoCmd(fighter, key) {
+function fireMinatoCmd(fighter, key, context) {
   const md = MINATO_CMD[key]
   if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  // FLYING RAIJIN teleport beat — each is DRIVEN BY a clone: consume one and warp Minato to that clone's mark
+  // before the strike. No clone left → the beat can't fire (chain ends there). This is what turns the barrage
+  // into a movement ROUTE: your strikes come from wherever you placed your marks.
+  if (md.teleport) {
+    const spots = consumeShadowClones(fighter, 1)
+    if (!spots.length) return false
+    const sp = spots[0]
+    spawnClonePuff(fighter.x + (fighter.w || 0) / 2, fighter.y + (fighter.h || 100) / 2)   // vanish from the old spot
+    fighter.x = (sp.x ?? fighter.x); fighter.y = (sp.y ?? fighter.y); fighter.vx = 0; fighter.vy = 0; fighter.onGround = false
+    const opp = context?.getOpponent?.(fighter)
+    if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)                        // Flying Raijin yellow flash
+    spawnClonePuff(fighter.x + (fighter.w || 0) / 2, fighter.y + (fighter.h || 100) / 2)   // appear at the mark
+  }
   const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.launcher = !!md.launcher
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the minatoRushN sprite
   fighter._rekkaNext    = md.rekkaNext || null
+  // CLONE-EMPOWERED EXTENSION: the launcher finisher chains into the Flying Raijin barrage ONLY at full clone
+  // commitment (>=2); raijin1 chains into raijin2 only while a mark remains (checked AFTER its own consume).
+  if (key === "minatoRushFin")      fighter._rekkaNext = (countShadowClones(fighter) >= 2) ? "minatoRaijin1" : null
+  else if (key === "minatoRaijin1") fighter._rekkaNext = (countShadowClones(fighter) >= 1) ? "minatoRaijin2" : null
   fighter._cmdHitLanded = false   // latched true only on a real (non-blocked) hit → gates the cancel
   return true
 }
@@ -17767,7 +17916,7 @@ export function updateMinatoCommandCombat(fighter, inputState, context, getPhase
   // CONTINUE — fresh Heavy during the current part's RECOVERY, only if it CONNECTED (cancel-on-hit).
   const opp  = context?.getOpponent?.(fighter)
   const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: opp, requireHit: true })
-  if (next) return fireMinatoCmd(fighter, next)
+  if (next) return fireMinatoCmd(fighter, next, context)
 
   const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
   const back    = fighter.facing === 1 ? !!inputState.left  : !!inputState.right
@@ -17775,7 +17924,7 @@ export function updateMinatoCommandCombat(fighter, inputState, context, getPhase
   if (!canStart || !grounded) return false
 
   // OPENERS (down blocks in this engine, so back is free for a command).
-  if (forward && heavyEdge) return fireMinatoCmd(fighter, "minatoRush1")       // Fwd+Heavy → chain opener
+  if (forward && heavyEdge) return fireMinatoCmd(fighter, "minatoRush1", context)   // Fwd+Heavy → chain opener
   if (forward && lightEdge) return fireMinatoPoke(fighter, "minatoFloorCombo") // Fwd+Light → Floor Combo poke
   if (back    && heavyEdge) return fireMinatoPoke(fighter, "minatoMeleeRush")  // Back+Heavy → Melee Rush poke
   return false
@@ -18805,6 +18954,65 @@ function executeNeteroUltimate(fighter, context) {
     shakeCamera(context, 14, 16)
   })
   return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ITACHI — FIRE-FLOWER BARRAGE (Stage 4 signature). A ZONING clone barrage: with >=2 live clones, Fwd+Heavy
+// opens an input-SEQUENCED chain where each beat spends one clone and it BREATHES a Great Fireball from its
+// mark toward the opponent — a fan/flower of flame from wherever you placed your clones. Distinct from
+// Naruto's juggle Rendan and Minato's teleport route: this is projectile pressure. Because fireballs travel
+// (they don't hit instantly), the chain links on TIMING (rekkaContinue requireHit:false) — the skill is the
+// re-tap RHYTHM within each cast's recovery window; miss it and the flower stops early (you keep what fired).
+// Chain length scales with clones (cap 3). Counterplay: the opponent can pop the clones (Stage 1) before they
+// breathe, and every fireball is blockable/reflectable. Below 2 clones this is inert → Fwd+Heavy stays normal.
+// ─────────────────────────────────────────────────────────────────────────────
+const ITACHI_FIRE_REQ = 2   // minimum live clones to ARM the fire-flower
+const ITACHI_FIRE = {   // each beat is a cast pose (no melee hitbox — rangeX 0); the fireball projectile is the payload
+  itachiFire1: { damage: 0, startup: 7, active: 2, recovery: 16, hitstun: 0, rangeX: 0, rangeY: 0, rekkaNext: "itachiFire2" },
+  itachiFire2: { damage: 0, startup: 6, active: 2, recovery: 15, hitstun: 0, rangeX: 0, rangeY: 0, rekkaNext: "itachiFire3" },
+  itachiFire3: { damage: 0, startup: 6, active: 2, recovery: 18, hitstun: 0, rangeX: 0, rangeY: 0 },
+}
+function fireItachiFireFlower(fighter, key, context) {
+  const md = ITACHI_FIRE[key]
+  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const spots = consumeShadowClones(fighter, 1)   // one clone breathes (and is spent by) this beat
+  if (!spots.length) return false                  // no clone left → the flower can't (continue to) fire
+  const sp = spots[0]
+  const target = context?.getOpponent?.(fighter)
+  const dir = target ? ((target.x >= sp.x) ? 1 : -1) : (fighter.facing || 1)
+  // Great Fireball breathed from the CLONE'S mark toward the opponent (reuses the itachiFireball projectile).
+  spawnProjectile(fighter, "itachiFireball", {
+    damage: 46, speed: 10, lifetime: 80, vx: dir * 10, vy: 0, hitstun: 16, knockbackX: 6, knockbackY: -1,
+    w: 64, h: 52, color: "#ff7a1c", sheet: "./itachi_fireball_proj_uniform.png",
+    spriteFrames: 4, spriteW: 228, spriteH: 127, spriteSpeed: 4, spriteScale: 0.5,
+    spawnX: dir === 1 ? (sp.x || 0) + 20 : (sp.x || 0) - 60, spawnY: ((sp.y ?? fighter.y) || 0) + 30
+  }, context)
+  spawnClonePuff((sp.x || 0) + 30, ((sp.y ?? fighter.y) || 0) + 40)   // the clone poofs as it breathes
+  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // sets currentMove = key → drives the cast pose; rangeX 0 = no melee
+  fighter._spriteCastMove = "fireballCast"; fighter._spriteCastTimer = 20 // Itachi's hand-seal pose over the cast
+  fighter._rekkaNext    = (md.rekkaNext && countShadowClones(fighter) >= 1) ? md.rekkaNext : null
+  fighter._cmdHitLanded = false
+  if (key === "itachiFire1") { try { sound.playSfxFile?.(pickItachiVoice("fireball"), null) } catch (_) {} }
+  return true
+}
+export function updateItachiFireFlowerCombat(fighter, inputState, context, getPhase) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "itachi" || !inputState) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const phase    = getPhase?.(fighter)
+  const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy
+  fighter._cmdPrevHeavy = !!inputState.heavy
+  // CONTINUE — TIMING-based (requireHit:false): fireballs travel, so we don't gate on a melee connect; the
+  // skill is the re-tap rhythm within the cast recovery window. Miss it → the flower stops (keep what fired).
+  const next = rekkaContinue(fighter, { edge: heavyEdge, phase, opponent: context?.getOpponent?.(fighter), requireHit: false })
+  if (next) return fireItachiFireFlower(fighter, next, context)
+  // OPENER — Forward+Heavy from neutral, gated on the clone COMMITMENT (>= ITACHI_FIRE_REQ). Below → normal heavy.
+  const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
+  const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
+  if (canStart && grounded && forward && heavyEdge && countShadowClones(fighter) >= ITACHI_FIRE_REQ) {
+    return fireItachiFireFlower(fighter, "itachiFire1", context)
+  }
+  return false
 }
 
 // ── ITACHI SPECIAL dispatch ──────────────────────────────────────────────
@@ -21026,6 +21234,15 @@ function fireNaoyaCmd(fighter, key) {
 // attacker.comboCounter>0 (always true mid-sequence) and its updateGrab release throws the foe — both wrong for
 // an in-place freeze. So the freeze is applied DIRECTLY (equivalent observable status: full lock, set duration).
 // ─────────────────────────────────────────────────────────────────────────────
+// ★★★ PLAYTEST TUNABLES — Projection Sorcery difficulty/reward knobs. These are the numbers to adjust when
+// tuning how HARD the frame-trap is to execute and how REWARDING a clean finish is. All in FRAMES @60fps.
+//   openWindow   — frames to land the FIRST input after opening (higher = more lenient start).
+//   stepWindow   — frames to land EACH subsequent input (LOWER = tighter/harder execution; the core difficulty).
+//   freeze       — how long a clean finish LOCKS the opponent (higher = bigger reward/punish window).
+//   dropRecovery — how punishable a DROPPED sequence leaves Naoya (higher = riskier to attempt).
+//   reach        — how close Naoya must be for the strikes/freeze to land.  cost — cursed-energy price.
+// The HUD (game.js drawNaoyaFrameTrapHUD) reads openWindow/stepWindow live via _ftState.windowMax, so retuning
+// these here automatically retunes the on-screen countdown — no HUD edit needed.
 const NAOYA_FT = {
   cost: 20, openWindow: 22, stepWindow: 14, reach: 96,
   dropRecovery: 30,                 // punishable whiff/drop recovery
@@ -21051,7 +21268,9 @@ function naoyaCastVoice(fighter, pool, cd = 80) {
 function fireNaoyaFrameTrap(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || fighter._ftState) return false
   if (!spendEnergy(fighter, NAOYA_FT.cost)) return false
-  fighter._ftState = { step: 0, window: NAOYA_FT.openWindow }
+  // windowMax + seq are HUD-facing (drawNaoyaFrameTrapHUD reads them to render the frame countdown + L→H→L pips
+  // without importing NAOYA_FT). Purely additive — the state machine only reads step/window.
+  fighter._ftState = { step: 0, window: NAOYA_FT.openWindow, windowMax: NAOYA_FT.openWindow, seq: NAOYA_FT.steps.map(s => s.want) }
   fighter._spriteCastMove  = "naoyaFrameTrap"     // telegraph pose (row_03), identity-mapped
   fighter._spriteCastTimer = NAOYA_FT.openWindow
   fighter.attackCooldown   = getAttackDuration(4, fighter)   // brief; the state machine drives the rest
@@ -21064,6 +21283,7 @@ function dropNaoyaFrameTrap(fighter) {
   fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
   fighter.attackCooldown = getAttackDuration(NAOYA_FT.dropRecovery, fighter)   // real, punishable recovery
   fighter._ftDropped = (fighter._ftDropped || 0) + 1   // telemetry
+  fighter._ftFlash = { kind: "drop", t: 22 }   // HUD: red "DROP" flash (the plan failed)
 }
 function advanceNaoyaFrameTrap(fighter, context) {
   const st  = fighter._ftState
@@ -21079,8 +21299,13 @@ function advanceNaoyaFrameTrap(fighter, context) {
     if (cur.freeze) applyNaoyaFreeze(opp, NAOYA_FT.freeze)   // clean finish → freeze lock
   }
   st.step++
-  if (st.step >= NAOYA_FT.steps.length) fighter._ftState = null   // sequence complete
-  else st.window = NAOYA_FT.stepWindow
+  if (st.step >= NAOYA_FT.steps.length) {
+    fighter._ftState = null                       // sequence complete
+    fighter._ftFlash = { kind: "freeze", t: 28 }  // HUD: gold "FRAMES SET" flash (the plan landed)
+  } else {
+    st.window = NAOYA_FT.stepWindow
+    st.windowMax = NAOYA_FT.stepWindow            // HUD: reset the per-beat countdown scale
+  }
 }
 
 // Grounded command-normal driver (mirrors updateSpidermanCommandCombat / updateOnokiCommandCombat) + the

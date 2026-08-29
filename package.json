@@ -583,6 +583,17 @@
     "test:light-voice": "node harness/light_voice.test.mjs",
     "test:hashirama-spec-glow": "node harness/hashirama_spec_glow_shot.mjs",
     "test:hashirama-wood-clone": "node harness/hashirama_wood_clone.test.mjs",
+    "test:clone-realhit": "node harness/clone_realhit.test.mjs",
+    "test:uzumaki-rendan": "node harness/uzumaki_rendan.test.mjs",
+    "test:minato-raijin": "node harness/minato_raijin_barrage.test.mjs",
+    "test:itachi-fire-flower": "node harness/itachi_fire_flower.test.mjs",
+    "test:boruto-clone-rasengan": "node harness/boruto_clone_rasengan.test.mjs",
+    "test:clone-swap": "node harness/clone_swap.test.mjs",
+    "test:clone-swap-live": "node harness/clone_swap_live.mjs",
+    "test:boruto-clone": "node harness/boruto_clone.test.mjs",
+    "test:boruto-clone-live": "node harness/boruto_clone_live.mjs",
+    "test:stage4-clone": "node harness/stage4_clone_chars.test.mjs",
+    "test:stage4-clone-live": "node harness/stage4_clone_chars_live.mjs",
     "test:clone-audit": "node harness/clone_functionality_audit.mjs",
     "test:clone-standardize": "node harness/clone_standardize_and_tobirama.mjs",
     "test:clone-legacy-removed": "node harness/clone_legacy_removed.mjs",
@@ -777,7 +788,8 @@
     "test:bardock-stage5": "node harness/bardock_stage5.mjs",
     "test:bardock": "node harness/bardock.test.mjs",
     "test:vilgax-stage5": "node harness/vilgax_stage5.mjs",
-    "test:vilgax": "node harness/vilgax.test.mjs"
+    "test:vilgax": "node harness/vilgax.test.mjs",
+    "test:naoya-hud": "node harness/naoya_frametrap_hud.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

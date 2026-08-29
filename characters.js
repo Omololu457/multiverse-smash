@@ -1046,7 +1046,14 @@ const naruto = {
     rasenshuriken_cast: { frames: 12, width: 51, height: 56, speed: 3, anchorY: 0, sheet: "./naruto_kcm_6_koma_body.png" }, // 6 KOMA A
     // CLONE-ASSISTED Rasengan pose (naruto_kcm_3koma_clone_row): a row of clones each forming/thrusting a
     // Rasengan — played when a shadow clone JOINS the Uzumaki Barrage, so the clone-assist reads visibly.
-    komaRasengan:       { frames: 7,  width: 41, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_kcm_3koma_clone_row.png" }
+    komaRasengan:       { frames: 7,  width: 41, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naruto_kcm_3koma_clone_row.png" },
+    // ── UZUMAKI NARUTO RENDAN (Stage 2 input-SEQUENCED clone barrage) — each command-normal beat REUSES a
+    //    real Naruto attack sheet (no new art): 1 = up-kick LAUNCHER, 2 = the y_up "Rendan middle hit" juggle,
+    //    3 = forward-attack juggle (the reserved b_forward sheet, finally wired), 4 = down-kick axe FINISHER.
+    uzumakiRendan1: { frames: 7, width: 51, height: 53, speed: 4, anchorY: 0,  sheet: "./naruto_kcm_b_up_attack.png" },      // launcher up-kick (clone kicks foe airborne)
+    uzumakiRendan2: { frames: 7, width: 79, height: 74, speed: 3, anchorY: -4, sheet: "./naruto_kcm_y_up_attack.png" },      // juggle — the canonical Rendan middle hit
+    uzumakiRendan3: { frames: 5, width: 58, height: 47, speed: 4, anchorY: 0,  sheet: "./naruto_kcm_b_forward_attack.png" }, // juggle — reserved forward-attack sheet, now used
+    uzumakiRendan4: { frames: 3, width: 39, height: 52, speed: 4, anchorY: 0,  sheet: "./naruto_kcm_b_down_attack.png" }     // axe-kick FINISHER (spikes foe down)
   }
   // ── Phase 2 (specials, NOT wired yet — awaiting floor-check): rasengan / shadow-
   //    CloneBlast → body strip + fx_* effect; ultimate → naruto_kcm_ultimate_action.
@@ -1235,6 +1242,11 @@ const itachi = {
     // (identity sprite-resolve) while the flame projectile flies; the fireball itself is a separate
     // projectile sheet (itachi_fireball_proj_uniform.png). See abilities.js executeItachiSpecial.
     fireballCast: { frames: 7, width: 56, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_fireball_cast_uniform.png" },
+    // FIRE-FLOWER BARRAGE (Stage 4 signature) — each beat is a hand-seal cast (clones breathe the fireballs).
+    // All three reuse the fireball-cast sheet (no new art); the fireball projectiles are the payload.
+    itachiFire1: { frames: 7, width: 56, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_fireball_cast_uniform.png" },
+    itachiFire2: { frames: 7, width: 56, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_fireball_cast_uniform.png" },
+    itachiFire3: { frames: 7, width: 56, height: 67, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./itachi_melle_fireball_cast_uniform.png" },
     // ── STAGE 4: Mangekyou-gated special CAST poses (only reachable while _mangekyouActive).
     // Amaterasu — channel pose (played via _spriteCastMove while the black-flame projectile flies).
     amaterasuCast: { frames: 12, width: 34, height: 78, speed: 2, anchorY: -3, loop: false, lockLastFrame: true, sheet: "./itachi_amaterasu_cast_uniform.png" },
@@ -1565,6 +1577,10 @@ const minato = {
     minatoRasengan:  { frames: 11, width: 65, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_basic_rasengan_version_1_uniform.png" },  // Down+Special — dash-in Rasengan ram
     minatoBigBall:   { frames: 11, width: 65, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_basic_rasengan_version_1_uniform.png" },  // charge+Down+Special — Big Ball (reuses the ram body pose; the big sphere is a separate FX)
     minatoReaperCast:{ frames: 13, width: 44, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_reaper_death_seal_uniform.png" },          // charge+Special — Reaper Death Seal ritual (hand-seals)
+    // FLYING RAIJIN BARRAGE (Stage 4 signature) — the clone-empowered extension of the Yellow Flash Rush.
+    // Each beat teleports Minato to a clone's mark and strikes; reuses his real sheets (no new art).
+    minatoRaijin1:   { frames: 6,  width: 59, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_up_attack_uniform.png" },                   // teleport rising-kunai juggle
+    minatoRaijin2:   { frames: 11, width: 65, height: 59, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./minato_basic_rasengan_version_1_uniform.png" },     // teleport Rasengan FINISHER
     // Shadow-Clone SUMMON hand-sign — the CASTER's gesture, played on Minato (via _spriteCastMove) at
     // D→F spawn. This IS the shadow_clone_justu art (Minato forming the seal); the spawned clones now
     // stand in their OWN idle body (summons.js CLONE_BODY_SETS.minato → minato_idle) instead of wrongly
@@ -6501,6 +6517,9 @@ const boruto = {
     borutoWindWater:   { frames: 6,  width: 107, height: 80, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_windwater_uniform.png" },         // B — Wind/Water breath cast → projectile
     borutoPalmBlast:   { frames: 9,  width: 157, height: 98, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_sutorimu_all_uniform.png" },      // U — Palm Blast wind-streak cast → projectile
     borutoClone:       { frames: 4,  width: 51,  height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_clone_uniform.png" },             // D — Shadow Clone seal (clone assist + smoke)
+    // CLONE-ASSISTED RASENGAN (Stage 4 signature) — form (clone-assist pose) → release (Rasengan thrust). Reuses existing art.
+    borutoCloneRasenForm:    { frames: 4, width: 51, height: 82, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_clone_uniform.png" },          // clones join to shape the Rasengan
+    borutoCloneRasenRelease: { frames: 8, width: 67, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_rasengan_ground_uniform.png" }, // release the clone-scaled Rasengan
     borutoThrowAir:    { frames: 6,  width: 73,  height: 90, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./boruto_throw_air_uniform.png" },         // air Fwd — Throw Weapon (kunai projectile)
     // ── STAGE 4 — Kote (Scientific Ninja Tool) ULTIMATE cast pose. The LIVE fighter plays the 19f stitched
     // 5-part firing sequence over the cinematic; game.drawBorutoKoteFX/Cinematic layer the authored FX. ──

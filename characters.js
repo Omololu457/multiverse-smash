@@ -785,7 +785,7 @@ const altSukuna = {
   // PROVISIONAL basic_attacks (finalized Stage 2 from the real attack-string art).
   basic_attacks: {
     light:     { damage: 48, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 96, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 7, knockbackY: 1 },
+    heavy:     { damage: 96, startup: 9, active: 4, recovery: 19, hitstun: 20, knockbackX: 7, knockbackY: 1, hitLevel: "overhead" },   // b14-L overhead smash — Up-Block-beatable overhead
     upAttack:  { damage: 72, startup: 8, active: 4, recovery: 17, hitstun: 21, knockbackX: 2, knockbackY: -8 },
     airAttack: { damage: 66, startup: 5, active: 3, recovery: 10, hitstun: 14, knockbackX: 3, knockbackY: -2 },
     downAir:   { damage: 86, startup: 9, active: 4, recovery: 15, hitstun: 19, knockbackX: 1, knockbackY: 10 },
@@ -5337,7 +5337,7 @@ const jason = {
   // Slow startup / long recovery / heavy knockback — every swing is a committed machete blow. Refined Stage 2.
   basic_attacks: {
     light:    { damage: 44, startup: 6, active: 2, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: 0 },                                   // standing machete jab (foward_punch)
-    heavy:    { damage: 98, startup: 11, active: 4, recovery: 22, hitstun: 22, knockbackX: 8, knockbackY: 1, rangeX: 116, rangeY: 52, superArmor: true },   // overhead machete swing (slash_1) — armored commit
+    heavy:    { damage: 98, startup: 11, active: 4, recovery: 22, hitstun: 22, knockbackX: 8, knockbackY: 1, rangeX: 116, rangeY: 52, superArmor: true, hitLevel: "overhead" },   // overhead machete swing (slash_1) — armored commit; Up-Block-beatable overhead
     upAttack: { type: "launcher", damage: 68, startup: 9, active: 3, recovery: 18, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -28, selfVy: 0, airOK: false },   // slash_2 repurposed as launcher (see Stage-2 read-flag)
     airAttack:{ damage: 56, startup: 6, active: 2, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2, rangeX: 92, rangeY: 66 },           // air machete swipe (foward_punch_air) — long blade reach
     downAir:  { damage: 74, startup: 8, active: 3, recovery: 14, hitstun: 18, knockbackX: 1, knockbackY: 11, rangeX: 86, rangeY: 88 }            // aerial blade-extend spike (down_air_attack) — tall downward hitbox
@@ -8933,7 +8933,7 @@ const bardock = {
   stats: { maxHealth: 1200, maxEnergy: 200, attack: 90, defense: 84, speed: 90, maxJumps: 2, jumpPower: 34, dashSpeed: 19, dashDuration: 10, dashCooldownMax: 30 },
   basic_attacks: {
     light:      { damage: 42, startup: 5, active: 3, recovery: 10, hitstun: 11, knockbackX: 2, knockbackY: 0 },
-    heavy:      { damage: 80, startup: 8, active: 4, recovery: 18, hitstun: 16, knockbackX: 5, knockbackY: 1 },
+    heavy:      { damage: 80, startup: 8, active: 4, recovery: 18, hitstun: 16, knockbackX: 5, knockbackY: 1, hitLevel: "overhead" },   // SWORD overhead slash — Up-Block-beatable overhead
     upAttack:   { type: "launcher", damage: 58, startup: 6, active: 4, recovery: 8, hitstun: 18, knockbackX: 2, knockbackY: -7, launchVy: -32, selfVy: -9 },
     airAttack:  { damage: 54, startup: 6, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
     downAir:    { damage: 68, startup: 9, active: 4, recovery: 14, hitstun: 16, knockbackX: 1, knockbackY: 9 },

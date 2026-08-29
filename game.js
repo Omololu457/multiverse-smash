@@ -42,6 +42,7 @@ import {
   updateProjectiles as updateCombatProjectiles,
   checkClash, checkParry, resolveGrab, updateGrab,
   getAttackPhase, getAttackHitbox,   // training overlay: live frame data + real attack hitbox
+  getHitLevel, isOverheadAttack,     // Up Block prerequisite: classify a live attack's guard level (overhead/mid) — attribute only
   getHurtbox,                         // harness: verify the Susanoo giant hurtbox + Edo dummy body-overlap
   attackIsActive,                     // Edo Tensei: only an ACTIVE swing can cancel via the standing dummy
   rectsOverlap,                       // Edo Tensei: opponent-attack vs standing-Tobirama dummy overlap
@@ -5387,6 +5388,11 @@ function updateMovementInput(fighter) {
   if ((inputState.block || fighter._forceGuard) && !fighter.isCharging && !fighter._flashTimeActive &&
       !fighter._noBlock &&   // Stage 24A "No Blocking" modifier — guard input is ignored
       !fighter._flightActive && !isOmniManForcedDescent(fighter)) fighter.isBlocking = true
+  // FLAWLESS BLOCK support: count how many CONSECUTIVE frames this guard has been held (0 when not
+  // guarding). A fresh guard reads 1 on its first frame → combat.isFlawlessBlock() treats a hit within
+  // the first few frames as flawless (negated chip + tiny blockstun). Runs here (updateMovementInput,
+  // which sets isBlocking for BOTH fighters before any hit resolves) so the count is fresh at hit time.
+  fighter._blockHeldFrames = fighter.isBlocking ? (fighter._blockHeldFrames || 0) + 1 : 0
   // Omnitrix "up" slot combo (CHARGE+↑ for a deep loadout) consumes the jump so it morphs instead of
   // hopping. No-op for the current cardinal loadout (jump combo = slot 4, unfilled) — future-proof.
   if (fighter._omxConsume?.jump) vKeys[fighter.controls.jump] = false
@@ -16744,6 +16750,14 @@ gameLoop()
     koP1: () => { if (p1) p1.health = 0 },   // KO P1 outright (Zaraki Shikai revert-on-KO test; setP1Health clamps to ≥1)
     setP2Invuln: (v = 600) => { if (p2) p2.invulnTimer = v },   // let a projectile pass through the dummy (free-flight range measurement)
     setP2Blocking: (on = true) => { if (p2) p2.isBlocking = !!on },   // force the dummy to hold guard (block-during-time-slow test)
+    // FLAWLESS BLOCK harness — force a SUSTAINED guard on either fighter via _forceGuard (persists across
+    // frames; plain isBlocking gets reset each frame by updateMovementInput). Toggle on late (just before a
+    // hit) → a FRESH guard = flawless; on early (held) → a NORMAL block. blockProbe reads the outcome.
+    setForceGuard: (on = true, who = "p2") => { const f = who === "p1" ? p1 : p2; if (f) { f._forceGuard = !!on; if (!on) { f.isBlocking = false; f._blockHeldFrames = 0; f.blockstun = 0; f._lastBlockFlawless = false; f._flawlessFlash = 0 } } return !!f?._forceGuard },
+    blockProbe: (who = "p2") => { const f = who === "p1" ? p1 : p2; if (!f) return null; return { isBlocking: !!f.isBlocking, blockHeld: f._blockHeldFrames || 0, lastFlawless: !!f._lastBlockFlawless, blockstun: f.blockstun || 0, flawlessFlash: f._flawlessFlash || 0, health: Math.round(f.health || 0) } },
+    attackPhase: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f?.attacking ? getAttackPhase(f) : null },   // startup/active/recovery — time a fresh guard to the startup for flawless-block tests
+    // Up Block prerequisite: read the CURRENT attack's classified guard level (overhead/mid) + why (airborne jump-in vs tagged). Attribute only — no Up Block reward wired.
+    attackHitLevel: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f?.currentAttack) return null; return { level: getHitLevel(f, f.currentAttack), overhead: isOverheadAttack(f, f.currentAttack), airborne: !f.onGround && !f.grounded, tag: f.currentAttack.hitLevel || null, move: f.currentAttack.name || null } },
     setP2ForceBlock: (on = true) => { if (p2) p2._forceGuard = !!on },   // PERSISTENT dummy guard — updatePlayer honors _forceGuard so isBlocking survives the per-frame clear (blockable/unblockable tests)
     fillEnergy: () => { if (p1) p1.energy = p1.maxEnergy },
     setEnergy:  v => { if (p1) p1.energy = v },

@@ -7,6 +7,7 @@
 import { getAttackHitbox, getHurtbox, rectsOverlap, attackIsActive, applyScaledDamage } from "./combat.js"
 import { physics } from "./physics.js" // clones fall + rest on the floor via the SAME applyGravity fighters use
 import { sound, SFX } from "./sound.js"   // one-shot clone spawn/despawn + strike SFX
+import { GLOBAL_SPRITE_SCALE } from "./sprite.js"   // shared +18% render bump — clones must match the real fighter's on-screen size
 
 export const activeSummons = []
 
@@ -725,8 +726,14 @@ export function drawSummons(ctx) {
       // The spawn/poof pose may carry its OWN scale (spawnScale) so a taller idle cell
       // renders at the same on-screen size as the run pose (no pop). Falls back to
       // spriteScale → every summon without spawnScale is unchanged.
-      const sc = (inBeat && s.spawnScale) ? s.spawnScale : (s.spriteScale || 1)
+      let sc = (inBeat && s.spawnScale) ? s.spawnScale : (s.spriteScale || 1)
+      // A shadow clone must match the REAL fighter's on-screen size. The real fighter render multiplies its
+      // spriteScale by GLOBAL_SPRITE_SCALE (sprite.js); the clone body scales were tuned BEFORE that +18% bump,
+      // so without this a clone renders ~15% smaller than its owner (measured ratio 0.847 = 1/1.18). Applied to
+      // clones ONLY — other summons (shikigami/toads) keep their own independently-tuned scales.
+      if (s.id === "shadowClone") sc *= GLOBAL_SPRITE_SCALE
       const dw = fw * sc, dh = fh * sc
+      if (s.id === "shadowClone") { s._renderH = dh; s._renderW = dw; s._renderScale = sc }   // DIAGNOSTIC: actual on-screen render size
       const cx = s.x + (s.w || 0) / 2, cy = s.y + (s.h || 0) / 2
       const dir = (s.facing || 1) < 0 ? -1 : 1
       ctx.translate(cx, cy); ctx.scale(dir, 1)

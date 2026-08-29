@@ -18,6 +18,10 @@
 // "Chrollo wearing a stolen power" with an actual reanimated Edo Tensei summon. Applied inside the
 // draw()'s ctx.save()/restore() pair, so it auto-clears the moment the window ends and the copied
 // character (if later fought for real) renders normally everywhere else.
+// GLOBAL render-size bump (+18%), applied to every real fighter's body in draw(). EXPORTED as the single
+// source of truth so shadow clones (summons.js drawSummons) scale by the SAME factor — otherwise a clone
+// renders ~15% smaller than its own fighter (1 ÷ 1.18). Retuning here retunes clones automatically.
+export const GLOBAL_SPRITE_SCALE = 1.18;   // +18%
 const SKILL_HUNTER_TINT = "grayscale(0.4) sepia(1) hue-rotate(235deg) saturate(1.7) brightness(0.85)";
 // Toji Reincarnated Form (Stage 6) — a menacing crimson wash (no distinct form art exists), driven by
 // fighter._reincarnated (set on the 2nd comeback save OR a manual Super/X cast).
@@ -863,7 +867,7 @@ export class SpriteHandler {
     // getAttackHitbox), which is DECOUPLED from this, so game balance is untouched. Giants
     // (canvas-height-frac branch below) reassign `scale` outright and are intentionally EXEMPT
     // (already sized to the canvas). Tune here.
-    const GLOBAL_SPRITE_SCALE = 1.18;   // +18%
+    // GLOBAL_SPRITE_SCALE is now the module-level exported const (top of file) — shared with clone rendering.
     let scale = (fighter.spriteScale ?? this._actionDef?.spriteScale ?? 1) * GLOBAL_SPRITE_SCALE;
 
     // CANVAS-RELATIVE GIANT SIZING: a fighter can request a display height as a

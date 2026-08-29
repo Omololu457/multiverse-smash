@@ -16917,6 +16917,11 @@ gameLoop()
     cloneSpots: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), y: Math.round(s.y), state: s._state, sheet: s.sheet })),
     // Skin-match probe: the RESOLVED render sheet (owner-skin-inherited) for each p1 clone + the owner's active skin id.
     cloneRenderSheets: () => ({ ownerSkin: p1?.skinId || null, ownerSkinAnimIdle: p1?._skinAnim?.idle?.sheet || null, clones: activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => cloneRenderSheet(s)) }),
+    // DIAGNOSTIC: measured on-screen render size of the OWNER vs each clone in the SAME frame (Reading A check).
+    cloneRenderMetrics: () => ({
+      owner: p1 ? { lastDrawH: Math.round(p1._lastDrawH || 0), lastDrawW: Math.round(p1._lastDrawW || 0), spriteScale: p1.spriteScale ?? null, globalScale: 1.18, effectiveScale: +(((p1.spriteScale ?? 1) * 1.18).toFixed(3)) } : null,
+      clones: activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ renderH: Math.round(s._renderH || 0), renderW: Math.round(s._renderW || 0), spriteScale: s.spriteScale ?? null, spriteH: s.spriteH ?? null, state: s._state })),
+    }),
     setP1Hitstun: (t = 30) => { if (p1) p1.hitstun = t },   // Stage 3: drive a combo state to prove the swap breaks hitstun (the escape)
     p1Hitstun: () => (p1 ? (p1.hitstun || 0) : -1),
     p1SwapCd:  () => (p1 ? (p1._cloneSwapCd || 0) : -1),

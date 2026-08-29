@@ -38,7 +38,7 @@ const results = {};
 for (const who of ["naruto","minato","hashirama","tobirama"]) {
   console.log(`\n═══════════ ${who.toUpperCase()} ═══════════`);
   await boot(who);
-  const R = results[who] = { spawns:false, moves:false, inRangePoof:false, outRangePoof:null, note:"" };
+  const R = results[who] = { spawns:false, static:false, inRangePoof:false, outRangePoof:null, note:"" };
 
   // (1) SPAWN
   await prep(360);
@@ -47,18 +47,22 @@ for (const who of ["naruto","minato","hashirama","tobirama"]) {
   console.log(`  1) spawn clone → count = ${await cc()}  ${R.spawns?"[SPAWNS]":"[NO CLONE MECHANIC]"}`);
   if (!R.spawns) { R.note = "no clone entity (spawnP1Clones returned 0)"; continue; }
 
-  // (2) INDEPENDENT MOVEMENT (clone should walk toward its target/opponent)
+  // (2) STATIC DECOY (default): a clone must HOLD its position — it must NOT advance or attack on its own
+  //     (identity concealment; autonomous "active decoy" is the opt-in setCloneAggro mode, tested elsewhere).
   const x0 = (await cloneXs())[0];
   await wf(70);
   const x1 = (await cloneXs())[0];
-  R.moves = (x0!=null && x1!=null && Math.abs(x1-x0) > 12);
-  console.log(`  2) independent movement: x ${x0} → ${x1}  (${Math.abs((x1??0)-(x0??0))}px)  ${R.moves?"[MOVES]":"[STATIC]"}`);
+  R.static = (x0!=null && x1!=null && Math.abs(x1-x0) <= 4);   // held its spawn position (no autonomous drift)
+  console.log(`  2) static decoy (no autonomous movement): x ${x0} → ${x1}  (${Math.abs((x1??0)-(x0??0))}px)  ${R.static?"[STATIC ✓]":"[MOVED — should be static!]"}`);
 
-  // (3) IN-RANGE HIT: DETERMINISTICALLY place p2 so its real attack hitbox overlaps the clone hurtbox,
+  // (3) IN-RANGE HIT: DETERMINISTICALLY place p2 so its real attack hitbox overlaps the STATIC clone's hurtbox,
   //     then fire p2's REAL "light" move (rangeX 120). Clone must be past its spawn-poof (idle) first.
   await wf(30);   // clone finishes its spawn-poof → idle (hittable) state
   const cX = (await cloneXs())[0];
-  await page.evaluate(x => window.__harness.setP2X(x), cX + 40);   // p2 just right of the clone, facing it → hitbox overlaps
+  // Static clones hold their spawn spot (behind p1). Move p1 to the FAR side of the clone so p2 — which faces
+  // its opponent (p1) — faces THROUGH the clone; its attack then overlaps the clone. Fully deterministic.
+  await page.evaluate(x => window.__harness.setP1X(x), cX - 160); await wf(2);
+  await page.evaluate(x => window.__harness.setP2X(x), cX + 40);   // p2 just right of the clone, facing p1 (left) → hitbox overlaps the clone
   await wf(2);
   const before = await cc();
   const gap = Math.abs(cX - (await p2()).x);
@@ -89,9 +93,9 @@ console.log("\n\n════════════ SUMMARY (true state per ch
 for (const who of Object.keys(results)) {
   const R = results[who];
   const verdict = !R.spawns ? "NO CLONE MECHANIC" :
-    (R.inRangePoof && R.outRangePoof === false && R.moves) ? "FULLY FUNCTIONAL (moves + real geometric hit-reveal)" :
-    (R.inRangePoof) ? "hittable but check movement/geometry" : "NON-FUNCTIONAL (no hit interaction)";
-  console.log(`  ${who.padEnd(10)} spawns=${R.spawns} moves=${R.moves} inRangePoof=${R.inRangePoof} outRangePoof=${R.outRangePoof}  → ${verdict}${R.note?" ("+R.note+")":""}`);
+    (R.inRangePoof && R.outRangePoof === false && R.static) ? "FULLY FUNCTIONAL (static decoy + real geometric hit-reveal)" :
+    (R.inRangePoof) ? "hittable but check static/geometry" : "NON-FUNCTIONAL (no hit interaction)";
+  console.log(`  ${who.padEnd(10)} spawns=${R.spawns} static=${R.static} inRangePoof=${R.inRangePoof} outRangePoof=${R.outRangePoof}  → ${verdict}${R.note?" ("+R.note+")":""}`);
 }
 console.log("\npage errors:", errs.length ? errs.join(" | ") : "none");
 await browser.close(); server.close();

@@ -660,6 +660,41 @@ function _summonImg(src) {
   return img
 }
 
+// SKIN INHERITANCE (bug fix): resolve a clone's body sheet to the OWNER'S ACTIVE SKIN so the clone is visually
+// identical to the fighter who spawned it — the identity-concealment / swap mechanic depends on it. Palette
+// skins are pre-generated "<sheet>__<recolorTag>.png" files, and applySkin() stashes the current tag on
+// owner._recolorTag. We use the variant ONLY once it has actually decoded; until then (or if it 404s for a char
+// with no such variant, e.g. kakashi) we fall back to the BASE sheet — never a silhouette. Called each draw so
+// a skin/transform swap is always reflected. tag null (default skin) → base sheet unchanged.
+// The owner's active recolor TAG. Prefer the explicit _recolorTag (some skins set it), but MANY palette skins
+// only set `animationData: recolorSkinAnim(...)` with NO recolorTag property (e.g. Hashirama "Forest Sovereign",
+// Madara skins) — for those, derive the tag from the retagged sheet paths on the owner's live _skinAnim
+// ("<base>__<tag>.png"). This is what makes the fix cover every recolor skin, not just the tagged ones.
+function cloneSkinTag(owner) {
+  if (owner && owner._recolorTag) return owner._recolorTag
+  const anim = owner && owner._skinAnim
+  if (anim) {
+    for (const k of ["idle", "light", "heavy", "walk", "hurt"]) {
+      const sh = anim[k] && anim[k].sheet
+      const m = sh && String(sh).match(/__([A-Za-z0-9]+)\.png$/)
+      if (m) return m[1]
+    }
+  }
+  return null
+}
+function cloneSkinSheet(owner, baseSheet) {
+  const tag = cloneSkinTag(owner)
+  if (!tag || !baseSheet) return baseSheet
+  const variant = baseSheet.replace(/\.png$/i, `__${tag}.png`)
+  const vimg = _summonImg(variant)   // kicks off + caches the variant load
+  return (vimg && vimg.complete && vimg.naturalWidth > 0) ? variant : baseSheet
+}
+// The sheet a clone will ACTUALLY render this frame (base sheet resolved through its owner's skin). Exposed for
+// tests to assert a clone inherits the owner's skin without pixel-diffing.
+export function cloneRenderSheet(s) {
+  return (s && s.id === "shadowClone") ? cloneSkinSheet(s.owner, s.sheet) : (s && s.sheet) || null
+}
+
 export function drawSummons(ctx) {
   for (const s of activeSummons) {
     if (s.id === "shadowClone" && s._hidden) continue   // body stays hidden under the spawn smoke
@@ -677,7 +712,9 @@ export function drawSummons(ctx) {
     // Meeseeks-style spawn beat: draw the idle "poof-in" pose for the first `spawnBeat`
     // frames, then the running-attack strip. Any summon without spawnSheet uses `sheet`.
     const inBeat    = s.spawnSheet && (s.frame || 0) < (s.spawnBeat || 0)
-    const sheetPath = inBeat ? s.spawnSheet : s.sheet
+    let   sheetPath = inBeat ? s.spawnSheet : s.sheet
+    // A shadow clone inherits its OWNER'S active skin sheet (so it's indistinguishable from the real body).
+    if (!inBeat && s.id === "shadowClone") sheetPath = cloneSkinSheet(s.owner, sheetPath)
     const img = sheetPath ? _summonImg(sheetPath) : null
     if (img && img.complete && img.naturalWidth > 0) {
       const frames = (inBeat ? s.spawnFrames : s.spriteFrames) || 1
@@ -697,6 +734,17 @@ export function drawSummons(ctx) {
       // Applies to the clone sprite draw only; ctx.restore() below clears the filter.
       if (s.id === "shadowClone" && _cloneTellEnabled) ctx.filter = CLONE_TELL_FILTER
       ctx.drawImage(img, (s.spriteSourceX || 0) + fi * fw, 0, fw, fh, -dw / 2, -dh / 2, dw, dh)
+      // SKIN TINT: a few skins tint DEFAULT art instead of swapping sheets (applySkin → owner.skinTint /
+      // owner.tintColor). Wash the clone the same way (source-atop = only the body's opaque pixels) so those
+      // skins match too. No-op when the owner has no tint (the common case).
+      const cloneTint = s.id === "shadowClone" ? (s.owner?.tintColor || s.owner?.skinTint) : null
+      if (cloneTint) {
+        ctx.filter = "none"
+        ctx.globalCompositeOperation = "source-atop"
+        ctx.globalAlpha = (s.owner?.tintStrength || 0.42) * (s.lifetime < 12 ? s.lifetime / 12 : 1)
+        ctx.fillStyle = cloneTint
+        ctx.fillRect(-dw / 2, -dh / 2, dw, dh)
+      }
       ctx.restore()
       continue
     }
@@ -782,7 +830,12 @@ const CLONE_ATK_COOLDOWN = 42    // frames between attacks (~0.7s idle gap → w
 const CLONE_ATK_DMG      = 16    // RAW per strike (→ ~10 EFF through the ×0.60 choke-point); modest by design
 const CLONE_LUNGE_SPEED  = 7     // forward dash speed during the strike
 const CLONE_ATK_REACH    = 86    // strike hitbox reach in front of the clone
-let _cloneAggroEnabled = true    // master toggle (training/tests) — off = the old approach-and-hold decoy
+// ★ DEFAULT OFF (bug fix): a clone must be INDISTINGUISHABLE from a neutral owner — the consciousness-swap /
+// identity-concealment mechanic depends on it. So by default a clone is a STATIC decoy: it holds its position
+// in idle and does NOT advance or attack on its own. It acts ONLY when the player explicitly drives it (barrage
+// beats consume it, Clone Rush launches it, the swap trades into it). setCloneAggro(true) OPTS IN to the old
+// autonomous "active decoy" AI (advance → lunge-strike) for training/observation, but that is no longer default.
+let _cloneAggroEnabled = false   // was true; flipped — autonomous clone action broke concealment (see updateShadowClone)
 export function setCloneAggro(on) { _cloneAggroEnabled = !!on }
 export function isCloneAggro() { return _cloneAggroEnabled }
 // OPTIONAL per-owner SPECIAL clone attack (registered by abilities.js → no import cycle). Called once on the
@@ -1229,9 +1282,11 @@ function updateShadowClone(s) {
     return null
   }
 
-  // ── ACTIVE BEHAVIOR AI (shared across all clone chars) — advance → LUNGE-STRIKE → retreat/re-space. ──
-  // A real, self-limiting tactical threat: modest damage on a cooldown, blockable, and it still dies in one
-  // hit (the reveal rule below). Aggro OFF (setCloneAggro / opponent eliminated) → the old approach-and-hold.
+  // ── OPT-IN ACTIVE BEHAVIOR AI (advance → LUNGE-STRIKE → retreat) — ONLY when setCloneAggro(true). ──
+  // This is the OLD autonomous "active decoy" behavior. It is NO LONGER the default: a clone acting on its own
+  // (advancing/striking while the player is neutral) makes it obviously distinguishable from the real body,
+  // which breaks the consciousness-swap / identity-concealment mechanic. Kept here, flag-gated, for training/
+  // observation only. By default (_cloneAggroEnabled = false) clones take the STATIC branch below.
   if (enemy && !enemy.eliminated && _cloneAggroEnabled) {
     const oppCx = enemy.x + (enemy.w || 0) / 2, cloneCx = s.x + s.w / 2
     const dx = oppCx - cloneCx
@@ -1279,11 +1334,12 @@ function updateShadowClone(s) {
       else { s.vx = 0; if ((s._atkCd || 0) <= 0) { s._atk = "windup"; s._atkT = 0; beginCloneSwing(s) } }
     }
   } else if (enemy) {
-    // Aggro OFF / opponent down → legacy approach-and-hold decoy (walk toward, stop at CLONE_HOLD_DIST).
-    const dx = (enemy.x + (enemy.w || 0) / 2) - (s.x + s.w / 2)
-    s.facing = dx >= 0 ? 1 : -1
-    const hold = CLONE_HOLD_DIST + (s._slot || 0) * 54
-    if (Math.abs(dx) > hold) { s.vx = CLONE_MOVE_SPEED * s.facing; s.x += s.vx } else { s.vx = 0 }
+    // DEFAULT — STATIC DECOY (identity concealment). The clone HOLDS its position: it does not advance and does
+    // not attack on its own. It only faces the opponent (as a neutral fighter would) so it reads as the real
+    // idle body. All clone OFFENSE is player-driven elsewhere (barrage beats / Clone Rush / mimicked strings);
+    // the swap trades into a clone right where the player left it. No autonomous timers here → no "acts on its own".
+    s.vx = 0
+    s.facing = ((enemy.x + (enemy.w || 0) / 2) >= (s.x + s.w / 2)) ? 1 : -1
   }
 
   // FALLBACK melee hit-reveal (self-check). The AUTHORITATIVE path is now revealClonesHitByMelee(),

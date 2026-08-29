@@ -696,9 +696,43 @@ export function cloneRenderSheet(s) {
   return (s && s.id === "shadowClone") ? cloneSkinSheet(s.owner, s.sheet) : (s && s.sheet) || null
 }
 
+// MIRROR RENDER — replay the OWNER'S exact last-drawn frame at the clone's position: frame-for-frame identical
+// in EVERY pose, auto-inheriting skin/anchor/scale/filter. This is a pure READ-ONLY replay of the descriptor
+// sprite.js already captured for its transition-ghost (owner.spriteHandler._lastRender) — so it triggers NONE of
+// SpriteHandler.draw's side effects (no projectile/summon spawns on attack frames, no voice). The clone's draw
+// is just the owner's draw shifted to the clone's position (same source rect + scaled dims + facing + filter).
+// Returns true if it drew; false → caller falls back to the CLONE_BODY_SETS path (hurt-poof pose / non-sprite
+// owners / owner not yet drawn this match).
+function drawMirroredCloneFrame(ctx, s) {
+  const owner = s.owner
+  const lr = owner && owner.spriteHandler && owner.spriteHandler._lastRender
+  if (!lr || !lr.sheet || !lr.sheet.complete || !lr.sheet.naturalWidth) return false
+  const cloneDrawY = s.y + (lr.drawY - (owner.y ?? s.y))   // preserve the owner's sprite-top-minus-entity-y offset
+  ctx.save()
+  if (lr.filter && lr.filter !== "none") ctx.filter = lr.filter
+  if ((lr.facing ?? 1) === -1) {
+    ctx.scale(-1, 1)
+    ctx.drawImage(lr.sheet, lr.sx, lr.sy, lr.dw, lr.dh, -s.x + lr.offsetX - lr.dstW, cloneDrawY, lr.dstW, lr.dstH)
+  } else {
+    ctx.drawImage(lr.sheet, lr.sx, lr.sy, lr.dw, lr.dh, s.x - lr.offsetX, cloneDrawY, lr.dstW, lr.dstH)
+  }
+  ctx.restore()
+  s._renderH = lr.dstH; s._renderW = lr.dstW; s._renderScale = null   // diagnostic parity with the fallback path
+  _mirrorRenderCount++
+  return true
+}
+let _mirrorRenderCount = 0
+export function getCloneMirrorRenderCount() { return _mirrorRenderCount }   // harness: prove the mirror path drew
+
 export function drawSummons(ctx) {
   for (const s of activeSummons) {
     if (s.id === "shadowClone" && s._hidden) continue   // body stays hidden under the spawn smoke
+
+    // MIRROR: a live clone of a real-sprite owner replays the owner's exact frame (full fidelity). Falls
+    // through to the CLONE_BODY_SETS path for the hurt-poof pose, non-sprite owners, or before the owner's
+    // first draw. This SUPERSEDES the per-owner skin/scale handling below (the replayed frame already carries
+    // the owner's skin sheet + ×1.18 scale + form filter).
+    if (s.id === "shadowClone" && s._state === "idle" && drawMirroredCloneFrame(ctx, s)) continue
 
     ctx.save()
 
@@ -1255,6 +1289,9 @@ export function swapConsciousnessWithClone(owner, opponent = null) {
   owner.teleportFlash = Math.max(owner.teleportFlash || 0, 14)
   spawnClonePuff(owner.x + (owner.w || 0) / 2, owner.y + (owner.h || 100) / 2)
   spawnClonePuff(clone.x + (clone.w || 0) / 2, clone.y + (clone.h || 100) / 2)
+  // The owner relocated, so every mirror clone's offset is now stale — clear it so each recaptures its offset
+  // from the NEW owner position next frame (keeps them visually where they are and tracking the new body).
+  for (const c of activeSummons) if (c.id === "shadowClone" && c.owner === owner) c._mirrorDx = null
   return clone
 }
 
@@ -1267,13 +1304,26 @@ export function swapConsciousnessWithClone(owner, opponent = null) {
 function updateShadowClone(s) {
   const owner = s.owner, enemy = s.target
   if (!owner) return "remove"
-  if (enemy) s.facing = (enemy.x >= s.x) ? 1 : -1   // always faces the enemy
 
-  // Gravity + ground collision — reuse the fighters' resolver verbatim so a standard-summon
-  // clone falls to the stage floor and stands on it (instead of freezing at its spawn y).
-  // A grounded clone gets pinned to floor - h and stays; if a future scripted action ever
-  // launches one (gives it negative vy), applyGravity arcs it back down naturally.
-  physics.applyGravity(s)
+  // MIRROR MODE — when the owner renders through the real sprite pipeline (has a spriteHandler), the clone is a
+  // full MIRROR: it rigidly tracks the owner at a fixed offset (moves/jumps in lockstep) and drawSummons replays
+  // the owner's exact drawn frame — so it's indistinguishable in EVERY pose, not just idle. Player-driven (the
+  // owner moves because the player does), never autonomous. Supersedes the static/aggro branches for sprite
+  // owners; non-sprite (procedural-box) owners fall through to the old gravity + static path.
+  const mirror = !!owner.spriteHandler
+  if (mirror) {
+    if (s._mirrorDx == null) { s._mirrorDx = s.x - owner.x; s._mirrorDy = s.y - owner.y }   // capture the spawn offset once
+    if (s._state === "idle" && !s._mirrorPinned) {   // spawning/hurt/PINNED bodies hold position; a live one tracks the owner
+      s.x = owner.x + s._mirrorDx
+      s.y = owner.y + s._mirrorDy
+      s.facing = owner.facing || 1
+      s.onGround = owner.onGround ?? true
+    }
+  } else {
+    if (enemy) s.facing = (enemy.x >= s.x) ? 1 : -1   // non-mirror decoy faces the enemy
+    // Gravity + ground collision — reuse the fighters' resolver so a non-mirror clone falls to the stage floor.
+    physics.applyGravity(s)
+  }
 
   // SPAWN — stay hidden behind the spawn smoke, then reveal the idle body.
   if (s._state === "spawn") {
@@ -1289,12 +1339,14 @@ function updateShadowClone(s) {
     return null
   }
 
+  // MIRROR clones already had position + facing set above (they mimic the owner) — no behavior branch runs.
+  // Only NON-mirror (procedural-box) owners reach the aggro/static decoy logic below.
   // ── OPT-IN ACTIVE BEHAVIOR AI (advance → LUNGE-STRIKE → retreat) — ONLY when setCloneAggro(true). ──
-  // This is the OLD autonomous "active decoy" behavior. It is NO LONGER the default: a clone acting on its own
-  // (advancing/striking while the player is neutral) makes it obviously distinguishable from the real body,
-  // which breaks the consciousness-swap / identity-concealment mechanic. Kept here, flag-gated, for training/
-  // observation only. By default (_cloneAggroEnabled = false) clones take the STATIC branch below.
-  if (enemy && !enemy.eliminated && _cloneAggroEnabled) {
+  // The OLD autonomous "active decoy" behavior, flag-gated for training/observation. By default clones are
+  // static/mirrored (identity concealment); a clone acting on its own would give away which body is real.
+  if (mirror) {
+    /* position, facing, and pose all mirror the owner — nothing autonomous to do here */
+  } else if (enemy && !enemy.eliminated && _cloneAggroEnabled) {
     const oppCx = enemy.x + (enemy.w || 0) / 2, cloneCx = s.x + s.w / 2
     const dx = oppCx - cloneCx
     s.facing = dx >= 0 ? 1 : -1

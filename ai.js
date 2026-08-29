@@ -16,6 +16,7 @@
 // Difficulty scales every layer (see the extra profile fields below).
 
 import { gameRng } from "./rng.js"   // Stage 11A: seeded gameplay RNG — all AI rolls route through rand()
+import { templateForCharacter, applyTemplateToProfile } from "./aiTemplates.js"   // Part 2: per-character behavior templates
 
 export const AI_DIFFICULTIES = {
   dummy: {
@@ -486,6 +487,7 @@ export function createAIController(difficulty = "easy") {
     enabled: true,
     difficulty,
     profile: getProfile(difficulty),
+    templateKey: null,          // PART 2: per-character behavior template (set by applyAiTemplate)
     frameCounter: 0,
     decisionCooldown: 0,
     currentPlan: "approach",
@@ -542,8 +544,31 @@ export function setAIDifficulty(controller, difficulty) {
   if (!controller) return createAIController(difficulty)
 
   controller.difficulty = difficulty
-  controller.profile = getProfile(difficulty)
+  // A per-character template (if one was applied) is layered on top of the difficulty profile so a
+  // difficulty change keeps the character's fighting personality. "dummy" stays inert either way.
+  if (controller.templateKey && difficulty !== "dummy") {
+    controller.profile = applyTemplateToProfile(getProfile(difficulty), controller.templateKey)
+  } else {
+    controller.profile = getProfile(difficulty)
+  }
   return controller
+}
+
+// PART 2 — apply a per-character behavior template. Resolves the template from the fighter's roster
+// key + its own archetype data (aiTemplates.templateForCharacter), stores it on the controller, and
+// rebuilds controller.profile as a CLONE of the current difficulty profile with the template's deltas
+// applied (never mutates the shared AI_DIFFICULTIES object). No-op on the "dummy" training target.
+export function applyAiTemplate(controller, rosterKey, charData) {
+  if (!controller) return controller
+  if (controller.difficulty === "dummy") { controller.templateKey = null; return controller }
+  const key = templateForCharacter(rosterKey, charData)
+  controller.templateKey = key
+  controller.profile = applyTemplateToProfile(getProfile(controller.difficulty), key)
+  return controller
+}
+
+export function getAiTemplateKey(controller) {
+  return controller?.templateKey || null
 }
 
 export function getAIDifficultyProfile(difficulty) {
@@ -783,6 +808,14 @@ function choosePlan(controller, fighter, opponent, world = {}) {
   // Counter bias shifts the spacing the AI wants to keep.
   let desiredRange = chooseAdaptiveRange(controller, profile.desiredRange, counter)
 
+  // TRICKSTER TEMPLATE (Part 2): occasionally throw out a deliberately non-optimal plan — a feint,
+  // a random hop-back or dash-in — so the character reads as unpredictable rather than solving the
+  // neutral cleanly. Gated so it stays a spice, not the whole diet. Skipped when airborne/pressured.
+  if (profile._suboptimalChance > 0 && !fighterAir && !opponentBusy && chance(profile._suboptimalChance)) {
+    const feints = ["retreat", "approach", "hold", "special"]
+    return feints[Math.floor(rand() * feints.length)]
+  }
+
   if (controller.difficulty === "impossible" && opponentBusy && distanceX < 150) {
     return "pressure"
   }
@@ -829,7 +862,10 @@ function choosePlan(controller, fighter, opponent, world = {}) {
     return "approach"
   }
 
-  if (!opponentBusy && distanceX < desiredRange - 55 && chance(profile.retreatChance + counter.spaceOut * 0.3)) {
+  // BRUISER TEMPLATE (Part 2): "doesn't respect spacing" — never voluntarily gives ground. It presses
+  // instead of retreating when crowded, so it reads as relentless forward pressure.
+  if (!opponentBusy && distanceX < desiredRange - 55 && !profile._neverRetreat &&
+      chance(profile.retreatChance + counter.spaceOut * 0.3)) {
     return "retreat"
   }
 

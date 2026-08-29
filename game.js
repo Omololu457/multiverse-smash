@@ -252,7 +252,7 @@ import {
   lastBattleBgRect,
   drawAlienSelectScreen, getAlienSelectCardRects, getAlienSelectButtons, alienGridOpts,
   CHAR_GRID_OPTS, UNIVERSE_GRID_OPTS, charSelectGridOpts, getSelectDetailRect, scrollGridBy, setGridScroll, getGridScrollbar, getGridViewport, pickGridCard, resetGridScroll,
-  getMainMenuRects, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton,
+  getMainMenuRects, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton, getStoryChapterRects,
   drawCreditsScreen,
   drawProfileScreen, getProfileBackButton, drawCodexScreen, getCodexBackButton, codexLayout,
   getCharSearchRect, getCharSearchClearRect,
@@ -283,6 +283,8 @@ import {
   ARCADE_FIGHTS, ARCADE_RIVAL_FIGHT, ARCADE_BOSS_FIGHT, arcadeState,
   arcadeFightRole, arcadeBossKey, arcadeDifficultyForFight, arcadeRivalKey, arcadeRivalDialogue, ARCADE_XP
 } from "./arcade.js"
+import { STORY_CHAPTERS, getChapter, chapterDifficulty, STORY_CHAPTER_COUNT } from "./story.js"
+import { getStoryProgress, isChapterUnlocked, completeStoryChapter } from "./storyProgress.js"
 import { endingSlidesFor } from "./endings.js"
 import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
@@ -291,7 +293,7 @@ import * as musicPersonality from "./musicPersonality.js"   // trait→music map
 import * as musicLibrary from "./musicLibrary.js"           // full song library + player-authored custom playlist + active-source resolution
 import * as challenges from "./challenges.js"               // skill-based challenges + trait-tagged recommendations + skin rewards
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
-import { createAIController, resetAIController, setAIDifficulty, getAIInput } from "./ai.js"
+import { createAIController, resetAIController, setAIDifficulty, getAIInput, applyAiTemplate } from "./ai.js"
 import { recordMotionInput, detectMotion, getRecentMotions } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
 import {
   createSpectatorSession, startMatchLog, logMoveUsed, logHit, logRoundEnd, finalizeMatchLog,
@@ -791,7 +793,8 @@ const GAME_STATES = {
   VICTORY:          "victory",
   INTRO:            "intro",
   ONLINE_PLACEHOLDER: "onlinePlaceholder",   // dev-unlocked Online stub (no netcode)
-  STORY_MODE:         "storyMode",           // Stage 14: UI placeholder only (styled "coming soon" card)
+  STORY_MODE:         "storyMode",           // Part 1: Story Mode chapter select (was a locked placeholder)
+  STORY_INTRO:        "storyIntro",          // Part 1: two-line pre-fight beat (reuses the rival intro screen)
   MUSIC_LIBRARY:      "musicLibrary",        // full-screen custom-playlist builder (scrollable 103-song checklist)
   PROFILE:            "profile",             // Part 1 #3: Big-Five personality radar (from main menu + pause)
   CODEX:              "codex"                // Part 1 #4: browsable per-fighter dossier, grouped by franchise
@@ -1096,7 +1099,9 @@ let hoverCharacterIndex  = 0
 let hoverEdoBackupIndex  = 0   // Edo Tensei vessel-select grid hover
 let hoverStageIndex      = 0
 let hoverMainMenuIndex   = 0
-let _storyBackHover      = false   // Stage 14: STORY_MODE placeholder BACK-button hover
+let _storyBackHover      = false   // STORY_MODE BACK-button hover
+let hoverStoryIndex      = -1      // STORY_MODE chapter-tile hover
+let _storyChapterIdx     = 0       // the chapter whose fight is pending (set on chapter click, read on match-over)
 let moveListIndex        = 0
 let moveListShowControls = false
 let tutorialPage         = 0
@@ -1473,6 +1478,85 @@ function _applyBossProfile(fighter, char) {
   if (bp.scale) fighter.spriteScale = (fighter.spriteScale || 1) * bp.scale       // visibly larger
   if (bp.meterFree) { fighter.infiniteEnergy = true; fighter.energy = fighter.maxEnergy }  // free specials
   if (bp.superArmorThreshold != null) { fighter._bossArmor = true; fighter._bossArmorThreshold = bp.superArmorThreshold }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STORY MODE (Part 1) — a playable MVP campaign. Each chapter is a scripted fixed matchup with a
+// two-line pre-fight exchange (reusing the arcade rival intro screen) and a win-line beat. Chapters
+// unlock sequentially (storyProgress.js, guest-safe). The finale reuses the boss super-armor system.
+// Deliberately NOT a new cutscene engine or node-map — see the report for what's deferred.
+// ──────────────────────────────────────────────────────────────────────────────
+function isStory() { return matchConfig.mode === "story" }
+
+// Build the chapter-select view model the UI renders (names + unlock/clear state, resolved live).
+function _buildStoryChapterView() {
+  const prog = getStoryProgress()
+  return STORY_CHAPTERS.map((ch, i) => ({
+    num: ch.num, title: ch.title, isBoss: !!ch.boss,
+    playerName:  characters[ch.player]?.name   || ch.player,
+    opponentName: ch.boss ? (ch.bossName || characters[ch.opponent]?.name || ch.opponent)
+                          : (characters[ch.opponent]?.name || ch.opponent),
+    unlocked:  i <= prog.highest,
+    completed: !!prog.completed[i]
+  }))
+}
+
+// Commit a chapter's matchup to matchConfig and route into its pre-fight dialogue beat.
+function _beginStoryChapter(idx) {
+  const ch = getChapter(idx)
+  if (!ch || !isChapterUnlocked(idx)) return
+  _storyChapterIdx = idx
+  matchConfig.mode      = "story"
+  matchConfig.p1CharKey = ch.player;   matchConfig.p1Char = characters[ch.player]
+  matchConfig.p2CharKey = ch.opponent; matchConfig.p2Char = characters[ch.opponent]
+  matchConfig.p1Skin = "default";      matchConfig.p2Skin = "default"
+  matchConfig.aiDifficulty  = chapterDifficulty(idx)
+  matchConfig.selectedStage = homeStageFor(ch.stageOf === "player" ? ch.player : ch.opponent)
+  // Finale: layer the story boss profile (super-armor + extra HP, single round). storyBossProfile is
+  // consumed in resetRound where _applyBossProfile runs; cleared here for every non-boss chapter.
+  matchConfig.p2IsBoss        = !!ch.boss
+  matchConfig.storyBossProfile = ch.boss ? ch.bossProfile : null
+  matchConfig.storyBossName    = ch.boss ? ch.bossName : null
+  gameState = GAME_STATES.STORY_INTRO
+}
+
+// The pre-fight beat: two portraits + the exchange (reuses drawRivalIntroScreen, re-headed for story).
+function drawStoryIntro() {
+  const ch = getChapter(_storyChapterIdx)
+  if (!ch) { gameState = GAME_STATES.STORY_MODE; return }
+  drawRivalIntroScreen(ctx, canvas, {
+    header: `CHAPTER ${ch.num}`, subheader: ch.title,
+    playerKey: ch.player, rivalKey: ch.opponent,
+    playerName: characters[ch.player]?.name || ch.player,
+    rivalName:  ch.boss ? (ch.bossName || characters[ch.opponent]?.name || ch.opponent)
+                        : (characters[ch.opponent]?.name || ch.opponent),
+    lines: ch.pre
+  })
+}
+
+// Called from _checkMatchOver. Win → persist the chapter clear (unlocks the next) + set the victory
+// beat's subtitle/prompt; loss → offer a retry. Mirrors updateArcadeOutcome's shape.
+function updateStoryOutcome(winner) {
+  const ch = getChapter(_storyChapterIdx)
+  if (!ch) return
+  if (winner === "p1") {
+    const res = completeStoryChapter(_storyChapterIdx)
+    victoryState.flavorLine  = ch.win || victoryState.flavorLine
+    if (res.campaignComplete)       { victoryState.subtitle = "THE BATTLE CHRONICLE — COMPLETE"; victoryState.primaryLabel = "FINISH" }
+    else if (res.unlockedNext != null) { victoryState.subtitle = `CHAPTER ${ch.num} CLEARED — NEXT UNLOCKED`; victoryState.primaryLabel = "CONTINUE" }
+    else                            { victoryState.subtitle = `CHAPTER ${ch.num} CLEARED`; victoryState.primaryLabel = "CONTINUE" }
+  } else {
+    victoryState.subtitle = `CHAPTER ${ch.num} — TRY AGAIN`
+    victoryState.primaryLabel = "RETRY"
+  }
+}
+
+// From the victory screen. Returns to the chapter map (the next chapter now shows unlocked). A loss
+// leaves progress untouched, so the map simply lets the player re-enter the same chapter.
+function continueStory() {
+  const active = matchConfig.mode === "story"
+  resetToStart()                 // tear down the finished match
+  if (active) gameState = GAME_STATES.STORY_MODE   // land back on the chapter map instead of the title
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2462,7 +2546,14 @@ function resetRound() {
   // other appearance of the same character (normal vs, other fights) is a fair, normal fighter. MUST
   // run AFTER applySkin — applySkin resets spriteScale from the skin/char, which would clobber the
   // boss's ×scale otherwise.
-  if (matchConfig.p2IsBoss) _applyBossProfile(p2, matchConfig.p2Char)
+  if (matchConfig.p2IsBoss) {
+    // Story finale supplies its OWN boss profile (its opponent has none); arcade boss reads the
+    // character's bossProfile. Gate the story profile on isStory() so it can never leak into an
+    // arcade boss fight, then merge so _applyBossProfile sees a profile either way.
+    const useStory = isStory() && matchConfig.storyBossProfile
+    _applyBossProfile(p2, useStory ? { ...matchConfig.p2Char, bossProfile: matchConfig.storyBossProfile } : matchConfig.p2Char)
+    if (useStory && matchConfig.storyBossName && p2) p2._bossName = matchConfig.storyBossName
+  }
   // Edo Tensei vessel: stamp each Tobirama's chosen backup (falling back to a default so the
   // ultimate always has a body — e.g. an AI Tobirama, or a harness quick-start that skipped the UI).
   assignEdoBackup(p1, matchConfig.p1EdoBackup)
@@ -2538,11 +2629,16 @@ function resetRound() {
     resetAIController(p1AI)
     setAIDifficulty(p1AI, aiVsAiConfig.p1Diff)
     setAIDifficulty(p2AI, aiVsAiConfig.p2Diff)
+    // PART 2: each CPU also fights per its character's behavior template (how it fights, on top of difficulty).
+    applyAiTemplate(p1AI, matchConfig.p1CharKey, matchConfig.p1Char)
+    applyAiTemplate(p2AI, matchConfig.p2CharKey, matchConfig.p2Char)
     clearAIControlKeys(p1)
   } else if (isPvP()) {
     setAIDifficulty(p2AI, "dummy")
   } else {
     setAIDifficulty(p2AI, matchConfig.mode === "training" ? "dummy" : matchConfig.aiDifficulty)
+    // PART 2: layer the CPU opponent's behavior template on top of difficulty (no-op in training/dummy).
+    applyAiTemplate(p2AI, matchConfig.p2CharKey, matchConfig.p2Char)
   }
   clearAIControlKeys(p2)
 
@@ -3963,6 +4059,9 @@ function _checkMatchOver() {
       const rd = bracketState.round + 1, total = bracketState.rounds.length
       victoryState.subtitle = winner === "p1" ? `TOURNAMENT · ROUND ${rd} WON` : `TOURNAMENT · ELIMINATED (round ${rd})`
       victoryState.primaryLabel = "BRACKET"
+    }
+    if (isStory()) {
+      updateStoryOutcome(winner)     // Story: persist the chapter clear (unlocks next) + set the beat prompt
     }
     sound.stopMusic?.()
     sound.play?.(SFX.KO)
@@ -13921,7 +14020,8 @@ function renderCurrentState() {
       _drawDevCodeOverlay()
       break
     case GAME_STATES.ONLINE_PLACEHOLDER: _drawOnlinePlaceholder(); break
-    case GAME_STATES.STORY_MODE: drawStoryModeScreen(ctx, canvas, _storyBackHover); break
+    case GAME_STATES.STORY_MODE: drawStoryModeScreen(ctx, canvas, { chapters: _buildStoryChapterView(), hoverIndex: hoverStoryIndex, hoverBack: _storyBackHover }); break
+    case GAME_STATES.STORY_INTRO: drawStoryIntro(); break
     case GAME_STATES.TUTORIAL:
       // Source key labels from the SAME map the engine wires to fighters
       // (P1_CONTROLS) so the tutorial always matches real in-play bindings.
@@ -14180,7 +14280,13 @@ function updateHoverIndices() {
 
   if (gameState === GAME_STATES.START)            { const r = getStartMenuRects(canvas);                    const f = r.findIndex(x => pointInRect(mouse.x,mouse.y,x)); hoverStartIndex = Math.max(0,f); return }
   if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v); return }
-  if (gameState === GAME_STATES.STORY_MODE)       { _storyBackHover = pointInRect(mouse.x, mouse.y, getStoryBackButton(canvas)); return }   // only the BACK button is interactive (chapters are inert)
+  if (gameState === GAME_STATES.STORY_MODE) {
+    _storyBackHover = pointInRect(mouse.x, mouse.y, getStoryBackButton(canvas))
+    const rects = getStoryChapterRects(canvas, STORY_CHAPTER_COUNT)
+    const hit = rects.find(r => pointInRect(mouse.x, mouse.y, r))
+    hoverStoryIndex = hit ? hit.index : -1
+    return
+  }
   if (gameState === GAME_STATES.PROFILE)          { profileBackHover = pointInRect(mouse.x, mouse.y, getProfileBackButton(canvas)); return }
   if (gameState === GAME_STATES.CODEX)            { codexBackHover   = pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas));   return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
@@ -14251,9 +14357,14 @@ function handleMenuClicks() {
     case GAME_STATES.ONLINE_PLACEHOLDER:
       gameState = GAME_STATES.MAIN_MENU   // any click (the BACK button) returns to the menu
       break
-    case GAME_STATES.STORY_MODE:
-      // Placeholder: only the BACK button does anything; the locked chapter rows are inert.
-      if (pointInRect(mouse.x, mouse.y, getStoryBackButton(canvas))) { gameState = GAME_STATES.MAIN_MENU; _storyBackHover = false }
+    case GAME_STATES.STORY_MODE: {
+      if (pointInRect(mouse.x, mouse.y, getStoryBackButton(canvas))) { gameState = GAME_STATES.MAIN_MENU; _storyBackHover = false; hoverStoryIndex = -1; break }
+      const hit = getStoryChapterRects(canvas, STORY_CHAPTER_COUNT).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (hit && isChapterUnlocked(hit.index)) _beginStoryChapter(hit.index)   // unlocked → into the pre-fight beat
+      break
+    }
+    case GAME_STATES.STORY_INTRO:
+      startMatch()                                // click anywhere → begin the chapter fight
       break
     case GAME_STATES.TUTORIAL: {
       const b = getTutorialButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
@@ -14550,7 +14661,7 @@ function handleMenuClicks() {
     case GAME_STATES.MATCH_END: resetToStart(); break
     case GAME_STATES.VICTORY: {
       const action = handleVictoryClick?.(victoryState, mouse, canvas)
-      if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match
+      if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match · Story: next chapter map
       if (action === "menu")    { _recordVictoryChoice(false); towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
       if (action === "saveReplay") saveLastReplay()   // Stage 11D: download the just-finished match's replay JSON
       if (action === "changeChar") _changeCharacter()   // Stage 24C: back to select, keep mode/stage
@@ -15195,6 +15306,13 @@ window.addEventListener("keydown", e => {
     return
   }
 
+  // STORY_INTRO: the pre-fight beat — Esc backs out to the chapter map, any other key starts the fight
+  // (parity with the arcade rival intro's "press any key to FIGHT").
+  if (gameState === GAME_STATES.STORY_INTRO) {
+    if (key === "escape" || key === "backspace") { e.preventDefault(); gameState = GAME_STATES.STORY_MODE; return }
+    startMatch(); return
+  }
+
   // TUTORIAL: arrow keys flip pages, Esc exits to the menu.
   if (gameState === GAME_STATES.TUTORIAL) {
     if (key === "arrowright" || key === "d") tutorialPage = Math.min(getTutorialPageCount(P1_CONTROLS) - 1, tutorialPage + 1)
@@ -15233,8 +15351,8 @@ window.addEventListener("keydown", e => {
 
   if (gameState === GAME_STATES.VICTORY) {
     const action = handleVictoryKey?.(victoryState, key)
-    if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else _doRematch() }   // Tower: advance floor
-    if (action === "menu")    { _recordVictoryChoice(false); towerState.active = false; resetToStart() }
+    if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower/Arcade/Bracket/Story: advance
+    if (action === "menu")    { _recordVictoryChoice(false); towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
     return
   }
   handlePauseInput(key)
@@ -16970,6 +17088,17 @@ gameLoop()
       return gameState
     },
     arcadeCleared: () => ({ map: getArcadeCleared(), current: isArcadeCleared(arcadeState.rosterKey || matchConfig.p1CharKey), noContinue: isArcadeNoContinueCleared(arcadeState.rosterKey || matchConfig.p1CharKey) }),
+    // ── STORY MODE (Part 1) — drive the chapter flow from a test (mirrors the real UI path) ──
+    story: {
+      open:       () => { gameState = GAME_STATES.STORY_MODE; return _buildStoryChapterView() },
+      view:       () => _buildStoryChapterView(),
+      progress:   () => getStoryProgress(),
+      isUnlocked: (i) => isChapterUnlocked(i),
+      begin:      (i) => { _beginStoryChapter(i); return { gameState, chapter: getChapter(_storyChapterIdx)?.num, title: getChapter(_storyChapterIdx)?.title, p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey, mode: matchConfig.mode, boss: !!matchConfig.p2IsBoss, lines: getChapter(_storyChapterIdx)?.pre || [] } },
+      fight:      () => { startMatch(); return { gameState, bossHp: p2?._isBoss ? p2.maxHealth : null, bossArmor: !!p2?._bossArmor, template: p2AI?.templateKey || null } },
+      win:        () => { forceMatchEnd("p1"); return { gameState, subtitle: victoryState.subtitle, primary: victoryState.primaryLabel } },
+      advance:    () => { continueStory(); return { gameState, view: _buildStoryChapterView() } }
+    },
     // ── TOURNAMENT BRACKET (Stage 24B) ────────────────────────────────────────
     bracketStart: (size = 4, humanKey = "gojo") => { _pendingBracketSize = size; matchConfig.p1CharKey = humanKey; matchConfig.p1Char = characters[humanKey]; _buildAndStartBracket(); return H_bracketInfo() },
     bracketInfo: () => H_bracketInfo(),

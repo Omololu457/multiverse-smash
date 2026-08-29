@@ -852,9 +852,13 @@ const CLONE_W = 70, CLONE_H = 120            // clone hurtbox = the destruction 
 // SPAWN SPREAD (mirror formation): clones alternate to BOTH sides of the owner (even slots behind, odd slots in
 // front, toward the enemy) at widening ranks, so they fan out around the owner instead of clustering in a tight
 // trailing line — harder to clear with one attack, and a wider set of swap destinations. Facing-relative:
-// "+forward" = toward the enemy. Tune these two numbers to taste. (Mirror captures this as the fixed offset.)
+// "+forward" = toward the enemy. Tune these numbers to taste. (Mirror captures this as the fixed offset.)
 const CLONE_SPREAD_BASE = 120                // first rank's distance from the owner
 const CLONE_SPREAD_GAP  = 130                // added distance per rank
+// FRONT BIAS: the formation leans BEHIND the owner — the front (odd-slot) clones are pulled back toward the
+// owner by this factor (they still sit slightly ahead, but hug the owner instead of exposing themselves near
+// the enemy). Behind clones keep their full spread. 1 = symmetric; lower = front clones tucked further back.
+const CLONE_FRONT_FACTOR = 0.42
 const CLONE_POOF_FRAMES = 16                 // spawn/despawn smoke duration (matches clonePuff lifetime)
 const CLONE_HURT_FRAMES = 24                 // frames the hit-recoil pose plays before the clone poofs out
 // DECOY-SYSTEM movement (Stage 2): a spawned clone independently APPROACHES the opponent and HOLDS at
@@ -1200,9 +1204,11 @@ export function spawnShadowClone(owner, target, spawnAt = null) {
   if (countShadowClones(owner) >= cloneCap(owner)) return null   // per-char CAP behavior: do nothing
   const facing = owner.facing || 1
   const slot = countShadowClones(owner)   // 0,1,2 as bodies are added → staggers spawn + hold so decoys don't stack
-  // Flanking spread: even slots BEHIND the owner, odd slots IN FRONT (toward the enemy), each rank further out.
-  // slot 0→-120, 1→+120, 2→-250, 3→+250 (× facing). Fans the formation out on both sides instead of a tight line.
-  const spreadForward = (slot % 2 === 0 ? -1 : 1) * (CLONE_SPREAD_BASE + Math.floor(slot / 2) * CLONE_SPREAD_GAP)
+  // Flanking spread, BIASED BEHIND: even slots go full-distance BEHIND; odd slots go IN FRONT but pulled back by
+  // CLONE_FRONT_FACTOR so they tuck near the owner rather than exposing themselves toward the enemy.
+  // slot 0→-120, 1→+50, 2→-250, 3→+105 (× facing). Behind clones keep the wide spread; front clones hug the owner.
+  const rank = CLONE_SPREAD_BASE + Math.floor(slot / 2) * CLONE_SPREAD_GAP
+  const spreadForward = (slot % 2 === 0) ? -rank : rank * CLONE_FRONT_FACTOR
   const s = {
     id: "shadowClone", owner, target,
     w: CLONE_W, h: CLONE_H, vx: 0,

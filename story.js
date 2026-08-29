@@ -2,22 +2,21 @@
 // STORY MODE — playable MVP (Part 1).
 //
 // HONEST SCOPE: this is NOT a new cinematic/cutscene engine. It reuses the arcade rival system's
-// two-line dialogue exchange (drawRivalIntroScreen) for between-fight beats, the normal match flow
-// for the fights, and the boss super-armor system (_bossArmor) for the finale. Each chapter is a
-// scripted, fixed matchup (protagonist vs antagonist) with a short pre-fight exchange and a win
-// line — enough to be a coherent, playable campaign tonight. Full narrated cutscenes / a node-map
-// screen / branching are deliberately deferred (see report).
+// dialogue exchange (drawRivalIntroScreen) for the pre-fight beats, the normal match flow for the
+// fights, and the boss super-armor system (_bossArmor) for the finale. Each chapter is a scripted,
+// fixed matchup (protagonist vs antagonist) with a short character-grounded exchange and a win line.
 //
-// Every rosterKey below is a fully-built, playable fighter (verified against characters.js). The
-// 15 titles are the reconciled Battle-Chronicle structure that already lived in ui.js as a locked
-// placeholder — now each is wired to a real matchup drawn from those named beats.
+// Every rosterKey below is a fully-built, playable fighter (verified against characters.js).
 //
 // Chapter shape:
-//   { id, num, title, player, opponent, stageOf, pre:[line,line], win, boss?, bossName?, bossProfile? }
+//   { id, num, title, player, opponent, stageOf, pre:[line,...], win, boss?, bossName?, bossProfile?, narration? }
 //   • player/opponent — rosterKeys. The player controls `player`; the CPU is `opponent`.
 //   • stageOf — which fighter's home stage to host on ("opponent" reads thematically for most beats).
-//   • pre — the two-line exchange shown before the fight (reuses the rival intro screen).
-//   • win — the single line shown on the victory screen beat.
+//   • pre — the 2-3 line exchange shown before the fight (reuses the rival intro screen). Lines are
+//           formatted `Name: "spoken"`; a line with NO `Name:` prefix reads as narration/stage-direction.
+//   • narration — true when the beat is environmental narration rather than an attributed exchange
+//           (Ch15). The screen still shows the two portraits; the lines simply carry no speaker.
+//   • win — the single line shown on the victory-screen beat.
 //   • boss — finale only: applies the story boss profile (super-armor + extra HP, single round).
 
 export const STORY_CHAPTERS = [
@@ -25,8 +24,9 @@ export const STORY_CHAPTERS = [
     id: 1, num: "I", title: "The First Fracture",
     player: "goku", opponent: "vegeta", stageOf: "player",
     pre: [
-      "Goku: The sky just... tore open. You feel that too, Vegeta?",
-      "Vegeta: Something is pulling the worlds together. If I must fight my way to the truth — so be it."
+      'Vegeta: "Still grinning like this is a game to you."',
+      'Goku: "Isn\'t it, a little?"',
+      'Vegeta: "Not to me. Not anymore."'
     ],
     win: "Goku: Guess some rivalries survive the end of everything."
   },
@@ -34,8 +34,8 @@ export const STORY_CHAPTERS = [
     id: 2, num: "II", title: "Anchor Points",
     player: "naruto", opponent: "sasuke", stageOf: "opponent",
     pre: [
-      "Naruto: Every reality has an anchor holding it steady. Ours is slipping.",
-      "Sasuke: Then we settle this the only way we ever have. Come on."
+      'Sasuke: "You never stop coming back to this, do you."',
+      'Naruto: "Somebody has to. Might as well be me."'
     ],
     win: "Naruto: Still an anchor I'd trust with the world. Even now."
   },
@@ -43,8 +43,8 @@ export const STORY_CHAPTERS = [
     id: 3, num: "III", title: "The Mirror Self",
     player: "vegeta", opponent: "vegeta_dark", stageOf: "player",
     pre: [
-      "Vegeta: You wear my face. You are NOT me.",
-      "Dark Vegeta: I am what's left when the pride finally wins. Look closely, prince."
+      'Dark Vegeta: "You know exactly what I am. The part of you that never let go."',
+      'Vegeta: "I know. That\'s why I\'m the one who\'s here."'
     ],
     win: "Vegeta: My pride bows to no reflection."
   },
@@ -52,8 +52,8 @@ export const STORY_CHAPTERS = [
     id: 4, num: "IV", title: "Six Paths, One Pain",
     player: "naruto", opponent: "pain", stageOf: "opponent",
     pre: [
-      "Naruto: The fracture speaks with your voice, Pain. Six of them.",
-      "Pain: Then understand my pain across every world at once. Feel it."
+      'Pain: "Pain shared is meaning made. You\'ll understand, eventually."',
+      'Naruto: "I understand losing people. I just didn\'t decide to become this because of it."'
     ],
     win: "Naruto: I heard you. And I still choose a different answer."
   },
@@ -61,8 +61,8 @@ export const STORY_CHAPTERS = [
     id: 5, num: "V", title: "The Ghostface Gauntlet",
     player: "jason", opponent: "ghostface", stageOf: "opponent",
     pre: [
-      "Ghostface: What's your favorite scary movie? You're standing in it.",
-      "Jason: ..."
+      'Ghostface: "You know, most people at least pretend to enjoy the conversation."',
+      "(Jason says nothing. He doesn't stop walking forward.)"
     ],
     win: "Jason: (The silence answers for him.)"
   },
@@ -70,8 +70,8 @@ export const STORY_CHAPTERS = [
     id: 6, num: "VI", title: "Sons of Krypton",
     player: "superman", opponent: "omniman", stageOf: "player",
     pre: [
-      "Superman: Whatever you were sent here to do — it ends with me.",
-      "Omni-Man: Think about how small this world is, Kryptonian. Think about it hard."
+      'Superman: "There\'s no one here to protect. So why are we doing this?"',
+      'Omni-Man: "Because I still don\'t know what I\'d do if there were."'
     ],
     win: "Superman: I already did. It's worth everything."
   },
@@ -79,8 +79,8 @@ export const STORY_CHAPTERS = [
     id: 7, num: "VII", title: "The Iron Convergence",
     player: "iron_man", opponent: "iron_man_3", stageOf: "player",
     pre: [
-      "Iron Man: A hundred armors, one signal — and they're all pointed at me.",
-      "Iron Man (Mk 42): Convergence protocol. You built me to win. Let's test that."
+      'Iron Man: "Feels strange, doesn\'t it. Like looking in a mirror that disagrees with you."',
+      'Iron Man (Mk42): "Let\'s find out which one of us is right."'
     ],
     win: "Iron Man: Note to self: never let the suits vote."
   },
@@ -88,8 +88,8 @@ export const STORY_CHAPTERS = [
     id: 8, num: "VIII", title: "Fractured Worlds",
     player: "goku", opponent: "superman", stageOf: "opponent",
     pre: [
-      "Goku: Two worlds bleeding into one — and you're the strongest thing in yours.",
-      "Superman: Then let's find out whose world holds. No holding back."
+      'Superman: "I\'ve never fought anyone who smiles this much at a fight."',
+      'Goku: "You should try it. Might help."'
     ],
     win: "Goku: Ha! Now THAT was a fight worth crossing realities for."
   },
@@ -97,8 +97,8 @@ export const STORY_CHAPTERS = [
     id: 9, num: "IX", title: "Echoes Across Realities",
     player: "gojo", opponent: "sukuna", stageOf: "opponent",
     pre: [
-      "Gojo: I keep meeting you in every reality. It's almost flattering.",
-      "Sukuna: Then you already know how every one of them ends."
+      'Sukuna: "Two thousand years, and finally something worth my time."',
+      'Gojo: "Try not to be too disappointed when it\'s over quickly."'
     ],
     win: "Gojo: Nah. This is the one where you lose. Again."
   },
@@ -106,8 +106,9 @@ export const STORY_CHAPTERS = [
     id: 10, num: "X", title: "The Battle Chronicle",
     player: "ichigo", opponent: "zaraki", stageOf: "opponent",
     pre: [
-      "Ichigo: The Chronicle's writing us down as we fight. Every swing remembered.",
-      "Zaraki: Then make it a page worth reading. Draw your sword!"
+      'Zaraki: "Scare me. Just once. That\'s all I\'m asking."',
+      'Ichigo: "I\'m not here to entertain you."',
+      'Zaraki: "Then this\'ll be short."'
     ],
     win: "Ichigo: One more entry. Still standing."
   },
@@ -115,17 +116,17 @@ export const STORY_CHAPTERS = [
     id: 11, num: "XI", title: "The Choir's Whisper",
     player: "hisoka", opponent: "chrollo", stageOf: "opponent",
     pre: [
-      "Hisoka: The Choir keeps whispering your name to me. How could I resist? ♦",
-      "Chrollo: Careful. Curiosity is the one bluff I always call."
+      'Hisoka: "You collect abilities. I collect moments like this one."',
+      'Chrollo: "Patience is an ability too. You should try collecting some."'
     ],
-    win: "Hisoka: Mmm... exactly as delicious as promised. ♥"
+    win: "Hisoka: Mmm... exactly as delicious as promised."
   },
   {
     id: 12, num: "XII", title: "The Convergence",
     player: "madara", opponent: "hashirama", stageOf: "player",
     pre: [
-      "Madara: Every timeline converges here, old friend. Every version of us.",
-      "Hashirama: Then in every one of them, I'll still try to reach you."
+      'Hashirama: "We already had this fight once. I was hoping we wouldn\'t need it again."',
+      'Madara: "Hope was always your weakness. It\'s also why I never doubted you\'d come."'
     ],
     win: "Madara: You always did chase a dream one world too far."
   },
@@ -133,8 +134,8 @@ export const STORY_CHAPTERS = [
     id: 13, num: "XIII", title: "Where Heaven and Earth Meet",
     player: "beerus", opponent: "vegito", stageOf: "player",
     pre: [
-      "Vegito: A god of destruction, guarding the last stable sky. Figures.",
-      "Beerus: Amuse me, fusion. If you're worth the space you take up."
+      'Beerus: "A fusion. How novel. Convince me it wasn\'t a waste of my afternoon."',
+      'Vegito: "I won\'t convince you. I\'ll just make sure you remember it."'
     ],
     win: "Beerus: Hmph. Adequate. Now clean up your mess."
   },
@@ -142,21 +143,22 @@ export const STORY_CHAPTERS = [
     id: 14, num: "XIV", title: "The Last Anchor",
     player: "batman", opponent: "deathstroke", stageOf: "opponent",
     pre: [
-      "Batman: One anchor left holding this reality. You're standing on it.",
-      "Deathstroke: Then I've got the high ground and the contract. Bad night for you."
+      'Deathstroke: "You\'re not paying me for this one. So what\'s the angle, detective?"',
+      'Batman: "There isn\'t one. Some fights don\'t need a client."'
     ],
     win: "Batman: I've had worse. You just haven't met me on a good one."
   },
   {
     id: 15, num: "XV", title: "The Null",
     player: "goku", opponent: "sukuna", stageOf: "opponent",
-    boss: true, bossName: "THE NULL",
-    // Finale: the fracture collapses into a single overwhelming avatar. Reuses the boss super-armor
-    // system — extra HP, light hits can't stagger it, single round to the finish.
+    boss: true, bossName: "THE NULL", narration: true,
+    // Finale: the fracture collapses into a single overwhelming avatar. Framed as the Null
+    // manifestation itself — an environmental narration beat, NOT an attributed exchange. Reuses the
+    // boss super-armor system (extra HP, light hits can't stagger it, single round to the finish).
     bossProfile: { healthMult: 1.8, scale: 1.25, superArmorThreshold: 45, meterFree: true, noRoundLimit: true },
     pre: [
-      "Goku: So you're what's left when the worlds run out. The Null.",
-      "The Null: I am the quiet after every story. Kneel, and it stops hurting."
+      "The crack in the sky hasn't closed.",
+      "It's just been waiting for someone strong enough to walk through it."
     ],
     win: "Goku: Sorry, pal. My story's not done being told."
   }

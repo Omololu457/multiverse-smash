@@ -17097,7 +17097,22 @@ gameLoop()
       begin:      (i) => { _beginStoryChapter(i); return { gameState, chapter: getChapter(_storyChapterIdx)?.num, title: getChapter(_storyChapterIdx)?.title, p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey, mode: matchConfig.mode, boss: !!matchConfig.p2IsBoss, lines: getChapter(_storyChapterIdx)?.pre || [] } },
       fight:      () => { startMatch(); return { gameState, bossHp: p2?._isBoss ? p2.maxHealth : null, bossArmor: !!p2?._bossArmor, template: p2AI?.templateKey || null } },
       win:        () => { forceMatchEnd("p1"); return { gameState, subtitle: victoryState.subtitle, primary: victoryState.primaryLabel } },
-      advance:    () => { continueStory(); return { gameState, view: _buildStoryChapterView() } }
+      advance:    () => { continueStory(); return { gameState, view: _buildStoryChapterView() } },
+      // Measure the pending chapter's dialogue lines against the intro screen's real font (18px Arial,
+      // matching drawRivalIntroScreen) so a test can prove no line overflows the canvas. narration =
+      // any line with no `Name:` speaker prefix (Ch15's environmental beat / Ch5's stage direction).
+      introMetrics: () => {
+        const ch = getChapter(_storyChapterIdx); if (!ch) return null
+        const prev = ctx.font; ctx.font = "18px Arial"
+        const lines = ch.pre || []
+        const widths = lines.map(l => ctx.measureText(l).width)
+        ctx.font = prev
+        const width = canvas.width   // logical width (ui.js getCanvasSize returns the same value)
+        const maxWidth = widths.length ? Math.max(...widths) : 0
+        return { num: ch.num, lines, widths, maxWidth, canvasWidth: width,
+                 marginLimit: width - 80, overflow: maxWidth > width - 80,
+                 narrationOnly: !!ch.narration, hasSpeaker: lines.map(l => /^[^:]{1,20}:\s/.test(l)) }
+      }
     },
     // ── TOURNAMENT BRACKET (Stage 24B) ────────────────────────────────────────
     bracketStart: (size = 4, humanKey = "gojo") => { _pendingBracketSize = size; matchConfig.p1CharKey = humanKey; matchConfig.p1Char = characters[humanKey]; _buildAndStartBracket(); return H_bracketInfo() },

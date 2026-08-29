@@ -40,8 +40,21 @@ chs.forEach((c, i) => {
   ok(typeof c.title === "string" && c.title.length > 0, `chapter ${i} has title`)
   ok(ROSTER.has(c.player), `chapter ${i} player "${c.player}" is a real roster key`)
   ok(ROSTER.has(c.opponent), `chapter ${i} opponent "${c.opponent}" is a real roster key`)
-  ok(Array.isArray(c.pre) && c.pre.length === 2, `chapter ${i} has a 2-line pre exchange`)
+  ok(Array.isArray(c.pre) && c.pre.length >= 2 && c.pre.length <= 3, `chapter ${i} has a 2-3 line pre exchange (${c.pre?.length})`)
+  ok(c.pre.every(l => typeof l === "string" && l.trim().length > 0), `chapter ${i} pre lines are non-empty strings`)
   ok(typeof c.win === "string" && c.win.length > 0, `chapter ${i} has a win line`)
+})
+
+// Dialogue content is real & character-grounded (not the old placeholder). Spot-check the special cases:
+const ch5 = chs[4], ch15 = chs[14]
+ok(ch5.pre.some(l => /Ghostface:/.test(l)) && ch5.pre.some(l => /Jason says nothing/i.test(l)),
+   "Ch5 is Ghostface's line + Jason's silence (stage direction, no attributed second speaker)")
+ok(ch15.narration === true, "Ch15 is flagged as narration")
+ok(ch15.pre.every(l => !/^[^:]{1,20}:\s/.test(l)), "Ch15 lines carry NO speaker prefix (environmental narration)")
+// The other 13 chapters are attributed exchanges (at least one `Name: \"...\"` line).
+chs.forEach((c, i) => {
+  if (i === 14) return
+  ok(c.pre.some(l => /^[^:]{1,20}:\s*"/.test(l)), `chapter ${i} has attributed, quoted dialogue`)
 })
 
 // no chapter should reference a hidden/non-playable key (cell/omololu etc. are isPlayable:false)

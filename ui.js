@@ -1406,75 +1406,78 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) 
 }
 
 // ─────────────────────────────────────────────
-// STORY MODE — UI PLACEHOLDER ONLY (no story content/logic). A styled "coming soon" title card in the
-// rift/holographic language, with a LOCKED teaser chapter list (inert — no click-through, no hover) to
-// hint at scale. Reserves + styles the entry point for a future Story Mode project.
+// STORY MODE (Part 1) — a real, playable chapter select. The chapter DATA (titles, matchups, dialogue)
+// now lives in story.js; game.js builds a view model and passes it to drawStoryModeScreen as `opts`.
+// This screen reuses the menu/list visual language rather than a bespoke node map (MVP scope).
 // ─────────────────────────────────────────────
-// STORY_CHAPTERS — reconciled 15-chapter structure (Part 3). NOTE: no campaign design doc exists in the
-// repo; these titles were composed from the specific Battle-Chronicle beats named in the reconciliation
-// prompt (the mirror-self duel, the Pain confrontation, the Ghostface gauntlet, the Superman & Iron Man
-// convergences, the Null finale) + connective beats in the game's fracture/Choir/Anchor voice. Titles
-// only — Story Mode remains a locked placeholder; swap any title once the real campaign lands.
-const STORY_CHAPTERS = [
-  "I — The First Fracture",
-  "II — Anchor Points",
-  "III — The Mirror Self",             // Vegeta vs. Dark Vegeta
-  "IV — Six Paths, One Pain",          // Pain vs. Six Paths of Pain
-  "V — The Ghostface Gauntlet",        // the Ghostface gauntlet
-  "VI — Sons of Krypton",              // the Superman convergence
-  "VII — The Iron Convergence",        // the Iron Man convergence
-  "VIII — Fractured Worlds",
-  "IX — Echoes Across Realities",
-  "X — The Battle Chronicle",
-  "XI — The Choir's Whisper",
-  "XII — The Convergence",
-  "XIII — Where Heaven and Earth Meet",
-  "XIV — The Last Anchor",
-  "XV — The Null",                     // the Null confrontation finale
-]
 export function getStoryBackButton(canvas) {
   const { width: w, height: h } = getCanvasSize(canvas)
-  return { id: "back", x: w / 2 - 110, y: h - 78, w: 220, h: 50 }
+  return { id: "back", x: w / 2 - 110, y: h - 62, w: 220, h: 44 }
 }
-export function drawStoryModeScreen(ctx, canvas, hoverBack = false) {
+
+// Shared 2-column geometry so the clickable rects (getStoryChapterRects) and the render
+// (drawStoryModeScreen) stay pixel-aligned. Part 1: Story Mode is now a real chapter map.
+function _storyChapterLayout(canvas, count) {
+  const { width: w } = getCanvasSize(canvas)
+  const cardW = Math.min(900, w * 0.78), cardH = 552
+  const cardX = w / 2 - cardW / 2, cardY = 74
+  const cols = 2, per = Math.ceil(count / cols)
+  const listX = cardX + 40, listW = cardW - 80, colGap = 18, colW = (listW - colGap) / cols
+  const rowH = 48, listY = cardY + 150
+  const rects = []
+  for (let i = 0; i < count; i++) {
+    const col = Math.floor(i / per), row = i % per
+    rects.push({ index: i, x: listX + col * (colW + colGap), y: listY + row * rowH, w: colW, h: rowH - 8 })
+  }
+  return { cardX, cardY, cardW, cardH, rects }
+}
+
+// Hit-test rects for the chapter tiles (game.js maps a click → chapter index).
+export function getStoryChapterRects(canvas, count) {
+  return _storyChapterLayout(canvas, count).rects
+}
+
+// Real chapter-select screen (reuses the menu/list visual language from Tower/Arcade rather than a
+// bespoke node map — a sequential locked list is enough for the MVP). opts.chapters is the view
+// model built by game.js: [{ num, title, playerName, opponentName, unlocked, completed, isBoss }].
+export function drawStoryModeScreen(ctx, canvas, opts = {}) {
   _mkAdvance()
+  const { chapters = [], hoverIndex = -1, hoverBack = false } = opts
   const { width: w, height: h } = getCanvasSize(canvas)
   ctx.clearRect(0, 0, w, h)
   drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#160b2a" })
-  drawMenuParticles(ctx, canvas)   // Part 4: consistent ambient identity
+  drawMenuParticles(ctx, canvas)
 
-  // Holographic title card — grown to hold the reconciled 15-chapter Chronicle (2 columns).
-  const cardW = Math.min(900, w * 0.78), cardH = 552
-  const cardX = w / 2 - cardW / 2, cardY = 74
-  _metalPanel(ctx, cardX, cardY, cardW, cardH, "#9a7bff", 20, 0.3)
-  _holoPanelOverlay(ctx, cardX, cardY, cardW, cardH, { accent: "#9a7bff", cut: 20 })
+  const L = _storyChapterLayout(canvas, chapters.length)
+  _metalPanel(ctx, L.cardX, L.cardY, L.cardW, L.cardH, "#9a7bff", 20, 0.3)
+  _holoPanelOverlay(ctx, L.cardX, L.cardY, L.cardW, L.cardH, { accent: "#9a7bff", cut: 20 })
 
-  drawCenteredText(ctx, "STORY MODE", w / 2, cardY + 56, { font: "900 44px Arial", fill: "#f3f0ff", shadowBlur: 22, shadowColor: "rgba(154,123,255,0.6)" })
+  drawCenteredText(ctx, "STORY MODE", w / 2, L.cardY + 50, { font: "900 42px Arial", fill: "#f3f0ff", shadowBlur: 22, shadowColor: "rgba(154,123,255,0.6)" })
+  drawSubText(ctx, "The Battle Chronicle — clear a chapter to unlock the next.", w / 2, L.cardY + 96, { font: "15px Arial", fill: "rgba(210,220,255,0.72)" })
 
-  // COMING SOON badge
-  const badgeW = 190, badgeH = 32, bx = w / 2 - badgeW / 2, by = cardY + 82
-  _bevelPath(ctx, bx, by, badgeW, badgeH, 8); ctx.fillStyle = "rgba(154,123,255,0.18)"; ctx.fill()
-  _bevelPath(ctx, bx, by, badgeW, badgeH, 8); ctx.strokeStyle = "#b9a3ff"; ctx.lineWidth = 1.5; ctx.stroke()
-  drawCenteredText(ctx, "COMING SOON", w / 2, by + badgeH / 2 + 1, { font: "800 15px Arial", fill: "#d9ccff", baseline: "middle" })
+  chapters.forEach((ch, i) => {
+    const r = L.rects[i]
+    if (!r) return
+    const locked = !ch.unlocked
+    const active = i === hoverIndex && !locked
+    const accent = ch.isBoss ? "#ff5a7a" : ch.completed ? "#7ee0a6" : "#b9a3ff"
+    _bevelPath(ctx, r.x, r.y, r.w, r.h, 7)
+    ctx.fillStyle = locked ? "rgba(10,12,22,0.62)" : active ? "rgba(154,123,255,0.24)" : "rgba(20,18,40,0.72)"
+    ctx.fill()
+    _bevelPath(ctx, r.x, r.y, r.w, r.h, 7)
+    ctx.strokeStyle = locked ? "rgba(148,163,184,0.22)" : accent; ctx.lineWidth = active ? 2 : 1.2; ctx.stroke()
 
-  drawSubText(ctx, "The Battle Chronicle — a dimensional campaign across the fractured multiverse. In development.", w / 2, cardY + 130, { font: "15px Arial", fill: "rgba(210,220,255,0.7)" })
-
-  // LOCKED chapter list — inert. Two columns to hold the full 15-chapter Chronicle without shrinking.
-  const cols = 2, per = Math.ceil(STORY_CHAPTERS.length / cols)
-  const listX = cardX + 44, listW = cardW - 88, colGap = 16, colW = (listW - colGap) / cols
-  const rowH = 30, listY = cardY + 166
-  STORY_CHAPTERS.forEach((title, i) => {
-    const col = Math.floor(i / per), row = i % per
-    const x = listX + col * (colW + colGap), y = listY + row * rowH
-    _bevelPath(ctx, x, y, colW, rowH - 5, 6); ctx.fillStyle = "rgba(10,12,22,0.6)"; ctx.fill()
-    _bevelPath(ctx, x, y, colW, rowH - 5, 6); ctx.strokeStyle = "rgba(148,163,184,0.24)"; ctx.lineWidth = 1; ctx.stroke()
-    drawCenteredText(ctx, "🔒", x + 13, y + (rowH - 5) / 2, { font: "11px Arial", fill: "rgba(160,170,190,0.5)", baseline: "middle" })
-    drawCenteredText(ctx, title, x + 28, y + (rowH - 5) / 2, { font: "600 13px Arial", fill: "rgba(196,202,222,0.62)", align: "left", baseline: "middle" })
+    const midY = r.y + r.h / 2
+    const badge = locked ? "🔒" : ch.completed ? "✓" : ch.isBoss ? "★" : "▶"
+    drawCenteredText(ctx, badge, r.x + 16, midY, { font: "13px Arial", fill: locked ? "rgba(160,170,190,0.55)" : accent, baseline: "middle" })
+    const titleFill = locked ? "rgba(196,202,222,0.5)" : "#eef0ff"
+    drawCenteredText(ctx, `${ch.num} — ${ch.title}`, r.x + 32, r.y + 15, { font: "700 13px Arial", fill: titleFill, align: "left", baseline: "middle" })
+    const sub = locked ? "Locked" : `${ch.playerName}  vs  ${ch.opponentName}${ch.isBoss ? "  ·  FINALE" : ""}`
+    drawCenteredText(ctx, sub, r.x + 32, r.y + 31, { font: "11px Arial", fill: locked ? "rgba(150,158,180,0.5)" : "rgba(200,208,235,0.72)", align: "left", baseline: "middle" })
   })
 
-  // BACK button (interactive — the only actionable control here)
   drawMkButton(ctx, getStoryBackButton(canvas), { label: "BACK", active: hoverBack, id: "storyback", cut: 12 })
-  drawFooterHint(ctx, canvas, "Story Mode is a placeholder — chapters are not yet available")
+  drawFooterHint(ctx, canvas, "Click an unlocked chapter to begin · clear it to open the next")
 }
 
 // ─────────────────────────────────────────────
@@ -1787,11 +1790,12 @@ export function drawArcadeSetupScreen(ctx, canvas, selectedIndex = 0) {
 // ── RIVAL INTRO (Stage 19C) — two portraits + the pre-fight exchange ──
 export function drawRivalIntroScreen(ctx, canvas, opts = {}) {
   const { width: w, height: h } = getCanvasSize(canvas)
-  const { playerKey, rivalKey, playerName = "", rivalName = "", lines = [] } = opts
+  // header/subheader default to the arcade rival framing; Story Mode reuses this screen with its own.
+  const { playerKey, rivalKey, playerName = "", rivalName = "", lines = [], header = "RIVAL", subheader = "" } = opts
   _mkAdvance()
   ctx.clearRect(0, 0, w, h)
   drawRiftAmbientBackdrop(ctx, canvas, { top: "#0a0810", bottom: "#2a0f16" })   // cinematic rift ambient
-  drawHeader(ctx, canvas, "RIVAL", "")
+  drawHeader(ctx, canvas, header, subheader)
   const cx = w / 2, py = 150, pw = 260, ph = 300
   const drawBust = (key, x, mirror, name, tint) => {
     const img = getPortraitImage(key)

@@ -91,6 +91,58 @@ export const REKKA = [
   { key: "omega_ranger",  driver: "updateOmegaRangerCommandCombat", opener: "fwd+heavy / back+light", retap: "heavy|light", stages: 7, finisher: "launcher", requireHit: true, srcRequireHit: false, status: "exception", note: "dual string: 3-stage Heavy kick + 7-stage Light sword" },
   { key: "red_ranger_mmpr", driver: "updateRedRangerMmprCommandCombat", opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true, status: "conforms", note: "3-stage punch chain (rrRekka1→2→3 super-360 launcher) + air-Heavy dive-kick poke" },
   { key: "rengoku",       driver: "updateRengokuCommandCombat", opener: "fwd+heavy",  retap: "heavy/special", stages: 3, finisher: "heavy",  requireHit: true,  srcRequireHit: false, status: "exception", note: "dual-tier: normal Heavy chain + Special super-branch; separate air chain" },
+
+  // ── STAGE G — ROSTER-DRIFT COVERAGE (2026-08-29) ────────────────────────────────────────────────
+  // 46 characters were added to the roster after Stages A–F and had silently escaped the partition
+  // guardrail (harness §2 was red: "unclassified: …"). This block closes that gap. It is a COVERAGE
+  // classification, NOT a combo re-design: for each entry the driver is verified to EXIST (§3), its
+  // Forward-idiom opener is verified in source (§5, `fighter.facing === 1 ? !!inputState.right`), and
+  // `requireHit` is source-cross-checked where a single literal exists (§4, srcRequireHit:true). The
+  // `stages`/`finisher` fields are the standard target shape, not a per-char frame re-audit — combo
+  // DAMAGE-DECAY itself was separately confirmed correct for these via harness/combo_flow_roster.mjs
+  // (the earlier "flat damage" reading was CPU-starvation flakiness under concurrent test load, not a
+  // real scaling bug — proven by clean 3× isolated re-runs). See updates.TXT Part 3 diagnosis.
+  { key: "alt_sukuna",        driver: "updateAltSukunaCommandCombat",       opener: "fwd+heavy", retap: "heavy", stages: 2, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy cleave rekka (driver + Fwd idiom verified)" },
+  { key: "aoi_todo",          driver: "updateAoiTodoCommandCombat",         opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy chain (Boogie Woogie cameo kit)" },
+  { key: "baki",              driver: "updateBakiCommandCombat",            opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy martial-arts chain" },
+  { key: "bardock",           driver: "updateBardockCommandCombat",         opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Blade Rush Fwd+Heavy sword rekka" },
+  { key: "genos",             driver: "updateGenosCommandCombat",           opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy jet-punch chain" },
+  { key: "ghostface_billy",   driver: "updateGhostfaceCommandCombat",       opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: shares Ghostface driver (Billy variant)" },
+  { key: "gohan",             driver: "updateGohanCommandCombat",           opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Rush Combo Fwd+Heavy rekka" },
+  { key: "gotenks",           driver: "updateGotenksCommandCombat",         opener: "fwd+heavy", retap: "heavy", stages: 2, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Kamikaze Barrage Fwd+Heavy rekka" },
+  { key: "hashirama",         driver: "updateHashiramaCommandCombat",       opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy Mokuton chain" },
+  { key: "ippo",              driver: "updateIppoCommandCombat",            opener: "fwd+heavy", retap: "heavy", stages: 2, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Y-Jabs Fwd+Heavy boxing rekka" },
+  { key: "iron_man",          driver: "updateIronManCommandCombat",         opener: "fwd+heavy", retap: "heavy", stages: 2, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy repulsor melee chain" },
+  { key: "iron_man_2",        driver: "updateIronMan2CommandCombat",        opener: "fwd+heavy", retap: "heavy", stages: 2, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy chain (Data East variant)" },
+  { key: "iron_man_3",        driver: "updateIronManCommandCombat",         opener: "fwd+heavy", retap: "heavy", stages: 2, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: shares IronMan driver (GBA variant)" },
+  { key: "kakashi",           driver: "updateKakashiCommandCombat",         opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy chain (teleport kit)" },
+  { key: "kiba",              driver: "updateKibaCommandCombat",            opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: false, status: "conforms",  note: "Stage G coverage: Fwd+Heavy Fang chain (no single requireHit literal → src-check skipped)" },
+  { key: "l_ryuuzaki",        driver: "updateLRyuuzakiCommandCombat",       opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: capoeira Fwd+Heavy chain" },
+  { key: "mayuri",            driver: "updateMayuriCommandCombat",          opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy chain (Bankai kit)" },
+  { key: "orochimaru",        driver: "updateOrochimaruCommandCombat",      opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy serpent chain" },
+  { key: "saitama",           driver: "updateSaitamaCommandCombat",         opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Spin-Punch Fwd+Heavy rekka" },
+  { key: "six_paths_pain",    driver: "updatePainCommandCombat",            opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: shares Pain driver (Six Paths)" },
+  { key: "superman_classic",  driver: "updateSupermanClassicCommandCombat", opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Man of Steel Fwd+Heavy rekka" },
+  { key: "superman_dcuc",     driver: "updateSupermanDcucCommandCombat",    opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Kryptonian Rush Fwd+Heavy rekka" },
+  { key: "superman_fighter",  driver: "updateSupermanFighterCommandCombat", opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Kryptonian Barrage Fwd+Heavy rekka" },
+  { key: "superman_new52",    driver: "updateSupermanNew52CommandCombat",   opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Speeding Bullet Fwd+Heavy rekka" },
+  { key: "toji",              driver: "updateTojiCommandCombat",            opener: "fwd+heavy", retap: "heavy", stages: 4, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: A-B-C-A+B Fwd+Heavy rekka (was the pre-existing unclassified gap)" },
+  { key: "vegeta_dark",       driver: "updateVegetaDarkCommandCombat",      opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Villain's Rush Fwd+Heavy rekka" },
+  { key: "vegito",            driver: "updateVegitoCommandCombat",          opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: Fwd+Heavy chain" },
+  { key: "yuta",              driver: "updateYutaCommandCombat",            opener: "fwd+heavy", retap: "heavy", stages: 3, finisher: "launcher", requireHit: true, srcRequireHit: true,  status: "conforms",  note: "Stage G coverage: yutaCombo Fwd+Heavy chain" },
+
+  // ── STAGE G — driver present but NOT a standard Fwd+Heavy launcher-rekka (preserved as exceptions) ──
+  // These have a command-combat driver (so they're real REKKA-family entries, not zoners) but either the
+  // opener isn't the standard forward idiom (boruto/isshiki are Karma/Daikokuten-gated) or the driver has
+  // no standard `rekkaContinue` launcher chain (directional strings / construct specials). Never remapped.
+  { key: "boruto",            driver: "updateBorutoCommandCombat",          opener: "special-gated", retap: "none", stages: 1, finisher: "none", requireHit: null, srcRequireHit: false, status: "exception", note: "Stage G: Karma/absorb-gated opener, not the standard Fwd idiom" },
+  { key: "isshiki",           driver: "updateIsshikiCommandCombat",         opener: "special-gated", retap: "none", stages: 1, finisher: "none", requireHit: null, srcRequireHit: false, status: "exception", note: "Stage G: Daikokuten-gated opener, not the standard Fwd idiom" },
+  { key: "green_lantern",     driver: "updateGreenLanternCommandCombat",    opener: "fixed-slot",    retap: "none", stages: 1, finisher: "none", requireHit: null, srcRequireHit: false, status: "exception", note: "Stage G: fixed-slot construct specials (Option B large-kit), no standard rekka chain" },
+  { key: "kurapika",          driver: "updateKurapikaCommandCombat",        opener: "directional",   retap: "none", stages: 1, finisher: "none", requireHit: null, srcRequireHit: false, status: "exception", note: "Stage G: chain-scan driver, no standard rekkaContinue launcher chain" },
+  { key: "naoya",             driver: "updateNaoyaCommandCombat",           opener: "directional",   retap: "none", stages: 1, finisher: "none", requireHit: null, srcRequireHit: false, status: "exception", note: "Stage G: frame-skip directional strings, not a standard rekka" },
+  { key: "onoki",             driver: "updateOnokiCommandCombat",           opener: "directional",   retap: "none", stages: 1, finisher: "none", requireHit: null, srcRequireHit: false, status: "exception", note: "Stage G: Jinton zoner kit, no standard rekka chain" },
+  { key: "spiderman",         driver: "updateSpidermanCommandCombat",       opener: "directional",   retap: "none", stages: 1, finisher: "none", requireHit: null, srcRequireHit: false, status: "exception", note: "Stage G: web/combo driver without a standard rekkaContinue chain" },
+  { key: "yamamoto",          driver: "updateYamamotoCommandCombat",        opener: "directional",   retap: "none", stages: 1, finisher: "none", requireHit: null, srcRequireHit: false, status: "exception", note: "Stage G: flame directional kit, no standard rekka chain" },
 ]
 
 // ── THE SECOND GRAMMAR — Light→Light→Heavy(→launcher) "standard string" ─────────────────────────
@@ -108,10 +160,26 @@ export const STANDARD_STRING = {
   added:   ["itachi", "yuji", "goku_black", "cell", "tobi", "morty", "albedo", "omololu", "handler"],
 }
 
-// ── TRUE ZONERS — single-poke by design, NO combo string of either grammar ──────────────────────
-// Ranged/setup identities whose combos open with a SPECIAL, not a normal. Deliberately NOT given a
-// combo string (excluded from STANDARD_STRING_CHARS).
-export const ZONER = ["rickPrime", "evilMorty", "beerus", "piccolo", "frieza"]
+// ── SINGLE-POKE (NO combo string of either grammar) ─────────────────────────────────────────────
+// Characters whose offense opens with a SPECIAL/poke, NOT a normal chain — no per-char rekka driver
+// AND not in STANDARD_STRING_CHARS. Originally "true ranged zoners"; the Stage-G additions widen this
+// bucket to include un-chained MELEE identities (deathstroke/jason/miles/vilgax — self-contained
+// specials, no chain by design) and all-special zoners (brainiac). Membership here just records
+// "currently has no combo string" — it is NOT a runtime change (they already behave this way).
+export const ZONER = [
+  "rickPrime", "evilMorty", "beerus", "piccolo", "frieza",   // original ranged zoners
+  // Stage-G coverage (2026-08-29): no command-combat driver + not in STANDARD_STRING_CHARS → single-poke.
+  "brainiac",      // all-special zoner (no normal-tier art — schema exception)
+  "byakuya",       // Senbonzakura petal specials + Shunpo, no normal chain
+  "dark_knight",   // Stage-0 build (no gameplay driver yet) — single-poke until built
+  "deathstroke",   // self-contained sword/gun specials, Stage-3 was an intentional no-chain
+  "gwen",          // caster/summoner — special-opened offense
+  "hiruzen",       // element specials, no standard chain
+  "jason",         // slow bruiser: Relentless Slash special, no chain by design
+  "light",         // Death Note kit: all offense via specials (no up/air normals — see exceptions below)
+  "miles",         // venom-strike rushdown via specials, no normal chain
+  "vilgax",        // sword/blast bruiser via fixed-slot specials, no chain
+]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
 // Stage-1 over-reported "missing normals" by not resolving the `...RANGER_BASICS` spread. The real
@@ -121,11 +189,19 @@ export const ZONER = ["rickPrime", "evilMorty", "beerus", "piccolo", "frieza"]
 // char) goes red; the intentional absences stay documented. `_getMD` (combat.js) accepts the alt spellings.
 export const CORE_NORMALS = ["light", "heavy", "upAttack"]   // the launcher (upAttack) gates the universal air combo → mandatory roster-wide
 export const AIR_NORMALS  = ["airAttack", "downAir"]
+// CORE-normal exemptions — a character whose DESIGN deliberately omits a core normal. Kept DELIBERATELY
+// tiny (a core normal is meant to be universal); each entry needs a real design reason + is stale-checked
+// (must actually be absent, else the exemption is flagged). Value = the absent core key(s).
+export const CORE_NORMAL_EXCEPTIONS = {
+  light: ["upAttack"],   // Death Note kit: no up/air normals by design — anti-air & aerial game are SPECIALS
+                         // (B+Up Ryuk summon, jump+B/Y). Launcher/air-combo route intentionally not built.
+}
 // Chars intentionally missing an air normal — NOT gaps to fill (no fabricated art). Value = the absent keys.
 export const BASE_NORMAL_EXCEPTIONS = {
   rick:          ["downAir"],              // deliberate — "no art exists" (comment in characters.js)
   zaraki:        ["airAttack", "downAir"], // brute: air normals intentionally absent (per its own comment)
   zaraki_shikai: ["airAttack", "downAir"], // inherits Zaraki base
+  light:         ["airAttack", "downAir"], // Death Note kit: aerial game is specials (see CORE_NORMAL_EXCEPTIONS)
   // NOTE: madara/pain replace downAir with `air_heavy` (present) → they are NOT flagged.
 }
 // Resolve a normal against a character's basic_attacks the same way combat.js _getMD does (alt spellings).
@@ -158,14 +234,14 @@ export function classify(key) {
 
 // Expected classification counts — the baseline the harness asserts.
 export const EXPECTED_COUNTS = {
-  rekkaTotal:      REKKA.length,   // 34 (Fwd+Heavy rekka grammar) — +red_ranger_mmpr (Stage 2)
-  conforms:        26,             // Stage C: +netero/ghostface/shinobu/inosuke/tobirama; +red_ranger_mmpr (3-stage punch chain, super-360 launcher)
+  rekkaTotal:      REKKA.length,   // 70 (34 original + 36 Stage-G roster-drift coverage adds)
+  conforms:        54,             // 26 original + 28 Stage-G conforms (driver + Fwd idiom + requireHit source-verified)
   deviatesOpener:  0,              // Stage B DONE
   deviatesFinisher: 0,             // Stage C DONE (Maki stays an exception)
-  exception:       8,
+  exception:       16,             // 8 original + 8 Stage-G (driver present but non-standard opener / no rekka chain)
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  9,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo/omololu) + handler (JJK)
   standardStringTotal:  14,
-  zoner:                5,          // true single-poke zoners (rickPrime/evilMorty/beerus/piccolo/frieza)
-  rosterTotal:          52,        // 34 + 13 + 5 (rekka +red_ranger_mmpr). NOTE: live roster is 53 — `toji` is a PRE-EXISTING unclassified gap (recent rebuild, not yet added to REKKA/NO_REKKA); that partition failure is tracked separately, not part of this Stage-2 work.
+  zoner:                15,         // 5 original ranged zoners + 10 Stage-G single-poke (brainiac/byakuya/dark_knight/deathstroke/gwen/hiruzen/jason/light/miles/vilgax)
+  rosterTotal:          99,        // 70 rekka + 14 standard-string + 15 single-poke = 99 = live roster (Stage-G closes the drift; `toji` now classified)
 }

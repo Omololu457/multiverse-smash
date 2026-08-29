@@ -38,7 +38,12 @@ for (let i = 0; i < STORY_CHAPTERS.length; i++) {
   const beg = await page.evaluate((idx) => window.__harness.story.begin(idx), i);
   check(`ch${i+1} (${exp.num}) enters its pre-fight beat`, beg.gameState === "storyIntro", `state=${beg.gameState}`);
   check(`ch${i+1} matchup is ${exp.player} vs ${exp.opponent}`, beg.p1 === exp.player && beg.p2 === exp.opponent, `${beg.p1} vs ${beg.p2}`);
-  check(`ch${i+1} shows a 2-line dialogue exchange`, Array.isArray(beg.lines) && beg.lines.length === 2);
+  check(`ch${i+1} shows a 2-3 line dialogue exchange`, Array.isArray(beg.lines) && beg.lines.length >= 2 && beg.lines.length <= 3, `lines=${beg.lines?.length}`);
+  check(`ch${i+1} dialogue matches story.js content`, JSON.stringify(beg.lines) === JSON.stringify(exp.pre));
+  // Real-font overflow check (18px Arial, same font drawRivalIntroScreen renders the lines with).
+  const m = await page.evaluate(() => window.__harness.story.introMetrics());
+  check(`ch${i+1} no dialogue line overflows the canvas`, m && !m.overflow, `maxLine=${Math.round(m?.maxWidth)}px limit=${m?.marginLimit}px`);
+  if (exp.narration) check(`ch${i+1} narration beat carries NO attributed speaker`, m.hasSpeaker.every(s => s === false) && m.narrationOnly);
   check(`ch${i+1} runs in story mode`, beg.mode === "story");
 
   const fought = await page.evaluate(() => window.__harness.story.fight());

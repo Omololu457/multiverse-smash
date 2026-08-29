@@ -789,7 +789,8 @@
     "test:bardock": "node harness/bardock.test.mjs",
     "test:vilgax-stage5": "node harness/vilgax_stage5.mjs",
     "test:vilgax": "node harness/vilgax.test.mjs",
-    "test:naoya-hud": "node harness/naoya_frametrap_hud.mjs"
+    "test:naoya-hud": "node harness/naoya_frametrap_hud.mjs",
+    "test:clone-skin-static": "node harness/clone_skin_and_static.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

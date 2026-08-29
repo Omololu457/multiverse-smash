@@ -61,13 +61,13 @@ await waitFrames(30);
   await page.screenshot({ path: path.join(OUT, "hashirama_wood_clone_spawned.png") });
 }
 
-console.log("\n── B. Wood Clone acts INDEPENDENTLY (approach-and-hold) ──");
+console.log("\n── B. Wood Clone is a STATIC decoy (identity concealment — does NOT act on its own) ──");
 {
   const before = (await cloneStates()).map(c => c.x);
-  await waitFrames(70);                          // let the clone walk toward the opponent
+  await waitFrames(70);                          // give it time — a fixed clone must NOT drift toward the opponent
   const after = (await cloneStates()).map(c => c.x);
-  const moved = before.length && after.length && Math.abs(after[0] - before[0]) > 12;
-  check("clone moved on its own toward the opponent", moved, `x ${before[0]?.toFixed?.(0)} → ${after[0]?.toFixed?.(0)}`);
+  const held = before.length && after.length && Math.abs(after[0] - before[0]) <= 4;
+  check("clone HOLDS position (no autonomous movement — indistinguishable from a neutral owner)", held, `x ${before[0]?.toFixed?.(0)} → ${after[0]?.toFixed?.(0)}`);
   const states = await cloneStates();
   check("clone is a live standing decoy (idle state, visible)", states.some(c => c.state === "idle" && !c.hidden), `states=${JSON.stringify(states)}`);
 }
@@ -87,8 +87,13 @@ await waitFrames(20);
 console.log("\n── D. DESPAWN on HIT → reverts to LOGS (wood_clone_release FX) ──");
 await prep(120);
 await page.evaluate(() => window.__harness.spawnP1Clones(2));
-await waitFrames(80);                              // clones walk into P2's range
+await waitFrames(30);                              // clones finish spawn-poof → idle (STATIC: they hold position, no autonomous walk)
 {
+  // Static clones hold their spawn spot. Position deterministically: move p1 to the far side of a clone so P2
+  // (facing its opponent p1) faces THROUGH the clone → its attack overlaps the still wood clone.
+  const cX = await page.evaluate(() => (window.__harness.cloneSpots()[0]?.x ?? 0));
+  await page.evaluate(x => window.__harness.setP1X(x), cX - 160); await waitFrames(2);
+  await page.evaluate(x => window.__harness.setP2X(x), cX + 40); await waitFrames(2);
   const fxBefore = await woodFx();
   const cBefore = await cloneCount();
   await page.evaluate(() => window.__harness.p2Attack?.());   // P2 strikes the nearest wood clone

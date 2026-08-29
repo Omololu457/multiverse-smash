@@ -53,6 +53,9 @@ await page.evaluate(()=>window.__harness.setCloneAggro?.(false));   // hold the 
 await page.evaluate(()=>window.__harness.spawnP1Clones(1)); await wf(30);
 let fx0 = await waterFx();
 const cX = (await cloneXs())[0];
+// STATIC clone holds its spawn spot (behind p1). Move p1 to the far side so p2 (facing its opponent p1)
+// faces THROUGH the clone → its attack overlaps the still clone. Deterministic destroy-by-hit.
+await page.evaluate(x=>window.__harness.setP1X(x), cX-160); await wf(2);
 await page.evaluate(x=>window.__harness.setP2X(x), cX+40); await wf(2);
 await page.screenshot({ path: path.join(OUT, "tobirama_clone_1_standing.png") });
 await page.evaluate(()=>window.__harness.p2Attack?.()); await wf(6);

@@ -36,6 +36,7 @@ import {
   revealClonesHitByProjectiles,            // decoy hit-reveal: a projectile poofs a clone (any-hit reveal)
   revealClonesHitByMelee,                  // decoy hit-reveal: a MELEE swing poofs a clone at the real-hit frame (fixes hit-or-miss)
   swapConsciousnessWithClone,              // Stage 3 consciousness-swap: trade places with a live clone ("/" key)
+  cloneRenderSheet,                        // resolved (skin-inherited) sheet a clone renders — for skin-match verification
   setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
 import { physics } from "./physics.js"
@@ -16914,6 +16915,8 @@ gameLoop()
     swapP1Clone: () => { if (!p1 || !isCloneCapable(p1)) return null; const before = countShadowClones(p1); const fromX = Math.round(p1.x), fromY = Math.round(p1.y); const c = swapConsciousnessWithClone(p1, getOpponent(p1)); if (!c) return null; return { fromX, fromY, toX: Math.round(p1.x), toY: Math.round(p1.y), cloneCountBefore: before, cloneCountAfter: countShadowClones(p1) } },
     p1WorldPos: () => (p1 ? { x: Math.round(p1.x), y: Math.round(p1.y) } : null),
     cloneSpots: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), y: Math.round(s.y), state: s._state, sheet: s.sheet })),
+    // Skin-match probe: the RESOLVED render sheet (owner-skin-inherited) for each p1 clone + the owner's active skin id.
+    cloneRenderSheets: () => ({ ownerSkin: p1?.skinId || null, ownerSkinAnimIdle: p1?._skinAnim?.idle?.sheet || null, clones: activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => cloneRenderSheet(s)) }),
     setP1Hitstun: (t = 30) => { if (p1) p1.hitstun = t },   // Stage 3: drive a combo state to prove the swap breaks hitstun (the escape)
     p1Hitstun: () => (p1 ? (p1.hitstun || 0) : -1),
     p1SwapCd:  () => (p1 ? (p1._cloneSwapCd || 0) : -1),

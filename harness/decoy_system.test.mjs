@@ -56,7 +56,9 @@ async function suite(charKey) {
   section(`${charKey.toUpperCase()} — decoy system`);
   await boot(charKey);
 
-  // 1. Independent movement: clones approach the opponent.
+  // 1. STATIC/MIRROR decoy (identity concealment): with NO player input, clones must NOT advance on their own —
+  //    they hold position (mirroring a neutral owner), so they're indistinguishable from the real body. (The old
+  //    autonomous "approach the opponent" behavior was removed; it's opt-in via setCloneAggro, tested elsewhere.)
   await prep(360);
   const oppX = (await p2()).x;
   await page.evaluate(() => window.__harness.spawnP1Clones(2));
@@ -64,7 +66,7 @@ async function suite(charKey) {
   const d0 = Math.abs(avg(await cloneXs()) - oppX);
   await waitFrames(70);
   const d1 = Math.abs(avg(await cloneXs()) - oppX);
-  check(`${charKey}: clones move independently toward the opponent`, d1 < d0 - 40, `dist ${d0.toFixed(0)}→${d1.toFixed(0)}`);
+  check(`${charKey}: clones HOLD position with no input (no autonomous approach — indistinguishable from a neutral owner)`, Math.abs(d1 - d0) <= 8, `dist ${d0.toFixed(0)}→${d1.toFixed(0)}`);
 
   // 2. STANDING CLONE = ZERO TELL by default (confirmed design: pixel-identical, no wash). The
   //    setCloneTell wash survives only as a training/debug lever — assert it still flips both ways.

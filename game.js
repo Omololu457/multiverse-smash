@@ -37,6 +37,7 @@ import {
   revealClonesHitByMelee,                  // decoy hit-reveal: a MELEE swing poofs a clone at the real-hit frame (fixes hit-or-miss)
   swapConsciousnessWithClone,              // Stage 3 consciousness-swap: trade places with a live clone ("/" key)
   cloneRenderSheet,                        // resolved (skin-inherited) sheet a clone renders — for skin-match verification
+  getCloneMirrorRenderCount,               // mirror-render probe: clones replaying the owner's exact frame
   setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
 import { physics } from "./physics.js"
@@ -16908,6 +16909,9 @@ gameLoop()
     // Stage EXACTLY n shadow clones on P1 immediately (bypasses the ~2.5s audio-window delay of the
     // "," hotkey, which leaves a lingering delayed spawn that races the clone-count gates). Clone users only.
     spawnP1Clones:  (n = 2) => { if (!p1 || !isCloneCapable(p1)) return 0; dispelShadowClones(p1); for (let i = 0; i < n; i++) spawnShadowClone(p1, getOpponent(p1)); return countShadowClones(p1) },
+    // TEST: pin every p1 clone at its current spot (disables mirror tracking) so a hit-reveal test can isolate a
+    // clone and move p1 away without the clone following. Returns the pinned clones' x positions.
+    pinP1Clones: () => { const cs = activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1); cs.forEach(s => { s._mirrorPinned = true }); return cs.map(s => Math.round(s.x)) },
     waterCloneFx:   () => getWaterCloneFxCount(),   // Tobirama water-clone despawn FX counts {burst(destroy), ripple(dismiss), total}
     dispelP1Clones: () => (p1 ? dispelShadowClones(p1) : 0),
     // Stage 3 consciousness-swap probes: direct swap (bypasses the key path for a deterministic check) +
@@ -16917,10 +16921,12 @@ gameLoop()
     cloneSpots: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), y: Math.round(s.y), state: s._state, sheet: s.sheet })),
     // Skin-match probe: the RESOLVED render sheet (owner-skin-inherited) for each p1 clone + the owner's active skin id.
     cloneRenderSheets: () => ({ ownerSkin: p1?.skinId || null, ownerSkinAnimIdle: p1?._skinAnim?.idle?.sheet || null, clones: activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => cloneRenderSheet(s)) }),
-    // DIAGNOSTIC: measured on-screen render size of the OWNER vs each clone in the SAME frame (Reading A check).
+    // DIAGNOSTIC: measured on-screen render size of the OWNER vs each clone in the SAME frame (Reading A check) +
+    // mirror state (Reading B): owner's live action/pose, mirror-render count, and each clone's tracked offset.
     cloneRenderMetrics: () => ({
-      owner: p1 ? { lastDrawH: Math.round(p1._lastDrawH || 0), lastDrawW: Math.round(p1._lastDrawW || 0), spriteScale: p1.spriteScale ?? null, globalScale: 1.18, effectiveScale: +(((p1.spriteScale ?? 1) * 1.18).toFixed(3)) } : null,
-      clones: activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ renderH: Math.round(s._renderH || 0), renderW: Math.round(s._renderW || 0), spriteScale: s.spriteScale ?? null, spriteH: s.spriteH ?? null, state: s._state })),
+      owner: p1 ? { lastDrawH: Math.round(p1._lastDrawH || 0), lastDrawW: Math.round(p1._lastDrawW || 0), spriteScale: p1.spriteScale ?? null, globalScale: 1.18, effectiveScale: +(((p1.spriteScale ?? 1) * 1.18).toFixed(3)), action: p1.spriteHandler?.currentAction || null, x: Math.round(p1.x || 0) } : null,
+      mirrorRenders: getCloneMirrorRenderCount(),
+      clones: activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ renderH: Math.round(s._renderH || 0), renderW: Math.round(s._renderW || 0), state: s._state, x: Math.round(s.x || 0), mirrorDx: s._mirrorDx != null ? Math.round(s._mirrorDx) : null })),
     }),
     setP1Hitstun: (t = 30) => { if (p1) p1.hitstun = t },   // Stage 3: drive a combo state to prove the swap breaks hitstun (the escape)
     p1Hitstun: () => (p1 ? (p1.hitstun || 0) : -1),

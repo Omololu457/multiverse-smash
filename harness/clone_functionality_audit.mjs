@@ -59,8 +59,9 @@ for (const who of ["naruto","minato","hashirama","tobirama"]) {
   //     then fire p2's REAL "light" move (rangeX 120). Clone must be past its spawn-poof (idle) first.
   await wf(30);   // clone finishes its spawn-poof → idle (hittable) state
   const cX = (await cloneXs())[0];
-  // Static clones hold their spawn spot (behind p1). Move p1 to the FAR side of the clone so p2 — which faces
-  // its opponent (p1) — faces THROUGH the clone; its attack then overlaps the clone. Fully deterministic.
+  // PIN the clone so it stops mirroring the owner, then move p1 to the FAR side of the clone so p2 — which
+  // faces its opponent (p1) — faces THROUGH the pinned clone; its attack then overlaps it. Fully deterministic.
+  await page.evaluate(() => window.__harness.pinP1Clones()); await wf(1);
   await page.evaluate(x => window.__harness.setP1X(x), cX - 160); await wf(2);
   await page.evaluate(x => window.__harness.setP2X(x), cX + 40);   // p2 just right of the clone, facing p1 (left) → hitbox overlaps the clone
   await wf(2);

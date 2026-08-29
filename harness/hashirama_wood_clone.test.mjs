@@ -92,6 +92,7 @@ await waitFrames(30);                              // clones finish spawn-poof â
   // Static clones hold their spawn spot. Position deterministically: move p1 to the far side of a clone so P2
   // (facing its opponent p1) faces THROUGH the clone â†’ its attack overlaps the still wood clone.
   const cX = await page.evaluate(() => (window.__harness.cloneSpots()[0]?.x ?? 0));
+  await page.evaluate(() => window.__harness.pinP1Clones()); await waitFrames(1);   // stop clones mirroring so moving p1 doesn't drag them
   await page.evaluate(x => window.__harness.setP1X(x), cX - 160); await waitFrames(2);
   await page.evaluate(x => window.__harness.setP2X(x), cX + 40); await waitFrames(2);
   const fxBefore = await woodFx();

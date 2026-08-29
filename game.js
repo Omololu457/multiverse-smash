@@ -462,6 +462,7 @@ import { pickNezukoVoice, NEZUKO_VOICE } from "./nezukoVoice.js"   // Nezuko int
 import { pickJasonVoice, JASON_VOICE } from "./jasonVoice.js"     // Jason non-verbal combat SFX pools + harness hook (audio-only; effort/pain/roar by trigger)
 import { pickMiwaVoice, MIWA_VOICE } from "./miwaVoice.js"   // Miwa intro(+taunt)/win voice pools (audio-only, JP dub)
 import { pickMadaraVoice, MADARA_VOICE } from "./madaraVoice.js"   // Madara intro(+taunt)/win voice pools (audio-only, JA)
+import { pickLightVoice, LIGHT_VOICE } from "./lightVoice.js"   // Light Yagami intro(+taunt)/win voice pools (audio-only, JA; duration-sorted unidentified pack)
 import { pickHashiramaVoice, HASHIRAMA_VOICE } from "./hashiramaVoice.js"   // Hashirama intro(+taunt)/win/clone voice pools (audio-only, JA)
 import { pickPainVoice, PAIN_VOICE } from "./painVoice.js"   // Pain intro(+taunt)/win voice pools (audio-only, JA)
 import { pickObitoVoice, OBITO_VOICE } from "./obitoVoice.js"   // Obito intro(+taunt)/win voice pools (audio-only, JA)
@@ -2748,6 +2749,9 @@ const INTRO_VOICE = {
   // namecall entry (his namecall beat skips cleanly).
   mayuri: { pick: () => pickMayuriVoice("intro"), gateReveal: false },
   yamamoto: { pick: () => pickYamamotoVoice("intro"), gateReveal: false },
+  // Light Yagami (Kira) picks ONE opening line per match. No taunt action → intro + taunt-vibe pools are
+  // duration-sorted from the same unidentified 236-clip pack (see lightVoice.js); intro fires here. JA.
+  light: { pick: () => pickLightVoice("intro"), gateReveal: false },
   // Netero intro voice removed (audio files deleted); with no entry here he skips the intro-voice
   // beat cleanly (maybeFireIntroVoice no-ops for unmapped fighters). Re-add an entry to re-enable.
 }
@@ -3984,6 +3988,11 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "naruto") {
         const narutoWins = ["naruto_win.mp3", "naruto_win_alt.mp3", "naruto_ninja_way.mp3"]
         sound.playSfxFile?.(narutoWins[Math.floor(Math.random() * narutoWins.length)], null)
+      }
+      // LIGHT YAGAMI win voice — one of his victory lines at random (duration-sorted from the unidentified
+      // 236-clip pack; see lightVoice.js). Fires only when the WINNER is Light. Audio wired to the shared win state.
+      if (winFighter?.rosterKey === "light") {
+        sound.playSfxFile?.(pickLightVoice("win"), null)
       }
       // MINATO win voice — one of three victory lines at random ("I win", "this is my victory", "…connects to the future").
       if (winFighter?.rosterKey === "minato") {
@@ -17042,6 +17051,8 @@ gameLoop()
     madaraVoicePool: (pool) => (MADARA_VOICE[pool] || []).slice(),
     hashiramaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickHashiramaVoice(pool)),
     hashiramaVoicePool: (pool) => (HASHIRAMA_VOICE[pool] || []).slice(),
+    lightVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickLightVoice(pool)),
+    lightVoicePool: (pool) => (LIGHT_VOICE[pool] || []).slice(),
     painVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickPainVoice(pool)),
     painVoicePool: (pool) => (PAIN_VOICE[pool] || []).slice(),
     obitoVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickObitoVoice(pool)),

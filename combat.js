@@ -47,6 +47,7 @@ import { pickYujiVoice } from "./yujiVoice.js"   // Yuji hit-react / offense-bar
 import { pickMiwaVoice } from "./miwaVoice.js"   // Miwa hit-react / offense-bark / low-health voice pools (audio-only, JP dub)
 import { pickMadaraVoice } from "./madaraVoice.js"   // Madara hit-react / offense-bark / low-health voice pools (audio-only, JA)
 import { pickHashiramaVoice } from "./hashiramaVoice.js"   // Hashirama hit-react / offense-bark / low-health voice pools (audio-only, JA)
+import { pickLightVoice } from "./lightVoice.js"   // Light Yagami hit-react / offense-bark / low-health voice pools (audio-only, JA; duration-sorted unidentified pack)
 import { pickPainVoice } from "./painVoice.js"   // Pain hit-react / offense-bark / low-health voice pools (audio-only, JA)
 import { pickObitoVoice } from "./obitoVoice.js"     // Obito hit-react / offense-bark / low-health voice pools (audio-only, JA)
 import { pickTobiVoice } from "./tobiVoice.js"       // Tobi (masked Obito alias) general combat-bark pool (audio-only, JA — separate from Obito's)
@@ -1525,6 +1526,30 @@ function applyHashiramaLowHealthVoice(defender) {
     try { sound?.playSfxFile?.(pickHashiramaVoice("lowHealth"), null) } catch (_) {}
   }
 }
+// LIGHT YAGAMI voice (audio-only, JA) — mirrors the Madara hit/offense/low-health hooks; special/ultimate
+// cast lines live on his abilities (abilities.js). Unidentified pack → general (not per-technique) barks.
+function applyLightHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "light" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickLightVoice("hitReact"), null) } catch (_) {}
+}
+function applyLightOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "light" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickLightVoice("combatBark"), null) } catch (_) {}
+}
+function applyLightLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "light" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000
+  const hp  = defender.health || 0
+  if (hp > 0 && hp <= max * MAKI_LOW_HEALTH_RATIO) {
+    defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickLightVoice("lowHealth"), null) } catch (_) {}
+  }
+}
 // PAIN voice (audio-only, JA) — mirrors the Madara hit/offense/low-health hooks; per-technique cast lines
 // (Shinra Tensei / Bansho Ten'in / Chibaku Tensei) + assist calls live on his specials/ult (abilities.js).
 // SHARED with SIX PATHS OF PAIN: the multi-identity char reuses solo Pain's exact audio files (no source
@@ -2995,6 +3020,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyMiwaHitVoice(defender, cat, dmg)
     applyMadaraHitVoice(defender, cat, dmg)
     applyHashiramaHitVoice(defender, cat, dmg)
+    applyLightHitVoice(defender, cat, dmg)
     applyPainHitVoice(defender, cat, dmg)
     applyObitoHitVoice(defender, cat, dmg)
     // ICHIGO hit-reaction voice — "Seriously?" / "That was close!" / "Damn!" (JA).
@@ -3046,6 +3072,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyMiwaLowHealthVoice(defender)   // Miwa "I can't lose!" / "I won't give up yet!" (once, crossing 30%)
     applyMadaraLowHealthVoice(defender)   // Madara low-health bark (once, crossing the line)
     applyHashiramaLowHealthVoice(defender)   // Hashirama low-health bark (once, crossing the line)
+    applyLightLowHealthVoice(defender)   // Light Yagami low-health bark (once, crossing the line)
     applyPainLowHealthVoice(defender)   // Pain low-health bark (once, crossing the line)
     applyObitoLowHealthVoice(defender)   // Obito low-health bark (once, crossing the line)
     applyIchigoLowHealthVoice(defender)   // Ichigo "It's not over yet!" / "I'll overcome it!" (once, crossing 30%)
@@ -3164,6 +3191,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyMiwaOffenseVoice(attacker, cat, !defender.isBlocking)     // Miwa combat bark on a heavy/long-string connect (iaiDash/airVortex/ultimate use their own cast lines)
   applyMadaraOffenseVoice(attacker, cat, !defender.isBlocking)   // Madara combat bark on a heavy/long-string connect (specials/ult use their own cast lines)
   applyHashiramaOffenseVoice(attacker, cat, !defender.isBlocking)   // Hashirama combat bark on a heavy/long-string connect (specials/ult use their own cast lines)
+  applyLightOffenseVoice(attacker, cat, !defender.isBlocking)   // Light Yagami combat bark on a heavy/long-string connect (specials/ult use their own cast lines)
   applyPainOffenseVoice(attacker, cat, !defender.isBlocking)   // Pain combat bark on a heavy/long-string connect (specials/ult use their own cast lines)
   applyObitoOffenseVoice(attacker, cat, !defender.isBlocking)   // Obito combat bark on a heavy/long-string connect (specials/ult/Kamui use their own cast lines)
   applyTobiOffenseVoice(attacker, cat, !defender.isBlocking)    // Tobi combat bark on a heavy/long-string connect (specials/ult use their own cast lines; own pool, no Obito coupling)

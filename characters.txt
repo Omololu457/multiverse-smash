@@ -3471,3 +3471,137 @@ POSSIBLE ADDITIONS (grounded in sprite/asset comments — NOT invented)
   - Dedicated lose art (currently REUSES knockdown/lying)
   - Restructure into a real 2-form transform build if a full transformed sheet is supplied later
 
+
+################################################################################
+################################################################################
+##                                                                            ##
+##   PART 3 — VOICE-LINE COVERAGE                                             ##
+##   (which roster entries have NO voice lines)                               ##
+##                                                                            ##
+################################################################################
+################################################################################
+
+Generated: 2026-08-29.  (CORRECTED 2026-08-29 — see method note.)
+
+Method / source of truth: a character "HAS voice lines" if it emits voice audio
+in-game. That happens TWO ways in this codebase:
+  (a) a dedicated `<rosterKey>Voice.js` module (loaded via index.html import map,
+      hooked in game.js/combat.js/abilities.js), OR
+  (b) INLINE wiring — mp3 filenames guarded by `rosterKey === "..."` directly in
+      game.js/combat.js/abilities.js, with NO module file.
+An earlier version of this section keyed only off (a) and so WRONGLY listed the
+inline-wired characters (naruto, sasuke, beerus, omega_ranger, goku_black) as
+voiceless. They speak — several even have voice test harnesses. Corrected below.
+characters.js itself carries no inline voice data. Re-run when wiring changes.
+
+TALLY: 99 roster entries — 53 HAVE voice lines, 46 do NOT.
+  - 48 via a Voice.js module (the original 47 + light_yagami, wired 2026-08-29).
+  - 5 via inline wiring, no module: naruto, sasuke, beerus, omega_ranger, goku_black.
+
+LIGHT YAGAMI (light) — wired 2026-08-29. He had 236 audio clips on disk but ZERO
+wiring (the single largest unused voice pack in the repo). Now voiced via a new
+lightVoice.js: the 236 UNIDENTIFIED clips (no transcript) are duration-sorted into
+disjoint pools (intro/taunt/win/combatBark/hitReact/lowHealth/specialCast/ultimate)
+— the same signal-sorted approach used for mayuri/kiba/orochimaru/jason — and hooked
+for intro, win, hit-react, low-health, offense bark, all 7 specials, and both
+ultimates. Harness: `npm run test:light-voice` (13/0). Content-blind pending a
+transcript (flagged in lightVoice.js header).
+
+================================================================================
+CHARACTERS WITHOUT VOICE LINES (46)
+================================================================================
+Every entry below has NO voice audio on disk, so voice CANNOT be added without
+first sourcing/recording clips. (Netero once had voice; his audio files were
+deleted, so his hooks are commented out — same asset blocker.) This is the
+"awaiting source audio" backlog — not a wiring gap.
+
+== DRAGON BALL ==
+  Goku  (goku)
+  Dark Vegeta  (vegeta_dark)
+  Piccolo  (piccolo)
+  Frieza  (frieza)
+  Cell  (cell)                     -- dev-only stub (isPlayable: false)
+  Vegito  (vegito)
+  Teen Gohan  (gohan)
+  Gotenks  (gotenks)
+  Bardock  (bardock)
+
+== JUJUTSU KAISEN ==
+  Aoi Todo  (aoi_todo)
+  Yuta Okkotsu  (yuta)
+  Megumi / Handler  (handler)
+
+== NARUTO ==
+  Kakashi  (kakashi)
+  Onoki  (onoki)
+  Six Paths of Pain  (six_paths_pain)   -- variant of pain
+
+== RICK AND MORTY ==
+  Morty Smith  (morty)
+  Evil Morty  (evilMorty)
+  Rick Prime  (rickPrime)
+
+== BEN 10 ==
+  Ben 10  (ben10)
+  Albedo  (albedo)
+  Vilgax  (vilgax)
+
+== POWER RANGERS ==
+  Green Samurai Ranger  (green_samurai_ranger)
+  Red Ranger (Mighty Morphin)  (red_ranger_mmpr)
+
+== HUNTER X HUNTER ==
+  Isaac Netero  (netero)          -- had voice; audio files deleted (hooks commented out)
+  Kurapika  (kurapika)
+
+== DC ==
+  Superman (Custom / DCUC)  (superman_dcuc)     -- variant
+  Superman (New 52)  (superman_new52)           -- variant
+  Superman (Classic)  (superman_classic)        -- variant
+  Superman (Fighter)  (superman_fighter)        -- variant
+  Deathstroke  (deathstroke)
+  Brainiac  (brainiac)
+  Green Lantern  (green_lantern)
+  Batman (Dark Knight)  (dark_knight)           -- variant; base `batman` has voice
+
+== MARVEL ==
+  Iron Man  (iron_man)
+  Iron Man 2  (iron_man_2)
+  Iron Man 3  (iron_man_3)
+  Gwen  (gwen)
+  Miles Morales  (miles)
+
+== BLEACH ==
+  Zaraki Kenpachi (Shikai)  (zaraki_shikai)     -- variant; base `zaraki` has voice
+  Byakuya Kuchiki  (byakuya)
+
+== BAKI ==
+  Baki Hanma  (baki)
+
+== ONE PUNCH MAN ==
+  Genos  (genos)
+
+== HAJIME NO IPPO ==
+  Ippo Makunouchi  (ippo)
+
+== DEATH NOTE ==
+  L  (l_ryuuzaki)
+
+== HORROR ==
+  Billy Ghostface  (ghostface_billy)            -- variant; base `ghostface` has voice
+
+== ORIGINAL (dev-only) ==
+  Omololu  (omololu)                -- dev-only stub (isPlayable: false)
+
+================================================================================
+HAVE voice lines (53) — for reference
+================================================================================
+Via Voice.js module (48): vegeta, gojo, sukuna, alt_sukuna, itachi, tobirama,
+hashirama, minato, madara, pain, obito, tobi, isshiki, zenitsu, rengoku, shinobu,
+inosuke, nezuko, rick, samurai_red_ranger, gold_samurai_ranger, omniman, chrollo,
+saiki, killua, flash, gon, batman, hisoka, superman, maki, toji, miwa, ghostface,
+jason, hiruzen, yuji, ichigo, zaraki, saitama, orochimaru, mayuri, kiba, boruto,
+yamamoto, spiderman, naoya, light.
+Via inline wiring, no module (5): naruto, sasuke, beerus, omega_ranger, goku_black.
+(flashReverseVoice.js also exists — a Reverse-Flash skin voice pool under `flash`,
+not a separate roster entry.)

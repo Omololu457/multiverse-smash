@@ -576,6 +576,7 @@
     "test:tobirama": "node harness/tobirama.test.mjs",
     "test:hashirama": "node harness/hashirama.test.mjs",
     "test:hashirama-voice": "node harness/hashirama_voice.test.mjs",
+    "test:light-voice": "node harness/light_voice.test.mjs",
     "test:hashirama-spec-glow": "node harness/hashirama_spec_glow_shot.mjs",
     "test:hashirama-wood-clone": "node harness/hashirama_wood_clone.test.mjs",
     "test:clone-audit": "node harness/clone_functionality_audit.mjs",

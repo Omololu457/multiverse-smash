@@ -77,6 +77,7 @@ import { pickMiwaVoice } from "./miwaVoice.js"                 // Miwa iaiDash/a
 import { pickMadaraVoice } from "./madaraVoice.js"            // Madara per-technique cast voice pools (audio-only, JA — Katon/Gunbai/Mokuton/Susanoo/Tengai/Complete)
 import { pickHashiramaVoice } from "./hashiramaVoice.js"      // Hashirama per-technique cast voice pools (audio-only, JA — Kunai/MokutonArm/TreeSummon/WoodGolem/Gates/WoodPunch/Sealing)
 import { pickObitoVoice } from "./obitoVoice.js"              // Obito per-technique cast voice pools (audio-only, JA — Kamui-activate/Kamui-warp/throws/Juubi)
+import { pickLightVoice } from "./lightVoice.js"             // Light Yagami special/ultimate cast voice pools (audio-only, JA; duration-sorted unidentified pack)
 import { pickTobiVoice } from "./tobiVoice.js"               // Tobi (masked Obito alias) special-cast voice pool (audio-only, JA — separate module from Obito)
 import { pickZarakiVoice } from "./zarakiVoice.js"            // Zaraki cast voice pools (audio-only, JA — Shikai release / Bankai / Yachiru assist)
 import { pickIchigoVoice } from "./ichigoVoice.js"           // Ichigo per-technique cast voice pools (audio-only, JA — Getsuga/Charged/Hollow Getsuga/Hollow Rising/Aerial/Zangetsu rekka)
@@ -7964,6 +7965,11 @@ export function executeLightSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "light") return false
   const dir = fighter._specialHeldDir || null            // "F" | "B" | "U" | "D" | null
   const grounded = fighter.onGround ?? fighter.grounded ?? true
+  // VOICE: Kira call-in cast line (audio-only, one per cast; shared across all 7 specials — the pack is
+  // unidentified so it's a general cast bark, not per-technique). Cooldown-gated to avoid rapid re-fire.
+  if ((fighter._atkVoiceCd || 0) <= 0) {
+    try { sound.playSfxFile?.(pickLightVoice("specialCast"), null); fighter._atkVoiceCd = 120 } catch (_) {}
+  }
   if (!grounded) {                                        // ── AIR context ──
     if (dir === "F") return fireLightSummon(fighter, context, "airpunch")   // jump+Y air punch (highest air dmg)
     return fireLightSummon(fighter, context, "gunman")                      // jump+B gunman rocket (long-range)
@@ -8009,6 +8015,8 @@ export function executeLightUltimate(fighter, context) {
   fighter._ultVariant = null                                             // consume the selector
   const opp = getTargetResolver(context)(fighter) || null
   fighter.vx = 0
+  // VOICE: ultimate declaration ("As Planned" / "I Am Kira") — the longest, most dramatic pooled lines.
+  try { sound.playSfxFile?.(pickLightVoice("ultimate"), null); fighter._atkVoiceCd = 150 } catch (_) {}
   fighter._spriteCastMove  = scythe ? "lightScythe" : "lightUltWrite"    // LIVE fighter plays the writing / scythe cast
   fighter._spriteCastTimer = LIGHT_ULT.dur
   fighter.attackCooldown   = getAttackDuration(LIGHT_ULT.dur, fighter)   // committed through the cinematic

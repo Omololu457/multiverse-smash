@@ -34,6 +34,8 @@ import {
   setCloneAggro, isCloneAggro,             // clone behavior-AI master toggle (active lunge-strike vs legacy decoy)
   isCloneCapable,                          // single source of truth: does this char have the shadow-clone mechanic?
   revealClonesHitByProjectiles,            // decoy hit-reveal: a projectile poofs a clone (any-hit reveal)
+  revealClonesHitByMelee,                  // decoy hit-reveal: a MELEE swing poofs a clone at the real-hit frame (fixes hit-or-miss)
+  swapConsciousnessWithClone,              // Stage 3 consciousness-swap: trade places with a live clone ("/" key)
   setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
 import { physics } from "./physics.js"
@@ -96,6 +98,8 @@ import {
   updateGohanCommandCombat,   // Teen Gohan "Rush Combo" chain (Fwd+Heavy 3-stage rekka: advancing punch → crescent sweep kick → spin-roundhouse launcher, cancel-on-hit)
   updateKakashiCommandCombat, // Kakashi "Y-Combo" chain (Fwd+Heavy 3-stage rekka: kunai draw-slash → punch flurry → orange kick launcher, cancel-on-hit)
   updateGotenksCommandCombat, // Gotenks "Kamikaze Barrage" chain (Fwd+Heavy 3-stage rekka: advancing punch → rapid motion-blur barrage → finishing flurry, cancel-on-hit)
+  updateNarutoRendanCombat,   // Naruto "Uzumaki Rendan" input-SEQUENCED clone barrage (Fwd+Heavy, gated on >=3 clones; each beat spends a clone; cancel-on-hit lenient ladder)
+  updateItachiFireFlowerCombat, // Itachi "Fire-Flower Barrage" (Fwd+Heavy, gated on >=2 clones; each beat spends a clone → Great Fireball from its mark; timing-based zoning)
   updateIppoCommandCombat,    // Ippo "Y-Jabs" chain (Fwd+Heavy 2-stage rekka: rapid jab flurry → committed straight-punch flurry, cancel-on-hit)
   updateVegitoCommandCombat,  // Vegito "Ultra Rush" (Fwd+Heavy 3-stage rekka: dash-in slash opener → crescent slashes → big crescent launcher, cancel-on-hit)
   updateBardockCommandCombat, // Bardock "Blade Rush" (Fwd+Heavy 3-stage SWORD rekka: forward thrust → overhead slash → rising spin-slash launcher, cancel-on-hit)
@@ -753,6 +757,9 @@ const DEFAULT_SPEED         = 9
 const DEFAULT_JUMP          = 9
 const CENTER_SPAWN_GAP      = 220
 const EDGE_SPAWN_PADDING    = 80
+// Consciousness-swap (Stage 3) tuning: frames of cooldown between swaps (anti-spam) + brief arrival i-frames.
+const CLONE_SWAP_COOLDOWN   = 75   // ~1.25s @60fps before the next "/" swap
+const CLONE_SWAP_IFRAMES    = 10   // invuln on arrival so the swap is a real escape, not a trade-into-a-meaty
 const ROUND_TIME            = 5400   // 90 seconds @ 60fps
 
 const GAME_STATES = {
@@ -5075,6 +5082,7 @@ function updateMiscTimers(fighter) {
   if (!fighter) return
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
   if (fighter._naoyaFrozen    > 0) fighter._naoyaFrozen--                 // Naoya Frame-Trap freeze status (live-ticking, distinct from hitstun)
+  if (fighter._ftFlash) { if (--fighter._ftFlash.t <= 0) fighter._ftFlash = null }   // Naoya Frame-Trap HUD drop/freeze flash fade
   if (fighter._naoyaUltTimer  > 0) fighter._naoyaUltTimer--               // Naoya ultimate (guaranteed Frame-Trap) cinematic marker
   if (fighter._hitVoiceCd     > 0) fighter._hitVoiceCd--                  // Beerus/Goku Black/Naruto hit-reaction voice cooldown (combat.js)
   if (fighter._atkVoiceCd     > 0) fighter._atkVoiceCd--                  // Naruto offense (Hokage/combo-burst) voice cooldown (combat.js)
@@ -5162,6 +5170,7 @@ function updateMiscTimers(fighter) {
   if (fighter._playfulCloudCd > 0) fighter._playfulCloudCd--               // Toji Playful Cloud cooldown (no-energy special)
   if (fighter._flyHeadCd > 0) fighter._flyHeadCd--                         // Toji Fly Heads swarm cooldown (no-energy special)
   if (fighter._flyBarrageCd > 0) fighter._flyBarrageCd--                   // Toji OFFENSIVE Fly Heads swarm (Down+Heavy damaging projectile fan) cooldown
+  if (fighter._cloneSwapCd > 0) fighter._cloneSwapCd--                     // Stage 3 consciousness-swap ("/") cooldown
   if (fighter._tojiFlyFadeTimer > 0) {                                     // Toji Fly Heads self-fade window (render-only near-invisibility)
     fighter._tojiFlyFadeTimer--
     if (!isTojiFlyHeadsSwarmActive()) fighter._tojiFlyFadeTimer = 0        // swarm ended (naturally or via round/KO reset) → snap back to visible
@@ -5761,6 +5770,19 @@ function _updatePlayerCombatBody(fighter) {
   // the string. Consumes the input only when it fires; neutral heavy stays the normal sweeping kick.
   if ((fighter.rosterKey || "").toLowerCase() === "kakashi" && !charging &&
       updateKakashiCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // NARUTO "Uzumaki Rendan" (Stage 2 input-SEQUENCED clone barrage): with >=3 live clones, Fwd+Heavy opens
+  // uzumakiRendan1 (up-kick launcher), re-tap Heavy during recovery to cancel through the juggle beats →
+  // finisher — cancel-on-hit (miss a beat = string ends, keep what landed); each beat spends one clone, so the
+  // chain length scales with clones committed. Below 3 clones this is inert → Fwd+Heavy stays the normal heavy.
+  if ((fighter.rosterKey || "").toLowerCase() === "naruto" && !charging &&
+      updateNarutoRendanCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // ITACHI "Fire-Flower Barrage" (Stage 4 signature): with >=2 live clones, Fwd+Heavy opens a TIMING-based
+  // cast chain where each beat spends a clone and it breathes a Great Fireball from its mark (zoning). Below
+  // 2 clones this is inert → Fwd+Heavy stays the normal heavy.
+  if ((fighter.rosterKey || "").toLowerCase() === "itachi" && !charging &&
+      updateItachiFireFlowerCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // VEGITO "Ultra Rush": Fwd+Heavy opens vegitoRush1 (dash-in slash), re-tap Heavy during recovery to cancel
   // into vegitoRush2 (crescent slashes) → vegitoRush3 (big crescent launcher) — cancel-on-hit; whiff/block
@@ -9709,6 +9731,61 @@ function drawHandlerMahoragaHUD(c, fighter) {
   c.restore()
 }
 
+// NAOYA — PROJECTION SORCERY "24-frame" HUD. Makes the otherwise-invisible Frame-Trap execution pressure
+// LEGIBLE above Naoya's head: the L→H→L step pips (completed / active / pending), a per-beat countdown bar +
+// frames-left number (the "frame" window ticking down — urgency colour green→amber→red), and a fading DROP /
+// FRAMES-SET flash on failure / clean finish. Pure render layer off _ftState / _ftFlash (fed by abilities.js);
+// no hitbox, no state mutation → determinism-safe. Coords use _lastDraw* (the same camera-transformed space the
+// sibling above-head HUDs use). A no-op for anyone who isn't Naoya mid-projection.
+let _naoyaFtHudRenders = 0   // harness evidence: counts frames the HUD actually drew
+function drawNaoyaFrameTrapHUD(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "naoya") return
+  const st = fighter._ftState, flash = fighter._ftFlash
+  if (!st && !flash) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  _naoyaFtHudRenders++
+  // ★ HUD LAYOUT TUNABLES: topY (height above head), pip size (w*0.26) + gap, and the urgency thresholds
+  // (frac < 0.34 red / < 0.6 amber) below. Timing/freeze values live in abilities.js NAOYA_FT (the gameplay knobs).
+  const cx = x + w / 2, topY = y - h * 0.30
+  c.save()
+  c.textAlign = "center"; c.textBaseline = "middle"
+  if (st) {
+    const seq = st.seq || ["light", "heavy", "light"]
+    const n = seq.length
+    const pip = Math.max(12, Math.round(w * 0.26)), gap = pip * 0.5
+    const rowW = n * pip + (n - 1) * gap
+    let px = cx - rowW / 2
+    for (let i = 0; i < n; i++) {
+      const label = String(seq[i] || "?")[0].toUpperCase()
+      const done = i < st.step, active = i === st.step
+      c.globalAlpha = done || active ? 0.96 : 0.7   // pending pips stay readable — seeing the plan ahead is the point
+      c.fillStyle = done ? "#4ade80" : active ? "#ffffff" : "#5b5378"
+      c.fillRect(px, topY - pip / 2, pip, pip)
+      if (active) { c.globalAlpha = 0.95; c.lineWidth = 2; c.strokeStyle = "#ffd166"; c.strokeRect(px - 2, topY - pip / 2 - 2, pip + 4, pip + 4) }
+      c.globalAlpha = 0.96; c.fillStyle = done ? "#08260f" : active ? "#1a1030" : "#e6e2f4"
+      c.font = `bold ${Math.round(pip * 0.58)}px monospace`
+      c.fillText(label, px + pip / 2, topY + 1)
+      px += pip + gap
+    }
+    // per-beat countdown bar (the frame window ticking) + frames-left number
+    const frac = Math.max(0, Math.min(1, (st.window || 0) / (st.windowMax || 1)))
+    const bw = rowW, bh = Math.max(3, h * 0.028), bx = cx - bw / 2, by = topY + pip * 0.72
+    c.globalAlpha = 0.9; c.fillStyle = "#120e22"; c.fillRect(bx - 1, by - 1, bw + 2, bh + 2)
+    c.fillStyle = frac < 0.34 ? "#ef4444" : frac < 0.6 ? "#f59e0b" : "#38bdf8"; c.fillRect(bx, by, bw * frac, bh)
+    c.globalAlpha = 0.92; c.fillStyle = "#cbd5f5"; c.textBaseline = "bottom"
+    c.font = `bold ${Math.max(8, Math.round(h * 0.075))}px monospace`
+    c.fillText(`${Math.ceil(st.window)}f`, cx, topY - pip * 0.72)
+  } else if (flash) {
+    const a = Math.max(0, Math.min(1, flash.t / (flash.kind === "freeze" ? 28 : 22)))
+    c.globalAlpha = a; c.fillStyle = flash.kind === "freeze" ? "#ffd166" : "#ef4444"
+    c.shadowColor = c.fillStyle; c.shadowBlur = 10
+    c.font = `bold ${Math.max(11, Math.round(h * 0.13))}px monospace`
+    c.fillText(flash.kind === "freeze" ? "FRAMES SET" : "DROP", cx, topY)
+  }
+  c.restore()
+}
+
 // MAYURI — movement FX overlays (Stage 1). Two resliced FX pairs layered BEHIND the body during
 // movement: a dash-trail GHOST (row_08/10 — the streaking-coat motion blur) shown while dashing or
 // running fast, and a ground SHOCKWAVE ring burst (row_09/11) that fires on each dash-start. Pure
@@ -11423,6 +11500,13 @@ function updateBattle() {
   if (!_timeSlowFrozen(p1)) updatePlayerCombat(p1)
   if (!_timeSlowFrozen(p2)) updatePlayerCombat(p2)
 
+  // CLONE HIT-REVEAL (melee) — AUTHORITATIVE pass, run at the exact frame real hits resolved above so a
+  // swing that overlaps an opponent's shadow clone reliably poofs it (fixes "clones are hit-or-miss").
+  // Fighter-priority is built in: it no-ops if the swing already connected on the real fighter (hasHit),
+  // so a clone never steals a hit meant for the opponent. Mirrors revealClonesHitByProjectiles below.
+  if (!_timeSlowFrozen(p1)) revealClonesHitByMelee(p1)
+  if (!_timeSlowFrozen(p2)) revealClonesHitByMelee(p2)
+
   // NOTE: voice/SFX cues are intentionally NOT cut when a fighter's source animation ends — a line plays
   // to natural completion. The only thing that interrupts a character's line is a NEWER line from the SAME
   // character (the single-voice-channel rule, enforced in sound.playSfxFile). Match-end still stops audio
@@ -11552,6 +11636,7 @@ function renderHybridFighter(fighter) {
     drawGenosExposedCoreOverlay(c, fighter)  // Genos — Exposed Core skin: glowing chest energy-core (skinId gate)
     drawHandlerShikigamiHUD(c, fighter)     // The Handler — shikigami cameo-select icon strip (row_08 icons) above the head (handler only)
     drawHandlerMahoragaHUD(c, fighter)      // The Handler — Mahoraga adaptation-tracker: spinning Dharma Wheel + ADAPTED ×N + duration (handler Mahoraga form only)
+    drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Projection Sorcery "24-frame" HUD: L→H→L pips + per-beat countdown + DROP/FRAMES-SET flash (naoya, mid-projection only)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
     drawSupermanVoidStarfield(c, fighter)  // Superman Void Sovereign (all 4 variants) — drifting star-field, ON TOP of the void sprite
@@ -15246,8 +15331,22 @@ window.addEventListener("keydown", e => {
   // non-clone character (same as pressing a special they don't have). summons.js owns all chakra-split +
   // lifecycle. (This SUPERSEDES the old per-character D→F/D→B + double-QCF motion clone spawn/dispel.)
   if (!e.repeat && gameState === GAME_STATES.BATTLE && p1 && isCloneCapable(p1)) {
-    if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); if ((p1.rosterKey || "").toLowerCase() === "hashirama") { try { sound.playSfxFile?.(pickHashiramaVoice("woodClone"), null) } catch (_) {} } return }
+    if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); const rk = (p1.rosterKey || "").toLowerCase(); if (rk === "hashirama") { try { sound.playSfxFile?.(pickHashiramaVoice("woodClone"), null) } catch (_) {} } else if (rk === "boruto") { try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {} } return }
     if (key === ".") { dispelShadowClones(p1); return }
+    // CONSCIOUSNESS-SWAP (Stage 3) — "/" trades places with a live clone: the body just hit was the fake, and
+    // "you" are now standing where a clone was (true-blind — bodies look identical, track your own placement).
+    // Cooldown-gated (anti-spam); on a swap it BREAKS hitstun (the escape) + grants brief arrival i-frames.
+    // Fails silently if no live clone exists (opponent may have popped them — the Stage-1 counterplay).
+    if (key === "/") {
+      if ((p1._cloneSwapCd || 0) > 0) return
+      if (swapConsciousnessWithClone(p1, getOpponent(p1))) {
+        p1._cloneSwapCd = CLONE_SWAP_COOLDOWN
+        p1.hitstun = 0; p1.blockstun = 0                                       // ESCAPE — break out of a combo on the swap
+        p1.invulnTimer = Math.max(p1.invulnTimer || 0, CLONE_SWAP_IFRAMES)     // brief arrival i-frames
+        camera.focusOnFighter?.(p1, 1.0)
+      }
+      return
+    }
   }
 
   // CRITICAL (Task 2): only act on a REAL key PRESS, never OS auto-repeat. While a
@@ -15848,7 +15947,8 @@ gameLoop()
     byakuyaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, fadeTimer: f._byakuyaFadeTimer || 0, bankaiTimer: f._byakuyaBankaiTimer || 0, bankaiMax: f._byakuyaBankaiMax || 0, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0), sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
     // NAOYA — Stage 4 special/Frame-Trap probe. Exposes the cast pose + energy/i-frames + the live Frame-Trap
     // state machine (armed/step/window, drop count) + the OPPONENT's freeze/hitstun (clean-finish evidence).
-    naoyaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p1" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0, x: Math.round(f.x || 0), cooldown: f.attackCooldown || 0, ftArmed: !!f._ftState, ftStep: f._ftState ? f._ftState.step : -1, ftWindow: f._ftState ? f._ftState.window : 0, ftDropped: f._ftDropped || 0, ultTimer: f._naoyaUltTimer || 0, oppFrozen: o?._naoyaFrozen || 0, oppHitstun: o?.hitstun || 0, oppHealth: Math.round(o?.health || 0), sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
+    naoyaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p1" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0, x: Math.round(f.x || 0), cooldown: f.attackCooldown || 0, ftArmed: !!f._ftState, ftStep: f._ftState ? f._ftState.step : -1, ftWindow: f._ftState ? f._ftState.window : 0, ftWindowMax: f._ftState ? f._ftState.windowMax : 0, ftSeq: f._ftState ? f._ftState.seq : null, ftFlash: f._ftFlash ? f._ftFlash.kind : null, ftDropped: f._ftDropped || 0, ultTimer: f._naoyaUltTimer || 0, oppFrozen: o?._naoyaFrozen || 0, oppHitstun: o?.hitstun || 0, oppHealth: Math.round(o?.health || 0), sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
+    naoyaHudRenders: () => _naoyaFtHudRenders,   // Stage-Naoya-HUD probe: frames the Projection HUD actually drew
     lightFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { atkFx: f._lightAtkFx || null, action: f.spriteHandler?.currentAction || null, crouchVariant: f._crouchAttackVariant || null, move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), kiraTimer: f._lightKiraTimer || 0, ultVariant: f._ultVariant || null, sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
     // Deterministic dash trigger — arms the double-tap flag physics.js consumes next frame (real dashTimer
     // + the Mayuri movement-FX overlay). dir sets facing so the dash goes a known way.
@@ -16809,6 +16909,16 @@ gameLoop()
     spawnP1Clones:  (n = 2) => { if (!p1 || !isCloneCapable(p1)) return 0; dispelShadowClones(p1); for (let i = 0; i < n; i++) spawnShadowClone(p1, getOpponent(p1)); return countShadowClones(p1) },
     waterCloneFx:   () => getWaterCloneFxCount(),   // Tobirama water-clone despawn FX counts {burst(destroy), ripple(dismiss), total}
     dispelP1Clones: () => (p1 ? dispelShadowClones(p1) : 0),
+    // Stage 3 consciousness-swap probes: direct swap (bypasses the key path for a deterministic check) +
+    // position/clone-spot readers so a live boot can prove the trade (p1 moves onto a clone's spot; count preserved).
+    swapP1Clone: () => { if (!p1 || !isCloneCapable(p1)) return null; const before = countShadowClones(p1); const fromX = Math.round(p1.x), fromY = Math.round(p1.y); const c = swapConsciousnessWithClone(p1, getOpponent(p1)); if (!c) return null; return { fromX, fromY, toX: Math.round(p1.x), toY: Math.round(p1.y), cloneCountBefore: before, cloneCountAfter: countShadowClones(p1) } },
+    p1WorldPos: () => (p1 ? { x: Math.round(p1.x), y: Math.round(p1.y) } : null),
+    cloneSpots: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), y: Math.round(s.y), state: s._state, sheet: s.sheet })),
+    setP1Hitstun: (t = 30) => { if (p1) p1.hitstun = t },   // Stage 3: drive a combo state to prove the swap breaks hitstun (the escape)
+    p1Hitstun: () => (p1 ? (p1.hitstun || 0) : -1),
+    p1SwapCd:  () => (p1 ? (p1._cloneSwapCd || 0) : -1),
+    // Atomic (single-frame) probe: capture clone spots, then swap — so no game frame passes between read and swap.
+    swapProbeAtomic: () => { if (!p1 || !isCloneCapable(p1)) return null; const before = activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1 && s._state === "idle" && !s._hidden).map(s => ({ x: Math.round(s.x), y: Math.round(s.y) })); const r = window.__harness.swapP1Clone(); return { before, r } },
     knockdownP1: (t = 60) => { if (p1) { p1.knockdownState = true; p1.knockdownTimer = t; p1.attacking = false } },  // drive the downed/get-up (knockdown) pose for sprite verification
     // Yuji "Koma" REPEAT engine (Stage 4, isolation test — the ult trigger lands in Stage 5): begin the
     // release directly, then observe the mash-extend flurry → finisher chain.

@@ -753,7 +753,10 @@ export function clearSummons() {
 //   LOWER — Minato: precision over volume — a few precisely-placed Flying-Raijin clones, never a swarm.
 //   MID   — Tobirama: a technical genius (his kit is precise water jutsu + body-flicker), between the two.
 const CLONE_CAP_DEFAULT = 3
-const CLONE_CAP_BY_KEY = { naruto: 4, hashirama: 4, minato: 2, tobirama: 3 }
+// Stage 4 tiers: naruto/hashirama HIGH (swarm identity); minato/kakashi LOW (precision/feints); tobirama/
+// itachi/hiruzen MID (technical / a few clones). boruto: a few clones, not his dad's swarm.
+// madara: MID (3) — borrowed Mokuton (Hashirama's cells), a few wood clones, not Hashirama's full swarm.
+const CLONE_CAP_BY_KEY = { naruto: 4, hashirama: 4, minato: 2, tobirama: 3, boruto: 3, kakashi: 2, itachi: 3, hiruzen: 3, madara: 3 }
 function cloneCap(owner) { return CLONE_CAP_BY_KEY[String(owner?.rosterKey || "").toLowerCase()] ?? CLONE_CAP_DEFAULT }
 export function getCloneCap(owner) { return cloneCap(owner) }   // harness / HUD
 const CLONE_W = 70, CLONE_H = 120            // clone hurtbox = the destruction box
@@ -818,6 +821,36 @@ export function revealClonesHitByProjectiles(projectiles) {
         projectiles.splice(i, 1)                    // consume the projectile (it hit the fake)
         break
       }
+    }
+  }
+}
+
+// HIT-REVEAL via MELEE — the AUTHORITATIVE way a clone takes a melee hit, and the fix for the
+// "clones are hit-or-miss / not a real game object" problem. The OLD path was a retroactive
+// self-check inside updateShadowClone (still present as a fallback), which runs during
+// updateActiveSummons — a full combat step AFTER real hits already resolved in updatePlayerCombat.
+// Sampling the attacker's short active-frame window at that late, wrong point in the frame is what
+// dropped hits. This function is instead called from the main loop RIGHT AFTER each fighter's combat
+// step (the same point resolveAttackHit fires for real fighters), so a clone is tested against the
+// SAME freshly-computed hitbox, on the SAME frame, by the SAME math a real body is — reliably.
+//
+// FIGHTER-PRIORITY: if the swing already connected on a real fighter this attack (currentAttack.hasHit),
+// we do nothing — a clone can never steal a hit meant for the opponent, so combos on the real target are
+// untouched. Otherwise the FIRST overlapping live clone poofs and the swing is marked spent on the fake
+// (hasHit = true), mirroring how the projectile path CONSUMES the projectile — one swing pops at most one
+// decoy, and you "waste" your attack on the fake, which is the whole point of a decoy.
+export function revealClonesHitByMelee(attacker) {
+  if (!attacker || !attackIsActive(attacker.currentAttack)) return
+  if (attacker.currentAttack.hasHit) return          // already hit a real fighter → never steal that hit
+  const hb = getAttackHitbox(attacker)
+  if (!hb) return
+  for (const s of activeSummons) {
+    if (s.id !== "shadowClone" || s._state !== "idle" || s._hidden) continue
+    if (s.owner === attacker) continue               // your own swing never pops your own clones
+    if (rectsOverlap(hb, getHurtbox(s))) {
+      s._state = "hurt"; s._stateT = 0; setCloneSheet(s, "hurt")   // reveal → hurt→poof lifecycle
+      attacker.currentAttack.hasHit = true            // swing spent on the fake (mirrors projectile consume)
+      return
     }
   }
 }
@@ -887,13 +920,81 @@ const CLONE_BODY_SETS = {
       { sheet: "./tobirama_attack_combo_2_uniform.png",     frames: 8, w: 88, h: 89, speed: 3, scale: 1.3, reach: 98, dmg: 17, name: "combo2" },
       { sheet: "./tobirama_low_kick_uniform.png",           frames: 4, w: 72, h: 90, speed: 3, scale: 1.3, reach: 82, dmg: 13, name: "lowkick" }
     ]
+  },
+  boruto: {
+    // Clone BODY = Boruto's own standing IDLE (a decoy that looks like him). The boruto_clone_uniform sheet
+    // is the CASTER's summon-seal gesture (plays on Boruto via CLONE_CAST_POSE), NOT the clone body. scale 1.5
+    // matches his ~105px fighter render. Stage 4 — Boruto is a genuine canonical shadow-clone user.
+    idle:   { sheet: "./boruto_idle_uniform.png",  frames: 12, w: 52, h: 72, speed: 6, scale: 1.5 },
+    hurt:   { sheet: "./boruto_hurt_uniform.png",  frames: 3,  w: 52, h: 78, speed: 5, scale: 1.5 },
+    attack: { sheet: "./boruto_light_uniform.png", frames: 8,  w: 73, h: 82, speed: 2, scale: 1.5 },
+    // VARIED — Boruto's real normals: 2-hit punch/kick light string → strong forward punch → uppercut.
+    attacks: [
+      { sheet: "./boruto_light_uniform.png", frames: 8, w: 73, h: 82, speed: 2, scale: 1.5, reach: 90,  dmg: 14, name: "light" },
+      { sheet: "./boruto_heavy_uniform.png", frames: 4, w: 71, h: 70, speed: 3, scale: 1.5, reach: 100, dmg: 17, name: "heavy" },
+      { sheet: "./boruto_up_uniform.png",    frames: 3, w: 76, h: 66, speed: 3, scale: 1.5, reach: 82,  dmg: 15, name: "up" }
+    ]
+  },
+  kakashi: {
+    // Copy-ninja clones — his own body + real normals. Scale ~1.65 matches his ~110px fighter render. Stage 4.
+    idle:   { sheet: "./kakashi_idle_uniform.png",  frames: 6, w: 43, h: 67, speed: 6, scale: 1.65 },
+    hurt:   { sheet: "./kakashi_hurt_uniform.png",  frames: 2, w: 53, h: 54, speed: 6, scale: 1.65 },
+    attack: { sheet: "./kakashi_light_uniform.png", frames: 2, w: 50, h: 55, speed: 3, scale: 1.65 },
+    // VARIED — Kakashi's real normals: kunai draw-slash → sweeping kick → rising overhead kick.
+    attacks: [
+      { sheet: "./kakashi_light_uniform.png", frames: 2, w: 50, h: 55, speed: 3, scale: 1.65, reach: 96,  dmg: 14, name: "kunai" },
+      { sheet: "./kakashi_heavy_uniform.png", frames: 3, w: 56, h: 64, speed: 4, scale: 1.65, reach: 100, dmg: 17, name: "kick" },
+      { sheet: "./kakashi_up_uniform.png",    frames: 5, w: 50, h: 80, speed: 4, scale: 1.65, reach: 82,  dmg: 15, name: "up" }
+    ]
+  },
+  itachi: {
+    // Uchiha feint clones — his own body + blade normals. hurt reuses his block sheet (as his fighter does).
+    // Scale ~1.5 matches his ~110px fighter. anchorY offsets on his source art aren't applied by the clone
+    // draw path (source-Y 0 only), so a clone may sit a hair low vertically — cosmetic, same as every owner.
+    idle:   { sheet: "./itachi_melle_idle_uniform.png",          frames: 4, w: 42, h: 73, speed: 6, scale: 1.5 },
+    hurt:   { sheet: "./itachi_melle_block_uniform.png",         frames: 1, w: 38, h: 72, speed: 6, scale: 1.5 },
+    attack: { sheet: "./itachi_melle_foward_attack_uniform.png", frames: 4, w: 85, h: 65, speed: 5, scale: 1.5 },
+    // VARIED — Itachi's real normals: quick low poke → committed wide blade swing → rising slash.
+    attacks: [
+      { sheet: "./itachi_melle_low_attack_uniform.png",    frames: 5, w: 54, h: 81, speed: 3, scale: 1.5, reach: 90,  dmg: 14, name: "low" },
+      { sheet: "./itachi_melle_foward_attack_uniform.png", frames: 4, w: 85, h: 65, speed: 5, scale: 1.5, reach: 104, dmg: 17, name: "blade" },
+      { sheet: "./itachi_melle_up_attack_uniform.png",     frames: 4, w: 63, h: 72, speed: 6, scale: 1.5, reach: 82,  dmg: 15, name: "up" }
+    ]
+  },
+  hiruzen: {
+    // "The Professor" clones — his own body + punch normals sliced from hiruzen_punches_uniform via sourceX
+    // (the clone draw path supports sourceX, like Hashirama's idle gutter). Scale ~2.0 keeps him short (the
+    // small old Third Hokage). His attack strips share one sheet at sourceX 0 / 300 / 360.
+    idle:   { sheet: "./hiruzen_idle_uniform.png",    frames: 4, w: 63, h: 42, speed: 8, scale: 2.0 },
+    hurt:   { sheet: "./hiruzen_hit_uniform.png",     frames: 2, w: 55, h: 46, speed: 5, scale: 2.0 },
+    attack: { sheet: "./hiruzen_punches_uniform.png", frames: 7, w: 60, h: 43, speed: 3, scale: 2.0 },
+    // VARIED — Hiruzen's real punch strips: full punch combo → wide finisher → widest swing.
+    attacks: [
+      { sheet: "./hiruzen_punches_uniform.png", frames: 7, w: 60, h: 43, speed: 3, scale: 2.0, sourceX: 0,   reach: 92,  dmg: 14, name: "punches" },
+      { sheet: "./hiruzen_punches_uniform.png", frames: 2, w: 60, h: 43, speed: 4, scale: 2.0, sourceX: 300, reach: 100, dmg: 17, name: "finisher" },
+      { sheet: "./hiruzen_punches_uniform.png", frames: 1, w: 60, h: 43, speed: 4, scale: 2.0, sourceX: 360, reach: 82,  dmg: 15, name: "swing" }
+    ]
+  },
+  madara: {
+    // WOOD clones (Mokuton Bunshin via Hashirama's cells) — his own body + gunbai normals. They revert to
+    // LOGS on despawn (spawnCloneDespawnFx owner gate includes madara), like Hashirama's wood clones. Scale
+    // ~1.8 matches his ~112px fighter. Stage 4 (canonically post-cells; a few clones, cap 3, not a swarm).
+    idle:   { sheet: "./madara2_idle_1_uniform.png", frames: 4, w: 26, h: 62, speed: 6, scale: 1.8 },
+    hurt:   { sheet: "./madara2_hit_uniform.png",    frames: 1, w: 64, h: 60, speed: 6, scale: 1.8 },
+    attack: { sheet: "./madara2_slap_uniform.png",   frames: 4, w: 36, h: 62, speed: 3, scale: 1.8 },
+    // VARIED — Madara's real normals: quick gunbai swipe → committed swipe→palm string → rising gunbai slash.
+    attacks: [
+      { sheet: "./madara2_slap_uniform.png",     frames: 4, w: 36, h: 62, speed: 3, scale: 1.8, reach: 90,  dmg: 14, name: "swipe" },
+      { sheet: "./madara2_combo_1_uniform.png",  frames: 9, w: 50, h: 62, speed: 3, scale: 1.8, reach: 104, dmg: 17, name: "combo" },
+      { sheet: "./madara2_up_attack_uniform.png",frames: 5, w: 45, h: 62, speed: 3, scale: 1.8, reach: 82,  dmg: 15, name: "up" }
+    ]
   }
 }
 
 // SINGLE SOURCE OF TRUTH for which characters have the shadow-clone mechanic. Every clone binding (the
 // ",": create / ".": disperse hotkeys, spawnP1Clones, etc.) gates on THIS set — so the control is
 // identical across all clone characters and can never drift per-character again.
-export const CLONE_CAPABLE_KEYS = new Set(["naruto", "minato", "hashirama", "tobirama"])
+export const CLONE_CAPABLE_KEYS = new Set(["naruto", "minato", "hashirama", "tobirama", "boruto", "kakashi", "itachi", "hiruzen", "madara"])
 export function isCloneCapable(fighter) {
   return !!fighter && CLONE_CAPABLE_KEYS.has(String(fighter.rosterKey || fighter.id || "").toLowerCase())
 }
@@ -963,7 +1064,7 @@ const pendingCloneSpawns = []            // first-press spawns delayed to the po
 // Per-character clone-forming CASTER gesture, played on the summoner when they create a clone (any path,
 // i.e. the standardized "," hotkey). Centralized here so the flair survives now that the old per-character
 // directional spawn routes are gone. Naruto has none (its summon is audio-synced, no dedicated pose).
-const CLONE_CAST_POSE = { minato: "minatoCloneCast", hashirama: "woodCloneCast" }
+const CLONE_CAST_POSE = { minato: "minatoCloneCast", hashirama: "woodCloneCast", boruto: "borutoClone", madara: "madaraWoodSpikeCast" }
 
 export function summonShadowClone(owner, target, opts = {}) {
   if (!owner) return false
@@ -1062,6 +1163,41 @@ export function consumeShadowClones(owner, n = 1) {
   return spots
 }
 
+// CONSCIOUSNESS-SWAP (Kage Shunshin body-swap) — Stage 3. A POSITIONAL IDENTITY TRADE: the owner and one of
+// their live clones INSTANTLY swap places, so the body an opponent just hit turns out to have been the fake
+// ("that was never me") while the real fighter is now standing where a clone was. TRUE-BLIND by design — the
+// bodies are already indistinguishable (setCloneTell off = the default), and the swap fires SYMMETRIC puffs at
+// BOTH spots so nothing on screen reveals which is real; the controlling player must track their own placement.
+// It is a pure TRADE — clone COUNT is PRESERVED (the old body becomes the standing decoy) — so the limiter is
+// the caller's cooldown + needing a well-placed clone, NOT a clone-share cost. Counterplay ties straight into
+// Stage 1: an opponent who destroys your clones (now reliably hittable) removes your swap destinations.
+// Deterministic (no RNG → replay-safe): picks the clone FARTHEST from the opponent — the safest body to become.
+// Returns the clone swapped INTO (success), or null if the owner has no live, fully-materialized clone to swap
+// with (spawning/poofing bodies don't count — they aren't a real standing position yet).
+export function swapConsciousnessWithClone(owner, opponent = null) {
+  if (!owner) return null
+  const live = activeSummons.filter(s => s.id === "shadowClone" && s.owner === owner && s._state === "idle" && !s._hidden)
+  if (!live.length) return null
+  const refX = opponent ? (opponent.x + (opponent.w || 0) / 2) : (owner.x + (owner.w || 0) / 2)
+  let clone = live[0], bestD = -1
+  for (const s of live) {
+    const d = Math.abs((s.x + (s.w || 0) / 2) - refX)
+    if (d > bestD) { bestD = d; clone = s }          // farthest from the opponent (deterministic tie-break: first found)
+  }
+  // TRADE positions: owner takes the clone's spot; the clone takes the owner's old spot and resumes as a normal
+  // decoy from there. Momentum is killed so it reads as a clean body-flicker, not a slide.
+  const oldX = owner.x, oldY = owner.y
+  owner.x = clone.x; owner.y = clone.y; owner.vx = 0; owner.vy = 0; owner.onGround = false
+  clone.x = oldX;    clone.y = oldY
+  clone._atk = null; clone._atkT = 0; clone._atkCd = CLONE_ATK_COOLDOWN; clone.vx = 0   // clear any in-progress lunge so it doesn't strike mid-teleport
+  if (opponent) { owner.facing = (opponent.x >= owner.x) ? 1 : -1; clone.facing = (opponent.x >= clone.x) ? 1 : -1 }
+  // SYMMETRIC swap FX at both spots (true-blind: identical puffs → no tell which body is the real one).
+  owner.teleportFlash = Math.max(owner.teleportFlash || 0, 14)
+  spawnClonePuff(owner.x + (owner.w || 0) / 2, owner.y + (owner.h || 100) / 2)
+  spawnClonePuff(clone.x + (clone.w || 0) / 2, clone.y + (clone.h || 100) / 2)
+  return clone
+}
+
 // Per-frame clone logic — an ACTIVE, VARIED combatant (not a static decoy): it advances, then
 // rotates through several of its owner's REAL normals (beginCloneSwing → CLONE_BODY_SETS.attacks),
 // each with its own reach/damage, and still dies in one hit. Lifecycle:
@@ -1150,7 +1286,10 @@ function updateShadowClone(s) {
     if (Math.abs(dx) > hold) { s.vx = CLONE_MOVE_SPEED * s.facing; s.x += s.vx } else { s.vx = 0 }
   }
 
-  // One touch of an active enemy melee hitbox starts the hurt→poof lifecycle (hit-reveal).
+  // FALLBACK melee hit-reveal (self-check). The AUTHORITATIVE path is now revealClonesHitByMelee(),
+  // called from the main loop at the exact frame real hits resolve; this retroactive check remains only
+  // as a safety net for any attacker not covered there (e.g. a clone's own s.target relationship). It runs
+  // a full combat step later, so it's the fragile one — kept but no longer relied upon.
   // Hurtbox reuses combat.js getHurtbox, sized to the clone.
   if (enemy && attackIsActive(enemy.currentAttack)) {
     const hb = getAttackHitbox(enemy)
@@ -1208,7 +1347,7 @@ export function getWoodReleaseFxCount() { return _woodReleaseFxTotal }   // harn
 function spawnCloneDespawnFx(s, reason = "destroy") {
   const key = (s.owner?.rosterKey || "").toLowerCase()
   const cx = s.x + (s.w || 0) / 2, footY = s.y + (s.h || 0)
-  if (key === "hashirama") {
+  if (key === "hashirama" || key === "madara") {   // both are Mokuton wood clones → revert to logs on despawn
     woodReleaseFx.push({ x: cx, y: footY, facing: s.facing || 1, t: 0, max: WOOD_RELEASE_FRAMES * WOOD_RELEASE_FRAME_HOLD })
     _woodReleaseFxTotal++
   } else if (key === "tobirama") {

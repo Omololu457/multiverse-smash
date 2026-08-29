@@ -23,7 +23,7 @@ import { characters } from "../characters.js";
 import {
   COMBO_STANDARD, REKKA, STANDARD_STRING, ZONER, REKKA_BY_KEY,
   rekkaKeys, standardStringKeys, zonerKeys, allClassifiedKeys, classify, EXPECTED_COUNTS,
-  CORE_NORMALS, AIR_NORMALS, BASE_NORMAL_EXCEPTIONS, hasNormal,
+  CORE_NORMALS, AIR_NORMALS, BASE_NORMAL_EXCEPTIONS, CORE_NORMAL_EXCEPTIONS, hasNormal,
 } from "../comboStandard.js";
 import { getKit } from "../kits.js";
 
@@ -171,11 +171,18 @@ group("§6b  Base-normal completeness (Stage E — core normals universal; air-g
 let coreOk = 0;
 for (const k of rosterKeys) {
   const b = characters[k].basic_attacks;
-  const missingCore = CORE_NORMALS.filter(s => !hasNormal(b, s));
+  const coreExempt = CORE_NORMAL_EXCEPTIONS[k] || [];
+  const missingCore = CORE_NORMALS.filter(s => !hasNormal(b, s) && !coreExempt.includes(s));
   if (missingCore.length === 0) coreOk++;
   else check(`${k}: has all CORE normals (light/heavy/upAttack)`, false, `missing ${missingCore.join(", ")}`);
 }
-check(`ALL ${rosterKeys.length} characters resolve the core normals (light/heavy/upAttack)`, coreOk === rosterKeys.length, `${coreOk}/${rosterKeys.length}`);
+check(`ALL ${rosterKeys.length} characters resolve the core normals (light/heavy/upAttack, exemptions honored)`, coreOk === rosterKeys.length, `${coreOk}/${rosterKeys.length}`);
+// A CORE-normal exemption must be REAL (the char must actually lack it) — else it's stale and hides a regression.
+for (const [k, keys] of Object.entries(CORE_NORMAL_EXCEPTIONS)) {
+  const b = characters[k]?.basic_attacks;
+  const stale = keys.filter(s => hasNormal(b, s));
+  check(`${k}: documented CORE-normal exemption is real (not stale)`, stale.length === 0, stale.length ? `now present: ${stale.join(", ")}` : `${keys.join(", ")} absent`);
+}
 
 for (const k of rosterKeys) {
   const b = characters[k].basic_attacks;

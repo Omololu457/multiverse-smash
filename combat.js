@@ -3669,6 +3669,14 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         break
       }
 
+      // DOMAIN "sure-hit" UNTOUCHABLE — a foe sealed inside Sukuna's Malevolent Shrine (domainUntouchable)
+      // is immune to PROJECTILES too, mirroring the melee whiff (combat.js ~2743). The domain's auto-slashes
+      // are its ONE intended damage source; previously Fuga bypassed this and stacked FREE damage on top of
+      // the guaranteed sequence. The bolt is NOT consumed — it passes on past (same as the Vegito-UI / Miles-
+      // stealth evades above). Scoped to domainUntouchable ONLY (the Sukuna-domain case); the melee guard
+      // also lists _cubeTrapUntouchable/_banished, but those aren't part of this fix. No-op otherwise.
+      if (fighter.domainUntouchable) continue
+
       // Combo damage decay applies to projectiles too (combo-flow Stage 3): a projectile landing mid-
       // combo is scaled by the owner's current combo count, exactly like a melee hit. A standalone
       // projectile (counter 0/1) scales by 1 → unchanged. Uses the PRE-increment counter; the owner's

@@ -24,8 +24,16 @@ let _lastDomainBg = null
 // Task 4: Sukuna's Malevolent Shrine auto-slash cadence. A Cleave/Dismantle slash
 // auto-connects on the trapped (untouchable) enemy every SUKUNA_SLASH_INTERVAL
 // frames for SUKUNA_SLASH_DAMAGE each — THIS is the domain's only damage source.
-// At 15s (900f) that's ~30 slashes → ~420 dmg: a strong burst, not a round-ender.
-const SUKUNA_SLASH_INTERVAL = 30
+// ★ 2026-08-29 BALANCE (updates.TXT Part 2): the old 30f cadence over the 15s (900f)
+// domain landed ~30 slashes ≈ 420 RAW / ~240 EFFECTIVE (×0.60) — a guaranteed,
+// unblockable ~20%-of-a-bar chunk = effectively a round-ender ("a domain guarantees the
+// MATCH"). Widened to 130f so the shrine still GUARANTEES its hits (untouchable state
+// preserved — the canonical "sure-hit" domain identity is intact) but the total lands
+// ~7 cleaves ≈ 98 RAW / ~59 EFFECTIVE: a powerful-but-SURVIVABLE payoff, not an auto-win.
+// (Fuga-stacking on top was ALSO closed — projectiles now respect domainUntouchable in
+// combat.js.) NOTE: the 15s duration is set in abilities.js activateDomain({duration:15});
+// if a denser slash rhythm is wanted, trim that duration rather than shrinking this back.
+const SUKUNA_SLASH_INTERVAL = 130
 const SUKUNA_SLASH_DAMAGE   = 14
 
 // Gojo "Unlimited Void" — optional VIDEO-backed background (visual only: muted,

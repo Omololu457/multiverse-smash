@@ -1,0 +1,828 @@
+========================================================================
+ MULTIVERSE SMASH — UPDATES / IDEAS / FIX-LIST
+ Generated 2026-08-29 after a full codebase pass.
+ A brain-dump of everything worth doing before/after launch. Nothing here
+ is done for you — it's a menu. Pick what excites you, ignore the rest.
+ Priority tags:  [P0]=do before release  [P1]=high impact  [P2]=nice
+ Effort tags:    (S)=small  (M)=medium  (L)=large/multi-day
+========================================================================
+
+WHAT I FOUND AT A GLANCE
+------------------------
+The game is FAR bigger than a hobby project. Real numbers from the pass:
+  - 99 playable characters across 20+ franchises
+  - 891 skin variants, 20 stages, 138-track music system w/ playlists
+  - A genuinely deep combat engine: launchers, juggles, wall-splat,
+    parry, clash, flawless block, combo breaker, comeback finisher,
+    grabs/throws, super armor, tech rolls, per-char counters, domains,
+    transformations, summons/shadow clones, projectiles w/ reflect+pierce
+  - 9 working modes (Arcade, Tower, VS, PvP local, Training, Bracket,
+    FFA, AI-Spectator, Tutorial) + a personality/Big-Five system
+
+So this is NOT "add basic features" territory. The engine is mature.
+The gaps that actually matter for POPULARITY are:
+  1. NO online play (single biggest ceiling on player count)
+  2. Onboarding/retention loop is thin (no forced tutorial, no daily hook)
+  3. Story mode is a "Coming Soon" stub
+  4. A pile of placeholder art / attribution blockers that read as "unfinished"
+  5. Combat has depth but few UNIVERSAL expressive mechanics that ALL
+     characters share (which is where "shadow clones for everyone" comes in)
+
+The rest of this file expands all of that.
+
+
+========================================================================
+ SECTION 1 — THE BIG SWINGS (headline gameplay features)
+========================================================================
+These are the "put it in the trailer" ideas. Each is a system, not a tweak.
+
+[P1] 1.1 UNIVERSAL "ECHO / SHADOW-CLONE" MECHANIC  (L)
+    You already have a real shadow-clone system (summons.js) but it's
+    locked to Naruto / Minato / Hashirama. The big swing: generalize the
+    IDEA into a universal comeback/expression mechanic every character can
+    use, reskinned per franchise so it never feels copy-pasted.
+      - Spend meter to spawn a 1-hit "echo" of yourself that mimics your
+        last attack, then poofs on contact (the engine already does
+        mimic + hit-reveal + poof — see summons.js updateShadowClone).
+      - Reskin per universe: Naruto=shadow clone, Goku=afterimage strike,
+        Flash=speed-mirage, Gojo=Blue clone, Ben10=alien echo, etc.
+      - Two flavors worth prototyping:
+          (a) SETPLAY echo — place it, then send it on one rush (already
+              exists as "CLONE RUSH" for Naruto, summons.js:184 — promote it)
+          (b) ASSIST echo — press a button mid-combo, echo repeats your
+              current move for an extension/mixup
+      - This gives the roster a shared, teachable, hype mechanic AND
+        reuses code you already wrote. Highest bang-for-buck "big" idea.
+
+[P1] 1.2 REAL ONLINE PLAY  (L, but THE popularity unlock)
+    Right now Online is a dev-locked "netcode not implemented" stub
+    (game.js ~11696, account.js:606 has the TODO hooks already stubbed).
+    Nothing grows a fighting game like online. Options in effort order:
+      - EASIEST: async / "ghost" play — upload replays (you already have a
+        deterministic input-replay system in replay.js), let players fight
+        each other's recorded ghosts. Ships without real netcode.
+      - MEDIUM: lobby + delay-based netplay over WebRTC (browser-native,
+        no server). Good enough for friends/Discord matches.
+      - HARD (the dream): rollback netcode. Your sim looks deterministic
+        (seeded RNG in rng.js, replay desync detection) which is the
+        precondition for rollback. Big project but you're closer than most.
+    Even shipping (a) or (b) would 10x reach.
+
+[P1] 1.3 STORY / ARCADE-PLUS "MULTIVERSE FRACTURE" CAMPAIGN  (L)
+    STORY_MODE is a placeholder (game.js:793, ui.js:1439). You already
+    have: per-character arcade endings, rival dialogue, 15-chapter design
+    notes, cinematics galore. Wire them into an actual node-map campaign:
+      - Branching chapter select, light dialogue between fights (arcade
+        rival system already does 2-line exchanges — reuse it)
+      - Boss gauntlets using existing boss/armor system (combat.js _bossArmor)
+      - Unlock characters/skins as story rewards (hooks exist in unlocks.js)
+    This is mostly ASSEMBLY of things that already exist. High perceived value.
+
+[P2] 1.4 TAG / 2v2 TEAM BATTLES  (L)
+    FFA already supports 3-4 fighters + teams. A proper 2v2 tag mode
+    (call-in assists, tag-cancel combos) would be a marquee mode and
+    leans on the summon/assist code. Marvel-vs-Capcom energy.
+
+[P2] 1.5 STAGE-INTERACTION / DESTRUCTIBLE ARENAS  (M)
+    Only 2 of 20 stages have hazards (stageHazards.js). Add:
+      - Wall-bounce/stage-transition on big hits (you have wall-splat already)
+      - Interactive hazards per stage (Shibuya rail exists — template it out)
+      - Breakable backgrounds / stage-specific KO cinematics
+    Cheap visual spectacle that makes each of the 20 stages feel distinct.
+
+
+========================================================================
+ SECTION 2 — COMBAT DEPTH (mechanics that reward mastery / "feel better")
+========================================================================
+The engine is deep but a few universal systems are half-built or missing.
+These make the game "flow better" — your words — for everyone.
+
+[P1] 2.1 FINISH THE UP-BLOCK / HIGH-LOW SYSTEM  (M)
+    combat.js:236-250 has a getHitLevel/isOverheadAttack CLASSIFIER built
+    and propagating, but the DEFENSE reward is explicitly deferred and
+    low-block was removed (combat.js:240). Right now blocking has no
+    directional depth. Finishing this adds real mixup/mind-game:
+      - Overheads must be stood-blocked, lows must be crouch-blocked
+      - You already tagged 3 heavies as overhead (jason/alt_sukuna/bardock)
+    This is the single most "fighting-game-complete" missing mechanic.
+
+[P1] 2.2 EXPLICIT FRAME ADVANTAGE + BLOCKSTUN TUNING  (M)
+    Frame advantage is currently IMPLICIT (hitstun vs blockstun math only).
+    Your own memory notes flag "no frame-advantage math." To make combos
+    and pressure feel intentional rather than accidental:
+      - Define on-hit / on-block advantage per move and tune to it
+      - Show it in Training mode (you already draw a frame overlay, ui.js:3628)
+    Makes neutral and pressure legible = the game "flows."
+
+[P2] 2.3 PUSHBLOCK / GUARD-CANCEL  (S-M)
+    Defender has no way to create space — only the attacker's pushX exists.
+    A meter-cost pushblock (advancing guard) gives defense agency and
+    breaks unfair corner pressure. Small, high-value.
+
+[P2] 2.4 UNIVERSAL REVERSAL / WAKEUP OPTION  (M)
+    Counters exist but are bespoke per character (Rengoku/Baki/Kurapika).
+    A universal meter-burn reversal (or "burst") gives everyone a defensive
+    out and standardizes the escape game. Combo-breaker code (combat.js:497)
+    is a good starting template.
+
+[P2] 2.5 THROW TECH / THROW MIXUP CLARITY  (S)
+    Grabs/throws exist (combat.js:2416) with a pre-grab tech window, but no
+    tech AFTER a grab connects, and Ben-10 aliens have NO grab at all (gap
+    flagged in ROSTER_MOVESET_DATA.md:384). Standardize: every character
+    gets a grab; add a tech-throw window. Fixes a real asymmetry.
+
+[P2] 2.6 MOVEMENT TECH POLISH  (S-M)
+    You have dash, air-dash, double/triple jump, jump-cancel launchers.
+    Consider: a universal short-hop, a run-brake/wavedash-ish option, and
+    consistent air-dash rules (currently very_high mobility chars get 2).
+    Movement is where "flow" lives — small tuning pays off hugely.
+
+[P2] 2.7 METER-USE VARIETY  (S)
+    Energy currently gates specials/ultimates/domains. Add optional spends:
+      - EX-specials (spend 25 for a stronger version — reuses existing FX)
+      - Meter-burn combo extenders
+    Gives players more to DO with the bar than "wait for ultimate."
+
+
+========================================================================
+ SECTION 3 — ONBOARDING, RETENTION & "POPULARITY" LOOP
+========================================================================
+This is what actually makes a released game grow and keep players.
+
+[P0] 3.1 FIRST-BOOT GUIDED TUTORIAL  (M)
+    You have a 5-page "How To Play" screen but it's opt-in from the menu.
+    New players bounce off fighting games fast. Add a short FORCED
+    interactive tutorial on first launch (move, attack, block, special,
+    one combo). You already have Training mode + dummy behaviors to build on.
+
+[P1] 3.2 COMBO TRIALS / MISSION MODE  (M)
+    Training has infinite resources but no scripted combo challenges.
+    Per-character combo trials (do THIS string) teach the roster and give
+    hardcore players a reason to grind. Huge retention driver in FGs.
+
+[P1] 3.3 DAILY / WEEKLY LOOP  (M)
+    You have a challenges.js system (9 challenges, XP + skin rewards,
+    personality-ranked). Extend into rotating DAILIES with a login streak
+    and a visible "next reward" carrot. This is the #1 cheap retention hook.
+
+[P1] 3.4 PROGRESSION VISIBILITY / BATTLE-PASS-STYLE TRACK  (M)
+    XP/levels exist but rewards are sparse (unlocks.js). A visible reward
+    track (even free/non-monetized) with skins/characters/titles at each
+    tier turns "I leveled up" into "I want the next one."
+
+[P2] 3.5 RANKED / MMR  (M, needs online first)
+    Once online exists, a rank ladder is the single biggest engagement
+    multiplier for competitive players. Personality system could even
+    seed placement flavor.
+
+[P2] 3.6 SHAREABLE MOMENTS  (S-M)
+    Replay system exists (input-based). Add: one-tap "save clip / share"
+    from the victory screen, GIF/short export, or a replay code to send a
+    friend. Free marketing every time someone posts a combo.
+
+[P2] 3.7 SPECTATOR / TOURNAMENT POLISH  (S)
+    AI-vs-AI spectator + bracket mode already exist. Lean in: a "watch"
+    lobby, bracket streaming overlay, community tournament support.
+
+
+========================================================================
+ SECTION 4 — CONTENT & ROSTER EXPANSION
+========================================================================
+Content is your strength (99 chars!). These are growth levers, not needs.
+
+[P2] 4.1 FILL OUT THIN FRANCHISES  (per-char L)
+    Single-char universes with obvious partners:
+      - Hajime no Ippo (Ippo) -> Takamura, Sendo, Miyata
+      - Baki (Baki) -> Yujiro, Jack, Doppo
+      - Saiki K. (Saiki) -> Teruhashi, Kaidou, Nendo
+      - Overlord (Albedo) -> Nazarick guardians
+      - One Punch Man (2) -> Tatsumaki, King, Garou
+      - Invincible (Omni-Man) -> Mark/Invincible
+    A "2 vs their rival" is more satisfying than another Naruto ninja.
+
+[P2] 4.2 TOTALLY-ABSENT BIG FRANCHISES  (L)
+    My Hero Academia, Attack on Titan, Mob Psycho, Chainsaw Man, Solo
+    Leveling — any ONE of these is a marketing beat on its own.
+
+[P2] 4.3 MORE STAGES WITH IDENTITY  (M)
+    20 stages but only 2 interactive. Give the marquee stages hazards,
+    music you already have (138 tracks), and stage-specific KO framing.
+
+[P1] 4.4 WIRE THE MUSIC THAT'S ALREADY THERE  (S)  ** see also 6.x **
+    game.js:920-931 has ~11 franchise soundtrack slots hardcoded to
+    `null, // TODO` (demonslayer, rickmorty, ben10, bleach, dc, horror,
+    hxh, invincible, powerrangers, saiki, original). You have a 138-track
+    library — just map tracks to these. Instant atmosphere win, tiny effort.
+
+
+========================================================================
+ SECTION 5 — BROKEN / BUGGY  (fix before you show people)
+========================================================================
+Concrete defects found in the pass. File refs included.
+
+[P0] 5.1 Ben 10 human-form revert doesn't reset maxHealth
+      -> ROSTER_MOVESET_DATA.md:384. Stat/health-bar corruption on revert.
+
+[P1] 5.2 Ben 10 aliens have NO grab
+      -> mkAlien omits grab; universal grab button dead on alien forms.
+
+[P1] 5.3 Goku Black moveset is UNWIRED placeholder
+      -> ROSTER_MOVESET_DATA.md:49. Kamehameha/Spirit Bomb/Explosion/Sword
+         listed as metadata only, "no handler." Effectively unplayable kit.
+
+[P2] 5.4 Madara down-air no-ops (input accepted, nothing happens)
+      -> ROSTER_MOVESET_DATA.md:177. No art; button eats the input.
+
+[P2] 5.5 Rick down-air missing (confirmed gap)
+      -> only rick_poop_attack.png exists (a toss, not a down-strike).
+
+[P2] 5.6 Deprecated ki-drain path still live on some transforms
+      -> transformations.js:13 warns about kiDrainPerSecond; migrate to
+         energyDrainPerFrame so all forms use one system.
+
+[P2] 5.7 Projectile-ID warnings — specials referencing missing projectiles
+      -> projectiles.js:48 warns when projectileId not found. Audit + fix.
+
+[P2] 5.8 Persistence can silently fail to in-memory
+      -> account.js:142/281, session.js:32. localStorage write failures
+         drop progress silently. Add a user-visible "save failed" state.
+
+KNOWN-FLAKY TESTS (not player-facing, but clean these before release):
+      - Ben10 stage2/3 chain-advancement flaky (XLR8_ASSET_MAP.md:147)
+      - Voice-taunt randomization coverage flaky (OMNI_MAN_ASSET_MAP.md)
+      - Zaraki/Flash/Tobirama guard/block-sheet WIP failures
+      - isshiki multi-hit / cube-trap flagged flaky (your recent commit)
+
+
+========================================================================
+ SECTION 6 — PLACEHOLDER / INCOMPLETE  (finish so it reads as "shipped")
+========================================================================
+These aren't bugs, but they make the game look unfinished to a new player.
+
+[P0] 6.1 ART-ATTRIBUTION BLOCKERS (legal/ship blocker!)
+      Multiple sprite rips have UNKNOWN artist attribution flagged
+      "MANDATORY before ship": Dark Knight, Genos, Frieza, Gotenks,
+      Bardock, several DC chars. Resolve credits (credits.js) or replace
+      art BEFORE any public release. This is the real P0 of the whole file.
+
+[P1] 6.2 NON-SPRITE PLACEHOLDER CHARACTERS (render as procedural boxes)
+      Piccolo(non-sprite entry), Cell, Morty, Evil Morty, Rick Prime,
+      Omololu, Albedo, Wildmutt. Either finish art or hide from roster so
+      players don't select a "box." (Some may be intentionally hidden —
+      verify which are reachable.)
+
+[P1] 6.3 MISSING WIN/LOSE/INTRO ART (many chars reuse knockdown/idle)
+      Flagged stopgaps: Gwen, Gotenks, Vilgax, Bardock, Batman-variant,
+      Superman variants, Piccolo, Shinobu, Feedback, Yuta. Prioritize the
+      STARTER/unlockable-early characters — that's what new players see.
+
+[P2] 6.4 ~30 Ben 10 aliens render via procedural fallback (no art)
+      Fine as a system, but the Omnitrix "loadout" should only surface
+      aliens that actually have kits (Wildmutt is correctly hidden — apply
+      that rule everywhere).
+
+[P2] 6.5 Palette-tint placeholder transforms
+      Piccolo's Potential-Unleashed/Orange forms are a color wash, not real
+      art (PICCOLO_ASSET_MAP.md:164). Same pattern elsewhere. Fine for now,
+      flag for real art later.
+
+[P2] 6.6 Omni-Man 232 voice clips staged but UNWIRED
+      -> OMNI_MAN_ASSET_MAP.md:208. Voice pass exists as files; just needs
+         wiring. Same story for other characters with 0 wired lines.
+
+
+========================================================================
+ SECTION 7 — "DOESN'T QUITE FIT" / CLEANUP / CONSISTENCY
+========================================================================
+Things that are technically working but feel inconsistent or off-brand.
+
+[P2] 7.1 No dedicated announcer — all callouts are synthesized oscillator
+      tones (sound.js VO_*). A real announcer ("Round 1… Fight!", KO,
+      character names) massively lifts production feel. Even TTS beats beeps.
+
+[P2] 7.2 Crouch is visual-only (no gameplay effect) — combat.js:2541.
+      Either give crouch meaning (ties into 2.1 high/low) or it's dead
+      input surface players will expect to matter.
+
+[P2] 7.3 Global damage scale is a blunt 0.60 lever (combat.js:147).
+      Works, but per-archetype pacing (rushdown vs zoner) would feel better
+      than one global TTK knob. Revisit alongside frame-data pass (2.2).
+
+[P2] 7.4 Transformation systems are inconsistent between characters
+      (some CHARGE-button, some Ultimate-button, some auto-revert rules).
+      A player learning one doesn't transfer to the next. Consider a
+      standard "transform grammar" with per-char flavor on top.
+
+[P2] 7.5 Two-keyboards mode is a disabled placeholder (game.js).
+      Either finish it or remove the dead entry so it's not confusing.
+
+[P2] 7.6 Replays are input-based & desync on any balance change
+      (replay.js rejects mismatched stamps). Fine, but means old replays
+      break every patch. Warn users, or add a version-pinned "watch" path.
+
+[P2] 7.7 Personality/Big-Five system is deep but nearly invisible to
+      players. Either surface it more (fun "your fighter type" reveals,
+      recommendations) or it's a lot of code doing quiet work. Great
+      marketing angle if made visible.
+
+
+========================================================================
+ SECTION 8 — JUICE / GAME FEEL / POLISH  (cheap wins that punch above weight)
+========================================================================
+[P1] 8.1 Hitstop / screenshake / freeze on big hits — you have hitstop
+      tiers already (combat.js HITSTOP). Push them harder on ultimates/KOs.
+[P2] 8.2 KO slow-mo + zoom cinematic (camera.js exists) on the final blow.
+[P2] 8.3 Combo-counter flair — rank callouts scale with combo size (you
+      have UI combo callouts partially — lean in: "SICK! / INSANE!").
+[P2] 8.4 Per-hit impact FX variety (you have blood/brutality FX toggles
+      already — extend the same procedural approach to normals).
+[P2] 8.5 Character intro/outro banter voice or text between rounds.
+[P2] 8.6 Dynamic music — swap to a "final round / low HP" intense mix.
+[P2] 8.7 Screen-edge parallax + more stage foreground life (cheap depth).
+
+
+========================================================================
+ SECTION 9 — LAUNCH / COMMUNITY / OUTSIDE-THE-CODE
+========================================================================
+[P1] 9.1 Settle art-attribution & licensing story (see 6.1). This gates
+      any public/monetized release given the ripped-sprite sourcing.
+[P2] 9.2 Discord + shareable replay codes = built-in community loop.
+[P2] 9.3 Landing page / trailer built from existing cinematics.
+[P2] 9.4 Accessibility pass: remappable controls (partially there),
+      colorblind-safe HUD, input-display, one-button-special option.
+[P2] 9.5 Controller support audit (glyphs exist; verify full gamepad path).
+[P2] 9.6 Performance: 99 chars + 891 skins + big sheets — verify load
+      times / atlas packing (you have atlas_pack + atlas-perf tests).
+
+
+========================================================================
+ SUGGESTED ORDER IF YOU JUST WANT A PLAN
+========================================================================
+  WEEK 1 (make it look shipped):
+     - 6.1 attribution blockers  (real ship gate)
+     - 4.4 wire the null soundtrack slots  (huge feel, tiny effort)
+     - 5.1/5.2/5.3 the Ben10 + Goku Black defects
+     - 6.3 win/lose art for STARTER characters only
+  NEXT (make it feel deep):
+     - 2.1 up-block / high-low finish
+     - 2.2 frame-data pass + Training display
+     - 1.1 universal echo/shadow-clone mechanic  (your flagship)
+  THEN (make it grow):
+     - 3.1 forced first-boot tutorial + 3.3 daily loop
+     - 1.3 story campaign assembly
+     - 1.2 online play (start with replay-ghosts, build toward rollback)
+
+------------------------------------------------------------------------
+END. Tell me which items to spec out or build and I'll go deep on those.
+------------------------------------------------------------------------
+
+
+========================================================================
+========================================================================
+ PART 2 — FULL DEEP SCRUB  (added 2026-08-29, second pass)
+ Method: ran the test suite empirically + dispatched 8 parallel deep-
+ audit agents across the entire 99-character roster + universal mechanics
+ + the shadow-clone/summon/projectile systems. Everything below is
+ evidence-backed with file refs or test output. This is the "really dig"
+ pass you asked for.
+========================================================================
+========================================================================
+
+
+########################################################################
+# A. WHAT IS ACTUALLY MOVING WRONG  (empirical test failures)
+########################################################################
+I ran ALL 764 test scripts. Final tally: 355 PASS / 160 FAIL / 249 TIMEOUT.
+★★ CRITICAL CAVEAT — DON'T PANIC AT THOSE NUMBERS: the suite was run 6-wide
+for speed, which STARVES the CPU and produces FALSE failures on timing-
+sensitive tests. Proof: re-run in ISOLATION, the scary ones pass clean —
+test:vegeta ❌13→❌0, test:zenitsu ❌11→❌0, test:inosuke-stage4 ❌14→❌0,
+test:yuji-stage3 ❌12→❌0. So the real health of the game is FAR better than
+515 non-passes suggests. The GUI/electron tests (voice/shots/skins) also
+can't run headless and show as timeouts — also not real failures.
+=> The trustworthy signal is only the tests that FAIL REPRODUCIBLY IN
+   ISOLATION. Those are below. (Actionable takeaway: add a `npm test`
+   runner that runs headless tests SEQUENTIALLY so real regressions stop
+   hiding in starvation noise — see note at end of Part 2.)
+
+CONFIRMED-REAL bugs (reproduce clean in isolation):
+
+[P1] A.1 COMBO DAMAGE DOESN'T DECAY for several characters (combat bug)
+     test:combo-flow-roster fails:
+       - saiki:  26>26>26>26>26>52   (no decay; last hit DOUBLES to 52 — weird)
+       - sasuke: 27>27>27>27>27>27   (perfectly flat, zero scaling)
+       - netero: 28>28>28>28>28>28   (flat)
+       - itachi: 27>27>27>24>27>27   (erratic, not a monotone decay)
+     The combo damage-scaling curve (combat.js COMBO_SCALE_CURVE) is NOT
+     being applied to these characters' strings. Combos that never decay =
+     potential infinite/too-strong bread-and-butter. This is the clearest
+     "moving wrong" in the whole game. Investigate why these specific
+     characters (their command-chain/rekka path?) bypass scaling.
+
+[P1] A.2 HITSTOP DOESN'T ENGAGE on connect for saiki & vegeta
+     test:combo-flow-roster: "hit-stop engages on connect" FAILS for saiki
+     and vegeta. Hits don't freeze-frame → attacks feel weightless and
+     combo timing is off for these two. Cross-check their move definitions
+     against the HITSTOP table (combat.js).
+
+[P1] A.3 FRIEZA up-attack frame-data + launcher mismatch
+     test:up-attack-roster:
+       - "frieza: frames = 6/4/8" but ACTUAL is 6/3/14 (declared active/
+         recovery don't match the real move)
+       - "launches enemy vy=-32 player stays GROUNDED" FAILS: enemy=-30,
+         player=0. The launcher under-launches vs its own spec.
+     Frieza's up-attack data is internally inconsistent. Fix the declared
+     numbers or the move.
+
+[P1] A.4 COMBO-STANDARD FRAMEWORK COVERS ONLY 53 / 99 CHARACTERS
+     test:combo-standard: 46 characters are UNCLASSIFIED by the combo-
+     standardization audit (alt_sukuna, aoi_todo, baki, bardock, boruto,
+     brainiac, byakuya, dark_knight, deathstroke, genos, ghostface_billy,
+     gohan, gotenks, green_lantern, gwen, hashirama, hiruzen, ippo,
+     iron_man/2/3, isshiki, jason, kakashi, kiba, kurapika, l_ryuuzaki,
+     light, mayuri, miles, naoya, onoki, orochimaru, saitama, six_paths_
+     pain, spiderman, superman_classic/dcuc/fighter/new52, toji,
+     vegeta_dark, vegito, vilgax, yamamoto, yuta). Nearly HALF the roster
+     is outside the combo-consistency guardrails. Means combo behavior for
+     those 46 is un-audited by your own tooling — likely source of A.1.
+
+[P2] A.5 LIGHT YAGAMI has NO up-attack normal (only 98/99 resolve it)
+     Confirmed by test AND data scan. Intentional per his design (all
+     aerial/anti-air is specials), but it trips the roster invariant test.
+     Either document-exempt him in the test or give him an up normal.
+
+[P2] A.6 KILLUA sprite tests fail: everything resolves to killua_atlas.png
+     test:killua-stage1/stage2 fail reproducibly in isolation (❌6/❌8). Every
+     action (idle/run/light/heavy/up/air) resolves to "./killua_atlas.png"
+     instead of the per-action uniform sheets the tests expect — Killua got
+     ATLAS-PACKED but the tests (and maybe some sprite-resolution assumptions)
+     weren't updated. ALSO his Down+Heavy barrage command-chain doesn't open
+     in the harness ("currentMove=undefined"). Likely a stale-test/atlas
+     mismatch rather than a visible in-game break (he's a STARTER, presumably
+     renders fine), but worth confirming his command chain actually fires
+     in-game, and updating the tests to the atlas path.
+
+     Other consistently-failing logic tests worth a look (real ❌ asserts):
+       test:training (5), test:sharingan (3), test:susanoo-refinements (3),
+       test:kurapika-stage3 (3), test:yuji-stage1 (3), test:yuji-stage2 (2),
+       test:nezuko-stage2 (2), test:round4 (2), test:prereqs (2),
+       test:select-depth (1), test:unlocks (1), test:ichigo-s4 (1),
+       test:intros (1), test:combat-fx-stage1 (1).
+     NOTE: test:isshiki + test:cube-trap are KNOWN-flaky (your own commit
+     57bde3b). Many *-voice / *-shots tests need electron and can't be
+     judged headless — not counted as failures here.
+
+
+########################################################################
+# B. MOVEMENT / PHYSICS "MOVING WRONG"
+########################################################################
+[P1] B.1 BEN10 + ALBEDO base speed = 5  (roster median 92)
+     Both base forms are NEARLY IMMOBILE. Per-alien speed is recomputed by
+     mkAlien() on transform, so it MAY be intentional (base Ben is meant to
+     transform immediately) — but speed 5 is extreme and there's no clear
+     doc confirming it. If a player stays in base form they can barely
+     move. VERIFY intent; if intended, at least bump to a playable ~40-50
+     and document it. Albedo is also a hidden [BOX] placeholder on top.
+
+[P1] B.2 BEN10 human-form revert doesn't reset maxHealth  (stat corruption)
+     ROSTER_MOVESET_DATA.md:384 "[POSSIBLE BUG] human revert doesn't reset
+     maxHealth." Reverting from an alien leaves the health POOL wrong →
+     health bar math breaks. Real bug, already flagged, still open.
+
+[P1] B.3 BEN10 aliens have NO grab  (mkAlien omits the grab slot)
+     Every transformed alien can't use the universal grab button. Grab is a
+     core neutral tool. Add grab to mkAlien or document the tradeoff.
+
+[P2] B.4 SPIDERMAN rollForward is mislabeled art
+     The frames assigned to "rollForward" show a crawl-lunge / web-sweep,
+     NOT a forward somersault (the real flip is unsliced in row_06 bottom
+     band). Display-only today (no dodge-roll wired) but will look wrong if
+     a roll system is ever added. SPIDERMAN_ASSET_MAP VISUAL AUDIT.
+
+[P2] B.5 Walk = idle/borrowed on many flight/hover characters
+     Frieza, Piccolo, Gotenks, Bardock, Superman(new52/classic/dcuc),
+     Netero, Chrollo, Saiki, Light, Beerus, Byakuya(jump/fall), Yuta,
+     Handler, Aoi Todo — all borrow idle/run/dive for locomotion (no real
+     walk cycle on their sheets). Mostly HONEST + flagged (EB hover fighters
+     genuinely have no walk), not bugs, but it's a visual-sameness cost.
+     Superman variants especially read as "gliding" rather than walking.
+
+     (Already-fixed, noted for the record: vegeta_dark faced BACKWARD and
+     had a janky 2-stride run — both corrected during its build.)
+
+
+########################################################################
+# C. BALANCE — OVERPOWERED  (with numbers)
+########################################################################
+Roster stat spread for reference: HP 960-1450 (med 1150), atk 74-100
+(med 90), heavy dmg 60-120 (med 82), transform mult up to 2.8x.
+
+[P1] C.1 SUKUNA "Malevolent Shrine" domain = effectively a win-button
+     domains.js: traps opponent UNTOUCHABLE for 8s AND auto-slashes every
+     30f for 14 dmg → 16 slashes = 224 raw (~134 after 0.60 scale)
+     GUARANTEED, unblockable, no escape — AND Sukuna can still fire his Fuga
+     projectile during it. ~200 guaranteed damage per domain with zero
+     counterplay. Fix options: remove the untouchable flag, or widen slash
+     interval 30f→45-50f (drops guaranteed dmg to ~90-112), or allow a
+     mid-domain escape.
+
+[P1] C.2 COMBO BREAKER over-rewards the 7 meterless characters
+     combat.js ~497-547. Meterless chars (zenitsu/rengoku/shinobu/inosuke/
+     nezuko/maki/toji) get 2 break stocks PER ROUND + a 360f cooldown and
+     pay NO energy — while meter characters must spend 40 energy from the
+     same pool they need for specials/ults. Net effect: the meterless cast
+     is DEFENSIVELY SUPERIOR (2 guaranteed combo escapes/round) which
+     inverts the meter economy. Also the trigger threshold (comboCounter>=3)
+     fires after just 3 light hits, and the i-frames (24f) are the longest
+     defensive window in the game. Recommend: threshold 3→5, i-frames
+     24→16, and give meterless a real cost (1 stock + longer CD).
+
+[P1] C.3 VEGETA "Ultra Ego" can self-sustain (lifesteal loop)
+     transformations: damageMultiplier 2.5 + rageHealOnHit 15 for only 6
+     energy/hit. On a connecting string he heals ~15 HP/hit while dealing
+     ~75/hit — net positive HP as long as he keeps hitting. No other
+     transform is self-sustaining. Recommend healCostPerHitKi 6→~14, or cap
+     heal per activation.
+
+[P2] C.4 NARUTO Baryon Mode 2.8x is the highest multiplier in the game
+     (composite offense index put naruto #1 at 204, well ahead of vegeta
+     193 / cell 179). It's short + high-drain so likely OK, but it's the
+     single biggest damage ceiling — watch it in playtests.
+
+[P2] C.5 OMNI-MAN is a stat outlier on EVERY offensive axis
+     hp 1400, atk 98, heavy 120, up 92, downAir 105 — all far above median.
+     BUT the deep read says it's EARNED: very slow startups (heavy 13f),
+     flight shares the same meter as specials, and a 42f forced-descent
+     landing-lag punish window. Verdict: strong-but-fair heavy bruiser, NOT
+     a free win. Keep an eye on it but no urgent nerf. (If anything, it's
+     the clearest "designed outlier done right" — a good template.)
+
+[P2] C.6 FLAWLESS BLOCK is very rewarding for a 4-frame window
+     combat.js ~2649. 4f (67ms) is near-unreactable so most are accidental,
+     yet it negates ALL chip AND drops blockstun 10f→2f AND clears the
+     attacker's combo counter (escapes pressure). Consider widening to 6-7f
+     (more learnable) but removing the combo-counter-clear, OR adding a
+     small cost. Right now it's high-reward/low-risk.
+
+[P2] C.7 Big-kit "schema-exception" characters to keep watching
+     Nezuko (2 normal families + 6 specials + assists + 2 ultimates),
+     Vegito (7 specials + ult), Green Lantern / Brainiac (all-special
+     zoners), Madara/Isshiki (huge kits), Aoi Todo (Boogie Woogie cameo
+     co-op = flagged Megumi-style summon outlier). All intentionally broad;
+     all flagged for a dedicated balance pass. Not bugs, but the most
+     likely future OP sources.
+
+
+########################################################################
+# D. BALANCE — UNDERPOWERED / DISADVANTAGED
+########################################################################
+[P2] D.1 Meterless characters have NO ultimate economy
+     The same 7 chars from C.2 lack the "full-bar ultimate / domain" burst
+     that meter characters get. They over-perform on defense (combo breaker)
+     but under-perform on the offensive spike. Their comeback tools are
+     bespoke (Toji saves, Maki low-HP ult) rather than a shared ult. Net
+     balance is muddy — resolve C.2 first, then re-evaluate their offense.
+
+[P2] D.2 Comeback Finisher scales POORLY vs high-HP characters
+     Fixed 360 cap → 216 after 0.60 scale. That's ~30% of a 1000-HP char
+     but only ~15% of Superman (1450) / Omni-Man (1400). The "finisher"
+     fantasy evaporates against tanks. Recommend cap 360→~420 or make it a
+     % of the TARGET's max HP.
+
+[P2] D.3 Genuinely low-tier stat lines to sanity-check
+     Composite-offense floor: flash(50), morty(52), orochimaru(54),
+     batman(55), hiruzen(55), six_paths_pain(55). Some are intentional
+     (flash = glass-cannon speedster; morty is a hidden box char). But
+     orochimaru/hiruzen/six_paths_pain/batman being this low on offense
+     while not obviously compensated is worth a look. Shinobu (hp 960) and
+     Netero (hp 980) are the frailty floor — intentional but thin.
+
+[P2] D.4 MAHORAGA adaptation ladder is provisional & untuned
+     [1.0, 0.6, 0.35, 0.18, 0.08, 0.03] per repeated move. Too steep →
+     forces "never reuse your best move" degenerate play; too shallow →
+     Mahoraga is a pushover. Flagged in code as needing playtest data.
+
+
+########################################################################
+# E. UNIQUE CROSS / COMMAND MOVES  (your "every char needs their own")
+########################################################################
+GOOD NEWS: the large majority DO have a signature command normal / Fwd+
+Heavy (or Down+Heavy) rekka chain that is genuinely distinct. Verified
+unique chains include: goku_black? (no), vegeta_dark (Villain's Rush),
+gohan (Rush Combo), gotenks (Kamikaze Barrage), bardock (Blade Rush, sword),
+ippo (Y-Jabs), ichigo (Zangetsu rekka + multiple command normals), zaraki
+(charged dash + Yachiru), flash (Speed Rush), batman (3-stage Combo),
+all 5 Supermen (each a DIFFERENT rush — verified NOT copy-paste), spiderman
+(Combo), the 5 Power Rangers (each differentiated: Mega tiers / spear /
+sword-beam / Power Sword — verified NOT copy-paste), naruto/minato/hashirama
+(clone rush), saitama (Spin-Punch), zenitsu/rengoku/shinobu/inosuke/nezuko
+(breathing chains), toji (A-B-C rekka + 5 distinct specials), kilua (4-part
+barrage), gon (Rush + Jajanken R/P/S), hisoka (Card Flourish), chrollo,
+l_ryuuzaki (capoeira chain), light (B-family chain), saiki (4-hit projectile
+string), ghostface (Slasher Frenzy), omniman (Viltrumite Beatdown), etc.
+
+CHARACTERS THAT LACK a unique cross-move / command chain (flag for one):
+[P2] E.1 GOKU — has NO command normal at all; his only special is Dragon
+         Fist and Kamehameha was cut. The 4-tier transform IS his identity
+         but he's the marquee character with the THINNEST normal kit. Give
+         him a signature Fwd+Heavy (e.g. a rush-combo like Gohan's).
+[P2] E.2 DEATHSTROKE — "Stage 3 = intentional no-op, no command chain."
+         Specials are self-contained. A mercenary with no stringy pressure
+         tool feels bare; consider a sword rekka.
+[P2] E.3 MILES, IRON_MAN_3 — explicitly "no chain notation on sheet." Miles
+         leans on venom mixups; Iron Man 3 on charge-tiers. Acceptable but
+         they're the flattest normal kits in Marvel.
+[P2] E.4 BRAINIAC, GREEN LANTERN — all-special zoners with NO normal-tier
+         art at all (intentional schema-exception, like Madara/Onoki). Fine
+         by design, but they have zero "cross" game — pure specials.
+[P2] E.5 MAKI — has a `updateMakiCommandCombat` chain DEFINED in abilities.js
+         but it is NOT dispatched from game.js (pre-existing wiring gap).
+         Her signature naginata command chain literally never fires. WIRE IT
+         (import + add to updateBattle like Miwa/Toji). Also her ~13 attack
+         sheets are on-disk but dormant (see F).
+
+
+########################################################################
+# F. UNUSED / DORMANT ANIMATIONS  (your "use every usable animation")
+########################################################################
+These are frames that EXIST on the sprite sheets (documented in the ASSET_
+MAP.md files) but are wired to NO move/state. The owner explicitly wants
+every usable animation put to work — here's the backlog, by character.
+Biggest offenders first:
+
+[P1] F.1 MAKI — ~13 dormant attack sheets on disk, none wired:
+         maki_attack_1, maki_foward_attack, maki_foward_kick(_2/_3),
+         maki_staff_attack(_2), maki_staff_combo_2, maki_staff_up_attack_1/2,
+         maki_staff_air_attack_1/2, maki_combo_3_knunchucks, maki_kunai_throw
+         (+projectile), maki_player_throw, maki_charge. A whole naginata/
+         nunchuck/kunai kit is loaded but unused. This is the single largest
+         pile of wasted art in the game. (Ties into E.5.)
+
+[P2] F.2 GOKU_BLACK — 4 full sheets + 1 FX atlas dormant:
+         black_goku_bumb_attack (unref), goku_black_ssj_rose_kamehameha_2
+         (redundant), goku_black_ssj_rose_bomb_special (art literally labeled
+         "Unused!"), goku_black_ssj_rose_ki_effects (FX atlas, no slot).
+
+[P2] F.3 HISOKA — WIN and LOSE poses EXIST (left column of intro sheet) but
+         are NOT wired; also hisoka_power_up_combo (24-frame transformed
+         combo string) unused; block frames 2-3 (card-cape) unused. Wiring
+         his real win/lose art alone would remove a placeholder.
+
+[P2] F.4 SUKUNA — long taunt band (~15 frames, row_03) + a victory-ghost
+         pose documented but NOT wired to any win/taunt action.
+
+[P2] F.5 GON — gon_freecss_stadium_lift (+effect), gon_special_1..5,
+         gon_dasheffect_1, gon_freecss_push_effect, gon_charge_1/2 — all
+         unused (reserved). Several are legit special candidates.
+
+[P2] F.6 KILLUA — killua_dodge_2 (spare dodge), killua_intro_2 (longer
+         intro), killua_yoyo_taunt (taunt) all dormant.
+
+[P2] F.7 SHINOBU — 7 reserved sheets: shinobu_glide, shinobu_intro_1,
+         shinobu_charge, shinobu_whisper, shinobu_air_combo(_2),
+         shinobu_air_kick_combo. Enough for an air-command-chain + taunt.
+
+[P2] F.8 FLASH — flash_double_jump (5f, never wired; double-jump reuses base
+         jump) + flash_intro_2 (deferred).
+
+[P2] F.9 Smaller dormant items: Goku (Kamehameha windup preserved dormant),
+         Zenitsu (intro_part_2), Nezuko (crouch sheet, no crouch state),
+         L_Ryuuzaki (bookshelf win-pose candidate), Spiderman (rows 13/14/21
+         aerials + alt-costume banked for skins), Rick (double_jump ref,
+         poop_attack down-tilt deferred), Ghostface (3 block/crouch strips
+         reserved), Gotenks (torn-clothing dazed state sliced but UNWIRED —
+         no trigger), Vegito (Potara defusion cluster excluded).
+     => A "dormant-art wiring" pass (win/lose/taunt/air-combo/dazed states)
+        would both use the art AND close a lot of the placeholder gaps in F.
+
+
+########################################################################
+# G. ART GAPS / PLACEHOLDERS  (reads as "unfinished" to players)
+########################################################################
+[P1] G.1 [BOX] characters — no sprites, procedural boxes, hidden but present
+         in data: cell, morty, evilMorty, rickPrime, albedo, omololu
+         (all isPlayable:false). Fine hidden; make sure they can NEVER be
+         reached via any menu/unlock path, or finish them.
+[P1] G.2 STAGE-0-ONLY (designed, not built) — dark_knight, genos, handler,
+         iron_man, iron_man_2, baki. These have asset maps + plans but no /
+         partial gameplay code. Don't expose until built. Genos ALSO has an
+         attribution blocker (unknown ripper).
+[P2] G.3 WIN/LOSE/INTRO reuse knockdown/idle (cosmetic, but visible on the
+         victory screen): gwen, gotenks, vilgax, bardock, batman-variant,
+         superman_dcuc/new52/classic (lose=knockdown), piccolo, shinobu,
+         yuta, handler, deathstroke (win=ready-stance), goku/gotenks (no
+         win/intro). Prioritize STARTERS + early unlocks (what new players
+         see first): goku, gojo, naruto, ichigo, killua, superman.
+[P2] G.4 Palette-tint placeholder transforms (not real art): piccolo
+         (Potential Unleashed/Orange = color wash), bardock SSJ (cosmetic
+         5-frame flash, not a form). Acceptable, flag for real art later.
+[P2] G.5 Missing ASSET_MAP docs (no formal inventory → hard to track art):
+         netero, kurapika, mayuri, byakuya, yamamoto, yuji, naoya, saiki,
+         beerus, gojo. They're built, but undocumented — recommend a quick
+         stage-0 catalog so dormant art (F) can be found for them too.
+[P2] G.6 Intentional "no ultimate": goku (transform ladder is the ceiling),
+         l_ryuuzaki (ult is a placeholder:true stub — button does nothing),
+         jason (no ult built). Confirm these are desired, not gaps.
+
+
+########################################################################
+# H. DEAD CODE / WIRING / DETERMINISM
+########################################################################
+[P2] H.1 projectiles.js is a DEAD 75-line stub — nothing imports it. The
+         live projectile system is abilities.js spawnProjectile (inline
+         moveData). The "projectileId not found" warning at projectiles.js:48
+         can never fire in real play. Delete the file or actually adopt it.
+[P1] H.2 Maki command-combat defined but NOT dispatched (see E.5) — a whole
+         signature chain is dead-wired. Real functional gap.
+[P2] H.3 Toji Fly-Heads swarm uses Math.random (tojiFlyHeadsSwarm.js:52-67)
+         for jitter/velocity/scale. It's visual-only (no collision) so it
+         doesn't desync gameplay, but it breaks bit-exact replay VISUALS.
+         Swap to the seeded gameRng (rng.js) for full determinism.
+[P2] H.4 Deprecated ki-drain path (transformations.js:13 warns) still used by
+         some forms — migrate all to energyDrainPerFrame.
+[P2] H.5 Verify "minatoCloneCast" pose actually exists on Minato's sheet —
+         the clone-cast flair references it but nothing confirms it renders.
+
+GOOD (verified healthy): the shadow-clone / summon / projectile CORE is
+solid — clone spawn/mimic/hit-reveal(melee+projectile)/poof/chakra-share/
+cap enforcement all correct and DETERMINISTIC (no RNG in those paths).
+Boomerang retract, pierce, DOT, reflect (Gunbai/portal), lifetime cleanup,
+hitDelay hazards all work. Summons (toad, Hashirama trees T1-T4, Edo Tensei
+two-body, Mahoraga, Rika, Handler shikigami) all complete. So your flagship
+system is in good shape — the opportunity there is EXPANSION (I.1), not repair.
+
+
+########################################################################
+# I. TOP OPPORTUNITIES FROM THIS PASS  (ranked)
+########################################################################
+1. [P1] Fix combo-scaling no-decay (A.1) + hitstop gaps (A.2) — these are
+        real combat correctness bugs affecting feel & balance.
+2. [P1] Bring the 46 unclassified characters under the combo-standard
+        framework (A.4) — that guardrail is why A.1 slipped through.
+3. [P1] Nerf the two clear win-buttons: Sukuna untouchable domain (C.1) and
+        the meterless combo-breaker double-dip (C.2); fix Ultra Ego
+        lifesteal (C.3).
+4. [P1] Ben10 cluster: speed=5 (B.1), maxHealth-on-revert (B.2), aliens no
+        grab (B.3) — Ben is broken enough to feel unfinished.
+5. [P1] Wire Maki's dead command chain + her 13 dormant attack sheets
+        (E.5/F.1/H.2) — biggest single "unused art + missing cross-move".
+6. [P1] Frieza up-attack data fix (A.3).
+7. [P2] Dormant-art wiring pass (F) — win/lose/taunt/air-combo/dazed states
+        across Hisoka, Sukuna, Gon, Killua, Shinobu, Gotenks, Flash, etc.
+        Uses the art you already have AND removes placeholders.
+8. [P2] Give Goku (and Deathstroke) a signature command normal (E.1/E.2).
+9. [P2] Comeback-finisher scaling vs high-HP (D.2); flawless-block tuning
+        (C.6); Mahoraga ladder playtest (D.4).
+10.[P2] Housekeeping: delete/adopt projectiles.js (H.1), seed Toji swarm RNG
+        (H.3), add ASSET_MAP docs for the 10 undocumented chars (G.5),
+        confirm the [BOX]/stage-0 chars can't be reached (G.1/G.2).
+
+------------------------------------------------------------------------
+NOTE ON TEST SUITE: the harness has 764 test scripts but a big chunk need
+electron/GUI and can't run headless (they show as timeouts). A "headless vs
+GUI" split + a single `npm test` aggregate runner would make regressions
+far easier to catch — right now real failures (A.1-A.5) hide in the noise.
+------------------------------------------------------------------------
+END PART 2.
+
+
+========================================================================
+ PART 3 FOLLOW-UP — DIAGNOSIS CORRECTIONS (2026-08-29, after building)
+========================================================================
+While implementing the three priority fixes, diagnose-first testing OVERTURNED
+two of the three premises (both traced to stale/flaky sources in Parts 1-2 above):
+
+A.1/A.2 "combo damage doesn't decay / hitstop missing for saiki/sasuke/netero/
+  itachi" — DISPROVEN. These were FALSE POSITIVES from CPU-starvation when the
+  test ran under concurrent load. In 3× clean isolated runs test:combo-flow-roster
+  is 18/0, and a per-hit instrument shows all of them decay correctly
+  (e.g. sasuke 27>27>25>23>20>19, comboCounter 1→6, hitstop fires). NO combat bug.
+  => The REAL work in Part 1 was the A.4 coverage gap only (see below). DONE.
+
+E.5/F.1/H.2 "Maki's command chain is dead-wired (never dispatched) + 13 dormant
+  attack sheets = an unused weapon kit" — DISPROVEN. updateMakiCommandCombat IS
+  dispatched (game.js:6041, next to Miwa/Toji), and official tests prove the full
+  kit fires: test:maki 31/0 + test:maki-stage2 16/0 (chain makiG1→G2→G3, Kunai
+  Throw projectile, Nunchaku Flurry, Power Charge). The "dead-wire" claim came from
+  a STALE note in MIWA_ASSET_MAP.md:52 (true when Miwa was built, before Maki's
+  dispatch was added). The 15 "dormant" raw sheets are pre-reslice ORIGINALS that
+  MAKI_ASSET_MAP.md labels "Stage 2/3 — not yet wired"; their content was wired via
+  resliced `_uniform` versions (naginata→light/heavy/up/air/downair, kicks→g1/g2/g3,
+  kunai→makiKunai, nunchaku→makiNunchaku). Wiring the raw sheets would DUPLICATE
+  live moves → skipped per the "reuse over invent" rule. Maki's kit is COMPLETE.
+  (Lone optional micro-item, NOT done: a themed grab cast-pose from maki_player_throw
+  like Orochimaru's grabCastPose — cosmetic only, needs a reslice; left for owner.)
+
+WHAT ACTUALLY SHIPPED (2 code changes, both verified):
+ • PART 1 (coverage): comboStandard.js — classified the 46 roster-drift characters
+   (36 REKKA + 10 single-poke) + Light core-normal exemption in the audit; the
+   guardrail now covers 99/99. test:combo-standard 6-fail → 227/0. Combo decay
+   spot-verified across archetypes (toji/vegito/ippo/miles/brainiac/superman_new52).
+   NO damage-path change — they already scaled; they just weren't tracked.
+ • PART 2 (Sukuna domain): the domain was actually 15s/900f (abilities.js:2984
+   duration:15, not the 8s default) → 30 slashes = 400 RAW / 240 EFFECTIVE, a real
+   round-ender. Widened SUKUNA_SLASH_INTERVAL 30→130 (domains.js) → 7 slashes =
+   93.3 RAW / 56 EFFECTIVE (measured), untouchable state PRESERVED. Also closed the
+   Fuga-stacking gap: projectiles now respect domainUntouchable (combat.js) —
+   verified 5 bolts dealt 0 to the sealed foe. NOTE for owner: the 15s duration is
+   the real driver; if a denser slash rhythm is wanted, trim that instead.

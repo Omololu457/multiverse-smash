@@ -792,7 +792,8 @@
     "test:naoya-hud": "node harness/naoya_frametrap_hud.mjs",
     "test:clone-skin-static": "node harness/clone_skin_and_static.mjs",
     "test:clone-render-diag": "node harness/clone_render_diag.mjs",
-    "test:clone-mirror": "node harness/clone_mirror.mjs"
+    "test:clone-mirror": "node harness/clone_mirror.mjs",
+    "test:clone-playtest": "node harness/clone_playtest.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

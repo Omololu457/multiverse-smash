@@ -849,6 +849,12 @@ const CLONE_CAP_BY_KEY = { naruto: 4, hashirama: 4, minato: 2, tobirama: 3, boru
 function cloneCap(owner) { return CLONE_CAP_BY_KEY[String(owner?.rosterKey || "").toLowerCase()] ?? CLONE_CAP_DEFAULT }
 export function getCloneCap(owner) { return cloneCap(owner) }   // harness / HUD
 const CLONE_W = 70, CLONE_H = 120            // clone hurtbox = the destruction box
+// SPAWN SPREAD (mirror formation): clones alternate to BOTH sides of the owner (even slots behind, odd slots in
+// front, toward the enemy) at widening ranks, so they fan out around the owner instead of clustering in a tight
+// trailing line — harder to clear with one attack, and a wider set of swap destinations. Facing-relative:
+// "+forward" = toward the enemy. Tune these two numbers to taste. (Mirror captures this as the fixed offset.)
+const CLONE_SPREAD_BASE = 120                // first rank's distance from the owner
+const CLONE_SPREAD_GAP  = 130                // added distance per rank
 const CLONE_POOF_FRAMES = 16                 // spawn/despawn smoke duration (matches clonePuff lifetime)
 const CLONE_HURT_FRAMES = 24                 // frames the hit-recoil pose plays before the clone poofs out
 // DECOY-SYSTEM movement (Stage 2): a spawned clone independently APPROACHES the opponent and HOLDS at
@@ -1194,6 +1200,9 @@ export function spawnShadowClone(owner, target, spawnAt = null) {
   if (countShadowClones(owner) >= cloneCap(owner)) return null   // per-char CAP behavior: do nothing
   const facing = owner.facing || 1
   const slot = countShadowClones(owner)   // 0,1,2 as bodies are added → staggers spawn + hold so decoys don't stack
+  // Flanking spread: even slots BEHIND the owner, odd slots IN FRONT (toward the enemy), each rank further out.
+  // slot 0→-120, 1→+120, 2→-250, 3→+250 (× facing). Fans the formation out on both sides instead of a tight line.
+  const spreadForward = (slot % 2 === 0 ? -1 : 1) * (CLONE_SPREAD_BASE + Math.floor(slot / 2) * CLONE_SPREAD_GAP)
   const s = {
     id: "shadowClone", owner, target,
     w: CLONE_W, h: CLONE_H, vx: 0,
@@ -1201,7 +1210,7 @@ export function spawnShadowClone(owner, target, spawnAt = null) {
     // Mobile decoy: spawns beside the owner (staggered per slot so multiple decoys are distinct), then
     // independently approaches the opponent and holds at spacing (updateShadowClone). Subject to gravity.
     // spawnAt overrides the position (Minato's Flying Raijin Clones materialize AT his kunai marks).
-    x: spawnAt ? spawnAt.x : owner.x - facing * (70 + slot * 60), y: spawnAt ? (spawnAt.y ?? owner.y ?? 0) : (owner.y || 0),
+    x: spawnAt ? spawnAt.x : owner.x + facing * spreadForward, y: spawnAt ? (spawnAt.y ?? owner.y ?? 0) : (owner.y || 0),
     // Gravity/ground-collision fields, same contract fighters use. groundY inherits the
     // owner's floor (== the stage groundY) so the clone rests exactly where Naruto would;
     // applyGravity falls back to physics.groundY if it's ever absent.

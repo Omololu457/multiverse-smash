@@ -2150,6 +2150,7 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   _mkAdvance()
   ctx.clearRect(0, 0, w, h)
   drawMkAmbientBackdrop(ctx, canvas)   // Stage 22: themed ambient backdrop — follows the hovered fighter's palette (per-character UI)
+  drawMenuParticles(ctx, canvas)       // ambient motes take the HOVERED fighter's UNIVERSE motif (ki sparks, leaves, shards…)
   // Franchise banner in the subtitle reinforces that the roster is grouped/filtered by world.
   drawHeader(ctx, canvas, title, universeLabel ? `${universeLabel}  ·  Player ${currentPlayer} choose your fighter` : `Player ${currentPlayer} choose your fighter`)
 

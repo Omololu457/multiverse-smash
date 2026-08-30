@@ -1,0 +1,90 @@
+============================================================
+  MULTIVERSE SMASH — START HERE  (quick reminder sheet)
+============================================================
+
+Hey! Everything works. Here's the stuff you keep forgetting. 🙂
+
+
+------------------------------------------------------------
+1) HOW TO OPEN THE GAME (fullscreen, in its own window)
+------------------------------------------------------------
+
+Open the Terminal app, then paste these two lines:
+
+    cd /Users/omololu/Desktop/project/multiverse-smash
+    npm run desktop
+
+That's it. The game opens in its OWN window, already in FULLSCREEN
+(not a browser tab). Give it a few seconds the first time.
+
+  • To QUIT the game:            press  Cmd + Q
+  • To leave fullscreen:         press  Ctrl + Cmd + F
+  • Nothing happened / error about "electron"? Run this ONCE, then
+    try "npm run desktop" again:
+        cd /Users/omololu/Desktop/project/multiverse-smash/electron
+        npm install
+        cd ..
+        npm run desktop
+
+
+------------------------------------------------------------
+2) OPEN IT IN A BROWSER INSTEAD (backup way)
+------------------------------------------------------------
+
+    cd /Users/omololu/Desktop/project/multiverse-smash
+    npm run serve
+
+It will print a web address like  http://127.0.0.1:XXXXX
+Open that in Chrome. Press  F11  for fullscreen in the browser.
+
+
+------------------------------------------------------------
+3) THE BETA GAMEPLAY DOCUMENT (for you + the testers)
+------------------------------------------------------------
+
+It's in this same folder. There are 3 versions of the SAME thing:
+
+    BETA1_GAMEPLAY.pdf     <-- the pretty one. SHARE THIS with testers.
+    BETA1_GAMEPLAY.html    <-- open in a browser (looks the nicest)
+    BETA1_GAMEPLAY.md      <-- plain text version
+
+What's inside: all 99 fighters (grouped by universe), each with
+their moves, combos, how to use them, plus a controls guide, a
+"what to watch for" checklist, and questions to ask your testers.
+
+
+------------------------------------------------------------
+4) CONTROLS CHEAT SHEET  (Player 1, keyboard)
+------------------------------------------------------------
+
+    Move .................... A / D
+    Jump / Up ............... W
+    Crouch .................. S
+    Block (guard) ........... ;   (semicolon)
+    Light attack ............ J
+    Heavy attack ............ K
+    Up-Attack (launcher) .... I     <- pops both players up for air combos
+    Special ................. L
+    Ultimate (full meter) ... U
+    Grab .................... O
+    Charge / Transform ...... P
+    Dash .................... double-tap A or D
+
+    SPECIALS: press L by itself, or hold a direction + L:
+       L            = 1st special
+       S + L (down) = 2nd special
+       forward + L  = 3rd special / movement special
+       U (full bar) = Ultimate / Domain / finisher
+
+
+------------------------------------------------------------
+5) TIP FOR THE BETA TEST
+------------------------------------------------------------
+
+  • Try the APPEARANCE menu (from PROFILE) — you can pick different
+    UI themes (pink, blue, etc.), and each CHARACTER has their own
+    coloured UI on the select screen (Goku Black = pink, Ben 10 = green...).
+  • Ask testers the questions at the END of the beta document.
+
+You've got this. Good luck tomorrow! 🎮
+============================================================

@@ -74,7 +74,19 @@ export const EVENT_MAP = {
   combat_cautious:      { live: true,  evidence: [["E", -1, "weak"]],     note: "Defensive style — mostly build/skill, kept weak." },
   composure_under_loss: { live: true,  evidence: [["N", -1, "moderate"]], note: "Closed out a genuine back-and-forth match — calm under pressure." },
   retry_after_loss:     { live: true,  evidence: [["N", +1, "weak"]],     note: "Immediate rematch after a loss — retry impulse (doc: +N). Confounded, kept weak." },
-  moved_on_after_loss:  { live: true,  evidence: [["N", -1, "weak"]],     note: "Stepped away calmly after a loss — the -N counterpart. Confounded, kept weak." }
+  moved_on_after_loss:  { live: true,  evidence: [["N", -1, "weak"]],     note: "Stepped away calmly after a loss — the -N counterpart. Confounded, kept weak." },
+
+  // ── LIVE fighter-behaviour rows for the axes that used to have NO source (O/C/A) ──
+  // Before these, only E and N ever moved — three of the five Big-Five axes were frozen at the neutral
+  // prior forever (there is no TIPI questionnaire UI), so "The Choir's Reading" could never fill in. These
+  // give Openness / Conscientiousness / Agreeableness honest fighter-derived evidence. Each carries the
+  // usual confound `note`; the genuinely ambiguous ones are kept `weak` on purpose.
+  played_new_character: { live: true,  evidence: [["O", +1, "moderate"]], note: "Picked a fighter you'd NEVER used before — novelty-seeking / trying the unfamiliar (Openness)." },
+  diverse_moveset:      { live: true,  evidence: [["O", +1, "weak"]],     note: "Leaned on a wide toolkit (many specials) in one match — exploratory. Weak: could be mashing." },
+  disciplined_play:     { live: true,  evidence: [["C", +1, "moderate"]], note: "Landed a FLAWLESS round (zero damage taken) — controlled, disciplined execution (Conscientiousness)." },
+  reckless_play:        { live: true,  evidence: [["C", -1, "weak"]],     note: "Took far more damage than you dealt — undisciplined / reckless. Weak: might just be a bad matchup." },
+  measured_victory:     { live: true,  evidence: [["A", +1, "weak"]],     note: "Won WITHOUT resorting to an ultimate — a restrained, unshowy finish. Weak, confounded." },
+  ruthless_finish:      { live: true,  evidence: [["A", -1, "weak"]],     note: "Leaned on ultimates to dominate — a go-for-the-throat competitive streak (low A). Weak, confounded." }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -213,7 +225,7 @@ function round3(x) { return Math.round(x * 1000) / 1000 }
 const LS_KEY = "multiverse-smash-personality"
 function _lsAvailable() { try { return typeof localStorage !== "undefined" && localStorage !== null } catch (_) { return false } }
 function _blankProfile() {
-  return { tipiComplete: false, tipi: { O: 0, C: 0, E: 0, A: 0, N: 0 }, traits: initTraits({}), events: [], sessionStamp: null }
+  return { tipiComplete: false, tipi: { O: 0, C: 0, E: 0, A: 0, N: 0 }, traits: initTraits({}), events: [], sessionStamp: null, playedChars: [] }
 }
 function _repair(p) {
   if (!p || typeof p !== "object") p = _blankProfile()
@@ -222,6 +234,7 @@ function _repair(p) {
     if (!p.traits[t] || typeof p.traits[t] !== "object") p.traits[t] = { mu: TIPI_ABSENT_PRIOR, sigma2: SIGMA2_INITIAL, n_events: 0, last_updated: null }
   }
   if (!Array.isArray(p.events)) p.events = []
+  if (!Array.isArray(p.playedChars)) p.playedChars = []   // roster keys P1 has fought as (novelty → Openness)
   if (typeof p.tipiComplete !== "boolean") p.tipiComplete = false
   if (!p.tipi || typeof p.tipi !== "object") p.tipi = { O: 0, C: 0, E: 0, A: 0, N: 0 }
   return p
@@ -281,23 +294,48 @@ export function recordGameplayEvent(eventType, ctx = {}, account = getCurrentAcc
 // Derive + record the personality events a finished match implies, from the P1
 // (local human) perspective. Called at match end. `matchStats` is matchflow's stats
 // object; `p1Won`/`totalRounds` come from the match outcome.
-export function recordMatchOutcome({ matchStats, p1Won, account = getCurrentAccount() } = {}) {
+export function recordMatchOutcome({ matchStats, p1Won, p1Char = null, account = getCurrentAccount() } = {}) {
   const p = getPersonality(account)
   if (!p || !matchStats?.p1) return null
   const s = matchStats.p1
   const total = matchStats.totalRounds || 0
+  const specials = s.specialsUsed || 0, ults = s.ultimatesUsed || 0
+  const dmgDealt = s.damageDealt || 0, dmgTaken = matchStats.p2?.damageDealt || 0
 
   // (1) Combat style → Extraversion (WEAK). Aggressive = comboing / leaning on
   //     specials+ultimates; otherwise cautious. Weak by design (doc: mostly genre).
-  const aggressive = (s.maxCombo || 0) >= 3 || ((s.specialsUsed || 0) + (s.ultimatesUsed || 0)) >= 3
+  const aggressive = (s.maxCombo || 0) >= 3 || (specials + ults) >= 3
   recordGameplayEvent(aggressive ? "combat_aggressive" : "combat_cautious",
-    { maxCombo: s.maxCombo, specials: s.specialsUsed, ultimates: s.ultimatesUsed }, account)
+    { maxCombo: s.maxCombo, specials, ultimates: ults }, account)
 
   // (2) Composure under pressure → Neuroticism (-, MODERATE). Only a genuine stress
   //     moment counts: closing out a multi-round back-and-forth you won.
   if (p1Won && total >= 2) {
     recordGameplayEvent("composure_under_loss", { totalRounds: total, perfectRounds: s.perfectRounds }, account)
   }
+
+  // (3) OPENNESS — novelty. Fighting as a character you've NEVER used before is genuine
+  //     novelty-seeking (moderate). Also: a wide toolkit in one match reads as exploratory (weak).
+  if (p1Char) {
+    if (!Array.isArray(p.playedChars)) p.playedChars = []
+    if (!p.playedChars.includes(p1Char)) {
+      p.playedChars.push(p1Char)
+      recordGameplayEvent("played_new_character", { char: p1Char, roster: p.playedChars.length }, account)
+    }
+  }
+  if (specials >= 3) recordGameplayEvent("diverse_moveset", { specials }, account)
+
+  // (4) CONSCIENTIOUSNESS — discipline. A FLAWLESS round (zero damage taken) is controlled execution
+  //     (moderate). Taking a real beating relative to what you dealt reads as reckless (weak, confounded).
+  if ((s.perfectRounds || 0) >= 1) recordGameplayEvent("disciplined_play", { perfectRounds: s.perfectRounds }, account)
+  else if (dmgDealt > 0 && dmgTaken > dmgDealt * 1.4) recordGameplayEvent("reckless_play", { dmgDealt, dmgTaken }, account)
+
+  // (5) AGREEABLENESS — restraint vs. ruthlessness. Winning WITHOUT an ultimate is an unshowy, measured
+  //     finish (weak, +A); leaning on multiple ultimates to dominate is a competitive streak (weak, -A).
+  if (p1Won && ults === 0) recordGameplayEvent("measured_victory", { ults }, account)
+  else if (ults >= 2) recordGameplayEvent("ruthless_finish", { ults }, account)
+
+  _save(account)   // persist playedChars mutation even if only novelty fired
   return summarize(p.traits)
 }
 

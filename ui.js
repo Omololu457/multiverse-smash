@@ -1418,16 +1418,22 @@ function _drawMote(ctx, motif, r, rot) {
       ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill(); break
   }
 }
-function drawMenuParticles(ctx, canvas) {
+// opts.intensity (default 1) scales size/alpha/glow — screens with busy foregrounds (character select)
+// pass a higher value so the motifs read clearly; open menus keep the calm default. opts.density scales
+// the mote COUNT for that screen.
+function drawMenuParticles(ctx, canvas, opts = {}) {
+  const intensity = opts.intensity || 1
+  const density = opts.density || 1
   const { width: w, height: h } = getCanvasSize(canvas)
-  if (!_menuParticles.length || _menuParticlesW !== w || _menuParticlesH !== h) {
+  const want = Math.round(Math.min(60, Math.max(28, w / 26)) * density)
+  if (_menuParticles.length !== want || _menuParticlesW !== w || _menuParticlesH !== h) {
     _menuParticles.length = 0
-    const N = Math.round(Math.min(60, Math.max(28, w / 26)))
-    for (let i = 0; i < N; i++) _menuParticles.push(_spawnMenuParticle(w, h, true))
+    for (let i = 0; i < want; i++) _menuParticles.push(_spawnMenuParticle(w, h, true))
     _menuParticlesW = w; _menuParticlesH = h
   }
   const motif = _THEME.motif || "orb"
   const flick = motif === "ember"                         // embers flicker fast; everything else twinkles gently
+  const sizeMul = intensity, alphaMul = Math.min(1.6, 0.5 + 0.5 * intensity), glowMul = intensity
   ctx.save()
   ctx.globalCompositeOperation = "lighter"
   for (const p of _menuParticles) {
@@ -1437,10 +1443,10 @@ function drawMenuParticles(ctx, canvas) {
     if (p.y < -12 || p.life > p.ttl) Object.assign(p, _spawnMenuParticle(w, h, false))
     const fade = Math.min(1, p.life / 40) * Math.min(1, (p.ttl - p.life) / 60)
     const twk  = flick ? (0.35 + 0.65 * Math.abs(Math.sin(p.tw))) : (0.6 + 0.4 * Math.sin(p.tw))
-    ctx.globalAlpha = 0.62 * fade * twk
+    ctx.globalAlpha = Math.min(0.95, 0.62 * alphaMul) * fade * twk
     ctx.fillStyle = p.color
-    ctx.shadowBlur = motif === "spark" ? 14 : 9; ctx.shadowColor = p.color
-    ctx.save(); ctx.translate(p.x, p.y); _drawMote(ctx, motif, p.r, p.rot); ctx.restore()
+    ctx.shadowBlur = (motif === "spark" ? 14 : 9) * glowMul; ctx.shadowColor = p.color
+    ctx.save(); ctx.translate(p.x, p.y); _drawMote(ctx, motif, p.r * sizeMul, p.rot); ctx.restore()
   }
   ctx.restore()
 }
@@ -2150,7 +2156,7 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   _mkAdvance()
   ctx.clearRect(0, 0, w, h)
   drawMkAmbientBackdrop(ctx, canvas)   // Stage 22: themed ambient backdrop — follows the hovered fighter's palette (per-character UI)
-  drawMenuParticles(ctx, canvas)       // ambient motes take the HOVERED fighter's UNIVERSE motif (ki sparks, leaves, shards…)
+  drawMenuParticles(ctx, canvas, { intensity: 1.9, density: 1.4 })   // bigger/brighter/more motes in the HOVERED fighter's UNIVERSE motif (ki sparks, leaves, shards…) so they read over the busy grid
   // Franchise banner in the subtitle reinforces that the roster is grouped/filtered by world.
   drawHeader(ctx, canvas, title, universeLabel ? `${universeLabel}  ·  Player ${currentPlayer} choose your fighter` : `Player ${currentPlayer} choose your fighter`)
 

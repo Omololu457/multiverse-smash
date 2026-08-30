@@ -13910,6 +13910,8 @@ function drawMusicLibraryScreen() {
 let screenReturnState = null   // set on entry to PROFILE/CODEX/THEMES; BACK restores it
 let profileBackHover  = false
 let profileThemesHover = false
+let _lastHoverCharKey = null   // char-select: last focused fighter (drives the motif "pop" on hover change)
+let _charMotePop = 0           // 0..1 decaying flare, kicked to 1 when the focused fighter changes
 let themesBackHover   = false
 let themesHoverIndex  = -1
 let codexBackHover    = false
@@ -14070,9 +14072,14 @@ function renderCurrentState() {
       drawUniverseSelectScreen(ctx, canvas, getUniverseList(), hoverUniverseIndex); break
     case GAME_STATES.SELECT_CHARACTER:
       // Preview the FOCUSED fighter's theme every frame (mouse OR keyboard/controller nav), so the
-      // backdrop + motif motes always reflect whoever the cursor is on.
-      { const _hv = getCharacterRosterForSelectedUniverse()[hoverCharacterIndex]; if (_hv) _previewCharTheme(_hv) }
+      // backdrop + motif motes always reflect whoever the cursor is on. A change of fighter kicks the
+      // motif "pop" (a brief flare), which then decays — so landing on a new character pops their motif.
+      { const _hv = getCharacterRosterForSelectedUniverse()[hoverCharacterIndex]; if (_hv) _previewCharTheme(_hv)
+        const _k = _hv?.id || null
+        if (_k && _k !== _lastHoverCharKey) { _charMotePop = 1; _lastHoverCharKey = _k }
+        else _charMotePop = Math.max(0, _charMotePop - 0.05) }
       drawCharacterSelectScreen(ctx, canvas, {
+        motePop:       _charMotePop,
         roster:        getCharacterRosterForSelectedUniverse(),
         selectedIndex: hoverCharacterIndex,
         p1Selected:    matchConfig.p1CharKey,

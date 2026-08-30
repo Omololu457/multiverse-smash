@@ -14069,6 +14069,9 @@ function renderCurrentState() {
     case GAME_STATES.SELECT_UNIVERSE:
       drawUniverseSelectScreen(ctx, canvas, getUniverseList(), hoverUniverseIndex); break
     case GAME_STATES.SELECT_CHARACTER:
+      // Preview the FOCUSED fighter's theme every frame (mouse OR keyboard/controller nav), so the
+      // backdrop + motif motes always reflect whoever the cursor is on.
+      { const _hv = getCharacterRosterForSelectedUniverse()[hoverCharacterIndex]; if (_hv) _previewCharTheme(_hv) }
       drawCharacterSelectScreen(ctx, canvas, {
         roster:        getCharacterRosterForSelectedUniverse(),
         selectedIndex: hoverCharacterIndex,

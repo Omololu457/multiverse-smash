@@ -13953,9 +13953,9 @@ function _charThemeBaseColor(key) { const c = characters[key]; return c?.color |
 function _charThemeName(key) { return characters[key]?.name || "Character" }
 // Transient preview used on the character-select / skin screens (recolours the whole screen to the fighter
 // you're browsing, so each character visibly has their OWN UI). Cleared when leaving those screens.
-function _previewCharTheme(item) { const key = item?.id || item?.key || item?.rosterKey; if (!key || !characters[key]) return; theme.setPreviewTheme(theme.characterTheme(key, _charThemeBaseColor(key), _charThemeName(key))) }
+function _previewCharTheme(item) { const key = item?.id || item?.key || item?.rosterKey; if (!key || !characters[key]) return; theme.setPreviewTheme(theme.characterTheme(key, _charThemeBaseColor(key), _charThemeName(key), characters[key]?.universe)) }
 // Pin the fighter whose palette drives "Character" mode across the whole UI (pause/victory/menus).
-function _applyCharacterTheme(key) { if (!key || !characters[key]) return; theme.setActiveCharacter(key, _charThemeBaseColor(key), _charThemeName(key)) }
+function _applyCharacterTheme(key) { if (!key || !characters[key]) return; theme.setActiveCharacter(key, _charThemeBaseColor(key), _charThemeName(key), characters[key]?.universe) }
 function openCodexScreen(from)   {
   screenReturnState = from; codexBackHover = false; codexScroll = 0
   const groups = buildCodexGroups()
@@ -16374,6 +16374,23 @@ gameLoop()
     },
     // Move List screen preview: select a fighter row and toggle the controls/kit view.
     showMoveList: (idx = 0, controls = false) => { const f = getMoveListFighters(); moveListIndex = Math.max(0, Math.min(f.length - 1, idx | 0)); moveListShowControls = !!controls; gameState = GAME_STATES.MOVE_LIST; return { gameState, idx: moveListIndex, controls: moveListShowControls, fighter: f[moveListIndex]?.key } },
+    // Full per-fighter kit dump (name/universe/colour/difficulty/passive/normals/specials/mobility/ultimate/
+    // combos/stats) — the authoritative data behind the in-game MOVE LIST screen. Used to generate the beta
+    // gameplay document so every character's moves/combos/how-to are exact, not invented.
+    dumpKits: () => getMoveListFighters().map(f => {
+      const c = characters[f.key] || {}
+      const kit = getKit(f.key, c) || {}
+      return {
+        key: f.key, name: f.name, universe: f.universe,
+        color: c.color || c.energyConfig?.color || universeAccent(f.universe) || null,
+        difficulty: kit.difficulty || null, type: kit.type || null, energy: kit.energy || null, summary: kit.summary || null,
+        passive: kit.passive || null,
+        normals: kit.normals || kit.basics || [],
+        specials: kit.specials || [], mobility: kit.mobility || null, ultimate: kit.ultimate || null,
+        combos: kit.combos || [],
+        stats: c.stats ? { health: c.stats.maxHealth || c.stats.health || null, attack: c.stats.attack || null, defense: c.stats.defense || null, speed: c.stats.speed || null } : null
+      }
+    }),
     // Results/victory screen preview (Stage 9): boot a match if needed, populate a victoryState with
     // sample stats, and show the results screen.
     showVictory: (side = "p1") => {

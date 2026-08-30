@@ -384,6 +384,17 @@ function drawMkButton(ctx, rect, opts = {}) {
   ctx.lineWidth = 1.5 + hv
   if (hv > 0.01) { const pulse = 0.6 + 0.4 * Math.sin(_mkFrame * 0.18); ctx.shadowBlur = (8 + 14 * pulse) * hv; ctx.shadowColor = accent }
   ctx.stroke(); ctx.shadowBlur = 0
+  // Animated sheen sweep — a diagonal light band travels across a hovered/active button, giving the menus
+  // a lively "glossy" read. Deterministic (driven by _mkFrame); only on hover so idle menus stay calm.
+  if (hv > 0.2) {
+    ctx.save()
+    _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut); ctx.clip()
+    const period = rect.w * 2.0, sweepX = rect.x - rect.w * 0.5 + ((_mkFrame * 7) % period)
+    const sg = ctx.createLinearGradient(sweepX - 46, rect.y, sweepX + 46, rect.y)
+    sg.addColorStop(0, "rgba(255,255,255,0)"); sg.addColorStop(0.5, `rgba(255,255,255,${0.12 * hv})`); sg.addColorStop(1, "rgba(255,255,255,0)")
+    ctx.fillStyle = sg; ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
+    ctx.restore()
+  }
   // Selector glyph (Part 1 #6): a themed Anchor shard marks the active row (cosmetic; no hitbox change).
   if (!locked) _drawSelectorShard(ctx, rect.x + cut * 0.5 + 2, rect.y + rect.h * 0.5, rect.h * 0.42, accent, hv)
 
@@ -1371,15 +1382,40 @@ let _menuParticlesW = 0, _menuParticlesH = 0
 // _VOID_PALETTE is now theme-driven (declared up top, reassigned by _syncTheme) so menu motes
 // recolour with the active theme. Kept the name for the existing spawn/draw call-sites.
 function _spawnMenuParticle(w, h, anywhere) {
+  const hero = Math.random() < 0.16                      // a few larger "hero" motes for depth
   return {
     x: Math.random() * w,
     y: anywhere ? Math.random() * h : h + 8,
-    r: 1 + Math.random() * 2.4,
-    vy: -(0.12 + Math.random() * 0.5),
-    vx: (Math.random() - 0.5) * 0.22,
-    life: 0, ttl: 320 + Math.random() * 420,
+    r: (hero ? 3.4 : 1.5) + Math.random() * (hero ? 3.6 : 3.0),
+    vy: -(0.16 + Math.random() * 0.6),                   // a touch livelier rise
+    vx: (Math.random() - 0.5) * 0.28,
+    sway: 0.15 + Math.random() * 0.4,                    // organic horizontal drift amplitude
+    life: 0, ttl: 300 + Math.random() * 420,
     color: _VOID_PALETTE[Math.floor(Math.random() * _VOID_PALETTE.length)],
-    tw: Math.random() * Math.PI * 2
+    tw: Math.random() * Math.PI * 2,
+    rot: Math.random() * Math.PI * 2,
+    vrot: (Math.random() - 0.5) * 0.05
+  }
+}
+// Draw one mote in the active theme's MOTIF shape (ctx already translated to the mote centre).
+function _drawMote(ctx, motif, r, rot) {
+  ctx.rotate(rot)
+  switch (motif) {
+    case "spark": {                                       // 4-point ki sparkle (Dragon Ball / hero energy)
+      const L = r * 2.6, s = r * 0.42
+      ctx.beginPath(); ctx.moveTo(0, -L); ctx.lineTo(s, -s); ctx.lineTo(L, 0); ctx.lineTo(s, s)
+      ctx.lineTo(0, L); ctx.lineTo(-s, s); ctx.lineTo(-L, 0); ctx.lineTo(-s, -s); ctx.closePath(); ctx.fill(); break
+    }
+    case "petal":                                         // soft blossom petal (Bleach / Demon Slayer / Sakura)
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.7, r * 1.55, 0, 0, Math.PI * 2); ctx.fill(); break
+    case "leaf":                                          // pointed leaf (Naruto)
+      ctx.beginPath(); ctx.moveTo(0, -r * 1.7); ctx.quadraticCurveTo(r * 1.15, 0, 0, r * 1.7); ctx.quadraticCurveTo(-r * 1.15, 0, 0, -r * 1.7); ctx.closePath(); ctx.fill(); break
+    case "shard":                                         // angular crystal shard (JJK / DC)
+      ctx.beginPath(); ctx.moveTo(0, -r * 1.9); ctx.lineTo(r * 0.66, 0); ctx.lineTo(0, r * 1.9); ctx.lineTo(-r * 0.66, 0); ctx.closePath(); ctx.fill(); break
+    case "ember":                                         // ember — a bright core (flicker is applied via alpha)
+    case "orb":
+    default:
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill(); break
   }
 }
 function drawMenuParticles(ctx, canvas) {
@@ -1390,17 +1426,21 @@ function drawMenuParticles(ctx, canvas) {
     for (let i = 0; i < N; i++) _menuParticles.push(_spawnMenuParticle(w, h, true))
     _menuParticlesW = w; _menuParticlesH = h
   }
+  const motif = _THEME.motif || "orb"
+  const flick = motif === "ember"                         // embers flicker fast; everything else twinkles gently
   ctx.save()
   ctx.globalCompositeOperation = "lighter"
   for (const p of _menuParticles) {
-    p.x += p.vx; p.y += p.vy; p.life++; p.tw += 0.05
-    if (p.y < -8 || p.life > p.ttl) Object.assign(p, _spawnMenuParticle(w, h, false))
+    p.tw += flick ? 0.18 : 0.05
+    p.x += p.vx + Math.sin((p.life + p.tw * 18) * 0.04) * p.sway   // organic sway
+    p.y += p.vy; p.life++; p.rot += p.vrot
+    if (p.y < -12 || p.life > p.ttl) Object.assign(p, _spawnMenuParticle(w, h, false))
     const fade = Math.min(1, p.life / 40) * Math.min(1, (p.ttl - p.life) / 60)
-    const twk  = 0.6 + 0.4 * Math.sin(p.tw)
-    ctx.globalAlpha = 0.5 * fade * twk
+    const twk  = flick ? (0.35 + 0.65 * Math.abs(Math.sin(p.tw))) : (0.6 + 0.4 * Math.sin(p.tw))
+    ctx.globalAlpha = 0.62 * fade * twk
     ctx.fillStyle = p.color
-    ctx.shadowBlur = 8; ctx.shadowColor = p.color
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill()
+    ctx.shadowBlur = motif === "spark" ? 14 : 9; ctx.shadowColor = p.color
+    ctx.save(); ctx.translate(p.x, p.y); _drawMote(ctx, motif, p.r, p.rot); ctx.restore()
   }
   ctx.restore()
 }
@@ -4074,6 +4114,14 @@ function _drawThemeMini(ctx, x, y, w, h, pal, t) {
   const gloss = ctx.createLinearGradient(x, y, x, y + h * 0.5)
   gloss.addColorStop(0, "rgba(255,255,255,0.10)"); gloss.addColorStop(1, "transparent")
   ctx.fillStyle = gloss; ctx.fillRect(x, y, w, h * 0.5)
+  // travelling diagonal sheen — each card sweeps on its own phase (staggered by `t`) for a lively grid
+  ctx.save(); roundRect(ctx, x, y, w, h, 14); ctx.clip()
+  const sx = x - w * 0.6 + (((_mkFrame * 3 + t * 40) % (w * 2.4)))
+  ctx.translate(sx, y); ctx.rotate(0.35)
+  const sh = ctx.createLinearGradient(-30, 0, 30, 0)
+  sh.addColorStop(0, "transparent"); sh.addColorStop(0.5, "rgba(255,255,255,0.07)"); sh.addColorStop(1, "transparent")
+  ctx.fillStyle = sh; ctx.fillRect(-30, -h, 60, h * 3)
+  ctx.restore()
   ctx.restore()
 }
 export function drawThemesScreen(ctx, canvas, opts = {}) {

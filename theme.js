@@ -128,12 +128,26 @@ export const THEMES = {
 
 export const THEME_ORDER = ["aurora", "sakura", "synthwave", "emerald", "ember", "ultraviolet"]
 
-// Precompute the accent RGB triples once (so hot draw paths never re-parse hex).
+// ── PARTICLE MOTIFS ───────────────────────────────────────────────────────────
+// The ambient menu motes take a SHAPE (motif) drawn per-theme, so each look feels distinct and, in
+// Character mode, evokes the fighter's world: ki sparks (Dragon Ball), leaves (Naruto), cursed shards
+// (JJK), petals (Bleach/Demon Slayer), embers (horror), portal orbs (Rick & Morty), etc.
+// Motifs: "orb" | "spark" | "petal" | "leaf" | "shard" | "ember"
+const THEME_MOTIF = { aurora: "orb", sakura: "petal", synthwave: "spark", emerald: "leaf", ember: "ember", ultraviolet: "shard" }
+export const UNIVERSE_MOTIF = {
+  dragon_ball: "spark", naruto: "leaf", jujutsu_kaisen: "shard", bleach: "petal", demon_slayer: "petal",
+  hunter_x_hunter: "orb", one_punch_man: "spark", dc: "shard", marvel: "spark", invincible: "spark",
+  rick_and_morty: "orb", power_rangers: "spark", ben_10: "orb", ben10: "orb", horror: "ember",
+  saiki_k: "orb", baki: "ember", hajime_no_ippo: "spark", deathnote: "shard", original: "orb",
+}
+
+// Precompute the accent RGB triples + motif once (so hot draw paths never re-parse hex).
 for (const k of THEME_ORDER) {
   const t = THEMES[k]
   t.key = k
   t.accentRGB = hexToRgb(t.accent)
   t.accent2RGB = hexToRgb(t.accent2)
+  t.motif = THEME_MOTIF[k] || "orb"
 }
 
 const DEFAULT_KEY = "aurora"
@@ -151,13 +165,13 @@ export const CHARACTER_THEME_OVERRIDES = {
 
 // Build a complete palette from a single accent hex. Analogous secondary (+35°), very-dark same-hue
 // backdrop, tinted glows/spirals/particles. Deterministic and cheap.
-export function deriveThemeFromColor(hex, name = "Character", blurb = "Follows your fighter") {
+export function deriveThemeFromColor(hex, name = "Character", blurb = "Follows your fighter", motif = "orb") {
   const [h, s] = hexToHsl(hex)
   const S = Math.max(0.45, Math.min(0.95, s))          // keep it vivid even if the source is muted
   const accent  = hslToHex(h, S, 0.6)
   const accent2 = hslToHex(h + 35, Math.min(0.95, S + 0.05), 0.64)
   const t = {
-    key: "character", name, blurb, accent, accent2,
+    key: "character", name, blurb, motif, accent, accent2,
     particles: [accent, accent2, hslToHex(h, S, 0.78), hslToHex(h + 30, S, 0.82), hslToHex(h, S * 0.7, 0.88)],
     bgTop:    hslToHex(h, S * 0.5, 0.055),
     bgBottom: hslToHex(h + 18, S * 0.5, 0.12),
@@ -173,16 +187,17 @@ export function deriveThemeFromColor(hex, name = "Character", blurb = "Follows y
   return t
 }
 
-// Palette for a specific fighter: override hue if pinned, else derive from its signature colour.
-export function characterTheme(key, baseColor, name = "Character") {
+// Palette for a specific fighter: override hue if pinned, else derive from its signature colour. The
+// motif comes from the fighter's universe (ki sparks for DBZ, leaves for Naruto, …).
+export function characterTheme(key, baseColor, name = "Character", universe = null) {
   const hex = CHARACTER_THEME_OVERRIDES[key] || baseColor || "#4aa8e0"
-  return deriveThemeFromColor(hex, name, `${name}'s signature palette`)
+  return deriveThemeFromColor(hex, name, `${name}'s signature palette`, UNIVERSE_MOTIF[universe] || "orb")
 }
 
 let _charTheme = null       // last character theme set (used when active mode === "character")
 let _previewTheme = null    // transient override (e.g. character-select hover) — highest priority, never saved
 // Set the fighter whose palette drives "Character" mode (recolours pause/victory/menus to your pick).
-export function setActiveCharacter(key, baseColor, name = "Character") { _charTheme = characterTheme(key, baseColor, name); if (_active === "character") _notify(); return _charTheme }
+export function setActiveCharacter(key, baseColor, name = "Character", universe = null) { _charTheme = characterTheme(key, baseColor, name, universe); if (_active === "character") _notify(); return _charTheme }
 export function setCharacterThemePalette(pal) { _charTheme = pal || null; if (_active === "character") _notify() }
 export function characterThemePalette() { return _charTheme || deriveThemeFromColor("#a855f7", "Character", "Follows your fighter") }
 // Transient preview (returns to the resolved theme when cleared). Read every frame via getTheme().

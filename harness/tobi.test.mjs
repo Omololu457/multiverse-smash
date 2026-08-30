@@ -78,6 +78,9 @@ await prep(); await sleep(60);
 await page.evaluate(() => { const b=window.__harness.p2(); window.__harness.setP1X?.(b.x-105); });
 await sleep(50);
 const chp0 = (await p2()).health;
+// settle: the neutral Chain Grab is gated by attackCooldown>0 / attacking (abilities.js), so p1 must be
+// fully actionable — a residual dash from the prior section would otherwise swallow the "l" press.
+await page.waitForFunction(() => { const p=window.__harness.p1(); return p.grounded && !p.attacking && !p.currentMove && (p.attackCooldown||0)<=0; }, null, { timeout: 3000, polling: 16 }).catch(()=>{});
 await page.keyboard.down("l"); await sleep(50); await page.keyboard.up("l");
 const phases=new Set(); let grabbed=false, kd=false;
 for (let i=0;i<130;i++){ const a=await p1(); const b=await p2(); if(a.tobiChainPhase) phases.add(a.tobiChainPhase); if(b.isGrabbed) grabbed=true; if(b.knockdownState||(b.hitstun||0)>=20) kd=true; if(!a.tobiChainPhase && phases.size) break; await wf(1);}

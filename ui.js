@@ -10,6 +10,7 @@ import { isFileApiSupported, saveFileStatus } from "./account.js"
 import { countShadowClones } from "./summons.js"
 import { COMBO_BREAKER } from "./combat.js"   // universal combo-break resource — HUD pips read stocksPerRound
 import { padGlyphs } from "./input.js"        // Part 3 #26: connected-controller glyphs (Xbox/PS/Switch)
+import * as theme from "./theme.js"           // live-swappable UI theme (accents, particle palette, backdrops)
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
 // Display-only (HUD energy-bar label) — no mechanics/costs read from this. Rick keeps his explicit
@@ -276,9 +277,23 @@ function _confirmZoom(confirm) { return confirm > 0 ? Math.sin(confirm * Math.PI
 // angular beveled metallic panels, dark backing + thin bright accent edge, eased
 // hover scale + accent glow-pulse, snappy timing. Reused by every polished screen.
 // ═════════════════════════════════════════════════════════════════════════════
-const _MK_ACCENT = "#4aa8e0"                 // standard UI accent (non-character screens)
+// THEMED colour knobs — reassigned from the active theme (theme.js). These stay `let`
+// so a theme switch live-recolours every menu on the very next draw. _THEME is the full
+// active palette; _MK_ACCENT / _VOID_PALETTE are the hot-path caches most code reads.
+let _THEME       = theme.getTheme()
+let _MK_ACCENT   = _THEME.accent              // standard UI accent (non-character screens)
+let _MK_ACCENT2  = _THEME.accent2             // secondary accent (gradients / pink+blue blends)
+let _VOID_PALETTE = _THEME.particles          // drifting-mote palette
+function _syncTheme(t) {
+  _THEME = t || theme.getTheme()
+  _MK_ACCENT = _THEME.accent; _MK_ACCENT2 = _THEME.accent2; _VOID_PALETTE = _THEME.particles
+}
+theme.onThemeChange(_syncTheme)               // instant recolour the moment the player picks a theme
+// themed rgba(): accent/secondary at an alpha, without re-parsing hex on the draw path.
+function _accentRGBA(a) { return theme.rgba(_THEME.accentRGB, a) }
+function _accent2RGBA(a) { return theme.rgba(_THEME.accent2RGB, a) }
 let _mkFrame = 0                              // shared animation clock for menu screens
-function _mkAdvance() { _mkFrame++ }          // call ONCE at the top of each redesigned screen
+function _mkAdvance() { _mkFrame++; _syncTheme() }  // call ONCE at the top of each redesigned screen (also keeps theme cache fresh)
 export function mkFrame() { return _mkFrame }  // harness read-out
 // Exposed so sibling modules (matchflow.js results/round screens) draw in the exact SAME language.
 export function mkAdvance() { _mkFrame++ }
@@ -451,13 +466,13 @@ function _holoPanelOverlay(ctx, x, y, w, h, opts = {}) {
 function drawRiftAmbientBackdrop(ctx, canvas, opts = {}) {
   const { width: w, height: h } = getCanvasSize(canvas)
   const bg = ctx.createLinearGradient(0, 0, 0, h)
-  bg.addColorStop(0, opts.top || "#07091a"); bg.addColorStop(1, opts.bottom || "#150b26")
+  bg.addColorStop(0, opts.top || _THEME.bgTop); bg.addColorStop(1, opts.bottom || _THEME.bgBottom)
   ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
 
   const cx = w * 0.5, cy = h * 0.46, R = Math.max(w, h) * 0.58, t = _mkFrame * 0.004
-  // soft rift core glow (blue → violet)
+  // soft rift core glow (accent → secondary accent), themed
   const core = ctx.createRadialGradient(cx, cy, 10, cx, cy, R)
-  core.addColorStop(0, "rgba(90,120,255,0.10)"); core.addColorStop(0.42, "rgba(150,80,220,0.06)"); core.addColorStop(1, "transparent")
+  core.addColorStop(0, _accentRGBA(0.10)); core.addColorStop(0.42, _accent2RGBA(0.07)); core.addColorStop(1, "transparent")
   ctx.fillStyle = core; ctx.fillRect(0, 0, w, h)
 
   // rotating spiral arms (the swirling portal)
@@ -468,14 +483,14 @@ function drawRiftAmbientBackdrop(ctx, canvas, opts = {}) {
     ctx.globalAlpha = 0.07
     ctx.beginPath()
     for (let s = 0; s <= 44; s++) { const ang = s * 0.16, rad = s * (R / 44) * 0.92; const x = Math.cos(ang) * rad, y = Math.sin(ang) * rad; s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y) }
-    const grd = ctx.createLinearGradient(0, 0, R, 0); grd.addColorStop(0, "#6aa8ff"); grd.addColorStop(0.6, "#9a7bff"); grd.addColorStop(1, "transparent")
+    const grd = ctx.createLinearGradient(0, 0, R, 0); grd.addColorStop(0, _THEME.spiralA); grd.addColorStop(0.6, _THEME.spiralB); grd.addColorStop(1, "transparent")
     ctx.strokeStyle = grd; ctx.lineWidth = 2.5; ctx.stroke()
     ctx.restore()
   }
   ctx.restore()
 
   // faint drifting concentric rings (portal ripples)
-  ctx.save(); ctx.strokeStyle = "#9a7bff"; ctx.lineWidth = 1
+  ctx.save(); ctx.strokeStyle = _THEME.spiralB; ctx.lineWidth = 1
   for (let r = 1; r <= 4; r++) { ctx.globalAlpha = 0.05; const rr = R * 0.18 * r + Math.sin(t * 3 + r) * 6; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke() }
   ctx.restore()
 
@@ -487,17 +502,18 @@ function drawRiftAmbientBackdrop(ctx, canvas, opts = {}) {
     const py0 = (i * 91.7 - _mkFrame * speed * 0.5) % (h + 40)
     const py = py0 < 0 ? py0 + h + 40 : py0
     const rr = 0.8 + (i % 3) * 0.7
-    ctx.fillStyle = `rgba(170,190,255,${0.05 + 0.045 * (i % 3)})`
+    ctx.fillStyle = `rgba(${_THEME.ring},${0.05 + 0.045 * (i % 3)})`
     ctx.beginPath(); ctx.arc(px, py, rr, 0, Math.PI * 2); ctx.fill()
   }
   ctx.restore()
+  drawVignette(ctx, canvas, 0.4)
 }
 
 // Subtle animated menu backdrop: dark gradient + slow-drifting accent glows (parallax) + faint drifting
 // motes. Deterministic (driven by _mkFrame — no Math.random/Date.now), so it's replay/test-safe.
 function drawMkAmbientBackdrop(ctx, canvas, opts = {}) {
   const { width: w, height: h } = getCanvasSize(canvas)
-  const top = opts.top || "#070d1b", bottom = opts.bottom || "#16233c"
+  const top = opts.top || _THEME.bgTop, bottom = opts.bottom || _THEME.bgBottom
   const bg = ctx.createLinearGradient(0, 0, 0, h)
   bg.addColorStop(0, top); bg.addColorStop(1, bottom)
   ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
@@ -506,10 +522,10 @@ function drawMkAmbientBackdrop(ctx, canvas, opts = {}) {
   ctx.save(); ctx.globalAlpha = 0.20
   const g1x = w * (0.22 + 0.03 * Math.sin(t)), g1y = h * (0.20 + 0.02 * Math.cos(t * 0.8))
   const g1 = ctx.createRadialGradient(g1x, g1y, 10, g1x, g1y, w * 0.38)
-  g1.addColorStop(0, "#3f7fd0"); g1.addColorStop(1, "transparent"); ctx.fillStyle = g1; ctx.fillRect(0, 0, w, h)
+  g1.addColorStop(0, _THEME.glowA); g1.addColorStop(1, "transparent"); ctx.fillStyle = g1; ctx.fillRect(0, 0, w, h)
   const g2x = w * (0.80 - 0.03 * Math.cos(t * 0.9)), g2y = h * (0.30 + 0.025 * Math.sin(t))
   const g2 = ctx.createRadialGradient(g2x, g2y, 10, g2x, g2y, w * 0.34)
-  g2.addColorStop(0, "#b8487f"); g2.addColorStop(1, "transparent"); ctx.fillStyle = g2; ctx.fillRect(0, 0, w, h)
+  g2.addColorStop(0, _THEME.glowB); g2.addColorStop(1, "transparent"); ctx.fillStyle = g2; ctx.fillRect(0, 0, w, h)
   ctx.restore()
 
   // Drifting motes (deterministic positions scrolling slowly upward/sideways).
@@ -520,10 +536,11 @@ function drawMkAmbientBackdrop(ctx, canvas, opts = {}) {
     const py = (i * 91.7 - _mkFrame * speed * 0.5) % (h + 40)
     const py2 = py < 0 ? py + h + 40 : py
     const r = 0.8 + (i % 3) * 0.7
-    ctx.fillStyle = `rgba(150,190,255,${0.05 + 0.045 * (i % 3)})`
+    ctx.fillStyle = `rgba(${_THEME.ring},${0.05 + 0.045 * (i % 3)})`
     ctx.beginPath(); ctx.arc(px, py2, r, 0, Math.PI * 2); ctx.fill()
   }
   ctx.restore()
+  drawVignette(ctx, canvas, 0.38)
 }
 
 function drawCenteredText(ctx, text, x, y, options = {}) {
@@ -778,13 +795,32 @@ function drawButton(ctx, rect, options = {}) {
 
 function drawHeader(ctx, canvas, title, subtitle = "") {
   const { width: w } = getCanvasSize(canvas)
-  drawCenteredText(ctx, title, w / 2, 72, {
-    font: "800 40px Arial", fill: "#f3f7ff",
-    shadowBlur: 22, shadowColor: "rgba(120,170,255,0.35)"
-  })
+  // Animated accent shimmer sweeping across the title — a moving highlight band on a themed gradient.
+  ctx.save()
+  ctx.font = "800 40px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"
+  const tw = Math.max(220, ctx.measureText(title).width)
+  const sweep = (Math.sin(_mkFrame * 0.03) * 0.5 + 0.5)            // 0..1 shimmer position
+  const grad = ctx.createLinearGradient(w / 2 - tw / 2, 0, w / 2 + tw / 2, 0)
+  grad.addColorStop(0, "#eef4ff")
+  grad.addColorStop(Math.max(0.001, sweep - 0.18), "#eef4ff")
+  grad.addColorStop(sweep, _MK_ACCENT)                            // the moving accent highlight
+  grad.addColorStop(Math.min(0.999, sweep + 0.18), "#eef4ff")
+  grad.addColorStop(1, "#eef4ff")
+  ctx.shadowBlur = 24; ctx.shadowColor = _accentRGBA(0.5)
+  ctx.fillStyle = grad
+  ctx.fillText(title, w / 2, 72)
+  ctx.restore()
   if (subtitle) {
-    drawSubText(ctx, subtitle, w / 2, 112, { font: "18px Arial", fill: "rgba(220,230,255,0.78)" })
+    drawSubText(ctx, subtitle, w / 2, 112, { font: "18px Arial", fill: `rgba(${_THEME.ring},0.82)` })
   }
+}
+
+// Soft dark edge vignette — cheap depth cue layered over any menu backdrop. Deterministic.
+function drawVignette(ctx, canvas, strength = 0.5) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.72)
+  g.addColorStop(0, "transparent"); g.addColorStop(1, `rgba(0,0,0,${strength})`)
+  ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); ctx.restore()
 }
 
 function drawFooterHint(ctx, canvas, text) {
@@ -1315,7 +1351,7 @@ export function getMainMenuRects(canvas) {
     { id: "devcode",  label: "DEV CODE",  subLabel: isFullyUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
     { id: "codex",    label: "CODEX",     subLabel: "Fighter dossiers, grouped by world"    },
-    { id: "profile",  label: "PROFILE",   subLabel: "Your inferred Big-Five personality"    },
+    { id: "profile",  label: "PROFILE",   subLabel: "Your Big-Five reading + UI appearance" },
     { id: "tutorial", label: "HOW TO PLAY", subLabel: "Controls & mechanics walkthrough"  },
     { id: "account",  label: "ACCOUNT",   subLabel: "Create / switch local profile"       },
     // SAVE FILE (File System Access API). Loads/creates a local game_player_data.json so
@@ -1332,7 +1368,8 @@ export function getMainMenuRects(canvas) {
 // state persists across frames. Additive blend so they read as soft light, not solid dots.
 const _menuParticles = []
 let _menuParticlesW = 0, _menuParticlesH = 0
-const _VOID_PALETTE = ["#8b5cf6", "#a78bfa", "#c4b5fd", "#e9d5ff", "#7dd3fc"]
+// _VOID_PALETTE is now theme-driven (declared up top, reassigned by _syncTheme) so menu motes
+// recolour with the active theme. Kept the name for the existing spawn/draw call-sites.
 function _spawnMenuParticle(w, h, anywhere) {
   return {
     x: Math.random() * w,
@@ -1372,8 +1409,8 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) 
   _mkAdvance()
   const { width: w } = getCanvasSize(canvas)
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#161029" })   // Stage 13: multiversal rift ambient
-  drawMenuParticles(ctx, canvas)   // Part 3 #1: ambient Void-palette motes over the backdrop
+  drawRiftAmbientBackdrop(ctx, canvas)   // Stage 13: multiversal rift ambient (themed bg/spiral/motes)
+  drawMenuParticles(ctx, canvas)   // Part 3 #1: ambient themed motes over the backdrop
   drawHeader(ctx, canvas, "MULTIVERSE SMASH", "Where do you want to go?")
 
   // Logged-in-as banner (top-right) so the current account is always visible.
@@ -2072,7 +2109,7 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
 
   _mkAdvance()
   ctx.clearRect(0, 0, w, h)
-  drawMkAmbientBackdrop(ctx, canvas, { top: "#0b1021", bottom: "#1b2240" })   // Stage 22: consistent ambient backdrop
+  drawMkAmbientBackdrop(ctx, canvas)   // Stage 22: themed ambient backdrop — follows the hovered fighter's palette (per-character UI)
   // Franchise banner in the subtitle reinforces that the roster is grouped/filtered by world.
   drawHeader(ctx, canvas, title, universeLabel ? `${universeLabel}  ·  Player ${currentPlayer} choose your fighter` : `Player ${currentPlayer} choose your fighter`)
 
@@ -3834,15 +3871,21 @@ const _PROFILE_TRAITS = [
 ]
 export function getProfileBackButton(canvas) {
   const { width: w, height: h } = getCanvasSize(canvas)
-  return { id: "back", x: w / 2 - 110, y: h - 72, w: 220, h: 48 }
+  return { id: "back", x: w / 2 - 228, y: h - 72, w: 220, h: 48 }
+}
+// Second button on the Profile screen → opens the APPEARANCE / theme picker (kept OFF the main menu so
+// that already-long list doesn't overflow; "your reading + your look" pair naturally here).
+export function getProfileThemesButton(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return { id: "themes", x: w / 2 + 8, y: h - 72, w: 220, h: 48 }
 }
 export function drawProfileScreen(ctx, canvas, opts = {}) {
   _mkAdvance()
   const { width: w, height: h } = getCanvasSize(canvas)
   const traits = opts.traits || {}
   ctx.clearRect(0, 0, w, h)
-  drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#0d1226" })
-  drawMenuParticles(ctx, canvas)   // Part 4: ambient Void-palette motes, consistent with the menu identity
+  drawRiftAmbientBackdrop(ctx, canvas)   // themed backdrop (bg gradient + rift spiral + motes)
+  drawMenuParticles(ctx, canvas)   // Part 4: ambient themed motes, consistent with the menu identity
   // Reframed as "The Choir's Reading" (Part 2) — the lore's own explanation for who is reading this data.
   drawHeader(ctx, canvas, "THE CHOIR'S READING", "The Choir doesn't create your pattern — it only listens.")
 
@@ -3856,16 +3899,40 @@ export function drawProfileScreen(ctx, canvas, opts = {}) {
   const settle  = Math.min(1, avgConf / 60)          // fully settled by ~60% average confidence
   const instab  = 1 - settle                          // 1 = brand-new / unread, 0 = fully read
   // Per-vertex jitter: each trait shivers by ITS OWN uncertainty, so a trait the Choir has read sits
-  // still while one it hasn't keeps forming (truthful — only E/N accumulate from combat; O/C/A stay open).
+  // still while one it hasn't keeps forming. All five axes now accumulate from play (E/N from combat
+  // style + composure; O from novelty/variety; C from flawless-vs-reckless; A from restraint vs. ultimates).
   const vjit = (conf, i, ph) => { const vi = 1 - Math.min(1, (conf || 0) / 100); return vi > 0.02 ? Math.sin(_mkFrame * 0.33 + i * 2.1 + ph) * vi * 9 : 0 }
   const flicker = instab > 0.02 ? (0.5 + 0.5 * (0.5 + 0.5 * Math.sin(_mkFrame * 0.55))) * (0.6 + 0.4 * settle) + 0.15 : 1
+
+  // BREATHING HALO behind the radar — a soft accent glow that pulses; brighter the more the Choir has read.
+  const breathe = 0.5 + 0.5 * Math.sin(_mkFrame * 0.045)
+  const halo = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * (1.5 + 0.25 * breathe))
+  halo.addColorStop(0, _accentRGBA(0.12 + 0.16 * settle * (0.6 + 0.4 * breathe)))
+  halo.addColorStop(0.6, _accent2RGBA(0.05 + 0.06 * settle))
+  halo.addColorStop(1, "transparent")
+  ctx.save(); ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, R * 1.8, 0, Math.PI * 2); ctx.fill(); ctx.restore()
+
+  // RADAR SWEEP — a slow rotating wedge ("the Choir listening"), a faint accent cone trailing behind a
+  // bright leading edge. Purely cosmetic + deterministic (driven by _mkFrame). Reads as living instrumentation.
+  {
+    const sweep = (_mkFrame * 0.02) % (Math.PI * 2)
+    ctx.save(); ctx.translate(cx, cy)
+    const wedge = ctx.createLinearGradient(0, 0, Math.cos(sweep) * R, Math.sin(sweep) * R)
+    wedge.addColorStop(0, _accentRGBA(0.0)); wedge.addColorStop(1, _accentRGBA(0.14 + 0.12 * settle))
+    ctx.fillStyle = wedge
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, sweep - 0.5, sweep); ctx.closePath(); ctx.fill()
+    // bright leading spoke
+    ctx.strokeStyle = _accentRGBA(0.35 + 0.35 * settle); ctx.lineWidth = 1.5
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(sweep) * R, Math.sin(sweep) * R); ctx.stroke()
+    ctx.restore()
+  }
 
   // Concentric pentagon grid rings (25/50/75/100%).
   for (let ring = 1; ring <= 4; ring++) {
     const rr = R * ring / 4
     ctx.beginPath()
     for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; const px = cx + Math.cos(a) * rr, py = cy + Math.sin(a) * rr; i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py) }
-    ctx.closePath(); ctx.strokeStyle = "rgba(150,180,220,0.12)"; ctx.lineWidth = 1; ctx.stroke()
+    ctx.closePath(); ctx.strokeStyle = `rgba(${_THEME.ring},0.12)`; ctx.lineWidth = 1; ctx.stroke()
   }
 
   // Axes + collect value vertices. Confidence drives every visual weight (spoke/vertex/label).
@@ -3879,7 +3946,7 @@ export function drawProfileScreen(ctx, canvas, opts = {}) {
     const a  = -Math.PI / 2 + i * 2 * Math.PI / 5
     const ax = cx + Math.cos(a) * R, ay = cy + Math.sin(a) * R
     ctx.save()
-    ctx.strokeStyle = strong ? "rgba(120,200,255,0.42)" : "rgba(150,180,220,0.18)"
+    ctx.strokeStyle = strong ? _accentRGBA(0.5) : `rgba(${_THEME.ring},0.18)`
     if (!strong) ctx.setLineDash([4, 4])
     ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ax, ay); ctx.stroke()
     ctx.restore()
@@ -3891,8 +3958,8 @@ export function drawProfileScreen(ctx, canvas, opts = {}) {
   ctx.save()
   ctx.globalAlpha = flicker
   ctx.beginPath(); verts.forEach((v, i) => i === 0 ? ctx.moveTo(v.vx, v.vy) : ctx.lineTo(v.vx, v.vy)); ctx.closePath()
-  ctx.fillStyle = `rgba(74,168,224,${0.05 + 0.13 * settle})`; ctx.fill()
-  ctx.strokeStyle = `rgba(120,200,255,${0.32 + 0.42 * settle})`; ctx.lineWidth = 1.2 + 1.3 * settle
+  ctx.fillStyle = _accentRGBA(0.05 + 0.13 * settle); ctx.fill()
+  ctx.strokeStyle = _accent2RGBA(0.32 + 0.42 * settle); ctx.lineWidth = 1.2 + 1.3 * settle
   if (instab > 0.45) ctx.setLineDash([5, 5])
   ctx.stroke()
   ctx.restore()
@@ -3902,8 +3969,8 @@ export function drawProfileScreen(ctx, canvas, opts = {}) {
   verts.forEach(v => {
     const strong = v.conf >= 50
     ctx.save()
-    if (strong) { ctx.fillStyle = "#8fd3ff"; ctx.shadowBlur = 8; ctx.shadowColor = "#4aa8e0"; ctx.beginPath(); ctx.arc(v.vx, v.vy, 5, 0, Math.PI * 2); ctx.fill() }
-    else { ctx.strokeStyle = "rgba(180,205,235,0.6)"; ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(v.vx, v.vy, 4, 0, Math.PI * 2); ctx.stroke() }
+    if (strong) { ctx.fillStyle = _MK_ACCENT2; ctx.shadowBlur = 10; ctx.shadowColor = _MK_ACCENT; ctx.beginPath(); ctx.arc(v.vx, v.vy, 5, 0, Math.PI * 2); ctx.fill() }
+    else { ctx.strokeStyle = `rgba(${_THEME.ring},0.6)`; ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(v.vx, v.vy, 4, 0, Math.PI * 2); ctx.stroke() }
     ctx.restore()
     const lx = v.ax + Math.cos(v.a) * 20, ly = v.ay + Math.sin(v.a) * 20
     const align = Math.abs(Math.cos(v.a)) < 0.25 ? "center" : (Math.cos(v.a) > 0 ? "left" : "right")
@@ -3926,7 +3993,137 @@ export function drawProfileScreen(ctx, canvas, opts = {}) {
   drawCenteredText(ctx, status, w / 2, legY + 20, { font: "12px Arial", fill: "rgba(150,180,220,0.6)" })
 
   drawMkButton(ctx, getProfileBackButton(canvas), { label: "BACK", active: opts.backHover, id: "profileback", cut: 12 })
+  drawMkButton(ctx, getProfileThemesButton(canvas), { label: "🎨 APPEARANCE", active: opts.themesHover, accent: _MK_ACCENT2, id: "profilethemes", cut: 12 })
   drawFooterHint(ctx, canvas, "Traits are inferred passively from your play — no data leaves this device")
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// APPEARANCE / THEMES (UI theme picker) — a grid of LIVE-PREVIEW cards, each
+// rendering a miniature of its own themed backdrop (gradient + drifting glows +
+// motes + a little radar echo) so you see exactly what you're choosing before you
+// commit. opts = { activeKey, hoverIndex, backHover }
+// ═════════════════════════════════════════════════════════════════════════
+export function getThemesBackButton(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return { x: w / 2 - 110, y: h - 66, w: 220, h: 46 }
+}
+// Responsive card grid (3 columns; rows wrap). Returns rects carrying the theme + index.
+// The picker list = the 6 fixed palettes + a "Character" auto-entry that follows your selected fighter
+// (its swatch shows the current character palette so you can see whose colours are in play).
+function _themePickerList() {
+  const charPal = theme.characterThemePalette()
+  return [...theme.allThemes(), { ...charPal, key: "character", name: "Character", blurb: "Follows your selected fighter's colours" }]
+}
+export function getThemeCardRects(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const list = _themePickerList()
+  const cols = w < 900 ? 2 : 3
+  const rows = Math.ceil(list.length / cols)
+  const marginX = Math.max(40, w * 0.06), top = 150, bottom = h - 92
+  const gap = 22
+  const gridW = w - marginX * 2
+  const cardW = (gridW - gap * (cols - 1)) / cols
+  const availH = bottom - top
+  const cardH = Math.min(232, (availH - gap * (rows - 1)) / rows)
+  const out = []
+  list.forEach((t, i) => {
+    const c = i % cols, r = Math.floor(i / cols)
+    out.push({ x: marginX + c * (cardW + gap), y: top + r * (cardH + gap), w: cardW, h: cardH, key: t.key, index: i, palette: t })
+  })
+  return out
+}
+// Draw a themed backdrop MINIATURE inside a clipped rounded rect using an ARBITRARY palette
+// `pal` (not the active theme), so every card previews its own look.
+function _drawThemeMini(ctx, x, y, w, h, pal, t) {
+  ctx.save()
+  roundRect(ctx, x, y, w, h, 14); ctx.clip()
+  // base gradient
+  const bg = ctx.createLinearGradient(0, y, 0, y + h)
+  bg.addColorStop(0, pal.bgTop); bg.addColorStop(1, pal.bgBottom)
+  ctx.fillStyle = bg; ctx.fillRect(x, y, w, h)
+  // two drifting parallax glows
+  ctx.save(); ctx.globalAlpha = 0.5
+  const gx1 = x + w * (0.28 + 0.08 * Math.sin(t)), gy1 = y + h * (0.34 + 0.06 * Math.cos(t * 0.8))
+  const g1 = ctx.createRadialGradient(gx1, gy1, 4, gx1, gy1, w * 0.55)
+  g1.addColorStop(0, pal.glowA); g1.addColorStop(1, "transparent"); ctx.fillStyle = g1; ctx.fillRect(x, y, w, h)
+  const gx2 = x + w * (0.74 - 0.08 * Math.cos(t * 0.9)), gy2 = y + h * (0.6 + 0.06 * Math.sin(t))
+  const g2 = ctx.createRadialGradient(gx2, gy2, 4, gx2, gy2, w * 0.5)
+  g2.addColorStop(0, pal.glowB); g2.addColorStop(1, "transparent"); ctx.fillStyle = g2; ctx.fillRect(x, y, w, h)
+  ctx.restore()
+  // drifting motes in the theme palette
+  for (let i = 0; i < 14; i++) {
+    const sp = 0.3 + (i % 4) * 0.16
+    const px = x + ((i * 47.3 + _mkFrame * sp * 0.7) % (w + 20)) - 10
+    const py0 = ((i * 31.1 - _mkFrame * sp * 0.6) % (h + 20)); const py = y + (py0 < 0 ? py0 + h + 20 : py0)
+    const rr = 0.8 + (i % 3) * 0.8
+    ctx.globalAlpha = 0.45
+    ctx.fillStyle = pal.particles[i % pal.particles.length]
+    ctx.beginPath(); ctx.arc(px, py, rr, 0, Math.PI * 2); ctx.fill()
+  }
+  ctx.globalAlpha = 1
+  // a small rotating radar echo (pentagon) — the personality-screen signature, tinted to the theme
+  const cx = x + w * 0.5, cy = y + h * 0.46, R = Math.min(w, h) * 0.22, rot = t * 0.5
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot)
+  ctx.strokeStyle = theme.rgba(pal.accentRGB, 0.5); ctx.lineWidth = 1.4
+  ctx.beginPath()
+  for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; const r2 = R * (0.55 + 0.42 * (0.5 + 0.5 * Math.sin(t * 1.3 + i * 1.7))); const pxp = Math.cos(a) * r2, pyp = Math.sin(a) * r2; i === 0 ? ctx.moveTo(pxp, pyp) : ctx.lineTo(pxp, pyp) }
+  ctx.closePath()
+  ctx.fillStyle = theme.rgba(pal.accentRGB, 0.12); ctx.fill(); ctx.stroke()
+  ctx.restore()
+  // glossy top sheen — a soft light gradient over the upper third for a "polished glass" read
+  const gloss = ctx.createLinearGradient(x, y, x, y + h * 0.5)
+  gloss.addColorStop(0, "rgba(255,255,255,0.10)"); gloss.addColorStop(1, "transparent")
+  ctx.fillStyle = gloss; ctx.fillRect(x, y, w, h * 0.5)
+  ctx.restore()
+}
+export function drawThemesScreen(ctx, canvas, opts = {}) {
+  _mkAdvance()
+  const { width: w, height: h } = getCanvasSize(canvas)
+  ctx.clearRect(0, 0, w, h)
+  drawRiftAmbientBackdrop(ctx, canvas)      // the LIVE (currently-active) theme behind the picker
+  drawMenuParticles(ctx, canvas)
+  drawHeader(ctx, canvas, "APPEARANCE", "Choose your look — every menu recolours instantly.")
+
+  const cards = getThemeCardRects(canvas)
+  const activeKey = opts.activeKey || theme.activeThemeKey()
+  const tGlobal = _mkFrame * 0.02
+  cards.forEach((c) => {
+    const isActive = c.key === activeKey
+    const isHover  = opts.hoverIndex === c.index
+    const pal = c.palette
+    const pop = (isHover ? 1 : 0)
+    // hover lift: scale a touch around the card centre
+    ctx.save()
+    if (pop) { const s = 1 + 0.03 * pop; ctx.translate(c.x + c.w / 2, c.y + c.h / 2); ctx.scale(s, s); ctx.translate(-(c.x + c.w / 2), -(c.y + c.h / 2)) }
+    // live preview
+    _drawThemeMini(ctx, c.x, c.y, c.w, c.h - 44, pal, tGlobal + c.index)
+    // info strip below the preview
+    const stripY = c.y + c.h - 44
+    ctx.save(); roundRect(ctx, c.x, stripY, c.w, 44, 12); ctx.fillStyle = "rgba(6,10,20,0.9)"; ctx.fill(); ctx.restore()
+    drawCenteredText(ctx, pal.name, c.x + 14, stripY + 17, { font: "800 16px Arial", fill: pal.text, align: "left" })
+    drawCenteredText(ctx, pal.blurb, c.x + 14, stripY + 34, { font: "11px Arial", fill: pal.textDim, align: "left" })
+    // accent swatch chips (accent + accent2), right side of the strip
+    const chip = (cxp, col) => { ctx.save(); ctx.beginPath(); ctx.arc(cxp, stripY + 22, 8, 0, Math.PI * 2); ctx.fillStyle = col; ctx.shadowBlur = 8; ctx.shadowColor = col; ctx.fill(); ctx.restore() }
+    chip(c.x + c.w - 44, pal.accent); chip(c.x + c.w - 22, pal.accent2)
+    // frame: active = bright glowing accent border + ✓ badge; hover = brightened; else faint
+    const pulse = 0.6 + 0.4 * Math.sin(_mkFrame * 0.12)
+    ctx.save()
+    roundRect(ctx, c.x, c.y, c.w, c.h, 14)
+    if (isActive) { ctx.shadowBlur = 22 * pulse; ctx.shadowColor = pal.accent; ctx.strokeStyle = pal.accent; ctx.lineWidth = 3 }
+    else if (isHover) { ctx.shadowBlur = 14; ctx.shadowColor = pal.accent; ctx.strokeStyle = theme.rgba(pal.accentRGB, 0.85); ctx.lineWidth = 2 }
+    else { ctx.strokeStyle = theme.rgba(pal.accentRGB, 0.35); ctx.lineWidth = 1.4 }
+    ctx.stroke()
+    ctx.restore()
+    if (isActive) {
+      const bw = 92, bx = c.x + c.w / 2 - bw / 2, by = c.y + 12
+      ctx.save(); roundRect(ctx, bx, by, bw, 26, 13); ctx.fillStyle = pal.accent; ctx.shadowBlur = 12 * pulse; ctx.shadowColor = pal.accent; ctx.fill(); ctx.restore()
+      drawCenteredText(ctx, "✓ ACTIVE", c.x + c.w / 2, by + 17, { font: "800 13px Arial", fill: "#0a0a12" })
+    }
+    ctx.restore()
+  })
+
+  drawMkButton(ctx, getThemesBackButton(canvas), { label: "BACK", active: opts.backHover, id: "themesback", cut: 12 })
+  drawFooterHint(ctx, canvas, "Click a theme to apply it — your choice is saved on this device")
 }
 
 // ═════════════════════════════════════════════════════════════════════════

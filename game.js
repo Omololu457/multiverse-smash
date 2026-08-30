@@ -260,7 +260,8 @@ import {
   CHAR_GRID_OPTS, UNIVERSE_GRID_OPTS, charSelectGridOpts, getSelectDetailRect, scrollGridBy, setGridScroll, getGridScrollbar, getGridViewport, pickGridCard, resetGridScroll,
   getMainMenuRects, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton,
   drawCreditsScreen,
-  drawProfileScreen, getProfileBackButton, drawCodexScreen, getCodexBackButton, codexLayout,
+  drawProfileScreen, getProfileBackButton, getProfileThemesButton, drawCodexScreen, getCodexBackButton, codexLayout,
+  drawThemesScreen, getThemesBackButton, getThemeCardRects,
   getCharSearchRect, getCharSearchClearRect,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
@@ -293,6 +294,7 @@ import { endingSlidesFor } from "./endings.js"
 import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
 import * as personality from "./personality.js"   // Big-Five trait inference from in-game behaviour (TIPI prior + Bayesian refinement)
+import * as theme from "./theme.js"                // live-swappable UI theme registry (APPEARANCE screen)
 import * as musicPersonality from "./musicPersonality.js"   // trait→music mapping + trait-informed song selection
 import * as musicLibrary from "./musicLibrary.js"           // full song library + player-authored custom playlist + active-source resolution
 import * as challenges from "./challenges.js"               // skill-based challenges + trait-tagged recommendations + skin rewards
@@ -803,7 +805,8 @@ const GAME_STATES = {
   STORY_MODE:         "storyMode",           // Stage 14: UI placeholder only (styled "coming soon" card)
   MUSIC_LIBRARY:      "musicLibrary",        // full-screen custom-playlist builder (scrollable 103-song checklist)
   PROFILE:            "profile",             // Part 1 #3: Big-Five personality radar (from main menu + pause)
-  CODEX:              "codex"                // Part 1 #4: browsable per-fighter dossier, grouped by franchise
+  CODEX:              "codex",               // Part 1 #4: browsable per-fighter dossier, grouped by franchise
+  THEMES:             "themes"               // APPEARANCE: live-preview UI theme picker (pink/blue/etc.)
 }
 
 // ------------------------------------------------------------------
@@ -3219,6 +3222,7 @@ function _selectCharacterKey(key) {
   const side = matchConfig.selectingSide
   matchConfig[side + "Char"]    = char
   matchConfig[side + "CharKey"] = key
+  if (side === "p1") _applyCharacterTheme(key)   // P1's pick drives "Character" mode across the UI
   if (key === "ben10") {
     matchConfig.alienSelectSide = side
     matchConfig.alienDraft = ((matchConfig[side + "Aliens"]?.length ? matchConfig[side + "Aliens"] : DEFAULT_OMNITRIX).filter(isArtBackedAlien)).slice()
@@ -3922,7 +3926,7 @@ function _checkMatchOver() {
       // PERSONALITY: derive Big-Five evidence from this match (P1 perspective) — combat
       // style → Extraversion, composure closing out a contested win → Neuroticism(-).
       _lastMatchP1Lost = !p1Won
-      try { personality.ensureSession(); personality.recordMatchOutcome({ matchStats, p1Won }) } catch (_) {}
+      try { personality.ensureSession(); personality.recordMatchOutcome({ matchStats, p1Won, p1Char: p1?.rosterKey || p1?.key || null }) } catch (_) {}
       // CHALLENGES: evaluate this match against the challenge list (grants XP + skin rewards
       // on completion). Universe = P1's character's franchise (for the same-franchise challenge).
       try {
@@ -13903,8 +13907,11 @@ function drawMusicLibraryScreen() {
 
 // ── PROFILE / CODEX screens (Part 1 #3/#4) — reachable from main menu AND pause; `screenReturnState`
 // remembers where BACK should go (MAIN_MENU vs PAUSED). ──
-let screenReturnState = null   // set on entry to PROFILE/CODEX; BACK restores it
+let screenReturnState = null   // set on entry to PROFILE/CODEX/THEMES; BACK restores it
 let profileBackHover  = false
+let profileThemesHover = false
+let themesBackHover   = false
+let themesHoverIndex  = -1
 let codexBackHover    = false
 let codexScroll       = 0
 let codexSelectedKey  = null
@@ -13940,6 +13947,15 @@ function buildCodexGroups() {
 function _codexMaxScroll(cv) { const L = codexLayout(cv, buildCodexGroups(), 0); return Math.max(0, L.contentH - L.listH) }
 // Enter a Profile/Codex screen, remembering the return target (menu or pause).
 function openProfileScreen(from) { screenReturnState = from; profileBackHover = false; gameState = GAME_STATES.PROFILE }
+function openThemesScreen(from)  { screenReturnState = from; themesBackHover = false; themesHoverIndex = -1; gameState = GAME_STATES.THEMES }
+// ── PER-CHARACTER UI THEMES ── a fighter's signature colour → a full derived palette (theme.js).
+function _charThemeBaseColor(key) { const c = characters[key]; return c?.color || c?.energyConfig?.color || universeAccent(c?.universe) || null }
+function _charThemeName(key) { return characters[key]?.name || "Character" }
+// Transient preview used on the character-select / skin screens (recolours the whole screen to the fighter
+// you're browsing, so each character visibly has their OWN UI). Cleared when leaving those screens.
+function _previewCharTheme(item) { const key = item?.id || item?.key || item?.rosterKey; if (!key || !characters[key]) return; theme.setPreviewTheme(theme.characterTheme(key, _charThemeBaseColor(key), _charThemeName(key))) }
+// Pin the fighter whose palette drives "Character" mode across the whole UI (pause/victory/menus).
+function _applyCharacterTheme(key) { if (!key || !characters[key]) return; theme.setActiveCharacter(key, _charThemeBaseColor(key), _charThemeName(key)) }
 function openCodexScreen(from)   {
   screenReturnState = from; codexBackHover = false; codexScroll = 0
   const groups = buildCodexGroups()
@@ -13948,7 +13964,7 @@ function openCodexScreen(from)   {
 }
 function _profileScreenData() {
   const p = personality.getPersonality()
-  return { traits: personality.summarize(p.traits), tipiComplete: !!p.tipiComplete, eventCount: (p.events || []).length, backHover: profileBackHover }
+  return { traits: personality.summarize(p.traits), tipiComplete: !!p.tipiComplete, eventCount: (p.events || []).length, backHover: profileBackHover, themesHover: profileThemesHover }
 }
 
 // ── CREDITS screen (Stage 18) — slow auto-scroll + wheel/drag, with a BACK button ──
@@ -13989,6 +14005,9 @@ function drawCreditsState() {
 }
 
 function renderCurrentState() {
+  // The per-character theme preview only lives on the fighter-browsing screens; anywhere else, drop it so
+  // the UI returns to the player's chosen (or Character-mode) theme.
+  if (gameState !== GAME_STATES.SELECT_CHARACTER && gameState !== GAME_STATES.SELECT_SKIN && gameState !== GAME_STATES.SELECT_EDO_BACKUP) theme.clearPreviewTheme()
   switch (gameState) {
     case GAME_STATES.START:
       drawStartScreen(ctx, canvas)
@@ -14002,6 +14021,7 @@ function renderCurrentState() {
     case GAME_STATES.CREDITS:         drawCreditsState(); break
     case GAME_STATES.PROFILE:         drawProfileScreen(ctx, canvas, _profileScreenData()); break
     case GAME_STATES.CODEX:           drawCodexScreen(ctx, canvas, { groups: buildCodexGroups(), selectedKey: codexSelectedKey, scroll: codexScroll, backHover: codexBackHover }); break
+    case GAME_STATES.THEMES:          drawThemesScreen(ctx, canvas, { activeKey: theme.activeThemeKey(), hoverIndex: themesHoverIndex, backHover: themesBackHover }); break
     case GAME_STATES.MAIN_MENU:
       drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex, getCurrentAccount())
       _drawProgressionBadge()
@@ -14268,7 +14288,8 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.START)            { const r = getStartMenuRects(canvas);                    const f = r.findIndex(x => pointInRect(mouse.x,mouse.y,x)); hoverStartIndex = Math.max(0,f); return }
   if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v); return }
   if (gameState === GAME_STATES.STORY_MODE)       { _storyBackHover = pointInRect(mouse.x, mouse.y, getStoryBackButton(canvas)); return }   // only the BACK button is interactive (chapters are inert)
-  if (gameState === GAME_STATES.PROFILE)          { profileBackHover = pointInRect(mouse.x, mouse.y, getProfileBackButton(canvas)); return }
+  if (gameState === GAME_STATES.PROFILE)          { profileBackHover = pointInRect(mouse.x, mouse.y, getProfileBackButton(canvas)); profileThemesHover = pointInRect(mouse.x, mouse.y, getProfileThemesButton(canvas)); return }
+  if (gameState === GAME_STATES.THEMES)           { themesBackHover  = pointInRect(mouse.x, mouse.y, getThemesBackButton(canvas)); themesHoverIndex = (getThemeCardRects(canvas).find(c => pointInRect(mouse.x, mouse.y, c))?.index ?? -1); return }
   if (gameState === GAME_STATES.CODEX)            { codexBackHover   = pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas));   return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
   if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
@@ -14282,7 +14303,7 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.AI_VS_AI_SETUP)   { tryHover(getAiVsAiSetupRects(canvas),     hoverAiVsAiIndex,     v => { hoverAiVsAiIndex = v; aiVsAiConfig.sel = v }); return }
   if (gameState === GAME_STATES.AI_VS_AI_SUMMARY) { tryHover(getAiVsAiSummaryRects(canvas),   hoverAiVsAiSummaryIndex, v => hoverAiVsAiSummaryIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
-  if (gameState === GAME_STATES.SELECT_CHARACTER) { tryHover(getCharacterCardRects(canvas, getCharacterRosterForSelectedUniverse(), charSelectGridOpts(canvas, true)), hoverCharacterIndex, v => hoverCharacterIndex = v); return }
+  if (gameState === GAME_STATES.SELECT_CHARACTER) { const _rost = getCharacterRosterForSelectedUniverse(); tryHover(getCharacterCardRects(canvas, _rost, charSelectGridOpts(canvas, true)), hoverCharacterIndex, v => hoverCharacterIndex = v); if (hoverCharacterIndex >= 0 && _rost[hoverCharacterIndex]) _previewCharTheme(_rost[hoverCharacterIndex]); return }
   if (gameState === GAME_STATES.SELECT_EDO_BACKUP) { tryHover(getCharacterCardRects(canvas, getEdoBackupRoster()), hoverEdoBackupIndex, v => hoverEdoBackupIndex = v); return }
   if (gameState === GAME_STATES.SELECT_SKIN)      { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); tryHover(getSkinSelectRects(canvas, sk.length), hoverSkinIndex, v => hoverSkinIndex = v); return }
   if (gameState === GAME_STATES.SELECT_STAGE)     { tryHover(getStageCardRects(canvas, stages), hoverStageIndex, v => hoverStageIndex = v) }
@@ -14312,6 +14333,7 @@ function handleMenuClicks() {
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; gameState = GAME_STATES.MOVE_LIST }
       else if (c.id === "codex")    openCodexScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "profile")  openProfileScreen(GAME_STATES.MAIN_MENU)
+      else if (c.id === "themes")   openThemesScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "tutorial") { tutorialPage = 0; gameState = GAME_STATES.TUTORIAL }
       else if (c.id === "account")  { accountMessage = ""; accountDraftName = getCurrentAccount()?.username || ""; gameState = GAME_STATES.ACCOUNT }
       else if (c.id === "savefile") { /* handled by the dedicated mouseup listener (needs a real user gesture for the file picker) */ }
@@ -14325,9 +14347,16 @@ function handleMenuClicks() {
       gameState = GAME_STATES.MAIN_MENU
       break
     case GAME_STATES.PROFILE:
-      // Only the BACK button is actionable; returns to wherever we came from (menu or pause).
+      // BACK returns to wherever we came from; APPEARANCE opens the theme picker (BACK there → back here).
       if (pointInRect(mouse.x, mouse.y, getProfileBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null }
+      else if (pointInRect(mouse.x, mouse.y, getProfileThemesButton(canvas))) { openThemesScreen(GAME_STATES.PROFILE); sound.play?.(SFX.UI_SELECT) }
       break
+    case GAME_STATES.THEMES: {
+      if (pointInRect(mouse.x, mouse.y, getThemesBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; break }
+      const card = getThemeCardRects(canvas).find(c => pointInRect(mouse.x, mouse.y, c))
+      if (card) { theme.setTheme(card.key); sound.play?.(SFX.UI_SELECT) }   // applies + persists instantly (live recolour)
+      break
+    }
     case GAME_STATES.CODEX: {
       if (pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; break }
       const L = codexLayout(canvas, buildCodexGroups(), codexScroll)
@@ -15266,6 +15295,13 @@ window.addEventListener("keydown", e => {
     if (key === "escape" || key === "backspace") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null }
     return
   }
+  // THEMES (APPEARANCE): Esc/Backspace backs out; ←/→ cycle themes live for keyboard users.
+  if (gameState === GAME_STATES.THEMES) {
+    if (key === "escape" || key === "backspace") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null }
+    else if (key === "arrowright" || key === "d") { e.preventDefault(); theme.cycleTheme(1);  sound.play?.(SFX.UI_SELECT) }
+    else if (key === "arrowleft"  || key === "a") { e.preventDefault(); theme.cycleTheme(-1); sound.play?.(SFX.UI_SELECT) }
+    return
+  }
   if (gameState === GAME_STATES.CODEX) {
     if (key === "escape" || key === "backspace") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; return }
     if (key === "arrowup" || key === "w" || key === "arrowdown" || key === "s") {
@@ -15724,7 +15760,7 @@ gameLoop()
       get:        () => { const p = personality.getPersonality(); return p ? { tipiComplete: p.tipiComplete, tipi: p.tipi, summary: personality.summarize(p.traits), events: p.events.length } : null },
       setTipi:    (items) => personality.setTipi(items),
       event:      (type, ctx = {}) => personality.recordGameplayEvent(type, ctx),
-      match:      (matchStats, p1Won) => { personality.ensureSession(); return personality.recordMatchOutcome({ matchStats, p1Won }) },
+      match:      (matchStats, p1Won, p1Char = null) => { personality.ensureSession(); return personality.recordMatchOutcome({ matchStats, p1Won, p1Char }) },
       // Pure-engine deterministic helpers — no account, no persistence.
       scoreTipi:  (items) => personality.scoreTipi(items),
       simulate:   (tipiScores, events) => personality.simulate(tipiScores, events).summary,
@@ -16076,6 +16112,15 @@ gameLoop()
     // Profile (#3) + Codex (#4) screens — enter + read state for verification.
     screens: {
       profile: () => { openProfileScreen(GAME_STATES.MAIN_MENU); return { state: gameState, data: _profileScreenData() } },
+      // APPEARANCE / theme picker: enter, list themes, apply one, read the active key back.
+      themes:      () => { openThemesScreen(GAME_STATES.MAIN_MENU); return { state: gameState, active: theme.activeThemeKey(), all: theme.THEME_ORDER, cards: getThemeCardRects(canvas).map(c => ({ key: c.key, x: Math.round(c.x), y: Math.round(c.y), w: Math.round(c.w), h: Math.round(c.h) })) } },
+      setTheme:    (key) => ({ applied: theme.setTheme(key).key, active: theme.activeThemeKey() }),
+      themeHover:  (i) => { themesHoverIndex = i; return themesHoverIndex },
+      activeTheme: () => theme.activeThemeKey(),
+      // Per-character themes: pin a fighter as the "Character"-mode palette, or preview one (select-screen feel).
+      charTheme:   (key) => { _applyCharacterTheme(key); theme.setTheme("character"); const t = theme.getTheme(); return { active: theme.activeThemeKey(), accent: t.accent, accent2: t.accent2, name: t.name } },
+      previewChar: (key) => { _previewCharTheme({ id: key }); const t = theme.getTheme(); return { accent: t.accent, name: t.name } },
+      clearPreview: () => { theme.clearPreviewTheme(); return theme.getTheme().accent },
       codex:   () => { openCodexScreen(GAME_STATES.MAIN_MENU); return { state: gameState, groupCount: buildCodexGroups().length, total: buildCodexGroups().reduce((n,g)=>n+g.entries.length,0), selected: codexSelectedKey } },
       codexSelect: (key) => { codexSelectedKey = key; return codexSelectedKey },
       back: () => { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; return gameState }

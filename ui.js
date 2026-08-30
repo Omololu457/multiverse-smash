@@ -2173,7 +2173,7 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   _mkAdvance()
   ctx.clearRect(0, 0, w, h)
   drawMkAmbientBackdrop(ctx, canvas)   // Stage 22: themed ambient backdrop — follows the hovered fighter's palette (per-character UI)
-  drawMenuParticles(ctx, canvas, { intensity: 1.9, density: 1.4 })   // bigger/brighter/more motes in the HOVERED fighter's UNIVERSE motif (ki sparks, leaves, shards…) so they read over the busy grid
+  drawMenuParticles(ctx, canvas, { intensity: 2.8, density: 1.4 })   // big/brighter/more motes in the HOVERED fighter's UNIVERSE motif (ki sparks, leaves, shards…) so they read boldly over the busy grid
   // Franchise banner in the subtitle reinforces that the roster is grouped/filtered by world.
   drawHeader(ctx, canvas, title, universeLabel ? `${universeLabel}  ·  Player ${currentPlayer} choose your fighter` : `Player ${currentPlayer} choose your fighter`)
 

@@ -1427,6 +1427,8 @@ function drawMenuParticles(ctx, canvas, opts = {}) {
   const intensity = opts.intensity || 1
   const density = opts.density || 1
   const opacity = opts.opacity ?? 1        // dim the motes without shrinking them (keeps them ambient, not distracting)
+  const pop = opts.pop || 0                // 0..1 decaying "hover pop" — flares the motes bigger + brighter on a fresh hover
+  const popSize = 1 + 0.5 * pop, popAlpha = 1 + 1.3 * pop
   const { width: w, height: h } = getCanvasSize(canvas)
   const want = Math.round(Math.min(60, Math.max(28, w / 26)) * density)
   if (_menuParticles.length !== want || _menuParticlesW !== w || _menuParticlesH !== h) {
@@ -1461,10 +1463,10 @@ function drawMenuParticles(ctx, canvas, opts = {}) {
     if (p.y < -14 || p.x < -30 || p.x > w + 30 || p.life > p.ttl) Object.assign(p, _spawnMenuParticle(w, h, false))
     const fade = Math.min(1, p.life / 40) * Math.min(1, (p.ttl - p.life) / 60)
     const twk  = flick ? (0.35 + 0.65 * Math.abs(Math.sin(p.tw))) : (0.6 + 0.4 * Math.sin(p.tw))
-    ctx.globalAlpha = Math.min(0.95, 0.62 * alphaMul) * fade * twk * opacity
+    ctx.globalAlpha = Math.min(0.97, 0.62 * alphaMul * opacity * popAlpha) * fade * twk
     ctx.fillStyle = p.color
-    ctx.shadowBlur = (motif === "spark" ? 14 : 9) * glowMul; ctx.shadowColor = p.color
-    ctx.save(); ctx.translate(p.x, p.y); _drawMote(ctx, motif, p.r * sizeMul, p.rot); ctx.restore()
+    ctx.shadowBlur = (motif === "spark" ? 14 : 9) * glowMul * (1 + 0.6 * pop); ctx.shadowColor = p.color
+    ctx.save(); ctx.translate(p.x, p.y); _drawMote(ctx, motif, p.r * sizeMul * popSize, p.rot); ctx.restore()
   }
   ctx.restore()
 }
@@ -2174,7 +2176,7 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
   _mkAdvance()
   ctx.clearRect(0, 0, w, h)
   drawMkAmbientBackdrop(ctx, canvas)   // Stage 22: themed ambient backdrop — follows the hovered fighter's palette (per-character UI)
-  drawMenuParticles(ctx, canvas, { intensity: 2.8, density: 1.4, opacity: 0.62 })   // big HOVERED-fighter motifs (ki sparks, leaves, shards…), but dimmed so they stay ambient over the grid, not distracting
+  drawMenuParticles(ctx, canvas, { intensity: 2.8, density: 1.4, opacity: 0.62, pop: options.motePop || 0 })   // big HOVERED-fighter motifs (ki sparks, leaves, shards…), dimmed to ambient; opts.motePop flares them on a fresh hover
   // Franchise banner in the subtitle reinforces that the roster is grouped/filtered by world.
   drawHeader(ctx, canvas, title, universeLabel ? `${universeLabel}  ·  Player ${currentPlayer} choose your fighter` : `Player ${currentPlayer} choose your fighter`)
 

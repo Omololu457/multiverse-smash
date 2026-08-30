@@ -1428,7 +1428,7 @@ function drawMenuParticles(ctx, canvas, opts = {}) {
   const density = opts.density || 1
   const opacity = opts.opacity ?? 1        // dim the motes without shrinking them (keeps them ambient, not distracting)
   const pop = opts.pop || 0                // 0..1 decaying "hover pop" — flares the motes bigger + brighter on a fresh hover
-  const popSize = 1 + 0.5 * pop, popAlpha = 1 + 1.3 * pop
+  const popSize = 1 + 0.9 * pop, popAlpha = 1 + 1.8 * pop
   const { width: w, height: h } = getCanvasSize(canvas)
   const want = Math.round(Math.min(60, Math.max(28, w / 26)) * density)
   if (_menuParticles.length !== want || _menuParticlesW !== w || _menuParticlesH !== h) {
@@ -1465,7 +1465,7 @@ function drawMenuParticles(ctx, canvas, opts = {}) {
     const twk  = flick ? (0.35 + 0.65 * Math.abs(Math.sin(p.tw))) : (0.6 + 0.4 * Math.sin(p.tw))
     ctx.globalAlpha = Math.min(0.97, 0.62 * alphaMul * opacity * popAlpha) * fade * twk
     ctx.fillStyle = p.color
-    ctx.shadowBlur = (motif === "spark" ? 14 : 9) * glowMul * (1 + 0.6 * pop); ctx.shadowColor = p.color
+    ctx.shadowBlur = (motif === "spark" ? 14 : 9) * glowMul * (1 + 1.1 * pop); ctx.shadowColor = p.color
     ctx.save(); ctx.translate(p.x, p.y); _drawMote(ctx, motif, p.r * sizeMul * popSize, p.rot); ctx.restore()
   }
   ctx.restore()

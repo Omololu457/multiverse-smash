@@ -1387,14 +1387,16 @@ function _spawnMenuParticle(w, h, anywhere) {
     x: Math.random() * w,
     y: anywhere ? Math.random() * h : h + 8,
     r: (hero ? 3.4 : 1.5) + Math.random() * (hero ? 3.6 : 3.0),
-    vy: -(0.16 + Math.random() * 0.6),                   // a touch livelier rise
-    vx: (Math.random() - 0.5) * 0.28,
-    sway: 0.15 + Math.random() * 0.4,                    // organic horizontal drift amplitude
+    vy: -(0.16 + Math.random() * 0.7),                   // livelier rise
+    vx: (Math.random() - 0.5) * 0.3,
+    sway: 0.35 + Math.random() * 0.7,                    // wider horizontal drift amplitude
+    swayF: 0.03 + Math.random() * 0.05,                  // per-mote sway frequency (varied so paths differ)
+    seed: Math.random() * Math.PI * 2,                   // motion phase seed (swirl / flutter / jitter)
     life: 0, ttl: 300 + Math.random() * 420,
     color: _VOID_PALETTE[Math.floor(Math.random() * _VOID_PALETTE.length)],
     tw: Math.random() * Math.PI * 2,
     rot: Math.random() * Math.PI * 2,
-    vrot: (Math.random() - 0.5) * 0.05
+    vrot: (Math.random() - 0.5) * 0.06
   }
 }
 // Draw one mote in the active theme's MOTIF shape (ctx already translated to the mote centre).
@@ -1433,14 +1435,29 @@ function drawMenuParticles(ctx, canvas, opts = {}) {
   }
   const motif = _THEME.motif || "orb"
   const flick = motif === "ember"                         // embers flicker fast; everything else twinkles gently
+  // Per-motif MOTION character — the way each element MOVES evokes its world:
+  //   spark = fast darting energy · ember = fast rising flicker · leaf = wide flutter + heavy tumble ·
+  //   petal = soft floaty tumble · shard = spinning crystal drift · orb = calm float.
+  const MOT = {
+    spark: { rise: 1.6, sway: 0.7, spin: 0.7, jitter: 0.7 },
+    ember: { rise: 1.7, sway: 1.0, spin: 0.5, jitter: 0.5 },
+    leaf:  { rise: 0.8, sway: 2.4, spin: 3.2, jitter: 0.0 },
+    petal: { rise: 0.75, sway: 2.0, spin: 2.4, jitter: 0.0 },
+    shard: { rise: 1.05, sway: 1.1, spin: 2.6, jitter: 0.15 },
+    orb:   { rise: 1.0, sway: 1.0, spin: 1.0, jitter: 0.0 },
+  }[motif] || { rise: 1, sway: 1, spin: 1, jitter: 0 }
   const sizeMul = intensity, alphaMul = Math.min(1.6, 0.5 + 0.5 * intensity), glowMul = intensity
   ctx.save()
   ctx.globalCompositeOperation = "lighter"
   for (const p of _menuParticles) {
     p.tw += flick ? 0.18 : 0.05
-    p.x += p.vx + Math.sin((p.life + p.tw * 18) * 0.04) * p.sway   // organic sway
-    p.y += p.vy; p.life++; p.rot += p.vrot
-    if (p.y < -12 || p.life > p.ttl) Object.assign(p, _spawnMenuParticle(w, h, false))
+    // two-frequency swirl (varied per mote) + a fast micro-jitter for energetic motifs
+    const swirl = (Math.sin(p.life * p.swayF + p.seed) * 0.85 + Math.sin(p.life * p.swayF * 2.3 + p.seed * 1.7) * 0.4) * p.sway * MOT.sway
+    const jit   = MOT.jitter ? Math.sin(p.life * 0.6 + p.seed) * MOT.jitter : 0
+    p.x += p.vx + swirl + jit
+    p.y += p.vy * MOT.rise - Math.sin(p.life * 0.05 + p.seed) * 0.08   // rise with a gentle bob
+    p.life++; p.rot += p.vrot * MOT.spin + (MOT.sway > 1.5 ? Math.sin(p.life * 0.06 + p.seed) * 0.02 : 0)  // leaves/petals rock as they tumble
+    if (p.y < -14 || p.x < -30 || p.x > w + 30 || p.life > p.ttl) Object.assign(p, _spawnMenuParticle(w, h, false))
     const fade = Math.min(1, p.life / 40) * Math.min(1, (p.ttl - p.life) / 60)
     const twk  = flick ? (0.35 + 0.65 * Math.abs(Math.sin(p.tw))) : (0.6 + 0.4 * Math.sin(p.tw))
     ctx.globalAlpha = Math.min(0.95, 0.62 * alphaMul) * fade * twk

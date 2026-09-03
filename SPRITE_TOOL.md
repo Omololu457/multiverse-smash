@@ -36,33 +36,60 @@ idle: { frames: 6, width: 108, height: 122, speed: 8, anchorY: 0, sheet: "./bard
 Run `python3 tools/sprite_tool.py <verb> -h` for all flags. Requires `Pillow`,
 `numpy`, `scipy` (already used across `tools/`).
 
-### 1. `generate` — text → base sheet  *(backend STUBBED)*
+### 1. `generate` — text → base sheet  *(real backend: Stability AI)*
 
 ```bash
+export STABILITY_API_KEY=sk-...          # your Stability key — bills your account
 python3 tools/sprite_tool.py generate \
   --prompt "a green-skinned alien mage, front-facing idle, pixel-art like piccolo" \
   --out cell_idle_raw.png --cols 6 --rows 1 --cell-w 96 --cell-h 128 --ref piccolo
 ```
 
-**No image-generation backend is configured in this environment** (no API key or gen
-script was found). So `generate` writes a **keyable placeholder sheet** — numbered-cell
-humanoid silhouettes on solid `#00FF50` green, bottom-aligned — and prints the TODO
-plus the documented backend interface. The placeholder is real enough that
-`key → slice → recolor` all run on it today.
+`generate` is wired to **`tools/sprite_gen_backend.py`**, a real Stability AI REST
+backend (v2beta Stable Image, plain HTTPS via `requests` — no SDK). It makes **one
+`generate/core` call per frame** (`style_preset="pixel-art"`, a fixed base seed for
+character consistency, a per-frame pose hint), runs each frame through Stability's
+**remove-background** endpoint for a clean cutout, and composites the frames
+bottom-aligned onto a solid `#00FF50` green sheet — exactly the contract `key --mode
+green` → `slice` expects.
 
-**To wire real AI generation later:** implement one function and point
-`SPRITE_GEN_BACKEND=module:function` at it —
+- **No key set?** It falls back to the keyable placeholder sheet (numbered silhouettes
+  on green) and prints how to activate the real backend, so the rest of the pipeline is
+  still testable.
+- **Offline dry-run** of the whole path (no key, no network, synthetic frames):
+  ```bash
+  SPRITE_GEN_DRY_RUN=1 python3 tools/sprite_tool.py generate --prompt "..." --out sheet.png --cols 6
+  ```
+
+**Backend config** (env vars; see the header of `tools/sprite_gen_backend.py`):
+
+| var | default | meaning |
+|---|---|---|
+| `STABILITY_API_KEY` | — | required for real calls |
+| `SPRITE_GEN_MODEL` | `core` | `core` \| `sd3` \| `ultra` |
+| `SPRITE_GEN_BG` | `green` | `green` (pipeline contract) \| `alpha` (transparent sheet → `key --mode alpha`/slice directly) |
+| `SPRITE_GEN_REMOVE_BG` | `1` | run remove-background per frame for a clean cutout |
+| `SPRITE_GEN_STYLE` | `pixel-art` | Stability `style_preset` |
+| `SPRITE_GEN_SEED` | `42` | base seed; `0` = random each run |
+| `SPRITE_GEN_DRY_RUN` | off | skip HTTP, synthesize frames locally |
+
+**Known limitation:** frames are independent txt2img calls, so cross-frame character
+drift is possible (mitigated by a shared seed). For tight animation cycles, generate a
+strong idle, then hand-pose/edit; or generate one good frame and derive others.
+
+**Use a different provider** by pointing `SPRITE_GEN_BACKEND=module:function` at any
+implementation of:
 
 ```python
 def generate(prompt: str, out_path: str, *, cols: int, rows: int,
              cell_w: int, cell_h: int, ref: str | None) -> str:
     """Write a sprite SHEET at out_path: cols*rows frames on a SOLID #00FF50 green
-    background, each figure bottom-aligned in its cell. Return out_path."""
+    background (or transparent if it sets SPRITE_GEN_BG=alpha), each figure
+    bottom-aligned in its cell. Return out_path."""
 ```
 
-Keep the **green-screen + bottom-aligned-cell** contract and the downstream verbs are
-unchanged. Candidate backends: Anthropic / OpenAI Images / Stability / Replicate, or a
-local ComfyUI workflow over HTTP.
+An optional module-level `available() -> bool` lets the tool fall back to the
+placeholder when the backend can't run. `sprite_gen_backend.py` is the reference impl.
 
 ### 2. `key` — remove background
 
@@ -196,21 +223,25 @@ Verified during build:
 ## What's built / where it lives / what's deferred
 
 **Built**
-- `tools/sprite_tool.py` — `generate` (stub) · `key` (green/color/alpha + tight flood) ·
-  `slice` (gutter + connected-component, flip, picks, uniform feet-aligned output) ·
-  `recolor` (delegates to `recolor_palette.py`) · `contact` (montage). Importable
-  functions (`key_image`, `slice_sheet`, `recolor_sheet`, `generate_sheet`,
-  `contact_sheet`) for scripting.
+- `tools/sprite_tool.py` — `generate` (real backend + placeholder fallback) · `key`
+  (green/color/alpha + tight flood) · `slice` (gutter + connected-component, flip,
+  picks, uniform feet-aligned output) · `recolor` (delegates to `recolor_palette.py`) ·
+  `contact` (montage). Importable functions (`key_image`, `slice_sheet`,
+  `recolor_sheet`, `generate_sheet`, `contact_sheet`) for scripting.
+- `tools/sprite_gen_backend.py` — real Stability AI REST backend for `generate`
+  (per-frame `generate/core` + `remove-background`, green/alpha compose, dry-run mode).
 - `tools/sprite_preview.html` — isolated client-side viewer (key toggle + tolerance,
   frame-grid overlay, hue/saturate recolor preview, color-pick key). No server, no
   changes to `game.js` / `sprite.js` / `index.html`.
 - `SPRITE_TOOL.md` — this file.
 
-**Stubbed / deferred**
-- **GENERATE has no live image-gen backend** in this environment — it emits a keyable
-  placeholder + a documented `SPRITE_GEN_BACKEND=module:function` interface. Wire an
-  API/local model to that contract (green-screen, bottom-aligned cells) and steps 2–4
-  are unchanged.
+**Deferred / limitations**
+- **GENERATE needs a `STABILITY_API_KEY`** to make real calls (billed to your account).
+  Without one it falls back to the keyable placeholder; `SPRITE_GEN_DRY_RUN=1` exercises
+  the full compose path offline. The live network round-trip is the only part not
+  exercised by the bundled smoke tests (it requires your key).
+- **Cross-frame consistency** of a generated multi-frame sheet is best-effort (per-frame
+  txt2img + shared seed); tight animation cycles still benefit from hand-editing.
 - Slicing assumes frames are separated by transparent gutters (post-key) or are
   distinct opaque islands. A sheet with touching figures on a busy background needs
   `--method cc` tuning (`--min-area` / `--band`) or a manual pre-key, same caveat the

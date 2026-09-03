@@ -244,25 +244,40 @@ def recolor_sheet(src, out_tag, to_hue=None, to=None, from_hue=None, from_=None,
 # ─────────────────────────────────────────────────────────────────────────────
 # GENERATE — text → base sheet.  No backend wired → keyable placeholder + TODO.
 # ─────────────────────────────────────────────────────────────────────────────
+# Default real backend: tools/sprite_gen_backend.py (Stability AI). Override with
+# SPRITE_GEN_BACKEND=module:function. Falls back to the placeholder below if the
+# backend reports it can't run (e.g. no STABILITY_API_KEY set).
+DEFAULT_BACKEND = "sprite_gen_backend:generate"
+
 GEN_BACKEND_DOC = """\
-  GENERATE BACKEND — not configured in this environment (no image-gen API key / script found).
-  A placeholder sheet was written so the key→slice→recolor pipeline is testable today.
+  GENERATE BACKEND — the real backend (tools/sprite_gen_backend.py, Stability AI) is not
+  active right now: STABILITY_API_KEY is unset (and SPRITE_GEN_DRY_RUN is off). A keyable
+  PLACEHOLDER sheet was written so the key→slice→recolor pipeline still works today.
 
-  To wire real AI generation, implement one function with this signature and set the
-  SPRITE_GEN_BACKEND env var to its 'module:function' path:
+  To generate REAL art:
+      export STABILITY_API_KEY=sk-...        # bills your Stability account
+      python3 tools/sprite_tool.py generate --prompt "..." --out sheet.png --cols 6 ...
+  Offline dry-run of the full path (no key/network, synthetic frames):
+      SPRITE_GEN_DRY_RUN=1 python3 tools/sprite_tool.py generate --prompt "..." --out sheet.png
 
-      def generate(prompt: str, out_path: str, *, cols: int, rows: int,
-                   cell_w: int, cell_h: int, ref: str | None) -> str:
-          '''Produce a sprite SHEET PNG at out_path — cols*rows frames on a SOLID
-          #00FF50 GREEN background (so `sprite_tool.py key --mode green` cleans it),
-          each figure BOTTOM-aligned in its cell. Return out_path.'''
+  To use a DIFFERENT provider, point SPRITE_GEN_BACKEND at any module:function with:
+      def generate(prompt, out_path, *, cols, rows, cell_w, cell_h, ref) -> str
+  producing cols*rows frames on a SOLID #00FF50 green background (or transparent if it
+  sets SPRITE_GEN_BG=alpha), each figure BOTTOM-aligned in its cell. See
+  tools/sprite_gen_backend.py for the reference implementation, and SPRITE_TOOL.md."""
 
-  Candidate backends (pick per what becomes available):
-    * Anthropic (Claude image tooling), OpenAI Images, Stability, Replicate — call the
-      API, request a transparent-or-green-screen pixel-art sheet, save to out_path.
-    * A local diffusion model / ComfyUI workflow exposed over HTTP.
-  Whatever the backend, KEEP the green-screen + bottom-aligned-cell contract above so
-  the downstream verbs are unchanged."""
+
+def _load_backend(spec):
+    """Load a 'module:function' backend, resolving modules that live in tools/."""
+    mod_name, fn_name = spec.split(":")
+    cand = os.path.join(os.path.dirname(__file__), mod_name + ".py")
+    if os.path.exists(cand):
+        s = importlib.util.spec_from_file_location(mod_name, cand)
+        mod = importlib.util.module_from_spec(s)
+        s.loader.exec_module(mod)
+    else:
+        mod = importlib.import_module(mod_name)
+    return mod, getattr(mod, fn_name)
 
 
 def _draw_placeholder(prompt, out, cols, rows, cell_w, cell_h, ref):
@@ -289,18 +304,20 @@ def _draw_placeholder(prompt, out, cols, rows, cell_w, cell_h, ref):
 
 
 def generate_sheet(prompt, out, cols=4, rows=1, cell_w=96, cell_h=128, ref=None):
-    """text → base sheet. Uses SPRITE_GEN_BACKEND (module:function) if set, else a
-    keyable placeholder + a printed TODO documenting the backend interface."""
-    backend = os.environ.get("SPRITE_GEN_BACKEND")
-    if backend:
-        mod_name, fn_name = backend.split(":")
-        spec = importlib.util.find_spec(mod_name)
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        path = getattr(mod, fn_name)(prompt, out, cols=cols, rows=rows,
-                                     cell_w=cell_w, cell_h=cell_h, ref=ref)
-        print(f"OK {path}: generated via backend {backend}")
+    """text → base sheet. Routes to the SPRITE_GEN_BACKEND (default: the real Stability
+    backend). Falls back to a keyable placeholder if the backend can't run (no API key)."""
+    spec = os.environ.get("SPRITE_GEN_BACKEND", DEFAULT_BACKEND)
+    try:
+        mod, fn = _load_backend(spec)
+    except Exception as e:
+        print(f"  (backend '{spec}' unavailable: {e}) — using placeholder")
+        mod = None
+    # A backend may expose available() to signal it's runnable (key present / dry-run).
+    if mod is not None and (not hasattr(mod, "available") or mod.available()):
+        path = fn(prompt, out, cols=cols, rows=rows, cell_w=cell_w, cell_h=cell_h, ref=ref)
+        print(f'   prompt: "{prompt}"' + (f"  ref: {ref}" if ref else "") + f"  [backend {spec}]")
         return path
+    # ── fallback: keyable placeholder ──
     _draw_placeholder(prompt, out, cols, rows, cell_w, cell_h, ref)
     print(f"OK {out}: PLACEHOLDER {cols*rows}-frame sheet ({cols*cell_w}x{rows*cell_h}) on keyable green")
     print(f'   prompt: "{prompt}"' + (f"  ref: {ref}" if ref else ""))

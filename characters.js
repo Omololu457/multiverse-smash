@@ -39,8 +39,10 @@ const goku = {
   // for future use once real beam art exists — see GOKU_ASSET_MAP.md. ★BALANCE: 4-tier transform chain with
   // NO ranged special is an unusual shape (flagged for Stage 7 balance pass).
   specials: {
-    dragonFist: { cost: 40, damage: 150, startup: 10, active: 6, recovery: 22, hitstun: 28, knockbackX: 12, knockbackY: -6, effect: "punch attack with dragon aura" }
-    // kamehameha: CUT — dormant. { cost: 30, damage: 120, ... } windup art preserved, no beam graphic to ship.
+    dragonFist: { cost: 40, damage: 150, startup: 10, active: 6, recovery: 22, hitstun: 28, knockbackX: 12, knockbackY: -6, effect: "Dragon Fist (neutral / any non-Down) — melee rocket-punch rush with dragon aura" },
+    // ITEM 4 (2026-09-02): Kamehameha REVIVED by ITEM 1 (Down+Special → fireGokuKamehameha, procedural beam) —
+    // no longer "CUT". This entry now reflects the move that actually fires; cost/damage match GOKU_SPECIALS.
+    kamehameha: { cost: 30, damage: 94, motion: "D", effect: "Kamehameha (Down+Special) — procedural charge→release piercing ki beam (Piccolo/Frieza beam pattern; windup art revived)" }
   },
   // ── TRANSFORMATION LADDER (STAGE 5, 2026-08-23 re-scope to the 4 REAL EB sheets): base → Super Saiyan →
   // Super Saiyan God → Super Saiyan Blue. SAME mechanic as Vegeta / Frieza: CHARGE button — hold-release
@@ -108,6 +110,10 @@ const goku = {
     // subagent-rejected). Dragon Fist = an enhanced straight punch, so the reuse reads correctly; a
     // procedural dragon-aura FX overlay to distinguish it is DEFERRABLE. See GOKU_ASSET_MAP.md.
     dragonFist:  { frames: 2, width: 94, height: 135, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_heavy_uniform.png" },  // reuse heavy straight-punch (base #107-108)
+    // Kamehameha (Down+Special) cast pose — REVIVES the dormant windup art (goku_base_kamehamehaWindup_uniform.png,
+    // base #170-176). 840×129 strip = 7 frames × 120px; charge→release hold. Beam itself is procedural (abilities.js
+    // fireGokuKamehameha), same as Piccolo's Special Beam Cannon — no EB beam graphic exists.
+    gokuKamehameha: { frames: 7, width: 120, height: 129, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./goku_base_kamehamehaWindup_uniform.png" },
     // ── STAGE 7 — win (cheer-jump + scratch-head-laugh, base #274-277 + #282-285) / lose (reuse knockdown).
     // Win always resolves to BASE form regardless of the fight-ending form (STATED ASSUMPTION per Stage 0 —
     // no win pose exists on SSJ/SSG/SSB sheets; inferred, not confirmed).
@@ -148,7 +154,16 @@ const vegeta = {
   specials: {
     galickGun:     { cost: 25, damage: 120, startup: 9,  active: 5, recovery: 14, hitstun: 24, knockbackX: 10, knockbackY: -2, motion: "QCF",     effect: "fast purple ki beam" },
     bigBangAttack: { cost: 35, damage: 140, startup: 13, active: 5, recovery: 20, hitstun: 26, knockbackX: 11, knockbackY: -1, motion: "neutral", effect: "spherical ki blast → beam" },
-    finalFlash:    { cost: 50, damage: 200, startup: 24, active: 6, recovery: 30, hitstun: 30, knockbackX: 14, knockbackY: -3, motion: "QCB",     effect: "concentrated two-handed beam (his heaviest special)" }
+    finalFlash:    { cost: 50, damage: 200, startup: 24, active: 6, recovery: 30, hitstun: 30, knockbackX: 14, knockbackY: -3, motion: "QCB",     effect: "concentrated two-handed beam (his heaviest special)" },
+    // ITEM 4 (2026-09-02): backfilled the moves that fire in executeVegetaSpecial but were absent — the two
+    // FREE (no-energy) pokes, and the SSJ/Blue-exclusive advanced-motion specials. Costs match the code
+    // (base costs listed; the 3 beams above scale up in SSJ/Blue via the pick() tiering).
+    launchKi:      { cost: 0,  motion: "U",         effect: "Launch Ki Blast — FREE anti-air cyan barrage (3 staggered rising orbs); cooldown-gated" },
+    kiBlast:       { cost: 0,  motion: "D",         effect: "Ki Blast — FREE quick cyan shot; tap = fast / hold-Down = bigger charged shot; cooldown-gated" },
+    superGalickGun:{ cost: 50, motion: "F→F (Blue)",effect: "Super Galick Gun — bigger, costlier Galick; SSJ Blue only" },
+    teleport:      { cost: 20, motion: "B→B (Blue)",effect: "Teleport — blink behind the opponent; SSJ Blue only" },
+    selfDestruct:  { cost: 90, motion: "B→F (SSJ+)",effect: "Self-Destruct — standalone signature proximity nuke (not the ultimate; no self-harm); SSJ/Blue only" },
+    diagonalGalick:{ cost: 32, motion: "F→B (SSJ+)",effect: "Diagonal Galick Gun — downward-angled beam variant; SSJ/Blue only" }
   },
   ultimate: { name: "Super Saiyan Blue Evolution", cost: 100, duration: 8, effect: "Triggers next transformation" },
   transformationOrder: ["base","ssj1","ssj2","ssblue","ssbEvolution","ultraEgo"],
@@ -266,6 +281,11 @@ const vegetaDark = {
     knifeSlash:  { cost: 26, damage: 96, motion: "F",       effect: "quick straight blade slash (melee disjoint)" },
     sickleThrow: { cost: 32, damage: 92, motion: "B",       effect: "thrown curved red crescent blade" }
   },
+  // ITEM 2 (2026-09-02): real ultimate wired in abilities.js executeVegetaDarkUltimate. Dark-aura
+  // amplified ki barrage — powers up (black-spike aura) then unloads guaranteed ki blasts, tinted deeper
+  // PURPLE while the dark-aura / Rose form is active. Range-independent inline freeze-cinematic,
+  // ~198 EFF (330 raw ×0.60), standard ultimate cooldown.
+  ultimate: { name: "Villainous Onslaught", cost: 100, description: "A dark-aura amplified ki barrage — Dark Vegeta flares his black-spike aura, then unleashes a guaranteed volley of ki blasts, deepening to piercing purple while the dark-aura or Rose form is active. Range-independent freeze-cinematic; standard ultimate cooldown." },
   // Stage-1 PLACEHOLDER tuning so the char is mechanically playable now; real per-move data + normal
   // SPRITES land in Stage 2 (all dmg ×0.60 via GLOBAL_DAMAGE_SCALE). Distinct from the blue `vegeta`
   // (slightly higher attack/HP, same 200 Ki) to read as a heavier, more aggressive variant.
@@ -3711,9 +3731,15 @@ const gokuBlack = {
   // no-op for this character (abilities.js switch has no "goku_black" case). Declared so the
   // character-select kit panel has data and nothing assumes `.specials` is undefined.
   specials: {
-    kamehameha: { cost: 30,  effect: "STAGE 3+: charge/release beam (own move). Not wired yet." },
-    spiritBomb: { cost: 40,  effect: "STAGE 3+: charge/release lob (own move). Not wired yet." },
-    explosion:  { cost: 120, effect: "STAGE 3+: proximity AOE (Rick mirror), art pending. Not wired yet." }
+    // ITEM 4 (2026-09-02): reconciled with executeGokuBlackSpecial — the 3 originals were falsely marked
+    // "Not wired yet" (they all fire), and the 3 Rose-only slash specials were missing. Costs match the
+    // abilities.js constants (GB_* / spendEnergy literals). Rose slashes only resolve while SSJ Rose is active.
+    kamehameha:      { cost: 30,  motion: "D→F", effect: "Black Kamehameha — fast charge→release beam (pink in Rose)" },
+    spiritBomb:      { cost: 40,  motion: "D→B", effect: "Dark Spirit Bomb — slower, bigger charge→release orb" },
+    explosion:      { cost: 120, motion: "neutral", effect: "Explosion — proximity AOE nuke (neutral special)" },
+    electricKiPush:  { cost: 15,  motion: "B→F (Rose)", effect: "Electric Ki Push — low-damage high-knockback repel (spacing); SSJ Rose only" },
+    electricSlash:   { cost: 20,  motion: "F→D (Rose)", effect: "Electric Slash — fast cheap mid-range crescent poke; SSJ Rose only" },
+    superKiSlash:    { cost: 48,  motion: "B→D (Rose)", effect: "Super Ki Slash — strongest slash, big X hitbox, slow startup; SSJ Rose only" }
   },
   ultimate: { name: "Sword Slash", cost: 40, effect: "STAGE 3+: sure-hit with real windup risk. Not wired yet." },
   // TRANSFORMATION — base → Super Saiyan Rose. A SELF-CONTAINED sustained transform managed in
@@ -3795,7 +3821,15 @@ const beerus = {
   },
   // Specials/ultimate data + behaviour wired in Stages 3-4 (abilities.js). Placeholder
   // meter tier here keeps the kit/HUD panel valid; real numbers land with the moves.
-  specials: {},
+  // ITEM 4 (2026-09-02): backfilled from executeBeerusSpecial (was `{}`). Motion map + costs match the
+  // BEERUS_* constants in abilities.js exactly. Display/move-list data only (combat reads the constants).
+  specials: {
+    kiBlast:        { cost: 30, motion: "neutral", effect: "Ki Blast — quick forward energy shot (the kit's basic poke)" },
+    downwardKiBlast:{ cost: 35, motion: "D",       effect: "Downward Ki Blast — a diving down-forward blast with a ground-impact burst on connect" },
+    forwardPush:    { cost: 45, motion: "D→F",     effect: "Forward Push — two traveling shockwave rings that knock the foe back" },
+    outwardKiBlast: { cost: 50, motion: "D→B",     effect: "Outward Ki Blast — a self-centered expanding nova (proximity AOE)" },
+    hakai:          { cost: 70, motion: "U",       effect: "Hakai — long-telegraph God-of-Destruction erasure; big direct payoff spawned at the target" }
+  },
   ultimate: { name: "Ki Ball", cost: 150, description: "3-stage charge/release/impact cinematic — the largest move in the kit (Stage 4)." },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
@@ -8266,6 +8300,10 @@ const gohan = {
   specials: {
     meteorKick: { cost: 35, damage: 130, startup: 10, active: 5, recovery: 22, hitstun: 26, knockbackX: 12, knockbackY: -5, isSpecial: true, effect: "Meteor Kick — a committed forward-lunging flying kick that blows the foe away (melee; no ranged special — none on the sheet)" }
   },
+  // ITEM 2 (2026-09-02): real ultimate wired in abilities.js executeGohanUltimate. MELEE-ONLY per the
+  // asset map (no beam art) — a committed flying-kick finisher reusing the rush chain + Meteor Kick art.
+  // Guaranteed inline freeze-cinematic, ~198 EFF (330 raw ×0.60), standard ultimate cooldown.
+  ultimate: { name: "Meteor Barrage", cost: 100, description: "A committed melee finisher — Gohan blitzes in through his 3-stage rush chain and ends on a full-power flying Meteor Kick. Guaranteed freeze-cinematic barrage (melee-only; no beam art); range-independent; standard ultimate cooldown." },
   hasSprites: true,
   // Teen (Cell saga) → canonically SHORTER than the adult fighters. Source idle content ≈ 88px at ×1.0. ×1.20
   // renders the idle body ≈ 106px on-screen: a touch under the roster's ~111px adults — reads as a teen without
@@ -8966,6 +9004,10 @@ const bardock = {
     rebellion: { cost: 18, isSpecial: true, effect: "Rebellion Rush (neutral/Fwd/air) — a committed dashing SWORD lunge; gap-closer, hard knockback" },
     kiCharge:  { cost: 0,  isSpecial: true, effect: "Ki Charge (Down) — gathers a golden ki-orb; refills Ki over the gather window (no hit)" }
   },
+  // ITEM 2 (2026-09-02): real ultimate wired in abilities.js executeBardockUltimate. Sword finisher —
+  // chains his blade poses (thrust → overhead slash → rising spin-slash) into a guaranteed inline
+  // freeze-cinematic barrage. Range-independent, ~198 EFF (330 raw ×0.60), standard ultimate cooldown.
+  ultimate: { name: "Final Rebellion", cost: 100, description: "A guaranteed sword barrage — Bardock chains a forward blade thrust, an overhead slash and a rising spin-slash into a freeze-cinematic finisher. Range-independent; ends with the standard ultimate cooldown." },
   hasSprites: true,
   // Bardock is an adult elite Saiyan. Source idle content ≈ 119px at ×1.0 → reads as a rugged
   // full-size warrior (a touch above the ~111px roster adults). anchorY 0 plants feet. Verified via

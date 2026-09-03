@@ -1,0 +1,159 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>sprite_preview — crop / key / recolor eyeball tool</title>
+<!--
+  ISOLATED, client-side-only preview for sprite_tool.py steps. Drag a PNG in (a raw
+  generated/scanned sheet OR a *_uniform.png strip) and visually check, BEFORE you
+  commit, how a green/color key, a frame grid, and a hue recolor will look.
+
+  Nothing here touches game.js / sprite.js / index.html or the live game — it reads
+  a file you drop, entirely in-browser. It is a VISUAL AID only: the committed art is
+  always produced by tools/sprite_tool.py so results are deterministic + reviewable.
+  Open by double-clicking the file (file:// is fine — no server needed).
+-->
+<style>
+  body { margin:0; font:13px/1.5 system-ui, sans-serif; background:#15151b; color:#e6e6ea; }
+  header { padding:10px 16px; background:#1e1e27; border-bottom:1px solid #333; }
+  header b { color:#8fd0ff; }
+  #drop { margin:16px; padding:26px; border:2px dashed #55607a; border-radius:8px; text-align:center; color:#9aa; }
+  #drop.hot { border-color:#8fd0ff; color:#cfe6ff; background:#1b2430; }
+  .wrap { display:flex; gap:20px; padding:0 16px 24px; flex-wrap:wrap; }
+  .panel { background:#1b1b23; border:1px solid #2c2c38; border-radius:8px; padding:12px; }
+  .panel h3 { margin:0 0 8px; font-size:12px; letter-spacing:.5px; text-transform:uppercase; color:#9fb; }
+  label { display:block; margin:6px 0 2px; color:#bcc; }
+  input[type=range] { width:200px; vertical-align:middle; }
+  canvas { image-rendering:pixelated; background:
+      repeating-conic-gradient(#2a2a33 0% 25%, #22222b 0% 50%) 50%/16px 16px; border:1px solid #333; }
+  .val { color:#8fd0ff; }
+  .row { display:flex; align-items:center; gap:8px; }
+  code { background:#000; padding:1px 5px; border-radius:3px; color:#9f9; }
+</style>
+
+<header>
+  <b>sprite_preview</b> — drop a sheet to eyeball <b>key · frame-grid · hue recolor</b>.
+  Isolated / client-side; the real, committed output comes from <code>tools/sprite_tool.py</code>.
+</header>
+
+<div id="drop">Drag a PNG here (a raw sheet or a <code>*_uniform.png</code> strip)…</div>
+
+<div class="wrap">
+  <div class="panel" id="controls" style="display:none">
+    <h3>Key (background removal)</h3>
+    <label class="row"><input type="checkbox" id="keyOn"> remove background</label>
+    <label>mode
+      <select id="keyMode">
+        <option value="green">EB green + teal</option>
+        <option value="pick">picked color (click canvas)</option>
+      </select>
+    </label>
+    <label>tolerance <span class="val" id="tolV">60</span>
+      <input type="range" id="tol" min="0" max="200" value="60"></label>
+
+    <h3 style="margin-top:14px">Frame grid</h3>
+    <label class="row"><input type="checkbox" id="gridOn"> show cell grid</label>
+    <label>cell width <span class="val" id="cwV">96</span>px
+      <input type="range" id="cw" min="8" max="400" value="96"></label>
+    <div>→ <span class="val" id="ncells">0</span> cells across (<span id="dims"></span>)</div>
+
+    <h3 style="margin-top:14px">Hue recolor (preview)</h3>
+    <label>hue-rotate <span class="val" id="hueV">0</span>°
+      <input type="range" id="hue" min="0" max="360" value="0"></label>
+    <label>saturate <span class="val" id="satV">1.0</span>
+      <input type="range" id="sat" min="0" max="30" value="10"></label>
+    <p style="color:#889;max-width:220px">Matches <code>sprite_tool.py recolor --to-hue</code> /
+       <code>harness/recolor_hue.mjs</code>. Eyeball only — commit via the CLI.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Preview</h3>
+    <canvas id="cv" width="480" height="128"></canvas>
+    <div id="pickInfo" style="color:#889"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let img = null, srcCanvas = null, pickColor = null;
+
+function loadFile(file) {
+  const url = URL.createObjectURL(file);
+  const i = new Image();
+  i.onload = () => {
+    img = i;
+    srcCanvas = document.createElement('canvas');
+    srcCanvas.width = i.naturalWidth; srcCanvas.height = i.naturalHeight;
+    srcCanvas.getContext('2d').drawImage(i, 0, 0);
+    $('controls').style.display = 'block';
+    $('cw').max = i.naturalWidth;
+    render();
+    URL.revokeObjectURL(url);
+  };
+  i.src = url;
+}
+
+function keyBg(data, W, H) {
+  const mode = $('keyMode').value, tol = +$('tol').value;
+  const near = (r,g,b, cr,cg,cb) => (Math.abs(r-cr)+Math.abs(g-cg)+Math.abs(b-cb)) < tol;
+  for (let p = 0; p < data.length; p += 4) {
+    const r=data[p], g=data[p+1], b=data[p+2];
+    let bg = false;
+    if (mode === 'green') bg = near(r,g,b,0,255,80) || (Math.abs(r-0)+Math.abs(g-128)+Math.abs(b-128) < Math.min(tol,40));
+    else if (mode === 'pick' && pickColor) bg = near(r,g,b, pickColor[0],pickColor[1],pickColor[2]);
+    if (bg) data[p+3] = 0;
+  }
+}
+
+function render() {
+  if (!img) return;
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const cv = $('cv'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0,0,W,H);
+
+  const hue = +$('hue').value, sat = (+$('sat').value)/10;
+  ctx.filter = (hue||sat!==1) ? `hue-rotate(${hue}deg) saturate(${sat})` : 'none';
+  ctx.drawImage(srcCanvas, 0, 0);
+  ctx.filter = 'none';
+
+  if ($('keyOn').checked) {
+    const id = ctx.getImageData(0,0,W,H);
+    keyBg(id.data, W, H);
+    ctx.putImageData(id, 0, 0);
+  }
+
+  if ($('gridOn').checked) {
+    const cw = +$('cw').value;
+    ctx.strokeStyle = 'rgba(143,208,255,.8)'; ctx.lineWidth = 1;
+    for (let x = 0; x <= W; x += cw) { ctx.beginPath(); ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,H); ctx.stroke(); }
+    $('ncells').textContent = Math.ceil(W/cw);
+  }
+  $('dims').textContent = `${W}×${H}px`;
+  $('tolV').textContent = $('tol').value;
+  $('cwV').textContent = $('cw').value;
+  $('hueV').textContent = $('hue').value;
+  $('satV').textContent = ((+$('sat').value)/10).toFixed(1);
+}
+
+['keyOn','keyMode','tol','gridOn','cw','hue','sat'].forEach(id => {
+  $(id).addEventListener('input', render);
+  $(id).addEventListener('change', render);
+});
+
+$('cv').addEventListener('click', e => {
+  if (!srcCanvas || $('keyMode').value !== 'pick') return;
+  const rect = e.target.getBoundingClientRect();
+  const x = Math.floor((e.clientX-rect.left) * srcCanvas.width/rect.width);
+  const y = Math.floor((e.clientY-rect.top) * srcCanvas.height/rect.height);
+  const d = srcCanvas.getContext('2d').getImageData(x,y,1,1).data;
+  pickColor = [d[0],d[1],d[2]];
+  $('pickInfo').textContent = `picked key #${[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('')}`;
+  $('keyOn').checked = true; render();
+});
+
+const drop = $('drop');
+['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('hot'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hot'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f && f.type === 'image/png') loadFile(f); });
+drop.addEventListener('click', () => { const inp = document.createElement('input'); inp.type='file'; inp.accept='image/png'; inp.onchange=()=>inp.files[0]&&loadFile(inp.files[0]); inp.click(); });
+</script>

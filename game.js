@@ -16536,6 +16536,7 @@ gameLoop()
     spriteXfade: (who = "p1") => { const f = who === "p2" ? p2 : p1; const h = f?.spriteHandler; const x = h?._xfade;
       return { action: h?.currentAction || null, xfadeActive: !!(x && x.life > 0), xfadeLife: x?.life || 0, xfadeFacing: x?.facing ?? null }; },
     spriteAction: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f?.spriteHandler?.currentAction || null; },
+    spriteFilter: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? (f._lastSpriteFilter || "none") : null; },   // ITEM 3 test hook — the last-drawn canvas tint (read-only diagnostic)
     // Read the merged _skinAnim's sheet for an action (fallback-chain verify: form actions vs base fallback).
     oroSkinSheet: (action, who = "p1") => { const f = who === "p2" ? p2 : p1; return f?._skinAnim?.[action]?.sheet || null; },
     oroActiveForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f?._oroForm || null; },

@@ -2115,11 +2115,11 @@ const zenitsu = {
   traits: { hasEnergy: false, energyType: "none", mobility: "very_high", scaling: "burst", animeMovement: true },
   stats: { maxHealth: 1000, maxEnergy: 0, attack: 88, defense: 74, speed: 96, maxJumps: 2, jumpPower: 30, dashSpeed: 20, dashDuration: 8, dashCooldownMax: 35 },
   basic_attacks: {
-    light:     { damage: 50, startup: 3, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 90, startup: 7, active: 3, recovery: 16, hitstun: 19, knockbackX: 6, knockbackY: 1, rangeX: 78, rangeY: 50 },
-    upAttack:  { type: "launcher", damage: 70, startup: 4, active: 3, recovery: 6, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); Thunderclap speedster
-    airAttack: { damage: 60, startup: 4, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 80, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+    light:     { damage: 90, startup: 3, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 130, startup: 7, active: 3, recovery: 16, hitstun: 19, knockbackX: 6, knockbackY: 1, rangeX: 78, rangeY: 50 },
+    upAttack:  { type: "launcher", damage: 110, startup: 4, active: 3, recovery: 6, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); Thunderclap speedster
+    airAttack: { damage: 100, startup: 4, active: 2, recovery: 8, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 120, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
     thunderClapStrike: { cost: 0, damage: 150, startup: 8, active: 4, recovery: 18, hitstun: 25, knockbackX: 10, knockbackY: -2, effect: "instant high-speed lightning attack" },
@@ -2203,11 +2203,11 @@ const rengoku = {
   stats: { maxHealth: 1140, maxEnergy: 0, attack: 92, defense: 80, speed: 92, maxJumps: 2, jumpPower: 31, dashSpeed: 19, dashDuration: 9, dashCooldownMax: 36 },
   basic_attacks: {
     // Stage 2 wires the sprites over this data. Rengoku hits harder than Zenitsu across the board.
-    light:     { damage: 52, startup: 3, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 95, startup: 8, active: 3, recovery: 17, hitstun: 20, knockbackX: 6, knockbackY: 1, rangeX: 80, rangeY: 52 },
-    upAttack:  { type: "launcher", damage: 74, startup: 6, active: 4, recovery: 8, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -32, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
-    airAttack: { damage: 62, startup: 4, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 84, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+    light:     { damage: 92, startup: 3, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 135, startup: 8, active: 3, recovery: 17, hitstun: 20, knockbackX: 6, knockbackY: 1, rangeX: 80, rangeY: 52 },
+    upAttack:  { type: "launcher", damage: 114, startup: 6, active: 4, recovery: 8, hitstun: 20, blockstun: 9, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -32, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref)
+    airAttack: { damage: 102, startup: 4, active: 2, recovery: 8,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 124, startup: 7, active: 3, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
     // HUD-reference placeholders; behaviour lands in abilities.js at Stages 4-5. Cooldown-gated (cost 0).
@@ -2312,11 +2312,11 @@ const shinobu = {
   traits: { hasEnergy: false, energyType: "none", mobility: "very_high", scaling: "technical", animeMovement: true },
   stats: { maxHealth: 960, maxEnergy: 0, attack: 82, defense: 76, speed: 97, maxJumps: 2, jumpPower: 31, dashSpeed: 21, dashDuration: 8, dashCooldownMax: 34 },
   basic_attacks: {
-    light:     { damage: 44, startup: 3, active: 2, recovery: 7,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
-    heavy:     { damage: 78, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 86, rangeY: 44 },
-    upAttack:  { type: "launcher", damage: 62, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); lowest HP, fragile speedster
-    airAttack: { damage: 52, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
-    downAir:   { damage: 70, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 }
+    light:     { damage: 84, startup: 3, active: 2, recovery: 7,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:     { damage: 118, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 86, rangeY: 44 },
+    upAttack:  { type: "launcher", damage: 102, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); lowest HP, fragile speedster
+    airAttack: { damage: 92, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 110, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
     poisonThrust:  { cost: 0, damage: 40, startup: 6, active: 3, recovery: 16, hitstun: 16, knockbackX: 4, knockbackY: -1, effect: "Insect Breathing lunging stinger — low direct dmg + wisteria POISON DoT (49 over ~2.3s)" },
@@ -2379,11 +2379,11 @@ const inosuke = {
   traits: { hasEnergy: false, energyType: "none", mobility: "high", scaling: "aggressive", animeMovement: true },
   stats: { maxHealth: 1040, maxEnergy: 0, attack: 88, defense: 74, speed: 93, maxJumps: 2, jumpPower: 31, dashSpeed: 21, dashDuration: 8, dashCooldownMax: 32 },
   basic_attacks: {
-    light:     { damage: 42, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
-    heavy:     { damage: 80, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 88, rangeY: 46 },
-    upAttack:  { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 7, hitstun: 18, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -30, selfVy: -6, airOK: false },
-    airAttack: { damage: 50, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
-    downAir:   { damage: 72, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 }
+    light:     { damage: 82, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:     { damage: 120, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 88, rangeY: 46 },
+    upAttack:  { type: "launcher", damage: 100, startup: 4, active: 3, recovery: 7, hitstun: 18, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 10, launchVy: -30, selfVy: -6, airOK: false },
+    airAttack: { damage: 90, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 112, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
     // Stage 5 — three "Beast Breathing" CINEMATIC specials (camera push-in → strike → pull-back). COOLDOWN-
@@ -2453,12 +2453,12 @@ const nezuko = {
   stats: { maxHealth: 1020, maxEnergy: 0, attack: 84, defense: 80, speed: 95, maxJumps: 2, jumpPower: 30, dashSpeed: 21, dashDuration: 8, dashCooldownMax: 34 },
   // PLACEHOLDER combat numbers so the engine has valid data; sprites for these wire in later stages.
   basic_attacks: {
-    light:     { damage: 42, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
-    heavy:     { damage: 74, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 84, rangeY: 44 },
-    upAttack:  { type: "launcher", damage: 60, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },
-    airAttack: { damage: 50, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
-    downAir:   { damage: 68, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 },
-    airHeavy:  { damage: 64, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 5, knockbackY: -2 }   // Jump+Y aerial spin kick (air_heavy slot)
+    light:     { damage: 82, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:     { damage: 114, startup: 6, active: 3, recovery: 16, hitstun: 18, knockbackX: 5, knockbackY: 1, rangeX: 84, rangeY: 44 },
+    upAttack:  { type: "launcher", damage: 100, startup: 4, active: 3, recovery: 6, hitstun: 19, blockstun: 8, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -30, selfVy: -8, airOK: false },
+    airAttack: { damage: 90, startup: 4, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: -2 },
+    downAir:   { damage: 108, startup: 6, active: 3, recovery: 12, hitstun: 17, knockbackX: 1, knockbackY: 10 },
+    airHeavy:  { damage: 104, startup: 5, active: 3, recovery: 12, hitstun: 15, knockbackX: 5, knockbackY: -2 }   // Jump+Y aerial spin kick (air_heavy slot)
   },
   specials: {},   // wired in Stages 4-6
   ultimate: { name: "Kekijutsu Baketsu", cost: 0, description: "STAGE 7 placeholder — two-phase punch barrage finisher." },
@@ -4359,11 +4359,11 @@ const hisoka = {
   // Placeholder technician normals — moderate damage, combo-friendly. Real normals + the
   // command-normal chain land in Stage 2. combat.js _getMD reads THIS.
   basic_attacks: {
-    light:    { damage: 40, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
-    heavy:    { damage: 80, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: 1 },
-    upAttack: { type: "launcher", damage: 62, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -32, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref); trickster
-    airAttack:{ damage: 52, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:  { damage: 68, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
+    light:    { damage: 50, startup: 3, active: 3, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 90, startup: 7, active: 4, recovery: 16, hitstun: 18, knockbackX: 6, knockbackY: 1 },
+    upAttack: { type: "launcher", damage: 72, startup: 6, active: 4, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -32, selfVy: -9, airOK: false },   // Up-Attack launcher — BALANCED archetype (Gojo ref); trickster
+    airAttack:{ damage: 62, startup: 5, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 78, startup: 8, active: 4, recovery: 13, hitstun: 16, knockbackX: 1, knockbackY: 9 },
     grab:     { damage: 26, startup: 6, active: 3, recovery: 13, hitstun: 18, throwForceX: 5, throwForceY: -3 }
   },
   // HUD-only until Stage 5 (real logic + cost live in abilities.js). Giant/alt-form ultimate.
@@ -4841,15 +4841,15 @@ const maki = {
     // Frame data present so the character object is complete/valid; the
     // attack ANIMATIONS are wired in Stage 2. Damage raised ~+17-19% over the original values
     // (Heavenly Vow rebalance) → top-of-band normals, offsetting the tighter cancel window.
-    light:     { damage: 54, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 98, startup: 7, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 46 },
+    light:     { damage: 79, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 123, startup: 7, active: 4, recovery: 16, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 92, rangeY: 46 },
     // Up-Attack launcher "Rising Kick" (fast/glass-cannon archetype): the FASTEST launcher on the roster —
     // startup 4 / active 3 / recovery 6 — fitting her speed kit. enemy vy -11 / Maki vy -8. This is
     // CONSISTENT with the Heavenly Vow rebalance: HV's tradeoff is her TIGHT cancel window
     // (MAKI_CANCEL_FRAMES in abilities.js), not slow normals — a superhuman-fast launcher is on-identity.
-    upAttack:  { type: "launcher", damage: 78, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -30, selfVy: -8, airOK: false },
-    airAttack: { damage: 66, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 88, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+    upAttack:  { type: "launcher", damage: 103, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -30, selfVy: -8, airOK: false },
+    airAttack: { damage: 91, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 113, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
     // SPECIAL button, direction-branched via _specialHeldDir. All COOLDOWN-gated (cost 0 — no energy).
@@ -5036,11 +5036,11 @@ const baki = {
   // def 88 (upper — defensive-read game), spd 96 (ties Tobirama/Zenitsu; UNDER the 98 teleport gate → grounded).
   stats: { maxHealth: 1160, maxEnergy: 0, attack: 94, defense: 88, speed: 96, maxJumps: 2, jumpPower: 32, dashSpeed: 21, dashDuration: 10, dashCooldownMax: 26 },
   basic_attacks: {
-    light:     { damage: 52, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 92, startup: 7, active: 4, recovery: 15, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 90, rangeY: 46 },
-    upAttack:  { type: "launcher", damage: 76, startup: 5, active: 3, recovery: 7,  hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -32, selfVy: -8, airOK: false },
-    airAttack: { damage: 64, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 84, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
+    light:     { damage: 72, startup: 3, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 112, startup: 7, active: 4, recovery: 15, hitstun: 19, knockbackX: 7, knockbackY: 1, rangeX: 90, rangeY: 46 },
+    upAttack:  { type: "launcher", damage: 96, startup: 5, active: 3, recovery: 7,  hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 11, launchVy: -32, selfVy: -8, airOK: false },
+    airAttack: { damage: 84, startup: 4, active: 3, recovery: 9,  hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 104, startup: 7, active: 4, recovery: 12, hitstun: 18, knockbackX: 1, knockbackY: 10 }
   },
   // Specials/ultimate DESCRIBED here (object completeness); wired in abilities.js (executeBakiSpecial + Demon Back).
   specials: {
@@ -5198,11 +5198,11 @@ const ghostface = {
   stats: { maxHealth: 1040, maxEnergy: 100, attack: 85, defense: 80, speed: 95, maxJumps: 2, jumpPower: 32, dashSpeed: 20, dashDuration: 9, dashCooldownMax: 30 },
   // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air. combat.js _getMD reads THIS.
   basic_attacks: {
-    light:    { damage: 34, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
-    heavy:    { damage: 66, startup: 7, active: 3, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 104, rangeY: 48 },
-    upAttack: { type: "launcher", damage: 54, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); fragile fast rushdown stalker
-    airAttack:{ damage: 46, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
-    downAir:  { damage: 58, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }
+    light:    { damage: 54, startup: 3, active: 2, recovery: 8,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 86, startup: 7, active: 3, recovery: 17, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 104, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 74, startup: 4, active: 3, recovery: 6, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -8, airOK: false },   // Up-Attack launcher — FAST/GLASS-CANNON archetype (Maki ref); fragile fast rushdown stalker
+    airAttack:{ damage: 66, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 78, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }
   },
   // HUD-only until wired in abilities.js (real logic + cost there). Direction-branched Special.
   specials: {

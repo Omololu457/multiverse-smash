@@ -826,3 +826,155 @@ WHAT ACTUALLY SHIPPED (2 code changes, both verified):
    Fuga-stacking gap: projectiles now respect domainUntouchable (combat.js) —
    verified 5 bolts dealt 0 to the sealed foe. NOTE for owner: the 15s duration is
    the real driver; if a denser slash rhythm is wanted, trim that instead.
+
+
+==========================================================================
+  CHURCH-PLAYTEST BALANCE / BUGFIX PASS   (2026-09-06)
+==========================================================================
+All damage values below are RAW (pre-GLOBAL_DAMAGE_SCALE ×0.60), matching how
+each is stored in code. basic_attacks live in characters.js; special/ultimate
+damage lives in abilities.js (the characters.js specials{} blocks for these
+meterless chars are HUD-only, no damage field — so specials were buffed in
+abilities.js where the real numbers are). Every before→after is listed.
+
+--------------------------------------------------------------------------
+ITEM 1 — GHOSTFACE  (+20 basic_attacks + ultimate)
+--------------------------------------------------------------------------
+characters.js basic_attacks:
+  light      34 → 54
+  heavy      66 → 86
+  up-attack  54 → 74   ← this IS the distinct up-attack "overhead knife launcher" (upAttack slot)
+  air        46 → 66
+  down_air   58 → 78
+abilities.js:
+  Ultimate "The Final Act" (GHOSTFACE_ULT.dmg)  300 → 320  (+20)
+FLAGS:
+  • Ghostface's basic_attacks has NO `grab` entry (only the 5 above) — nothing to +20 there.
+  • The ultimate's damage is in abilities.js (GHOSTFACE_ULT), not characters.js; buffed there so it's real.
+  • The ult's lethal bleed DoT (GHOSTFACE_ULT_BLEED, 10/tick) left unchanged (it's a finisher effect, not the hit).
+
+--------------------------------------------------------------------------
+ITEM 2 — MAKI ZENIN
+--------------------------------------------------------------------------
+2a) +25 on all attacks:
+  characters.js basic_attacks:  light 54→79 · heavy 98→123 · up 78→103 · air 66→91 · down_air 88→113
+  abilities.js specials:        Nunchaku Flurry (MAKI_NUNCHAKU_MD) 92→117 · Kunai Throw (proj) 60→85
+2b) DURATION → 30s: NOT APPLIED (by design). The Shibuya ult is a ONE-WAY, permanent transform for the
+    REST OF THE ROUND (executeMakiShibuyaUltimate / enterMakiShibuya — no drain, no revert). It has NO finite
+    duration timer, so it is already effectively ≥30s (infinite for the round). The request said "extend to 30s
+    IF currently shorter" — it isn't shorter, so shortening it to 30s would be a NERF. Left unchanged. Flag: if
+    you actually want a hard 30s CAP on the form, say so and I'll add a timer.
+2c) HP-GATE 25% → 40%: APPLIED (game.js trackMakiShibuyaUnlock).  `pct <= 25` → `pct <= 40`.
+    ★ASSUMPTION (as you flagged): read "40 HP" as 40% of max HP. Resulting threshold = 40% of her 1180 max
+      = the Shibuya ult unlocks at ≤472 HP (was ≤295 HP). If you meant a LITERAL 40 HP, tell me and I'll change
+      the gate to `fighter.health <= 40`.
+FLAGS: Maki's Fwd+Heavy command-rekka (MAKI_GROUND) and Power Charge buff are NOT "basic_attacks or specials"
+  (command-normals / self-buff), so left unchanged — say the word to include them.
+
+--------------------------------------------------------------------------
+ITEM 3 — NARUTO  (voice volume → floor)
+--------------------------------------------------------------------------
+(documented separately below — see the note; Naruto is voiced INLINE, no module.)
+
+--------------------------------------------------------------------------
+ITEM 4 — DEMON SLAYER (+40 basic_attacks + specials): zenitsu/rengoku/shinobu/inosuke/nezuko
+--------------------------------------------------------------------------
+characters.js basic_attacks (+40 each):
+  ZENITSU  light 50→90 · heavy 90→130 · up 70→110 · air 60→100 · down_air 80→120
+  RENGOKU  light 52→92 · heavy 95→135 · up 74→114 · air 62→102 · down_air 84→124
+  SHINOBU  light 44→84 · heavy 78→118 · up 62→102 · air 52→92  · down_air 70→110
+  INOSUKE  light 42→82 · heavy 80→120 · up 60→100 · air 50→90  · down_air 72→112
+  NEZUKO   light 42→82 · heavy 74→114 · up 60→100 · air 50→90  · down_air 68→108 · air_heavy 64→104
+abilities.js specials (+40 each):
+  ZENITSU  Thunderclap 130→170 · Double Attack 70→110
+  RENGOKU  Charged Flame Strike (strong) 150→190 · (base) 90→130   [★on the CHARGE button — see flag]
+  SHINOBU  Poison Thrust 40→80
+  INOSUKE  beastSpin 108→148 · beastDash 100→140 · beastLunge 122→162
+  NEZUKO   Combo Kick c1 20→60 · c2 46→86 · Air Special 58→98 · Super Kick 82→122
+           · Run&Scratch 66→106 [★CHARGE button] · Bite 96→136 [★command-grab throw]
+FLAGS / interpretation of "specials" (use judgment, stated so you can correct):
+  • I buffed the SPECIAL-button special moves + each char's signature CHARGE-button strike (Rengoku Flame
+    Strike, Nezuko Run&Scratch) since those are their main special-tier damage. Marked with ★ above.
+  • NOT changed (would be scope-creep vs "basic_attacks + specials"): the Fwd+Heavy COMMAND-NORMAL rekka chains
+    (zenCombo1-3, rengokuG/A + super finishers, shinobuG1-3, nezuko Ground/Combo-normals); DoT ticks (Shinobu
+    Wisteria poison 7/tick); pure utility (Rengoku Counter, Shinobu Butterfly Flit, Nezuko taunt Nut-Kick,
+    Nezuko sibling ASSISTS); and ULTIMATES (you said "specials", not ultimate). Say the word to include any.
+
+--------------------------------------------------------------------------
+ITEM 5 — BAKI HANMA  (+20 base attacks only)
+--------------------------------------------------------------------------
+characters.js basic_attacks:  light 52→72 · heavy 92→112 · up 76→96 · air 64→84 · down_air 84→104
+★ASSUMPTION (as you flagged): read "bodies base attacks" as "Baki's base attacks". No specials touched (you
+  only asked for base attacks). Baki has no `grab`/`crouchLight` in basic_attacks — just the 5 above.
+
+--------------------------------------------------------------------------
+ITEM 6 — HISOKA
+--------------------------------------------------------------------------
+6a) BUG "Bungee Gum deals no damage": NOT REPRODUCED. Investigated executeHisokaSpecial → fireHisokaBungeeGum.
+    The neutral whip already has damage 72 and a correct long-reach hitbox (rangeX 172 from the fighter's front
+    edge). A harness probe fired it at 60/100/140px range → it connected every time for 43 effective (= 72 raw
+    ×0.60). So there is NO zero-damage bug in the neutral Bungee Gum whip.
+    Best guess at the source of the report: possibly confused with the BACK+Special "Bungee Gum PULL"
+    (a command-grab that only chips 20 raw / 12 eff — the payload is the reel-in, not damage), or a whiff.
+6b) "Set Bungee Gum damage to 50": NOT APPLIED. Because the move already deals 72 (not 0), setting it to 50
+    would be a NERF (72→50 raw, 43→30 eff) — the opposite of the intended buff (which assumed it did nothing).
+    Left at 72 rather than silently nerf a working move. ★If you DO want it at 50 (a reduction), or you meant
+    the PULL variant, tell me and I'll apply exactly that.
+6c) +10 basic attacks: APPLIED.  light 40→50 · heavy 80→90 · up 62→72 · air 52→62 · down_air 68→78
+    (grab 26 left unchanged — you listed only light/heavy/up/air/down_air.)
+
+--------------------------------------------------------------------------
+ITEM 7 — HASHIRAMA: untouched (as requested). No changes.
+--------------------------------------------------------------------------
+
+--------------------------------------------------------------------------
+ITEM 8 — OBITO  (★ read "Obito's comedy" as "Obito's KAMUI" — the intangibility toggle; there is no
+              "comedy"-named move. toggleObitoKamui / updateObitoKamui in abilities.js.)
+--------------------------------------------------------------------------
+8a) Chakra drain while Kamui active: 0.48 → 1.2 chakra/frame (2.5×; KAMUI_DRAIN in abilities.js).
+    Effect: a full 200 pool now phases for ~2.9s instead of ~7.9s (measured ~1.33/f gross incl. the 0.06 regen).
+8b) CANNOT ATTACK while intangible: APPLIED. game.updatePlayerCombat now neutralizes ALL attack inputs
+    (light/heavy/up-attack, air normals, Special, and the Kamui grab) while _kamuiIntangible is true — he can
+    still move, block, and toggle Kamui off (CHARGE), but he cannot start any attack. This REPLACES the old
+    "melee auto-drop → reactivate" (updateObitoKamui). Verified: pressing attack does nothing, he stays phased,
+    and deals 0 damage while intangible.
+8c) 10s cooldown after Kamui ends: APPLIED (OBITO_KAMUI_COOLDOWN = 600 frames). deactivateObitoKamui arms it on
+    BOTH exit paths (manual 2nd-tap OR chakra-zero auto-off); toggleObitoKamui refuses to re-activate while it's
+    counting down; it ticks every frame in updateObitoKamui. Verified: re-activation blocked for the window.
+
+--------------------------------------------------------------------------
+TESTS RUN (per your request) — after the changes
+--------------------------------------------------------------------------
+  test:ghostface  → 18 / 0   ✓
+  test:maki       → 30 / 0   ✓
+  test:hisoka     → 39 / 0   ✓
+  test:obito      → 33 / 0   ✓  (updated 2 assertions that tested the OLD Kamui melee-drop / re-activation,
+                                  which items 8b/8c intentionally changed; added a positive 8c cooldown check
+                                  + 2 read-only harness hooks obitoKamuiCooldown/obitoKamuiClearCd)
+  test:zenitsu    → 53 / 0   ✓
+  test:rengoku    → 41 / 0   ✓
+  test:baki       → 32 / 0   ✓
+  test:shinobu    → 34 / 1   ⚠ PRE-EXISTING failure ("energy label = TOTAL CONCENTRATION" flavor text) —
+  test:inosuke    → 37 / 2   ⚠ PRE-EXISTING (energy-label flavor + a sprite-HEIGHT assertion)
+  test:nezuko     → 20 / 2   ⚠ PRE-EXISTING (no-meter flavor label + a guard-sprite assertion)
+  ⚠ ALL THREE ⚠ failures were CONFIRMED pre-existing by stashing my changes and re-running on the original
+    code — they fail identically without this pass. They are label/sprite assertions, NOT damage, so the +40
+    buffs did not cause them. Flagged, not fixed (out of scope for a balance pass).
+  Also verified item 8 end-to-end with a throwaway probe (deleted): drain ~1.33/f, no-attack-while-intangible,
+  0 damage while phased, auto-off at 0, and the 10s re-activation lockout — 6/6.
+==========================================================================
+
+--------------------------------------------------------------------------
+ITEM 3 (detail) — NARUTO voice volume → near floor   APPLIED
+--------------------------------------------------------------------------
+Naruto is voiced INLINE (no naruto*Voice.js module) — his lines play via scattered
+sound.playSfxFile("naruto_*.mp3") calls in game.js/abilities.js (intro, win, Rasengan,
+Rasenshuriken, clone/rendan, etc.). Rather than a global change or editing every call
+site, added ONE minimal hook in sound.js:
+  • NEW  export const VOICE_VOLUME_MULT = { naruto: 0.12 }   (per-character voice floor)
+  • playSfxFile now scales a cue's volume by VOICE_VOLUME_MULT[<filename-prefix>] at the
+    single choke point (Naruto's clips all share the "naruto" basename prefix). Also added
+    an opts.volumeMult for one-off overrides; volume is clamped to [0,1].
+Result: Naruto's voice plays at 12% of SFX volume — quiet but NOT silenced. 0.12 is a
+tunable value in VOICE_VOLUME_MULT (raise/lower to taste). test:naruto-voice 21/0.
+==========================================================================

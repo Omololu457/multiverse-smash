@@ -35,7 +35,7 @@ async function waitPose(needle, maxF = 22) { let best = await p1(); for (let i =
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
 const section = t => console.log(`\n── ${t} ──`);
 async function reset(gap = 60) {
-  await page.evaluate(() => { window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.fillEnergy?.(); window.__harness.setP2Invuln?.(0); const k = window.__harness.obitoKamui(); if (k?.intangible) window.__harness.obitoKamuiToggle(); });
+  await page.evaluate(() => { window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.fillEnergy?.(); window.__harness.setP2Invuln?.(0); const k = window.__harness.obitoKamui(); if (k?.intangible) window.__harness.obitoKamuiToggle(); window.__harness.obitoKamuiClearCd?.(); });
   await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.grounded && !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
   const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + gap); await waitFrames(2);
 }
@@ -104,15 +104,17 @@ check("starts NOT intangible", !(await kamui()).intangible, "");
 await page.evaluate(() => window.__harness.obitoKamuiToggle()); await waitFrames(3);
 let k = await kamui();
 check("ACTIVATE → intangible + phased + i-frame sustained", k.intangible && k.phased && k.invulnTimer > 0, `phased=${k.phased} invuln=${k.invulnTimer}`);
-// melee-drop + reactivate
-let sawDrop=false, sawInvulnZero=false, stayedOn=true;
+// PLAYTEST 8b (2026-09-06): Obito can no longer ATTACK while intangible — the attack input is blocked entirely
+// (was: "melee auto-drop" that made him tangible mid-swing). Pressing Light should start NO attack; he stays
+// fully phased + i-frame-sustained the whole time. (game.updatePlayerCombat neutralizes attack inputs while phased.)
+let everAttacked=false, stayedPhased=true, stayedOn=true;
 await page.keyboard.down("j");
-for (let i=0;i<26;i++){ await waitFrames(1); const s=await kamui(); if (s.attacking && !s.phased){ sawDrop=true; if(s.invulnTimer===0) sawInvulnZero=true; } if (!s.intangible) stayedOn=false; }
+for (let i=0;i<26;i++){ await waitFrames(1); const s=await kamui(); if (s.attacking) everAttacked=true; if (s.intangible && !s.phased) stayedPhased=false; if (!s.intangible) stayedOn=false; }
 await page.keyboard.up("j");
 await page.waitForFunction(()=>{const p=window.__harness.p1();return !p.attacking&&(p.attackCooldown||0)<=0;},null,{timeout:4000}).catch(()=>{}); await waitFrames(3);
 const kAfter = await kamui();
-check("MELEE-DROP: tangible mid-swing (invulnTimer hit 0), toggle stayed on", sawDrop && sawInvulnZero && stayedOn, `drop=${sawDrop} zero=${sawInvulnZero} on=${stayedOn}`);
-check("AUTO-REACTIVATE after the punch (phased again)", kAfter.intangible && kAfter.phased && kAfter.invulnTimer > 0, `phased=${kAfter.phased}`);
+check("NO-ATTACK-WHILE-INTANGIBLE (8b): Light input blocked, stays phased + toggle on", !everAttacked && stayedPhased && stayedOn, `attacked=${everAttacked} phased=${stayedPhased} on=${stayedOn}`);
+check("STILL PHASED after releasing attack (i-frame sustained)", kAfter.intangible && kAfter.phased && kAfter.invulnTimer > 0, `phased=${kAfter.phased}`);
 // special while intangible
 await page.evaluate(() => window.__harness.p1SpecialDir(null));
 let phasedThrough=true, pr=null; for(let i=0;i<14;i++){ await waitFrames(1); if(!(await kamui()).phased) phasedThrough=false; if(!pr) pr=(await projs()).find(p=>(p.sheet||"").includes("obito_shur_proj_uniform")); }
@@ -120,10 +122,13 @@ check("SPECIAL-WHILE-INTANGIBLE: fires + phase NOT dropped", !!pr && phasedThrou
 // manual off
 await page.evaluate(() => window.__harness.obitoKamuiToggle()); await waitFrames(3);
 check("MANUAL OFF: 2nd tap → not intangible (silent)", !(await kamui()).intangible && !(await kamui()).phased, "");
-// chakra-zero auto-off
+// PLAYTEST 8c: the manual-off above armed the 10s Kamui cooldown → immediate re-activation is BLOCKED.
+await page.evaluate(() => window.__harness.obitoKamuiToggle()); await waitFrames(2);
+check("KAMUI COOLDOWN (8c): re-activation blocked for ~10s after Kamui ends", !(await kamui()).intangible && (await page.evaluate(() => window.__harness.obitoKamuiCooldown())) > 0, `cd=${await page.evaluate(() => window.__harness.obitoKamuiCooldown())}`);
+// chakra-zero auto-off (reset() clears the cooldown so this section is isolated)
 await reset(200);
 await page.evaluate(() => window.__harness.obitoKamuiToggle()); await waitFrames(3);
-let autoOff=false; for(let i=0;i<100;i++){ await waitFrames(6); if(!(await kamui()).intangible){ autoOff=true; break; } }  // full 200-pool drain is ~477f at 0.48/f
+let autoOff=false; for(let i=0;i<100;i++){ await waitFrames(6); if(!(await kamui()).intangible){ autoOff=true; break; } }  // ~174f (~2.9s) drain at 1.2/f (was ~477f at 0.48/f)
 check("CHAKRA-ZERO AUTO-OFF: drains to 0 → auto-deactivates", autoOff && (await kamui()).energy === 0, `energy=${(await kamui()).energy}`);
 
 // ── KAMUI TELEPORT GRAB — non-damage position payload ──

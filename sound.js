@@ -54,6 +54,12 @@ export const MENU_MUSIC_FILE = "Passion_fruitmp3.mp3"
 // callers use SoundManager.playDragonBallTransformSfx() rather than hardcoding this inline.
 export const DRAGON_BALL_TRANSFORM_SFX = "dragon_ball_transformation.mp3"
 
+// ITEM 3 (2026-09-06, playtest): per-character VOICE volume multipliers, applied to file-based cues in
+// playSfxFile by basename prefix. Naruto's voice was too loud → dropped to a near-floor 0.12 (audible, not
+// silenced). Keyed by the filename prefix each character's clips share (Naruto's are all "naruto_*"/"Naruto_*").
+// Add more entries here to quiet/boost another character's voice without touching any call site.
+export const VOICE_VOLUME_MULT = { naruto: 0.12 }
+
 // ── MENU BACKGROUND PLAYLIST ──────────────────────────────────────
 // Ordered list of tracks the game plays (in order, looping back to the top)
 // while the player is on ANY menu/settings/select screen — NEVER during a
@@ -791,6 +797,14 @@ class SoundManager {
       if (owner) this.stopOwnedSfx(owner)
       const a = new Audio(src)        // fresh element: fire-and-forget one-shot
       a.volume = this._sfxVol
+      // ITEM 3 (2026-09-06): per-character voice volume. Scale HIS cues by the VOICE_VOLUME_MULT prefix map
+      // (Naruto → 0.12) so a too-loud voice is quieted at the single choke point (no edits to the scattered
+      // inline playSfxFile calls). opts.volumeMult (if given) stacks on top for one-off overrides.
+      const _base = String(filename).split("/").pop().toLowerCase()
+      const _pfx  = _base.split(/[_.]/)[0]
+      if (VOICE_VOLUME_MULT[_pfx] != null) a.volume *= VOICE_VOLUME_MULT[_pfx]
+      if (typeof opts.volumeMult === "number") a.volume *= opts.volumeMult
+      a.volume = Math.max(0, Math.min(1, a.volume))
       if (fallbackId) a.onerror = () => this.play(fallbackId)   // 404 → procedural cue
       // Track it so a match-end stop (stopAllSfx) or a newer same-owner cue (above) can STOP it. A cue
       // is NOT cut when its source animation ends — voice lines play to natural completion by default.

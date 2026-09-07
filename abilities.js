@@ -11184,8 +11184,8 @@ export function fireRengokuFlameStrike(fighter, strong, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if ((fighter.flameCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
   const md = strong
-    ? { damage: 150, startup: 8, active: 4, recovery: 20, hitstun: 28, blockstun: 14, knockbackX: 13, knockbackY: -3, rangeX: 122, rangeY: 64, isSpecial: true }
-    : { damage: 90,  startup: 6, active: 3, recovery: 14, hitstun: 22, blockstun: 10, knockbackX: 9,  knockbackY: -2, rangeX: 100, rangeY: 58, isSpecial: true }
+    ? { damage: 190, startup: 8, active: 4, recovery: 20, hitstun: 28, blockstun: 14, knockbackX: 13, knockbackY: -3, rangeX: 122, rangeY: 64, isSpecial: true }
+    : { damage: 130,  startup: 6, active: 3, recovery: 14, hitstun: 22, blockstun: 10, knockbackX: 9,  knockbackY: -2, rangeX: 100, rangeY: 58, isSpecial: true }
   const moveKey = strong ? "rengokuCharge2" : "rengokuCharge1"
   const attack = createAttackFromMove(fighter, moveKey, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.isSpecial = true
@@ -11419,7 +11419,7 @@ const SHINOBU_FLIT_CD   = 66   // ~1.1s gate for the Butterfly Flit evade
 function fireShinobuPoisonThrust(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if ((fighter.poisonCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
-  const md = { damage: 40, startup: 6, active: 3, recovery: 16, hitstun: 16, blockstun: 10, knockbackX: 4, knockbackY: -1, rangeX: 104, rangeY: 54, isSpecial: true }
+  const md = { damage: 80, startup: 6, active: 3, recovery: 16, hitstun: 16, blockstun: 10, knockbackX: 4, knockbackY: -1, rangeX: 104, rangeY: 54, isSpecial: true }
   const attack = createAttackFromMove(fighter, "shinobuPoison", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.isSpecial = true
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = shinobuPoison → stinger pose
@@ -11723,8 +11723,8 @@ function fireNezukoCommand(fighter, key, context) {
 // a fresh Special re-press during recovery on a clean hit advances to the finisher (shared rekkaContinue,
 // requireHit → whiff/block ends the string). Both stages read the SAME combo_1 sheet via sourceX split.
 const NEZUKO_COMBO = {
-  nezukoCombo1: { damage: 20, startup: 4, active: 3, recovery: 14, hitstun: 14, knockbackX: 1, knockbackY: 0,  rangeX: 88, rangeY: 50, isSpecial: true, rekkaNext: "nezukoCombo2" },   // punch flurry opener (low knockback pins)
-  nezukoCombo2: { damage: 46, startup: 5, active: 3, recovery: 18, hitstun: 18, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 52, isSpecial: true, category: "heavy" },           // spin-kick finisher (delivers the knockback)
+  nezukoCombo1: { damage: 60, startup: 4, active: 3, recovery: 14, hitstun: 14, knockbackX: 1, knockbackY: 0,  rangeX: 88, rangeY: 50, isSpecial: true, rekkaNext: "nezukoCombo2" },   // punch flurry opener (low knockback pins)
+  nezukoCombo2: { damage: 86, startup: 5, active: 3, recovery: 18, hitstun: 18, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 52, isSpecial: true, category: "heavy" },           // spin-kick finisher (delivers the knockback)
 }
 function fireNezukoCombo(fighter, key, context) {
   const md = NEZUKO_COMBO[key]
@@ -11782,7 +11782,7 @@ export function updateNezukoCommandCombat(fighter, inputState, context, getPhase
 // hold-release (Rengoku pattern), fired from game.handleChargeRelease. COOLDOWN/recovery-gated (maxEnergy 0). ──
 function fireNezukoAirSpecial(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  const md = { damage: 58, startup: 5, active: 4, recovery: 14, hitstun: 18, knockbackX: 5, knockbackY: 3, rangeX: 92, rangeY: 70, isSpecial: true }
+  const md = { damage: 98, startup: 5, active: 4, recovery: 14, hitstun: 18, knockbackX: 5, knockbackY: 3, rangeX: 92, rangeY: 70, isSpecial: true }
   const attack = createAttackFromMove(fighter, "nezukoAirSpecial", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.isSpecial = true
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
@@ -11792,7 +11792,7 @@ function fireNezukoAirSpecial(fighter, context) {
 }
 function fireNezukoSuperKick(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  const md = { damage: 82, startup: 7, active: 4, recovery: 20, hitstun: 22, knockbackX: 11, knockbackY: -4, rangeX: 118, rangeY: 54, isSpecial: true }
+  const md = { damage: 122, startup: 7, active: 4, recovery: 20, hitstun: 22, knockbackX: 11, knockbackY: -4, rangeX: 118, rangeY: 54, isSpecial: true }
   const attack = createAttackFromMove(fighter, "nezukoSuperKick", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.isSpecial = true
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
@@ -11801,7 +11801,7 @@ function fireNezukoSuperKick(fighter, context) {
 }
 function fireNezukoRunScratch(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  const md = { damage: 66, startup: 6, active: 6, recovery: 20, hitstun: 20, knockbackX: 9, knockbackY: -2, rangeX: 128, rangeY: 52, isSpecial: true }
+  const md = { damage: 106, startup: 6, active: 6, recovery: 20, hitstun: 20, knockbackX: 9, knockbackY: -2, rangeX: 128, rangeY: 52, isSpecial: true }
   const attack = createAttackFromMove(fighter, "nezukoRunScratch", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.isSpecial = true
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
@@ -11815,7 +11815,7 @@ function fireNezukoRunScratch(fighter, context) {
 // Blood Demon Slumber (Up+Special) — a self-cast SLEEP lock: heals HP over a VULNERABLE window (no i-frames;
 //   takes BONUS damage, _nzSlumberVuln → combat dmg amp). If hit out of it, the remaining heal is forfeit.
 const NEZUKO_BITE_REACH = 84
-const NEZUKO_BITE_DMG   = 96
+const NEZUKO_BITE_DMG   = 136
 function fireNezukoBite(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const target = context?.getOpponent?.(fighter)
@@ -11987,9 +11987,9 @@ function executeNezukoUltimate(fighter, context, hold = false) {
 // ─────────────────────────────────────────────────────────────────────────────
 const INOSUKE_SPECIAL_CD = 96   // ~1.6s gate, shared across the three cinematic specials
 const INOSUKE_SPECIALS = {
-  beastSpin:  { variant: "spin",  damage: 108, range: 150, knockbackX: 7,  knockbackY: -2 },
-  beastDash:  { variant: "dash",  damage: 100, range: 170, knockbackX: 9,  knockbackY: -1 },
-  beastLunge: { variant: "lunge", damage: 122, range: 150, knockbackX: 8,  knockbackY: -3 },
+  beastSpin:  { variant: "spin",  damage: 148, range: 150, knockbackX: 7,  knockbackY: -2 },
+  beastDash:  { variant: "dash",  damage: 140, range: 170, knockbackX: 9,  knockbackY: -1 },
+  beastLunge: { variant: "lunge", damage: 162, range: 150, knockbackX: 8,  knockbackY: -3 },
 }
 function applyInosukeSpecialDamage(fighter, opp, def) {
   // RANGE-GATED sure-hit: only lands if the opponent is within reach at the strike beat (whiffable). A held
@@ -12395,7 +12395,7 @@ function executeGhostfaceSpecial(fighter, context) {
 // GHOSTFACE ULTIMATE — "The Final Act" (freeze-cinematic stab flurry; ghostfaceFinalActCinematic.js).
 // Guaranteed range-independent damage + a lethal BLEED finisher land at the CONNECT beat via onImpact.
 // Full DREAD meter (maxEnergy 100), Batman precedent. Direct burst sits mid-band; the bleed makes up the rest.
-const GHOSTFACE_ULT       = { cost: 100, dmg: 300, blockRatio: 0.25 }
+const GHOSTFACE_ULT       = { cost: 100, dmg: 320, blockRatio: 0.25 }
 const GHOSTFACE_ULT_BLEED = { ticks: 6, interval: 18, dmg: 10 }   // lethal finisher DoT on a CLEAN hit (60 over ~1.8s)
 function executeGhostfaceUltimate(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface") return false
@@ -15111,14 +15111,17 @@ function fireObitoKamuiGrab(fighter, context) {
 //     deactivation (either path) is SILENT, reverting to the normal idle look with no distinct "off"
 //     tell — visually identical to "was never active". This falls out for free: the ghost is gated on
 //     `_kamuiPhased`; turning off just clears it (deactivateObitoKamui does NO FX).
-const KAMUI_DRAIN = 0.48   // chakra/frame while the toggle is ON (net −0.42 vs the 0.06 regen). Tuned down
-                           // from 0.75 (−36%) so a full 200-pool activation lasts ~7.9s instead of ~4.8s —
-                           // long enough to phase through a committed approach/volley, given the drain spends
-                           // the SAME chakra that fuels his specials + gates the Juubi ult.
+// PLAYTEST CHANGE (2026-09-06): drain raised 0.48 → 1.2 chakra/frame (2.5×, net −1.14 vs the 0.06 regen) so a
+// full 200-pool activation now phases for only ~2.9s instead of ~7.9s — Kamui is a short, committal dodge, not a
+// long stall. Pairs with: (a) NO attacking while active (blocked in game.updatePlayerCombat), and (b) a 10s
+// cooldown after it ends (OBITO_KAMUI_COOLDOWN below).
+const KAMUI_DRAIN = 1.2
+const OBITO_KAMUI_COOLDOWN = 600   // 10s @60fps — lockout after Kamui ends (either path) before it can re-activate
 
 export function toggleObitoKamui(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "obito") return false
   if (fighter._kamuiIntangible) { deactivateObitoKamui(fighter); return true }   // manual OFF — SILENT (asymmetry)
+  if ((fighter._kamuiCooldown || 0) > 0) return false                             // playtest: 10s post-Kamui lockout
   if ((fighter.energy || 0) <= 1) return false                                    // need chakra to activate
   fighter._kamuiIntangible = true
   fighter._kamuiPhased     = true
@@ -15139,24 +15142,26 @@ export function toggleObitoKamui(fighter, context) {
 // state is visually identical to "never on" (the information-asymmetry rule).
 export function deactivateObitoKamui(fighter) {
   if (!fighter) return
+  const wasActive = fighter._kamuiIntangible
   fighter._kamuiIntangible = false
   fighter._kamuiPhased     = false
+  if (wasActive) fighter._kamuiCooldown = OBITO_KAMUI_COOLDOWN   // playtest: arm the 10s re-activation lockout (both paths: manual OFF + chakra-zero)
 }
 
 // Per-frame driver (called from game.js updateFighterState, grouped with the other continuous drains).
 export function updateObitoKamui(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "obito") return
+  if ((fighter._kamuiCooldown || 0) > 0) fighter._kamuiCooldown--   // playtest: tick the post-Kamui lockout even while OFF
   if (!fighter._kamuiIntangible) { fighter._kamuiPhased = false; return }
   // CONTINUOUS DRAIN → chakra-zero AUTO-deactivation.
   fighter.energy = Math.max(0, (fighter.energy || 0) - KAMUI_DRAIN)
   if (fighter.energy <= 0) { deactivateObitoKamui(fighter); return }
-  // MELEE AUTO-DROP: tangible during a melee swing (attacking), phased otherwise. Projectile specials
-  // don't set `attacking`, so they keep phasing — specials remain usable while intangible.
-  const meleeDrop = !!fighter.attacking
-  fighter._kamuiPhased = !meleeDrop
+  // PLAYTEST: Obito can no longer attack while intangible (inputs blocked in game.updatePlayerCombat), so the old
+  // MELEE AUTO-DROP is gone — `attacking` never becomes true here, so he stays fully phased for the whole window.
+  fighter._kamuiPhased = true
   fighter._kamuiClock  = (fighter._kamuiClock || 0) + 1   // drives the ghost swirl animation
-  // Sustain the phase by topping up the existing i-frame negate (no side effects) — ONLY while phased.
-  if (!meleeDrop) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 3)
+  // Sustain the phase by topping up the existing i-frame negate (no side effects).
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 3)
 }
 
 // ── ZARAKI KENPACHI (Stage 2) — COMMAND NORMALS + BASE SPECIALS ──────────────────────────────────
@@ -15530,7 +15535,7 @@ export function updateZarakiYachiruLink(fighter) {
 // The CHARGE button hosts POWER CHARGE (fireMakiPowerCharge, below) — a self-buff, wired via handleChargeRelease.
 const MAKI_KUNAI_CD    = 66    // ~1.1s gate for the kunai throw
 const MAKI_NUNCHAKU_CD = 96    // ~1.6s gate for the committed nunchaku flurry
-const MAKI_NUNCHAKU_MD = { damage: 92, startup: 6, active: 6, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 72, isSpecial: true }   // Heavenly Vow: 78→92
+const MAKI_NUNCHAKU_MD = { damage: 117, startup: 6, active: 6, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -3, rangeX: 96, rangeY: 72, isSpecial: true }   // Heavenly Vow: 78→92
 function fireMakiKunai(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if ((fighter.kunaiCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
@@ -15544,7 +15549,7 @@ function fireMakiKunai(fighter, context) {
   schedulePendingSpawn(8, () => {
     spawnProjectile(fighter, "maki_kunai", {
       sheet: "./maki_kunai_proj.png", spriteFrames: 1, spriteW: 24, spriteH: 10, spriteScale: 2.0,
-      damage: 60, speed: 14, hitstun: 16, knockbackX: 6, knockbackY: -1,   // Heavenly Vow: 52→60
+      damage: 85, speed: 14, hitstun: 16, knockbackX: 6, knockbackY: -1,   // Heavenly Vow: 52→60
       w: 34, h: 16, color: "#c9ccd1", lifetime: 100, isSpecial: true,
       vx: face * 14, spawnY: fighter.y + (fighter.h || 100) * 0.42
     }, context)
@@ -15896,7 +15901,7 @@ function fireZenitsuDoubleAttack(fighter, context, partner) {
   const opp = context?.getOpponent?.(fighter)
   const dir = fighter.facing || 1
   // ZENITSU'S half — a lunging flash-strike from his side (reuses the lightning dash-in pose).
-  const md = { damage: 70, startup: 6, active: 5, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -2, rangeX: 104, rangeY: 62, isSpecial: true }
+  const md = { damage: 110, startup: 6, active: 5, recovery: 20, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -2, rangeX: 104, rangeY: 62, isSpecial: true }
   const attack = createAttackFromMove(fighter, "zenThunderclap", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.isSpecial = true
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)
@@ -15983,7 +15988,7 @@ function executeZenitsuUltimate(fighter, context) {
 function fireZenitsuThunderclap(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if ((fighter.thunderCd || 0) > 0) return false   // COOLDOWN gate (no energy cost)
-  const md = { damage: 130, startup: 6, active: 4, recovery: 17, hitstun: 26, blockstun: 14, knockbackX: 12, knockbackY: -3, rangeX: 104, rangeY: 60, isSpecial: true }
+  const md = { damage: 170, startup: 6, active: 4, recovery: 17, hitstun: 26, blockstun: 14, knockbackX: 12, knockbackY: -3, rangeX: 104, rangeY: 60, isSpecial: true }
   const attack = createAttackFromMove(fighter, "zenThunderclap", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
   attack.isSpecial = true
   setAttackState(fighter, attack, md.startup + md.active + md.recovery)   // currentMove = "zenThunderclap" → dash-strike sprite

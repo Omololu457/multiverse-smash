@@ -5081,7 +5081,7 @@ function trackMakiShibuyaUnlock(fighter) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "maki") return
   if (fighter._shibuyaUnlocked) return                                     // one-way: once true, stays true
   const pct = (fighter.health || 0) / (fighter.maxHealth || 1) * 100
-  if (pct <= 25) fighter._shibuyaUnlocked = true
+  if (pct <= 40) fighter._shibuyaUnlocked = true   // playtest buff (2026-09-06): gate lowered 25%→40% (≤472 HP on her 1180 pool) so the Shibuya ult unlocks sooner
 }
 
 function updateMiscTimers(fighter) {
@@ -5580,6 +5580,17 @@ function _updatePlayerCombatBody(fighter) {
   if (isOmniManForcedDescent(fighter)) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
 
   const inputState = getFighterInput(fighter)
+
+  // OBITO KAMUI (playtest change 2026-09-06): while intangible he is UNABLE TO ATTACK AT ALL. Neutralize every
+  // attack input this frame (normals J/K/I, air normals, Special, and the Kamui grab) BEFORE any attack path
+  // reads them — replaces the old "melee auto-drop" (he no longer becomes tangible to swing; he simply can't).
+  // Movement, block, and the CHARGE toggle-off (P) are left untouched, so he can still reposition, guard, and
+  // drop Kamui. inputState is a fresh per-frame object (getFighterInput), so this never persists past this frame.
+  if ((fighter.rosterKey || "").toLowerCase() === "obito" && fighter._kamuiIntangible) {
+    inputState.light = false; inputState.heavy = false; inputState.upAttack = false
+    inputState.air = false; inputState.downAir = false; inputState.airHeavy = false
+    inputState.special = false; inputState.grab = false
+  }
 
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   const canStart   = !fighter.attacking && !fighter.currentMove
@@ -15960,6 +15971,8 @@ gameLoop()
     obitoKamui: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { intangible: !!f._kamuiIntangible, phased: !!f._kamuiPhased, energy: Math.round(f.energy || 0), invulnTimer: f.invulnTimer || 0, attacking: !!f.attacking } : null },
     // Directly flip Kamui from a test (mirrors the P-TAP path) — returns the resulting state.
     obitoKamuiToggle: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; toggleObitoKamui(f, getAbilityContext()); return { intangible: !!f._kamuiIntangible, phased: !!f._kamuiPhased, energy: Math.round(f.energy || 0) } },
+    obitoKamuiCooldown: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? (f._kamuiCooldown || 0) : null },   // read the 10s post-Kamui lockout (playtest)
+    obitoKamuiClearCd:  (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._kamuiCooldown = 0; return true },        // test-only: clear the lockout for section isolation
     // Tobi KAMUI INTANGIBILITY probe + toggle (Stage 4) — INDEPENDENT `_tobi*` state; reads none of Obito's.
     tobiKamui: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { intangible: !!f._tobiIntangible, phased: !!f._tobiPhased, energy: Math.round(f.energy || 0), invulnTimer: f.invulnTimer || 0, attacking: !!f.attacking } : null },
     tobiKamuiToggle: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; toggleTobiKamui(f, getAbilityContext()); return { intangible: !!f._tobiIntangible, phased: !!f._tobiPhased, energy: Math.round(f.energy || 0) } },

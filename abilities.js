@@ -20158,6 +20158,97 @@ export function revertEdoTensei(fighter) {
   return true
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// IDENTITY-SWAP ENGINE  (generic, reusable primitive) — the mechanic MK1's Ghostface uses.
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// A weak "base" identity (a plain human — Billy Loomis for ghostface_exe) can SPEND METER to swap
+// into a borrowed, more-powerful identity (another roster character's FULL kit) for a fixed window.
+// It reverts INVOLUNTARILY the instant: (a) the window expires, (b) the fighter takes a real
+// (non-blocked) hit, or (c) KO / round reset. This is NOT a stat buff-form — it is a full MOVESET
+// swap (rosterKey + kit fields), modelled on Edo Tensei's stash→overwrite→restore, but with the
+// unique revert-on-hit rule no existing transform has. Parameterized PER SKIN via IDENTITY_SWAP_ROSTER
+// so a future skin (Stu/Roman/…) plugs in its own swap-in pair with NO change to this engine.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const IDSWAP_FIELDS = ["rosterKey", "name", "color", "basic_attacks", "animationData", "spriteScale", "traits", "ultimate", "dashTeleport", "runWhenAdvancing", "introPool", "maxEnergy", "energyType"]
+const IDSWAP_WINDOW  = 660   // ~11s @60fps (MK1's ~10-12s borrowed-identity precedent)
+const IDSWAP_COST    = 50    // "1 bar" of the 100-point meter (a 2-bar model)
+// base rosterKey → { <skinId | "default">: [slotA(Down+Special), slotB(Up+Special)] }. Only Billy is built
+// this task; add a skin's own pair here later with no engine change (the whole point of parameterizing it).
+const IDENTITY_SWAP_ROSTER = {
+  ghostface_exe: {
+    default: ["sasuke", "deathstroke"],
+    billy:   ["sasuke", "deathstroke"],   // Billy Loomis borrows Sasuke (slot A) + Deathstroke (slot B)
+  },
+}
+export function isIdentitySwapped(fighter) { return !!fighter?._idSwapActive }
+export function identitySwapPair(fighter) {
+  const base = fighter?._idSwapBaseKey || fighter?.rosterKey
+  const map = IDENTITY_SWAP_ROSTER[(base || "").toLowerCase()]; if (!map) return null
+  const skin = (fighter?.skinId || fighter?._skinId || "").toString().toLowerCase().replace(/^ghostfaceexe_?/, "")
+  return map[skin] || map.default || null
+}
+// SWAP IN — spend a bar, adopt the borrowed identity's kit for the window. Modelled on applyEdoTensei.
+export function applyIdentitySwap(fighter, identityKey, context = {}) {
+  if (!fighter || fighter._idSwapActive) return false
+  const id = characters[identityKey]; if (!id) return false
+  if ((fighter.energy || 0) < IDSWAP_COST) return false          // needs 1 bar of meter
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || (fighter.hitstun || 0) > 0 || fighter.blockstun > 0) return false
+  spendEnergy(fighter, IDSWAP_COST)
+  fighter._idSwapBaseKey = fighter._idSwapBaseKey || fighter.rosterKey   // remember the base (Billy) for revert/voice/skins
+  // 1) stash the base fields (+ skin/recolor) for the revert
+  const stash = {}; for (const k of IDSWAP_FIELDS) stash[k] = fighter[k]
+  stash._skinAnim = fighter._skinAnim; stash._recolorTag = fighter._recolorTag; stash._baseSkinAnim = fighter._baseSkinAnim
+  fighter._idSwapStash = stash
+  // 2) overwrite with the borrowed identity's data — the kit routes off rosterKey + these fields
+  for (const k of IDSWAP_FIELDS) if (id[k] !== undefined) fighter[k] = id[k]
+  fighter.rosterKey    = identityKey
+  fighter.maxEnergy    = id.stats?.maxEnergy || fighter.maxEnergy || 100
+  fighter.energyType   = id.traits?.energyType || fighter.energyType
+  fighter.energy       = Math.min(fighter.energy || 0, fighter.maxEnergy)   // carry meter, capped (borrowed specials use it)
+  fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null   // borrowed identity renders its OWN clean base art
+  // 3) clean transient + arm the window (reuse Edo's helpers — generic)
+  _edoClearTransient(fighter)
+  fighter._idSwapActive = true
+  fighter._idSwapIdentity = identityKey
+  fighter._idSwapTimer = IDSWAP_WINDOW
+  fighter.ultimateCooldown = 0
+  fighter.teleportFlash = 14
+  try { focusCameraOnAction(context, fighter, null, 1.02, 10); shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+// REVERT — restore the base identity. NON-EXPLOITABLE (Edo precedent): does NOT touch hitstun/knockback/
+// vx/vy, so a hit-triggered revert INHERITS the bad state (the swap can never cancel a punish).
+export function revertIdentitySwap(fighter, reason = "expire") {
+  if (!fighter?._idSwapActive || !fighter._idSwapStash) return false
+  const s = fighter._idSwapStash
+  _edoCleanseVesselState(fighter)                       // wipe any borrowed form/buff before restoring Billy
+  for (const k of IDSWAP_FIELDS) fighter[k] = s[k]
+  fighter._skinAnim = s._skinAnim || null; fighter._recolorTag = s._recolorTag || null; fighter._baseSkinAnim = s._baseSkinAnim || null
+  fighter.energy = Math.min(fighter.energy || 0, fighter.maxEnergy || 100)
+  _edoClearTransient(fighter)
+  fighter._idSwapActive = false; fighter._idSwapIdentity = null; fighter._idSwapTimer = 0; fighter._idSwapStash = null
+  fighter._idSwapRevertReason = reason
+  fighter.teleportFlash = 12
+  return true
+}
+// Per-frame driver (called from game.updateFighterState). Handles the 3 involuntary revert conditions.
+export function tickIdentitySwap(fighter) {
+  if (!fighter?._idSwapActive) return
+  if ((fighter.health || 0) <= 0)   { revertIdentitySwap(fighter, "ko");   return }   // KO
+  if ((fighter.hitstun || 0) > 0)   { revertIdentitySwap(fighter, "hit");  return }   // took a real (non-blocked) hit
+  fighter._idSwapTimer = (fighter._idSwapTimer || 0) - 1
+  if (fighter._idSwapTimer <= 0)    { revertIdentitySwap(fighter, "expire") }         // window elapsed
+}
+// GHOSTFACE_EXE special dispatch — BILLY (base) has no offensive specials; his Special button IS the swap.
+// (While swapped, rosterKey is sasuke/deathstroke, so triggerSpecial routes to THEIR real executeXSpecial.)
+function executeGhostfaceExeSpecial(fighter, context) {
+  const dir = fighter._specialHeldDir || null
+  const pair = identitySwapPair(fighter); if (!pair) return false
+  if (dir === "D") return applyIdentitySwap(fighter, pair[0], context)   // Down+Special → slot A (Sasuke)
+  if (dir === "U") return applyIdentitySwap(fighter, pair[1], context)   // Up+Special   → slot B (Deathstroke)
+  return false   // neutral/Fwd/Back Special = nothing — Billy is a plain human with no ki/gadget of his own
+}
+
 export function executeTobiramaUltimate(fighter, context) {
   if (fighter._edoActive || isEdoTenseiCinematicActive()) return false   // already reanimating / mid-summon
   const vesselKey = fighter._edoBackup
@@ -22634,6 +22725,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "hashirama": return executeHashiramaSpecial(fighter, context)   // Stage 3: Kunai Throw (ground/air, spinning-shuriken projectile). Mokuton dir-specials land in Stages 4-6.
     case "omniman": return executeOmniManSpecial(fighter, context)   // Stage 3: "Viltrumite Smash" — SHARED-pool special (full dir-branched set = Stage 4)
     case "chrollo": return executeChrolloSpecial(fighter, context)   // Nen Bolt (neutral/fwd projectile) / Blade Lunge (down knife-thrust)
+    case "ghostface_exe": return executeGhostfaceExeSpecial(fighter, context)   // BILLY (base): Special = IDENTITY SWAP (Down+Sp → Sasuke / Up+Sp → Deathstroke). While swapped, rosterKey is sasuke/deathstroke → routes to THEIR special above.
     case "ghostface": return executeGhostfaceSpecial(fighter, context)   // Backstage Pass (spec §4.2): swap(Grab/Charge) / fakeout(attack) / getaway(Back) / side-switch(neutral) + knife specials Gutting Lunge(Fwd)/Low Gut(Down)
     case "ghostface_billy": return executeBillyGhostfaceSpecial(fighter, context)   // Billy variant (live): knife specials only — Fwd/neutral=Gutting Lunge / Down=Low Gut (reuses shared un-gated helpers; NO companion swap)
     case "jason":   return executeJasonSpecial(fighter, context)   // Relentless Slash — the ONE special: committed lunging machete power-slash (Bloodlust; reuses the heavy art)

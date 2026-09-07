@@ -65,6 +65,8 @@ import {
   triggerSpecial, triggerUltimate, triggerTransformation,
   executeTobiramaWaterFlicker,   // Tobirama Water Body-Flicker escape (hitstun/knockdown reversal)
   revertEdoTensei,   // Tobirama Edo Tensei: auto-revert from the vessel back to Tobirama at window's end
+  tickIdentitySwap, revertIdentitySwap,   // ghostface_exe identity-swap engine: per-frame window/hit/KO revert + forced revert
+  isIdentitySwapped,
   updateEdoTensei,   // Tobirama Edo Tensei: per-frame windup→swap + active-window fuel-drain driver
   endEdoTenseiWindow,   // Tobirama Edo Tensei: launch the un-summon (fuel-empty OR opponent hit the standing Tobirama)
   enterSSJRose, revertSSJRose, applyGokuBlackFormSystem,   // Goku Black SSJ Rose (Stage 2)
@@ -2516,7 +2518,7 @@ function resetRound() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -2695,6 +2697,7 @@ const INTRO_VOICE = {
   // rides the offense-connect trigger instead (see supermanVoice.js NOTE); intro fires here.
   superman: { pool: SUPERMAN_VOICE.intro, gateReveal: false },
   ghostface: { pool: GHOSTFACE_VOICE.intro, gateReveal: false },   // one of his openers at random ("What's your favorite scary movie?" …)
+  ghostface_exe: { pool: GHOSTFACE_VOICE.intro, gateReveal: false },   // STAGE 4: Billy (ghostface_exe) REUSES the Ghostface intro pool — no new audio
   // Miwa picks ONE of her pre-fight openers / nervous-taunt lines at random per match ("I will defeat you
   // here!" / "I'm not drunk!" / "Please don't think of me as a bad girl!"). No taunt action exists → the
   // intro and taunt pools are combined and fire on the intro beat only (see miwaVoice.js NOTE). JP dub.
@@ -3416,7 +3419,7 @@ function resetToStart() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -4090,7 +4093,7 @@ function _checkMatchOver() {
       }
       // GHOSTFACE win voice — random pick from his victory pool ("Now you lose" / "You won't get a
       // sequel!" / "See you soon!"). Fires only when the WINNER is Ghostface.
-      if (winFighter?.rosterKey === "ghostface") {
+      if (winFighter?.rosterKey === "ghostface" || winFighter?.rosterKey === "ghostface_exe") {   // STAGE 4: ghostface_exe (Billy) reuses Ghostface win lines
         sound.playSfxFile?.(pickGhostfaceVoice("win"), null)
       }
       // MIWA win voice — random pick from her victory pool ("I did it!" / "I won safely!" / "It was a good
@@ -4327,7 +4330,7 @@ function _doRematch() {
   clearHisokaOverdriveCinematic()
   clearTojiReincarnationCinematic()
   clearTojiFlyHeadsSwarm()
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); revertGohan(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -10730,6 +10733,7 @@ function updateFighterState(fighter) {
   if (updated._milesStealthTimer > 0) updated._milesStealthTimer--   // Miles Camouflage evasion window (combat.shouldMilesStealthEvade)
   if (updated._milesDashCd > 0)       updated._milesDashCd--         // Miles Down+B dash-kick cooldown (Charge O)
   applyGokuFormSystem(updated)       // Goku SSJ ladder: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
+  tickIdentitySwap(updated)          // ghostface_exe: borrowed-identity window — involuntary revert on timeout / real hit / KO
   applyKuramaShroudSystem(updated)   // health-gated 5-stage Kurama shroud (Naruto only)
   applyOmniManFlightSystem(updated)  // Omni-Man Flight: shared-pool Smart Atoms drain while flying → forced descent at 0 → landing-recovery window (BEFORE applyGravity, which then hovers/falls him)
   updateMiscTimers(updated)
@@ -15973,6 +15977,8 @@ gameLoop()
     obitoKamuiToggle: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; toggleObitoKamui(f, getAbilityContext()); return { intangible: !!f._kamuiIntangible, phased: !!f._kamuiPhased, energy: Math.round(f.energy || 0) } },
     obitoKamuiCooldown: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? (f._kamuiCooldown || 0) : null },   // read the 10s post-Kamui lockout (playtest)
     obitoKamuiClearCd:  (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._kamuiCooldown = 0; return true },        // test-only: clear the lockout for section isolation
+    idSwapState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { rosterKey: f.rosterKey, active: !!f._idSwapActive, identity: f._idSwapIdentity || null, baseKey: f._idSwapBaseKey || f.rosterKey, timer: f._idSwapTimer || 0, energy: Math.round(f.energy || 0), lightDmg: f.basic_attacks?.light?.damage ?? null, reason: f._idSwapRevertReason || null } },   // ghostface_exe identity-swap probe
+    idSwapForceTimer: (n, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f && f._idSwapActive) f._idSwapTimer = n; return f?._idSwapTimer ?? null },   // test-only: fast-forward the window
     // Tobi KAMUI INTANGIBILITY probe + toggle (Stage 4) — INDEPENDENT `_tobi*` state; reads none of Obito's.
     tobiKamui: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { intangible: !!f._tobiIntangible, phased: !!f._tobiPhased, energy: Math.round(f.energy || 0), invulnTimer: f.invulnTimer || 0, attacking: !!f.attacking } : null },
     tobiKamuiToggle: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; toggleTobiKamui(f, getAbilityContext()); return { intangible: !!f._tobiIntangible, phased: !!f._tobiPhased, energy: Math.round(f.energy || 0) } },

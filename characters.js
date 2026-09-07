@@ -8900,6 +8900,7 @@ const ippo = {
     // ── STAGE 3 — command chain "Y-Jabs": Fwd+Heavy 2-stage rekka (rendered by move name; IPPO_CMD in
     //    abilities.js). Two on-sheet segments: jab1 = rapid jab flurry opener, jab2 = committed
     //    straight-punch flurry finisher. Cancel-on-hit. ──
+  ghostface_exe: ghostfaceExe,   // WIP standalone build (Ghostface .exe) — minimal entry, not fully registered; see updates.TXT
     ippoJab1: { frames: 3, width: 85, height: 54, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ippo_jab1_uniform.png" }, // segment 1 — rapid jab flurry opener
     ippoJab2: { frames: 3, width: 95, height: 52, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ippo_jab2_uniform.png" }, // segment 2 — committed straight-punch flurry finisher
     // ── STAGE 4 — SPECIALS (heavier Y-button variants; rendered by move name; executeIppoSpecial in
@@ -9021,6 +9022,84 @@ const bardock = {
     bardockIntro: { frames: 5, width: 117, height: 142, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./bardock_intro_uniform.png" }
   },
   introPool: ["bardockIntro"]   // ★Stage 6 — REAL adjust-stance entrance [285,289,294,296,297] (on-sheet, no borrow).
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GHOSTFACE .EXE  (rosterKey "ghostface_exe", universe "horror") — WORK-IN-PROGRESS.
+// A brand-new STANDALONE character built from the USER'S OWN pre-cropped source PNGs
+// (cvs_ghost_face_*.png), sliced into fresh ghostface_exe_*_uniform.png sheets (COPY-then-
+// reslice via tools/reslice_strip.mjs; the 3 touching-figure attack sheets + the crouch-block
+// use RAW copies with uniform frame-width, since the alpha-gutter reslicer merges touching
+// figures — a proper density-split, like the original ghostface build, is a follow-up).
+// This is a MINIMAL WIP entry: PLACEHOLDER stats, NO specials, NO ultimate, NO win/intro/
+// portrait art yet, and it is intentionally NOT registered in spritesheets.js / skins.js
+// (so it won't flip box→sprite or be selectable until finished). Distinct from `ghostface`
+// and `ghostface_billy` — those entries are UNTOUCHED. Full source→state map in updates.TXT.
+// ─────────────────────────────────────────────────────────────────
+const ghostfaceExe = {
+  rosterKey: "ghostface_exe", name: "Ghostface.exe", universe: "horror", color: "#101418",   // WIP placeholder name/color
+  isPlayable: false,   // WORK-IN-PROGRESS → hidden from normal character select / roster counts (same dev-only gate as cell/evilMorty/rickPrime) until finished
+  portrait: "./ghostface_exe_portrait.png",   // PLACEHOLDER — no portrait art derived yet (GAP, flagged); swap in real art
+  archetypes: ["rushdown"],
+  primary: "rushdown", secondary: [],
+  // energyType "dread" reuses the label ui.js already defines for the existing Ghostface — no new ui.js wiring.
+  traits: { hasEnergy: true, energyType: "dread", mobility: "high", scaling: "combo", animeMovement: false },
+  // STAGE 2 — BILLY LOOMIS (base identity): a plain HUMAN, deliberately BELOW-roster-average. Low HP + low
+  // damage; his ONLY "special" is the identity-swap (Special+Down/Up). The payoff isn't his own kit — it's
+  // borrowing a stronger identity (Stages 1/3). Fast (a nimble stalker) so he can survive to build meter.
+  stats: { maxHealth: 950, maxEnergy: 100, attack: 78, defense: 78, speed: 94, maxJumps: 2, jumpPower: 32, dashSpeed: 20, dashDuration: 9, dashCooldownMax: 30 },
+  // BILLY basic_attacks — plain knife normals, below-average damage (weak human, not a nerfed superkit).
+  basic_attacks: {
+    light:    { damage: 30, startup: 4, active: 2, recovery: 10, hitstun: 11, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 52, startup: 9, active: 3, recovery: 18, hitstun: 17, knockbackX: 5, knockbackY: 1, rangeX: 100, rangeY: 48 },
+    upAttack: { type: "launcher", damage: 44, startup: 6, active: 3, recovery: 8, hitstun: 19, knockbackX: 2, knockbackY: -8, launch: 11, launchVy: -28, selfVy: -8, airOK: false },
+    airAttack:{ damage: 36, startup: 5, active: 2, recovery: 11, hitstun: 11, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 46, startup: 8, active: 3, recovery: 14, hitstun: 15, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 22, startup: 6, active: 3, recovery: 15, hitstun: 17, throwForceX: 4, throwForceY: -3 }
+  },
+  // STAGE 1/3 — Billy has NO ki/gadget specials of his own; his Special button is the IDENTITY SWAP (handled in
+  // abilities.js executeGhostfaceExeSpecial → applyIdentitySwap). Down+Special = borrow Sasuke, Up+Special =
+  // borrow Deathstroke (spends 1 bar; ~11s window; involuntary revert on timeout / real hit / KO). Display-only.
+  specials: {
+    swapSasuke:     { cost: 50, motion: "D", effect: "Identity Swap → Sasuke (borrow his kit ~11s; reverts on hit/timeout/KO)" },
+    swapDeathstroke:{ cost: 50, motion: "U", effect: "Identity Swap → Deathstroke (borrow his kit ~11s; reverts on hit/timeout/KO)" }
+  },   // no `ultimate` field for Billy himself (borrowed identities bring their own).
+  hasSprites: true,
+  spriteScale: 1.0,   // PLACEHOLDER (source idle body ≈116px; tune when fully registered)
+  // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air (engine MOVE_TO_ACTION). All
+  // sheets are the ghostface_exe_*_uniform.png built from the user's cvs_ghost_face_* crops (map in updates.TXT).
+  animationData: {
+    // ── MOVEMENT / STATE (clean alpha-gutter reslice via reslice_strip.mjs → feet-aligned uniform cells) ──
+    idle:  { frames: 3, width: 75,  height: 116, speed: 8, anchorY: 0, sheet: "./ghostface_exe_idle_uniform.png" },   // hunched breathing loop
+    // ★ NO dedicated WALK cycle on the art → walk/run/dash BORROW the "sneak" stalking-creep (honest reuse,
+    //   Piccolo/Frieza pattern); run + dash reuse the same sheet at a faster cadence.
+    walk:  { frames: 4, width: 80,  height: 115, speed: 6, anchorY: 0, sheet: "./ghostface_exe_sneak_uniform.png" },   // stalking creep (from "sneak")
+    run:   { frames: 4, width: 80,  height: 115, speed: 4, anchorY: 0, sheet: "./ghostface_exe_sneak_uniform.png" },   // same sheet, faster
+    dash:  { frames: 4, width: 80,  height: 115, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_sneak_uniform.png" },
+    jump:  { frames: 2, width: 105, height: 118, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_jump_uniform.png" },   // rise → descend
+    fall:  { frames: 1, width: 105, height: 118, speed: 6, anchorY: 0, sourceX: 105, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_jump_uniform.png" },   // fall = jump frame 1
+    crouch:{ frames: 2, width: 79,  height: 102, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_crouch_uniform.png" },   // crouch-down
+    crouchStance: { frames: 1, width: 101, height: 84, speed: 8, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_crouchstance_uniform.png" },   // held low knife-ready stance (available; distinct pose)
+    guard: { frames: 1, width: 82,  height: 108, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_guard_uniform.png" },   // standing block (cloak brace)
+    // crouching block is a single pose whose outstretched knife-arm has an alpha gap (the reslicer wrongly split
+    // it in two) → kept as a RAW single-frame crop. The engine's default guard key is `guard`; this extra key is
+    // available if/when a crouch-specific guard is wired.
+    guardCrouch: { frames: 1, width: 89, height: 98, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_guardcrouch_uniform.png" },
+    hurt:  { frames: 1, width: 122, height: 114, speed: 6, anchorY: 0, sourceX: 0,   loop: false, lockLastFrame: true, sheet: "./ghostface_exe_hit_uniform.png" },   // flinch = hit frame 0
+    knockdown: { frames: 3, width: 122, height: 114, speed: 6, anchorY: 0, sourceX: 122, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_hit_uniform.png" },   // crumple→prone→getup = hit frames 1-3
+    taunt: { frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_taunt_uniform.png" },   // menacing knife beckon
+    charge:{ frames: 2, width: 100, height: 114, speed: 6, anchorY: 0, loop: true, sheet: "./ghostface_exe_taunt_uniform.png" },   // hold-to-charge REUSES taunt (honest same-char reuse)
+    // ── NORMALS ──
+    light:    { frames: 3, width: 97,  height: 124, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_slash_uniform.png" },   // forward knife-slash (foward_attack). ★RAW uniform slice of 3 TOUCHING figures (width=floor(292/3)); feet-align/density-split = follow-up (may jitter slightly)
+    heavy:    { frames: 1, width: 125, height: 115, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_heavy_uniform.png" },   // lunging power-stab (charge_attack), long reach
+    up:       { frames: 1, width: 97,  height: 124, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_up_uniform.png" },       // overhead knife thrust — launcher
+    // ★ NO dedicated NEUTRAL-AIR art on the sheet → `air` REUSES this character's OWN up-thrust (same-char honest
+    //   reuse, clearly flagged; a dedicated aerial normal is a GAP — see updates.TXT). NOT another character's art.
+    air:      { frames: 1, width: 97,  height: 124, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_up_uniform.png" },
+    down_air: { frames: 3, width: 107, height: 145, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_downair_uniform.png" },   // aerial dive-stab. ★RAW uniform slice of 3 TOUCHING figures (width=321/3)
+    crouchLight: { frames: 3, width: 96, height: 100, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ghostface_exe_lowslash_uniform.png" }   // low crouch-slash (crouch_stance_attack). ★RAW uniform slice of 3 TOUCHING figures (width=floor(289/3))
+  },
+  introPool: ["idle"]   // no dedicated intro art on the sheet → stand in idle (honest gap, like ghostface)
 }
 
 export const characters = {

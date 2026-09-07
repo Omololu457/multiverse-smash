@@ -1256,8 +1256,12 @@ function applyChrolloLowHealthVoice(defender) {
 // DEFENDER reaction: any unblocked hit → a "hitReact" one-liner ("Where'd you learn to punch like
 // that?" / "Now that's scary" / "Feeling woozy"). One line per _hitVoiceCd window. Ghostface's
 // discarded grunts stay SFX (not a pool), so there's no light/heavy split — a single hitReact pool.
+// STAGE 4 (ghostface_exe): Billy REUSES the existing Ghostface voice pools (no new audio). This matches
+// while in the BASE "Billy" identity (rosterKey "ghostface_exe"); while SWAPPED the borrowed identity's OWN
+// voice plays (rosterKey is sasuke/deathstroke), which is thematically fine — flagged in updates.TXT.
+function _isGhostfaceVoiced(f) { const k = (f?.rosterKey || "").toLowerCase(); return k === "ghostface" || k === "ghostface_exe" }
 function applyGhostfaceHitVoice(defender, cat, dmg) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "ghostface" || (defender._hitVoiceCd > 0)) return
+  if (!defender || !_isGhostfaceVoiced(defender) || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
   try { sound?.playSfxFile?.(pickGhostfaceVoice("hitReact"), null) } catch (_) {}
 }
@@ -1266,7 +1270,7 @@ function applyGhostfaceHitVoice(defender, cat, dmg) {
 // to swap in a taunt one-liner instead (Killua/Hisoka/Chrollo "taunt rides offense-connect" precedent).
 // Knife specials + the ultimate fire their OWN specialCast lines and set _atkVoiceCd → excluded here.
 function applyGhostfaceOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "ghostface" || (attacker._atkVoiceCd > 0)) return
+  if (!unblocked || !attacker || !_isGhostfaceVoiced(attacker) || (attacker._atkVoiceCd > 0)) return
   const strong     = cat === "heavy"
   const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
   if (!strong && !longString) return
@@ -1279,7 +1283,7 @@ function applyGhostfaceOffenseVoice(attacker, cat, unblocked) {
 // first time Ghostface drops to/below the threshold (same pattern as Chrollo/Gon/Naruto).
 const GHOSTFACE_LOW_HEALTH_RATIO = 0.25
 function applyGhostfaceLowHealthVoice(defender) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "ghostface" || defender._lowHealthVoiceDone) return
+  if (!defender || !_isGhostfaceVoiced(defender) || defender._lowHealthVoiceDone) return
   const max = defender.maxHealth || 1000
   const hp  = defender.health || 0
   if (hp > 0 && hp <= max * GHOSTFACE_LOW_HEALTH_RATIO) {

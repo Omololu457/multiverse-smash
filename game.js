@@ -1068,6 +1068,13 @@ const damageNumbers= []
 let knockoutFlash  = 0
 let _koStamp = 0, _koStampMax = 0   // Stage 9: angular "K.O." slam stamp (over the white KO flash)
 let _roundEndAudioStopped = false   // latch so the round-end voice/SFX stop fires ONCE per round
+// GAME-FEEL KO camera beat (Stage 2): the round/match-ending blow gets a distinctly BIGGER reaction
+// than any routine hit — a hard shake + a brief slow-mo hang on the fallen fighter (reuses the
+// existing slowdown primitive). _koBeatFired latches so it fires exactly ONCE per KO (knockoutFlash
+// can't be the guard — it decays mid-hang and would re-fire). _koHangTimer holds the round-end
+// resolution for a few ticks so the hang actually plays before we cut to ROUND_BREAK/VICTORY.
+const KO_SHAKE_STRENGTH = 26, KO_SHAKE_FRAMES = 26, KO_SLOWMO_FRAMES = 30, KO_HANG_TICKS = 8
+let _koBeatFired = false, _koHangTimer = 0
 let slowdownTimer  = 0
 let slowdownTarget = null
 let hoverThrottle  = 0
@@ -1898,7 +1905,7 @@ function checkFFAOutcome() {
       f.eliminated = true
       f.vx = 0; f.vy = 0
       knockoutFlash = Math.max(knockoutFlash, 14)
-      camera.shake?.(10, 8)
+      camera.shake?.(KO_SHAKE_STRENGTH, KO_SHAKE_FRAMES)   // game-feel Stage 2: an FFA elimination is a KO — same bigger shake (no slow-mo hang: a live 4-player match shouldn't stall on every drop)
     }
   }
   if (ffaState.over) return
@@ -2447,6 +2454,7 @@ function resetRound() {
   _roundEndAudioStopped = false                      // re-arm the round-end stop for the new round
   brutalityState.active = false; brutalityState.parts.length = 0   // clear any finisher state on a fresh round
   knockoutFlash  = 0
+  _koBeatFired   = false; _koHangTimer = 0   // re-arm the KO camera beat for the new round
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
@@ -3444,6 +3452,7 @@ function resetToStart() {
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
   knockoutFlash  = 0
+  _koBeatFired   = false; _koHangTimer = 0
   slowdownTimer  = 0
   slowdownTarget = null
   for (const side of ["p1","p2"]) {
@@ -4352,7 +4361,8 @@ function _doRematch() {
   clearMakiShibuyaCinematic()
   clearEdoTenseiCinematic()
   damageNumbers.length = 0
-  knockoutFlash = 0; slowdownTimer = 0
+  knockoutFlash = 0; slowdownTimer = 0; slowdownTarget = null
+  _koBeatFired = false; _koHangTimer = 0
   hitSparks.length = 0
   roundTimer = ROUND_TIME
   countdown  = ROUND_START_COUNTDOWN
@@ -11033,7 +11043,21 @@ function checkRoundEnd() {
     _checkMatchOver(); return
   }
   if (p1.health > 0 && p2.health > 0) return
-  if ((p1.health <= 0 || p2.health <= 0) && knockoutFlash === 0) { knockoutFlash = 18; _koStamp = _koStampMax = 48 }   // Stage 9: fire the K.O. stamp on the knockout frame
+  // GAME-FEEL KO BEAT + slow-mo hang (Stage 2). On the FIRST frame a fighter drops: fire the big
+  // KO camera reaction (harder shake than any routine hit + a slow-mo hang zoomed on the fallen
+  // fighter, reusing the existing slowdown primitive) and HOLD in BATTLE for a few ticks so the
+  // beat reads, THEN fall through to the normal round-end resolution. GLOBAL — every 1v1 KO in the
+  // whole roster passes through here; no character-specific data is touched.
+  if (!_koBeatFired) {
+    _koBeatFired = true
+    knockoutFlash = 18; _koStamp = _koStampMax = 48   // Stage 9: fire the K.O. stamp on the knockout frame
+    const koLoser = (p1.health <= 0) ? p1 : p2
+    camera.shake?.(KO_SHAKE_STRENGTH, KO_SHAKE_FRAMES)
+    triggerSlowdown(KO_SLOWMO_FRAMES, koLoser)
+    _koHangTimer = KO_HANG_TICKS
+    return                                             // hold the hang — resolve on a later tick
+  }
+  if (_koHangTimer > 0) { _koHangTimer--; return }     // still hanging on the finishing blow
   let rw = null
   if      (p1.health <= 0 && p2.health <= 0) winnerText = "Double KO"
   else if (p1.health > 0) { roundWins.p1++; rw = "p1"; winnerText = "Player 1 Wins Round" }
@@ -11141,11 +11165,16 @@ function updateBattle() {
   if (slowdownTimer > 0) {
     slowdownTimer--
     if (slowdownTarget) {
-      camera.targetZoom = Math.max(camera.minZoom, (camera.targetZoom || camera.zoom) * 0.94)
+      // KO HANG (game-feel Stage 2): ease a tight zoom-IN onto the fallen fighter so the finishing
+      // blow gets a real punch-in (was a zoom-OUT *0.94). camera.advance() rate-limits the step, so
+      // this reads as a smooth push rather than a snap. On skip frames advance() ticks shake + easing
+      // WITHOUT reframing to the two-shot, so the focus actually holds through the hang.
+      camera.targetZoom = Math.min(camera.maxZoom, (camera.targetZoom || camera.zoom) + 0.02)
       if (camera.focusOnFighter) camera.focusOnFighter(slowdownTarget, camera.targetZoom)
     }
     if (slowdownTimer % 3 !== 0) {
-      if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
+      if (slowdownTarget && typeof camera.advance === "function") camera.advance(canvas)
+      else if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       return
     }
   }
@@ -11578,7 +11607,13 @@ function updateBattle() {
     }
   }
 
-  if (typeof camera.update === "function") camera.update(p1, p2, canvas)
+  if (typeof camera.update === "function") {
+    // KO HANG: while the slow-mo beat is focused on the fallen fighter, keep that zoom-in instead of
+    // snapping back to the two-shot framing (game-feel Stage 2). Otherwise the normal two-fighter
+    // reframe would immediately undo the punch-in every frame.
+    if (slowdownTarget && slowdownTimer > 0 && typeof camera.advance === "function") camera.advance(canvas)
+    else camera.update(p1, p2, canvas)
+  }
   _updateGonSuddenDeath()   // Gon Adult Form "Final Blow": resolve an armed sudden-death BEFORE round-end (its clean hit also KOs, which we don't want double-counted)
   // TOJI two-stage comeback: intercept a fighter whose HP just reached zero and (if saves remain) restore
   // it BEFORE checkRoundEnd resolves a KO. Ungated by training so it fires in every mode. Catches all sources.

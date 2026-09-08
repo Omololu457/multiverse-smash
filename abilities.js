@@ -208,6 +208,12 @@ function shakeCamera(context, amount = 10, frames = 10) {
   if (context?.camera?.shake) context.camera.shake(amount, frames)
 }
 
+// GAME-FEEL (Stage 2): every ultimate that actually casts gets ONE consistent, HARDER camera beat
+// than a routine hit/special — a big shake + a slight zoom-in. Applied once in triggerUltimate for
+// the WHOLE roster (no per-character data touched). camera.shake() uses max() and focusBetween just
+// re-frames, so this only RAISES the floor — it never shortens a per-ability beat.
+const ULT_CAM_SHAKE = 16, ULT_CAM_SHAKE_FRAMES = 18, ULT_CAM_ZOOM = 1.05
+
 function setAttackState(fighter, attack, cooldownBase) {
   fighter.currentAttack  = attack
   fighter.attacking      = true
@@ -23473,6 +23479,14 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
     if (fighter._suppressUltCooldown) fighter._suppressUltCooldown = false
     else fighter.ultimateCooldown = ULTIMATE_COOLDOWN_FRAMES
     fighter._beUltCastTtl = BANDIT_ECHO_ULTCAST_TTL   // flag "just cast an ultimate" so Chrollo's cinematic-ult mark watcher can attribute an incoming ult connect (Bandit's Echo, Stage 5)
+    // GAME-FEEL (Stage 2): push the ULTIMATE camera beat harder than any routine hit — one global
+    // shake + zoom-in for the whole roster. Giant-form ults self-correct their framing next frame,
+    // so the mild zoom-in target is harmless there.
+    try {
+      const ultTarget = getTargetResolver(context)(fighter)
+      shakeCamera(context, ULT_CAM_SHAKE, ULT_CAM_SHAKE_FRAMES)
+      focusCameraOnAction(context, fighter, ultTarget, ULT_CAM_ZOOM, ULT_CAM_SHAKE_FRAMES)
+    } catch (_) {}
   }
   return cast
 }

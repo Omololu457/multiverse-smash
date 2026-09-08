@@ -3,7 +3,8 @@
 // state sliced from the #13 Dragonrod sheet (tools/reslice_wildmutt.py, white-key). Boots p1=ben10,
 // force-applies the wildmutt form (it is NOT in BEN10_ART_ALIENS yet, so this proves _skinAnim renders
 // when the form is active), forces each movement/state action and asserts it resolves to the expected
-// ben10_wildmutt_* sheet (never the 128² fallback box). walk/run/dash/hurt are documented idle STOPGAPS.
+// ben10_wildmutt_* sheet (never the 128² fallback box). walk/run/dash use the clean roll locomotion sheet
+// (pass 2 — lope frames 0-1 + spin-ball dash burst); hurt is still a documented idle STOPGAP.
 // Programmatic-only: no visual QA here (harness is node-based). See WILDMUTT_ASSET_MAP.md.
 //   node harness/wildmutt_stage1.mjs
 import { chromium } from "playwright";
@@ -30,10 +31,11 @@ async function probe(action) {
   return r;
 }
 
-// action -> expected sheet substring (walk/run/dash/hurt are idle STOPGAPS)
+// action -> expected sheet substring. walk/run/dash resolve to the clean roll locomotion sheet (pass 2:
+// frames 0-1 = quadruped lope for walk/run, sourceX 132 = spin-ball dash burst); hurt is an idle STOPGAP.
 const EXPECT = {
-  idle: "ben10_wildmutt_idle_uniform", walk: "ben10_wildmutt_idle_uniform", run: "ben10_wildmutt_idle_uniform",
-  dash: "ben10_wildmutt_idle_uniform", jump: "ben10_wildmutt_jump_uniform", fall: "ben10_wildmutt_land_uniform",
+  idle: "ben10_wildmutt_idle_uniform", walk: "ben10_wildmutt_roll_uniform", run: "ben10_wildmutt_roll_uniform",
+  dash: "ben10_wildmutt_roll_uniform", jump: "ben10_wildmutt_jump_uniform", fall: "ben10_wildmutt_land_uniform",
   hurt: "ben10_wildmutt_idle_uniform",
 };
 

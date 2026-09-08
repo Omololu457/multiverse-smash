@@ -65,6 +65,8 @@
     "test:ben10": "node harness/ben10.test.mjs",
     "test:albedo": "node harness/albedo.test.mjs",
     "test:ben10-loadout": "node harness/ben10_loadout.test.mjs",
+    "test:ben10-loadout-cap": "node harness/ben10_loadout_cap.test.mjs",
+    "test:ben10-start-human": "node harness/ben10_start_human.test.mjs",
     "test:ben10-stage2": "node harness/ben10_stage2.test.mjs",
     "test:ben10-stage3": "node harness/ben10_stage3.test.mjs",
     "test:ben10-stage4": "node harness/ben10_stage4.test.mjs",

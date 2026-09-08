@@ -4313,8 +4313,8 @@ function _doRematch() {
   applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
   // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
   // in whatever form the match ended in). Re-arm the device so they start the
-  // rematch transformed into their first alien with a full drain meter, at the
-  // correct size — BEFORE we recompute spawn Y from height.
+  // rematch in HUMAN/base form with a full meter, at the correct human size —
+  // BEFORE we recompute spawn Y from height (setupBen10 now starts human).
   reinitTransformDevice(p1)
   reinitTransformDevice(p2)
   const { p1X, p2X } = getSpawnPositions()
@@ -5438,15 +5438,16 @@ function updateMovementInput(fighter) {
 //   • CHARGE alone, while TRANSFORMED → CHARGE the meter (fast refill; can't block, a hit interrupts).
 // selectAlienSlot() enforces the per-switch recharge + from-human energy gate and no-ops a bad slot.
 //
-// Combo table — cardinal directions first (no attack-button conflict), then attack buttons for a
-// loadout deeper than 4. Slot i is reached by CHARGE + this input. Extend the array to add more slots.
+// Combo table — the four cardinal directions ONLY (no attack-button conflict). Slot i is reached
+// by CHARGE + this input. This array's LENGTH is the single source of truth for the loadout pick-cap
+// (slotCap on the select screen + the draft.push validation below). Lowered 6->4 in the 2026-09-07
+// simplification pass (dropped the +Light/+Heavy slots). Its length MUST match
+// fighters.js MAX_OMNITRIX_SLOTS. Extend both together to add more slots.
 const BEN10_SLOT_COMBOS = [
   { field: "down",     label: "↓" },   // slot 1
   { field: "left",     label: "←" },   // slot 2
   { field: "right",    label: "→" },   // slot 3
   { field: "jump",     label: "↑" },   // slot 4  (up; consumed so it won't also jump)
-  { field: "light",    label: "+ Light" },   // slot 5  (consumed so it won't also attack)
-  { field: "heavy",    label: "+ Heavy" },   // slot 6
 ]
 // Public so the pre-match slot-select UI can label each slot with its real combo (single source of truth).
 export function ben10SlotCombo(i) { return BEN10_SLOT_COMBOS[i] || null }
@@ -16443,6 +16444,9 @@ gameLoop()
       if (hoverX != null) { mouse.x = hoverX; mouse.y = hoverY }
       return { gameState, draft: matchConfig.alienDraft }
     },
+    // Read-only Omnitrix-loadout probe (loadout simplification pass): current draft + the pick-cap and
+    // maxPick that drive the "Pick up to N" text — proves the 6->4 cap live through the real click path.
+    alienSelectState: () => ({ draft: matchConfig.alienDraft.slice(), cap: BEN10_SLOT_COMBOS.length, maxPick: Math.min(BEN10_SLOT_COMBOS.length, getAlienPoolList().length) }),
     // Move List screen preview: select a fighter row and toggle the controls/kit view.
     showMoveList: (idx = 0, controls = false) => { const f = getMoveListFighters(); moveListIndex = Math.max(0, Math.min(f.length - 1, idx | 0)); moveListShowControls = !!controls; gameState = GAME_STATES.MOVE_LIST; return { gameState, idx: moveListIndex, controls: moveListShowControls, fighter: f[moveListIndex]?.key } },
     // Full per-fighter kit dump (name/universe/colour/difficulty/passive/normals/specials/mobility/ultimate/

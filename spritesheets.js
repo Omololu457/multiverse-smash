@@ -681,6 +681,15 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./ben10_idle_uniform.png" }
   },
 
+  // Albedo (universe: ben_10) — Ben's Ultimatrix clone. Same gate as Ben: decoding his idle
+  // (Ben-human recolored to __albedo: gray hair + red accents) flips him from the procedural
+  // drawBen10 box to the sprite path. Per-action rendering reads characters.albedo.animationData
+  // (__albedo human sheets) OR fighter._skinAnim (alien forms retagged to __albedo via
+  // fighters.js setupBen10/_retagAlienAnim). Art built by tools/gen_albedo_recolor.py.
+  albedo: {
+    actions: { idle: "./ben10_idle_uniform__albedo.png" }
+  },
+
   // Ghostface (universe: horror) — FIRST horror-universe sprite char. Same idle-strip gate:
   // decoding it flips Ghostface from procedural box to the sprite path. Per-action rendering
   // reads characters.js → ghostface.animationData (each action carries its own .sheet).

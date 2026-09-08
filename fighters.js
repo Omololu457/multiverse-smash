@@ -885,7 +885,7 @@ export const BEN10_ALIEN_POOL = {
                         special: { name: "Fireball", ranged: true, damage: 110, cost: 25, projectileId: "heatblast_fire" }, ult: { name: "Supernova", damage: 220 } }),
   fourarms:   mkAlien({ name: "Four Arms", color: "#dc2626", role: "heavy", hp: 1250, spd: 5, jumps: 1, jump: 19, dmg: 1.25, flags: { armor: true }, weight: "heavy", sizeW: 70, sizeH: 120,
                         special: { name: "Quad Slam", damage: 130, cost: 25, armor: true }, ult: { name: "Ground Pound", damage: 240 } }),
-  xlr8:       mkAlien({ name: "XLR8", color: "#0ea5e9", role: "speed", hp: 900, spd: 10, jumps: 3, jump: 23, dmg: 0.75, weight: "light",
+  xlr8:       mkAlien({ name: "XLR8", color: "#0ea5e9", role: "speed", hp: 900, spd: 99, jumps: 3, jump: 23, dmg: 0.75, weight: "light",
                         special: { name: "Dash Strike", damage: 80, cost: 15 }, ult: { name: "Sonic Blitz", damage: 180, active: 10 } }),
   diamondhead:mkAlien({ name: "Diamondhead", color: "#22d3ee", role: "zoner", hp: 1100, spd: 6, dmg: 1.0, weight: "heavy",
                         special: { name: "Shard Barrage", ranged: true, damage: 100, cost: 20, projectileId: "diamond_shard" }, ult: { name: "Crystal Storm", damage: 210 } }),
@@ -900,7 +900,7 @@ export const BEN10_ALIEN_POOL = {
                         special: { name: "Plasma Beam", ranged: true, damage: 105, cost: 22, projectileId: "upgrade_beam" }, ult: { name: "Tech Overload", damage: 205 } }),
   alienx:     mkAlien({ name: "Alien X", color: "#1e293b", role: "brawler", hp: 1400, spd: 7, dmg: 1.4, flags: { armor: true }, weight: "heavy",
                         special: { name: "Reality Warp", damage: 150, cost: 30, armor: true, knockbackY: -6 }, ult: { name: "Erasure", damage: 300, startup: 22, recovery: 32, effect: "omnipotent — balanced by long startup" } }),
-  clockwork:  mkAlien({ name: "Clockwork", color: "#65a30d", role: "zoner", hp: 1050, spd: 5, dmg: 0.95, weight: "heavy",
+  clockwork:  mkAlien({ name: "Clockwork", color: "#65a30d", role: "zoner", hp: 1050, spd: 74, dmg: 0.95, weight: "heavy",
                         special: { name: "Time Ray", ranged: true, damage: 100, cost: 25, effect: "slows target" }, ult: { name: "Time Stop", damage: 200, effect: "freezes opponent briefly" } }),
   brainstorm: mkAlien({ name: "Brainstorm", color: "#7c3aed", role: "zoner", hp: 960, spd: 6, dmg: 0.95,
                         special: { name: "Lightning Storm", ranged: true, damage: 115, cost: 25, projectileId: "brainstorm_bolt" }, ult: { name: "Mind Surge", damage: 205 } }),
@@ -959,7 +959,7 @@ export const BEN10_ALIEN_POOL = {
 // an active loadout. Every other entry in BEN10_ALIEN_POOL stays as valid (procedurally-drawn)
 // data so nothing breaks — it's simply HIDDEN from selection until real sprite art is sourced.
 // This is the loadout "prune" gate (no pool data deleted); add keys here as art arrives.
-export const BEN10_ART_ALIENS = ["xlr8", "diamondhead", "feedback"]
+export const BEN10_ART_ALIENS = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast", "fourarms", "upgrade", "eyeguy", "alienx", "cannonbolt", "clockwork", "chromastone", "brainstorm"]
 const _artAlienSet = new Set(BEN10_ART_ALIENS)
 export function isArtBackedAlien(key) { return _artAlienSet.has(key) }
 
@@ -1043,16 +1043,34 @@ const BEN10_FORM_ANIM = {
   // the loadout picker; this _skinAnim only renders when the form is force-applied (e.g. harness/tests).
   // Confidence: idle HIGH; jump/fall (pounce-leap/landing) MED. walk/run/dash = idle STOPGAP — the
   // stride row (74px) is likely rearing/lunge, not a low walk; real locomotion awaits the visual pass.
+  // WILDMUTT — unhidden in pass 2 (now in BEN10_ART_ALIENS). Vulpimancer feral rusher: bite + pounce
+  // normals, a leaping Pounce special, and a bite->pounce command chain. Movement uses the CLEAN roll
+  // sheet (the stride_uniform sheet is a malformed rearing/lunge slice — see reslice_wildmutt.py:105 note,
+  // vertical-stack merge, only frame 0 clean — so it stays unwired).
   wildmutt: {
     idle:  { frames: 2, width: 56, height: 43, speed: 8, anchorY: 0, sheet: "./ben10_wildmutt_idle_uniform.png" },
-    walk:  { frames: 2, width: 56, height: 43, speed: 6, anchorY: 0, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP (see note)
-    run:   { frames: 2, width: 56, height: 43, speed: 4, anchorY: 0, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP
-    dash:  { frames: 2, width: 56, height: 43, speed: 4, anchorY: 0, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP
+    // LOCOMOTION from the clean 10-frame roll strip (66px cells): frames 0-1 = the low quadruped lope
+    // (walk/run), frames 2-9 = the spin-ball burst (dash). Real motion art — no longer the idle stopgap.
+    walk:  { frames: 2, width: 66, height: 46, speed: 7, sourceX: 0,   anchorY: 0, sheet: "./ben10_wildmutt_roll_uniform.png" },
+    run:   { frames: 2, width: 66, height: 46, speed: 4, sourceX: 0,   anchorY: 0, sheet: "./ben10_wildmutt_roll_uniform.png" },
+    dash:  { frames: 8, width: 66, height: 46, speed: 2, sourceX: 132, anchorY: 0, sheet: "./ben10_wildmutt_roll_uniform.png" },   // spin-ball roll burst
     jump:  { frames: 5, width: 69, height: 46, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_jump_uniform.png" },
     fall:  { frames: 3, width: 66, height: 43, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_land_uniform.png" },
     hurt:  { frames: 2, width: 56, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP: no hit art
     intro: { frames: 2, width: 56, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP: no intro art
-    taunt: { frames: 2, width: 56, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_idle_uniform.png" }    // STOPGAP: no taunt art
+    taunt: { frames: 2, width: 56, height: 43, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_idle_uniform.png" },   // STOPGAP: no taunt art
+    // NORMALS — bite (quick snap, 4f/61px) + pounce (committed lunge, 6f/127px).
+    light:    { frames: 4, width: 61,  height: 38, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_bite_uniform.png" },
+    heavy:    { frames: 6, width: 127, height: 46, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_pounce_uniform.png" },
+    up:       { frames: 4, width: 61,  height: 38, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_bite_uniform.png" },   // rear-up bite = anti-air
+    air:      { frames: 4, width: 61,  height: 38, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_bite_uniform.png" },
+    down_air: { frames: 6, width: 127, height: 46, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_pounce_uniform.png" },   // pounce dive
+    grab:     { frames: 4, width: 61,  height: 38, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_bite_uniform.png" },
+    // COMMAND CHAIN (Fwd+Heavy -> re-tap on hit): bite opener -> pounce launcher finisher.
+    wmCombo1: { frames: 4, width: 61,  height: 38, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_bite_uniform.png" },
+    wmCombo2: { frames: 6, width: 127, height: 46, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_pounce_uniform.png" },
+    // SPECIAL — Pounce (leaping lunge), reuses the pounce leap art.
+    wmPounce: { frames: 6, width: 127, height: 46, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_wildmutt_pounce_uniform.png" }
   },
   diamondhead: {
     idle:  { frames: 4, width: 49, height: 72, speed: 6, anchorY: 0, sheet: "./ben10_diamond_head_idle_uniform.png" },
@@ -1122,6 +1140,218 @@ const BEN10_FORM_ANIM = {
     // STAGE-4 ultimate cast: OVERLOAD — the 5-frame two-hand energy beam (amplified discharge).
     fbUlt:    { frames: 5, width: 61, height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_ultimate_uniform.png" },
     taunt:    { frames: 4, width: 44, height: 51, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./feedback_idle_uniform.png" }   // in-form taunt-heal pose (no dedicated art → idle)
+  },
+
+  // HEATBLAST (pass 2, Stage 3) — Pyronite ZONER. Clean Dragonrod sheet (tools/reslice_heatblast.py,
+  // green-key CC boxes). Fireball zoner: Fwd-punch normals + a projectile Fireball special. hurt/intro/
+  // taunt reuse idle (no such art on the sheet — honestly flagged).
+  heatblast: {
+    idle:   { frames: 4, width: 29, height: 46, speed: 7, anchorY: 0, sheet: "./ben10_heatblast_idle_uniform.png" },
+    walk:   { frames: 6, width: 40, height: 45, speed: 5, anchorY: 0, sheet: "./ben10_heatblast_walk_uniform.png" },
+    run:    { frames: 6, width: 40, height: 45, speed: 3, anchorY: 0, sheet: "./ben10_heatblast_walk_uniform.png" },
+    dash:   { frames: 6, width: 40, height: 45, speed: 2, anchorY: 0, sheet: "./ben10_heatblast_walk_uniform.png" },
+    jump:   { frames: 2, width: 40, height: 45, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_jump_uniform.png" },
+    fall:   { frames: 2, width: 37, height: 44, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_fall_uniform.png" },
+    crouch: { frames: 2, width: 28, height: 44, speed: 6, anchorY: 0, loop: true, sheet: "./ben10_heatblast_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 29, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_idle_uniform.png" },   // STOPGAP: no hit art
+    intro:  { frames: 4, width: 29, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt:  { frames: 4, width: 29, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_idle_uniform.png" },   // STOPGAP: no taunt art
+    light:    { frames: 3, width: 30, height: 38, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_light_uniform.png" },
+    heavy:    { frames: 4, width: 53, height: 30, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_heavy_uniform.png" },   // flame-dash streak
+    up:       { frames: 3, width: 38, height: 48, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_up_uniform.png" },
+    air:      { frames: 3, width: 33, height: 39, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_air_uniform.png" },
+    down_air: { frames: 3, width: 33, height: 39, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_air_uniform.png" },   // reuse aerial swipe
+    grab:     { frames: 3, width: 30, height: 38, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_light_uniform.png" },
+    hbFire:   { frames: 4, width: 48, height: 44, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_heatblast_fire_uniform.png" }   // Fireball cast pose
+  },
+
+  // FOUR ARMS (pass 2, Stage 3) — Tetramand HEAVY (armor). Clean Dragonrod sheet
+  // (tools/reslice_fourarms.py, peach-key CC boxes). Big-punch bruiser + a Quad Slam special.
+  // hurt/intro/taunt reuse idle (no such art — flagged).
+  fourarms: {
+    idle:   { frames: 4, width: 47, height: 56, speed: 7, anchorY: 0, sheet: "./ben10_fourarms_idle_uniform.png" },
+    walk:   { frames: 6, width: 54, height: 53, speed: 5, anchorY: 0, sheet: "./ben10_fourarms_walk_uniform.png" },
+    run:    { frames: 6, width: 54, height: 53, speed: 3, anchorY: 0, sheet: "./ben10_fourarms_walk_uniform.png" },
+    dash:   { frames: 6, width: 54, height: 53, speed: 2, anchorY: 0, sheet: "./ben10_fourarms_walk_uniform.png" },
+    jump:   { frames: 2, width: 51, height: 63, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_jump_uniform.png" },
+    fall:   { frames: 1, width: 47, height: 63, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_fall_uniform.png" },
+    crouch: { frames: 1, width: 48, height: 39, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 47, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_idle_uniform.png" },   // STOPGAP: no hit art
+    intro:  { frames: 4, width: 47, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt:  { frames: 4, width: 47, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_idle_uniform.png" },   // STOPGAP: no taunt art
+    light:    { frames: 2, width: 63, height: 58, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_light_uniform.png" },
+    heavy:    { frames: 3, width: 72, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_heavy_uniform.png" },
+    up:       { frames: 2, width: 63, height: 54, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_up_uniform.png" },
+    air:      { frames: 2, width: 68, height: 50, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_air_uniform.png" },
+    down_air: { frames: 2, width: 68, height: 50, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_air_uniform.png" },   // reuse aerial
+    grab:     { frames: 2, width: 63, height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_light_uniform.png" },
+    faSlam:   { frames: 3, width: 56, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_fourarms_slam_uniform.png" }   // Quad Slam
+  },
+
+  // UPGRADE (pass 2, Stage 3) — Galvanic Mechomorph ZONER. Clean Dragonrod sheet
+  // (tools/reslice_upgrade.py, blue-key CC boxes). Plasma-whip reach + a Plasma Beam special.
+  // fall reuses jump (its own fall frames were an ambiguous whip pose); hurt/intro/taunt reuse idle.
+  upgrade: {
+    idle:   { frames: 4, width: 38, height: 61, speed: 7, anchorY: 0, sheet: "./ben10_upgrade_idle_uniform.png" },
+    walk:   { frames: 6, width: 58, height: 53, speed: 5, anchorY: 0, sheet: "./ben10_upgrade_walk_uniform.png" },
+    run:    { frames: 6, width: 58, height: 53, speed: 3, anchorY: 0, sheet: "./ben10_upgrade_walk_uniform.png" },
+    dash:   { frames: 6, width: 58, height: 53, speed: 2, anchorY: 0, sheet: "./ben10_upgrade_walk_uniform.png" },
+    jump:   { frames: 1, width: 37, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_jump_uniform.png" },
+    fall:   { frames: 1, width: 37, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_jump_uniform.png" },   // reuse jump (clean airborne pose)
+    crouch: { frames: 1, width: 38, height: 60, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 38, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_idle_uniform.png" },   // STOPGAP: no hit art
+    intro:  { frames: 4, width: 38, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt:  { frames: 4, width: 38, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_idle_uniform.png" },   // STOPGAP: no taunt art
+    light:    { frames: 2, width: 41,  height: 51, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_light_uniform.png" },
+    heavy:    { frames: 3, width: 131, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_heavy_uniform.png" },   // plasma whip lash
+    up:       { frames: 3, width: 43,  height: 123, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_up_uniform.png" },     // upward whip
+    air:      { frames: 2, width: 49,  height: 61, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_air_uniform.png" },
+    down_air: { frames: 2, width: 49,  height: 61, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_air_uniform.png" },   // reuse aerial
+    grab:     { frames: 2, width: 41,  height: 51, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_light_uniform.png" },
+    upBeam:   { frames: 4, width: 131, height: 66, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_upgrade_beam_uniform.png" }   // Plasma Beam cast
+  },
+
+  // EYE GUY (pass 2, Stage 3) — Opticoid ZONER. Clean Dragonrod sheet (tools/reslice_eyeguy.py,
+  // teal-gray-key CC boxes). Eye-beam aim poses + an Eye Beams special. fall reuses jump; hurt/intro/
+  // taunt reuse idle. MINOR: a couple attack frames include the sheet's tiny red "FX." annotation.
+  eyeguy: {
+    idle:   { frames: 4, width: 43, height: 56, speed: 7, anchorY: 0, sheet: "./ben10_eyeguy_idle_uniform.png" },
+    walk:   { frames: 6, width: 48, height: 57, speed: 5, anchorY: 0, sheet: "./ben10_eyeguy_walk_uniform.png" },
+    run:    { frames: 6, width: 48, height: 57, speed: 3, anchorY: 0, sheet: "./ben10_eyeguy_walk_uniform.png" },
+    dash:   { frames: 6, width: 48, height: 57, speed: 2, anchorY: 0, sheet: "./ben10_eyeguy_walk_uniform.png" },
+    jump:   { frames: 1, width: 41, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_jump_uniform.png" },
+    fall:   { frames: 1, width: 41, height: 60, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_jump_uniform.png" },   // reuse jump
+    crouch: { frames: 1, width: 38, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 43, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_idle_uniform.png" },   // STOPGAP: no hit art
+    intro:  { frames: 4, width: 43, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt:  { frames: 4, width: 43, height: 56, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_idle_uniform.png" },   // STOPGAP: no taunt art
+    light:    { frames: 2, width: 47, height: 56, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_light_uniform.png" },
+    heavy:    { frames: 2, width: 58, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_heavy_uniform.png" },
+    up:       { frames: 2, width: 43, height: 55, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_up_uniform.png" },
+    air:      { frames: 2, width: 51, height: 66, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_air_uniform.png" },
+    down_air: { frames: 2, width: 51, height: 66, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_air_uniform.png" },   // reuse aerial
+    grab:     { frames: 2, width: 47, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_light_uniform.png" },
+    egBeam:   { frames: 3, width: 58, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_eyeguy_beam_uniform.png" }   // Eye Beams cast
+  },
+
+  // ALIEN X (pass 2, Stage 3) — Celestialsapien BRAWLER (armor). ipmugen JPEG rip
+  // (tools/reslice_alienx.py, cyan-key CC boxes, upper 2/3 only — skips the winged creatures).
+  // ★QUALITY CAVEAT: near-BLACK silhouette + JPEG → a faint green edge fringe (on-theme, cosmic)
+  // and pose identity is silhouette-ambiguous (jump/crouch/up are approximate). Real art, no box.
+  // fall reuses jump; hurt/intro/taunt reuse idle.
+  alienx: {
+    idle:   { frames: 4, width: 28, height: 75, speed: 7, anchorY: 0, sheet: "./ben10_alienx_idle_uniform.png" },
+    walk:   { frames: 6, width: 69, height: 74, speed: 5, anchorY: 0, sheet: "./ben10_alienx_walk_uniform.png" },
+    run:    { frames: 6, width: 69, height: 74, speed: 3, anchorY: 0, sheet: "./ben10_alienx_walk_uniform.png" },
+    dash:   { frames: 6, width: 69, height: 74, speed: 2, anchorY: 0, sheet: "./ben10_alienx_walk_uniform.png" },
+    jump:   { frames: 2, width: 43, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_jump_uniform.png" },
+    fall:   { frames: 2, width: 43, height: 76, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_jump_uniform.png" },   // reuse jump (own fall frame ambiguous)
+    crouch: { frames: 1, width: 69, height: 73, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 28, height: 75, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_idle_uniform.png" },   // STOPGAP: no hit art
+    intro:  { frames: 4, width: 28, height: 75, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt:  { frames: 4, width: 28, height: 75, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_idle_uniform.png" },   // STOPGAP: no taunt art
+    light:    { frames: 2, width: 38, height: 75, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_light_uniform.png" },
+    heavy:    { frames: 2, width: 54, height: 60, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_heavy_uniform.png" },
+    up:       { frames: 2, width: 37, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_up_uniform.png" },
+    air:      { frames: 2, width: 42, height: 77, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_air_uniform.png" },
+    down_air: { frames: 2, width: 42, height: 77, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_air_uniform.png" },   // reuse aerial
+    grab:     { frames: 2, width: 38, height: 75, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_light_uniform.png" },
+    axWarp:   { frames: 3, width: 52, height: 76, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_alienx_warp_uniform.png" }   // Reality Warp
+  },
+
+  // CANNONBOLT (pass 2, Stage 3) — Arburian Pelarota HEAVY (armor, bigSpike). Clean Dragonrod sheet
+  // (tools/reslice_cannonbolt.py). Roller: dash + jump/fall use the curled roll-ball (canon — he curls
+  // to move/leap), Roll Smash special. hurt/intro/taunt reuse idle.
+  cannonbolt: {
+    idle:   { frames: 3, width: 50, height: 46, speed: 7, anchorY: 0, sheet: "./ben10_cannonbolt_idle_uniform.png" },
+    walk:   { frames: 4, width: 70, height: 46, speed: 5, anchorY: 0, sheet: "./ben10_cannonbolt_walk_uniform.png" },
+    run:    { frames: 4, width: 70, height: 46, speed: 3, anchorY: 0, sheet: "./ben10_cannonbolt_walk_uniform.png" },
+    dash:   { frames: 6, width: 44, height: 47, speed: 2, anchorY: 0, sheet: "./ben10_cannonbolt_roll_uniform.png" },   // rolling dash (signature)
+    jump:   { frames: 1, width: 44, height: 47, speed: 5, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_roll_uniform.png" },   // curled ball
+    fall:   { frames: 1, width: 44, height: 47, speed: 5, sourceX: 0, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_roll_uniform.png" },
+    crouch: { frames: 1, width: 39, height: 38, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 50, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_idle_uniform.png" },   // STOPGAP: no hit art
+    intro:  { frames: 3, width: 50, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt:  { frames: 3, width: 50, height: 46, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_idle_uniform.png" },   // STOPGAP: no taunt art
+    light:    { frames: 2, width: 41, height: 40, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_light_uniform.png" },
+    heavy:    { frames: 3, width: 41, height: 41, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_heavy_uniform.png" },   // roll smash
+    up:       { frames: 1, width: 47, height: 49, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_up_uniform.png" },
+    air:      { frames: 2, width: 41, height: 40, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_air_uniform.png" },
+    down_air: { frames: 2, width: 41, height: 40, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_air_uniform.png" },   // reuse aerial
+    grab:     { frames: 2, width: 41, height: 40, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_light_uniform.png" },
+    cbRoll:   { frames: 6, width: 44, height: 47, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_cannonbolt_roll_uniform.png" }   // Roll Smash
+  },
+
+  // CLOCKWORK (pass 2, Stage 3) — Chronosapien ZONER. ipmugen JPEG rip "clocwork..." (cyan-key CC
+  // boxes, tools/reslice_clockwork.py). Big gold robot + a Time Ray special. fall reuses jump; hurt/
+  // intro/taunt reuse idle. QUALITY: JPEG source -> faint edge fringe; picks best-effort (avoided the
+  // sheet's standalone clock-face icon).
+  clockwork: {
+    idle:   { frames: 4, width: 49, height: 57, speed: 7, anchorY: 0, sheet: "./ben10_clockwork_idle_uniform.png" },
+    walk:   { frames: 4, width: 58, height: 58, speed: 5, anchorY: 0, sheet: "./ben10_clockwork_walk_uniform.png" },
+    run:    { frames: 4, width: 58, height: 58, speed: 3, anchorY: 0, sheet: "./ben10_clockwork_walk_uniform.png" },
+    dash:   { frames: 4, width: 58, height: 58, speed: 2, anchorY: 0, sheet: "./ben10_clockwork_walk_uniform.png" },
+    jump:   { frames: 1, width: 27, height: 56, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_jump_uniform.png" },
+    fall:   { frames: 1, width: 27, height: 56, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_jump_uniform.png" },   // reuse jump
+    crouch: { frames: 1, width: 36, height: 54, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 49, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_idle_uniform.png" },   // STOPGAP: no hit art
+    intro:  { frames: 4, width: 49, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt:  { frames: 4, width: 49, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_idle_uniform.png" },   // STOPGAP: no taunt art
+    light:    { frames: 2, width: 58,  height: 58, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_light_uniform.png" },
+    heavy:    { frames: 2, width: 58,  height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_heavy_uniform.png" },
+    up:       { frames: 1, width: 49,  height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_up_uniform.png" },
+    air:      { frames: 2, width: 76, height: 57, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_air_uniform.png" },
+    down_air: { frames: 2, width: 76, height: 57, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_air_uniform.png" },   // reuse aerial
+    grab:     { frames: 2, width: 58,  height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_light_uniform.png" },
+    cwRay:    { frames: 3, width: 57,  height: 58, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_clockwork_ray_uniform.png" }   // Time Ray cast
+  },
+
+  // CHROMASTONE (pass 2, Stage 3) — Crystalsapien ZONER. ipmugen JPEG rip (cyan-key CC boxes,
+  // tools/reslice_chromastone.py). Dark crystal body w/ purple shard highlights + an Ultraviolet Beam
+  // special. fall reuses jump; hurt/intro/taunt reuse idle. QUALITY: JPEG faint fringe; picks
+  // best-effort (dark body -> some pose ambiguity, less than Alien X thanks to the purple accents).
+  chromastone: {
+    idle:   { frames: 4, width: 22, height: 57, speed: 7, anchorY: 0, sheet: "./ben10_chromastone_idle_uniform.png" },
+    walk:   { frames: 6, width: 47, height: 49, speed: 5, anchorY: 0, sheet: "./ben10_chromastone_walk_uniform.png" },
+    run:    { frames: 6, width: 47, height: 49, speed: 3, anchorY: 0, sheet: "./ben10_chromastone_walk_uniform.png" },
+    dash:   { frames: 6, width: 47, height: 49, speed: 2, anchorY: 0, sheet: "./ben10_chromastone_walk_uniform.png" },
+    jump:   { frames: 1, width: 46, height: 46, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_jump_uniform.png" },
+    fall:   { frames: 1, width: 46, height: 46, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_jump_uniform.png" },   // reuse jump
+    crouch: { frames: 1, width: 33, height: 48, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 22, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_idle_uniform.png" },   // STOPGAP: no hit art
+    intro:  { frames: 4, width: 22, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt:  { frames: 4, width: 22, height: 57, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_idle_uniform.png" },   // STOPGAP: no taunt art
+    light:    { frames: 2, width: 31, height: 47,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_light_uniform.png" },
+    heavy:    { frames: 2, width: 37, height: 57, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_heavy_uniform.png" },
+    up:       { frames: 1, width: 36, height: 35,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_up_uniform.png" },
+    air:      { frames: 2, width: 46, height: 48,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_air_uniform.png" },
+    down_air: { frames: 2, width: 46, height: 48,  speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_air_uniform.png" },   // reuse aerial
+    grab:     { frames: 2, width: 31, height: 47,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_light_uniform.png" },
+    csBeam:   { frames: 3, width: 32, height: 56,  speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_chromastone_beam_uniform.png" }   // Ultraviolet Beam cast
+  },
+
+  // BRAINSTORM (pass 2, Stage 3) — Cerebrocrustacean ZONER. DS/DSi rip (giant 23MP teal sheet w/ black
+  // cells); the full-res CC-label stalls, so tools/reslice_brainstorm.py DETECTS on a 3x-downscaled copy
+  // then crops full-res. Orange crab-alien; open-shell lightning attacks + a Lightning Storm special.
+  // fall reuses jump; hurt/intro/taunt reuse idle. Well-sized (~111px on-screen).
+  brainstorm: {
+    idle:   { frames: 4, width: 51, height: 48, speed: 7, anchorY: 0, sheet: "./ben10_brainstorm_idle_uniform.png" },
+    walk:   { frames: 4, width: 60, height: 51, speed: 5, anchorY: 0, sheet: "./ben10_brainstorm_walk_uniform.png" },
+    run:    { frames: 4, width: 60, height: 51, speed: 3, anchorY: 0, sheet: "./ben10_brainstorm_walk_uniform.png" },
+    dash:   { frames: 4, width: 60, height: 51, speed: 2, anchorY: 0, sheet: "./ben10_brainstorm_walk_uniform.png" },
+    jump:   { frames: 1, width: 42, height: 47, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_jump_uniform.png" },
+    fall:   { frames: 1, width: 42, height: 47, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_jump_uniform.png" },   // reuse jump
+    crouch: { frames: 1, width: 78, height: 47, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_crouch_uniform.png" },
+    hurt:   { frames: 1, width: 51, height: 48, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_idle_uniform.png" },   // STOPGAP: no hit art
+    intro:  { frames: 4, width: 51, height: 48, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_idle_uniform.png" },   // STOPGAP: no intro art
+    taunt:  { frames: 4, width: 51, height: 48, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_idle_uniform.png" },   // STOPGAP: no taunt art
+    light:    { frames: 2, width: 54, height: 45, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_light_uniform.png" },
+    heavy:    { frames: 2, width: 51, height: 68, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_heavy_uniform.png" },   // open-shell lightning
+    up:       { frames: 2, width: 51, height: 53, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_up_uniform.png" },
+    air:      { frames: 2, width: 51, height: 45, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_air_uniform.png" },
+    down_air: { frames: 2, width: 51, height: 45, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_air_uniform.png" },   // reuse aerial
+    grab:     { frames: 2, width: 54, height: 45, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_light_uniform.png" },
+    bsBolt:   { frames: 3, width: 63, height: 72, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ben10_brainstorm_bolt_uniform.png" }   // Lightning Storm cast
   }
 }
 
@@ -1163,7 +1393,18 @@ export function applyAlien(fighter, alienKey) {
   fighter.jumpForce = -(s.jumpPower ?? 22)
   fighter.baseSpeed = s.speed ?? 7
   fighter.speed     = s.speed ?? 7
-  if (s.maxHealth) fighter.maxHealth = s.maxHealth
+  // maxHealth changes per form (XLR8 900 / Diamondhead 1100 / etc.). SCALE current health
+  // proportionally so the bar keeps the SAME percentage across a transform — otherwise a switch
+  // to a lower-max form leaves health > maxHealth (bar reads >100%) or a switch to a higher-max
+  // form makes it snap short. NOT a heal (don't reset to full) and always clamped into [0, newMax].
+  if (s.maxHealth) {
+    const oldMax = fighter.maxHealth || s.maxHealth
+    const newMax = s.maxHealth
+    if (typeof fighter.health === "number" && oldMax > 0 && newMax !== oldMax) {
+      fighter.health = Math.max(0, Math.min(newMax, Math.round(fighter.health * (newMax / oldMax))))
+    }
+    fighter.maxHealth = newMax
+  }
   fighter.stats = { ...(fighter.stats || {}), ...s }
 
   // Size change (Way Big / Atomix etc.), bottom-anchored so feet stay put.
@@ -1319,6 +1560,9 @@ export function tryTransform(fighter) {
 // Per-frame device update — call from the game loop with real delta ms.
 export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   if (!isTransformDevice(fighter) || !fighter.omnitrix) return
+  // Alien X's ultimate has a ~3.3s vulnerable windup; PAUSE the drain meter (and thus the 0-energy
+  // forced human-revert) for its duration so the long cast can't cancel itself mid-windup.
+  if (fighter._axUltWindup) return
   const dt  = Math.max(0, deltaMs) / 1000
   const max = fighter.maxEnergy || 100
   if ((fighter.deviceRecharge || 0) > 0) fighter.deviceRecharge--
@@ -1350,6 +1594,10 @@ export function setupBen10(fighter, selected = DEFAULT_OMNITRIX) {
   fighter.deviceRecharge = 0
   fighter.isCharging     = false
   fighter.transformed    = true   // start in the first alien; the drain meter ticks from here
+  // Albedo renders as a red/gray recolor of Ben: tag his forms so applyAlien retags each alien's
+  // sheets to its __albedo variant (mirrors a skinned Ben keeping its recolor tag through transforms).
+  // Preserves any explicitly-selected skin tag; cosmetic only — no mechanics change.
+  if (_isAlbedo(fighter) && !fighter._recolorTag) fighter._recolorTag = "albedo"
   applyAlien(fighter, fighter.omnitrix.aliens[0])
 }
 

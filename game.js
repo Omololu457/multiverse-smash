@@ -3226,7 +3226,7 @@ function _selectCharacterKey(key) {
   matchConfig[side + "Char"]    = char
   matchConfig[side + "CharKey"] = key
   if (side === "p1") _applyCharacterTheme(key)   // P1's pick drives "Character" mode across the UI
-  if (key === "ben10") {
+  if (key === "ben10" || key === "albedo") {   // Albedo (Ultimatrix) shares Ben's Omnitrix loadout screen — was ben10-only, so picking Albedo skipped alien selection entirely
     matchConfig.alienSelectSide = side
     matchConfig.alienDraft = ((matchConfig[side + "Aliens"]?.length ? matchConfig[side + "Aliens"] : DEFAULT_OMNITRIX).filter(isArtBackedAlien)).slice()
     gameState = GAME_STATES.SELECT_ALIENS
@@ -15655,6 +15655,9 @@ gameLoop()
     attackPhase:      f.currentAttack ? getAttackPhase(f) : "idle",
     introVariant:     f._introVariant || null,
     castMove:         f._spriteCastMove || null,   // sprite-cast override (specials that don't set currentMove)
+    activeAlien:      f.activeAlien || null,        // Ben 10 / Albedo current alien form (null = Ben-human)
+    transformed:      !!f.transformed,              // Ben 10 / Albedo transformed (alien) vs human
+    benSkinAnim:      !!f._skinAnim,                // alien art-set swapped in (proves own art, not human fallback)
     kurapikaCountering: f._kurapikaCountering || 0, // Kurapika Steal Chain parry-window remaining
     emperorActive:    !!f._emperorActive,           // Kurapika Emperor Time form active
     emperorTimer:     f._emperorTimer || 0,         // Emperor Time duration remaining

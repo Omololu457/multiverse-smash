@@ -63,7 +63,7 @@ try {
   check("cinematic active, caster=ben10, p1-slot", uc.active && uc.casterKey === "ben10" && uc.casterSide === "p1", `active=${uc.active} caster=${uc.casterKey} side=${uc.casterSide}`);
   check("LIVE p1 spent ~90 energy", e0 - (await p1()).energy >= 80, `Δ=${(e0 - (await p1()).energy).toFixed(0)}`);
   await waitFrames(20); uc = await cine();
-  check("BUILDUP phase — not struck, opponent undamaged yet", uc.phase === "buildup" && !uc.struck && (await p2()).health === hp0, `phase=${uc.phase} struck=${uc.struck}`);
+  check("pre-impact phase — not struck, opponent undamaged yet", (uc.phase === "buildup" || uc.phase === "transform") && !uc.struck && (await p2()).health === hp0, `phase=${uc.phase} struck=${uc.struck}`);
   await page.waitForFunction(() => { const s = window.__harness.ben10UltCine(); return !s.active || s.struck; }, null, { timeout: 8000, polling: 16 });
   uc = await cine();
   check("burst lands at the impact beat (not premature)", uc.frame >= uc.impactFrame, `frame=${uc.frame} impact=${uc.impactFrame}`);
@@ -72,26 +72,30 @@ try {
   const bx = (await p1()).x; await page.keyboard.down("d"); await waitFrames(10); await page.keyboard.up("d");
   check("control returns to live p1 after cinematic", Math.abs((await p1()).x - bx) > 1, "");
 
-  // ── XLR8 — Sonic Blitz ───────────────────────────────────────────────
-  section("XLR8 — Sonic Blitz (blitz dash)");
-  await setForm("xlr8"); await prep(52);
+  // ── XLR8 — Time-Slice Sprint (opponent speed-debuff ult, pass-4 redesign) ──
+  section("XLR8 — Time-Slice Sprint (speed-debuff ult)");
+  await setForm("xlr8"); await prep(60);
   { const e = (await p1()).energy, h = (await p2()).health;
-    await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
-    for (let i = 0; i < 16; i++) { const ri = await info(); if (ri?.action) seen.add(ri.action); await waitFrames(1); }
-    check("XLR8 Sonic Blitz fires (energy spent)", (e - (await p1()).energy) > 40, `Δ=${(e - (await p1()).energy).toFixed(0)}`);
-    check("XLR8 Sonic Blitz uses xlUlt pose", seen.has("xlUlt"), "");
-    check("XLR8 Sonic Blitz deals big damage", (h - (await p2()).health) > 140, `−${(h - (await p2()).health).toFixed(0)}`); }
+    const cast = await page.evaluate(() => window.__harness.p1Ultimate());   // deterministic fire (keyboard "u" timing is frame-flaky)
+    await waitFrames(4);
+    const spent = e - (await p1()).energy;   // measure NOW (before the form drains/reverts and regens)
+    for (let i = 0; i < 54; i++) { const ri = await info(); if (ri?.action) seen.add(ri.action); await waitFrames(1); }   // freeze-template payoff lands ~frame 40
+    check("XLR8 ult fires (energy spent)", cast?.cast && spent > 40, `cast=${cast?.cast} Δ=${spent.toFixed(0)}`);
+    check("XLR8 ult uses xlUlt pose", cast?.castMove === "xlUlt" || seen.has("xlUlt"), `castMove=${cast?.castMove}`);
+    check("XLR8 ult deals big guaranteed damage", (h - (await p2()).health) > 140, `−${(h - (await p2()).health).toFixed(0)}`); }
 
-  // ── DIAMONDHEAD — Crystal Storm ──────────────────────────────────────
-  section("Diamondhead — Crystal Storm (marching eruptions)");
+  // ── DIAMONDHEAD — Crystalline Eruption (freeze-template ult, pass-4 redesign) ──
+  section("Diamondhead — Crystalline Eruption");
   await setForm("diamondhead"); await prep(90);
   { const e = (await p1()).energy, h = (await p2()).health; let erupt = 0;
-    await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
-    for (let i = 0; i < 30; i++) { const ri = await info(); if (ri?.action) seen.add(ri.action); const ps = await projs(); if (ps.some(p => (p.name || "").includes("eruption"))) erupt++; await waitFrames(1); }
-    check("DH Crystal Storm fires (energy spent)", (e - (await p1()).energy) > 50, `Δ=${(e - (await p1()).energy).toFixed(0)}`);
-    check("DH Crystal Storm uses dhUlt cast pose", seen.has("dhUlt"), "");
-    check("DH Crystal Storm spawns eruption field", erupt > 0, `erupt frames=${erupt}`);
-    check("DH Crystal Storm deals damage", (h - (await p2()).health) > 40, `−${(h - (await p2()).health).toFixed(0)}`); }
+    const cast = await page.evaluate(() => window.__harness.p1Ultimate());   // deterministic fire
+    await waitFrames(4);
+    const spent = e - (await p1()).energy;   // measure NOW (before drain/revert regen)
+    for (let i = 0; i < 58; i++) { const ri = await info(); if (ri?.action) seen.add(ri.action); const ps = await projs(); if (ps.some(p => (p.name || "").includes("eruption"))) erupt++; await waitFrames(1); }   // crystal shards spawn on impact ~frame 42
+    check("DH ult fires (energy spent)", cast?.cast && spent > 50, `cast=${cast?.cast} Δ=${spent.toFixed(0)}`);
+    check("DH ult uses dhUlt cast pose", cast?.castMove === "dhUlt" || seen.has("dhUlt"), `castMove=${cast?.castMove}`);
+    check("DH ult spawns crystal shards", erupt > 0, `erupt frames=${erupt}`);
+    check("DH ult deals big guaranteed damage", (h - (await p2()).health) > 140, `−${(h - (await p2()).health).toFixed(0)}`); }
 
   section("sweep");
   check("no JS errors", jsErrors.length === 0, jsErrors[0] || "");

@@ -250,8 +250,12 @@ export function getHitLevel(attacker, atk) {
 }
 export function isOverheadAttack(attacker, atk) { return getHitLevel(attacker, atk) === "overhead" }
 
+// Clockwork Time Ray debuff strength (shared): attacks/movement scaled by this while _timeSlowTimer>0.
+export const TIME_SLOW_FACTOR = 0.6
 function _dur(base, fighter) {
-  return Math.max(8, Math.floor(base / (fighter?.attackSpeedMultiplier || 1)))
+  // Clockwork TIME SLOW: while slowed, attacks come out sluggish (durations stretched). Inert otherwise.
+  const slow = (fighter?._timeSlowTimer > 0) ? TIME_SLOW_FACTOR : 1
+  return Math.max(8, Math.floor(base / ((fighter?.attackSpeedMultiplier || 1) * slow)))
 }
 
 function _getMD(fighter, key) {
@@ -803,7 +807,11 @@ export function applyVegitoUISystem(fighter) {
 export const FB_ABSORB_REFUND = 20   // energy gained from absorbing a hit (the "absorption" payoff)
 export function shouldFeedbackAbsorb(defender, incomingDmg = 40) {
   if (!defender || (defender._fbAbsorbWindow || 0) <= 0) return false
-  if ((defender.activeAlien || "").toLowerCase() !== "feedback") return false
+  // Feedback (Conductoid) AND Chromastone (Crystalsapien) both absorb incoming energy and redirect it.
+  // They share the same absorb window/pending flags (only one alien is active at a time); the ability
+  // layer branches the REDIRECT visual (electric orb vs UV beam) by activeAlien.
+  const _absAlien = (defender.activeAlien || "").toLowerCase()
+  if (_absAlien !== "feedback" && _absAlien !== "chromastone") return false
   defender._fbAbsorbWindow = 0                       // one absorb per window — consume it
   defender._fbAbsorbPending = { dmg: Math.max(20, incomingDmg | 0) }   // ability layer fires the redirect
   defender.energy = Math.min(defender.maxEnergy || 100, (defender.energy || 0) + FB_ABSORB_REFUND)
@@ -3364,6 +3372,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   if (fighter.blockstun > 0) fighter.blockstun--
   if (fighter.comboTimer > 0) fighter.comboTimer--
   else { fighter.comboCounter = 0; fighter._counterScaleTier = 0; fighter._comboStarterTier = 0 }   // combo drop timer expired → clear counter-hit & starter tiers
+  if ((fighter._timeSlowTimer || 0) > 0) fighter._timeSlowTimer--   // Clockwork Time Ray slow-debuff wear-off
   if (fighter.attackCooldown > 0) fighter.attackCooldown--
 
   if (fighter.isGrabbed) {
@@ -3693,6 +3702,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
       } else {
         fighter.hitstun = Math.round((proj.hitstun || 18) * getComboHitstunScale(proj.owner))
+        if (proj.timeSlow) fighter._timeSlowTimer = Math.max(fighter._timeSlowTimer || 0, proj.timeSlow)   // Clockwork Time Ray: stamp the slow debuff on hit
         // JUGGLE GRAVITY (Stage 1b): a projectile connecting on an AIRBORNE (juggled) target also ramps
         // their fall (read before this hit's knockback vy is applied → a grounded target never self-counts).
         if (!fighter.onGround && !fighter.grounded) fighter.juggleCount = (fighter.juggleCount || 0) + 1

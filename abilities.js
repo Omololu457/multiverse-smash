@@ -3,6 +3,7 @@
 // Each of the 7 starter characters has a fully implemented unique kit.
 
 import { characters } from "./characters.js"
+import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from "./fighters.js"   // Ben-human "Hero Time" force-transform (fighters.js is a leaf module → no cycle)
 import { moveset }    from "./moveset.js"
 import { sound }      from "./sound.js"
 import { gameRng }    from "./rng.js"   // Stage 11A: seeded RNG for Kamui grab-teleport destinations (replayed state)
@@ -3489,6 +3490,9 @@ const BEN10_COMMAND = {
   // Diamondhead — heavy 2-hit crystal swing; ends in a launcher.
   dhSwing1: { damage: 42, startup: 6, active: 4, recovery: 12, hitstun: 14, knockbackX: 3, knockbackY: 0,  rangeX: 82, rangeY: 54, rekkaNext: "dhSwing2" },
   dhSwing2: { damage: 66, startup: 8, active: 4, recovery: 20, hitstun: 22, knockbackX: 9, knockbackY: -3, rangeX: 94, rangeY: 54, launcher: true },   // launcher finisher
+  // Wildmutt — feral 2-hit: bite opener -> pounce launcher finisher.
+  wmCombo1: { damage: 34, startup: 5, active: 3, recovery: 11, hitstun: 14, knockbackX: 4, knockbackY: 0,  rangeX: 78,  rangeY: 46, rekkaNext: "wmCombo2" },
+  wmCombo2: { damage: 60, startup: 7, active: 4, recovery: 20, hitstun: 22, knockbackX: 9, knockbackY: -4, rangeX: 100, rangeY: 50, launcher: true },   // launcher finisher
 }
 
 // Which chain OPENS for the fighter's current form (null = no command chain this form).
@@ -3497,6 +3501,7 @@ function ben10OpenerKey(fighter) {
   const a = (fighter.activeAlien || "").toLowerCase()
   if (a === "xlr8") return "xlCombo1"
   if (a === "diamondhead") return "dhSwing1"
+  if (a === "wildmutt") return "wmCombo1"
   return null   // art-less aliens: neutral normals only (until their own art lands)
 }
 
@@ -3525,7 +3530,10 @@ export function updateBen10CommandCombat(fighter, inputState, context, getPhase)
     const pending = fighter._fbAbsorbPending
     fighter._fbAbsorbPending = null
     fighter._fbAbsorbWindow = 0
-    return fireFbDischargeCounter(fighter, pending, context)
+    // Chromastone redirects the absorbed energy as a UV beam; Feedback as an electric orb.
+    return ((fighter.activeAlien || "").toLowerCase() === "chromastone")
+      ? fireChromastoneDischarge(fighter, pending, context)
+      : fireFbDischargeCounter(fighter, pending, context)
   }
   if ((fighter._fbAbsorbWindow || 0) > 0) fighter._fbAbsorbWindow--
 
@@ -20588,7 +20596,311 @@ function executeBen10Special(fighter, context) {
     if (dir === "D") return fireFbEnergyDischarge(fighter, context)   // proactive electric orb
     return fireFbEnergyAbsorb(fighter, context)                       // reactive absorb/redirect counter
   }
+  if (a === "wildmutt") return fireWildmuttPounce(fighter, context)   // leaping melee lunge (launcher)
+  if (a === "heatblast") return fireHeatblastFireball(fighter, context)   // ranged fireball (zoner)
+  if (a === "fourarms") {
+    if (dir === "F" || dir === "D") return fireFourArmsGrab(fighter, context)   // Tetramand four-arm command throw
+    return fireFourArmsQuadSlam(fighter, context)                               // armored strike (neutral)
+  }
+  if (a === "upgrade") {
+    if (dir === "D") return fireUpgradeMerge(fighter, context)   // liquid-tech phase (i-frame flow)
+    return fireUpgradePlasmaBeam(fighter, context)               // ranged plasma beam (neutral)
+  }
+  if (a === "eyeguy") return fireEyeguyBeams(fighter, context)            // ranged eye beams (zoner)
+  if (a === "alienx") return fireAlienXRealityWarp(fighter, context)      // armored melee launcher
+  if (a === "cannonbolt") return fireCannonboltRollSmash(fighter, context) // armored rolling charge
+  if (a === "clockwork") return fireClockworkTimeRay(fighter, context)     // ranged time ray (zoner)
+  if (a === "chromastone") {
+    if (dir === "D") return fireChromastoneBeam(fighter, context)    // proactive UV beam (Down)
+    return fireChromastoneAbsorb(fighter, context)                   // reactive absorb window -> UV redirect
+  }
+  if (a === "brainstorm") return fireBrainstormLightning(fighter, context) // ranged lightning bolt (zoner)
   return executeFallbackSpecial(fighter, context)   // art-less aliens keep the generic special
+}
+
+// Brainstorm — LIGHTNING STORM: a forward lightning bolt (the pool "Lightning Storm" zoner special).
+// Procedural yellow bolt (no dedicated projectile sprite sliced yet — flagged), cast from the bsBolt
+// open-shell pose.
+function fireBrainstormLightning(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 25)) return false
+  fighter._spriteCastMove = "bsBolt"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(9, () => {
+    spawnProjectile(fighter, "brainstorm_bolt", {
+      damage: 58, speed: 19, hitstun: 20, knockbackX: 7, knockbackY: -1,
+      w: 34, h: 18, radius: 13, color: "#ffe14a", lifetime: 120, isSpecial: true,
+      vx: face * 19, spawnY: fighter.y + (fighter.h || 100) * 0.46
+    }, context)
+  })
+  shakeCamera(context, 3, 5)
+  return true
+}
+
+// Chromastone — ULTRAVIOLET BEAM: a forward UV bolt (the pool "Ultraviolet Beam" zoner special).
+// Procedural violet bolt (no dedicated projectile sprite; the "absorbs energy attacks" effect is not
+// hooked here — flagged), cast from the csBeam pose.
+function fireChromastoneBeam(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 24)) return false
+  fighter._spriteCastMove = "csBeam"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(9, () => {
+    spawnProjectile(fighter, "chromastone_beam", {
+      damage: 56, speed: 17, hitstun: 20, knockbackX: 7, knockbackY: -1,
+      w: 34, h: 16, radius: 13, color: "#b24bff", lifetime: 120, isSpecial: true,
+      vx: face * 17, spawnY: fighter.y + (fighter.h || 100) * 0.44
+    }, context)
+  })
+  shakeCamera(context, 3, 5)
+  return true
+}
+
+// Chromastone — ENERGY ABSORPTION (neutral Special): opens a reactive counter window (reuses Feedback's
+// absorb primitive — combat.shouldFeedbackAbsorb now also fires for chromastone). An incoming energy/
+// projectile OR melee hit landing during the window is fully NEGATED; the frame after, updateBen10Command
+// Combat fires fireChromastoneDischarge (a redirected UV beam). Whiff = normal recovery (the counter's risk).
+function fireChromastoneAbsorb(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, FB_ABSORB.cost)) return false
+  fighter._spriteCastMove  = "csBeam"
+  fighter._spriteCastTimer = FB_ABSORB.startup + FB_ABSORB.window + FB_ABSORB.recovery
+  fighter._fbAbsorbWindow  = FB_ABSORB.startup + FB_ABSORB.window   // shared absorb window (feedback/chromastone never co-active)
+  fighter._fbAbsorbPending = null
+  fighter.attackCooldown   = getAttackDuration(FB_ABSORB.startup + FB_ABSORB.window + FB_ABSORB.recovery, fighter)
+  fighter.vx = 0
+  shakeCamera(context, 2, 4)
+  return true
+}
+
+// Chromastone — the amplified UV REDIRECT fired the frame after a successful absorb (Crystalsapien
+// refires absorbed energy as ultraviolet). Scales with the absorbed blow, like Feedback's discharge.
+function fireChromastoneDischarge(fighter, pending, context) {
+  fighter._spriteCastMove  = "csBeam"; fighter._spriteCastTimer = 18
+  fighter.attackCooldown   = getAttackDuration(20, fighter)
+  fighter.vx = 0
+  const face = fighter.facing || 1
+  const amp  = Math.min(180, 80 + Math.round((pending?.dmg || 40) * 1.4))
+  schedulePendingSpawn(5, () => {
+    spawnProjectile(fighter, "chromastone_discharge", {
+      damage: amp, speed: 18, vx: face * 18, hitstun: 24, knockbackX: 10, knockbackY: -3,
+      w: 36, h: 18, radius: 17, color: "#b24bff", lifetime: 120, isSpecial: true,
+      spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  shakeCamera(context, 5, 7)
+  return true
+}
+
+// Clockwork — TIME RAY: a forward temporal bolt that SLOWS the target (the pool "Time Ray" zoner
+// special, "slows target"). On hit it stamps a ~1.6s time-slow debuff (target attacks + moves at ~0.5-0.6x
+// via combat._dur / physics moveFighter reading _timeSlowTimer). Lower raw damage than a pure bolt since
+// the payoff is the debuff. Procedural gold-green bolt cast from the cwRay pose.
+function fireClockworkTimeRay(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 25)) return false
+  fighter._spriteCastMove = "cwRay"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(9, () => {
+    spawnProjectile(fighter, "clockwork_ray", {
+      damage: 44, speed: 15, hitstun: 18, knockbackX: 4, knockbackY: -1,
+      w: 30, h: 18, radius: 13, color: "#c9d14a", lifetime: 120, isSpecial: true,
+      timeSlow: 96,   // ★TIME DEBUFF: slows the target's attacks + movement for ~1.6s (combat._dur / physics moveFighter read _timeSlowTimer)
+      vx: face * 15, spawnY: fighter.y + (fighter.h || 100) * 0.44
+    }, context)
+  })
+  shakeCamera(context, 3, 5)
+  return true
+}
+
+// Cannonbolt — ROLL SMASH: an armored rolling charge across the ground (the pool "Roll Smash"). Melee,
+// superArmor, big forward momentum, from the curled cbRoll ball.
+function fireCannonboltRollSmash(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 24)) return false
+  // Arburian Pelarota: curl into an armored ball and RICOCHET across the arena — a long committed
+  // roll that bounces off the walls (up to 2x), re-hitting on each pass. His BODY is the hitbox
+  // (rangeX tight, centered), superArmor through the whole roll. Uses the cbRoll spin art.
+  const md = { damage: 100, startup: 5, active: 22, recovery: 16, hitstun: 22, blockstun: 12, knockbackX: 10, knockbackY: -4, rangeX: 68, rangeY: 58, isSpecial: true, superArmor: true }
+  const attack = createAttackFromMove(fighter, "cbRoll", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.superArmor = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const SPD = 22, W = getWorldWidth(context), bw = fighter.w || 60
+  fighter._cbRollDir = fighter.facing || 1
+  fighter._cbBounces = 0
+  fighter.vx = fighter._cbRollDir * SPD
+  for (let t = 2; t <= md.startup + md.active; t += 2) {
+    schedulePendingSpawn(t, () => {
+      if (fighter.currentAttack?.name !== "cbRoll") return
+      // RICOCHET: at a wall (facing into it), reverse direction + re-arm the hitbox for the return pass.
+      if (fighter._cbBounces < 2 &&
+          ((fighter.x <= 14 && fighter._cbRollDir < 0) || (fighter.x >= W - bw - 14 && fighter._cbRollDir > 0))) {
+        fighter._cbRollDir *= -1; fighter.facing = fighter._cbRollDir; fighter._cbBounces++
+        if (fighter.currentAttack) fighter.currentAttack.hasHit = false   // can hit again after the bounce
+        shakeCamera(context, 4, 6)
+      }
+      fighter.vx = fighter._cbRollDir * SPD
+      fighter.vy = 0
+    })
+  }
+  shakeCamera(context, 5, 8)
+  return true
+}
+
+// Alien X — REALITY WARP: a heavy armored melee blast that launches (the pool "Reality Warp" special).
+// Celestialsapien brute-caster; MELEE (no projectile art), superArmor through the active frames.
+function fireAlienXRealityWarp(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 45)) return false   // ★HIGH cost — god-tier, not for casual use
+  // Celestialsapien REALITY WARP — canon: the 3 personalities must AGREE first, so it's deliberately
+  // slow/hard to unleash. HIGH-RISK / HIGH-REWARD: a long ~30-frame windup with NO super armor (any
+  // poke interrupts it and the 45 energy is WASTED — the risk), paying off in a devastating, huge-range
+  // reality-warp burst (240 dmg hard launch — the reward). Distinct from every other alien's safe poke.
+  const md = { damage: 240, startup: 30, active: 6, recovery: 30, hitstun: 34, blockstun: 20, knockbackX: 14, knockbackY: -15, rangeX: 132, rangeY: 92, isSpecial: true, launcher: true }
+  const attack = createAttackFromMove(fighter, "axWarp", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.launcher = true   // NO superArmor: interruptible during the windup (the risk)
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.vx = 0
+  // a rumble that builds through the windup, then a big shake on release
+  for (const t of [4, 12, 20, 28]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "axWarp") shakeCamera(context, 3, 4) })
+  schedulePendingSpawn(30, () => { if (fighter.currentAttack?.name === "axWarp") shakeCamera(context, 12, 16) })
+  return true
+}
+
+// Eye Guy — EYE BEAMS: a forward energy bolt (the pool "Eye Beams" zoner special). Procedural green
+// bolt (no dedicated projectile sprite sliced yet — flagged), cast from the egBeam aim pose.
+function fireEyeguyBeams(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 26)) return false
+  // Opticoid: MANY eyes fire at once. A 3-beam FAN — level + angled up + angled down — that fills
+  // vertical space (anti-air + anti-low), instead of a single bolt. Each beam is weaker than the old
+  // single shot but the coverage is the point.
+  fighter._spriteCastMove = "egBeam"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(28, fighter)
+  const face = fighter.facing || 1
+  const eyeY = fighter.y + (fighter.h || 100) * 0.40
+  const beams = [ { vy: 0, dh: 0 }, { vy: -5, dh: -6 }, { vy: 5, dh: -6 } ]   // level, up, down
+  schedulePendingSpawn(8, () => {
+    for (const b of beams) {
+      spawnProjectile(fighter, "eyeguy_beam", {
+        damage: 34, speed: 16, hitstun: 15, knockbackX: 6, knockbackY: b.vy < 0 ? -3 : -1,
+        w: 26, h: 18, radius: 12, color: "#9be535", lifetime: 110, isSpecial: true,
+        vx: face * 16, vy: b.vy, spawnY: eyeY + b.dh
+      }, context)
+    }
+  })
+  shakeCamera(context, 4, 6)
+  return true
+}
+
+// Upgrade — PLASMA BEAM: a fast forward plasma bolt (the pool "Plasma Beam" zoner special). Procedural
+// green bolt (no dedicated projectile sprite sliced yet — flagged), cast from the upBeam whip pose.
+function fireUpgradePlasmaBeam(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 22)) return false
+  fighter._spriteCastMove = "upBeam"; fighter._spriteCastTimer = 22
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(9, () => {
+    spawnProjectile(fighter, "upgrade_beam", {
+      damage: 58, speed: 18, hitstun: 18, knockbackX: 7, knockbackY: -1,
+      w: 34, h: 14, radius: 12, color: "#39d353", lifetime: 120, isSpecial: true,
+      vx: face * 18, spawnY: fighter.y + (fighter.h || 100) * 0.42
+    }, context)
+  })
+  shakeCamera(context, 3, 5)
+  return true
+}
+
+// Upgrade — TECH MERGE (Down Special): the Galvanic Mechomorph liquefies and flows, phasing forward
+// with i-frames (reuses the invulnTimer primitive) then re-forming. A mobility/escape tool that nods to
+// his liquid-tech nature. (NOTE: his DEFINING canon power — merging with / possessing MACHINES — is not
+// representable: the arena has no technology objects and the engine has no possess/summon-construct
+// mechanic or Upgrade construct art. Flagged, not forced; his plasma beam + whip normals remain canon.)
+function fireUpgradeMerge(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 18)) return false
+  fighter._spriteCastMove = "dash"; fighter._spriteCastTimer = 16
+  fighter.attackCooldown = getAttackDuration(20, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 18)   // phase as liquid tech (i-frames)
+  fighter.teleportFlash = 12
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 16
+  for (const t of [2, 4, 6]) schedulePendingSpawn(t, () => { if ((fighter.invulnTimer || 0) > 0) fighter.vx = dir * 16 })
+  return true
+}
+
+// Four Arms — QUAD SLAM: a short armored forward slam (the pool "Quad Slam" special). Melee, super
+// armor through the active frames (Tetramand brute), from the faSlam pose.
+function fireFourArmsQuadSlam(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 25)) return false
+  const md = { damage: 130, startup: 9, active: 5, recovery: 22, hitstun: 26, blockstun: 14, knockbackX: 10, knockbackY: -5, rangeX: 96, rangeY: 60, isSpecial: true, superArmor: true }
+  const attack = createAttackFromMove(fighter, "faSlam", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.superArmor = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 8
+  shakeCamera(context, 6, 8)
+  return true
+}
+
+// Four Arms — COMMAND THROW (Fwd/Down Special): the Tetramand's four-armed grapple. A close-range
+// command grab (beats block) that, on connect, THROWS the opponent for heavy strength damage. Reuses
+// the shared grab/throw primitive (resolveGrab + _grabThrowDmg — same as Red Ranger / Nezuko). Whiff
+// commits recovery so it isn't free spam.
+function fireFourArmsGrab(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!(fighter.onGround ?? fighter.grounded ?? true)) return false
+  if (!spendEnergy(fighter, 22)) return false
+  const target  = getTargetResolver(context)(fighter)
+  const grabbed = resolveGrab(fighter, target, context, 96)   // long four-arm reach
+  fighter._spriteCastMove = "faSlam"; fighter._spriteCastTimer = 28
+  if (grabbed) {
+    fighter._grabThrowDmg = 140   // Tetramand super-strength throw
+    shakeCamera(context, 6, 9)
+  } else {
+    fighter.attackCooldown = getAttackDuration(20, fighter)   // whiff/tech commits recovery
+  }
+  return true
+}
+
+// Heatblast — FIREBALL: a traveling flame projectile (the pool "Fireball" zoner special). Procedural
+// orange orb (no dedicated projectile sprite sliced yet — flagged), cast from the hbFire throw pose.
+function fireHeatblastFireball(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 25)) return false
+  fighter._spriteCastMove = "hbFire"; fighter._spriteCastTimer = 22
+  fighter.attackCooldown = getAttackDuration(26, fighter)
+  const face = fighter.facing || 1
+  schedulePendingSpawn(8, () => {
+    spawnProjectile(fighter, "heatblast_fire", {
+      damage: 55, speed: 14, hitstun: 18, knockbackX: 7, knockbackY: -1,
+      w: 26, h: 22, radius: 13, color: "#ff8a1e", lifetime: 130, isSpecial: true,
+      vx: face * 14, spawnY: fighter.y + (fighter.h || 100) * 0.40
+    }, context)
+  })
+  shakeCamera(context, 3, 5)
+  return true
+}
+
+// Wildmutt — POUNCE: a leaping forward lunge that launches (the pool "Pounce" special). Melee, no
+// projectile (Vulpimancer has no ranged tool) — models fireXlr8DashStrike with an added upward hop.
+function fireWildmuttPounce(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 15)) return false
+  const md = { damage: 95, startup: 6, active: 6, recovery: 18, hitstun: 22, blockstun: 12, knockbackX: 8, knockbackY: -6, rangeX: 110, rangeY: 56, isSpecial: true, launcher: true }
+  const attack = createAttackFromMove(fighter, "wmPounce", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.launcher = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  const dir = fighter.facing || 1
+  fighter.vx = dir * 18; fighter.vy = -6   // leap forward + up
+  for (const t of [2, 4, 6]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "wmPounce") fighter.vx = dir * 18 })
+  shakeCamera(context, 4, 6)
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -20598,6 +20910,10 @@ function executeBen10Special(fighter, context) {
 // ben10 maxEnergy is 100, so costs sit well under full.
 // ─────────────────────────────────────────────────────────────────
 const BEN10_OMNITRIX_ULT = { cost: 90, dmg: 320, blockRatio: 0.20 }
+// "HERO TIME" (Ben-human / Albedo ult): slam the Omnitrix, BECOME the currently-dialed loadout alien for
+// one oversized finishing blow, then revert to human. 400 raw → ~240 EFF — bigger than the standard alien
+// ults (~198) but deliberately UNDER Alien X's 270 (Stage 5 keeps Alien X the single highest Ben-10 payoff).
+const BEN10_HERO_TIME = { cost: 90, dmg: 400, blockRatio: 0.20, revertDelay: 60 }
 
 // Guaranteed Omnitrix-burst shockwave (applied by the cinematic onImpact beat).
 function applyBen10OmnitrixDamage(fighter, opp, cineCtx = {}) {
@@ -20618,6 +20934,33 @@ function applyBen10OmnitrixDamage(fighter, opp, cineCtx = {}) {
       timer: 20, maxTimer: 20, category: blocked ? "light" : "ultimate", color: blocked ? null : "#4ade80",
       damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 16, radius: blocked ? 14 : 44, ...(blocked ? { isBlocking: true } : {}) })
   }
+}
+
+// HERO TIME payoff (applied by the Omnitrix cinematic onImpact beat): force-transform Ben into the
+// currently-dialed loadout alien, land ONE oversized guaranteed blow as that alien, then schedule a
+// revert to human ("...for one finishing blow, then revert"). Albedo shares this (same Omnitrix branch).
+function applyBen10HeroTime(fighter, opp, heroAlien, cineCtx = {}) {
+  // BECOME the alien for the blow (the alien "bursts out" of the transformation).
+  if (heroAlien && BEN10_ALIEN_POOL[heroAlien]) { fighter.transformed = true; applyAlien(fighter, heroAlien) }
+  const doRevert = () => { if (fighter && fighter.transformed) revertToHuman(fighter, { forced: true }) }
+  if (!opp || opp.eliminated) { schedulePendingSpawn(BEN10_HERO_TIME.revertDelay, doRevert); return }
+  const blocked = !!opp.isBlocking
+  let dmg = BEN10_HERO_TIME.dmg
+  if (blocked) {
+    dmg = Math.round(dmg * BEN10_HERO_TIME.blockRatio)
+    opp.blockstun = Math.max(opp.blockstun || 0, 20)
+  } else {
+    opp.hitstun = Math.max(opp.hitstun || 0, 34)
+    opp.vx = (fighter.facing || 1) * 18; opp.vy = -9
+    opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
+  }
+  applyScaledDamage(opp, dmg, { source: "ability" })   // GUARANTEED, range-independent — the oversized finisher
+  if (Array.isArray(cineCtx.hitEffects)) {
+    cineCtx.hitEffects.push({ x: (opp.x || 0) + (opp.w || 60) / 2, y: (opp.y || 0) + (opp.h || 100) / 2,
+      timer: 22, maxTimer: 22, category: blocked ? "light" : "ultimate", color: blocked ? null : "#a3e635",
+      damage: Math.floor(dmg * GLOBAL_DAMAGE_SCALE), lines: blocked ? 6 : 18, radius: blocked ? 14 : 48, ...(blocked ? { isBlocking: true } : {}) })
+  }
+  schedulePendingSpawn(BEN10_HERO_TIME.revertDelay, doRevert)   // ...then revert to human a beat after the blow
 }
 
 // XLR8 — SONIC BLITZ: a committed, high-damage blitz dash (launcher). Reuses the combo pose.
@@ -20687,19 +21030,209 @@ function fireFbOverload(fighter, context) {
 }
 
 function executeBen10Ultimate(fighter, context) {
-  if (fighter.transformed === false) {   // Ben-human → Omnitrix transformation freeze cinematic
+  if (fighter.transformed === false) {   // Ben-human / Albedo → "HERO TIME": Omnitrix-slam force-transform into the loadout alien for one oversized blow, then revert
     if (isBen10OmnitrixCinematicActive()) return false
-    if (!spendEnergy(fighter, BEN10_OMNITRIX_ULT.cost)) return false
+    if (!spendEnergy(fighter, BEN10_HERO_TIME.cost)) return false
     const opp = getTargetResolver(context)(fighter)
+    // the currently-active loadout alien (whatever the Omnitrix dial is set to) — the form Ben becomes for the finisher.
+    const omx = fighter.omnitrix
+    const heroAlien = (omx && Array.isArray(omx.aliens) && omx.aliens.length)
+      ? (omx.aliens[omx.index] || omx.aliens[0]) : DEFAULT_OMNITRIX[0]
     fighter.vx = 0
-    activateBen10OmnitrixCinematic(fighter, opp, (cineCtx) => applyBen10OmnitrixDamage(fighter, opp, cineCtx))
+    activateBen10OmnitrixCinematic(fighter, opp, (cineCtx) => applyBen10HeroTime(fighter, opp, heroAlien, cineCtx))
     return true
   }
   const a = (fighter.activeAlien || "").toLowerCase()
-  if (a === "xlr8") return fireXlr8SonicBlitz(fighter, context)
-  if (a === "diamondhead") return fireDhCrystalStorm(fighter, context)
-  if (a === "feedback") return fireFbOverload(fighter, context)
+  if (a === "xlr8")        return fireXlr8TimeSlice(fighter, context)         // opponent speed-debuff (NOT self-buff)
+  if (a === "diamondhead") return fireDhCrystallineEruption(fighter, context)
+  if (a === "feedback")    return fireFbOverloadDischarge(fighter, context)
+  if (a === "wildmutt")    return fireWildmuttFrenzy(fighter, context)
+  if (a === "heatblast")   return fireHeatblastSupernova(fighter, context)
+  if (a === "upgrade")     return fireUpgradeSystemOverride(fighter, context)
+  if (a === "eyeguy")      return fireEyeguyBarrage(fighter, context)
+  if (a === "cannonbolt")  return fireCannonboltPinball(fighter, context)
+  if (a === "chromastone") return fireChromastonePrism(fighter, context)
+  if (a === "fourarms")    return fireFourArmsQuaking(fighter, context)
+  if (a === "brainstorm")  return fireBrainstormStorm(fighter, context)
+  if (a === "clockwork")   return fireClockworkTimeStop(fighter, context)
+  if (a === "alienx")      return fireAlienXUltimate(fighter, context)
   return executeFallbackUltimate(fighter, context)   // art-less aliens keep the generic ultimate
+}
+
+// ── SHARED per-alien ULTIMATE template (Stage 6) ─────────────────────────────────────────────────
+// A guaranteed-hit freeze-style ult: LOCK the opponent for a short cast window (repeated hitstun so the
+// sure-hit always connects), hold the ALIEN'S OWN cast pose, then deal guaranteed range-independent
+// damage in the ~198 EFF band (330 raw x GLOBAL_DAMAGE_SCALE), plus an optional per-alien onImpact
+// flourish. Each alien differs by cast pose + damage shape + flourish (no shared cast art).
+function fireBen10FreezeUlt(fighter, context, opts = {}) {
+  const { cost = 80, dmg = 330, cast = null, castTime = 46, onImpact = null } = opts
+  if (!spendEnergy(fighter, cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  if (cast) { fighter._spriteCastMove = cast; fighter._spriteCastTimer = castTime }
+  fighter.attackCooldown = getAttackDuration(castTime + 6, fighter)
+  fighter.vx = 0
+  focusCameraOnAction(context, fighter, opp, 0.92, 20)
+  for (let t = 1; t < castTime; t += 2) schedulePendingSpawn(t, () => { if (opp && !opp.eliminated) { opp.hitstun = Math.max(opp.hitstun || 0, 6); opp.vx = 0 } })
+  schedulePendingSpawn(castTime - 6, () => {
+    if (!opp || opp.eliminated) return
+    applyScaledDamage(opp, dmg, { source: "ability" })
+    opp.hitstun = Math.max(opp.hitstun || 0, 32); opp.vx = (fighter.facing || 1) * 14; opp.vy = -11; opp.colorFlash = 14
+    shakeCamera(context, 13, 16)
+    if (onImpact) onImpact(opp, context)
+  })
+  return true
+}
+function _ben10UltProj(fighter, context, name, o = {}) {   // themed FX flourish (visualOnly — the guaranteed hit is the real payoff, so these don't collide/despawn)
+  const face = fighter.facing || 1
+  spawnProjectile(fighter, name, {
+    damage: 0, speed: o.speed ?? 14, vx: (o.vx ?? face * 14), vy: o.vy ?? 0,
+    w: o.w ?? 32, h: o.h ?? 24, radius: o.radius ?? 16, color: o.color || "#ffffff",
+    lifetime: o.lifetime ?? 90, isSpecial: true, visualOnly: true, spawnY: fighter.y + (fighter.h || 100) * (o.yf ?? 0.42)
+  }, context)
+}
+
+// XLR8 — "Time-Slice Sprint": guaranteed hit that CRATERS the opponent's speed (long time-slow debuff),
+// NOT a self-buff. Reuses the _timeSlowTimer primitive (Clockwork) at a long duration.
+function fireXlr8TimeSlice(fighter, context) {
+  return fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 300, cast: "xlUlt", castTime: 46,
+    onImpact: (opp) => { opp._timeSlowTimer = Math.max(opp._timeSlowTimer || 0, 240) } })   // ~4s hard slow
+}
+// Diamondhead — "Crystalline Eruption": guaranteed hit + a burst of crystal shards impaling the foe.
+function fireDhCrystallineEruption(fighter, context) {
+  return fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 330, cast: "dhUlt", castTime: 48,
+    onImpact: (opp, ctx) => { for (const dy of [-6, 0, 6]) _ben10UltProj(fighter, ctx, "ben10_diamond_eruption", { color: "#5eead4", vy: dy, damage: 20, w: 40, h: 60, radius: 26 }) } })
+}
+// Feedback — "Overload Discharge": one massive point-blank electric discharge.
+function fireFbOverloadDischarge(fighter, context) {
+  return fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 330, cast: "fbUlt", castTime: 46,
+    onImpact: (opp, ctx) => _ben10UltProj(fighter, ctx, "feedback_overload", { color: "#22d3ee", w: 60, h: 44, radius: 30, damage: 24 }) })
+}
+// Wildmutt — "Feral Frenzy": a relentless mauling — extra rapid damage ticks across the lock.
+function fireWildmuttFrenzy(fighter, context) {
+  const opp = getTargetResolver(context)(fighter)
+  const ok = fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 210, cast: "wmPounce", castTime: 50 })
+  if (ok) for (const t of [16, 24, 32, 40]) schedulePendingSpawn(t, () => { if (opp && !opp.eliminated) { applyScaledDamage(opp, 40, { source: "ability" }); opp.colorFlash = 6; shakeCamera(context, 3, 4) } })   // maul ticks + final crush
+  return ok
+}
+// Heatblast — "Supernova": a self-detonating heat blast — big AoE flourish + guaranteed core hit.
+function fireHeatblastSupernova(fighter, context) {
+  return fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 330, cast: "hbFire", castTime: 48,
+    onImpact: (opp, ctx) => { for (const dx of [-1, 1]) _ben10UltProj(fighter, ctx, "heatblast_fire", { color: "#ff8a1e", vx: dx * 12, w: 46, h: 40, radius: 30, damage: 18 }) } })
+}
+// Upgrade — "System Override": full cannon-merge, one massive point-blank plasma blast.
+function fireUpgradeSystemOverride(fighter, context) {
+  return fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 330, cast: "upBeam", castTime: 46,
+    onImpact: (opp, ctx) => _ben10UltProj(fighter, ctx, "upgrade_beam", { color: "#39d353", w: 60, h: 30, radius: 26, damage: 22 }) })
+}
+// Eye Guy — "Ocular Barrage": every eye fires at once — an OMNIDIRECTIONAL spray (distinct beam shape).
+function fireEyeguyBarrage(fighter, context) {
+  return fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 300, cast: "egBeam", castTime: 48,
+    onImpact: (opp, ctx) => { const face = fighter.facing || 1
+      for (const [vx, vy] of [[face*16,0],[face*13,-9],[face*13,9],[0,-15],[0,15],[-face*11,-6],[-face*11,6]])
+        _ben10UltProj(fighter, ctx, "eyeguy_beam", { color: "#9be535", vx, vy, w: 24, h: 18, radius: 12, damage: 12 }) } })
+}
+// Cannonbolt — "Pinball Rampage": an extended, higher-damage ricochet roll (up to 4 wall-bounces,
+// re-hitting each pass), ending in the guaranteed uncurl slam. Extends the Stage-1 ricochet.
+function fireCannonboltPinball(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, 80)) return false
+  const md = { damage: 70, startup: 5, active: 40, recovery: 18, hitstun: 22, blockstun: 12, knockbackX: 9, knockbackY: -4, rangeX: 70, rangeY: 58, isSpecial: true, isUltimate: true, superArmor: true }
+  const attack = createAttackFromMove(fighter, "cbRoll", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isSpecial = true; attack.isUltimate = true; attack.superArmor = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._spriteCastMove = "cbRoll"; fighter._spriteCastTimer = md.startup + md.active   // expose the roll pose (auto-clears)
+  const SPD = 26, W = getWorldWidth(context), bw = fighter.w || 60
+  fighter._cbRollDir = fighter.facing || 1; fighter._cbBounces = 0
+  fighter.vx = fighter._cbRollDir * SPD
+  const opp = getTargetResolver(context)(fighter)
+  for (let t = 2; t <= md.startup + md.active; t += 2) {
+    schedulePendingSpawn(t, () => {
+      if (fighter.currentAttack?.name !== "cbRoll") return
+      if (fighter._cbBounces < 4 && ((fighter.x <= 14 && fighter._cbRollDir < 0) || (fighter.x >= W - bw - 14 && fighter._cbRollDir > 0))) {
+        fighter._cbRollDir *= -1; fighter.facing = fighter._cbRollDir; fighter._cbBounces++
+        if (fighter.currentAttack) fighter.currentAttack.hasHit = false
+        shakeCamera(context, 5, 7)
+      }
+      fighter.vx = fighter._cbRollDir * SPD; fighter.vy = 0
+    })
+  }
+  // guaranteed uncurl-slam finish (~198 EFF floor; the ricochet pass-hits are bonus)
+  schedulePendingSpawn(md.startup + md.active + 2, () => { if (opp && !opp.eliminated) { applyScaledDamage(opp, 330, { source: "ability" }); opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.vx = (fighter.facing || 1) * 14; opp.vy = -12; opp.colorFlash = 12; shakeCamera(context, 14, 18) } })
+  return true
+}
+// Chromastone — "Prism Overload": a massive point-blank ultraviolet light-beam.
+function fireChromastonePrism(fighter, context) {
+  return fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 330, cast: "csBeam", castTime: 48,
+    onImpact: (opp, ctx) => _ben10UltProj(fighter, ctx, "chromastone_prism", { color: "#b24bff", w: 66, h: 34, radius: 30, damage: 22 }) })
+}
+// Four Arms — "Quaking Fists": a four-fisted ground-pound AoE finisher.
+function fireFourArmsQuaking(fighter, context) {
+  return fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 340, cast: "faSlam", castTime: 48,
+    onImpact: (opp, ctx) => { shakeCamera(ctx, 18, 22) } })
+}
+// Brainstorm — "Cerebral Storm": a large bio-electric lightning AoE.
+function fireBrainstormStorm(fighter, context) {
+  return fireBen10FreezeUlt(fighter, context, { cost: 80, dmg: 330, cast: "bsBolt", castTime: 48,
+    onImpact: (opp, ctx) => { for (const dy of [-10, 0, 10]) _ben10UltProj(fighter, ctx, "brainstorm_bolt", { color: "#ffe14a", vy: dy, w: 34, h: 18, radius: 14, damage: 16 }) } })
+}
+
+// Alien X — UNIVERSAL RESET (ultimate): the 3 personalities' consensus takes forever, so this has the
+// LONGEST windup on the roster (200 frames vs the previous ~190-frame cast-time max) and is FULLY
+// vulnerable — NO super armor, NO i-frames, NO opponent-freeze — so any hit during the windup CANCELS
+// it and wastes the meter (the gamble). If it survives to the end it lands the single HIGHEST guaranteed
+// damage on the Ben 10 roster: 450 raw -> ~270 EFF (vs the ~198 EFF band of the others).
+const AX_ULT = { cost: 100, windup: 200, dmg: 450 }
+function fireAlienXUltimate(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, AX_ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  // A committed, hitbox-less windup attack (damage 0, tiny range) — its ONLY job is to be a long,
+  // interruptible commitment: being hit clears currentAttack, which the payoff guard checks.
+  const md = { damage: 0, startup: AX_ULT.windup, active: 4, recovery: 26, hitstun: 0, knockbackX: 0, knockbackY: 0, rangeX: 8, rangeY: 8, isSpecial: true, isUltimate: true }
+  const attack = createAttackFromMove(fighter, "axWarp", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.isUltimate = true   // NO superArmor set — fully interruptible
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._spriteCastMove = "axWarp"; fighter._spriteCastTimer = AX_ULT.windup
+  fighter.vx = 0
+  fighter._axUltWindup = true   // pause the Omnitrix drain/revert during the long windup (fighters.js updateTransformDevice)
+  for (const t of [30, 70, 110, 150, 185]) schedulePendingSpawn(t, () => { if (fighter.currentAttack?.name === "axWarp") shakeCamera(context, 3, 5) })
+  schedulePendingSpawn(AX_ULT.windup, () => {
+    fighter._axUltWindup = false   // resume drain (whether the payoff lands or was interrupted)
+    // interrupted if the windup attack is no longer current (a hit cleared it) or the caster is in hitstun
+    if (fighter.currentAttack?.name !== "axWarp" || (fighter.hitstun || 0) > 0 || fighter.eliminated) return
+    if (opp && !opp.eliminated) {
+      applyScaledDamage(opp, AX_ULT.dmg, { source: "ability" })   // ~270 EFF — highest on the Ben 10 roster
+      opp.hitstun = Math.max(opp.hitstun || 0, 36); opp.vx = (fighter.facing || 1) * 18; opp.vy = -14; opp.colorFlash = 14
+      shakeCamera(context, 18, 22)
+    }
+  })
+  return true
+}
+
+// Clockwork — TIME STOP (ultimate): reuses the domain FREEZE architecture (Gojo Unlimited Void /
+// Hashirama Sealing model). A ~2.5s window where the opponent is FROZEN (domainFrozen + re-applied
+// hitstun, via the domain's per-frame effect callback — no rosterKey branch needed) while Clockwork is
+// free, ending in a guaranteed, range-independent time-crush for ~198 EFF (330 raw x GLOBAL_DAMAGE_SCALE).
+const CW_TIMESTOP = { cost: 90, freezeSec: 2.5, dmg: 330 }
+function fireClockworkTimeStop(fighter, context) {
+  if (!spendEnergy(fighter, CW_TIMESTOP.cost)) return false
+  const opp = getTargetResolver(context)(fighter)
+  fighter._spriteCastMove = "cwRay"; fighter._spriteCastTimer = 44   // time-gesture cast pose
+  fighter.vx = 0
+  activateDomain(fighter, {
+    name: "Time Stop", cost: 0, duration: CW_TIMESTOP.freezeSec, range: 1e5,
+    effect: (foe) => { if (foe && !foe.eliminated) { foe.domainFrozen = true; foe.hitstun = Math.max(foe.hitstun || 0, 6); foe.vx = 0 } }
+  }, context)
+  focusCameraOnAction(context, fighter, opp, 0.9, 24)
+  // Guaranteed payoff near the end of the freeze (opponent still locked): the accumulated time-crush.
+  schedulePendingSpawn(Math.floor(CW_TIMESTOP.freezeSec * 60) - 10, () => {
+    if (!opp || opp.eliminated) return
+    applyScaledDamage(opp, CW_TIMESTOP.dmg, { source: "ability" })   // ~198 EFF
+    opp.hitstun = Math.max(opp.hitstun || 0, 30)
+    opp.vx = (fighter.facing || 1) * 14; opp.vy = -8; opp.colorFlash = 12
+    shakeCamera(context, 12, 16)
+  })
+  return true
 }
 
 // ══════════════════════════════════════════════════════════════════════════

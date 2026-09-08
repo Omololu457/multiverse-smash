@@ -46,15 +46,17 @@ try {
   console.log(`  art-backed = [${L.artBacked.join(", ")}]  picker = [${L.picker.join(", ")}]  loadout = [${(L.aliens || []).join(", ")}]`);
 
   check("loadout PICKER lists only art-backed aliens", L.picker.length === art.size && L.picker.every(k => art.has(k)), `picker=[${L.picker.join(",")}]`);
-  check("no art-less alien (e.g. heatblast/fourarms) in the picker", !L.picker.includes("heatblast") && !L.picker.includes("fourarms") && !L.picker.includes("cannonbolt"), `picker=[${L.picker.join(",")}]`);
+  // Negative examples use aliens with NO source art on disk (permanently art-less), NOT heatblast/
+  // fourarms/etc. which are now wired art-backed forms (pass-2 Stage 3).
+  check("no art-less alien (e.g. greymatter/waybig) in the picker", !L.picker.includes("greymatter") && !L.picker.includes("waybig") && !L.picker.includes("rath"), `picker=[${L.picker.join(",")}]`);
   check("default loadout contains only art-backed aliens", Array.isArray(L.aliens) && L.aliens.length >= 1 && L.aliens.every(k => art.has(k)), `loadout=[${(L.aliens || []).join(",")}]`);
 
-  // Stale save of now-hidden aliens → filtered down to the art-backed default (never lands on hidden art).
-  const stale = await loadout(["heatblast", "fourarms", "cannonbolt", "waybig"]);
+  // Stale save of art-LESS aliens → filtered down to the art-backed default (never lands on hidden art).
+  const stale = await loadout(["greymatter", "waybig", "rath", "gravattack"]);
   check("stale all-hidden loadout falls back to art-backed default", stale.aliens.length >= 1 && stale.aliens.every(k => art.has(k)), `→ [${stale.aliens.join(",")}]`);
 
-  // Mixed save (one hidden + one art-backed) → keeps only the art-backed one.
-  const mixed = await loadout(["heatblast", "diamondhead"]);
+  // Mixed save (one art-less + one art-backed) → keeps only the art-backed one.
+  const mixed = await loadout(["greymatter", "diamondhead"]);
   check("mixed loadout keeps only the art-backed alien", mixed.aliens.every(k => art.has(k)) && mixed.aliens.includes("diamondhead"), `→ [${mixed.aliens.join(",")}]`);
 
   // In-match cycle: restore the default loadout, then transform-cycle (Charge + Right) a few times and

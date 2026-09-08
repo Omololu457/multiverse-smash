@@ -2712,6 +2712,12 @@ const ben10 = {
   ultimate: { name: "Omnitrix Overload", cost: 100, duration: 8, effect: "Active alien's ultimate" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  // Without this the intro state falls back to the shared "transform" slot — which for Ben is the
+  // Omnitrix TRANSFORMATION cinematic (raise dial → green flash → alien silhouette), frozen on its
+  // mid-transform last frame (the "garbled intro" bug; same class Rick fixes with introPool:["idle"]).
+  // Ben has a dedicated idle-based `intro` action (below), so play THAT: a sane grounded entrance pose
+  // that settles into idle. No new art needed.
+  introPool: ["intro"],
   hasSprites: true,
   // STAGE-1 sizing: 2.0 gives Ben-human (52px idle) ≈104px on-screen (roster median ≈111).
   // XLR8 (43px→86) reads short and Diamondhead (72px→144) reads tall under this single
@@ -3269,9 +3275,11 @@ const redRangerMmpr = {
 // for rosterKey "albedo" the same way it does for "ben10".
 // ─────────────────────────────────────────────────────────────────
 const albedo = {
-  rosterKey: "albedo", name: "Albedo", universe: "ben_10", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
+  rosterKey: "albedo", name: "Albedo", universe: "ben_10", isPlayable: true,   // STAGE 5: real __albedo art wired — now selectable
+  portrait: "./ben10_portrait__albedo.png",   // Ben's headshot recolored (gray hair + red accents)
   isAlbedo: true, deviceType: "ultimatrix",
-  spriteSheet: "sprites/albedo/albedo_atlas.png",   // deferred art — SpriteHandler falls back to procedural
+  hasSprites: true, spriteScale: 2.0,   // STAGE 4: real art now — Ben's sheets recolored to __albedo (tools/gen_albedo_recolor.py)
+  introPool: ["intro"],   // same intro fix as Ben 10 (else the intro falls back to the "transform" freeze-frame)
   archetypes: ["transformations", "melee"],
   primary: "transformations", secondary: ["melee"],
   traits: { hasEnergy: true, energyType: "ultimatrix", mobility: "high", scaling: "burst" },
@@ -3293,7 +3301,12 @@ const albedo = {
   ultimate: { name: "Ultimatrix Overload", cost: 100, duration: 8, effect: "Active alien's ultimate" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  // Albedo's HUMAN art = Ben-human's sheets recolored to __albedo (gray hair + red accents).
+  // Retag ben10's human animationData to the __albedo sheets. Alien forms (XLR8/Diamondhead/
+  // Feedback) retag at runtime via fighter._recolorTag="albedo" (set in fighters.js setupBen10),
+  // so they pick up their own __albedo sheets through the existing _retagAlienAnim path.
+  animationData: Object.fromEntries(
+    Object.entries(ben10.animationData).map(([k, d]) => [k, { ...d, sheet: d.sheet.replace(/\.png$/, "__albedo.png") }]))
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -8526,14 +8539,14 @@ const kakashi = {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// GWEN TENNYSON  (rosterKey "gwen", universe "ben10") — mana/magic zoner. FIRST LANDSCAPE source
+// GWEN TENNYSON  (rosterKey "gwen", universe "ben_10") — mana/magic zoner. FIRST LANDSCAPE source
 // sheet in the project: jus_gwen_tennyson_spritesheet_by_magnesiumselzune (fan-made JUS chibi,
 // 2373×623, flat navy bg keyed by COLOR). Credit magnesiumselzune (+justin kaiser on ref art),
 // reposted by renatoooferreiraaa — NOT an official rip. Sliced feet-aligned by tools/reslice_gwen.py
 // (connected-component box-index picks → tools/gwen_stage0_boxes.py). Inventory: GWEN_ASSET_MAP.md.
 // STAGE 1 = registration + movement/state + portrait. Sheet drawn FACING RIGHT (FLIP_H=False).
 const gwen = {
-  rosterKey: "gwen", name: "Gwen", universe: "ben10",
+  rosterKey: "gwen", name: "Gwen", universe: "ben_10",
   portrait: "./gwen_portrait.png",   // head/torso bust from the spellbook stance (reslice box 9)
   archetypes: ["ranged", "summons", "melee"],
   primary: "ranged", secondary: ["summons", "melee"],
@@ -8610,7 +8623,7 @@ const gwen = {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// VILGAX  (rosterKey "vilgax", universe "ben10") — the Chimera Sui Generis warlord / conqueror.
+// VILGAX  (rosterKey "vilgax", universe "ben_10") — the Chimera Sui Generis warlord / conqueror.
 // NEW sprite build from ONE fan-made JUS-style sheet (vilgax_jus_sprite_sheet_by_regulardor8go,
 // 1024×2474 JPEG, orange field). Credit: regulardor8go — NOT an official rip. Same CATEGORY/label
 // template as Superman 2 + Gwen Tennyson (B/Y/X naming, "Koma Atakes" ult) but built FULLY STANDALONE
@@ -8623,7 +8636,7 @@ const gwen = {
 // STAGE 1 (here) = registration + movement/state + real INTRO + idle-bust portrait. Normals (S2),
 //   specials (S4), Koma Atakes ULT (S5), portrait/win-lose/harness/balance (S6) follow.
 const vilgax = {
-  rosterKey: "vilgax", name: "Vilgax", universe: "ben10", color: "#3ba33b",
+  rosterKey: "vilgax", name: "Vilgax", universe: "ben_10", color: "#3ba33b",
   portrait: "./vilgax_portrait.png",   // Stage 1 — squid-face + shoulders bust from the idle stance.
   archetypes: ["melee", "ranged"],
   primary: "melee", secondary: ["ranged"],

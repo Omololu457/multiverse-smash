@@ -1436,6 +1436,15 @@ export const SKINS = {
     { id: "ben10_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
 
+  // Albedo — needs its OWN default entry so getSkins() doesn't fall back to the synthesized
+  // { spriteScale: 1 } stub, which applySkin would use to CLOBBER his real spriteScale:2 (he'd
+  // render at half size — the Baki gotcha noted at the top of this file). Default carries his own
+  // scale + the recolored __albedo portrait; animationData:null so the character's own __albedo
+  // sheets are used. No alt/tint skins (his identity IS the recolor).
+  albedo: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.albedo?.portrait, spriteScale: characters.albedo?.spriteScale, animationData: null },
+  ],
+
   // Ghostface — the 5 KILLER-IDENTITY skins ONLY (NO "Default"). In the source material there is no
   // independent "Ghostface" separate from whichever killer wears the mask, so there is deliberately no 6th
   // fallback identity — picking one of the 5 is MANDATORY (enforced at applySkin: any non-identity skinId,

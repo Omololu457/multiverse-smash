@@ -15980,7 +15980,10 @@ gameLoop()
     obitoKamuiToggle: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; toggleObitoKamui(f, getAbilityContext()); return { intangible: !!f._kamuiIntangible, phased: !!f._kamuiPhased, energy: Math.round(f.energy || 0) } },
     obitoKamuiCooldown: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? (f._kamuiCooldown || 0) : null },   // read the 10s post-Kamui lockout (playtest)
     obitoKamuiClearCd:  (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._kamuiCooldown = 0; return true },        // test-only: clear the lockout for section isolation
-    idSwapState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { rosterKey: f.rosterKey, active: !!f._idSwapActive, identity: f._idSwapIdentity || null, baseKey: f._idSwapBaseKey || f.rosterKey, timer: f._idSwapTimer || 0, energy: Math.round(f.energy || 0), lightDmg: f.basic_attacks?.light?.damage ?? null, reason: f._idSwapRevertReason || null } },   // ghostface_exe identity-swap probe
+    idSwapState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { rosterKey: f.rosterKey, active: !!f._idSwapActive, identity: f._idSwapIdentity || null, baseKey: f._idSwapBaseKey || f.rosterKey, timer: f._idSwapTimer || 0, energy: Math.round(f.energy || 0), lightDmg: f.basic_attacks?.light?.damage ?? null, reason: f._idSwapRevertReason || null, tint: f._idSwapTint || null } },   // ghostface_exe identity-swap probe
+    swapSide: (who = "p1", dir = null) => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.energy = f.maxEnergy; f._specialHeldDir = dir; triggerSpecial(f, getAbilityContext()); return { active: !!f._idSwapActive, identity: f._idSwapIdentity || null, tint: f._idSwapTint || null } },   // test-only: trigger EITHER side's ghostface swap (mirror-match verification)
+    setSwapTint: (who = "p1", hex = null) => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._idSwapTint = hex; return f._idSwapTint },   // test-only: isolate the tint (A/B pixel diff on identical borrowed art)
+    spriteReady: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { hasSpriteHandler: !!f.spriteHandler, ready: !!spritesReady(f.rosterKey), sheet: f.spriteHandler?._actionDef?.sheet || null, action: f.spriteHandler?.currentAction || null, scale: f.spriteScale }; },   // box-vs-sprite render probe (sheet=null while box-rendering)
     idSwapForceTimer: (n, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f && f._idSwapActive) f._idSwapTimer = n; return f?._idSwapTimer ?? null },   // test-only: fast-forward the window
     // Tobi KAMUI INTANGIBILITY probe + toggle (Stage 4) — INDEPENDENT `_tobi*` state; reads none of Obito's.
     tobiKamui: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { intangible: !!f._tobiIntangible, phased: !!f._tobiPhased, energy: Math.round(f.energy || 0), invulnTimer: f.invulnTimer || 0, attacking: !!f.attacking } : null },
@@ -16350,6 +16353,7 @@ gameLoop()
     },
     // One-shot: into a live battle with P1 energy full (ultimate affordable).
     boot: () => { startHarnessMatch(); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
+    bootSkin: (p1Skin = "default", p2Skin = "default") => { startHarnessMatch({ p1Skin, p2Skin }); skipToBattle(); if (p1) p1.energy = p1.maxEnergy; return { p1Skin: p1?.skinId || null }; },   // boot a match with a specific p1 skin (reproduces select-screen skin choice)
     // Boot a NON-training vs-CPU match (real AI) — for the pause→Training transition test.
     bootVs: () => { startHarnessMatch({ mode: "vs", difficulty: "easy" }); skipToBattle(); if (p1) p1.energy = p1.maxEnergy },
     // Jump straight to the REAL character-select screen for a universe (drawCharacterSelectScreen

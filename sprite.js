@@ -44,6 +44,9 @@ const FRIEZA_BLACK_TINT  = "grayscale(0.5) brightness(0.34) contrast(1.35) satur
 // are part of the deferred bespoke art). Gated on _piccoloPotentialActive / _piccoloOrangeActive.
 const PICCOLO_POTENTIAL_TINT = "saturate(1.55) hue-rotate(-32deg) brightness(1.16) contrast(1.04)";
 const PICCOLO_ORANGE_TINT    = "sepia(0.95) saturate(2.7) hue-rotate(-12deg) brightness(1.08) contrast(1.06)";
+// ghostface_exe identity-swap recognition wash strength — translucent enough that the borrowed character's own
+// art/animation stays clearly readable (recognition aid, not a recolor); opaque enough to name the skin at a glance.
+const IDSWAP_TINT_ALPHA = 0.3;
 
 // ─────────────────────────────────────────────────────────────────
 // OPTIONAL DEPENDENCY — animationProfile.js
@@ -983,6 +986,28 @@ export class SpriteHandler {
     // crisp + responsive; the ghost only shows where it isn't occluded → a trail). Self-contained save.
     if (this._xfade && this._xfade.life > 0) this._drawTransitionGhost(ctx);
 
+    // IDENTITY-SWAP RECOGNITION TINT (ghostface_exe): a translucent flat-colour silhouette of the borrowed
+    // sprite, keyed to which Ghostface skin is driving it, so a mirror-match "whose Sasuke is this?" reads at a
+    // glance. Flat hex (masked via source-in on an offscreen canvas) → same recognisable colour on dark/saturated
+    // borrows (Vilgax/Chrollo) as on light ones, unlike a hue-rotate. Fighter-gated → zero effect on anyone else.
+    const idTint = (fighter._idSwapActive && fighter._idSwapTint) ? fighter._idSwapTint : null;
+    let idTintCanvas = null;
+    if (idTint && _sheetReady(sheet)) {
+      const tc = this._idTintCanvas || (this._idTintCanvas = document.createElement("canvas"));
+      if (tc.width !== drawWidth)  tc.width  = drawWidth;
+      if (tc.height !== drawHeight) tc.height = drawHeight;
+      const tctx = tc.getContext("2d");
+      tctx.clearRect(0, 0, drawWidth, drawHeight);
+      tctx.imageSmoothingEnabled = false;
+      tctx.globalCompositeOperation = "source-over";
+      tctx.drawImage(sheet, sx, sy, drawWidth, drawHeight, 0, 0, drawWidth, drawHeight);  // borrowed frame
+      tctx.globalCompositeOperation = "source-in";   // keep the fill ONLY where the sprite is opaque → its silhouette
+      tctx.fillStyle = idTint;
+      tctx.fillRect(0, 0, drawWidth, drawHeight);
+      tctx.globalCompositeOperation = "source-over";
+      idTintCanvas = tc;
+    }
+
     if (_sheetReady(sheet)) {
       if (spriteFilter !== "none") ctx.filter = spriteFilter;
 
@@ -1000,6 +1025,11 @@ export class SpriteHandler {
           dstW,              // destination size = scaled
           dstH
         );
+        if (idTintCanvas) {
+          ctx.filter = "none"; ctx.globalAlpha = IDSWAP_TINT_ALPHA;
+          ctx.drawImage(idTintCanvas, 0, 0, drawWidth, drawHeight, -fighter.x + offsetX - dstW, drawY, dstW, dstH);
+          ctx.globalAlpha = 1;
+        }
       } else {
         ctx.drawImage(
           sheet,
@@ -1012,6 +1042,11 @@ export class SpriteHandler {
           dstW,              // destination size = scaled
           dstH
         );
+        if (idTintCanvas) {
+          ctx.filter = "none"; ctx.globalAlpha = IDSWAP_TINT_ALPHA;
+          ctx.drawImage(idTintCanvas, 0, 0, drawWidth, drawHeight, fighter.x - offsetX, drawY, dstW, dstH);
+          ctx.globalAlpha = 1;
+        }
       }
     } else {
       // Fallback procedural box

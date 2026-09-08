@@ -697,6 +697,12 @@ export const SPRITE_MANIFEST = {
   ghostface: {
     actions: { idle: "./ghostface_idle_uniform.png" }
   },
+  // Ghostface .exe (Billy). GATES spritesReady() ONLY — decoding the idle strip flips ghostface_exe from the
+  // procedural fallback BOX to the sprite path (this manifest entry was the missing piece that left it a box).
+  // Per-action rendering reads characters.js → ghostface_exe.animationData (each action carries its own .sheet).
+  ghostface_exe: {
+    actions: { idle: "./ghostface_exe_idle_uniform.png" }
+  },
 
   // Ichigo Kurosaki (universe: bleach) — STAGE 1. Gates spritesReady() by decoding the idle strip →
   // flips Ichigo from procedural box to sprite. Per-action rendering reads characters.js →

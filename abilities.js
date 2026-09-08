@@ -20184,9 +20184,45 @@ const IDSWAP_COST    = 50    // "1 bar" of the 100-point meter (a 2-bar model)
 // this task; add a skin's own pair here later with no engine change (the whole point of parameterizing it).
 const IDENTITY_SWAP_ROSTER = {
   ghostface_exe: {
+    // Per-skin pairs [slotA = Down+Special, slotB = Up+Special]. skinId "ghostfaceExe<Name>" → key "<name>"
+    // via identitySwapPair (strips the "ghostfaceexe" prefix). Each skin borrows its OWN two identities.
     default: ["sasuke", "deathstroke"],
-    billy:   ["sasuke", "deathstroke"],   // Billy Loomis borrows Sasuke (slot A) + Deathstroke (slot B)
+    billy:   ["sasuke", "deathstroke"],       // Billy Loomis    → Sasuke / Deathstroke
+    stu:     ["hisoka", "naoya"],             // Stu Macher      → Hisoka Morrow / Naoya Zenin
+    roman:   ["orochimaru", "chrollo"],       // Roman Bridger   → Orochimaru / Chrollo Lucilfer
+    loomis:  ["shinobu", "six_paths_pain"],   // Mrs. Loomis     → Shinobu Kocho / Six Paths of Pain
+    amber:   ["light", "vilgax"],             // Amber Freeman   → Light Yagami ("light", NOT l_ryuuzaki=L) / Vilgax
   },
+}
+// Per-skin RECOGNITION TINT (hex) — while a ghostface_exe fighter is in a borrowed identity, sprite.js washes
+// the borrowed sprite with this flat colour (translucent silhouette overlay) so a swapped-in Sasuke/Hisoka stays
+// visually tied to WHICH Ghostface skin is driving it — critical in a mirror match ("whose Sasuke is this?").
+// Flat hex (not a hue-rotate) so it reads the SAME recognisable colour on dark/saturated borrows (Vilgax/Chrollo)
+// as on light ones (Deathstroke). Billy/default → no tint: it's the neutral baseline, and NO other skin shares
+// Billy's swap-in pair, so an untinted borrow is unambiguously "the Billy skin". Colours from the recolor pass.
+const GFX_SKIN_TINT = {
+  stu:    "#3fae5a",   // GREEN
+  roman:  "#7b4fd0",   // PURPLE
+  loomis: "#c0392b",   // CRIMSON
+  amber:  "#e84a9c",   // PINK
+}
+function _gfxSkinTint(fighter) {
+  if ((fighter?._idSwapBaseKey || "").toLowerCase() !== "ghostface_exe") return null
+  const skin = (fighter?.skinId || fighter?._skinId || "").toString().toLowerCase().replace(/^ghostfaceexe_?/, "")
+  return GFX_SKIN_TINT[skin] || null
+}
+// Sustained-form / alt-form flags for the swap-in roster that _edoCleanseVesselState does NOT cover. Cleared
+// on BOTH swap-in (so a borrowed identity always starts in BASE form) and revert (so a borrowed form can never
+// leak onto Billy). Extended per skin as each pair is wired. All default falsy/null → inert for identities not
+// carrying that flag, and harmless on Billy.
+function _clearSwapFormFlags(fighter) {
+  fighter._overdriveActive = false                                              // Hisoka — Bloodlust Overdrive
+  fighter._ftState = null; fighter._naoyaUltTimer = 0; fighter._ftFlash = null; fighter._ftDropped = 0   // Naoya — Frame Trap
+  fighter._oroForm = null                                                       // Orochimaru — alt-form cycle
+  fighter._shActive = false; fighter._shStash = null; fighter._shTarget = null; fighter._shTimer = 0; fighter._beMark = null; fighter._beUltCastTtl = 0   // Chrollo — Skill Hunter / Bandit's Echo
+  fighter._path = 0; fighter._sixPathsSwapCd = 0; fighter._sixPathsName = null   // Six Paths of Pain — reset to Deva (Path 0); Shinobu is cooldown-only (nothing to clear)
+  fighter._ultVariant = null; fighter._lightKiraTimer = 0                        // Light Yagami — ult variant / Kira cut-in
+  fighter._vilgaxSpecialHeld = false; fighter._vilgaxBlastArmed = false; fighter._vilgaxBlastDownTime = 0   // Vilgax — tiered plasma-blast charge state
 }
 export function isIdentitySwapped(fighter) { return !!fighter?._idSwapActive }
 export function identitySwapPair(fighter) {
@@ -20214,11 +20250,13 @@ export function applyIdentitySwap(fighter, identityKey, context = {}) {
   fighter.energyType   = id.traits?.energyType || fighter.energyType
   fighter.energy       = Math.min(fighter.energy || 0, fighter.maxEnergy)   // carry meter, capped (borrowed specials use it)
   fighter._skinAnim = null; fighter._baseSkinAnim = null; fighter._recolorTag = null   // borrowed identity renders its OWN clean base art
-  // 3) clean transient + arm the window (reuse Edo's helpers — generic)
+  // 3) clean transient + form flags, then arm the window (reuse Edo's helpers — generic)
   _edoClearTransient(fighter)
+  _clearSwapFormFlags(fighter)   // borrowed identity starts in BASE form (no stale overdrive/frame-trap/etc.)
   fighter._idSwapActive = true
   fighter._idSwapIdentity = identityKey
   fighter._idSwapTimer = IDSWAP_WINDOW
+  fighter._idSwapTint = _gfxSkinTint(fighter)   // skin-colour recognition wash for the borrowed sprite (null on Billy)
   fighter.ultimateCooldown = 0
   fighter.teleportFlash = 14
   try { focusCameraOnAction(context, fighter, null, 1.02, 10); shakeCamera(context, 4, 8) } catch (_) {}
@@ -20229,12 +20267,14 @@ export function applyIdentitySwap(fighter, identityKey, context = {}) {
 export function revertIdentitySwap(fighter, reason = "expire") {
   if (!fighter?._idSwapActive || !fighter._idSwapStash) return false
   const s = fighter._idSwapStash
-  _edoCleanseVesselState(fighter)                       // wipe any borrowed form/buff before restoring Billy
+  _edoCleanseVesselState(fighter)                       // wipe common form/buff (susanoo/godspeed/…)
+  _clearSwapFormFlags(fighter)                          // + the swap-in-specific flags, so none leak onto Billy
   for (const k of IDSWAP_FIELDS) fighter[k] = s[k]
   fighter._skinAnim = s._skinAnim || null; fighter._recolorTag = s._recolorTag || null; fighter._baseSkinAnim = s._baseSkinAnim || null
   fighter.energy = Math.min(fighter.energy || 0, fighter.maxEnergy || 100)
   _edoClearTransient(fighter)
   fighter._idSwapActive = false; fighter._idSwapIdentity = null; fighter._idSwapTimer = 0; fighter._idSwapStash = null
+  fighter._idSwapTint = null                            // recognition wash off the instant we're back to base Ghostface
   fighter._idSwapRevertReason = reason
   fighter.teleportFlash = 12
   return true

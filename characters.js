@@ -8913,7 +8913,6 @@ const ippo = {
     // ── STAGE 3 — command chain "Y-Jabs": Fwd+Heavy 2-stage rekka (rendered by move name; IPPO_CMD in
     //    abilities.js). Two on-sheet segments: jab1 = rapid jab flurry opener, jab2 = committed
     //    straight-punch flurry finisher. Cancel-on-hit. ──
-  ghostface_exe: ghostfaceExe,   // WIP standalone build (Ghostface .exe) — minimal entry, not fully registered; see updates.TXT
     ippoJab1: { frames: 3, width: 85, height: 54, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ippo_jab1_uniform.png" }, // segment 1 — rapid jab flurry opener
     ippoJab2: { frames: 3, width: 95, height: 52, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ippo_jab2_uniform.png" }, // segment 2 — committed straight-punch flurry finisher
     // ── STAGE 4 — SPECIALS (heavier Y-button variants; rendered by move name; executeIppoSpecial in
@@ -9051,7 +9050,7 @@ const bardock = {
 // ─────────────────────────────────────────────────────────────────
 const ghostfaceExe = {
   rosterKey: "ghostface_exe", name: "Ghostface.exe", universe: "horror", color: "#101418",   // WIP placeholder name/color
-  isPlayable: false,   // WORK-IN-PROGRESS → hidden from normal character select / roster counts (same dev-only gate as cell/evilMorty/rickPrime) until finished
+  isPlayable: true,   // LIVE (2026-09-07): sprite manifest gate added + full Billy kit / identity-swap / 5 skins verified. Selectable in normal play.
   portrait: "./ghostface_exe_portrait.png",   // PLACEHOLDER — no portrait art derived yet (GAP, flagged); swap in real art
   archetypes: ["rushdown"],
   primary: "rushdown", secondary: [],
@@ -9179,6 +9178,7 @@ export const characters = {
   gwen,
   vilgax,
   miles,
+  ghostface_exe: ghostfaceExe,   // WIP standalone build (Ghostface .exe) — minimal entry, not fully registered; see updates.TXT
   ippo
 }
 

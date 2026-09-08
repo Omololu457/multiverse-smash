@@ -57,6 +57,26 @@ try{
   const sNo=await sw();
   check("swap BLOCKED without a full bar (energy<50)", !sNo.active, "energy="+before.energy+" active="+sNo.active);
 
+  // PER-SKIN swap pairs (cross-skin regression: each skin borrows its OWN two identities, no bleed). Mixed order.
+  const SKIN_PAIRS = [
+    ["ghostfaceExeAmber",  "light",      "vilgax"],
+    ["default",            "sasuke",     "deathstroke"],
+    ["ghostfaceExeStu",    "hisoka",     "naoya"],
+    ["ghostfaceExeAmber",  "light",      "vilgax"],           // re-select after others → must NOT bleed
+    ["ghostfaceExeLoomis", "shinobu",    "six_paths_pain"],
+    ["ghostfaceExeRoman",  "orochimaru", "chrollo"],
+  ];
+  for (const [skin, A, B] of SKIN_PAIRS) {
+    await page.evaluate(s=>window.__harness.bootSkin(s), skin); await wf(5);
+    await page.evaluate(()=>{window.__harness.fillEnergy?.();window.__harness.resetFighterInput?.("p1");}); await wf(2);
+    await page.evaluate(()=>window.__harness.p1SpecialDir("D")); await wf(2); const d=(await sw()).rosterKey;
+    await page.evaluate(()=>window.__harness.idSwapForceTimer(2)); await wf(4);
+    await page.evaluate(()=>{window.__harness.fillEnergy?.();window.__harness.resetFighterInput?.("p1");}); await wf(2);
+    await page.evaluate(()=>window.__harness.p1SpecialDir("U")); await wf(2); const u=(await sw()).rosterKey;
+    await page.evaluate(()=>window.__harness.idSwapForceTimer(2)); await wf(4);
+    check(`skin ${skin}: Down→${A} / Up→${B} (own pair, no bleed)`, d===A && u===B, `got Down→${d} Up→${u}`);
+  }
+
   check("no JS errors", errs.length===0, errs[0]||"");
 }catch(e){console.log("ERR",String(e));fail++;}
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -59,19 +59,25 @@ try {
   const mixed = await loadout(["greymatter", "diamondhead"]);
   check("mixed loadout keeps only the art-backed alien", mixed.aliens.every(k => art.has(k)) && mixed.aliens.includes("diamondhead"), `→ [${mixed.aliens.join(",")}]`);
 
-  // In-match cycle: restore the default loadout, then transform-cycle (Charge + Right) a few times and
-  // confirm every active alien is art-backed (never an art-less form).
-  await loadout(["xlr8", "diamondhead"]);
+  // In-match transform: Ben now STARTS HUMAN (2026-09-07 loadout-simplification), so we must actually
+  // morph via a valid slot combo before reading the form (the old version relied on starting
+  // pre-transformed into slot 1, and pressed Charge+Right = slot index 2 which was a NO-OP against a
+  // 2-alien loadout). Use a 3-alien loadout so Down/Left/Right map to real slots, top up energy for the
+  // human->alien gate, and confirm every alien we land on is art-backed (never an art-less form).
+  await loadout(["xlr8", "diamondhead", "feedback"]);
   await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); });
   await waitFrames(2);
   const landed = new Set();
-  for (let i = 0; i < 5; i++) {
+  const dirs = ["s", "a", "d"];   // CHARGE + Down / Left / Right = slot 0 (xlr8) / 1 (diamondhead) / 2 (feedback)
+  for (const dir of dirs) {
+    await page.evaluate(() => window.__harness.fillEnergy?.());   // human->alien needs energy >= MIN_TRANSFORM_ENERGY
+    await page.keyboard.down("p"); await waitFrames(1); await page.keyboard.down(dir); await waitFrames(2); await page.keyboard.up(dir); await page.keyboard.up("p");
+    await waitFrames(6);
     const c = await cmd(); if (c?.form && c.form !== "human") landed.add(c.form);
-    await page.keyboard.down("p"); await waitFrames(1); await page.keyboard.down("d"); await waitFrames(2); await page.keyboard.up("d"); await page.keyboard.up("p");
-    await waitFrames(48);   // switch cooldown
+    await waitFrames(48);   // switch cooldown before the next combo
   }
   const allArt = [...landed].every(k => art.has(k));
-  check("in-match cycling only lands on art-backed forms", landed.size >= 1 && allArt, `landed=[${[...landed].join(",")}]`);
+  check("in-match transform only lands on art-backed forms", landed.size >= 1 && allArt, `landed=[${[...landed].join(",")}]`);
 
   check("no JS errors", jsErrors.length === 0, jsErrors[0] || "");
 

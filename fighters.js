@@ -954,7 +954,6 @@ export const BEN10_ALIEN_POOL = {
                         special: { name: "Energy Whip", ranged: true, damage: 100, cost: 20 }, ult: { name: "Star Dive", damage: 190 } })
 }
 
-// The 5 aliens loaded into the Omnitrix. Edit this to change Ben's default loadout.
 // ART-BACKED ALIENS — the ONLY aliens offered in the Omnitrix loadout picker and allowed into
 // an active loadout. Every other entry in BEN10_ALIEN_POOL stays as valid (procedurally-drawn)
 // data so nothing breaks — it's simply HIDDEN from selection until real sprite art is sourced.
@@ -963,8 +962,14 @@ export const BEN10_ART_ALIENS = ["xlr8", "diamondhead", "feedback", "wildmutt", 
 const _artAlienSet = new Set(BEN10_ART_ALIENS)
 export function isArtBackedAlien(key) { return _artAlienSet.has(key) }
 
-// Default loadout = the art-backed aliens (a fresh transform always shows real sprites).
-export const DEFAULT_OMNITRIX = [...BEN10_ART_ALIENS]
+// Loadout pick-cap. MUST match BEN10_SLOT_COMBOS.length in game.js (the in-fight transform
+// system exposes exactly this many CHARGE+direction slots — ↓←→↑). Lowered 6->4 in the
+// 2026-09-07 simplification pass. fighters.js can't import game.js (would cycle), so this is
+// the leaf-module mirror of that single source of truth; keep the two numbers equal.
+export const MAX_OMNITRIX_SLOTS = 4
+// Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
+// picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
+export const DEFAULT_OMNITRIX = [...BEN10_ART_ALIENS].slice(0, MAX_OMNITRIX_SLOTS)
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)
 
@@ -1366,9 +1371,9 @@ export function createOmnitrixState(selected = DEFAULT_OMNITRIX) {
   // Only art-backed aliens are allowed into a live loadout (the rest are hidden from the picker);
   // a stale saved loadout that names hidden aliens is filtered down, then defaulted if nothing's left.
   // De-duped so cycling never lands on the same form twice. No art-less fill (the loadout is just the
-  // art-backed aliens the player picked — grows to 5 as more aliens get art).
+  // art-backed aliens the player picked — capped at MAX_OMNITRIX_SLOTS, matching the pick-cap/slot count).
   let aliens = (selected || []).filter(k => _artAlienSet.has(k) && BEN10_ALIEN_POOL[k])
-  aliens = [...new Set(aliens)].slice(0, 5)
+  aliens = [...new Set(aliens)].slice(0, MAX_OMNITRIX_SLOTS)
   if (aliens.length === 0) aliens = [...DEFAULT_OMNITRIX]
   return { aliens, index: 0, switchCooldown: 0 }
 }
@@ -1593,12 +1598,18 @@ export function setupBen10(fighter, selected = DEFAULT_OMNITRIX) {
   fighter.omnitrix       = createOmnitrixState(selected)
   fighter.deviceRecharge = 0
   fighter.isCharging     = false
-  fighter.transformed    = true   // start in the first alien; the drain meter ticks from here
-  // Albedo renders as a red/gray recolor of Ben: tag his forms so applyAlien retags each alien's
-  // sheets to its __albedo variant (mirrors a skinned Ben keeping its recolor tag through transforms).
-  // Preserves any explicitly-selected skin tag; cosmetic only — no mechanics change.
+  // Albedo renders as a red/gray recolor of Ben: tag his forms so applyAlien (on the first mid-match
+  // transform) retags each alien's sheets to its __albedo variant. Set BEFORE revertToHuman so the tag
+  // persists into the human base render too. Cosmetic only — no mechanics change.
   if (_isAlbedo(fighter) && !fighter._recolorTag) fighter._recolorTag = "albedo"
-  applyAlien(fighter, fighter.omnitrix.aliens[0])
+  // START HUMAN (2026-09-07 loadout-simplification): a match begins in Ben's base/human form, NOT
+  // pre-transformed into loadout slot 1. revertToHuman is the single source of truth for the human kit
+  // (HUMAN_FORM normals + human size/stats; the Special button routes to Hoverboard via
+  // executeBen10Special when activeAlien===null). The player morphs into a loadout alien mid-match via
+  // CHARGE+direction (handleOmnitrixSwitch) exactly as before — that mechanic is untouched. Starting
+  // human also FIXES the old "advertised != actual" stat gap: maxHealth stays the char-def value
+  // (Ben/Albedo 1250) instead of being overwritten by slot-1's alien (e.g. XLR8's 900).
+  revertToHuman(fighter)
 }
 
 // ── DRAW ──

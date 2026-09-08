@@ -179,6 +179,10 @@ export const ZONER = [
   "light",         // Death Note kit: all offense via specials (no up/air normals — see exceptions below)
   "miles",         // venom-strike rushdown via specials, no normal chain
   "vilgax",        // sword/blast bruiser via fixed-slot specials, no chain
+  "ghostface_exe", // Billy (base): plain-human normals, NO command-combat driver (no dispatch case, not in
+                   //   STANDARD_STRING_CHARS) — his Special button IS the identity swap. While swapped, rosterKey
+                   //   becomes the borrowed identity (sasuke/deathstroke/…) and routes to THEIR kit; Billy himself
+                   //   is single-poke by design. (The distinct `ghostface`/`ghostface_billy` chars ARE rekka.)
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -242,6 +246,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  9,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo/omololu) + handler (JJK)
   standardStringTotal:  14,
-  zoner:                15,         // 5 original ranged zoners + 10 Stage-G single-poke (brainiac/byakuya/dark_knight/deathstroke/gwen/hiruzen/jason/light/miles/vilgax)
-  rosterTotal:          99,        // 70 rekka + 14 standard-string + 15 single-poke = 99 = live roster (Stage-G closes the drift; `toji` now classified)
+  zoner:                16,         // 5 original ranged zoners + 10 Stage-G single-poke + ghostface_exe (Billy base: normals but no chain — Special = identity swap)
+  rosterTotal:          100,       // 70 rekka + 14 standard-string + 16 single-poke = 100 = live roster (ghostface_exe added; Stage-G closed the earlier drift)
 }

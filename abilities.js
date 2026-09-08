@@ -20222,6 +20222,15 @@ function _gfxSkinTint(fighter) {
 // leak onto Billy). Extended per skin as each pair is wired. All default falsy/null → inert for identities not
 // carrying that flag, and harmless on Billy.
 function _clearSwapFormFlags(fighter) {
+  // MOVEMENT GATES a borrowed identity's own giant/planted form can raise (physics.canMove + the jump
+  // gate read these). Sasuke's Susanoo — slot A of Billy's swap pair — sets canJump=false; other
+  // planted/giant forms also set noDash=true. _edoCleanseVesselState clears the FORM flags (_susanooActive/
+  // stage) but NOT these raw movement fields, and only the form's OWN revert restores them — a path the
+  // swap engine bypasses on its involuntary revert (timeout/hit/KO). Restoring here (called on BOTH swap-in
+  // and revert) guarantees the gate can never leak onto Billy or the next borrowed identity. A borrowed
+  // identity always ENTERS in base form, and Billy is a normal human, so true/false is the correct baseline
+  // in every case this helper runs (it only ever runs on the ghostface_exe swap fighter).
+  fighter.canJump = true; fighter.noDash = false
   fighter._overdriveActive = false                                              // Hisoka — Bloodlust Overdrive
   fighter._ftState = null; fighter._naoyaUltTimer = 0; fighter._ftFlash = null; fighter._ftDropped = 0   // Naoya — Frame Trap
   fighter._oroForm = null                                                       // Orochimaru — alt-form cycle

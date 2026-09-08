@@ -800,7 +800,8 @@
     "test:clone-render-diag": "node harness/clone_render_diag.mjs",
     "test:clone-mirror": "node harness/clone_mirror.mjs",
     "test:clone-playtest": "node harness/clone_playtest.mjs",
-    "test:ghostface-exe-idswap": "node harness/ghostface_exe_idswap.test.mjs"
+    "test:ghostface-exe-idswap": "node harness/ghostface_exe_idswap.test.mjs",
+    "test:ghostface-exe-swapjump": "node harness/ghostface_exe_swapjump.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

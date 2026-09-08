@@ -3,6 +3,13 @@
 
 function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)) }
 function lerp(a, b, t) { return a + (b - a) * t }
+// SOFT rate-limit (game-feel Stage 3): eases a per-frame step toward its ceiling instead of hitting
+// a hard clamp. tanh(x) ≈ x for small steps (so the underlying lerp ease-OUT is preserved for the
+// small neutral↔hit-confirm zoom changes) but saturates to ±cap for big ones — so a large transition
+// now ACCELERATES smoothly into the cap and DECELERATES out of it, removing the linear "kink"/snap
+// where the old hard clamp bit. |tanh| < 1, so the step never exceeds `cap` — the anti-pop safety
+// guarantee is kept (slightly tightened). Deterministic (no RNG).
+function softStep(delta, cap) { return (cap > 0) ? cap * Math.tanh(delta / cap) : delta }
 
 function getCanvasMetrics(c) {
   const cv = c?.canvas || c || null
@@ -199,15 +206,17 @@ export const camera = {
   advance(canvas, zoomStep = this.maxZoomStep) {
     const { width: cw, height: ch } = getCanvasMetrics(canvas)
 
-    // ── SMOOTH + RATE-LIMIT (no snapping) ──
+    // ── SMOOTH + SOFT RATE-LIMIT (eased, no snapping) ──
+    // lerp gives the ease-OUT toward the target; softStep eases the per-frame CEILING so even a
+    // large reframe (or a hit-confirm zoom-in) settles on a smooth curve instead of a hard cap kink.
     let nextZoom = lerp(this.zoom, this.targetZoom, this.zoomSmooth)
-    nextZoom = this.zoom + clamp(nextZoom - this.zoom, -zoomStep, zoomStep)
+    nextZoom = this.zoom + softStep(nextZoom - this.zoom, zoomStep)
     this.zoom = clamp(nextZoom, this.minZoom, this.maxZoom)
 
     let nx = lerp(this.x, this.targetX, this.moveSmooth)
     let ny = lerp(this.y, this.targetY, this.verticalMoveSmooth)
-    nx = this.x + clamp(nx - this.x, -this.maxPanStep, this.maxPanStep)
-    ny = this.y + clamp(ny - this.y, -this.maxPanStep, this.maxPanStep)
+    nx = this.x + softStep(nx - this.x, this.maxPanStep)
+    ny = this.y + softStep(ny - this.y, this.maxPanStep)
     this.x = nx
     this.y = ny
 

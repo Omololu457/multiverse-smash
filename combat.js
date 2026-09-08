@@ -79,15 +79,15 @@ import { pickSpidermanVoice } from "./spidermanVoice.js"   // Spider-Man effort 
 // < special < ultimate). Exported so tools/tests can read the canonical numbers.
 // TUNE HERE — changing a number here changes that tier's feel game-wide.
 export const HITSTOP = {
-  light: 4,
+  light: 4,        // snappy — jabs/pokes stay fast, deliberately UNCHANGED in the game-feel pass
   air: 4,
   grab: 6,
-  heavy: 8,
-  launcher: 8,
-  spike: 8,
-  special: 12,
-  ultimate: 20,
-  projectile: 8,   // default freeze for a projectile connect (zoner-friendly: lighter than melee `special`)
+  heavy: 10,       // game-feel pass: 8→10, big normals land with more weight
+  launcher: 12,    // game-feel pass: 8→12, a launch reads noticeably heavier than a plain heavy
+  spike: 12,       // game-feel pass: 8→12, kept equal to launcher (same finisher-weight family)
+  special: 16,     // game-feel pass: 12→16, specials feel expensive
+  ultimate: 28,    // game-feel pass: 20→28, ultimates get a proper cinematic freeze
+  projectile: 8,   // default freeze for a projectile connect (zoner-friendly: lighter than melee `special`) — UNCHANGED
   parry: 14,
   clash: 14,
   default: 4

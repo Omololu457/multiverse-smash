@@ -286,6 +286,7 @@
     "test:rengoku-voice": "node harness/rengoku_voice.test.mjs",
     "test:hisoka-voice": "node harness/hisoka_voice.test.mjs",
     "test:flash-godspeed": "node harness/flash_godspeed_shot.mjs",
+    "test:afterimage-trail": "node harness/afterimage_trail_verify.mjs",
     "test:gon-stage4": "node harness/gon_stage4.test.mjs",
     "test:hisoka-stage1": "node harness/hisoka_stage1.mjs",
     "test:hisoka-stage2": "node harness/hisoka_stage2.mjs",

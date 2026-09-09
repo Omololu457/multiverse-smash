@@ -34,6 +34,10 @@ const p2 = () => page.evaluate(() => window.__harness.p2());
 const ftCine = () => page.evaluate(() => window.__harness.flashTimeCine());
 async function waitFrames(n) { const s = (await stateF()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 20000, polling: 16 }); }
 async function waitGrounded() { await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && Math.abs(p.vy) < 0.5; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); }
+// Grounded AND fully actionable (no active attack / move / cooldown). The ultimate press is gated on
+// canStart = !attacking && !currentMove (game.js), which resetFighterInput does NOT clear — so after a
+// long move like the tornado special the 'u' press is silently dropped unless we wait for recovery.
+async function waitActionable() { await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && Math.abs(p.vy) < 0.5 && !p.attacking && !p.currentMove && (p.attackCooldown || 0) === 0; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); }
 async function record() { const a = await p1(); if (a.action) seenActions.set(a.action, a.spriteSheet || null); return a; }
 async function tapKey(key) { await page.keyboard.down(key); await waitFrames(2); await page.keyboard.up(key); await waitFrames(1); }
 async function prep(gap) {
@@ -131,7 +135,7 @@ try {
 
   // ── STAGE 4: Flash Time ultimate ──
   section("Flash Time (ultimate): cinematic · differential · overshoot · block-lockout");
-  await waitGrounded();
+  await waitActionable();   // wait out the prior tornado's recovery, else canStart is false and 'u' is dropped
   await page.evaluate(() => { window.__harness.resetFighterInput("p1"); window.__harness.fillEnergy?.(); window.__harness.healP2(); });
   await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
   let sawCine = false, sawPush = false, sawBurst = false;

@@ -40,6 +40,12 @@ import {
   getCloneMirrorRenderCount,               // mirror-render probe: clones replaying the owner's exact frame
   setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
+import {
+  triggerCloneAssist,                      // clone-assist redesign: fire summon-strike / ambush-rush / swap on the "h" key
+  tickCloneAssistCooldowns,                // per-frame decrement of the three per-action assist cooldowns
+  isCloneAssistCapable,                    // char opts into the new stand-still + assist system (6 chars, config-gated)
+  getCloneAssistCooldowns                  // harness/HUD readout of the assist cooldowns
+} from "./cloneAssist.js"
 import { physics } from "./physics.js"
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
@@ -5289,6 +5295,7 @@ function updateMiscTimers(fighter) {
   if (fighter._flyHeadCd > 0) fighter._flyHeadCd--                         // Toji Fly Heads swarm cooldown (no-energy special)
   if (fighter._flyBarrageCd > 0) fighter._flyBarrageCd--                   // Toji OFFENSIVE Fly Heads swarm (Down+Heavy damaging projectile fan) cooldown
   if (fighter._cloneSwapCd > 0) fighter._cloneSwapCd--                     // Stage 3 consciousness-swap ("/") cooldown
+  tickCloneAssistCooldowns(fighter)                                        // clone-assist redesign: decrement summon/ambush/swap cooldowns
   if (fighter._tojiFlyFadeTimer > 0) {                                     // Toji Fly Heads self-fade window (render-only near-invisibility)
     fighter._tojiFlyFadeTimer--
     if (!isTojiFlyHeadsSwarmActive()) fighter._tojiFlyFadeTimer = 0        // swarm ended (naturally or via round/KO reset) → snap back to visible
@@ -9916,6 +9923,35 @@ function drawNaoyaFrameTrapHUD(c, fighter) {
   c.restore()
 }
 
+// CROW-BLIND overlay (Itachi Crow Clone, Stage 5) — makes the otherwise-invisible `obscured` debuff VISIBLE: a
+// murder of black crow-feathers flutters over a blinded fighter + a translucent dark veil, for the obscured
+// window (ticked down at fighter.obscuredTimer). Deterministic (feather placement seeded off the frame + the
+// fighter's x, no RNG). Pure render layer over fighter.x/y/w/h; a no-op for anyone not currently blinded.
+function drawCrowBlindOverlay(c, fighter) {
+  if (!c || !fighter || !fighter.obscured || (fighter.obscuredTimer || 0) <= 0) return
+  const x = fighter._lastDrawX ?? fighter.x, y = fighter._lastDrawY ?? fighter.y
+  const w = fighter._lastDrawW ?? (fighter.w || 60), h = fighter._lastDrawH ?? (fighter.h || 100)
+  if (x == null) return
+  const t = fighter.obscuredTimer, fade = Math.min(1, t / 90)
+  c.save()
+  // dark veil over the body
+  c.globalAlpha = 0.34 * fade
+  c.fillStyle = "#0a0a12"
+  c.fillRect(x - w * 0.15, y - h * 0.1, w * 1.3, h * 1.2)
+  // fluttering crow-feathers (deterministic scatter)
+  c.globalAlpha = 0.8 * fade
+  c.fillStyle = "#111118"
+  const cx = x + w / 2, cy = y + h * 0.45
+  for (let i = 0; i < 9; i++) {
+    const ph = (t * 0.12) + i * 2.09
+    const fx = cx + Math.cos(ph + i) * (w * 0.55) * (0.5 + 0.5 * Math.sin(ph * 0.7))
+    const fy = cy + Math.sin(ph * 1.3 + i) * (h * 0.5) - (i % 3) * 6
+    const s = 3 + (i % 3)
+    c.beginPath(); c.ellipse(fx, fy, s, s * 0.42, ph, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
 // MAYURI — movement FX overlays (Stage 1). Two resliced FX pairs layered BEHIND the body during
 // movement: a dash-trail GHOST (row_08/10 — the streaking-coat motion blur) shown while dashing or
 // running fast, and a ground SHOCKWAVE ring burst (row_09/11) that fires on each dash-start. Pure
@@ -11793,6 +11829,7 @@ function renderHybridFighter(fighter) {
     drawHandlerShikigamiHUD(c, fighter)     // The Handler — shikigami cameo-select icon strip (row_08 icons) above the head (handler only)
     drawHandlerMahoragaHUD(c, fighter)      // The Handler — Mahoraga adaptation-tracker: spinning Dharma Wheel + ADAPTED ×N + duration (handler Mahoraga form only)
     drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Projection Sorcery "24-frame" HUD: L→H→L pips + per-beat countdown + DROP/FRAMES-SET flash (naoya, mid-projection only)
+    drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
     drawSupermanVoidStarfield(c, fighter)  // Superman Void Sovereign (all 4 variants) — drifting star-field, ON TOP of the void sprite
@@ -15564,6 +15601,26 @@ window.addEventListener("keydown", e => {
       }
       return
     }
+    // CLONE-ASSIST redesign — dedicated "h" key (separate from spawn "," ), used alone or with a held direction:
+    //   h          = SUMMON strike (player briefly freezes, a clone lunges in and strikes — combo extender)
+    //   forward+h  = AMBUSH rush   (a clone rushes in immediately, usable mid-combo)
+    //   back+h     = SWAP / char-specific back action (substitution, Minato FTG, Hashirama wall, …)
+    // Each action is cooldown-gated inside triggerCloneAssist. Only the 6 opted-in chars (config-gated) respond.
+    if (key === "h" && isCloneAssistCapable(p1)) {
+      const inp = getFighterInput(p1)
+      const fwd  = (p1.facing === 1) ? !!inp.right : !!inp.left
+      const back = (p1.facing === 1) ? !!inp.left  : !!inp.right
+      const dir  = back ? "back" : (fwd ? "forward" : "neutral")
+      const action = triggerCloneAssist(p1, dir, getOpponent(p1), {
+        context: getAbilityContext(),   // for back-actions that cast a char's existing special (Tobirama Water Wall)
+        onAction: (a) => {
+          try { sound.playSfxFile?.("naruto_shadow_clone_special.mp3", null) } catch (_) {}
+          camera.focusOnFighter?.(p1, (a === "swap" || a === "ftg") ? 1.0 : 1.02)
+        }
+      })
+      if (action) camera.shake?.(4, 4)
+      return
+    }
   }
 
   // CRITICAL (Task 2): only act on a REAL key PRESS, never OS auto-repeat. While a
@@ -17141,6 +17198,11 @@ gameLoop()
     cloneTell: () => isCloneTell(),
     p1CloneStates: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), state: s._state, hidden: !!s._hidden, atk: s._atk || null, vx: Math.round((s.vx || 0) * 10) / 10 })),   // clone lifecycle + behavior-AI inspection
     cloneStrikeFxCount: () => getCloneStrikeFxCount(),   // cumulative clone lunge-strike impacts (prove clones ATTACK)
+    cloneAssistCd: () => (p1 ? getCloneAssistCooldowns(p1) : null),   // clone-assist redesign: {summon,ambush,swap} cooldown frames left
+    cloneRusherCount: () => activeSummons.filter(s => s.id === "cloneRusher" && s.owner === p1).length,   // active assist rushers spawned by p1
+    p1CloneArmored: () => activeSummons.some(s => s.id === "shadowClone" && s.owner === p1 && (s._wallArmor || 0) > 0),   // Hashirama wall: any fortified clone?
+    p2Obscured: () => ({ obscured: !!p2?.obscured, timer: p2?.obscuredTimer || 0 }),   // Itachi crow-blind debuff on the opponent
+    p1Pos: () => (p1 ? { x: Math.round(p1.x), facing: p1.facing, hitstop: p1.hitstop || 0 } : null),   // clone-assist verify: player position/freeze
     setCloneAggro: (on = true) => setCloneAggro(!!on),   // toggle the clone behavior AI (active vs legacy decoy)
     p2ProjectileAtClone: () => { if (!p2 || !p1) return -1; const c = activeSummons.find(s => s.id === "shadowClone" && s.owner === p1 && s._state === "idle" && !s._hidden); if (!c) return -1; spawnProjectile(p2, "testBolt", { damage: 30, speed: 0, lifetime: 30, w: 30, h: 30, spawnX: c.x + c.w / 2, spawnY: c.y + c.h / 2 }, {}); return countShadowClones(p1) },   // fire an ENEMY projectile overlapping a clone → hit-reveal poof (returns clone count before)
     p1TransformJutsu: () => (p1 ? { active: isTransformJutsuActive(p1), tier: transformJutsuTier(p1), target: p1._tjTarget || null, name: p1.name, rosterKey: p1.rosterKey, spriteSheet: p1.spriteHandler?._actionDef?.sheet ?? null, lightDmg: p1.basic_attacks?.light?.damage ?? null, specialsKeys: Object.keys(p1.specials || {}).sort() } : null),   // Transformation Jutsu state + proof that moves/stats are (Tier1) unchanged

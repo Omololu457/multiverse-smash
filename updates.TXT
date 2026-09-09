@@ -336,3 +336,358 @@ Every edit is a shared/global system — the HITSTOP table (roster-wide), the
 single triggerUltimate dispatch (one beat for all characters), the global KO/
 FFA-elimination path in game.js, and the shared camera interpolation. No
 per-character kit, stat, moveset, spritesheet, or balance value was modified.
+==========================================================================
+  MULTIVERSE SMASH — CHANGE LOG  (this pass: 2026-09-02)
+  Prior contents backed up in updates_MASTERLIST_backup_2026-09-02.TXT.
+==========================================================================
+
+SCOPE NOTE
+----------
+The request referred to "the four items below", but only ITEM 1 was actually
+included in the message. I implemented ITEM 1 in full and did NOT invent items
+2-4. Send them and I'll continue, one at a time, same discipline (no balance /
+threshold / out-of-scope edits, tests after each).
+
+Per the guardrails: I did NOT touch any balance numbers, transform thresholds,
+or anything outside ITEM 1. The only new numbers introduced are the ones ITEM 1
+explicitly asked me to define for the brand-new move (cost ~30, damage in
+Piccolo's beam band) — no existing values were changed.
+
+
+==========================================================================
+  ITEM 1 — Give Goku a real Kamehameha.   ✅ DONE
+==========================================================================
+
+WHAT IT DOES NOW
+  - Down+Special (held direction "D") → NEW procedural "Kamehameha": a
+    charge→release piercing ki beam.
+  - Any other direction / neutral Special → Dragon Fist (melee rocket-punch
+    rush), exactly as before. Unchanged.
+
+The Kamehameha is built on the EXACT pattern the prompt named — firePiccoloBeam
+/ fireFriezaBeam: spendEnergy → set a cast pose + cast timer → schedulePendingSpawn
+at the windup frame → spawnProjectile with a `color` (procedural colored beam;
+no real EB beam art exists, same as Piccolo's Special Beam Cannon).
+
+--------------------------------------------------------------------------
+FILE 1 — abilities.js   (executeGokuSpecial region, ~line 512)
+--------------------------------------------------------------------------
+Added, immediately above executeGokuSpecial:
+
+  * GOKU_SPECIALS  — a config table (mirrors PICCOLO_SPECIALS / FRIEZA_SPECIALS)
+    with one entry:
+        gokuKamehameha: {
+          cost: 30, wind: 14, recovery: 22, pose: "gokuKamehameha",
+          projW: 78, projH: 14, speed: 22, damage: 94, hitstun: 18,
+          kbX: 7, kbY: -1, life: 72, radius: 10, color: "#7fdcff",
+          piercing: true
+        }
+    - cost 30  ....... as specified ("~30 energy").
+    - damage 94 ...... in Piccolo's Special Beam Cannon band (Piccolo beam = 96).
+    - color/piercing/speed/life all follow the Piccolo/Frieza beam template
+      (thin, fast, piercing). Colour is a Kamehameha cyan.
+
+  * gokuOffense(fighter)  — the same offense-multiplier helper Piccolo/Frieza
+    use, so transforms amp the beam consistently (not a balance change to any
+    existing move; just wires the new one into the existing convention).
+
+  * fireGokuKamehameha(fighter, context)  — a line-for-line analogue of
+    firePiccoloBeam: cooldown/attacking guard → spendEnergy(30) →
+    fighter._spriteCastMove = "gokuKamehameha"; _spriteCastTimer = wind+recovery
+    → schedulePendingSpawn(wind, () => spawnProjectile(fighter,
+    "gokuKamehameha", { ...procedural beam..., color, piercing })).
+
+Changed executeGokuSpecial itself:
+  - Added ONE branch at the top:
+        if ((fighter._specialHeldDir || null) === "D")
+            return fireGokuKamehameha(fighter, context)
+  - Everything below it (the Dragon Fist branch: spendEnergy(40),
+    createAttackFromMove "dragonFist", setAttackState, lunge, camera/shake) is
+    byte-for-byte the same as before — untouched.
+  - Replaced the now-false "STAGE 4 … Kamehameha CUT / MELEE-ONLY … any special
+    input fires Dragon Fist" comment with an accurate description of the new
+    Down = beam / else = Dragon Fist split.
+
+--------------------------------------------------------------------------
+FILE 2 — characters.js   (goku.animationData, right after `dragonFist`)
+--------------------------------------------------------------------------
+Added the cast-pose art wiring so _spriteCastMove = "gokuKamehameha" renders a
+real Goku sprite instead of the fallback box:
+
+  gokuKamehameha: { frames: 7, width: 120, height: 129, speed: 4, anchorY: 0,
+                    loop: false, lockLastFrame: true,
+                    sheet: "./goku_base_kamehamehaWindup_uniform.png" }
+
+  - This REVIVES the dormant windup art the prompt pointed at. The file exists
+    on disk (goku_base_kamehamehaWindup_uniform.png, 840×129). 840÷7 = 120px per
+    frame; it is the base-sheet Kamehameha charge sequence (#170-176). So the
+    preferred path (reuse the real windup sprite) was used — NOT the heavy-sprite
+    fallback the prompt allowed if the file were missing.
+  - Resolution path confirmed: sprite.js MOVE_TO_ACTION falls back to the move
+    name itself when unmapped, so an animationData key of the same name is all
+    that's needed (identical to how Piccolo's "piccoloBeam" / Frieza's
+    "friezaDeathbeam" cast poses resolve). No sprite.js edit required.
+
+--------------------------------------------------------------------------
+TESTS RUN (all after the change)
+--------------------------------------------------------------------------
+  npm run test:goku          → 38 passed, 0 failed   (canonical full-kit)
+  npm run test:goku-stage4   →  7 passed, 0 failed   (specials)
+  npm run test:goku-stage2   → 18 passed, 0 failed   (sprites/normals regress)
+  npm run test:determinism   →  9 passed, 0 failed
+  npm run test:piccolo       → 38 passed, 0 failed   (shared beam pattern intact)
+
+  Plus a throwaway harness I wrote, ran, and then DELETED
+  (harness/_goku_kamehameha_verify.mjs) that drives the NEW Down+Special path,
+  which the existing suites don't yet exercise. Results:
+    OK  Down+Special cast pose = "gokuKamehameha"
+    OK  Down+Special spawns a projectile (the beam)      maxProjectiles=1
+    OK  Neutral special still fires Dragon Fist           move=dragonFist
+    OK  Neutral special spawns NO projectile              maxProjectiles=0
+    OK  Down+Special spent 30 energy (100 -> 70)*
+    * the automated read showed 70.24, not 70 — that is passive energy REGEN
+      over the 2 wait-frames after the cast, not a mis-spend. The spend is
+      exactly 30. (I removed the temp file; it was verification-only.)
+
+--------------------------------------------------------------------------
+TWO HONEST FLAGS (no action taken — outside ITEM 1 scope)
+--------------------------------------------------------------------------
+  1. Stale test DESCRIPTIONS: test:goku and test:goku-stage4 still pass, but a
+     few of their assertion LABELS now describe the old world
+     ("Kamehameha cut", "MELEE-ONLY", "no kamehameha animation entry wired").
+     They pass because they only exercise the NEUTRAL special (still Dragon
+     Fist, still no projectile) and check the literal key `kamehameha` (I used a
+     new key, `gokuKamehameha`). Nothing is broken, but if you want, a follow-up
+     could update those labels / add a Down+Special beam assertion to the
+     canonical suite. I left the tests untouched this pass (out of ITEM 1 scope).
+
+  2. In-game move list / BETA doc: Goku's public move list still says melee-only
+     Dragon Fist. Regenerating the doc to mention the new Down+Special Kamehameha
+     is a separate task — flagged, not done here.
+==========================================================================
+
+
+==========================================================================
+  ITEM 2 — Real Ultimates for Bardock, Gohan, Dark Vegeta.   ✅ DONE
+==========================================================================
+
+THE PROBLEM
+  All three had NO case in triggerUltimate's switch (abilities.js), so pressing
+  Ultimate fell through to `default → executeFallbackUltimate` — a generic,
+  range-LIMITED (rangeX ~105, can whiff) no-art nuke that isn't their identity.
+
+WHAT THEY DO NOW  (all follow the Gotenks/Vegito "inline freeze-cinematic,
+guaranteed range-independent beats, 330 raw → EXACTLY ~198 EFF ×0.60" template;
+NO new art invented — every pose already exists in each character's animationData)
+
+  - BARDOCK — "Final Rebellion" (cost 100): a SWORD finisher that chains his real
+    blade poses — bardockRush1 (thrust) → heavy (overhead slash) → bardockRush2
+    (big overhead) → bardockRush3 (rising spin-slash PAYOFF). Melee, no projectile.
+  - GOHAN — "Meteor Barrage" (cost 100): MELEE-only (no beam art per asset map) —
+    gohanRush1 → gohanRush2 → gohanRush3 → meteorKick (full-power flying-kick PAYOFF).
+  - DARK VEGETA — "Villainous Onslaught" (cost 100): dark-aura windup (vdAura) →
+    guaranteed ki blasts (vdKiCast). Fires a visualOnly ki beam at the payoff,
+    tinted deeper PURPLE (#9b30c9) while _darkAuraActive || _vdRoseActive, else
+    white-blue (#8ab6ff). Damage stays in the standard ~198 band regardless of
+    form (form only changes the visual — no balance outlier).
+
+Each spends 100 energy, deals guaranteed damage, and ends with the standard
+universal ultimate cooldown (applied automatically by triggerUltimate when the
+cast returns true). Verified damage = exactly 198 to a far P2 (1150 → 952).
+
+--------------------------------------------------------------------------
+FILES / LOCATIONS TOUCHED
+--------------------------------------------------------------------------
+abilities.js
+  - Inserted a block immediately ABOVE `export function triggerUltimate` (~line
+    22709) containing:
+      * applyDbzUltHit()      — shared hit-applier (mirrors applyGotenksUltHit).
+      * runDbzMeleeUlt()      — shared cinematic driver (spend energy, hold foe,
+                                latch windup pose, run beats, optional onFire hook).
+      * BARDOCK_ULT + executeBardockUltimate()
+      * GOHAN_ULT + executeGohanUltimate()
+      * VEGETA_DARK_ULT + executeVegetaDarkUltimate()  (onFire spawns the ki beam)
+  - Added 3 cases to the triggerUltimate switch, next to the other DBZ ults
+    (right after `case "vegeta":`):
+      case "vegeta_dark": executeVegetaDarkUltimate
+      case "bardock":     executeBardockUltimate
+      case "gohan":       executeGohanUltimate
+
+characters.js
+  - bardock: added `ultimate: { name: "Final Rebellion", cost: 100, ... }`
+    (right after the `specials` block; the object had NO ultimate field before).
+  - gohan:   added `ultimate: { name: "Meteor Barrage", cost: 100, ... }`
+    (after `specials`; NO ultimate field existed — the prompt's quoted
+    placeholder `{ name:"Ultimate", description:"powerful finisher" }` was NOT
+    actually in the file, so this is a fresh real field, not a replacement).
+  - vegeta_dark: added `ultimate: { name: "Villainous Onslaught", cost: 100, ... }`
+    (after `specials`; no ultimate field before).
+
+harness/bardock.test.mjs  (ONE assertion updated — the task changed the design)
+  - Line 50 previously asserted `!cd.ultimate` ("no ranged ULT … melee-only
+    identity"). ITEM 2 requires Bardock to HAVE an ultimate, so that assertion
+    was factually inverted by the task. Updated it to assert the melee sword ULT
+    is now wired (name matches /rebellion/i) while preserving its real intent —
+    that NO ranged beam/nova art was invented. Nothing else in the test changed.
+
+harness/dbz_ultimates_smoke.test.mjs  (NEW)  +  package.json script
+  - New smoke test (`npm run test:dbz-ultimates`) proving all three are no longer
+    the fallback: for each, p1Ultimate() casts, latches its OWN real windup pose
+    (bardockRush1 / gohanRush1 / vdAura — the fallback never sets _spriteCastMove),
+    and deals guaranteed damage to a P2 shoved 520px away (the fallback's ~105
+    range would whiff → damage-at-range proves the real range-independent ult).
+
+--------------------------------------------------------------------------
+TESTS RUN (after the change)
+--------------------------------------------------------------------------
+  npm run test:bardock        → 51 passed, 0 failed   (was 50/1 pre-edit: the one
+                                 fail was the now-updated "no ultimate" assertion)
+  npm run test:gohan          → 30 passed, 0 failed
+  npm run test:vegeta-dark    → 52 passed, 0 failed
+  npm run test:dbz-ultimates  → 12 passed, 0 failed   (NEW smoke test)
+  npm run test:determinism    →  9 passed, 0 failed
+
+
+==========================================================================
+  ITEM 3 — Goku's transform recolours his ATTACK art, not just locomotion. ✅ DONE
+==========================================================================
+
+THE PROBLEM
+  enterGokuNextForm sets fighter._skinAnim = GOKU_FORM_ANIM[key], but GOKU_FORM_ANIM
+  only overrides locomotion/state (idle/walk/run/jump/fall/dash) with real recoloured
+  EB sheets. The ATTACK actions (light, heavy, up, air, down_air, gokuRush1-3,
+  dragonFist, gokuKamehameha) have NO per-form art on disk, so they fell back to BASE
+  (black-haired) art — Goku looked "un-transformed" the moment he attacked.
+
+THE FIX  (placeholder tint, exactly the Piccolo Potential/Orange precedent)
+  No per-form attack sheets exist, so — as the prompt directed — a per-form canvas
+  palette-TINT recolours those attack frames toward the form colour, gated on
+  fighter.transformIndex (1=SSJ gold / 2=SSG red / 3=SSBlue). CRUCIAL DETAIL: the tint
+  is applied ONLY to the attack actions, NOT to idle/jump/dash (which already swap to
+  real recoloured sheets) — otherwise the gold idle would be double-tinted. Verified:
+  transformed IDLE filter stays "none"; transformed ATTACK filter = the form tint.
+  This is a PLACEHOLDER pending bespoke per-form attack art (same status as Piccolo's
+  deferred remodel) — commented as such in both files.
+
+--------------------------------------------------------------------------
+FILES / LOCATIONS TOUCHED
+--------------------------------------------------------------------------
+sprite.js
+  - After the PICCOLO_*_TINT consts (~line 46): added GOKU_SSJ_TINT / GOKU_SSG_TINT /
+    GOKU_SSBLUE_TINT, GOKU_FORM_TINTS = [null, ssj, ssg, ssblue] (indexed by
+    transformIndex), and GOKU_TINTED_ACTIONS (the 10 attack actions).
+  - In the spriteFilter else-if chain (was ~line 977, after the _edoActive branch):
+    added a branch — if rosterKey==="goku" && transformIndex>0 && the current action is
+    a tinted attack action → spriteFilter = GOKU_FORM_TINTS[transformIndex].
+  - Added `fighter._lastSpriteFilter = spriteFilter;` right after the chain — a
+    read-only diagnostic (mirrors the existing _lastDrawX/Y/W/H diagnostics), used only
+    as the ITEM 3 test hook. No gameplay/behaviour effect.
+
+abilities.js
+  - Added a documentation comment ABOVE GOKU_FORM_ANIM (~line 1526) explaining that
+    attack actions intentionally reuse base art + receive the sprite.js per-form tint
+    (Piccolo precedent), and that real per-form attack sheets would replace the tint.
+    (No code/behaviour change to the form anim itself — the recolour lives in sprite.js,
+    the "wherever it's defined" the prompt allowed.)
+
+game.js
+  - Added a read-only harness hook next to spriteAction (~line 16538):
+    `spriteFilter: (who) => f._lastSpriteFilter || "none"`. Test infrastructure only
+    (no gameplay/behaviour change), so the tint can be asserted deterministically.
+
+harness/goku_form_attack_tint.test.mjs  (NEW)  +  package.json script
+  - New test (`npm run test:goku-form-tint`) that reads the last-drawn filter and proves:
+    base attack = none · transformed idle = none (no double-tint) · SSJ/SSG/SSBlue attack
+    = the matching per-form tint string.
+
+--------------------------------------------------------------------------
+TESTS RUN (after the change)
+--------------------------------------------------------------------------
+  npm run test:goku-form-tint → 10 passed, 0 failed   (NEW — verifies the tint path)
+  npm run test:goku           → 38 passed, 0 failed
+  npm run test:goku-stage5    → 21 passed, 0 failed   (transform ladder art-swap intact)
+  npm run test:piccolo        → 38 passed, 0 failed   (shared sprite-tint chain intact)
+  npm run test:determinism    →  9 passed, 0 failed
+
+
+==========================================================================
+  ITEM 4 — Backfill empty/incomplete specials{} across the DB roster.  ✅ DONE
+==========================================================================
+
+I scanned ALL 12 Dragon Ball characters' specials{} blocks against their
+execute*Special functions in abilities.js. Findings + fixes below (Beerus was
+NOT the only one).
+
+FIXED (4 characters)
+  - BEERUS (characters.js ~line 3807): specials was `{}` even though
+    executeBeerusSpecial implements a full 5-move kit. Backfilled all 5 with
+    costs matching the BEERUS_* constants exactly:
+        kiBlast 30 (neutral) · downwardKiBlast 35 (D) · forwardPush 45 (D→F) ·
+        outwardKiBlast 50 (D→B) · hakai 70 (U).
+  - GOKU (characters.js ~line 42): the list had dragonFist and a comment
+    "kamehameha: CUT — dormant", but ITEM 1 REVIVED the Kamehameha (Down+Special).
+    Replaced the stale comment with a real `kamehameha` entry (cost 30, motion D)
+    matching GOKU_SPECIALS, and clarified the dragonFist effect string.
+  - GOKU BLACK (characters.js ~line 3722): all 3 entries were falsely labelled
+    "Not wired yet" (kamehameha/spiritBomb/explosion ALL fire in
+    executeGokuBlackSpecial), and the 3 SSJ-Rose-only slash specials were MISSING.
+    Rewrote the block to 6 accurate entries (costs from the GB_* constants):
+        kamehameha 30 (D→F) · spiritBomb 40 (D→B) · explosion 120 (neutral) ·
+        electricKiPush 15 (B→F, Rose) · electricSlash 20 (F→D, Rose) ·
+        superKiSlash 48 (B→D, Rose).
+  - VEGETA (characters.js ~line 152): list had 3 beams (galickGun/bigBang/
+    finalFlash) but executeVegetaSpecial fires 6 more. Added them:
+        launchKi 0 (U, free) · kiBlast 0 (D, free tap/hold) ·
+        superGalickGun 50 (F→F, Blue) · teleport 20 (B→B, Blue) ·
+        selfDestruct 90 (B→F, SSJ+) · diagonalGalick 32 (F→B, SSJ+).
+
+SCANNED — ALREADY COMPLETE, NO CHANGE (7 characters)
+  - vegeta_dark (3: kiBlast/knifeSlash/sickleThrow) — matches executeVegetaDarkSpecial.
+  - piccolo (5) — matches executePiccoloSpecial.
+  - frieza (4) — matches executeFriezaSpecial.
+  - vegito (6) — matches executeVegitoSpecial.
+  - gohan (1: meteorKick) — matches executeGohanSpecial (melee-only, correct).
+  - gotenks (2: kiBlast/kiCharge) — matches executeGotenksSpecial.
+  - bardock (2: rebellion/kiCharge) — matches executeBardockSpecial.
+
+SCANNED — INTENTIONALLY LEFT (1 character)
+  - CELL: specials{} lists kamehameha/solarKamehameha, but Cell is
+    isPlayable:false (dev-only, no sprite art) and has NO execute*Special function
+    in abilities.js — nothing fires. This is the REVERSE of the Item-4 problem
+    (data present, no code), so there is nothing to backfill; left as-is and noted.
+
+NOTE: every specials{} entry is DISPLAY / move-list data only — combat reads the
+abilities.js constants, not these objects — so no balance behaviour changed. All
+costs above were copied from the live constants, not invented.
+
+--------------------------------------------------------------------------
+TESTS RUN (after the change)
+--------------------------------------------------------------------------
+  node --check on characters.js / abilities.js / sprite.js / game.js → all OK
+  npm run test:beerus       → 38 passed, 0 failed
+  npm run test:goku-black   → 40 passed, 0 failed
+  npm run test:vegeta       → 72 passed, 0 failed
+  npm run test:goku         → 38 passed, 0 failed
+
+
+==========================================================================
+  FINAL ACCEPTANCE (after all three items)
+==========================================================================
+Confirmed nothing crashes on character select / Training for the required five —
+a boot smoke loaded each in Training mode; all reached live play with zero page
+errors:  bardock ✓  gohan ✓  vegeta_dark ✓  goku ✓  beerus ✓  (5 passed, 0 failed).
+
+Full regression re-run after ALL edits (Items 2+3+4 together):
+  test:bardock 51/0 · test:gohan 30/0 · test:vegeta-dark 52/0 · test:vegeta 72/0
+  test:beerus 38/0 · test:goku-black 40/0 · test:goku 38/0 · test:piccolo 38/0
+  test:dbz-ultimates 12/0 (new) · test:goku-form-tint 10/0 (new) · determinism 9/0
+
+GUARDRAILS: no balance numbers, transform thresholds, or anything outside the
+three items were changed. New numbers introduced were only those the items
+required (the three new ultimates' beats, all in the standard 330→198 band; the
+per-form tint filter strings; and move-list DISPLAY costs copied verbatim from
+existing code). Two read-only test hooks were added (sprite.js _lastSpriteFilter
+diagnostic + game.js spriteFilter() harness reader) — no gameplay effect. One
+existing test assertion (bardock "no ultimate") was updated because ITEM 2
+required Bardock to have an ultimate.
+==========================================================================

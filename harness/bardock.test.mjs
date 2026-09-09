@@ -47,7 +47,9 @@ try {
   check("spriteScale 1.0", Math.abs((g.spriteScale || 0) - 1.0) < 0.01, `scale=${g.spriteScale}`);
   check("HP 1200 / EN 200", g.maxHealth === 1200 && g.maxEnergy === 200, `HP=${g.maxHealth} EN=${g.maxEnergy}`);
   check("portrait wired → bardock_portrait.png", (cd.portrait || g.portrait || "").includes("bardock_portrait"), `portrait=${cd.portrait || g.portrait}`);
-  check("no ranged ULT (no beam/nova on the sheet — melee-only identity)", !cd.ultimate, `ultimate=${JSON.stringify(cd.ultimate)}`);
+  // ITEM 2 (2026-09-02): Bardock now HAS a real ultimate — the melee "Final Rebellion" sword finisher.
+  // Still melee-only in spirit (chains existing blade poses; NO ranged beam/nova art was invented).
+  check("melee sword ULT wired (Final Rebellion) — no ranged beam/nova art invented", !!cd.ultimate && /rebellion/i.test(cd.ultimate.name || ""), `ultimate=${JSON.stringify(cd.ultimate)}`);
   check("no `transformations` system (SSJ is cosmetic)", !cd.transformations, "");
 
   console.log("\n── S1–S6: every action sheet resolves (no box) ──");

@@ -514,14 +514,45 @@ export function spawnCharacterSummon(fighter, moveName, moveData, context = {}) 
 // ─────────────────────────────────────────────────────────────────
 
 // ── GOKU ──────────────────────────────────────────────────────────
-// Specials: Dragon Fist (melee rush), Kamehameha (projectile)
+// Specials: Dragon Fist (melee rush, neutral / any non-Down), Kamehameha (procedural beam, Down+Special)
 // Ultimate: Super Saiyan Blue (transformation stat boost)
+//
+// KAMEHAMEHA (2026-09-02) — REVIVED as a Down+Special procedural ki-beam, built on the exact
+// firePiccoloBeam / fireFriezaBeam pattern (schedulePendingSpawn → spawnProjectile with a `color`
+// = procedural beam, since no EB Kamehameha beam graphic exists). Cost 30, damage in Piccolo's
+// Special Beam Cannon band. Cast pose "gokuKamehameha" reuses the dormant windup sheet
+// (goku_base_kamehamehaWindup_uniform.png), wired in characters.js animationData. Offense mult folds
+// in like Piccolo/Frieza so transforms amp it.
+const GOKU_SPECIALS = {
+  gokuKamehameha: { cost: 30, wind: 14, recovery: 22, pose: "gokuKamehameha", projW: 78, projH: 14, speed: 22, damage: 94, hitstun: 18, kbX: 7, kbY: -1, life: 72, radius: 10, color: "#7fdcff", piercing: true },  // charge→release piercing ki beam
+}
+function gokuOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+function fireGokuKamehameha(fighter, context) {
+  const t = GOKU_SPECIALS.gokuKamehameha
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = gokuOffense(fighter)
+  schedulePendingSpawn(t.wind, () => {
+    spawnProjectile(fighter, "gokuKamehameha", {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+      hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, piercing: t.piercing,
+      color: t.color, spawnY: fighter.y + (fighter.h || 100) * 0.34,
+    }, context)
+  })
+  return true
+}
 function executeGokuSpecial(fighter, context) {
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
 
-  // STAGE 4 (2026-08-23): MELEE-ONLY. Kamehameha CUT (no beam art on any EB sheet) — the old QCF
-  // projectile branch is removed. Dragon Fist is the LONE special (any special input fires it).
+  // Down+Special → Kamehameha (procedural charge→release ki beam). Any other direction / neutral
+  // keeps firing Dragon Fist (the melee rocket-punch rush), exactly as before.
+  if ((fighter._specialHeldDir || null) === "D") return fireGokuKamehameha(fighter, context)
+
   // Dragon Fist — melee rocket-punch rush
   if (!spendEnergy(fighter, 40)) return false
   const attack = createAttackFromMove(fighter, "dragonFist", {
@@ -1499,6 +1530,13 @@ function gokuFormAnim(form, dims) {
     dash: { frames: 1, width: d.dw, height: d.dh, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: `./goku_${form}_dash_uniform.png` },
   }
 }
+// gokuFormAnim overrides ONLY locomotion/state (idle/walk/run/jump/fall/dash) with the form's REAL recoloured
+// EB sheets. The ATTACK actions (light/heavy/up/air/down_air/gokuRush1-3/dragonFist/gokuKamehameha) are NOT
+// overridden here because NO per-form attack sheets exist on disk — they fall back to the base attack art. To
+// keep them from reading as "un-transformed" mid-combo, ITEM 3 (2026-09-02) recolours those attack frames via a
+// per-form canvas palette-TINT in sprite.js (GOKU_FORM_TINTS / GOKU_TINTED_ACTIONS, gated on transformIndex),
+// exactly the Piccolo Potential/Orange precedent. That tint is a PLACEHOLDER pending bespoke per-form attack
+// art; if such sheets are ever added, add them here (like Vegeta SSJ) and drop the corresponding tint gate.
 const GOKU_FORM_ANIM = {
   ssj: gokuFormAnim("ssj", { iw: 71,  ih: 165, jf: 4, jw: 117, jh: 158, dw: 101, dh: 107 }),   // gold
   ssg: gokuFormAnim("ssg", { iw: 93,  ih: 156, jf: 3, jw: 77,  jh: 144, dw: 121, dh: 123 }),   // red
@@ -23360,6 +23398,115 @@ export function triggerSpecial(fighter, context = {}) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ITEM 2 (2026-09-02) — REAL ULTIMATES for BARDOCK / GOHAN / DARK VEGETA. Previously these three fell
+// through triggerUltimate's `default` to executeFallbackUltimate (a generic no-art nuke). Each now gets
+// an inline freeze-cinematic on the LIVE fighter (Vegito/Gotenks template — NO duplicate instance):
+// windup pose → a few guaranteed, range-independent beats that swap through REAL existing kit poses →
+// full-power payoff. Beats sum to 330 raw → EXACTLY ~198 EFF (×0.60), the project ult band, block 25%.
+// NO new art invented — every pose key already exists in each character's animationData.
+// One shared hit-applier (mirrors applyGotenksUltHit / applyVegitoUltHit).
+// ─────────────────────────────────────────────────────────────────────────────
+function applyDbzUltHit(fighter, opp, context, raw, opts = {}) {
+  if (!opp || opp.eliminated) return
+  let dmg = raw
+  if (opp.isBlocking) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 22) }
+  else {
+    opp.hitstun = Math.max(opp.hitstun || 0, opts.hitstun || 22)
+    opp.vx = (fighter.facing || 1) * (opts.kb || 8); opp.vy = opts.vy ?? -3
+    opp.colorFlash = 12
+    if (opts.knockdown) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 44) }
+  }
+  applyScaledDamage(opp, dmg, { source: opts.source || "dbz-ultimate" })   // GUARANTEED, range-independent (honest ×0.60)
+  try { shakeCamera(context, opts.shake || 10, 12) } catch (_) {}
+}
+// Shared driver for the three melee/ki DBZ ults: hold the foe through the cinematic, latch a windup pose,
+// then run the beats (each latches its own pose so the sprite reads the right slash/blast).
+function runDbzMeleeUlt(fighter, context, ULT, source) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, ULT.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.vx = 0
+  fighter.colorFlash = 14
+  if (opp) fighter.facing = (opp.x >= fighter.x) ? 1 : -1
+  fighter._spriteCastMove = ULT.windPose; fighter._spriteCastTimer = ULT.cinematic   // LIVE fighter holds the windup pose
+  fighter.attackCooldown  = getAttackDuration(ULT.cinematic, fighter)
+  try { focusCameraOnAction(context, fighter, opp, 1.4, 18) } catch (_) {}
+  try { shakeCamera(context, 5, 10) } catch (_) {}
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, ULT.cinematic - 8); opp.vx = 0 }   // hold the foe through the guaranteed barrage
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 10)
+  if (ULT.onFire) { try { ULT.onFire(fighter, opp, context) } catch (_) {} }
+  for (const b of ULT.beats) {
+    schedulePendingSpawn(b.at, () => {
+      if (b.pose) { fighter._spriteCastMove = b.pose; fighter._spriteCastTimer = 18 }   // latch this beat's kit pose
+      if (b.dmg > 0) applyDbzUltHit(fighter, opp, context, b.dmg, { hitstun: b.hitstun, kb: b.kb, vy: b.vy, shake: b.shake, knockdown: b.knockdown, source })
+      if (b.payoff) { try { focusCameraOnAction(context, fighter, opp, 1.5, 12); shakeCamera(context, 18, 16) } catch (_) {}; fighter.hitstop = Math.max(fighter.hitstop || 0, 8) }
+    })
+  }
+  return true
+}
+
+// BARDOCK — "Final Rebellion": sword finisher chaining his blade poses (thrust → overhead slash → rising
+// spin-slash). All poses are REAL sword art already in bardock.animationData (bardockRush1/heavy/rush2/rush3).
+const BARDOCK_ULT = {
+  cost: 100, cinematic: 70, windPose: "bardockRush1",
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5, pose: "bardockRush1" },                                          // blade-thrust telegraph — camera focus, no damage
+    { at: 26, dmg: 90,  hitstun: 22, kb: 6,  vy: -3, shake: 8,  pose: "heavy" },                    // overhead slash (SWORD heavy)
+    { at: 44, dmg: 100, hitstun: 22, kb: 6,  vy: -3, shake: 8,  pose: "bardockRush2" },             // big overhead sword slash
+    { at: 62, dmg: 140, hitstun: 42, kb: 14, vy: -9, shake: 18, pose: "bardockRush3", payoff: true, knockdown: true }, // rising spin-slash PAYOFF (330 raw → ~198 EFF)
+  ],
+}
+function executeBardockUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "bardock") return false
+  return runDbzMeleeUlt(fighter, context, BARDOCK_ULT, "bardock-ultimate")
+}
+
+// GOHAN — "Meteor Barrage": MELEE-ONLY committed flying-kick finisher, reusing the rush chain + Meteor Kick
+// art (gohanRush1/2/3 + meteorKick — all REAL, in gohan.animationData). No beam (none on the sheet).
+const GOHAN_ULT = {
+  cost: 100, cinematic: 70, windPose: "gohanRush1",
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5, pose: "gohanRush1" },                                            // rush opener telegraph — no damage
+    { at: 26, dmg: 90,  hitstun: 22, kb: 6,  vy: -3, shake: 8,  pose: "gohanRush2" },               // crescent sweep kick
+    { at: 44, dmg: 100, hitstun: 22, kb: 6,  vy: -4, shake: 8,  pose: "gohanRush3" },               // spin-roundhouse launcher
+    { at: 62, dmg: 140, hitstun: 42, kb: 14, vy: -9, shake: 18, pose: "meteorKick", payoff: true, knockdown: true }, // full-power flying Meteor Kick PAYOFF (330 raw → ~198 EFF)
+  ],
+}
+function executeGohanUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "gohan") return false
+  return runDbzMeleeUlt(fighter, context, GOHAN_ULT, "gohan-ultimate")
+}
+
+// DARK VEGETA — "Villainous Onslaught": dark-aura amplified ki barrage. Windup on the vdAura power-up pose,
+// then guaranteed ki blasts on the vdKiCast pose. A visualOnly ki beam is fired at the payoff, tinted deeper
+// PURPLE while the dark-aura / Rose form is active (_darkAuraActive || _vdRoseActive) — else white-blue.
+// Beats deliver the guaranteed damage so the ki visual can't whiff. All poses REAL (vegeta_dark.animationData).
+const VEGETA_DARK_ULT = {
+  cost: 100, cinematic: 70, windPose: "vdAura",
+  beats: [
+    { at: 8,  dmg: 0,   shake: 5, pose: "vdAura" },                                                // aura power-up telegraph — no damage
+    { at: 28, dmg: 90,  hitstun: 22, kb: 6,  vy: -3, shake: 8,  pose: "vdKiCast" },                 // ki blast 1
+    { at: 44, dmg: 100, hitstun: 22, kb: 6,  vy: -3, shake: 8,  pose: "vdKiCast" },                 // ki blast 2
+    { at: 62, dmg: 140, hitstun: 42, kb: 14, vy: -9, shake: 18, pose: "vdKiCast", payoff: true, knockdown: true }, // full-power ki cannon PAYOFF (330 raw → ~198 EFF)
+  ],
+  onFire(fighter, opp, context) {
+    const amped = !!(fighter._darkAuraActive || fighter._vdRoseActive)
+    schedulePendingSpawn(62, () => {
+      spawnProjectile(fighter, "vegetaDarkUltBeam", {
+        w: amped ? 200 : 168, h: amped ? 58 : 46, radius: 12, speed: 22, damage: 0, lifetime: 44,
+        visualOnly: true, drawKind: null, color: amped ? "#9b30c9" : "#8ab6ff",
+        spawnY: fighter.y + (fighter.h || 110) * 0.34,
+      }, context)
+      try { shakeCamera(context, 12, 12) } catch (_) {}
+    })
+  },
+}
+function executeVegetaDarkUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "vegeta_dark") return false
+  return runDbzMeleeUlt(fighter, context, VEGETA_DARK_ULT, "vegeta-dark-ultimate")
+}
+
 export function triggerUltimate(fighter, context = {}, opts = {}) {
   if (!fighter) return false
   // GOKU: the Ultimate input is a Base-only KAIOKEN toggle (an HP-strain buff, NOT a metered ultimate).
@@ -23440,6 +23587,9 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
       case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic
+      case "vegeta_dark": cast = executeVegetaDarkUltimate(fighter, context); break   // ITEM 2: Villainous Onslaught — dark-aura amplified ki barrage (vdAura windup → vdKiCast beats, purple when form active), guaranteed ~198 EFF
+      case "bardock": cast = executeBardockUltimate(fighter, context); break   // ITEM 2: Final Rebellion — sword finisher chaining blade poses (thrust→overhead→spin-slash), guaranteed ~198 EFF
+      case "gohan":   cast = executeGohanUltimate(fighter, context);   break   // ITEM 2: Meteor Barrage — MELEE flying-kick finisher (rush chain → Meteor Kick), guaranteed ~198 EFF
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
       case "batman":  cast = executeBatmanUltimate(fighter, context);  break   // The Dark Knight: batarang-barrage freeze cinematic
       case "dark_knight": cast = executeDarkKnightUltimate(fighter, context); break   // NEW-VARIANT Batman — Mech Suit: QUICK inline freeze-cinematic SINGLE ATTACK (tailed-beast/Kurama feel, NOT a transform): giant mech materializes→looms→ONE strike→powers down. Guaranteed 340 raw → ~204 EFF (live fighter, no dup)

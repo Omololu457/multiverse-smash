@@ -804,7 +804,9 @@
     "test:clone-mirror": "node harness/clone_mirror.mjs",
     "test:clone-playtest": "node harness/clone_playtest.mjs",
     "test:ghostface-exe-idswap": "node harness/ghostface_exe_idswap.test.mjs",
-    "test:ghostface-exe-swapjump": "node harness/ghostface_exe_swapjump.test.mjs"
+    "test:ghostface-exe-swapjump": "node harness/ghostface_exe_swapjump.test.mjs",
+    "test:dbz-ultimates": "node harness/dbz_ultimates_smoke.test.mjs",
+    "test:goku-form-tint": "node harness/goku_form_attack_tint.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

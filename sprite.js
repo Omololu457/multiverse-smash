@@ -48,6 +48,20 @@ const PICCOLO_ORANGE_TINT    = "sepia(0.95) saturate(2.7) hue-rotate(-12deg) bri
 // art/animation stays clearly readable (recognition aid, not a recolor); opaque enough to name the skin at a glance.
 const IDSWAP_TINT_ALPHA = 0.3;
 
+// ITEM 3 (2026-09-02) — GOKU per-form ATTACK-art tint (PLACEHOLDER, Piccolo precedent above). Goku's
+// transform swaps his LOCOMOTION/idle to REAL recolored EB sheets (GOKU_FORM_ANIM in abilities.js), but no
+// per-form ATTACK sheets exist on disk (light/heavy/up/air/down_air/gokuRush1-3/dragonFist/gokuKamehameha),
+// so those fell back to BASE (black-haired) art and read as "un-transformed" mid-combo. As a stopgap — exactly
+// like Piccolo Potential/Orange — a canvas palette-tint recolors those ATTACK frames toward the form colour,
+// gated on fighter.transformIndex (1=SSJ gold / 2=SSG red / 3=SSBlue). It is applied ONLY to the attack
+// actions below (NOT to idle/jump/dash, which already use real recoloured sheets → no double-tint). Pending
+// real per-form attack art, which would replace this tint (same as the deferred bespoke Piccolo remodel).
+const GOKU_SSJ_TINT    = "sepia(0.85) saturate(3.0) hue-rotate(-14deg) brightness(1.14) contrast(1.05)";   // SSJ gold
+const GOKU_SSG_TINT    = "sepia(0.55) saturate(3.2) hue-rotate(-48deg) brightness(1.04) contrast(1.08)";   // SSG red/rosé
+const GOKU_SSBLUE_TINT = "saturate(2.6) hue-rotate(165deg) brightness(1.10) contrast(1.05)";               // SSBlue
+const GOKU_FORM_TINTS  = [null, GOKU_SSJ_TINT, GOKU_SSG_TINT, GOKU_SSBLUE_TINT];   // index = transformIndex (0=base=no tint)
+const GOKU_TINTED_ACTIONS = new Set(["light", "heavy", "up", "air", "down_air", "gokuRush1", "gokuRush2", "gokuRush3", "dragonFist", "gokuKamehameha"]);
+
 // ─────────────────────────────────────────────────────────────────
 // OPTIONAL DEPENDENCY — animationProfile.js
 // If missing, the module still works using fallback rendering.
@@ -978,6 +992,12 @@ export class SpriteHandler {
     else if (fighter._piccoloPotentialActive) spriteFilter = PICCOLO_POTENTIAL_TINT;
     else if (fighter._reincarnated) spriteFilter = TOJI_REINCARNATED_TINT;
     else if (fighter._edoActive) spriteFilter = EDO_REANIM_TINT;        // Edo Tensei undead-corpse wash
+    // ITEM 3: Goku transformed → tint his ATTACK frames toward the form colour (no per-form attack art exists;
+    // placeholder, Piccolo precedent). ONLY the attack actions — locomotion already uses real recoloured sheets.
+    else if ((fighter.rosterKey || "").toLowerCase() === "goku" && (fighter.transformIndex || 0) > 0 && GOKU_TINTED_ACTIONS.has(this.currentAction)) {
+      spriteFilter = GOKU_FORM_TINTS[fighter.transformIndex] || "none";
+    }
+    fighter._lastSpriteFilter = spriteFilter;   // read-only diagnostic (like _lastDrawX/Y/W/H) — test hook for ITEM 3
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;   // crisp upscaled pixel art

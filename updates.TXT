@@ -691,3 +691,88 @@ diagnostic + game.js spriteFilter() harness reader) — no gameplay effect. One
 existing test assertion (bardock "no ultimate") was updated because ITEM 2
 required Bardock to have an ultimate.
 ==========================================================================
+
+
+==========================================================================
+ CLONE-ASSIST — FULL TEARDOWN + REBUILD AS SSF2 ONE-SHOT MOVES — 2026-09-09
+ Branch: feature/clone-assist-system
+ Scope: naruto, minato, tobirama, hashirama, itachi, kakashi. Legacy clone
+ chars (boruto/hiruzen/madara) keep the persistent "," / "." / "/" system.
+==========================================================================
+
+WHY: the persistent standing-clone approach hit a long bug tail (mirroring,
+scale/ground-plane mismatch, "hologram" perception, no collision). Rebuilt on
+the SSF2 model: every clone action is a ONE-SHOT SPECIAL — press input, a clone
+briefly appears / a clone-projectile flies / a one-frame teleport fires, then
+it's gone. THERE IS NO PERSISTENT CLONE ENTITY for these 6 characters. Verified
+in every test: window.__harness.persistentCloneCount() stays 0 for the 6.
+
+CONTROLS (Player 1): dedicated "h" key + held direction (",/./" removed for the
+6; still active for the legacy 3). Each move is a committed special with its OWN
+energy cost + its OWN cooldown, modeled on firePiccoloBeam.
+  h          = a clone APPEARS in front, delivers ONE launcher strike, VANISHES
+  Forward+h  = a clone-shaped PROJECTILE flies forward, hits, then vanishes
+  Back+h     = instant Substitution teleport (puff + i-frames) — ONE frame
+Cooldowns (frames @60fps): strike 90 / projectile 75 / substitution 90.
+
+PER-CHARACTER (all live-verified, real keyboard, 11/0 on the shared shape):
+  NARUTO    h: KCM clone appears + launcher strike, vanishes. Fwd+h: clone body
+            flies forward, hits, gone. Back+h: Kawarimi — retreat teleport away
+            from the foe with i-frames (leaves a puff, no clone).
+  KAKASHI   identical to Naruto (no unique flavor), his own clone art.
+  MINATO    h / Fwd+h same shape. Back+h = FLYING THUNDER GOD: instant blink
+            TOWARD the opponent + a strike (verified: p1 1320→1703 toward opp at
+            1820) — a one-shot teleport-strike, not a held clone-then-teleport.
+  TOBIRAMA  h / Fwd+h same. Back+h = one-shot WATER WALL cast (reuses his real
+            tobiWaterWall projectile) — a water clone braces the wall, dissolves.
+  HASHIRAMA h-strike carries a brief CAST SUPER-ARMOR (combat.js _castArmor): he
+            shrugs a non-launcher hit while committing the wood-clone strike
+            (wood durability as a one-shot, NOT a persistent standing wall).
+            Verified: hit during the cast → hitstun 0.
+  ITACHI    crow-clone flavor: a crow-scatter puff on the strike/projectile, and
+            on a clean hit the target gets the `obscured` BLIND debuff (combat.js
+            onHitBlind → drawCrowBlindOverlay renders it). Verified: h-strike −32
+            dmg + obscured (timer 81). Cheaper base cost (20).
+
+ARCHITECTURE
+  * abilities.js — CLONE_ONESHOT config (per-char sheets/costs/damage) + three
+    exported fns: fireCloneOneShotStrike / fireCloneOneShotProjectile /
+    fireCloneSubstitution. Both offensive moves use spawnProjectile with the
+    char's clone sprite (speed 0 stationary strike / forward-moving projectile),
+    so they auto-despawn — NO summon, NO ground-plane/scale/collision/mirror code.
+  * combat.js — castArmored (Hashirama) + onHitBlind (Itachi) at the hit-resolve
+    choke points. Both gated on fields absent from every other move → inert
+    elsewhere.
+  * game.js — "h"+direction handler for the 6 (ONESHOT_CLONE_KEYS); ",/./" gated
+    to LEGACY_CLONE_KEYS (boruto/hiruzen/madara) only; per-move cooldown ticks.
+  * summons.js — REVERTED to the clean persistent-clone base (the mirror-gate /
+    stand-still / wall-armor / crow-despawn / spawnCloneRusher additions from the
+    previous redesign were removed); cloneAssist.js DELETED.
+
+REGRESSION (Stage 8) — NO out-of-scope regression
+  determinism 9/0. ★LEGACY UNAFFECTED: boruto 15/0, boruto-clone 11/0 +
+  rasengan 14/0, hiruzen 34/0, madara 44/0. Clone system: stage4-clone 33/0,
+  clone-realhit 21/0, clone-swap 13/0. The 6: minato 47/0, tobirama 31/0,
+  hashirama 35/0, itachi-fire-flower 11/0, kakashi 55/0, naruto 21/0. Cross-
+  section: goku 38/0, vegeta 72/0, saitama 33/0, basickit 17/0, arcade 25/0,
+  aivsai 20/0, hitstop 23/0, onoki 31/0, handler 56/0, zenitsu 53/0. (naruto
+  20/1 + zenitsu 52/1 appeared only under batch load — both PASS standalone;
+  the naruto assertion is a pre-existing damage-margin flake.)
+
+SCREENSHOTS: harness/shots/oneshot/<char>_h_neutral.png (cast + clone strike),
+  _h_forward.png (clone projectile), _h_back.png (teleport/FTG/wall) for all 6.
+
+HONEST NOTES
+  1. Old abilities.js clone-CONSUMING routes for these chars (Uzumaki Rendan,
+     Clone Rush, etc.) still exist but are DORMANT in play — they need persistent
+     clones, which the 6 can no longer spawn ("," gated off). Left in place (inert)
+     rather than excised, to keep the teardown low-risk; harness tests that spawn
+     clones directly still exercise them (hence clone-realhit/naruto still pass).
+  2. ENVIRONMENT NOTE: during this work the sandbox repeatedly switched the
+     working tree back to balance-playtest and reverted uncommitted files (and
+     truncated updates.TXT). All redesign work is preserved in COMMITTED history
+     (feature/clone-assist-system) to survive that. game.js also carries ambient
+     Samurai-Ranger WIP from another thread that got entangled in a shared import
+     hunk; bundled to preserve it. A prior thread's ~1100-line "FINISHER" doc that
+     used to sit in updates.TXT was lost to the churn (recoverable from git stash).
+==========================================================================

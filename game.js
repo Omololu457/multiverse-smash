@@ -240,7 +240,10 @@ import {
   fireNezukoRunScratchRelease, // Nezuko Run & Scratch — fired from handleChargeRelease (CHARGE hold→release, forward claw rush)
   updateNezukoUltChain,        // Nezuko Kekijutsu Baketsu — per-frame phase1→phase2 auto-chain driver
   revertNezukoDemon,           // Nezuko Demon Transformation — revert-to-base (timer expiry)
-  revertHiruzenEnma            // Hiruzen Enma (Monkey King Staff) buff — revert damage/reach multipliers (timer expiry)
+  revertHiruzenEnma,           // Hiruzen Enma (Monkey King Staff) buff — revert damage/reach multipliers (timer expiry)
+  fireCloneOneShotStrike,      // one-shot clone (h): a clone appears in front, strikes once (launcher), vanishes
+  fireCloneOneShotProjectile,  // one-shot clone (h+Fwd): a clone-shaped projectile flies forward, hits, vanishes
+  fireCloneSubstitution        // one-shot clone (h+Back): instant Substitution teleport (puff + i-frames), one frame
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha } from "./ui.js"
@@ -776,6 +779,10 @@ const EDGE_SPAWN_PADDING    = 80
 // Consciousness-swap (Stage 3) tuning: frames of cooldown between swaps (anti-spam) + brief arrival i-frames.
 const CLONE_SWAP_COOLDOWN   = 75   // ~1.25s @60fps before the next "/" swap
 const CLONE_SWAP_IFRAMES    = 10   // invuln on arrival so the swap is a real escape, not a trade-into-a-meaty
+// CLONE-ASSIST REDESIGN (SSF2 one-shot model): the 6 redesigned chars use dedicated "h"+direction one-shot
+// SPECIALS (no persistent clone). The legacy 3 keep the persistent "," / "." / "/" shadow-clone system.
+const ONESHOT_CLONE_KEYS = new Set(["naruto", "minato", "tobirama", "hashirama", "itachi", "kakashi"])
+const LEGACY_CLONE_KEYS  = new Set(["boruto", "hiruzen", "madara"])
 const ROUND_TIME            = 5400   // 90 seconds @ 60fps
 
 const GAME_STATES = {
@@ -5310,7 +5317,11 @@ function updateMiscTimers(fighter) {
   if (fighter._playfulCloudCd > 0) fighter._playfulCloudCd--               // Toji Playful Cloud cooldown (no-energy special)
   if (fighter._flyHeadCd > 0) fighter._flyHeadCd--                         // Toji Fly Heads swarm cooldown (no-energy special)
   if (fighter._flyBarrageCd > 0) fighter._flyBarrageCd--                   // Toji OFFENSIVE Fly Heads swarm (Down+Heavy damaging projectile fan) cooldown
-  if (fighter._cloneSwapCd > 0) fighter._cloneSwapCd--                     // Stage 3 consciousness-swap ("/") cooldown
+  if (fighter._cloneSwapCd > 0) fighter._cloneSwapCd--                     // legacy consciousness-swap ("/") cooldown (boruto/hiruzen/madara)
+  if (fighter._cloneStrikeCd > 0) fighter._cloneStrikeCd--                 // one-shot clone: Neutral strike cooldown
+  if (fighter._cloneProjCd   > 0) fighter._cloneProjCd--                   // one-shot clone: Forward projectile cooldown
+  if (fighter._cloneSubCd    > 0) fighter._cloneSubCd--                    // one-shot clone: Back substitution cooldown
+  if (fighter._castArmor     > 0) fighter._castArmor--                     // Hashirama one-shot strike super-armor window (combat.js)
   if (fighter._tojiFlyFadeTimer > 0) {                                     // Toji Fly Heads self-fade window (render-only near-invisibility)
     fighter._tojiFlyFadeTimer--
     if (!isTojiFlyHeadsSwarmActive()) fighter._tojiFlyFadeTimer = 0        // swarm ended (naturally or via round/KO reset) → snap back to visible
@@ -9955,6 +9966,35 @@ function drawNaoyaFrameTrapHUD(c, fighter) {
   c.restore()
 }
 
+// CROW-BLIND overlay (Itachi Crow Clone, Stage 5) — makes the otherwise-invisible `obscured` debuff VISIBLE: a
+// murder of black crow-feathers flutters over a blinded fighter + a translucent dark veil, for the obscured
+// window (ticked down at fighter.obscuredTimer). Deterministic (feather placement seeded off the frame + the
+// fighter's x, no RNG). Pure render layer over fighter.x/y/w/h; a no-op for anyone not currently blinded.
+function drawCrowBlindOverlay(c, fighter) {
+  if (!c || !fighter || !fighter.obscured || (fighter.obscuredTimer || 0) <= 0) return
+  const x = fighter._lastDrawX ?? fighter.x, y = fighter._lastDrawY ?? fighter.y
+  const w = fighter._lastDrawW ?? (fighter.w || 60), h = fighter._lastDrawH ?? (fighter.h || 100)
+  if (x == null) return
+  const t = fighter.obscuredTimer, fade = Math.min(1, t / 90)
+  c.save()
+  // dark veil over the body
+  c.globalAlpha = 0.34 * fade
+  c.fillStyle = "#0a0a12"
+  c.fillRect(x - w * 0.15, y - h * 0.1, w * 1.3, h * 1.2)
+  // fluttering crow-feathers (deterministic scatter)
+  c.globalAlpha = 0.8 * fade
+  c.fillStyle = "#111118"
+  const cx = x + w / 2, cy = y + h * 0.45
+  for (let i = 0; i < 9; i++) {
+    const ph = (t * 0.12) + i * 2.09
+    const fx = cx + Math.cos(ph + i) * (w * 0.55) * (0.5 + 0.5 * Math.sin(ph * 0.7))
+    const fy = cy + Math.sin(ph * 1.3 + i) * (h * 0.5) - (i % 3) * 6
+    const s = 3 + (i % 3)
+    c.beginPath(); c.ellipse(fx, fy, s, s * 0.42, ph, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
+}
+
 // MAYURI — movement FX overlays (Stage 1). Two resliced FX pairs layered BEHIND the body during
 // movement: a dash-trail GHOST (row_08/10 — the streaking-coat motion blur) shown while dashing or
 // running fast, and a ground SHOCKWAVE ring burst (row_09/11) that fires on each dash-start. Pure
@@ -11842,6 +11882,7 @@ function renderHybridFighter(fighter) {
     drawHandlerShikigamiHUD(c, fighter)     // The Handler — shikigami cameo-select icon strip (row_08 icons) above the head (handler only)
     drawHandlerMahoragaHUD(c, fighter)      // The Handler — Mahoraga adaptation-tracker: spinning Dharma Wheel + ADAPTED ×N + duration (handler Mahoraga form only)
     drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Projection Sorcery "24-frame" HUD: L→H→L pips + per-beat countdown + DROP/FRAMES-SET flash (naoya, mid-projection only)
+    drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
     drawSupermanVoidStarfield(c, fighter)  // Superman Void Sovereign (all 4 variants) — drifting star-field, ON TOP of the void sprite
@@ -15591,19 +15632,14 @@ window.addEventListener("keydown", e => {
   }
   handlePauseInput(key)
 
-  // CLONE CONTROLS — STANDARDIZED binding, identical across EVERY clone character (Naruto, Minato,
-  // Hashirama Wood Clone, Tobirama Water Clone): "," = CREATE a clone, "." = DISPERSE all clones.
-  // Gated on the SINGLE source of truth isCloneCapable() (summons.js CLONE_CAPABLE_KEYS) so the binding
-  // can never drift per-character again. Battle only; owner = p1, target = the opponent. Inert for any
-  // non-clone character (same as pressing a special they don't have). summons.js owns all chakra-split +
-  // lifecycle. (This SUPERSEDES the old per-character D→F/D→B + double-QCF motion clone spawn/dispel.)
-  if (!e.repeat && gameState === GAME_STATES.BATTLE && p1 && isCloneCapable(p1)) {
-    if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); const rk = (p1.rosterKey || "").toLowerCase(); if (rk === "hashirama") { try { sound.playSfxFile?.(pickHashiramaVoice("woodClone"), null) } catch (_) {} } else if (rk === "boruto") { try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {} } return }
+  // PERSISTENT CLONE CONTROLS (legacy) — "," create / "." disperse / "/" consciousness-swap. These drive the
+  // PERSISTENT shadow/wood-clone system, which now applies ONLY to the LEGACY clone chars (boruto/hiruzen/madara)
+  // — the characters NOT part of the one-shot clone-assist redesign. The 6 redesigned chars
+  // (naruto/minato/tobirama/hashirama/itachi/kakashi) use one-shot "h" moves instead (handler just below), and
+  // never spawn a persistent clone entity.
+  if (!e.repeat && gameState === GAME_STATES.BATTLE && p1 && LEGACY_CLONE_KEYS.has((p1.rosterKey || "").toLowerCase())) {
+    if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); if ((p1.rosterKey || "").toLowerCase() === "boruto") { try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {} } return }
     if (key === ".") { dispelShadowClones(p1); return }
-    // CONSCIOUSNESS-SWAP (Stage 3) — "/" trades places with a live clone: the body just hit was the fake, and
-    // "you" are now standing where a clone was (true-blind — bodies look identical, track your own placement).
-    // Cooldown-gated (anti-spam); on a swap it BREAKS hitstun (the escape) + grants brief arrival i-frames.
-    // Fails silently if no live clone exists (opponent may have popped them — the Stage-1 counterplay).
     if (key === "/") {
       if ((p1._cloneSwapCd || 0) > 0) return
       if (swapConsciousnessWithClone(p1, getOpponent(p1))) {
@@ -15614,6 +15650,24 @@ window.addEventListener("keydown", e => {
       }
       return
     }
+  }
+
+  // ONE-SHOT CLONE MOVES (redesign) — the 6 redesigned chars use a dedicated "h" key + held direction, each a
+  // self-contained committed SPECIAL (energy + its own cooldown), modeled on the beam specials. NO persistent
+  // clone entity is ever created: a clone briefly appears / a clone-projectile flies / a one-frame substitution
+  //   h          = clone appears in front and strikes once (launcher), then vanishes  (fireCloneOneShotStrike)
+  //   forward+h  = a clone-shaped projectile flies forward, hits, vanishes            (fireCloneOneShotProjectile)
+  //   back+h     = instant Substitution teleport (puff + i-frames), one frame          (fireCloneSubstitution)
+  if (!e.repeat && key === "h" && gameState === GAME_STATES.BATTLE && p1 && ONESHOT_CLONE_KEYS.has((p1.rosterKey || "").toLowerCase())) {
+    const inp = getFighterInput(p1)
+    const fwd  = (p1.facing === 1) ? !!inp.right : !!inp.left
+    const back = (p1.facing === 1) ? !!inp.left  : !!inp.right
+    const ctx  = getAbilityContext()
+    const ok = back ? fireCloneSubstitution(p1, ctx)
+                    : fwd ? fireCloneOneShotProjectile(p1, ctx)
+                          : fireCloneOneShotStrike(p1, ctx)
+    if (ok) camera.shake?.(4, 4)
+    return
   }
 
   // CRITICAL (Task 2): only act on a REAL key PRESS, never OS auto-repeat. While a
@@ -17192,6 +17246,10 @@ gameLoop()
     cloneTell: () => isCloneTell(),
     p1CloneStates: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), state: s._state, hidden: !!s._hidden, atk: s._atk || null, vx: Math.round((s.vx || 0) * 10) / 10 })),   // clone lifecycle + behavior-AI inspection
     cloneStrikeFxCount: () => getCloneStrikeFxCount(),   // cumulative clone lunge-strike impacts (prove clones ATTACK)
+    cloneOneShotCd: () => (p1 ? { strike: p1._cloneStrikeCd || 0, proj: p1._cloneProjCd || 0, sub: p1._cloneSubCd || 0 } : null),   // one-shot clone move cooldowns
+    persistentCloneCount: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).length,   // one-shot verify: MUST be 0 for the 6 redesigned chars
+    p2Obscured: () => ({ obscured: !!p2?.obscured, timer: p2?.obscuredTimer || 0 }),   // Itachi crow-blind debuff on the opponent
+    p1Pos: () => (p1 ? { x: Math.round(p1.x), facing: p1.facing, hitstop: p1.hitstop || 0 } : null),   // clone-assist verify: player position/freeze
     setCloneAggro: (on = true) => setCloneAggro(!!on),   // toggle the clone behavior AI (active vs legacy decoy)
     p2ProjectileAtClone: () => { if (!p2 || !p1) return -1; const c = activeSummons.find(s => s.id === "shadowClone" && s.owner === p1 && s._state === "idle" && !s._hidden); if (!c) return -1; spawnProjectile(p2, "testBolt", { damage: 30, speed: 0, lifetime: 30, w: 30, h: 30, spawnX: c.x + c.w / 2, spawnY: c.y + c.h / 2 }, {}); return countShadowClones(p1) },   // fire an ENEMY projectile overlapping a clone → hit-reveal poof (returns clone count before)
     p1TransformJutsu: () => (p1 ? { active: isTransformJutsuActive(p1), tier: transformJutsuTier(p1), target: p1._tjTarget || null, name: p1.name, rosterKey: p1.rosterKey, spriteSheet: p1.spriteHandler?._actionDef?.sheet ?? null, lightDmg: p1.basic_attacks?.light?.damage ?? null, specialsKeys: Object.keys(p1.specials || {}).sort() } : null),   // Transformation Jutsu state + proof that moves/stats are (Tier1) unchanged

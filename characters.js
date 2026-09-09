@@ -2655,7 +2655,7 @@ const evilMorty = {
 }
 
 const rickPrime = {
-  rosterKey: "rickPrime", name: "Rick Prime", universe: "rick_and_morty", isPlayable: false,   // no sprite art yet — hidden from normal select, dev-only (Stage 5B)
+  rosterKey: "rickPrime", name: "Rick Prime", universe: "rick_and_morty", isPlayable: true,   // real __rickprime art wired (recolor of base Rick) — now selectable
   archetypes: ["ranged", "gadgets"],
   primary: "ranged", secondary: ["gadgets"],
   traits: { hasEnergy: true, energyType: "portal_tech", mobility: "high", scaling: "burst", animeMovement: false },
@@ -2675,7 +2675,14 @@ const rickPrime = {
   ultimate: { name: "Rick Prime's Supremacy", cost: 100, duration: 10, effect: "Massive speed, attack boost, and random gadget chaos" },
   transformationOrder: ["base"],
   transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
-  animationData: { ...DEFAULT_ANIM }
+  portrait: "./rick_portrait__rickprime.png",   // base Rick's stand-crop recolored (dark jacket / red accent) — see tools/gen_rickprime_recolor.py
+  hasSprites: true, spriteScale: 1.85,          // real art now: base Rick's sheets recolored to __rickprime (matches rick.spriteScale)
+  introPool: ["idle"],                          // same intro fix as base Rick (no dedicated intro sprite → play the grounded idle)
+  // Rick Prime's art = base Rick's sheets recolored to __rickprime (dark navy jacket + red chest
+  // accent + dark navy pants; blue hair & pale skin kept — they match the reference). Retag rick's
+  // animationData to the __rickprime sheets, exactly like Albedo retags ben10's to __albedo.
+  animationData: Object.fromEntries(
+    Object.entries(rick.animationData).map(([k, d]) => [k, { ...d, sheet: d.sheet.replace(/\.png$/, "__rickprime.png") }]))
 }
 
 // ─────────────────────────────────────────────────────────────────

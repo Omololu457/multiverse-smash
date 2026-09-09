@@ -102,6 +102,7 @@ import {
   consumeShadowClones,   // pop N clones for the multi-clone combo tier (lossy share)
   setCloneSpecialAttack  // register a per-owner SPECIAL clone attack (Hashirama wood clone → tree at its position)
 } from "./summons.js"
+import { registerCloneAssistSpecial } from "./cloneAssist.js"   // clone-assist redesign: register a char's Assist+Back special-cast (Tobirama Water Wall)
 import {
   applyTransformation,
   updateTransformations
@@ -20031,6 +20032,19 @@ function fireHashiramaWoodPillar(fighter, context) {
 // calls it on the clone's strike beat) so there is no summons→abilities import cycle.
 const HASHI_CLONE_TREE_TIER = 1     // T2 sapling — a real tree but modest per clone (many clones can co-plant)
 const HASHI_CLONE_TREE_DMG  = 34    // RAW (~20 EFF via ×0.60) — lower than the caster's own tier so a swarm isn't oppressive
+// CLONE-ASSIST MASTERY CAST — Tobirama's Assist+Back: the water clone raises one of his OWN existing specials,
+// a WATER WALL (reusing the tobiWaterWall projectile + art), at the consumed clone's mark. Reflects the
+// technique-creator's mastery — a defensive construct, not a generic hit. Called by cloneAssist.js.
+registerCloneAssistSpecial("tobirama", (fighter, spot, opponent, context) => {
+  fighter._spriteCastMove = "tobiWaterWall"; fighter._spriteCastTimer = 18
+  spawnProjectile(fighter, "tobiWaterWall", {
+    drawKind: "waterwall", damage: 40, speed: 0, vx: 0, lifetime: 48, hitstun: 16, knockbackX: 9, knockbackY: -2,
+    w: 34, h: 112, radius: 46, color: "#38bdf8", isSpecial: true,
+    spawnX: (spot?.x ?? fighter.x), spawnY: (spot?.y ?? fighter.y) + 10
+  }, context || {})
+  return true
+})
+
 setCloneSpecialAttack((clone) => {
   const owner = clone?.owner
   if (!owner || String(owner.rosterKey || "").toLowerCase() !== "hashirama") return false

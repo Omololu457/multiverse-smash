@@ -30,7 +30,10 @@ async function shot(name) {
 // each clone tracks the owner iff clone.x - owner.x ≈ its captured mirrorDx
 const tracks = m => m.clones.length > 0 && m.clones.every(c => c.mirrorDx != null && Math.abs((c.x - m.owner.x) - c.mirrorDx) <= 2);
 
-await page.goto(`${base}/index.html?harness=1&p1=naruto`, { waitUntil: "load" });
+// NOTE (clone-assist redesign): the 6 redesigned chars (naruto/minato/tobirama/hashirama/itachi/kakashi) NO
+// LONGER mirror — their clones stand still (see clone_assist_verify.mjs). This test now targets BORUTO, which
+// keeps the LEGACY mirror-decoy path, so it still validates that path is intact for the non-redesigned chars.
+await page.goto(`${base}/index.html?harness=1&p1=boruto`, { waitUntil: "load" });
 await page.waitForFunction(() => window.__harness && window.__harness.state, null, { timeout: 15000, polling: 16 });
 await page.evaluate(() => window.__harness.start?.());
 await page.evaluate(() => window.__harness.skipToBattle?.());
@@ -40,7 +43,7 @@ await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window._
 await page.keyboard.press(","); await waitFrames(6);
 await page.keyboard.press(","); await waitFrames(30);
 
-console.log("═══ Mirror clones — Naruto (idle → walk → attack) ═══");
+console.log("═══ Mirror clones — Boruto (legacy path; the redesigned 6 stand still) (idle → walk → attack) ═══");
 
 // ── IDLE ──
 let m0 = await metrics();

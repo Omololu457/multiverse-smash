@@ -98,7 +98,7 @@ try {
   check("down_air = gold_aerial_uniform", sh(da).includes("gold_aerial_uniform"), `sheet=${sh(da)}`);
 
   section("Toji-Rekka command chain + interrupt (base)");
-  await prep(50);
+  await prep(38);   // start CLOSE so the opener connects — the chain is connect-gated (requireHit), so a whiffed samRekka1 never advances
   const stages = new Set(), nexts = new Set();
   // Track BOTH the live stage (currentMove) and the wired next-stage (rekkaNext). Hold FORWARD (opener is
   // Fwd+Heavy); re-tap Heavy during each recovery. The live samRekka1→2 advance proves the connect-gated
@@ -106,8 +106,8 @@ try {
   // live finisher landing (94 cumulative dmg) is proven end-to-end by test:gold-samurai-stage2.
   const sample = async (n) => { for (let i = 0; i < n; i++) { const a = await p1(); if (a.currentMove) stages.add(a.currentMove); if (a.rekkaNext) nexts.add(a.rekkaNext); await waitFrames(1); } };
   await page.keyboard.down("d");
-  await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await sample(6);
-  for (let i = 0; i < 2; i++) { await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await sample(8); }
+  await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await sample(9);
+  for (let i = 0; i < 4; i++) { await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await sample(9); }
   await waitFrames(8); await page.keyboard.up("d");
   const chainOk = stages.has("samRekka1") && stages.has("samRekka2") && (stages.has("samRekkaFin") || nexts.has("samRekkaFin"));
   check("chain advances samRekka1→2 (cancel-on-hit) + wired through to samRekkaFin", chainOk, `stages=[${[...stages]}] nexts=[${[...nexts]}]`);
@@ -141,7 +141,10 @@ try {
   await page.keyboard.down("j"); await waitFrames(4); const ml = await p1(); await page.keyboard.up("j"); await waitFrames(18);
   check("MEGA move 2 — light = gold_mega_slash_uniform", sh(ml).includes("gold_mega_slash_uniform"), `sheet=${sh(ml)}`);
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(6); const mg = await p1(); await page.keyboard.up("s"); await waitFrames(3);
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
+  await page.keyboard.down(";");   // ";" = dedicated guard key (MK-feel Stage 1c; Down no longer blocks)
+  await page.waitForFunction(() => (window.__harness.p1().spriteSheet || "").includes("gold_mega_guard_uniform"), null, { timeout: 2000, polling: 16 }).catch(() => {});
+  const mg = await p1(); await page.keyboard.up(";"); await waitFrames(3);
   check("MEGA move 3 — guard = gold_mega_guard_uniform", sh(mg).includes("gold_mega_guard_uniform"), `sheet=${sh(mg)}`);
 
   section("DUPLICATE-RENDER guard (transformation cinematic + Mega body)");

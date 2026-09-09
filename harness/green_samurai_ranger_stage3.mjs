@@ -94,7 +94,7 @@ try {
 
   // guard → mega guard
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(6); const guardMega = await p1(); await shot("mega_guard"); await page.keyboard.up("s"); await waitFrames(3);
+  await page.keyboard.down(";"); await waitFrames(6); const guardMega = await p1(); await shot("mega_guard"); await page.keyboard.up(";"); await waitFrames(3);   // ";" = dedicated guard key (MK-feel Stage 1c; Down no longer blocks)
   check("MOVE 4 — guard = forest_mega_guard_uniform", sheet(guardMega).includes("samurai_ranger_forest_mega_guard_uniform"), `sheet=${sheet(guardMega)} isBlocking=${guardMega.isBlocking}`);
 
   console.log("\n── duplicate-render: Mega body sheet drawn ≤ 1× per frame ──");

@@ -93,6 +93,7 @@ import {
   updateBen10CommandCombat,   // Ben 10 per-form Fwd+Heavy command chain (Ben jab / XLR8 combo / Diamondhead crystal swing)
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
   updateRedRangerMmprCommandCombat,   // Red Ranger MMPR punch-chain (Fwd+Heavy rekka → super 360° launcher) + air-Heavy dive-kick poke
+  updateSamuraiRangerCommandCombat,   // Samurai Rangers (Red/Gold/Green) — Fwd+Heavy rekka (samRekka1→2→Fin launcher) + Red's merged tap/hold up-attack
   updateSaitamaCommandCombat,   // Saitama "Spin-Punch" Fwd+Heavy command-normal rekka (turn_puch 3-stage, cancel-on-hit → launcher)
   updateGenosCommandCombat,   // Genos rush chain (Fwd+Heavy 3-stage rekka: punch opener → rapid streak-burst multi-hit → spinning charge launcher, cancel-on-hit)
   updateFriezaCommandCombat,  // Frieza rush chain (Fwd+Heavy 3-stage rekka: strike opener → rapid follow strikes → launcher finisher, cancel-on-hit)
@@ -138,6 +139,9 @@ import {
   enterVegetaDarkRose,        // Dark Vegeta — dark-aura→ROSE 3rd tier (charge hold-release ≥150 Ki; full pink art form-swap via _skinAnim)
   revertVegetaDarkRose,       // Dark Vegeta — revert Rose→base (tap / auto at 0 Ki / KO)
   applyVegetaDarkFormSystem,  // Dark Vegeta — per-frame continuous Ki drain + instant auto-revert at 0 (Frieza model; Rose supersedes dark-aura)
+  enterSamuraiMega,           // Samurai Rangers (Red/Gold/Green) — base→Mega Mode tier-swap (charge hold-release, threshold-gated ≥90 Symbol Power)
+  revertSamuraiMega,          // Samurai Rangers — revert Mega Mode (tap while transformed / auto at 0 Symbol Power)
+  applySamuraiFormSystem,     // Samurai Rangers — per-frame morph-resolve + continuous Symbol Power drain + instant auto-revert at 0 (Vegeta-Dark model)
   enterGokuNextForm,          // Goku — step UP the transform ladder (charge hold-release, threshold-gated)
   revertGoku,                 // Goku — revert to base (charge tap / drain-empty / KO)
   applyGokuFormSystem,        // Goku — per-frame continuous Ki drain + instant auto-revert at 0 (same model)
@@ -375,6 +379,10 @@ import {
   updateRedRangerPowerSwordCinematic, isRedRangerPowerSwordCinematicActive, drawRedRangerPowerSwordCinematic,
   clearRedRangerPowerSwordCinematic, getRedRangerPowerSwordCinematicStatus
 } from "./redRangerPowerSwordCinematic.js"
+import {
+  updateSamuraiFlameSmasherCinematic, isSamuraiFlameSmasherCinematicActive, drawSamuraiFlameSmasherCinematic,
+  clearSamuraiFlameSmasherCinematic, getSamuraiFlameSmasherCinematicStatus
+} from "./samuraiFlameSmasherCinematic.js"
 import {
   activateMangekyouCinematic, updateMangekyouCinematic, isMangekyouCinematicActive,
   drawMangekyouCinematic, clearMangekyouCinematic, getMangekyouCinematicStatus
@@ -2611,6 +2619,7 @@ function resetRound() {
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
+  clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
@@ -3517,6 +3526,7 @@ function resetToStart() {
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
+  clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
@@ -4432,6 +4442,7 @@ function _doRematch() {
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
+  clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
@@ -4739,6 +4750,17 @@ function handleChargeRelease(fighter, key) {
       else enterVegetaDarkRose(fighter, getAbilityContext())                              // dark-aura → ROSE (held release, gated ≥150 Ki)
     }
     else enterVegetaDark(fighter, getAbilityContext())                                    // base → dark-aura
+    return
+  }
+
+  // SAMURAI RANGERS (Red / Gold / Green) — MEGA MODE: same "charge up and RELEASE at threshold" shape as
+  // Vegeta's dark-aura. Hold P to build Symbol Power (doEnergyCharge); ANY release at/above the threshold
+  // (enterSamuraiMega gates on Symbol Power ≥ 90) starts the locked morph → Mega tier-swap (art + stats).
+  // While transformed a quick TAP reverts early; a HOLD-release tops up Symbol Power and stays in form
+  // (sustain it). Continuous drain + auto-revert at 0 runs in applySamuraiFormSystem.
+  if (["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"].includes((fighter.rosterKey || "").toLowerCase())) {
+    if (fighter._megaActive) { if (wasTap) revertSamuraiMega(fighter) }   // Mega: tap → base
+    else enterSamuraiMega(fighter, getAbilityContext())                   // base → Mega (gated ≥90 Symbol Power)
     return
   }
 
@@ -5840,6 +5862,23 @@ function _updatePlayerCombatBody(fighter) {
   // down_air stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "red_ranger_mmpr" && !charging &&
       updateRedRangerMmprCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SAMURAI RANGERS (Red/Gold/Green) command chain: Fwd+Heavy opens samRekka1 → re-tap Heavy on hit →
+  // samRekka2 → samRekkaFin launcher (cancel-on-hit). Red ALSO has a merged grounded up-attack (tap I →
+  // samUpTap / hold I → samUpHold) driven here. Consumes the input only when it fires; neutral normals stay
+  // on the path below. Because the merged-up branch returns false while still deciding tap-vs-hold, suppress
+  // Red's built-in grounded up-attack so the normal path can't ALSO fire it that frame (Gold/Green keep
+  // their single standard up — only Red's is merged/suppressed).
+  if (["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"].includes((fighter.rosterKey || "").toLowerCase()) && !charging) {
+    if (updateSamuraiRangerCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+    // Suppress Red's built-in grounded up-attack (the merged driver above owns I). The normal attack path
+    // reads vKeys (snapshotted earlier this frame), NOT inputState, so clear BOTH — clearing only inputState
+    // would let buildNormalControlState still fire the built-in up from the stale virtual key.
+    if ((fighter.rosterKey || "").toLowerCase() === "samurai_red_ranger" && (fighter.onGround ?? fighter.grounded) && inputState.upAttack) {
+      inputState.upAttack = false
+      if (vKeys) vKeys[fighter.controls.upAttack] = false
+    }
+  }
 
   // SAITAMA "Spin-Punch" chain: Fwd+Heavy opens saitamaTurn1, re-tap Heavy during recovery to cancel into
   // saitamaTurn2 → saitamaTurn3 launcher (cancel-on-hit; a whiff/block ends the string). Consumes the input
@@ -10839,6 +10878,7 @@ function updateFighterState(fighter) {
   applyFriezaFormSystem(updated)     // Frieza Golden/Black: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
   applyPiccoloFormSystem(updated)    // Piccolo Potential/Orange: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
   applyVegetaDarkFormSystem(updated) // Dark Vegeta dark-aura: continuous per-frame Ki drain + instant auto-revert at 0 (same model)
+  applySamuraiFormSystem(updated)    // Samurai Rangers Mega Mode: drives the locked morph-resolve (base→Mega art+stats on the flash), then continuous Symbol Power drain + instant auto-revert at 0
   applyVegitoUISystem(updated)       // Vegito Ultra Instinct -Sign-: passive meter drain → evasion while >0 / health-bleed at 0 / recharge (+evasion off) while charging; sets _uiTier idle-tell
   if (updated._milesStealthTimer > 0) updated._milesStealthTimer--   // Miles Camouflage evasion window (combat.shouldMilesStealthEvade)
   if (updated._milesDashCd > 0)       updated._milesDashCd--         // Miles Down+B dash-kick cooldown (Charge O)
@@ -11392,6 +11432,15 @@ function updateBattle() {
   // connect beat via the cinematic's onImpact, then combat resumes.
   if (isRedRangerPowerSwordCinematicActive()) {
     updateRedRangerPowerSwordCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
+  // SAMURAI RANGER "Fire Smasher / Barracuda Blade / Forest Spear" ULTIMATE CINEMATIC (Red/Gold/Green share
+  // the freeze contract): combat/physics/input are paused; the camera frames BOTH fighters and the guaranteed
+  // tier-scaled damage lands at the STRIKE beat via the cinematic's onImpact, then combat resumes.
+  if (isSamuraiFlameSmasherCinematicActive()) {
+    updateSamuraiFlameSmasherCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return                                     // skip movement/combat/physics this frame
   }
@@ -13567,6 +13616,7 @@ function drawBattle() {
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
   drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
   drawRedRangerPowerSwordCinematic(ctx, canvas)  // fullscreen Power Sword overlay (red vignette + strike flash + slash streak)
+  drawSamuraiFlameSmasherCinematic(ctx, canvas)  // fullscreen Samurai ultimate overlay (fire/light/leaf vignette + strike flash + expanding rings, per-rosterKey palette)
   drawKilluaGodspeedCinematic(ctx, canvas)  // fullscreen Godspeed activation overlay (cyan burst flash)
   drawFlashTimeCinematic(ctx, canvas)       // fullscreen Flash Time activation overlay (red/gold burst flash)
   drawGonAdultFormCinematic(ctx, canvas)    // fullscreen Adult Form activation overlay (green burst flash)
@@ -16274,7 +16324,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -16947,6 +16997,7 @@ gameLoop()
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
     swordCine: () => getGokuBlackSwordCinematicStatus(),
     powerSwordCine: () => getRedRangerPowerSwordCinematicStatus(),   // Red Ranger MMPR Power Sword ultimate cinematic status (Stage 4)
+    samuraiUltCine: () => getSamuraiFlameSmasherCinematicStatus(),   // Samurai Rangers (Red/Gold/Green) Fire Smasher/Barracuda/Forest ultimate cinematic status (active/mega/phase)
     sealingCine: () => getHashiramaSealingJutsuCinematicStatus(),   // Hashirama Sealing Jutsu domain OVERLAY status (gate-slam + looping cameo strikes)
     setTreeTier: (n = 1) => { if (p1) { p1._treeTier = Math.max(0, (n | 0) - 1); p1._treeLastCast = performance.now(); } },   // force the NEXT Down+Special tree-summon to tier n (deterministic ladder for scale shots)
     domainState: () => { const d = activeDomains[0]; return d ? { rosterKey: d.rosterKey, timer: d.timer, timerMax: d.timerMax, name: d.name, ownerKey: d.owner?.rosterKey || null } : null },   // active Domain Expansion state (bg/trap/timer)

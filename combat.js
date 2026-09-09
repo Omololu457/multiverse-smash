@@ -2905,7 +2905,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       && cat !== "special" && cat !== "ultimate"
       && (atk.damage ?? dmg ?? 0) < (defender._bossArmorThreshold || 0)
 
-    if (bossArmored) {
+    // WOOD-CLONE CAST ARMOR (Hashirama one-shot strike): brief window shrugging a non-launcher hit — he can't
+    // be flinched out of committing the wood-clone strike (wood durability, translated to a one-shot shape).
+    const castArmored = (defender._castArmor || 0) > 0 && !atk.launcher && !atk.spike && cat !== "ultimate"
+
+    if (bossArmored || castArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
     } else {
@@ -3749,6 +3753,10 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // a projectile-based cancel-chain gate its continue on the bolt actually connecting — the same
       // "cancel-on-hit, block/whiff ends the string" rule the melee rekkas use via _cmdHitLanded.
       if (!fighter.isBlocking && proj.hitFlag && proj.owner) proj.owner[proj.hitFlag] = true
+
+      // ITACHI CROW CLONE (one-shot): a projectile carrying `onHitBlind` stamps the `obscured` blind debuff on a
+      // cleanly-hit target — crows scatter into their eyes. game.js drawCrowBlindOverlay makes it visible.
+      if (!fighter.isBlocking && proj.onHitBlind && (fighter.health || 0) > 0) { fighter.obscured = true; fighter.obscuredTimer = Math.max(fighter.obscuredTimer || 0, 90) }
 
       if (fighter.health <= 0) {
         try { sound?.play?.(SFX?.KO) } catch (_) {}

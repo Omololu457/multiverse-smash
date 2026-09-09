@@ -102,7 +102,6 @@ import {
   consumeShadowClones,   // pop N clones for the multi-clone combo tier (lossy share)
   setCloneSpecialAttack  // register a per-owner SPECIAL clone attack (Hashirama wood clone → tree at its position)
 } from "./summons.js"
-import { registerCloneAssistSpecial } from "./cloneAssist.js"   // clone-assist redesign: register a char's Assist+Back special-cast (Tobirama Water Wall)
 import {
   applyTransformation,
   updateTransformations
@@ -477,6 +476,126 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
 
   activeProjectiles.push(proj)
   return proj
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// ONE-SHOT CLONE MOVES (SSF2 model) — the clone-assist redesign. Each is a self-contained committed
+// SPECIAL (energy + its OWN cooldown), modeled on the beam specials (firePiccoloBeam). NO persistent clone
+// entity is ever created: a clone-sprite PROJECTILE appears/flies and auto-despawns on hit or lifetime, or a
+// one-frame Substitution teleport fires. Driven from game.js's "h"+direction handler for the 6 redesigned chars.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const CLONE_ONESHOT = {
+  naruto:   { sheet: "./naruto_kcm_b_attack.png",              sf: 4, sw: 52, sh: 53, ss: 2.0,  cost: 22, strikeDmg: 60, projDmg: 46 },
+  minato:   { sheet: "./minato_foward_kick_uniform.png",       sf: 4, sw: 59, sh: 71, ss: 1.7,  cost: 22, strikeDmg: 56, projDmg: 44, back: "ftg" },
+  tobirama: { sheet: "./tobirama_foward_water_slash_uniform.png", sf: 6, sw: 82, sh: 85, ss: 1.3, cost: 24, strikeDmg: 54, projDmg: 42, back: "waterwall" },
+  hashirama:{ sheet: "./hashirama_foward_punch_uniform.png",   sf: 5, sw: 76, sh: 79, ss: 1.55, cost: 24, strikeDmg: 62, projDmg: 46, strikeArmor: true },
+  itachi:   { sheet: "./itachi_melle_foward_attack_uniform.png", sf: 4, sw: 85, sh: 65, ss: 1.5, cost: 20, strikeDmg: 54, projDmg: 42, crow: true },
+  kakashi:  { sheet: "./kakashi_light_uniform.png",            sf: 2, sw: 50, sh: 55, ss: 1.65, cost: 22, strikeDmg: 56, projDmg: 44 }
+}
+const CLONE_ONESHOT_CD = { strike: 90, proj: 75, sub: 90 }   // per-move dedicated cooldowns (frames @60fps)
+function _cloneOneShotKey(f) { return String(f?.rosterKey || f?.id || "").toLowerCase() }
+function _spawnCrowBurst(x, y) { spawnClonePuff(x, y); spawnClonePuff(x + 14, y - 10); spawnClonePuff(x - 12, y + 8) }   // Itachi crow-scatter (dark puffs; game.js adds feather veil on-hit)
+
+// h (Neutral) — a clone APPEARS at a fixed spot in front, delivers ONE launcher strike, then VANISHES.
+export function fireCloneOneShotStrike(fighter, context) {
+  const cfg = CLONE_ONESHOT[_cloneOneShotKey(fighter)]; if (!cfg || !fighter) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || (fighter._cloneStrikeCd || 0) > 0) return false
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  const facing = fighter.facing || 1
+  fighter._cloneStrikeCd = CLONE_ONESHOT_CD.strike
+  fighter.vx = 0
+  fighter._spriteCastMove = cfg.castPose || "rasengan_cast"; fighter._spriteCastTimer = 24
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  if (cfg.strikeArmor) fighter._superArmor = Math.max(fighter._superArmor || 0, 22)   // Hashirama wood-clone durability on the committed strike
+  const sx = fighter.x + facing * 96, sy = fighter.y + (fighter.h || 100) * 0.12
+  schedulePendingSpawn(8, () => {
+    spawnClonePuff(sx + 30, sy + 45)                                    // clone APPEARS in a poof
+    if (cfg.crow) _spawnCrowBurst(sx + 30, sy + 40)
+    spawnProjectile(fighter, "cloneStrike", {
+      sheet: cfg.sheet, spriteFrames: cfg.sf, spriteW: cfg.sw, spriteH: cfg.sh, spriteSpeed: 3, spriteScale: cfg.ss,
+      speed: 0, vx: 0, vy: 0, lifetime: 18, damage: cfg.strikeDmg, hitstun: 22, knockbackX: 3, knockbackY: -12,   // negative kbY = launcher
+      w: 78, h: 112, radius: 46, isSpecial: true, hitDelay: 2, onHitBlind: !!cfg.crow, color: "#ffb400",
+      spawnX: sx - facing * 10, spawnY: sy
+    }, context)
+    schedulePendingSpawn(18, () => spawnClonePuff(sx + 30, sy + 45))    // clone VANISHES in a poof
+  })
+  return true
+}
+
+// h + Forward — a clone-shaped PROJECTILE flies forward, hits (kick), then vanishes (like a kunai/beam).
+export function fireCloneOneShotProjectile(fighter, context) {
+  const cfg = CLONE_ONESHOT[_cloneOneShotKey(fighter)]; if (!cfg || !fighter) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || (fighter._cloneProjCd || 0) > 0) return false
+  if (!spendEnergy(fighter, cfg.cost)) return false
+  const facing = fighter.facing || 1
+  fighter._cloneProjCd = CLONE_ONESHOT_CD.proj
+  fighter.vx = 0
+  fighter._spriteCastMove = cfg.castPose || "rasengan_cast"; fighter._spriteCastTimer = 20
+  fighter.attackCooldown = getAttackDuration(16, fighter)
+  schedulePendingSpawn(6, () => {
+    if (cfg.crow) _spawnCrowBurst(fighter.x + facing * 50, fighter.y + (fighter.h || 100) * 0.4)
+    spawnProjectile(fighter, "cloneRush", {
+      sheet: cfg.sheet, spriteFrames: cfg.sf, spriteW: cfg.sw, spriteH: cfg.sh, spriteSpeed: 3, spriteScale: cfg.ss,
+      speed: 12, damage: cfg.projDmg, hitstun: 18, knockbackX: 7, knockbackY: -2,
+      w: 54, h: 96, radius: 38, lifetime: 46, isSpecial: true, onHitBlind: !!cfg.crow, color: "#ffb400",
+      spawnY: fighter.y + (fighter.h || 100) * 0.34
+    }, context)
+  })
+  return true
+}
+
+// Tobirama h+Back — one-shot cast of his existing WATER WALL (a water clone braces the wall, then dissolves).
+function _cloneWaterWall(fighter, context) {
+  if (!spendEnergy(fighter, 24)) return false
+  fighter._cloneSubCd = CLONE_ONESHOT_CD.sub
+  fighter.vx = 0
+  fighter._spriteCastMove = "tobiWaterWall"; fighter._spriteCastTimer = 20
+  fighter.attackCooldown = getAttackDuration(22, fighter)
+  const facing = fighter.facing || 1
+  schedulePendingSpawn(8, () => {
+    const wx = fighter.facing === 1 ? fighter.x + (fighter.w || 60) + 10 : fighter.x - 34 - 10
+    spawnClonePuff(wx + 17, fighter.y + (fighter.h || 100) * 0.5)
+    spawnProjectile(fighter, "tobiWaterWall", {
+      drawKind: "waterwall", damage: 40, speed: 0, vx: 0, lifetime: 48, hitstun: 16, knockbackX: 9, knockbackY: -2,
+      w: 34, h: 112, radius: 46, color: "#38bdf8", isSpecial: true, spawnX: wx, spawnY: fighter.y + (fighter.h || 100) * 0.5
+    }, context)
+  })
+  return true
+}
+
+// h + Back — instant Substitution teleport (Kawarimi): vanish (puff), reappear a set distance back with brief
+// i-frames — ONE frame, no persistent clone. Per-char: Minato = FTG teleport-STRIKE to the opponent; Tobirama =
+// one-shot Water Wall cast.
+export function fireCloneSubstitution(fighter, context) {
+  const cfg = CLONE_ONESHOT[_cloneOneShotKey(fighter)]; if (!cfg || !fighter) return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || (fighter._cloneSubCd || 0) > 0) return false
+  if (cfg.back === "waterwall") return _cloneWaterWall(fighter, context)
+  if (!spendEnergy(fighter, Math.round(cfg.cost * 0.7))) return false
+  const getOpponent = getTargetResolver(context)
+  const opp = getOpponent(fighter)
+  const facing = fighter.facing || 1
+  fighter._cloneSubCd = CLONE_ONESHOT_CD.sub
+  spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)   // puff at the OLD spot
+  fighter._spriteCastMove = cfg.castPose || "rasengan_cast"; fighter._spriteCastTimer = 12
+  if (cfg.back === "ftg" && opp) {
+    // Minato FTG — blink to the opponent and strike (a clone marks the spot for one frame, Minato appears + hits).
+    fighter.x = opp.x - facing * 70
+    fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 16)
+    schedulePendingSpawn(2, () => spawnProjectile(fighter, "cloneStrike", {
+      sheet: cfg.sheet, spriteFrames: cfg.sf, spriteW: cfg.sw, spriteH: cfg.sh, spriteSpeed: 3, spriteScale: cfg.ss,
+      speed: 0, lifetime: 14, damage: cfg.strikeDmg, hitstun: 20, knockbackX: 5, knockbackY: -8,
+      w: 58, h: 108, radius: 40, isSpecial: true, hitDelay: 1, spawnX: fighter.x, spawnY: fighter.y + (fighter.h || 100) * 0.12
+    }, context))
+  } else {
+    // default Kawarimi — retreat teleport AWAY from the opponent.
+    const dir = opp ? ((opp.x >= fighter.x) ? -1 : 1) : -facing
+    fighter.x = fighter.x + dir * 190
+  }
+  fighter.vx = 0; fighter.vy = 0
+  fighter.hitstun = 0; fighter.blockstun = 0
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 14)   // i-frames during the swap
+  spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) / 2)   // puff at the NEW spot
+  return true
 }
 
 export function spawnProjectileFromMove(fighter, moveName, moveData, context = {}) {
@@ -20032,19 +20151,6 @@ function fireHashiramaWoodPillar(fighter, context) {
 // calls it on the clone's strike beat) so there is no summons→abilities import cycle.
 const HASHI_CLONE_TREE_TIER = 1     // T2 sapling — a real tree but modest per clone (many clones can co-plant)
 const HASHI_CLONE_TREE_DMG  = 34    // RAW (~20 EFF via ×0.60) — lower than the caster's own tier so a swarm isn't oppressive
-// CLONE-ASSIST MASTERY CAST — Tobirama's Assist+Back: the water clone raises one of his OWN existing specials,
-// a WATER WALL (reusing the tobiWaterWall projectile + art), at the consumed clone's mark. Reflects the
-// technique-creator's mastery — a defensive construct, not a generic hit. Called by cloneAssist.js.
-registerCloneAssistSpecial("tobirama", (fighter, spot, opponent, context) => {
-  fighter._spriteCastMove = "tobiWaterWall"; fighter._spriteCastTimer = 18
-  spawnProjectile(fighter, "tobiWaterWall", {
-    drawKind: "waterwall", damage: 40, speed: 0, vx: 0, lifetime: 48, hitstun: 16, knockbackX: 9, knockbackY: -2,
-    w: 34, h: 112, radius: 46, color: "#38bdf8", isSpecial: true,
-    spawnX: (spot?.x ?? fighter.x), spawnY: (spot?.y ?? fighter.y) + 10
-  }, context || {})
-  return true
-})
-
 setCloneSpecialAttack((clone) => {
   const owner = clone?.owner
   if (!owner || String(owner.rosterKey || "").toLowerCase() !== "hashirama") return false

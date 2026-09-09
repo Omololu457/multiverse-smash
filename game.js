@@ -40,12 +40,6 @@ import {
   getCloneMirrorRenderCount,               // mirror-render probe: clones replaying the owner's exact frame
   setCloneTell, isCloneTell                // decoy visual-tell toggle (Stage 4 no-tell mode)
 } from "./summons.js"
-import {
-  triggerCloneAssist,                      // clone-assist redesign: fire summon-strike / ambush-rush / swap on the "h" key
-  tickCloneAssistCooldowns,                // per-frame decrement of the three per-action assist cooldowns
-  isCloneAssistCapable,                    // char opts into the new stand-still + assist system (6 chars, config-gated)
-  getCloneAssistCooldowns                  // harness/HUD readout of the assist cooldowns
-} from "./cloneAssist.js"
 import { physics } from "./physics.js"
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
@@ -99,6 +93,7 @@ import {
   updateBen10CommandCombat,   // Ben 10 per-form Fwd+Heavy command chain (Ben jab / XLR8 combo / Diamondhead crystal swing)
   updateOmegaRangerCommandCombat,   // Omega Ranger kick-chain (Fwd+Heavy rekka) + Fwd+Light push / air-Heavy down-air-2 pokes
   updateRedRangerMmprCommandCombat,   // Red Ranger MMPR punch-chain (Fwd+Heavy rekka → super 360° launcher) + air-Heavy dive-kick poke
+  updateSamuraiRangerCommandCombat,   // Samurai Rangers (Red/Gold/Green) — Fwd+Heavy rekka (samRekka1→2→Fin launcher) + Red's merged tap/hold up-attack
   updateSaitamaCommandCombat,   // Saitama "Spin-Punch" Fwd+Heavy command-normal rekka (turn_puch 3-stage, cancel-on-hit → launcher)
   updateGenosCommandCombat,   // Genos rush chain (Fwd+Heavy 3-stage rekka: punch opener → rapid streak-burst multi-hit → spinning charge launcher, cancel-on-hit)
   updateFriezaCommandCombat,  // Frieza rush chain (Fwd+Heavy 3-stage rekka: strike opener → rapid follow strikes → launcher finisher, cancel-on-hit)
@@ -242,7 +237,10 @@ import {
   fireNezukoRunScratchRelease, // Nezuko Run & Scratch — fired from handleChargeRelease (CHARGE hold→release, forward claw rush)
   updateNezukoUltChain,        // Nezuko Kekijutsu Baketsu — per-frame phase1→phase2 auto-chain driver
   revertNezukoDemon,           // Nezuko Demon Transformation — revert-to-base (timer expiry)
-  revertHiruzenEnma            // Hiruzen Enma (Monkey King Staff) buff — revert damage/reach multipliers (timer expiry)
+  revertHiruzenEnma,           // Hiruzen Enma (Monkey King Staff) buff — revert damage/reach multipliers (timer expiry)
+  fireCloneOneShotStrike,      // one-shot clone (h): a clone appears in front, strikes once (launcher), vanishes
+  fireCloneOneShotProjectile,  // one-shot clone (h+Fwd): a clone-shaped projectile flies forward, hits, vanishes
+  fireCloneSubstitution        // one-shot clone (h+Back): instant Substitution teleport (puff + i-frames), one frame
 } from "./abilities.js"
 import { spawnProjectileFromMove } from "./projectiles.js"
 import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha } from "./ui.js"
@@ -381,6 +379,10 @@ import {
   updateRedRangerPowerSwordCinematic, isRedRangerPowerSwordCinematicActive, drawRedRangerPowerSwordCinematic,
   clearRedRangerPowerSwordCinematic, getRedRangerPowerSwordCinematicStatus
 } from "./redRangerPowerSwordCinematic.js"
+import {
+  updateSamuraiFlameSmasherCinematic, isSamuraiFlameSmasherCinematicActive, drawSamuraiFlameSmasherCinematic,
+  clearSamuraiFlameSmasherCinematic, getSamuraiFlameSmasherCinematicStatus
+} from "./samuraiFlameSmasherCinematic.js"
 import {
   activateMangekyouCinematic, updateMangekyouCinematic, isMangekyouCinematicActive,
   drawMangekyouCinematic, clearMangekyouCinematic, getMangekyouCinematicStatus
@@ -774,6 +776,10 @@ const EDGE_SPAWN_PADDING    = 80
 // Consciousness-swap (Stage 3) tuning: frames of cooldown between swaps (anti-spam) + brief arrival i-frames.
 const CLONE_SWAP_COOLDOWN   = 75   // ~1.25s @60fps before the next "/" swap
 const CLONE_SWAP_IFRAMES    = 10   // invuln on arrival so the swap is a real escape, not a trade-into-a-meaty
+// CLONE-ASSIST REDESIGN (SSF2 one-shot model): the 6 redesigned chars use dedicated "h"+direction one-shot
+// SPECIALS (no persistent clone). The legacy 3 keep the persistent "," / "." / "/" shadow-clone system.
+const ONESHOT_CLONE_KEYS = new Set(["naruto", "minato", "tobirama", "hashirama", "itachi", "kakashi"])
+const LEGACY_CLONE_KEYS  = new Set(["boruto", "hiruzen", "madara"])
 const ROUND_TIME            = 5400   // 90 seconds @ 60fps
 
 const GAME_STATES = {
@@ -2617,6 +2623,7 @@ function resetRound() {
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
+  clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
@@ -3523,6 +3530,7 @@ function resetToStart() {
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
+  clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
@@ -4438,6 +4446,7 @@ function _doRematch() {
   clearSSJRoseCinematic()
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
+  clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
   clearGonAdultFormCinematic()
@@ -5294,8 +5303,10 @@ function updateMiscTimers(fighter) {
   if (fighter._playfulCloudCd > 0) fighter._playfulCloudCd--               // Toji Playful Cloud cooldown (no-energy special)
   if (fighter._flyHeadCd > 0) fighter._flyHeadCd--                         // Toji Fly Heads swarm cooldown (no-energy special)
   if (fighter._flyBarrageCd > 0) fighter._flyBarrageCd--                   // Toji OFFENSIVE Fly Heads swarm (Down+Heavy damaging projectile fan) cooldown
-  if (fighter._cloneSwapCd > 0) fighter._cloneSwapCd--                     // Stage 3 consciousness-swap ("/") cooldown
-  tickCloneAssistCooldowns(fighter)                                        // clone-assist redesign: decrement summon/ambush/swap cooldowns
+  if (fighter._cloneSwapCd > 0) fighter._cloneSwapCd--                     // legacy consciousness-swap ("/") cooldown (boruto/hiruzen/madara)
+  if (fighter._cloneStrikeCd > 0) fighter._cloneStrikeCd--                 // one-shot clone: Neutral strike cooldown
+  if (fighter._cloneProjCd   > 0) fighter._cloneProjCd--                   // one-shot clone: Forward projectile cooldown
+  if (fighter._cloneSubCd    > 0) fighter._cloneSubCd--                    // one-shot clone: Back substitution cooldown
   if (fighter._tojiFlyFadeTimer > 0) {                                     // Toji Fly Heads self-fade window (render-only near-invisibility)
     fighter._tojiFlyFadeTimer--
     if (!isTojiFlyHeadsSwarmActive()) fighter._tojiFlyFadeTimer = 0        // swarm ended (naturally or via round/KO reset) → snap back to visible
@@ -5847,6 +5858,17 @@ function _updatePlayerCombatBody(fighter) {
   // down_air stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "red_ranger_mmpr" && !charging &&
       updateRedRangerMmprCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // SAMURAI RANGERS (Red/Gold/Green) command chain: Fwd+Heavy opens samRekka1 → re-tap Heavy on hit →
+  // samRekka2 → samRekkaFin launcher (cancel-on-hit). Red ALSO has a merged grounded up-attack (tap I →
+  // samUpTap / hold I → samUpHold) driven here. Consumes the input only when it fires; neutral normals stay
+  // on the path below. Because the merged-up branch returns false while still deciding tap-vs-hold, suppress
+  // Red's built-in grounded up-attack so the normal path can't ALSO fire it that frame (Gold/Green keep
+  // their single standard up — only Red's is merged/suppressed).
+  if (["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"].includes((fighter.rosterKey || "").toLowerCase()) && !charging) {
+    if (updateSamuraiRangerCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+    if ((fighter.rosterKey || "").toLowerCase() === "samurai_red_ranger" && (fighter.onGround ?? fighter.grounded) && inputState.upAttack) inputState.upAttack = false
+  }
 
   // SAITAMA "Spin-Punch" chain: Fwd+Heavy opens saitamaTurn1, re-tap Heavy during recovery to cancel into
   // saitamaTurn2 → saitamaTurn3 launcher (cancel-on-hit; a whiff/block ends the string). Consumes the input
@@ -11432,6 +11454,15 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // SAMURAI RANGER "Fire Smasher / Barracuda Blade / Forest Spear" ULTIMATE CINEMATIC (Red/Gold/Green share
+  // the freeze contract): combat/physics/input are paused; the camera frames BOTH fighters and the guaranteed
+  // tier-scaled damage lands at the STRIKE beat via the cinematic's onImpact, then combat resumes.
+  if (isSamuraiFlameSmasherCinematicActive()) {
+    updateSamuraiFlameSmasherCinematic({ camera, hitEffects: hitSparks, damageNumbers, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // KILLUA GODSPEED ACTIVATION CINEMATIC: SAME freeze contract — combat/physics/input paused while the
   // camera pushes in on Killua and his charge-up plays, then pulls back. The buff was already applied at
   // the trigger (executeKilluaUltimate); this is the visual activation.
@@ -13604,6 +13635,7 @@ function drawBattle() {
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
   drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
   drawRedRangerPowerSwordCinematic(ctx, canvas)  // fullscreen Power Sword overlay (red vignette + strike flash + slash streak)
+  drawSamuraiFlameSmasherCinematic(ctx, canvas)  // fullscreen Samurai ultimate overlay (fire/light/leaf vignette + strike flash + expanding rings, per-rosterKey palette)
   drawKilluaGodspeedCinematic(ctx, canvas)  // fullscreen Godspeed activation overlay (cyan burst flash)
   drawFlashTimeCinematic(ctx, canvas)       // fullscreen Flash Time activation overlay (red/gold burst flash)
   drawGonAdultFormCinematic(ctx, canvas)    // fullscreen Adult Form activation overlay (green burst flash)
@@ -15578,19 +15610,14 @@ window.addEventListener("keydown", e => {
   }
   handlePauseInput(key)
 
-  // CLONE CONTROLS — STANDARDIZED binding, identical across EVERY clone character (Naruto, Minato,
-  // Hashirama Wood Clone, Tobirama Water Clone): "," = CREATE a clone, "." = DISPERSE all clones.
-  // Gated on the SINGLE source of truth isCloneCapable() (summons.js CLONE_CAPABLE_KEYS) so the binding
-  // can never drift per-character again. Battle only; owner = p1, target = the opponent. Inert for any
-  // non-clone character (same as pressing a special they don't have). summons.js owns all chakra-split +
-  // lifecycle. (This SUPERSEDES the old per-character D→F/D→B + double-QCF motion clone spawn/dispel.)
-  if (!e.repeat && gameState === GAME_STATES.BATTLE && p1 && isCloneCapable(p1)) {
-    if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); const rk = (p1.rosterKey || "").toLowerCase(); if (rk === "hashirama") { try { sound.playSfxFile?.(pickHashiramaVoice("woodClone"), null) } catch (_) {} } else if (rk === "boruto") { try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {} } return }
+  // PERSISTENT CLONE CONTROLS (legacy) — "," create / "." disperse / "/" consciousness-swap. These drive the
+  // PERSISTENT shadow/wood-clone system, which now applies ONLY to the LEGACY clone chars (boruto/hiruzen/madara)
+  // — the characters NOT part of the one-shot clone-assist redesign. The 6 redesigned chars
+  // (naruto/minato/tobirama/hashirama/itachi/kakashi) use one-shot "h" moves instead (handler just below), and
+  // never spawn a persistent clone entity.
+  if (!e.repeat && gameState === GAME_STATES.BATTLE && p1 && LEGACY_CLONE_KEYS.has((p1.rosterKey || "").toLowerCase())) {
+    if (key === ",") { summonShadowClone(p1, getOpponent(p1), { onFocus: () => camera.focusOnFighter?.(p1, 1.02) }); if ((p1.rosterKey || "").toLowerCase() === "boruto") { try { sound.playSfxFile?.(pickBorutoVoice("shadowClone"), null) } catch (_) {} } return }
     if (key === ".") { dispelShadowClones(p1); return }
-    // CONSCIOUSNESS-SWAP (Stage 3) — "/" trades places with a live clone: the body just hit was the fake, and
-    // "you" are now standing where a clone was (true-blind — bodies look identical, track your own placement).
-    // Cooldown-gated (anti-spam); on a swap it BREAKS hitstun (the escape) + grants brief arrival i-frames.
-    // Fails silently if no live clone exists (opponent may have popped them — the Stage-1 counterplay).
     if (key === "/") {
       if ((p1._cloneSwapCd || 0) > 0) return
       if (swapConsciousnessWithClone(p1, getOpponent(p1))) {
@@ -15601,26 +15628,24 @@ window.addEventListener("keydown", e => {
       }
       return
     }
-    // CLONE-ASSIST redesign — dedicated "h" key (separate from spawn "," ), used alone or with a held direction:
-    //   h          = SUMMON strike (player briefly freezes, a clone lunges in and strikes — combo extender)
-    //   forward+h  = AMBUSH rush   (a clone rushes in immediately, usable mid-combo)
-    //   back+h     = SWAP / char-specific back action (substitution, Minato FTG, Hashirama wall, …)
-    // Each action is cooldown-gated inside triggerCloneAssist. Only the 6 opted-in chars (config-gated) respond.
-    if (key === "h" && isCloneAssistCapable(p1)) {
-      const inp = getFighterInput(p1)
-      const fwd  = (p1.facing === 1) ? !!inp.right : !!inp.left
-      const back = (p1.facing === 1) ? !!inp.left  : !!inp.right
-      const dir  = back ? "back" : (fwd ? "forward" : "neutral")
-      const action = triggerCloneAssist(p1, dir, getOpponent(p1), {
-        context: getAbilityContext(),   // for back-actions that cast a char's existing special (Tobirama Water Wall)
-        onAction: (a) => {
-          try { sound.playSfxFile?.("naruto_shadow_clone_special.mp3", null) } catch (_) {}
-          camera.focusOnFighter?.(p1, (a === "swap" || a === "ftg") ? 1.0 : 1.02)
-        }
-      })
-      if (action) camera.shake?.(4, 4)
-      return
-    }
+  }
+
+  // ONE-SHOT CLONE MOVES (redesign) — the 6 redesigned chars use a dedicated "h" key + held direction, each a
+  // self-contained committed SPECIAL (energy + its own cooldown), modeled on the beam specials. NO persistent
+  // clone entity is ever created: a clone briefly appears / a clone-projectile flies / a one-frame substitution
+  //   h          = clone appears in front and strikes once (launcher), then vanishes  (fireCloneOneShotStrike)
+  //   forward+h  = a clone-shaped projectile flies forward, hits, vanishes            (fireCloneOneShotProjectile)
+  //   back+h     = instant Substitution teleport (puff + i-frames), one frame          (fireCloneSubstitution)
+  if (!e.repeat && key === "h" && gameState === GAME_STATES.BATTLE && p1 && ONESHOT_CLONE_KEYS.has((p1.rosterKey || "").toLowerCase())) {
+    const inp = getFighterInput(p1)
+    const fwd  = (p1.facing === 1) ? !!inp.right : !!inp.left
+    const back = (p1.facing === 1) ? !!inp.left  : !!inp.right
+    const ctx  = getAbilityContext()
+    const ok = back ? fireCloneSubstitution(p1, ctx)
+                    : fwd ? fireCloneOneShotProjectile(p1, ctx)
+                          : fireCloneOneShotStrike(p1, ctx)
+    if (ok) camera.shake?.(4, 4)
+    return
   }
 
   // CRITICAL (Task 2): only act on a REAL key PRESS, never OS auto-repeat. While a
@@ -16331,7 +16356,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -17004,6 +17029,7 @@ gameLoop()
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
     swordCine: () => getGokuBlackSwordCinematicStatus(),
     powerSwordCine: () => getRedRangerPowerSwordCinematicStatus(),   // Red Ranger MMPR Power Sword ultimate cinematic status (Stage 4)
+    samuraiUltCine: () => getSamuraiFlameSmasherCinematicStatus(),   // Samurai Rangers (Red/Gold/Green) Fire Smasher/Barracuda/Forest ultimate cinematic status (active/mega/phase)
     sealingCine: () => getHashiramaSealingJutsuCinematicStatus(),   // Hashirama Sealing Jutsu domain OVERLAY status (gate-slam + looping cameo strikes)
     setTreeTier: (n = 1) => { if (p1) { p1._treeTier = Math.max(0, (n | 0) - 1); p1._treeLastCast = performance.now(); } },   // force the NEXT Down+Special tree-summon to tier n (deterministic ladder for scale shots)
     domainState: () => { const d = activeDomains[0]; return d ? { rosterKey: d.rosterKey, timer: d.timer, timerMax: d.timerMax, name: d.name, ownerKey: d.owner?.rosterKey || null } : null },   // active Domain Expansion state (bg/trap/timer)
@@ -17198,9 +17224,8 @@ gameLoop()
     cloneTell: () => isCloneTell(),
     p1CloneStates: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).map(s => ({ x: Math.round(s.x), state: s._state, hidden: !!s._hidden, atk: s._atk || null, vx: Math.round((s.vx || 0) * 10) / 10 })),   // clone lifecycle + behavior-AI inspection
     cloneStrikeFxCount: () => getCloneStrikeFxCount(),   // cumulative clone lunge-strike impacts (prove clones ATTACK)
-    cloneAssistCd: () => (p1 ? getCloneAssistCooldowns(p1) : null),   // clone-assist redesign: {summon,ambush,swap} cooldown frames left
-    cloneRusherCount: () => activeSummons.filter(s => s.id === "cloneRusher" && s.owner === p1).length,   // active assist rushers spawned by p1
-    p1CloneArmored: () => activeSummons.some(s => s.id === "shadowClone" && s.owner === p1 && (s._wallArmor || 0) > 0),   // Hashirama wall: any fortified clone?
+    cloneOneShotCd: () => (p1 ? { strike: p1._cloneStrikeCd || 0, proj: p1._cloneProjCd || 0, sub: p1._cloneSubCd || 0 } : null),   // one-shot clone move cooldowns
+    persistentCloneCount: () => activeSummons.filter(s => s.id === "shadowClone" && s.owner === p1).length,   // one-shot verify: MUST be 0 for the 6 redesigned chars
     p2Obscured: () => ({ obscured: !!p2?.obscured, timer: p2?.obscuredTimer || 0 }),   // Itachi crow-blind debuff on the opponent
     p1Pos: () => (p1 ? { x: Math.round(p1.x), facing: p1.facing, hitstop: p1.hitstop || 0 } : null),   // clone-assist verify: player position/freeze
     setCloneAggro: (on = true) => setCloneAggro(!!on),   // toggle the clone behavior AI (active vs legacy decoy)

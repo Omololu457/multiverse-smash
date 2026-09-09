@@ -732,7 +732,7 @@ export function drawSummons(ctx) {
     // through to the CLONE_BODY_SETS path for the hurt-poof pose, non-sprite owners, or before the owner's
     // first draw. This SUPERSEDES the per-owner skin/scale handling below (the replayed frame already carries
     // the owner's skin sheet + ×1.18 scale + form filter).
-    if (s.id === "shadowClone" && s._state === "idle" && drawMirroredCloneFrame(ctx, s)) continue
+    if (s.id === "shadowClone" && s._state === "idle" && !usesCloneAssist(s.owner) && drawMirroredCloneFrame(ctx, s)) continue
 
     ctx.save()
 
@@ -906,6 +906,29 @@ let _cloneTellEnabled = false
 export function setCloneTell(on) { _cloneTellEnabled = !!on }
 export function isCloneTell() { return _cloneTellEnabled }
 
+// WOOD-CLONE WALL (Hashirama Assist+Back, Stage 4) — canon: wood clones don't dispel on taking damage. A
+// FORTIFIED clone TANKS one incoming hit and STAYS UP instead of poofing. fortifyClones() arms every live clone
+// of the owner for a window; _cloneAbsorbsHit() is checked at EVERY hit-reveal site — if armored it spends one
+// tank + a wood-brace puff and survives, and the incoming hit is still consumed on it (a real block). Zero
+// effect on any clone that was never fortified, so all other characters/clones are unchanged.
+const CLONE_WALL_FRAMES = 240   // ~4s window a fortified wood clone can tank a hit
+export function fortifyClones(owner, frames = CLONE_WALL_FRAMES) {
+  let n = 0
+  for (const s of activeSummons) {
+    if (s.id === "shadowClone" && s.owner === owner && s._state === "idle" && !s._hidden) {
+      s._wallArmor = frames; s._wallHits = (s._wallHits || 0) + 1; n++
+    }
+  }
+  return n
+}
+function _cloneAbsorbsHit(s) {
+  if (!s || !(s._wallArmor > 0) || !(s._wallHits > 0)) return false
+  s._wallHits--
+  if (s._wallHits <= 0) s._wallArmor = 0
+  spawnClonePuff(s.x + (s.w || 0) / 2, s.y + (s.h || 0) / 2)   // wood-brace puff; the clone stays standing
+  return true
+}
+
 // HIT-REVEAL via PROJECTILES — mirrors the melee hit-reveal in updateShadowClone so that ANY hit
 // reveals a clone. Any projectile from the clone's ENEMY (not its owner) that overlaps the clone
 // poofs it and is consumed (spent on the fake). Called each frame from the battle loop AFTER the
@@ -921,6 +944,7 @@ export function revealClonesHitByProjectiles(projectiles) {
       if (s.id !== "shadowClone" || s._state !== "idle" || s._hidden) continue
       if (p.owner === s.owner) continue            // an owner's own projectile never dispels their clone
       if (rectsOverlap(pb, getHurtbox(s))) {
+        if (_cloneAbsorbsHit(s)) { projectiles.splice(i, 1); break }   // fortified wood clone TANKS it + stays up
         s._state = "hurt"; s._stateT = 0; setCloneSheet(s, "hurt")   // reveal → hurt→poof lifecycle
         projectiles.splice(i, 1)                    // consume the projectile (it hit the fake)
         break
@@ -952,6 +976,7 @@ export function revealClonesHitByMelee(attacker) {
     if (s.id !== "shadowClone" || s._state !== "idle" || s._hidden) continue
     if (s.owner === attacker) continue               // your own swing never pops your own clones
     if (rectsOverlap(hb, getHurtbox(s))) {
+      if (_cloneAbsorbsHit(s)) { attacker.currentAttack.hasHit = true; return }   // fortified wood clone TANKS it + stays up
       s._state = "hurt"; s._stateT = 0; setCloneSheet(s, "hurt")   // reveal → hurt→poof lifecycle
       attacker.currentAttack.hasHit = true            // swing spent on the fake (mirrors projectile consume)
       return
@@ -1102,6 +1127,15 @@ export const CLONE_CAPABLE_KEYS = new Set(["naruto", "minato", "hashirama", "tob
 export function isCloneCapable(fighter) {
   return !!fighter && CLONE_CAPABLE_KEYS.has(String(fighter.rosterKey || fighter.id || "").toLowerCase())
 }
+
+// CLONE-ASSIST OPT-IN (MK1-Kameo-style redesign) — these characters use the NEW behavior: the clone SPAWNS and
+// STANDS STILL (no movement-mirroring / position-following), and a dedicated assist key drives on-demand clone
+// actions (see cloneAssist.js). The OTHER clone-capable chars (boruto/hiruzen/madara) keep the legacy mirror-decoy
+// path untouched. This gate is what lets both systems coexist in one shared updateShadowClone/drawSummons.
+export const CLONE_ASSIST_KEYS = new Set(["naruto", "minato", "tobirama", "hashirama", "itachi", "kakashi"])
+export function usesCloneAssist(owner) {
+  return !!owner && CLONE_ASSIST_KEYS.has(String(owner.rosterKey || owner.id || "").toLowerCase())
+}
 function setCloneSheet(s, mode) {
   const set = CLONE_BODY_SETS[(s.owner?.rosterKey || "").toLowerCase()] || CLONE_BODY_SETS.naruto
   const c = set[mode] || set.idle
@@ -1144,13 +1178,41 @@ export function countShadowClones(owner) {
   return activeSummons.filter(s => s.id === "shadowClone" && s.owner === owner).length
 }
 
+// CLONE-ASSIST RUSHER (redesign engine) — spawn a generic rush→one-hit→despawn summon that wears the OWNER'S own
+// clone body (from CLONE_BODY_SETS), so every clone character's assist strike/ambush uses its own art with no
+// per-char template. Reuses the generic summon path (updateSummonMovement "rush" → performSummonAttack →
+// applyScaledDamage), so damage is ×0.60-scaled at the choke-point like every summon. opts: {at:{x,y} spawn
+// spot, damage, speed, launch, spawnBeat}. Returns the summon (or null at the shared summon cap).
+export function spawnCloneRusher(owner, target, opts = {}) {
+  const set  = CLONE_BODY_SETS[String(owner?.rosterKey || "").toLowerCase()] || CLONE_BODY_SETS.naruto
+  const body = (Array.isArray(set.attacks) && set.attacks[0]) || set.attack || set.idle
+  const s = spawnSummon(owner, {
+    id: "cloneRusher", summonId: "cloneRusher",
+    duration: opts.duration ?? 70, maxSimultaneous: 4, attackInterval: 10,
+    damage: opts.damage ?? 40, w: 70, h: 120, speed: opts.speed ?? 8, behavior: "rush",
+    hitstun: 18, knockbackX: 6, knockbackY: opts.launch ? -Math.abs(opts.launch) : -2,
+    launch: opts.launch || 0, oneHit: true, puffOnDespawn: true, color: "#ffb400",
+    spawnBeat: opts.spawnBeat || 0,
+    sheet: body.sheet, spriteFrames: body.frames, spriteW: body.w, spriteH: body.h,
+    spriteSpeed: body.speed, spriteScale: body.scale, spriteSourceX: body.sourceX || 0
+  }, target)
+  if (s && opts.at) { s.x = opts.at.x; if (opts.at.y != null) s.y = opts.at.y }
+  if (s && opts.spawnBeat) s.attackTimer = -opts.spawnBeat   // hold the first strike window until it has closed in
+  return s
+}
+
 // Lose ONE even chakra share as a clone is destroyed. Called while the clone is
 // STILL in activeSummons, so bodies = 1 (Naruto) + clones counts it; share =
 // energy/bodies; the destroyed clone's share is removed (never returned).
 function loseCloneShare(owner) {
   if (!owner) return
   const bodies = 1 + countShadowClones(owner)     // includes the clone being destroyed
-  if (bodies > 1) owner.energy = Math.max(0, (owner.energy || 0) * (bodies - 1) / bodies)
+  if (bodies <= 1) return
+  // CROW CLONE (Itachi) — canonically cheaper chakra than Shadow Clones: losing/spending one drains only HALF
+  // the usual even share, so his clones are cheaper to field and cheaper to spend on assists.
+  const isCrow = String(owner.rosterKey || "").toLowerCase() === "itachi"
+  const lossFrac = isCrow ? (0.5 / bodies) : (1 / bodies)
+  owner.energy = Math.max(0, (owner.energy || 0) * (1 - lossFrac))
 }
 
 // ── CLONE SUMMON AUDIO/VISUAL SEQUENCING ─────────────────────────────────────
@@ -1319,13 +1381,16 @@ export function swapConsciousnessWithClone(owner, opponent = null) {
 function updateShadowClone(s) {
   const owner = s.owner, enemy = s.target
   if (!owner) return "remove"
+  if (s._wallArmor > 0) s._wallArmor--   // Hashirama wood-clone WALL window ticking down (Stage 4)
 
   // MIRROR MODE — when the owner renders through the real sprite pipeline (has a spriteHandler), the clone is a
   // full MIRROR: it rigidly tracks the owner at a fixed offset (moves/jumps in lockstep) and drawSummons replays
   // the owner's exact drawn frame — so it's indistinguishable in EVERY pose, not just idle. Player-driven (the
   // owner moves because the player does), never autonomous. Supersedes the static/aggro branches for sprite
   // owners; non-sprite (procedural-box) owners fall through to the old gravity + static path.
-  const mirror = !!owner.spriteHandler
+  // Clone-assist chars (naruto/minato/tobirama/hashirama/itachi/kakashi) do NOT mirror — their clone stands
+  // still as a decoy/assist resource (the redesign). Only legacy clone chars (boruto/hiruzen/madara) mirror.
+  const mirror = !!owner.spriteHandler && !usesCloneAssist(owner)
   if (mirror) {
     if (s._mirrorDx == null) { s._mirrorDx = s.x - owner.x; s._mirrorDy = s.y - owner.y }   // capture the spawn offset once
     if (s._state === "idle" && !s._mirrorPinned) {   // spawning/hurt/PINNED bodies hold position; a live one tracks the owner
@@ -1423,7 +1488,7 @@ function updateShadowClone(s) {
   // Hurtbox reuses combat.js getHurtbox, sized to the clone.
   if (enemy && attackIsActive(enemy.currentAttack)) {
     const hb = getAttackHitbox(enemy)
-    if (hb && rectsOverlap(hb, getHurtbox(s))) {
+    if (hb && rectsOverlap(hb, getHurtbox(s)) && !_cloneAbsorbsHit(s)) {   // fortified wood clone tanks it + stays up
       s._state = "hurt"; s._stateT = 0; setCloneSheet(s, "hurt")
     }
   }
@@ -1474,6 +1539,10 @@ export function getWoodReleaseFxCount() { return _woodReleaseFxTotal }   // harn
 // DISTINCT effects for the two triggers (Part 2 — destroyed-by-hit ≠ dismissed-intentionally): a hit BURSTS
 // the clone into an upward water splash, a deliberate dispel COLLAPSES it into a settling puddle/ripple.
 // Every other owner keeps the smoke puff.
+// CROW CLONE (Itachi) — on dispersal the clone bursts into a murder of crows that scatter over the enemy and
+// briefly BLIND/disorient them (canon). Reuses the `obscured` debuff flag (game.js drawCrowBlindOverlay makes
+// it visible + ticks it down at game.js:5468). Applied on ANY dispersal (defeated / dispelled / spent).
+const CROW_BLIND_FRAMES = 90   // ~1.5s blind window on the opponent
 function spawnCloneDespawnFx(s, reason = "destroy") {
   const key = (s.owner?.rosterKey || "").toLowerCase()
   const cx = s.x + (s.w || 0) / 2, footY = s.y + (s.h || 0)
@@ -1485,6 +1554,10 @@ function spawnCloneDespawnFx(s, reason = "destroy") {
     const kind = (reason === "destroy") ? "burst" : "ripple"
     waterCloneFx.push({ x: cx, y: footY, kind, t: 0, max: kind === "burst" ? 26 : 22 })
     _waterCloneFxTotal[kind]++
+  } else if (key === "itachi") {
+    spawnClonePuff(cx, s.y + (s.h || 0) / 2)   // crow burst (scatter smoke)
+    const foe = s.target
+    if (foe && !foe.eliminated) { foe.obscured = true; foe.obscuredTimer = Math.max(foe.obscuredTimer || 0, CROW_BLIND_FRAMES) }
   } else {
     spawnClonePuff(cx, s.y + (s.h || 0) / 2)
   }

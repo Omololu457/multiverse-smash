@@ -691,3 +691,1227 @@ diagnostic + game.js spriteFilter() harness reader) — no gameplay effect. One
 existing test assertion (bardock "no ultimate") was updated because ITEM 2
 required Bardock to have an ultimate.
 ==========================================================================
+
+
+
+
+/========================================================================
+ MULTIVERSE SMASH — FINISHER SYSTEMS PROPOSAL: BRUTALITIES + FATALITIES
+ 2026-09-09  (branch: balance-playtest)
+ RESEARCH / PROPOSAL ONLY. No code was written and no files were changed
+ to produce this — it is a design document for the user to review and
+ decide on BEFORE any implementation begins. Every proposed finisher is
+ traced to a REAL, existing move verified in characters.js / abilities.js.
+========================================================================
+
+──────────────────────────────────────────────────────────────────────
+0. READ THIS FIRST — SCOPE, STYLE, AND WHAT ALREADY EXISTS
+──────────────────────────────────────────────────────────────────────
+WHAT THE USER ASKED FOR (two finisher systems, MK1-inspired, NOT copies):
+  • BRUTALITY (locked concept): a SPECIFIC existing move that lands the
+    KILLING blow during normal gameplay triggers a violent finish on the
+    spot instead of a standard KO. ≥3 candidates per character, each tied
+    to a DIFFERENT existing move. Style: CARTOONISH ("Among Us") — a body
+    part visibly pops off / separates / vanishes in a stylized, non-real
+    way. NOT blood, NOT realistic gore.
+  • FATALITY (concept only, count NOT locked): a POST-MATCH finisher in a
+    dedicated "finish them" window. Same toony style, grounded in kit.
+    Count-per-character left to the user; this doc proposes what fits.
+
+★ IMPORTANT — A BRUTALITY SYSTEM ALREADY PARTIALLY EXISTS IN THE ENGINE.
+  It is NOT what the user is describing, but it is the natural foundation.
+  See Section 3 (Technical Feasibility) for the full picture. Short version:
+  game.js already ships a post-KO freeze-beat (`brutalityState`), an
+  eligibility set (`BRUTALITY_ELIGIBLE`, 18 chars), a per-character
+  signature table (`BRUTALITY_FINISHERS`, 7 entries), and a KO-interception
+  hook (`_checkMatchOver` → `_tryStartBrutality`). BUT: it triggers on
+  WINNING (not on a specific move), and its visual style is procedural RED
+  GORE — the OPPOSITE of the toony style requested. So this is "re-aim +
+  re-skin + expand an existing system," not "build from zero."
+
+ROSTER COVERED: 96 playable characters (characters.js `isPlayable !== false`).
+  Excluded (isPlayable:false, art-less/dev): cell, morty, evilMorty, omololu.
+  Confirmed PLAYABLE and therefore INCLUDED: rickPrime, albedo, ghostface_exe
+  (all currently selectable — verified in code, not assumed from memory).
+
+DESIGN RULES USED FOR EVERY ENTRY BELOW:
+  1. Each Brutality names the EXACT existing move it triggers on, and the
+     3 per character are each a DIFFERENT move (a special / a normal /
+     the rekka / the ultimate) — never 3 variants of one move.
+  2. Every finisher reads like THAT character (Frieza's finger-beam, Ippo's
+     boxing KO, Beerus's Hakai erasure) — no reskinned generic MK moves.
+  3. "art:" notes the existing sprite/animation frame each could reuse or
+     approximate; "NEW ART" is flagged ONLY for the specific pop-off/split/
+     poof overlay, never for the character pose itself (which is reused).
+  4. Fatalities note the TECH: "reuse freeze-cine" = an existing
+     *Cinematic.js module or inline ultimate freeze-cinematic can be the
+     starting point; "NEW cinematic" = no existing module to lean on.
+  5. Sensitive cases (apparent minors / tonal clashes) are NOT given
+     finisher content here — they are listed in Section 2 for the user to
+     rule on first. Mid-teens (~15-17) ARE included but carry an age note.
+
+──────────────────────────────────────────────────────────────────────
+1. THE MK-INSPIRED UNIVERSAL DEFAULT (explicitly flagged as MK-flavored)
+──────────────────────────────────────────────────────────────────────
+Offered as an OPT-IN fallback, NOT presented as original. If a character
+has no bespoke Brutality wired yet (or as a guaranteed baseline everyone
+shares), a universal default can fill the slot:
+
+  "THE CLASSIC" (MK-INSPIRED, mirrors MK's "The Klassic") — the finishing
+  hit becomes an exaggerated rising UPPERCUT that pops the loser's head
+  clean off; it sails up, bonks the top of the screen, and drops as the
+  body topples. Reuses each character's existing up-attack/launcher frame
+  + a generic detached-head pop. This is the one deliberately MK-homage
+  entry; every OTHER proposal in this doc is character-grounded.
+  → DECISION FOR USER: ship "The Classic" as a roster-wide default, as a
+    fallback only for un-authored characters, or not at all?
+
+──────────────────────────────────────────────────────────────────────
+2. SENSITIVE CASES — FLAGGED FOR USER REVIEW (Stage 3; NO content proposed)
+──────────────────────────────────────────────────────────────────────
+Listed, not decided. No Brutality/Fatality content was authored for the
+2A / 2B groups below; the user should rule on them before any build.
+
+2A. APPARENT MINORS (read as children / pre-teens in canon or in-game art).
+    Recommend the user decide: exempt entirely, tone down (e.g. comedic
+    "poof" only, no separation), or treat as the rest of the cast.
+      • naruto            (Part 1, age 12)          [task-named]
+      • boruto            (~12)                     [task-named]
+      • kiba              (12)                      [task-named]
+      • gohan / Teen Gohan(~13-16, Cell saga)       [task-named]
+      • gon               (12)
+      • killua            (12)
+      • nezuko            (~12-14; ALSO kit not yet wired — no moves exist)
+      • ben10             (Ben Tennyson — 10 in the original series; age
+                           varies by series/art — user to confirm)
+      • albedo            (Ben's clone; child-appearance)
+
+2B. TONAL CLASH — comedic / non-combatant, where an on-body toony
+    dismember-finish may sit wrong even if bloodless. Flag for review:
+      • saiki             (deadpan gag esper; actively avoids violence)
+      • l_ryuuzaki (L)    (detective, non-combatant; ALSO has no real
+                           ultimate — no cinematic to ground a Fatality)
+      • light (Yagami)    (non-combatant strategist; "kills" via notebook,
+                           not a brawler — a gib-finish clashes with tone)
+
+2C. BORDERLINE MID-TEENS — INCLUDED below WITH an age note (proposals are
+    strictly toony). User may reclassify any of these into 2A:
+      yuji (~15), maki (~15-16), zenitsu (~16), inosuke (~15),
+      yuta (~17), handler/Megumi (~15), miles (~15),
+      spiderman (version-dependent), gwen (~ Ben's cousin), sasuke
+      (age 12 in Part 1 but rendered with adult Shippuden art here).
+
+──────────────────────────────────────────────────────────────────────
+3. TECHNICAL FEASIBILITY NOTES (Stage 4; no code — just enough to scope a build)
+──────────────────────────────────────────────────────────────────────
+3.1  IS THERE A "KILLING BLOW" HOOK TO BUILD ON? — PARTIALLY.
+  • KO interception EXISTS: `_checkMatchOver()` (game.js ~3978) already
+    intercepts match-over and calls `_tryStartBrutality(winner)` (~4333:
+    `if (!_tryStartBrutality(winner)) _enterVictoryScreen()`). Round-end
+    flows through `checkRoundEnd`. So the place to hang a Brutality is
+    already there and already used.
+  • BUT the existing trigger is WINNER-based, not MOVE-based: it fires when
+    the loser's health ≤ 0 on a KO (never on a time-over), gated by an
+    eligibility set. It does NOT know WHICH move landed the killing blow.
+  • MISSING PIECE for the user's move-tied design: nothing currently stamps
+    "this specific special/ultimate emptied the bar." The engine DOES know
+    `fighter.currentMove` / `currentAttack.name` live at damage time
+    (combat.js). So the new work is small + localized: in the damage-apply
+    path, when the defender's HP crosses to ≤0, stamp
+    `attacker._killingBlowMove = <move id>`; `_tryStartBrutality` then reads
+    it to pick the per-move finisher (or fall back to "The Classic").
+    → This is the core new engineering for Brutalities. Low-risk, one hook.
+
+3.2  THE EXISTING BRUTALITY SYSTEM (reuse, don't rebuild — but RE-STYLE):
+  • `brutalityFx` toggle — localStorage `ms_brutality_fx`, default OFF,
+    `setBrutalityFx()` (game.js ~548). Separate from the blood toggle.
+  • `BRUTALITY_ELIGIBLE` (game.js ~556) — 18 "tonally eligible" winners.
+    The user's system is roster-wide (96), so this set either widens or is
+    replaced by per-character finisher definitions.
+  • `BRUTALITY_FINISHERS` (game.js ~567) — 7 signature entries
+    (sukuna/alt_sukuna/toji/zaraki/omniman/mayuri/madara): name + FX motif
+    + palette + flash + `poseWin`. This is the dispatch pattern the new
+    per-move table would extend.
+  • `brutalityState` + `BRUTALITY_FRAMES=78` (~1.3s) — the freeze-beat state
+    machine: forces the loser's `lose` pose + (optionally) the winner's
+    `win` pose, spawns procedural `parts[]`, draws a flash + a technique-
+    NAME stamp under "BRUTALITY!". Cleared on fresh round (game.js ~2539)
+    and all reset paths.
+  • `_spawnBrutalityGore()` (~3848) — the particle emitter. ★STYLE GAP: it
+    emits bright-RED gore chunks. The user wants TOONY "Among Us" pop-offs
+    (clean detached limbs, poofs, confetti, star-launches — no blood). So
+    the reuse is the STATE MACHINE + part physics; the emitter needs a
+    toony variant (new palettes + part shapes, drop the gore coding).
+
+3.3  FATALITY TECH — the post-match window is NEW; the cinematics are REUSE.
+  • There is NO "finish them" post-match input window today — that is the
+    main new engineering for Fatalities (a gated input window after KO,
+    before the victory screen, that branches into a cinematic).
+  • The CINEMATIC PLAYBACK, however, is well-trodden: the codebase has
+    ~30 dedicated `*Cinematic.js` freeze-cinematic modules (e.g.
+    killuaGodspeedCinematic, flashTimeCinematic, ichigoGetsugaTenshoCinematic,
+    sasukeCinematic, mangekyouCinematic, madaraTengaiShinseiCinematic,
+    painChibakuTenseiCinematic, hashiramaSealingJutsuCinematic,
+    tobiramaEdoTenseiCinematic, makiShibuyaCinematic, tojiReincarnationCinematic,
+    yujiUltimateCinematic, shinobuButterflyCinematic, inosukeBeastCinematic,
+    rengokuFlameExplosionCinematic, beerusKiBallCinematic, obitoJuubiCinematic,
+    tobiNineTailsCinematic, samuraiFlameSmasherCinematic, redRangerPowerSwordCinematic,
+    omnimanBodySlamCinematic, batmanDarkKnightCinematic, ghostfaceFinalActCinematic,
+    chrolloSkillHunterCinematic, hisokaOverdriveCinematic, gonAdultFormCinematic,
+    miwaUltimateCinematic, …) PLUS many ultimates that are inline freeze-
+    cinematics (Dark Vegeta / Gotenks / Bardock / Goku Black-Rose / Vegito /
+    Gwen / Vilgax / Miles / Ippo / Saitama / Hiruzen / Orochimaru / Mayuri /
+    Yamamoto / Deathstroke / Six Paths, etc.). Gojo's Unlimited Void domain
+    is another freeze template. A Fatality reuses one of these as its beat.
+  • Characters with NO reusable cinematic (Fatality would need a NEW module
+    or a brutalityState-piggyback): zaraki + zaraki_shikai (Bankai is a
+    one-shot burst), genos (Overdrive is a buff-mode), onoki (ult hands off
+    to a persistent golem summon), zenitsu, rick, rickPrime, jason (has no
+    ultimate at all), kurapika, brainiac, green_lantern, yuta, handler,
+    iron_man / iron_man_2 / iron_man_3, minato (Reaper Death Seal FX new).
+
+3.4  SUMMARY FOR A FUTURE BUILD-PROMPT:
+  • Brutality  = (a) NEW: stamp killing-blow move in the damage path;
+                 (b) REUSE: brutalityState freeze-beat + _checkMatchOver hook;
+                 (c) RE-SKIN: toony emitter replacing the red-gore emitter;
+                 (d) EXPAND: per-character/per-move finisher table, roster-wide.
+  • Fatality   = (a) NEW: post-KO "finish them" input window + gating;
+                 (b) REUSE: the existing freeze-cinematic modules / inline
+                     ult cinematics as the playback beat, toony-restyled.
+
+──────────────────────────────────────────────────────────────────────
+4. PER-CHARACTER PROPOSALS (Stage 1 kit inventory + Stage 2 finishers)
+──────────────────────────────────────────────────────────────────────
+Format per entry:
+  KIT: the verified moveset (basics / specials / rekka / ultimate).
+  BRUTALITIES: 3, each on a DIFFERENT existing move, toony effect + art note.
+  FATALITIES: variable count, grounded in kit, with the tech note.
+Sensitive-case characters (Section 2A/2B) appear as KIT-ONLY, by design.
+
+========================  DRAGON BALL  ========================
+
+### Goku (goku)
+KIT: light=jab / heavy=lunging straight / up=uppercut launcher / air=airborne strike / downAir=diving strike; specials = Dragon Fist (rocket melee punch), Kamehameha (Down, procedural piercing beam); rekka = Meteor Combination (Fwd+Heavy roundhouse-launcher rush); ultimate = none (base→SSJ→SSG→SSBlue transform ladder is the ceiling).
+BRUTALITIES:
+  1. "DRAGON'S MAW" — move: Dragon Fist — the rocket-punch's golden dragon chomps the torso off; upper body cartoon-launches offscreen, legs left standing — art: reuse dragonFist/heavy pose + procedural gold swirl.
+  2. "FULL-POWER WAVE" — move: Kamehameha (Down) — the beam pops the head clean off; a smoking headless body topples — art: reuse gokuKamehameha cast + existing beam.
+  3. "METEOR FINISH" — move: Meteor Combination rekka finisher — the launcher-kick golfs the head skyward while the body backflips into a heap — art: reuse gokuRush3 frame.
+FATALITIES (2):
+  - "SUPER SAIYAN SUNRISE" — transform ladder + Kamehameha — charges to SSBlue then a screen-filling Kamehameha comically disintegrates the frozen foe pixel-by-pixel — tech: reuse freeze-cine (charge morph + beam exist).
+  - "DRAGON THROUGH THE HEART" — Dragon Fist — the aura-dragon coils the foe, the rocket-punch launches them into orbit as a twinkling star — tech: reuse freeze-cine.
+
+### Goku Black (goku_black)
+KIT: light=straight / heavy=Ki Slash (energy-cost) / up=rising-spin launcher / air=down slash / downAir=air slash; specials = Black Kamehameha, Dark Spirit Bomb, Explosion (proximity nuke), + Rose-only Electric Ki Push/Slash/Super Ki Slash; rekka = none; ultimate = "Sword Slash" (enters via SSJ Rose cinematic ssjRoseCinematic); transform = SSJ Rose.
+BRUTALITIES:
+  1. "SUPER KI SLASH" — move: Super Ki Slash (Rose-only) — the pink energy-scythe carves a giant X, dropping the foe as four toony wedges that fan apart — art: reuse heavy ki_slash (Rose _skinAnim) + X-slash FX.
+  2. "BLACK KAMEHAMEHA" — move: Black Kamehameha — pops the head off; the headless body salutes then topples — art: reuse gbKamehameha + beam.
+  3. "DARK SPIRIT BOMB" — move: Dark Spirit Bomb — the orb flattens the foe into a pancake that peels up and blows away — art: reuse gbSpiritBomb + squash FX.
+FATALITIES (2):
+  - "SUPER SAIYAN ROSE" — Rose transform + Electric Slash — morphs to Rose via the grand cinematic, then the scythe dices the frozen foe into stacked slabs — tech: reuse freeze-cine (ssjRoseCinematic already a frozen cinematic).
+  - "JUDGEMENT" — Explosion nuke — flares and comic-inflates the frozen foe until they pop into confetti — tech: reuse freeze-cine.
+
+### Vegeta (vegeta)
+KIT: light=punch combo / heavy=low strike / up=uppercut launcher / air=aerial combo / downAir=diving spike; specials = Galick Gun, Big Bang Attack, Final Flash, + Ki Blast/Super Galick Gun/Teleport/Self-Destruct/Diagonal Galick; rekka = Y-track chain (vgFkick1→vgSidekick→vgUpInto→vgUpFinish); ultimate = Super Saiyan Blue Evolution.
+BRUTALITIES:
+  1. "FINAL FLASH!" — move: Final Flash — the two-handed beam pops the upper half off, torso comic-launched into the wall as a puff — art: reuse charge cast + yellow beam FX.
+  2. "BIG BANG BURST" — move: Big Bang Attack — the sphere detonates on contact, inflating then popping the foe into bouncing chunks — art: reuse bigBangCast + gib FX.
+  3. "ELITE FINISH" — move: Y-track rekka finisher (vgUpFinish uppercut) — clips the head clean off; Vegeta smirks (poseWin) — art: reuse vgUpFinish.
+FATALITIES (2):
+  - "GALICK GUN ANNIHILATION" — Galick/Super Galick Gun — the purple beam pins the frozen foe to the wall then swells and pops them into confetti — tech: reuse freeze-cine.
+  - "PRIDE OF THE SAIYANS" — Self-Destruct signature — grabs the frozen foe; a comic energy-balloon inflates them until they pop (toony, no self-harm) — tech: reuse freeze-cine.
+
+### Dark Vegeta (vegeta_dark)
+KIT: light=jab / heavy=side-kick / up=uppercut launcher / air=jump-kick / downAir=reuse air; specials = Ki Blast (white→purple amplified), Knife Slash (F blade), Sickle Throw (B crescent); rekka = Villain's Rush (vegetaDarkRush1→2→3 uppercut launcher); ultimate = Villainous Onslaught (dark-aura ki barrage freeze-cinematic); transform = Villainous Mode → Rose.
+BRUTALITIES:
+  1. "SICKLE HARVEST" — move: Sickle Throw (B) — the crescent boomerangs through the neck; head slides off with a toony bounce — art: reuse vdSickle + crescent FX.
+  2. "CORRUPTED BLADE" — move: Knife Slash (F) — bisects at the waist; top half slides off like sliced fruit — art: reuse vdKnife + bisect FX.
+  3. "AMPLIFIED BURST" — move: Ki Blast (purple amplified, dark-aura form) — punches a comic hole through the chest; foe deflates — art: reuse vdKiCast + vdAura overlay.
+FATALITIES (2):
+  - "VILLAINOUS ONSLAUGHT" — the ultimate — flares the black-spike aura and unloads the purple volley that pops the frozen foe apart limb-by-limb — tech: reuse freeze-cine (ult is already an inline freeze-cinematic; extend final beat to KO).
+  - "ROSE REQUIEM" — Rose transform — morphs to Rose, sickle+knife cross-slash dices the frozen foe into stacked cubes — tech: reuse freeze-cine.
+
+### Piccolo (piccolo)
+KIT: light=jab extension / heavy=deep front-kick (reach) / up=rising kick launcher / air=diving strike / downAir=reuse air; specials = Special Beam Cannon (piercing beam), Stretch-Arm Strike (Fwd disjoint), Masenko (overhead bolt), Explosive Demon Wave (Back sphere), Flying Dash Kick (air); rekka = Fwd+Heavy rush (piccoloRush1→2 overhead axe→3 roundhouse launcher); ultimate = none (Potential Unleashed→Orange ladder).
+BRUTALITIES:
+  1. "SPECIAL BEAM CANNON" — move: Special Beam Cannon — the drilling spiral bores a comic donut-hole through the skull; head pops off spinning like a drilled top — art: reuse piccoloBeam + spiral FX.
+  2. "DEMON'S REACH" — move: Stretch-Arm Strike (Fwd) — the elongated arm punches through the torso and out the back holding the ki core; body deflates — art: reuse piccoloStretch + pass-through FX.
+  3. "EXPLOSIVE DEMON WAVE" — move: Explosive Demon Wave (Back) — engulfs and comic-launches the foe apart in confetti gibs — art: reuse piccoloDemonwave + gib FX.
+FATALITIES (2):
+  - "MAKANKOSAPPO" — Special Beam Cannon — two-finger pose, a screen-crossing spiral beam skewers the frozen foe and pops them off the beam into pieces — tech: reuse freeze-cine.
+  - "NAMEKIAN GRASP" — Stretch-Arm + Demon King canon — both stretch-arms wrap the frozen foe and pull them apart like taffy into two halves — tech: reuse freeze-cine.
+
+### Frieza (frieza)   [already in BRUTALITY_ELIGIBLE]
+KIT: light=jab / heavy=motion-streak kick / up=reuse heavy (launcher) / air=airborne strike / downAir=reuse air; specials = Death Beam (piercing), Ki Blast (3-shot crystal volley), Death Ball (Down sphere), Psycho Teleport (Back i-frame blitz); rekka = Fwd+Heavy rush (friezaRush1→2→3 launcher); ultimate = none (Golden→Black ladder); has friezaOverload power-up pose.
+BRUTALITIES:
+  1. "DEATH BEAM" — move: Death Beam — the finger-beam pokes a pinhole in the forehead; a beat later the whole head pops off like a cork — art: reuse friezaDeathbeam pointing pose + thin beam.
+  2. "DEATH BALL" — move: Death Ball (Down) — the fingertip orb balloons huge and punts the foe offscreen as a twinkling star (planet-buster, toony) — art: reuse friezaDeathball + growing-orb FX.
+  3. "SUPERNOVA VOLLEY" — move: Ki Blast (crystal 3-shot) — three shots pop off arm, arm, then head in a rapid triple-pop — art: reuse friezaKiblast + staged part-pops.
+FATALITIES (2):
+  - "YOU'VE ANGERED ME" — Golden/Black transform + Death Beam — ignites Golden, then a finger-beam saws the frozen foe into slices that slide apart — tech: reuse freeze-cine (friezaOverload + beam).
+  - "DISK OF DEATH" — Death Ball / emperor canon — a spinning energy ring orbits the frozen foe and dices them into stacked rings that clatter down — tech: reuse freeze-cine.
+
+### Teen Gohan (gohan)   [FLAGGED 2A — KIT ONLY, no finisher content]
+KIT: light=jab / heavy=heavy punch / up=uppercut launcher / air=airborne strike / downAir=diving strike; specials = Meteor Kick (lone committed flying-kick, melee-only); rekka = Fwd+Heavy 3-stage rush; ultimate = Meteor Barrage (melee rush → flying Meteor Kick, freeze-cinematic).
+FLAGGED: apparent minor (Cell-saga young teen) — see Section 2A. No Brutality/Fatality proposed pending user decision.
+
+### Gotenks (gotenks)
+KIT: light=jab / heavy=deep lunge punch (reach) / up=rising-kick launcher / air=spin-kick / downAir=reuse air; specials = Ki Blast (procedural gold shard), Ki Charge (Down resource-build); rekka = Kamikaze Barrage (gotenksRush1→2 barrage→3 both-fists thrust); ultimate = Super Ghost Kamikaze Attack (ghost squad self-destruct, freeze-cinematic).
+BRUTALITIES:
+  1. "GHOST BOMB" — move: Super Ghost Kamikaze Attack (ult) — one ghost dives into the foe's mouth; a beat later they balloon and pop into a cloud of little ghosts — art: reuse gotenksGhostWind windup + ghost FX.
+  2. "KAMIKAZE BARRAGE" — move: Kamikaze Barrage rekka (gotenksRush3) — the finishing double-punch caves the torso in and launches the head off spinning — art: reuse gotenksRush3.
+  3. "GALACTIC DONUT" — move: Ki Blast (gold shard) — the shard lassoes into a ring that cinches the foe in half at the waist; halves separate with a pop — art: reuse Ki Blast cast + ring FX.
+FATALITIES (1):
+  - "SUPER GHOST KAMIKAZE ATTACK" — the ultimate — the full ghost squad swarms the frozen foe and chain-detonates, comic-popping them apart limb-by-limb in a giggling puff — tech: reuse freeze-cine (ult already inline freeze-cinematic with real ghost projectiles).
+
+### Bardock (bardock)
+KIT: light=jab / heavy=SWORD overhead slash (overhead) / up=rising axe-kick launcher / air=flying kick / downAir=SWORD diving strike; specials = Rebellion Rush (dashing SWORD lunge), Ki Charge (Down ki-orb); rekka = Blade Rush (bardockRush1 thrust→2 overhead→3 rising spin-slash launcher); ultimate = Final Rebellion (sword barrage freeze-cinematic).
+BRUTALITIES:
+  1. "REBELLION RUN-THROUGH" — move: Rebellion Rush — the dashing sword impales and carries the foe past; the top half slides off the blade with a toony bounce — art: reuse bardockRebellion + impale FX.
+  2. "BLADE RUSH FINISH" — move: Blade Rush rekka (bardockRush3) — the upward spin-slash lops off both arms and the head at once; they fan up and rain down — art: reuse bardockRush3.
+  3. "OVERHEAD CLEAVER" — move: heavy SWORD overhead slash — splits the foe head-to-hip; two halves peel apart like a coconut — art: reuse bardock_heavy sword + vertical split.
+FATALITIES (1):
+  - "FINAL REBELLION" — the ultimate — chains thrust → overhead → rising spin-slash on the frozen foe, ending by dicing them into stacked slabs — tech: reuse freeze-cine (ult already an inline sword freeze-cinematic).
+
+### Beerus (beerus)
+KIT: light=forward jab / heavy=forward_attack_2 (pink aura ribbon) / up=yellow-crescent launcher / air=kick / downAir=side-kick purple energy-slash spike; specials = Ki Blast (N), Downward Ki Blast (D), Forward Push (shockwave rings), Outward Ki Blast (self-nova), Hakai (U, God-of-Destruction erasure); rekka = none; ultimate = Ki Ball (3-stage charge/release/impact cinematic).
+BRUTALITIES:
+  1. "HAKAI" — move: Hakai (U) — Beerus points; the foe glows purple then disintegrates edges-inward into fine purple dust-motes (the canonical Beerus finisher) — art: reuse hakai point pose + dust FX.
+  2. "DESTRUCTION NOVA" — move: Outward Ki Blast (self-nova) — the nova catches the foe point-blank and pops them into a ring of little purple ki-orbs that drift off like bubbles — art: reuse outward sheet + orb FX.
+  3. "GOD FLICK" — move: heavy (forward_attack_2 pink ribbon) — Beerus flicks the foe with one finger; they comic-launch offscreen at light-speed with a pink ribbon trail and a twinkle — art: reuse beerus_heavy (pink ribbon baked in).
+FATALITIES (1):
+  - "KI BALL" — the Ki Ball ultimate — lazily charges the orb, drops it on the frozen foe, and it silently erases a perfect sphere out of them and the ground; the ring-edges slide into the hole and vanish — tech: reuse freeze-cine (beerusKiBallCinematic.js).
+
+### Vegito (vegito)
+KIT: light/heavy/up/air = ki-punch normals + heavy launcher chain; specials = Big Bang Attack (N), Galick Gun (F), Banshee Blast (B), Spread Finger Beam (D), Air Ki Blast (U), Perfect Shot (air); rekka = Ultra Rush (vegitoRush1→2→3 launcher); ultimate = Kamehameha.
+BRUTALITIES:
+  1. "BIG BANG" — move: Big Bang Attack (N) — the ki sphere detonates and the foe is vaporized into a floating pile of ash a breeze scatters — art: reuse Big Bang cast + ash-puff.
+  2. "SPIRIT SPLIT" — move: Ultra Rush finisher (vegitoRush3 crescent) — the final slash splits the foe into two glowing halves that spin apart and blip out — art: reuse rush3 slash + vertical split.
+  3. "SPREAD SHOT" — move: Spread Finger Beam (D) — the fan of ki bolts riddles the foe with holes; they hang there like Swiss cheese then crumble — art: reuse Spread Finger Beam FX + NEW hole-riddled frame.
+FATALITIES (1):
+  - "KAMEHAMEHA" — the ultimate — the giant cyan beam engulfs the frozen foe full-screen; when it clears only a tiny scorched pair of feet remains, tipping over — tech: reuse freeze-cine (inline Kamehameha ult cinematic).
+
+
+========================  JUJUTSU KAISEN  ========================
+
+### Gojo Satoru (gojo)
+KIT: light=A-jab / heavy=C-heavy / up=Rising Palm launcher / air=reuse jab / downAir=reuse C; specials = Blue (attraction singularity), Red (repulsion singularity), Hollow Purple (convergence); rekka = none; ultimate = Unlimited Void (domain, Infinity auto-dodge).
+BRUTALITIES:
+  1. "CURSED TECHNIQUE: BLUE" — move: Blue — the vortex sucks the foe inward, crushing them into a tiny bouncing ball that pops — art: reuse blue_cast + implosion FX.
+  2. "MAXIMUM: HOLLOW PURPLE" — move: Hollow Purple — the imaginary-mass orb erases a clean cylindrical tunnel through the foe's middle; top and bottom float apart — art: reuse hollow_purple_cast + erasure-tunnel FX.
+  3. "CURSED TECHNIQUE: RED" — move: Red — the repulsion blows the foe apart outward, all four limbs comic-launching off a still-standing head — art: reuse red_cast + radial limb-launch.
+FATALITIES (2):
+  - "DOMAIN EXPANSION: UNLIMITED VOID" — the domain — floods the frozen foe with infinite information; they freeze mid-drool then crumble into pixel-dust — tech: reuse freeze-cine (domain hand-sign + background; ties to existing ult path).
+  - "THROUGHOUT HEAVEN AND EARTH" — Hollow Purple — Blue→Red→Purple bore a giant erasing hole through the frozen foe's core, silhouette collapsing inward — tech: reuse freeze-cine.
+
+### Sukuna (sukuna)   [already in BRUTALITY_ELIGIBLE]
+KIT: light/heavy/up/air/downAir = slash family (single attack strip reused across directions); specials = Cleave (single-target CT), Dismantle (ranged slashing); rekka = none; ultimate = Malevolent Shrine (domain).
+BRUTALITIES:
+  1. "CLEAVE" — move: Cleave — carves the foe corner-to-corner; the two halves slide apart and plop — art: reuse cleave strip + diagonal bisect.
+  2. "DISMANTLE" — move: Dismantle — the ranged crosshatch dices the foe into a neat grid of cubes that collapse into a pile — art: reuse dismantle strip + crosshatch-dice.
+  3. "KING OF CURSES" — move: heavy slash normal — the overhead cursed slash lops head and one arm off in one swipe; Sukuna doesn't even look (poseWin) — art: reuse heavy strip + part-pop.
+FATALITIES (2):
+  - "DOMAIN EXPANSION: MALEVOLENT SHRINE" — the domain — the sure-hit slashes rain on the frozen foe, reducing them to a floating cloud of neat cubes — tech: reuse freeze-cine (ties to existing ult path).
+  - "CLEAVE & DISMANTLE" — both specials — one big Cleave halves the frozen foe, then a Dismantle dices each half — tech: reuse freeze-cine.
+
+### Alternate Sukuna (alt_sukuna)   [already in BRUTALITY_ELIGIBLE]
+KIT: light=quick jabs / heavy=overhead smash (overhead) / up=rising cleave-arc launcher / air=punch / downAir=reuse air; specials = Cleave (wide cursed slash), Fūga Fire Arrow beam, Spinning Lunge Kick, cursed-grab; rekka = Cleave command string (altSukunaCleave1→2 crescents); ultimate = Malevolent Shrine (domain); has real grab-hold art.
+BRUTALITIES:
+  1. "DISMANTLE STRING" — move: Cleave rekka (altSukunaCleave1→2) — the twin crescents crosshatch the foe into cubes that slough off in two waves — art: reuse altSukunaCleave1/2.
+  2. "FŪGA" — move: Fūga Fire Arrow (altSukunaBeam) — the fire-arrow beam skewers and incinerates the middle, leaving head and feet as ash-puffs — art: reuse altSukunaBeam + fire FX.
+  3. "CURSED GRASP" — move: cursed-grab special — hoists the foe by the skull, squeezes, and the head pops off like a grape into his hand — art: reuse grab hold pose + head-pop.
+FATALITIES (1):
+  - "DOMAIN EXPANSION: MALEVOLENT SHRINE" — the domain — the sure-hit slashes flense the frozen foe into a scattering cloud of cubes — tech: reuse freeze-cine (altSukunaUltCharge hand-sign + slash-shower).
+
+### Aoi Todo (aoi_todo)
+KIT: light=jab/cross / heavy=committed cross / up=axe-kick launcher / air=flying knee / downAir=reuse knee dive; specials = Gun (todoGun straight-arm), Fire Kick (todoFireKick), Whip (todoWhip red-ribbon), Spin Backfist (todoSpin), Armor buff (todoArmor); rekka = Boogie Woogie Rush (todoCombo1 elbow→todoCombo2 hook/uppercut→todoCombo3 spinning roundhouse launcher); ultimate = Maximum: Black Flash (3-way cameo combo, todoClap freeze-cinematic).
+BRUTALITIES:
+  1. "CLAP OFF" — move: Boogie Woogie ultimate (todoClap) — Todo claps and Boogie-Woogie swaps the loser with their own detached head, which poofs into confetti where the body was — art: reuse todoClap (arms-cross) frame + burst.
+  2. "BOOGIE BLAST" — move: Gun (todoGun) — finger-gun "bang" pops the torso off the legs; the top half spins into the air like a cork — art: reuse todoGun pose + shards.
+  3. "ROUNDHOUSE POP" — move: rekka finisher (todoCombo3) — the spin-kick sends the head sailing offscreen while the body wobbles and folds — art: reuse todoCombo3 launcher.
+FATALITIES (2):
+  - "STAND IN LINE" — Maximum: Black Flash — three "brothers" cameo silhouettes each Black-Flash a limb off; foe left as a bouncing torso — tech: reuse freeze-cine (AOI_TODO_ULT builds a cinematic beat sequence).
+  - "MY BEST FRIEND" — Whip (todoWhip) — the red ribbon-whip lassos the foe, yanks, and they unravel into a spool of ribbon — tech: reuse brutalityState freeze-beat.
+
+### Maki Zenin (maki)   [age note: mid-teen]
+KIT: light=naginata slash / heavy=power swing (red trail) / up=overhead launcher / air=aerial slash / downAir=crescent dive-spike; specials = Kunai Throw (kunaiThrow), Nunchaku Flurry (nunchakuFlurry), Power Charge (powerCharge self-buff); rekka = Cursed Tool Flurry (makiG1 sweep→makiG2 roundhouse→makiG3 spinning axe-kick); ultimate = Cursed Tool Awakening / Shibuya form (makiShibuyaCinematic.js, HP≤25%).
+BRUTALITIES:
+  1. "SLICE & DICE" — move: heavy power swing — the polearm cleaves the foe into two neat halves that slide apart and go "plop" (bloodless cross-section) — art: reuse heavy (red-trail) frame.
+  2. "SPIN CYCLE" — move: Nunchaku Flurry — the whirling nunchaku spins the head like a top until it unscrews and flies off — art: reuse makiNunchaku spin.
+  3. "PINCUSHION" — move: Kunai Throw — kunai nails the foe to the wall; body deflates and slides down leaving the pinned outfit — art: reuse makiKunai + procedural kunai.
+FATALITIES (2):
+  - "HEAVENLY VOW" — Shibuya-Awakening — blitzes in black costume, a dozen after-image slashes land at once, foe splits into tidy stacked cubes — tech: reuse freeze-cine (makiShibuyaCinematic.js).
+  - "CURSED TOOL FLURRY" — rekka finisher (makiG3) — the axe-kick punts the upper body off; legs stand a beat then topple — tech: reuse brutalityState freeze-beat.
+
+### Toji Fushiguro (toji)   [already in BRUTALITY_ELIGIBLE; existing "SPLIT" entry]
+KIT: light=jab / heavy=big straight / up=rising launcher (red slash) / air=cross / downAir=descending weapon swing; specials = Split Soul Katana (2-hit descending), Rapid Sword Slashes, Chain/Inverted Spear (chainOfMiles, 5-part), Playful Cloud (staff dash), Fly Heads (vision-denial swarm), Handgun (tojiGun); rekka = jab→cross→hook→straight (tojiG1-G4); ultimate = Reincarnated Form (tojiReincarnationCinematic.js buff).
+BRUTALITIES:
+  1. "SPLIT SOUL" — move: Split Soul Katana — the two descending cuts land as an X; foe pops into four floating quarters that drift like ice cubes — art: reuse tojiSword1/2 + existing toji slash palette.
+  2. "SPEAR THROUGH" — move: Inverted Spear finisher (tojiChain5) — the chained spear skewers and retracts, pulling the foe inside-out into a puff, leaving the empty jacket — art: reuse tojiChain5 + chain FX.
+  3. "PISTOL WHIP" — move: Handgun (tojiGun) — casual point-blank "bang" blows the head off like a champagne cork — art: reuse tojiGun draw-fire + burst.
+FATALITIES (2):
+  - "REINCARNATION" — Reincarnated Form — cracks his neck, blurs through the foe a dozen times, foe holds one beat then slides into diced cubes — tech: reuse freeze-cine (tojiReincarnationCinematic.js).
+  - "FLY HEADS FEAST" — Fly Heads — the shikigami swarm engulfs the foe; the screen clears to a picked-clean cartoon skeleton that clatters apart — tech: NEW cinematic (swarm module exists as FX; the reveal beat is new).
+
+### Yuji Itadori (yuji)   [age note: mid-teen]
+KIT: light=jab / heavy=Divergent Fist (delayed follow-through) / up=rising-kick launcher / air=strike / downAir=down-spike; specials = Divergent Fist (delayed second-impact), Cursed Energy Ball (cyan projectile); rekka = none; ultimate = Black Flash (yujiUltimateCinematic.js).
+BRUTALITIES:
+  1. "DIVERGENT FIST" — move: Divergent Fist (heavy) — the delayed SECOND impact detonates the midsection into a cyan puff; top and bottom halves bounce apart — art: reuse yuji super-forward frame + burst.
+  2. "BLACK FLASH" — move: Black Flash ultimate — the spark lands and the foe crumples inward into a point then pops out of existence with a "poof" — art: reuse yujiUltimate freeze-cinematic + flash.
+  3. "CURSED CURVE" — move: Cursed Energy Ball — the cyan orb bonks the head clean off; it inflates like a balloon and drifts up squeaking — art: reuse yuji charge/cast + cyan projectile.
+FATALITIES (1):
+  - "RESONANCE" — Black Flash / Divergent Fist — four escalating Black Flashes each blow off a limb in a cyan pop; foe left a stunned bouncing head that deflates — tech: reuse freeze-cine (yujiUltimateCinematic.js).
+
+### Naoya Zenin (naoya)   [already in BRUTALITY_ELIGIBLE]
+KIT: light=lunging jab / heavy=high kick / up=reuse high-kick launcher / air=spin-kick / downAir=reuse spin; specials (Projection Sorcery) = Frame-Skip blink, Frame-Trap sequence, Energy Dart (orange projectile), Pitch Throw; rekka = naoyaCombo (single Fwd+Heavy low string, orange FX); ultimate = Projection Sorcery: Frame-Trap (naoyaFrameTrap freeze-lock finisher).
+BRUTALITIES:
+  1. "24 FRAMES" — move: Frame-Trap ultimate (naoyaFrameTrap) — blinks through 24× in an instant; the foe is caught mid-frame and DELETED between frames, leaving a flat outline that peels off — art: reuse naoyaFrameTrap frames.
+  2. "FAST BREAK" — move: Frame-Skip kick (naoyaCombo) — the spin-kick lands so fast the legs stay behind while the torso is punted forward; halves land apart — art: reuse naoyaCombo + orange FX.
+  3. "SPEED DART" — move: Energy Dart — drills through the head and out the back; head deflates like a tire and whistles across the stage — art: reuse naoya dart-cast + projectile.
+FATALITIES (1):
+  - "PROJECTION SORCERY" — Frame-Trap — time freezes, Naoya walks a circle placing 24 strike-marks, unfreezes, and the foe bursts into 24 confetti-squares at once — tech: reuse freeze-cine (NAOYA_ULT scripted beat + freeze-lock).
+
+### Kasumi Miwa (miwa)
+KIT: light=horizontal slash / heavy=overhead vertical slash / up=rising launcher / air=aerial slash / downAir=downward slash; specials = Iai Dash (gap-closer), Rapid Slash Vortex, cursed-energy charge stance; rekka = Battojutsu Rush (miwaG1 low lunge→miwaG2 dash-thrust→miwaG3 rising finisher); ultimate = Blade of the Neophyte (miwaUltimateCinematic.js quick-draw).
+BRUTALITIES:
+  1. "QUICK-DRAW" — move: Battojutsu Rush (miwaG2 dash-thrust) — the thrust passes clean through; a beat later the top half slides off diagonally with a "shing!" — art: reuse miwaG2.
+  2. "RISING NEOPHYTE" — move: up-attack launcher — the launcher pops the head straight up like a cork while the body drops and sits dizzily — art: reuse up rising-slash.
+  3. "VORTEX DICED" — move: Rapid Slash Vortex — the vortex dices the foe into stacked slices that fan out like a deck of cards before scattering — art: reuse airVortex slash frames.
+FATALITIES (1):
+  - "BLADE OF THE NEOPHYTE" — the ultimate — the single explosive draw-cut; screen flashes white, sheathe click, foe delayed-splits into four tumbling chunks a beat later — tech: reuse freeze-cine (miwaUltimateCinematic.js).
+
+### Yuta Okkotsu (yuta)   [age note: mid-teen ~17]
+KIT: light=fast kick / heavy=sword swing / up=anti-air sword launcher / air=air kick / downAir=reuse air; specials = Cursed Energy Manipulation beam (N), Strong Attack (F), Kick 4 (D launcher), Reverse Cursed Technique self-heal (B), Cursed Speech (U); rekka = Sword Combo (yutaCombo1→2→3); ultimate = Rika's Invocation.
+BRUTALITIES:
+  1. "STOP" — move: Cursed Speech (U) — the incantation freezes the foe stiff, then they shatter into cartoon shards like glass — art: reuse yuta_speech cast + shard-burst.
+  2. "OVERKILL" — move: Sword Combo finisher (yutaCombo3 thrust) — the thrust runs the foe through; they split top-and-bottom and comic-launch opposite directions — art: reuse yuta_combo3 + vertical split.
+  3. "PURE LOVE" — move: Cursed Energy Manipulation beam (N) — the CE beam engulfs the foe who dissolves into a swirl of blue cursed-energy wisps sucked into a point — art: reuse yuta_cem + CE dissolve.
+FATALITIES (1):
+  - "RIKA'S INVOCATION" — Rika ult — Rika manifests behind Yuta, opens her maw and chomps the frozen foe in one bite, leaving a CE puff — tech: NEW cinematic (reuse summons.js rikaAssist Rika art in a post-match freeze).
+
+### Megumi Fushiguro (handler)   [age note: mid-teen ~15]
+KIT: light=fast punch / heavy=long sword thrust / up=rising sword-draw launcher / air=reuse punch / downAir=reuse punch; specials = Divine Dogs (N), Orochi (F), Max Elephant (D), Datto (B), Nue (U), Toad (air); rekka = none (auto-string); ultimate = Mahoraga.
+BRUTALITIES:
+  1. "GOOD BOYS" — move: Divine Dogs (N) — the two Divine Dog shikigami drag the foe offscreen in a dust-cloud tug-of-war, spitting out a lone shoe — art: reuse handler_shik Divine Dog summons + NEW shoe prop.
+  2. "MAX ELEPHANT" — move: Max Elephant (D) — the elephant body-slams the foe flat into a crater, leaving two feet twitching — art: reuse Max Elephant summon slam + flatten.
+  3. "TEN SHADOWS" — move: rising sword-draw launcher (up) — the summon-blade uppercut launches the foe; the head separates and drops into a puff of shadow that swallows it — art: reuse handler_up + shadow-pool FX.
+FATALITIES (1):
+  - "MAHORAGA" — the ultimate — the wheel-crowned Mahoraga looms in and brings down one adapting sword-slash that cleaves the frozen foe into two neat halves — tech: NEW cinematic (Mahoraga art is new ult scope; fork inline freeze-cine).
+
+
+========================  NARUTO  ========================
+
+### Naruto (naruto)   [FLAGGED 2A — KIT ONLY, no finisher content]
+KIT: light/heavy/up/air/downAir = taijutsu string w/ launcher up; specials = Rasengan (N), Dark Rasengan (D), Pincer Rendan clone sub (U), Rasenshuriken (charge-hold), Shuriken-Hidden Clone decoy, Shadow Clone spawn/dispel; rekka = clone-empowered Rasengan Barrage; ultimate = Nine-Tails / Tailed Beast Bomb (Kurama mode, freeze-cinematic).
+FLAGGED: apparent minor (Part 1, age 12) — Section 2A. No finisher content pending user decision.
+
+### Sasuke (sasuke)   [borderline: Part-1 age 12 but adult art — see 2C]
+KIT: light=forward-kick combo / heavy=sword thrust (foword_sword_attack_2, reach) / up=rising slash launcher / air=spin-slash / downAir=down/spike; specials = Dash Strike (N), Lightning/Kirin (F, sasukeLightning), Chidori Koiten (B, windup→discharge), Shuriken Throw (D); rekka = none; ultimate = Susanoo (2-stage, sasukeCinematic.js Lv2 escalation, ribcage grab / Lv2 arrow).
+BRUTALITIES:
+  1. "SUSANOO GRIP" — move: Susanoo ultimate (ribcage grab) — the giant spectral ribcage-hand plucks the foe up and squeezes; body pops into a puff of feathers, empty cloak flutters down — art: reuse Susanoo grab cinematic + burst.
+  2. "CHIDORI PIERCE" — move: Chidori Koiten — the lightning fist punches through the chest; the torso short-circuits, head sparking off like a blown fuse — art: reuse chidoriKoiten discharge + shards.
+  3. "BLADE THROUGH" — move: heavy sword thrust — runs the foe through and lifts them; they slide down the blade and split into two neat halves — art: reuse heavy sword-thrust + slash FX.
+FATALITIES (2):
+  - "PERFECT SUSANOO" — Susanoo Lv2 — the full avatar draws its arrow and fires; the foe is vaporized into a cloud of black feathers — tech: reuse freeze-cine (sasukeCinematic.js).
+  - "KIRIN" — Lightning special — a dragon of lightning crashes down; foe left a charred skeleton that crumbles into a smoking pile — tech: reuse brutalityState freeze-beat.
+
+### Itachi Uchiha (itachi)
+KIT: light=low sweep/poke / heavy=wide blade swing / up=rising slash launcher / air=knife stab / downAir=dive kick; specials (Mangekyou) = Great Fireball (N, + Fire-Flower Barrage itachiFire1-3), Amaterasu (F, black-flame projectile), Genjutsu (B, hit-confirm illusion); rekka = none; ultimate = Susanoo (mangekyouCinematic.js giant avatar).
+BRUTALITIES:
+  1. "AMATERASU" — move: Amaterasu — black flames burn the foe to a tidy pile of ash in one instant; a single eye blinks in the ash then poofs — art: reuse amaterasuCast + black-flame FX.
+  2. "TSUKUYOMI" — move: Genjutsu (hit-confirm) — the illusion lands; the head detaches and floats away trailing a spiral of crows, body folds — art: reuse genjutsuCast + crow FX (intro crow art exists).
+  3. "GREAT FIREBALL" — move: Great Fireball / Fire-Flower Barrage — the fireball pops the foe like a marshmallow; a puff of soot and two shoes remain — art: reuse fireballCast + fireball.
+FATALITIES (2):
+  - "SUSANO'O" — Susanoo ultimate — the avatar draws the Sword of Totsuka and seals the frozen foe into a floating gourd that shrinks to nothing — tech: reuse freeze-cine (mangekyouCinematic.js).
+  - "MURDER OF CROWS" — Genjutsu / crow-swarm — a swarm of crows carries the frozen foe off piece by piece, leaving an empty cloak — tech: reuse brutalityState freeze-beat + intro crow frames.
+
+### Tobirama Senju (tobirama)
+KIT: light=low sweeping kick / heavy=forward lunge-straight (reach) / up=rising kick launcher / air=somersault kick / downAir=descending diagonal kick spike; specials = Water Dragon (N), Advancing Water Slash (F), Rising Water geyser (U launcher), Water Wall (D), Darkness Jutsu (B), Water Flicker escape; rekka = Water Chain (tobiCombo1→tobiCombo2 water-strike→tobiComboFin downward slam launcher); ultimate = Edo Tensei (tobiramaEdoTenseiCinematic.js).
+BRUTALITIES:
+  1. "WATER DRAGON" — move: Water Dragon — the water-serpent swallows the foe whole and spits out only a soggy deflated outline that flops — art: reuse tobiWaterDragon cast + water-dragon FX.
+  2. "DARKNESS JUTSU" — move: Darkness Jutsu — a black box snaps shut over the foe; when it opens they're gone — a puff and a floating "?" — art: reuse tobiDarkness seal-cup + dark FX.
+  3. "SLASH & SPLASH" — move: Advancing Water Slash — the water-blade cuts the foe in two; halves splash apart into puddles, headband bobbing on top — art: reuse tobiWaterSlash (water FX built in).
+FATALITIES (2):
+  - "EDO TENSEI" — the ultimate — reanimates the loser as an ashen puppet that promptly crumbles to dust and blows away — tech: reuse freeze-cine (tobiramaEdoTenseiCinematic.js).
+  - "SECOND HOKAGE" — Water Chain finisher (tobiComboFin) — the slam drives the foe into the ground so hard only their legs stick up, wobble, and pop off — tech: reuse brutalityState freeze-beat.
+
+### Hashirama Senju (hashirama)
+KIT: light/heavy/up/air/downAir = Mokuton taijutsu (heavy=long wood-beam reach, up=launcher, downAir spike); specials = Wood Release punch (tap/hold), 4-tier Tree-Summon ladder, Rising Pillar (spawnPlatform), Wood Golem, wood-beam Straight (hashiWoodStraight), Gracious Deity Gates; rekka = Wood Combo (hashiComboA→hashiComboB leaping kick→hashiComboFin spinning wood-beam launcher); ultimate = Sealing Jutsu (hashiramaSealingJutsuCinematic.js, Gates pin + cameo assists).
+BRUTALITIES:
+  1. "GRACIOUS DEITY GATES" — move: Sealing Jutsu (Gates) — the wooden gates slam shut like a bear-trap; when they reopen the foe is a pressed flat cutout that peels off and drifts away — art: reuse hashiramaSealingJutsu cinematic + burst.
+  2. "WOOD GOLEM FIST" — move: Wood Golem summon — the giant hand flicks the foe like a bug; they twinkle off into the distance with a "ping" star — art: reuse Wood Golem summon.
+  3. "WOOD DRAGON BITE" — move: Tree-Summon / wood-beam Straight (hashiWoodStraight) — a wooden dragon-beam erupts through the foe, splitting them into two halves that sprout leaves and topple — art: reuse hashiWoodStraight + wood FX.
+FATALITIES (1):
+  - "SAGE ART: TRUE SEVERAL THOUSAND HANDS" — Sealing Jutsu / Sage — the thousand-armed Buddha statue rises and a thousand hands clap the frozen foe into a flat wafer that flutters down — tech: reuse freeze-cine (hashiramaSealingJutsuCinematic.js, already a bespoke cameo-assist cinematic).
+
+### Minato Namikaze (minato)
+KIT: light/heavy/up/air/downAir = ninja taijutsu (heavy reach, up launcher, downAir spike); specials = Rasengan / Clone Barrage (N, S4 Flying Raijin), Clone Rush (N, B→F), Pincer Rendan clone sub (U), Reaper Death Seal (D), Flying-Raijin teleport-strikes; rekka = Yellow Flash Rush (minatoRush1→minatoRush2 kunai flurry→minatoRushFin flip-slam launcher→clone-empowered Flying-Raijin Barrage minatoRaijin1→2 Rasengan finisher); ultimate = Nine-Tails Chakra Mode / Tailed Beast Bomb.
+BRUTALITIES:
+  1. "REAPER DEATH SEAL" — move: Reaper Death Seal (D) — the Shinigami yanks the foe's soul out as a little glowing ghost; the empty body folds flat — art: reuse minato seal-cast pose + NEW reaper FX overlay.
+  2. "FLYING RAIJIN" — move: Flying-Raijin Barrage finisher (minatoRaijin2 Rasengan) — blinks around the foe marking them, then the final Rasengan grinds them into a spinning puff that vanishes with a flash-ring — art: reuse minatoRaijin/dash flash-ring + Rasengan FX.
+  3. "TAILED BEAST BOMB" — move: Nine-Tails Chakra Mode ultimate (bomb) — the mini-Kurama avatar spits a bomb that pops the foe like a party popper; confetti and one sandal rain down — art: reuse Kurama cloak/bomb + burst.
+FATALITIES (2):
+  - "REAPER DEATH SEAL" — Shinigami — the Death God fully manifests, devours the frozen foe's soul, foe crumbles to a comic skeleton then dust — tech: NEW cinematic (no dedicated Reaper freeze-cine; a bespoke post-match cinematic fits best).
+  - "YELLOW FLASH" — Flying Raijin — a dozen flash-rings blink around the frozen foe simultaneously; on the last blink they're diced into cubes mid-air — tech: reuse brutalityState freeze-beat + dash flash-ring art.
+
+### Madara Uchiha (madara)   [already in BRUTALITY_ELIGIBLE; existing "ANNIHILATE" entry]
+KIT: light=gunbai slap / heavy=swipe→palm string (reach) / up=rising gunbai launcher / air=flurry / airHeavy=Susanoo-hand grab; specials = Katon Great Fireball, Gunbai Summon (reflect), Gunbai Fan-Swing, Mokuton Wood Spike, Mokuton Wood Dragon; rekka = Susanoo Base Punch (Fwd+Heavy, giant fist); ultimate = Susanoo (TAP Tengai Shinsei meteor / HOLD Complete Susanoo; madaraTengaiShinseiCinematic.js).
+BRUTALITIES:
+  1. "ANNIHILATE" — move: heavy (swipe→palm string) — the torso comet-splits into 4 floating purple Susanoo-shard chunks that hang a beat then puff — art: reuse existing madara finisher-table entry (shards, already wired) + heavy end pose.
+  2. "FAN-OFF" — move: Gunbai Fan-Swing — the overhead war-fan pops the head off, which spins skyward like a tossed coin and vanishes — art: reuse madaraGunbaiSwing + head part.
+  3. "TIMBER" — move: Mokuton Wood Spike (Down) — a comic wooden spike skewers up through the foe, who splits top/bottom and topples opposite ways — art: reuse madaraWoodSpikeCast + 2 parts.
+FATALITIES (2):
+  - "TENGAI SHINSEI" — Perfect Susanoo meteor — the meteor drops and flattens the frozen foe into a 2D pancake that peels off and flutters away — tech: reuse freeze-cine (madaraTengaiShinseiCinematic.js).
+  - "PERFECT SUSANOO GRAB" — Complete Susanoo — a giant ethereal hand plucks the frozen foe up and flicks them offscreen with a "ping" — tech: reuse the Complete-Susanoo giant path in the same module.
+
+### Obito Uchiha (obito)
+KIT: light=rod spin / heavy=long staff thrust / up=rising launcher / air=rod strike / downAir=aerial down-spike; specials = Shuriken Throw, Chakra Rod Throw, Giant Shuriken, Kamui Warp; rekka = Kamui Rod Combo (obitoRod1→2→3); ultimate = Juubi (Ten-Tails giant cinematic, obitoJuubiCinematic.js).
+BRUTALITIES:
+  1. "KAMUI'D" — move: Kamui Warp (Down) — a Kamui portal opens under the foe and swallows their lower body; the floating top half spins once and drops through — art: reuse obitoKamuiActivate + portal FX.
+  2. "GIANT PINWHEEL" — move: Giant Shuriken (Up) — the fūma shuriken buzz-saws the foe into three spinning ribbons that fan out and poof — art: reuse obitoShurCast + 3 parts.
+  3. "ROD RUN-THROUGH" — move: heavy staff thrust — punches a comic hole clean through the foe's middle; they wobble like a donut then crumble — art: reuse obito_heavy + procedural hole.
+FATALITIES (1):
+  - "TEN-TAILS TANTRUM" — Juubi — the giant Ten-Tails chomps the frozen foe once, then daintily spits out only their sandals — tech: reuse freeze-cine (obitoJuubiCinematic.js).
+
+### Tobi (tobi)
+KIT: light=chain-whip flick (reach) / heavy=dashing rush + burst / up=overhead chain-whip launcher / air=kunai throw (projectile) / downAir=diving stomp; specials = Chain Grab (N, multi-stage), Kamui Warp (Down), Kamui Grab (Back, random-warp), Fire Phoenix Jutsu (Fwd, splitting fireball); rekka = none (Chain Grab is the multi-stage signature); ultimate = Nine-Tails (Kurama Bijūdama, tobiNineTailsCinematic.js).
+BRUTALITIES:
+  1. "WRAP IT UP" — move: Chain Grab finisher (smash-down) — the reeled-in foe is whipped so hard the chain unravels them like a spinning top into a pile of clothes + a puff — art: reuse tobiChainSmash + cloth/parts.
+  2. "PHOENIX FRY" — move: Fire Phoenix Jutsu (Fwd) — the fireball's mid-flight split-burst leaves the foe a charcoal statue that crumbles into an ash heap — art: reuse tobiFireCast + ash parts.
+  3. "WHERE'D THEY GO" — move: Kamui Grab (Back) — the warp-grab yanks the foe into the portal and only a single shoe drops back out with a "plink" — art: reuse tobiKamuiActivate + 1 shoe part.
+FATALITIES (1):
+  - "TAILED BEAST BOMB" — Nine-Tails Bijūdama — Kurama fires the bomb; the frozen foe balloons then pops into confetti and a floating "!" — tech: reuse freeze-cine (tobiNineTailsCinematic.js).
+
+### Pain (pain)
+KIT: light=spinning kick / heavy=black-rod thrust string (reach) / up=rising red-slash launcher / air=kick / airHeavy=rod-sword / downAir=diving spike; specials = Shinra Tensei (Almighty Push), Bansho Ten'in (Almighty Pull), Hard Shinra Tensei, Dedera Double Attack (Deidara clay-bomb, Fwd); rekka = 3-stage ground_combo (painCombo1→2→3) + Fwd+Light painJab; ultimate = Chibaku Tensei (planetary sphere, painChibakuTenseiCinematic.js).
+BRUTALITIES:
+  1. "ALMIGHTY PUSH" — move: Shinra Tensei — the gravity shove flattens the foe against the far wall, sliding down as a 2D silhouette that peels off and drifts away — art: reuse painAlmightyPushCast + flatten.
+  2. "REELED IN" — move: Bansho Ten'in — the yank stretches the foe taffy-long, snaps, and both ends ping offscreen — art: reuse painAlmightyPullCast + 2 stretch parts.
+  3. "BOOM BIRD" — move: Dedera Double Attack (clay bomb) — the clay bird lands and detonates the foe into a ring of little smoke-puffs with an "art is an explosion" star-flash — art: reuse painDederaRise + burst.
+FATALITIES (1):
+  - "CHIBAKU TENSEI" — the ultimate — the black sphere hoovers the frozen foe up with debris, balls them into a tiny satellite, and they slam back down flattening into a crater with a "thud" — tech: reuse freeze-cine (painChibakuTenseiCinematic.js).
+
+### Isshiki Otsutsuki (isshiki)   [already in BRUTALITY_ELIGIBLE]
+KIT: light=ground auto-combo (isshikiGround1-3, launcher finisher) / heavy=standalone kick / up=rising slash launcher / air=air combo (isshikiAir1-3, dive spike) / downAir=dive-slash; specials = Sukunahikona (shrink-warp), Daikokuten Rods, Daikokuten Cubes, Sage Art: Gokashin Ensen (hell-fire wave), + rod/air-dash finishers; rekka = ground/air Light auto-combo; ultimate = Daikokuten Barrage (freeze-cinematic black-rod barrage).
+BRUTALITIES:
+  1. "SHRUNK!" — move: Sukunahikona — the shrink-warp keeps shrinking the FOE, dwindling to a dot that pops with a tiny "blip" — art: reuse sukunahikonaShrink scale-down on the victim.
+  2. "CUBE CRUSH" — move: Daikokuten Cubes — an enlarged black cube drops and flattens the foe into a cardboard cutout that teeters and topples — art: reuse isshikiSukuCast + cube FX.
+  3. "HELLFIRE WASH" — move: Sage Art: Gokashin Ensen — the fire-wave burns the foe to a comic skeleton that stands a beat then clatters into a bone-pile — art: reuse isshikiFireCast + fire FX.
+FATALITIES (1):
+  - "DAIKOKUTEN BARRAGE" — the ultimate — the black-rod barrage pins the frozen foe to the wall like a specimen, then all rods retract at once and the foe pops into Karma-shard confetti — tech: reuse freeze-cine (isshikiUltCast).
+
+### Hiruzen Sarutobi (hiruzen)
+KIT: light/heavy = punch-flurry combo string + wide finisher; up=launcher / air=forward punch / downAir=wide swing (fallbacks); specials = SPIN (evasive iframes), Fire Release: Great Fireball, Earth Release: Wall, Enma (Monkey King Staff buff), Adamantine Staff Bind (command grab); rekka = none; ultimate = Reaper Death Seal (inline freeze-cinematic soul-rip, pays 15% self-HP).
+BRUTALITIES:
+  1. "GREAT BALL" — move: Fire Release: Great Fireball — the flame projectile engulfs the foe, who pops out the far side as a charred toony crisp that crumbles into ash-flakes — art: reuse hiruzenFireCast + fireball, NEW ash crumble.
+  2. "BOUND & BROKEN" — move: Adamantine Staff Bind — Enma's staff coils and cinches so tight the foe pops apart at the middle like a snapped party-popper — art: reuse hiruzenBind staff pose, NEW pop-apart halves.
+  3. "ROCK BOTTOM" — move: Earth Release: Wall — the stone wall erupts UNDER the foe, catapulting them offscreen with a "ping!" twinkle — art: reuse hiruzenEarthCast + earth-spike FX.
+FATALITIES (1):
+  - "REAPER DEATH SEAL" — the ultimate — the Shinigami yanks a wide-eyed cartoon ghost-soul clean out; the empty husk deflates like a balloon and flops flat — tech: reuse freeze-cine (existing inline soul-rip cinematic).
+
+### Orochimaru (orochimaru)   [already in BRUTALITY_ELIGIBLE]
+KIT: light=snake-whip auto-combo / heavy=Kusanagi thrust (reach) / up=launcher / air=kick/snake / downAir=down strong / airHeavy=extended Kusanagi swing; specials = Snake Spit, Sword Lunge (F), Sword Throw (B), Tail Sweep (U), Slam (D), Snake Lunge (air), Snake Barrage (air F), Coil (air B); rekka = command chain (Fwd+Heavy→orochimaruChain2→orochimaruChain3 flash launcher); ultimate = Summoning: Twin Serpents (inline freeze-cinematic giant serpent).
+BRUTALITIES:
+  1. "KUSANAGI THRUST" — move: heavy / Kusanagi thrust — the long blade skewers and lifts the foe wriggling like a shish-kebab, then flicks them off the tip into a puff — art: reuse heavy thrust + Kusanagi reach.
+  2. "SNAKE DEVOUR" — move: Snake Spit — the spat snake balloons huge and gulps the foe whole in one chomp; it hiccups and a lone shoe drops out — art: reuse orochimaruSnakeSpit + snake FX.
+  3. "SHED & SPLIT" — move: command flash launcher (orochimaruChain3) — the flash-cut slices the foe, who "sheds": the skin-husk peels off empty and flops while the foe vanishes — art: reuse orochimaruChain3 + orochimaruShed.
+FATALITIES (1):
+  - "SUMMONING: TWIN SERPENTS" — the ultimate — the colossal serpent swallows the frozen foe whole; the belly bulges into a wriggling foe-shape, gulps once, and settles flat — tech: reuse freeze-cine (drawOrochimaruSummonCinematic).
+
+### Onoki (onoki)
+KIT: light=quick jab / heavy=enlarged rock-arm straight (reach) / up=rock-fist uppercut launcher / air=dive kick / downAir=inverted rock-leg dive spike; specials = Rock Fist Transform (N), Rock Fist Lunge (F), Rock Arm Swing (B), Taunting Combo Finisher (U launcher), Cape Spin + rock projectiles (D), Jutsu Charge/Launch (P-hold Dust Release), air specials; rekka = onokiCombo (Fwd+Heavy taijutsu string); ultimate = Detachment of the Primitive World (persistent stone Golem summon).
+BRUTALITIES:
+  1. "ATOMIC DUST" — move: Jutsu Charge/Launch (Dust Release) — the disassembly cube atomizes the foe into a fizzing spray of tiny pixels that drift apart (canon atomic-scale, toony) — art: reuse onokiJutsu launch + jutsu FX.
+  2. "ROCK-ARM STRAIGHT" — move: heavy rock-arm straight — the giant rock fist bonks the foe flat into a coin-thin disc that spins on its edge and wobbles down — art: reuse heavy rock-arm.
+  3. "CAPE SPIN OUT" — move: Cape Spin (D) — the spinning cape + rock shards blend the foe into a whirl that flings out rubble-chunks with googly-eyes — art: reuse onokiCapeSpin + rock projectile FX.
+FATALITIES (1):
+  - "DETACHMENT OF THE PRIMITIVE WORLD" — the Golem ultimate — the stone Golem's giant fist squashes the frozen foe into the ground like a hammer-and-nail; a flat foe-shaped hole is left — tech: NEW cinematic (ult hands off to a PERSISTENT summon; onokiUltCast pose + golem art are reusable pieces).
+
+### Kiba Inuzuka (kiba)   [FLAGGED 2A — KIT ONLY, no finisher content]
+KIT: light=fang-claw flurry / heavy=lunging fang strike / up=rising anti-air launcher / air=air claw chain / downAir=down-air spike; specials = Gatsuga/Passing Fang (Weak N drill-rush, Strong F armored twin-drill), Four Legs (D transform), Two-Headed Wolf (U twin-drill rush); rekka = none (Fwd+Heavy command normals); ultimate = Three-Headed Wolf (freeze/camera-focus cinematic fang-vortex maul).
+FLAGGED: apparent minor (age 12) — Section 2A. No finisher content pending user decision.
+
+### Boruto Uzumaki (boruto)   [FLAGGED 2A — KIT ONLY, no finisher content]
+KIT: light=2-hit punch→kick auto-combo / heavy=strong forward punch / up=uppercut launcher / air=punch+kick / downAir=divekick; specials = Rasengan (N gnd), Rasengan Dive (N air), Vanishing Rasengan (air B), Shiden lightning thrust (F), Wind/Water breath (B), Palm Blast (U), Shadow Clone (D), Clone-Assisted Rasengan; rekka = none (Low Sweep + Air-Combo command normals); ultimate = Kote Barrage (5-part cinematic).
+FLAGGED: apparent minor (~12) — Section 2A. No finisher content pending user decision.
+
+### Six Paths of Pain (six_paths_pain)
+KIT: light=quick jab / heavy=black-rod thrust string (reach) / up=rising rod lunge launcher / air=rod swing / downAir=low rod-sweep dive; specials (Deva path) = Almighty Push / Shinra Tensei (N), Almighty Pull / Bansho Ten'in (B), Rinnegan Defense barrier (D) + multi-Path swap; rekka = none; ultimate = Six Paths of Pain (bodies swarm-rush; Chibaku Tensei reserved for solo `pain`).
+BRUTALITIES:
+  1. "SHINRA TENSEI" — move: Almighty Push (N) — the repulsion blast over-shoves the foe, who comic-launches offscreen at warp speed leaving a "ping" twinkle — art: reuse spPush arms-spread pose (force-only).
+  2. "BANSHO TEN'IN" — move: Almighty Pull (B) — the gravity reel yanks the foe in so hard they crumple into a tiny compressed ball that pops like a bubble — art: reuse spPull reel gesture, NEW crumple-squash.
+  3. "BLACK ROD PIN" — move: heavy (black-rod thrust) — the chakra rod skewers through; foe freezes, then dissolves top-down like a receiver losing its channel, clothes+rod clatter down — art: reuse heavy rod-thrust + dissolve FX.
+FATALITIES (1):
+  - "SIX PATHS SWARM" — the ultimate — all six frozen Paths converge on the foe in a blur and scatter them into a drift of paper-tag confetti — tech: reuse freeze-cine (executeSixPathsUltimate swarm-rush; Chibaku Tensei stays reserved for solo pain).
+
+### Kakashi (kakashi)
+KIT: light/heavy/up/air = shinobi strike normals; specials = Weapon Throw / kunai (N), crouch throw (D), Kuchiyose: Nin-Dogs (F), Kuchiyose: Pakkun (B), airborne throw (air); rekka = Kunai Draw Chain (kakashiCombo1→2→3 launcher); ultimate = Raikiri / Lightning Blade (+ Sharingan/Kamui via mangekyouCinematic.js).
+BRUTALITIES:
+  1. "LIGHTNING BLADE" — move: Raikiri (ultimate thrust) — the lightning hand punches through the chest; a fist-sized glowing hole is left as the foe topples — art: reuse Raikiri thrust + NEW glowing-hole frame.
+  2. "NIN-DOGS" — move: Kuchiyose: Nin-Dogs (F) — the summon dogs pile on and drag the foe underground, spitting up a lone headband — art: reuse Nin-Dogs burst + NEW headband prop.
+  3. "PINCUSHION" — move: Weapon Throw / kunai (N) — the kunai barrage nails the foe to the wall spread-eagle; they wobble and slide down into a heap — art: reuse kunai throw FX + NEW pinned frame.
+FATALITIES (1):
+  - "KAMUI" — Mangekyou / Kamui — a swirling Kamui vortex opens and warps the frozen foe away limb-by-limb into another dimension, leaving empty air — tech: reuse freeze-cine (mangekyouCinematic.js).
+
+
+========================  DEMON SLAYER  ========================
+
+### Zenitsu Agatsuma (zenitsu)   [age note: mid-teen ~16]
+KIT: light=katana slash / heavy=two-slash / up=rising launcher / air=thrust / downAir=descending diagonal slash; specials = Thunderclap and Flash (dash-strike), Sixfold volley, Godspeed flash-step; rekka = Down+Heavy chain (zenCombo1 low sweep→zenCombo2 dash lunge→zenCombo3 rising super-slash launcher); ultimate = Thunder Breathing Godspeed (unblockable dash-through slice).
+BRUTALITIES:
+  1. "THUNDERCLAP" — move: Thunderclap and Flash — the lightning dash-through leaves the foe a beat, then they slide apart along a glowing diagonal cut and both halves fall away — art: reuse zenThunderclap + diagonal split.
+  2. "UP AND OVER" — move: up (rising launcher) — the vertical rising slash bisects the foe top-to-bottom; the halves peel outward like a banana skin then poof — art: reuse zenitsu_up + 2 halves.
+  3. "SIXFOLD" — move: rekka finisher (zenCombo3) — the finisher juggles the foe into six glowing slash-lines that dice them into cubes raining down — art: reuse zenCombo3 + cube parts.
+FATALITIES (1):
+  - "GODSPEED" — Thunder Breathing dash-through — a single blinding flash-step; the frozen foe holds mid-stance, a "6" appears, then they split into six clean slices at once — tech: NEW cinematic (no module; ult non-cinematic) — or piggyback the brutalityState freeze-beat.
+
+### Kyojuro Rengoku (rengoku)
+KIT: light=flame slash / heavy=forward two-slash / up=rising flame launcher / air=slash / downAir=downward flame-spike; specials = Charged Flame Strike (tap/hold tiers), Flame Counter (parry→riposte); rekka = Flame command chain (rengokuG1→G2→G3 with super finishers); ultimate = Flame Breathing: Rengoku / Flame Explosion (rengokuFlameExplosionCinematic.js).
+BRUTALITIES:
+  1. "FLAME LUNGE" — move: Charged Flame Strike (hold-tier) — the wide flame arc leaves the foe a charcoal statue that cracks and crumbles into an ember-pile — art: reuse charged-strike lunge + ash-crumble.
+  2. "COUNTER-RIPOSTE" — move: Flame Counter — the flaming riposte cuts so cleanly the upper body slides off the diagonal and drops, leaving smoking boots planted — art: reuse rengokuCounter stance + 1 part.
+  3. "NINTH FORM" — move: rekka finisher (rengokuSuperDown flame-wave slam) — the flame-wave hammers the foe flat into a pancake wreathed in fire-puffs that flutters off — art: reuse rengokuG3/super-down.
+FATALITIES (1):
+  - "FLAME EXPLOSION" — the ultimate — the blade-raise triggers a giant flame column; the frozen foe is launched up as a comic firework that bursts into a "SET YOUR HEART ABLAZE" star-shower — tech: reuse freeze-cine (rengokuFlameExplosionCinematic.js).
+
+### Shinobu Kocho (shinobu)
+KIT: light=forward thrust / heavy=deep lunging pierce / up=rising spin launcher / air=blade thrust / downAir=spinning dive-spike; specials = Poison Thrust (Insect Breathing stinger + wisteria DoT), Butterfly Flit (backflip evade); rekka = Insect Breathing chain (shinobuG1 horizontal→G2 overhead→G3 lunging body-check); ultimate = Insect Breathing: Butterfly Dance (spinning-dash + lethal poison, shinobuButterflyCinematic.js).
+BRUTALITIES:
+  1. "WISTERIA OVERDOSE" — move: Poison Thrust — the stinger jabs in and the foe puffs up cartoonishly purple, wobbles like a balloon, then pops into a cloud of wisteria petals — art: reuse shinobuPoison + balloon/petal parts.
+  2. "PINNED" — move: heavy (deep lunging pierce) — the deep thrust runs the foe through; they slide down the blade and split into two neat halves — art: reuse shinobu_heavy + 2 halves.
+  3. "BODY-CHECK" — move: rekka finisher (shinobuG3) — the body-check knocks the head clean off in a comic "bonk"; it bounces twice and rolls off with a "ding" — art: reuse shinobuG3 + head part.
+FATALITIES (1):
+  - "BUTTERFLY DANCE" — the ultimate — the thrust-lunge→spin flurry ends with the poison finisher; the frozen foe dissolves feet-up into a swarm of purple butterflies that scatter — tech: reuse freeze-cine (shinobuButterflyCinematic.js).
+
+### Inosuke Hashibira (inosuke)   [age note: mid-teen ~15]
+KIT: light=double-slash jab / heavy=wide forward slash / up=rising diagonal launcher / air=arc / downAir=spinning dive-slash; specials = Beast Breathing — Beast Spin (N), Beast Dash (F), Beast Lunge (D) (each a cinematic); rekka = Beast Breathing flurry (inosukeB1→B5) + Down+Heavy "Beast Fang"; ultimate = Beast Breathing: Assist (mid-combo partner call — no separate ult).
+BRUTALITIES:
+  1. "BEAST FANG" — move: Beast Fang (Down+Heavy) — the low crashing strike scoops the legs out; the foe cartwheels apart into two halves that bounce like severed dolls and poof — art: reuse inosukeDownHeavy + 2 parts.
+  2. "TWIN CLEAVE" — move: heavy (wide forward slash) — the dual-nichirin X-cut holds a beat then slides the foe into four pie-slices that drop with a clatter — art: reuse inosuke_heavy + 4 wedges.
+  3. "SPINNING BEAST" — move: rekka finisher (inosukeB5 running-slash) — the running slash spins the foe into a confetti-burst of cloth scraps and a floating boar-mask "oink" — art: reuse inosukeB5 + confetti.
+FATALITIES (1):
+  - "BEAST BREATHING: NIHIL" — Beast Spin (N cinematic) — the in-place dual-blade spin whirls into a tornado that dices the frozen foe; when it stops, only diced cubes and the boar mask remain — tech: reuse freeze-cine (inosukeBeastCinematic.js Beast-Spin path).
+
+### Nezuko Kamado (nezuko)   [FLAGGED 2A — KIT ONLY; kit also not yet wired]
+KIT: Stage-1 only — movement/state wired (idle/walk/run/dash/jump/fall/guard/hurt/knockdown + dormant crouch). Normals, Y-family, specials, ultimates, intro/win/lose NOT wired; stat blocks are placeholders.
+FLAGGED: (1) apparent minor (~12-14, Section 2A) AND (2) no real moves exist in code to ground finishers in. No content proposed.
+
+
+========================  HUNTER × HUNTER  ========================
+
+### Isaac Netero (netero)
+KIT: light=lightning jab / heavy=super forward punch / up=rising uppercut launcher / air=neutral aerial / downAir=diving spike; specials = Barrage Punches (continuous 8-frame melee flurry); rekka = Down+Heavy chain (down_attck_1→down_attck_2); ultimate = 100-Type Guanyin Bodhisattva (summons a GIANT Guanyin avatar, guanyinCast → GUANYIN_ANIM).
+BRUTALITIES:
+  1. "FIRST OF THE HUNDRED" — move: Barrage Punches — the fist-blur pummels the foe into a bouncing punching-bag that splits its seams and deflates with a whistle — art: reuse barragePunches frame, NEW deflating-bag.
+  2. "PRAYER UPPERCUT" — move: up-attack launcher — the palm-prayer uppercut launches the foe so high they become a twinkling star (with a tiny halo gag) — art: reuse netero_upper_attack.
+  3. "ZERO HAND" — move: down_attck_2 (Down+Heavy rising follow-up) — the rising palm sends the foe spiraling off as a spinning pinwheel that whirls away — art: reuse down_attck_2, NEW pinwheel.
+FATALITIES (1):
+  - "100-TYPE GUANYIN BODHISATTVA" — the ultimate — the giant Guanyin avatar delivers ONE colossal open-palm flick; the frozen foe is flicked offscreen into a shrinking star with a "ping" — tech: reuse the guanyinCast → GUANYIN_ANIM giant-summon as a freeze-cine beat (no dedicated module — adapt the summon path, or NEW cinematic).
+
+### Chrollo Lucilfer (chrollo)
+KIT: light=straight jab / heavy=side kick (reach) / up=rising knife-slash launcher / air=crescent slash / downAir=diving spike; specials = Nen Bolt (N/F, blue nen-construct projectile), Blade Lunge (D, knife-thrust lunge); rekka = Blade Rush (chCombo1 rushing-punch string→chComboFin extended side-kick launcher); ultimate = Skill Hunter (steal the opponent's entire moveset for 30s, chrolloSkillHunterCinematic.js robe transform).
+BRUTALITIES:
+  1. "BOOKMARKED" — move: Blade Lunge (D) — the knife-thrust skewers the foe and pins them shut inside a giant slamming book (the Skill Hunter tome), which drops flat — art: reuse chBladeLunge + book-slam FX.
+  2. "BOLT FROM THE BLUE" — move: Nen Bolt (N/F) — the nen construct punches a clean hole through the foe's middle; they look down, then fall in two stacked pieces — art: reuse chNenCast + nen projectile.
+  3. "CLOSING CHAPTER" — move: Blade Rush finisher (chComboFin side-kick) — the extended side-kick decapitates cleanly; Chrollo catches the head like a page and it puffs away — art: reuse chComboFin + head part.
+FATALITIES (1):
+  - "SKILL HUNTER" — the ultimate — the purple robe/cinematic swallows the frozen foe; when it settles the foe is GONE (style "stolen"), leaving only their silhouette folded into the book — tech: reuse freeze-cine (chrolloSkillHunterCinematic.js robe-envelop).
+
+### Killua Zoldyck (killua)   [FLAGGED 2A — KIT ONLY, no finisher content]
+KIT: light=fast assassin jab / heavy / up=launcher / air / downAir; specials = base kit (no fixed-slot specials); rekka = command-normal chain; ultimate = Godspeed / Kanmuru (Nen-lightning reflex mode, killuaGodspeedCinematic.js activation + electric afterimage overlay).
+FLAGGED: apparent minor (age 12) — Section 2A. No finisher content pending user decision. (Godspeed cinematic tech = killuaGodspeedCinematic.js, available if de-flagged.)
+
+### Gon Freecss (gon)   [FLAGGED 2A — KIT ONLY, no finisher content]
+KIT: light=forward punch / heavy=lunge/tackle / up=rising kick launcher / air=aerial punch / downAir=dive; specials = Jajanken (Rock charge-punch / Paper open-palm push / Scissors rapid jab-string); rekka = Rush (Down+Heavy: rush1 flurry→rush2 launching finisher); ultimate = Adult Form (transform buff → "finalblow" sudden-death strike, gonAdultFormCinematic.js).
+FLAGGED: apparent minor (age 12) — Section 2A. No finisher content pending user decision.
+
+### Hisoka Morrow (hisoka)   [already in BRUTALITY_ELIGIBLE]
+KIT: light=forward punch / heavy=kick / up=launcher / air=slash / downAir=dive smash/ground burst; specials = Bungee Gum (N, elastic whip), Bungee Gum Pull (B, reel-in grab), Texture Surprise single (D, precise card), Texture Surprise rapid (F, fanned spread); rekka = Down+Heavy (hisokaRekka1 crouch strike→hisokaRekka2 card-slash launcher); ultimate = Bloodlust Overdrive (golden power-up body-swap, hisokaOverdriveCinematic.js).
+BRUTALITIES:
+  1. "ELASTIC SNAP" — move: Bungee Gum (N) — the gum whip yo-yo-snaps the foe back so hard their head stretches like taffy then pops off with a "boing" — art: reuse bungeeGum cast + stretch/pop.
+  2. "FULL HOUSE" — move: Texture Surprise single (D) — the card flies edge-on and slices the foe in half at the waist; halves slide apart on a playing-card (bloodless) — art: reuse cardThrowSingle + hisoka_card + split.
+  3. "RISING CUT" — move: up-attack launcher — the launching uppercut-slash lops an arm off, which comic-launches skyward and never returns — art: reuse hisoka_up + limb pop.
+FATALITIES (2):
+  - "BLOODLUST BLOOM" — Bloodlust Overdrive + pink-heart intro motif — aura hearts swarm and lift the frozen foe; the whip cinches, the hearts POP, foe bursts into hearts + confetti, empty clothes flutter down — tech: reuse freeze-cine (hisokaOverdriveCinematic.js; repurpose intro heart-FX).
+  - "DECK STACKED" — Texture Surprise rapid — a full fanned deck pins the frozen foe in a card-cutout silhouette that falls forward as a flat 2D paper doll — tech: NEW short post-match cinematic.
+
+### Kurapika (kurapika)
+KIT: light=strike→overhead auto-combo / heavy=windup→overhead→downslash→chain-thrust / up=white-aura rising cross-slash launcher / air=leap-slash / downAir=reuse leap-slash; specials = Judgment Chain (N/F/U flagship long-reach multi-hit), Chain Jail bind (D), Steal Chain counter (B), Shock Strike (Fwd status); rekka = kurapikaWindmill (Fwd+Heavy multi-hit spin); ultimate = Emperor Time (scarlet-eyed whole-moveset recolor transform, post-revert vulnerability).
+BRUTALITIES:
+  1. "CHAIN JAIL" — move: Chain Jail (D) — the chains wrap the foe into a cocoon that squeezes and poofs them into smoke; empty chains clatter down — art: reuse kurapikaChainJail + kurapika_jailfx.
+  2. "JUDGMENT CHAIN" — move: Judgment Chain (flagship N/F/U) — the dagger-chain plunges into the chest; the heart pops out as a dagger-pierced valentine that shatters, body flops — art: reuse kurapikaJudgment extended-chain, NEW heart-pop.
+  3. "DOWSING WHIRL" — move: kurapikaWindmill (Fwd+Heavy spin) — the whirling chain-spin buzzsaws the foe into ribbon-strips that flutter apart like cut paper — art: reuse kurapikaWindmill spin.
+FATALITIES (1):
+  - "EMPEROR TIME: CHAIN OF JUDGMENT" — Emperor Time + Judgment — scarlet eyes ignite, five chains lash the frozen foe into a suspended X, then the heart-piercing Judgment Chain drops them into a heap of loose links — tech: NEW cinematic (no module; reuse Emperor Time _skinAnim scarlet swap + kurapikaJudgment pose).
+
+
+========================  DC  ========================
+
+### The Flash (flash)
+KIT: light=fast straight-punch string / heavy=roundhouse / up=rising uppercut launcher / air=aerial kick / downAir=dive kick; specials = Spin Attack (N, in-place 3-hit whirl, pins), Tornado (F, advancing 4-hit electric vortex, final launches); rekka = Speed Rush (Down+Heavy: rush1→rush2 launcher); ultimate = Flash Time (3× speed / opponent ⅓×, cannot block, flashTimeCinematic.js).
+BRUTALITIES:
+  1. "BLENDER" — move: Spin Attack (N) — the in-place whirl catches the foe and spin-blends them into a swirl of color that flings out as harmless confetti — art: reuse spinAttack loop, NEW confetti-swirl.
+  2. "VORTEX SEND-OFF" — move: Tornado (F) — the vortex's launch-hit sucks the foe up and spits them out the top as a spinning ragdoll that dings into the distance — art: reuse tornado loop.
+  3. "SPEED RUSH KO" — move: rush2 (Speed Rush finisher) — the finisher hits so fast the foe freezes mid-air with speed-lines, then their outline scatters into after-image copies that fade one by one — art: reuse rush2, NEW after-image scatter.
+FATALITIES (1):
+  - "FLASH TIME" — the ultimate — time crawls; Flash lands a thousand invisible hits and stops; the frozen foe holds a beat, then every impact registers at once and they burst into a puff of after-images — tech: reuse freeze-cine (flashTimeCinematic.js).
+
+### Batman (batman)
+KIT: light=jab→cross / heavy=wind-up kick / up=overhead uppercut launcher / air=cape-swirl aerial / downAir=dive-punch; specials = Batarang (N projectile), Cape Dash (F swoop lunge), Smoke Pellet (D teleport-behind); rekka = Combo (Down+Heavy: batCombo1 jab→batCombo2 weave-uppercut→batCombo3 straight launcher); ultimate = The Dark Knight (batarang-barrage, batmanDarkKnightCinematic.js).
+BRUTALITIES:
+  1. "LIGHTS OUT" — move: Combo finisher (batCombo3 straight) — the straight cross pops the cowled head clean off; it bounces once and rolls off, body slumps — art: reuse batCombo3 + head pop.
+  2. "RANG & FILE" — move: Batarang (N) — the spinning batarang buries in the chest and pins the foe flat to the back wall like a butterfly-pin — art: reuse batarangThrow + batman_batarang_proj + hurt-pin.
+  3. "VANISHING ACT" — move: Smoke Pellet (D) — Batman blinks behind; a beat later the foe comes apart into two neat halves that fall aside — art: reuse capeDash/hurt + smoke-poof.
+FATALITIES (2):
+  - "THE LONG NIGHT" — The Dark Knight ult — the batarang rain pins the frozen foe, then one giant descending batarang guillotines them into confetti-chunks — tech: reuse freeze-cine (batmanDarkKnightCinematic.js).
+  - "CAPE CURTAIN" — Cape Dash — Batman sweeps the cape over the foe; when it lifts they're a neat pile of clothes + wobbling boots — tech: NEW short post-match cinematic.
+
+### Superman (superman)   [ARCADE/base variant, HP1450; the distinct one — real modes + Solar Overload]
+KIT: light=super-jab / heavy=super-strength haymaker (huge KB) / up=launcher / air=flying punch / downAir=diving smash; specials = Heat Vision (N/U eye-beam), Super Flying Punch (F charged dash), Solar Flare mode (D), Kryptonian Overload mode (B); rekka = Kryptonian Rush (supRush1 flying cross→supRush2 charged jab→supRushFin haymaker launcher); ultimate = Solar Overload (green surge→particle dissolve→detonation, supermanUltimateCinematic.js).
+BRUTALITIES:
+  1. "OVEREXPOSED" — move: Heat Vision (N) — the eye-beam holds a half-second too long and vaporizes the foe from the neck up; smoking boots-and-body stand a beat then topple — art: reuse superPunch/charge + heat-beam.
+  2. "ESCAPE VELOCITY" — move: Super Flying Punch (F) — the flying fist launches the foe so hard they shrink to a twinkling star on the horizon — art: reuse superPunch + shrink-sparkle.
+  3. "STEEL CURTAIN" — move: Kryptonian Rush finisher (supRushFin) — the haymaker knocks the torso off the legs; legs stand upright while the top half tumbles away — art: reuse supRushFin + torso/leg split.
+FATALITIES (1):
+  - "SOLAR OVERLOAD" — the ultimate — the green surge dissolves the frozen foe entirely into drifting particles, leaving only a floating cape — tech: reuse freeze-cine (supermanUltimateCinematic.js).
+
+### Superman (Custom) (superman_dcuc)   [SHARED SUPERMAN BASE, ground-bruiser reskin, HP1300, procedural FX]
+KIT: light=coil-jab / heavy=lunging straight / up=rising flight-fist launcher / air=flying punch / downAir=reuse air; specials = Heat Vision (N procedural), Flying Charge (F i-frame tackle), Soaring Uppercut (U launcher), Super Breath (D push gust), Flying Retreat (B i-frame), Flying Dive Kick (air); rekka = Kryptonian Rush (supDcucRush1→2→3 crescent-kick launcher); ultimate = Big Rock (hoist + hurl a boulder; inline freeze-cinematic).
+BRUTALITIES:
+  1. "BOULDER DASH" — move: Flying Charge (F) — the tackle drives the foe through the floor; only a pair of legs sticks up wiggling — art: reuse supDcucFlycharge + buried-legs gag.
+  2. "GONE WITH THE WIND" — move: Super Breath (D) — the gust blows the foe apart like dandelion fluff, body scattering into puffs — art: reuse heavy/idle cast + wind FX.
+  3. "UPPERCUT EXIT" — move: Soaring Uppercut (U) — the rising fist pops the head off through the top of the screen — art: reuse supDcucSoar + head pop.
+FATALITIES (1):
+  - "BIG ROCK" — the ultimate — the hurled boulder flattens the frozen foe into a pancake under it, then shatters leaving a squashed outline on the rock — tech: reuse freeze-cine (inline Big Rock cinematic).
+
+### Superman (New 52) (superman_new52)   [SHARED SUPERMAN BASE, aerial-rushdown reskin, HP1250]
+KIT: mirrors superman_dcuc (Heat Vision / Flying Charge / Soaring Uppercut / Super Breath / Flying Retreat / Dive Kick); rekka = Speeding Bullet (supN52Rush1→2→3 tornado launcher); ultimate = Infinite Mass Punch (rocket-forward haymaker, inline freeze-cinematic).
+BRUTALITIES:
+  1. "TERMINAL VELOCITY" — move: Flying Charge (F) — the rushdown tackle carries the foe offscreen; a distant twinkle marks the impact — art: reuse supN52Flycharge + shrink-sparkle.
+  2. "TWISTER" — move: Speeding Bullet finisher (supN52Rush3 tornado) — the tornado finish whirls the foe apart into scattered pieces that spin off — art: reuse supN52Rush3 + spin-scatter.
+  3. "SKY-HIGH" — move: Soaring Uppercut (U) — the uppercut pops the head off out the top of the screen — art: reuse supN52Soar + head pop.
+FATALITIES (1):
+  - "INFINITE MASS PUNCH" — the ultimate — the full-speed haymaker connects and the frozen foe DISINTEGRATES into a puff on impact, mask/cape fluttering down empty — tech: reuse freeze-cine (inline Infinite Mass Punch cinematic).
+
+### Superman (Classic) (superman_classic)   [SHARED SUPERMAN BASE, all-rounder, HP1350; REAL baked heat/ice art]
+KIT: light=jab→cross / heavy=punch→big lunge / up=uppercut w/ energy-flare launcher / air=flying kick / downAir=reuse air; specials = Heat Vision (N, REAL baked beam), Flying Charge (F), Soaring Uppercut (U), Ice Breath (D, REAL frost projectile), Flying Retreat (B), Flying Dive Kick (air); rekka = Man of Steel (supClsRush1→2 flare-flurry→3 flying flare-kick launcher); ultimate = Heat Vision Barrage (sustained eye-beam, inline freeze-cinematic, REAL beam art).
+BRUTALITIES:
+  1. "WELL DONE" — move: Heat Vision (N) — the sustained beam slices the foe top-to-bottom into two toasty halves that fall apart (edges lightly smoking) — art: reuse supClsHeat baked beam.
+  2. "DEEP FREEZE" — move: Ice Breath (D) — the foe flash-freezes into an ice statue, then shatters into comic ice cubes — art: reuse supClsFlycharge/idle + frost FX.
+  3. "FLARE KICK" — move: Man of Steel finisher (supClsRush3) — the flare-kick punts the torso off the legs; top half sails away — art: reuse supClsRush3 + torso/leg split.
+FATALITIES (1):
+  - "HEAT VISION BARRAGE" — the ultimate — the sustained beam sweeps the frozen foe and erases them line-by-line like an eraser wipe, leaving a scorched cape outline — tech: reuse freeze-cine (inline Heat Vision Barrage cinematic).
+
+### Superman (Fighter) (superman_fighter)   [SHARED SUPERMAN BASE, deepest kit, HP1320; ALL-REAL baked FX]
+KIT: light=lean→straight jab / heavy=coil→big lunge / up=rising uppercut launcher / air=horizontal flying strike / downAir=reuse air; specials = Heat Vision beam (N), X red blast (F), Frost Breath tornado (U anti-air), Ice Beam (D), Flying Retreat (B), Aerial Ice (air); rekka = Kryptonian Barrage (supFtrRush1→2 blue-fist→3 flying-dash launcher); ultimate = Kryptonian Detonation (X+Up screen-filling solar explosion, inline freeze-cinematic, REAL 5-frame blast).
+BRUTALITIES:
+  1. "X MARKS THE SPOT" — move: X red blast (F) — the red X-blast blows the foe apart into an X-shaped scatter of pieces — art: reuse supFtrX baked blast.
+  2. "COLD SNAP" — move: Frost Breath (U) — the tornado freezes the foe mid-air into an icicle that drops and shatters like glass — art: reuse supFtrFrost baked FX.
+  3. "BEAM SLICE" — move: Heat Vision (N) — the beam cleanly bisects the foe; halves slide apart on the smoking cut line — art: reuse supFtrHeat baked beam.
+FATALITIES (1):
+  - "KRYPTONIAN DETONATION" — the ultimate — the screen-filling solar blast engulfs the frozen foe, reduced to a floating skeleton-flash then a drifting puff of ash and an empty cape — tech: reuse freeze-cine (inline Kryptonian Detonation cinematic).
+
+### Deathstroke (deathstroke)   [already in BRUTALITY_ELIGIBLE]
+KIT: light=quick jab / heavy=lunge-punch (reach) / up=roundhouse high-kick launcher / air=overhead jump-slash / downAir=reuse air sword; specials = Sword Slash (N), Draw & Cut lunge (F), Gun Shot (B procedural bullet), Running Slash dive (D), Aerial Spin (air); rekka = none (fixed-slot specials); ultimate = Killing Stroke (promoted overhead spin-finish, inline freeze-cinematic, 3 guaranteed beats).
+BRUTALITIES:
+  1. "HEADSHOT" — move: Gun Shot (B) — the bullet pings the head clean off; it pops up spinning, the body stands a beat then flops (comic "doink") — art: reuse dsGun aim-fire + procedural bullet, NEW head pop.
+  2. "DRAW & CUT" — move: Draw & Cut lunge (F) — the self-drawing katana lunge cleaves the foe diagonally; the two halves slide apart and topple opposite ways — art: reuse dsDrawCut lunge, NEW diagonal split.
+  3. "RUNNING SLASH" — move: Running Slash dive (D) — the diving slash zips through; the foe splits at the waist mid-run; legs jog a step before both bits drop — art: reuse dsRunSlash, NEW waist-split.
+FATALITIES (1):
+  - "KILLING STROKE" — the ultimate — the overhead spinning katana quarters the frozen foe into four neat tumbling pieces that clatter into a stack as Deathstroke re-sheathes — tech: reuse freeze-cine (inline Killing Stroke cinematic).
+
+### Brainiac (brainiac)
+KIT: light=tentacle jab / heavy=wide tentacle fan / up=upward tentacle spread launcher / air=tentacle lash / downAir=tentacle spike; specials = Energy Beam (N), Energy Blade (F), Tentacle Sweep (D), Electric Shield (B), Levitation (U); rekka = none; ultimate = Sphere of Annihilation.
+BRUTALITIES:
+  1. "COLLECTED" — move: heavy (tentacle fan) — tentacles wrap the foe and shrink them into a tiny bottled Coluan city that pops out of frame with a "ding" — art: reuse brainiac_heavy + NEW tiny-bottle prop.
+  2. "DELETED" — move: Energy Beam (N) — the beam pixelates the foe into descending green data-squares that scatter like deleted files — art: reuse brainiac_beam + procedural pixel-dissolve.
+  3. "DISASSEMBLED" — move: Energy Blade (F) — a clean slash and the foe splits into 3-4 neatly separated floating body-segments that drift apart — art: reuse brainiac_blade + segment split.
+FATALITIES (1):
+  - "SPHERE OF ANNIHILATION" — the ultimate — pillars erupt and vacuum the frozen foe upward into a shrinking green sphere that blips out — tech: NEW cinematic (no Brainiac module; fork the inline freeze-cine architecture).
+
+### Green Lantern (green_lantern)
+KIT: light=straight jab / heavy=lunging power punch / up=rising launcher kick / air=flying-kick / downAir=downward aerial kick; specials = Emerald Fist (N), Lion-Head Ram (F), Binding Tentacle (D), Blade (B), Spike Crown (U), Wrecking Sphere (air); rekka = Spin Kick (Fwd+Heavy); ultimate = Will Made Manifest.
+BRUTALITIES:
+  1. "HAMMER TIME" — move: Emerald Fist (N) — a giant construct boxing glove flattens the foe into a pancake that flutters to the floor — art: reuse gl_beam/fist cast + NEW oversized-glove construct.
+  2. "FEEDING TIME" — move: Lion-Head Ram (F) — the emerald lion construct chomps the foe whole and burps a green light-puff — art: reuse Lion-Head Ram FX + victim-vanish.
+  3. "WRECKING BALL" — move: Wrecking Sphere (air) — the construct sphere bonks the foe and their head pops off, bouncing away like a stray ball — art: reuse Wrecking Sphere + NEW detached-head.
+FATALITIES (1):
+  - "WILL MADE MANIFEST" — the ultimate — a cage construct traps the frozen foe, then a giant fist + blade + sphere converge and smash them into a puff of green sparks — tech: NEW cinematic (no GL module; reuse the inline freeze-cine pattern the ult already uses).
+
+### Batman / Dark Knight (dark_knight)   [standalone Batman variant, shares NO base with `batman`]
+KIT: light=fast jab / heavy=committed lunge / up=launcher (reuse lunge) / air=leaping dropkick / downAir=dive-kick; specials = Crescent Chain (N), Chain Flail (F), Pistol Shot (B), Batclaw grapple (D), Rage Mode transform (U), Dive Bomb (air); rekka = none; ultimate = Mech Suit (batmanDarkKnightCinematic.js).
+BRUTALITIES:
+  1. "GOTCHA" — move: Chain Flail (F) — the flail wraps the foe and yanks so hard they spin into a tight cocoon that topples over stiff — art: reuse Chain Flail FX + NEW wrapped-cocoon.
+  2. "BANG" — move: Pistol Shot (B) — the shot fires and a giant comic "BANG!" flag pops out; the head comic-launches off with a cork-pop — art: reuse Pistol Shot cast + NEW "BANG!" flag + head prop.
+  3. "GROUNDED" — move: Dive Bomb (air) — the cape-dive spikes the foe headfirst into the floor, legs sticking straight up wobbling — art: reuse dark_knight_glide dive + head-plant.
+FATALITIES (1):
+  - "MECH SUIT" — the ultimate — the giant mech materializes, looms, and crushes the frozen foe under one colossal fist into a flat splat with a puff — tech: reuse freeze-cine (batmanDarkKnightCinematic.js).
+
+
+========================  BLEACH  ========================
+
+### Ichigo Kurosaki (ichigo)
+KIT: light=forward slash / heavy=sword_combo_1 string / up=vertical rising launcher / air=slash / downAir=dive-slash spike; specials = Getsuga Tenshō (crescent projectile), Charged Getsuga Slash (F), Hollow Getsuga (D super), Hollow Rising (U super launcher), Aerial Getsuga Dive; rekka = Zangetsu string (ichigoRekka1... Fwd+Heavy) + Fwd+Light poke; ultimate = Getsuga Tenshō (dash-slash→rising crescent uppercut, ichigoGetsugaTenshoCinematic.js).
+BRUTALITIES:
+  1. "GETSUGA SWEEP" — move: Getsuga Tenshō (N) — the blue crescent cleaves the foe in half at the waist; legs stand puzzled while the torso sails off spinning — art: reuse ichigoGetsuga + crescent proj.
+  2. "HOLLOW RISING" — move: Hollow Rising (U) — the rising dark slash launches the foe where they burst into a cartoon Hollow-mask puff that drops with a hollow "pop" — art: reuse ichigoHollowRising, NEW mask-puff.
+  3. "ZANGETSU FINISH" — move: Zangetsu rekka finisher (ichigoRekka3) — the final cleave pops the arms off like snapped action-figure limbs; the foe hops backward flailing the stumps before falling — art: reuse Zangetsu finisher, NEW pop-off arms.
+FATALITIES (1):
+  - "GETSUGA TENSHŌ" — the ultimate — the giant blue crescent swallows the frozen foe, diced into neat glowing cubes that float in a lattice then scatter as spirit-dust — tech: reuse freeze-cine (ichigoGetsugaTenshoCinematic.js).
+
+### Zaraki Kenpachi (zaraki)   [already in BRUTALITY_ELIGIBLE; existing "SHATTER" entry]
+KIT: light=combo_1 sword string / heavy=combo_2 family / up=rising slash launcher / air=Up+B aerial up-swing→down-slam (zarakiAirUp/Down) / downAir=(aerial route); specials = Charged Dash Attack (CHARGE hold/release rush), Hollow Mask Strike (overhead spike), Yachiru Assist (Down, hurls Yachiru), Up+Special = enter Shikai; rekka = none (Fwd+Light/Heavy command slashes zarakiFwdSlash1/2); ultimate = Bankai (one-shot red-demon overhead cleaver burst).
+BRUTALITIES:
+  1. "HOLLOW OVERHEAD" — move: Hollow Mask Strike — the empowered overhead cleave splits the foe top-to-bottom into two wobbling halves that flop apart — art: reuse zarakiHollowStrike + vertical flop.
+  2. "YACHIRU SPECIAL" — move: Yachiru Assist (D) — thrown Yachiru bonks the foe so hard their head telescopes into the torso and they concertina flat with a squeak — art: reuse zarakiYachiruThrow + projectile, NEW concertina-squish.
+  3. "DASH CLEAVER" — move: Charged Dash Attack — the dashing rush slices through; the foe stands whole a beat, then slides into four stacked cross-sections that topple — art: reuse zarakiChargedDash.
+FATALITIES (1):
+  - "BANKAI ONSLAUGHT" — the ultimate — the red-demon onslaught rains cleaves; the frozen foe is minced into a comic cloud of chunks that reassembles wrong (head backwards) before collapsing — tech: NEW cinematic (Bankai is a one-shot burst, not a freeze-cine today) — or reuse the generic freeze architecture.
+
+### Zaraki Kenpachi (Shikai) (zaraki_shikai)   [variant of `zaraki`: {...zaraki} + startsInShikai:true; shared Bankai ult]
+KIT: (inherits zaraki) light/heavy = Shikai combo family (zarakiShikaiC1-C4, feral slashes) / up=zarakiShikaiUp launcher / downAir=zarakiShikaiDownAir; specials = Shikai slash special (zarakiShikaiSpecial), Yachiru Assist (D), Charged Dash, Hollow Mask Strike; rekka = none; ultimate = Bankai (shared executeZarakiUltimate, returns to Shikai form).
+BRUTALITIES:
+  1. "FERAL REND" — move: Shikai combo finisher (zarakiShikaiC4) — the untamed flurry shreds the foe into ragged cartoon ribbons that flutter down like torn streamers — art: reuse zarakiShikaiC4, NEW ribbon-shred.
+  2. "SHIKAI SKEWER" — move: Shikai Special (zarakiShikaiSpecial) — the released-blade thrust runs the foe through and out the back; they slide up the blade and pop off the tip like a marshmallow — art: reuse zarakiShikaiSpecial, NEW skewer-pop.
+  3. "BERSERK LAUNCHER" — move: zarakiShikaiUp launcher — the feral rising slash flings the foe so hard they leave a boot behind, spinning offscreen into a "ping!" star — art: reuse zarakiShikaiUp, NEW left-behind boot.
+FATALITIES (1):
+  - "BANKAI ONSLAUGHT (SHIKAI)" — the ultimate — same red-demon onslaught; the Shikai savagery leaves the frozen foe as a comic bone-pile the demon spits out — tech: NEW cinematic or reuse generic freeze (same Bankai-is-a-burst caveat as base Zaraki).
+
+### Mayuri Kurotsuchi (mayuri)   [already in BRUTALITY_ELIGIBLE; existing "DISSECT" entry]
+KIT: light=sword-draw jab / heavy=finger thrust / up=vertical sword-thrust launcher / air=forward slash / downAir=diving slash; specials = Finger-Gun Blast (N projectile), Energy Slash (F crescent), Rising Cut (U launcher), Poison Cloud (D DoT spore), Lab Coat Open (B damage-buff); rekka = Fwd+Heavy 2-stage (mayuriCmd1 finger-poke→mayuriCmd2 low flurry launcher); ultimate = Bankai: Konjiki Ashisogi Jizō (inline freeze-cinematic golden construct).
+BRUTALITIES:
+  1. "POISON DISSECTION" — move: Poison Cloud (D) — the spore-cloud melts the foe like a toony experiment: they deflate into a bubbling purple puddle with two eyeballs floating in it — art: reuse mayuriPoison + spore FX.
+  2. "SPECIMEN SPLIT" — move: Rising Cut (U) — the rising cut cleanly halves the foe lengthwise; the halves hover apart labeled like lab specimens before flopping — art: reuse mayuriRising, NEW labeled-specimen split.
+  3. "FINGER-GUN BANG" — move: Finger-Gun Blast (N) — the finger-gun "bang" pops the head off like a champagne cork; it sails up, the body slumps — art: reuse mayuriBlast + muzzle-flash, NEW cork-pop.
+FATALITIES (1):
+  - "KONJIKI ASHISOGI JIZŌ" — the Bankai ultimate — the towering golden baby-construct opens its mouth and belches poison-gas that dissolves the frozen foe to a bubbling puddle it slurps up — tech: reuse freeze-cine (drawMayuriBankaiCinematic).
+
+### Byakuya Kuchiki (byakuya)
+KIT: light=iai draw-cut / heavy=low blade sweep / up=raised-slash launcher / air=forward thrust / downAir=diagonal down-slash; specials = Senbonzakura Petal Cast (N), Utsusemi Re-form Thrust (F), Re-form Overhead (U), Shunpo Blink (B), Straight Thrust (D), air Jump Slash / Vault; rekka = none; ultimate = Bankai: Senbonzakura Kageyoshi (2-phase inline freeze-cinematic).
+BRUTALITIES:
+  1. "SCATTER, SENBONZAKURA" — move: Senbonzakura Petal Cast (N) — the pink petal-swarm shreds the foe into a cloud of tumbling blade-confetti that puffs into a drift of petals, empty clothes flutter down — art: reuse byakuyaPetalCast + petal FX.
+  2. "EXECUTIONER'S DRAW" — move: heavy (low blade sweep) — the low iai swing pops the whole lower half off; the torso teeters on the cut line, wobbles, then topples — art: reuse heavy, NEW split silhouette.
+  3. "UTSUSEMI" — move: Utsusemi Re-form Overhead (U) — Byakuya vanishes (afterimage stays mid-flinch) and the re-form overhead splits the frozen decoy top-to-bottom into two halves that spring apart — art: reuse byakuyaReformVanish + byakuyaReformOverhead.
+FATALITIES (2):
+  - "SENBONZAKURA KAGEYOSHI" — the Bankai ult — a thousand blades converge; the frozen foe comes out the far side as a floating cloud of numbered blade-shards that clatter into a neat pile — tech: reuse freeze-cine (existing 2-phase Bankai cinematic).
+  - "GOKEI: FULL BLOOM" — Shunpo Blink→thrust — Byakuya blinks out, reappears behind, one clean thrust and the frozen foe's silhouette slides apart along the cut with a "ting" — tech: NEW post-match cinematic (reuse byakuyaShunpoOut/In + byakuyaThrust poses).
+
+### Yamamoto (yamamoto)
+KIT: light=quick sword poke / heavy=low crouch swing / up=rising anti-air slash launcher / air=diagonal overhead slash / downAir=low sweep-spike; specials = Ground-Sweep Beam (N fire-beam), Ground Eruption Stab (upward flame fan launcher), Horizontal Thrust, Large Ground-Stab (flagship 90px flame crescent), Overhead Slam; rekka = none (yamamotoCombo = Fwd+Heavy chain); ultimate = Ryūjin Jakka: End-All Slam (inline freeze-cinematic overhead).
+BRUTALITIES:
+  1. "REDUCE TO ASH" — move: Ground-Sweep Beam (N) — the fire-beam engulfs the foe, briefly a black silhouette that crumbles into a pile of ash and a smoke-puff — art: reuse yamamotoBeam + beam, NEW ash-puff.
+  2. "NADEGIRI" — move: Large Ground-Stab (flagship) — the massive flame crescent cleaves the foe in half at the waist; both halves catch fire and pop away like burnt paper — art: reuse yamamotoStab + 90px flame crescent.
+  3. "EMBER UPPERCUT" — move: up-attack launcher — the rising fire-slash launches the foe skyward as a spinning fireball that shrinks to a twinkle and pops — art: reuse up (fire-crescent).
+FATALITIES (1):
+  - "RYŪJIN JAKKA: END-ALL" — the ultimate — the screen-scorching slam turns the frozen foe into a scorched outline that flakes apart into drifting ash and a single falling ember — tech: reuse freeze-cine (inline End-All Slam cinematic).
+
+
+========================  ONE PUNCH MAN  ========================
+
+### Saitama (saitama)
+KIT: light=basic_kick / heavy=punches / up=up_attack launcher / air=air_punch_part_1 / downAir=air_punch_part_2 spike; specials = Consecutive Normal Punches (10×/20×), Headbutt, Two-Handed Punches, Serious Punch (+shockwave), Up→Down Combo, Today Is Bargain Sale, Serious Table Flip, Side Hop (evasive); rekka = Spin-Punch (saitamaTurn1→2→3 cape-throw finisher); ultimate = Serious Series: Serious/Death Punch (inline freeze-cinematic charge→impact).
+BRUTALITIES:
+  1. "NORMAL PUNCH" — move: Consecutive Normal Punches — the casual flurry is so overkill the foe disintegrates into a puff of smoke and floating googly-eyes mid-combo (the gag: twenty punches and they still just vanish) — art: reuse saitamaCombo10/20, NEW poof-to-googly-eyes.
+  2. "BARGAIN SALE" — move: Today Is Bargain Sale — Saitama swats the foe like he's rushing to a sale; they rocket sideways offscreen with a comet-streak and a distant "ding!" — art: reuse saitamaBargain, NEW comet-streak.
+  3. "TABLE FLIP" — move: Serious Table Flip — the flip catapults the foe up so hard they thwack the top of the screen and slide down it like a bug on a windshield — art: reuse saitamaTableflip, NEW screen-splat slide.
+FATALITIES (1):
+  - "SERIOUS PUNCH (DEATH PUNCH)" — the ultimate — the single serious punch; the foe POPS off the screen entirely with an Among-Us-style silent void, leaving only a slowly spinning scarf and a "?" — tech: reuse freeze-cine (inline charge→impact cinematic + fullscreen backdrop).
+
+### Genos (genos)
+KIT: light=jab / heavy=palm-cannon (short fire) / up=launcher (reuse heavy) / air=jet-dash punch / downAir=jet-punch (reuse air); specials = Incineration Cannon (N tap/hold 3-tier blast), Machine Gun Blows (F/air multi-hit), Jet Dash (D gap-closer), Afterimage Dash (B i-frame blitz); rekka = Fwd+Heavy 3-stage rush (genosRush1→2→3 spinning launcher); ultimate = Overdrive (timed ×1.35 dmg/×1.15 spd buff-mode → overheat drawback — NOT a freeze-cinematic).
+BRUTALITIES:
+  1. "INCINERATION" — move: Incineration Cannon (full-charge tier) — the flame column vaporizes the foe to a floating ash-silhouette that holds its shape a beat, then scatters — art: reuse genosIncinerate3 giant column, NEW ash-silhouette.
+  2. "MACHINE GUN" — move: Machine Gun Blows — the rapid spread punches so many holes the foe becomes toony swiss-cheese, wobbles, and crumbles through its own holes — art: reuse genosMachinegun, NEW swiss-cheese crumble.
+  3. "JET OVERCLOCK" — move: Jet Dash (D) — the lunging jet-strike blasts through; the core "sparks out" and the empty cyborg shell clatters to pieces like dropped dishes — art: reuse genosJetdash, NEW shell-clatter.
+FATALITIES (1):
+  - "OVERDRIVE MELTDOWN" — Overdrive (thematic) — Genos overclocks and unloads; screen-filling flame consumes the frozen foe, reduced to a single blinking ember that "fwp"s out — tech: NEW cinematic (Overdrive is a buff-MODE, not a cine) — or route through the generic freeze architecture.
+
+
+========================  MARVEL  ========================
+
+### Spider-Man (spiderman)   [age note: version-dependent; treat as toony/non-gory]
+KIT: light=punch-combo string / heavy=rising spin-kick launcher / up=rising reach→spin launcher / air=curled aerial spin-kick / downAir=diving spin spike; specials = Web Impact (N), Web Throw (F full-range web-ball), Dash Attack spin-punch (B), Handstand Flip Kick anti-air launcher (U), Ground Crawl evasive (D) + web-swing mobility; rekka = none (spiderCombo = Fwd+Heavy w/ Web-Throw cancel); ultimate = Maximum Web (inline freeze-cinematic web-net engulf+pin).
+BRUTALITIES:
+  1. "WEB THROW" — move: Web Throw (F) — the web-ball splatters over the foe and fast-forward-cocoons them; they spin into a mummy bundle that topples stiff as a log — art: reuse spiderWebThrow + webball proj.
+  2. "THWIP TRIP" — move: Handstand Flip Kick (U) — the launcher flings the foe up where a web-line snags an ankle and slingshots them offscreen with a "twang", one shoe left spinning — art: reuse spiderHandstand, NEW web-line + shoe.
+  3. "SPIDER SPIKE" — move: downAir (diving spin spike) — the diving spin-kick spikes the foe head-first into the floor; they concertina into an accordion, "boing" back up flat, and fall over — art: reuse down_air, NEW squash-accordion.
+FATALITIES (1):
+  - "MAXIMUM WEB" — the ultimate — every web-shooter unloads; the frozen foe is engulfed in a room-filling web-net and reeled into a giant hanging spider-cocoon that swings gently — tech: reuse freeze-cine (inline Maximum Web cinematic).
+
+### Iron Man (iron_man)   [independent char, NOT a variant; danorenovado JUS chibi source]
+KIT: light=jab / heavy=straight repulsor punch (reach, red burst) / up=rising uppercut launcher / air=flying punch / downAir=reuse air; specials = Charge→Blast repulsor (N), Iron-Spider Legs strike (F suit-transform disjoint); rekka = Repulsor Rush (Fwd+Heavy: lunge→straight→gauntlet-flare launcher); ultimate = Proton Cannon (helmet-open Super pose → scaled repulsor blast; NO bespoke ult anim).
+BRUTALITIES:
+  1. "REPULSOR OVERLOAD" — move: Charge→Blast (N) — the point-blank repulsor beam blows the foe into a scorched outline that flakes into floating pixel-bits and a smoke-curl — art: reuse ironManBlast + procedural bolt.
+  2. "IRON-SPIDER SKEWER" — move: Iron-Spider Legs (F) — the four suit-legs deploy and snip the foe into segments that clatter apart like a dropped action figure — art: reuse ironManSpiderLegs, NEW segment-pop.
+  3. "GAUNTLET FLARE" — move: Repulsor Rush finisher (rush3) — the raised-gauntlet flare launches the foe up as a spinning repulsor-charred ragdoll that shrinks to a twinkle — art: reuse ironManRush3.
+FATALITIES (1):
+  - "PROTON CANNON" — the ultimate — helmet opens, arc-reactor routes full output into a screen-wide beam; the frozen foe is vaporized into a drifting cloud of glowing motes — tech: NEW cinematic (no module; reuse ironManUlt helmet-open pose + scaled blast).
+
+### Iron Man 2 (iron_man_2)   [independent char; Data East 1991 source]
+KIT: light=quick overhead punch / heavy=overhead hook (longest reach) / up=rising uppercut launcher / air=aerial overhead / downAir=reuse air; specials = Charge-tiered Repulsor S/1/2/3/4* (aim-forward bolt), WHHT! boot-jet dash-lunge, Ground-Slam headfirst dive (D); rekka = Repulsor Rush (lunge→straight→both-arms-overhead launcher); ultimate = Max-Charge Repulsor (E* max-charge → screen-scale beam).
+BRUTALITIES:
+  1. "WHHT!" — move: WHHT! boot-jet dash — the fists-first flaming dive plows through the foe, who spins away and pops into a puff with a "WHHT!" comic-word stamp — art: reuse ironMan2Whht dive, NEW comic-word.
+  2. "GROUND SLAM" — move: Ground-Slam headfirst dive (D) — the dive-slam flattens the foe into a floor-pancake splat that peels up and flutters away — art: reuse ironMan2GroundSlam, NEW pancake-squash.
+  3. "4-STAR REPULSOR" — move: Charge-tiered Repulsor 4* tier — the max-tier pierce-bolt drills a clean hole through the foe; they look down, shrug, then fall to bits — art: reuse ironMan2Repulsor + procedural bolt.
+FATALITIES (1):
+  - "MAX-CHARGE REPULSOR (E*)" — the ultimate — the E* screen-scale beam engulfs the frozen foe, leaving only a spinning charred helmet that clangs to the floor — tech: NEW cinematic (no module; reuse ironMan2Repulsor cast + scaled E* beam).
+
+### Iron Man 3 (iron_man_3)   [independent char; GBA "Invincible Iron Man" source]
+KIT: light=standing repulsor shot / heavy=advancing "Running" repulsor (longest reach) / up="Looking Up" upward repulsor launcher / air=jumping repulsor / downAir=double-jump downward repulsor (own art); specials = 3-Tier Charge Repulsor (Basic→Charged→Supercharged), Super Move spinning-ring burst (U/air), Super Laser beam (F); rekka = none; ultimate = Super Nova (screen-clear nova blast).
+BRUTALITIES:
+  1. "SUPERCHARGED SHOT" — move: 3-Tier Charge Repulsor (Supercharged tier) — the huge charged bolt blasts the foe into a black silhouette that holds a beat, then crumbles to cinders — art: reuse ironMan3Repulsor + supercharged_shot proj.
+  2. "SUPER LASER" — move: Super Laser (F) — the sustained beam slices the foe cleanly in half horizontally; the top half slides off and both bits sizzle into smoke — art: reuse ironMan3Repulsor + beam, NEW split-slide.
+  3. "SUPER MOVE RING" — move: Super Move spinning-ring burst (U/air) — the expanding ring dices the foe into stacked disc-slices that fan apart like a sliced sandwich and topple — art: reuse ironMan3SuperMove ring, NEW disc-slice.
+FATALITIES (1):
+  - "SUPER NOVA" — the ultimate — the arc reactor overloads into a blinding screen-filling nova; the frozen foe is flash-vaporized to a floating skeleton-outline that poofs to sparkles — tech: NEW cinematic (no module; escalate the on-sheet Super Nova screen-clear payoff).
+
+### Miles Morales (miles)   [age note: mid-teen ~15]
+KIT: light/heavy/up/air = web/venom rushdown normals; specials = Web-shot (N), Venom Strike (F), Venom-Beam (B), Rising Venom-Arc (U), Camouflage (D), Aerial Dive (air); rekka = none; ultimate = Venom Overload (inline freeze-cinematic).
+BRUTALITIES:
+  1. "PACKAGED" — move: Web-shot (N) — the web engulfs the foe into a fat web-cocoon that tips over and bounces off-frame — art: reuse Web-shot FX, NEW web-cocoon.
+  2. "OVERLOAD" — move: Venom Strike (F) — the bio-electric touch overcharges the foe who cartoon-electrocutes to a stiff crackling skeleton silhouette, then crumbles to dust — art: reuse Venom Strike ring FX, NEW electro-skeleton flash.
+  3. "NOW YOU SEE ME" — move: Camouflage (D) — Miles vanishes, an invisible uppercut pops the head clean off; it reappears mid-air spinning as the body drops — art: reuse Camouflage stealth FX, NEW detached-head.
+FATALITIES (1):
+  - "VENOM OVERLOAD" — the ultimate — expanding black/red venom rings burst through the frozen foe until they scatter into black-and-red energy motes — tech: reuse freeze-cine (inline Venom Overload cinematic).
+
+
+========================  BEN 10  ========================
+
+### Ben 10 (ben10)   [FLAGGED 2A — KIT ONLY, no finisher content]
+KIT: light=jab / heavy=slower jab / up=up_attack / air=jab reuse / downAir=dive-kick; specials = none in base — Omnitrix ALIEN-FORM system (transform button cycles aliens, each with its own moveset per BEN10_FORM_ANIM); rekka = benJab1→benJab2; ultimate = Omnitrix Overload (active alien's ultimate); + benHover Hoverboard mobility.
+FLAGGED: (1) apparent minor (Ben Tennyson — 10 in the original series; age varies by series/art — user to confirm, Section 2A) AND (2) finishers would need per-alien design (Omnitrix system) — out of scope for this pass. No content proposed.
+
+### Albedo (albedo)   [FLAGGED 2A — KIT ONLY, no finisher content]
+KIT: mechanically identical to Ben 10 — same 5-alien Ultimatrix loadout + energy/transform system (physics.js auto-runs setupBen10 for "albedo"); red "Negative" identity skin only.
+FLAGGED: same as Ben 10 (child-appearance clone + per-alien Omnitrix design out of scope). No content proposed.
+
+### Gwen (gwen)   [borderline: ~ Ben's cousin, similar age — see 2C]
+KIT: light/heavy/up/air = mana-construct normals; specials = Mana Bolt (N), Crescent Slash (F), Spike-Crown construct (U), Mana Sphere (D), Blue Vortex (B), Oval-Portal Beam (air); rekka = none; ultimate = Mana Blade (inline freeze-cinematic).
+BRUTALITIES:
+  1. "LUCKY GIRL" — move: Mana Bolt (N) — the pink mana bolt swells and the foe balloons then pops like a mana bubble, raining pink glitter — art: reuse Mana Bolt cast + glitter-pop.
+  2. "CRESCENT CUT" — move: Crescent Slash (F) — the mana disc slices horizontally; the foe's top half slides off and drifts away while the legs stand baffled — art: reuse Crescent Slash disc + horizontal split.
+  3. "PORTAL OUT" — move: Oval-Portal Beam (air) — a mana portal opens beneath the foe and they drop through, the portal snapping shut on a stray flailing arm — art: reuse Oval-Portal Beam + NEW dangling-arm.
+FATALITIES (1):
+  - "MANA BLADE" — the ultimate — the giant cyan mana blade swings down, cleaving the frozen foe into pink glowing chunks that dissolve into mana motes — tech: reuse freeze-cine (inline Mana Blade cinematic).
+
+### Vilgax (vilgax)   [sword/plasma bruiser]
+KIT: light/heavy/up/air = sword/plasma bruiser normals; specials = Plasma Blast tap/hold (N), Energy-Sword Slash (F), Thrown Spinning Sword (B), Teleport (U), Aerial Tumble (air); rekka = none; ultimate = Koma Atakes (converging multi-beam, inline freeze-cinematic).
+BRUTALITIES:
+  1. "PLASMA WASH" — move: Plasma Blast (N, hold/heavy) — the amplified plasma bolt melts the foe into a green puddle that steams and evaporates — art: reuse vilgax plasma-blast + melt-puddle.
+  2. "SWORDSMAN" — move: Energy-Sword Slash (F) — one clean overhead slash halves the foe top-to-bottom; the two halves stand a beat then fall apart — art: reuse vilgax energy-sword + vertical split.
+  3. "BOOMERANG" — move: Thrown Spinning Sword (B) — the spinning sword decapitates on the way out and the head rides the returning blade back into frame — art: reuse Thrown Spinning Sword spin + NEW head-on-blade.
+FATALITIES (1):
+  - "KOMA ATAKES" — the ultimate — the converging red eye-beams cross-cut the frozen foe into neat diced cubes that collapse into a pile with a puff — tech: reuse freeze-cine (inline Koma Atakes cinematic).
+
+
+========================  POWER RANGERS  ========================
+
+### Omega Ranger (omega_ranger)
+KIT: light=quick strike / heavy / up=launcher / air / downAir; specials = Delta Enforcer gun (ranged bolt), Super Upper (F rising launcher), Down Special (spinning-blade ground-spray slam); rekka = none listed; ultimate = Omega Saber: Final Strike (multi-hit saber barrage).
+BRUTALITIES:
+  1. "ENFORCED EXIT" — move: gun / Delta Enforcer bolt — the point-blank bolt over-charges and the foe comic-inflates then pops into a shower of confetti-pixels — art: reuse gun cast, NEW confetti-burst.
+  2. "SABER SNIP" — move: Omega Saber: Final Strike (ult) — the final saber pass lops the head off, which drops, blinks twice, then floats up and vanishes with a "poof" — art: reuse ult saber-barrage, NEW bobble-head.
+  3. "SPIN CYCLE" — move: downSpecial (spinning-blade slam) — the ground-spray whirl launches the foe spinning off like a top until they twinkle away — art: reuse downSpecial slam + spun hurt frame.
+FATALITIES (1):
+  - "JUDGMENT: DELETED" — Omega Saber theme (SPD "containment") — the foe is card-scanned, freezes, glitches into blocky pixels and is "deleted" into a floating containment card — tech: reuse freeze-cine (no Omega module — adapt redRangerPowerSwordCinematic.js pattern) or NEW cinematic.
+
+### Samurai Red Ranger (samurai_red_ranger)
+KIT: light=quick slash / heavy=crouch-crescent / up=merged tap/hold launcher / air=spin slash / downAir=overhead dive; specials = Flame Slash (Mega-Mode rising flame slash→double-burst); rekka = samRekka1→samRekka2→samRekkaFin (flaming launcher, SAMURAI_RANGER_CMD); ultimate = Fire Smasher: Blazing Strike (samuraiFlameSmasherCinematic.js); form = Mega Mode.
+BRUTALITIES:
+  1. "WELL DONE" — move: Flame Slash (Mega-Mode) — the flame slash cooks the foe into an ash-statue that crumbles into a pile with a smoke-curl — art: reuse flameSlash cast, NEW ash-crumble.
+  2. "REKKA ROAST" — move: samRekkaFin (flaming launcher) — the launcher's flame-burst comic-launches the foe as a flaming meteor arcing offscreen with a shrinking whistle — art: reuse samRekkaFin + tinted hurt.
+  3. "BLADE HALVES" — move: heavy (crouch-crescent) — the crescent slice bisects the foe diagonally; the two halves slide apart, wobble, and poof — art: reuse combo_2 crescent, NEW 2-piece slide.
+FATALITIES (1):
+  - "FIRE SMASHER FINALE" — Blazing Strike ult — the barrage ends in one giant fire-symbol (火) burst that engulfs the frozen foe; they emerge a skeleton, blink, then collapse into dust — tech: reuse freeze-cine (samuraiFlameSmasherCinematic.js).
+
+### Gold Samurai Ranger (gold_samurai_ranger)
+KIT: light/heavy = Barracuda-Blade slashes / up=grounded launcher / air / downAir; specials = Light Slash (light slash-wave projectile); rekka = shared SAMURAI_RANGER_CMD; ultimate = Barracuda Blade: Light Finale (light-saber barrage); form = Mega Mode.
+BRUTALITIES:
+  1. "OVEREXPOSED" — move: Light Slash — the light-wave washes over the foe and they over-brighten to a white silhouette then evaporate into sparkles — art: reuse lightSlash cast, NEW bloom-out.
+  2. "LIGHT FINALE SLICE" — move: Barracuda Blade: Light Finale (ult) — the final blade-flash slices the foe into ribbon-thin light strips that flutter down and fade — art: reuse Light Finale barrage, NEW ribbon-strips.
+  3. "LAUNCHER LOFT" — move: samRekkaFin (shared launcher) — the launcher sends the foe skyward where they turn into a distant blinking star — art: reuse samRekkaFin + hurt frame.
+FATALITIES (1):
+  - "SWORD OF LIGHT: ERASURE" — Light Finale (光 symbol) — a light-symbol flares, the frozen foe's outline is "erased" like a rubbed-out pencil drawing, leaving only their floating helmet — tech: reuse freeze-cine (adapt samuraiFlameSmasherCinematic.js, light-tinted).
+
+### Green Samurai Ranger (green_samurai_ranger)
+KIT: light/heavy = Spin-Sword slashes (green leaf FX) / up=rising slash-wave launcher / air=spin slash / downAir=dive slash; specials = Forest Spear (naginata thrust→leaf-energy blast); rekka = shared SAMURAI_RANGER_CMD (leaf-spike launcher); ultimate = Forest Spear: Verdant Storm (leaf-storm barrage); form = Mega Mode.
+BRUTALITIES:
+  1. "SKEWERED SPROUT" — move: Forest Spear — the naginata skewers through; leafy vines sprout from the hole and the foe bursts into a shower of leaves — art: reuse forestSpear cast, NEW leaf-burst.
+  2. "VERDANT BLOOM" — move: Verdant Storm (ult) — the leaf-storm overgrows the foe into a topiary bush that then blows away in the wind — art: reuse Verdant Storm barrage, NEW topiary-bush.
+  3. "LEAF-SPIKE LOFT" — move: samRekkaFin (leaf-spike launcher) — the green spikes fling the foe off as a spinning maple-seed helicopter that whirls away — art: reuse samRekkaFin + spun hurt.
+FATALITIES (1):
+  - "FOREST SYMBOL: RETURN TO EARTH" — Verdant Storm (森 symbol) — a forest-symbol blooms, roots erupt and drag the frozen foe into the ground; a single flower pops up where they stood — tech: reuse freeze-cine (adapt samuraiFlameSmasherCinematic.js, leaf-tinted).
+
+### Red Ranger (red_ranger_mmpr)
+KIT: light=jab / heavy=big cross / up=rising kick launcher / air=flying kick / downAir=180° somersault; specials = grab/throw (rrGrab→rrThrow); rekka = rrRekka1(jab)→rrRekka2(cross)→rrRekka3(super 360° spin-kick launcher) + rrDiveKick air-poke; ultimate = Power Sword: Overhead Strike (redRangerPowerSwordCinematic.js).
+BRUTALITIES:
+  1. "OVERHEAD SPLIT" — move: Power Sword: Overhead Strike (ult) — the leaping overhead Power Sword cleaves the foe down the middle; the two halves stand a beat, wobble, then fall apart and poof — art: reuse ult sword-slash, NEW vertical 2-piece.
+  2. "SPIN-KICK SEND-OFF" — move: rrRekka3 (super 360° spin-kick) — the finishing spin-kick punts the foe like a football; they shrink into a twinkling star with a "ding" — art: reuse rrRekka3 + hurt frame.
+  3. "THROW THE BOOK" — move: rrThrow (grab/throw) — the throw slams the foe so hard they flatten into the floor and their helmet pops off and rolls away — art: reuse rrThrow, NEW rolling-helmet + flattened body.
+FATALITIES (1):
+  - "POWER SWORD: DEMORPH" — Overhead Strike ult — the slash shatters the suit in a burst of coins/sparks (Power-Coin motif); the demorphed civilian is left sitting dazed with swirly-eyes — tech: reuse freeze-cine (redRangerPowerSwordCinematic.js).
+
+
+========================  HORROR  ========================
+(Slashers — KILLS kept toony/bloodless per style rules: a knife "pop," not gore.)
+
+### Ghostface (ghostface)   [already in BRUTALITY_ELIGIBLE]
+KIT: light=knife swipes / heavy=lunging power-stab (reach) / up=overhead knife launcher / air=overhead slash (reuse up) / downAir=aerial dive-stab; specials = Gutting Lunge (N/F dashing stab + Bleed), Low Gut (D sweep, trip/knockdown), Stalk Vanish (B i-frame backstep) + "Backstage Pass" identity-swap system; rekka = Slasher Frenzy (ghostfaceCombo1→2→3 low-slash string); ultimate = The Final Act (ghostfaceFinalActCinematic.js).
+BRUTALITIES:
+  1. "GUT PUNCH(LINE)" — move: Gutting Lunge (N/F) — the dashing stab goes clean through; a toony ghost shaped like the foe pops OUT the back and floats up while the body drops (bloodless soul-pop) — art: reuse gfLunge + ghost-pop.
+  2. "SWEEP THE LEG" — move: Low Gut (D) — the low sweep-slash lops both legs off; the foe hovers a beat (Wile E. Coyote), then drops, legs standing where they were — art: reuse gfLowCut, NEW legs pop-off.
+  3. "CURTAIN CALL" — move: Slasher Frenzy finisher (ghostfaceCombo3) — the final flurry splits the foe neatly in half; both halves flop apart bloodless — art: reuse ghostfaceCombo3, NEW clean split.
+FATALITIES (1):
+  - "THE FINAL ACT" — the ultimate — Ghostface stalks in, the frozen foe is engulfed in a flurry of stabs, then falls apart into a neat stack of clean sliced segments (deli-slice gag, no blood) — tech: reuse freeze-cine (ghostfaceFinalActCinematic.js).
+
+### Billy Ghostface (ghostface_billy)   [near-identical reskin of ghostface; shared cinematic]
+KIT: light=knife swipes / heavy=lunging power-stab / up=overhead knife launcher / air=reuse up / downAir=dive-stab; specials = Gutting Lunge (N/F bleed), Low Gut (D knockdown) — subset of base; rekka = shared Slasher Frenzy; ultimate = The Final Act (shared ghostfaceFinalActCinematic.js). (Unique Delayed Counter-Stab / The Last Reveal designed but not yet wired.)
+BRUTALITIES:
+  1. "COLD OPEN" — move: Gutting Lunge (N/F) — same soul-pop as base, tinted crimson to match Billy's mask; the popped ghost wears Billy's grin — art: reuse gfLunge (billy sheet) + ghost-pop.
+  2. "TWIST ENDING" — move: Low Gut (D) — the low slash trips then bisects at the waist; the top half spins to "face" the camera (the reveal gag) before flopping — art: reuse gfLowCut (billy) + spin split.
+  3. "SECOND ACT" — move: Slasher Frenzy finisher (ghostfaceCombo3) — identical deli-slice split, crimson-flavored — art: reuse ghostfaceCombo3 (billy).
+FATALITIES (1):
+  - "THE FINAL ACT (FOUNDER'S CUT)" — the ultimate — same stab-flurry→sliced-stack, framed as Billy's "original script" — tech: reuse freeze-cine (shared ghostfaceFinalActCinematic.js).
+
+### Jason Voorhees (jason)   [already in BRUTALITY_ELIGIBLE; NO ultimate]
+KIT: light=machete jab / heavy=overhead machete swing (super-armor, overhead, dmg 98) / up=launcher (repurposed slash_2) / air=long-reach machete swipe / downAir=aerial blade-extend spike; specials = Relentless Slash (N ONLY — committed lunging machete power-slash, huge reach, super armor, Bloodlust, dmg 140; reuses heavy art); rekka = none; ultimate = none (open gap, not a placeholder).
+BRUTALITIES:
+  1. "OVERHEAD DELIVERY" — move: heavy (overhead machete) — the overhead chop lops the head off cleanly; it drops into Jason's other hand and he pockets it (deadpan), body topples — art: reuse jason_heavy, NEW head pop.
+  2. "MACHETE AIRMAIL" — move: down_air (blade-extend spike) — the descending spike pins the foe flat into the floor as a 2D-flattened silhouette (steamroller gag) — art: reuse jason_down_air, NEW flatten.
+  3. "LONG REACH" — move: air (long machete swipe) — the wide air-swipe lops the torso off the legs mid-jump; halves cartwheel apart, legs land standing — art: reuse jason_air, NEW torso/leg split.
+FATALITIES (1):
+  - "RELENTLESS SLASH" — his only signature (Jason has no ult) — the huge lunging machete arc chops the frozen foe into three clean stacked segments that slide apart bloodless — tech: NEW cinematic (Jason has NO freeze-cinematic module AND no ultimate — the one character here needing fresh cinematic tech; could piggyback the generic ult freeze-helper).
+
+### Ghostface.exe (ghostface_exe)   [kit IS wired — internally checked as "ghostface"; NOT kit-only]
+KIT: light/heavy/up/air = knife-stalker normals; specials = Side Switch/identity-swap (N), Gutting Lunge dashing stab + bleed (F), Getaway backstep (B), Low Gut sweep + knockdown (D); rekka = Slasher Frenzy (ghostfaceCombo1→2→3 launcher); ultimate = The Final Act (ghostfaceFinalActCinematic.js).
+BRUTALITIES:
+  1. "GUTTED" — move: Gutting Lunge (F) — the dash-stab runs the foe through and the bleed-DoT balloons; they deflate like a punctured balloon and flop flat — art: reuse Gutting Lunge stab + procedural deflate.
+  2. "FRENZY" — move: Slasher Frenzy finisher (ghostfaceCombo3) — the flurry dices the foe into confetti-strips that flutter down with a "swish" — art: reuse ghostface combo3, NEW confetti-shred.
+  3. "SWEEP THE LEG" — move: Low Gut (D) — the low sweep lops the foe off at the ankles; the body topples while the feet stay planted a beat — art: reuse Low Gut sweep, NEW severed-feet.
+FATALITIES (1):
+  - "THE FINAL ACT" — the ultimate — the stab-flurry cinematic ends on one exaggerated overhead plunge that pins the frozen foe to the ground where they melt into a static-glitch puff (creepypasta.exe flavor) — tech: reuse freeze-cine (ghostfaceFinalActCinematic.js).
+
+
+========================  INVINCIBLE  ========================
+
+### Omni-Man (omniman)   [already in BRUTALITY_ELIGIBLE; existing "OBLITERATE" entry]
+KIT: light=fast strike / heavy=super-armored haymaker (120 dmg, top-of-roster) / up=rising overhead launcher / air=aerial / downAir=diving slam; specials = Viltrumite Smash (N super-armor punch), Skewering Rush (F flying tackle), Meteor Drop (D diving spike); rekka = OMNIMAN_CMD chain; ultimate = Viltrumite Onslaught (omnimanBodySlamCinematic.js).
+BRUTALITIES:
+  1. "SMART ATOM SPLIT" — move: Viltrumite Smash (N) — the super-armored fist connects and the foe pops into two clean top/bottom halves that bounce apart like split fruit, then puff away — art: reuse omni_man_intro flex follow-through, NEW 2-piece pop (or tinted hurt_air tumble).
+  2. "SKEWER & LAUNCH" — move: Skewering Rush (F) — he tackles clean THROUGH the body, leaving a torso-shaped hole while the head+limbs launch off with a "boing" — art: reuse skeweringRush flight pose, NEW silhouette-hole.
+  3. "GROUND ZERO" — move: Meteor Drop (D) — the spike-slam flattens the foe into a pancake that peels off the floor and flutters away like paper — art: reuse downAir/meteorDrop dive, NEW flat-pancake.
+FATALITIES (2):
+  - "THINK, MARK!" — Viltrumite Onslaught ult — the flying assault ends with one off-screen haymaker; the frozen foe rockets into the sky as a twinkling star ("blasting off" gag) — tech: reuse freeze-cine (omnimanBodySlamCinematic.js).
+  - "NOTHING LEFT" — heavy haymaker — the committed super-armor punch vaporizes the frozen foe into a cloud of dust + boots left standing — tech: NEW post-match cinematic (or extend brutalityState freeze-beat).
+
+
+========================  RICK & MORTY  ========================
+
+### Rick Sanchez (rick)
+KIT: light=jab / heavy=side kick / up=rising launcher / air=aerial (up_attack_2) / downAir=(none); specials = Meeseeks Box (summon), Rocket (Up), portal-gun laser free poke (gunShot), Portal-Behind (double-tap teleport); rekka = none; ultimate = Self-Destruct (proximity AOE, costs Rick 15% HP).
+BRUTALITIES:
+  1. "OOOH YEAH!" — move: Meeseeks Box (summon) — the thrown Meeseeks tackles the foe, a blue-poof scuffle, and when it clears the foe is gone leaving only a satisfied Meeseeks and their empty shoes — art: reuse meeseeksThrow + procedural poof/shoe.
+  2. "TARGET LOCKED" — move: Rocket (Up) — the rocket punts the foe straight up offscreen; a tiny star-twinkle "ping" returns, then their glasses flutter back down — art: reuse rocket sprite, NEW glasses part.
+  3. "WUBBA LUBBA" — move: portal-gun laser (gunShot) — a portal opens at the muzzle; the laser exits a second portal behind the foe and vaporizes them into green portal-goo droplets — art: reuse gunShot + portal FX + green droplets.
+FATALITIES (1):
+  - "PEACE AMONG WORLDS" — Self-Destruct — Rick calmly detonates; the foe is outlined by the blast ring, freeze-frames as a skeleton a beat, then poofs into a green mushroom-cloud with a burp — tech: NEW cinematic (no module; Self-Destruct non-cinematic) — simplest: piggyback brutalityState freeze-beat with a green portal-science palette.
+
+### Rick Prime (rickPrime)
+KIT: light=jab / heavy=side kick / up=rising launcher / air=aerial / downAir=diving down-strike (recolored base-Rick sheets); specials = Prime Portal Blast (multiverse energy), Annihilation Mine (portal-tech detonation), Prime Portal (instant warp); rekka = none; ultimate = Rick Prime's Supremacy (buff — speed/attack/gadget chaos).
+BRUTALITIES:
+  1. "MULTIVERSE ERASURE" — move: Prime Portal Blast — the beam opens a rift that erases the foe's torso out of existence, leaving a floating head and legs that drop with a "plop" — art: reuse recolored blast pose, NEW 2 parts (red-navy palette).
+  2. "MINEFIELD" — move: Annihilation Mine — the foe steps on the detonation and comic-launches offscreen in a red portal-flash, raining down as navy circuit-scraps — art: reuse mine art, NEW scrap parts.
+  3. "GONE PRIME" — move: Prime Portal (instant warp) — Rick Prime warps through the foe; a red portal-slit opens along their middle and they slide apart into two clean halves that vanish into rifts — art: reuse recolored portalTravel, NEW 2 halves (red rift FX).
+FATALITIES (1):
+  - "SUPREMACY" — Rick Prime's Supremacy — snaps his fingers; a cascade of red portals opens around the frozen foe and a dozen gadget-hands pull them apart in every direction, then all portals snap shut with a "ding" — tech: NEW cinematic (no module; ult is a buff) — piggyback brutalityState freeze-beat with a red/navy Prime palette.
+
+
+========================  DEATH NOTE  ========================
+
+### Light Yagami (light)   [FLAGGED 2B — KIT ONLY, no finisher content]
+KIT: light = 3-move set (B / B-fwd / B-down); specials = Shinigami/detective call-ins + Death Note (Ryuk / L / gunman); rekka = none; ultimate = notebook→scythe repurposed move (special-heavy zoner).
+FLAGGED: tonal clash (non-combatant strategist; "kills" via notebook, not a brawler) — Section 2B. No content proposed pending user decision.
+
+### L "Ryuuzaki" (l_ryuuzaki)   [FLAGGED 2B — KIT ONLY, no finisher content]
+KIT: capoeira-kicker normals; specials = call-ins + analysis toolbox (special-heavy zoner/technician); rekka = none; ultimate = NONE (HUD placeholder only — real art gap).
+FLAGGED: tonal clash (detective, non-combatant) AND no real ultimate to ground a Fatality — Section 2B. No content proposed.
+
+
+========================  SAIKI K  ========================
+
+### Saiki Kusuo (saiki)   [FLAGGED 2B — KIT ONLY, no finisher content]
+KIT: light=palm-strike rush / heavy=diagonal blade-swipe / up=charged-fist launcher / air=reuse front / downAir=~360° spinning kick spike; specials = Lightning (two layered top/bottom bolts as one projectile); rekka = Fwd+Heavy 4-hit projectile string + Fwd+Light Basic Burst; ultimate = Giant Bomb Throw (delayed screen-filling shockwave). Psychic zoner.
+FLAGGED: tonal clash (deadpan gag esper who actively avoids violence) — Section 2B. No content proposed pending user decision.
+
+
+========================  HAJIME NO IPPO  ========================
+
+### Ippo Makunouchi (ippo)   (boxer — fists/launch KO gags only, no blades)
+KIT: light=jab / heavy=lunging hook / up=uppercut launcher / air=aerial hook / downAir=reuse air; specials = Gazelle Punch leaping counter (N), spinning hook (F), heavy uppercut (U), heavy body-blow (D), aerial hook (air); rekka = Y-Jabs (ippoJab1→ippoJab2); ultimate = Dempsey Roll.
+BRUTALITIES:
+  1. "GAZELLE PUNCH" — move: Gazelle Punch (N) — the leaping counter launches the foe so hard they comic-rocket into the sky and twinkle out (blast-off gag) — art: reuse Gazelle Punch launch, NEW sky-launch twinkle.
+  2. "OUT COLD" — move: heavy uppercut (U) — the uppercut spins the head 360° like a bobblehead; eyes turn to Xs, they spin like a top and topple — art: reuse ippo uppercut, NEW spinning-X-eyes head.
+  3. "LIVER SHOT" — move: heavy body-blow (D) — the body-blow folds the foe in half and rockets them backward offscreen leaving a glove-shaped dust-hole in the wall — art: reuse Ippo body-blow, NEW punch-hole wall prop.
+FATALITIES (1):
+  - "DEMPSEY ROLL" — the ultimate — Ippo weaves then unloads the full alternating-hook barrage, each hook inflating a lump on the foe until the final blow launches them clean out of the arena into a distant twinkle — tech: reuse freeze-cine (inline Dempsey Roll cinematic).
+
+
+========================  BAKI  ========================
+
+### Baki Hanma (baki)   [already in BRUTALITY_ELIGIBLE]
+KIT: light=jab-cross-hook string (red impact FX) / heavy=body blow / up=uppercut launcher / air=neutral aerial / downAir=diving kick spike; specials = Mach Punch Barrage, Rushing Combo (gap-closer), Rising Rush (DP), Impact Shockwave (AOE straight), Defensive Read (counter stance); rekka = none; ultimate = Demon Back / Oni no Se (timed empowered form).
+BRUTALITIES:
+  1. "SHADOW STRAIGHT" — move: Impact Shockwave — the air-pressure straight punches a hole clean THROUGH the foe; a torso-shaped ring of air blows the head off behind them — art: reuse baki heavy/impact + burst.
+  2. "MACH BARRAGE" — move: Mach Punch Barrage — a hundred blurred fists reduce the foe to a jiggling pile of cartoon meatball-chunks that plops down — art: reuse baki light/barrage + burst.
+  3. "PERFECT COUNTER" — move: Defensive Read (riposte) — the counter catches the foe mid-swing and folds them backward the wrong way; they crumple into a flat accordion and pop — art: reuse baki guard→riposte + shards.
+FATALITIES (2):
+  - "DEMON BACK" — Demon Back / Oni no Se — the demon-face muscle surfaces, roars, and the drawn demon leaps off Baki's back to chomp the frozen foe in half (toony) — tech: reuse brutalityState freeze-beat (Demon Back is a form buff, not a cine).
+  - "GRAPPLER'S END" — Rising Rush (DP) — the rising uppercut launches the frozen foe so high they twinkle out like a star, then only their shoes drop back down — tech: reuse brutalityState freeze-beat.
+
+
+──────────────────────────────────────────────────────────────────────
+5. OPEN DECISIONS FOR THE USER (nothing built — please rule on these)
+──────────────────────────────────────────────────────────────────────
+  A. SENSITIVE CASES (Section 2): for each 2A minor and 2B tonal-clash
+     character — exempt entirely / tone down (comedic poof only) / treat
+     as the rest of the cast? (Also confirm the 2C mid-teens are OK as-is.)
+  B. FATALITY COUNT + RULES: the doc proposes 1-2 per character; you set
+     the final count-per-character and the "finish them" window rules
+     (input, timing, who can perform it, once-per-match, etc.).
+  C. "THE CLASSIC" MK-DEFAULT (Section 1): ship roster-wide, use only as a
+     fallback for un-authored characters, or drop it?
+  D. VISUAL STYLE LOCK: confirm the toony "Among Us" pop-off direction
+     REPLACES the existing red-gore emitter (vs adding a second style).
+  E. BRUTALITY TRIGGER STRICTNESS: does the killing-blow move have to be
+     the EXACT tagged special, or does any finish while that move is the
+     active move count? (affects how the killing-blow-move stamp is read.)
+  F. TOGGLE / ESRB: keep it behind the existing `ms_brutality_fx` opt-in
+     (default OFF), and does the toony style change the content rating
+     posture vs the current gore toggle?
+  G. PRIORITY SET: which characters to prototype FIRST (suggest the ones
+     already in BRUTALITY_ELIGIBLE with existing cinematics — e.g. Sukuna,
+     Toji, Frieza, Omni-Man — as the lowest-lift proof of concept).
+
+==========================================================================
+ END OF FINISHER SYSTEMS PROPOSAL — 2026-09-09
+ 96 playable characters covered: 84 with full Brutality+Fatality proposals,
+ 12 flagged KIT-ONLY for user review (9 apparent minors + 3 tonal clashes).
+ No code written. No files changed except this document.
+==========================================================================
+
+
+==========================================================================
+ CLONE-ASSIST SYSTEM — MK1-KAMEO-STYLE REDESIGN (6 CHARACTERS) — 2026-09-09
+ Branch: feature/clone-assist-system (off balance-playtest)
+ Scope: naruto, minato, tobirama, hashirama, itachi, kakashi. NOTHING else
+ touched (boruto/hiruzen/madara keep the legacy mirror-decoy path).
+==========================================================================
+
+WHAT CHANGED (the design, as shipped)
+--------------------------------------------------------------------------
+Replaced the mirror-decoy clone behavior for the 6 listed characters with a
+summon+assist system. A clone now SPAWNS and STANDS STILL (no movement-
+mirroring, no position-following — the behavior the user rejected is gone
+for these 6). A dedicated assist key drives three on-demand actions, each
+on its OWN cooldown (a managed resource, not spam):
+
+  KEY BINDINGS (real keyboard, Player 1):
+    ","        = spawn a clone      (unchanged)
+    "."        = disperse clones    (unchanged)
+    "h"        = ASSIST + Neutral   → SUMMON strike (NEW)
+    Fwd + "h"  = ASSIST + Forward   → AMBUSH rush   (NEW; forward = toward foe)
+    Back + "h" = ASSIST + Back      → SWAP / per-char back-action (NEW)
+    "/"        = legacy swap        (kept as an alias; still works)
+  "h" was chosen because input.js showed it FREE (P1 uses a/d/w/s, j/k/i/l/u,
+  o/p/;, and , . /) and it is ergonomic to tap while holding a/d.
+
+  ACTION TYPES (MK1 Summon/Ambush split):
+    • SUMMON (Neutral): the player briefly FREEZES (hitstop) while a clone
+      lunges in front of the opponent and strikes with a launcher — a combo-
+      extender. Consumes one standing clone.
+    • AMBUSH (Forward): a clone rushes in from where it stood, IMMEDIATELY,
+      regardless of what the player is doing — usable mid-combo (punish tool),
+      no player freeze. Consumes one standing clone.
+    • BACK: per-character (see below).
+
+  COOLDOWNS (frames @60fps, in cloneAssist.js CLONE_ASSIST_CD):
+    summon = 180 (3.0s) · ambush = 150 (2.5s) · swap/back = 120 (2.0s)
+
+PER-CHARACTER BACK-ACTION (Assist+Back)
+--------------------------------------------------------------------------
+  naruto   — SWAP (substitution: trade places with a clone; clone kept as decoy)
+  kakashi  — SWAP (generic — identical to Naruto, as requested)
+  minato   — FLYING THUNDER GOD warp: consume a clone-MARK, blink to its spot
+             (+ his teleport flash + i-frames). Distinct from swap (spends the
+             clone instead of keeping it).
+  tobirama — MASTERY CAST: the water clone raises his OWN existing WATER WALL
+             (reuses the real tobiWaterWall projectile/art) at the clone's mark.
+  hashirama— WOOD WALL: NOT a swap. Fortifies the standing clones so each TANKS
+             one incoming hit and STAYS UP (canon: wood clones don't dispel on
+             damage). Keeps the clones; the resource is the cooldown + 1-hit armor.
+  itachi   — SWAP, PLUS Crow-Clone flavor that applies to ALL his clone loss:
+             (a) CHEAPER chakra — losing/spending a crow clone drains only HALF
+             the usual even share (loseCloneShare discount); (b) BLIND on
+             dispersal — whenever a crow clone disperses it scatters crows that
+             apply the `obscured` debuff to the opponent (a dark crow-feather
+             veil, ~1.5s), made visible by a new drawCrowBlindOverlay.
+
+ARCHITECTURE
+--------------------------------------------------------------------------
+  • NEW cloneAssist.js — the generic, config-driven engine (CLONE_ASSIST_CONFIG
+    keyed by character; adding a char = one config entry). Not per-char code.
+  • summons.js — CLONE_ASSIST_KEYS opt-in gates mirror-follow OFF for the 6;
+    spawnCloneRusher() (generic per-char rusher using each char's own clone art);
+    fortifyClones()/_cloneAbsorbsHit() (Hashirama wall); crow blind + Itachi
+    chakra discount in the despawn/loseCloneShare paths.
+  • game.js — the "h" handler (reads held direction via getFighterInput),
+    per-frame cooldown tick, drawCrowBlindOverlay, + harness readouts.
+  • abilities.js — registers Tobirama's Water-Wall assist-special (no import cycle:
+    abilities → cloneAssist → summons).
+
+LIVE VERIFICATION (real keyboard, headless browser — NOT harness shortcuts)
+--------------------------------------------------------------------------
+harness/clone_assist_verify.mjs drives real "," and "h"+direction presses and
+asserts: clones stand still while the player walks; summon consumes a clone +
+spawns a striking rusher + freezes the player + deals damage; cooldown blocks
+an immediate repeat; ambush spawns a rusher with NO freeze; back-action fires.
+  naruto 10/0 · minato 10/0 · tobirama 10/0 · hashirama 11/0 (wall tanks a hit,
+  clone stays up) · itachi 11/0 (crow blind lands: obscured false→true) · kakashi
+  10/0. Screenshots in harness/shots/assist_verify/ (visually confirmed: standing
+  clones, summoned strike at the foe, crow-blind veil over the opponent).
+
+REGRESSION (Stage 7 — broad, shared-code-focused; 41 suites)
+--------------------------------------------------------------------------
+  ALL PASS except two PRE-EXISTING failures (fail identically on balance-playtest
+  WITHOUT this work): naruto-motion 21/1 (energy-tolerance flake) and hawk-summon
+  ~11/4 (flaky). determinism 9/0. The 6 chars' full suites green (kakashi 55,
+  hashirama 35, tobirama 31, minato 47, naruto 21, itachi-fire-flower 11 +
+  itachi-specials 16). Clone system green (clone-realhit 21, clone-swap 13 +
+  live 10, clone-standardize 17, clone-legacy-removed 13, stage4-clone 33 + live
+  17). ★OUT-OF-SCOPE chars UNAFFECTED: boruto 15, boruto-clone 11, boruto-clone-
+  rasengan 14, hiruzen 34, madara 44 (legacy mirror path intact). Cross-section:
+  goku 38, vegeta 72, saitama 33, arcade 25, aivsai 20, basickit 17, hitstop 23,
+  onoki 31, handler 56, zenitsu 53. NO out-of-scope regression found.
+  ★clone-mirror was REPOINTED from naruto→boruto (the redesigned 6 no longer
+  mirror; boruto still does) so it keeps validating the legacy path (9/0).
+
+HONEST NOTES / THINGS THAT NEEDED A FALLBACK
+--------------------------------------------------------------------------
+  1. SUMMON strike reuses a clone-RUSHER (the clone lunges in and strikes), NOT
+     Naruto's Rendan rekka. Rendan is a PLAYER-performed multi-hit string, which
+     doesn't fit the "player freezes, the CLONE performs a move" summon shape —
+     so a clone-driven strike is the faithful fit. (Rendan's own Fwd+Heavy route
+     is untouched and still works.)
+  2. Itachi "cheaper spawn cost": spawning already has NO up-front energy cost in
+     this engine (the cost is the chakra-split on loss). So "cheaper" is realized
+     as a HALVED chakra-split when a crow clone is lost/spent — cheaper to field
+     and to spend on assists. Interpreted, not a literal spawn-price change.
+  3. The `obscured` blind flag was DORMANT (set + ticked but never rendered), so
+     the crow "blind" had no visible effect on its own. Added a small procedural
+     drawCrowBlindOverlay (dark veil + crow-feathers) to make it visible — the
+     only genuinely NEW visual; everything else reuses existing art/projectiles.
+  4. Minato FTG consumes an ARBITRARY live clone as the mark (not necessarily the
+     safest one); good enough for the warp, noted for future polish.
+  5. Term "clone" (not "shadow clone") used in all NEW comments/UI/move names;
+     the internal entity id stays "shadowClone" (renaming it touches ~100 call
+     sites and risked regressions — deliberately left as an internal name only).
+==========================================================================

@@ -144,7 +144,10 @@ try {
   await page.keyboard.down("j"); await waitFrames(4); const ml = await p1(); await page.keyboard.up("j"); await waitFrames(18);
   check("MEGA move 2 — light = forest_mega_slash_uniform", sh(ml).includes("forest_mega_slash_uniform"), `sheet=${sh(ml)}`);
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(6); const mg = await p1(); await page.keyboard.up("s"); await waitFrames(3);
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
+  await page.keyboard.down(";");   // ";" = dedicated guard key (MK-feel Stage 1c; Down no longer blocks)
+  await page.waitForFunction(() => (window.__harness.p1().spriteSheet || "").includes("forest_mega_guard_uniform"), null, { timeout: 2000, polling: 16 }).catch(() => {});
+  const mg = await p1(); await page.keyboard.up(";"); await waitFrames(3);
   check("MEGA move 3 — guard = forest_mega_guard_uniform", sh(mg).includes("forest_mega_guard_uniform"), `sheet=${sh(mg)}`);
 
   section("DUPLICATE-RENDER guard (transformation cinematic + Mega body)");

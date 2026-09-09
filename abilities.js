@@ -8428,6 +8428,7 @@ function applyOrochimaruSummonDamage(fighter, opp, context) {
 // on the normal path (the Stage-2 normals).
 // ─────────────────────────────────────────────────────────────────────────────
 const SAM_UP_HOLD_FRAMES = 9   // hold the up-attack this many frames → the strong (samUpHold) tier
+const SAM_UP_RELEASE_FRAMES = 5   // consecutive false-upAttack frames that confirm a real RELEASE (rides out the input buffer's true/false flicker while the key is physically held)
 const SAMURAI_RANGER_UP = {
   samUpTap:  { damage: 66,  startup: 6,  active: 4, recovery: 16, hitstun: 20, knockbackX: 3, knockbackY: -12, rangeX: 64, rangeY: 78, launcher: true },   // quick rising launcher
   samUpHold: { damage: 112, startup: 10, active: 5, recovery: 24, hitstun: 24, knockbackX: 4, knockbackY: -15, rangeX: 72, rangeY: 82, launcher: true },   // charged strong tier
@@ -8484,24 +8485,30 @@ export function updateSamuraiRangerCommandCombat(fighter, inputState, context, g
 
   const forward  = fighter.facing === 1 ? !!inputState.right : !!inputState.left
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
-  if (!canStart) { fighter._samUpPrev = !!inputState.upAttack; if (!inputState.upAttack) fighter._samUpHold = 0; return false }
+  if (!canStart) { if (!inputState.upAttack) { fighter._samUpHold = 0; fighter._samUpActive = false; fighter._samUpRelease = 0 } return false }
 
-  // MERGED UP-ATTACK (grounded): count how long I is held. Reaching SAM_UP_HOLD_FRAMES fires the
-  // strong tier immediately; releasing before then fires the quick tap. (Airborne up-attack is left
-  // to the normal path — this merger is a grounded launcher.)
+  // MERGED UP-ATTACK (grounded): count how long I is held → tap (< SAM_UP_HOLD_FRAMES) = samUpTap, hold
+  // (≥) = samUpHold. ★upAttack is a BUFFERED input (input.js INPUT_BUFFER_FRAMES) that does NOT read as
+  // continuously-true while the key is physically held — it flickers true/false frame-to-frame. So the
+  // hold-counter must be GAP-TOLERANT: keep accumulating across short false gaps and only treat a
+  // SUSTAINED gap (SAM_UP_RELEASE_FRAMES consecutive false) as the real release. (Airborne up-attack is
+  // left to the normal path — this merger is a grounded launcher.)
   if (grounded && mergedUp) {
-    const upHeld = !!inputState.upAttack
-    const upPrev = !!fighter._samUpPrev
-    fighter._samUpPrev = upHeld
-    if (upHeld) {
-      fighter._samUpHold = (fighter._samUpHold || 0) + 1
-      if (fighter._samUpHold >= SAM_UP_HOLD_FRAMES) { fighter._samUpHold = 0; return fireSamuraiRangerMove(fighter, "samUpHold") }
-      return false   // still deciding tap-vs-hold — hold the input this frame
-    } else if (upPrev && (fighter._samUpHold || 0) > 0) {
-      fighter._samUpHold = 0
-      return fireSamuraiRangerMove(fighter, "samUpTap")   // released before threshold → quick tap
+    if (inputState.upAttack) {
+      fighter._samUpRelease = 0
+      fighter._samUpActive  = true
+      fighter._samUpHold    = (fighter._samUpHold || 0) + 1
+      if (fighter._samUpHold >= SAM_UP_HOLD_FRAMES) { fighter._samUpHold = 0; fighter._samUpActive = false; return fireSamuraiRangerMove(fighter, "samUpHold") }
+      return false   // holding — still deciding tap-vs-hold
+    } else if (fighter._samUpActive) {
+      fighter._samUpRelease = (fighter._samUpRelease || 0) + 1
+      if (fighter._samUpRelease >= SAM_UP_RELEASE_FRAMES) {   // sustained gap → real release
+        const held = fighter._samUpHold || 0
+        fighter._samUpActive = false; fighter._samUpHold = 0; fighter._samUpRelease = 0
+        if (held > 0) return fireSamuraiRangerMove(fighter, "samUpTap")   // released before threshold → quick tap
+      }
+      return false   // within the buffer's flicker gap — treat as still held (don't drop to the normal path)
     }
-    fighter._samUpHold = 0
   }
 
   // FLAME CHAIN opener: Fwd+Heavy. Neutral heavy stays the normal (heavy) on the normal path.

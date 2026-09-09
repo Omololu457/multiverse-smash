@@ -130,8 +130,8 @@ try {
   await prep(38); const stages = new Set(); const chHp0 = (await p2()).health;   // start close so every stage stays in range
   const sampleC = async (n) => { for (let i = 0; i < n; i++) { const a = await p1(); if (a.currentMove) stages.add(a.currentMove); await waitFrames(1); } };
   await page.keyboard.down("d");                                            // hold forward (walk back into range between stages)
-  await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await sampleC(6);
-  for (let t = 0; t < 6; t++) { await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await sampleC(6); }
+  await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await sampleC(9);
+  for (let t = 0; t < 6; t++) { await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await sampleC(9); }
   await waitFrames(8); await page.keyboard.up("d");
   const chainDmg = chHp0 - (await p2()).health;
   check("chain runs samRekka1→2→Fin + cumulative dmg", stages.has("samRekka1") && stages.has("samRekka2") && stages.has("samRekkaFin") && chainDmg > 45, `stages=[${[...stages]}] dmg=${chainDmg}`);
@@ -164,7 +164,11 @@ try {
   let a0 = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a0.x + 46); await waitFrames(2); const mHp0 = (await p2()).health;
   await page.keyboard.down("j"); await waitFrames(4); const mLight = await p1(); await page.keyboard.up("j"); await waitFrames(18);
   check("MEGA MOVE 2 — light = mega_combo_uniform + out-damages base", sh(mLight).includes("samurai_ranger_mega_combo_uniform") && (mHp0 - (await p2()).health) > 30, `sheet=${sh(mLight)} dmg=${mHp0 - (await p2()).health}`);
-  await waitGrounded(); await page.keyboard.down("s"); await waitFrames(6); const mGuard = await p1(); await page.keyboard.up("s"); await waitFrames(3);
+  await waitGrounded();
+  await page.waitForFunction(() => { const p = window.__harness.p1(); return !p.attacking && !p.currentMove && (p.attackCooldown || 0) <= 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
+  await page.keyboard.down(";");   // ";" = dedicated guard key (MK-feel Stage 1c; Down no longer blocks)
+  await page.waitForFunction(() => (window.__harness.p1().spriteSheet || "").includes("samurai_ranger_mega_guard_uniform"), null, { timeout: 2000, polling: 16 }).catch(() => {});
+  const mGuard = await p1(); await page.keyboard.up(";"); await waitFrames(3);
   check("MEGA MOVE 3 — guard = mega_guard_uniform", sh(mGuard).includes("samurai_ranger_mega_guard_uniform"), sh(mGuard));
   // dual-render "two instances" check
   await page.evaluate(() => { window.__samDual.max = 0; window.__samDual.cur = 0; }); await waitFrames(30);

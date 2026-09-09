@@ -5307,6 +5307,7 @@ function updateMiscTimers(fighter) {
   if (fighter._cloneStrikeCd > 0) fighter._cloneStrikeCd--                 // one-shot clone: Neutral strike cooldown
   if (fighter._cloneProjCd   > 0) fighter._cloneProjCd--                   // one-shot clone: Forward projectile cooldown
   if (fighter._cloneSubCd    > 0) fighter._cloneSubCd--                    // one-shot clone: Back substitution cooldown
+  if (fighter._castArmor     > 0) fighter._castArmor--                     // Hashirama one-shot strike super-armor window (combat.js)
   if (fighter._tojiFlyFadeTimer > 0) {                                     // Toji Fly Heads self-fade window (render-only near-invisibility)
     fighter._tojiFlyFadeTimer--
     if (!isTojiFlyHeadsSwarmActive()) fighter._tojiFlyFadeTimer = 0        // swarm ended (naturally or via round/KO reset) → snap back to visible

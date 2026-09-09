@@ -440,6 +440,7 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     // field to set TRUE on this projectile's owner when it lands a hit. Powers Saiki's projectile
     // rekka cancel-on-hit gate (hitFlag: "_cmdHitLanded"). Null for ordinary projectiles.
     hitFlag:    moveData.hitFlag    || null,
+    onHitBlind: moveData.onHitBlind || false,   // Itachi crow clone (one-shot): stamp `obscured` blind on a clean hit (combat.js)
     // OPTIONAL hit-stop control (combat.getProjectileHitstopFrames): `hitstop` is a
     // numeric per-projectile freeze override; `noHitstop:true` opts a rapid multi-hit /
     // DOT projectile out of the shared projectile freeze so it doesn't stutter. Absent →
@@ -506,7 +507,7 @@ export function fireCloneOneShotStrike(fighter, context) {
   fighter.vx = 0
   fighter._spriteCastMove = cfg.castPose || "rasengan_cast"; fighter._spriteCastTimer = 24
   fighter.attackCooldown = getAttackDuration(22, fighter)
-  if (cfg.strikeArmor) fighter._superArmor = Math.max(fighter._superArmor || 0, 22)   // Hashirama wood-clone durability on the committed strike
+  if (cfg.strikeArmor) fighter._castArmor = Math.max(fighter._castArmor || 0, 30)   // Hashirama wood-clone durability: brief cast super-armor (combat.js castArmored)
   const sx = fighter.x + facing * 96, sy = fighter.y + (fighter.h || 100) * 0.12
   schedulePendingSpawn(8, () => {
     spawnClonePuff(sx + 30, sy + 45)                                    // clone APPEARS in a poof

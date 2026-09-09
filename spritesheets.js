@@ -502,6 +502,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./rick_stand.png" }
   },
 
+  // Rick Prime (universe: rick_and_morty). Same gate as base Rick: decoding the __rickprime idle strip
+  // flips him from the procedural box to the sprite path. Per-action rendering reads characters.js →
+  // rickPrime.animationData (base Rick's sheets retagged to __rickprime by tools/gen_rickprime_recolor.py).
+  rickPrime: {
+    actions: { idle: "./rick_stand__rickprime.png" }
+  },
+
   // Beerus (dragon_ball) — gates spritesReady() by decoding the idle strip. Per-action
   // rendering reads each sheet path from characters.js animationData.
   beerus: {

@@ -663,6 +663,7 @@
     "test:superman-classic": "node harness/superman_classic.test.mjs",
     "test:superman-classic-stage1": "node harness/superman_classic_stage1.mjs",
     "test:superman-fighter": "node harness/superman_fighter.test.mjs",
+    "test:superman-fighter-movement": "node harness/superman_fighter_movement.test.mjs",
     "test:superman-fighter-stage1": "node harness/superman_fighter_stage1.mjs",
     "test:superman-fighter-stage2": "node harness/superman_fighter_stage2.mjs",
     "test:superman-fighter-stage3": "node harness/superman_fighter_stage3.mjs",

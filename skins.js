@@ -1095,6 +1095,14 @@ export const SKINS = {
     { id: "rickPortalVoid", name: "Portal Void", unlockLevel: 0, portrait: "./rick_portrait__portalvoid.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "portalvoid") }
   ],
 
+  // Rick Prime — his identity IS the recolor (base Rick's sheets → __rickprime: dark jacket / red accent /
+  // dark navy pants). WITHOUT this default entry applySkin() pulls the getSkins() spriteScale:1 stub and
+  // CLOBBERS his real spriteScale:1.85 (the Albedo/Baki half-size gotcha). Default carries his own scale +
+  // the recolored portrait; animationData:null so the character's own __rickprime sheets are used.
+  rickPrime: [
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rickPrime?.portrait, spriteScale: characters.rickPrime?.spriteScale, animationData: null },
+  ],
+
   // Beerus (Dragon Ball) — new single-form sprite char. Same gate: WITHOUT a default skin,
   // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~62px.
   beerus: [

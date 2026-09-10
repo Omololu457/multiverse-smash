@@ -1889,7 +1889,7 @@ const obito = {
     run:       { frames: 6, width: 74, height: 65, speed: 4, anchorY: 0, sheet: "./obito_run_uniform.png" },
     dash:      { frames: 3, width: 65, height: 87, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_dash_uniform.png" },
     jump:      { frames: 3, width: 61, height: 79, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_jump_uniform.png" },
-    fall:      { frames: 8, width: 93, height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_fall_uniform.png" },   // obito_melee_fall_to_jump_up
+    fall:      { frames: 1, width: 61, height: 79, speed: 5, anchorY: 0, sourceX: 122, loop: false, lockLastFrame: true, sheet: "./obito_jump_uniform.png" },   // last jump cell (airborne) held as the descent pose — matches the roster convention (madara/goku/piccolo/frieza/itachi/tobirama). WAS obito_fall_uniform, which is a "melee fall→jump-up" GET-UP animation (Obito lies prone → rises → leaps) — wrong for a descent (showed him prone/rising while falling).
     guard:     { frames: 1, width: 49, height: 80, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_block_uniform.png" },
     // Stage 2 normals (5 slots). Engine action keys light/heavy/up/air/down_air (MOVE_TO_ACTION identity).
     light:     { frames: 6, width: 90, height: 84, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./obito_light_uniform.png" },      // hit_1 rod spin

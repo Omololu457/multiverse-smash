@@ -521,6 +521,7 @@
     "test:vilgax-stage4": "node harness/vilgax_stage4.mjs",
     "test:miles-stage1": "node harness/miles_stage1.mjs",
     "test:menu-music": "node harness/menu_music.test.mjs",
+    "test:low-hp-music": "node harness/low_hp_music_intensity.mjs",
     "test:music-personality": "node harness/music_personality.test.mjs",
     "test:custom-playlist": "node harness/custom_playlist.test.mjs",
     "test:challenges": "node harness/challenges.test.mjs",

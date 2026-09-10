@@ -43,6 +43,7 @@ Beta gameplay guide — generated from the live game data. Every move & combo ma
 - **Blocking & Flawless Block.** Hold ; to guard. Guarding the instant an attack lands (a fresh, well-timed block) rewards a tighter punish window — reactive defense is rewarded, mashing guard is not.
 - **Transformations.** Several fighters (Goku, Gohan, Piccolo, Vegeta and more) transform by holding Charge (P) with enough meter — boosting damage/speed/defense, draining over time. It's a resource decision, not free.
 - **Grabs.** Grab (O) beats a turtling blocker and can't be blocked — mix it into your pressure so defenders can't just hold guard.
+- **Dynamic music intensity.** When either fighter drops below 25% HP — or on the final (decider) round — the stage music smoothly crossfades to a higher-energy, franchise-matched track (e.g. a Jujutsu Kaisen stage swaps to the Sukuna theme). It fades back to the calm track if you heal out of danger, and every new round starts fresh. Purely cosmetic — it never changes damage, timing or hitboxes.
 
 ---
 
@@ -1849,6 +1850,7 @@ A patient analyst who reads the opponent's patterns over the match, ramping his 
 - **Control-reference mismatch:** The in-game MOVE LIST control hints are out of date — the REAL defaults are the ones in this doc (Special = L, Ultimate = U). Confirm the in-game text and flag it.
 - **Undocumented specials:** Some fighters don't list named specials in the in-game move list yet — try Special + each direction in Training and tell us what you find (and whether it's obvious).
 - **Audio gaps:** Missing voice lines / SFX, or the wrong clip. Several characters are known-silent — note which stood out.
+- **Low-HP / final-round music:** Did the music noticeably shift to a more intense track when someone hit ~25% HP or on the last round — and crossfade smoothly (no hard cut / stutter / double-playing)? Note the stage if the intense pick felt random or didn't fit the franchise, or if it failed to fade back after a heal / new round.
 - **Crashes / freezes / softlocks:** Anything that stops the match or the menus. Write down exactly what you were doing right before.
 - **UI / theme glitches:** Any menu that looks broken, text overflowing off-screen, or a theme that renders wrong (try a few themes + a couple of character UIs).
 

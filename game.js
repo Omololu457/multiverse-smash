@@ -2609,11 +2609,6 @@ function resetRound() {
   }
   _applyMatchModifiers()   // Stage 24A: apply the active match modifiers to the fresh fighters
 
-  // Sprite-scale verification (temporary — safe to delete). Confirms spriteScale
-  // and animationData survive createFighter; for Gojo expect spriteScale 2, true.
-  for (const f of [p1, p2]) {
-    console.log("[sprite]", f.rosterKey, "spriteScale=", f.spriteScale, "hasAnimData=", !!f.animationData)
-  }
 
   countdown = ROUND_START_COUNTDOWN
   clearAbilityState()      // activeProjectiles (shared), activeSummons, pending Naruto clones

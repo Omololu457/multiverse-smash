@@ -454,6 +454,7 @@ class MusicPlayer {
 // AUDIO DUCKING — while a file-based voice/significant cue (playSfxFile) is playing,
 // music drops to this fraction of its normal level, then ramps back when the cue ends.
 const MUSIC_DUCK_FACTOR = 0.35   // 35% (within the requested 30-40% range)
+const INTENSITY_CROSSFADE_MS = 1200   // low-HP / final-round music crossfade window (smooth, no hard cut)
 
 // ─────────────────────────────────────────────────────────────────
 // SOUND MANAGER
@@ -496,6 +497,20 @@ class SoundManager {
     this._duckCount      = 0
     this._musicDuckScale = 1
     this._musicFileFade  = null
+    // ── DYNAMIC MUSIC INTENSITY (low-HP / final-round) ───────────────────────────
+    // A second music layer that crossfades in over the base stage track when a match
+    // gets tense, then back out. Both play at once during the blend (the base keeps
+    // looping at volume 0 while intense, so reverting is seamless). _baseMix/_intenseMix
+    // are the crossfade mix (each layer's volume = effective music level × its mix);
+    // _mixFade drives the blend; _intenseFileFade is the intense element's duck/volume
+    // follower (mirrors _musicFileFade for the base element). Honors mute/duck/volume.
+    this._intenseFile     = null   // HTMLAudioElement for the intense layer
+    this._intenseFileSrc  = null
+    this._intenseFileFade = null
+    this._musicIntense    = false
+    this._baseMix         = 1
+    this._intenseMix      = 0
+    this._mixFade         = null
     // ── ACTIVE FILE-SFX REGISTRY (voice lines + move-tied one-shots) ──────────────
     // Every playSfxFile() Audio is tracked here so it can be STOPPED (a) when a NEWER cue for the same
     // owner starts — the single-voice-channel rule, so one character never overlaps itself — or (b) when
@@ -736,10 +751,21 @@ class SoundManager {
       }
       // Only (re)load when the track actually changes, so a rematch on the same
       // stage doesn't restart the song.
-      if (this._musicFileSrc !== src) { a.src = src; this._musicFileSrc = src }
+      if (this._musicFileSrc !== src) {
+        a.src = src; this._musicFileSrc = src
+        // A genuinely NEW base track → drop any leftover intensity blend so the new
+        // song starts calm (a new stage/match never inherits a stale intense layer).
+        if (this._musicIntense || this._intenseFile) {
+          if (this._mixFade) { clearInterval(this._mixFade); this._mixFade = null }
+          this._musicIntense = false
+          this._teardownIntenseLayer()
+        }
+      }
       a.loop   = !!loop
       a.muted  = this._musicMuted
-      a.volume = this._musicVol * (this._musicDuckScale || 1)   // start ducked if a cue is mid-play
+      // Respect the crossfade mix (_baseMix is 1 unless an intensity blend is live), so
+      // replaying the SAME base track mid-blend doesn't blast it back to full volume.
+      a.volume = this._musicVol * (this._musicDuckScale || 1) * (this._baseMix ?? 1)   // start ducked if a cue is mid-play
       const p = a.play()
       if (p && p.catch) p.catch(() => {})   // gesture-gating handled by _gestured; 404s handled by onerror
       return true
@@ -751,6 +777,10 @@ class SoundManager {
       try { this._musicFile.pause(); this._musicFile.currentTime = 0 } catch (_) {}
     }
     this._musicFileSrc = null
+    // Fully drop any active intensity blend so the next track starts calm.
+    if (this._mixFade) { clearInterval(this._mixFade); this._mixFade = null }
+    this._musicIntense = false
+    this._teardownIntenseLayer()
   }
 
   // Preferred entry point: play a stage's assigned audio file, else fall back
@@ -925,6 +955,7 @@ class SoundManager {
   setMusicMuted(m) {
     this._musicMuted = !!m
     if (this._musicFile) this._musicFile.muted = this._musicMuted
+    if (this._intenseFile) this._intenseFile.muted = this._musicMuted
     this._applyMusicLevel()
   }
   isMusicMuted()   { return this._musicMuted }
@@ -969,27 +1000,119 @@ class SoundManager {
   // setVolume routes through, so a user volume change mid-duck keeps the duck intact.
   _applyMusicLevel() {
     const level = this._musicMuted ? 0 : this._musicVol * (this._musicDuckScale || 1)
-    this._musicPlayer?.setVolume(level)      // procedural: setTargetAtTime ramp (smooth) inside setVolume
-    this._fadeMusicFileVolume(level)         // real-file element: short manual fade (no setTargetAtTime on HTMLAudio)
+    this._musicPlayer?.setVolume(level)                                    // procedural: setTargetAtTime ramp (smooth) inside setVolume
+    // Real-file layers get level × their crossfade mix, so a duck/volume/mute change
+    // keeps the base↔intense blend intact (base at 0 while intense, and vice-versa).
+    this._fadeMusicFileVolume(level * this._baseMix, this._musicFile, "_musicFileFade")
+    if (this._intenseFile) this._fadeMusicFileVolume(level * this._intenseMix, this._intenseFile, "_intenseFileFade")
   }
 
-  // Smoothly ramp the HTMLAudioElement music file's volume toward `target` over a
-  // short window (element .volume has no AudioParam, so we step it — a fade, not a jump).
-  _fadeMusicFileVolume(target) {
-    const el = this._musicFile
+  // Smoothly ramp an HTMLAudioElement music file's volume toward `target` over a short
+  // window (element .volume has no AudioParam, so we step it — a fade, not a jump).
+  // Defaults to the base music element; the intensity layer passes its own element +
+  // interval-handle key so the two fades never clobber each other.
+  _fadeMusicFileVolume(target, el = this._musicFile, handleKey = "_musicFileFade") {
     if (!el) return
     target = Math.max(0, Math.min(1, target))
-    if (this._musicFileFade) { clearInterval(this._musicFileFade); this._musicFileFade = null }
+    if (this[handleKey]) { clearInterval(this[handleKey]); this[handleKey] = null }
     const start = el.volume
     const delta = target - start
     if (Math.abs(delta) < 0.01) { el.volume = target; return }
     const steps = 8, total = 160   // ~160ms fade, matching the ~0.05s music gain ramps
     let i = 0
-    this._musicFileFade = setInterval(() => {
+    this[handleKey] = setInterval(() => {
       i++
       el.volume = Math.max(0, Math.min(1, start + delta * (i / steps)))
-      if (i >= steps) { clearInterval(this._musicFileFade); this._musicFileFade = null; el.volume = target }
+      if (i >= steps) { clearInterval(this[handleKey]); this[handleKey] = null; el.volume = target }
     }, total / steps)
+  }
+
+  // ── DYNAMIC MUSIC INTENSITY (low-HP / final-round crossfade) ─────────────────
+  // Crossfade the base stage track to/from a higher-energy "intense" track with NO
+  // hard cut: both layers play at once during the blend and the base keeps looping
+  // underneath (at volume 0 while intense) so reverting is seamless. Honors the same
+  // mute / duck / volume as normal music (everything routes through the shared mix).
+  // No-op when: not ready; already in the requested state on the same track; there's
+  // no base FILE track playing (procedural stage themes are left alone); or the intense
+  // pick matches the base track (nothing to blend to).
+  setMusicIntensity(on, intenseFile = null, opts = {}) {
+    if (!this._ready) return
+    on = !!on
+    const ms = opts.crossfadeMs ?? INTENSITY_CROSSFADE_MS
+    if (on) {
+      if (!this._musicFileSrc || !intenseFile) return           // need a real base file to blend under
+      const src = this._resolveSrc(intenseFile)
+      if (!src || src === this._musicFileSrc) return             // same as base → nothing to blend to
+      if (this._musicIntense && this._intenseFileSrc === src) return   // already intense on this track
+      this._musicIntense = true
+      this._startIntenseLayer(src)
+      this._crossfadeIntensity(1, ms)
+    } else {
+      if (!this._musicIntense && this._intenseMix === 0) return
+      this._musicIntense = false
+      this._crossfadeIntensity(0, ms)
+    }
+  }
+  isMusicIntense() { return !!this._musicIntense }
+
+  // Start (or re-arm) the intense layer element at volume 0, looping, ready to fade in.
+  _startIntenseLayer(src) {
+    try {
+      if (!this._intenseFile) { this._intenseFile = new Audio(); this._intenseFile.preload = "auto"; this._intenseFile.loop = true }
+      const a = this._intenseFile
+      a.onerror = () => {
+        console.warn(`[sound] intense music failed to load: ${src} — staying on the base track`)
+        this._musicIntense = false
+        this._teardownIntenseLayer()
+        this._applyMusicLevel()   // restore base to full
+      }
+      if (this._intenseFileSrc !== src) { a.src = src; this._intenseFileSrc = src; try { a.currentTime = 0 } catch (_) {} }
+      a.loop   = true
+      a.muted  = this._musicMuted
+      a.volume = 0
+      const p = a.play()
+      if (p && p.catch) p.catch(() => {})
+    } catch (_) {}
+  }
+
+  // Ease _baseMix/_intenseMix toward the target over `ms` on a dedicated interval that
+  // OWNS the mix progression (never cleared by a duck), directly writing both element
+  // volumes each step. Reading _musicDuckScale/_musicMuted live means a duck mid-blend
+  // is honored. Frees the intense element once fully reverted.
+  _crossfadeIntensity(targetIntense, ms) {
+    if (this._mixFade) { clearInterval(this._mixFade); this._mixFade = null }
+    const bStart = this._baseMix, iStart = this._intenseMix
+    const bEnd = 1 - targetIntense, iEnd = targetIntense
+    const steps = Math.max(8, Math.round(ms / 50))
+    const apply = () => {
+      const level = this._musicMuted ? 0 : this._musicVol * (this._musicDuckScale || 1)
+      if (this._musicFile)   this._musicFile.volume   = Math.max(0, Math.min(1, level * this._baseMix))
+      if (this._intenseFile) this._intenseFile.volume = Math.max(0, Math.min(1, level * this._intenseMix))
+    }
+    let i = 0
+    apply()
+    this._mixFade = setInterval(() => {
+      i++
+      const t = i / steps
+      this._baseMix    = bStart + (bEnd - bStart) * t
+      this._intenseMix = iStart + (iEnd - iStart) * t
+      apply()
+      if (i >= steps) {
+        clearInterval(this._mixFade); this._mixFade = null
+        this._baseMix = bEnd; this._intenseMix = iEnd
+        apply()
+        if (iEnd === 0) this._teardownIntenseLayer()   // fully reverted → free the intense element
+      }
+    }, ms / steps)
+  }
+
+  // Stop + release the intense layer and snap the mix back to calm (base full, intense 0).
+  _teardownIntenseLayer() {
+    if (this._intenseFileFade) { clearInterval(this._intenseFileFade); this._intenseFileFade = null }
+    if (this._intenseFile) { try { this._intenseFile.pause(); this._intenseFile.currentTime = 0 } catch (_) {} }
+    this._intenseFileSrc = null
+    this._baseMix = 1
+    this._intenseMix = 0
   }
 
   // Ref-counted duck. First active cue → duck; last one to finish → restore. Called by

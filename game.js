@@ -965,6 +965,34 @@ const SERIES_MUSIC = {
   other:       null
 }
 
+// Dynamic "final round / low HP" INTENSITY tracks — the higher-energy counterpart that
+// gets crossfaded IN over the stage's calm track when a match gets tense (see
+// updateMusicIntensity). Franchise-FIRST so the swap feels paired, not random: a series
+// with a harder in-universe theme on disk uses it; everything else falls back to a
+// library-wide hype pick. All filenames are verified on disk (see updates.TXT audio
+// audit). resolveIntenseTrack() guarantees the intense pick differs from the stage's
+// calm track, so there is always an audible change. No NEW audio is sourced — every
+// track already ships with the game.
+const SERIES_INTENSE_MUSIC = {
+  jjk:    "Sukuna_Theme.mp3",            // JJK boss/climax theme
+  naruto: "Naruto_fighting_sprit.mp3"    // Naruto battle theme ("fighting spirit")
+}
+// Library-wide fallbacks (high-energy / aggressive), tried in order; first that differs
+// from the current calm track wins. Used for every series without a franchise-intense track.
+const DEFAULT_INTENSE_POOL = [
+  "Nardo Wick - Who Want Smoke__ ft. Lil Durk, 21 Savage & G Herbo (Official Music Video).mp3",
+  "DaBaby x Stunna 4 Vegas - No Dribble.mp3",
+  "Future - Mask Off (Official Music Video).mp3"
+]
+// Resolve the intense counterpart for a stage: franchise track first, then the library
+// pool, always skipping whatever calm track is already playing so the switch is audible.
+function resolveIntenseTrack(stage) {
+  const base = stage?.music || null
+  const ordered = [SERIES_INTENSE_MUSIC[stage?.series], ...DEFAULT_INTENSE_POOL].filter(Boolean)
+  for (const t of ordered) if (t && t !== base) return t
+  return ordered[0] || null
+}
+
 // Pre-match name-call clips, keyed by rosterKey (same shape as SERIES_MUSIC). Any
 // character NOT listed here simply gets NO announcement beat — the pre-countdown
 // sequence skips that fighter cleanly (see beginNamecallSequence). Case-sensitive.
@@ -2551,6 +2579,7 @@ function resetRound() {
   damageNumbers.length = 0
   sound.stopAllSfx?.({ includePersistent: true })   // clear any lingering cue as a fresh round begins
   _roundEndAudioStopped = false                      // re-arm the round-end stop for the new round
+  resetMusicIntensity()                              // every round starts on the calm stage track (reverts any low-HP/final-round intensity)
   brutalityState.active = false; brutalityState.parts.length = 0   // clear any finisher state on a fresh round
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0   // re-arm the KO camera beat for the new round
@@ -11335,8 +11364,43 @@ function _updateGodspeedTimeSlow() {
 // to freeze that fighter's animation advance on the same frames (via fighter._timeSlowFlag).
 function _timeSlowFrozen(f) { return !!(f && f._timeSlowFlag) }
 
+// ── DYNAMIC MUSIC INTENSITY (safe audio polish — no sim/timing/balance effect) ─
+// Crossfade the stage's calm track to a higher-energy one when EITHER fighter drops
+// below 25% HP OR it's the final (decider) round; revert when HP recovers (e.g. a heal)
+// and it isn't the final round. Every round starts calm (resetRound → resetMusicIntensity).
+// Hysteresis (engage <25%, release >32%) stops the music flip-flopping when HP hovers on
+// the threshold from chip damage / regen. Purely cosmetic: reads HP, drives sound only.
+const LOW_HP_INTENSITY_ENGAGE  = 0.25
+const LOW_HP_INTENSITY_RELEASE = 0.32
+let _musicIntensityOn = false
+function _matchIsFinalRound() { return roundNumber >= MAX_ROUNDS }   // first-to-2 / MAX_ROUNDS=3 → round 3 is the decider
+function _anyFighterLowHP(below) {
+  for (const f of [p1, p2]) {
+    if (!f || !f.maxHealth || !(f.health > 0)) continue
+    if (f.health / f.maxHealth < below) return true
+  }
+  return false
+}
+function updateMusicIntensity() {
+  if (gameState !== GAME_STATES.BATTLE) return
+  const lowHP = _anyFighterLowHP(_musicIntensityOn ? LOW_HP_INTENSITY_RELEASE : LOW_HP_INTENSITY_ENGAGE)
+  const want  = _matchIsFinalRound() || lowHP
+  if (want === _musicIntensityOn) return
+  _musicIntensityOn = want
+  try {
+    if (want) sound.setMusicIntensity?.(true, resolveIntenseTrack(getStageTheme()))
+    else      sound.setMusicIntensity?.(false)
+  } catch (_) {}
+}
+// Snap music back to calm and clear the latch (called at each round reset / match teardown).
+function resetMusicIntensity() {
+  _musicIntensityOn = false
+  try { sound.setMusicIntensity?.(false) } catch (_) {}
+}
+
 function updateBattle() {
   if (brutalityState.active) { updateBrutality(); return }   // finisher plays out — freeze combat until it ends
+  updateMusicIntensity()   // dynamic low-HP / final-round music (audio only; never gates combat)
   if (slowdownTimer > 0) {
     slowdownTimer--
     if (slowdownTarget) {
@@ -16930,6 +16994,7 @@ gameLoop()
                         victoryActive: !!victoryState.active, winnerSide: victoryState.winnerSide || null,
                         winnerName: victoryState.winnerName || null, override: _matchOverride ? { ..._matchOverride } : null }),
     setRoundWins: (p1w = 0, p2w = 0) => { roundWins.p1 = p1w | 0; roundWins.p2 = p2w | 0; return { p1: roundWins.p1, p2: roundWins.p2 } },
+    setRoundNumber: (n = 1) => { roundNumber = Math.max(1, n | 0); return { roundNumber, maxRounds: MAX_ROUNDS, finalRound: _matchIsFinalRound() } },   // test-only: drive the final-round music trigger
     // Gon Adult Form state (buff/lockout/drain + armed sudden-death) for either fighter.
     gonAdultForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? {
       active: !!f._adultFormActive, currentForm: f.currentForm || null,
@@ -16946,7 +17011,14 @@ gameLoop()
     showStageSelect: (name) => { const i = stages.findIndex(s => s.name === name); if (i < 0) return { error: "no such stage" }; hoverStageIndex = i; gameState = GAME_STATES.SELECT_STAGE; return { name, index: i, total: stages.length } },   // jump to the stage-select screen hovering a given stage (screenshot verification)
     homeStageForKey: (k) => { const s = homeStageFor(k); return s ? s.name : null },   // verify universe→home-stage routing (_UNIVERSE_SERIES)
     playStageMusicNow: () => { const st = matchConfig.selectedStage || getStageTheme(); try { sound.playStageTrack?.(st); } catch (e) { return { error: String(e) } } return { stage: st?.name, music: st?.music || null } },
-    musicState: () => ({ fileSrc: sound?._musicFileSrc || null, fallbackTheme: sound?._fileFallbackTheme || null, gestured: !!sound?._gestured, muted: !!sound?._musicMuted, paused: sound?._musicFile ? !!sound._musicFile.paused : null, currentTime: sound?._musicFile ? sound._musicFile.currentTime : null }),
+    musicState: () => ({ fileSrc: sound?._musicFileSrc || null, fallbackTheme: sound?._fileFallbackTheme || null, gestured: !!sound?._gestured, muted: !!sound?._musicMuted, paused: sound?._musicFile ? !!sound._musicFile.paused : null, currentTime: sound?._musicFile ? sound._musicFile.currentTime : null,
+      // Dynamic-intensity readout (test-only): the intense-layer src, whether it's engaged,
+      // the crossfade mix, and both layers' live element volumes so a test can watch the blend.
+      intense: !!sound?._musicIntense, intenseSrc: sound?._intenseFileSrc || null, latch: _musicIntensityOn,
+      baseMix: sound?._baseMix ?? null, intenseMix: sound?._intenseMix ?? null,
+      baseVol: sound?._musicFile ? sound._musicFile.volume : null, intenseVol: sound?._intenseFile ? sound._intenseFile.volume : null,
+      intensePaused: sound?._intenseFile ? !!sound._intenseFile.paused : null,
+      resolvedIntense: resolveIntenseTrack(matchConfig.selectedStage || getStageTheme()) }),
     // ── MENU PLAYLIST reorder investigation hooks ──
     menuMusicStart: () => { sound?.playMenuMusic?.(); return true },
     showSettings: () => { gameState = GAME_STATES.SETTINGS; return true },   // jump to the Settings screen (playlist reorder panel) for screenshots

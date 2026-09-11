@@ -18,6 +18,7 @@ import { activateChrolloSkillHunterCinematic, isChrolloSkillHunterCinematicActiv
 import { clearInputBuffer } from "./input.js"   // clear buffered presses when Edo Tensei swaps bodies (input.js imports nothing → no cycle)
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
 import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCinematic.js"   // Goku Black SSJ Rose transform cinematic (no cycle)
+import { activateFormActivationCinematic, isFormActivationCinematicActive } from "./formActivationCinematic.js"   // Piccolo/Bardock transform ACTIVATION beat (short freeze; no cycle)
 import { activateGokuBlackSwordCinematic, isGokuBlackSwordCinematicActive } from "./gokuBlackSwordCinematic.js"   // Goku Black Sword Slash freeze cinematic (no cycle)
 import { activateVegetaFinalFlashCinematic, isVegetaFinalFlashCinematicActive } from "./vegetaFinalFlashCinematic.js"   // Vegeta Overcharged Final Flash ultimate cinematic (no cycle)
 import { activateBeerusKiBallCinematic, isBeerusKiBallCinematicActive } from "./beerusKiBallCinematic.js"   // Beerus Ki Ball ultimate cinematic (no cycle)
@@ -6684,7 +6685,23 @@ function piccoloMorphFx(fighter, context) {
   try { sound.playDragonBallTransformSfx() } catch (_) {}
   try { focusCameraOnAction(context, fighter, null, 1.02, 12); shakeCamera(context, 8, 12) } catch (_) {}
 }
-// base → POTENTIAL UNLEASHED (Tier 1). opts.fast = a silent chain intermediate (skips gates + morph).
+// ★ TRANSFORM-ACTIVATION CINEMATIC configs (formActivationCinematic.js) — a short (~1s) frozen buildup
+// beat. VISUAL ONLY: the tint/stat form change is carried UNCHANGED by onResolve and lands at the beat's
+// RESOLVE (so the palette-tint POPS on as the beat ends). No balance/threshold change.
+const PICCOLO_POTENTIAL_CINE = { key: "piccoloPotential", holdPose: "taunt", auraInner: "rgba(214,243,106,A)", auraMid: "rgba(150,196,60,A)",  flash: "#eaffa0", backdrop: "#101707" }
+const PICCOLO_ORANGE_CINE    = { key: "piccoloOrange",    holdPose: "taunt", auraInner: "rgba(255,178,77,A)",  auraMid: "rgba(255,122,26,A)",  flash: "#ffd9a0", backdrop: "#1d1004" }
+// The pure form-apply bodies (unchanged numbers) — invoked instantly (test/fast path) OR by the
+// cinematic's onResolve at its RESOLVE beat (the real charge-release path).
+function applyPiccoloPotential(fighter) {
+  fighter._piccoloPotentialActive = true
+  fighter.currentForm       = "piccoloPotential"     // NON-matching label → generic drain/revert stays off
+  fighter.damageMultiplier  = fighter.attackMultiplier = PICCOLO_POTENTIAL_MULT.dmg
+  fighter.speedMultiplier   = PICCOLO_POTENTIAL_MULT.spd
+  fighter.defenseMultiplier = PICCOLO_POTENTIAL_MULT.def
+  fighter.currentFormData   = fighter.transformations?.potential || fighter.currentFormData
+}
+// base → POTENTIAL UNLEASHED (Tier 1). opts.fast = a silent chain intermediate (skips gates + morph +
+// cinematic). opts.instant = apply immediately with the old mini-morph FX, no freeze cinematic (test hooks).
 export function enterPiccoloPotential(fighter, context = {}, opts = {}) {
   if (!isPiccoloChar(fighter) || fighter._piccoloPotentialActive || fighter._piccoloOrangeActive) return false
   const fast = !!opts.fast
@@ -6692,13 +6709,16 @@ export function enterPiccoloPotential(fighter, context = {}, opts = {}) {
     if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
     if ((fighter.energy || 0) < PICCOLO_POTENTIAL_THRESHOLD) return false   // threshold gate — NO up-front spend
   }
-  fighter._piccoloPotentialActive = true
-  fighter.currentForm       = "piccoloPotential"     // NON-matching label → generic drain/revert stays off
-  fighter.damageMultiplier  = fighter.attackMultiplier = PICCOLO_POTENTIAL_MULT.dmg
-  fighter.speedMultiplier   = PICCOLO_POTENTIAL_MULT.spd
-  fighter.defenseMultiplier = PICCOLO_POTENTIAL_MULT.def
-  fighter.currentFormData   = fighter.transformations?.potential || fighter.currentFormData
-  if (!fast) piccoloMorphFx(fighter, context)
+  if (fast) { applyPiccoloPotential(fighter); return true }                 // silent chain intermediate
+  if (opts.instant) { applyPiccoloPotential(fighter); piccoloMorphFx(fighter, context); return true }   // test-only instant path
+  // REAL path: play the short freeze-cinematic; the form-apply (tint POP) lands at the RESOLVE beat.
+  const opp = getTargetResolver(context)(fighter)
+  const started = activateFormActivationCinematic(fighter, opp, () => {
+    applyPiccoloPotential(fighter)
+    fighter.teleportFlash = 14
+    fighter.attackCooldown = 12                     // brief settle as gameplay resumes
+  }, PICCOLO_POTENTIAL_CINE)
+  if (!started) { applyPiccoloPotential(fighter); piccoloMorphFx(fighter, context) }   // singleton busy → fall back to the old instant morph
   return true
 }
 export function revertPiccoloPotential(fighter) {
@@ -6711,11 +6731,8 @@ export function revertPiccoloPotential(fighter) {
   fighter.currentFormData   = fighter.transformations?.base || null
   fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 8)
 }
-// POTENTIAL → ORANGE (Tier 2; chains off Tier 1, higher threshold; Orange SUPERSEDES Potential so only Orange's drain runs).
-export function enterPiccoloOrange(fighter, context = {}) {
-  if (!isPiccoloChar(fighter) || fighter._piccoloOrangeActive || !fighter._piccoloPotentialActive) return false
-  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
-  if ((fighter.energy || 0) < PICCOLO_ORANGE_THRESHOLD) return false
+// The pure Orange form-apply (unchanged numbers) — instant (test) OR via the cinematic's onResolve.
+function applyPiccoloOrange(fighter) {
   fighter._piccoloPotentialActive = false
   fighter._piccoloOrangeActive    = true
   fighter.currentForm       = "piccoloOrange"        // NON-matching label → generic drain/revert stays off
@@ -6723,7 +6740,21 @@ export function enterPiccoloOrange(fighter, context = {}) {
   fighter.speedMultiplier   = PICCOLO_ORANGE_MULT.spd
   fighter.defenseMultiplier = PICCOLO_ORANGE_MULT.def
   fighter.currentFormData   = fighter.transformations?.orange || fighter.currentFormData
-  piccoloMorphFx(fighter, context)
+}
+// POTENTIAL → ORANGE (Tier 2; chains off Tier 1, higher threshold; Orange SUPERSEDES Potential so only Orange's drain runs).
+// opts.instant = apply immediately (test hooks); real path plays the short freeze-cinematic (tint POPS at RESOLVE).
+export function enterPiccoloOrange(fighter, context = {}, opts = {}) {
+  if (!isPiccoloChar(fighter) || fighter._piccoloOrangeActive || !fighter._piccoloPotentialActive) return false
+  if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if ((fighter.energy || 0) < PICCOLO_ORANGE_THRESHOLD) return false
+  if (opts.instant) { applyPiccoloOrange(fighter); piccoloMorphFx(fighter, context); return true }   // test-only instant path
+  const opp = getTargetResolver(context)(fighter)
+  const started = activateFormActivationCinematic(fighter, opp, () => {
+    applyPiccoloOrange(fighter)
+    fighter.teleportFlash = 14
+    fighter.attackCooldown = 12
+  }, PICCOLO_ORANGE_CINE)
+  if (!started) { applyPiccoloOrange(fighter); piccoloMorphFx(fighter, context) }   // singleton busy → old instant morph
   return true
 }
 export function revertPiccoloOrange(fighter) {

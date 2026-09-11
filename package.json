@@ -816,6 +816,7 @@
     "test:ghostface-exe-swapjump": "node harness/ghostface_exe_swapjump.test.mjs",
     "test:dbz-ultimates": "node harness/dbz_ultimates_smoke.test.mjs",
     "test:goku-form-tint": "node harness/goku_form_attack_tint.test.mjs",
+    "test:form-transform-cine": "node harness/form_transform_cinematic.test.mjs",
     "test:naoya-redesign": "node harness/naoya_redesign.test.mjs"
   },
   "dependencies": {

@@ -353,6 +353,10 @@ import {
   getSSJRoseCinematicStatus
 } from "./ssjRoseCinematic.js"
 import {
+  updateFormActivationCinematic, isFormActivationCinematicActive, drawFormActivationCinematic,
+  clearFormActivationCinematic, getFormActivationCinematicStatus, activateFormActivationCinematic
+} from "./formActivationCinematic.js"   // Piccolo Potential/Orange + Bardock SSJ transform ACTIVATION beat (short freeze)
+import {
   updateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive, drawKilluaGodspeedCinematic,
   clearKilluaGodspeedCinematic, getKilluaGodspeedCinematicStatus
 } from "./killuaGodspeedCinematic.js"
@@ -2734,6 +2738,7 @@ function resetRound() {
   clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
+  clearFormActivationCinematic()
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
   clearSamuraiFlameSmasherCinematic()
@@ -3641,6 +3646,7 @@ function resetToStart() {
   clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
+  clearFormActivationCinematic()
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
   clearSamuraiFlameSmasherCinematic()
@@ -4723,6 +4729,7 @@ function _doRematch() {
   clearKuramaUltimate(); clearMinatoKurama(); clearObitoJuubi(); clearTobiNineTails()
   clearSasukeCinematic()
   clearSSJRoseCinematic()
+  clearFormActivationCinematic()
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
   clearSamuraiFlameSmasherCinematic()
@@ -5724,6 +5731,19 @@ function updateTauntState(fighter, downHeld) {
     // sprite.js reads _tauntVariant to render it. Chars without a tauntAlt strip always play "taunt".
     fighter._tauntVariant = (fighter.animationData?.tauntAlt && Math.random() < 0.5) ? "tauntAlt" : "taunt"
     fighter._tauntTimer   = tauntAnimFrames(fighter)
+    // BARDOCK SUPER SAIYAN CINEMATIC — Bardock's `taunt` slot IS his SSJ gold-hair flash art
+    // (bardock_ssjflash_uniform.png). Wrap the commit in the SHORT (~1s) freeze-cinematic so the flash
+    // reads as a real transformation ACTIVATION (aura buildup + camera punch-in) instead of a bare
+    // 5-frame pop. VISUAL ONLY: the taunt-heal mechanic is untouched — `_tauntPlaying`/`_tauntTimer` stay
+    // set, so the heal still resolves on the normal timer once the beat hands back to live gameplay (the
+    // sprite keeps rendering "taunt" via _tauntPlaying). onResolve is a no-op (Bardock has no form/stat
+    // change — his SSJ is cosmetic). Falls back to the plain flash if another cinematic is mid-flight.
+    if ((fighter.rosterKey || "").toLowerCase() === "bardock" && !isFormActivationCinematicActive()) {
+      activateFormActivationCinematic(fighter, getOpponent(fighter), null, {
+        key: "bardockSSJ", holdPose: "taunt",
+        auraInner: "rgba(255,228,94,A)", auraMid: "rgba(255,176,32,A)", flash: "#fff4c0", backdrop: "#1a1405"
+      })
+    }
     // GOKU BLACK taunt voice — "Pathetic. That won't work on me." Hooked on the transition INTO the
     // committed taunt (fires once as the flourish begins), reusing the existing universal taunt mechanic;
     // no new taunt system built. Gated to goku_black so other taunting chars (Rick) stay silent here.
@@ -11830,6 +11850,16 @@ function updateBattle() {
     return                                     // skip movement/combat/physics this frame
   }
 
+  // FORM-ACTIVATION TRANSFORM CINEMATIC (Piccolo Potential/Orange · Bardock SSJ flash): SAME freeze
+  // contract — combat/physics/input are paused for the short (~1s) activation beat (camera punches in
+  // and isolates the caster); the form change (tint/stat, or none for Bardock's cosmetic flash) is
+  // applied by the cinematic's onResolve at its RESOLVE beat, then combat resumes.
+  if (isFormActivationCinematicActive()) {
+    updateFormActivationCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return                                     // skip movement/combat/physics this frame
+  }
+
   // GOKU BLACK SWORD SLASH CINEMATIC: SAME freeze contract — combat/physics/input are paused for the
   // whole sequence (so NEITHER fighter can act — the old vulnerable/interruptible windup is gone). The
   // camera frames BOTH fighters (Kurama TBB framing); the guaranteed damage/paralysis lands at the
@@ -14035,6 +14065,7 @@ function drawBattle() {
   drawTobiNineTails(ctx, canvas)     // Tobi's own NINE-Tails Bijūdama overlay (same layer; independent module)
   drawSasukeCinematic(ctx, canvas)   // fullscreen Sharingan-awakening overlay (Susanoo Lv2)
   drawSSJRoseCinematic(ctx, canvas)  // fullscreen SSJ Rose transform overlay (pink flash/aura)
+  drawFormActivationCinematic(ctx, canvas)  // fullscreen form-activation overlay (Piccolo/Bardock transform buildup)
   drawGokuBlackSwordCinematic(ctx, canvas)  // fullscreen Sword Slash overlay (magenta flash + slash streak)
   drawRedRangerPowerSwordCinematic(ctx, canvas)  // fullscreen Power Sword overlay (red vignette + strike flash + slash streak)
   drawSamuraiFlameSmasherCinematic(ctx, canvas)  // fullscreen Samurai ultimate overlay (fire/light/leaf vignette + strike flash + expanding rings, per-rosterKey palette)
@@ -16761,7 +16792,7 @@ gameLoop()
       // the vessel REVERT (and the outer Edo drain resume) without waiting out the full ~20s form timer.
       expireVesselTimerForm: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; if ((f._itachiSusanooTimer || 0) > 1) f._itachiSusanooTimer = 1; if ((f._susanooTimer || 0) > 1) f._susanooTimer = 1; return true },
       // Is ANY inner-ultimate cinematic freezing the loop right now? (proves the Edo window timer pauses.)
-      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
+      innerCineActive: () => isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive(),
       skipCine: () => { clearEdoTenseiCinematic(); _edoCineMode = null; for (const f of [p1, p2]) if (f) f._edoIntroPlayed = true; return getEdoTenseiCinematicStatus() },   // force-complete the cinematic (fires its resolve = swap/revert) + suppress the follow-on vessel-intro beat (fast-forward past all presentation) for tests
       // Start a match PRESERVING the current UI selections (unlike boot(), which resets) — so a test
       // can prove the vessel picked through the real screens survives into the live fighter.
@@ -17457,6 +17488,7 @@ gameLoop()
     setMatchEntryDuration: (n) => setMatchEntryTransitionDuration(n),   // capture-only: stretch the sting for a legible filmstrip (ships 30f)
     sasukeCine: () => getSasukeCinematicStatus(),
     ssjRoseCine: () => getSSJRoseCinematicStatus(),
+    formCine: () => getFormActivationCinematicStatus(),   // Piccolo/Bardock transform ACTIVATION beat status (active/phase/key)
     swordCine: () => getGokuBlackSwordCinematicStatus(),
     powerSwordCine: () => getRedRangerPowerSwordCinematicStatus(),   // Red Ranger MMPR Power Sword ultimate cinematic status (Stage 4)
     samuraiUltCine: () => getSamuraiFlameSmasherCinematicStatus(),   // Samurai Rangers (Red/Gold/Green) Fire Smasher/Barracuda/Forest ultimate cinematic status (active/mega/phase)
@@ -17761,8 +17793,8 @@ gameLoop()
     p1BlackFriezaEnter:  () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterBlackFrieza(p1, getAbilityContext()) } return false },   // Golden→Black directly (test-only; requires Golden active)
     p1FriezaRevert:      () => { if (p1) { if (p1._blackFriezaActive) revertBlackFrieza(p1); else if (p1._goldenFriezaActive) revertGoldenFrieza(p1); return true } return false },   // charge-tap revert to base (test-only)
     p1FriezaSetEnergy:   (v = 0) => { if (p1) { p1.energy = v; return p1.energy } return null },   // force Ki level (test-only — drive the drain auto-revert)
-    p1PiccoloPotentialEnter: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterPiccoloPotential(p1, getAbilityContext()) } return false },   // base→Potential directly (test-only, bypasses the charge-hold)
-    p1PiccoloOrangeEnter:    () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterPiccoloOrange(p1, getAbilityContext()) } return false },   // Potential→Orange directly (test-only; requires Potential active)
+    p1PiccoloPotentialEnter: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterPiccoloPotential(p1, getAbilityContext(), { instant: true }) } return false },   // base→Potential directly (test-only, bypasses the charge-hold + freeze cinematic → instant form for unit assertions)
+    p1PiccoloOrangeEnter:    () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterPiccoloOrange(p1, getAbilityContext(), { instant: true }) } return false },   // Potential→Orange directly (test-only; instant form, no freeze cinematic)
     p1PiccoloRevert:         () => { if (p1) { if (p1._piccoloOrangeActive) revertPiccoloOrange(p1); else if (p1._piccoloPotentialActive) revertPiccoloPotential(p1); return true } return false },   // charge-tap revert to base (test-only)
     p1PiccoloSetEnergy:      (v = 0) => { if (p1) { p1.energy = v; return p1.energy } return null },   // force Ki level (test-only — drive the drain auto-revert)
     p1VegetaDarkEnter:       () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.energy = p1.maxEnergy; return enterVegetaDark(p1, getAbilityContext()) } return false },   // base→dark-aura directly (test-only, bypasses the charge-hold)

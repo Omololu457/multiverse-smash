@@ -9907,7 +9907,7 @@ function applyOmniManSlamDamage(fighter, opp, cineCtx = {}) {
     opp.colorFlash = 14; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 10)
     opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 42)   // slammed to the ground
   }
-  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (Kurama sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability", attacker: fighter, move: "ultimate" })            // GUARANTEED, range-independent (Kurama sure-hit) — attacker+move → Brutality killing-blow stamp (OmniMan ult)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -12605,7 +12605,7 @@ function applyGhostfaceFinalActDamage(fighter, opp, cineCtx = {}) {
     // BLEED FINISHER — the signature lethal DoT, on a CLEAN hit only.
     opp._dot = { ticks: GHOSTFACE_ULT_BLEED.ticks, interval: GHOSTFACE_ULT_BLEED.interval, dmg: GHOSTFACE_ULT_BLEED.dmg, delay: GHOSTFACE_ULT_BLEED.interval }
   }
-  applyScaledDamage(opp, dmg, { source: "ability" })            // GUARANTEED, range-independent (sure-hit)
+  applyScaledDamage(opp, dmg, { source: "ability", attacker: fighter, move: "ultimate" })            // GUARANTEED, range-independent (sure-hit) — attacker+move → Brutality killing-blow stamp (Ghostface ult)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2
   const ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) {
@@ -17644,7 +17644,7 @@ function applyMayuriBankaiDamage(fighter, opp, context) {
   let dmg = MAYURI_BANKAI.dmg
   if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
   else { opp.hitstun = Math.max(opp.hitstun || 0, 46); opp.vx = (fighter.facing || 1) * 10; opp.vy = -8 }
-  applyScaledDamage(opp, dmg, { source: "ability" })     // honest ×0.60 → ~198 EFF (block 25%)
+  applyScaledDamage(opp, dmg, { source: "ability", attacker: fighter, move: "ultimate" })     // honest ×0.60 → ~198 EFF (block 25%) — attacker+move → Brutality killing-blow stamp (Mayuri Bankai)
   opp.colorFlash = 12
   try { shakeCamera(context, 8, 12) } catch (_) {}
 }
@@ -19464,7 +19464,7 @@ function applyMadaraTengaiDamage(fighter, opp, cineCtx = {}) {
   // Stage 1: route through the ONE damage choke-point (was a raw `opp.health -= dmg` that
   // bypassed GLOBAL_DAMAGE_SCALE — the last surviving unscaled offensive site). Show the
   // actually-dealt (post-scale) number so the floating damage matches HP removed.
-  const dealt = applyScaledDamage(opp, raw, { source: "ultimate" })
+  const dealt = applyScaledDamage(opp, raw, { source: "ultimate", attacker: fighter, move: "ultimate" })   // attacker+move → Brutality killing-blow stamp (Madara Tengai Shinsei meteor)
   opp.hitstun = Math.max(opp.hitstun || 0, 42)
   opp.vx = (fighter.facing || 1) * 13; opp.vy = -7; opp.colorFlash = 12
   try { cineCtx.damageNumbers?.push?.({ x: opp.x + (opp.w || 40) / 2, y: opp.y, value: dealt, color: "#c084fc", life: 60 }) } catch (_) {}
@@ -22300,7 +22300,7 @@ function executeNaoyaUltimate(fighter, context) {
         const blocked = !!opp.isBlocking
         let dmg = b.dmg
         if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 20) }
-        applyScaledDamage(opp, dmg, { source: "naoya-ultimate" })   // honest ×0.60 → ~198 EFF total (block 25%)
+        applyScaledDamage(opp, dmg, { source: "naoya-ultimate", attacker: fighter, move: "ultimate" })   // honest ×0.60 → ~198 EFF total (block 25%) — attacker+move → Brutality killing-blow stamp (Naoya Frame-Trap)
         opp.colorFlash = 10
         if (!blocked) opp.hitstun = Math.max(opp.hitstun || 0, b.hitstun || 24)
         if (b.freeze && !blocked) applyNaoyaFreeze(opp, NAOYA_FT.freeze)   // finish → freeze lock

@@ -563,34 +563,113 @@ function setBloodFx(on) { bloodFx = !!on; try { localStorage.setItem("ms_blood_f
 // (someone can want basic hit-sparks but not finishers, or vice-versa). Default OFF. Persisted separately.
 let brutalityFx = (() => { try { return localStorage.getItem("ms_brutality_fx") === "1" } catch (_) { return false } })()
 function setBrutalityFx(on) { brutalityFx = !!on; try { localStorage.setItem("ms_brutality_fx", brutalityFx ? "1" : "0") } catch (_) {} }
-// Winners tonally appropriate for a finisher (owner-confirmed scope A): horror cast + canonically-brutal
-// fighters. Power Rangers + Ben 10 (kid franchises) and all heroic/neutral characters are intentionally
-// EXCLUDED — they just get the normal KO. Add/remove keys here to re-scope; nothing else changes.
-// EXPANSION (owner-confirmed, per-character tonal judgment — NOT a blanket franchise rule): + the alternate
-// Sukuna, + war-god/mass-killer villains (madara, isshiki), + sadist/experimenter villains (naoya, mayuri,
-// orochimaru), + bare-knuckle bloodsport (baki). Still EXCLUDED: all Power Rangers, all Ben 10, heroes.
-const BRUTALITY_ELIGIBLE = new Set(["ghostface", "ghostface_billy", "jason", "sukuna", "toji", "omniman", "hisoka", "zaraki", "deathstroke", "frieza", "cell",
-  "alt_sukuna", "madara", "isshiki", "naoya", "mayuri", "orochimaru", "baki"])
-// PER-CHARACTER FINISHERS (first batch). Each entry re-skins the SHARED procedural beat with the winner's
-// own signature — NO new art: a signature gore/energy PALETTE, an FX MOTIF (slash arcs / heavy burst /
-// toxic drift / energy shards), a flash tint, and a technique-NAME stamp under "BRUTALITY!". `poseWin`
-// freezes the winner in their OWN win pose (reused art) for the beat. Any eligible winner WITHOUT an
-// entry here falls back to the generic red gore burst — so nobody loses their finisher. Motifs:
-//   slash  — 3 signature cleave streaks + chunks (cutters)
-//   burst  — denser/faster/wider gore + radial impact lines (raw power)
-//   toxic  — particles that RISE and linger like gas, + drips (mad-scientist dissection)
-//   shards — angular energy shards fly out + an expanding ring (jutsu annihilation)
+// BRUTALITY ENGINE (real gore-style, per-MOVE finishers). Eligible = the tonally-appropriate prototype
+// roster: horror slashers + canonically-brutal killers. zaraki_shikai shares zaraki's table (same fighter).
+// HARD-EXCLUDED regardless of style: naruto, boruto, kiba, gohan, gon, killua, nezuko, ben10, albedo,
+// saiki, l_ryuuzaki, light (never add them here). Heroes/kid-franchises get a normal KO. Re-scope here.
+const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zaraki", "zaraki_shikai",
+  "mayuri", "madara", "jason", "naoya", "hisoka", "ghostface", "baki"])
+// GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
+// procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
+// 2 = signature accent (steel edge / ki hue / toxin), 3 = near-black shadow.
+const GORE_RED     = ["#a11026", "#6e0016", "#ff3030", "#3a000a"]   // pure blood (slashers)
+const GORE_STEEL   = ["#a11026", "#6e0016", "#dfe3ea", "#3a000a"]   // Toji — blade-steel edge
+const GORE_PURPLE  = ["#a11026", "#6e0016", "#b060e0", "#3a000a"]   // Frieza / Madara — ki-purple
+const GORE_TOXIC   = ["#7a0016", "#3a7a1a", "#57e07a", "#20340f"]   // Mayuri — neurotoxin green
+const GORE_EMBER   = ["#a11026", "#6e0016", "#ff9a2a", "#3a000a"]   // Zaraki / Baki / Naoya — spark-ember
+const GORE_MAGENTA = ["#a11026", "#6e0016", "#ff5ab0", "#3a000a"]   // Hisoka — Bungee-Gum pink
+// PER-CHARACTER, PER-MOVE FINISHER TABLE. Keyed [rosterKey][killingBlowMove] → a gore-style finisher tied to
+// that SPECIFIC move (normal/rekka, special, ultimate). `gore` selects the anatomical split the procedural
+// emitter renders (bisect = split in half · dismember = limbs off · decap = head off · dice = surgical cross-
+// cuts · beam = clean puncture · pulp/crush = brute implosion · shred = domain onslaught · gut = disembowel ·
+// melt = toxic dissolution). `name` is the technique stamped under "BRUTALITY!". No per-move match → KLASSIC.
 const BRUTALITY_FINISHERS = {
-  sukuna:     { name: "DISMANTLE",  motif: "slash",  palette: ["#ff2a2a", "#c0102a", "#7a0016", "#ff6a6a"], flash: "#b00018", poseWin: true },
-  alt_sukuna: { name: "CLEAVE",     motif: "slash",  palette: ["#ff2a2a", "#c0102a", "#7a0016", "#ff6a6a"], flash: "#b00018", poseWin: true },
-  toji:       { name: "SPLIT",      motif: "slash",  palette: ["#e8e8f0", "#ff3a3a", "#b00018", "#ffffff"], flash: "#8a1020", poseWin: true },
-  zaraki:     { name: "SHATTER",    motif: "burst",  palette: ["#ffd23a", "#ff7a2a", "#ff2a2a", "#fff0a0"], flash: "#b04010", poseWin: true },
-  omniman:    { name: "OBLITERATE", motif: "burst",  palette: ["#ff2a2a", "#d40000", "#7a0000", "#ff5a5a"], flash: "#c00000", poseWin: true },
-  mayuri:     { name: "DISSECT",    motif: "toxic",  palette: ["#5ad24a", "#9b30c9", "#3aff9b", "#b0ff6a"], flash: "#2a7a1a", poseWin: true },
-  madara:     { name: "ANNIHILATE", motif: "shards", palette: ["#9b5ad2", "#6a2ac0", "#c09bff", "#3a1a7a"], flash: "#3a1a7a", poseWin: true }
+  // SUKUNA — cursed slashes literally bisect / dice, domain shreds. (cleave normal-special, dismantle proj, domain ult)
+  sukuna: {
+    cleave:    { name: "CLEAVE",            gore: "bisect",    palette: GORE_RED,   flash: "#8a0018" },
+    dismantle: { name: "DISMANTLE",         gore: "dice",      palette: GORE_RED,   flash: "#8a0018" },
+    domain:    { name: "MALEVOLENT SHRINE", gore: "shred",     palette: GORE_RED,   flash: "#6e0016" },
+  },
+  // TOJI — the Sorcerer Killer's blades. (tojiG4 ground rekka, tojiSword2 Split Soul special, tojiRapidSlash — no damaging ult)
+  toji: {
+    tojiG4:        { name: "INVERTED SPEAR", gore: "dismember", palette: GORE_STEEL, flash: "#8a1020" },
+    tojiSword2:    { name: "SPLIT SOUL",     gore: "bisect",    palette: GORE_STEEL, flash: "#8a1020" },
+    tojiRapidSlash:{ name: "THOUSAND CUTS",  gore: "dice",      palette: GORE_STEEL, flash: "#8a1020" },
+  },
+  // FRIEZA — surgical beams + brutal spheres. (Death Beam proj precise, Death Ball proj obliterates, Rush cmd — no ult)
+  frieza: {
+    friezaDeathBeam: { name: "DEATH BEAM", gore: "beam",      palette: GORE_PURPLE, flash: "#7a1a8a" },
+    friezaDeathBall: { name: "DEATH BALL", gore: "crush",     palette: GORE_PURPLE, flash: "#7a1a8a" },
+    friezaRush3:     { name: "TYRANT'S END",gore: "dismember", palette: GORE_PURPLE, flash: "#7a1a8a" },
+  },
+  // OMNIMAN — Viltrumite raw power. (omComboFin rekka, omSkewer impale special, ultimate body-slam)
+  omniman: {
+    omComboFin: { name: "VILTRUMITE FURY", gore: "pulp",      palette: GORE_RED, flash: "#b00000" },
+    omSkewer:   { name: "SKEWER",          gore: "dismember", palette: GORE_RED, flash: "#b00000" },
+    ultimate:   { name: "OBLITERATE",      gore: "pulp",      palette: GORE_RED, flash: "#c00000" },
+  },
+  // ZARAKI — Kenpachi's reckless cleaves. (heavy cleave normal, Hollow-Strike special, zarakiBankai ult). shared by zaraki_shikai.
+  zaraki: {
+    heavy:              { name: "KENDO CLEAVE", gore: "bisect",    palette: GORE_EMBER, flash: "#b04010" },
+    zarakiHollowStrike: { name: "HOLLOW STRIKE",gore: "dismember", palette: GORE_EMBER, flash: "#b04010" },
+    zarakiBankai:       { name: "NOZARASHI",    gore: "shred",     palette: GORE_EMBER, flash: "#b04010" },
+  },
+  // MAYURI — the vivisectionist. (mayuriCmd2 rekka, Neurotoxin proj special, Bankai ult crush)
+  mayuri: {
+    mayuriCmd2:  { name: "VIVISECTION", gore: "dismember", palette: GORE_TOXIC, flash: "#2a7a1a" },
+    mayuriPoison:{ name: "NEUROTOXIN",  gore: "melt",      palette: GORE_TOXIC, flash: "#2a7a1a" },
+    ultimate:    { name: "ASHISOGI JIZŌ", gore: "crush",   palette: GORE_TOXIC, flash: "#2a7a1a" },
+  },
+  // MADARA — war-god annihilation. (Susanoo Punch cmd, giant-sword heavy, Tengai Shinsei meteor ult)
+  madara: {
+    madaraSusanooPunch: { name: "SUSANOO SMASH", gore: "pulp",   palette: GORE_PURPLE, flash: "#3a1a7a" },
+    heavy:              { name: "SUSANOO BLADE", gore: "bisect", palette: GORE_PURPLE, flash: "#3a1a7a" },
+    ultimate:           { name: "TENGAI SHINSEI",gore: "shred",  palette: GORE_PURPLE, flash: "#3a1a7a" },
+  },
+  // JASON — the slasher. (heavy machete chop, Relentless Slash special, fallback ult massacre)
+  jason: {
+    heavy:       { name: "MACHETE CHOP",    gore: "decap",     palette: GORE_RED, flash: "#6e0016" },
+    jRelentless: { name: "RELENTLESS SLASH",gore: "dismember", palette: GORE_RED, flash: "#6e0016" },
+    ultimate:    { name: "MASSACRE",        gore: "pulp",      palette: GORE_RED, flash: "#6e0016" },
+  },
+  // NAOYA — the sadist's speed. (naoyaCombo cmd, Cursed Dart proj, Frame-Trap ult)
+  naoya: {
+    naoyaCombo: { name: "PROJECTION",  gore: "dismember", palette: GORE_EMBER, flash: "#b0501a" },
+    naoyaDart:  { name: "CURSED DART", gore: "beam",      palette: GORE_EMBER, flash: "#b0501a" },
+    ultimate:   { name: "FRAME TRAP",  gore: "dice",      palette: GORE_EMBER, flash: "#b0501a" },
+  },
+  // HISOKA — the magician's cruelty. (hisokaRekka2, Bungee Gum special, hisoka_card proj — no damaging ult)
+  hisoka: {
+    hisokaRekka2: { name: "TEXTURE SURPRISE", gore: "dice",      palette: GORE_MAGENTA, flash: "#b01070" },
+    bungeeGum:    { name: "BUNGEE GUM",       gore: "dismember", palette: GORE_MAGENTA, flash: "#b01070" },
+    hisoka_card:  { name: "CARD THROW",       gore: "beam",      palette: GORE_MAGENTA, flash: "#b01070" },
+  },
+  // GHOSTFACE — the knife. (ghostfaceCombo3 rekka, Gutting Lunge special, The Final Act ult)
+  ghostface: {
+    ghostfaceCombo3: { name: "FRENZY",        gore: "dismember", palette: GORE_RED, flash: "#6e0016" },
+    gfLunge:         { name: "GUTTING LUNGE", gore: "gut",       palette: GORE_RED, flash: "#6e0016" },
+    ultimate:        { name: "THE FINAL ACT", gore: "decap",     palette: GORE_RED, flash: "#6e0016" },
+  },
+  // BAKI — bare-knuckle tearing/crushing. (bakiG2 grapple rekka, Demon Rush special, Rising Fang — no damaging ult)
+  baki: {
+    bakiG2:     { name: "GRAPPLE TEAR", gore: "dismember", palette: GORE_EMBER, flash: "#b0501a" },
+    bakiRush:   { name: "DEMON RUSH",   gore: "pulp",      palette: GORE_EMBER, flash: "#b0501a" },
+    bakiRising: { name: "RISING FANG",  gore: "crush",     palette: GORE_EMBER, flash: "#b0501a" },
+  },
+}
+// KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a
+// finisher — a simple bright gore burst, never silence.
+const BRUTALITY_KLASSIC = { name: "BRUTALITY", gore: "generic", palette: GORE_RED, flash: "#8a0018" }
+// Resolve the finisher for a winner + the move that landed the KO. zaraki_shikai shares zaraki's table.
+// Strict per-move match (Stage 4: NO fuzzy matching) → that entry; otherwise → KLASSIC. Never null.
+function _resolveBrutalityFinisher(wKey, move) {
+  const tblKey  = wKey === "zaraki_shikai" ? "zaraki" : wKey
+  const perChar = BRUTALITY_FINISHERS[tblKey]
+  const entry   = (perChar && move && perChar[move]) ? perChar[move] : null
+  return entry || BRUTALITY_KLASSIC
 }
 const BRUTALITY_FRAMES = 78   // ~1.3s — a quick, impactful finishing beat (no lingering aftermath)
-const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, parts: [], finisher: null }
+const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null }
 
 // SAVE FILE picker must fire from a REAL user gesture (transient activation) — the
 // File System Access pickers throw if called from the rAF-driven handleMenuClicks().
@@ -3880,70 +3959,109 @@ function _tryStartBrutality(winner) {
   if ((loseF.health || 0) > 0) return false                      // KO finish ONLY — never on a time-over win
   const wKey = (winF.rosterKey || "").toLowerCase()
   if (!BRUTALITY_ELIGIBLE.has(wKey)) return false                // scope A: only tonally-eligible winners
+  const move = winF._killingBlowMove || null                     // the EXACT move that landed the fatal blow (combat.js stamp)
   brutalityState.active = true; brutalityState.timer = brutalityState.maxTimer = BRUTALITY_FRAMES
   brutalityState.winnerSide = winner; brutalityState.wKey = wKey
+  brutalityState.dir  = winner === "p1" ? 1 : -1
+  brutalityState.move = move
   brutalityState.x = (loseF.x || 0) + (loseF.width || loseF.w || 60) / 2
   brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
   brutalityState.parts = []
-  brutalityState.finisher = BRUTALITY_FINISHERS[wKey] || null    // per-char signature, or null → shared gore
+  brutalityState.finisher = _resolveBrutalityFinisher(wKey, move)   // per-CHARACTER, per-MOVE signature (KLASSIC if no match)
   if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated, reusing their own art
-  // Freeze the winner in their OWN win pose for the beat (reused art) when the finisher asks for it.
-  if (brutalityState.finisher?.poseWin && winF.animationData?.win) winF._forceAction = "win"
+  if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
   return true
 }
+// Ongoing BLOOD spray under the anatomical split — front-loaded chunky gore, tuned by the finisher's gore
+// type (heavy splits throw more/faster; melt/toxic drifts UP and lingers). Purely procedural (no new art).
 function _spawnBrutalityGore(b) {
   const fin = b.finisher
-  const palette = fin?.palette || ["#ff2a2a", "#ff4d4d", "#d40000", "#ff7a7a"]  // bright saturated red default
-  const motif = fin?.motif || "chunk"
-  const heavy = motif === "burst"                                 // raw-power finishers throw more, faster
-  const toxic = motif === "toxic"                                 // dissection gas RISES and lingers
+  const palette = fin?.palette || GORE_RED
+  const gore = fin?.gore || "generic"
+  const heavy = gore === "pulp" || gore === "crush" || gore === "shred" || gore === "dismember" || gore === "bisect"
+  const melt  = gore === "melt"                                   // dissection gas RISES and lingers
   const n = (heavy ? 14 : 8) + ((Math.random() * (heavy ? 8 : 5)) | 0)
   for (let i = 0; i < n; i++) {
     const ang = -Math.PI / 2 + (Math.random() * 2 - 1) * (heavy ? 1.5 : 1.3)   // spray up-and-out
     const sp  = (heavy ? 5 : 3) + Math.random() * (heavy ? 9 : 7)
-    const life = (toxic ? 40 : 26) + ((Math.random() * (toxic ? 30 : 22)) | 0)
+    const life = (melt ? 40 : 26) + ((Math.random() * (melt ? 30 : 22)) | 0)
     b.parts.push({
       kind: "chunk",
       x: b.x + (Math.random() * 2 - 1) * 12, y: b.y + (Math.random() * 2 - 1) * 18,
-      vx: Math.cos(ang) * sp * (toxic ? 0.5 : 1), vy: toxic ? -(0.4 + Math.random() * 1.2) : Math.sin(ang) * sp - 2,
-      g: toxic ? -0.06 : 0.5,                                     // toxic drifts upward; everything else falls
-      life, maxLife: life, size: (toxic ? 4 : 3) + Math.random() * 6,   // chunky sprite-era pieces, not fine mist
+      vx: Math.cos(ang) * sp * (melt ? 0.5 : 1), vy: melt ? -(0.4 + Math.random() * 1.2) : Math.sin(ang) * sp - 2,
+      g: melt ? -0.06 : 0.5,                                      // melt drifts upward; blood falls
+      life, maxLife: life, size: (melt ? 4 : 3) + Math.random() * 6,   // chunky sprite-era pieces, not fine mist
       color: palette[(Math.random() * palette.length) | 0]
     })
   }
 }
-// One-shot signature flourish at the moment of the finish — the thing that makes each finisher read as
-// THAT character's, still purely procedural (no new art). Layered on top of the chunk burst above.
+// One-shot ANATOMICAL-SPLIT flourish at the moment of the finish — the real gore that makes each finisher
+// read as a body split / dismembered / decapitated / diced, keyed by the finisher's `gore` type. Still
+// purely procedural: body-mass "half"/"limb"/"head" pieces (rotated rects / a round head) tumble away with
+// gravity + a blood fountain, layered over the chunk spray above. NO new art.
 function _spawnBrutalitySignature(b) {
   const fin = b.finisher; if (!fin) return
-  const palette = fin.palette
-  const col = () => palette[(Math.random() * palette.length) | 0]
-  if (fin.motif === "slash") {
-    for (let i = 0; i < 3; i++) {                                 // crossing cleave streaks
-      const ang = (i === 1 ? 0.35 : i === 0 ? -0.6 : 1.1) + (Math.random() * 2 - 1) * 0.15
-      b.parts.push({ kind: "slash", x: b.x, y: b.y, ang, len: 90 + Math.random() * 60, thick: 5 + Math.random() * 4,
-        vx: 0, vy: 0, g: 0, life: 16 + ((Math.random() * 6) | 0), maxLife: 22, color: i === 0 ? palette[3] : col() })
+  const palette = fin.palette || GORE_RED
+  const col  = () => palette[(Math.random() * palette.length) | 0]
+  const body = palette[0]                                         // limb/body-mass color
+  const g    = fin.gore || "generic"
+  const dir  = b.dir || 1
+  const bx = b.x, by = b.y
+  // blood fountain of small chunks from the wound (dir/bias/spread configurable)
+  const gout = (nn, biasAng, spread, spd, dx = 0) => {
+    for (let i = 0; i < nn; i++) {
+      const a = biasAng + (Math.random() * 2 - 1) * spread, s = spd * (0.5 + Math.random())
+      b.parts.push({ kind: "chunk", x: bx + (Math.random() * 2 - 1) * 10, y: by + (Math.random() * 2 - 1) * 14,
+        vx: Math.cos(a) * s + dx, vy: Math.sin(a) * s, g: 0.5, life: 22 + ((Math.random() * 18) | 0), maxLife: 44,
+        size: 2 + Math.random() * 5, color: col() })
     }
-  } else if (fin.motif === "shards") {
-    b.parts.push({ kind: "ring", x: b.x, y: b.y, r: 6, vr: 6.5, life: 20, maxLife: 20, color: palette[2] })
-    for (let i = 0; i < 9; i++) {                                 // angular energy shards fly outward
-      const a = (i / 9) * Math.PI * 2 + Math.random() * 0.3, sp = 5 + Math.random() * 5
-      b.parts.push({ kind: "shard", x: b.x, y: b.y, ang: a, len: 12 + Math.random() * 10, thick: 3 + Math.random() * 3,
-        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 0.12, life: 22 + ((Math.random() * 10) | 0), maxLife: 32, color: col() })
+  }
+  if (g === "bisect") {                                           // body SPLIT vertically — halves fly apart
+    b.parts.push({ kind: "half", x: bx - 7, y: by, vx: -3.2 - Math.random() * 1.5, vy: -3 - Math.random() * 2, g: 0.5, ang: 0, vang: -0.06, w: 20, h: 66, life: 54, maxLife: 54, color: body })
+    b.parts.push({ kind: "half", x: bx + 7, y: by, vx:  3.2 + Math.random() * 1.5, vy: -3 - Math.random() * 2, g: 0.5, ang: 0, vang:  0.06, w: 20, h: 66, life: 54, maxLife: 54, color: body })
+    b.parts.push({ kind: "slash", x: bx, y: by, ang: Math.PI / 2, len: 130, thick: 6, vx: 0, vy: 0, g: 0, life: 14, maxLife: 18, color: palette[2] })
+    gout(14, -Math.PI / 2, 0.5, 6)
+  } else if (g === "dismember") {                                 // LIMBS separated — fly outward
+    for (let i = 0; i < 4; i++) {
+      const a = -Math.PI / 2 + (i - 1.5) * 0.62
+      b.parts.push({ kind: "half", x: bx, y: by, vx: Math.cos(a) * (4 + Math.random() * 2), vy: Math.sin(a) * (4 + Math.random() * 2) - 2, g: 0.5, ang: a, vang: (Math.random() * 2 - 1) * 0.22, w: 12, h: 32, life: 48, maxLife: 48, color: body })
     }
-  } else if (fin.motif === "burst") {
-    b.parts.push({ kind: "ring", x: b.x, y: b.y, r: 8, vr: 8, life: 16, maxLife: 16, color: palette[0] })
-    for (let i = 0; i < 10; i++) {                                // radial impact lines (heavy hit)
-      const a = (i / 10) * Math.PI * 2, sp = 7 + Math.random() * 6
-      b.parts.push({ kind: "line", x: b.x, y: b.y, ang: a, len: 18 + Math.random() * 16, thick: 2 + Math.random() * 2,
-        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 0, life: 12 + ((Math.random() * 6) | 0), maxLife: 18, color: col() })
+    gout(12, -Math.PI / 2, 1.2, 5)
+  } else if (g === "decap") {                                     // HEAD off — pops up + arcs away, neck fountain
+    b.parts.push({ kind: "head", x: bx, y: by - 24, vx: dir * (1.5 + Math.random() * 2), vy: -7 - Math.random() * 2, g: 0.5, r: 12, life: 58, maxLife: 58, color: body })
+    gout(18, -Math.PI / 2, 0.4, 7)                               // tall neck fountain
+  } else if (g === "dice") {                                      // surgical CROSS-CUTS — many crossing slashes + spray
+    for (let i = 0; i < 5; i++) {
+      const ang = (i % 2 ? 0.5 : -0.5) + (Math.random() * 2 - 1) * 0.22
+      b.parts.push({ kind: "slash", x: bx + (Math.random() * 2 - 1) * 20, y: by + (Math.random() * 2 - 1) * 24, ang, len: 70 + Math.random() * 50, thick: 4 + Math.random() * 3, vx: 0, vy: 0, g: 0, life: 14 + ((Math.random() * 6) | 0), maxLife: 22, color: i ? col() : palette[2] })
     }
-  } else if (fin.motif === "toxic") {
-    for (let i = 0; i < 5; i++) {                                 // heavy hanging drips + a low pool of gas
-      b.parts.push({ kind: "chunk", x: b.x + (Math.random() * 2 - 1) * 24, y: b.y + 20 + Math.random() * 16,
-        vx: (Math.random() * 2 - 1) * 0.6, vy: 0.6 + Math.random() * 0.8, g: 0.18, life: 34 + ((Math.random() * 16) | 0), maxLife: 50,
-        size: 4 + Math.random() * 5, color: col() })
-    }
+    gout(18, -Math.PI / 2, 1.5, 5)
+  } else if (g === "beam") {                                      // clean PUNCTURE — thin bore line + ring + small back-spray
+    b.parts.push({ kind: "line", x: bx, y: by, ang: 0, len: 150, thick: 4, vx: 0, vy: 0, g: 0, life: 12, maxLife: 14, color: palette[2] })
+    b.parts.push({ kind: "ring", x: bx, y: by, r: 4, vr: 5, life: 16, maxLife: 16, color: palette[2] })
+    gout(8, 0, 0.5, 4, dir * 2)
+  } else if (g === "pulp" || g === "crush") {                     // BRUTE implosion — ring + radial lines + heavy chunks
+    b.parts.push({ kind: "ring", x: bx, y: by, r: 8, vr: 9, life: 16, maxLife: 16, color: palette[0] })
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2, sp = 6 + Math.random() * 6
+      b.parts.push({ kind: "line", x: bx, y: by, ang: a, len: 16 + Math.random() * 16, thick: 2 + Math.random() * 2, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 0, life: 12 + ((Math.random() * 6) | 0), maxLife: 18, color: col() }) }
+    for (let i = 0; i < 8; i++)
+      b.parts.push({ kind: "half", x: bx, y: by, vx: (Math.random() * 2 - 1) * 5, vy: -2 - Math.random() * 4, g: 0.6, ang: Math.random() * 6, vang: (Math.random() * 2 - 1) * 0.3, w: 10 + Math.random() * 8, h: 10 + Math.random() * 8, life: 42, maxLife: 42, color: body })
+    gout(14, -Math.PI / 2, 1.6, 6)
+  } else if (g === "shred") {                                     // DOMAIN onslaught — slashes from all angles + ring + heavy spray
+    for (let i = 0; i < 7; i++) { const ang = (i / 7) * Math.PI * 2
+      b.parts.push({ kind: "slash", x: bx, y: by, ang, len: 80 + Math.random() * 50, thick: 4 + Math.random() * 3, vx: 0, vy: 0, g: 0, life: 14 + ((Math.random() * 8) | 0), maxLife: 24, color: col() }) }
+    b.parts.push({ kind: "ring", x: bx, y: by, r: 6, vr: 7, life: 20, maxLife: 20, color: palette[2] })
+    gout(20, -Math.PI / 2, 1.8, 6)
+  } else if (g === "gut") {                                       // DISEMBOWEL — forward low spray + hanging drips
+    gout(16, 0, 0.7, 6, dir * 3)
+    for (let i = 0; i < 6; i++)
+      b.parts.push({ kind: "chunk", x: bx + (Math.random() * 2 - 1) * 20, y: by + 16 + Math.random() * 14, vx: (Math.random() * 2 - 1), vy: 0.8 + Math.random(), g: 0.2, life: 36 + ((Math.random() * 16) | 0), maxLife: 52, size: 3 + Math.random() * 4, color: col() })
+  } else if (g === "melt") {                                      // toxic DISSOLUTION — rising gas + drips
+    for (let i = 0; i < 10; i++)
+      b.parts.push({ kind: "chunk", x: bx + (Math.random() * 2 - 1) * 20, y: by + (Math.random() * 2 - 1) * 20, vx: (Math.random() * 2 - 1) * 0.8, vy: -(0.4 + Math.random() * 1.2), g: -0.05, life: 44 + ((Math.random() * 24) | 0), maxLife: 68, size: 4 + Math.random() * 5, color: col() })
+    gout(8, -Math.PI / 2, 0.8, 3)
+  } else {                                                        // KLASSIC generic — simple bright gore burst
+    gout(18, -Math.PI / 2, 1.4, 6)
   }
 }
 function updateBrutality() {
@@ -3955,11 +4073,12 @@ function updateBrutality() {
     p.x += p.vx; p.y += p.vy
     p.vy += (p.g == null ? 0.5 : p.g)                             // per-particle gravity (toxic rises, chunks fall)
     if (p.kind === "shard" || p.kind === "line") { p.vx *= 0.9; p.vy *= 0.9 }  // impact streaks decelerate
+    if (p.kind === "half") p.ang = (p.ang || 0) + (p.vang || 0)   // body-mass halves/limbs tumble as they fly
     if (p.kind === "ring") p.r += (p.vr || 6)                     // rings expand
     p.life--
   }
   b.parts = b.parts.filter(p => p.life > 0)
-  if (--b.timer <= 0) { b.active = false; b.parts = []; b.finisher = null; _enterVictoryScreen() }
+  if (--b.timer <= 0) { b.active = false; b.parts = []; b.finisher = null; b.move = null; _enterVictoryScreen() }
 }
 function _drawBrutality() {
   const b = brutalityState; if (!b.active) return
@@ -3982,6 +4101,12 @@ function _drawBrutality() {
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang || 0)
       ctx.fillRect(-(p.len || 20) / 2, -(p.thick || 4) / 2, p.len || 20, p.thick || 4)
       ctx.restore()
+    } else if (p.kind === "half") {                                // body-mass half / limb — a tumbling filled block
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang || 0)
+      ctx.fillRect(-(p.w || 14) / 2, -(p.h || 30) / 2, p.w || 14, p.h || 30)
+      ctx.restore()
+    } else if (p.kind === "head") {                                // severed head — a filled round mass
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r || 10, 0, Math.PI * 2); ctx.fill()
     } else if (p.kind === "ring") {
       ctx.lineWidth = Math.max(1, 5 * (p.life / (p.maxLife || 16)))
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.stroke()
@@ -16548,15 +16673,25 @@ gameLoop()
       toggles:      () => ({ blood: bloodFx, brutality: brutalityFx }),
       eligible:     () => [...BRUTALITY_ELIGIBLE],
       canTrigger:   (winnerKey) => BRUTALITY_ELIGIBLE.has(String(winnerKey || "").toLowerCase()),
-      // Per-character finisher dispatch: the signature entry for a key, or null → shared generic gore.
-      finisherFor:  (key) => { const f = BRUTALITY_FINISHERS[String(key || "").toLowerCase()]; return f ? { name: f.name, motif: f.motif } : null },
+      // Per-CHARACTER, per-MOVE finisher dispatch: resolve the entry for a winner key + the killing-blow move
+      // (null move / no per-move match → KLASSIC). Mirrors _resolveBrutalityFinisher exactly.
+      finisherFor:  (key, move = null) => { const f = _resolveBrutalityFinisher(String(key || "").toLowerCase(), move); return { name: f.name, gore: f.gore, klassic: f === BRUTALITY_KLASSIC } },
+      moves:        (key) => { const k = String(key || "").toLowerCase(); const t = BRUTALITY_FINISHERS[k === "zaraki_shikai" ? "zaraki" : k]; return t ? Object.keys(t) : [] },
       finishers:    () => Object.keys(BRUTALITY_FINISHERS),
-      state:        () => ({ active: brutalityState.active, timer: brutalityState.timer, wKey: brutalityState.wKey, parts: brutalityState.parts.length,
-        finisher: brutalityState.finisher ? { name: brutalityState.finisher.name, motif: brutalityState.finisher.motif } : null }),
+      // Read the killing-blow-move stamp combat.js records on a fighter (Stage 2 real-combat verification).
+      killMove:     (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f._killingBlowMove ?? null) : null },
+      // Set a fighter's raw HP (test-only) — used to bring the dummy to the brink so a REAL landed move KOs it.
+      setHp:        (side, hp) => { const f = side === "p2" ? p2 : p1; if (f) f.health = hp; return f ? f.health : null },
+      // Fire p1's REAL ultimate (fills meter + clears gates first) — for real-combat killing-blow-stamp checks.
+      p1Ult:        () => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; return triggerUltimate(p1, getAbilityContext()) },
+      // Fire p1's REAL special in a direction (fills meter first) — for real-combat killing-blow-stamp checks.
+      p1Spec:       (dir = null) => { if (!p1) return null; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = dir; const ok = triggerSpecial(p1, getAbilityContext()); return { ok, move: p1.currentMove || null } },
+      state:        () => ({ active: brutalityState.active, timer: brutalityState.timer, wKey: brutalityState.wKey, move: brutalityState.move, parts: brutalityState.parts.length,
+        finisher: brutalityState.finisher ? { name: brutalityState.finisher.name, gore: brutalityState.finisher.gore } : null }),
       // Simulate the end-of-match for `winner`: with ko=true KO the loser (fatal-blow path); with ko=false
-      // leave them alive (time-over path). Then run the REAL _tryStartBrutality gate. Returns whether the
-      // finisher started (respects toggle + eligibility + KO-only). For clips/tests.
-      trigger:      (winner = "p1", ko = true) => { const loseF = winner === "p1" ? p2 : p1; if (loseF && ko) loseF.health = 0; victoryState.active = false; return _tryStartBrutality(winner) }
+      // leave them alive (time-over path). `move` stamps the winner's killing-blow move (as combat.js would),
+      // so per-move finishers can be verified. Then run the REAL _tryStartBrutality gate. For clips/tests.
+      trigger:      (winner = "p1", ko = true, move = null) => { const winF = winner === "p1" ? p1 : p2; const loseF = winner === "p1" ? p2 : p1; if (winF) winF._killingBlowMove = move; if (loseF && ko) loseF.health = 0; victoryState.active = false; return _tryStartBrutality(winner) }
     },
     // Ground-truth sprite roster (hasSprites+animData-derived) + full non-hidden roster — so tests can
     // assert the beta filter equals the live selectable set without hardcoding names.

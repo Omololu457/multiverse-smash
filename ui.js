@@ -3018,8 +3018,10 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
         _ambientClouds(ctx, worldWidth, tb, { bandTop: 24, bandH: h * 0.16, count: 3, speed: 5, scale: 1.4, color: "150,170,210", alpha: 0.05, seed: 23 }); break
       case "valley_of_end":                                           // waterfall gorge → slow mist
         _ambientClouds(ctx, worldWidth, tb, { bandTop: 30, bandH: h * 0.18, count: 3, speed: 4, scale: 1.5, color: "226,232,240", alpha: 0.06, seed: 27 }); break
-      case "mugen_train":                                             // night → twinkling stars
-        _ambientStars(ctx, worldWidth, tb, { bandTop: 18, bandH: h * 0.30, count: 40, color: "255,255,255", maxAlpha: 0.5, seed: 29 }); break
+      case "test_map":                                                // training grid → soft daytime cloud drift
+        _ambientClouds(ctx, worldWidth, tb, { bandTop: 26, bandH: h * 0.14, count: 4, speed: 7, color: "255,255,255", alpha: 0.06, seed: 31 }); break
+      // NOTE: mugen_train is intentionally left WITHOUT ambient — mugen_train_bg.png is a
+      // known PLACEHOLDER stand-in image, and we don't dress up art that's itself a placeholder.
     }
   }
 

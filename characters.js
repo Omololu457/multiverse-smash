@@ -1045,6 +1045,10 @@ const naruto = {
     // rows 2–21; the 3 figure frames occupy rows 25–78 (~44px pitch) → sourceY 24
     // skips the labels, height 56 = feet+2px gap, loop:true cycles it through intro.
     transform: { frames: 3, width: 44, height: 56, speed: 6, anchorY: -4, sourceY: 24, loop: true, sheet: "./naruto_kcm_win.png" },
+    // WIN — the KCM victory-flex from the same win strip (naruto_kcm_win.png is literally the
+    // "win" sheet). The win STATE was previously UNWIRED, so a match win fell back to idle; this
+    // settles on the final flex pose (loop:false + lockLastFrame, matching every other win entry).
+    win:       { frames: 3, width: 44, height: 56, speed: 6, anchorY: -4, sourceY: 24, loop: false, lockLastFrame: true, sheet: "./naruto_kcm_win.png" },
     // ── basic attacks — B-attack set sliced from naruto_kcm_sheet.png (Phase 2).
     // These new strips are content-tight crops (feet at the very bottom row → no
     // bottom gap), so anchorY 0 plants them; heavy keeps the Phase-1 y_attack strip

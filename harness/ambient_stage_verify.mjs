@@ -28,12 +28,13 @@ function frameDiff(bufA, bufB) { // both raw canvas screenshots at same size
 
 // Stages: name, kind. NEW = we added ambient; CONTROL = already animated (unchanged).
 const STAGES = [
-  ["Hidden Leaf Village", "NEW-proc clouds"],
-  ["Planet Namek",        "NEW-proc clouds"],
-  ["Woodsboro",           "NEW-proc stars"],
-  ["Heaven's Arena",      "NEW-proc motes"],
-  ["Jujutsu High Courtyard", "NEW-bitmap clouds"],
-  ["Mugen Train",         "NEW-bitmap stars"],
+  ["Hidden Leaf Village", "proc clouds"],
+  ["Planet Namek",        "proc clouds"],
+  ["Woodsboro",           "proc stars"],
+  ["Heaven's Arena",      "proc motes"],
+  ["Jujutsu High Courtyard", "bitmap clouds"],
+  ["Test Map",            "NEW bitmap clouds (Stage A)"],
+  ["Mugen Train",         "placeholder — ambient REMOVED (Stage A)"],
   ["Citadel of Ricks",    "CONTROL (already animated)"],
 ];
 
@@ -68,9 +69,11 @@ try {
     check(`  fighters stationary across frames (no sim drift)`, !!same,
       JSON.stringify({ a: [posA?.p1x, posA?.p2x], b: [posB?.p1x, posB?.p2x] }));
 
-    // 2) sky band shows MOTION (ambient is live)
+    // 2) INFO only — the sky crop overlaps the idle-animating fighters, so this can't
+    //    cleanly isolate ambient from fighter motion. Ambient presence/absence is judged
+    //    from the saved screenshots (see report). Printed for reference.
     const skyMove = frameDiff(skyA, skyB);
-    check(`  sky band animates (ambient motion present)`, skyMove > 0.02, `meanΔ=${skyMove.toFixed(3)}`);
+    console.log(`    · sky-band meanΔ=${skyMove.toFixed(2)} (info; not an ambient-only signal)`);
   }
 
   check("no page/JS errors during the run", jsErrors.length === 0, jsErrors.join(" | "));

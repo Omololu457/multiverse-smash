@@ -7,7 +7,7 @@ import {
   isTransformDevice, updateTransformDevice, tryTransform, revertToHuman, selectAlienSlot
 } from "./fighters.js"
 import { camera } from "./camera.js"
-import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets, loadedSheetCount } from "./sprite.js"
+import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets, loadedSheetCount, GLOBAL_SPRITE_SCALE } from "./sprite.js"
 import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
 import { fxSheetsForFighters } from "./preloadManifest.js"
 import { gameRng, reseed as reseedRng, makeSeed } from "./rng.js"   // Stage 11A: seeded gameplay RNG
@@ -669,7 +669,7 @@ function _resolveBrutalityFinisher(wKey, move) {
   return entry || BRUTALITY_KLASSIC
 }
 const BRUTALITY_FRAMES = 78   // ~1.3s — a quick, impactful finishing beat (no lingering aftermath)
-const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null }
+const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
 
 // SAVE FILE picker must fire from a REAL user gesture (transient activation) — the
 // File System Access pickers throw if called from the rAF-driven handleMenuClicks().
@@ -3968,117 +3968,137 @@ function _tryStartBrutality(winner) {
   brutalityState.y = (loseF.y || 0) + (loseF.height || loseF.h || 100) * 0.4
   brutalityState.parts = []
   brutalityState.finisher = _resolveBrutalityFinisher(wKey, move)   // per-CHARACTER, per-MOVE signature (KLASSIC if no match)
-  if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated, reusing their own art
+  // Capture the loser's CURRENT (KO-instant) frame BEFORE forcing the lose pose — the sprite-bisection uses it.
+  brutalityState.sprite  = _captureLoserSprite(loseF)
+  brutalityState.loseRef = loseF                                 // hide the live loser body — the two split halves replace it
+  if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated (used on the victory screen after the beat)
   if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
   return true
 }
-// Ongoing BLOOD spray under the anatomical split — front-loaded chunky gore, tuned by the finisher's gore
-// type (heavy splits throw more/faster; melt/toxic drifts UP and lingers). Purely procedural (no new art).
-function _spawnBrutalityGore(b) {
-  const fin = b.finisher
-  const palette = fin?.palette || GORE_RED
-  const gore = fin?.gore || "generic"
-  const heavy = gore === "pulp" || gore === "crush" || gore === "shred" || gore === "dismember" || gore === "bisect"
-  const melt  = gore === "melt"                                   // dissection gas RISES and lingers
-  const n = (heavy ? 14 : 8) + ((Math.random() * (heavy ? 8 : 5)) | 0)
+// SPRITE-BISECTION render. Capture the loser's CURRENT sprite frame (KO-instant pose) into an offscreen
+// canvas ONCE, so the finisher can draw it as two clipped halves that separate. Uses the world-space drawn
+// rect sprite.js records (_lastDrawX/Y/W/H) as the frame's exact bounds; re-renders only the loser's core
+// sprite (no aura overlays) onto a transparent canvas so the halves cut cleanly. NO new art — this is the
+// loser's own existing frame. Returns null (→ a colored-rect fallback) if the frame can't be captured.
+function _captureLoserSprite(loseF) {
+  if (!loseF) return null
+  const key = (loseF.rosterKey || "").toLowerCase()
+  const pad = 10
+  const w = Math.max(8, loseF._lastDrawW || loseF.w || loseF.width || 60)
+  const h = Math.max(8, loseF._lastDrawH || loseF.h || loseF.height || 110)
+  const x = loseF._lastDrawX != null ? loseF._lastDrawX : (loseF.x || 0)
+  const y = loseF._lastDrawY != null ? loseF._lastDrawY : (loseF.y || 0)
+  const cw = Math.ceil(w + pad * 2), chh = Math.ceil(h + pad * 2)
+  let oc
+  try { oc = document.createElement("canvas"); oc.width = cw; oc.height = chh } catch (_) { return null }
+  const octx = oc.getContext("2d"); if (!octx) return null
+  octx.translate(-x + pad, -y + pad)   // the fighter draws at its world coords → lands at (pad,pad) in the offscreen
+  try {
+    if (loseF.hasSprites && loseF.spriteHandler && spritesReady(key)) {
+      loseF.spriteHandler.draw(octx, loseF, getSpriteSheets(key))
+    } else {
+      drawFighter(octx, loseF, null)
+    }
+  } catch (_) { return null }
+  // Pixel-cell size (world px per SOURCE sprite pixel) = the sprite's own render scale. The bone + blood are
+  // drawn on THIS grid so they read at the same pixel density as the character (min 3 so blockiness shows).
+  const px = Math.max(3, Math.round((loseF.spriteScale || 1) * GLOBAL_SPRITE_SCALE))
+  // Real stage floor (feet line) so blood rains down + pools on the GROUND, not at the loser's mid-air feet
+  // when they're KO'd airborne. Fall back to the captured frame's bottom.
+  const groundY = loseF.groundY != null ? loseF.groundY : (y + h)
+  return { canvas: oc, x: x - pad, y: y - pad, w: cw, h: chh, px, groundY }
+}
+// STYLIZED CARTOON BLOOD — a clean red family (NOT gore-brown), used for the split splatter + drips + pool.
+const BLOOD_REDS = ["#e11d2a", "#b3111c", "#ff4d4d"]   // bright, deep, highlight
+// A PIXEL-ART bone drawn on the sprite's OWN pixel grid (cell = sp.px world px): blocky/stepped edges, no
+// smooth curves. A vertical femur — a 2-cell shaft with knobby 2×2 epiphysis ends — sized in CELLS so it
+// scales with the character (lenCells/wCells derived from the sprite's dims). Fills are snapped to the cell
+// grid so every edge is a hard pixel step. cx/cy = bone centre (world). Drawn to protrude from a cut edge.
+function _drawPixelBone(c, cx, cy, cell, lenCells, alpha) {
+  c.save()
+  c.globalAlpha = alpha
+  c.imageSmoothingEnabled = false
+  // snap the centre to the cell grid so every block lands on a hard pixel boundary
+  const gx = Math.round(cx / cell) * cell, gy = Math.round(cy / cell) * cell
+  const R = (cxi, cyi, wc, hc, col) => { c.fillStyle = col; c.fillRect(gx + cxi * cell, gy + cyi * cell, wc * cell, hc * cell) }
+  const top = -Math.floor(lenCells / 2), bot = top + lenCells
+  const OUT = "#4a3324", BONE = "#f2ede0", SHADE = "#cdc6b4", HI = "#ffffff", MARROW = "#c0303a"
+  // 1) DARK OUTLINE backing (1 cell larger all round) so the bone reads against the body pixels
+  R(-2, top - 1, 4, lenCells + 2, OUT)                          // shaft backing
+  R(-4, top - 2, 8, 4, OUT); R(-4, bot - 2, 8, 4, OUT)         // knob-end backings
+  // 2) BONE fill — a 2-cell shaft with a right-side shade + left highlight
+  R(-1, top, 2, lenCells, BONE)
+  R(0, top, 1, lenCells, SHADE)
+  R(-1, top + 1, 1, lenCells - 2, HI)
+  // 3) knobby epiphysis ends — a 6-cell-wide, 2-cell-tall bulge at top + bottom (classic bone silhouette)
+  for (const ey of [top - 1, bot - 1]) {
+    R(-3, ey, 6, 2, BONE)
+    R(-3, ey, 1, 2, HI); R(2, ey, 1, 2, SHADE)
+  }
+  // 4) MARROW — a red cross-section dot near the protruding (top) end, so it reads as freshly severed
+  R(-1, top, 2, 1, MARROW)
+  c.restore()
+}
+// One blocky blood chunk (pixel square). p.cells = size in grid cells; snapped to the grid for hard edges.
+function _drawBloodChunk(c, p, cell) {
+  const s = Math.max(1, p.cells | 0) * cell
+  const gx = Math.round(p.x / cell) * cell, gy = Math.round(p.y / cell) * cell
+  c.fillStyle = p.color
+  c.fillRect(gx, gy, s, s)
+}
+// Spawn the split-moment blood: a chunky outward splatter + a few gravity drips, at the ORIGINAL cut point
+// (world sx,sy). Particles live in world space (they do NOT follow the separating halves).
+function _spawnBrutalityBlood(b, sx, sy, cell) {
+  const n = 22 + ((Math.random() * 8) | 0)
   for (let i = 0; i < n; i++) {
-    const ang = -Math.PI / 2 + (Math.random() * 2 - 1) * (heavy ? 1.5 : 1.3)   // spray up-and-out
-    const sp  = (heavy ? 5 : 3) + Math.random() * (heavy ? 9 : 7)
-    const life = (melt ? 40 : 26) + ((Math.random() * (melt ? 30 : 22)) | 0)
+    const up = Math.random() < 0.7                              // most burst up-and-out; some just drip
+    const ang = up ? (-Math.PI / 2 + (Math.random() * 2 - 1) * 1.25) : (Math.random() * Math.PI * 2)
+    const spd = (up ? 3.2 : 1.2) + Math.random() * (up ? 6.5 : 2.5)
     b.parts.push({
-      kind: "chunk",
-      x: b.x + (Math.random() * 2 - 1) * 12, y: b.y + (Math.random() * 2 - 1) * 18,
-      vx: Math.cos(ang) * sp * (melt ? 0.5 : 1), vy: melt ? -(0.4 + Math.random() * 1.2) : Math.sin(ang) * sp - 2,
-      g: melt ? -0.06 : 0.5,                                      // melt drifts upward; blood falls
-      life, maxLife: life, size: (melt ? 4 : 3) + Math.random() * 6,   // chunky sprite-era pieces, not fine mist
-      color: palette[(Math.random() * palette.length) | 0]
+      x: sx + (Math.random() * 2 - 1) * cell * 2, y: sy + (Math.random() * 2 - 1) * cell * 2,
+      vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd - (up ? 2 : 0),
+      g: 0.42 + Math.random() * 0.2, life: 34 + ((Math.random() * 30) | 0),
+      cells: 1 + ((Math.random() * 2.2) | 0),                   // 1–3 cell chunks (blocky, not fine mist)
+      color: BLOOD_REDS[(Math.random() * BLOOD_REDS.length) | 0]
     })
   }
 }
-// One-shot ANATOMICAL-SPLIT flourish at the moment of the finish — the real gore that makes each finisher
-// read as a body split / dismembered / decapitated / diced, keyed by the finisher's `gore` type. Still
-// purely procedural: body-mass "half"/"limb"/"head" pieces (rotated rects / a round head) tumble away with
-// gravity + a blood fountain, layered over the chunk spray above. NO new art.
-function _spawnBrutalitySignature(b) {
-  const fin = b.finisher; if (!fin) return
-  const palette = fin.palette || GORE_RED
-  const col  = () => palette[(Math.random() * palette.length) | 0]
-  const body = palette[0]                                         // limb/body-mass color
-  const g    = fin.gore || "generic"
-  const dir  = b.dir || 1
-  const bx = b.x, by = b.y
-  // blood fountain of small chunks from the wound (dir/bias/spread configurable)
-  const gout = (nn, biasAng, spread, spd, dx = 0) => {
-    for (let i = 0; i < nn; i++) {
-      const a = biasAng + (Math.random() * 2 - 1) * spread, s = spd * (0.5 + Math.random())
-      b.parts.push({ kind: "chunk", x: bx + (Math.random() * 2 - 1) * 10, y: by + (Math.random() * 2 - 1) * 14,
-        vx: Math.cos(a) * s + dx, vy: Math.sin(a) * s, g: 0.5, life: 22 + ((Math.random() * 18) | 0), maxLife: 44,
-        size: 2 + Math.random() * 5, color: col() })
-    }
+// Blocky ground pool/splatter beneath the split, once the halves start to fall. Grows with the beat; built
+// from pixel cells (no smooth ellipse) in the clean-red palette. cx/groundY world; cell = sprite pixel grid.
+function _drawGroundPool(c, cx, groundY, cell, t) {
+  if (t < 0.24) return
+  const grow = Math.min(1, (t - 0.24) / 0.5)
+  const gx = Math.round(cx / cell) * cell, gy = Math.round(groundY / cell) * cell
+  c.save(); c.imageSmoothingEnabled = false
+  const w0 = Math.round(5 + 12 * grow)                        // base half-width in cells
+  // a low, blocky puddle: widest base row + two narrower rows above (a slight mound), clean red
+  const rows = [{ dy: 0, hw: w0, col: BLOOD_REDS[1] }, { dy: -1, hw: Math.round(w0 * 0.7), col: BLOOD_REDS[0] }, { dy: -2, hw: Math.round(w0 * 0.34), col: BLOOD_REDS[0] }]
+  c.globalAlpha = 0.95
+  for (const r of rows) if (r.hw > 0) c.fillRect(gx - r.hw * cell, gy + r.dy * cell, r.hw * 2 * cell, cell)
+  // fixed stray edge cells (deterministic offsets → no per-frame flicker) for a splattered rim
+  c.fillStyle = BLOOD_REDS[1]
+  for (const [ox, oy] of [[-(w0 + 2), 0], [w0 + 2, 0], [-(w0 + 1), -1], [w0 + 1, -1], [-(w0 - 2), -2], [w0 - 2, -2]]) {
+    c.fillRect(gx + ox * cell, gy + oy * cell, cell, cell)
   }
-  if (g === "bisect") {                                           // body SPLIT vertically — halves fly apart
-    b.parts.push({ kind: "half", x: bx - 7, y: by, vx: -3.2 - Math.random() * 1.5, vy: -3 - Math.random() * 2, g: 0.5, ang: 0, vang: -0.06, w: 20, h: 66, life: 54, maxLife: 54, color: body })
-    b.parts.push({ kind: "half", x: bx + 7, y: by, vx:  3.2 + Math.random() * 1.5, vy: -3 - Math.random() * 2, g: 0.5, ang: 0, vang:  0.06, w: 20, h: 66, life: 54, maxLife: 54, color: body })
-    b.parts.push({ kind: "slash", x: bx, y: by, ang: Math.PI / 2, len: 130, thick: 6, vx: 0, vy: 0, g: 0, life: 14, maxLife: 18, color: palette[2] })
-    gout(14, -Math.PI / 2, 0.5, 6)
-  } else if (g === "dismember") {                                 // LIMBS separated — fly outward
-    for (let i = 0; i < 4; i++) {
-      const a = -Math.PI / 2 + (i - 1.5) * 0.62
-      b.parts.push({ kind: "half", x: bx, y: by, vx: Math.cos(a) * (4 + Math.random() * 2), vy: Math.sin(a) * (4 + Math.random() * 2) - 2, g: 0.5, ang: a, vang: (Math.random() * 2 - 1) * 0.22, w: 12, h: 32, life: 48, maxLife: 48, color: body })
-    }
-    gout(12, -Math.PI / 2, 1.2, 5)
-  } else if (g === "decap") {                                     // HEAD off — pops up + arcs away, neck fountain
-    b.parts.push({ kind: "head", x: bx, y: by - 24, vx: dir * (1.5 + Math.random() * 2), vy: -7 - Math.random() * 2, g: 0.5, r: 12, life: 58, maxLife: 58, color: body })
-    gout(18, -Math.PI / 2, 0.4, 7)                               // tall neck fountain
-  } else if (g === "dice") {                                      // surgical CROSS-CUTS — many crossing slashes + spray
-    for (let i = 0; i < 5; i++) {
-      const ang = (i % 2 ? 0.5 : -0.5) + (Math.random() * 2 - 1) * 0.22
-      b.parts.push({ kind: "slash", x: bx + (Math.random() * 2 - 1) * 20, y: by + (Math.random() * 2 - 1) * 24, ang, len: 70 + Math.random() * 50, thick: 4 + Math.random() * 3, vx: 0, vy: 0, g: 0, life: 14 + ((Math.random() * 6) | 0), maxLife: 22, color: i ? col() : palette[2] })
-    }
-    gout(18, -Math.PI / 2, 1.5, 5)
-  } else if (g === "beam") {                                      // clean PUNCTURE — thin bore line + ring + small back-spray
-    b.parts.push({ kind: "line", x: bx, y: by, ang: 0, len: 150, thick: 4, vx: 0, vy: 0, g: 0, life: 12, maxLife: 14, color: palette[2] })
-    b.parts.push({ kind: "ring", x: bx, y: by, r: 4, vr: 5, life: 16, maxLife: 16, color: palette[2] })
-    gout(8, 0, 0.5, 4, dir * 2)
-  } else if (g === "pulp" || g === "crush") {                     // BRUTE implosion — ring + radial lines + heavy chunks
-    b.parts.push({ kind: "ring", x: bx, y: by, r: 8, vr: 9, life: 16, maxLife: 16, color: palette[0] })
-    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2, sp = 6 + Math.random() * 6
-      b.parts.push({ kind: "line", x: bx, y: by, ang: a, len: 16 + Math.random() * 16, thick: 2 + Math.random() * 2, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 0, life: 12 + ((Math.random() * 6) | 0), maxLife: 18, color: col() }) }
-    for (let i = 0; i < 8; i++)
-      b.parts.push({ kind: "half", x: bx, y: by, vx: (Math.random() * 2 - 1) * 5, vy: -2 - Math.random() * 4, g: 0.6, ang: Math.random() * 6, vang: (Math.random() * 2 - 1) * 0.3, w: 10 + Math.random() * 8, h: 10 + Math.random() * 8, life: 42, maxLife: 42, color: body })
-    gout(14, -Math.PI / 2, 1.6, 6)
-  } else if (g === "shred") {                                     // DOMAIN onslaught — slashes from all angles + ring + heavy spray
-    for (let i = 0; i < 7; i++) { const ang = (i / 7) * Math.PI * 2
-      b.parts.push({ kind: "slash", x: bx, y: by, ang, len: 80 + Math.random() * 50, thick: 4 + Math.random() * 3, vx: 0, vy: 0, g: 0, life: 14 + ((Math.random() * 8) | 0), maxLife: 24, color: col() }) }
-    b.parts.push({ kind: "ring", x: bx, y: by, r: 6, vr: 7, life: 20, maxLife: 20, color: palette[2] })
-    gout(20, -Math.PI / 2, 1.8, 6)
-  } else if (g === "gut") {                                       // DISEMBOWEL — forward low spray + hanging drips
-    gout(16, 0, 0.7, 6, dir * 3)
-    for (let i = 0; i < 6; i++)
-      b.parts.push({ kind: "chunk", x: bx + (Math.random() * 2 - 1) * 20, y: by + 16 + Math.random() * 14, vx: (Math.random() * 2 - 1), vy: 0.8 + Math.random(), g: 0.2, life: 36 + ((Math.random() * 16) | 0), maxLife: 52, size: 3 + Math.random() * 4, color: col() })
-  } else if (g === "melt") {                                      // toxic DISSOLUTION — rising gas + drips
-    for (let i = 0; i < 10; i++)
-      b.parts.push({ kind: "chunk", x: bx + (Math.random() * 2 - 1) * 20, y: by + (Math.random() * 2 - 1) * 20, vx: (Math.random() * 2 - 1) * 0.8, vy: -(0.4 + Math.random() * 1.2), g: -0.05, life: 44 + ((Math.random() * 24) | 0), maxLife: 68, size: 4 + Math.random() * 5, color: col() })
-    gout(8, -Math.PI / 2, 0.8, 3)
-  } else {                                                        // KLASSIC generic — simple bright gore burst
-    gout(18, -Math.PI / 2, 1.4, 6)
-  }
+  c.restore()
 }
 function updateBrutality() {
   const b = brutalityState
   const elapsed = b.maxTimer - b.timer
-  if (elapsed === 0) _spawnBrutalitySignature(b)                  // one-shot per-char flourish at the strike
-  if (elapsed < 20 && elapsed % 2 === 0) _spawnBrutalityGore(b)   // burst front-loaded → quick, not lingering
+  const sp = b.sprite
+  const cell = sp?.px || 4
+  // At the CUT INSTANT, burst blood at the ORIGINAL split point (centre of the captured frame). World-space
+  // particles — they do NOT follow the separating halves, so the splatter reads as the moment of impact.
+  if (elapsed === 0 && sp) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell)
+  const groundY = sp ? sp.groundY : (b.y + 60)
   for (const p of b.parts) {
-    p.x += p.vx; p.y += p.vy
-    p.vy += (p.g == null ? 0.5 : p.g)                             // per-particle gravity (toxic rises, chunks fall)
-    if (p.kind === "shard" || p.kind === "line") { p.vx *= 0.9; p.vy *= 0.9 }  // impact streaks decelerate
-    if (p.kind === "half") p.ang = (p.ang || 0) + (p.vang || 0)   // body-mass halves/limbs tumble as they fly
-    if (p.kind === "ring") p.r += (p.vr || 6)                     // rings expand
+    if (p.settled) continue
+    p.x += p.vx; p.y += p.vy; p.vy += (p.g || 0.45); p.vx *= 0.98
+    if (p.y >= groundY) { p.y = groundY; p.settled = true; p.vx = 0; p.vy = 0 }   // landed → sits as ground splatter
     p.life--
   }
-  b.parts = b.parts.filter(p => p.life > 0)
-  if (--b.timer <= 0) { b.active = false; b.parts = []; b.finisher = null; b.move = null; _enterVictoryScreen() }
+  b.parts = b.parts.filter(p => p.settled || p.life > 0)       // settled chunks persist as ground gore
+  if (--b.timer <= 0) { b.active = false; b.parts = []; b.sprite = null; b.loseRef = null; b.finisher = null; b.move = null; _enterVictoryScreen() }
 }
 function _drawBrutality() {
   const b = brutalityState; if (!b.active) return
@@ -4091,28 +4111,53 @@ function _drawBrutality() {
     const rgb = _hexToRgb(fin?.flash || "#960000")
     ctx.save(); ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${0.55 * flash})`; ctx.fillRect(0, 0, cw, ch); ctx.restore()
   }
-  // FX — WORLD space (inside the camera transform, like the fighters). One array, per-kind draw.
+  // SPRITE-BISECTION — WORLD space (inside the camera transform, like the fighters). Two clipped halves of
+  // the captured frame topple apart over the freeze beat (cartoon Among-Us-ejection feel), with a procedural
+  // bone briefly visible at the seam. This one visual now stands in for EVERY finisher's gore.
   const hasT = typeof camera.applyTransform === "function"
   ctx.save(); if (hasT) camera.applyTransform(ctx, canvas)
-  for (const p of b.parts) {
-    ctx.globalAlpha = Math.min(1, p.life / 10)
-    ctx.fillStyle = p.color; ctx.strokeStyle = p.color
-    if (p.kind === "slash" || p.kind === "shard" || p.kind === "line") {
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang || 0)
-      ctx.fillRect(-(p.len || 20) / 2, -(p.thick || 4) / 2, p.len || 20, p.thick || 4)
-      ctx.restore()
-    } else if (p.kind === "half") {                                // body-mass half / limb — a tumbling filled block
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang || 0)
-      ctx.fillRect(-(p.w || 14) / 2, -(p.h || 30) / 2, p.w || 14, p.h || 30)
-      ctx.restore()
-    } else if (p.kind === "head") {                                // severed head — a filled round mass
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r || 10, 0, Math.PI * 2); ctx.fill()
-    } else if (p.kind === "ring") {
-      ctx.lineWidth = Math.max(1, 5 * (p.life / (p.maxLife || 16)))
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.stroke()
-    } else {
-      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size)   // chunk
+  const sp = b.sprite
+  const t       = Math.min(1, elapsed / b.maxTimer)
+  const sepEase = 1 - Math.pow(1 - t, 3)                          // easeOutCubic — HARD front-loaded pop, then settle
+  const boneA   = Math.min(1, sepEase * 4) * Math.min(1, (1 - t) * 4)   // fades in fast, holds, fades only in the last ~25%
+  if (sp && sp.canvas) {
+    const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
+    const cell = sp.px || 4
+    const gap  = sepEase * Math.max(96, sp.w * 0.62)              // DAYLIGHT between the inner edges (big min + big frac)
+    const fall = (t * t) * Math.max(26, sp.h * 0.14)             // gravity accelerates IN → never dominates the early pop
+    const tilt = sepEase * 0.34                                   // real outward topple, about each half's OWN centre
+    // GROUND POOL first (behind the halves + chunks) — blocky splatter on the real floor that grows over the beat.
+    _drawGroundPool(ctx, seamX, sp.groundY, cell, t)
+    // LEFT half — drawn centred on its origin, rotated outward (CCW) about its centre, shoved LEFT + down.
+    ctx.save(); ctx.translate(seamX - hw / 2 - gap / 2, cy + fall); ctx.rotate(-tilt)
+    ctx.drawImage(sp.canvas, 0, 0, hw, sp.h, -hw / 2, -sp.h / 2, hw, sp.h)
+    ctx.restore()
+    // RIGHT half — mirror: rotated outward (CW), shoved RIGHT + down.
+    ctx.save(); ctx.translate(seamX + hw / 2 + gap / 2, cy + fall); ctx.rotate(tilt)
+    ctx.drawImage(sp.canvas, hw, 0, hw, sp.h, -hw / 2, -sp.h / 2, hw, sp.h)
+    ctx.restore()
+    // PIXEL BONE — protrudes from the LEFT half's cut edge (a cross-section), so it moves apart WITH that
+    // half rather than floating. Length in CELLS scales with the sprite → "this character's bone".
+    if (boneA > 0.02) {
+      const leftCutX = seamX - gap / 2
+      const lenCells = Math.min(22, Math.max(6, Math.round((sp.h * 0.30) / cell)))
+      _drawPixelBone(ctx, leftCutX + cell, cy + fall, cell, lenCells, boneA)
     }
+    // BLOOD CHUNKS on top — the splatter/drips from the cut point (world-space, don't follow the halves).
+    for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.95 : Math.min(1, p.life / 10); _drawBloodChunk(ctx, p, cell) }
+    ctx.globalAlpha = 1
+  } else {
+    // Fallback (frame couldn't be captured): two palette-colored half-blocks with the SAME choreography.
+    const pal = fin?.palette || GORE_RED
+    const bw = 46, bh = 100, cy = b.y, cell = 4
+    const gap = sepEase * 90, fall = (t * t) * 26, tilt = sepEase * 0.34
+    _drawGroundPool(ctx, b.x, b.y + bh / 2, cell, t)
+    ctx.fillStyle = pal[0]
+    ctx.save(); ctx.translate(b.x - bw / 4 - gap / 2, cy + fall); ctx.rotate(-tilt); ctx.fillRect(-bw / 4, -bh / 2, bw / 2, bh); ctx.restore()
+    ctx.save(); ctx.translate(b.x + bw / 4 + gap / 2, cy + fall); ctx.rotate(tilt);  ctx.fillRect(-bw / 4, -bh / 2, bw / 2, bh); ctx.restore()
+    if (boneA > 0.02) _drawPixelBone(ctx, b.x - gap / 2 + cell, cy + fall, cell, 11, boneA)
+    for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.95 : Math.min(1, p.life / 10); _drawBloodChunk(ctx, p, cell) }
+    ctx.globalAlpha = 1
   }
   ctx.globalAlpha = 1
   if (hasT && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
@@ -12045,6 +12090,9 @@ function _tojiFlyFadeAlpha(fighter) {
 
 function renderHybridFighter(fighter) {
   if (!fighter) return
+  // BRUTALITY sprite-bisection: hide the live loser body during the finisher beat — the two separating split
+  // halves (drawn in _drawBrutality) stand in for it. Winner still renders normally (posed win).
+  if (brutalityState.active && brutalityState.loseRef === fighter) return
   // Cinematic hide: the Minato Kurama ultimate hides the REAL caster and draws its own transforming
   // Minato + fox overlay, so the real frozen body doesn't double-render next to the overlay (the
   // "second Minato" bug). minatoKurama sets/clears this flag.
@@ -16680,13 +16728,20 @@ gameLoop()
       finishers:    () => Object.keys(BRUTALITY_FINISHERS),
       // Read the killing-blow-move stamp combat.js records on a fighter (Stage 2 real-combat verification).
       killMove:     (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f._killingBlowMove ?? null) : null },
+      // Screen-space rect of the captured (bisected) loser frame, so a harness can crop tightly around the FX.
+      screenRect:   () => { const sp = brutalityState.sprite; if (!sp) return null; const z = camera.zoom || 1, cw = canvas.width, ch = canvas.height
+        const sx = cw * 0.5 + z * (sp.x - camera.x + (camera.shakeX || 0)); const sy = ch * 0.5 + z * (sp.y - camera.y + (camera.shakeY || 0))
+        return { x: sx, y: sy, w: sp.w * z, h: sp.h * z, zoom: z } },
       // Set a fighter's raw HP (test-only) — used to bring the dummy to the brink so a REAL landed move KOs it.
       setHp:        (side, hp) => { const f = side === "p2" ? p2 : p1; if (f) f.health = hp; return f ? f.health : null },
       // Fire p1's REAL ultimate (fills meter + clears gates first) — for real-combat killing-blow-stamp checks.
       p1Ult:        () => { if (!p1) return false; p1.energy = p1.maxEnergy || 200; p1.ultimateCooldown = 0; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; return triggerUltimate(p1, getAbilityContext()) },
       // Fire p1's REAL special in a direction (fills meter first) — for real-combat killing-blow-stamp checks.
       p1Spec:       (dir = null) => { if (!p1) return null; p1.energy = p1.maxEnergy || 200; p1.attackCooldown = 0; p1.attacking = false; p1.hitstun = 0; p1._specialHeldDir = dir; const ok = triggerSpecial(p1, getAbilityContext()); return { ok, move: p1.currentMove || null } },
-      state:        () => ({ active: brutalityState.active, timer: brutalityState.timer, wKey: brutalityState.wKey, move: brutalityState.move, parts: brutalityState.parts.length,
+      state:        () => ({ active: brutalityState.active, timer: brutalityState.timer, wKey: brutalityState.wKey, move: brutalityState.move,
+        // Sprite-bisection render: `split` = the effect is running; `captured` = the loser's frame was snapshotted
+        // (else the colored-rect fallback draws); `spriteW`/`spriteH` = captured frame size (varies by char scale).
+        split: brutalityState.active, captured: !!brutalityState.sprite, spriteW: brutalityState.sprite?.w || 0, spriteH: brutalityState.sprite?.h || 0,
         finisher: brutalityState.finisher ? { name: brutalityState.finisher.name, gore: brutalityState.finisher.gore } : null }),
       // Simulate the end-of-match for `winner`: with ko=true KO the loser (fatal-blow path); with ko=false
       // leave them alive (time-over path). `move` stamps the winner's killing-blow move (as combat.js would),

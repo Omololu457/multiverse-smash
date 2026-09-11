@@ -17,6 +17,7 @@
     "test:char-search": "node harness/char_search.test.mjs",
     "test:lore-reconcile": "node harness/lore_reconcile.test.mjs",
     "test:brutality": "node harness/brutality.test.mjs",
+    "test:brutality-split": "node harness/brutality_split_verify.mjs",
     "test:prereqs": "node harness/prereqs.test.mjs",
     "test:arcade": "node harness/arcade.test.mjs",
     "test:boss": "node harness/boss.test.mjs",

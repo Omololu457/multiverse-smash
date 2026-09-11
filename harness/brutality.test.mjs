@@ -104,13 +104,13 @@ try {
     let good = 0, bad = [];
     for (const [mv, exp] of moves) {
       const ok = await page.evaluate(m => window.__harness.brutality.trigger("p1", true, m), mv);
-      await page.waitForTimeout(140);   // let the one-shot anatomical split + chunk burst spawn
+      await page.waitForTimeout(140);   // let the sprite-bisection capture + halves begin separating
       const s = await page.evaluate(() => window.__harness.brutality.state());
-      if (ok && s.active && s.move === mv && s.finisher && s.finisher.name === exp.n && s.finisher.gore === exp.g && s.parts > 0) good++;
+      if (ok && s.active && s.move === mv && s.finisher && s.finisher.name === exp.n && s.finisher.gore === exp.g && s.split === true && s.captured === true) good++;
       else bad.push(`${mv}:${JSON.stringify(s)}`);
       if (mv === moves[1][0]) await page.screenshot({ path: path.join(OUT, `BRUTALITY_${ch}_${exp.n.toLowerCase().replace(/[^a-z0-9]+/g,"_")}.png`), clip: { x:0,y:0,width:1280,height:720 } });
     }
-    check(`LIVE ${ch}: all ${moves.length} per-move finishers fire (correct signature + gore particles)`, bad.length === 0, bad.length ? bad.slice(0,2).join(" | ") : `${good}/${moves.length}`);
+    check(`LIVE ${ch}: all ${moves.length} per-move finishers fire (correct signature + sprite-bisection captured)`, bad.length === 0, bad.length ? bad.slice(0,2).join(" | ") : `${good}/${moves.length}`);
   }
   for (const ch of Object.keys(TABLE)) await liveChar(ch);
 
@@ -122,7 +122,7 @@ try {
   await page.evaluate(() => window.__harness.brutality.trigger("p1", true, "__untagged__"));
   await page.waitForTimeout(150);
   const kl = await page.evaluate(() => window.__harness.brutality.state());
-  check("KLASSIC fallback fires live for an untagged killing-blow move (generic gore, not silence)", kl.active && kl.finisher && kl.finisher.name === "BRUTALITY" && kl.finisher.gore === "generic" && kl.parts > 0, JSON.stringify(kl));
+  check("KLASSIC fallback fires live for an untagged killing-blow move (generic name, sprite-bisection render)", kl.active && kl.finisher && kl.finisher.name === "BRUTALITY" && kl.finisher.gore === "generic" && kl.split === true, JSON.stringify(kl));
 
   // ── Stage 2: killing-blow-MOVE stamp in REAL combat (projectile / melee / ultimate paths) ─────────
   // Make each KO the MATCH-DECIDING one (setRoundWins 1-0 → this KO wins): a match-over KO does NOT reset the
@@ -167,10 +167,16 @@ try {
   await page.evaluate(() => window.__harness.brutality.setBrutality(true));
   await page.evaluate(() => { window.__harness.start({ mode:"vs", difficulty:"easy" }); window.__harness.skipToBattle(); });
   await page.waitForTimeout(350);
-  await page.evaluate(() => { window.__harness.setRoundWins?.(1, 0); window.__harness.setP2ForceBlock?.(false); const px = window.__harness.p1Pos ? window.__harness.p1Pos().x : 300; window.__harness.setP2X?.(px + 240); window.__harness.brutality.setHp("p2", 25); window.__harness.brutality.p1Spec(null); });
+  await page.evaluate(() => { window.__harness.setRoundWins?.(1, 0); window.__harness.setP2ForceBlock?.(false); });
+  // Re-arm + re-fire each iteration until the finisher is live (freeze p2 so the beam can't be walked out of),
+  // so this doesn't hinge on a single beam's travel timing landing inside the poll window.
   let fp = { active:false };
-  for (let w = 0; w < 10 && !fp.active; w++) { await page.waitForTimeout(120); fp = await page.evaluate(() => window.__harness.brutality.state()); }
-  check("REAL pipeline: projectile KO → _tryStartBrutality picks the finisher FROM the stamped move (DEATH BEAM/beam)", fp.active && fp.move === "friezaDeathBeam" && fp.finisher && fp.finisher.name === "DEATH BEAM" && fp.finisher.gore === "beam" && fp.parts > 0, JSON.stringify(fp));
+  for (let w = 0; w < 16 && !fp.active; w++) {
+    await page.evaluate(() => { const px = window.__harness.p1Pos ? window.__harness.p1Pos().x : 300; window.__harness.setP2X?.(px + 240); window.__harness.hurtP2?.(60); window.__harness.brutality.setHp("p2", 25); window.__harness.brutality.p1Spec(null); });
+    await page.waitForTimeout(150);
+    fp = await page.evaluate(() => window.__harness.brutality.state());
+  }
+  check("REAL pipeline: projectile KO → _tryStartBrutality picks the finisher FROM the stamped move (DEATH BEAM/beam) + sprite-bisection", fp.active && fp.move === "friezaDeathBeam" && fp.finisher && fp.finisher.name === "DEATH BEAM" && fp.finisher.gore === "beam" && fp.split === true, JSON.stringify(fp));
 
   check("no page errors across the full brutality flow", errs.length === 0, errs.slice(0,3).join(" | ") || "none");
   await b.close(); server.close();

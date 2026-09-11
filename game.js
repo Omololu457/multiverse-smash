@@ -574,7 +574,10 @@ function setBrutalityFx(on) { brutalityFx = !!on; try { localStorage.setItem("ms
 // HARD-EXCLUDED regardless of style: naruto, boruto, kiba, gohan, gon, killua, nezuko, ben10, albedo,
 // saiki, l_ryuuzaki, light (never add them here). Heroes/kid-franchises get a normal KO. Re-scope here.
 const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zaraki", "zaraki_shikai",
-  "mayuri", "madara", "jason", "naoya", "hisoka", "ghostface", "baki"])
+  "mayuri", "madara", "jason", "naoya", "hisoka", "ghostface", "baki",
+  // Tier 2 (all adult / canonically-brutal / non-excluded): Slade's blades, Isshiki's rods, Orochimaru's
+  // snakes, Heian-era Sukuna's cursed cleaves, and the Billy-identity slasher.
+  "deathstroke", "isshiki", "orochimaru", "alt_sukuna", "ghostface_billy"])
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
 // 2 = signature accent (steel edge / ki hue / toxin), 3 = near-black shadow.
@@ -661,6 +664,42 @@ const BRUTALITY_FINISHERS = {
     bakiG2:     { name: "GRAPPLE TEAR", gore: "dismember", palette: GORE_EMBER, flash: "#b0501a" },
     bakiRush:   { name: "DEMON RUSH",   gore: "pulp",      palette: GORE_EMBER, flash: "#b0501a" },
     bakiRising: { name: "RISING FANG",  gore: "crush",     palette: GORE_EMBER, flash: "#b0501a" },
+  },
+  // DEATHSTROKE — Slade's promethium sword-work: clean cleaves, a lunging draw-cut, a diving flurry.
+  // (dsSwordSlash neutral special, dsDrawCut Fwd+Special lunge, dsRunSlash Down+Special diving slash)
+  deathstroke: {
+    dsSwordSlash: { name: "PROMETHIUM CLEAVE", gore: "bisect",    palette: GORE_STEEL, flash: "#8a1020" },
+    dsDrawCut:    { name: "DRAW & QUARTER",    gore: "dismember", palette: GORE_STEEL, flash: "#8a1020" },
+    dsRunSlash:   { name: "TERMINATED",        gore: "dice",      palette: GORE_STEEL, flash: "#8a1020" },
+  },
+  // ISSHIKI — Otsutsuki black-rod steel + shrink-warp. (isshikiGround3 rekka launcher, Sukunahikona
+  // shrink-strike special, isshikiFin2 aerial Daikokuten dash-slash)
+  isshiki: {
+    isshikiGround3:  { name: "OTSUTSUKI JUDGMENT", gore: "dismember", palette: GORE_STEEL, flash: "#5a5f78" },
+    isshikiSukuCast: { name: "SUKUNAHIKONA",       gore: "pulp",      palette: GORE_STEEL, flash: "#5a5f78" },
+    isshikiFin2:     { name: "DAIKOKUTEN",         gore: "bisect",    palette: GORE_STEEL, flash: "#5a5f78" },
+  },
+  // OROCHIMARU — the serpent sannin's venom. (orochimaruChain3 snake rekka finisher, Kusanagi sword
+  // lunge special = impale, oroSnake = the Striking Shadow Snake projectile that stamps by proj.name)
+  orochimaru: {
+    orochimaruChain3:    { name: "HYDRA MAW",            gore: "gut",   palette: GORE_TOXIC, flash: "#2e6e14" },
+    orochimaruSwordLunge:{ name: "KUSANAGI",             gore: "beam",  palette: GORE_TOXIC, flash: "#2e6e14" },
+    oroSnake:            { name: "HIDDEN SHADOW SNAKES", gore: "shred", palette: GORE_TOXIC, flash: "#2e6e14" },
+  },
+  // ALT SUKUNA (Heian-era) — the Disgraced One's cursed cleaves. (altSukunaCleave2 rekka Cleave, Fūga
+  // Fire-Arrow projectile altSukunaBeam, altSukunaSpinkick = Dismantle cross-cuts). Domain ult is a
+  // sure-hit "ability" that carries no move stamp → intentionally NOT tabled (falls to KLASSIC).
+  alt_sukuna: {
+    altSukunaCleave2:  { name: "CLEAVE",    gore: "bisect", palette: GORE_RED, flash: "#8a0018" },
+    altSukunaBeam:     { name: "FŪGA",      gore: "beam",   palette: GORE_RED, flash: "#8a0018" },
+    altSukunaSpinkick: { name: "DISMANTLE", gore: "dice",   palette: GORE_RED, flash: "#8a0018" },
+  },
+  // BILLY GHOSTFACE — the crimson-identity slasher. (gfLunge Gutting Lunge special, gfLowCut Low Gut
+  // special, ultimate = The Final Act stab-flurry). Reuses the un-gated Ghostface knife helpers.
+  ghostface_billy: {
+    gfLunge:  { name: "GUTTING LUNGE", gore: "gut",       palette: GORE_RED, flash: "#6e1520" },
+    gfLowCut: { name: "HAMSTRING",     gore: "dismember", palette: GORE_RED, flash: "#6e1520" },
+    ultimate: { name: "THE FINAL ACT", gore: "dice",      palette: GORE_RED, flash: "#6e1520" },
   },
 }
 // KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a

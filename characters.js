@@ -7290,10 +7290,15 @@ const naoya = {
   portrait: "./naoya_portrait.png",   // OPEN GAP (S6): bust to be cropped from naoya_reference_figure.png
   archetypes: ["rushdown", "technical", "zoner"],
   primary: "melee", secondary: ["rushdown", "mobility"],
-  // cursed_energy = his JJK meter (ui.js ENERGY_TYPE_LABELS "Cursed Energy"). Fuels the Stage-4 specials
-  // (Frame-Skip blink / Frame-Trap sequence / orange energy-dart projectile) + the promoted Frame-Trap ult.
+  // cursed_energy = his JJK meter (ui.js ENERGY_TYPE_LABELS "Cursed Energy"). Fuels the specials
+  // (24FPS Snare palm / Pitch dart / Frame-Skip blink / Energy-Dart spread) + the promoted Frame-Trap ult.
+  // ★ FULL KIT REDESIGN 2026-09-11 (abilities.js) — two signature mechanics express Projection Sorcery:
+  //   • 24FPS SNARE (neutral Special, palm): on a clean hit the opponent must HOLD NEUTRAL ~1.8s or freeze 1s.
+  //   • PLANNED ROUTE (Fwd+Heavy rekka): committed H→H→L timing string; drop a tight window → NAOYA freezes 1s.
+  //   • FRAME-TRAP ULT: guaranteed auto-route (no drop risk) that also re-applies the Snare on its freeze finish.
+  // The old free Down+Special Frame-Trap is retired (its roles now split across Snare + Route + Ult).
   traits: { hasEnergy: true, energyType: "cursed_energy", mobility: "high", scaling: "versatile", animeMovement: true },
-  passive: { name: "Projection Sorcery", effect: "Twenty-four frames a second — a blinding-fast frame-trap technician who punishes any dropped defence, trading durability for speed, reach and execution reward" },
+  passive: { name: "Projection Sorcery", effect: "Twenty-four frames a second — his palm imposes a rule (24FPS Snare: act while snared and you freeze for a full second), and his own Planned Route is a committed high-execution string that freezes HIM if he drops a window. All speed, reach and execution; no durability" },
   // Glass technician: below-median HP/def, edge is speed (96) + reach + the frame-trap execution payoff,
   // NOT durability. maxEnergy 180 = the cursed-energy pool that throttles his kit. Honest FAST profile.
   stats: { maxHealth: 1050, maxEnergy: 180, attack: 90, defense: 80, speed: 96, maxJumps: 2, jumpPower: 32, dashSpeed: 18, dashDuration: 12, dashCooldownMax: 40 },
@@ -7309,7 +7314,7 @@ const naoya = {
   // HUD-only until the ultimate stage (real logic + cost land in S5). Owner decision: PROMOTE a clean
   // Frame-Trap execution as the signature/ULT for now — flagged NOT true-ult-tier (no charge/meter/oversized
   // payoff art exists). Escalates the row_08→row_10→row_07 sequence into the freeze-status finisher.
-  ultimate: { name: "Projection Sorcery: Frame-Trap", cost: 100, description: "Naoya spends his full cursed-energy meter to GUARANTEE the clean Frame-Trap: a scripted high-speed strike sequence that lands automatically and ends in a full frame-freeze lock on the opponent." },
+  ultimate: { name: "Projection Sorcery: Frame-Trap", cost: 100, description: "Naoya spends his full cursed-energy meter to GUARANTEE the Planned Route with the timing risk removed: a scripted high-speed strike sequence that lands automatically, ends in a full 1-second frame-freeze lock — and re-imposes the 24FPS Snare, so the opponent must hold perfectly still the instant they thaw or freeze all over again." },
   hasSprites: true,
   // idle content ≈64px tall; scale 1.6 → ~102px on-screen (mid human-roster band). anchorY:0 everywhere →
   // feet planted, no anchor rescale. Slim, mid-height silhouette in traditional haori + hakama.
@@ -7340,9 +7345,9 @@ const naoya = {
     up:       { frames: 3, width: 73, height: 62, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naoya_heavy_uniform.png" },   // reuse row_10 kick as launcher
     air:      { frames: 4, width: 73, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naoya_air_uniform.png" },     // row_05 aerial spin-kick
     down_air: { frames: 4, width: 73, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naoya_air_uniform.png" },     // reuse row_05 aerial as spike
-    // ── STAGE 3 COMMAND NORMAL (Fwd+Heavy) — naoyaCombo: row_08 "low combo string" (6f crouched jab series →
-    // sweeping spin kick w/ orange FX). A single committed MULTI-HIT command normal (updateNaoyaCommandCombat;
-    // currentMove="naoyaCombo" → sprite.js identity map). Reused as Frame-Trap step 1 in S4 (separate move key). ──
+    // ── PLANNED ROUTE opener (Fwd+Heavy) — naoyaCombo: row_08 "low combo string" (6f crouched jab series →
+    // sweeping spin kick w/ orange FX). The OPENER of the committed timing rekka (updateNaoyaCommandCombat;
+    // currentMove="naoyaCombo" → sprite.js identity map); the follow-ups reuse naoyaFtStep2/naoyaFtFinish. ──
     naoyaCombo: { frames: 6, width: 66, height: 70, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./naoya_combo_uniform.png" },
     // ── STAGE 4 SPECIAL CAST POSES (_spriteCastMove identity keys → sprite.js). Energy Dart (row_11 orange
     // launch) + Pitch Throw (row_09 windup) + Frame-Skip blink (reuse row_02 dash) + Frame-Trap telegraph

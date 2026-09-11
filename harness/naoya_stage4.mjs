@@ -1,10 +1,10 @@
-// harness/naoya_stage4.mjs — STAGE 4: Naoya's specials (Projection Sorcery).
-//  neutral = Energy Dart spread (row_11)  ·  Fwd = Pitch Throw (row_09 → fast single dart)
+// harness/naoya_stage4.mjs — Naoya's REDESIGNED specials + the two signature mechanics (Projection Sorcery).
+//  neutral = 24FPS SNARE (palm, row_07 white-wing) → applies the "hold neutral or freeze" rule on contact
+//  Fwd = Pitch Throw (row_09 → fast single dart)  ·  Down = Energy Dart spread (row_11, moved from neutral)
 //  Back = Frame-Skip retreat blink  ·  Up = Frame-Skip advance blink (row_02 dash art, i-frames, NO attack)
-//  Down = FRAME-TRAP: telegraph (row_03) → fixed L→H→L strict-link string → row_07 white-wing FREEZE finish.
-// Proves: each cast pose resolves, projectiles connect, blink repositions + engages i-frames + deals no dmg,
-// and BOTH a clean Frame-Trap (3 steps land + opponent FROZEN) and a DROPPED one (halts, punishable, only
-// step-1 dmg, no freeze). Screenshots → harness/shots/naoya_s4_*_crop.png.
+// Proves: each special resolves + spends meter + connects; the Snare freezes on a rule-break and expires on a
+// clean hold; and the PLANNED ROUTE (Fwd+Heavy) both COMPLETES on clean H→H→L (launcher reward) and SELF-
+// FREEZES Naoya on a missed window. (The old free Down+Special Frame-Trap is retired.) Shots → naoya_s4_*_crop.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -48,19 +48,49 @@ try {
   await page.evaluate(() => window.__harness.boot());
   await waitFrames(5);
 
-  // ── neutral: Energy Dart spread ──
-  console.log("\n── neutral: Energy Dart spread (row_11) ──");
-  await setupAdjacent(150);
-  const en0 = (await fx()).energy, dhp0 = (await p2()).health;
-  await specialDir(null); await waitFrames(2);
-  const dart = await fx(); await crop("energydart");
-  check("Energy Dart → castMove naoyaEnergyDart", dart.castMove === "naoyaEnergyDart", `cast=${dart.castMove}`);
-  check("Energy Dart spends cursed energy (18)", en0 - dart.energy >= 16 && en0 - dart.energy <= 20, `energy ${en0} → ${dart.energy}`);
-  await waitFrames(30);
-  check("Energy Dart projectile connects at range", (await p2()).health < dhp0, `hp ${dhp0} → ${(await p2()).health}`);
+  // ── neutral: 24FPS SNARE (palm, white-wing pose) ──
+  console.log("\n── neutral: 24FPS Snare (palm rule, row_07 white-wing) ──");
+  { let s = null;
+    for (let attempt = 0; attempt < 4 && !s; attempt++) {
+      await page.evaluate(() => window.__harness.naoyaClear?.());
+      await setupAdjacent(46); const en0 = (await fx()).energy;
+      let cast = "", applied = false, spent = 0;
+      await specialDir(null);
+      for (let i = 0; i < 24; i++) { const a = await fx(); if (a.castMove === "naoyaFtFinish") cast = a.castMove; if ((a.oppSnare || 0) > 0 && !applied) { applied = true; spent = en0 - a.energy; } await waitFrames(1); }
+      if (applied) { s = { cast, applied, spent }; await crop("snare"); }
+      await waitGrounded();
+    }
+    check("Snare (neutral) → white-wing palm pose (naoyaFtFinish)", s && s.cast === "naoyaFtFinish", `cast=${s?.cast}`);
+    check("Snare lands the rule on the opponent (_naoyaSnare)", !!s?.applied, `applied=${s?.applied}`);
+    check("Snare spends cursed energy (24)", s && s.spent >= 20 && s.spent <= 28, `spent=${s?.spent}`); }
+
+  // ── SNARE COUNTERPLAY: acting = freeze / holding neutral = harmless expire ──
+  console.log("\n── Snare enforcement: rule-break freezes / clean hold expires ──");
+  { // BROKEN: land snare, opponent acts → freeze
+    let froze = false;
+    for (let attempt = 0; attempt < 4 && !froze; attempt++) {
+      await page.evaluate(() => window.__harness.naoyaClear?.());
+      await setupAdjacent(46); await specialDir(null);
+      let applied = false; for (let i = 0; i < 24; i++) { if (((await fx()).oppSnare || 0) > 0) { applied = true; break; } await waitFrames(1); }
+      if (!applied) { await waitGrounded(); continue; }
+      await page.waitForFunction(() => (window.__harness.p2().hitstun || 0) <= 0, null, { timeout: 2000, polling: 16 }).catch(() => {});
+      await page.evaluate(() => window.__harness.p2Attack());
+      for (let i = 0; i < 8; i++) { if (((await fx()).oppFrozen || 0) >= 50) { froze = true; break; } await waitFrames(1); }
+      await waitGrounded();
+    }
+    check("acting while snared → opponent hard-freezes (~1s, punishable)", froze, `froze=${froze}`);
+    // HELD: land snare, opponent holds neutral → no freeze, expires
+    await page.evaluate(() => window.__harness.naoyaClear?.());
+    await setupAdjacent(46); await specialDir(null);
+    let maxWin = 0; for (let i = 0; i < 24; i++) { const a = await fx(); if ((a.oppSnare || 0) > maxWin) maxWin = a.oppSnare; if ((a.oppSnare || 0) > 0) break; await waitFrames(1); }
+    let everFroze = false; const start = (await fx()).oppFrozen || 0;
+    for (let i = 0; i < maxWin + 40; i++) { const a = await fx(); if ((a.oppFrozen || 0) > start + 4) everFroze = true; if ((a.oppSnare || 0) === 0) break; await waitFrames(1); }
+    const after = await fx();
+    check("holding neutral the full window → snare expires harmlessly (no freeze)", (after.oppSnare || 0) === 0 && !everFroze, `oppSnare=${after.oppSnare} everFroze=${everFroze}`); }
 
   // ── Fwd: Pitch Throw (fast single dart) ──
   console.log("\n── Fwd: Pitch Throw (row_09 → fast dart) ──");
+  await page.evaluate(() => window.__harness.naoyaClear?.());
   await setupAdjacent(150);
   const php0 = (await p2()).health;
   await specialDir("F"); await waitFrames(2);
@@ -68,6 +98,17 @@ try {
   check("Pitch Throw → castMove naoyaPitch", pitch.castMove === "naoyaPitch", `cast=${pitch.castMove}`);
   await waitFrames(30);
   check("Pitch Throw dart connects at range", (await p2()).health < php0, `hp ${php0} → ${(await p2()).health}`);
+
+  // ── Down: Energy Dart spread (moved from neutral) ──
+  console.log("\n── Down: Energy Dart spread (row_11) ──");
+  await setupAdjacent(150);
+  const en0 = (await fx()).energy, dhp0 = (await p2()).health;
+  await specialDir("D"); await waitFrames(2);
+  const dart = await fx(); await crop("energydart");
+  check("Energy Dart (Down) → castMove naoyaEnergyDart", dart.castMove === "naoyaEnergyDart", `cast=${dart.castMove}`);
+  check("Energy Dart spends cursed energy (18)", en0 - dart.energy >= 16 && en0 - dart.energy <= 20, `energy ${en0} → ${dart.energy}`);
+  await waitFrames(30);
+  check("Energy Dart projectile connects at range", (await p2()).health < dhp0, `hp ${dhp0} → ${(await p2()).health}`);
 
   // ── Back: Frame-Skip retreat blink ──
   console.log("\n── Back: Frame-Skip retreat blink (row_02, i-frames, no attack) ──");
@@ -92,50 +133,52 @@ try {
   check("Frame-Skip advance repositions FORWARD (toward foe)", blinkU.x > ux0 + 60, `x ${ux0} → ${blinkU.x}`);
   await waitFrames(10);
 
-  // ── Down: FRAME-TRAP telegraph ──
-  console.log("\n── Down: Frame-Trap telegraph opens (row_03) ──");
-  await setupAdjacent(52);
-  const tEn0 = (await fx()).energy;
-  await specialDir("D"); await waitFrames(1);
-  const tel = await fx(); await crop("frametrap_open");
-  check("Frame-Trap → armed state machine (step 0)", tel.ftArmed && tel.ftStep === 0, `armed=${tel.ftArmed} step=${tel.ftStep}`);
-  check("Frame-Trap telegraph pose = naoyaFrameTrap (row_03)", tel.castMove === "naoyaFrameTrap", `cast=${tel.castMove}`);
-  check("Frame-Trap opening spends cursed energy (20)", tEn0 - tel.energy >= 18 && tEn0 - tel.energy <= 22, `energy ${tEn0} → ${tel.energy}`);
-
-  // ── Frame-Trap CLEAN execution: L → H → L inside the windows ──
-  console.log("\n── Frame-Trap CLEAN execution (L→H→L → white-wing FREEZE finish) ──");
-  let clean = null;
-  for (let attempt = 0; attempt < 4 && !(clean && clean.oppFrozen > 0); attempt++) {
+  // ── PLANNED ROUTE (Fwd+Heavy): clean H→H→L completes / a missed window self-freezes Naoya ──
+  console.log("\n── Planned Route CLEAN (Fwd+Heavy → H → L → launcher finish) ──");
+  async function armRoute() {
+    await page.evaluate(() => window.__harness.naoyaClear?.());
     await setupAdjacent(50);
-    const hp0 = (await p2()).health;
-    await specialDir("D"); await waitFrames(2);           // open
-    await tap("j"); await waitFrames(2);                  // step 1 (Light)
-    await tap("k"); await waitFrames(2);                  // step 2 (Heavy)
-    await tap("j"); await waitFrames(2);                  // step 3 (Light) → finish
-    const st = await fx();
-    if (st.oppFrozen > 0) { clean = { ...st, dealt: hp0 - st.oppHealth }; await crop("frametrap_clean"); }
-    await waitFrames(20); await waitGrounded(); await waitFrames(4);
+    await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && (p.attackCooldown || 0) <= 0 && (p.hitstun || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+    const facing = (await p1()).facing || 1; const fwd = facing === 1 ? "d" : "a";
+    await page.keyboard.down(fwd); await waitFrames(1); await tap("k");
+    return fwd;
   }
-  check("clean Frame-Trap completed all 3 steps (sequence cleared)", clean != null && !clean.ftArmed, `armed=${clean?.ftArmed}`);
-  check("clean finish FREEZES the opponent (distinct set-duration lock)", (clean?.oppFrozen || 0) >= 60, `oppFrozen=${clean?.oppFrozen}`);
-  check("clean finish carries a big hitstun lock", (clean?.oppHitstun || 0) >= 60, `oppHitstun=${clean?.oppHitstun}`);
-  check("clean Frame-Trap dealt full-chain damage", (clean?.dealt || 0) > 40, `dealt=${clean?.dealt}`);
+  let clean = null;
+  for (let attempt = 0; attempt < 6 && !clean; attempt++) {
+    const hp0 = (await p2()).health;
+    const fwd = await armRoute();
+    let done = null, lastStep = -1;
+    for (let i = 0; i < 24; i++) {
+      const a = await fx();
+      if ((a.selfFrozen || 0) > 0) { done = a; break; }
+      if (!a.routeArmed) { done = a; break; }
+      const want = a.ftSeq ? a.ftSeq[a.ftStep] : null;
+      if (want && a.ftStep !== lastStep) { lastStep = a.ftStep; await tap(want === "heavy" ? "k" : "j"); }
+      await waitFrames(1);
+    }
+    await waitFrames(4); if (!done) done = await fx();
+    const dealt = hp0 - (await p2()).health;
+    await page.keyboard.up(fwd);
+    if (done && !done.routeArmed && done.ftFlash === "freeze" && (done.selfFrozen || 0) === 0 && dealt > 40) { clean = { done, dealt }; await crop("route_clean"); }
+    await waitGrounded();
+  }
+  check("clean route completes the string (FRAMES SET, not dropped)", clean != null, clean ? `flash=${clean.done.ftFlash}` : "route never completed clean");
+  check("clean route = strong reward damage + NO self-freeze", clean != null && clean.dealt > 40 && (clean.done.selfFrozen || 0) === 0, clean ? `dealt=${clean.dealt.toFixed(0)}` : "");
 
-  // ── Frame-Trap DROPPED: open, press step 1, then MISS the window ──
-  console.log("\n── Frame-Trap DROPPED (miss a window → halt, punishable, no freeze) ──");
-  await setupAdjacent(50);
-  // wait for the opponent to fully THAW from the clean-test freeze before probing the drop path
-  await page.waitForFunction(() => (window.__harness.naoyaFx("p1")?.oppFrozen || 0) === 0, null, { timeout: 5000, polling: 16 }).catch(() => {});
-  const dhp = (await p2()).health;
-  await specialDir("D"); await waitFrames(2);   // open
-  await tap("j");                                // step 1 only
-  await waitFrames(20);                          // then WAIT OUT the window (miss step 2)
-  const dropped = await fx(); await crop("frametrap_dropped");
-  check("dropped Frame-Trap halted (no longer armed)", !dropped.ftArmed, `armed=${dropped.ftArmed}`);
-  check("dropped Frame-Trap registered a drop (telemetry)", dropped.ftDropped > 0, `dropped=${dropped.ftDropped}`);
-  check("dropped Frame-Trap leaves punishable recovery", dropped.cooldown > 0, `cooldown=${dropped.cooldown}`);
-  check("dropped Frame-Trap did NOT freeze the opponent", dropped.oppFrozen === 0, `oppFrozen=${dropped.oppFrozen}`);
-  check("dropped Frame-Trap dealt only partial (≤ step-1) damage", (dhp - dropped.oppHealth) < 40, `dealt=${dhp - dropped.oppHealth}`);
+  console.log("\n── Planned Route DROPPED (miss a window → Naoya self-freezes 1s, punishable) ──");
+  let dropped = null;
+  for (let attempt = 0; attempt < 4 && !dropped; attempt++) {
+    const fwd = await armRoute();
+    let sawSelf = false, sawDrop = false;
+    for (let i = 0; i < 40; i++) { const a = await fx(); if ((a.selfFrozen || 0) > 0) sawSelf = true; if (a.ftFlash === "drop") sawDrop = true; await waitFrames(1); }   // do NOTHING → window elapses
+    const after = await fx();
+    await page.keyboard.up(fwd);
+    if (sawSelf && sawDrop && !after.routeArmed) { dropped = { sawSelf, sawDrop, after }; await crop("route_dropped"); }
+    await waitGrounded();
+  }
+  check("missing a window DROPS the route (red DROP)", dropped != null && dropped.sawDrop, dropped ? "" : "no drop observed");
+  check("a dropped route FREEZES Naoya himself (~1s, punishable)", dropped != null && dropped.sawSelf, dropped ? "" : "no self-freeze");
+  check("route cleared after drop (not stuck armed/rooted)", dropped != null && !dropped.after.routeArmed && !dropped.after.rooted, dropped ? `armed=${dropped.after.routeArmed} rooted=${dropped.after.rooted}` : "");
 
   // ── data contract ──
   console.log("\n── data contract ──");

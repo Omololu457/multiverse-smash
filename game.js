@@ -175,7 +175,8 @@ import {
   updateKurapikaCommandCombat,   // Kurapika Fwd+Heavy single command-normal (kurapikaWindmill 8f multi-hit spin string)
   updateSpidermanCommandCombat,  // Spider-Man Fwd+Heavy single command-normal (spiderCombo 9f multi-hit Jump Attack Combo) + Ground Crawl kick-up exit gate
   updateSpidermanWebSwing,       // Spider-Man WEB-SWING per-frame pendulum (owns position while _swinging)
-  updateNaoyaCommandCombat,      // Naoya Fwd+Heavy single command-normal (naoyaCombo 6f multi-hit low combo string, row_08)
+  updateNaoyaCommandCombat,      // Naoya Fwd+Heavy → PLANNED ROUTE committed timing rekka (drop a window → Naoya self-freezes 1s)
+  updateNaoyaSnare,              // Naoya 24FPS SNARE per-frame enforcement (snared opponent that inputs anything → 1s freeze)
   fireYamamotoShunpo,            // Yamamoto Shunpo (Flash Step) — two-beat teleport-behind movement special (double-tap toward)
   updateMayuriCommandCombat,     // Mayuri Fwd+Heavy 2-stage cancel-on-hit rekka (mayuriCmd1 poke string → mayuriCmd2 low flurry launcher)
   updateLRyuuzakiCommandCombat,  // L "Ryuuzaki" Fwd+Heavy 3-stage cancel-on-hit rekka — merged capoeira chain (low sweep → rising crescent → aerial dive launcher)
@@ -5508,8 +5509,14 @@ function trackMakiShibuyaUnlock(fighter) {
 function updateMiscTimers(fighter) {
   if (!fighter) return
   if (fighter.teleportFlash   > 0) fighter.teleportFlash--
-  if (fighter._naoyaFrozen    > 0) fighter._naoyaFrozen--                 // Naoya Frame-Trap freeze status (live-ticking, distinct from hitstun)
-  if (fighter._ftFlash) { if (--fighter._ftFlash.t <= 0) fighter._ftFlash = null }   // Naoya Frame-Trap HUD drop/freeze flash fade
+  if (fighter._naoyaFrozen    > 0) fighter._naoyaFrozen--                 // Naoya freeze-lock status (live-ticking, distinct from hitstun) — snare-break / route-drop / ult finish
+  if (fighter._ftFlash) { if (--fighter._ftFlash.t <= 0) fighter._ftFlash = null }   // Naoya Planned-Route HUD drop/freeze flash fade
+  if (fighter._naoyaSnareBroke > 0) fighter._naoyaSnareBroke--            // Naoya 24FPS Snare — "RULE BROKEN" HUD flash fade
+  if (fighter._naoyaSnareSafe  > 0) fighter._naoyaSnareSafe--             // Naoya 24FPS Snare — "SAFE" (held-neutral) HUD flash fade
+  // PLANNED ROUTE interrupt: if Naoya is knocked into hitstun while a route is armed, he was hit out of it —
+  // clear the committed state + root cleanly (a route DROP nulls _ftState BEFORE its own freeze, so this only
+  // ever fires on an EXTERNAL hit, never on his self-freeze).
+  if (fighter._ftState && (fighter.hitstun || 0) > 0) { fighter._ftState = null; fighter._rooted = false }
   if (fighter._naoyaUltTimer  > 0) fighter._naoyaUltTimer--               // Naoya ultimate (guaranteed Frame-Trap) cinematic marker
   if (fighter._hitVoiceCd     > 0) fighter._hitVoiceCd--                  // Beerus/Goku Black/Naruto hit-reaction voice cooldown (combat.js)
   if (fighter._atkVoiceCd     > 0) fighter._atkVoiceCd--                  // Naruto offense (Hokage/combo-burst) voice cooldown (combat.js)
@@ -6017,6 +6024,15 @@ function _updatePlayerCombatBody(fighter) {
     inputState.light = false; inputState.heavy = false; inputState.upAttack = false
     inputState.air = false; inputState.downAir = false; inputState.airHeavy = false
     inputState.special = false; inputState.grab = false
+  }
+
+  // NAOYA — 24FPS SNARE enforcement: a snared fighter (any character) must HOLD NEUTRAL. Read here, with the
+  // fighter's own live inputState and AFTER the hitstun/blockstun early-return above (so the snare only enforces
+  // once they've regained control — the palm strike's own hitstun is a natural grace). Taking ANY action →
+  // updateNaoyaSnare applies a hard 1s freeze and returns true; we then early-return so the rule-break input
+  // itself resolves to nothing (they're frozen). Holding neutral ticks the window down → it expires harmlessly.
+  if ((fighter._naoyaSnare || 0) > 0 && updateNaoyaSnare(fighter, inputState)) {
+    updateCombat(fighter, getOpponent(fighter), {}, opts); return
   }
 
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
@@ -10247,6 +10263,44 @@ function drawNaoyaFrameTrapHUD(c, fighter) {
   c.restore()
 }
 
+// 24FPS SNARE HUD — draws over ANY fighter currently under Naoya's palm rule (_naoyaSnare) OR flashing the
+// break/safe result. Shows a shrinking "HOLD" ring (the seconds they must stay neutral) so the counterplay is
+// legible: sit still until it empties. Pure render layer off _naoyaSnare* (fed by abilities.js/game.js) — no
+// hitbox, no state mutation → determinism-safe. A no-op for anyone who isn't snared.
+function drawNaoyaSnareHUD(c, fighter) {
+  if (!c || !fighter) return
+  const snare = fighter._naoyaSnare || 0, broke = fighter._naoyaSnareBroke || 0, safe = fighter._naoyaSnareSafe || 0
+  if (snare <= 0 && broke <= 0 && safe <= 0) return
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const cx = x + w / 2, topY = y - h * 0.34
+  c.save()
+  c.textAlign = "center"; c.textBaseline = "middle"
+  if (snare > 0) {
+    const max = fighter._naoyaSnareMax || snare, frac = Math.max(0, Math.min(1, snare / max))
+    const r = Math.max(9, w * 0.22)
+    // background ring + draining arc (the "hold neutral" timer)
+    c.lineWidth = Math.max(3, w * 0.05)
+    c.strokeStyle = "rgba(20,14,34,0.85)"; c.beginPath(); c.arc(cx, topY, r, 0, Math.PI * 2); c.stroke()
+    c.strokeStyle = "#c084fc"; c.shadowColor = "#c084fc"; c.shadowBlur = 8
+    c.beginPath(); c.arc(cx, topY, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac); c.stroke()
+    c.shadowBlur = 0; c.globalAlpha = 0.95; c.fillStyle = "#e9d5ff"
+    c.font = `bold ${Math.max(8, Math.round(r * 0.9))}px monospace`
+    c.fillText("◈", cx, topY + 1)
+    c.globalAlpha = 0.9; c.fillStyle = "#cbb6f5"; c.textBaseline = "top"
+    c.font = `bold ${Math.max(8, Math.round(h * 0.07))}px monospace`
+    c.fillText("HOLD", cx, topY + r + 2)
+  } else {
+    const isBreak = broke > 0
+    const a = Math.max(0, Math.min(1, (isBreak ? broke / 16 : safe / 24)))
+    c.globalAlpha = a; c.fillStyle = isBreak ? "#ef4444" : "#4ade80"
+    c.shadowColor = c.fillStyle; c.shadowBlur = 10
+    c.font = `bold ${Math.max(10, Math.round(h * 0.11))}px monospace`
+    c.fillText(isBreak ? "RULE BROKEN" : "SAFE", cx, topY)
+  }
+  c.restore()
+}
+
 // CROW-BLIND overlay (Itachi Crow Clone, Stage 5) — makes the otherwise-invisible `obscured` debuff VISIBLE: a
 // murder of black crow-feathers flutters over a blinded fighter + a translucent dark veil, for the obscured
 // window (ticked down at fighter.obscuredTimer). Deterministic (feather placement seeded off the frame + the
@@ -12203,7 +12257,8 @@ function renderHybridFighter(fighter) {
     drawGenosExposedCoreOverlay(c, fighter)  // Genos — Exposed Core skin: glowing chest energy-core (skinId gate)
     drawHandlerShikigamiHUD(c, fighter)     // The Handler — shikigami cameo-select icon strip (row_08 icons) above the head (handler only)
     drawHandlerMahoragaHUD(c, fighter)      // The Handler — Mahoraga adaptation-tracker: spinning Dharma Wheel + ADAPTED ×N + duration (handler Mahoraga form only)
-    drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Projection Sorcery "24-frame" HUD: L→H→L pips + per-beat countdown + DROP/FRAMES-SET flash (naoya, mid-projection only)
+    drawNaoyaFrameTrapHUD(c, fighter)       // Naoya — Planned Route HUD: follow-up pips + per-beat window countdown + DROP/FRAMES-SET flash (naoya, mid-route only)
+    drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
@@ -16606,7 +16661,7 @@ gameLoop()
     byakuyaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, fadeTimer: f._byakuyaFadeTimer || 0, bankaiTimer: f._byakuyaBankaiTimer || 0, bankaiMax: f._byakuyaBankaiMax || 0, invuln: f.invulnTimer || 0, energy: Math.round(f.energy || 0), sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
     // NAOYA — Stage 4 special/Frame-Trap probe. Exposes the cast pose + energy/i-frames + the live Frame-Trap
     // state machine (armed/step/window, drop count) + the OPPONENT's freeze/hitstun (clean-finish evidence).
-    naoyaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p1" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0, x: Math.round(f.x || 0), cooldown: f.attackCooldown || 0, ftArmed: !!f._ftState, ftStep: f._ftState ? f._ftState.step : -1, ftWindow: f._ftState ? f._ftState.window : 0, ftWindowMax: f._ftState ? f._ftState.windowMax : 0, ftSeq: f._ftState ? f._ftState.seq : null, ftFlash: f._ftFlash ? f._ftFlash.kind : null, ftDropped: f._ftDropped || 0, ultTimer: f._naoyaUltTimer || 0, oppFrozen: o?._naoyaFrozen || 0, oppHitstun: o?.hitstun || 0, oppHealth: Math.round(o?.health || 0), sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
+    naoyaFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; const o = who === "p1" ? p2 : p1; return f ? { move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), invuln: f.invulnTimer || 0, x: Math.round(f.x || 0), cooldown: f.attackCooldown || 0, ftArmed: !!f._ftState, ftStep: f._ftState ? f._ftState.step : -1, ftWindow: f._ftState ? f._ftState.window : 0, ftWindowMax: f._ftState ? f._ftState.windowMax : 0, ftSeq: f._ftState ? f._ftState.seq : null, ftFlash: f._ftFlash ? f._ftFlash.kind : null, ftDropped: f._ftDropped || 0, rooted: !!f._rooted, selfFrozen: f._naoyaFrozen || 0, routeArmed: !!(f._ftState && f._ftState.route), ultTimer: f._naoyaUltTimer || 0, oppFrozen: o?._naoyaFrozen || 0, oppHitstun: o?.hitstun || 0, oppSnare: o?._naoyaSnare || 0, oppSnareMax: o?._naoyaSnareMax || 0, oppSnareBroke: o?._naoyaSnareBroke || 0, oppSnareSafe: o?._naoyaSnareSafe || 0, oppHealth: Math.round(o?.health || 0), selfSnare: f?._naoyaSnare || 0, sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
     naoyaHudRenders: () => _naoyaFtHudRenders,   // Stage-Naoya-HUD probe: frames the Projection HUD actually drew
     lightFx: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { atkFx: f._lightAtkFx || null, action: f.spriteHandler?.currentAction || null, crouchVariant: f._crouchAttackVariant || null, move: f.currentMove || null, castMove: f._spriteCastMove || null, energy: Math.round(f.energy || 0), kiraTimer: f._lightKiraTimer || 0, ultVariant: f._ultVariant || null, sheet: (f.spriteSheet || f._lastSpriteSheet || null) } : null },
     // Deterministic dash trigger — arms the double-tap flag physics.js consumes next frame (real dashTimer
@@ -17666,6 +17721,9 @@ gameLoop()
     // cleanly. Clears the special cooldowns/recovery so it reliably fires. Routing (real dir input → move) is
     // still covered by the keyboard-driven sprite checks.
     p1SpecialDir: (dir = null) => { if (!p1) return null; p1.nzCounterCd = 0; p1.nzSlumberCd = 0; p1.kurapikaCounterCd = 0; p1.attackCooldown = 0; p1.attacking = false; p1._specialHeldDir = dir; triggerSpecial(p1, getAbilityContext()); return { move: p1.currentMove || null, cast: p1._spriteCastMove || null } },
+    // Naoya test isolation — clear all Projection-Sorcery transient state on BOTH fighters (snare/freeze/route
+    // + HUD flashes) so back-to-back cases don't leak a lingering snare/route between them. Test-only.
+    naoyaClear: () => { for (const f of [p1, p2]) { if (!f) continue; f._naoyaSnare = 0; f._naoyaSnareMax = 0; f._naoyaSnareBroke = 0; f._naoyaSnareSafe = 0; f._naoyaFrozen = 0; f._ftState = null; f._rooted = false; f._ftFlash = null; f._spriteCastMove = null; f._spriteCastTimer = 0; f.hitstun = 0; f.attacking = false; f.currentAttack = null; f.currentMove = null; f.dashTimer = 0; f.isBlocking = false; f.vx = 0 } return true },
     // Dark Vegeta test hook — toggle the dark-aura form flag so the amplified PURPLE ki-blast tier can be
     // exercised before Stage 5 wires the transform. Read by abilities.js vegetaDarkKiKey().
     vegetaDarkSetAura: (on = true) => { if (p1) p1._darkAuraActive = !!on; return p1 ? !!p1._darkAuraActive : false },

@@ -8479,6 +8479,7 @@ const gotenks = {
     //    (no shard art on sheet — GOTENKS_ASSET_MAP.md); only these cast poses are real. ──
     gotenksKiBlast:  { frames: 2, width: 71, height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gotenks_kiblast_uniform.png" },  // open-hand ki-blast cast [190,191]
     gotenksKiCharge: { frames: 2, width: 83, height: 99, speed: 5, anchorY: 0, loop: true,  sheet: "./gotenks_kicharge_uniform.png" },                     // standing ki-charge gather (aura) [100,101]
+    gotenksRisingKick: { frames: 1, width: 85, height: 92, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gotenks_up_uniform.png" },    // Track C2 anti-air special — HONEST REUSE of the up-launcher art [146]
     // ── STAGE 5 — SUPER GHOST KAMIKAZE ATTACK cast poses (abilities.js GOTENKS_ULT; ghost projectiles carry
     //    gotenks_ghost_uniform via spawnProjectile sheet). REAL signature-ult art. ──
     gotenksGhostWind:  { frames: 4, width: 82, height: 102, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./gotenks_ghostwind_uniform.png" },  // arms-raised windup, cape flying [242-245]

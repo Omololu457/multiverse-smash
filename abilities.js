@@ -15713,26 +15713,39 @@ function fireZarakiShikaiSpecial(fighter, context) {
   return true
 }
 
+// Track D1 — the Shikai unsealing now plays a short (~1s) freeze BEAT (blade-draw hold pose + reiatsu-ember
+// aura + camera punch-in) via the shared formActivationCinematic, instead of an instant swap. The form is
+// applied at the RESOLVE beat (buildup → POP), mirroring Piccolo/Bardock. holdPose "charge" = the base-form
+// sword-lunge windup (resolves BEFORE the moveset swaps, so it renders during the freeze).
+const ZARAKI_SHIKAI_CINE = { key: "zarakiShikai", holdPose: "charge", auraInner: "rgba(255,210,120,A)", auraMid: "rgba(224,110,40,A)", flash: "#ffd6a0", backdrop: "#1a0e04" }
 export function enterZarakiShikai(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "zaraki") return false
   if (fighter._shikaiActive) return false
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if (isFormActivationCinematicActive()) return false     // one activation beat at a time (anti-spam / no freeze-lock)
   if (!spendEnergy(fighter, ZARAKI_SHIKAI_ENTER_COST)) return false
-  fighter._shikaiActive     = true
-  fighter._shikaiTimer      = ZARAKI_SHIKAI_DURATION
-  fighter._skinAnim         = retagFormAnim(ZARAKI_SHIKAI_ANIM, fighter._recolorTag)   // full moveset swap (+ alt-skin recolor if one is equipped)
-  fighter.currentForm       = "zarakiShikai"
-  fighter.damageMultiplier  = ZARAKI_SHIKAI_DMG_MULT
-  fighter.attackMultiplier  = ZARAKI_SHIKAI_DMG_MULT
-  // Transform-in: play the release pose, fully locked for its duration (Vegeta-SSJ morph shape).
-  const lock = 10 * 3   // 10 frames × speed 3
-  fighter._spriteCastMove  = "shikaiRelease"
-  fighter._spriteCastTimer = lock
-  fighter.attackCooldown   = lock
   fighter.vx = 0
-  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 12)
-  try { shakeCamera(context, 5, 10) } catch (_) {}
-  try { sound.playSfxFile?.(pickZarakiVoice("shikai"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // Shikai release callout
+  try { sound.playSfxFile?.(pickZarakiVoice("shikai"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // Shikai release callout accompanies the buildup
+  // The actual form-apply — runs ONCE at the RESOLVE beat (or immediately if the cinematic can't start).
+  const applyShikai = () => {
+    fighter._shikaiActive     = true
+    fighter._shikaiTimer      = ZARAKI_SHIKAI_DURATION
+    fighter._skinAnim         = retagFormAnim(ZARAKI_SHIKAI_ANIM, fighter._recolorTag)   // full moveset swap (+ alt-skin recolor if one is equipped)
+    fighter.currentForm       = "zarakiShikai"
+    fighter.damageMultiplier  = ZARAKI_SHIKAI_DMG_MULT
+    fighter.attackMultiplier  = ZARAKI_SHIKAI_DMG_MULT
+    fighter.teleportFlash     = Math.max(fighter.teleportFlash || 0, 12)
+    fighter.attackCooldown    = 12                        // brief settle as combat resumes
+  }
+  const opp = getTargetResolver(context)?.(fighter) || null
+  const started = activateFormActivationCinematic(fighter, opp, applyShikai, ZARAKI_SHIKAI_CINE)
+  if (!started) {
+    // Singleton busy → instant apply (old behaviour), incl. the release-pose lock.
+    applyShikai()
+    const lock = 10 * 3   // 10 frames × speed 3
+    fighter._spriteCastMove  = "shikaiRelease"; fighter._spriteCastTimer = lock; fighter.attackCooldown = lock
+    try { shakeCamera(context, 5, 10) } catch (_) {}
+  }
   return true
 }
 
@@ -16878,25 +16891,40 @@ const EMPEROR_DURATION    = 600     // ~10s active window
 const EMPEROR_MULT        = { dmg: 1.30, spd: 1.12, def: 1.10 }
 const EMPEROR_REVERT_VULN = 90      // ~1.5s post-revert disorientation (bonus damage taken)
 export function isKurapikaEmperor(fighter) { return !!fighter?._emperorActive }
+// Track D2 — Emperor Time now IGNITES through a short (~1s) freeze BEAT (scarlet flash + eye-ignite aura +
+// camera punch-in) via the shared formActivationCinematic, instead of an instant recolor. The scarlet-eyed
+// Set-B form applies at the RESOLVE beat (buildup → POP). holdPose "charge" = the base-form aura-gather pose
+// (resolves BEFORE the Set-B swap, so it renders during the freeze); the cinematic's crimson flash sells the
+// scarlet-eye ignite. The canon post-revert vulnerability is unchanged (updateKurapikaEmperor drives it).
+const KURAPIKA_EMPEROR_CINE = { key: "kurapikaEmperor", holdPose: "charge", auraInner: "rgba(255,70,70,A)", auraMid: "rgba(200,30,30,A)", flash: "#ff3b3b", backdrop: "#2a0406" }
 export function enterKurapikaEmperor(fighter, context = {}) {
   if ((fighter?.rosterKey || "").toLowerCase() !== "kurapika" || fighter._emperorActive) return false
   if ((fighter.attackCooldown || 0) > 0 || (fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false
+  if (isFormActivationCinematicActive()) return false     // one activation beat at a time (anti-spam / no freeze-lock)
   if (!spendEnergy(fighter, EMPEROR_COST)) return false
-  fighter._emperorActive    = true
-  fighter._emperorTimer     = EMPEROR_DURATION      // PUBLIC countdown → ET HUD (game.js) + auto-revert
-  fighter._emperorMax       = EMPEROR_DURATION
-  fighter._skinAnim         = characters.kurapika.emperorAnim   // WHOLE-moveset scarlet-eyed Set B swap
-  fighter.currentForm       = "emperor"
-  fighter.currentFormData   = { damageMultiplier: EMPEROR_MULT.dmg, attackMultiplier: EMPEROR_MULT.dmg, speedMultiplier: EMPEROR_MULT.spd, defenseMultiplier: EMPEROR_MULT.def, emperorForm: true }
-  fighter.damageMultiplier  = fighter.attackMultiplier = EMPEROR_MULT.dmg
-  fighter.speedMultiplier   = EMPEROR_MULT.spd
-  fighter.defenseMultiplier = EMPEROR_MULT.def
-  fighter._spriteCastMove   = "charge"              // brief scarlet aura-gather trigger pose (Set B row 37)
-  fighter._spriteCastTimer  = 18
-  fighter.teleportFlash     = 16
-  fighter.attackCooldown    = 18
   fighter.vx = 0
-  try { focusCameraOnAction(context, fighter, null, 1.05, 14); shakeCamera(context, 6, 12) } catch (_) {}
+  // The actual form-apply — runs ONCE at the RESOLVE beat (or immediately if the cinematic can't start).
+  const applyEmperor = () => {
+    fighter._emperorActive    = true
+    fighter._emperorTimer     = EMPEROR_DURATION      // PUBLIC countdown → ET HUD (game.js) + auto-revert
+    fighter._emperorMax       = EMPEROR_DURATION
+    fighter._skinAnim         = characters.kurapika.emperorAnim   // WHOLE-moveset scarlet-eyed Set B swap
+    fighter.currentForm       = "emperor"
+    fighter.currentFormData   = { damageMultiplier: EMPEROR_MULT.dmg, attackMultiplier: EMPEROR_MULT.dmg, speedMultiplier: EMPEROR_MULT.spd, defenseMultiplier: EMPEROR_MULT.def, emperorForm: true }
+    fighter.damageMultiplier  = fighter.attackMultiplier = EMPEROR_MULT.dmg
+    fighter.speedMultiplier   = EMPEROR_MULT.spd
+    fighter.defenseMultiplier = EMPEROR_MULT.def
+    fighter.teleportFlash     = 16
+    fighter.attackCooldown    = 12                    // brief settle as combat resumes
+  }
+  const opp = getTargetResolver(context)?.(fighter) || null
+  const started = activateFormActivationCinematic(fighter, opp, applyEmperor, KURAPIKA_EMPEROR_CINE)
+  if (!started) {
+    // Singleton busy → instant apply (old behaviour), incl. the scarlet aura-gather trigger pose.
+    applyEmperor()
+    fighter._spriteCastMove = "charge"; fighter._spriteCastTimer = 18; fighter.attackCooldown = 18
+    try { focusCameraOnAction(context, fighter, null, 1.05, 14); shakeCamera(context, 6, 12) } catch (_) {}
+  }
   return true
 }
 export function revertKurapikaEmperor(fighter) {

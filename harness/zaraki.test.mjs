@@ -213,12 +213,15 @@ await reset(120);
 
 // enter Shikai via Up+Special (W+L simultaneously, grounded → no jump), returns the post-enter snapshot.
 // Idempotent: if already in Shikai, just settle+return (W+L in-form would fire the Shikai special, not re-enter).
+// Shikai now applies at the RESOLVE beat of a short (~1s) unsealing cinematic (Track D), so poll for the
+// form to land rather than assuming it's instant.
+async function waitShikai(maxF = 100) { for (let i = 0; i < maxF; i++) { if ((await p1()).shikaiActive) return true; await waitFrames(1); } return false; }
 async function enterShikai() {
   await reset(80);
   if ((await p1()).shikaiActive) return await p1();
   await page.keyboard.down("w"); await page.keyboard.down("l"); await waitFrames(3);
   await page.keyboard.up("l"); await page.keyboard.up("w");
-  await waitFrames(4);
+  await waitShikai();
   return await p1();
 }
 
@@ -228,14 +231,17 @@ section("Stage 3 · Shikai — enter (Up+Special)");
   const e0 = (await p1()).energy;
   await page.keyboard.down("w"); await page.keyboard.down("l"); await waitFrames(3);
   await page.keyboard.up("l"); await page.keyboard.up("w");
-  await waitFrames(4);
+  await waitFrames(2);
+  const beat = await page.evaluate(() => window.__harness.formCine());   // the unsealing beat is now playing
+  const eAfter = (await p1()).energy;                                     // reiatsu is spent up-front, before the beat resolves
+  await waitShikai();                                                     // the form POPS at the RESOLVE beat
   const sh = await p1();
-  check("Up+Special enters Shikai", sh.shikaiActive === true, `active=${sh.shikaiActive}`);
+  check("Up+Special plays the Shikai unsealing beat (form-activation cinematic)", beat.active === true && beat.key === "zarakiShikai", JSON.stringify(beat));
+  check("Up+Special enters Shikai (form applies at the resolve beat)", sh.shikaiActive === true, `active=${sh.shikaiActive}`);
   check("Shikai swaps the full moveset (_skinAnim)", sh.hasSkinAnim === true, `skinAnim=${sh.hasSkinAnim}`);
-  check("Shikai spends ~60 reiatsu", Math.abs((e0 - sh.energy) - 60) < 3, `spent=${(e0 - sh.energy).toFixed(1)}`);
+  check("Shikai spends ~60 reiatsu (up-front)", Math.abs((e0 - eAfter) - 60) < 3, `spent=${(e0 - eAfter).toFixed(1)}`);
   check("Shikai damage buff ×1.2", Math.abs((sh.damageMult ?? sh.damageMultiplier ?? 1) - 1.2) < 0.01, `mult=${sh.damageMult ?? sh.damageMultiplier}`);
   check("Shikai duration timer running", sh.shikaiTimer > 0, `timer=${sh.shikaiTimer}`);
-  check("transform-in plays shikai_release", (sh.action === "shikaiRelease") || (sh.spriteSheet || "").includes("shikai_release_uniform"), `action=${sh.action}`);
 }
 
 section("Stage 3 · Shikai movement/state (skinAnim swap)");

@@ -126,8 +126,12 @@ try {
   section("Emperor Time ultimate (Set B transformation + buff + post-revert vulnerability)");
   await prep(80); await grounded();
   await page.evaluate(() => window.__harness.fillEnergy());
-  const ult = await page.evaluate(() => window.__harness.p1Ultimate()); await wf(3);
+  const ult = await page.evaluate(() => window.__harness.p1Ultimate()); await wf(2);
+  const beat = await page.evaluate(() => window.__harness.formCine());   // the eye-ignite beat is now playing
+  // Emperor Time now applies at the RESOLVE beat of a short (~1s) ignite cinematic (Track D) — poll for it.
   let em = await p1();
+  for (let i = 0; i < 100 && !em.emperorActive; i++) { await wf(1); em = await p1(); }
+  check("Emperor Time plays the eye-ignite beat (form-activation cinematic)", beat.active === true && beat.key === "kurapikaEmperor", JSON.stringify(beat));
   check("Emperor Time activates (buff ×1.30 + timer)", !!ult.cast && em.emperorActive && Math.abs(em.damageMultiplier - 1.30) < 0.001 && em.emperorTimer > 0, `active=${em.emperorActive} mult=${em.damageMultiplier}`);
   await force("idle"); const es = await sawSheet("kurapika_idle_uniform__emperor", 8);
   check("whole-moveset swaps to scarlet Set B (__emperor)", es.includes("kurapika_idle_uniform__emperor"), `sheet=${es}`);

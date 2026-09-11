@@ -524,6 +524,7 @@
     "test:low-hp-music": "node harness/low_hp_music_intensity.mjs",
     "test:ambient-stages": "node harness/ambient_stage_verify.mjs",
     "test:naruto-win": "node harness/naruto_win_wire.mjs",
+    "test:dormant-win-voice": "node harness/dormant_win_voice.mjs",
     "test:music-personality": "node harness/music_personality.test.mjs",
     "test:custom-playlist": "node harness/custom_playlist.test.mjs",
     "test:challenges": "node harness/challenges.test.mjs",

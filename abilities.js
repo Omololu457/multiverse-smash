@@ -22112,121 +22112,193 @@ export function executeSpidermanSpecial(fighter, context) {
   return fireSpidermanWebImpact(fighter, context)                    // neutral → Web Impact (quick short web)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NAOYA ZENIN — Stage 3: command chain. Fwd+Heavy → naoyaCombo: the row_08 "low combo string" — a crouched
-// jab series that sweeps into a spin kick (frame ~5 carries an orange spin-kick FX). A SINGLE committed
-// MULTI-HIT command normal (Spider-Man/Onoki/Yamamoto pattern; the re-armed hits + low knockback pin the
-// target inside the string). FREE (cooldown-gated, no cursed-energy cost). The SAME row_08 art is reused —
-// with STRICTER scripted frame-data — as Frame-Trap step 1 in Stage 4 (Stage-0 dual-purpose note), kept as
-// separate move keys so the freeform-combo context and the locked-special context never share frame-data.
-// ─────────────────────────────────────────────────────────────────────────────
-const NAOYA_CMD = {
-  // ~3 hits × 20 raw = ~60 raw → ~36 EFF (×0.60), committed-command-normal band (≈ spiderCombo/onokiCombo).
-  naoyaCombo: { damage: 20, startup: 6, active: 16, recovery: 20, hitstun: 16, knockbackX: 4, knockbackY: -1, rangeX: 88, rangeY: 58, cd: 40 },
-}
-function fireNaoyaCmd(fighter, key) {
-  const md = NAOYA_CMD[key]
-  if (!md || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
-  const attack = createAttackFromMove(fighter, key, md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
-  setAttackState(fighter, attack, md.cd)   // FREE — cooldown only
-  fighter._rekkaNext = null
-  fighter._cmdHitLanded = false
-  // MULTI-HIT for the jab-string → spin-kick: re-arm the hit across the active window (~frames 9, 15).
-  schedulePendingSpawn(9,  () => { if (fighter.currentAttack && fighter.currentAttack.name === key) fighter.currentAttack.hasHit = false })
-  schedulePendingSpawn(15, () => { if (fighter.currentAttack && fighter.currentAttack.name === key) fighter.currentAttack.hasHit = false })
-  return true
-}
-// ─────────────────────────────────────────────────────────────────────────────
-// NAOYA — Stage 4: FRAME-TRAP (Projection Sorcery, the skill-gap mechanic). Down+Special opens a visible
-// telegraph (row_03 crouch-transition pose). The player must then land a FIXED, unchanging 3-step string —
-// Light → Heavy → Light — each press inside a TIGHT timing window (strict-link target-combo, NOT freeform):
-//   step 1 → naoyaFtStep1 (row_08 crouch combo)  ·  step 2 → naoyaFtStep2 (row_10 kick)
-//   step 3 → naoyaFtFinish (row_07 white-wing STRIKE) → applies a genuine FREEZE (opponent fully locked, a
-//            set duration, distinct from normal hitstun).
-// A dropped press (missed window) HALTS the sequence exactly there, leaving Naoya in real, punishable recovery
-// — no partial credit. Walk/dash are untouched: the "must follow a fixed sequence" constraint lives ONLY here.
-// NOTE (owner decision #3): the freeze was specced "via resolveGrab's stun payload", but resolveGrab bails on
-// attacker.comboCounter>0 (always true mid-sequence) and its updateGrab release throws the foe — both wrong for
-// an in-place freeze. So the freeze is applied DIRECTLY (equivalent observable status: full lock, set duration).
-// ─────────────────────────────────────────────────────────────────────────────
-// ★★★ PLAYTEST TUNABLES — Projection Sorcery difficulty/reward knobs. These are the numbers to adjust when
-// tuning how HARD the frame-trap is to execute and how REWARDING a clean finish is. All in FRAMES @60fps.
-//   openWindow   — frames to land the FIRST input after opening (higher = more lenient start).
-//   stepWindow   — frames to land EACH subsequent input (LOWER = tighter/harder execution; the core difficulty).
-//   freeze       — how long a clean finish LOCKS the opponent (higher = bigger reward/punish window).
-//   dropRecovery — how punishable a DROPPED sequence leaves Naoya (higher = riskier to attempt).
-//   reach        — how close Naoya must be for the strikes/freeze to land.  cost — cursed-energy price.
-// The HUD (game.js drawNaoyaFrameTrapHUD) reads openWindow/stepWindow live via _ftState.windowMax, so retuning
-// these here automatically retunes the on-screen countdown — no HUD edit needed.
-const NAOYA_FT = {
-  cost: 20, openWindow: 22, stepWindow: 14, reach: 96,
-  dropRecovery: 30,                 // punishable whiff/drop recovery
-  freeze: 90,                       // clean-finish freeze lock (frames)
-  steps: [
-    { want: "light", pose: "naoyaFtStep1", hold: 10, damage: 24, hitstun: 22 },
-    { want: "heavy", pose: "naoyaFtStep2", hold: 10, damage: 30, hitstun: 22 },
-    { want: "light", pose: "naoyaFtFinish", hold: 16, damage: 46, hitstun: 30, freeze: true },
-  ],
-}
-function applyNaoyaFreeze(opp, dur) {
-  if (!opp) return
-  opp.vx = 0; opp.vy = 0
-  opp.hitstun = Math.max(opp.hitstun || 0, dur)   // the lock itself
-  opp._naoyaFrozen = dur                          // distinct freeze-status MARKER (separate from hitstun)
-  opp.colorFlash = Math.max(opp.colorFlash || 0, 12)
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// NAOYA ZENIN — FULL KIT REDESIGN (2026-09-11): PROJECTION SORCERY, faithful to canon. "Twenty-four
+// frames a second": Naoya pre-plans a movement into 24 frames and executes it in one blinding burst;
+// while his palm's rule is imposed, anything that DEVIATES from the plan freezes inside a single frame
+// for one full second, fully vulnerable. The redesign expresses that as TWO signature mechanics + the
+// promoted Frame-Trap ultimate. NO new art — every pose is an existing Naoya sheet.
+//   • 24FPS SNARE  (neutral Special) — palm-contact rule on the OPPONENT: act while snared → they freeze.
+//   • PLANNED ROUTE (Fwd+Heavy rekka) — committed timing string on NAOYA: drop a window → HE freezes.
+//   • FRAME-TRAP    (Ultimate)        — the meter payoff that ties both together (guaranteed + re-snare).
+// The shared FREEZE-LOCK (applyNaoyaFreeze, 1s = 60f, distinct from hitstun) is reused by all three.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+const NAOYA_FREEZE = 60   // 1 full second @60fps — the Projection-Sorcery "frozen inside one frame" lock (shared)
+function applyNaoyaFreeze(target, dur) {
+  if (!target) return
+  target.vx = 0; target.vy = 0
+  target.hitstun = Math.max(target.hitstun || 0, dur)   // the lock itself (fully vulnerable — hitstun grants no armor)
+  target._naoyaFrozen = dur                             // distinct freeze-status MARKER (drives the HUD/visual; separate from hitstun)
+  target.colorFlash = Math.max(target.colorFlash || 0, 12)
 }
 // Naoya cast-voice helper (audio-only, JA) — gated by the shared _atkVoiceCd so casts don't stack.
 function naoyaCastVoice(fighter, pool, cd = 80) {
   if ((fighter._atkVoiceCd || 0) > 0) return
   try { sound.playSfxFile?.(pickNaoyaVoice(pool), null); fighter._atkVoiceCd = cd } catch (_) {}
 }
-function fireNaoyaFrameTrap(fighter, context) {
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STAGE 2 — "24FPS SNARE" (neutral Special): the palm-contact rule imposed on the OPPONENT.
+// A close-range white-wing palm strike. On a clean (unblocked) hit it applies a SNARE for `window` frames.
+// While snared, the opponent must HOLD NEUTRAL (no inputs at all). The instant they take ANY action —
+// attack, movement, jump, dash, block, special — they suffer a hard 1-second FREEZE (fully punishable),
+// exactly the freeze-lock the Frame-Trap uses. Sit perfectly still for the whole window → it expires
+// harmlessly (the intended counterplay; a disciplined opponent takes zero freeze). BLOCKING the palm avoids
+// the snare entirely, and the strike's real startup/recovery make throwing it out raw a genuine risk.
+//   startup/active/recovery — the palm's own frame-data (whiff/block = punishable).  reach — palm range.
+//   window — how long the "hold neutral" rule lasts.  freeze — the punish length if they break it.
+// The per-frame enforcement lives in game.js updateNaoyaSnare (it needs the snared fighter's live inputState).
+// ─────────────────────────────────────────────────────────────────────────────
+const NAOYA_SNARE = {
+  cost: 24, startup: 11, active: 4, recovery: 26, reach: 84,
+  damage: 12, hitstun: 12, kbX: 2,
+  window: 108,                 // ~1.8s "hold neutral or freeze" rule
+  freeze: NAOYA_FREEZE,        // 60f (1s) punish if they break the rule
+}
+function fireNaoyaSnare(fighter, context) {
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || fighter._ftState) return false
-  if (!spendEnergy(fighter, NAOYA_FT.cost)) return false
-  // windowMax + seq are HUD-facing (drawNaoyaFrameTrapHUD reads them to render the frame countdown + L→H→L pips
-  // without importing NAOYA_FT). Purely additive — the state machine only reads step/window.
-  fighter._ftState = { step: 0, window: NAOYA_FT.openWindow, windowMax: NAOYA_FT.openWindow, seq: NAOYA_FT.steps.map(s => s.want) }
-  fighter._spriteCastMove  = "naoyaFrameTrap"     // telegraph pose (row_03), identity-mapped
-  fighter._spriteCastTimer = NAOYA_FT.openWindow
-  fighter.attackCooldown   = getAttackDuration(4, fighter)   // brief; the state machine drives the rest
+  if (!spendEnergy(fighter, NAOYA_SNARE.cost)) return false
+  fighter._spriteCastMove  = "naoyaFtFinish"   // white-wing palm reach (row_07) — the hand that imposes the rule
+  fighter._spriteCastTimer = NAOYA_SNARE.startup + NAOYA_SNARE.active + 8
+  fighter.attackCooldown   = getAttackDuration(NAOYA_SNARE.startup + NAOYA_SNARE.active + NAOYA_SNARE.recovery, fighter)   // real, punishable commitment
+  fighter.vx = 0
   fighter._rekkaNext = null
-  naoyaCastVoice(fighter, "frameTrap", 100)   // dedicated arrogant "already planned this" telegraph line
+  naoyaCastVoice(fighter, "special", 80)
+  schedulePendingSpawn(NAOYA_SNARE.startup, () => {
+    const opp = getTargetResolver(context)(fighter)
+    if (!opp || opp.eliminated) return
+    const dx = (opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)
+    if (Math.abs(dx) > NAOYA_SNARE.reach || dx * (fighter.facing || 1) < -12) return   // out of palm range / behind him
+    if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, 18); return }   // BLOCKED → no snare (clean counterplay)
+    applyScaledDamage(opp, NAOYA_SNARE.damage, { source: "naoya-snare", attacker: fighter, move: "special" })
+    opp.hitstun = Math.max(opp.hitstun || 0, NAOYA_SNARE.hitstun)
+    opp.vx = (fighter.facing || 1) * NAOYA_SNARE.kbX
+    opp.colorFlash = 8
+    opp._naoyaSnare       = NAOYA_SNARE.window   // ★ APPLY THE RULE — enforced per-frame in game.js updateNaoyaSnare
+    opp._naoyaSnareMax    = NAOYA_SNARE.window
+    opp._naoyaSnareBy     = fighter
+    opp._naoyaSnareBroke  = 0; opp._naoyaSnareSafe = 0
+  })
   return true
 }
-function dropNaoyaFrameTrap(fighter) {
-  fighter._ftState = null
-  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
-  fighter.attackCooldown = getAttackDuration(NAOYA_FT.dropRecovery, fighter)   // real, punishable recovery
-  fighter._ftDropped = (fighter._ftDropped || 0) + 1   // telemetry
-  fighter._ftFlash = { kind: "drop", t: 22 }   // HUD: red "DROP" flash (the plan failed)
-}
-function advanceNaoyaFrameTrap(fighter, context) {
-  const st  = fighter._ftState
-  const cur = NAOYA_FT.steps[st.step]
-  fighter._spriteCastMove  = cur.pose
-  fighter._spriteCastTimer = cur.hold
-  fighter.attackCooldown   = getAttackDuration(cur.hold, fighter)
-  const opp = getTargetResolver(context)(fighter)
-  if (opp && Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)) <= NAOYA_FT.reach) {
-    applyScaledDamage(opp, cur.damage, { source: "naoya-frametrap" })
-    opp.hitstun = Math.max(opp.hitstun || 0, cur.hitstun)
-    opp.colorFlash = 6
-    if (cur.freeze) applyNaoyaFreeze(opp, NAOYA_FT.freeze)   // clean finish → freeze lock
+// Per-frame SNARE enforcement — called from game.js for a snared fighter with its OWN live inputState (so
+// "held neutral vs took an action" is read directly, not inferred from knockback velocity). Returns true the
+// frame it triggers a freeze (game.js then early-returns so the rule-break input itself does nothing).
+export function updateNaoyaSnare(snared, inputState) {
+  if (!snared || (snared._naoyaSnare || 0) <= 0) return false
+  const i = inputState || {}
+  // "Held neutral" = NO input AND no action-state at all. Detect BOTH raw input (covers held buttons / block-
+  // hold, and inputs from any source) AND observable action-state (attacking, moving, airborne, dashing,
+  // blocking) so a deviation caused ANY way breaks the rule — faithful to "if the target acts against it".
+  const inputActed = !!(i.left || i.right || i.down || i.up || i.jump || i.light || i.heavy ||
+                        i.upAttack || i.special || i.ultimate || i.dash || i.grab || i.charge || i.block)
+  // NOTE: movement is detected via the direction/jump/dash INPUT flags above — NOT via velocity, so the palm
+  // strike's own residual knockback (imposed on them, not a chosen action) never false-triggers the rule.
+  const stateActed = !!snared.attacking || !!snared.currentMove || !!snared.currentAttack ||
+                     (snared.dashTimer || 0) > 0 || !!snared.isBlocking
+  if (inputActed || stateActed) {                // broke the rule → hard 1s freeze, fully punishable
+    applyNaoyaFreeze(snared, NAOYA_SNARE.freeze)
+    snared._naoyaSnare = 0
+    snared._naoyaSnareBroke = 16                  // HUD: red "RULE BROKEN" flash
+    return true
   }
-  st.step++
-  if (st.step >= NAOYA_FT.steps.length) {
-    fighter._ftState = null                       // sequence complete
-    fighter._ftFlash = { kind: "freeze", t: 28 }  // HUD: gold "FRAMES SET" flash (the plan landed)
-  } else {
-    st.window = NAOYA_FT.stepWindow
-    st.windowMax = NAOYA_FT.stepWindow            // HUD: reset the per-beat countdown scale
+  if (--snared._naoyaSnare <= 0) {               // held neutral the whole window → expires harmlessly
+    snared._naoyaSnare = 0
+    snared._naoyaSnareSafe = 24                   // HUD: green "SAFE" flash
   }
+  return false
 }
 
-// Grounded command-normal driver (mirrors updateSpidermanCommandCombat / updateOnokiCommandCombat) + the
-// FRAME-TRAP state machine. While a Frame-Trap is armed it consumes the L/H edges (returns true) so the fixed
-// string drives the sequence and no normal leaks out. Otherwise Fwd+Heavy fires the naoyaCombo command normal;
-// neutral light/heavy/up/air/down_air stay on the normal path.
+// ─────────────────────────────────────────────────────────────────────────────
+// STAGE 3 — "PLANNED ROUTE" (Fwd+Heavy rekka): a committed, high-execution timing string on NAOYA himself.
+// Fwd+Heavy fires the opener AND locks him into the route (_rooted → no walk/jump/dash; _ftState machine +
+// the shared frame-window HUD). Each subsequent hit needs the CORRECT button inside a TIGHT window:
+//   opener (Fwd+Heavy, row_08) → window openWindow=12f wanting HEAVY → hit2 (row_10 kick) →
+//   window stepWindow=10f wanting LIGHT → finisher (row_07 white-wing LAUNCHER). Full string = H → H → L.
+// Nail every window → the whole route completes fast for strong damage + a launch (high reward).
+// A LATE press (window elapsed) OR a WRONG button immediately DROPS the route and FREEZES NAOYA for 1 full
+// second, fully punishable — he broke his own predetermined rule. High risk / high reward, no partial credit.
+//   openWindow/stepWindow — the execution difficulty (frames to hit each follow-up).  selfFreeze — the drop cost.
+// ─────────────────────────────────────────────────────────────────────────────
+const NAOYA_ROUTE = {
+  cd: 40, reach: 94, hold: 8,
+  openWindow: 12,              // frames to land the FIRST follow-up (slightly lenient start)
+  stepWindow: 10,              // frames for each subsequent follow-up (tight — the core execution test)
+  selfFreeze: NAOYA_FREEZE,    // drop → Naoya frozen 1s (fully punishable), reusing the shared freeze-lock
+  opener: { damage: 24, startup: 6, active: 3, recovery: 10, hitstun: 16, knockbackX: 3, knockbackY: 0, rangeX: 88, rangeY: 58 },
+  steps: [   // the timed FOLLOW-UPS after the opener (want = the button that must be pressed in-window)
+    { want: "heavy", pose: "naoyaFtStep2",  damage: 30, hitstun: 20, knockbackX: 4, knockbackY: -1 },              // hit 2 — row_10 kick
+    { want: "light", pose: "naoyaFtFinish", damage: 54, hitstun: 30, knockbackX: 9, knockbackY: -11, launch: true }, // finisher — row_07 white-wing LAUNCHER
+  ],   // opener 24 + 30 + 54 = 108 raw → ~65 EFF on a clean route (well above the old ~36 EFF single normal)
+}
+function fireNaoyaRouteOpener(fighter, context) {
+  const md = NAOYA_ROUTE.opener
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const attack = createAttackFromMove(fighter, "naoyaCombo", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, NAOYA_ROUTE.cd)
+  fighter._rekkaNext = null
+  fighter._cmdHitLanded = false
+  // ARM the route — COMMITTED: rooted (no walk/jump/dash) + windowed follow-up state machine (reuses the _ftState HUD).
+  fighter._rooted  = true
+  fighter._ftState = { step: 0, window: NAOYA_ROUTE.openWindow, windowMax: NAOYA_ROUTE.openWindow, seq: NAOYA_ROUTE.steps.map(s => s.want), route: true }
+  fighter._ftFlash = null
+  // Consume the buffered OPENER press so it can't bleed into the first follow-up window (the follow-up reuses
+  // the same buttons — without this the ~10f input buffer keeps `heavy` true and no fresh edge is ever seen, so
+  // the route would be undoable). Each beat now needs a genuine fresh press; HOLDING never auto-advances (a held
+  // key re-buffers while _cmdPrevHeavy stays true → no edge).
+  try { clearInputBuffer(fighter) } catch (_) {}
+  fighter._cmdPrevHeavy = true; fighter._cmdPrevLight = true
+  naoyaCastVoice(fighter, "special", 70)
+  return true
+}
+function advanceNaoyaRoute(fighter, context) {
+  const st  = fighter._ftState
+  const cur = NAOYA_ROUTE.steps[st.step]
+  fighter._spriteCastMove  = cur.pose
+  fighter._spriteCastTimer = NAOYA_ROUTE.hold + 4
+  fighter.attackCooldown   = getAttackDuration(NAOYA_ROUTE.hold, fighter)
+  fighter.vx = 0
+  const opp = getTargetResolver(context)(fighter)
+  if (opp && !opp.eliminated && Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2)) <= NAOYA_ROUTE.reach) {
+    const blocked = !!opp.isBlocking
+    let dmg = cur.damage
+    if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 16) }
+    applyScaledDamage(opp, dmg, { source: "naoya-route", attacker: fighter, move: cur.launch ? "route-finish" : "route" })
+    opp.colorFlash = 6
+    if (!blocked) {
+      opp.hitstun = Math.max(opp.hitstun || 0, cur.hitstun)
+      opp.vx = (fighter.facing || 1) * (cur.knockbackX || 0)
+      if (cur.knockbackY) { opp.vy = cur.knockbackY; opp.onGround = false; opp.grounded = false }
+    }
+  }
+  st.step++
+  if (st.step >= NAOYA_ROUTE.steps.length) completeNaoyaRoute(fighter)
+  else {
+    st.window = NAOYA_ROUTE.stepWindow; st.windowMax = NAOYA_ROUTE.stepWindow
+    // Consume the buffered press that just advanced us so it can't instantly satisfy the NEXT window too
+    // (same-button beats + the ~10f buffer would otherwise auto-chain). Next beat needs a fresh press.
+    try { clearInputBuffer(fighter) } catch (_) {}
+    fighter._cmdPrevHeavy = true; fighter._cmdPrevLight = true
+  }
+}
+function completeNaoyaRoute(fighter) {
+  fighter._ftState = null
+  fighter._rooted  = false
+  fighter._ftFlash = { kind: "freeze", t: 28 }   // HUD: gold "FRAMES SET" — the plan executed perfectly
+  fighter.attackCooldown = getAttackDuration(NAOYA_ROUTE.hold + 6, fighter)   // brief recovery after the launcher
+}
+function dropNaoyaRoute(fighter) {
+  fighter._ftState = null
+  fighter._rooted  = false
+  fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  fighter._ftFlash = { kind: "drop", t: 22 }      // HUD: red "DROP" — he broke his own rule
+  fighter._ftDropped = (fighter._ftDropped || 0) + 1
+  applyNaoyaFreeze(fighter, NAOYA_ROUTE.selfFreeze)   // ★ SELF-FREEZE 1s, fully punishable
+}
+
+// Grounded command-normal driver + the PLANNED-ROUTE state machine. While the route is armed it consumes the
+// L/H edges (returns true) so the committed string drives — a correct in-window press advances, a late/wrong
+// press drops (self-freeze). Otherwise Fwd+Heavy opens the route; neutral normals stay on the normal path.
 export function updateNaoyaCommandCombat(fighter, inputState, context, getPhase) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "naoya" || !inputState) return false
   const heavyEdge = !!inputState.heavy && !fighter._cmdPrevHeavy   // fresh tap, not held
@@ -22235,28 +22307,36 @@ export function updateNaoyaCommandCombat(fighter, inputState, context, getPhase)
   fighter._cmdPrevLight   = !!inputState.light
   fighter._cmdPrevSpecial = !!inputState.special
 
-  // FRAME-TRAP: strict-link L→H→L string inside tight windows. Missed window → drop (punishable).
+  // PLANNED ROUTE: committed timing string. Correct button in-window advances; late (window elapsed) or WRONG
+  // button drops → Naoya self-freezes 1s (fully punishable). No partial credit.
   if (fighter._ftState) {
     const st = fighter._ftState
     st.window--
-    if (st.window <= 0) { dropNaoyaFrameTrap(fighter); return true }
-    const want = NAOYA_FT.steps[st.step].want
-    if ((want === "light" && lightEdge) || (want === "heavy" && heavyEdge)) advanceNaoyaFrameTrap(fighter, context)
-    return true   // consume inputs while armed — no normals mid-trap
+    if (st.window <= 0) { dropNaoyaRoute(fighter); return true }   // late → drop
+    const want = NAOYA_ROUTE.steps[st.step].want
+    if (want === "heavy") {
+      if (heavyEdge)      advanceNaoyaRoute(fighter, context)
+      else if (lightEdge) dropNaoyaRoute(fighter)                  // wrong button → drop
+    } else {   // want "light"
+      if (lightEdge)      advanceNaoyaRoute(fighter, context)
+      else if (heavyEdge) dropNaoyaRoute(fighter)                  // wrong button → drop
+    }
+    return true   // consume inputs while committed — no normals leak out mid-route
   }
 
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const forward = fighter.facing === 1 ? !!inputState.right : !!inputState.left
   const canStart = !fighter.attacking && !fighter.currentMove && (fighter.attackCooldown || 0) <= 0
   if (!canStart || !grounded) return false
-  if (forward && heavyEdge) return fireNaoyaCmd(fighter, "naoyaCombo")   // Fwd+Heavy → low combo string
+  if (forward && heavyEdge) return fireNaoyaRouteOpener(fighter, context)   // Fwd+Heavy → open the Planned Route
   return false
 }
 
-// ── STAGE 4 SPECIALS (executeNaoyaSpecial, dir-branched via _specialHeldDir) ──
-// neutral = Energy Dart spread (row_11 orange darts) · Fwd = Pitch Throw (row_09 windup → single FAST dart,
-// reuses the dart payload per owner decision) · Back = Frame-Skip retreat blink · Up = Frame-Skip advance blink
-// (row_02 dash art, i-frames, NO attack — the low-execution mobility tool) · Down = Frame-Trap (above).
+// ── SPECIALS (executeNaoyaSpecial, dir-branched via _specialHeldDir) ──
+// neutral = 24FPS Snare (palm rule, above) · Fwd = Pitch Throw (row_09 windup → single FAST dart) · Back =
+// Frame-Skip retreat blink · Up = Frame-Skip advance blink (row_02 dash art, i-frames, NO attack — mobility) ·
+// Down = Energy Dart spread (row_11 orange 3-dart zoning). (The old free Down+Special Frame-Trap is retired —
+// its opponent-freeze role is now the Snare's, its windowed-execution role is the Planned Route's + the Ult's.)
 const NAOYA_DART = { color: "#f5852a" }
 function fireNaoyaEnergyDart(fighter, context) {
   const cost = 18
@@ -22317,21 +22397,24 @@ export function executeNaoyaSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "naoya") return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || fighter._ftState) return false
   const dir = fighter._specialHeldDir || null   // "F" | "B" | "U" | "D" | null
-  if (dir === "D") return fireNaoyaFrameTrap(fighter, context)          // Down → open Frame-Trap (skill mechanic)
   if (dir === "F") return fireNaoyaPitch(fighter, context)             // Fwd  → Pitch Throw (fast single dart)
   if (dir === "B") return fireNaoyaFrameSkip(fighter, "B", context)    // Back → Frame-Skip retreat blink
   if (dir === "U") return fireNaoyaFrameSkip(fighter, "U", context)    // Up   → Frame-Skip advance blink
-  return fireNaoyaEnergyDart(fighter, context)                         // neutral → Energy Dart spread
+  if (dir === "D") return fireNaoyaEnergyDart(fighter, context)        // Down → Energy Dart spread (moved from neutral)
+  return fireNaoyaSnare(fighter, context)                              // neutral → 24FPS Snare (palm rule)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// NAOYA — ULTIMATE (Stage 5): "Projection Sorcery: Frame-Trap" — the PROMOTED signature (owner decision #2).
-// Stage 0 confirmed NO ultimate-tier art exists; rather than invent one, this formalizes a clean Frame-Trap
-// into the meter-gated ult slot as a GUARANTEED auto-execution: spend 100 cursed energy → the full scripted
-// L→H→L sequence plays on the LIVE fighter (telegraph → step1 → step2 → white-wing FREEZE finish) with the foe
-// held through it (Mayuri-Bankai inline pattern — NO duplicate instance), for a guaranteed ~198 EFF payoff.
-// HONEST: this reuses the Stage-4 cast poses — there is NO oversized/unique ult FRAME (art gap, flagged). It is
-// meter-gated (unlike the free Down+Special skill version) but not "cinematic-tier" content.
+// NAOYA — ULTIMATE: "Projection Sorcery: Frame-Trap" — KEPT and ENHANCED (redesign Stage 4). It already fit
+// the theme: spend 100 cursed energy → a GUARANTEED scripted high-speed sequence on the LIVE fighter
+// (telegraph → step1 → step2 → white-wing FREEZE finish) with the foe held through it (Mayuri-Bankai inline
+// pattern — NO duplicate instance), for a guaranteed ~198 EFF payoff. The ENHANCEMENT ties the two new
+// mechanics together as the meter reward: the ult is the "Planned Route" run with the timing risk REMOVED
+// (auto-executed, no drop possible — you paid meter for the guarantee), and its freeze finish ALSO re-applies
+// the 24FPS SNARE, so the instant the 1s freeze ends the opponent is STILL under the palm's rule and must hold
+// neutral or eat another freeze. One button = a guaranteed combo that flows straight into the snare mind-game.
+// HONEST: reuses the existing cast poses — NO oversized/unique ult FRAME (art gap, flagged); meter-gated but
+// not "cinematic-tier" content.
 // ─────────────────────────────────────────────────────────────────────────────
 const NAOYA_ULT = {
   cost: 100, cinematic: 44,
@@ -22346,7 +22429,7 @@ function executeNaoyaUltimate(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "naoya") return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, NAOYA_ULT.cost)) return false
-  fighter._ftState = null                          // cancel any live skill-trap in progress
+  fighter._ftState = null; fighter._rooted = false   // cancel any live Planned Route in progress (meter overrides it)
   const opp = getTargetResolver(context)(fighter) || null
   fighter.vx = 0
   fighter.colorFlash = 14
@@ -22368,7 +22451,13 @@ function executeNaoyaUltimate(fighter, context) {
         applyScaledDamage(opp, dmg, { source: "naoya-ultimate", attacker: fighter, move: "ultimate" })   // honest ×0.60 → ~198 EFF total (block 25%) — attacker+move → Brutality killing-blow stamp (Naoya Frame-Trap)
         opp.colorFlash = 10
         if (!blocked) opp.hitstun = Math.max(opp.hitstun || 0, b.hitstun || 24)
-        if (b.freeze && !blocked) applyNaoyaFreeze(opp, NAOYA_FT.freeze)   // finish → freeze lock
+        if (b.freeze && !blocked) {
+          applyNaoyaFreeze(opp, NAOYA_FREEZE)                 // finish → 1s freeze lock
+          opp._naoyaSnare = NAOYA_SNARE.window                // ENHANCEMENT: re-impose the 24FPS Snare rule — when the freeze ends, hold neutral or freeze again
+          opp._naoyaSnareMax = NAOYA_SNARE.window
+          opp._naoyaSnareBy = fighter
+          opp._naoyaSnareBroke = 0; opp._naoyaSnareSafe = 0
+        }
         try { shakeCamera(context, 4, 8) } catch (_) {}
       }
     })

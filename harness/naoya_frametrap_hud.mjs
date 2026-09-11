@@ -1,10 +1,9 @@
-// harness/naoya_frametrap_hud.mjs — the Projection Sorcery "24-frame" HUD (the enhancement).
-// Naoya's Frame-Trap already exists; this proves the NEW above-head HUD that makes its (previously invisible)
-// execution pressure legible. Boots the real game and asserts:
-//   1. Arming the Frame-Trap feeds the HUD data contract (ftWindowMax > 0, ftSeq = light→heavy→light).
+// harness/naoya_frametrap_hud.mjs — the Projection Sorcery "24-frame" HUD (redesign: now the PLANNED ROUTE).
+// Proves the above-head HUD that makes the route's execution pressure legible. Boots the real game and asserts:
+//   1. Arming the route (Fwd+Heavy) feeds the HUD data contract (ftWindowMax > 0, ftSeq = the heavy→light plan).
 //   2. The HUD actually RENDERS while armed (naoyaHudRenders climbs), and the per-beat window ticks down.
-//   3. A clean L→H→L finish raises the gold "FRAMES SET" flash (ftFlash === "freeze") + freezes the opponent.
-//   4. A dropped input raises the red "DROP" flash (ftFlash === "drop") + registers the drop.
+//   3. A clean H→H→L completion raises the gold "FRAMES SET" flash (ftFlash === "freeze").
+//   4. A missed window raises the red "DROP" flash (ftFlash === "drop") + self-freezes Naoya + registers the drop.
 //   5. No JS page errors (the HUD draws safely). Screenshots → harness/shots/naoya_hud_*_crop.png.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -49,53 +48,71 @@ try {
   await page.evaluate(() => window.__harness.boot());
   await waitFrames(5);
 
-  // ── 1 & 2. Arm → HUD data contract + the HUD renders + window ticks ──
-  console.log("\n── Arm Frame-Trap → HUD renders + data contract ──");
-  await setupAdjacent(50);
+  // arm the Planned Route (Fwd+Heavy) — the HUD now visualises the route's follow-up pips + window countdown
+  async function armRoute() {
+    await page.evaluate(() => window.__harness.naoyaClear?.());
+    await setupAdjacent(50);
+    await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && (p.attackCooldown || 0) <= 0 && (p.hitstun || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+    const facing = (await p1()).facing || 1; const fwd = facing === 1 ? "d" : "a";
+    await page.keyboard.down(fwd); await waitFrames(1); await tap("k");
+    return fwd;
+  }
+
+  // ── 1 & 2. Arm the route → HUD data contract + the HUD renders + window ticks ──
+  console.log("\n── Arm Planned Route → HUD renders + data contract ──");
   const rendersBefore = await hudRenders();
-  await specialDir("D"); await waitFrames(2);
+  const fwd0 = await armRoute();
   const armed = await fx();
-  check("Frame-Trap armed (step 0)", armed.ftArmed && armed.ftStep === 0, `armed=${armed.ftArmed} step=${armed.ftStep}`);
+  check("Planned Route armed (step 0, committed)", armed.routeArmed && armed.ftStep === 0 && armed.rooted, `armed=${armed.routeArmed} step=${armed.ftStep} rooted=${armed.rooted}`);
   check("HUD data contract: windowMax > 0", (armed.ftWindowMax || 0) > 0, `windowMax=${armed.ftWindowMax}`);
-  check("HUD data contract: seq is light→heavy→light", JSON.stringify(armed.ftSeq) === JSON.stringify(["light", "heavy", "light"]), JSON.stringify(armed.ftSeq));
+  check("HUD data contract: seq is the follow-up plan (heavy→light)", JSON.stringify(armed.ftSeq) === JSON.stringify(["heavy", "light"]), JSON.stringify(armed.ftSeq));
   const w0 = armed.ftWindow;
   await waitFrames(3);
   const armed2 = await fx();
-  check("per-beat window TICKS DOWN while armed", (armed2.ftWindow || 0) < w0 || !armed2.ftArmed, `w0=${w0} w1=${armed2.ftWindow}`);
+  check("per-beat window TICKS DOWN while armed", (armed2.ftWindow || 0) < w0 || !armed2.routeArmed, `w0=${w0} w1=${armed2.ftWindow}`);
   const rendersDuring = await hudRenders();
   check("the Projection HUD actually RENDERS while armed", rendersDuring > rendersBefore, `renders ${rendersBefore}→${rendersDuring}`);
   await crop("armed");
+  await page.keyboard.up(fwd0);
+  await page.waitForFunction(() => { const f = window.__harness.naoyaFx("p1"); return !f.routeArmed && (f.selfFrozen || 0) === 0; }, null, { timeout: 4000, polling: 16 }).catch(() => {});
 
-  // ── 3. Clean L→H→L → gold "FRAMES SET" flash + freeze ──
-  console.log("\n── Clean L→H→L → FRAMES-SET flash + freeze ──");
+  // ── 3. Clean H→H→L → gold "FRAMES SET" flash (the plan executed) ──
+  console.log("\n── Clean route (H→H→L) → FRAMES-SET flash ──");
   let clean = null;
-  for (let attempt = 0; attempt < 4 && !(clean && clean.oppFrozen > 0); attempt++) {
-    await setupAdjacent(50);
-    await specialDir("D"); await waitFrames(2);
-    await tap("j"); await waitFrames(2);   // Light
-    await tap("k"); await waitFrames(2);   // Heavy
-    await tap("j"); await waitFrames(1);   // Light → finish
-    const st = await fx();
-    if (st.oppFrozen > 0) { clean = st; await crop("frames_set"); }
-    await waitFrames(18); await waitGrounded(); await waitFrames(3);
+  for (let attempt = 0; attempt < 6 && !clean; attempt++) {
+    const fwd = await armRoute();
+    let done = null, lastStep = -1;
+    for (let i = 0; i < 24; i++) {
+      const a = await fx();
+      if ((a.selfFrozen || 0) > 0) { done = a; break; }
+      if (!a.routeArmed) { done = a; break; }
+      const want = a.ftSeq ? a.ftSeq[a.ftStep] : null;
+      if (want && a.ftStep !== lastStep) { lastStep = a.ftStep; await tap(want === "heavy" ? "k" : "j"); }
+      await waitFrames(1);
+    }
+    await waitFrames(3); if (!done) done = await fx();
+    await page.keyboard.up(fwd);
+    if (done && !done.routeArmed && done.ftFlash === "freeze") { clean = done; await crop("frames_set"); }
+    await waitGrounded();
   }
-  check("clean finish froze the opponent", (clean?.oppFrozen || 0) >= 60, `oppFrozen=${clean?.oppFrozen}`);
-  check('clean finish raised the "FRAMES SET" (freeze) HUD flash', clean?.ftFlash === "freeze", `flash=${clean?.ftFlash}`);
+  check("clean route completed (not dropped)", clean != null && (clean.selfFrozen || 0) === 0, clean ? "" : "route never completed clean");
+  check('clean finish raised the "FRAMES SET" HUD flash', clean?.ftFlash === "freeze", `flash=${clean?.ftFlash}`);
 
-  // ── 4. Drop → red "DROP" flash ──
-  console.log("\n── Drop a window → DROP flash ──");
-  await setupAdjacent(50);
-  await page.waitForFunction(() => (window.__harness.naoyaFx("p1")?.oppFrozen || 0) === 0, null, { timeout: 5000, polling: 16 }).catch(() => {});
-  const dropsBefore = (await fx()).ftDropped;
-  await specialDir("D"); await waitFrames(2);
-  await tap("j");            // step 1 only
-  await waitFrames(3);
-  const midDrop = await fx();   // catch the flash before it fades
-  await crop("drop");
-  await waitFrames(20);
-  const dropped = await fx();
-  check("dropped Frame-Trap registered a drop", dropped.ftDropped > dropsBefore, `dropped ${dropsBefore}→${dropped.ftDropped}`);
-  check('drop raised the red "DROP" HUD flash', midDrop.ftFlash === "drop" || dropped.ftFlash === "drop", `flash=${midDrop.ftFlash}/${dropped.ftFlash}`);
+  // ── 4. Drop a window → red "DROP" flash + Naoya self-freeze ──
+  console.log("\n── Miss a window → DROP flash + self-freeze ──");
+  let dropped = null;
+  for (let attempt = 0; attempt < 4 && !dropped; attempt++) {
+    const dropsBefore = (await fx()).ftDropped || 0;
+    const fwd = await armRoute();
+    let sawDropFlash = false, midDrop = null;
+    for (let i = 0; i < 40; i++) { const a = await fx(); if (a.ftFlash === "drop") { sawDropFlash = true; if (!midDrop) { midDrop = a; await crop("drop"); } } await waitFrames(1); }   // do NOTHING → window elapses
+    const after = await fx();
+    await page.keyboard.up(fwd);
+    if (sawDropFlash && (after.ftDropped || 0) > dropsBefore) dropped = { midDrop, after };
+    await waitGrounded();
+  }
+  check("missing a window registered a DROP (telemetry)", dropped != null, dropped ? "" : "no drop registered");
+  check('drop raised the red "DROP" HUD flash + self-freeze', dropped != null && (dropped.midDrop?.selfFrozen || 0) > 0, dropped ? `selfFrozen=${dropped.midDrop?.selfFrozen}` : "");
 
   check("no JS page errors across the whole run", jsErrors.length === 0, jsErrors[0] || "");
 } catch (e) {

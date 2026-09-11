@@ -1,10 +1,10 @@
 // harness/naoya.test.mjs — CANONICAL Naoya Zenin (Jujutsu Kaisen) suite.
 // Single-entry registration + integrity + FULL-KIT gate across Stages 1–5: sprite gate / stats / portrait /
 // "Cursed Energy" label, movement/state (idle/walk/crouch + REAL hurt/knockdown/lose art), the 5 normals +
-// Fwd+Heavy command normal (naoyaCombo), the 5 Projection-Sorcery specials (Energy Dart / Pitch Throw /
-// Frame-Skip blink ×2 / Frame-Trap) incl. a CLEAN + a DROPPED Frame-Trap, the promoted guaranteed-Frame-Trap
-// ultimate, a STATIC sheet+portrait sweep, and a RUNTIME fallback-box sweep. Orange dart projectile is
-// procedural (spawnProjectile color) — NOT a sheet.
+// the Fwd+Heavy PLANNED ROUTE opener, the REDESIGNED specials (24FPS Snare neutral / Pitch Throw F / Energy
+// Dart D / Frame-Skip blink B,U), new-mechanics smoke (route arms + snare freezes on a rule-break), the
+// enhanced guaranteed-Frame-Trap ultimate, a STATIC sheet+portrait sweep, and a RUNTIME fallback-box sweep.
+// (Deep Snare/Route success-vs-fail timing lives in test:naoya-redesign.) Orange dart is procedural — NOT a sheet.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 import characters from "../characters.js";
@@ -117,44 +117,67 @@ try {
   }
   check("Fwd+Heavy command normal (naoyaCombo) fires + connects", cmdHit && cmdDmg > 0, `hit=${cmdHit} dmg=${cmdDmg}`);
 
-  section("Projection Sorcery specials — Energy Dart / Pitch Throw / Frame-Skip blink ×2");
-  for (const [dir, tag, name] of [[null, "naoyaEnergyDart", "Energy Dart"], ["F", "naoyaPitch", "Pitch Throw"]]) {
+  section("Projection Sorcery specials — 24FPS Snare (neutral) / Pitch (F) / Energy Dart (D) / Frame-Skip (B,U)");
+  // neutral = 24FPS SNARE palm (white-wing pose) → applies the snare rule on contact (redesign)
+  { let applied = false, cast = "";
+    for (let attempt = 0; attempt < 4 && !applied; attempt++) {
+      await prep(46); await specialDir(null);
+      for (let i = 0; i < 24; i++) { const a = await fx(); if (a.castMove === "naoyaFtFinish") cast = a.castMove; if ((a.oppSnare || 0) > 0) applied = true; await wf(1); }
+      await grounded();
+    }
+    check("neutral → 24FPS Snare (palm) casts + applies the snare rule", cast === "naoyaFtFinish" && applied, `cast=${cast} oppSnare-applied=${applied}`); }
+  // F = Pitch Throw, D = Energy Dart spread — both orange projectiles that connect (dart moved neutral→Down)
+  for (const [dir, tag, name] of [["F", "naoyaPitch", "Pitch Throw"], ["D", "naoyaEnergyDart", "Energy Dart"]]) {
     await prep(150); const h0 = (await p2()).health; const res = await specialDir(dir);
     let cast = ""; for (let i = 0; i < 8; i++) { const a = await fx(); if (a.castMove === tag) cast = a.castMove; await wf(1); }
     await wf(24);
-    check(`${dir ?? "neutral"} → ${name} (${tag}) casts + projectile connects`, cast === tag && (h0 - (await p2()).health) > 0, `cast=${res?.cast} dmg=${(h0 - (await p2()).health).toFixed(0)}`);
+    check(`${dir} → ${name} (${tag}) casts + projectile connects`, cast === tag && (h0 - (await p2()).health) > 0, `cast=${res?.cast} dmg=${(h0 - (await p2()).health).toFixed(0)}`);
   }
   { await prep(70); const x0 = (await fx()).x; await specialDir("B"); await wf(1); const a = await fx(); await wf(5); const b = await fx();
     check("Back → Frame-Skip retreat blink (i-frames + backward reposition, no dmg)", (a.invuln || b.invuln) > 0 && b.x < x0 - 60, `invuln=${a.invuln} x ${x0}→${b.x}`); }
   { await prep(220); const x0 = (await fx()).x; await specialDir("U"); await wf(6); const b = await fx();
     check("Up → Frame-Skip advance blink (forward reposition)", b.x > x0 + 60, `x ${x0}→${b.x}`); }
 
-  section("★ FRAME-TRAP — clean L→H→L → white-wing FREEZE finish, + a DROPPED attempt (punishable)");
-  let clean = null;
-  for (let attempt = 0; attempt < 4 && !(clean && clean.oppFrozen > 0); attempt++) {
-    await prep(50); const h0 = (await p2()).health;
-    await specialDir("D"); await wf(2); await tap("j"); await wf(2); await tap("k"); await wf(2); await tap("j"); await wf(2);
-    const st = await fx(); if (st.oppFrozen > 0) clean = { ...st, dealt: h0 - st.oppHealth };
-    await wf(18); await grounded();
-  }
-  check("clean Frame-Trap completes 3 steps + FREEZES foe (≥60f) + full-chain dmg", clean && !clean.ftArmed && clean.oppFrozen >= 60 && clean.dealt > 40, `frozen=${clean?.oppFrozen} dealt=${clean?.dealt}`);
-  // dropped
-  await prep(50);
-  await page.waitForFunction(() => (window.__harness.naoyaFx("p1")?.oppFrozen || 0) === 0, null, { timeout: 5000, polling: 16 }).catch(() => {});
-  const dh = (await p2()).health;
-  await specialDir("D"); await wf(2); await tap("j"); await wf(20);
-  const dropped = await fx();
-  check("dropped Frame-Trap halts (unarmed) + punishable recovery + no freeze + partial dmg", !dropped.ftArmed && dropped.cooldown > 0 && dropped.oppFrozen === 0 && (dh - dropped.oppHealth) < 40, `armed=${dropped.ftArmed} cd=${dropped.cooldown} frozen=${dropped.oppFrozen} dealt=${dh - dropped.oppHealth}`);
+  section("★ NEW MECHANICS smoke — Planned Route ARMS (committed) + Snare freezes on a rule-break (deep coverage → test:naoya-redesign)");
+  // PLANNED ROUTE: Fwd+Heavy locks Naoya into the committed timing string (rooted). Full success/fail-timing
+  // verification lives in the dedicated harness; here we only gate that the route arms + roots.
+  { let armed = null;
+    for (let attempt = 0; attempt < 5 && !armed; attempt++) {
+      await page.evaluate(() => window.__harness.naoyaClear());
+      await prep(50);
+      await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && (p.attackCooldown || 0) <= 0 && (p.hitstun || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
+      const facing = (await p1()).facing || 1; const fwd = facing === 1 ? "d" : "a";
+      await page.keyboard.down(fwd); await wf(1); await tap("k");
+      for (let i = 0; i < 4 && !armed; i++) { const a = await fx(); if (a.routeArmed && a.rooted) armed = a; await wf(1); }
+      await page.keyboard.up(fwd);
+      await page.waitForFunction(() => { const f = window.__harness.naoyaFx("p1"); return !f.routeArmed && (f.selfFrozen || 0) === 0; }, null, { timeout: 3000, polling: 16 }).catch(() => {});
+      await grounded();
+    }
+    check("Fwd+Heavy ARMS the Planned Route (committed + rooted)", !!armed, armed ? `step=${armed.ftStep} seq=${JSON.stringify(armed.ftSeq)}` : "route never armed"); }
+  // 24FPS SNARE: land it, then force the opponent to ACT → they hard-freeze (~1s). Held-neutral counterplay is
+  // covered in the dedicated harness.
+  { let froze = false;
+    for (let attempt = 0; attempt < 4 && !froze; attempt++) {
+      await page.evaluate(() => window.__harness.naoyaClear());
+      await prep(46); await specialDir(null);
+      let applied = false; for (let i = 0; i < 24; i++) { if (((await fx()).oppSnare || 0) > 0) { applied = true; break; } await wf(1); }
+      if (!applied) { await grounded(); continue; }
+      await page.waitForFunction(() => (window.__harness.p2().hitstun || 0) <= 0, null, { timeout: 2000, polling: 16 }).catch(() => {});
+      await page.evaluate(() => window.__harness.p2Attack());   // opponent acts → breaks the rule
+      for (let i = 0; i < 8; i++) { if (((await fx()).oppFrozen || 0) >= 50) { froze = true; break; } await wf(1); }
+      await grounded();
+    }
+    check("24FPS Snare: acting while snared FREEZES the opponent (~1s)", froze, `froze=${froze}`); }
 
   section("ULTIMATE — promoted guaranteed Frame-Trap (inline, ~198 EFF + freeze, no dup)");
   check("ultimate declared: Projection Sorcery: Frame-Trap / cost 100", naoya.ultimate?.name === "Projection Sorcery: Frame-Trap" && naoya.ultimate?.cost === 100, `name=${naoya.ultimate?.name} cost=${naoya.ultimate?.cost}`);
   await prep(52); await grounded(); const hpU = (await p2()).health;
   const ult = await page.evaluate(() => window.__harness.p1Ultimate());
   check("ultimate fires (telegraph pose)", !!ult?.cast && ult?.castMove === "naoyaFrameTrap", `cast=${ult?.cast} castMove=${ult?.castMove}`);
-  let sawFinish = false, frozenPeak = 0;
-  for (let i = 0; i < 22; i++) { await wf(2); const s = await fx(); if (s.castMove === "naoyaFtFinish") sawFinish = true; if (s.oppFrozen > frozenPeak) frozenPeak = s.oppFrozen; }
+  let sawFinish = false, frozenPeak = 0, snareReapplied = false;
+  for (let i = 0; i < 22; i++) { await wf(2); const s = await fx(); if (s.castMove === "naoyaFtFinish") sawFinish = true; if (s.oppFrozen > frozenPeak) frozenPeak = s.oppFrozen; if ((s.oppSnare || 0) > 0) snareReapplied = true; }
   const dmgU = hpU - (await p2()).health;
-  check("ultimate cinematic → white-wing finish + FREEZE + guaranteed ~198 EFF, P1 still live", sawFinish && frozenPeak >= 60 && dmgU >= 150 && dmgU <= 240 && (await p1()).key === "naoya", `finish=${sawFinish} frozen=${frozenPeak} dmg=${dmgU.toFixed(0)}`);
+  check("ultimate cinematic → white-wing finish + FREEZE + ~198 EFF + re-applies the Snare (enhancement), P1 still live", sawFinish && frozenPeak >= 55 && dmgU >= 150 && dmgU <= 240 && snareReapplied && (await p1()).key === "naoya", `finish=${sawFinish} frozen=${frozenPeak} dmg=${dmgU.toFixed(0)} snareReapplied=${snareReapplied}`);
 
   section("fallback-box sweep — every animationData action renders a real naoya_ sheet (no 128² box)");
   await prep(80); const boxes = [];

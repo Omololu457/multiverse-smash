@@ -1,7 +1,8 @@
-// harness/naoya_stage3.mjs — STAGE 3: Naoya's command chain — Fwd+Heavy → naoyaCombo (row_08 "low combo
-// string": a crouched jab series that sweeps into a spin kick). A SINGLE committed MULTI-HIT command normal.
-// Asserts: Fwd+Heavy fires naoyaCombo (currentMove), renders naoya_combo_uniform, multi-hit connects on the
-// dummy (dmg > a single light jab), and the data contract wires naoyaCombo to a real naoya sheet.
+// harness/naoya_stage3.mjs — Naoya's Fwd+Heavy command — REDESIGNED into the PLANNED ROUTE opener (row_08
+// naoyaCombo). Fwd+Heavy fires the opener AND arms the committed timing rekka (rooted _ftState machine).
+// Asserts: Fwd+Heavy fires naoyaCombo (currentMove), renders naoya_combo_uniform, the opener connects, it
+// ARMS the route (rooted), and the data contract wires naoyaCombo to a real naoya sheet. (Full route
+// success/fail-timing verification lives in test:naoya-redesign.)
 // Screenshots → harness/shots/naoya_s3_*_crop.png.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -53,28 +54,28 @@ try {
   check("single light jab connects", lightDmg > 0, `dmg=${lightDmg}`);
   await waitGrounded(); await waitFrames(6);
 
-  // ── Fwd+Heavy COMMAND NORMAL: naoyaCombo (6f low combo string, multi-hit) ──
-  console.log("\n── Fwd+Heavy command normal (naoyaCombo) ──");
-  let comboSheet = "", comboMove = "", comboDmg = 0;
-  for (let attempt = 0; attempt < 8 && !(comboSheet.includes("naoya_combo_uniform") && comboMove === "naoyaCombo" && comboDmg > 0); attempt++) {
+  // ── Fwd+Heavy PLANNED-ROUTE OPENER: naoyaCombo (row_08) — arms the committed timing rekka (redesign) ──
+  console.log("\n── Fwd+Heavy → Planned Route opener (naoyaCombo) ──");
+  let comboSheet = "", comboMove = "", comboDmg = 0, routeArmed = false, rooted = false;
+  for (let attempt = 0; attempt < 8 && !(comboSheet.includes("naoya_combo_uniform") && comboMove === "naoyaCombo" && comboDmg > 0 && routeArmed); attempt++) {
+    await page.evaluate(() => window.__harness.naoyaClear?.());
     await setupAdjacent(46);
+    await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && !p.attacking && (p.attackCooldown || 0) <= 0 && (p.hitstun || 0) <= 0; }, null, { timeout: 5000, polling: 16 }).catch(() => {});
     const hp0 = (await p2()).health;
-    await page.keyboard.down("d"); await waitFrames(3);   // hold forward toward the dummy
-    let mv = await p1();
-    for (let r = 0; r < 6 && mv.currentMove !== "naoyaCombo"; r++) {
-      await page.keyboard.down("k"); await waitFrames(1); await page.keyboard.up("k");
-      mv = await waitSheet("naoya_combo_uniform", 8);
-    }
+    await page.keyboard.down("d"); await waitFrames(2);   // hold forward toward the dummy
+    await page.keyboard.down("k"); await waitFrames(1); await page.keyboard.up("k");   // single Fwd+Heavy → opener
+    let mv = await waitSheet("naoya_combo_uniform", 8);
+    for (let r = 0; r < 6; r++) { const f = await page.evaluate(() => window.__harness.naoyaFx("p1")); if (f?.routeArmed) { routeArmed = true; rooted = !!f.rooted; } if (mv.currentMove === "naoyaCombo" || (mv.spriteSheet || "").includes("naoya_combo_uniform")) break; await waitFrames(1); mv = await p1(); }
     if (mv.currentMove === "naoyaCombo") comboMove = mv.currentMove;
     if ((mv.spriteSheet || "").includes("naoya_combo_uniform")) { comboSheet = mv.spriteSheet; await crop("cmdchain"); }
     await waitFrames(24);
     const hp1 = (await p2()).health; comboDmg += Math.max(0, hp0 - hp1);
-    await page.keyboard.up("d"); await waitGrounded(); await waitFrames(4);
+    await page.keyboard.up("d"); await waitGrounded(); await waitFrames(6);
   }
-  check("command normal fires naoyaCombo (currentMove)", comboMove === "naoyaCombo", `move=${comboMove}`);
+  check("Fwd+Heavy fires the naoyaCombo opener (currentMove)", comboMove === "naoyaCombo", `move=${comboMove}`);
   check("naoyaCombo → naoya_combo_uniform sprite", comboSheet.includes("naoya_combo_uniform"), `sheet=${comboSheet}`);
-  check("naoyaCombo connects (multi-hit dmg)", comboDmg > 0, `dmg=${comboDmg}`);
-  check("naoyaCombo is a MULTI-hit string (out-damages a single jab)", comboDmg > lightDmg, `combo=${comboDmg} vs jab=${lightDmg}`);
+  check("opener connects", comboDmg > 0, `dmg=${comboDmg}`);
+  check("Fwd+Heavy ARMS the committed Planned Route (rooted state machine)", routeArmed && rooted, `armed=${routeArmed} rooted=${rooted}`);
 
   // ── DATA-LEVEL contract ──
   console.log("\n── data contract ──");

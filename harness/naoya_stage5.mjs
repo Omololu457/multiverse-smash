@@ -77,7 +77,7 @@ try {
   }
   const done = await fx();
   check("ultimate cycled to the white-wing FINISH pose (row_07)", sawFinish, `sawFinish=${sawFinish}`);
-  check("ultimate FREEZES the opponent at the finish", frozenPeak >= 60, `frozenPeak=${frozenPeak}`);
+  check("ultimate FREEZES the opponent at the finish", frozenPeak >= 55, `frozenPeak=${frozenPeak}`);   // 60f lock, sampled a frame or two in
   const dealt = hp0 - done.oppHealth;
   check("ultimate deals ULT-band guaranteed damage (~198 EFF)", dealt >= 150 && dealt <= 240, `dealt=${dealt}`);
 

@@ -2587,6 +2587,60 @@ function _litWindows(ctx, x, y, w, h, cols, rows, color, seed = 1) {
   }
 }
 
+// ── Cheap, purely-COSMETIC ambient helpers (background depth only) ───────────────
+// Every one draws in an UPPER SKY BAND well above the fighters — never near the
+// ground / collision area, never a solid object that could read as a hazard. Motion
+// is wall-clock (performance.now) driven, exactly like the existing animated stages,
+// so it has ZERO effect on the simulation (pure render). Alphas are deliberately low
+// so this reads as atmosphere, not new content. Layout is seeded per-stage so no two
+// share the same look.
+
+// Soft translucent clouds drifting slowly sideways across a sky band.
+function _ambientClouds(ctx, worldWidth, t, { bandTop = 36, bandH = 64, count = 4, speed = 8, scale = 1, color = "255,255,255", alpha = 0.10, seed = 0 } = {}) {
+  ctx.save()
+  const span = worldWidth + 340
+  for (let i = 0; i < count; i++) {
+    const cx = (((i * span) / count + t * speed + seed * 57) % span) - 170
+    const cy = bandTop + ((i * 37 + seed * 13) % Math.max(1, bandH))
+    const r = (32 + (i % 3) * 15) * scale
+    ctx.fillStyle = `rgba(${color},${alpha})`
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc(cx + r * 0.85, cy + 6, r * 0.7, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.arc(cx - r * 0.85, cy + 8, r * 0.6, 0, Math.PI * 2); ctx.fill()
+  }
+  ctx.restore()
+}
+
+// Twinkling stars for night skies: fixed pseudo-random positions, oscillating alpha.
+function _ambientStars(ctx, worldWidth, t, { bandTop = 20, bandH = 220, count = 40, color = "255,255,255", maxAlpha = 0.7, seed = 1 } = {}) {
+  ctx.save()
+  for (let i = 0; i < count; i++) {
+    const hx = ((i * 9301 + seed * 49297) % 233280) / 233280
+    const hy = ((i * 4523 + seed * 12345) % 99991) / 99991
+    const sx = hx * worldWidth
+    const sy = bandTop + hy * bandH
+    const tw = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 2 + i * 1.7))
+    ctx.fillStyle = `rgba(${color},${(maxAlpha * tw).toFixed(3)})`
+    ctx.fillRect(sx, sy, 2, 2)
+  }
+  ctx.restore()
+}
+
+// Slow-drifting motes (dust / light specks) for interior / arena stages. Tiny + faint
+// so they read as floating atmosphere, confined to an upper band, never near the floor.
+function _ambientMotes(ctx, worldWidth, t, { bandTop = 60, bandH = 180, count = 18, color = "232,121,249", alpha = 0.22, speed = 12, seed = 2 } = {}) {
+  ctx.save()
+  for (let i = 0; i < count; i++) {
+    const hx = ((i * 6151 + seed * 331) % 100003) / 100003
+    const mx = hx * worldWidth + Math.sin(t * 0.5 + i) * 12
+    const my = bandTop + (((i * 53) + t * speed) % Math.max(1, bandH))
+    ctx.globalAlpha = alpha * (0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t + i)))
+    ctx.fillStyle = `rgb(${color})`
+    ctx.beginPath(); ctx.arc(mx, my, 1.6, 0, Math.PI * 2); ctx.fill()
+  }
+  ctx.restore()
+}
+
 function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
   const id = stage?.landmark
   if (!id) return false
@@ -2649,6 +2703,8 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
         ctx.fillStyle = "#7c2d12"; ctx.beginPath()
         ctx.moveTo(rx - 8, groundY - 70); ctx.lineTo(rx + 45, groundY - 100); ctx.lineTo(rx + 98, groundY - 70); ctx.closePath(); ctx.fill()
       }
+      // Ambient: soft clouds drifting over the village sky (daytime).
+      _ambientClouds(ctx, worldWidth, t, { bandTop: 40, bandH: 70, count: 4, speed: 9, color: "255,255,255", alpha: 0.10, seed: 3 })
       break
     }
     case "valley_of_end": {
@@ -2680,6 +2736,8 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
       }
       ctx.strokeStyle = "#115e59"; ctx.lineWidth = 26
       ctx.beginPath(); ctx.arc(worldWidth * 0.5, groundY, 120, Math.PI, 0); ctx.stroke()
+      // Ambient: pale alien cloud wisps drifting across Namek's green sky.
+      _ambientClouds(ctx, worldWidth, t, { bandTop: 46, bandH: 80, count: 3, speed: 6, scale: 1.2, color: "190,240,210", alpha: 0.09, seed: 5 })
       break
     }
     case "tournament": {
@@ -2699,6 +2757,8 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
         ctx.beginPath(); ctx.moveTo(fx, groundY - 170); ctx.lineTo(fx + 26, groundY - 162); ctx.lineTo(fx, groundY - 154); ctx.closePath(); ctx.fill()
         ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fx, groundY - 170); ctx.lineTo(fx, groundY - 150); ctx.stroke()
       }
+      // Ambient: bright drifting clouds high above the open-air stadium.
+      _ambientClouds(ctx, worldWidth, t, { bandTop: 34, bandH: 60, count: 4, speed: 10, color: "255,255,255", alpha: 0.12, seed: 7 })
       break
     }
     case "mugen_train": {
@@ -2784,6 +2844,8 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
       ctx.moveTo(hx - 170, groundY); ctx.lineTo(hx, groundY - 270); ctx.lineTo(hx + 170, groundY); ctx.closePath(); ctx.fill()
       ctx.strokeStyle = accent; ctx.lineWidth = 8
       ctx.beginPath(); ctx.moveTo(hx - 30, groundY - 250); ctx.lineTo(hx - 30, groundY - 150); ctx.lineTo(hx + 30, groundY - 150); ctx.lineTo(hx + 30, groundY - 250); ctx.stroke()
+      // Ambient: soft clouds drifting over the Seireitei sky (dawn palette).
+      _ambientClouds(ctx, worldWidth, t, { bandTop: 42, bandH: 70, count: 3, speed: 7, scale: 1.15, color: "255,248,240", alpha: 0.11, seed: 11 })
       break
     }
     case "gotham": {
@@ -2813,6 +2875,8 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
       ctx.fillStyle = "rgba(200,205,215,0.5)"
       for (let x = 0; x < worldWidth; x += 26) ctx.fillRect(x, groundY - 40, 8, 40)
       ctx.fillRect(0, groundY - 30, worldWidth, 6)
+      // Ambient: twinkling stars scattered across the night sky (kept well above the houses).
+      _ambientStars(ctx, worldWidth, t, { bandTop: 20, bandH: Math.max(80, groundY - 320), count: 46, color: "226,232,240", maxAlpha: 0.6, seed: 13 })
       break
     }
     case "heavens_arena": {
@@ -2828,6 +2892,8 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
       for (const ry of [groundY - 46, groundY - 30, groundY - 16]) { ctx.beginPath(); ctx.moveTo(worldWidth * 0.2, ry); ctx.lineTo(worldWidth * 0.8, ry); ctx.stroke() }
       ctx.fillStyle = accent
       for (const cx of [worldWidth * 0.2, worldWidth * 0.8]) ctx.fillRect(cx - 4, groundY - 60, 8, 60)
+      // Ambient: faint magenta light motes floating in the arena air (interior atmosphere).
+      _ambientMotes(ctx, worldWidth, t, { bandTop: 60, bandH: Math.max(90, groundY - 300), count: 18, color: "232,121,249", alpha: 0.20, speed: 10, seed: 17 })
       break
     }
     case "viltrum_warzone": {
@@ -2939,6 +3005,22 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
     ctx.fillStyle = overlay
     ctx.fillRect(0, 0, worldWidth, h)
     ctx.restore()
+
+    // Ambient over the bitmap stages (which skip the procedural landmark code, so they
+    // were fully static). One cheap, purely-cosmetic touch each, confined to the TOP
+    // sky band and very low alpha so it never fights the art, overlaps the fighters, or
+    // reads as a hazard. Wall-clock driven → zero simulation effect.
+    const tb = performance.now() * 0.001
+    switch (stage?.landmark) {
+      case "jujutsu_high":                                            // daytime courtyard
+        _ambientClouds(ctx, worldWidth, tb, { bandTop: 30, bandH: h * 0.14, count: 4, speed: 8, color: "255,255,255", alpha: 0.07, seed: 21 }); break
+      case "shibuya":                                                 // night city → faint drifting smog
+        _ambientClouds(ctx, worldWidth, tb, { bandTop: 24, bandH: h * 0.16, count: 3, speed: 5, scale: 1.4, color: "150,170,210", alpha: 0.05, seed: 23 }); break
+      case "valley_of_end":                                           // waterfall gorge → slow mist
+        _ambientClouds(ctx, worldWidth, tb, { bandTop: 30, bandH: h * 0.18, count: 3, speed: 4, scale: 1.5, color: "226,232,240", alpha: 0.06, seed: 27 }); break
+      case "mugen_train":                                             // night → twinkling stars
+        _ambientStars(ctx, worldWidth, tb, { bandTop: 18, bandH: h * 0.30, count: 40, color: "255,255,255", maxAlpha: 0.5, seed: 29 }); break
+    }
   }
 
   // Per-stage procedural landmarks (skyline/landmarks). Skipped when a real

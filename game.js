@@ -190,6 +190,7 @@ import {
   updateMayuriNemuAssist,        // Mayuri "Nemu" assist — Charge + Down (attack) / Up (uppercut launcher)
   updateAoiTodoClap,             // Aoi Todo "Boogie Woogie" Clap — Charge + dir → cameo summon/swap / enemy-swap / fake / self-swap (+ Black Flash arm/resolve)
   updateObitoKamui, toggleObitoKamui, deactivateObitoKamui,   // Obito Kamui Intangibility (Stage 4): P-TAP continuous toggle + per-frame drain/melee-drop driver
+  fireObitoKamuiDimension, updateObitoKamuiDimension,   // Obito "Kamui Dimension" (NEW: Charge-HOLD→release) — domain-freeze + shuriken barrage + void-bg swap
   updateTobiCombat,              // Tobi (masked Obito alias) — per-frame combat watcher: Stage-2 air-kunai projectile spawn (own `_tobi*` state, no Obito coupling)
   updateTobiChainGrab,           // Tobi Stage-3 Chain Grab scripted state machine (whip→reach→snatched→smash, all `_tobiChain*`)
   updateTobiKamui, toggleTobiKamui, deactivateTobiKamui,   // Tobi Stage-4 Kamui Intangibility (own `_tobi*` state; independent of Obito's `_kamui*`)
@@ -4212,6 +4213,39 @@ function _hexToRgb(hex) {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
 }
 
+// ── OBITO "KAMUI DIMENSION" background swap (render-only) ─────────────────────────────────────────────
+// Fixed scattered void slabs (fractions of the canvas, varying size/shade) — the Kamui pocket-dimension
+// look. FIXED (not per-frame random) so the void is stable, deterministic, and never flickers. Purely a
+// render-layer swap: no fighter position / stage bound / collision is touched (the trap is combat-side).
+const KAMUI_VOID_RECTS = [
+  { fx: 0.10, fy: 0.12, fw: 0.14, fh: 0.20, s: 0.16 }, { fx: 0.30, fy: 0.05, fw: 0.10, fh: 0.34, s: 0.10 },
+  { fx: 0.52, fy: 0.18, fw: 0.20, fh: 0.14, s: 0.21 }, { fx: 0.72, fy: 0.08, fw: 0.12, fh: 0.40, s: 0.12 },
+  { fx: 0.86, fy: 0.30, fw: 0.10, fh: 0.18, s: 0.18 }, { fx: 0.04, fy: 0.48, fw: 0.16, fh: 0.16, s: 0.13 },
+  { fx: 0.40, fy: 0.52, fw: 0.22, fh: 0.12, s: 0.23 }, { fx: 0.64, fy: 0.58, fw: 0.14, fh: 0.24, s: 0.15 },
+  { fx: 0.22, fy: 0.34, fw: 0.12, fh: 0.12, s: 0.19 }, { fx: 0.80, fy: 0.62, fw: 0.16, fh: 0.14, s: 0.11 },
+]
+// Whichever fighter is mid-Kamui-Dimension (or null). Cheap p1/p2 check — 1v1 only.
+function _kamuiDimActive() { return (p1 && p1._kamuiDimActive) ? p1 : (p2 && p2._kamuiDimActive) ? p2 : null }
+// Draw the dark Kamui void + scattered slabs, SCREEN-space fullscreen. No-op (real stage shows) when idle,
+// so it reverts the instant the window ends. Quick fade-in for polish; hard revert.
+function _drawKamuiDimensionBg(ctx, canvas) {
+  const caster = _kamuiDimActive(); if (!caster) return
+  const cw = canvas.width, ch = canvas.height
+  const elapsed = (caster._kamuiDimMax || 60) - (caster._kamuiDimTimer || 0)
+  const a = Math.min(1, elapsed / 8)                          // quick fade-in; reverts hard when caster clears
+  ctx.save()
+  ctx.globalAlpha = a
+  ctx.fillStyle = "#0a0a14"; ctx.fillRect(0, 0, cw, ch)        // the void
+  for (const r of KAMUI_VOID_RECTS) {                         // scattered dim slabs (varying size + shade)
+    const v = Math.round(r.s * 255)
+    ctx.fillStyle = `rgb(${v},${v},${Math.min(255, v + 20)})`
+    ctx.fillRect(r.fx * cw, r.fy * ch, r.fw * cw, r.fh * ch)
+  }
+  ctx.globalAlpha = a * 0.5; ctx.strokeStyle = "#3c3c5e"; ctx.lineWidth = 2
+  for (const r of KAMUI_VOID_RECTS) ctx.strokeRect(r.fx * cw, r.fy * ch, r.fw * cw, r.fh * ch)   // faint slab edges (depth)
+  ctx.restore()
+}
+
 function _checkMatchOver() {
   // INSTANT MATCH-END OVERRIDE (Gon Adult Form sudden-death) is checked INDEPENDENTLY of — not as an
   // addition alongside — the normal roundWins/MAX_ROUNDS gate: when `_matchOverride` is set the match
@@ -5197,6 +5231,11 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
+  // OBITO — a deliberate CHARGE HOLD→release fires the NEW "Kamui Dimension" (handled BEFORE the tap-only
+  // gate below, exactly like GL/Onoki/Rengoku's hold-release moves). A quick TAP falls through to the generic
+  // toggle branch (Kamui Intangibility — unchanged).
+  if (fighter.rosterKey === "obito" && wasHeld && !wasTap) { fireObitoKamuiDimension(fighter, getAbilityContext()); return }
+
   if (!wasTap) return
   // FLIGHT toggle (Omni-Man + Superman, any traits.canFly char): a quick P-TAP engages/disengages
   // Flight (a HOLD charges the shared pool instead, see updateMovementInput). Same charge-TAP shape as
@@ -5222,9 +5261,9 @@ function handleChargeRelease(fighter, key) {
       sound.playSfxFile?.("sasuke_special_warning_cluster.mp3", null)
     }
   } else if (fighter.rosterKey === "obito") {
-    // Obito — KAMUI INTANGIBILITY toggle. Same charge-TAP idiom as Gojo's Infinity / Sasuke's
-    // Absolute Defense, but a CONTINUOUS phase (drains chakra, auto-drops at 0 or on a melee swing).
-    // toggleObitoKamui owns the on/off + the clear ON flash; deactivation is silent (asymmetry).
+    // Obito — CHARGE-TAP toggles KAMUI INTANGIBILITY (unchanged; continuous phase, drains chakra, auto-drops
+    // at 0 / on a melee swing). A deliberate CHARGE-HOLD→release fires the NEW "Kamui Dimension" instead —
+    // handled ABOVE the tap-only gate, so only the TAP reaches here. Both independent of his Juubi ultimate.
     toggleObitoKamui(fighter, getAbilityContext())
   } else if (fighter.rosterKey === "tobi") {
     // Tobi — KAMUI INTANGIBILITY toggle (own `_tobi*` implementation; identical idiom to Obito's,
@@ -5498,6 +5537,7 @@ function updateMiscTimers(fighter) {
   if (fighter._borutoKoteTimer > 0) fighter._borutoKoteTimer--   // Boruto Kote Barrage ultimate cinematic countdown (drives drawBorutoKoteFX + drawBorutoKoteCinematic)
   if (fighter._lightKiraTimer > 0) fighter._lightKiraTimer--     // Light Yagami "I Am Kira" scythe-ult cinematic countdown (drives drawLightKiraCinematic panel-flash overlay)
   if (fighter._obitoDimCd > 0) fighter._obitoDimCd--                      // Obito "Obito_dimension" banishment recast lockout (15s)
+  if (fighter._kamuiDimCd > 0) fighter._kamuiDimCd--                      // Obito "Kamui Dimension" (Charge-hold) recast lockout (8s)
   if (fighter._tobiDimCd  > 0) fighter._tobiDimCd--                       // Tobi "Obito_dimension" banishment recast lockout (15s; independent of Obito's)
   if (fighter.ultimateCooldown > 0) fighter.ultimateCooldown--            // universal ultimate recast lockout
   if (fighter.comboBreakerCd > 0) fighter.comboBreakerCd--                // meterless combo-breaker cooldown-cost (Stage 1 pilot: zenitsu)
@@ -11297,6 +11337,9 @@ function updateComboDisplay(fighter, side) {
 
 function updateEffectsAndDomains() {
   updateDomains([p1, p2].filter(Boolean), hitSparks)
+  // Obito "Kamui Dimension" trap — runs AFTER updateDomains (which resets domainFrozen each frame) so the
+  // opponent-freeze lock holds through the window. Sim-side only; the void backdrop is drawn in draw().
+  for (const f of [p1, p2]) if (f) updateObitoKamuiDimension(f, getAbilityContext())
   updateCubeTraps([p1, p2].filter(Boolean), hitSparks, getAbilityContext())   // Isshiki cube trap (sibling of domains)
   updateObitoDimensions([p1, p2].filter(Boolean), hitSparks, getAbilityContext())   // Obito/Tobi Kamui banishment (freeze/untouchable hold → auto-release)
   // Hashirama Sealing Jutsu domain OVERLAY — non-freezing: ticks the gate-slam + looping cameo strikes
@@ -13587,8 +13630,11 @@ function drawBattleScene() {
   if (hasTransform) camera.applyTransform(ctx, canvas)   // applyTransform does its own ctx.save()
   // The visible world-y span under the live camera (+margin for shake/smoothing) so the backdrop covers
   // the whole view — no undrawn band above the sky or below the floor at any viewport height/ratio.
-  if (activeDomains.length === 0) drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight(), cameraCoverY())
+  if (activeDomains.length === 0 && !_kamuiDimActive()) drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight(), cameraCoverY())
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+  // Obito "Kamui Dimension" — the stage swaps to a dark Kamui void (render-only; reverts the instant the
+  // window ends). Screen-space fullscreen, on top of where the stage would be, under the fighters.
+  _drawKamuiDimensionBg(ctx, canvas)
 
   // 2) Domain background — SCREEN space, fullscreen. Drawn outside the camera
   //    transform so the Gojo void video / Sukuna shrine covers the ENTIRE
@@ -16530,6 +16576,9 @@ gameLoop()
     obitoDimension: () => obitoDimensionState(),
     obitoDimBanished: (who = "p2") => { const f = who === "p2" ? p2 : p1; return f ? { banished: !!f._banished, invulnTimer: f.invulnTimer || 0, hitstun: f.hitstun || 0, x: Math.round(f.x || 0) } : null },
     obitoDimCaster: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { obitoDimCd: f._obitoDimCd || 0, obitoDimUses: f._obitoDimUses || 0, tobiDimCd: f._tobiDimCd || 0, tobiDimUses: f._tobiDimUses || 0, energy: Math.round(f.energy || 0) } : null },
+    // Obito "Kamui Dimension" (NEW special) inspector: cast state + whether the void bg is up + foe freeze.
+    kamuiDim: (who = "p1") => { const c = who === "p2" ? p2 : p1, o = who === "p2" ? p1 : p2; return c ? { active: !!c._kamuiDimActive, timer: c._kamuiDimTimer || 0, cd: c._kamuiDimCd || 0, energy: Math.round(c.energy || 0), voidBg: !!_kamuiDimActive(), foeFrozen: !!(o && o.domainFrozen), foeHitstun: o?.hitstun || 0, foeHealth: o?.health ?? null } : null },
+    kamuiDimFire: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.energy = f.maxEnergy || 200; f._kamuiDimCd = 0; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; return fireObitoKamuiDimension(f, getAbilityContext()) },
     obitoDimSpawn: (casterSide = "p1", opts = {}) => { const c = casterSide === "p2" ? p2 : p1; const t = casterSide === "p2" ? p1 : p2; if (!c || !t) return null; spawnObitoDimension(c, t, getAbilityContext(), opts); return obitoDimensionState() },
     obitoDimClearCd: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f._obitoDimCd = 0; f._tobiDimCd = 0 } },   // isolate the per-match CAP from the recast cooldown in a test
     // Kamui PORTAL-REFLECT stance (Obito/Tobi Block+Special) — phase read + a test projectile fired from the

@@ -15195,6 +15195,71 @@ function fireObitoGiantShuriken(fighter, context) {
   return true
 }
 
+// ── OBITO "KAMUI DIMENSION" (NEW special — Charge HOLD→release) ───────────────────────────────────
+// A short pocket-dimension domain, additive and INDEPENDENT of everything else in Obito's kit (his Juubi
+// ULTIMATE, his Back+Special "Obito_dimension" banish, and his Charge-TAP Kamui Intangibility are all
+// untouched — TAP still toggles intangibility; only a deliberate HOLD→release fires this). During the ~1s
+// window: (1) the stage background swaps to a dark Kamui void [render-only, game.js _drawKamuiDimensionBg],
+// (2) the opponent is FROZEN in place reusing the GENERIC domain-freeze primitive (domainFrozen + hitstun +
+// vx=0 — the exact lock Gojo's Unlimited Void / Hashirama's Seal use), and (3) Obito unloads a rapid barrage
+// of his EXISTING shuriken projectiles at the trapped foe. Guaranteed (the foe can't move/block), then the
+// window ends: background reverts, foe released, damage already dealt by the barrage.
+// BALANCE: cost 45 chakra — above Giant Shuriken (34), below the 60-cost ZERO-damage banish; it deals real
+// but capped multi-hit damage (5 shuriken × 28 raw, combo-scaled + ×GLOBAL_DAMAGE_SCALE), squarely a strong
+// special, not an ult. 8s recast so it isn't spammed.
+const OBITO_KAMUI_DIM_COST     = 45
+const OBITO_KAMUI_DIM_FRAMES   = 60     // ~1s trap/void window
+const OBITO_KAMUI_DIM_CD       = 480    // ~8s recast lockout
+const OBITO_KAMUI_DIM_SHURIKEN = 5      // barrage hit count
+const OBITO_KAMUI_DIM_DMG      = 28     // per-shuriken raw (pre combo-scale / global-scale)
+export function fireObitoKamuiDimension(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "obito") return false
+  if (fighter._kamuiDimActive) return false                              // already channelling
+  if ((fighter._kamuiDimCd || 0) > 0) return false                       // recast lockout
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking || (fighter.hitstun || 0) > 0) return false
+  if (!spendEnergy(fighter, OBITO_KAMUI_DIM_COST)) return false
+  fighter._kamuiDimActive = true
+  fighter._kamuiDimTimer  = OBITO_KAMUI_DIM_FRAMES
+  fighter._kamuiDimMax    = OBITO_KAMUI_DIM_FRAMES
+  fighter._kamuiDimCd     = OBITO_KAMUI_DIM_CD
+  fighter._spriteCastMove = "obitoShurCast"; fighter._spriteCastTimer = OBITO_KAMUI_DIM_FRAMES   // hold a throw pose
+  fighter.attackCooldown  = OBITO_KAMUI_DIM_FRAMES                       // channel-lock Obito for the window
+  fighter.vx = 0
+  try { sound.playSfxFile?.(pickObitoVoice("special"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  // BARRAGE — his EXISTING shuriken, fired rapidly (staggered) across the window at the frozen foe.
+  const face = fighter.facing || 1
+  for (let i = 0; i < OBITO_KAMUI_DIM_SHURIKEN; i++) {
+    schedulePendingSpawn(6 + i * 9, () => {
+      if (!fighter._kamuiDimActive) return
+      spawnProjectile(fighter, "obito_shuriken", {
+        sheet: "./obito_shur_proj_uniform.png", spriteFrames: 4, spriteW: 35, spriteH: 32, spriteSpeed: 2, spriteScale: 1.4,
+        damage: OBITO_KAMUI_DIM_DMG, speed: 20, hitstun: 8, knockbackX: 2, knockbackY: -1,
+        w: 34, h: 32, color: "#3a3a44", lifetime: 90, isSpecial: true,
+        vx: (fighter.facing || face) * 20, spawnY: fighter.y + (fighter.h || 100) * (0.30 + (i % 3) * 0.09)
+      }, context)
+    })
+  }
+  try { shakeCamera(context, 8, 14) } catch (_) {}
+  return true
+}
+// Per-frame while the dimension is up: FREEZE the opponent (generic domain-freeze primitive) + tick the
+// window down. Runs AFTER updateDomains (which resets domainFrozen each frame) so the lock holds. RENDER of
+// the void backdrop is game.js's job (reads _kamuiDimActive) — this function is sim-side only (the trap).
+export function updateObitoKamuiDimension(fighter, context) {
+  if (!fighter || !fighter._kamuiDimActive) return
+  const opp = getTargetResolver(context)(fighter)
+  if (opp && !opp.eliminated) {
+    opp.domainFrozen = true                                             // lock pose (sprite.js) + can't act
+    opp.hitstun = Math.max(opp.hitstun || 0, 4)                         // held stunned (survives updateDomains' reset)
+    opp.vx = 0                                                          // no horizontal drift; gravity left alone
+  }
+  if (--fighter._kamuiDimTimer <= 0) {
+    fighter._kamuiDimActive = false                                     // window over → foe released, bg reverts
+    fighter._kamuiDimTimer  = 0
+    fighter._spriteCastMove = null; fighter._spriteCastTimer = 0
+  }
+}
+
 // ── OBITO KAMUI SELF-PORTAL (Stage 5) — Down+Special map-traversal ────────────────────────────────
 // Reuses Rick's portal reposition-and-drop architecture (rickPortalReposition), but SELF-targeted and
 // damage-free: opens a Kamui portal and jumps Obito a long distance in his facing direction, clamped

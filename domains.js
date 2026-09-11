@@ -240,7 +240,7 @@ export function updateDomains(fighters = [], hitEffects = []) {
           domain.slashClock = SUKUNA_SLASH_INTERVAL
           domain._slashParity = (domain._slashParity || 0) + 1
           const isCleave = domain._slashParity % 2 === 0
-          const dealt = applyScaledDamage(fighter, SUKUNA_SLASH_DAMAGE, { source: "sukuna-domain" })
+          const dealt = applyScaledDamage(fighter, SUKUNA_SLASH_DAMAGE, { source: "sukuna-domain", attacker: domain.owner, move: "domain" })   // attacker+move → Brutality killing-blow stamp (Malevolent Shrine's Cleave/Dismantle slashes; keys Sukuna's "ultimate" finisher)
           fighter.colorFlash = 6
           // Push a visible slash through the existing hit-spark pipeline (the
           // game loop spawns a damage number + records the hit from this). Cleave

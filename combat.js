@@ -176,6 +176,15 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   const dealt = Math.floor(raw * scale)
   const before = target.health || 0
   target.health = Math.max(floor, before - dealt)
+  // KILLING-BLOW-MOVE STAMP (Brutality engine): when THIS application is the one that crosses the
+  // defender to <=0, record on the ATTACKER which move landed the fatal blow so _tryStartBrutality can
+  // key a per-MOVE finisher instead of only "who won". Purely post-KO bookkeeping — never read by the
+  // sim; lives on the fighter object, so it is naturally clear on the next round (fresh fighters).
+  // opts.attacker/opts.move are passed by the melee, projectile, and cinematic-ult damage sites; a source
+  // that supplies neither simply doesn't stamp (the finisher then falls through to the generic default).
+  if (before > 0 && target.health <= 0 && opts.attacker) {
+    opts.attacker._killingBlowMove = opts.move || opts.attacker.currentMove || null
+  }
   // RENDER-ONLY hit-tier hint for the MK-feel HUD (ui.js damage-trail + flash/shake). Does NOT
   // affect combat: the HUD reads `_hudDmgTier` to decide a big vs light bar reaction. Prefer the
   // caller's explicit tier (reuses the attack's heavy/special/ultimate classification); else infer
@@ -3101,7 +3110,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     }
 
     const _hudBig = !!(atk?.isUltimate || atk?.isSpecial) || cat === "heavy" || cat === "launcher" || cat === "spike"
-    applyScaledDamage(defender, dmg, { scale: 1, source: "melee", tier: _hudBig ? "big" : "light" })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point
+    applyScaledDamage(defender, dmg, { scale: 1, source: "melee", tier: _hudBig ? "big" : "light", attacker })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point. attacker → Brutality killing-blow-move stamp (currentMove: normals/rekka/command/melee-specials)
     applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
@@ -3735,7 +3744,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
 
       // MAHORAGA ADAPTATION — projectiles adapt per-move too (keyed by proj.name), same ladder + growth.
       if (fighter._mahoragaActive) dmg = tickMahoragaAdapt(fighter, { name: proj.name, unblockable: proj.unblockable }, "projectile", dmg)
-      applyScaledDamage(fighter, dmg, { source: "projectile" })
+      applyScaledDamage(fighter, dmg, { source: "projectile", attacker: proj.owner, move: proj.name })   // attacker+move → Brutality killing-blow-move stamp (projectile specials key off proj.name, not the owner's stale currentMove)
       trackSkillHunterUnlock(fighter, proj.owner, proj.name, fighter.isBlocking)   // Skill Hunter: a distinct opponent PROJECTILE landing on Chrollo also counts
       trackBanditEchoMark(fighter, proj.owner, proj, fighter.isBlocking, true)   // Bandit's Echo: any opponent PROJECTILE connect marks it (special-tier; independent of Skill Hunter)
 

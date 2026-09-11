@@ -11730,6 +11730,71 @@ function updateMusicIntensity() {
 function resetMusicIntensity() {
   _musicIntensityOn = false
   try { sound.setMusicIntensity?.(false) } catch (_) {}
+  // Track A: clear the low-HP vignette + parry/clash sell-flash so a fresh round starts clean.
+  _lowHpVignetteOn = false; _lowHpVignetteA = 0; _lowHpVignettePhase = 0
+  _pcFlash = 0
+  _pcPrev.p1.parry = _pcPrev.p1.clash = _pcPrev.p2.parry = _pcPrev.p2.clash = 0
+}
+
+// ── Low-HP screen-edge vignette (Track A3) ─────────────────────────────
+// A subtle pulsing red EDGE tint whenever a fighter is under the SAME low-HP threshold that drives
+// the music crossfade (hysteresis-latched, engage <25% / release >32%, so chip damage/regen near the
+// line doesn't strobe it). Atmosphere only: an edge-weighted radial keeps the centre clear so it never
+// obstructs the fight — it reads HP and draws pixels, no simulation impact.
+let _lowHpVignetteOn = false
+let _lowHpVignetteA  = 0            // eased 0→1 presence
+let _lowHpVignettePhase = 0         // breathing-pulse phase
+function _updateLowHpVignette() {
+  const below = _lowHpVignetteOn ? LOW_HP_INTENSITY_RELEASE : LOW_HP_INTENSITY_ENGAGE
+  _lowHpVignetteOn = _anyFighterLowHP(below)
+}
+function _drawLowHpVignette() {
+  const target = _lowHpVignetteOn ? 1 : 0
+  _lowHpVignetteA += (target - _lowHpVignetteA) * 0.08     // ease in/out so it fades, never snaps
+  if (_lowHpVignetteA < 0.004) return
+  _lowHpVignettePhase += 0.045
+  const cw = canvas.width, ch = canvas.height
+  const pulse = 0.68 + 0.32 * (0.5 + 0.5 * Math.sin(_lowHpVignettePhase))
+  const a = _lowHpVignetteA * pulse * 0.46                 // deliberately capped — subtle danger haze
+  ctx.save()
+  const g = ctx.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * 0.32, cw / 2, ch / 2, Math.max(cw, ch) * 0.72)
+  g.addColorStop(0,    "rgba(150,0,0,0)")                  // clear centre
+  g.addColorStop(0.68, `rgba(150,0,0,${(a * 0.42).toFixed(3)})`)
+  g.addColorStop(1,    `rgba(120,0,0,${a.toFixed(3)})`)    // red only at the very edges
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, cw, ch)
+  ctx.restore()
+}
+
+// ── Parry / Clash "sell" flash (Track A2) ──────────────────────────────
+// The parry (cyan ring/spark + hitstop tier) and clash (white ring/spark + camera-shake) already read
+// as distinct from a normal hit; this adds a brief, subtle additive screen wash on the FRAME one fires
+// so the moment lands harder. Rising-edge detected off the existing per-fighter parryFlash/clashFlash
+// timers (set to their max on the event, then decayed) — no new combat state, no balance change.
+let _pcFlash = 0, _pcFlashMax = 1, _pcFlashColor = "#38bdf8"
+const _pcPrev = { p1: { parry: 0, clash: 0 }, p2: { parry: 0, clash: 0 } }
+function _updateParryClashFlash() {
+  for (const side of ["p1", "p2"]) {
+    const f = side === "p1" ? p1 : p2
+    if (!f) continue
+    const pv = _pcPrev[side]
+    const pf = f.parryFlash || 0, cf = f.clashFlash || 0
+    if (pf > pv.parry)      { _pcFlash = 9; _pcFlashMax = 9; _pcFlashColor = "#38bdf8" }   // parry → cyan
+    else if (cf > pv.clash) { _pcFlash = 9; _pcFlashMax = 9; _pcFlashColor = "#ffffff" }   // clash → white
+    pv.parry = pf; pv.clash = cf
+  }
+}
+function _drawParryClashFlash() {
+  if (_pcFlash <= 0) return
+  const k = _pcFlash / _pcFlashMax
+  const rgb = _hexToRgb(_pcFlashColor)
+  ctx.save()
+  ctx.globalCompositeOperation = "lighter"                // ADD the hue as light → a clean pop, not a darken
+  ctx.globalAlpha = Math.min(1, k) * 0.30                 // brief + subtle so the HUD stays readable
+  ctx.fillStyle = `rgb(${rgb.r},${rgb.g},${rgb.b})`
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.restore()
+  _pcFlash--
 }
 
 function updateBattle() {
@@ -12103,6 +12168,8 @@ function updateBattle() {
   }
 
   _runClashCheck()
+  _updateParryClashFlash()   // Track A2: rising-edge screen "sell" wash for a fresh parry/clash
+  _updateLowHpVignette()     // Track A3: hysteresis latch for the low-HP danger vignette
 
   // KILLUA GODSPEED TIME-SLOW: stamp _timeSlowFrozen on the Godspeed user's opponent for the frames it
   // should be skipped (runs at a reduced frame-rate → visibly slowed movement + animation). Killua himself
@@ -14050,6 +14117,8 @@ function drawBattle() {
   if (!(typeof window !== "undefined" && window.__hideTojiSwarm))   // harness-only: hide the flies to isolate Toji's self-fade for evidence shots (swarm logic still ticks)
     drawTojiFlyHeadsSwarm(ctx, canvas)   // Toji Fly Heads — dense screen-clutter swarm OVER the fighters but UNDER the HUD (vision-denial, HP bars stay readable)
   _drawGhostfaceSwapFlash()   // Ghostface killer-swap identity-tinted flash (over fighters, under HUD)
+  _drawLowHpVignette()        // Track A3: low-HP red edge vignette (atmosphere, under HUD)
+  _drawParryClashFlash()      // Track A2: brief parry/clash "sell" wash (over fighters, under HUD)
   drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber)
   _drawDamageNumbers()
@@ -17479,6 +17548,17 @@ gameLoop()
     // comboTimer so it doesn't decay under the shot) so the REAL _drawComboCounters escalation +
     // per-hit pop renders. Only the counter source is injected; the display pipeline is untouched.
     setCombo: (who = "p1", n = 2) => { const f = who === "p1" ? p1 : p2; if (!f) return null; f.comboCounter = n; f.comboTimer = 120; return { who, combo: f.comboCounter } },
+    // Track A juice hooks (read-only snapshots + faithful edge injectors) — the low-HP vignette,
+    // the parry/clash "sell" wash, and the combo-counter escalation tier. firePseudoParry/Clash set
+    // the EXACT per-fighter field combat.js sets (parryFlash/clashFlash), so they drive the real
+    // production rising-edge detector + draw path, not a bypass.
+    juice: {
+      lowHp:        () => ({ on: _lowHpVignetteOn, a: +(_lowHpVignetteA).toFixed(3) }),
+      parryClash:   () => ({ flash: _pcFlash, color: _pcFlashColor }),
+      combo:        (who = "p1") => { const ds = comboDisplay[who === "p2" ? "p2" : "p1"]; return ds ? { count: ds.lastCount, tier: ds.rankTier, rankText: ds.rankText || "", pop: +(ds.pop || 0).toFixed(2), opacity: +(ds.opacity || 0).toFixed(2) } : null },
+      firePseudoParry: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f.parryFlash = 12; return true },
+      firePseudoClash: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return false; f.clashFlash = 10; return true },
+    },
     // HUD boss-bar variant proof (Stage 4): flag P2 as an arcade boss so the HUD draws the single
     // wide center-draining boss bar (view-only; does not change combat). Mirrors the p2._isBoss branch.
     forceBoss: (on = true) => { if (p2) p2._isBoss = !!on; return { boss: !!(p2 && p2._isBoss) } },

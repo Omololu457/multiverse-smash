@@ -501,6 +501,11 @@ import { pickYamamotoVoice, YAMAMOTO_VOICE } from "./yamamotoVoice.js"  // Yamam
 import { pickOrochimaruVoice, OROCHIMARU_VOICE } from "./orochimaruVoice.js"   // Orochimaru intro/win voice pools + harness hook (audio-only, JA)
 import { pickKibaVoice, KIBA_VOICE } from "./kibaVoice.js"   // Kiba intro/win voice pools + harness hook (audio-only, JA)
 import { pickNaoyaVoice, NAOYA_VOICE } from "./naoyaVoice.js"   // Naoya intro/win voice pools + harness hook (audio-only, JA)
+import { pickChrolloVoice } from "./chrolloVoice.js"   // Chrollo win-voice trigger (audio-only, JA) — pool existed but was never dispatched
+import { pickVegetaVoice } from "./vegetaVoice.js"     // Vegeta win-voice (audio-only) — win pool existed, round-end dispatch was missing
+import { pickMakiVoice } from "./makiVoice.js"         // Maki win-voice (audio-only) — win pool existed, round-end dispatch was missing
+import { pickSamuraiVoice } from "./samuraiRedVoice.js"          // Samurai Red Ranger win-voice (audio-only) — win pool existed, dispatch missing
+import { pickGoldSamuraiVoice } from "./goldSamuraiRangerVoice.js" // Gold Samurai Ranger win-voice (audio-only) — win pool existed, dispatch missing
 import { pickSpidermanVoice, SPIDERMAN_VOICE } from "./spidermanVoice.js"   // Spider-Man intro/quip/victory voice pools + harness hook (audio-only, EN Marvel-Rivals pack)
 import { pickBorutoVoice, pickBorutoKarmaVoice, BORUTO_VOICE, BORUTO_KARMA_VOICE } from "./borutoVoice.js"   // Boruto base + Momoshiki Karma voice pools (audio-only, JA; separate pools)
 import { pickSukunaVoice, SUKUNA_VOICE, getSukunaVoiceLang, setSukunaVoiceLang } from "./sukunaVoice.js"   // Sukuna intro(+taunt)/win voice pools (audio-only; JA default, EN switchable)
@@ -4214,6 +4219,27 @@ function _checkMatchOver() {
       // "It's over. It's over." and "Right now, I am the strongest in this world."
       if (winFighter?.rosterKey === "sasuke") {
         sound.playSfxFile?.(Math.random() < 0.5 ? "sasuke_win_line.mp3" : "sasuke_win_alt.mp3", null)
+      }
+      // CHROLLO win voice — his win POOL existed in chrolloVoice.js (farewell/spider sign-offs, JA)
+      // but was never dispatched (no call site) → the whole pool was dormant. Wired here to match
+      // every other module character's win trigger. Audio-only, fires once when the winner is Chrollo.
+      if (winFighter?.rosterKey === "chrollo") {
+        sound.playSfxFile?.(pickChrolloVoice("win"), null)
+      }
+      // The following four win pools ALSO existed on disk with their module trigger-map explicitly
+      // pointing at this "round-end WINNER block", but the dispatch branch was never added → the whole
+      // pool sat dormant. Wired here (audio-only, fires once for the matching winner).
+      if (winFighter?.rosterKey === "vegeta") {
+        sound.playSfxFile?.(pickVegetaVoice("win"), null)
+      }
+      if (winFighter?.rosterKey === "maki") {
+        sound.playSfxFile?.(pickMakiVoice("win"), null)
+      }
+      if (winFighter?.rosterKey === "samurai_red_ranger") {
+        sound.playSfxFile?.(pickSamuraiVoice("win"), null)
+      }
+      if (winFighter?.rosterKey === "gold_samurai_ranger") {
+        sound.playSfxFile?.(pickGoldSamuraiVoice("win"), null)
       }
       // ITACHI win voice — random pick from his win pool ("Winning is easy" / "It's already over" /
       // "You lose"). Fires only when the WINNER is Itachi.

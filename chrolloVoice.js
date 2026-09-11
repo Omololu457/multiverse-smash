@@ -73,6 +73,9 @@ export const CHROLLO_VOICE = {
   win: [
     "chrollo_006_spider_not_individual.mp3", "chrollo_019_see_ya.mp3",
     "chrollo_047_see_you_again.mp3", "chrollo_067_my_bad.mp3", "chrollo_068_unfortunately.mp3",
+    // Previously-UNWIRED on-disk clip: "the reason you lost…" — a past-tense line addressed to a
+    // defeated opponent, so it belongs to the WIN trigger (fires when Chrollo won → the foe lost).
+    "chrollo_007_reason_you_lost.mp3",
   ],
 }
 

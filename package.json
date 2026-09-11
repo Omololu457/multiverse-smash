@@ -819,7 +819,8 @@
     "test:form-transform-cine": "node harness/form_transform_cinematic.test.mjs",
     "test:naoya-redesign": "node harness/naoya_redesign.test.mjs",
     "test:track-a-juice": "node harness/track_a_juice.mjs",
-    "test:track-c-specials": "node harness/track_c_specials.mjs"
+    "test:track-c-specials": "node harness/track_c_specials.mjs",
+    "test:track-d-cine": "node harness/track_d_cine.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

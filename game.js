@@ -17591,6 +17591,9 @@ gameLoop()
     // the parry/clash "sell" wash, and the combo-counter escalation tier. firePseudoParry/Clash set
     // the EXACT per-fighter field combat.js sets (parryFlash/clashFlash), so they drive the real
     // production rising-edge detector + draw path, not a bypass.
+    // Track D — read-only snapshot of the shared form-activation cinematic (Zaraki Shikai / Kurapika
+    // Emperor Time now ride this beat, like Piccolo/Bardock): { active, frame, phase, total, resolved, key }.
+    formCine: () => { try { return getFormActivationCinematicStatus() } catch (_) { return { active: false } } },
     juice: {
       lowHp:        () => ({ on: _lowHpVignetteOn, a: +(_lowHpVignetteA).toFixed(3) }),
       parryClash:   () => ({ flash: _pcFlash, color: _pcFlashColor }),

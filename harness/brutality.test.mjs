@@ -11,12 +11,14 @@ const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascri
 function srv(){const s=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split("?")[0]);const f=path.join(ROOT,u==="/"?"/index.html":u);if(!f.startsWith(ROOT)){r.writeHead(403).end();return;}fs.readFile(f,(e,d)=>{if(e){r.writeHead(404).end();return;}r.writeHead(200,{"content-type":MIME[path.extname(f)]||"application/octet-stream"});r.end(d);});});return new Promise(x=>s.listen(0,"127.0.0.1",()=>x(s)));}
 let PASS=0,FAIL=0; const check=(n,c,d="")=>{(c?PASS++:FAIL++);console.log(`  ${c?"✅ PASS":"❌ FAIL"}  ${n}${d?`  — ${d}`:""}`);};
 
-// The 12 prototype characters (+ zaraki_shikai shares zaraki). Exactly these are eligible.
-const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","mayuri","madara","jason","naoya","hisoka","ghostface","baki"];
+// The 17 eligible characters (+ zaraki_shikai shares zaraki). Exactly these are eligible.
+// Tier 2 (this pass): deathstroke, isshiki, orochimaru, alt_sukuna, ghostface_billy.
+const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","mayuri","madara","jason","naoya","hisoka","ghostface","baki",
+  "deathstroke","isshiki","orochimaru","alt_sukuna","ghostface_billy"];
 // Hard-exclusion list — must NEVER be eligible regardless of style.
 const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","killua","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];
-// Previously-eligible keys that this pass intentionally REMOVED (re-scope proof).
-const REMOVED  = ["alt_sukuna","isshiki","orochimaru","deathstroke","cell","ghostface_billy","hisoka_removed_check"];
+// Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
+const REMOVED  = ["cell"];
 // Full per-character, per-move finisher table (mirrors game.js BRUTALITY_FINISHERS). [char][move] = {name,gore}.
 const TABLE = {
   sukuna:   { cleave:{n:"CLEAVE",g:"bisect"}, dismantle:{n:"DISMANTLE",g:"dice"}, domain:{n:"MALEVOLENT SHRINE",g:"shred"} },
@@ -31,7 +33,14 @@ const TABLE = {
   hisoka:   { hisokaRekka2:{n:"TEXTURE SURPRISE",g:"dice"}, bungeeGum:{n:"BUNGEE GUM",g:"dismember"}, hisoka_card:{n:"CARD THROW",g:"beam"} },
   ghostface:{ ghostfaceCombo3:{n:"FRENZY",g:"dismember"}, gfLunge:{n:"GUTTING LUNGE",g:"gut"}, ultimate:{n:"THE FINAL ACT",g:"decap"} },
   baki:     { bakiG2:{n:"GRAPPLE TEAR",g:"dismember"}, bakiRush:{n:"DEMON RUSH",g:"pulp"}, bakiRising:{n:"RISING FANG",g:"crush"} },
+  // ── Tier 2 ──
+  deathstroke:    { dsSwordSlash:{n:"PROMETHIUM CLEAVE",g:"bisect"}, dsDrawCut:{n:"DRAW & QUARTER",g:"dismember"}, dsRunSlash:{n:"TERMINATED",g:"dice"} },
+  isshiki:        { isshikiGround3:{n:"OTSUTSUKI JUDGMENT",g:"dismember"}, isshikiSukuCast:{n:"SUKUNAHIKONA",g:"pulp"}, isshikiFin2:{n:"DAIKOKUTEN",g:"bisect"} },
+  orochimaru:     { orochimaruChain3:{n:"HYDRA MAW",g:"gut"}, orochimaruSwordLunge:{n:"KUSANAGI",g:"beam"}, oroSnake:{n:"HIDDEN SHADOW SNAKES",g:"shred"} },
+  alt_sukuna:     { altSukunaCleave2:{n:"CLEAVE",g:"bisect"}, altSukunaBeam:{n:"FŪGA",g:"beam"}, altSukunaSpinkick:{n:"DISMANTLE",g:"dice"} },
+  ghostface_billy:{ gfLunge:{n:"GUTTING LUNGE",g:"gut"}, gfLowCut:{n:"HAMSTRING",g:"dismember"}, ultimate:{n:"THE FINAL ACT",g:"dice"} },
 };
+const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 
 try {
   const server = await srv(); const base = `http://127.0.0.1:${server.address().port}`;
@@ -55,13 +64,13 @@ try {
   const elig = await page.evaluate(() => window.__harness.brutality.eligible());
   const eligSorted = [...elig].sort().join(",");
   const wantSorted = [...ELIGIBLE].sort().join(",");
-  check("eligible set is EXACTLY the 12 prototype chars (+zaraki_shikai)", eligSorted === wantSorted, `got [${eligSorted}]`);
+  check("eligible set is EXACTLY the 17 eligible chars (+zaraki_shikai)", eligSorted === wantSorted, `got [${eligSorted}]`);
   const inCount = await page.evaluate(list => list.filter(k => window.__harness.brutality.canTrigger(k)), ELIGIBLE);
-  check("all 12 prototype winners are eligible", inCount.length === ELIGIBLE.length, `eligible: ${inCount.length}/${ELIGIBLE.length}`);
+  check("all eligible winners are eligible", inCount.length === ELIGIBLE.length, `eligible: ${inCount.length}/${ELIGIBLE.length}`);
   const leaked = await page.evaluate(list => list.filter(k => window.__harness.brutality.canTrigger(k)), EXCLUDED);
   check("hard-exclusion list is NEVER eligible", leaked.length === 0, leaked.length ? `LEAKED: ${leaked.join(",")}` : "none");
-  const stillRemoved = await page.evaluate(list => list.filter(k => window.__harness.brutality.canTrigger(k)), REMOVED.slice(0,6));
-  check("previously-eligible keys were REMOVED (alt_sukuna/isshiki/orochimaru/deathstroke/cell/ghostface_billy)", stillRemoved.length === 0, stillRemoved.length ? `STILL IN: ${stillRemoved.join(",")}` : "none");
+  const stillRemoved = await page.evaluate(list => list.filter(k => window.__harness.brutality.canTrigger(k)), REMOVED);
+  check("out-of-scope key (cell) is NOT eligible", stillRemoved.length === 0, stillRemoved.length ? `STILL IN: ${stillRemoved.join(",")}` : "none");
 
   // ── Stage 3+4: per-CHARACTER, per-MOVE finisher TABLE (static resolve, all 36) ───────────────────
   let tableOk = 0, tableBad = [];
@@ -72,7 +81,7 @@ try {
       else tableBad.push(`${ch}/${mv}→${JSON.stringify(r)}(want ${exp.n}/${exp.g})`);
     }
   }
-  check("all 36 per-move finishers resolve to the correct name + gore", tableBad.length === 0, tableBad.length ? tableBad.slice(0,4).join(" | ") : `${tableOk}/36 correct`);
+  check(`all ${TABLE_ENTRIES} per-move finishers resolve to the correct name + gore`, tableBad.length === 0, tableBad.length ? tableBad.slice(0,4).join(" | ") : `${tableOk}/${TABLE_ENTRIES} correct`);
 
   // Stage 4 strictness: NO fuzzy match — an untagged move / null → KLASSIC, never a wrong signature.
   const bogus = await page.evaluate(() => window.__harness.brutality.finisherFor("sukuna","__not_a_move__"));
@@ -161,6 +170,14 @@ try {
   await realKO("zaraki", "goku", { kind: "ult", label: "Bankai (melee resolveAttackHit path)", setup: { p2x: 40, hp: 12 } }, "zarakiBankai");
   // (c) CINEMATIC-ULTIMATE path (direct applyScaledDamage {move:"ultimate"}): Ghostface's Final Act sure-hit KOs.
   await realKO("ghostface", "goku", { kind: "ult", label: "The Final Act (cinematic-ult path)", setup: { hp: 40 } }, "ultimate");
+
+  // ── Tier 2: each of the 5 new chars lands its TAGGED move as the REAL killing blow (B3) ────────────
+  // Neutral special per char, fired at a frozen near-death dummy → the exact tagged move stamps.
+  await realKO("deathstroke",     "goku", { kind: "spec", dir: null, label: "Sword Slash (melee)",   setup: { p2x: 40,  hp: 20 } }, "dsSwordSlash");     // → PROMETHIUM CLEAVE
+  await realKO("isshiki",         "goku", { kind: "spec", dir: null, label: "Sukunahikona (melee)",  setup: { p2x: 40,  hp: 20 } }, "isshikiSukuCast");  // → SUKUNAHIKONA
+  await realKO("orochimaru",      "goku", { kind: "spec", dir: null, label: "Snake Spit (projectile)",setup: { p2x: 220, hp: 20 } }, "oroSnake");        // → HIDDEN SHADOW SNAKES
+  await realKO("alt_sukuna",      "goku", { kind: "spec", dir: null, label: "Fūga arrow (projectile)",setup: { p2x: 220, hp: 20 } }, "altSukunaBeam");   // → FŪGA
+  await realKO("ghostface_billy", "goku", { kind: "spec", dir: null, label: "Gutting Lunge (melee)",  setup: { p2x: 40,  hp: 20 } }, "gfLunge");         // → GUTTING LUNGE
 
   // PROJECTILE FULL PIPELINE (real move → real KO → real _tryStartBrutality → finisher picked FROM the move):
   await boot("frieza", "goku");

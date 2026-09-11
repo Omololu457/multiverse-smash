@@ -4010,76 +4010,89 @@ function _captureLoserSprite(loseF) {
 }
 // STYLIZED CARTOON BLOOD — a clean red family (NOT gore-brown), used for the split splatter + drips + pool.
 const BLOOD_REDS = ["#e11d2a", "#b3111c", "#ff4d4d"]   // bright, deep, highlight
-// A PIXEL-ART bone drawn on the sprite's OWN pixel grid (cell = sp.px world px): blocky/stepped edges, no
-// smooth curves. A vertical femur — a 2-cell shaft with knobby 2×2 epiphysis ends — sized in CELLS so it
-// scales with the character (lenCells/wCells derived from the sprite's dims). Fills are snapped to the cell
-// grid so every edge is a hard pixel step. cx/cy = bone centre (world). Drawn to protrude from a cut edge.
-function _drawPixelBone(c, cx, cy, cell, lenCells, alpha) {
+// SIMPLE, BOLD BONE — legibility over fidelity (the old detailed pixel-femur did NOT read at this scale).
+// ~5 basic shapes: a thick off-white SHAFT (rounded rect) + TWO big bulbous joint-KNOBS at each end (a pair
+// of overlapping circles, clearly WIDER than the shaft — the detail that makes a shape read as "bone") + a
+// single dark-red MARROW cap on the severed (top) end. Drawn with a dark outline pass so it pops against the
+// body. Scaled LARGE relative to the sprite (err big). cx/cy = bone centre (world), len = overall length.
+function _drawBone(c, cx, cy, len, alpha) {
   c.save()
   c.globalAlpha = alpha
-  c.imageSmoothingEnabled = false
-  // snap the centre to the cell grid so every block lands on a hard pixel boundary
-  const gx = Math.round(cx / cell) * cell, gy = Math.round(cy / cell) * cell
-  const R = (cxi, cyi, wc, hc, col) => { c.fillStyle = col; c.fillRect(gx + cxi * cell, gy + cyi * cell, wc * cell, hc * cell) }
-  const top = -Math.floor(lenCells / 2), bot = top + lenCells
-  const OUT = "#4a3324", BONE = "#f2ede0", SHADE = "#cdc6b4", HI = "#ffffff", MARROW = "#c0303a"
-  // 1) DARK OUTLINE backing (1 cell larger all round) so the bone reads against the body pixels
-  R(-2, top - 1, 4, lenCells + 2, OUT)                          // shaft backing
-  R(-4, top - 2, 8, 4, OUT); R(-4, bot - 2, 8, 4, OUT)         // knob-end backings
-  // 2) BONE fill — a 2-cell shaft with a right-side shade + left highlight
-  R(-1, top, 2, lenCells, BONE)
-  R(0, top, 1, lenCells, SHADE)
-  R(-1, top + 1, 1, lenCells - 2, HI)
-  // 3) knobby epiphysis ends — a 6-cell-wide, 2-cell-tall bulge at top + bottom (classic bone silhouette)
-  for (const ey of [top - 1, bot - 1]) {
-    R(-3, ey, 6, 2, BONE)
-    R(-3, ey, 1, 2, HI); R(2, ey, 1, 2, SHADE)
-  }
-  // 4) MARROW — a red cross-section dot near the protruding (top) end, so it reads as freshly severed
-  R(-1, top, 2, 1, MARROW)
+  c.lineJoin = "round"; c.lineCap = "round"
+  const shaftW = Math.max(8, len * 0.18)                         // THICK shaft (unmistakably solid, not a line)
+  const knobR  = Math.max(9, len * 0.24)                         // joint knobs — much wider than the shaft
+  const half   = len / 2
+  const BONE = "#f6f2e8", EDGE = "#3a2a1e", MARROW = "#b3111c"
+  const knobs = (yy, r, col) => { c.fillStyle = col
+    c.beginPath(); c.arc(cx - shaftW * 0.6, yy, r, 0, Math.PI * 2); c.fill()
+    c.beginPath(); c.arc(cx + shaftW * 0.6, yy, r, 0, Math.PI * 2); c.fill() }
+  const shaft = (w, ext, col) => { c.fillStyle = col
+    const x = cx - w / 2, y = cy - half - ext, h = len + ext * 2, r = w * 0.5
+    c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); c.fill() }
+  // 1) dark outline pass (each piece a touch larger)
+  knobs(cy - half, knobR + 3, EDGE); knobs(cy + half, knobR + 3, EDGE); shaft(shaftW + 6, 3, EDGE)
+  // 2) bone fill
+  shaft(shaftW, 0, BONE); knobs(cy - half, knobR, BONE); knobs(cy + half, knobR, BONE)
+  // 3) MARROW — one flat dark-red cap on the severed (top) end
+  c.fillStyle = MARROW
+  c.beginPath(); c.ellipse(cx, cy - half, knobR * 1.15, knobR * 0.5, 0, 0, Math.PI * 2); c.fill()
   c.restore()
 }
-// One blocky blood chunk (pixel square). p.cells = size in grid cells; snapped to the grid for hard edges.
-function _drawBloodChunk(c, p, cell) {
-  const s = Math.max(1, p.cells | 0) * cell
-  const gx = Math.round(p.x / cell) * cell, gy = Math.round(p.y / cell) * cell
-  c.fillStyle = p.color
-  c.fillRect(gx, gy, s, s)
+// ONE bold irregular red SPLAT (ink-blot) at the cut point — a single dense mark, not a scatter. Fixed radius
+// factors so the silhouette is stable (no per-frame flicker). Dark blob + brighter core + a few spike dots.
+const _SPLAT_R = [1.0, 0.86, 1.06, 0.78, 0.95, 1.02, 0.82, 0.9, 1.07, 0.74, 0.98, 0.88, 1.0, 0.8, 0.96, 0.84]
+function _drawBloodSplat(c, cx, cy, R, alpha) {
+  c.save(); c.globalAlpha = alpha
+  const N = _SPLAT_R.length
+  const blob = (rad, rot, col) => { c.fillStyle = col; c.beginPath()
+    for (let i = 0; i < N; i++) { const a = (i / N) * Math.PI * 2 + rot, r = rad * _SPLAT_R[i]
+      const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; i ? c.lineTo(x, y) : c.moveTo(x, y) }
+    c.closePath(); c.fill() }
+  blob(R, 0, "#b3111c")                                          // main dense blob
+  blob(R * 0.58, 0.5, "#e11d2a")                                 // brighter inner core
+  c.fillStyle = "#e11d2a"                                        // a few bold spike droplets flung off
+  for (const [dx, dy, d] of [[-1, -0.5, 1.5], [1, -0.65, 1.7], [-0.5, -1, 1.35], [0.75, -0.95, 1.45], [1.25, 0.15, 1.25]]) {
+    c.beginPath(); c.arc(cx + dx * R * d, cy + dy * R * d, R * 0.17, 0, Math.PI * 2); c.fill()
+  }
+  c.restore()
 }
-// Spawn the split-moment blood: a chunky outward splatter + a few gravity drips, at the ORIGINAL cut point
-// (world sx,sy). Particles live in world space (they do NOT follow the separating halves).
+// One BIG blood DRIP — a bold round blob (reads individually) with a small teardrop tail while it falls.
+function _drawBloodDrip(c, p) {
+  c.fillStyle = p.color
+  c.beginPath(); c.arc(p.x, p.y, p.r, 0, Math.PI * 2); c.fill()
+  if (!p.settled && (p.vy || 0) > 1) {                           // travelling → trailing teardrop points back up
+    c.beginPath(); c.moveTo(p.x - p.r * 0.55, p.y); c.lineTo(p.x, p.y - p.r * 1.9); c.lineTo(p.x + p.r * 0.55, p.y); c.closePath(); c.fill()
+  }
+}
+// Spawn a SMALL number of BIG drips (3–6) falling from the cut — each big enough to read on its own. No fine
+// scatter. World-space (they do NOT follow the halves). The bold splat + pool carry the mass; these are drips.
 function _spawnBrutalityBlood(b, sx, sy, cell) {
-  const n = 22 + ((Math.random() * 8) | 0)
+  const n = 4 + ((Math.random() * 3) | 0)                        // 4–6 drips
   for (let i = 0; i < n; i++) {
-    const up = Math.random() < 0.7                              // most burst up-and-out; some just drip
-    const ang = up ? (-Math.PI / 2 + (Math.random() * 2 - 1) * 1.25) : (Math.random() * Math.PI * 2)
-    const spd = (up ? 3.2 : 1.2) + Math.random() * (up ? 6.5 : 2.5)
+    // Drip DOWN-and-slightly-out from the splat (small sideways spread, gentle downward push) so they read as
+    // blood dripping off the cut — NOT an upward burst that scatters like debris. Gravity carries them to the floor.
     b.parts.push({
-      x: sx + (Math.random() * 2 - 1) * cell * 2, y: sy + (Math.random() * 2 - 1) * cell * 2,
-      vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd - (up ? 2 : 0),
-      g: 0.42 + Math.random() * 0.2, life: 34 + ((Math.random() * 30) | 0),
-      cells: 1 + ((Math.random() * 2.2) | 0),                   // 1–3 cell chunks (blocky, not fine mist)
-      color: BLOOD_REDS[(Math.random() * BLOOD_REDS.length) | 0]
+      x: sx + (Math.random() * 2 - 1) * cell * 4, y: sy + (Math.random() * 2 - 1) * cell * 2,
+      vx: (Math.random() * 2 - 1) * 2.4, vy: 0.6 + Math.random() * 1.8,
+      g: 0.5 + Math.random() * 0.2, life: 46 + ((Math.random() * 30) | 0),
+      r: Math.max(5, cell * (2.4 + Math.random() * 1.7)),        // BIG drips (world-px radius), not tiny squares
+      color: Math.random() < 0.5 ? BLOOD_REDS[0] : BLOOD_REDS[1]
     })
   }
 }
-// Blocky ground pool/splatter beneath the split, once the halves start to fall. Grows with the beat; built
-// from pixel cells (no smooth ellipse) in the clean-red palette. cx/groundY world; cell = sprite pixel grid.
+// BOLD ground POOL — a solid, saturated red blob (overlapping ellipses, irregular), not a faint outline.
+// Grows over the beat. cx/groundY world; cell scales it to the character.
 function _drawGroundPool(c, cx, groundY, cell, t) {
-  if (t < 0.24) return
-  const grow = Math.min(1, (t - 0.24) / 0.5)
-  const gx = Math.round(cx / cell) * cell, gy = Math.round(groundY / cell) * cell
-  c.save(); c.imageSmoothingEnabled = false
-  const w0 = Math.round(5 + 12 * grow)                        // base half-width in cells
-  // a low, blocky puddle: widest base row + two narrower rows above (a slight mound), clean red
-  const rows = [{ dy: 0, hw: w0, col: BLOOD_REDS[1] }, { dy: -1, hw: Math.round(w0 * 0.7), col: BLOOD_REDS[0] }, { dy: -2, hw: Math.round(w0 * 0.34), col: BLOOD_REDS[0] }]
-  c.globalAlpha = 0.95
-  for (const r of rows) if (r.hw > 0) c.fillRect(gx - r.hw * cell, gy + r.dy * cell, r.hw * 2 * cell, cell)
-  // fixed stray edge cells (deterministic offsets → no per-frame flicker) for a splattered rim
-  c.fillStyle = BLOOD_REDS[1]
-  for (const [ox, oy] of [[-(w0 + 2), 0], [w0 + 2, 0], [-(w0 + 1), -1], [w0 + 1, -1], [-(w0 - 2), -2], [w0 - 2, -2]]) {
-    c.fillRect(gx + ox * cell, gy + oy * cell, cell, cell)
-  }
+  if (t < 0.2) return
+  const grow = Math.min(1, (t - 0.2) / 0.5)
+  const rx = (16 + 34 * grow) * (cell / 3), ry = rx * 0.34
+  c.save(); c.globalAlpha = 0.96
+  c.fillStyle = "#b3111c"
+  c.beginPath(); c.ellipse(cx, groundY, rx, ry, 0, 0, Math.PI * 2); c.fill()                         // main pool
+  c.beginPath(); c.ellipse(cx + rx * 0.72, groundY, rx * 0.3, ry * 0.82, 0, 0, Math.PI * 2); c.fill() // right lobe
+  c.beginPath(); c.ellipse(cx - rx * 0.82, groundY + ry * 0.12, rx * 0.28, ry * 0.7, 0, 0, Math.PI * 2); c.fill() // left lobe
+  c.fillStyle = "#e11d2a"
+  c.beginPath(); c.ellipse(cx - rx * 0.12, groundY - ry * 0.22, rx * 0.6, ry * 0.55, 0, 0, Math.PI * 2); c.fill()  // brighter sheen
   c.restore()
 }
 function updateBrutality() {
@@ -4124,9 +4137,15 @@ function _drawBrutality() {
     const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
     const cell = sp.px || 4
     const gap  = sepEase * Math.max(96, sp.w * 0.62)              // DAYLIGHT between the inner edges (big min + big frac)
-    const fall = (t * t) * Math.max(26, sp.h * 0.14)             // gravity accelerates IN → never dominates the early pop
+    // The vertical FALL carries the halves DOWN to the real floor over the beat (accelerating). On an AIRBORNE
+    // KO this drops the halves + bone + blood onto the ground where the pool forms, so the pool is always part
+    // of the shot (not left hanging in mid-air). A GROUNDED KO has ~0 distance to the floor → the same small
+    // settle as before. Capped so a very high launch doesn't teleport. Horizontal separation is unchanged.
+    const feetY   = sp.y + sp.h
+    const toFloor = Math.max(0, (sp.groundY != null ? sp.groundY : feetY) - feetY)
+    const fall = (t * t) * Math.max(sp.h * 0.14, Math.min(toFloor, sp.h * 3.2))
     const tilt = sepEase * 0.34                                   // real outward topple, about each half's OWN centre
-    // GROUND POOL first (behind the halves + chunks) — blocky splatter on the real floor that grows over the beat.
+    // GROUND POOL first (behind the halves) — bold saturated blob on the real floor that grows over the beat.
     _drawGroundPool(ctx, seamX, sp.groundY, cell, t)
     // LEFT half — drawn centred on its origin, rotated outward (CCW) about its centre, shoved LEFT + down.
     ctx.save(); ctx.translate(seamX - hw / 2 - gap / 2, cy + fall); ctx.rotate(-tilt)
@@ -4136,15 +4155,15 @@ function _drawBrutality() {
     ctx.save(); ctx.translate(seamX + hw / 2 + gap / 2, cy + fall); ctx.rotate(tilt)
     ctx.drawImage(sp.canvas, hw, 0, hw, sp.h, -hw / 2, -sp.h / 2, hw, sp.h)
     ctx.restore()
-    // PIXEL BONE — protrudes from the LEFT half's cut edge (a cross-section), so it moves apart WITH that
-    // half rather than floating. Length in CELLS scales with the sprite → "this character's bone".
-    if (boneA > 0.02) {
-      const leftCutX = seamX - gap / 2
-      const lenCells = Math.min(22, Math.max(6, Math.round((sp.h * 0.30) / cell)))
-      _drawPixelBone(ctx, leftCutX + cell, cy + fall, cell, lenCells, boneA)
-    }
-    // BLOOD CHUNKS on top — the splatter/drips from the cut point (world-space, don't follow the halves).
-    for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.95 : Math.min(1, p.life / 10); _drawBloodChunk(ctx, p, cell) }
+    // ONE BOLD BLOOD SPLAT at the ORIGINAL cut point (world-space; stays at the impact spot, does NOT follow
+    // the halves). Full at impact, lingers, fades in the last stretch.
+    const cutX = sp.x + sp.w / 2, cutY = sp.y + sp.h * 0.45
+    const splatA = Math.min(1, (1 - t) * 2.5)
+    if (splatA > 0.02) _drawBloodSplat(ctx, cutX, cutY, Math.min(130, Math.max(42, sp.w * 0.46)), splatA)
+    // BONE — big, simple, bold; centred in the daylight between the halves (revealed as the gap opens).
+    if (boneA > 0.02) _drawBone(ctx, seamX, cy + fall, Math.min(150, Math.max(46, sp.h * 0.42)), boneA)
+    // A FEW BIG DRIPS on top (bold blobs, world-space).
+    for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
     ctx.globalAlpha = 1
   } else {
     // Fallback (frame couldn't be captured): two palette-colored half-blocks with the SAME choreography.
@@ -4155,8 +4174,10 @@ function _drawBrutality() {
     ctx.fillStyle = pal[0]
     ctx.save(); ctx.translate(b.x - bw / 4 - gap / 2, cy + fall); ctx.rotate(-tilt); ctx.fillRect(-bw / 4, -bh / 2, bw / 2, bh); ctx.restore()
     ctx.save(); ctx.translate(b.x + bw / 4 + gap / 2, cy + fall); ctx.rotate(tilt);  ctx.fillRect(-bw / 4, -bh / 2, bw / 2, bh); ctx.restore()
-    if (boneA > 0.02) _drawPixelBone(ctx, b.x - gap / 2 + cell, cy + fall, cell, 11, boneA)
-    for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.95 : Math.min(1, p.life / 10); _drawBloodChunk(ctx, p, cell) }
+    const splatA = Math.min(1, (1 - t) * 2.5)
+    if (splatA > 0.02) _drawBloodSplat(ctx, b.x, cy, 52, splatA)
+    if (boneA > 0.02) _drawBone(ctx, b.x, cy + fall, 84, boneA)
+    for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
     ctx.globalAlpha = 1
   }
   ctx.globalAlpha = 1

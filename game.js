@@ -5088,8 +5088,9 @@ function handleChargeRelease(fighter, key) {
   // While transformed a quick TAP reverts early; a HOLD-release tops up Symbol Power and stays in form
   // (sustain it). Continuous drain + auto-revert at 0 runs in applySamuraiFormSystem.
   if (["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"].includes((fighter.rosterKey || "").toLowerCase())) {
+    if (fighter._megaAutoPress) { fighter._megaAutoPress = false; return }   // this press already AUTO-transformed mid-hold → don't also revert on release
     if (fighter._megaActive) { if (wasTap) revertSamuraiMega(fighter) }   // Mega: tap → base
-    else enterSamuraiMega(fighter, getAbilityContext())                   // base → Mega (gated ≥90 Symbol Power)
+    else enterSamuraiMega(fighter, getAbilityContext())                   // base → Mega fallback (e.g. energy filled instantly); auto-trigger normally handles it mid-hold
     return
   }
 
@@ -5885,6 +5886,13 @@ function updateMovementInput(fighter) {
   if (inputState.charge && !fighter._suppressChargeUntilRelease && !isTransformDevice(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
     if ((fighter.maxEnergy || 0) > 0) doEnergyCharge(fighter)
     fighter.isCharging = true
+    // SAMURAI RANGERS — AUTO Mega Mode (owner-requested): the instant Symbol Power crosses the threshold
+    // WHILE holding Charge, transform — no release needed. enterSamuraiMega self-gates (samurai + base form
+    // + energy ≥ 90) so this is a safe no-op otherwise. _megaAutoPress tells the RELEASE handler this same
+    // press already transformed, so a tap-release doesn't immediately revert it.
+    if (!fighter._megaActive && ["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"].includes((fighter.rosterKey || "").toLowerCase())) {
+      if (enterSamuraiMega(fighter, getAbilityContext())) fighter._megaAutoPress = true
+    }
   }
   // UNIVERSAL CHARGE LOCKOUT — can't block while charging (deliberate vulnerability, all chars).
   // FLASH TIME LOCKOUT — Flash cannot block/defend at all while Flash Time is active (its whole

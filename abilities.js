@@ -696,7 +696,28 @@ function executeGokuSpecial(fighter, context) {
 // input fires it. ★HONEST ART REUSE of gohan_heavy_uniform (the validated lunging-kick), exactly like Goku's
 // Dragon Fist reuses the heavy sheet — no clean dedicated special frame exists (candidates were wrong-facing /
 // a wind-up). Special FEEL comes from mechanics: big lunge + camera + hard knockback. ×0.60 → ~78 EFF.
-function executeGohanSpecial(fighter, context) {
+function gohanOffense(fighter) { return Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1) }
+// Track C1 — GOHAN's missing ranged/zoning answer. A canon ki-blast bolt (Gohan uses ki blasts throughout
+// the source). PROCEDURAL projectile (no shard art on the sheet); the cast reuses the heavy-attack pose as
+// the cast frame (the same honest reuse meteorKick already uses — no new art). Medium projectile band.
+const GOHAN_KIBLAST = { cost: 26, wind: 10, recovery: 16, pose: "heavy", projW: 34, projH: 20, speed: 19, damage: 72, hitstun: 16, kbX: 6, kbY: -1, life: 70, radius: 13, color: "#9fd8ff" }
+function fireGohanKiBlast(fighter, context, opts = {}) {
+  const t = GOHAN_KIBLAST
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  if (opts.air !== true) fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur   // reuse heavy-attack pose as the cast frame (honest reuse)
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = gohanOffense(fighter)
+  const baseY = fighter.y + (fighter.h || 100) * (opts.air ? 0.32 : 0.40)
+  schedulePendingSpawn(t.wind, () => spawnProjectile(fighter, "gohanKiBlast", {
+    w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+    hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, color: t.color, spawnY: baseY,
+  }, context))
+  return true
+}
+function fireGohanMeteorKick(fighter, context) {
   const getOpponent = getTargetResolver(context)
   const target      = getOpponent(fighter)
   if (!spendEnergy(fighter, 35)) return false
@@ -710,6 +731,13 @@ function executeGohanSpecial(fighter, context) {
   focusCameraOnAction(context, fighter, target, 0.98, 10)
   shakeCamera(context, 8, 8)
   return true
+}
+function executeGohanSpecial(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const dir = fighter._specialHeldDir || null
+  const grounded = fighter.onGround ?? fighter.grounded ?? true
+  if (dir === "B") return fireGohanKiBlast(fighter, context, { air: !grounded })   // Back — Ki Blast (the new ranged/zoning answer)
+  return fireGohanMeteorKick(fighter, context)                                     // neutral / Fwd / everything else — Meteor Kick (unchanged)
 }
 
 // ── TEEN GOHAN — TRANSFORMATION (Stage 5): Base ↔ SUPER SAIYAN 2. ────────────────────────────────
@@ -4734,6 +4762,26 @@ function fireBardockRebellion(fighter, context, opts = {}) {
   shakeCamera(context, 7, 8)
   return true
 }
+// Track C3 — BARDOCK's missing zoning answer. A thrown ki-infused SLASH-WAVE (he canonically fights with a
+// sword; his heavy is a red-trail sword slash). PROCEDURAL crescent projectile; the cast reuses the heavy
+// sword-slash pose as the cast frame (honest reuse — no ranged art on the sheet). Medium projectile band.
+const BARDOCK_BLADEWAVE = { cost: 24, wind: 11, recovery: 17, pose: "heavy", projW: 40, projH: 30, speed: 18, damage: 68, hitstun: 16, kbX: 7, kbY: -2, life: 62, radius: 16, color: "#ff5a3d" }
+function fireBardockBladeWave(fighter, context, opts = {}) {
+  const t = BARDOCK_BLADEWAVE
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  if (opts.air !== true) fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur   // reuse the heavy sword-slash pose as the cast frame (honest reuse)
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  const offense = bardockOffense(fighter)
+  const baseY = fighter.y + (fighter.h || 100) * (opts.air ? 0.34 : 0.42)
+  schedulePendingSpawn(t.wind, () => spawnProjectile(fighter, "bardockBladeWave", {
+    w: t.projW, h: t.projH, radius: t.radius, speed: t.speed, damage: Math.round(t.damage * offense),
+    hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, color: t.color, spawnY: baseY,
+  }, context))
+  return true
+}
 function fireBardockKiCharge(fighter) {
   const t = BARDOCK_KICHARGE
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
@@ -4754,6 +4802,7 @@ export function executeBardockSpecial(fighter, context) {
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const dir = fighter._specialHeldDir || null
   if (grounded && dir === "D") return fireBardockKiCharge(fighter)             // Down (ground) — Ki Charge (resource build)
+  if (grounded && dir === "B") return fireBardockBladeWave(fighter, context)   // Back (ground) — thrown Blade Wave (the new ranged/zoning answer)
   return fireBardockRebellion(fighter, context, { air: !grounded })           // neutral / Fwd / AIR — Rebellion Rush (dashing sword lunge)
 }
 
@@ -6278,6 +6327,26 @@ function fireGotenksKiBlast(fighter, context, opts = {}) {
   }, context))
   return true
 }
+// Track C2 — GOTENKS's missing reversal/anti-air. A rising launcher kick (reuses the up-launcher art via a
+// dedicated animationData alias "gotenksRisingKick" → gotenks_up sheet; no new art). Fast startup, tall
+// upward hitbox, launches — a real second special with a DISTINCT function from the neutral Ki Blast.
+const GOTENKS_RISINGKICK = { cost: 24, pose: "gotenksRisingKick", damage: 62, startup: 6, active: 5, recovery: 20, hitstun: 22, kbX: 4, kbY: -13, rangeX: 74, rangeY: 104 }
+function fireGotenksRisingKick(fighter, context) {
+  const t = GOTENKS_RISINGKICK
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const getOpponent = getTargetResolver(context)
+  const target = getOpponent?.(fighter)
+  const attack = createAttackFromMove(fighter, t.pose, {
+    damage: Math.round(t.damage * gotenksOffense(fighter)), startup: t.startup, active: t.active, recovery: t.recovery,
+    hitstun: t.hitstun, knockbackX: t.kbX, knockbackY: t.kbY, rangeX: t.rangeX, rangeY: t.rangeY,
+  }, { minActiveStart: t.startup, minActiveEnd: t.startup + t.active })
+  setAttackState(fighter, attack, t.startup + t.active + t.recovery)
+  fighter.vx = 0
+  focusCameraOnAction(context, fighter, target, 0.98, 10)
+  shakeCamera(context, 6, 8)
+  return true
+}
 function fireGotenksKiCharge(fighter) {
   const t = GOTENKS_KICHARGE
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
@@ -6300,6 +6369,7 @@ export function executeGotenksSpecial(fighter, context) {
   const dir = fighter._specialHeldDir || null
   if (!grounded) return fireGotenksKiBlast(fighter, context, { air: true })   // AIR (any) — Ki Blast
   if (dir === "D") return fireGotenksKiCharge(fighter)                        // Down — Ki Charge (resource build)
+  if (dir === "U") return fireGotenksRisingKick(fighter, context)            // Up — Rising Kick (anti-air / reversal)
   return fireGotenksKiBlast(fighter, context)                                // neutral GROUND — Ki Blast
 }
 

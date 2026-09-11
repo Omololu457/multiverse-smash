@@ -818,7 +818,8 @@
     "test:goku-form-tint": "node harness/goku_form_attack_tint.test.mjs",
     "test:form-transform-cine": "node harness/form_transform_cinematic.test.mjs",
     "test:naoya-redesign": "node harness/naoya_redesign.test.mjs",
-    "test:track-a-juice": "node harness/track_a_juice.mjs"
+    "test:track-a-juice": "node harness/track_a_juice.mjs",
+    "test:track-c-specials": "node harness/track_c_specials.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

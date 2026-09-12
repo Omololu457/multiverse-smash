@@ -1160,13 +1160,29 @@ function applyItachiLowHealthVoice(defender) {
   }
 }
 
+// ── ALTERNATE-FORM VOICE ALIASES ─────────────────────────────────────────────
+// Alternate/skin rosterKeys reuse their base character's already-on-disk voice pack.
+// voiceKey() maps a variant rosterKey to the base whose voice guards it should satisfy, so every
+// exact-rosterKey VOICE guard below (and the intro/namecall/win/taunt dispatch in game.js) matches
+// the variant too. VOICE-ONLY — no gameplay/ability/animation guard uses this.
+export const VOICE_ALIAS = {
+  dark_knight: "batman",
+  superman_classic: "superman", superman_dcuc: "superman",
+  superman_fighter: "superman", superman_new52: "superman",
+  vegeta_dark: "vegeta", vegito: "vegeta",
+  ghostface_billy: "ghostface",
+  miles: "spiderman",
+  rickprime: "rick",   // rosterKey "rickPrime" → lowercased
+}
+export function voiceKey(rk) { const k = (rk || "").toLowerCase(); return VOICE_ALIAS[k] || k }
+
 // ── RICK VOICE LINES (audio-only; same pattern as Naruto/Sasuke above) ───────────
 // DEFENDER reaction pool — LIGHT flinch vs HEAVY/knockdown-tier, tier read straight off
 // `cat`/`dmg` (same heavy test Naruto/Sasuke/Beerus use; no knockdownState). Random pick
 // within the chosen pool via pickRickVoice. One line per _hitVoiceCd window (ticked in
 // game.js); only on an UNBLOCKED hit (see resolveAttackHit).
 function applyRickHitVoice(defender, cat, dmg) {
-  if (defender.rosterKey !== "rick" || (defender._hitVoiceCd > 0)) return
+  if (voiceKey(defender.rosterKey) !== "rick" || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
   const heavy = cat === "heavy" || cat === "launcher" || cat === "spike" ||
     cat === "special" || cat === "ultimate" || dmg >= 55
@@ -1180,7 +1196,7 @@ function applyRickHitVoice(defender, cat, dmg) {
 // suppresses it. Same scope note as Naruto/Sasuke: projectile-only specials resolve in
 // resolveProjectileHits, not here — Rick's specials carry their own cast barks instead.
 function applyRickOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || attacker.rosterKey !== "rick" || (attacker._atkVoiceCd > 0)) return
+  if (!unblocked || voiceKey(attacker.rosterKey) !== "rick" || (attacker._atkVoiceCd > 0)) return
   const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
   const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
   if (!strong && !longString) return
@@ -1292,7 +1308,7 @@ function applyChrolloLowHealthVoice(defender) {
 // STAGE 4 (ghostface_exe): Billy REUSES the existing Ghostface voice pools (no new audio). This matches
 // while in the BASE "Billy" identity (rosterKey "ghostface_exe"); while SWAPPED the borrowed identity's OWN
 // voice plays (rosterKey is sasuke/deathstroke), which is thematically fine — flagged in updates.TXT.
-function _isGhostfaceVoiced(f) { const k = (f?.rosterKey || "").toLowerCase(); return k === "ghostface" || k === "ghostface_exe" }
+function _isGhostfaceVoiced(f) { const k = voiceKey(f?.rosterKey); return k === "ghostface" || k === "ghostface_exe" }
 function applyGhostfaceHitVoice(defender, cat, dmg) {
   if (!defender || !_isGhostfaceVoiced(defender) || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
@@ -1405,13 +1421,13 @@ function applyRengokuLowHealthVoice(defender) {
 // Form-agnostic — fires the same pool whatever tier Vegeta is in (see vegetaVoice.js).
 const VEGETA_LOW_HEALTH_RATIO = 0.25
 function applyVegetaHitVoice(defender, cat, dmg) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "vegeta" || (defender._hitVoiceCd > 0)) return
+  if (!defender || voiceKey(defender.rosterKey) !== "vegeta" || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
   try { sound?.playSfxFile?.(pickVegetaVoice("hitReact"), null) } catch (_) {}
 }
 // ATTACKER combat bark on a HEAVY / long-string connect (his taunt trash-talk is folded in here — no taunt action).
 function applyVegetaOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "vegeta" || (attacker._atkVoiceCd > 0)) return
+  if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "vegeta" || (attacker._atkVoiceCd > 0)) return
   const strong     = cat === "heavy"
   const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
   if (!strong && !longString) return
@@ -1420,7 +1436,7 @@ function applyVegetaOffenseVoice(attacker, cat, unblocked) {
 }
 // LOW-HEALTH once, on crossing the threshold ("Impossible!" / "Where does all that power come from?").
 function applyVegetaLowHealthVoice(defender) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "vegeta" || defender._lowHealthVoiceDone) return
+  if (!defender || voiceKey(defender.rosterKey) !== "vegeta" || defender._lowHealthVoiceDone) return
   const max = defender.maxHealth || 1000
   const hp  = defender.health || 0
   if (hp > 0 && hp <= max * VEGETA_LOW_HEALTH_RATIO) {
@@ -2160,7 +2176,7 @@ function applyFlashOffenseVoice(attacker, cat, unblocked) {
 // DEFENDER reaction — the verified effort-grunt set (clips 60-66). One line per _hitVoiceCd window;
 // unblocked hits only.
 function applyBatmanHitVoice(defender, cat, dmg) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "batman" || (defender._hitVoiceCd > 0)) return
+  if (!defender || voiceKey(defender.rosterKey) !== "batman" || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
   try { sound?.playSfxFile?.(pickBatmanVoice("hitReact"), null) } catch (_) {}
 }
@@ -2169,7 +2185,7 @@ function applyBatmanHitVoice(defender, cat, dmg) {
 // BASIC light string. No taunt action (heal-taunt would change gameplay — excluded), so the taunt pool
 // rides this connect trigger (Flash/Gon precedent). Shared _atkVoiceCd → one line per window; blocked suppresses.
 function applyBatmanOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "batman" || (attacker._atkVoiceCd > 0)) return
+  if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "batman" || (attacker._atkVoiceCd > 0)) return
   const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
   const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
   if (!strong && !longString) return
@@ -2183,13 +2199,13 @@ function applyBatmanOffenseVoice(attacker, cat, unblocked) {
 // _atkVoiceCd so it never machine-guns). (3) ATTACKER effort: a short wordless strike grunt on the LIGHT
 // normal only, on its own fast _spideyAtkVoiceCd. No-op for every non-Spider-Man fighter.
 function applySpidermanHitVoice(defender, cat, dmg) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "spiderman" || (defender._hitVoiceCd > 0)) return
+  if (!defender || voiceKey(defender.rosterKey) !== "spiderman" || (defender._hitVoiceCd > 0)) return
   const strong = cat === "heavy" || cat === "special" || cat === "ultimate" || cat === "launcher" || cat === "spike" || (dmg || 0) >= 55
   defender._hitVoiceCd = 150
   try { sound?.playSfxFile?.(pickSpidermanVoice(strong ? "hitHeavy" : "hitLight"), null) } catch (_) {}
 }
 function applySpidermanOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "spiderman" || (attacker._atkVoiceCd > 0)) return
+  if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "spiderman" || (attacker._atkVoiceCd > 0)) return
   const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
   const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
   if (!strong && !longString) return
@@ -2197,7 +2213,7 @@ function applySpidermanOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickSpidermanVoice("quip"), null) } catch (_) {}
 }
 function applySpidermanAttackVoice(fighter) {
-  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "spiderman" || (fighter._spideyAtkVoiceCd || 0) > 0) return
+  if (!fighter || voiceKey(fighter.rosterKey) !== "spiderman" || (fighter._spideyAtkVoiceCd || 0) > 0) return
   if ((fighter.currentMove || fighter.currentAttack?.name || "") !== "light") return
   fighter._spideyAtkVoiceCd = 45
   try { sound?.playSfxFile?.(pickSpidermanVoice("effort"), null) } catch (_) {}
@@ -2234,12 +2250,12 @@ function applyOmniManLowHealthVoice(defender) {
 // strong/long connect (the taunt pool rides the connect trigger), and a once-only low-HP defiance line.
 // See supermanVoice.js.
 function applySupermanHitVoice(defender, cat, dmg) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "superman" || (defender._hitVoiceCd > 0)) return
+  if (!defender || voiceKey(defender.rosterKey) !== "superman" || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
   try { sound?.playSfxFile?.(pickSupermanVoice("hitReact"), null) } catch (_) {}
 }
 function applySupermanOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "superman" || (attacker._atkVoiceCd > 0)) return
+  if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "superman" || (attacker._atkVoiceCd > 0)) return
   const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
   const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
   if (!strong && !longString) return
@@ -2247,7 +2263,7 @@ function applySupermanOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickSupermanVoice("taunt"), null) } catch (_) {}
 }
 function applySupermanLowHealthVoice(defender) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "superman" || defender._lowHealthVoiceDone) return
+  if (!defender || voiceKey(defender.rosterKey) !== "superman" || defender._lowHealthVoiceDone) return
   const max = defender.maxHealth || 1000
   const hp  = defender.health || 0
   if (hp > 0 && hp <= max * 0.30) {
@@ -3315,7 +3331,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       fighter._mayuriWasKnockedDown = false
     }
   }
-  if ((fighter.rosterKey || "").toLowerCase() === "spiderman") {
+  if (voiceKey(fighter.rosterKey) === "spiderman") {
     if (fighter.knockdownState && !fighter._spideyWasKnockedDown) {
       fighter._spideyWasKnockedDown = true
       try { sound?.playSfxFile?.(pickSpidermanVoice("knockdown"), null) } catch (_) {}   // the falling "AHHHH!" scream

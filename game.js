@@ -43,6 +43,7 @@ import {
 import { physics } from "./physics.js"
 import {
   updateCombat, resolveProjectileHits, resolveProjectileHitsMulti, resolveAttackHit,
+  voiceKey,   // alternate-form → base voice-pack alias (Superman/Vegeta/Batman/Ghostface/Spider-Man/Rick variants reuse the base voice)
   updateProjectiles as updateCombatProjectiles,
   checkClash, checkParry, resolveGrab, updateGrab,
   getAttackPhase, getAttackHitbox,   // training overlay: live frame data + real attack hitbox
@@ -3060,7 +3061,7 @@ function maybeFireIntroVoice(fighter) {
   // Per-skin OVERRIDE takes priority (Gojo "Limitless" young pack); null under any other
   // skin → fall through to the base INTRO_VOICE entry (base Gojo has none → nothing plays).
   const skinClip = pickSkinVoice(fighter.rosterKey, fighter.skinId, "intro")
-  const cfg = INTRO_VOICE[fighter.rosterKey]
+  const cfg = INTRO_VOICE[voiceKey(fighter.rosterKey)]   // alternate forms reuse the base's intro pool
   if (!skinClip && !cfg) return
   // Reveal / sequence-step gates come from the base cfg (if any) and apply to the skin
   // override too, so a gated char keeps its timing. Gojo has no cfg → fires on the first
@@ -3087,7 +3088,7 @@ let _selectBarkCd         = 0
 // Resolve a character's intro clip WITHOUT the reveal/sequence gates (the select screen has no intro
 // beat) — mirrors maybeFireIntroVoice's clip resolution. Returns null for silent characters.
 function pickSelectBark(rosterKey) {
-  const cfg = INTRO_VOICE[rosterKey]
+  const cfg = INTRO_VOICE[voiceKey(rosterKey)]   // alternate forms bark with the base character's intro clip
   if (!cfg) return null
   return cfg.pick?.() || (cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip) || null
 }
@@ -3294,7 +3295,7 @@ function buildNamecallBeats() {
   namecallBeats = []
   for (const side of ["p1", "p2"]) {          // side-based order (P1 then P2), NOT roster order
     const f    = side === "p1" ? p1 : p2
-    const clip = f && NAMECALL_AUDIO[f.rosterKey]
+    const clip = f && NAMECALL_AUDIO[voiceKey(f.rosterKey)]   // rickPrime etc. reuse the base namecall
     if (f && clip) namecallBeats.push({ side, fighter: f, clip })
   }
 }
@@ -4516,7 +4517,7 @@ function _checkMatchOver() {
         sound.playSfxFile?.(pickKibaVoice("win"), null)
       }
       // SPIDER-MAN win voice — one of his quippy victory sign-offs at random (EN).
-      if (winFighter?.rosterKey === "spiderman") {
+      if (voiceKey(winFighter?.rosterKey) === "spiderman") {
         sound.playSfxFile?.(pickSpidermanVoice("victory"), null)
       }
       // MAYURI win voice — one of his superior/clinical victory lines at random (JA).
@@ -4545,7 +4546,7 @@ function _checkMatchOver() {
       // The following four win pools ALSO existed on disk with their module trigger-map explicitly
       // pointing at this "round-end WINNER block", but the dispatch branch was never added → the whole
       // pool sat dormant. Wired here (audio-only, fires once for the matching winner).
-      if (winFighter?.rosterKey === "vegeta") {
+      if (voiceKey(winFighter?.rosterKey) === "vegeta") {
         sound.playSfxFile?.(pickVegetaVoice("win"), null)
       }
       if (winFighter?.rosterKey === "maki") {
@@ -4564,7 +4565,7 @@ function _checkMatchOver() {
       }
       // RICK win voice — same alternation family; random pick between "Time to get schwifty" and
       // his "Rick dance" win bark. Fires only when the WINNER is Rick.
-      if (winFighter?.rosterKey === "rick") {
+      if (voiceKey(winFighter?.rosterKey) === "rick") {
         sound.playSfxFile?.(pickRickVoice("win"), null)
       }
       // KILLUA win voice — random pick from his victory pool (laugh / "Alright, win" / "Let's test it out").
@@ -4584,7 +4585,7 @@ function _checkMatchOver() {
       }
       // GHOSTFACE win voice — random pick from his victory pool ("Now you lose" / "You won't get a
       // sequel!" / "See you soon!"). Fires only when the WINNER is Ghostface.
-      if (winFighter?.rosterKey === "ghostface" || winFighter?.rosterKey === "ghostface_exe") {   // STAGE 4: ghostface_exe (Billy) reuses Ghostface win lines
+      if (voiceKey(winFighter?.rosterKey) === "ghostface" || winFighter?.rosterKey === "ghostface_exe") {   // STAGE 4: ghostface_exe + ghostface_billy reuse Ghostface win lines
         sound.playSfxFile?.(pickGhostfaceVoice("win"), null)
       }
       // MIWA win voice — random pick from her victory pool ("I did it!" / "I won safely!" / "It was a good
@@ -4642,7 +4643,7 @@ function _checkMatchOver() {
       }
       // BATMAN win voice — random pick from his victory pool ("You'll find plenty back in Arkham" /
       // "Gotham will rise again"). Fires only when the WINNER is Batman.
-      if (winFighter?.rosterKey === "batman") {
+      if (voiceKey(winFighter?.rosterKey) === "batman") {
         sound.playSfxFile?.(pickBatmanVoice("win"), null)
       }
       // OMNI-MAN win voice — random pick from his victory pool ("Recognize your superior" / "What a
@@ -4652,7 +4653,7 @@ function _checkMatchOver() {
       }
       // SUPERMAN win voice — random pick from his victory pool ("Crime doesn't pay" / "Please don't get
       // up"). Fires only when the WINNER is Superman.
-      if (winFighter?.rosterKey === "superman") {
+      if (voiceKey(winFighter?.rosterKey) === "superman") {
         sound.playSfxFile?.(pickSupermanVoice("win"), null)
       }
       // RENGOKU win voice — random pick from his determination/resolve pool ("Set your heart ablaze" /
@@ -5837,13 +5838,13 @@ function updateTauntState(fighter, downHeld) {
     }
     // SPIDER-MAN taunt quip — one of his banter one-liners at random, fired as the taunt flourish begins
     // (the huge generic-quip pool's second home besides the offense-connect trigger). Gated to spiderman.
-    if ((fighter.rosterKey || "").toLowerCase() === "spiderman") {
+    if (voiceKey(fighter.rosterKey) === "spiderman") {
       sound.playSfxFile?.(pickSpidermanVoice("quip"), null)
     }
     // RICK heal-taunt callout — "Do it for grandpa Morty" / "Don't worry Morty" / "Grandpa's sorry
     // Morty" (random pool). Hooked on the same commit transition, gated to Rick (whose taunt IS the
     // heal mechanic first built for him). Fires once as the flourish begins.
-    if (fighter.rosterKey === "rick") {
+    if (voiceKey(fighter.rosterKey) === "rick") {
       sound.playSfxFile?.(pickRickVoice("tauntHeal"), null)
     }
     // ZARAKI taunt voice — provocations ("Come kill me again!" / "Aim better!" / "That all?"). Zaraki HAS a
@@ -15876,7 +15877,7 @@ function updateCurrentState() {
             }
             // RICK match-start bark — "Yeah." (HUD/announcer line). Gated to the LOCAL PLAYER being
             // Rick (his voice as your hype-man; see rickVoice.js match-flow note), once at ROUND-1 GO.
-            if (p1?.rosterKey === "rick" && !p1._matchStartVoiceDone) {
+            if (voiceKey(p1?.rosterKey) === "rick" && !p1._matchStartVoiceDone) {
               p1._matchStartVoiceDone = true
               sound.playSfxFile?.(pickRickVoice("matchStart"), null)
             }

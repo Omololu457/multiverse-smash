@@ -106,12 +106,14 @@ try {
   await page.evaluate(() => { window.__harness.healP1(); window.__harness.healP2(); });
   await installDrawTally();
   const flavor = await page.evaluate(() => window.__harness.noMeterFlavor("p1"));
-  check("energy label = TOTAL CONCENTRATION", flavor === "TOTAL CONCENTRATION", `flavor=${flavor}`);
+  check("energy label = BEAST BREATHING", flavor === "BEAST BREATHING", `flavor=${flavor}`);   // Inosuke's canonical Breathing Style (per-char no-meter flavor; the shared "TOTAL CONCENTRATION" is only the DS universe fallback)
   await reset(60); await waitFrames(4);
   const m = await page.evaluate(() => window.__harness.measureSprite?.("p1"));
-  // canon 164cm × 0.623 ≈ 102px target; allow the ±12% audit band
-  const target = 102, measured = m?.contentH ?? 0, ratio = measured ? measured / target : 0;
-  check("height ≈ target (0.623×164≈102px, within 12%)", measured && Math.abs(ratio - 1) <= 0.12, `measured=${measured}px target=${target}px ratio=${ratio.toFixed(2)}`);
+  // canon 164cm × 0.623 ≈ 102px target; audit the INTRINSIC (spriteScale-driven) height by dividing the uniform
+  // +18% GLOBAL_SPRITE_SCALE back out of contentH — that cosmetic roster-wide render layer was added AFTER this
+  // target was calibrated to the base render, so a raw contentH check now reads ~18% high on every char.
+  const target = 102, baseH = (m?.contentH ?? 0) / (m?.globalScale || 1), ratio = baseH ? baseH / target : 0;
+  check("intrinsic height ≈ target (0.623×164≈102px, within 12%)", baseH && Math.abs(ratio - 1) <= 0.12, `intrinsic=${baseH.toFixed(0)}px (contentH=${m?.contentH} ÷ global ${m?.globalScale}) target=${target}px ratio=${ratio.toFixed(2)}`);
 
   // ── MOVEMENT / STATE + DECODE SWEEP ──
   section("movement / state + decode sweep");

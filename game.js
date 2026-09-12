@@ -17414,6 +17414,7 @@ gameLoop()
         contentW: maxX >= 0 ? maxX - minX + 1 : 0,
         cellDstH: f._lastDstH ?? null,
         scale: f.spriteScale ?? 1,
+        globalScale: GLOBAL_SPRITE_SCALE,   // the uniform cosmetic render multiplier baked into contentH — divide it out to audit a char's INTRINSIC (spriteScale-driven) size
         action: f._lastSpriteAction || null,
         clipped: (maxY >= H - 1 || minY <= 0 || maxX >= W - 1 || minX <= 0)
       };

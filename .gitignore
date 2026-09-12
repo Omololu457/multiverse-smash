@@ -170,3 +170,7 @@ saves/*.bak.json
 tools/__pycache__/
 __pycache__/
 *.pyc
+
+# Regenerable probe / theme-render working dirs (test/tool output)
+harness/bg_probe/
+harness/theme_shots/

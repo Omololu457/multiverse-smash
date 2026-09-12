@@ -54,6 +54,7 @@
     "test:round-transition": "node harness/round_transition_verify.mjs",
     "test:colorblind-hud": "node harness/colorblind_hud_verify.mjs",
     "test:voice-alias": "node harness/voice_alias_verify.mjs",
+    "test:new-voices": "node harness/new_voices_verify.mjs",
     "test:vegeta-alt-voice": "node harness/vegeta_alt_voice_verify.mjs",
     "test:up-attack": "node harness/up_attack_launcher.test.mjs",
     "test:up-attack-roster": "node harness/up_attack_roster.test.mjs",

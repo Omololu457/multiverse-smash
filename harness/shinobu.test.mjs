@@ -113,7 +113,7 @@ try {
 
   // ── ENERGY LABEL ──
   const flavor = await page.evaluate(() => window.__harness.noMeterFlavor("p1"));
-  check("energy label = TOTAL CONCENTRATION", flavor === "TOTAL CONCENTRATION", `flavor=${JSON.stringify(flavor)}`);
+  check("energy label = INSECT BREATHING", flavor === "INSECT BREATHING", `flavor=${JSON.stringify(flavor)}`);   // Shinobu's canonical Breathing Style (per-char no-meter flavor; "TOTAL CONCENTRATION" is only the DS universe fallback)
 
   // ── MOVEMENT / STATE ──
   section("movement / state sprites");

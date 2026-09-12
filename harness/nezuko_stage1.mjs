@@ -47,7 +47,7 @@ try {
   await page.evaluate(() => window.__harness.skipToBattle());
   await waitFrames(20);
   const flavor = await page.evaluate(() => window.__harness.noMeterFlavor("p1"));
-  check("no-meter flavor = TOTAL CONCENTRATION", flavor === "TOTAL CONCENTRATION", `noMeterFlavor=${JSON.stringify(flavor)}`);
+  check("no-meter flavor = BLOOD DEMON ART", flavor === "BLOOD DEMON ART", `noMeterFlavor=${JSON.stringify(flavor)}`);   // Nezuko is a DEMON, not a Demon Slayer — her canonical technique is Blood Demon Art (Kekkijutsu), not a Breathing Style (per-char no-meter flavor)
   await page.evaluate(() => { window.__harness.healP1(); window.__harness.healP2(); });
   await waitFrames(4);
   let mv = await p1();
@@ -85,11 +85,11 @@ try {
   await shot("fall");
   await page.waitForFunction(() => window.__harness.p1().grounded, null, { timeout: 4000, polling: 16 }).catch(() => {});
 
-  // guard (hold down)
-  await page.keyboard.down("s"); await waitFrames(6); mv = await p1();
+  // guard (hold the dedicated GUARD key — ";" for P1; Down no longer blocks since the MK-feel Stage-1c change)
+  await page.keyboard.down(";"); await waitFrames(6); mv = await p1();
   check("guard → nezuko_block", has(mv, "nezuko_block"), `sheet=${mv.spriteSheet}`);
   await shot("guard");
-  await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.up(";"); await waitFrames(4);
 
   // hurt (force hitstun)
   await page.evaluate(() => window.__harness.hurtP1(40)); await waitFrames(3); mv = await p1();

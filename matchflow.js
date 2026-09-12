@@ -67,34 +67,51 @@ export function recordRoundEnd(stats, winnerSide, p1HealthRemaining, p2HealthRem
 // ─────────────────────────────────────────────────────────────────
 // COUNTDOWN RENDERER
 // ─────────────────────────────────────────────────────────────────
-export function drawRoundCountdown(ctx, canvas, countdown, roundNumber) {
+// easeOutBack — a snappy entrance that overshoots slightly then settles (the "pop" the static banner lacked).
+function _eob(t) { const c1 = 1.70158, c3 = c1 + 1, x = t - 1; return 1 + c3 * x * x * x + c1 * x * x }
+
+// The last stretch of the countdown is repurposed as an animated "FIGHT!" (the old else-branch never
+// rendered — the caller only invokes this while countdown > 0). Combat still begins at countdown <= 0, so
+// this changes NO timing/gating — only the final ~0.45s reads "FIGHT!" instead of a static "1".
+const FIGHT_WINDOW = 28
+
+export function drawRoundCountdown(ctx, canvas, countdown, roundNumber, total = 180) {
   const cw = canvas.width, ch = canvas.height
   const seconds = Math.ceil(countdown / 60)
 
   if (countdown > 120) {
     // "ROUND X" banner — angular accent-edged backing plate for the metallic language.
+    // ENTRANCE: scale-in with a slight overshoot + fade + a short downward settle (was a static pop).
+    const age   = Math.max(0, total - countdown)          // frames since the banner appeared
+    const t     = Math.min(1, age / 13)                    // entrance over ~0.2s
+    const scale = 0.62 + 0.38 * _eob(t)                    // 0.62 → ~1.03 → 1.0
+    const alpha = Math.min(1, age / 8)
+    const yOff  = (1 - t) * -16                            // slides down into place
     ctx.save()
     mkAdvance()
-    const pw = 360, ph = 128, px = cw / 2 - pw / 2, py = ch / 2 - ph / 2 - 4
-    metalPanel(ctx, px, py, pw, ph, "#4aa8e0", 16, 0.25)
+    ctx.globalAlpha = alpha
+    ctx.translate(cw / 2, ch / 2 + yOff)
+    ctx.scale(scale, scale)
+    const pw = 360, ph = 128
+    metalPanel(ctx, -pw / 2, -ph / 2 - 4, pw, ph, "#4aa8e0", 16, 0.25)
     ctx.textAlign    = "center"
     ctx.textBaseline = "middle"
     ctx.font         = "900 52px Arial"
     ctx.fillStyle    = "#f1f5f9"
     ctx.shadowBlur   = 22
     ctx.shadowColor  = "rgba(74,168,224,0.6)"
-    ctx.fillText(`ROUND ${roundNumber}`, cw / 2, ch / 2 - 22)
+    ctx.fillText(`ROUND ${roundNumber}`, 0, -22)
     ctx.shadowBlur   = 0
     // accent divider
-    const grd = ctx.createLinearGradient(px + 40, 0, px + pw - 40, 0)
+    const grd = ctx.createLinearGradient(-pw / 2 + 40, 0, pw / 2 - 40, 0)
     grd.addColorStop(0, "rgba(74,168,224,0)"); grd.addColorStop(0.5, "#4aa8e0"); grd.addColorStop(1, "rgba(74,168,224,0)")
-    ctx.fillStyle = grd; ctx.fillRect(px + 40, ch / 2 + 6, pw - 80, 2)
+    ctx.fillStyle = grd; ctx.fillRect(-pw / 2 + 40, 6, pw - 80, 2)
     ctx.font         = "700 22px Arial"
     ctx.fillStyle    = "rgba(200,220,240,0.8)"
-    ctx.fillText("READY", cw / 2, ch / 2 + 32)
+    ctx.fillText("READY", 0, 32)
     ctx.restore()
-  } else if (countdown > 0) {
-    // Numeric countdown
+  } else if (countdown > FIGHT_WINDOW) {
+    // Numeric countdown ("3/2/1") — each new second pops in big then settles (existing per-second pulse).
     const scale = 1 + Math.max(0, (countdown % 60) / 60) * 0.3
     ctx.save()
     ctx.textAlign    = "center"
@@ -107,15 +124,24 @@ export function drawRoundCountdown(ctx, canvas, countdown, roundNumber) {
     ctx.shadowBlur   = 0
     ctx.restore()
   } else {
-    // "FIGHT!"
+    // "FIGHT!" — animated slam-in for the final ~0.45s before control passes to the players.
+    const fage   = Math.max(0, FIGHT_WINDOW - countdown)   // frames since "FIGHT!" appeared
+    const ft     = Math.min(1, fage / 9)
+    const fscale = 0.70 + 0.30 * _eob(ft)                  // pops in with a slight overshoot
+    const falpha = Math.min(1, fage / 5)
     ctx.save()
+    ctx.globalAlpha = falpha
+    ctx.translate(cw / 2, ch / 2)
+    ctx.scale(fscale, fscale)
     ctx.textAlign    = "center"
     ctx.textBaseline = "middle"
     ctx.font         = "900 88px Arial"
+    ctx.lineJoin     = "round"; ctx.lineWidth = 8; ctx.strokeStyle = "rgba(90,40,0,0.85)"
+    ctx.strokeText("FIGHT!", 0, 0)
     ctx.fillStyle    = "#fbbf24"
     ctx.shadowBlur   = 30
     ctx.shadowColor  = "#f59e0b"
-    ctx.fillText("FIGHT!", cw / 2, ch / 2)
+    ctx.fillText("FIGHT!", 0, 0)
     ctx.shadowBlur   = 0
     ctx.restore()
   }

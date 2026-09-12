@@ -5871,6 +5871,14 @@ function updateTauntState(fighter, downHeld) {
       const clip = pickSkinVoice("gojo", fighter.skinId, "taunt")
       if (clip) sound.playSfxFile?.(clip, null)
     }
+    // VEGETA taunt voice — his trash-talk (the combatBark pool doubles as taunt; vegetaVoice.js has no
+    // dedicated `taunt` pool). STAGED like Saiki/Gojo above: vegeta / vegeta_dark / vegito have NO `taunt`
+    // action, so this commit block is dormant today and lights up the instant a taunt animation is added.
+    // voiceKey-gated so Dark Vegeta + Vegito reuse the base Vegeta pack. (His trash-talk ALSO plays live via
+    // the offense-connect trigger — applyVegetaOffenseVoice — which is already voiceKey-covered for both.)
+    if (voiceKey(fighter.rosterKey) === "vegeta") {
+      sound.playSfxFile?.(pickVegetaVoice("combatBark"), null)
+    }
   }
 }
 

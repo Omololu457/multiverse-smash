@@ -92,21 +92,30 @@ try {
   // ── COMBO STRINGS advance cancel-on-hit (deterministic mechanism proof) ──
   section("ground + air auto-combo strings advance cancel-on-hit");
   const tapLight = async () => { await page.keyboard.down("j"); await wf(2); await page.keyboard.up("j"); };
-  // GROUND: opener connects → queues Ground2 (the shared rekka mechanism), + multi-hit damage.
+  // GROUND: opener connects → queues Ground2 (the shared rekka mechanism), + multi-hit damage. Each rekka hit
+  // knocks the dummy back (knockbackX 2/3/9), so — mirroring the AIR string's per-frame re-lift — we PIN the
+  // dummy back into range between taps so hits 2 & 3 reliably connect (the old fixed-frame taps raced the
+  // cancel window AND let the dummy drift out of range → intermittently only the 14-dmg opener landed).
+  const pinGround = async () => { const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), Math.round(a.x + 40 * (a.facing || 1))); };
   let gQueued = false, gDmg = 0;
   for (let a = 0; a < 8 && !(gQueued && gDmg >= 30); a++) {
-    await prep(54); await page.keyboard.down("d"); const hp0 = (await p2()).health;
+    await prep(48); await page.keyboard.down("d"); const hp0 = (await p2()).health;
     await tapLight(); await wf(2);
     await page.waitForFunction(() => window.__harness.p1().cmdHitLanded, null, { timeout: 1500, polling: 16 }).catch(() => {});
     const s1 = await p1(); if (s1.cmdHitLanded && s1.rekkaNext === "isshikiGround2") gQueued = true;
-    await tapLight(); await wf(3); await tapLight(); await wf(20);
+    await pinGround(); await tapLight(); for (let i = 0; i < 6; i++) { await pinGround(); await wf(1); }
+    await pinGround(); await tapLight(); for (let i = 0; i < 6; i++) { await pinGround(); await wf(1); }
+    await wf(8);
     gDmg = Math.max(gDmg, hp0 - (await p2()).health); await page.keyboard.up("d");
   }
   check("ground opener connects → queues isshikiGround2 (cancel-on-hit)", gQueued, "");
   check("ground string multi-hit damage (≥ 30)", gDmg >= 30, `dmg=${gDmg.toFixed(1)}`);
   // AIR: opener connects → queues Air2 (mechanism), + multi-hit damage. P1 falls between taps, so re-lift
   // EVERY frame across the string (the Stage-2-proven pattern) to keep the aerial hits in range.
-  const relift = async (h) => { if ((await p1()).grounded) await page.evaluate(hh => window.__harness.liftP1(hh), h); };
+  // Hold BOTH axes: keep P1 airborne (liftP1) AND pin the dummy horizontally in range (setP2X) so every aerial
+  // hit connects — the old re-lift only held altitude, letting the dummy's knockback drift it out horizontally
+  // (intermittently only the ~13-dmg opener landed).
+  const relift = async (h) => { const a = await p1(); if (a.grounded) await page.evaluate(hh => window.__harness.liftP1(hh), h); await page.evaluate(x => window.__harness.setP2X(x), Math.round(a.x + 34 * (a.facing || 1))); };
   let aQueued = false, aDmg = 0;
   for (let a = 0; a < 14 && !(aQueued && aDmg >= 24); a++) {
     await prep(38); await page.evaluate(() => window.__harness.liftP1(46)); const hp0 = (await p2()).health;
@@ -154,7 +163,11 @@ try {
   const cSpent = cKarma0 - (await p1()).energy;
   await page.waitForFunction(() => window.__harness.cubeTrap() != null, null, { timeout: 3000, polling: 16 }).catch(() => {});
   const trap = await page.evaluate(() => window.__harness.cubeTrap());
-  for (let i = 0; i < 60; i++) await wf(1);
+  // Wait for the FIRST auto-tick to land (TICK_INTERVAL=36 after the trap actually spawns, which itself lags
+  // the cast by the scheduled-spawn/cast delay) — poll for the damage instead of a fixed 60f window that could
+  // end a frame or two before the first tick (the old intermittent dmg=0.0 flake).
+  await page.waitForFunction((hp0) => window.__harness.p2().health < hp0, cHp0, { timeout: 5000, polling: 16 }).catch(() => {});
+  await wf(4);
   check("Daikokuten cubes (Down): cast=isshikiSukuCast", cres?.cast === "isshikiSukuCast", `cast=${cres?.cast}`);
   check("Daikokuten cubes (Down): spent ~45 Karma", Math.abs(cSpent - 45) <= 2.5, `Δ=${cSpent.toFixed(1)}`);
   check("Daikokuten cubes (Down): spawns a cube TRAP", !!trap, `trap=${JSON.stringify(trap)}`);

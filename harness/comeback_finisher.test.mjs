@@ -1,5 +1,6 @@
 // COMEBACK FINISHER (Fatal-Blow-style) — UNIT test (Stage 3: ROSTER-WIDE). Drives the REAL combat.js logic:
-//   • damage = ~32% of the USER's OWN max HP, CAPPED (high-HP fighters don't get an outlier flat number)
+//   • damage = ~32% of the TARGET's max HP, clamped [dmgFloor, dmgCap] (T3b: proportional finisher — was a
+//     flat cap that shrank to a weak % against tanky targets; falls back to the user's own HP if no target)
 //   • eligibility = below 30% HP, NOT on the bespoke-comeback exclusion list (toji/maki/gon/naruto) — everyone else
 //   • the committed strike starts only from an actionable state, on BLOCK + GRAB
 import { comebackFinisherDamage, comebackFinisherReady, tryComebackFinisher, COMEBACK_FINISHER, COMEBACK_FINISHER_EXCLUDE } from "../combat.js"
@@ -8,16 +9,20 @@ let pass = 0, fail = 0
 const check = (n, c, e = "") => { if (c) { pass++; console.log("  ✓", n) } else { fail++; console.log("  ✗", n, e) } }
 const section = (t) => console.log(`\n── ${t} ──`)
 
-section("A. damage = ~32% of the USER's OWN max HP, CAPPED at the top-end band")
+section("A. damage = ~32% of the TARGET's max HP, clamped [floor, cap]")
 {
-  const cap = COMEBACK_FINISHER.dmgCap, pct = COMEBACK_FINISHER.dmgPct
-  // killua 1030 → 0.32×1030 = 330 (UNDER the cap)
-  check(`killua 1030 → ${Math.round(1030 * pct)} (sub-cap, scales with own HP)`, comebackFinisherDamage({ maxHealth: 1030 }) === Math.round(1030 * pct), `got ${comebackFinisherDamage({ maxHealth: 1030 })}`)
-  // sasuke 1180 → 0.32×1180 = 377.6 → CAPPED to 360  (damage is HP-only; rosterKey irrelevant here)
-  check(`sasuke 1180 → capped to ${cap} (0.32×1180=378 > cap)`, comebackFinisherDamage({ maxHealth: 1180 }) === cap, `got ${comebackFinisherDamage({ maxHealth: 1180 })}`)
-  // superman 1450 → 0.32×1450 = 464 → CAPPED to 360 (the outlier the cap exists to neutralize)
-  check(`superman 1450 → capped to ${cap} (not 464 — the HP-outlier guard)`, comebackFinisherDamage({ maxHealth: 1450 }) === cap, `got ${comebackFinisherDamage({ maxHealth: 1450 })}`)
-  check(`cap ${cap} sits in the existing top-end cinematic-ult band (≈340–380 EFF)`, cap >= 340 && cap <= 380, `cap=${cap}`)
+  const cap = COMEBACK_FINISHER.dmgCap, floor = COMEBACK_FINISHER.dmgFloor, pct = COMEBACK_FINISHER.dmgPct
+  const user = { maxHealth: 1000 }   // user HP no longer scales the damage — the TARGET's does
+  // scales with the TARGET's max HP across the real roster range (all land inside [floor, cap], so it's a pure %)
+  check(`vs shinobu-tier 960 → ${Math.round(960 * pct)} (32% of TARGET)`, comebackFinisherDamage(user, { maxHealth: 960 }) === Math.round(960 * pct), `got ${comebackFinisherDamage(user, { maxHealth: 960 })}`)
+  check(`vs median 1150 → ${Math.round(1150 * pct)}`, comebackFinisherDamage(user, { maxHealth: 1150 }) === Math.round(1150 * pct), `got ${comebackFinisherDamage(user, { maxHealth: 1150 })}`)
+  check(`vs superman 1450 → ${Math.round(1450 * pct)} (proportional; the old flat cap gave just 360 here)`, comebackFinisherDamage(user, { maxHealth: 1450 }) === Math.round(1450 * pct), `got ${comebackFinisherDamage(user, { maxHealth: 1450 })}`)
+  check("chunks MORE off a tanky target than a frail one (the fix)", comebackFinisherDamage(user, { maxHealth: 1450 }) > comebackFinisherDamage(user, { maxHealth: 960 }), "")
+  // floor/cap guardrails only bite vs hypothetical extremes outside the real 950–1450 range
+  check(`floor ${floor} vs a very-low-HP target (500)`, comebackFinisherDamage(user, { maxHealth: 500 }) === floor, `got ${comebackFinisherDamage(user, { maxHealth: 500 })}`)
+  check(`cap ${cap} vs a very-high-HP target (2000)`, comebackFinisherDamage(user, { maxHealth: 2000 }) === cap, `got ${comebackFinisherDamage(user, { maxHealth: 2000 })}`)
+  // fallback: no target supplied → the user's own max HP (the display-probe path)
+  check(`no-target fallback uses the user's own max HP (1030 → ${Math.round(1030 * pct)})`, comebackFinisherDamage({ maxHealth: 1030 }) === Math.round(1030 * pct), `got ${comebackFinisherDamage({ maxHealth: 1030 })}`)
 }
 
 section("B. eligibility — below 30% HP, pilot char, not excluded")
@@ -55,7 +60,7 @@ section("E. tryComebackFinisher — gated by input + actionable state")
   check("no input → no fire", tryComebackFinisher(mk(), { block: false, grab: false }, {}) === false)
   check("block only → no fire", tryComebackFinisher(mk(), { block: true, grab: false }, {}) === false)
   check("grab only → no fire", tryComebackFinisher(mk(), { block: false, grab: true }, {}) === false)
-  { const f = mk(); const r = tryComebackFinisher(f, { block: true, grab: true }, { x: 260, y: 300, w: 50, h: 100 }); check("block+grab at low HP → FIRES (committed strike started)", r === true && f.attacking === true, `r=${r} attacking=${f.attacking}`); check("stamps the fixed comeback damage on the attack", f.currentAttack?._comebackFinisher === true && f.currentAttack?.damage === COMEBACK_FINISHER.dmgCap, `dmg=${f.currentAttack?.damage}`); check("grants startup i-frame armour", (f.invulnTimer || 0) >= COMEBACK_FINISHER.iframes, `invuln=${f.invulnTimer}`) }
+  { const f = mk(); const tgt = { x: 260, y: 300, w: 50, h: 100, maxHealth: 1250 }; const r = tryComebackFinisher(f, { block: true, grab: true }, tgt); check("block+grab at low HP → FIRES (committed strike started)", r === true && f.attacking === true, `r=${r} attacking=${f.attacking}`); check("stamps the TARGET-scaled comeback damage on the attack", f.currentAttack?._comebackFinisher === true && f.currentAttack?.damage === comebackFinisherDamage(f, tgt), `dmg=${f.currentAttack?.damage} expected=${comebackFinisherDamage(f, tgt)}`); check("grants startup i-frame armour", (f.invulnTimer || 0) >= COMEBACK_FINISHER.iframes, `invuln=${f.invulnTimer}`) }
   { const f = mk(); f.attacking = true; check("already attacking → no fire (committed-state guard)", tryComebackFinisher(f, { block: true, grab: true }, {}) === false) }
   { const f = mk(); f.health = Math.round(1180 * 0.5); check("above 30% HP → no fire even with the input", tryComebackFinisher(f, { block: true, grab: true }, {}) === false) }
 }

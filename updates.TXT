@@ -176,3 +176,158 @@ FILES CHANGED (staged, NOT committed)
   updates.TXT ........................... this summary
 No production change was needed for T1a, T1b, or T4 (verified working / non-issue).
 ================================================================================
+
+
+================================================================================
+AAA-FEEL POLISH PASS — 2026-09-12  (SHIPPED: committed + pushed to origin/main)
+================================================================================
+The full per-track write-up of this pass was lost when updates.TXT was
+externally truncated; it is preserved verbatim in the commit messages below
+(git show <hash>). Summary of what shipped — presentation-layer only, each
+verified live + regressed (determinism 9/0 throughout):
+
+  9c04975b  Fix duplicate damage numbers + tier-scaled sizing/combo offset
+            (removed a pre-existing melee+projectile DOUBLE-render; single
+             producer now; light20/heavy26/special30/ultimate36 + combo fan.
+             harness/dmg_numbers_verify.mjs 16/0)
+  fea509f2  Character-select voice barks (reuse existing intro clips, trailing
+             debounce + single-voice-channel owner. select_barks_verify 11/0)
+  a42dbecd  Round-transition polish (animated ROUND entrance + revived the
+             dead FIGHT! banner; no timing change. round_transition_verify 11/0)
+  19dc5ef8  Opt-in colorblind-safe HUD toggle (P2 red->orange, persisted;
+             control-remapping FLAGGED not built. colorblind_hud_verify 9/0)
+  500f7382  Wire 10 alternate forms to reuse their base voice (voiceKey alias;
+             see the VOICE-COVERAGE AUDIT below. voice_alias_verify 11/0)
+
+================================================================================
+VOICE-COVERAGE AUDIT — every playable character (RESEARCH-ONLY, no code changes)
+2026-09-12
+================================================================================
+Method: enumerated all characters with isPlayable !== false from characters.js
+(96). "HAS VOICE" = a dedicated *Voice.js module (or the inline pattern) that is
+ACTUALLY dispatched from a real trigger (intro / namecall / win / lose / hit /
+low-health / offense / taunt / cast) AND backed by real .mp3 files on disk.
+Verified: all 49 *Voice.js modules are 100% file-backed; dispatch confirmed via
+INTRO_VOICE, NAMECALL_AUDIO, the apply*Offense/Hit/LowHealthVoice tables
+(combat.js ~1041-3271), and inline playSfxFile calls. Voice dispatch is guarded
+by EXACT rosterKey (=== "superman", "vegeta", "rick", …) with NO normalization,
+so alternate-form rosterKeys inherit nothing from their base.
+
+  TOTAL PLAYABLE ............ 96
+  WITH wired voice ......... 66   (was 56; +10 after wiring the reuse candidates below)
+  WITHOUT wired voice ...... 30   (was 40)
+
+  ★ UPDATE 2026-09-12: the 10 [REUSE] alternate forms are NOW WIRED — each reuses
+    its base character's on-disk voice pack via a voiceKey() alias (combat.js) applied
+    at every voice guard/dispatch (intro/namecall/select-bark/win/hit/offense/
+    low-health/taunt/match-start). Verified live 11/0 (harness/voice_alias_verify.mjs);
+    determinism 9/0, base voices intact (batman/rick/beerus/spiderman). The 30 remaining
+    without voice = 29 [NONE] + netero [SPECIAL, audio permanently deleted].
+
+Notes on edge cases (all resolved into the counts above):
+  • gojo = HAS voice — base skin speaks via NAMECALL_AUDIO ("gojo_namecall.mp3");
+    combat voice (Limitless/hitReact) is additionally gated to the young "gojo2"
+    skin (base default skin is otherwise silent in combat).
+  • Inline-voiced (no module): naruto, sasuke, beerus, omega_ranger, goku_black.
+  • goku (BASE) has NO voice — only goku_black is voiced (separate inline clips).
+  • zaraki_shikai, six_paths_pain, ghostface_exe = HAS voice (own INTRO_VOICE keys
+    / explicit guards).
+
+--------------------------------------------------------------------------------
+CHARACTERS WITHOUT ANY WIRED VOICE (40), grouped by franchise
+Legend:  [REUSE] = voice-appropriate audio ALREADY on disk (the base character's
+         voice pack) — unwired only because this rosterKey isn't in the guard;
+         drop-in reuse candidate.
+         [NONE]  = no voice audio exists on disk for this character (recursively
+         checked) — genuinely nothing.
+         [SPECIAL] = see note.
+--------------------------------------------------------------------------------
+
+BAKI (1)
+  baki ................... [NONE]
+
+BEN 10 (4)   — entire franchise unvoiced
+  ben10 .................. [NONE]
+  gwen .................. [NONE]
+  vilgax ................ [NONE]
+  albedo ............... [NONE]
+
+BLEACH (1)   — (ichigo/zaraki/zaraki_shikai/mayuri/yamamoto ARE voiced)
+  byakuya .............. [NONE]
+
+DC (8)
+  brainiac ............. [NONE]
+  deathstroke .......... [NONE]
+  green_lantern ........ [NONE]
+  dark_knight .......... [REUSE] Batman voice pack on disk (68 clips), unwired to this key
+  superman_classic ..... [REUSE] Superman voice pack on disk (113 clips), unwired
+  superman_dcuc ........ [REUSE] Superman voice pack, unwired
+  superman_fighter ..... [REUSE] Superman voice pack, unwired
+  superman_new52 ....... [REUSE] Superman voice pack, unwired
+  (batman, flash, superman[base] ARE voiced)
+
+DEATH NOTE (1)   — (light IS voiced)
+  l_ryuuzaki (L) ....... [NONE]
+
+DRAGON BALL (8)   — (beerus, goku_black, vegeta[base] ARE voiced)
+  goku (base) .......... [NONE]  ★ base Goku is unvoiced; only Goku Black speaks
+  bardock .............. [NONE]
+  frieza ............... [NONE]
+  gohan ................ [NONE]
+  gotenks .............. [NONE]
+  piccolo .............. [NONE]
+  vegeta_dark .......... [REUSE] Vegeta voice pack on disk (48 clips), unwired to this key
+  vegito ............... [REUSE] Vegeta voice pack (fusion) on disk, unwired
+
+HAJIME NO IPPO (1)
+  ippo ................. [NONE]
+
+HORROR (1)   — (ghostface, ghostface_exe, jason ARE voiced)
+  ghostface_billy ...... [REUSE] Ghostface voice pack on disk (338 clips), unwired to this key
+
+HUNTER x HUNTER (2)   — (gon/killua/hisoka/chrollo ARE voiced)
+  kurapika ............. [NONE]
+  netero ............... [SPECIAL] sprite ART exists, but the voice .mp3s AND
+                         neteroVoice.js were PERMANENTLY DELETED (harness hook
+                         removed). Nothing to re-wire — audio is gone.
+
+JUJUTSU KAISEN (3)   — (gojo/sukuna/alt_sukuna/yuji/toji/naoya/miwa/maki ARE voiced)
+  aoi_todo ............. [NONE]
+  handler (Megumi) ..... [NONE]
+  yuta ................. [NONE]
+
+MARVEL (4)   — (spiderman IS voiced)
+  iron_man ............. [NONE]
+  iron_man_2 ........... [NONE]
+  iron_man_3 ........... [NONE]
+  miles ................ [REUSE] Spider-Man voice pack on disk (479 clips), unwired to this key
+
+NARUTO (2)   — most of the roster IS voiced
+  kakashi .............. [NONE]
+  onoki ................ [NONE]
+
+ONE PUNCH MAN (1)   — (saitama IS voiced)
+  genos ................ [NONE]
+
+POWER RANGERS (2)   — (samurai_red, gold_samurai, omega_ranger ARE voiced)
+  green_samurai_ranger . [NONE]
+  red_ranger_mmpr ...... [NONE]
+
+RICK AND MORTY (1)   — (rick IS voiced)
+  rickPrime ............ [REUSE] Rick voice pack on disk (70 clips), unwired to this key
+
+--------------------------------------------------------------------------------
+SUMMARY (post-wiring)
+  [DONE] reuse candidates NOW WIRED via voiceKey() alias (10):
+     dark_knight, superman_classic, superman_dcuc, superman_fighter,
+     superman_new52, vegeta_dark, vegito, ghostface_billy, miles, rickPrime
+  [SPECIAL] art exists but voice permanently deleted (1):  netero
+  [NONE] genuinely no voice audio anywhere (29):
+     baki, ben10, gwen, vilgax, albedo, byakuya, brainiac, deathstroke,
+     green_lantern, l_ryuuzaki, goku, bardock, frieza, gohan, gotenks, piccolo,
+     ippo, kurapika, aoi_todo, handler, yuta, iron_man, iron_man_2, iron_man_3,
+     kakashi, onoki, genos, green_samurai_ranger, red_ranger_mmpr
+
+REMAINING coverage gap (30) is now only genuinely-unvoiced characters + netero;
+closing it would require sourcing/authoring NEW audio (no on-disk reuse exists).
+================================================================================

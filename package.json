@@ -50,6 +50,7 @@
     "test:combat-fx-stage1": "node harness/combat_fx_stage1.mjs",
     "test:combat-fx-stage2": "node harness/combat_fx_stage2.mjs",
     "test:dmg-numbers": "node harness/dmg_numbers_verify.mjs",
+    "test:select-barks": "node harness/select_barks_verify.mjs",
     "test:up-attack": "node harness/up_attack_launcher.test.mjs",
     "test:up-attack-roster": "node harness/up_attack_roster.test.mjs",
     "test:up-attack-facing": "node harness/obito_upattack_facing.mjs",

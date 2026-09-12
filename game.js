@@ -3063,6 +3063,41 @@ function maybeFireIntroVoice(fighter) {
   sound.playSfxFile?.(clip, null)
 }
 
+// ── CHARACTER-SELECT VOICE BARKS ─────────────────────────────────────────────
+// A short voice line plays when a character is highlighted on the select grid, reusing their EXISTING
+// intro voice pool (no new audio). Characters with no INTRO_VOICE entry stay silent. A trailing debounce
+// + a fixed single-voice-channel owner mean fast scrolling never stacks overlapping barks: at most one
+// fires per SELECT_BARK_COOLDOWN frames, each cutting the previous, and the card you SETTLE on always
+// gets its line.
+const SELECT_BARK_OWNER    = "__selectBark__"
+const SELECT_BARK_COOLDOWN = 20   // frames (~0.33s @60fps) between barks
+let _selectBarkPending    = null  // rosterKey currently highlighted, awaiting a bark
+let _selectBarkLastPlayed = null  // last rosterKey actually barked (no repeat while it stays highlighted)
+let _selectBarkCd         = 0
+// Resolve a character's intro clip WITHOUT the reveal/sequence gates (the select screen has no intro
+// beat) — mirrors maybeFireIntroVoice's clip resolution. Returns null for silent characters.
+function pickSelectBark(rosterKey) {
+  const cfg = INTRO_VOICE[rosterKey]
+  if (!cfg) return null
+  return cfg.pick?.() || (cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip) || null
+}
+// Record the currently-highlighted character (called from the hover handler each frame).
+function noteSelectBarkTarget(rosterKey) { _selectBarkPending = rosterKey || null }
+// Per-frame: tick the cooldown and, when eligible, bark the highlighted character.
+function updateSelectBark() {
+  if (_selectBarkCd > 0) _selectBarkCd--
+  const key = _selectBarkPending
+  if (!key || key === _selectBarkLastPlayed) return   // nothing new highlighted
+  if (_selectBarkCd > 0) return                        // still cooling down → wait (trailing debounce)
+  _selectBarkLastPlayed = key
+  const clip = pickSelectBark(key)
+  if (!clip) { _selectBarkCd = Math.floor(SELECT_BARK_COOLDOWN / 2); return }   // silent character → no sound
+  sound.playSfxFile?.(clip, null, { owner: SELECT_BARK_OWNER, volumeMult: 0.9 })
+  _selectBarkCd = SELECT_BARK_COOLDOWN
+}
+// Clear state so leaving + re-entering the screen re-barks the first highlight.
+function resetSelectBark() { _selectBarkPending = null; _selectBarkLastPlayed = null; _selectBarkCd = 0 }
+
 function advanceIntroSequence(fighter) {
   if (!fighter || !fighter._introSeq) return
   if (fighter._introSeqIdx >= fighter._introSeq.length - 1) return   // hold final step
@@ -15099,7 +15134,7 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.AI_VS_AI_SETUP)   { tryHover(getAiVsAiSetupRects(canvas),     hoverAiVsAiIndex,     v => { hoverAiVsAiIndex = v; aiVsAiConfig.sel = v }); return }
   if (gameState === GAME_STATES.AI_VS_AI_SUMMARY) { tryHover(getAiVsAiSummaryRects(canvas),   hoverAiVsAiSummaryIndex, v => hoverAiVsAiSummaryIndex = v); return }
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
-  if (gameState === GAME_STATES.SELECT_CHARACTER) { const _rost = getCharacterRosterForSelectedUniverse(); tryHover(getCharacterCardRects(canvas, _rost, charSelectGridOpts(canvas, true)), hoverCharacterIndex, v => hoverCharacterIndex = v); if (hoverCharacterIndex >= 0 && _rost[hoverCharacterIndex]) _previewCharTheme(_rost[hoverCharacterIndex]); return }
+  if (gameState === GAME_STATES.SELECT_CHARACTER) { const _rost = getCharacterRosterForSelectedUniverse(); tryHover(getCharacterCardRects(canvas, _rost, charSelectGridOpts(canvas, true)), hoverCharacterIndex, v => hoverCharacterIndex = v); if (hoverCharacterIndex >= 0 && _rost[hoverCharacterIndex]) { _previewCharTheme(_rost[hoverCharacterIndex]); noteSelectBarkTarget(_rost[hoverCharacterIndex].id); } updateSelectBark(); return }
   if (gameState === GAME_STATES.SELECT_EDO_BACKUP) { tryHover(getCharacterCardRects(canvas, getEdoBackupRoster()), hoverEdoBackupIndex, v => hoverEdoBackupIndex = v); return }
   if (gameState === GAME_STATES.SELECT_SKIN)      { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); tryHover(getSkinSelectRects(canvas, sk.length), hoverSkinIndex, v => hoverSkinIndex = v); return }
   if (gameState === GAME_STATES.SELECT_STAGE)     { tryHover(getStageCardRects(canvas, stages), hoverStageIndex, v => hoverStageIndex = v) }
@@ -15734,6 +15769,7 @@ function updateCurrentState() {
     _prevGridState = gameState
     const g = activeScrollGrid()
     if (g) resetGridScroll(g.opts.scrollKey)
+    resetSelectBark()   // leaving/entering the char grid clears the bark debounce so the first highlight barks
   }
 
   updateMenuGamepad()   // controller: drive the virtual cursor / synth menu keys BEFORE hover + click dispatch

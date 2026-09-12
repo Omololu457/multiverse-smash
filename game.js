@@ -278,7 +278,8 @@ import {
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
   drawAccountScreen, getAccountButtons,
   resolveEnergyLabel, isHeavenlyRestriction, noMeterFlavor,   // HUD energy-bar resource name + no-meter flavor (Heavenly Restriction / Total Concentration) — display-only, exposed for the harness
-  drawImageFit   // shared aspect-ratio-preserving image fitter (portraits never stretch/squash)
+  drawImageFit,   // shared aspect-ratio-preserving image fitter (portraits never stretch/squash)
+  setColorblindHud   // ACCESSIBILITY: push the persisted colorblind-HUD flag into ui.js's health-panel renderer
 } from "./ui.js"
 import { CREDITS, SOURCED_ART, artistLineForCharacter, allAttributedKeys } from "./credits.js"
 import { poolAcquire, poolRelease, poolStats, poolResetStats } from "./pool.js"
@@ -569,6 +570,15 @@ function setBloodFx(on) { bloodFx = !!on; try { localStorage.setItem("ms_blood_f
 // (someone can want basic hit-sparks but not finishers, or vice-versa). Default OFF. Persisted separately.
 let brutalityFx = (() => { try { return localStorage.getItem("ms_brutality_fx") === "1" } catch (_) { return false } })()
 function setBrutalityFx(on) { brutalityFx = !!on; try { localStorage.setItem("ms_brutality_fx", brutalityFx ? "1" : "0") } catch (_) {} }
+
+// ACCESSIBILITY — COLORBLIND-SAFE HUD (COSMETIC, opt-in). Default OFF → the stock blue(P1)/red(P2)
+// palette is untouched. When ON, the two player-side HUD identity colors become a blue/ORANGE pair
+// (avoids red/green — the hardest CVD axis). Self-contained localStorage like bloodFx (no SAVE_VERSION
+// coupling). The actual colors live in ui.js's health-panel renderer; setColorblindHud pushes the flag
+// there. Display-only: zero sim/balance impact.
+let colorblindHud = (() => { try { return localStorage.getItem("ms_colorblind_hud") === "1" } catch (_) { return false } })()
+function setColorblindMode(on) { colorblindHud = !!on; try { localStorage.setItem("ms_colorblind_hud", colorblindHud ? "1" : "0") } catch (_) {} ; setColorblindHud?.(colorblindHud) }
+setColorblindHud?.(colorblindHud)   // sync ui.js to the persisted value at load
 // BRUTALITY ENGINE (real gore-style, per-MOVE finishers). Eligible = the tonally-appropriate prototype
 // roster: horror slashers + canonically-brutal killers. zaraki_shikai shares zaraki's table (same fighter).
 // HARD-EXCLUDED regardless of style: naruto, boruto, kiba, gohan, gon, killua, nezuko, ben10, albedo,
@@ -14417,6 +14427,8 @@ const uiScalePlusRect  = { x: 0, y: 156, w: 36,  h: 32 }
 const bloodToggleRect  = { x: 0, y: 226, w: 190, h: 34 }
 // BRUTALITIES toggle — top-right column, below the blood toggle. INDEPENDENT of it. x set by _layoutSettings.
 const brutalityToggleRect = { x: 0, y: 300, w: 190, h: 34 }
+// COLORBLIND-SAFE HUD toggle (accessibility) — top-right column, below brutalities. x set by _layoutSettings.
+const colorblindToggleRect = { x: 0, y: 374, w: 190, h: 34 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -14462,6 +14474,7 @@ function _layoutSettings() {
   uiScalePlusRect.x  = rx + 152
   bloodToggleRect.x  = rx
   brutalityToggleRect.x = rx
+  colorblindToggleRect.x = rx
 }
 
 function drawSettingsScreen() {
@@ -14553,7 +14566,15 @@ function drawSettingsScreen() {
   ctx.fillText(`Finishers: ${brutalityFx ? "ON" : "OFF"}`, brutalityToggleRect.x + brutalityToggleRect.w / 2, brutalityToggleRect.y + 22)
   ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
   ctx.fillText("Stylized KO finish (saved)", brutalityToggleRect.x, brutalityToggleRect.y + brutalityToggleRect.h + 13)
-  ctx.textAlign = "center"
+
+  // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
+  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+  ctx.fillText("COLORBLIND HUD", colorblindToggleRect.x, colorblindToggleRect.y - 10)
+  box(colorblindToggleRect, colorblindHud ? "rgba(28,58,86,0.95)" : "rgba(20,26,40,0.9)", colorblindHud ? "#ff9d2e" : "rgba(120,150,200,0.4)", 2, colorblindHud)
+  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillText(`Colorblind: ${colorblindHud ? "ON" : "OFF"}`, colorblindToggleRect.x + colorblindToggleRect.w / 2, colorblindToggleRect.y + 22)
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.fillText("Blue/orange HUD accents (saved)", colorblindToggleRect.x, colorblindToggleRect.y + colorblindToggleRect.h + 13)
   ctx.textAlign = "center"
 
   // ── Keybind grid (Task 2) ──
@@ -15253,6 +15274,7 @@ function handleMenuClicks() {
       // Blood hit-effects toggle (cosmetic; persisted to localStorage).
       if (pointInRect(mouse.x, mouse.y, bloodToggleRect))  { setBloodFx(!bloodFx); break }
       if (pointInRect(mouse.x, mouse.y, brutalityToggleRect)) { setBrutalityFx(!brutalityFx); break }
+      if (pointInRect(mouse.x, mouse.y, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
       // Keybind rows (Task 2): click an action → await a key.
       const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
       if (kb) { rebindAction = kb.action; rebindWarning = "" }
@@ -17039,6 +17061,8 @@ gameLoop()
     brutality: {
       setBlood:     (on) => { setBloodFx(!!on); return bloodFx },
       setBrutality: (on) => { setBrutalityFx(!!on); return brutalityFx },
+      setColorblind:(on) => { setColorblindMode(!!on); return colorblindHud },
+      getColorblind:() => colorblindHud,
       toggles:      () => ({ blood: bloodFx, brutality: brutalityFx }),
       eligible:     () => [...BRUTALITY_ELIGIBLE],
       canTrigger:   (winnerKey) => BRUTALITY_ELIGIBLE.has(String(winnerKey || "").toLowerCase()),

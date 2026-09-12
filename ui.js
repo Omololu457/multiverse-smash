@@ -295,6 +295,12 @@ function _accent2RGBA(a) { return theme.rgba(_THEME.accent2RGB, a) }
 let _mkFrame = 0                              // shared animation clock for menu screens
 function _mkAdvance() { _mkFrame++; _syncTheme() }  // call ONCE at the top of each redesigned screen (also keeps theme cache fresh)
 export function mkFrame() { return _mkFrame }  // harness read-out
+// ACCESSIBILITY — colorblind-safe HUD accents. OFF by default (game.js owns the persisted setting and
+// pushes it here via setColorblindHud). When ON, the two player-side HUD identity colors shift from the
+// default blue/RED pair to a blue/ORANGE pair (CVD-safe — avoids the red/green confusion axis).
+let _colorblindHud = false
+export function setColorblindHud(on) { _colorblindHud = !!on }
+export function getColorblindHud() { return _colorblindHud }   // harness read-out
 // Exposed so sibling modules (matchflow.js results/round screens) draw in the exact SAME language.
 export function mkAdvance() { _mkFrame++ }
 export function bevelPath(ctx, x, y, w, h, cut) { return _bevelPath(ctx, x, y, w, h, cut) }
@@ -3452,7 +3458,8 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.save()
     if (sx || sy) ctx.translate(sx, sy)
 
-    const accent = flip ? "#e06a6a" : "#4aa8e0"
+    // P1 = blue (left), P2 = red (right). Colorblind mode swaps P2's red → orange (blue/orange = CVD-safe).
+    const accent = _colorblindHud ? (flip ? "#ff9d2e" : "#4aa8e0") : (flip ? "#e06a6a" : "#4aa8e0")
     _metalPanel(ctx, x, hpY, barW + 20, barH + 26, accent, 8, anim.flash)
 
     // BIG-hit backing flash — a hot wash over the panel the frame a heavy/special/ult lands.
@@ -3466,7 +3473,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
 
     const nameX = flip ? x + barW + 12 : x + 8
     const nameAlign = flip ? "right" : "left"
-    const nameColor = flip ? "#fca5a5" : "#7dd3fc"
+    const nameColor = _colorblindHud ? (flip ? "#ffd39b" : "#7dd3fc") : (flip ? "#fca5a5" : "#7dd3fc")
     ctx.font = "bold 11px Arial"; ctx.textAlign = nameAlign; ctx.textBaseline = "alphabetic"
     ctx.fillStyle = nameColor
     ctx.fillText(fighter.name || (flip ? "P2" : "P1"), nameX, hpY + 12)

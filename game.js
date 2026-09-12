@@ -14213,7 +14213,7 @@ function drawBattle() {
   _drawLowHpVignette()        // Track A3: low-HP red edge vignette (atmosphere, under HUD)
   _drawParryClashFlash()      // Track A2: brief parry/clash "sell" wash (over fighters, under HUD)
   drawBattleHud()
-  if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber)
+  if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
   _drawComboCounters()
   _drawDomainHUDBar()
@@ -14370,7 +14370,7 @@ function drawFFAResult() {
 function drawFFABattle() {
   drawFFAScene()
   drawFFAHud()
-  if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, 1)
+  if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, 1, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
   _drawKOFlash()
   drawFFAResult()

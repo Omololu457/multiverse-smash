@@ -521,11 +521,23 @@ export function rekkaContinue(fighter, { edge, phase, opponent, requireHit = tru
 // This makes the breaker AVAILABLE TO THE WHOLE ROSTER identically — the 7 meterless characters
 // (toji/maki/zenitsu/rengoku/shinobu/inosuke/nezuko) were previously locked out by the old `maxEnergy>0`
 // / 50%-meter gate. Energy is now free for offense (specials/ults). `meterFrac` is retired.
-export const COMBO_BREAKER = { threshold: 3, stocksPerRound: 2, iframes: 24, atkKbX: 15, atkKbY: -8, atkHitstun: 18, energyCost: 40, meterlessCd: 360 }
+// meterlessThreshold (4 vs the roster-wide 3): the 7 meterless chars (zenitsu/rengoku/shinobu/inosuke/nezuko/
+// maki/toji — + baki, also traits.hasEnergy:false) get their break stocks free (no meter), so they pay a real
+// cooldown instead. To keep that free defensive tool from being won a hit EARLIER than meter chars who spend
+// resources, meterless breaks require ONE more combo hit (4 not 3). A modest correction only — the i-frame
+// window (iframes) and the mechanic itself are untouched. (No specific bumped value was recorded in the repo
+// audits; 4 is the smallest meaningful increment.)
+export const COMBO_BREAKER = { threshold: 3, meterlessThreshold: 4, stocksPerRound: 2, iframes: 24, atkKbX: 15, atkKbY: -8, atkHitstun: 18, energyCost: 40, meterlessCd: 360 }
 export function tryComboBreaker(fighter, inputState, opponent) {
   if (!fighter || !inputState || !opponent) return false
   if ((fighter.hitstun || 0) <= 0) return false                                 // only while stunned
-  if ((opponent.comboCounter || 0) < COMBO_BREAKER.threshold) return false       // only vs a REAL combo (>= 3) — no spam
+  // Meterless detection: createFighter clamps runtime maxEnergy to Math.max(1, …) (divide-by-zero guard),
+  // so maxEnergy is NEVER 0 at runtime — the true signal is traits.hasEnergy===false (meterless chars).
+  // The `>1` fallback also classifies the trait-less unit-test mocks (maxEnergy 0) correctly. Computed here
+  // (ahead of the threshold gate) so meterless fighters can use the slightly-higher trigger threshold.
+  const hasEnergy = fighter.traits?.hasEnergy !== false && (fighter.maxEnergy || 0) > 1
+  const breakThreshold = hasEnergy ? COMBO_BREAKER.threshold : COMBO_BREAKER.meterlessThreshold
+  if ((opponent.comboCounter || 0) < breakThreshold) return false                // only vs a REAL combo (>= 3, or >= 4 for the free-stock meterless chars) — no spam
   if (!inputState.block || !inputState.special) return false                     // the input: guard + Special
   if ((fighter.comboBreakStocks || 0) <= 0) return false                         // needs a break STOCK (universal per-round cap, kept)
 
@@ -533,10 +545,6 @@ export function tryComboBreaker(fighter, inputState, opponent) {
   // second currency by kit type: energy fighters spend meter (energyCost), meterless fighters pay a
   // real-time COOLDOWN (meterlessCd — the Zenitsu/Rengoku currency model). Checked BEFORE firing so an
   // unpayable break stays stunned.
-  // Meterless detection: createFighter clamps runtime maxEnergy to Math.max(1, …) (divide-by-zero guard),
-  // so maxEnergy is NEVER 0 at runtime — the true signal is traits.hasEnergy===false (meterless chars).
-  // The `>1` fallback also classifies the trait-less unit-test mocks (maxEnergy 0) correctly.
-  const hasEnergy = fighter.traits?.hasEnergy !== false && (fighter.maxEnergy || 0) > 1
   if (hasEnergy && (fighter.energy || 0) < COMBO_BREAKER.energyCost) return false      // meter-cost gate
   if (!hasEnergy && (fighter.comboBreakerCd || 0) > 0) return false                    // cooldown-cost gate
 
@@ -569,15 +577,23 @@ export function tryComboBreaker(fighter, inputState, opponent) {
 // are excluded: Toji (2-stage save), Maki (HP-gated ult), Gon (adult-form sudden-death).
 // The once-per-MATCH gate is owned by the CALLER (game.js, keyed by side) because fighters are recreated
 // each round — these functions are stateless w.r.t. match economy.
-export const COMEBACK_FINISHER = { hpGate: 0.30, dmgPct: 0.32, dmgCap: 360, iframes: 16, startup: 6, active: 6, recovery: 24, reach: 152, height: 132, hitstun: 26, kbX: 9, kbY: -5 }
+// dmgPct is now a % of the TARGET's max HP (was the USER's), so the finisher chunks a consistent slice of the
+// opponent's bar instead of a flat cap that shrank to a weak % against tanky characters. dmgFloor/dmgCap are
+// guardrails: across the roster (target maxHP 950→1450) 32% maps to 304→464, so both barely engage — they
+// only prevent absurdity vs a hypothetical extreme-HP target. (Old flat 360 = just 24.8% of Superman's 1450.)
+export const COMEBACK_FINISHER = { hpGate: 0.30, dmgPct: 0.32, dmgFloor: 300, dmgCap: 470, iframes: 16, startup: 6, active: 6, recovery: 24, reach: 152, height: 132, hitstun: 26, kbX: 9, kbY: -5 }
 // EXCLUSIONS (Stage 0 audit): characters with a bespoke below-threshold comeback keep THEIRS instead —
 // Toji (2-stage save), Maki (HP-gated ult), Gon (adult-form sudden-death), Naruto (Kurama shroud's
 // heal-on-hit kicks in at ≤40% HP — see applyKuramaReaction ~combat.js:927; without this exclusion he'd
 // STACK the shroud heal AND the universal Fatal Blow, a double-dip the other three are already carved out
 // of for the same reason). Everyone else is eligible.
 export const COMEBACK_FINISHER_EXCLUDE = new Set(["toji", "maki", "gon", "naruto"])
-export function comebackFinisherDamage(fighter) {
-  return Math.round(Math.min((fighter?.maxHealth || 1000) * COMEBACK_FINISHER.dmgPct, COMEBACK_FINISHER.dmgCap))
+// Damage = a % of the TARGET's max HP, clamped to [dmgFloor, dmgCap]. Falls back to the fighter's own maxHP
+// only if no target is supplied (e.g. the display probe), preserving a sensible number there.
+export function comebackFinisherDamage(fighter, target) {
+  const maxHp = (target?.maxHealth) || (fighter?.maxHealth) || 1000
+  const raw = maxHp * COMEBACK_FINISHER.dmgPct
+  return Math.round(Math.max(COMEBACK_FINISHER.dmgFloor, Math.min(raw, COMEBACK_FINISHER.dmgCap)))
 }
 // Eligibility EXCLUDING the once-per-match token (caller owns that): not on the exclusion list, at/below
 // the HP gate. Stage 3: available ROSTER-WIDE (the Stage-1 pilot gate is removed).
@@ -598,7 +614,7 @@ export function tryComebackFinisher(fighter, inputState, opponent) {
   const started = startMove(fighter, "heavy", { startup: F.startup, active: F.active, recovery: F.recovery, rangeX: F.reach, rangeY: F.height, hitstun: F.hitstun, knockbackX: F.kbX, knockbackY: F.kbY, category: "heavy" })
   if (!started) return false
   fighter.currentAttack._comebackFinisher = true
-  fighter.currentAttack.damage = comebackFinisherDamage(fighter)                  // fixed EFFECTIVE number (override target)
+  fighter.currentAttack.damage = comebackFinisherDamage(fighter, opponent)        // fixed EFFECTIVE number, scaled to the TARGET's max HP (locked at commit)
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F.iframes)             // startup armour
   fighter._comebackFlash = 45                                                     // sprite pop (reuses Toji's comeback-flash field)
   fighter.vx = fighter.facing * 7                                                 // lunge in

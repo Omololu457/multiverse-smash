@@ -530,7 +530,7 @@ const frieza = {
   basic_attacks: {
     light:    { damage: 42, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 3, knockbackY: 0 },  // per-hit 25 (×0.60); fast enough to double-tap under a held button
     heavy:    { damage: 80, startup: 8, active: 3, recovery: 17, hitstun: 19, knockbackX: 6, knockbackY: 1, rangeX: 88, rangeY: 44 },
-    upAttack: { type: "launcher", damage: 62, startup: 6, active: 3, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, airOK: false },
+    upAttack: { type: "launcher", damage: 62, startup: 6, active: 3, recovery: 14, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -32, airOK: false },   // launchVy -30→-32: was the frail/glass-cannon tier mis-assigned to a mid-weight bruiser (goku/vegeta launch -32); frames match declared + launch was applied faithfully (verified live) — the only real gap was this archetype-shallow launch
     airAttack:{ damage: 52, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 4, knockbackY: -2 },
     downAir:  { damage: 60, startup: 5, active: 3, recovery: 11, hitstun: 16, knockbackX: 2, knockbackY: 6 },
     grab:     { damage: 28, startup: 6, active: 3, recovery: 14, hitstun: 20, throwForceX: 5, throwForceY: -4 }

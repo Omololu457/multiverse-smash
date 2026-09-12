@@ -81,12 +81,23 @@ try {
   // polling over-advances past the cancel window, so capture the action set across the whole string.
   await adj(60); { const hp0 = (await p2()).health; const acts = new Set();
     const samp = async n => { for (let i = 0; i < n; i++) { const a = await p1(); if (a.action) acts.add(a.action); await waitFrames(1); } };
+    // Pin the dummy in range (cleave1 knockbackX 5 drifts it) so the opener reliably connects and cleave2's
+    // hit lands too — the OLD fixed-frame second Heavy raced the cancel-on-hit latch and lost range, so
+    // intermittently only cleave1 fired (acts=[…cleave1], no cleave2).
+    const pin = async () => { const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), Math.round(a.x + 42 * (a.facing || 1))); };
     await page.evaluate(() => window.__harness.resetFighterInput?.("p1"));
     await page.keyboard.down("d"); await waitFrames(2);   // let facing/right register before the Heavy edge
     await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k");
-    await samp(8); await waitFrames(3);
+    // Hold range + wait for the opener's cancel-on-hit latch (opener connected).
+    for (let i = 0; i < 24; i++) { const a = await p1(); if (a.action) acts.add(a.action); if (a.cmdHitLanded) break; await pin(); await waitFrames(1); }
+    // The follow-up reuses the SAME Heavy button, so the opener's ~10f INPUT BUFFER keeps `heavy` latched —
+    // let it fully clear (release gap) so the second Heavy is a genuine fresh EDGE, then tap it INSIDE cleave1's
+    // recovery window (startup8+active4 → frames ~12-28). The old fixed timing tapped right at the buffer-clear
+    // boundary → intermittently no fresh edge → cleave2 never fired.
+    for (let i = 0; i < 4; i++) { const a = await p1(); if (a.action) acts.add(a.action); await pin(); await waitFrames(1); }
+    await pin();
     await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k");
-    await samp(10); await page.keyboard.up("d");
+    await samp(12); await page.keyboard.up("d");
     const dealt = hp0 - (await p2()).health;
     check("cleave1 → cancel → cleave2 + damage", acts.has("altSukunaCleave1") && acts.has("altSukunaCleave2") && dealt > 0, `acts=[${[...acts]}] −${dealt.toFixed(0)}`);
   }

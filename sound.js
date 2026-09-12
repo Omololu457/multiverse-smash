@@ -50,9 +50,11 @@ export const AUDIO_BASE = "./"
 export const MENU_MUSIC_FILE = "Passion_fruitmp3.mp3"
 
 // Generic/SHARED transformation cue for ANY Dragon Ball character's transformation
-// (Goku Black → SSJ Rose, Goku → SSJ Blue, …). Single source of truth for the filename —
-// callers use SoundManager.playDragonBallTransformSfx() rather than hardcoding this inline.
-export const DRAGON_BALL_TRANSFORM_SFX = "dragon_ball_transformation.mp3"
+// (Goku Black → SSJ Rose, Goku → SSJ Blue, …). Routes through the PROCEDURAL `transformation`
+// generator (below, ~line 254) — the mp3 override this once pointed at
+// ("dragon_ball_transformation.mp3") was never added to the repo, so referencing it only
+// produced a hard 404 with no fallback (caught by the zaraki no-404/no-console-error checks).
+// The procedural cue is the real intended sound; callers use playDragonBallTransformSfx().
 
 // ITEM 3 (2026-09-06, playtest): per-character VOICE volume multipliers, applied to file-based cues in
 // playSfxFile by basename prefix. Naruto's voice was too loud → dropped to a near-floor 0.12 (audible, not
@@ -887,7 +889,7 @@ class SoundManager {
   // No fallback id (faithful to the extracted inline call): callers that also want the procedural
   // power-up boom layer it separately (as the Rose cinematic does).
   playDragonBallTransformSfx() {
-    return this.playSfxFile(DRAGON_BALL_TRANSFORM_SFX, null)
+    return this.play(SFX.TRANSFORMATION)   // procedural cue (no missing-file 404; see DRAGON_BALL_TRANSFORM_SFX note above)
   }
 
   // Domain-expansion audio: a one-shot voice line + a looping domain theme,

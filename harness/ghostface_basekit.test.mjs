@@ -56,7 +56,13 @@ check('isGhostfaceVariant("ghostface") is FALSE', isGhostfaceVariant("ghostface"
 check('isGhostfaceVariant("jason") is FALSE', isGhostfaceVariant("jason") === false);
 check("accepts a fighter object too", isGhostfaceVariant({ rosterKey: "ghostface_billy" }) === true);
 check("original ghostface STILL registered + untouched", !!characters.ghostface && characters.ghostface.rosterKey === "ghostface");
-check("no variant key collides with a live roster key", GHOSTFACE_VARIANT_KEYS.every(k => !characters[k]));
+// ghostface_billy has been intentionally PROMOTED to a live standalone roster char (bespoke Special/Ultimate
+// in abilities.js, gated on rosterKey === "ghostface_billy" — it does NOT consume this template, and
+// isGhostfaceVariant is not wired into any live combat path, so there is zero runtime conflict). The template
+// still lists all 12 canonical killers (Billy is one), so the collision check exempts already-promoted keys.
+const PROMOTED_VARIANTS = new Set(["ghostface_billy"]);   // graduated template variants that are now live roster chars
+check("no UN-PROMOTED variant key collides with a live roster key", GHOSTFACE_VARIANT_KEYS.every(k => PROMOTED_VARIANTS.has(k) || !characters[k]));
+check("promoted variants (Billy) ARE registered live as expected", [...PROMOTED_VARIANTS].every(k => !!characters[k]));
 
 // ── SHARED BASE KIT — identical across all 12 ──────────────────────────────────
 section("the base kit is IDENTICAL across all 12");

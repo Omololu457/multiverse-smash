@@ -11412,13 +11412,24 @@ function applyGojoInfinityBarrier(gojo, target) {
 // ------------------------------------------------------------------
 function spawnDamageNumber(spark) {
   if (!spark || spark.damage == null) return
+  const cat = spark.category || "light"
+  // Reuse the impact-FX tier palette (matches _SPARK_FX / hit-spark cores). Heavier tiers read
+  // bigger + bolder so an ultimate's number visibly outweighs a jab's — presentation only.
   const colorMap = { light: "#ffffff", heavy: "#fbbf24", special: "#f97316", ultimate: "#ef4444" }
+  const sizeMap  = { light: 20,        heavy: 26,        special: 30,        ultimate: 36 }
   const d = poolAcquire("dmg")   // Stage 22C: reuse a recycled damage-number instead of allocating
-  d.x = spark.x; d.y = spark.y
+  // Combo-offset stacking: successive hits in a combo fan out (alternating sides + a slight rise)
+  // instead of piling onto one pixel, so a long string stays legible. Reads the attacker's live
+  // comboCounter — render-only, no sim/state mutation.
+  const att  = spark.attackerSide === "p2" ? p2 : (spark.attackerSide === "p1" ? p1 : null)
+  const step = Math.max(0, (att?.comboCounter || 0) - 1)
+  const dx   = step ? ((step % 2 ? -1 : 1) * (12 + (step % 3) * 8)) : 0
+  const dy   = -(step % 4) * 8
+  d.x = spark.x + dx; d.y = spark.y + dy
   d.text = String(Math.round(spark.damage || 0))
-  d.color = colorMap[spark.category || "light"] || "#ffffff"
+  d.color = colorMap[cat] || "#ffffff"
   d.timer = 45; d.maxTimer = 45; d.opacity = 1
-  d.vy = -1.2; d.fontSize = 22
+  d.vy = -1.2; d.fontSize = sizeMap[cat] || 22
   damageNumbers.push(d)
 }
 
@@ -16585,6 +16596,8 @@ gameLoop()
     sfxActive: () => (sound._activeSfx ? [...sound._activeSfx].map(e => ({ file: (e.audio?.src || "").split("/").pop(), paused: !!e.audio?.paused, owned: !!e.owner, persistent: !!e.persistent })) : []),
     playSfxOwned: (file, who = "p1", persistent = false) => { const f = who === "p2" ? p2 : who === "none" ? null : p1; return !!sound.playSfxFile(file, null, { owner: f, persistent }) },   // who="none" → UNOWNED cue (models real intro/win-lines, exempt from the single-voice-channel stop)
     sfxStopAll: (inclPersistent = false) => sound.stopAllSfx?.({ includePersistent: inclPersistent }),
+    // ── FLOATING DAMAGE-NUMBER harness (render-only read window) ──
+    dmgNumbers: () => damageNumbers.map(d => ({ x: d.x, y: d.y, text: d.text, color: d.color, fontSize: d.fontSize, opacity: d.opacity })),
     start:       startHarnessMatch,
     skipToBattle,
     // Jump to the REAL character-select grid for a universe (renders the same screen a player sees).

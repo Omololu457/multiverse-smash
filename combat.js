@@ -3193,27 +3193,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       }))
     }
 
-    if (Array.isArray(damageNumbers)) {
-      const cmap = {
-        light: "#ffffff",
-        heavy: "#fbbf24",
-        special: "#f97316",
-        ultimate: "#ef4444"
-      }
-
-      damageNumbers.push({
-        value: dmg,
-        text: String(dmg),
-        x: hitbox.x + hitbox.w / 2,
-        y: hitbox.y,
-        timer: 45,
-        maxTimer: 45,
-        opacity: 1,
-        category: cat,
-        color: cmap[cat] || "#ffffff",
-        fontSize: Math.min(38, 22 + Math.floor(dmg / 20))
-      })
-    }
+    // NOTE: the floating damage NUMBER for this hit is spawned from the hit-SPARK above by
+    // game.js spawnDamageNumber() (the single authoritative producer — tier-styled + combo-offset).
+    // This path used to also push a number directly here, which double-rendered every melee hit
+    // (two overlapping numbers per connect). Removed; the spark carries `damage`, so the number
+    // still appears exactly once.
 
     if (defender.health <= 0) {
       try { sound?.play?.(SFX?.KO) } catch (_) {}
@@ -3805,20 +3789,10 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         }))
       }
 
-      if (Array.isArray(damageNumbers)) {
-        damageNumbers.push({
-          value: Math.floor(dmg),
-          text: String(Math.floor(dmg)),
-          x: proj.x,
-          y: proj.y - 20,
-          timer: 45,
-          maxTimer: 45,
-          opacity: 1,
-          category: "special",
-          color: "#f97316",
-          fontSize: Math.min(38, 22 + Math.floor(dmg / 20))
-        })
-      }
+      // NOTE: the floating damage NUMBER is spawned from the hit-SPARK above by game.js
+      // spawnDamageNumber() (single authoritative producer). The direct push that used to live here
+      // double-rendered every projectile connect; removed. The spark carries `damage`, so the
+      // number still appears exactly once (tier-styled + combo-offset in spawnDamageNumber).
 
       // IMPACT-ON-CONNECT FX (e.g. Vegeta SSJ Final Flash's explosion sheet): a projectile carrying
       // an `impact` spawns a pure-visual sprite at the hit point ONLY when it actually connects (not

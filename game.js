@@ -1,6 +1,7 @@
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
+import { isChrolloSkillHunterCinematicActive, updateChrolloSkillHunterCinematic, drawChrolloSkillHunterCinematic, clearChrolloSkillHunterCinematic } from "./chrolloSkillHunterCinematic.js"   // Chrollo Skill Hunter transform cinematic (SAME freeze contract as Edo Tensei: update+draw+clear driven from updateBattle; body-swap fires at the reveal beat via onResolve)
 import { characters, characterList } from "./characters.js"
 import {
   switchAlien, applyAlien, BEN10_ALIEN_POOL, BEN10_ART_ALIENS, isArtBackedAlien, DEFAULT_OMNITRIX, setupBen10,
@@ -56,6 +57,7 @@ import {
   tryComboBreaker, COMBO_BREAKER,     // MK-feel Stage 2d: universal block+special combo breaker (fires only vs a >=3 combo)
   tryComebackFinisher, comebackFinisherReady, comebackFinisherDamage, COMEBACK_FINISHER,   // Fatal-Blow-style comeback finisher (once/match, <30% HP, block+grab)
   startMove,                          // harness: drive a real p2 attack (Substitution incoming-window)
+  trackSkillHunterUnlock,             // harness: drive Chrollo's REAL 3-distinct-move Skill Hunter unlock engine
   getCancelWindow,                    // harness/combo-flow: inspect a fighter's shared cancel window
   applyVegitoUISystem, VEGITO_UI      // Vegito Ultra Instinct evasion resource: passive drain + charge-refill + health-conversion + meter-tell tier
 } from "./combat.js"
@@ -166,6 +168,7 @@ import {
   updateGonCommandCombat,     // Gon Down+Heavy 2-hit "Rush" command-normal cancel chain (rush1 flurry→rush2 launcher, cancel-on-hit)
   updateStandardStringCombat, // MK-feel Stage 2b: single-poke chars' shared light→light→heavy(launcher) + heavy→special cancel string
 
+  updateChrolloCommandCombat,  // Chrollo Fwd+Heavy 2-hit "Blade Rush" command-normal cancel chain (chCombo1→chComboFin launcher, cancel-on-hit)
   updateBatmanCommandCombat,  // Batman Down+Heavy 3-hit "Combo" command-normal cancel chain (batCombo1→2→3 launcher, cancel-on-hit)
   updateSupermanCommandCombat,  // Superman Fwd+Heavy 3-hit "Kryptonian Rush" flying-punch chain (supRush1→2→Fin launcher, cancel-on-hit)
   updateTobiramaCommandCombat,   // Tobirama Fwd+Heavy 3-hit taijutsu chain (combo1→combo2→comboFin) + Fwd+Light/Back+Heavy pokes
@@ -235,6 +238,7 @@ import {
   updateGhostfacePresentation, getGhostfacePresentation,   // Ghostface visual staging: Stalk Vanish off-screen/re-entry + 3-beat killer-swap transition (render-only)
   updateGhostfaceAmbush, isGhostfaceAmbushActive, ghostfaceAmbushPhase, triggerGhostfaceAmbush,   // Ghostface "Phone Call" ambush swap (Charge+Special): 4-beat bait→retreat→2nd-killer strike→handoff
   applySkillHunter, revertSkillHunter,   // Chrollo Skill Hunter engine — imported ONLY for a test-hook "unaffected" proof (drives the real shared field-swap)
+  updateSkillHunter, endSkillHunterWindow, isChrolloSkillHunterActive,   // Chrollo Skill Hunter LIVE drivers: per-frame 30s-window tick + auto-revert, manual re-press early-end, and the active-state read (survives the body-swap via _shActive)
   triggerBanditEcho, updateBanditEcho, updateBanditEchoUltMark, isBanditEchoActive,   // Chrollo "Bandit's Echo" (Down+Ult): copy the marked opponent special/ultimate once (HP+energy cost, single-use) + per-frame auto-revert driver + cinematic-ultimate mark watcher
 
   fireRengokuFlameStrike,      // Rengoku Charged Flame Strike — fired from handleChargeRelease (CHARGE hold→release, tap/hold power tiers)
@@ -480,6 +484,22 @@ import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
 import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
 import { pickSupermanVoice, SUPERMAN_VOICE } from "./supermanVoice.js"
+import { pickBardockVoice, BARDOCK_VOICE } from "./bardockVoice.js"   // Bardock intro/win voice pools (audio-only, EN)
+import { pickBakiVoice, BAKI_VOICE } from "./bakiVoice.js"   // Baki intro/win voice pools (audio-only, JA)
+import { pickByakuyaVoice, BYAKUYA_VOICE } from "./byakuyaVoice.js"   // Byakuya intro/win voice pools (audio-only, JA)
+import { pickAoiTodoVoice, AOI_TODO_VOICE } from "./aoiTodoVoice.js"   // Aoi Todo intro/win voice pools (audio-only, JA-only per Stage 3)
+import { pickGokuVoice, GOKU_VOICE } from "./gokuVoice.js"   // Goku intro/win voice pools (audio-only, EN)
+import { pickGohanVoice, GOHAN_VOICE } from "./gohanVoice.js"   // Gohan intro/win voice pools (audio-only, EN)
+import { pickGreenLanternVoice, GREEN_LANTERN_VOICE } from "./greenLanternVoice.js"   // Green Lantern intro/win voice pools (audio-only, EN)
+import { pickFriezaVoice, FRIEZA_VOICE } from "./friezaVoice.js"   // Frieza taunt/low-HP voice pools (audio-only, EN; no intro/win clip)
+import { pickIronManVoice, IRON_MAN_VOICE } from "./ironManVoice.js"   // Iron Man intro/win voice pools (audio-only, EN)
+import { pickKakashiVoice, KAKASHI_VOICE } from "./kakashiVoice.js"   // Kakashi intro/win voice pools (audio-only, JA)
+import { pickLRyuuzakiVoice, L_RYUUZAKI_VOICE } from "./lRyuuzakiVoice.js"   // L intro voice pool (audio-only, EN)
+import { pickPiccoloVoice, PICCOLO_VOICE } from "./piccoloVoice.js"   // Piccolo intro/win voice pools (audio-only, EN)
+import { pickMegumiVoice, MEGUMI_VOICE } from "./megumiVoice.js"   // Megumi intro/win voice pools (audio-only, JA-only per Stage 3)
+import { pickVilgaxVoice, VILGAX_VOICE } from "./vilgaxVoice.js"   // Vilgax taunt/hit voice pools (audio-only, EN; thin pack, no intro/win)
+import { pickYutaVoice, YUTA_VOICE } from "./yutaVoice.js"   // Yuta intro/win voice pools (audio-only, JA-only per Stage 3)
+import { pickIppoVoice, IPPO_VOICE } from "./ippoVoice.js"   // Ippo intro/win voice pools (audio-only, JA)
 import { pickTobiramaVoice, TOBIRAMA_VOICE } from "./tobiramaVoice.js"
 import { pickFlashVoice, FLASH_VOICE } from "./flashVoice.js"
 import { pickItachiVoice, ITACHI_VOICE } from "./itachiVoice.js"
@@ -2819,6 +2839,7 @@ function resetRound() {
   clearIchigoGetsugaCinematic()
   clearMakiShibuyaCinematic()
   clearEdoTenseiCinematic()
+  clearChrolloSkillHunterCinematic()
 
   if (typeof clearInputBuffers === "function") clearInputBuffers([p1, p2].filter(Boolean))
 
@@ -2981,6 +3002,36 @@ const INTRO_VOICE = {
   // Regime "Traitors, all of you"). His `taunt` action drives the universal heal, so the trash-talk pool
   // rides the offense-connect trigger instead (see supermanVoice.js NOTE); intro fires here.
   superman: { pool: SUPERMAN_VOICE.intro, gateReveal: false },
+  // Bardock picks ONE of his "I'm gonna change the future!" pre-fight resolve lines per match (EN). No taunt
+  // action → the trash-talk pool rides the offense-connect trigger instead (see bardockVoice.js).
+  bardock: { pool: BARDOCK_VOICE.intro, gateReveal: false },
+  // Baki gives a quiet, humble self-intro / resolve line (JA). No taunt action → taunt rides offense-connect.
+  baki: { pool: BAKI_VOICE.intro, gateReveal: false },
+  // Byakuya gives his cold pre-fight declaration (JA). No taunt action → taunt rides offense-connect.
+  byakuya: { pool: BYAKUYA_VOICE.intro, gateReveal: false },
+  // Aoi Todo picks ONE bored-challenge opener per match (JA-only per Stage 3). No taunt action → taunt rides offense-connect.
+  aoi_todo: { pool: AOI_TODO_VOICE.intro, gateReveal: false },
+  // Goku gives an eager pre-fight opener ("How about a quick scrap?"). No taunt action → taunt rides offense-connect. EN.
+  goku: { pool: GOKU_VOICE.intro, gateReveal: false },
+  // Gohan gives a curious, polite challenge. No taunt action → taunt rides offense-connect. EN.
+  gohan: { pool: GOHAN_VOICE.intro, gateReveal: false },
+  // Green Lantern: "Once a Green Lantern, always a Green Lantern." No taunt action → taunt rides offense-connect. EN.
+  green_lantern: { pool: GREEN_LANTERN_VOICE.intro, gateReveal: false },
+  // Iron Man: "I'm in solo mode." / "Feeling sharp." No taunt action → taunt rides offense-connect. EN.
+  iron_man: { pool: IRON_MAN_VOICE.intro, gateReveal: false },
+  // Kakashi: "I'll be your opponent." / "Kakashi of the Sharingan." No taunt action → taunt rides offense-connect. JA.
+  kakashi: { pool: KAKASHI_VOICE.intro, gateReveal: false },
+  // L (Ryuzaki): cryptic "monsters in this world" opener. No taunt action → taunt rides offense-connect. EN.
+  l_ryuuzaki: { pool: L_RYUUZAKI_VOICE.intro, gateReveal: false },
+  // Piccolo: "I have new, unbelievable power!" No taunt action → taunt rides offense-connect. EN.
+  piccolo: { pool: PICCOLO_VOICE.intro, gateReveal: false },
+  // Megumi (rosterKey "handler" — display name "Megumi", owner-named quirk): "俺は不平等に人を助ける"
+  // ("I help people unequally"). No taunt action → taunt rides offense-connect. JA-only per Stage 3.
+  handler: { pool: MEGUMI_VOICE.intro, gateReveal: false },
+  // Yuta: "友達を傷つけようとする人は許さない" ("I won't forgive anyone who hurts my friends"). No taunt action → taunt rides offense-connect. JA-only per Stage 3.
+  yuta: { pool: YUTA_VOICE.intro, gateReveal: false },
+  // Ippo: humble/determined challenger opener ("Let's both give it our all!"). No taunt action → taunt rides offense-connect. JA.
+  ippo: { pool: IPPO_VOICE.intro, gateReveal: false },
   ghostface: { pool: GHOSTFACE_VOICE.intro, gateReveal: false },   // one of his openers at random ("What's your favorite scary movie?" …)
   ghostface_exe: { pool: GHOSTFACE_VOICE.intro, gateReveal: false },   // STAGE 4: Billy (ghostface_exe) REUSES the Ghostface intro pool — no new audio
   // Miwa picks ONE of her pre-fight openers / nervous-taunt lines at random per match ("I will defeat you
@@ -3070,7 +3121,7 @@ function maybeFireIntroVoice(fighter) {
   if (cfg?.gateSeqStep && fighter._introVariant !== cfg.gateSeqStep) return   // hold until the reveal step of a two-part intro
   fighter._introVoiceDone = true
   // `pick`: a per-match selector fn (language-aware pools, e.g. Yuji EN/JA) — takes priority over pool/clip.
-  const clip = skinClip || cfg.pick?.() || (cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip)
+  const clip = skinClip || cfg.pick?.(fighter.rosterKey) || (cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip)
   sound.playSfxFile?.(clip, null)
 }
 
@@ -3090,7 +3141,7 @@ let _selectBarkCd         = 0
 function pickSelectBark(rosterKey) {
   const cfg = INTRO_VOICE[voiceKey(rosterKey)]   // alternate forms bark with the base character's intro clip
   if (!cfg) return null
-  return cfg.pick?.() || (cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip) || null
+  return cfg.pick?.(rosterKey) || (cfg.pool ? cfg.pool[Math.floor(Math.random() * cfg.pool.length)] : cfg.clip) || null
 }
 // Record the currently-highlighted character (called from the hover handler each frame).
 function noteSelectBarkTarget(rosterKey) { _selectBarkPending = rosterKey || null }
@@ -3762,6 +3813,7 @@ function resetToStart() {
   clearIchigoGetsugaCinematic()
   clearMakiShibuyaCinematic()
   clearEdoTenseiCinematic()
+  clearChrolloSkillHunterCinematic()
   sound.stopMusic?.()
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
@@ -4656,6 +4708,59 @@ function _checkMatchOver() {
       if (voiceKey(winFighter?.rosterKey) === "superman") {
         sound.playSfxFile?.(pickSupermanVoice("win"), null)
       }
+      // BARDOCK win voice — "I'm gonna change the future!" Fires only when the WINNER is Bardock. EN.
+      if (winFighter?.rosterKey === "bardock") {
+        sound.playSfxFile?.(pickBardockVoice("win"), null)
+      }
+      // BAKI win voice — "I was able to get stronger." Fires only when the WINNER is Baki. JA.
+      if (winFighter?.rosterKey === "baki") {
+        sound.playSfxFile?.(pickBakiVoice("win"), null)
+      }
+      // BYAKUYA win voice — "This is over." Fires only when the WINNER is Byakuya. JA.
+      if (winFighter?.rosterKey === "byakuya") {
+        sound.playSfxFile?.(pickByakuyaVoice("win"), null)
+      }
+      // AOI TODO win voice — bored-victor line ("I thought I'd enjoy it more…"). Fires only when the WINNER is Aoi Todo. JA.
+      if (winFighter?.rosterKey === "aoi_todo") {
+        sound.playSfxFile?.(pickAoiTodoVoice("win"), null)
+      }
+      // GOKU win voice — rematch-hungry ("Let's go again!"). Fires only when the WINNER is Goku. EN.
+      if (winFighter?.rosterKey === "goku") {
+        sound.playSfxFile?.(pickGokuVoice("win"), null)
+      }
+      // GOHAN win voice — humble team-victory line. Fires only when the WINNER is Gohan. EN.
+      if (winFighter?.rosterKey === "gohan") {
+        sound.playSfxFile?.(pickGohanVoice("win"), null)
+      }
+      // GREEN LANTERN win voice — dry quip. Fires only when the WINNER is Green Lantern. EN.
+      if (winFighter?.rosterKey === "green_lantern") {
+        sound.playSfxFile?.(pickGreenLanternVoice("win"), null)
+      }
+      // IRON MAN win voice — cocky close-out ("Feel like a new man."). Fires when the WINNER is Iron Man
+      // or an armor variant (iron_man_2/iron_man_3 → voiceKey "iron_man"). EN.
+      if (voiceKey(winFighter?.rosterKey) === "iron_man") {
+        sound.playSfxFile?.(pickIronManVoice("win"), null)
+      }
+      // KAKASHI win voice — "That's the end. Next!" Fires only when the WINNER is Kakashi. JA.
+      if (winFighter?.rosterKey === "kakashi") {
+        sound.playSfxFile?.(pickKakashiVoice("win"), null)
+      }
+      // PICCOLO win voice — "It's over. Special Beam Cannon!" Fires only when the WINNER is Piccolo. EN.
+      if (winFighter?.rosterKey === "piccolo") {
+        sound.playSfxFile?.(pickPiccoloVoice("win"), null)
+      }
+      // MEGUMI win voice — flat "Mission complete." Fires only when the WINNER is Megumi. JA.
+      if (winFighter?.rosterKey === "handler") {
+        sound.playSfxFile?.(pickMegumiVoice("win"), null)
+      }
+      // YUTA win voice — relieved "Glad I managed to win." Fires only when the WINNER is Yuta. JA.
+      if (winFighter?.rosterKey === "yuta") {
+        sound.playSfxFile?.(pickYutaVoice("win"), null)
+      }
+      // IPPO win voice — determined finisher ("Let this be the finish!"). Fires only when the WINNER is Ippo. JA.
+      if (winFighter?.rosterKey === "ippo") {
+        sound.playSfxFile?.(pickIppoVoice("win"), null)
+      }
       // RENGOKU win voice — random pick from his determination/resolve pool ("Set your heart ablaze" /
       // "I'll fulfill my duty" / "I'll defeat you here"). Fires only when the WINNER is Rengoku.
       if (winFighter?.rosterKey === "rengoku") {
@@ -4845,6 +4950,7 @@ function _doRematch() {
   clearIchigoGetsugaCinematic()
   clearMakiShibuyaCinematic()
   clearEdoTenseiCinematic()
+  clearChrolloSkillHunterCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0; slowdownTarget = null
   _koBeatFired = false; _koHangTimer = 0
@@ -6231,6 +6337,12 @@ function _updatePlayerCombatBody(fighter) {
         (fighter.onGround ?? fighter.grounded ?? true)) { fighter._vilgaxBlastArmed = true; return }
     triggerSpecial(fighter,  getAbilityContext()); return
   }
+  // CHROLLO SKILL HUNTER — while the copied form is ACTIVE, re-pressing Ultimate is the MANUAL early-end
+  // (give the stolen power back). _shActive survives the body-swap, so check it before the generic dispatch
+  // below (which would otherwise fire the COPIED character's ultimate). Consumes the press.
+  if (canStart && !charging && inputState.ultimate && isChrolloSkillHunterActive(fighter)) {
+    endSkillHunterWindow(fighter); return
+  }
   // CHROLLO — Down+Ultimate = BANDIT'S ECHO (copy the marked opponent special/ultimate). Plain Ultimate stays
   // Skill Hunter. Only real Chrollo with an armed mark: Down+Ult IS Echo's dedicated input, so with a mark we
   // never leak the press to Skill Hunter (fires or fizzles-and-returns); with NO mark it falls through so a
@@ -6504,6 +6616,11 @@ function _updatePlayerCombatBody(fighter) {
   // it fires (returns true → skip normal path); neutral light/heavy stay on the normal path below.
   if ((fighter.rosterKey || "").toLowerCase() === "batman" && !charging &&
       updateBatmanCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
+
+  // CHROLLO "Blade Rush": Fwd+Heavy opens chCombo1 (dashing slash), re-tap Heavy on hit → chComboFin
+  // (launcher). Cancel-on-hit; a whiff/block ends the string. Consumes the input only when it fires.
+  if ((fighter.rosterKey || "").toLowerCase() === "chrollo" && !charging &&
+      updateChrolloCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
 
   // SUPERMAN "Kryptonian Rush": Fwd+Heavy opens supRush1 (flying cross), re-tap Heavy on hit → supRush2
   // → supRushFin (charged-haymaker launcher). Cancel-on-hit; a whiff/block ends the string. Consumes the
@@ -11362,6 +11479,7 @@ function updateFighterState(fighter) {
   updateGhostfaceSwap(updated)          // Ghostface Companion Swap: counts the borrowed-kit window down + auto-reverts to Ghostface
   updateBeastBreathingAssist(updated)   // Inosuke Beast Breathing Assist: auto-resumes the flurry the instant the partner-link freeze lifts
   updateZarakiYachiruLink(updated)      // Zaraki (Shikai) Yachiru combo-link: auto-resumes the rekka the instant the partner-link freeze lifts
+  updateSkillHunter(updated)            // Chrollo Skill Hunter: counts the 30s copied-form window down + auto-reverts to Chrollo on expiry (consumes the unlock)
   updateBanditEcho(updated)             // Chrollo Bandit's Echo: auto-reverts the instant the single borrowed move resolves
   updateBanditEchoUltMark(updated, getAbilityContext())   // Chrollo Bandit's Echo: mark an opponent's freeze-cinematic ULTIMATE that damaged Chrollo (bypasses the melee/projectile hit sites)
   updateGhostfaceBackstagePass(updated, getAbilityContext())   // Ghostface Backstage Pass: ticks the dash + phantom hit, then emerges (reposition/swap)
@@ -12257,6 +12375,14 @@ function updateBattle() {
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
+  // CHROLLO SKILL HUNTER CINEMATIC (Ultimate): SAME freeze contract as Edo Tensei — combat/physics/input
+  // are paused while the robe-swirl transform plays; the body-swap (applySkillHunter) fires at the SWAP
+  // beat via onResolve. Advancing this each frame is what un-freezes the cinematic and lets the swap land.
+  if (isChrolloSkillHunterCinematicActive()) {
+    updateChrolloSkillHunterCinematic({ camera, sound })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
   // The coffin cinematic just ended. If it was an "in" summon, the vessel now holds the field — play ITS
   // OWN intro (pose + voice) as the next frozen beat, AFTER the tomb fully closed (no overlap with the
   // reveal). _edoIntroPlayed guards it to once per summon (reset each summon in applyEdoTensei).
@@ -12439,6 +12565,7 @@ function renderHybridFighter(fighter) {
     drawGokuFormAura(c, fighter)       // Goku — SSJ ladder transformed-state aura + label (procedural box indicator; Goku only, transformIndex>0)
     drawMiwaVortex(c, fighter)         // Miwa — Rapid Slash Vortex FX, a separate overlay layer in front of the body (Miwa only)
     drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
+    fighter._sprDrawCount = (fighter._sprDrawCount | 0) + 1   // harness: body-draw tally (once/frame normally) → catches a "two instances" double-render after a body-swap transform
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
     } else {
@@ -14285,6 +14412,7 @@ function drawBattle() {
   drawMiwaUltimateCinematic(ctx, canvas)   // fullscreen Blade of the Neophyte overlay (cursed-energy vignette → connect flash → slash arc)
   drawIchigoGetsugaCinematic(ctx, canvas)  // fullscreen Getsuga Tenshō overlay (reiatsu vignette → dash streak → uppercut flash + rising crescent)
   drawEdoTenseiCinematic(ctx, canvas)         // Edo Tensei summon/un-summon overlay (giant coffin + vessel reveal)
+  drawChrolloSkillHunterCinematic(ctx, canvas)   // Chrollo Skill Hunter transform overlay (purple radial swap flash)
   drawMatchEntryTransition(ctx, canvas)       // MK-feel match-entry sting — directional wipe reveal, lands on ROUND 1 (over everything)
   if (aiVsAiState.active) _drawAiVsAiHud()
 }
@@ -16798,6 +16926,8 @@ gameLoop()
     saitamaCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     // Genos punch → rapid-burst → spin-launcher command-chain probe (mirrors saitamaCmd) — drive the Fwd+Heavy 3-stage rekka precisely.
     genosCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
+    // Chrollo "Blade Rush" command-chain probe (mirrors genosCmd) — poll phase/connected/prevHeavy so a test can time the re-tap into the cancel window without racing the input buffer.
+    chrolloCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     friezaCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
     // Piccolo elbow/chop→axe-smash→roundhouse command-chain probe (mirrors friezaCmd) — drive the Fwd+Heavy 3-stage rekka precisely.
     piccoloCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { action: f._lastSpriteAction || null, move: f.currentMove || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, prevHeavy: !!f._cmdPrevHeavy, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },
@@ -18293,8 +18423,24 @@ gameLoop()
     batmanVoicePool: pool => BATMAN_VOICE[pool] || null,
     omnimanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickOmniManVoice(pool)),
     omnimanVoicePool: pool => OMNIMAN_VOICE[pool] || null,
-    supermanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickSupermanVoice(pool)),
+    supermanVoicePick: (pool, n = 1, rosterKey) => Array.from({ length: n }, () => pickSupermanVoice(pool, rosterKey)),
     supermanVoicePool: pool => SUPERMAN_VOICE[pool] || null,
+    bardockVoicePool: pool => BARDOCK_VOICE[pool] || null,
+    bakiVoicePool: pool => BAKI_VOICE[pool] || null,
+    byakuyaVoicePool: pool => BYAKUYA_VOICE[pool] || null,
+    aoiTodoVoicePool: pool => AOI_TODO_VOICE[pool] || null,
+    gokuVoicePool: pool => GOKU_VOICE[pool] || null,
+    gohanVoicePool: pool => GOHAN_VOICE[pool] || null,
+    greenLanternVoicePool: pool => GREEN_LANTERN_VOICE[pool] || null,
+    friezaVoicePool: pool => FRIEZA_VOICE[pool] || null,
+    ironManVoicePool: pool => IRON_MAN_VOICE[pool] || null,
+    kakashiVoicePool: pool => KAKASHI_VOICE[pool] || null,
+    lRyuuzakiVoicePool: pool => L_RYUUZAKI_VOICE[pool] || null,
+    piccoloVoicePool: pool => PICCOLO_VOICE[pool] || null,
+    megumiVoicePool: pool => MEGUMI_VOICE[pool] || null,
+    vilgaxVoicePool: pool => VILGAX_VOICE[pool] || null,
+    yutaVoicePool: pool => YUTA_VOICE[pool] || null,
+    ippoVoicePool: pool => IPPO_VOICE[pool] || null,
     // Sukuna voice pack deleted 2026-08-04 — sukunaVoicePick harness hook removed with it.
     // Same idea for Saiki's single 12-entry English-dub taunt pool — proves genuine
     // random, non-repeating selection deterministically (uses the SAME pickSaikiVoice
@@ -18364,7 +18510,15 @@ gameLoop()
     // so a test can drive his REAL ultimate and confirm Skill Hunter still swaps — proving the shared
     // field-swap engine + charge path are unaffected by the Ghostface Companion Swap.
     forceChrolloUnlock: (side = "p1") => { const f = side === "p2" ? p2 : p1; if (!f || (f.rosterKey || "").toLowerCase() !== "chrollo") return false; f._shUnlocked = true; return true },
-    shState: (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? { active: !!f._shActive, target: f._shTarget || null, rosterKey: f.rosterKey, unlocked: !!f._shUnlocked } : null },
+    shState: (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? { active: !!f._shActive, target: f._shTarget || null, rosterKey: f.rosterKey, unlocked: !!f._shUnlocked, distinct: f._shMovesSeen ? f._shMovesSeen.size : 0, timer: f._shTimer || 0, ultName: (f.ultimate && f.ultimate.name) || null, cineActive: isChrolloSkillHunterCinematicActive() } : null },
+    // TEST-ONLY: fast-forward Chrollo's Skill Hunter 30s window to the edge so the timeout-revert path is testable without a ~30s wait.
+    shSetTimer: (n = 3, side = "p1") => { const f = side === "p2" ? p2 : p1; if (!f || !f._shActive) return false; f._shTimer = Math.max(0, n | 0); return true },
+    // TEST-ONLY: cumulative body-draw tally for a fighter (renderHybridFighter increments once/frame). A "two
+    // instances" double-render (e.g. after a Skill Hunter body-swap) would advance this ~2× per frame.
+    sprDraws: (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f._sprDrawCount | 0) : 0 },
+    // TEST-ONLY: drive Chrollo's REAL Skill Hunter unlock engine (combat.trackSkillHunterUnlock) — simulate the
+    // opponent landing a named move on Chrollo (P1). Exercises the true Set-dedup + 3-distinct → _shUnlocked gate.
+    shLandMove: (moveName, side = "p1") => { const f = side === "p2" ? p2 : p1; const o = f === p1 ? p2 : p1; if (!f || !moveName) return false; trackSkillHunterUnlock(f, o || { rosterKey: "dummy" }, String(moveName), false); return true },
     // TEST-ONLY (Bandit's Echo, Stage 2): read Chrollo's current mark so a harness can prove a special/
     // ultimate connect marked the right move. Returns null when no mark is armed. Independent of shState.
     beState: (side = "p1") => { const f = side === "p2" ? p2 : p1; return f && f._beMark ? { ...f._beMark } : null },

@@ -25,6 +25,8 @@ import { pickFlashVoice } from "./flashVoice.js"
 import { pickBatmanVoice } from "./batmanVoice.js"
 import { pickOmniManVoice } from "./omnimanVoice.js"
 import { pickSupermanVoice } from "./supermanVoice.js"
+import { pickBardockVoice } from "./bardockVoice.js"   // Bardock hit-react / taunt-connect voice pools (audio-only, EN)
+import { pickIppoVoice } from "./ippoVoice.js"   // Ippo hit-react / taunt-connect / low-HP voice pools (audio-only, JA)
 import { pickItachiVoice } from "./itachiVoice.js"
 import { pickOrochimaruVoice } from "./orochimaruVoice.js"   // Orochimaru hit/knockdown voice (audio-only, JA)
 // Sukuna voice pack REBUILT 2026-08-04 (sukunaVoice.js/pickSukunaVoice restored; EN+JA dual pools, JA default).
@@ -1173,6 +1175,7 @@ export const VOICE_ALIAS = {
   ghostface_billy: "ghostface",
   miles: "spiderman",
   rickprime: "rick",   // rosterKey "rickPrime" → lowercased
+  iron_man_2: "iron_man", iron_man_3: "iron_man",   // Tony Stark armor variants reuse base Iron Man's voice pack (were SILENT — no own pack, not aliased)
 }
 export function voiceKey(rk) { const k = (rk || "").toLowerCase(); return VOICE_ALIAS[k] || k }
 
@@ -2272,6 +2275,266 @@ function applySupermanLowHealthVoice(defender) {
   }
 }
 
+// ── BARDOCK VOICE LINES ── (DBZ Extreme Butoden English pack; audio-only). Two combat hooks:
+// DEFENDER hit-reaction grunt + ATTACKER trash-talk on a strong/long connect (taunt pool rides the
+// connect trigger — Bardock has no voice-bound taunt action). No curated low-HP line → no hook. See bardockVoice.js.
+function applyBardockHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "bardock" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickBardockVoice("hitReact"), null) } catch (_) {}
+}
+function applyBardockOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "bardock" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickBardockVoice("taunt"), null) } catch (_) {}
+}
+
+// ── BAKI VOICE (JA; audio-only). Quiet monologue pack — no hit-react grunts, so ONLY the
+// taunt-connect hook here (intro/win are in game.js). See bakiVoice.js.
+function applyBakiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "baki" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickBakiVoice("taunt"), null) } catch (_) {}
+}
+
+// ── BYAKUYA VOICE (JA; audio-only). Hit-react grunt + taunt-connect (intro/win in game.js). See byakuyaVoice.js.
+function applyByakuyaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "byakuya" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickByakuyaVoice("hitReact"), null) } catch (_) {}
+}
+function applyByakuyaOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "byakuya" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickByakuyaVoice("taunt"), null) } catch (_) {}
+}
+
+// ── AOI TODO VOICE (JA-only per Stage 3; audio-only). Hit-react grunt + taunt-connect (intro/win in game.js). See aoiTodoVoice.js.
+function applyAoiTodoHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "aoi_todo" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickAoiTodoVoice("hitReact"), null) } catch (_) {}
+}
+function applyAoiTodoOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "aoi_todo" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickAoiTodoVoice("taunt"), null) } catch (_) {}
+}
+
+// ── GOKU VOICE (EN; audio-only). Taunt-connect + once-only low-HP defiance (intro/win in game.js). See gokuVoice.js.
+function applyGokuOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "goku" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickGokuVoice("taunt"), null) } catch (_) {}
+}
+function applyGokuLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "goku" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickGokuVoice("lowHealth"), null) } catch (_) {} }
+}
+
+// ── GOHAN VOICE (EN; audio-only). Hit flinch + taunt-connect (intro/win in game.js). See gohanVoice.js.
+function applyGohanHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "gohan" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickGohanVoice("hitReact"), null) } catch (_) {}
+}
+function applyGohanOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "gohan" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickGohanVoice("taunt"), null) } catch (_) {}
+}
+
+// ── GREEN LANTERN VOICE (EN; audio-only). Taunt-connect only (intro/win in game.js). See greenLanternVoice.js.
+function applyGreenLanternOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "green_lantern" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickGreenLanternVoice("taunt"), null) } catch (_) {}
+}
+
+// ── FRIEZA VOICE (EN; audio-only). Taunt-connect + once-only low-HP admission. No intro/win clip. See friezaVoice.js.
+function applyFriezaOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "frieza" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickFriezaVoice("taunt"), null) } catch (_) {}
+}
+function applyFriezaLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "frieza" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickFriezaVoice("lowHealth"), null) } catch (_) {} }
+}
+
+// ── IRON MAN VOICE (EN; audio-only). Taunt-connect + once-only low-HP line (intro/win in game.js). See ironManVoice.js.
+function applyIronManOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "iron_man" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickIronManVoice("taunt"), null) } catch (_) {}
+}
+function applyIronManLowHealthVoice(defender) {
+  if (!defender || voiceKey(defender.rosterKey) !== "iron_man" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickIronManVoice("lowHealth"), null) } catch (_) {} }
+}
+
+// ── KAKASHI VOICE (JA; audio-only). Hit grunt + taunt-connect + once-only low-HP (intro/win in game.js). See kakashiVoice.js.
+function applyKakashiHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "kakashi" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickKakashiVoice("hitReact"), null) } catch (_) {}
+}
+function applyKakashiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "kakashi" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickKakashiVoice("taunt"), null) } catch (_) {}
+}
+function applyKakashiLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "kakashi" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickKakashiVoice("lowHealth"), null) } catch (_) {} }
+}
+
+// ── L (Ryuzaki) VOICE (EN monologue; audio-only). Hit "Huh?" + taunt-connect (intro in game.js; no win/lowHP clip). See lRyuuzakiVoice.js.
+function applyLRyuuzakiHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "l_ryuuzaki" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickLRyuuzakiVoice("hitReact"), null) } catch (_) {}
+}
+function applyLRyuuzakiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "l_ryuuzaki" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickLRyuuzakiVoice("taunt"), null) } catch (_) {}
+}
+
+// ── PICCOLO VOICE (EN; audio-only). Hit flinch + taunt-connect (intro/win in game.js). See piccoloVoice.js.
+function applyPiccoloHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "piccolo" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickPiccoloVoice("hitReact"), null) } catch (_) {}
+}
+function applyPiccoloOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "piccolo" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickPiccoloVoice("taunt"), null) } catch (_) {}
+}
+
+// ── MEGUMI VOICE (JA-only per Stage 3; audio-only). Hit + taunt-connect + once-only low-HP (intro/win in game.js). See megumiVoice.js.
+function applyMegumiHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "handler" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickMegumiVoice("hitReact"), null) } catch (_) {}
+}
+function applyMegumiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "handler" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickMegumiVoice("taunt"), null) } catch (_) {}
+}
+function applyMegumiLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "handler" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickMegumiVoice("lowHealth"), null) } catch (_) {} }
+}
+
+// ── VILGAX VOICE (EN; audio-only). Minimal thin pack — taunt shout + hit grunt only. See vilgaxVoice.js.
+function applyVilgaxHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "vilgax" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickVilgaxVoice("hitReact"), null) } catch (_) {}
+}
+function applyVilgaxOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "vilgax" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickVilgaxVoice("taunt"), null) } catch (_) {}
+}
+
+// ── YUTA VOICE (JA-only per Stage 3; audio-only). Hit + taunt-connect + once-only low-HP (intro/win in game.js). See yutaVoice.js.
+function applyYutaHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "yuta" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickYutaVoice("hitReact"), null) } catch (_) {}
+}
+function applyYutaOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "yuta" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickYutaVoice("taunt"), null) } catch (_) {}
+}
+function applyYutaLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "yuta" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickYutaVoice("lowHealth"), null) } catch (_) {} }
+}
+
+// ── IPPO VOICE (JA; audio-only). Hit + taunt-connect + once-only low-HP (intro/win in game.js). See ippoVoice.js.
+function applyIppoHitVoice(defender, cat, dmg) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "ippo" || (defender._hitVoiceCd > 0)) return
+  defender._hitVoiceCd = 150
+  try { sound?.playSfxFile?.(pickIppoVoice("hitReact"), null) } catch (_) {}
+}
+function applyIppoOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "ippo" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickIppoVoice("taunt"), null) } catch (_) {}
+}
+function applyIppoLowHealthVoice(defender) {
+  if (!defender || (defender.rosterKey || "").toLowerCase() !== "ippo" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true
+    try { sound?.playSfxFile?.(pickIppoVoice("lowHealth"), null) } catch (_) {} }
+}
+
 // ── ISAAC NETERO VOICE LINES ── (removed — audio files deleted; awaiting fresh audio.
 // The hit-connect and startup-grunt trigger POINTS remain in resolveAttackHit / updateCombat
 // below; re-wire a neteroVoice module + the applyNetero*Voice helpers here to re-enable.)
@@ -3129,6 +3392,17 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyOmniManHitVoice(defender, cat, dmg)
     // SUPERMAN hit-reaction voice — effort-grunt set (clips 96-112).
     applySupermanHitVoice(defender, cat, dmg)
+    applyBardockHitVoice(defender, cat, dmg)   // Bardock effort grunt on hit
+    applyByakuyaHitVoice(defender, cat, dmg)   // Byakuya effort grunt on hit
+    applyAoiTodoHitVoice(defender, cat, dmg)   // Aoi Todo reaction grunt on hit
+    applyGohanHitVoice(defender, cat, dmg)     // Gohan flinch on hit
+    applyKakashiHitVoice(defender, cat, dmg)   // Kakashi effort grunt on hit
+    applyLRyuuzakiHitVoice(defender, cat, dmg) // L puzzled "Huh?" on hit
+    applyPiccoloHitVoice(defender, cat, dmg)   // Piccolo flinch on hit
+    applyMegumiHitVoice(defender, cat, dmg)    // Megumi reaction on hit
+    applyVilgaxHitVoice(defender, cat, dmg)    // Vilgax grunt on hit
+    applyYutaHitVoice(defender, cat, dmg)      // Yuta grunt on hit
+    applyIppoHitVoice(defender, cat, dmg)      // Ippo reaction on hit
     // OMEGA RANGER hit-reaction voice — light stagger only ("No!"); heavy tier stays silent (no clip).
     applyOmegaRangerHitVoice(defender, cat, dmg)
     // ITACHI hit-reaction voice — calm observation pool ("I see…" / "Quick, aren't you").
@@ -3172,6 +3446,13 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyMinatoLowHealthVoice(defender)   // Minato "I'll fight to the end" (once, on crossing the low-HP line)
     applyOmniManLowHealthVoice(defender)   // "It's all under control" / "none of you can stop me" (once, on crossing the low-HP line)
     applySupermanLowHealthVoice(defender)   // "What you have can't be cured. I'll never stop fighting." (once, on crossing the low-HP line)
+    applyGokuLowHealthVoice(defender)   // Goku "I've still got more left in me!" (once, crossing 30%)
+    applyFriezaLowHealthVoice(defender)   // Frieza "that actually hurt." (once, crossing 30%)
+    applyIronManLowHealthVoice(defender)   // Iron Man "My arc reactor needs to cool down." (once, crossing 30%)
+    applyKakashiLowHealthVoice(defender)   // Kakashi "I've still got a ways to go." (once, crossing 30%)
+    applyMegumiLowHealthVoice(defender)   // Megumi "No time to be lying down!" (once, crossing 30%)
+    applyYutaLowHealthVoice(defender)   // Yuta "I won't give up!" (once, crossing 30%)
+    applyIppoLowHealthVoice(defender)   // Ippo "I'm still good — I can still fight!" (once, crossing 30%)
     defender.colorFlash = cat === "ultimate" ? 12 : cat === "special" ? 9 : 6
 
     // DEBBIE identity — DECEPTIVE hit-reaction: the DISPLAYED flinch is deliberately MISMATCHED from the
@@ -3279,6 +3560,22 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applySpidermanOffenseVoice(attacker, cat, !defender.isBlocking)   // Spider-Man chatty quip on a strong/long-string connect (occasional flavor)
   applyOmniManOffenseVoice(attacker, cat, !defender.isBlocking)  // Omni-Man cold Viltrumite trash-talk (taunt pool) on a strong/long-string connect
   applySupermanOffenseVoice(attacker, cat, !defender.isBlocking)  // Superman confident trash-talk (taunt pool) on a strong/long-string connect
+  applyBardockOffenseVoice(attacker, cat, !defender.isBlocking)   // Bardock aggressive trash-talk on a strong/long-string connect
+  applyBakiOffenseVoice(attacker, cat, !defender.isBlocking)      // Baki quiet acknowledgement on a strong/long-string connect
+  applyByakuyaOffenseVoice(attacker, cat, !defender.isBlocking)   // Byakuya "finishing blow" on a strong/long-string connect
+  applyAoiTodoOffenseVoice(attacker, cat, !defender.isBlocking)   // Aoi Todo "can you keep up?!" on a strong/long-string connect
+  applyGokuOffenseVoice(attacker, cat, !defender.isBlocking)      // Goku confident trash-talk on a strong/long-string connect
+  applyGohanOffenseVoice(attacker, cat, !defender.isBlocking)     // Gohan "Take this!" on a strong/long-string connect
+  applyGreenLanternOffenseVoice(attacker, cat, !defender.isBlocking)  // Green Lantern ring trash-talk on a strong/long-string connect
+  applyFriezaOffenseVoice(attacker, cat, !defender.isBlocking)    // Frieza cruel trash-talk on a strong/long-string connect
+  applyIronManOffenseVoice(attacker, cat, !defender.isBlocking)   // Iron Man snarky trash-talk on a strong/long-string connect
+  applyKakashiOffenseVoice(attacker, cat, !defender.isBlocking)   // Kakashi "underestimate me…" on a strong/long-string connect
+  applyLRyuuzakiOffenseVoice(attacker, cat, !defender.isBlocking) // L detached observation on a strong/long-string connect
+  applyPiccoloOffenseVoice(attacker, cat, !defender.isBlocking)   // Piccolo "How do you like that?" on a strong/long-string connect
+  applyMegumiOffenseVoice(attacker, cat, !defender.isBlocking)    // Megumi "I'll seriously deck you" on a strong/long-string connect
+  applyVilgaxOffenseVoice(attacker, cat, !defender.isBlocking)    // Vilgax "Die!" on a strong/long-string connect
+  applyYutaOffenseVoice(attacker, cat, !defender.isBlocking)      // Yuta "getting stronger" on a strong/long-string connect
+  applyIppoOffenseVoice(attacker, cat, !defender.isBlocking)      // Ippo "I felt that connect!" on a strong/long-string connect
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher
   applySukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Sukuna finisher(KO/low-HP) / hit-connect(strong+long) / taunt+misc(light) barks
   applyAltSukunaOffenseVoice(attacker, defender, cat, !defender.isBlocking)   // Alternate Sukuna — tone-filtered neutral offense bark

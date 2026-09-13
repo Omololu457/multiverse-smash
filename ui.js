@@ -1761,6 +1761,32 @@ export function drawMoveListScreen(ctx, canvas, opts = {}) {
   }
 }
 
+// ── CONTROLS HELP OVERLAY (Track A — always-accessible button legend) ──────────
+// A full-screen controls reference reachable from the PAUSE menu at any time during a
+// match. Reuses drawControlsPanel (P1/P2 keyboard + device-aware controller column) so
+// the legend shows the ACTUAL glyphs for whatever pad is connected (Xbox/PS/Switch), or
+// a plain controller set when none is. Presentation-only; no sim/state touched.
+export function getControlsHelpBackButton(canvas) {
+  const cw = canvas?.width || 1280
+  return { x: cw / 2 - 90, y: (canvas?.height || 720) - 76, w: 180, h: 46 }
+}
+export function drawControlsHelpScreen(ctx, canvas, opts = {}) {
+  _mkAdvance()
+  const cw = canvas?.width || 1280, ch = canvas?.height || 720
+  ctx.clearRect(0, 0, cw, ch)
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0b1021", bottom: "#1b2240" })
+  const sub = opts.padLabel ? `${opts.padLabel} detected — showing its buttons` : "No controller detected — connect one to see its buttons"
+  drawHeader(ctx, canvas, "CONTROLS", sub)
+  const panelW = Math.min(940, cw - 80)
+  const panelH = Math.min(360, ch - 220)
+  const px = cw / 2 - panelW / 2
+  const py = 132
+  drawControlsPanel(ctx, px, py, panelW, panelH, opts.controlRef, _MK_ACCENT)
+  const b = getControlsHelpBackButton(canvas)
+  drawMkButton(ctx, b, { label: "BACK", active: !!opts.backHover, accent: _MK_ACCENT, id: "controlshelp:back", cut: 12 })
+  drawCenteredText(ctx, "Esc / Circle to go back", cw / 2, ch - 18, { font: "12px Arial", fill: "rgba(200,210,230,0.5)", align: "center", baseline: "middle" })
+}
+
 // Simple word-wrap helper — returns the new y after drawing.
 function wrapText(ctx, text, x, y, maxW, lineH, style = {}) {
   ctx.save()
@@ -3936,7 +3962,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   ctx.fillStyle = vig; ctx.fillRect(0, 0, cw, ch)
 
   const panelW = 380
-  const panelH = 528   // fits 6 items (resume / restart / profile / codex / training / quit)
+  const panelH = 596   // fits 7 items (resume / restart / profile / codex / controls / training / quit)
   const panelX = cw / 2 - panelW / 2
   const panelY = ch / 2 - panelH / 2
 
@@ -3962,6 +3988,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
     { label: "Restart Round", sub: "Reset this round" },
     { label: "Profile",       sub: "Your Big-Five personality" },
     { label: "Codex",         sub: "Fighter dossiers" },
+    { label: "Controls",      sub: "Button legend for your device" },
     { label: "Training Mode", sub: "Practice vs a frozen dummy" },
     { label: "Quit to Menu",  sub: "Return to the title screen" }
   ]
@@ -4002,7 +4029,7 @@ function _roundRectPath(ctx, x, y, w, h, r = 10) {
   ctx.closePath()
 }
 
-export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "profile", "codex", "trainingMode", "quitToMenu"]
+export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "profile", "codex", "controls", "trainingMode", "quitToMenu"]
 
 // Small local word-wrapper (returns lines that fit maxW at the ctx's current font).
 function _wrapText(ctx, text, maxW, maxLines = 99) {

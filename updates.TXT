@@ -1,333 +1,239 @@
-================================================================================
-BACKLOG-CLEARING PASS — consolidated summary
-(diagnose-first; every fix verified live; nothing committed — staged for review)
-================================================================================
-
-Legend:  FIXED = real bug corrected · NON-ISSUE = investigated, proven not a bug ·
-         TEST-ONLY = flake was in the harness, gameplay was already correct.
-
---------------------------------------------------------------------------------
-TRACK 1 — two previously-un-reported prompts
---------------------------------------------------------------------------------
-
-T1a  POWER RANGERS MEGA MODE ............................. VERIFIED (no fix needed)
-  Diagnosis: only the 3 SAMURAI rangers have a Mega Mode (samurai_red / gold /
-  green, symbol_power >= 90). omega_ranger (spd_energy) and red_ranger_mmpr
-  (morphin_grid) are single-form BY DESIGN (transformationOrder ["base"] only).
-  The charge-threshold auto-transform (committed last session: enterSamuraiMega
-  in updateMovementInput + the _megaAutoPress guard in handleChargeRelease) is
-  correctly scoped to exactly the 3 Mega-capable rangers.
-  LIVE VERIFY (8/8): all 3 samurai auto-transform to Mega WHILE holding Charge
-  once Symbol Power crosses 90 (no release), and the release does NOT insta-revert.
-  omega_ranger & red_ranger_mmpr correctly stay base on a charge-hold.
-  => The original "Mega never triggers on charge" bug is resolved; omega/mmpr
-     not having Mega is intentional, not a bug.
-
-T1b  CLONE-ASSIST ONE-SHOT REBUILD (5 chars) ............. VERIFIED (no fix needed)
-  Diagnosis + LIVE VERIFY (clone_oneshot_verify.mjs, 11/0 each) for minato,
-  tobirama, hashirama, itachi, kakashi: all 3 one-shot clone-assist moves
-  (strike / forward projectile / back-action) fire, cost energy, own cooldown,
-  and leave ZERO persistent clone entity (persistentCloneCount stays 0 on every
-  move). The rebuild was already completed for all five, matching Naruto.
-  NOTE (intentional, not the bug class): Minato ALSO has a separate signature
-  move — Flying Raijin Clones (HCF+Special) — that spawns cap-limited persistent
-  clones consumed by his B->F Clone Rush. That is a distinct designed mechanic,
-  NOT the one-shot clone-assist set, and does not regress the fixed bug class.
-
---------------------------------------------------------------------------------
-TRACK 2 — recurring flaky / pre-existing test failures  (each re-run to confirm)
---------------------------------------------------------------------------------
-
-T2a  ZARAKI non-sheet 404 ................................ FIXED (real 404)
-  Root cause: sound.js DRAGON_BALL_TRANSFORM_SFX = "dragon_ball_transformation.mp3"
-  — a file that was never added to the repo. playDragonBallTransformSfx() loaded
-  it with a null fallback, so it 404'd with no procedural degrade; zaraki's Shikai
-  cinematic routes through it, tripping the suite's no-404/no-console-error check.
-  Fix: a procedural `transformation` cue already exists (sound.js ~line 254,
-  "generic/shared transformation cue") — the mp3 was a dead override of it. Routed
-  playDragonBallTransformSfx() to this.play(SFX.TRANSFORMATION) and removed the
-  dead file constant. No missing asset referenced -> no 404.
-  VERIFY: test:zaraki 82/0 x 3 runs (was tripping "no JS/console errors").
-
-T2b  GHOSTFACE variant-key collision .................... FIXED (real collision)
-  Root cause: "ghostface_billy" is in BOTH the 12-key variant template
-  (GHOSTFACE_VARIANT_KEYS) AND the live roster — Billy was intentionally PROMOTED
-  to a standalone char (bespoke Special/Ultimate gated on rosterKey, NOT the
-  variant template; isGhostfaceVariant is not wired into any live combat path, so
-  ZERO runtime conflict). The stale assertion assumed none of the 12 were live yet.
-  Fix: the collision check now exempts intentionally-promoted variants (+ a new
-  assertion that Billy IS registered live). The 12-key template is unchanged
-  (Billy is canonically one of the 12; 5 other assertions require the count = 12).
-  VERIFY: test:gf-variants 180/0 x 3 runs.
-
-T2c  ISSHIKI flaky ground-string damage ................. TEST-ONLY (3 assertions)
-  Root cause: fixed-frame harness taps raced the shared rekka cancel-on-hit latch
-  AND let the dummy's knockback drift it out of range mid-string — so intermittently
-  only the opener landed. The GAMEPLAY was correct (the air-string, which re-lifts
-  every frame, always worked). Same class hit the Daikokuten cube-trap assertion
-  (60-frame observation window ended before the first auto-tick, TICK_INTERVAL 36).
-  Fix (harness only): pin the dummy in range between ground taps (mirrors the air
-  re-lift), add horizontal pinning to the air re-lift too, and poll for the cube's
-  first tick instead of a fixed window.
-  VERIFY: test:isshiki 52/0 x 5 runs (was flaking 1-2/5 across 3 assertions).
-
-T2d  ALT_SUKUNA flaky cleave rekka ...................... TEST-ONLY
-  Root cause: same rekka class. The follow-up reuses the SAME Heavy button, so the
-  opener's ~10-frame INPUT BUFFER kept `heavy` latched — the fixed-frame second tap
-  either wasn't a fresh edge or landed outside cleave1's cancel window, so cleave2
-  intermittently never fired (only cleave1's 33 dmg). Gameplay is correct.
-  Fix (harness only): hold range, wait for the connect-latch, then let the input
-  buffer fully clear (release gap) so the second Heavy is a genuine fresh EDGE
-  inside cleave1's recovery window.
-  VERIFY: test:alt-sukuna 21/0 x 5 runs (was ~1/4 pass; cleave2 now always fires, -90).
-
---------------------------------------------------------------------------------
-TRACK 3 — balance / fairness
---------------------------------------------------------------------------------
-
-T3a  FRIEZA UP-ATTACK ................................... FIXED launch (claims = NON-ISSUE)
-  The two SPECIFICALLY-CLAIMED bugs are non-issues, PROVEN LIVE:
-    - "declared frame data != real timing" — FALSE. active=3/recovery=14 declared,
-      applied verbatim by startMove (no _dur scaling at 1x). Measured identical.
-    - "under-launches versus its own spec" — FALSE. Declared launchVy -30, measured
-      peak p2.vy = -30. The engine applies it faithfully (exact-mode launcherAttack).
-  The REAL gap: -30 is the frail/glass-cannon launch tier, mis-assigned to a
-  mid-weight bruiser (HP 1100). Reference bruisers goku/vegeta launch at -32
-  (measured). So Frieza under-launched vs its ARCHETYPE peers.
-  Fix: frieza upAttack launchVy -30 -> -32 (characters.js). LIVE VERIFY: now measures
-  -32, matching goku/vegeta.
-
-T3b  COMEBACK FINISHER scales poorly vs tanky ........... FIXED (%-of-target)
-  Diagnosis: it was already % of HP (round(min(USER.maxHP x 0.32, 360))) — but of
-  the USER's own HP, hard-capped at 360. The flat cap shrank to a weak % of a tanky
-  target's bar (360 = just 24.8% of Superman's 1450 vs 32% of a frail bar).
-  Fix (combat.js): damage now = clamp(TARGET.maxHP x 0.32, dmgFloor 300, dmgCap 470)
-  — a consistent slice of the OPPONENT's bar, scaled at commit (target locked).
-  Floor/cap are guardrails only (roster 950->1450 maps to 304->464, both inside the
-  band); they exist to prevent absurdity vs a hypothetical extreme-HP target.
-  LIVE VERIFY (5/5): vs shinobu(960) lands 307; vs superman(1450) lands 464 —
-  proportional (chunks MORE off the tanky target). Probe + real landed damage match.
-
-T3c  METERLESS COMBO-BREAKER over-reward ................ FIXED (threshold +1)
-  Diagnosis: trigger threshold is a single roster-wide COMBO_BREAKER.threshold = 3
-  (i-frames = 24). Meterless detection is dynamic (traits.hasEnergy===false -> 8
-  chars: zenitsu/rengoku/shinobu/inosuke/nezuko/maki/toji + baki). NOTE: the audit
-  "specific recommended value" the prompt references does NOT exist in any repo doc
-  (searched all .md/.TXT) — so I used the smallest meaningful bump.
-  Fix (combat.js): meterless fighters now need ONE more combo hit to break —
-  meterlessThreshold = 4 (meter chars unchanged at 3). i-frame window UNTOUCHED,
-  mechanic UNTOUCHED. The game.js pre-gate (>=3, a cheap filter) still passes 4 through.
-  LIVE VERIFY (3/3): shinobu no-longer-breaks at combo 3, breaks at 4; meter char
-  (sasuke) still breaks at 3.
-
---------------------------------------------------------------------------------
-TRACK 4 — Ben 10 aliens grab
---------------------------------------------------------------------------------
-
-T4   BEN 10 ALIENS "have no grab" ....................... NON-ISSUE (premise false)
-  Diagnosis: the universal grab is a self-contained combat.resolveGrab mechanic
-  that needs NOTHING in a character's basic_attacks — mkAlien omitting a grab slot
-  is irrelevant. Moreover EVERY art-backed alien already defines a `grab`
-  animationData entry (BEN10_FORM_ANIM) reusing its attack art — the exact
-  "honest reuse" pattern the prompt asked to ADD is already present, and
-  ben10.test.mjs already asserts `grab` in each alien's action set.
-  LIVE VERIFY (4/4): transformed to xlr8, diamondhead, fourarms, heatblast; pressing
-  the grab button (O) within range genuinely grabs the opponent (defender.isGrabbed
-  = true) on every one. Grab works. No fix made.
-
---------------------------------------------------------------------------------
-REGRESSION — full sweep (all green except proven-pre-existing)
---------------------------------------------------------------------------------
-CORE SIM        determinism ............... 9/0
-                combo-standard audit ...... 227/0
-TOUCHED SYSTEMS comeback-finisher (unit) ... 40/0   (test updated to %-of-target)
-                finisher-roster ........... 0 failed
-                stage2d combo-breaker ..... 34/0
-                breaker-roster ............ 0 failed
-                naruto-finisher-exclude ... 3/0
-TOUCHED CHARS   frieza .................... 31/0
-                zaraki ................... 82/0  (x3)
-                isshiki .................. 52/0  (x5)
-                alt_sukuna ............... 21/0  (x5)
-                gf-variants .............. 180/0 (x3)
-METERLESS (breaker threshold touched, roster-wide):
-                zenitsu 53/0 . rengoku 41/0 . maki 30/0 . toji 61/0 . baki 32/0  — CLEAN
-
-PRE-EXISTING failures (NOT caused by this pass; NOT in scope — proven by stashing
-all my changes and re-running: identical failures on the clean baseline):
-                shinobu   34/1  — stale energy-label expectation ("TOTAL
-                                  CONCENTRATION" vs "INSECT BREATHING")
-                inosuke   37/2  — same energy-label + a sprite-height assertion
-                nezuko    20/2  — same energy-label + a guard-sheet assertion
-  (These are a separate demon-slayer energy-label/art backlog item, unrelated to
-   combo-breaker/finisher/frieza/sound — my diffs never touch these chars.)
-
---------------------------------------------------------------------------------
-FILES CHANGED (staged, NOT committed)
---------------------------------------------------------------------------------
-  sound.js .............................. T2a (procedural transform cue; drop dead mp3 ref)
-  harness/ghostface_basekit.test.mjs .... T2b (exempt promoted Billy from collision check)
-  harness/isshiki.test.mjs .............. T2c (pin range + poll ticks)
-  harness/alt_sukuna.test.mjs ........... T2d (buffer-clear gap + pin range)
-  characters.js ......................... T3a (Frieza upAttack launchVy -30->-32)
-  combat.js ............................. T3b (comeback finisher %-of-target) + T3c (meterless breaker threshold)
-  game.js ............................... T3b (finisherProbe hook passes the target)
-  harness/comeback_finisher.test.mjs .... T3b (assertions updated to %-of-target)
-  updates.TXT ........................... this summary
-No production change was needed for T1a, T1b, or T4 (verified working / non-issue).
-================================================================================
+========================================================================
+MULTIVERSE SMASH — PRE-PLAYTEST PASS  (2026-09-13)
+Five safe tracks before tomorrow's playtest. NO sim / timing / balance
+changes anywhere — Track A is a new presentation-only screen; B/C/D/E are
+investigation + reporting.
+========================================================================
 
 
-================================================================================
-AAA-FEEL POLISH PASS — 2026-09-12  (SHIPPED: committed + pushed to origin/main)
-================================================================================
-The full per-track write-up of this pass was lost when updates.TXT was
-externally truncated; it is preserved verbatim in the commit messages below
-(git show <hash>). Summary of what shipped — presentation-layer only, each
-verified live + regressed (determinism 9/0 throughout):
+------------------------------------------------------------------------
+TRACK A — CONTROLLER CONTROLS REFERENCE   [BUILT + VERIFIED]
+------------------------------------------------------------------------
+THE PAIN POINT: no always-accessible, controller-aware control legend
+during a match.
 
-  9c04975b  Fix duplicate damage numbers + tier-scaled sizing/combo offset
-            (removed a pre-existing melee+projectile DOUBLE-render; single
-             producer now; light20/heavy26/special30/ultimate36 + combo fan.
-             harness/dmg_numbers_verify.mjs 16/0)
-  fea509f2  Character-select voice barks (reuse existing intro clips, trailing
-             debounce + single-voice-channel owner. select_barks_verify 11/0)
-  a42dbecd  Round-transition polish (animated ROUND entrance + revived the
-             dead FIGHT! banner; no timing change. round_transition_verify 11/0)
-  19dc5ef8  Opt-in colorblind-safe HUD toggle (P2 red->orange, persisted;
-             control-remapping FLAGGED not built. colorblind_hud_verify 9/0)
-  500f7382  Wire 10 alternate forms to reuse their base voice (voiceKey alias;
-             see the VOICE-COVERAGE AUDIT below. voice_alias_verify 11/0)
+WHAT SHIPPED (this pass):
+  - A new "Controls" option in the PAUSE menu (Esc -> Controls). It opens
+    a full-screen CONTROLS overlay any time during a match and backs out
+    to the pause menu (Esc / Circle / click BACK). The match stays frozen.
+  - The overlay is DEVICE-AWARE. It reads whatever pad is connected and
+    shows that pad's REAL button glyphs:
+       Xbox pad     -> A / B / X / Y + LB/RB/LT/RT
+       PlayStation  -> Cross / Circle / Square / Triangle + L1/R1/L2/R2
+       Switch       -> B/A/Y/X + L/R/ZL/ZR
+       No pad       -> subtitle says so + shows a generic set.
+    It also shows both keyboard columns (P1 + P2) and the "how to perform
+    specials" footer, so it's one legend for every input method.
+  - Live-verified with a real (faked) Xbox pad: subtitle read "Xbox
+    detected - showing its buttons" and the controller column mapped
+    Light=A, Heavy=X, Special=Y, Dash=B, Ultimate=LT/RT, Grab=LB,
+    Charge=RB. Screenshots: harness/shots/controls_help.png (keyboard-only)
+    and harness/shots/controls_help_xbox.png (Xbox).
 
-================================================================================
-VOICE-COVERAGE AUDIT — every playable character (RESEARCH-ONLY, no code changes)
-2026-09-12
-================================================================================
-Method: enumerated all characters with isPlayable !== false from characters.js
-(96). "HAS VOICE" = a dedicated *Voice.js module (or the inline pattern) that is
-ACTUALLY dispatched from a real trigger (intro / namecall / win / lose / hit /
-low-health / offense / taunt / cast) AND backed by real .mp3 files on disk.
-Verified: all 49 *Voice.js modules are 100% file-backed; dispatch confirmed via
-INTRO_VOICE, NAMECALL_AUDIO, the apply*Offense/Hit/LowHealthVoice tables
-(combat.js ~1041-3271), and inline playSfxFile calls. Voice dispatch is guarded
-by EXACT rosterKey (=== "superman", "vegeta", "rick", …) with NO normalization,
-so alternate-form rosterKeys inherit nothing from their base.
+GOOD NEWS - glyph support ALREADY EXISTED (nothing invented):
+  input.js already had getPadType() + PAD_GLYPHS (Xbox/PS/Switch/generic)
+  and game.js had _controlRefForPad() to rebuild the controller column
+  from the live pad. Track A just surfaces that data in an always-reachable
+  overlay. These are TEXT/unicode glyphs (A, Cross, LB, RT...), not bitmap
+  button icons - the project has no image-based controller-icon assets,
+  and I did not fabricate any.
 
-  TOTAL PLAYABLE ............ 96
-  WITH wired voice ......... 66   (was 56; +10 after wiring the reuse candidates below)
-  WITHOUT wired voice ...... 30   (was 40)
+ACTUAL BUTTON MAPPING (from input.js PS5_MAP, for reference):
+  Light=X/A  Heavy=Square/X  Special=Triangle/Y  Block=Circle/B
+  Grab=L1/LB  Charge/Omnitrix=R1/RB  Ultimate=L2 or R2 / LT or RT
+  Move=L-Stick or D-Pad
 
-  ★ UPDATE 2026-09-12: the 10 [REUSE] alternate forms are NOW WIRED — each reuses
-    its base character's on-disk voice pack via a voiceKey() alias (combat.js) applied
-    at every voice guard/dispatch (intro/namecall/select-bark/win/hit/offense/
-    low-health/taunt/match-start). Verified live 11/0 (harness/voice_alias_verify.mjs);
-    determinism 9/0, base voices intact (batman/rick/beerus/spiderman). The 30 remaining
-    without voice = 29 [NONE] + netero [SPECIAL, audio permanently deleted].
+FILES TOUCHED (presentation only):
+  ui.js    - drawControlsHelpScreen() + getControlsHelpBackButton();
+             added "Controls" to the pause menu (panel grew for 7 items).
+  game.js  - GAME_STATES.CONTROLS_HELP; openControlsScreen();
+             _controlsHelpData(); pause dispatch + render + mouse/keyboard/
+             gamepad routing for the new state.
+  harness/controls_help.test.mjs (NEW) + package.json test:controls-help
+  harness/controller_menu.test.mjs - bumped the pause-nav count 5->6 downs
+             (a new menu item legitimately shifted "Quit to Menu").
 
-Notes on edge cases (all resolved into the counts above):
-  • gojo = HAS voice — base skin speaks via NAMECALL_AUDIO ("gojo_namecall.mp3");
-    combat voice (Limitless/hitReact) is additionally gated to the young "gojo2"
-    skin (base default skin is otherwise silent in combat).
-  • Inline-voiced (no module): naruto, sasuke, beerus, omega_ranger, goku_black.
-  • goku (BASE) has NO voice — only goku_black is voiced (separate inline clips).
-  • zaraki_shikai, six_paths_pain, ghostface_exe = HAS voice (own INTRO_VOICE keys
-    / explicit guards).
+TESTS:
+  test:controls-help   5/0   (opens from pause, device-aware, backs out, no errors)
+  test:controller-menu 25/0  (was 23/2 before the count bump - now clean)
+  test:determinism 9/0 - test:ui-batch 7/0 - test:ui-bundle 6/0 -
+  test:combo-standard 227/0   (no regressions - sim untouched)
 
---------------------------------------------------------------------------------
-CHARACTERS WITHOUT ANY WIRED VOICE (40), grouped by franchise
-Legend:  [REUSE] = voice-appropriate audio ALREADY on disk (the base character's
-         voice pack) — unwired only because this rosterKey isn't in the guard;
-         drop-in reuse candidate.
-         [NONE]  = no voice audio exists on disk for this character (recursively
-         checked) — genuinely nothing.
-         [SPECIAL] = see note.
---------------------------------------------------------------------------------
 
-BAKI (1)
-  baki ................... [NONE]
+------------------------------------------------------------------------
+TRACK B — DESKTOP / STANDALONE APP LAUNCHER   [FOUND, WORKS]
+------------------------------------------------------------------------
+COMMAND TO LAUNCH THE FULL-SCREEN STANDALONE APP (from project root):
 
-BEN 10 (4)   — entire franchise unvoiced
-  ben10 .................. [NONE]
-  gwen .................. [NONE]
-  vilgax ................ [NONE]
-  albedo ............... [NONE]
+        npm run desktop
 
-BLEACH (1)   — (ichigo/zaraki/zaraki_shikai/mayuri/yamamoto ARE voiced)
-  byakuya .............. [NONE]
+  - Delegates to  npm --prefix electron start  -> runs electron/main.mjs.
+  - Opens a native FULLSCREEN Electron window (Mac/Win/Linux).
+  - Electron IS installed + configured (electron/ subfolder, electron
+    ^33.4.11 as a devDependency; the binary is present). Isolated in its
+    own package.json so the main project carries no Electron bloat.
 
-DC (8)
-  brainiac ............. [NONE]
-  deathstroke .......... [NONE]
-  green_lantern ........ [NONE]
-  dark_knight .......... [REUSE] Batman voice pack on disk (68 clips), unwired to this key
-  superman_classic ..... [REUSE] Superman voice pack on disk (113 clips), unwired
-  superman_dcuc ........ [REUSE] Superman voice pack, unwired
-  superman_fighter ..... [REUSE] Superman voice pack, unwired
-  superman_new52 ....... [REUSE] Superman voice pack, unwired
-  (batman, flash, superman[base] ARE voiced)
+HOW IT WORKS: the game is a pure static web app (ES modules + importmap).
+Electron can't load ES modules over file:// (CORS), so main.mjs starts a
+tiny localhost HTTP server (reusing tools/serve.mjs) and loads the game
+from http://127.0.0.1:PORT - byte-identical to the browser build, zero
+game-code changes. Adds durable save persistence + gamepad activation on
+the cold title screen.
 
-DEATH NOTE (1)   — (light IS voiced)
-  l_ryuuzaki (L) ....... [NONE]
+OTHER COMMANDS:
+  npm run desktop:capture     -> headless screenshot to electron/shots/poc.png
+  npm run desktop:diag        -> DIAG=1 verbose logging
+  npm run verify:gamepad-gate -> controller detection on the home screen
 
-DRAGON BALL (8)   — (beerus, goku_black, vegeta[base] ARE voiced)
-  goku (base) .......... [NONE]  ★ base Goku is unvoiced; only Goku Black speaks
-  bardock .............. [NONE]
-  frieza ............... [NONE]
-  gohan ................ [NONE]
-  gotenks .............. [NONE]
-  piccolo .............. [NONE]
-  vegeta_dark .......... [REUSE] Vegeta voice pack on disk (48 clips), unwired to this key
-  vegito ............... [REUSE] Vegeta voice pack (fusion) on disk, unwired
+STATUS: a working proof-of-concept (screenshots in electron/shots/ prove
+live gameplay). NOT yet a packaged distributable (.dmg/.exe/.AppImage) -
+that needs an electron-builder config + icon + code-signing, none of which
+require game-code changes. For tomorrow's playtest, `npm run desktop` gives
+the full-screen standalone experience right now.
 
-HAJIME NO IPPO (1)
-  ippo ................. [NONE]
 
-HORROR (1)   — (ghostface, ghostface_exe, jason ARE voiced)
-  ghostface_billy ...... [REUSE] Ghostface voice pack on disk (338 clips), unwired to this key
+------------------------------------------------------------------------
+TRACK C — RENDER LOOP / HIGH-REFRESH RE-VERIFICATION   [HEALTHY]
+------------------------------------------------------------------------
+HEADLINE: the render loop is solid after the new FX systems. No stutter
+observed; the hot FX paths are allocation-pooled.
 
-HUNTER x HUNTER (2)   — (gon/killua/hisoka/chrollo ARE voiced)
-  kurapika ............. [NONE]
-  netero ............... [SPECIAL] sprite ART exists, but the voice .mp3s AND
-                         neteroVoice.js were PERMANENTLY DELETED (harness hook
-                         removed). Nothing to re-wire — audio is gone.
+1) requestAnimationFrame IS driving rendering (game.js gameLoop). IMPORTANT
+   NUANCE: the loop is INTENTIONALLY GATED to a fixed 60 Hz via a real-time
+   accumulator - it does NOT run uncapped at the display's native refresh.
+   This is BY DESIGN and CORRECT for this engine: physics, timers, cooldowns
+   AND sprite-frame advancement all step exactly once per pass, so letting
+   rAF run at 120/144/240 Hz would make the whole game run 2-4x too FAST
+   (this was a real past bug - Toji jitter / too-fast intros). On a high-
+   refresh monitor the game correctly stays at 60 fps game-speed; extra rAF
+   callbacks are skipped. (So "sync to native refresh rate" is the wrong
+   goal here - the 60 Hz lock is the fix, not a limitation.)
 
-JUJUTSU KAISEN (3)   — (gojo/sukuna/alt_sukuna/yuji/toji/naoya/miwa/maki ARE voiced)
-  aoi_todo ............. [NONE]
-  handler (Megumi) ..... [NONE]
-  yuta ................. [NONE]
+2) NO per-frame GC churn from the new visual systems. The hot paths are
+   pooled (Stage 22C): damage numbers use poolAcquire("dmg")/poolRelease
+   and O(n) compaction on expiry; hit sparks + brutality debris use
+   poolAcquire("spark"). Confirmed in code.
 
-MARVEL (4)   — (spiderman IS voiced)
-  iron_man ............. [NONE]
-  iron_man_2 ........... [NONE]
-  iron_man_3 ........... [NONE]
-  miles ................ [REUSE] Spider-Man voice pack on disk (479 clips), unwired to this key
+3) LIVE MEASUREMENT (real match, headless Chromium, sampled real rAF
+   intervals during a live BRUTALITY + continuous input, 226 frames):
+        avg 16.67 ms - p50 16.70 ms (= exactly 60 Hz) - p95 17.60 ms -
+        max 17.70 ms - DROPPED FRAMES (>33ms): 0
+   The brutality (the most particle-heavy system) fired and captured its
+   sprite while the frame line stayed flat. Zero JS errors.
 
-NARUTO (2)   — most of the roster IS voiced
-  kakashi .............. [NONE]
-  onoki ................ [NONE]
+HONEST LIMITATION: I could not make keyboard normals connect in the
+headless harness to show a live NON-ZERO damage-number count, and the
+direct hit-probe bypasses the FX bridge (FX are spawned in updateBattle,
+not in combat.resolveAttackHit). So the damage-number stress is verified
+by CODE (pooling) + the live brutality run, not by a live combo counter.
 
-ONE PUNCH MAN (1)   — (saitama IS voiced)
-  genos ................ [NONE]
+SELF-VERIFY ON YOUR REAL 120/144 Hz MONITOR TOMORROW:
+   open the game with  ?debug=1  -> a live overlay shows
+   "FPS ... frame Xms avg / Yms max" (stays green under ~20 ms) and
+   "pool: N reused / M alloc" (allocs should stay near-flat during a big
+   combo or brutality). If frame-max stays green during a brutality + long
+   combo, you're clean. (Probe kept at harness/_perf_probe.mjs.)
 
-POWER RANGERS (2)   — (samurai_red, gold_samurai, omega_ranger ARE voiced)
-  green_samurai_ranger . [NONE]
-  red_ranger_mmpr ...... [NONE]
 
-RICK AND MORTY (1)   — (rick IS voiced)
-  rickPrime ............ [REUSE] Rick voice pack on disk (70 clips), unwired to this key
+------------------------------------------------------------------------
+TRACK D — "BETA TESTING WEBSITE" / TESTER DOCS   [FOUND, not edited]
+------------------------------------------------------------------------
+Reporting only - nothing changed. What actually exists:
 
---------------------------------------------------------------------------------
-SUMMARY (post-wiring)
-  [DONE] reuse candidates NOW WIRED via voiceKey() alias (10):
-     dark_knight, superman_classic, superman_dcuc, superman_fighter,
-     superman_new52, vegeta_dark, vegito, ghostface_billy, miles, rickPrime
-  [SPECIAL] art exists but voice permanently deleted (1):  netero
-  [NONE] genuinely no voice audio anywhere (29):
-     baki, ben10, gwen, vilgax, albedo, byakuya, brainiac, deathstroke,
-     green_lantern, l_ryuuzaki, goku, bardock, frieza, gohan, gotenks, piccolo,
-     ippo, kurapika, aoi_todo, handler, yuta, iron_man, iron_man_2, iron_man_3,
-     kakashi, onoki, genos, green_samurai_ranger, red_ranger_mmpr
+PRIMARY (the player-facing "beta website" - a handbook, generated Sep 10):
+  - BETA1_GAMEPLAY.html  (330 KB) - branded "Beta 1 - Gameplay Guide",
+    dark themed, print-optimized. Cover page, controls (P1 WASD/IJKLO,
+    P2 arrows/1-5), core-mechanics primer (meter, combo scaling, combo
+    breaker, launchers, blocking, transforms, grabs, dynamic music, living
+    backgrounds), then per-fighter cards. THIS is the most likely "beta
+    testing website."
+  - BETA1_GAMEPLAY.md   (107 KB, ~1,874 lines) - the markdown SOURCE.
+    All fighters x universes: passives, normals, specials (with energy
+    costs), ultimate, bread-and-butter + air combos. From live game data.
+  - BETA1_GAMEPLAY.pdf  (5.9 MB) - portable print version of the same.
 
-REMAINING coverage gap (30) is now only genuinely-unvoiced characters + netero;
-closing it would require sourcing/authoring NEW audio (no on-disk reuse exists).
-================================================================================
+SUPPORTING (tester/dev reference, not the main page):
+  - BETA_INPUT_MAP.md (Aug 13) - beta single-direction special inputs
+    (hold ONE direction + Special) per character; test-backed.
+  - MULTIVERSE_SMASH_BETA_ROSTER.md (Aug 24) - an OLDER systems/roster
+    snapshot (cites 45 chars) - stale vs the current roster; treat as a
+    historical reference.
+
+*** REGENERATED (2026-09-13) ***
+The handbook was rebuilt from the LIVE game data. It now reads
+"100 playable fighters / 19 worlds" (was 99/20). Files rewritten:
+BETA1_GAMEPLAY.html / .md / .pdf + harness/kits_dump.json.
+  - New pipeline (repeatable): `npm run beta:build`
+       = harness/dump_kits.mjs (dumps live kits via __harness.dumpKits)
+       -> tools/build_beta_doc.mjs (HTML + MD)
+       -> tools/render_beta_pdf.mjs (PDF + verification shots)
+  - Counts are DERIVED from the dump, not hardcoded, so they now stay
+    accurate automatically on any future rebuild.
+  - The old dump double-counted "ben_10" + "ben10" as two universes; the
+    live data consolidated that, hence 20 -> 19.
+COUNT BASIS (why 100 here vs "96" in Track E): the handbook documents the
+full in-game MOVE LIST roster (characterList minus hidden = 100, which
+includes ~4 built-out-but-isPlayable:false fighters). Track E's "96/18" is
+the strictly-selectable set. Both are correct; they measure different
+things. The handbook uses the same basis it always has.
+MULTIVERSE_SMASH_BETA_ROSTER.md (the older 45-char snapshot) was left
+as-is — separate historical doc, not regenerated.
+
+
+------------------------------------------------------------------------
+TRACK E — QUICK "WHAT'S PLAYABLE RIGHT NOW" (for walking testers through)
+------------------------------------------------------------------------
+ROSTER: ~96 playable fighters across 18 universes (Dragon Ball, Naruto,
+Jujutsu Kaisen, Bleach, Ben 10, Marvel/Spider-Man, DC, Hunter x Hunter,
+horror/Woodsboro, Power Rangers, Rick & Morty, and more).
+
+MODES YOU CAN SHOW:
+  - VS CPU / local VS (P1 keyboard vs P2 keyboard or a controller)
+  - Training Mode (frozen dummy, stand/block/jump behavior)
+  - Arcade / Tower / Story Mode (15 scripted chapters) / AI-vs-AI spectate
+  - Free-for-all (POC, controller-driven for P3/P4)
+
+SIGNATURE SYSTEMS THAT WORK:
+  - Transform cinematics - short freeze-beat form changes (Vegeta
+    "Villainous Mode", Bardock/Piccolo/Goku transforms, etc.)
+  - Brutalities - opt-in stylized KO finishers (per-character, per-move;
+    toggle ms_brutality_fx, default OFF). Sprite-bisection KO render.
+  - Clone / summon assists, command-chain (rekka) strings, domain/ultimate
+    freeze-cinematics, Edo-Tensei-style revives, Chrollo Skill Hunter,
+    Susanoo tiers, etc.
+  - Combat feel: dedicated block button, combo scaling + combo breaker,
+    launchers, floating damage numbers (tiered by hit weight), hit sparks.
+  - Dynamic music - low-HP / final-round intensity crossfade; 3 music
+    sources (default / personality-tuned / custom 103-song playlist).
+  - Presentation - ambient/parallax stage backdrops, per-character UI
+    themes, animated round/FIGHT transitions, char-select voice barks.
+  - Voice - ~66 of the roster have wired voice lines.
+  - Accessibility - opt-in colorblind-safe HUD (P2 red->orange).
+  - Profile (Big-Five personality) + Codex (fighter dossiers) from the
+    main menu AND the pause menu, plus the NEW Controls legend (Track A).
+  - Save/progress persists (guest-safe) across reloads; XP, unlocks,
+    challenges.
+
+CONTROLS QUICK CARD (P1 keyboard):
+  Move A/D - Jump/Up W - Crouch S - Light J - Heavy K - Up-attack I -
+  Special L - Ultimate U - Grab O - Charge/Transform P - Block ;
+  (P2: arrows + 1/2/3/4/5, grab 6, charge 7, block /)
+  Controller: see the in-game Controls overlay (auto-detects your pad).
+
+TODAY'S PRACTICAL LAUNCH FOR TESTERS: `npm run desktop` (full-screen).
+
+
+========================================================================
+FINAL REPORT — one line each
+  A  Controls legend: BUILT (pause -> Controls, device-aware). Tests 5/0 +
+     25/0; determinism/ui/combo suites clean. Sim untouched.
+  B  Standalone app: `npm run desktop` (Electron, fullscreen, works; not
+     yet packaged as .dmg/.exe).
+  C  Render loop: HEALTHY. 60 Hz-locked by design (correct), FX pooled,
+     live max frame 17.7 ms / 0 drops through a brutality. Self-check with
+     ?debug=1 on your high-refresh monitor.
+  D  Beta docs: BETA1_GAMEPLAY.html/.md/.pdf is the tester handbook (+2
+     supporting md files). Not edited. Roster count drift flagged (99->96).
+  E  Roster ~96 across 18 universes; all headline systems (clone-assist,
+     brutalities, transform cinematics, dynamic music, story mode) working.
+========================================================================

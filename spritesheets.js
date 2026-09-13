@@ -710,6 +710,22 @@ export const SPRITE_MANIFEST = {
   ghostface_exe: {
     actions: { idle: "./ghostface_exe_idle_uniform.png" }
   },
+  // Spider-Man (Sam Raimi) — NEW standalone build. GATES spritesReady() by decoding the idle strip → flips
+  // spiderman_raimi from the procedural fallback BOX to the sprite path. Per-action rendering reads
+  // characters.js → spiderman_raimi.animationData (each action carries its own .sheet). INDEPENDENT of `spiderman`.
+  spiderman_raimi: {
+    actions: { idle: "./raimi_idle_uniform.png" }
+  },
+  // Spider-Man (SSF2) — NEW standalone build (WIP, cancelled source sheet). GATES spritesReady() via the idle
+  // strip → flips spiderman_ssf2 from the procedural BOX to the sprite path. INDEPENDENT of `spiderman`/`spiderman_raimi`.
+  spiderman_ssf2: {
+    actions: { idle: "./ssf2_idle_uniform.png" }
+  },
+  // Spider-Man (Cosmic Invasion) — NEW standalone build. GATES spritesReady() via the idle strip → flips
+  // spiderman_mci from the procedural BOX to the sprite path. INDEPENDENT of the other Spider-Men.
+  spiderman_mci: {
+    actions: { idle: "./mci_idle_uniform.png" }
+  },
 
   // Ichigo Kurosaki (universe: bleach) — STAGE 1. Gates spritesReady() by decoding the idle strip →
   // flips Ichigo from procedural box to sprite. Per-action rendering reads characters.js →

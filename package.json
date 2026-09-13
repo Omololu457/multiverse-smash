@@ -464,6 +464,8 @@
     "test:spiderman-skins": "node harness/spiderman_skins_shot.mjs",
     "test:spiderman-voice": "node harness/spiderman_voice.test.mjs",
     "test:spiderman-webswing": "node harness/spiderman_webswing.mjs",
+    "test:spiderman-raimi": "node harness/raimi_shots.mjs",
+    "test:spiderman-raimi-specials": "node harness/spiderman_raimi_specials.test.mjs",
     "test:green-lantern": "node harness/green_lantern.test.mjs",
     "test:green-lantern-stage1": "node harness/green_lantern_stage1.mjs",
     "test:green-lantern-stage2": "node harness/green_lantern_stage2.mjs",

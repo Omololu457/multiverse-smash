@@ -283,6 +283,33 @@ export const SOURCED_ART = {
     files:   ["spiderman_*.png"]
   },
 
+  // Spider-Man (Sam Raimi) — a SEPARATE standalone char from `spiderman` (arcade Peter) / `miles` / `gwen`.
+  // Source = a DeviantArt fan sheet whose file id AND a baked in-sheet title-card note ("sprite by jaspion-v;
+  // give credits if used") both name the artist. Attribution is MANDATORY. Resliced feet-aligned in-repo by
+  // tools/build_raimi.py; strips ship as raimi_*_uniform.png.
+  spiderman_raimi: {
+    work:    "Spider-Man (Sam Raimi movie suit) — standalone build",
+    artists: ["jaspion-v (DeviantArt)"],
+    source:  "fan sprite sheet (spider_man_sam_raimi_sprite_sheet_by_jaspion_v_dkhnze5.png; in-sheet credit 'sprite by jaspion-v, give credits if used')",
+    files:   ["raimi_*.png", "spider_man_sam_raimi_sprite_sheet_by_jaspion_v_dkhnze5.png"]
+  },
+  // Spider-Man (SSF2) — a SEPARATE standalone char. Source = a DeviantArt fan sheet (Super Smash Flash 2 style,
+  // marked unfinished/cancelled) whose file id names the artist. Attribution is MANDATORY.
+  spiderman_ssf2: {
+    work:    "Spider-Man (SSF2-style, unfinished/cancelled fan sheet) — standalone build",
+    artists: ["alejomilich (DeviantArt)"],
+    source:  "fan sprite sheet (spider_man_ssf2_spritesheet_unfinished_cancelled__by_alejomilich_dfak1g5-fullview.jpg)",
+    files:   ["ssf2_*.png", "spider_man_ssf2_spritesheet_unfinished_cancelled__by_alejomilich_dfak1g5-fullview.jpg"]
+  },
+  // Spider-Man (Marvel Cosmic Invasion) — a SEPARATE standalone char. Source = a DeviantArt fan sheet whose
+  // file id names the artist. Attribution is MANDATORY.
+  spiderman_mci: {
+    work:    "Spider-Man (Marvel Cosmic Invasion style) — standalone build",
+    artists: ["zaidelproplayer (DeviantArt)"],
+    source:  "fan sprite sheet (spider_man_marvel_cosmic_invasion_sprite_sheet_by_zaidelproplayer_dkoutch.png)",
+    files:   ["mci_*.png", "spider_man_marvel_cosmic_invasion_sprite_sheet_by_zaidelproplayer_dkoutch.png"]
+  },
+
   // Iron Man 1 (Marvel) — "JUS" (Jump Ultimate Stars)-style chibi fan sheet. The source filename carries an
   // explicit in-name artist credit: "by danorenovado" (DeviantArt id ddxdqsr). Attribution is MANDATORY.
   // Resliced feet-aligned in-repo by tools/reslice_iron_man.py; the resliced strips ship as iron_man_*_uniform.png.

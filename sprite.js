@@ -507,6 +507,9 @@ const MOVE_TO_ACTION = {
   // spiderWebBridge = the combo-cancel web-net bridge into Web Throw. Identity maps → no 128² box on the tail.
   spiderWebImpact: "spiderWebImpact", spiderWebThrow: "spiderWebThrow", spiderWebBridge: "spiderWebBridge",
   spiderDashAttack: "spiderDashAttack", spiderHandstand: "spiderHandstand", spiderSwing: "spiderSwing",
+  // Spider-Man (Raimi, Stage 3-4): web-special cast poses (_spriteCastMove) + the Web Zip dive-kick
+  // (currentMove). Identity maps so the cast/attack recovery tail never resolves to the 128² fallback box.
+  webShot: "webShot", webZip: "webZip", spiderSense: "spiderSense", webThwip: "webThwip",
 
   // Naoya (Stage 3): Fwd+Heavy "low combo string" command normal (naoyaCombo, row_08). Identity map —
   // the command recovery tail resolves the real sheet, never the 128² fallback box.

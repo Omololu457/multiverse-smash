@@ -17,7 +17,7 @@ import {
   inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
   clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount, getPlayerGamepad,
-  readRawControls, writeRawControls, pollMenuGamepad, padGlyphs
+  readRawControls, writeRawControls, pollMenuGamepad, padGlyphs, getPadType
 } from "./input.js"
 import * as replay from "./replay.js"   // Stage 11B: input recording (replay foundation)
 import {
@@ -280,6 +280,7 @@ import {
   drawThemesScreen, getThemesBackButton, getThemeCardRects,
   getCharSearchRect, getCharSearchClearRect,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
+  drawControlsHelpScreen, getControlsHelpBackButton,
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
   drawAccountScreen, getAccountButtons,
   resolveEnergyLabel, isHeavenlyRestriction, noMeterFlavor,   // HUD energy-bar resource name + no-meter flavor (Heavenly Restriction / Total Concentration) — display-only, exposed for the harness
@@ -986,7 +987,8 @@ const GAME_STATES = {
   MUSIC_LIBRARY:      "musicLibrary",        // full-screen custom-playlist builder (scrollable 103-song checklist)
   PROFILE:            "profile",             // Part 1 #3: Big-Five personality radar (from main menu + pause)
   CODEX:              "codex",               // Part 1 #4: browsable per-fighter dossier, grouped by franchise
-  THEMES:             "themes"               // APPEARANCE: live-preview UI theme picker (pink/blue/etc.)
+  THEMES:             "themes",              // APPEARANCE: live-preview UI theme picker (pink/blue/etc.)
+  CONTROLS_HELP:      "controlsHelp"         // Track A: always-accessible device-aware button legend (from pause)
 }
 
 // ------------------------------------------------------------------
@@ -5042,6 +5044,7 @@ function handlePauseInput(key) {
     else if (sel === "restartRound") { gameState = stateBeforePause || GAME_STATES.BATTLE; resetRound() }
     else if (sel === "profile")  openProfileScreen(GAME_STATES.PAUSED)   // BACK returns to the pause menu (match stays frozen)
     else if (sel === "codex")    openCodexScreen(GAME_STATES.PAUSED)
+    else if (sel === "controls") openControlsScreen(GAME_STATES.PAUSED)   // Track A: device-aware button legend (BACK → pause)
     else if (sel === "trainingMode") {
       // Jump into a training session from a live match: flip the match to training +
       // force the dummy CPU, then reuse the SAME setup path the GAMEPLAY_SELECT flow
@@ -14936,6 +14939,15 @@ function openCodexScreen(from)   {
   if (!codexSelectedKey) codexSelectedKey = groups[0]?.entries[0]?.key || null
   gameState = GAME_STATES.CODEX
 }
+// Track A — always-accessible controls / button-legend overlay (reachable from the pause menu).
+let controlsHelpBackHover = false
+function openControlsScreen(from) { screenReturnState = from; controlsHelpBackHover = false; gameState = GAME_STATES.CONTROLS_HELP }
+// Device-aware payload: keyboard columns + the connected pad's REAL glyphs (or a plain set when none),
+// plus a friendly label. Reuses _controlRefForPad() so the legend matches whatever is plugged in.
+function _controlsHelpData() {
+  const connected = getConnectedPadCount() > 0
+  return { controlRef: _controlRefForPad(), padLabel: connected ? padGlyphs(getPadType()).label : null, backHover: controlsHelpBackHover }
+}
 function _profileScreenData() {
   const p = personality.getPersonality()
   return { traits: personality.summarize(p.traits), tipiComplete: !!p.tipiComplete, eventCount: (p.events || []).length, backHover: profileBackHover, themesHover: profileThemesHover }
@@ -14995,6 +15007,7 @@ function renderCurrentState() {
     case GAME_STATES.CREDITS:         drawCreditsState(); break
     case GAME_STATES.PROFILE:         drawProfileScreen(ctx, canvas, _profileScreenData()); break
     case GAME_STATES.CODEX:           drawCodexScreen(ctx, canvas, { groups: buildCodexGroups(), selectedKey: codexSelectedKey, scroll: codexScroll, backHover: codexBackHover }); break
+    case GAME_STATES.CONTROLS_HELP:   drawControlsHelpScreen(ctx, canvas, _controlsHelpData()); break
     case GAME_STATES.THEMES:          drawThemesScreen(ctx, canvas, { activeKey: theme.activeThemeKey(), hoverIndex: themesHoverIndex, backHover: themesBackHover }); break
     case GAME_STATES.MAIN_MENU:
       drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex, getCurrentAccount())
@@ -15280,6 +15293,7 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.PROFILE)          { profileBackHover = pointInRect(mouse.x, mouse.y, getProfileBackButton(canvas)); profileThemesHover = pointInRect(mouse.x, mouse.y, getProfileThemesButton(canvas)); return }   // themes button kept from bp
   if (gameState === GAME_STATES.THEMES)           { themesBackHover  = pointInRect(mouse.x, mouse.y, getThemesBackButton(canvas)); themesHoverIndex = (getThemeCardRects(canvas).find(c => pointInRect(mouse.x, mouse.y, c))?.index ?? -1); return }
   if (gameState === GAME_STATES.CODEX)            { codexBackHover   = pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas));   return }
+  if (gameState === GAME_STATES.CONTROLS_HELP)    { controlsHelpBackHover = pointInRect(mouse.x, mouse.y, getControlsHelpBackButton(canvas)); return }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
   if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
   if (gameState === GAME_STATES.ARCADE_SETUP)     { tryHover(getArcadeSetupRects(canvas),      hoverArcadeIndex,     v => hoverArcadeIndex     = v); return }
@@ -15353,6 +15367,9 @@ function handleMenuClicks() {
       if (row) codexSelectedKey = row.key
       break
     }
+    case GAME_STATES.CONTROLS_HELP:
+      if (pointInRect(mouse.x, mouse.y, getControlsHelpBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.PAUSED; screenReturnState = null }
+      break
     case GAME_STATES.ONLINE_PLACEHOLDER:
       gameState = GAME_STATES.MAIN_MENU   // any click (the BACK button) returns to the menu
       break
@@ -15807,6 +15824,10 @@ function updateMenuGamepad(injected) {
       // D-pad up/down moves the fighter list; Circle backs out. (Synth keys reuse the keydown handler.)
       if (nav.up) _padSynthKey("ArrowUp"); if (nav.down) _padSynthKey("ArrowDown")
       if (nav.back) _padSynthKey("Escape")
+      return
+    case GAME_STATES.CONTROLS_HELP:
+      // Track A: Circle or Cross both back out to the pause menu.
+      if (nav.back || nav.confirm) _padSynthKey("Escape")
       return
   }
 
@@ -16296,6 +16317,10 @@ window.addEventListener("keydown", e => {
     if (key === "escape" || key === "backspace") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null }
     else if (key === "arrowright" || key === "d") { e.preventDefault(); theme.cycleTheme(1);  sound.play?.(SFX.UI_SELECT) }
     else if (key === "arrowleft"  || key === "a") { e.preventDefault(); theme.cycleTheme(-1); sound.play?.(SFX.UI_SELECT) }
+    return
+  }
+  if (gameState === GAME_STATES.CONTROLS_HELP) {
+    if (key === "escape" || key === "backspace" || key === "enter" || key === "j") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.PAUSED; screenReturnState = null }
     return
   }
   if (gameState === GAME_STATES.CODEX) {

@@ -1,6 +1,6 @@
 # MULTIVERSE SMASH — BETA 1
 
-_A crossover fighting game across 20 worlds · 99 playable fighters._
+_A crossover fighting game across 19 worlds · 100 playable fighters._
 
 Beta gameplay guide — generated from the live game data. Every move & combo matches the in-game kit.
 
@@ -65,7 +65,7 @@ Bardock — melee fighter.
 - Rebellion — `Special` (18⚡): Rebellion Rush (neutral/Fwd/air) — a committed dashing SWORD lunge; gap-closer, hard knockback
 - Ki Charge — `Down + Special`: Ki Charge (Down) — gathers a golden ki-orb; refills Ki over the gather window (no hit)
 - Mobility: Dash — `Dash / Double-tap`: quick reposition
-- ★ Ultimate: Ultimate — `Ultimate (full meter)` (100⚡): powerful finisher
+- ★ Ultimate: Final Rebellion — `Ultimate (full meter)` (100⚡): powerful finisher
 
 **Combos:**
 - **Bread & Butter:** `Forward + Heavy, Heavy, Heavy` — command-normal chain — re-tap Heavy on hit to link into the launcher finisher
@@ -77,7 +77,12 @@ Beerus — rushdown, striker, zoner fighter.
 
 **Normals:** Light Attack (Light) · Heavy Attack (Heavy) · Up-Attack (Up-Attack) · Air Attack (Air (jump + Light)) · Down-Air (Down-Air (jump + Heavy)) · Grab (Grab)
 
-**Specials:** _coded in-game — perform with Special (L), Down+Special, Forward+Special; try each in Training._
+**Specials:**
+- Ki Blast — `Special` (30⚡): Ki Blast — quick forward energy shot (the kit's basic poke)
+- Downward Ki Blast — `Down + Special` (35⚡): Downward Ki Blast — a diving down-forward blast with a ground-impact burst on connect
+- Forward Push — `Forward + Special` (45⚡): Forward Push — two traveling shockwave rings that knock the foe back
+- Outward Ki Blast — `Forward + Special` (50⚡): Outward Ki Blast — a self-centered expanding nova (proximity AOE)
+- Hakai — `Forward + Special` (70⚡): Hakai — long-telegraph God-of-Destruction erasure; big direct payoff spawned at the target
 - Mobility: Dash — `Dash / Double-tap`: quick reposition
 - ★ Ultimate: Ki Ball — `Ultimate (full meter)` (150⚡): powerful finisher
 
@@ -117,7 +122,7 @@ Dark Vegeta — melee, transformations fighter.
 - Knife Slash — `Down + Special` (26⚡): quick straight blade slash (melee disjoint)
 - Sickle Throw — `Forward + Special` (32⚡): thrown curved red crescent blade
 - Mobility: Dash — `Dash / Double-tap`: quick reposition
-- ★ Ultimate: Ultimate — `Ultimate (full meter)` (100⚡): powerful finisher
+- ★ Ultimate: Villainous Onslaught — `Ultimate (full meter)` (100⚡): powerful finisher
 
 **Combos:**
 - **Bread & Butter:** `Forward + Heavy, Heavy, Heavy` — command-normal chain — re-tap Heavy on hit to link into the launcher finisher
@@ -168,9 +173,12 @@ Goku Black — melee, transformations fighter.
 **Normals:** Light Attack (Light) · Heavy Attack (Heavy) · Up-Attack (Up-Attack) · Air Attack (Air (jump + Light)) · Down-Air (Down-Air (jump + Heavy)) · Grab (Grab)
 
 **Specials:**
-- Kamehameha — `Special` (30⚡): STAGE 3+: charge/release beam (own move). Not wired yet.
-- Spirit Bomb — `Down + Special` (40⚡): STAGE 3+: charge/release lob (own move). Not wired yet.
-- Explosion — `Forward + Special` (120⚡): STAGE 3+: proximity AOE (Rick mirror), art pending. Not wired yet.
+- Kamehameha — `Special` (30⚡): Black Kamehameha — fast charge→release beam (pink in Rose)
+- Spirit Bomb — `Down + Special` (40⚡): Dark Spirit Bomb — slower, bigger charge→release orb
+- Explosion — `Forward + Special` (120⚡): Explosion — proximity AOE nuke (neutral special)
+- Electric Ki Push — `Forward + Special` (15⚡): Electric Ki Push — low-damage high-knockback repel (spacing); SSJ Rose only
+- Electric Slash — `Forward + Special` (20⚡): Electric Slash — fast cheap mid-range crescent poke; SSJ Rose only
+- Super Ki Slash — `Forward + Special` (48⚡): Super Ki Slash — strongest slash, big X hitbox, slow startup; SSJ Rose only
 - Mobility: Dash — `Dash / Double-tap`: quick reposition
 - ★ Ultimate: Sword Slash — `Ultimate (full meter)` (40⚡): STAGE 3+: sure-hit with real windup risk. Not wired yet.
 
@@ -226,7 +234,7 @@ Teen Gohan — melee fighter.
 **Specials:**
 - Meteor Kick — `Special` (35⚡): Meteor Kick — a committed forward-lunging flying kick that blows the foe away (melee; no ranged special — none on the sheet)
 - Mobility: Dash — `Dash / Double-tap`: quick reposition
-- ★ Ultimate: Ultimate — `Ultimate (full meter)` (100⚡): powerful finisher
+- ★ Ultimate: Meteor Barrage — `Ultimate (full meter)` (100⚡): powerful finisher
 
 **Combos:**
 - **Bread & Butter:** `Forward + Heavy, Heavy, Heavy` — command-normal chain — re-tap Heavy on hit to link into the launcher finisher
@@ -685,7 +693,7 @@ Megumi — summoner, technician, zoner fighter.
 
 Naoya Zenin — rushdown, technical, zoner fighter.
 
-- **Passive — Projection Sorcery:** Twenty-four frames a second — a blinding-fast frame-trap technician who punishes any dropped defence, trading durability for speed, reach and execution reward
+- **Passive — Projection Sorcery:** Twenty-four frames a second — his palm imposes a rule (24FPS Snare: act while snared and you freeze for a full second), and his own Planned Route is a committed high-execution string that freezes HIM if he drops a window. All speed, reach and execution; no durability
 
 **Normals:** Light Attack (Light) · Heavy Attack (Heavy) · Up-Attack (Up-Attack) · Air Attack (Air (jump + Light)) · Down-Air (Down-Air (jump + Heavy)) · Grab (Grab)
 
@@ -694,7 +702,7 @@ Naoya Zenin — rushdown, technical, zoner fighter.
 - ★ Ultimate: Projection Sorcery: Frame-Trap — `Ultimate (full meter)` (100⚡): powerful finisher
 
 **Combos:**
-- **Power Normal:** `Forward + Heavy` — a single committed command-normal (no re-tap chain)
+- **Bread & Butter:** `Forward + Heavy, Heavy, Heavy` — command-normal chain — re-tap Heavy on hit to link into the launcher finisher
 - **Air Juggle:** `Up-Attack, Jump, Air, Air` — launcher into aerial pressure
 
 #### Sukuna  ·  Rushdown / Damage  ·  Medium
@@ -1678,7 +1686,7 @@ Samurai Red Ranger (Fire) — melee, sword fighter.
 
 ---
 
-### Ben 10 — 2 fighters
+### Ben 10 — 4 fighters
 _Omnitrix alien-swapping toolkits_
 
 #### Albedo  ·  transformations / melee  ·  Medium
@@ -1715,11 +1723,6 @@ A kid with the Omnitrix who picks 5 aliens before the match and switches between
 **Combos:**
 - **Adapt & Smash:** `Omnitrix Switch, Heavy, Alien Special` — swap to the right alien, then punish
 - **Air Juggle:** `Up-Attack, Jump, Air, Air` — launcher into aerials
-
----
-
-### Ben 10 — 2 fighters
-_Omnitrix universe_
 
 #### Gwen  ·  ranged / summons / melee  ·  Medium
 
@@ -1763,7 +1766,7 @@ Vilgax — melee, ranged fighter.
 
 ---
 
-### Horror — 3 fighters
+### Horror — 4 fighters
 _Slashers with relentless, brutal pressure_
 
 #### Billy Ghostface  ·  rushdown / technical  ·  Medium
@@ -1797,6 +1800,22 @@ Ghostface — rushdown, technical fighter.
 
 **Combos:**
 - **Bread & Butter:** `Forward + Heavy, Heavy, Heavy` — command-normal chain — re-tap Heavy on hit to link into the launcher finisher
+- **Air Juggle:** `Up-Attack, Jump, Air, Air` — launcher into aerial pressure
+
+#### Ghostface.exe  ·  rushdown  ·  Medium
+
+Ghostface.exe — rushdown fighter.
+
+**Normals:** Light Attack (Light) · Heavy Attack (Heavy) · Up-Attack (Up-Attack) · Air Attack (Air (jump + Light)) · Down-Air (Down-Air (jump + Heavy)) · Grab (Grab)
+
+**Specials:**
+- Swap Sasuke — `Special` (50⚡): Identity Swap → Sasuke (borrow his kit ~11s; reverts on hit/timeout/KO)
+- Swap Deathstroke — `Down + Special` (50⚡): Identity Swap → Deathstroke (borrow his kit ~11s; reverts on hit/timeout/KO)
+- Mobility: Dash — `Dash / Double-tap`: quick reposition
+- ★ Ultimate: Ultimate — `Ultimate (full meter)` (100⚡): powerful finisher
+
+**Combos:**
+- **Zoning Pressure:** `Special, then Light / Heavy pokes` — single-poke fighter — build pressure with specials, not a chained string
 - **Air Juggle:** `Up-Attack, Jump, Air, Air` — launcher into aerial pressure
 
 #### Jason Voorhees  ·  grappler / heavy  ·  Medium

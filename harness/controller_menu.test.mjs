@@ -122,9 +122,9 @@ try {
   await padNav({ start: true });
   check("Options opens the pause menu", (await padState()).gameState === "paused");
 
-  // Navigate pause: resume→restartRound→profile→codex→trainingMode→quitToMenu, then confirm → TITLE.
-  // (Profile + Codex were added to the pause menu — Part 1 #3/#4 — so QUIT is now 5 downs from RESUME.)
-  for (let i = 0; i < 5; i++) await padNav({ down: true })
+  // Navigate pause: resume→restartRound→profile→codex→controls→trainingMode→quitToMenu, then confirm → TITLE.
+  // (Profile + Codex — Part 1 #3/#4 — and Controls — Track A — were added, so QUIT is now 6 downs from RESUME.)
+  for (let i = 0; i < 6; i++) await padNav({ down: true })
   const psel = await H(() => window.__harness.pauseSel());
   check("d-pad reaches QUIT TO MENU in pause", psel.item === "quitToMenu", `item=${psel.item}`);
   await padNav({ confirm: true });

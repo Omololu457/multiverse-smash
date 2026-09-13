@@ -144,19 +144,37 @@
         "name": "Kamehameha",
         "input": "Special",
         "cost": 30,
-        "desc": "STAGE 3+: charge/release beam (own move). Not wired yet."
+        "desc": "Black Kamehameha — fast charge→release beam (pink in Rose)"
       },
       {
         "name": "Spirit Bomb",
         "input": "Down + Special",
         "cost": 40,
-        "desc": "STAGE 3+: charge/release lob (own move). Not wired yet."
+        "desc": "Dark Spirit Bomb — slower, bigger charge→release orb"
       },
       {
         "name": "Explosion",
         "input": "Forward + Special",
         "cost": 120,
-        "desc": "STAGE 3+: proximity AOE (Rick mirror), art pending. Not wired yet."
+        "desc": "Explosion — proximity AOE nuke (neutral special)"
+      },
+      {
+        "name": "Electric Ki Push",
+        "input": "Forward + Special",
+        "cost": 15,
+        "desc": "Electric Ki Push — low-damage high-knockback repel (spacing); SSJ Rose only"
+      },
+      {
+        "name": "Electric Slash",
+        "input": "Forward + Special",
+        "cost": 20,
+        "desc": "Electric Slash — fast cheap mid-range crescent poke; SSJ Rose only"
+      },
+      {
+        "name": "Super Ki Slash",
+        "input": "Forward + Special",
+        "cost": 48,
+        "desc": "Super Ki Slash — strongest slash, big X hitbox, slow startup; SSJ Rose only"
       }
     ],
     "mobility": {
@@ -368,7 +386,7 @@
       "desc": "quick reposition"
     },
     "ultimate": {
-      "name": "Ultimate",
+      "name": "Villainous Onslaught",
       "input": "Ultimate (full meter)",
       "cost": 100,
       "desc": "powerful finisher"
@@ -733,7 +751,7 @@
       "desc": "quick reposition"
     },
     "ultimate": {
-      "name": "Ultimate",
+      "name": "Meteor Barrage",
       "input": "Ultimate (full meter)",
       "cost": 100,
       "desc": "powerful finisher"
@@ -913,7 +931,7 @@
       "desc": "quick reposition"
     },
     "ultimate": {
-      "name": "Ultimate",
+      "name": "Final Rebellion",
       "input": "Ultimate (full meter)",
       "cost": 100,
       "desc": "powerful finisher"
@@ -1809,7 +1827,7 @@
     "summary": "Naoya Zenin — rushdown, technical, zoner fighter.",
     "passive": {
       "name": "Projection Sorcery",
-      "effect": "Twenty-four frames a second — a blinding-fast frame-trap technician who punishes any dropped defence, trading durability for speed, reach and execution reward"
+      "effect": "Twenty-four frames a second — his palm imposes a rule (24FPS Snare: act while snared and you freeze for a full second), and his own Planned Route is a committed high-execution string that freezes HIM if he drops a window. All speed, reach and execution; no durability"
     },
     "normals": [
       {
@@ -1865,9 +1883,9 @@
     },
     "combos": [
       {
-        "name": "Power Normal",
-        "sequence": "Forward + Heavy",
-        "desc": "a single committed command-normal (no re-tap chain)"
+        "name": "Bread & Butter",
+        "sequence": "Forward + Heavy, Heavy, Heavy",
+        "desc": "command-normal chain — re-tap Heavy on hit to link into the launcher finisher"
       },
       {
         "name": "Air Juggle",
@@ -3665,10 +3683,34 @@
     ],
     "specials": [
       {
-        "name": "—",
+        "name": "Ki Blast",
         "input": "Special",
-        "cost": 0,
-        "desc": "no specials"
+        "cost": 30,
+        "desc": "Ki Blast — quick forward energy shot (the kit's basic poke)"
+      },
+      {
+        "name": "Downward Ki Blast",
+        "input": "Down + Special",
+        "cost": 35,
+        "desc": "Downward Ki Blast — a diving down-forward blast with a ground-impact burst on connect"
+      },
+      {
+        "name": "Forward Push",
+        "input": "Forward + Special",
+        "cost": 45,
+        "desc": "Forward Push — two traveling shockwave rings that knock the foe back"
+      },
+      {
+        "name": "Outward Ki Blast",
+        "input": "Forward + Special",
+        "cost": 50,
+        "desc": "Outward Ki Blast — a self-centered expanding nova (proximity AOE)"
+      },
+      {
+        "name": "Hakai",
+        "input": "Forward + Special",
+        "cost": 70,
+        "desc": "Hakai — long-telegraph God-of-Destruction erasure; big direct payoff spawned at the target"
       }
     ],
     "mobility": {
@@ -8599,8 +8641,8 @@
   {
     "key": "gwen",
     "name": "Gwen",
-    "universe": "ben10",
-    "color": "#4aa8e0",
+    "universe": "ben_10",
+    "color": "#9ede3a",
     "difficulty": "Medium",
     "type": "ranged / summons / melee",
     "energy": "mana",
@@ -8713,7 +8755,7 @@
   {
     "key": "vilgax",
     "name": "Vilgax",
-    "universe": "ben10",
+    "universe": "ben_10",
     "color": "#3ba33b",
     "difficulty": "Medium",
     "type": "melee / ranged",
@@ -8942,6 +8984,96 @@
       "attack": 86,
       "defense": 78,
       "speed": 96
+    }
+  },
+  {
+    "key": "ghostface_exe",
+    "name": "Ghostface.exe",
+    "universe": "horror",
+    "color": "#101418",
+    "difficulty": "Medium",
+    "type": "rushdown",
+    "energy": "dread",
+    "summary": "Ghostface.exe — rushdown fighter.",
+    "passive": {
+      "name": "—",
+      "effect": "No special passive."
+    },
+    "normals": [
+      {
+        "name": "Light Attack",
+        "input": "Light",
+        "desc": "fast poke"
+      },
+      {
+        "name": "Heavy Attack",
+        "input": "Heavy",
+        "desc": "knockback strike"
+      },
+      {
+        "name": "Up-Attack",
+        "input": "Up-Attack",
+        "desc": "launcher — starts air combos"
+      },
+      {
+        "name": "Air Attack",
+        "input": "Air (jump + Light)",
+        "desc": "aerial"
+      },
+      {
+        "name": "Down-Air",
+        "input": "Down-Air (jump + Heavy)",
+        "desc": "spike"
+      },
+      {
+        "name": "Grab",
+        "input": "Grab",
+        "desc": "throw"
+      }
+    ],
+    "specials": [
+      {
+        "name": "Swap Sasuke",
+        "input": "Special",
+        "cost": 50,
+        "desc": "Identity Swap → Sasuke (borrow his kit ~11s; reverts on hit/timeout/KO)"
+      },
+      {
+        "name": "Swap Deathstroke",
+        "input": "Down + Special",
+        "cost": 50,
+        "desc": "Identity Swap → Deathstroke (borrow his kit ~11s; reverts on hit/timeout/KO)"
+      }
+    ],
+    "mobility": {
+      "name": "Dash",
+      "input": "Dash / Double-tap",
+      "cost": 0,
+      "desc": "quick reposition"
+    },
+    "ultimate": {
+      "name": "Ultimate",
+      "input": "Ultimate (full meter)",
+      "cost": 100,
+      "desc": "powerful finisher"
+    },
+    "combos": [
+      {
+        "name": "Zoning Pressure",
+        "sequence": "Special, then Light / Heavy pokes",
+        "desc": "single-poke fighter — build pressure with specials, not a chained string"
+      },
+      {
+        "name": "Air Juggle",
+        "sequence": "Up-Attack, Jump, Air, Air",
+        "desc": "launcher into aerial pressure"
+      }
+    ],
+    "stats": {
+      "health": 950,
+      "attack": 78,
+      "defense": 78,
+      "speed": 94
     }
   },
   {

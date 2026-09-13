@@ -9173,6 +9173,171 @@ const ghostfaceExe = {
   introPool: ["idle"]   // no dedicated intro art on the sheet → stand in idle (honest gap, like ghostface)
 }
 
+// ─────────────────────────────────────────────────────────────────
+// SPIDER-MAN (SAM RAIMI)  (rosterKey "spiderman_raimi", universe "marvel") — NEW STANDALONE build.
+// ADDITIVE: independent from `spiderman` (the CPS2 Marvel Super Heroes arcade Peter) + `miles` + `gwen`.
+// Built from a single fan-art sheet (spiderman/spider_man_sam_raimi_sprite_sheet_by_jaspion_v_dkhnze5.png,
+// art by "Jaspion" — CREDIT REQUIRED; the raised-webbing dark-red movie suit). tools/build_raimi.py keys
+// the solid teal background (48,121,114) to alpha, then per-band alpha-gutter reslices feet-aligned uniform
+// cells (raimi_*_uniform.png). Verified alpha-clean (0 residual teal, no holes in the dark suit).
+// MINIMAL-but-real (staged, like ghostface_exe): full movement + core normals, NO specials / NO ultimate yet.
+// HONEST GAPS: no dedicated hurt-flinch frame on the sheet → `hurt` reuses knockdown frame 0 (recoil); no
+// intro art → introPool stands in idle; no distinct guard pose → engine holds idle while blocking.
+// ─────────────────────────────────────────────────────────────────
+const raimiSpiderman = {
+  rosterKey: "spiderman_raimi", name: "Spider-Man (Raimi)", universe: "marvel", color: "#9c1420",
+  isPlayable: true,
+  portrait: "./raimi_portrait.png",   // hi-res bust cropped from the sheet's title card (band 0)
+  archetypes: ["rushdown"],
+  primary: "rushdown", secondary: ["mobility"],
+  traits: { hasEnergy: true, energyType: "focus", mobility: "high", scaling: "combo", animeMovement: false },
+  // Roster-average PLACEHOLDER stat block — a nimble mid-band brawler (tune later alongside his kit).
+  stats: { maxHealth: 1000, maxEnergy: 100, attack: 84, defense: 80, speed: 92, maxJumps: 2, jumpPower: 32, dashSpeed: 19, dashDuration: 9, dashCooldownMax: 30 },
+  basic_attacks: {
+    light:    { damage: 34, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 56, startup: 8, active: 3, recovery: 17, hitstun: 17, knockbackX: 5, knockbackY: 1, rangeX: 110, rangeY: 52 },
+    upAttack: { type: "launcher", damage: 46, startup: 6, active: 3, recovery: 9, hitstun: 19, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -28, selfVy: -8, airOK: false },
+    airAttack:{ damage: 38, startup: 5, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 48, startup: 8, active: 3, recovery: 13, hitstun: 15, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 24, startup: 6, active: 3, recovery: 15, hitstun: 17, throwForceX: 4, throwForceY: -3 }
+  },
+  // NO specials / ultimate yet — staged, exactly like ghostface_exe's first pass.
+  hasSprites: true,
+  spriteScale: 1.25,   // idle body ≈85px content → ~106px on-screen (mid roster band, matches Peter's ~108px)
+  // data keys map to sprite keys via the engine's MOVE_TO_ACTION (upAttack→up, airAttack→air, downAir→down_air).
+  animationData: {
+    // ── MOVEMENT / STATE (tools/build_raimi.py: keyed teal bg → per-band alpha-gutter reslice, feet-aligned) ──
+    idle:  { frames: 6, width: 51, height: 99, speed: 7, anchorY: 0, sheet: "./raimi_idle_uniform.png" },   // standing loop; spider-sense flash on f1/f4
+    walk:  { frames: 7, width: 59, height: 86, speed: 5, anchorY: 0, sheet: "./raimi_walk_uniform.png" },
+    run:   { frames: 6, width: 83, height: 82, speed: 3, anchorY: 0, sheet: "./raimi_run_uniform.png" },
+    dash:  { frames: 1, width: 83, height: 82, speed: 4, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./raimi_run_uniform.png" },   // lean pose = run frame 0
+    jump:  { frames: 6, width: 60, height: 110, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_jump_uniform.png" },   // crouch → rising leap
+    fall:  { frames: 3, width: 76, height: 78, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_fall_uniform.png" },
+    crouch:{ frames: 2, width: 54, height: 59, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_crouch_uniform.png" },
+    hurt:  { frames: 1, width: 78, height: 91, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./raimi_knockdown_uniform.png" },   // ★ no standing-flinch art → reuse knockdown f0 (recoil)
+    knockdown: { frames: 5, width: 78, height: 91, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_knockdown_uniform.png" },   // tumble
+    win:   { frames: 1, width: 51, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_win_uniform.png" },   // celebratory arm-raise
+    taunt: { frames: 1, width: 51, height: 87, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_win_uniform.png" },
+    charge:{ frames: 6, width: 51, height: 99, speed: 7, anchorY: 0, loop: true, sheet: "./raimi_idle_uniform.png" },   // hold-to-charge reuses idle (honest same-char reuse)
+    // ── NORMALS ──
+    light:    { frames: 3, width: 66, height: 85, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_light_uniform.png" },   // punch string
+    heavy:    { frames: 3, width: 75, height: 83, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_heavy_uniform.png" },   // high-kick
+    up:       { frames: 2, width: 75, height: 84, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_up_uniform.png" },       // rising kick — launcher
+    air:      { frames: 2, width: 76, height: 77, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_air_uniform.png" },      // aerial flip-kick
+    down_air: { frames: 2, width: 68, height: 98, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_downair_uniform.png" },  // curl-dive
+    crouchLight: { frames: 2, width: 81, height: 52, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./raimi_crouchlight_uniform.png" }   // low poke
+  },
+  introPool: ["idle"]   // no dedicated intro art → stand in idle (honest gap)
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SPIDER-MAN (SSF2)  (rosterKey "spiderman_ssf2", universe "marvel") — NEW STANDALONE build.
+// ADDITIVE: independent from `spiderman` (arcade Peter) + `spiderman_raimi` + `miles` + `gwen`. Built from a
+// single UNFINISHED/CANCELLED fan sheet (spiderman/spider_man_ssf2_spritesheet_unfinished_cancelled__by_
+// alejomilich_dfak1g5-fullview.jpg, art by "alejomilich" — CREDIT REQUIRED; classic red/blue SSF2-style).
+// tools/build_ssf2.py EDGE-FLOOD-FILL keys the solid blue bg (103,116,255) to alpha (flood, so the costume's
+// dark-navy blue survives) + a 1px halo-erode for JPG fringe, then reslices the CLEAN single-row bands only.
+// Verified alpha-clean (binary alpha, zero semi-transparent halos). Because the sheet is CANCELLED, this is a
+// deliberately MINIMAL WIP entry with MANY honest gaps: idle is a single stance frame (no breathing loop);
+// no intro (→ idle); no guard (→ idle); hurt reuses knockdown frame 0; win/taunt reuse idle. NO specials/ult.
+// The sheet's top 2-D grid + a stray photoreal art block (y≥1426) + a title banner (y≥1521) are UNUSED.
+// ─────────────────────────────────────────────────────────────────
+const ssf2Spiderman = {
+  rosterKey: "spiderman_ssf2", name: "Spider-Man (SSF2)", universe: "marvel", color: "#c01818",
+  isPlayable: true,
+  portrait: "./ssf2_idle_uniform.png",   // PLACEHOLDER — no dedicated portrait art on the sheet (GAP); uses the idle stance
+  archetypes: ["rushdown"],
+  primary: "rushdown", secondary: ["mobility"],
+  traits: { hasEnergy: true, energyType: "focus", mobility: "high", scaling: "combo", animeMovement: false },
+  stats: { maxHealth: 1000, maxEnergy: 100, attack: 83, defense: 80, speed: 92, maxJumps: 2, jumpPower: 32, dashSpeed: 19, dashDuration: 9, dashCooldownMax: 30 },
+  basic_attacks: {
+    light:    { damage: 34, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 56, startup: 8, active: 3, recovery: 17, hitstun: 17, knockbackX: 5, knockbackY: 1, rangeX: 110, rangeY: 52 },
+    upAttack: { type: "launcher", damage: 46, startup: 6, active: 3, recovery: 9, hitstun: 19, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -28, selfVy: -8, airOK: false },
+    airAttack:{ damage: 38, startup: 5, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 48, startup: 8, active: 3, recovery: 13, hitstun: 15, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 24, startup: 6, active: 3, recovery: 15, hitstun: 17, throwForceX: 4, throwForceY: -3 }
+  },
+  // NO specials / ultimate yet — staged, like ghostface_exe / spiderman_raimi.
+  hasSprites: true,
+  spriteScale: 2.0,   // idle body ≈51px content → ~102px on-screen (mid roster band)
+  animationData: {
+    idle:  { frames: 1, width: 44, height: 53, speed: 8, anchorY: 0, sheet: "./ssf2_idle_uniform.png" },   // ★ single stance frame (no breathing loop on sheet → GAP)
+    walk:  { frames: 3, width: 48, height: 45, speed: 5, anchorY: 0, sheet: "./ssf2_walk_uniform.png" },
+    run:   { frames: 3, width: 57, height: 57, speed: 3, anchorY: 0, sheet: "./ssf2_run_uniform.png" },
+    dash:  { frames: 1, width: 57, height: 57, speed: 4, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_run_uniform.png" },
+    jump:  { frames: 3, width: 49, height: 57, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_jump_uniform.png" },
+    fall:  { frames: 2, width: 46, height: 50, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_fall_uniform.png" },
+    crouch:{ frames: 1, width: 39, height: 37, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_crouch_uniform.png" },
+    hurt:  { frames: 1, width: 40, height: 53, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_knockdown_uniform.png" },   // ★ no standing-flinch art → reuse knockdown f0
+    knockdown: { frames: 4, width: 40, height: 53, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_knockdown_uniform.png" },
+    win:   { frames: 1, width: 44, height: 53, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_idle_uniform.png" },   // ★ no victory pose → reuse idle stance
+    taunt: { frames: 1, width: 44, height: 53, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_idle_uniform.png" },
+    charge:{ frames: 1, width: 44, height: 53, speed: 8, anchorY: 0, loop: true, sheet: "./ssf2_idle_uniform.png" },
+    // ── NORMALS ──
+    light:    { frames: 2, width: 44, height: 56, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_light_uniform.png" },
+    heavy:    { frames: 2, width: 45, height: 50, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_heavy_uniform.png" },   // lunge-kick
+    up:       { frames: 1, width: 52, height: 59, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_up_uniform.png" },       // up-reach launcher
+    air:      { frames: 2, width: 40, height: 46, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_air_uniform.png" },
+    down_air: { frames: 1, width: 42, height: 50, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./ssf2_downair_uniform.png" }
+  },
+  introPool: ["idle"]   // no dedicated intro art → stand in idle (honest gap)
+}
+
+// ─────────────────────────────────────────────────────────────────
+// SPIDER-MAN (COSMIC INVASION)  (rosterKey "spiderman_mci", universe "marvel") — NEW STANDALONE build.
+// ADDITIVE: independent from `spiderman` (arcade Peter) + `spiderman_raimi` + `spiderman_ssf2` + `miles` + `gwen`.
+// Built from a modern pixel-art fan sheet (spiderman/spider_man_marvel_cosmic_invasion_sprite_sheet_by_
+// zaidelproplayer_dkoutch.png, art by "ZaidelProPlayer" — CREDIT REQUIRED). Source already had CLEAN alpha
+// (no keying). The sheet is densely/irregularly packed with NO grid, so automatic slicing failed; tools/
+// build_mci.py crops hand-picked, visually-VERIFIED tight rectangles around cleanly-ISOLATED whole poses
+// (mci_*_uniform.png). Verified alpha-clean (binary alpha). MINIMAL-but-real. NO specials / ultimate.
+// HONEST GAPS (dense sheet → few cleanly-isolable frames): idle is a single stance (no breathing loop); no
+// clean free-fall/air-spread → fall uses crouched landing poses; air-attack reuses light; down_air reuses the
+// kick; no clean knockdown → hurt reuses a crouched pose; win/taunt/intro reuse idle. Lots more poses exist on
+// the sheet but need manual frame-by-frame picking (deferred, like specials).
+// ─────────────────────────────────────────────────────────────────
+const mciSpiderman = {
+  rosterKey: "spiderman_mci", name: "Spider-Man (Cosmic Invasion)", universe: "marvel", color: "#d81e2c",
+  isPlayable: true,
+  portrait: "./mci_idle_uniform.png",   // PLACEHOLDER — no dedicated portrait art on the sheet (GAP); uses idle stance
+  archetypes: ["rushdown"],
+  primary: "rushdown", secondary: ["mobility"],
+  traits: { hasEnergy: true, energyType: "focus", mobility: "high", scaling: "combo", animeMovement: false },
+  stats: { maxHealth: 1000, maxEnergy: 100, attack: 85, defense: 80, speed: 93, maxJumps: 2, jumpPower: 32, dashSpeed: 19, dashDuration: 9, dashCooldownMax: 30 },
+  basic_attacks: {
+    light:    { damage: 34, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },
+    heavy:    { damage: 56, startup: 8, active: 3, recovery: 17, hitstun: 17, knockbackX: 5, knockbackY: 1, rangeX: 110, rangeY: 52 },
+    upAttack: { type: "launcher", damage: 46, startup: 6, active: 3, recovery: 9, hitstun: 19, knockbackX: 2, knockbackY: -8, launch: 12, launchVy: -28, selfVy: -8, airOK: false },
+    airAttack:{ damage: 38, startup: 5, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },
+    downAir:  { damage: 48, startup: 8, active: 3, recovery: 13, hitstun: 15, knockbackX: 1, knockbackY: 9 },
+    grab:     { damage: 24, startup: 6, active: 3, recovery: 15, hitstun: 17, throwForceX: 4, throwForceY: -3 }
+  },
+  // NO specials / ultimate yet — staged.
+  hasSprites: true,
+  spriteScale: 1.8,   // idle body ≈59px content → ~106px on-screen (mid roster band)
+  animationData: {
+    idle:  { frames: 1, width: 84, height: 61, speed: 8, anchorY: 0, sheet: "./mci_idle_uniform.png" },   // ★ single stance (no breathing loop → GAP)
+    walk:  { frames: 4, width: 99, height: 72, speed: 5, anchorY: 0, sheet: "./mci_walk_uniform.png" },     // run stride
+    run:   { frames: 4, width: 99, height: 72, speed: 3, anchorY: 0, sheet: "./mci_walk_uniform.png" },
+    dash:  { frames: 1, width: 99, height: 72, speed: 4, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./mci_walk_uniform.png" },
+    jump:  { frames: 1, width: 81, height: 94, speed: 5, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mci_jump_uniform.png" },
+    fall:  { frames: 2, width: 74, height: 64, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mci_fall_uniform.png" },   // ★ crouched landing poses (no clean free-fall art)
+    crouch:{ frames: 1, width: 74, height: 64, speed: 6, anchorY: 0, sourceX: 0, loop: false, lockLastFrame: true, sheet: "./mci_fall_uniform.png" },   // reuse fall f0 (crouch pose)
+    hurt:  { frames: 1, width: 74, height: 64, speed: 6, anchorY: 0, sourceX: 74, loop: false, lockLastFrame: true, sheet: "./mci_fall_uniform.png" },  // ★ no flinch art → reuse fall f1
+    win:   { frames: 1, width: 84, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mci_idle_uniform.png" },   // ★ no victory pose → reuse idle
+    taunt: { frames: 1, width: 84, height: 61, speed: 6, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mci_idle_uniform.png" },
+    charge:{ frames: 1, width: 84, height: 61, speed: 8, anchorY: 0, loop: true, sheet: "./mci_idle_uniform.png" },
+    // ── NORMALS ──
+    light:    { frames: 1, width: 99, height: 65, speed: 3, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mci_light_uniform.png" },   // straight punch
+    heavy:    { frames: 1, width: 100, height: 62, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mci_heavy_uniform.png" },   // wide-stance strike
+    up:       { frames: 1, width: 98, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mci_kick_uniform.png" },     // extended-leg kick — launcher
+    air:      { frames: 1, width: 99, height: 65, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mci_light_uniform.png" },    // ★ no aerial art → reuse light
+    down_air: { frames: 1, width: 98, height: 55, speed: 4, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./mci_kick_uniform.png" }      // ★ reuse kick as dive-kick
+  },
+  introPool: ["idle"]   // no dedicated intro art → stand in idle (honest gap)
+}
+
 export const characters = {
   goku, goku_black: gokuBlack, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, maki, toji, yuji, baki, naoya,
@@ -9238,6 +9403,9 @@ export const characters = {
   vilgax,
   miles,
   ghostface_exe: ghostfaceExe,   // WIP standalone build (Ghostface .exe) — minimal entry, not fully registered; see updates.TXT
+  spiderman_raimi: raimiSpiderman,   // NEW standalone build (Spider-Man / Sam Raimi) — minimal-real: movement + normals, no specials/ult yet
+  spiderman_ssf2: ssf2Spiderman,     // NEW standalone build (Spider-Man / SSF2 style) — minimal WIP from a cancelled sheet, many gaps flagged
+  spiderman_mci: mciSpiderman,       // NEW standalone build (Spider-Man / Marvel Cosmic Invasion) — minimal-real from hand-picked isolated poses
   ippo
 }
 

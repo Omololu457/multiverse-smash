@@ -144,8 +144,66 @@ def sasuke_classify(h, s, v):
     if 170 <= h <= 262 and v < 0.55:                 return "GARMENT"  # dark blue-grey outfit
     return "OTHER"
 
+def piccolo_classify(h, s, v):
+    # Piccolo: purple gi = GARMENT; GREEN Namekian skin = protected (his body); orange/gold trim = ACCENT;
+    # white cape/shoulders kept; dark outline protected.
+    if v < 0.14:                                     return "DARK"
+    if 90 <= h <= 165 and s >= 0.35:                  return "SKIN"     # green Namekian skin (protected)
+    if 248 <= h <= 300 and s >= 0.30:                 return "GARMENT"  # purple gi
+    if 12 <= h <= 46 and s >= 0.5:                    return "ACCENT"   # orange/gold trim
+    return "OTHER"                                                     # white cape kept
+
+def frieza_classify(h, s, v):
+    # Frieza (final form): his WHITE/light-cyan bio-body is the recolour target (unified, like Baki — no
+    # separate skin); purple bio-gems = ACCENT; dark outline protected.
+    if v < 0.14:                                     return "DARK"
+    if 255 <= h <= 305 and s >= 0.40:                 return "ACCENT"   # purple bio-gems
+    if (150 <= h <= 210) or (s < 0.35 and v >= 0.35):  return "GARMENT" # white/cyan bio-body (unified)
+    return "OTHER"
+
+def beerus_classify(h, s, v):
+    # Beerus: PURPLE skin = protected (his body, desaturated high-value purple); blue Egyptian outfit =
+    # GARMENT; gold/cyan trim = ACCENT; dark outline protected.
+    if v < 0.14:                                     return "DARK"
+    if 248 <= h <= 305 and s < 0.5:                   return "SKIN"     # desaturated purple skin (protected)
+    if 190 <= h <= 250 and s >= 0.28:                 return "GARMENT"  # blue outfit
+    if (12 <= h <= 55 and s >= 0.5) or (150 <= h <= 190 and s >= 0.5):  return "ACCENT"  # gold / cyan trim
+    return "OTHER"
+
+def vegito_classify(h, s, v):
+    # Vegito: blue gi/armour = GARMENT; skin (warm) protected; white gloves/boots kept; dark outline/hair protect.
+    if v < 0.14:                                     return "DARK"
+    if 12 <= h <= 45 and 0.25 <= s < 0.7 and v >= 0.45:  return "SKIN"
+    if 190 <= h <= 258 and s >= 0.28:                 return "GARMENT"  # blue gi/armour
+    return "OTHER"
+
+def gotenks_classify(h, s, v):
+    # Gotenks: Metamoru vest is multi-colour; recolour the BLUE undershirt/pants = GARMENT, red vest panels =
+    # ACCENT; SSJ gold hair protected (warm high-val), skin protected, white vest kept, dark outline protect.
+    if v < 0.14:                                     return "DARK"
+    if 38 <= h <= 62 and s >= 0.45 and v >= 0.6:      return "OTHER"    # SSJ gold hair (kept)
+    if 12 <= h <= 38 and 0.25 <= s < 0.7 and v >= 0.5:  return "SKIN"   # face
+    if 205 <= h <= 258 and s >= 0.30:                 return "GARMENT"  # blue undershirt / pants
+    if (h <= 12 or h >= 344) and s >= 0.55:           return "ACCENT"   # red vest panels
+    return "OTHER"                                                     # white/green vest kept
+
+def bardock_classify(h, s, v):
+    # Bardock: navy under-suit = GARMENT (dark blue), red headband/wristbands = ACCENT, pale skin protected,
+    # green/white Saiyan armour kept, dark outline/hair protect.
+    if v < 0.14:                                     return "DARK"
+    if 12 <= h <= 45 and 0.18 <= s < 0.6 and v >= 0.55:  return "SKIN"  # pale skin
+    if 195 <= h <= 260 and s >= 0.22:                 return "GARMENT"  # navy under-suit
+    if (h <= 12 or h >= 338) and s >= 0.55:           return "ACCENT"   # red headband / bands
+    return "OTHER"                                                     # green+white armour kept
+
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "piccolo":   dict(classify=piccolo_classify),
+    "frieza":    dict(classify=frieza_classify),
+    "beerus":    dict(classify=beerus_classify, probe_src="beerus_idle_u.png"),
+    "vegito":    dict(classify=vegito_classify),
+    "gotenks":   dict(classify=gotenks_classify),
+    "bardock":   dict(classify=bardock_classify),
     "vegeta":    dict(classify=vegeta_classify),
     "goku":      dict(classify=goku_classify),
     "naruto":    dict(classify=naruto_classify),

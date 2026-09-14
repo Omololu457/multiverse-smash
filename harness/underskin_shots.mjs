@@ -45,6 +45,13 @@ const CONFIG = {
   sasuke: { p1: "sasuke", skins: [
     { id: "sasukeAlbedo", tag: "albedo" }, { id: "sasukeValkyrie", tag: "valkyrie" }, { id: "sasukeAlienX", tag: "alienx" },
   ] },
+  // ── Dragon Ball wave 1 (base-recolour, not form-aware) ──
+  piccolo: { p1: "piccolo", skins: [{ id: "piccoloAlbedo", tag: "albedo" }, { id: "piccoloValkyrie", tag: "valkyrie" }, { id: "piccoloAlienX", tag: "alienx" }] },
+  frieza:  { p1: "frieza",  skins: [{ id: "friezaAlbedo", tag: "albedo" }, { id: "friezaValkyrie", tag: "valkyrie" }, { id: "friezaAlienX", tag: "alienx" }] },
+  beerus:  { p1: "beerus",  skins: [{ id: "beerusAlbedo", tag: "albedo" }, { id: "beerusValkyrie", tag: "valkyrie" }, { id: "beerusAlienX", tag: "alienx" }] },
+  vegito:  { p1: "vegito",  skins: [{ id: "vegitoAlbedo", tag: "albedo" }, { id: "vegitoValkyrie", tag: "valkyrie" }, { id: "vegitoAlienX", tag: "alienx" }] },
+  gotenks: { p1: "gotenks", skins: [{ id: "gotenksAlbedo", tag: "albedo" }, { id: "gotenksValkyrie", tag: "valkyrie" }, { id: "gotenksAlienX", tag: "alienx" }] },
+  bardock: { p1: "bardock", skins: [{ id: "bardockAlbedo", tag: "albedo" }, { id: "bardockValkyrie", tag: "valkyrie" }, { id: "bardockAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -73,6 +80,7 @@ for (const char of WANT) {
                            : char === "vegeta"    ? `vegeta_mugshot__${tag}.png`
                            : char === "naruto"    ? `naruto_kcm_portrait__${tag}.png`
                            : char === "sasuke"    ? `sasuke_pfp__${tag}.png`
+                           : char === "beerus"    ? `beerus_mugshot__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

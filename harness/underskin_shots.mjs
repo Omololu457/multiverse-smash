@@ -41,6 +41,10 @@ const CONFIG = {
   naruto: { p1: "naruto", skins: [
     { id: "narutoAlbedo", tag: "albedo" }, { id: "narutoValkyrie", tag: "valkyrie" }, { id: "narutoAlienX", tag: "alienx" },
   ] },
+  // Sasuke — dark-outfit recolour, NOT form-aware (Susanoo is a summon/overlay).
+  sasuke: { p1: "sasuke", skins: [
+    { id: "sasukeAlbedo", tag: "albedo" }, { id: "sasukeValkyrie", tag: "valkyrie" }, { id: "sasukeAlienX", tag: "alienx" },
+  ] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -68,6 +72,7 @@ for (const char of WANT) {
   const portraitFor = tag => char === "rickPrime" ? `rick_portrait__rickprime__${tag}.png`
                            : char === "vegeta"    ? `vegeta_mugshot__${tag}.png`
                            : char === "naruto"    ? `naruto_kcm_portrait__${tag}.png`
+                           : char === "sasuke"    ? `sasuke_pfp__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

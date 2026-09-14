@@ -135,11 +135,21 @@ def naruto_classify(h, s, v):
     if (h <= 62 or h >= 338) and s >= 0.30:          return "GARMENT"  # whole warm chakra cloak (unified theme)
     return "OTHER"                                                    # white highlights / eyes kept
 
+def sasuke_classify(h, s, v):
+    # Sasuke: dark blue-grey outfit = GARMENT, purple rope belt = ACCENT, black hair + outline protected
+    # (v<0.12 keeps his iconic dark hair), skin protected. Outfit's higher value separates it from the hair.
+    if v < 0.12:                                    return "DARK"     # black hair + outline (protected)
+    if 12 <= h <= 42 and s >= 0.25 and v >= 0.45:    return "SKIN"     # face (protected)
+    if 255 <= h <= 315 and s >= 0.22:                return "ACCENT"   # purple rope belt
+    if 170 <= h <= 262 and v < 0.55:                 return "GARMENT"  # dark blue-grey outfit
+    return "OTHER"
+
 CHARS = {
     "baki":      dict(classify=baki_classify),
     "vegeta":    dict(classify=vegeta_classify),
     "goku":      dict(classify=goku_classify),
     "naruto":    dict(classify=naruto_classify),
+    "sasuke":    dict(classify=sasuke_classify),
     "boruto":    dict(classify=boruto_classify),
     "kakashi":   dict(classify=kakashi_classify),
     "kurapika":  dict(classify=kurapika_classify),

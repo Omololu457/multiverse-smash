@@ -378,7 +378,13 @@ export const SKINS = {
   ],
 
   sasuke: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke?.portrait, spriteScale: characters.sasuke?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.sasuke?.portrait, spriteScale: characters.sasuke?.spriteScale, animationData: null },
+    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.
+    // Dark blue-grey outfit → garment, purple rope belt → accent; black hair + skin protected. Not form-aware
+    // (Susanoo is a summon/overlay, not a sprite swap). Alien X = matte-black void + starfield overlay.
+    { id: "sasukeAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("sasuke", "albedo"),   spriteScale: characters.sasuke?.spriteScale, animationData: recolorSkinAnim("sasuke", "albedo") },    // black outfit / red belt
+    { id: "sasukeValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("sasuke", "valkyrie"), spriteScale: characters.sasuke?.spriteScale, animationData: recolorSkinAnim("sasuke", "valkyrie") },  // ice-blue outfit / gold belt
+    { id: "sasukeAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("sasuke", "alienx"),   spriteScale: characters.sasuke?.spriteScale, animationData: recolorSkinAnim("sasuke", "alienx") },    // matte-black Celestialsapien + starfield overlay
   ],
 
   // Itachi (Naruto universe). Same gate as Naruto/Sasuke: WITHOUT a default skin, applySkin()

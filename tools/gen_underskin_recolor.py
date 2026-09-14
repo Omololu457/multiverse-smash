@@ -118,9 +118,19 @@ def vegeta_classify(h, s, v):
     if s < 0.20 and v >= 0.55:                      return "TRIM"     # white Saiyan armour / gloves / boots
     return "OTHER"
 
+def goku_classify(h, s, v):
+    # Goku: ORANGE gi = GARMENT (high-sat warm; the dark-orange shadow wraps to h~330), BLUE undershirt/
+    # belt/wristbands/boots = ACCENT, skin = mid-sat warm (protect), black hair+outline protect.
+    if v < 0.16:                                    return "DARK"     # hair + outline (protected)
+    if 185 <= h <= 245 and s >= 0.28:                return "ACCENT"   # blue gi accents
+    if (14 <= h <= 48 and s >= 0.66) or (h >= 318 and s >= 0.55):  return "GARMENT"  # orange gi (+ its magenta-ish shadow)
+    if 14 <= h <= 46 and 0.28 <= s < 0.66 and v >= 0.45:  return "SKIN"  # face / hands (mid-sat warm) — protected
+    return "OTHER"
+
 CHARS = {
     "baki":      dict(classify=baki_classify),
     "vegeta":    dict(classify=vegeta_classify),
+    "goku":      dict(classify=goku_classify),
     "boruto":    dict(classify=boruto_classify),
     "kakashi":   dict(classify=kakashi_classify),
     "kurapika":  dict(classify=kurapika_classify),

@@ -33,6 +33,10 @@ const CONFIG = {
   vegeta: { p1: "vegeta", forms: true, skins: [
     { id: "vegetaAlbedo", tag: "albedo" }, { id: "vegetaValkyrie", tag: "valkyrie" }, { id: "vegetaAlienX", tag: "alienx" },
   ] },
+  // Goku is FORM-AWARE via a 3-tier ladder (SSJ→SSG→SS-Blue): verify each form's locomotion sheet recolours.
+  goku: { p1: "goku", gokuForms: true, skins: [
+    { id: "gokuAlbedo", tag: "albedo" }, { id: "gokuValkyrie", tag: "valkyrie" }, { id: "gokuAlienX", tag: "alienx" },
+  ] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -121,6 +125,20 @@ for (const char of WANT) {
       check(`${char}/${id}: Blue form recoloured (${tag})`, gotBlue && (blue?.sheet || "").includes("vegeta_blue") && (blue?.sheet || "").includes(`__${tag}.png`), `blue=${gotBlue} sheet=${(blue?.sheet||"null").split("/").pop()}`);
       await pg.screenshot({ path: path.join(OUT, `underskin_${char}_${id}_blue.png`), clip: { x: 300, y: 250, width: 320, height: 360 } });
       await pg.evaluate(() => window.__harness.boot()); await wf(3);   // reset to clean base for the next skin's base checks
+    }
+    // GOKU form ladder (SSJ→SSG→SS-Blue): step up, confirm each form's locomotion sheet is the recoloured __tag.
+    if (cfg.gokuForms) {
+      await pg.evaluate(() => window.__harness.boot());
+      await pg.evaluate(s => window.__harness.setSkin("p1", s), id); await wf(5);
+      const readForm = async needle => { let s = null; for (let k = 0; k < 40; k++) { s = await force("idle"); if ((s?.sheet || "").includes(needle) && !s.sheet.includes("transform")) return s; await wf(3); } return s; };
+      for (const [needle, label] of [["goku_ssj", "SSJ"], ["goku_ssg", "SSG"], ["goku_ssb", "SS-Blue"]]) {
+        await force(null); await pg.evaluate(() => window.__harness.fillEnergy());
+        const stepped = await pg.evaluate(() => window.__harness.p1GokuStepForm());
+        const fs2 = await readForm(needle);
+        check(`${char}/${id}: ${label} form recoloured (${tag})`, stepped && (fs2?.sheet || "").includes(needle) && (fs2?.sheet || "").includes(`__${tag}.png`), `stepped=${stepped} sheet=${(fs2?.sheet||"null").split("/").pop()}`);
+        if (needle === "goku_ssb") await pg.screenshot({ path: path.join(OUT, `underskin_${char}_${id}_ssblue.png`), clip: { x: 300, y: 250, width: 320, height: 360 } });
+      }
+      await force(null); await pg.evaluate(() => window.__harness.boot()); await wf(3);
     }
   }
   check(`${char}: no procedural boxes across ${cfg.skins.length} skins × ${ACTIONS.length} actions`, boxes === 0, `boxes=${boxes}`);

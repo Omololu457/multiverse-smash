@@ -224,7 +224,14 @@ export const SKINS = {
   // character; without an entry, getSkins() returns the spriteScale:1 fallback and
   // Goku renders at native 37px. No alt skins yet. (Dragon Ball → not a JJK-beta skin.)
   goku: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku?.portrait, spriteScale: characters.goku?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku?.portrait, spriteScale: characters.goku?.spriteScale, animationData: null },
+    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.
+    // FORM-AWARE: recolorTag drives retagFormAnim (abilities.js) so the colour persists through the SSJ / SSG /
+    // SS-Blue ladder (base + goku_ssj/ssg/ssb locomotion sheets recoloured). Orange gi → garment, blue
+    // undershirt/belt/boots → accent; skin + black hair protected, SSJ gold hair kept.
+    { id: "gokuAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("goku", "albedo"),   spriteScale: characters.goku?.spriteScale, animationData: recolorSkinAnim("goku", "albedo"),   recolorTag: "albedo" },    // black gi / red accents
+    { id: "gokuValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("goku", "valkyrie"), spriteScale: characters.goku?.spriteScale, animationData: recolorSkinAnim("goku", "valkyrie"), recolorTag: "valkyrie" },  // light-blue gi / gold accents
+    { id: "gokuAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("goku", "alienx"),   spriteScale: characters.goku?.spriteScale, animationData: recolorSkinAnim("goku", "alienx"),   recolorTag: "alienx" },    // matte-black Celestialsapien + starfield overlay (all forms)
   ],
 
   // KCM Naruto. Same reason as Goku above: WITHOUT a default skin, applySkin()

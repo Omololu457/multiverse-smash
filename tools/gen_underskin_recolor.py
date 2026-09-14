@@ -127,10 +127,19 @@ def goku_classify(h, s, v):
     if 14 <= h <= 46 and 0.28 <= s < 0.66 and v >= 0.45:  return "SKIN"  # face / hands (mid-sat warm) — protected
     return "OTHER"
 
+def naruto_classify(h, s, v):
+    # Naruto (Kurama Chakra Mode): a full-body warm chakra CLOAK (red→orange→yellow gradient) with no
+    # colour-separable skin/garment — so recolour the whole warm cloak as one unified theme (like Baki),
+    # matching how his existing alt-skins recolour hue 5-66. Only true-dark outline is protected.
+    if v < 0.14:                                    return "DARK"     # outline / deep seal shadow (protected)
+    if (h <= 62 or h >= 338) and s >= 0.30:          return "GARMENT"  # whole warm chakra cloak (unified theme)
+    return "OTHER"                                                    # white highlights / eyes kept
+
 CHARS = {
     "baki":      dict(classify=baki_classify),
     "vegeta":    dict(classify=vegeta_classify),
     "goku":      dict(classify=goku_classify),
+    "naruto":    dict(classify=naruto_classify),
     "boruto":    dict(classify=boruto_classify),
     "kakashi":   dict(classify=kakashi_classify),
     "kurapika":  dict(classify=kurapika_classify),

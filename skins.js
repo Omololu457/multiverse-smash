@@ -239,7 +239,14 @@ export const SKINS = {
   // native ~63px (half size). This entry sources his real spriteScale from the
   // character. No alt skins yet. (Naruto universe → not a JJK-beta skin.)
   naruto: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naruto?.portrait, spriteScale: characters.naruto?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naruto?.portrait, spriteScale: characters.naruto?.spriteScale, animationData: null },
+    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.
+    // Naruto is in Kurama Chakra Mode (a full-body warm chakra cloak with no colour-separable skin), so the
+    // whole cloak is recoloured as one unified theme (like Baki). Not form-aware — his ult is a move/summon,
+    // not a sprite swap. Alien X = matte-black void + procedural starfield overlay.
+    { id: "narutoAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("naruto", "albedo"),   spriteScale: characters.naruto?.spriteScale, animationData: recolorSkinAnim("naruto", "albedo") },    // dark chakra cloak
+    { id: "narutoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("naruto", "valkyrie"), spriteScale: characters.naruto?.spriteScale, animationData: recolorSkinAnim("naruto", "valkyrie") },  // ice-blue chakra cloak
+    { id: "narutoAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("naruto", "alienx"),   spriteScale: characters.naruto?.spriteScale, animationData: recolorSkinAnim("naruto", "alienx") },    // matte-black Celestialsapien + starfield overlay
   ],
 
   // Sasuke (Naruto universe). Same reason as Naruto/Goku: WITHOUT a default skin, applySkin()

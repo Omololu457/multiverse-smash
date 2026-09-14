@@ -794,6 +794,7 @@
     "test:comeback-finisher": "node harness/comeback_finisher.test.mjs",
     "test:breaker-finisher-shots": "node harness/stage1_breaker_finisher_shots.mjs",
     "test:breaker-roster": "node harness/stage2_breaker_roster.mjs",
+    "test:combo-break-prompt": "node harness/combo_break_prompt_verify.mjs",
     "test:finisher-roster": "node harness/stage3_finisher_roster.mjs",
     "test:valley-music": "node harness/valley_music_verify.mjs",
     "test:universe-stages": "node harness/universe_stages_verify.mjs",

@@ -3578,6 +3578,44 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.textBaseline = "alphabetic"
   }
 
+  // COMBO-BREAK PROMPT (teach-the-system cue): the moment a fighter is BEING combo'd AND can actually afford
+  // a break right now, flash a small "BREAK!" pill with that fighter's exact input beside their HUD — so a
+  // player who doesn't know the system yet sees, in the moment, "you can escape right now, here's how." It is
+  // purely presentational: canBreakNow() mirrors the SAME gates tryComboBreaker (combat.js) checks, but only
+  // to decide whether to DRAW — it never touches the mechanic, threshold, or resource. Hidden the instant a
+  // break isn't payable (no stock / not enough meter / cooldown), so it stays unobtrusive.
+  function canBreakNow(fighter, opponent) {
+    if (!fighter || !opponent) return false
+    if ((fighter.hitstun || 0) <= 0) return false                                     // only while stunned
+    const hasEnergy = fighter.traits?.hasEnergy !== false && (fighter.maxEnergy || 0) > 1
+    const thr = hasEnergy ? COMBO_BREAKER.threshold : COMBO_BREAKER.meterlessThreshold
+    if ((opponent.comboCounter || 0) < thr) return false                              // only vs a REAL combo
+    if ((fighter.comboBreakStocks || 0) <= 0) return false                            // needs a break STOCK
+    if (hasEnergy && (fighter.energy || 0) < COMBO_BREAKER.energyCost) return false    // meter-cost gate
+    if (!hasEnergy && (fighter.comboBreakerCd || 0) > 0) return false                  // cooldown-cost gate
+    return true
+  }
+  function drawBreakPrompt(fighter, opponent, x, flip) {
+    if (!canBreakNow(fighter, opponent)) return
+    const cc = fighter.controls || {}
+    const label = `⛓ BREAK!  ${prettyKey(cc.block)} + ${prettyKey(cc.special)}`
+    ctx.save()
+    ctx.font = "800 12px Arial"
+    const padX = 10, hgt = 20
+    const boxW = ctx.measureText(label).width + padX * 2
+    const bx   = flip ? (x + barW + 20 - boxW) : x                    // right-align under P2's panel, left under P1's
+    const by   = hpY + 14 + barH + 18                                 // just below the BREAK-pip strip
+    const pulse = 0.5 + 0.5 * Math.sin(globalFrameCount * 0.3)        // deterministic flash (no Math.random)
+    rrect(ctx, bx, by, boxW, hgt, 6)
+    ctx.fillStyle = `rgba(28,16,0,${0.6 + 0.18 * pulse})`; ctx.fill()
+    ctx.lineWidth = 1.5; ctx.strokeStyle = `rgba(251,191,36,${0.55 + 0.45 * pulse})`
+    ctx.shadowBlur = 9 * pulse; ctx.shadowColor = "#fbbf24"; ctx.stroke(); ctx.shadowBlur = 0
+    ctx.fillStyle = `rgba(255,226,138,${0.85 + 0.15 * pulse})`
+    ctx.textAlign = "left"; ctx.textBaseline = "middle"
+    ctx.fillText(label, bx + padX, by + hgt / 2 + 0.5)
+    ctx.restore()
+  }
+
   // BOSS HUD variant (Stage 20): when a fighter is an arcade boss, the human player keeps a normal
   // panel and the boss gets a single wide, red, center-draining bar across the top with its name —
   // replacing the standard two-portrait layout. A branch, NOT a fork of the HUD.
@@ -3606,11 +3644,15 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.restore()
   }
   if (boss) {
-    drawHealthPanel(pad, false, boss === p2 ? p1 : p2)   // the human player, on the left
+    const human = boss === p2 ? p1 : p2
+    drawHealthPanel(pad, false, human)   // the human player, on the left
     drawBossBar(boss)
+    drawBreakPrompt(human, boss, pad, false)
   } else {
     drawHealthPanel(pad, false, p1)
     drawHealthPanel(cw - pad - barW - 20, true,  p2)
+    drawBreakPrompt(p1, p2, pad, false)
+    drawBreakPrompt(p2, p1, cw - pad - barW - 20, true)
   }
 
   const pipCX = cw / 2, pipY = hpY + 22, pipR = 7, pipGap = 20, maxWins = 2
@@ -3925,6 +3967,17 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
   if (Array.isArray(info.history) && info.history.length && w >= 980) {
     ctx.fillStyle = "rgba(255,255,255,0.75)"
     ctx.fillText(`Last: ${info.history[0]?.display || "Neutral"}`, 28, panelY + 188)
+  }
+
+  // COMBO-BREAK DRILL tip: when the dummy is set to "combo", spell out the escape input right under
+  // the panel so the player knows what the flashing ⛓ BREAK! prompt is asking for.
+  if (info.dummy === "combo") {
+    const keys = `${prettyKey(info.breakBlock)} + ${prettyKey(info.breakSpecial)}`
+    const tipY = panelY + 196 + 10
+    ctx.fillStyle = "rgba(20,12,0,0.72)"; ctx.fillRect(16, tipY, panelW, 26)
+    ctx.strokeStyle = "rgba(251,191,36,0.6)"; ctx.strokeRect(16, tipY, panelW, 26)
+    ctx.fillStyle = "#ffe08a"; ctx.font = "bold 12px Arial"
+    ctx.fillText(`⛓ Being combo'd? BREAK OUT: ${keys}`, 28, tipY + 17)
   }
 
   ctx.restore()
@@ -4492,11 +4545,13 @@ function buildTutorialPages(c = {}) {
     },
     {
       title: "DEFENSE", accent: "#86efac",
-      blurb: "You can't act out of hitstun, so blocking and parries are how you survive pressure.",
+      blurb: "You can't act out of hitstun, so blocking, parries, and the combo breaker are how you survive pressure.",
       rows: [
-        ["Block", `Hold ${prettyKey(c.down)}`, "Hold to guard. Blocking bleeds small CHIP damage but stops the combo."],
+        ["Block", `Hold ${prettyKey(c.block)}`, "Hold the dedicated guard button to block. Blocking bleeds small CHIP damage but stops the combo."],
         ["Parry", `${prettyKey(c.heavy)} (timed)`, "Tap Heavy just as an attack STARTS up to deflect it and stagger the attacker."],
-        ["Tech roll", `${prettyKey(c.left)} / ${prettyKey(c.right)} on knockdown`, "Hold a direction as you land to roll and recover safely."]
+        ["Tech roll", `${prettyKey(c.left)} / ${prettyKey(c.right)} on knockdown`, "Hold a direction as you land to roll and recover safely."],
+        ["Combo breaker", comboKeys(c.block, c.special), "Stuck in a combo? While in hitstun on a 3+ hit combo, press Block + Special to BURST OUT — you get i-frames and knock the attacker away. Watch for the flashing ⛓ BREAK! prompt by your health bar — it only shows when you can actually afford it."],
+        ["BREAK stock", "2 per round", "Each breaker spends one BREAK pip (under your health bar) plus meter — or a short cooldown for meterless fighters. Use it to escape the nastiest strings, not every hit."]
       ]
     },
     {

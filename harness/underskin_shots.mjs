@@ -62,6 +62,12 @@ const CONFIG = {
   shinobu: { p1: "shinobu", skins: [{ id: "shinobuValkyrie", tag: "valkyrie" }, { id: "shinobuAlienX", tag: "alienx" }] },
   inosuke: { p1: "inosuke", skins: [{ id: "inosukeAlbedo", tag: "albedo" }, { id: "inosukeValkyrie", tag: "valkyrie" }, { id: "inosukeAlienX", tag: "alienx" }] },
   nezuko:  { p1: "nezuko",  skins: [{ id: "nezukoAlbedo", tag: "albedo" }, { id: "nezukoValkyrie", tag: "valkyrie" }, { id: "nezukoAlienX", tag: "alienx" }] },
+  // ── JJK part 1 (base-recolour; alt_sukuna mostly-black → Valk+AlienX) ──
+  sukuna:     { p1: "sukuna",     skins: [{ id: "sukunaAlbedo", tag: "albedo" }, { id: "sukunaValkyrie", tag: "valkyrie" }, { id: "sukunaAlienX", tag: "alienx" }] },
+  alt_sukuna: { p1: "alt_sukuna", skins: [{ id: "alt_sukunaValkyrie", tag: "valkyrie" }, { id: "alt_sukunaAlienX", tag: "alienx" }] },
+  aoi_todo:   { p1: "aoi_todo",   skins: [{ id: "aoi_todoAlbedo", tag: "albedo" }, { id: "aoi_todoValkyrie", tag: "valkyrie" }, { id: "aoi_todoAlienX", tag: "alienx" }] },
+  yuji:       { p1: "yuji",       skins: [{ id: "yujiAlbedo", tag: "albedo" }, { id: "yujiValkyrie", tag: "valkyrie" }, { id: "yujiAlienX", tag: "alienx" }] },
+  handler:    { p1: "handler",    skins: [{ id: "handlerAlbedo", tag: "albedo" }, { id: "handlerValkyrie", tag: "valkyrie" }, { id: "handlerAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];

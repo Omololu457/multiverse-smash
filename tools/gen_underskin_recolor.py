@@ -267,8 +267,52 @@ def nezuko_classify(h, s, v):
     if 300 <= h <= 350 and s >= 0.28:                 return "GARMENT"  # pink kimono
     return "OTHER"
 
+def sukuna_classify(h, s, v):
+    # Sukuna: dark blue-black kimono = GARMENT; PINK hair + tan curse-markings + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 305 <= h <= 348 and s >= 0.35:                 return "OTHER"    # pink hair (kept)
+    if 6 <= h <= 44 and 0.18 <= s < 0.62 and v >= 0.45:  return "SKIN"  # skin + markings
+    if (195 <= h <= 265 or s < 0.28) and v < 0.5:     return "GARMENT"  # dark kimono
+    return "OTHER"
+
+def alt_sukuna_classify(h, s, v):
+    # Alternate (4-armed) Sukuna: mostly-black kimono = GARMENT; pink hair + skin/markings protected.
+    if v < 0.12:                                     return "DARK"
+    if 305 <= h <= 348 and s >= 0.35:                 return "OTHER"    # pink hair
+    if 6 <= h <= 44 and 0.2 <= s < 0.62 and v >= 0.5:  return "SKIN"    # skin + markings
+    if v < 0.5 and s < 0.55 and not (h < 40 or h > 300):  return "GARMENT"  # dark kimono (exclude warm/pink)
+    return "OTHER"
+
+def aoi_todo_classify(h, s, v):
+    # Aoi Todo: dark-blue JJK uniform = GARMENT; large skin region + dark hair protected.
+    if v < 0.15:                                     return "DARK"
+    if 4 <= h <= 42 and 0.22 <= s < 0.75 and v >= 0.42:  return "SKIN"  # face + big build skin
+    if 188 <= h <= 262 and s >= 0.22:                 return "GARMENT"  # blue uniform
+    return "OTHER"
+
+def yuji_classify(h, s, v):
+    # Yuji: dark JJK uniform = GARMENT; PINK/salmon hair + skin protected; red trim = ACCENT.
+    if v < 0.13:                                     return "DARK"
+    if 300 <= h <= 345 and s >= 0.30:                 return "OTHER"    # pink/salmon hair (kept)
+    if 6 <= h <= 42 and 0.2 <= s < 0.6 and v >= 0.45:  return "SKIN"    # face
+    if (h <= 8 or h >= 350) and s >= 0.6:             return "ACCENT"   # red trim
+    if (185 <= h <= 262 or s < 0.3) and v < 0.55:     return "GARMENT"  # dark uniform
+    return "OTHER"
+
+def handler_classify(h, s, v):
+    # Handler (Megumi): blue JJK uniform = GARMENT; black hair + skin protected.
+    if v < 0.14:                                     return "DARK"
+    if 6 <= h <= 42 and 0.2 <= s < 0.62 and v >= 0.5:  return "SKIN"    # face
+    if 200 <= h <= 265 and s >= 0.28:                 return "GARMENT"  # blue uniform
+    return "OTHER"
+
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "sukuna":     dict(classify=sukuna_classify),
+    "alt_sukuna": dict(classify=alt_sukuna_classify),
+    "aoi_todo":   dict(classify=aoi_todo_classify),
+    "yuji":       dict(classify=yuji_classify),
+    "handler":    dict(classify=handler_classify),
     "zenitsu":   dict(classify=zenitsu_classify),
     "rengoku":   dict(classify=rengoku_classify),
     "shinobu":   dict(classify=shinobu_classify),

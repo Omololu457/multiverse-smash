@@ -196,8 +196,40 @@ def bardock_classify(h, s, v):
     if (h <= 12 or h >= 338) and s >= 0.55:           return "ACCENT"   # red headband / bands
     return "OTHER"                                                     # green+white armour kept
 
+def gohan_classify(h, s, v):
+    # Teen Gohan: PURPLE gi = GARMENT, teal sash/wristbands = ACCENT, skin + black hair protected.
+    # SSJ2 form (via recolorTag) keeps gold hair (warm high-val → SKIN-range protect handled below).
+    if v < 0.14:                                     return "DARK"
+    if 248 <= h <= 298 and s >= 0.32:                 return "GARMENT"  # purple gi
+    if 150 <= h <= 205 and s >= 0.30:                 return "ACCENT"   # teal sash / wristbands
+    if (8 <= h <= 42 or h >= 350) and 0.20 <= s < 0.7 and v >= 0.5:  return "SKIN"  # face (+ SSJ2 gold hair kept via OTHER)
+    if 40 <= h <= 62 and s >= 0.45 and v >= 0.6:      return "OTHER"    # SSJ2 gold hair (kept)
+    return "OTHER"
+
+def goku_black_classify(h, s, v):
+    # Goku Black: dark grey-blue gi = GARMENT, red sash = ACCENT, black hair+outline (v<0.13) protected,
+    # skin protected. Rose form (recolorTag) → pink hair; protected as OTHER (magenta, high-val).
+    if v < 0.13:                                     return "DARK"
+    if (h <= 12 or h >= 344) and s >= 0.5 and v >= 0.3:  return "ACCENT"  # red sash
+    if 8 <= h <= 42 and 0.22 <= s < 0.7 and v >= 0.5:   return "SKIN"    # face
+    if v < 0.5 and s < 0.5:                           return "GARMENT"  # dark grey-blue gi + pants
+    return "OTHER"                                                     # pink Rose hair / lighter bits kept
+
+def vegeta_dark_classify(h, s, v):
+    # Dark Vegeta: near-all-black suit + hair (protected — can't separate). Recolour the SILVER ARMOUR as the
+    # GARMENT (the one large non-black element) + red accents; black suit/hair kept. Albedo makes armour dark
+    # (subtle → we DROP albedo for this char, like Boruto); Valkyrie makes armour light-blue (dramatic).
+    if v < 0.14:                                     return "DARK"     # black suit + hair + outline (protected)
+    if (h <= 12 or h >= 328) and s >= 0.5:            return "ACCENT"   # red accents
+    if 8 <= h <= 42 and 0.20 <= s < 0.6 and v >= 0.55:  return "SKIN"   # face
+    if s < 0.28 and v >= 0.4:                         return "GARMENT"  # silver/grey armour
+    return "OTHER"
+
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "gohan":     dict(classify=gohan_classify),
+    "goku_black": dict(classify=goku_black_classify),
+    "vegeta_dark": dict(classify=vegeta_dark_classify),
     "piccolo":   dict(classify=piccolo_classify),
     "frieza":    dict(classify=frieza_classify),
     "beerus":    dict(classify=beerus_classify, probe_src="beerus_idle_u.png"),

@@ -242,7 +242,11 @@ export const SKINS = {
   // spriteScale:1 fallback and he renders at native ~65px (half size). This entry sources his real
   // spriteScale from the character. No alt skins yet (creative recolors are a later stage).
   kakashi: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kakashi?.portrait, spriteScale: characters.kakashi?.spriteScale, animationData: null },
+    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.
+    { id: "kakashiAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("kakashi", "albedo"),   spriteScale: characters.kakashi?.spriteScale, animationData: recolorSkinAnim("kakashi", "albedo") },    // full-black jonin outfit / red accent
+    { id: "kakashiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("kakashi", "valkyrie"), spriteScale: characters.kakashi?.spriteScale, animationData: recolorSkinAnim("kakashi", "valkyrie") },  // icy light-blue outfit / gold accent
+    { id: "kakashiAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("kakashi", "alienx"),   spriteScale: characters.kakashi?.spriteScale, animationData: recolorSkinAnim("kakashi", "alienx") },    // matte-black Celestialsapien + starfield overlay
   ],
 
   // Gwen (ben10) — HAIR + TOP recolored per theme (coordinated hue family), PANTS a coordinated dark accent;
@@ -598,6 +602,10 @@ export const SKINS = {
   // REQUIRED: without it applySkin() falls back to spriteScale:1 and the sprite renders native-shrunk.
   boruto: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.boruto?.portrait, spriteScale: characters.boruto?.spriteScale, animationData: null },
+    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py). Boruto's jacket is already near-black, so
+    // Albedo was skipped (would read identical to Default); Valkyrie recolours the tracksuit light-blue.
+    { id: "borutoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("boruto", "valkyrie"), spriteScale: characters.boruto?.spriteScale, animationData: recolorSkinAnim("boruto", "valkyrie") },  // light-blue tracksuit / gold accent
+    { id: "borutoAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("boruto", "alienx"),   spriteScale: characters.boruto?.spriteScale, animationData: recolorSkinAnim("boruto", "alienx") },      // matte-black Celestialsapien + starfield overlay
   ],
   // Light Yagami — Default + 8 creative recolors (2 groups) + Void Sovereign + Umbral Reflection = 11.
   // tools/gen_light_creative.py: SUIT primary (black→white neutral ramp, value-spread kept → outline survives),
@@ -1101,6 +1109,12 @@ export const SKINS = {
   // the recolored portrait; animationData:null so the character's own __rickprime sheets are used.
   rickPrime: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rickPrime?.portrait, spriteScale: characters.rickPrime?.spriteScale, animationData: null },
+    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.
+    // rickPrime's base sheets are the Rick recolour rick_*__rickprime.png; recolorSkinAnim retags to
+    // rick_*__rickprime__<tag>.png. Pale-cyan hair is protected (kept) on Albedo/Valkyrie.
+    { id: "rickPrimeAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("rickPrime", "albedo"),   spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "albedo") },    // black coat / red accent, cyan hair kept
+    { id: "rickPrimeValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "valkyrie"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "valkyrie") },  // light-blue coat / gold accent, cyan hair kept
+    { id: "rickPrimeAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("rickPrime", "alienx"),   spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "alienx") },    // matte-black Celestialsapien + starfield overlay
   ],
 
   // Beerus (Dragon Ball) — new single-form sprite char. Same gate: WITHOUT a default skin,
@@ -1152,6 +1166,13 @@ export const SKINS = {
   // his char spriteScale (1.9) → he renders at native ~54px (half size). Same fix as Yuji/Goku/Naruto.
   baki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.baki?.portrait, spriteScale: characters.baki?.spriteScale, animationData: null },
+    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuses Yuta's EXACT albedo/valkyrie
+    // palette values. Baki is bare-chested; his hair + shorts share ONE red palette that can't be
+    // colour-split, so they're recoloured together as a unified theme (skin protected). Alien X =
+    // matte-black void base + procedural colourful starfield (game.js drawAlienXStarfield, id gate).
+    { id: "bakiAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("baki", "albedo"),   spriteScale: characters.baki?.spriteScale, animationData: recolorSkinAnim("baki", "albedo") },    // black hair+shorts / skin kept
+    { id: "bakiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("baki", "valkyrie"), spriteScale: characters.baki?.spriteScale, animationData: recolorSkinAnim("baki", "valkyrie") },  // light-blue hair+shorts / skin kept
+    { id: "bakiAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("baki", "alienx"),   spriteScale: characters.baki?.spriteScale, animationData: recolorSkinAnim("baki", "alienx") },    // matte-black Celestialsapien + procedural starfield overlay
   ],
 
   toji: [
@@ -1823,7 +1844,12 @@ export const SKINS = {
   // Kurapika — Stage-1 default only (keeps the characters.js spriteScale/animationData; else applySkin
   // native-shrinks to spriteScale:1). Creative recolors + Emperor Time scarlet-eyed variant are a S6 follow-up.
   kurapika: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kurapika?.portrait, spriteScale: characters.kurapika?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kurapika?.portrait, spriteScale: characters.kurapika?.spriteScale, animationData: null },
+    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.
+    // Kurapika's blue tabard is hue-separable → cleanest garment recolour of the batch.
+    { id: "kurapikaAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("kurapika", "albedo"),   spriteScale: characters.kurapika?.spriteScale, animationData: recolorSkinAnim("kurapika", "albedo") },    // black tabard / red accent
+    { id: "kurapikaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("kurapika", "valkyrie"), spriteScale: characters.kurapika?.spriteScale, animationData: recolorSkinAnim("kurapika", "valkyrie") },  // light-blue tabard / gold accent
+    { id: "kurapikaAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("kurapika", "alienx"),   spriteScale: characters.kurapika?.spriteScale, animationData: recolorSkinAnim("kurapika", "alienx") },    // matte-black Celestialsapien + starfield overlay
   ],
   // Spider-Man — Default + the "Negative Zone" white/blue alt-costume. The alt is NOT an abstract hue-
   // rotate: it REVERSE-ENGINEERS the REAL pre-drawn CPS2 white/blue palette-swap from the source art

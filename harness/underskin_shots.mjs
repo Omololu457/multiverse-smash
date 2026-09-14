@@ -1,0 +1,100 @@
+// harness/underskin_shots.mjs — live verification for the ADD-ONLY under-skinned-character skins
+// (tools/gen_underskin_recolor.py: albedo / valkyrie / alienx). For each new skin on each character:
+//   - STATIC: every recolored sheet + portrait exists on disk (size > 128 bytes).
+//   - LIVE: setSkin in a REAL match, force idle / walk / light / heavy, assert it renders a SPRITE
+//     (never a procedural box) and that the ACTIVE sheet is the recolored __<tag> sheet.
+//   - Alien X: also render several frames so the drawAlienXStarfield overlay runs WITHOUT error.
+//   - Screenshot each skin at idle + one attack pose → harness/shots/underskin_<char>_<id>_<pose>.png
+// Usage: node harness/underskin_shots.mjs [char ...]   (default: every configured char)
+import { chromium } from "playwright";
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const OUT = path.join(ROOT, "harness", "shots"); fs.mkdirSync(OUT, { recursive: true });
+let pass = 0, fail = 0; const check = (n, c, e = "") => { console.log(`${c ? "✓" : "✗"} ${n}${e ? "  — " + e : ""}`); c ? pass++ : fail++; };
+
+// CONFIG — per character: which new skins (id + recolor tag) were added. Extended per stage.
+const CONFIG = {
+  baki: { p1: "baki", skins: [
+    { id: "bakiAlbedo", tag: "albedo" }, { id: "bakiValkyrie", tag: "valkyrie" }, { id: "bakiAlienX", tag: "alienx" },
+  ] },
+  boruto: { p1: "boruto", skins: [
+    { id: "borutoValkyrie", tag: "valkyrie" }, { id: "borutoAlienX", tag: "alienx" },
+  ] },
+  kakashi: { p1: "kakashi", skins: [
+    { id: "kakashiAlbedo", tag: "albedo" }, { id: "kakashiValkyrie", tag: "valkyrie" }, { id: "kakashiAlienX", tag: "alienx" },
+  ] },
+  kurapika: { p1: "kurapika", skins: [
+    { id: "kurapikaAlbedo", tag: "albedo" }, { id: "kurapikaValkyrie", tag: "valkyrie" }, { id: "kurapikaAlienX", tag: "alienx" },
+  ] },
+  rickPrime: { p1: "rickPrime", skins: [
+    { id: "rickPrimeAlbedo", tag: "albedo" }, { id: "rickPrimeValkyrie", tag: "valkyrie" }, { id: "rickPrimeAlienX", tag: "alienx" },
+  ] },
+};
+const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
+const ACTIONS = ["idle", "walk", "light", "heavy"];
+
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg", ".css": "text/css", ".json": "application/json" };
+const server = await new Promise(r => { const s = http.createServer((rq, rs) => { const u = decodeURIComponent(rq.url.split("?")[0]); const f = path.join(ROOT, u === "/" ? "/index.html" : u); if (!f.startsWith(ROOT)) { rs.writeHead(403).end(); return; } fs.readFile(f, (e, d) => { if (e) { rs.writeHead(404).end(); return; } rs.writeHead(200, { "content-type": MIME[path.extname(f)] || "application/octet-stream" }); rs.end(d); }); }); s.listen(0, "127.0.0.1", () => r(s)); });
+const base = `http://127.0.0.1:${server.address().port}`;
+const b = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required"] });
+
+for (const char of WANT) {
+  const cfg = CONFIG[char]; if (!cfg) { check(`config for ${char}`, false, "not configured"); continue; }
+  const pg = await b.newPage({ viewport: { width: 1280, height: 720 } });
+  const errs = []; pg.on("pageerror", e => errs.push(String(e)));
+  await pg.goto(`${base}/index.html?harness=1&p1=${cfg.p1}`, { waitUntil: "load" });
+  await pg.waitForFunction(() => !!window.__harness); await pg.mouse.click(640, 360);
+  await pg.evaluate(() => window.__harness.start());
+  await pg.evaluate(() => window.__harness.skipToBattle());
+  const wf = async n => { const s = (await pg.evaluate(() => window.__harness.state())).frame; await pg.waitForFunction(([a, c]) => window.__harness.state().frame >= a + c, [s, n], { polling: 16 }); };
+  const force = a => pg.evaluate(act => window.__harness.forceAction(act, "p1"), a);
+  await wf(6);
+
+  // STATIC: the recolored sheets exist. Base sheet set = the char's actual default sprites + portrait.
+  // rickPrime's sprites are the Rick recolour rick_*__rickprime.png (+ rick_portrait__rickprime.png).
+  // STATIC: recoloured PORTRAIT exists per tag (naming is char-specific; rickPrime = rick_portrait__rickprime).
+  const portraitFor = tag => char === "rickPrime" ? `rick_portrait__rickprime__${tag}.png` : `${char}_portrait__${tag}.png`;
+  for (const { tag } of cfg.skins) {
+    const pp = path.join(ROOT, portraitFor(tag));
+    check(`${char}/${tag} STATIC: recoloured portrait exists`, fs.existsSync(pp) && fs.statSync(pp).size > 128, portraitFor(tag));
+  }
+
+  let boxes = 0;
+  for (const { id, tag } of cfg.skins) {
+    await pg.evaluate(sid => window.__harness.setSkin("p1", sid), id);
+    await wf(6);
+    const rendered = {};
+    for (const act of ACTIONS) {
+      // force() returns { action, sheet } where sheet is the handler's ACTIVE _actionDef sheet — reliable
+      // across all chars incl. the rick-family (whose p1().spriteSheet reads null as a known quirk).
+      const fa = await force(act); await wf(4);
+      const sheet = fa?.sheet || "null";
+      rendered[act] = sheet;
+      const p = await pg.evaluate(() => window.__harness.p1());
+      if (!p.hasSpriteHandler || sheet === "null") boxes++;                 // null sheet => procedural-box fallback
+      if (sheet !== "null" && !sheet.includes(`__${tag}.png`)) boxes++;     // must be the recoloured sheet
+      // the recoloured sheet file must exist on disk (strip leading ./)
+      const onDisk = path.join(ROOT, sheet.replace(/^\.\//, ""));
+      if (sheet !== "null" && !fs.existsSync(onDisk)) boxes++;
+      if (act === "idle" || act === "heavy") {
+        await pg.screenshot({ path: path.join(OUT, `underskin_${char}_${id}_${act}.png`), clip: { x: 300, y: 250, width: 320, height: 360 } });
+      }
+      await force(null); await wf(1);
+    }
+    const ok = ACTIONS.every(a => rendered[a] !== "null" && rendered[a].includes(`__${tag}`));
+    check(`${char}/${id}: renders recoloured sprite across ${ACTIONS.join("/")}`, ok, `idle=${rendered.idle.split("/").pop()}`);
+    // Alien X: run extra frames so the starfield overlay executes; confirm skinId + void sheet + no error.
+    if (tag === "alienx") {
+      const fa = await force("idle"); await wf(16);
+      const vf = await pg.evaluate(() => window.__harness.p1());
+      check(`${char}/${id}: Alien X void sheet + starfield overlay runs`, vf.skinId === id && (fa?.sheet || "").includes("__alienx"), `skin=${vf.skinId} sheet=${(fa?.sheet||"").split("/").pop()}`);
+      await force(null);
+    }
+  }
+  check(`${char}: no procedural boxes across ${cfg.skins.length} skins × ${ACTIONS.length} actions`, boxes === 0, `boxes=${boxes}`);
+  check(`${char}: no page errors (incl. Alien X overlay)`, errs.length === 0, errs.slice(0, 3).join(" | "));
+  await pg.close();
+}
+console.log(`\n${pass} passed, ${fail} failed`);
+await b.close(); server.close();
+process.exit(fail ? 1 : 0);

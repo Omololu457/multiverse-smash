@@ -52,6 +52,10 @@ const CONFIG = {
   vegito:  { p1: "vegito",  skins: [{ id: "vegitoAlbedo", tag: "albedo" }, { id: "vegitoValkyrie", tag: "valkyrie" }, { id: "vegitoAlienX", tag: "alienx" }] },
   gotenks: { p1: "gotenks", skins: [{ id: "gotenksAlbedo", tag: "albedo" }, { id: "gotenksValkyrie", tag: "valkyrie" }, { id: "gotenksAlienX", tag: "alienx" }] },
   bardock: { p1: "bardock", skins: [{ id: "bardockAlbedo", tag: "albedo" }, { id: "bardockValkyrie", tag: "valkyrie" }, { id: "bardockAlienX", tag: "alienx" }] },
+  // ── Dragon Ball wave 2 (form-aware: Rose / SSJ2 forms recoloured via recolorTag) ──
+  gohan:      { p1: "gohan",      skins: [{ id: "gohanAlbedo", tag: "albedo" }, { id: "gohanValkyrie", tag: "valkyrie" }, { id: "gohanAlienX", tag: "alienx" }] },
+  goku_black: { p1: "goku_black", skins: [{ id: "goku_blackAlbedo", tag: "albedo" }, { id: "goku_blackValkyrie", tag: "valkyrie" }, { id: "goku_blackAlienX", tag: "alienx" }] },
+  vegeta_dark: { p1: "vegeta_dark", skins: [{ id: "vegeta_darkValkyrie", tag: "valkyrie" }, { id: "vegeta_darkAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -81,6 +85,7 @@ for (const char of WANT) {
                            : char === "naruto"    ? `naruto_kcm_portrait__${tag}.png`
                            : char === "sasuke"    ? `sasuke_pfp__${tag}.png`
                            : char === "beerus"    ? `beerus_mugshot__${tag}.png`
+                           : char === "goku_black" ? `goku_black_mug_shot__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

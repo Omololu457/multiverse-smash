@@ -361,6 +361,11 @@ export const SKINS = {
   // transform's magenta-purple (#9b30c9) — that purple is MECHANICAL content, not offered as a skin.
   vegeta_dark: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.vegeta_dark?.portrait, spriteScale: characters.vegeta_dark?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — silver armour → garment, red → accent; near-black
+    // suit + hair kept. Albedo SKIPPED (redundant on an already-black char). FORM-AWARE: recolorTag recolours
+    // the Dark Rose form sheets too (pink hair kept).
+    { id: "vegeta_darkValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("vegeta_dark", "valkyrie"), spriteScale: characters.vegeta_dark?.spriteScale, animationData: recolorSkinAnim("vegeta_dark", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "vegeta_darkAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("vegeta_dark", "alienx"),   spriteScale: characters.vegeta_dark?.spriteScale, animationData: recolorSkinAnim("vegeta_dark", "alienx"),   recolorTag: "alienx" },
     // ── Group 1 ──
     { id: "vegetaDarkCrimsonPrince",  name: "Crimson Prince",  unlockLevel: 0, portrait: "./vegeta_dark_portrait__crimsonprince.png",  spriteScale: characters.vegeta_dark?.spriteScale, animationData: recolorSkinAnim("vegeta_dark", "crimsonprince") },   // deeper crimson hair/armor on black
     { id: "vegetaDarkVerdantSaiyan",  name: "Verdant Saiyan",  unlockLevel: 0, portrait: "./vegeta_dark_portrait__verdantsaiyan.png",  spriteScale: characters.vegeta_dark?.spriteScale, animationData: recolorSkinAnim("vegeta_dark", "verdantsaiyan") },   // green hair/armor on black
@@ -1158,6 +1163,11 @@ export const SKINS = {
   // (the SSJ Rose body-swap is a transformation, not a skin — comes in a later stage).
   goku_black: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.goku_black?.portrait, spriteScale: characters.goku_black?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — dark grey-blue gi → garment, red sash → accent;
+    // black hair + skin protected. FORM-AWARE: recolorTag recolours the SSJ Rose form sheets too (pink hair kept).
+    { id: "goku_blackAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("goku_black", "albedo"),   spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "albedo"),   recolorTag: "albedo" },
+    { id: "goku_blackValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("goku_black", "valkyrie"), spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "goku_blackAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("goku_black", "alienx"),   spriteScale: characters.goku_black?.spriteScale, animationData: recolorSkinAnim("goku_black", "alienx"),   recolorTag: "alienx" },
     // 12 creative recolors (tools/gen_goku_black_creative.py). Per-region GI (near-black outfit, below the
     // per-frame chin) + TRIM (white boots/gloves) + optional HAIR + AURA (FX energy); the warm-tan face/neck
     // SKIN is EXCLUDED from every pass (the deleted SSG pilot's exact failure mode). recolorTag is REQUIRED:
@@ -1704,6 +1714,11 @@ export const SKINS = {
   // is REQUIRED so applySkin() pulls spriteScale (else the char shrinks to source size).
   gohan: [
     { id: "default",           name: "Default",            unlockLevel: 0, portrait: characters.gohan?.portrait,                          spriteScale: characters.gohan?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — purple gi → garment, teal sash → accent; skin +
+    // black hair protected. FORM-AWARE: recolorTag recolours the SSJ2 form sheets too (gold hair kept).
+    { id: "gohanAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("gohan", "albedo"),   spriteScale: characters.gohan?.spriteScale, animationData: recolorSkinAnim("gohan", "albedo"),   recolorTag: "albedo" },
+    { id: "gohanValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gohan", "valkyrie"), spriteScale: characters.gohan?.spriteScale, animationData: recolorSkinAnim("gohan", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "gohanAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("gohan", "alienx"),   spriteScale: characters.gohan?.spriteScale, animationData: recolorSkinAnim("gohan", "alienx"),   recolorTag: "alienx" },
     // ── Group 1 ──
     { id: "gohanCrimsonSuccessor", name: "Crimson Successor", unlockLevel: 0, portrait: "./gohan_portrait__crimsonsuccessor.png", spriteScale: characters.gohan?.spriteScale, animationData: recolorSkinAnim("gohan", "crimsonsuccessor"), recolorTag: "crimsonsuccessor" }, // deep-red gi / black sash
     { id: "gohanVerdantScholar",   name: "Verdant Scholar",   unlockLevel: 0, portrait: "./gohan_portrait__verdantscholar.png",   spriteScale: characters.gohan?.spriteScale, animationData: recolorSkinAnim("gohan", "verdantscholar"),   recolorTag: "verdantscholar" },   // deep-green gi / dark-green sash

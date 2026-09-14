@@ -2234,10 +2234,12 @@ function endFFA() {
 //     F3; default OFF so damage/combo/meter read naturally and the dummy visibly takes
 //     hits — turn ON for long practice so nobody dies or runs out of meter). KO already
 //     can't end a training session (checkRoundEnd skips), so this is purely convenience.
-//   dummyBehavior     — "stand" | "block" | "jump": training-only override applied in
-//     updateCPUInput (does NOT touch ai.js's shared "dummy" zero-baseline profile).
+//   dummyBehavior     — "stand" | "block" | "jump" | "combo": training-only override applied in
+//     updateCPUInput (does NOT touch ai.js's shared "dummy" zero-baseline profile). "combo" is the
+//     COMBO-BREAK DRILL: the dummy advances and taps Light on a cadence to string a real combo, so
+//     the player can practise reading the ⛓ BREAK! prompt and bursting out (Block + Special).
 const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand", cloneNoTell: false }
-const DUMMY_BEHAVIORS = ["stand", "block", "jump"]
+const DUMMY_BEHAVIORS = ["stand", "block", "jump", "combo"]
 const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
 
 // ── SESSION PERSISTENCE (cross-reload restore of "what the player was doing") ─────────────────
@@ -5109,6 +5111,15 @@ function updateCPUInput() {
     const c = p2.controls
     if (trainingState.dummyBehavior === "block") keys[c.block] = true           // hold guard (dedicated block input — MK-feel Stage 1c)
     else if (trainingState.dummyBehavior === "jump" && p2.onGround) keys[c.up] = true  // hop when grounded
+    else if (trainingState.dummyBehavior === "combo" && p1) {
+      // COMBO-BREAK DRILL: close on the player, then tap Light on a steady cadence so it strings a
+      // real combo the player can practise BREAKING out of. Pure key writes (training-only) — no
+      // change to the breaker mechanic; the combo just gives the ⛓ BREAK! prompt something to react to.
+      const dx = (p1.x + (p1.w || 0) / 2) - (p2.x + (p2.w || 0) / 2)
+      const gap = Math.abs(dx)
+      if (gap > 96) keys[dx < 0 ? c.left : c.right] = true                       // walk into range
+      if (gap <= 130 && (globalFrameCount % 22) < 2) keys[c.light] = true         // rhythmic light pokes → combo
+    }
   }
 }
 
@@ -14260,6 +14271,8 @@ function drawBattleHud() {
     frameData: buildTrainingFrameData(),
     infinite:  trainingState.infiniteResources,
     dummy:     trainingState.dummyBehavior,
+    breakBlock:   p1?.controls?.block,     // for the combo-break drill tip (P1's guard + special)
+    breakSpecial: p1?.controls?.special,
     p1Inputs:  getRelativeDirectionsFromHistory(p1),
     p2Inputs:  getRelativeDirectionsFromHistory(p2),
     history:   getInputHistory()

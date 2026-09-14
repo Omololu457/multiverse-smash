@@ -4195,12 +4195,36 @@ function _drawBloodSplat(c, cx, cy, R, alpha) {
     for (let i = 0; i < N; i++) { const a = (i / N) * Math.PI * 2 + rot, r = rad * _SPLAT_R[i]
       const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; i ? c.lineTo(x, y) : c.moveTo(x, y) }
     c.closePath(); c.fill() }
+  blob(R * 1.24, 0.9, "#8a0018")                                 // outer darker spread — denser, bigger base
   blob(R, 0, "#b3111c")                                          // main dense blob
   blob(R * 0.58, 0.5, "#e11d2a")                                 // brighter inner core
-  c.fillStyle = "#e11d2a"                                        // a few bold spike droplets flung off
-  for (const [dx, dy, d] of [[-1, -0.5, 1.5], [1, -0.65, 1.7], [-0.5, -1, 1.35], [0.75, -0.95, 1.45], [1.25, 0.15, 1.25]]) {
-    c.beginPath(); c.arc(cx + dx * R * d, cy + dy * R * d, R * 0.17, 0, Math.PI * 2); c.fill()
+  c.fillStyle = "#e11d2a"                                        // bold spike droplets flung off (varied sizes)
+  for (const [dx, dy, d, s] of [[-1, -0.5, 1.5, 0.18], [1, -0.65, 1.7, 0.2], [-0.5, -1, 1.35, 0.15], [0.75, -0.95, 1.45, 0.17],
+       [1.25, 0.15, 1.25, 0.14], [-1.35, 0.1, 1.3, 0.16], [0.35, -1.3, 1.5, 0.13], [-0.85, -0.85, 1.7, 0.12], [1.5, -0.35, 1.15, 0.11]]) {
+    c.beginPath(); c.arc(cx + dx * R * d, cy + dy * R * d, R * s, 0, Math.PI * 2); c.fill()
   }
+  c.restore()
+}
+// WOUND CORE at the cut cross-section. Drawn in each half's OWN local space (so it topples/falls with the
+// half), along the raw cut edge. Simple LAYERED shapes in the clean-red family — a dark-clot gradient bleeding
+// inward from the edge, 2 deeper internal masses at torso height, and a bright wet sliver right on the cut line
+// — so the sliced surface reads as internal damage, NOT a clean geometric edge. `inward` = +1/-1 toward the body.
+function _drawWoundCore(c, edgeX, cyLocal, bodyH, inward, cell, alpha) {
+  c.save(); c.globalAlpha = alpha
+  const depth    = Math.max(10, cell * 5)                        // how far the damage bleeds into the body
+  const halfSpan = bodyH * 0.34                                  // central band (torso height), not the whole silhouette
+  const g = c.createLinearGradient(edgeX, 0, edgeX + inward * depth, 0)
+  g.addColorStop(0, "#6e0016")                                   // deep clot right at the raw edge
+  g.addColorStop(0.5, "#a11026")                                 // mid red
+  g.addColorStop(1, "rgba(161,16,38,0)")                         // fades into the body
+  c.fillStyle = g
+  c.beginPath(); c.rect(Math.min(edgeX, edgeX + inward * depth), cyLocal - halfSpan, depth, halfSpan * 2); c.fill()
+  c.fillStyle = "#5a0012"                                        // darker internal mass (upper torso)
+  c.beginPath(); c.ellipse(edgeX + inward * depth * 0.32, cyLocal - bodyH * 0.05, depth * 0.5, bodyH * 0.14, 0, 0, Math.PI * 2); c.fill()
+  c.fillStyle = "#8a0018"                                        // mid internal mass (lower torso)
+  c.beginPath(); c.ellipse(edgeX + inward * depth * 0.5, cyLocal + bodyH * 0.08, depth * 0.42, bodyH * 0.1, 0, 0, Math.PI * 2); c.fill()
+  c.fillStyle = "#e11d2a"; c.globalAlpha = alpha * 0.9           // bright wet sliver on the cut line itself
+  c.beginPath(); c.rect(edgeX - cell * 0.5, cyLocal - halfSpan * 0.9, cell, halfSpan * 1.8); c.fill()
   c.restore()
 }
 // One BIG blood DRIP — a bold round blob (reads individually) with a small teardrop tail while it falls.
@@ -4211,18 +4235,22 @@ function _drawBloodDrip(c, p) {
     c.beginPath(); c.moveTo(p.x - p.r * 0.55, p.y); c.lineTo(p.x, p.y - p.r * 1.9); c.lineTo(p.x + p.r * 0.55, p.y); c.closePath(); c.fill()
   }
 }
-// Spawn a SMALL number of BIG drips (3–6) falling from the cut — each big enough to read on its own. No fine
-// scatter. World-space (they do NOT follow the halves). The bold splat + pool carry the mass; these are drips.
-function _spawnBrutalityBlood(b, sx, sy, cell) {
-  const n = 4 + ((Math.random() * 3) | 0)                        // 4–6 drips
+// Spawn a big gush of drips falling from the cut — SIZE-VARIED (fat globs + smaller drips) so it reads as real
+// volume, not a uniform spray. World-space (they do NOT follow the halves). `wave` 1 = the initial cut gush;
+// `wave` 2 = a later secondary trickle (spawned partway through the beat) so the floor keeps filling in.
+function _spawnBrutalityBlood(b, sx, sy, cell, wave = 1) {
+  const n = wave === 1 ? (9 + ((Math.random() * 4) | 0))        // ~9–12 on impact (roughly double the old 4–6)…
+                       : (5 + ((Math.random() * 4) | 0))        // …plus a 5–8 secondary gush later in the beat
   for (let i = 0; i < n; i++) {
-    // Drip DOWN-and-slightly-out from the splat (small sideways spread, gentle downward push) so they read as
-    // blood dripping off the cut — NOT an upward burst that scatters like debris. Gravity carries them to the floor.
+    // Drip DOWN-and-slightly-out from the splat (sideways spread, gentle downward push) so they read as blood
+    // dripping off the cut — NOT an upward burst that scatters like debris. Gravity carries them to the floor.
+    const big = Math.random() < 0.4                              // ~40% are fat globs, the rest smaller drips
     b.parts.push({
-      x: sx + (Math.random() * 2 - 1) * cell * 4, y: sy + (Math.random() * 2 - 1) * cell * 2,
-      vx: (Math.random() * 2 - 1) * 2.4, vy: 0.6 + Math.random() * 1.8,
-      g: 0.5 + Math.random() * 0.2, life: 46 + ((Math.random() * 30) | 0),
-      r: Math.max(5, cell * (2.4 + Math.random() * 1.7)),        // BIG drips (world-px radius), not tiny squares
+      x: sx + (Math.random() * 2 - 1) * cell * 5, y: sy + (Math.random() * 2 - 1) * cell * 2.5,
+      vx: (Math.random() * 2 - 1) * 2.8, vy: 0.5 + Math.random() * 2.0,
+      g: 0.5 + Math.random() * 0.22, life: 46 + ((Math.random() * 36) | 0),
+      r: Math.max(4, cell * (big ? (3.2 + Math.random() * 2.2)  // BIG globs (world-px radius)…
+                                  : (1.5 + Math.random() * 1.6))), // …and smaller drips — VARIED sizes
       color: Math.random() < 0.5 ? BLOOD_REDS[0] : BLOOD_REDS[1]
     })
   }
@@ -4230,16 +4258,21 @@ function _spawnBrutalityBlood(b, sx, sy, cell) {
 // BOLD ground POOL — a solid, saturated red blob (overlapping ellipses, irregular), not a faint outline.
 // Grows over the beat. cx/groundY world; cell scales it to the character.
 function _drawGroundPool(c, cx, groundY, cell, t) {
-  if (t < 0.2) return
-  const grow = Math.min(1, (t - 0.2) / 0.5)
-  const rx = (16 + 34 * grow) * (cell / 3), ry = rx * 0.34
+  if (t < 0.15) return
+  // Spread across almost the WHOLE beat (not done by t=0.7) and to a much bigger max, so the pool visibly keeps
+  // pooling out over the freeze — reading as real spilled volume accumulating, not a static mark stamped down.
+  const grow = Math.min(1, (t - 0.15) / 0.75)
+  const rx = (20 + 66 * grow) * (cell / 3), ry = rx * 0.32
   c.save(); c.globalAlpha = 0.96
   c.fillStyle = "#b3111c"
-  c.beginPath(); c.ellipse(cx, groundY, rx, ry, 0, 0, Math.PI * 2); c.fill()                         // main pool
-  c.beginPath(); c.ellipse(cx + rx * 0.72, groundY, rx * 0.3, ry * 0.82, 0, 0, Math.PI * 2); c.fill() // right lobe
-  c.beginPath(); c.ellipse(cx - rx * 0.82, groundY + ry * 0.12, rx * 0.28, ry * 0.7, 0, 0, Math.PI * 2); c.fill() // left lobe
+  c.beginPath(); c.ellipse(cx, groundY, rx, ry, 0, 0, Math.PI * 2); c.fill()                          // main pool
+  c.beginPath(); c.ellipse(cx + rx * 0.72, groundY, rx * 0.34, ry * 0.86, 0, 0, Math.PI * 2); c.fill() // right lobe
+  c.beginPath(); c.ellipse(cx - rx * 0.82, groundY + ry * 0.12, rx * 0.32, ry * 0.74, 0, 0, Math.PI * 2); c.fill() // left lobe
+  // Extra reach-out fingers that emerge only as the spill grows (irregular, spreading edge).
+  c.beginPath(); c.ellipse(cx + rx * 1.02, groundY + ry * 0.2, rx * 0.22 * grow, ry * 0.5, 0, 0, Math.PI * 2); c.fill()
+  c.beginPath(); c.ellipse(cx - rx * 1.1, groundY - ry * 0.06, rx * 0.2 * grow, ry * 0.46, 0, 0, Math.PI * 2); c.fill()
   c.fillStyle = "#e11d2a"
-  c.beginPath(); c.ellipse(cx - rx * 0.12, groundY - ry * 0.22, rx * 0.6, ry * 0.55, 0, 0, Math.PI * 2); c.fill()  // brighter sheen
+  c.beginPath(); c.ellipse(cx - rx * 0.12, groundY - ry * 0.22, rx * 0.62, ry * 0.55, 0, 0, Math.PI * 2); c.fill()  // brighter sheen
   c.restore()
 }
 function updateBrutality() {
@@ -4249,7 +4282,10 @@ function updateBrutality() {
   const cell = sp?.px || 4
   // At the CUT INSTANT, burst blood at the ORIGINAL split point (centre of the captured frame). World-space
   // particles — they do NOT follow the separating halves, so the splatter reads as the moment of impact.
-  if (elapsed === 0 && sp) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell)
+  if (elapsed === 0 && sp) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 1)
+  // Secondary gush a beat later, as the halves part and the wound opens — keeps the floor filling in so the
+  // spill reads as an accumulating volume, not a single one-frame burst.
+  if (elapsed === 10 && sp) _spawnBrutalityBlood(b, sp.x + sp.w / 2, sp.y + sp.h * 0.45, cell, 2)
   const groundY = sp ? sp.groundY : (b.y + 60)
   for (const p of b.parts) {
     if (p.settled) continue
@@ -4280,6 +4316,7 @@ function _drawBrutality() {
   const t       = Math.min(1, elapsed / b.maxTimer)
   const sepEase = 1 - Math.pow(1 - t, 3)                          // easeOutCubic — HARD front-loaded pop, then settle
   const boneA   = Math.min(1, sepEase * 4) * Math.min(1, (1 - t) * 4)   // fades in fast, holds, fades only in the last ~25%
+  const woundA  = Math.min(1, sepEase * 3) * Math.min(1, (1 - t) * 4)   // wound core: revealed as the gap opens, holds, fades late
   if (sp && sp.canvas) {
     const hw = sp.w / 2, seamX = sp.x + hw, cy = sp.y + sp.h / 2
     const cell = sp.px || 4
@@ -4295,18 +4332,22 @@ function _drawBrutality() {
     // GROUND POOL first (behind the halves) — bold saturated blob on the real floor that grows over the beat.
     _drawGroundPool(ctx, seamX, sp.groundY, cell, t)
     // LEFT half — drawn centred on its origin, rotated outward (CCW) about its centre, shoved LEFT + down.
+    // Its CUT edge is the RIGHT edge (local x = +hw/2); the wound core bleeds inward (−x).
     ctx.save(); ctx.translate(seamX - hw / 2 - gap / 2, cy + fall); ctx.rotate(-tilt)
     ctx.drawImage(sp.canvas, 0, 0, hw, sp.h, -hw / 2, -sp.h / 2, hw, sp.h)
+    if (woundA > 0.02) _drawWoundCore(ctx, hw / 2, 0, sp.h, -1, cell, woundA)
     ctx.restore()
-    // RIGHT half — mirror: rotated outward (CW), shoved RIGHT + down.
+    // RIGHT half — mirror: rotated outward (CW), shoved RIGHT + down. Its CUT edge is the LEFT edge
+    // (local x = −hw/2); the wound core bleeds inward (+x).
     ctx.save(); ctx.translate(seamX + hw / 2 + gap / 2, cy + fall); ctx.rotate(tilt)
     ctx.drawImage(sp.canvas, hw, 0, hw, sp.h, -hw / 2, -sp.h / 2, hw, sp.h)
+    if (woundA > 0.02) _drawWoundCore(ctx, -hw / 2, 0, sp.h, 1, cell, woundA)
     ctx.restore()
     // ONE BOLD BLOOD SPLAT at the ORIGINAL cut point (world-space; stays at the impact spot, does NOT follow
     // the halves). Full at impact, lingers, fades in the last stretch.
     const cutX = sp.x + sp.w / 2, cutY = sp.y + sp.h * 0.45
     const splatA = Math.min(1, (1 - t) * 2.5)
-    if (splatA > 0.02) _drawBloodSplat(ctx, cutX, cutY, Math.min(130, Math.max(42, sp.w * 0.46)), splatA)
+    if (splatA > 0.02) _drawBloodSplat(ctx, cutX, cutY, Math.min(172, Math.max(58, sp.w * 0.62)), splatA)
     // BONE — big, simple, bold; centred in the daylight between the halves (revealed as the gap opens).
     if (boneA > 0.02) _drawBone(ctx, seamX, cy + fall, Math.min(150, Math.max(46, sp.h * 0.42)), boneA)
     // A FEW BIG DRIPS on top (bold blobs, world-space).
@@ -4319,8 +4360,12 @@ function _drawBrutality() {
     const gap = sepEase * 90, fall = (t * t) * 26, tilt = sepEase * 0.34
     _drawGroundPool(ctx, b.x, b.y + bh / 2, cell, t)
     ctx.fillStyle = pal[0]
-    ctx.save(); ctx.translate(b.x - bw / 4 - gap / 2, cy + fall); ctx.rotate(-tilt); ctx.fillRect(-bw / 4, -bh / 2, bw / 2, bh); ctx.restore()
-    ctx.save(); ctx.translate(b.x + bw / 4 + gap / 2, cy + fall); ctx.rotate(tilt);  ctx.fillRect(-bw / 4, -bh / 2, bw / 2, bh); ctx.restore()
+    ctx.save(); ctx.translate(b.x - bw / 4 - gap / 2, cy + fall); ctx.rotate(-tilt); ctx.fillRect(-bw / 4, -bh / 2, bw / 2, bh)
+    if (woundA > 0.02) _drawWoundCore(ctx, bw / 4, 0, bh, -1, cell, woundA)
+    ctx.restore()
+    ctx.save(); ctx.translate(b.x + bw / 4 + gap / 2, cy + fall); ctx.rotate(tilt);  ctx.fillRect(-bw / 4, -bh / 2, bw / 2, bh)
+    if (woundA > 0.02) _drawWoundCore(ctx, -bw / 4, 0, bh, 1, cell, woundA)
+    ctx.restore()
     const splatA = Math.min(1, (1 - t) * 2.5)
     if (splatA > 0.02) _drawBloodSplat(ctx, b.x, cy, 52, splatA)
     if (boneA > 0.02) _drawBone(ctx, b.x, cy + fall, 84, boneA)

@@ -429,6 +429,10 @@ export const SKINS = {
   // always canonical. Default entry MANDATORY (else applySkin() → spriteScale:1 native-shrink bug).
   vegito: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.vegito?.portrait, spriteScale: characters.vegito?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — blue gi/armour → garment, skin protected.
+    { id: "vegitoAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("vegito", "albedo"),   spriteScale: characters.vegito?.spriteScale, animationData: recolorSkinAnim("vegito", "albedo") },
+    { id: "vegitoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("vegito", "valkyrie"), spriteScale: characters.vegito?.spriteScale, animationData: recolorSkinAnim("vegito", "valkyrie") },
+    { id: "vegitoAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("vegito", "alienx"),   spriteScale: characters.vegito?.spriteScale, animationData: recolorSkinAnim("vegito", "alienx") },
     // ── Group 1 ──
     { id: "vegitoCrimsonFusion",   name: "Crimson Fusion",   unlockLevel: 0, portrait: "./vegito_portrait__crimsonfusion.png",   spriteScale: characters.vegito?.spriteScale, animationData: recolorSkinAnim("vegito", "crimsonfusion") },     // deep-red gi / black undershirt
     { id: "vegitoVerdantInstinct", name: "Verdant Instinct", unlockLevel: 0, portrait: "./vegito_portrait__verdantinstinct.png", spriteScale: characters.vegito?.spriteScale, animationData: recolorSkinAnim("vegito", "verdantinstinct") },   // green gi / dark-brown undershirt
@@ -1140,7 +1144,11 @@ export const SKINS = {
   // Beerus (Dragon Ball) — new single-form sprite char. Same gate: WITHOUT a default skin,
   // applySkin() pulls the getSkins() spriteScale:1 fallback and he renders at native ~62px.
   beerus: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.beerus?.portrait, spriteScale: characters.beerus?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.beerus?.portrait, spriteScale: characters.beerus?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — blue outfit → garment, purple skin protected.
+    { id: "beerusAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("beerus", "albedo"),   spriteScale: characters.beerus?.spriteScale, animationData: recolorSkinAnim("beerus", "albedo") },
+    { id: "beerusValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("beerus", "valkyrie"), spriteScale: characters.beerus?.spriteScale, animationData: recolorSkinAnim("beerus", "valkyrie") },
+    { id: "beerusAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("beerus", "alienx"),   spriteScale: characters.beerus?.spriteScale, animationData: recolorSkinAnim("beerus", "alienx") },
     // beerusEmerald removed in the Part 0 reset (2026-07-24) — a Beerus recolor will be regenerated in Part 2.
   ],
 
@@ -1641,6 +1649,10 @@ export const SKINS = {
   // canon cybernetic silver plating. The default entry is REQUIRED so applySkin() pulls spriteScale.
   frieza: [
     { id: "default",                name: "Default",             unlockLevel: 0, portrait: characters.frieza?.portrait,                       spriteScale: characters.frieza?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — white bio-body → garment (unified), purple gems → accent.
+    { id: "friezaAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("frieza", "albedo"),   spriteScale: characters.frieza?.spriteScale, animationData: recolorSkinAnim("frieza", "albedo") },
+    { id: "friezaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("frieza", "valkyrie"), spriteScale: characters.frieza?.spriteScale, animationData: recolorSkinAnim("frieza", "valkyrie") },
+    { id: "friezaAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("frieza", "alienx"),   spriteScale: characters.frieza?.spriteScale, animationData: recolorSkinAnim("frieza", "alienx") },
     // ── GROUP 1 ──
     { id: "friezaCrimsonTyrant",    name: "Crimson Tyrant",      unlockLevel: 0, portrait: "./frieza_portrait__crimsontyrant.png",           spriteScale: characters.frieza?.spriteScale, animationData: recolorSkinAnim("frieza", "crimsontyrant"),    recolorTag: "crimsontyrant" },
     { id: "friezaVerdantOverlord",  name: "Verdant Overlord",    unlockLevel: 0, portrait: "./frieza_portrait__verdantoverlord.png",         spriteScale: characters.frieza?.spriteScale, animationData: recolorSkinAnim("frieza", "verdantoverlord"),  recolorTag: "verdantoverlord" },
@@ -1665,6 +1677,10 @@ export const SKINS = {
   // sprite + Piccolo keeps green skin (Gohan is human-tan) → no near-duplicate.
   piccolo: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.piccolo?.portrait, spriteScale: characters.piccolo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — purple gi → garment, green Namekian skin protected.
+    { id: "piccoloAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("piccolo", "albedo"),   spriteScale: characters.piccolo?.spriteScale, animationData: recolorSkinAnim("piccolo", "albedo") },
+    { id: "piccoloValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("piccolo", "valkyrie"), spriteScale: characters.piccolo?.spriteScale, animationData: recolorSkinAnim("piccolo", "valkyrie") },
+    { id: "piccoloAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("piccolo", "alienx"),   spriteScale: characters.piccolo?.spriteScale, animationData: recolorSkinAnim("piccolo", "alienx") },
     // ── Group 1 ──
     { id: "piccoloCrimsonNamekian", name: "Crimson Namekian", unlockLevel: 0, portrait: "./piccolo_portrait__crimsonnamekian.png", spriteScale: characters.piccolo?.spriteScale, animationData: recolorSkinAnim("piccolo", "crimsonnamekian") },   // red gi / green skin
     { id: "piccoloVerdantElder",    name: "Verdant Elder",    unlockLevel: 0, portrait: "./piccolo_portrait__verdantelder.png",    spriteScale: characters.piccolo?.spriteScale, animationData: recolorSkinAnim("piccolo", "verdantelder") },      // deep forest-green gi
@@ -1709,6 +1725,10 @@ export const SKINS = {
   // projectile is a separate non-skin-swapped sheet → stays blue on every skin.
   gotenks: [
     { id: "default",             name: "Default",         unlockLevel: 0, portrait: characters.gotenks?.portrait,                       spriteScale: characters.gotenks?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — blue undershirt/pants → garment, red vest → accent; SSJ gold hair + skin kept.
+    { id: "gotenksAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("gotenks", "albedo"),   spriteScale: characters.gotenks?.spriteScale, animationData: recolorSkinAnim("gotenks", "albedo") },
+    { id: "gotenksValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gotenks", "valkyrie"), spriteScale: characters.gotenks?.spriteScale, animationData: recolorSkinAnim("gotenks", "valkyrie") },
+    { id: "gotenksAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("gotenks", "alienx"),   spriteScale: characters.gotenks?.spriteScale, animationData: recolorSkinAnim("gotenks", "alienx") },
     // ── Group 1 ──
     { id: "gotenksCrimsonFusion", name: "Crimson Fusion", unlockLevel: 0, portrait: "./gotenks_portrait__crimsonfusion.png", spriteScale: characters.gotenks?.spriteScale, animationData: recolorSkinAnim("gotenks", "crimsonfusion") },   // deep-red vest / black sash
     { id: "gotenksVerdantDuo",    name: "Verdant Duo",    unlockLevel: 0, portrait: "./gotenks_portrait__verdantduo.png",    spriteScale: characters.gotenks?.spriteScale, animationData: recolorSkinAnim("gotenks", "verdantduo") },      // deep-green vest / dark-green sash
@@ -1733,6 +1753,10 @@ export const SKINS = {
   // NO reserved palette (the SSJ gold flash is a cosmetic taunt, not a form). Cosmetic only; zero gameplay.
   bardock: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.bardock?.portrait, spriteScale: characters.bardock?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — navy under-suit → garment, red bands → accent; green+white armour, skin kept.
+    { id: "bardockAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("bardock", "albedo"),   spriteScale: characters.bardock?.spriteScale, animationData: recolorSkinAnim("bardock", "albedo") },
+    { id: "bardockValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("bardock", "valkyrie"), spriteScale: characters.bardock?.spriteScale, animationData: recolorSkinAnim("bardock", "valkyrie") },
+    { id: "bardockAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("bardock", "alienx"),   spriteScale: characters.bardock?.spriteScale, animationData: recolorSkinAnim("bardock", "alienx") },
     // ── Group 1 ──
     { id: "bardockCrimsonSaiyan",  name: "Crimson Saiyan",  unlockLevel: 0, portrait: "./bardock_portrait__crimsonsaiyan.png",  spriteScale: characters.bardock?.spriteScale, animationData: recolorSkinAnim("bardock", "crimsonsaiyan") },   // red suit+armor / red band
     { id: "bardockVerdantWarrior", name: "Verdant Warrior", unlockLevel: 0, portrait: "./bardock_portrait__verdantwarrior.png", spriteScale: characters.bardock?.spriteScale, animationData: recolorSkinAnim("bardock", "verdantwarrior") },  // deep-green suit+armor

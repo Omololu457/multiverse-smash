@@ -74,6 +74,12 @@ const CONFIG = {
   naoya: { p1: "naoya", skins: [{ id: "naoyaAlbedo", tag: "albedo" }, { id: "naoyaValkyrie", tag: "valkyrie" }, { id: "naoyaAlienX", tag: "alienx" }] },
   maki:  { p1: "maki",  skins: [{ id: "makiAlbedo", tag: "albedo" }, { id: "makiValkyrie", tag: "valkyrie" }, { id: "makiAlienX", tag: "alienx" }] },
   yuta:  { p1: "yuta",  skins: [{ id: "yutaAlienX", tag: "alienx" }] },
+  // ── Naruto part 1 (base-recolour) ──
+  minato:     { p1: "minato",     skins: [{ id: "minatoAlbedo", tag: "albedo" }, { id: "minatoValkyrie", tag: "valkyrie" }, { id: "minatoAlienX", tag: "alienx" }] },
+  isshiki:    { p1: "isshiki",    skins: [{ id: "isshikiAlbedo", tag: "albedo" }, { id: "isshikiValkyrie", tag: "valkyrie" }, { id: "isshikiAlienX", tag: "alienx" }] },
+  orochimaru: { p1: "orochimaru", skins: [{ id: "orochimaruAlbedo", tag: "albedo" }, { id: "orochimaruValkyrie", tag: "valkyrie" }, { id: "orochimaruAlienX", tag: "alienx" }] },
+  onoki:      { p1: "onoki",      skins: [{ id: "onokiAlbedo", tag: "albedo" }, { id: "onokiValkyrie", tag: "valkyrie" }, { id: "onokiAlienX", tag: "alienx" }] },
+  kiba:       { p1: "kiba",       skins: [{ id: "kibaAlbedo", tag: "albedo" }, { id: "kibaValkyrie", tag: "valkyrie" }, { id: "kibaAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];

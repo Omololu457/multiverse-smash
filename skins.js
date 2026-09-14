@@ -572,6 +572,10 @@ export const SKINS = {
   ],
   onoki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.onoki?.portrait, spriteScale: characters.onoki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "onokiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("onoki", "albedo"), spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "albedo") },
+    { id: "onokiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("onoki", "valkyrie"), spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "valkyrie") },
+    { id: "onokiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("onoki", "alienx"), spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "alienx") },
     { id: "onokiStoneSovereign", name: "Stone Sovereign", unlockLevel: 0, portrait: "./onoki_portrait__stonesovereign.png", spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "stonesovereign") },  // Iwagakure stone-grey mantle over slate
     { id: "onokiIronFortress",   name: "Iron Fortress",   unlockLevel: 0, portrait: "./onoki_portrait__ironfortress.png",   spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "ironfortress") },     // the immovable iron wall
     { id: "onokiJadeMountain",   name: "Jade Mountain",   unlockLevel: 0, portrait: "./onoki_portrait__jademountain.png",   spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "jademountain") },     // deep jade — mountain forest
@@ -632,6 +636,10 @@ export const SKINS = {
   // The FX/beast sheets (drills, wolves) recolor to __tag but pass through ~unchanged (protected classes).
   kiba: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kiba?.portrait, spriteScale: characters.kiba?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "kibaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("kiba", "albedo"), spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "albedo") },
+    { id: "kibaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("kiba", "valkyrie"), spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "valkyrie") },
+    { id: "kibaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("kiba", "alienx"), spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "alienx") },
     { id: "kibaAshenWolf",       name: "Ashen Wolf",       unlockLevel: 0, portrait: "./kiba_portrait__ashenwolf.png",       spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "ashenwolf") },        // silver-grey — Akamaru's coat
     { id: "kibaInuzukaCrimson",  name: "Inuzuka Crimson",  unlockLevel: 0, portrait: "./kiba_portrait__inuzukacrimson.png",  spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "inuzukacrimson") },   // clan crimson — fang & blood
     { id: "kibaWildFang",        name: "Wild Fang",        unlockLevel: 0, portrait: "./kiba_portrait__wildfang.png",        spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "wildfang") },         // earthy brown — feral tracker
@@ -753,6 +761,10 @@ export const SKINS = {
   // spriteScale (1.7) from the character. No alt skins yet.
   minato: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.minato?.portrait, spriteScale: characters.minato?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "minatoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("minato", "albedo"), spriteScale: characters.minato?.spriteScale, animationData: recolorSkinAnim("minato", "albedo") },
+    { id: "minatoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("minato", "valkyrie"), spriteScale: characters.minato?.spriteScale, animationData: recolorSkinAnim("minato", "valkyrie") },
+    { id: "minatoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("minato", "alienx"), spriteScale: characters.minato?.spriteScale, animationData: recolorSkinAnim("minato", "alienx") },
     // 12 GENUINELY creative recolors (tools/gen_minato_creative.py) — HAIR + OUTFIT + ACCENT all vary as one
     // coordinated palette identity (the Maki/Hisoka creative bar). Face/hands protected, line-art preserved.
     // Cosmetic only — NO recolorTag, NO stat/gameplay change. Minato's first dedicated skin batch.
@@ -1632,6 +1644,10 @@ export const SKINS = {
   // Cosmetic only; the default entry carries spriteScale 2.6.
   orochimaru: [
     { id: "default",                  name: "Default",             unlockLevel: 0, portrait: characters.orochimaru?.portrait,                        spriteScale: characters.orochimaru?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "orochimaruAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("orochimaru", "albedo"), spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "albedo") },
+    { id: "orochimaruValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("orochimaru", "valkyrie"), spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "valkyrie") },
+    { id: "orochimaruAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("orochimaru", "alienx"), spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "alienx") },
     { id: "orochimaru_sound_serpent",     name: "Sound Serpent",       unlockLevel: 0, portrait: recolorPortrait("orochimaru", "sound_serpent"),     spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "sound_serpent"),     recolorTag: "sound_serpent" },
     { id: "orochimaru_pale_recluse",      name: "Pale Recluse",        unlockLevel: 0, portrait: recolorPortrait("orochimaru", "pale_recluse"),      spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "pale_recluse"),      recolorTag: "pale_recluse" },
     { id: "orochimaru_crimson_sannin",    name: "Crimson Sannin",      unlockLevel: 0, portrait: recolorPortrait("orochimaru", "crimson_sannin"),    spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "crimson_sannin"),    recolorTag: "crimson_sannin" },
@@ -1664,6 +1680,10 @@ export const SKINS = {
   ],
   isshiki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.isshiki?.portrait, spriteScale: characters.isshiki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "isshikiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("isshiki", "albedo"), spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "albedo") },
+    { id: "isshikiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("isshiki", "valkyrie"), spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "valkyrie") },
+    { id: "isshikiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("isshiki", "alienx"), spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "alienx") },
     { id: "isshiki_azure",    name: "Karma Azure",        unlockLevel: 0, portrait: "./isshiki_portrait__azure.png",    spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "azure"),    recolorTag: "azure" },
     { id: "isshiki_golden",   name: "Golden Otsutsuki",   unlockLevel: 0, portrait: "./isshiki_portrait__golden.png",   spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "golden"),   recolorTag: "golden" },
     { id: "isshiki_violet",   name: "Ten-Tails Violet",   unlockLevel: 0, portrait: "./isshiki_portrait__violet.png",   spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "violet"),   recolorTag: "violet" },

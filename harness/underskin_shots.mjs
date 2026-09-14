@@ -37,6 +37,10 @@ const CONFIG = {
   goku: { p1: "goku", gokuForms: true, skins: [
     { id: "gokuAlbedo", tag: "albedo" }, { id: "gokuValkyrie", tag: "valkyrie" }, { id: "gokuAlienX", tag: "alienx" },
   ] },
+  // Naruto (Kurama Chakra Mode) — unified warm-cloak recolour, NOT form-aware (ult is a move/summon).
+  naruto: { p1: "naruto", skins: [
+    { id: "narutoAlbedo", tag: "albedo" }, { id: "narutoValkyrie", tag: "valkyrie" }, { id: "narutoAlienX", tag: "alienx" },
+  ] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -63,6 +67,7 @@ for (const char of WANT) {
   // STATIC: recoloured PORTRAIT exists per tag (naming is char-specific; rickPrime = rick_portrait__rickprime).
   const portraitFor = tag => char === "rickPrime" ? `rick_portrait__rickprime__${tag}.png`
                            : char === "vegeta"    ? `vegeta_mugshot__${tag}.png`
+                           : char === "naruto"    ? `naruto_kcm_portrait__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

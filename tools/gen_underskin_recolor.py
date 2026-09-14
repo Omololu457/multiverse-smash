@@ -109,8 +109,18 @@ def rickprime_classify(h, s, v):
     if v < 0.52 and s < 0.62:                       return "GARMENT"  # dark burgundy jacket + blue-grey pants
     return "OTHER"
 
+def vegeta_classify(h, s, v):
+    # Vegeta: BLUE jumpsuit = GARMENT, WHITE armour/gloves/boots = TRIM, black hair+outline protected,
+    # skin protected. Regions are cleanly hue/sat-separable.
+    if v < 0.16:                                   return "DARK"     # black hair + outline (protected)
+    if 15 <= h <= 45 and s >= 0.25 and v >= 0.45:  return "SKIN"     # face
+    if 185 <= h <= 280 and s >= 0.26:               return "GARMENT"  # blue jumpsuit (+violet shadow)
+    if s < 0.20 and v >= 0.55:                      return "TRIM"     # white Saiyan armour / gloves / boots
+    return "OTHER"
+
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "vegeta":    dict(classify=vegeta_classify),
     "boruto":    dict(classify=boruto_classify),
     "kakashi":   dict(classify=kakashi_classify),
     "kurapika":  dict(classify=kurapika_classify),

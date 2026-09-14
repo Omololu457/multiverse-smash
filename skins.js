@@ -1234,7 +1234,14 @@ export const SKINS = {
   // This entry sources his real spriteScale (2.1) from the character. No alt skins yet
   // (SSJ transformations are a later stage, not skins).
   vegeta: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.vegeta?.portrait, spriteScale: characters.vegeta?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.vegeta?.portrait, spriteScale: characters.vegeta?.spriteScale, animationData: null },
+    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.
+    // FORM-AWARE: recolorTag drives retagFormAnim (abilities.js) so the colour persists through SSJ / Blue
+    // transforms (base + vegeta_ssj_* + vegeta_blue_* sheets all recoloured). Blue jumpsuit → garment,
+    // white Saiyan armour → trim, skin + black hair protected; SSJ gold hair kept.
+    { id: "vegetaAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("vegeta", "albedo"),   spriteScale: characters.vegeta?.spriteScale, animationData: recolorSkinAnim("vegeta", "albedo"),   recolorTag: "albedo" },    // black jumpsuit / grey armour
+    { id: "vegetaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("vegeta", "valkyrie"), spriteScale: characters.vegeta?.spriteScale, animationData: recolorSkinAnim("vegeta", "valkyrie"), recolorTag: "valkyrie" },  // light-blue jumpsuit / gold armour
+    { id: "vegetaAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("vegeta", "alienx"),   spriteScale: characters.vegeta?.spriteScale, animationData: recolorSkinAnim("vegeta", "alienx"),   recolorTag: "alienx" },    // matte-black Celestialsapien + starfield overlay (all forms)
   ],
 
   // Omega Ranger (Power Rangers) — new single-form sprite char. Same gate: WITHOUT a default

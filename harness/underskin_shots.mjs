@@ -29,6 +29,10 @@ const CONFIG = {
   rickPrime: { p1: "rickPrime", skins: [
     { id: "rickPrimeAlbedo", tag: "albedo" }, { id: "rickPrimeValkyrie", tag: "valkyrie" }, { id: "rickPrimeAlienX", tag: "alienx" },
   ] },
+  // Vegeta is FORM-AWARE: also verify the SSJ + Blue transforms render the recoloured __tag form sheets.
+  vegeta: { p1: "vegeta", forms: true, skins: [
+    { id: "vegetaAlbedo", tag: "albedo" }, { id: "vegetaValkyrie", tag: "valkyrie" }, { id: "vegetaAlienX", tag: "alienx" },
+  ] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -53,7 +57,9 @@ for (const char of WANT) {
   // STATIC: the recolored sheets exist. Base sheet set = the char's actual default sprites + portrait.
   // rickPrime's sprites are the Rick recolour rick_*__rickprime.png (+ rick_portrait__rickprime.png).
   // STATIC: recoloured PORTRAIT exists per tag (naming is char-specific; rickPrime = rick_portrait__rickprime).
-  const portraitFor = tag => char === "rickPrime" ? `rick_portrait__rickprime__${tag}.png` : `${char}_portrait__${tag}.png`;
+  const portraitFor = tag => char === "rickPrime" ? `rick_portrait__rickprime__${tag}.png`
+                           : char === "vegeta"    ? `vegeta_mugshot__${tag}.png`
+                           : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));
     check(`${char}/${tag} STATIC: recoloured portrait exists`, fs.existsSync(pp) && fs.statSync(pp).size > 128, portraitFor(tag));
@@ -89,6 +95,32 @@ for (const char of WANT) {
       const vf = await pg.evaluate(() => window.__harness.p1());
       check(`${char}/${id}: Alien X void sheet + starfield overlay runs`, vf.skinId === id && (fa?.sheet || "").includes("__alienx"), `skin=${vf.skinId} sheet=${(fa?.sheet||"").split("/").pop()}`);
       await force(null);
+    }
+    // FORM-AWARE chars (Vegeta): the recolour must persist through SSJ + Blue transforms. Transforms play
+    // a locked transformation animation (~27f) before the form's idle resolves — wait it out, then read.
+    if (cfg.forms) {
+      // FORM transforms are gated on energy + being actionable, and driving several in one session leaks
+      // state (drain/locks). So boot a FRESH match before each transform check → clean gates every time.
+      // vegetaForm() (no arg) returns live state without transforming; force("idle") reads the active sheet.
+      const formState = () => pg.evaluate(() => window.__harness.vegetaForm());
+      const readIdle = async (needle) => { let s = null; for (let k = 0; k < 45; k++) { s = await force("idle"); if ((s?.sheet || "").includes(needle) && !s.sheet.includes("transformation")) return s; await wf(3); } return s; };
+      const pollUntil = async (pred, tries = 90) => { for (let k = 0; k < tries; k++) { if (pred(await formState())) return true; await wf(3); } return false; };
+      const freshVegeta = async () => { await pg.evaluate(() => window.__harness.boot()); await pg.evaluate(s => window.__harness.setSkin("p1", s), id); await wf(5); await pg.evaluate(() => window.__harness.fillEnergy()); };
+      // SSJ (fresh boot)
+      await freshVegeta();
+      await pg.evaluate(() => window.__harness.vegetaForm("enter"));
+      const gotSSJ = await pollUntil(st => st.ssjActive);
+      const ssj = await readIdle("vegeta_ssj");
+      check(`${char}/${id}: SSJ form recoloured (${tag})`, gotSSJ && (ssj?.sheet || "").includes("vegeta_ssj") && (ssj?.sheet || "").includes(`__${tag}.png`), `ssj=${gotSSJ} sheet=${(ssj?.sheet||"null").split("/").pop()}`);
+      await pg.screenshot({ path: path.join(OUT, `underskin_${char}_${id}_ssj.png`), clip: { x: 300, y: 250, width: 320, height: 360 } });
+      // BLUE (fresh boot → full-chain base→Blue)
+      await freshVegeta();
+      await pg.evaluate(() => window.__harness.vegetaForm("enterBlueChain"));
+      const gotBlue = await pollUntil(st => st.blueActive);
+      const blue = await readIdle("vegeta_blue");
+      check(`${char}/${id}: Blue form recoloured (${tag})`, gotBlue && (blue?.sheet || "").includes("vegeta_blue") && (blue?.sheet || "").includes(`__${tag}.png`), `blue=${gotBlue} sheet=${(blue?.sheet||"null").split("/").pop()}`);
+      await pg.screenshot({ path: path.join(OUT, `underskin_${char}_${id}_blue.png`), clip: { x: 300, y: 250, width: 320, height: 360 } });
+      await pg.evaluate(() => window.__harness.boot()); await wf(3);   // reset to clean base for the next skin's base checks
     }
   }
   check(`${char}: no procedural boxes across ${cfg.skins.length} skins × ${ACTIONS.length} actions`, boxes === 0, `boxes=${boxes}`);

@@ -92,6 +92,9 @@ export const SKINS = {
   // creative batches), NOT through the abstract-hue ALT_SKINS manifest. Cosmetic only; zero gameplay.
   gojo: [
     { id: "default",       name: "Default",  unlockLevel: 0, portrait: characters.gojo?.portrait,      spriteScale: characters.gojo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "gojoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gojo", "valkyrie"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "valkyrie") },
+    { id: "gojoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gojo", "alienx"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "alienx") },
     { id: "gojoCerulean",  name: "Cerulean", unlockLevel: 0, portrait: "./gojo_portrait__cerulean.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "cerulean") },
     { id: "gojoAmethyst",  name: "Amethyst", unlockLevel: 0, portrait: "./gojo_portrait__amethyst.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "amethyst") },
     { id: "gojoSolar",     name: "Solar",    unlockLevel: 0, portrait: "./gojo_portrait__solar.png",    spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "solar") },
@@ -509,6 +512,8 @@ export const SKINS = {
   ],
   yuta: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.yuta?.portrait, spriteScale: characters.yuta?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "yutaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("yuta", "alienx"), spriteScale: characters.yuta?.spriteScale, animationData: recolorSkinAnim("yuta", "alienx") },
     { id: "yutaBen10",     name: "Ben 10",     unlockLevel: 0, portrait: "./yuta_portrait__ben10.png",     spriteScale: characters.yuta?.spriteScale, animationData: recolorSkinAnim("yuta", "ben10") },     // Omnitrix-green uniform / green katana accent (stripe+'10' decal dropped → green promoted to whole uniform)
     { id: "yutaAlbedo",    name: "Albedo",     unlockLevel: 0, portrait: "./yuta_portrait__albedo.png",    spriteScale: characters.yuta?.spriteScale, animationData: recolorSkinAnim("yuta", "albedo") },    // black uniform / red katana accent — Ben's palette inverted (negative counterpart)
     { id: "yutaValkyrie",  name: "Valkyrie",   unlockLevel: 0, portrait: "./yuta_portrait__valkyrie.png",  spriteScale: characters.yuta?.spriteScale, animationData: recolorSkinAnim("yuta", "valkyrie") },  // light-blue armour uniform / gold katana accent+trim (Beyblade Burst)
@@ -1234,6 +1239,9 @@ export const SKINS = {
 
   toji: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.toji?.portrait, spriteScale: characters.toji?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "tojiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("toji", "albedo"), spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "albedo") },
+    { id: "tojiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("toji", "alienx"), spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "alienx") },
     // 12 creative recolor skins (tools/gen_toji_creative.py) — HAIR + TANK TOP + PANTS coordinated per-region,
     // near-black hair/tank spatially split, line-art outlines preserved, face/skin excluded. Cosmetic only.
     // ── Group 1 ──
@@ -1260,6 +1268,10 @@ export const SKINS = {
   ],
   maki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.maki?.portrait, spriteScale: characters.maki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag).
+    { id: "makiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("maki", "albedo"), spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "albedo"), recolorTag: "albedo" },
+    { id: "makiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("maki", "valkyrie"), spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "makiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("maki", "alienx"), spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "alienx"), recolorTag: "alienx" },
     // VOID HUNTER — Alien-X-style FULL-FORM near-black (#0F0F12: uniform/hair/skin/face all void-flattened,
     // tools/gen_maki_creative.py voidhunter) + a procedural game.js drawVoidHunterOverlay gated on this
     // skinId (drifting pale star dots + 2-3 red/violet nebula swirl clusters). NO recolorTag → the ≤25%-HP
@@ -2051,6 +2063,10 @@ export const SKINS = {
   // sprite shrinks to native size). Creative recolor batch is DEFERRED to the skins follow-up.
   naoya: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naoya?.portrait, spriteScale: characters.naoya?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "naoyaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("naoya", "albedo"), spriteScale: characters.naoya?.spriteScale, animationData: recolorSkinAnim("naoya", "albedo") },
+    { id: "naoyaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("naoya", "valkyrie"), spriteScale: characters.naoya?.spriteScale, animationData: recolorSkinAnim("naoya", "valkyrie") },
+    { id: "naoyaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("naoya", "alienx"), spriteScale: characters.naoya?.spriteScale, animationData: recolorSkinAnim("naoya", "alienx") },
     // Default + 8 creative coordinated recolors + Void + Narcissus = 11 (gen_naoya_creative.py). Regions: GI
     // (dark-navy haori) / HAKAMA (white pants — PRESERVED as tinted-white per owner decision, not blacked out) /
     // HAIR (olive). Skin protected except Void. Portraits are the recolored bust. Cosmetic-only, all free.

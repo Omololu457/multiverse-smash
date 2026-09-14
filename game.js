@@ -7020,6 +7020,54 @@ function drawVoidStarfield(c, fighter) {
   c.restore()
 }
 
+// ALIEN X skin (Ben 10 Celestialsapien) — procedural COLOURFUL STARFIELD overlay, cosmetic, drawn ON
+// TOP of the matte near-black recoloured sprite (tools/gen_underskin_recolor.py "alienx" void-crush).
+// REUSABLE across every character's Alien X skin: gated on skinId ending "AlienX" (bakiAlienX,
+// borutoAlienX, ...), so one function serves them all. Same seeded-once, bbox-normalized architecture
+// as drawVoidStarfield (deterministic → no flicker); stars TWINKLE via a smooth per-star sine (not RNG
+// per frame). Ben's Alien X = a black humanoid with a bright multi-colour galaxy inside the silhouette.
+function _isAlienXSkin(fighter) { return typeof fighter?.skinId === "string" && fighter.skinId.endsWith("AlienX") }
+function seedAlienXStarfield(fighter) {
+  const rnd = _mulberry32(0xA11E11)             // fixed seed → identical layout every load
+  const halfWidth = ny => ny < 0.24 ? 0.16 : (ny < 0.66 ? 0.26 : 0.15)   // head / torso / legs profile
+  const palette = ["#FFFFFF", "#FFFFFF", "#8FD9FF", "#C79BFF", "#FF9BD0", "#FFE08A"]  // white + cyan/violet/pink/gold
+  const stars = []
+  for (let i = 0; i < 30; i++) {                // denser than Rick's (Alien X is a whole galaxy), still crisp dots
+    const ny = 0.06 + rnd() * 0.9
+    const nx = 0.5 + (rnd() * 2 - 1) * halfWidth(ny)
+    stars.push({ nx, ny, r: rnd() < 0.7 ? 1 : 2, a: 0.6 + rnd() * 0.4, col: palette[(rnd() * palette.length) | 0], tw: 0.4 + rnd() * 1.4, ph: rnd() * 6.283 })
+  }
+  const nebColors = ["#5B4B9E", "#2E7D8C", "#9E4B7A"]   // deep violet / teal / magenta distant nebulae
+  const nebulae = []
+  for (let i = 0; i < 3; i++) nebulae.push({ nx: 0.34 + rnd() * 0.32, ny: 0.2 + rnd() * 0.44, r: 0.16 + rnd() * 0.12, color: nebColors[i % 3], a: 0.14 + rnd() * 0.08 })
+  fighter._alienXFX = { stars, nebulae }
+}
+function drawAlienXStarfield(c, fighter) {
+  if (!c || !_isAlienXSkin(fighter)) return
+  if (!fighter._alienXFX) seedAlienXStarfield(fighter)
+  const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
+  if (x == null || w == null) return
+  const fx = fighter._alienXFX
+  const t = (fighter._alienXClock = (fighter._alienXClock || 0) + 1)
+  c.save()
+  // distant nebulae behind the stars — soft radial blobs, give the black body cosmic depth
+  for (const n of fx.nebulae) {
+    const cx = x + n.nx * w, cy = y + n.ny * h, rad = n.r * Math.max(w, h)
+    const g = c.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    g.addColorStop(0, _rgbaHex(n.color, n.a)); g.addColorStop(1, _rgbaHex(n.color, 0))
+    c.fillStyle = g; c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.fill()
+  }
+  // stars — fixed-position colourful dots with a soft glow + gentle smooth twinkle (no RNG flicker)
+  c.shadowBlur = 3
+  for (const s of fx.stars) {
+    const tw = 0.62 + 0.38 * Math.sin(t * 0.05 * s.tw + s.ph)   // smooth per-star brightness pulse
+    c.globalAlpha = Math.max(0, Math.min(1, s.a * tw))
+    c.shadowColor = s.col; c.fillStyle = s.col
+    c.fillRect(x + s.nx * w - s.r / 2, y + s.ny * h - s.r / 2, s.r, s.r)
+  }
+  c.restore()
+}
+
 // MAKI "VOID HUNTER" — procedural VOID-COSMOS overlay (cosmetic), on top of the near-black full-form sprite.
 // Same architecture as Rick's Void Form starfield (SEEDED ONCE per skin-load, normalized to the sprite bbox
 // via _lastDraw* so it tracks every pose) — but living: the pale stars slowly DRIFT and the red/violet
@@ -12600,6 +12648,7 @@ function renderHybridFighter(fighter) {
     drawNaoyaSnareHUD(c, fighter)           // Naoya — 24FPS Snare HUD: "HOLD" countdown ring + RULE BROKEN/SAFE flash over ANY snared fighter
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
+    drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
     drawSupermanVoidStarfield(c, fighter)  // Superman Void Sovereign (all 4 variants) — drifting star-field, ON TOP of the void sprite
     drawEmberOverlay(c, fighter)        // Rengoku Void Ember — drifting rising embers, ON TOP of the void sprite

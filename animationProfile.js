@@ -57,7 +57,9 @@ export function getAction(charKey, actionKey, skinAnim = null) {
     // Atlas source origin into a shared sheet (default 0/0 = legacy top-left).
     sourceX: a.sourceX || 0,
     sourceY: a.sourceY || 0,
-    spriteScale: c.spriteScale,   // also surfaced via fighter.spriteScale in draw()
+    spriteScale: c?.spriteScale,  // also surfaced via fighter.spriteScale in draw() — c may be undefined for a
+                                  // camelCase rosterKey (e.g. rickPrime) reached via a skinAnim override; the
+                                  // fighter's own spriteScale (set by applySkin) carries it, so don't throw.
     // Per-action scale correction (Toji old-row-sheet actions) — draw() multiplies it into
     // the display scale so art not tuned for the character's global spriteScale renders right.
     actionScale: a.actionScale,

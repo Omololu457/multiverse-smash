@@ -68,6 +68,12 @@ const CONFIG = {
   aoi_todo:   { p1: "aoi_todo",   skins: [{ id: "aoi_todoAlbedo", tag: "albedo" }, { id: "aoi_todoValkyrie", tag: "valkyrie" }, { id: "aoi_todoAlienX", tag: "alienx" }] },
   yuji:       { p1: "yuji",       skins: [{ id: "yujiAlbedo", tag: "albedo" }, { id: "yujiValkyrie", tag: "valkyrie" }, { id: "yujiAlienX", tag: "alienx" }] },
   handler:    { p1: "handler",    skins: [{ id: "handlerAlbedo", tag: "albedo" }, { id: "handlerValkyrie", tag: "valkyrie" }, { id: "handlerAlienX", tag: "alienx" }] },
+  // ── JJK part 2 ──
+  gojo:  { p1: "gojo",  skins: [{ id: "gojoValkyrie", tag: "valkyrie" }, { id: "gojoAlienX", tag: "alienx" }] },
+  toji:  { p1: "toji",  skins: [{ id: "tojiAlbedo", tag: "albedo" }, { id: "tojiAlienX", tag: "alienx" }] },
+  naoya: { p1: "naoya", skins: [{ id: "naoyaAlbedo", tag: "albedo" }, { id: "naoyaValkyrie", tag: "valkyrie" }, { id: "naoyaAlienX", tag: "alienx" }] },
+  maki:  { p1: "maki",  skins: [{ id: "makiAlbedo", tag: "albedo" }, { id: "makiValkyrie", tag: "valkyrie" }, { id: "makiAlienX", tag: "alienx" }] },
+  yuta:  { p1: "yuta",  skins: [{ id: "yutaAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];

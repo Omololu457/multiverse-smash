@@ -267,6 +267,40 @@ def nezuko_classify(h, s, v):
     if 300 <= h <= 350 and s >= 0.28:                 return "GARMENT"  # pink kimono
     return "OTHER"
 
+def gojo_classify(h, s, v):
+    # Gojo: dark JJK uniform = GARMENT; white blindfold + white hair kept; skin protected.
+    if v < 0.15:                                     return "DARK"
+    if 8 <= h <= 40 and 0.2 <= s < 0.62 and v >= 0.5:  return "SKIN"
+    if 0.15 <= v < 0.52 and s < 0.55:                return "GARMENT"  # dark uniform
+    return "OTHER"                                                     # white blindfold + hair kept
+
+def toji_classify(h, s, v):
+    # Toji: black tank + pants = GARMENT; pale skin protected; purple sash = ACCENT; dark hair protected.
+    if v < 0.15:                                     return "DARK"
+    if 260 <= h <= 320 and s >= 0.30:                 return "ACCENT"   # purple sash
+    if 6 <= h <= 44 and 0.12 <= s < 0.55 and v >= 0.5:  return "SKIN"   # pale skin
+    if 0.15 <= v < 0.5 and s < 0.5:                  return "GARMENT"  # black tank + pants
+    return "OTHER"
+
+def naoya_classify(h, s, v):
+    # Naoya: white haori + dark-blue hakama = GARMENT; gold trim = ACCENT; skin + dark hair protected.
+    if v < 0.15:                                     return "DARK"
+    if 8 <= h <= 40 and 0.2 <= s < 0.6 and v >= 0.55 and s >= 0.28:  return "SKIN"  # face (min sat to exclude white)
+    if 38 <= h <= 62 and s >= 0.4:                    return "ACCENT"   # gold trim
+    if (s < 0.2 and v >= 0.5) or (195 <= h <= 260 and v < 0.55):  return "GARMENT"  # white haori + dark hakama
+    return "OTHER"
+
+def maki_classify(h, s, v):
+    # Maki: dark blue-teal JJK uniform = GARMENT; skin protected; dark hair/outline protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.22 <= s < 0.62 and v >= 0.5:  return "SKIN"
+    if (168 <= h <= 265 or s < 0.28) and v < 0.55:    return "GARMENT"  # dark blue-teal uniform
+    return "OTHER"
+
+def _trivial_classify(h, s, v):
+    # For Alien-X-only chars (yuta) — void_paint crushes every region regardless, so classification is moot.
+    return "OTHER"
+
 def sukuna_classify(h, s, v):
     # Sukuna: dark blue-black kimono = GARMENT; PINK hair + tan curse-markings + skin protected.
     if v < 0.13:                                     return "DARK"
@@ -308,6 +342,11 @@ def handler_classify(h, s, v):
 
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "gojo":       dict(classify=gojo_classify),
+    "toji":       dict(classify=toji_classify),
+    "naoya":      dict(classify=naoya_classify),
+    "maki":       dict(classify=maki_classify),
+    "yuta":       dict(classify=_trivial_classify),
     "sukuna":     dict(classify=sukuna_classify),
     "alt_sukuna": dict(classify=alt_sukuna_classify),
     "aoi_todo":   dict(classify=aoi_todo_classify),

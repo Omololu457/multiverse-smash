@@ -4117,43 +4117,69 @@ function _tryStartBrutality(winner) {
   brutalityState.finisher = _resolveBrutalityFinisher(wKey, move)   // per-CHARACTER, per-MOVE signature (KLASSIC if no match)
   // Capture the loser's CURRENT (KO-instant) frame BEFORE forcing the lose pose — the sprite-bisection uses it.
   brutalityState.sprite  = _captureLoserSprite(loseF)
+  // Loser state at capture — read by the harness captureProbe() so a test can assert the airborne-KO capture
+  // actually contains the body (regression guard for the "missing sprite halves on an airborne KO" bug).
+  brutalityState._diag = { loseY: loseF.y, groundY: loseF.groundY, lastDrawY: loseF._lastDrawY, lastDrawH: loseF._lastDrawH,
+    action: loseF.spriteHandler?.currentAction || loseF.currentAction, grounded: loseF.grounded ?? loseF.onGround, vy: loseF.vy, hasSprites: !!loseF.hasSprites }
   brutalityState.loseRef = loseF                                 // hide the live loser body — the two split halves replace it
   if (loseF.animationData?.lose) loseF._forceAction = "lose"     // pose the loser defeated (used on the victory screen after the beat)
   if (winF.animationData?.win) winF._forceAction = "win"         // freeze the winner in their OWN win pose for the beat (reused art)
   return true
 }
-// SPRITE-BISECTION render. Capture the loser's CURRENT sprite frame (KO-instant pose) into an offscreen
-// canvas ONCE, so the finisher can draw it as two clipped halves that separate. Uses the world-space drawn
-// rect sprite.js records (_lastDrawX/Y/W/H) as the frame's exact bounds; re-renders only the loser's core
-// sprite (no aura overlays) onto a transparent canvas so the halves cut cleanly. NO new art — this is the
-// loser's own existing frame. Returns null (→ a colored-rect fallback) if the frame can't be captured.
+// SPRITE-BISECTION render. Capture the loser's CURRENT sprite frame into an offscreen canvas ONCE, so the
+// finisher can draw it as two clipped halves that separate. NO new art — this is the loser's own existing frame.
+// ★ We must NOT size the canvas from the pre-draw _lastDraw* rect: at match-over the loser is often force-posed
+// to "lose" (or is mid-launch), so the pose that draw() actually renders can differ in HEIGHT and vertical
+// OFFSET from the last RENDERED frame — and spriteHandler.draw OVERWRITES _lastDraw* as it renders. Sizing from
+// the stale rect drew the body OUTSIDE the offscreen on an airborne KO → invisible halves (only bone/blood
+// showed). Instead: draw into a GENEROUSLY oversized offscreen anchored on the fighter's world origin, let
+// draw() stamp the ACTUAL drawn world-rect, then crop tightly to it. Robust for any pose, airborne or grounded.
+// Returns null (→ a colored-rect fallback) if the frame can't be captured.
 function _captureLoserSprite(loseF) {
   if (!loseF) return null
   const key = (loseF.rosterKey || "").toLowerCase()
-  const pad = 10
-  const w = Math.max(8, loseF._lastDrawW || loseF.w || loseF.width || 60)
-  const h = Math.max(8, loseF._lastDrawH || loseF.h || loseF.height || 110)
-  const x = loseF._lastDrawX != null ? loseF._lastDrawX : (loseF.x || 0)
-  const y = loseF._lastDrawY != null ? loseF._lastDrawY : (loseF.y || 0)
-  const cw = Math.ceil(w + pad * 2), chh = Math.ceil(h + pad * 2)
+  const pad = 12
+  // Generous scratch canvas — big enough that whatever pose draw() picks lands inside the margins.
+  const estW = Math.max(48, loseF._lastDrawW || loseF.w || loseF.width || 80)
+  const estH = Math.max(80, loseF._lastDrawH || loseF.h || loseF.height || 120)
+  const BW = Math.ceil(estW * 2 + 120), BH = Math.ceil(estH * 2 + 120)
+  let big
+  try { big = document.createElement("canvas"); big.width = BW; big.height = BH } catch (_) { return null }
+  const bctx = big.getContext("2d"); if (!bctx) return null
+  // Anchor the fighter's world origin near the scratch centre; draw() renders relative to loseF.x/y with its own
+  // sprite offsets, so the body lands well inside the generous margins regardless of pose/height.
+  const ox = Math.round(BW * 0.5 - (loseF.x || 0)), oy = Math.round(BH * 0.5 - (loseF.y || 0))
+  bctx.translate(ox, oy)
+  try {
+    if (loseF.hasSprites && loseF.spriteHandler && spritesReady(key)) {
+      loseF.spriteHandler.draw(bctx, loseF, getSpriteSheets(key))
+    } else {
+      drawFighter(bctx, loseF, null)
+    }
+  } catch (_) { return null }
+  // The ACTUAL drawn world-rect for the pose just rendered (draw() stamped these). Fall back to the estimate
+  // for a non-sprite path that didn't stamp them.
+  const dw = Math.max(8, loseF._lastDrawW || estW)
+  const dh = Math.max(8, loseF._lastDrawH || estH)
+  const dxw = loseF._lastDrawX != null ? loseF._lastDrawX : (loseF.x || 0)
+  const dyw = loseF._lastDrawY != null ? loseF._lastDrawY : (loseF.y || 0)
+  // Crop the scratch tightly (+pad) to the real body so _drawBrutality's halves slice the sprite, not margin.
+  const cw = Math.ceil(dw + pad * 2), chh = Math.ceil(dh + pad * 2)
   let oc
   try { oc = document.createElement("canvas"); oc.width = cw; oc.height = chh } catch (_) { return null }
   const octx = oc.getContext("2d"); if (!octx) return null
-  octx.translate(-x + pad, -y + pad)   // the fighter draws at its world coords → lands at (pad,pad) in the offscreen
-  try {
-    if (loseF.hasSprites && loseF.spriteHandler && spritesReady(key)) {
-      loseF.spriteHandler.draw(octx, loseF, getSpriteSheets(key))
-    } else {
-      drawFighter(octx, loseF, null)
-    }
-  } catch (_) { return null }
+  octx.drawImage(big, (dxw + ox) - pad, (dyw + oy) - pad, cw, chh, 0, 0, cw, chh)   // copy the content region out
   // Pixel-cell size (world px per SOURCE sprite pixel) = the sprite's own render scale. The bone + blood are
   // drawn on THIS grid so they read at the same pixel density as the character (min 3 so blockiness shows).
   const px = Math.max(3, Math.round((loseF.spriteScale || 1) * GLOBAL_SPRITE_SCALE))
-  // Real stage floor (feet line) so blood rains down + pools on the GROUND, not at the loser's mid-air feet
-  // when they're KO'd airborne. Fall back to the captured frame's bottom.
-  const groundY = loseF.groundY != null ? loseF.groundY : (y + h)
-  return { canvas: oc, x: x - pad, y: y - pad, w: cw, h: chh, px, groundY }
+  // ANCHOR + POOL AT THE CAPTURED BODY (not the world stage floor). On a KO the camera HOLDS focus on the
+  // fallen fighter for the whole beat, so the effect must play WHERE THE BODY IS. Pooling at the real stage
+  // floor breaks on an airborne KO: the launch-cam pans up, the floor slides off the bottom of the screen, and
+  // the split/pool fall out of frame. Anchoring the pool at the body's OWN feet keeps the split + bone + pool
+  // co-located under the camera regardless of launch height. GROUNDED KO: feet ≈ floor → visually identical to
+  // before. (Earlier this clamped to the world floor, which was correct only under the flat harness camera.)
+  const groundY = dyw + dh
+  return { canvas: oc, x: dxw - pad, y: dyw - pad, w: cw, h: chh, px, groundY }
 }
 // STYLIZED CARTOON BLOOD — a clean red family (NOT gore-brown), used for the split splatter + drips + pool.
 const BLOOD_REDS = ["#e11d2a", "#b3111c", "#ff4d4d"]   // bright, deep, highlight
@@ -4343,10 +4369,11 @@ function _drawBrutality() {
     ctx.drawImage(sp.canvas, hw, 0, hw, sp.h, -hw / 2, -sp.h / 2, hw, sp.h)
     if (woundA > 0.02) _drawWoundCore(ctx, -hw / 2, 0, sp.h, 1, cell, woundA)
     ctx.restore()
-    // ONE BOLD BLOOD SPLAT at the ORIGINAL cut point (world-space; stays at the impact spot, does NOT follow
-    // the halves). Full at impact, lingers, fades in the last stretch.
-    const cutX = sp.x + sp.w / 2, cutY = sp.y + sp.h * 0.45
-    const splatA = Math.min(1, (1 - t) * 2.5)
+    // ONE BOLD BLOOD SPLAT at the cut cross-section. It DESCENDS with the halves/bone (adds `fall`) instead of
+    // staying pinned at the original cut point — so on an airborne KO the splat travels down to the floor with
+    // the rest of the gore (cohesive) rather than hanging over the HUD. On a grounded KO `fall` ≈ 0 → unchanged.
+    const cutX = sp.x + sp.w / 2, cutY = sp.y + sp.h * 0.45 + fall
+    const splatA = t < 0.12 ? 1 : Math.max(0, 1 - (t - 0.12) / 0.33)   // brief IMPACT burst → fades fast so the split/wound/bone/pool read (a lingering splat hides the bisection)
     if (splatA > 0.02) _drawBloodSplat(ctx, cutX, cutY, Math.min(172, Math.max(58, sp.w * 0.62)), splatA)
     // BONE — big, simple, bold; centred in the daylight between the halves (revealed as the gap opens).
     if (boneA > 0.02) _drawBone(ctx, seamX, cy + fall, Math.min(150, Math.max(46, sp.h * 0.42)), boneA)
@@ -4366,7 +4393,7 @@ function _drawBrutality() {
     ctx.save(); ctx.translate(b.x + bw / 4 + gap / 2, cy + fall); ctx.rotate(tilt);  ctx.fillRect(-bw / 4, -bh / 2, bw / 2, bh)
     if (woundA > 0.02) _drawWoundCore(ctx, -bw / 4, 0, bh, 1, cell, woundA)
     ctx.restore()
-    const splatA = Math.min(1, (1 - t) * 2.5)
+    const splatA = t < 0.12 ? 1 : Math.max(0, 1 - (t - 0.12) / 0.33)   // brief IMPACT burst → fades fast so the split/wound/bone/pool read (a lingering splat hides the bisection)
     if (splatA > 0.02) _drawBloodSplat(ctx, b.x, cy, 52, splatA)
     if (boneA > 0.02) _drawBone(ctx, b.x, cy + fall, 84, boneA)
     for (const p of b.parts) { ctx.globalAlpha = p.settled ? 0.96 : Math.min(1, p.life / 12); _drawBloodDrip(ctx, p) }
@@ -17335,6 +17362,23 @@ gameLoop()
       screenRect:   () => { const sp = brutalityState.sprite; if (!sp) return null; const z = camera.zoom || 1, cw = canvas.width, ch = canvas.height
         const sx = cw * 0.5 + z * (sp.x - camera.x + (camera.shakeX || 0)); const sy = ch * 0.5 + z * (sp.y - camera.y + (camera.shakeY || 0))
         return { x: sx, y: sy, w: sp.w * z, h: sp.h * z, zoom: z } },
+      // Probe the captured loser sprite — geometry + how many NON-transparent pixels are ACTUALLY in the
+      // offscreen canvas. nonEmptyPx ≈ 0 ⇒ the split halves render invisible even though it "captured" (the
+      // airborne-KO bug). A test asserts this stays well above 0 for both airborne and grounded KOs.
+      captureProbe: () => { const sp = brutalityState.sprite; if (!sp || !sp.canvas) return { sp: null, diag: brutalityState._diag || null }
+        let nonEmpty = -1; try { const c = sp.canvas.getContext("2d"); const d = c.getImageData(0, 0, sp.canvas.width, sp.canvas.height).data
+          nonEmpty = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 8) nonEmpty++ } catch (_) {}
+        return { sp: { x: sp.x, y: sp.y, w: sp.w, h: sp.h, groundY: sp.groundY, px: sp.px, cw: sp.canvas.width, ch: sp.canvas.height }, nonEmptyPx: nonEmpty, diag: brutalityState._diag || null } },
+      // Drive a REAL airborne KO (NOT the trigger bypass): lift p2 into the air, stamp p1's killing move, set
+      // roundWins so this KO ends the MATCH, then zero p2 HP so the NORMAL game loop runs the real KO beat/hang
+      // → _checkMatchOver → _tryStartBrutality (the path that force-poses the loser to "lose"). Waits are the
+      // caller's job. This is what exercises the airborne-capture regression that the trigger bypass hid.
+      koTestAirborne: (dy = 250, vy = -8, move = "mayuriPoison") => { if (!p1 || !p2) return null
+        roundWins.p1 = 1                                          // this KO → roundWins.p1 becomes 2 → match over
+        p2.y -= dy; p2.vy = vy; p2.grounded = false; p2.onGround = false; p2.isGrounded = false
+        p1._killingBlowMove = move                                // attacker stamp → NEUROTOXIN (melt) finisher
+        p2.health = 0
+        return { p2y: p2.y, p2vy: p2.vy, groundY: p2.groundY, roundWinsP1: roundWins.p1 } },
       // Set a fighter's raw HP (test-only) — used to bring the dummy to the brink so a REAL landed move KOs it.
       setHp:        (side, hp) => { const f = side === "p2" ? p2 : p1; if (f) f.health = hp; return f ? f.health : null },
       // Fire p1's REAL ultimate (fills meter + clears gates first) — for real-combat killing-blow-stamp checks.

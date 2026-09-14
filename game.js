@@ -2569,6 +2569,18 @@ function syncPhysicsBounds() {
 function getControlsForHistory(side) { return side === "p1" ? P1_CONTROLS : P2_CONTROLS }
 function getGroundedYForHeight(h)    { return groundY - toFiniteNumber(h, 100) }
 function getGroundedYForFighter(f)   { return getGroundedYForHeight(f?.h ?? f?.height) }
+// Re-seat a fighter after a resize/fullscreen toggle changes groundY. Grounded → track the floor exactly
+// (up OR down); airborne → only clamp so a shrink can't drop it below the new floor. Resize-only (never in
+// the sim loop), so no determinism impact.
+function regroundOnResize(f) {
+  if (!f) return
+  // Refresh the fighter's CACHED floor line first. physics.moveFighter prefers fighter.groundY over the
+  // global (physics.js: `baseFloor = fighter.groundY != null ? fighter.groundY : this.groundY`), so a stale
+  // cache re-snaps the fighter to the OLD floor every frame — the physics half of the resize desync.
+  f.groundY = groundY
+  const gy = getGroundedYForFighter(f)
+  f.y = (f.onGround || f.grounded) ? gy : Math.min(f.y, gy)
+}
 
 function getSpawnPositions() {
   const sw = getStageWorldWidth()
@@ -16601,10 +16613,15 @@ window.addEventListener("keyup", e => {
 // not the canvas), so heights stay canon-correct at any size.
 function applyViewportSize() {
   _applyCanvasSize()   // honors uiScale (Part 3 #13)
-  syncPhysicsBounds()
+  syncPhysicsBounds()  // recomputes groundY from the NEW canvas height (physics floor + the bg both read it)
   updateCameraBounds()
-  if (p1) p1.y = Math.min(p1.y, getGroundedYForFighter(p1))
-  if (p2) p2.y = Math.min(p2.y, getGroundedYForFighter(p2))
+  // Re-seat fighters on the reflowed floor. groundY = h − (floorHeight+groundOffset), so growing the window
+  // (e.g. entering fullscreen) moves groundY DOWN — a grounded fighter must FOLLOW it or it's left floating
+  // (the reported "fighters' ground-collision Y doesn't update" symptom; the old Math.min only pulled them
+  // UP when the floor rose). A GROUNDED fighter snaps to the new floor either way; an AIRBORNE one is only
+  // clamped so a shrink can't leave it below the floor (its arc otherwise continues untouched).
+  regroundOnResize(p1)
+  regroundOnResize(p2)
   if (p1 && p2) {
     endDomainCinematic()   // defensive cleanup on rematch/resume
     if (typeof camera.reset  === "function") camera.reset()
@@ -17835,6 +17852,12 @@ gameLoop()
         floorLineScreenY: toScreenY(groundY),
         stageTopScreenY:  toScreenY(bgTopWorld),
         stageBotScreenY:  toScreenY(bgBotWorld),
+        // Drawn bitmap-image world-y span + the fraction of it the floor sits at (desync verification:
+        // this fraction must be INVARIANT across viewport sizes now that the image is ground-anchored).
+        imgTopWorld: lastBattleBgRect.imgTop,
+        imgBotWorld: lastBattleBgRect.imgBot,
+        floorImgFrac: (lastBattleBgRect.imgBot - lastBattleBgRect.imgTop) > 0
+          ? (groundY - lastBattleBgRect.imgTop) / (lastBattleBgRect.imgBot - lastBattleBgRect.imgTop) : null,
       }
     },
     arena: () => ({ left: physics.stageLeft, width: physics.stageWidth,

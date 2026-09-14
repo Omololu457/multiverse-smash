@@ -2992,7 +2992,13 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
 
 // Records the world-y span the stage backdrop actually covered on the last draw (top→bottom). The
 // fullscreen-centering probe reads it to confirm the drawn stage is balanced within the camera view.
-export const lastBattleBgRect = { top: 0, bottom: 0 }
+export const lastBattleBgRect = { top: 0, bottom: 0, imgTop: 0, imgBot: 0 }
+
+// Reference canvas height the stage backdrops are authored/aligned to. The ground-anchoring math below is a
+// NO-OP at exactly this height (imgTop resolves to 0 → identical to the legacy [0,h] draw), so the common
+// windowed 720p case is unchanged; taller/fullscreen viewports get the image slid so its floor stays locked
+// to groundY instead of drifting. 720 = the standard windowed height + the default harness viewport.
+const BG_REF_HEIGHT = 720
 
 export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, floorHeight = 120, coverY = null) {
   const { width: w, height: h } = getCanvasSize(canvas)
@@ -3012,11 +3018,28 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
   // [0,h] canvas band. The sky→mid→floor gradient stays anchored to [0,h] so the HORIZON never moves —
   // canvas gradients CLAMP their end colours, so a taller fill paints solid sky above 0 and solid floor
   // below h automatically. Result: the drawn stage brackets the view evenly, no gap top or bottom.
-  const covTop   = Math.min(0, coverY?.top ?? 0)
-  const covBot   = Math.max(h, coverY?.bottom ?? h)
+  // ── GROUND-ANCHORED BACKDROP FRAMING ──────────────────────────────────────────────────────────────
+  // The physics floor plane sits at groundY = canvasHeight − (floorHeight+groundOffset): a FIXED pixel band
+  // above the bottom. Procedural landmarks draw relative to groundY, so they track the floor at ANY viewport
+  // height. A BITMAP backdrop, though, used to be stretched to the raw canvas band [0,h] — so its baked
+  // horizon/ground sat at a fixed FRACTION of h and DRIFTED away from groundY as the window / fullscreen
+  // height changed (the reported desync: on resize the physics floor stayed put but the painted scenery slid).
+  // Fix: anchor the image so the SAME image-fraction always lands on groundY, exactly like the landmarks.
+  // `belowGround` (=floorHeight+groundOffset) and BG_REF_HEIGHT define that fraction; the shift is 0 at the
+  // reference height, so the common windowed 720p case stays byte-identical. Reads groundY (recomputed from
+  // the live canvas size every resize), so the backdrop and the floor now reflow from the SAME source.
+  const belowGround = Math.max(1, h - groundY)                                    // floorHeight+groundOffset (live/per-stage)
+  const groundFrac  = Math.max(0, Math.min(1, 1 - belowGround / BG_REF_HEIGHT))   // image fraction the floor line sits at
+  const imgTop      = groundY - groundFrac * h                                    // slide the h-tall image so its floor == groundY
+  const imgBot      = imgTop + h
+
+  const covTop   = Math.min(0, coverY?.top ?? 0, imgTop)
+  const covBot   = Math.max(h, coverY?.bottom ?? h, imgBot)
   const floorExt = Math.max(floorHeight, covBot - groundY)   // extend the ground down to the view bottom
   lastBattleBgRect.top    = covTop
   lastBattleBgRect.bottom = covBot
+  lastBattleBgRect.imgTop = imgTop     // drawn-image world-y span (diagnostics: verify the floor anchor holds)
+  lastBattleBgRect.imgBot = imgBot
 
   const bg = ctx.createLinearGradient(0, 0, 0, h)
   bg.addColorStop(0, sky)
@@ -3027,15 +3050,15 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
 
   if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
     ctx.save()
-    // The photo covers its natural [0,h] band; the extended gradient fill above/below already painted
-    // solid sky / floor into the margins, so the image never leaves a gap.
-    ctx.drawImage(bgImage, 0, 0, worldWidth, h)
-    const overlay = ctx.createLinearGradient(0, 0, 0, h)
+    // Draw the photo GROUND-ANCHORED (its floor fraction pinned to groundY, not the raw canvas bottom). The
+    // extended gradient fill above/below already painted solid sky / floor into the margins, so no gap shows.
+    ctx.drawImage(bgImage, 0, imgTop, worldWidth, h)
+    const overlay = ctx.createLinearGradient(0, imgTop, 0, imgBot)
     overlay.addColorStop(0, "rgba(255,255,255,0.04)")
     overlay.addColorStop(0.55, "rgba(0,0,0,0.08)")
     overlay.addColorStop(1, "rgba(0,0,0,0.18)")
     ctx.fillStyle = overlay
-    ctx.fillRect(0, 0, worldWidth, h)
+    ctx.fillRect(0, imgTop, worldWidth, h)
     ctx.restore()
 
     // Ambient over the bitmap stages (which skip the procedural landmark code, so they

@@ -267,6 +267,45 @@ def nezuko_classify(h, s, v):
     if 300 <= h <= 350 and s >= 0.28:                 return "GARMENT"  # pink kimono
     return "OTHER"
 
+def minato_classify(h, s, v):
+    # Minato: dark under-uniform + white/cream Hokage haori = GARMENT; red flame hem = ACCENT; blond hair +
+    # skin protected.
+    if v < 0.15:                                     return "DARK"
+    if 40 <= h <= 58 and s >= 0.45 and v >= 0.6:      return "OTHER"    # blond hair (kept)
+    if 10 <= h <= 40 and 0.25 <= s < 0.7 and v >= 0.5:  return "SKIN"   # face
+    if (h <= 12 or h >= 344) and s >= 0.5:            return "ACCENT"   # red flame hem
+    if (s < 0.18 and v >= 0.55) or (0.15 <= v < 0.5 and s < 0.5):  return "GARMENT"  # white haori + dark uniform
+    return "OTHER"
+
+def isshiki_classify(h, s, v):
+    # Isshiki: white/grey Otsutsuki coat = GARMENT; red lining = ACCENT; grey skin + dark horns/hair protected.
+    if v < 0.15:                                     return "DARK"
+    if (h <= 12 or h >= 344) and s >= 0.55:           return "ACCENT"   # red lining
+    if s < 0.22 and v >= 0.45:                        return "GARMENT"  # white/grey coat
+    return "OTHER"                                                     # brown pants + grey skin kept
+
+def orochimaru_classify(h, s, v):
+    # Orochimaru: grey/purple robe = GARMENT; pale skin protected; long black hair protected; purple rope = accent.
+    if v < 0.15:                                     return "DARK"
+    if 10 <= h <= 45 and 0.12 <= s < 0.4 and v >= 0.6:  return "SKIN"   # pale skin (slight warm tint)
+    if 250 <= h <= 300 and s >= 0.35:                 return "ACCENT"   # purple rope
+    if (200 <= h <= 300 or s < 0.22) and 0.2 <= v < 0.72:  return "GARMENT"  # grey/purple robe
+    return "OTHER"
+
+def onoki_classify(h, s, v):
+    # Onoki: green Tsuchikage haori = GARMENT; red inner = ACCENT; skin + tan/gold kept; dark outline protect.
+    if v < 0.15:                                     return "DARK"
+    if 85 <= h <= 155 and s >= 0.35:                  return "GARMENT"  # green haori
+    if (h <= 12 or h >= 344) and s >= 0.5:            return "ACCENT"   # red inner
+    return "OTHER"
+
+def kiba_classify(h, s, v):
+    # Kiba: dark grey/blue hoodie + pants = GARMENT; skin + brown hair protected.
+    if v < 0.15:                                     return "DARK"
+    if 8 <= h <= 42 and 0.22 <= s < 0.62 and v >= 0.45:  return "SKIN"  # face + brown hair
+    if (185 <= h <= 260 or s < 0.32) and 0.15 <= v < 0.55:  return "GARMENT"  # dark hoodie/pants
+    return "OTHER"
+
 def gojo_classify(h, s, v):
     # Gojo: dark JJK uniform = GARMENT; white blindfold + white hair kept; skin protected.
     if v < 0.15:                                     return "DARK"
@@ -342,6 +381,11 @@ def handler_classify(h, s, v):
 
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "minato":     dict(classify=minato_classify),
+    "isshiki":    dict(classify=isshiki_classify),
+    "orochimaru": dict(classify=orochimaru_classify),
+    "onoki":      dict(classify=onoki_classify),
+    "kiba":       dict(classify=kiba_classify),
     "gojo":       dict(classify=gojo_classify),
     "toji":       dict(classify=toji_classify),
     "naoya":      dict(classify=naoya_classify),

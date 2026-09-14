@@ -56,6 +56,12 @@ const CONFIG = {
   gohan:      { p1: "gohan",      skins: [{ id: "gohanAlbedo", tag: "albedo" }, { id: "gohanValkyrie", tag: "valkyrie" }, { id: "gohanAlienX", tag: "alienx" }] },
   goku_black: { p1: "goku_black", skins: [{ id: "goku_blackAlbedo", tag: "albedo" }, { id: "goku_blackValkyrie", tag: "valkyrie" }, { id: "goku_blackAlienX", tag: "alienx" }] },
   vegeta_dark: { p1: "vegeta_dark", skins: [{ id: "vegeta_darkValkyrie", tag: "valkyrie" }, { id: "vegeta_darkAlienX", tag: "alienx" }] },
+  // ── Demon Slayer wave (base-recolour) — rengoku/shinobu already have an "Albedo Protocol", so Valk+AlienX only ──
+  zenitsu: { p1: "zenitsu", skins: [{ id: "zenitsuAlbedo", tag: "albedo" }, { id: "zenitsuValkyrie", tag: "valkyrie" }, { id: "zenitsuAlienX", tag: "alienx" }] },
+  rengoku: { p1: "rengoku", skins: [{ id: "rengokuValkyrie", tag: "valkyrie" }, { id: "rengokuAlienX", tag: "alienx" }] },
+  shinobu: { p1: "shinobu", skins: [{ id: "shinobuValkyrie", tag: "valkyrie" }, { id: "shinobuAlienX", tag: "alienx" }] },
+  inosuke: { p1: "inosuke", skins: [{ id: "inosukeAlbedo", tag: "albedo" }, { id: "inosukeValkyrie", tag: "valkyrie" }, { id: "inosukeAlienX", tag: "alienx" }] },
+  nezuko:  { p1: "nezuko",  skins: [{ id: "nezukoAlbedo", tag: "albedo" }, { id: "nezukoValkyrie", tag: "valkyrie" }, { id: "nezukoAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];

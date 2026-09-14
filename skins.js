@@ -1394,6 +1394,10 @@ export const SKINS = {
   // Sources his real spriteScale (2.25) + portrait from the character. No alt skins yet.
   zenitsu: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zenitsu?.portrait, spriteScale: characters.zenitsu?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — yellow haori+hair theme, pink triangles accent.
+    { id: "zenitsuAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("zenitsu", "albedo"), spriteScale: characters.zenitsu?.spriteScale, animationData: recolorSkinAnim("zenitsu", "albedo") },
+    { id: "zenitsuValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("zenitsu", "valkyrie"), spriteScale: characters.zenitsu?.spriteScale, animationData: recolorSkinAnim("zenitsu", "valkyrie") },
+    { id: "zenitsuAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("zenitsu", "alienx"), spriteScale: characters.zenitsu?.spriteScale, animationData: recolorSkinAnim("zenitsu", "alienx") },
     // "Lavender" — orange/yellow → lavender-pink recolor (tools/gen_zenitsu_lavender.py): the fiery
     // hair + haori gradient (incl. its deep-red scale-tips + thunder VFX) remaps to #C9A0D4 with the
     // light/dark shading preserved. Skin, black kimono base + brown hakama are untouched. Cosmetic only.
@@ -1413,6 +1417,9 @@ export const SKINS = {
   // Sources his real spriteScale (2.25) + portrait from the character. No alt skins yet.
   rengoku: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rengoku?.portrait, spriteScale: characters.rengoku?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — white flame haori garment, red flame accent.
+    { id: "rengokuValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("rengoku", "valkyrie"), spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "valkyrie") },
+    { id: "rengokuAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("rengoku", "alienx"), spriteScale: characters.rengoku?.spriteScale, animationData: recolorSkinAnim("rengoku", "alienx") },
     // 8 creative recolors (tools/gen_rengoku_creative.py). Per-region: hair / haori EXTERIOR (neutral) /
     // haori INNER LINING = the red flame-hem / pants, with the orange flame-TIPS folded into (or kept
     // distinct from) the lining per skin. Multi-tone preserved via to-tone; face/skin excluded (except
@@ -1433,6 +1440,9 @@ export const SKINS = {
   // spriteScale (2.25) + portrait from the character. No alt skins yet.
   shinobu: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.shinobu?.portrait, spriteScale: characters.shinobu?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — purple butterfly haori garment.
+    { id: "shinobuValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("shinobu", "valkyrie"), spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "valkyrie") },
+    { id: "shinobuAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("shinobu", "alienx"), spriteScale: characters.shinobu?.spriteScale, animationData: recolorSkinAnim("shinobu", "alienx") },
     // 8 creative recolors (tools/gen_shinobu_creative.py). Per-region: hair / haori EXTERIOR (white) /
     // butterfly-WING hem pattern (saturated cool→magenta gradient, its own region) / KIMONO inner layer.
     // Obi sash is NOT separable at sprite resolution → folded (flagged). Night Moth = full-form void +
@@ -1453,6 +1463,10 @@ export const SKINS = {
   // byte-identical); regions captured from the ORIGINAL (contamination-proof). Cosmetic only; zero gameplay.
   inosuke: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.inosuke?.portrait, spriteScale: characters.inosuke?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — blue-grey hakama garment, bare chest kept.
+    { id: "inosukeAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("inosuke", "albedo"), spriteScale: characters.inosuke?.spriteScale, animationData: recolorSkinAnim("inosuke", "albedo") },
+    { id: "inosukeValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("inosuke", "valkyrie"), spriteScale: characters.inosuke?.spriteScale, animationData: recolorSkinAnim("inosuke", "valkyrie") },
+    { id: "inosukeAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("inosuke", "alienx"), spriteScale: characters.inosuke?.spriteScale, animationData: recolorSkinAnim("inosuke", "alienx") },
     // ── Group 1 ──
     { id: "inosukeIronBoar",      name: "Iron Boar",      unlockLevel: 0, portrait: "./inosuke_portrait__ironboar.png",      spriteScale: characters.inosuke?.spriteScale, animationData: recolorSkinAnim("inosuke", "ironboar") },
     { id: "inosukeCrimsonFeral",  name: "Crimson Feral",  unlockLevel: 0, portrait: "./inosuke_portrait__crimsonferal.png",  spriteScale: characters.inosuke?.spriteScale, animationData: recolorSkinAnim("inosuke", "crimsonferal") },
@@ -1481,6 +1495,10 @@ export const SKINS = {
   // Cosmetic only — ZERO gameplay/stat impact.
   nezuko: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.nezuko?.portrait, spriteScale: characters.nezuko?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py) — pink kimono garment, black hair kept.
+    { id: "nezukoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("nezuko", "albedo"), spriteScale: characters.nezuko?.spriteScale, animationData: recolorSkinAnim("nezuko", "albedo") },
+    { id: "nezukoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("nezuko", "valkyrie"), spriteScale: characters.nezuko?.spriteScale, animationData: recolorSkinAnim("nezuko", "valkyrie") },
+    { id: "nezukoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("nezuko", "alienx"), spriteScale: characters.nezuko?.spriteScale, animationData: recolorSkinAnim("nezuko", "alienx") },
     // ── Group 1 ──
     { id: "nezukoEmberBloom",   name: "Ember Bloom",   unlockLevel: 0, portrait: "./nezuko_portrait__emberbloom.png",   spriteScale: characters.nezuko?.spriteScale, animationData: recolorSkinAnim("nezuko", "emberbloom") },
     { id: "nezukoMoonlitVale",  name: "Moonlit Vale",  unlockLevel: 0, portrait: "./nezuko_portrait__moonlitvale.png",  spriteScale: characters.nezuko?.spriteScale, animationData: recolorSkinAnim("nezuko", "moonlitvale") },

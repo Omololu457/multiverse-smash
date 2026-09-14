@@ -225,8 +225,55 @@ def vegeta_dark_classify(h, s, v):
     if s < 0.28 and v >= 0.4:                         return "GARMENT"  # silver/grey armour
     return "OTHER"
 
+def zenitsu_classify(h, s, v):
+    # Zenitsu: yellow/orange haori + yellow hair = one unified warm theme (GARMENT); pink triangle pattern =
+    # ACCENT; skin protected; black Demon-Slayer uniform + outline protected; white kept.
+    if v < 0.15:                                     return "DARK"
+    if 312 <= h <= 348 and s >= 0.45:                 return "ACCENT"   # pink triangles
+    if 8 <= h <= 30 and 0.25 <= s < 0.62 and v >= 0.5:  return "SKIN"   # face (mid-sat warm, below haori sat)
+    if 20 <= h <= 58 and s >= 0.5:                    return "GARMENT"  # yellow/orange haori + hair
+    return "OTHER"
+
+def rengoku_classify(h, s, v):
+    # Rengoku: white/cream flame haori = GARMENT; red-orange flame hem + flame hair = ACCENT; skin protected;
+    # black uniform + outline protected.
+    if v < 0.15:                                     return "DARK"
+    if 8 <= h <= 32 and 0.25 <= s < 0.6 and v >= 0.5:   return "SKIN"   # face
+    if (h >= 316 or h <= 20) and s >= 0.5:            return "ACCENT"   # red-orange flame + flame hair
+    if s < 0.22 and v >= 0.5:                         return "GARMENT"  # white/cream haori
+    return "OTHER"
+
+def shinobu_classify(h, s, v):
+    # Shinobu: purple butterfly haori = GARMENT; white haori base kept; black hair + uniform protected; skin protect.
+    if v < 0.15:                                     return "DARK"
+    if 8 <= h <= 40 and 0.18 <= s < 0.5 and v >= 0.55:  return "SKIN"   # pale face
+    if 205 <= h <= 285 and s >= 0.30:                 return "GARMENT"  # purple/violet haori
+    if 150 <= h <= 205 and s >= 0.35:                 return "ACCENT"   # teal butterfly gradient
+    return "OTHER"                                                     # white kept
+
+def inosuke_classify(h, s, v):
+    # Inosuke: blue-grey hakama = GARMENT; bare-chest skin protected; boar mask (white) kept; dark fur pelt +
+    # outline protected.
+    if v < 0.15:                                     return "DARK"
+    if (h <= 38 or h >= 344) and 0.2 <= s < 0.65 and v >= 0.45:  return "SKIN"  # bare chest / face
+    if 190 <= h <= 235 and s >= 0.28:                 return "GARMENT"  # blue-grey hakama
+    return "OTHER"                                                     # white boar mask kept
+
+def nezuko_classify(h, s, v):
+    # Nezuko: pink checkered kimono = GARMENT; black hair (orange tips) + outline protected; skin protected;
+    # bamboo muzzle kept.
+    if v < 0.15:                                     return "DARK"
+    if 8 <= h <= 40 and 0.2 <= s < 0.55 and v >= 0.55:  return "SKIN"   # face
+    if 300 <= h <= 350 and s >= 0.28:                 return "GARMENT"  # pink kimono
+    return "OTHER"
+
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "zenitsu":   dict(classify=zenitsu_classify),
+    "rengoku":   dict(classify=rengoku_classify),
+    "shinobu":   dict(classify=shinobu_classify),
+    "inosuke":   dict(classify=inosuke_classify),
+    "nezuko":    dict(classify=nezuko_classify),
     "gohan":     dict(classify=gohan_classify),
     "goku_black": dict(classify=goku_black_classify),
     "vegeta_dark": dict(classify=vegeta_dark_classify),

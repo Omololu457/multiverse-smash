@@ -128,6 +128,10 @@ export const SKINS = {
   // are appended below. (reanim sheets kept on disk — they're Tobirama's Edo-Tensei SUMMON palette, not a skin.)
   sukuna: [
     { id: "default", name: "Regular", unlockLevel: 0, portrait: characters.sukuna?.portrait, spriteScale: characters.sukuna?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "sukunaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("sukuna", "albedo"), spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "albedo") },
+    { id: "sukunaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("sukuna", "valkyrie"), spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "valkyrie") },
+    { id: "sukunaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("sukuna", "alienx"), spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "alienx") },
     // ── Creative pack GROUP 1 (gen_sukuna_creative2.py): hair+markings coordinated accent · black clothing ──
     { id: "sukunaObsidianCurse", name: "Obsidian Curse", unlockLevel: 0, portrait: characters.sukuna?.portrait, spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "obsidiancurse") },
     { id: "sukunaCrimsonKing",   name: "Crimson King",   unlockLevel: 0, portrait: characters.sukuna?.portrait, spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "crimsonking") },
@@ -152,6 +156,9 @@ export const SKINS = {
   // Body-region recolor only; the Domain shrine backdrop (cursed-technique FX) is untouched. gen_alt_sukuna_creative.py.
   alt_sukuna: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.alt_sukuna?.portrait, spriteScale: characters.alt_sukuna?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "alt_sukunaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("alt_sukuna", "valkyrie"), spriteScale: characters.alt_sukuna?.spriteScale, animationData: recolorSkinAnim("alt_sukuna", "valkyrie") },
+    { id: "alt_sukunaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("alt_sukuna", "alienx"), spriteScale: characters.alt_sukuna?.spriteScale, animationData: recolorSkinAnim("alt_sukuna", "alienx") },
     // ── Group 1 ──
     { id: "altSukunaCrimsonMalevolence", name: "Crimson Malevolence", unlockLevel: 0, portrait: "./alt_sukuna_portrait__crimsonmalevolence.png", spriteScale: characters.alt_sukuna?.spriteScale, animationData: recolorSkinAnim("alt_sukuna", "crimsonmalevolence") },   // red hair / intensified-red scarf+markings on black
     { id: "altSukunaAzureCurse",         name: "Azure Curse",         unlockLevel: 0, portrait: "./alt_sukuna_portrait__azurecurse.png",         spriteScale: characters.alt_sukuna?.spriteScale, animationData: recolorSkinAnim("alt_sukuna", "azurecurse") },           // blue hair / azure accent on black
@@ -176,6 +183,10 @@ export const SKINS = {
   // shirtless, so skin is the dominant identity region). Belt/hair/outline/shoes protected.
   aoi_todo: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.aoi_todo?.portrait, spriteScale: characters.aoi_todo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "aoi_todoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("aoi_todo", "albedo"), spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "albedo") },
+    { id: "aoi_todoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("aoi_todo", "valkyrie"), spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "valkyrie") },
+    { id: "aoi_todoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("aoi_todo", "alienx"), spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "alienx") },
     // ── Group 1 ──
     { id: "aoiTodoCrimsonBrawler",  name: "Crimson Brawler",  unlockLevel: 0, portrait: "./aoi_todo_portrait__crimsonbrawler.png",  spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "crimsonbrawler") },   // bronze-red skin / red pants
     { id: "aoiTodoVerdantStorm",    name: "Verdant Storm",    unlockLevel: 0, portrait: "./aoi_todo_portrait__verdantstorm.png",    spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "verdantstorm") },     // olive-tan skin / green pants
@@ -195,6 +206,10 @@ export const SKINS = {
   // his real 2.10 spriteScale from the character. No alt skins yet (cosmetic pass deferred to a future stage).
   yuji: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.yuji?.portrait, spriteScale: characters.yuji?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "yujiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("yuji", "albedo"), spriteScale: characters.yuji?.spriteScale, animationData: recolorSkinAnim("yuji", "albedo") },
+    { id: "yujiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("yuji", "valkyrie"), spriteScale: characters.yuji?.spriteScale, animationData: recolorSkinAnim("yuji", "valkyrie") },
+    { id: "yujiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("yuji", "alienx"), spriteScale: characters.yuji?.spriteScale, animationData: recolorSkinAnim("yuji", "alienx") },
     // 12 GENUINELY creative recolors (tools/gen_yuji_creative.py) — HAIR (pink) + OUTFIT (navy) + ACCENT (red
     // trim) all vary as one coordinated palette identity. FX PRESERVED: cyan cursed-energy/blue-crescent falls
     // outside every band; the red flame-trail FX on koma1/koma2/aircombo is preserved by an accent-SKIP on those
@@ -487,6 +502,10 @@ export const SKINS = {
   // exist: applySkin() sources the real spriteScale from here (else The Handler renders at native px).
   handler: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.handler?.portrait, spriteScale: characters.handler?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "handlerAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("handler", "albedo"), spriteScale: characters.handler?.spriteScale, animationData: recolorSkinAnim("handler", "albedo") },
+    { id: "handlerValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("handler", "valkyrie"), spriteScale: characters.handler?.spriteScale, animationData: recolorSkinAnim("handler", "valkyrie") },
+    { id: "handlerAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("handler", "alienx"), spriteScale: characters.handler?.spriteScale, animationData: recolorSkinAnim("handler", "alienx") },
   ],
   yuta: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.yuta?.portrait, spriteScale: characters.yuta?.spriteScale, animationData: null },

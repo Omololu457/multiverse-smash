@@ -414,14 +414,21 @@ export const SKINS = {
   // pulls the getSkins() spriteScale:1 fallback and he renders at native ~72px (half size). This
   // entry sources his real spriteScale (1.55) from the character. No alt skins yet.
   itachi: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.itachi?.portrait, spriteScale: characters.itachi?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.itachi?.portrait, spriteScale: characters.itachi?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "itachiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("itachi", "valkyrie"), spriteScale: characters.itachi?.spriteScale, animationData: recolorSkinAnim("itachi", "valkyrie") },
+    { id: "itachiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("itachi", "alienx"), spriteScale: characters.itachi?.spriteScale, animationData: recolorSkinAnim("itachi", "alienx") },
   ],
 
   // Tobirama (universe: naruto) — STAGE 1. WITHOUT a default skin, applySkin() pulls the getSkins()
   // spriteScale:1 fallback and he renders at native size. This entry sources his real spriteScale
   // (1.3) from the character. No alt skins yet.
   tobirama: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.tobirama?.portrait, spriteScale: characters.tobirama?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.tobirama?.portrait, spriteScale: characters.tobirama?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "tobiramaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("tobirama", "albedo"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "albedo") },
+    { id: "tobiramaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("tobirama", "valkyrie"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "valkyrie") },
+    { id: "tobiramaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("tobirama", "alienx"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "alienx") },
   ],
 
   // Hashirama (universe: naruto) — STAGE 1 default + 12 creative recolors + 1 Alien-X-style Void skin
@@ -663,6 +670,8 @@ export const SKINS = {
   // REQUIRED: without it applySkin() falls back to spriteScale:1 and the sprite renders native-shrunk.
   boruto: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.boruto?.portrait, spriteScale: characters.boruto?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag).
+    { id: "borutoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("boruto", "albedo"), spriteScale: characters.boruto?.spriteScale, animationData: recolorSkinAnim("boruto", "albedo"), recolorTag: "albedo" },
     // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py). Boruto's jacket is already near-black, so
     // Albedo was skipped (would read identical to Default); Valkyrie recolours the tracksuit light-blue.
     { id: "borutoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("boruto", "valkyrie"), spriteScale: characters.boruto?.spriteScale, animationData: recolorSkinAnim("boruto", "valkyrie") },  // light-blue tracksuit / gold accent
@@ -724,6 +733,10 @@ export const SKINS = {
   ],
   hashirama: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.hashirama?.portrait, spriteScale: characters.hashirama?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "hashiramaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("hashirama", "albedo"), spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "albedo") },
+    { id: "hashiramaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("hashirama", "valkyrie"), spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "valkyrie") },
+    { id: "hashiramaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("hashirama", "alienx"), spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "alienx") },
     { id: "hashiramaForestSovereign", name: "Forest Sovereign", unlockLevel: 0, portrait: "./hashirama_portrait__forestsovereign.png", spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "forestsovereign") },  // Wood Release — deep living forest green
     { id: "hashiramaAutumnCanopy",    name: "Autumn Canopy",    unlockLevel: 0, portrait: "./hashirama_portrait__autumncanopy.png",    spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "autumncanopy") },     // autumn-leaf burnt orange over bark-brown
     { id: "hashiramaMossBark",        name: "Moss Bark",        unlockLevel: 0, portrait: "./hashirama_portrait__mossbark.png",        spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "mossbark") },         // muted moss/olive — overgrown forest god
@@ -795,6 +808,10 @@ export const SKINS = {
   // and the near-black outline are protected (line-art guard). Cosmetic-only — ZERO gameplay changes.
   madara: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.madara?.portrait, spriteScale: characters.madara?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "madaraAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("madara", "albedo"), spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "albedo") },
+    { id: "madaraValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("madara", "valkyrie"), spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "valkyrie") },
+    { id: "madaraAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("madara", "alienx"), spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "alienx") },
     { id: "madaraShatteredCrown", name: "Shattered Crown", unlockLevel: 0, portrait: "./madara_portrait__shatteredcrown.png", spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "shatteredcrown") },
     { id: "madaraVoidAwakening",  name: "Void Awakening",  unlockLevel: 0, portrait: "./madara_portrait__voidawakening.png",  spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "voidawakening") },
     { id: "madaraScarletEclipse", name: "Scarlet Eclipse", unlockLevel: 0, portrait: "./madara_portrait__scarleteclipse.png", spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "scarleteclipse") },
@@ -811,6 +828,8 @@ export const SKINS = {
   // drifting-red-particle + gravity-ripple overlay (game.js drawPainVoidOverlay, gated on this id).
   pain: [
     { id: "default",          name: "Default",          unlockLevel: 0, portrait: characters.pain?.portrait,               spriteScale: characters.pain?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "painAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("pain", "alienx"), spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "alienx") },
     // ── Group 1 — Ben 10 homages + 2 Beyblade-color skins ──
     { id: "painOmnitrix",      name: "Omnitrix Protocol", unlockLevel: 0, portrait: "./pain_portrait__omnitrix.png",      spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "omnitrix") },
     { id: "painAlbedo",        name: "Albedo Protocol",   unlockLevel: 0, portrait: "./pain_portrait__albedo.png",        spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "albedo") },
@@ -837,6 +856,9 @@ export const SKINS = {
   // procedural Sharingan/Kamui overlay (game.js drawObitoVoidOverlay, gated on this id).
   obito: [
     { id: "default",        name: "Default",          unlockLevel: 0, portrait: characters.obito?.portrait,          spriteScale: characters.obito?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "obitoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("obito", "valkyrie"), spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "valkyrie") },
+    { id: "obitoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("obito", "alienx"), spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "alienx") },
     { id: "obitoOmnitrix",  name: "Omnitrix Protocol", unlockLevel: 0, portrait: "./obito_portrait__omnitrix.png",   spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "omnitrix") },
     { id: "obitoAlbedo",    name: "Albedo Protocol",   unlockLevel: 0, portrait: "./obito_portrait__albedo.png",     spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "albedo") },
     { id: "obitoCrimsonEye",name: "Crimson Eye",       unlockLevel: 0, portrait: "./obito_portrait__crimsoneye.png", spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "crimsoneye") },
@@ -862,6 +884,9 @@ export const SKINS = {
   // fallback on select). Creative skins are a later pass.
   tobi: [
     { id: "default",          name: "Default",          unlockLevel: 0, portrait: characters.tobi?.portrait,             spriteScale: characters.tobi?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "tobiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("tobi", "valkyrie"), spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "valkyrie") },
+    { id: "tobiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("tobi", "alienx"), spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "alienx") },
     // Group 1 (Beyblade-inspired) — cosmetic recolors via tools/gen_tobi_creative.py (mask/hair/cloak/accent).
     { id: "tobiMirageDragon", name: "Mirage Dragon",    unlockLevel: 0, portrait: "./tobi_portrait__miragedragon.png",  spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "miragedragon") },
     { id: "tobiWinningValor", name: "Winning Valor",    unlockLevel: 0, portrait: "./tobi_portrait__winningvalor.png",  spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "winningvalor") },
@@ -1664,6 +1689,10 @@ export const SKINS = {
   ],
   hiruzen: [
     { id: "default",               name: "Default",              unlockLevel: 0, portrait: characters.hiruzen?.portrait,           spriteScale: characters.hiruzen?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "hiruzenAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("hiruzen", "albedo"), spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "albedo") },
+    { id: "hiruzenValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("hiruzen", "valkyrie"), spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "valkyrie") },
+    { id: "hiruzenAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("hiruzen", "alienx"), spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "alienx") },
     { id: "hiruzenShadowOperative", name: "Shadow Operative",    unlockLevel: 0, portrait: recolorPortrait("hiruzen", "shadow_operative"), spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "shadow_operative"), recolorTag: "shadow_operative" },
     { id: "hiruzenEarthenSage",    name: "Earthen Sage",         unlockLevel: 0, portrait: recolorPortrait("hiruzen", "earthen_sage"),     spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "earthen_sage"),     recolorTag: "earthen_sage" },
     { id: "hiruzenSilverVeteran",  name: "Silver Veteran",       unlockLevel: 0, portrait: recolorPortrait("hiruzen", "silver_veteran"),   spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "silver_veteran"),   recolorTag: "silver_veteran" },
@@ -1962,6 +1991,9 @@ export const SKINS = {
   // Verified roster-wide across all 6 Paths (harness/shots/sixpaths_skins_preview.png). Cosmetic-only.
   six_paths_pain: [
     { id: "default",                  name: "Default",           unlockLevel: 0, portrait: characters.six_paths_pain?.portrait,        spriteScale: characters.six_paths_pain?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "six_paths_painValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("six_paths_pain", "valkyrie"), spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "valkyrie") },
+    { id: "six_paths_painAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("six_paths_pain", "alienx"), spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "alienx") },
     { id: "sixpaths_amberpath",       name: "Amber Path",        unlockLevel: 0, portrait: "./sixpaths_deva_portrait__amberpath.png",       spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "amberpath"),       recolorTag: "amberpath" },
     { id: "sixpaths_goldenrikudou",   name: "Golden Rikudō",     unlockLevel: 0, portrait: "./sixpaths_deva_portrait__goldenrikudou.png",   spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "goldenrikudou"),   recolorTag: "goldenrikudou" },
     { id: "sixpaths_verdantsage",     name: "Verdant Sage",      unlockLevel: 0, portrait: "./sixpaths_deva_portrait__verdantsage.png",     spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "verdantsage"),     recolorTag: "verdantsage" },

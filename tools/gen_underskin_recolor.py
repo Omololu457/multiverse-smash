@@ -267,6 +267,74 @@ def nezuko_classify(h, s, v):
     if 300 <= h <= 350 and s >= 0.28:                 return "GARMENT"  # pink kimono
     return "OTHER"
 
+def itachi_classify(h, s, v):
+    # Itachi: black Akatsuki cloak = GARMENT; red clouds = ACCENT; black hair + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if (h <= 12 or h >= 345) and s >= 0.5:            return "ACCENT"   # red clouds
+    if 8 <= h <= 40 and 0.25 <= s < 0.65 and v >= 0.45:  return "SKIN"
+    if 0.13 <= v < 0.5 and s < 0.5:                  return "GARMENT"  # dark cloak
+    return "OTHER"
+
+def obito_classify(h, s, v):
+    # Obito: dark cloak/outfit = GARMENT; red clouds = ACCENT; black hair + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if (h <= 12 or h >= 345) and s >= 0.5:            return "ACCENT"
+    if 8 <= h <= 40 and 0.25 <= s < 0.65 and v >= 0.45:  return "SKIN"
+    if 0.13 <= v < 0.5 and s < 0.5:                  return "GARMENT"
+    return "OTHER"
+
+def tobi_classify(h, s, v):
+    # Tobi (masked): black Akatsuki cloak = GARMENT; orange spiral mask kept; red clouds = ACCENT.
+    if v < 0.13:                                     return "DARK"
+    if 12 <= h <= 44 and s >= 0.5 and v >= 0.4:       return "OTHER"    # orange mask (kept)
+    if (h <= 10 or h >= 346) and s >= 0.55:           return "ACCENT"   # red clouds
+    if 0.13 <= v < 0.5 and s < 0.5:                  return "GARMENT"
+    return "OTHER"
+
+def six_paths_pain_classify(h, s, v):
+    # Six Paths Pain: black Akatsuki cloak = GARMENT; ORANGE hair kept; red clouds = ACCENT; skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 12 <= h <= 44 and s >= 0.4 and v >= 0.45:      return "OTHER"    # orange hair (kept)
+    if (h <= 10 or h >= 346) and s >= 0.55:           return "ACCENT"
+    if 0.13 <= v < 0.5 and s < 0.5:                  return "GARMENT"
+    return "OTHER"
+
+def madara_classify(h, s, v):
+    # Madara: dark-red battle armour = GARMENT; black hair + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if (h <= 20 or h >= 330) and s >= 0.4:            return "GARMENT"  # red armour
+    return "OTHER"
+
+def hashirama_classify(h, s, v):
+    # Hashirama: red First-Hokage armour = GARMENT; skin + dark hair protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if (h <= 20 or h >= 328) and s >= 0.4:            return "GARMENT"  # red armour
+    return "OTHER"
+
+def tobirama_classify(h, s, v):
+    # Tobirama: blue-grey Second-Hokage armour = GARMENT; white hair + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if 185 <= h <= 250 and s >= 0.3:                  return "GARMENT"  # blue armour
+    return "OTHER"                                                     # white hair kept
+
+def hiruzen_classify(h, s, v):
+    # Hiruzen: dark battle-armour/robe = GARMENT; skin + dark hair protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if 0.13 <= v < 0.52 and s < 0.5:                 return "GARMENT"
+    return "OTHER"
+
+def boruto_classify(h, s, v):
+    # Boruto: black tracksuit jacket + pants = GARMENT; red collar = ACCENT; blond hair + skin protected.
+    if v < 0.12:                                     return "DARK"
+    if 12 <= h <= 52 and s >= 0.28 and v >= 0.45:     return "SKIN"     # blond hair + face
+    if (h <= 12 or h >= 328) and s >= 0.5 and v >= 0.38:  return "ACCENT"  # red collar
+    if 0.12 <= v < 0.55 and s < 0.55:                return "GARMENT"  # black tracksuit
+    return "OTHER"
+
 def minato_classify(h, s, v):
     # Minato: dark under-uniform + white/cream Hokage haori = GARMENT; red flame hem = ACCENT; blond hair +
     # skin protected.
@@ -381,6 +449,16 @@ def handler_classify(h, s, v):
 
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "itachi":     dict(classify=itachi_classify),
+    "obito":      dict(classify=obito_classify),
+    "tobi":       dict(classify=tobi_classify),
+    "six_paths_pain": dict(classify=six_paths_pain_classify),
+    "madara":     dict(classify=madara_classify),
+    "hashirama":  dict(classify=hashirama_classify),
+    "tobirama":   dict(classify=tobirama_classify),
+    "hiruzen":    dict(classify=hiruzen_classify),
+    "boruto":     dict(classify=boruto_classify),
+    "pain":       dict(classify=_trivial_classify),
     "minato":     dict(classify=minato_classify),
     "isshiki":    dict(classify=isshiki_classify),
     "orochimaru": dict(classify=orochimaru_classify),

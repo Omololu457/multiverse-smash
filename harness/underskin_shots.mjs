@@ -18,8 +18,18 @@ const CONFIG = {
     { id: "bakiAlbedo", tag: "albedo" }, { id: "bakiValkyrie", tag: "valkyrie" }, { id: "bakiAlienX", tag: "alienx" },
   ] },
   boruto: { p1: "boruto", skins: [
-    { id: "borutoValkyrie", tag: "valkyrie" }, { id: "borutoAlienX", tag: "alienx" },
+    { id: "borutoAlbedo", tag: "albedo" }, { id: "borutoValkyrie", tag: "valkyrie" }, { id: "borutoAlienX", tag: "alienx" },
   ] },
+  // ── Naruto part 2 ──
+  madara:    { p1: "madara",    skins: [{ id: "madaraAlbedo", tag: "albedo" }, { id: "madaraValkyrie", tag: "valkyrie" }, { id: "madaraAlienX", tag: "alienx" }] },
+  hashirama: { p1: "hashirama", skins: [{ id: "hashiramaAlbedo", tag: "albedo" }, { id: "hashiramaValkyrie", tag: "valkyrie" }, { id: "hashiramaAlienX", tag: "alienx" }] },
+  tobirama:  { p1: "tobirama",  skins: [{ id: "tobiramaAlbedo", tag: "albedo" }, { id: "tobiramaValkyrie", tag: "valkyrie" }, { id: "tobiramaAlienX", tag: "alienx" }] },
+  hiruzen:   { p1: "hiruzen",   skins: [{ id: "hiruzenAlbedo", tag: "albedo" }, { id: "hiruzenValkyrie", tag: "valkyrie" }, { id: "hiruzenAlienX", tag: "alienx" }] },
+  itachi:    { p1: "itachi",    skins: [{ id: "itachiValkyrie", tag: "valkyrie" }, { id: "itachiAlienX", tag: "alienx" }] },
+  six_paths_pain: { p1: "six_paths_pain", skins: [{ id: "six_paths_painValkyrie", tag: "valkyrie" }, { id: "six_paths_painAlienX", tag: "alienx" }] },
+  obito:     { p1: "obito",     skins: [{ id: "obitoValkyrie", tag: "valkyrie" }, { id: "obitoAlienX", tag: "alienx" }] },
+  tobi:      { p1: "tobi",      skins: [{ id: "tobiValkyrie", tag: "valkyrie" }, { id: "tobiAlienX", tag: "alienx" }] },
+  pain:      { p1: "pain",      skins: [{ id: "painAlienX", tag: "alienx" }] },
   kakashi: { p1: "kakashi", skins: [
     { id: "kakashiAlbedo", tag: "albedo" }, { id: "kakashiValkyrie", tag: "valkyrie" }, { id: "kakashiAlienX", tag: "alienx" },
   ] },
@@ -110,6 +120,8 @@ for (const char of WANT) {
                            : char === "sasuke"    ? `sasuke_pfp__${tag}.png`
                            : char === "beerus"    ? `beerus_mugshot__${tag}.png`
                            : char === "goku_black" ? `goku_black_mug_shot__${tag}.png`
+                           : char === "itachi"     ? `Itatchi_mugshot__${tag}.png`
+                           : char === "six_paths_pain" ? `sixpaths_deva_portrait__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

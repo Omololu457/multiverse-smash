@@ -6,6 +6,8 @@
 // sweep across the full animationData. Per-stage green_lantern_stage1..6 carry the fine-grained coverage.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg", ".json": "application/json" };
 const server = await new Promise(r => { const s = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]); const f = path.join(ROOT, u === "/" ? "/index.html" : u); if (!f.startsWith(ROOT)) { res.writeHead(403).end(); return; } fs.readFile(f, (e, d) => { if (e) { res.writeHead(404).end(); return; } res.writeHead(200, { "content-type": MIME[path.extname(f)] || "application/octet-stream" }); res.end(d); }); }); s.listen(0, "127.0.0.1", () => r(s)); });
@@ -28,7 +30,7 @@ try {
   // ── STATIC: every animationData sheet + the projectile sheets + portrait exist on disk ──
   console.log("\n── static asset sweep ──");
   const sheets = ["idle","run","jump","fall","flight","hurt","knockdown","light","heavy","up","air","spinkick","beam","fist","lion","blade","tentacle","spike","sphere","win"].map(s => `gl_${s}_uniform.png`);
-  const missing = sheets.filter(s => !fs.existsSync(path.join(ROOT, s)));
+  const missing = sheets.filter(s => !fs.existsSync(path.join(ROOT, voicePath(s))));
   check("all gl_*_uniform sheets exist on disk", missing.length === 0, missing.join(", "));
   check("portrait gl_portrait.png exists", fs.existsSync(path.join(ROOT, "gl_portrait.png")), "");
 

@@ -3,6 +3,8 @@
 // (2) live triggers fire the right pool via a playSfxFile spy: special cast + ultimate + intro.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".mp3":"audio/mpeg",".json":"application/json" };
 const server = await new Promise(r => { const s = http.createServer((req,res)=>{ const u=decodeURIComponent(req.url.split("?")[0]); const f=path.join(ROOT,u==="/"?"/index.html":u); if(!f.startsWith(ROOT)){res.writeHead(403).end();return;} fs.readFile(f,(e,d)=>{ if(e){res.writeHead(404).end();return;} res.writeHead(200,{"content-type":MIME[path.extname(f)]||"application/octet-stream"}); res.end(d); }); }); s.listen(0,"127.0.0.1",()=>r(s)); });
@@ -29,7 +31,7 @@ console.log("POOLS:");
 let total = 0; const seen = {}; let dupe = null;
 for (const p of POOLS) {
   const arr = await pool(p);
-  const onDisk = arr.every(c => fs.existsSync(path.join(ROOT, c)));
+  const onDisk = arr.every(c => fs.existsSync(path.join(ROOT, voicePath(c))));
   const samples = await page.evaluate(pp => window.__harness.lightVoicePick(pp, 300), p);
   const uniq = new Set(samples);
   const valid = samples.every(s => arr.includes(s));

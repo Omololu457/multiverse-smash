@@ -5,6 +5,8 @@
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 import { TOJI_VOICE } from "../tojiVoice.js";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".jpg":"image/jpeg",".mp3":"audio/mpeg",".json":"application/json" };
 const server = await new Promise(r => { const s = http.createServer((q,res)=>{ const u=decodeURIComponent(q.url.split("?")[0]); const f=path.join(ROOT,u==="/"?"/index.html":u); if(!f.startsWith(ROOT)){res.writeHead(403).end();return;} fs.readFile(f,(e,d)=>{ if(e){res.writeHead(404).end();return;} res.writeHead(200,{"content-type":MIME[path.extname(f)]||"application/octet-stream"}); res.end(d); }); }); s.listen(0,"127.0.0.1",()=>r(s)); });
@@ -23,7 +25,7 @@ const firedToji = async () => (await spyLog()).some(f => /toji_voice_/.test(f));
 // ── (1) every wired clip exists on disk ──
 let missing = [];
 for (const lang of ["ja","en"]) for (const pool of Object.keys(TOJI_VOICE[lang]||{})) for (const clip of TOJI_VOICE[lang][pool]) {
-  if (!fs.existsSync(path.join(ROOT, clip))) missing.push(`${lang}/${pool}/${clip}`);
+  if (!fs.existsSync(path.join(ROOT, voicePath(clip)))) missing.push(`${lang}/${pool}/${clip}`);
 }
 check("every wired clip (EN+JA) exists on disk", missing.length === 0, missing.slice(0,4).join(", "));
 const njapool = Object.values(TOJI_VOICE.ja).reduce((a,p)=>a+p.length,0);

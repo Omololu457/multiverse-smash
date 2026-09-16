@@ -6,6 +6,8 @@
 // Usage: node harness/six_paths_pain_voice.test.mjs
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".jpg":"image/jpeg",".mp3":"audio/mpeg",".json":"application/json" };
 const server = await new Promise(r => { const s = http.createServer((req,res)=>{ const u=decodeURIComponent(req.url.split("?")[0]); const f=path.join(ROOT,u==="/"?"/index.html":u); if(!f.startsWith(ROOT)){res.writeHead(403).end();return;} fs.readFile(f,(e,d)=>{ if(e){res.writeHead(404).end();return;} res.writeHead(200,{"content-type":MIME[path.extname(f)]||"application/octet-stream"}); res.end(d); }); }); s.listen(0,"127.0.0.1",()=>r(s)); });
@@ -33,7 +35,7 @@ console.log("\n── 1. Reused pools exist on disk ──");
 const USED_POOLS = ["intro","taunt","almightyPush","almightyPull","superPush","dedera","assistCall","combatBark","hitReact","lowHealth","win"];
 for (const p of USED_POOLS) {
   const arr = await pool(p);
-  const onDisk = arr.length > 0 && arr.every(c => fs.existsSync(path.join(ROOT, c)));
+  const onDisk = arr.length > 0 && arr.every(c => fs.existsSync(path.join(ROOT, voicePath(c))));
   ok(onDisk, `pool "${p}" (${arr.length}) → all clips on disk`);
 }
 
@@ -89,7 +91,7 @@ await sleep(200);
 
 // ── (4) win pool on-disk (same playSfxFile hook path as the proven casts) ──
 console.log("\n── 4. Win pool ──");
-{ const arr = await pool("win"); ok(arr.length > 0 && arr.every(c => fs.existsSync(path.join(ROOT, c))), `win pool (${arr.length}) on disk + wired at the roster-win hook`); }
+{ const arr = await pool("win"); ok(arr.length > 0 && arr.every(c => fs.existsSync(path.join(ROOT, voicePath(c)))), `win pool (${arr.length}) on disk + wired at the roster-win hook`); }
 
 console.log(`\n════════════════════════════════════════`);
 console.log(`  SIX PATHS VOICE (reused solo Pain): ${pass} passed, ${fail} failed`);

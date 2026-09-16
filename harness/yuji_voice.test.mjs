@@ -6,6 +6,8 @@
 // (setYujiVoiceLang flips pickYujiVoice EN↔JA); (4) no JS errors.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".mp3": "audio/mpeg", ".json": "application/json" };
@@ -55,7 +57,7 @@ try {
     { const seen = {}; let dupe = null; for (const p of POOLS) for (const c of await pool(p, lang)) { if (seen[c]) dupe = c; seen[c] = true; } check(`${lang}: no clip double-pooled`, !dupe, dupe || ""); }
   }
   check("118 unique clips total (JA 72 + EN 46)", allWired.size === 118, `unique=${allWired.size}`);
-  { let missing = []; for (const c of allWired) if (!fs.existsSync(path.join(ROOT, c))) missing.push(c); check("every referenced clip exists on disk", missing.length === 0, missing.slice(0, 3).join(",")); }
+  { let missing = []; for (const c of allWired) if (!fs.existsSync(path.join(ROOT, voicePath(c)))) missing.push(c); check("every referenced clip exists on disk", missing.length === 0, missing.slice(0, 3).join(",")); }
 
   // reset to the default active language for the live triggers
   await setLang("ja");

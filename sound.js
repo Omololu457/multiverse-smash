@@ -43,6 +43,10 @@ export const SFX = {
 // elsewhere.
 // ─────────────────────────────────────────────────────────────────
 export const AUDIO_BASE = "./"
+// Per-character voice-clip directory map (voice/<char>/…). Migrated out of the flat
+// root; _resolveSrc() consults this first, falling back to AUDIO_BASE for anything
+// not listed (music, SFX, inline-only voiced chars). See voiceFileManifest.js.
+import { VOICE_FILES } from "./voiceFileManifest.js"
 
 // Music for EVERY non-stadium context — loading/menu, character select, win
 // screen, etc. Only actual fight stages override this (via playStageTrack).
@@ -728,6 +732,11 @@ class SoundManager {
     if (!filename) return null
     // Absolute / already-relative paths pass through; bare names resolve under
     // the single configurable AUDIO_BASE.
+    // Voice clips migrated to voice/<char>/ — check the manifest by BARE name FIRST,
+    // tolerating a leading "./" that some modules prepend (e.g. borutoVoice). This must
+    // run before the pass-through below, or a "./name.mp3" voice ref would 404 at root.
+    const voiced = VOICE_FILES[filename] || VOICE_FILES[filename.replace(/^\.\//, "")]
+    if (voiced) return voiced
     if (/^(\.\/|\.\.\/|\/|https?:)/.test(filename)) return filename
     return `${AUDIO_BASE}${filename}`
   }

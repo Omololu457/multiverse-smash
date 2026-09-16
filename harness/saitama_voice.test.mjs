@@ -5,13 +5,15 @@
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 import { SAITAMA_VOICE } from "../saitamaVoice.js";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
 
 // ── STATIC ──
 console.log("── static: pool mapping + clips exist on disk ──");
 const all = Object.values(SAITAMA_VOICE).flat();
-let missing = all.filter(f => !fs.existsSync(path.join(ROOT, f)));
+let missing = all.filter(f => !fs.existsSync(path.join(ROOT, voicePath(f))));
 check(`all ${all.length} pool refs exist on disk`, missing.length === 0, missing.slice(0, 5).join(", "));
 check("all 18 provided clips are used (5 identified + 13 barks)", all.length === 18, `got ${all.length}`);
 check("intro = hero_for_fun", SAITAMA_VOICE.intro[0] === "saitama_hero_for_fun_061.1s.mp3");

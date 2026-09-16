@@ -16,6 +16,8 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".mp3": "audio/mpeg", ".mp4": "video/mp4", ".json": "application/json" };
@@ -235,8 +237,8 @@ try {
   const hasTauntAction = /\btaunt\s*:/.test(omegaBlock);
   check("Omega has NO `taunt` action in animationData (taunt mechanic absent)", !hasTauntAction, hasTauntAction ? "unexpected taunt action found" : "no taunt action → updateTauntState never fires for Omega");
   for (const f of ["omega_taunt.mp3", "omega_taunt_alt.mp3", "omega_taunt_alt2.mp3"]) {
-    check(`${f}: staged on disk`, fs.existsSync(path.join(ROOT, f)), "");
-    const wired = ["abilities.js", "combat.js", "game.js"].some(js => { try { return fs.readFileSync(path.join(ROOT, js), "utf8").includes(f); } catch (_) { return false; } });
+    check(`${f}: staged on disk`, fs.existsSync(path.join(ROOT, voicePath(f))), "");
+    const wired = ["abilities.js", "combat.js", "game.js"].some(js => { try { return fs.readFileSync(path.join(ROOT, voicePath(js)), "utf8").includes(f); } catch (_) { return false; } });
     check(`${f}: NOT wired (deferred — no taunt mechanic)`, !wired, wired ? "unexpectedly referenced" : "staged & waiting");
   }
   info("deferred: like Naruto/Sasuke, Omega ships no taunt action/sprite; updateTauntState is gated on animationData.taunt (only Rick/Goku Black define it). Not building a taunt mechanic for an audio task.");

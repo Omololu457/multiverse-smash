@@ -6,6 +6,8 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".mp3": "audio/mpeg", ".json": "application/json" };
@@ -56,7 +58,7 @@ try {
     const allValid = samples.every(s => arr.includes(s));
     const coversAll = arr.every(c => uniq.has(c));
     const randOk = arr.length === 1 ? uniq.size === 1 : uniq.size > 1;
-    const onDisk = arr.every(f => fs.existsSync(path.join(ROOT, f)));
+    const onDisk = arr.every(f => fs.existsSync(path.join(ROOT, voicePath(f))));
     const noForbidden = arr.every(f => !FORBIDDEN.has(clipIndex(f)));
     check(`${pool} (${arr.length}/${expect}) — valid+covers+randomizes+on-disk+filtered`,
       sizeOk && allValid && coversAll && randOk && onDisk && noForbidden,

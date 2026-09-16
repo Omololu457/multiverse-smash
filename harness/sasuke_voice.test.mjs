@@ -18,6 +18,8 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".mp3": "audio/mpeg", ".mp4": "video/mp4", ".json": "application/json" };
@@ -308,10 +310,10 @@ try {
 
   section("STAGED-ONLY — Amaterasu & Kirin (moves not built)");
   for (const [file, move] of [["sasuke_amaterasu_cast.mp3", "Amaterasu"], ["sasuke_kirin_cast.mp3", "Kirin"]]) {
-    const onDisk = fs.existsSync(path.join(ROOT, file));
+    const onDisk = fs.existsSync(path.join(ROOT, voicePath(file)));
     // Assert the file is present but NOT referenced anywhere in the JS source (i.e. staged, not wired).
     const wired = ["abilities.js", "combat.js", "game.js", "kurama.js"].some(js => {
-      try { return fs.readFileSync(path.join(ROOT, js), "utf8").includes(file); } catch (_) { return false; }
+      try { return fs.readFileSync(path.join(ROOT, voicePath(js)), "utf8").includes(file); } catch (_) { return false; }
     });
     check(`${move}: audio staged on disk`, onDisk, file);
     check(`${move}: audio NOT wired to code (move doesn't exist yet)`, !wired, wired ? "unexpectedly referenced in source" : "staged & waiting");

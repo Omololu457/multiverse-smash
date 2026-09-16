@@ -11,6 +11,8 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".mp3": "audio/mpeg", ".json": "application/json" };
@@ -82,7 +84,7 @@ try {
     check("no clip is double-pooled (each file has one home)", !dupe, dupe ? `dupe=${dupe}` : ""); }
   // every referenced mp3 exists on disk (exact-filename discipline)
   { let missing = [];
-    for (const p of POOLS) for (const c of await pool(p)) if (!fs.existsSync(path.join(ROOT, c))) missing.push(c);
+    for (const p of POOLS) for (const c of await pool(p)) if (!fs.existsSync(path.join(ROOT, voicePath(c)))) missing.push(c);
     check("every referenced clip exists on disk", missing.length === 0, missing.slice(0, 3).join(",")); }
 
   // ── (2) LIVE: INTRO / battle-start ──

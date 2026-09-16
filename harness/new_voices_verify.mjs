@@ -10,6 +10,8 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".mp3": "audio/mpeg", ".json": "application/json" };
@@ -69,7 +71,7 @@ try {
     const allFiles = Object.values(dump).flat();
     check(`${c.key}: hook resolves (${Object.keys(dump).join(",")})`, allFiles.length > 0, `${allFiles.length} clips`);
     // files exist on disk
-    const missing = allFiles.filter(f => !fs.existsSync(path.join(ROOT, f)));
+    const missing = allFiles.filter(f => !fs.existsSync(path.join(ROOT, voicePath(f))));
     check(`${c.key}: all wired .mp3 exist`, missing.length === 0, missing.length ? missing.join(", ") : "");
     // all filenames start with the expected prefix (sanity that we didn't cross-wire)
     // (skip prefix check for green_lantern/iron_man/l_ryuuzaki which use folder-specific ids)

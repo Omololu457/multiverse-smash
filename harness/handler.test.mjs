@@ -10,6 +10,8 @@ import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 import { characters } from "../characters.js";
 import { allAttributedKeys } from "../credits.js";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg", ".json": "application/json" };
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
@@ -28,7 +30,7 @@ check("portrait exists (handler_portrait.png)", fs.existsSync(path.join(ROOT, "h
 // shikigami + mahoraga + icon art (not in base animationData but shipped)
 for (const s of ["handler_shik_dog.png", "handler_shik_snake.png", "handler_shik_rabbit.png", "handler_shik_elephant.png", "handler_shik_nue.png", "handler_shik_toad.png", "handler_shik_icons.png",
                  "mahoraga_idle_uniform.png", "mahoraga_walk_uniform.png", "mahoraga_entry_uniform.png", "mahoraga_attack_uniform.png", "mahoraga_counter_uniform.png", "mahoraga_wheel_icon.png"]) {
-  check(`extra art exists: ${s}`, fs.existsSync(path.join(ROOT, s)) && fs.statSync(path.join(ROOT, s)).size > 0);
+  check(`extra art exists: ${s}`, fs.existsSync(path.join(ROOT, voicePath(s))) && fs.statSync(path.join(ROOT, voicePath(s))).size > 0);
 }
 check("The Handler IS attributed in credits.js", allAttributedKeys().has("handler"));
 

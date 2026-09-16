@@ -16,6 +16,8 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg", ".css": "text/css", ".json": "application/json", ".mp4": "video/mp4" };
@@ -78,7 +80,7 @@ try {
 
   // ══ PART 2: ON-DISK PRESENCE ═══════════════════════════════════════════════
   section("on-disk presence — all 12 English clips are actually shipped");
-  const missing = POOL.filter(f => !fs.existsSync(path.join(ROOT, f)));
+  const missing = POOL.filter(f => !fs.existsSync(path.join(ROOT, voicePath(f))));
   check("all 12 saiki_en_*.mp3 present on disk", missing.length === 0, missing.length ? `missing: ${missing.join(", ")}` : `${POOL.length}/12 present`);
 
   // ══ PART 3: DORMANT-then-LIVE TRIGGER PROOF ════════════════════════════════

@@ -5,6 +5,8 @@
 // lowHealth; (3) no JS errors. English session (000–357) is intentionally NOT wired (JA-only per brief).
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".mp3": "audio/mpeg", ".json": "application/json" };
@@ -48,7 +50,7 @@ try {
   }
   check("all 68 JA clips accounted for across the 9 pools", total === 68, `total=${total}`);
   { const seen = {}; let dupe = null; for (const p of POOLS) for (const c of await pool(p)) { if (seen[c]) dupe = c; seen[c] = true; } check("no clip is double-pooled", !dupe, dupe || ""); }
-  { let missing = []; for (const c of allWired) if (!fs.existsSync(path.join(ROOT, c))) missing.push(c); check("every referenced clip exists on disk", missing.length === 0, missing.slice(0, 3).join(",")); }
+  { let missing = []; for (const c of allWired) if (!fs.existsSync(path.join(ROOT, voicePath(c)))) missing.push(c); check("every referenced clip exists on disk", missing.length === 0, missing.slice(0, 3).join(",")); }
   { let en = [...allWired].filter(c => { const m = /^miwa_(\d+)_/.exec(c); return m && +m[1] < 358; }); check("no ENGLISH-session clip (000–357) is wired — JA-only", en.length === 0, en.slice(0, 3).join(",")); }
 
   // ── (2) LIVE: intro(+taunt) fires at match start ──

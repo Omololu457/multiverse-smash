@@ -7,6 +7,8 @@
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 import { TOBI_VOICE, pickTobiVoice } from "../tobiVoice.js";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".jpg":"image/jpeg",".mp3":"audio/mpeg",".json":"application/json" };
 let pass = 0, fail = 0; const ok = (c, m) => { (c ? pass++ : fail++); console.log(`  ${c?"✅":"❌"} ${m}`); };
@@ -18,7 +20,7 @@ const pools = Object.keys(TOBI_VOICE);
 ok(pools.length === 3 && pools.every(p => ["intro","specialCast","combatBark"].includes(p)), `3 pools: ${pools.join("/")}`);
 const all = pools.flatMap(p => TOBI_VOICE[p]);
 ok(all.length === 13, `13 clips wired (14 batch − 1 discarded): ${all.length}`);
-ok(all.every(f => fs.existsSync(path.join(ROOT, f))), `every wired clip exists on disk`);
+ok(all.every(f => fs.existsSync(path.join(ROOT, voicePath(f)))), `every wired clip exists on disk`);
 ok(!all.some(f => f.includes("_010_")), `clip 010 (names Itachi) is NOT wired (discarded)`);
 ok(new Set(all).size === all.length, `no duplicate clip across pools`);
 ok(TOBI_VOICE.intro.length === 2 && TOBI_VOICE.specialCast.length === 3 && TOBI_VOICE.combatBark.length === 8, `pool sizes intro2/specialCast3/combatBark8`);

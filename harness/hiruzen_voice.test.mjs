@@ -4,13 +4,15 @@
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 import { HIRUZEN_VOICE } from "../hiruzenVoice.js";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
 
 // ── STATIC: all clips present ──
 console.log("── static: pool clips exist on disk ──");
 let missing = [];
-for (const [pool, arr] of Object.entries(HIRUZEN_VOICE)) for (const f of arr) if (!fs.existsSync(path.join(ROOT, f))) missing.push(`${pool}:${f}`);
+for (const [pool, arr] of Object.entries(HIRUZEN_VOICE)) for (const f of arr) if (!fs.existsSync(path.join(ROOT, voicePath(f)))) missing.push(`${pool}:${f}`);
 check(`all ${Object.values(HIRUZEN_VOICE).reduce((a, x) => a + x.length, 0)} pool refs exist`, missing.length === 0, missing.slice(0, 5).join(", "));
 
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".mp3": "audio/mpeg", ".json": "application/json" };

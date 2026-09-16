@@ -5,6 +5,8 @@
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 import { MAYURI_VOICE } from "../mayuriVoice.js";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
 const inPool = (files, pool) => files.some(f => MAYURI_VOICE[pool].includes(f));
@@ -13,7 +15,7 @@ const inPool = (files, pool) => files.some(f => MAYURI_VOICE[pool].includes(f));
 console.log("── static: pool clips exist on disk + coverage ──");
 const allRefs = Object.values(MAYURI_VOICE).flat();
 let missing = [];
-for (const [pool, arr] of Object.entries(MAYURI_VOICE)) for (const f of arr) if (!fs.existsSync(path.join(ROOT, f))) missing.push(`${pool}:${f}`);
+for (const [pool, arr] of Object.entries(MAYURI_VOICE)) for (const f of arr) if (!fs.existsSync(path.join(ROOT, voicePath(f)))) missing.push(`${pool}:${f}`);
 check(`all ${allRefs.length} pool refs exist on disk`, missing.length === 0, missing.slice(0, 5).join(", "));
 const uniq = new Set(allRefs);
 check("all 115 source clips used, each exactly once (0 unused, 0 dupes)", allRefs.length === 115 && uniq.size === 115, `refs=${allRefs.length} unique=${uniq.size}`);

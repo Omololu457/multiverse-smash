@@ -9,6 +9,8 @@
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 import characters from "../characters.js";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".mp3": "audio/mpeg", ".json": "application/json" };
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
@@ -25,7 +27,7 @@ for (const s of [...sheets, im.portrait]) {
 }
 // projectile sheets (spawnProjectile, not in animationData) must also ship on disk
 const projSheets = ["iron_man_3_basic_shot_uniform.png", "iron_man_3_charged_shot_uniform.png", "iron_man_3_supercharged_shot_uniform.png", "iron_man_3_super_laser_uniform.png"];
-const missingProj = projSheets.filter(s => !(fs.existsSync(path.join(ROOT, s)) && fs.statSync(path.join(ROOT, s)).size > 128));
+const missingProj = projSheets.filter(s => !(fs.existsSync(path.join(ROOT, voicePath(s))) && fs.statSync(path.join(ROOT, voicePath(s))).size > 128));
 check(`${sheets.length} anim sheets + portrait all present & non-empty`, missing.length === 0, missing.length ? `MISSING: ${missing.join(", ")}` : "");
 check("all 4 charge/beam projectile sheets present (basic/charged/supercharged/laser)", missingProj.length === 0, missingProj.join(", "));
 check("portrait wired (iron_man_3_portrait.png — classic helmet bust)", (im.portrait || "").includes("iron_man_3_portrait"), `portrait=${im.portrait}`);

@@ -5,6 +5,8 @@
 // are DEFERRED (no clean attach — no attack pose). Asserts each impact manifests + on-disk assets + contract.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "harness", "shots"); fs.mkdirSync(OUT, { recursive: true });
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".png": "image/png", ".mp3": "audio/mpeg", ".css": "text/css", ".json": "application/json" };
@@ -38,7 +40,7 @@ try {
   await waitFrames(6);
 
   console.log("\n── (1) on-disk FX assets ──");
-  for (const f of ["gwen_ripple_uniform.png", "gwen_shards_uniform.png"]) check(`asset exists: ${f}`, fs.existsSync(path.join(ROOT, f)), "");
+  for (const f of ["gwen_ripple_uniform.png", "gwen_shards_uniform.png"]) check(`asset exists: ${f}`, fs.existsSync(path.join(ROOT, voicePath(f))), "");
 
   console.log("\n── (2) RIPPLE bloom on ranged specials (bolt / vortex) ──");
   await prep(70);

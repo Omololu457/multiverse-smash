@@ -7,6 +7,8 @@
 // switch is live (setSukunaVoiceLang flips pickSukunaVoice EN↔JA); (5) no JS errors.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".mp3": "audio/mpeg", ".json": "application/json" };
@@ -47,7 +49,7 @@ try {
     for (const p of POOLS) {
       const arr = (await pool(p, lang)) || [];
       arr.forEach(c => allWired.add(c)); total += arr.length;
-      const allExist = arr.every(c => fs.existsSync(path.join(ROOT, c)));
+      const allExist = arr.every(c => fs.existsSync(path.join(ROOT, voicePath(c))));
       // JA.castCleave is intentionally empty (documented fallback) — accept 0 there, require content elsewhere.
       const okLen = (lang === "ja" && p === "castCleave") ? arr.length === 0 : arr.length > 0;
       check(`${lang}.${p} (${arr.length}) — on-disk + populated`, allExist && okLen, arr.length === 0 && !(lang === "ja" && p === "castCleave") ? "EMPTY" : "");
@@ -56,7 +58,7 @@ try {
     { const seen = {}; let dupe = null; for (const p of POOLS) for (const c of (await pool(p, lang)) || []) { if (seen[c]) dupe = c; seen[c] = true; } check(`${lang}: no clip double-pooled`, !dupe, dupe || ""); }
   }
   check("145 unique clips total (JA 65 + EN 80)", allWired.size === 145, `unique=${allWired.size}`);
-  { let missing = []; for (const c of allWired) if (!fs.existsSync(path.join(ROOT, c))) missing.push(c); check("every referenced clip exists on disk", missing.length === 0, missing.slice(0, 3).join(",")); }
+  { let missing = []; for (const c of allWired) if (!fs.existsSync(path.join(ROOT, voicePath(c)))) missing.push(c); check("every referenced clip exists on disk", missing.length === 0, missing.slice(0, 3).join(",")); }
 
   // ── (2) pickSukunaVoice behaviour: simple pools + intro-merge + castCleave-fallback ──
   section("pickSukunaVoice: randomization + special routing");

@@ -6,6 +6,8 @@
 // reveal resolves) and EXACTLY ONCE (no reveal overlap); (4) no JS errors.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".mp3": "audio/mpeg", ".json": "application/json" };
@@ -49,7 +51,7 @@ try {
   }
   check("all 55 JA clips accounted for across the 9 pools", total === 55, `total=${total}`);
   { const seen = {}; let dupe = null; for (const p of POOLS) for (const c of await pool(p)) { if (seen[c]) dupe = c; seen[c] = true; } check("no clip is double-pooled", !dupe, dupe || ""); }
-  { let missing = []; for (const c of allWired) if (!fs.existsSync(path.join(ROOT, c))) missing.push(c); check("every referenced clip exists on disk", missing.length === 0, missing.slice(0, 3).join(",")); }
+  { let missing = []; for (const c of allWired) if (!fs.existsSync(path.join(ROOT, voicePath(c)))) missing.push(c); check("every referenced clip exists on disk", missing.length === 0, missing.slice(0, 3).join(",")); }
 
   // ── (2) LIVE: intro (checked right after start, BEFORE skipping — the intro-play frame) ──
   section("live: intro");

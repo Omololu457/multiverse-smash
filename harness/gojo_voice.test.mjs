@@ -25,6 +25,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { GOJOYOUNG_VOICE } from "../gojoVoice.js";
 import { characters } from "../characters.js";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".png": "image/png", ".jpg": "image/jpeg", ".mp3": "audio/mpeg", ".css": "text/css", ".json": "application/json", ".mp4": "video/mp4" };
@@ -102,7 +104,7 @@ try {
   // ══ PART 2: ON-DISK PRESENCE ═══════════════════════════════════════════════
   section("on-disk presence — all 122 named clips must be real files");
   const all = POOL_NAMES.flatMap(p => POOLS[p]);
-  const missing = all.filter(f => !fs.existsSync(path.join(ROOT, f)));
+  const missing = all.filter(f => !fs.existsSync(path.join(ROOT, voicePath(f))));
   check(`all ${all.length} young-pack clips present on disk`, missing.length === 0, missing.length ? `missing: ${missing.slice(0, 5).join(", ")}` : "");
   check("exactly 122 clips wired", all.length === 122, `count=${all.length}`);
 

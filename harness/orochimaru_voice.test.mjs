@@ -4,6 +4,8 @@
 // actually FIRE (they set the shared _atkVoiceCd / _hitVoiceCd / _introVoiceDone gates). No gameplay touched.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
+import { VOICE_FILES } from "../voiceFileManifest.js";
+const voicePath = f => (VOICE_FILES[f] || VOICE_FILES[String(f).replace(/^\.\//, "")] || f);   // voice clips migrated to voice/<char>/
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
 function section(t) { console.log(`\n── ${t} ──`); }
@@ -23,7 +25,7 @@ for (const line of vjs.split("\n")) {
   if (/^\s{2}\],/.test(line)) cur = null;
 }
 const allRefs = Object.values(pools).flat();
-const missing = allRefs.filter(c => !fs.existsSync(path.join(ROOT, c)));
+const missing = allRefs.filter(c => !fs.existsSync(path.join(ROOT, voicePath(c))));
 check(`every referenced clip exists on disk (${allRefs.length} refs)`, missing.length === 0, missing.slice(0, 4).join(","));
 check("every pool is non-empty", EXPECT.every(p => (pools[p] || []).length > 0), EXPECT.filter(p => !(pools[p] || []).length).join(","));
 // cross-pool reuse

@@ -1,0 +1,222 @@
+# Superman voice pack #3 — Suicide Squad: KTJL (assigned to superman_new52)
+
+Assigned to superman_new52 (edgiest variant carries the brainwashed/menacing corrupted-Superman tone). Wiring FAVORS the distinct menacing lines to keep the variant identity sharp; discards the pre-corruption/heroic-flashback lines (they'd sound like base Superman) and squad-named dialogue (Boomerang/Harley/Brainiac/League).
+
+**10 of 216 clips wired.** Per-file transcript log below (✅ = wired, — = discarded).
+
+- — `superman_ssqk_001.mp3` (1.3s, en) — Ha ha ha ha ha ha ha.
+- — `superman_ssqk_002.mp3` (4.0s, en) — Hahaha.
+- — `superman_ssqk_003.mp3` (2.4s, en) — One of the world's finest heroes.
+- ✅ `superman_ssqk_004.mp3` (0.9s, en) — Snuffed out.
+- — `superman_ssqk_005.mp3` (0.8s, en) — By this.
+- — `superman_ssqk_006.mp3` (1.2s, en) — Sure, sure.
+- — `superman_ssqk_007.mp3` (2.2s, en) — You can tell Wonder Woman all about it.
+- — `superman_ssqk_008.mp3` (1.2s, en) — Hahaha.
+- — `superman_ssqk_009.mp3` (0.5s, en) — Ah.
+- — `superman_ssqk_010.mp3` (1.0s, en) — [non-speech / silence]
+- — `superman_ssqk_011.mp3` (2.8s, en) — [non-speech / silence]
+- — `superman_ssqk_012.mp3` (1.2s, en) — I have.
+- — `superman_ssqk_013.mp3` (1.1s, en) — Oh
+- — `superman_ssqk_014.mp3` (20.1s, en) — Take this. I think you'll need it.  Flagging already?  You didn't even try to avoid that one.  I always told your kind these weapons would be your downfall.  Tread lightly.  Task Force X.  I see you.  Every inch of you.  Every molecule in you trembling.  You're afraid.  Good.
+- — `superman_ssqk_015.mp3` (15.4s, en) — You should be.  Now is when most people would start to pray.  This should snuff you out for good.  You're making this too easy, Harley.  Where's the fun in that?  I brought you a private flight, King.  Kill or be killed, Floyd.
+- — `superman_ssqk_016.mp3` (5.8s, en) — Die! Here's a thrill ride straight to the grave, Harley.  I always had a soft spot for people.
+- — `superman_ssqk_017.mp3` (2.3s, en) — Your blind loyalty, stubbornness.
+- — `superman_ssqk_018.mp3` (3.3s, en) — Just animals really, you're beyond saving.
+- — `superman_ssqk_019.mp3` (2.4s, en) — This whole planet is beyond saving.
+- — `superman_ssqk_020.mp3` (6.9s, en) — You're just raw material for Brainiac to mold into something that matters.  Sloppy footwork, Floyd!
+- — `superman_ssqk_021.mp3` (0.4s, en) — Hmm.
+- — `superman_ssqk_022.mp3` (4.3s, en) — It's been a while since I've killed a god.  Eyes on me, Shark.
+- — `superman_ssqk_023.mp3` (2.8s, en) — Blink and you'll miss it. Gotta save him, Arang!
+- — `superman_ssqk_024.mp3` (5.1s, en) — Your forecast is looking pretty grim.  I don't think you can afford a setback.
+- — `superman_ssqk_025.mp3` (5.7s, en) — You're already on such thin ice.  Phraniac will change this world one rock at a time.
+- — `superman_ssqk_026.mp3` (4.5s, en) — Let's start with this one.  Brainiac opened my eyes to the inevitable.
+- — `superman_ssqk_027.mp3` (23.3s, en) — Now I'll open yours for the last thing you see.  I thought you were meant to be on top of the food chain shark.  I'll be back in a sec.  Don't wait up.  I could just boil you alive shark.  Room for one more in this wreck, Harley.  Don't throw out on my account, Harkness.  You're going down in flames.  I found some heavy ordinance.  Feeling the chill shark?
+- — `superman_ssqk_028.mp3` (5.2s, en) — You look a little underdressed.  Four of you at your peak just to land a blow on me.
+- — `superman_ssqk_029.mp3` (2.7s, en) — with your little toys, your pride.
+- — `superman_ssqk_030.mp3` (3.5s, en) — I'm gonna enjoy taking them from you.  Don't worry, Lotton.
+- — `superman_ssqk_031.mp3` (6.2s, en) — Zoe won't miss you. This one's for the world's greatest cannon fodder. You feeling it yet, Harley?
+- — `superman_ssqk_032.mp3` (0.4s, en) — No?
+- — `superman_ssqk_033.mp3` (3.2s, en) — Let's fan the flames.  Look at you, Harley.
+- — `superman_ssqk_034.mp3` (9.0s, en) — down like a broken doll,  Captain Boomerang,  ha ha ha,  like throwing a stick at a hurricane,  commanding thunder.
+- — `superman_ssqk_035.mp3` (4.9s, en) — What do you think of that in a naway?  So this is what mortality feels like.
+- ✅ `superman_ssqk_036.mp3` (1.5s, en) — It's exhilarating.
+- — `superman_ssqk_037.mp3` (3.5s, en) — What a generous gift to give in your final moments!
+- — `superman_ssqk_038.mp3` (3.7s, en) — That's the first time you've made me laugh, Harley.  For you!
+- — `superman_ssqk_039.mp3` (5.6s, en) — I heard many of your kind calling for one.  Grace for landing.  It's over-heart-ness.
+- — `superman_ssqk_040.mp3` (3.2s, en) — Try to be brave.  New experience for you, Nanouai!
+- — `superman_ssqk_041.mp3` (2.2s, en) — Turbulence, get ready to now a-
+- — `superman_ssqk_042.mp3` (4.2s, en) — Let's see if you can stand your ground.  I heard you were lazy boomerang.
+- ✅ `superman_ssqk_043.mp3` (1.6s, en) — But sleeping on the job?
+- — `superman_ssqk_044.mp3` (0.4s, en) — Ha!
+- — `superman_ssqk_045.mp3` (12.5s, en) — You walked right into that one, Harley.  What happened to all that get up and go, Harley?  Corpse's do keep best on ice.  You know you can't outrun this.  Can you fly a helicopter, Captain?
+- — `superman_ssqk_046.mp3` (3.7s, en) — Doesn't matter. Hey boomerang, you are first staring contest.
+- — `superman_ssqk_047.mp3` (3.1s, en) — I'll go first.  Back in the gutter, Harkness.
+- — `superman_ssqk_048.mp3` (3.5s, en) — It's where you belong.  Have you heard this one, Harley?
+- — `superman_ssqk_049.mp3` (6.8s, en) — A girl walks into a tank.  I'd be lying if I said this won't hurt.  Poor frozen boomerang.
+- — `superman_ssqk_050.mp3` (5.0s, en) — Is this the longest you've ever stayed quiet?  People are fragile things, aren't they, boomerang?
+- — `superman_ssqk_051.mp3` (6.2s, en) — I can level you with a single breath.  It's a shame you won't be able to tell me what obliteration feels like.
+- ✅ `superman_ssqk_052.mp3` (1.6s, en) — I won't make it painless.
+- — `superman_ssqk_053.mp3` (8.9s, en) — But I'll try and make it quick.  Do yourself a favor.  Don't get back up.  Stop you in your tracks.  This world belongs to me.
+- — `superman_ssqk_054.mp3` (3.4s, en) — I'll use its rubble as I please.  See what you've done.
+- — `superman_ssqk_055.mp3` (16.9s, en) — I've resorted to throwing rocks!  Aw, you're scared, Harley.  It's okay, this will all blow over soon.  Where are you going? I want to negotiate!  Run, Boomerang!  Run like you've got something to go back to.  Let's make your last moment count.
+- — `superman_ssqk_056.mp3` (8.2s, en) — Soon this planet will be remade and you'll be sorry you missed it.  Go along!  You do have a role in Brainiacs plan.
+- ✅ `superman_ssqk_057.mp3` (1.7s, en) — He wants you to die.
+- — `superman_ssqk_058.mp3` (5.8s, en) — How painfully is up to me.  Careful, you'll catch a cold.  When will you learn?
+- — `superman_ssqk_059.mp3` (16.3s, en) — There's more potential in the tip of my finger than in your entire race.  Don't worry, there's nobody left this could've helped.  Your destruction is all but assured.  I don't like sharing my airspace dead shot.  It used to frighten me. How easily you break.
+- — `superman_ssqk_060.mp3` (1.0s, en) — But let me tell you...
+- — `superman_ssqk_061.mp3` (3.9s, en) — I'm not frightened anymore.  I don't want to kick you while you're down!
+- — `superman_ssqk_062.mp3` (3.0s, en) — But I'm going to. You call this heavy artillery?
+- — `superman_ssqk_063.mp3` (9.7s, en) — Is that a joke?  Know your surroundings dead shot.  Aren't you better than this?  You're in for a choppy ride.  A god.  Squash like a bug.
+- — `superman_ssqk_064.mp3` (3.6s, en) — You were better off underwater. Your son nourishes me.
+- — `superman_ssqk_065.mp3` (2.1s, en) — makes me stronger than you can imagine.
+- — `superman_ssqk_066.mp3` (2.7s, en) — This world's chosen of favored and it isn't.
+- — `superman_ssqk_067.mp3` (10.4s, en) — You, heads up, I brought you some air support.  You weren't made for this, Harley.  I wonder in what world do you survive this?  In what reality are you a threat to me?
+- — `superman_ssqk_068.mp3` (8.3s, en) — Not this one. I caught this flight just for you.  You make a better statue than a God shark.  Yesterday you threw me a parade.
+- — `superman_ssqk_069.mp3` (2.3s, en) — Today you made weapons to kill me.
+- ✅ `superman_ssqk_070.mp3` (0.8s, en) — I'm hurt.
+- — `superman_ssqk_071.mp3` (5.5s, en) — And now I'm going to hurt you.  Let's see you stop drop and roll away from this one.
+- — `superman_ssqk_072.mp3` (11.3s, en) — I always knew you'd burn out, Harley.  Soon you'll be just another casualty of war.  I've survived the death of one planet,  and I'll survive the rebirth of this one, but you...
+- ✅ `superman_ssqk_073.mp3` (1.8s, en) — No one will remember you.
+- — `superman_ssqk_074.mp3` (3.4s, en) — I promised this.  All this effort just to scratch me.
+- — `superman_ssqk_075.mp3` (0.9s, en) — It's kind of charming.
+- — `superman_ssqk_076.mp3` (11.8s, en) — Killing you will be the easiest part of my day.  You were always out of your league.  Last stop.  This is what a real weapon looks like, Harkness.  Here's a little shock and awe for you.
+- — `superman_ssqk_077.mp3` (1.4s, en) — Look at you boomerang.
+- — `superman_ssqk_078.mp3` (4.5s, en) — A poor man's captain cold.  You're a long way from Gotham Harley.
+- — `superman_ssqk_079.mp3` (2.9s, en) — And you're going to die here.  Don't worry, Harley.
+- — `superman_ssqk_080.mp3` (6.6s, en) — I'll mail what's left of you back to Arkham.  I could remake this world if I wanted to, but Bradyac needs a clean slate.
+- — `superman_ssqk_081.mp3` (4.4s, en) — Either way, I get to enjoy myself.  I can hit a target too, dead shot.
+- — `superman_ssqk_082.mp3` (3.4s, en) — And I NEVER miss.  What's the matter, Deadshot?
+- — `superman_ssqk_083.mp3` (3.6s, en) — afraid to go hand-to-hand another crushing defeat
+- — `superman_ssqk_084.mp3` (6.1s, en) — Do you ever get tired of losing?  You might have been villains to Batman,  even to Flash and Lantern with their...
+- — `superman_ssqk_085.mp3` (1.1s, en) — borrow powers
+- — `superman_ssqk_086.mp3` (0.7s, en) — But to me...
+- — `superman_ssqk_087.mp3` (4.2s, en) — Come on.  I wish you could see yourselves through my eyes.  I really do.
+- — `superman_ssqk_088.mp3` (10.2s, en) — But I'd hate to overwhelm you with your own insignificance.  Let's take a scenic tour, Shark.  Should've kept you in your tank.  It seems we've come to casting stones.
+- — `superman_ssqk_089.mp3` (3.7s, en) — This is the most human I've ever felt.  Hey, boomerang!
+- — `superman_ssqk_090.mp3` (11.2s, en) — How hard do I have to hit you so you don't come back?  I determine your final destination.  If looks could kill ACAP, time to call on the forces of nature.
+- — `superman_ssqk_091.mp3` (1.3s, en) — Oh, you can't?
+- — `superman_ssqk_092.mp3` (5.0s, en) — I CAN!  All I've sacrificed for this planet, all the battles I fought for you!
+- — `superman_ssqk_093.mp3` (1.0s, en) — Brainy X-Rite.
+- — `superman_ssqk_094.mp3` (11.6s, en) — You never deserved me.  You're never gonna understand, are you?  There's only one way this ends.  I only regret not listening to Brainiac's sooner.  I know you love an audience, Harley.
+- — `superman_ssqk_095.mp3` (10.9s, en) — Here's some thunderous applause.  End of the road!  There won't even be ash left when I'm through with you.  You never had a chance.  Brainiac thought he could use you dead shot.
+- — `superman_ssqk_096.mp3` (3.9s, en) — But I knew you weren't worth it.  I can see right through you, Harkness.
+- — `superman_ssqk_097.mp3` (1.2s, en) — Everyone can!
+- — `superman_ssqk_098.mp3` (10.3s, en) — Hold still, Boomerang. I'll do your little friends a favor.  Humankind never could stand up for itself when it mattered.  Your reflexes are slipping, Harley.
+- — `superman_ssqk_099.mp3` (20.5s, en) — You used to be so light on your feet.  Anything is a weapon in my hands.  Even the air you breathe.  This is what you get for wasting time with human shark.  I've got you in my sights, Deadshot.  Ugh, I've never liked frozen fish.  Only a matter of time before you sank shark.  I know you feel my power.
+- ✅ `superman_ssqk_100.mp3` (1.8s, en) — Your death is inevitable.
+- — `superman_ssqk_101.mp3` (10.1s, en) — Let that come for you.  Let's see you put a bullet through this dead shot.  You might be the first shark to be killed by one of these.  You're trusting Luther's toys.
+- — `superman_ssqk_102.mp3` (4.4s, en) — But he's never been able to stop me  And now I get to shatter you
+- — `superman_ssqk_103.mp3` (11.6s, en) — Harley, it's one strike and you're out.  Aw, just another dead clown.  I can move your entire planet with my fists alone.  What can you do?  Pull a trigger.
+- — `superman_ssqk_104.mp3` (6.8s, en) — This fight's been decided and you know it.  The world's greatest assassin shouldn't go down so easily.  I wonder...
+- — `superman_ssqk_105.mp3` (10.9s, en) — How many of you can I hit with one throw?  Let's see if you're as nimble as your glory days, Harley.  Did somebody call for emergency services?  How did you think this would go, Shark?
+- — `superman_ssqk_106.mp3` (3.7s, en) — What's a king to Superman?  It's over, Deadshot!
+- — `superman_ssqk_107.mp3` (2.9s, en) — You die today. You're out of your depth.
+- — `superman_ssqk_108.mp3` (6.2s, en) — Your future belongs to me. This planet belongs to Brainiac.  You've burned so many chances.
+- — `superman_ssqk_109.mp3` (3.9s, en) — No redemption for you.  No justice only pain.
+- — `superman_ssqk_110.mp3` (3.3s, en) — That's a promise. This will feel awful.
+- — `superman_ssqk_111.mp3` (0.8s, en) — Bright side.
+- — `superman_ssqk_112.mp3` (4.2s, en) — Soon you won't feel anything at all.  My eyes are finally open.
+- — `superman_ssqk_113.mp3` (2.0s, en) — And now you're going to burn!
+- — `superman_ssqk_114.mp3` (3.2s, en) — Think I can hit a home run if I seem cruel.
+- — `superman_ssqk_115.mp3` (1.3s, en) — Let me reassure you.
+- — `superman_ssqk_116.mp3` (8.7s, en) — That's the intent.  It's better for everyone if you stay down, Harley.  I've spilled more blood for this world than you could possibly imagine.
+- — `superman_ssqk_117.mp3` (4.8s, en) — What's a little more?  By all means, keep trying.  I have all day.
+- — `superman_ssqk_118.mp3` (4.8s, en) — You won't stop Brainiacs' vision from coming to pass.  I'm done playing with this...
+- — `superman_ssqk_119.mp3` (11.3s, en) — Why don't you have a turn?  Lawton, let me show you how to effectively use a firearm.  Harley, you're tanking out there.  If the kryptonite doesn't work, maybe try begging.
+- — `superman_ssqk_120.mp3` (11.0s, en) — A little devotion goes a long way.  Time to put you in critical care.  I'm not heartless, Harley.  Take a breath in the calm before the storm.  What are you doing?
+- — `superman_ssqk_121.mp3` (4.8s, en) — You're already dead each of you. I just haven't buried you yet.  You should be honored.
+- — `superman_ssqk_122.mp3` (8.8s, en) — How rarely I get to cut loose.  I'm gonna savor every second I spend on disassembling you.  You're a long way from the water shark.
+- — `superman_ssqk_123.mp3` (2.8s, en) — Too bad. It's time for a paradigm shift.
+- — `superman_ssqk_124.mp3` (7.8s, en) — It's time for you to die.  This is where you run.  What's got you so heated, Floyd?  Don't bother running.
+- — `superman_ssqk_125.mp3` (11.4s, en) — There's no shelter from the storm.  I found the perfect tool to extinguish you with.  Oh, you should trust that feeling in the pit of your stomach.  This should get to you in seconds.
+- — `superman_ssqk_126.mp3` (5.1s, en) — I'm improving your world already.  Nothing can save you now.  Just give up!
+- — `superman_ssqk_127.mp3` (3.8s, en) — You were born on this earth.
+- — `superman_ssqk_128.mp3` (3.8s, en) — Now you'll die beneath it.  Long live the king!
+- — `superman_ssqk_129.mp3` (8.5s, en) — All my life I moved heaven and earth to protect you.  Finally, you're justifying Brainiacs interest in you.  The violence you're capable of.
+- — `superman_ssqk_130.mp3` (11.0s, en) — Now it ends. A better death than you deserve, Harkness.  Looks like you four are losing your cool.  Let me help. All your weapons, your toys, your hubris.
+- — `superman_ssqk_131.mp3` (9.9s, en) — No this, I'll kill you here then I'll kill you on every other Earth too.  You might want to hold on to something. Maybe this will help you see.
+- — `superman_ssqk_132.mp3` (2.7s, en) — This can only end in your crushing defeat.
+- — `superman_ssqk_133.mp3` (4.7s, en) — You have to invent new weapons to even bruise me
+- — `superman_ssqk_134.mp3` (4.1s, en) — You're never going to win this.  One wrong step dead shot.
+- — `superman_ssqk_135.mp3` (2.3s, en) — That's all it takes.  Dead shot.
+- — `superman_ssqk_136.mp3` (7.0s, en) — You're grounded. This will be your last chopper out of Metropolis.  The restraint I've shown you're kind.
+- — `superman_ssqk_137.mp3` (2.9s, en) — The futility of trying to save you from yourselves
+- — `superman_ssqk_138.mp3` (1.9s, en) — My eyes are open now.
+- — `superman_ssqk_139.mp3` (26.6s, en) — It's time for you to burn.  After everything I've done for you,  every battle I've fought, the sacrifices I've made.  Ungrateful children!  I hardly have to make an effort with you.  Napping at a time like this, Harkness.  Honestly, boomerang, I was just trying to knock your stupid little hat off.  This works too.  Harley, you've always been below my pay grade.  I guess sharks can stop swimming.
+- — `superman_ssqk_140.mp3` (5.2s, en) — Come on, stare down the barrel lotten.  Isn't that your thing?  Just wait there.
+- — `superman_ssqk_141.mp3` (5.8s, en) — Hiding is pointless.  Hopeless little nothing.  I tried to find a news chopper boomerang.
+- — `superman_ssqk_142.mp3` (3.5s, en) — But no one cared.  Nothing personal, Nanawai.
+- — `superman_ssqk_143.mp3` (4.1s, en) — Just a predator hunting his prey.  Still mourning Diana.
+- — `superman_ssqk_144.mp3` (5.5s, en) — I did this world of favor, stopping her bleeding heart.  I'll put this weapon down.
+- — `superman_ssqk_145.mp3` (5.2s, en) — On you, can you survive your own weapons turned against you?  Heads up!
+- — `superman_ssqk_146.mp3` (17.8s, en) — I'd hate for you to miss your stop.  You should have spent more time working on your defense, Floyd.  This is how I prefer to kill you, Harkness, from a distance.  I'll bring this down to your level, Boomerang.  My purpose has always been to save this planet, and this is how you thank me.
+- — `superman_ssqk_147.mp3` (5.4s, en) — with Kryptonite bullets?  Huff and puff dead shot.  I know it's all bluster.
+- — `superman_ssqk_148.mp3` (4.1s, en) — And you're going down.  It's time I knocked you on your ass, Deadshot.
+- — `superman_ssqk_149.mp3` (10.1s, en) — Don't watch you stealing my thunder.  Crush beneath your own gears of warfare.  Let's get you two flyboys introduced, Lotton.  I do enjoy watching you suffer.
+- — `superman_ssqk_150.mp3` (5.7s, en) — It's cold, huh? Finally some decent firepower. This should do. What's wrong, Harley?
+- — `superman_ssqk_151.mp3` (8.7s, en) — Getting cold, Frit!  I'm finally free of the burden of metropolis.  Be thankful your last sight is the real me!  Ah!
+- — `superman_ssqk_152.mp3` (0.5s, en) — Ah!
+- — `superman_ssqk_153.mp3` (4.3s, en) — ARRGHHHHH!
+- — `superman_ssqk_154.mp3` (1.5s, en) — When I was even younger than you.
+- ✅ `superman_ssqk_155.mp3` (1.1s, en) — My world was dying.
+- — `superman_ssqk_156.mp3` (5.4s, en) — So my mom and dad sent me to a beautiful blue planet far away.  I have a new family now.
+- — `superman_ssqk_157.mp3` (2.0s, en) — And gosh, a new planet too!
+- — `superman_ssqk_158.mp3` (1.6s, en) — But I still wear this crest.
+- — `superman_ssqk_159.mp3` (11.6s, en) — So I never forget where I came from.  I hope you've been enjoying your tour of the hall.  Wonder Woman thought it would be a good idea to open our doors and introduce ourselves.  Have a super day.  Of course.
+- — `superman_ssqk_160.mp3` (0.4s, en) — Yes.
+- — `superman_ssqk_161.mp3` (1.6s, en) — You've got the support of the league now.
+- — `superman_ssqk_162.mp3` (1.5s, en) — This fight isn't yours alone.
+- — `superman_ssqk_163.mp3` (3.0s, en) — That's the commitment we made.  Now I know what you're thinking.
+- — `superman_ssqk_164.mp3` (5.4s, en) — That big S on my chest can only stand for one thing, right?  And in the heroes in villains' display.
+- — `superman_ssqk_165.mp3` (6.3s, en) — The flash will show off some crime fighting tools we've used over the years.  So look around, push all those shiny butt-
+- — `superman_ssqk_166.mp3` (2.9s, en) — And this justice day, let's make a promise everyone.
+- — `superman_ssqk_167.mp3` (1.3s, en) — will always try to help.
+- — `superman_ssqk_168.mp3` (1.6s, en) — always give people a chance.
+- — `superman_ssqk_169.mp3` (2.1s, en) — no matter who they are or where they're from.
+- — `superman_ssqk_170.mp3` (2.0s, en) — First off, I'm not from Metropolis.
+- — `superman_ssqk_171.mp3` (1.6s, en) — You know, Pa used to say to me
+- — `superman_ssqk_172.mp3` (4.6s, en) — Don't ask for lighter burdens.  Ask for broader shoulders.  Will hi there, kid.
+- — `superman_ssqk_173.mp3` (1.2s, en) — Welcome to the Harlem just-
+- — `superman_ssqk_174.mp3` (4.9s, en) — We've opened it up just for you today, and there's lots of great things to see and do.  Bruce!
+- — `superman_ssqk_175.mp3` (1.1s, en) — You're doing it again.
+- ✅ `superman_ssqk_176.mp3` (1.6s, en) — You're no good to us unconscious.
+- — `superman_ssqk_177.mp3` (4.1s, en) — What would Alfred say? They know the strength of the league everyone does.
+- — `superman_ssqk_178.mp3` (1.9s, en) — Now let's show them our heart.
+- — `superman_ssqk_179.mp3` (4.4s, en) — Our compassion, along with some pretty weird stuff we've now from Bad Guy.
+- — `superman_ssqk_180.mp3` (0.4s, en) — Well
+- — `superman_ssqk_181.mp3` (0.6s, en) — Not quite.
+- — `superman_ssqk_182.mp3` (1.8s, en) — Believe it or not, until I got to Earth.
+- — `superman_ssqk_183.mp3` (1.7s, en) — This wasn't an S at all.
+- — `superman_ssqk_184.mp3` (1.3s, en) — Say now that you're here.
+- — `superman_ssqk_185.mp3` (7.2s, en) — I think that makes us pals too.  Crime doesn't sleep, yeah yeah?  And neither does the watchtower.  It's basically you.
+- — `superman_ssqk_186.mp3` (3.2s, en) — You helped us build it. Listen to me, Brainiac, you're right.
+- — `superman_ssqk_187.mp3` (2.6s, en) — I do understand the pain of losing a planet.
+- — `superman_ssqk_188.mp3` (1.2s, en) — But what you're doing!
+- — `superman_ssqk_189.mp3` (4.8s, en) — This isn't the way to get Colu back.  I didn't choose how I got here Flash.
+- — `superman_ssqk_190.mp3` (1.7s, en) — Now I'll admit it's not the most.
+- — `superman_ssqk_191.mp3` (3.7s, en) — inviting presence, but if we can avoid fighting altogether
+- — `superman_ssqk_192.mp3` (5.4s, en) — We owe it to the people of Metropolis to try.  I'm not even from Earth.  I hear you both.
+- — `superman_ssqk_193.mp3` (1.8s, en) — But we have to go in good faith.
+- — `superman_ssqk_194.mp3` (3.2s, en) — What if I had come to Earth and I understand your caution?
+- — `superman_ssqk_195.mp3` (0.4s, en) — Really?
+- — `superman_ssqk_196.mp3` (4.6s, en) — But that thing hasn't even fired a warning shot yet.  Some really nice people raised me.
+- — `superman_ssqk_197.mp3` (1.7s, en) — even though I came from another world.
+- — `superman_ssqk_198.mp3` (2.8s, en) — even though I was different, I love this world.
+- — `superman_ssqk_199.mp3` (1.4s, en) — My friends, and yes.
+- — `superman_ssqk_200.mp3` (2.0s, en) — even bad man. I know Bruce.
+- — `superman_ssqk_201.mp3` (1.7s, en) — And if I'm honest, neither do I.
+- — `superman_ssqk_202.mp3` (1.4s, en) — But we have an example to set.
+- — `superman_ssqk_203.mp3` (3.2s, en) — especially today. Wonder Woman's guarding the inner sight.
+- — `superman_ssqk_204.mp3` (1.8s, en) — Green lanterns at the quartermaster area.
+- — `superman_ssqk_205.mp3` (3.4s, en) — Or maybe you just want to see Batman's cool,  bat pod launcher.
+- — `superman_ssqk_206.mp3` (4.7s, en) — We'll always watch out for one another.  Remember how I told you I'm from another planet?
+- — `superman_ssqk_207.mp3` (1.3s, en) — Well, on my world.
+- — `superman_ssqk_208.mp3` (1.6s, en) — This is my family crest.
+- — `superman_ssqk_209.mp3` (1.7s, en) — Pretty neat huh? Very funny.
+- — `superman_ssqk_210.mp3` (1.9s, en) — Look, you're a smart guy, Bruce.
+- — `superman_ssqk_211.mp3` (1.2s, en) — The smartest guy I know.
+- — `superman_ssqk_212.mp3` (3.5s, en) — But you've gotta let us help.  We're in this together gang.
+- — `superman_ssqk_213.mp3` (3.2s, en) — The five of us united. There's nothing we can't do.
+- — `superman_ssqk_214.mp3` (5.2s, en) — Let's show them our intentions.  I come here every day to meet with my very best friend.
+- — `superman_ssqk_215.mp3` (0.7s, en) — the justice league.
+- — `superman_ssqk_216.mp3` (3.8s, en) — Hey there, I'm Superman and I'm so glad you're visiting the Hall of Justice

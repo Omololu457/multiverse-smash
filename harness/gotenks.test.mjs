@@ -102,7 +102,9 @@ try {
   const hu0 = (await p2()).health;
   const ult = await page.evaluate(() => window.__harness.p1Ultimate());
   check("ULT casts (gotenksGhostWind)", ult?.cast === true && ult?.castMove === "gotenksGhostWind", `cast=${ult?.cast} castMove=${ult?.castMove}`);
-  let sawGhost = false; for (let i = 0; i < 20 && !sawGhost; i++) { if ((await projectiles()).some(p => (p.name || "").includes("gotenksGhost"))) sawGhost = true; await waitFrames(1); }
+  // the kamikaze ghosts spawn staggered at frames 24/34/44 of the ult (GOTENKS_ULT.ghostsAt) — poll well past
+  // the LAST spawn (was 20f, which ended BEFORE the first ghost at f24 unless round-trip latency stretched it → flaky).
+  let sawGhost = false; for (let i = 0; i < 55 && !sawGhost; i++) { if ((await projectiles()).some(p => (p.name || "").includes("gotenksGhost"))) sawGhost = true; await waitFrames(1); }
   check("ULT spawns kamikaze ghost projectiles", sawGhost, "");
   await waitFrames(46);
   const dealt = hu0 - (await p2()).health;

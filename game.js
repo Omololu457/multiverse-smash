@@ -485,6 +485,9 @@ import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
 import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
 import { pickSupermanVoice, SUPERMAN_VOICE } from "./supermanVoice.js"
+import { pickOnokiVoice, ONOKI_VOICE } from "./onokiVoice.js"     // Onoki intro ("for the future") + win ("you're the one going to sleep") — JA
+import { pickGenosVoice, GENOS_VOICE } from "./genosVoice.js"     // Genos intro ("a hero nobody knows") — EN
+import { pickAlbedoVoice, ALBEDO_VOICE } from "./albedoVoice.js"   // Albedo (Ben 10 villain) intro + win — EN
 import { pickBardockVoice, BARDOCK_VOICE } from "./bardockVoice.js"   // Bardock intro/win voice pools (audio-only, EN)
 import { pickBakiVoice, BAKI_VOICE } from "./bakiVoice.js"   // Baki intro/win voice pools (audio-only, JA)
 import { pickByakuyaVoice, BYAKUYA_VOICE } from "./byakuyaVoice.js"   // Byakuya intro/win voice pools (audio-only, JA)
@@ -3017,7 +3020,12 @@ const INTRO_VOICE = {
   // Superman picks ONE pre-fight declaration ("There won't be any ties today" / "I'm the hero Earth needs" /
   // Regime "Traitors, all of you"). His `taunt` action drives the universal heal, so the trash-talk pool
   // rides the offense-connect trigger instead (see supermanVoice.js NOTE); intro fires here.
-  superman: { pool: SUPERMAN_VOICE.intro, gateReveal: false },
+  // Superman intro is VARIANT-AWARE (Stage 5): base + generic variants use the Injustice-2 pool, but
+  // superman_classic → MultiVersus and superman_new52 → Suicide Squad packs. pick receives the rosterKey.
+  superman: { pick: (rk) => pickSupermanVoice("intro", rk), gateReveal: false },
+  onoki: { pick: () => pickOnokiVoice("intro"), gateReveal: false },   // "未来のために" — for the future (JA)
+  genos: { pick: () => pickGenosVoice("intro"), gateReveal: false },   // "A hero nobody knows." (EN)
+  albedo: { pick: () => pickAlbedoVoice("intro"), gateReveal: false }, // "This human body is prison enough." (EN)
   // Bardock picks ONE of his "I'm gonna change the future!" pre-fight resolve lines per match (EN). No taunt
   // action → the trash-talk pool rides the offense-connect trigger instead (see bardockVoice.js).
   bardock: { pool: BARDOCK_VOICE.intro, gateReveal: false },
@@ -4791,10 +4799,19 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "omniman") {
         sound.playSfxFile?.(pickOmniManVoice("win"), null)
       }
-      // SUPERMAN win voice — random pick from his victory pool ("Crime doesn't pay" / "Please don't get
-      // up"). Fires only when the WINNER is Superman.
+      // SUPERMAN win voice — random pick from his victory pool. VARIANT-AWARE (Stage 5): base Superman uses
+      // the Injustice-2 pool, superman_classic → MultiVersus ("Proud of you all"), superman_new52 → Suicide
+      // Squad ("Your death is inevitable"). Fires only when the WINNER is a Superman-family fighter.
       if (voiceKey(winFighter?.rosterKey) === "superman") {
-        sound.playSfxFile?.(pickSupermanVoice("win"), null)
+        sound.playSfxFile?.(pickSupermanVoice("win", winFighter?.rosterKey), null)
+      }
+      // ONOKI win voice — "You're the one who's going to sleep." Fires only when the WINNER is Onoki. JA.
+      if (winFighter?.rosterKey === "onoki") {
+        sound.playSfxFile?.(pickOnokiVoice("win"), null)
+      }
+      // ALBEDO win voice — vengeful gloat. Fires only when the WINNER is Albedo (Ben 10 villain). EN.
+      if (winFighter?.rosterKey === "albedo") {
+        sound.playSfxFile?.(pickAlbedoVoice("win"), null)
       }
       // BARDOCK win voice — "I'm gonna change the future!" Fires only when the WINNER is Bardock. EN.
       if (winFighter?.rosterKey === "bardock") {
@@ -18623,6 +18640,10 @@ gameLoop()
     omnimanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickOmniManVoice(pool)),
     omnimanVoicePool: pool => OMNIMAN_VOICE[pool] || null,
     supermanVoicePick: (pool, n = 1, rosterKey) => Array.from({ length: n }, () => pickSupermanVoice(pool, rosterKey)),
+    // New voice packs (Onoki/Genos/Albedo) — pool readers for the wiring/coverage verifier.
+    onokiVoicePool:  pool => ONOKI_VOICE[pool]  || null,
+    genosVoicePool:  pool => GENOS_VOICE[pool]  || null,
+    albedoVoicePool: pool => ALBEDO_VOICE[pool] || null,
     supermanVoicePool: pool => SUPERMAN_VOICE[pool] || null,
     bardockVoicePool: pool => BARDOCK_VOICE[pool] || null,
     bakiVoicePool: pool => BAKI_VOICE[pool] || null,

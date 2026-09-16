@@ -91,9 +91,26 @@ export const SUPERMAN_VOICE = {
   ],
 }
 
+// ── VARIANT VOICE PACKS (Stage 5 differentiation) ────────────────────────────
+// Two Superman VARIANTS get their OWN distinct packs instead of aliasing to base Superman's
+// Injustice-2 pool: superman_classic → MultiVersus (bright heroic), superman_new52 → Suicide
+// Squad (brainwashed/menacing). All superman-family rosterKeys still fire the SAME triggers
+// (voiceKey()→"superman"); only the POOL a clip is drawn from is switched by variant here.
+// The remaining variants (superman_dcuc / superman_fighter) still use base SUPERMAN_VOICE.
+import { SUPERMAN_MVS_VOICE } from "./supermanMultiversusVoice.js"
+import { SUPERMAN_SSQK_VOICE } from "./supermanSuicideSquadVoice.js"
+const VARIANT_PACKS = {
+  superman_classic: SUPERMAN_MVS_VOICE,
+  superman_new52:   SUPERMAN_SSQK_VOICE,
+}
+
 // Random pick from a pool (genuine Math.random — same shape as pickBatmanVoice/pickOmniManVoice).
-export function pickSupermanVoice(pool) {
-  const arr = SUPERMAN_VOICE[pool]
+// rosterKey (optional) routes to a variant's OWN pack; a variant pack that lacks the requested pool
+// returns null (SILENT for that trigger) rather than leaking a base-Superman clip — keeps the
+// variant's voice identity clean. Base Superman + unassigned variants use SUPERMAN_VOICE.
+export function pickSupermanVoice(pool, rosterKey) {
+  const pack = VARIANT_PACKS[(rosterKey || "").toLowerCase()] || SUPERMAN_VOICE
+  const arr = pack[pool]
   if (!Array.isArray(arr) || arr.length === 0) return null
   return arr[Math.floor(Math.random() * arr.length)]
 }

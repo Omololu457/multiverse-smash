@@ -1,239 +1,305 @@
 ========================================================================
-MULTIVERSE SMASH — PRE-PLAYTEST PASS  (2026-09-13)
-Five safe tracks before tomorrow's playtest. NO sim / timing / balance
-changes anywhere — Track A is a new presentation-only screen; B/C/D/E are
-investigation + reporting.
+SKIN INVENTORY AUDIT — RESEARCH ONLY (2026-09-13)
+Count/inventory only. No code changes. No design proposals.
+========================================================================
+
+METHODOLOGY
+  - Playable = characters where isPlayable !== false  (characters.js).
+  - Skin count = the length of that character's array in the SKINS
+    registry (skins.js), which INCLUDES the "Default" entry (Default is a
+    selectable skin on the skin-select screen, so it is counted).
+  - A character with NO entry in the SKINS registry has ZERO real skins;
+    the game hands them a single synthetic "Default" at runtime via the
+    getSkins() fallback, but nothing is authored in the registry.
+
+TOTALS
+  - Total playable characters:            96
+  - With 10+ skins:                       63co
+  - With FEWER than 10 skins:             33   (listed below)
+  - With ZERO skins (absent from SKINS):   1
+
+------------------------------------------------------------------------
+ZERO SKINS  (not in the SKINS registry at all — only the runtime fallback)
+------------------------------------------------------------------------
+  0  Billy Ghostface            (ghostface_billy)   — no SKINS entry
+
+------------------------------------------------------------------------
+FEWER THAN 10 SKINS  (sorted fewest -> most; biggest gaps at the top)
+Format:  [count]  Name  (key)  —  skin names
+------------------------------------------------------------------------
+  0  Billy Ghostface        (ghostface_billy)   — (none — runtime "Default" only)
+
+  1  Albedo                 (albedo)            — Default
+  1  Baki Hanma             (baki)              — Default
+  1  Boruto Uzumaki         (boruto)            — Default
+  1  Megumi                 (handler)           — Default
+  1  Kakashi                (kakashi)           — Default
+  1  Kurapika               (kurapika)          — Default
+  1  Rick Prime             (rickPrime)         — Default
+
+  3  Ben 10                 (ben10)             — Default / Crimson / Azure
+  3  Green Samurai Ranger (Forest) (green_samurai_ranger) — Default / Crimson / Azure
+  3  Zaraki Kenpachi (Shikai)      (zaraki_shikai)        — Default / Crimson / Azure
+
+  4  Gon Freecss            (gon)               — Default / Crimson / Azure / Amber's Crew (Alt)
+  4  Omni-Man               (omniman)           — Default / Crimson / Azure / Debbie's Crew (Alt)
+
+  5  Ghostface              (ghostface)         — Billy / Debbie / Roman / Jill / Amber
+  5  Ghostface.exe          (ghostface_exe)     — Billy Loomis / Stu Macher (WIP) / Roman Bridger (WIP) / Mrs. Loomis (WIP) / Amber Freeman (WIP)
+  5  Goku                   (goku)              — Default / Pink (Alt) / Gold (Alt) / Blue (Alt) / Red (Alt)
+  5  Killua Zoldyck         (killua)            — Default / Black Hair (Alt) / Brown Hair (Alt) / Pink Hair (Alt) / Billy's Crew (Alt)
+  5  Saiki Kusuo            (saiki)             — Default / Black (Alt) / Gold (Alt) / Blue (Alt) / Red (Alt)
+  5  Samurai Red Ranger (Fire) (samurai_red_ranger) — Default / Azure Blade / Emerald Katana / Violet Strike / Silver Edge
+
+  6  Beerus                 (beerus)            — Default / Black (Alt) / Pink (Alt) / Gold (Alt) / Red (Alt) / Debbie's Crew (Alt)
+  6  Itachi Uchiha          (itachi)            — Default / Pink (Alt) / Gold (Alt) / Blue (Alt) / Red (Alt) / Billy's Crew (Alt)
+  6  Naruto                 (naruto)            — Default / Black (Alt) / Pink (Alt) / Blue (Alt) / Red (Alt) / Amber's Crew (Alt)
+  6  Isaac Netero           (netero)            — Default / Black (Alt) / Pink (Alt) / Gold (Alt) / Red (Alt) / Debbie's Crew (Alt)
+  6  Sasuke                 (sasuke)            — Default / Pink (Alt) / Gold (Alt) / Blue (Alt) / Red (Alt) / Billy's Crew (Alt)
+  6  Tobirama Senju         (tobirama)          — Default / Black (Alt) / Pink (Alt) / Gold (Alt) / Red (Alt) / Roman's Crew (Alt)
+  6  Vegeta                 (vegeta)            — Default / Black (Alt) / Pink (Alt) / Gold (Alt) / Red (Alt) / Jill's Crew (Alt)
+
+  7  Chrollo Lucilfer       (chrollo)           — Default / Phantom Troupe / Cerulean Collector / Verdant Spider / Crimson Troupe / Golden Pages / Billy's Crew (Alt)
+  7  The Flash              (flash)             — Default / Blue Streak (Alt) / Black (Alt) / Pink (Alt) / Gold (Alt) / Reverse Flash (Alt) / Godspeed (Alt)
+  7  Madara Uchiha          (madara)            — Default / Shattered Crown / Void Awakening / Scarlet Eclipse / Winter's Edge / Forest Warden / Ashfall
+
+  8  Yuta Okkotsu           (yuta)              — Default / Ben 10 / Albedo / Valkyrie / Kukulkan / Spriggan / Zeus / Void Sovereign
+  8  Zenitsu Agatsuma       (zenitsu)           — Default / Lavender / Black / Vibrant Pink / Red / White / Blue / Amber's Crew (Alt)
+
+  9  Kyojuro Rengoku        (rengoku)           — Default / Omnitrix Green / Albedo Protocol / Sun Breathing Homage / Water-Sealed / Ashen / Imperial / Verdant Flame / Void Ember
+  9  Yamamoto               (yamamoto)          — Navy Hakama / Wine Hakama / Ice-Blue / Forest Green / Khaki / Ghost-White / Violet / Crimson / Eternal Void
+
+------------------------------------------------------------------------
+NOTES
+  - The remaining 63 playable characters each have 10+ skins and are not
+    listed here (this audit targets the gaps only).
+  - "(WIP)" and "(Alt)" labels above are the skins' own registered names,
+    kept verbatim — Ghostface.exe's 5 entries are mostly WIP placeholders.
+  - Several low-count characters share the same generic palette set
+    (Default / Crimson / Azure, or the Black/Pink/Gold/Blue/Red "(Alt)"
+    family, or a "<name>'s Crew (Alt)" affiliation) — noted for context,
+    NOT as a design recommendation.
 ========================================================================
 
 
-------------------------------------------------------------------------
-TRACK A — CONTROLLER CONTROLS REFERENCE   [BUILT + VERIFIED]
-------------------------------------------------------------------------
-THE PAIN POINT: no always-accessible, controller-aware control legend
-during a match.
+========================================================================
+UNFINISHED WORK / COME-BACK-TO LIST  (2026-09-14, Claude session)
+Appended below the skin audit above (that section is a concurrent
+process's — left intact). Items are from working notes; a concurrent
+process is actively editing this repo, so VERIFY current state before
+starting any item (some may have progressed/committed since).
+========================================================================
 
-WHAT SHIPPED (this pass):
-  - A new "Controls" option in the PAUSE menu (Esc -> Controls). It opens
-    a full-screen CONTROLS overlay any time during a match and backs out
-    to the pause menu (Esc / Circle / click BACK). The match stays frozen.
-  - The overlay is DEVICE-AWARE. It reads whatever pad is connected and
-    shows that pad's REAL button glyphs:
-       Xbox pad     -> A / B / X / Y + LB/RB/LT/RT
-       PlayStation  -> Cross / Circle / Square / Triangle + L1/R1/L2/R2
-       Switch       -> B/A/Y/X + L/R/ZL/ZR
-       No pad       -> subtitle says so + shows a generic set.
-    It also shows both keyboard columns (P1 + P2) and the "how to perform
-    specials" footer, so it's one legend for every input method.
-  - Live-verified with a real (faked) Xbox pad: subtitle read "Xbox
-    detected - showing its buttons" and the controller column mapped
-    Light=A, Heavy=X, Special=Y, Dash=B, Ultimate=LT/RT, Grab=LB,
-    Charge=RB. Screenshots: harness/shots/controls_help.png (keyboard-only)
-    and harness/shots/controls_help_xbox.png (Xbox).
+-- DONE THIS SESSION (already committed + pushed to origin/main) --------
+  [x] Fullscreen/windowed resize desync fix   (commit eaec957e)
+        - bitmap backdrops ground-anchored (ui.js)
+        - fighters re-ground on resize + per-fighter groundY cache refresh
+        - test:stage-resize 41/0
+  [x] In-match combo-break prompt + How-To/Training explainer (b7de262a)
+        - flashing "BREAK!" HUD prompt, DEFENSE tutorial rows, F4 "combo"
+          training drill; test:combo-break-prompt 10/0
+  NOTE: temporary branches (fix/…, feat/…) were merged to main + deleted.
 
-GOOD NEWS - glyph support ALREADY EXISTED (nothing invented):
-  input.js already had getPadType() + PAD_GLYPHS (Xbox/PS/Switch/generic)
-  and game.js had _controlRefForPad() to rebuild the controller column
-  from the live pad. Track A just surfaces that data in an always-reachable
-  overlay. These are TEXT/unicode glyphs (A, Cross, LB, RT...), not bitmap
-  button icons - the project has no image-based controller-icon assets,
-  and I did not fabricate any.
+-- STAGE ART (found during the desync task; NOT fixed — needs new art) --
+  [ ] UNDERSIZED backdrops: jujutsu_high_courtyard.png & shibuya_incident_bg.png
+        are 1408x768 but drawn across the 3200-wide world (~2.27x horizontal
+        stretch, blurry/soft at fullscreen). Need higher-res source art.
+        (valley/test_map at 2752x1536 are fine.)
+  [ ] mugen_train_bg.png is a KNOWN PLACEHOLDER image — replace with real art.
 
-ACTUAL BUTTON MAPPING (from input.js PS5_MAP, for reference):
-  Light=X/A  Heavy=Square/X  Special=Triangle/Y  Block=Circle/B
-  Grab=L1/LB  Charge/Omnitrix=R1/RB  Ultimate=L2 or R2 / LT or RT
-  Move=L-Stick or D-Pad
+-- MECHANICS BUILT-BUT-NOT-FULLY-WIRED / DEFERRED -----------------------
+  [ ] UP BLOCK: overhead attribute shipped but DORMANT (no reward). Still
+        to do: Up Block reward wiring, flawless/up-block precedence,
+        special/command overhead tags, onboarding.
+  [ ] SAMURAI RANGERS: Mega Mode is wired, but STILL unwired —
+        updateSamuraiRangerCommandCombat (rekka + up-attack) and the
+        ultimate (samuraiUltCine hook is missing).
+  [ ] SPIDER-MAN variants: spiderman_ssf2 and spiderman_mci are
+        normals-only — specials + ultimate not built (raimi is complete).
+  [ ] BRUTALITY (per-move finishers): only ~12 chars have real finishers;
+        ~72 chars + per-move LIVE-INPUT stamping still deferred.
+  [ ] FRAME ADVANTAGE / BLOCKSTUN: no true frame-advantage math yet
+        (HITSTUN_SCALE padding is a stopgap). Held for its own pass.
+  [ ] ANIM TRANSITION AFTER-IMAGE (combo-flow fix #2): built but was
+        UNCOMMITTED awaiting go-ahead — confirm whether it ever landed.
 
-FILES TOUCHED (presentation only):
-  ui.js    - drawControlsHelpScreen() + getControlsHelpBackButton();
-             added "Controls" to the pause menu (panel grew for 7 items).
-  game.js  - GAME_STATES.CONTROLS_HELP; openControlsScreen();
-             _controlsHelpData(); pause dispatch + render + mouse/keyboard/
-             gamepad routing for the new state.
-  harness/controls_help.test.mjs (NEW) + package.json test:controls-help
-  harness/controller_menu.test.mjs - bumped the pause-nav count 5->6 downs
-             (a new menu item legitimately shifted "Quit to Menu").
+-- UI / SYSTEMS WITHOUT FRONT-ENDS -------------------------------------
+  [ ] PERSONALITY: TIPI questionnaire UI never built (inference works;
+        RPG-mapping trait rows are dormant).
+  [ ] CHALLENGES: challenges.js exists but there is NO challenge UI yet.
+  [ ] COLORBLIND: control REMAPPING is flagged but not built (HUD toggle
+        shipped).
 
-TESTS:
-  test:controls-help   5/0   (opens from pause, device-aware, backs out, no errors)
-  test:controller-menu 25/0  (was 23/2 before the count bump - now clean)
-  test:determinism 9/0 - test:ui-batch 7/0 - test:ui-bundle 6/0 -
-  test:combo-standard 227/0   (no regressions - sim untouched)
+-- VOICE COVERAGE ------------------------------------------------------
+  [ ] ~29 playable chars have genuinely NO audio (netero is a permanent
+        loss). Light Yagami is wired but still needs a transcript.
 
+-- SKINS (see the audit section above for the full list) ---------------
+  [ ] 33 playable chars have <10 skins; ghostface_billy has ZERO (SKINS
+        registry fallback only). A concurrent process is actively adding
+        skin waves (Albedo/Valkyrie/Alien X) — check what's landed.
+  [ ] ghostface_exe: Stu / Roman / Mrs. Loomis / Amber skins marked (WIP).
 
-------------------------------------------------------------------------
-TRACK B — DESKTOP / STANDALONE APP LAUNCHER   [FOUND, WORKS]
-------------------------------------------------------------------------
-COMMAND TO LAUNCH THE FULL-SCREEN STANDALONE APP (from project root):
-
-        npm run desktop
-
-  - Delegates to  npm --prefix electron start  -> runs electron/main.mjs.
-  - Opens a native FULLSCREEN Electron window (Mac/Win/Linux).
-  - Electron IS installed + configured (electron/ subfolder, electron
-    ^33.4.11 as a devDependency; the binary is present). Isolated in its
-    own package.json so the main project carries no Electron bloat.
-
-HOW IT WORKS: the game is a pure static web app (ES modules + importmap).
-Electron can't load ES modules over file:// (CORS), so main.mjs starts a
-tiny localhost HTTP server (reusing tools/serve.mjs) and loads the game
-from http://127.0.0.1:PORT - byte-identical to the browser build, zero
-game-code changes. Adds durable save persistence + gamepad activation on
-the cold title screen.
-
-OTHER COMMANDS:
-  npm run desktop:capture     -> headless screenshot to electron/shots/poc.png
-  npm run desktop:diag        -> DIAG=1 verbose logging
-  npm run verify:gamepad-gate -> controller detection on the home screen
-
-STATUS: a working proof-of-concept (screenshots in electron/shots/ prove
-live gameplay). NOT yet a packaged distributable (.dmg/.exe/.AppImage) -
-that needs an electron-builder config + icon + code-signing, none of which
-require game-code changes. For tomorrow's playtest, `npm run desktop` gives
-the full-screen standalone experience right now.
-
-
-------------------------------------------------------------------------
-TRACK C — RENDER LOOP / HIGH-REFRESH RE-VERIFICATION   [HEALTHY]
-------------------------------------------------------------------------
-HEADLINE: the render loop is solid after the new FX systems. No stutter
-observed; the hot FX paths are allocation-pooled.
-
-1) requestAnimationFrame IS driving rendering (game.js gameLoop). IMPORTANT
-   NUANCE: the loop is INTENTIONALLY GATED to a fixed 60 Hz via a real-time
-   accumulator - it does NOT run uncapped at the display's native refresh.
-   This is BY DESIGN and CORRECT for this engine: physics, timers, cooldowns
-   AND sprite-frame advancement all step exactly once per pass, so letting
-   rAF run at 120/144/240 Hz would make the whole game run 2-4x too FAST
-   (this was a real past bug - Toji jitter / too-fast intros). On a high-
-   refresh monitor the game correctly stays at 60 fps game-speed; extra rAF
-   callbacks are skipped. (So "sync to native refresh rate" is the wrong
-   goal here - the 60 Hz lock is the fix, not a limitation.)
-
-2) NO per-frame GC churn from the new visual systems. The hot paths are
-   pooled (Stage 22C): damage numbers use poolAcquire("dmg")/poolRelease
-   and O(n) compaction on expiry; hit sparks + brutality debris use
-   poolAcquire("spark"). Confirmed in code.
-
-3) LIVE MEASUREMENT (real match, headless Chromium, sampled real rAF
-   intervals during a live BRUTALITY + continuous input, 226 frames):
-        avg 16.67 ms - p50 16.70 ms (= exactly 60 Hz) - p95 17.60 ms -
-        max 17.70 ms - DROPPED FRAMES (>33ms): 0
-   The brutality (the most particle-heavy system) fired and captured its
-   sprite while the frame line stayed flat. Zero JS errors.
-
-HONEST LIMITATION: I could not make keyboard normals connect in the
-headless harness to show a live NON-ZERO damage-number count, and the
-direct hit-probe bypasses the FX bridge (FX are spawned in updateBattle,
-not in combat.resolveAttackHit). So the damage-number stress is verified
-by CODE (pooling) + the live brutality run, not by a live combo counter.
-
-SELF-VERIFY ON YOUR REAL 120/144 Hz MONITOR TOMORROW:
-   open the game with  ?debug=1  -> a live overlay shows
-   "FPS ... frame Xms avg / Yms max" (stays green under ~20 ms) and
-   "pool: N reused / M alloc" (allocs should stay near-flat during a big
-   combo or brutality). If frame-max stays green during a brutality + long
-   combo, you're clean. (Probe kept at harness/_perf_probe.mjs.)
-
-
-------------------------------------------------------------------------
-TRACK D — "BETA TESTING WEBSITE" / TESTER DOCS   [FOUND, not edited]
-------------------------------------------------------------------------
-Reporting only - nothing changed. What actually exists:
-
-PRIMARY (the player-facing "beta website" - a handbook, generated Sep 10):
-  - BETA1_GAMEPLAY.html  (330 KB) - branded "Beta 1 - Gameplay Guide",
-    dark themed, print-optimized. Cover page, controls (P1 WASD/IJKLO,
-    P2 arrows/1-5), core-mechanics primer (meter, combo scaling, combo
-    breaker, launchers, blocking, transforms, grabs, dynamic music, living
-    backgrounds), then per-fighter cards. THIS is the most likely "beta
-    testing website."
-  - BETA1_GAMEPLAY.md   (107 KB, ~1,874 lines) - the markdown SOURCE.
-    All fighters x universes: passives, normals, specials (with energy
-    costs), ultimate, bread-and-butter + air combos. From live game data.
-  - BETA1_GAMEPLAY.pdf  (5.9 MB) - portable print version of the same.
-
-SUPPORTING (tester/dev reference, not the main page):
-  - BETA_INPUT_MAP.md (Aug 13) - beta single-direction special inputs
-    (hold ONE direction + Special) per character; test-backed.
-  - MULTIVERSE_SMASH_BETA_ROSTER.md (Aug 24) - an OLDER systems/roster
-    snapshot (cites 45 chars) - stale vs the current roster; treat as a
-    historical reference.
-
-*** REGENERATED (2026-09-13) ***
-The handbook was rebuilt from the LIVE game data. It now reads
-"100 playable fighters / 19 worlds" (was 99/20). Files rewritten:
-BETA1_GAMEPLAY.html / .md / .pdf + harness/kits_dump.json.
-  - New pipeline (repeatable): `npm run beta:build`
-       = harness/dump_kits.mjs (dumps live kits via __harness.dumpKits)
-       -> tools/build_beta_doc.mjs (HTML + MD)
-       -> tools/render_beta_pdf.mjs (PDF + verification shots)
-  - Counts are DERIVED from the dump, not hardcoded, so they now stay
-    accurate automatically on any future rebuild.
-  - The old dump double-counted "ben_10" + "ben10" as two universes; the
-    live data consolidated that, hence 20 -> 19.
-COUNT BASIS (why 100 here vs "96" in Track E): the handbook documents the
-full in-game MOVE LIST roster (characterList minus hidden = 100, which
-includes ~4 built-out-but-isPlayable:false fighters). Track E's "96/18" is
-the strictly-selectable set. Both are correct; they measure different
-things. The handbook uses the same basis it always has.
-MULTIVERSE_SMASH_BETA_ROSTER.md (the older 45-char snapshot) was left
-as-is — separate historical doc, not regenerated.
-
-
-------------------------------------------------------------------------
-TRACK E — QUICK "WHAT'S PLAYABLE RIGHT NOW" (for walking testers through)
-------------------------------------------------------------------------
-ROSTER: ~96 playable fighters across 18 universes (Dragon Ball, Naruto,
-Jujutsu Kaisen, Bleach, Ben 10, Marvel/Spider-Man, DC, Hunter x Hunter,
-horror/Woodsboro, Power Rangers, Rick & Morty, and more).
-
-MODES YOU CAN SHOW:
-  - VS CPU / local VS (P1 keyboard vs P2 keyboard or a controller)
-  - Training Mode (frozen dummy, stand/block/jump behavior)
-  - Arcade / Tower / Story Mode (15 scripted chapters) / AI-vs-AI spectate
-  - Free-for-all (POC, controller-driven for P3/P4)
-
-SIGNATURE SYSTEMS THAT WORK:
-  - Transform cinematics - short freeze-beat form changes (Vegeta
-    "Villainous Mode", Bardock/Piccolo/Goku transforms, etc.)
-  - Brutalities - opt-in stylized KO finishers (per-character, per-move;
-    toggle ms_brutality_fx, default OFF). Sprite-bisection KO render.
-  - Clone / summon assists, command-chain (rekka) strings, domain/ultimate
-    freeze-cinematics, Edo-Tensei-style revives, Chrollo Skill Hunter,
-    Susanoo tiers, etc.
-  - Combat feel: dedicated block button, combo scaling + combo breaker,
-    launchers, floating damage numbers (tiered by hit weight), hit sparks.
-  - Dynamic music - low-HP / final-round intensity crossfade; 3 music
-    sources (default / personality-tuned / custom 103-song playlist).
-  - Presentation - ambient/parallax stage backdrops, per-character UI
-    themes, animated round/FIGHT transitions, char-select voice barks.
-  - Voice - ~66 of the roster have wired voice lines.
-  - Accessibility - opt-in colorblind-safe HUD (P2 red->orange).
-  - Profile (Big-Five personality) + Codex (fighter dossiers) from the
-    main menu AND the pause menu, plus the NEW Controls legend (Track A).
-  - Save/progress persists (guest-safe) across reloads; XP, unlocks,
-    challenges.
-
-CONTROLS QUICK CARD (P1 keyboard):
-  Move A/D - Jump/Up W - Crouch S - Light J - Heavy K - Up-attack I -
-  Special L - Ultimate U - Grab O - Charge/Transform P - Block ;
-  (P2: arrows + 1/2/3/4/5, grab 6, charge 7, block /)
-  Controller: see the in-game Controls overlay (auto-detects your pad).
-
-TODAY'S PRACTICAL LAUNCH FOR TESTERS: `npm run desktop` (full-screen).
+-- HOUSEKEEPING -------------------------------------------------------
+  [ ] Many older working-note items are marked "UNCOMMITTED" but a lot of
+        that has since been committed/merged by concurrent work — do a
+        `git log`/`git status` reconciliation pass before trusting them.
+  [ ] Local checkout is shared with an active concurrent process (branches
+        switch on their own, ~650 uncommitted files). Landing on `main`
+        cleanly requires doing it when that process is idle/committed.
+========================================================================
 
 
 ========================================================================
-FINAL REPORT — one line each
-  A  Controls legend: BUILT (pause -> Controls, device-aware). Tests 5/0 +
-     25/0; determinism/ui/combo suites clean. Sim untouched.
-  B  Standalone app: `npm run desktop` (Electron, fullscreen, works; not
-     yet packaged as .dmg/.exe).
-  C  Render loop: HEALTHY. 60 Hz-locked by design (correct), FX pooled,
-     live max frame 17.7 ms / 0 drops through a brutality. Self-check with
-     ?debug=1 on your high-refresh monitor.
-  D  Beta docs: BETA1_GAMEPLAY.html/.md/.pdf is the tester handbook (+2
-     supporting md files). Not edited. Roster count drift flagged (99->96).
-  E  Roster ~96 across 18 universes; all headline systems (clone-assist,
-     brutalities, transform cinematics, dynamic music, story mode) working.
+UNFINISHED WORK — BRUTALITY-RENDER SESSION  (2026-09-14, a SEPARATE Claude
+session from the list above; appended, that section left intact)
+========================================================================
+
+-- DONE THIS SESSION (already committed + pushed to origin/main) --------
+  [x] Brutality blood-volume + wound-core escalation   (commit 14824897)
+        - ~2x blood drips (2nd gush) + bigger/denser splat + larger
+          growing ground pool + new _drawWoundCore (darker-red layered
+          cross-section per half). Render-only, clean-red palette.
+        - test:brutality 41/0, split 6/0, determinism 9/0.
+  [x] Brutality AIRBORNE-KO fix: missing sprite halves   (commit a1904f24)
+        - _captureLoserSprite sized the offscreen from STALE _lastDraw*
+          (tall launch frame) while draw() rendered the force-posed short
+          "lose" pose off-canvas -> halves invisible. Fix = oversized
+          scratch -> read ACTUAL drawn rect -> crop; anchor effect+pool at
+          the body's own feet (not the world floor, which the KO cam-follow
+          slides off-screen). NEW test:brutality-airborne 13/0 (PROVEN to
+          fail on the pre-fix code).
+
+-- BRUTALITY — STILL DEFERRED (not this session) -----------------------
+  [ ] Per-MOVE finishers: only ~12 chars have real finishers; ~72 chars +
+        per-move LIVE-INPUT stamping still deferred.  (This is the SAME
+        item as "BRUTALITY (per-move finishers)" in the section above —
+        one item, don't double-count.)
+  [ ] EXTREME-launch edge case (minor / cosmetic): on a very high airborne
+        KO the camera clamps at the stage top, so the body (and the effect
+        anchored to it) can ride high toward the HUD. Realistic launches
+        are fine; only pathological launches hit this. A screen-space
+        clamp in _drawBrutality (it has camera access) would fully bound it
+        if ever deemed worth doing.
+
+-- COORDINATION / COMMIT-HYGIENE (READ BEFORE COMMITTING) --------------
+  [!] game.js + package.json currently hold THREE interleaved UNCOMMITTED
+        workstreams from concurrent sessions: (1) combo-break drill,
+        (2) voice packs, (3) fullscreen/resize ground-desync. My brutality
+        work is already committed, so it is OUT of the working-tree diff.
+        To commit any ONE workstream cleanly, DO NOT `git add game.js` /
+        `git add package.json` (that grabs all three) — stage surgically
+        with a filtered `git apply --cached` patch. index.html is
+        auto-stamped by the pre-commit hook (expected churn, not a conflict).
+========================================================================
+
+
+========================================================================
+UNFINISHED WORK — SKIN ROLLOUT  (Albedo / Valkyrie / Alien X for ALL chars)
+(2026-09-14, Claude "skins" session. Goal: give every playable character
+the 3-skin set. Per-character-tuned recolours, no artifacts, verified live.)
+========================================================================
+
+WHAT THE 3 SKINS ARE
+  - Albedo   = black garment / red accent / grey trim  (Yuta's EXACT palette)
+  - Valkyrie = light-blue garment / gold accent+trim    (Yuta's EXACT palette)
+  - Alien X  = matte-black void base + procedural colourful starfield overlay
+               (game.js drawAlienXStarfield, gated on skinId ending "AlienX")
+
+TOOLING (reuse these — do NOT reinvent)
+  - Generator: tools/gen_underskin_recolor.py  (per-char classify() fns +
+    the 3 palettes; ALWAYS generate from the char's EXACT animationData sheet
+    list, never a glob — globbing overwrites existing skins / grabs junk).
+  - Live verify: harness/underskin_shots.mjs  (add char to CONFIG; checks it
+    renders the recoloured __tag sheet on idle/walk/light/heavy, no boxes,
+    Alien X overlay runs; form-aware chars get SSJ/form checks).
+  - Alien X overlay already wired + reusable (skinId endsWith "AlienX").
+
+PER-WAVE PRE-CHECK (learned the hard way — do this BEFORE generating):
+  1. TAG COLLISION: some chars already have a creative skin using tag
+     "albedo"/"valkyrie"/"alienx" (e.g. rengoku/shinobu "Albedo Protocol",
+     gojo "Albedo Protocol", toji "Royal Valkyrie", yuta Albedo+Valkyrie).
+     Generating those tags OVERWRITES their existing sheets. -> skip that
+     tag for that char (give only the missing ones), or it collides on id.
+     After generating, run: git status --porcelain <char>_*__<tag>.png
+     -> any ' M' means you clobbered an existing file (git checkout to undo).
+  2. .jpg PORTRAITS: some portraits are .jpg (e.g. sukuna_portrait.jpg).
+     Output name MUST be re.sub(r'\.(png|jpe?g)$','__<tag>.png') -> PNG.
+     (A naive .replace('.png',...) tried to save RGBA as .jpg and CORRUPTED
+     sukuna_portrait.jpg once; restored via git checkout.)
+  3. MISSING BASE SHEETS: some animationData refs a file that isn't on disk
+     (e.g. sukuna_hurt_sheet.png). Skip non-existent base sheets (os.path.exists).
+  4. FORM-AWARE chars: set recolorTag on the skin entry so retagFormAnim
+     recolours the transform sheets too, and generate those form sheets
+     (Vegeta SSJ/Blue, Goku SSJ/SSG/SSB, Gohan SSJ2, Goku-Black + Vegeta-Dark
+     Rose, Maki Shibuya were done this way).
+  5. ALREADY-BLACK chars: Albedo reads ~identical to Default -> drop Albedo,
+     give Valkyrie + Alien X only (precedent: Boruto, Vegeta Dark, Alt Sukuna).
+
+------------------------------------------------------------------------
+DONE (33 characters) — status of each
+------------------------------------------------------------------------
+ON origin/main (23):
+  9 "originals": goku vegeta baki naruto sasuke rickPrime kurapika kakashi boruto*
+  Dragon Ball (9): piccolo frieza beerus vegito gotenks bardock gohan goku_black vegeta_dark
+  Demon Slayer (5): zenitsu inosuke nezuko rengoku shinobu
+  [*boruto still MISSING its Albedo — currently has only Valkyrie + Alien X;
+   add boruto Albedo in the Naruto wave.]
+
+ON branch origin/jjk-skins, NOT yet on main (10): gojo sukuna alt_sukuna
+  aoi_todo maki toji yuji naoya yuta handler.
+  >>> ACTION: merge the PR to land these on main:
+      https://github.com/Omololu457/multiverse-smash/pull/new/jjk-skins
+      (changes are disjoint from concurrent main commits except the
+      auto-stamped index.html -> clean merge.)
+
+------------------------------------------------------------------------
+REMAINING (~64 characters) — grouped by franchise, tackle a wave at a time
+------------------------------------------------------------------------
+NARUTO cast (14): itachi tobirama hashirama minato madara obito tobi pain
+  hiruzen isshiki orochimaru onoki kiba six_paths_pain   (+ boruto Albedo)
+  - Susanoo users (itachi/madara/six_paths_pain) = SUMMON overlay, NOT a
+    sprite swap -> base recolour only (like sasuke). Minato/others check.
+DC (11): batman dark_knight superman superman_dcuc superman_new52
+  superman_classic superman_fighter flash deathstroke brainiac green_lantern
+  - superman_* variants share base sheets? verify each variant's own sheets.
+  - flash has Reverse/Godspeed alt skins already (tag check).
+BLEACH (6): ichigo zaraki zaraki_shikai mayuri byakuya yamamoto
+  - zaraki_shikai is a TIMED form (ZARAKI_SHIKAI_ANIM, retagFormAnim) ->
+    FORM-AWARE. yamamoto/byakuya/etc have Void Sovereign (tag check).
+MARVEL (5): spiderman iron_man iron_man_2 iron_man_3 miles
+  - iron_man trio + miles/gwen already have palette-skin SETS (SHEET2 batch)
+    -> HEAVY tag-collision risk; check existing ids/tags carefully, likely
+    only Alien X is genuinely new for these.
+HUNTER x HUNTER (5): netero killua gon hisoka chrollo
+  - killua Godspeed / chrollo Phantom-Troupe skins exist (tag check).
+HORROR (4): ghostface ghostface_billy jason ghostface_exe
+  - ghostface has NO base identity (5 killer identities); ghostface_billy
+    has ZERO skins (not in SKINS registry at all — needs an entry).
+  - jason has a Nightmare-Void skin already (tag check).
+POWER RANGERS (5): omega_ranger samurai_red_ranger gold_samurai_ranger
+  green_samurai_ranger red_ranger_mmpr
+  - rangers are mostly one solid suit colour (unified recolour, like Baki).
+BEN 10 (4): ben10 albedo vilgax gwen
+  - ★ben10 is an OMNITRIX ALIEN-SWAP char: 13 alien sprite sets (xlr8,
+    diamondhead, alienx, heatblast, fourarms, ...). Recolouring "ben10"
+    means handling ALL 13 alien sheet sets -> BIG. albedo=Ben10's Albedo.
+ONE PUNCH MAN (2): saitama genos   (both have Void Sovereign — tag check)
+DEATH NOTE (2): light (l_ryuuzaki)
+MISC (5): rick omniman saiki ippo miwa
+  - rick has Void Form + Portal Void (tag check). omniman has crew-alt.
+
+------------------------------------------------------------------------
+GIT COORDINATION (important)
+------------------------------------------------------------------------
+  - A concurrent session is actively committing+PUSHING to origin/main
+    (brutality, fullscreen, combo-break) AND holds ~650 uncommitted files in
+    the SHARED working tree. That caused my JJK push to be rejected (diverge).
+  - DO NOT stash/rebase over the concurrent dirty tree (risks their WIP).
+  - CLEANEST path to continue: (a) merge the jjk-skins PR, (b) once the
+    concurrent session is idle/committed, branch fresh off updated main per
+    wave, commit only your own files (skins.js + your PNGs + tool + harness),
+    push a branch, merge PR. Never `git add game.js`/`package.json` (grabs
+    concurrent workstreams).
+  - Each skin wave = ~250-450 new PNG files; commit per franchise.
 ========================================================================

@@ -25,6 +25,9 @@ import { pickFlashVoice } from "./flashVoice.js"
 import { pickBatmanVoice } from "./batmanVoice.js"
 import { pickOmniManVoice } from "./omnimanVoice.js"
 import { pickSupermanVoice } from "./supermanVoice.js"
+import { pickOnokiVoice } from "./onokiVoice.js"   // Onoki taunt (Jinton callout) / low-HP defiance voice pools (audio-only, JA)
+import { pickGenosVoice } from "./genosVoice.js"   // Genos taunt-connect voice pool (audio-only, EN)
+import { pickAlbedoVoice } from "./albedoVoice.js"   // Albedo (Ben 10 villain) taunt / low-HP voice pools (audio-only, EN)
 import { pickBardockVoice } from "./bardockVoice.js"   // Bardock hit-react / taunt-connect voice pools (audio-only, EN)
 import { pickIppoVoice } from "./ippoVoice.js"   // Ippo hit-react / taunt-connect / low-HP voice pools (audio-only, JA)
 import { pickItachiVoice } from "./itachiVoice.js"
@@ -2255,7 +2258,7 @@ function applyOmniManLowHealthVoice(defender) {
 function applySupermanHitVoice(defender, cat, dmg) {
   if (!defender || voiceKey(defender.rosterKey) !== "superman" || (defender._hitVoiceCd > 0)) return
   defender._hitVoiceCd = 150
-  try { sound?.playSfxFile?.(pickSupermanVoice("hitReact"), null) } catch (_) {}
+  try { sound?.playSfxFile?.(pickSupermanVoice("hitReact", defender.rosterKey), null) } catch (_) {}
 }
 function applySupermanOffenseVoice(attacker, cat, unblocked) {
   if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "superman" || (attacker._atkVoiceCd > 0)) return
@@ -2263,7 +2266,7 @@ function applySupermanOffenseVoice(attacker, cat, unblocked) {
   const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
   if (!strong && !longString) return
   attacker._atkVoiceCd = 150
-  try { sound?.playSfxFile?.(pickSupermanVoice("taunt"), null) } catch (_) {}
+  try { sound?.playSfxFile?.(pickSupermanVoice("taunt", attacker.rosterKey), null) } catch (_) {}
 }
 function applySupermanLowHealthVoice(defender) {
   if (!defender || voiceKey(defender.rosterKey) !== "superman" || defender._lowHealthVoiceDone) return
@@ -2271,8 +2274,51 @@ function applySupermanLowHealthVoice(defender) {
   const hp  = defender.health || 0
   if (hp > 0 && hp <= max * 0.30) {
     defender._lowHealthVoiceDone = true
-    try { sound?.playSfxFile?.(pickSupermanVoice("lowHealth"), null) } catch (_) {}
+    try { sound?.playSfxFile?.(pickSupermanVoice("lowHealth", defender.rosterKey), null) } catch (_) {}
   }
+}
+
+// ── ONOKI VOICE (Naruto Storm JA pack; audio-only) — taunt-connect + low-HP defiance. No clean
+// isolated pain-grunt in the rip, so hitReact is omitted (intro/win live in game.js). See onokiVoice.js.
+function applyOnokiOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "onoki" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickOnokiVoice("taunt"), null) } catch (_) {}
+}
+function applyOnokiLowHealthVoice(defender) {
+  if (!defender || voiceKey(defender.rosterKey) !== "onoki" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true; try { sound?.playSfxFile?.(pickOnokiVoice("lowHealth"), null) } catch (_) {} }
+}
+
+// ── GENOS VOICE (OPM EN pack; audio-only) — taunt-connect only (pack is 8/10 long compilation
+// stitches; only 2 clean single lines survived, intro is the other — game.js). See genosVoice.js.
+function applyGenosOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "genos" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickGenosVoice("taunt"), null) } catch (_) {}
+}
+
+// ── ALBEDO VOICE (Ben 10 villain EN pack; audio-only) — taunt-connect + low-HP self-loathing.
+// The "blank" clips are near-silence (not grunts), so hitReact is omitted. See albedoVoice.js.
+function applyAlbedoOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "albedo" || (attacker._atkVoiceCd > 0)) return
+  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
+  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
+  if (!strong && !longString) return
+  attacker._atkVoiceCd = 150
+  try { sound?.playSfxFile?.(pickAlbedoVoice("taunt"), null) } catch (_) {}
+}
+function applyAlbedoLowHealthVoice(defender) {
+  if (!defender || voiceKey(defender.rosterKey) !== "albedo" || defender._lowHealthVoiceDone) return
+  const max = defender.maxHealth || 1000, hp = defender.health || 0
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true; try { sound?.playSfxFile?.(pickAlbedoVoice("lowHealth"), null) } catch (_) {} }
 }
 
 // ── BARDOCK VOICE LINES ── (DBZ Extreme Butoden English pack; audio-only). Two combat hooks:
@@ -3446,6 +3492,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyMinatoLowHealthVoice(defender)   // Minato "I'll fight to the end" (once, on crossing the low-HP line)
     applyOmniManLowHealthVoice(defender)   // "It's all under control" / "none of you can stop me" (once, on crossing the low-HP line)
     applySupermanLowHealthVoice(defender)   // "What you have can't be cured. I'll never stop fighting." (once, on crossing the low-HP line)
+    applyOnokiLowHealthVoice(defender)   // Onoki "I can still fight!" (once, crossing 30%)
+    applyAlbedoLowHealthVoice(defender)  // Albedo "I sicken myself." (once, crossing 30%)
     applyGokuLowHealthVoice(defender)   // Goku "I've still got more left in me!" (once, crossing 30%)
     applyFriezaLowHealthVoice(defender)   // Frieza "that actually hurt." (once, crossing 30%)
     applyIronManLowHealthVoice(defender)   // Iron Man "My arc reactor needs to cool down." (once, crossing 30%)
@@ -3560,6 +3608,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applySpidermanOffenseVoice(attacker, cat, !defender.isBlocking)   // Spider-Man chatty quip on a strong/long-string connect (occasional flavor)
   applyOmniManOffenseVoice(attacker, cat, !defender.isBlocking)  // Omni-Man cold Viltrumite trash-talk (taunt pool) on a strong/long-string connect
   applySupermanOffenseVoice(attacker, cat, !defender.isBlocking)  // Superman confident trash-talk (taunt pool) on a strong/long-string connect
+  applyOnokiOffenseVoice(attacker, cat, !defender.isBlocking)   // Onoki Jinton callout / "this ends here" on a strong/long-string connect
+  applyGenosOffenseVoice(attacker, cat, !defender.isBlocking)   // Genos "everything that I have!" on a strong/long-string connect
+  applyAlbedoOffenseVoice(attacker, cat, !defender.isBlocking)  // Albedo cold contempt on a strong/long-string connect
   applyBardockOffenseVoice(attacker, cat, !defender.isBlocking)   // Bardock aggressive trash-talk on a strong/long-string connect
   applyBakiOffenseVoice(attacker, cat, !defender.isBlocking)      // Baki quiet acknowledgement on a strong/long-string connect
   applyByakuyaOffenseVoice(attacker, cat, !defender.isBlocking)   // Byakuya "finishing blow" on a strong/long-string connect

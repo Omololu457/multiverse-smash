@@ -710,6 +710,13 @@ export const SPRITE_MANIFEST = {
   ghostface_exe: {
     actions: { idle: "./ghostface_exe_idle_uniform.png" }
   },
+  // Billy Ghostface (rosterKey ghostface_billy) — its base sheets ARE ghostface's __billy recolor
+  // (ghostface_*__billy.png). GATES spritesReady() ONLY by decoding the __billy idle strip → flips Billy from
+  // the procedural fallback BOX to the sprite path. This entry was MISSING, so Billy always rendered as a box.
+  // Per-action rendering reads characters.js → ghostface_billy.animationData (each action carries its own .sheet).
+  ghostface_billy: {
+    actions: { idle: "./ghostface_idle_uniform__billy.png" }
+  },
 
   // Ichigo Kurosaki (universe: bleach) — STAGE 1. Gates spritesReady() by decoding the idle strip →
   // flips Ichigo from procedural box to sprite. Per-action rendering reads characters.js →

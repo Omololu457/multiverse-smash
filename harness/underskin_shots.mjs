@@ -142,7 +142,8 @@ const CONFIG = {
   gold_samurai_ranger:  { p1: "gold_samurai_ranger",  skins: [{ id: "goldValkyrie", tag: "valkyrie" }, { id: "goldAlienX", tag: "alienx" }] },
   green_samurai_ranger: { p1: "green_samurai_ranger", skins: [{ id: "green_samuraiAlbedo", tag: "albedo" }, { id: "green_samuraiValkyrie", tag: "valkyrie" }, { id: "green_samuraiAlienX", tag: "alienx" }] },
   red_ranger_mmpr:      { p1: "red_ranger_mmpr",      skins: [{ id: "rrAlbedo", tag: "albedo" }, { id: "rrValkyrie", tag: "valkyrie" }, { id: "rrAlienX", tag: "alienx" }] },
-  // ── Horror (ghostface parent + ghostface_billy EXCLUDED — see skins.js / memory) ──
+  // ── Horror (ghostface parent EXCLUDED — guarded gameplay-identity skin slot) ──
+  ghostface_billy: { p1: "ghostface_billy", skins: [{ id: "ghostface_billyAlbedo", tag: "albedo" }, { id: "ghostface_billyValkyrie", tag: "valkyrie" }, { id: "ghostface_billyAlienX", tag: "alienx" }] },
   jason:           { p1: "jason",           skins: [{ id: "jasonAlbedo", tag: "albedo" }, { id: "jasonValkyrie", tag: "valkyrie" }, { id: "jasonAlienX", tag: "alienx" }] },
   ghostface_exe:   { p1: "ghostface_exe",   skins: [{ id: "ghostface_exeAlbedo", tag: "albedo" }, { id: "ghostface_exeValkyrie", tag: "valkyrie" }, { id: "ghostface_exeAlienX", tag: "alienx" }] },
 };
@@ -188,6 +189,7 @@ for (const char of WANT) {
                            : char === "samurai_red_ranger"  ? `samurai_ranger_portrait__${tag}.png`
                            : char === "gold_samurai_ranger" ? `samurai_ranger_gold_portrait__${tag}.png`
                            : char === "green_samurai_ranger"? `samurai_ranger_forest_portrait__${tag}.png`
+                           : char === "ghostface_billy" ? `ghostface_portrait__billy__${tag}.png`
                            : char === "ghostface_exe"   ? `ghostface_exe_idle_uniform__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {

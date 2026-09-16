@@ -769,6 +769,7 @@ CHARS = {
     "red_ranger_mmpr":     dict(classify=red_mmpr_classify),
     "ghostface":     dict(classify=ghostface_classify),
     "ghostface_exe": dict(classify=ghostface_classify),
+    "ghostface_billy": dict(classify=ghostface_classify, base_glob="ghostface_*__billy.png", probe_src="ghostface_idle_uniform__billy.png"),
     "jason":         dict(classify=jason_classify),
     "netero":     dict(classify=netero_classify),
     "killua":     dict(classify=killua_classify),

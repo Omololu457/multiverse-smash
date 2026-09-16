@@ -945,7 +945,11 @@ export const SKINS = {
   // size). Sources his real spriteScale (1.85) from the character. No portrait yet (procedural-box
   // fallback on select). No alt skins yet.
   netero: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.netero?.portrait, spriteScale: characters.netero?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.netero?.portrait, spriteScale: characters.netero?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "neteroAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("netero", "albedo"), spriteScale: characters.netero?.spriteScale, animationData: recolorSkinAnim("netero", "albedo") },
+    { id: "neteroValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("netero", "valkyrie"), spriteScale: characters.netero?.spriteScale, animationData: recolorSkinAnim("netero", "valkyrie") },
+    { id: "neteroAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("netero", "alienx"), spriteScale: characters.netero?.spriteScale, animationData: recolorSkinAnim("netero", "alienx") },
   ],
 
   // Saiki Kusuo (The Disastrous Life of Saiki K.). Same gate: WITHOUT a default skin, applySkin()
@@ -960,7 +964,11 @@ export const SKINS = {
   // getSkins() spriteScale:1 fallback and he renders at native ~53px (half size). Sources his real
   // spriteScale (2.1) from the character. Portrait crops the intro pose (no dedicated mugshot yet).
   killua: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.killua?.portrait, spriteScale: characters.killua?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.killua?.portrait, spriteScale: characters.killua?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "killuaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("killua", "albedo"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "albedo") },
+    { id: "killuaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("killua", "valkyrie"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "valkyrie") },
+    { id: "killuaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("killua", "alienx"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "alienx") },
   ],
 
   // Gon Freecss (Hunter x Hunter) — STAGE 1. Same gate: WITHOUT a default skin, applySkin() pulls the
@@ -968,6 +976,10 @@ export const SKINS = {
   // spriteScale (2.5) + portrait from the character.
   gon: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "gonAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("gon", "albedo"), spriteScale: characters.gon?.spriteScale, animationData: recolorSkinAnim("gon", "albedo") },
+    { id: "gonValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gon", "valkyrie"), spriteScale: characters.gon?.spriteScale, animationData: recolorSkinAnim("gon", "valkyrie") },
+    { id: "gonAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gon", "alienx"), spriteScale: characters.gon?.spriteScale, animationData: recolorSkinAnim("gon", "alienx") },
     // Stage 23 auto-palettes — default art + a render-time colour wash (no baked art), the same
     // mechanism as the "Pink Fit" tint skin. Gives every roster fighter ≥3 palettes.
     { id: "gon_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },
@@ -979,6 +991,9 @@ export const SKINS = {
   // his real spriteScale (1.9) + portrait from the character. No alt skins yet.
   chrollo: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.chrollo?.portrait, spriteScale: characters.chrollo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "chrolloValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("chrollo", "valkyrie"), spriteScale: characters.chrollo?.spriteScale, animationData: recolorSkinAnim("chrollo", "valkyrie") },
+    { id: "chrolloAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("chrollo", "alienx"), spriteScale: characters.chrollo?.spriteScale, animationData: recolorSkinAnim("chrollo", "alienx") },
     // "Phantom Troupe" — canonical reference palette (tools/gen_chrollo_reference.py). Per-region,
     // tone-preserving: coat navy->deep-purple #4A2E5C (yband<0.62), trousers->charcoal #1A1A1E
     // (yband>=0.62), collar/cuff/leg-wrap fur->silver #E8E4DC, coat-front buttons->gold #D4A537;
@@ -1070,6 +1085,10 @@ export const SKINS = {
   // getSkins() spriteScale:1 fallback → native ~half size. Sources spriteScale (2.0) from char.
   hisoka: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.hisoka?.portrait, spriteScale: characters.hisoka?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Overdrive).
+    { id: "hisokaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("hisoka", "albedo"), spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "albedo"), recolorTag: "albedo" },
+    { id: "hisokaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("hisoka", "valkyrie"), spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "hisokaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("hisoka", "alienx"), spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "alienx"), recolorTag: "alienx" },
     // "Greed Island Outfit" — reference-sampled recolor + per-frame edits (tools/gen_hisoka_greedisland.py):
     // orange hair→red, teal jumpsuit(torso+legs)→pale lavender-white, pink sash→dusty rose, gray shoes→rose
     // pink; the base chest heart+diamond emblem is ERASED (diffusion-filled) and a stopgap pink undershirt

@@ -18539,7 +18539,7 @@ function enterHisokaOverdrive(fighter, context) {
   fighter.damageMultiplier      = HISOKA_OVERDRIVE_MULT.dmg
   fighter.attackMultiplier      = HISOKA_OVERDRIVE_MULT.dmg     // == damageMultiplier (combat takes the max)
   fighter.attackSpeedMultiplier = HISOKA_OVERDRIVE_MULT.atkSpeed
-  fighter._skinAnim             = HISOKA_OVERDRIVE_ANIM         // BODY-SWAP to the golden-aura power-up form
+  fighter._skinAnim             = retagFormAnim(HISOKA_OVERDRIVE_ANIM, fighter._recolorTag)   // BODY-SWAP to the golden-aura power-up form (+ alt-skin recolor if one is equipped; default tag → anim unchanged)
   // Hold the transform pose (card-cape aura swirl → golden power-up) through the activation cinematic
   // (combat frozen; the cinematic clears it on end → power-up-form gameplay animations take over).
   fighter._spriteCastMove  = "transform"

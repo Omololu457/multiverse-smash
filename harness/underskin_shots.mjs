@@ -115,6 +115,12 @@ const CONFIG = {
   iron_man_2: { p1: "iron_man_2", skins: [{ id: "ironMan2Albedo", tag: "albedo" }, { id: "ironMan2Valkyrie", tag: "valkyrie" }, { id: "ironMan2AlienX", tag: "alienx" }] },
   iron_man_3: { p1: "iron_man_3", skins: [{ id: "ironMan3Albedo", tag: "albedo" }, { id: "ironMan3Valkyrie", tag: "valkyrie" }, { id: "ironMan3AlienX", tag: "alienx" }] },
   miles:      { p1: "miles",      skins: [{ id: "milesValkyrie", tag: "valkyrie" }, { id: "milesAlienX", tag: "alienx" }] },
+  // ── Hunter x Hunter ──
+  netero:  { p1: "netero",  skins: [{ id: "neteroAlbedo", tag: "albedo" }, { id: "neteroValkyrie", tag: "valkyrie" }, { id: "neteroAlienX", tag: "alienx" }] },
+  killua:  { p1: "killua",  skins: [{ id: "killuaAlbedo", tag: "albedo" }, { id: "killuaValkyrie", tag: "valkyrie" }, { id: "killuaAlienX", tag: "alienx" }] },
+  gon:     { p1: "gon",     skins: [{ id: "gonAlbedo", tag: "albedo" }, { id: "gonValkyrie", tag: "valkyrie" }, { id: "gonAlienX", tag: "alienx" }] },
+  hisoka:  { p1: "hisoka",  skins: [{ id: "hisokaAlbedo", tag: "albedo" }, { id: "hisokaValkyrie", tag: "valkyrie" }, { id: "hisokaAlienX", tag: "alienx" }] },
+  chrollo: { p1: "chrollo", skins: [{ id: "chrolloValkyrie", tag: "valkyrie" }, { id: "chrolloAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -149,6 +155,7 @@ for (const char of WANT) {
                            : char === "six_paths_pain" ? `sixpaths_deva_portrait__${tag}.png`
                            : char === "green_lantern" ? `gl_portrait__${tag}.png`
                            : char === "zaraki"     ? `zaraki_transparent_copy__${tag}.png`
+                           : char === "netero"     ? `issac_netero_mugshot__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

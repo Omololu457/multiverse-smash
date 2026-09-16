@@ -284,6 +284,48 @@ def ichigo_classify(h, s, v):
     if (s < 0.2 and v >= 0.5) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"  # shihakushō + white wrap
     return "OTHER"
 
+def netero_classify(h, s, v):
+    # Isaac Netero: pale monk robe (near-greyscale, low-sat) = GARMENT; blue prayer-bead sash = ACCENT;
+    # warm skin protected; dark outline kept.
+    if v < 0.13:                                     return "DARK"
+    if 6 <= h <= 42 and 0.28 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if 195 <= h <= 250 and s >= 0.32:                 return "ACCENT"   # blue sash / beads
+    if s < 0.25 and v >= 0.3:                         return "GARMENT"  # white/grey robe
+    return "OTHER"
+
+def killua_classify(h, s, v):
+    # Killua: silver-white hair kept; pale skin protected; the rest (turquoise top + shorts) = unified GARMENT.
+    if 6 <= h <= 42 and 0.22 <= s < 0.5 and v >= 0.58:  return "SKIN"   # pale skin
+    if s < 0.16 and v >= 0.70:                        return "OTHER"    # silver-white hair (kept)
+    if v < 0.12:                                      return "DARK"
+    return "GARMENT"                                                    # top + shorts (unified)
+
+def gon_classify(h, s, v):
+    # Gon: green jacket + shorts = GARMENT; black hair/outline kept; tan skin protected; blue undershirt = ACCENT.
+    if v < 0.12:                                      return "DARK"
+    if 12 <= h <= 45 and s >= 0.42 and v >= 0.5:      return "SKIN"     # tan skin
+    if 200 <= h <= 255 and s >= 0.35:                 return "ACCENT"   # blue undershirt
+    if 60 <= h <= 165 and s >= 0.22:                  return "GARMENT"  # green hair + shorts
+    if s < 0.28 and v >= 0.45:                        return "GARMENT"  # white tank (cohesive)
+    return "OTHER"
+
+def hisoka_classify(h, s, v):
+    # Hisoka: teal/green performer tunic = GARMENT; red hair kept; warm skin protected; gold trim = ACCENT.
+    if v < 0.12:                                      return "DARK"
+    if (h <= 16 or h >= 340) and s >= 0.5 and v >= 0.4:  return "OTHER" # red/magenta hair (kept)
+    if 6 <= h <= 44 and 0.22 <= s < 0.5 and v >= 0.52:  return "SKIN"
+    if 20 <= h <= 60 and s >= 0.5 and v >= 0.5:       return "ACCENT"   # gold trim / symbols
+    if 120 <= h <= 200 and s >= 0.18:                 return "GARMENT"  # teal/green tunic
+    return "OTHER"
+
+def chrollo_classify(h, s, v):
+    # Chrollo: dark-blue trench coat = GARMENT; white fur collar = TRIM; cross/skin/hair protected.
+    if v < 0.12:                                      return "DARK"
+    if 6 <= h <= 42 and 0.28 <= s < 0.55 and v >= 0.5:  return "SKIN"
+    if 205 <= h <= 285 and s >= 0.22:                 return "GARMENT"  # dark-blue coat
+    if s < 0.2 and v >= 0.55:                         return "TRIM"     # white fur collar
+    return "OTHER"
+
 def spiderman_classify(h, s, v):
     # Spider-Man: red suit = GARMENT; blue panels/legs = ACCENT; skin protected (portrait face); dark outline kept.
     if v < 0.13:                                     return "DARK"
@@ -552,6 +594,11 @@ CHARS = {
     "mayuri":        dict(classify=bleach_classify),
     "byakuya":       dict(classify=bleach_classify),
     "yamamoto":      dict(classify=bleach_classify),
+    "netero":     dict(classify=netero_classify),
+    "killua":     dict(classify=killua_classify),
+    "gon":        dict(classify=gon_classify),
+    "hisoka":     dict(classify=hisoka_classify),
+    "chrollo":    dict(classify=chrollo_classify),
     "spiderman":  dict(classify=spiderman_classify),
     "miles":      dict(classify=miles_classify),
     "iron_man":   dict(classify=ironman_classify),

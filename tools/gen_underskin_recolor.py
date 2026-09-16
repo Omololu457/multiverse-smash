@@ -284,6 +284,19 @@ def ichigo_classify(h, s, v):
     if (s < 0.2 and v >= 0.5) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"  # shihakushō + white wrap
     return "OTHER"
 
+def ghostface_classify(h, s, v):
+    # Ghostface (+ .EXE + Billy variant): white ghost mask kept; the shroud/robe (any hue) = unified GARMENT.
+    if s < 0.18 and v >= 0.6:                         return "OTHER"    # white mask (kept)
+    if v < 0.10:                                      return "DARK"
+    return "GARMENT"                                                    # shroud (recolors as one)
+
+def jason_classify(h, s, v):
+    # Jason: white/grey hockey mask kept; dark muted work-clothes = GARMENT; skin protected.
+    if 6 <= h <= 42 and 0.28 <= s < 0.6 and v >= 0.45:  return "SKIN"
+    if s < 0.22 and v >= 0.55:                        return "OTHER"    # hockey mask (white/grey)
+    if v < 0.10:                                      return "DARK"
+    return "GARMENT"                                                    # dark clothes
+
 def netero_classify(h, s, v):
     # Isaac Netero: pale monk robe (near-greyscale, low-sat) = GARMENT; blue prayer-bead sash = ACCENT;
     # warm skin protected; dark outline kept.
@@ -594,6 +607,9 @@ CHARS = {
     "mayuri":        dict(classify=bleach_classify),
     "byakuya":       dict(classify=bleach_classify),
     "yamamoto":      dict(classify=bleach_classify),
+    "ghostface":     dict(classify=ghostface_classify),
+    "ghostface_exe": dict(classify=ghostface_classify),
+    "jason":         dict(classify=jason_classify),
     "netero":     dict(classify=netero_classify),
     "killua":     dict(classify=killua_classify),
     "gon":        dict(classify=gon_classify),

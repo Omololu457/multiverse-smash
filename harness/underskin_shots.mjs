@@ -121,6 +121,9 @@ const CONFIG = {
   gon:     { p1: "gon",     skins: [{ id: "gonAlbedo", tag: "albedo" }, { id: "gonValkyrie", tag: "valkyrie" }, { id: "gonAlienX", tag: "alienx" }] },
   hisoka:  { p1: "hisoka",  skins: [{ id: "hisokaAlbedo", tag: "albedo" }, { id: "hisokaValkyrie", tag: "valkyrie" }, { id: "hisokaAlienX", tag: "alienx" }] },
   chrollo: { p1: "chrollo", skins: [{ id: "chrolloValkyrie", tag: "valkyrie" }, { id: "chrolloAlienX", tag: "alienx" }] },
+  // ── Horror (ghostface parent + ghostface_billy EXCLUDED — see skins.js / memory) ──
+  jason:           { p1: "jason",           skins: [{ id: "jasonAlbedo", tag: "albedo" }, { id: "jasonValkyrie", tag: "valkyrie" }, { id: "jasonAlienX", tag: "alienx" }] },
+  ghostface_exe:   { p1: "ghostface_exe",   skins: [{ id: "ghostface_exeAlbedo", tag: "albedo" }, { id: "ghostface_exeValkyrie", tag: "valkyrie" }, { id: "ghostface_exeAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -156,6 +159,7 @@ for (const char of WANT) {
                            : char === "green_lantern" ? `gl_portrait__${tag}.png`
                            : char === "zaraki"     ? `zaraki_transparent_copy__${tag}.png`
                            : char === "netero"     ? `issac_netero_mugshot__${tag}.png`
+                           : char === "ghostface_exe"   ? `ghostface_exe_idle_uniform__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

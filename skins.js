@@ -1704,6 +1704,10 @@ export const SKINS = {
   // finished. Portraits are stopgap (the recolored idle sheet) — no bespoke portrait art yet. See updates.TXT.
   ghostface_exe: [
     { id: "default", name: "Billy Loomis", unlockLevel: 0, portrait: characters.ghostface_exe?.portrait, spriteScale: characters.ghostface_exe?.spriteScale, animationData: null },   // fully-built base identity (Stages 2-3)
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). Portrait = recoloured idle sheet (no bespoke portrait art).
+    { id: "ghostface_exeAlbedo", name: "Albedo", unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__albedo.png", spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "albedo"), recolorTag: "albedo" },
+    { id: "ghostface_exeValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__valkyrie.png", spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "ghostface_exeAlienX", name: "Alien X", unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__alienx.png", spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "alienx"), recolorTag: "alienx" },
     { id: "ghostfaceExeStu",    name: "Stu Macher (WIP)",    unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__stu.png",    spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "stu"),    recolorTag: "stu" },
     { id: "ghostfaceExeRoman",  name: "Roman Bridger (WIP)", unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__roman.png",  spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "roman"),  recolorTag: "roman" },
     { id: "ghostfaceExeLoomis", name: "Mrs. Loomis (WIP)",   unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__loomis.png", spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "loomis"), recolorTag: "loomis" },
@@ -1714,6 +1718,10 @@ export const SKINS = {
   // Cosmetic only. Nightmare Void = full-black body + game.js drawJasonVoidAuraOverlay (crimson motes + eyes).
   jason: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.jason?.portrait, spriteScale: characters.jason?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "jasonAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("jason", "albedo"), spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "albedo"), recolorTag: "albedo" },
+    { id: "jasonValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("jason", "valkyrie"), spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "jasonAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("jason", "alienx"), spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "alienx"), recolorTag: "alienx" },
     { id: "jason_weathered", name: "Weathered Mask",     unlockLevel: 0, portrait: "./jason_portrait__weathered.png", spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "weathered"), recolorTag: "weathered" },
     { id: "jason_bloodbath", name: "Bloodbath",          unlockLevel: 0, portrait: "./jason_portrait__bloodbath.png", spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "bloodbath"), recolorTag: "bloodbath" },
     { id: "jason_burlap",    name: "Burlap Sack",         unlockLevel: 0, portrait: "./jason_portrait__burlap.png",    spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "burlap"),    recolorTag: "burlap" },

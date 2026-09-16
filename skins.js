@@ -92,6 +92,9 @@ export const SKINS = {
   // creative batches), NOT through the abstract-hue ALT_SKINS manifest. Cosmetic only; zero gameplay.
   gojo: [
     { id: "default",       name: "Default",  unlockLevel: 0, portrait: characters.gojo?.portrait,      spriteScale: characters.gojo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "gojoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gojo", "valkyrie"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "valkyrie") },
+    { id: "gojoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gojo", "alienx"), spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "alienx") },
     { id: "gojoCerulean",  name: "Cerulean", unlockLevel: 0, portrait: "./gojo_portrait__cerulean.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "cerulean") },
     { id: "gojoAmethyst",  name: "Amethyst", unlockLevel: 0, portrait: "./gojo_portrait__amethyst.png", spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "amethyst") },
     { id: "gojoSolar",     name: "Solar",    unlockLevel: 0, portrait: "./gojo_portrait__solar.png",    spriteScale: characters.gojo?.spriteScale, animationData: recolorSkinAnim("gojo", "solar") },
@@ -128,6 +131,10 @@ export const SKINS = {
   // are appended below. (reanim sheets kept on disk — they're Tobirama's Edo-Tensei SUMMON palette, not a skin.)
   sukuna: [
     { id: "default", name: "Regular", unlockLevel: 0, portrait: characters.sukuna?.portrait, spriteScale: characters.sukuna?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "sukunaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("sukuna", "albedo"), spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "albedo") },
+    { id: "sukunaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("sukuna", "valkyrie"), spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "valkyrie") },
+    { id: "sukunaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("sukuna", "alienx"), spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "alienx") },
     // ── Creative pack GROUP 1 (gen_sukuna_creative2.py): hair+markings coordinated accent · black clothing ──
     { id: "sukunaObsidianCurse", name: "Obsidian Curse", unlockLevel: 0, portrait: characters.sukuna?.portrait, spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "obsidiancurse") },
     { id: "sukunaCrimsonKing",   name: "Crimson King",   unlockLevel: 0, portrait: characters.sukuna?.portrait, spriteScale: characters.sukuna?.spriteScale, animationData: recolorSkinAnim("sukuna", "crimsonking") },
@@ -152,6 +159,9 @@ export const SKINS = {
   // Body-region recolor only; the Domain shrine backdrop (cursed-technique FX) is untouched. gen_alt_sukuna_creative.py.
   alt_sukuna: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.alt_sukuna?.portrait, spriteScale: characters.alt_sukuna?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "alt_sukunaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("alt_sukuna", "valkyrie"), spriteScale: characters.alt_sukuna?.spriteScale, animationData: recolorSkinAnim("alt_sukuna", "valkyrie") },
+    { id: "alt_sukunaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("alt_sukuna", "alienx"), spriteScale: characters.alt_sukuna?.spriteScale, animationData: recolorSkinAnim("alt_sukuna", "alienx") },
     // ── Group 1 ──
     { id: "altSukunaCrimsonMalevolence", name: "Crimson Malevolence", unlockLevel: 0, portrait: "./alt_sukuna_portrait__crimsonmalevolence.png", spriteScale: characters.alt_sukuna?.spriteScale, animationData: recolorSkinAnim("alt_sukuna", "crimsonmalevolence") },   // red hair / intensified-red scarf+markings on black
     { id: "altSukunaAzureCurse",         name: "Azure Curse",         unlockLevel: 0, portrait: "./alt_sukuna_portrait__azurecurse.png",         spriteScale: characters.alt_sukuna?.spriteScale, animationData: recolorSkinAnim("alt_sukuna", "azurecurse") },           // blue hair / azure accent on black
@@ -176,6 +186,10 @@ export const SKINS = {
   // shirtless, so skin is the dominant identity region). Belt/hair/outline/shoes protected.
   aoi_todo: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.aoi_todo?.portrait, spriteScale: characters.aoi_todo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "aoi_todoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("aoi_todo", "albedo"), spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "albedo") },
+    { id: "aoi_todoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("aoi_todo", "valkyrie"), spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "valkyrie") },
+    { id: "aoi_todoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("aoi_todo", "alienx"), spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "alienx") },
     // ── Group 1 ──
     { id: "aoiTodoCrimsonBrawler",  name: "Crimson Brawler",  unlockLevel: 0, portrait: "./aoi_todo_portrait__crimsonbrawler.png",  spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "crimsonbrawler") },   // bronze-red skin / red pants
     { id: "aoiTodoVerdantStorm",    name: "Verdant Storm",    unlockLevel: 0, portrait: "./aoi_todo_portrait__verdantstorm.png",    spriteScale: characters.aoi_todo?.spriteScale, animationData: recolorSkinAnim("aoi_todo", "verdantstorm") },     // olive-tan skin / green pants
@@ -195,6 +209,10 @@ export const SKINS = {
   // his real 2.10 spriteScale from the character. No alt skins yet (cosmetic pass deferred to a future stage).
   yuji: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.yuji?.portrait, spriteScale: characters.yuji?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "yujiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("yuji", "albedo"), spriteScale: characters.yuji?.spriteScale, animationData: recolorSkinAnim("yuji", "albedo") },
+    { id: "yujiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("yuji", "valkyrie"), spriteScale: characters.yuji?.spriteScale, animationData: recolorSkinAnim("yuji", "valkyrie") },
+    { id: "yujiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("yuji", "alienx"), spriteScale: characters.yuji?.spriteScale, animationData: recolorSkinAnim("yuji", "alienx") },
     // 12 GENUINELY creative recolors (tools/gen_yuji_creative.py) — HAIR (pink) + OUTFIT (navy) + ACCENT (red
     // trim) all vary as one coordinated palette identity. FX PRESERVED: cyan cursed-energy/blue-crescent falls
     // outside every band; the red flame-trail FX on koma1/koma2/aircombo is preserved by an accent-SKIP on those
@@ -269,6 +287,10 @@ export const SKINS = {
   // (REAL canon transformed state: purple skin + pink mana hair — distinct from Void's near-black).
   gwen: [
     { id: "default",            name: "Default",             unlockLevel: 0, portrait: characters.gwen?.portrait,                        spriteScale: characters.gwen?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "gwenAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("gwen", "albedo"), spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "albedo"), recolorTag: "albedo" },
+    { id: "gwenValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gwen", "valkyrie"), spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "gwenAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gwen", "alienx"), spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "alienx"), recolorTag: "alienx" },
     // ── Group 1 ──
     { id: "gwenCrimsonMana",    name: "Crimson Mana",        unlockLevel: 0, portrait: "./gwen_portrait__crimsonmana.png",    spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "crimsonmana"),    recolorTag: "crimsonmana" },
     { id: "gwenVerdantSpark",   name: "Verdant Spark",       unlockLevel: 0, portrait: "./gwen_portrait__verdantspark.png",   spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "verdantspark"),   recolorTag: "verdantspark" },
@@ -291,6 +313,10 @@ export const SKINS = {
   // alternate-era design: black/red-brown armour + gloves, green cheek-sacs kept). Default entry MANDATORY.
   vilgax: [
     { id: "default",              name: "Default",           unlockLevel: 0, portrait: characters.vilgax?.portrait,                        spriteScale: characters.vilgax?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "vilgaxAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("vilgax", "albedo"), spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "albedo"), recolorTag: "albedo" },
+    { id: "vilgaxValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("vilgax", "valkyrie"), spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "vilgaxAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("vilgax", "alienx"), spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "alienx"), recolorTag: "alienx" },
     // ── Group 1 ──
     { id: "vilgaxCrimsonConqueror", name: "Crimson Conqueror", unlockLevel: 0, portrait: "./vilgax_portrait__crimsonconqueror.png", spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "crimsonconqueror"), recolorTag: "crimsonconqueror" },
     { id: "vilgaxVerdantWarlord",   name: "Verdant Warlord",   unlockLevel: 0, portrait: "./vilgax_portrait__verdantwarlord.png",   spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "verdantwarlord"),   recolorTag: "verdantwarlord" },
@@ -313,6 +339,9 @@ export const SKINS = {
   // stripes via value-split — chosen over Classic since the base already reads as the black/red classic suit).
   miles: [
     { id: "default",          name: "Default",         unlockLevel: 0, portrait: characters.miles?.portrait,                        spriteScale: characters.miles?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "milesValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("miles", "valkyrie"), spriteScale: characters.miles?.spriteScale, animationData: recolorSkinAnim("miles", "valkyrie") },
+    { id: "milesAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("miles", "alienx"), spriteScale: characters.miles?.spriteScale, animationData: recolorSkinAnim("miles", "alienx") },
     // ── Group 1 ──
     { id: "milesVerdantWeb",  name: "Verdant Web",     unlockLevel: 0, portrait: "./miles_portrait__verdantweb.png",  spriteScale: characters.miles?.spriteScale, animationData: recolorSkinAnim("miles", "verdantweb"),  recolorTag: "verdantweb" },
     { id: "milesObsidianWeb", name: "Obsidian Web",    unlockLevel: 0, portrait: "./miles_portrait__obsidianweb.png", spriteScale: characters.miles?.spriteScale, animationData: recolorSkinAnim("miles", "obsidianweb"), recolorTag: "obsidianweb" },
@@ -334,6 +363,10 @@ export const SKINS = {
   // belt" design, NOT a canon alternate — Ippo has no documented costume eras, flagged as original).
   ippo: [
     { id: "default",             name: "Default",             unlockLevel: 0, portrait: characters.ippo?.portrait,                        spriteScale: characters.ippo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "ippoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("ippo", "albedo"), spriteScale: characters.ippo?.spriteScale, animationData: recolorSkinAnim("ippo", "albedo"), recolorTag: "albedo" },
+    { id: "ippoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("ippo", "valkyrie"), spriteScale: characters.ippo?.spriteScale, animationData: recolorSkinAnim("ippo", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "ippoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("ippo", "alienx"), spriteScale: characters.ippo?.spriteScale, animationData: recolorSkinAnim("ippo", "alienx"), recolorTag: "alienx" },
     // ── Group 1 ──
     { id: "ippoCrimsonChallenger", name: "Crimson Challenger", unlockLevel: 0, portrait: "./ippo_portrait__crimsonchallenger.png", spriteScale: characters.ippo?.spriteScale, animationData: recolorSkinAnim("ippo", "crimsonchallenger"), recolorTag: "crimsonchallenger" },
     { id: "ippoVerdantContender",  name: "Verdant Contender",  unlockLevel: 0, portrait: "./ippo_portrait__verdantcontender.png",  spriteScale: characters.ippo?.spriteScale, animationData: recolorSkinAnim("ippo", "verdantcontender"),  recolorTag: "verdantcontender" },
@@ -396,14 +429,21 @@ export const SKINS = {
   // pulls the getSkins() spriteScale:1 fallback and he renders at native ~72px (half size). This
   // entry sources his real spriteScale (1.55) from the character. No alt skins yet.
   itachi: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.itachi?.portrait, spriteScale: characters.itachi?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.itachi?.portrait, spriteScale: characters.itachi?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "itachiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("itachi", "valkyrie"), spriteScale: characters.itachi?.spriteScale, animationData: recolorSkinAnim("itachi", "valkyrie") },
+    { id: "itachiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("itachi", "alienx"), spriteScale: characters.itachi?.spriteScale, animationData: recolorSkinAnim("itachi", "alienx") },
   ],
 
   // Tobirama (universe: naruto) — STAGE 1. WITHOUT a default skin, applySkin() pulls the getSkins()
   // spriteScale:1 fallback and he renders at native size. This entry sources his real spriteScale
   // (1.3) from the character. No alt skins yet.
   tobirama: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.tobirama?.portrait, spriteScale: characters.tobirama?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.tobirama?.portrait, spriteScale: characters.tobirama?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "tobiramaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("tobirama", "albedo"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "albedo") },
+    { id: "tobiramaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("tobirama", "valkyrie"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "valkyrie") },
+    { id: "tobiramaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("tobirama", "alienx"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "alienx") },
   ],
 
   // Hashirama (universe: naruto) — STAGE 1 default + 12 creative recolors + 1 Alien-X-style Void skin
@@ -464,6 +504,10 @@ export const SKINS = {
   ],
   deathstroke: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.deathstroke?.portrait, spriteScale: characters.deathstroke?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "deathstrokeAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("deathstroke", "albedo"), spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "albedo") },
+    { id: "deathstrokeValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("deathstroke", "valkyrie"), spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "valkyrie") },
+    { id: "deathstrokeAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("deathstroke", "alienx"), spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "alienx") },
     { id: "deathstrokeCrimsonContract",    name: "Crimson Contract",    unlockLevel: 0, portrait: "./deathstroke_portrait__crimsoncontract.png",    spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "crimsoncontract") },    // deep-red suit / black accent / gunmetal trim
     { id: "deathstrokeVerdantMercenary",   name: "Verdant Mercenary",   unlockLevel: 0, portrait: "./deathstroke_portrait__verdantmercenary.png",   spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "verdantmercenary") },   // deep-green suit / black accent / silver trim
     { id: "deathstrokeGoldenReaper",       name: "Golden Reaper",       unlockLevel: 0, portrait: "./deathstroke_portrait__goldenreaper.png",       spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "goldenreaper") },       // black suit / heavy-gold accent (gold/black mask) / bright-gold trim
@@ -487,9 +531,15 @@ export const SKINS = {
   // exist: applySkin() sources the real spriteScale from here (else The Handler renders at native px).
   handler: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.handler?.portrait, spriteScale: characters.handler?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "handlerAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("handler", "albedo"), spriteScale: characters.handler?.spriteScale, animationData: recolorSkinAnim("handler", "albedo") },
+    { id: "handlerValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("handler", "valkyrie"), spriteScale: characters.handler?.spriteScale, animationData: recolorSkinAnim("handler", "valkyrie") },
+    { id: "handlerAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("handler", "alienx"), spriteScale: characters.handler?.spriteScale, animationData: recolorSkinAnim("handler", "alienx") },
   ],
   yuta: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.yuta?.portrait, spriteScale: characters.yuta?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "yutaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("yuta", "alienx"), spriteScale: characters.yuta?.spriteScale, animationData: recolorSkinAnim("yuta", "alienx") },
     { id: "yutaBen10",     name: "Ben 10",     unlockLevel: 0, portrait: "./yuta_portrait__ben10.png",     spriteScale: characters.yuta?.spriteScale, animationData: recolorSkinAnim("yuta", "ben10") },     // Omnitrix-green uniform / green katana accent (stripe+'10' decal dropped → green promoted to whole uniform)
     { id: "yutaAlbedo",    name: "Albedo",     unlockLevel: 0, portrait: "./yuta_portrait__albedo.png",    spriteScale: characters.yuta?.spriteScale, animationData: recolorSkinAnim("yuta", "albedo") },    // black uniform / red katana accent — Ben's palette inverted (negative counterpart)
     { id: "yutaValkyrie",  name: "Valkyrie",   unlockLevel: 0, portrait: "./yuta_portrait__valkyrie.png",  spriteScale: characters.yuta?.spriteScale, animationData: recolorSkinAnim("yuta", "valkyrie") },  // light-blue armour uniform / gold katana accent+trim (Beyblade Burst)
@@ -504,6 +554,10 @@ export const SKINS = {
   // bodysuit / grey metal casing / red diodes); FX colours (beam/pillar/shield) untouched. gen_brainiac_creative.py.
   brainiac: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.brainiac?.portrait, spriteScale: characters.brainiac?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "brainiacAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("brainiac", "albedo"), spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "albedo") },
+    { id: "brainiacValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("brainiac", "valkyrie"), spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "valkyrie") },
+    { id: "brainiacAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("brainiac", "alienx"), spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "alienx") },
     // ── Group 1 ──
     { id: "brainiacCrimsonCircuit",    name: "Crimson Circuit",    unlockLevel: 0, portrait: "./brainiac_portrait__crimsoncircuit.png",    spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "crimsoncircuit") },    // deep red skin / black-red suit / gold diodes / black casing
     { id: "brainiacAzureIntelligence", name: "Azure Intelligence", unlockLevel: 0, portrait: "./brainiac_portrait__azureintelligence.png", spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "azureintelligence") }, // teal skin / navy suit / white diodes / cool-grey casing
@@ -526,6 +580,10 @@ export const SKINS = {
   // skinId variant; the Energy Beam is tinted in code). Corps colours grounded in the DC emotional spectrum.
   green_lantern: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.green_lantern?.portrait, spriteScale: characters.green_lantern?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "green_lanternAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("green_lantern", "albedo"), spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "albedo") },
+    { id: "green_lanternValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("green_lantern", "valkyrie"), spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "valkyrie") },
+    { id: "green_lanternAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("green_lantern", "alienx"), spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "alienx") },
     // ── Group 1 ──
     { id: "glSinestroCorps",     name: "Sinestro Corps",      unlockLevel: 0, portrait: "./gl_portrait__sinestrocorps.png",     spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "sinestrocorps") },     // fear — yellow suit / black secondary / black gloves
     { id: "glRedLanternCorps",   name: "Red Lantern Corps",   unlockLevel: 0, portrait: "./gl_portrait__redlanterncorps.png",   spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "redlanterncorps") },   // rage — deep red suit / black secondary / white gloves
@@ -548,6 +606,10 @@ export const SKINS = {
   ],
   onoki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.onoki?.portrait, spriteScale: characters.onoki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "onokiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("onoki", "albedo"), spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "albedo") },
+    { id: "onokiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("onoki", "valkyrie"), spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "valkyrie") },
+    { id: "onokiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("onoki", "alienx"), spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "alienx") },
     { id: "onokiStoneSovereign", name: "Stone Sovereign", unlockLevel: 0, portrait: "./onoki_portrait__stonesovereign.png", spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "stonesovereign") },  // Iwagakure stone-grey mantle over slate
     { id: "onokiIronFortress",   name: "Iron Fortress",   unlockLevel: 0, portrait: "./onoki_portrait__ironfortress.png",   spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "ironfortress") },     // the immovable iron wall
     { id: "onokiJadeMountain",   name: "Jade Mountain",   unlockLevel: 0, portrait: "./onoki_portrait__jademountain.png",   spriteScale: characters.onoki?.spriteScale, animationData: recolorSkinAnim("onoki", "jademountain") },     // deep jade — mountain forest
@@ -576,6 +638,10 @@ export const SKINS = {
   // DEFAULT is the navy hakama the frames already ship in → Default(Navy) + 7 recolours + Eternal Void.
   yamamoto: [
     { id: "default",             name: "Navy Hakama",  unlockLevel: 0, portrait: characters.yamamoto?.portrait,                 spriteScale: characters.yamamoto?.spriteScale, animationData: null },   // base art = the navy/blue hakama
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "yamamotoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("yamamoto", "albedo"), spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "albedo") },
+    { id: "yamamotoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("yamamoto", "valkyrie"), spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "valkyrie") },
+    { id: "yamamotoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("yamamoto", "alienx"), spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "alienx") },
     { id: "yamamotoWineHakama",  name: "Wine Hakama",  unlockLevel: 0, portrait: "./yamamoto_portrait__wineHakama.png",  spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "wineHakama") },   // deep maroon/wine (crop hue 354)
     { id: "yamamotoIceBlue",     name: "Ice-Blue",     unlockLevel: 0, portrait: "./yamamoto_portrait__iceBlue.png",     spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "iceBlue") },      // pale ice-blue (crop blue, value-lifted per identity)
     { id: "yamamotoForestGreen", name: "Forest Green", unlockLevel: 0, portrait: "./yamamoto_portrait__forestGreen.png", spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "forestGreen") },  // olive/forest green (crop hue 167)
@@ -588,6 +654,10 @@ export const SKINS = {
 
   mayuri: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.mayuri?.portrait, spriteScale: characters.mayuri?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "mayuriAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("mayuri", "albedo"), spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "albedo") },
+    { id: "mayuriValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("mayuri", "valkyrie"), spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "valkyrie") },
+    { id: "mayuriAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("mayuri", "alienx"), spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "alienx") },
     { id: "mayuriResearchDivision", name: "Research Division", unlockLevel: 0, portrait: "./mayuri_portrait__researchdivision.png", spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "researchdivision") },  // SRDI teal-cyan haori (12th Division)
     { id: "mayuriReigai",           name: "Reigai",           unlockLevel: 0, portrait: "./mayuri_portrait__reigai.png",           spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "reigai") },           // pale artificial-soul mint
     { id: "mayuriClinicalAsh",      name: "Clinical Ash",     unlockLevel: 0, portrait: "./mayuri_portrait__clinicalash.png",      spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "clinicalash") },      // desaturated clinical grey lab coat + slate
@@ -608,6 +678,10 @@ export const SKINS = {
   // The FX/beast sheets (drills, wolves) recolor to __tag but pass through ~unchanged (protected classes).
   kiba: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.kiba?.portrait, spriteScale: characters.kiba?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "kibaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("kiba", "albedo"), spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "albedo") },
+    { id: "kibaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("kiba", "valkyrie"), spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "valkyrie") },
+    { id: "kibaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("kiba", "alienx"), spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "alienx") },
     { id: "kibaAshenWolf",       name: "Ashen Wolf",       unlockLevel: 0, portrait: "./kiba_portrait__ashenwolf.png",       spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "ashenwolf") },        // silver-grey — Akamaru's coat
     { id: "kibaInuzukaCrimson",  name: "Inuzuka Crimson",  unlockLevel: 0, portrait: "./kiba_portrait__inuzukacrimson.png",  spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "inuzukacrimson") },   // clan crimson — fang & blood
     { id: "kibaWildFang",        name: "Wild Fang",        unlockLevel: 0, portrait: "./kiba_portrait__wildfang.png",        spriteScale: characters.kiba?.spriteScale, animationData: recolorSkinAnim("kiba", "wildfang") },         // earthy brown — feral tracker
@@ -631,6 +705,8 @@ export const SKINS = {
   // REQUIRED: without it applySkin() falls back to spriteScale:1 and the sprite renders native-shrunk.
   boruto: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.boruto?.portrait, spriteScale: characters.boruto?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag).
+    { id: "borutoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("boruto", "albedo"), spriteScale: characters.boruto?.spriteScale, animationData: recolorSkinAnim("boruto", "albedo"), recolorTag: "albedo" },
     // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py). Boruto's jacket is already near-black, so
     // Albedo was skipped (would read identical to Default); Valkyrie recolours the tracksuit light-blue.
     { id: "borutoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("boruto", "valkyrie"), spriteScale: characters.boruto?.spriteScale, animationData: recolorSkinAnim("boruto", "valkyrie") },  // light-blue tracksuit / gold accent
@@ -642,6 +718,9 @@ export const SKINS = {
   // PROTECTED (Stage-0 Q2, spatial y-split). FX sheets excluded (not in animationData) → attack-colour read intact.
   light: [
     { id: "default",               name: "Default",           unlockLevel: 0, portrait: characters.light?.portrait,                 spriteScale: characters.light?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (Albedo dropped — base already dark)
+    { id: "lightValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("light", "valkyrie"), spriteScale: characters.light?.spriteScale, animationData: recolorSkinAnim("light", "valkyrie") },
+    { id: "lightAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("light", "alienx"), spriteScale: characters.light?.spriteScale, animationData: recolorSkinAnim("light", "alienx") },
     { id: "lightMidnightVerdict",  name: "Midnight Verdict",  unlockLevel: 0, portrait: "./light_portrait__midnightverdict.png",   spriteScale: characters.light?.spriteScale, animationData: recolorSkinAnim("light", "midnightverdict") },   // cool near-black suit + ice rim, near-black-brown hair
     { id: "lightCrimsonJudgment",  name: "Crimson Judgment",  unlockLevel: 0, portrait: "./light_portrait__crimsonjudgment.png",   spriteScale: characters.light?.spriteScale, animationData: recolorSkinAnim("light", "crimsonjudgment") },   // deep red-black suit, dark auburn-red hair
     { id: "lightGlacialGenius",    name: "Glacial Genius",    unlockLevel: 0, portrait: "./light_portrait__glacialgenius.png",     spriteScale: characters.light?.spriteScale, animationData: recolorSkinAnim("light", "glacialgenius") },     // blue-grey suit + ice-blue rim, frost-blonde hair
@@ -661,6 +740,10 @@ export const SKINS = {
   // applySkin() → spriteScale:1 native shrink). Cosmetic only — ZERO gameplay.
   l_ryuuzaki: [
     { id: "default",               name: "Default",            unlockLevel: 0, portrait: characters.l_ryuuzaki?.portrait,                       spriteScale: characters.l_ryuuzaki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "l_ryuuzakiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("l_ryuuzaki", "albedo"), spriteScale: characters.l_ryuuzaki?.spriteScale, animationData: recolorSkinAnim("l_ryuuzaki", "albedo") },
+    { id: "l_ryuuzakiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("l_ryuuzaki", "valkyrie"), spriteScale: characters.l_ryuuzaki?.spriteScale, animationData: recolorSkinAnim("l_ryuuzaki", "valkyrie") },
+    { id: "l_ryuuzakiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("l_ryuuzaki", "alienx"), spriteScale: characters.l_ryuuzaki?.spriteScale, animationData: recolorSkinAnim("l_ryuuzaki", "alienx") },
     { id: "lRyuuzakiMidnight",     name: "Midnight Detective", unlockLevel: 0, portrait: "./l_ryuuzaki_portrait__midnight.png",                spriteScale: characters.l_ryuuzaki?.spriteScale, animationData: recolorSkinAnim("l_ryuuzaki", "midnight") },     // charcoal shirt over near-black jeans
     { id: "lRyuuzakiWammys",       name: "Wammy's Grey",       unlockLevel: 0, portrait: "./l_ryuuzaki_portrait__wammys.png",                  spriteScale: characters.l_ryuuzaki?.spriteScale, animationData: recolorSkinAnim("l_ryuuzaki", "wammys") },       // slate shirt over steel jeans
     { id: "lRyuuzakiSugar",        name: "Sugar Rush",         unlockLevel: 0, portrait: "./l_ryuuzaki_portrait__sugar.png",                   spriteScale: characters.l_ryuuzaki?.spriteScale, animationData: recolorSkinAnim("l_ryuuzaki", "sugar") },        // candy-pink shirt over cream-pink jeans
@@ -676,6 +759,10 @@ export const SKINS = {
   ],
   byakuya: [
     { id: "default",               name: "Default",          unlockLevel: 0, portrait: characters.byakuya?.portrait,        spriteScale: characters.byakuya?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "byakuyaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("byakuya", "albedo"), spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "albedo") },
+    { id: "byakuyaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("byakuya", "valkyrie"), spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "valkyrie") },
+    { id: "byakuyaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("byakuya", "alienx"), spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "alienx") },
     { id: "byakuyaSakuraBloom",    name: "Sakura Bloom",     unlockLevel: 0, portrait: "./byakuya_portrait__sakura.png",    spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "sakura") },     // Senbonzakura petal-pink coat over deep plum
     { id: "byakuyaKuchikiCrest",   name: "Kuchiki Crest",    unlockLevel: 0, portrait: "./byakuya_portrait__kuchiki.png",   spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "kuchiki") },    // noble royal-blue coat over black
     { id: "byakuyaWinterFrost",    name: "Winter Frost",     unlockLevel: 0, portrait: "./byakuya_portrait__frost.png",     spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "frost") },      // icy pale-blue-white coat over slate
@@ -692,6 +779,10 @@ export const SKINS = {
   ],
   hashirama: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.hashirama?.portrait, spriteScale: characters.hashirama?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "hashiramaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("hashirama", "albedo"), spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "albedo") },
+    { id: "hashiramaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("hashirama", "valkyrie"), spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "valkyrie") },
+    { id: "hashiramaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("hashirama", "alienx"), spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "alienx") },
     { id: "hashiramaForestSovereign", name: "Forest Sovereign", unlockLevel: 0, portrait: "./hashirama_portrait__forestsovereign.png", spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "forestsovereign") },  // Wood Release — deep living forest green
     { id: "hashiramaAutumnCanopy",    name: "Autumn Canopy",    unlockLevel: 0, portrait: "./hashirama_portrait__autumncanopy.png",    spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "autumncanopy") },     // autumn-leaf burnt orange over bark-brown
     { id: "hashiramaMossBark",        name: "Moss Bark",        unlockLevel: 0, portrait: "./hashirama_portrait__mossbark.png",        spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "mossbark") },         // muted moss/olive — overgrown forest god
@@ -729,6 +820,10 @@ export const SKINS = {
   // spriteScale (1.7) from the character. No alt skins yet.
   minato: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.minato?.portrait, spriteScale: characters.minato?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "minatoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("minato", "albedo"), spriteScale: characters.minato?.spriteScale, animationData: recolorSkinAnim("minato", "albedo") },
+    { id: "minatoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("minato", "valkyrie"), spriteScale: characters.minato?.spriteScale, animationData: recolorSkinAnim("minato", "valkyrie") },
+    { id: "minatoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("minato", "alienx"), spriteScale: characters.minato?.spriteScale, animationData: recolorSkinAnim("minato", "alienx") },
     // 12 GENUINELY creative recolors (tools/gen_minato_creative.py) — HAIR + OUTFIT + ACCENT all vary as one
     // coordinated palette identity (the Maki/Hisoka creative bar). Face/hands protected, line-art preserved.
     // Cosmetic only — NO recolorTag, NO stat/gameplay change. Minato's first dedicated skin batch.
@@ -759,6 +854,10 @@ export const SKINS = {
   // and the near-black outline are protected (line-art guard). Cosmetic-only — ZERO gameplay changes.
   madara: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.madara?.portrait, spriteScale: characters.madara?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "madaraAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("madara", "albedo"), spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "albedo") },
+    { id: "madaraValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("madara", "valkyrie"), spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "valkyrie") },
+    { id: "madaraAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("madara", "alienx"), spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "alienx") },
     { id: "madaraShatteredCrown", name: "Shattered Crown", unlockLevel: 0, portrait: "./madara_portrait__shatteredcrown.png", spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "shatteredcrown") },
     { id: "madaraVoidAwakening",  name: "Void Awakening",  unlockLevel: 0, portrait: "./madara_portrait__voidawakening.png",  spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "voidawakening") },
     { id: "madaraScarletEclipse", name: "Scarlet Eclipse", unlockLevel: 0, portrait: "./madara_portrait__scarleteclipse.png", spriteScale: characters.madara?.spriteScale, animationData: recolorSkinAnim("madara", "scarleteclipse") },
@@ -775,6 +874,8 @@ export const SKINS = {
   // drifting-red-particle + gravity-ripple overlay (game.js drawPainVoidOverlay, gated on this id).
   pain: [
     { id: "default",          name: "Default",          unlockLevel: 0, portrait: characters.pain?.portrait,               spriteScale: characters.pain?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "painAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("pain", "alienx"), spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "alienx") },
     // ── Group 1 — Ben 10 homages + 2 Beyblade-color skins ──
     { id: "painOmnitrix",      name: "Omnitrix Protocol", unlockLevel: 0, portrait: "./pain_portrait__omnitrix.png",      spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "omnitrix") },
     { id: "painAlbedo",        name: "Albedo Protocol",   unlockLevel: 0, portrait: "./pain_portrait__albedo.png",        spriteScale: characters.pain?.spriteScale, animationData: recolorSkinAnim("pain", "albedo") },
@@ -801,6 +902,9 @@ export const SKINS = {
   // procedural Sharingan/Kamui overlay (game.js drawObitoVoidOverlay, gated on this id).
   obito: [
     { id: "default",        name: "Default",          unlockLevel: 0, portrait: characters.obito?.portrait,          spriteScale: characters.obito?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "obitoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("obito", "valkyrie"), spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "valkyrie") },
+    { id: "obitoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("obito", "alienx"), spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "alienx") },
     { id: "obitoOmnitrix",  name: "Omnitrix Protocol", unlockLevel: 0, portrait: "./obito_portrait__omnitrix.png",   spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "omnitrix") },
     { id: "obitoAlbedo",    name: "Albedo Protocol",   unlockLevel: 0, portrait: "./obito_portrait__albedo.png",     spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "albedo") },
     { id: "obitoCrimsonEye",name: "Crimson Eye",       unlockLevel: 0, portrait: "./obito_portrait__crimsoneye.png", spriteScale: characters.obito?.spriteScale, animationData: recolorSkinAnim("obito", "crimsoneye") },
@@ -826,6 +930,9 @@ export const SKINS = {
   // fallback on select). Creative skins are a later pass.
   tobi: [
     { id: "default",          name: "Default",          unlockLevel: 0, portrait: characters.tobi?.portrait,             spriteScale: characters.tobi?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "tobiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("tobi", "valkyrie"), spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "valkyrie") },
+    { id: "tobiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("tobi", "alienx"), spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "alienx") },
     // Group 1 (Beyblade-inspired) — cosmetic recolors via tools/gen_tobi_creative.py (mask/hair/cloak/accent).
     { id: "tobiMirageDragon", name: "Mirage Dragon",    unlockLevel: 0, portrait: "./tobi_portrait__miragedragon.png",  spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "miragedragon") },
     { id: "tobiWinningValor", name: "Winning Valor",    unlockLevel: 0, portrait: "./tobi_portrait__winningvalor.png",  spriteScale: characters.tobi?.spriteScale, animationData: recolorSkinAnim("tobi", "winningvalor") },
@@ -857,14 +964,22 @@ export const SKINS = {
   // size). Sources his real spriteScale (1.85) from the character. No portrait yet (procedural-box
   // fallback on select). No alt skins yet.
   netero: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.netero?.portrait, spriteScale: characters.netero?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.netero?.portrait, spriteScale: characters.netero?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "neteroAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("netero", "albedo"), spriteScale: characters.netero?.spriteScale, animationData: recolorSkinAnim("netero", "albedo") },
+    { id: "neteroValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("netero", "valkyrie"), spriteScale: characters.netero?.spriteScale, animationData: recolorSkinAnim("netero", "valkyrie") },
+    { id: "neteroAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("netero", "alienx"), spriteScale: characters.netero?.spriteScale, animationData: recolorSkinAnim("netero", "alienx") },
   ],
 
   // Saiki Kusuo (The Disastrous Life of Saiki K.). Same gate: WITHOUT a default skin, applySkin()
   // pulls the getSkins() spriteScale:1 fallback and he renders at native ~52px (half size). Sources
   // his real spriteScale (2.2) from the character. No portrait yet (procedural-box fallback on select).
   saiki: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.saiki?.portrait, spriteScale: characters.saiki?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.saiki?.portrait, spriteScale: characters.saiki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "saikiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("saiki", "albedo"), spriteScale: characters.saiki?.spriteScale, animationData: recolorSkinAnim("saiki", "albedo") },
+    { id: "saikiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("saiki", "valkyrie"), spriteScale: characters.saiki?.spriteScale, animationData: recolorSkinAnim("saiki", "valkyrie") },
+    { id: "saikiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("saiki", "alienx"), spriteScale: characters.saiki?.spriteScale, animationData: recolorSkinAnim("saiki", "alienx") },
     // saikiAzure removed in the Part 0 reset (2026-07-24) — a Saiki recolor will be regenerated in Part 2.
   ],
 
@@ -872,7 +987,11 @@ export const SKINS = {
   // getSkins() spriteScale:1 fallback and he renders at native ~53px (half size). Sources his real
   // spriteScale (2.1) from the character. Portrait crops the intro pose (no dedicated mugshot yet).
   killua: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.killua?.portrait, spriteScale: characters.killua?.spriteScale, animationData: null }
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.killua?.portrait, spriteScale: characters.killua?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "killuaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("killua", "albedo"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "albedo") },
+    { id: "killuaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("killua", "valkyrie"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "valkyrie") },
+    { id: "killuaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("killua", "alienx"), spriteScale: characters.killua?.spriteScale, animationData: recolorSkinAnim("killua", "alienx") },
   ],
 
   // Gon Freecss (Hunter x Hunter) — STAGE 1. Same gate: WITHOUT a default skin, applySkin() pulls the
@@ -880,6 +999,10 @@ export const SKINS = {
   // spriteScale (2.5) + portrait from the character.
   gon: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "gonAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("gon", "albedo"), spriteScale: characters.gon?.spriteScale, animationData: recolorSkinAnim("gon", "albedo") },
+    { id: "gonValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gon", "valkyrie"), spriteScale: characters.gon?.spriteScale, animationData: recolorSkinAnim("gon", "valkyrie") },
+    { id: "gonAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gon", "alienx"), spriteScale: characters.gon?.spriteScale, animationData: recolorSkinAnim("gon", "alienx") },
     // Stage 23 auto-palettes — default art + a render-time colour wash (no baked art), the same
     // mechanism as the "Pink Fit" tint skin. Gives every roster fighter ≥3 palettes.
     { id: "gon_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.gon?.portrait, spriteScale: characters.gon?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },
@@ -891,6 +1014,9 @@ export const SKINS = {
   // his real spriteScale (1.9) + portrait from the character. No alt skins yet.
   chrollo: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.chrollo?.portrait, spriteScale: characters.chrollo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "chrolloValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("chrollo", "valkyrie"), spriteScale: characters.chrollo?.spriteScale, animationData: recolorSkinAnim("chrollo", "valkyrie") },
+    { id: "chrolloAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("chrollo", "alienx"), spriteScale: characters.chrollo?.spriteScale, animationData: recolorSkinAnim("chrollo", "alienx") },
     // "Phantom Troupe" — canonical reference palette (tools/gen_chrollo_reference.py). Per-region,
     // tone-preserving: coat navy->deep-purple #4A2E5C (yband<0.62), trousers->charcoal #1A1A1E
     // (yband>=0.62), collar/cuff/leg-wrap fur->silver #E8E4DC, coat-front buttons->gold #D4A537;
@@ -913,6 +1039,10 @@ export const SKINS = {
   // (1.25) + portrait from the character.
   flash: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.flash?.portrait, spriteScale: characters.flash?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "flashAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("flash", "albedo"), spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "albedo") },
+    { id: "flashValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("flash", "valkyrie"), spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "valkyrie") },
+    { id: "flashAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("flash", "alienx"), spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "alienx") },
     { id: "flashBlue", name: "Blue Streak (Alt)", unlockLevel: 0, portrait: "./flash_portrait__blue.png", spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "blue") }
   ],
 
@@ -929,6 +1059,9 @@ export const SKINS = {
   // silhouette match needs new art — flagged. Distinct from the "Blue Knight" homage on the other Batman).
   dark_knight: [
     { id: "default",              name: "Default",           unlockLevel: 0, portrait: characters.dark_knight?.portrait,                        spriteScale: characters.dark_knight?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "dark_knightValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("dark_knight", "valkyrie"), spriteScale: characters.dark_knight?.spriteScale, animationData: recolorSkinAnim("dark_knight", "valkyrie") },
+    { id: "dark_knightAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("dark_knight", "alienx"), spriteScale: characters.dark_knight?.spriteScale, animationData: recolorSkinAnim("dark_knight", "alienx") },
     // ── Group 1 ──
     { id: "darkKnightCrimsonKnight",   name: "Crimson Knight",   unlockLevel: 0, portrait: "./dark_knight_portrait__crimsonknight.png",   spriteScale: characters.dark_knight?.spriteScale, animationData: recolorSkinAnim("dark_knight", "crimsonknight"),   recolorTag: "crimsonknight" },
     { id: "darkKnightVerdantGuardian", name: "Verdant Guardian", unlockLevel: 0, portrait: "./dark_knight_portrait__verdantguardian.png", spriteScale: characters.dark_knight?.spriteScale, animationData: recolorSkinAnim("dark_knight", "verdantguardian"), recolorTag: "verdantguardian" },
@@ -945,6 +1078,9 @@ export const SKINS = {
   ],
   batman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.batman?.portrait, spriteScale: characters.batman?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "batmanValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("batman", "valkyrie"), spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "valkyrie") },
+    { id: "batmanAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("batman", "alienx"), spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "alienx") },
     // "Nightwatch" — dark tactical recolor (tools/gen_batman_nightwatch.py): the (already near-black)
     // suit gets a faint cool-charcoal tint (#0D0E10–#1A1B1F) and the yellow belt + bat-emblem + cowl
     // eye-slit recolor to cyan glow #3DDBEE. Cosmetic only; all three regions were colour-separable.
@@ -972,6 +1108,10 @@ export const SKINS = {
   // getSkins() spriteScale:1 fallback → native ~half size. Sources spriteScale (2.0) from char.
   hisoka: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.hisoka?.portrait, spriteScale: characters.hisoka?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Overdrive).
+    { id: "hisokaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("hisoka", "albedo"), spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "albedo"), recolorTag: "albedo" },
+    { id: "hisokaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("hisoka", "valkyrie"), spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "hisokaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("hisoka", "alienx"), spriteScale: characters.hisoka?.spriteScale, animationData: recolorSkinAnim("hisoka", "alienx"), recolorTag: "alienx" },
     // "Greed Island Outfit" — reference-sampled recolor + per-frame edits (tools/gen_hisoka_greedisland.py):
     // orange hair→red, teal jumpsuit(torso+legs)→pale lavender-white, pink sash→dusty rose, gray shoes→rose
     // pink; the base chest heart+diamond emblem is ERASED (diffusion-filled) and a stopgap pink undershirt
@@ -1004,6 +1144,10 @@ export const SKINS = {
   // The SAME template is applied independently to superman_dcuc / superman_new52 / superman_classic below.
   superman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman?.portrait, spriteScale: characters.superman?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "supermanAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman", "albedo"), spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "albedo") },
+    { id: "supermanValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman", "valkyrie"), spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "valkyrie") },
+    { id: "supermanAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman", "alienx"), spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "alienx") },
     // ── Group 1 ──
     { id: "supermanCrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_portrait__crimsonreversal.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "crimsonreversal") },
     { id: "supermanVerdantGuardian", name: "Verdant Guardian", unlockLevel: 0, portrait: "./superman_portrait__verdantguardian.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "verdantguardian") },
@@ -1025,6 +1169,10 @@ export const SKINS = {
   // with the roster-wide Superman skin pass (see superman-roster-4variants memory).
   superman_dcuc: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman_dcuc?.portrait, spriteScale: characters.superman_dcuc?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "superman_dcucAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman_dcuc", "albedo"), spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "albedo") },
+    { id: "superman_dcucValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman_dcuc", "valkyrie"), spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "valkyrie") },
+    { id: "superman_dcucAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman_dcuc", "alienx"), spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "alienx") },
     // ── Group 1 ── (tools/gen_superman_skins.py superman_dcuc — same 10-skin template)
     { id: "supermanDcucCrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_dcuc_portrait__crimsonreversal.png", spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "crimsonreversal") },
     { id: "supermanDcucVerdantGuardian", name: "Verdant Guardian", unlockLevel: 0, portrait: "./superman_dcuc_portrait__verdantguardian.png", spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "verdantguardian") },
@@ -1046,6 +1194,10 @@ export const SKINS = {
   // (★New 52 = NO trunks region → skip it in the skin template for this variant).
   superman_new52: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman_new52?.portrait, spriteScale: characters.superman_new52?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "superman_new52Albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman_new52", "albedo"), spriteScale: characters.superman_new52?.spriteScale, animationData: recolorSkinAnim("superman_new52", "albedo") },
+    { id: "superman_new52Valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman_new52", "valkyrie"), spriteScale: characters.superman_new52?.spriteScale, animationData: recolorSkinAnim("superman_new52", "valkyrie") },
+    { id: "superman_new52AlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman_new52", "alienx"), spriteScale: characters.superman_new52?.spriteScale, animationData: recolorSkinAnim("superman_new52", "alienx") },
     // ── Group 1 ── (tools/gen_superman_skins.py superman_new52 — same template; ★New 52 has NO trunks → the
     // "cape/trunks/boots" group is just cape+boots here, nothing to skip; the belt/S are a small accent.)
     { id: "supermanNew52CrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_new52_portrait__crimsonreversal.png", spriteScale: characters.superman_new52?.spriteScale, animationData: recolorSkinAnim("superman_new52", "crimsonreversal") },
@@ -1068,6 +1220,10 @@ export const SKINS = {
   // pass (★Classic HAS the red-trunks region → KEEP it in the skin template, unlike New 52).
   superman_classic: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman_classic?.portrait, spriteScale: characters.superman_classic?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "superman_classicAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman_classic", "albedo"), spriteScale: characters.superman_classic?.spriteScale, animationData: recolorSkinAnim("superman_classic", "albedo") },
+    { id: "superman_classicValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman_classic", "valkyrie"), spriteScale: characters.superman_classic?.spriteScale, animationData: recolorSkinAnim("superman_classic", "valkyrie") },
+    { id: "superman_classicAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman_classic", "alienx"), spriteScale: characters.superman_classic?.spriteScale, animationData: recolorSkinAnim("superman_classic", "alienx") },
     // ── Group 1 ── (tools/gen_superman_skins.py superman_classic — same template; ★Classic HAS trunks → the
     // "cape/trunks/boots" group recolors all three together, as the prompt intends.)
     { id: "supermanClassicCrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_classic_portrait__crimsonreversal.png", spriteScale: characters.superman_classic?.spriteScale, animationData: recolorSkinAnim("superman_classic", "crimsonreversal") },
@@ -1089,6 +1245,10 @@ export const SKINS = {
   // default skin, applySkin() pulls the getSkins() spriteScale:1 fallback.
   superman_fighter: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman_fighter?.portrait, spriteScale: characters.superman_fighter?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "superman_fighterAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman_fighter", "albedo"), spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "albedo") },
+    { id: "superman_fighterValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman_fighter", "valkyrie"), spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "valkyrie") },
+    { id: "superman_fighterAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman_fighter", "alienx"), spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "alienx") },
     // ── Group 1 ──
     { id: "supermanFighterCrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_fighter_portrait__crimsonreversal.png", spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "crimsonreversal") },
     { id: "supermanFighterVerdantGuardian", name: "Verdant Guardian", unlockLevel: 0, portrait: "./superman_fighter_portrait__verdantguardian.png", spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "verdantguardian") },
@@ -1109,6 +1269,9 @@ export const SKINS = {
   // ~67px (half size). Sources his real spriteScale (1.7) from the character. No alt skins yet.
   rick: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rick?.portrait, spriteScale: characters.rick?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (Albedo dropped — base already dark)
+    { id: "rickValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("rick", "valkyrie"), spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "valkyrie") },
+    { id: "rickAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("rick", "alienx"), spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "alienx") },
     // 8 creative colour skins (tools/gen_rick_creative.py) — per-region recolor: hair(blue hue)/coat
     // (neutral+torso band)/shirt(teal hue)/pants(brown hue); face/skin excluded, multi-tone shading kept.
     // Portrait = cropped recoloured stand frame (the pfp headshot's light bg is inseparable from the
@@ -1215,6 +1378,9 @@ export const SKINS = {
 
   toji: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.toji?.portrait, spriteScale: characters.toji?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "tojiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("toji", "albedo"), spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "albedo") },
+    { id: "tojiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("toji", "alienx"), spriteScale: characters.toji?.spriteScale, animationData: recolorSkinAnim("toji", "alienx") },
     // 12 creative recolor skins (tools/gen_toji_creative.py) — HAIR + TANK TOP + PANTS coordinated per-region,
     // near-black hair/tank spatially split, line-art outlines preserved, face/skin excluded. Cosmetic only.
     // ── Group 1 ──
@@ -1241,6 +1407,10 @@ export const SKINS = {
   ],
   maki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.maki?.portrait, spriteScale: characters.maki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag).
+    { id: "makiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("maki", "albedo"), spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "albedo"), recolorTag: "albedo" },
+    { id: "makiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("maki", "valkyrie"), spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "makiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("maki", "alienx"), spriteScale: characters.maki?.spriteScale, animationData: recolorSkinAnim("maki", "alienx"), recolorTag: "alienx" },
     // VOID HUNTER — Alien-X-style FULL-FORM near-black (#0F0F12: uniform/hair/skin/face all void-flattened,
     // tools/gen_maki_creative.py voidhunter) + a procedural game.js drawVoidHunterOverlay gated on this
     // skinId (drifting pale star dots + 2-3 red/violet nebula swirl clusters). NO recolorTag → the ≤25%-HP
@@ -1288,6 +1458,10 @@ export const SKINS = {
   // alt skins yet. (The 5 core S.P.D. rangers + Shadow Ranger stubs never had skins/sprites.)
   omega_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omega_ranger?.portrait, spriteScale: characters.omega_ranger?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "omegaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("omega_ranger", "albedo"), spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "albedo") },
+    { id: "omegaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("omega_ranger", "valkyrie"), spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "valkyrie") },
+    { id: "omegaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("omega_ranger", "alienx"), spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "alienx") },
     // 12 creative recolors (tools/gen_omega_creative.py). Per-region, capture-masks-from-original
     // (contamination-proof even when armor+visor share a hue family): ARMOR = white/gray plates
     // (boots share the plating, not separable → follow armor) / VISOR = blue helmet lens / EMBLEM =
@@ -1314,6 +1488,10 @@ export const SKINS = {
   // (which would render him half-size). Alt skins come later.
   samurai_red_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.samurai_red_ranger?.portrait, spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Mega Mode).
+    { id: "samAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("samurai_red_ranger", "albedo"), spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "albedo"), recolorTag: "albedo" },
+    { id: "samValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("samurai_red_ranger", "valkyrie"), spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "samAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("samurai_red_ranger", "alienx"), spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "alienx"), recolorTag: "alienx" },
     // 12 creative recolors (tools/gen_samurai_creative.py). Per-region SUIT (red top/helmet/boots — helmet
     // not separable, recolors with the suit) + TRIM (gold belt-sash + sword hilt); dark hakama pants +
     // white sleeves + black visor left untouched (face/visor excluded). recolorTag is REQUIRED here: it
@@ -1327,6 +1505,10 @@ export const SKINS = {
   ],
   green_samurai_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Mega Mode).
+    { id: "green_samuraiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("green_samurai_ranger", "albedo"), spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("green_samurai_ranger", "albedo"), recolorTag: "albedo" },
+    { id: "green_samuraiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("green_samurai_ranger", "valkyrie"), spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("green_samurai_ranger", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "green_samuraiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("green_samurai_ranger", "alienx"), spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("green_samurai_ranger", "alienx"), recolorTag: "alienx" },
     { id: "green_samurai_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
     { id: "green_samurai_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
@@ -1336,6 +1518,10 @@ export const SKINS = {
   // doesn't fall back to the synthetic {spriteScale:1} default. Cosmetic only; no recolorTag (no Mega tier).
   red_ranger_mmpr: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.red_ranger_mmpr?.portrait, spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "rrAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("red_ranger_mmpr", "albedo"), spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "albedo") },
+    { id: "rrValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("red_ranger_mmpr", "valkyrie"), spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "valkyrie") },
+    { id: "rrAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("red_ranger_mmpr", "alienx"), spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "alienx") },
     { id: "rr_twilight",  name: "Twilight Fade",  unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_twilight.png",  spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_twilight") },
     { id: "rr_racer",     name: "Circuit Racer",  unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_racer.png",     spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_racer") },
     { id: "rr_magma",     name: "Magma Marble",   unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_magma.png",     spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_magma") },
@@ -1353,6 +1539,9 @@ export const SKINS = {
   ],
   gold_samurai_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gold_samurai_ranger?.portrait, spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Mega Mode).
+    { id: "goldValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gold_samurai_ranger", "valkyrie"), spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "goldAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gold_samurai_ranger", "alienx"), spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "alienx"), recolorTag: "alienx" },
     // 12 THEMED recolors (tools/gen_gold_creative.py). Per-region PLATE (gold armor + helmet — the
     // iconic "armor", dominant in Mega tier so it carries the primary identity colour) + SUIT (the deep
     // blue bodysuit — base tier only; the Mega bodysuit is near-black and stays black, documented). The
@@ -1385,6 +1574,10 @@ export const SKINS = {
   // (procedural name/universe panel on select until Stage 6). No alt skins yet.
   omniman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "omnimanAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("omniman", "albedo"), spriteScale: characters.omniman?.spriteScale, animationData: recolorSkinAnim("omniman", "albedo") },
+    { id: "omnimanValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("omniman", "valkyrie"), spriteScale: characters.omniman?.spriteScale, animationData: recolorSkinAnim("omniman", "valkyrie") },
+    { id: "omnimanAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("omniman", "alienx"), spriteScale: characters.omniman?.spriteScale, animationData: recolorSkinAnim("omniman", "alienx") },
     { id: "omniman_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
     { id: "omniman_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.omniman?.portrait, spriteScale: characters.omniman?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
@@ -1524,6 +1717,9 @@ export const SKINS = {
   // the spriteScale:1 fallback and Ben renders at ~half size. No alt skins yet.
   ben10: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (Albedo tag reserved for the Albedo character's base art → ben10 gets Valk+AlienX)
+    { id: "ben10Valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("ben10", "valkyrie"), spriteScale: characters.ben10?.spriteScale, animationData: recolorSkinAnim("ben10", "valkyrie") },
+    { id: "ben10AlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("ben10", "alienx"), spriteScale: characters.ben10?.spriteScale, animationData: recolorSkinAnim("ben10", "alienx") },
     { id: "ben10_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
     { id: "ben10_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
@@ -1535,6 +1731,9 @@ export const SKINS = {
   // sheets are used. No alt/tint skins (his identity IS the recolor).
   albedo: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.albedo?.portrait, spriteScale: characters.albedo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (base = ben10_*__albedo.png; Albedo-on-Albedo dropped → Valk+AlienX)
+    { id: "albedoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("albedo", "valkyrie"), spriteScale: characters.albedo?.spriteScale, animationData: recolorSkinAnim("albedo", "valkyrie") },
+    { id: "albedoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("albedo", "alienx"), spriteScale: characters.albedo?.spriteScale, animationData: recolorSkinAnim("albedo", "alienx") },
   ],
 
   // Ghostface — the 5 KILLER-IDENTITY skins ONLY (NO "Default"). In the source material there is no
@@ -1560,6 +1759,10 @@ export const SKINS = {
   // finished. Portraits are stopgap (the recolored idle sheet) — no bespoke portrait art yet. See updates.TXT.
   ghostface_exe: [
     { id: "default", name: "Billy Loomis", unlockLevel: 0, portrait: characters.ghostface_exe?.portrait, spriteScale: characters.ghostface_exe?.spriteScale, animationData: null },   // fully-built base identity (Stages 2-3)
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). Portrait = recoloured idle sheet (no bespoke portrait art).
+    { id: "ghostface_exeAlbedo", name: "Albedo", unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__albedo.png", spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "albedo"), recolorTag: "albedo" },
+    { id: "ghostface_exeValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__valkyrie.png", spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "ghostface_exeAlienX", name: "Alien X", unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__alienx.png", spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "alienx"), recolorTag: "alienx" },
     { id: "ghostfaceExeStu",    name: "Stu Macher (WIP)",    unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__stu.png",    spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "stu"),    recolorTag: "stu" },
     { id: "ghostfaceExeRoman",  name: "Roman Bridger (WIP)", unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__roman.png",  spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "roman"),  recolorTag: "roman" },
     { id: "ghostfaceExeLoomis", name: "Mrs. Loomis (WIP)",   unlockLevel: 0, portrait: "./ghostface_exe_idle_uniform__loomis.png", spriteScale: characters.ghostface_exe?.spriteScale, animationData: recolorSkinAnim("ghostface_exe", "loomis"), recolorTag: "loomis" },
@@ -1570,6 +1773,10 @@ export const SKINS = {
   // Cosmetic only. Nightmare Void = full-black body + game.js drawJasonVoidAuraOverlay (crimson motes + eyes).
   jason: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.jason?.portrait, spriteScale: characters.jason?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "jasonAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("jason", "albedo"), spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "albedo"), recolorTag: "albedo" },
+    { id: "jasonValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("jason", "valkyrie"), spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "jasonAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("jason", "alienx"), spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "alienx"), recolorTag: "alienx" },
     { id: "jason_weathered", name: "Weathered Mask",     unlockLevel: 0, portrait: "./jason_portrait__weathered.png", spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "weathered"), recolorTag: "weathered" },
     { id: "jason_bloodbath", name: "Bloodbath",          unlockLevel: 0, portrait: "./jason_portrait__bloodbath.png", spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "bloodbath"), recolorTag: "bloodbath" },
     { id: "jason_burlap",    name: "Burlap Sack",         unlockLevel: 0, portrait: "./jason_portrait__burlap.png",    spriteScale: characters.jason?.spriteScale, animationData: recolorSkinAnim("jason", "burlap"),    recolorTag: "burlap" },
@@ -1601,6 +1808,10 @@ export const SKINS = {
   // Cosmetic only; the default entry carries spriteScale 2.6.
   orochimaru: [
     { id: "default",                  name: "Default",             unlockLevel: 0, portrait: characters.orochimaru?.portrait,                        spriteScale: characters.orochimaru?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "orochimaruAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("orochimaru", "albedo"), spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "albedo") },
+    { id: "orochimaruValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("orochimaru", "valkyrie"), spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "valkyrie") },
+    { id: "orochimaruAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("orochimaru", "alienx"), spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "alienx") },
     { id: "orochimaru_sound_serpent",     name: "Sound Serpent",       unlockLevel: 0, portrait: recolorPortrait("orochimaru", "sound_serpent"),     spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "sound_serpent"),     recolorTag: "sound_serpent" },
     { id: "orochimaru_pale_recluse",      name: "Pale Recluse",        unlockLevel: 0, portrait: recolorPortrait("orochimaru", "pale_recluse"),      spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "pale_recluse"),      recolorTag: "pale_recluse" },
     { id: "orochimaru_crimson_sannin",    name: "Crimson Sannin",      unlockLevel: 0, portrait: recolorPortrait("orochimaru", "crimson_sannin"),    spriteScale: characters.orochimaru?.spriteScale, animationData: recolorSkinAnim("orochimaru", "crimson_sannin"),    recolorTag: "crimson_sannin" },
@@ -1617,6 +1828,10 @@ export const SKINS = {
   ],
   hiruzen: [
     { id: "default",               name: "Default",              unlockLevel: 0, portrait: characters.hiruzen?.portrait,           spriteScale: characters.hiruzen?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "hiruzenAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("hiruzen", "albedo"), spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "albedo") },
+    { id: "hiruzenValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("hiruzen", "valkyrie"), spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "valkyrie") },
+    { id: "hiruzenAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("hiruzen", "alienx"), spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "alienx") },
     { id: "hiruzenShadowOperative", name: "Shadow Operative",    unlockLevel: 0, portrait: recolorPortrait("hiruzen", "shadow_operative"), spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "shadow_operative"), recolorTag: "shadow_operative" },
     { id: "hiruzenEarthenSage",    name: "Earthen Sage",         unlockLevel: 0, portrait: recolorPortrait("hiruzen", "earthen_sage"),     spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "earthen_sage"),     recolorTag: "earthen_sage" },
     { id: "hiruzenSilverVeteran",  name: "Silver Veteran",       unlockLevel: 0, portrait: recolorPortrait("hiruzen", "silver_veteran"),   spriteScale: characters.hiruzen?.spriteScale, animationData: recolorSkinAnim("hiruzen", "silver_veteran"),   recolorTag: "silver_veteran" },
@@ -1633,6 +1848,10 @@ export const SKINS = {
   ],
   isshiki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.isshiki?.portrait, spriteScale: characters.isshiki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "isshikiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("isshiki", "albedo"), spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "albedo") },
+    { id: "isshikiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("isshiki", "valkyrie"), spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "valkyrie") },
+    { id: "isshikiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("isshiki", "alienx"), spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "alienx") },
     { id: "isshiki_azure",    name: "Karma Azure",        unlockLevel: 0, portrait: "./isshiki_portrait__azure.png",    spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "azure"),    recolorTag: "azure" },
     { id: "isshiki_golden",   name: "Golden Otsutsuki",   unlockLevel: 0, portrait: "./isshiki_portrait__golden.png",   spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "golden"),   recolorTag: "golden" },
     { id: "isshiki_violet",   name: "Ten-Tails Violet",   unlockLevel: 0, portrait: "./isshiki_portrait__violet.png",   spriteScale: characters.isshiki?.spriteScale, animationData: recolorSkinAnim("isshiki", "violet"),   recolorTag: "violet" },
@@ -1657,6 +1876,10 @@ export const SKINS = {
   // = near-default sheets + game.js drawGenosExposedCoreOverlay (glowing chest energy-core homage).
   genos: [
     { id: "default",             name: "Default",           unlockLevel: 0, portrait: characters.genos?.portrait,                     spriteScale: characters.genos?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "genosAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("genos", "albedo"), spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "albedo"), recolorTag: "albedo" },
+    { id: "genosValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("genos", "valkyrie"), spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "genosAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("genos", "alienx"), spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "alienx"), recolorTag: "alienx" },
     { id: "genosCrimsonChassis", name: "Crimson Chassis",   unlockLevel: 0, portrait: "./genos_portrait__crimsonchassis.png",         spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "crimsonchassis"),   recolorTag: "crimsonchassis" },
     { id: "genosVerdantCircuit", name: "Verdant Circuit",   unlockLevel: 0, portrait: "./genos_portrait__verdantcircuit.png",         spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "verdantcircuit"),   recolorTag: "verdantcircuit" },
     { id: "genosGoldenAlloy",    name: "Golden Alloy",      unlockLevel: 0, portrait: "./genos_portrait__goldenalloy.png",            spriteScale: characters.genos?.spriteScale, animationData: recolorSkinAnim("genos", "goldenalloy"),     recolorTag: "goldenalloy" },
@@ -1812,6 +2035,10 @@ export const SKINS = {
   // only, zero gameplay. Void Caped Baldy = full-black suit+cape + game.js drawSaitamaVoidAuraOverlay (gold aura).
   saitama: [
     { id: "default",             name: "Default",              unlockLevel: 0, portrait: characters.saitama?.portrait,               spriteScale: characters.saitama?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "saitamaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("saitama", "albedo"), spriteScale: characters.saitama?.spriteScale, animationData: recolorSkinAnim("saitama", "albedo"), recolorTag: "albedo" },
+    { id: "saitamaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("saitama", "valkyrie"), spriteScale: characters.saitama?.spriteScale, animationData: recolorSkinAnim("saitama", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "saitamaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("saitama", "alienx"), spriteScale: characters.saitama?.spriteScale, animationData: recolorSkinAnim("saitama", "alienx"), recolorTag: "alienx" },
     { id: "saitamaSaleDay",      name: "Sale Day",             unlockLevel: 0, portrait: "./saitama_portrait__saleday.png",           spriteScale: characters.saitama?.spriteScale, animationData: recolorSkinAnim("saitama", "saleday"),       recolorTag: "saleday" },
     { id: "saitamaBloodSoaked",  name: "Blood-Soaked Victory", unlockLevel: 0, portrait: "./saitama_portrait__bloodsoaked.png",       spriteScale: characters.saitama?.spriteScale, animationData: recolorSkinAnim("saitama", "bloodsoaked"),   recolorTag: "bloodsoaked" },
     { id: "saitamaCrimsonFist",  name: "Crimson Fist",         unlockLevel: 0, portrait: "./saitama_portrait__crimsonfist.png",       spriteScale: characters.saitama?.spriteScale, animationData: recolorSkinAnim("saitama", "crimsonfist"),   recolorTag: "crimsonfist" },
@@ -1828,6 +2055,10 @@ export const SKINS = {
   ],
   miwa: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.miwa?.portrait, spriteScale: characters.miwa?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "miwaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("miwa", "albedo"), spriteScale: characters.miwa?.spriteScale, animationData: recolorSkinAnim("miwa", "albedo") },
+    { id: "miwaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("miwa", "valkyrie"), spriteScale: characters.miwa?.spriteScale, animationData: recolorSkinAnim("miwa", "valkyrie") },
+    { id: "miwaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("miwa", "alienx"), spriteScale: characters.miwa?.spriteScale, animationData: recolorSkinAnim("miwa", "alienx") },
     // 12 creative HAIR+JACKET+TRAIL coordinated recolors (tools/gen_miwa_creative.py). Cosmetic only.
     { id: "miwaSilverBlade",   name: "Silver Blade",    unlockLevel: 0, portrait: "./kasumi_portrait__silverblade.png",   spriteScale: characters.miwa?.spriteScale, animationData: recolorSkinAnim("miwa", "silverblade") },
     { id: "miwaCrimsonEdge",   name: "Crimson Edge",    unlockLevel: 0, portrait: "./kasumi_portrait__crimsonedge.png",   spriteScale: characters.miwa?.spriteScale, animationData: recolorSkinAnim("miwa", "crimsonedge") },
@@ -1850,6 +2081,10 @@ export const SKINS = {
   // Cosmetic only; zero gameplay. Sources his real spriteScale (1.9) from the character.
   ichigo: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ichigo?.portrait, spriteScale: characters.ichigo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "ichigoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("ichigo", "albedo"), spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "albedo") },
+    { id: "ichigoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("ichigo", "valkyrie"), spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "valkyrie") },
+    { id: "ichigoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("ichigo", "alienx"), spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "alienx") },
     // ── Group 1 ──
     { id: "ichigoCrimsonReaper",    name: "Crimson Reaper",    unlockLevel: 0, portrait: "./ichigo_portrait__crimsonreaper.png",    spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "crimsonreaper") },
     { id: "ichigoVerdantBlade",     name: "Verdant Blade",     unlockLevel: 0, portrait: "./ichigo_portrait__verdantblade.png",     spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "verdantblade") },
@@ -1873,6 +2108,10 @@ export const SKINS = {
   // abilities.js retagFormAnim(ZARAKI_SHIKAI_ANIM, tag) carries the recolor into Shikai too.
   zaraki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zaraki?.portrait, spriteScale: characters.zaraki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Shikai).
+    { id: "zarakiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("zaraki", "albedo"), spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "albedo"), recolorTag: "albedo" },
+    { id: "zarakiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("zaraki", "valkyrie"), spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "zarakiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("zaraki", "alienx"), spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "alienx"), recolorTag: "alienx" },
     // ── Group 1 ──
     { id: "zarakiCrimsonReaper",  name: "Crimson Reaper",      unlockLevel: 0, portrait: "./zaraki_transparent_copy__crimsonreaper.png", spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "crimsonreaper"), recolorTag: "crimsonreaper" },
     { id: "zarakiFrostbitten",    name: "Frostbitten Captain", unlockLevel: 0, portrait: "./zaraki_transparent_copy__frostbitten.png",   spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "frostbitten"),   recolorTag: "frostbitten" },
@@ -1895,6 +2134,10 @@ export const SKINS = {
   // follow later). animationData:null → uses the char's native Shikai art.
   zaraki_shikai: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "zaraki_shikaiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("zaraki_shikai", "albedo"), spriteScale: characters.zaraki_shikai?.spriteScale, animationData: recolorSkinAnim("zaraki_shikai", "albedo") },
+    { id: "zaraki_shikaiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("zaraki_shikai", "valkyrie"), spriteScale: characters.zaraki_shikai?.spriteScale, animationData: recolorSkinAnim("zaraki_shikai", "valkyrie") },
+    { id: "zaraki_shikaiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("zaraki_shikai", "alienx"), spriteScale: characters.zaraki_shikai?.spriteScale, animationData: recolorSkinAnim("zaraki_shikai", "alienx") },
     { id: "zaraki_shikai_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
     { id: "zaraki_shikai_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
@@ -1911,6 +2154,9 @@ export const SKINS = {
   // Verified roster-wide across all 6 Paths (harness/shots/sixpaths_skins_preview.png). Cosmetic-only.
   six_paths_pain: [
     { id: "default",                  name: "Default",           unlockLevel: 0, portrait: characters.six_paths_pain?.portrait,        spriteScale: characters.six_paths_pain?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "six_paths_painValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("six_paths_pain", "valkyrie"), spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "valkyrie") },
+    { id: "six_paths_painAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("six_paths_pain", "alienx"), spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "alienx") },
     { id: "sixpaths_amberpath",       name: "Amber Path",        unlockLevel: 0, portrait: "./sixpaths_deva_portrait__amberpath.png",       spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "amberpath"),       recolorTag: "amberpath" },
     { id: "sixpaths_goldenrikudou",   name: "Golden Rikudō",     unlockLevel: 0, portrait: "./sixpaths_deva_portrait__goldenrikudou.png",   spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "goldenrikudou"),   recolorTag: "goldenrikudou" },
     { id: "sixpaths_verdantsage",     name: "Verdant Sage",      unlockLevel: 0, portrait: "./sixpaths_deva_portrait__verdantsage.png",     spriteScale: characters.six_paths_pain?.spriteScale, animationData: recolorSkinAnim("six_paths_pain", "verdantsage"),     recolorTag: "verdantsage" },
@@ -1955,6 +2201,10 @@ export const SKINS = {
   // Stealth "Prodigal Son" homage (matte-black plate, thin dark accent, cold blue-white faceplate eyes).
   iron_man: [
     { id: "default",              name: "Default",              unlockLevel: 0, portrait: characters.iron_man?.portrait,                          spriteScale: characters.iron_man?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "ironManAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("iron_man", "albedo"), spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "albedo") },
+    { id: "ironManValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("iron_man", "valkyrie"), spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "valkyrie") },
+    { id: "ironManAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("iron_man", "alienx"), spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "alienx") },
     // ── Group 1 ──
     { id: "ironManCrimsonOverdrive", name: "Crimson Overdrive", unlockLevel: 0, portrait: "./iron_man_portrait__crimsonoverdrive.png", spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "crimsonoverdrive"), recolorTag: "crimsonoverdrive" },  // deeper crimson plate / black accent
     { id: "ironManVerdantCircuit",   name: "Verdant Circuit",   unlockLevel: 0, portrait: "./iron_man_portrait__verdantcircuit.png",   spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "verdantcircuit"),   recolorTag: "verdantcircuit" },    // green plate / dark-green accent
@@ -1976,6 +2226,10 @@ export const SKINS = {
   // plate, red/white accent stripes — the strongest real alternate-era read in the trio).
   iron_man_2: [
     { id: "default",                name: "Default",            unlockLevel: 0, portrait: characters.iron_man_2?.portrait,                        spriteScale: characters.iron_man_2?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "ironMan2Albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("iron_man_2", "albedo"), spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "albedo") },
+    { id: "ironMan2Valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("iron_man_2", "valkyrie"), spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "valkyrie") },
+    { id: "ironMan2AlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("iron_man_2", "alienx"), spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "alienx") },
     // ── Group 1 ──
     { id: "ironMan2CrimsonOverdrive", name: "Crimson Overdrive", unlockLevel: 0, portrait: "./iron_man_2_portrait__crimsonoverdrive.png", spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "crimsonoverdrive"), recolorTag: "crimsonoverdrive" },
     { id: "ironMan2VerdantCircuit",   name: "Verdant Circuit",   unlockLevel: 0, portrait: "./iron_man_2_portrait__verdantcircuit.png",   spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "verdantcircuit"),   recolorTag: "verdantcircuit" },
@@ -1997,6 +2251,10 @@ export const SKINS = {
   // reversed-placement canon alt — the trio's subtlest, keeping its homage distinct from Stealth/War Machine).
   iron_man_3: [
     { id: "default",                name: "Default",            unlockLevel: 0, portrait: characters.iron_man_3?.portrait,                        spriteScale: characters.iron_man_3?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "ironMan3Albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("iron_man_3", "albedo"), spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "albedo") },
+    { id: "ironMan3Valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("iron_man_3", "valkyrie"), spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "valkyrie") },
+    { id: "ironMan3AlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("iron_man_3", "alienx"), spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "alienx") },
     // ── Group 1 ──
     { id: "ironMan3CrimsonOverdrive", name: "Crimson Overdrive", unlockLevel: 0, portrait: "./iron_man_3_portrait__crimsonoverdrive.png", spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "crimsonoverdrive"), recolorTag: "crimsonoverdrive" },
     { id: "ironMan3VerdantCircuit",   name: "Verdant Circuit",   unlockLevel: 0, portrait: "./iron_man_3_portrait__verdantcircuit.png",   spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "verdantcircuit"),   recolorTag: "verdantcircuit" },
@@ -2013,6 +2271,10 @@ export const SKINS = {
   ],
   spiderman: [
     { id: "default",                    name: "Default",             unlockLevel: 0, portrait: characters.spiderman?.portrait,                       spriteScale: characters.spiderman?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "spidermanAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("spiderman", "albedo"), spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "albedo") },
+    { id: "spidermanValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("spiderman", "valkyrie"), spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "valkyrie") },
+    { id: "spidermanAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("spiderman", "alienx"), spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "alienx") },
     { id: "spidermanNegativeZone",      name: "Negative Zone",       unlockLevel: 0, portrait: "./spiderman_portrait__whiteblue.png",          spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "whiteblue"),          recolorTag: "whiteblue" },
     // ── Group 1 ──
     { id: "spidermanCrimsonWeave",      name: "Crimson Weave",       unlockLevel: 0, portrait: "./spiderman_portrait__crimsonweave.png",       spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "crimsonweave"),       recolorTag: "crimsonweave" },
@@ -2032,6 +2294,10 @@ export const SKINS = {
   // sprite shrinks to native size). Creative recolor batch is DEFERRED to the skins follow-up.
   naoya: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.naoya?.portrait, spriteScale: characters.naoya?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "naoyaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("naoya", "albedo"), spriteScale: characters.naoya?.spriteScale, animationData: recolorSkinAnim("naoya", "albedo") },
+    { id: "naoyaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("naoya", "valkyrie"), spriteScale: characters.naoya?.spriteScale, animationData: recolorSkinAnim("naoya", "valkyrie") },
+    { id: "naoyaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("naoya", "alienx"), spriteScale: characters.naoya?.spriteScale, animationData: recolorSkinAnim("naoya", "alienx") },
     // Default + 8 creative coordinated recolors + Void + Narcissus = 11 (gen_naoya_creative.py). Regions: GI
     // (dark-navy haori) / HAKAMA (white pants — PRESERVED as tinted-white per owner decision, not blacked out) /
     // HAIR (olive). Skin protected except Void. Portraits are the recolored bust. Cosmetic-only, all free.

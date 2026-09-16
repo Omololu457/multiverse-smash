@@ -267,8 +267,555 @@ def nezuko_classify(h, s, v):
     if 300 <= h <= 350 and s >= 0.28:                 return "GARMENT"  # pink kimono
     return "OTHER"
 
+def bleach_classify(h, s, v):
+    # Soul Reaper: white captain haori + blue/teal accents + dark shihakushō folds = GARMENT; skin protected;
+    # pure-black shihakushō/outline protected (v<0.12).
+    if v < 0.12:                                     return "DARK"
+    if 8 <= h <= 42 and 0.22 <= s < 0.65 and v >= 0.45:  return "SKIN"
+    if (s < 0.2 and v >= 0.5) or (168 <= h <= 255 and s >= 0.25) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"
+    return "OTHER"
+
+def ichigo_classify(h, s, v):
+    # Ichigo: ORANGE hair kept; black shihakushō + white wrap = GARMENT; red Zangetsu cloth = ACCENT; skin protected.
+    if v < 0.12:                                     return "DARK"
+    if 12 <= h <= 45 and s >= 0.5 and v >= 0.5:       return "OTHER"    # orange hair (kept)
+    if 8 <= h <= 42 and 0.22 <= s < 0.5 and v >= 0.45:  return "SKIN"   # face (below hair sat)
+    if (h <= 10 or h >= 348) and s >= 0.55:           return "ACCENT"   # red Zangetsu cloth
+    if (s < 0.2 and v >= 0.5) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"  # shihakushō + white wrap
+    return "OTHER"
+
+def saitama_classify(h, s, v):
+    # Saitama (OPM): yellow jumpsuit = GARMENT; red gloves/boots = ACCENT; white cape = TRIM; bald head/skin kept.
+    if 15 <= h <= 42 and 0.22 <= s < 0.55 and v >= 0.5:  return "SKIN"    # skin / bald head
+    if 42 <= h <= 65 and s >= 0.5:                     return "GARMENT"  # yellow jumpsuit
+    if (h <= 15 or h >= 340) and s >= 0.45:            return "ACCENT"   # red gloves/boots/belt
+    if s < 0.2 and v >= 0.6:                           return "TRIM"     # white cape
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def genos_classify(h, s, v):
+    # Genos (OPM): dark cyborg body = GARMENT; blue accents/joints = ACCENT; blonde hair + skin kept; dark protected.
+    if 38 <= h <= 58 and s >= 0.4 and v >= 0.55:       return "OTHER"    # blonde hair (kept)
+    if 14 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5: return "SKIN"     # face
+    if 185 <= h <= 250 and s >= 0.35:                  return "ACCENT"   # blue tech
+    if v < 0.5 and s < 0.5:                            return "GARMENT"  # dark metal body
+    return "OTHER"
+
+def light_classify(h, s, v):
+    # Light Yagami: dark school blazer = GARMENT; brown hair + skin protected.
+    if 14 <= h <= 42 and 0.25 <= s < 0.62 and v >= 0.42:  return "SKIN"  # skin + brown hair
+    if v < 0.5 and s < 0.55:                           return "GARMENT"  # dark blazer + slacks
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def l_classify(h, s, v):
+    # L (Ryuuzaki): white long-sleeve shirt = GARMENT; blue jeans = ACCENT; black messy hair + pale skin protected.
+    if v < 0.16:                                       return "DARK"     # black hair + outline
+    if 12 <= h <= 45 and 0.15 <= s < 0.45 and v >= 0.6:  return "SKIN"   # pale skin
+    if 200 <= h <= 260 and s >= 0.28:                  return "ACCENT"   # blue jeans
+    if s < 0.22 and v >= 0.55:                         return "GARMENT"  # white shirt
+    return "OTHER"
+
+def rick_classify(h, s, v):
+    # Rick Sanchez: pale-cyan hair kept; white lab coat = GARMENT; brown pants = ACCENT; skin protected.
+    if 150 <= h <= 205 and s >= 0.14 and v >= 0.5:     return "OTHER"    # cyan hair (kept)
+    if 12 <= h <= 45 and 0.22 <= s < 0.55 and v >= 0.5:  return "SKIN"   # skin
+    if 15 <= h <= 45 and s >= 0.3 and v < 0.6:         return "ACCENT"   # brown pants
+    if s < 0.22 and v >= 0.5:                          return "GARMENT"  # white lab coat
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def omniman_classify(h, s, v):
+    # Omni-Man: white suit = GARMENT; red torso/emblem = ACCENT; grey mustache/hair kept; skin protected.
+    if 6 <= h <= 40 and 0.22 <= s < 0.5 and v >= 0.5:  return "SKIN"     # skin
+    if (h <= 15 or h >= 340) and s >= 0.45:            return "ACCENT"   # red torso / emblem
+    if s < 0.24 and v >= 0.45:                         return "GARMENT"  # white suit
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def saiki_classify(h, s, v):
+    # Saiki K: green school gakuran = GARMENT; pink hair kept; skin protected; antennae kept.
+    if 285 <= h <= 345 and s >= 0.3:                   return "OTHER"    # pink hair (kept)
+    if 14 <= h <= 42 and 0.2 <= s < 0.5 and v >= 0.55: return "SKIN"     # skin
+    if 90 <= h <= 175 and s >= 0.25:                   return "GARMENT"  # green uniform
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def ippo_classify(h, s, v):
+    # Ippo (boxer): red gloves/trunks = GARMENT; blue waistband = ACCENT; bare torso skin protected; dark hair kept.
+    if v < 0.12:                                       return "DARK"     # black hair
+    if 6 <= h <= 40 and 0.28 <= s < 0.62 and v >= 0.45:  return "SKIN"   # bare torso + skin
+    if 195 <= h <= 250 and s >= 0.3:                   return "ACCENT"   # blue waistband
+    if (h <= 15 or h >= 335) and s >= 0.42:            return "GARMENT"  # red gloves/trunks
+    return "OTHER"
+
+def miwa_classify(h, s, v):
+    # Miwa (kasumi sprites): purple/blue kendo-ish outfit = GARMENT; dark hair protected; skin protected.
+    if v < 0.12:                                       return "DARK"
+    if 12 <= h <= 42 and 0.22 <= s < 0.55 and v >= 0.5:  return "SKIN"   # skin
+    if 225 <= h <= 320 and s >= 0.28:                  return "GARMENT"  # purple/blue outfit
+    return "OTHER"
+
+def ben10_classify(h, s, v):
+    # Ben 10: black jacket/pants = GARMENT; green stripe/Omnitrix = ACCENT; white tee = TRIM; skin+brown hair kept.
+    if 14 <= h <= 42 and 0.30 <= s < 0.7 and v >= 0.45:  return "SKIN"    # skin + brown hair
+    if 50 <= h <= 165 and s >= 0.4:                   return "ACCENT"   # green stripe / Omnitrix
+    if s < 0.2 and v >= 0.68:                         return "TRIM"     # white tee
+    if v < 0.34:                                      return "GARMENT"  # black jacket + pants
+    return "OTHER"
+
+def albedo_classify(h, s, v):
+    # Albedo (Ben's Galvan rival — base sheets = ben10_*__albedo.png): WHITE hair kept; black jacket = GARMENT;
+    # red accents = ACCENT; white tee kept; skin protected. (White hair + white tee are BOTH kept as OTHER.)
+    if 14 <= h <= 42 and 0.30 <= s < 0.7 and v >= 0.45:  return "SKIN"    # skin
+    if (h <= 15 or h >= 340) and s >= 0.45:           return "ACCENT"   # red accents
+    if s < 0.2 and v >= 0.6:                          return "OTHER"    # white hair + white tee (kept)
+    if v < 0.34:                                      return "GARMENT"  # black jacket + pants
+    return "OTHER"
+
+def vilgax_classify(h, s, v):
+    # Vilgax: dark armour = GARMENT; red accents = ACCENT; green squid-skin protected; dark protected.
+    if 70 <= h <= 175 and s >= 0.25 and v >= 0.3:     return "SKIN"     # green alien skin (kept)
+    if (h <= 15 or h >= 340) and s >= 0.45:           return "ACCENT"   # red accents
+    if v < 0.12:                                      return "DARK"
+    if v < 0.5 and s < 0.6:                           return "GARMENT"  # dark armour
+    return "OTHER"
+
+def gwen_classify(h, s, v):
+    # Gwen: blue/cyan outfit = GARMENT; red-orange hair kept; magenta mana = ACCENT; skin protected.
+    if 8 <= h <= 42 and s >= 0.4 and v >= 0.45:       return "OTHER"    # red-orange hair (kept)
+    if 6 <= h <= 40 and 0.2 <= s < 0.4 and v >= 0.55: return "SKIN"     # skin
+    if 300 <= h <= 340 and s >= 0.35:                 return "ACCENT"   # magenta mana
+    if 165 <= h <= 260 and s >= 0.28:                 return "GARMENT"  # blue/cyan outfit
+    if v < 0.12:                                      return "DARK"
+    return "OTHER"
+
+def omega_ranger_classify(h, s, v):
+    # SPD Omega Ranger: white suit = GARMENT; blue accents = ACCENT; gold trim = TRIM.
+    if 20 <= h <= 55 and s >= 0.45 and v >= 0.45:     return "TRIM"     # gold
+    if 195 <= h <= 250 and s >= 0.35:                 return "ACCENT"   # blue
+    if s < 0.28 and v >= 0.35:                        return "GARMENT"  # white suit
+    if v < 0.12:                                      return "DARK"
+    return "OTHER"
+
+def samurai_red_classify(h, s, v):
+    # Samurai Red Ranger: red suit = GARMENT; blue/purple symbol accents = ACCENT.
+    if v < 0.10:                                      return "DARK"
+    if (h <= 15 or h >= 340) and s >= 0.4:            return "GARMENT"  # red suit
+    if 215 <= h <= 320 and s >= 0.30:                 return "ACCENT"   # blue/purple symbols
+    return "OTHER"
+
+def samurai_gold_classify(h, s, v):
+    # Samurai Gold Ranger: gold suit = GARMENT; blue underlayer/accents = ACCENT.
+    if v < 0.10:                                      return "DARK"
+    if 18 <= h <= 58 and s >= 0.4 and v >= 0.4:       return "GARMENT"  # gold suit
+    if 195 <= h <= 260 and s >= 0.3:                  return "ACCENT"   # blue
+    return "OTHER"
+
+def samurai_green_classify(h, s, v):
+    # Samurai Green Ranger: green suit = GARMENT; black protected.
+    if v < 0.10:                                      return "DARK"
+    if 95 <= h <= 175 and s >= 0.28:                  return "GARMENT"  # green suit
+    return "OTHER"
+
+def red_mmpr_classify(h, s, v):
+    # MMPR Red Ranger: red suit = GARMENT; white gloves/boots = TRIM; gold shield/belt = ACCENT.
+    if v < 0.10:                                      return "DARK"
+    if 40 <= h <= 65 and s >= 0.4:                    return "ACCENT"   # gold shield/belt
+    if (h <= 15 or h >= 340) and s >= 0.4:            return "GARMENT"  # red suit
+    if s < 0.22 and v >= 0.6:                         return "TRIM"     # white gloves/boots
+    return "OTHER"
+
+def ghostface_classify(h, s, v):
+    # Ghostface (+ .EXE + Billy variant): white ghost mask kept; the shroud/robe (any hue) = unified GARMENT.
+    if s < 0.18 and v >= 0.6:                         return "OTHER"    # white mask (kept)
+    if v < 0.10:                                      return "DARK"
+    return "GARMENT"                                                    # shroud (recolors as one)
+
+def jason_classify(h, s, v):
+    # Jason: white/grey hockey mask kept; dark muted work-clothes = GARMENT; skin protected.
+    if 6 <= h <= 42 and 0.28 <= s < 0.6 and v >= 0.45:  return "SKIN"
+    if s < 0.22 and v >= 0.55:                        return "OTHER"    # hockey mask (white/grey)
+    if v < 0.10:                                      return "DARK"
+    return "GARMENT"                                                    # dark clothes
+
+def netero_classify(h, s, v):
+    # Isaac Netero: pale monk robe (near-greyscale, low-sat) = GARMENT; blue prayer-bead sash = ACCENT;
+    # warm skin protected; dark outline kept.
+    if v < 0.13:                                     return "DARK"
+    if 6 <= h <= 42 and 0.28 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if 195 <= h <= 250 and s >= 0.32:                 return "ACCENT"   # blue sash / beads
+    if s < 0.25 and v >= 0.3:                         return "GARMENT"  # white/grey robe
+    return "OTHER"
+
+def killua_classify(h, s, v):
+    # Killua: silver-white hair kept; pale skin protected; the rest (turquoise top + shorts) = unified GARMENT.
+    if 6 <= h <= 42 and 0.22 <= s < 0.5 and v >= 0.58:  return "SKIN"   # pale skin
+    if s < 0.16 and v >= 0.70:                        return "OTHER"    # silver-white hair (kept)
+    if v < 0.12:                                      return "DARK"
+    return "GARMENT"                                                    # top + shorts (unified)
+
+def gon_classify(h, s, v):
+    # Gon: green jacket + shorts = GARMENT; black hair/outline kept; tan skin protected; blue undershirt = ACCENT.
+    if v < 0.12:                                      return "DARK"
+    if 12 <= h <= 45 and s >= 0.42 and v >= 0.5:      return "SKIN"     # tan skin
+    if 200 <= h <= 255 and s >= 0.35:                 return "ACCENT"   # blue undershirt
+    if 60 <= h <= 165 and s >= 0.22:                  return "GARMENT"  # green hair + shorts
+    if s < 0.28 and v >= 0.45:                        return "GARMENT"  # white tank (cohesive)
+    return "OTHER"
+
+def hisoka_classify(h, s, v):
+    # Hisoka: teal/green performer tunic = GARMENT; red hair kept; warm skin protected; gold trim = ACCENT.
+    if v < 0.12:                                      return "DARK"
+    if (h <= 16 or h >= 340) and s >= 0.5 and v >= 0.4:  return "OTHER" # red/magenta hair (kept)
+    if 6 <= h <= 44 and 0.22 <= s < 0.5 and v >= 0.52:  return "SKIN"
+    if 20 <= h <= 60 and s >= 0.5 and v >= 0.5:       return "ACCENT"   # gold trim / symbols
+    if 120 <= h <= 200 and s >= 0.18:                 return "GARMENT"  # teal/green tunic
+    return "OTHER"
+
+def chrollo_classify(h, s, v):
+    # Chrollo: dark-blue trench coat = GARMENT; white fur collar = TRIM; cross/skin/hair protected.
+    if v < 0.12:                                      return "DARK"
+    if 6 <= h <= 42 and 0.28 <= s < 0.55 and v >= 0.5:  return "SKIN"
+    if 205 <= h <= 285 and s >= 0.22:                 return "GARMENT"  # dark-blue coat
+    if s < 0.2 and v >= 0.55:                         return "TRIM"     # white fur collar
+    return "OTHER"
+
+def spiderman_classify(h, s, v):
+    # Spider-Man: red suit = GARMENT; blue panels/legs = ACCENT; skin protected (portrait face); dark outline kept.
+    if v < 0.13:                                     return "DARK"
+    if 6 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"     # unmasked face in portrait
+    if (h <= 15 or h >= 340) and s >= 0.45:           return "GARMENT"   # red suit
+    if 175 <= h <= 260 and s >= 0.32:                 return "ACCENT"    # blue panels / eyes-cyan
+    return "OTHER"
+
+def miles_classify(h, s, v):
+    # Miles Morales: BLACK suit primary = GARMENT; red spider/webbing = ACCENT; skin protected.
+    if 6 <= h <= 40 and 0.28 <= s < 0.6 and v >= 0.45:  return "SKIN"    # brown skin (portrait)
+    if (h <= 15 or h >= 335) and s >= 0.42:           return "ACCENT"    # red spider / web lines
+    if v < 0.34:                                      return "GARMENT"   # black suit
+    if 175 <= h <= 250 and s >= 0.32:                 return "TRIM"      # blue highlights
+    return "OTHER"
+
+def ironman_classify(h, s, v):
+    # Iron Man (all Mark variants): red armour = GARMENT; gold plating = ACCENT; silver/grey metal = TRIM;
+    # skin protected (helmet-off portrait); dark joints kept.
+    if v < 0.14:                                     return "DARK"
+    if 6 <= h <= 38 and 0.22 <= s < 0.5 and v >= 0.5:  return "SKIN"     # face
+    if 20 <= h <= 55 and s >= 0.42 and v >= 0.4:      return "ACCENT"    # gold plating
+    if (h <= 18 or h >= 335) and s >= 0.35:           return "GARMENT"   # red armour
+    if s < 0.2 and v >= 0.38:                         return "TRIM"      # silver/grey metal
+    return "OTHER"
+
+def superman_classify(h, s, v):
+    # Superman (all variants): blue suit = GARMENT; red cape/boots/S = ACCENT; skin + dark hair protected.
+    if v < 0.13:                                     return "DARK"
+    if 6 <= h <= 40 and 0.25 <= s < 0.72 and v >= 0.45:  return "SKIN"
+    if (h <= 12 or h >= 344) and s >= 0.55:           return "ACCENT"   # red cape / boots / S
+    if 195 <= h <= 245 and s >= 0.38:                 return "GARMENT"  # blue suit
+    return "OTHER"
+
+def flash_classify(h, s, v):
+    # Flash: red bodysuit = GARMENT; yellow lightning = ACCENT; skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 6 <= h <= 40 and 0.25 <= s < 0.72 and v >= 0.5 and s < 0.85:  return "SKIN"
+    if 40 <= h <= 62 and s >= 0.6:                    return "ACCENT"   # yellow lightning
+    if (h <= 14 or h >= 344) and s >= 0.55:           return "GARMENT"  # red suit
+    return "OTHER"
+
+def deathstroke_classify(h, s, v):
+    # Deathstroke: dark blue-grey armour = GARMENT; orange accents = ACCENT; masked (no skin).
+    if v < 0.14:                                     return "DARK"
+    if 12 <= h <= 45 and s >= 0.6:                    return "ACCENT"   # orange
+    if (195 <= h <= 258 or s < 0.32) and 0.14 <= v < 0.62:  return "GARMENT"  # blue-grey armour
+    return "OTHER"
+
+def brainiac_classify(h, s, v):
+    # Brainiac: blue tech-suit = GARMENT; GREEN skin protected; dark outline protect.
+    if v < 0.13:                                     return "DARK"
+    if 80 <= h <= 165 and s >= 0.28:                  return "SKIN"     # green Coluan skin (protected)
+    if 200 <= h <= 292 and s >= 0.30:                 return "GARMENT"  # blue/purple tech-suit
+    return "OTHER"
+
+def green_lantern_classify(h, s, v):
+    # Green Lantern: green suit = GARMENT; skin protected; white logo + dark protected.
+    if v < 0.15:                                     return "DARK"
+    if 6 <= h <= 42 and 0.25 <= s < 0.7 and v >= 0.45:  return "SKIN"
+    if 78 <= h <= 155 and s >= 0.4:                   return "GARMENT"  # green suit
+    return "OTHER"
+
+def batman_classify(h, s, v):
+    # Batman: near-all-black suit/cape/cowl = one unified GARMENT (recolour toward the theme); yellow bat
+    # symbol/belt = ACCENT; exposed chin skin protected; pure outline protected.
+    if v < 0.06:                                     return "DARK"
+    if 6 <= h <= 40 and 0.28 <= s < 0.7 and v >= 0.45:  return "SKIN"   # exposed chin/jaw
+    if 38 <= h <= 62 and s >= 0.5:                    return "ACCENT"   # yellow bat symbol / belt
+    if v < 0.6 and s < 0.5:                           return "GARMENT"  # black suit (unified)
+    return "OTHER"
+
+def dark_knight_classify(h, s, v):
+    # Dark Knight (Batman variant): same as batman — unified dark suit recolour + yellow accent.
+    if v < 0.06:                                     return "DARK"
+    if 6 <= h <= 40 and 0.28 <= s < 0.7 and v >= 0.45:  return "SKIN"
+    if 38 <= h <= 62 and s >= 0.5:                    return "ACCENT"
+    if v < 0.6 and s < 0.5:                           return "GARMENT"
+    return "OTHER"
+
+def itachi_classify(h, s, v):
+    # Itachi: black Akatsuki cloak = GARMENT; red clouds = ACCENT; black hair + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if (h <= 12 or h >= 345) and s >= 0.5:            return "ACCENT"   # red clouds
+    if 8 <= h <= 40 and 0.25 <= s < 0.65 and v >= 0.45:  return "SKIN"
+    if 0.13 <= v < 0.5 and s < 0.5:                  return "GARMENT"  # dark cloak
+    return "OTHER"
+
+def obito_classify(h, s, v):
+    # Obito: dark cloak/outfit = GARMENT; red clouds = ACCENT; black hair + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if (h <= 12 or h >= 345) and s >= 0.5:            return "ACCENT"
+    if 8 <= h <= 40 and 0.25 <= s < 0.65 and v >= 0.45:  return "SKIN"
+    if 0.13 <= v < 0.5 and s < 0.5:                  return "GARMENT"
+    return "OTHER"
+
+def tobi_classify(h, s, v):
+    # Tobi (masked): black Akatsuki cloak = GARMENT; orange spiral mask kept; red clouds = ACCENT.
+    if v < 0.13:                                     return "DARK"
+    if 12 <= h <= 44 and s >= 0.5 and v >= 0.4:       return "OTHER"    # orange mask (kept)
+    if (h <= 10 or h >= 346) and s >= 0.55:           return "ACCENT"   # red clouds
+    if 0.13 <= v < 0.5 and s < 0.5:                  return "GARMENT"
+    return "OTHER"
+
+def six_paths_pain_classify(h, s, v):
+    # Six Paths Pain: black Akatsuki cloak = GARMENT; ORANGE hair kept; red clouds = ACCENT; skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 12 <= h <= 44 and s >= 0.4 and v >= 0.45:      return "OTHER"    # orange hair (kept)
+    if (h <= 10 or h >= 346) and s >= 0.55:           return "ACCENT"
+    if 0.13 <= v < 0.5 and s < 0.5:                  return "GARMENT"
+    return "OTHER"
+
+def madara_classify(h, s, v):
+    # Madara: dark-red battle armour = GARMENT; black hair + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if (h <= 20 or h >= 330) and s >= 0.4:            return "GARMENT"  # red armour
+    return "OTHER"
+
+def hashirama_classify(h, s, v):
+    # Hashirama: red First-Hokage armour = GARMENT; skin + dark hair protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if (h <= 20 or h >= 328) and s >= 0.4:            return "GARMENT"  # red armour
+    return "OTHER"
+
+def tobirama_classify(h, s, v):
+    # Tobirama: blue-grey Second-Hokage armour = GARMENT; white hair + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if 185 <= h <= 250 and s >= 0.3:                  return "GARMENT"  # blue armour
+    return "OTHER"                                                     # white hair kept
+
+def hiruzen_classify(h, s, v):
+    # Hiruzen: dark battle-armour/robe = GARMENT; skin + dark hair protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"
+    if 0.13 <= v < 0.52 and s < 0.5:                 return "GARMENT"
+    return "OTHER"
+
+def boruto_classify(h, s, v):
+    # Boruto: black tracksuit jacket + pants = GARMENT; red collar = ACCENT; blond hair + skin protected.
+    if v < 0.12:                                     return "DARK"
+    if 12 <= h <= 52 and s >= 0.28 and v >= 0.45:     return "SKIN"     # blond hair + face
+    if (h <= 12 or h >= 328) and s >= 0.5 and v >= 0.38:  return "ACCENT"  # red collar
+    if 0.12 <= v < 0.55 and s < 0.55:                return "GARMENT"  # black tracksuit
+    return "OTHER"
+
+def minato_classify(h, s, v):
+    # Minato: dark under-uniform + white/cream Hokage haori = GARMENT; red flame hem = ACCENT; blond hair +
+    # skin protected.
+    if v < 0.15:                                     return "DARK"
+    if 40 <= h <= 58 and s >= 0.45 and v >= 0.6:      return "OTHER"    # blond hair (kept)
+    if 10 <= h <= 40 and 0.25 <= s < 0.7 and v >= 0.5:  return "SKIN"   # face
+    if (h <= 12 or h >= 344) and s >= 0.5:            return "ACCENT"   # red flame hem
+    if (s < 0.18 and v >= 0.55) or (0.15 <= v < 0.5 and s < 0.5):  return "GARMENT"  # white haori + dark uniform
+    return "OTHER"
+
+def isshiki_classify(h, s, v):
+    # Isshiki: white/grey Otsutsuki coat = GARMENT; red lining = ACCENT; grey skin + dark horns/hair protected.
+    if v < 0.15:                                     return "DARK"
+    if (h <= 12 or h >= 344) and s >= 0.55:           return "ACCENT"   # red lining
+    if s < 0.22 and v >= 0.45:                        return "GARMENT"  # white/grey coat
+    return "OTHER"                                                     # brown pants + grey skin kept
+
+def orochimaru_classify(h, s, v):
+    # Orochimaru: grey/purple robe = GARMENT; pale skin protected; long black hair protected; purple rope = accent.
+    if v < 0.15:                                     return "DARK"
+    if 10 <= h <= 45 and 0.12 <= s < 0.4 and v >= 0.6:  return "SKIN"   # pale skin (slight warm tint)
+    if 250 <= h <= 300 and s >= 0.35:                 return "ACCENT"   # purple rope
+    if (200 <= h <= 300 or s < 0.22) and 0.2 <= v < 0.72:  return "GARMENT"  # grey/purple robe
+    return "OTHER"
+
+def onoki_classify(h, s, v):
+    # Onoki: green Tsuchikage haori = GARMENT; red inner = ACCENT; skin + tan/gold kept; dark outline protect.
+    if v < 0.15:                                     return "DARK"
+    if 85 <= h <= 155 and s >= 0.35:                  return "GARMENT"  # green haori
+    if (h <= 12 or h >= 344) and s >= 0.5:            return "ACCENT"   # red inner
+    return "OTHER"
+
+def kiba_classify(h, s, v):
+    # Kiba: dark grey/blue hoodie + pants = GARMENT; skin + brown hair protected.
+    if v < 0.15:                                     return "DARK"
+    if 8 <= h <= 42 and 0.22 <= s < 0.62 and v >= 0.45:  return "SKIN"  # face + brown hair
+    if (185 <= h <= 260 or s < 0.32) and 0.15 <= v < 0.55:  return "GARMENT"  # dark hoodie/pants
+    return "OTHER"
+
+def gojo_classify(h, s, v):
+    # Gojo: dark JJK uniform = GARMENT; white blindfold + white hair kept; skin protected.
+    if v < 0.15:                                     return "DARK"
+    if 8 <= h <= 40 and 0.2 <= s < 0.62 and v >= 0.5:  return "SKIN"
+    if 0.15 <= v < 0.52 and s < 0.55:                return "GARMENT"  # dark uniform
+    return "OTHER"                                                     # white blindfold + hair kept
+
+def toji_classify(h, s, v):
+    # Toji: black tank + pants = GARMENT; pale skin protected; purple sash = ACCENT; dark hair protected.
+    if v < 0.15:                                     return "DARK"
+    if 260 <= h <= 320 and s >= 0.30:                 return "ACCENT"   # purple sash
+    if 6 <= h <= 44 and 0.12 <= s < 0.55 and v >= 0.5:  return "SKIN"   # pale skin
+    if 0.15 <= v < 0.5 and s < 0.5:                  return "GARMENT"  # black tank + pants
+    return "OTHER"
+
+def naoya_classify(h, s, v):
+    # Naoya: white haori + dark-blue hakama = GARMENT; gold trim = ACCENT; skin + dark hair protected.
+    if v < 0.15:                                     return "DARK"
+    if 8 <= h <= 40 and 0.2 <= s < 0.6 and v >= 0.55 and s >= 0.28:  return "SKIN"  # face (min sat to exclude white)
+    if 38 <= h <= 62 and s >= 0.4:                    return "ACCENT"   # gold trim
+    if (s < 0.2 and v >= 0.5) or (195 <= h <= 260 and v < 0.55):  return "GARMENT"  # white haori + dark hakama
+    return "OTHER"
+
+def maki_classify(h, s, v):
+    # Maki: dark blue-teal JJK uniform = GARMENT; skin protected; dark hair/outline protected.
+    if v < 0.13:                                     return "DARK"
+    if 8 <= h <= 40 and 0.22 <= s < 0.62 and v >= 0.5:  return "SKIN"
+    if (168 <= h <= 265 or s < 0.28) and v < 0.55:    return "GARMENT"  # dark blue-teal uniform
+    return "OTHER"
+
+def _trivial_classify(h, s, v):
+    # For Alien-X-only chars (yuta) — void_paint crushes every region regardless, so classification is moot.
+    return "OTHER"
+
+def sukuna_classify(h, s, v):
+    # Sukuna: dark blue-black kimono = GARMENT; PINK hair + tan curse-markings + skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 305 <= h <= 348 and s >= 0.35:                 return "OTHER"    # pink hair (kept)
+    if 6 <= h <= 44 and 0.18 <= s < 0.62 and v >= 0.45:  return "SKIN"  # skin + markings
+    if (195 <= h <= 265 or s < 0.28) and v < 0.5:     return "GARMENT"  # dark kimono
+    return "OTHER"
+
+def alt_sukuna_classify(h, s, v):
+    # Alternate (4-armed) Sukuna: mostly-black kimono = GARMENT; pink hair + skin/markings protected.
+    if v < 0.12:                                     return "DARK"
+    if 305 <= h <= 348 and s >= 0.35:                 return "OTHER"    # pink hair
+    if 6 <= h <= 44 and 0.2 <= s < 0.62 and v >= 0.5:  return "SKIN"    # skin + markings
+    if v < 0.5 and s < 0.55 and not (h < 40 or h > 300):  return "GARMENT"  # dark kimono (exclude warm/pink)
+    return "OTHER"
+
+def aoi_todo_classify(h, s, v):
+    # Aoi Todo: dark-blue JJK uniform = GARMENT; large skin region + dark hair protected.
+    if v < 0.15:                                     return "DARK"
+    if 4 <= h <= 42 and 0.22 <= s < 0.75 and v >= 0.42:  return "SKIN"  # face + big build skin
+    if 188 <= h <= 262 and s >= 0.22:                 return "GARMENT"  # blue uniform
+    return "OTHER"
+
+def yuji_classify(h, s, v):
+    # Yuji: dark JJK uniform = GARMENT; PINK/salmon hair + skin protected; red trim = ACCENT.
+    if v < 0.13:                                     return "DARK"
+    if 300 <= h <= 345 and s >= 0.30:                 return "OTHER"    # pink/salmon hair (kept)
+    if 6 <= h <= 42 and 0.2 <= s < 0.6 and v >= 0.45:  return "SKIN"    # face
+    if (h <= 8 or h >= 350) and s >= 0.6:             return "ACCENT"   # red trim
+    if (185 <= h <= 262 or s < 0.3) and v < 0.55:     return "GARMENT"  # dark uniform
+    return "OTHER"
+
+def handler_classify(h, s, v):
+    # Handler (Megumi): blue JJK uniform = GARMENT; black hair + skin protected.
+    if v < 0.14:                                     return "DARK"
+    if 6 <= h <= 42 and 0.2 <= s < 0.62 and v >= 0.5:  return "SKIN"    # face
+    if 200 <= h <= 265 and s >= 0.28:                 return "GARMENT"  # blue uniform
+    return "OTHER"
+
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "ichigo":        dict(classify=ichigo_classify),
+    "zaraki":        dict(classify=bleach_classify),
+    "zaraki_shikai": dict(classify=bleach_classify),
+    "mayuri":        dict(classify=bleach_classify),
+    "byakuya":       dict(classify=bleach_classify),
+    "yamamoto":      dict(classify=bleach_classify),
+    "saitama":    dict(classify=saitama_classify),
+    "genos":      dict(classify=genos_classify),
+    "light":      dict(classify=light_classify),
+    "l_ryuuzaki": dict(classify=l_classify),
+    "rick":       dict(classify=rick_classify, probe_src="rick_stand.png"),
+    "omniman":    dict(classify=omniman_classify, probe_src="omni_man_idle.png"),
+    "saiki":      dict(classify=saiki_classify, probe_src="saiki_idle_u.png"),
+    "ippo":       dict(classify=ippo_classify),
+    "miwa":       dict(classify=miwa_classify, probe_src="kasumi_idle_uniform.png"),
+    "ben10":      dict(classify=ben10_classify),
+    "albedo":     dict(classify=albedo_classify, base_glob="ben10_*__albedo.png", probe_src="ben10_idle_uniform__albedo.png"),
+    "vilgax":     dict(classify=vilgax_classify),
+    "gwen":       dict(classify=gwen_classify),
+    "omega_ranger":        dict(classify=omega_ranger_classify, probe_src="omega_ranger_idle.png"),
+    "samurai_red_ranger":  dict(classify=samurai_red_classify),
+    "gold_samurai_ranger": dict(classify=samurai_gold_classify),
+    "green_samurai_ranger":dict(classify=samurai_green_classify),
+    "red_ranger_mmpr":     dict(classify=red_mmpr_classify),
+    "ghostface":     dict(classify=ghostface_classify),
+    "ghostface_exe": dict(classify=ghostface_classify),
+    "jason":         dict(classify=jason_classify),
+    "netero":     dict(classify=netero_classify),
+    "killua":     dict(classify=killua_classify),
+    "gon":        dict(classify=gon_classify),
+    "hisoka":     dict(classify=hisoka_classify),
+    "chrollo":    dict(classify=chrollo_classify),
+    "spiderman":  dict(classify=spiderman_classify),
+    "miles":      dict(classify=miles_classify),
+    "iron_man":   dict(classify=ironman_classify),
+    "iron_man_2": dict(classify=ironman_classify),
+    "iron_man_3": dict(classify=ironman_classify),
+    "superman":         dict(classify=superman_classify),
+    "superman_dcuc":    dict(classify=superman_classify),
+    "superman_new52":   dict(classify=superman_classify),
+    "superman_classic": dict(classify=superman_classify),
+    "superman_fighter": dict(classify=superman_classify),
+    "flash":            dict(classify=flash_classify),
+    "deathstroke":      dict(classify=deathstroke_classify),
+    "brainiac":         dict(classify=brainiac_classify),
+    "green_lantern":    dict(classify=green_lantern_classify),
+    "batman":           dict(classify=batman_classify),
+    "dark_knight":      dict(classify=dark_knight_classify),
+    "itachi":     dict(classify=itachi_classify),
+    "obito":      dict(classify=obito_classify),
+    "tobi":       dict(classify=tobi_classify),
+    "six_paths_pain": dict(classify=six_paths_pain_classify),
+    "madara":     dict(classify=madara_classify),
+    "hashirama":  dict(classify=hashirama_classify),
+    "tobirama":   dict(classify=tobirama_classify),
+    "hiruzen":    dict(classify=hiruzen_classify),
+    "boruto":     dict(classify=boruto_classify),
+    "pain":       dict(classify=_trivial_classify),
+    "minato":     dict(classify=minato_classify),
+    "isshiki":    dict(classify=isshiki_classify),
+    "orochimaru": dict(classify=orochimaru_classify),
+    "onoki":      dict(classify=onoki_classify),
+    "kiba":       dict(classify=kiba_classify),
+    "gojo":       dict(classify=gojo_classify),
+    "toji":       dict(classify=toji_classify),
+    "naoya":      dict(classify=naoya_classify),
+    "maki":       dict(classify=maki_classify),
+    "yuta":       dict(classify=_trivial_classify),
+    "sukuna":     dict(classify=sukuna_classify),
+    "alt_sukuna": dict(classify=alt_sukuna_classify),
+    "aoi_todo":   dict(classify=aoi_todo_classify),
+    "yuji":       dict(classify=yuji_classify),
+    "handler":    dict(classify=handler_classify),
     "zenitsu":   dict(classify=zenitsu_classify),
     "rengoku":   dict(classify=rengoku_classify),
     "shinobu":   dict(classify=shinobu_classify),

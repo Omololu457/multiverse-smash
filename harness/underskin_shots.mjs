@@ -18,8 +18,18 @@ const CONFIG = {
     { id: "bakiAlbedo", tag: "albedo" }, { id: "bakiValkyrie", tag: "valkyrie" }, { id: "bakiAlienX", tag: "alienx" },
   ] },
   boruto: { p1: "boruto", skins: [
-    { id: "borutoValkyrie", tag: "valkyrie" }, { id: "borutoAlienX", tag: "alienx" },
+    { id: "borutoAlbedo", tag: "albedo" }, { id: "borutoValkyrie", tag: "valkyrie" }, { id: "borutoAlienX", tag: "alienx" },
   ] },
+  // ── Naruto part 2 ──
+  madara:    { p1: "madara",    skins: [{ id: "madaraAlbedo", tag: "albedo" }, { id: "madaraValkyrie", tag: "valkyrie" }, { id: "madaraAlienX", tag: "alienx" }] },
+  hashirama: { p1: "hashirama", skins: [{ id: "hashiramaAlbedo", tag: "albedo" }, { id: "hashiramaValkyrie", tag: "valkyrie" }, { id: "hashiramaAlienX", tag: "alienx" }] },
+  tobirama:  { p1: "tobirama",  skins: [{ id: "tobiramaAlbedo", tag: "albedo" }, { id: "tobiramaValkyrie", tag: "valkyrie" }, { id: "tobiramaAlienX", tag: "alienx" }] },
+  hiruzen:   { p1: "hiruzen",   skins: [{ id: "hiruzenAlbedo", tag: "albedo" }, { id: "hiruzenValkyrie", tag: "valkyrie" }, { id: "hiruzenAlienX", tag: "alienx" }] },
+  itachi:    { p1: "itachi",    skins: [{ id: "itachiValkyrie", tag: "valkyrie" }, { id: "itachiAlienX", tag: "alienx" }] },
+  six_paths_pain: { p1: "six_paths_pain", skins: [{ id: "six_paths_painValkyrie", tag: "valkyrie" }, { id: "six_paths_painAlienX", tag: "alienx" }] },
+  obito:     { p1: "obito",     skins: [{ id: "obitoValkyrie", tag: "valkyrie" }, { id: "obitoAlienX", tag: "alienx" }] },
+  tobi:      { p1: "tobi",      skins: [{ id: "tobiValkyrie", tag: "valkyrie" }, { id: "tobiAlienX", tag: "alienx" }] },
+  pain:      { p1: "pain",      skins: [{ id: "painAlienX", tag: "alienx" }] },
   kakashi: { p1: "kakashi", skins: [
     { id: "kakashiAlbedo", tag: "albedo" }, { id: "kakashiValkyrie", tag: "valkyrie" }, { id: "kakashiAlienX", tag: "alienx" },
   ] },
@@ -62,6 +72,79 @@ const CONFIG = {
   shinobu: { p1: "shinobu", skins: [{ id: "shinobuValkyrie", tag: "valkyrie" }, { id: "shinobuAlienX", tag: "alienx" }] },
   inosuke: { p1: "inosuke", skins: [{ id: "inosukeAlbedo", tag: "albedo" }, { id: "inosukeValkyrie", tag: "valkyrie" }, { id: "inosukeAlienX", tag: "alienx" }] },
   nezuko:  { p1: "nezuko",  skins: [{ id: "nezukoAlbedo", tag: "albedo" }, { id: "nezukoValkyrie", tag: "valkyrie" }, { id: "nezukoAlienX", tag: "alienx" }] },
+  // ── JJK part 1 (base-recolour; alt_sukuna mostly-black → Valk+AlienX) ──
+  sukuna:     { p1: "sukuna",     skins: [{ id: "sukunaAlbedo", tag: "albedo" }, { id: "sukunaValkyrie", tag: "valkyrie" }, { id: "sukunaAlienX", tag: "alienx" }] },
+  alt_sukuna: { p1: "alt_sukuna", skins: [{ id: "alt_sukunaValkyrie", tag: "valkyrie" }, { id: "alt_sukunaAlienX", tag: "alienx" }] },
+  aoi_todo:   { p1: "aoi_todo",   skins: [{ id: "aoi_todoAlbedo", tag: "albedo" }, { id: "aoi_todoValkyrie", tag: "valkyrie" }, { id: "aoi_todoAlienX", tag: "alienx" }] },
+  yuji:       { p1: "yuji",       skins: [{ id: "yujiAlbedo", tag: "albedo" }, { id: "yujiValkyrie", tag: "valkyrie" }, { id: "yujiAlienX", tag: "alienx" }] },
+  handler:    { p1: "handler",    skins: [{ id: "handlerAlbedo", tag: "albedo" }, { id: "handlerValkyrie", tag: "valkyrie" }, { id: "handlerAlienX", tag: "alienx" }] },
+  // ── JJK part 2 ──
+  gojo:  { p1: "gojo",  skins: [{ id: "gojoValkyrie", tag: "valkyrie" }, { id: "gojoAlienX", tag: "alienx" }] },
+  toji:  { p1: "toji",  skins: [{ id: "tojiAlbedo", tag: "albedo" }, { id: "tojiAlienX", tag: "alienx" }] },
+  naoya: { p1: "naoya", skins: [{ id: "naoyaAlbedo", tag: "albedo" }, { id: "naoyaValkyrie", tag: "valkyrie" }, { id: "naoyaAlienX", tag: "alienx" }] },
+  maki:  { p1: "maki",  skins: [{ id: "makiAlbedo", tag: "albedo" }, { id: "makiValkyrie", tag: "valkyrie" }, { id: "makiAlienX", tag: "alienx" }] },
+  yuta:  { p1: "yuta",  skins: [{ id: "yutaAlienX", tag: "alienx" }] },
+  // ── Naruto part 1 (base-recolour) ──
+  minato:     { p1: "minato",     skins: [{ id: "minatoAlbedo", tag: "albedo" }, { id: "minatoValkyrie", tag: "valkyrie" }, { id: "minatoAlienX", tag: "alienx" }] },
+  isshiki:    { p1: "isshiki",    skins: [{ id: "isshikiAlbedo", tag: "albedo" }, { id: "isshikiValkyrie", tag: "valkyrie" }, { id: "isshikiAlienX", tag: "alienx" }] },
+  orochimaru: { p1: "orochimaru", skins: [{ id: "orochimaruAlbedo", tag: "albedo" }, { id: "orochimaruValkyrie", tag: "valkyrie" }, { id: "orochimaruAlienX", tag: "alienx" }] },
+  onoki:      { p1: "onoki",      skins: [{ id: "onokiAlbedo", tag: "albedo" }, { id: "onokiValkyrie", tag: "valkyrie" }, { id: "onokiAlienX", tag: "alienx" }] },
+  kiba:       { p1: "kiba",       skins: [{ id: "kibaAlbedo", tag: "albedo" }, { id: "kibaValkyrie", tag: "valkyrie" }, { id: "kibaAlienX", tag: "alienx" }] },
+  // ── DC ──
+  superman:         { p1: "superman",         skins: [{ id: "supermanAlbedo", tag: "albedo" }, { id: "supermanValkyrie", tag: "valkyrie" }, { id: "supermanAlienX", tag: "alienx" }] },
+  superman_dcuc:    { p1: "superman_dcuc",    skins: [{ id: "superman_dcucAlbedo", tag: "albedo" }, { id: "superman_dcucValkyrie", tag: "valkyrie" }, { id: "superman_dcucAlienX", tag: "alienx" }] },
+  superman_new52:   { p1: "superman_new52",   skins: [{ id: "superman_new52Albedo", tag: "albedo" }, { id: "superman_new52Valkyrie", tag: "valkyrie" }, { id: "superman_new52AlienX", tag: "alienx" }] },
+  superman_classic: { p1: "superman_classic", skins: [{ id: "superman_classicAlbedo", tag: "albedo" }, { id: "superman_classicValkyrie", tag: "valkyrie" }, { id: "superman_classicAlienX", tag: "alienx" }] },
+  superman_fighter: { p1: "superman_fighter", skins: [{ id: "superman_fighterAlbedo", tag: "albedo" }, { id: "superman_fighterValkyrie", tag: "valkyrie" }, { id: "superman_fighterAlienX", tag: "alienx" }] },
+  flash:         { p1: "flash",         skins: [{ id: "flashAlbedo", tag: "albedo" }, { id: "flashValkyrie", tag: "valkyrie" }, { id: "flashAlienX", tag: "alienx" }] },
+  deathstroke:   { p1: "deathstroke",   skins: [{ id: "deathstrokeAlbedo", tag: "albedo" }, { id: "deathstrokeValkyrie", tag: "valkyrie" }, { id: "deathstrokeAlienX", tag: "alienx" }] },
+  brainiac:      { p1: "brainiac",      skins: [{ id: "brainiacAlbedo", tag: "albedo" }, { id: "brainiacValkyrie", tag: "valkyrie" }, { id: "brainiacAlienX", tag: "alienx" }] },
+  green_lantern: { p1: "green_lantern", skins: [{ id: "green_lanternAlbedo", tag: "albedo" }, { id: "green_lanternValkyrie", tag: "valkyrie" }, { id: "green_lanternAlienX", tag: "alienx" }] },
+  batman:        { p1: "batman",        skins: [{ id: "batmanValkyrie", tag: "valkyrie" }, { id: "batmanAlienX", tag: "alienx" }] },
+  dark_knight:   { p1: "dark_knight",   skins: [{ id: "dark_knightValkyrie", tag: "valkyrie" }, { id: "dark_knightAlienX", tag: "alienx" }] },
+  // ── Bleach ──
+  ichigo:        { p1: "ichigo",        skins: [{ id: "ichigoAlbedo", tag: "albedo" }, { id: "ichigoValkyrie", tag: "valkyrie" }, { id: "ichigoAlienX", tag: "alienx" }] },
+  zaraki:        { p1: "zaraki",        skins: [{ id: "zarakiAlbedo", tag: "albedo" }, { id: "zarakiValkyrie", tag: "valkyrie" }, { id: "zarakiAlienX", tag: "alienx" }] },
+  zaraki_shikai: { p1: "zaraki_shikai", skins: [{ id: "zaraki_shikaiAlbedo", tag: "albedo" }, { id: "zaraki_shikaiValkyrie", tag: "valkyrie" }, { id: "zaraki_shikaiAlienX", tag: "alienx" }] },
+  mayuri:        { p1: "mayuri",        skins: [{ id: "mayuriAlbedo", tag: "albedo" }, { id: "mayuriValkyrie", tag: "valkyrie" }, { id: "mayuriAlienX", tag: "alienx" }] },
+  byakuya:       { p1: "byakuya",       skins: [{ id: "byakuyaAlbedo", tag: "albedo" }, { id: "byakuyaValkyrie", tag: "valkyrie" }, { id: "byakuyaAlienX", tag: "alienx" }] },
+  yamamoto:      { p1: "yamamoto",      skins: [{ id: "yamamotoAlbedo", tag: "albedo" }, { id: "yamamotoValkyrie", tag: "valkyrie" }, { id: "yamamotoAlienX", tag: "alienx" }] },
+  // ── Marvel ──
+  spiderman:  { p1: "spiderman",  skins: [{ id: "spidermanAlbedo", tag: "albedo" }, { id: "spidermanValkyrie", tag: "valkyrie" }, { id: "spidermanAlienX", tag: "alienx" }] },
+  iron_man:   { p1: "iron_man",   skins: [{ id: "ironManAlbedo", tag: "albedo" }, { id: "ironManValkyrie", tag: "valkyrie" }, { id: "ironManAlienX", tag: "alienx" }] },
+  iron_man_2: { p1: "iron_man_2", skins: [{ id: "ironMan2Albedo", tag: "albedo" }, { id: "ironMan2Valkyrie", tag: "valkyrie" }, { id: "ironMan2AlienX", tag: "alienx" }] },
+  iron_man_3: { p1: "iron_man_3", skins: [{ id: "ironMan3Albedo", tag: "albedo" }, { id: "ironMan3Valkyrie", tag: "valkyrie" }, { id: "ironMan3AlienX", tag: "alienx" }] },
+  miles:      { p1: "miles",      skins: [{ id: "milesValkyrie", tag: "valkyrie" }, { id: "milesAlienX", tag: "alienx" }] },
+  // ── Hunter x Hunter ──
+  netero:  { p1: "netero",  skins: [{ id: "neteroAlbedo", tag: "albedo" }, { id: "neteroValkyrie", tag: "valkyrie" }, { id: "neteroAlienX", tag: "alienx" }] },
+  killua:  { p1: "killua",  skins: [{ id: "killuaAlbedo", tag: "albedo" }, { id: "killuaValkyrie", tag: "valkyrie" }, { id: "killuaAlienX", tag: "alienx" }] },
+  gon:     { p1: "gon",     skins: [{ id: "gonAlbedo", tag: "albedo" }, { id: "gonValkyrie", tag: "valkyrie" }, { id: "gonAlienX", tag: "alienx" }] },
+  hisoka:  { p1: "hisoka",  skins: [{ id: "hisokaAlbedo", tag: "albedo" }, { id: "hisokaValkyrie", tag: "valkyrie" }, { id: "hisokaAlienX", tag: "alienx" }] },
+  chrollo: { p1: "chrollo", skins: [{ id: "chrolloValkyrie", tag: "valkyrie" }, { id: "chrolloAlienX", tag: "alienx" }] },
+  // ── OPM / Death Note / misc (final wave) ──
+  saitama:    { p1: "saitama",    skins: [{ id: "saitamaAlbedo", tag: "albedo" }, { id: "saitamaValkyrie", tag: "valkyrie" }, { id: "saitamaAlienX", tag: "alienx" }] },
+  genos:      { p1: "genos",      skins: [{ id: "genosAlbedo", tag: "albedo" }, { id: "genosValkyrie", tag: "valkyrie" }, { id: "genosAlienX", tag: "alienx" }] },
+  light:      { p1: "light",      skins: [{ id: "lightValkyrie", tag: "valkyrie" }, { id: "lightAlienX", tag: "alienx" }] },
+  l_ryuuzaki: { p1: "l_ryuuzaki", skins: [{ id: "l_ryuuzakiAlbedo", tag: "albedo" }, { id: "l_ryuuzakiValkyrie", tag: "valkyrie" }, { id: "l_ryuuzakiAlienX", tag: "alienx" }] },
+  rick:       { p1: "rick",       skins: [{ id: "rickValkyrie", tag: "valkyrie" }, { id: "rickAlienX", tag: "alienx" }] },
+  omniman:    { p1: "omniman",    skins: [{ id: "omnimanAlbedo", tag: "albedo" }, { id: "omnimanValkyrie", tag: "valkyrie" }, { id: "omnimanAlienX", tag: "alienx" }] },
+  saiki:      { p1: "saiki",      skins: [{ id: "saikiAlbedo", tag: "albedo" }, { id: "saikiValkyrie", tag: "valkyrie" }, { id: "saikiAlienX", tag: "alienx" }] },
+  ippo:       { p1: "ippo",       skins: [{ id: "ippoAlbedo", tag: "albedo" }, { id: "ippoValkyrie", tag: "valkyrie" }, { id: "ippoAlienX", tag: "alienx" }] },
+  miwa:       { p1: "miwa",       skins: [{ id: "miwaAlbedo", tag: "albedo" }, { id: "miwaValkyrie", tag: "valkyrie" }, { id: "miwaAlienX", tag: "alienx" }] },
+  // ── Ben 10 ──
+  ben10:   { p1: "ben10",   skins: [{ id: "ben10Valkyrie", tag: "valkyrie" }, { id: "ben10AlienX", tag: "alienx" }] },
+  albedo:  { p1: "albedo",  skins: [{ id: "albedoValkyrie", tag: "valkyrie" }, { id: "albedoAlienX", tag: "alienx" }] },
+  vilgax:  { p1: "vilgax",  skins: [{ id: "vilgaxAlbedo", tag: "albedo" }, { id: "vilgaxValkyrie", tag: "valkyrie" }, { id: "vilgaxAlienX", tag: "alienx" }] },
+  gwen:    { p1: "gwen",    skins: [{ id: "gwenAlbedo", tag: "albedo" }, { id: "gwenValkyrie", tag: "valkyrie" }, { id: "gwenAlienX", tag: "alienx" }] },
+  // ── Power Rangers (3 samurai FORM-AWARE: Mega Mode) ──
+  omega_ranger:         { p1: "omega_ranger",         skins: [{ id: "omegaAlbedo", tag: "albedo" }, { id: "omegaValkyrie", tag: "valkyrie" }, { id: "omegaAlienX", tag: "alienx" }] },
+  samurai_red_ranger:   { p1: "samurai_red_ranger",   skins: [{ id: "samAlbedo", tag: "albedo" }, { id: "samValkyrie", tag: "valkyrie" }, { id: "samAlienX", tag: "alienx" }] },
+  gold_samurai_ranger:  { p1: "gold_samurai_ranger",  skins: [{ id: "goldValkyrie", tag: "valkyrie" }, { id: "goldAlienX", tag: "alienx" }] },
+  green_samurai_ranger: { p1: "green_samurai_ranger", skins: [{ id: "green_samuraiAlbedo", tag: "albedo" }, { id: "green_samuraiValkyrie", tag: "valkyrie" }, { id: "green_samuraiAlienX", tag: "alienx" }] },
+  red_ranger_mmpr:      { p1: "red_ranger_mmpr",      skins: [{ id: "rrAlbedo", tag: "albedo" }, { id: "rrValkyrie", tag: "valkyrie" }, { id: "rrAlienX", tag: "alienx" }] },
+  // ── Horror (ghostface parent + ghostface_billy EXCLUDED — see skins.js / memory) ──
+  jason:           { p1: "jason",           skins: [{ id: "jasonAlbedo", tag: "albedo" }, { id: "jasonValkyrie", tag: "valkyrie" }, { id: "jasonAlienX", tag: "alienx" }] },
+  ghostface_exe:   { p1: "ghostface_exe",   skins: [{ id: "ghostface_exeAlbedo", tag: "albedo" }, { id: "ghostface_exeValkyrie", tag: "valkyrie" }, { id: "ghostface_exeAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -92,6 +175,20 @@ for (const char of WANT) {
                            : char === "sasuke"    ? `sasuke_pfp__${tag}.png`
                            : char === "beerus"    ? `beerus_mugshot__${tag}.png`
                            : char === "goku_black" ? `goku_black_mug_shot__${tag}.png`
+                           : char === "itachi"     ? `Itatchi_mugshot__${tag}.png`
+                           : char === "six_paths_pain" ? `sixpaths_deva_portrait__${tag}.png`
+                           : char === "green_lantern" ? `gl_portrait__${tag}.png`
+                           : char === "zaraki"     ? `zaraki_transparent_copy__${tag}.png`
+                           : char === "netero"     ? `issac_netero_mugshot__${tag}.png`
+                           : char === "albedo"     ? `ben10_portrait__albedo__${tag}.png`
+                           : char === "rick"       ? `rick_pfp__${tag}.png`
+                           : char === "saiki"      ? `saiki_k_mug_shot__${tag}.png`
+                           : char === "miwa"       ? `kasumi_portrait__${tag}.png`
+                           : char === "omega_ranger"        ? `SPD_Omega_Ranger_mugshot__${tag}.png`
+                           : char === "samurai_red_ranger"  ? `samurai_ranger_portrait__${tag}.png`
+                           : char === "gold_samurai_ranger" ? `samurai_ranger_gold_portrait__${tag}.png`
+                           : char === "green_samurai_ranger"? `samurai_ranger_forest_portrait__${tag}.png`
+                           : char === "ghostface_exe"   ? `ghostface_exe_idle_uniform__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

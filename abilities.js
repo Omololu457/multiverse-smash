@@ -5854,6 +5854,89 @@ export function executeVegetaDarkSpecial(fighter, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SPIDER-MAN (RAIMI) — SPECIALS (Stage 3) + ULTIMATE (Stage 4). Honest to the Jaspion sheet's web-shoot
+// row (911,991) and flying-web-kick row (1630,1697). The web_fluid pool throttles the web tools; the
+// Spider-Sense Dodge is free (throttled by its own recovery, no cost).
+//   neutral = Web Shot (procedural web-ball projectile)   U = rising web-ball   air = falling web-ball
+//   Fwd     = Web Zip (i-frame web-line dive-kick gap-closer — Superman Flying-Charge pattern)
+//   Back    = Spider-Sense Dodge (free i-frame back-hop evade — Flying-Retreat pattern)
+//   Down    = Web Sweep (low web-ball skimming the floor)
+//   Ult     = Web Cocoon (overhead web-net throw → guaranteed, scaled web-cocoon finish; ×0.60 EFF)
+// Damage values are RAW (×0.60 via applyScaledDamage/GLOBAL_DAMAGE_SCALE), matching characters.js metadata.
+// ─────────────────────────────────────────────────────────────────────────────
+const RAIMI_SPECIALS = {
+  webShot:   { cost: 22, wind: 8, recovery: 14, pose: "webShot", projW: 30, projH: 30, speed: 15, damage: 60, hitstun: 16, kbX: 6, kbY: -1, life: 70, radius: 15, color: "#eef3ff" },                 // neutral — straight web-ball
+  webShotUp: { cost: 22, wind: 8, recovery: 14, pose: "webShot", projW: 30, projH: 30, speed: 14, damage: 60, hitstun: 16, kbX: 5, kbY: -4, life: 60, radius: 15, color: "#eef3ff", vy: -7 },          // Up — rising arc
+  webSweep:  { cost: 20, wind: 9, recovery: 15, pose: "webShot", projW: 34, projH: 22, speed: 16, damage: 52, hitstun: 15, kbX: 6, kbY:  0, life: 64, radius: 13, color: "#dfe6f5", low: true },        // Down — low skim
+  webZip:    { cost: 28, damage: 78, startup: 7, active: 5, recovery: 16, hitstun: 22, knockbackX: 9, knockbackY: -4, rangeX: 96, rangeY: 62 },                                                        // Fwd — i-frame dive-kick
+}
+function fireRaimiWeb(fighter, key, context, opts = {}) {
+  const t = RAIMI_SPECIALS[key]
+  if (!t || (fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, t.cost)) return false
+  const dur = t.wind + t.recovery
+  fighter.vx = 0
+  fighter._spriteCastMove = t.pose; fighter._spriteCastTimer = dur
+  fighter.attackCooldown  = getAttackDuration(dur, fighter)
+  fighter._rekkaNext = null
+  const off = Math.max(fighter.damageMultiplier || 1, fighter.attackMultiplier || 1)
+  schedulePendingSpawn(t.wind, () => {
+    const p = {
+      w: t.projW, h: t.projH, radius: t.radius, speed: t.speed,
+      damage: Math.round(t.damage * off), hitstun: t.hitstun,
+      knockbackX: t.kbX, knockbackY: t.kbY, lifetime: t.life, isSpecial: true, color: t.color,
+      spawnY: fighter.y + (fighter.h || 100) * (opts.air ? 0.30 : t.low ? 0.72 : 0.40),
+    }
+    if (opts.air) p.vy = 6          // airborne shot falls forward-down
+    else if (t.vy != null) p.vy = t.vy
+    spawnProjectile(fighter, key, p, context)
+  })
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
+function fireRaimiWebZip(fighter, context, opts = {}) {
+  const md = RAIMI_SPECIALS.webZip
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  fighter._spriteCastMove = "webZip"; fighter._spriteCastTimer = md.startup + md.active + md.recovery
+  const attack = createAttackFromMove(fighter, "webZip", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._rekkaNext = null
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, md.startup + 3)   // i-frames through the zip (slips projectiles/pokes)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 6)
+  fighter.vx = (fighter.facing || 1) * (opts.air ? 15 : 16)                    // lunge forward on the web-line
+  if (opts.air) fighter.vy = 6
+  return true
+}
+function fireRaimiSpiderSense(fighter, context) {
+  // FREE reactive i-frame back-hop evade (the spider-sense read). No hit, no cost — throttled by its
+  // own recovery so it can't be held as an infinite dodge. Mirrors fireSupFlyingRetreat (minus the cost).
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  fighter._spriteCastMove = "spiderSense"; fighter._spriteCastTimer = 26
+  fighter.attackCooldown = getAttackDuration(26, fighter)      // 26f recovery = the throttle (no energy gate)
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 14)
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)
+  fighter.vx = -(fighter.facing || 1) * 11                      // small back-hop out of danger
+  fighter.vy = -6
+  return true
+}
+export function executeRaimiSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "spiderman_raimi") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const grounded = fighter.onGround ?? fighter.grounded ?? false
+  const dir = fighter._specialHeldDir || null
+  if (!grounded) {
+    if (dir === "F") return fireRaimiWebZip(fighter, context, { air: true })   // AIR Fwd — dive web-kick
+    return fireRaimiWeb(fighter, "webShot", context, { air: true })            // AIR (any) — falling web-ball
+  }
+  if (dir === "F") return fireRaimiWebZip(fighter, context)                     // Fwd — Web Zip gap-closer
+  if (dir === "B") return fireRaimiSpiderSense(fighter, context)               // Back — Spider-Sense Dodge (free)
+  if (dir === "U") return fireRaimiWeb(fighter, "webShotUp", context)          // Up — rising web-ball
+  if (dir === "D") return fireRaimiWeb(fighter, "webSweep", context)           // Down — low Web Sweep
+  return fireRaimiWeb(fighter, "webShot", context)                             // neutral — Web Shot
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // GWEN TENNYSON — ULTIMATE (Stage 5): "Mana Blade" — the sheet's standout sequence (idle → charge orb →
 // blade extends through length stages → held full-length → swing). INLINE freeze-cinematic on the LIVE
 // fighter (Green Lantern / Deathstroke / Mayuri pattern — NO duplicate instance): Gwen holds the blade
@@ -22633,6 +22716,41 @@ function applySpidermanMaxWebDamage(fighter, opp, context) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SPIDER-MAN (RAIMI) — ULTIMATE: "Web Cocoon" (Stage 4). Same web-trap escalation as Peter's Maximum Web,
+// but Raimi holds his OWN overhead web-thwip cast pose (webThwip — the sheet's row-(911,991) f6-8 arc)
+// while the SHARED web-net cocoon overlay (drawSpidermanMaxWebCinematic, driven by _maxWebTimer — NOT
+// rosterKey-gated) grows over + PINS the frozen foe for a guaranteed scaled finish. INLINE freeze-cinematic
+// on the LIVE fighter (no duplicate). Reuses the generic web-net FX sheet (flagged) — his cast art is his own.
+// ─────────────────────────────────────────────────────────────────────────────
+const RAIMI_WEB_COCOON = { cost: 100, cinematic: 84, payoffFrame: 52, dmg: 340 }   // 340 raw → ~204 EFF (×0.60), cinematic-ult band (block 25%)
+function executeRaimiUltimate(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "spiderman_raimi") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, RAIMI_WEB_COCOON.cost)) return false
+  const opp = getTargetResolver(context)(fighter) || null
+  fighter.colorFlash = 14
+  fighter.vx = 0
+  fighter._spriteCastMove = "webThwip"; fighter._spriteCastTimer = RAIMI_WEB_COCOON.cinematic   // his own overhead web-net unload pose
+  fighter._maxWebTimer = RAIMI_WEB_COCOON.cinematic; fighter._maxWebMax = RAIMI_WEB_COCOON.cinematic   // drives the shared web-net cinematic overlay
+  fighter.attackCooldown = getAttackDuration(RAIMI_WEB_COCOON.cinematic, fighter)
+  focusCameraOnAction(context, fighter, opp, 1.3, 18)                            // zoom in on the engulfing web
+  shakeCamera(context, 6, 12)
+  if (opp) { opp.hitstop = Math.max(opp.hitstop || 0, RAIMI_WEB_COCOON.cinematic - 14); opp.vx = 0 }   // freeze the target through the wrap
+  fighter.hitstop = Math.max(fighter.hitstop || 0, 12)
+  schedulePendingSpawn(RAIMI_WEB_COCOON.payoffFrame, () => {
+    if (!opp || opp.eliminated) return
+    const blocked = !!opp.isBlocking
+    let dmg = RAIMI_WEB_COCOON.dmg
+    if (blocked) { dmg = Math.round(dmg * 0.25); opp.blockstun = Math.max(opp.blockstun || 0, 24) }
+    else { opp.hitstun = Math.max(opp.hitstun || 0, 52); opp.vx = 0; opp.vy = 0 }   // PINNED in webbing (a trap, not a launch)
+    applyScaledDamage(opp, dmg, { source: "ability" })     // honest ×0.60 → ~204 EFF (block 25%)
+    opp.colorFlash = 12
+    try { shakeCamera(context, 8, 12) } catch (_) {}
+  })
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // DEATHSTROKE SPECIALS (Stage 4) — SPECIAL button, direction-branched via _specialHeldDir (Boruto/Onoki
 // pattern). A self-contained multi-weapon kit (owner-locked: NO stance toggle): sword slashes each draw &
 // cut on their own, the pistol is one ranged tool. Each melee slash is a createAttackFromMove strike whose
@@ -23776,6 +23894,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "gotenks": return executeGotenksSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural gold shard) / Down=Ki Charge (resource-build energy gather). ★ki-blast projectile art REFUTED → procedural; charge stands alone (no beam payoff on sheet)
     case "bardock": return executeBardockSpecial(fighter, context)  // MELEE kit — neutral/Fwd/AIR=Rebellion Rush (dashing SWORD lunge) / Down=Ki Charge (golden ki-orb resource build). ★NO ranged special on sheet (not invented); ki-orb role = resource build
     case "vegeta_dark": return executeVegetaDarkSpecial(fighter, context)  // neutral/AIR=Ki Blast (procedural sphere, TIERED white→purple when dark-aura form active) / Fwd=Knife Slash (melee) / Back=Sickle Throw (procedural red crescent). U/D ship unused (owner). Dark-aura transform = Stage 5.
+    case "spiderman_raimi": return executeRaimiSpecial(fighter, context)  // neutral=Web Shot (procedural web-ball) / U=rising web-ball / Fwd=Web Zip (i-frame dive-kick gap-closer) / Back=Spider-Sense Dodge (free i-frame evade) / Down=Web Sweep (low web-ball) / AIR=falling web-ball or dive-kick. Web Cocoon = ULT.
     case "superman_dcuc": return executeSupermanDcucSpecial(fighter, context)  // neutral=Heat Vision (piercing procedural beam) / Fwd=Flying Charge (i-frame dash tackle) / U=Soaring Uppercut (anti-air launcher) / Down=Super Breath (wide push gust) / Back=Flying Retreat (i-frame escape) / AIR=Flying Dive Kick
     case "superman_new52": return executeSupermanNew52Special(fighter, context)  // neutral=Heat Vision (piercing procedural beam) / Fwd=Flying Charge (i-frame flight tackle) / U=Soaring Uppercut (anti-air launcher) / Down=Super Breath (wide push gust) / Back=Flying Retreat (i-frame escape) / AIR=Flying Dive Kick
     case "superman_classic": return executeSupermanClassicSpecial(fighter, context)  // ★REAL FX: neutral=Heat Vision (long disjoint, BAKED eye-beam) / Fwd=Flying Charge / U=Soaring Uppercut (launcher) / Down=Ice Breath (REAL frost projectile, freeze/slow) / Back=Flying Retreat / AIR=Flying Dive Kick
@@ -23963,6 +24082,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "yuta": cast = executeYutaUltimate(fighter, context); break          // Rika's Invocation (owner decision #8 = AI assist-ally) — invocation cast (row_16) hands off to a PERSISTENT AI Rika assist (summons.js rikaAssist): emerges → advances → strikes ~6s, per-hit ×0.60 scaled (Megumi-flag)
       case "mayuri": cast = executeMayuriUltimate(fighter, context); break      // Bankai: Konjiki Ashisogi Jizō — inline freeze cinematic (live fighter, no dup): golden construct assembles→crushes, guaranteed ~198 EFF
       case "spiderman": cast = executeSpidermanUltimate(fighter, context); break  // Maximum Web — inline freeze cinematic (live fighter, no dup): giant web-net engulfs+PINS the foe, guaranteed ~204 EFF
+      case "spiderman_raimi": cast = executeRaimiUltimate(fighter, context); break  // Web Cocoon — same web-trap escalation: live fighter holds his OWN overhead web-thwip pose (webThwip), shared web-net cocoon overlay grows+PINS the frozen foe, guaranteed ~204 EFF. Reuses generic web-net FX (flagged)
       case "naoya":   cast = executeNaoyaUltimate(fighter, context); break   // Projection Sorcery: Frame-Trap — PROMOTED guaranteed auto-execution (L→H→L → white-wing FREEZE finish) on live fighter, no dup, ~198 EFF; reuses S4 cast poses (no unique ult art — flagged gap)
       case "yamamoto": cast = executeYamamotoUltimate(fighter, context); break   // Ryūjin Jakka Overhead Slam — inline freeze cinematic (live fighter plays row 87+89, no dup): fire-vignette + camera zoom → guaranteed ~204 EFF slam
       case "byakuya": cast = executeByakuyaUltimate(fighter, context); break     // Bankai: Senbonzakura Kageyoshi — 2-phase inline freeze cinematic (live fighter, no dup): charge+wings → transform → release thrust+blast, guaranteed ~204 EFF

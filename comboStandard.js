@@ -183,6 +183,11 @@ export const ZONER = [
                    //   STANDARD_STRING_CHARS) — his Special button IS the identity swap. While swapped, rosterKey
                    //   becomes the borrowed identity (sasuke/deathstroke/…) and routes to THEIR kit; Billy himself
                    //   is single-poke by design. (The distinct `ghostface`/`ghostface_billy` chars ARE rekka.)
+  // Spider-Man variants (NEW standalone builds) — normals + fixed-slot web specials, no command-normal
+  // rekka chain and not in STANDARD_STRING_CHARS → single-poke (same bucket as base `spiderman`-family `miles`).
+  "spiderman_raimi", // web specials (Web Shot / Web Zip / Spider-Sense / Web Sweep) + Web Cocoon ult, no normal chain
+  "spiderman_ssf2",  // movement + normals only (no specials — staged); no chain
+  "spiderman_mci",   // movement + normals only (no specials — staged); no chain
 ]
 
 // ── BASE-NORMAL COMPLETENESS (Stage E) ──────────────────────────────────────────────────────────
@@ -246,6 +251,6 @@ export const EXPECTED_COUNTS = {
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  9,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo/omololu) + handler (JJK)
   standardStringTotal:  14,
-  zoner:                16,         // 5 original ranged zoners + 10 Stage-G single-poke + ghostface_exe (Billy base: normals but no chain — Special = identity swap)
-  rosterTotal:          100,       // 70 rekka + 14 standard-string + 16 single-poke = 100 = live roster (ghostface_exe added; Stage-G closed the earlier drift)
+  zoner:                19,         // 16 + 3 Spider-Man variants (spiderman_raimi web-specials, spiderman_ssf2/mci normals-only) — no rekka chain, not standard-string
+  rosterTotal:          103,       // 70 rekka + 14 standard-string + 19 single-poke = 103 = live roster (3 Spider-Man variant standalone builds added)
 }

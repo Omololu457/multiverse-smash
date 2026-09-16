@@ -267,6 +267,23 @@ def nezuko_classify(h, s, v):
     if 300 <= h <= 350 and s >= 0.28:                 return "GARMENT"  # pink kimono
     return "OTHER"
 
+def bleach_classify(h, s, v):
+    # Soul Reaper: white captain haori + blue/teal accents + dark shihakushō folds = GARMENT; skin protected;
+    # pure-black shihakushō/outline protected (v<0.12).
+    if v < 0.12:                                     return "DARK"
+    if 8 <= h <= 42 and 0.22 <= s < 0.65 and v >= 0.45:  return "SKIN"
+    if (s < 0.2 and v >= 0.5) or (168 <= h <= 255 and s >= 0.25) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"
+    return "OTHER"
+
+def ichigo_classify(h, s, v):
+    # Ichigo: ORANGE hair kept; black shihakushō + white wrap = GARMENT; red Zangetsu cloth = ACCENT; skin protected.
+    if v < 0.12:                                     return "DARK"
+    if 12 <= h <= 45 and s >= 0.5 and v >= 0.5:       return "OTHER"    # orange hair (kept)
+    if 8 <= h <= 42 and 0.22 <= s < 0.5 and v >= 0.45:  return "SKIN"   # face (below hair sat)
+    if (h <= 10 or h >= 348) and s >= 0.55:           return "ACCENT"   # red Zangetsu cloth
+    if (s < 0.2 and v >= 0.5) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"  # shihakushō + white wrap
+    return "OTHER"
+
 def superman_classify(h, s, v):
     # Superman (all variants): blue suit = GARMENT; red cape/boots/S = ACCENT; skin + dark hair protected.
     if v < 0.13:                                     return "DARK"
@@ -503,6 +520,12 @@ def handler_classify(h, s, v):
 
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "ichigo":        dict(classify=ichigo_classify),
+    "zaraki":        dict(classify=bleach_classify),
+    "zaraki_shikai": dict(classify=bleach_classify),
+    "mayuri":        dict(classify=bleach_classify),
+    "byakuya":       dict(classify=bleach_classify),
+    "yamamoto":      dict(classify=bleach_classify),
     "superman":         dict(classify=superman_classify),
     "superman_dcuc":    dict(classify=superman_classify),
     "superman_new52":   dict(classify=superman_classify),

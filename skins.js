@@ -623,6 +623,10 @@ export const SKINS = {
   // DEFAULT is the navy hakama the frames already ship in → Default(Navy) + 7 recolours + Eternal Void.
   yamamoto: [
     { id: "default",             name: "Navy Hakama",  unlockLevel: 0, portrait: characters.yamamoto?.portrait,                 spriteScale: characters.yamamoto?.spriteScale, animationData: null },   // base art = the navy/blue hakama
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "yamamotoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("yamamoto", "albedo"), spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "albedo") },
+    { id: "yamamotoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("yamamoto", "valkyrie"), spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "valkyrie") },
+    { id: "yamamotoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("yamamoto", "alienx"), spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "alienx") },
     { id: "yamamotoWineHakama",  name: "Wine Hakama",  unlockLevel: 0, portrait: "./yamamoto_portrait__wineHakama.png",  spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "wineHakama") },   // deep maroon/wine (crop hue 354)
     { id: "yamamotoIceBlue",     name: "Ice-Blue",     unlockLevel: 0, portrait: "./yamamoto_portrait__iceBlue.png",     spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "iceBlue") },      // pale ice-blue (crop blue, value-lifted per identity)
     { id: "yamamotoForestGreen", name: "Forest Green", unlockLevel: 0, portrait: "./yamamoto_portrait__forestGreen.png", spriteScale: characters.yamamoto?.spriteScale, animationData: recolorSkinAnim("yamamoto", "forestGreen") },  // olive/forest green (crop hue 167)
@@ -635,6 +639,10 @@ export const SKINS = {
 
   mayuri: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.mayuri?.portrait, spriteScale: characters.mayuri?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "mayuriAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("mayuri", "albedo"), spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "albedo") },
+    { id: "mayuriValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("mayuri", "valkyrie"), spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "valkyrie") },
+    { id: "mayuriAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("mayuri", "alienx"), spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "alienx") },
     { id: "mayuriResearchDivision", name: "Research Division", unlockLevel: 0, portrait: "./mayuri_portrait__researchdivision.png", spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "researchdivision") },  // SRDI teal-cyan haori (12th Division)
     { id: "mayuriReigai",           name: "Reigai",           unlockLevel: 0, portrait: "./mayuri_portrait__reigai.png",           spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "reigai") },           // pale artificial-soul mint
     { id: "mayuriClinicalAsh",      name: "Clinical Ash",     unlockLevel: 0, portrait: "./mayuri_portrait__clinicalash.png",      spriteScale: characters.mayuri?.spriteScale, animationData: recolorSkinAnim("mayuri", "clinicalash") },      // desaturated clinical grey lab coat + slate
@@ -729,6 +737,10 @@ export const SKINS = {
   ],
   byakuya: [
     { id: "default",               name: "Default",          unlockLevel: 0, portrait: characters.byakuya?.portrait,        spriteScale: characters.byakuya?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "byakuyaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("byakuya", "albedo"), spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "albedo") },
+    { id: "byakuyaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("byakuya", "valkyrie"), spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "valkyrie") },
+    { id: "byakuyaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("byakuya", "alienx"), spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "alienx") },
     { id: "byakuyaSakuraBloom",    name: "Sakura Bloom",     unlockLevel: 0, portrait: "./byakuya_portrait__sakura.png",    spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "sakura") },     // Senbonzakura petal-pink coat over deep plum
     { id: "byakuyaKuchikiCrest",   name: "Kuchiki Crest",    unlockLevel: 0, portrait: "./byakuya_portrait__kuchiki.png",   spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "kuchiki") },    // noble royal-blue coat over black
     { id: "byakuyaWinterFrost",    name: "Winter Frost",     unlockLevel: 0, portrait: "./byakuya_portrait__frost.png",     spriteScale: characters.byakuya?.spriteScale, animationData: recolorSkinAnim("byakuya", "frost") },      // icy pale-blue-white coat over slate
@@ -1972,6 +1984,10 @@ export const SKINS = {
   // Cosmetic only; zero gameplay. Sources his real spriteScale (1.9) from the character.
   ichigo: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ichigo?.portrait, spriteScale: characters.ichigo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "ichigoAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("ichigo", "albedo"), spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "albedo") },
+    { id: "ichigoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("ichigo", "valkyrie"), spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "valkyrie") },
+    { id: "ichigoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("ichigo", "alienx"), spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "alienx") },
     // ── Group 1 ──
     { id: "ichigoCrimsonReaper",    name: "Crimson Reaper",    unlockLevel: 0, portrait: "./ichigo_portrait__crimsonreaper.png",    spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "crimsonreaper") },
     { id: "ichigoVerdantBlade",     name: "Verdant Blade",     unlockLevel: 0, portrait: "./ichigo_portrait__verdantblade.png",     spriteScale: characters.ichigo?.spriteScale, animationData: recolorSkinAnim("ichigo", "verdantblade") },
@@ -1995,6 +2011,10 @@ export const SKINS = {
   // abilities.js retagFormAnim(ZARAKI_SHIKAI_ANIM, tag) carries the recolor into Shikai too.
   zaraki: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zaraki?.portrait, spriteScale: characters.zaraki?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Shikai).
+    { id: "zarakiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("zaraki", "albedo"), spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "albedo"), recolorTag: "albedo" },
+    { id: "zarakiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("zaraki", "valkyrie"), spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "zarakiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("zaraki", "alienx"), spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "alienx"), recolorTag: "alienx" },
     // ── Group 1 ──
     { id: "zarakiCrimsonReaper",  name: "Crimson Reaper",      unlockLevel: 0, portrait: "./zaraki_transparent_copy__crimsonreaper.png", spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "crimsonreaper"), recolorTag: "crimsonreaper" },
     { id: "zarakiFrostbitten",    name: "Frostbitten Captain", unlockLevel: 0, portrait: "./zaraki_transparent_copy__frostbitten.png",   spriteScale: characters.zaraki?.spriteScale, animationData: recolorSkinAnim("zaraki", "frostbitten"),   recolorTag: "frostbitten" },
@@ -2017,6 +2037,10 @@ export const SKINS = {
   // follow later). animationData:null → uses the char's native Shikai art.
   zaraki_shikai: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "zaraki_shikaiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("zaraki_shikai", "albedo"), spriteScale: characters.zaraki_shikai?.spriteScale, animationData: recolorSkinAnim("zaraki_shikai", "albedo") },
+    { id: "zaraki_shikaiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("zaraki_shikai", "valkyrie"), spriteScale: characters.zaraki_shikai?.spriteScale, animationData: recolorSkinAnim("zaraki_shikai", "valkyrie") },
+    { id: "zaraki_shikaiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("zaraki_shikai", "alienx"), spriteScale: characters.zaraki_shikai?.spriteScale, animationData: recolorSkinAnim("zaraki_shikai", "alienx") },
     { id: "zaraki_shikai_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
     { id: "zaraki_shikai_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.zaraki_shikai?.portrait, spriteScale: characters.zaraki_shikai?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],

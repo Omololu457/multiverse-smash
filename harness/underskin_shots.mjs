@@ -102,6 +102,13 @@ const CONFIG = {
   green_lantern: { p1: "green_lantern", skins: [{ id: "green_lanternAlbedo", tag: "albedo" }, { id: "green_lanternValkyrie", tag: "valkyrie" }, { id: "green_lanternAlienX", tag: "alienx" }] },
   batman:        { p1: "batman",        skins: [{ id: "batmanValkyrie", tag: "valkyrie" }, { id: "batmanAlienX", tag: "alienx" }] },
   dark_knight:   { p1: "dark_knight",   skins: [{ id: "dark_knightValkyrie", tag: "valkyrie" }, { id: "dark_knightAlienX", tag: "alienx" }] },
+  // ── Bleach ──
+  ichigo:        { p1: "ichigo",        skins: [{ id: "ichigoAlbedo", tag: "albedo" }, { id: "ichigoValkyrie", tag: "valkyrie" }, { id: "ichigoAlienX", tag: "alienx" }] },
+  zaraki:        { p1: "zaraki",        skins: [{ id: "zarakiAlbedo", tag: "albedo" }, { id: "zarakiValkyrie", tag: "valkyrie" }, { id: "zarakiAlienX", tag: "alienx" }] },
+  zaraki_shikai: { p1: "zaraki_shikai", skins: [{ id: "zaraki_shikaiAlbedo", tag: "albedo" }, { id: "zaraki_shikaiValkyrie", tag: "valkyrie" }, { id: "zaraki_shikaiAlienX", tag: "alienx" }] },
+  mayuri:        { p1: "mayuri",        skins: [{ id: "mayuriAlbedo", tag: "albedo" }, { id: "mayuriValkyrie", tag: "valkyrie" }, { id: "mayuriAlienX", tag: "alienx" }] },
+  byakuya:       { p1: "byakuya",       skins: [{ id: "byakuyaAlbedo", tag: "albedo" }, { id: "byakuyaValkyrie", tag: "valkyrie" }, { id: "byakuyaAlienX", tag: "alienx" }] },
+  yamamoto:      { p1: "yamamoto",      skins: [{ id: "yamamotoAlbedo", tag: "albedo" }, { id: "yamamotoValkyrie", tag: "valkyrie" }, { id: "yamamotoAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -135,6 +142,7 @@ for (const char of WANT) {
                            : char === "itachi"     ? `Itatchi_mugshot__${tag}.png`
                            : char === "six_paths_pain" ? `sixpaths_deva_portrait__${tag}.png`
                            : char === "green_lantern" ? `gl_portrait__${tag}.png`
+                           : char === "zaraki"     ? `zaraki_transparent_copy__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

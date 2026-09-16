@@ -121,6 +121,16 @@ const CONFIG = {
   gon:     { p1: "gon",     skins: [{ id: "gonAlbedo", tag: "albedo" }, { id: "gonValkyrie", tag: "valkyrie" }, { id: "gonAlienX", tag: "alienx" }] },
   hisoka:  { p1: "hisoka",  skins: [{ id: "hisokaAlbedo", tag: "albedo" }, { id: "hisokaValkyrie", tag: "valkyrie" }, { id: "hisokaAlienX", tag: "alienx" }] },
   chrollo: { p1: "chrollo", skins: [{ id: "chrolloValkyrie", tag: "valkyrie" }, { id: "chrolloAlienX", tag: "alienx" }] },
+  // ── OPM / Death Note / misc (final wave) ──
+  saitama:    { p1: "saitama",    skins: [{ id: "saitamaAlbedo", tag: "albedo" }, { id: "saitamaValkyrie", tag: "valkyrie" }, { id: "saitamaAlienX", tag: "alienx" }] },
+  genos:      { p1: "genos",      skins: [{ id: "genosAlbedo", tag: "albedo" }, { id: "genosValkyrie", tag: "valkyrie" }, { id: "genosAlienX", tag: "alienx" }] },
+  light:      { p1: "light",      skins: [{ id: "lightValkyrie", tag: "valkyrie" }, { id: "lightAlienX", tag: "alienx" }] },
+  l_ryuuzaki: { p1: "l_ryuuzaki", skins: [{ id: "l_ryuuzakiAlbedo", tag: "albedo" }, { id: "l_ryuuzakiValkyrie", tag: "valkyrie" }, { id: "l_ryuuzakiAlienX", tag: "alienx" }] },
+  rick:       { p1: "rick",       skins: [{ id: "rickValkyrie", tag: "valkyrie" }, { id: "rickAlienX", tag: "alienx" }] },
+  omniman:    { p1: "omniman",    skins: [{ id: "omnimanAlbedo", tag: "albedo" }, { id: "omnimanValkyrie", tag: "valkyrie" }, { id: "omnimanAlienX", tag: "alienx" }] },
+  saiki:      { p1: "saiki",      skins: [{ id: "saikiAlbedo", tag: "albedo" }, { id: "saikiValkyrie", tag: "valkyrie" }, { id: "saikiAlienX", tag: "alienx" }] },
+  ippo:       { p1: "ippo",       skins: [{ id: "ippoAlbedo", tag: "albedo" }, { id: "ippoValkyrie", tag: "valkyrie" }, { id: "ippoAlienX", tag: "alienx" }] },
+  miwa:       { p1: "miwa",       skins: [{ id: "miwaAlbedo", tag: "albedo" }, { id: "miwaValkyrie", tag: "valkyrie" }, { id: "miwaAlienX", tag: "alienx" }] },
   // ── Ben 10 ──
   ben10:   { p1: "ben10",   skins: [{ id: "ben10Valkyrie", tag: "valkyrie" }, { id: "ben10AlienX", tag: "alienx" }] },
   albedo:  { p1: "albedo",  skins: [{ id: "albedoValkyrie", tag: "valkyrie" }, { id: "albedoAlienX", tag: "alienx" }] },
@@ -171,6 +181,9 @@ for (const char of WANT) {
                            : char === "zaraki"     ? `zaraki_transparent_copy__${tag}.png`
                            : char === "netero"     ? `issac_netero_mugshot__${tag}.png`
                            : char === "albedo"     ? `ben10_portrait__albedo__${tag}.png`
+                           : char === "rick"       ? `rick_pfp__${tag}.png`
+                           : char === "saiki"      ? `saiki_k_mug_shot__${tag}.png`
+                           : char === "miwa"       ? `kasumi_portrait__${tag}.png`
                            : char === "omega_ranger"        ? `SPD_Omega_Ranger_mugshot__${tag}.png`
                            : char === "samurai_red_ranger"  ? `samurai_ranger_portrait__${tag}.png`
                            : char === "gold_samurai_ranger" ? `samurai_ranger_gold_portrait__${tag}.png`

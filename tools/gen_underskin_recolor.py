@@ -284,6 +284,78 @@ def ichigo_classify(h, s, v):
     if (s < 0.2 and v >= 0.5) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"  # shihakushō + white wrap
     return "OTHER"
 
+def saitama_classify(h, s, v):
+    # Saitama (OPM): yellow jumpsuit = GARMENT; red gloves/boots = ACCENT; white cape = TRIM; bald head/skin kept.
+    if 15 <= h <= 42 and 0.22 <= s < 0.55 and v >= 0.5:  return "SKIN"    # skin / bald head
+    if 42 <= h <= 65 and s >= 0.5:                     return "GARMENT"  # yellow jumpsuit
+    if (h <= 15 or h >= 340) and s >= 0.45:            return "ACCENT"   # red gloves/boots/belt
+    if s < 0.2 and v >= 0.6:                           return "TRIM"     # white cape
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def genos_classify(h, s, v):
+    # Genos (OPM): dark cyborg body = GARMENT; blue accents/joints = ACCENT; blonde hair + skin kept; dark protected.
+    if 38 <= h <= 58 and s >= 0.4 and v >= 0.55:       return "OTHER"    # blonde hair (kept)
+    if 14 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5: return "SKIN"     # face
+    if 185 <= h <= 250 and s >= 0.35:                  return "ACCENT"   # blue tech
+    if v < 0.5 and s < 0.5:                            return "GARMENT"  # dark metal body
+    return "OTHER"
+
+def light_classify(h, s, v):
+    # Light Yagami: dark school blazer = GARMENT; brown hair + skin protected.
+    if 14 <= h <= 42 and 0.25 <= s < 0.62 and v >= 0.42:  return "SKIN"  # skin + brown hair
+    if v < 0.5 and s < 0.55:                           return "GARMENT"  # dark blazer + slacks
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def l_classify(h, s, v):
+    # L (Ryuuzaki): white long-sleeve shirt = GARMENT; blue jeans = ACCENT; black messy hair + pale skin protected.
+    if v < 0.16:                                       return "DARK"     # black hair + outline
+    if 12 <= h <= 45 and 0.15 <= s < 0.45 and v >= 0.6:  return "SKIN"   # pale skin
+    if 200 <= h <= 260 and s >= 0.28:                  return "ACCENT"   # blue jeans
+    if s < 0.22 and v >= 0.55:                         return "GARMENT"  # white shirt
+    return "OTHER"
+
+def rick_classify(h, s, v):
+    # Rick Sanchez: pale-cyan hair kept; white lab coat = GARMENT; brown pants = ACCENT; skin protected.
+    if 150 <= h <= 205 and s >= 0.14 and v >= 0.5:     return "OTHER"    # cyan hair (kept)
+    if 12 <= h <= 45 and 0.22 <= s < 0.55 and v >= 0.5:  return "SKIN"   # skin
+    if 15 <= h <= 45 and s >= 0.3 and v < 0.6:         return "ACCENT"   # brown pants
+    if s < 0.22 and v >= 0.5:                          return "GARMENT"  # white lab coat
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def omniman_classify(h, s, v):
+    # Omni-Man: white suit = GARMENT; red torso/emblem = ACCENT; grey mustache/hair kept; skin protected.
+    if 6 <= h <= 40 and 0.22 <= s < 0.5 and v >= 0.5:  return "SKIN"     # skin
+    if (h <= 15 or h >= 340) and s >= 0.45:            return "ACCENT"   # red torso / emblem
+    if s < 0.24 and v >= 0.45:                         return "GARMENT"  # white suit
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def saiki_classify(h, s, v):
+    # Saiki K: green school gakuran = GARMENT; pink hair kept; skin protected; antennae kept.
+    if 285 <= h <= 345 and s >= 0.3:                   return "OTHER"    # pink hair (kept)
+    if 14 <= h <= 42 and 0.2 <= s < 0.5 and v >= 0.55: return "SKIN"     # skin
+    if 90 <= h <= 175 and s >= 0.25:                   return "GARMENT"  # green uniform
+    if v < 0.1:                                        return "DARK"
+    return "OTHER"
+
+def ippo_classify(h, s, v):
+    # Ippo (boxer): red gloves/trunks = GARMENT; blue waistband = ACCENT; bare torso skin protected; dark hair kept.
+    if v < 0.12:                                       return "DARK"     # black hair
+    if 6 <= h <= 40 and 0.28 <= s < 0.62 and v >= 0.45:  return "SKIN"   # bare torso + skin
+    if 195 <= h <= 250 and s >= 0.3:                   return "ACCENT"   # blue waistband
+    if (h <= 15 or h >= 335) and s >= 0.42:            return "GARMENT"  # red gloves/trunks
+    return "OTHER"
+
+def miwa_classify(h, s, v):
+    # Miwa (kasumi sprites): purple/blue kendo-ish outfit = GARMENT; dark hair protected; skin protected.
+    if v < 0.12:                                       return "DARK"
+    if 12 <= h <= 42 and 0.22 <= s < 0.55 and v >= 0.5:  return "SKIN"   # skin
+    if 225 <= h <= 320 and s >= 0.28:                  return "GARMENT"  # purple/blue outfit
+    return "OTHER"
+
 def ben10_classify(h, s, v):
     # Ben 10: black jacket/pants = GARMENT; green stripe/Omnitrix = ACCENT; white tee = TRIM; skin+brown hair kept.
     if 14 <= h <= 42 and 0.30 <= s < 0.7 and v >= 0.45:  return "SKIN"    # skin + brown hair
@@ -677,6 +749,15 @@ CHARS = {
     "mayuri":        dict(classify=bleach_classify),
     "byakuya":       dict(classify=bleach_classify),
     "yamamoto":      dict(classify=bleach_classify),
+    "saitama":    dict(classify=saitama_classify),
+    "genos":      dict(classify=genos_classify),
+    "light":      dict(classify=light_classify),
+    "l_ryuuzaki": dict(classify=l_classify),
+    "rick":       dict(classify=rick_classify, probe_src="rick_stand.png"),
+    "omniman":    dict(classify=omniman_classify, probe_src="omni_man_idle.png"),
+    "saiki":      dict(classify=saiki_classify, probe_src="saiki_idle_u.png"),
+    "ippo":       dict(classify=ippo_classify),
+    "miwa":       dict(classify=miwa_classify, probe_src="kasumi_idle_uniform.png"),
     "ben10":      dict(classify=ben10_classify),
     "albedo":     dict(classify=albedo_classify, base_glob="ben10_*__albedo.png", probe_src="ben10_idle_uniform__albedo.png"),
     "vilgax":     dict(classify=vilgax_classify),

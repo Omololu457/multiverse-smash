@@ -284,6 +284,40 @@ def ichigo_classify(h, s, v):
     if (s < 0.2 and v >= 0.5) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"  # shihakushō + white wrap
     return "OTHER"
 
+def ben10_classify(h, s, v):
+    # Ben 10: black jacket/pants = GARMENT; green stripe/Omnitrix = ACCENT; white tee = TRIM; skin+brown hair kept.
+    if 14 <= h <= 42 and 0.30 <= s < 0.7 and v >= 0.45:  return "SKIN"    # skin + brown hair
+    if 50 <= h <= 165 and s >= 0.4:                   return "ACCENT"   # green stripe / Omnitrix
+    if s < 0.2 and v >= 0.68:                         return "TRIM"     # white tee
+    if v < 0.34:                                      return "GARMENT"  # black jacket + pants
+    return "OTHER"
+
+def albedo_classify(h, s, v):
+    # Albedo (Ben's Galvan rival — base sheets = ben10_*__albedo.png): WHITE hair kept; black jacket = GARMENT;
+    # red accents = ACCENT; white tee kept; skin protected. (White hair + white tee are BOTH kept as OTHER.)
+    if 14 <= h <= 42 and 0.30 <= s < 0.7 and v >= 0.45:  return "SKIN"    # skin
+    if (h <= 15 or h >= 340) and s >= 0.45:           return "ACCENT"   # red accents
+    if s < 0.2 and v >= 0.6:                          return "OTHER"    # white hair + white tee (kept)
+    if v < 0.34:                                      return "GARMENT"  # black jacket + pants
+    return "OTHER"
+
+def vilgax_classify(h, s, v):
+    # Vilgax: dark armour = GARMENT; red accents = ACCENT; green squid-skin protected; dark protected.
+    if 70 <= h <= 175 and s >= 0.25 and v >= 0.3:     return "SKIN"     # green alien skin (kept)
+    if (h <= 15 or h >= 340) and s >= 0.45:           return "ACCENT"   # red accents
+    if v < 0.12:                                      return "DARK"
+    if v < 0.5 and s < 0.6:                           return "GARMENT"  # dark armour
+    return "OTHER"
+
+def gwen_classify(h, s, v):
+    # Gwen: blue/cyan outfit = GARMENT; red-orange hair kept; magenta mana = ACCENT; skin protected.
+    if 8 <= h <= 42 and s >= 0.4 and v >= 0.45:       return "OTHER"    # red-orange hair (kept)
+    if 6 <= h <= 40 and 0.2 <= s < 0.4 and v >= 0.55: return "SKIN"     # skin
+    if 300 <= h <= 340 and s >= 0.35:                 return "ACCENT"   # magenta mana
+    if 165 <= h <= 260 and s >= 0.28:                 return "GARMENT"  # blue/cyan outfit
+    if v < 0.12:                                      return "DARK"
+    return "OTHER"
+
 def omega_ranger_classify(h, s, v):
     # SPD Omega Ranger: white suit = GARMENT; blue accents = ACCENT; gold trim = TRIM.
     if 20 <= h <= 55 and s >= 0.45 and v >= 0.45:     return "TRIM"     # gold
@@ -643,6 +677,10 @@ CHARS = {
     "mayuri":        dict(classify=bleach_classify),
     "byakuya":       dict(classify=bleach_classify),
     "yamamoto":      dict(classify=bleach_classify),
+    "ben10":      dict(classify=ben10_classify),
+    "albedo":     dict(classify=albedo_classify, base_glob="ben10_*__albedo.png", probe_src="ben10_idle_uniform__albedo.png"),
+    "vilgax":     dict(classify=vilgax_classify),
+    "gwen":       dict(classify=gwen_classify),
     "omega_ranger":        dict(classify=omega_ranger_classify, probe_src="omega_ranger_idle.png"),
     "samurai_red_ranger":  dict(classify=samurai_red_classify),
     "gold_samurai_ranger": dict(classify=samurai_gold_classify),

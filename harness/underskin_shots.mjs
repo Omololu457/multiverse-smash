@@ -121,6 +121,11 @@ const CONFIG = {
   gon:     { p1: "gon",     skins: [{ id: "gonAlbedo", tag: "albedo" }, { id: "gonValkyrie", tag: "valkyrie" }, { id: "gonAlienX", tag: "alienx" }] },
   hisoka:  { p1: "hisoka",  skins: [{ id: "hisokaAlbedo", tag: "albedo" }, { id: "hisokaValkyrie", tag: "valkyrie" }, { id: "hisokaAlienX", tag: "alienx" }] },
   chrollo: { p1: "chrollo", skins: [{ id: "chrolloValkyrie", tag: "valkyrie" }, { id: "chrolloAlienX", tag: "alienx" }] },
+  // ── Ben 10 ──
+  ben10:   { p1: "ben10",   skins: [{ id: "ben10Valkyrie", tag: "valkyrie" }, { id: "ben10AlienX", tag: "alienx" }] },
+  albedo:  { p1: "albedo",  skins: [{ id: "albedoValkyrie", tag: "valkyrie" }, { id: "albedoAlienX", tag: "alienx" }] },
+  vilgax:  { p1: "vilgax",  skins: [{ id: "vilgaxAlbedo", tag: "albedo" }, { id: "vilgaxValkyrie", tag: "valkyrie" }, { id: "vilgaxAlienX", tag: "alienx" }] },
+  gwen:    { p1: "gwen",    skins: [{ id: "gwenAlbedo", tag: "albedo" }, { id: "gwenValkyrie", tag: "valkyrie" }, { id: "gwenAlienX", tag: "alienx" }] },
   // ── Power Rangers (3 samurai FORM-AWARE: Mega Mode) ──
   omega_ranger:         { p1: "omega_ranger",         skins: [{ id: "omegaAlbedo", tag: "albedo" }, { id: "omegaValkyrie", tag: "valkyrie" }, { id: "omegaAlienX", tag: "alienx" }] },
   samurai_red_ranger:   { p1: "samurai_red_ranger",   skins: [{ id: "samAlbedo", tag: "albedo" }, { id: "samValkyrie", tag: "valkyrie" }, { id: "samAlienX", tag: "alienx" }] },
@@ -165,6 +170,7 @@ for (const char of WANT) {
                            : char === "green_lantern" ? `gl_portrait__${tag}.png`
                            : char === "zaraki"     ? `zaraki_transparent_copy__${tag}.png`
                            : char === "netero"     ? `issac_netero_mugshot__${tag}.png`
+                           : char === "albedo"     ? `ben10_portrait__albedo__${tag}.png`
                            : char === "omega_ranger"        ? `SPD_Omega_Ranger_mugshot__${tag}.png`
                            : char === "samurai_red_ranger"  ? `samurai_ranger_portrait__${tag}.png`
                            : char === "gold_samurai_ranger" ? `samurai_ranger_gold_portrait__${tag}.png`

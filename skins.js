@@ -287,6 +287,10 @@ export const SKINS = {
   // (REAL canon transformed state: purple skin + pink mana hair — distinct from Void's near-black).
   gwen: [
     { id: "default",            name: "Default",             unlockLevel: 0, portrait: characters.gwen?.portrait,                        spriteScale: characters.gwen?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "gwenAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("gwen", "albedo"), spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "albedo"), recolorTag: "albedo" },
+    { id: "gwenValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gwen", "valkyrie"), spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "gwenAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gwen", "alienx"), spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "alienx"), recolorTag: "alienx" },
     // ── Group 1 ──
     { id: "gwenCrimsonMana",    name: "Crimson Mana",        unlockLevel: 0, portrait: "./gwen_portrait__crimsonmana.png",    spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "crimsonmana"),    recolorTag: "crimsonmana" },
     { id: "gwenVerdantSpark",   name: "Verdant Spark",       unlockLevel: 0, portrait: "./gwen_portrait__verdantspark.png",   spriteScale: characters.gwen?.spriteScale, animationData: recolorSkinAnim("gwen", "verdantspark"),   recolorTag: "verdantspark" },
@@ -309,6 +313,10 @@ export const SKINS = {
   // alternate-era design: black/red-brown armour + gloves, green cheek-sacs kept). Default entry MANDATORY.
   vilgax: [
     { id: "default",              name: "Default",           unlockLevel: 0, portrait: characters.vilgax?.portrait,                        spriteScale: characters.vilgax?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "vilgaxAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("vilgax", "albedo"), spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "albedo"), recolorTag: "albedo" },
+    { id: "vilgaxValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("vilgax", "valkyrie"), spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "vilgaxAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("vilgax", "alienx"), spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "alienx"), recolorTag: "alienx" },
     // ── Group 1 ──
     { id: "vilgaxCrimsonConqueror", name: "Crimson Conqueror", unlockLevel: 0, portrait: "./vilgax_portrait__crimsonconqueror.png", spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "crimsonconqueror"), recolorTag: "crimsonconqueror" },
     { id: "vilgaxVerdantWarlord",   name: "Verdant Warlord",   unlockLevel: 0, portrait: "./vilgax_portrait__verdantwarlord.png",   spriteScale: characters.vilgax?.spriteScale, animationData: recolorSkinAnim("vilgax", "verdantwarlord"),   recolorTag: "verdantwarlord" },
@@ -1687,6 +1695,9 @@ export const SKINS = {
   // the spriteScale:1 fallback and Ben renders at ~half size. No alt skins yet.
   ben10: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (Albedo tag reserved for the Albedo character's base art → ben10 gets Valk+AlienX)
+    { id: "ben10Valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("ben10", "valkyrie"), spriteScale: characters.ben10?.spriteScale, animationData: recolorSkinAnim("ben10", "valkyrie") },
+    { id: "ben10AlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("ben10", "alienx"), spriteScale: characters.ben10?.spriteScale, animationData: recolorSkinAnim("ben10", "alienx") },
     { id: "ben10_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
     { id: "ben10_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
@@ -1698,6 +1709,9 @@ export const SKINS = {
   // sheets are used. No alt/tint skins (his identity IS the recolor).
   albedo: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.albedo?.portrait, spriteScale: characters.albedo?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (base = ben10_*__albedo.png; Albedo-on-Albedo dropped → Valk+AlienX)
+    { id: "albedoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("albedo", "valkyrie"), spriteScale: characters.albedo?.spriteScale, animationData: recolorSkinAnim("albedo", "valkyrie") },
+    { id: "albedoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("albedo", "alienx"), spriteScale: characters.albedo?.spriteScale, animationData: recolorSkinAnim("albedo", "alienx") },
   ],
 
   // Ghostface — the 5 KILLER-IDENTITY skins ONLY (NO "Default"). In the source material there is no

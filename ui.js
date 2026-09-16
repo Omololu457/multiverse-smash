@@ -2992,7 +2992,13 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
 
 // Records the world-y span the stage backdrop actually covered on the last draw (top→bottom). The
 // fullscreen-centering probe reads it to confirm the drawn stage is balanced within the camera view.
-export const lastBattleBgRect = { top: 0, bottom: 0 }
+export const lastBattleBgRect = { top: 0, bottom: 0, imgTop: 0, imgBot: 0 }
+
+// Reference canvas height the stage backdrops are authored/aligned to. The ground-anchoring math below is a
+// NO-OP at exactly this height (imgTop resolves to 0 → identical to the legacy [0,h] draw), so the common
+// windowed 720p case is unchanged; taller/fullscreen viewports get the image slid so its floor stays locked
+// to groundY instead of drifting. 720 = the standard windowed height + the default harness viewport.
+const BG_REF_HEIGHT = 720
 
 export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, floorHeight = 120, coverY = null) {
   const { width: w, height: h } = getCanvasSize(canvas)
@@ -3012,11 +3018,28 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
   // [0,h] canvas band. The sky→mid→floor gradient stays anchored to [0,h] so the HORIZON never moves —
   // canvas gradients CLAMP their end colours, so a taller fill paints solid sky above 0 and solid floor
   // below h automatically. Result: the drawn stage brackets the view evenly, no gap top or bottom.
-  const covTop   = Math.min(0, coverY?.top ?? 0)
-  const covBot   = Math.max(h, coverY?.bottom ?? h)
+  // ── GROUND-ANCHORED BACKDROP FRAMING ──────────────────────────────────────────────────────────────
+  // The physics floor plane sits at groundY = canvasHeight − (floorHeight+groundOffset): a FIXED pixel band
+  // above the bottom. Procedural landmarks draw relative to groundY, so they track the floor at ANY viewport
+  // height. A BITMAP backdrop, though, used to be stretched to the raw canvas band [0,h] — so its baked
+  // horizon/ground sat at a fixed FRACTION of h and DRIFTED away from groundY as the window / fullscreen
+  // height changed (the reported desync: on resize the physics floor stayed put but the painted scenery slid).
+  // Fix: anchor the image so the SAME image-fraction always lands on groundY, exactly like the landmarks.
+  // `belowGround` (=floorHeight+groundOffset) and BG_REF_HEIGHT define that fraction; the shift is 0 at the
+  // reference height, so the common windowed 720p case stays byte-identical. Reads groundY (recomputed from
+  // the live canvas size every resize), so the backdrop and the floor now reflow from the SAME source.
+  const belowGround = Math.max(1, h - groundY)                                    // floorHeight+groundOffset (live/per-stage)
+  const groundFrac  = Math.max(0, Math.min(1, 1 - belowGround / BG_REF_HEIGHT))   // image fraction the floor line sits at
+  const imgTop      = groundY - groundFrac * h                                    // slide the h-tall image so its floor == groundY
+  const imgBot      = imgTop + h
+
+  const covTop   = Math.min(0, coverY?.top ?? 0, imgTop)
+  const covBot   = Math.max(h, coverY?.bottom ?? h, imgBot)
   const floorExt = Math.max(floorHeight, covBot - groundY)   // extend the ground down to the view bottom
   lastBattleBgRect.top    = covTop
   lastBattleBgRect.bottom = covBot
+  lastBattleBgRect.imgTop = imgTop     // drawn-image world-y span (diagnostics: verify the floor anchor holds)
+  lastBattleBgRect.imgBot = imgBot
 
   const bg = ctx.createLinearGradient(0, 0, 0, h)
   bg.addColorStop(0, sky)
@@ -3027,15 +3050,15 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
 
   if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
     ctx.save()
-    // The photo covers its natural [0,h] band; the extended gradient fill above/below already painted
-    // solid sky / floor into the margins, so the image never leaves a gap.
-    ctx.drawImage(bgImage, 0, 0, worldWidth, h)
-    const overlay = ctx.createLinearGradient(0, 0, 0, h)
+    // Draw the photo GROUND-ANCHORED (its floor fraction pinned to groundY, not the raw canvas bottom). The
+    // extended gradient fill above/below already painted solid sky / floor into the margins, so no gap shows.
+    ctx.drawImage(bgImage, 0, imgTop, worldWidth, h)
+    const overlay = ctx.createLinearGradient(0, imgTop, 0, imgBot)
     overlay.addColorStop(0, "rgba(255,255,255,0.04)")
     overlay.addColorStop(0.55, "rgba(0,0,0,0.08)")
     overlay.addColorStop(1, "rgba(0,0,0,0.18)")
     ctx.fillStyle = overlay
-    ctx.fillRect(0, 0, worldWidth, h)
+    ctx.fillRect(0, imgTop, worldWidth, h)
     ctx.restore()
 
     // Ambient over the bitmap stages (which skip the procedural landmark code, so they
@@ -3555,6 +3578,44 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.textBaseline = "alphabetic"
   }
 
+  // COMBO-BREAK PROMPT (teach-the-system cue): the moment a fighter is BEING combo'd AND can actually afford
+  // a break right now, flash a small "BREAK!" pill with that fighter's exact input beside their HUD — so a
+  // player who doesn't know the system yet sees, in the moment, "you can escape right now, here's how." It is
+  // purely presentational: canBreakNow() mirrors the SAME gates tryComboBreaker (combat.js) checks, but only
+  // to decide whether to DRAW — it never touches the mechanic, threshold, or resource. Hidden the instant a
+  // break isn't payable (no stock / not enough meter / cooldown), so it stays unobtrusive.
+  function canBreakNow(fighter, opponent) {
+    if (!fighter || !opponent) return false
+    if ((fighter.hitstun || 0) <= 0) return false                                     // only while stunned
+    const hasEnergy = fighter.traits?.hasEnergy !== false && (fighter.maxEnergy || 0) > 1
+    const thr = hasEnergy ? COMBO_BREAKER.threshold : COMBO_BREAKER.meterlessThreshold
+    if ((opponent.comboCounter || 0) < thr) return false                              // only vs a REAL combo
+    if ((fighter.comboBreakStocks || 0) <= 0) return false                            // needs a break STOCK
+    if (hasEnergy && (fighter.energy || 0) < COMBO_BREAKER.energyCost) return false    // meter-cost gate
+    if (!hasEnergy && (fighter.comboBreakerCd || 0) > 0) return false                  // cooldown-cost gate
+    return true
+  }
+  function drawBreakPrompt(fighter, opponent, x, flip) {
+    if (!canBreakNow(fighter, opponent)) return
+    const cc = fighter.controls || {}
+    const label = `⛓ BREAK!  ${prettyKey(cc.block)} + ${prettyKey(cc.special)}`
+    ctx.save()
+    ctx.font = "800 12px Arial"
+    const padX = 10, hgt = 20
+    const boxW = ctx.measureText(label).width + padX * 2
+    const bx   = flip ? (x + barW + 20 - boxW) : x                    // right-align under P2's panel, left under P1's
+    const by   = hpY + 14 + barH + 18                                 // just below the BREAK-pip strip
+    const pulse = 0.5 + 0.5 * Math.sin(globalFrameCount * 0.3)        // deterministic flash (no Math.random)
+    rrect(ctx, bx, by, boxW, hgt, 6)
+    ctx.fillStyle = `rgba(28,16,0,${0.6 + 0.18 * pulse})`; ctx.fill()
+    ctx.lineWidth = 1.5; ctx.strokeStyle = `rgba(251,191,36,${0.55 + 0.45 * pulse})`
+    ctx.shadowBlur = 9 * pulse; ctx.shadowColor = "#fbbf24"; ctx.stroke(); ctx.shadowBlur = 0
+    ctx.fillStyle = `rgba(255,226,138,${0.85 + 0.15 * pulse})`
+    ctx.textAlign = "left"; ctx.textBaseline = "middle"
+    ctx.fillText(label, bx + padX, by + hgt / 2 + 0.5)
+    ctx.restore()
+  }
+
   // BOSS HUD variant (Stage 20): when a fighter is an arcade boss, the human player keeps a normal
   // panel and the boss gets a single wide, red, center-draining bar across the top with its name —
   // replacing the standard two-portrait layout. A branch, NOT a fork of the HUD.
@@ -3583,11 +3644,15 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     ctx.restore()
   }
   if (boss) {
-    drawHealthPanel(pad, false, boss === p2 ? p1 : p2)   // the human player, on the left
+    const human = boss === p2 ? p1 : p2
+    drawHealthPanel(pad, false, human)   // the human player, on the left
     drawBossBar(boss)
+    drawBreakPrompt(human, boss, pad, false)
   } else {
     drawHealthPanel(pad, false, p1)
     drawHealthPanel(cw - pad - barW - 20, true,  p2)
+    drawBreakPrompt(p1, p2, pad, false)
+    drawBreakPrompt(p2, p1, cw - pad - barW - 20, true)
   }
 
   const pipCX = cw / 2, pipY = hpY + 22, pipR = 7, pipGap = 20, maxWins = 2
@@ -3902,6 +3967,17 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
   if (Array.isArray(info.history) && info.history.length && w >= 980) {
     ctx.fillStyle = "rgba(255,255,255,0.75)"
     ctx.fillText(`Last: ${info.history[0]?.display || "Neutral"}`, 28, panelY + 188)
+  }
+
+  // COMBO-BREAK DRILL tip: when the dummy is set to "combo", spell out the escape input right under
+  // the panel so the player knows what the flashing ⛓ BREAK! prompt is asking for.
+  if (info.dummy === "combo") {
+    const keys = `${prettyKey(info.breakBlock)} + ${prettyKey(info.breakSpecial)}`
+    const tipY = panelY + 196 + 10
+    ctx.fillStyle = "rgba(20,12,0,0.72)"; ctx.fillRect(16, tipY, panelW, 26)
+    ctx.strokeStyle = "rgba(251,191,36,0.6)"; ctx.strokeRect(16, tipY, panelW, 26)
+    ctx.fillStyle = "#ffe08a"; ctx.font = "bold 12px Arial"
+    ctx.fillText(`⛓ Being combo'd? BREAK OUT: ${keys}`, 28, tipY + 17)
   }
 
   ctx.restore()
@@ -4469,11 +4545,13 @@ function buildTutorialPages(c = {}) {
     },
     {
       title: "DEFENSE", accent: "#86efac",
-      blurb: "You can't act out of hitstun, so blocking and parries are how you survive pressure.",
+      blurb: "You can't act out of hitstun, so blocking, parries, and the combo breaker are how you survive pressure.",
       rows: [
-        ["Block", `Hold ${prettyKey(c.down)}`, "Hold to guard. Blocking bleeds small CHIP damage but stops the combo."],
+        ["Block", `Hold ${prettyKey(c.block)}`, "Hold the dedicated guard button to block. Blocking bleeds small CHIP damage but stops the combo."],
         ["Parry", `${prettyKey(c.heavy)} (timed)`, "Tap Heavy just as an attack STARTS up to deflect it and stagger the attacker."],
-        ["Tech roll", `${prettyKey(c.left)} / ${prettyKey(c.right)} on knockdown`, "Hold a direction as you land to roll and recover safely."]
+        ["Tech roll", `${prettyKey(c.left)} / ${prettyKey(c.right)} on knockdown`, "Hold a direction as you land to roll and recover safely."],
+        ["Combo breaker", comboKeys(c.block, c.special), "Stuck in a combo? While in hitstun on a 3+ hit combo, press Block + Special to BURST OUT — you get i-frames and knock the attacker away. Watch for the flashing ⛓ BREAK! prompt by your health bar — it only shows when you can actually afford it."],
+        ["BREAK stock", "2 per round", "Each breaker spends one BREAK pip (under your health bar) plus meter — or a short cooldown for meterless fighters. Use it to escape the nastiest strings, not every hit."]
       ]
     },
     {

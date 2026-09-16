@@ -18,10 +18,12 @@ async function waitFrames(n){ const s=await page.evaluate(()=>window.__harness.s
 // variant → [base-voice filename token(s)]
 const VARIANTS = [
   ["dark_knight",      ["batman"]],
-  ["superman_classic", ["superman"]],
+  // superman_classic + superman_new52 NO LONGER alias to base Superman's voice — they were given their
+  // OWN distinct packs (MultiVersus / Suicide Squad) in the Stage-5 variant-differentiation pass, so they
+  // are intentionally NOT base-voice reusers. Their wiring is verified by test:new-voice-packs instead.
+  // superman_dcuc + superman_fighter are still generic → keep aliasing to base Superman here.
   ["superman_dcuc",    ["superman"]],
   ["superman_fighter", ["superman"]],
-  ["superman_new52",   ["superman"]],
   ["vegeta_dark",      ["vegeta"]],
   ["vegito",           ["vegeta"]],
   ["ghostface_billy",  ["ghostface"]],

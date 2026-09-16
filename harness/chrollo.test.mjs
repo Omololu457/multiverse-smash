@@ -84,7 +84,7 @@ try {
   await page.keyboard.down("w"); await waitFrames(3); await rec(); await page.keyboard.up("w");
   await page.waitForFunction(() => window.__harness.p1().vy > 5, null, { timeout: 4000, polling: 16 }).catch(() => {}); await rec();
   await waitGrounded();
-  await page.keyboard.down("s"); await waitFrames(14); await rec(); await page.keyboard.up("s"); await waitFrames(4);
+  await page.keyboard.down(";"); await waitFrames(14); await rec(); await page.keyboard.up(";"); await waitFrames(4);   // guard = the dedicated ";" key (Down no longer blocks since the MK-feel Stage-1c change)
   await page.evaluate(() => window.__harness.hurtP1(26)); await waitFrames(3); await rec(); await page.evaluate(() => window.__harness.healP1());
   check("run/jump/guard/hurt all resolve to chrollo sheets", ["walk", "jump", "guard", "hurt"].every(a => (seen.get(a) || "").includes("chrollo")), `[${["walk","jump","guard","hurt"].map(a=>a+":"+((seen.get(a)||"none").split("/").pop())).join(" ")}]`);
 
@@ -103,29 +103,37 @@ try {
   // ── BLADE RUSH CHAIN (+ interrupt) ──
   section("Blade Rush chain — opener → cancel-on-hit → finisher, + whiff interrupt");
   await prep(44); let hp0 = (await p2()).health;
-  await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(2);
-  await page.keyboard.up("k"); await page.keyboard.up("d");   // release forward too → re-taps are PURE rekka continues (never re-open a fresh Fwd+Heavy)
-  const openActs = new Set(); const chainActs = new Set();
-  // Blanket the opener's whole recovery with fresh neutral-Heavy EDGES (down 1f / up 1f) so one lands in
-  // the rekka window regardless of the opponent's hitstun/spacing timing. Pure Heavy (no forward) = only
-  // the rekka CONTINUE can fire, never a fresh opener.
-  for (let i = 0; i < 18 && !chainActs.has("chComboFin"); i++) {
-    await page.keyboard.down("k"); const a = await rec(); if (a.action) { openActs.add(a.action); chainActs.add(a.action); } await waitFrames(1);
-    await page.keyboard.up("k"); await waitFrames(1);
-  }
+  const moves = new Set();
+  // Pin the dummy back into range (chCombo1 knockbackX 4 drifts it) so the cancel-on-hit finisher reliably
+  // connects, and track the rekka by currentMove (set for the whole move duration) — chCombo1/chComboFin
+  // render on the shared "heavy" sprite category, so `action` never reads the move name. The old fixed-frame
+  // blanket-tap loop raced the cancel window AND lost range, so the finisher intermittently whiffed and the
+  // opener was never label-matched.
+  const pinCh = async () => { const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), Math.round(a.x + 40 * (a.facing || 1))); };
+  const cmd = () => page.evaluate(() => window.__harness.chrolloCmd("p1"));
+  // OPENER — Fwd+Heavy → chCombo1. Sample currentMove immediately (its ~22f window ends fast); forward released
+  // after so re-taps are PURE rekka continues (never a fresh opener).
+  await page.keyboard.down("d"); await waitFrames(1); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await page.keyboard.up("d");
+  // Wait for the opener to CONNECT (cmd.connected latch), pinning range each frame.
+  for (let i = 0; i < 24; i++) { const c = await cmd(); if (c.move) moves.add(c.move); await pinCh(); if (c.connected) break; await waitFrames(1); }
+  // DETERMINISTIC re-tap timing (replaces the fixed-frame race): poll until the opener is in its RECOVERY phase
+  // (the whole recovery is the cancel window — chCombo1 sets no _cancelWindowFrames) AND the buffered opener-Heavy
+  // has cleared (!prevHeavy) so the coming press reads as a FRESH edge. Then tap once → guaranteed rekka continue.
+  let ready = false;
+  for (let i = 0; i < 24 && !ready; i++) { const c = await cmd(); if (c.move) moves.add(c.move); await pinCh(); if (c.attacking && c.connected && c.phase === "recovery" && !c.prevHeavy && c.rekkaNext === "chComboFin") { ready = true; break; } await waitFrames(1); }
+  await pinCh(); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k");   // fresh Heavy inside the cancel window → chComboFin
+  // DON'T break on the chComboFin label — it's set at the finisher's STARTUP (7f), BEFORE its active hit lands.
+  // Keep pinning through the finisher's full startup+active window so the damage actually registers.
+  for (let i = 0; i < 22; i++) { const c = await cmd(); if (c.move) moves.add(c.move); await pinCh(); await waitFrames(1); }
   const chainDmg = hp0 - (await p2()).health;
-  // The finisher (chComboFin) is a 2-3 frame beat that per-iteration sampling can miss, so prove the
-  // cancel-on-hit CHAIN by its damage: opener fires (chCombo1) AND total damage exceeds a lone opener
-  // (~30) by the finisher's worth (~48) → the string continued. (chComboFin action-label also captured
-  // when sampling aligns.) The whiff test below proves the string does NOT continue without a connect.
-  check("opener chCombo1 fires + cancel-on-hit finisher lands", openActs.has("chCombo1") && chainDmg > 55, `open=[${[...openActs]}] chainDmg=−${chainDmg} finisherSeen=${chainActs.has("chComboFin")}`);
+  check("opener chCombo1 fires + cancel-on-hit finisher lands", moves.has("chCombo1") && (moves.has("chComboFin") || chainDmg > 55), `moves=[${[...moves]}] chainDmg=−${chainDmg} finisherSeen=${moves.has("chComboFin")}`);
   check("chain damage exceeds a single opener (~30)", chainDmg > 55, `−${chainDmg}`);
   await waitGrounded();
-  await prep(430); const wp0 = (await p2()).health;   // whiff → must NOT chain
+  await prep(430); const wp0 = (await p2()).health;   // whiff (dummy far) → opener can't connect → must NOT chain
   await page.keyboard.down("d"); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); await waitFrames(4);
-  const wActs = new Set(); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); for (let i = 0; i < 6; i++) { const a = await rec(); if (a.action) wActs.add(a.action); await waitFrames(1); }
+  const wMoves = new Set(); await page.keyboard.down("k"); await waitFrames(2); await page.keyboard.up("k"); for (let i = 0; i < 8; i++) { const a = await rec(); if (a.currentMove) wMoves.add(a.currentMove); await waitFrames(1); }
   await page.keyboard.up("d");
-  check("whiffed opener does NOT chain + deals no damage", !wActs.has("chComboFin") && Math.abs(wp0 - (await p2()).health) < 1, `acts=[${[...wActs]}] Δ=${(wp0-(await p2()).health).toFixed(0)}`);
+  check("whiffed opener does NOT chain + deals no damage", !wMoves.has("chComboFin") && Math.abs(wp0 - (await p2()).health) < 1, `moves=[${[...wMoves]}] Δ=${(wp0-(await p2()).health).toFixed(0)}`);
   await waitGrounded();
 
   // ── SPECIALS ──

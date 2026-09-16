@@ -1,0 +1,100 @@
+# Albedo (Ben 10 villain) — 'The great quotes of Albedo' EN rip
+
+IDENTITY RULING: FLAGGED as possibly Genshin/Overlord's Albedo; TRANSCRIPTION DISPROVED that. Content cites Ben-10-EXCLUSIVE vocabulary — 'Ben Tennyson' (albedo_055/092), 'Omnitrix' (albedo_070/059/018), 'Galvan Prime' (albedo_015), 'Weapon Master'/'Inspector 13' (albedo_080/071), 'this human body is prison enough' (albedo_089). ZERO Genshin/Overlord vocab. VERDICT = Ben 10's Albedo, CONFIRMED. Discards: ally-named lines (Grandpa/Max), ~13 near-silence non-speech clips (RMS -42..-53 dB), garbled fragments.
+
+**14 of 94 clips wired.** Per-file transcript log below (✅ = wired, — = discarded).
+
+- — `albedo_001.mp3` (10.2s, en) — Elbato! Nice to see you have not lost your talent for stating the obvious.  Ben!
+- — `albedo_002.mp3` (39.3s, en) — I could be ruthless, and I could be just like you.  I could be weak, I could be senseless,  and I could be just like you.  You're the future's inside me.  You're the only one in my way.  You're the only one who can think that I'll be just like you.  You're the future's inside me.  You're the future's inside me.  You're the only one who can think that I'll be just like you.
+- — `albedo_003.mp3` (2.1s, en) — Where is he?
+- — `albedo_004.mp3` (7.9s, en) — Why ask what you already know are you testing us?
+- — `albedo_005.mp3` (9.0s, en) — Tell me how to get these apart.  Perhaps if one of us could manage to die.
+- — `albedo_006.mp3` (19.0s, en) — Doctor Psychobos, I presume.  As usual, then, Tennessee, you presume wrong.  I'll be the...  Let's just do this!  Very well. It's your presume.
+- — `albedo_007.mp3` (4.6s, en) — This my asthma you call food.  It's fowls smelling oily digestive preparation.
+- — `albedo_008.mp3` (0.7s, en) — Everything is shit.
+- — `albedo_009.mp3` (0.6s, en) — [non-speech / silence]
+- — `albedo_010.mp3` (1.4s, en) — Yeah, probably the onion.
+- — `albedo_011.mp3` (4.0s, en) — All the same, I find myself craving the entire putrid experience.
+- — `albedo_012.mp3` (1.2s, en) — It must be in the DNA-
+- — `albedo_013.mp3` (0.4s, en) — [non-speech / silence]
+- ✅ `albedo_014.mp3` (1.4s, en) — I sicken myself.
+- — `albedo_015.mp3` (12.2s, en) — There's no way we will let Galvan Prime's greatest secrets fall into the hands of a traitor.  If I were you...  I'd reflect the situation.
+- — `albedo_016.mp3` (1.0s, en) — [non-speech / silence]
+- — `albedo_017.mp3` (0.7s, en) — [non-speech / silence]
+- ✅ `albedo_018.mp3` (2.4s, en) — I see you got your knockoff omni-tricks working again.
+- — `albedo_019.mp3` (4.7s, en) — [non-speech / silence]
+- — `albedo_020.mp3` (1.4s, en) — It's not a knockout.
+- — `albedo_021.mp3` (1.8s, en) — the ultrometrics.
+- — `albedo_022.mp3` (2.7s, en) — And it's a definite improvement over the original.
+- — `albedo_023.mp3` (0.5s, en) — I wanna see you.
+- — `albedo_024.mp3` (0.5s, en) — [non-speech / silence]
+- ✅ `albedo_025.mp3` (3.1s, en) — not only can I transform into anything you can.
+- ✅ `albedo_026.mp3` (4.5s, en) — but I can also evolve those creatures to their ultimate form.
+- — `albedo_027.mp3` (5.8s, en) — Varie?  Meatcha?  Ultimat commands you manga, sore!
+- — `albedo_028.mp3` (20.6s, en) — Now your witness true ultimate power!  That's right, Tennyson, an ultimate back-sassorian!  I can change into ultimate aliens, but you can!
+- — `albedo_029.mp3` (1.8s, en) — Jet ends.
+- ✅ `albedo_030.mp3` (1.5s, en) — You poor, gullible, simple.
+- — `albedo_031.mp3` (3.1s, en) — It must be a terrible strain for your feeble minds to stare at you, sir.
+- — `albedo_032.mp3` (1.5s, en) — vast dark nothingness.
+- ✅ `albedo_033.mp3` (2.8s, en) — knowing that what you desire is hopelessly beyond your reach.
+- — `albedo_034.mp3` (2.2s, en) — much like the prison you kept me in.
+- — `albedo_035.mp3` (1.3s, en) — Get to the point, El Beta.
+- — `albedo_036.mp3` (0.9s, en) — if you insist.
+- — `albedo_037.mp3` (0.7s, en) — Grandpa.
+- — `albedo_038.mp3` (1.3s, en) — I am not without compassion.
+- ✅ `albedo_039.mp3` (3.1s, en) — suffering will last nearly as long as you allowed mine to.
+- ✅ `albedo_040.mp3` (0.8s, en) — Show your face.
+- — `albedo_041.mp3` (0.4s, en) — [non-speech / silence]
+- — `albedo_042.mp3` (1.0s, en) — crazy talking to my
+- — `albedo_043.mp3` (1.1s, en) — if only I could.
+- — `albedo_044.mp3` (0.6s, en) — I am still...
+- — `albedo_045.mp3` (0.4s, en) — [non-speech / silence]
+- — `albedo_046.mp3` (6.7s, en) — Harry, smelly teenage human body.  Constantly craving chili fries,  and scratching myself in places I suspect are inappropriate.
+- — `albedo_047.mp3` (2.0s, en) — [non-speech / silence]
+- — `albedo_048.mp3` (0.9s, en) — [non-speech / silence]
+- — `albedo_049.mp3` (1.6s, en) — I like this guy.
+- ✅ `albedo_050.mp3` (2.1s, en) — I almost feel bad for what we have to do to him.
+- — `albedo_051.mp3` (4.3s, en) — Almost.
+- — `albedo_052.mp3` (12.9s, en) — I could carry away from this new Omnitrex, but it would be messy.  And what I have is so much better.
+- — `albedo_053.mp3` (7.8s, en) — and made the switch, altering his hair and eyes.  After that, it was easy.
+- ✅ `albedo_054.mp3` (2.2s, en) — You're so star struck by your hero.
+- — `albedo_055.mp3` (5.2s, en) — He wanted so badly to believe that the great Ben Tennyson would take your advice and better himself.
+- — `albedo_056.mp3` (0.8s, en) — Get it out, beetle.
+- — `albedo_057.mp3` (0.9s, en) — We need each other.
+- — `albedo_058.mp3` (0.4s, en) — No.
+- — `albedo_059.mp3` (2.4s, en) — I need the omni tricks and you want it.
+- — `albedo_060.mp3` (2.2s, en) — That's a bad basis for an alliance.
+- — `albedo_061.mp3` (3.3s, en) — albedo you got what you wanted you're a gal then again
+- — `albedo_062.mp3` (6.4s, en) — So go away and live out your little galvan life somewhere.  And what? I'm supposed to just forget the imprisonment?
+- — `albedo_063.mp3` (5.3s, en) — The humiliation, the...  Huff, chilly fries.  Um, yeah.
+- — `albedo_064.mp3` (15.2s, en) — Chili fries are awesome.  Get over it, dude.  Oh, I am over it, dude.  I am beyond you.  Beyond all mere mortal Calvin.  Beyond any other species in the universe.
+- — `albedo_065.mp3` (0.7s, en) — [non-speech / silence]
+- — `albedo_066.mp3` (0.5s, en) — Uh oh.
+- — `albedo_067.mp3` (1.6s, en) — I told you, I told you!
+- — `albedo_068.mp3` (3.0s, en) — Ranger Omni-Tricks.  Where as mine!
+- — `albedo_069.mp3` (0.8s, en) — [non-speech / silence]
+- ✅ `albedo_070.mp3` (2.5s, en) — I don't need an omnitrix to destroy you!
+- — `albedo_071.mp3` (4.4s, en) — The weapon master, you knew?  Pitiful rules.
+- — `albedo_072.mp3` (1.7s, en) — The accruations containment suit.
+- — `albedo_073.mp3` (11.3s, en) — Is a tech-a-dog problem?  I didn't dare use my alien forms when we first clashed.  Guys, they always give me away.
+- — `albedo_074.mp3` (6.1s, en) — You are not worthy to wear the army tricks.
+- — `albedo_075.mp3` (1.9s, en) — [non-speech / silence]
+- — `albedo_076.mp3` (1.2s, en) — [non-speech / silence]
+- — `albedo_077.mp3` (0.4s, en) — Thank you.
+- — `albedo_078.mp3` (2.5s, en) — your sacrifice.
+- — `albedo_079.mp3` (1.9s, en) — Stop!
+- — `albedo_080.mp3` (17.3s, en) — Do not!  Weapon Master!  It seems you don't make them like you used to!  You fools will see me turn Inspector 13 into Inspector Zero!  Absolute Zero!
+- — `albedo_081.mp3` (14.4s, en) — I'm ridding myself of you will be nothing more than swatting at a bomb!  And you will be scrolling with even weaker bombs!  I'll make an example of that!
+- — `albedo_082.mp3` (2.4s, en) — It's going to be glorious, Abido.
+- — `albedo_083.mp3` (2.4s, en) — heart in me if I don't break into a pause.
+- — `albedo_084.mp3` (13.7s, en) — I love the smell and faith rise as much in the morning.  You're a monster!  And you'll obey your new master, Lily,  or meet the same fate!
+- — `albedo_085.mp3` (12.9s, en) — She's shot and it didn't even hurt.  By the stake, I'll do better this time.
+- ✅ `albedo_086.mp3` (2.8s, en) — I think not.
+- — `albedo_087.mp3` (36.6s, en) — Bad guys always say that.  Hmm, I won't presume to speak for others, but I always mean it.  Hmm, hmm, hmm.  Then why do you even bother asking?  You ought to know by now my answer is always going to be no.  True. You are a very slow learner.  But that's, of course, to be expected of a human's low intellect.  Hmm, hmm.  Ah!  Let's finish this once and for all.  That's another one, villains use too much.  There's nothing wrong with the classics.
+- — `albedo_088.mp3` (1.1s, en) — Father with a sailor.
+- ✅ `albedo_089.mp3` (2.3s, en) — This human body is prison enough.
+- — `albedo_090.mp3` (1.2s, en) — again there.
+- ✅ `albedo_091.mp3` (1.8s, en) — and they will all suffer.
+- — `albedo_092.mp3` (1.5s, en) — Starting with Ben Tennis.
+- — `albedo_093.mp3` (6.4s, en) — That day.  Bring me chili fries!
+- — `albedo_094.mp3` (9.9s, en) — You're crushing success like me  You're lonely in my way  You're lonely if you think that I'll be just like...

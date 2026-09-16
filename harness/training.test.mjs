@@ -125,7 +125,7 @@ try {
   check("frame data appears on a move (startup/active/recovery present)", !!fd && Number.isFinite(fd.startup) && Number.isFinite(fd.active) && Number.isFinite(fd.recovery), `${fd ? `${fd.name} ${fd.startup}/${fd.active}/${fd.recovery} [${fd.phase}]` : "null"}`);
   await waitFrames(25);
 
-  section("STEP 2 — dummy behavior toggle (stand → block → jump)");
+  section("STEP 2 — dummy behavior toggle (stand → block → jump → combo)");
   let beh = (await training()).dummyBehavior;
   check("dummy starts in 'stand'", beh === "stand", `dummy=${beh}`);
   await tapFn("F4");
@@ -139,6 +139,8 @@ try {
   let leftGround = false;
   for (let i = 0; i < 40 && !leftGround; i++) { if ((await p2()).grounded === false) leftGround = true; await waitFrames(1); }
   check("dummy in 'jump' leaves the ground", leftGround);
+  await tapFn("F4");
+  check("F4 cycles to 'combo' (combo-break drill)", (await training()).dummyBehavior === "combo");
   await tapFn("F4");
   check("F4 cycles back to 'stand'", (await training()).dummyBehavior === "stand");
   await page.screenshot({ path: path.join(OUT, "TRAIN_overlay_final.png") });

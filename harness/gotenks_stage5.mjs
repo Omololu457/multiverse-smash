@@ -58,7 +58,7 @@ try {
 
   // Collect render sheets + projectiles across the rest of the cinematic — assert the throw pose + ghosts appear.
   const sheets = new Set(); let sawGhost = false, ghostHasSheet = false;
-  for (let f = 0; f < 30; f++) {
+  for (let f = 0; f < 50; f++) {   // cover all 3 ghost spawns (GOTENKS_ULT.ghostsAt 24/34/44) + margin — the old 30f window could end before the last ghost
     const mv = await p1(); if (mv.spriteSheet) sheets.add(mv.spriteSheet);
     const pr = await projectiles(); const g = pr.find(p => (p.name || "").includes("gotenksGhost"));
     if (g) { sawGhost = true; if (/gotenks_ghost_uniform/.test(g.sheet || "")) ghostHasSheet = true; }

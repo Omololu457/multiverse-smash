@@ -485,6 +485,9 @@ import { pickMinatoVoice, MINATO_VOICE } from "./minatoVoice.js"
 import { pickBatmanVoice, BATMAN_VOICE } from "./batmanVoice.js"
 import { pickOmniManVoice, OMNIMAN_VOICE } from "./omnimanVoice.js"
 import { pickSupermanVoice, SUPERMAN_VOICE } from "./supermanVoice.js"
+import { pickOnokiVoice, ONOKI_VOICE } from "./onokiVoice.js"     // Onoki intro ("for the future") + win ("you're the one going to sleep") — JA
+import { pickGenosVoice, GENOS_VOICE } from "./genosVoice.js"     // Genos intro ("a hero nobody knows") — EN
+import { pickAlbedoVoice, ALBEDO_VOICE } from "./albedoVoice.js"   // Albedo (Ben 10 villain) intro + win — EN
 import { pickBardockVoice, BARDOCK_VOICE } from "./bardockVoice.js"   // Bardock intro/win voice pools (audio-only, EN)
 import { pickBakiVoice, BAKI_VOICE } from "./bakiVoice.js"   // Baki intro/win voice pools (audio-only, JA)
 import { pickByakuyaVoice, BYAKUYA_VOICE } from "./byakuyaVoice.js"   // Byakuya intro/win voice pools (audio-only, JA)
@@ -2234,10 +2237,12 @@ function endFFA() {
 //     F3; default OFF so damage/combo/meter read naturally and the dummy visibly takes
 //     hits — turn ON for long practice so nobody dies or runs out of meter). KO already
 //     can't end a training session (checkRoundEnd skips), so this is purely convenience.
-//   dummyBehavior     — "stand" | "block" | "jump": training-only override applied in
-//     updateCPUInput (does NOT touch ai.js's shared "dummy" zero-baseline profile).
+//   dummyBehavior     — "stand" | "block" | "jump" | "combo": training-only override applied in
+//     updateCPUInput (does NOT touch ai.js's shared "dummy" zero-baseline profile). "combo" is the
+//     COMBO-BREAK DRILL: the dummy advances and taps Light on a cadence to string a real combo, so
+//     the player can practise reading the ⛓ BREAK! prompt and bursting out (Block + Special).
 const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand", cloneNoTell: false }
-const DUMMY_BEHAVIORS = ["stand", "block", "jump"]
+const DUMMY_BEHAVIORS = ["stand", "block", "jump", "combo"]
 const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
 
 // ── SESSION PERSISTENCE (cross-reload restore of "what the player was doing") ─────────────────
@@ -2569,6 +2574,18 @@ function syncPhysicsBounds() {
 function getControlsForHistory(side) { return side === "p1" ? P1_CONTROLS : P2_CONTROLS }
 function getGroundedYForHeight(h)    { return groundY - toFiniteNumber(h, 100) }
 function getGroundedYForFighter(f)   { return getGroundedYForHeight(f?.h ?? f?.height) }
+// Re-seat a fighter after a resize/fullscreen toggle changes groundY. Grounded → track the floor exactly
+// (up OR down); airborne → only clamp so a shrink can't drop it below the new floor. Resize-only (never in
+// the sim loop), so no determinism impact.
+function regroundOnResize(f) {
+  if (!f) return
+  // Refresh the fighter's CACHED floor line first. physics.moveFighter prefers fighter.groundY over the
+  // global (physics.js: `baseFloor = fighter.groundY != null ? fighter.groundY : this.groundY`), so a stale
+  // cache re-snaps the fighter to the OLD floor every frame — the physics half of the resize desync.
+  f.groundY = groundY
+  const gy = getGroundedYForFighter(f)
+  f.y = (f.onGround || f.grounded) ? gy : Math.min(f.y, gy)
+}
 
 function getSpawnPositions() {
   const sw = getStageWorldWidth()
@@ -3003,7 +3020,12 @@ const INTRO_VOICE = {
   // Superman picks ONE pre-fight declaration ("There won't be any ties today" / "I'm the hero Earth needs" /
   // Regime "Traitors, all of you"). His `taunt` action drives the universal heal, so the trash-talk pool
   // rides the offense-connect trigger instead (see supermanVoice.js NOTE); intro fires here.
-  superman: { pool: SUPERMAN_VOICE.intro, gateReveal: false },
+  // Superman intro is VARIANT-AWARE (Stage 5): base + generic variants use the Injustice-2 pool, but
+  // superman_classic → MultiVersus and superman_new52 → Suicide Squad packs. pick receives the rosterKey.
+  superman: { pick: (rk) => pickSupermanVoice("intro", rk), gateReveal: false },
+  onoki: { pick: () => pickOnokiVoice("intro"), gateReveal: false },   // "未来のために" — for the future (JA)
+  genos: { pick: () => pickGenosVoice("intro"), gateReveal: false },   // "A hero nobody knows." (EN)
+  albedo: { pick: () => pickAlbedoVoice("intro"), gateReveal: false }, // "This human body is prison enough." (EN)
   // Bardock picks ONE of his "I'm gonna change the future!" pre-fight resolve lines per match (EN). No taunt
   // action → the trash-talk pool rides the offense-connect trigger instead (see bardockVoice.js).
   bardock: { pool: BARDOCK_VOICE.intro, gateReveal: false },
@@ -4777,10 +4799,19 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "omniman") {
         sound.playSfxFile?.(pickOmniManVoice("win"), null)
       }
-      // SUPERMAN win voice — random pick from his victory pool ("Crime doesn't pay" / "Please don't get
-      // up"). Fires only when the WINNER is Superman.
+      // SUPERMAN win voice — random pick from his victory pool. VARIANT-AWARE (Stage 5): base Superman uses
+      // the Injustice-2 pool, superman_classic → MultiVersus ("Proud of you all"), superman_new52 → Suicide
+      // Squad ("Your death is inevitable"). Fires only when the WINNER is a Superman-family fighter.
       if (voiceKey(winFighter?.rosterKey) === "superman") {
-        sound.playSfxFile?.(pickSupermanVoice("win"), null)
+        sound.playSfxFile?.(pickSupermanVoice("win", winFighter?.rosterKey), null)
+      }
+      // ONOKI win voice — "You're the one who's going to sleep." Fires only when the WINNER is Onoki. JA.
+      if (winFighter?.rosterKey === "onoki") {
+        sound.playSfxFile?.(pickOnokiVoice("win"), null)
+      }
+      // ALBEDO win voice — vengeful gloat. Fires only when the WINNER is Albedo (Ben 10 villain). EN.
+      if (winFighter?.rosterKey === "albedo") {
+        sound.playSfxFile?.(pickAlbedoVoice("win"), null)
       }
       // BARDOCK win voice — "I'm gonna change the future!" Fires only when the WINNER is Bardock. EN.
       if (winFighter?.rosterKey === "bardock") {
@@ -5097,6 +5128,15 @@ function updateCPUInput() {
     const c = p2.controls
     if (trainingState.dummyBehavior === "block") keys[c.block] = true           // hold guard (dedicated block input — MK-feel Stage 1c)
     else if (trainingState.dummyBehavior === "jump" && p2.onGround) keys[c.up] = true  // hop when grounded
+    else if (trainingState.dummyBehavior === "combo" && p1) {
+      // COMBO-BREAK DRILL: close on the player, then tap Light on a steady cadence so it strings a
+      // real combo the player can practise BREAKING out of. Pure key writes (training-only) — no
+      // change to the breaker mechanic; the combo just gives the ⛓ BREAK! prompt something to react to.
+      const dx = (p1.x + (p1.w || 0) / 2) - (p2.x + (p2.w || 0) / 2)
+      const gap = Math.abs(dx)
+      if (gap > 96) keys[dx < 0 ? c.left : c.right] = true                       // walk into range
+      if (gap <= 130 && (globalFrameCount % 22) < 2) keys[c.light] = true         // rhythmic light pokes → combo
+    }
   }
 }
 
@@ -14248,6 +14288,8 @@ function drawBattleHud() {
     frameData: buildTrainingFrameData(),
     infinite:  trainingState.infiniteResources,
     dummy:     trainingState.dummyBehavior,
+    breakBlock:   p1?.controls?.block,     // for the combo-break drill tip (P1's guard + special)
+    breakSpecial: p1?.controls?.special,
     p1Inputs:  getRelativeDirectionsFromHistory(p1),
     p2Inputs:  getRelativeDirectionsFromHistory(p2),
     history:   getInputHistory()
@@ -16601,10 +16643,15 @@ window.addEventListener("keyup", e => {
 // not the canvas), so heights stay canon-correct at any size.
 function applyViewportSize() {
   _applyCanvasSize()   // honors uiScale (Part 3 #13)
-  syncPhysicsBounds()
+  syncPhysicsBounds()  // recomputes groundY from the NEW canvas height (physics floor + the bg both read it)
   updateCameraBounds()
-  if (p1) p1.y = Math.min(p1.y, getGroundedYForFighter(p1))
-  if (p2) p2.y = Math.min(p2.y, getGroundedYForFighter(p2))
+  // Re-seat fighters on the reflowed floor. groundY = h − (floorHeight+groundOffset), so growing the window
+  // (e.g. entering fullscreen) moves groundY DOWN — a grounded fighter must FOLLOW it or it's left floating
+  // (the reported "fighters' ground-collision Y doesn't update" symptom; the old Math.min only pulled them
+  // UP when the floor rose). A GROUNDED fighter snaps to the new floor either way; an AIRBORNE one is only
+  // clamped so a shrink can't leave it below the floor (its arc otherwise continues untouched).
+  regroundOnResize(p1)
+  regroundOnResize(p2)
   if (p1 && p2) {
     endDomainCinematic()   // defensive cleanup on rematch/resume
     if (typeof camera.reset  === "function") camera.reset()
@@ -17835,6 +17882,12 @@ gameLoop()
         floorLineScreenY: toScreenY(groundY),
         stageTopScreenY:  toScreenY(bgTopWorld),
         stageBotScreenY:  toScreenY(bgBotWorld),
+        // Drawn bitmap-image world-y span + the fraction of it the floor sits at (desync verification:
+        // this fraction must be INVARIANT across viewport sizes now that the image is ground-anchored).
+        imgTopWorld: lastBattleBgRect.imgTop,
+        imgBotWorld: lastBattleBgRect.imgBot,
+        floorImgFrac: (lastBattleBgRect.imgBot - lastBattleBgRect.imgTop) > 0
+          ? (groundY - lastBattleBgRect.imgTop) / (lastBattleBgRect.imgBot - lastBattleBgRect.imgTop) : null,
       }
     },
     arena: () => ({ left: physics.stageLeft, width: physics.stageWidth,
@@ -18587,6 +18640,10 @@ gameLoop()
     omnimanVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickOmniManVoice(pool)),
     omnimanVoicePool: pool => OMNIMAN_VOICE[pool] || null,
     supermanVoicePick: (pool, n = 1, rosterKey) => Array.from({ length: n }, () => pickSupermanVoice(pool, rosterKey)),
+    // New voice packs (Onoki/Genos/Albedo) — pool readers for the wiring/coverage verifier.
+    onokiVoicePool:  pool => ONOKI_VOICE[pool]  || null,
+    genosVoicePool:  pool => GENOS_VOICE[pool]  || null,
+    albedoVoicePool: pool => ALBEDO_VOICE[pool] || null,
     supermanVoicePool: pool => SUPERMAN_VOICE[pool] || null,
     bardockVoicePool: pool => BARDOCK_VOICE[pool] || null,
     bakiVoicePool: pool => BAKI_VOICE[pool] || null,

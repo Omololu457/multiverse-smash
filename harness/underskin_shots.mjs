@@ -121,6 +121,12 @@ const CONFIG = {
   gon:     { p1: "gon",     skins: [{ id: "gonAlbedo", tag: "albedo" }, { id: "gonValkyrie", tag: "valkyrie" }, { id: "gonAlienX", tag: "alienx" }] },
   hisoka:  { p1: "hisoka",  skins: [{ id: "hisokaAlbedo", tag: "albedo" }, { id: "hisokaValkyrie", tag: "valkyrie" }, { id: "hisokaAlienX", tag: "alienx" }] },
   chrollo: { p1: "chrollo", skins: [{ id: "chrolloValkyrie", tag: "valkyrie" }, { id: "chrolloAlienX", tag: "alienx" }] },
+  // ── Power Rangers (3 samurai FORM-AWARE: Mega Mode) ──
+  omega_ranger:         { p1: "omega_ranger",         skins: [{ id: "omegaAlbedo", tag: "albedo" }, { id: "omegaValkyrie", tag: "valkyrie" }, { id: "omegaAlienX", tag: "alienx" }] },
+  samurai_red_ranger:   { p1: "samurai_red_ranger",   skins: [{ id: "samAlbedo", tag: "albedo" }, { id: "samValkyrie", tag: "valkyrie" }, { id: "samAlienX", tag: "alienx" }] },
+  gold_samurai_ranger:  { p1: "gold_samurai_ranger",  skins: [{ id: "goldValkyrie", tag: "valkyrie" }, { id: "goldAlienX", tag: "alienx" }] },
+  green_samurai_ranger: { p1: "green_samurai_ranger", skins: [{ id: "green_samuraiAlbedo", tag: "albedo" }, { id: "green_samuraiValkyrie", tag: "valkyrie" }, { id: "green_samuraiAlienX", tag: "alienx" }] },
+  red_ranger_mmpr:      { p1: "red_ranger_mmpr",      skins: [{ id: "rrAlbedo", tag: "albedo" }, { id: "rrValkyrie", tag: "valkyrie" }, { id: "rrAlienX", tag: "alienx" }] },
   // ── Horror (ghostface parent + ghostface_billy EXCLUDED — see skins.js / memory) ──
   jason:           { p1: "jason",           skins: [{ id: "jasonAlbedo", tag: "albedo" }, { id: "jasonValkyrie", tag: "valkyrie" }, { id: "jasonAlienX", tag: "alienx" }] },
   ghostface_exe:   { p1: "ghostface_exe",   skins: [{ id: "ghostface_exeAlbedo", tag: "albedo" }, { id: "ghostface_exeValkyrie", tag: "valkyrie" }, { id: "ghostface_exeAlienX", tag: "alienx" }] },
@@ -159,6 +165,10 @@ for (const char of WANT) {
                            : char === "green_lantern" ? `gl_portrait__${tag}.png`
                            : char === "zaraki"     ? `zaraki_transparent_copy__${tag}.png`
                            : char === "netero"     ? `issac_netero_mugshot__${tag}.png`
+                           : char === "omega_ranger"        ? `SPD_Omega_Ranger_mugshot__${tag}.png`
+                           : char === "samurai_red_ranger"  ? `samurai_ranger_portrait__${tag}.png`
+                           : char === "gold_samurai_ranger" ? `samurai_ranger_gold_portrait__${tag}.png`
+                           : char === "green_samurai_ranger"? `samurai_ranger_forest_portrait__${tag}.png`
                            : char === "ghostface_exe"   ? `ghostface_exe_idle_uniform__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {

@@ -284,6 +284,42 @@ def ichigo_classify(h, s, v):
     if (s < 0.2 and v >= 0.5) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"  # shihakushō + white wrap
     return "OTHER"
 
+def omega_ranger_classify(h, s, v):
+    # SPD Omega Ranger: white suit = GARMENT; blue accents = ACCENT; gold trim = TRIM.
+    if 20 <= h <= 55 and s >= 0.45 and v >= 0.45:     return "TRIM"     # gold
+    if 195 <= h <= 250 and s >= 0.35:                 return "ACCENT"   # blue
+    if s < 0.28 and v >= 0.35:                        return "GARMENT"  # white suit
+    if v < 0.12:                                      return "DARK"
+    return "OTHER"
+
+def samurai_red_classify(h, s, v):
+    # Samurai Red Ranger: red suit = GARMENT; blue/purple symbol accents = ACCENT.
+    if v < 0.10:                                      return "DARK"
+    if (h <= 15 or h >= 340) and s >= 0.4:            return "GARMENT"  # red suit
+    if 215 <= h <= 320 and s >= 0.30:                 return "ACCENT"   # blue/purple symbols
+    return "OTHER"
+
+def samurai_gold_classify(h, s, v):
+    # Samurai Gold Ranger: gold suit = GARMENT; blue underlayer/accents = ACCENT.
+    if v < 0.10:                                      return "DARK"
+    if 18 <= h <= 58 and s >= 0.4 and v >= 0.4:       return "GARMENT"  # gold suit
+    if 195 <= h <= 260 and s >= 0.3:                  return "ACCENT"   # blue
+    return "OTHER"
+
+def samurai_green_classify(h, s, v):
+    # Samurai Green Ranger: green suit = GARMENT; black protected.
+    if v < 0.10:                                      return "DARK"
+    if 95 <= h <= 175 and s >= 0.28:                  return "GARMENT"  # green suit
+    return "OTHER"
+
+def red_mmpr_classify(h, s, v):
+    # MMPR Red Ranger: red suit = GARMENT; white gloves/boots = TRIM; gold shield/belt = ACCENT.
+    if v < 0.10:                                      return "DARK"
+    if 40 <= h <= 65 and s >= 0.4:                    return "ACCENT"   # gold shield/belt
+    if (h <= 15 or h >= 340) and s >= 0.4:            return "GARMENT"  # red suit
+    if s < 0.22 and v >= 0.6:                         return "TRIM"     # white gloves/boots
+    return "OTHER"
+
 def ghostface_classify(h, s, v):
     # Ghostface (+ .EXE + Billy variant): white ghost mask kept; the shroud/robe (any hue) = unified GARMENT.
     if s < 0.18 and v >= 0.6:                         return "OTHER"    # white mask (kept)
@@ -607,6 +643,11 @@ CHARS = {
     "mayuri":        dict(classify=bleach_classify),
     "byakuya":       dict(classify=bleach_classify),
     "yamamoto":      dict(classify=bleach_classify),
+    "omega_ranger":        dict(classify=omega_ranger_classify, probe_src="omega_ranger_idle.png"),
+    "samurai_red_ranger":  dict(classify=samurai_red_classify),
+    "gold_samurai_ranger": dict(classify=samurai_gold_classify),
+    "green_samurai_ranger":dict(classify=samurai_green_classify),
+    "red_ranger_mmpr":     dict(classify=red_mmpr_classify),
     "ghostface":     dict(classify=ghostface_classify),
     "ghostface_exe": dict(classify=ghostface_classify),
     "jason":         dict(classify=jason_classify),

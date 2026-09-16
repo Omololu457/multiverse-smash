@@ -1432,6 +1432,10 @@ export const SKINS = {
   // alt skins yet. (The 5 core S.P.D. rangers + Shadow Ranger stubs never had skins/sprites.)
   omega_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.omega_ranger?.portrait, spriteScale: characters.omega_ranger?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "omegaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("omega_ranger", "albedo"), spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "albedo") },
+    { id: "omegaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("omega_ranger", "valkyrie"), spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "valkyrie") },
+    { id: "omegaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("omega_ranger", "alienx"), spriteScale: characters.omega_ranger?.spriteScale, animationData: recolorSkinAnim("omega_ranger", "alienx") },
     // 12 creative recolors (tools/gen_omega_creative.py). Per-region, capture-masks-from-original
     // (contamination-proof even when armor+visor share a hue family): ARMOR = white/gray plates
     // (boots share the plating, not separable → follow armor) / VISOR = blue helmet lens / EMBLEM =
@@ -1458,6 +1462,10 @@ export const SKINS = {
   // (which would render him half-size). Alt skins come later.
   samurai_red_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.samurai_red_ranger?.portrait, spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Mega Mode).
+    { id: "samAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("samurai_red_ranger", "albedo"), spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "albedo"), recolorTag: "albedo" },
+    { id: "samValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("samurai_red_ranger", "valkyrie"), spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "samAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("samurai_red_ranger", "alienx"), spriteScale: characters.samurai_red_ranger?.spriteScale, animationData: recolorSkinAnim("samurai_red_ranger", "alienx"), recolorTag: "alienx" },
     // 12 creative recolors (tools/gen_samurai_creative.py). Per-region SUIT (red top/helmet/boots — helmet
     // not separable, recolors with the suit) + TRIM (gold belt-sash + sword hilt); dark hakama pants +
     // white sleeves + black visor left untouched (face/visor excluded). recolorTag is REQUIRED here: it
@@ -1471,6 +1479,10 @@ export const SKINS = {
   ],
   green_samurai_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Mega Mode).
+    { id: "green_samuraiAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("green_samurai_ranger", "albedo"), spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("green_samurai_ranger", "albedo"), recolorTag: "albedo" },
+    { id: "green_samuraiValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("green_samurai_ranger", "valkyrie"), spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("green_samurai_ranger", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "green_samuraiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("green_samurai_ranger", "alienx"), spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("green_samurai_ranger", "alienx"), recolorTag: "alienx" },
     { id: "green_samurai_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },   // Stage 23 auto-palette
     { id: "green_samurai_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.green_samurai_ranger?.portrait, spriteScale: characters.green_samurai_ranger?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
   ],
@@ -1480,6 +1492,10 @@ export const SKINS = {
   // doesn't fall back to the synthetic {spriteScale:1} default. Cosmetic only; no recolorTag (no Mega tier).
   red_ranger_mmpr: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.red_ranger_mmpr?.portrait, spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "rrAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("red_ranger_mmpr", "albedo"), spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "albedo") },
+    { id: "rrValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("red_ranger_mmpr", "valkyrie"), spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "valkyrie") },
+    { id: "rrAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("red_ranger_mmpr", "alienx"), spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "alienx") },
     { id: "rr_twilight",  name: "Twilight Fade",  unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_twilight.png",  spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_twilight") },
     { id: "rr_racer",     name: "Circuit Racer",  unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_racer.png",     spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_racer") },
     { id: "rr_magma",     name: "Magma Marble",   unlockLevel: 0, portrait: "./red_ranger_mmpr_portrait__rr_magma.png",     spriteScale: characters.red_ranger_mmpr?.spriteScale, animationData: recolorSkinAnim("red_ranger_mmpr", "rr_magma") },
@@ -1497,6 +1513,9 @@ export const SKINS = {
   ],
   gold_samurai_ranger: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.gold_samurai_ranger?.portrait, spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). FORM-AWARE (recolorTag → Mega Mode).
+    { id: "goldValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("gold_samurai_ranger", "valkyrie"), spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "valkyrie"), recolorTag: "valkyrie" },
+    { id: "goldAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("gold_samurai_ranger", "alienx"), spriteScale: characters.gold_samurai_ranger?.spriteScale, animationData: recolorSkinAnim("gold_samurai_ranger", "alienx"), recolorTag: "alienx" },
     // 12 THEMED recolors (tools/gen_gold_creative.py). Per-region PLATE (gold armor + helmet — the
     // iconic "armor", dominant in Mega tier so it carries the primary identity colour) + SUIT (the deep
     // blue bodysuit — base tier only; the Mega bodysuit is near-black and stays black, documented). The

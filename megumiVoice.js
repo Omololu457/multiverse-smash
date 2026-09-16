@@ -7,9 +7,10 @@
 //
 // ── LANGUAGE POLICY (Stage 3) ──
 // The 148-clip rip is a MIX: 115 Japanese, 28 English-dub, 5 non-speech. Per the owner's
-// decision ONLY the JAPANESE clips are wired; the 28 English clips were moved to
-//  "voice lines new /megumi_english_reserve/"  (kept for a possible future English-mode,
-// see RESERVE_MANIFEST.md). Language came from real ASR detection, not guesswork.
+// decision ONLY the JAPANESE clips are wired; the 28 English clips were set aside for a
+// possible future English-mode in the "voice lines new/" source workspace, which was
+// removed once runtime voice migrated to voice/<char>/ — recover from git history if
+// needed. Language came from real ASR detection, not guesswork.
 //
 // Only clean short Japanese single lines are wired. JA.
 //

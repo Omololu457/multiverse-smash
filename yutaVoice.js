@@ -8,9 +8,10 @@
 // ── LANGUAGE POLICY (Stage 3) ──
 // The 485-clip rip is overwhelmingly Japanese with a handful of English-dub clips
 // (one of which, yuta_001, is an 89s English compilation). Per the owner's decision,
-// ONLY the JAPANESE clips are wired; the English clips were moved to
-//  "voice lines new /yuta_english_reserve/"  (kept for a possible future English-mode,
-// see RESERVE_MANIFEST.md). Language came from real ASR detection, not guesswork.
+// ONLY the JAPANESE clips are wired; the English clips were set aside for a possible
+// future English-mode in the "voice lines new/" source workspace, which was removed
+// once runtime voice migrated to voice/<char>/ — recover from git history if needed.
+// Language came from real ASR detection, not guesswork.
 //
 // Only clean short Japanese single lines are wired. JA.
 //

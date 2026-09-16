@@ -8,10 +8,11 @@
 // ── LANGUAGE POLICY (Stage 3) ──
 // The 516-clip rip is a MIX of the Japanese dub (410 clips) and the English dub
 // (86 clips), plus 20 non-speech / VAD-empty clips. Per the owner's decision, ONLY
-// the JAPANESE clips are wired for Aoi Todo. The English clips were moved OUT of the
-// game to  "voice lines new /aoi_todo_english_reserve/"  (kept, not deleted — set aside
-// for a possible future English-mode), see that folder's RESERVE_MANIFEST.md. The
-// language of every clip came from real ASR detection, NOT filename/guesswork.
+// the JAPANESE clips are wired for Aoi Todo. The English clips were set aside for a
+// possible future English-mode in the "voice lines new/" source workspace, which was
+// removed from the tree once runtime voice migrated to voice/<char>/ — recover the
+// reserves from git history if English-mode is ever built. The language of every clip
+// came from real ASR detection, NOT filename/guesswork.
 //
 // Only clean, short, self-contained Japanese single lines are wired below; the many
 // long stitched compilations and sub-word fragments are left unwired (see LOG). JA.

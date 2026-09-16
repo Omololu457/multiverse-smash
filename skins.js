@@ -331,6 +331,9 @@ export const SKINS = {
   // stripes via value-split — chosen over Classic since the base already reads as the black/red classic suit).
   miles: [
     { id: "default",          name: "Default",         unlockLevel: 0, portrait: characters.miles?.portrait,                        spriteScale: characters.miles?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "milesValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("miles", "valkyrie"), spriteScale: characters.miles?.spriteScale, animationData: recolorSkinAnim("miles", "valkyrie") },
+    { id: "milesAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("miles", "alienx"), spriteScale: characters.miles?.spriteScale, animationData: recolorSkinAnim("miles", "alienx") },
     // ── Group 1 ──
     { id: "milesVerdantWeb",  name: "Verdant Web",     unlockLevel: 0, portrait: "./miles_portrait__verdantweb.png",  spriteScale: characters.miles?.spriteScale, animationData: recolorSkinAnim("miles", "verdantweb"),  recolorTag: "verdantweb" },
     { id: "milesObsidianWeb", name: "Obsidian Web",    unlockLevel: 0, portrait: "./miles_portrait__obsidianweb.png", spriteScale: characters.miles?.spriteScale, animationData: recolorSkinAnim("miles", "obsidianweb"), recolorTag: "obsidianweb" },
@@ -2104,6 +2107,10 @@ export const SKINS = {
   // Stealth "Prodigal Son" homage (matte-black plate, thin dark accent, cold blue-white faceplate eyes).
   iron_man: [
     { id: "default",              name: "Default",              unlockLevel: 0, portrait: characters.iron_man?.portrait,                          spriteScale: characters.iron_man?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "ironManAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("iron_man", "albedo"), spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "albedo") },
+    { id: "ironManValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("iron_man", "valkyrie"), spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "valkyrie") },
+    { id: "ironManAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("iron_man", "alienx"), spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "alienx") },
     // ── Group 1 ──
     { id: "ironManCrimsonOverdrive", name: "Crimson Overdrive", unlockLevel: 0, portrait: "./iron_man_portrait__crimsonoverdrive.png", spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "crimsonoverdrive"), recolorTag: "crimsonoverdrive" },  // deeper crimson plate / black accent
     { id: "ironManVerdantCircuit",   name: "Verdant Circuit",   unlockLevel: 0, portrait: "./iron_man_portrait__verdantcircuit.png",   spriteScale: characters.iron_man?.spriteScale, animationData: recolorSkinAnim("iron_man", "verdantcircuit"),   recolorTag: "verdantcircuit" },    // green plate / dark-green accent
@@ -2125,6 +2132,10 @@ export const SKINS = {
   // plate, red/white accent stripes — the strongest real alternate-era read in the trio).
   iron_man_2: [
     { id: "default",                name: "Default",            unlockLevel: 0, portrait: characters.iron_man_2?.portrait,                        spriteScale: characters.iron_man_2?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "ironMan2Albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("iron_man_2", "albedo"), spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "albedo") },
+    { id: "ironMan2Valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("iron_man_2", "valkyrie"), spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "valkyrie") },
+    { id: "ironMan2AlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("iron_man_2", "alienx"), spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "alienx") },
     // ── Group 1 ──
     { id: "ironMan2CrimsonOverdrive", name: "Crimson Overdrive", unlockLevel: 0, portrait: "./iron_man_2_portrait__crimsonoverdrive.png", spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "crimsonoverdrive"), recolorTag: "crimsonoverdrive" },
     { id: "ironMan2VerdantCircuit",   name: "Verdant Circuit",   unlockLevel: 0, portrait: "./iron_man_2_portrait__verdantcircuit.png",   spriteScale: characters.iron_man_2?.spriteScale, animationData: recolorSkinAnim("iron_man_2", "verdantcircuit"),   recolorTag: "verdantcircuit" },
@@ -2146,6 +2157,10 @@ export const SKINS = {
   // reversed-placement canon alt — the trio's subtlest, keeping its homage distinct from Stealth/War Machine).
   iron_man_3: [
     { id: "default",                name: "Default",            unlockLevel: 0, portrait: characters.iron_man_3?.portrait,                        spriteScale: characters.iron_man_3?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "ironMan3Albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("iron_man_3", "albedo"), spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "albedo") },
+    { id: "ironMan3Valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("iron_man_3", "valkyrie"), spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "valkyrie") },
+    { id: "ironMan3AlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("iron_man_3", "alienx"), spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "alienx") },
     // ── Group 1 ──
     { id: "ironMan3CrimsonOverdrive", name: "Crimson Overdrive", unlockLevel: 0, portrait: "./iron_man_3_portrait__crimsonoverdrive.png", spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "crimsonoverdrive"), recolorTag: "crimsonoverdrive" },
     { id: "ironMan3VerdantCircuit",   name: "Verdant Circuit",   unlockLevel: 0, portrait: "./iron_man_3_portrait__verdantcircuit.png",   spriteScale: characters.iron_man_3?.spriteScale, animationData: recolorSkinAnim("iron_man_3", "verdantcircuit"),   recolorTag: "verdantcircuit" },
@@ -2162,6 +2177,10 @@ export const SKINS = {
   ],
   spiderman: [
     { id: "default",                    name: "Default",             unlockLevel: 0, portrait: characters.spiderman?.portrait,                       spriteScale: characters.spiderman?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "spidermanAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("spiderman", "albedo"), spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "albedo") },
+    { id: "spidermanValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("spiderman", "valkyrie"), spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "valkyrie") },
+    { id: "spidermanAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("spiderman", "alienx"), spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "alienx") },
     { id: "spidermanNegativeZone",      name: "Negative Zone",       unlockLevel: 0, portrait: "./spiderman_portrait__whiteblue.png",          spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "whiteblue"),          recolorTag: "whiteblue" },
     // ── Group 1 ──
     { id: "spidermanCrimsonWeave",      name: "Crimson Weave",       unlockLevel: 0, portrait: "./spiderman_portrait__crimsonweave.png",       spriteScale: characters.spiderman?.spriteScale, animationData: recolorSkinAnim("spiderman", "crimsonweave"),       recolorTag: "crimsonweave" },

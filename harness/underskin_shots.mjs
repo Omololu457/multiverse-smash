@@ -109,6 +109,12 @@ const CONFIG = {
   mayuri:        { p1: "mayuri",        skins: [{ id: "mayuriAlbedo", tag: "albedo" }, { id: "mayuriValkyrie", tag: "valkyrie" }, { id: "mayuriAlienX", tag: "alienx" }] },
   byakuya:       { p1: "byakuya",       skins: [{ id: "byakuyaAlbedo", tag: "albedo" }, { id: "byakuyaValkyrie", tag: "valkyrie" }, { id: "byakuyaAlienX", tag: "alienx" }] },
   yamamoto:      { p1: "yamamoto",      skins: [{ id: "yamamotoAlbedo", tag: "albedo" }, { id: "yamamotoValkyrie", tag: "valkyrie" }, { id: "yamamotoAlienX", tag: "alienx" }] },
+  // ── Marvel ──
+  spiderman:  { p1: "spiderman",  skins: [{ id: "spidermanAlbedo", tag: "albedo" }, { id: "spidermanValkyrie", tag: "valkyrie" }, { id: "spidermanAlienX", tag: "alienx" }] },
+  iron_man:   { p1: "iron_man",   skins: [{ id: "ironManAlbedo", tag: "albedo" }, { id: "ironManValkyrie", tag: "valkyrie" }, { id: "ironManAlienX", tag: "alienx" }] },
+  iron_man_2: { p1: "iron_man_2", skins: [{ id: "ironMan2Albedo", tag: "albedo" }, { id: "ironMan2Valkyrie", tag: "valkyrie" }, { id: "ironMan2AlienX", tag: "alienx" }] },
+  iron_man_3: { p1: "iron_man_3", skins: [{ id: "ironMan3Albedo", tag: "albedo" }, { id: "ironMan3Valkyrie", tag: "valkyrie" }, { id: "ironMan3AlienX", tag: "alienx" }] },
+  miles:      { p1: "miles",      skins: [{ id: "milesValkyrie", tag: "valkyrie" }, { id: "milesAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];

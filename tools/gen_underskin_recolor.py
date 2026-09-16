@@ -284,6 +284,32 @@ def ichigo_classify(h, s, v):
     if (s < 0.2 and v >= 0.5) or (0.12 <= v < 0.5 and s < 0.42):  return "GARMENT"  # shihakushō + white wrap
     return "OTHER"
 
+def spiderman_classify(h, s, v):
+    # Spider-Man: red suit = GARMENT; blue panels/legs = ACCENT; skin protected (portrait face); dark outline kept.
+    if v < 0.13:                                     return "DARK"
+    if 6 <= h <= 40 and 0.25 <= s < 0.6 and v >= 0.5:  return "SKIN"     # unmasked face in portrait
+    if (h <= 15 or h >= 340) and s >= 0.45:           return "GARMENT"   # red suit
+    if 175 <= h <= 260 and s >= 0.32:                 return "ACCENT"    # blue panels / eyes-cyan
+    return "OTHER"
+
+def miles_classify(h, s, v):
+    # Miles Morales: BLACK suit primary = GARMENT; red spider/webbing = ACCENT; skin protected.
+    if 6 <= h <= 40 and 0.28 <= s < 0.6 and v >= 0.45:  return "SKIN"    # brown skin (portrait)
+    if (h <= 15 or h >= 335) and s >= 0.42:           return "ACCENT"    # red spider / web lines
+    if v < 0.34:                                      return "GARMENT"   # black suit
+    if 175 <= h <= 250 and s >= 0.32:                 return "TRIM"      # blue highlights
+    return "OTHER"
+
+def ironman_classify(h, s, v):
+    # Iron Man (all Mark variants): red armour = GARMENT; gold plating = ACCENT; silver/grey metal = TRIM;
+    # skin protected (helmet-off portrait); dark joints kept.
+    if v < 0.14:                                     return "DARK"
+    if 6 <= h <= 38 and 0.22 <= s < 0.5 and v >= 0.5:  return "SKIN"     # face
+    if 20 <= h <= 55 and s >= 0.42 and v >= 0.4:      return "ACCENT"    # gold plating
+    if (h <= 18 or h >= 335) and s >= 0.35:           return "GARMENT"   # red armour
+    if s < 0.2 and v >= 0.38:                         return "TRIM"      # silver/grey metal
+    return "OTHER"
+
 def superman_classify(h, s, v):
     # Superman (all variants): blue suit = GARMENT; red cape/boots/S = ACCENT; skin + dark hair protected.
     if v < 0.13:                                     return "DARK"
@@ -526,6 +552,11 @@ CHARS = {
     "mayuri":        dict(classify=bleach_classify),
     "byakuya":       dict(classify=bleach_classify),
     "yamamoto":      dict(classify=bleach_classify),
+    "spiderman":  dict(classify=spiderman_classify),
+    "miles":      dict(classify=miles_classify),
+    "iron_man":   dict(classify=ironman_classify),
+    "iron_man_2": dict(classify=ironman_classify),
+    "iron_man_3": dict(classify=ironman_classify),
     "superman":         dict(classify=superman_classify),
     "superman_dcuc":    dict(classify=superman_classify),
     "superman_new52":   dict(classify=superman_classify),

@@ -90,6 +90,18 @@ const CONFIG = {
   orochimaru: { p1: "orochimaru", skins: [{ id: "orochimaruAlbedo", tag: "albedo" }, { id: "orochimaruValkyrie", tag: "valkyrie" }, { id: "orochimaruAlienX", tag: "alienx" }] },
   onoki:      { p1: "onoki",      skins: [{ id: "onokiAlbedo", tag: "albedo" }, { id: "onokiValkyrie", tag: "valkyrie" }, { id: "onokiAlienX", tag: "alienx" }] },
   kiba:       { p1: "kiba",       skins: [{ id: "kibaAlbedo", tag: "albedo" }, { id: "kibaValkyrie", tag: "valkyrie" }, { id: "kibaAlienX", tag: "alienx" }] },
+  // ── DC ──
+  superman:         { p1: "superman",         skins: [{ id: "supermanAlbedo", tag: "albedo" }, { id: "supermanValkyrie", tag: "valkyrie" }, { id: "supermanAlienX", tag: "alienx" }] },
+  superman_dcuc:    { p1: "superman_dcuc",    skins: [{ id: "superman_dcucAlbedo", tag: "albedo" }, { id: "superman_dcucValkyrie", tag: "valkyrie" }, { id: "superman_dcucAlienX", tag: "alienx" }] },
+  superman_new52:   { p1: "superman_new52",   skins: [{ id: "superman_new52Albedo", tag: "albedo" }, { id: "superman_new52Valkyrie", tag: "valkyrie" }, { id: "superman_new52AlienX", tag: "alienx" }] },
+  superman_classic: { p1: "superman_classic", skins: [{ id: "superman_classicAlbedo", tag: "albedo" }, { id: "superman_classicValkyrie", tag: "valkyrie" }, { id: "superman_classicAlienX", tag: "alienx" }] },
+  superman_fighter: { p1: "superman_fighter", skins: [{ id: "superman_fighterAlbedo", tag: "albedo" }, { id: "superman_fighterValkyrie", tag: "valkyrie" }, { id: "superman_fighterAlienX", tag: "alienx" }] },
+  flash:         { p1: "flash",         skins: [{ id: "flashAlbedo", tag: "albedo" }, { id: "flashValkyrie", tag: "valkyrie" }, { id: "flashAlienX", tag: "alienx" }] },
+  deathstroke:   { p1: "deathstroke",   skins: [{ id: "deathstrokeAlbedo", tag: "albedo" }, { id: "deathstrokeValkyrie", tag: "valkyrie" }, { id: "deathstrokeAlienX", tag: "alienx" }] },
+  brainiac:      { p1: "brainiac",      skins: [{ id: "brainiacAlbedo", tag: "albedo" }, { id: "brainiacValkyrie", tag: "valkyrie" }, { id: "brainiacAlienX", tag: "alienx" }] },
+  green_lantern: { p1: "green_lantern", skins: [{ id: "green_lanternAlbedo", tag: "albedo" }, { id: "green_lanternValkyrie", tag: "valkyrie" }, { id: "green_lanternAlienX", tag: "alienx" }] },
+  batman:        { p1: "batman",        skins: [{ id: "batmanValkyrie", tag: "valkyrie" }, { id: "batmanAlienX", tag: "alienx" }] },
+  dark_knight:   { p1: "dark_knight",   skins: [{ id: "dark_knightValkyrie", tag: "valkyrie" }, { id: "dark_knightAlienX", tag: "alienx" }] },
 };
 const WANT = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(CONFIG);
 const ACTIONS = ["idle", "walk", "light", "heavy"];
@@ -122,6 +134,7 @@ for (const char of WANT) {
                            : char === "goku_black" ? `goku_black_mug_shot__${tag}.png`
                            : char === "itachi"     ? `Itatchi_mugshot__${tag}.png`
                            : char === "six_paths_pain" ? `sixpaths_deva_portrait__${tag}.png`
+                           : char === "green_lantern" ? `gl_portrait__${tag}.png`
                            : `${char}_portrait__${tag}.png`;
   for (const { tag } of cfg.skins) {
     const pp = path.join(ROOT, portraitFor(tag));

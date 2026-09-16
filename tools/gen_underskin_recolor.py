@@ -267,6 +267,60 @@ def nezuko_classify(h, s, v):
     if 300 <= h <= 350 and s >= 0.28:                 return "GARMENT"  # pink kimono
     return "OTHER"
 
+def superman_classify(h, s, v):
+    # Superman (all variants): blue suit = GARMENT; red cape/boots/S = ACCENT; skin + dark hair protected.
+    if v < 0.13:                                     return "DARK"
+    if 6 <= h <= 40 and 0.25 <= s < 0.72 and v >= 0.45:  return "SKIN"
+    if (h <= 12 or h >= 344) and s >= 0.55:           return "ACCENT"   # red cape / boots / S
+    if 195 <= h <= 245 and s >= 0.38:                 return "GARMENT"  # blue suit
+    return "OTHER"
+
+def flash_classify(h, s, v):
+    # Flash: red bodysuit = GARMENT; yellow lightning = ACCENT; skin protected.
+    if v < 0.13:                                     return "DARK"
+    if 6 <= h <= 40 and 0.25 <= s < 0.72 and v >= 0.5 and s < 0.85:  return "SKIN"
+    if 40 <= h <= 62 and s >= 0.6:                    return "ACCENT"   # yellow lightning
+    if (h <= 14 or h >= 344) and s >= 0.55:           return "GARMENT"  # red suit
+    return "OTHER"
+
+def deathstroke_classify(h, s, v):
+    # Deathstroke: dark blue-grey armour = GARMENT; orange accents = ACCENT; masked (no skin).
+    if v < 0.14:                                     return "DARK"
+    if 12 <= h <= 45 and s >= 0.6:                    return "ACCENT"   # orange
+    if (195 <= h <= 258 or s < 0.32) and 0.14 <= v < 0.62:  return "GARMENT"  # blue-grey armour
+    return "OTHER"
+
+def brainiac_classify(h, s, v):
+    # Brainiac: blue tech-suit = GARMENT; GREEN skin protected; dark outline protect.
+    if v < 0.13:                                     return "DARK"
+    if 80 <= h <= 165 and s >= 0.28:                  return "SKIN"     # green Coluan skin (protected)
+    if 200 <= h <= 292 and s >= 0.30:                 return "GARMENT"  # blue/purple tech-suit
+    return "OTHER"
+
+def green_lantern_classify(h, s, v):
+    # Green Lantern: green suit = GARMENT; skin protected; white logo + dark protected.
+    if v < 0.15:                                     return "DARK"
+    if 6 <= h <= 42 and 0.25 <= s < 0.7 and v >= 0.45:  return "SKIN"
+    if 78 <= h <= 155 and s >= 0.4:                   return "GARMENT"  # green suit
+    return "OTHER"
+
+def batman_classify(h, s, v):
+    # Batman: near-all-black suit/cape/cowl = one unified GARMENT (recolour toward the theme); yellow bat
+    # symbol/belt = ACCENT; exposed chin skin protected; pure outline protected.
+    if v < 0.06:                                     return "DARK"
+    if 6 <= h <= 40 and 0.28 <= s < 0.7 and v >= 0.45:  return "SKIN"   # exposed chin/jaw
+    if 38 <= h <= 62 and s >= 0.5:                    return "ACCENT"   # yellow bat symbol / belt
+    if v < 0.6 and s < 0.5:                           return "GARMENT"  # black suit (unified)
+    return "OTHER"
+
+def dark_knight_classify(h, s, v):
+    # Dark Knight (Batman variant): same as batman — unified dark suit recolour + yellow accent.
+    if v < 0.06:                                     return "DARK"
+    if 6 <= h <= 40 and 0.28 <= s < 0.7 and v >= 0.45:  return "SKIN"
+    if 38 <= h <= 62 and s >= 0.5:                    return "ACCENT"
+    if v < 0.6 and s < 0.5:                           return "GARMENT"
+    return "OTHER"
+
 def itachi_classify(h, s, v):
     # Itachi: black Akatsuki cloak = GARMENT; red clouds = ACCENT; black hair + skin protected.
     if v < 0.13:                                     return "DARK"
@@ -449,6 +503,17 @@ def handler_classify(h, s, v):
 
 CHARS = {
     "baki":      dict(classify=baki_classify),
+    "superman":         dict(classify=superman_classify),
+    "superman_dcuc":    dict(classify=superman_classify),
+    "superman_new52":   dict(classify=superman_classify),
+    "superman_classic": dict(classify=superman_classify),
+    "superman_fighter": dict(classify=superman_classify),
+    "flash":            dict(classify=flash_classify),
+    "deathstroke":      dict(classify=deathstroke_classify),
+    "brainiac":         dict(classify=brainiac_classify),
+    "green_lantern":    dict(classify=green_lantern_classify),
+    "batman":           dict(classify=batman_classify),
+    "dark_knight":      dict(classify=dark_knight_classify),
     "itachi":     dict(classify=itachi_classify),
     "obito":      dict(classify=obito_classify),
     "tobi":       dict(classify=tobi_classify),

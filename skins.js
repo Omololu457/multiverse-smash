@@ -489,6 +489,10 @@ export const SKINS = {
   ],
   deathstroke: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.deathstroke?.portrait, spriteScale: characters.deathstroke?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "deathstrokeAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("deathstroke", "albedo"), spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "albedo") },
+    { id: "deathstrokeValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("deathstroke", "valkyrie"), spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "valkyrie") },
+    { id: "deathstrokeAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("deathstroke", "alienx"), spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "alienx") },
     { id: "deathstrokeCrimsonContract",    name: "Crimson Contract",    unlockLevel: 0, portrait: "./deathstroke_portrait__crimsoncontract.png",    spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "crimsoncontract") },    // deep-red suit / black accent / gunmetal trim
     { id: "deathstrokeVerdantMercenary",   name: "Verdant Mercenary",   unlockLevel: 0, portrait: "./deathstroke_portrait__verdantmercenary.png",   spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "verdantmercenary") },   // deep-green suit / black accent / silver trim
     { id: "deathstrokeGoldenReaper",       name: "Golden Reaper",       unlockLevel: 0, portrait: "./deathstroke_portrait__goldenreaper.png",       spriteScale: characters.deathstroke?.spriteScale, animationData: recolorSkinAnim("deathstroke", "goldenreaper") },       // black suit / heavy-gold accent (gold/black mask) / bright-gold trim
@@ -535,6 +539,10 @@ export const SKINS = {
   // bodysuit / grey metal casing / red diodes); FX colours (beam/pillar/shield) untouched. gen_brainiac_creative.py.
   brainiac: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.brainiac?.portrait, spriteScale: characters.brainiac?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "brainiacAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("brainiac", "albedo"), spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "albedo") },
+    { id: "brainiacValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("brainiac", "valkyrie"), spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "valkyrie") },
+    { id: "brainiacAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("brainiac", "alienx"), spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "alienx") },
     // ── Group 1 ──
     { id: "brainiacCrimsonCircuit",    name: "Crimson Circuit",    unlockLevel: 0, portrait: "./brainiac_portrait__crimsoncircuit.png",    spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "crimsoncircuit") },    // deep red skin / black-red suit / gold diodes / black casing
     { id: "brainiacAzureIntelligence", name: "Azure Intelligence", unlockLevel: 0, portrait: "./brainiac_portrait__azureintelligence.png", spriteScale: characters.brainiac?.spriteScale, animationData: recolorSkinAnim("brainiac", "azureintelligence") }, // teal skin / navy suit / white diodes / cool-grey casing
@@ -557,6 +565,10 @@ export const SKINS = {
   // skinId variant; the Energy Beam is tinted in code). Corps colours grounded in the DC emotional spectrum.
   green_lantern: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.green_lantern?.portrait, spriteScale: characters.green_lantern?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "green_lanternAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("green_lantern", "albedo"), spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "albedo") },
+    { id: "green_lanternValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("green_lantern", "valkyrie"), spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "valkyrie") },
+    { id: "green_lanternAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("green_lantern", "alienx"), spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "alienx") },
     // ── Group 1 ──
     { id: "glSinestroCorps",     name: "Sinestro Corps",      unlockLevel: 0, portrait: "./gl_portrait__sinestrocorps.png",     spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "sinestrocorps") },     // fear — yellow suit / black secondary / black gloves
     { id: "glRedLanternCorps",   name: "Red Lantern Corps",   unlockLevel: 0, portrait: "./gl_portrait__redlanterncorps.png",   spriteScale: characters.green_lantern?.spriteScale, animationData: recolorSkinAnim("green_lantern", "redlanterncorps") },   // rage — deep red suit / black secondary / white gloves
@@ -974,6 +986,10 @@ export const SKINS = {
   // (1.25) + portrait from the character.
   flash: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.flash?.portrait, spriteScale: characters.flash?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "flashAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("flash", "albedo"), spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "albedo") },
+    { id: "flashValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("flash", "valkyrie"), spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "valkyrie") },
+    { id: "flashAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("flash", "alienx"), spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "alienx") },
     { id: "flashBlue", name: "Blue Streak (Alt)", unlockLevel: 0, portrait: "./flash_portrait__blue.png", spriteScale: characters.flash?.spriteScale, animationData: recolorSkinAnim("flash", "blue") }
   ],
 
@@ -990,6 +1006,9 @@ export const SKINS = {
   // silhouette match needs new art — flagged. Distinct from the "Blue Knight" homage on the other Batman).
   dark_knight: [
     { id: "default",              name: "Default",           unlockLevel: 0, portrait: characters.dark_knight?.portrait,                        spriteScale: characters.dark_knight?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "dark_knightValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("dark_knight", "valkyrie"), spriteScale: characters.dark_knight?.spriteScale, animationData: recolorSkinAnim("dark_knight", "valkyrie") },
+    { id: "dark_knightAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("dark_knight", "alienx"), spriteScale: characters.dark_knight?.spriteScale, animationData: recolorSkinAnim("dark_knight", "alienx") },
     // ── Group 1 ──
     { id: "darkKnightCrimsonKnight",   name: "Crimson Knight",   unlockLevel: 0, portrait: "./dark_knight_portrait__crimsonknight.png",   spriteScale: characters.dark_knight?.spriteScale, animationData: recolorSkinAnim("dark_knight", "crimsonknight"),   recolorTag: "crimsonknight" },
     { id: "darkKnightVerdantGuardian", name: "Verdant Guardian", unlockLevel: 0, portrait: "./dark_knight_portrait__verdantguardian.png", spriteScale: characters.dark_knight?.spriteScale, animationData: recolorSkinAnim("dark_knight", "verdantguardian"), recolorTag: "verdantguardian" },
@@ -1006,6 +1025,9 @@ export const SKINS = {
   ],
   batman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.batman?.portrait, spriteScale: characters.batman?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "batmanValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("batman", "valkyrie"), spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "valkyrie") },
+    { id: "batmanAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("batman", "alienx"), spriteScale: characters.batman?.spriteScale, animationData: recolorSkinAnim("batman", "alienx") },
     // "Nightwatch" — dark tactical recolor (tools/gen_batman_nightwatch.py): the (already near-black)
     // suit gets a faint cool-charcoal tint (#0D0E10–#1A1B1F) and the yellow belt + bat-emblem + cowl
     // eye-slit recolor to cyan glow #3DDBEE. Cosmetic only; all three regions were colour-separable.
@@ -1065,6 +1087,10 @@ export const SKINS = {
   // The SAME template is applied independently to superman_dcuc / superman_new52 / superman_classic below.
   superman: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman?.portrait, spriteScale: characters.superman?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "supermanAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman", "albedo"), spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "albedo") },
+    { id: "supermanValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman", "valkyrie"), spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "valkyrie") },
+    { id: "supermanAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman", "alienx"), spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "alienx") },
     // ── Group 1 ──
     { id: "supermanCrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_portrait__crimsonreversal.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "crimsonreversal") },
     { id: "supermanVerdantGuardian", name: "Verdant Guardian", unlockLevel: 0, portrait: "./superman_portrait__verdantguardian.png", spriteScale: characters.superman?.spriteScale, animationData: recolorSkinAnim("superman", "verdantguardian") },
@@ -1086,6 +1112,10 @@ export const SKINS = {
   // with the roster-wide Superman skin pass (see superman-roster-4variants memory).
   superman_dcuc: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman_dcuc?.portrait, spriteScale: characters.superman_dcuc?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "superman_dcucAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman_dcuc", "albedo"), spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "albedo") },
+    { id: "superman_dcucValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman_dcuc", "valkyrie"), spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "valkyrie") },
+    { id: "superman_dcucAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman_dcuc", "alienx"), spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "alienx") },
     // ── Group 1 ── (tools/gen_superman_skins.py superman_dcuc — same 10-skin template)
     { id: "supermanDcucCrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_dcuc_portrait__crimsonreversal.png", spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "crimsonreversal") },
     { id: "supermanDcucVerdantGuardian", name: "Verdant Guardian", unlockLevel: 0, portrait: "./superman_dcuc_portrait__verdantguardian.png", spriteScale: characters.superman_dcuc?.spriteScale, animationData: recolorSkinAnim("superman_dcuc", "verdantguardian") },
@@ -1107,6 +1137,10 @@ export const SKINS = {
   // (★New 52 = NO trunks region → skip it in the skin template for this variant).
   superman_new52: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman_new52?.portrait, spriteScale: characters.superman_new52?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "superman_new52Albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman_new52", "albedo"), spriteScale: characters.superman_new52?.spriteScale, animationData: recolorSkinAnim("superman_new52", "albedo") },
+    { id: "superman_new52Valkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman_new52", "valkyrie"), spriteScale: characters.superman_new52?.spriteScale, animationData: recolorSkinAnim("superman_new52", "valkyrie") },
+    { id: "superman_new52AlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman_new52", "alienx"), spriteScale: characters.superman_new52?.spriteScale, animationData: recolorSkinAnim("superman_new52", "alienx") },
     // ── Group 1 ── (tools/gen_superman_skins.py superman_new52 — same template; ★New 52 has NO trunks → the
     // "cape/trunks/boots" group is just cape+boots here, nothing to skip; the belt/S are a small accent.)
     { id: "supermanNew52CrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_new52_portrait__crimsonreversal.png", spriteScale: characters.superman_new52?.spriteScale, animationData: recolorSkinAnim("superman_new52", "crimsonreversal") },
@@ -1129,6 +1163,10 @@ export const SKINS = {
   // pass (★Classic HAS the red-trunks region → KEEP it in the skin template, unlike New 52).
   superman_classic: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman_classic?.portrait, spriteScale: characters.superman_classic?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "superman_classicAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman_classic", "albedo"), spriteScale: characters.superman_classic?.spriteScale, animationData: recolorSkinAnim("superman_classic", "albedo") },
+    { id: "superman_classicValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman_classic", "valkyrie"), spriteScale: characters.superman_classic?.spriteScale, animationData: recolorSkinAnim("superman_classic", "valkyrie") },
+    { id: "superman_classicAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman_classic", "alienx"), spriteScale: characters.superman_classic?.spriteScale, animationData: recolorSkinAnim("superman_classic", "alienx") },
     // ── Group 1 ── (tools/gen_superman_skins.py superman_classic — same template; ★Classic HAS trunks → the
     // "cape/trunks/boots" group recolors all three together, as the prompt intends.)
     { id: "supermanClassicCrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_classic_portrait__crimsonreversal.png", spriteScale: characters.superman_classic?.spriteScale, animationData: recolorSkinAnim("superman_classic", "crimsonreversal") },
@@ -1150,6 +1188,10 @@ export const SKINS = {
   // default skin, applySkin() pulls the getSkins() spriteScale:1 fallback.
   superman_fighter: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.superman_fighter?.portrait, spriteScale: characters.superman_fighter?.spriteScale, animationData: null },
+    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
+    { id: "superman_fighterAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("superman_fighter", "albedo"), spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "albedo") },
+    { id: "superman_fighterValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("superman_fighter", "valkyrie"), spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "valkyrie") },
+    { id: "superman_fighterAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("superman_fighter", "alienx"), spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "alienx") },
     // ── Group 1 ──
     { id: "supermanFighterCrimsonReversal", name: "Crimson Reversal", unlockLevel: 0, portrait: "./superman_fighter_portrait__crimsonreversal.png", spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "crimsonreversal") },
     { id: "supermanFighterVerdantGuardian", name: "Verdant Guardian", unlockLevel: 0, portrait: "./superman_fighter_portrait__verdantguardian.png", spriteScale: characters.superman_fighter?.spriteScale, animationData: recolorSkinAnim("superman_fighter", "verdantguardian") },

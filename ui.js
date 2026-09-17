@@ -856,7 +856,8 @@ export function getStartMenuRects(canvas) {
 
 export function getGameplaySelectRects(canvas) {
   return getVerticalMenuLayout(canvas, [
-    { id: "training", label: "TRAINING",  subLabel: "1 player practice mode"      },
+    { id: "training",    label: "TRAINING",     subLabel: "1 player practice mode"      },
+    { id: "comboTrials", label: "COMBO TRIALS", subLabel: "Scripted combo challenges"   },
     { id: "vs",       label: "VS MATCH",  subLabel: "1 player vs the CPU"         },
     { id: "pvp",      label: "2 PLAYER",  subLabel: "Local versus — P1 vs P2"     },
     { id: "arcade",   label: "ARCADE",    subLabel: "7 fights, a rival, a boss & your ending" },
@@ -1477,7 +1478,7 @@ function drawMenuParticles(ctx, canvas, opts = {}) {
   ctx.restore()
 }
 
-export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) {
+export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null, daily = null) {
   _mkAdvance()
   const { width: w } = getCanvasSize(canvas)
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
@@ -1512,6 +1513,40 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null) 
     }
   })
   drawFooterHint(ctx, canvas, "Tip: new here? Open HOW TO PLAY for the controls and core mechanics")
+
+  // DAILY CHALLENGES panel (Track D): today's 3 featured challenges + the login streak,
+  // bottom-left. Read-only; completing challenges (in a match) grants their normal reward.
+  drawDailyChallengesPanel(ctx, canvas, daily)
+}
+
+function drawDailyChallengesPanel(ctx, canvas, daily) {
+  if (!daily || !Array.isArray(daily.challenges) || !daily.challenges.length) return
+  const { height: h } = getCanvasSize(canvas)
+  const pad = 24
+  const pw = 300, ph = 34 + daily.challenges.length * 26 + 12
+  const px = pad, py = h - ph - 64   // sits above the footer hint
+  ctx.save()
+  drawPanel(ctx, px, py, pw, ph, { fill: "rgba(8,14,30,0.82)", stroke: "rgba(120,170,255,0.35)", lineWidth: 1.5, radius: 12, bevel: true, bevelCut: 8 })
+  ctx.textBaseline = "middle"; ctx.textAlign = "left"
+  ctx.font = "800 14px Arial"; ctx.fillStyle = "#ffe08a"
+  ctx.fillText("DAILY CHALLENGES", px + 14, py + 18)
+  // login streak badge (right-aligned in the header)
+  const streak = daily.streak || 0
+  const sLabel = `🔥 ${streak}-day streak`
+  ctx.font = "700 12px Arial"; ctx.textAlign = "right"; ctx.fillStyle = streak > 1 ? "#fca5a5" : "rgba(220,230,255,0.7)"
+  ctx.fillText(sLabel, px + pw - 14, py + 18)
+  // rows
+  ctx.textAlign = "left"; ctx.font = "13px Arial"
+  daily.challenges.forEach((c, i) => {
+    const ry = py + 40 + i * 26
+    const done = !!c.complete
+    ctx.fillStyle = done ? "#7CFC9B" : "rgba(200,214,240,0.55)"
+    ctx.fillText(done ? "✓" : "○", px + 16, ry)
+    ctx.fillStyle = done ? "rgba(180,220,190,0.75)" : "#e8eeff"
+    const label = c.label.length > 30 ? c.label.slice(0, 29) + "…" : c.label
+    ctx.fillText(label, px + 34, ry)
+  })
+  ctx.restore()
 }
 
 // ─────────────────────────────────────────────
@@ -1786,6 +1821,121 @@ export function drawControlsHelpScreen(ctx, canvas, opts = {}) {
   drawMkButton(ctx, b, { label: "BACK", active: !!opts.backHover, accent: _MK_ACCENT, id: "controlshelp:back", cut: 12 })
   drawCenteredText(ctx, "Esc / Circle to go back", cw / 2, ch - 18, { font: "12px Arial", fill: "rgba(200,210,230,0.5)", align: "center", baseline: "middle" })
 }
+
+// ─────────────────────────────────────────────
+// COMBO TRIALS — select screen + in-battle HUD
+// ─────────────────────────────────────────────
+// Single source of geometry (draw + hit-test read it): character ◀/▶ selector, a
+// vertical list of that character's trials, a BACK button.
+export function getComboTrialsRects(canvas, data = {}) {
+  const cw = canvas?.width || 1280, ch = canvas?.height || 720
+  const selY = 140
+  const boxW = Math.min(420, cw - 200)
+  const boxX = cw / 2 - boxW / 2
+  const arrowW = 54
+  const prevChar = { x: boxX - arrowW - 14, y: selY, w: arrowW, h: 52, id: "prevChar" }
+  const nextChar = { x: boxX + boxW + 14,   y: selY, w: arrowW, h: 52, id: "nextChar" }
+  const listW = Math.min(640, cw - 120)
+  const listX = cw / 2 - listW / 2
+  const rowH = 66, rowGap = 12
+  const listY = selY + 92
+  const trials = (data.trials || []).map((t, i) => ({
+    x: listX, y: listY + i * (rowH + rowGap), w: listW, h: rowH, index: i, id: `trial:${i}`
+  }))
+  const back = { x: cw / 2 - 90, y: ch - 70, w: 180, h: 44, id: "back" }
+  return { prevChar, nextChar, trials, back, listX, listW, selY, boxX, boxW }
+}
+
+const _STAR_FULL = "★", _STAR_EMPTY = "☆"
+function _starStr(n, max = 3) { return _STAR_FULL.repeat(Math.max(0, Math.min(max, n))) + _STAR_EMPTY.repeat(Math.max(0, max - n)) }
+
+export function drawComboTrialsScreen(ctx, canvas, data = {}) {
+  _mkAdvance()
+  const cw = canvas?.width || 1280, ch = canvas?.height || 720
+  ctx.clearRect(0, 0, cw, ch)
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#0b1021", bottom: "#211a30" })
+  drawHeader(ctx, canvas, "COMBO TRIALS", "Land the exact string as one combo — earn up to ★★★")
+  const rr = getComboTrialsRects(canvas, data)
+
+  // Character selector.
+  _metalPanel(ctx, rr.boxX, rr.selY, rr.boxW, 52, _MK_ACCENT, 12, 0.4)
+  drawCenteredText(ctx, data.char?.name || "—", rr.boxX + rr.boxW / 2, rr.selY + 26,
+    { font: "900 22px Arial", fill: "#f1f5f9", align: "center", baseline: "middle" })
+  for (const [rect, glyph] of [[rr.prevChar, "◀"], [rr.nextChar, "▶"]]) {
+    drawMkButton(ctx, rect, { label: glyph, active: false, accent: _MK_ACCENT, id: `combotrial:${rect.id}`, cut: 10 })
+  }
+
+  // Trial rows.
+  rr.trials.forEach((rect, i) => {
+    const t = data.trials[i]
+    const active = i === (data.trialIdx || 0)
+    drawMkButton(ctx, rect, { label: "", active, accent: _MK_ACCENT, id: `combotrial:row:${i}`, cut: 12 })
+    ctx.save()
+    ctx.textBaseline = "middle"
+    ctx.textAlign = "left"
+    ctx.fillStyle = "#f1f5f9"; ctx.font = "800 18px Arial"
+    ctx.fillText(t.name, rect.x + 20, rect.y + 22)
+    ctx.fillStyle = "rgba(200,214,240,0.75)"; ctx.font = "13px Arial"
+    ctx.fillText(t.seqText, rect.x + 20, rect.y + 46)
+    // Best-stars badge (right).
+    ctx.textAlign = "right"
+    ctx.fillStyle = t.best > 0 ? "#ffd76a" : "rgba(200,214,240,0.35)"; ctx.font = "20px Arial"
+    ctx.fillText(_starStr(t.best), rect.x + rect.w - 20, rect.y + rect.h / 2)
+    ctx.restore()
+  })
+
+  drawMkButton(ctx, rr.back, { label: "BACK", active: !!data.backHover, accent: _MK_ACCENT, id: "combotrial:back", cut: 12 })
+  drawCenteredText(ctx, "↑↓ trial  ·  ←→ character  ·  Enter start  ·  Esc back", cw / 2, ch - 14,
+    { font: "12px Arial", fill: "rgba(200,210,230,0.5)", align: "center", baseline: "middle" })
+}
+
+// In-battle objective panel (top-center) shown while a trial is armed. `info` is
+// comboTrials.activeInfo(); shows the required string with per-step ticks + result.
+export function drawComboTrialHud(ctx, canvas, info, opts = {}) {
+  if (!info) return
+  const { width: w } = getCanvasSize(canvas)
+  const panelW = 460
+  const px = w / 2 - panelW / 2
+  const py = 12
+  const steps = info.seqLabels || []
+  const rowH = 88
+  ctx.save()
+  ctx.fillStyle = "rgba(6,10,22,0.72)"; ctx.fillRect(px, py, panelW, rowH)
+  const border = info.status === "pass" ? "#7CFC9B" : info.status === "fail" ? "#ff8080" : "rgba(120,170,255,0.5)"
+  ctx.strokeStyle = border; ctx.lineWidth = 2; ctx.strokeRect(px, py, panelW, rowH)
+
+  ctx.textBaseline = "middle"
+  ctx.textAlign = "left"
+  ctx.fillStyle = "#ffe08a"; ctx.font = "800 15px Arial"
+  ctx.fillText(`Combo Trial — ${info.name}`, px + 14, py + 16)
+  ctx.fillStyle = t_bestColor(info.best); ctx.textAlign = "right"; ctx.font = "16px Arial"
+  ctx.fillText(_starStr(info.best), px + panelW - 14, py + 16)
+
+  // The required sequence with per-step completion ticks.
+  ctx.textAlign = "left"
+  let sx = px + 14
+  const sy = py + 44
+  steps.forEach((label, i) => {
+    const done = i < (info.landed || 0)
+    ctx.font = "bold 13px Arial"
+    ctx.fillStyle = done ? "#7CFC9B" : "rgba(230,238,255,0.85)"
+    const txt = (done ? "✓ " : "") + label
+    ctx.fillText(txt, sx, sy)
+    sx += ctx.measureText(txt).width + 8
+    if (i < steps.length - 1) { ctx.fillStyle = "rgba(160,180,220,0.55)"; ctx.fillText("→", sx, sy); sx += ctx.measureText("→").width + 8 }
+  })
+
+  // Status / result line.
+  ctx.textAlign = "left"; ctx.font = "bold 13px Arial"
+  const retry = opts.retryLabel || "F2"
+  let msg = `Progress ${info.landed || 0}/${steps.length}   ·   Reset [${retry}]`, col = "rgba(200,214,240,0.8)"
+  if (info.status === "pass") { msg = `CLEAR!  ${_starStr(info.lastStars)}   ·   again to beat it   ·   Reset [${retry}]`; col = "#7CFC9B" }
+  else if (info.status === "fail") { msg = `Missed — combo broke. Try again   ·   Reset [${retry}]`; col = "#ff9a9a" }
+  ctx.fillStyle = col
+  ctx.fillText(msg, px + 14, py + rowH - 14)
+  ctx.restore()
+}
+function t_bestColor(n) { return n > 0 ? "#ffd76a" : "rgba(200,214,240,0.35)" }
 
 // Simple word-wrap helper — returns the new y after drawing.
 function wrapText(ctx, text, x, y, maxW, lineH, style = {}) {
@@ -3923,10 +4073,19 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
     ? `${fd.who} ${fd.name}: ${fd.startup}/${fd.active}/${fd.recovery}  [${fd.phase} ${fd.elapsed}/${fd.total}]`
     : "Move: —  (start/active/recovery)"
 
+  // FRAME ADVANTAGE (Track B): the last measured on-hit / on-block advantage. Set the dummy to
+  // "block" [F4] to read on-block numbers; "stand" reads on-hit. Positive = you recover first.
+  const adv = info.advantage
+  const advFresh = adv && (info.curFrame == null || (info.curFrame - (adv.frame || 0)) < 180)
+  const advLine = adv
+    ? `Adv: ${adv.value >= 0 ? "+" : ""}${adv.value} ${adv.onBlock ? "on block" : "on hit"}  (${adv.who} ${adv.move})`
+    : "Adv: —  (land/block a move to measure)"
+
   const lines = [
     "Training Mode",
     `Combo: ${info.combo ?? 0}    Last Dmg: ${info.damage ?? 0}`,
     fdLine,
+    advLine,
     `Infinite HP/EN: ${info.infinite ? "ON" : "OFF"} [F3]`,
     `Dummy: ${info.dummy ?? "stand"} [F4]    Reset [F2]`,
     ...(info.callInMult != null ? [`Call-In Mult: ${info.callInMult.toFixed(2)}   [ lower / ] raise`] : []),
@@ -3938,42 +4097,45 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
 
   const panelY = 70
   const panelW = 320
+  const panelH = lines.length * 18 + 84   // grows with the line count (frame-adv line added)
 
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.5)"
-  ctx.fillRect(16, panelY, panelW, 196)
+  ctx.fillRect(16, panelY, panelW, panelH)
   ctx.strokeStyle = "rgba(255,255,255,0.16)"
-  ctx.strokeRect(16, panelY, panelW, 196)
+  ctx.strokeRect(16, panelY, panelW, panelH)
 
   ctx.fillStyle = "#fff"
   ctx.font      = "13px Arial"
   ctx.textAlign = "left"
 
   lines.forEach((line, i) => {
-    // Highlight the live frame-data line while a move is active.
+    // Highlight the live frame-data line (i===2) and the frame-advantage line (i===3).
     if (i === 2) ctx.fillStyle = fd ? "#ffe08a" : "rgba(255,255,255,0.55)"
+    else if (i === 3) ctx.fillStyle = !adv ? "rgba(255,255,255,0.45)" : !advFresh ? "rgba(180,190,210,0.6)" : (adv.value >= 0 ? "#8ef0a0" : "#ff9a9a")
     else ctx.fillStyle = "#fff"
     ctx.fillText(line, 28, panelY + 22 + i * 18)
   })
 
+  const inY = panelY + 22 + lines.length * 18 + 4
   if (p1Inputs) {
     ctx.fillStyle = "#7fd3ff"
-    ctx.fillText(`P1: ${p1Inputs}`, 28, panelY + 152)
+    ctx.fillText(`P1: ${p1Inputs}`, 28, inY)
   }
   if (p2Inputs) {
     ctx.fillStyle = "#ff9f9f"
-    ctx.fillText(`P2: ${p2Inputs}`, 28, panelY + 170)
+    ctx.fillText(`P2: ${p2Inputs}`, 28, inY + 18)
   }
   if (Array.isArray(info.history) && info.history.length && w >= 980) {
     ctx.fillStyle = "rgba(255,255,255,0.75)"
-    ctx.fillText(`Last: ${info.history[0]?.display || "Neutral"}`, 28, panelY + 188)
+    ctx.fillText(`Last: ${info.history[0]?.display || "Neutral"}`, 28, inY + 36)
   }
 
   // COMBO-BREAK DRILL tip: when the dummy is set to "combo", spell out the escape input right under
   // the panel so the player knows what the flashing ⛓ BREAK! prompt is asking for.
   if (info.dummy === "combo") {
     const keys = `${prettyKey(info.breakBlock)} + ${prettyKey(info.breakSpecial)}`
-    const tipY = panelY + 196 + 10
+    const tipY = panelY + panelH + 10
     ctx.fillStyle = "rgba(20,12,0,0.72)"; ctx.fillRect(16, tipY, panelW, 26)
     ctx.strokeStyle = "rgba(251,191,36,0.6)"; ctx.strokeRect(16, tipY, panelW, 26)
     ctx.fillStyle = "#ffe08a"; ctx.font = "bold 12px Arial"
@@ -4038,7 +4200,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   ctx.fillStyle = vig; ctx.fillRect(0, 0, cw, ch)
 
   const panelW = 380
-  const panelH = 596   // fits 7 items (resume / restart / profile / codex / controls / training / quit)
+  const panelH = 664   // fits 8 items (resume / restart / profile / codex / controls / training / combo trials / quit)
   const panelX = cw / 2 - panelW / 2
   const panelY = ch / 2 - panelH / 2
 
@@ -4066,6 +4228,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
     { label: "Codex",         sub: "Fighter dossiers" },
     { label: "Controls",      sub: "Button legend for your device" },
     { label: "Training Mode", sub: "Practice vs a frozen dummy" },
+    { label: "Combo Trials",  sub: "Scripted combo challenges" },
     { label: "Quit to Menu",  sub: "Return to the title screen" }
   ]
 
@@ -4105,7 +4268,7 @@ function _roundRectPath(ctx, x, y, w, h, r = 10) {
   ctx.closePath()
 }
 
-export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "profile", "codex", "controls", "trainingMode", "quitToMenu"]
+export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "profile", "codex", "controls", "trainingMode", "comboTrials", "quitToMenu"]
 
 // Small local word-wrapper (returns lines that fit maxW at the ctx's current font).
 function _wrapText(ctx, text, maxW, maxLines = 99) {

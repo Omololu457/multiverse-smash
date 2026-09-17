@@ -60,10 +60,69 @@ export const CHALLENGES = [
 
 const BY_ID = new Map(CHALLENGES.map(c => [c.id, c]))
 
+// ── DAILY ROTATION + LOGIN STREAK ─────────────────────────────────────────────
+// A date-based layer OVER the existing challenges: 3 challenges are FEATURED per day
+// (chosen deterministically from the pool by date, preferring incomplete ones), plus a
+// consecutive-day login-streak counter. Completion + rewards are UNCHANGED — the daily
+// set just highlights 3 to focus on; finishing one grants its normal reward exactly once.
+// No new reward types, no server: a local date comparison drives the roll (same save
+// store as everything else).
+const DAILY_COUNT = 3
+let _todayOverride = null   // test hook: pin "today" to simulate a day rollover
+function _todayStr() {
+  if (_todayOverride) return _todayOverride
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
+function _prevDayStr(dateStr) {
+  const [y, m, d] = String(dateStr).split("-").map(Number)
+  const dt = new Date(y, m - 1, d); dt.setDate(dt.getDate() - 1)
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`
+}
+// Deterministic date seed → stable daily pick (FNV-1a hash + mulberry32).
+function _seedFromDate(dateStr) { let h = 2166136261 >>> 0; for (let i = 0; i < dateStr.length; i++) { h ^= dateStr.charCodeAt(i); h = Math.imul(h, 16777619) } return h >>> 0 }
+function _mulberry32(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
+function _seededShuffle(arr, rng) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a }
+// Pick the day's 3 featured ids: date-seeded order, INCOMPLETE first (so the set stays actionable).
+function _pickDailyIds(dateStr) {
+  const rng = _mulberry32(_seedFromDate(dateStr))
+  const shuffled = _seededShuffle(CHALLENGES.map(c => c.id), rng)
+  const incomplete = shuffled.filter(id => !_state.completed[id])
+  const complete = shuffled.filter(id => _state.completed[id])
+  return incomplete.concat(complete).slice(0, DAILY_COUNT)
+}
+// Roll the daily set + login streak when the calendar day changes. FREEZES the day's ids so
+// completing one mid-day doesn't reshuffle the visible set.
+function _ensureDaily() {
+  const today = _todayStr()
+  if (!_state.daily || typeof _state.daily !== "object") _state.daily = { date: null, ids: [], streak: 0, lastLogin: null }
+  if (_state.daily.date === today && Array.isArray(_state.daily.ids) && _state.daily.ids.length) return
+  // login streak: consecutive-day check against the last login date
+  const prev = _state.daily.lastLogin
+  if (prev === today) { /* same day (first roll after import) — keep streak */ }
+  else if (prev && prev === _prevDayStr(today)) _state.daily.streak = (_state.daily.streak || 0) + 1
+  else _state.daily.streak = 1
+  _state.daily.lastLogin = today
+  _state.daily.date = today
+  _state.daily.ids = _pickDailyIds(today)
+  _persist()
+}
+// The 3 featured challenges for today (full objects w/ live completion), + the current streak.
+export function getDailyChallenges() {
+  _ensureDaily()
+  const byId = new Map(getChallenges().map(c => [c.id, c]))
+  return _state.daily.ids.map(id => byId.get(id)).filter(Boolean)
+}
+export function getLoginStreak() { _ensureDaily(); return _state.daily.streak || 0 }
+export function getDailyDate() { _ensureDaily(); return _state.daily.date }
+// Test hook: pin "today" (YYYY-MM-DD) to simulate a rollover; pass null to use the real clock.
+export function __setTodayForTest(dateStr) { _todayOverride = dateStr || null }
+
 // ── STANDALONE PERSISTENCE (guest-safe) ───────────────────────────────────────
 const LS_KEY = "multiverse-smash-challenges"
 function _lsAvailable() { try { return typeof localStorage !== "undefined" && localStorage !== null } catch (_) { return false } }
-function _blank() { return { completed: {}, franchise: {}, unlockedSkins: [] } }
+function _blankDaily() { return { date: null, ids: [], streak: 0, lastLogin: null } }
+function _blank() { return { completed: {}, franchise: {}, unlockedSkins: [], daily: _blankDaily() } }
 function _load() {
   if (!_lsAvailable()) return _blank()
   try {
@@ -72,7 +131,10 @@ function _load() {
     return {
       completed: (d.completed && typeof d.completed === "object") ? d.completed : {},
       franchise: (d.franchise && typeof d.franchise === "object") ? d.franchise : {},
-      unlockedSkins: Array.isArray(d.unlockedSkins) ? d.unlockedSkins.filter(s => s && s.rosterKey && s.skinId) : []
+      unlockedSkins: Array.isArray(d.unlockedSkins) ? d.unlockedSkins.filter(s => s && s.rosterKey && s.skinId) : [],
+      daily: (d.daily && typeof d.daily === "object")
+        ? { date: d.daily.date || null, ids: Array.isArray(d.daily.ids) ? d.daily.ids : [], streak: d.daily.streak | 0, lastLogin: d.daily.lastLogin || null }
+        : _blankDaily()
     }
   } catch (_) { return _blank() }
 }

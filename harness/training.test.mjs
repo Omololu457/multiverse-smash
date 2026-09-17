@@ -157,9 +157,11 @@ try {
   check("Escape opens the pause menu", (await page.evaluate(() => window.__harness.state())).gameState === "paused");
   check("pause menu starts on 'resume'", (await page.evaluate(() => window.__harness.pauseSel())).item === "resume");
 
-  // Navigate down to the new "trainingMode" entry (resume→restartRound→trainingMode).
-  await page.keyboard.press("ArrowDown"); await waitFrames(1);
-  await page.keyboard.press("ArrowDown"); await waitFrames(1);
+  // Navigate down to the "trainingMode" entry (robust to menu growth: profile/codex/controls/comboTrials
+  // now sit between restartRound and trainingMode — walk down until we land on it rather than a fixed count).
+  for (let i = 0; i < 10 && (await page.evaluate(() => window.__harness.pauseSel())).item !== "trainingMode"; i++) {
+    await page.keyboard.press("ArrowDown"); await waitFrames(1);
+  }
   const sel = await page.evaluate(() => window.__harness.pauseSel());
   check("navigated to the new Training Mode entry", sel.item === "trainingMode", `index=${sel.index} item=${sel.item}`);
 

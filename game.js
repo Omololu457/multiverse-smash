@@ -281,6 +281,7 @@ import {
   getCharSearchRect, getCharSearchClearRect,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
   drawControlsHelpScreen, getControlsHelpBackButton,
+  drawComboTrialsScreen, getComboTrialsRects, drawComboTrialHud,   // Combo Trials: select screen + in-battle trial HUD
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
   drawAccountScreen, getAccountButtons,
   resolveEnergyLabel, isHeavenlyRestriction, noMeterFlavor,   // HUD energy-bar resource name + no-meter flavor (Heavenly Restriction / Total Concentration) — display-only, exposed for the harness
@@ -318,6 +319,7 @@ import * as theme from "./theme.js"                // live-swappable UI theme re
 import * as musicPersonality from "./musicPersonality.js"   // trait→music mapping + trait-informed song selection
 import * as musicLibrary from "./musicLibrary.js"           // full song library + player-authored custom playlist + active-source resolution
 import * as challenges from "./challenges.js"               // skill-based challenges + trait-tagged recommendations + skin rewards
+import * as comboTrials from "./comboTrials.js"             // Combo Trials mission mode: scripted combo challenges (observer over Training)
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput, applyAiTemplate } from "./ai.js"
 import { recordMotionInput, detectMotion, getRecentMotions } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
@@ -991,7 +993,8 @@ const GAME_STATES = {
   PROFILE:            "profile",             // Part 1 #3: Big-Five personality radar (from main menu + pause)
   CODEX:              "codex",               // Part 1 #4: browsable per-fighter dossier, grouped by franchise
   THEMES:             "themes",              // APPEARANCE: live-preview UI theme picker (pink/blue/etc.)
-  CONTROLS_HELP:      "controlsHelp"         // Track A: always-accessible device-aware button legend (from pause)
+  CONTROLS_HELP:      "controlsHelp",        // Track A: always-accessible device-aware button legend (from pause)
+  COMBO_TRIALS:       "comboTrials"          // Combo Trials mission mode: pick a character + scripted combo challenge
 }
 
 // ------------------------------------------------------------------
@@ -2241,9 +2244,14 @@ function endFFA() {
 //     updateCPUInput (does NOT touch ai.js's shared "dummy" zero-baseline profile). "combo" is the
 //     COMBO-BREAK DRILL: the dummy advances and taps Light on a cadence to string a real combo, so
 //     the player can practise reading the ⛓ BREAK! prompt and bursting out (Block + Special).
-const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand", cloneNoTell: false }
+const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand", cloneNoTell: false, lastAdvantage: null }
 const DUMMY_BEHAVIORS = ["stand", "block", "jump", "combo"]
 const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
+// COMBO TRIALS detection: a monotonically-increasing id per player attack instance, so the trial
+// observer counts each landed move ONCE (a multi-hit move still = one sequence step).
+let _ctAttackId = 0
+let _ctPrevAttacking = false
+let _ctLastMove = ""   // last non-null currentAttack.name (survives the null-on-combo-rise frame)
 
 // ── SESSION PERSISTENCE (cross-reload restore of "what the player was doing") ─────────────────
 // Snapshots menu selections + training toggles + unlock flags to localStorage (session.js) on any
@@ -3531,6 +3539,7 @@ function startMatch() {
   trainingState.infiniteResources = false
   trainingState.dummyBehavior     = "stand"
   trainingState.cloneNoTell       = true    // confirmed design: standing clone is ZERO-tell (pixel-identical); the wash is a debug-only opt-in
+  comboTrials.disarm()   // a fresh match clears any armed Combo Trial (startSelectedComboTrial re-arms AFTER this)
   clearPlatforms()   // Wood Release climbable terrain: no stale platforms carry into a fresh match
   setCloneTell(false)
 
@@ -5157,6 +5166,7 @@ function handlePauseInput(key) {
     else if (sel === "profile")  openProfileScreen(GAME_STATES.PAUSED)   // BACK returns to the pause menu (match stays frozen)
     else if (sel === "codex")    openCodexScreen(GAME_STATES.PAUSED)
     else if (sel === "controls") openControlsScreen(GAME_STATES.PAUSED)   // Track A: device-aware button legend (BACK → pause)
+    else if (sel === "comboTrials") openComboTrialsScreen(GAME_STATES.PAUSED)   // Combo Trials mission mode (BACK → pause)
     else if (sel === "trainingMode") {
       // Jump into a training session from a live match: flip the match to training +
       // force the dummy CPU, then reuse the SAME setup path the GAMEPLAY_SELECT flow
@@ -11924,10 +11934,34 @@ function updateTrainingMode() {
     }
   }
 
+  // FRAME ADVANTAGE (Track B) — DISPLAY-LAYER arithmetic on existing state, computed on the
+  // exact frame a move CONNECTS. Advantage = defender's stun frames − the attacker's remaining
+  // recovery (frames left in its move). Positive = attacker acts first (+ on hit/block).
+  captureFrameAdvantage(p1, p2)
+  captureFrameAdvantage(p2, p1)
+
   recordInputFrame("P1", getControlsForHistory("p1"), p1, globalFrameCount)
   recordInputFrame("P2", getControlsForHistory("p2"), p2, globalFrameCount)
   recordInputSequence(getControlsForHistory("p1"))
   recordInputSequence(getControlsForHistory("p2"))
+
+  // COMBO TRIALS observer: bump the attack-instance id on each fresh P1 attack, then feed the
+  // trial the live combo count + which move is connecting. Pure read of existing combat state.
+  // The move key is remembered from the last frame currentAttack was live, because it can already
+  // be cleared to null on the exact frame comboCounter increments.
+  if (comboTrials.isArmed()) {
+    const attacking = !!p1.attacking
+    if (attacking && !_ctPrevAttacking) _ctAttackId++      // rising edge = a new attack started
+    _ctPrevAttacking = attacking
+    if (p1.currentAttack?.name) _ctLastMove = p1.currentAttack.name
+    const lastDmg = damageNumbers.length ? (damageNumbers[damageNumbers.length - 1].value || 0) : 0
+    comboTrials.update({
+      combo: p1.comboCounter || 0,
+      attackId: _ctAttackId,
+      attackName: _ctLastMove || "",
+      lastDmg
+    })
+  }
 }
 
 // ------------------------------------------------------------------
@@ -14286,6 +14320,8 @@ function drawBattleHud() {
     state:     matchConfig.mode === "training" ? "training" : "debug",
     meterGain: 0, frame: globalFrameCount,
     frameData: buildTrainingFrameData(),
+    advantage: trainingState.lastAdvantage,
+    curFrame:  globalFrameCount,
     infinite:  trainingState.infiniteResources,
     dummy:     trainingState.dummyBehavior,
     breakBlock:   p1?.controls?.block,     // for the combo-break drill tip (P1's guard + special)
@@ -14294,6 +14330,37 @@ function drawBattleHud() {
     p2Inputs:  getRelativeDirectionsFromHistory(p2),
     history:   getInputHistory()
   })
+  // COMBO TRIALS: when a trial is armed, draw its objective + live progress panel (top-center).
+  if (comboTrials.isArmed()) drawComboTrialHud(ctx, canvas, comboTrials.activeInfo(), { retryLabel: "F2" })
+}
+
+// FRAME ADVANTAGE capture (Track B, display-only). On the rising edge of `def`'s hitstun or
+// blockstun — i.e. the frame `atk`'s move CONNECTS — record the on-hit / on-block advantage:
+//   advantage = defenderStun − attackerRecoveryRemaining
+// attackerRecoveryRemaining = frames left in the attacker's current move (currentAttack.timer),
+// which already includes its recovery window; 0 if the move has ended (e.g. a projectile). This
+// is pure arithmetic on existing runtime state — it never mutates combat.
+function captureFrameAdvantage(def, atk) {
+  if (!def || !atk) return
+  const hs = def.hitstun || 0, bs = def.blockstun || 0
+  const prevHs = def._advPrevHitstun || 0, prevBs = def._advPrevBlockstun || 0
+  const hitRose   = hs > prevHs && hs > 0
+  const blockRose = bs > prevBs && bs > 0
+  if (hitRose || blockRose) {
+    const onBlock = blockRose && !hitRose ? true : (bs > hs)
+    const stun = onBlock ? bs : hs
+    const atkRecovery = atk.currentAttack ? (atk.currentAttack.timer || 0) : 0
+    trainingState.lastAdvantage = {
+      value: stun - atkRecovery,
+      stun, recovery: atkRecovery,   // exposed components (value === stun − recovery)
+      onBlock,
+      move: atk.currentAttack?.name || atk.currentMove || "move",
+      who: atk === p1 ? "P1" : "P2",
+      frame: globalFrameCount
+    }
+  }
+  def._advPrevHitstun = hs
+  def._advPrevBlockstun = bs
 }
 
 // Live frame-data string for whichever fighter is mid-attack (P1 preferred). The
@@ -15111,6 +15178,72 @@ function _controlsHelpData() {
   const connected = getConnectedPadCount() > 0
   return { controlRef: _controlRefForPad(), padLabel: connected ? padGlyphs(getPadType()).label : null, backHover: controlsHelpBackHover }
 }
+
+// DAILY CHALLENGES (Track D) — today's 3 featured challenges + the login streak, for the
+// main-menu panel. Reading getDailyChallenges() lazily rolls the day + streak (guest-safe).
+function _dailyChallengesData() {
+  try {
+    const list = challenges.getDailyChallenges().map(c => ({ label: c.label, complete: !!c.complete, reward: c.reward }))
+    return { streak: challenges.getLoginStreak(), challenges: list }
+  } catch (_) { return null }
+}
+
+// ── COMBO TRIALS (mission mode) — reachable from the mode-select menu AND the pause menu.
+// The screen is a character selector (◀/▶) + that character's trial list (↑/↓); Enter starts a
+// training session with the trial armed. `screenReturnState` restores the launching screen on BACK.
+let comboTrialCharIdx = 0
+let comboTrialIdx = 0
+let comboTrialBackHover = false
+function openComboTrialsScreen(from) {
+  screenReturnState = from
+  comboTrialBackHover = false
+  comboTrialCharIdx = Math.max(0, Math.min(comboTrials.trialChars().length - 1, comboTrialCharIdx))
+  comboTrialIdx = 0
+  gameState = GAME_STATES.COMBO_TRIALS
+}
+function _comboTrialsData() {
+  const chars = comboTrials.trialChars()
+  const cur = chars[comboTrialCharIdx] || chars[0]
+  const trials = comboTrials.trialsFor(cur?.key).map(t => ({
+    id: t.id, name: t.name, desc: t.desc,
+    seqText: comboTrials.seqText(t.seq), best: comboTrials.bestStars(t.id)
+  }))
+  return { chars, charIdx: comboTrialCharIdx, char: cur, trials, trialIdx: comboTrialIdx, backHover: comboTrialBackHover }
+}
+function _cycleComboTrialChar(dir) {
+  const n = comboTrials.trialChars().length
+  if (!n) return
+  comboTrialCharIdx = (comboTrialCharIdx + dir + n) % n
+  comboTrialIdx = 0
+}
+function _cycleComboTrialSel(dir) {
+  const cur = comboTrials.trialChars()[comboTrialCharIdx]
+  const n = comboTrials.trialsFor(cur?.key).length
+  if (!n) return
+  comboTrialIdx = (comboTrialIdx + dir + n) % n
+}
+// Boot a training session for the selected character with the chosen trial armed. Reuses the
+// exact training-match path (mode="training" → dummy CPU), then arms the observer + a stationary
+// "stand" dummy + infinite HP/EN so the player can repeat the string without the dummy dying.
+function startSelectedComboTrial() {
+  const cur = comboTrials.trialChars()[comboTrialCharIdx]
+  const trials = comboTrials.trialsFor(cur?.key)
+  const t = trials[comboTrialIdx]
+  if (!cur || !t || !characters[cur.key]) return
+  resetSelections()
+  towerState.active = false; arcadeState.active = false
+  matchConfig.mode          = "training"
+  matchConfig.aiDifficulty  = "dummy"
+  matchConfig.selectedStage = matchConfig.selectedStage || stages[0]
+  matchConfig.p1CharKey = cur.key; matchConfig.p1Char = characters[cur.key]
+  matchConfig.p2CharKey = cur.key; matchConfig.p2Char = characters[cur.key]   // mirror dummy
+  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+  startMatch()
+  trainingState.infiniteResources = true      // dummy can't die mid-string; damage numbers still pop for the star rating
+  trainingState.dummyBehavior = "stand"        // stationary target
+  comboTrials.arm(cur.key, t.id)
+  _ctPrevAttacking = false; _ctAttackId = 0; _ctLastMove = ""   // fresh attack-instance counter for detection
+}
 function _profileScreenData() {
   const p = personality.getPersonality()
   return { traits: personality.summarize(p.traits), tipiComplete: !!p.tipiComplete, eventCount: (p.events || []).length, backHover: profileBackHover, themesHover: profileThemesHover }
@@ -15171,9 +15304,10 @@ function renderCurrentState() {
     case GAME_STATES.PROFILE:         drawProfileScreen(ctx, canvas, _profileScreenData()); break
     case GAME_STATES.CODEX:           drawCodexScreen(ctx, canvas, { groups: buildCodexGroups(), selectedKey: codexSelectedKey, scroll: codexScroll, backHover: codexBackHover }); break
     case GAME_STATES.CONTROLS_HELP:   drawControlsHelpScreen(ctx, canvas, _controlsHelpData()); break
+    case GAME_STATES.COMBO_TRIALS:    drawComboTrialsScreen(ctx, canvas, _comboTrialsData()); break
     case GAME_STATES.THEMES:          drawThemesScreen(ctx, canvas, { activeKey: theme.activeThemeKey(), hoverIndex: themesHoverIndex, backHover: themesBackHover }); break
     case GAME_STATES.MAIN_MENU:
-      drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex, getCurrentAccount())
+      drawMainMenuScreen(ctx, canvas, hoverMainMenuIndex, getCurrentAccount(), _dailyChallengesData())
       _drawProgressionBadge()
       _drawDevCodeOverlay()
       break
@@ -15457,6 +15591,13 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.THEMES)           { themesBackHover  = pointInRect(mouse.x, mouse.y, getThemesBackButton(canvas)); themesHoverIndex = (getThemeCardRects(canvas).find(c => pointInRect(mouse.x, mouse.y, c))?.index ?? -1); return }
   if (gameState === GAME_STATES.CODEX)            { codexBackHover   = pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas));   return }
   if (gameState === GAME_STATES.CONTROLS_HELP)    { controlsHelpBackHover = pointInRect(mouse.x, mouse.y, getControlsHelpBackButton(canvas)); return }
+  if (gameState === GAME_STATES.COMBO_TRIALS)     {
+    const rr = getComboTrialsRects(canvas, _comboTrialsData())
+    comboTrialBackHover = pointInRect(mouse.x, mouse.y, rr.back)
+    const hit = (rr.trials || []).find(t => pointInRect(mouse.x, mouse.y, t))
+    if (hit) comboTrialIdx = hit.index
+    return
+  }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
   if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
   if (gameState === GAME_STATES.ARCADE_SETUP)     { tryHover(getArcadeSetupRects(canvas),      hoverArcadeIndex,     v => hoverArcadeIndex     = v); return }
@@ -15533,6 +15674,15 @@ function handleMenuClicks() {
     case GAME_STATES.CONTROLS_HELP:
       if (pointInRect(mouse.x, mouse.y, getControlsHelpBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.PAUSED; screenReturnState = null }
       break
+    case GAME_STATES.COMBO_TRIALS: {
+      const rr = getComboTrialsRects(canvas, _comboTrialsData())
+      if (pointInRect(mouse.x, mouse.y, rr.back))      { gameState = screenReturnState || GAME_STATES.GAMEPLAY_SELECT; screenReturnState = null; break }
+      if (pointInRect(mouse.x, mouse.y, rr.prevChar))  { _cycleComboTrialChar(-1); break }
+      if (pointInRect(mouse.x, mouse.y, rr.nextChar))  { _cycleComboTrialChar(+1); break }
+      const hit = (rr.trials || []).find(t => pointInRect(mouse.x, mouse.y, t))
+      if (hit) { comboTrialIdx = hit.index; startSelectedComboTrial() }   // click a trial row = start it
+      break
+    }
     case GAME_STATES.ONLINE_PLACEHOLDER:
       gameState = GAME_STATES.MAIN_MENU   // any click (the BACK button) returns to the menu
       break
@@ -15650,6 +15800,7 @@ function handleMenuClicks() {
       const c = getGameplaySelectRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
       if (!c) break
       if (c.id === "training") chooseMode("training")
+      else if (c.id === "comboTrials") openComboTrialsScreen(GAME_STATES.GAMEPLAY_SELECT)
       else if (c.id === "vs")  chooseMode("vs")
       else if (c.id === "pvp") chooseMode("pvp")
       else if (c.id === "tower") gameState = GAME_STATES.TOWER_SELECT   // pick a tier first
@@ -15986,6 +16137,13 @@ function updateMenuGamepad(injected) {
     case GAME_STATES.CODEX:
       // D-pad up/down moves the fighter list; Circle backs out. (Synth keys reuse the keydown handler.)
       if (nav.up) _padSynthKey("ArrowUp"); if (nav.down) _padSynthKey("ArrowDown")
+      if (nav.back) _padSynthKey("Escape")
+      return
+    case GAME_STATES.COMBO_TRIALS:
+      // ↑↓ trial · ◀▶ character · Cross start · Circle back — all reuse the keydown handler.
+      if (nav.up) _padSynthKey("ArrowUp"); if (nav.down) _padSynthKey("ArrowDown")
+      if (nav.left) _padSynthKey("ArrowLeft"); if (nav.right) _padSynthKey("ArrowRight")
+      if (nav.confirm) _padSynthKey("Enter")
       if (nav.back) _padSynthKey("Escape")
       return
     case GAME_STATES.CONTROLS_HELP:
@@ -16484,6 +16642,17 @@ window.addEventListener("keydown", e => {
   }
   if (gameState === GAME_STATES.CONTROLS_HELP) {
     if (key === "escape" || key === "backspace" || key === "enter" || key === "j") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.PAUSED; screenReturnState = null }
+    return
+  }
+  // COMBO TRIALS select: ↑↓ pick a trial · ←→ change character · Enter start · Esc back.
+  if (gameState === GAME_STATES.COMBO_TRIALS) {
+    e.preventDefault()
+    if (key === "escape" || key === "backspace") { gameState = screenReturnState || GAME_STATES.GAMEPLAY_SELECT; screenReturnState = null }
+    else if (key === "arrowup"   || key === "w") _cycleComboTrialSel(-1)
+    else if (key === "arrowdown" || key === "s") _cycleComboTrialSel(+1)
+    else if (key === "arrowleft" || key === "a") _cycleComboTrialChar(-1)
+    else if (key === "arrowright"|| key === "d") _cycleComboTrialChar(+1)
+    else if (key === "enter"     || key === "j") startSelectedComboTrial()
     return
   }
   if (gameState === GAME_STATES.CODEX) {
@@ -17987,6 +18156,10 @@ gameLoop()
       // "Recommended for you" — pass a profile (personality.summarize shape); confidence-gated.
       recommended: (profile, n = 0) => challenges.getRecommendedChallenges(profile, n),
       recommendedForMe: (n = 0) => { try { return challenges.getRecommendedChallenges(personality.summarize(personality.getPersonality().traits), n) } catch (_) { return challenges.getRecommendedChallenges({}, n) } },
+      daily:       () => challenges.getDailyChallenges(),      // Track D: today's 3 featured challenges
+      streak:      () => challenges.getLoginStreak(),          // Track D: consecutive-day login streak
+      dailyDate:   () => challenges.getDailyDate(),
+      setToday:    (dateStr) => { challenges.__setTodayForTest(dateStr); return challenges.getDailyDate() },   // simulate a day rollover
       // Guest-aware progression read (progress.read returns null for guests; this works for everyone).
       guestProgress: () => ({ level: getLevel(), xp: xpProgress().xp })
     },
@@ -18014,8 +18187,21 @@ gameLoop()
       dummyBehavior: trainingState.dummyBehavior,
       mode: matchConfig.mode,
       frameData: buildTrainingFrameData(),
+      advantage: trainingState.lastAdvantage,
       combo: Math.max(p1?.comboCounter || 0, p2?.comboCounter || 0)
     }),
+    // COMBO TRIALS hooks — inventory the trial sets, arm one (boots a training session), and read the
+    // live observer state. `openTrials` jumps straight to the select screen from any menu.
+    comboTrials: {
+      chars:   () => comboTrials.trialChars(),
+      list:    (key) => comboTrials.trialsFor(key).map(t => ({ id: t.id, name: t.name, seq: t.seq })),
+      open:    () => { openComboTrialsScreen(GAME_STATES.GAMEPLAY_SELECT); return { state: gameState } },
+      arm:     (key, id) => { comboTrialCharIdx = Math.max(0, comboTrials.trialChars().findIndex(c => c.key === key)); comboTrialIdx = Math.max(0, comboTrials.trialsFor(key).findIndex(t => t.id === id)); startSelectedComboTrial(); return comboTrials.activeInfo() },
+      info:    () => comboTrials.activeInfo(),
+      best:    (id) => comboTrials.bestStars(id),
+      reset:   () => { resetTraining() },   // zero both fighters' combo + re-seat (fresh attempt)
+      disarm:  () => { comboTrials.disarm() }
+    },
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     // HUD damage-trail proof (Stage 1): drop a fighter's HP by `v` and stamp the render-only
     // hit tier so the MK-feel bar shows the correct big-vs-light reaction. Test-only view hook.

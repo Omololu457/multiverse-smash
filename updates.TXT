@@ -1,305 +1,289 @@
 ========================================================================
-SKIN INVENTORY AUDIT — RESEARCH ONLY (2026-09-13)
-Count/inventory only. No code changes. No design proposals.
+LAN MULTIPLAYER — FEASIBILITY & SCOPING REPORT (2026-09-16)
+Local-network (LAN-party) multiplayer: multiple devices on the same
+WiFi joining one hosted match. NOT internet-wide online play.
+Status: RESEARCH ONLY. No networking code written. Game loop untouched.
 ========================================================================
 
-METHODOLOGY
-  - Playable = characters where isPlayable !== false  (characters.js).
-  - Skin count = the length of that character's array in the SKINS
-    registry (skins.js), which INCLUDES the "Default" entry (Default is a
-    selectable skin on the skin-select screen, so it is counted).
-  - A character with NO entry in the SKINS registry has ZERO real skins;
-    the game hands them a single synthetic "Default" at runtime via the
-    getSkins() fallback, but nothing is authored in the registry.
-
-TOTALS
-  - Total playable characters:            96
-  - With 10+ skins:                       63co
-  - With FEWER than 10 skins:             33   (listed below)
-  - With ZERO skins (absent from SKINS):   1
-
-------------------------------------------------------------------------
-ZERO SKINS  (not in the SKINS registry at all — only the runtime fallback)
-------------------------------------------------------------------------
-  0  Billy Ghostface            (ghostface_billy)   — no SKINS entry
-
-------------------------------------------------------------------------
-FEWER THAN 10 SKINS  (sorted fewest -> most; biggest gaps at the top)
-Format:  [count]  Name  (key)  —  skin names
-------------------------------------------------------------------------
-  0  Billy Ghostface        (ghostface_billy)   — (none — runtime "Default" only)
-
-  1  Albedo                 (albedo)            — Default
-  1  Baki Hanma             (baki)              — Default
-  1  Boruto Uzumaki         (boruto)            — Default
-  1  Megumi                 (handler)           — Default
-  1  Kakashi                (kakashi)           — Default
-  1  Kurapika               (kurapika)          — Default
-  1  Rick Prime             (rickPrime)         — Default
-
-  3  Ben 10                 (ben10)             — Default / Crimson / Azure
-  3  Green Samurai Ranger (Forest) (green_samurai_ranger) — Default / Crimson / Azure
-  3  Zaraki Kenpachi (Shikai)      (zaraki_shikai)        — Default / Crimson / Azure
-
-  4  Gon Freecss            (gon)               — Default / Crimson / Azure / Amber's Crew (Alt)
-  4  Omni-Man               (omniman)           — Default / Crimson / Azure / Debbie's Crew (Alt)
-
-  5  Ghostface              (ghostface)         — Billy / Debbie / Roman / Jill / Amber
-  5  Ghostface.exe          (ghostface_exe)     — Billy Loomis / Stu Macher (WIP) / Roman Bridger (WIP) / Mrs. Loomis (WIP) / Amber Freeman (WIP)
-  5  Goku                   (goku)              — Default / Pink (Alt) / Gold (Alt) / Blue (Alt) / Red (Alt)
-  5  Killua Zoldyck         (killua)            — Default / Black Hair (Alt) / Brown Hair (Alt) / Pink Hair (Alt) / Billy's Crew (Alt)
-  5  Saiki Kusuo            (saiki)             — Default / Black (Alt) / Gold (Alt) / Blue (Alt) / Red (Alt)
-  5  Samurai Red Ranger (Fire) (samurai_red_ranger) — Default / Azure Blade / Emerald Katana / Violet Strike / Silver Edge
-
-  6  Beerus                 (beerus)            — Default / Black (Alt) / Pink (Alt) / Gold (Alt) / Red (Alt) / Debbie's Crew (Alt)
-  6  Itachi Uchiha          (itachi)            — Default / Pink (Alt) / Gold (Alt) / Blue (Alt) / Red (Alt) / Billy's Crew (Alt)
-  6  Naruto                 (naruto)            — Default / Black (Alt) / Pink (Alt) / Blue (Alt) / Red (Alt) / Amber's Crew (Alt)
-  6  Isaac Netero           (netero)            — Default / Black (Alt) / Pink (Alt) / Gold (Alt) / Red (Alt) / Debbie's Crew (Alt)
-  6  Sasuke                 (sasuke)            — Default / Pink (Alt) / Gold (Alt) / Blue (Alt) / Red (Alt) / Billy's Crew (Alt)
-  6  Tobirama Senju         (tobirama)          — Default / Black (Alt) / Pink (Alt) / Gold (Alt) / Red (Alt) / Roman's Crew (Alt)
-  6  Vegeta                 (vegeta)            — Default / Black (Alt) / Pink (Alt) / Gold (Alt) / Red (Alt) / Jill's Crew (Alt)
-
-  7  Chrollo Lucilfer       (chrollo)           — Default / Phantom Troupe / Cerulean Collector / Verdant Spider / Crimson Troupe / Golden Pages / Billy's Crew (Alt)
-  7  The Flash              (flash)             — Default / Blue Streak (Alt) / Black (Alt) / Pink (Alt) / Gold (Alt) / Reverse Flash (Alt) / Godspeed (Alt)
-  7  Madara Uchiha          (madara)            — Default / Shattered Crown / Void Awakening / Scarlet Eclipse / Winter's Edge / Forest Warden / Ashfall
-
-  8  Yuta Okkotsu           (yuta)              — Default / Ben 10 / Albedo / Valkyrie / Kukulkan / Spriggan / Zeus / Void Sovereign
-  8  Zenitsu Agatsuma       (zenitsu)           — Default / Lavender / Black / Vibrant Pink / Red / White / Blue / Amber's Crew (Alt)
-
-  9  Kyojuro Rengoku        (rengoku)           — Default / Omnitrix Green / Albedo Protocol / Sun Breathing Homage / Water-Sealed / Ashen / Imperial / Verdant Flame / Void Ember
-  9  Yamamoto               (yamamoto)          — Navy Hakama / Wine Hakama / Ice-Blue / Forest Green / Khaki / Ghost-White / Violet / Crimson / Eternal Void
-
-------------------------------------------------------------------------
-NOTES
-  - The remaining 63 playable characters each have 10+ skins and are not
-    listed here (this audit targets the gaps only).
-  - "(WIP)" and "(Alt)" labels above are the skins' own registered names,
-    kept verbatim — Ghostface.exe's 5 entries are mostly WIP placeholders.
-  - Several low-count characters share the same generic palette set
-    (Default / Crimson / Azure, or the Black/Pink/Gold/Blue/Red "(Alt)"
-    family, or a "<name>'s Crew (Alt)" affiliation) — noted for context,
-    NOT as a design recommendation.
-========================================================================
-
+SUMMARY VERDICT
+  - Determinism foundation: CONFIRMED (fixed-timestep + seeded RNG,
+    test-proven) — with one caveat that only affects the harder approach.
+  - Existing stub: an empty-but-well-placed seam; the genuinely hard
+    input plumbing (serialization + injection) is ALREADY built for the
+    replay system.
+  - Recommended approach: HOST-AUTHORITATIVE + INPUT-DELAY netplay over a
+    local WebSocket server. NOT rollback for a first version.
+  - A minimal 2-device LAN prototype is a sensible, well-scoped next
+    build. No hidden blocker makes it fundamentally harder than it sounds.
 
 ========================================================================
-UNFINISHED WORK / COME-BACK-TO LIST  (2026-09-14, Claude session)
-Appended below the skin audit above (that section is a concurrent
-process's — left intact). Items are from working notes; a concurrent
-process is actively editing this repo, so VERIFY current state before
-starting any item (some may have progressed/committed since).
+STAGE 1 — DETERMINISM FOUNDATION: CONFIRMED (verified in source)
 ========================================================================
+FIXED-TIMESTEP LOOP (game.js:16407-16555)
+  - Classic real-time accumulator gated to a fixed 60 Hz. rAF fires at
+    display rate, but the SIMULATION (updateCurrentState -> updateBattle)
+    only advances when _loopAccum >= FIXED_DT (1000/60 ms), consuming
+    exactly one fixed frame per pass. Long stalls clamp to one frame;
+    backlog caps at one frame (no multi-tick catch-up). globalFrameCount
+    ticks once per sim step. Render is variable-dt (fine); sim is
+    frame-counted. Correct shape for netplay.
 
--- DONE THIS SESSION (already committed + pushed to origin/main) --------
-  [x] Fullscreen/windowed resize desync fix   (commit eaec957e)
-        - bitmap backdrops ground-anchored (ui.js)
-        - fighters re-ground on resize + per-fighter groundY cache refresh
-        - test:stage-resize 41/0
-  [x] In-match combo-break prompt + How-To/Training explainer (b7de262a)
-        - flashing "BREAK!" HUD prompt, DEFENSE tutorial rows, F4 "combo"
-          training drill; test:combo-break-prompt 10/0
-  NOTE: temporary branches (fix/…, feat/…) were merged to main + deleted.
+SEEDED RNG (rng.js)
+  - Single mulberry32 PRNG (gameRng), reseeded per match and stamped onto
+    matchConfig.seed. All GAMEPLAY randomness routes through it: ai.js
+    rand() -> gameRng.next(), and Kamui teleport destinations in
+    abilities.js (4 sites).
+  - Zero Math.random in the core sim files (physics.js, combat.js,
+    projectiles.js, summons.js, platforms.js, stageHazards.js = 0).
+    Remaining Math.random calls are cosmetic only (voice-pool picks,
+    particle scatter, menu random-select) — deliberately off the seeded
+    stream, documented in rng.js.
+  - No Date.now()/performance.now() feeds physics/combat STATE.
 
--- STAGE ART (found during the desync task; NOT fixed — needs new art) --
-  [ ] UNDERSIZED backdrops: jujutsu_high_courtyard.png & shibuya_incident_bg.png
-        are 1408x768 but drawn across the 3200-wide world (~2.27x horizontal
-        stretch, blurry/soft at fullscreen). Need higher-res source art.
-        (valley/test_map at 2752x1536 are fine.)
-  [ ] mugen_train_bg.png is a KNOWN PLACEHOLDER image — replace with real art.
+PROVEN, NOT ASSERTED
+  - harness/determinism.test.mjs runs a real AI-vs-AI match to 1500
+    frames and asserts: same seed -> bit-identical fighter state
+    (x/y/health/energy); different seed -> diverges. Plus a full replay +
+    desync-checkpoint suite (replay.js, harness/replay_*.mjs,
+    desync_diagnose.mjs) records inputs, replays them, and compares state
+    every 60 frames. This is a working determinism regression test
+    ("determinism 9/0") and it holds up under direct reading.
 
--- MECHANICS BUILT-BUT-NOT-FULLY-WIRED / DEFERRED -----------------------
-  [ ] UP BLOCK: overhead attribute shipped but DORMANT (no reward). Still
-        to do: Up Block reward wiring, flawless/up-block precedence,
-        special/command overhead tags, onboarding.
-  [ ] SAMURAI RANGERS: Mega Mode is wired, but STILL unwired —
-        updateSamuraiRangerCommandCombat (rekka + up-attack) and the
-        ultimate (samuraiUltCine hook is missing).
-  [ ] SPIDER-MAN variants: spiderman_ssf2 and spiderman_mci are
-        normals-only — specials + ultimate not built (raimi is complete).
-  [ ] BRUTALITY (per-move finishers): only ~12 chars have real finishers;
-        ~72 chars + per-move LIVE-INPUT stamping still deferred.
-  [ ] FRAME ADVANTAGE / BLOCKSTUN: no true frame-advantage math yet
-        (HITSTUN_SCALE padding is a stopgap). Held for its own pass.
-  [ ] ANIM TRANSITION AFTER-IMAGE (combo-flow fix #2): built but was
-        UNCOMMITTED awaiting go-ahead — confirm whether it ever landed.
+THE ONE CAVEAT (matters only for lockstep/rollback, NOT host-authoritative)
+  - Input INTERPRETATION reads performance.now(): charge-tap vs hold,
+    hold-to-release specials (Saitama/Genos/Madara), taunt state,
+    motion-input directionHistory (many sites ~game.js:5201-5716). These
+    read wall-clock on the machine executing them. FINE for
+    host-authoritative (only the host runs the sim -> only one clock is
+    consulted). A real problem for cross-machine LOCKSTEP/ROLLBACK, where
+    two devices must interpret identical inputs frame-for-frame. This,
+    plus cross-browser float determinism, is exactly why host-
+    authoritative is the right first target.
 
--- UI / SYSTEMS WITHOUT FRONT-ENDS -------------------------------------
-  [ ] PERSONALITY: TIPI questionnaire UI never built (inference works;
-        RPG-mapping trait rows are dormant).
-  [ ] CHALLENGES: challenges.js exists but there is NO challenge UI yet.
-  [ ] COLORBLIND: control REMAPPING is flagged but not built (HUD toggle
-        shipped).
-
--- VOICE COVERAGE ------------------------------------------------------
-  [ ] ~29 playable chars have genuinely NO audio (netero is a permanent
-        loss). Light Yagami is wired but still needs a transcript.
-
--- SKINS (see the audit section above for the full list) ---------------
-  [ ] 33 playable chars have <10 skins; ghostface_billy has ZERO (SKINS
-        registry fallback only). A concurrent process is actively adding
-        skin waves (Albedo/Valkyrie/Alien X) — check what's landed.
-  [ ] ghostface_exe: Stu / Roman / Mrs. Loomis / Amber skins marked (WIP).
-
--- HOUSEKEEPING -------------------------------------------------------
-  [ ] Many older working-note items are marked "UNCOMMITTED" but a lot of
-        that has since been committed/merged by concurrent work — do a
-        `git log`/`git status` reconciliation pass before trusting them.
-  [ ] Local checkout is shared with an active concurrent process (branches
-        switch on their own, ~650 uncommitted files). Landing on `main`
-        cleanly requires doing it when that process is idle/committed.
-========================================================================
-
+VERDICT: the sim is genuinely fixed-timestep and deterministic w.r.t.
+(seed + inputs) on a single execution environment — precisely the
+property a host-authoritative model needs.
 
 ========================================================================
-UNFINISHED WORK — BRUTALITY-RENDER SESSION  (2026-09-14, a SEPARATE Claude
-session from the list above; appended, that section left intact)
+STAGE 2 — EXISTING STUB INVENTORY: real seam, zero implementation
 ========================================================================
+ALL networking-related code is a labeled placeholder (no protocol, no
+transport, no state fields):
+  - account.js:607-610  — documented seam:
+      // TODO(multiplayer): export createOnlineSession(account) /
+      //                    joinSession(code, account)
+    Comment only.
+  - game.js:989         — ONLINE_PLACEHOLDER game-state enum ("no netcode").
+  - game.js:12946-12957 — _drawOnlinePlaceholder(): renders "netcode is
+                          not implemented yet."
+  - ui.js:1368          — menu item "ONLINE — Coming soon / Unlocked
+                          (placeholder)".
+  - game.js:14890       — "Two Keyboards — coming soon (browsers can't
+                          distinguish two keyboards)".
+  - package.json        — NO networking deps (only playwright, for tests).
+                          server/save-server.mjs binds 127.0.0.1 for local
+                          save persistence only — not a game server.
 
--- DONE THIS SESSION (already committed + pushed to origin/main) --------
-  [x] Brutality blood-volume + wound-core escalation   (commit 14824897)
-        - ~2x blood drips (2nd gush) + bigger/denser splat + larger
-          growing ground pool + new _drawWoundCore (darker-red layered
-          cross-section per half). Render-only, clean-red palette.
-        - test:brutality 41/0, split 6/0, determinism 9/0.
-  [x] Brutality AIRBORNE-KO fix: missing sprite halves   (commit a1904f24)
-        - _captureLoserSprite sized the offscreen from STALE _lastDraw*
-          (tall launch frame) while draw() rendered the force-posed short
-          "lose" pose off-canvas -> halves invisible. Fix = oversized
-          scratch -> read ACTUAL drawn rect -> crop; anchor effect+pool at
-          the body's own feet (not the world floor, which the KO cam-follow
-          slides off-screen). NEW test:brutality-airborne 13/0 (PROVEN to
-          fail on the pre-fix code).
+BUT the pieces that actually matter already exist (built for replays):
+  - INPUT SERIALIZATION is done: input.js readRawControls() (side-effect-
+    free 14-field snapshot) + REPLAY_INPUT_FIELDS (stable bit order) +
+    replay.js encodeInput()/decodeInput() (14-bit mask), already delta-
+    encoded. One small int per player per frame.
+  - INPUT INJECTION is done: writeRawControls(fighter, raw) writes decoded
+    input back into the keys map so the normal buffering pipeline
+    reproduces it — a remote player's inputs feed through the SAME path a
+    local keyboard uses.
+  - CLEAN PLAYER-SLOT ABSTRACTION: fighter.playerNumber (1-4) + per-fighter
+    fighter.controls; getFighterInput(fighter) is the single per-frame gate
+    every fighter reads through.
+  - DESYNC DETECTION is done: recordState/playbackCheckState compare
+    [x,y,health,energy] on an interval and report the first divergent frame.
 
--- BRUTALITY — STILL DEFERRED (not this session) -----------------------
-  [ ] Per-MOVE finishers: only ~12 chars have real finishers; ~72 chars +
-        per-move LIVE-INPUT stamping still deferred.  (This is the SAME
-        item as "BRUTALITY (per-move finishers)" in the section above —
-        one item, don't double-count.)
-  [ ] EXTREME-launch edge case (minor / cosmetic): on a very high airborne
-        KO the camera clamps at the stage top, so the body (and the effect
-        anchored to it) can ride high toward the HUD. Realistic launches
-        are fine; only pathological launches hit this. A screen-space
-        clamp in _drawBrutality (it has camera access) would fully bound it
-        if ever deemed worth doing.
-
--- COORDINATION / COMMIT-HYGIENE (READ BEFORE COMMITTING) --------------
-  [!] game.js + package.json currently hold THREE interleaved UNCOMMITTED
-        workstreams from concurrent sessions: (1) combo-break drill,
-        (2) voice packs, (3) fullscreen/resize ground-desync. My brutality
-        work is already committed, so it is OUT of the working-tree diff.
-        To commit any ONE workstream cleanly, DO NOT `git add game.js` /
-        `git add package.json` (that grabs all three) — stage surgically
-        with a filtered `git apply --cached` patch. index.html is
-        auto-stamped by the pre-commit hook (expected churn, not a conflict).
-========================================================================
-
+The stub itself is empty, but the codebase is substantially more netcode-
+ready than the stub implies — the replay system is effectively an offline,
+single-machine dry run of the host-authoritative data model.
 
 ========================================================================
-UNFINISHED WORK — SKIN ROLLOUT  (Albedo / Valkyrie / Alien X for ALL chars)
-(2026-09-14, Claude "skins" session. Goal: give every playable character
-the 3-skin set. Per-character-tuned recolours, no artifacts, verified live.)
+STAGE 3 — SIMPLEST VIABLE APPROACH
 ========================================================================
+RECOMMENDATION: host-authoritative, input-delay netplay, over a local
+WebSocket server. Not rollback. Not P2P lockstep.
 
-WHAT THE 3 SKINS ARE
-  - Albedo   = black garment / red accent / grey trim  (Yuta's EXACT palette)
-  - Valkyrie = light-blue garment / gold accent+trim    (Yuta's EXACT palette)
-  - Alien X  = matte-black void base + procedural colourful starfield overlay
-               (game.js drawAlienXStarfield, gated on skinId ending "AlienX")
+TRANSPORT — WebSocket over WebRTC for a first build.
+  - Both work on LAN. For a browser game with no native layer, a tiny local
+    WebSocket server (Node `ws`, run by the host) is dramatically simpler
+    than WebRTC: no ICE/STUN/signaling, trivial "connect to
+    ws://<host-LAN-IP>:<port>". The host already has a Node/Electron
+    footprint (server/*.mjs, npm run desktop), so a `ws` server fits.
+    WebRTC's NAT-traversal advantages are irrelevant on one LAN. WebRTC
+    data channels can come later for lower latency / no relay.
 
-TOOLING (reuse these — do NOT reinvent)
-  - Generator: tools/gen_underskin_recolor.py  (per-char classify() fns +
-    the 3 palettes; ALWAYS generate from the char's EXACT animationData sheet
-    list, never a glob — globbing overwrites existing skins / grabs junk).
-  - Live verify: harness/underskin_shots.mjs  (add char to CONFIG; checks it
-    renders the recoloured __tag sheet on idle/walk/light/heavy, no boxes,
-    Alien X overlay runs; form-aware chars get SSJ/form checks).
-  - Alien X overlay already wired + reusable (skinId endsWith "AlienX").
+MODEL — host-authoritative.
+  - The host runs the one true simulation. The joiner runs a thin client:
+    capture local inputs -> send to host; receive host state -> render.
+    This completely sidesteps the Stage 1 cross-machine determinism caveat
+    (performance.now() input reads, cross-browser float drift) because only
+    one machine simulates.
 
-PER-WAVE PRE-CHECK (learned the hard way — do this BEFORE generating):
-  1. TAG COLLISION: some chars already have a creative skin using tag
-     "albedo"/"valkyrie"/"alienx" (e.g. rengoku/shinobu "Albedo Protocol",
-     gojo "Albedo Protocol", toji "Royal Valkyrie", yuta Albedo+Valkyrie).
-     Generating those tags OVERWRITES their existing sheets. -> skip that
-     tag for that char (give only the missing ones), or it collides on id.
-     After generating, run: git status --porcelain <char>_*__<tag>.png
-     -> any ' M' means you clobbered an existing file (git checkout to undo).
-  2. .jpg PORTRAITS: some portraits are .jpg (e.g. sukuna_portrait.jpg).
-     Output name MUST be re.sub(r'\.(png|jpe?g)$','__<tag>.png') -> PNG.
-     (A naive .replace('.png',...) tried to save RGBA as .jpg and CORRUPTED
-     sukuna_portrait.jpg once; restored via git checkout.)
-  3. MISSING BASE SHEETS: some animationData refs a file that isn't on disk
-     (e.g. sukuna_hurt_sheet.png). Skip non-existent base sheets (os.path.exists).
-  4. FORM-AWARE chars: set recolorTag on the skin entry so retagFormAnim
-     recolours the transform sheets too, and generate those form sheets
-     (Vegeta SSJ/Blue, Goku SSJ/SSG/SSB, Gohan SSJ2, Goku-Black + Vegeta-Dark
-     Rose, Maki Shibuya were done this way).
-  5. ALREADY-BLACK chars: Albedo reads ~identical to Default -> drop Albedo,
-     give Valkyrie + Alien X only (precedent: Boruto, Vegeta Dark, Alt Sukuna).
+DELAY-BASED, NOT ROLLBACK.
+  - Apply a small fixed input delay (buffer local inputs a few frames so
+    remote inputs arrive "on time"). On a quiet LAN, expect ~1-5 ms RTT
+    wired / ~2-10 ms typical WiFi, occasionally spiking 20-40 ms under
+    interference. At 60 Hz a frame is 16.7 ms, so 2-3 frames (~33-50 ms) of
+    input delay comfortably hides LAN jitter — imperceptible-to-mild for a
+    casual match, and it needs NONE of rollback's hard part (frame-perfect
+    save/restore/re-simulate every frame). Rollback demands stronger
+    determinism than the codebase currently has cross-machine and is the
+    wrong first bet. Delay-based is sufficient for LAN-party use; build it
+    first, reach for rollback only if playtesting shows the delay is
+    objectionable.
 
-------------------------------------------------------------------------
-DONE (33 characters) — status of each
-------------------------------------------------------------------------
-ON origin/main (23):
-  9 "originals": goku vegeta baki naruto sasuke rickPrime kurapika kakashi boruto*
-  Dragon Ball (9): piccolo frieza beerus vegito gotenks bardock gohan goku_black vegeta_dark
-  Demon Slayer (5): zenitsu inosuke nezuko rengoku shinobu
-  [*boruto still MISSING its Albedo — currently has only Valkyrie + Alien X;
-   add boruto Albedo in the Naruto wave.]
+TWO SUB-VARIANTS OF HOST-AUTHORITATIVE:
+  (A) Input-only relay + local sim on both sides (true input-delay
+      netplay): lightest bandwidth, smoothest feel, but relies on both
+      machines simulating identically -> reintroduces the determinism
+      caveat.
+  (B) Host simulates, streams state to a "dumb" joiner that only sends
+      inputs and renders received state: heavier bandwidth (fine on LAN),
+      but IMMUNE to cross-machine determinism entirely.
+  START WITH (B) — most forgiving given the performance.now() input reads;
+  the replay system's [x,y,health,energy] snapshot is a natural seed for
+  the state channel (though full render state is broader than 4 fields).
 
-ON branch origin/jjk-skins, NOT yet on main (10): gojo sukuna alt_sukuna
-  aoi_todo maki toji yuji naoya yuta handler.
-  >>> ACTION: merge the PR to land these on main:
-      https://github.com/Omololu457/multiverse-smash/pull/new/jjk-skins
-      (changes are disjoint from concurrent main commits except the
-      auto-stamped index.html -> clean merge.)
+========================================================================
+STAGE 4 — WHAT WOULD NEED REAL ENGINEERING (relative effort)
+========================================================================
+  Input serialization (send inputs over the wire) .......... SMALL
+    Already built: readRawControls/encodeInput/decodeInput/writeRawControls,
+    stable 14-bit mask, injection through getFighterInput. Mostly reuse.
 
-------------------------------------------------------------------------
-REMAINING (~64 characters) — grouped by franchise, tackle a wave at a time
-------------------------------------------------------------------------
-NARUTO cast (14): itachi tobirama hashirama minato madara obito tobi pain
-  hiruzen isshiki orochimaru onoki kiba six_paths_pain   (+ boruto Albedo)
-  - Susanoo users (itachi/madara/six_paths_pain) = SUMMON overlay, NOT a
-    sprite swap -> base recolour only (like sasuke). Minato/others check.
-DC (11): batman dark_knight superman superman_dcuc superman_new52
-  superman_classic superman_fighter flash deathstroke brainiac green_lantern
-  - superman_* variants share base sheets? verify each variant's own sheets.
-  - flash has Reverse/Godspeed alt skins already (tag check).
-BLEACH (6): ichigo zaraki zaraki_shikai mayuri byakuya yamamoto
-  - zaraki_shikai is a TIMED form (ZARAKI_SHIKAI_ANIM, retagFormAnim) ->
-    FORM-AWARE. yamamoto/byakuya/etc have Void Sovereign (tag check).
-MARVEL (5): spiderman iron_man iron_man_2 iron_man_3 miles
-  - iron_man trio + miles/gwen already have palette-skin SETS (SHEET2 batch)
-    -> HEAVY tag-collision risk; check existing ids/tags carefully, likely
-    only Alien X is genuinely new for these.
-HUNTER x HUNTER (5): netero killua gon hisoka chrollo
-  - killua Godspeed / chrollo Phantom-Troupe skins exist (tag check).
-HORROR (4): ghostface ghostface_billy jason ghostface_exe
-  - ghostface has NO base identity (5 killer identities); ghostface_billy
-    has ZERO skins (not in SKINS registry at all — needs an entry).
-  - jason has a Nightmare-Void skin already (tag check).
-POWER RANGERS (5): omega_ranger samurai_red_ranger gold_samurai_ranger
-  green_samurai_ranger red_ranger_mmpr
-  - rangers are mostly one solid suit colour (unified recolour, like Baki).
-BEN 10 (4): ben10 albedo vilgax gwen
-  - ★ben10 is an OMNITRIX ALIEN-SWAP char: 13 alien sprite sets (xlr8,
-    diamondhead, alienx, heatblast, fourarms, ...). Recolouring "ben10"
-    means handling ALL 13 alien sheet sets -> BIG. albedo=Ben10's Albedo.
-ONE PUNCH MAN (2): saitama genos   (both have Void Sovereign — tag check)
-DEATH NOTE (2): light (l_ryuuzaki)
-MISC (5): rick omniman saiki ippo miwa
-  - rick has Void Form + Portal Void (tag check). omniman has crew-alt.
+  Transport layer (local WS server + client socket) ........ MEDIUM
+    Fully new (no net deps today) but small surface: a `ws` server on the
+    host + a client module. server/*.mjs is a starting template.
 
-------------------------------------------------------------------------
-GIT COORDINATION (important)
-------------------------------------------------------------------------
-  - A concurrent session is actively committing+PUSHING to origin/main
-    (brutality, fullscreen, combo-break) AND holds ~650 uncommitted files in
-    the SHARED working tree. That caused my JJK push to be rejected (diverge).
-  - DO NOT stash/rebase over the concurrent dirty tree (risks their WIP).
-  - CLEANEST path to continue: (a) merge the jjk-skins PR, (b) once the
-    concurrent session is idle/committed, branch fresh off updated main per
-    wave, commit only your own files (skins.js + your PNGs + tool + harness),
-    push a branch, merge PR. Never `git add game.js`/`package.json` (grabs
-    concurrent workstreams).
-  - Each skin wave = ~250-450 new PNG files; commit per franchise.
+  Networking glue: input-delay buffering / feeding remote
+    input into a slot ...................................... MEDIUM
+    Delay-buffer mirrors the existing input buffer; the seam
+    (getFighterInput, playerNumber, writeRawControls) exists. Real work is
+    the send/receive/buffer/apply loop and one authoritative slot.
+
+  State sync (variant B) OR shared-sim reconciliation (A) ... MEDIUM-LARGE
+    Variant B: define/serialize enough render state (broader than replay's
+    4 fields — positions, animation/frame state, projectiles, effects,
+    meters) and stream it. Variant A: trust dual-sim + occasional resync.
+    Either is the biggest genuinely-new chunk.
+
+  Lobby / host-join UI ..................................... MEDIUM
+    The shell exists (ONLINE_PLACEHOLDER state + screen + menu entry), so no
+    new navigation plumbing — but host-IP display, join-by-address/code,
+    "waiting for player", ready-up, and character/stage sync are new UI.
+
+  Disconnect / reconnect handling .......................... MEDIUM
+    Nothing today. A minimal first build can scope this out (drop -> both
+    return to menu). Robust reconnect is a later, medium effort.
+
+========================================================================
+STAGE 5 — REALISTIC RECOMMENDATION
+========================================================================
+YES — a minimal 2-device LAN prototype (host + 1 joiner, input-delay,
+host-authoritative, no reconnect, no matchmaking polish) is a sensible
+next build. There is no hidden blocker that makes it fundamentally harder
+than it sounds.
+
+WHY IT'S GENUINELY REASONABLE HERE
+  - The determinism prerequisite is met and test-proven for the single-
+    execution-environment case — exactly what host-authoritative needs.
+  - The two normally-nasty parts — input serialization and input injection
+    — are already written (for replays); they just need to point at a
+    socket instead of a file.
+  - The UI entry point already exists as a placeholder to fill in.
+  - LAN latency is low enough that the simple, forgiving model (input
+    delay) is correct and sufficient — no rollback required.
+
+HONEST COUNTERWEIGHTS (not oversold)
+  - The transport layer and the send/buffer/apply loop are fully new code —
+    real work, but well-scoped and low-risk.
+  - State sync (variant B) is the largest new chunk: replay only snapshots
+    4 values; a live remote renderer needs materially more (animation/frame
+    indices, projectiles, summons, effects, meters, camera). Budget for
+    iterating on "what state must cross the wire."
+  - The performance.now()-based input timing means do NOT attempt cross-
+    machine lockstep or rollback first — pick host-authoritative to route
+    around it.
+  - Even the "minimal" build is realistically a multi-day effort, not an
+    afternoon — but it's a clean, bounded one, not a research project.
+
+BOTTOM LINE: determinism confirmed; stub is an empty-but-well-placed seam;
+the hard input plumbing is already built for replays; recommended path is
+host-authoritative + input-delay over a local WebSocket server, explicitly
+NOT rollback. Proceed with a minimal 2-device LAN prototype, starting with
+transport + feeding one remote input slot through writeRawControls, and
+treat live state-sync as the main new engineering.
+
+========================================================================
+APPENDIX — MINIMAL 2-DEVICE PROTOTYPE, BUILD ORDER (plan only, no code)
+Scope: host + 1 joiner; join by host LAN IP; single 1v1 match;
+host-authoritative, variant B; input-delay; NO reconnect; NO lobby polish.
+========================================================================
+  Step 0 — Transport spike (prove the pipe before touching the game)
+    NEW net/lanServer.mjs (host-side `ws`) + net/lanClient.js (browser).
+    Host serves a `ws` port, prints LAN IP:port on the Online screen;
+    client opens ws://<ip>:<port>, hello/echo handshake. Add `ws` to
+    package.json; add a dev:lan script. Exit: two machines exchange a ping,
+    no game code touched.  [MEDIUM, low risk]
+
+  Step 1 — Wire format & message types
+    NEW net/protocol.js. Reuse replay.js encodeInput/decodeInput (14-bit
+    mask) for {t:"input",frame,mask}. Match setup {t:"start",seed,chars,
+    skins,stage,rounds} mirrors startRecording()'s meta. State
+    {t:"state",frame,payload} (see Step 4). Handshake reuses REPLAY_VERSION
+    + BALANCE_STAMP to refuse mismatched builds (like validateReplay).
+    [SMALL, mostly reuse]
+
+  Step 2 — Remote input injection (the key seam)
+    Per-slot "input source" indirection: for the remote slot, apply the
+    received mask via writeRawControls(fighter, decodeInput(mask)) BEFORE
+    getFighterInput runs (reuses the replay playback path ~game.js:12273).
+    Gate behind a netRole flag; when null, behavior is byte-for-byte
+    current local play.  [SMALL-MEDIUM]
+
+  Step 3 — Input-delay buffer + host loop integration
+    NEW net/netSession.js (socket + delay buffers + frame clock). Fixed
+    2-3 frame delay; local inputs stamped with globalFrameCount+DELAY, sent
+    and locally queued for the same target frame. Host advances only with
+    both slots' inputs; brief missing remote frame -> hold last input (no
+    rollback). Stays inside the existing fixed tick (game.js:16532).
+    [MEDIUM — core new logic]
+
+  Step 4 — State channel (variant B) — biggest new chunk
+    NEW net/stateSync.js. Enumerate render-critical state per fighter
+    (position, facing, action/anim key + frame index, health/energy/meters,
+    status flags) + projectiles, summons, hit-sparks/effects, camera,
+    round/timer/HUD. Host serializes each frame (or interval+interp for
+    v1); joiner deserializes and RENDERS ONLY (its updateBattle sim
+    disabled). Timebox and iterate the field set.  [MEDIUM-LARGE]
+
+  Step 5 — Host/join UI (fill the existing shell)
+    Replace ONLINE_PLACEHOLDER (game.js:989, 12946-12957; ui.js:1368) with
+    Host (start server, show LAN IP:port + "waiting") and Join (host-IP
+    field). On connect, host picks chars/stage, sends "start"; both enter
+    BATTLE. v1 = host picks both; per-side picking later.  [MEDIUM]
+
+  Step 6 — Minimal disconnect handling
+    On socket close/error: "Connection lost", both return to menu, tear
+    down session. NO reconnect/resume (out of scope).  [SMALL]
+
+  TESTING
+    NEW harness/net_loopback.mjs: run host+client in one Node process over a
+    local socket, feed a scripted input stream, assert the joiner's received
+    state matches the host's authoritative state each frame — the netcode
+    analog of replay_playback's desync test. Existing determinism.test.mjs
+    still covers the (host-only) sim. Manual two-tab smoke via npm run
+    dev:lan before any two-device test.
+
+  UP-FRONT DECISION: variant B (host-streams-state; heavier bandwidth,
+  immune to the determinism caveat — RECOMMENDED FIRST) vs variant A
+  (both-simulate, relay inputs only; lighter/smoother but leans on cross-
+  machine determinism the codebase doesn't guarantee). Revisit A only if
+  B's feel/bandwidth disappoints.
 ========================================================================

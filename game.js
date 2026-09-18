@@ -535,9 +535,9 @@ import { pickYamamotoVoice, YAMAMOTO_VOICE } from "./yamamotoVoice.js"  // Yamam
 import { pickOrochimaruVoice, OROCHIMARU_VOICE } from "./orochimaruVoice.js"   // Orochimaru intro/win voice pools + harness hook (audio-only, JA)
 import { pickKibaVoice, KIBA_VOICE } from "./kibaVoice.js"   // Kiba intro/win voice pools + harness hook (audio-only, JA)
 import { pickNaoyaVoice, NAOYA_VOICE } from "./naoyaVoice.js"   // Naoya intro/win voice pools + harness hook (audio-only, JA)
-import { pickChrolloVoice } from "./chrolloVoice.js"   // Chrollo win-voice trigger (audio-only, JA) — pool existed but was never dispatched
+import { pickChrolloVoice, CHROLLO_VOICE } from "./chrolloVoice.js"   // Chrollo win-voice trigger (audio-only, JA) — pool existed but was never dispatched
 import { pickVegetaVoice } from "./vegetaVoice.js"     // Vegeta win-voice (audio-only) — win pool existed, round-end dispatch was missing
-import { pickMakiVoice } from "./makiVoice.js"         // Maki win-voice (audio-only) — win pool existed, round-end dispatch was missing
+import { pickMakiVoice, MAKI_VOICE } from "./makiVoice.js"         // Maki win-voice (audio-only) — win pool existed, round-end dispatch was missing
 import { pickSamuraiVoice } from "./samuraiRedVoice.js"          // Samurai Red Ranger win-voice (audio-only) — win pool existed, dispatch missing
 import { pickGoldSamuraiVoice } from "./goldSamuraiRangerVoice.js" // Gold Samurai Ranger win-voice (audio-only) — win pool existed, dispatch missing
 import { pickSpidermanVoice, SPIDERMAN_VOICE } from "./spidermanVoice.js"   // Spider-Man intro/quip/victory voice pools + harness hook (audio-only, EN Marvel-Rivals pack)
@@ -614,7 +614,11 @@ const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zara
   "mayuri", "madara", "jason", "naoya", "hisoka", "ghostface", "baki",
   // Tier 2 (all adult / canonically-brutal / non-excluded): Slade's blades, Isshiki's rods, Orochimaru's
   // snakes, Heian-era Sukuna's cursed cleaves, and the Billy-identity slasher.
-  "deathstroke", "isshiki", "orochimaru", "alt_sukuna", "ghostface_billy"])
+  "deathstroke", "isshiki", "orochimaru", "alt_sukuna", "ghostface_billy",
+  // Tier 3 (2026-09-17 versatility pass — all adult, canonically-lethal, non-excluded, real damaging kits):
+  // Sasuke's Chidori/blade, Itachi's Amaterasu/Susanoo blade, Vegeta's ki beams, Pain's black rods/gravity,
+  // Byakuya's Senbonzakura petal-blades, Yamamoto's Ryūjin Jakka flame.
+  "sasuke", "itachi", "vegeta", "pain", "byakuya", "yamamoto"])
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
 // 2 = signature accent (steel edge / ki hue / toxin), 3 = near-black shadow.
@@ -623,7 +627,8 @@ const GORE_STEEL   = ["#a11026", "#6e0016", "#dfe3ea", "#3a000a"]   // Toji — 
 const GORE_PURPLE  = ["#a11026", "#6e0016", "#b060e0", "#3a000a"]   // Frieza / Madara — ki-purple
 const GORE_TOXIC   = ["#7a0016", "#3a7a1a", "#57e07a", "#20340f"]   // Mayuri — neurotoxin green
 const GORE_EMBER   = ["#a11026", "#6e0016", "#ff9a2a", "#3a000a"]   // Zaraki / Baki / Naoya — spark-ember
-const GORE_MAGENTA = ["#a11026", "#6e0016", "#ff5ab0", "#3a000a"]   // Hisoka — Bungee-Gum pink
+const GORE_MAGENTA = ["#a11026", "#6e0016", "#ff5ab0", "#3a000a"]   // Hisoka / Byakuya — pink (Bungee-Gum / Senbonzakura petals)
+const GORE_LIGHTNING = ["#a11026", "#6e0016", "#6ad0ff", "#3a000a"] // Sasuke — Chidori electric-blue arc
 // PER-CHARACTER, PER-MOVE FINISHER TABLE. Keyed [rosterKey][killingBlowMove] → a gore-style finisher tied to
 // that SPECIFIC move (normal/rekka, special, ultimate). `gore` selects the anatomical split the procedural
 // emitter renders (bisect = split in half · dismember = limbs off · decap = head off · dice = surgical cross-
@@ -737,6 +742,45 @@ const BRUTALITY_FINISHERS = {
     gfLunge:  { name: "GUTTING LUNGE", gore: "gut",       palette: GORE_RED, flash: "#6e1520" },
     gfLowCut: { name: "HAMSTRING",     gore: "dismember", palette: GORE_RED, flash: "#6e1520" },
     ultimate: { name: "THE FINAL ACT", gore: "dice",      palette: GORE_RED, flash: "#6e1520" },
+  },
+  // ── Tier 3 (2026-09-17) ── keyed to each char's REAL stamped move keys (base normals via currentMove,
+  // specials via createAttackFromMove name, projectiles via spawnProjectile name). No ult stamps added
+  // (same discipline as toji/frieza/hisoka/baki — special+projectile tables, KLASSIC covers the rest).
+  // SASUKE — Uchiha blade + Chidori lightning. (dashStrike rush, chidoriKoiten AOE special, sasukeShuriken proj)
+  sasuke: {
+    dashStrike:     { name: "LIONS BARRAGE", gore: "bisect", palette: GORE_LIGHTNING, flash: "#2a6ad0" },
+    chidoriKoiten:  { name: "CHIDORI",        gore: "beam",   palette: GORE_LIGHTNING, flash: "#2a6ad0" },
+    sasukeShuriken: { name: "SHURIKEN STORM",  gore: "dice",   palette: GORE_LIGHTNING, flash: "#2a6ad0" },
+  },
+  // ITACHI — Amaterasu black flame + Susanoo's Totsuka blade. (heavy sword, itachiFireball Katon proj, susanooSword)
+  itachi: {
+    heavy:         { name: "SHARINGAN CUT", gore: "bisect", palette: GORE_PURPLE, flash: "#3a1a7a" },
+    itachiFireball:{ name: "AMATERASU",      gore: "melt",   palette: GORE_PURPLE, flash: "#3a1a7a" },
+    susanooSword:  { name: "TOTSUKA BLADE",  gore: "beam",   palette: GORE_PURPLE, flash: "#3a1a7a" },
+  },
+  // VEGETA — Saiyan-prince ki annihilation. (galickGun proj, finalFlash beam proj, bigBang sphere proj)
+  vegeta: {
+    galickGun:  { name: "GALICK GUN",   gore: "beam",  palette: GORE_PURPLE, flash: "#7a2ad0" },
+    finalFlash: { name: "FINAL FLASH",  gore: "crush", palette: GORE_PURPLE, flash: "#7a2ad0" },
+    bigBang:    { name: "BIG BANG",     gore: "pulp",  palette: GORE_PURPLE, flash: "#7a2ad0" },
+  },
+  // PAIN — Deva-path gravity + black chakra rods. (heavy rod-thrust, painDederaBird proj, painSuperPushGround Almighty Push)
+  pain: {
+    heavy:                { name: "BLACK ROD",       gore: "dismember", palette: GORE_STEEL, flash: "#5a5f78" },
+    painDederaBird:       { name: "SUMMONING",       gore: "beam",      palette: GORE_STEEL, flash: "#5a5f78" },
+    painSuperPushGround:  { name: "ALMIGHTY PUSH",   gore: "pulp",      palette: GORE_STEEL, flash: "#5a5f78" },
+  },
+  // BYAKUYA — Senbonzakura's thousand petal-blades. (light thrust, heavy cleave, byakuyaPetal scatter special)
+  byakuya: {
+    light:       { name: "SENKA",          gore: "beam",   palette: GORE_MAGENTA, flash: "#c81e7a" },
+    heavy:       { name: "SENBONZAKURA",    gore: "bisect", palette: GORE_MAGENTA, flash: "#c81e7a" },
+    byakuyaPetal:{ name: "SCATTER",         gore: "dice",   palette: GORE_MAGENTA, flash: "#c81e7a" },
+  },
+  // YAMAMOTO — Ryūjin Jakka's all-consuming flame. (yamamotoStab ground-stab, yamamotoBeam fire-sweep proj, heavy overhead)
+  yamamoto: {
+    yamamotoStab: { name: "JOKAKU ENJO",  gore: "bisect", palette: GORE_EMBER, flash: "#c0500f" },
+    yamamotoBeam: { name: "RYUJIN JAKKA",  gore: "melt",   palette: GORE_EMBER, flash: "#c0500f" },
+    heavy:        { name: "ENNETSU JIGOKU",gore: "crush",  palette: GORE_EMBER, flash: "#c0500f" },
   },
 }
 // KLASSIC default (Stage 4): an eligible winner whose killing-blow move has NO per-move entry still gets a
@@ -2970,6 +3014,8 @@ const INTRO_VOICE = {
   beerus: { clip: "beerus_intro.mp3", gateReveal: true },   // "…I guess I'll destroy you now"
   naruto: { clip: "naruto_intro.mp3", gateReveal: false },  // 3 opening battle-cry lines back-to-back
   minato: { pool: MINATO_VOICE.intro, gateReveal: false },  // picks ONE intro line at random per match (Japanese Storm-Connections pack)
+  maki:    { pool: MAKI_VOICE.intro,    gateReveal: false }, // intro pool existed in makiVoice.js but was never dispatched at the reveal beat (fixed 2026-09-17)
+  chrollo: { pool: CHROLLO_VOICE.intro, gateReveal: false }, // intro pool existed in chrolloVoice.js but was never dispatched (fixed 2026-09-17)
   // Sasuke picks ONE of two multi-line intro bursts at random per match (same alternation family
   // as Naruto's win pool). Either clip is a packed cluster fired as a single beat.
   sasuke: { pool: ["sasuke_intro_cluster.mp3", "sasuke_intro_alt2.mp3"], gateReveal: false },
@@ -17924,7 +17970,7 @@ gameLoop()
     // Pause-menu introspection: current selection + item id (drive with real esc/↓/enter keys).
     pauseSel: () => ({ gameState, index: pauseMenuIndex, item: PAUSE_MENU_ITEMS[pauseMenuIndex] }),
     // Camera introspection (zoom regression diagnosis).
-    camera: () => ({ zoom: camera.zoom, targetZoom: camera.targetZoom, x: camera.x, y: camera.y }),
+    camera: () => ({ zoom: camera.zoom, targetZoom: camera.targetZoom, x: camera.x, y: camera.y, worldWidth: camera.worldWidth, minZoom: camera.minZoom }),
     // Expire an active Susanoo so the normal update loop auto-reverts it (recovery timing).
     expireSusanoo: () => { if (p1 && (p1._susanooStage || 0) > 0) p1._susanooTimer = 1 },
     // Toji stance system introspection (foundation): stance + live attack phase/move.
@@ -18761,6 +18807,10 @@ gameLoop()
     nezukoVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickNezukoVoice(pool)),
     jasonVoicePool: pool => JASON_VOICE[pool] || null,
     jasonVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickJasonVoice(pool)),
+    makiVoicePool: pool => MAKI_VOICE[pool] || null,           // (harness) exposes Maki's voice pools — hook was missing, breaking test:maki-voice
+    makiVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickMakiVoice(pool)),
+    chrolloVoicePool: pool => CHROLLO_VOICE[pool] || null,     // (harness) exposes Chrollo's voice pools — hook was missing, breaking test:chrollo-voice
+    chrolloVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickChrolloVoice(pool)),
     // Miwa's 9 JA pools (intro/taunt/iaiDash/airVortex/ultimate/combatBark/hitReact/lowHealth/win).
     miwaVoicePool: pool => MIWA_VOICE[pool] || null,
     miwaVoicePick: (pool, n = 1) => Array.from({ length: n }, () => pickMiwaVoice(pool)),

@@ -122,7 +122,7 @@ export const camera = {
 
     const needW = (bbR - bbL) + this.horizontalPadding * 2
     const needH = (bbB - bbT) + this.verticalPadding * 2
-    this.targetZoom = clamp(Math.min(cw / needW, ch / needH), this.minZoom, this.maxZoom)
+    this.targetZoom = clamp(Math.min(cw / needW, ch / needH), this.minZoomForView(cw), this.maxZoom)
 
     // GIANT zoom-out speed-up: a Susanoo-scale figure forces a big zoom-out, but the default
     // 0.02/frame step takes ~2s to get there — so for the first couple of seconds after the
@@ -176,7 +176,7 @@ export const camera = {
     this.targetY = (bbT + bbB) / 2
     const needW = (bbR - bbL) + this.horizontalPadding * 2
     const needH = (bbB - bbT) + this.verticalPadding * 2
-    this.targetZoom = clamp(Math.min(cw / needW, ch / needH), this.minZoom, this.maxZoom)
+    this.targetZoom = clamp(Math.min(cw / needW, ch / needH), this.minZoomForView(cw), this.maxZoom)
 
     // On a SNAP (e.g. match start) jump straight to the framing so the initial wide spread
     // is visible immediately — and DON'T clamp fighters this frame (the pre-smooth narrow
@@ -203,6 +203,15 @@ export const camera = {
   // after setting the framing targets; the domain cinematic calls it after
   // focusOnFighter() so a tight caster focus uses the exact same smoothing and
   // never hard-snaps.
+  // Viewport-aware MINIMUM zoom: never zoom out so far that the visible width (cw / zoom) exceeds the
+  // world — otherwise, on a very wide (ultrawide) viewport at the low zoom floor, the world can't fill
+  // the screen and background is revealed PAST worldWidth at the sides (the position clamp can't help
+  // once the view is wider than the world). Raising the floor to cw/worldWidth guarantees the world
+  // always spans the width. No-op on ≤16:9 where cw/worldWidth ≤ the static minZoom.
+  minZoomForView(cw) {
+    const fit = this.worldWidth > 0 ? cw / this.worldWidth : this.minZoom
+    return Math.max(this.minZoom, fit)
+  },
   advance(canvas, zoomStep = this.maxZoomStep) {
     const { width: cw, height: ch } = getCanvasMetrics(canvas)
 
@@ -211,7 +220,7 @@ export const camera = {
     // large reframe (or a hit-confirm zoom-in) settles on a smooth curve instead of a hard cap kink.
     let nextZoom = lerp(this.zoom, this.targetZoom, this.zoomSmooth)
     nextZoom = this.zoom + softStep(nextZoom - this.zoom, zoomStep)
-    this.zoom = clamp(nextZoom, this.minZoom, this.maxZoom)
+    this.zoom = clamp(nextZoom, this.minZoomForView(cw), this.maxZoom)
 
     let nx = lerp(this.x, this.targetX, this.moveSmooth)
     let ny = lerp(this.y, this.targetY, this.verticalMoveSmooth)

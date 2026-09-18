@@ -843,7 +843,11 @@
     "test:naoya-redesign": "node harness/naoya_redesign.test.mjs",
     "test:track-a-juice": "node harness/track_a_juice.mjs",
     "test:track-c-specials": "node harness/track_c_specials.mjs",
-    "test:track-d-cine": "node harness/track_d_cine.mjs"
+    "test:track-d-cine": "node harness/track_d_cine.mjs",
+    "test:narrow-kit-specials": "node harness/narrow_kit_specials_live.mjs",
+    "test:miles-kurapika-reverify": "node harness/miles_kurapika_reverify.mjs",
+    "test:camera-ultrawide": "node harness/camera_ultrawide.test.mjs",
+    "test:camera-ultrawide-live": "node harness/camera_ultrawide_live.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1"

@@ -5573,6 +5573,10 @@ const IPPO_SPECIALS = {
   ippoUppercut: { damage: 84,  startup: 8, active: 4, recovery: 18, hitstun: 22, knockbackX: 3,  knockbackY: -9, rangeX: 84,  rangeY: 88, cost: 24, launcher: true },  // heavy rising uppercut (anti-air launcher)
   ippoBodyblow: { damage: 90,  startup: 8, active: 4, recovery: 17, hitstun: 20, knockbackX: 9,  knockbackY: 0,  rangeX: 110, rangeY: 50, cost: 22 },                   // heavy body-blow
   ippoAirhook:  { damage: 80,  startup: 6, active: 5, recovery: 15, hitstun: 18, knockbackX: 8,  knockbackY: -2, rangeX: 110, rangeY: 84, cost: 20 },                   // aerial hook punch (tall active area so a low jump-in reaches grounded foes)
+  // NEW (versatility pass): Slip Counter — Ippo's first DEFENSIVE option. All 5 existing specials are
+  // offense; this is a canon boxing slip-and-counter — startup i-frames "slip" the incoming blow, then a
+  // committed counter-hook lands. Reuses the ippoHook art (no new sheet). Back+Special.
+  ippoSlip:     { damage: 82,  startup: 9, active: 4, recovery: 18, hitstun: 22, knockbackX: 9,  knockbackY: -3, rangeX: 118, rangeY: 60, cost: 26 },
 }
 function fireIppoSpecial(fighter, key, opts = {}) {
   const md = IPPO_SPECIALS[key]
@@ -5587,12 +5591,27 @@ function fireIppoSpecial(fighter, key, opts = {}) {
   else if (opts.planted) fighter.vx = 0                                         // uppercut / body-blow stay planted
   return true
 }
+// Slip Counter (see IPPO_SPECIALS.ippoSlip): slip back with startup i-frames, then lunge into a
+// counter-hook. Reuses the ippoHook art for the counter blow.
+function fireIppoSlipCounter(fighter, context) {
+  const md = IPPO_SPECIALS.ippoSlip
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if (!spendEnergy(fighter, md.cost)) return false
+  const attack = createAttackFromMove(fighter, "ippoHook", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })   // reuse hook art
+  attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.startup + 2)          // SLIP i-frames on the read
+  fighter.vx = -(fighter.facing || 1) * 4                                           // slip back...
+  schedulePendingSpawn(md.startup, () => { if (fighter) fighter.vx = (fighter.facing || 1) * 7 })   // ...then step into the counter
+  return true
+}
 export function executeIppoSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ippo") return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const grounded = fighter.onGround ?? fighter.grounded ?? false
   const dir = fighter._specialHeldDir || null
   if (!grounded)     return fireIppoSpecial(fighter, "ippoAirhook")                    // AIR (any) — aerial hook punch
+  if (dir === "B")   return fireIppoSlipCounter(fighter, context)                      // Back — Slip Counter (defensive; slip i-frames → counter-hook)
   if (dir === "F")   return fireIppoSpecial(fighter, "ippoHook", { lunge: true })      // Fwd — spinning hook punch
   if (dir === "U")   return fireIppoSpecial(fighter, "ippoUppercut", { planted: true })// Up — heavy rising uppercut (launcher)
   if (dir === "D")   return fireIppoSpecial(fighter, "ippoBodyblow", { planted: true })// Down — heavy body-blow
@@ -12709,9 +12728,33 @@ function applyHiruzenReaperDamage(fighter, opp, context) {
   shakeCamera(context, 14, 14)
 }
 
+// NEW (versatility pass): Machete Throw — Jason's ONLY ranged answer. A slow, heavy thrown machete
+// gives the roster-slowest melee slasher a zoning tool he completely lacked (fills the no-projectile
+// gap). Canon: Jason hurls weapons/machetes across the films. Reuses the jRelentless heavy-swing pose
+// as the throw motion; the flying blade is a procedural steel projectile (no flying-machete sheet exists).
+function fireJasonMacheteThrow(fighter, context) {
+  const md = fighter.specials?.macheteThrow || { cost: 30, damage: 86, hitstun: 22, knockbackX: 8, knockbackY: -2 }
+  if (!spendEnergy(fighter, md.cost || 30)) return false
+  fighter._spriteCastMove  = "jRelentless"                 // reuse the heavy machete-swing pose (throw wind-up)
+  fighter._spriteCastTimer = 22
+  fighter.vx = 0
+  fighter.attackCooldown   = getAttackDuration(30, fighter)
+  try { sound?.playSfxFile?.(pickJasonVoice("specialCast"), null) } catch (_) {}
+  schedulePendingSpawn(11, () => {
+    spawnProjectile(fighter, "jasonMachete", {
+      damage: md.damage || 86, w: 54, h: 20, speed: 12, lifetime: 96,
+      hitstun: md.hitstun || 22, knockbackX: md.knockbackX || 8, knockbackY: md.knockbackY ?? -2,
+      isSpecial: true, color: "#c8ccd2",                   // steel machete (procedural — no flying-blade art)
+      spawnY: fighter.y + (fighter.h || 100) * 0.42,
+    }, context)
+  })
+  try { shakeCamera(context, 3, 6) } catch (_) {}
+  return true
+}
 function executeJasonSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "jason") return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._specialHeldDir || null) === "D") return fireJasonMacheteThrow(fighter, context)   // Down = Machete Throw (zoning)
   if (isSpecialDisabled(fighter, "relentlessSlash")) return false
   const md = fighter.specials?.relentlessSlash
     || { cost: 35, damage: 140, startup: 13, active: 5, recovery: 26, hitstun: 26, knockbackX: 12, knockbackY: -8, rangeX: 140, rangeY: 92, isSpecial: true }
@@ -12810,10 +12853,26 @@ function applyGhostfaceFinalActDamage(fighter, opp, cineCtx = {}) {
 // which is keyed to the original "ghostface". Billy's UNIQUE reactive Delayed Counter-Stab / The Last
 // Reveal live in ghostfaceVariantKit.js and need reactive-combat wiring (flagged follow-up).
 // ─────────────────────────────────────────────────────────────────────────────
+// NEW (versatility pass): Stalker's Slip — Billy's first DEFENSIVE option (his kit was two offensive
+// knife lunges only, no escape). A quick evasive backstep with i-frames + a vanish shimmer — the
+// slasher slips out of pressure to re-stalk. Reuses the dash pose (no new art). Back+Special.
+function fireBillyStalkerSlip(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const cost = 20
+  if (!spendEnergy(fighter, cost)) return false
+  fighter.vx = -(fighter.facing || 1) * 16                                   // evasive backstep (re-stalk)
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 15)             // slip i-frames
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 10)           // vanish shimmer
+  fighter._spriteCastMove  = "dash"                                          // reuse the dash pose
+  fighter._spriteCastTimer = 14
+  fighter.attackCooldown   = getAttackDuration(16, fighter)
+  return true
+}
 function executeBillyGhostfaceSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "ghostface_billy") return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
+  if (dir === "B") return fireBillyStalkerSlip(fighter, context)                              // Back = Stalker's Slip (defensive evade + i-frames)
   if (dir === "D") return finishGfKnife(fighter, fireGhostfaceLowGut(fighter, context))       // Down = Low Gut (knockdown)
   return finishGfKnife(fighter, fireGhostfaceGuttingLunge(fighter, context))                  // neutral/Fwd = Gutting Lunge (bleed)
 }
@@ -13765,9 +13824,27 @@ function fireMiwaAirSlash(fighter, context) {
   if (!(fighter._atkVoiceCd > 0)) { try { sound.playSfxFile?.(pickMiwaVoice("airVortex"), null); fighter._atkVoiceCd = 150 } catch (_) {} }   // Rapid Slash Vortex cast line (audio-only; 簡易領域 Simple Domain callout)
   return true
 }
+// NEW (versatility pass): Iai Flash-Step — Miwa's first REACTIVE DEFENSIVE option. Her kit was all
+// forward pressure (iai gap-closer / air vortex / battojutsu rush) with no escape; this is a fast
+// backward flash-step with reactive i-frames to slip pressure and reset spacing — peak battojutsu
+// swordsman fantasy. Reuses the dash pose (no new art). Grounded Back+Special only (air = vortex).
+function fireMiwaFlashStep(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const cost = 18
+  if (!spendEnergy(fighter, cost)) return false
+  fighter.vx = -(fighter.facing || 1) * 18                                   // backward iai flash-step
+  fighter.invulnTimer   = Math.max(fighter.invulnTimer || 0, 16)             // reactive escape i-frames
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, 8)
+  fighter._spriteCastMove  = "dash"                                          // reuse the dash pose
+  fighter._spriteCastTimer = 14
+  fighter.attackCooldown   = getAttackDuration(16, fighter)
+  try { shakeCamera(context, 2, 4) } catch (_) {}
+  return true
+}
 function executeMiwaSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "miwa") return false
   const grounded = fighter.onGround ?? fighter.grounded ?? false
+  if (grounded && (fighter._specialHeldDir || null) === "B") return fireMiwaFlashStep(fighter, context)   // Back = Iai Flash-Step (defensive evade)
   return grounded ? fireMiwaIaiDash(fighter, context) : fireMiwaAirSlash(fighter, context)
 }
 
@@ -23767,12 +23844,34 @@ function fireAltSukunaGrab(fighter, context) {
   else { fighter.attackCooldown = getAttackDuration(20, fighter) }   // whiff/tech still commits recovery (no free spam)
   return true
 }
+// NEW (versatility pass): Cursed Repel — Alt-Sukuna's first DEFENSIVE option (he was pure offense:
+// beam / spin-kick / grab / cleave-string with no reversal). A contemptuous get-off-me: a wide
+// caster-centred cursed-energy burst that blasts the foe away, with brief i-frames through the pop
+// so it works as a wake-up / pressure-reset. Canon: Sukuna's Dismantle shreds anything that nears him.
+// Reuses the altSukunaCleave1 crescent-slash pose (no new art).
+function fireAltSukunaRepel(fighter, context) {
+  const cost = 30
+  if (!spendEnergy(fighter, cost)) return false
+  const md = { damage: 70, startup: 6, active: 6, recovery: 20, hitstun: 20, knockbackX: 14, knockbackY: -6, rangeX: 150, rangeY: 120, aoe: true, isSpecial: true }
+  const attack = createAttackFromMove(fighter, "altSukunaRepel", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.aoe = true; attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._spriteCastMove  = "altSukunaCleave1"                                        // reuse the crescent-slash cast pose
+  fighter._spriteCastTimer = md.startup + md.active + 4
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, md.startup + md.active + 2) // i-frames through the burst (defensive reversal)
+  fighter.vx = 0
+  fighter.colorFlash = 10
+  try { sound.playSfxFile?.(pickAltSukunaVoice("castFlame"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  try { shakeCamera(context, 5, 8) } catch (_) {}
+  return true
+}
 export function executeAltSukunaSpecial(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "alt_sukuna") return false
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   const dir = fighter._specialHeldDir || null
   if (dir === "F") return fireAltSukunaSpinkick(fighter, context)   // Fwd  — Spinning Lunge Kick
   if (dir === "D") return fireAltSukunaGrab(fighter, context)       // Down — Cursed Grab
+  if (dir === "B") return fireAltSukunaRepel(fighter, context)      // Back — Cursed Repel (defensive get-off-me + i-frames)
   return fireAltSukunaBeam(fighter, context)                        // neutral — Fūga: Fire Arrow beam projectile
 }
 
@@ -23816,6 +23915,54 @@ function executeAltSukunaUltimate(fighter, context) {
   return true
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RICK PRIME (rosterKey "rickprime") — was NOT dispatched (fell to executeFallbackSpecial), so its
+// authored portal specials never fired: that was its real narrowness. Route it here and add the ONE
+// gap-filler it lacks — an ANTI-AIR (it's a ground zoner with no vertical answer). Reuses base Rick's
+// (recolored) animation sheets; the portal blast is a procedural green energy projectile.
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW (versatility pass): Portal Skyshot — a rising portal-energy burst that launches. Fills Rick
+// Prime's missing anti-air / vertical threat. Reuses the up-attack pose (recolored). Up+Special.
+function fireRickPrimeSkyshot(fighter, context) {
+  const md = fighter.specials?.primeSkyshot
+    || { cost: 30, damage: 100, startup: 8, active: 6, recovery: 20, hitstun: 24, knockbackX: 3, knockbackY: -13, rangeX: 82, rangeY: 130, launcher: true, isSpecial: true }
+  if (!spendEnergy(fighter, md.cost || 30)) return false
+  const attack = createAttackFromMove(fighter, "rickPrimeSkyshot", md, { minActiveStart: md.startup, minActiveEnd: md.startup + md.active })
+  attack.launcher = true; attack.isSpecial = true
+  setAttackState(fighter, attack, md.startup + md.active + md.recovery)
+  fighter._spriteCastMove  = "up"                                        // reuse the up-attack pose (skyward portal blast)
+  fighter._spriteCastTimer = md.startup + md.active + 4
+  fighter.vx = 0
+  fighter.colorFlash = 8
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+// Wires Rick Prime's AUTHORED primePortalBlast (was defined in characters.js but never routed).
+function fireRickPrimePortalBlast(fighter, context) {
+  const md = fighter.specials?.primePortalBlast || { cost: 35, damage: 160, hitstun: 26, knockbackX: 11, knockbackY: -2 }
+  if (!spendEnergy(fighter, md.cost || 35)) return false
+  fighter._spriteCastMove  = "portalTravel"                              // reuse Rick's portal cast pose (recolored)
+  fighter._spriteCastTimer = 22
+  fighter.vx = 0
+  fighter.attackCooldown   = getAttackDuration(28, fighter)
+  schedulePendingSpawn(12, () => {
+    spawnProjectile(fighter, "primePortalBlast", {
+      damage: md.damage || 160, w: 60, h: 34, speed: 14, lifetime: 92,
+      hitstun: md.hitstun || 26, knockbackX: md.knockbackX || 11, knockbackY: md.knockbackY ?? -2,
+      isSpecial: true, color: "#8ef06a",                                 // Rick Prime green portal energy (procedural)
+      spawnY: fighter.y + (fighter.h || 100) * 0.40,
+    }, context)
+  })
+  try { shakeCamera(context, 4, 8) } catch (_) {}
+  return true
+}
+function executeRickPrimeSpecial(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "rickprime") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._specialHeldDir || null) === "U") return fireRickPrimeSkyshot(fighter, context)   // Up = NEW anti-air
+  return fireRickPrimePortalBlast(fighter, context)                                              // neutral = authored Portal Blast
+}
+
 export function triggerSpecial(fighter, context = {}) {
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
@@ -23846,6 +23993,7 @@ export function triggerSpecial(fighter, context = {}) {
     case "netero":  return executeNeteroSpecial(fighter, context)   // Barrage Punches (melee flurry; command chain is Down+Heavy, separate)
     case "omololu": return executeOmoluSpecial(fighter, context)
     case "rick":    return executeRickSpecial(fighter, context)
+    case "rickprime": return executeRickPrimeSpecial(fighter, context)   // Up = NEW Portal Skyshot (anti-air) / neutral = Portal Blast (its defined special, previously unrouted → generic fallback)
     // Goku Black — Stage 3a: Kamehameha (QCF) + Spirit Bomb (QCB). Neutral/other motions return
     // false (no-op, no glitch) until Explosion (neutral) lands in Stage 3b. NOTE: the ULTIMATE
     // dispatch still no-ops goku_black (Sword Slash = Stage 3b) — do not remove that one yet.

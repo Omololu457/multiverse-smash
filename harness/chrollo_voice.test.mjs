@@ -110,7 +110,7 @@ try {
 
   // Unlock Skill Hunter: opponent lands 3 DISTINCT moves on Chrollo (drives the REAL tracker).
   await page.evaluate(() => { window.__harness.shLandMove("light"); window.__harness.shLandMove("heavy"); window.__harness.shLandMove("rasengan"); });
-  { const s = await page.evaluate(() => window.__harness.shState("p1")); check("Skill Hunter unlocked (3 distinct moves landed)", s.ready === true, `distinct=${s.distinct} ready=${s.ready}`); }
+  { const s = await page.evaluate(() => window.__harness.shState("p1")); check("Skill Hunter unlocked (3 distinct moves landed)", s.unlocked === true, `distinct=${s.distinct} unlocked=${s.unlocked}`); }   // hook field is `unlocked` (test read stale `ready`)
 
   const ultPool = await page.evaluate(() => window.__harness.chrolloVoicePool("ultActivate"));
   // Press Ultimate → cinematic activates. Capture the spy from just before the press.

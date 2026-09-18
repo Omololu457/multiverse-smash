@@ -34,10 +34,12 @@ try {
   await SL("ensureAccount","Unlocker");
 
   // ══ Fresh account — the approved split ══
-  section("Fresh account — 22 unlocked / 22 locked (the approved split)");
+  section(`Fresh account — ${EXPECT_UNLOCKED.length} unlocked / ${EXPECT_LOCKED.length} locked (derived from unlocks.js, roster-drift-proof)`);
   let info=await u();
   check("fresh account is level 1, no dev/beta", info.ctx.level===1 && !info.ctx.dev && !info.ctx.beta);
-  check("exactly 22 unlocked and 22 locked", info.unlocked.length===22 && info.locked.length===22, `unlocked=${info.unlocked.length} locked=${info.locked.length}`);
+  // Counts are DERIVED from the live roster + UNLOCK_CONDITIONS (source of truth) so the roster can grow
+  // without going stale — the old hardcoded 22/22 drifted as the roster expanded to its current size.
+  check(`exactly ${EXPECT_UNLOCKED.length} unlocked and ${EXPECT_LOCKED.length} locked`, info.unlocked.length===EXPECT_UNLOCKED.length && info.locked.length===EXPECT_LOCKED.length, `unlocked=${info.unlocked.length} locked=${info.locked.length}`);
   check("unlocked set matches the spec exactly", JSON.stringify(info.unlocked)===JSON.stringify(EXPECT_UNLOCKED), `got=${info.unlocked.join(",")}`);
   check("locked set matches the spec exactly", JSON.stringify(info.locked)===JSON.stringify(EXPECT_LOCKED), `got=${info.locked.join(",")}`);
   check("all six starters are unlocked", STARTER_KEYS.every(k=>info.unlocked.includes(k)), STARTER_KEYS.join(","));

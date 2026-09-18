@@ -2694,7 +2694,9 @@ const rickPrime = {
   specials: {
     primePortalBlast: { cost: 35, damage: 160, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -2, effect: "extremely powerful multiverse energy attack" },
     annihilationMine: { cost: 30, damage: 110, startup: 13, active: 8, recovery: 22, hitstun: 20, knockbackX: 7,  knockbackY: -2, effect: "portal-tech charge that detonates" },
-    primePortal:      { cost: 15, damage: 60,  startup: 6,  active: 3, recovery: 12, hitstun: 12, knockbackX: 4,  knockbackY: -1, subtype: "mobility", dashSpeed: 26, effect: "instant high-speed portal warp" }
+    primePortal:      { cost: 15, damage: 60,  startup: 6,  active: 3, recovery: 12, hitstun: 12, knockbackX: 4,  knockbackY: -1, subtype: "mobility", dashSpeed: 26, effect: "instant high-speed portal warp" },
+    // Up+Special — NEW anti-air (fills Rick Prime's missing vertical threat; his blast+mine+warp are all horizontal). Rising portal-energy launcher.
+    primeSkyshot:     { cost: 30, damage: 100, startup: 8,  active: 6, recovery: 20, hitstun: 24, knockbackX: 3,  knockbackY: -13, rangeX: 82, rangeY: 130, launcher: true, isSpecial: true, effect: "Portal Skyshot — a rising portal-energy burst that launches (Up+Special); the anti-air the zoner lacked" }
   },
   ultimate: { name: "Rick Prime's Supremacy", cost: 100, duration: 10, effect: "Massive speed, attack boost, and random gadget chaos" },
   transformationOrder: ["base"],
@@ -5425,7 +5427,9 @@ const jason = {
   // machete arc, far higher damage, a heavy diagonal blow-back, super armor, a Bloodlust cost, and a
   // heavier cast (camera shake + red flash). Neutral Special (no direction branch). Real logic in abilities.js.
   specials: {
-    relentlessSlash: { cost: 35, damage: 140, startup: 13, active: 5, recovery: 26, hitstun: 26, knockbackX: 12, knockbackY: -8, rangeX: 140, rangeY: 92, isSpecial: true, effect: "committed lunging machete power-slash — huge reach, super armor, heavy blow-back (Bloodlust)" }
+    relentlessSlash: { cost: 35, damage: 140, startup: 13, active: 5, recovery: 26, hitstun: 26, knockbackX: 12, knockbackY: -8, rangeX: 140, rangeY: 92, isSpecial: true, effect: "committed lunging machete power-slash — huge reach, super armor, heavy blow-back (Bloodlust)" },
+    // Down+Special — the ONE ranged answer for the roster-slowest slasher (fills the no-zoning gap). Canon: Jason hurls his machete.
+    macheteThrow:    { cost: 30, damage: 86,  startup: 11, active: 4, recovery: 24, hitstun: 22, knockbackX: 8,  knockbackY: -2, subtype: "projectile", isSpecial: true, effect: "Machete Throw — a slow, heavy thrown blade (Down+Special); zoning tool reusing the heavy-swing art" }
   },
   // ULTIMATE: none. No ultimate art exists in this sparse sheet — flagged OPEN GAP, not a placeholder.
   hasSprites: true,

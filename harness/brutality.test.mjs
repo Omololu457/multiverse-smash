@@ -11,10 +11,12 @@ const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascri
 function srv(){const s=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split("?")[0]);const f=path.join(ROOT,u==="/"?"/index.html":u);if(!f.startsWith(ROOT)){r.writeHead(403).end();return;}fs.readFile(f,(e,d)=>{if(e){r.writeHead(404).end();return;}r.writeHead(200,{"content-type":MIME[path.extname(f)]||"application/octet-stream"});r.end(d);});});return new Promise(x=>s.listen(0,"127.0.0.1",()=>x(s)));}
 let PASS=0,FAIL=0; const check=(n,c,d="")=>{(c?PASS++:FAIL++);console.log(`  ${c?"✅ PASS":"❌ FAIL"}  ${n}${d?`  — ${d}`:""}`);};
 
-// The 17 eligible characters (+ zaraki_shikai shares zaraki). Exactly these are eligible.
-// Tier 2 (this pass): deathstroke, isshiki, orochimaru, alt_sukuna, ghostface_billy.
+// The 23 eligible characters (+ zaraki_shikai shares zaraki). Exactly these are eligible.
+// Tier 2: deathstroke, isshiki, orochimaru, alt_sukuna, ghostface_billy.
+// Tier 3 (2026-09-17): sasuke, itachi, vegeta, pain, byakuya, yamamoto.
 const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","mayuri","madara","jason","naoya","hisoka","ghostface","baki",
-  "deathstroke","isshiki","orochimaru","alt_sukuna","ghostface_billy"];
+  "deathstroke","isshiki","orochimaru","alt_sukuna","ghostface_billy",
+  "sasuke","itachi","vegeta","pain","byakuya","yamamoto"];
 // Hard-exclusion list — must NEVER be eligible regardless of style.
 const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","killua","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).
@@ -39,6 +41,13 @@ const TABLE = {
   orochimaru:     { orochimaruChain3:{n:"HYDRA MAW",g:"gut"}, orochimaruSwordLunge:{n:"KUSANAGI",g:"beam"}, oroSnake:{n:"HIDDEN SHADOW SNAKES",g:"shred"} },
   alt_sukuna:     { altSukunaCleave2:{n:"CLEAVE",g:"bisect"}, altSukunaBeam:{n:"FŪGA",g:"beam"}, altSukunaSpinkick:{n:"DISMANTLE",g:"dice"} },
   ghostface_billy:{ gfLunge:{n:"GUTTING LUNGE",g:"gut"}, gfLowCut:{n:"HAMSTRING",g:"dismember"}, ultimate:{n:"THE FINAL ACT",g:"dice"} },
+  // ── Tier 3 (2026-09-17) ──
+  sasuke:   { dashStrike:{n:"LIONS BARRAGE",g:"bisect"}, chidoriKoiten:{n:"CHIDORI",g:"beam"}, sasukeShuriken:{n:"SHURIKEN STORM",g:"dice"} },
+  itachi:   { heavy:{n:"SHARINGAN CUT",g:"bisect"}, itachiFireball:{n:"AMATERASU",g:"melt"}, susanooSword:{n:"TOTSUKA BLADE",g:"beam"} },
+  vegeta:   { galickGun:{n:"GALICK GUN",g:"beam"}, finalFlash:{n:"FINAL FLASH",g:"crush"}, bigBang:{n:"BIG BANG",g:"pulp"} },
+  pain:     { heavy:{n:"BLACK ROD",g:"dismember"}, painDederaBird:{n:"SUMMONING",g:"beam"}, painSuperPushGround:{n:"ALMIGHTY PUSH",g:"pulp"} },
+  byakuya:  { light:{n:"SENKA",g:"beam"}, heavy:{n:"SENBONZAKURA",g:"bisect"}, byakuyaPetal:{n:"SCATTER",g:"dice"} },
+  yamamoto: { yamamotoStab:{n:"JOKAKU ENJO",g:"bisect"}, yamamotoBeam:{n:"RYUJIN JAKKA",g:"melt"}, heavy:{n:"ENNETSU JIGOKU",g:"crush"} },
 };
 const TABLE_ENTRIES = Object.values(TABLE).reduce((a, m) => a + Object.keys(m).length, 0);   // 51
 

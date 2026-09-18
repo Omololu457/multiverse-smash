@@ -1,289 +1,148 @@
 ========================================================================
-LAN MULTIPLAYER — FEASIBILITY & SCOPING REPORT (2026-09-16)
-Local-network (LAN-party) multiplayer: multiple devices on the same
-WiFi joining one hosted match. NOT internet-wide online play.
-Status: RESEARCH ONLY. No networking code written. Game loop untouched.
+LARGE MULTI-STAGE PASS — 2026-09-17
+Five tracks. No sim/timing/balance changes except the new moves in
+Track B (in-band costs/damage only). Staged for review — NOT committed.
+Precondition met: prior consolidation pass merged (ffc96a48 Combo Trials
+/ Frame Advantage / Daily Challenges + BETA_SETUP), main clean; baseline
+determinism 9/0 · combo-standard 227/0 before starting.
 ========================================================================
 
-SUMMARY VERDICT
-  - Determinism foundation: CONFIRMED (fixed-timestep + seeded RNG,
-    test-proven) — with one caveat that only affects the harder approach.
-  - Existing stub: an empty-but-well-placed seam; the genuinely hard
-    input plumbing (serialization + injection) is ALREADY built for the
-    replay system.
-  - Recommended approach: HOST-AUTHORITATIVE + INPUT-DELAY netplay over a
-    local WebSocket server. NOT rollback for a first version.
-  - A minimal 2-device LAN prototype is a sensible, well-scoped next
-    build. No hidden blocker makes it fundamentally harder than it sounds.
+────────────────────────────────────────────────────────────────────────
+TRACK A — RE-VERIFY MILES / KURAPIKA (real player path)   ✅ FOUND FINE
+────────────────────────────────────────────────────────────────────────
+Drove the REAL character-select (showCharSelect → hover → confirmCharPick)
+and a REAL match, then played BOTH characters through idle / walk / jump /
+light / heavy with real key input, waiting for the sprite sheets to decode.
+RESULT: miles and kurapika render FULLY OPAQUE in every state; each state
+binds its correct per-action sheet (miles_idle/run/jump/light/heavy,
+kurapika_idle/walk/leap/light/heavy). 12/0, zero JS errors.
+  ★ The "box / transparent" symptom I first reproduced was a HARNESS-PATH
+    artifact: the confirmCharPick shortcut sets matchConfig.p1CharKey but
+    NOT p1Char, so createFighter built a char with hasSprites=false → the
+    "?" placeholder box. Proven identical on GOKU through that same shortcut
+    → NOT a miles/kurapika bug. The real select path (_selectCharacterKey)
+    sets p1Char, so a real player gets proper opaque sprites (confirmed).
+  NO production code changed. Screenshots: harness/shots/MILES_* ,
+  KURAPIKA_* (idle/walk/jump/light/heavy + charselect). test:miles-kurapika-reverify.
+
+────────────────────────────────────────────────────────────────────────
+TRACK B — ONE NEW SPECIAL FOR 6 NARROW KITS               ✅ SHIPPED
+────────────────────────────────────────────────────────────────────────
+Each fills the character's biggest gap, reuses EXISTING sprite art (via
+_spriteCastMove), in-band cost/damage, canon-grounded. All 6 verified live
+(harness/narrow_kit_specials_live.mjs 20/0 — energy spent by the exact
+cost + the gap-filling effect actually happens).
+
+  • JASON — "Machete Throw" (Down+Special). Zoning: the roster-slowest
+    slasher had NO ranged answer. Thrown steel machete projectile
+    (cost 30, dmg 86). Reuses the jRelentless heavy-swing pose (blade proc.).
+  • ALT_SUKUNA — "Cursed Repel" (Back+Special). His first DEFENSIVE option
+    (was pure offense): a wide caster-centred cursed-energy burst + i-frames
+    (get-off-me reversal; cost 30, dmg 70, aoe). Reuses altSukunaCleave1 pose.
+  • MIWA — "Iai Flash-Step" (Back+Special, grounded). First REACTIVE defence:
+    a fast backward flash-step with escape i-frames (cost 18). Reuses dash.
+  • IPPO — "Slip Counter" (Back+Special). First DEFENSIVE special (5 offense
+    specials, none defensive): startup slip i-frames → counter-hook
+    (cost 26, dmg 82). Reuses the ippoHook art.
+  • GHOSTFACE_BILLY — "Stalker's Slip" (Back+Special). First DEFENSIVE option:
+    evasive backstep + i-frames + vanish shimmer (cost 20). Reuses dash.
+  • RICK_PRIME — "Portal Skyshot" (Up+Special) NEW anti-air launcher
+    (cost 30, dmg 100). ★ Also fixed that rickPrime was NOT in the special
+    dispatch at all (fell to executeFallbackSpecial) — its authored
+    primePortalBlast never fired; now routed on neutral. Reuses Rick's
+    (recolored) up-attack / portalTravel poses.
+FILES: abilities.js (6 fire fns + dispatch branches + rickprime case),
+  characters.js (jason.macheteThrow + rickPrime.primeSkyshot metadata).
+REGRESSION: determinism 9/0 · combo-standard 227/0 · affected kits all green
+  (jason 30 · ippo 38 · miwa 25 · alt-sukuna 21 · vegeta 72 · pain 42 ·
+   byakuya 32 · yamamoto 17).
+
+────────────────────────────────────────────────────────────────────────
+TRACK C — BRUTALITY FOR 6 MORE CHARACTERS                 ✅ SHIPPED
+────────────────────────────────────────────────────────────────────────
+Added 6 adult, canonically-lethal, NON-excluded, not-yet-covered chars
+(now 23 eligible). Hard-exclusion list respected exactly (naruto/boruto/
+kiba/gohan/gon/killua/nezuko/ben10/albedo/saiki/l_ryuuzaki/light untouched).
+3 per-move finishers each, keyed to REAL already-stamped move keys (base
+normals via currentMove, specials via createAttackFromMove, projectiles via
+spawnProjectile name) — same discipline as the toji/frieza/hisoka/baki
+tables (special+projectile, no ult stamps added → zero damage-code edits).
+Reuses the proven sprite-bisection + bone + blood render.
+  • SASUKE   — dashStrike/CHIDORI(chidoriKoiten)/SHURIKEN STORM(sasukeShuriken)  [blue Chidori palette]
+  • ITACHI   — SHARINGAN CUT(heavy)/AMATERASU(itachiFireball)/TOTSUKA BLADE(susanooSword)
+  • VEGETA   — GALICK GUN/FINAL FLASH/BIG BANG  (3 ki-beam projectiles)
+  • PAIN     — BLACK ROD(heavy)/SUMMONING(painDederaBird)/ALMIGHTY PUSH(painSuperPushGround)
+  • BYAKUYA  — SENKA(light)/SENBONZAKURA(heavy)/SCATTER(byakuyaPetal)  [pink-petal palette]
+  • YAMAMOTO — JOKAKU ENJO(yamamotoStab)/RYUJIN JAKKA(yamamotoBeam)/ENNETSU JIGOKU(heavy)  [ember palette]
+FILES: game.js (BRUTALITY_ELIGIBLE +6, GORE_LIGHTNING palette, 6 finisher
+  tables). Extended harness/brutality.test.mjs (ELIGIBLE + TABLE).
+VERIFY: test:brutality 47/0 — 69/69 table entries resolve, and ALL 18 new
+  finishers FIRE live (correct signature + sprite-bisection captured).
+  Render-only / KO-triggered → determinism 9/0 (zero sim impact).
+
+────────────────────────────────────────────────────────────────────────
+TRACK D — CLEAN UP LONG-FLAGGED PRE-EXISTING FAILURES     ✅ CLEAN BASELINE
+────────────────────────────────────────────────────────────────────────
+  D1 — Demon Slayer energy labels (shinobu/inosuke/nezuko): ALREADY CORRECT.
+     shinobu="INSECT BREATHING", inosuke="BEAST BREATHING", and nezuko
+     correctly ="BLOOD DEMON ART" (she's a DEMON, not a breather — the
+     universe fallback is deliberately overridden per-key). test:energy-labels
+     11/0. No stale text found; no change needed.
+  D2 — Roster/unlock count drift (test:unlocks): FIXED. The assertion
+     hardcoded "22 unlocked / 22 locked"; the roster has since grown to
+     79/20. Rewired the check to the DERIVED EXPECT_UNLOCKED/EXPECT_LOCKED
+     lengths (already computed from characters + UNLOCK_CONDITIONS), so it's
+     roster-drift-PROOF. test:unlocks 28/0 (×3 stable).
+  D3 — the other repeatedly-flagged failures:
+     • test:maki-voice / test:chrollo-voice — FATAL: missing
+       __harness.makiVoicePool / chrolloVoicePool hooks (game.js imported
+       pickMakiVoice/pickChrolloVoice but not the MAKI_VOICE/CHROLLO_VOICE
+       pools). Added the pool imports + the 2 hooks. That exposed 2 latent
+       gaps the crash had masked: (a) neither char had an INTRO_VOICE entry,
+       so their intro line never fired — wired both intro pools into
+       INTRO_VOICE (no new audio); (b) the chrollo test read a stale field
+       (`shState().ready` → the hook returns `unlocked`). test:maki-voice
+       23/0, test:chrollo-voice 19/0 (×3 stable).
+     • test:ben10-stage3 (Diamondhead "Rising Diamonds") — was FLAKY, not
+       broken: the eruption is a stationary (speed:0) hitbox that connects
+       and is CONSUMED on its first active frame vs the adjacent dummy, so
+       racing the projectile LIST was unwinnable. The hitbox genuinely works
+       — reworked the assertion to accept the projectile OR its landed effect
+       (launch/damage). test:ben10-stage3 18/0 (×3 stable).
+     • test:anim-transition-ghost — a load-CONTENTION flake (the doc named
+       madara; a later run flaked on gohan). Passes 8/0 in isolation ×3; not
+       a real bug.
+REGRESSION: no change to unlock/save logic; game.js edits are read-only
+  harness hooks + additive INTRO_VOICE entries → determinism 9/0.
+
+────────────────────────────────────────────────────────────────────────
+TRACK E — CAMERA ULTRAWIDE EDGE CASE                      ✅ SHIPPED
+────────────────────────────────────────────────────────────────────────
+At the low zoom floor on an ultrawide viewport, the visible width
+(cw/zoom) EXCEEDED worldWidth, so the world couldn't fill the screen and
+background showed PAST worldWidth at the sides (the position clamp can't
+help once the view is wider than the world). Root fix = a VIEWPORT-AWARE
+minimum zoom: minZoomForView(cw) = max(minZoom, cw/worldWidth), applied to
+the zoom clamp + both targetZoom clamps (1v1 + FFA). The view can now never
+get wider than the world. NO-OP on ≤16:9 (cw/worldWidth ≤ static minZoom).
+FILES: camera.js (minZoomForView + 3 clamp sites); game.js (camera() hook
+  exposes worldWidth for the test).
+VERIFY: test:camera-ultrawide 9/0 (3440/5120 wide → viewW clamped to exactly
+  worldWidth, edges [0, world]; 1280 unchanged @0.40; 1920 floor 0.60).
+  test:camera-ultrawide-live 4/0 (real 3440×1440 match — zoom raised to
+  1.075 so viewW=3200=worldWidth, never exceeded across movement).
+  test:stage-resize 41/0 (fullscreen/resize behavior intact).
 
 ========================================================================
-STAGE 1 — DETERMINISM FOUNDATION: CONFIRMED (verified in source)
-========================================================================
-FIXED-TIMESTEP LOOP (game.js:16407-16555)
-  - Classic real-time accumulator gated to a fixed 60 Hz. rAF fires at
-    display rate, but the SIMULATION (updateCurrentState -> updateBattle)
-    only advances when _loopAccum >= FIXED_DT (1000/60 ms), consuming
-    exactly one fixed frame per pass. Long stalls clamp to one frame;
-    backlog caps at one frame (no multi-tick catch-up). globalFrameCount
-    ticks once per sim step. Render is variable-dt (fine); sim is
-    frame-counted. Correct shape for netplay.
-
-SEEDED RNG (rng.js)
-  - Single mulberry32 PRNG (gameRng), reseeded per match and stamped onto
-    matchConfig.seed. All GAMEPLAY randomness routes through it: ai.js
-    rand() -> gameRng.next(), and Kamui teleport destinations in
-    abilities.js (4 sites).
-  - Zero Math.random in the core sim files (physics.js, combat.js,
-    projectiles.js, summons.js, platforms.js, stageHazards.js = 0).
-    Remaining Math.random calls are cosmetic only (voice-pool picks,
-    particle scatter, menu random-select) — deliberately off the seeded
-    stream, documented in rng.js.
-  - No Date.now()/performance.now() feeds physics/combat STATE.
-
-PROVEN, NOT ASSERTED
-  - harness/determinism.test.mjs runs a real AI-vs-AI match to 1500
-    frames and asserts: same seed -> bit-identical fighter state
-    (x/y/health/energy); different seed -> diverges. Plus a full replay +
-    desync-checkpoint suite (replay.js, harness/replay_*.mjs,
-    desync_diagnose.mjs) records inputs, replays them, and compares state
-    every 60 frames. This is a working determinism regression test
-    ("determinism 9/0") and it holds up under direct reading.
-
-THE ONE CAVEAT (matters only for lockstep/rollback, NOT host-authoritative)
-  - Input INTERPRETATION reads performance.now(): charge-tap vs hold,
-    hold-to-release specials (Saitama/Genos/Madara), taunt state,
-    motion-input directionHistory (many sites ~game.js:5201-5716). These
-    read wall-clock on the machine executing them. FINE for
-    host-authoritative (only the host runs the sim -> only one clock is
-    consulted). A real problem for cross-machine LOCKSTEP/ROLLBACK, where
-    two devices must interpret identical inputs frame-for-frame. This,
-    plus cross-browser float determinism, is exactly why host-
-    authoritative is the right first target.
-
-VERDICT: the sim is genuinely fixed-timestep and deterministic w.r.t.
-(seed + inputs) on a single execution environment — precisely the
-property a host-authoritative model needs.
-
-========================================================================
-STAGE 2 — EXISTING STUB INVENTORY: real seam, zero implementation
-========================================================================
-ALL networking-related code is a labeled placeholder (no protocol, no
-transport, no state fields):
-  - account.js:607-610  — documented seam:
-      // TODO(multiplayer): export createOnlineSession(account) /
-      //                    joinSession(code, account)
-    Comment only.
-  - game.js:989         — ONLINE_PLACEHOLDER game-state enum ("no netcode").
-  - game.js:12946-12957 — _drawOnlinePlaceholder(): renders "netcode is
-                          not implemented yet."
-  - ui.js:1368          — menu item "ONLINE — Coming soon / Unlocked
-                          (placeholder)".
-  - game.js:14890       — "Two Keyboards — coming soon (browsers can't
-                          distinguish two keyboards)".
-  - package.json        — NO networking deps (only playwright, for tests).
-                          server/save-server.mjs binds 127.0.0.1 for local
-                          save persistence only — not a game server.
-
-BUT the pieces that actually matter already exist (built for replays):
-  - INPUT SERIALIZATION is done: input.js readRawControls() (side-effect-
-    free 14-field snapshot) + REPLAY_INPUT_FIELDS (stable bit order) +
-    replay.js encodeInput()/decodeInput() (14-bit mask), already delta-
-    encoded. One small int per player per frame.
-  - INPUT INJECTION is done: writeRawControls(fighter, raw) writes decoded
-    input back into the keys map so the normal buffering pipeline
-    reproduces it — a remote player's inputs feed through the SAME path a
-    local keyboard uses.
-  - CLEAN PLAYER-SLOT ABSTRACTION: fighter.playerNumber (1-4) + per-fighter
-    fighter.controls; getFighterInput(fighter) is the single per-frame gate
-    every fighter reads through.
-  - DESYNC DETECTION is done: recordState/playbackCheckState compare
-    [x,y,health,energy] on an interval and report the first divergent frame.
-
-The stub itself is empty, but the codebase is substantially more netcode-
-ready than the stub implies — the replay system is effectively an offline,
-single-machine dry run of the host-authoritative data model.
-
-========================================================================
-STAGE 3 — SIMPLEST VIABLE APPROACH
-========================================================================
-RECOMMENDATION: host-authoritative, input-delay netplay, over a local
-WebSocket server. Not rollback. Not P2P lockstep.
-
-TRANSPORT — WebSocket over WebRTC for a first build.
-  - Both work on LAN. For a browser game with no native layer, a tiny local
-    WebSocket server (Node `ws`, run by the host) is dramatically simpler
-    than WebRTC: no ICE/STUN/signaling, trivial "connect to
-    ws://<host-LAN-IP>:<port>". The host already has a Node/Electron
-    footprint (server/*.mjs, npm run desktop), so a `ws` server fits.
-    WebRTC's NAT-traversal advantages are irrelevant on one LAN. WebRTC
-    data channels can come later for lower latency / no relay.
-
-MODEL — host-authoritative.
-  - The host runs the one true simulation. The joiner runs a thin client:
-    capture local inputs -> send to host; receive host state -> render.
-    This completely sidesteps the Stage 1 cross-machine determinism caveat
-    (performance.now() input reads, cross-browser float drift) because only
-    one machine simulates.
-
-DELAY-BASED, NOT ROLLBACK.
-  - Apply a small fixed input delay (buffer local inputs a few frames so
-    remote inputs arrive "on time"). On a quiet LAN, expect ~1-5 ms RTT
-    wired / ~2-10 ms typical WiFi, occasionally spiking 20-40 ms under
-    interference. At 60 Hz a frame is 16.7 ms, so 2-3 frames (~33-50 ms) of
-    input delay comfortably hides LAN jitter — imperceptible-to-mild for a
-    casual match, and it needs NONE of rollback's hard part (frame-perfect
-    save/restore/re-simulate every frame). Rollback demands stronger
-    determinism than the codebase currently has cross-machine and is the
-    wrong first bet. Delay-based is sufficient for LAN-party use; build it
-    first, reach for rollback only if playtesting shows the delay is
-    objectionable.
-
-TWO SUB-VARIANTS OF HOST-AUTHORITATIVE:
-  (A) Input-only relay + local sim on both sides (true input-delay
-      netplay): lightest bandwidth, smoothest feel, but relies on both
-      machines simulating identically -> reintroduces the determinism
-      caveat.
-  (B) Host simulates, streams state to a "dumb" joiner that only sends
-      inputs and renders received state: heavier bandwidth (fine on LAN),
-      but IMMUNE to cross-machine determinism entirely.
-  START WITH (B) — most forgiving given the performance.now() input reads;
-  the replay system's [x,y,health,energy] snapshot is a natural seed for
-  the state channel (though full render state is broader than 4 fields).
-
-========================================================================
-STAGE 4 — WHAT WOULD NEED REAL ENGINEERING (relative effort)
-========================================================================
-  Input serialization (send inputs over the wire) .......... SMALL
-    Already built: readRawControls/encodeInput/decodeInput/writeRawControls,
-    stable 14-bit mask, injection through getFighterInput. Mostly reuse.
-
-  Transport layer (local WS server + client socket) ........ MEDIUM
-    Fully new (no net deps today) but small surface: a `ws` server on the
-    host + a client module. server/*.mjs is a starting template.
-
-  Networking glue: input-delay buffering / feeding remote
-    input into a slot ...................................... MEDIUM
-    Delay-buffer mirrors the existing input buffer; the seam
-    (getFighterInput, playerNumber, writeRawControls) exists. Real work is
-    the send/receive/buffer/apply loop and one authoritative slot.
-
-  State sync (variant B) OR shared-sim reconciliation (A) ... MEDIUM-LARGE
-    Variant B: define/serialize enough render state (broader than replay's
-    4 fields — positions, animation/frame state, projectiles, effects,
-    meters) and stream it. Variant A: trust dual-sim + occasional resync.
-    Either is the biggest genuinely-new chunk.
-
-  Lobby / host-join UI ..................................... MEDIUM
-    The shell exists (ONLINE_PLACEHOLDER state + screen + menu entry), so no
-    new navigation plumbing — but host-IP display, join-by-address/code,
-    "waiting for player", ready-up, and character/stage sync are new UI.
-
-  Disconnect / reconnect handling .......................... MEDIUM
-    Nothing today. A minimal first build can scope this out (drop -> both
-    return to menu). Robust reconnect is a later, medium effort.
-
-========================================================================
-STAGE 5 — REALISTIC RECOMMENDATION
-========================================================================
-YES — a minimal 2-device LAN prototype (host + 1 joiner, input-delay,
-host-authoritative, no reconnect, no matchmaking polish) is a sensible
-next build. There is no hidden blocker that makes it fundamentally harder
-than it sounds.
-
-WHY IT'S GENUINELY REASONABLE HERE
-  - The determinism prerequisite is met and test-proven for the single-
-    execution-environment case — exactly what host-authoritative needs.
-  - The two normally-nasty parts — input serialization and input injection
-    — are already written (for replays); they just need to point at a
-    socket instead of a file.
-  - The UI entry point already exists as a placeholder to fill in.
-  - LAN latency is low enough that the simple, forgiving model (input
-    delay) is correct and sufficient — no rollback required.
-
-HONEST COUNTERWEIGHTS (not oversold)
-  - The transport layer and the send/buffer/apply loop are fully new code —
-    real work, but well-scoped and low-risk.
-  - State sync (variant B) is the largest new chunk: replay only snapshots
-    4 values; a live remote renderer needs materially more (animation/frame
-    indices, projectiles, summons, effects, meters, camera). Budget for
-    iterating on "what state must cross the wire."
-  - The performance.now()-based input timing means do NOT attempt cross-
-    machine lockstep or rollback first — pick host-authoritative to route
-    around it.
-  - Even the "minimal" build is realistically a multi-day effort, not an
-    afternoon — but it's a clean, bounded one, not a research project.
-
-BOTTOM LINE: determinism confirmed; stub is an empty-but-well-placed seam;
-the hard input plumbing is already built for replays; recommended path is
-host-authoritative + input-delay over a local WebSocket server, explicitly
-NOT rollback. Proceed with a minimal 2-device LAN prototype, starting with
-transport + feeding one remote input slot through writeRawControls, and
-treat live state-sync as the main new engineering.
-
-========================================================================
-APPENDIX — MINIMAL 2-DEVICE PROTOTYPE, BUILD ORDER (plan only, no code)
-Scope: host + 1 joiner; join by host LAN IP; single 1v1 match;
-host-authoritative, variant B; input-delay; NO reconnect; NO lobby polish.
-========================================================================
-  Step 0 — Transport spike (prove the pipe before touching the game)
-    NEW net/lanServer.mjs (host-side `ws`) + net/lanClient.js (browser).
-    Host serves a `ws` port, prints LAN IP:port on the Online screen;
-    client opens ws://<ip>:<port>, hello/echo handshake. Add `ws` to
-    package.json; add a dev:lan script. Exit: two machines exchange a ping,
-    no game code touched.  [MEDIUM, low risk]
-
-  Step 1 — Wire format & message types
-    NEW net/protocol.js. Reuse replay.js encodeInput/decodeInput (14-bit
-    mask) for {t:"input",frame,mask}. Match setup {t:"start",seed,chars,
-    skins,stage,rounds} mirrors startRecording()'s meta. State
-    {t:"state",frame,payload} (see Step 4). Handshake reuses REPLAY_VERSION
-    + BALANCE_STAMP to refuse mismatched builds (like validateReplay).
-    [SMALL, mostly reuse]
-
-  Step 2 — Remote input injection (the key seam)
-    Per-slot "input source" indirection: for the remote slot, apply the
-    received mask via writeRawControls(fighter, decodeInput(mask)) BEFORE
-    getFighterInput runs (reuses the replay playback path ~game.js:12273).
-    Gate behind a netRole flag; when null, behavior is byte-for-byte
-    current local play.  [SMALL-MEDIUM]
-
-  Step 3 — Input-delay buffer + host loop integration
-    NEW net/netSession.js (socket + delay buffers + frame clock). Fixed
-    2-3 frame delay; local inputs stamped with globalFrameCount+DELAY, sent
-    and locally queued for the same target frame. Host advances only with
-    both slots' inputs; brief missing remote frame -> hold last input (no
-    rollback). Stays inside the existing fixed tick (game.js:16532).
-    [MEDIUM — core new logic]
-
-  Step 4 — State channel (variant B) — biggest new chunk
-    NEW net/stateSync.js. Enumerate render-critical state per fighter
-    (position, facing, action/anim key + frame index, health/energy/meters,
-    status flags) + projectiles, summons, hit-sparks/effects, camera,
-    round/timer/HUD. Host serializes each frame (or interval+interp for
-    v1); joiner deserializes and RENDERS ONLY (its updateBattle sim
-    disabled). Timebox and iterate the field set.  [MEDIUM-LARGE]
-
-  Step 5 — Host/join UI (fill the existing shell)
-    Replace ONLINE_PLACEHOLDER (game.js:989, 12946-12957; ui.js:1368) with
-    Host (start server, show LAN IP:port + "waiting") and Join (host-IP
-    field). On connect, host picks chars/stage, sends "start"; both enter
-    BATTLE. v1 = host picks both; per-side picking later.  [MEDIUM]
-
-  Step 6 — Minimal disconnect handling
-    On socket close/error: "Connection lost", both return to menu, tear
-    down session. NO reconnect/resume (out of scope).  [SMALL]
-
-  TESTING
-    NEW harness/net_loopback.mjs: run host+client in one Node process over a
-    local socket, feed a scripted input stream, assert the joiner's received
-    state matches the host's authoritative state each frame — the netcode
-    analog of replay_playback's desync test. Existing determinism.test.mjs
-    still covers the (host-only) sim. Manual two-tab smoke via npm run
-    dev:lan before any two-device test.
-
-  UP-FRONT DECISION: variant B (host-streams-state; heavier bandwidth,
-  immune to the determinism caveat — RECOMMENDED FIRST) vs variant A
-  (both-simulate, relay inputs only; lighter/smoother but leans on cross-
-  machine determinism the codebase doesn't guarantee). Revisit A only if
-  B's feel/bandwidth disappoints.
+NEW / UPDATED TEST SCRIPTS (all green):
+  test:miles-kurapika-reverify 12/0
+  test:narrow-kit-specials 20/0
+  test:brutality 47/0 (extended: +6 chars, 18 new finishers)
+  test:unlocks 28/0 · test:maki-voice 23/0 · test:chrollo-voice 19/0 ·
+  test:ben10-stage3 18/0  (all fixed, ×3 stable)
+  test:camera-ultrawide 9/0 · test:camera-ultrawide-live 4/0
+FULL REGRESSION: determinism 9/0 · combo-standard 227/0 · training 33/0 ·
+  stage-resize 41/0 · anim-transition-ghost 8/0 · energy-labels 11/0 ·
+  affected kits jason/ippo/miwa/alt-sukuna/vegeta/pain/byakuya/yamamoto all 0-fail.
+Staged for review — NOT committed.
 ========================================================================

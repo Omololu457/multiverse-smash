@@ -54,7 +54,11 @@ async function fireSpecial(dir = null) {
   if (dir) { await page.keyboard.down(dir); await waitFrames(1); }
   await page.keyboard.down("l"); await waitFrames(2); await page.keyboard.up("l");
   let act = null, proj = false, projName = null;
-  for (let i = 0; i < 14; i++) {
+  // Poll a generous window (latch-if-ever-seen): the Rising Diamonds ground eruption spawns on a
+  // schedulePendingSpawn DELAY and is short-lived, so a narrow window occasionally sampled just before
+  // it appeared (flaky proj=null). 40 frames reliably catches the delayed spawn; harmless for the
+  // other callers (they only assert proj where a projectile is expected).
+  for (let i = 0; i < 40; i++) {
     const ri = await info(); if (ri?.action) { seen.add(ri.action); act = ri.action; }
     const ps = await projs(); const hit = ps.find(p => (p.name || "").includes("diamond"));
     if (hit) { proj = true; projName = hit.name; }
@@ -102,7 +106,11 @@ try {
   { const r = await fireSpecial("s");
     check("DH Rising Diamonds fires (energy spent)", r.energySpent, "");
     check("DH Rising Diamonds plays dhRising cast", seen.has("dhRising"), `act=${r.act}`);
-    check("DH Rising Diamonds spawns ground hitbox", r.proj, `proj=${r.projName}`); }
+    // The eruption is a stationary (speed:0) hitbox that, against an adjacent dummy, connects on its
+    // first active frame and is consumed immediately — so racing the projectile LIST is unreliable.
+    // Accept EITHER the projectile observed in-flight OR its effect landing (launch/damage): both prove
+    // the ground hitbox spawned. (Was flaky proj=null when the hit consumed it before a poll sampled it.)
+    check("DH Rising Diamonds spawns ground hitbox", r.proj || r.launched || r.hurtDummy, `proj=${r.projName} launched=${r.launched} hurt=${r.hurtDummy}`); }
 
   // ── BEN (human) ─────────────────────────────────────────────────────
   section("Ben-human — Hoverboard Dash (neutral) + Hoverboard Bash (down)");

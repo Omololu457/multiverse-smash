@@ -102,6 +102,7 @@
     "test:frame-advantage": "node harness/frame_advantage_live.mjs",
     "test:daily-challenges": "node harness/daily_challenges.test.mjs",
     "test:daily-challenges-live": "node harness/daily_challenges_live.mjs",
+    "test:handler-shadow-sink": "node harness/handler_shadow_sink.mjs",
     "test:tower": "node harness/tower.test.mjs",
     "test:ffa": "node harness/ffa.test.mjs",
     "test:team": "node harness/team.test.mjs",

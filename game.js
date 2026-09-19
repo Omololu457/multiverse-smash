@@ -243,6 +243,7 @@ import {
 
   fireRengokuFlameStrike,      // Rengoku Charged Flame Strike — fired from handleChargeRelease (CHARGE hold→release, tap/hold power tiers)
   fireMilesDashKick,           // Miles Down+B dash-kick — fired from handleChargeRelease (CHARGE tap → offensive gap-closer)
+  fireHandlerShadowSink, isHandlerShadowSinking, HANDLER_SHADOW_SINK,   // Megumi Shadow Sink — i-frame dodge fired from handleChargeRelease (charge/P); render helpers below
   fireHashiramaWoodPunch,      // Hashirama Wood Release Punch — fired from handleChargeRelease (CHARGE hold→release, tap=base / hold=Super wood spear)
   fireNezukoRunScratchRelease, // Nezuko Run & Scratch — fired from handleChargeRelease (CHARGE hold→release, forward claw rush)
   updateNezukoUltChain,        // Nezuko Kekijutsu Baketsu — per-frame phase1→phase2 auto-chain driver
@@ -5472,6 +5473,14 @@ function handleChargeRelease(fighter, key) {
     return
   }
 
+  // MEGUMI (handler) — SHADOW SINK: the charge button (his one free input slot) fires a quick i-frame
+  // dodge — sink into his shadow, become intangible ~1.15s, re-emerge at the same spot. Cost + dedicated
+  // cooldown live in fireHandlerShadowSink. Fires on the charge press/release (like Miles' tap).
+  if ((fighter.rosterKey || "").toLowerCase() === "handler") {
+    fireHandlerShadowSink(fighter, getAbilityContext())
+    return
+  }
+
   // HASHIRAMA — WOOD RELEASE PUNCH: hold P to wind up (isCharging plays the hand-seals "charge" pose),
   // RELEASE to strike. A quick TAP (<200ms) = base wood-spear punch; a longer HOLD = the Super branching
   // wood eruption (higher dmg + longer reach). Cooldown-gated (fireHashiramaWoodPunch checks woodPunchCd);
@@ -5979,6 +5988,8 @@ function updateMiscTimers(fighter) {
   if (fighter._cloneStrikeCd > 0) fighter._cloneStrikeCd--                 // one-shot clone: Neutral strike cooldown
   if (fighter._cloneProjCd   > 0) fighter._cloneProjCd--                   // one-shot clone: Forward projectile cooldown
   if (fighter._cloneSubCd    > 0) fighter._cloneSubCd--                    // one-shot clone: Back substitution cooldown
+  if (fighter._handlerShadowSinkCd > 0) fighter._handlerShadowSinkCd--     // Megumi Shadow Sink dedicated cooldown (anti-spam)
+  if (fighter._shadowSinkT   > 0) fighter._shadowSinkT--                   // Megumi Shadow Sink sink→hidden→emerge window (drives the render)
   if (fighter._castArmor     > 0) fighter._castArmor--                     // Hashirama one-shot strike super-armor window (combat.js)
   if (fighter._tojiFlyFadeTimer > 0) {                                     // Toji Fly Heads self-fade window (render-only near-invisibility)
     fighter._tojiFlyFadeTimer--
@@ -10591,6 +10602,37 @@ const HANDLER_HUD_SLOTS = [
   { dir: "U", id: "handlerNue",    cost: 32 },   // dragon → Nue
   { dir: "A", id: "handlerToad",   cost: 30 },   // toad
 ]
+// SHADOW SINK — body-fade factor: full when idle, dips to ~0.12 mid-window (submerged), full on emerge.
+function _shadowSinkBodyAlpha(fighter) {
+  const t = fighter?._shadowSinkT || 0
+  if (t <= 0) return 1
+  const dur = fighter._shadowSinkDur || HANDLER_SHADOW_SINK.window
+  const p = 1 - t / dur                         // 0 → 1 across the sink→emerge window
+  return 0.12 + 0.88 * Math.abs(2 * p - 1)      // 1 at the ends, 0.12 hidden at the middle
+}
+// SHADOW SINK — procedural dark shadow-pool at the feet (no new art). Opens as he sinks, closes as he
+// emerges. Drawn BEHIND the (fading) body. handler-only; no-op otherwise.
+function drawHandlerShadowSink(c, fighter) {
+  if (!c || (fighter?.rosterKey || "").toLowerCase() !== "handler") return
+  const t = fighter._shadowSinkT || 0
+  if (t <= 0) return
+  const dur = fighter._shadowSinkDur || HANDLER_SHADOW_SINK.window
+  const p = Math.max(0, Math.min(1, 1 - t / dur))
+  const open = Math.sin(p * Math.PI)            // 0 at the ends → 1 at mid (pool fully open)
+  const w = fighter.w || 60, h = fighter.h || 100
+  const cx = fighter.x + w / 2
+  const cy = fighter.y + h - 4                   // at the feet
+  const rx = w * (0.55 + 0.6 * open)
+  const ry = Math.max(5, w * (0.16 + 0.22 * open))
+  c.save()
+  c.globalAlpha = 0.30 + 0.35 * open; c.fillStyle = "#000000"
+  c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c.fill()             // soft outer pool
+  c.globalAlpha = 0.45 + 0.40 * open; c.fillStyle = "#0a0410"
+  c.beginPath(); c.ellipse(cx, cy, rx * 0.62, ry * 0.62, 0, 0, Math.PI * 2); c.fill()  // dark inner void
+  c.globalAlpha = 0.25 * open; c.strokeStyle = "#5b2a8c"; c.lineWidth = 2             // faint cursed-energy rim
+  c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); c.stroke()
+  c.restore()
+}
 function drawHandlerShikigamiHUD(c, fighter) {
   if (!c || (fighter?.rosterKey || "").toLowerCase() !== "handler") return
   if (fighter._mahoragaActive) return                    // Mahoraga form → the adaptation-tracker wheel shows instead
@@ -12808,12 +12850,17 @@ function renderHybridFighter(fighter) {
     drawGokuFormAura(c, fighter)       // Goku — SSJ ladder transformed-state aura + label (procedural box indicator; Goku only, transformIndex>0)
     drawMiwaVortex(c, fighter)         // Miwa — Rapid Slash Vortex FX, a separate overlay layer in front of the body (Miwa only)
     drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
+    drawHandlerShadowSink(c, fighter)   // Megumi Shadow Sink — dark shadow-pool ellipse at the feet, BEHIND the body (handler only)
     fighter._sprDrawCount = (fighter._sprDrawCount | 0) + 1   // harness: body-draw tally (once/frame normally) → catches a "two instances" double-render after a body-swap transform
+    // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
+    const _ssA = _shadowSinkBodyAlpha(fighter)
+    if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
     } else {
       drawFighter(c, fighter, camera)
     }
+    if (_ssA < 1) c.restore()
     drawLightNormalFx(c, fighter)       // Light Yagami — B-family normal FX: gold spark (light/crouch) + blue crescent (heavy), ON TOP of the body (Light only)
     drawByakuyaSpecialFx(c, fighter)    // Byakuya — Senbonzakura petal ring (Shunpo/Utsusemi) + thrust streak, ON TOP of the body (Byakuya only)
     drawBorutoShidenFX(c, fighter)      // Boruto — Lightning Shiden electric arcs along the forearm during the thrust, ON TOP of the body (Boruto only)
@@ -18552,6 +18599,9 @@ gameLoop()
     vegetaDarkSetAura: (on = true) => { if (p1) p1._darkAuraActive = !!on; return p1 ? !!p1._darkAuraActive : false },
     // Miles Down+B DASH-KICK — deterministic Charge-tap fire (bypasses keyboard hold-timing). Mirrors p1SpecialDir.
     milesDash: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; f._milesDashCd = 0; fireMilesDashKick(f, getAbilityContext()); return { move: f.currentMove || null, cast: f._spriteCastMove || null } },
+    // Megumi SHADOW SINK — fire the i-frame dodge + read its live state (window/invuln/cooldown/intangible).
+    shadowSink: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const ok = fireHandlerShadowSink(f, getAbilityContext()); return { ok, sinking: isHandlerShadowSinking(f), invulnTimer: f.invulnTimer || 0, cooldown: f._handlerShadowSinkCd || 0, sinkT: f._shadowSinkT || 0, energy: Math.round(f.energy || 0), cfg: HANDLER_SHADOW_SINK } },
+    shadowSinkState: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; return { sinking: isHandlerShadowSinking(f), invulnTimer: f.invulnTimer || 0, cooldown: f._handlerShadowSinkCd || 0, sinkT: f._shadowSinkT || 0, energy: Math.round(f.energy || 0) } },
     // Genos Incineration Cannon — deterministic tap/hold TIER fire (bypasses keyboard hold-timing). tier 1/2/3.
     genosIncinerate: (tier = 1) => { if (!p1) return null; p1.attackCooldown = 0; p1.attacking = false; const eBefore = p1.energy; const ok = fireGenosIncineration(p1, tier, getAbilityContext()); return { ok: !!ok, cast: p1._spriteCastMove || null, spent: eBefore - p1.energy } },
     ironMan2Repulsor: (tier = "S", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f.attackCooldown = 0; f.attacking = false; const eBefore = f.energy; const ok = fireIronMan2Repulsor(f, tier, getAbilityContext()); return { ok: !!ok, cast: f._spriteCastMove || null, spent: eBefore - f.energy } },

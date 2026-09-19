@@ -7574,6 +7574,37 @@ export function updateHandlerMahoraga(fighter) {
   fighter._mahoragaTimer = (fighter._mahoragaTimer || 0) - 1
   if (fighter._mahoragaTimer <= 0) revertHandlerMahoraga(fighter)
 }
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// SHADOW SINK (Megumi / handler ONLY) — charge button (P), the one free input slot. Megumi sinks into
+// his own shadow for a canon ~1.15s window: he becomes intangible (attacks WHIFF via the roster's
+// standard invulnTimer i-frame convention — combat.js checks invulnTimer>0), then re-emerges at the
+// SAME spot. A pure defensive dodge / punish-bait (not a mobility teleport, not a combo-breaker):
+//   • Real energy cost in the i-frame-special band (his shikigami cost 28–45; substitution ~15).
+//   • A dedicated cooldown so it can't loop into permanent invincibility (invuln uptime ≈ 62/269 ≈ 23%).
+//   • Grounded-only; GATED OUT of hitstun/blockstun so it can't be mashed to escape a combo.
+//   • ~7 vulnerable emerge frames after the invuln → whiffing it in front of the opponent is punishable.
+// window = the full committed sink→hidden→emerge (attackCooldown); invuln = the intangible span.
+// ADDITIVE + handler-scoped: the early rosterKey guard makes it a no-op for every other fighter.
+export const HANDLER_SHADOW_SINK = { window: 69, invuln: 62, cost: 30, cooldown: 200 }   // 69f ≈ 1.15s @60fps
+export function fireHandlerShadowSink(fighter, context) {
+  if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "handler") return false
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  if ((fighter._handlerShadowSinkCd || 0) > 0) return false                 // dedicated cooldown → no spam
+  if ((fighter.hitstun || 0) > 0 || (fighter.blockstun || 0) > 0) return false   // neutral tool — NOT a combo-breaker
+  if (!(fighter.onGround ?? fighter.grounded ?? true)) return false          // grounded-only (sink into the ground shadow)
+  const S = HANDLER_SHADOW_SINK
+  if (!spendEnergy(fighter, S.cost)) return false
+  fighter._handlerShadowSinkCd = S.cooldown
+  fighter._shadowSinkT   = S.window                                          // drives the render (sink→hidden→emerge)
+  fighter._shadowSinkDur = S.window
+  fighter.vx = 0; fighter.vy = 0                                             // same-spot: no repositioning
+  fighter.attackCooldown = S.window                                         // fully committed for the window
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, S.invuln)         // intangible → attacks whiff (combat.js:3093)
+  spawnClonePuff(fighter.x + (fighter.w || 60) / 2, fighter.y + (fighter.h || 100) * 0.9)   // shadow ripple at the feet
+  return true
+}
+export function isHandlerShadowSinking(fighter) { return (fighter?._shadowSinkT || 0) > 0 }
+
 // Adapted counter (Special while Mahoraga): the row_05 World-Slash. Damage scales with adaptation depth.
 const MAHORAGA_COUNTER_MD = { damage: 70, startup: 8, active: 5, recovery: 18, rangeX: 96, rangeY: 78, hitstun: 22, knockbackX: 9, knockbackY: -4, isSpecial: true, category: "special", cost: 0 }
 function fireMahoragaCounter(fighter, context) {

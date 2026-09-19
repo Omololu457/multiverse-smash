@@ -131,7 +131,14 @@ try {
     await t.sl("awardXp",800);
     await t.sl("applyCode","GojoV1");
     await t.sl("setSetting","musicVolume",0.321);
-    const rawFile = await t.readOPFS();
+    // The snapshot write is fire-and-forget + coalesced (account.js _writeSnapshot), so poll the OPFS
+    // file until it lands rather than reading once (a bare single read races the flush → flaky hasData=false).
+    let rawFile = "";
+    for (let i = 0; i < 40; i++) {
+      rawFile = await t.readOPFS();
+      if (rawFile.includes('"xp": 800') && rawFile.includes('"betaUnlock": true') && rawFile.includes('0.321')) break;
+      await t.page.waitForTimeout(50);
+    }
     check("the connected FILE physically holds the snapshot (file path unaffected)", rawFile.includes('"xp": 800') && rawFile.includes('"betaUnlock": true') && rawFile.includes('0.321'), `hasData=${rawFile.startsWith("{")}`);
     const savedId = (await t.sl("read")).accountId;
 
@@ -173,7 +180,13 @@ try {
     // Now connect a fresh file → the empty file is SEEDED with the current (localStorage) data.
     const conn = await t.sl("connect");
     check("connecting a fresh file succeeds", conn?.ok === true, `conn=${JSON.stringify(conn)}`);
-    const rawFile = await t.readOPFS();
+    // Same fire-and-forget/coalesced write as (B): poll the OPFS file until the migrated seed lands.
+    let rawFile = "";
+    for (let i = 0; i < 40; i++) {
+      rawFile = await t.readOPFS();
+      if (rawFile.includes('"xp": 700') && rawFile.includes(idBefore)) break;
+      await t.page.waitForTimeout(50);
+    }
     check("the localStorage progress was MIGRATED into the new file (xp=700 now in the file)", rawFile.includes('"xp": 700') && rawFile.includes(idBefore), `hasXp=${rawFile.includes('"xp": 700')} sameId=${rawFile.includes(idBefore)}`);
     check("no uncaught JS exceptions (migration path)", t.jsErrors.length === 0, t.jsErrors.slice(0,3).join(" | "));
     await t.context.close();

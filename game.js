@@ -321,6 +321,7 @@ import * as musicPersonality from "./musicPersonality.js"   // trait→music map
 import * as musicLibrary from "./musicLibrary.js"           // full song library + player-authored custom playlist + active-source resolution
 import * as challenges from "./challenges.js"               // skill-based challenges + trait-tagged recommendations + skin rewards
 import * as comboTrials from "./comboTrials.js"             // Combo Trials mission mode: scripted combo challenges (observer over Training)
+import * as tutorial from "./tutorial.js"                   // first-boot guided interactive tutorial (observer over Training)
 import { getKit, CONTROL_REFERENCE } from "./kits.js"
 import { createAIController, resetAIController, setAIDifficulty, getAIInput, applyAiTemplate } from "./ai.js"
 import { recordMotionInput, detectMotion, getRecentMotions } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
@@ -5197,6 +5198,14 @@ function updateCPUInput() {
 }
 
 function handlePauseInput(key) {
+  // FIRST-BOOT TUTORIAL owns Esc/Enter during its lesson: Esc skips at any point,
+  // Enter/J dismisses the completion panel. Both end the tutorial (marked seen) and
+  // return to the menu — so a beginner never gets stuck in the pause menu mid-lesson.
+  if (tutorial.isActive() && (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.ROUND_BREAK)) {
+    if (key === "escape") { finishTutorial(); return }
+    if (tutorial.isComplete() && (key === "enter" || key === "j")) { finishTutorial(); return }
+    return
+  }
   if (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.ROUND_BREAK) {
     if (key === "escape") { stateBeforePause = gameState; gameState = GAME_STATES.PAUSED; pauseMenuIndex = 0; clearAIControlKeys(p2) }
     return
@@ -12050,6 +12059,23 @@ function updateTrainingMode() {
       lastDmg
     })
   }
+
+  // FIRST-BOOT TUTORIAL observer: feed the walkthrough the player's live actions,
+  // read side-effect-free from held controls (readRawControls) + existing fighter
+  // state. Each boolean = "player did this action this frame"; combo = live counter.
+  // Pure read — invents nothing, changes no combat.
+  if (tutorial.isActive()) {
+    const raw = readRawControls(p1) || {}
+    const airborne = !(p1.onGround || p1.grounded)
+    tutorial.update({
+      moved:     !!(raw.left || raw.right),
+      jumped:    !!raw.jump || airborne,
+      blocked:   !!raw.block || !!p1.isBlocking,
+      attacked:  !!(raw.light || raw.heavy) || !!p1.attacking,
+      specialed: !!(raw.special || raw.ultimate),
+      combo:     p1.comboCounter || 0,
+    })
+  }
 }
 
 // ------------------------------------------------------------------
@@ -14425,6 +14451,58 @@ function drawBattleHud() {
   })
   // COMBO TRIALS: when a trial is armed, draw its objective + live progress panel (top-center).
   if (comboTrials.isArmed()) drawComboTrialHud(ctx, canvas, comboTrials.activeInfo(), { retryLabel: "F2" })
+  // FIRST-BOOT TUTORIAL: draw the current-step objective + progress + skip hint.
+  if (tutorial.isActive()) drawTutorialHud(ctx, canvas, tutorial.activeInfo())
+}
+
+// FIRST-BOOT TUTORIAL HUD — a top-center objective card (current step + hint), a
+// progress row of step chips, and a skip note; on completion a "done" panel prompts
+// Enter to continue. Self-contained canvas draw (view-only, no state mutation).
+function drawTutorialHud(ctx, canvas, info) {
+  if (!info) return
+  const cw = canvas.width, midX = cw / 2
+  ctx.save()
+  ctx.textAlign = "center"
+  if (info.complete) {
+    const w = 520, h = 128, x = midX - w / 2, y = 150
+    ctx.fillStyle = "rgba(8,17,31,0.92)"; ctx.fillRect(x, y, w, h)
+    ctx.strokeStyle = "#8ef5a8"; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h)
+    ctx.fillStyle = "#8ef5a8"; ctx.font = "700 30px Arial"
+    ctx.fillText("TUTORIAL COMPLETE!", midX, y + 46)
+    ctx.fillStyle = "#e2e8f0"; ctx.font = "18px Arial"
+    ctx.fillText("You've got the basics. Have fun!", midX, y + 80)
+    ctx.fillStyle = "#9fb4d6"; ctx.font = "15px Arial"
+    ctx.fillText("Press  Enter  to continue", midX, y + 108)
+    ctx.restore(); return
+  }
+  const step = info.step; if (!step) { ctx.restore(); return }
+  // Objective card
+  const w = 560, h = 118, x = midX - w / 2, y = 84
+  ctx.fillStyle = "rgba(8,17,31,0.9)"; ctx.fillRect(x, y, w, h)
+  const accent = info.flash > 0 ? "#8ef5a8" : "#7cc4ff"
+  ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h)
+  ctx.fillStyle = "#9fb4d6"; ctx.font = "13px Arial"
+  ctx.fillText(`TUTORIAL  ·  Step ${Math.min(info.idx + 1, info.total)} of ${info.total}`, midX, y + 24)
+  ctx.fillStyle = accent; ctx.font = "700 26px Arial"
+  ctx.fillText(step.prompt, midX, y + 56)
+  ctx.fillStyle = "#e2e8f0"; ctx.font = "17px Arial"
+  ctx.fillText(step.hint, midX, y + 86)
+  // Progress chips
+  const chips = info.steps || [], n = chips.length, cwid = 74, gap = 8
+  const totalW = n * cwid + (n - 1) * gap, sx = midX - totalW / 2, cy = y + h + 12
+  chips.forEach((c, i) => {
+    const chx = sx + i * (cwid + gap)
+    const active = i === info.idx
+    ctx.fillStyle = c.done ? "rgba(142,245,168,0.85)" : active ? "rgba(124,196,255,0.85)" : "rgba(148,163,184,0.28)"
+    ctx.fillRect(chx, cy, cwid, 22)
+    ctx.fillStyle = c.done ? "#06210f" : active ? "#06213b" : "#c7d3e6"
+    ctx.font = "700 12px Arial"
+    ctx.fillText((c.done ? "✓ " : "") + c.title, chx + cwid / 2, cy + 15)
+  })
+  // Skip hint
+  ctx.fillStyle = "#7f8ea8"; ctx.font = "13px Arial"
+  ctx.fillText("Press  Esc  to skip", midX, cy + 44)
+  ctx.restore()
 }
 
 // FRAME ADVANTAGE capture (Track B, display-only). On the rising edge of `def`'s hitstun or
@@ -15337,6 +15415,42 @@ function startSelectedComboTrial() {
   comboTrials.arm(cur.key, t.id)
   _ctPrevAttacking = false; _ctAttackId = 0; _ctLastMove = ""   // fresh attack-instance counter for detection
 }
+
+// ── FIRST-BOOT TUTORIAL ───────────────────────────────────────────────────────
+// Boot a plain training session (a simple, always-built character vs. a stationary
+// dummy) and arm the interactive walkthrough. Mirrors startSelectedComboTrial's
+// training setup exactly — no combat/sim changes, just a normal Training match with
+// the tutorial observer attached. `returnTo` is where finish/skip lands (menu).
+let _tutReturnState = GAME_STATES.MAIN_MENU
+let _firstBootTutorialChecked = false   // set once the first-boot gate has run (see updateCurrentState)
+function startTutorial(returnTo) {
+  const key = characters["goku"] ? "goku" : Object.keys(characters)[0]
+  if (!key || !characters[key]) return
+  _tutReturnState = returnTo || GAME_STATES.MAIN_MENU
+  resetSelections()
+  towerState.active = false; arcadeState.active = false
+  comboTrials.disarm()
+  matchConfig.mode          = "training"
+  matchConfig.aiDifficulty  = "dummy"
+  matchConfig.selectedStage = matchConfig.selectedStage || stages[0]
+  matchConfig.p1CharKey = key; matchConfig.p1Char = characters[key]
+  matchConfig.p2CharKey = key; matchConfig.p2Char = characters[key]   // mirror dummy
+  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+  startMatch()
+  trainingState.infiniteResources = true      // nobody can die mid-lesson; damage numbers still pop
+  trainingState.dummyBehavior = "stand"        // stationary target so a first-timer can practice freely
+  tutorial.start()
+}
+// End the tutorial (finished OR skipped): record it as seen, tear down the match,
+// and land on the return screen (menu). Reuses resetToStart for a clean teardown.
+function finishTutorial() {
+  tutorial.markSeen()
+  tutorial.stop()
+  const back = _tutReturnState || GAME_STATES.MAIN_MENU
+  _tutReturnState = GAME_STATES.MAIN_MENU
+  resetToStart()
+  gameState = back
+}
 function _profileScreenData() {
   const p = personality.getPersonality()
   return { traits: personality.summarize(p.traits), tipiComplete: !!p.tipiComplete, eventCount: (p.events || []).length, backHover: profileBackHover, themesHover: profileThemesHover }
@@ -15729,6 +15843,7 @@ function handleMenuClicks() {
       if      (c.id === "devcode")  { devCodeEntry = true; devCodeBuffer = ""; devCodeMessage = "" }
       else if (c.id === "online")   gameState = GAME_STATES.ONLINE_PLACEHOLDER   // only reachable when dev-unlocked (unlocked above)
       else if (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
+      else if (c.id === "playTutorial") startTutorial(GAME_STATES.MAIN_MENU)   // interactive guided walkthrough (replayable any time)
       else if (c.id === "story")    { gameState = GAME_STATES.STORY_MODE; startRiftTransition("#9a7bff") }   // Stage 14: styled placeholder (rift into it for consistency)
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; gameState = GAME_STATES.MOVE_LIST }
       else if (c.id === "codex")    openCodexScreen(GAME_STATES.MAIN_MENU)
@@ -16355,6 +16470,19 @@ function _drawNavBackButton() {
 // ------------------------------------------------------------------
 let _prevGridState = null
 function updateCurrentState() {
+  // FIRST-BOOT TUTORIAL gate: the very first time a real player lands on the main
+  // menu with no "seen tutorial" flag, force the interactive walkthrough (once).
+  // Catches every path into the menu. Skipped under ?harness (tests drive their own
+  // flows and must not be hijacked) — the tutorial's own live test resets the flag
+  // and starts it explicitly via the harness hook.
+  if (!_firstBootTutorialChecked && gameState === GAME_STATES.MAIN_MENU) {
+    _firstBootTutorialChecked = true
+    // Under ?harness the auto-trigger is OFF by default (tests drive their own flows);
+    // a test opts INTO the real gate with ?harness=1&tutorial=1 (mirrors the ?session=1 pattern).
+    let _isHarness = false, _tutOptIn = false
+    try { const p = new URLSearchParams(window.location.search); _isHarness = p.has("harness"); _tutOptIn = p.has("tutorial") } catch (_) {}
+    if ((!_isHarness || _tutOptIn) && !tutorial.hasSeenTutorial()) { startTutorial(GAME_STATES.MAIN_MENU); return }
+  }
   _trackNav()   // keep the back-navigation history in sync with the current screen
   // On ENTERING any scrollable card-grid screen, snap it back to the top. Screens share the "chars"
   // scrollKey (char-select / Edo vessel / FFA pick), so without this a scroll position would bleed
@@ -18294,6 +18422,17 @@ gameLoop()
       best:    (id) => comboTrials.bestStars(id),
       reset:   () => { resetTraining() },   // zero both fighters' combo + re-seat (fresh attempt)
       disarm:  () => { comboTrials.disarm() }
+    },
+    // FIRST-BOOT TUTORIAL hooks — inspect/drive the guided walkthrough for live tests.
+    tutorial: {
+      seen:      () => tutorial.hasSeenTutorial(),
+      resetSeen: () => { tutorial.resetSeen(); _firstBootTutorialChecked = false; return tutorial.hasSeenTutorial() },
+      firstBootChecked: () => _firstBootTutorialChecked,
+      start:     () => { startTutorial(GAME_STATES.MAIN_MENU); return { state: gameState, info: tutorial.activeInfo() } },
+      info:      () => tutorial.activeInfo(),
+      active:    () => tutorial.isActive(),
+      complete:  () => tutorial.isComplete(),
+      finish:    () => { finishTutorial(); return { state: gameState, seen: tutorial.hasSeenTutorial() } },
     },
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     // HUD damage-trail proof (Stage 1): drop a fighter's HP by `v` and stamp the render-only

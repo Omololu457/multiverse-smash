@@ -1362,6 +1362,7 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
 export function getMainMenuRects(canvas) {
   return getVerticalMenuLayout(canvas, [
     { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player • Tower" },
+    { id: "playTutorial", label: "TUTORIAL", subLabel: "Interactive guided walkthrough — learn the basics" },
     { id: "story",    label: "STORY MODE", subLabel: "A dimensional narrative campaign — coming soon" },
     // ONLINE is locked until a full-unlock code (dev OR beta) is entered (Task 5/6).
     // isFullyUnlocked() flips it selectable (leads to a placeholder screen — no netcode yet).

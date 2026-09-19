@@ -1101,6 +1101,13 @@ let rebindWarning = ""     // dup-key / invalid-key message
 let devCodeEntry   = false
 let devCodeBuffer  = ""
 let devCodeMessage = ""
+// BETA FEEDBACK capture (Track C): a lightweight in-match "Report an Issue" text prompt.
+// feedbackEntry gates the typing overlay; the note is POSTed to /api/feedback (dev server /
+// Electron wrapper) which appends it + light context to BETA_FEEDBACK_LOG.txt. Local only.
+let feedbackEntry   = false
+let feedbackBuffer  = ""
+let feedbackMessage = ""
+let _feedbackReturnState = null   // where to go when the prompt closes (the paused match)
 
 const KEYBIND_Y0 = 350, KEYBIND_ROW_H = 38
 function getKeybindRects() {
@@ -5223,6 +5230,7 @@ function handlePauseInput(key) {
     else if (sel === "codex")    openCodexScreen(GAME_STATES.PAUSED)
     else if (sel === "controls") openControlsScreen(GAME_STATES.PAUSED)   // Track A: device-aware button legend (BACK → pause)
     else if (sel === "comboTrials") openComboTrialsScreen(GAME_STATES.PAUSED)   // Combo Trials mission mode (BACK → pause)
+    else if (sel === "reportIssue") openFeedbackPrompt(GAME_STATES.PAUSED)      // Track C: beta bug/feedback capture prompt
     else if (sel === "trainingMode") {
       // Jump into a training session from a live match: flip the match to training +
       // force the dummy CPU, then reuse the SAME setup path the GAMEPLAY_SELECT flow
@@ -13062,6 +13070,45 @@ function _drawDevCodeOverlay() {
   }
 }
 
+// BETA FEEDBACK / bug-capture overlay (Track C). Drawn over the paused match: a titled
+// panel with the typed note (wrapped), context line, and controls. When not actively
+// typing but a result message exists, shows just the confirmation line.
+function _drawFeedbackPrompt() {
+  const cw = canvas.width, ch = canvas.height
+  if (feedbackEntry) {
+    ctx.save()
+    ctx.fillStyle = "rgba(0,0,0,0.74)"; ctx.fillRect(0, 0, cw, ch)
+    const w = 620, h = 300, x = cw / 2 - w / 2, y = ch / 2 - h / 2
+    ctx.fillStyle = "#0e1626"; ctx.fillRect(x, y, w, h)
+    ctx.strokeStyle = "#7dd3fc"; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h)
+    ctx.textAlign = "center"; ctx.fillStyle = "#e2e8f0"; ctx.font = "700 22px Arial"
+    ctx.fillText("REPORT AN ISSUE", cw / 2, y + 34)
+    ctx.fillStyle = "#94a3b8"; ctx.font = "13px Arial"
+    ctx.fillText("Describe the bug or share feedback — saved to a local log for the beta.", cw / 2, y + 58)
+    // text box (wrapped)
+    const bx = x + 26, by = y + 74, bw = w - 52, bh = 150
+    ctx.fillStyle = "#0a0f1a"; ctx.fillRect(bx, by, bw, bh)
+    ctx.strokeStyle = "#334155"; ctx.strokeRect(bx, by, bw, bh)
+    ctx.textAlign = "left"; ctx.fillStyle = "#e6edf7"; ctx.font = "16px Arial"
+    const words = (feedbackBuffer || "").split(" "); const lines = []; let cur = ""
+    for (const wd of words) { const t = cur ? cur + " " + wd : wd; if (ctx.measureText(t).width > bw - 24 && cur) { lines.push(cur); cur = wd } else cur = t }
+    lines.push(cur + "▍")
+    const shown = lines.slice(-6)
+    shown.forEach((ln, i) => ctx.fillText(ln, bx + 12, by + 24 + i * 22))
+    // context + controls
+    ctx.textAlign = "center"; ctx.fillStyle = "#8ea6c8"; ctx.font = "12px Arial"
+    const cChar = matchConfig.p1CharKey || "?", cStage = (matchConfig.selectedStage && (matchConfig.selectedStage.id || matchConfig.selectedStage.name)) || "?", cMode = matchConfig.mode || "?"
+    ctx.fillText(`context: ${cChar} · ${cStage} · ${cMode}   —   Enter to send · Esc to cancel`, cw / 2, y + h - 16)
+    if (feedbackMessage) { ctx.fillStyle = feedbackMessage.startsWith("✓") ? "#86efac" : "#fca5a5"; ctx.font = "13px Arial"; ctx.fillText(feedbackMessage, cw / 2, y + h - 36) }
+    ctx.restore()
+  } else if (feedbackMessage) {
+    ctx.save(); ctx.textAlign = "center"
+    ctx.fillStyle = feedbackMessage.startsWith("✓") ? "#86efac" : "#fca5a5"
+    ctx.font = "700 16px Arial"; ctx.fillText(feedbackMessage, cw / 2, 90)
+    ctx.restore()
+  }
+}
+
 // Dev-unlocked Online stub (Task 6) — no netcode; a clearly-labelled placeholder.
 function _drawOnlinePlaceholder() {
   const cw = canvas.width, ch = canvas.height
@@ -15451,6 +15498,34 @@ function finishTutorial() {
   resetToStart()
   gameState = back
 }
+// ── BETA FEEDBACK / bug capture (Track C) ─────────────────────────────────────
+// Open the "Report an Issue" text prompt from the pause menu (returns here on close).
+function openFeedbackPrompt(from) {
+  feedbackEntry = true; feedbackBuffer = ""; feedbackMessage = ""
+  _feedbackReturnState = from || GAME_STATES.PAUSED
+}
+// Submit the typed note. POSTs { text, character, stage, mode } to the local endpoint,
+// which appends a timestamped block to BETA_FEEDBACK_LOG.txt at the repo root. Purely
+// local — no network/backend. Reports success/failure inline; keeps the note on failure.
+function submitFeedback() {
+  const note = (feedbackBuffer || "").trim()
+  if (!note) { feedbackMessage = "Type something first."; return }
+  const payload = {
+    text: note,
+    character: matchConfig.p1CharKey || (p1 && p1.rosterKey) || "?",
+    stage: (matchConfig.selectedStage && (matchConfig.selectedStage.id || matchConfig.selectedStage.name)) || "?",
+    mode: matchConfig.mode || "?",
+  }
+  feedbackMessage = "Sending…"
+  try {
+    fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)))
+      .then(() => { feedbackMessage = "✓ Thanks! Saved to the beta log."; feedbackBuffer = ""; feedbackEntry = false })
+      .catch(err => { feedbackMessage = "⚠ Couldn't save (" + (err && err.message || err) + "). Note kept."; })
+  } catch (err) {
+    feedbackMessage = "⚠ Couldn't save (" + (err && err.message || err) + "). Note kept."
+  }
+}
 function _profileScreenData() {
   const p = personality.getPersonality()
   return { traits: personality.summarize(p.traits), tipiComplete: !!p.tipiComplete, eventCount: (p.events || []).length, backHover: profileBackHover, themesHover: profileThemesHover }
@@ -15645,6 +15720,7 @@ function renderCurrentState() {
   }
   _drawNavBackButton()   // on-screen BACK for select screens that lack one (mouse users)
   _drawToasts()          // Part 3 #17: unlock notifications overlay (global — persists across screens)
+  if (feedbackEntry || feedbackMessage) _drawFeedbackPrompt()   // Track C: beta bug/feedback capture overlay (global — over pause/battle)
   // Dimensional-rift screen transition (Stage 11): a glitch/tear wipe over the DESTINATION screen,
   // drawn LAST so it overlays whatever screen just switched in. Inert unless a transition is playing.
   drawRiftTransition(ctx, canvas)
@@ -16786,6 +16862,18 @@ function _aiVsAiFastForwardState() {
 // ------------------------------------------------------------------
 window.addEventListener("keydown", e => {
   const key = String(e.key || "").toLowerCase()
+
+  // BETA FEEDBACK entry (Track C): typing the "Report an Issue" note. Enter submits,
+  // Esc cancels back to the pause menu. Captured before all gameplay/shortcut keys so
+  // letters type into the note instead of firing R/U/F etc.
+  if (feedbackEntry) {
+    e.preventDefault()
+    if (key === "escape") { feedbackEntry = false; feedbackBuffer = ""; feedbackMessage = ""; gameState = _feedbackReturnState || GAME_STATES.PAUSED }
+    else if (key === "enter") { submitFeedback() }
+    else if (key === "backspace") { feedbackBuffer = feedbackBuffer.slice(0, -1) }
+    else if (e.key && e.key.length === 1 && feedbackBuffer.length < 500) { feedbackBuffer += e.key }
+    return
+  }
 
   // DEV CODE entry (Task 6): typing on the main menu. Enter submits, Esc cancels.
   if (devCodeEntry) {
@@ -18433,6 +18521,12 @@ gameLoop()
       active:    () => tutorial.isActive(),
       complete:  () => tutorial.isComplete(),
       finish:    () => { finishTutorial(); return { state: gameState, seen: tutorial.hasSeenTutorial() } },
+    },
+    // BETA FEEDBACK hooks — open the prompt (as the pause item does) and read its live state.
+    // Typing + submit are driven with REAL key events in the live test; these just open/inspect.
+    feedback: {
+      open:  () => { openFeedbackPrompt(GAME_STATES.PAUSED); return { entry: feedbackEntry } },
+      state: () => ({ entry: feedbackEntry, buffer: feedbackBuffer, message: feedbackMessage }),
     },
     damageP2: (v = 100) => { if (p2) p2.health = Math.max(0, (p2.health || 0) - v) },
     // HUD damage-trail proof (Stage 1): drop a fighter's HP by `v` and stamp the render-only

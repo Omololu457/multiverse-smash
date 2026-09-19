@@ -55,10 +55,11 @@ function readBody(req) {
 
 // Create (but do not start) the save server. Exported so the harness can boot it on a
 // random port against a throwaway save dir; the CLI entry below starts it on 127.0.0.1.
-export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_ROOT, "saves"), version = VERSION } = {}) {
+export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_ROOT, "saves"), version = VERSION, feedbackFile = path.join(REPO_ROOT, "BETA_FEEDBACK_LOG.txt") } = {}) {
   const SAVE_FILE = path.join(saveDir, "game_player_data.json");
   const TMP_FILE  = SAVE_FILE + ".tmp";
   const BAK_FILE  = path.join(saveDir, "game_player_data.bak.json");
+  const FEEDBACK_FILE = feedbackFile;
   fs.mkdirSync(saveDir, { recursive: true });
 
   const server = http.createServer(async (req, res) => {
@@ -97,6 +98,30 @@ export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_RO
       return;
     }
 
+    // ── API: BETA FEEDBACK / bug capture (append-only local log) ─────────────
+    // Testers submit a note from the pause menu; we append a timestamped block (with
+    // the light context the client sends: character / stage / mode) to a plain-text
+    // log at the repo root the tester can collect afterwards. No network/backend —
+    // this IS the local sink. Never overwrites; only appends.
+    if (url === "/api/feedback" && req.method === "POST") {
+      const { tooLarge, text } = await readBody(req);
+      if (tooLarge) { sendJson(res, 413, { ok: false, error: "payload too large (>1MB)" }); return; }
+      let data = null;
+      try { data = JSON.parse(text); } catch (_) { sendJson(res, 400, { ok: false, error: "body is not valid JSON" }); return; }
+      const note = (data && typeof data.text === "string") ? data.text.trim() : "";
+      if (!note) { sendJson(res, 400, { ok: false, error: "empty feedback text" }); return; }
+      const ts = new Date().toISOString();
+      const ctx = `character=${data.character || "?"}  stage=${data.stage || "?"}  mode=${data.mode || "?"}`;
+      const block = `${"─".repeat(58)}\n[${ts}]  ${ctx}\n${note}\n`;
+      try {
+        fs.appendFileSync(FEEDBACK_FILE, block);
+        sendJson(res, 200, { ok: true, bytes: Buffer.byteLength(block), file: path.basename(FEEDBACK_FILE) });
+      } catch (err) {
+        sendJson(res, 500, { ok: false, error: String((err && err.message) || err) });
+      }
+      return;
+    }
+
     // ── STATIC (harness pattern) ─────────────────────────────────────────────
     const fp = path.join(root, url === "/" ? "/index.html" : url);
     if (!fp.startsWith(root)) { res.writeHead(403).end(); return; }
@@ -108,6 +133,7 @@ export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_RO
   });
 
   server._saveFile = SAVE_FILE;   // exposed so the harness can read the file off disk
+  server._feedbackFile = FEEDBACK_FILE;   // exposed so the harness can read the beta-feedback log off disk
   return server;
 }
 
@@ -120,6 +146,7 @@ if (isMain) {
   server.listen(PORT, "127.0.0.1", () => {
     console.log(`save server → http://127.0.0.1:${PORT}`);
     console.log(`  • GET/POST /api/save  → ${path.relative(REPO_ROOT, server._saveFile)}  (auto file persistence)`);
+    console.log(`  • POST /api/feedback  → ${path.relative(REPO_ROOT, server._feedbackFile)}  (beta bug/feedback log)`);
     console.log(`  • GET /api/health     → { ok: true, version: "${VERSION}" }`);
     console.log(`  • static              → repo root`);
   });

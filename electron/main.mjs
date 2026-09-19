@@ -54,6 +54,26 @@ function handleSaveApi(url, req, res) {
     });
     return true;
   }
+  // BETA FEEDBACK / bug capture (append-only). Same contract as the dev save-server:
+  // the pause-menu "Report an Issue" prompt POSTs { text, character, stage, mode }; we
+  // append a timestamped block to BETA_FEEDBACK_LOG.txt at the repo root (the tester
+  // can collect it after the session). Local only — no network/backend.
+  if (url === "/api/feedback" && req.method === "POST") {
+    readSaveBody(req).then(({ tooLarge, text }) => {
+      if (tooLarge) { res.writeHead(413).end('{"ok":false,"error":"too large"}'); return; }
+      let data = null; try { data = JSON.parse(text); } catch (_) { res.writeHead(400).end('{"ok":false,"error":"bad json"}'); return; }
+      const note = (data && typeof data.text === "string") ? data.text.trim() : "";
+      if (!note) { res.writeHead(400).end('{"ok":false,"error":"empty feedback text"}'); return; }
+      const ts = new Date().toISOString();
+      const ctx = `character=${data.character || "?"}  stage=${data.stage || "?"}  mode=${data.mode || "?"}`;
+      const block = `${"─".repeat(58)}\n[${ts}]  ${ctx}\n${note}\n`;
+      try {
+        fs.appendFileSync(path.join(REPO, "BETA_FEEDBACK_LOG.txt"), block);
+        res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ ok: true, bytes: Buffer.byteLength(block) }));
+      } catch (err) { res.writeHead(500).end(JSON.stringify({ ok: false, error: String(err && err.message || err) })); }
+    });
+    return true;
+  }
   return false;
 }
 

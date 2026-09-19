@@ -4201,7 +4201,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   ctx.fillStyle = vig; ctx.fillRect(0, 0, cw, ch)
 
   const panelW = 380
-  const panelH = 664   // fits 8 items (resume / restart / profile / codex / controls / training / combo trials / quit)
+  const panelH = 732   // fits 9 items (resume / restart / profile / codex / controls / training / combo trials / report / quit)
   const panelX = cw / 2 - panelW / 2
   const panelY = ch / 2 - panelH / 2
 
@@ -4230,6 +4230,7 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
     { label: "Controls",      sub: "Button legend for your device" },
     { label: "Training Mode", sub: "Practice vs a frozen dummy" },
     { label: "Combo Trials",  sub: "Scripted combo challenges" },
+    { label: "Report an Issue", sub: "Send a bug / feedback note (beta)" },
     { label: "Quit to Menu",  sub: "Return to the title screen" }
   ]
 
@@ -4269,7 +4270,7 @@ function _roundRectPath(ctx, x, y, w, h, r = 10) {
   ctx.closePath()
 }
 
-export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "profile", "codex", "controls", "trainingMode", "comboTrials", "quitToMenu"]
+export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "profile", "codex", "controls", "trainingMode", "comboTrials", "reportIssue", "quitToMenu"]
 
 // Small local word-wrapper (returns lines that fit maxW at the ctx's current font).
 function _wrapText(ctx, text, maxW, maxLines = 99) {

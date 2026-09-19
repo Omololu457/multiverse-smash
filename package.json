@@ -103,6 +103,7 @@
     "test:daily-challenges": "node harness/daily_challenges.test.mjs",
     "test:daily-challenges-live": "node harness/daily_challenges_live.mjs",
     "test:tutorial-first-boot": "node harness/tutorial_first_boot.mjs",
+    "test:beta-feedback": "node harness/beta_feedback.mjs",
     "test:handler-shadow-sink": "node harness/handler_shadow_sink.mjs",
     "test:tower": "node harness/tower.test.mjs",
     "test:ffa": "node harness/ffa.test.mjs",

@@ -1,54 +1,115 @@
 # Multiverse Smash Ultimate — Run It On Another PC (Beta Setup)
 
-This guide gets the game running as a **standalone fullscreen desktop app** on
-another computer. It has been tested and works today (the desktop launcher was
-verified rendering a real match on this machine).
+This guide gets the game running as a **standalone fullscreen desktop app** on a
+second computer (the beta tester's machine). The desktop launcher is verified
+rendering a real match, and a fresh checkout has been test-booted end-to-end.
 
-There are two ways to run it. **Method A (copy the folder + Node) is the
-recommended, proven path.** Method B (a one-click installer) is not built yet —
-see "Why no installer yet" at the bottom for the honest status.
+**Single source of truth:** everything you need is committed to **`origin/main`**
+(GitHub: `Omololu457/multiverse-smash`). `origin/main` was pushed and confirmed
+byte-identical to the reviewed local `main` — clone/copy that, not a stray local
+folder.
+
+---
+
+## TL;DR (the fast path)
+
+```
+git clone https://github.com/Omololu457/multiverse-smash.git
+cd multiverse-smash/electron
+npm install            # one time, needs internet — downloads Electron for THIS OS
+cd ..
+npm run desktop        # launches the fullscreen game
+```
+
+That's the whole thing. The rest of this doc explains transfer options, exactly
+what is / isn't in git, and a browser fallback.
 
 ---
 
 ## Prerequisites (the other PC needs these)
 
-- **Node.js 18 or newer** (LTS 20 or 22 recommended). Check with: `node -v`
-  - Get it from https://nodejs.org (the LTS installer includes `npm`).
-- **~4 GB of free disk space** (the game ships a lot of audio + sprite art).
-- Windows, macOS, or Linux — all work; Electron is cross-platform.
-- No internet is needed to *play*. Internet is only needed once, during setup,
-  so `npm install` can download the Electron runtime.
+- **Node.js 18 or newer** (LTS 20 or 22 recommended). Check: `node -v`.
+  Get it from https://nodejs.org (the LTS installer includes `npm`).
+- **~5 GB free disk** (repo checkout ≈ 3 GB of assets + ~1.6 GB git history +
+  ~265 MB of `node_modules` after install).
+- **Git** (only if you use the clone method) — https://git-scm.com.
+- Windows, macOS, or Linux all work (Electron is cross-platform).
+- Internet is needed **once**, during `npm install` (to download the Electron
+  runtime). **No internet is needed to play.**
 
 ---
 
-## Method A — Copy the folder and run (recommended, proven)
+## How to get the project onto the new PC — two options
 
-### 1. Get the game folder onto the other PC
+The repo is large because it ships the real assets: **~34,700 sprite PNGs and
+~8,970 audio clips**. Concrete sizes:
 
-You do **not** need the git history. Copy the project folder but **leave out**
-the two big/rebuildable directories:
+| Thing | Size |
+|---|---|
+| `git clone` download (packed history) | **≈ 1.63 GiB** |
+| Working files after checkout (assets + code) | **≈ 3 GB** |
+| `.git` history folder on disk | ≈ 1.6 GB |
+| `node_modules` after install (root + electron) | ≈ 265 MB |
 
-- `.git/`        (1.7 GB of history — not needed to play)
-- `node_modules/` and `electron/node_modules/` (rebuilt by `npm install`)
+### Option 1 — `git clone` from origin  ✅ RECOMMENDED
 
-Easiest options:
+```
+git clone https://github.com/Omololu457/multiverse-smash.git
+```
 
-- **Zip it (skipping the heavy folders), then transfer the zip:**
-  ```
-  # run this on THIS machine, in the project root:
-  zip -r multiverse-smash.zip . -x '.git/*' -x 'node_modules/*' -x 'electron/node_modules/*'
-  ```
-  Copy `multiverse-smash.zip` to the other PC (USB drive, network share, etc.)
-  and unzip it.
+- Pros: one command, pulls the exact reviewed `main`, and you can `git pull`
+  later to get fixes during the beta.
+- ~1.63 GiB over the network — fine on normal broadband (a few minutes). The
+  checkout then writes ~44,000 files, which can take a minute or two on the
+  target disk. Let it finish.
+- Caveat: a plain `git clone` doesn't resume if the connection drops. On a
+  slow/flaky link, prefer Option 2.
 
-- **Or, if the other PC has git access to the repo:**
-  ```
-  git clone <repo-url> multiverse-smash
-  ```
+### Option 2 — Direct folder copy (offline / flaky-network reliable)
 
-### 2. Install the Electron runtime (one time, needs internet)
+Copy the project folder via USB drive or LAN share, but **leave out** the two
+big, rebuildable/host-specific folders:
 
-On the other PC, open a terminal in the project folder and run:
+```
+# run in the project root on THIS machine:
+zip -r multiverse-smash.zip . -x '.git/*' -x 'node_modules/*' -x 'electron/node_modules/*'
+```
+
+Copy `multiverse-smash.zip` to the other PC and unzip. This is the most reliable
+route when the network is slow — no clone to interrupt. (Dropping `.git` shrinks
+the transfer to the ~3 GB of working files; you lose `git pull`, so re-copy to
+update.)
+
+> ⚠️ **Never copy `node_modules/` between machines** — see the next section.
+
+---
+
+## What is NOT in git (and what that means for the transfer)
+
+Audited on this pass — here is everything the app needs that is *not* tracked:
+
+- **`node_modules/` (root) and `electron/node_modules/`** — gitignored; rebuilt by
+  `npm install`. **Must be reinstalled on the target, not copied**, because
+  `electron/node_modules` contains **native binaries compiled for the source OS**
+  (e.g. a macOS build won't run on a Windows PC). Copying them across machines
+  will fail or crash — always run `npm install` fresh on the target.
+- **Nothing else is required.** There are **no `.env` files, no API keys, and no
+  secrets** anywhere in the project (verified: the only environment variable used
+  is an optional `PORT`, default `8000`). The game runs fully offline with zero
+  configuration.
+- `saves/` (local player save data) is gitignored and **not needed** — it is
+  created automatically at runtime; the tester starts with a fresh profile.
+- `harness/shots/`, `electron/shots/`, atlas-map intermediates, `.DS_Store`, logs
+  — all regenerable test/tool artifacts, not needed to play.
+
+So the complete "not in git" checklist to act on is exactly one item:
+**run `npm install` in `electron/` on the new PC.** Nothing must be hand-copied.
+
+---
+
+## Install + launch (after transfer)
+
+### 1. Install the Electron runtime (one time, needs internet)
 
 ```
 cd electron
@@ -56,10 +117,10 @@ npm install
 cd ..
 ```
 
-That downloads Electron. (You do **not** need to run `npm install` in the
-project root — that only pulls test tooling, which isn't needed to play.)
+That downloads Electron for the target OS. You do **not** need `npm install` in
+the project root to *play* — the root deps are only test tooling (Playwright).
 
-### 3. Launch the game
+### 2. Launch the game (recommended — desktop app)
 
 From the project root:
 
@@ -67,61 +128,63 @@ From the project root:
 npm run desktop
 ```
 
-The game opens **fullscreen** as its own application window — no browser, no
-menu bar. Click **PLAY / PRESS START** and you're in.
+The game opens **fullscreen** as its own window (no browser, no menu bar). Click
+**PLAY / PRESS START** and you're in.
 
-- Controls: keyboard by default; plug in an Xbox/PlayStation controller and it's
-  detected automatically (the launcher unlocks the gamepad on the title screen).
-- Progress is saved automatically to a real file in your OS user-data folder, so
-  it survives even a hard crash.
-- To quit: `Cmd/Ctrl` isn't bound to a menu; use `Alt+F4` (Windows), `Cmd+Q`
-  (macOS), or close from the OS.
+- Controls: keyboard by default; plug in an Xbox/PlayStation pad and it's
+  auto-detected on the title screen.
+- Progress auto-saves to a real file in the OS user-data folder (survives a hard
+  crash).
+- Quit: `Alt+F4` (Windows) / `Cmd+Q` (macOS) / close from the OS.
 
-That's it. Method A gives the full desktop experience.
+### 2b. Browser fallback (if Electron won't install)
+
+If `npm install` in `electron/` fails on the target (rare — usually a proxy or
+old Node), you can still run the game in a browser with zero native deps:
+
+```
+npm install            # root — for the tiny static server
+npm run dev            # serves the game at http://localhost:8000
+# then open http://localhost:8000 in Chrome/Edge/Firefox
+```
+
+`npm run dev` also runs a local save-server so progress persists; `npm run
+dev:noserver` is a static-only variant. The gameplay is identical; you just lose
+the standalone-window / auto-fullscreen polish of the desktop app.
 
 ---
 
-## Method B — One-click installer (.dmg / .exe)
+## Method B — one-click installer (.dmg / .exe): NOT built yet (honest status)
 
-**Not built yet.** The desktop wrapper in `electron/` is currently a launcher you
-start with `npm run desktop` (Method A), not a packaged installer you
-double-click. Building a true installer is a known, scoped piece of future work —
-see below.
+The desktop app **works** (real Electron app: fullscreen, stripped chrome,
+durable saves, controller support) — but it is **not** wrapped into a
+double-click installer. Reasons are concrete:
+
+- **Large asset payload (~3 GB)** — ~9,000 audio + ~34,700 sprite files must ship
+  *unpacked* (read from disk at runtime), so a packaged app is multi-GB.
+- `electron/main.mjs` serves the game from the **parent** folder via a tiny local
+  server; packaging needs an `app.isPackaged` path branch +
+  `extraResources`/`asarUnpack`.
+- A macOS build can't produce a Windows `.exe` without building on/for each OS.
+- A real installer can only be *trusted* after installing on a clean machine.
+
+**Path to a real installer** (future work): add `electron-builder` to `electron/`,
+make `REPO` resolve to bundled assets when `app.isPackaged`, ship the game tree as
+unpacked resources (exclude `.git`, `node_modules`, `harness/`, `*.test.mjs`),
+build per-OS (`mac` dmg, `win` nsis, `linux` AppImage), then verify on a clean PC.
+
+Until then, **the clone/copy + `npm run desktop` path above is the reliable way**
+and delivers the identical desktop experience.
 
 ---
 
-## Why no installer yet (honest status)
+## Quick troubleshooting
 
-The desktop app **works** — it's a real Electron app with fullscreen, stripped
-browser chrome, durable saves, and controller support. What isn't done is
-wrapping it into a distributable `.dmg`/`.exe` installer. The reasons are
-concrete, not hand-waving:
-
-- **Large asset payload (~3 GB).** The game bundles ~9,000 audio clips and
-  ~41,000 sprite images. A packaged app has to carry all of that, so the
-  installer would be multi-gigabyte and the assets must be shipped *unpacked*
-  (they're read from disk at runtime, not from inside the compressed app blob).
-- **Architecture detail.** `electron/main.mjs` runs a tiny local web server and
-  serves the game from the **parent** project folder. Packaging needs that path
-  resolution reworked for the packaged layout (an `app.isPackaged` branch plus
-  `extraResources`/`asarUnpack` config) — safe to do, but real work.
-- **Cross-platform.** A macOS build can't produce a Windows `.exe` (and vice
-  versa) without building on/for each target OS.
-- **Single-machine verification limit.** Even if built here, a real installer
-  can only be *trusted* after installing it on a clean second machine — which
-  wasn't available for this pass.
-
-### The path to a real installer (for whoever picks this up)
-
-1. Add `electron-builder` as a dev dependency in `electron/`.
-2. In `electron/main.mjs`, make `REPO` resolve to the bundled assets when
-   `app.isPackaged` is true (keep the current parent-folder logic for dev).
-3. Add an `electron-builder` config that ships the game tree (js modules,
-   `index.html`, `tools/stamp_version.mjs`, and the audio/sprite assets) as
-   unpacked resources, while excluding `.git`, `node_modules`, `harness/`, and
-   `*.test.mjs`.
-4. Build per target OS: `mac` (dmg/zip), `win` (nsis), `linux` (AppImage).
-5. **Verify by installing on a clean machine** before shipping to testers.
-
-Until that's done, **Method A is the reliable way to get the game running on
-another PC**, and it delivers the identical desktop experience.
+- `node -v` prints nothing / "command not found" → Node isn't installed (see
+  Prerequisites).
+- `npm run desktop` errors about Electron → you skipped `npm install` in
+  `electron/`, or copied `node_modules` from another machine (delete
+  `electron/node_modules` and re-run `npm install` in `electron/`).
+- Black window / no assets → make sure you launched from the **project root**
+  (`npm run desktop`), not from inside `electron/`.
+- Port 8000 in use (browser fallback) → `PORT=8080 npm run dev`.

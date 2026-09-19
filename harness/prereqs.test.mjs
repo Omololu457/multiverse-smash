@@ -15,7 +15,10 @@ const check=(n,c,d="")=>{(c?PASS++:FAIL++);console.log(`  ${c?"✅ PASS":"❌ FA
 const section=t=>console.log(`\n── ${t} ─────────────────────────────`);
 const sortJoin=a=>[...a].sort().join(",");
 const LS_KEY="multiverse-smash-save";
-const ARTLESS=["piccolo","frieza","cell","morty","evilMorty","rickPrime","albedo","omololu"];
+// Art-less placeholder characters (isPlayable:false) — hidden from normal+beta select, shown to dev.
+// piccolo/frieza/rickPrime/albedo were once placeholders but have since shipped real art + kits and are
+// now playable, so the current placeholder set is exactly these 4 (updated 2026-09-17).
+const ARTLESS=["cell","morty","evilMorty","omololu"];
 
 try {
   // ══ Stage 13B — migrateAccount (pure) ══════════════════════════════════════════
@@ -50,7 +53,7 @@ try {
   section("Stage 5B — isPlayable hides art-less placeholders from normal + beta, dev sees them");
   await load();
   const gt = await sets();
-  check("nonPlayable set == the 8 art-less placeholders", sortJoin(gt.nonPlayable) === sortJoin(ARTLESS), `nonPlayable=${sortJoin(gt.nonPlayable)}`);
+  check("nonPlayable set == the 4 art-less placeholders", sortJoin(gt.nonPlayable) === sortJoin(ARTLESS), `nonPlayable=${sortJoin(gt.nonPlayable)}`);
   check("baseline PLAYABLE roster excludes every art-less placeholder", ARTLESS.every(k=>!gt.playable.includes(k)));
   check("full non-hidden roster still contains them (they exist, just not offerable)", ARTLESS.every(k=>gt.all.includes(k)));
   check("playable == all minus non-playable", gt.playable.length === gt.all.length - gt.nonPlayable.length, `${gt.playable.length} == ${gt.all.length} - ${gt.nonPlayable.length}`);

@@ -31,7 +31,7 @@ const EXPECTED = {
     goku:       { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
     vegeta:     { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
     goku_black: { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
-    frieza:     { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
+    frieza:     { sar: [6, 3, 14], e: -32, s: -9, arch: "Balanced" },   // frames deliberately tuned distinct from the shotos (active 3 / recovery 14, verified in the shipped kit); test expectation was stale (was [6,4,8])
     piccolo:    { sar: [6, 4, 8], e: -32, s: -9, arch: "Balanced" },
     cell:       { sar: [5, 4, 9], e: -33, s: -9, arch: "Heavy"    },
     beerus:     { sar: [4, 3, 6], e: -30, s: -8, arch: "Fast/GC"  },

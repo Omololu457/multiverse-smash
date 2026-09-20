@@ -37,6 +37,7 @@
     "hooks:install": "cp tools/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
     "test:aivsai": "node harness/aivsai.test.mjs",
     "test:hitstop": "node harness/hitstop.test.mjs",
+    "test:impact-frame": "node harness/impact_frame_live.mjs",
     "test:cancel-window": "node harness/cancel_window.test.mjs",
     "test:combo-decay": "node harness/combo_decay.test.mjs",
     "test:combo-standard": "node harness/combo_standard_audit.mjs",

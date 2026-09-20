@@ -40,8 +40,8 @@ VERIFY — new harness/impact_frame_live.mjs (test:impact-frame 15/0): base
 REGRESSION: determinism 9/0 · combo-standard 227/0 · brutality 47/0 ·
   hitstop 23/0 · combat-fx-stage1 10/0 (3× stable) · combat-fx-stage2 10/0 ·
   combo-starter-scaling 28/0.
-SCREENSHOTS: harness/shots/IMPACT_low_combo.png · IMPACT_mid_combo.png ·
-  IMPACT_high_combo.png  (combo 1 / ~10 / 15+ comparison).
+SCREENSHOTS: harness/shots/IMPACT_low_combo.png · IMPACT_high_combo.png
+  (combo 1 base vs 15+ escalated comparison).
 ========================================================================
 
 

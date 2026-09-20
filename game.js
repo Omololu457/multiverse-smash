@@ -280,7 +280,7 @@ import {
   drawProfileScreen, getProfileBackButton, getProfileThemesButton, drawCodexScreen, getCodexBackButton, codexLayout,
   drawThemesScreen, getThemesBackButton, getThemeCardRects,
   getCharSearchRect, getCharSearchClearRect,
-  drawMoveListScreen, getMoveListCardRects, getMoveListButtons,
+  drawMoveListScreen, getMoveListCardRects, getMoveListButtons, getMoveListViewport,
   drawControlsHelpScreen, getControlsHelpBackButton,
   drawComboTrialsScreen, getComboTrialsRects, drawComboTrialHud,   // Combo Trials: select screen + in-battle trial HUD
   drawTutorialScreen, getTutorialButtons, getTutorialPageCount,
@@ -842,6 +842,14 @@ canvas.addEventListener("wheel", e => {
   if (gameState === GAME_STATES.MUSIC_LIBRARY) { e.preventDefault(); _mlScrollBy(e.deltaY); return }
   // CODEX consumes wheel to scroll the franchise-grouped fighter list.
   if (gameState === GAME_STATES.CODEX) { e.preventDefault(); codexScroll = Math.max(0, Math.min(_codexMaxScroll(canvas), codexScroll + e.deltaY)); return }
+  // MOVE LIST — scroll the kit panel when the pointer is over it, else the (overflowing) fighter list.
+  if (gameState === GAME_STATES.MOVE_LIST) {
+    e.preventDefault()
+    const vp = getMoveListViewport(canvas)
+    if (mouse.x > vp.listX + vp.listW) moveListPanelScroll = Math.max(0, Math.min(_moveListPanelMax, moveListPanelScroll + e.deltaY))
+    else                               moveListScroll      = Math.max(0, Math.min(_moveListListMax,  moveListScroll + e.deltaY))
+    return
+  }
   const g = activeScrollGrid()
   if (!g) return
   e.preventDefault()   // keep the page from scrolling; the grid consumes the delta
@@ -1425,6 +1433,10 @@ let hoverStoryIndex      = -1      // STORY_MODE chapter-tile hover
 let _storyChapterIdx     = 0       // the chapter whose fight is pending (set on chapter click, read on match-over)
 let moveListIndex        = 0
 let moveListShowControls = false
+let moveListScroll       = 0   // fighter-list vertical scroll (px); the ~100-fighter roster overflows the viewport
+let moveListPanelScroll  = 0   // kit-panel vertical scroll (px) for long move lists
+let _moveListListMax     = 0   // last-rendered max scroll for the list (for wheel clamping)
+let _moveListPanelMax    = 0   // last-rendered max scroll for the panel
 let tutorialPage         = 0
 let accountDraftName     = ""
 let accountMessage       = ""
@@ -1710,6 +1722,11 @@ function _arcadePickOpponent(exclude) {
 // → the designated arcade boss (Stage 20 will layer its bossProfile buffs on top).
 function applyArcadeFight() {
   if (!arcadeState.active) return
+  // Arcade runs CLEAN (no match modifiers) — Stage 24A: only Tower floors assign them. applyTowerFloor
+  // sets its floor modifiers explicitly; arcade must clear them explicitly too, or a leftover modifier
+  // (e.g. a Tower floor's "Meter Drain") persists onto EVERY arcade fight (0.5/frame drain ≫ regen →
+  // the player loses all energy and can't build it back). Cleared here since this runs for every fight.
+  matchConfig.modifiers = []
   if (!arcadeState.rosterKey) arcadeState.rosterKey = matchConfig.p1CharKey
   const fightNum = arcadeState.fight + 1
   const role = arcadeFightRole(fightNum)
@@ -15662,12 +15679,17 @@ function renderCurrentState() {
       const fighters = getMoveListFighters()
       const sel      = fighters[moveListIndex]
       const kit      = sel ? getKit(sel.key, characters[sel.key]) : null
-      drawMoveListScreen(ctx, canvas, {
+      const _mlRet = drawMoveListScreen(ctx, canvas, {
         fighters, selectedIndex: moveListIndex, kit,
         // Part 3 #26: rebuild the controller rows with glyphs for the connected pad (Xbox/PS/Switch).
         showControls: moveListShowControls, controlRef: _controlRefForPad(),
+        listScroll: moveListScroll, panelScroll: moveListPanelScroll,
         accentFor: (key) => charSelectAccent(key) || "#4aa8e0"   // selected fighter's identity accent on the kit panel
       })
+      _moveListListMax  = _mlRet?.listMaxScroll  || 0
+      _moveListPanelMax = _mlRet?.panelMaxScroll || 0
+      if (moveListScroll      > _moveListListMax)  moveListScroll      = _moveListListMax    // clamp if the roster/layout shrank
+      if (moveListPanelScroll > _moveListPanelMax) moveListPanelScroll = _moveListPanelMax
       break
     }
     case GAME_STATES.GAMEPLAY_SELECT: drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex); break
@@ -15973,7 +15995,7 @@ function handleMenuClicks() {
       else if (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
       else if (c.id === "playTutorial") startTutorial(GAME_STATES.MAIN_MENU)   // interactive guided walkthrough (replayable any time)
       else if (c.id === "story")    { gameState = GAME_STATES.STORY_MODE; startRiftTransition("#9a7bff") }   // Stage 14: styled placeholder (rift into it for consistency)
-      else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; gameState = GAME_STATES.MOVE_LIST }
+      else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; moveListScroll = 0; moveListPanelScroll = 0; gameState = GAME_STATES.MOVE_LIST }
       else if (c.id === "codex")    openCodexScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "profile")  openProfileScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "themes")   openThemesScreen(GAME_STATES.MAIN_MENU)
@@ -16047,11 +16069,19 @@ function handleMenuClicks() {
     }
     case GAME_STATES.MOVE_LIST: {
       const fighters = getMoveListFighters()
-      const idx = getMoveListCardRects(canvas, fighters.length).findIndex(r => pointInRect(mouse.x, mouse.y, r))
-      if (idx >= 0) { moveListIndex = idx; break }
+      // Buttons FIRST — the fighter list overflows the viewport, so its off-screen rows used to overlap the
+      // BACK/CONTROLS buttons and swallow the click (players got stuck). Test the buttons before the rows.
       const btn = getMoveListButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
-      if (btn?.id === "back")     gameState = GAME_STATES.MAIN_MENU
-      if (btn?.id === "controls") moveListShowControls = !moveListShowControls
+      if (btn?.id === "back")     { gameState = GAME_STATES.MAIN_MENU; break }
+      if (btn?.id === "controls") { moveListShowControls = !moveListShowControls; moveListPanelScroll = 0; break }
+      // Fighter rows — only the ones actually VISIBLE in the scrolled viewport are clickable.
+      const vp = getMoveListViewport(canvas)
+      const rects = getMoveListCardRects(canvas, fighters.length)
+      for (let i = 0; i < rects.length; i++) {
+        const r = rects[i], ry = r.y - moveListScroll
+        if (ry + r.h < vp.top || ry > vp.bottom) continue
+        if (pointInRect(mouse.x, mouse.y, { x: r.x, y: ry, w: r.w, h: r.h })) { moveListIndex = i; moveListPanelScroll = 0; break }
+      }
       break
     }
     case GAME_STATES.SETTINGS: {
@@ -18169,7 +18199,9 @@ gameLoop()
     // maxPick that drive the "Pick up to N" text — proves the 6->4 cap live through the real click path.
     alienSelectState: () => ({ draft: matchConfig.alienDraft.slice(), cap: BEN10_SLOT_COMBOS.length, maxPick: Math.min(BEN10_SLOT_COMBOS.length, getAlienPoolList().length) }),
     // Move List screen preview: select a fighter row and toggle the controls/kit view.
-    showMoveList: (idx = 0, controls = false) => { const f = getMoveListFighters(); moveListIndex = Math.max(0, Math.min(f.length - 1, idx | 0)); moveListShowControls = !!controls; gameState = GAME_STATES.MOVE_LIST; return { gameState, idx: moveListIndex, controls: moveListShowControls, fighter: f[moveListIndex]?.key } },
+    showMoveList: (idx = 0, controls = false) => { const f = getMoveListFighters(); moveListIndex = Math.max(0, Math.min(f.length - 1, idx | 0)); moveListShowControls = !!controls; moveListScroll = 0; moveListPanelScroll = 0; gameState = GAME_STATES.MOVE_LIST; return { gameState, idx: moveListIndex, controls: moveListShowControls, fighter: f[moveListIndex]?.key } },
+    // MOVE LIST scroll/selection introspection (fixes: BACK reachable + scrollable roster/kit).
+    moveListState: () => ({ index: moveListIndex, scroll: moveListScroll, panelScroll: moveListPanelScroll, listMax: _moveListListMax, panelMax: _moveListPanelMax, showControls: moveListShowControls, fighterCount: getMoveListFighters().length }),
     // Full per-fighter kit dump (name/universe/colour/difficulty/passive/normals/specials/mobility/ultimate/
     // combos/stats) — the authoritative data behind the in-game MOVE LIST screen. Used to generate the beta
     // gameplay document so every character's moves/combos/how-to are exact, not invented.

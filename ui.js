@@ -1667,11 +1667,34 @@ export function getMoveListButtons(canvas) {
   ]
 }
 
-function drawKitPanel(ctx, x, y, w, h, kit, accent = "#4aa8e0") {
+// The scrollable viewport for the fighter list (between the header and the BACK/CONTROLS button row).
+// The roster (~100 fighters) is far taller than this, so the list scrolls and its hit-testing is clipped
+// to this box — otherwise off-screen rows overlap the buttons and swallow the BACK click.
+export function getMoveListViewport(canvas) {
+  const L = moveListLayout(canvas)
+  const bottom = L.h - 80          // leave room for the button row at h-64
+  return { top: L.top, bottom, height: bottom - L.top, listX: L.listX, listW: L.listW }
+}
+export function getMoveListContentHeight(canvas, count) {
+  const L = moveListLayout(canvas)
+  const rows = Math.ceil(count / L.listCols)
+  return rows * (L.rowH + 4)
+}
+export function getMoveListListMaxScroll(canvas, count) {
+  const vp = getMoveListViewport(canvas)
+  return Math.max(0, getMoveListContentHeight(canvas, count) - vp.height)
+}
+
+// Returns the panel's MAX scroll (0 if the kit fits) so the caller can clamp panelScroll. The frame/holo
+// are drawn un-scrolled; only the content scrolls, clipped to the panel interior.
+function drawKitPanel(ctx, x, y, w, h, kit, accent = "#4aa8e0", scroll = 0) {
   drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.86)", stroke: _withAlpha(accent, 0.6), lineWidth: 2, bevel: true, bevelCut: 14 })
   _holoPanelOverlay(ctx, x, y, w, h, { accent, cut: 14 })   // Stage 12: subtle holographic treatment (info screen)
-  if (!kit) { drawCenteredText(ctx, "Select a fighter", x + w / 2, y + h / 2, { font: "18px Arial", fill: "rgba(220,230,255,0.6)" }); return }
+  if (!kit) { drawCenteredText(ctx, "Select a fighter", x + w / 2, y + h / 2, { font: "18px Arial", fill: "rgba(220,230,255,0.6)" }); return 0 }
 
+  ctx.save()
+  ctx.beginPath(); ctx.rect(x + 3, y + 3, w - 6, h - 6); ctx.clip()   // content clipped to the panel
+  ctx.translate(0, -scroll)
   const pad = 18
   let cy = y + 26
   const left = x + pad
@@ -1716,6 +1739,20 @@ function drawKitPanel(ctx, x, y, w, h, kit, accent = "#4aa8e0") {
 
   section("BASIC ATTACKS  (no energy)")
   for (const b of kit.basics || []) row(b.name, b.input, "")
+
+  ctx.restore()
+  // content bottom (un-scrolled) → how far it can scroll so the last line clears the panel floor
+  const maxScroll = Math.max(0, (cy + pad) - (y + h))
+  // scroll hint: a slim track + thumb on the panel's right edge when there's overflow
+  if (maxScroll > 0) {
+    const trackX = x + w - 6, trackY = y + 8, trackH = h - 16
+    ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(trackX, trackY, 3, trackH)
+    const total = (cy + pad) - (y + 26)
+    const thumbH = Math.max(24, trackH * (h / total))
+    const thumbY = trackY + (trackH - thumbH) * (maxScroll ? Math.min(1, scroll / maxScroll) : 0)
+    ctx.fillStyle = _withAlpha(accent, 0.7); ctx.fillRect(trackX, thumbY, 3, thumbH)
+  }
+  return maxScroll
 }
 
 function drawControlsPanel(ctx, x, y, w, h, ref, accent = "#4aa8e0") {
@@ -1765,19 +1802,36 @@ export function drawMoveListScreen(ctx, canvas, opts = {}) {
   drawHeader(ctx, canvas, "MOVE LIST", opts.showControls ? "Controls & how to perform specials" : "Pick a fighter to see their kit")
 
   // Left fighter list — angular rows, NO per-row hover bounce (this is a reading list); the SELECTED row
-  // gets the character's identity accent so it reads at a glance without noise.
+  // gets the character's identity accent. The roster is taller than the viewport, so it SCROLLS: clip to the
+  // viewport, offset by listScroll, and cull rows outside it (matching the clipped hit-test in game.js).
+  const vp = getMoveListViewport(canvas)
+  const listScroll = opts.listScroll || 0
+  const listMaxScroll = getMoveListListMaxScroll(canvas, fighters.length)
   const rects = getMoveListCardRects(canvas, fighters.length)
+  ctx.save()
+  ctx.beginPath(); ctx.rect(vp.listX - 6, vp.top - 4, vp.listW + 12, vp.height + 8); ctx.clip()
   fighters.forEach((f, i) => {
     const r = rects[i]
+    const ry = r.y - listScroll
+    if (ry + r.h < vp.top || ry > vp.bottom) return   // cull rows scrolled out of view
     const sel = i === selectedIndex
-    _bevelPath(ctx, r.x, r.y, r.w, r.h, 8)
+    _bevelPath(ctx, r.x, ry, r.w, r.h, 8)
     ctx.fillStyle = sel ? _withAlpha(accent, 0.26) : "rgba(16,22,34,0.7)"; ctx.fill()
-    _bevelPath(ctx, r.x, r.y, r.w, r.h, 8)
+    _bevelPath(ctx, r.x, ry, r.w, r.h, 8)
     ctx.strokeStyle = sel ? accent : "rgba(255,255,255,0.10)"; ctx.lineWidth = sel ? 2 : 1
     if (sel) { ctx.save(); ctx.shadowBlur = 10; ctx.shadowColor = accent; ctx.stroke(); ctx.restore() } else ctx.stroke()
-    if (sel) { ctx.fillStyle = accent; ctx.fillRect(r.x + 4, r.y + r.h * 0.24, 3, r.h * 0.52) }
-    drawCenteredText(ctx, f.name, r.x + 14, r.y + r.h / 2, { font: sel ? "700 13px Arial" : "13px Arial", fill: sel ? "#fff" : "rgba(220,230,255,0.82)", align: "left", baseline: "middle" })
+    if (sel) { ctx.fillStyle = accent; ctx.fillRect(r.x + 4, ry + r.h * 0.24, 3, r.h * 0.52) }
+    drawCenteredText(ctx, f.name, r.x + 14, ry + r.h / 2, { font: sel ? "700 13px Arial" : "13px Arial", fill: sel ? "#fff" : "rgba(220,230,255,0.82)", align: "left", baseline: "middle" })
   })
+  ctx.restore()
+  // list scrollbar (right edge of the list column) when the roster overflows
+  if (listMaxScroll > 0) {
+    const trackX = vp.listX + vp.listW + 6, contentH = getMoveListContentHeight(canvas, fighters.length)
+    const thumbH = Math.max(28, vp.height * (vp.height / contentH))
+    const thumbY = vp.top + (vp.height - thumbH) * Math.min(1, listScroll / listMaxScroll)
+    ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(trackX, vp.top, 3, vp.height)
+    ctx.fillStyle = _withAlpha(_MK_ACCENT, 0.7); ctx.fillRect(trackX, thumbY, 3, thumbH)
+  }
 
   // Right panel — subtle content ENTRANCE FADE when the selected fighter changes (calm, purposeful,
   // no hover-bounce on individual rows). Uses the selected character's accent for the panel edge.
@@ -1786,8 +1840,9 @@ export function drawMoveListScreen(ctx, canvas, opts = {}) {
   const fade = _entranceFade("movelist", `${opts.showControls ? "ctrl" : "kit"}:${selectedIndex}`, 10)
   ctx.save()
   ctx.globalAlpha = 0.35 + 0.65 * fade
-  if (opts.showControls) drawControlsPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.controlRef, accent)
-  else                   drawKitPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.kit, accent)
+  let panelMaxScroll = 0
+  if (opts.showControls) drawControlsPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.controlRef, accent)   // fixed-layout (fits) → no scroll
+  else                   panelMaxScroll = drawKitPanel(ctx, L.panelX, panelY, L.panelW, panelH, opts.kit, accent, opts.panelScroll || 0)
   ctx.restore()
 
   // Buttons (BACK / CONTROLS) — shared MK button, with hover only on these (not the move rows).
@@ -1795,6 +1850,7 @@ export function drawMoveListScreen(ctx, canvas, opts = {}) {
     const active = b.id === "controls" ? !!opts.showControls : false
     drawMkButton(ctx, b, { label: b.id === "controls" && opts.showControls ? "MOVES" : b.label, active, accent: _MK_ACCENT, id: `movelistbtn:${b.id}`, cut: 12 })
   }
+  return { listMaxScroll, panelMaxScroll }   // so the caller can clamp its scroll offsets
 }
 
 // ── CONTROLS HELP OVERLAY (Track A — always-accessible button legend) ──────────

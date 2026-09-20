@@ -106,6 +106,7 @@
     "test:tutorial-first-boot": "node harness/tutorial_first_boot.mjs",
     "test:beta-feedback": "node harness/beta_feedback.mjs",
     "test:handler-shadow-sink": "node harness/handler_shadow_sink.mjs",
+    "test:stuck-key-blur": "node harness/stuck_key_blur.mjs",
     "test:tower": "node harness/tower.test.mjs",
     "test:ffa": "node harness/ffa.test.mjs",
     "test:team": "node harness/team.test.mjs",

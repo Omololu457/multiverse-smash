@@ -145,6 +145,30 @@ if (typeof document !== "undefined") {
   document.addEventListener("keyup", e => {
     keys[normalizeKey(e.key)] = false
   })
+
+  // STUCK-KEY GUARD (focus loss). When the window loses focus mid-hold — alt-tab, a notification,
+  // clicking outside the canvas, an OS overlay — the browser NEVER delivers the matching `keyup`, so
+  // the held key stays `true` in this global map forever. Physics reads keys[controls.left/right] every
+  // frame, so the fighter is FORCE-RUN/dashed in that direction indefinitely — and because this map is
+  // global (shared by every fighter) and is never rebuilt, it survives round resets AND character swaps
+  // (a freshly-picked fighter reads the same stuck key). That is the "infinite dash that follows you onto
+  // the next character" bug. Fix: drop every held key the instant focus/visibility is lost. Purely an
+  // input-hygiene correction — no gameplay/timing/balance is touched.
+  if (typeof window !== "undefined" && window.addEventListener) {
+    window.addEventListener("blur", releaseAllKeys)
+    window.addEventListener("pagehide", releaseAllKeys)
+    document.addEventListener("visibilitychange", () => { if (document.hidden) releaseAllKeys() })
+  }
+}
+
+// Release EVERY held key (and any pending mouse click / debug edge). Called on focus/visibility loss so a
+// swallowed keyup can't leave a direction (or any input) stuck on. Exported so game.js / the harness can
+// invoke it too. Safe to call anytime; a no-op when nothing is held.
+export function releaseAllKeys() {
+  for (const k in keys) keys[k] = false
+  mouse._pendingClick = false
+  mouse.clicked = false
+  f1WasDown = false
 }
 
 // ─────────────────────────────────────────────────────────────────

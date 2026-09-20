@@ -18581,6 +18581,7 @@ gameLoop()
     // Wiring proof: getFighterInput() call tally per player. Both advancing every
     // frame proves each fighter's input routes through input.js.getFighterInput.
     inputWiring: () => ({ ...inputCallCount, p1Type: inputSettings.p1Type, p2Type: inputSettings.p2Type }),
+    heldKeys: () => Object.keys(keys).filter(k => keys[k]),   // stuck-key audit: which physical keys the global map currently reads as held
     // Training-mode introspection (audit + feature tests).
     training: () => ({
       enabled: trainingState.enabled,

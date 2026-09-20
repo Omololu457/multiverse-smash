@@ -1362,42 +1362,40 @@ const COMBO_RANKS = [
   { at: 20, text: "GODLIKE!", color: "#c04bff" }
 ]
 
-// ── IMPACT FRAME (PURELY VISUAL) ──────────────────────────────────────────────────────────
-// A brief high-contrast desaturation "impact frame" layered ON TOP of the existing hitstop freeze
-// at the instant a hit connects — an anime-style stark B&W flash of the scene, then back to colour
-// as hitstop ends. It NEVER touches damage / combo-scaling / hitstop state: triggerImpactFrame only
-// READS comboCounter + hitstop and sets a render-only `impactFX` object; _drawImpactFrame renders it
-// UNDER the HUD (so HP bars / combo counter stay in colour) and is gated OFF during Brutality.
-// Base intensity scales by hit tier (light/heavy/special/ultimate, keyed off the hitstop weight);
-// drama escalates with the live combo at 5 / 9 / 15 (mirroring the combo-counter colour tiers).
-let impactFX = null   // { timer, maxTimer, tier, combo, comboTier, desat, flash, contrast, wx, wy, seed } | null
-const IMPACT_TIER = {
-  light:    { dur: 2, desat: 0.34, flash: 0.10, contrast: 1.35 },   // jab/poke — subtle
-  heavy:    { dur: 2, desat: 0.50, flash: 0.16, contrast: 1.50 },
-  special:  { dur: 3, desat: 0.64, flash: 0.22, contrast: 1.65 },
-  ultimate: { dur: 3, desat: 0.80, flash: 0.30, contrast: 1.80 },   // cinematic
-}
+// ── IMPACT FRAME — "BLACK FLASH" SPRITE COLOUR-SWAP (PURELY VISUAL) ─────────────────────────
+// At the instant a hit connects, the struck AND striking fighters' SPRITES snap to a stark
+// high-contrast charcoal body with a saturated cursed-RED cast — the JJK "Black Flash" look — for a
+// brief (2-5 frame) window, then back to normal, layered ON TOP of the existing hitstop freeze. This
+// is a real per-sprite palette swap (not a screen-wide flash): it reuses sprite.js's ctx.filter tint
+// path — the SAME infrastructure as Goku's form tints / Frieza Golden/Black recolors — and echoes
+// the red/black of Yuji's Black Flash ultimate (yujiUltimateCinematic.js: white+#c8102e burst).
+// triggerImpactFrame only READS comboCounter + hitstop and stamps a render-only `_impactFlash` marker
+// on each involved fighter; sprite.js swaps that fighter's palette while the marker is live;
+// _tickImpactFlash counts it down each rendered frame. NEVER touches damage / combo-scaling / hitstop
+// state; gated OFF during Brutality. Extremity + duration scale by hit tier (light/heavy/special/
+// ultimate, keyed off the hitstop weight) and escalate with the live combo at 5 / 9 / 15.
+const IMPACT_HIT_TIER = { light: 0, heavy: 1, special: 1, ultimate: 2 }   // weightier hits recolor a notch harder
 function _impactTierFromHitstop(hs) { return hs >= 24 ? "ultimate" : hs >= 15 ? "special" : hs >= 9 ? "heavy" : "light" }
 function _impactComboTier(combo) { return combo >= 15 ? 3 : combo >= 9 ? 2 : combo >= 5 ? 1 : 0 }   // mirrors the 5/9/15 combo-counter colour tiers
+// Stamp the Black-Flash marker on one fighter (render-only field, like _shActive/_idSwapActive — sprite.js
+// reads it for the palette swap, _tickImpactFlash clears it; never read by the sim → determinism-safe).
+function _stampImpactFlash(f, level, dur, tier, combo, comboTier) {
+  if (!f) return
+  f._impactFlash = { timer: dur, maxTimer: dur, level, tier, combo, comboTier }
+}
 // Fire the impact frame for a freshly-landed hit. attacker = the fighter whose comboCounter just rose;
 // combo = its live comboCounter (READ-ONLY). tier weight is read from the hitstop applied this frame.
 function triggerImpactFrame(attacker, combo) {
   if (!attacker || brutalityState.active) return   // never during a finisher
-  const opp = getOpponent(attacker)
-  const hs  = Math.max(attacker.hitstop || 0, opp?.hitstop || 0)
-  const tier = _impactTierFromHitstop(hs)
-  const t   = IMPACT_TIER[tier]
-  const ct  = _impactComboTier(combo)
-  const dur = t.dur + ct                                      // longer flash as the combo climbs (base 2-3 → up to ~6)
-  const wx  = opp ? opp.x + (opp.w || 60) / 2 : attacker.x + (attacker.w || 60) / 2
-  const wy  = opp ? opp.y + (opp.h || 100) * 0.45 : attacker.y + (attacker.h || 100) * 0.45
-  impactFX = {
-    timer: dur, maxTimer: dur, tier, combo, comboTier: ct,
-    desat:    Math.min(0.92, t.desat + ct * 0.05),            // more desaturated / contrasty at higher combos
-    flash:    Math.min(0.50, t.flash + ct * 0.05),
-    contrast: t.contrast + ct * 0.15,
-    wx, wy, seed: (globalFrameCount * 47) % 360               // deterministic angle offset for the flourish lines
-  }
+  const opp   = getOpponent(attacker)
+  const hs    = Math.max(attacker.hitstop || 0, opp?.hitstop || 0)
+  const tier  = _impactTierFromHitstop(hs)
+  const ct    = _impactComboTier(combo)
+  const level = Math.min(3, ct + (IMPACT_HIT_TIER[tier] || 0))   // 0..3 recolor extremity (combo tier + hit weight)
+  const dur   = 2 + ct                                           // 2..5 frames — brief at low combo, longer as it climbs
+  // Both fighters flash: the struck opponent (primary) and the attacker landing it (the "connection").
+  _stampImpactFlash(opp,      level, dur, tier, combo, ct)
+  _stampImpactFlash(attacker, level, dur, tier, combo, ct)
 }
 
 const allCharacterKeys = Object.keys(characters).filter(k => !characters[k].hidden)
@@ -14665,54 +14663,16 @@ function _drawDamageNumbers() {
 // climbs (2 hits reads small/white, 20 hits reads huge/red), punches on each new hit (ds.pop),
 // and is drawn metallic — italic slant, dark outline, tier-colored glow, accent underline —
 // matching the Stage-1 HUD direction. Visual-only; reads comboDisplay state, changes no combat.
-// IMPACT FRAME render (visual only). Drawn OVER the scene/fighters but UNDER the HUD, so the HP bars
-// and combo counter stay in full colour while the gameplay flashes stark. Layered WITH the existing
-// per-tier hit-spark particles (never a replacement). Ticks its own timer (render is 60Hz-gated).
-function _drawImpactFrame() {
-  if (brutalityState.active) { impactFX = null; return }   // never clash with a finisher
-  if (!impactFX || impactFX.timer <= 0) return
-  const cw = canvas.width, ch = canvas.height
-  const env = Math.max(0, impactFX.timer / impactFX.maxTimer)   // 1 → 0 fade over the (brief) window
-  const sp  = _worldToScreen(impactFX.wx, impactFX.wy)          // impact point in screen space (this frame's camera)
-  ctx.save()
-  // 1) HIGH-CONTRAST DESATURATION of everything drawn so far (scene + fighters + per-tier sparks).
-  //    Re-draw the frame through a grayscale+contrast filter at `desat*env` alpha → partial→full B&W.
-  try {
-    ctx.globalAlpha = impactFX.desat * env
-    ctx.filter = `grayscale(1) contrast(${impactFX.contrast.toFixed(2)})`
-    ctx.drawImage(canvas, 0, 0, cw, ch)
-    ctx.filter = "none"
-  } catch (_) {
-    // fallback (no ctx.filter): desaturate via the "saturation" blend mode
-    ctx.globalAlpha = impactFX.desat * env
-    ctx.globalCompositeOperation = "saturation"; ctx.fillStyle = "hsl(0,0%,50%)"; ctx.fillRect(0, 0, cw, ch)
-    ctx.globalCompositeOperation = "source-over"
+// IMPACT FRAME tick (visual only). The Black-Flash colour-swap itself is drawn by sprite.js (it reads
+// each fighter's _impactFlash marker to pick the recolor filter); this just counts the marker down once
+// per rendered frame and clears it when spent, keeping the swap entirely out of the sim. Cleared
+// instantly during a Brutality so the finisher palette never clashes with it.
+function _tickImpactFlash() {
+  for (const f of [p1, p2]) {
+    if (!f || !f._impactFlash) continue
+    if (brutalityState.active) { f._impactFlash = null; continue }
+    if (--f._impactFlash.timer <= 0) f._impactFlash = null
   }
-  // 2) WHITE IMPACT FLASH — additive radial burst centred on the hit (brighter/bigger at higher tier+combo).
-  ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 1
-  const r = Math.max(cw, ch) * (0.26 + impactFX.comboTier * 0.05)
-  const rg = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, r)
-  rg.addColorStop(0, `rgba(255,255,255,${(impactFX.flash * env).toFixed(3)})`)
-  rg.addColorStop(1, "rgba(255,255,255,0)")
-  ctx.fillStyle = rg; ctx.fillRect(0, 0, cw, ch)
-  // 3) RADIATING FLASH-LINES — the "earned" flourish, only at higher combo tiers (9+ / 15+).
-  if (impactFX.comboTier >= 2) {
-    const n = 6 + impactFX.comboTier * 4
-    const len = (0.13 + impactFX.comboTier * 0.05) * Math.max(cw, ch)
-    ctx.strokeStyle = `rgba(255,255,255,${(0.5 * env).toFixed(3)})`
-    ctx.lineWidth = 2 + impactFX.comboTier
-    const r0 = r * 0.22
-    for (let i = 0; i < n; i++) {
-      const a = (impactFX.seed + i * (360 / n)) * Math.PI / 180
-      ctx.beginPath()
-      ctx.moveTo(sp.x + Math.cos(a) * r0, sp.y + Math.sin(a) * r0)
-      ctx.lineTo(sp.x + Math.cos(a) * (r0 + len), sp.y + Math.sin(a) * (r0 + len))
-      ctx.stroke()
-    }
-  }
-  ctx.restore()
-  impactFX.timer--                          // render-frame tick; clears when spent
-  if (impactFX.timer <= 0) impactFX = null
 }
 
 function _drawComboCounters() {
@@ -14900,7 +14860,7 @@ function drawBattle() {
   _drawGhostfaceSwapFlash()   // Ghostface killer-swap identity-tinted flash (over fighters, under HUD)
   _drawLowHpVignette()        // Track A3: low-HP red edge vignette (atmosphere, under HUD)
   _drawParryClashFlash()      // Track A2: brief parry/clash "sell" wash (over fighters, under HUD)
-  _drawImpactFrame()          // Impact frame (visual only): high-contrast desaturation flash at hit-connect, layered on hitstop; under HUD
+  _tickImpactFlash()          // Impact frame (visual only): counts down each fighter's Black-Flash colour-swap (drawn by sprite.js), layered on hitstop
   drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
@@ -18326,7 +18286,14 @@ gameLoop()
     pauseSel: () => ({ gameState, index: pauseMenuIndex, item: PAUSE_MENU_ITEMS[pauseMenuIndex] }),
     // Camera introspection (zoom regression diagnosis).
     camera: () => ({ zoom: camera.zoom, targetZoom: camera.targetZoom, x: camera.x, y: camera.y, worldWidth: camera.worldWidth, minZoom: camera.minZoom }),
-    impactFrame: () => (impactFX ? { ...impactFX } : null),   // impact-frame visual state (visual-only; null when not flashing)
+    // Impact-frame (Black Flash) visual state — per-fighter colour-swap markers (visual-only; null when not flashing).
+    // `active` = a representative marker (both fighters share the same tier/combo/level on a given hit); p1/p2Filter
+    // = the sprite filter actually applied last render (sprite.js records _lastSpriteFilter) → proves the recolor lands.
+    impactFrame: () => { const s = f => (f && f._impactFlash) ? { ...f._impactFlash } : null; const a = s(p1), b = s(p2); return { p1: a, p2: b, active: a || b, p1Filter: p1?._lastSpriteFilter || null, p2Filter: p2?._lastSpriteFilter || null } },
+    // Harness-only: stamp the Black-Flash marker directly on both fighters at an exact level, held long enough
+    // for a FRAME-EXACT screenshot (dur ticks down in render). Pass level<0 (or dur 0) to clear. Does not touch
+    // the sim — same render-only field the real combo-trigger writes; used only to freeze a frame for capture.
+    setImpactFlash: (level = 0, dur = 600) => { for (const f of [p1, p2]) { if (!f) continue; f._impactFlash = (level < 0 || dur <= 0) ? null : { timer: dur, maxTimer: dur, level, tier: "harness", combo: 0, comboTier: level }; } return true },
     // Expire an active Susanoo so the normal update loop auto-reverts it (recovery timing).
     expireSusanoo: () => { if (p1 && (p1._susanooStage || 0) > 0) p1._susanooTimer = 1 },
     // Toji stance system introspection (foundation): stance + live attack phase/move.

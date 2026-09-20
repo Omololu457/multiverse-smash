@@ -1,5 +1,65 @@
 ========================================================================
-IMPACT FRAME (purely visual) — 2026-09-20
+IMPACT FRAME — REBUILT as JJK "BLACK FLASH" sprite colour-swap — 2026-09-20
+Replaces the earlier screen-desaturation attempt below (@56dd7103) with the
+ACTUAL anime technique: a per-SPRITE palette swap at the moment of impact.
+Still PURELY VISUAL — zero damage / balance / combo-scaling / hitstop
+changes; combat.js UNTOUCHED.
+========================================================================
+
+WHY THE REBUILD
+  The screen-flash version fired correctly but was a 2-6 frame full-screen
+  effect — nearly impossible to catch in a live/human-timed screenshot, so
+  it "looked like nothing". Diagnosis (Stage 1): NOT a bug (the impactFrame()
+  hook returned a live marker on every real hit; it just needed a frame-exact
+  capture to see). So the trigger stayed; the TECHNIQUE was replaced.
+
+WHAT IT DOES NOW
+  At hit-connect BOTH the struck + striking fighters' SPRITES snap (2-5f) to
+  a stark, rough "Black Flash" recolor: a hard high-contrast CHARCOAL body
+  (ctx.filter grayscale + crushed contrast — reads on any character's palette)
+  with a flat cursed-RED silhouette (#c8102e — the exact Black-Flash red from
+  Yuji's ultimate, yujiUltimateCinematic.js) washed over it. Then back to
+  normal, layered on the existing hitstop freeze. A stark POP, not a wash.
+
+ESCALATION (visual only) — level = min(3, comboTier + hit-weight), where
+  comboTier mirrors the 5 / 9 / 15 combo-counter tiers and heavier hits
+  (heavy/special/ultimate) bump a notch. Higher level → deeper contrast,
+  darker, redder wash, and longer hold (2f base → 5f at 15+). comboCounter
+  is READ-ONLY.
+
+GATED OFF during a Brutality — the trigger and the per-frame tick both bail
+  on brutalityState.active, so the finisher palette never clashes.
+
+REUSES EXISTING INFRA (no new render primitives): the sprite.js spriteFilter
+  ctx.filter path — the SAME one Goku's form tints (GOKU_FORM_TINTS) and
+  Frieza Golden/Black use — plus the source-in silhouette mask from the
+  ghostface identity-swap tint (idTint), for the flat red overlay.
+
+IMPLEMENTATION — game.js + sprite.js. triggerImpactFrame (fired on the combo
+  rising-edge in updateComboDisplay) stamps a render-only fighter._impactFlash
+  marker on both fighters; sprite.js reads it to pick IMPACT_FLASH_TINTS[level]
+  + the red overlay while live; _tickImpactFlash counts it down each render
+  frame. Determinism-safe: the field is render-only (the determinism harness
+  snapshots only x/y/health/energy). NO writes to damage / combo-scaling /
+  comboCounter / hitstop state; combat.js UNTOUCHED.
+
+VERIFY (Stage 5, FRAME-EXACT — not live) — rewritten harness/impact_frame_live
+  .mjs (test:impact-frame 18/0): marker lands on BOTH fighters, the recolor
+  filter actually applies (reads _lastSpriteFilter), tier + combo escalation,
+  the brutality-null gate, and on-canvas pixel proof the fighter band goes
+  darker + red-dominant. New harness hook setImpactFlash(level,dur) holds an
+  exact level long enough to screenshot a specific frame.
+REGRESSION: determinism 9/0 · combo-standard 227/0 · brutality 47/0 ·
+  hitstop 23/0 · combat-fx-stage1/2 10/0 · combo-starter-scaling 28/0 ·
+  goku-form-tint 10/0 · ghostface-exe-idswap 17/0 · anim-transition-ghost 8/0 ·
+  frieza 31/0. (chrollo-tint 7/2 = PRE-EXISTING, unrelated unlock-mechanic.)
+SCREENSHOTS: harness/shots/IMPACT_low_combo.png (level 0, single hit) ·
+  IMPACT_high_combo.png (level 3, combo 18) — both clearly red-black.
+========================================================================
+
+
+========================================================================
+IMPACT FRAME (purely visual) — 2026-09-20   [SUPERSEDED by the rebuild above]
 Anime-style high-contrast desaturation flash at the instant a hit
 connects, layered ON TOP of the existing hitstop freeze (not a
 replacement). PURELY VISUAL — zero damage / balance / combo-scaling /

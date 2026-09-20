@@ -62,6 +62,24 @@ const GOKU_SSBLUE_TINT = "saturate(2.6) hue-rotate(165deg) brightness(1.10) cont
 const GOKU_FORM_TINTS  = [null, GOKU_SSJ_TINT, GOKU_SSG_TINT, GOKU_SSBLUE_TINT];   // index = transformIndex (0=base=no tint)
 const GOKU_TINTED_ACTIONS = new Set(["light", "heavy", "up", "air", "down_air", "gokuRush1", "gokuRush2", "gokuRush3", "dragonFist", "gokuKamehameha"]);
 
+// IMPACT FRAME — JJK "Black Flash" sprite palette-swap. At hit-connect the struck + striking fighters snap
+// (for 2-5 frames) to a stark, ROUGH, jarring look: (1) a ctx.filter crushes the body to a hard high-contrast
+// near-black CHARCOAL (palette-independent — reads on orange Goku or blue Sasuke alike), then (2) a flat
+// cursed-RED silhouette (#c8102e — the exact Black-Flash red from Yuji's ultimate) is washed over it via the
+// same source-in mask the identity-swap tint uses. Charcoal body + blood-red wash = the Black Flash impact.
+// Extremity escalates with the impact level (0..3 = combo tier + hit weight): deeper contrast, darker, redder.
+// game.js stamps fighter._impactFlash; this recolors while it's live. Brief → a stark POP, not a wash.
+const IMPACT_FLASH_TINTS = [
+  "grayscale(1) contrast(3.0) brightness(0.64)",  // 0 base — hard charcoal, clearly reads as a Black Flash
+  "grayscale(1) contrast(3.6) brightness(0.60)",  // 1
+  "grayscale(1) contrast(4.2) brightness(0.56)",  // 2
+  "grayscale(1) contrast(4.8) brightness(0.52)",  // 3 max — near-black stark
+];
+const IMPACT_FLASH_RED       = "#c8102e";                       // Black-Flash red (matches yujiUltimateCinematic.js)
+const IMPACT_FLASH_RED_ALPHA = [0.48, 0.53, 0.58, 0.64];        // blood-red wash strength per level (index = level)
+function _impactFlashTint(fl) { return IMPACT_FLASH_TINTS[Math.max(0, Math.min(3, (fl && fl.level) | 0))]; }
+function _impactFlashLevel(fl) { return Math.max(0, Math.min(3, (fl && fl.level) | 0)); }
+
 // ─────────────────────────────────────────────────────────────────
 // OPTIONAL DEPENDENCY — animationProfile.js
 // If missing, the module still works using fallback rendering.
@@ -988,7 +1006,8 @@ export class SpriteHandler {
     // Active tint filter, computed ONCE (also captured for the transition ghost so a tinted form's
     // after-image stays correctly tinted).
     let spriteFilter = "none";
-    if (fighter._shActive) spriteFilter = SKILL_HUNTER_TINT;             // Chrollo purple possession tint
+    if (fighter._impactFlash && fighter._impactFlash.timer > 0) spriteFilter = _impactFlashTint(fighter._impactFlash);  // IMPACT FRAME Black-Flash recolor — brief; dominates any form tint for its 2-5f window
+    else if (fighter._shActive) spriteFilter = SKILL_HUNTER_TINT;        // Chrollo purple possession tint
     else if (fighter._blackFriezaActive) spriteFilter = FRIEZA_BLACK_TINT;
     else if (fighter._goldenFriezaActive) spriteFilter = FRIEZA_GOLDEN_TINT;
     else if (fighter._piccoloOrangeActive) spriteFilter = PICCOLO_ORANGE_TINT;
@@ -1031,6 +1050,27 @@ export class SpriteHandler {
       idTintCanvas = tc;
     }
 
+    // IMPACT FRAME (Black Flash) — flat cursed-RED silhouette washed over the charcoal-filtered body (same
+    // source-in mask as the identity tint above). Only while _impactFlash is live; alpha scales with level.
+    const impFl = (fighter._impactFlash && fighter._impactFlash.timer > 0) ? fighter._impactFlash : null;
+    let impactTintCanvas = null, impactRedAlpha = 0;
+    if (impFl && _sheetReady(sheet)) {
+      impactRedAlpha = IMPACT_FLASH_RED_ALPHA[_impactFlashLevel(impFl)];
+      const tc = this._impactTintCanvas || (this._impactTintCanvas = document.createElement("canvas"));
+      if (tc.width !== drawWidth)  tc.width  = drawWidth;
+      if (tc.height !== drawHeight) tc.height = drawHeight;
+      const tctx = tc.getContext("2d");
+      tctx.clearRect(0, 0, drawWidth, drawHeight);
+      tctx.imageSmoothingEnabled = false;
+      tctx.globalCompositeOperation = "source-over";
+      tctx.drawImage(sheet, sx, sy, drawWidth, drawHeight, 0, 0, drawWidth, drawHeight);
+      tctx.globalCompositeOperation = "source-in";   // fill ONLY where the sprite is opaque → its silhouette
+      tctx.fillStyle = IMPACT_FLASH_RED;
+      tctx.fillRect(0, 0, drawWidth, drawHeight);
+      tctx.globalCompositeOperation = "source-over";
+      impactTintCanvas = tc;
+    }
+
     if (_sheetReady(sheet)) {
       if (spriteFilter !== "none") ctx.filter = spriteFilter;
 
@@ -1053,6 +1093,11 @@ export class SpriteHandler {
           ctx.drawImage(idTintCanvas, 0, 0, drawWidth, drawHeight, -fighter.x + offsetX - dstW, drawY, dstW, dstH);
           ctx.globalAlpha = 1;
         }
+        if (impactTintCanvas) {
+          ctx.filter = "none"; ctx.globalAlpha = impactRedAlpha;
+          ctx.drawImage(impactTintCanvas, 0, 0, drawWidth, drawHeight, -fighter.x + offsetX - dstW, drawY, dstW, dstH);
+          ctx.globalAlpha = 1;
+        }
       } else {
         ctx.drawImage(
           sheet,
@@ -1068,6 +1113,11 @@ export class SpriteHandler {
         if (idTintCanvas) {
           ctx.filter = "none"; ctx.globalAlpha = IDSWAP_TINT_ALPHA;
           ctx.drawImage(idTintCanvas, 0, 0, drawWidth, drawHeight, fighter.x - offsetX, drawY, dstW, dstH);
+          ctx.globalAlpha = 1;
+        }
+        if (impactTintCanvas) {
+          ctx.filter = "none"; ctx.globalAlpha = impactRedAlpha;
+          ctx.drawImage(impactTintCanvas, 0, 0, drawWidth, drawHeight, fighter.x - offsetX, drawY, dstW, dstH);
           ctx.globalAlpha = 1;
         }
       }

@@ -1,4 +1,40 @@
 ========================================================================
+PLAYTEST FIXES — MOVE LIST stuck/scroll + arcade energy drain — 2026-09-20
+Two bugs reported by playtesters. Purely UI + one mode-setup line; combat.js
+UNTOUCHED; determinism unaffected. Committed + pushed origin/main @8f314997.
+========================================================================
+
+BUG 1 — MOVE LIST screen: BACK unclickable (players STUCK) + no scrolling.
+  The MOVE LIST ("Fighters, moves, combos & controls") screen lists ~103
+  fighters in a column far taller than the viewport. Its off-screen rows
+  overlapped the BACK / CONTROLS buttons, and the click handler tested the
+  fighter rows BEFORE the buttons — so clicking BACK hit an off-screen row
+  instead and did nothing (keyboard Esc still worked; only MOUSE users were
+  stranded). FIX: (a) hit-test the buttons FIRST, and only make fighter rows
+  clickable within the scrolled viewport; (b) the fighter list AND the kit
+  panel now SCROLL (mouse wheel, with scrollbars) so the whole roster and a
+  character's full move list are reachable.
+  Files: ui.js (viewport/scroll helpers + clipped list + scrollable kit
+  panel), game.js (scroll state + wheel routing + buttons-first hit-test).
+
+BUG 2 — Arcade: "lose all your energy and can't regain it."
+  applyArcadeFight() never cleared matchConfig.modifiers (unlike
+  applyTowerFloor, which assigns them per floor), so a leftover match
+  modifier — most damagingly a Tower floor's "Meter Drain" (−0.5 energy/
+  frame, vs +0.06/frame regen) — PERSISTED onto every arcade fight and
+  pinned the player's meter at 0. Arcade is designed to run clean. FIX: one
+  line — applyArcadeFight now clears matchConfig.modifiers for every fight.
+  Proven: with the drain set, energy fell −50..−75 in ~2s and stuck; after
+  the fix it clears and regenerates normally.
+
+VERIFY: new test:movelist-arcade-fix 12/0 (real BACK click through the
+  canvas, wheel scroll, arcade modifier-clear + energy regen). Regression:
+  determinism 9/0 · combo-standard 227/0 · arcade 25/0 · tower 38/0 ·
+  controls-help 5/0.
+========================================================================
+
+
+========================================================================
 IMPACT FRAME — REBUILT as JJK "BLACK FLASH" sprite colour-swap — 2026-09-20
 Replaces the earlier screen-desaturation attempt below (@56dd7103) with the
 ACTUAL anime technique: a per-SPRITE palette swap at the moment of impact.

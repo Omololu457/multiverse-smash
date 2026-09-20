@@ -1,4 +1,51 @@
 ========================================================================
+IMPACT FRAME (purely visual) — 2026-09-20
+Anime-style high-contrast desaturation flash at the instant a hit
+connects, layered ON TOP of the existing hitstop freeze (not a
+replacement). PURELY VISUAL — zero damage / balance / combo-scaling /
+hitstop changes; combat.js UNTOUCHED. Committed + pushed origin/main
+@56dd7103 (comparison screenshots @b0efd3df).
+========================================================================
+
+WHAT IT DOES
+  At hit-connect the scene briefly desaturates toward stark B&W with an
+  additive white flash centred on the impact point, then snaps back to
+  colour as hitstop ends. Drawn OVER the scene/fighters but UNDER the HUD
+  (HP bars + combo counter stay in colour). Layered WITH the existing
+  per-tier hit-spark particles — never a replacement.
+
+BASE INTENSITY — scales by hit tier (keyed off the hitstop weight):
+  light 0.34 · heavy 0.50 · special 0.64 · ultimate 0.80 desaturation;
+  duration 2–3 frames. A jab reads as a quick snap; an ult is cinematic.
+
+COMBO ESCALATION (visual only) — mirrors the 5 / 9 / 15 combo-counter
+  colour tiers. As the live combo climbs, each subsequent hit in the same
+  combo flashes longer + more desaturated, and at 9+ / 15+ a ring of
+  radiating white flash-lines streaks from the impact (denser + longer at
+  15+). Combo hit 1 = base only; 15+ = noticeably more dramatic.
+
+GATED OFF during a Brutality — both the trigger and the render bail on
+  brutalityState.active, so it never clashes with a finisher.
+
+IMPLEMENTATION — game.js ONLY, +93 lines, 100% additive. triggerImpactFrame
+  only READS comboCounter + hitstop and sets a render-only impactFX object
+  (fired on the combo rising-edge in updateComboDisplay); _drawImpactFrame
+  renders it and ticks only its own timer, with a deterministic seed (no
+  Math.random). NO writes to any damage value, combo-scaling constant,
+  comboCounter, or hitstop state.
+
+VERIFY — new harness/impact_frame_live.mjs (test:impact-frame 15/0): base
+  single light hit, tier scaling light<heavy<special, combo sweep
+  1/5/9/15, and the brutality-null gate. Render-only → determinism 9/0.
+REGRESSION: determinism 9/0 · combo-standard 227/0 · brutality 47/0 ·
+  hitstop 23/0 · combat-fx-stage1 10/0 (3× stable) · combat-fx-stage2 10/0 ·
+  combo-starter-scaling 28/0.
+SCREENSHOTS: harness/shots/IMPACT_low_combo.png · IMPACT_mid_combo.png ·
+  IMPACT_high_combo.png  (combo 1 / ~10 / 15+ comparison).
+========================================================================
+
+
+========================================================================
 LARGE MULTI-STAGE PASS — 2026-09-17
 Five tracks. No sim/timing/balance changes except the new moves in
 Track B (in-band costs/damage only). Staged for review — NOT committed.

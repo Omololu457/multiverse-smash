@@ -1,4 +1,55 @@
 ========================================================================
+JUICE PASS — speed lines / KO hang-time / ultimate panel-crop — 2026-09-21
+Four stages of purely-visual game-feel. NO balance/damage changes anywhere;
+combat.js UNTOUCHED; determinism 9/0. All in game.js (render + camera only).
+========================================================================
+
+STAGE 0 — IMPACT FRAME REBUILD: CONFIRMED already complete (the JJK "Black
+  Flash" sprite colour-swap, committed @b977b1bd). Re-verified frame-exact:
+  test:impact-frame 18/0. No rebuild needed.
+
+STAGE 1 — MANGA SPEED LINES on a dash/rush. Radiating white motion-streaks
+  fan out BEHIND a fighter during a fast dash-in or rush attack — a classic
+  manga speed-line burst. Reuses the existing behind-body aura render path +
+  ctx.stroke primitives (drawn in renderHybridFighter, behind the sprite).
+  Gated on the real dash state (fighter.dashTimer) OR a fast forward lunge
+  (|vx| ≥ threshold); suppressed while hit/launched/downed (that's knockback,
+  not a rush) and during a cinematic freeze. Density/length/opacity scale with
+  speed. Distinct from the impact frame (a hit-CONNECT recolor) — speed lines
+  play during MOVEMENT, so they never collide. Verify: test:speed-lines 7/0
+  (real dash trips the gate on goku + sasuke; standing = off; near-white streak
+  pixels 3→476 / 4→748). Shots SPEEDLINES_goku.png / _sasuke.png.
+
+STAGE 2 — KO HANG-TIME. On a normal (non-Brutality) match-ending KO, a brief
+  HARD freeze-frame (5f, 0 motion) holds the finishing blow BEFORE the ragdoll,
+  then the EXISTING slow-mo hang plays. Checked the prior KO work first
+  (KO_SHAKE + KO_SLOWMO + KO_HANG_TICKS): the freeze is placed at the top of
+  updateBattle and the slow-mo timer isn't consumed until it clears, so the two
+  DON'T double-stack (hitstop-beat → then slow-mo, not one long ramp). Short —
+  a beat, not a freeze system. Verify: test:ko-hangtime 7/0 (freeze arms to max,
+  is ≤6f, slow-mo held at 30 during the freeze then plays after). Shot
+  KO_freeze_frame.png (the held finishing frame + K.O. stamp + Black-Flash cast).
+
+STAGE 3 — ULTIMATE PANEL ZOOM-CROP. At the instant an ultimate CONNECTS, a
+  HARD one-frame snap to a tight crop (~1.6 zoom) — a manga-panel hard cut,
+  distinct from the eased ultimate punch-in — held ~12f, then a short ramp back
+  to camera-max so the two-shot eases out (the pull-back). Detected directly off
+  a fighter's hitstop rising-edge into ultimate tier (≥24; every other tier ≤16),
+  independent of the combo counter (which some ults don't increment). Only pins
+  the ZOOM (x/y stays with the normal follow → can't shove the view off-world);
+  suppressed during Brutality / cinematic freeze. Layered on top of, not fighting,
+  the existing eased camera. Verify: test:ult-zoomcrop 6/0 (fires on ippo +
+  bardock; single-frame Δzoom +0.67 / +0.66 to ~1.6 — a hard snap, not a ramp).
+  Shots ULTCROP_ippo.png / ULTCROP_bardock.png.
+
+STAGE 4 — REGRESSION: determinism 9/0 · combo-standard 227/0 · impact-frame
+  18/0 · brutality 47/0 · camera-ultrawide 9/0. combat.js UNTOUCHED; the added
+  game.js lines have ZERO writes to damage / combo / health / hitstop state
+  (render + camera fields only; determinism-safe).
+========================================================================
+
+
+========================================================================
 PLAYTEST FIXES — MOVE LIST stuck/scroll + arcade energy drain — 2026-09-20
 Two bugs reported by playtesters. Purely UI + one mode-setup line; combat.js
 UNTOUCHED; determinism unaffected. Committed + pushed origin/main @8f314997.

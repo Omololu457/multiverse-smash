@@ -1349,7 +1349,11 @@ let _roundEndAudioStopped = false   // latch so the round-end voice/SFX stop fir
 // can't be the guard — it decays mid-hang and would re-fire). _koHangTimer holds the round-end
 // resolution for a few ticks so the hang actually plays before we cut to ROUND_BREAK/VICTORY.
 const KO_SHAKE_STRENGTH = 26, KO_SHAKE_FRAMES = 26, KO_SLOWMO_FRAMES = 30, KO_HANG_TICKS = 8
-let _koBeatFired = false, _koHangTimer = 0
+// STAGE 2 (this pass) — a brief HARD freeze-frame on the finishing blow, held BEFORE the existing slow-mo
+// hang/ragdoll plays, so the KO reads as a punctuated "beat" (hitstop → then slow-mo), not one long ramp.
+// Distinct from KO_SHAKE (camera) and KO_SLOWMO (1/3-speed): this is a true 0-motion hold. Kept short.
+const KO_FREEZE_FRAMES = 5
+let _koBeatFired = false, _koHangTimer = 0, _koFreeze = 0
 let slowdownTimer  = 0
 let slowdownTarget = null
 let hoverThrottle  = 0
@@ -1404,6 +1408,47 @@ function triggerImpactFrame(attacker, combo) {
   // Both fighters flash: the struck opponent (primary) and the attacker landing it (the "connection").
   _stampImpactFlash(opp,      level, dur, tier, combo, ct)
   _stampImpactFlash(attacker, level, dur, tier, combo, ct)
+}
+
+// ── STAGE 3 — PANEL-STYLE ZOOM-CROP ON ULTIMATE CONNECT (camera only) ──────────────────────
+// At the instant an ultimate lands (hitstop-tier "ultimate"), HARD-SNAP the camera to a tight crop —
+// a manga-panel hard-cut, distinct from the existing eased ultimate punch-in. Held briefly, then the
+// normal two-shot reframe eases it back out (the pull-back). We only pin the ZOOM (a hard snap the eased
+// path never does); x/y stays with the normal follow, which already centres the clashing pair, so the
+// crop can't shove the view off-world. Suppressed during a Brutality / cinematic freeze.
+const ULT_CROP_FRAMES = 12
+const ULT_CROP_HITSTOP = 24   // a fighter's hitstop jumping here = an ULTIMATE connected (all other tiers ≤ 16)
+let _ultCrop = null   // { timer, zoom } | null
+// Detect an ultimate CONNECT directly: a fighter's hitstop rising-edge into ultimate tier (independent of the
+// combo counter, which some ultimates don't increment). Called each battle frame; fires the crop once per hit.
+function _detectUltimateConnect() {
+  for (const f of [p1, p2]) {
+    if (!f) continue
+    const hs = f.hitstop || 0
+    if (hs >= ULT_CROP_HITSTOP && (f._prevHsCrop || 0) < ULT_CROP_HITSTOP && !_ultCrop && !brutalityState.active) triggerUltimateCrop()
+    f._prevHsCrop = hs
+  }
+}
+const ULT_CROP_RELEASE = 5   // last frames of the hold ramp the zoom back to the camera max (smooth pull-back)
+function triggerUltimateCrop() {
+  if (brutalityState.active) return
+  // A strong tight crop, set DIRECTLY (past the normal max, the way the transform cinematics do) so it reads
+  // as a hard panel cut, not the ~1.0 the eased path caps at. Relative to the live zoom, floored well in.
+  const zoom = Math.max(1.42, (camera.zoom || 1) * 1.7)
+  camera.zoom = zoom; camera.targetZoom = zoom          // HARD CUT — instant this frame (no easing)
+  _ultCrop = { timer: ULT_CROP_FRAMES, zoom }
+}
+// Hold the hard crop each frame (override the eased reframe that just ran), then ramp it back to camera max
+// over the last few frames so releasing doesn't snap through the maxZoom clamp — then the two-shot eases out.
+function _tickUltimateCrop() {
+  if (!_ultCrop) return
+  if (brutalityState.active) { _ultCrop = null; return }
+  const c = _ultCrop
+  const camMax = camera.maxZoom || 1
+  let z = c.zoom
+  if (c.timer <= ULT_CROP_RELEASE) z = camMax + (c.zoom - camMax) * (c.timer / ULT_CROP_RELEASE)   // 1.42 → camMax
+  camera.zoom = z; camera.targetZoom = z
+  if (--c.timer <= 0) _ultCrop = null
 }
 
 const allCharacterKeys = Object.keys(characters).filter(k => !characters[k].hidden)
@@ -2875,7 +2920,7 @@ function resetRound() {
   resetMusicIntensity()                              // every round starts on the calm stage track (reverts any low-HP/final-round intensity)
   brutalityState.active = false; brutalityState.parts.length = 0   // clear any finisher state on a fresh round
   knockoutFlash  = 0
-  _koBeatFired   = false; _koHangTimer = 0   // re-arm the KO camera beat for the new round
+  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null   // re-arm the KO camera beat for the new round
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
@@ -3959,7 +4004,7 @@ function resetToStart() {
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
   knockoutFlash  = 0
-  _koBeatFired   = false; _koHangTimer = 0
+  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null
   slowdownTimer  = 0
   slowdownTarget = null
   for (const side of ["p1","p2"]) {
@@ -5175,7 +5220,7 @@ function _doRematch() {
   clearChrolloSkillHunterCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0; slowdownTarget = null
-  _koBeatFired = false; _koHangTimer = 0
+  _koBeatFired = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null
   hitSparks.length = 0
   roundTimer = ROUND_TIME
   countdown  = ROUND_START_COUNTDOWN
@@ -12196,7 +12241,8 @@ function checkRoundEnd() {
     knockoutFlash = 18; _koStamp = _koStampMax = 48   // Stage 9: fire the K.O. stamp on the knockout frame
     const koLoser = (p1.health <= 0) ? p1 : p2
     camera.shake?.(KO_SHAKE_STRENGTH, KO_SHAKE_FRAMES)
-    triggerSlowdown(KO_SLOWMO_FRAMES, koLoser)
+    _koFreeze = KO_FREEZE_FRAMES                        // hard-hold the finishing frame FIRST (the "beat")
+    triggerSlowdown(KO_SLOWMO_FRAMES, koLoser)          // …then the slow-mo hang plays out (set now, ticks after the freeze)
     _koHangTimer = KO_HANG_TICKS
     return                                             // hold the hang — resolve on a later tick
   }
@@ -12404,6 +12450,10 @@ function _drawParryClashFlash() {
 
 function updateBattle() {
   if (brutalityState.active) { updateBrutality(); return }   // finisher plays out — freeze combat until it ends
+  // STAGE 2 KO impact-freeze beat: on a normal KO, hold the exact finishing frame for a few frames (0 motion)
+  // BEFORE the slow-mo ragdoll begins. Only the camera advances (so the KO shake keeps landing); combat/anim
+  // are frozen. slowdownTimer was set on the KO frame but isn't reached until this clears → no double-stack.
+  if (_koFreeze > 0) { _koFreeze--; if (typeof camera.advance === "function") camera.advance(canvas); return }
   updateMusicIntensity()   // dynamic low-HP / final-round music (audio only; never gates combat)
   if (slowdownTimer > 0) {
     slowdownTimer--
@@ -12879,12 +12929,14 @@ function updateBattle() {
     }
   }
 
+  _detectUltimateConnect()   // STAGE 3: arm the panel zoom-crop the frame an ultimate lands (hitstop rising-edge)
   if (typeof camera.update === "function") {
     // KO HANG: while the slow-mo beat is focused on the fallen fighter, keep that zoom-in instead of
     // snapping back to the two-shot framing (game-feel Stage 2). Otherwise the normal two-fighter
     // reframe would immediately undo the punch-in every frame.
     if (slowdownTarget && slowdownTimer > 0 && typeof camera.advance === "function") camera.advance(canvas)
     else camera.update(p1, p2, canvas)
+    _tickUltimateCrop()   // STAGE 3: hard panel zoom-crop on an ultimate connect — overrides the eased reframe while held
   }
   _updateGonSuddenDeath()   // Gon Adult Form "Final Blow": resolve an armed sudden-death BEFORE round-end (its clean hit also KOs, which we don't want double-counted)
   // TOJI two-stage comeback: intercept a fighter whose HP just reached zero and (if saves remain) restore
@@ -12916,6 +12968,52 @@ function _tojiFlyFadeAlpha(fighter) {
   return TOJI_FADE_MIN
 }
 
+// ── STAGE 1 — MANGA SPEED LINES (purely visual) ────────────────────────────────────────────
+// Radiating motion-streak lines behind a fighter during a fast dash-in / rush attack — a classic
+// manga "speed line" burst. Render-only, drawn BEHIND the body in renderHybridFighter (reuses the
+// same world-space ctx + ctx.stroke primitives as the existing behind-body auras). Reads velocity
+// only — never writes sim state. Distinct from the impact frame (a hit-connect sprite recolor):
+// speed lines play DURING fast forward movement, not on connect, so the two never collide.
+const SPEED_LINE_MIN  = 14   // |vx| above this (run anim starts at ~10) reads as a dash / rush
+const SPEED_LINE_FULL = 27   // |vx| at/above → max density + length + opacity
+function drawSpeedLines(c, fighter) {
+  if (!c || !fighter || brutalityState.active) return
+  const vx = fighter.vx || 0, spd = Math.abs(vx)
+  const dashing = (fighter.dashTimer || 0) > 0   // a real dash (physics dashTimer) — reliable state flag
+  // Fire on a DASH (dashTimer) OR a fast forward lunge/rush (|vx| ≥ threshold). Suppress while being hit /
+  // launched / downed (that's knockback, not a rush) and while a cinematic freezes the sprite.
+  if ((!dashing && spd < SPEED_LINE_MIN) || (fighter.hitstun || 0) > 0 || fighter.knockdownState || fighter.isLaunched || fighter._animFrozen) return
+  const t   = Math.max(dashing ? 0.55 : 0, Math.min(1, (spd - SPEED_LINE_MIN) / (SPEED_LINE_FULL - SPEED_LINE_MIN)))   // 0..1 intensity
+  const dir = spd > 1 ? (vx >= 0 ? 1 : -1) : (fighter.facing || 1)
+  const w = fighter.w ?? 60, h = fighter.h ?? 110
+  const x = fighter.x ?? 0, y = fighter.y ?? 0
+  const cy = y + h * 0.5
+  const backEdge = dir >= 0 ? x : x + w         // trailing edge (opposite the motion)
+  const n = 9 + Math.round(t * 8)               // 9..17 streaks
+  const maxLen = 64 + t * 96                     // world px
+  const seed = (globalFrameCount * 17) % 1000    // deterministic per-frame flicker (no Math.random → stable capture)
+  c.save()
+  c.globalCompositeOperation = "lighter"
+  c.lineCap = "round"
+  for (let i = 0; i < n; i++) {
+    const r1 = ((seed + i * 131) % 100) / 100
+    const r2 = ((seed + i * 251) % 100) / 100
+    const ly = y - h * 0.12 + (h * 1.24) * (i / (n - 1)) + (r1 - 0.5) * 9   // spread across body + a small margin
+    const len = maxLen * (0.55 + r2 * 0.45)
+    const tilt = ((ly - cy) / h) * 0.55 * t                                  // gentle converge toward the motion axis
+    const x0 = backEdge - dir * (5 + r1 * 9)                                 // start just behind the body
+    const x1 = x0 - dir * len, y1 = ly + tilt * len
+    const a = (0.16 + 0.5 * t) * (0.55 + 0.45 * r2)
+    const grad = c.createLinearGradient(x0, ly, x1, y1)
+    grad.addColorStop(0, `rgba(245,250,255,${a.toFixed(3)})`)                // bright near the body
+    grad.addColorStop(1, "rgba(245,250,255,0)")                             // fade to nothing behind
+    c.strokeStyle = grad
+    c.lineWidth = 1 + r1 * 2
+    c.beginPath(); c.moveTo(x0, ly); c.lineTo(x1, y1); c.stroke()
+  }
+  c.restore()
+}
+
 function renderHybridFighter(fighter) {
   if (!fighter) return
   // BRUTALITY sprite-bisection: hide the live loser body during the finisher beat — the two separating split
@@ -12941,6 +13039,7 @@ function renderHybridFighter(fighter) {
     drawMiwaVortex(c, fighter)         // Miwa — Rapid Slash Vortex FX, a separate overlay layer in front of the body (Miwa only)
     drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
     drawHandlerShadowSink(c, fighter)   // Megumi Shadow Sink — dark shadow-pool ellipse at the feet, BEHIND the body (handler only)
+    drawSpeedLines(c, fighter)          // STAGE 1: manga speed-lines behind a fast dash/rush, BEHIND the body (any fighter, velocity-gated)
     fighter._sprDrawCount = (fighter._sprDrawCount | 0) + 1   // harness: body-draw tally (once/frame normally) → catches a "two instances" double-render after a body-swap transform
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
     const _ssA = _shadowSinkBodyAlpha(fighter)
@@ -18322,6 +18421,12 @@ gameLoop()
     // `active` = a representative marker (both fighters share the same tier/combo/level on a given hit); p1/p2Filter
     // = the sprite filter actually applied last render (sprite.js records _lastSpriteFilter) → proves the recolor lands.
     impactFrame: () => { const s = f => (f && f._impactFlash) ? { ...f._impactFlash } : null; const a = s(p1), b = s(p2); return { p1: a, p2: b, active: a || b, p1Filter: p1?._lastSpriteFilter || null, p2Filter: p2?._lastSpriteFilter || null } },
+    // STAGE 2 — KO beat readout: the hard freeze-frame counter, the slow-mo hang, and the resolve hold.
+    koBeat: () => ({ freeze: _koFreeze, freezeMax: KO_FREEZE_FRAMES, beatFired: _koBeatFired, hangTimer: _koHangTimer, slowdown: slowdownTimer, slowmoTarget: slowdownTarget?.rosterKey || null, koStamp: _koStamp || 0 }),
+    // STAGE 3 — ultimate panel zoom-crop readout: the hold timer + the live camera zoom (proves the hard snap).
+    ultCrop: () => ({ active: !!_ultCrop, timer: _ultCrop?.timer || 0, cropZoom: _ultCrop?.zoom || 0, zoom: camera.zoom, targetZoom: camera.targetZoom, maxZoom: camera.maxZoom }),
+    // STAGE 1 — manga speed-lines gate readout (would they draw behind this fighter this frame?).
+    speedLines: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const vx = f.vx || 0, spd = Math.abs(vx); const dashing = (f.dashTimer || 0) > 0; const active = (dashing || spd >= SPEED_LINE_MIN) && !((f.hitstun || 0) > 0) && !f.knockdownState && !f.isLaunched && !f._animFrozen && !brutalityState.active; return { vx, spd, dashing, active, intensity: active ? Math.max(dashing ? 0.55 : 0, Math.min(1, (spd - SPEED_LINE_MIN) / (SPEED_LINE_FULL - SPEED_LINE_MIN))) : 0 } },
     // Harness-only: stamp the Black-Flash marker directly on both fighters at an exact level, held long enough
     // for a FRAME-EXACT screenshot (dur ticks down in render). Pass level<0 (or dur 0) to clear. Does not touch
     // the sim — same render-only field the real combo-trigger writes; used only to freeze a frame for capture.

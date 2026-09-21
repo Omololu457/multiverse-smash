@@ -25,6 +25,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { startLanServer, lanAddresses } from "../net/lanServer.mjs";   // LAN multiplayer (Stage 3) relay + IP discovery
 
 const VERSION = "1";
 const SAVE_FORMAT = "multiverse-smash-save";
@@ -55,7 +56,7 @@ function readBody(req) {
 
 // Create (but do not start) the save server. Exported so the harness can boot it on a
 // random port against a throwaway save dir; the CLI entry below starts it on 127.0.0.1.
-export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_ROOT, "saves"), version = VERSION, feedbackFile = path.join(REPO_ROOT, "BETA_FEEDBACK_LOG.txt") } = {}) {
+export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_ROOT, "saves"), version = VERSION, feedbackFile = path.join(REPO_ROOT, "BETA_FEEDBACK_LOG.txt"), lanRelayPort = null } = {}) {
   const SAVE_FILE = path.join(saveDir, "game_player_data.json");
   const TMP_FILE  = SAVE_FILE + ".tmp";
   const BAK_FILE  = path.join(saveDir, "game_player_data.bak.json");
@@ -67,6 +68,13 @@ export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_RO
 
     // ── API: capability probe ────────────────────────────────────────────────
     if (url === "/api/health") { sendJson(res, 200, { ok: true, version }); return; }
+
+    // ── API: LAN multiplayer info (Stage 3) — the relay port + this host's LAN IPs so the ONLINE screen can
+    // show a shareable ws:// address. port is null when no relay was started (e.g. harness save-server).
+    if (url === "/api/lan-info") {
+      sendJson(res, 200, { ok: true, port: lanRelayPort, addresses: lanAddresses().map((a) => a.address) });
+      return;
+    }
 
     // ── API: read the save ───────────────────────────────────────────────────
     if (url === "/api/save" && req.method === "GET") {
@@ -142,12 +150,26 @@ export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_RO
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const PORT = +(process.env.PORT || 8000);
-  const server = createSaveServer();
+  // LAN multiplayer relay (Stage 3): a ws server bound to ALL interfaces so a second device can reach it.
+  // The game (served on 127.0.0.1 locally) connects to it as a client for hosting/joining. Additive: if it
+  // fails to start (e.g. port busy), the rest of the dev server still runs — only ONLINE is unavailable.
+  const LAN_PORT = +(process.env.LAN_PORT || 8787);
+  let lanRelayPort = null;
+  try {
+    startLanServer({ port: LAN_PORT, relay: true, log: () => {} });
+    lanRelayPort = LAN_PORT;
+  } catch (e) { console.log(`  • LAN relay      → FAILED to start on ${LAN_PORT}: ${e.message}`); }
+
+  const server = createSaveServer({ lanRelayPort });
   server.listen(PORT, "127.0.0.1", () => {
     console.log(`save server → http://127.0.0.1:${PORT}`);
     console.log(`  • GET/POST /api/save  → ${path.relative(REPO_ROOT, server._saveFile)}  (auto file persistence)`);
     console.log(`  • POST /api/feedback  → ${path.relative(REPO_ROOT, server._feedbackFile)}  (beta bug/feedback log)`);
     console.log(`  • GET /api/health     → { ok: true, version: "${VERSION}" }`);
+    if (lanRelayPort) {
+      const ips = lanAddresses().map((a) => `ws://${a.address}:${lanRelayPort}`);
+      console.log(`  • LAN relay (ONLINE)  → ws://0.0.0.0:${lanRelayPort}${ips.length ? "  share: " + ips.join(" , ") : ""}`);
+    }
     console.log(`  • static              → repo root`);
   });
 }

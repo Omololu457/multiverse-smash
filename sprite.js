@@ -69,14 +69,19 @@ const GOKU_TINTED_ACTIONS = new Set(["light", "heavy", "up", "air", "down_air", 
 // same source-in mask the identity-swap tint uses. Charcoal body + blood-red wash = the Black Flash impact.
 // Extremity escalates with the impact level (0..3 = combo tier + hit weight): deeper contrast, darker, redder.
 // game.js stamps fighter._impactFlash; this recolors while it's live. Brief → a stark POP, not a wash.
+// CORRECTED (the prior escalation overshot into an unreadable red blob): the charcoal is now BOLD INKED
+// LINEWORK — high contrast for a stark manga-ink look, but brightness kept UP so limbs/pose/detail stay
+// readable (NOT crushed to a black-then-red-flooded silhouette). The red no longer floods: it's applied via
+// MULTIPLY (see the overlay draw below) so it TINTS the inked linework, preserving edges — it never replaces
+// the sprite. The 0→3 curve still escalates (bolder ink + stronger red tint), but stays legible at every tier.
 const IMPACT_FLASH_TINTS = [
-  "grayscale(1) contrast(3.0) brightness(0.64)",  // 0 base — hard charcoal, clearly reads as a Black Flash
-  "grayscale(1) contrast(3.6) brightness(0.60)",  // 1
-  "grayscale(1) contrast(4.2) brightness(0.56)",  // 2
-  "grayscale(1) contrast(4.8) brightness(0.52)",  // 3 max — near-black stark
+  "grayscale(1) contrast(1.7) brightness(1.02)",  // 0 base — light inking, clearly still the character
+  "grayscale(1) contrast(2.1) brightness(0.98)",  // 1
+  "grayscale(1) contrast(2.6) brightness(0.94)",  // 2
+  "grayscale(1) contrast(3.1) brightness(0.90)",  // 3 max — bold ink, highlights still visible (was 7.5/0.32 = a black blob)
 ];
-const IMPACT_FLASH_RED       = "#c8102e";                       // Black-Flash red (matches yujiUltimateCinematic.js)
-const IMPACT_FLASH_RED_ALPHA = [0.48, 0.53, 0.58, 0.64];        // blood-red wash strength per level (index = level)
+const IMPACT_FLASH_RED       = "#e0142e";                       // Black-Flash red
+const IMPACT_FLASH_RED_ALPHA = [0.45, 0.55, 0.65, 0.75];        // MULTIPLY-tint strength — modulates the ink, never a flat fill
 function _impactFlashTint(fl) { return IMPACT_FLASH_TINTS[Math.max(0, Math.min(3, (fl && fl.level) | 0))]; }
 function _impactFlashLevel(fl) { return Math.max(0, Math.min(3, (fl && fl.level) | 0)); }
 
@@ -1094,9 +1099,9 @@ export class SpriteHandler {
           ctx.globalAlpha = 1;
         }
         if (impactTintCanvas) {
-          ctx.filter = "none"; ctx.globalAlpha = impactRedAlpha;
+          ctx.filter = "none"; ctx.globalCompositeOperation = "multiply"; ctx.globalAlpha = impactRedAlpha;   // MULTIPLY = tint the ink, keep edges/pose
           ctx.drawImage(impactTintCanvas, 0, 0, drawWidth, drawHeight, -fighter.x + offsetX - dstW, drawY, dstW, dstH);
-          ctx.globalAlpha = 1;
+          ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
         }
       } else {
         ctx.drawImage(
@@ -1116,9 +1121,9 @@ export class SpriteHandler {
           ctx.globalAlpha = 1;
         }
         if (impactTintCanvas) {
-          ctx.filter = "none"; ctx.globalAlpha = impactRedAlpha;
+          ctx.filter = "none"; ctx.globalCompositeOperation = "multiply"; ctx.globalAlpha = impactRedAlpha;   // MULTIPLY = tint the ink, keep edges/pose
           ctx.drawImage(impactTintCanvas, 0, 0, drawWidth, drawHeight, fighter.x - offsetX, drawY, dstW, dstH);
-          ctx.globalAlpha = 1;
+          ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
         }
       }
     } else {

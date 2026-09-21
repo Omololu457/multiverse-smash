@@ -1404,10 +1404,55 @@ function triggerImpactFrame(attacker, combo) {
   const tier  = _impactTierFromHitstop(hs)
   const ct    = _impactComboTier(combo)
   const level = Math.min(3, ct + (IMPACT_HIT_TIER[tier] || 0))   // 0..3 recolor extremity (combo tier + hit weight)
-  const dur   = 2 + ct                                           // 2..5 frames — brief at low combo, longer as it climbs
+  const dur   = 4 + level * 2                                    // ESCALATED: 4/6/8/10f — longer HOLD at EVERY tier (was 2..5)
   // Both fighters flash: the struck opponent (primary) and the attacker landing it (the "connection").
   _stampImpactFlash(opp,      level, dur, tier, combo, ct)
   _stampImpactFlash(attacker, level, dur, tier, combo, ct)
+  // STAGE 2: at the higher tiers, a radiating CRACK/shatter burst from the impact point sells real force.
+  if (level >= 2) _fireImpactBurst(opp || attacker, level, dur)
+}
+
+// STAGE 2 — IMPACT CRACK BURST (purely visual). Jagged white-cored, red-glow "shatter" lines radiating from
+// the impact point, at the higher escalation tiers (level ≥ 2). Render-only screen-space overlay (reuses the
+// same ctx.stroke line primitive as the old radiating-lines / speed-lines); layered ON TOP of the sprite
+// recolor, timed to the same window (never touches hitstop/particles). Deterministic seed (no Math.random).
+let _impactBurst = null   // { timer, maxTimer, level, wx, wy, seed } | null
+function _fireImpactBurst(target, level, dur) {
+  if (!target || brutalityState.active) return
+  const wx = (target.x || 0) + (target.w || 60) / 2
+  const wy = (target.y || 0) + (target.h || 100) * 0.42
+  _impactBurst = { timer: dur, maxTimer: dur, level, wx, wy, seed: (globalFrameCount * 53) % 360 }
+}
+function _drawImpactBurst() {
+  if (brutalityState.active) { _impactBurst = null; return }
+  if (!_impactBurst || _impactBurst.timer <= 0) return
+  const b = _impactBurst
+  const env = Math.max(0, b.timer / b.maxTimer)                 // 1 → 0 over the window
+  const sp  = _worldToScreen(b.wx, b.wy)
+  const n   = 6 + b.level * 3                                   // level 2 → 12 cracks, level 3 → 15 (fewer, less cluttered)
+  const maxLen = (0.14 + b.level * 0.05) * Math.max(canvas.width, canvas.height)
+  // Start each crack OUTSIDE the character (inner radius r0) so the burst frames the impact from AROUND/behind
+  // the fighters — it never draws through the body/pose. Scaled to the fighter so it clears the silhouette.
+  const r0 = ((getOpponent(p1)?.h || p1?.h || 110) * 0.55) * camera.zoom
+  ctx.save(); ctx.lineCap = "round"
+  for (let i = 0; i < n; i++) {
+    const r1 = ((b.seed + i * 137) % 100) / 100
+    const r2 = ((b.seed + i * 263) % 100) / 100
+    const ang = (i / n) * Math.PI * 2 + (r1 - 0.5) * 0.5
+    const len = maxLen * (0.55 + r2 * 0.45) * (0.55 + 0.45 * env)   // fades + shrinks
+    const sx0 = sp.x + Math.cos(ang) * r0, sy0 = sp.y + Math.sin(ang) * r0   // begin at the character's perimeter
+    const midR = len * (0.42 + r1 * 0.22), midAng = ang + (r2 - 0.5) * 0.45   // one kink = a jagged crack
+    const xm = sx0 + Math.cos(midAng) * midR, ym = sy0 + Math.sin(midAng) * midR
+    const x1 = xm + Math.cos(ang) * (len - midR), y1 = ym + Math.sin(ang) * (len - midR)
+    ctx.strokeStyle = `rgba(224,20,46,${(0.5 * env).toFixed(3)})`   // red glow underlay
+    ctx.lineWidth = 3 + b.level
+    ctx.beginPath(); ctx.moveTo(sx0, sy0); ctx.lineTo(xm, ym); ctx.lineTo(x1, y1); ctx.stroke()
+    ctx.strokeStyle = `rgba(255,242,242,${(0.85 * env).toFixed(3)})`  // white core
+    ctx.lineWidth = 1.5 + b.level * 0.5
+    ctx.beginPath(); ctx.moveTo(sx0, sy0); ctx.lineTo(xm, ym); ctx.lineTo(x1, y1); ctx.stroke()
+  }
+  ctx.restore()
+  if (--b.timer <= 0) _impactBurst = null
 }
 
 // ── STAGE 3 — PANEL-STYLE ZOOM-CROP ON ULTIMATE CONNECT (camera only) ──────────────────────
@@ -2925,7 +2970,7 @@ function resetRound() {
   resetMusicIntensity()                              // every round starts on the calm stage track (reverts any low-HP/final-round intensity)
   brutalityState.active = false; brutalityState.parts.length = 0   // clear any finisher state on a fresh round
   knockoutFlash  = 0
-  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false   // re-arm the KO camera beat for the new round
+  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null   // re-arm the KO camera beat for the new round
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
@@ -4009,7 +4054,7 @@ function resetToStart() {
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
   knockoutFlash  = 0
-  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false
+  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
   slowdownTimer  = 0
   slowdownTarget = null
   for (const side of ["p1","p2"]) {
@@ -5225,7 +5270,7 @@ function _doRematch() {
   clearChrolloSkillHunterCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0; slowdownTarget = null
-  _koBeatFired = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false
+  _koBeatFired = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null
   hitSparks.length = 0
   roundTimer = ROUND_TIME
   countdown  = ROUND_START_COUNTDOWN
@@ -15009,6 +15054,7 @@ function drawBattle() {
   _drawLowHpVignette()        // Track A3: low-HP red edge vignette (atmosphere, under HUD)
   _drawParryClashFlash()      // Track A2: brief parry/clash "sell" wash (over fighters, under HUD)
   _tickImpactFlash()          // Impact frame (visual only): counts down each fighter's Black-Flash colour-swap (drawn by sprite.js), layered on hitstop
+  _drawImpactBurst()          // STAGE 2: radiating crack/shatter burst at the impact point (higher tiers), over the scene, under HUD
   drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
@@ -18452,7 +18498,7 @@ gameLoop()
     // Impact-frame (Black Flash) visual state — per-fighter colour-swap markers (visual-only; null when not flashing).
     // `active` = a representative marker (both fighters share the same tier/combo/level on a given hit); p1/p2Filter
     // = the sprite filter actually applied last render (sprite.js records _lastSpriteFilter) → proves the recolor lands.
-    impactFrame: () => { const s = f => (f && f._impactFlash) ? { ...f._impactFlash } : null; const a = s(p1), b = s(p2); return { p1: a, p2: b, active: a || b, p1Filter: p1?._lastSpriteFilter || null, p2Filter: p2?._lastSpriteFilter || null } },
+    impactFrame: () => { const s = f => (f && f._impactFlash) ? { ...f._impactFlash } : null; const a = s(p1), b = s(p2); return { p1: a, p2: b, active: a || b, p1Filter: p1?._lastSpriteFilter || null, p2Filter: p2?._lastSpriteFilter || null, burst: _impactBurst ? { ..._impactBurst } : null } },
     // STAGE 2 — KO beat readout: the hard freeze-frame counter, the slow-mo hang, and the resolve hold.
     koBeat: () => ({ freeze: _koFreeze, freezeMax: KO_FREEZE_FRAMES, beatFired: _koBeatFired, hangTimer: _koHangTimer, slowdown: slowdownTimer, slowmoTarget: slowdownTarget?.rosterKey || null, koStamp: _koStamp || 0 }),
     // Harness-only: hold the KO freeze-frame open for a frame-exact screenshot (the real freeze is ~5f — too
@@ -18470,7 +18516,7 @@ gameLoop()
     // Harness-only: stamp the Black-Flash marker directly on both fighters at an exact level, held long enough
     // for a FRAME-EXACT screenshot (dur ticks down in render). Pass level<0 (or dur 0) to clear. Does not touch
     // the sim — same render-only field the real combo-trigger writes; used only to freeze a frame for capture.
-    setImpactFlash: (level = 0, dur = 600) => { for (const f of [p1, p2]) { if (!f) continue; f._impactFlash = (level < 0 || dur <= 0) ? null : { timer: dur, maxTimer: dur, level, tier: "harness", combo: 0, comboTier: level }; } return true },
+    setImpactFlash: (level = 0, dur = 600) => { for (const f of [p1, p2]) { if (!f) continue; f._impactFlash = (level < 0 || dur <= 0) ? null : { timer: dur, maxTimer: dur, level, tier: "harness", combo: 0, comboTier: level }; } if (level < 0 || dur <= 0) { _impactBurst = null } else if (level >= 2) { _fireImpactBurst(p2 || p1, level, dur) } return true },
     // Expire an active Susanoo so the normal update loop auto-reverts it (recovery timing).
     expireSusanoo: () => { if (p1 && (p1._susanooStage || 0) > 0) p1._susanooTimer = 1 },
     // Toji stance system introspection (foundation): stance + live attack phase/move.

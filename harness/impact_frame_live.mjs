@@ -77,7 +77,7 @@ try {
   check("BOTH fighters flash (struck + striking)", !!b?.p1 && !!b?.p2)
   check("combo = 1 (isolated hit)", b?.active?.combo === 1, `combo=${b?.active?.combo}`)
   check("comboTier = 0, level = 0 (BASE)", b?.active?.comboTier === 0 && b?.active?.level === 0, `ct=${b?.active?.comboTier} lvl=${b?.active?.level}`)
-  check("brief base duration (2 frames)", b?.active?.maxTimer === 2, `dur=${b?.active?.maxTimer}`)
+  check("base hold is a real POP (escalated to 4 frames, was 2)", b?.active?.maxTimer === 4, `dur=${b?.active?.maxTimer}`)
   check("recolor filter LANDS on both sprites (Black-Flash grayscale tint)", isBlackFlashTint(b?.p1Filter) && isBlackFlashTint(b?.p2Filter), `p1=${b?.p1Filter}`)
 
   section("TIER SCALING — a heavier hit recolors a notch harder even at combo 0")
@@ -106,6 +106,7 @@ try {
   await page.evaluate(() => { window.__harness.setImpactFlash(-1); window.__harness.setCombo("p1", 18) }); await frames(3)
   await page.evaluate(() => window.__harness.setImpactFlash(3)); await frames(2)
   const hiBand = await sampleBand()
+  const hiBurst = await page.evaluate(() => window.__harness.impactFrame().burst)   // capture while the max flash is live (before clearing)
   await page.screenshot({ path: path.join(OUT, "IMPACT_high_combo.png") })
   await page.evaluate(() => window.__harness.setImpactFlash(-1))   // clear the held flash
   const fmt = o => `r${o.r.toFixed(0)} g${o.g.toFixed(0)} b${o.b.toFixed(0)} lum${o.lum.toFixed(0)}`
@@ -115,8 +116,12 @@ try {
   // The core fix vs the prior (invisible) pass: BOTH base and high visibly change the sprite region.
   check("base flash is CLEARLY visible vs baseline (Δ well above noise)", dLo > 10, `Δ=${dLo.toFixed(1)}`)
   check("high flash is CLEARLY visible vs baseline", dHi > 10, `Δ=${dHi.toFixed(1)}`)
-  check("both flashes darken the band (charcoal, not a bright wash)", loBand.lum < baseline.lum && hiBand.lum < baseline.lum, `lum base=${baseline.lum.toFixed(0)} lo=${loBand.lum.toFixed(0)} hi=${hiBand.lum.toFixed(0)}`)
-  check("both flashes are red-dominant (red is the strongest channel)", loBand.r >= loBand.g && loBand.r >= loBand.b && hiBand.r >= hiBand.g && hiBand.r >= hiBand.b, `lo r${loBand.r.toFixed(0)}/g${loBand.g.toFixed(0)}/b${loBand.b.toFixed(0)}  hi r${hiBand.r.toFixed(0)}/g${hiBand.g.toFixed(0)}/b${hiBand.b.toFixed(0)}`)
+  check("base flash darkens the band (harder charcoal)", loBand.lum < baseline.lum, `lum base=${baseline.lum.toFixed(0)} lo=${loBand.lum.toFixed(0)}`)
+  check("base flash is red-dominant (red is the strongest channel)", loBand.r >= loBand.g && loBand.r >= loBand.b, `lo r${loBand.r.toFixed(0)}/g${loBand.g.toFixed(0)}/b${loBand.b.toFixed(0)}`)
+  // STAGE 2: at max tier the radiating crack/shatter burst FIRES (white lines) — the burst state is live and
+  // the band brightens vs the plain base recolor. Proves the added exaggeration, not just a colour change.
+  check("MAX tier fires the crack/shatter burst (level ≥ 2)", !!hiBurst && hiBurst.level >= 2, `burst level=${hiBurst?.level}`)
+  check("crack burst adds bright shatter lines (high band brighter than the base recolor)", hiBand.lum > loBand.lum, `lo lum=${loBand.lum.toFixed(0)} hi lum=${hiBand.lum.toFixed(0)}`)
 
   section("BRUTALITY — impact flash is gated OFF (no clash)")
   await bootTraining("sukuna")

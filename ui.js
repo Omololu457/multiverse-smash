@@ -864,6 +864,7 @@ export function getGameplaySelectRects(canvas) {
     { id: "tower",    label: "TOWER",     subLabel: "Climb a ladder of CPU fights" },
     { id: "bracket",  label: "TOURNAMENT", subLabel: "Local 4/8-fighter single-elim bracket" },
     { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)" },
+    { id: "online",   label: "ONLINE (LAN)", subLabel: "2-device match over your local network" },
     { id: "aivsai",   label: "AI vs AI",  subLabel: "Watch/test two CPUs — logged, fast-forwardable" },
     { id: "back",     label: "BACK",      subLabel: "Return to title"             }
   ])
@@ -2024,6 +2025,94 @@ export function drawGameplaySelectScreen(ctx, canvas, selectedIndex = 0) {
     drawMkButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex, id: `gameplay:${button.id || index}` })
   })
   drawFooterHint(ctx, canvas, "Training = 1 player practice • VS Match = player vs CPU")
+}
+
+// ─────────────────────────────────────────────
+// ONLINE (LAN) — host / join / connect screens (Stage 3)
+// A minimal 2-device flow: HOST shows a shareable ws:// address and waits; JOIN types an address and
+// connects. All rects come from getVerticalMenuLayout so hit-testing matches the rendered rows exactly.
+// ─────────────────────────────────────────────
+export function getOnlineMenuRects(canvas) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "host", label: "HOST MATCH", subLabel: "Create a match here; share your address" },
+    { id: "join", label: "JOIN MATCH", subLabel: "Enter a host's address and connect" },
+    { id: "back", label: "BACK",       subLabel: "Return to mode select" },
+  ])
+}
+export function drawOnlineMenuScreen(ctx, canvas, selectedIndex = 0) {
+  _mkAdvance()
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#06121d", bottom: "#0d2c3a" })
+  drawHeader(ctx, canvas, "ONLINE (LAN)", "Play a 2-device match over your local network")
+  getOnlineMenuRects(canvas).forEach((b, i) => drawMkButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex, id: `online:${b.id}` }))
+  drawFooterHint(ctx, canvas, "Both devices must run the same game build on the same Wi-Fi / LAN.")
+}
+
+// HOST — buttons depend on whether the opponent is present yet (CHOOSE MATCHUP only appears when ready).
+export function getOnlineHostRects(canvas, ready = false) {
+  const rows = ready
+    ? [{ id: "pick", label: "CHOOSE MATCHUP", subLabel: "Pick both fighters + stage, then fight" }, { id: "back", label: "CANCEL", subLabel: "Stop hosting" }]
+    : [{ id: "back", label: "CANCEL", subLabel: "Stop hosting" }]
+  return getVerticalMenuLayout(canvas, rows)
+}
+export function drawOnlineHostScreen(ctx, canvas, ui = {}, selectedIndex = 0) {
+  const { width: w } = getCanvasSize(canvas)
+  _mkAdvance()
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#06121d", bottom: "#123a2a" })
+  drawHeader(ctx, canvas, "HOST MATCH", ui.message || "Starting host…")
+
+  ctx.save(); ctx.textAlign = "center"
+  if (ui.address) {
+    ctx.fillStyle = "rgba(180,220,255,0.75)"; ctx.font = "600 15px Arial"
+    ctx.fillText("Share this address with the other device:", w / 2, 150)
+    ctx.fillStyle = "#8ff0c8"; ctx.font = "800 26px Arial"
+    ctx.fillText(ui.address, w / 2, 186)
+  }
+  const ready = ui.status === "ready"
+  ctx.fillStyle = ready ? "#9dffb0" : "rgba(220,230,245,0.85)"; ctx.font = "700 18px Arial"
+  ctx.fillText(ready ? "● Opponent connected" : "○ Waiting for an opponent…", w / 2, 226)
+  if (ui.error) { ctx.fillStyle = "#ff8a8a"; ctx.font = "600 15px Arial"; ctx.fillText(ui.error, w / 2, 254) }
+  ctx.restore()
+
+  getOnlineHostRects(canvas, ready).forEach((b, i) => drawMkButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex, id: `onlinehost:${b.id}` }))
+}
+
+// JOIN — an address field row + CONNECT + BACK, positioned by the same layout so clicks line up.
+export function getOnlineJoinRects(canvas) {
+  return getVerticalMenuLayout(canvas, [
+    { id: "field",   label: "ADDRESS" },
+    { id: "connect", label: "CONNECT", subLabel: "Connect to the host" },
+    { id: "back",    label: "BACK",    subLabel: "Return" },
+  ])
+}
+export function drawOnlineJoinScreen(ctx, canvas, ui = {}, selectedIndex = 0) {
+  const { width: w } = getCanvasSize(canvas)
+  _mkAdvance()
+  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
+  drawMkAmbientBackdrop(ctx, canvas, { top: "#06121d", bottom: "#0d2c3a" })
+  drawHeader(ctx, canvas, "JOIN MATCH", ui.message || "Enter the host's address")
+
+  const rects = getOnlineJoinRects(canvas)
+  rects.forEach((b, i) => {
+    if (b.id === "field") {
+      // Editable address box: draw the row frame + the typed text + a blinking caret.
+      ctx.save()
+      ctx.fillStyle = "rgba(10,22,34,0.9)"; ctx.strokeStyle = i === selectedIndex ? "#5cc8ff" : "rgba(120,160,200,0.5)"; ctx.lineWidth = 2
+      ctx.beginPath(); ctx.rect(b.x, b.y, b.w, b.h); ctx.fill(); ctx.stroke()
+      ctx.fillStyle = "rgba(150,180,210,0.6)"; ctx.font = "600 11px Arial"; ctx.textAlign = "left"
+      ctx.fillText("HOST ADDRESS", b.x + 14, b.y + 18)
+      const caret = (Math.floor(_mkFrame / 30) % 2) === 0 ? "|" : " "
+      ctx.fillStyle = "#e8f4ff"; ctx.font = "700 20px Arial"
+      ctx.fillText((ui.joinInput || "") + caret, b.x + 14, b.y + b.h - 14)
+      ctx.restore()
+    } else {
+      drawMkButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex, id: `onlinejoin:${b.id}` })
+    }
+  })
+
+  if (ui.error) { ctx.save(); ctx.textAlign = "center"; ctx.fillStyle = "#ff8a8a"; ctx.font = "600 15px Arial"; ctx.fillText(ui.error, w / 2, 140); ctx.restore() }
+  drawFooterHint(ctx, canvas, "Type the ws:// address shown on the host, then press CONNECT (or Enter).")
 }
 
 // ─────────────────────────────────────────────
@@ -4751,7 +4840,7 @@ function buildTutorialPages(c = {}) {
         ["Move left / right", `${prettyKey(c.left)} / ${prettyKey(c.right)}`, "Walk and control spacing."],
         ["Jump",              prettyKey(c.jump),  "Tap to leap; some fighters can double-jump."],
         ["Crouch",            prettyKey(c.down),  "Lowers your profile — also the guard input (see Defense)."],
-        ["Dash",              prettyKey(c.dash),  "Quick burst; some characters teleport on a double-tap."]
+        ["Dash",              "double-tap " + prettyKey(c.left) + "/" + prettyKey(c.right),  "Toward the foe = forward dash; away = backdash retreat. Some characters teleport on a toward double-tap."]
       ]
     },
     {

@@ -41,8 +41,10 @@ async function fireUlt(){
 }
 
 try {
-  const candidates = ["ippo","bardock","byakuya","yamamoto"]   // direct-hit ults that apply ultimate-tier hitstop
+  // DIRECT-hit ults (not cinematic-freeze ults like ippo's Dempsey Roll, which show a loading/cinematic overlay).
+  const candidates = ["bardock","byakuya","yamamoto"]
   const worked = []
+  const w_capture = {}
   for (const ch of candidates){
     if (worked.length >= 2) break
     await boot(ch)
@@ -50,13 +52,22 @@ try {
     if (snap){
       worked.push({ ch, ...snap })
       console.log(`  ✔ ${ch}: ult crop fired — zoom ${snap.before.toFixed(2)} → ${snap.snapZoom.toFixed(2)} (1-frame jump +${snap.jump.toFixed(2)}), cropZoom=${snap.cropZoom.toFixed(2)}`)
-      // re-fire + hold a screenshot of the tight crop
+      // FRAME-EXACT capture: fresh match, let the intro title fully fade, ARM the one-shot freeze, fire the ult.
+      // The game freezes on the EXACT frame the crop fires (ult connecting, attacker mid-move, zoom snapped) →
+      // the screenshot is guaranteed to land on that frame, not after it ramps back to idle.
       await boot(ch)
-      await page.evaluate(()=>{ window.__ucPin=setInterval(()=>{ const s=window.__harness.ultCrop(); if(!s.active) window.__harness.p1Ultimate?.(); },40) })
-      await page.waitForFunction(()=>window.__harness.ultCrop().active,null,{timeout:4000,polling:8}).catch(()=>{})
+      await page.waitForFunction(()=>window.__harness.preloadReady()===true,null,{timeout:8000,polling:50}).catch(()=>{})
+      await wf(70)   // let any match-intro title/round card fully fade first
+      await page.evaluate(()=>window.__harness.setCombo && window.__harness.setCombo("p1", 6))   // prime a combo count (an ult lands at the END of a combo) so the HUD reads Combo: N, not 0
+      await page.evaluate(()=>window.__harness.armUltCrop())
+      await page.evaluate(()=>window.__harness.p1Ultimate?.())
+      await page.waitForFunction(()=>window.__harness.ultCrop().hold>0,null,{timeout:5000,polling:8}).catch(()=>{})   // freeze latched at connect
       await wf(2)
+      const cap = await page.evaluate(()=>{ const fd=window.__harness.training().frameData; return { gs: window.__harness.state().gameState, hold: window.__harness.ultCrop().hold, zoom: window.__harness.ultCrop().zoom, hudMove: fd?(fd.name||null):null, combo: window.__harness.p1().comboCounter, preload: window.__harness.preloadReady() } })
       await page.screenshot({ path: path.join(OUT, `ULTCROP_${ch}.png`) })
-      await page.evaluate(()=>clearInterval(window.__ucPin))
+      await page.evaluate(()=>window.__harness.releaseUltCrop())
+      w_capture[ch] = cap
+      console.log(`    capture ${ch}: gs=${cap.gs} hold=${cap.hold} zoom=${cap.zoom.toFixed(2)} HUD-move=${cap.hudMove} HUD-combo=${cap.combo} preload=${cap.preload}`)
     } else {
       console.log(`  – ${ch}: no crop (likely a cinematic-freeze ult or didn't connect)`)
     }
@@ -67,6 +78,12 @@ try {
   for (const w of worked){
     check(`${w.ch}: snap is a TIGHT crop (zoom ≈ max ~1.14)`, w.snapZoom >= 1.10, `snapZoom=${w.snapZoom.toFixed(2)}`)
     check(`${w.ch}: snap is HARD (single-frame jump, not an eased ramp of ~0.02/frame)`, w.jump >= 0.15, `1-frame Δzoom=${w.jump.toFixed(2)}`)
+    const cap = w_capture[w.ch] || {}
+    // The frozen frame must read, IN THE OVERLAY ITSELF: an active move (HUD "Move:" non-dash) + a combo count
+    // (HUD "Combo:" > 0), a tight zoom snap (~1.6), preload done (no loading overlay), BATTLE state.
+    check(`${w.ch}: SCREENSHOT overlay shows an ACTIVE MOVE + combo, tight crop, real BATTLE (not idle/loading)`,
+      cap.gs === "battle" && cap.preload === true && cap.hold > 0 && cap.zoom >= 1.5 && !!cap.hudMove && cap.combo > 0,
+      `gs=${cap.gs} preload=${cap.preload} zoom=${cap.zoom?.toFixed(2)} HUD-move=${cap.hudMove} HUD-combo=${cap.combo}`)
   }
   check("no page JS errors", jsErrors.length===0, jsErrors.slice(0,2).join(" | "))
 } catch(e){ console.error("EXCEPTION",e); FAIL++ }

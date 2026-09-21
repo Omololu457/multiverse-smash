@@ -4126,9 +4126,11 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
   const { width: w } = getCanvasSize(canvas)
 
   const fd = info.frameData
-  const fdLine = fd
-    ? `${fd.who} ${fd.name}: ${fd.startup}/${fd.active}/${fd.recovery}  [${fd.phase} ${fd.elapsed}/${fd.total}]`
-    : "Move: —  (start/active/recovery)"
+  const fdLine = !fd
+    ? "Move: —  (start/active/recovery)"
+    : fd.cast
+      ? `Move: ${fd.who} ${fd.name}  [ultimate/cast]`   // ults/specials: no standard frame data, show the move name
+      : `${fd.who} ${fd.name}: ${fd.startup}/${fd.active}/${fd.recovery}  [${fd.phase} ${fd.elapsed}/${fd.total}]`
 
   // FRAME ADVANTAGE (Track B): the last measured on-hit / on-block advantage. Set the dummy to
   // "block" [F4] to read on-block numbers; "stand" reads on-hit. Positive = you recover first.

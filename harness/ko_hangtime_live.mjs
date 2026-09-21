@@ -37,10 +37,28 @@ try {
   for (let i=0;i<10 && !koFired;i++){ await page.evaluate(()=>window.__harness.p1ForceLight()); for(let j=0;j<6;j++){ const s=await ko(); if(s.freeze>0){peakFreeze=Math.max(peakFreeze,s.freeze); koFired=true; break} await wf(1) } if(!koFired){ const hp=await page.evaluate(()=>window.__harness.p2().health); if(hp<=0){koFired=true} } }
   if(!koFired){ await page.evaluate(()=>window.__harness.forceP1Win()); const s=await ko(); peakFreeze=Math.max(peakFreeze,s.freeze) }   // fallback: guarantee the KO event
 
-  // Sample the KO beat timeline frame-by-frame; snapshot the frozen frame on the first freeze sample.
-  const timeline=[]; let shotTaken=false
-  for (let i=0;i<40;i++){ const s=await ko(); timeline.push({ f:s.freeze, sd:s.slowdown }); peakFreeze=Math.max(peakFreeze,s.freeze); if (s.freeze>0 && !shotTaken){ await page.screenshot({path:path.join(OUT,"KO_freeze_frame.png")}); shotTaken=true } await wf(1) }
+  // Sample the KO beat timeline frame-by-frame (natural freeze → slow-mo). No screenshot here (a blocking
+  // screenshot would overrun the ~5f freeze into the post-freeze white flash — captured separately below).
+  const timeline=[]
+  for (let i=0;i<40;i++){ const s=await ko(); timeline.push({ f:s.freeze, sd:s.slowdown }); peakFreeze=Math.max(peakFreeze,s.freeze); await wf(1) }
   const maxFreeze = peakFreeze
+
+  // ── FRAME-EXACT SCREENSHOT of the held freeze (fresh match; hold the freeze open so it can't overrun). ──
+  await page.evaluate(()=>window.__harness.bootVs())
+  try{await page.waitForFunction(()=>window.__harness.spriteReady("p1")?.ready===true,null,{timeout:15000,polling:50})}catch(_){}
+  await wf(6)   // let the match-start preload settle so no loading overlay lingers
+  await page.evaluate(()=>{ const h=window.__harness.p2().health; window.__harness.damageP2(Math.max(0,h-6)); })
+  const px2=await page.evaluate(()=>window.__harness.p1().x); await page.evaluate(x=>window.__harness.setP2X(x+44),px2)
+  let koFired2=false
+  for (let i=0;i<10 && !koFired2;i++){ await page.evaluate(()=>window.__harness.p1ForceLight()); for(let j=0;j<6;j++){ if((await ko()).beatFired){koFired2=true;break} await wf(1) } if(!koFired2 && (await page.evaluate(()=>window.__harness.p2().health))<=0) koFired2=true }
+  if(!koFired2){ await page.evaluate(()=>window.__harness.forceP1Win()); await wf(2) }
+  await page.evaluate(()=>window.__harness.setKoFreeze(120))   // HOLD the freeze frame open
+  await wf(4)                                                  // let the K.O. stamp settle in
+  const shotState = await page.evaluate(()=>({ gs: window.__harness.state().gameState, freeze: window.__harness.koBeat().freeze, p1flash: window.__harness.impactFrame().p1, p2flash: window.__harness.impactFrame().p2 }))
+  await page.screenshot({ path: path.join(OUT, "KO_freeze_frame.png") })
+  await page.evaluate(()=>window.__harness.setKoFreeze(0))     // release
+  const shotTaken = shotState.freeze > 0
+  check("freeze screenshot is a genuine held BATTLE freeze frame, sprites NOT red-washed", shotState.gs === "battle" && shotState.freeze > 0 && shotState.p1flash === null && shotState.p2flash === null, `gs=${shotState.gs} freeze=${shotState.freeze} p1flash=${JSON.stringify(shotState.p1flash)}`)
   const freezeFrames = timeline.filter(t=>t.f>0)
   const sdDuringFreeze = freezeFrames.map(t=>t.sd)
   const afterFreeze = timeline.slice(timeline.findIndex(t=>t.f>0)).filter(t=>t.f===0 && t.sd>0)

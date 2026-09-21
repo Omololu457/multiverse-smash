@@ -1419,6 +1419,10 @@ function triggerImpactFrame(attacker, combo) {
 const ULT_CROP_FRAMES = 12
 const ULT_CROP_HITSTOP = 24   // a fighter's hitstop jumping here = an ULTIMATE connected (all other tiers ≤ 16)
 let _ultCrop = null   // { timer, zoom } | null
+// Harness-only frame-exact capture: when ARMED, the exact frame the crop fires (ult connects) latches a HOLD
+// that freezes the game on that frame with the zoom pinned tight — so a screenshot lands on the active-move
+// tight-crop frame, not after it ramps back. (Same idea as the impact-frame setImpactFlash hold.)
+let _ultCropHold = 0, _ultCropHoldZoom = 0, _ultCropArm = false
 // Detect an ultimate CONNECT directly: a fighter's hitstop rising-edge into ultimate tier (independent of the
 // combo counter, which some ultimates don't increment). Called each battle frame; fires the crop once per hit.
 function _detectUltimateConnect() {
@@ -1437,6 +1441,7 @@ function triggerUltimateCrop() {
   const zoom = Math.max(1.42, (camera.zoom || 1) * 1.7)
   camera.zoom = zoom; camera.targetZoom = zoom          // HARD CUT — instant this frame (no easing)
   _ultCrop = { timer: ULT_CROP_FRAMES, zoom }
+  if (_ultCropArm) { _ultCropHold = 600; _ultCropHoldZoom = zoom; _ultCropArm = false }   // latch the frame-exact capture hold
 }
 // Hold the hard crop each frame (override the eased reframe that just ran), then ramp it back to camera max
 // over the last few frames so releasing doesn't snap through the maxZoom clamp — then the two-shot eases out.
@@ -2920,7 +2925,7 @@ function resetRound() {
   resetMusicIntensity()                              // every round starts on the calm stage track (reverts any low-HP/final-round intensity)
   brutalityState.active = false; brutalityState.parts.length = 0   // clear any finisher state on a fresh round
   knockoutFlash  = 0
-  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null   // re-arm the KO camera beat for the new round
+  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false   // re-arm the KO camera beat for the new round
   slowdownTimer  = 0
   slowdownTarget = null
   roundTimer     = ROUND_TIME
@@ -4004,7 +4009,7 @@ function resetToStart() {
   sound.playMenuMusic?.()   // non-stadium screens → Passion_fruitmp3.mp3
   damageNumbers.length = 0
   knockoutFlash  = 0
-  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null
+  _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false
   slowdownTimer  = 0
   slowdownTarget = null
   for (const side of ["p1","p2"]) {
@@ -5220,7 +5225,7 @@ function _doRematch() {
   clearChrolloSkillHunterCinematic()
   damageNumbers.length = 0
   knockoutFlash = 0; slowdownTimer = 0; slowdownTarget = null
-  _koBeatFired = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null
+  _koBeatFired = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false
   hitSparks.length = 0
   roundTimer = ROUND_TIME
   countdown  = ROUND_START_COUNTDOWN
@@ -12450,10 +12455,21 @@ function _drawParryClashFlash() {
 
 function updateBattle() {
   if (brutalityState.active) { updateBrutality(); return }   // finisher plays out — freeze combat until it ends
+  // Harness-only: hold the ultimate zoom-crop frame open (frozen, zoom pinned) for a frame-exact screenshot.
+  if (_ultCropHold > 0) { _ultCropHold--; camera.zoom = _ultCropHoldZoom; camera.targetZoom = _ultCropHoldZoom; return }
   // STAGE 2 KO impact-freeze beat: on a normal KO, hold the exact finishing frame for a few frames (0 motion)
   // BEFORE the slow-mo ragdoll begins. Only the camera advances (so the KO shake keeps landing); combat/anim
   // are frozen. slowdownTimer was set on the KO frame but isn't reached until this clears → no double-stack.
-  if (_koFreeze > 0) { _koFreeze--; if (typeof camera.advance === "function") camera.advance(canvas); return }
+  if (_koFreeze > 0) {
+    _koFreeze--
+    // Keep the frozen fighters CRISP: clear the hit's Black-Flash recolor so the held frame shows their
+    // real, opaque colours (only the K.O. text + red vignette carry red). The hit frame BEFORE the freeze
+    // still flashed. Then just tick the camera so the KO shake keeps landing on the held frame.
+    if (p1) p1._impactFlash = null
+    if (p2) p2._impactFlash = null
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
   updateMusicIntensity()   // dynamic low-HP / final-round music (audio only; never gates combat)
   if (slowdownTimer > 0) {
     slowdownTimer--
@@ -14741,14 +14757,20 @@ function captureFrameAdvantage(def, atk) {
 // activeStart/activeEnd/total and show the current phase + elapsed frame.
 function buildTrainingFrameData() {
   const f = (p1?.currentAttack ? p1 : (p2?.currentAttack ? p2 : null))
-  if (!f) return null
-  const a = f.currentAttack
-  const startup  = a.activeStart
-  const active   = (a.activeEnd - a.activeStart) + 1
-  const recovery = a.total - a.activeEnd
-  const elapsed  = a.total - a.timer
-  const name = a.name || f.currentMove || "move"
-  return { who: f === p1 ? "P1" : "P2", name, startup, active, recovery, phase: getAttackPhase(f), elapsed, total: a.total }
+  if (f) {
+    const a = f.currentAttack
+    const startup  = a.activeStart
+    const active   = (a.activeEnd - a.activeStart) + 1
+    const recovery = a.total - a.activeEnd
+    const elapsed  = a.total - a.timer
+    const name = a.name || f.currentMove || "move"
+    return { who: f === p1 ? "P1" : "P2", name, startup, active, recovery, phase: getAttackPhase(f), elapsed, total: a.total }
+  }
+  // Fallback: ultimates / specials drive _spriteCastMove or currentMove WITHOUT a standard currentAttack, so
+  // the HUD used to read "Move: —" mid-ultimate (looked idle). Show WHICH move is active instead (cast tier).
+  const g = (p1?._spriteCastMove || p1?.currentMove) ? p1 : ((p2?._spriteCastMove || p2?.currentMove) ? p2 : null)
+  if (g) return { who: g === p1 ? "P1" : "P2", name: g._spriteCastMove || g.currentMove, cast: true }
+  return null
 }
 
 function _worldToScreen(wx, wy) {
@@ -14909,6 +14931,9 @@ function _drawDomainHUDBar() {
 
 function _drawKOFlash() {
   if (knockoutFlash <= 0) return
+  // STAGE 2 fix: during the KO freeze-frame HOLD, don't wash the frozen scene white — keep the characters
+  // crisp/opaque. The flash still plays (undecremented) once the freeze lifts, over the slow-mo.
+  if (_koFreeze > 0) return
   ctx.save()
   ctx.fillStyle   = "#ffffff"
   ctx.globalAlpha = Math.min(1, knockoutFlash / 18) * 0.9
@@ -14928,8 +14953,15 @@ function _drawKoStamp() {
   const alpha = _koStamp < 10 ? _koStamp / 10 : 1        // fade out at the tail
   const shake = inP < 1 ? (1 - inP) * 9 : 0
   ctx.save()
-  // red accent flash on the slam-in
-  if (p < 0.25) { ctx.globalAlpha = (1 - p / 0.25) * 0.35; ctx.fillStyle = "#ff2a2a"; ctx.fillRect(0, 0, cw, ch) }
+  // red accent on the slam-in — a VIGNETTE (red at the edges, CLEAR over the centre) so the fighters stay
+  // sharp and fully opaque; the old full-screen red fill washed the whole frozen scene translucent-red.
+  if (p < 0.25) {
+    const va = (1 - p / 0.25) * 0.5
+    const vg = ctx.createRadialGradient(cw / 2, ch * 0.5, Math.min(cw, ch) * 0.24, cw / 2, ch * 0.5, Math.max(cw, ch) * 0.64)
+    vg.addColorStop(0, "rgba(255,42,42,0)")                 // transparent over the characters
+    vg.addColorStop(1, `rgba(200,20,20,${va.toFixed(3)})`)  // red only toward the edges
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch)
+  }
   ctx.globalAlpha = alpha
   ctx.translate(cw / 2 + Math.sin(_koStamp * 1.9) * shake, ch * 0.42)
   ctx.scale(scale, scale)
@@ -18423,8 +18455,16 @@ gameLoop()
     impactFrame: () => { const s = f => (f && f._impactFlash) ? { ...f._impactFlash } : null; const a = s(p1), b = s(p2); return { p1: a, p2: b, active: a || b, p1Filter: p1?._lastSpriteFilter || null, p2Filter: p2?._lastSpriteFilter || null } },
     // STAGE 2 — KO beat readout: the hard freeze-frame counter, the slow-mo hang, and the resolve hold.
     koBeat: () => ({ freeze: _koFreeze, freezeMax: KO_FREEZE_FRAMES, beatFired: _koBeatFired, hangTimer: _koHangTimer, slowdown: slowdownTimer, slowmoTarget: slowdownTarget?.rosterKey || null, koStamp: _koStamp || 0 }),
+    // Harness-only: hold the KO freeze-frame open for a frame-exact screenshot (the real freeze is ~5f — too
+    // brief to catch, and a blocking screenshot overruns it into the post-freeze white flash). Same render
+    // path; just pins _koFreeze. Pass 0 to release. Does not change the mechanic.
+    setKoFreeze: (n = 90) => { _koFreeze = Math.max(0, n | 0); if (_koFreeze > 0) { if (p1) p1._impactFlash = null; if (p2) p2._impactFlash = null } return _koFreeze },
     // STAGE 3 — ultimate panel zoom-crop readout: the hold timer + the live camera zoom (proves the hard snap).
-    ultCrop: () => ({ active: !!_ultCrop, timer: _ultCrop?.timer || 0, cropZoom: _ultCrop?.zoom || 0, zoom: camera.zoom, targetZoom: camera.targetZoom, maxZoom: camera.maxZoom }),
+    ultCrop: () => ({ active: !!_ultCrop, timer: _ultCrop?.timer || 0, cropZoom: _ultCrop?.zoom || 0, zoom: camera.zoom, targetZoom: camera.targetZoom, maxZoom: camera.maxZoom, hold: _ultCropHold, armed: _ultCropArm }),
+    // Harness-only: arm a one-shot freeze that latches the EXACT frame the next ultimate connects (crop fires),
+    // so a screenshot captures the tight-crop active-move frame. releaseUltCrop() lifts the freeze.
+    armUltCrop: () => { _ultCropArm = true; return true },
+    releaseUltCrop: () => { _ultCropHold = 0; _ultCropArm = false; return true },
     // STAGE 1 — manga speed-lines gate readout (would they draw behind this fighter this frame?).
     speedLines: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; const vx = f.vx || 0, spd = Math.abs(vx); const dashing = (f.dashTimer || 0) > 0; const active = (dashing || spd >= SPEED_LINE_MIN) && !((f.hitstun || 0) > 0) && !f.knockdownState && !f.isLaunched && !f._animFrozen && !brutalityState.active; return { vx, spd, dashing, active, intensity: active ? Math.max(dashing ? 0.55 : 0, Math.min(1, (spd - SPEED_LINE_MIN) / (SPEED_LINE_FULL - SPEED_LINE_MIN))) : 0 } },
     // Harness-only: stamp the Black-Flash marker directly on both fighters at an exact level, held long enough

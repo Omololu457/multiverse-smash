@@ -64,9 +64,14 @@ try {
   await host.waitForFunction(() => ["waiting", "ready"].includes(window.__harness.online.status()), null, { timeout: 8000 });
   check("host connected + assigned seat p1", (await host.evaluate(() => window.__harness.online.side())) === "p1");
 
-  await join.evaluate((u) => window.__harness.online.join(u), relayUrl);
+  // The host generates a SHORT CODE (from its ip:port) — the joiner uses ONLY that code, no raw address.
+  await host.waitForFunction(() => !!window.__harness.online.hostCode(), null, { timeout: 8000 });
+  const code = await host.evaluate(() => window.__harness.online.hostCode());
+  check("host generated a short join code", typeof code === "string" && code.length > 0 && code.length <= 14, `code="${code}"`);
+
+  await join.evaluate((c) => window.__harness.online.join(c), code);   // join BY CODE (not the raw ws:// url)
   await join.waitForFunction(() => window.__harness.online.status() === "joined", null, { timeout: 8000 });
-  check("joiner connected + assigned seat p2", (await join.evaluate(() => window.__harness.online.side())) === "p2");
+  check("joiner connected via the CODE + assigned seat p2", (await join.evaluate(() => window.__harness.online.side())) === "p2");
 
   // Host should now see the opponent present (lobby count 2 → status "ready").
   await host.waitForFunction(() => window.__harness.online.status() === "ready", null, { timeout: 8000 });

@@ -12,6 +12,7 @@
     "test:net-lockstep": "node harness/net_lockstep.mjs",
     "test:net-inject": "node harness/net_inject.test.mjs",
     "test:net-online": "node harness/net_online.test.mjs",
+    "test:net-lancode": "node harness/net_lancode.test.mjs",
     "dev": "node server/save-server.mjs",
     "dev:noserver": "node server/static-only.mjs",
     "test:save-load": "node harness/save_load.test.mjs",

@@ -2063,16 +2063,21 @@ export function drawOnlineHostScreen(ctx, canvas, ui = {}, selectedIndex = 0) {
   drawHeader(ctx, canvas, "HOST MATCH", ui.message || "Starting host…")
 
   ctx.save(); ctx.textAlign = "center"
-  if (ui.address) {
+  if (ui.code) {
     ctx.fillStyle = "rgba(180,220,255,0.75)"; ctx.font = "600 15px Arial"
-    ctx.fillText("Share this address with the other device:", w / 2, 150)
-    ctx.fillStyle = "#8ff0c8"; ctx.font = "800 26px Arial"
-    ctx.fillText(ui.address, w / 2, 186)
+    ctx.fillText("On the other device, choose JOIN and type this code:", w / 2, 146)
+    // The CODE is the star — big, bright, letter-spaced for easy reading aloud.
+    ctx.fillStyle = "#8ff0c8"; ctx.font = "800 52px Arial"
+    ctx.fillText((ui.code || "").split("").join(" "), w / 2, 200)
+    if (ui.address) { ctx.fillStyle = "rgba(150,180,210,0.55)"; ctx.font = "500 13px Arial"; ctx.fillText(`(or full address: ${ui.address})`, w / 2, 228) }
+  } else {
+    ctx.fillStyle = "rgba(220,230,245,0.75)"; ctx.font = "600 15px Arial"
+    ctx.fillText(ui.message || "Starting host…", w / 2, 180)
   }
   const ready = ui.status === "ready"
   ctx.fillStyle = ready ? "#9dffb0" : "rgba(220,230,245,0.85)"; ctx.font = "700 18px Arial"
-  ctx.fillText(ready ? "● Opponent connected" : "○ Waiting for an opponent…", w / 2, 226)
-  if (ui.error) { ctx.fillStyle = "#ff8a8a"; ctx.font = "600 15px Arial"; ctx.fillText(ui.error, w / 2, 254) }
+  ctx.fillText(ready ? "● Opponent connected" : "○ Waiting for an opponent…", w / 2, 258)
+  if (ui.error) { ctx.fillStyle = "#ff8a8a"; ctx.font = "600 15px Arial"; ctx.fillText(ui.error, w / 2, 284) }
   ctx.restore()
 
   getOnlineHostRects(canvas, ready).forEach((b, i) => drawMkButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex, id: `onlinehost:${b.id}` }))
@@ -2091,20 +2096,21 @@ export function drawOnlineJoinScreen(ctx, canvas, ui = {}, selectedIndex = 0) {
   _mkAdvance()
   ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
   drawMkAmbientBackdrop(ctx, canvas, { top: "#06121d", bottom: "#0d2c3a" })
-  drawHeader(ctx, canvas, "JOIN MATCH", ui.message || "Enter the host's address")
+  drawHeader(ctx, canvas, "JOIN MATCH", ui.message || "Type the host's code")
 
   const rects = getOnlineJoinRects(canvas)
   rects.forEach((b, i) => {
     if (b.id === "field") {
-      // Editable address box: draw the row frame + the typed text + a blinking caret.
+      // Editable code box: draw the row frame + the typed text (upper-cased, letter-spaced) + a caret.
       ctx.save()
       ctx.fillStyle = "rgba(10,22,34,0.9)"; ctx.strokeStyle = i === selectedIndex ? "#5cc8ff" : "rgba(120,160,200,0.5)"; ctx.lineWidth = 2
       ctx.beginPath(); ctx.rect(b.x, b.y, b.w, b.h); ctx.fill(); ctx.stroke()
       ctx.fillStyle = "rgba(150,180,210,0.6)"; ctx.font = "600 11px Arial"; ctx.textAlign = "left"
-      ctx.fillText("HOST ADDRESS", b.x + 14, b.y + 18)
-      const caret = (Math.floor(_mkFrame / 30) % 2) === 0 ? "|" : " "
-      ctx.fillStyle = "#e8f4ff"; ctx.font = "700 20px Arial"
-      ctx.fillText((ui.joinInput || "") + caret, b.x + 14, b.y + b.h - 14)
+      ctx.fillText("HOST CODE", b.x + 14, b.y + 18)
+      const caret = (Math.floor(_mkFrame / 30) % 2) === 0 ? "_" : " "
+      const shown = (ui.joinInput || "").toUpperCase()
+      ctx.fillStyle = "#e8f4ff"; ctx.font = "800 24px Arial"
+      ctx.fillText((shown.split("").join(" ")) + caret, b.x + 14, b.y + b.h - 13)
       ctx.restore()
     } else {
       drawMkButton(ctx, b, { label: b.label, subLabel: b.subLabel, active: i === selectedIndex, id: `onlinejoin:${b.id}` })
@@ -2112,7 +2118,7 @@ export function drawOnlineJoinScreen(ctx, canvas, ui = {}, selectedIndex = 0) {
   })
 
   if (ui.error) { ctx.save(); ctx.textAlign = "center"; ctx.fillStyle = "#ff8a8a"; ctx.font = "600 15px Arial"; ctx.fillText(ui.error, w / 2, 140); ctx.restore() }
-  drawFooterHint(ctx, canvas, "Type the ws:// address shown on the host, then press CONNECT (or Enter).")
+  drawFooterHint(ctx, canvas, "Type the short code shown on the host, then press CONNECT (or Enter). A full ws:// address also works.")
 }
 
 // ─────────────────────────────────────────────

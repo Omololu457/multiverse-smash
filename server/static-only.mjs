@@ -8,7 +8,7 @@
 // and persistence transparently rides localStorage — no console errors, no user warning.
 // Use it to confirm the game behaves identically with and without the save server.
 //
-// Same static pattern as the harness / save-server; binds 127.0.0.1 only.
+// Same static pattern as the harness / save-server; binds 0.0.0.0 (LAN-reachable; HOST=127.0.0.1 to restrict).
 // ──────────────────────────────────────────────────────────────────────────
 import http from "node:http";
 import fs from "node:fs";
@@ -29,6 +29,9 @@ const server = http.createServer((req, res) => {
     res.end(d);
   });
 });
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`static-only server → http://127.0.0.1:${PORT}  (NO /api — localStorage fallback path)`);
+// Bind ALL interfaces by default so a 2nd LAN device can load the page (matches save-server + the relay).
+// Set HOST=127.0.0.1 to restrict to loopback.
+const HOST = process.env.HOST || "0.0.0.0";
+server.listen(PORT, HOST, () => {
+  console.log(`static-only server → http://127.0.0.1:${PORT}  (bound ${HOST}; NO /api — localStorage fallback path)`);
 });

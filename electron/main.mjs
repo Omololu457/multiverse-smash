@@ -12,6 +12,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildModuleBlock, injectBlock } from "../tools/stamp_version.mjs";
+import { startLanServer, lanAddresses } from "../net/lanServer.mjs";   // LAN multiplayer (Stage 3): relay + IP discovery
+
+// LAN multiplayer relay (Stage 3): a ws server on ALL interfaces so a 2nd device can reach this host. The
+// game (served on 127.0.0.1) connects to it as a client. Additive & best-effort — if it can't start, ONLINE
+// is simply unavailable and the rest of the app is unaffected.
+const LAN_PORT = +(process.env.LAN_PORT || 8787);
+let LAN_RELAY_PORT = null;
+try { startLanServer({ port: LAN_PORT, relay: true, log: () => {} }); LAN_RELAY_PORT = LAN_PORT; }
+catch (e) { console.log(`[lan] relay failed to start on ${LAN_PORT}: ${e.message}`); }
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html":"text/html",".js":"text/javascript",".mjs":"text/javascript",".css":"text/css",".png":"image/png",".jpg":"image/jpeg",".mp3":"audio/mpeg",".json":"application/json",".woff":"font/woff",".woff2":"font/woff2",".svg":"image/svg+xml" };
@@ -34,6 +43,7 @@ function readSaveBody(req) {
 }
 function handleSaveApi(url, req, res) {
   if (url === "/api/health") { res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(JSON.stringify({ ok: true, version: "1" })); return true; }
+  if (url === "/api/lan-info") { res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(JSON.stringify({ ok: true, port: LAN_RELAY_PORT, addresses: lanAddresses().map((a) => a.address) })); return true; }
   if (url === "/api/save" && req.method === "GET") {
     const { file } = saveFilePaths();
     fs.readFile(file, "utf8", (e, data) => { if (e || !data) { res.writeHead(204, { "cache-control": "no-store" }).end(); return; } res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(data); });

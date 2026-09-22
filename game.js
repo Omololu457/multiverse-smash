@@ -20,6 +20,10 @@ import {
   readRawControls, writeRawControls, pollMenuGamepad, padGlyphs, getPadType
 } from "./input.js"
 import * as replay from "./replay.js"   // Stage 11B: input recording (replay foundation)
+import * as netMatch from "./net/netMatch.js"   // LAN multiplayer (Stage 2): OPT-IN remote input. Inert (isActive()=false) unless a LAN match is explicitly begun → standalone is byte-identical.
+import * as online from "./net/onlineMatch.js"  // LAN multiplayer (Stage 3): OPT-IN host/join connection controller for the online screens.
+import { encodeLanCode, decodeLanCode } from "./net/lanCode.js"  // LAN multiplayer (Stage 3b): short join CODE <-> ws://ip:port.
+import * as touch from "./touchControls.js"  // Tablet/phone on-screen controls — dispatches synthetic KeyboardEvents into the SAME pipeline. Inert unless touch mode is active.
 import {
   activeSummons,
   updateSummons as updateActiveSummons,
@@ -270,6 +274,7 @@ import {
   drawFFATeamSelectScreen, getFFATeamSelectRects,
   drawFFASlotSelectScreen, getFFASlotSelectRects,
   PAUSE_MENU_ITEMS, getStartMenuRects, getGameplaySelectRects,
+  drawOnlineMenuScreen, getOnlineMenuRects, drawOnlineHostScreen, getOnlineHostRects, drawOnlineJoinScreen, getOnlineJoinRects,
   getAIDifficultyRects, getUniverseCardRects, getCharacterCardRects,
   getStageCardRects, drawStartInfoPanel,
   lastBattleBgRect,
@@ -586,6 +591,12 @@ function setUiScale(v) {
 }
 _applyCanvasSize()
 setupMouseInput(canvas)
+// Tablet/phone touch overlay. Closures are invoked later (post-init), so referencing P1_CONTROLS / GAME_STATES
+// / gameState defined below is safe. inBattle gates rendering + interception to actual battle screens.
+touch.setup(canvas, {
+  getControls: () => P1_CONTROLS,
+  inBattle: () => gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.FFA_BATTLE,
+})
 
 // BLOOD hit-effect toggle (COSMETIC). Default OFF given the roster's mixed / all-ages tone
 // (Power Rangers & Ben 10 sit next to Jason & Ghostface). Self-contained localStorage — like
@@ -1014,6 +1025,9 @@ const GAME_STATES = {
   SETTINGS:         "settings",
   CREDITS:          "credits",         // scrolling art/audio/attribution screen (Stage 18)
   GAMEPLAY_SELECT:  "gameplaySelect",
+  ONLINE_MENU:      "onlineMenu",      // LAN multiplayer (Stage 3): Host / Join chooser
+  ONLINE_HOST:      "onlineHost",      // LAN: hosting — shows shareable address, waits for a peer to join
+  ONLINE_JOIN:      "onlineJoin",      // LAN: joining — enter the host's address, connect, wait for match setup
   TOWER_SELECT:     "towerSelect",     // pick a Tower tier (3/10/25/40/∞ floors)
   ARCADE_SETUP:     "arcadeSetup",     // pick arcade difficulty (fixed for the run) — Stage 19
   ARCADE_RIVAL_INTRO: "arcadeRivalIntro", // pre-rival two-line exchange (fight 5)
@@ -2199,6 +2213,23 @@ function makeAIControls(slot) {
   }
 }
 
+// Synthetic control map for a NETWORK-driven fighter (LAN multiplayer). Like makeAIControls, the key names
+// are private labels no physical device ever presses — so in an online match BOTH fighters are driven purely
+// by the injected (delayed, agreed) lockstep masks, and the local human is sampled SEPARATELY from the real
+// P1 device scheme. That separation is what stops our own injection from corrupting the input we sample.
+function makeNetControls(slot) {
+  const p = `_net${slot}_`
+  return {
+    left: p + "L", right: p + "R", up: p + "U", down: p + "D", jump: p + "U",
+    light: p + "lt", heavy: p + "hv", upAttack: p + "ua", special: p + "sp", ultimate: p + "ult",
+    grab: p + "gr", charge: p + "ch", toggle: p + "ch", transform: p + "ch", dash: "", block: p + "blk"
+  }
+}
+// The device-local human's input source in an online match: always the primary P1 keyboard scheme, regardless
+// of which SEAT (p1/p2) this device drives. Read side-effect-free each frame (readRawControls) and never
+// written to, so sampling stays clean. Reused object → no per-frame allocation.
+const NET_LOCAL_INPUT_REF = { controls: P1_CONTROLS }
+
 function ffaAliveFighters() { return ffaState.fighters.filter(f => f && !f.eliminated) }
 
 // Nearest OTHER living ENEMY — the "primary" target for grab/facing/updateCombat. In team
@@ -2992,8 +3023,13 @@ function resetRound() {
   ensureTrainingOpponent()
 
   const { p1X, p2X } = getSpawnPositions()
-  p1 = createFighter(matchConfig.p1CharKey, matchConfig.p1Char, p1X,  1, P1_CONTROLS, "p1")
-  p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, P2_CONTROLS, "p2")
+  // OPT-IN LAN: in an online match, BOTH fighters use synthetic (device-less) control maps so only the
+  // agreed lockstep masks drive them (the local human is sampled separately). isActive() is false for every
+  // standalone match → the control scheme is exactly P1_CONTROLS / P2_CONTROLS as before, byte-identical.
+  const _c1 = netMatch.isActive() ? makeNetControls(0) : P1_CONTROLS
+  const _c2 = netMatch.isActive() ? makeNetControls(1) : P2_CONTROLS
+  p1 = createFighter(matchConfig.p1CharKey, matchConfig.p1Char, p1X,  1, _c1, "p1")
+  p2 = createFighter(matchConfig.p2CharKey, matchConfig.p2Char, p2X, -1, _c2, "p2")
   applySkin(p1, matchConfig.p1Skin)   // Task 4: load the selected skin's art
   applySkin(p2, matchConfig.p2Skin)
   // Arcade final-boss buffs (Stage 20): applied ONLY when this p2 is the arcade boss opponent. Any
@@ -4078,6 +4114,7 @@ function beginUniverseSelect() {
 
 function chooseMode(mode) {
   matchConfig.mode = mode
+  matchConfig.online = null   // a standalone mode is never an online match — clear any leftover host/join flag
   resetSelections()
   if (mode === "training") { matchConfig.aiDifficulty = "dummy"; beginUniverseSelect(); return }
   if (mode === "pvp")      {
@@ -4102,6 +4139,142 @@ function chooseMode(mode) {
 function chooseDifficulty(difficulty) {
   matchConfig.aiDifficulty = difficulty
   beginUniverseSelect()
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LAN MULTIPLAYER (Stage 3) — host/join flow. OPT-IN and self-contained: the only
+// game-loop coupling is netMatch (already gated). Reached from the ONLINE screens.
+// ─────────────────────────────────────────────────────────────────────────────
+const onlineUi = {
+  status:    "idle",     // idle | connecting | waiting | ready | joined | error
+  message:   "",
+  code:      "",         // short shareable JOIN CODE (host) — the friendly thing to read out
+  address:   "",         // full ws:// LAN address (host) — shown small as a fallback / for power users
+  joinInput: "",         // what the joiner types: a short code (preferred) OR a full ws:// address
+  error:     "",
+  hover:     0,
+}
+
+function openOnlineMenu() {
+  leaveOnline()
+  onlineUi.status = "idle"; onlineUi.message = ""; onlineUi.error = ""; onlineUi.hover = 0
+  gameState = GAME_STATES.ONLINE_MENU
+}
+
+// The relay to connect to lives on the HOST's own machine. Prefer an explicit ?relay= override (tests /
+// manual), else ask the local dev-server / Electron for /api/lan-info and build ws://<thishost>:<port>.
+async function _resolveOwnRelayUrl() {
+  try { const p = new URLSearchParams(location.search); if (p.get("relay")) return p.get("relay") } catch {}
+  try {
+    const r = await fetch("/api/lan-info", { cache: "no-store" })
+    if (r.ok) { const info = await r.json(); return `ws://${location.hostname || "127.0.0.1"}:${info.port}` }
+  } catch {}
+  return null
+}
+
+async function _fillHostShareAddress() {
+  // Determine the host's REAL LAN ip + relay port (the joiner must reach the LAN ip, NOT localhost). Prefer
+  // /api/lan-info (the machine's actual LAN address, auto-detected server-side); fall back to the resolved
+  // relay URL (tests use ?relay=). Then derive BOTH the full address and the short friendly CODE from it.
+  let ip = null, port = null
+  try {
+    const r = await fetch("/api/lan-info", { cache: "no-store" })
+    if (r.ok) { const info = await r.json(); if (info.addresses && info.addresses[0]) ip = info.addresses[0]; if (info.port) port = info.port }
+  } catch {}
+  if (!ip || !port) {
+    try { const u = new URL(await _resolveOwnRelayUrl()); ip = ip || u.hostname; port = port || +u.port } catch {}
+  }
+  if (ip && port) {
+    onlineUi.address = `ws://${ip}:${port}`
+    onlineUi.code = encodeLanCode(ip, port) || ""
+  }
+}
+
+function startHostFlow() {
+  matchConfig.online = "host"
+  onlineUi.status = "connecting"; onlineUi.message = "Starting host…"; onlineUi.error = ""; onlineUi.address = ""
+  gameState = GAME_STATES.ONLINE_HOST
+  _resolveOwnRelayUrl().then((url) => {
+    if (!url) { onlineUi.status = "error"; onlineUi.error = "No LAN relay found — launch via `npm run dev` or the desktop app."; return }
+    online.connect(url, "host", {
+      onWelcome: () => { onlineUi.status = "waiting"; onlineUi.message = "Waiting for an opponent to join…" },
+      onLobby:   (m) => { const ready = (m.count || 0) >= 2; onlineUi.status = ready ? "ready" : "waiting"; onlineUi.message = ready ? "Opponent connected — choose the matchup!" : "Waiting for an opponent to join…" },
+      onBye:     ()  => { onlineUi.status = "waiting"; onlineUi.message = "Opponent left — waiting for another…" },
+      onError:   (e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) },
+    }).then(() => _fillHostShareAddress()).catch((e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) })
+  })
+}
+
+// Host is ready + opponent present → pick both fighters + stage via the normal select flow. The
+// matchConfig.online === "host" flag makes stage-confirm start an ONLINE match instead of a local one.
+function hostChooseMatchup() {
+  if (!online.bothPresent()) return
+  matchConfig.mode = "pvp"; matchConfig.online = "host"
+  inputSettings.p1Type = "keyboard"
+  beginUniverseSelect()
+}
+
+function startJoinFlow() {
+  matchConfig.online = "join"
+  onlineUi.status = "idle"; onlineUi.message = "Type the host's code, then Connect."; onlineUi.error = ""
+  onlineUi.joinInput = ""   // empty → the joiner types the short code shown on the host
+  gameState = GAME_STATES.ONLINE_JOIN
+}
+
+// Turn what the joiner typed into a ws:// url: a short JOIN CODE (preferred) OR a full ws:// address (still
+// accepted as a power-user fallback). Returns the url, or null if neither parses.
+function _joinInputToUrl(raw) {
+  const s = (raw || "").trim()
+  if (/^wss?:\/\//i.test(s)) return /^wss?:\/\/[^\s]+:\d+/.test(s) ? s : null   // full address fallback
+  const decoded = decodeLanCode(s)
+  return decoded ? `ws://${decoded.ip}:${decoded.port}` : null
+}
+
+function joinConnect() {
+  const url = _joinInputToUrl(onlineUi.joinInput)
+  if (!url) { onlineUi.error = "Enter the host code shown on the other screen (or a full ws:// address)."; return }
+  onlineUi.status = "connecting"; onlineUi.message = `Connecting…`; onlineUi.error = ""
+  online.connect(url, "join", {
+    onWelcome: () => { onlineUi.status = "joined"; onlineUi.message = "Connected — waiting for the host to start…" },
+    onSetup:   (m) => applyOnlineSetup(m),
+    onBye:     ()  => { onlineUi.status = "error"; onlineUi.error = "Host left the match." },
+    onError:   (e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) },
+  }).catch((e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) })
+}
+
+// HOST: called at stage-confirm in place of startMatch(). Generate the seed, sync it + the roster/stage to the
+// joiner, begin the LAN lockstep session, then start the identical match locally.
+function startOnlineHostMatch() {
+  const seed = makeSeed()
+  online.sendSetup({
+    seed, mode: "pvp", rounds: MAX_ROUNDS,
+    p1Char: matchConfig.p1CharKey, p1Skin: matchConfig.p1Skin,
+    p2Char: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin,
+    stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null,
+  })
+  netMatch.begin(online.getSession(), { localSide: "p1" })
+  _forcedSeed = seed
+  startMatch()
+}
+
+// JOINER: apply the host's MATCH_SETUP and start the identical match (localSide p2, same seed).
+function applyOnlineSetup(m) {
+  if (!m || m.seed == null) return
+  matchConfig.mode = "pvp"; matchConfig.online = "join"
+  matchConfig.p1CharKey = m.p1Char; matchConfig.p1Char = characters[m.p1Char]
+  matchConfig.p2CharKey = m.p2Char; matchConfig.p2Char = characters[m.p2Char]
+  matchConfig.p1Skin = m.p1Skin || "default"; matchConfig.p2Skin = m.p2Skin || "default"
+  matchConfig.selectedStage = stages.find(s => s.name === m.stage) || stages[0]
+  netMatch.begin(online.getSession(), { localSide: "p2" })
+  _forcedSeed = (m.seed >>> 0)
+  startMatch()
+}
+
+// Cleanly leave any online match/connection (menu exit / match end / back button).
+function leaveOnline(reason = null) {
+  try { online.disconnect(reason) } catch {}
+  netMatch.end()
+  matchConfig.online = null
 }
 
 // ── AI vs AI — SPECTATOR / TESTING MODE ──────────────────────────────────────
@@ -6038,6 +6211,20 @@ function updateGamepadEdges(fighter) {
   if (l2 && !prev.l2) handleToggleInputs(fighter, c.charge)    // press → record charge-down time
   if (!l2 && prev.l2) handleChargeRelease(fighter, c.charge)   // release → toggle if it was a quick tap
   prev.l2 = l2
+
+  // R1 = special, R2 = ultimate: fire the SAME press/release edge handlers the keyboard keydown/keyup do, so
+  // the tap-vs-hold SPECIAL/ULTIMATE characters (Saitama / Genos / Iron Man / Vilgax / Madara) behave
+  // identically on a pad. Every handler is a no-op unless the fighter is that character, so this is safe for
+  // all others — it just closes the parity gap where pad players couldn't get those tiered specials/ults.
+  const r1 = btn(PS5_MAP.R1)
+  if (r1 && !prev.r1) { handleSaitamaSpecialDown(fighter, c.special); handleGenosSpecialDown(fighter, c.special); handleIronMan2SpecialDown(fighter, c.special); handleIronMan3SpecialDown(fighter, c.special); handleVilgaxSpecialDown(fighter, c.special) }
+  if (!r1 && prev.r1) { handleSaitamaSpecialRelease(fighter, c.special); handleGenosSpecialRelease(fighter, c.special); handleIronMan2SpecialRelease(fighter, c.special); handleIronMan3SpecialRelease(fighter, c.special); handleVilgaxSpecialRelease(fighter, c.special) }
+  prev.r1 = r1
+
+  const r2 = btn(PS5_MAP.R2)
+  if (r2 && !prev.r2) handleUltimateDown(fighter, c.ultimate)
+  if (!r2 && prev.r2) { fighter._ultReleasedSinceStage1 = true; handleUltimateRelease(fighter, c.ultimate) }
+  prev.r2 = r2
 }
 
 // MAKI — "Cursed Tool Awakening" HP-threshold unlock. Her Shibuya-Arc Ultimate has NO meter; the transform
@@ -12559,7 +12746,19 @@ function updateBattle() {
   // combat consumes them). PLAYBACK overwrites keys from the recorded masks; otherwise RECORD the raw
   // masks (delta-encoded). Then, every HASH_INTERVAL frames, checkpoint both fighters' state — the
   // recorder stores it, playback compares it (desync check → first divergent frame).
-  if (replay.isPlayback()) {
+  if (netMatch.isActive()) {
+    // LAN LOCKSTEP (Stage 2, OPT-IN): mirror the replay-playback injection below. First SAMPLE this device's
+    // live input (read side-effect-free, like the recorder does) and ship it to the peer for a future frame;
+    // then drive BOTH fighters from the agreed DELAYED masks so both machines simulate the identical input
+    // stream. The live device state never drives the sim directly — that's what keeps the two ends bit-
+    // identical. This branch is unreachable unless a LAN match was explicitly begun (isActive()), so the
+    // standalone playback/record paths below are untouched.
+    netMatch.sample(_replayFrame, readRawControls(NET_LOCAL_INPUT_REF))
+    const lm = netMatch.localMaskAt(_replayFrame), rm = netMatch.remoteMaskAt(_replayFrame)
+    if (lm != null) writeRawControls(netMatch.localFighter(p1, p2),  replay.decodeInput(lm))
+    if (rm != null) writeRawControls(netMatch.remoteFighter(p1, p2), replay.decodeInput(rm))
+    netMatch.prune(_replayFrame - 120)   // keep the input buffers bounded on a long match
+  } else if (replay.isPlayback()) {
     const m = replay.playbackMaskAt(_replayFrame)
     if (m) { writeRawControls(p1, replay.decodeInput(m.p1)); writeRawControls(p2, replay.decodeInput(m.p2)) }
     if (_replayFrame % replay.HASH_INTERVAL === 0) replay.playbackCheckState(_replayFrame, _replaySnap(p1), _replaySnap(p2))
@@ -15263,6 +15462,8 @@ const bloodToggleRect  = { x: 0, y: 226, w: 190, h: 34 }
 const brutalityToggleRect = { x: 0, y: 300, w: 190, h: 34 }
 // COLORBLIND-SAFE HUD toggle (accessibility) — top-right column, below brutalities. x set by _layoutSettings.
 const colorblindToggleRect = { x: 0, y: 374, w: 190, h: 34 }
+// TOUCH CONTROLS toggle (tablet/phone) — cycles AUTO / ON / OFF. x set by _layoutSettings.
+const touchToggleRect = { x: 0, y: 448, w: 190, h: 34 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -15309,6 +15510,7 @@ function _layoutSettings() {
   bloodToggleRect.x  = rx
   brutalityToggleRect.x = rx
   colorblindToggleRect.x = rx
+  touchToggleRect.x = rx
 }
 
 function drawSettingsScreen() {
@@ -15409,6 +15611,16 @@ function drawSettingsScreen() {
   ctx.fillText(`Colorblind: ${colorblindHud ? "ON" : "OFF"}`, colorblindToggleRect.x + colorblindToggleRect.w / 2, colorblindToggleRect.y + 22)
   ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
   ctx.fillText("Blue/orange HUD accents (saved)", colorblindToggleRect.x, colorblindToggleRect.y + colorblindToggleRect.h + 13)
+
+  // TOUCH CONTROLS toggle (tablet/phone) — AUTO shows on touch devices; ON forces the overlay; OFF hides it.
+  const _tMode = touch.getMode(), _tOn = touch.isActive()
+  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+  ctx.fillText("TOUCH CONTROLS", touchToggleRect.x, touchToggleRect.y - 10)
+  box(touchToggleRect, _tOn ? "rgba(28,58,86,0.95)" : "rgba(20,26,40,0.9)", _tOn ? "#4ade80" : "rgba(120,150,200,0.4)", 2, _tOn)
+  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillText(`Touch: ${_tMode.toUpperCase()}`, touchToggleRect.x + touchToggleRect.w / 2, touchToggleRect.y + 22)
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.fillText(`On-screen pad (${touch.hasTouch() ? "touch detected" : "no touch detected"}, saved)`, touchToggleRect.x, touchToggleRect.y + touchToggleRect.h + 13)
   ctx.textAlign = "center"
 
   // ── Keybind grid (Task 2) ──
@@ -15870,6 +16082,9 @@ function renderCurrentState() {
       break
     }
     case GAME_STATES.GAMEPLAY_SELECT: drawGameplaySelectScreen(ctx, canvas, hoverGameplayIndex); break
+    case GAME_STATES.ONLINE_MENU: drawOnlineMenuScreen(ctx, canvas, onlineUi.hover); break
+    case GAME_STATES.ONLINE_HOST: drawOnlineHostScreen(ctx, canvas, onlineUi, onlineUi.hover); break
+    case GAME_STATES.ONLINE_JOIN: drawOnlineJoinScreen(ctx, canvas, onlineUi, onlineUi.hover); break
     case GAME_STATES.TOWER_SELECT:    drawTowerSelectScreen(ctx, canvas, hoverTowerIndex); break
     case GAME_STATES.ARCADE_SETUP:    drawArcadeSetupScreen(ctx, canvas, hoverArcadeIndex); break
     case GAME_STATES.ARCADE_RIVAL_INTRO: drawArcadeRivalIntro(); break
@@ -15969,6 +16184,7 @@ function renderCurrentState() {
       drawPauseMenu(ctx, canvas, pauseMenuIndex)
       _drawKOFlash(); break
   }
+  if (touch.shouldShow()) touch.draw(ctx, canvas)   // tablet/phone on-screen controls (only while a battle is on & touch mode active)
   _drawNavBackButton()   // on-screen BACK for select screens that lack one (mouse users)
   _drawToasts()          // Part 3 #17: unlock notifications overlay (global — persists across screens)
   if (feedbackEntry || feedbackMessage) _drawFeedbackPrompt()   // Track C: beta bug/feedback capture overlay (global — over pause/battle)
@@ -16133,6 +16349,9 @@ function updateHoverIndices() {
     return
   }
   if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v); return }
+  if (gameState === GAME_STATES.ONLINE_MENU)      { tryHover(getOnlineMenuRects(canvas),      onlineUi.hover,       v => onlineUi.hover       = v); return }
+  if (gameState === GAME_STATES.ONLINE_HOST)      { tryHover(getOnlineHostRects(canvas, onlineUi.status === "ready"), onlineUi.hover, v => onlineUi.hover = v); return }
+  if (gameState === GAME_STATES.ONLINE_JOIN)      { tryHover(getOnlineJoinRects(canvas),      onlineUi.hover,       v => onlineUi.hover       = v); return }
   if (gameState === GAME_STATES.TOWER_SELECT)     { tryHover(getTowerSelectRects(canvas),      hoverTowerIndex,      v => hoverTowerIndex      = v); return }
   if (gameState === GAME_STATES.ARCADE_SETUP)     { tryHover(getArcadeSetupRects(canvas),      hoverArcadeIndex,     v => hoverArcadeIndex     = v); return }
   if (gameState === GAME_STATES.BRACKET_SETUP)    { tryHover(getBracketSetupRects(canvas),     hoverBracketIndex,    v => hoverBracketIndex    = v); return }
@@ -16285,6 +16504,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, bloodToggleRect))  { setBloodFx(!bloodFx); break }
       if (pointInRect(mouse.x, mouse.y, brutalityToggleRect)) { setBrutalityFx(!brutalityFx); break }
       if (pointInRect(mouse.x, mouse.y, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
+      if (pointInRect(mouse.x, mouse.y, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.
       const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
       if (kb) { rebindAction = kb.action; rebindWarning = "" }
@@ -16350,8 +16570,32 @@ function handleMenuClicks() {
       else if (c.id === "arcade") { hoverArcadeIndex = 0; gameState = GAME_STATES.ARCADE_SETUP }   // pick difficulty first
       else if (c.id === "bracket") { hoverBracketIndex = 0; gameState = GAME_STATES.BRACKET_SETUP }   // pick bracket size first
       else if (c.id === "ffa")  { hoverFFAIndex = 0; gameState = GAME_STATES.FFA_SETUP }   // free-for-all
+      else if (c.id === "online") openOnlineMenu()   // LAN 2-device match (Stage 3)
       else if (c.id === "aivsai") { hoverAiVsAiIndex = 0; aiVsAiConfig.sel = 0; gameState = GAME_STATES.AI_VS_AI_SETUP }
       else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
+      break
+    }
+    case GAME_STATES.ONLINE_MENU: {
+      const c = getOnlineMenuRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if      (c.id === "host") startHostFlow()
+      else if (c.id === "join") startJoinFlow()
+      else if (c.id === "back") { leaveOnline(); gameState = GAME_STATES.GAMEPLAY_SELECT }
+      break
+    }
+    case GAME_STATES.ONLINE_HOST: {
+      const c = getOnlineHostRects(canvas, onlineUi.status === "ready").find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if      (c.id === "pick") hostChooseMatchup()
+      else if (c.id === "back") { leaveOnline(); openOnlineMenu() }
+      break
+    }
+    case GAME_STATES.ONLINE_JOIN: {
+      const c = getOnlineJoinRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
+      if (!c) break
+      if      (c.id === "connect") joinConnect()
+      else if (c.id === "back")    { leaveOnline(); openOnlineMenu() }
+      // clicking the field row just focuses it (typing is handled in keydown) — no-op here
       break
     }
     case GAME_STATES.AI_VS_AI_SETUP: {
@@ -16529,7 +16773,7 @@ function handleMenuClicks() {
     }
     case GAME_STATES.SELECT_STAGE: {
       const idx = getStageCardRects(canvas, stages).findIndex(r => pointInRect(mouse.x, mouse.y, r))
-      if (idx >= 0 && stages[idx]) { matchConfig.selectedStage = stages[idx]; startRiftTransition(charSelectAccent(matchConfig.p1CharKey) || "#4ad5ff"); startMatch() }   // rift into match-load, tinted the fighter's accent
+      if (idx >= 0 && stages[idx]) { matchConfig.selectedStage = stages[idx]; startRiftTransition(charSelectAccent(matchConfig.p1CharKey) || "#4ad5ff"); (matchConfig.online === "host" ? startOnlineHostMatch() : startMatch()) }   // rift into match-load; ONLINE host syncs seed+roster to the joiner first
       break
     }
     case GAME_STATES.MATCH_END: resetToStart(); break
@@ -16921,7 +17165,10 @@ function updateCurrentState() {
         updateMatchEntryTransition()   // advance the match-entry sting during the countdown window
         if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       } else {
-        updateBattle()
+        // LAN LOCKSTEP GATE (Stage 2, OPT-IN): in a net match, HOLD the sim on any frame whose remote input
+        // hasn't arrived — a visible stall, never a desync. `!netMatch.isActive()` short-circuits for every
+        // standalone match, so updateBattle() runs exactly as before.
+        if (!netMatch.isActive() || netMatch.canAdvance(_replayFrame)) updateBattle()
       }
       break
     case GAME_STATES.ROUND_BREAK:
@@ -17121,6 +17368,18 @@ function _aiVsAiFastForwardState() {
 // ------------------------------------------------------------------
 window.addEventListener("keydown", e => {
   const key = String(e.key || "").toLowerCase()
+
+  // ONLINE JOIN address entry (Stage 3): typing the host's ws:// address. Enter connects, Esc goes back.
+  // Captured before gameplay/shortcut keys so letters/numbers type into the field. Only while on the join
+  // screen and not yet connected (once connected we're just waiting for the host).
+  if (gameState === GAME_STATES.ONLINE_JOIN && onlineUi.status !== "joined" && onlineUi.status !== "connecting") {
+    e.preventDefault()
+    if      (key === "escape")    { leaveOnline(); openOnlineMenu() }
+    else if (key === "enter")     joinConnect()
+    else if (key === "backspace") onlineUi.joinInput = (onlineUi.joinInput || "").slice(0, -1)
+    else if (e.key && e.key.length === 1 && (onlineUi.joinInput || "").length < 64) onlineUi.joinInput = (onlineUi.joinInput || "") + e.key
+    return
+  }
 
   // BETA FEEDBACK entry (Track C): typing the "Report an Issue" note. Enter submits,
   // Esc cancels back to the pause menu. Captured before all gameplay/shortcut keys so
@@ -17780,6 +18039,67 @@ gameLoop()
         const c = { x: canvas.width / 2 + 110, y: canvas.height * 0.82 + 66 + 20 }   // center of the change-char (right) slot
         return handleVictoryClick(vs, c, canvas)
       }
+    },
+    // ── LAN MULTIPLAYER hooks (Stage 2, net_inject.test.mjs) ─────────────────────
+    // Drive the OPT-IN net inject/stall hooks headlessly against a SCRIPTED mock peer (no socket, no real
+    // second player) so the game-loop integration is provable without a standalone match ever being touched.
+    net: {
+      beginMock: (opts = {}) => { netMatch.beginMock(opts); return { active: netMatch.isActive(), localSide: netMatch.localSide() } },
+      end:       () => netMatch.end(),
+      isActive:  () => netMatch.isActive(),
+      frame:     () => _replayFrame,
+      canAdvance:(f) => netMatch.canAdvance(f ?? _replayFrame),
+      // The mask currently held on a fighter's bound keys (post-inject), to confirm remote input landed.
+      liveMask:  (who = "p2") => replay.encodeInput(readRawControls(who === "p2" ? p2 : p1)),
+    },
+    // ── LAN ONLINE flow hooks (Stage 3, net_online.test.mjs) — drive host/join without pixel-clicking ──
+    online: {
+      openMenu:    () => { openOnlineMenu(); return { state: gameState } },
+      hostStart:   () => { startHostFlow(); return true },
+      hostCode:    () => onlineUi.code,        // the short JOIN CODE the host is displaying
+      hostAddress: () => onlineUi.address,     // the full ws:// address (fallback)
+      status:      () => onlineUi.status,
+      side:        () => online.side(),
+      bothPresent: () => online.bothPresent(),
+      isActive:    () => netMatch.isActive(),
+      seed:        () => matchConfig.seed,
+      // Programmatic join: set the address + connect (mirrors typing + CONNECT).
+      join:        (codeOrUrl) => { startJoinFlow(); onlineUi.joinInput = codeOrUrl; joinConnect(); return true },
+      // Host picks a matchup + starts the online match (mirrors going through select + stage-confirm).
+      hostStartMatch: (p1Key, p2Key, stageName) => {
+        matchConfig.mode = "pvp"; matchConfig.online = "host"
+        matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key]
+        matchConfig.p2CharKey = p2Key; matchConfig.p2Char = characters[p2Key]
+        matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+        matchConfig.selectedStage = stages.find(s => s.name === stageName) || stages[0]
+        startOnlineHostMatch()
+        return { seed: matchConfig.seed }
+      },
+      // Deterministic sync probe: this side's frame + rounded fighter state, for cross-page comparison.
+      syncProbe: () => (p1 && p2) ? { frame: _replayFrame, p1x: Math.round(p1.x), p1y: Math.round(p1.y), p1h: Math.round(p1.health), p2x: Math.round(p2.x), p2y: Math.round(p2.y), p2h: Math.round(p2.health) } : null,
+      // Menu rects (so the test can also verify the real UI wiring, not just the hooks).
+      menuRects: () => getOnlineMenuRects(canvas).map(r => ({ id: r.id })),
+      state:     () => gameState,
+    },
+    // ── TOUCH CONTROLS hooks (touch_controls.test.mjs) — drive the overlay through its REAL start/move/end
+    // logic (which dispatches the same synthetic KeyboardEvents), so a test proves touch == keyboard.
+    touch: {
+      setMode:   (m) => touch.setMode(m),
+      mode:      () => touch.getMode(),
+      isActive:  () => touch.isActive(),
+      shouldShow:() => touch.shouldShow(),
+      layout:    () => touch.getLayout(canvas),
+      tapButton: (id) => touch._test.tapButton(id),           // quick press+release of an attack button
+      pressBtn:  (id) => { const b = touch._test.buttonCenter(id); return b ? touch._test.start(id, b.cx, b.cy) : null }, // hold
+      releaseBtn:(id) => touch._test.end(id),
+      joyStart:  (dir) => { const p = touch._test.joyPoint(dir); return touch._test.start("joy", p.cx, p.cy) },  // hold a direction
+      joyEnd:    () => touch._test.end("joy"),
+      joyTap:    (dir) => { const p = touch._test.joyPoint(dir); touch._test.start("joy", p.cx, p.cy); touch._test.end("joy") }, // single flick
+      activeTouches: () => touch._test.activeCount(),
+      // Live P1 state so a test can confirm touch input produced the same in-game effect as the keyboard.
+      p1state: () => p1 ? { x: Math.round(p1.x), y: Math.round(p1.y), vx: Math.round((p1.vx || 0) * 100) / 100, vy: Math.round((p1.vy || 0) * 100) / 100, facing: p1.facing, attacking: !!p1.attacking, move: p1.currentMove || null, blocking: !!p1.isBlocking, dashTimer: p1.dashTimer || 0, grabbing: !!p1._grabbing || !!p1.isGrabbing, ultHeld: !!p1._ultHeld, dashTapArmed: (p1.rightTapTime || 0) > 0 || (p1.leftTapTime || 0) > 0 } : null,
+      // Raw held keys P1 sees (proves touch set the same `keys[]` the keyboard would).
+      p1keys: () => p1 ? replay.encodeInput(readRawControls(p1)) : 0,
     },
     // Center point of a GAMEPLAY_SELECT button by id — so menu-click tests stay correct when the
     // menu gains/loses rows (the vertical layout re-centers all rows on any count change).

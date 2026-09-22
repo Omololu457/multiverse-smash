@@ -13,7 +13,9 @@
 // on top; everything else falls through to static files from the repo root.
 //
 // GUARD RAILS (all enforced below):
-//   • binds 127.0.0.1 ONLY (never 0.0.0.0) — this is dev data, not a public service.
+//   • binds 0.0.0.0 by default so a 2nd LAN device can load the game page (LAN multiplayer needs this;
+//     matches the relay). Set HOST=127.0.0.1 to restrict to loopback. Intended for a trusted home/LAN —
+//     the save API is reachable by anyone on that network, so don't run it on an untrusted network.
 //   • request body capped at 1MB → 413 on overflow.
 //   • POST body must parse as JSON AND have format === "multiverse-smash-save"
 //     before it's allowed to overwrite the save → refuses to clobber a real save
@@ -25,6 +27,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { startLanServer, lanAddresses } from "../net/lanServer.mjs";   // LAN multiplayer (Stage 3) relay + IP discovery
 
 const VERSION = "1";
 const SAVE_FORMAT = "multiverse-smash-save";
@@ -55,7 +58,7 @@ function readBody(req) {
 
 // Create (but do not start) the save server. Exported so the harness can boot it on a
 // random port against a throwaway save dir; the CLI entry below starts it on 127.0.0.1.
-export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_ROOT, "saves"), version = VERSION, feedbackFile = path.join(REPO_ROOT, "BETA_FEEDBACK_LOG.txt") } = {}) {
+export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_ROOT, "saves"), version = VERSION, feedbackFile = path.join(REPO_ROOT, "BETA_FEEDBACK_LOG.txt"), lanRelayPort = null } = {}) {
   const SAVE_FILE = path.join(saveDir, "game_player_data.json");
   const TMP_FILE  = SAVE_FILE + ".tmp";
   const BAK_FILE  = path.join(saveDir, "game_player_data.bak.json");
@@ -67,6 +70,13 @@ export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_RO
 
     // ── API: capability probe ────────────────────────────────────────────────
     if (url === "/api/health") { sendJson(res, 200, { ok: true, version }); return; }
+
+    // ── API: LAN multiplayer info (Stage 3) — the relay port + this host's LAN IPs so the ONLINE screen can
+    // show a shareable ws:// address. port is null when no relay was started (e.g. harness save-server).
+    if (url === "/api/lan-info") {
+      sendJson(res, 200, { ok: true, port: lanRelayPort, addresses: lanAddresses().map((a) => a.address) });
+      return;
+    }
 
     // ── API: read the save ───────────────────────────────────────────────────
     if (url === "/api/save" && req.method === "GET") {
@@ -138,16 +148,39 @@ export function createSaveServer({ root = REPO_ROOT, saveDir = path.join(REPO_RO
 }
 
 // ── CLI ENTRY ────────────────────────────────────────────────────────────────
-// `npm run dev`. Bind 127.0.0.1 ONLY. Save file lives at ./saves/game_player_data.json.
+// `npm run dev`. Binds 0.0.0.0 (LAN-reachable; override with HOST=127.0.0.1). Save file lives at ./saves/game_player_data.json.
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const PORT = +(process.env.PORT || 8000);
-  const server = createSaveServer();
-  server.listen(PORT, "127.0.0.1", () => {
-    console.log(`save server → http://127.0.0.1:${PORT}`);
+  // LAN multiplayer relay (Stage 3): a ws server bound to ALL interfaces so a second device can reach it.
+  // The game (served on 127.0.0.1 locally) connects to it as a client for hosting/joining. Additive: if it
+  // fails to start (e.g. port busy), the rest of the dev server still runs — only ONLINE is unavailable.
+  const LAN_PORT = +(process.env.LAN_PORT || 8787);
+  let lanRelayPort = null;
+  try {
+    startLanServer({ port: LAN_PORT, relay: true, log: () => {} });
+    lanRelayPort = LAN_PORT;
+  } catch (e) { console.log(`  • LAN relay      → FAILED to start on ${LAN_PORT}: ${e.message}`); }
+
+  // Bind ALL interfaces by default so a SECOND LAN DEVICE can load the game page (http://<lan-ip>:${PORT}),
+  // matching the relay which already binds 0.0.0.0. Previously this bound 127.0.0.1 only, so the relay was
+  // reachable but the page itself refused the connection from another device. Set HOST=127.0.0.1 to restrict
+  // back to loopback (the save API + static files are then localhost-only again).
+  const HOST = process.env.HOST || "0.0.0.0";
+  const server = createSaveServer({ lanRelayPort });
+  server.listen(PORT, HOST, () => {
+    const lanIps = lanAddresses().map((a) => a.address);
+    console.log(`save server → http://127.0.0.1:${PORT}  (bound ${HOST})`);
+    if (HOST === "0.0.0.0" && lanIps.length) {
+      console.log(`  • OTHER DEVICES load → ${lanIps.map((ip) => `http://${ip}:${PORT}`).join("  ,  ")}`);
+    }
     console.log(`  • GET/POST /api/save  → ${path.relative(REPO_ROOT, server._saveFile)}  (auto file persistence)`);
     console.log(`  • POST /api/feedback  → ${path.relative(REPO_ROOT, server._feedbackFile)}  (beta bug/feedback log)`);
     console.log(`  • GET /api/health     → { ok: true, version: "${VERSION}" }`);
+    if (lanRelayPort) {
+      const ips = lanAddresses().map((a) => `ws://${a.address}:${lanRelayPort}`);
+      console.log(`  • LAN relay (ONLINE)  → ws://0.0.0.0:${lanRelayPort}${ips.length ? "  share: " + ips.join(" , ") : ""}`);
+    }
     console.log(`  • static              → repo root`);
   });
 }

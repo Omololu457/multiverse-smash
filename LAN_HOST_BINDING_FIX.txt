@@ -1,0 +1,83 @@
+================================================================================
+LAN MULTIPLAYER — HTTP SERVER BINDING FIX
+Date: 2026-09-22   Branch: impact-escalation
+================================================================================
+
+THE BUG
+--------------------------------------------------------------------------------
+For a LAN 2-device match, the LAN relay WebSocket server (port 8787) correctly
+bound to 0.0.0.0 (all network interfaces), so a second device could reach it.
+BUT the HTTP / static file server that serves the actual game page (port 8000)
+bound to 127.0.0.1 (loopback) ONLY. Result: a second device on the same LAN
+could reach the relay but got "connection refused" trying to load the game page
+at http://<host-ip>:8000.
+
+STAGE 1 — CONFIRM (diagnosis)
+--------------------------------------------------------------------------------
+server/save-server.mjs, CLI entry, was:
+    server.listen(PORT, "127.0.0.1", () => { ... })
+Explicitly bound to loopback. The relay (net/lanServer.mjs -> WebSocketServer)
+passes only a port, so Node binds it to 0.0.0.0 by default -> the inconsistency.
+Also found the SAME loopback bind in server/static-only.mjs (npm run dev:noserver).
+
+STAGE 2 — FIX
+--------------------------------------------------------------------------------
+Bind the HTTP/static server to 0.0.0.0 by default (matching the relay), with an
+opt-out for the security-conscious.
+
+server/save-server.mjs (CLI entry):
+    const HOST = process.env.HOST || "0.0.0.0";
+    server.listen(PORT, HOST, () => { ... })
+  - Startup log now prints the shareable LAN URL for other devices, e.g.:
+        OTHER DEVICES load -> http://192.168.1.225:8000
+  - The correct LAN IP is auto-detected via lanAddresses() (net/lanServer.mjs);
+    the host does NOT enter any IP manually.
+  - Stale "binds 127.0.0.1 ONLY" header/CLI comments updated to reflect 0.0.0.0
+    and note the LAN-exposure security implication (trusted home/LAN only).
+
+server/static-only.mjs (npm run dev:noserver) — same one-line fix:
+    const HOST = process.env.HOST || "0.0.0.0";
+    server.listen(PORT, HOST, () => { ... })
+
+REVERT / RESTRICT: set HOST=127.0.0.1 to bind loopback-only again (both servers).
+
+STAGE 3 — VERIFY (results)
+--------------------------------------------------------------------------------
+(a) No regression on loopback:
+      curl http://127.0.0.1:8000/api/health  ->  {"ok":true,"version":"1"}   OK
+      curl http://127.0.0.1:8061/index.html  ->  HTTP 200 (static-only)       OK
+
+(b) Network-level bind confirmation (lsof -nP -iTCP -sTCP:LISTEN):
+      HTTP game page :  TCP *:8000 (LISTEN)     <- all interfaces (was 127.0.0.1:8000)
+      WS relay       :  TCP *:8787 (LISTEN)     <- all interfaces (unchanged)
+      static-only    :  TCP *:8061 (LISTEN)     <- all interfaces
+    "*" = 0.0.0.0 / all interfaces. Previously the game page showed 127.0.0.1:8000.
+
+(c) Reachable over the real LAN interface (IP 192.168.1.225):
+      http://192.168.1.225:8000/index.html    ->  HTTP 200
+      http://192.168.1.225:8000/api/lan-info  ->  {"ok":true,"port":8787,"addresses":["192.168.1.225"]}
+      TCP connect 192.168.1.225:8787          ->  succeeded (relay reachable)
+
+REGRESSION
+--------------------------------------------------------------------------------
+  test:save-load        46 passed, 0 failed   (createSaveServer unchanged; harnesses
+                                                bind their own 127.0.0.1 — unaffected)
+  Change is CLI-entry only; standalone / single-device play is completely unaffected.
+
+RESULT
+--------------------------------------------------------------------------------
+  The game page (8000) and the WS relay (8787) are now CONSISTENTLY bound to all
+  interfaces (0.0.0.0). A second LAN device can now BOTH load the game page and
+  connect to the relay. Fix is opt-out via HOST=127.0.0.1.
+
+FILES CHANGED
+--------------------------------------------------------------------------------
+  server/save-server.mjs    (listen host -> 0.0.0.0 + LAN URL in log + comments)
+  server/static-only.mjs    (listen host -> 0.0.0.0 + comment)
+  LAN_HOST_BINDING_FIX.txt  (this results file)
+
+NOTE: uncommitted, on branch impact-escalation. Not pushed. Still validated only
+via localhost/LAN-interface tests on ONE machine; the true two-physical-device
+check (friend opens http://<host-ip>:8000 on their phone/laptop) remains the final
+real-world confirmation.
+================================================================================

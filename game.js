@@ -22,6 +22,7 @@ import {
 import * as replay from "./replay.js"   // Stage 11B: input recording (replay foundation)
 import * as netMatch from "./net/netMatch.js"   // LAN multiplayer (Stage 2): OPT-IN remote input. Inert (isActive()=false) unless a LAN match is explicitly begun → standalone is byte-identical.
 import * as online from "./net/onlineMatch.js"  // LAN multiplayer (Stage 3): OPT-IN host/join connection controller for the online screens.
+import { encodeLanCode, decodeLanCode } from "./net/lanCode.js"  // LAN multiplayer (Stage 3b): short join CODE <-> ws://ip:port.
 import {
   activeSummons,
   updateSummons as updateActiveSummons,
@@ -4277,8 +4278,9 @@ function chooseDifficulty(difficulty) {
 const onlineUi = {
   status:    "idle",     // idle | connecting | waiting | ready | joined | error
   message:   "",
-  address:   "",         // shareable ws:// LAN address (host) shown to the user
-  joinInput: "ws://",    // editable address the joiner types
+  code:      "",         // short shareable JOIN CODE (host) — the friendly thing to read out
+  address:   "",         // full ws:// LAN address (host) — shown small as a fallback / for power users
+  joinInput: "",         // what the joiner types: a short code (preferred) OR a full ws:// address
   error:     "",
   hover:     0,
 }
@@ -4301,13 +4303,21 @@ async function _resolveOwnRelayUrl() {
 }
 
 async function _fillHostShareAddress() {
-  try {
-    const p = new URLSearchParams(location.search); if (p.get("relay")) { onlineUi.address = p.get("relay"); return }
-  } catch {}
+  // Determine the host's REAL LAN ip + relay port (the joiner must reach the LAN ip, NOT localhost). Prefer
+  // /api/lan-info (the machine's actual LAN address, auto-detected server-side); fall back to the resolved
+  // relay URL (tests use ?relay=). Then derive BOTH the full address and the short friendly CODE from it.
+  let ip = null, port = null
   try {
     const r = await fetch("/api/lan-info", { cache: "no-store" })
-    if (r.ok) { const info = await r.json(); const a = (info.addresses && info.addresses[0]) || location.hostname; onlineUi.address = `ws://${a}:${info.port}` }
+    if (r.ok) { const info = await r.json(); if (info.addresses && info.addresses[0]) ip = info.addresses[0]; if (info.port) port = info.port }
   } catch {}
+  if (!ip || !port) {
+    try { const u = new URL(await _resolveOwnRelayUrl()); ip = ip || u.hostname; port = port || +u.port } catch {}
+  }
+  if (ip && port) {
+    onlineUi.address = `ws://${ip}:${port}`
+    onlineUi.code = encodeLanCode(ip, port) || ""
+  }
 }
 
 function startHostFlow() {
@@ -4336,15 +4346,24 @@ function hostChooseMatchup() {
 
 function startJoinFlow() {
   matchConfig.online = "join"
-  onlineUi.status = "idle"; onlineUi.message = "Enter the host's address, then Connect."; onlineUi.error = ""
-  if (!onlineUi.joinInput) onlineUi.joinInput = "ws://"
+  onlineUi.status = "idle"; onlineUi.message = "Type the host's code, then Connect."; onlineUi.error = ""
+  onlineUi.joinInput = ""   // empty → the joiner types the short code shown on the host
   gameState = GAME_STATES.ONLINE_JOIN
 }
 
+// Turn what the joiner typed into a ws:// url: a short JOIN CODE (preferred) OR a full ws:// address (still
+// accepted as a power-user fallback). Returns the url, or null if neither parses.
+function _joinInputToUrl(raw) {
+  const s = (raw || "").trim()
+  if (/^wss?:\/\//i.test(s)) return /^wss?:\/\/[^\s]+:\d+/.test(s) ? s : null   // full address fallback
+  const decoded = decodeLanCode(s)
+  return decoded ? `ws://${decoded.ip}:${decoded.port}` : null
+}
+
 function joinConnect() {
-  const url = (onlineUi.joinInput || "").trim()
-  if (!/^wss?:\/\/[^\s]+:\d+/.test(url)) { onlineUi.error = "Address must look like ws://192.168.1.20:8787"; return }
-  onlineUi.status = "connecting"; onlineUi.message = `Connecting to ${url}…`; onlineUi.error = ""
+  const url = _joinInputToUrl(onlineUi.joinInput)
+  if (!url) { onlineUi.error = "Enter the host code shown on the other screen (or a full ws:// address)."; return }
+  onlineUi.status = "connecting"; onlineUi.message = `Connecting…`; onlineUi.error = ""
   online.connect(url, "join", {
     onWelcome: () => { onlineUi.status = "joined"; onlineUi.message = "Connected — waiting for the host to start…" },
     onSetup:   (m) => applyOnlineSetup(m),
@@ -18178,13 +18197,15 @@ gameLoop()
     online: {
       openMenu:    () => { openOnlineMenu(); return { state: gameState } },
       hostStart:   () => { startHostFlow(); return true },
+      hostCode:    () => onlineUi.code,        // the short JOIN CODE the host is displaying
+      hostAddress: () => onlineUi.address,     // the full ws:// address (fallback)
       status:      () => onlineUi.status,
       side:        () => online.side(),
       bothPresent: () => online.bothPresent(),
       isActive:    () => netMatch.isActive(),
       seed:        () => matchConfig.seed,
       // Programmatic join: set the address + connect (mirrors typing + CONNECT).
-      join:        (url) => { onlineUi.joinInput = url; startJoinFlow(); joinConnect(); return true },
+      join:        (codeOrUrl) => { startJoinFlow(); onlineUi.joinInput = codeOrUrl; joinConnect(); return true },
       // Host picks a matchup + starts the online match (mirrors going through select + stage-confirm).
       hostStartMatch: (p1Key, p2Key, stageName) => {
         matchConfig.mode = "pvp"; matchConfig.online = "host"

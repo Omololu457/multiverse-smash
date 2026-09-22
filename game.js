@@ -23,6 +23,7 @@ import * as replay from "./replay.js"   // Stage 11B: input recording (replay fo
 import * as netMatch from "./net/netMatch.js"   // LAN multiplayer (Stage 2): OPT-IN remote input. Inert (isActive()=false) unless a LAN match is explicitly begun → standalone is byte-identical.
 import * as online from "./net/onlineMatch.js"  // LAN multiplayer (Stage 3): OPT-IN host/join connection controller for the online screens.
 import { encodeLanCode, decodeLanCode } from "./net/lanCode.js"  // LAN multiplayer (Stage 3b): short join CODE <-> ws://ip:port.
+import * as touch from "./touchControls.js"  // Tablet/phone on-screen controls — dispatches synthetic KeyboardEvents into the SAME pipeline. Inert unless touch mode is active.
 import {
   activeSummons,
   updateSummons as updateActiveSummons,
@@ -590,6 +591,12 @@ function setUiScale(v) {
 }
 _applyCanvasSize()
 setupMouseInput(canvas)
+// Tablet/phone touch overlay. Closures are invoked later (post-init), so referencing P1_CONTROLS / GAME_STATES
+// / gameState defined below is safe. inBattle gates rendering + interception to actual battle screens.
+touch.setup(canvas, {
+  getControls: () => P1_CONTROLS,
+  inBattle: () => gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.FFA_BATTLE,
+})
 
 // BLOOD hit-effect toggle (COSMETIC). Default OFF given the roster's mixed / all-ages tone
 // (Power Rangers & Ben 10 sit next to Jason & Ghostface). Self-contained localStorage — like
@@ -6346,6 +6353,20 @@ function updateGamepadEdges(fighter) {
   if (l2 && !prev.l2) handleToggleInputs(fighter, c.charge)    // press → record charge-down time
   if (!l2 && prev.l2) handleChargeRelease(fighter, c.charge)   // release → toggle if it was a quick tap
   prev.l2 = l2
+
+  // R1 = special, R2 = ultimate: fire the SAME press/release edge handlers the keyboard keydown/keyup do, so
+  // the tap-vs-hold SPECIAL/ULTIMATE characters (Saitama / Genos / Iron Man / Vilgax / Madara) behave
+  // identically on a pad. Every handler is a no-op unless the fighter is that character, so this is safe for
+  // all others — it just closes the parity gap where pad players couldn't get those tiered specials/ults.
+  const r1 = btn(PS5_MAP.R1)
+  if (r1 && !prev.r1) { handleSaitamaSpecialDown(fighter, c.special); handleGenosSpecialDown(fighter, c.special); handleIronMan2SpecialDown(fighter, c.special); handleIronMan3SpecialDown(fighter, c.special); handleVilgaxSpecialDown(fighter, c.special) }
+  if (!r1 && prev.r1) { handleSaitamaSpecialRelease(fighter, c.special); handleGenosSpecialRelease(fighter, c.special); handleIronMan2SpecialRelease(fighter, c.special); handleIronMan3SpecialRelease(fighter, c.special); handleVilgaxSpecialRelease(fighter, c.special) }
+  prev.r1 = r1
+
+  const r2 = btn(PS5_MAP.R2)
+  if (r2 && !prev.r2) handleUltimateDown(fighter, c.ultimate)
+  if (!r2 && prev.r2) { fighter._ultReleasedSinceStage1 = true; handleUltimateRelease(fighter, c.ultimate) }
+  prev.r2 = r2
 }
 
 // MAKI — "Cursed Tool Awakening" HP-threshold unlock. Her Shibuya-Arc Ultimate has NO meter; the transform
@@ -15618,6 +15639,8 @@ const bloodToggleRect  = { x: 0, y: 226, w: 190, h: 34 }
 const brutalityToggleRect = { x: 0, y: 300, w: 190, h: 34 }
 // COLORBLIND-SAFE HUD toggle (accessibility) — top-right column, below brutalities. x set by _layoutSettings.
 const colorblindToggleRect = { x: 0, y: 374, w: 190, h: 34 }
+// TOUCH CONTROLS toggle (tablet/phone) — cycles AUTO / ON / OFF. x set by _layoutSettings.
+const touchToggleRect = { x: 0, y: 448, w: 190, h: 34 }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
 // Anchored top-left (empty space on the Settings screen); rects filled by _layoutSettings.
 const saveExportRect    = { x: 20, y: 150, w: 190, h: 34 }
@@ -15664,6 +15687,7 @@ function _layoutSettings() {
   bloodToggleRect.x  = rx
   brutalityToggleRect.x = rx
   colorblindToggleRect.x = rx
+  touchToggleRect.x = rx
 }
 
 function drawSettingsScreen() {
@@ -15764,6 +15788,16 @@ function drawSettingsScreen() {
   ctx.fillText(`Colorblind: ${colorblindHud ? "ON" : "OFF"}`, colorblindToggleRect.x + colorblindToggleRect.w / 2, colorblindToggleRect.y + 22)
   ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
   ctx.fillText("Blue/orange HUD accents (saved)", colorblindToggleRect.x, colorblindToggleRect.y + colorblindToggleRect.h + 13)
+
+  // TOUCH CONTROLS toggle (tablet/phone) — AUTO shows on touch devices; ON forces the overlay; OFF hides it.
+  const _tMode = touch.getMode(), _tOn = touch.isActive()
+  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+  ctx.fillText("TOUCH CONTROLS", touchToggleRect.x, touchToggleRect.y - 10)
+  box(touchToggleRect, _tOn ? "rgba(28,58,86,0.95)" : "rgba(20,26,40,0.9)", _tOn ? "#4ade80" : "rgba(120,150,200,0.4)", 2, _tOn)
+  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillText(`Touch: ${_tMode.toUpperCase()}`, touchToggleRect.x + touchToggleRect.w / 2, touchToggleRect.y + 22)
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.fillText(`On-screen pad (${touch.hasTouch() ? "touch detected" : "no touch detected"}, saved)`, touchToggleRect.x, touchToggleRect.y + touchToggleRect.h + 13)
   ctx.textAlign = "center"
 
   // ── Keybind grid (Task 2) ──
@@ -16327,6 +16361,7 @@ function renderCurrentState() {
       drawPauseMenu(ctx, canvas, pauseMenuIndex)
       _drawKOFlash(); break
   }
+  if (touch.shouldShow()) touch.draw(ctx, canvas)   // tablet/phone on-screen controls (only while a battle is on & touch mode active)
   _drawNavBackButton()   // on-screen BACK for select screens that lack one (mouse users)
   _drawToasts()          // Part 3 #17: unlock notifications overlay (global — persists across screens)
   if (feedbackEntry || feedbackMessage) _drawFeedbackPrompt()   // Track C: beta bug/feedback capture overlay (global — over pause/battle)
@@ -16646,6 +16681,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, bloodToggleRect))  { setBloodFx(!bloodFx); break }
       if (pointInRect(mouse.x, mouse.y, brutalityToggleRect)) { setBrutalityFx(!brutalityFx); break }
       if (pointInRect(mouse.x, mouse.y, colorblindToggleRect)) { setColorblindMode(!colorblindHud); break }
+      if (pointInRect(mouse.x, mouse.y, touchToggleRect)) { touch.cycleMode(); break }   // AUTO → ON → OFF
       // Keybind rows (Task 2): click an action → await a key.
       const kb = getKeybindRects().find(r => pointInRect(mouse.x, mouse.y, r))
       if (kb) { rebindAction = kb.action; rebindWarning = "" }
@@ -18221,6 +18257,26 @@ gameLoop()
       // Menu rects (so the test can also verify the real UI wiring, not just the hooks).
       menuRects: () => getOnlineMenuRects(canvas).map(r => ({ id: r.id })),
       state:     () => gameState,
+    },
+    // ── TOUCH CONTROLS hooks (touch_controls.test.mjs) — drive the overlay through its REAL start/move/end
+    // logic (which dispatches the same synthetic KeyboardEvents), so a test proves touch == keyboard.
+    touch: {
+      setMode:   (m) => touch.setMode(m),
+      mode:      () => touch.getMode(),
+      isActive:  () => touch.isActive(),
+      shouldShow:() => touch.shouldShow(),
+      layout:    () => touch.getLayout(canvas),
+      tapButton: (id) => touch._test.tapButton(id),           // quick press+release of an attack button
+      pressBtn:  (id) => { const b = touch._test.buttonCenter(id); return b ? touch._test.start(id, b.cx, b.cy) : null }, // hold
+      releaseBtn:(id) => touch._test.end(id),
+      joyStart:  (dir) => { const p = touch._test.joyPoint(dir); return touch._test.start("joy", p.cx, p.cy) },  // hold a direction
+      joyEnd:    () => touch._test.end("joy"),
+      joyTap:    (dir) => { const p = touch._test.joyPoint(dir); touch._test.start("joy", p.cx, p.cy); touch._test.end("joy") }, // single flick
+      activeTouches: () => touch._test.activeCount(),
+      // Live P1 state so a test can confirm touch input produced the same in-game effect as the keyboard.
+      p1state: () => p1 ? { x: Math.round(p1.x), y: Math.round(p1.y), vx: Math.round((p1.vx || 0) * 100) / 100, vy: Math.round((p1.vy || 0) * 100) / 100, facing: p1.facing, attacking: !!p1.attacking, move: p1.currentMove || null, blocking: !!p1.isBlocking, dashTimer: p1.dashTimer || 0, grabbing: !!p1._grabbing || !!p1.isGrabbing, ultHeld: !!p1._ultHeld, dashTapArmed: (p1.rightTapTime || 0) > 0 || (p1.leftTapTime || 0) > 0 } : null,
+      // Raw held keys P1 sees (proves touch set the same `keys[]` the keyboard would).
+      p1keys: () => p1 ? replay.encodeInput(readRawControls(p1)) : 0,
     },
     // Center point of a GAMEPLAY_SELECT button by id — so menu-click tests stay correct when the
     // menu gains/loses rows (the vertical layout re-centers all rows on any count change).

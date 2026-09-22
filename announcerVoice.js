@@ -81,3 +81,25 @@ export function pickAnnouncer(pool) {
   if (!Array.isArray(arr) || arr.length === 0) return null
   return arr[Math.floor(Math.random() * arr.length)]
 }
+
+// Per-mode-card hover line — the SPECIFIC modeSelect clip whose spoken name matches the card the cursor is
+// on (GAMEPLAY_SELECT). Keyed by the card `id` from getGameplaySelectRects. Cards WITHOUT a dedicated
+// recorded line (bracket = "Tournament", aivsai) are omitted → the hover falls back to a random modeSelect
+// pick. "Story Mode." (008) has no card on this screen, so it's only reachable via that fallback.
+export const MODE_SELECT_BY_CARD = {
+  training:    A + "announcer_013.mp3",   // "Training."
+  comboTrials: A + "announcer_015.mp3",   // "Combo Trials."
+  vs:          A + "announcer_010.mp3",   // "Versus."
+  pvp:         A + "announcer_010.mp3",   // "Versus." (2-player local versus shares the line)
+  arcade:      A + "announcer_009.mp3",   // "Arcade."
+  tower:       A + "announcer_011.mp3",   // "Tower Challenge."
+  ffa:         A + "announcer_012.mp3",   // "Free For All."
+  online:      A + "announcer_014.mp3",   // "Online — local network."
+}
+
+// Resolve the announcer clip for a hovered mode card: its specific line, else a random modeSelect line;
+// null for BACK (not a mode → stays silent).
+export function pickModeCardAnnouncer(cardId) {
+  if (!cardId || cardId === "back") return null
+  return MODE_SELECT_BY_CARD[cardId] || pickAnnouncer("modeSelect")
+}

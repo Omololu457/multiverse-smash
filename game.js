@@ -489,7 +489,7 @@ import {
   clearEdoTenseiCinematic, getEdoTenseiCinematicStatus
 } from "./tobiramaEdoTenseiCinematic.js"
 import { sound, SFX, MUSIC, MENU_PLAYLIST, menuTrackDisplayName } from "./sound.js"
-import { pickAnnouncer, ANNOUNCER_VOICE } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
+import { pickAnnouncer, ANNOUNCER_VOICE, pickModeCardAnnouncer } from "./announcerVoice.js"   // generic announcer voice pools (audio-only, 227 clips in announcer_clips/)
 import { pickRickVoice, RICK_VOICE } from "./rickVoice.js"
 import { pickKilluaVoice, KILLUA_VOICE, KILLUA_CHARGE_COMPLETE_SFX } from "./killuaVoice.js"
 import { pickGonVoice, GON_VOICE } from "./gonVoice.js"
@@ -3481,12 +3481,13 @@ function resetSelectBark() { _selectBarkPending = null; _selectBarkLastPlayed = 
 // Plays via playSfxFile directly (NOT announce()) to bypass the 1600ms anti-stomp gap in favour of this
 // finer per-hover cooldown. Audio-only; never touches the sim.
 const ANNOUNCER_HOVER_COOLDOWN = 18   // frames (~0.30s @60fps) between hover lines
-let _annHoverPendingKey  = null   // "<STATE>:<index>" of the option currently under the cursor, awaiting a line
-let _annHoverPendingPool = null   // announcer pool for the current screen
-let _annHoverLastKey     = null   // last option that actually announced (no repeat while it stays hovered)
-let _annHoverCd          = 0
-// Record the option now under the cursor (called from tryHover on a hover CHANGE for mapped screens).
-function noteAnnouncerHover(pool, key) { _annHoverPendingPool = pool; _annHoverPendingKey = key }
+let _annHoverPendingKey = null    // "<STATE>:<index>" of the option currently under the cursor, awaiting a line
+let _annHoverResolve    = null    // () => clip : resolves the settled option's clip at PLAY time (captures the option)
+let _annHoverLastKey    = null    // last option that actually announced (no repeat while it stays hovered)
+let _annHoverCd         = 0
+// Record the option now under the cursor + how to resolve its clip (called from tryHover on a hover CHANGE).
+// `resolve` is a thunk so the clip is chosen for the option you SETTLE on (per-item lines, e.g. mode cards).
+function noteAnnouncerHover(resolve, key) { _annHoverResolve = resolve; _annHoverPendingKey = key }
 // Per-frame: tick the cooldown and, when eligible, announce the settled option's line.
 function updateAnnouncerHover() {
   if (_annHoverCd > 0) _annHoverCd--
@@ -3495,13 +3496,13 @@ function updateAnnouncerHover() {
   if (_annHoverCd > 0) return                     // still cooling down → wait (trailing debounce)
   _annHoverLastKey = key
   if (sound?._sfxMuted) { _annHoverCd = ANNOUNCER_HOVER_COOLDOWN; return }
-  const clip = pickAnnouncer(_annHoverPendingPool)
-  if (!clip) { _annHoverCd = Math.floor(ANNOUNCER_HOVER_COOLDOWN / 2); return }
+  const clip = _annHoverResolve?.()
+  if (!clip) { _annHoverCd = Math.floor(ANNOUNCER_HOVER_COOLDOWN / 2); return }   // no line for this option (e.g. BACK)
   try { sound.playSfxFile?.(clip, null, { owner: ANNOUNCER_OWNER, volumeMult: 0.9 }) } catch (_) {}
   _annHoverCd = ANNOUNCER_HOVER_COOLDOWN
 }
 // Clear state so leaving + re-entering a screen re-announces the first hovered option.
-function resetAnnouncerHover() { _annHoverPendingKey = null; _annHoverLastKey = null; _annHoverPendingPool = null; _annHoverCd = 0 }
+function resetAnnouncerHover() { _annHoverPendingKey = null; _annHoverLastKey = null; _annHoverResolve = null; _annHoverCd = 0 }
 
 function advanceIntroSequence(fighter) {
   if (!fighter || !fighter._introSeq) return
@@ -16497,21 +16498,23 @@ function getCharacterRosterForSelectedUniverse() {
 function updateHoverIndices() {
   if (hoverThrottle > 0) { hoverThrottle--; }
 
-  // `annPool` (optional) = the announcer pool to speak on this screen's hover. Character grids pass NONE
+  // `annHover` (optional) = (idx, rects) => clip : resolves the announcer line for the hovered option, so a
+  // screen can speak a PER-ITEM clip (mode cards) or just a random pool pick. Character grids pass NONE
   // (SELECT_CHARACTER / FFA_CHARSELECT / SELECT_EDO_BACKUP) so their per-character voice bark stays the only
   // hover audio. updateAnnouncerHover ticks every frame the screen is active (this fn runs per frame).
-  const tryHover = (rects, current, setter, annPool = null) => {
+  const tryHover = (rects, current, setter, annHover = null) => {
     const found = rects.findIndex(r => pointInRect(mouse.x, mouse.y, r))
     if (found >= 0 && found !== current) {
       setter(found)
       if (hoverThrottle <= 0) { sound.play?.(SFX.UI_HOVER); hoverThrottle = 6 }
-      if (annPool) noteAnnouncerHover(annPool, gameState + ":" + found)
+      if (annHover) noteAnnouncerHover(() => annHover(found, rects), gameState + ":" + found)
     }
-    if (annPool) updateAnnouncerHover()
+    if (annHover) updateAnnouncerHover()
   }
+  const annPool = pool => () => pickAnnouncer(pool)   // random-line resolver for screens without per-item clips
 
   if (gameState === GAME_STATES.START)            { const r = getStartMenuRects(canvas);                    const f = r.findIndex(x => pointInRect(mouse.x,mouse.y,x)); hoverStartIndex = Math.max(0,f); return }
-  if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v, "mainMenu"); return }
+  if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v, annPool("mainMenu")); return }
   if (gameState === GAME_STATES.STORY_MODE) {   // interactive chapter tiles (story-mode-mvp) — hover feeds drawStoryModeScreen's hoverIndex + the click handler
     _storyBackHover = pointInRect(mouse.x, mouse.y, getStoryBackButton(canvas))
     const rects = getStoryChapterRects(canvas, STORY_CHAPTER_COUNT)
@@ -16530,7 +16533,7 @@ function updateHoverIndices() {
     if (hit) comboTrialIdx = hit.index
     return
   }
-  if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v, "modeSelect"); return }
+  if (gameState === GAME_STATES.GAMEPLAY_SELECT)  { tryHover(getGameplaySelectRects(canvas),  hoverGameplayIndex,   v => hoverGameplayIndex   = v, (idx, rs) => pickModeCardAnnouncer(rs[idx]?.id)); return }
   if (gameState === GAME_STATES.ONLINE_MENU)      { tryHover(getOnlineMenuRects(canvas),      onlineUi.hover,       v => onlineUi.hover       = v); return }
   if (gameState === GAME_STATES.ONLINE_HOST)      { tryHover(getOnlineHostRects(canvas, onlineUi.status === "ready"), onlineUi.hover, v => onlineUi.hover = v); return }
   if (gameState === GAME_STATES.ONLINE_JOIN)      { tryHover(getOnlineJoinRects(canvas),      onlineUi.hover,       v => onlineUi.hover       = v); return }
@@ -16547,8 +16550,8 @@ function updateHoverIndices() {
   if (gameState === GAME_STATES.SELECT_UNIVERSE)  { tryHover(getUniverseCardRects(canvas, getUniverseList()), hoverUniverseIndex,  v => hoverUniverseIndex  = v); return }
   if (gameState === GAME_STATES.SELECT_CHARACTER) { const _rost = getCharacterRosterForSelectedUniverse(); tryHover(getCharacterCardRects(canvas, _rost, charSelectGridOpts(canvas, true)), hoverCharacterIndex, v => hoverCharacterIndex = v); if (hoverCharacterIndex >= 0 && _rost[hoverCharacterIndex]) { _previewCharTheme(_rost[hoverCharacterIndex]); noteSelectBarkTarget(_rost[hoverCharacterIndex].id); } updateSelectBark(); return }
   if (gameState === GAME_STATES.SELECT_EDO_BACKUP) { tryHover(getCharacterCardRects(canvas, getEdoBackupRoster()), hoverEdoBackupIndex, v => hoverEdoBackupIndex = v); return }
-  if (gameState === GAME_STATES.SELECT_SKIN)      { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); tryHover(getSkinSelectRects(canvas, sk.length), hoverSkinIndex, v => hoverSkinIndex = v, "skinSelect"); return }
-  if (gameState === GAME_STATES.SELECT_STAGE)     { tryHover(getStageCardRects(canvas, stages), hoverStageIndex, v => hoverStageIndex = v, "stageHover") }
+  if (gameState === GAME_STATES.SELECT_SKIN)      { const sk = getSkins(matchConfig[skinSelectSide + "CharKey"]); tryHover(getSkinSelectRects(canvas, sk.length), hoverSkinIndex, v => hoverSkinIndex = v, annPool("skinSelect")); return }
+  if (gameState === GAME_STATES.SELECT_STAGE)     { tryHover(getStageCardRects(canvas, stages), hoverStageIndex, v => hoverStageIndex = v, annPool("stageHover")) }
 }
 
 function handleMenuClicks() {

@@ -15517,6 +15517,9 @@ export function fireObitoKamuiDimension(fighter, context) {
   fighter._spriteCastMove = "obitoShurCast"; fighter._spriteCastTimer = OBITO_KAMUI_DIM_FRAMES   // hold a throw pose
   fighter.attackCooldown  = OBITO_KAMUI_DIM_FRAMES                       // channel-lock Obito for the window
   fighter.vx = 0
+  // IMPACT HIT trigger: pre-stamp the killing-blow-move field so a kill during this barrage carries the signature
+  // move (the barrage projectiles don't stamp it themselves). Metadata only — NO damage/balance change.
+  fighter._killingBlowMove = "obitoKamuiDimension"
   try { sound.playSfxFile?.(pickObitoVoice("special"), null); fighter._atkVoiceCd = 150 } catch (_) {}
   // BARRAGE — his EXISTING shuriken, fired rapidly (staggered) across the window at the frozen foe.
   const face = fighter.facing || 1

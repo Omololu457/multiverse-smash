@@ -623,7 +623,8 @@ const BRUTALITY_ELIGIBLE = new Set(["sukuna", "toji", "frieza", "omniman", "zara
   // Tier 3 (2026-09-17 versatility pass — all adult, canonically-lethal, non-excluded, real damaging kits):
   // Sasuke's Chidori/blade, Itachi's Amaterasu/Susanoo blade, Vegeta's ki beams, Pain's black rods/gravity,
   // Byakuya's Senbonzakura petal-blades, Yamamoto's Ryūjin Jakka flame.
-  "sasuke", "itachi", "vegeta", "pain", "byakuya", "yamamoto"])
+  "sasuke", "itachi", "vegeta", "pain", "byakuya", "yamamoto",
+  "obito"])   // ★ IMPACT HIT PROTOTYPE ONLY — obito has NO gore finisher table (IMPACT_HIT_STANDALONE gates KLASSIC off)
 // GORE PALETTES — blood-red core + a per-character themed accent (index 2). NO new art: the finisher is a
 // procedural anatomical-split beat re-skinned per character. index 0 = body/limb mass, 1 = deep clot,
 // 2 = signature accent (steel edge / ki hue / toxin), 3 = near-black shadow.
@@ -801,6 +802,141 @@ function _resolveBrutalityFinisher(wKey, move) {
 }
 const BRUTALITY_FRAMES = 78   // ~1.3s — a quick, impactful finishing beat (no lingering aftermath)
 const brutalityState = { active: false, timer: 0, maxTimer: 0, winnerSide: null, wKey: null, x: 0, y: 0, dir: 1, move: null, parts: [], finisher: null, sprite: null, loseRef: null }
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// IMPACT HIT (prototype, obito only) — a cinematic KO lead-in built ON the proven Brutality/impact infra.
+// Reuses: the killing-blow-move STAMP (combat.js → winF._killingBlowMove), the Brutality ELIGIBILITY gate +
+// _resolveBrutalityFinisher, the ultimate ZOOM-CROP mechanism, and the sprite-freeze/pose flags. NEW: the
+// black→red→white flash cascade, a pose-following stick SKELETON, and the black/red/white background.
+// TRIGGER move = obito's signature "Kamui Dimension" (fireObitoKamuiDimension pre-stamps it). Bidirectional.
+const OBITO_IMPACT_MOVE = "obitoKamuiDimension"
+const IMPACT_HIT_STANDALONE = new Set(["obito"])   // Impact-Hit chars whose finisher is standalone → never KLASSIC brutality
+// Phase boundaries (frames, ~Thragg pacing: a few frames each): black [0,7) red [7,14) white [14,21) hold [21,30)
+const IH_BLACK = 7, IH_RED = 14, IH_WHITE = 21, IH_TOTAL = 30
+const impactHitState = { active: false, timer: 0, maxTimer: 0, phase: "black", winnerSide: null, loserSide: null, wKey: null, x: 0, y: 0, dir: 1, pendingWinner: null, camZoom: 0 }
+function _impactHitPhase(elapsed) { return elapsed < IH_BLACK ? "black" : elapsed < IH_RED ? "red" : elapsed < IH_WHITE ? "white" : "hold" }
+function _hasRealBrutalityEntry(wKey, move) { return _resolveBrutalityFinisher(wKey, move) !== BRUTALITY_KLASSIC }
+// STAGE 4 sprite side: recolor BOTH fighters through the SAME Black-Flash impact-frame system already used per-hit
+// (sprite.js reads fighter._impactFlash) so the CHARACTERS cycle black→red→white with the bg wash — not just the
+// backdrop. The optional `phase` field routes sprite.js's overlay (black/red = multiply ink, white = wash-out).
+// timer=6 outlives _tickImpactFlash's per-frame decrement; re-stamped every cascade frame. Render-only marker.
+function _applyImpactHitSprites(phase) {
+  for (const f of [p1, p2]) if (f) f._impactFlash = { timer: 6, maxTimer: 6, level: 3, phase, tier: "impacthit", combo: 0, comboTier: 3 }
+}
+function _clearImpactHitSprites() { for (const f of [p1, p2]) if (f) f._impactFlash = null }
+// Start the Impact Hit if obito is involved in this KO — reuses the EXACT killing-blow-move stamp (no fuzzy match)
+// for the "obito LANDS the kill" path; the "obito IS killed" path keys off obito being the loser (the killer's
+// move belongs to the opponent, so obito's move can't be matched there). Returns true if it started.
+function _tryStartImpactHit(winner) {
+  if (winner !== "p1" && winner !== "p2") return false
+  const winF = winner === "p1" ? p1 : p2, loseF = winner === "p1" ? p2 : p1
+  if (!winF || !loseF || (loseF.health || 0) > 0) return false        // KO finish only
+  const winKey = (winF.rosterKey || "").toLowerCase(), loseKey = (loseF.rosterKey || "").toLowerCase()
+  const obitoLands  = winKey === "obito" && winF._killingBlowMove === OBITO_IMPACT_MOVE   // EXACT move match (stamp reuse)
+  const obitoKilled = loseKey === "obito"
+  if (!obitoLands && !obitoKilled) return false
+  impactHitState.active = true
+  impactHitState.timer = impactHitState.maxTimer = IH_TOTAL
+  impactHitState.phase = "black"
+  impactHitState.winnerSide = winner; impactHitState.loserSide = winner === "p1" ? "p2" : "p1"
+  impactHitState.wKey = winKey; impactHitState.dir = winner === "p1" ? 1 : -1
+  impactHitState.x = (loseF.x || 0) + (loseF.w || loseF.width || 60) / 2
+  impactHitState.y = (loseF.y || 0) + (loseF.h || loseF.height || 100) * 0.4
+  impactHitState.pendingWinner = winner
+  if (loseF.animationData?.lose) loseF._forceAction = "lose"          // freeze the loser posed (reused pose flag)
+  if (winF.animationData?.win)   winF._forceAction  = "win"
+  // STAGE 5: hard zoom tight on the pair (reuse the ult zoom-crop value/idiom — set directly past the eased max)
+  const z = Math.max(1.5, (camera.zoom || 1) * 1.8)
+  camera.zoom = z; camera.targetZoom = z; impactHitState.camZoom = z
+  _applyImpactHitSprites("black")   // recolor the sprites from frame 1 (black phase)
+  return true
+}
+function updateImpactHit() {
+  const s = impactHitState
+  if (s._held) { if (camera.focusBetween && p1 && p2) camera.focusBetween(p1, p2, s.camZoom); camera.zoom = s.camZoom; camera.targetZoom = s.camZoom; _applyImpactHitSprites(s.phase); return }   // harness-held phase for frame-exact capture
+  const elapsed = s.maxTimer - s.timer
+  s.phase = _impactHitPhase(elapsed)
+  _applyImpactHitSprites(s.phase)   // re-stamp the sprite recolor to the current phase (outlives the per-frame tick)
+  // Hold the tight crop centred on the two fighters (focusBetween sets x/y; re-pin the zoom past the clamp).
+  if (camera.focusBetween && p1 && p2) camera.focusBetween(p1, p2, s.camZoom)
+  camera.zoom = s.camZoom; camera.targetZoom = s.camZoom
+  if (typeof camera.advance === "function") camera.advance(canvas)
+  camera.zoom = s.camZoom
+  if (--s.timer <= 0) {
+    s.active = false
+    _clearImpactHitSprites()   // drop the recolor so it doesn't bleed into Brutality / the victory screen
+    // STAGE 6 handoff: if the killing move HAS a real Brutality entry, Impact Hit was the lead-in → hand off to
+    // Brutality; otherwise (obito's case: no entry) Impact Hit was the complete standalone finisher → victory.
+    const winF = s.pendingWinner === "p1" ? p1 : p2
+    const move = winF?._killingBlowMove || null
+    if (_hasRealBrutalityEntry(s.wKey, move) && _tryStartBrutality(s.pendingWinner)) return   // → Brutality now plays
+    _enterVictoryScreen()
+  }
+}
+// STAGE 4 + 5 draw: full-screen black→red→white phase wash (replaces the stage bg AND tints the bodies, drawn
+// under it) + a pose-following stick SKELETON per fighter in a CONTRASTING colour. Over the scene, under HUD.
+function _drawImpactHit() {
+  const s = impactHitState; if (!s.active) return
+  const cw = canvas.width, ch = canvas.height
+  let bg, skel
+  if      (s.phase === "black") { bg = "rgba(6,7,12,0.70)";    skel = "rgba(242,248,255,0.96)" }   // near-black scene → white bones
+  else if (s.phase === "red")   { bg = "rgba(196,12,28,0.62)"; skel = "rgba(255,255,255,0.98)" }   // red scene → white bones
+  else if (s.phase === "white") { bg = "rgba(244,247,255,0.72)"; skel = "rgba(8,10,18,0.96)" }     // white-out → black bones
+  else                          { bg = "rgba(150,12,24,0.5)";  skel = "rgba(255,255,255,0.92)" }   // hold → settle on red / white bones
+  ctx.save(); ctx.fillStyle = bg; ctx.fillRect(0, 0, cw, ch); ctx.restore()   // STAGE 5 background + body wash
+  if (typeof window !== "undefined" && window.__hideIHSkeleton) return         // harness-only: isolate the wash/sprites for evidence shots
+  // STAGE 3 skeletons (distinct colour). The loser (the one taking the killing blow) reads as collapsing.
+  if (p1) _drawImpactHitSkeleton(p1, skel, s.loserSide === "p1")
+  if (p2) _drawImpactHitSkeleton(p2, skel, s.loserSide === "p2")
+}
+// Rough generic humanoid stick-skeleton (head + spine + 2 arms + 2 legs) roughly oriented to the fighter's
+// CURRENT pose flags (knocked-down / airborne / standing) — NOT a per-limb trace. Screen-space; scaled to the
+// fighter's drawn rect. Uses only ctx line/arc primitives.
+function _drawImpactHitSkeleton(f, color, isLoser = false) {
+  const w = f._lastDrawW || f.w || 60, h = f._lastDrawH || f.h || 110
+  const wx = (f._lastDrawX != null ? f._lastDrawX : f.x || 0) + w / 2
+  const wyTop = (f._lastDrawY != null ? f._lastDrawY : f.y || 0)
+  const top = _worldToScreen(wx, wyTop), bot = _worldToScreen(wx, wyTop + h)
+  const H = Math.max(24, bot.y - top.y), cx = top.x
+  // The loser is taking the killing blow → always reads as collapsing, regardless of the (frozen) pose flags.
+  const downed = isLoser || f._forceAction === "lose" || f.knockdownState || (f.knockdownTimer || 0) > 0
+  const airborne = !downed && !(f.onGround ?? f.grounded ?? true)
+  const dir = (f.facing ?? 1) >= 0 ? 1 : -1
+  ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineCap = "round"; ctx.lineJoin = "round"
+  ctx.lineWidth = Math.max(2, H * 0.035)
+  const r = H * 0.085
+  const line = (x1, y1, x2, y2) => { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke() }
+  const dot  = (x, y) => { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke() }
+  if (downed) {
+    // COLLAPSED body laid along the ground (drawn explicitly, NOT a rotated standing figure — the old rotation
+    // fanned every limb off the head and read as an arrow). Head falls AWAY from the attacker (−dir side).
+    const gy = top.y + H * 0.88, hs = -dir
+    const hipX = cx + hs * H * 0.02, hipY = gy - H * 0.03
+    const shX  = cx + hs * H * 0.30, shY  = gy - H * 0.11               // shoulders toward the head side
+    const headX = cx + hs * H * 0.46, headY = gy - H * 0.15
+    line(hipX, hipY, shX, shY)                                          // torso, raised slightly off the ground
+    line(shX, shY, headX, headY); dot(headX, headY - r * 0.5)           // neck → head
+    line(shX, shY, headX + hs * H * 0.06, gy - H * 0.02)                // one arm flung out past the head
+    line(shX, shY, cx - hs * H * 0.06, gy - H * 0.24)                   // other arm raised
+    const kx = hipX - hs * H * 0.20, ky = gy - H * 0.16                 // one knee up (bent leg)
+    line(hipX, hipY, kx, ky); line(kx, ky, kx - hs * H * 0.14, gy - H * 0.01)
+    line(hipX, hipY, hipX - hs * H * 0.30, gy - H * 0.06)               // other leg sprawled flat
+    ctx.restore(); return
+  }
+  // Upright (standing) or airborne (leaned back) — a plain humanoid with a small tilt.
+  const lean = airborne ? 0.35 * dir : 0
+  ctx.translate(cx, top.y + H * 0.06); ctx.rotate(lean)
+  const head = H * 0.11, shoulder = H * 0.24, hip = H * 0.55, foot = H * 0.92
+  dot(0, head)                                                                        // head
+  line(0, head + r, 0, hip)                                                           // spine
+  const aSpread = airborne ? H * 0.26 : H * 0.18
+  line(0, shoulder, -aSpread, shoulder + H * (airborne ? 0.02 : 0.22))                // L arm
+  line(0, shoulder,  aSpread, shoulder + H * (airborne ? 0.02 : 0.22))                // R arm
+  const lSpread = airborne ? H * 0.14 : H * 0.11
+  line(0, hip, -lSpread, foot)                                                        // L leg
+  line(0, hip,  lSpread, foot)                                                        // R leg
+  ctx.restore()
+}
 
 // SAVE FILE picker must fire from a REAL user gesture (transient activation) — the
 // File System Access pickers throw if called from the rAF-driven handleMenuClicks().
@@ -2992,6 +3128,7 @@ function resetRound() {
   _roundEndAudioStopped = false                      // re-arm the round-end stop for the new round
   resetMusicIntensity()                              // every round starts on the calm stage track (reverts any low-HP/final-round intensity)
   brutalityState.active = false; brutalityState.parts.length = 0   // clear any finisher state on a fresh round
+  impactHitState.active = false; impactHitState.timer = 0          // clear the Impact Hit cascade on a fresh round
   knockoutFlash  = 0
   _koBeatFired   = false; _koHangTimer = 0; _koFreeze = 0; _ultCrop = null; _ultCropHold = 0; _ultCropArm = false; _impactBurst = null   // re-arm the KO camera beat for the new round
   slowdownTimer  = 0
@@ -4488,6 +4625,9 @@ function _tryStartBrutality(winner) {
   const wKey = (winF.rosterKey || "").toLowerCase()
   if (!BRUTALITY_ELIGIBLE.has(wKey)) return false                // scope A: only tonally-eligible winners
   const move = winF._killingBlowMove || null                     // the EXACT move that landed the fatal blow (combat.js stamp)
+  // Impact-Hit-standalone chars (obito) are in the eligible set for the Impact Hit infra, but have NO gore
+  // finisher table → they must NOT fall through to a KLASSIC brutality. Impact Hit is their entire finisher.
+  if (IMPACT_HIT_STANDALONE.has(wKey) && !_hasRealBrutalityEntry(wKey, move)) return false
   brutalityState.active = true; brutalityState.timer = brutalityState.maxTimer = BRUTALITY_FRAMES
   brutalityState.winnerSide = winner; brutalityState.wKey = wKey
   brutalityState.dir  = winner === "p1" ? 1 : -1
@@ -5283,7 +5423,9 @@ function _checkMatchOver() {
     sound._forcePersistent = false   // end of the intentional post-match audio window
     // BRUTALITY: on a KO that ends the match (toggle on + eligible winner), play the finisher in-BATTLE
     // first; it calls _enterVictoryScreen() itself when done. Otherwise go straight to the victory screen.
-    if (!_tryStartBrutality(winner)) _enterVictoryScreen()   // win screen music → Passion_fruitmp3.mp3
+    // IMPACT HIT (obito prototype) plays FIRST as a lead-in beat; when it ends it either hands off to Brutality
+    // (if the move has a real entry) or resolves to victory itself. Otherwise the normal Brutality/victory flow.
+    if (!_tryStartImpactHit(winner) && !_tryStartBrutality(winner)) _enterVictoryScreen()
   } else {
     roundNumber++
     roundBreakTimer = ROUND_BREAK_DURATION
@@ -12646,6 +12788,7 @@ function _drawParryClashFlash() {
 }
 
 function updateBattle() {
+  if (impactHitState.active) { updateImpactHit(); return }   // Impact Hit cascade plays out — freeze combat (Stage 6: may hand off to Brutality)
   if (brutalityState.active) { updateBrutality(); return }   // finisher plays out — freeze combat until it ends
   // Harness-only: hold the ultimate zoom-crop frame open (frozen, zoom pinned) for a frame-exact screenshot.
   if (_ultCropHold > 0) { _ultCropHold--; camera.zoom = _ultCropHoldZoom; camera.targetZoom = _ultCropHoldZoom; return }
@@ -13234,6 +13377,38 @@ function drawSpeedLines(c, fighter) {
   c.restore()
 }
 
+// ── STAGE 2 — CRACKING-GLASS COMBO SIGNAL (purely cosmetic) ─────────────────────────────────
+// Thin white/light jagged crack-lines drawn ON the fighter that is being deep-combo'd — density climbs with
+// the OPPONENT's live comboCounter across the SAME 5/9/15 tiers used elsewhere. A pure "you're deep in a big
+// combo" read: it NEVER touches damage/hitstun/any gameplay value (render-only; reads comboCounter, writes
+// nothing). Deterministic (seeded by crack index, no Math.random) so the pattern is stable + grows per tier.
+function _drawComboCracks(c, fighter) {
+  if (!c || !fighter || brutalityState.active) return
+  const combo = getOpponent(fighter)?.comboCounter || 0
+  if (combo < 5) return                                  // tier 1 begins at 5 (mirrors the 5/9/15 combo tiers)
+  const tier = combo >= 15 ? 3 : combo >= 9 ? 2 : 1
+  const n = tier === 3 ? 14 : tier === 2 ? 8 : 4         // cumulative density — more cracks the deeper the combo
+  // Use the ACTUAL drawn sprite rect (sprite.js records _lastDraw*) so cracks land ON the visible body — the
+  // logical hitbox (fighter.x/y/w/h) is offset/unscaled from the rendered sprite.
+  const w = fighter._lastDrawW || fighter.w || 60, h = fighter._lastDrawH || fighter.h || 110
+  const x = fighter._lastDrawX != null ? fighter._lastDrawX : (fighter.x || 0)
+  const y = fighter._lastDrawY != null ? fighter._lastDrawY : (fighter.y || 0)
+  c.save(); c.lineCap = "round"
+  for (let i = 0; i < n; i++) {
+    const a = ((i * 73 + 17) % 100) / 100, b = ((i * 149 + 31) % 100) / 100
+    const e = ((i * 211 + 53) % 100) / 100, f = ((i * 307 + 71) % 100) / 100
+    const px = x + w * (0.30 + a * 0.40), py = y + h * (0.18 + b * 0.60)   // central body region (sprite frames have transparent margins)
+    const ang = e * Math.PI * 2, len = (0.14 + f * 0.16) * h
+    const mx = px + Math.cos(ang + (e - 0.5) * 0.9) * len * 0.5, my = py + Math.sin(ang + (e - 0.5) * 0.9) * len * 0.5
+    const ex = mx + Math.cos(ang) * len * 0.5, ey = my + Math.sin(ang) * len * 0.5   // one kink = a jagged crack
+    c.strokeStyle = "rgba(8,12,22,0.65)"; c.lineWidth = 3.2               // dark underlay → the crack reads on any body colour
+    c.beginPath(); c.moveTo(px, py); c.lineTo(mx, my); c.lineTo(ex, ey); c.stroke()
+    c.strokeStyle = "rgba(216,236,255,1)"; c.lineWidth = 1.7              // bright icy-white glass crack
+    c.beginPath(); c.moveTo(px, py); c.lineTo(mx, my); c.lineTo(ex, ey); c.stroke()
+  }
+  c.restore()
+}
+
 function renderHybridFighter(fighter) {
   if (!fighter) return
   // BRUTALITY sprite-bisection: hide the live loser body during the finisher beat — the two separating split
@@ -13270,6 +13445,7 @@ function renderHybridFighter(fighter) {
       drawFighter(c, fighter, camera)
     }
     if (_ssA < 1) c.restore()
+    _drawComboCracks(c, fighter)        // STAGE 2: cracking-glass overlay on a fighter being deep-combo'd (5/9/15 tiers), ON TOP of the body — purely cosmetic
     drawLightNormalFx(c, fighter)       // Light Yagami — B-family normal FX: gold spark (light/crouch) + blue crescent (heavy), ON TOP of the body (Light only)
     drawByakuyaSpecialFx(c, fighter)    // Byakuya — Senbonzakura petal ring (Shunpo/Utsusemi) + thrust streak, ON TOP of the body (Byakuya only)
     drawBorutoShidenFX(c, fighter)      // Boruto — Lightning Shiden electric arcs along the forearm during the thrust, ON TOP of the body (Boruto only)
@@ -15214,6 +15390,7 @@ function drawBattle() {
   _drawParryClashFlash()      // Track A2: brief parry/clash "sell" wash (over fighters, under HUD)
   _tickImpactFlash()          // Impact frame (visual only): counts down each fighter's Black-Flash colour-swap (drawn by sprite.js), layered on hitstop
   _drawImpactBurst()          // STAGE 2: radiating crack/shatter burst at the impact point (higher tiers), over the scene, under HUD
+  _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
   drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
@@ -18385,6 +18562,31 @@ gameLoop()
       finishers:    () => Object.keys(BRUTALITY_FINISHERS),
       // Read the killing-blow-move stamp combat.js records on a fighter (Stage 2 real-combat verification).
       killMove:     (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? (f._killingBlowMove ?? null) : null },
+      // IMPACT HIT (obito prototype) — live state readout + a frame-exact driver (hold a phase for capture).
+      impactHit:    () => ({ active: impactHitState.active, phase: impactHitState.phase, timer: impactHitState.timer, maxTimer: impactHitState.maxTimer, winnerSide: impactHitState.winnerSide, loserSide: impactHitState.loserSide, wKey: impactHitState.wKey, camZoom: Math.round((impactHitState.camZoom || 0) * 100) / 100, liveZoom: Math.round((camera.zoom || 0) * 100) / 100, brutality: brutalityState.active }),
+      // Drive the REAL trigger path (checkRoundEnd is skipped in training): stamp the killing move + KO the loser,
+      // then run the exact injection (_tryStartImpactHit → else Brutality). Returns whether Impact Hit started.
+      impactHitTrigger: (winner = "p1", move = "obitoKamuiDimension") => {
+        const winF = winner === "p1" ? p1 : p2, loseF = winner === "p1" ? p2 : p1
+        if (winF) winF._killingBlowMove = move
+        if (loseF) loseF.health = 0
+        const started = _tryStartImpactHit(winner)
+        return { impactHit: started, brutalityInstead: !started && _tryStartBrutality(winner), active: impactHitState.active, phase: impactHitState.phase, winnerSide: impactHitState.winnerSide, loserSide: impactHitState.loserSide }
+      },
+      debugImpactHit: (winner = "p1", phase = "black") => {
+        if (phase === "off") { impactHitState.active = false; impactHitState._held = false; _clearImpactHitSprites(); return { active: false } }
+        const winF = winner === "p1" ? p1 : p2, loseF = winner === "p1" ? p2 : p1
+        impactHitState.active = true; impactHitState._held = true; impactHitState.timer = 999; impactHitState.maxTimer = 999
+        impactHitState.phase = phase; impactHitState.winnerSide = winner; impactHitState.loserSide = winner === "p1" ? "p2" : "p1"
+        impactHitState.wKey = (winF?.rosterKey || "").toLowerCase()
+        if (loseF && loseF.health > 0) loseF.health = 0
+        if (loseF?.animationData?.lose) loseF._forceAction = "lose"
+        if (winF?.animationData?.win) winF._forceAction = "win"
+        const base = camera.maxZoom || 1; const z = Math.max(1.5, base * 1.8)   // stable base — don't compound the already-held zoom across repeated debug calls
+        camera.zoom = z; camera.targetZoom = z; impactHitState.camZoom = z
+        _applyImpactHitSprites(phase)   // recolor the sprites for the held phase (frame-exact capture)
+        return { active: true, phase }
+      },
       // Screen-space rect of the captured (bisected) loser frame, so a harness can crop tightly around the FX.
       screenRect:   () => { const sp = brutalityState.sprite; if (!sp) return null; const z = camera.zoom || 1, cw = canvas.width, ch = canvas.height
         const sx = cw * 0.5 + z * (sp.x - camera.x + (camera.shakeX || 0)); const sy = ch * 0.5 + z * (sp.y - camera.y + (camera.shakeY || 0))
@@ -18742,6 +18944,8 @@ gameLoop()
     // `active` = a representative marker (both fighters share the same tier/combo/level on a given hit); p1/p2Filter
     // = the sprite filter actually applied last render (sprite.js records _lastSpriteFilter) → proves the recolor lands.
     impactFrame: () => { const s = f => (f && f._impactFlash) ? { ...f._impactFlash } : null; const a = s(p1), b = s(p2); return { p1: a, p2: b, active: a || b, p1Filter: p1?._lastSpriteFilter || null, p2Filter: p2?._lastSpriteFilter || null, burst: _impactBurst ? { ..._impactBurst } : null } },
+    // STAGE 2 — cracking-glass combo overlay readout for a fighter (density = opponent's live combo tier).
+    comboCracks: (who = "p2") => { const f = who === "p2" ? p2 : p1; const combo = getOpponent(f)?.comboCounter || 0; const tier = combo < 5 ? 0 : combo >= 15 ? 3 : combo >= 9 ? 2 : 1; const n = tier === 3 ? 14 : tier === 2 ? 8 : tier === 1 ? 4 : 0; return { combo, tier, cracks: n }; },
     // STAGE 2 — KO beat readout: the hard freeze-frame counter, the slow-mo hang, and the resolve hold.
     koBeat: () => ({ freeze: _koFreeze, freezeMax: KO_FREEZE_FRAMES, beatFired: _koBeatFired, hangTimer: _koHangTimer, slowdown: slowdownTimer, slowmoTarget: slowdownTarget?.rosterKey || null, koStamp: _koStamp || 0 }),
     // Harness-only: hold the KO freeze-frame open for a frame-exact screenshot (the real freeze is ~5f — too

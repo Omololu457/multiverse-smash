@@ -14,9 +14,13 @@ let PASS=0,FAIL=0; const check=(n,c,d="")=>{(c?PASS++:FAIL++);console.log(`  ${c
 // The 23 eligible characters (+ zaraki_shikai shares zaraki). Exactly these are eligible.
 // Tier 2: deathstroke, isshiki, orochimaru, alt_sukuna, ghostface_billy.
 // Tier 3 (2026-09-17): sasuke, itachi, vegeta, pain, byakuya, yamamoto.
+// obito: added ONLY for the Impact Hit prototype — he has NO per-move gore table and IMPACT_HIT_STANDALONE
+// gates the KLASSIC fallback OFF, so he never plays a Brutality (verified in impact_hit_live.mjs). Eligible flag
+// only, so _tryStartImpactHit's "obito lands the kill" branch is reachable through the shared eligibility gate.
 const ELIGIBLE = ["sukuna","toji","frieza","omniman","zaraki","zaraki_shikai","mayuri","madara","jason","naoya","hisoka","ghostface","baki",
   "deathstroke","isshiki","orochimaru","alt_sukuna","ghostface_billy",
-  "sasuke","itachi","vegeta","pain","byakuya","yamamoto"];
+  "sasuke","itachi","vegeta","pain","byakuya","yamamoto",
+  "obito"];
 // Hard-exclusion list — must NEVER be eligible regardless of style.
 const EXCLUDED = ["naruto","boruto","kiba","gohan","gon","killua","nezuko","ben10","albedo","saiki","l_ryuuzaki","light"];
 // Keys that remain OUT of scope (cell was a prototype candidate that stayed removed).

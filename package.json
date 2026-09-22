@@ -876,6 +876,7 @@
     "test:omololu-voice": "node harness/omololu_voice.test.mjs",
     "test:omololu-matchup": "node harness/omololu_matchup.test.mjs",
     "test:announcer-diagnose": "node harness/announcer_diagnose.mjs",
+    "test:announcer-hover": "node harness/announcer_hover.test.mjs",
     "test:announcer-voice": "node harness/announcer_voice.test.mjs"
   },
   "dependencies": {
